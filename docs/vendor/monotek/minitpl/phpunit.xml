@@ -1,0 +1,22 @@
+<phpunit bootstrap="test/bootstrap.php" colors="true">
+    <testsuites>
+        <testsuite name="MiniTPL for PHP - Test Suite">
+            <file>test/TemplateTest.php</file>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">code</directory>
+	    <exclude>
+		<directory suffix=".php">vendor</directory>
+	    </exclude>
+        </whitelist>
+        <blacklist>
+	    <directory suffix=".php">vendor</directory>
+	    <file>/usr/local/bin/phpunit</file>
+        </blacklist>
+    </filter>
+    <logging>
+        <log type="coverage-html" target="./test/coverage" highlight="true"/>
+    </logging>
+</phpunit>
