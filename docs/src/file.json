@@ -1,0 +1,32 @@
+{
+  "Title": "Files",
+  "Package": "crust",
+  "Interface": "File",
+  "Path": "/file",
+  "APIs": {
+    "add": {
+      "Method": "POST",
+      "Title": "Add new file",
+      "Path": "/add",
+      "Parameters": {}
+    },
+    "read": {
+      "Method": "GET",
+      "Title": "Read file",
+      "Path": "/read",
+      "Parameters": {}
+    },
+    "remove": {
+      "Method": "DELETE",
+      "Title": "Remove file",
+      "Path": "/remove",
+      "Parameters": {}
+    },
+    "search": {
+      "Method": "GET",
+      "Title": "Search files",
+      "Path": "/search",
+      "Parameters": {}
+    }
+  }
+}

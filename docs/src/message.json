@@ -1,0 +1,50 @@
+{
+  "Title": "Messages",
+  "Package": "crust",
+  "Interface": "Message",
+  "Path": "/message",
+  "APIs": {
+    "add": {
+      "Method": "POST",
+      "Title": "Add new message",
+      "Path": "/add",
+      "Parameters": {}
+    },
+    "edit": {
+      "Method": "POST",
+      "Title": "Update message details",
+      "Path": "/edit",
+      "Parameters": {}
+    },
+    "flag": {
+      "Method": "POST",
+      "Title": "Flag message for user (bookmark)",
+      "Path": "/flag",
+      "Parameters": {}
+    },
+    "pin": {
+      "Method": "POST",
+      "Title": "Pin message to channel (public bookmark)",
+      "Path": "/pin",
+      "Parameters": {}
+    },
+    "read": {
+      "Method": "GET",
+      "Title": "Read message details",
+      "Path": "/read",
+      "Parameters": {}
+    },
+    "remove": {
+      "Method": "DELETE",
+      "Title": "Remove message",
+      "Path": "/remove",
+      "Parameters": {}
+    },
+    "search": {
+      "Method": "GET",
+      "Title": "Search messages",
+      "Path": "/search",
+      "Parameters": {}
+    }
+  }
+}

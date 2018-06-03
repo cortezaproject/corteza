@@ -1,0 +1,38 @@
+{
+  "Title": "Members",
+  "Package": "crust",
+  "Interface": "Member",
+  "Path": "/member",
+  "APIs": {
+    "add": {
+      "Method": "POST",
+      "Title": "Add new member",
+      "Path": "/add",
+      "Parameters": {}
+    },
+    "edit": {
+      "Method": "POST",
+      "Title": "Update member details",
+      "Path": "/edit",
+      "Parameters": {}
+    },
+    "read": {
+      "Method": "GET",
+      "Title": "Read member details",
+      "Path": "/read",
+      "Parameters": {}
+    },
+    "remove": {
+      "Method": "DELETE",
+      "Title": "Remove member",
+      "Path": "/remove",
+      "Parameters": {}
+    },
+    "search": {
+      "Method": "GET",
+      "Title": "Search members (Directory)",
+      "Path": "/search",
+      "Parameters": {}
+    }
+  }
+}

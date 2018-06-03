@@ -1,6 +1,7 @@
 [
 	{
 		"title": "Organisations",
+		"package": "crust",
 		"entrypoint": "organisation",
 		"apis": {
 			"add": {
@@ -31,6 +32,7 @@
 	},
 	{
 		"title": "Teams",
+		"package": "crust",
 		"entrypoint": "team",
 		"apis": {
 			"add": {
@@ -65,6 +67,7 @@
 	},
 	{
 		"title": "Channels",
+		"package": "crust",
 		"entrypoint": "channel",
 		"apis": {
 			"add": {
@@ -99,6 +102,7 @@
 	},
 	{
 		"title": "Messages",
+		"package": "crust",
 		"entrypoint": "message",
 		"apis": {
 			"add": {
@@ -133,6 +137,7 @@
 	},
 	{
 		"title": "Members",
+		"package": "crust",
 		"entrypoint": "member",
 		"apis": {
 			"add": {
@@ -159,6 +164,7 @@
 	},
 	{
 		"title": "Files",
+		"package": "crust",
 		"entrypoint": "file",
 		"apis": {
 			"add": {

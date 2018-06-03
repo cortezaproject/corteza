@@ -1,0 +1,44 @@
+{
+  "Title": "Organisations",
+  "Package": "crust",
+  "Interface": "Organisation",
+  "Path": "/organisation",
+  "APIs": {
+    "add": {
+      "Method": "POST",
+      "Title": "Add new organisation",
+      "Path": "/add",
+      "Parameters": {}
+    },
+    "archive": {
+      "Method": "POST",
+      "Title": "Archive organisation",
+      "Path": "/archive",
+      "Parameters": {}
+    },
+    "edit": {
+      "Method": "POST",
+      "Title": "Update organisation details",
+      "Path": "/edit",
+      "Parameters": {}
+    },
+    "read": {
+      "Method": "GET",
+      "Title": "Read organisation details",
+      "Path": "/read",
+      "Parameters": {}
+    },
+    "remove": {
+      "Method": "DELETE",
+      "Title": "Remove organisation",
+      "Path": "/remove",
+      "Parameters": {}
+    },
+    "search": {
+      "Method": "GET",
+      "Title": "Search organisations",
+      "Path": "/search",
+      "Parameters": {}
+    }
+  }
+}

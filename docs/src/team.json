@@ -1,0 +1,50 @@
+{
+  "Title": "Teams",
+  "Package": "crust",
+  "Interface": "Team",
+  "Path": "/team",
+  "APIs": {
+    "add": {
+      "Method": "POST",
+      "Title": "Add new team",
+      "Path": "/add",
+      "Parameters": {}
+    },
+    "archive": {
+      "Method": "POST",
+      "Title": "Archive team",
+      "Path": "/archive",
+      "Parameters": {}
+    },
+    "edit": {
+      "Method": "POST",
+      "Title": "Update team details",
+      "Path": "/edit",
+      "Parameters": {}
+    },
+    "move": {
+      "Method": "POST",
+      "Title": "Move team to different organisation",
+      "Path": "/move",
+      "Parameters": {}
+    },
+    "read": {
+      "Method": "GET",
+      "Title": "Read team details",
+      "Path": "/read",
+      "Parameters": {}
+    },
+    "remove": {
+      "Method": "DELETE",
+      "Title": "Remove team",
+      "Path": "/remove",
+      "Parameters": {}
+    },
+    "search": {
+      "Method": "GET",
+      "Title": "Search teams",
+      "Path": "/search",
+      "Parameters": {}
+    }
+  }
+}
