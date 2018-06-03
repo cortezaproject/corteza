@@ -8,7 +8,7 @@
 
 	{call.description}
 
-	### Request parameters
+	#### Request parameters
 
 	| Parameter | Type | Method | Description | Default | Required? |
         | --------- | ---- | ------ | ----------- | ------- | --------- |

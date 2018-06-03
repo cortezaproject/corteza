@@ -4,7 +4,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 ## Update organisation details
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -13,7 +13,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 ## Remove organisation
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -21,7 +21,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 ## Read organisation details
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -29,7 +29,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 ## Search organisations
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -37,7 +37,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 ## Archive organisation
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -45,7 +45,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 ## Update organisation details
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -54,7 +54,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 ## Remove organisation
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -62,7 +62,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 ## Read organisation details
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -70,7 +70,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 ## Search organisations
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -78,7 +78,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 ## Archive organisation
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -93,7 +93,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Update team details
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -103,7 +103,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Remove team
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -111,7 +111,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Read team details and memberships
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -119,7 +119,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Search teams
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -127,7 +127,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Archive team
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -135,7 +135,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Move team to different organisation
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -144,7 +144,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Update team details
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -154,7 +154,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Remove team
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -162,7 +162,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Read team details and memberships
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -170,7 +170,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Search teams
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -178,7 +178,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Archive team
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -186,7 +186,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Move team to different organisation
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -202,7 +202,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Update channel details
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -212,7 +212,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Remove channel
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -220,7 +220,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Read channel details
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -228,7 +228,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Search channels
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -236,7 +236,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Archive channel
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -244,7 +244,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Move channel to different team or organisation
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -252,7 +252,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Merge one team into another
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -261,7 +261,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Update channel details
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -271,7 +271,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Remove channel
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -279,7 +279,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Read channel details
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -287,7 +287,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Search channels
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -295,7 +295,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Archive channel
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -303,7 +303,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Move channel to different team or organisation
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -311,7 +311,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Merge one team into another
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -345,7 +345,7 @@ The following event types may be sent with a message event:
 
 ## New message / edit message
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -355,14 +355,14 @@ The following event types may be sent with a message event:
 
 ## Attach file to message
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 
 ## Remove message
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -370,7 +370,7 @@ The following event types may be sent with a message event:
 
 ## Read message details
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -378,7 +378,7 @@ The following event types may be sent with a message event:
 
 ## Search messages
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -387,7 +387,7 @@ The following event types may be sent with a message event:
 
 ## Pin message to channel (public bookmark)
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -395,7 +395,7 @@ The following event types may be sent with a message event:
 
 ## Flag message for user (bookmark)
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -403,7 +403,7 @@ The following event types may be sent with a message event:
 
 ## New message / edit message
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -413,14 +413,14 @@ The following event types may be sent with a message event:
 
 ## Attach file to message
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 
 ## Remove message
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -428,7 +428,7 @@ The following event types may be sent with a message event:
 
 ## Read message details
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -436,7 +436,7 @@ The following event types may be sent with a message event:
 
 ## Search messages
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -445,7 +445,7 @@ The following event types may be sent with a message event:
 
 ## Pin message to channel (public bookmark)
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -453,7 +453,7 @@ The following event types may be sent with a message event:
 
 ## Flag message for user (bookmark)
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
@@ -464,17 +464,35 @@ The following event types may be sent with a message event:
 
 # Members
 
+## Member login
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| username | string | POST | Username or email | N/A | YES |
+| password | string | POST | Password for user | N/A | YES |
+
 ## Search members (Directory)
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query to match against users | N/A | NO |
 
+## Member login
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| username | string | POST | Username or email | N/A | YES |
+| password | string | POST | Password for user | N/A | YES |
+
 ## Search members (Directory)
 
-### Request parameters
+#### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
