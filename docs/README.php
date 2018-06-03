@@ -38,7 +38,6 @@ $spec = json_decode(file_get_contents("src/spec.json"), true);
 $apis = array();
 foreach ($spec as $api) {
 	$entrypoint = $api['entrypoint'];
-	var_dump($entrypoint);
 	$filename = "src/spec/" . $entrypoint . ".json";
 	$filename_md = "src/" . $entrypoint . "/index.md";
 	$api = json_decode(file_get_contents($filename), true);
@@ -46,7 +45,8 @@ foreach ($spec as $api) {
 	if (file_exists($filename_md)) {
 		$api['description'] = file_get_contents($filename_md);
 	}
-	foreach ($api['apis'] as $name => $call) {
+	foreach ($api['apis'] as $call) {
+		$name = $call['name'];
 		$filename_md = "src/" . $entrypoint . "/" . $name . ".md";
 		if (file_exists($filename_md)) {
 			$call['description'] = file_get_contents($filename_md);
