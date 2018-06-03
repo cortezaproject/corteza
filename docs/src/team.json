@@ -1,5 +1,6 @@
 {
   "Title": "Teams",
+  "Description": "An organisation may have many teams. Teams may have many channels available. Access to channels may be shared between teams.",
   "Package": "crust",
   "Interface": "Team",
   "Path": "/team",

@@ -1,5 +1,6 @@
 {
   "Title": "Files",
+  "Description": "The Files API is an abstraction over messages that have been sent with a file attachment.",
   "Package": "crust",
   "Interface": "File",
   "Path": "/file",
