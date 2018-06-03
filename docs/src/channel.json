@@ -5,47 +5,128 @@
   "Interface": "Channel",
   "Path": "/channel",
   "APIs": {
-    "add": {
-      "Method": "POST",
-      "Title": "Add new channel",
-      "Path": "/add",
-      "Parameters": {}
-    },
     "archive": {
       "Method": "POST",
       "Title": "Archive channel",
       "Path": "/archive",
-      "Parameters": {}
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "ID of Channel",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     "edit": {
       "Method": "POST",
       "Title": "Update channel details",
       "Path": "/edit",
-      "Parameters": {}
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": false,
+            "title": "ID of Channel",
+            "type": "uint64"
+          },
+          {
+            "name": "name",
+            "required": true,
+            "title": "Name of Channel",
+            "type": "string"
+          },
+          {
+            "name": "topic",
+            "required": true,
+            "title": "Subject of Channel",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "merge": {
+      "Method": "POST",
+      "Title": "Merge one team into another",
+      "Path": "/merge",
+      "Parameters": {
+        "post": [
+          {
+            "name": "destination",
+            "required": true,
+            "title": "Destination Channel ID",
+            "type": "uint64"
+          },
+          {
+            "name": "source",
+            "required": true,
+            "title": "Source Channel ID",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     "move": {
       "Method": "POST",
       "Title": "Move channel to different team or organisation",
       "Path": "/move",
-      "Parameters": {}
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "ID of Channel",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     "read": {
       "Method": "GET",
       "Title": "Read channel details",
       "Path": "/read",
-      "Parameters": {}
+      "Parameters": {
+        "get": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "ID of Channel",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     "remove": {
       "Method": "DELETE",
       "Title": "Remove channel",
       "Path": "/remove",
-      "Parameters": {}
+      "Parameters": {
+        "get": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "ID of Channel",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     "search": {
       "Method": "GET",
       "Title": "Search channels",
       "Path": "/search",
-      "Parameters": {}
+      "Parameters": {
+        "get": [
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search query",
+            "type": "string"
+          }
+        ]
+      }
     }
   }
 }

@@ -4,47 +4,119 @@
   "Interface": "Message",
   "Path": "/message",
   "APIs": {
-    "add": {
-      "Method": "POST",
-      "Title": "Add new message",
-      "Path": "/add",
-      "Parameters": {}
-    },
     "edit": {
       "Method": "POST",
-      "Title": "Update message details",
+      "Title": "New message / edit message",
       "Path": "/edit",
-      "Parameters": {}
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": false,
+            "title": "ID of Message",
+            "type": "uint64"
+          },
+          {
+            "name": "channel_id",
+            "required": false,
+            "title": "ID of Channel where to post message",
+            "type": "uint64"
+          },
+          {
+            "name": "contents",
+            "required": true,
+            "title": "Message contents (markdown)",
+            "type": "string"
+          }
+        ]
+      }
     },
     "flag": {
       "Method": "POST",
       "Title": "Flag message for user (bookmark)",
       "Path": "/flag",
-      "Parameters": {}
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "ID of Message",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     "pin": {
       "Method": "POST",
       "Title": "Pin message to channel (public bookmark)",
       "Path": "/pin",
-      "Parameters": {}
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "ID of Message",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     "read": {
       "Method": "GET",
       "Title": "Read message details",
       "Path": "/read",
-      "Parameters": {}
+      "Parameters": {
+        "post": [
+          {
+            "name": "channel_id",
+            "required": true,
+            "title": "ID of Channel to read messages from",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     "remove": {
       "Method": "DELETE",
       "Title": "Remove message",
       "Path": "/remove",
-      "Parameters": {}
+      "Parameters": {
+        "get": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "ID of Message",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     "search": {
       "Method": "GET",
       "Title": "Search messages",
       "Path": "/search",
-      "Parameters": {}
+      "Parameters": {
+        "get": [
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search string to match against messages",
+            "type": "string"
+          },
+          {
+            "name": "message_type",
+            "required": false,
+            "title": "Limit results to message type",
+            "type": "string",
+            "values": [
+              "history",
+              "message",
+              "attachment",
+              "media"
+            ]
+          }
+        ]
+      }
     }
   }
 }

@@ -5,41 +5,86 @@
   "Interface": "Organisation",
   "Path": "/organisation",
   "APIs": {
-    "add": {
-      "Method": "POST",
-      "Title": "Add new organisation",
-      "Path": "/add",
-      "Parameters": {}
-    },
     "archive": {
       "Method": "POST",
       "Title": "Archive organisation",
       "Path": "/archive",
-      "Parameters": {}
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "ID of Organisation",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     "edit": {
       "Method": "POST",
       "Title": "Update organisation details",
       "Path": "/edit",
-      "Parameters": {}
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": false,
+            "title": "ID of Organisation",
+            "type": "uint64"
+          },
+          {
+            "name": "name",
+            "required": true,
+            "title": "Name of Organisation",
+            "type": "string"
+          }
+        ]
+      }
     },
     "read": {
       "Method": "GET",
       "Title": "Read organisation details",
       "Path": "/read",
-      "Parameters": {}
+      "Parameters": {
+        "get": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "ID of Organisation",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     "remove": {
       "Method": "DELETE",
       "Title": "Remove organisation",
       "Path": "/remove",
-      "Parameters": {}
+      "Parameters": {
+        "get": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "ID of Organisation",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     "search": {
       "Method": "GET",
       "Title": "Search organisations",
       "Path": "/search",
-      "Parameters": {}
+      "Parameters": {
+        "get": [
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search query",
+            "type": "string"
+          }
+        ]
+      }
     }
   }
 }

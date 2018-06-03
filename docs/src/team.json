@@ -5,47 +5,113 @@
   "Interface": "Team",
   "Path": "/team",
   "APIs": {
-    "add": {
-      "Method": "POST",
-      "Title": "Add new team",
-      "Path": "/add",
-      "Parameters": {}
-    },
     "archive": {
       "Method": "POST",
       "Title": "Archive team",
       "Path": "/archive",
-      "Parameters": {}
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "ID of Organisation",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     "edit": {
       "Method": "POST",
       "Title": "Update team details",
       "Path": "/edit",
-      "Parameters": {}
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": false,
+            "title": "ID of Team",
+            "type": "uint64"
+          },
+          {
+            "name": "name",
+            "required": true,
+            "title": "Name of Team",
+            "type": "string"
+          },
+          {
+            "name": "members",
+            "required": false,
+            "title": "Team member IDs",
+            "type": "[]uint64"
+          }
+        ]
+      }
     },
     "move": {
       "Method": "POST",
       "Title": "Move team to different organisation",
       "Path": "/move",
-      "Parameters": {}
+      "Parameters": {
+        "POST": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "ID of Organisation",
+            "type": "uint64"
+          },
+          {
+            "name": "organisation_id",
+            "required": true,
+            "title": "ID of Organisation",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     "read": {
       "Method": "GET",
-      "Title": "Read team details",
+      "Title": "Read team details and memberships",
       "Path": "/read",
-      "Parameters": {}
+      "Parameters": {
+        "get": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "ID of Organisation",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     "remove": {
       "Method": "DELETE",
       "Title": "Remove team",
       "Path": "/remove",
-      "Parameters": {}
+      "Parameters": {
+        "get": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "ID of Organisation",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     "search": {
       "Method": "GET",
       "Title": "Search teams",
       "Path": "/search",
-      "Parameters": {}
+      "Parameters": {
+        "get": [
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search query",
+            "type": "string"
+          }
+        ]
+      }
     }
   }
 }

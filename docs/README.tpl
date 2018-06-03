@@ -14,7 +14,7 @@
         | --------- | ---- | ------ | ----------- | ------- | --------- |
 	{foreach $call.parameters as $method => $params}
 		{foreach $params as $param}
-		| {param.name} | {param.type} | {method|toupper} | {param.title} | {if empty($param.default)}N/A{else}{param.default}{/if} | {if $param.required}YES{else}NO{/if} |
+		| {param.name} | {param.type} | {method|toupper} | {param.title} | {if empty($param.default)}N/A{else}{param.default}{/if}{if $param.values}<br/>Values:<br/><br/><ul>{foreach $param.values as $value}<li>`{value}`</li>{/foreach}</ul>{/if} | {if $param.required}YES{else}NO{/if} |
 		{/foreach}
 	{/foreach}
 
