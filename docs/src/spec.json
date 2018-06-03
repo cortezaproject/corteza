@@ -4,6 +4,7 @@
 		"description": "Organisations represent a top-level grouping entity. There may be many organisations defined in a single deployment.",
 		"package": "crust",
 		"entrypoint": "organisation",
+		"authentication": ["Client ID", "Session ID"],
 		"apis": [
 			{
 				"name": "edit",
@@ -63,6 +64,7 @@
 		"description": "An organisation may have many teams. Teams may have many channels available. Access to channels may be shared between teams.",
 		"package": "crust",
 		"entrypoint": "team",
+		"authentication": ["Client ID", "Session ID"],
 		"apis": [
 			{
 				"name": "edit",
@@ -134,6 +136,7 @@
 		"description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or direct (between two users).",
 		"package": "crust",
 		"entrypoint": "channel",
+		"authentication": ["Client ID", "Session ID"],
 		"apis": [
 			{
 				"name": "edit",
@@ -214,6 +217,7 @@
 		"title": "Messages",
 		"package": "crust",
 		"entrypoint": "message",
+		"authentication": ["Client ID", "Session ID"],
 		"apis": [
 			{
 				"name": "edit",
@@ -301,6 +305,7 @@
 		"title": "Members",
 		"package": "crust",
 		"entrypoint": "member",
+		"authentication": ["Client ID", "Session ID"],
 		"apis": [
 			{
 				"name": "login",
@@ -322,6 +327,20 @@
 						{ "type": "string", "name": "query", "required": false, "title": "Search query to match against users" }
 					]
 				}
+			}
+		]
+	},
+	{
+		"title": "Websocket",
+		"package": "crust",
+		"entrypoint": "websocket",
+		"protocol": "WebSockets",
+		"authentication": ["Client ID", "Session ID"],
+		"apis": [
+			{
+				"name": "client",
+				"method": "GET",
+				"title": "Bidirectional websocket chat connection"
 			}
 		]
 	}

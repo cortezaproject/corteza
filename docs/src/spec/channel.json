@@ -3,6 +3,11 @@
   "Description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or direct (between two users).",
   "Package": "crust",
   "Interface": "Channel",
+  "Protocol": "",
+  "Authentication": [
+    "Client ID",
+    "Session ID"
+  ],
   "Path": "/channel",
   "APIs": [
     {

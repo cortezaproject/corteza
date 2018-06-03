@@ -2,6 +2,11 @@
   "Title": "Members",
   "Package": "crust",
   "Interface": "Member",
+  "Protocol": "",
+  "Authentication": [
+    "Client ID",
+    "Session ID"
+  ],
   "Path": "/member",
   "APIs": [
     {

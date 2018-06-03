@@ -8,6 +8,12 @@
 
 	{call.description}
 
+	#### Method
+
+	| URI | Protocol | Method | Authentication |
+	| --- | -------- | ------ | -------------- |
+	| `{api.path}{call.path}` | {if $api.protocol}{api.protocol}{else}HTTP/S{/if} | {call.method} | {eval echo implode(", ", $api.authentication)} |
+
 	#### Request parameters
 
 	| Parameter | Type | Method | Description | Default | Required? |

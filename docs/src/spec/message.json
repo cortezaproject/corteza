@@ -2,6 +2,11 @@
   "Title": "Messages",
   "Package": "crust",
   "Interface": "Message",
+  "Protocol": "",
+  "Authentication": [
+    "Client ID",
+    "Session ID"
+  ],
   "Path": "/message",
   "APIs": [
     {

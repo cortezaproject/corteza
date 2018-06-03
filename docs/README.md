@@ -4,6 +4,12 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 ## Update organisation details
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/organisation/edit` | HTTP/S | POST | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -13,6 +19,12 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 ## Remove organisation
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/organisation/remove` | HTTP/S | DELETE | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -20,6 +32,12 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | id | uint64 | GET | Organisation ID | N/A | YES |
 
 ## Read organisation details
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/organisation/read` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -29,6 +47,12 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 ## Search organisations
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/organisation/search` | HTTP/S | GET | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -36,6 +60,12 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | query | string | GET | Search query | N/A | NO |
 
 ## Archive organisation
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/organisation/archive` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -45,6 +75,12 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 ## Update organisation details
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/organisation/edit` | HTTP/S | POST | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -54,6 +90,12 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 ## Remove organisation
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/organisation/remove` | HTTP/S | DELETE | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -61,6 +103,12 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | id | uint64 | GET | Organisation ID | N/A | YES |
 
 ## Read organisation details
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/organisation/read` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -70,6 +118,12 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 ## Search organisations
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/organisation/search` | HTTP/S | GET | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -77,6 +131,12 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | query | string | GET | Search query | N/A | NO |
 
 ## Archive organisation
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/organisation/archive` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -93,6 +153,12 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Update team details
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/edit` | HTTP/S | POST | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -103,6 +169,12 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Remove team
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/remove` | HTTP/S | DELETE | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -110,6 +182,12 @@ An organisation may have many teams. Teams may have many channels available. Acc
 | id | uint64 | GET | Organisation ID | N/A | YES |
 
 ## Read team details and memberships
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/read` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -119,6 +197,12 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Search teams
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/search` | HTTP/S | GET | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -127,6 +211,12 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Archive team
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/archive` | HTTP/S | POST | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -134,6 +224,12 @@ An organisation may have many teams. Teams may have many channels available. Acc
 | id | uint64 | POST | Organisation ID | N/A | YES |
 
 ## Move team to different organisation
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/move` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -144,6 +240,12 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Update team details
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/edit` | HTTP/S | POST | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -154,6 +256,12 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Remove team
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/remove` | HTTP/S | DELETE | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -161,6 +269,12 @@ An organisation may have many teams. Teams may have many channels available. Acc
 | id | uint64 | GET | Organisation ID | N/A | YES |
 
 ## Read team details and memberships
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/read` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -170,6 +284,12 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Search teams
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/search` | HTTP/S | GET | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -178,6 +298,12 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 ## Archive team
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/archive` | HTTP/S | POST | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -185,6 +311,12 @@ An organisation may have many teams. Teams may have many channels available. Acc
 | id | uint64 | POST | Organisation ID | N/A | YES |
 
 ## Move team to different organisation
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/move` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -202,6 +334,12 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Update channel details
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channel/edit` | HTTP/S | POST | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -212,6 +350,12 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Remove channel
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channel/remove` | HTTP/S | DELETE | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -219,6 +363,12 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | id | uint64 | GET | Channel ID | N/A | YES |
 
 ## Read channel details
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channel/read` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -228,6 +378,12 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Search channels
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channel/search` | HTTP/S | GET | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -235,6 +391,12 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | query | string | GET | Search query | N/A | NO |
 
 ## Archive channel
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channel/archive` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -244,6 +406,12 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Move channel to different team or organisation
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channel/move` | HTTP/S | POST | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -251,6 +419,12 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | id | uint64 | POST | Channel ID | N/A | YES |
 
 ## Merge one team into another
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channel/merge` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -261,6 +435,12 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Update channel details
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channel/edit` | HTTP/S | POST | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -271,6 +451,12 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Remove channel
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channel/remove` | HTTP/S | DELETE | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -278,6 +464,12 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | id | uint64 | GET | Channel ID | N/A | YES |
 
 ## Read channel details
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channel/read` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -287,6 +479,12 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Search channels
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channel/search` | HTTP/S | GET | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -294,6 +492,12 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | query | string | GET | Search query | N/A | NO |
 
 ## Archive channel
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channel/archive` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -303,6 +507,12 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 ## Move channel to different team or organisation
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channel/move` | HTTP/S | POST | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -310,6 +520,12 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | id | uint64 | POST | Channel ID | N/A | YES |
 
 ## Merge one team into another
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channel/merge` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -345,6 +561,12 @@ The following event types may be sent with a message event:
 
 ## New message / edit message
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/message/edit` | HTTP/S | POST | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -355,12 +577,24 @@ The following event types may be sent with a message event:
 
 ## Attach file to message
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/message/attach` | HTTP/S | PUT | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 
 ## Remove message
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/message/remove` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
@@ -370,6 +604,12 @@ The following event types may be sent with a message event:
 
 ## Read message details
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/message/read` | HTTP/S | GET | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -377,6 +617,12 @@ The following event types may be sent with a message event:
 | channel_id | uint64 | POST | Channel ID to read messages from | N/A | YES |
 
 ## Search messages
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/message/search` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -387,6 +633,12 @@ The following event types may be sent with a message event:
 
 ## Pin message to channel (public bookmark)
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/message/pin` | HTTP/S | POST | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -394,6 +646,12 @@ The following event types may be sent with a message event:
 | id | uint64 | POST | Message ID | N/A | YES |
 
 ## Flag message for user (bookmark)
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/message/flag` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -403,6 +661,12 @@ The following event types may be sent with a message event:
 
 ## New message / edit message
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/message/edit` | HTTP/S | POST | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -413,12 +677,24 @@ The following event types may be sent with a message event:
 
 ## Attach file to message
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/message/attach` | HTTP/S | PUT | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 
 ## Remove message
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/message/remove` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
@@ -428,6 +704,12 @@ The following event types may be sent with a message event:
 
 ## Read message details
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/message/read` | HTTP/S | GET | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -435,6 +717,12 @@ The following event types may be sent with a message event:
 | channel_id | uint64 | POST | Channel ID to read messages from | N/A | YES |
 
 ## Search messages
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/message/search` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -445,6 +733,12 @@ The following event types may be sent with a message event:
 
 ## Pin message to channel (public bookmark)
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/message/pin` | HTTP/S | POST | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -452,6 +746,12 @@ The following event types may be sent with a message event:
 | id | uint64 | POST | Message ID | N/A | YES |
 
 ## Flag message for user (bookmark)
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/message/flag` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -466,6 +766,12 @@ The following event types may be sent with a message event:
 
 ## Member login
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/member/login` | HTTP/S | POST | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -474,6 +780,12 @@ The following event types may be sent with a message event:
 | password | string | POST | Password for user | N/A | YES |
 
 ## Search members (Directory)
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/member/search` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -483,6 +795,12 @@ The following event types may be sent with a message event:
 
 ## Member login
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/member/login` | HTTP/S | POST | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
@@ -492,8 +810,45 @@ The following event types may be sent with a message event:
 
 ## Search members (Directory)
 
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/member/search` | HTTP/S | GET | Client ID, Session ID |
+
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query to match against users | N/A | NO |
+
+
+
+
+# Websocket
+
+## Bidirectional websocket chat connection
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/websocket/client` | WebSockets | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+
+## Bidirectional websocket chat connection
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/websocket/client` | WebSockets | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
