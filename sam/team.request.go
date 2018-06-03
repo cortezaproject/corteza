@@ -2,22 +2,20 @@ package sam
 
 import (
 	"net/http"
-
-	"github.com/pkg/errors"
 )
 
 // Team edit request parameters
-type TeamEditRequest struct {
+type teamEditRequest struct {
 	id      uint64
 	name    string
 	members []uint64
 }
 
-func (TeamEditRequest) new() *TeamEditRequest {
-	return &TeamEditRequest{}
+func (teamEditRequest) new() *teamEditRequest {
+	return &teamEditRequest{}
 }
 
-func (t *TeamEditRequest) Fill(r *http.Request) error {
+func (t *teamEditRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -32,21 +30,21 @@ func (t *TeamEditRequest) Fill(r *http.Request) error {
 	t.id = parseUInt64(post["id"])
 
 	t.name = post["name"]
-	return errors.New("Not implemented: TeamEditRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = TeamEditRequest{}.new()
+var _ RequestFiller = teamEditRequest{}.new()
 
 // Team remove request parameters
-type TeamRemoveRequest struct {
+type teamRemoveRequest struct {
 	id uint64
 }
 
-func (TeamRemoveRequest) new() *TeamRemoveRequest {
-	return &TeamRemoveRequest{}
+func (teamRemoveRequest) new() *teamRemoveRequest {
+	return &teamRemoveRequest{}
 }
 
-func (t *TeamRemoveRequest) Fill(r *http.Request) error {
+func (t *teamRemoveRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -59,21 +57,21 @@ func (t *TeamRemoveRequest) Fill(r *http.Request) error {
 	}
 
 	t.id = parseUInt64(get["id"])
-	return errors.New("Not implemented: TeamRemoveRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = TeamRemoveRequest{}.new()
+var _ RequestFiller = teamRemoveRequest{}.new()
 
 // Team read request parameters
-type TeamReadRequest struct {
+type teamReadRequest struct {
 	id uint64
 }
 
-func (TeamReadRequest) new() *TeamReadRequest {
-	return &TeamReadRequest{}
+func (teamReadRequest) new() *teamReadRequest {
+	return &teamReadRequest{}
 }
 
-func (t *TeamReadRequest) Fill(r *http.Request) error {
+func (t *teamReadRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -86,21 +84,21 @@ func (t *TeamReadRequest) Fill(r *http.Request) error {
 	}
 
 	t.id = parseUInt64(get["id"])
-	return errors.New("Not implemented: TeamReadRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = TeamReadRequest{}.new()
+var _ RequestFiller = teamReadRequest{}.new()
 
 // Team search request parameters
-type TeamSearchRequest struct {
+type teamSearchRequest struct {
 	query string
 }
 
-func (TeamSearchRequest) new() *TeamSearchRequest {
-	return &TeamSearchRequest{}
+func (teamSearchRequest) new() *teamSearchRequest {
+	return &teamSearchRequest{}
 }
 
-func (t *TeamSearchRequest) Fill(r *http.Request) error {
+func (t *teamSearchRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -113,21 +111,21 @@ func (t *TeamSearchRequest) Fill(r *http.Request) error {
 	}
 
 	t.query = get["query"]
-	return errors.New("Not implemented: TeamSearchRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = TeamSearchRequest{}.new()
+var _ RequestFiller = teamSearchRequest{}.new()
 
 // Team archive request parameters
-type TeamArchiveRequest struct {
+type teamArchiveRequest struct {
 	id uint64
 }
 
-func (TeamArchiveRequest) new() *TeamArchiveRequest {
-	return &TeamArchiveRequest{}
+func (teamArchiveRequest) new() *teamArchiveRequest {
+	return &teamArchiveRequest{}
 }
 
-func (t *TeamArchiveRequest) Fill(r *http.Request) error {
+func (t *teamArchiveRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -140,22 +138,22 @@ func (t *TeamArchiveRequest) Fill(r *http.Request) error {
 	}
 
 	t.id = parseUInt64(post["id"])
-	return errors.New("Not implemented: TeamArchiveRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = TeamArchiveRequest{}.new()
+var _ RequestFiller = teamArchiveRequest{}.new()
 
 // Team move request parameters
-type TeamMoveRequest struct {
+type teamMoveRequest struct {
 	id              uint64
 	organisation_id uint64
 }
 
-func (TeamMoveRequest) new() *TeamMoveRequest {
-	return &TeamMoveRequest{}
+func (teamMoveRequest) new() *teamMoveRequest {
+	return &teamMoveRequest{}
 }
 
-func (t *TeamMoveRequest) Fill(r *http.Request) error {
+func (t *teamMoveRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -170,7 +168,7 @@ func (t *TeamMoveRequest) Fill(r *http.Request) error {
 	t.id = parseUInt64(post["id"])
 
 	t.organisation_id = parseUInt64(post["organisation_id"])
-	return errors.New("Not implemented: TeamMoveRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = TeamMoveRequest{}.new()
+var _ RequestFiller = teamMoveRequest{}.new()

@@ -17,8 +17,8 @@ func (UserHandlers) new() *UserHandlers {
 
 // Internal API interface
 type UserAPI interface {
-	Login(*UserLoginRequest) (interface{}, error)
-	Search(*UserSearchRequest) (interface{}, error)
+	Login(*userLoginRequest) (interface{}, error)
+	Search(*userSearchRequest) (interface{}, error)
 }
 
 // HTTP API interface

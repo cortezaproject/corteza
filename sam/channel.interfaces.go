@@ -17,13 +17,13 @@ func (ChannelHandlers) new() *ChannelHandlers {
 
 // Internal API interface
 type ChannelAPI interface {
-	Edit(*ChannelEditRequest) (interface{}, error)
-	Remove(*ChannelRemoveRequest) (interface{}, error)
-	Read(*ChannelReadRequest) (interface{}, error)
-	Search(*ChannelSearchRequest) (interface{}, error)
-	Archive(*ChannelArchiveRequest) (interface{}, error)
-	Move(*ChannelMoveRequest) (interface{}, error)
-	Merge(*ChannelMergeRequest) (interface{}, error)
+	Edit(*channelEditRequest) (interface{}, error)
+	Remove(*channelRemoveRequest) (interface{}, error)
+	Read(*channelReadRequest) (interface{}, error)
+	Search(*channelSearchRequest) (interface{}, error)
+	Archive(*channelArchiveRequest) (interface{}, error)
+	Move(*channelMoveRequest) (interface{}, error)
+	Merge(*channelMergeRequest) (interface{}, error)
 }
 
 // HTTP API interface

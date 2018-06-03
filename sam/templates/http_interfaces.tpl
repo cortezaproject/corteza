@@ -18,7 +18,7 @@ func ({name}Handlers) new() *{name}Handlers {
 // Internal API interface
 type {name}API interface {
 {foreach $calls as $call}
-	{call.name|ucfirst}(*{name}{call.name|ucfirst}Request) (interface{}, error)
+	{call.name|ucfirst}(*{name|lcfirst}{call.name|ucfirst}Request) (interface{}, error)
 {/foreach}
 }
 

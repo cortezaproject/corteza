@@ -17,12 +17,12 @@ func (TeamHandlers) new() *TeamHandlers {
 
 // Internal API interface
 type TeamAPI interface {
-	Edit(*TeamEditRequest) (interface{}, error)
-	Remove(*TeamRemoveRequest) (interface{}, error)
-	Read(*TeamReadRequest) (interface{}, error)
-	Search(*TeamSearchRequest) (interface{}, error)
-	Archive(*TeamArchiveRequest) (interface{}, error)
-	Move(*TeamMoveRequest) (interface{}, error)
+	Edit(*teamEditRequest) (interface{}, error)
+	Remove(*teamRemoveRequest) (interface{}, error)
+	Read(*teamReadRequest) (interface{}, error)
+	Search(*teamSearchRequest) (interface{}, error)
+	Archive(*teamArchiveRequest) (interface{}, error)
+	Move(*teamMoveRequest) (interface{}, error)
 }
 
 // HTTP API interface

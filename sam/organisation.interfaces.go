@@ -17,11 +17,11 @@ func (OrganisationHandlers) new() *OrganisationHandlers {
 
 // Internal API interface
 type OrganisationAPI interface {
-	Edit(*OrganisationEditRequest) (interface{}, error)
-	Remove(*OrganisationRemoveRequest) (interface{}, error)
-	Read(*OrganisationReadRequest) (interface{}, error)
-	Search(*OrganisationSearchRequest) (interface{}, error)
-	Archive(*OrganisationArchiveRequest) (interface{}, error)
+	Edit(*organisationEditRequest) (interface{}, error)
+	Remove(*organisationRemoveRequest) (interface{}, error)
+	Read(*organisationReadRequest) (interface{}, error)
+	Search(*organisationSearchRequest) (interface{}, error)
+	Archive(*organisationArchiveRequest) (interface{}, error)
 }
 
 // HTTP API interface

@@ -2,22 +2,20 @@ package sam
 
 import (
 	"net/http"
-
-	"github.com/pkg/errors"
 )
 
 // Channel edit request parameters
-type ChannelEditRequest struct {
+type channelEditRequest struct {
 	id    uint64
 	name  string
 	topic string
 }
 
-func (ChannelEditRequest) new() *ChannelEditRequest {
-	return &ChannelEditRequest{}
+func (channelEditRequest) new() *channelEditRequest {
+	return &channelEditRequest{}
 }
 
-func (c *ChannelEditRequest) Fill(r *http.Request) error {
+func (c *channelEditRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -34,21 +32,21 @@ func (c *ChannelEditRequest) Fill(r *http.Request) error {
 	c.name = post["name"]
 
 	c.topic = post["topic"]
-	return errors.New("Not implemented: ChannelEditRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = ChannelEditRequest{}.new()
+var _ RequestFiller = channelEditRequest{}.new()
 
 // Channel remove request parameters
-type ChannelRemoveRequest struct {
+type channelRemoveRequest struct {
 	id uint64
 }
 
-func (ChannelRemoveRequest) new() *ChannelRemoveRequest {
-	return &ChannelRemoveRequest{}
+func (channelRemoveRequest) new() *channelRemoveRequest {
+	return &channelRemoveRequest{}
 }
 
-func (c *ChannelRemoveRequest) Fill(r *http.Request) error {
+func (c *channelRemoveRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -61,21 +59,21 @@ func (c *ChannelRemoveRequest) Fill(r *http.Request) error {
 	}
 
 	c.id = parseUInt64(get["id"])
-	return errors.New("Not implemented: ChannelRemoveRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = ChannelRemoveRequest{}.new()
+var _ RequestFiller = channelRemoveRequest{}.new()
 
 // Channel read request parameters
-type ChannelReadRequest struct {
+type channelReadRequest struct {
 	id uint64
 }
 
-func (ChannelReadRequest) new() *ChannelReadRequest {
-	return &ChannelReadRequest{}
+func (channelReadRequest) new() *channelReadRequest {
+	return &channelReadRequest{}
 }
 
-func (c *ChannelReadRequest) Fill(r *http.Request) error {
+func (c *channelReadRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -88,21 +86,21 @@ func (c *ChannelReadRequest) Fill(r *http.Request) error {
 	}
 
 	c.id = parseUInt64(get["id"])
-	return errors.New("Not implemented: ChannelReadRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = ChannelReadRequest{}.new()
+var _ RequestFiller = channelReadRequest{}.new()
 
 // Channel search request parameters
-type ChannelSearchRequest struct {
+type channelSearchRequest struct {
 	query string
 }
 
-func (ChannelSearchRequest) new() *ChannelSearchRequest {
-	return &ChannelSearchRequest{}
+func (channelSearchRequest) new() *channelSearchRequest {
+	return &channelSearchRequest{}
 }
 
-func (c *ChannelSearchRequest) Fill(r *http.Request) error {
+func (c *channelSearchRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -115,21 +113,21 @@ func (c *ChannelSearchRequest) Fill(r *http.Request) error {
 	}
 
 	c.query = get["query"]
-	return errors.New("Not implemented: ChannelSearchRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = ChannelSearchRequest{}.new()
+var _ RequestFiller = channelSearchRequest{}.new()
 
 // Channel archive request parameters
-type ChannelArchiveRequest struct {
+type channelArchiveRequest struct {
 	id uint64
 }
 
-func (ChannelArchiveRequest) new() *ChannelArchiveRequest {
-	return &ChannelArchiveRequest{}
+func (channelArchiveRequest) new() *channelArchiveRequest {
+	return &channelArchiveRequest{}
 }
 
-func (c *ChannelArchiveRequest) Fill(r *http.Request) error {
+func (c *channelArchiveRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -142,21 +140,21 @@ func (c *ChannelArchiveRequest) Fill(r *http.Request) error {
 	}
 
 	c.id = parseUInt64(post["id"])
-	return errors.New("Not implemented: ChannelArchiveRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = ChannelArchiveRequest{}.new()
+var _ RequestFiller = channelArchiveRequest{}.new()
 
 // Channel move request parameters
-type ChannelMoveRequest struct {
+type channelMoveRequest struct {
 	id uint64
 }
 
-func (ChannelMoveRequest) new() *ChannelMoveRequest {
-	return &ChannelMoveRequest{}
+func (channelMoveRequest) new() *channelMoveRequest {
+	return &channelMoveRequest{}
 }
 
-func (c *ChannelMoveRequest) Fill(r *http.Request) error {
+func (c *channelMoveRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -169,22 +167,22 @@ func (c *ChannelMoveRequest) Fill(r *http.Request) error {
 	}
 
 	c.id = parseUInt64(post["id"])
-	return errors.New("Not implemented: ChannelMoveRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = ChannelMoveRequest{}.new()
+var _ RequestFiller = channelMoveRequest{}.new()
 
 // Channel merge request parameters
-type ChannelMergeRequest struct {
+type channelMergeRequest struct {
 	destination uint64
 	source      uint64
 }
 
-func (ChannelMergeRequest) new() *ChannelMergeRequest {
-	return &ChannelMergeRequest{}
+func (channelMergeRequest) new() *channelMergeRequest {
+	return &channelMergeRequest{}
 }
 
-func (c *ChannelMergeRequest) Fill(r *http.Request) error {
+func (c *channelMergeRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -199,7 +197,7 @@ func (c *ChannelMergeRequest) Fill(r *http.Request) error {
 	c.destination = parseUInt64(post["destination"])
 
 	c.source = parseUInt64(post["source"])
-	return errors.New("Not implemented: ChannelMergeRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = ChannelMergeRequest{}.new()
+var _ RequestFiller = channelMergeRequest{}.new()

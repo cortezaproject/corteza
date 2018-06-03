@@ -17,7 +17,7 @@ func (WebsocketHandlers) new() *WebsocketHandlers {
 
 // Internal API interface
 type WebsocketAPI interface {
-	Client(*WebsocketClientRequest) (interface{}, error)
+	Client(*websocketClientRequest) (interface{}, error)
 }
 
 // HTTP API interface

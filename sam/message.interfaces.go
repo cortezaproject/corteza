@@ -17,13 +17,13 @@ func (MessageHandlers) new() *MessageHandlers {
 
 // Internal API interface
 type MessageAPI interface {
-	Edit(*MessageEditRequest) (interface{}, error)
-	Attach(*MessageAttachRequest) (interface{}, error)
-	Remove(*MessageRemoveRequest) (interface{}, error)
-	Read(*MessageReadRequest) (interface{}, error)
-	Search(*MessageSearchRequest) (interface{}, error)
-	Pin(*MessagePinRequest) (interface{}, error)
-	Flag(*MessageFlagRequest) (interface{}, error)
+	Edit(*messageEditRequest) (interface{}, error)
+	Attach(*messageAttachRequest) (interface{}, error)
+	Remove(*messageRemoveRequest) (interface{}, error)
+	Read(*messageReadRequest) (interface{}, error)
+	Search(*messageSearchRequest) (interface{}, error)
+	Pin(*messagePinRequest) (interface{}, error)
+	Flag(*messageFlagRequest) (interface{}, error)
 }
 
 // HTTP API interface

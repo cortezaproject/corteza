@@ -2,21 +2,19 @@ package sam
 
 import (
 	"net/http"
-
-	"github.com/pkg/errors"
 )
 
 // Organisation edit request parameters
-type OrganisationEditRequest struct {
+type organisationEditRequest struct {
 	id   uint64
 	name string
 }
 
-func (OrganisationEditRequest) new() *OrganisationEditRequest {
-	return &OrganisationEditRequest{}
+func (organisationEditRequest) new() *organisationEditRequest {
+	return &organisationEditRequest{}
 }
 
-func (o *OrganisationEditRequest) Fill(r *http.Request) error {
+func (o *organisationEditRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -31,21 +29,21 @@ func (o *OrganisationEditRequest) Fill(r *http.Request) error {
 	o.id = parseUInt64(post["id"])
 
 	o.name = post["name"]
-	return errors.New("Not implemented: OrganisationEditRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = OrganisationEditRequest{}.new()
+var _ RequestFiller = organisationEditRequest{}.new()
 
 // Organisation remove request parameters
-type OrganisationRemoveRequest struct {
+type organisationRemoveRequest struct {
 	id uint64
 }
 
-func (OrganisationRemoveRequest) new() *OrganisationRemoveRequest {
-	return &OrganisationRemoveRequest{}
+func (organisationRemoveRequest) new() *organisationRemoveRequest {
+	return &organisationRemoveRequest{}
 }
 
-func (o *OrganisationRemoveRequest) Fill(r *http.Request) error {
+func (o *organisationRemoveRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -58,21 +56,21 @@ func (o *OrganisationRemoveRequest) Fill(r *http.Request) error {
 	}
 
 	o.id = parseUInt64(get["id"])
-	return errors.New("Not implemented: OrganisationRemoveRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = OrganisationRemoveRequest{}.new()
+var _ RequestFiller = organisationRemoveRequest{}.new()
 
 // Organisation read request parameters
-type OrganisationReadRequest struct {
+type organisationReadRequest struct {
 	id uint64
 }
 
-func (OrganisationReadRequest) new() *OrganisationReadRequest {
-	return &OrganisationReadRequest{}
+func (organisationReadRequest) new() *organisationReadRequest {
+	return &organisationReadRequest{}
 }
 
-func (o *OrganisationReadRequest) Fill(r *http.Request) error {
+func (o *organisationReadRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -85,21 +83,21 @@ func (o *OrganisationReadRequest) Fill(r *http.Request) error {
 	}
 
 	o.id = parseUInt64(get["id"])
-	return errors.New("Not implemented: OrganisationReadRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = OrganisationReadRequest{}.new()
+var _ RequestFiller = organisationReadRequest{}.new()
 
 // Organisation search request parameters
-type OrganisationSearchRequest struct {
+type organisationSearchRequest struct {
 	query string
 }
 
-func (OrganisationSearchRequest) new() *OrganisationSearchRequest {
-	return &OrganisationSearchRequest{}
+func (organisationSearchRequest) new() *organisationSearchRequest {
+	return &organisationSearchRequest{}
 }
 
-func (o *OrganisationSearchRequest) Fill(r *http.Request) error {
+func (o *organisationSearchRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -112,21 +110,21 @@ func (o *OrganisationSearchRequest) Fill(r *http.Request) error {
 	}
 
 	o.query = get["query"]
-	return errors.New("Not implemented: OrganisationSearchRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = OrganisationSearchRequest{}.new()
+var _ RequestFiller = organisationSearchRequest{}.new()
 
 // Organisation archive request parameters
-type OrganisationArchiveRequest struct {
+type organisationArchiveRequest struct {
 	id uint64
 }
 
-func (OrganisationArchiveRequest) new() *OrganisationArchiveRequest {
-	return &OrganisationArchiveRequest{}
+func (organisationArchiveRequest) new() *organisationArchiveRequest {
+	return &organisationArchiveRequest{}
 }
 
-func (o *OrganisationArchiveRequest) Fill(r *http.Request) error {
+func (o *organisationArchiveRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -139,7 +137,7 @@ func (o *OrganisationArchiveRequest) Fill(r *http.Request) error {
 	}
 
 	o.id = parseUInt64(post["id"])
-	return errors.New("Not implemented: OrganisationArchiveRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = OrganisationArchiveRequest{}.new()
+var _ RequestFiller = organisationArchiveRequest{}.new()

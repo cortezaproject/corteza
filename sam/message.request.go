@@ -2,22 +2,20 @@ package sam
 
 import (
 	"net/http"
-
-	"github.com/pkg/errors"
 )
 
 // Message edit request parameters
-type MessageEditRequest struct {
+type messageEditRequest struct {
 	id         uint64
 	channel_id uint64
 	contents   string
 }
 
-func (MessageEditRequest) new() *MessageEditRequest {
-	return &MessageEditRequest{}
+func (messageEditRequest) new() *messageEditRequest {
+	return &messageEditRequest{}
 }
 
-func (m *MessageEditRequest) Fill(r *http.Request) error {
+func (m *messageEditRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -34,20 +32,20 @@ func (m *MessageEditRequest) Fill(r *http.Request) error {
 	m.channel_id = parseUInt64(post["channel_id"])
 
 	m.contents = post["contents"]
-	return errors.New("Not implemented: MessageEditRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = MessageEditRequest{}.new()
+var _ RequestFiller = messageEditRequest{}.new()
 
 // Message attach request parameters
-type MessageAttachRequest struct {
+type messageAttachRequest struct {
 }
 
-func (MessageAttachRequest) new() *MessageAttachRequest {
-	return &MessageAttachRequest{}
+func (messageAttachRequest) new() *messageAttachRequest {
+	return &messageAttachRequest{}
 }
 
-func (m *MessageAttachRequest) Fill(r *http.Request) error {
+func (m *messageAttachRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -58,21 +56,21 @@ func (m *MessageAttachRequest) Fill(r *http.Request) error {
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
-	return errors.New("Not implemented: MessageAttachRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = MessageAttachRequest{}.new()
+var _ RequestFiller = messageAttachRequest{}.new()
 
 // Message remove request parameters
-type MessageRemoveRequest struct {
+type messageRemoveRequest struct {
 	id uint64
 }
 
-func (MessageRemoveRequest) new() *MessageRemoveRequest {
-	return &MessageRemoveRequest{}
+func (messageRemoveRequest) new() *messageRemoveRequest {
+	return &messageRemoveRequest{}
 }
 
-func (m *MessageRemoveRequest) Fill(r *http.Request) error {
+func (m *messageRemoveRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -85,21 +83,21 @@ func (m *MessageRemoveRequest) Fill(r *http.Request) error {
 	}
 
 	m.id = parseUInt64(get["id"])
-	return errors.New("Not implemented: MessageRemoveRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = MessageRemoveRequest{}.new()
+var _ RequestFiller = messageRemoveRequest{}.new()
 
 // Message read request parameters
-type MessageReadRequest struct {
+type messageReadRequest struct {
 	channel_id uint64
 }
 
-func (MessageReadRequest) new() *MessageReadRequest {
-	return &MessageReadRequest{}
+func (messageReadRequest) new() *messageReadRequest {
+	return &messageReadRequest{}
 }
 
-func (m *MessageReadRequest) Fill(r *http.Request) error {
+func (m *messageReadRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -112,22 +110,22 @@ func (m *MessageReadRequest) Fill(r *http.Request) error {
 	}
 
 	m.channel_id = parseUInt64(post["channel_id"])
-	return errors.New("Not implemented: MessageReadRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = MessageReadRequest{}.new()
+var _ RequestFiller = messageReadRequest{}.new()
 
 // Message search request parameters
-type MessageSearchRequest struct {
+type messageSearchRequest struct {
 	query        string
 	message_type string
 }
 
-func (MessageSearchRequest) new() *MessageSearchRequest {
-	return &MessageSearchRequest{}
+func (messageSearchRequest) new() *messageSearchRequest {
+	return &messageSearchRequest{}
 }
 
-func (m *MessageSearchRequest) Fill(r *http.Request) error {
+func (m *messageSearchRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -142,21 +140,21 @@ func (m *MessageSearchRequest) Fill(r *http.Request) error {
 	m.query = get["query"]
 
 	m.message_type = get["message_type"]
-	return errors.New("Not implemented: MessageSearchRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = MessageSearchRequest{}.new()
+var _ RequestFiller = messageSearchRequest{}.new()
 
 // Message pin request parameters
-type MessagePinRequest struct {
+type messagePinRequest struct {
 	id uint64
 }
 
-func (MessagePinRequest) new() *MessagePinRequest {
-	return &MessagePinRequest{}
+func (messagePinRequest) new() *messagePinRequest {
+	return &messagePinRequest{}
 }
 
-func (m *MessagePinRequest) Fill(r *http.Request) error {
+func (m *messagePinRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -169,21 +167,21 @@ func (m *MessagePinRequest) Fill(r *http.Request) error {
 	}
 
 	m.id = parseUInt64(post["id"])
-	return errors.New("Not implemented: MessagePinRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = MessagePinRequest{}.new()
+var _ RequestFiller = messagePinRequest{}.new()
 
 // Message flag request parameters
-type MessageFlagRequest struct {
+type messageFlagRequest struct {
 	id uint64
 }
 
-func (MessageFlagRequest) new() *MessageFlagRequest {
-	return &MessageFlagRequest{}
+func (messageFlagRequest) new() *messageFlagRequest {
+	return &messageFlagRequest{}
 }
 
-func (m *MessageFlagRequest) Fill(r *http.Request) error {
+func (m *messageFlagRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -196,7 +194,7 @@ func (m *MessageFlagRequest) Fill(r *http.Request) error {
 	}
 
 	m.id = parseUInt64(post["id"])
-	return errors.New("Not implemented: MessageFlagRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = MessageFlagRequest{}.new()
+var _ RequestFiller = messageFlagRequest{}.new()

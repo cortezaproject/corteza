@@ -2,19 +2,17 @@ package sam
 
 import (
 	"net/http"
-
-	"github.com/pkg/errors"
 )
 
 // Websocket client request parameters
-type WebsocketClientRequest struct {
+type websocketClientRequest struct {
 }
 
-func (WebsocketClientRequest) new() *WebsocketClientRequest {
-	return &WebsocketClientRequest{}
+func (websocketClientRequest) new() *websocketClientRequest {
+	return &websocketClientRequest{}
 }
 
-func (w *WebsocketClientRequest) Fill(r *http.Request) error {
+func (w *websocketClientRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -25,7 +23,7 @@ func (w *WebsocketClientRequest) Fill(r *http.Request) error {
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
-	return errors.New("Not implemented: WebsocketClientRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = WebsocketClientRequest{}.new()
+var _ RequestFiller = websocketClientRequest{}.new()

@@ -2,13 +2,11 @@ package {package}
 
 import (
 	"net/http"
-
-	"github.com/pkg/errors"
 )
 
 {foreach $calls as $call}
 // {name} {call.name} request parameters
-type {name}{call.name|ucfirst}Request struct {
+type {name|lcfirst}{call.name|ucfirst}Request struct {
 {foreach $call.parameters as $params}
 {foreach $params as $method => $param}
 	{param.name} {param.type}{newline}
@@ -16,11 +14,11 @@ type {name}{call.name|ucfirst}Request struct {
 {/foreach}
 }
 
-func ({name}{call.name|ucfirst}Request) new() *{name}{call.name|ucfirst}Request {
-	return &{name}{call.name|ucfirst}Request{}
+func ({name|lcfirst}{call.name|ucfirst}Request) new() *{name|lcfirst}{call.name|ucfirst}Request {
+	return &{name|lcfirst}{call.name|ucfirst}Request{}
 }
 
-func ({self} *{name}{call.name|ucfirst}Request) Fill(r *http.Request) error {
+func ({self} *{name|lcfirst}{call.name|ucfirst}Request) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -38,8 +36,8 @@ func ({self} *{name}{call.name|ucfirst}Request) Fill(r *http.Request) error {
 {/if}
 {/foreach}
 {/foreach}
-	return errors.New("Not implemented: {name}{call.name|ucfirst}Request.Fill")
+	return nil
 }
 
-var _ RequestFiller = {name}{call.name|ucfirst}Request{}.new()
+var _ RequestFiller = {name|lcfirst}{call.name|ucfirst}Request{}.new()
 {/foreach}

@@ -2,21 +2,19 @@ package sam
 
 import (
 	"net/http"
-
-	"github.com/pkg/errors"
 )
 
 // User login request parameters
-type UserLoginRequest struct {
+type userLoginRequest struct {
 	username string
 	password string
 }
 
-func (UserLoginRequest) new() *UserLoginRequest {
-	return &UserLoginRequest{}
+func (userLoginRequest) new() *userLoginRequest {
+	return &userLoginRequest{}
 }
 
-func (u *UserLoginRequest) Fill(r *http.Request) error {
+func (u *userLoginRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -31,21 +29,21 @@ func (u *UserLoginRequest) Fill(r *http.Request) error {
 	u.username = post["username"]
 
 	u.password = post["password"]
-	return errors.New("Not implemented: UserLoginRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = UserLoginRequest{}.new()
+var _ RequestFiller = userLoginRequest{}.new()
 
 // User search request parameters
-type UserSearchRequest struct {
+type userSearchRequest struct {
 	query string
 }
 
-func (UserSearchRequest) new() *UserSearchRequest {
-	return &UserSearchRequest{}
+func (userSearchRequest) new() *userSearchRequest {
+	return &userSearchRequest{}
 }
 
-func (u *UserSearchRequest) Fill(r *http.Request) error {
+func (u *userSearchRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -58,7 +56,7 @@ func (u *UserSearchRequest) Fill(r *http.Request) error {
 	}
 
 	u.query = get["query"]
-	return errors.New("Not implemented: UserSearchRequest.Fill")
+	return nil
 }
 
-var _ RequestFiller = UserSearchRequest{}.new()
+var _ RequestFiller = userSearchRequest{}.new()
