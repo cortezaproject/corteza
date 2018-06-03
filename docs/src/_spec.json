@@ -5,29 +5,51 @@
 		"package": "crust",
 		"entrypoint": "organisation",
 		"apis": {
-			"add": {
-				"method": "POST",
-				"title": "Add new organisation"
-			},
 			"edit": {
 				"method": "POST",
-				"title": "Update organisation details"
+				"title": "Update organisation details",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "id", "required": false, "title": "ID of Organisation" },
+						{ "type": "string", "name": "name", "required": true, "title": "Name of Organisation" }
+					]
+				}
 			},
 			"remove": {
 				"method": "DELETE",
-				"title": "Remove organisation"
+				"title": "Remove organisation",
+				"parameters": {
+					"get": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Organisation" }
+					]
+				}
 			},
 			"read": {
 				"method": "GET",
-				"title": "Read organisation details"
+				"title": "Read organisation details",
+				"parameters": {
+					"get": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Organisation" }
+					]
+				}
 			},
 			"search": {
 				"method": "GET",
-				"title": "Search organisations"
+				"title": "Search organisations",
+				"parameters": {
+					"get": [
+						{ "type": "string", "name": "query", "required": false, "title": "Search query" }
+					]
+				}
 			},
 			"archive": {
 				"method": "POST",
-				"title": "Archive organisation"
+				"title": "Archive organisation",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Organisation" }
+					]
+				}
 			}
 		}
 	},
@@ -37,33 +59,62 @@
 		"package": "crust",
 		"entrypoint": "team",
 		"apis": {
-			"add": {
-				"method": "POST",
-				"title": "Add new team"
-			},
 			"edit": {
 				"method": "POST",
-				"title": "Update team details"
+				"title": "Update team details",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "id", "required": false, "title": "ID of Team" },
+						{ "type": "string", "name": "name", "required": true, "title": "Name of Team" },
+						{ "type": "[]uint64", "name": "members", "required": false, "title": "Team member IDs" }
+					]
+				}
 			},
 			"remove": {
 				"method": "DELETE",
-				"title": "Remove team"
+				"title": "Remove team",
+				"parameters": {
+					"get": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Organisation" }
+					]
+				}
 			},
 			"read": {
 				"method": "GET",
-				"title": "Read team details"
+				"title": "Read team details and memberships",
+				"parameters": {
+					"get": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Organisation" }
+					]
+				}
 			},
 			"search": {
 				"method": "GET",
-				"title": "Search teams"
+				"title": "Search teams",
+				"parameters": {
+					"get": [
+						{ "type": "string", "name": "query", "required": false, "title": "Search query" }
+					]
+				}
 			},
 			"archive": {
 				"method": "POST",
-				"title": "Archive team"
+				"title": "Archive team",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Organisation" }
+					]
+				}
 			},
 			"move": {
 				"method": "POST",
-				"title": "Move team to different organisation"
+				"title": "Move team to different organisation",
+				"parameters": {
+					"POST": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Organisation" },
+						{ "type": "uint64", "name": "organisation_id", "required": true, "title": "ID of Organisation" }
+					]
+				}
 			}
 		}
 	},
@@ -73,33 +124,71 @@
 		"package": "crust",
 		"entrypoint": "channel",
 		"apis": {
-			"add": {
-				"method": "POST",
-				"title": "Add new channel"
-			},
 			"edit": {
 				"method": "POST",
-				"title": "Update channel details"
+				"title": "Update channel details",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "id", "required": false, "title": "ID of Channel" },
+						{ "type": "string", "name": "name", "required": true, "title": "Name of Channel" },
+						{ "type": "string", "name": "topic", "required": true, "title": "Subject of Channel" }
+					]
+				}
 			},
 			"remove": {
 				"method": "DELETE",
-				"title": "Remove channel"
+				"title": "Remove channel",
+				"parameters": {
+					"get": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Channel" }
+					]
+				}
 			},
 			"read": {
 				"method": "GET",
-				"title": "Read channel details"
+				"title": "Read channel details",
+				"parameters": {
+					"get": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Channel" }
+					]
+				}
 			},
 			"search": {
 				"method": "GET",
-				"title": "Search channels"
+				"title": "Search channels",
+				"parameters": {
+					"get": [
+						{ "type": "string", "name": "query", "required": false, "title": "Search query" }
+					]
+				}
 			},
 			"archive": {
 				"method": "POST",
-				"title": "Archive channel"
+				"title": "Archive channel",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Channel" }
+					]
+				}
 			},
 			"move": {
 				"method": "POST",
-				"title": "Move channel to different team or organisation"
+				"title": "Move channel to different team or organisation",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Channel" }
+					]
+				}
+			},
+			"merge": {
+				"method": "POST",
+				"title": "Merge one team into another",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "destination", "required": true, "title": "Destination Channel ID" },
+						{ "type": "uint64", "name": "source", "required": true, "title": "Source Channel ID" }
+					]
+				}
 			}
 		}
 	},
@@ -108,33 +197,68 @@
 		"package": "crust",
 		"entrypoint": "message",
 		"apis": {
-			"add": {
-				"method": "POST",
-				"title": "Add new message"
-			},
 			"edit": {
 				"method": "POST",
-				"title": "Update message details"
+				"title": "New message / edit message",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "id", "required": false, "title": "ID of Message" },
+						{ "type": "uint64", "name": "channel_id", "required": false, "title": "ID of Channel where to post message" },
+						{ "type": "string", "name": "contents", "required": true, "title": "Message contents (markdown)" }
+					]
+				}
 			},
 			"remove": {
 				"method": "DELETE",
-				"title": "Remove message"
+				"title": "Remove message",
+				"parameters": {
+					"get": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Message" }
+					]
+				}
 			},
 			"read": {
 				"method": "GET",
-				"title": "Read message details"
+				"title": "Read message details",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "channel_id", "required": true, "title": "ID of Channel to read messages from" }
+					]
+				}
 			},
 			"search": {
 				"method": "GET",
-				"title": "Search messages"
+				"title": "Search messages",
+				"parameters": {
+					"get": [
+						{ "type": "string", "name": "query", "required": false, "title": "Search string to match against messages" },
+						{
+							"type": "string",
+							"name": "message_type",
+							"required": false,
+							"title": "Limit results to message type",
+							"values": ["history", "message", "attachment", "media"]
+						}
+					]
+				}
 			},
 			"pin": {
 				"method": "POST",
-				"title": "Pin message to channel (public bookmark)"
+				"title": "Pin message to channel (public bookmark)",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Message" }
+					]
+				}
 			},
 			"flag": {
 				"method": "POST",
-				"title": "Flag message for user (bookmark)"
+				"title": "Flag message for user (bookmark)",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Message" }
+					]
+				}
 			}
 		}
 	},
@@ -143,22 +267,6 @@
 		"package": "crust",
 		"entrypoint": "member",
 		"apis": {
-			"add": {
-				"method": "POST",
-				"title": "Add new member"
-			},
-			"edit": {
-				"method": "POST",
-				"title": "Update member details"
-			},
-			"remove": {
-				"method": "DELETE",
-				"title": "Remove member"
-			},
-			"read": {
-				"method": "GET",
-				"title": "Read member details"
-			},
 			"search": {
 				"method": "GET",
 				"title": "Search members (Directory)"
