@@ -303,6 +303,17 @@
 		"entrypoint": "member",
 		"apis": [
 			{
+				"name": "login",
+				"method": "POST",
+				"title": "Member login",
+				"parameters": {
+					"post": [
+						{ "type": "string", "name": "username", "required": true, "title": "Username or email" }
+						{ "type": "string", "name": "password", "required": true, "title": "Password for user" }
+					]
+				}
+			},
+			{
 				"name": "search",
 				"method": "GET",
 				"title": "Search members (Directory)",
