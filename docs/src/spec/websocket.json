@@ -1,0 +1,20 @@
+{
+  "Title": "Websocket",
+  "Package": "crust",
+  "Interface": "Websocket",
+  "Protocol": "WebSockets",
+  "Authentication": [
+    "Client ID",
+    "Session ID"
+  ],
+  "Path": "/websocket",
+  "APIs": [
+    {
+      "Name": "client",
+      "Method": "GET",
+      "Title": "Bidirectional websocket chat connection",
+      "Path": "/client",
+      "Parameters": null
+    }
+  ]
+}
