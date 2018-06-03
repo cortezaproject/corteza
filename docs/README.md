@@ -770,7 +770,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/users/login` | HTTP/S | POST | Client ID, Session ID |
+| `/user/login` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -785,7 +785,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/users/search` | HTTP/S | GET | Client ID, Session ID |
+| `/user/search` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -799,7 +799,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/users/login` | HTTP/S | POST | Client ID, Session ID |
+| `/user/login` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -814,7 +814,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/users/search` | HTTP/S | GET | Client ID, Session ID |
+| `/user/search` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 

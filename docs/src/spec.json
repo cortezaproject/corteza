@@ -5,12 +5,10 @@
 		"package": "sam",
 		"entrypoint": "organisation",
 		"authentication": ["Client ID", "Session ID"],
-		"structs": {
-			"Organisation": [
-				{ "name": "ID", "type": "uint64" },
-				{ "name": "Name", "type": "string" }
-			]
-		},
+		"struct": [
+			{ "name": "ID", "type": "uint64" },
+			{ "name": "Name", "type": "string" }
+		],
 		"apis": [
 			{
 				"name": "edit",
@@ -71,14 +69,12 @@
 		"package": "sam",
 		"entrypoint": "team",
 		"authentication": ["Client ID", "Session ID"],
-		"structs": {
-			"Team": [
-				{ "type": "uint64", "name": "ID" },
-				{ "type": "string", "name": "Name" },
-				{ "type": "[]uint64", "name": "MemberIDs", "tag": "json:\"-\"" },
-				{ "type": "[]User", "name": "Members", "tag": "json:\",omitempty\"" }
-			]
-		},
+		"struct": [
+			{ "type": "uint64", "name": "ID" },
+			{ "type": "string", "name": "Name" },
+			{ "type": "[]uint64", "name": "MemberIDs", "tag": "json:\"-\"" },
+			{ "type": "[]User", "name": "Members", "tag": "json:\",omitempty\"" }
+		],
 		"apis": [
 			{
 				"name": "edit",
@@ -151,13 +147,11 @@
 		"package": "sam",
 		"entrypoint": "channel",
 		"authentication": ["Client ID", "Session ID"],
-		"structs": {
-			"Channels": [
-				{ "type": "uint64", "name": "ID" },
-				{ "type": "string", "name": "Name" },
-				{ "type": "string", "name": "Topic" }
-			]
-		},
+		"struct": [
+			{ "type": "uint64", "name": "ID" },
+			{ "type": "string", "name": "Name" },
+			{ "type": "string", "name": "Topic" }
+		],
 		"apis": [
 			{
 				"name": "edit",
@@ -239,19 +233,17 @@
 		"package": "sam",
 		"entrypoint": "message",
 		"authentication": ["Client ID", "Session ID"],
-		"structs": {
-			"Message": [
-				{ "name": "Service", "type": "string" },
-				{ "name": "Channel", "type": "string" },
-				{ "name": "UserName", "type": "string" },
-				{ "name": "UserID", "type": "uint64" },
-				{ "name": "User", "type": "*User" },
-				{ "name": "UserAvatar", "type": "string" },
-				{ "name": "Message", "type": "string" },
-				{ "name": "MessageID", "type": "string" },
-				{ "name": "Type", "type": "MessageType" }
-			]
-		},
+		"struct": [
+			{ "name": "Service", "type": "string" },
+			{ "name": "Channel", "type": "string" },
+			{ "name": "UserName", "type": "string" },
+			{ "name": "UserID", "type": "uint64" },
+			{ "name": "User", "type": "*User" },
+			{ "name": "UserAvatar", "type": "string" },
+			{ "name": "Message", "type": "string" },
+			{ "name": "MessageID", "type": "string" },
+			{ "name": "Type", "type": "MessageType" }
+		],
 		"apis": [
 			{
 				"name": "edit",
@@ -338,15 +330,13 @@
 	{
 		"title": "Users",
 		"package": "sam",
-		"entrypoint": "users",
+		"entrypoint": "user",
 		"authentication": ["Client ID", "Session ID"],
-		"structs": {
-			"User": [
-				{ "type": "uint64", "name": "ID" },
-				{ "username": "string", "name": "Username" },
-				{ "password": "string", "name": "Password", "tag": "json:\"-\"" }
-			]
-		},
+		"struct": [
+			{ "type": "uint64", "name": "ID" },
+			{ "type": "string", "name": "Username" },
+			{ "type": "string", "name": "Password", "tag": "json:\"-\"" }
+		],
 		"apis": [
 			{
 				"name": "login",
@@ -377,12 +367,10 @@
 		"entrypoint": "websocket",
 		"protocol": "WebSockets",
 		"authentication": ["Client ID", "Session ID"],
-		"structs": {
-			"WebSocket": [
-				{ "type": "uint64", "name": "UserID" },
-				{ "type": "User", "name": "User" }
-			]
-		},
+		"struct": [
+			{ "type": "uint64", "name": "UserID" },
+			{ "type": "User", "name": "User" }
+		],
 		"apis": [
 			{
 				"name": "client",
