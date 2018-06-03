@@ -1,18 +1,18 @@
 {
-  "Title": "Members",
+  "Title": "Users",
   "Package": "sam",
-  "Interface": "Member",
+  "Interface": "User",
   "Protocol": "",
   "Authentication": [
     "Client ID",
     "Session ID"
   ],
-  "Path": "/member",
+  "Path": "/user",
   "APIs": [
     {
       "Name": "login",
       "Method": "POST",
-      "Title": "Member login",
+      "Title": "User login",
       "Path": "/login",
       "Parameters": {
         "post": [
@@ -34,7 +34,7 @@
     {
       "Name": "search",
       "Method": "GET",
-      "Title": "Search members (Directory)",
+      "Title": "Search users (Directory)",
       "Path": "/search",
       "Parameters": {
         "get": [
