@@ -1,0 +1,182 @@
+[
+	{
+		"title": "Organisations",
+		"entrypoint": "organisation",
+		"apis": {
+			"add": {
+				"method": "POST",
+				"title": "Add new organisation"
+			},
+			"edit": {
+				"method": "POST",
+				"title": "Update organisation details"
+			},
+			"remove": {
+				"method": "DELETE",
+				"title": "Remove organisation"
+			},
+			"read": {
+				"method": "GET",
+				"title": "Read organisation details"
+			},
+			"search": {
+				"method": "GET",
+				"title": "Search organisations"
+			},
+			"archive": {
+				"method": "POST",
+				"title": "Archive organisation"
+			}
+		}
+	},
+	{
+		"title": "Teams",
+		"entrypoint": "team",
+		"apis": {
+			"add": {
+				"method": "POST",
+				"title": "Add new team"
+			},
+			"edit": {
+				"method": "POST",
+				"title": "Update team details"
+			},
+			"remove": {
+				"method": "DELETE",
+				"title": "Remove team"
+			},
+			"read": {
+				"method": "GET",
+				"title": "Read team details"
+			},
+			"search": {
+				"method": "GET",
+				"title": "Search teams"
+			},
+			"archive": {
+				"method": "POST",
+				"title": "Archive team"
+			},
+			"move": {
+				"method": "POST",
+				"title": "Move team to different organisation"
+			}
+		}
+	},
+	{
+		"title": "Channels",
+		"entrypoint": "channel",
+		"apis": {
+			"add": {
+				"method": "POST",
+				"title": "Add new channel"
+			},
+			"edit": {
+				"method": "POST",
+				"title": "Update channel details"
+			},
+			"remove": {
+				"method": "DELETE",
+				"title": "Remove channel"
+			},
+			"read": {
+				"method": "GET",
+				"title": "Read channel details"
+			},
+			"search": {
+				"method": "GET",
+				"title": "Search channels"
+			},
+			"archive": {
+				"method": "POST",
+				"title": "Archive channel"
+			},
+			"move": {
+				"method": "POST",
+				"title": "Move channel to different team or organisation"
+			}
+		}
+	},
+	{
+		"title": "Messages",
+		"entrypoint": "message",
+		"apis": {
+			"add": {
+				"method": "POST",
+				"title": "Add new message"
+			},
+			"edit": {
+				"method": "POST",
+				"title": "Update message details"
+			},
+			"remove": {
+				"method": "DELETE",
+				"title": "Remove message"
+			},
+			"read": {
+				"method": "GET",
+				"title": "Read message details"
+			},
+			"search": {
+				"method": "GET",
+				"title": "Search messages"
+			},
+			"pin": {
+				"method": "POST",
+				"title": "Pin message to channel (public bookmark)"
+			},
+			"flag": {
+				"method": "POST",
+				"title": "Flag message for user (bookmark)"
+			}
+		}
+	},
+	{
+		"title": "Members",
+		"entrypoint": "member",
+		"apis": {
+			"add": {
+				"method": "POST",
+				"title": "Add new member"
+			},
+			"edit": {
+				"method": "POST",
+				"title": "Update member details"
+			},
+			"remove": {
+				"method": "DELETE",
+				"title": "Remove member"
+			},
+			"read": {
+				"method": "GET",
+				"title": "Read member details"
+			},
+			"search": {
+				"method": "GET",
+				"title": "Search members (Directory)"
+			}
+		}
+	},
+	{
+		"title": "Files",
+		"entrypoint": "file",
+		"apis": {
+			"add": {
+				"method": "POST",
+				"title": "Add new file"
+			},
+			"read": {
+				"method": "GET",
+				"title": "Read file"
+			},
+			"remove": {
+				"method": "DELETE",
+				"title": "Remove file"
+			},
+			"search": {
+				"method": "GET",
+				"title": "Search files"
+			}
+		}
+	}
+]
