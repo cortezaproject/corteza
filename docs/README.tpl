@@ -15,13 +15,10 @@
 	{foreach $call.parameters as $method => $params}
 		{foreach $params as $param}
 		| {param.name} | {param.type} | {method|toupper} | {param.title} | {if empty($param.default)}N/A{else}{param.default}{/if}
-{if $param.values}
-
-Values:
-
-{foreach $param.values as $value}- `{value}`
-{/foreach}
-{/if} | {if $param.required}YES{else}NO{/if} |
+{if $param.values}<br><br>Values:<br><br>
+{foreach $param.values as $value}
+- `{value}`
+{/foreach}{/if} | {if $param.required}YES{else}NO{/if} |
 		{/foreach}
 	{/foreach}
 

@@ -27,7 +27,9 @@ function cleanUp($contents) {
 		}
 		$empty = false;
 	}
-	return implode("\n", $lines);
+	$contents = implode("\n", $lines);
+	$contents = str_replace("`\n|", "` |", $contents);
+	return $contents;
 }		
 
 $spec = json_decode(file_get_contents("src/_spec.json"), true);

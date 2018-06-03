@@ -232,15 +232,11 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search string to match against messages | N/A | NO |
-| message_type | string | GET | Limit results to message type | N/A
-
-Values:
-
+| message_type | string | GET | Limit results to message type | N/A<br><br>Values:<br><br>
 - `history`
 - `message`
 - `attachment`
-- `media`
-| NO |
+- `media` | NO |
 
 # Members
 
