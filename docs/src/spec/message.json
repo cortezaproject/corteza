@@ -4,6 +4,12 @@
   "Interface": "Message",
   "Path": "/message",
   "APIs": {
+    "attach": {
+      "Method": "PUT",
+      "Title": "Attach file to message",
+      "Path": "/attach",
+      "Parameters": null
+    },
     "edit": {
       "Method": "POST",
       "Title": "New message / edit message",
@@ -13,13 +19,13 @@
           {
             "name": "id",
             "required": false,
-            "title": "ID of Message",
+            "title": "Message ID",
             "type": "uint64"
           },
           {
             "name": "channel_id",
             "required": false,
-            "title": "ID of Channel where to post message",
+            "title": "Channel ID where to post message",
             "type": "uint64"
           },
           {
@@ -40,7 +46,7 @@
           {
             "name": "id",
             "required": true,
-            "title": "ID of Message",
+            "title": "Message ID",
             "type": "uint64"
           }
         ]
@@ -55,7 +61,7 @@
           {
             "name": "id",
             "required": true,
-            "title": "ID of Message",
+            "title": "Message ID",
             "type": "uint64"
           }
         ]
@@ -70,7 +76,7 @@
           {
             "name": "channel_id",
             "required": true,
-            "title": "ID of Channel to read messages from",
+            "title": "Channel ID to read messages from",
             "type": "uint64"
           }
         ]
@@ -85,7 +91,7 @@
           {
             "name": "id",
             "required": true,
-            "title": "ID of Message",
+            "title": "Message ID",
             "type": "uint64"
           }
         ]

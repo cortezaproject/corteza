@@ -29,23 +29,22 @@ function cleanUp($contents) {
 	}
 	$contents = implode("\n", $lines);
 	$contents = str_replace("`\n|", "` |", $contents);
-	return $contents;
+	$contents = preg_replace("/^# /sm", "\n\n\n# ", $contents);
+	return trim($contents);
 }		
 
-$spec = json_decode(file_get_contents("src/_spec.json"), true);
+$spec = json_decode(file_get_contents("src/spec.json"), true);
 
 $apis = array();
 foreach ($spec as $api) {
 	$entrypoint = $api['entrypoint'];
-	$filename = "src/" . $entrypoint . ".json";
-	$filenames_md = array("src/" . $entrypoint . ".md", "src/" . $entrypoint . "/index.md");
+	var_dump($entrypoint);
+	$filename = "src/spec/" . $entrypoint . ".json";
+	$filename_md = "src/" . $entrypoint . "/index.md";
 	$api = json_decode(file_get_contents($filename), true);
 	$api = array_change_key_case_recursive($api);
-	foreach ($filenames_md as $filename_md) {
-		if (file_exists($filename_md)) {
-			$api['description'] = file_get_contents($filename_md);
-			break;
-		}
+	if (file_exists($filename_md)) {
+		$api['description'] = file_get_contents($filename_md);
 	}
 	foreach ($api['apis'] as $name => $call) {
 		$filename_md = "src/" . $entrypoint . "/" . $name . ".md";

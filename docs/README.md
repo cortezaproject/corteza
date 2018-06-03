@@ -8,7 +8,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | ID of Organisation | N/A | YES |
+| id | uint64 | POST | Organisation ID | N/A | YES |
 
 ## Update organisation details
 
@@ -16,8 +16,8 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | ID of Organisation | N/A | NO |
-| name | string | POST | Name of Organisation | N/A | YES |
+| id | uint64 | POST | Organisation ID | N/A | NO |
+| name | string | POST | Organisation Name | N/A | YES |
 
 ## Read organisation details
 
@@ -25,7 +25,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | GET | ID of Organisation | N/A | YES |
+| id | uint64 | GET | Organisation ID | N/A | YES |
 
 ## Remove organisation
 
@@ -33,7 +33,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | GET | ID of Organisation | N/A | YES |
+| id | uint64 | GET | Organisation ID | N/A | YES |
 
 ## Search organisations
 
@@ -42,6 +42,9 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
+
+
+
 
 # Teams
 
@@ -53,7 +56,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | ID of Organisation | N/A | YES |
+| id | uint64 | POST | Organisation ID | N/A | YES |
 
 ## Update team details
 
@@ -61,7 +64,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | ID of Team | N/A | NO |
+| id | uint64 | POST | Team ID | N/A | NO |
 | name | string | POST | Name of Team | N/A | YES |
 | members | []uint64 | POST | Team member IDs | N/A | NO |
 
@@ -71,8 +74,8 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | ID of Organisation | N/A | YES |
-| organisation_id | uint64 | POST | ID of Organisation | N/A | YES |
+| id | uint64 | POST | Organisation ID | N/A | YES |
+| organisation_id | uint64 | POST | Organisation ID | N/A | YES |
 
 ## Read team details and memberships
 
@@ -80,7 +83,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | GET | ID of Organisation | N/A | YES |
+| id | uint64 | GET | Organisation ID | N/A | YES |
 
 ## Remove team
 
@@ -88,7 +91,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | GET | ID of Organisation | N/A | YES |
+| id | uint64 | GET | Organisation ID | N/A | YES |
 
 ## Search teams
 
@@ -97,6 +100,9 @@ An organisation may have many teams. Teams may have many channels available. Acc
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
+
+
+
 
 # Channels
 
@@ -108,7 +114,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | ID of Channel | N/A | YES |
+| id | uint64 | POST | Channel ID | N/A | YES |
 
 ## Update channel details
 
@@ -116,7 +122,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | ID of Channel | N/A | NO |
+| id | uint64 | POST | Channel ID | N/A | NO |
 | name | string | POST | Name of Channel | N/A | YES |
 | topic | string | POST | Subject of Channel | N/A | YES |
 
@@ -135,7 +141,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | ID of Channel | N/A | YES |
+| id | uint64 | POST | Channel ID | N/A | YES |
 
 ## Read channel details
 
@@ -143,7 +149,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | GET | ID of Channel | N/A | YES |
+| id | uint64 | GET | Channel ID | N/A | YES |
 
 ## Remove channel
 
@@ -151,7 +157,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | GET | ID of Channel | N/A | YES |
+| id | uint64 | GET | Channel ID | N/A | YES |
 
 ## Search channels
 
@@ -160,6 +166,9 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
+
+
+
 
 # Messages
 
@@ -183,14 +192,21 @@ The following event types may be sent with a message event:
 | EDITED | A message has been edited by the sender |
 | REMOVED | A message has been removed by the sender |
 
+## Attach file to message
+
+### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+
 ## New message / edit message
 
 ### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | ID of Message | N/A | NO |
-| channel_id | uint64 | POST | ID of Channel where to post message | N/A | NO |
+| id | uint64 | POST | Message ID | N/A | NO |
+| channel_id | uint64 | POST | Channel ID where to post message | N/A | NO |
 | contents | string | POST | Message contents (markdown) | N/A | YES |
 
 ## Flag message for user (bookmark)
@@ -199,7 +215,7 @@ The following event types may be sent with a message event:
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | ID of Message | N/A | YES |
+| id | uint64 | POST | Message ID | N/A | YES |
 
 ## Pin message to channel (public bookmark)
 
@@ -207,7 +223,7 @@ The following event types may be sent with a message event:
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | ID of Message | N/A | YES |
+| id | uint64 | POST | Message ID | N/A | YES |
 
 ## Read message details
 
@@ -215,7 +231,7 @@ The following event types may be sent with a message event:
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| channel_id | uint64 | POST | ID of Channel to read messages from | N/A | YES |
+| channel_id | uint64 | POST | Channel ID to read messages from | N/A | YES |
 
 ## Remove message
 
@@ -223,7 +239,7 @@ The following event types may be sent with a message event:
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | GET | ID of Message | N/A | YES |
+| id | uint64 | GET | Message ID | N/A | YES |
 
 ## Search messages
 
@@ -234,6 +250,9 @@ The following event types may be sent with a message event:
 | query | string | GET | Search string to match against messages | N/A | NO |
 | message_type | string | GET | Limit results to message type | N/A<br><br>Values:<br><br><ul><li>`history`</li><li>`message`</li><li>`attachment`</li><li>`media`</li> | NO |
 
+
+
+
 # Members
 
 ## Search members (Directory)
@@ -242,35 +261,4 @@ The following event types may be sent with a message event:
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-
-# Files
-
-The Files API is an abstraction over messages that have been sent with a file attachment.
-
-## Add new file
-
-### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-
-## Read file
-
-### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-
-## Remove file
-
-### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-
-## Search files
-
-### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
+| query | string | GET | Search query to match against users | N/A | NO |

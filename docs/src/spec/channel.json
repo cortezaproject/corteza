@@ -1,20 +1,20 @@
 {
-  "Title": "Teams",
-  "Description": "An organisation may have many teams. Teams may have many channels available. Access to channels may be shared between teams.",
+  "Title": "Channels",
+  "Description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or direct (between two users).",
   "Package": "crust",
-  "Interface": "Team",
-  "Path": "/team",
+  "Interface": "Channel",
+  "Path": "/channel",
   "APIs": {
     "archive": {
       "Method": "POST",
-      "Title": "Archive team",
+      "Title": "Archive channel",
       "Path": "/archive",
       "Parameters": {
         "post": [
           {
             "name": "id",
             "required": true,
-            "title": "ID of Organisation",
+            "title": "Channel ID",
             "type": "uint64"
           }
         ]
@@ -22,47 +22,62 @@
     },
     "edit": {
       "Method": "POST",
-      "Title": "Update team details",
+      "Title": "Update channel details",
       "Path": "/edit",
       "Parameters": {
         "post": [
           {
             "name": "id",
             "required": false,
-            "title": "ID of Team",
+            "title": "Channel ID",
             "type": "uint64"
           },
           {
             "name": "name",
             "required": true,
-            "title": "Name of Team",
+            "title": "Name of Channel",
             "type": "string"
           },
           {
-            "name": "members",
-            "required": false,
-            "title": "Team member IDs",
-            "type": "[]uint64"
+            "name": "topic",
+            "required": true,
+            "title": "Subject of Channel",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "merge": {
+      "Method": "POST",
+      "Title": "Merge one team into another",
+      "Path": "/merge",
+      "Parameters": {
+        "post": [
+          {
+            "name": "destination",
+            "required": true,
+            "title": "Destination Channel ID",
+            "type": "uint64"
+          },
+          {
+            "name": "source",
+            "required": true,
+            "title": "Source Channel ID",
+            "type": "uint64"
           }
         ]
       }
     },
     "move": {
       "Method": "POST",
-      "Title": "Move team to different organisation",
+      "Title": "Move channel to different team or organisation",
       "Path": "/move",
       "Parameters": {
-        "POST": [
+        "post": [
           {
             "name": "id",
             "required": true,
-            "title": "ID of Organisation",
-            "type": "uint64"
-          },
-          {
-            "name": "organisation_id",
-            "required": true,
-            "title": "ID of Organisation",
+            "title": "Channel ID",
             "type": "uint64"
           }
         ]
@@ -70,14 +85,14 @@
     },
     "read": {
       "Method": "GET",
-      "Title": "Read team details and memberships",
+      "Title": "Read channel details",
       "Path": "/read",
       "Parameters": {
         "get": [
           {
             "name": "id",
             "required": true,
-            "title": "ID of Organisation",
+            "title": "Channel ID",
             "type": "uint64"
           }
         ]
@@ -85,14 +100,14 @@
     },
     "remove": {
       "Method": "DELETE",
-      "Title": "Remove team",
+      "Title": "Remove channel",
       "Path": "/remove",
       "Parameters": {
         "get": [
           {
             "name": "id",
             "required": true,
-            "title": "ID of Organisation",
+            "title": "Channel ID",
             "type": "uint64"
           }
         ]
@@ -100,7 +115,7 @@
     },
     "search": {
       "Method": "GET",
-      "Title": "Search teams",
+      "Title": "Search channels",
       "Path": "/search",
       "Parameters": {
         "get": [

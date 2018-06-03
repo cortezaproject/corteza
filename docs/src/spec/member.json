@@ -1,0 +1,23 @@
+{
+  "Title": "Members",
+  "Package": "crust",
+  "Interface": "Member",
+  "Path": "/member",
+  "APIs": {
+    "search": {
+      "Method": "GET",
+      "Title": "Search members (Directory)",
+      "Path": "/search",
+      "Parameters": {
+        "get": [
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search query to match against users",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  }
+}

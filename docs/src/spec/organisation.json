@@ -14,7 +14,7 @@
           {
             "name": "id",
             "required": true,
-            "title": "ID of Organisation",
+            "title": "Organisation ID",
             "type": "uint64"
           }
         ]
@@ -29,13 +29,13 @@
           {
             "name": "id",
             "required": false,
-            "title": "ID of Organisation",
+            "title": "Organisation ID",
             "type": "uint64"
           },
           {
             "name": "name",
             "required": true,
-            "title": "Name of Organisation",
+            "title": "Organisation Name",
             "type": "string"
           }
         ]
@@ -50,7 +50,7 @@
           {
             "name": "id",
             "required": true,
-            "title": "ID of Organisation",
+            "title": "Organisation ID",
             "type": "uint64"
           }
         ]
@@ -65,7 +65,7 @@
           {
             "name": "id",
             "required": true,
-            "title": "ID of Organisation",
+            "title": "Organisation ID",
             "type": "uint64"
           }
         ]

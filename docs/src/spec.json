@@ -10,8 +10,8 @@
 				"title": "Update organisation details",
 				"parameters": {
 					"post": [
-						{ "type": "uint64", "name": "id", "required": false, "title": "ID of Organisation" },
-						{ "type": "string", "name": "name", "required": true, "title": "Name of Organisation" }
+						{ "type": "uint64", "name": "id", "required": false, "title": "Organisation ID" },
+						{ "type": "string", "name": "name", "required": true, "title": "Organisation Name" }
 					]
 				}
 			},
@@ -20,7 +20,7 @@
 				"title": "Remove organisation",
 				"parameters": {
 					"get": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Organisation" }
+						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
 					]
 				}
 			},
@@ -29,7 +29,7 @@
 				"title": "Read organisation details",
 				"parameters": {
 					"get": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Organisation" }
+						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
 					]
 				}
 			},
@@ -47,7 +47,7 @@
 				"title": "Archive organisation",
 				"parameters": {
 					"post": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Organisation" }
+						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
 					]
 				}
 			}
@@ -64,7 +64,7 @@
 				"title": "Update team details",
 				"parameters": {
 					"post": [
-						{ "type": "uint64", "name": "id", "required": false, "title": "ID of Team" },
+						{ "type": "uint64", "name": "id", "required": false, "title": "Team ID" },
 						{ "type": "string", "name": "name", "required": true, "title": "Name of Team" },
 						{ "type": "[]uint64", "name": "members", "required": false, "title": "Team member IDs" }
 					]
@@ -75,7 +75,7 @@
 				"title": "Remove team",
 				"parameters": {
 					"get": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Organisation" }
+						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
 					]
 				}
 			},
@@ -84,7 +84,7 @@
 				"title": "Read team details and memberships",
 				"parameters": {
 					"get": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Organisation" }
+						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
 					]
 				}
 			},
@@ -102,7 +102,7 @@
 				"title": "Archive team",
 				"parameters": {
 					"post": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Organisation" }
+						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
 					]
 				}
 			},
@@ -111,8 +111,8 @@
 				"title": "Move team to different organisation",
 				"parameters": {
 					"POST": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Organisation" },
-						{ "type": "uint64", "name": "organisation_id", "required": true, "title": "ID of Organisation" }
+						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" },
+						{ "type": "uint64", "name": "organisation_id", "required": true, "title": "Organisation ID" }
 					]
 				}
 			}
@@ -129,7 +129,7 @@
 				"title": "Update channel details",
 				"parameters": {
 					"post": [
-						{ "type": "uint64", "name": "id", "required": false, "title": "ID of Channel" },
+						{ "type": "uint64", "name": "id", "required": false, "title": "Channel ID" },
 						{ "type": "string", "name": "name", "required": true, "title": "Name of Channel" },
 						{ "type": "string", "name": "topic", "required": true, "title": "Subject of Channel" }
 					]
@@ -140,7 +140,7 @@
 				"title": "Remove channel",
 				"parameters": {
 					"get": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Channel" }
+						{ "type": "uint64", "name": "id", "required": true, "title": "Channel ID" }
 					]
 				}
 			},
@@ -149,7 +149,7 @@
 				"title": "Read channel details",
 				"parameters": {
 					"get": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Channel" }
+						{ "type": "uint64", "name": "id", "required": true, "title": "Channel ID" }
 					]
 				}
 			},
@@ -167,7 +167,7 @@
 				"title": "Archive channel",
 				"parameters": {
 					"post": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Channel" }
+						{ "type": "uint64", "name": "id", "required": true, "title": "Channel ID" }
 					]
 				}
 			},
@@ -176,7 +176,7 @@
 				"title": "Move channel to different team or organisation",
 				"parameters": {
 					"post": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Channel" }
+						{ "type": "uint64", "name": "id", "required": true, "title": "Channel ID" }
 					]
 				}
 			},
@@ -202,9 +202,19 @@
 				"title": "New message / edit message",
 				"parameters": {
 					"post": [
-						{ "type": "uint64", "name": "id", "required": false, "title": "ID of Message" },
-						{ "type": "uint64", "name": "channel_id", "required": false, "title": "ID of Channel where to post message" },
+						{ "type": "uint64", "name": "id", "required": false, "title": "Message ID" },
+						{ "type": "uint64", "name": "channel_id", "required": false, "title": "Channel ID where to post message" },
 						{ "type": "string", "name": "contents", "required": true, "title": "Message contents (markdown)" }
+					]
+				}
+			},
+			"attach": {
+				"method": "PUT",
+				"title": "Attach file to message",
+				"params": {
+					"get": [
+						{ "name": "message_id", "type": "uint64", "title": "Message ID" },
+						{ "name": "name", "type": "string", "title": "File name to drop" }
 					]
 				}
 			},
@@ -213,7 +223,7 @@
 				"title": "Remove message",
 				"parameters": {
 					"get": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Message" }
+						{ "type": "uint64", "name": "id", "required": true, "title": "Message ID" }
 					]
 				}
 			},
@@ -222,7 +232,7 @@
 				"title": "Read message details",
 				"parameters": {
 					"post": [
-						{ "type": "uint64", "name": "channel_id", "required": true, "title": "ID of Channel to read messages from" }
+						{ "type": "uint64", "name": "channel_id", "required": true, "title": "Channel ID to read messages from" }
 					]
 				}
 			},
@@ -247,7 +257,7 @@
 				"title": "Pin message to channel (public bookmark)",
 				"parameters": {
 					"post": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Message" }
+						{ "type": "uint64", "name": "id", "required": true, "title": "Message ID" }
 					]
 				}
 			},
@@ -256,7 +266,7 @@
 				"title": "Flag message for user (bookmark)",
 				"parameters": {
 					"post": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "ID of Message" }
+						{ "type": "uint64", "name": "id", "required": true, "title": "Message ID" }
 					]
 				}
 			}
@@ -269,31 +279,12 @@
 		"apis": {
 			"search": {
 				"method": "GET",
-				"title": "Search members (Directory)"
-			}
-		}
-	},
-	{
-		"title": "Files",
-		"description": "The Files API is an abstraction over messages that have been sent with a file attachment.",
-		"package": "crust",
-		"entrypoint": "file",
-		"apis": {
-			"add": {
-				"method": "POST",
-				"title": "Add new file"
-			},
-			"read": {
-				"method": "GET",
-				"title": "Read file"
-			},
-			"remove": {
-				"method": "DELETE",
-				"title": "Remove file"
-			},
-			"search": {
-				"method": "GET",
-				"title": "Search files"
+				"title": "Search members (Directory)",
+				"parameters": {
+					"get": [
+						{ "type": "string", "name": "query", "required": false, "title": "Search query to match against users" }
+					]
+				}
 			}
 		}
 	}
