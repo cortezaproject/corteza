@@ -4,23 +4,9 @@
   "Package": "crust",
   "Interface": "Organisation",
   "Path": "/organisation",
-  "APIs": {
-    "archive": {
-      "Method": "POST",
-      "Title": "Archive organisation",
-      "Path": "/archive",
-      "Parameters": {
-        "post": [
-          {
-            "name": "id",
-            "required": true,
-            "title": "Organisation ID",
-            "type": "uint64"
-          }
-        ]
-      }
-    },
-    "edit": {
+  "APIs": [
+    {
+      "Name": "edit",
       "Method": "POST",
       "Title": "Update organisation details",
       "Path": "/edit",
@@ -41,22 +27,8 @@
         ]
       }
     },
-    "read": {
-      "Method": "GET",
-      "Title": "Read organisation details",
-      "Path": "/read",
-      "Parameters": {
-        "get": [
-          {
-            "name": "id",
-            "required": true,
-            "title": "Organisation ID",
-            "type": "uint64"
-          }
-        ]
-      }
-    },
-    "remove": {
+    {
+      "Name": "remove",
       "Method": "DELETE",
       "Title": "Remove organisation",
       "Path": "/remove",
@@ -71,7 +43,24 @@
         ]
       }
     },
-    "search": {
+    {
+      "Name": "read",
+      "Method": "GET",
+      "Title": "Read organisation details",
+      "Path": "/read",
+      "Parameters": {
+        "get": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "Organisation ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "search",
       "Method": "GET",
       "Title": "Search organisations",
       "Path": "/search",
@@ -85,6 +74,22 @@
           }
         ]
       }
+    },
+    {
+      "Name": "archive",
+      "Method": "POST",
+      "Title": "Archive organisation",
+      "Path": "/archive",
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "Organisation ID",
+            "type": "uint64"
+          }
+        ]
+      }
     }
-  }
+  ]
 }

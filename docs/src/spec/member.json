@@ -3,8 +3,9 @@
   "Package": "crust",
   "Interface": "Member",
   "Path": "/member",
-  "APIs": {
-    "search": {
+  "APIs": [
+    {
+      "Name": "search",
       "Method": "GET",
       "Title": "Search members (Directory)",
       "Path": "/search",
@@ -19,5 +20,5 @@
         ]
       }
     }
-  }
+  ]
 }

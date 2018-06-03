@@ -3,14 +3,9 @@
   "Package": "crust",
   "Interface": "Message",
   "Path": "/message",
-  "APIs": {
-    "attach": {
-      "Method": "PUT",
-      "Title": "Attach file to message",
-      "Path": "/attach",
-      "Parameters": null
-    },
-    "edit": {
+  "APIs": [
+    {
+      "Name": "edit",
       "Method": "POST",
       "Title": "New message / edit message",
       "Path": "/edit",
@@ -37,52 +32,15 @@
         ]
       }
     },
-    "flag": {
-      "Method": "POST",
-      "Title": "Flag message for user (bookmark)",
-      "Path": "/flag",
-      "Parameters": {
-        "post": [
-          {
-            "name": "id",
-            "required": true,
-            "title": "Message ID",
-            "type": "uint64"
-          }
-        ]
-      }
+    {
+      "Name": "attach",
+      "Method": "PUT",
+      "Title": "Attach file to message",
+      "Path": "/attach",
+      "Parameters": null
     },
-    "pin": {
-      "Method": "POST",
-      "Title": "Pin message to channel (public bookmark)",
-      "Path": "/pin",
-      "Parameters": {
-        "post": [
-          {
-            "name": "id",
-            "required": true,
-            "title": "Message ID",
-            "type": "uint64"
-          }
-        ]
-      }
-    },
-    "read": {
-      "Method": "GET",
-      "Title": "Read message details",
-      "Path": "/read",
-      "Parameters": {
-        "post": [
-          {
-            "name": "channel_id",
-            "required": true,
-            "title": "Channel ID to read messages from",
-            "type": "uint64"
-          }
-        ]
-      }
-    },
-    "remove": {
+    {
+      "Name": "remove",
       "Method": "DELETE",
       "Title": "Remove message",
       "Path": "/remove",
@@ -97,7 +55,24 @@
         ]
       }
     },
-    "search": {
+    {
+      "Name": "read",
+      "Method": "GET",
+      "Title": "Read message details",
+      "Path": "/read",
+      "Parameters": {
+        "post": [
+          {
+            "name": "channel_id",
+            "required": true,
+            "title": "Channel ID to read messages from",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "search",
       "Method": "GET",
       "Title": "Search messages",
       "Path": "/search",
@@ -123,6 +98,38 @@
           }
         ]
       }
+    },
+    {
+      "Name": "pin",
+      "Method": "POST",
+      "Title": "Pin message to channel (public bookmark)",
+      "Path": "/pin",
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "Message ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "flag",
+      "Method": "POST",
+      "Title": "Flag message for user (bookmark)",
+      "Path": "/flag",
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "Message ID",
+            "type": "uint64"
+          }
+        ]
+      }
     }
-  }
+  ]
 }

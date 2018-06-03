@@ -4,23 +4,9 @@
   "Package": "crust",
   "Interface": "Team",
   "Path": "/team",
-  "APIs": {
-    "archive": {
-      "Method": "POST",
-      "Title": "Archive team",
-      "Path": "/archive",
-      "Parameters": {
-        "post": [
-          {
-            "name": "id",
-            "required": true,
-            "title": "Organisation ID",
-            "type": "uint64"
-          }
-        ]
-      }
-    },
-    "edit": {
+  "APIs": [
+    {
+      "Name": "edit",
       "Method": "POST",
       "Title": "Update team details",
       "Path": "/edit",
@@ -47,7 +33,72 @@
         ]
       }
     },
-    "move": {
+    {
+      "Name": "remove",
+      "Method": "DELETE",
+      "Title": "Remove team",
+      "Path": "/remove",
+      "Parameters": {
+        "get": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "Organisation ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "read",
+      "Method": "GET",
+      "Title": "Read team details and memberships",
+      "Path": "/read",
+      "Parameters": {
+        "get": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "Organisation ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "search",
+      "Method": "GET",
+      "Title": "Search teams",
+      "Path": "/search",
+      "Parameters": {
+        "get": [
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search query",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "archive",
+      "Method": "POST",
+      "Title": "Archive team",
+      "Path": "/archive",
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "Organisation ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "move",
       "Method": "POST",
       "Title": "Move team to different organisation",
       "Path": "/move",
@@ -67,51 +118,6 @@
           }
         ]
       }
-    },
-    "read": {
-      "Method": "GET",
-      "Title": "Read team details and memberships",
-      "Path": "/read",
-      "Parameters": {
-        "get": [
-          {
-            "name": "id",
-            "required": true,
-            "title": "Organisation ID",
-            "type": "uint64"
-          }
-        ]
-      }
-    },
-    "remove": {
-      "Method": "DELETE",
-      "Title": "Remove team",
-      "Path": "/remove",
-      "Parameters": {
-        "get": [
-          {
-            "name": "id",
-            "required": true,
-            "title": "Organisation ID",
-            "type": "uint64"
-          }
-        ]
-      }
-    },
-    "search": {
-      "Method": "GET",
-      "Title": "Search teams",
-      "Path": "/search",
-      "Parameters": {
-        "get": [
-          {
-            "name": "query",
-            "required": false,
-            "title": "Search query",
-            "type": "string"
-          }
-        ]
-      }
     }
-  }
+  ]
 }
