@@ -1,6 +1,6 @@
 {
   "Title": "Members",
-  "Package": "crust",
+  "Package": "sam",
   "Interface": "Member",
   "Protocol": "",
   "Authentication": [

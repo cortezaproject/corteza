@@ -2,9 +2,15 @@
 	{
 		"title": "Organisations",
 		"description": "Organisations represent a top-level grouping entity. There may be many organisations defined in a single deployment.",
-		"package": "crust",
+		"package": "sam",
 		"entrypoint": "organisation",
 		"authentication": ["Client ID", "Session ID"],
+		"structs": {
+			"Organisation": [
+				{ "name": "ID", "type": "uint64" },
+				{ "name": "Name", "type": "string" }
+			]
+		},
 		"apis": [
 			{
 				"name": "edit",
@@ -62,9 +68,17 @@
 	{
 		"title": "Teams",
 		"description": "An organisation may have many teams. Teams may have many channels available. Access to channels may be shared between teams.",
-		"package": "crust",
+		"package": "sam",
 		"entrypoint": "team",
 		"authentication": ["Client ID", "Session ID"],
+		"structs": {
+			"Team": [
+				{ "type": "uint64", "name": "ID" },
+				{ "type": "string", "name": "Name" },
+				{ "type": "[]uint64", "name": "MemberIDs", "tag": "json:\"-\"" },
+				{ "type": "[]User", "name": "Members", "tag": "json:\",omitempty\"" }
+			]
+		},
 		"apis": [
 			{
 				"name": "edit",
@@ -134,9 +148,16 @@
 	{
 		"title": "Channels",
 		"description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or direct (between two users).",
-		"package": "crust",
+		"package": "sam",
 		"entrypoint": "channel",
 		"authentication": ["Client ID", "Session ID"],
+		"structs": {
+			"Channels": [
+				{ "type": "uint64", "name": "ID" },
+				{ "type": "string", "name": "Name" },
+				{ "type": "string", "name": "Topic" }
+			]
+		},
 		"apis": [
 			{
 				"name": "edit",
@@ -215,9 +236,22 @@
 	},
 	{
 		"title": "Messages",
-		"package": "crust",
+		"package": "sam",
 		"entrypoint": "message",
 		"authentication": ["Client ID", "Session ID"],
+		"structs": {
+			"Message": [
+				{ "name": "Service", "type": "string" },
+				{ "name": "Channel", "type": "string" },
+				{ "name": "UserName", "type": "string" },
+				{ "name": "UserID", "type": "uint64" },
+				{ "name": "User", "type": "*User" },
+				{ "name": "UserAvatar", "type": "string" },
+				{ "name": "Message", "type": "string" },
+				{ "name": "MessageID", "type": "string" },
+				{ "name": "Type", "type": "MessageType" }
+			]
+		},
 		"apis": [
 			{
 				"name": "edit",
@@ -302,15 +336,22 @@
 		]
 	},
 	{
-		"title": "Members",
-		"package": "crust",
-		"entrypoint": "member",
+		"title": "Users",
+		"package": "sam",
+		"entrypoint": "users",
 		"authentication": ["Client ID", "Session ID"],
+		"structs": {
+			"User": [
+				{ "type": "uint64", "name": "ID" },
+				{ "username": "string", "name": "Username" },
+				{ "password": "string", "name": "Password", "tag": "json:\"-\"" }
+			]
+		},
 		"apis": [
 			{
 				"name": "login",
 				"method": "POST",
-				"title": "Member login",
+				"title": "User login",
 				"parameters": {
 					"post": [
 						{ "type": "string", "name": "username", "required": true, "title": "Username or email" },
@@ -321,7 +362,7 @@
 			{
 				"name": "search",
 				"method": "GET",
-				"title": "Search members (Directory)",
+				"title": "Search users (Directory)",
 				"parameters": {
 					"get": [
 						{ "type": "string", "name": "query", "required": false, "title": "Search query to match against users" }
@@ -332,10 +373,16 @@
 	},
 	{
 		"title": "Websocket",
-		"package": "crust",
+		"package": "sam",
 		"entrypoint": "websocket",
 		"protocol": "WebSockets",
 		"authentication": ["Client ID", "Session ID"],
+		"structs": {
+			"WebSocket": [
+				{ "type": "uint64", "name": "UserID" },
+				{ "type": "User", "name": "User" }
+			]
+		},
 		"apis": [
 			{
 				"name": "client",

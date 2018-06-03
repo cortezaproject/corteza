@@ -57,6 +57,7 @@ foreach ($spec as $api) {
 }
 
 $tpl = new Monotek\MiniTPL\Template;
+$tpl->set_compile_location("/tmp", true);
 $tpl->set_paths("./");
 $tpl->load("README.tpl");
 $tpl->assign("apis", $apis);

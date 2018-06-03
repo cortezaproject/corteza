@@ -762,15 +762,15 @@ The following event types may be sent with a message event:
 
 
 
-# Members
+# Users
 
-## Member login
+## User login
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/member/login` | HTTP/S | POST | Client ID, Session ID |
+| `/users/login` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -779,13 +779,13 @@ The following event types may be sent with a message event:
 | username | string | POST | Username or email | N/A | YES |
 | password | string | POST | Password for user | N/A | YES |
 
-## Search members (Directory)
+## Search users (Directory)
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/member/search` | HTTP/S | GET | Client ID, Session ID |
+| `/users/search` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -793,13 +793,13 @@ The following event types may be sent with a message event:
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query to match against users | N/A | NO |
 
-## Member login
+## User login
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/member/login` | HTTP/S | POST | Client ID, Session ID |
+| `/users/login` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -808,13 +808,13 @@ The following event types may be sent with a message event:
 | username | string | POST | Username or email | N/A | YES |
 | password | string | POST | Password for user | N/A | YES |
 
-## Search members (Directory)
+## Search users (Directory)
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/member/search` | HTTP/S | GET | Client ID, Session ID |
+| `/users/search` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 

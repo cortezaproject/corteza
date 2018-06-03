@@ -1,6 +1,6 @@
 {
   "Title": "Websocket",
-  "Package": "crust",
+  "Package": "sam",
   "Interface": "Websocket",
   "Protocol": "WebSockets",
   "Authentication": [

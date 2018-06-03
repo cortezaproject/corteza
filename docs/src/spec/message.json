@@ -1,6 +1,6 @@
 {
   "Title": "Messages",
-  "Package": "crust",
+  "Package": "sam",
   "Interface": "Message",
   "Protocol": "",
   "Authentication": [
