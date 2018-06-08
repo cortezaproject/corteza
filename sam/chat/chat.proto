@@ -1,0 +1,85 @@
+syntax = "proto3";
+package chat;
+
+import "vendor/github.com/golang/protobuf/ptypes/timestamp/timestamp.proto";
+
+service Chat {
+	rpc Stream(stream StreamRequest) returns (stream StreamResponse) {}
+}
+
+message StreamRequest {
+	oneof event {
+		Login   login = 1;
+		Join    channel_join = 2;
+		Part    channel_part = 3;
+		Message message = 4;
+		Quit    quit = 5;
+	}
+
+	message Login {
+		string session = 1;
+	}
+
+	message Join {
+		string channel = 1;
+	}
+
+	message Part {
+		string channel = 1;
+	}
+
+	message Message {
+		string to = 1;
+		string message = 2;
+	}
+
+	message Quit {}
+}
+
+message StreamResponse {
+	uint64	id = 1;
+	google.protobuf.Timestamp timestamp = 2;
+
+	oneof event {
+		Login    login = 3;
+		Join     channel_join = 4;
+		Names    channel_names = 5;
+		Part     channel_part = 6;
+		Users    user_names = 7;
+		Message  message = 8;
+		Shutdown shutdown = 9;
+	}
+
+	message Login {
+		string status = 1;
+	}
+
+	message Join {
+		string channel = 1;
+	}
+
+	message Part {
+		string channel = 1;
+	}
+
+	message Names {
+		string channel = 1;
+		repeated User users = 2;
+	}
+
+	message Users {
+		repeated User users = 1;
+	}
+
+	message User {
+		uint64 id = 1;
+		string name = 2;
+	}
+
+	message Message {
+		string channel = 1;
+		string message = 2;
+	}
+
+	message Shutdown {}
+}
