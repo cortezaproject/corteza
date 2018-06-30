@@ -1,0 +1,31 @@
+[
+	{
+		"title": "Types",
+		"description": "Types are building blocks for module forms",
+		"package": "crm",
+		"entrypoint": "types",
+		"path": "types",
+		"authentication": [],
+		"struct": [
+			{ "name": "ID", "type": "string" }
+		],
+		"apis": [
+			{
+				"name": "list",
+				"method": "GET",
+				"title": "List available types"
+			},
+			{
+				"name": "type",
+				"path": "/type/{id}",
+				"method": "GET",
+				"title": "Get type details",
+				"parameters": {
+					"path": [
+						{ "type": "string", "name": "id", "required": true, "title": "Type ID" }
+					]
+				}
+			}
+		]
+	}
+]
