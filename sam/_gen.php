@@ -29,7 +29,7 @@ usort($apis, function($a, $b) {
 
 foreach (array("structs", "handlers", "interfaces", "request", "") as $type) {
 	foreach ($apis as $api) {
-		if (!empty($api['struct'])) {
+		if (is_array($api['struct'])) {
 			$name = ucfirst($api['interface']);
 			$filename = str_replace("..", ".", strtolower($name) . "." . $type . ".go");
 
