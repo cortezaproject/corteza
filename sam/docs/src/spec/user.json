@@ -2,6 +2,21 @@
   "Title": "Users",
   "Package": "sam",
   "Interface": "User",
+  "Struct": [
+    {
+      "name": "ID",
+      "type": "uint64"
+    },
+    {
+      "name": "Username",
+      "type": "string"
+    },
+    {
+      "name": "Password",
+      "tag": "json:\"-\"",
+      "type": "string"
+    }
+  ],
   "Protocol": "",
   "Authentication": [
     "Client ID",

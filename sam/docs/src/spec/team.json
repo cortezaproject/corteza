@@ -3,6 +3,26 @@
   "Description": "An organisation may have many teams. Teams may have many channels available. Access to channels may be shared between teams.",
   "Package": "sam",
   "Interface": "Team",
+  "Struct": [
+    {
+      "name": "ID",
+      "type": "uint64"
+    },
+    {
+      "name": "Name",
+      "type": "string"
+    },
+    {
+      "name": "MemberIDs",
+      "tag": "json:\"-\"",
+      "type": "[]uint64"
+    },
+    {
+      "name": "Members",
+      "tag": "json:\",omitempty\"",
+      "type": "[]User"
+    }
+  ],
   "Protocol": "",
   "Authentication": [
     "Client ID",

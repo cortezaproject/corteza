@@ -2,6 +2,16 @@
   "Title": "Websocket",
   "Package": "sam",
   "Interface": "Websocket",
+  "Struct": [
+    {
+      "name": "UserID",
+      "type": "uint64"
+    },
+    {
+      "name": "User",
+      "type": "User"
+    }
+  ],
   "Protocol": "WebSockets",
   "Authentication": [
     "Client ID",
