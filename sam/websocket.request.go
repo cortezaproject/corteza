@@ -1,8 +1,11 @@
 package sam
 
 import (
+	"github.com/go-chi/chi"
 	"net/http"
 )
+
+var _ = chi.URLParam
 
 // Websocket client request parameters
 type websocketClientRequest struct {

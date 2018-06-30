@@ -1,8 +1,11 @@
 package sam
 
 import (
+	"github.com/go-chi/chi"
 	"net/http"
 )
+
+var _ = chi.URLParam
 
 // Message edit request parameters
 type messageEditRequest struct {
