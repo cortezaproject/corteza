@@ -3,12 +3,7 @@
   "Description": "Types are building blocks for module forms",
   "Package": "crm",
   "Interface": "Types",
-  "Struct": [
-    {
-      "name": "ID",
-      "type": "string"
-    }
-  ],
+  "Struct": [],
   "Protocol": "",
   "Authentication": [],
   "Path": "/types",

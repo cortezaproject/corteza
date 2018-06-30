@@ -6,9 +6,7 @@
 		"entrypoint": "types",
 		"path": "types",
 		"authentication": [],
-		"struct": [
-			{ "name": "ID", "type": "string" }
-		],
+		"struct": [],
 		"apis": [
 			{
 				"name": "list",
