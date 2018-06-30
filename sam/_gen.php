@@ -3,13 +3,13 @@
 
 error_reporting(E_ALL^E_NOTICE);
 
-include("../docs/vendor/autoload.php");
+include("docs/vendor/autoload.php");
 
 $tpl = new Monotek\MiniTPL\Template;
 $tpl->set_compile_location("/tmp", true);
 $tpl->add_default("newline", "\n");
 
-$apis = json_decode(file_get_contents("../docs/src/spec.json"), true);
+$apis = json_decode(file_get_contents("docs/src/spec.json"), true);
 foreach ($apis as $k => $v) {
 	foreach ($v['apis'] as $kk => $vv) {
 		$vv['path'] = "/" . $vv['name'];
