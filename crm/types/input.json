@@ -1,0 +1,9 @@
+{
+	"name": "Text input",
+	"options": {
+		"type": {
+			"title": "Input type",
+			"values": ["hidden", "text", "password", "email"]
+		}
+	}
+}

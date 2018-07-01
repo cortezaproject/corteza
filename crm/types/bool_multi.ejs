@@ -1,0 +1,3 @@
+{foreach values as key => val}
+<input type="checkbox" name="{name}[]" value="{key}" {if jQuery.inArray(key, value) >= 0} checked="checked"{/if}> {val}
+{/foreach}

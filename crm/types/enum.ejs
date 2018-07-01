@@ -1,0 +1,7 @@
+<select name="{name}" class="form-control form-control-sm">
+<% for (var key in values) {
+	var val = values[key];
+%>
+<option value="{key}"{if value == key} selected="selected"{/if}>{val}</option>
+<% } %>
+</select>
