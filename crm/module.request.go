@@ -7,16 +7,16 @@ import (
 
 var _ = chi.URLParam
 
-// Modules list request parameters
-type modulesListRequest struct {
+// Module list request parameters
+type moduleListRequest struct {
 	id string
 }
 
-func (modulesListRequest) new() *modulesListRequest {
-	return &modulesListRequest{}
+func (moduleListRequest) new() *moduleListRequest {
+	return &moduleListRequest{}
 }
 
-func (m *modulesListRequest) Fill(r *http.Request) error {
+func (m *moduleListRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -32,19 +32,19 @@ func (m *modulesListRequest) Fill(r *http.Request) error {
 	return nil
 }
 
-var _ RequestFiller = modulesListRequest{}.new()
+var _ RequestFiller = moduleListRequest{}.new()
 
-// Modules edit request parameters
-type modulesEditRequest struct {
+// Module edit request parameters
+type moduleEditRequest struct {
 	id   uint64
 	name string
 }
 
-func (modulesEditRequest) new() *modulesEditRequest {
-	return &modulesEditRequest{}
+func (moduleEditRequest) new() *moduleEditRequest {
+	return &moduleEditRequest{}
 }
 
-func (m *modulesEditRequest) Fill(r *http.Request) error {
+func (m *moduleEditRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -62,17 +62,17 @@ func (m *modulesEditRequest) Fill(r *http.Request) error {
 	return nil
 }
 
-var _ RequestFiller = modulesEditRequest{}.new()
+var _ RequestFiller = moduleEditRequest{}.new()
 
-// Modules content/list request parameters
-type modulesContentListRequest struct {
+// Module content/list request parameters
+type moduleContentListRequest struct {
 }
 
-func (modulesContentListRequest) new() *modulesContentListRequest {
-	return &modulesContentListRequest{}
+func (moduleContentListRequest) new() *moduleContentListRequest {
+	return &moduleContentListRequest{}
 }
 
-func (m *modulesContentListRequest) Fill(r *http.Request) error {
+func (m *moduleContentListRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -86,19 +86,19 @@ func (m *modulesContentListRequest) Fill(r *http.Request) error {
 	return nil
 }
 
-var _ RequestFiller = modulesContentListRequest{}.new()
+var _ RequestFiller = moduleContentListRequest{}.new()
 
-// Modules content/edit request parameters
-type modulesContentEditRequest struct {
+// Module content/edit request parameters
+type moduleContentEditRequest struct {
 	id      uint64
 	payload string
 }
 
-func (modulesContentEditRequest) new() *modulesContentEditRequest {
-	return &modulesContentEditRequest{}
+func (moduleContentEditRequest) new() *moduleContentEditRequest {
+	return &moduleContentEditRequest{}
 }
 
-func (m *modulesContentEditRequest) Fill(r *http.Request) error {
+func (m *moduleContentEditRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -116,18 +116,18 @@ func (m *modulesContentEditRequest) Fill(r *http.Request) error {
 	return nil
 }
 
-var _ RequestFiller = modulesContentEditRequest{}.new()
+var _ RequestFiller = moduleContentEditRequest{}.new()
 
-// Modules content/delete request parameters
-type modulesContentDeleteRequest struct {
+// Module content/delete request parameters
+type moduleContentDeleteRequest struct {
 	id uint64
 }
 
-func (modulesContentDeleteRequest) new() *modulesContentDeleteRequest {
-	return &modulesContentDeleteRequest{}
+func (moduleContentDeleteRequest) new() *moduleContentDeleteRequest {
+	return &moduleContentDeleteRequest{}
 }
 
-func (m *modulesContentDeleteRequest) Fill(r *http.Request) error {
+func (m *moduleContentDeleteRequest) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -143,4 +143,4 @@ func (m *modulesContentDeleteRequest) Fill(r *http.Request) error {
 	return nil
 }
 
-var _ RequestFiller = modulesContentDeleteRequest{}.new()
+var _ RequestFiller = moduleContentDeleteRequest{}.new()
