@@ -52,7 +52,7 @@ message StreamResponse {
 	}
 
         message Error {
-		int code = 1;
+		int32 code = 1;
 		string message = 2;
 	}
 
