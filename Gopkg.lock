@@ -71,7 +71,7 @@
     ".",
     "resputil"
   ]
-  revision = "65282e3db1e919ad2c9c50afc2cd270019e5e360"
+  revision = "b45ac8b1bb2f1a2fccd1530abb5f44f5f0de67f8"
 
 [[projects]]
   branch = "master"
@@ -85,7 +85,7 @@
     "internal/timeseries",
     "trace"
   ]
-  revision = "4cb1c02c05b0e749b0365f61ae859a8e0cfceed9"
+  revision = "ed29d75add3d7c4bf7ca65aac0c6df3d1420216f"
 
 [[projects]]
   name = "golang.org/x/text"
