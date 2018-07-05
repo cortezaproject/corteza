@@ -9,7 +9,7 @@ var _ = chi.URLParam
 
 {foreach $calls as $call}
 // {name} {call.name} request parameters
-type {name|lcfirst}{call.name|ucfirst}Request struct {
+type {name|lcfirst}{call.name|capitalize}Request struct {
 {foreach $call.parameters as $params}
 {foreach $params as $method => $param}
 	{param.name} {param.type}{newline}
@@ -17,11 +17,11 @@ type {name|lcfirst}{call.name|ucfirst}Request struct {
 {/foreach}
 }
 
-func ({name|lcfirst}{call.name|ucfirst}Request) new() *{name|lcfirst}{call.name|ucfirst}Request {
-	return &{name|lcfirst}{call.name|ucfirst}Request{}
+func ({name|lcfirst}{call.name|capitalize}Request) new() *{name|lcfirst}{call.name|capitalize}Request {
+	return &{name|lcfirst}{call.name|capitalize}Request{}
 }
 
-func ({self} *{name|lcfirst}{call.name|ucfirst}Request) Fill(r *http.Request) error {
+func ({self} *{name|lcfirst}{call.name|capitalize}Request) Fill(r *http.Request) error {
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -44,5 +44,5 @@ func ({self} *{name|lcfirst}{call.name|ucfirst}Request) Fill(r *http.Request) er
 	return nil
 }
 
-var _ RequestFiller = {name|lcfirst}{call.name|ucfirst}Request{}.new()
+var _ RequestFiller = {name|lcfirst}{call.name|capitalize}Request{}.new()
 {/foreach}

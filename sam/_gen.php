@@ -5,6 +5,11 @@ error_reporting(E_ALL^E_NOTICE);
 
 include("docs/vendor/autoload.php");
 
+function capitalize($name) {
+	$names = explode("/", $name);
+	return implode("", array_map("ucfirst", $names));
+}
+
 function array_change_key_case_recursive($arr) {
 	return array_map(function ($item) {
 		if (is_array($item)) {

@@ -18,14 +18,14 @@ func ({name}Handlers) new() *{name}Handlers {
 // Internal API interface
 type {name}API interface {
 {foreach $calls as $call}
-	{call.name|ucfirst}(*{name|lcfirst}{call.name|ucfirst}Request) (interface{}, error)
+	{call.name|capitalize}(*{name|lcfirst}{call.name|capitalize}Request) (interface{}, error)
 {/foreach}
 }
 
 // HTTP API interface
 type {name}HandlersAPI interface {
 {foreach $calls as $call}
-	{call.name|ucfirst}(http.ResponseWriter, *http.Request)
+	{call.name|capitalize}(http.ResponseWriter, *http.Request)
 {/foreach}
 }
 
