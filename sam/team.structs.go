@@ -41,10 +41,7 @@ func (t *Team) GetMemberIDs() []uint64 {
 }
 
 func (t *Team) SetMemberIDs(value []uint64) *Team {
-	if t.MemberIDs != value {
-		t.changed = append(t.changed, "memberids")
-		t.MemberIDs = value
-	}
+	t.MemberIDs = value
 	return t
 }
 func (t *Team) GetMembers() []User {
@@ -52,9 +49,6 @@ func (t *Team) GetMembers() []User {
 }
 
 func (t *Team) SetMembers(value []User) *Team {
-	if t.Members != value {
-		t.changed = append(t.changed, "members")
-		t.Members = value
-	}
+	t.Members = value
 	return t
 }

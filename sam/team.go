@@ -2,7 +2,10 @@ package sam
 
 import (
 	"github.com/pkg/errors"
+	"github.com/titpetric/factory"
 )
+
+var _ = errors.Wrap
 
 func (*Team) Edit(r *teamEditRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
@@ -15,8 +18,8 @@ func (*Team) Edit(r *teamEditRequest) (interface{}, error) {
 	if t.GetID() > 0 {
 		return t, db.Replace("team", t)
 	}
-	c.SetID(factory.Sonyflake.NextID())
-	return c, db.Insert("team", t)
+	t.SetID(factory.Sonyflake.NextID())
+	return t, db.Insert("team", t)
 }
 
 func (*Team) Remove(r *teamRemoveRequest) (interface{}, error) {

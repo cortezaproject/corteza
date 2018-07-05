@@ -1,10 +1,13 @@
 package sam
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 )
+
+var _ = errors.Wrap
 
 func (*Channel) Edit(r *channelEditRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
@@ -19,6 +22,9 @@ func (*Channel) Edit(r *channelEditRequest) (interface{}, error) {
 
 	c := Channel{}.new().SetID(r.id).SetName(r.name).SetTopic(r.topic)
 	if c.GetID() > 0 {
+		if is("topic", c.changed...) {
+			fmt.Println("Topic for channel was changed:", c.GetTopic())
+		}
 		return c, db.Replace("channel", c)
 	}
 	c.SetID(factory.Sonyflake.NextID())
