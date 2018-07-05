@@ -66,6 +66,7 @@ var _ RequestFiller = moduleEditRequest{}.new()
 
 // Module content/list request parameters
 type moduleContentListRequest struct {
+	id string
 }
 
 func (moduleContentListRequest) new() *moduleContentListRequest {
@@ -83,6 +84,8 @@ func (m *moduleContentListRequest) Fill(r *http.Request) error {
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
+
+	m.id = get["id"]
 	return nil
 }
 

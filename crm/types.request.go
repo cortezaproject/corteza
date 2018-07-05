@@ -8,8 +8,7 @@ import (
 var _ = chi.URLParam
 
 // Types list request parameters
-type typesListRequest struct {
-}
+type typesListRequest struct{}
 
 func (typesListRequest) new() *typesListRequest {
 	return &typesListRequest{}
