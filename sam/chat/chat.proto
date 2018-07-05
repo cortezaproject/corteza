@@ -41,13 +41,19 @@ message StreamResponse {
 	google.protobuf.Timestamp timestamp = 2;
 
 	oneof event {
-		Login    login = 3;
-		Join     channel_join = 4;
-		Names    channel_names = 5;
-		Part     channel_part = 6;
-		Users    user_names = 7;
-		Message  message = 8;
-		Shutdown shutdown = 9;
+		Error    error = 3;
+		Login    login = 4;
+		Join     channel_join = 5;
+		Names    channel_names = 6;
+		Part     channel_part = 7;
+		Users    user_names = 8;
+		Message  message = 9;
+		Shutdown shutdown = 10;
+	}
+
+        message Error {
+		int code = 1;
+		string message = 2;
 	}
 
 	message Login {
