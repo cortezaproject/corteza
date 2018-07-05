@@ -28,9 +28,6 @@ func (w *Websocket) GetUser() User {
 }
 
 func (w *Websocket) SetUser(value User) *Websocket {
-	if w.User != value {
-		w.changed = append(w.changed, "user")
-		w.User = value
-	}
+	w.User = value
 	return w
 }

@@ -4,6 +4,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+var _ = errors.Wrap
+
 func (*Message) Edit(r *messageEditRequest) (interface{}, error) {
 	return nil, errors.New("Not implemented: Message.edit")
 }

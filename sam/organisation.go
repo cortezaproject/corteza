@@ -2,7 +2,10 @@ package sam
 
 import (
 	"github.com/pkg/errors"
+	"github.com/titpetric/factory"
 )
+
+var _ = errors.Wrap
 
 func (*Organisation) Edit(r *organisationEditRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
