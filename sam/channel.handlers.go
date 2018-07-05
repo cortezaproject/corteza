@@ -30,7 +30,3 @@ func (ch *ChannelHandlers) Move(w http.ResponseWriter, r *http.Request) {
 	params := channelMoveRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Move(params) })
 }
-func (ch *ChannelHandlers) Merge(w http.ResponseWriter, r *http.Request) {
-	params := channelMergeRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Merge(params) })
-}

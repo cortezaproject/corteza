@@ -23,6 +23,7 @@ type TeamAPI interface {
 	Search(*teamSearchRequest) (interface{}, error)
 	Archive(*teamArchiveRequest) (interface{}, error)
 	Move(*teamMoveRequest) (interface{}, error)
+	Merge(*teamMergeRequest) (interface{}, error)
 }
 
 // HTTP API interface
@@ -33,6 +34,7 @@ type TeamHandlersAPI interface {
 	Search(http.ResponseWriter, *http.Request)
 	Archive(http.ResponseWriter, *http.Request)
 	Move(http.ResponseWriter, *http.Request)
+	Merge(http.ResponseWriter, *http.Request)
 }
 
 // Compile time check to see if we implement the interfaces

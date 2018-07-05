@@ -174,33 +174,3 @@ func (c *channelMoveRequest) Fill(r *http.Request) error {
 }
 
 var _ RequestFiller = channelMoveRequest{}.new()
-
-// Channel merge request parameters
-type channelMergeRequest struct {
-	destination uint64
-	source      uint64
-}
-
-func (channelMergeRequest) new() *channelMergeRequest {
-	return &channelMergeRequest{}
-}
-
-func (c *channelMergeRequest) Fill(r *http.Request) error {
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := r.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := r.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	c.destination = parseUInt64(post["destination"])
-
-	c.source = parseUInt64(post["source"])
-	return nil
-}
-
-var _ RequestFiller = channelMergeRequest{}.new()
