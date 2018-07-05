@@ -143,6 +143,28 @@
           }
         ]
       }
+    },
+    {
+      "Name": "merge",
+      "Method": "POST",
+      "Title": "Merge one team into another",
+      "Path": "/merge",
+      "Parameters": {
+        "post": [
+          {
+            "name": "destination",
+            "required": true,
+            "title": "Destination Channel ID",
+            "type": "uint64"
+          },
+          {
+            "name": "source",
+            "required": true,
+            "title": "Source Channel ID",
+            "type": "uint64"
+          }
+        ]
+      }
     }
   ]
 }

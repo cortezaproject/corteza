@@ -138,6 +138,17 @@
 						{ "type": "uint64", "name": "organisation_id", "required": true, "title": "Organisation ID" }
 					]
 				}
+			},
+			{
+				"name": "merge",
+				"method": "POST",
+				"title": "Merge one team into another",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "destination", "required": true, "title": "Destination Channel ID" },
+						{ "type": "uint64", "name": "source", "required": true, "title": "Source Channel ID" }
+					]
+				}
 			}
 		]
 	},
@@ -212,17 +223,6 @@
 				"parameters": {
 					"post": [
 						{ "type": "uint64", "name": "id", "required": true, "title": "Channel ID" }
-					]
-				}
-			},
-			{
-				"name": "merge",
-				"method": "POST",
-				"title": "Merge one team into another",
-				"parameters": {
-					"post": [
-						{ "type": "uint64", "name": "destination", "required": true, "title": "Destination Channel ID" },
-						{ "type": "uint64", "name": "source", "required": true, "title": "Source Channel ID" }
 					]
 				}
 			}
