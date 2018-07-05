@@ -2,8 +2,8 @@ package crm
 
 // Modules
 type Module struct {
-	id   uint64
-	name string
+	ID   uint64
+	Name string
 
 	changed []string
 }
@@ -12,25 +12,25 @@ func (Module) new() *Module {
 	return &Module{}
 }
 
-func (m *Module) Getid() uint64 {
-	return m.id
+func (m *Module) GetID() uint64 {
+	return m.ID
 }
 
-func (m *Module) Setid(value uint64) *Module {
-	if m.id != value {
+func (m *Module) SetID(value uint64) *Module {
+	if m.ID != value {
 		m.changed = append(m.changed, "id")
-		m.id = value
+		m.ID = value
 	}
 	return m
 }
-func (m *Module) Getname() string {
-	return m.name
+func (m *Module) GetName() string {
+	return m.Name
 }
 
-func (m *Module) Setname(value string) *Module {
-	if m.name != value {
+func (m *Module) SetName(value string) *Module {
+	if m.Name != value {
 		m.changed = append(m.changed, "name")
-		m.name = value
+		m.Name = value
 	}
 	return m
 }
