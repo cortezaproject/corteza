@@ -1,5 +1,6 @@
 package crm
 
+
 import (
 	"github.com/jmoiron/sqlx/types"
 )
@@ -7,20 +8,22 @@ import (
 type (
 	// Modules
 	Module struct {
-		ID   uint64
+		ID uint64
 		Name string
 
 		changed []string
 	}
 
+
 	// Modules
 	ModuleContentRow struct {
-		ID       uint64         `db:"id"`
-		ModuleID uint64         `db:"module_id"`
-		Fields   types.JSONText `db:"address"`
+		ID uint64 `db:"id"`
+		ModuleID uint64 `db:"module_id"`
+		Fields types.JSONText `db:"address"`
 
 		changed []string
 	}
+
 )
 
 /* Constructors */

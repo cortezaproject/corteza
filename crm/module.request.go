@@ -1,15 +1,15 @@
 package crm
 
 import (
-	"github.com/go-chi/chi"
 	"net/http"
+	"github.com/go-chi/chi"
 )
 
 var _ = chi.URLParam
 
 // Module list request parameters
 type moduleListRequest struct {
-	id string
+	id uint64
 }
 
 func (moduleListRequest) new() *moduleListRequest {
@@ -28,15 +28,14 @@ func (m *moduleListRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	m.id = get["id"]
+	m.id = parseUInt64(get["id"])
 	return nil
 }
 
 var _ RequestFiller = moduleListRequest{}.new()
-
 // Module edit request parameters
 type moduleEditRequest struct {
-	id   uint64
+	id uint64
 	name string
 }
 
@@ -63,10 +62,9 @@ func (m *moduleEditRequest) Fill(r *http.Request) error {
 }
 
 var _ RequestFiller = moduleEditRequest{}.new()
-
 // Module content/list request parameters
 type moduleContentListRequest struct {
-	id string
+	id uint64
 }
 
 func (moduleContentListRequest) new() *moduleContentListRequest {
@@ -85,15 +83,14 @@ func (m *moduleContentListRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	m.id = get["id"]
+	m.id = parseUInt64(get["id"])
 	return nil
 }
 
 var _ RequestFiller = moduleContentListRequest{}.new()
-
 // Module content/edit request parameters
 type moduleContentEditRequest struct {
-	id      uint64
+	id uint64
 	payload string
 }
 
@@ -120,7 +117,6 @@ func (m *moduleContentEditRequest) Fill(r *http.Request) error {
 }
 
 var _ RequestFiller = moduleContentEditRequest{}.new()
-
 // Module content/delete request parameters
 type moduleContentDeleteRequest struct {
 	id uint64

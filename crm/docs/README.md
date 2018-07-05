@@ -48,7 +48,7 @@ CRM module definitions
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | string | GET | Module ID | N/A | NO |
+| id | uint64 | GET | Module ID | N/A | NO |
 
 ## Add/edit module
 
@@ -77,7 +77,7 @@ CRM module definitions
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | string | GET | Module ID | N/A | NO |
+| id | uint64 | GET | Module ID | N/A | NO |
 
 ## Add/update contents in module section
 
