@@ -15,6 +15,7 @@ func (*Channel) Edit(r *channelEditRequest) (interface{}, error) {
 	// @todo: topic change message/log entry
 	// @todo: channel name change message/log entry
 	// @todo: permission check if user can edit channel
+	// @todo: permission check if user can add channel
 
 	c := Channel{}.new().SetID(r.id).SetName(r.name).SetTopic(r.topic)
 	if c.GetID() > 0 {
