@@ -167,6 +167,21 @@ An organisation may have many teams. Teams may have many channels available. Acc
 | id | uint64 | POST | Organisation ID | N/A | YES |
 | organisation_id | uint64 | POST | Organisation ID | N/A | YES |
 
+## Merge one team into another
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/merge` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| destination | uint64 | POST | Destination Channel ID | N/A | YES |
+| source | uint64 | POST | Source Channel ID | N/A | YES |
+
 
 
 
@@ -259,21 +274,6 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | id | uint64 | POST | Channel ID | N/A | YES |
-
-## Merge one team into another
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/channel/merge` | HTTP/S | POST | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| destination | uint64 | POST | Destination Channel ID | N/A | YES |
-| source | uint64 | POST | Source Channel ID | N/A | YES |
 
 
 
