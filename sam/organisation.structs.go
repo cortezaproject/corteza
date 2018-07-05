@@ -4,6 +4,8 @@ package sam
 type Organisation struct {
 	ID   uint64
 	Name string
+
+	changed []string
 }
 
 func (Organisation) new() *Organisation {
@@ -15,7 +17,10 @@ func (o *Organisation) GetID() uint64 {
 }
 
 func (o *Organisation) SetID(value uint64) *Organisation {
-	o.ID = value
+	if o.ID != value {
+		o.changed = append(o.changed, "id")
+		o.ID = value
+	}
 	return o
 }
 func (o *Organisation) GetName() string {
@@ -23,6 +28,9 @@ func (o *Organisation) GetName() string {
 }
 
 func (o *Organisation) SetName(value string) *Organisation {
-	o.Name = value
+	if o.Name != value {
+		o.changed = append(o.changed, "name")
+		o.Name = value
+	}
 	return o
 }

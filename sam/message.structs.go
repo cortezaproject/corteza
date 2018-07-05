@@ -11,6 +11,8 @@ type Message struct {
 	Message    string
 	MessageID  string
 	Type       MessageType
+
+	changed []string
 }
 
 func (Message) new() *Message {
@@ -22,7 +24,10 @@ func (m *Message) GetService() string {
 }
 
 func (m *Message) SetService(value string) *Message {
-	m.Service = value
+	if m.Service != value {
+		m.changed = append(m.changed, "service")
+		m.Service = value
+	}
 	return m
 }
 func (m *Message) GetChannel() string {
@@ -30,7 +35,10 @@ func (m *Message) GetChannel() string {
 }
 
 func (m *Message) SetChannel(value string) *Message {
-	m.Channel = value
+	if m.Channel != value {
+		m.changed = append(m.changed, "channel")
+		m.Channel = value
+	}
 	return m
 }
 func (m *Message) GetUserName() string {
@@ -38,7 +46,10 @@ func (m *Message) GetUserName() string {
 }
 
 func (m *Message) SetUserName(value string) *Message {
-	m.UserName = value
+	if m.UserName != value {
+		m.changed = append(m.changed, "username")
+		m.UserName = value
+	}
 	return m
 }
 func (m *Message) GetUserID() uint64 {
@@ -46,7 +57,10 @@ func (m *Message) GetUserID() uint64 {
 }
 
 func (m *Message) SetUserID(value uint64) *Message {
-	m.UserID = value
+	if m.UserID != value {
+		m.changed = append(m.changed, "userid")
+		m.UserID = value
+	}
 	return m
 }
 func (m *Message) GetUser() *User {
@@ -54,7 +68,10 @@ func (m *Message) GetUser() *User {
 }
 
 func (m *Message) SetUser(value *User) *Message {
-	m.User = value
+	if m.User != value {
+		m.changed = append(m.changed, "user")
+		m.User = value
+	}
 	return m
 }
 func (m *Message) GetUserAvatar() string {
@@ -62,7 +79,10 @@ func (m *Message) GetUserAvatar() string {
 }
 
 func (m *Message) SetUserAvatar(value string) *Message {
-	m.UserAvatar = value
+	if m.UserAvatar != value {
+		m.changed = append(m.changed, "useravatar")
+		m.UserAvatar = value
+	}
 	return m
 }
 func (m *Message) GetMessage() string {
@@ -70,7 +90,10 @@ func (m *Message) GetMessage() string {
 }
 
 func (m *Message) SetMessage(value string) *Message {
-	m.Message = value
+	if m.Message != value {
+		m.changed = append(m.changed, "message")
+		m.Message = value
+	}
 	return m
 }
 func (m *Message) GetMessageID() string {
@@ -78,7 +101,10 @@ func (m *Message) GetMessageID() string {
 }
 
 func (m *Message) SetMessageID(value string) *Message {
-	m.MessageID = value
+	if m.MessageID != value {
+		m.changed = append(m.changed, "messageid")
+		m.MessageID = value
+	}
 	return m
 }
 func (m *Message) GetType() MessageType {
@@ -86,6 +112,9 @@ func (m *Message) GetType() MessageType {
 }
 
 func (m *Message) SetType(value MessageType) *Message {
-	m.Type = value
+	if m.Type != value {
+		m.changed = append(m.changed, "type")
+		m.Type = value
+	}
 	return m
 }
