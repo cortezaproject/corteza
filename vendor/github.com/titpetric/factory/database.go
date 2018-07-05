@@ -60,12 +60,14 @@ func init() {
 // be applied, and your custom settings will be honored.
 func (r *DatabaseFactory) Add(name string, config interface{}) {
 	switch val := config.(type) {
+	case *string:
+		r.credentials[name] = &DatabaseCredential{DSN: *val}
 	case string:
 		r.credentials[name] = &DatabaseCredential{DSN: val}
 	case DatabaseCredential:
 		r.credentials[name] = &val
 	default:
-		panic("factory.Database.Add can take config as string|factory.DatabaseCredential")
+		panic("factory.Database.Add can take config as string|*string|factory.DatabaseCredential")
 	}
 }
 
@@ -118,7 +120,7 @@ func (r *DatabaseFactory) Get(dbName ...string) (*DB, error) {
 		}
 		dsn, _ := r.GetDSN(name)
 		if dsn != "" {
-			handle, err := sqlx.Open("mysql", dsn)
+			handle, err := sqlx.Connect("mysql", dsn)
 			if err != nil {
 				return nil, err
 			}
