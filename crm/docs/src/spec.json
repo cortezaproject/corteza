@@ -25,5 +25,66 @@
 				}
 			}
 		]
+	},
+	{
+		"title": "Modules",
+		"description": "CRM module definitions",
+		"package": "crm",
+		"entrypoint": "modules",
+		"path": "modules",
+		"authentication": [],
+		"struct": [
+			{ "name": "id", "type": "uint64" },
+			{ "name": "name", "type": "string" }
+		],
+		"apis": [
+			{
+				"name": "list",
+				"method": "GET",
+				"title": "List defined modules",
+				"parameters": {
+					"get": [
+						{ "type": "string", "name": "id", "title": "Module ID" }
+					]
+				}
+			},
+			{
+				"name": "edit",
+				"method": "POST",
+				"title": "Add/edit module",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "id", "required": false, "title": "Module ID" },
+						{ "type": "string", "name": "name", "required": true, "title": "Module Name" }
+					]
+				}
+			},
+			{
+				"name": "content/list",
+				"method": "GET",
+				"title": "List contents from module section"
+			},
+			{
+				"name": "content/edit",
+				"method": "POST",
+				"title": "Add/update contents in module section",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "id", "required": false, "title": "Content ID" },
+						{ "type": "string", "name": "payload", "required": true, "title": "Content JSON" }
+					]
+				}
+			},
+			{
+				"name": "content/delete",
+				"method": "DELETE",
+				"title": "Delete content row from module section",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "Content ID" }
+					]
+				}
+			}
+		]
 	}
 ]
