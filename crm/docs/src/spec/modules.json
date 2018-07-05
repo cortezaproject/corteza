@@ -1,0 +1,103 @@
+{
+  "Title": "Modules",
+  "Description": "CRM module definitions",
+  "Package": "crm",
+  "Interface": "Modules",
+  "Struct": [
+    {
+      "name": "id",
+      "type": "uint64"
+    },
+    {
+      "name": "name",
+      "type": "string"
+    }
+  ],
+  "Protocol": "",
+  "Authentication": [],
+  "Path": "/modules",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List defined modules",
+      "Path": "/list",
+      "Parameters": {
+        "get": [
+          {
+            "name": "id",
+            "title": "Module ID",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "edit",
+      "Method": "POST",
+      "Title": "Add/edit module",
+      "Path": "/edit",
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": false,
+            "title": "Module ID",
+            "type": "uint64"
+          },
+          {
+            "name": "name",
+            "required": true,
+            "title": "Module Name",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "content/list",
+      "Method": "GET",
+      "Title": "List contents from module section",
+      "Path": "/content/list",
+      "Parameters": null
+    },
+    {
+      "Name": "content/edit",
+      "Method": "POST",
+      "Title": "Add/update contents in module section",
+      "Path": "/content/edit",
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": false,
+            "title": "Content ID",
+            "type": "uint64"
+          },
+          {
+            "name": "payload",
+            "required": true,
+            "title": "Content JSON",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "content/delete",
+      "Method": "DELETE",
+      "Title": "Delete content row from module section",
+      "Path": "/content/delete",
+      "Parameters": {
+        "post": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "Content ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    }
+  ]
+}
