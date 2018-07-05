@@ -42,7 +42,7 @@ CRM module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/modules/list` | HTTP/S | GET |  |
+| `/module/list` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -56,7 +56,7 @@ CRM module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/modules/edit` | HTTP/S | POST |  |
+| `/module/edit` | HTTP/S | POST |  |
 
 #### Request parameters
 
@@ -71,7 +71,7 @@ CRM module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/modules/content/list` | HTTP/S | GET |  |
+| `/module/content/list` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -84,7 +84,7 @@ CRM module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/modules/content/edit` | HTTP/S | POST |  |
+| `/module/content/edit` | HTTP/S | POST |  |
 
 #### Request parameters
 
@@ -99,7 +99,7 @@ CRM module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/modules/content/delete` | HTTP/S | DELETE |  |
+| `/module/content/delete` | HTTP/S | DELETE |  |
 
 #### Request parameters
 

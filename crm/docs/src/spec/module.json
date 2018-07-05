@@ -2,7 +2,7 @@
   "Title": "Modules",
   "Description": "CRM module definitions",
   "Package": "crm",
-  "Interface": "Modules",
+  "Interface": "Module",
   "Struct": [
     {
       "name": "id",
@@ -15,7 +15,7 @@
   ],
   "Protocol": "",
   "Authentication": [],
-  "Path": "/modules",
+  "Path": "/module",
   "APIs": [
     {
       "Name": "list",

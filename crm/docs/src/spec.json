@@ -30,8 +30,8 @@
 		"title": "Modules",
 		"description": "CRM module definitions",
 		"package": "crm",
-		"entrypoint": "modules",
-		"path": "modules",
+		"entrypoint": "module",
+		"path": "module",
 		"authentication": [],
 		"struct": [
 			{ "name": "id", "type": "uint64" },
