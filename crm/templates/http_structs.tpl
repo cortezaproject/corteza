@@ -1,5 +1,13 @@
 package {package}
 
+{if !empty($imports)}
+import (
+{foreach ($imports as $import)}
+	"{import}"
+{/foreach}
+)
+{/if}
+
 type ({foreach $structs as $struct}
 
 {if strpos($name, "Literal") !== false}
@@ -35,7 +43,7 @@ func ({self} *{struct.name}) Get{field.name}() {field.type} {
 
 func ({self} *{struct.name}) Set{field.name}(value {field.type}) *{struct.name} {{if !$field.complex}
 	if {self}.{field.name} != value {
-		{self}.changed = append({self}.changed, "{field.name|strtolower}")
+		{self}.changed = append({self}.changed, "{field.name}")
 		{self}.{field.name} = value
 	}
 {else}
