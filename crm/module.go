@@ -39,6 +39,11 @@ func (*Module) Edit(r *moduleEditRequest) (interface{}, error) {
 }
 
 func (*Module) ContentList(r *moduleContentListRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
 	if r.id > 0 {
 		m := ModuleContentRow{}.new()
 		return m, db.Get(m, "select * from crm_module id=?", r.id)

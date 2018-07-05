@@ -65,7 +65,7 @@
 				"title": "List defined modules",
 				"parameters": {
 					"get": [
-						{ "type": "string", "name": "id", "title": "Module ID" }
+						{ "type": "uint64", "name": "id", "title": "Module ID" }
 					]
 				}
 			},
@@ -86,7 +86,7 @@
 				"title": "List/read contents from module section",
 				"parameters": {
 					"get": [
-						{ "type": "string", "name": "id", "title": "Module ID" }
+						{ "type": "uint64", "name": "id", "title": "Module ID" }
 					]
 				}
 			},

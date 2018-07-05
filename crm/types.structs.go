@@ -1,10 +1,13 @@
 package crm
 
+
 type (
 	// Types
 	Types struct {
+
 		changed []string
 	}
+
 )
 
 /* Constructors */

@@ -1,8 +1,8 @@
 package crm
 
 import (
-	"github.com/go-chi/chi"
 	"net/http"
+	"github.com/go-chi/chi"
 )
 
 var _ = chi.URLParam
@@ -30,7 +30,6 @@ func (t *typesListRequest) Fill(r *http.Request) error {
 }
 
 var _ RequestFiller = typesListRequest{}.new()
-
 // Types type request parameters
 type typesTypeRequest struct {
 	id string
