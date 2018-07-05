@@ -1,15 +1,25 @@
 package crm
 
 import (
+	"encoding/json"
 	"os"
 	"path"
 	"path/filepath"
-	"encoding/json"
 
 	"github.com/pkg/errors"
 )
 
 var _ = errors.Wrap
+
+func typesDecodeJSON(filename string) (map[string]interface{}, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	result := make(map[string]interface{})
+	return result, json.NewDecoder(file).Decode(&result)
+}
 
 func (*Types) List(r *typesListRequest) (interface{}, error) {
 	matches, err := filepath.Glob("../crm/types/*.json")
@@ -17,21 +27,11 @@ func (*Types) List(r *typesListRequest) (interface{}, error) {
 		return nil, err
 	}
 
-	decodeFile := func(filename string) (map[string]interface{}, error) {
-		file, err := os.Open(filename)
-		if err != nil {
-			return nil, err
-		}
-		defer file.Close()
-		result := make(map[string]interface{})
-		return result, json.NewDecoder(file).Decode(&result)
-	}
-
 	res := make([]interface{}, 0)
 	for _, match := range matches {
 		t := path.Base(match)
 		t = t[:len(t)-5]
-		params, err := decodeFile(match)
+		params, err := typesDecodeJSON(match)
 		if err != nil {
 			return nil, errors.Wrap(err, "Error when parsing "+match)
 		}
@@ -42,5 +42,13 @@ func (*Types) List(r *typesListRequest) (interface{}, error) {
 }
 
 func (*Types) Type(r *typesTypeRequest) (interface{}, error) {
-	return nil, errors.New("Not implemented: Types.type")
+	if r.id == "" {
+		return nil, errors.New("Missing id parameter")
+	}
+	params, err := typesDecodeJSON("../crm/types/" + r.id + ".json")
+	if err != nil {
+		return nil, errors.Wrap(err, "Error reading type: "+r.id)
+	}
+	params["type"] = r.id
+	return params, nil
 }
