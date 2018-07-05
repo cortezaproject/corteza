@@ -65,7 +65,7 @@ CRM module definitions
 | id | uint64 | POST | Module ID | N/A | NO |
 | name | string | POST | Module Name | N/A | YES |
 
-## List contents from module section
+## List/read contents from module section
 
 #### Method
 
@@ -77,6 +77,7 @@ CRM module definitions
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+| id | string | GET | Module ID | N/A | NO |
 
 ## Add/update contents in module section
 

@@ -46,9 +46,9 @@ foreach (array("structs", "handlers", "interfaces", "request", "") as $type) {
 			$tpl->assign("name", $name);
 			$tpl->assign("self", strtolower(substr($name, 0, 1)));
 			$tpl->assign("api", $api);
-			$tpl->assign("fields", $api['struct']);
+			$tpl->assign("structs", $api['struct']);
 			$tpl->assign("calls", $api['apis']);
-			$contents = $tpl->get();
+			$contents = str_replace("\n}", "}", $tpl->get());
 
 			$save = true;
 			if ($type === "" && file_exists($filename)) {

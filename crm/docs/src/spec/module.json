@@ -5,12 +5,17 @@
   "Interface": "Module",
   "Struct": [
     {
-      "name": "ID",
-      "type": "uint64"
-    },
-    {
-      "name": "Name",
-      "type": "string"
+      "fields": [
+        {
+          "name": "ID",
+          "type": "uint64"
+        },
+        {
+          "name": "Name",
+          "type": "string"
+        }
+      ],
+      "name": "Module"
     }
   ],
   "Protocol": "",
@@ -57,9 +62,17 @@
     {
       "Name": "content/list",
       "Method": "GET",
-      "Title": "List contents from module section",
+      "Title": "List/read contents from module section",
       "Path": "/content/list",
-      "Parameters": null
+      "Parameters": {
+        "get": [
+          {
+            "name": "id",
+            "title": "Module ID",
+            "type": "string"
+          }
+        ]
+      }
     },
     {
       "Name": "content/edit",

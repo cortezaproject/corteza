@@ -1,17 +1,21 @@
 package crm
 
-// Modules
-type Module struct {
-	ID   uint64
-	Name string
+type (
+	// Modules
+	Module struct {
+		ID   uint64
+		Name string
 
-	changed []string
-}
+		changed []string
+	}
+)
 
+/* Constructors */
 func (Module) new() *Module {
 	return &Module{}
 }
 
+/* Getters/setters */
 func (m *Module) GetID() uint64 {
 	return m.ID
 }

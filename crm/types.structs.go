@@ -1,10 +1,7 @@
 package crm
 
-// Types
-type Types struct {
-	changed []string
-}
+type ()
 
-func (Types) new() *Types {
-	return &Types{}
-}
+/* Constructors */
+
+/* Getters/setters */

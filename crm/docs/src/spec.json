@@ -34,8 +34,13 @@
 		"path": "module",
 		"authentication": [],
 		"struct": [
-			{ "name": "ID", "type": "uint64" },
-			{ "name": "Name", "type": "string" }
+			{
+				"name": "Module",
+				"fields": [
+					{ "name": "ID", "type": "uint64" },
+					{ "name": "Name", "type": "string" }
+				]
+			}
 		],
 		"apis": [
 			{
@@ -62,7 +67,12 @@
 			{
 				"name": "content/list",
 				"method": "GET",
-				"title": "List contents from module section"
+				"title": "List/read contents from module section",
+				"parameters": {
+					"get": [
+						{ "type": "string", "name": "id", "title": "Module ID" }
+					]
+				}
 			},
 			{
 				"name": "content/edit",
