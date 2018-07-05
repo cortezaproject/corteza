@@ -4,21 +4,30 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (t *Team) Edit(r *teamEditRequest) (interface{}, error) {
+func (*Team) Edit(r *teamEditRequest) (interface{}, error) {
 	return nil, errors.New("Not implemented: Team.edit")
 }
-func (t *Team) Remove(r *teamRemoveRequest) (interface{}, error) {
+
+func (*Team) Remove(r *teamRemoveRequest) (interface{}, error) {
 	return nil, errors.New("Not implemented: Team.remove")
 }
-func (t *Team) Read(r *teamReadRequest) (interface{}, error) {
+
+func (*Team) Read(r *teamReadRequest) (interface{}, error) {
 	return nil, errors.New("Not implemented: Team.read")
 }
-func (t *Team) Search(r *teamSearchRequest) (interface{}, error) {
+
+func (*Team) Search(r *teamSearchRequest) (interface{}, error) {
 	return nil, errors.New("Not implemented: Team.search")
 }
-func (t *Team) Archive(r *teamArchiveRequest) (interface{}, error) {
+
+func (*Team) Archive(r *teamArchiveRequest) (interface{}, error) {
 	return nil, errors.New("Not implemented: Team.archive")
 }
-func (t *Team) Move(r *teamMoveRequest) (interface{}, error) {
+
+func (*Team) Move(r *teamMoveRequest) (interface{}, error) {
 	return nil, errors.New("Not implemented: Team.move")
+}
+
+func (*Team) Merge(r *teamMergeRequest) (interface{}, error) {
+	return nil, errors.New("Not implemented: Team.merge")
 }

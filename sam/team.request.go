@@ -175,3 +175,33 @@ func (t *teamMoveRequest) Fill(r *http.Request) error {
 }
 
 var _ RequestFiller = teamMoveRequest{}.new()
+
+// Team merge request parameters
+type teamMergeRequest struct {
+	destination uint64
+	source      uint64
+}
+
+func (teamMergeRequest) new() *teamMergeRequest {
+	return &teamMergeRequest{}
+}
+
+func (t *teamMergeRequest) Fill(r *http.Request) error {
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	t.destination = parseUInt64(post["destination"])
+
+	t.source = parseUInt64(post["source"])
+	return nil
+}
+
+var _ RequestFiller = teamMergeRequest{}.new()

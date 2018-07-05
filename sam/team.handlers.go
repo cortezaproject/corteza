@@ -30,3 +30,7 @@ func (th *TeamHandlers) Move(w http.ResponseWriter, r *http.Request) {
 	params := teamMoveRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Move(params) })
 }
+func (th *TeamHandlers) Merge(w http.ResponseWriter, r *http.Request) {
+	params := teamMergeRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Merge(params) })
+}

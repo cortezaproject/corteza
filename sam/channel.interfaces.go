@@ -23,7 +23,6 @@ type ChannelAPI interface {
 	Search(*channelSearchRequest) (interface{}, error)
 	Archive(*channelArchiveRequest) (interface{}, error)
 	Move(*channelMoveRequest) (interface{}, error)
-	Merge(*channelMergeRequest) (interface{}, error)
 }
 
 // HTTP API interface
@@ -34,7 +33,6 @@ type ChannelHandlersAPI interface {
 	Search(http.ResponseWriter, *http.Request)
 	Archive(http.ResponseWriter, *http.Request)
 	Move(http.ResponseWriter, *http.Request)
-	Merge(http.ResponseWriter, *http.Request)
 }
 
 // Compile time check to see if we implement the interfaces
