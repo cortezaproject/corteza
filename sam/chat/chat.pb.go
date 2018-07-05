@@ -41,7 +41,7 @@ func (m *StreamRequest) Reset()         { *m = StreamRequest{} }
 func (m *StreamRequest) String() string { return proto.CompactTextString(m) }
 func (*StreamRequest) ProtoMessage()    {}
 func (*StreamRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_chat_a51bfa36e5b89925, []int{0}
+	return fileDescriptor_chat_5d1937391afcaa39, []int{0}
 }
 func (m *StreamRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamRequest.Unmarshal(m, b)
@@ -271,7 +271,7 @@ func (m *StreamRequest_Login) Reset()         { *m = StreamRequest_Login{} }
 func (m *StreamRequest_Login) String() string { return proto.CompactTextString(m) }
 func (*StreamRequest_Login) ProtoMessage()    {}
 func (*StreamRequest_Login) Descriptor() ([]byte, []int) {
-	return fileDescriptor_chat_a51bfa36e5b89925, []int{0, 0}
+	return fileDescriptor_chat_5d1937391afcaa39, []int{0, 0}
 }
 func (m *StreamRequest_Login) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamRequest_Login.Unmarshal(m, b)
@@ -309,7 +309,7 @@ func (m *StreamRequest_Join) Reset()         { *m = StreamRequest_Join{} }
 func (m *StreamRequest_Join) String() string { return proto.CompactTextString(m) }
 func (*StreamRequest_Join) ProtoMessage()    {}
 func (*StreamRequest_Join) Descriptor() ([]byte, []int) {
-	return fileDescriptor_chat_a51bfa36e5b89925, []int{0, 1}
+	return fileDescriptor_chat_5d1937391afcaa39, []int{0, 1}
 }
 func (m *StreamRequest_Join) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamRequest_Join.Unmarshal(m, b)
@@ -347,7 +347,7 @@ func (m *StreamRequest_Part) Reset()         { *m = StreamRequest_Part{} }
 func (m *StreamRequest_Part) String() string { return proto.CompactTextString(m) }
 func (*StreamRequest_Part) ProtoMessage()    {}
 func (*StreamRequest_Part) Descriptor() ([]byte, []int) {
-	return fileDescriptor_chat_a51bfa36e5b89925, []int{0, 2}
+	return fileDescriptor_chat_5d1937391afcaa39, []int{0, 2}
 }
 func (m *StreamRequest_Part) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamRequest_Part.Unmarshal(m, b)
@@ -386,7 +386,7 @@ func (m *StreamRequest_Message) Reset()         { *m = StreamRequest_Message{} }
 func (m *StreamRequest_Message) String() string { return proto.CompactTextString(m) }
 func (*StreamRequest_Message) ProtoMessage()    {}
 func (*StreamRequest_Message) Descriptor() ([]byte, []int) {
-	return fileDescriptor_chat_a51bfa36e5b89925, []int{0, 3}
+	return fileDescriptor_chat_5d1937391afcaa39, []int{0, 3}
 }
 func (m *StreamRequest_Message) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamRequest_Message.Unmarshal(m, b)
@@ -430,7 +430,7 @@ func (m *StreamRequest_Quit) Reset()         { *m = StreamRequest_Quit{} }
 func (m *StreamRequest_Quit) String() string { return proto.CompactTextString(m) }
 func (*StreamRequest_Quit) ProtoMessage()    {}
 func (*StreamRequest_Quit) Descriptor() ([]byte, []int) {
-	return fileDescriptor_chat_a51bfa36e5b89925, []int{0, 4}
+	return fileDescriptor_chat_5d1937391afcaa39, []int{0, 4}
 }
 func (m *StreamRequest_Quit) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamRequest_Quit.Unmarshal(m, b)
@@ -454,6 +454,7 @@ type StreamResponse struct {
 	Id        uint64               `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
 	Timestamp *timestamp.Timestamp `protobuf:"bytes,2,opt,name=timestamp" json:"timestamp,omitempty"`
 	// Types that are valid to be assigned to Event:
+	//	*StreamResponse_Error_
 	//	*StreamResponse_Login_
 	//	*StreamResponse_ChannelJoin
 	//	*StreamResponse_ChannelNames
@@ -471,7 +472,7 @@ func (m *StreamResponse) Reset()         { *m = StreamResponse{} }
 func (m *StreamResponse) String() string { return proto.CompactTextString(m) }
 func (*StreamResponse) ProtoMessage()    {}
 func (*StreamResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_chat_a51bfa36e5b89925, []int{1}
+	return fileDescriptor_chat_5d1937391afcaa39, []int{1}
 }
 func (m *StreamResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamResponse.Unmarshal(m, b)
@@ -495,28 +496,32 @@ type isStreamResponse_Event interface {
 	isStreamResponse_Event()
 }
 
+type StreamResponse_Error_ struct {
+	Error *StreamResponse_Error `protobuf:"bytes,3,opt,name=error,oneof"`
+}
 type StreamResponse_Login_ struct {
-	Login *StreamResponse_Login `protobuf:"bytes,3,opt,name=login,oneof"`
+	Login *StreamResponse_Login `protobuf:"bytes,4,opt,name=login,oneof"`
 }
 type StreamResponse_ChannelJoin struct {
-	ChannelJoin *StreamResponse_Join `protobuf:"bytes,4,opt,name=channel_join,json=channelJoin,oneof"`
+	ChannelJoin *StreamResponse_Join `protobuf:"bytes,5,opt,name=channel_join,json=channelJoin,oneof"`
 }
 type StreamResponse_ChannelNames struct {
-	ChannelNames *StreamResponse_Names `protobuf:"bytes,5,opt,name=channel_names,json=channelNames,oneof"`
+	ChannelNames *StreamResponse_Names `protobuf:"bytes,6,opt,name=channel_names,json=channelNames,oneof"`
 }
 type StreamResponse_ChannelPart struct {
-	ChannelPart *StreamResponse_Part `protobuf:"bytes,6,opt,name=channel_part,json=channelPart,oneof"`
+	ChannelPart *StreamResponse_Part `protobuf:"bytes,7,opt,name=channel_part,json=channelPart,oneof"`
 }
 type StreamResponse_UserNames struct {
-	UserNames *StreamResponse_Users `protobuf:"bytes,7,opt,name=user_names,json=userNames,oneof"`
+	UserNames *StreamResponse_Users `protobuf:"bytes,8,opt,name=user_names,json=userNames,oneof"`
 }
 type StreamResponse_Message_ struct {
-	Message *StreamResponse_Message `protobuf:"bytes,8,opt,name=message,oneof"`
+	Message *StreamResponse_Message `protobuf:"bytes,9,opt,name=message,oneof"`
 }
 type StreamResponse_Shutdown_ struct {
-	Shutdown *StreamResponse_Shutdown `protobuf:"bytes,9,opt,name=shutdown,oneof"`
+	Shutdown *StreamResponse_Shutdown `protobuf:"bytes,10,opt,name=shutdown,oneof"`
 }
 
+func (*StreamResponse_Error_) isStreamResponse_Event()       {}
 func (*StreamResponse_Login_) isStreamResponse_Event()       {}
 func (*StreamResponse_ChannelJoin) isStreamResponse_Event()  {}
 func (*StreamResponse_ChannelNames) isStreamResponse_Event() {}
@@ -542,6 +547,13 @@ func (m *StreamResponse) GetId() uint64 {
 func (m *StreamResponse) GetTimestamp() *timestamp.Timestamp {
 	if m != nil {
 		return m.Timestamp
+	}
+	return nil
+}
+
+func (m *StreamResponse) GetError() *StreamResponse_Error {
+	if x, ok := m.GetEvent().(*StreamResponse_Error_); ok {
+		return x.Error
 	}
 	return nil
 }
@@ -598,6 +610,7 @@ func (m *StreamResponse) GetShutdown() *StreamResponse_Shutdown {
 // XXX_OneofFuncs is for the internal use of the proto package.
 func (*StreamResponse) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
 	return _StreamResponse_OneofMarshaler, _StreamResponse_OneofUnmarshaler, _StreamResponse_OneofSizer, []interface{}{
+		(*StreamResponse_Error_)(nil),
 		(*StreamResponse_Login_)(nil),
 		(*StreamResponse_ChannelJoin)(nil),
 		(*StreamResponse_ChannelNames)(nil),
@@ -612,38 +625,43 @@ func _StreamResponse_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 	m := msg.(*StreamResponse)
 	// event
 	switch x := m.Event.(type) {
-	case *StreamResponse_Login_:
+	case *StreamResponse_Error_:
 		b.EncodeVarint(3<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Error); err != nil {
+			return err
+		}
+	case *StreamResponse_Login_:
+		b.EncodeVarint(4<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.Login); err != nil {
 			return err
 		}
 	case *StreamResponse_ChannelJoin:
-		b.EncodeVarint(4<<3 | proto.WireBytes)
+		b.EncodeVarint(5<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ChannelJoin); err != nil {
 			return err
 		}
 	case *StreamResponse_ChannelNames:
-		b.EncodeVarint(5<<3 | proto.WireBytes)
+		b.EncodeVarint(6<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ChannelNames); err != nil {
 			return err
 		}
 	case *StreamResponse_ChannelPart:
-		b.EncodeVarint(6<<3 | proto.WireBytes)
+		b.EncodeVarint(7<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ChannelPart); err != nil {
 			return err
 		}
 	case *StreamResponse_UserNames:
-		b.EncodeVarint(7<<3 | proto.WireBytes)
+		b.EncodeVarint(8<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.UserNames); err != nil {
 			return err
 		}
 	case *StreamResponse_Message_:
-		b.EncodeVarint(8<<3 | proto.WireBytes)
+		b.EncodeVarint(9<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.Message); err != nil {
 			return err
 		}
 	case *StreamResponse_Shutdown_:
-		b.EncodeVarint(9<<3 | proto.WireBytes)
+		b.EncodeVarint(10<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.Shutdown); err != nil {
 			return err
 		}
@@ -657,7 +675,15 @@ func _StreamResponse_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 func _StreamResponse_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
 	m := msg.(*StreamResponse)
 	switch tag {
-	case 3: // event.login
+	case 3: // event.error
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(StreamResponse_Error)
+		err := b.DecodeMessage(msg)
+		m.Event = &StreamResponse_Error_{msg}
+		return true, err
+	case 4: // event.login
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -665,7 +691,7 @@ func _StreamResponse_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		err := b.DecodeMessage(msg)
 		m.Event = &StreamResponse_Login_{msg}
 		return true, err
-	case 4: // event.channel_join
+	case 5: // event.channel_join
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -673,7 +699,7 @@ func _StreamResponse_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		err := b.DecodeMessage(msg)
 		m.Event = &StreamResponse_ChannelJoin{msg}
 		return true, err
-	case 5: // event.channel_names
+	case 6: // event.channel_names
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -681,7 +707,7 @@ func _StreamResponse_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		err := b.DecodeMessage(msg)
 		m.Event = &StreamResponse_ChannelNames{msg}
 		return true, err
-	case 6: // event.channel_part
+	case 7: // event.channel_part
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -689,7 +715,7 @@ func _StreamResponse_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		err := b.DecodeMessage(msg)
 		m.Event = &StreamResponse_ChannelPart{msg}
 		return true, err
-	case 7: // event.user_names
+	case 8: // event.user_names
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -697,7 +723,7 @@ func _StreamResponse_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		err := b.DecodeMessage(msg)
 		m.Event = &StreamResponse_UserNames{msg}
 		return true, err
-	case 8: // event.message
+	case 9: // event.message
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -705,7 +731,7 @@ func _StreamResponse_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto
 		err := b.DecodeMessage(msg)
 		m.Event = &StreamResponse_Message_{msg}
 		return true, err
-	case 9: // event.shutdown
+	case 10: // event.shutdown
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
@@ -722,6 +748,11 @@ func _StreamResponse_OneofSizer(msg proto.Message) (n int) {
 	m := msg.(*StreamResponse)
 	// event
 	switch x := m.Event.(type) {
+	case *StreamResponse_Error_:
+		s := proto.Size(x.Error)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
 	case *StreamResponse_Login_:
 		s := proto.Size(x.Login)
 		n += 1 // tag and wire
@@ -764,6 +795,52 @@ func _StreamResponse_OneofSizer(msg proto.Message) (n int) {
 	return n
 }
 
+type StreamResponse_Error struct {
+	Code                 int32    `protobuf:"varint,1,opt,name=code" json:"code,omitempty"`
+	Message              string   `protobuf:"bytes,2,opt,name=message" json:"message,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *StreamResponse_Error) Reset()         { *m = StreamResponse_Error{} }
+func (m *StreamResponse_Error) String() string { return proto.CompactTextString(m) }
+func (*StreamResponse_Error) ProtoMessage()    {}
+func (*StreamResponse_Error) Descriptor() ([]byte, []int) {
+	return fileDescriptor_chat_5d1937391afcaa39, []int{1, 0}
+}
+func (m *StreamResponse_Error) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_StreamResponse_Error.Unmarshal(m, b)
+}
+func (m *StreamResponse_Error) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_StreamResponse_Error.Marshal(b, m, deterministic)
+}
+func (dst *StreamResponse_Error) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_StreamResponse_Error.Merge(dst, src)
+}
+func (m *StreamResponse_Error) XXX_Size() int {
+	return xxx_messageInfo_StreamResponse_Error.Size(m)
+}
+func (m *StreamResponse_Error) XXX_DiscardUnknown() {
+	xxx_messageInfo_StreamResponse_Error.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_StreamResponse_Error proto.InternalMessageInfo
+
+func (m *StreamResponse_Error) GetCode() int32 {
+	if m != nil {
+		return m.Code
+	}
+	return 0
+}
+
+func (m *StreamResponse_Error) GetMessage() string {
+	if m != nil {
+		return m.Message
+	}
+	return ""
+}
+
 type StreamResponse_Login struct {
 	Status               string   `protobuf:"bytes,1,opt,name=status" json:"status,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -775,7 +852,7 @@ func (m *StreamResponse_Login) Reset()         { *m = StreamResponse_Login{} }
 func (m *StreamResponse_Login) String() string { return proto.CompactTextString(m) }
 func (*StreamResponse_Login) ProtoMessage()    {}
 func (*StreamResponse_Login) Descriptor() ([]byte, []int) {
-	return fileDescriptor_chat_a51bfa36e5b89925, []int{1, 0}
+	return fileDescriptor_chat_5d1937391afcaa39, []int{1, 1}
 }
 func (m *StreamResponse_Login) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamResponse_Login.Unmarshal(m, b)
@@ -813,7 +890,7 @@ func (m *StreamResponse_Join) Reset()         { *m = StreamResponse_Join{} }
 func (m *StreamResponse_Join) String() string { return proto.CompactTextString(m) }
 func (*StreamResponse_Join) ProtoMessage()    {}
 func (*StreamResponse_Join) Descriptor() ([]byte, []int) {
-	return fileDescriptor_chat_a51bfa36e5b89925, []int{1, 1}
+	return fileDescriptor_chat_5d1937391afcaa39, []int{1, 2}
 }
 func (m *StreamResponse_Join) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamResponse_Join.Unmarshal(m, b)
@@ -851,7 +928,7 @@ func (m *StreamResponse_Part) Reset()         { *m = StreamResponse_Part{} }
 func (m *StreamResponse_Part) String() string { return proto.CompactTextString(m) }
 func (*StreamResponse_Part) ProtoMessage()    {}
 func (*StreamResponse_Part) Descriptor() ([]byte, []int) {
-	return fileDescriptor_chat_a51bfa36e5b89925, []int{1, 2}
+	return fileDescriptor_chat_5d1937391afcaa39, []int{1, 3}
 }
 func (m *StreamResponse_Part) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamResponse_Part.Unmarshal(m, b)
@@ -890,7 +967,7 @@ func (m *StreamResponse_Names) Reset()         { *m = StreamResponse_Names{} }
 func (m *StreamResponse_Names) String() string { return proto.CompactTextString(m) }
 func (*StreamResponse_Names) ProtoMessage()    {}
 func (*StreamResponse_Names) Descriptor() ([]byte, []int) {
-	return fileDescriptor_chat_a51bfa36e5b89925, []int{1, 3}
+	return fileDescriptor_chat_5d1937391afcaa39, []int{1, 4}
 }
 func (m *StreamResponse_Names) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamResponse_Names.Unmarshal(m, b)
@@ -935,7 +1012,7 @@ func (m *StreamResponse_Users) Reset()         { *m = StreamResponse_Users{} }
 func (m *StreamResponse_Users) String() string { return proto.CompactTextString(m) }
 func (*StreamResponse_Users) ProtoMessage()    {}
 func (*StreamResponse_Users) Descriptor() ([]byte, []int) {
-	return fileDescriptor_chat_a51bfa36e5b89925, []int{1, 4}
+	return fileDescriptor_chat_5d1937391afcaa39, []int{1, 5}
 }
 func (m *StreamResponse_Users) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamResponse_Users.Unmarshal(m, b)
@@ -974,7 +1051,7 @@ func (m *StreamResponse_User) Reset()         { *m = StreamResponse_User{} }
 func (m *StreamResponse_User) String() string { return proto.CompactTextString(m) }
 func (*StreamResponse_User) ProtoMessage()    {}
 func (*StreamResponse_User) Descriptor() ([]byte, []int) {
-	return fileDescriptor_chat_a51bfa36e5b89925, []int{1, 5}
+	return fileDescriptor_chat_5d1937391afcaa39, []int{1, 6}
 }
 func (m *StreamResponse_User) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamResponse_User.Unmarshal(m, b)
@@ -1020,7 +1097,7 @@ func (m *StreamResponse_Message) Reset()         { *m = StreamResponse_Message{}
 func (m *StreamResponse_Message) String() string { return proto.CompactTextString(m) }
 func (*StreamResponse_Message) ProtoMessage()    {}
 func (*StreamResponse_Message) Descriptor() ([]byte, []int) {
-	return fileDescriptor_chat_a51bfa36e5b89925, []int{1, 6}
+	return fileDescriptor_chat_5d1937391afcaa39, []int{1, 7}
 }
 func (m *StreamResponse_Message) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamResponse_Message.Unmarshal(m, b)
@@ -1064,7 +1141,7 @@ func (m *StreamResponse_Shutdown) Reset()         { *m = StreamResponse_Shutdown
 func (m *StreamResponse_Shutdown) String() string { return proto.CompactTextString(m) }
 func (*StreamResponse_Shutdown) ProtoMessage()    {}
 func (*StreamResponse_Shutdown) Descriptor() ([]byte, []int) {
-	return fileDescriptor_chat_a51bfa36e5b89925, []int{1, 7}
+	return fileDescriptor_chat_5d1937391afcaa39, []int{1, 8}
 }
 func (m *StreamResponse_Shutdown) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StreamResponse_Shutdown.Unmarshal(m, b)
@@ -1092,6 +1169,7 @@ func init() {
 	proto.RegisterType((*StreamRequest_Message)(nil), "chat.StreamRequest.Message")
 	proto.RegisterType((*StreamRequest_Quit)(nil), "chat.StreamRequest.Quit")
 	proto.RegisterType((*StreamResponse)(nil), "chat.StreamResponse")
+	proto.RegisterType((*StreamResponse_Error)(nil), "chat.StreamResponse.Error")
 	proto.RegisterType((*StreamResponse_Login)(nil), "chat.StreamResponse.Login")
 	proto.RegisterType((*StreamResponse_Join)(nil), "chat.StreamResponse.Join")
 	proto.RegisterType((*StreamResponse_Part)(nil), "chat.StreamResponse.Part")
@@ -1206,44 +1284,47 @@ var _Chat_serviceDesc = grpc.ServiceDesc{
 	Metadata: "sam/chat/chat.proto",
 }
 
-func init() { proto.RegisterFile("sam/chat/chat.proto", fileDescriptor_chat_a51bfa36e5b89925) }
+func init() { proto.RegisterFile("sam/chat/chat.proto", fileDescriptor_chat_5d1937391afcaa39) }
 
-var fileDescriptor_chat_a51bfa36e5b89925 = []byte{
-	// 573 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x94, 0xcb, 0x6e, 0xd3, 0x40,
-	0x14, 0x86, 0x13, 0xc7, 0x97, 0xe4, 0x94, 0x76, 0x31, 0x45, 0xc8, 0x18, 0x10, 0x21, 0xab, 0x8a,
-	0x85, 0x0d, 0xe9, 0x82, 0xa0, 0xaa, 0x48, 0x2d, 0x9b, 0x08, 0x01, 0x02, 0x17, 0xd6, 0x68, 0x92,
-	0x0c, 0x8e, 0x51, 0xec, 0x71, 0x3d, 0xe3, 0x22, 0x5e, 0x94, 0x67, 0x61, 0x89, 0xe6, 0x16, 0xa7,
-	0x65, 0x5c, 0xb1, 0xe8, 0x26, 0x9a, 0xa3, 0xfc, 0xdf, 0x9c, 0xcb, 0xfc, 0xc7, 0x70, 0xc8, 0x70,
-	0x91, 0x2c, 0xd7, 0x98, 0xcb, 0x9f, 0xb8, 0xaa, 0x29, 0xa7, 0xc8, 0x15, 0xe7, 0xe8, 0xfc, 0x8a,
-	0x94, 0x2b, 0x5a, 0x27, 0x59, 0xce, 0xd7, 0xcd, 0x22, 0x5e, 0xd2, 0x22, 0xc9, 0xe8, 0x06, 0x97,
-	0x59, 0x22, 0x55, 0x8b, 0xe6, 0x7b, 0x52, 0xf1, 0x5f, 0x15, 0x61, 0x09, 0xcf, 0x0b, 0xc2, 0x38,
-	0x2e, 0xaa, 0xf6, 0xa4, 0x6e, 0x9a, 0xfc, 0x1e, 0xc0, 0xfe, 0x05, 0xaf, 0x09, 0x2e, 0x52, 0x72,
-	0xd9, 0x10, 0xc6, 0xd1, 0x4b, 0xf0, 0x36, 0x34, 0xcb, 0xcb, 0xb0, 0x3f, 0xee, 0x1f, 0xed, 0x4d,
-	0x1f, 0xc6, 0x32, 0xef, 0x35, 0x4d, 0xfc, 0x5e, 0x08, 0xe6, 0xbd, 0x54, 0x29, 0xd1, 0x29, 0xdc,
-	0x5b, 0xae, 0x71, 0x59, 0x92, 0xcd, 0xb7, 0x1f, 0x34, 0x2f, 0x43, 0x47, 0x92, 0xa1, 0x8d, 0x7c,
-	0x47, 0x25, 0xb8, 0xa7, 0xf5, 0x22, 0xdc, 0xc5, 0x2b, 0x5c, 0xf3, 0x70, 0xd0, 0x8d, 0x7f, 0xc2,
-	0x35, 0xdf, 0xc1, 0x45, 0x88, 0x5e, 0x41, 0x50, 0x10, 0xc6, 0x70, 0x46, 0x42, 0x57, 0x92, 0x8f,
-	0x6c, 0xe4, 0x07, 0x25, 0x99, 0xf7, 0x52, 0xa3, 0x46, 0x31, 0xb8, 0x97, 0x4d, 0xce, 0x43, 0xaf,
-	0x3b, 0xdf, 0xe7, 0x26, 0x17, 0xf9, 0xa4, 0x2e, 0x7a, 0x06, 0x9e, 0x6c, 0x1c, 0x85, 0x10, 0x30,
-	0xc2, 0x58, 0x4e, 0xd5, 0x90, 0x46, 0xa9, 0x09, 0xa3, 0x31, 0xb8, 0xb2, 0xa5, 0x10, 0x02, 0x5d,
-	0xa2, 0x51, 0xe8, 0x50, 0x28, 0x64, 0xd5, 0xdd, 0x8a, 0x63, 0x08, 0x74, 0xb1, 0xe8, 0x00, 0x1c,
-	0x4e, 0xf5, 0xff, 0x0e, 0xa7, 0x02, 0x32, 0xad, 0x3a, 0x0a, 0xd2, 0x61, 0xe4, 0x83, 0x2b, 0x6a,
-	0x3d, 0x0f, 0xc0, 0x23, 0x57, 0xa4, 0xe4, 0x93, 0x3f, 0x3e, 0x1c, 0x98, 0x5e, 0x58, 0x45, 0x4b,
-	0x26, 0x6f, 0xcb, 0x57, 0xf2, 0x36, 0x37, 0x75, 0xf2, 0x15, 0x9a, 0xc1, 0x68, 0x6b, 0x07, 0xfd,
-	0x66, 0x51, 0x9c, 0x51, 0x9a, 0x6d, 0x48, 0x6c, 0x1c, 0x14, 0x7f, 0x31, 0x8a, 0xb4, 0x15, 0xa3,
-	0xa9, 0xf1, 0xc8, 0x40, 0x53, 0xd7, 0x46, 0xa7, 0xd2, 0xdd, 0x34, 0xc9, 0x9b, 0x1b, 0x26, 0x71,
-	0x6d, 0xf6, 0xd2, 0xa8, 0xcd, 0x25, 0x67, 0xb0, 0x6f, 0xf8, 0x12, 0x17, 0x84, 0xe9, 0x67, 0xb3,
-	0xe7, 0xfe, 0x28, 0x14, 0xf3, 0x5e, 0x6a, 0x52, 0xca, 0x78, 0xb7, 0x04, 0x69, 0x34, 0xff, 0x96,
-	0x12, 0x6c, 0x4e, 0x3b, 0x01, 0x68, 0x18, 0xa9, 0x75, 0xfe, 0xe0, 0x96, 0xfc, 0x5f, 0x19, 0xa9,
-	0x45, 0xfe, 0x91, 0xd0, 0xab, 0xe4, 0xb3, 0xf6, 0xed, 0x86, 0x92, 0x7c, 0x6c, 0x25, 0x2d, 0x3e,
-	0x3d, 0x81, 0x21, 0x5b, 0x37, 0x7c, 0x45, 0x7f, 0x96, 0xe1, 0x48, 0xa2, 0x4f, 0xac, 0xe8, 0x85,
-	0x16, 0xcd, 0x7b, 0xe9, 0x16, 0x88, 0x9e, 0x1a, 0xd3, 0x3e, 0x00, 0x9f, 0x71, 0xcc, 0x1b, 0xa6,
-	0xfd, 0xa4, 0xa3, 0x3b, 0xb1, 0x6c, 0x0a, 0x9e, 0x6a, 0xb2, 0x53, 0x82, 0x12, 0xf0, 0xc4, 0x2c,
-	0x58, 0xe8, 0x8c, 0x07, 0x9d, 0x43, 0x17, 0x63, 0x4b, 0x95, 0x2e, 0x9a, 0x81, 0x27, 0xa7, 0xd8,
-	0x92, 0xfd, 0xff, 0x24, 0x9f, 0x83, 0x2b, 0xc2, 0x7f, 0xfc, 0x8e, 0xc0, 0x15, 0x2f, 0xa7, 0x57,
-	0x47, 0x9e, 0xa3, 0xd3, 0x76, 0xd9, 0xba, 0x6b, 0xef, 0x5e, 0x3b, 0x80, 0xa1, 0x99, 0xfa, 0x76,
-	0xf5, 0xa6, 0x67, 0xe0, 0xbe, 0x5d, 0x63, 0x8e, 0x5e, 0x83, 0xaf, 0xaa, 0x44, 0x87, 0x96, 0x6f,
-	0x4b, 0x74, 0xdf, 0xd6, 0xc8, 0xa4, 0x77, 0xd4, 0x7f, 0xd1, 0x5f, 0xf8, 0x72, 0xff, 0x8e, 0xff,
-	0x06, 0x00, 0x00, 0xff, 0xff, 0x95, 0x47, 0xf5, 0x3a, 0xfe, 0x05, 0x00, 0x00,
+var fileDescriptor_chat_5d1937391afcaa39 = []byte{
+	// 610 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x94, 0xc1, 0x6e, 0xd3, 0x4c,
+	0x10, 0xc7, 0x13, 0xd7, 0x8e, 0x93, 0xe9, 0xd7, 0x1e, 0xb6, 0x9f, 0x90, 0x31, 0x20, 0x42, 0x4e,
+	0x15, 0x07, 0x1b, 0x52, 0x21, 0x82, 0xaa, 0x22, 0xb5, 0x08, 0x29, 0x42, 0x80, 0xc0, 0x85, 0x33,
+	0xda, 0x24, 0x8b, 0x63, 0x14, 0x7b, 0x5d, 0xef, 0xba, 0x88, 0x17, 0xe5, 0x05, 0x78, 0x11, 0xb4,
+	0xb3, 0xbb, 0x49, 0x5a, 0xec, 0x88, 0x03, 0x97, 0x68, 0x47, 0xf9, 0xff, 0x76, 0x66, 0x67, 0xfe,
+	0x63, 0x38, 0x12, 0x34, 0x8f, 0xe7, 0x4b, 0x2a, 0xf1, 0x27, 0x2a, 0x2b, 0x2e, 0x39, 0x71, 0xd5,
+	0x39, 0xbc, 0xb8, 0x66, 0xc5, 0x82, 0x57, 0x71, 0x9a, 0xc9, 0x65, 0x3d, 0x8b, 0xe6, 0x3c, 0x8f,
+	0x53, 0xbe, 0xa2, 0x45, 0x1a, 0xa3, 0x6a, 0x56, 0x7f, 0x8d, 0x4b, 0xf9, 0xa3, 0x64, 0x22, 0x96,
+	0x59, 0xce, 0x84, 0xa4, 0x79, 0xb9, 0x39, 0xe9, 0x9b, 0x46, 0x3f, 0xf7, 0xe0, 0xe0, 0x52, 0x56,
+	0x8c, 0xe6, 0x09, 0xbb, 0xaa, 0x99, 0x90, 0xe4, 0x29, 0x78, 0x2b, 0x9e, 0x66, 0x45, 0xd0, 0x1d,
+	0x76, 0x8f, 0xf7, 0xc7, 0x77, 0x23, 0xcc, 0x7b, 0x43, 0x13, 0xbd, 0x55, 0x82, 0x69, 0x27, 0xd1,
+	0x4a, 0x72, 0x06, 0xff, 0xcd, 0x97, 0xb4, 0x28, 0xd8, 0xea, 0xcb, 0x37, 0x9e, 0x15, 0x81, 0x83,
+	0x64, 0xd0, 0x44, 0xbe, 0xe1, 0x08, 0xee, 0x1b, 0xbd, 0x0a, 0xb7, 0xf1, 0x92, 0x56, 0x32, 0xd8,
+	0x6b, 0xc7, 0x3f, 0xd0, 0x4a, 0x6e, 0xe1, 0x2a, 0x24, 0xcf, 0xc1, 0xcf, 0x99, 0x10, 0x34, 0x65,
+	0x81, 0x8b, 0xe4, 0xbd, 0x26, 0xf2, 0x9d, 0x96, 0x4c, 0x3b, 0x89, 0x55, 0x93, 0x08, 0xdc, 0xab,
+	0x3a, 0x93, 0x81, 0xd7, 0x9e, 0xef, 0x63, 0x9d, 0xa9, 0x7c, 0xa8, 0x0b, 0x1f, 0x81, 0x87, 0x0f,
+	0x27, 0x01, 0xf8, 0x82, 0x09, 0x91, 0x71, 0xdd, 0xa4, 0x41, 0x62, 0xc3, 0x70, 0x08, 0x2e, 0x3e,
+	0x29, 0x00, 0xdf, 0x94, 0x68, 0x15, 0x26, 0x54, 0x0a, 0xac, 0xba, 0x5d, 0x71, 0x02, 0xbe, 0x29,
+	0x96, 0x1c, 0x82, 0x23, 0xb9, 0xf9, 0xdf, 0x91, 0x5c, 0x41, 0xf6, 0xa9, 0x8e, 0x86, 0x4c, 0x18,
+	0xf6, 0xc0, 0x55, 0xb5, 0x5e, 0xf8, 0xe0, 0xb1, 0x6b, 0x56, 0xc8, 0xd1, 0x2f, 0x1f, 0x0e, 0xed,
+	0x5b, 0x44, 0xc9, 0x0b, 0x81, 0xb7, 0x65, 0x0b, 0xbc, 0xcd, 0x4d, 0x9c, 0x6c, 0x41, 0x26, 0x30,
+	0x58, 0xdb, 0xc1, 0xcc, 0x2c, 0x8c, 0x52, 0xce, 0xd3, 0x15, 0x8b, 0xac, 0x83, 0xa2, 0x4f, 0x56,
+	0x91, 0x6c, 0xc4, 0x64, 0x0c, 0x1e, 0xab, 0x2a, 0x5e, 0x99, 0x51, 0x85, 0x37, 0x5b, 0xa7, 0xd3,
+	0x45, 0xaf, 0x95, 0x42, 0x99, 0x04, 0xa5, 0x8a, 0xd1, 0xbe, 0x72, 0x77, 0x30, 0xb7, 0x8c, 0xf5,
+	0xf2, 0x96, 0xb1, 0xbc, 0x26, 0x4b, 0x1a, 0xb4, 0xc9, 0x59, 0xe7, 0x70, 0x60, 0xf9, 0x82, 0xe6,
+	0x4c, 0x04, 0xbd, 0x1d, 0xb9, 0xdf, 0x2b, 0xc5, 0xb4, 0x93, 0xd8, 0x94, 0x18, 0x6f, 0x97, 0x80,
+	0xe6, 0xf4, 0x77, 0x94, 0xd0, 0xe4, 0xce, 0x53, 0x80, 0x5a, 0xb0, 0xca, 0xe4, 0xef, 0xef, 0xc8,
+	0xff, 0x59, 0xb0, 0x4a, 0xe5, 0x1f, 0x28, 0xbd, 0x4e, 0x3e, 0xd9, 0xcc, 0x7b, 0x80, 0xe4, 0xfd,
+	0x46, 0xb2, 0xc1, 0xdb, 0xa7, 0xd0, 0x17, 0xcb, 0x5a, 0x2e, 0xf8, 0xf7, 0x22, 0x00, 0x44, 0x1f,
+	0x34, 0xa2, 0x97, 0x46, 0x34, 0xed, 0x24, 0x6b, 0x20, 0x7c, 0x06, 0x1e, 0x0e, 0x8f, 0x10, 0x70,
+	0xe7, 0x7c, 0xc1, 0xd0, 0x33, 0x5e, 0x82, 0xe7, 0x1d, 0x1e, 0x7c, 0x68, 0xf7, 0xe3, 0x0e, 0xf4,
+	0x84, 0xa4, 0xb2, 0x16, 0xc6, 0xba, 0x26, 0xfa, 0x27, 0xdb, 0x91, 0x80, 0xa7, 0x7b, 0xd3, 0x2a,
+	0x21, 0x31, 0x78, 0xaa, 0x85, 0x22, 0x70, 0x86, 0x7b, 0xad, 0xb3, 0x52, 0xdd, 0x4e, 0xb4, 0x2e,
+	0x9c, 0x80, 0x87, 0xcd, 0xdf, 0x90, 0xdd, 0xbf, 0x24, 0x1f, 0x83, 0xab, 0xc2, 0x3f, 0x56, 0x8b,
+	0x80, 0xab, 0x06, 0x6e, 0x3a, 0x84, 0xe7, 0xf0, 0x6c, 0xb3, 0xd7, 0xed, 0xb5, 0xb7, 0x77, 0x17,
+	0xa0, 0x6f, 0x87, 0xb5, 0xde, 0xf2, 0xf1, 0x39, 0xb8, 0xaf, 0x96, 0x54, 0x92, 0x17, 0xd0, 0xd3,
+	0x55, 0x92, 0xa3, 0x86, 0xcf, 0x58, 0xf8, 0x7f, 0xd3, 0x43, 0x46, 0x9d, 0xe3, 0xee, 0x93, 0xee,
+	0xac, 0x87, 0xab, 0x7e, 0xf2, 0x3b, 0x00, 0x00, 0xff, 0xff, 0x8b, 0x89, 0x84, 0x66, 0x69, 0x06,
+	0x00, 0x00,
 }
