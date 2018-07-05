@@ -13,11 +13,13 @@
       "type": "string"
     },
     {
+      "complex": true,
       "name": "MemberIDs",
       "tag": "json:\"-\"",
       "type": "[]uint64"
     },
     {
+      "complex": true,
       "name": "Members",
       "tag": "json:\",omitempty\"",
       "type": "[]User"
