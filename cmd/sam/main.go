@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-chi/chi"
 
-	"github.com/titpetric/crust/sam"
+	"github.com/crusttech/crust/sam"
 	"github.com/titpetric/factory"
 )
 
