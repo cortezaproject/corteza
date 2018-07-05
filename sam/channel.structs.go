@@ -5,6 +5,8 @@ type Channel struct {
 	ID    uint64
 	Name  string
 	Topic string
+
+	changed []string
 }
 
 func (Channel) new() *Channel {
@@ -16,7 +18,10 @@ func (c *Channel) GetID() uint64 {
 }
 
 func (c *Channel) SetID(value uint64) *Channel {
-	c.ID = value
+	if c.ID != value {
+		c.changed = append(c.changed, "id")
+		c.ID = value
+	}
 	return c
 }
 func (c *Channel) GetName() string {
@@ -24,7 +29,10 @@ func (c *Channel) GetName() string {
 }
 
 func (c *Channel) SetName(value string) *Channel {
-	c.Name = value
+	if c.Name != value {
+		c.changed = append(c.changed, "name")
+		c.Name = value
+	}
 	return c
 }
 func (c *Channel) GetTopic() string {
@@ -32,6 +40,9 @@ func (c *Channel) GetTopic() string {
 }
 
 func (c *Channel) SetTopic(value string) *Channel {
-	c.Topic = value
+	if c.Topic != value {
+		c.changed = append(c.changed, "topic")
+		c.Topic = value
+	}
 	return c
 }

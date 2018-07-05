@@ -10,6 +10,8 @@ package {package}
 {foreach $fields as $field}
 		{field.name} {field.type}{if $field.tag} `{$field.tag}`{/if}{newline}
 {/foreach}
+
+		changed []string
 	}
 
 func ({name}) new() *{name} {
@@ -24,7 +26,10 @@ func ({self} *{name}) Get{field.name}() {field.type} {
 }
 
 func ({self} *{name}) Set{field.name}(value {field.type}) *{name} {
-	{self}.{field.name} = value
+	if {self}.{field.name} != value {
+		{self}.changed = append({self}.changed, "{field.name|strtolower}")
+		{self}.{field.name} = value
+	}
 	return {self}
 }
 {/foreach}

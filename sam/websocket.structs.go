@@ -4,6 +4,8 @@ package sam
 type Websocket struct {
 	UserID uint64
 	User   User
+
+	changed []string
 }
 
 func (Websocket) new() *Websocket {
@@ -15,7 +17,10 @@ func (w *Websocket) GetUserID() uint64 {
 }
 
 func (w *Websocket) SetUserID(value uint64) *Websocket {
-	w.UserID = value
+	if w.UserID != value {
+		w.changed = append(w.changed, "userid")
+		w.UserID = value
+	}
 	return w
 }
 func (w *Websocket) GetUser() User {
@@ -23,6 +28,9 @@ func (w *Websocket) GetUser() User {
 }
 
 func (w *Websocket) SetUser(value User) *Websocket {
-	w.User = value
+	if w.User != value {
+		w.changed = append(w.changed, "user")
+		w.User = value
+	}
 	return w
 }

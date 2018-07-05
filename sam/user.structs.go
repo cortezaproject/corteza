@@ -5,6 +5,8 @@ type User struct {
 	ID       uint64
 	Username string
 	Password string `json:"-"`
+
+	changed []string
 }
 
 func (User) new() *User {
@@ -16,7 +18,10 @@ func (u *User) GetID() uint64 {
 }
 
 func (u *User) SetID(value uint64) *User {
-	u.ID = value
+	if u.ID != value {
+		u.changed = append(u.changed, "id")
+		u.ID = value
+	}
 	return u
 }
 func (u *User) GetUsername() string {
@@ -24,7 +29,10 @@ func (u *User) GetUsername() string {
 }
 
 func (u *User) SetUsername(value string) *User {
-	u.Username = value
+	if u.Username != value {
+		u.changed = append(u.changed, "username")
+		u.Username = value
+	}
 	return u
 }
 func (u *User) GetPassword() string {
@@ -32,6 +40,9 @@ func (u *User) GetPassword() string {
 }
 
 func (u *User) SetPassword(value string) *User {
-	u.Password = value
+	if u.Password != value {
+		u.changed = append(u.changed, "password")
+		u.Password = value
+	}
 	return u
 }
