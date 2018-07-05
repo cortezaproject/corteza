@@ -18,7 +18,6 @@ func MountRoutes(r chi.Router) {
 		r.Get("/search", channel.Search)
 		r.Post("/archive", channel.Archive)
 		r.Post("/move", channel.Move)
-		r.Post("/merge", channel.Merge)
 	})
 	r.Route("/message", func(r chi.Router) {
 		r.Post("/edit", message.Edit)
@@ -43,6 +42,7 @@ func MountRoutes(r chi.Router) {
 		r.Get("/search", team.Search)
 		r.Post("/archive", team.Archive)
 		r.Post("/move", team.Move)
+		r.Post("/merge", team.Merge)
 	})
 	r.Route("/user", func(r chi.Router) {
 		r.Post("/login", user.Login)
