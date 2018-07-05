@@ -72,8 +72,8 @@
 		"struct": [
 			{ "type": "uint64", "name": "ID" },
 			{ "type": "string", "name": "Name" },
-			{ "type": "[]uint64", "name": "MemberIDs", "tag": "json:\"-\"" },
-			{ "type": "[]User", "name": "Members", "tag": "json:\",omitempty\"" }
+			{ "type": "[]uint64", "name": "MemberIDs", "tag": "json:\"-\"", "complex": true },
+			{ "type": "[]User", "name": "Members", "tag": "json:\",omitempty\"", "complex": true }
 		],
 		"apis": [
 			{
@@ -369,7 +369,7 @@
 		"authentication": ["Client ID", "Session ID"],
 		"struct": [
 			{ "type": "uint64", "name": "UserID" },
-			{ "type": "User", "name": "User" }
+			{ "type": "User", "name": "User", "complex": true }
 		],
 		"apis": [
 			{

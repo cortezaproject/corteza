@@ -8,6 +8,7 @@
       "type": "uint64"
     },
     {
+      "complex": true,
       "name": "User",
       "type": "User"
     }
