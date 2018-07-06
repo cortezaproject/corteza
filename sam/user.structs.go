@@ -2,6 +2,7 @@ package sam
 
 import (
 	"golang.org/x/crypto/bcrypt"
+	"time"
 )
 
 // Users
@@ -9,6 +10,9 @@ type User struct {
 	ID       uint64
 	Username string
 	Password []byte `json:"-"`
+
+	SuspendedAt *time.Time `json:",omitempty"`
+	DeletedAt   *time.Time `json:",omitempty"`
 
 	changed []string
 }

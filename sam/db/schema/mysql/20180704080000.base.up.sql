@@ -4,6 +4,9 @@ CREATE TABLE organisations (
   fqn              TEXT            NOT NULL, -- fully qualified name of the organisation
   label            TEXT            NOT NULL, -- display name of the organisation
 
+  archived_at      DATETIME            NULL,
+  deleted_at       DATETIME            NULL, -- organisation soft delete
+
   PRIMARY KEY (id)
 );
 
@@ -13,6 +16,9 @@ CREATE TABLE teams (
   label            TEXT            NOT NULL, -- display name of the team
   handle           TEXT            NOT NULL, -- team handle string
 
+  archived_at      DATETIME            NULL,
+  deleted_at       DATETIME            NULL, -- team soft delete
+
   PRIMARY KEY (id)
 );
 
@@ -21,6 +27,9 @@ CREATE TABLE channels (
   id               BIGINT UNSIGNED NOT NULL,
   label            TEXT            NOT NULL, -- display name of the channel
   meta             JSON            NOT NULL,
+
+  archived_at      DATETIME            NULL,
+  deleted_at       DATETIME            NULL, -- channel soft delete
 
   PRIMARY KEY (id)
 );
@@ -34,6 +43,9 @@ CREATE TABLE users (
   meta             JSON            NOT NULL,
 
   rel_organisation BIGINT UNSIGNED NOT NULL REFERENCES organisation(id),
+
+  suspended_at     DATETIME            NULL,
+  deleted_at       DATETIME            NULL, -- user soft delete
 
   PRIMARY KEY (id)
 );

@@ -1,10 +1,17 @@
 package sam
 
+import (
+	"time"
+)
+
 // Channels
 type Channel struct {
 	ID    uint64
 	Name  string
 	Topic string
+
+	ArchivedAt *time.Time `json:",omitempty"`
+	DeletedAt  *time.Time `json:",omitempty"`
 
 	changed []string
 }

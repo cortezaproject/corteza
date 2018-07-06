@@ -9,6 +9,11 @@ import (
 
 var _ = errors.Wrap
 
+const (
+	sqlChannelScope  = "deleted_at IS NULL AND archived_at IS NULL"
+	sqlChannelSelect = "SELECT * FROM channels WHERE " + sqlChannelScope
+)
+
 func (*Channel) Edit(r *channelEditRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
@@ -19,6 +24,7 @@ func (*Channel) Edit(r *channelEditRequest) (interface{}, error) {
 	// @todo: channel name change message/log entry
 	// @todo: permission check if user can edit channel
 	// @todo: permission check if user can add channel
+	// @todo: make sure archived & deleted entries can not be edited
 
 	c := Channel{}.new().SetID(r.id).SetName(r.name).SetTopic(r.topic)
 	if c.GetID() > 0 {
@@ -37,12 +43,14 @@ func (*Channel) Remove(r *channelRemoveRequest) (interface{}, error) {
 		return nil, err
 	}
 
-	// @todo: don't actually delete the channel (mark as deleted, history becomes unavailable)
+	// @todo: make history unavailable
 	// @todo: notify users that channel has been removed (remove from web UI)
 	// @todo: permissions check if user cah remove channel
 
+	stmt := "UPDATE channels SET deleted_at = NOW() WHERE id = ? AND deleted_at IS NULL"
+
 	return nil, func() error {
-		_, err := db.Exec("delete from channel where id=?", r.id)
+		_, err := db.Exec(stmt, r.id)
 		return err
 	}()
 }
@@ -56,7 +64,7 @@ func (*Channel) Read(r *channelReadRequest) (interface{}, error) {
 	// @todo: permission check if user can read channel
 
 	c := Channel{}.new()
-	return c, db.Get(c, "select * from channel where id=?", r.id)
+	return c, db.Get(c, sqlChannelSelect+" AND id = ?", r.id)
 }
 
 func (*Channel) Search(r *channelSearchRequest) (interface{}, error) {
@@ -69,7 +77,7 @@ func (*Channel) Search(r *channelSearchRequest) (interface{}, error) {
 	// @todo: actual searching not just a full select
 
 	res := make([]Channel, 0)
-	err = db.Select(&res, "select * from channel order by name asc")
+	err = db.Select(&res, sqlChannelSelect+" ORDER BY name ASC")
 	return res, err
 }
 
@@ -79,12 +87,15 @@ func (*Channel) Archive(r *channelArchiveRequest) (interface{}, error) {
 		return nil, err
 	}
 
-	// @todo: don't actually delete the channel (mark as archived, history stays available)
 	// @todo: notify users that channel has been archived (last message - archival, disable new messages)
-	// @todo: permissions check if user cah archive channel
+	// @todo: permissions check if user can archive channel
+
+	stmt := fmt.Sprintf(
+		"UPDATE channels SET archived_at = NOW() WHERE %s AND id = ?",
+		sqlChannelScope)
 
 	return nil, func() error {
-		_, err = db.Exec("delete from channel where id=?", r.id)
+		_, err = db.Exec(stmt, r.id)
 		return err
 	}()
 }

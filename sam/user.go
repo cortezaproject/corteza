@@ -1,11 +1,27 @@
 package sam
 
 import (
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 )
 
 var _ = errors.Wrap
+
+const (
+	sqlUserScope  = "suspended_at IS NULL AND archived_at IS NULL"
+	sqlUserSelect = "SELECT * FROM users WHERE " + sqlUserScope
+)
+
+func (*User) Read(r *teamReadRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	t := User{}.new()
+	return t, db.Get(t, sqlUserSelect+" AND id = ?", r.id)
+}
 
 // User lookup & login
 func (*User) Login(r *userLoginRequest) (interface{}, error) {
@@ -15,7 +31,7 @@ func (*User) Login(r *userLoginRequest) (interface{}, error) {
 	}
 
 	u := &User{}
-	if err != db.Get(u, "SELECT * FROM users WHERE username = ?", r.username) {
+	if err != db.Get(u, sqlUserSelect+" AND username = ?", r.username) {
 		return nil, err
 	}
 
@@ -39,9 +55,39 @@ func (*User) Search(r *userSearchRequest) (interface{}, error) {
 
 	uu := []*User{}
 
-	if err != db.Get(uu, "SELECT * FROM users WHERE username LIKE ?", r.query+"%") {
+	if err != db.Get(uu, sqlUserSelect+" AND username LIKE ?", r.query+"%") {
 		return nil, err
 	}
 
 	return uu, nil
+}
+
+func (*User) Remove(r *teamRemoveRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	stmt := "UPDATE users SET deleted_at = NOW() WHERE deleted_at IS NULL AND id = ?"
+
+	return nil, func() error {
+		_, err := db.Exec(stmt, r.id)
+		return err
+	}()
+}
+
+func (*User) Archive(r *teamArchiveRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	stmt := fmt.Sprintf(
+		"UPDATE users SET archived_at = NOW() WHERE %s AND id = ?",
+		sqlUserScope)
+
+	return nil, func() error {
+		_, err := db.Exec(stmt, r.id)
+		return err
+	}()
 }
