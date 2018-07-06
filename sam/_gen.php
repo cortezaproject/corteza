@@ -80,5 +80,3 @@ foreach (array("routes") as $type) {
 
 	file_put_contents($filename, $contents);
 }
-
-passthru("go fmt");

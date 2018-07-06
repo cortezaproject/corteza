@@ -1,5 +1,7 @@
 package {package}
 
+{load warning.tpl}
+
 import (
 	"net/http"
 )
@@ -11,7 +13,7 @@ type {name}Handlers struct {
 
 func ({name}Handlers) new() *{name}Handlers {
 	return &{name}Handlers{
-		{name}{}.new(),
+		{name}{}.New(),
 	}
 }
 
