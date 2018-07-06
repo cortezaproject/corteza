@@ -11,7 +11,7 @@ type ChannelHandlers struct {
 
 func (ChannelHandlers) new() *ChannelHandlers {
 	return &ChannelHandlers{
-		Channel{}.new(),
+		Channel{}.New(),
 	}
 }
 

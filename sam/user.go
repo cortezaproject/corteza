@@ -19,7 +19,7 @@ func (*User) Read(r *teamReadRequest) (interface{}, error) {
 		return nil, err
 	}
 
-	t := User{}.new()
+	t := User{}.New()
 	return t, db.Get(t, sqlUserSelect+" AND id = ?", r.id)
 }
 
@@ -31,7 +31,7 @@ func (*User) Login(r *userLoginRequest) (interface{}, error) {
 	}
 
 	u := &User{}
-	if err != db.Get(u, sqlUserSelect+" AND username = ?", r.username) {
+	if err = db.Get(u, sqlUserSelect+" AND username = ?", r.username); err != nil {
 		return nil, err
 	}
 

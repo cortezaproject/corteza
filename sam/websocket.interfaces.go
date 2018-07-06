@@ -11,7 +11,7 @@ type WebsocketHandlers struct {
 
 func (WebsocketHandlers) new() *WebsocketHandlers {
 	return &WebsocketHandlers{
-		Websocket{}.new(),
+		Websocket{}.New(),
 	}
 }
 

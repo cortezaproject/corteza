@@ -11,7 +11,7 @@ type OrganisationHandlers struct {
 
 func (OrganisationHandlers) new() *OrganisationHandlers {
 	return &OrganisationHandlers{
-		Organisation{}.new(),
+		Organisation{}.New(),
 	}
 }
 

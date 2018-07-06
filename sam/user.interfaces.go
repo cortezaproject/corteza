@@ -11,7 +11,7 @@ type UserHandlers struct {
 
 func (UserHandlers) new() *UserHandlers {
 	return &UserHandlers{
-		User{}.new(),
+		User{}.New(),
 	}
 }
 

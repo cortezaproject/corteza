@@ -11,7 +11,7 @@ type MessageHandlers struct {
 
 func (MessageHandlers) new() *MessageHandlers {
 	return &MessageHandlers{
-		Message{}.new(),
+		Message{}.New(),
 	}
 }
 

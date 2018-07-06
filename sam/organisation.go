@@ -22,7 +22,7 @@ func (*Organisation) Edit(r *organisationEditRequest) (interface{}, error) {
 	// @todo: permission check if user can add/edit organisation
 	// @todo: make sure archived & deleted entries can not be edited
 
-	o := Organisation{}.new().SetID(r.id).SetName(r.name)
+	o := Organisation{}.New().SetID(r.id).SetName(r.name)
 	if o.GetID() > 0 {
 		return o, db.Replace("organisation", o)
 	}
@@ -55,7 +55,7 @@ func (*Organisation) Read(r *organisationReadRequest) (interface{}, error) {
 
 	// @todo: permissions check
 
-	o := Organisation{}.new()
+	o := Organisation{}.New()
 	return o, db.Get(o, sqlOrganisationSelect+" AND id = ?", r.id)
 }
 
