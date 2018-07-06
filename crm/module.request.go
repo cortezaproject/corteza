@@ -1,8 +1,23 @@
 package crm
 
+/*
+	Hello! This file is auto-generated from `docs/src/spec.json`.
+
+	For development:
+	In order to update the generated files, edit this file under the location,
+	add your struct fields, imports, API definitions and whatever you want, and:
+
+	1. run [spec](https://github.com/titpetric/spec) in the same folder,
+	2. run `./_gen.php` in this folder.
+
+	You may edit `module.go`, `module.util.go` or `module_test.go` to
+	implement your API calls, helper functions and tests. The file `module.go`
+	is only generated the first time, and will not be overwritten if it exists.
+*/
+
 import (
-	"net/http"
 	"github.com/go-chi/chi"
+	"net/http"
 )
 
 var _ = chi.URLParam
@@ -33,9 +48,10 @@ func (m *moduleListRequest) Fill(r *http.Request) error {
 }
 
 var _ RequestFiller = moduleListRequest{}.new()
+
 // Module edit request parameters
 type moduleEditRequest struct {
-	id uint64
+	id   uint64
 	name string
 }
 
@@ -62,6 +78,7 @@ func (m *moduleEditRequest) Fill(r *http.Request) error {
 }
 
 var _ RequestFiller = moduleEditRequest{}.new()
+
 // Module content/list request parameters
 type moduleContentListRequest struct {
 	id uint64
@@ -88,9 +105,10 @@ func (m *moduleContentListRequest) Fill(r *http.Request) error {
 }
 
 var _ RequestFiller = moduleContentListRequest{}.new()
+
 // Module content/edit request parameters
 type moduleContentEditRequest struct {
-	id uint64
+	id      uint64
 	payload string
 }
 
@@ -117,6 +135,7 @@ func (m *moduleContentEditRequest) Fill(r *http.Request) error {
 }
 
 var _ RequestFiller = moduleContentEditRequest{}.new()
+
 // Module content/delete request parameters
 type moduleContentDeleteRequest struct {
 	id uint64

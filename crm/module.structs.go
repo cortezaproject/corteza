@@ -1,5 +1,19 @@
 package crm
 
+/*
+	Hello! This file is auto-generated from `docs/src/spec.json`.
+
+	For development:
+	In order to update the generated files, edit this file under the location,
+	add your struct fields, imports, API definitions and whatever you want, and:
+
+	1. run [spec](https://github.com/titpetric/spec) in the same folder,
+	2. run `./_gen.php` in this folder.
+
+	You may edit `module.go`, `module.util.go` or `module_test.go` to
+	implement your API calls, helper functions and tests. The file `module.go`
+	is only generated the first time, and will not be overwritten if it exists.
+*/
 
 import (
 	"github.com/jmoiron/sqlx/types"
@@ -8,29 +22,27 @@ import (
 type (
 	// Modules
 	Module struct {
-		ID uint64
+		ID   uint64
 		Name string
 
 		changed []string
 	}
 
-
 	// Modules
 	ModuleContentRow struct {
-		ID uint64 `db:"id"`
-		ModuleID uint64 `db:"module_id"`
-		Fields types.JSONText `db:"address"`
+		ID       uint64         `db:"id"`
+		ModuleID uint64         `db:"module_id"`
+		Fields   types.JSONText `db:"address"`
 
 		changed []string
 	}
-
 )
 
 /* Constructors */
-func (Module) new() *Module {
+func (Module) New() *Module {
 	return &Module{}
 }
-func (ModuleContentRow) new() *ModuleContentRow {
+func (ModuleContentRow) New() *ModuleContentRow {
 	return &ModuleContentRow{}
 }
 

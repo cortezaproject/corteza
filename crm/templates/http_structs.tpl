@@ -1,5 +1,7 @@
 package {package}
 
+{load warning.tpl}
+
 {if !empty($imports)}
 import (
 {foreach ($imports as $import)}
@@ -29,7 +31,7 @@ type ({foreach $structs as $struct}
 
 /* Constructors */
 {foreach $structs as $struct}
-func ({struct.name}) new() *{struct.name} {
+func ({struct.name}) New() *{struct.name} {
 	return &{struct.name}{}
 }
 {/foreach}

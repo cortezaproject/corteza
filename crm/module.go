@@ -14,7 +14,7 @@ func (*Module) List(r *moduleListRequest) (interface{}, error) {
 	}
 
 	if r.id > 0 {
-		m := Module{}.new()
+		m := Module{}.New()
 		return m, db.Get(m, "select * from crm_module id=?", r.id)
 	}
 
@@ -29,7 +29,7 @@ func (*Module) Edit(r *moduleEditRequest) (interface{}, error) {
 		return nil, err
 	}
 
-	m := Module{}.new()
+	m := Module{}.New()
 	m.SetID(r.id).SetName(r.name)
 	if m.GetID() > 0 {
 		return m, db.Replace("crm_module", m)
@@ -45,7 +45,7 @@ func (*Module) ContentList(r *moduleContentListRequest) (interface{}, error) {
 	}
 
 	if r.id > 0 {
-		m := ModuleContentRow{}.new()
+		m := ModuleContentRow{}.New()
 		return m, db.Get(m, "select * from crm_module id=?", r.id)
 	}
 
