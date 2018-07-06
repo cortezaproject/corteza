@@ -5,16 +5,21 @@
   "Interface": "Channel",
   "Struct": [
     {
-      "name": "ID",
-      "type": "uint64"
-    },
-    {
-      "name": "Name",
-      "type": "string"
-    },
-    {
-      "name": "Topic",
-      "type": "string"
+      "fields": [
+        {
+          "name": "ID",
+          "type": "uint64"
+        },
+        {
+          "name": "Name",
+          "type": "string"
+        },
+        {
+          "name": "Topic",
+          "type": "string"
+        }
+      ],
+      "name": "Channel"
     }
   ],
   "Protocol": "",

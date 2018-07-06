@@ -5,24 +5,29 @@
   "Interface": "Team",
   "Struct": [
     {
-      "name": "ID",
-      "type": "uint64"
-    },
-    {
-      "name": "Name",
-      "type": "string"
-    },
-    {
-      "complex": true,
-      "name": "MemberIDs",
-      "tag": "json:\"-\"",
-      "type": "[]uint64"
-    },
-    {
-      "complex": true,
-      "name": "Members",
-      "tag": "json:\",omitempty\"",
-      "type": "[]User"
+      "fields": [
+        {
+          "name": "ID",
+          "type": "uint64"
+        },
+        {
+          "name": "Name",
+          "type": "string"
+        },
+        {
+          "complex": true,
+          "name": "MemberIDs",
+          "tag": "json:\"-\"",
+          "type": "[]uint64"
+        },
+        {
+          "complex": true,
+          "name": "Members",
+          "tag": "json:\",omitempty\"",
+          "type": "[]User"
+        }
+      ],
+      "name": "Team"
     }
   ],
   "Protocol": "",

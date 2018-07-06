@@ -5,12 +5,17 @@
   "Interface": "Organisation",
   "Struct": [
     {
-      "name": "ID",
-      "type": "uint64"
-    },
-    {
-      "name": "Name",
-      "type": "string"
+      "fields": [
+        {
+          "name": "ID",
+          "type": "uint64"
+        },
+        {
+          "name": "Name",
+          "type": "string"
+        }
+      ],
+      "name": "Organisation"
     }
   ],
   "Protocol": "",
