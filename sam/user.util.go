@@ -5,7 +5,7 @@ import (
 )
 
 func (u *User) CanLogin() bool {
-       return u.ID > 0
+	return u.ID > 0
 }
 
 func (u *User) GeneratePassword(value string) ([]byte, error) {

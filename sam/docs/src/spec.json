@@ -408,7 +408,7 @@
 		"authentication": ["Client ID", "Session ID"],
 		"struct": [
 			{
-				"name": "WebSocket",
+				"name": "Websocket",
 				"fields": [
 					{ "type": "uint64", "name": "UserID" },
 					{ "type": "User", "name": "User", "complex": true }
