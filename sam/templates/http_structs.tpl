@@ -1,33 +1,49 @@
 package {package}
 
+{if !empty($imports)}
+import (
+{foreach ($imports as $import)}
+	"{import}"
+{/foreach}
+)
+{/if}
+
+type ({foreach $structs as $struct}
+
 {if strpos($name, "Literal") !== false}
-	{foreach $fields as $field}
+	{foreach $struct.fields as $field}
 		{field}{newline}
 	{/foreach}
 {else}
 	// {api.title}
-	type {name} struct {
-{foreach $fields as $field}
+	{struct.name} struct {
+{foreach $struct.fields as $field}
 		{field.name} {field.type}{if $field.tag} `{$field.tag}`{/if}{newline}
 {/foreach}
 
 		changed []string
 	}
 
-func ({name}) new() *{name} {
-	return &{name}{}
+{/if}{/foreach}
+)
+
+/* Constructors */
+{foreach $structs as $struct}
+func ({struct.name}) New() *{struct.name} {
+	return &{struct.name}{}
 }
+{/foreach}
 
-{/if}
-
-{foreach $fields as $field}
-func ({self} *{name}) Get{field.name}() {field.type} {
+/* Getters/setters */
+{foreach $structs as $struct}
+{foreach $struct.fields as $field}
+func ({self} *{struct.name}) Get{field.name}() {field.type} {
 	return {self}.{field.name}
 }
 
-func ({self} *{name}) Set{field.name}(value {field.type}) *{name} {{if !$field.complex}
+func ({self} *{struct.name}) Set{field.name}(value {field.type}) *{struct.name} {{if !$field.complex}
 	if {self}.{field.name} != value {
-		{self}.changed = append({self}.changed, "{field.name|strtolower}")
+		{self}.changed = append({self}.changed, "{field.name}")
 		{self}.{field.name} = value
 	}
 {else}
@@ -35,4 +51,6 @@ func ({self} *{name}) Set{field.name}(value {field.type}) *{name} {{if !$field.c
 {/if}
 	return {self}
 }
+{/foreach}
+
 {/foreach}
