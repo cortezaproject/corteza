@@ -1,31 +1,35 @@
 package sam
 
-// Messages
-type Message struct {
-	Service    string
-	Channel    string
-	UserName   string
-	UserID     uint64
-	User       *User
-	UserAvatar string
-	Message    string
-	MessageID  string
-	Type       MessageType
+type (
+	// Messages
+	Message struct {
+		Service    string
+		Channel    string
+		UserName   string
+		UserID     uint64
+		User       *User
+		UserAvatar string
+		Message    string
+		MessageID  string
+		Type       MessageType
 
-	changed []string
-}
+		changed []string
+	}
+)
 
-func (Message) new() *Message {
+/* Constructors */
+func (Message) New() *Message {
 	return &Message{}
 }
 
+/* Getters/setters */
 func (m *Message) GetService() string {
 	return m.Service
 }
 
 func (m *Message) SetService(value string) *Message {
 	if m.Service != value {
-		m.changed = append(m.changed, "service")
+		m.changed = append(m.changed, "Service")
 		m.Service = value
 	}
 	return m
@@ -36,7 +40,7 @@ func (m *Message) GetChannel() string {
 
 func (m *Message) SetChannel(value string) *Message {
 	if m.Channel != value {
-		m.changed = append(m.changed, "channel")
+		m.changed = append(m.changed, "Channel")
 		m.Channel = value
 	}
 	return m
@@ -47,7 +51,7 @@ func (m *Message) GetUserName() string {
 
 func (m *Message) SetUserName(value string) *Message {
 	if m.UserName != value {
-		m.changed = append(m.changed, "username")
+		m.changed = append(m.changed, "UserName")
 		m.UserName = value
 	}
 	return m
@@ -58,7 +62,7 @@ func (m *Message) GetUserID() uint64 {
 
 func (m *Message) SetUserID(value uint64) *Message {
 	if m.UserID != value {
-		m.changed = append(m.changed, "userid")
+		m.changed = append(m.changed, "UserID")
 		m.UserID = value
 	}
 	return m
@@ -68,10 +72,7 @@ func (m *Message) GetUser() *User {
 }
 
 func (m *Message) SetUser(value *User) *Message {
-	if m.User != value {
-		m.changed = append(m.changed, "user")
-		m.User = value
-	}
+	m.User = value
 	return m
 }
 func (m *Message) GetUserAvatar() string {
@@ -80,7 +81,7 @@ func (m *Message) GetUserAvatar() string {
 
 func (m *Message) SetUserAvatar(value string) *Message {
 	if m.UserAvatar != value {
-		m.changed = append(m.changed, "useravatar")
+		m.changed = append(m.changed, "UserAvatar")
 		m.UserAvatar = value
 	}
 	return m
@@ -91,7 +92,7 @@ func (m *Message) GetMessage() string {
 
 func (m *Message) SetMessage(value string) *Message {
 	if m.Message != value {
-		m.changed = append(m.changed, "message")
+		m.changed = append(m.changed, "Message")
 		m.Message = value
 	}
 	return m
@@ -102,7 +103,7 @@ func (m *Message) GetMessageID() string {
 
 func (m *Message) SetMessageID(value string) *Message {
 	if m.MessageID != value {
-		m.changed = append(m.changed, "messageid")
+		m.changed = append(m.changed, "MessageID")
 		m.MessageID = value
 	}
 	return m
@@ -113,7 +114,7 @@ func (m *Message) GetType() MessageType {
 
 func (m *Message) SetType(value MessageType) *Message {
 	if m.Type != value {
-		m.changed = append(m.changed, "type")
+		m.changed = append(m.changed, "Type")
 		m.Type = value
 	}
 	return m

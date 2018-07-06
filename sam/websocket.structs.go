@@ -1,33 +1,37 @@
 package sam
 
-// Websocket
-type Websocket struct {
-	UserID uint64
-	User   User
+type (
+	// Websocket
+	WebSocket struct {
+		UserID uint64
+		User   User
 
-	changed []string
+		changed []string
+	}
+)
+
+/* Constructors */
+func (WebSocket) New() *WebSocket {
+	return &WebSocket{}
 }
 
-func (Websocket) new() *Websocket {
-	return &Websocket{}
-}
-
-func (w *Websocket) GetUserID() uint64 {
+/* Getters/setters */
+func (w *WebSocket) GetUserID() uint64 {
 	return w.UserID
 }
 
-func (w *Websocket) SetUserID(value uint64) *Websocket {
+func (w *WebSocket) SetUserID(value uint64) *WebSocket {
 	if w.UserID != value {
-		w.changed = append(w.changed, "userid")
+		w.changed = append(w.changed, "UserID")
 		w.UserID = value
 	}
 	return w
 }
-func (w *Websocket) GetUser() User {
+func (w *WebSocket) GetUser() User {
 	return w.User
 }
 
-func (w *Websocket) SetUser(value User) *Websocket {
+func (w *WebSocket) SetUser(value User) *WebSocket {
 	w.User = value
 	return w
 }
