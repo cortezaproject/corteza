@@ -1,38 +1,35 @@
 package sam
 
 import (
-	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
-// Users
-type User struct {
-	ID       uint64
-	Username string
-	Password []byte `json:"-"`
+type (
+	// Users
+	User struct {
+		ID          uint64
+		Username    string
+		Password    []byte     `json:"-"`
+		SuspendedAt *time.Time `json:",omitempty"`
+		DeletedAt   *time.Time `json:",omitempty"`
 
-	SuspendedAt *time.Time `json:",omitempty"`
-	DeletedAt   *time.Time `json:",omitempty"`
+		changed []string
+	}
+)
 
-	changed []string
-}
-
-func (User) new() *User {
+/* Constructors */
+func (User) New() *User {
 	return &User{}
 }
 
-// Basic user validation
-func (u *User) CanLogin() bool {
-	return u.ID > 0
-}
-
+/* Getters/setters */
 func (u *User) GetID() uint64 {
 	return u.ID
 }
 
 func (u *User) SetID(value uint64) *User {
 	if u.ID != value {
-		u.changed = append(u.changed, "id")
+		u.changed = append(u.changed, "ID")
 		u.ID = value
 	}
 	return u
@@ -43,25 +40,35 @@ func (u *User) GetUsername() string {
 
 func (u *User) SetUsername(value string) *User {
 	if u.Username != value {
-		u.changed = append(u.changed, "username")
+		u.changed = append(u.changed, "Username")
 		u.Username = value
 	}
 	return u
 }
-
-func (u *User) SetPassword(value string) error {
-	if !u.ValidatePassword(value) {
-		if encrypted, err := bcrypt.GenerateFromPassword([]byte(value), bcrypt.DefaultCost); err != nil {
-			return err
-		} else {
-			u.Password = encrypted
-			u.changed = append(u.changed, "password")
-		}
-	}
-
-	return nil
+func (u *User) GetPassword() []byte {
+	return u.Password
 }
 
-func (u User) ValidatePassword(value string) bool {
-	return bcrypt.CompareHashAndPassword(u.Password, []byte(value)) == nil
+func (u *User) SetPassword(value []byte) *User {
+	if u.Password != value {
+		u.changed = append(u.changed, "Password")
+		u.Password = value
+	}
+	return u
+}
+func (u *User) GetSuspendedAt() *time.Time {
+	return u.SuspendedAt
+}
+
+func (u *User) SetSuspendedAt(value *time.Time) *User {
+	u.SuspendedAt = value
+	return u
+}
+func (u *User) GetDeletedAt() *time.Time {
+	return u.DeletedAt
+}
+
+func (u *User) SetDeletedAt(value *time.Time) *User {
+	u.DeletedAt = value
+	return u
 }
