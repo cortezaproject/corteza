@@ -17,7 +17,22 @@
           "name": "Password",
           "tag": "json:\"-\"",
           "type": "[]byte"
+        },
+        {
+          "complex": true,
+          "name": "SuspendedAt",
+          "tag": "json:\",omitempty\"",
+          "type": "*time.Time"
+        },
+        {
+          "complex": true,
+          "name": "DeletedAt",
+          "tag": "json:\",omitempty\"",
+          "type": "*time.Time"
         }
+      ],
+      "imports": [
+        "time"
       ],
       "name": "User"
     }
