@@ -4,40 +4,46 @@
   "Interface": "Message",
   "Struct": [
     {
-      "name": "Service",
-      "type": "string"
-    },
-    {
-      "name": "Channel",
-      "type": "string"
-    },
-    {
-      "name": "UserName",
-      "type": "string"
-    },
-    {
-      "name": "UserID",
-      "type": "uint64"
-    },
-    {
-      "name": "User",
-      "type": "*User"
-    },
-    {
-      "name": "UserAvatar",
-      "type": "string"
-    },
-    {
-      "name": "Message",
-      "type": "string"
-    },
-    {
-      "name": "MessageID",
-      "type": "string"
-    },
-    {
-      "name": "Type",
-      "type": "MessageType"
+      "fields": [
+        {
+          "name": "Service",
+          "type": "string"
+        },
+        {
+          "name": "Channel",
+          "type": "string"
+        },
+        {
+          "name": "UserName",
+          "type": "string"
+        },
+        {
+          "name": "UserID",
+          "type": "uint64"
+        },
+        {
+          "complex": true,
+          "name": "User",
+          "type": "*User"
+        },
+        {
+          "name": "UserAvatar",
+          "type": "string"
+        },
+        {
+          "name": "Message",
+          "type": "string"
+        },
+        {
+          "name": "MessageID",
+          "type": "string"
+        },
+        {
+          "name": "Type",
+          "type": "MessageType"
+        }
+      ],
+      "name": "Message"
     }
   ],
   "Protocol": "",

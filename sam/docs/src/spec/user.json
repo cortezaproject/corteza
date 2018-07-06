@@ -4,17 +4,22 @@
   "Interface": "User",
   "Struct": [
     {
-      "name": "ID",
-      "type": "uint64"
-    },
-    {
-      "name": "Username",
-      "type": "string"
-    },
-    {
-      "name": "Password",
-      "tag": "json:\"-\"",
-      "type": "string"
+      "fields": [
+        {
+          "name": "ID",
+          "type": "uint64"
+        },
+        {
+          "name": "Username",
+          "type": "string"
+        },
+        {
+          "name": "Password",
+          "tag": "json:\"-\"",
+          "type": "string"
+        }
+      ],
+      "name": "User"
     }
   ],
   "Protocol": "",

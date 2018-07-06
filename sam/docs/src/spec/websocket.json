@@ -4,13 +4,18 @@
   "Interface": "Websocket",
   "Struct": [
     {
-      "name": "UserID",
-      "type": "uint64"
-    },
-    {
-      "complex": true,
-      "name": "User",
-      "type": "User"
+      "fields": [
+        {
+          "name": "UserID",
+          "type": "uint64"
+        },
+        {
+          "complex": true,
+          "name": "User",
+          "type": "User"
+        }
+      ],
+      "name": "WebSocket"
     }
   ],
   "Protocol": "WebSockets",
