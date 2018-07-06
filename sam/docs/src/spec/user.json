@@ -16,7 +16,7 @@
         {
           "name": "Password",
           "tag": "json:\"-\"",
-          "type": "string"
+          "type": "[]byte"
         }
       ],
       "name": "User"
