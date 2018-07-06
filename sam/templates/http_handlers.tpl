@@ -1,5 +1,7 @@
 package {package}
 
+{load warning.tpl}
+
 import (
 	"net/http"
 
