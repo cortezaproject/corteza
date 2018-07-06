@@ -50,10 +50,7 @@ func (u *User) GetPassword() []byte {
 }
 
 func (u *User) SetPassword(value []byte) *User {
-	if u.Password != value {
-		u.changed = append(u.changed, "Password")
-		u.Password = value
-	}
+	u.Password = value
 	return u
 }
 func (u *User) GetSuspendedAt() *time.Time {

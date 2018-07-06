@@ -11,7 +11,7 @@ type TeamHandlers struct {
 
 func (TeamHandlers) new() *TeamHandlers {
 	return &TeamHandlers{
-		Team{}.new(),
+		Team{}.New(),
 	}
 }
 

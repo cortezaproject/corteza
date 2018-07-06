@@ -22,7 +22,7 @@ func (*Team) Edit(r *teamEditRequest) (interface{}, error) {
 	// @todo: permission check if user can add/edit the team
 	// @todo: make sure archived & deleted entries can not be edited
 
-	t := Team{}.new()
+	t := Team{}.New()
 	t.SetID(r.id).SetName(r.name).SetMemberIDs(r.members)
 	if t.GetID() > 0 {
 		return t, db.Replace("team", t)
@@ -51,7 +51,7 @@ func (*Team) Read(r *teamReadRequest) (interface{}, error) {
 		return nil, err
 	}
 
-	t := Team{}.new()
+	t := Team{}.New()
 	return t, db.Get(t, sqlTeamSelect+" AND id = ?", r.id)
 }
 

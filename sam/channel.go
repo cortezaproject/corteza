@@ -26,7 +26,7 @@ func (*Channel) Edit(r *channelEditRequest) (interface{}, error) {
 	// @todo: permission check if user can add channel
 	// @todo: make sure archived & deleted entries can not be edited
 
-	c := Channel{}.new().SetID(r.id).SetName(r.name).SetTopic(r.topic)
+	c := Channel{}.New().SetID(r.id).SetName(r.name).SetTopic(r.topic)
 	if c.GetID() > 0 {
 		if is("topic", c.changed...) {
 			fmt.Println("Topic for channel was changed:", c.GetTopic())
@@ -63,7 +63,7 @@ func (*Channel) Read(r *channelReadRequest) (interface{}, error) {
 
 	// @todo: permission check if user can read channel
 
-	c := Channel{}.new()
+	c := Channel{}.New()
 	return c, db.Get(c, sqlChannelSelect+" AND id = ?", r.id)
 }
 

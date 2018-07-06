@@ -11,7 +11,7 @@ type {name}Handlers struct {
 
 func ({name}Handlers) new() *{name}Handlers {
 	return &{name}Handlers{
-		{name}{}.new(),
+		{name}{}.New(),
 	}
 }
 
