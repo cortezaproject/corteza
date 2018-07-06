@@ -13,7 +13,22 @@
         {
           "name": "Name",
           "type": "string"
+        },
+        {
+          "complex": true,
+          "name": "ArchivedAt",
+          "tag": "json:\",omitempty\"",
+          "type": "*time.Time"
+        },
+        {
+          "complex": true,
+          "name": "DeletedAt",
+          "tag": "json:\",omitempty\"",
+          "type": "*time.Time"
         }
+      ],
+      "imports": [
+        "time"
       ],
       "name": "Organisation"
     }
