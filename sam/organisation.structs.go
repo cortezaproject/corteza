@@ -1,9 +1,16 @@
 package sam
 
+import (
+	"time"
+)
+
 // Organisations
 type Organisation struct {
 	ID   uint64
 	Name string
+
+	ArchivedAt *time.Time
+	DeletedAt  *time.Time
 
 	changed []string
 }

@@ -1,11 +1,18 @@
 package sam
 
+import (
+	"time"
+)
+
 // Teams
 type Team struct {
 	ID        uint64
 	Name      string
 	MemberIDs []uint64 `json:"-"`
 	Members   []User   `json:",omitempty"`
+
+	ArchivedAt *time.Time `json:",omitempty"`
+	DeletedAt  *time.Time `json:",omitempty"`
 
 	changed []string
 }

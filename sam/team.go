@@ -1,17 +1,26 @@
 package sam
 
 import (
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 )
 
 var _ = errors.Wrap
 
+const (
+	sqlTeamScope  = "deleted_at IS NULL AND archived_at IS NULL"
+	sqlTeamSelect = "SELECT * FROM teams WHERE " + sqlTeamScope
+)
+
 func (*Team) Edit(r *teamEditRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
 	}
+
+	// @todo: permission check if user can add/edit the team
+	// @todo: make sure archived & deleted entries can not be edited
 
 	t := Team{}.new()
 	t.SetID(r.id).SetName(r.name).SetMemberIDs(r.members)
@@ -28,8 +37,10 @@ func (*Team) Remove(r *teamRemoveRequest) (interface{}, error) {
 		return nil, err
 	}
 
+	stmt := "UPDATE teams SET deleted_at = NOW() WHERE deleted_at IS NULL AND id = ?"
+
 	return nil, func() error {
-		_, err := db.Exec("delete from team where id=?", r.id)
+		_, err := db.Exec(stmt, r.id)
 		return err
 	}()
 }
@@ -41,7 +52,7 @@ func (*Team) Read(r *teamReadRequest) (interface{}, error) {
 	}
 
 	t := Team{}.new()
-	return t, db.Get(t, "select * from team where id=?", r.id)
+	return t, db.Get(t, sqlTeamSelect+" AND id = ?", r.id)
 }
 
 func (*Team) Search(r *teamSearchRequest) (interface{}, error) {
@@ -51,7 +62,7 @@ func (*Team) Search(r *teamSearchRequest) (interface{}, error) {
 	}
 
 	res := make([]Team, 0)
-	err = db.Select(&res, "select * from team order by name asc")
+	err = db.Select(&res, sqlTeamSelect+" ORDER BY name ASC")
 	return res, err
 }
 
@@ -61,8 +72,12 @@ func (*Team) Archive(r *teamArchiveRequest) (interface{}, error) {
 		return nil, err
 	}
 
+	stmt := fmt.Sprintf(
+		"UPDATE teams SET archived_at = NOW() WHERE %s AND id = ?",
+		sqlTeamScope)
+
 	return nil, func() error {
-		_, err := db.Exec("delete from team where id=?", r.id)
+		_, err := db.Exec(stmt, r.id)
 		return err
 	}()
 }
