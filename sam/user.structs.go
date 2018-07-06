@@ -1,10 +1,14 @@
 package sam
 
+import (
+	"golang.org/x/crypto/bcrypt"
+)
+
 // Users
 type User struct {
 	ID       uint64
 	Username string
-	Password string `json:"-"`
+	Password []byte `json:"-"`
 
 	changed []string
 }
@@ -35,14 +39,20 @@ func (u *User) SetUsername(value string) *User {
 	}
 	return u
 }
-func (u *User) GetPassword() string {
-	return u.Password
+
+func (u *User) SetPassword(value string) error {
+	if !u.ValidatePassword(value) {
+		if encrypted, err := bcrypt.GenerateFromPassword([]byte(value), bcrypt.DefaultCost); err != nil {
+			return err
+		} else {
+			u.Password = encrypted
+			u.changed = append(u.changed, "password")
+		}
+	}
+
+	return nil
 }
 
-func (u *User) SetPassword(value string) *User {
-	if u.Password != value {
-		u.changed = append(u.changed, "password")
-		u.Password = value
-	}
-	return u
+func (u User) ValidatePassword(value string) bool {
+	return bcrypt.CompareHashAndPassword(u.Password, []byte(value)) == nil
 }
