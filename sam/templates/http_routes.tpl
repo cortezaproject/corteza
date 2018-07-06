@@ -1,5 +1,7 @@
 package {package}
 
+{load warning.tpl}
+
 import (
 	"github.com/go-chi/chi"
 )

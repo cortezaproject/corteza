@@ -1,5 +1,7 @@
 package {package}
 
+{load warning.tpl}
+
 {if !empty($imports)}
 import (
 {foreach ($imports as $import)}
