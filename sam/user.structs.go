@@ -17,6 +17,11 @@ func (User) new() *User {
 	return &User{}
 }
 
+// Basic user validation
+func (u *User) CanLogin() bool {
+	return u.ID > 0
+}
+
 func (u *User) GetID() uint64 {
 	return u.ID
 }
