@@ -16,6 +16,7 @@ package crm
 */
 
 import (
+	"fmt"
 	"github.com/go-chi/chi"
 )
 
@@ -33,4 +34,18 @@ func MountRoutes(r chi.Router) {
 		r.Get("/list", types.List)
 		r.Get("/type/{id}", types.Type)
 	})
+
+	var printRoutes func(chi.Routes)
+	printRoutes = func(r chi.Routes) {
+		routes := r.Routes()
+		for _, route := range routes {
+			if len(route.SubRoutes.Routes()) > 0 {
+				fmt.Printf("%s - with %d handlers, %d subroutes", route.Pattern, len(route.Handlers), len(route.SubRoutes.Routes()))
+				printRoutes(route.SubRoutes)
+			} else {
+				fmt.Printf("%s - with %d handlers\n", route.Pattern, len(route.Handlers))
+			}
+		}
+	}
+	printRoutes(r)
 }
