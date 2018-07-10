@@ -18,6 +18,8 @@ package crm
 import (
 	"fmt"
 	"github.com/go-chi/chi"
+	"reflect"
+	"runtime"
 )
 
 func MountRoutes(r chi.Router) {
@@ -32,20 +34,23 @@ func MountRoutes(r chi.Router) {
 	})
 	r.Route("/types", func(r chi.Router) {
 		r.Get("/list", types.List)
+		r.Post("/list", types.List)
 		r.Get("/type/{id}", types.Type)
 	})
 
-	var printRoutes func(chi.Routes)
-	printRoutes = func(r chi.Routes) {
+	var printRoutes func(chi.Routes, string, string)
+	printRoutes = func(r chi.Routes, indent string, prefix string) {
 		routes := r.Routes()
 		for _, route := range routes {
-			if len(route.SubRoutes.Routes()) > 0 {
-				fmt.Printf("%s - with %d handlers, %d subroutes", route.Pattern, len(route.Handlers), len(route.SubRoutes.Routes()))
-				printRoutes(route.SubRoutes)
+			if route.SubRoutes != nil && len(route.SubRoutes.Routes()) > 0 {
+				fmt.Printf(indent+"%s - with %d handlers, %d subroutes\n", route.Pattern, len(route.Handlers), len(route.SubRoutes.Routes()))
+				printRoutes(route.SubRoutes, indent+"\t", prefix+route.Pattern[:len(route.Pattern)-2])
 			} else {
-				fmt.Printf("%s - with %d handlers\n", route.Pattern, len(route.Handlers))
+				for key, fn := range route.Handlers {
+					fmt.Printf("%s%s\t%s -> %s\n", indent, key, prefix+route.Pattern, runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name())
+				}
 			}
 		}
 	}
-	printRoutes(r)
+	printRoutes(r, "", "")
 }
