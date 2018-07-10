@@ -34,7 +34,6 @@ func MountRoutes(r chi.Router) {
 	})
 	r.Route("/types", func(r chi.Router) {
 		r.Get("/list", types.List)
-		r.Post("/list", types.List)
 		r.Get("/type/{id}", types.Type)
 	})
 
