@@ -25,11 +25,13 @@ CREATE TABLE teams (
 -- Keeps all known channels
 CREATE TABLE channels (
   id               BIGINT UNSIGNED NOT NULL,
-  label            TEXT            NOT NULL, -- display name of the channel
+  name             TEXT            NOT NULL, -- display name of the channel
   meta             JSON            NOT NULL,
 
   archived_at      DATETIME            NULL,
   deleted_at       DATETIME            NULL, -- channel soft delete
+
+  rel_last_message BIGINT UNSIGNED,
 
   PRIMARY KEY (id)
 );
@@ -96,6 +98,19 @@ CREATE TABLE messages (
   rel_channel      BIGINT  UNSIGNED NOT NULL REFERENCES channels(id),
 
   -- replies, edits, reactions, flags, attachments...
+  rel_message      BIGINT  UNSIGNED NOT NULL REFERENCES messages(id),
+
+  PRIMARY KEY (id)
+);
+
+
+-- temp copy of messages (when they are pushed to the primary organisation, row gets removed)
+CREATE TABLE messages_queue (
+  id               BIGINT UNSIGNED NOT NULL,
+  mimetype         VARCHAR(255)         NULL,
+  body             TEXT                 NULL,
+  rel_user         BIGINT  UNSIGNED NOT NULL REFERENCES users(id),
+  rel_channel      BIGINT  UNSIGNED NOT NULL REFERENCES channels(id),
   rel_message      BIGINT  UNSIGNED NOT NULL REFERENCES messages(id),
 
   PRIMARY KEY (id)
