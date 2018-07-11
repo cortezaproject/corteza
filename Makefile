@@ -1,4 +1,13 @@
+.PHONY: build
+
+SPEC=$(GOPATH)/bin/spec
+
 build:
 	docker build --rm -t $(shell cat .project) .
 
-.PHONY: build
+$(SPEC):
+	go get github.com/titpetric/spec/cmd/spec
+
+spec: $(SPEC)
+	cd sam/docs/src && $(SPEC)
+	cd sam/ && php _gen.php
