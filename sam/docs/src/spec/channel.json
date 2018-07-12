@@ -19,6 +19,12 @@
           "type": "string"
         },
         {
+          "complex": true,
+          "name": "Meta",
+          "type": "json.RawMessage"
+        },
+        {
+          "dbname": "rel_last_message",
           "name": "LastMessageId",
           "tag": "json:\",omitempty\"",
           "type": "uint64"
@@ -26,18 +32,19 @@
         {
           "complex": true,
           "name": "ArchivedAt",
-          "tag": "json:\",omitempty\"",
+          "tag": "json:\",omitempty\" db:\"archived_at\"",
           "type": "*time.Time"
         },
         {
           "complex": true,
           "name": "DeletedAt",
-          "tag": "json:\",omitempty\"",
+          "tag": "json:\",omitempty\" db:\"deleted_at\"",
           "type": "*time.Time"
         }
       ],
       "imports": [
-        "time"
+        "time",
+        "encoding/json"
       ],
       "name": "Channel"
     }
