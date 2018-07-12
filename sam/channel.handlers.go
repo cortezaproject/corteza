@@ -21,6 +21,10 @@ import (
 	"github.com/titpetric/factory/resputil"
 )
 
+func (ch *ChannelHandlers) Create(w http.ResponseWriter, r *http.Request) {
+	params := channelCreateRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Create(params) })
+}
 func (ch *ChannelHandlers) Edit(w http.ResponseWriter, r *http.Request) {
 	params := channelEditRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Edit(params) })
@@ -36,12 +40,4 @@ func (ch *ChannelHandlers) Read(w http.ResponseWriter, r *http.Request) {
 func (ch *ChannelHandlers) Search(w http.ResponseWriter, r *http.Request) {
 	params := channelSearchRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Search(params) })
-}
-func (ch *ChannelHandlers) Archive(w http.ResponseWriter, r *http.Request) {
-	params := channelArchiveRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Archive(params) })
-}
-func (ch *ChannelHandlers) Move(w http.ResponseWriter, r *http.Request) {
-	params := channelMoveRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Move(params) })
 }

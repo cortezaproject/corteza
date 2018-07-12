@@ -184,12 +184,24 @@
 					{ "type": "uint64", "name": "ID" },
 					{ "type": "string", "name": "Name" },
 					{ "type": "string", "name": "Topic" },
+					{ "type": "uint64", "name": "LastMessageId", "tag": "json:\",omitempty\"" },
 					{ "type": "*time.Time", "name": "ArchivedAt", "tag": "json:\",omitempty\"", "complex": true },
 					{ "type": "*time.Time", "name": "DeletedAt", "tag": "json:\",omitempty\"", "complex": true }
 				]
 			}
 		],
 		"apis": [
+			{
+				"name": "create",
+				"method": "POST",
+				"title": "Create new channel",
+				"parameters": {
+					"post": [
+						{ "type": "string", "name": "name", "required": true, "title": "Name of Channel" },
+						{ "type": "string", "name": "topic", "required": true, "title": "Subject of Channel" }
+					]
+				}
+			},
 			{
 				"name": "edit",
 				"method": "POST",
@@ -198,7 +210,9 @@
 					"post": [
 						{ "type": "uint64", "name": "id", "required": false, "title": "Channel ID" },
 						{ "type": "string", "name": "name", "required": true, "title": "Name of Channel" },
-						{ "type": "string", "name": "topic", "required": true, "title": "Subject of Channel" }
+						{ "type": "string", "name": "topic", "required": true, "title": "Subject of Channel" },
+						{ "type": "bool",   "name": "archive", "required": false, "title": "Request channel to be archived or unarchived" },
+						{ "type": "uint64", "name": "organisationId", "required": false, "title": "Move channel to different organisation" }
 					]
 				}
 			},
@@ -229,26 +243,6 @@
 				"parameters": {
 					"get": [
 						{ "type": "string", "name": "query", "required": false, "title": "Search query" }
-					]
-				}
-			},
-			{
-				"name": "archive",
-				"method": "POST",
-				"title": "Archive channel",
-				"parameters": {
-					"post": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Channel ID" }
-					]
-				}
-			},
-			{
-				"name": "move",
-				"method": "POST",
-				"title": "Move channel to different team or organisation",
-				"parameters": {
-					"post": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Channel ID" }
 					]
 				}
 			}

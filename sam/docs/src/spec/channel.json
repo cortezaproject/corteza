@@ -19,6 +19,11 @@
           "type": "string"
         },
         {
+          "name": "LastMessageId",
+          "tag": "json:\",omitempty\"",
+          "type": "uint64"
+        },
+        {
           "complex": true,
           "name": "ArchivedAt",
           "tag": "json:\",omitempty\"",
@@ -45,6 +50,28 @@
   "Path": "/channel",
   "APIs": [
     {
+      "Name": "create",
+      "Method": "POST",
+      "Title": "Create new channel",
+      "Path": "/create",
+      "Parameters": {
+        "post": [
+          {
+            "name": "name",
+            "required": true,
+            "title": "Name of Channel",
+            "type": "string"
+          },
+          {
+            "name": "topic",
+            "required": true,
+            "title": "Subject of Channel",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "Name": "edit",
       "Method": "POST",
       "Title": "Update channel details",
@@ -68,6 +95,18 @@
             "required": true,
             "title": "Subject of Channel",
             "type": "string"
+          },
+          {
+            "name": "archive",
+            "required": false,
+            "title": "Request channel to be archived or unarchived",
+            "type": "bool"
+          },
+          {
+            "name": "organisationId",
+            "required": false,
+            "title": "Move channel to different organisation",
+            "type": "uint64"
           }
         ]
       }
@@ -116,38 +155,6 @@
             "required": false,
             "title": "Search query",
             "type": "string"
-          }
-        ]
-      }
-    },
-    {
-      "Name": "archive",
-      "Method": "POST",
-      "Title": "Archive channel",
-      "Path": "/archive",
-      "Parameters": {
-        "post": [
-          {
-            "name": "id",
-            "required": true,
-            "title": "Channel ID",
-            "type": "uint64"
-          }
-        ]
-      }
-    },
-    {
-      "Name": "move",
-      "Method": "POST",
-      "Title": "Move channel to different team or organisation",
-      "Path": "/move",
-      "Parameters": {
-        "post": [
-          {
-            "name": "id",
-            "required": true,
-            "title": "Channel ID",
-            "type": "uint64"
           }
         ]
       }

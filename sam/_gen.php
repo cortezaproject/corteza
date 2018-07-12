@@ -40,7 +40,8 @@ foreach (array("structs", "handlers", "interfaces", "request", "") as $type) {
 
 			$tpl->load("http_$type.tpl");
 			$tpl->assign("parsers", array(
-				"uint64" => "parseUInt64"
+				"uint64" => "parseUInt64",
+				"bool" => "parseBool",
 			));
 			$tpl->assign("package", $api['package']);
 			$tpl->assign("name", $name);

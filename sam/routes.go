@@ -30,12 +30,11 @@ func MountRoutes(r chi.Router) {
 	user := UserHandlers{}.new()
 	websocket := WebsocketHandlers{}.new()
 	r.Route("/channel", func(r chi.Router) {
+		r.Post("/create", channel.Create)
 		r.Post("/edit", channel.Edit)
 		r.Delete("/remove", channel.Remove)
 		r.Get("/read", channel.Read)
 		r.Get("/search", channel.Search)
-		r.Post("/archive", channel.Archive)
-		r.Post("/move", channel.Move)
 	})
 	r.Route("/message", func(r chi.Router) {
 		r.Post("/edit", message.Edit)
