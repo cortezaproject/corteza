@@ -34,6 +34,7 @@ func (messageEditRequest) new() *messageEditRequest {
 }
 
 func (m *messageEditRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -64,6 +65,7 @@ func (messageAttachRequest) new() *messageAttachRequest {
 }
 
 func (m *messageAttachRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -89,6 +91,7 @@ func (messageRemoveRequest) new() *messageRemoveRequest {
 }
 
 func (m *messageRemoveRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -116,6 +119,7 @@ func (messageReadRequest) new() *messageReadRequest {
 }
 
 func (m *messageReadRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -144,6 +148,7 @@ func (messageSearchRequest) new() *messageSearchRequest {
 }
 
 func (m *messageSearchRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -173,6 +178,7 @@ func (messagePinRequest) new() *messagePinRequest {
 }
 
 func (m *messagePinRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -200,6 +206,7 @@ func (messageFlagRequest) new() *messageFlagRequest {
 }
 
 func (m *messageFlagRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()

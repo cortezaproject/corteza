@@ -31,6 +31,7 @@ func (websocketClientRequest) new() *websocketClientRequest {
 }
 
 func (w *websocketClientRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()

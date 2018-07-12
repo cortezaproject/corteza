@@ -184,11 +184,11 @@
 				"fields": [
 					{ "type": "uint64",          "name": "ID" },
 					{ "type": "string",          "name": "Name" },
-					{ "type": "string",          "name": "Topic" },
+					{ "type": "string",          "name": "Topic", "dbname": "-" },
 					{ "type": "json.RawMessage", "name": "Meta", "complex": true},
 					{ "type": "uint64",          "name": "LastMessageId", "tag": "json:\",omitempty\"", "dbname": "rel_last_message" },
-					{ "type": "*time.Time",      "name": "ArchivedAt",    "tag": "json:\",omitempty\" db:\"archived_at\"", "complex": true },
-					{ "type": "*time.Time",      "name": "DeletedAt",     "tag": "json:\",omitempty\" db:\"deleted_at\"", "complex": true }
+					{ "type": "*time.Time",      "name": "ArchivedAt",    "tag": "json:\",omitempty\"", "complex": true },
+					{ "type": "*time.Time",      "name": "DeletedAt",     "tag": "json:\",omitempty\"", "complex": true }
 				]
 			}
 		],
@@ -200,7 +200,7 @@
 				"parameters": {
 					"post": [
 						{ "type": "string", "name": "name", "required": true, "title": "Name of Channel" },
-						{ "type": "string", "name": "topic", "required": true, "title": "Subject of Channel" }
+						{ "type": "string", "name": "topic", "required": false, "title": "Subject of Channel" }
 					]
 				}
 			},
@@ -210,9 +210,9 @@
 				"title": "Update channel details",
 				"parameters": {
 					"post": [
-						{ "type": "uint64", "name": "id", "required": false, "title": "Channel ID" },
-						{ "type": "string", "name": "name", "required": true, "title": "Name of Channel" },
-						{ "type": "string", "name": "topic", "required": true, "title": "Subject of Channel" },
+						{ "type": "uint64", "name": "id", "required": true, "title": "Channel ID" },
+						{ "type": "string", "name": "name", "required": false, "title": "Name of Channel" },
+						{ "type": "string", "name": "topic", "required": false, "title": "Subject of Channel" },
 						{ "type": "bool",   "name": "archive", "required": false, "title": "Request channel to be archived or unarchived" },
 						{ "type": "uint64", "name": "organisationId", "required": false, "title": "Move channel to different organisation" }
 					]

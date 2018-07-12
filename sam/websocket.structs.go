@@ -18,8 +18,8 @@ package sam
 type (
 	// Websocket
 	Websocket struct {
-		UserID uint64
-		User   User
+		UserID uint64 `db:"user_id"`
+		User   User   `db:"user"`
 
 		changed []string
 	}
