@@ -16,6 +16,7 @@ package sam
 */
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -25,9 +26,10 @@ type (
 		ID            uint64
 		Name          string
 		Topic         string
-		LastMessageId uint64     `json:",omitempty"`
-		ArchivedAt    *time.Time `json:",omitempty"`
-		DeletedAt     *time.Time `json:",omitempty"`
+		Meta          json.RawMessage
+		LastMessageId uint64     `json:",omitempty" db:"rel_last_message"`
+		ArchivedAt    *time.Time `json:",omitempty" db:"archived_at"`
+		DeletedAt     *time.Time `json:",omitempty" db:"deleted_at"`
 
 		changed []string
 	}
@@ -70,6 +72,14 @@ func (c *Channel) SetTopic(value string) *Channel {
 		c.changed = append(c.changed, "Topic")
 		c.Topic = value
 	}
+	return c
+}
+func (c *Channel) GetMeta() json.RawMessage {
+	return c.Meta
+}
+
+func (c *Channel) SetMeta(value json.RawMessage) *Channel {
+	c.Meta = value
 	return c
 }
 func (c *Channel) GetLastMessageId() uint64 {
