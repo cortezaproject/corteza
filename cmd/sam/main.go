@@ -9,9 +9,18 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	_ "github.com/joho/godotenv/autoload"
 
 	project "github.com/crusttech/crust/sam"
 	"github.com/titpetric/factory"
+)
+
+const (
+	defaultAddr = ":3000"
+	defaultDsn  = "crust:crust@tcp(db1:3306)/crust?collation=utf8mb4_general_ci"
+
+	envVarKey_HTTP_ADDR = "SAM_HTTP_ADDR"
+	envVarKey_DB_DSN    = "SAM_DB_DSN"
 )
 
 func handleError(err error, message string) {
@@ -24,11 +33,23 @@ func handleError(err error, message string) {
 }
 
 func main() {
-	// set up flags
+	var envHttpAddr, envDbDsn string
+	var has bool
+
+	if envHttpAddr, has = os.LookupEnv(envVarKey_HTTP_ADDR); !has {
+		envHttpAddr = defaultAddr
+	}
+
+	if envDbDsn, has = os.LookupEnv(envVarKey_DB_DSN); !has {
+		envDbDsn = defaultDsn
+	}
+
 	var (
-		addr = flag.String("addr", ":3000", "Listen address for HTTP server")
-		dsn = flag.String("dsn", "crust:crust@tcp(db1:3306)/crust?collation=utf8mb4_general_ci", "DSN for database connection")
+		// set up flags
+		addr = flag.String("addr", envHttpAddr, "Listen address for HTTP server")
+		dsn  = flag.String("dsn", envDbDsn, "DSN for database connection")
 	)
+
 	flag.Parse()
 
 	// log to stdout not stderr
