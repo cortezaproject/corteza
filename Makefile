@@ -7,14 +7,14 @@ build:
 	docker build --rm -t $(shell cat .project) .
 
 $(SPEC):
-	go get github.com/titpetric/spec/cmd/spec
+	go get -u github.com/titpetric/spec/cmd/spec
 
 $(PROTOC):
 	go get -u github.com/golang/protobuf/protoc-gen-go
 
 spec: $(SPEC)
 	cd sam/docs/src && $(SPEC)
-	cd sam/ && php _gen.php
+	cd sam/ && ./_gen.sh
 
 protobuf: $(PROTOC)
 	# @todo this needs work (it hangs and outputs nothing)
