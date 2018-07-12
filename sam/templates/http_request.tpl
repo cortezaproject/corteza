@@ -24,6 +24,7 @@ func ({name|lcfirst}{call.name|capitalize}Request) new() *{name|lcfirst}{call.na
 }
 
 func ({self} *{name|lcfirst}{call.name|capitalize}Request) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
