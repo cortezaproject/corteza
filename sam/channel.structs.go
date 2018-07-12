@@ -22,11 +22,12 @@ import (
 type (
 	// Channels
 	Channel struct {
-		ID         uint64
-		Name       string
-		Topic      string
-		ArchivedAt *time.Time `json:",omitempty"`
-		DeletedAt  *time.Time `json:",omitempty"`
+		ID            uint64
+		Name          string
+		Topic         string
+		LastMessageId uint64     `json:",omitempty"`
+		ArchivedAt    *time.Time `json:",omitempty"`
+		DeletedAt     *time.Time `json:",omitempty"`
 
 		changed []string
 	}
@@ -68,6 +69,17 @@ func (c *Channel) SetTopic(value string) *Channel {
 	if c.Topic != value {
 		c.changed = append(c.changed, "Topic")
 		c.Topic = value
+	}
+	return c
+}
+func (c *Channel) GetLastMessageId() uint64 {
+	return c.LastMessageId
+}
+
+func (c *Channel) SetLastMessageId(value uint64) *Channel {
+	if c.LastMessageId != value {
+		c.changed = append(c.changed, "LastMessageId")
+		c.LastMessageId = value
 	}
 	return c
 }

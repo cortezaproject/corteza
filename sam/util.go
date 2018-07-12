@@ -1,8 +1,12 @@
 package sam
 
 import (
+	"regexp"
 	"strconv"
+	"strings"
 )
+
+var truthy = regexp.MustCompile("^\\s*(t(rue)?|y(es)?|1)\\s*$")
 
 // parseInt64 parses an string to int64
 func parseInt64(s string) int64 {
@@ -10,6 +14,7 @@ func parseInt64(s string) int64 {
 		return 0
 	}
 	i, _ := strconv.ParseInt(s, 10, 64)
+
 	return i
 }
 
@@ -20,6 +25,11 @@ func parseUInt64(s string) uint64 {
 	}
 	i, _ := strconv.ParseUint(s, 10, 64)
 	return i
+}
+
+// parseUInt64 parses an string to uint64
+func parseBool(s string) bool {
+	return truthy.MatchString(strings.ToLower(s))
 }
 
 // is checks if string s is contained in matches

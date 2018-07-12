@@ -14,6 +14,27 @@ const (
 	sqlChannelSelect = "SELECT * FROM channels WHERE " + sqlChannelScope
 )
 
+func (*Channel) Create(r *channelCreateRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	// @todo: topic message/log entry
+	// @todo: channel name cmessage/log entry
+	// @todo: permission check if user can add channel
+
+	c := Channel{}.New().SetName(r.name).SetTopic(r.topic)
+	if c.GetID() > 0 {
+		if is("topic", c.changed...) {
+			fmt.Println("Topic for channel was set:", c.GetTopic())
+		}
+		return c, db.Replace("channel", c)
+	}
+	c.SetID(factory.Sonyflake.NextID())
+	return c, db.Insert("channel", c)
+}
+
 func (*Channel) Edit(r *channelEditRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
@@ -23,8 +44,9 @@ func (*Channel) Edit(r *channelEditRequest) (interface{}, error) {
 	// @todo: topic change message/log entry
 	// @todo: channel name change message/log entry
 	// @todo: permission check if user can edit channel
-	// @todo: permission check if user can add channel
 	// @todo: make sure archived & deleted entries can not be edited
+	// @todo: handle channel moving
+	// @todo: handle channel archiving
 
 	c := Channel{}.New().SetID(r.id).SetName(r.name).SetTopic(r.topic)
 	if c.GetID() > 0 {
@@ -33,7 +55,7 @@ func (*Channel) Edit(r *channelEditRequest) (interface{}, error) {
 		}
 		return c, db.Replace("channel", c)
 	}
-	c.SetID(factory.Sonyflake.NextID())
+
 	return c, db.Insert("channel", c)
 }
 
@@ -79,28 +101,4 @@ func (*Channel) Search(r *channelSearchRequest) (interface{}, error) {
 	res := make([]Channel, 0)
 	err = db.Select(&res, sqlChannelSelect+" ORDER BY name ASC")
 	return res, err
-}
-
-func (*Channel) Archive(r *channelArchiveRequest) (interface{}, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	// @todo: notify users that channel has been archived (last message - archival, disable new messages)
-	// @todo: permissions check if user can archive channel
-
-	stmt := fmt.Sprintf(
-		"UPDATE channels SET archived_at = NOW() WHERE %s AND id = ?",
-		sqlChannelScope)
-
-	return nil, func() error {
-		_, err = db.Exec(stmt, r.id)
-		return err
-	}()
-}
-
-func (*Channel) Move(r *channelMoveRequest) (interface{}, error) {
-	// @todo: move channel from r.source to r.destination (organisation)
-	return nil, errors.New("Not implemented: Channel.move")
 }

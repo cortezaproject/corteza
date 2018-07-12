@@ -22,11 +22,43 @@ import (
 
 var _ = chi.URLParam
 
-// Channel edit request parameters
-type channelEditRequest struct {
-	id    uint64
+// Channel create request parameters
+type channelCreateRequest struct {
 	name  string
 	topic string
+}
+
+func (channelCreateRequest) new() *channelCreateRequest {
+	return &channelCreateRequest{}
+}
+
+func (c *channelCreateRequest) Fill(r *http.Request) error {
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	c.name = post["name"]
+
+	c.topic = post["topic"]
+	return nil
+}
+
+var _ RequestFiller = channelCreateRequest{}.new()
+
+// Channel edit request parameters
+type channelEditRequest struct {
+	id             uint64
+	name           string
+	topic          string
+	archive        bool
+	organisationId uint64
 }
 
 func (channelEditRequest) new() *channelEditRequest {
@@ -50,6 +82,10 @@ func (c *channelEditRequest) Fill(r *http.Request) error {
 	c.name = post["name"]
 
 	c.topic = post["topic"]
+
+	c.archive = parseBool(post["archive"])
+
+	c.organisationId = parseUInt64(post["organisationId"])
 	return nil
 }
 
@@ -135,57 +171,3 @@ func (c *channelSearchRequest) Fill(r *http.Request) error {
 }
 
 var _ RequestFiller = channelSearchRequest{}.new()
-
-// Channel archive request parameters
-type channelArchiveRequest struct {
-	id uint64
-}
-
-func (channelArchiveRequest) new() *channelArchiveRequest {
-	return &channelArchiveRequest{}
-}
-
-func (c *channelArchiveRequest) Fill(r *http.Request) error {
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := r.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := r.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	c.id = parseUInt64(post["id"])
-	return nil
-}
-
-var _ RequestFiller = channelArchiveRequest{}.new()
-
-// Channel move request parameters
-type channelMoveRequest struct {
-	id uint64
-}
-
-func (channelMoveRequest) new() *channelMoveRequest {
-	return &channelMoveRequest{}
-}
-
-func (c *channelMoveRequest) Fill(r *http.Request) error {
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := r.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := r.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	c.id = parseUInt64(post["id"])
-	return nil
-}
-
-var _ RequestFiller = channelMoveRequest{}.new()

@@ -39,7 +39,7 @@ func ({self} *{name|lcfirst}{call.name|capitalize}Request) Fill(r *http.Request)
 {if strtolower($method) === "path"}
 	{self}.{param.name} = chi.URLParam(r, "{param.name}")
 {elseif substr($param.type, 0, 2) !== '[]'}
-	{self}.{param.name} = {if $param.type !== "string"}{$parsers[$param.type]}({method|strtolower}["{param.name}"]){else}{method|strtolower}["{param.name}"]{/if}{newline}
+	{self}.{param.name} = {if ($param.type !== "string")}{$parsers[$param.type]}({method|strtolower}["{param.name}"]){else}{method|strtolower}["{param.name}"]{/if}{newline}
 {/if}
 {/foreach}
 {/foreach}
