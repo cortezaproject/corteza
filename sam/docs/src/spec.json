@@ -219,7 +219,7 @@
 				}
 			},
 			{
-				"name": "remove",
+				"name": "delete",
 				"method": "DELETE",
 				"title": "Remove channel",
 				"parameters": {

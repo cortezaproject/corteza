@@ -1,8 +1,7 @@
 package sam
 
 import (
-	"fmt"
-
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 )
@@ -24,20 +23,24 @@ func (*Channel) Create(r *channelCreateRequest) (interface{}, error) {
 	// @todo: channel name cmessage/log entry
 	// @todo: permission check if user can add channel
 
-	c := Channel{}.New().SetName(r.name).SetTopic(r.topic)
-	if c.GetID() > 0 {
-		if is("topic", c.changed...) {
-			fmt.Println("Topic for channel was set:", c.GetTopic())
-		}
-		return c, db.Replace("channel", c)
-	}
-	c.SetID(factory.Sonyflake.NextID())
-	return c, db.Insert("channel", c)
+	c := Channel{}.
+		New().
+		SetName(r.name).
+		SetTopic(r.topic).
+		SetMeta([]byte("{}")).
+		SetID(factory.Sonyflake.NextID())
+
+	return c, db.Insert("channels", c)
 }
 
 func (*Channel) Edit(r *channelEditRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
+		return nil, err
+	}
+
+	var c *Channel
+	if c, err = c.load(r.id); err != nil {
 		return nil, err
 	}
 
@@ -48,20 +51,20 @@ func (*Channel) Edit(r *channelEditRequest) (interface{}, error) {
 	// @todo: handle channel moving
 	// @todo: handle channel archiving
 
-	c := Channel{}.New().SetID(r.id).SetName(r.name).SetTopic(r.topic)
-	if c.GetID() > 0 {
-		if is("topic", c.changed...) {
-			fmt.Println("Topic for channel was changed:", c.GetTopic())
-		}
-		return c, db.Replace("channel", c)
-	}
+	c.SetName(r.name).SetTopic(r.topic)
 
-	return c, db.Insert("channel", c)
+	return c, db.Replace("channels", c)
+
 }
 
-func (*Channel) Remove(r *channelRemoveRequest) (interface{}, error) {
+func (*Channel) Delete(r *channelDeleteRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
+		return nil, err
+	}
+
+	var c *Channel
+	if c, err = c.load(r.id); err != nil {
 		return nil, err
 	}
 
@@ -70,7 +73,7 @@ func (*Channel) Remove(r *channelRemoveRequest) (interface{}, error) {
 	// @todo: permissions check if user cah remove channel
 
 	stmt := "UPDATE channels SET deleted_at = NOW() WHERE id = ? AND deleted_at IS NULL"
-
+	spew.Dump(r.id)
 	return nil, func() error {
 		_, err := db.Exec(stmt, r.id)
 		return err
@@ -78,15 +81,7 @@ func (*Channel) Remove(r *channelRemoveRequest) (interface{}, error) {
 }
 
 func (*Channel) Read(r *channelReadRequest) (interface{}, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	// @todo: permission check if user can read channel
-
-	c := Channel{}.New()
-	return c, db.Get(c, sqlChannelSelect+" AND id = ?", r.id)
+	return (&Channel{}).load(r.id)
 }
 
 func (*Channel) Search(r *channelSearchRequest) (interface{}, error) {
@@ -101,4 +96,26 @@ func (*Channel) Search(r *channelSearchRequest) (interface{}, error) {
 	res := make([]Channel, 0)
 	err = db.Select(&res, sqlChannelSelect+" ORDER BY name ASC")
 	return res, err
+}
+
+func (*Channel) load(id uint64) (*Channel, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	c := Channel{}.New()
+
+	if id == 0 {
+		return nil, errors.New("Provide channel ID")
+	} else if err := db.Get(c, sqlChannelSelect+" AND id = ?", id); err != nil {
+		return nil, err
+	} else if c.ID != id {
+		spew.Dump(c)
+		return nil, errors.New("Unexisting channel")
+	}
+
+	// @todo: permission check if user can read channel
+
+	return c, nil
 }
