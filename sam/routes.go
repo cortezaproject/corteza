@@ -32,7 +32,7 @@ func MountRoutes(r chi.Router) {
 	r.Route("/channel", func(r chi.Router) {
 		r.Post("/create", channel.Create)
 		r.Post("/edit", channel.Edit)
-		r.Delete("/remove", channel.Remove)
+		r.Delete("/delete", channel.Delete)
 		r.Get("/read", channel.Read)
 		r.Get("/search", channel.Search)
 	})

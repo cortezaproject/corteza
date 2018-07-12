@@ -34,7 +34,7 @@ func (ChannelHandlers) new() *ChannelHandlers {
 type ChannelAPI interface {
 	Create(*channelCreateRequest) (interface{}, error)
 	Edit(*channelEditRequest) (interface{}, error)
-	Remove(*channelRemoveRequest) (interface{}, error)
+	Delete(*channelDeleteRequest) (interface{}, error)
 	Read(*channelReadRequest) (interface{}, error)
 	Search(*channelSearchRequest) (interface{}, error)
 }
@@ -43,7 +43,7 @@ type ChannelAPI interface {
 type ChannelHandlersAPI interface {
 	Create(http.ResponseWriter, *http.Request)
 	Edit(http.ResponseWriter, *http.Request)
-	Remove(http.ResponseWriter, *http.Request)
+	Delete(http.ResponseWriter, *http.Request)
 	Read(http.ResponseWriter, *http.Request)
 	Search(http.ResponseWriter, *http.Request)
 }

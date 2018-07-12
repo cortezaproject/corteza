@@ -29,9 +29,9 @@ func (ch *ChannelHandlers) Edit(w http.ResponseWriter, r *http.Request) {
 	params := channelEditRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Edit(params) })
 }
-func (ch *ChannelHandlers) Remove(w http.ResponseWriter, r *http.Request) {
-	params := channelRemoveRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Remove(params) })
+func (ch *ChannelHandlers) Delete(w http.ResponseWriter, r *http.Request) {
+	params := channelDeleteRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Delete(params) })
 }
 func (ch *ChannelHandlers) Read(w http.ResponseWriter, r *http.Request) {
 	params := channelReadRequest{}.new()

@@ -120,10 +120,10 @@
       }
     },
     {
-      "Name": "remove",
+      "Name": "delete",
       "Method": "DELETE",
       "Title": "Remove channel",
-      "Path": "/remove",
+      "Path": "/delete",
       "Parameters": {
         "get": [
           {

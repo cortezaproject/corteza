@@ -93,16 +93,16 @@ func (c *channelEditRequest) Fill(r *http.Request) error {
 
 var _ RequestFiller = channelEditRequest{}.new()
 
-// Channel remove request parameters
-type channelRemoveRequest struct {
+// Channel delete request parameters
+type channelDeleteRequest struct {
 	id uint64
 }
 
-func (channelRemoveRequest) new() *channelRemoveRequest {
-	return &channelRemoveRequest{}
+func (channelDeleteRequest) new() *channelDeleteRequest {
+	return &channelDeleteRequest{}
 }
 
-func (c *channelRemoveRequest) Fill(r *http.Request) error {
+func (c *channelDeleteRequest) Fill(r *http.Request) error {
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -119,7 +119,7 @@ func (c *channelRemoveRequest) Fill(r *http.Request) error {
 	return nil
 }
 
-var _ RequestFiller = channelRemoveRequest{}.new()
+var _ RequestFiller = channelDeleteRequest{}.new()
 
 // Channel read request parameters
 type channelReadRequest struct {
