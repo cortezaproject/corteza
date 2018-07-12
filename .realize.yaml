@@ -32,7 +32,7 @@ schema:
   watcher:
     paths:
     - .
-    - ../internal/
+    - ../../sam
     extensions:
     - go
     ignored_paths:
