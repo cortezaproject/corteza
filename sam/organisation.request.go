@@ -33,6 +33,7 @@ func (organisationEditRequest) new() *organisationEditRequest {
 }
 
 func (o *organisationEditRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -62,6 +63,7 @@ func (organisationRemoveRequest) new() *organisationRemoveRequest {
 }
 
 func (o *organisationRemoveRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -89,6 +91,7 @@ func (organisationReadRequest) new() *organisationReadRequest {
 }
 
 func (o *organisationReadRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -116,6 +119,7 @@ func (organisationSearchRequest) new() *organisationSearchRequest {
 }
 
 func (o *organisationSearchRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -143,6 +147,7 @@ func (organisationArchiveRequest) new() *organisationArchiveRequest {
 }
 
 func (o *organisationArchiveRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()

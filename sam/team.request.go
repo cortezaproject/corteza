@@ -34,6 +34,7 @@ func (teamEditRequest) new() *teamEditRequest {
 }
 
 func (t *teamEditRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -63,6 +64,7 @@ func (teamRemoveRequest) new() *teamRemoveRequest {
 }
 
 func (t *teamRemoveRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -90,6 +92,7 @@ func (teamReadRequest) new() *teamReadRequest {
 }
 
 func (t *teamReadRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -117,6 +120,7 @@ func (teamSearchRequest) new() *teamSearchRequest {
 }
 
 func (t *teamSearchRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -144,6 +148,7 @@ func (teamArchiveRequest) new() *teamArchiveRequest {
 }
 
 func (t *teamArchiveRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -172,6 +177,7 @@ func (teamMoveRequest) new() *teamMoveRequest {
 }
 
 func (t *teamMoveRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -202,6 +208,7 @@ func (teamMergeRequest) new() *teamMergeRequest {
 }
 
 func (t *teamMergeRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()

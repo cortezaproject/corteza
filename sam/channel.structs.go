@@ -23,13 +23,13 @@ import (
 type (
 	// Channels
 	Channel struct {
-		ID            uint64
-		Name          string
-		Topic         string
-		Meta          json.RawMessage
-		LastMessageId uint64     `json:",omitempty" db:"rel_last_message"`
-		ArchivedAt    *time.Time `json:",omitempty" db:"archived_at"`
-		DeletedAt     *time.Time `json:",omitempty" db:"deleted_at"`
+		ID            uint64          `db:"id"`
+		Name          string          `db:"name"`
+		Topic         string          `db:"-"`
+		Meta          json.RawMessage `db:"meta"`
+		LastMessageId uint64          `json:",omitempty" db:"rel_last_message"`
+		ArchivedAt    *time.Time      `json:",omitempty" db:"archived_at"`
+		DeletedAt     *time.Time      `json:",omitempty" db:"deleted_at"`
 
 		changed []string
 	}

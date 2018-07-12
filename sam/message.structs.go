@@ -18,15 +18,15 @@ package sam
 type (
 	// Messages
 	Message struct {
-		Service    string
-		Channel    string
-		UserName   string
-		UserID     uint64
-		User       *User
-		UserAvatar string
-		Message    string
-		MessageID  string
-		Type       MessageType
+		Service    string      `db:"service"`
+		Channel    string      `db:"channel"`
+		UserName   string      `db:"user_name"`
+		UserID     uint64      `db:"user_id"`
+		User       *User       `db:"user"`
+		UserAvatar string      `db:"user_avatar"`
+		Message    string      `db:"message"`
+		MessageID  string      `db:"message_id"`
+		Type       MessageType `db:"type"`
 
 		changed []string
 	}

@@ -22,12 +22,12 @@ import (
 type (
 	// Teams
 	Team struct {
-		ID         uint64
-		Name       string
-		MemberIDs  []uint64   `json:"-"`
-		Members    []User     `json:",omitempty"`
-		ArchivedAt *time.Time `json:",omitempty"`
-		DeletedAt  *time.Time `json:",omitempty"`
+		ID         uint64     `db:"id"`
+		Name       string     `db:"name"`
+		MemberIDs  []uint64   `json:"-" db:"member_i_ds"`
+		Members    []User     `json:",omitempty" db:"members"`
+		ArchivedAt *time.Time `json:",omitempty" db:"archived_at"`
+		DeletedAt  *time.Time `json:",omitempty" db:"deleted_at"`
 
 		changed []string
 	}

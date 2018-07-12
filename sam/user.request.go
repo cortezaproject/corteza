@@ -33,6 +33,7 @@ func (userLoginRequest) new() *userLoginRequest {
 }
 
 func (u *userLoginRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -62,6 +63,7 @@ func (userSearchRequest) new() *userSearchRequest {
 }
 
 func (u *userSearchRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()

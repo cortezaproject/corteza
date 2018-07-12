@@ -22,11 +22,11 @@ import (
 type (
 	// Users
 	User struct {
-		ID          uint64
-		Username    string
-		Password    []byte     `json:"-"`
-		SuspendedAt *time.Time `json:",omitempty"`
-		DeletedAt   *time.Time `json:",omitempty"`
+		ID          uint64     `db:"id"`
+		Username    string     `db:"username"`
+		Password    []byte     `json:"-" db:"password"`
+		SuspendedAt *time.Time `json:",omitempty" db:"suspended_at"`
+		DeletedAt   *time.Time `json:",omitempty" db:"deleted_at"`
 
 		changed []string
 	}

@@ -33,6 +33,7 @@ func (channelCreateRequest) new() *channelCreateRequest {
 }
 
 func (c *channelCreateRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -66,6 +67,7 @@ func (channelEditRequest) new() *channelEditRequest {
 }
 
 func (c *channelEditRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -101,6 +103,7 @@ func (channelRemoveRequest) new() *channelRemoveRequest {
 }
 
 func (c *channelRemoveRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -128,6 +131,7 @@ func (channelReadRequest) new() *channelReadRequest {
 }
 
 func (c *channelReadRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -155,6 +159,7 @@ func (channelSearchRequest) new() *channelSearchRequest {
 }
 
 func (c *channelSearchRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
