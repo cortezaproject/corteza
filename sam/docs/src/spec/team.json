@@ -53,18 +53,28 @@
   "Path": "/team",
   "APIs": [
     {
-      "Name": "edit",
-      "Method": "POST",
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List teams",
+      "Path": "/",
+      "Parameters": {
+        "get": [
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search query",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "create",
+      "Method": "PUT",
       "Title": "Update team details",
-      "Path": "/edit",
+      "Path": "/",
       "Parameters": {
         "post": [
-          {
-            "name": "id",
-            "required": false,
-            "title": "Team ID",
-            "type": "uint64"
-          },
           {
             "name": "name",
             "required": true,
@@ -81,17 +91,31 @@
       }
     },
     {
-      "Name": "remove",
-      "Method": "DELETE",
-      "Title": "Remove team",
-      "Path": "/remove",
+      "Name": "edit",
+      "Method": "POST",
+      "Title": "Update team details",
+      "Path": "/{id}",
       "Parameters": {
-        "get": [
+        "path": [
           {
             "name": "id",
             "required": true,
-            "title": "Organisation ID",
+            "title": "Team ID",
             "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "name",
+            "required": false,
+            "title": "Name of Team",
+            "type": "string"
+          },
+          {
+            "name": "members",
+            "required": false,
+            "title": "Team member IDs",
+            "type": "[]uint64"
           }
         ]
       }
@@ -100,9 +124,9 @@
       "Name": "read",
       "Method": "GET",
       "Title": "Read team details and memberships",
-      "Path": "/read",
+      "Path": "/{id}",
       "Parameters": {
-        "get": [
+        "path": [
           {
             "name": "id",
             "required": true,
@@ -113,17 +137,17 @@
       }
     },
     {
-      "Name": "search",
-      "Method": "GET",
-      "Title": "Search teams",
-      "Path": "/search",
+      "Name": "remove",
+      "Method": "DELETE",
+      "Title": "Remove team",
+      "Path": "/{id}",
       "Parameters": {
-        "get": [
+        "path": [
           {
-            "name": "query",
-            "required": false,
-            "title": "Search query",
-            "type": "string"
+            "name": "id",
+            "required": true,
+            "title": "Organisation ID",
+            "type": "uint64"
           }
         ]
       }
@@ -132,9 +156,9 @@
       "Name": "archive",
       "Method": "POST",
       "Title": "Archive team",
-      "Path": "/archive",
+      "Path": "/{id}/archive",
       "Parameters": {
-        "post": [
+        "path": [
           {
             "name": "id",
             "required": true,
@@ -148,15 +172,17 @@
       "Name": "move",
       "Method": "POST",
       "Title": "Move team to different organisation",
-      "Path": "/move",
+      "Path": "/{id}/move",
       "Parameters": {
-        "POST": [
+        "path": [
           {
             "name": "id",
             "required": true,
             "title": "Organisation ID",
             "type": "uint64"
-          },
+          }
+        ],
+        "post": [
           {
             "name": "organisation_id",
             "required": true,
@@ -170,19 +196,21 @@
       "Name": "merge",
       "Method": "POST",
       "Title": "Merge one team into another",
-      "Path": "/merge",
+      "Path": "/{id}/merge",
       "Parameters": {
+        "path": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "Source Channel ID",
+            "type": "uint64"
+          }
+        ],
         "post": [
           {
             "name": "destination",
             "required": true,
             "title": "Destination Channel ID",
-            "type": "uint64"
-          },
-          {
-            "name": "source",
-            "required": true,
-            "title": "Source Channel ID",
             "type": "uint64"
           }
         ]
