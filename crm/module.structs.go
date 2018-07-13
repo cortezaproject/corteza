@@ -22,17 +22,17 @@ import (
 type (
 	// Modules
 	Module struct {
-		ID   uint64
-		Name string
+		ID   uint64 `db:"id"`
+		Name string `db:"name"`
 
 		changed []string
 	}
 
 	// Modules
 	ModuleContentRow struct {
-		ID       uint64         `db:"id"`
-		ModuleID uint64         `db:"module_id"`
-		Fields   types.JSONText `db:"address"`
+		ID       uint64         `db:"id" db:"id"`
+		ModuleID uint64         `db:"module_id" db:"module_id"`
+		Fields   types.JSONText `db:"address" db:"fields"`
 
 		changed []string
 	}
