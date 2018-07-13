@@ -46,6 +46,9 @@ type ModuleHandlersAPI interface {
 	ContentList(http.ResponseWriter, *http.Request)
 	ContentEdit(http.ResponseWriter, *http.Request)
 	ContentDelete(http.ResponseWriter, *http.Request)
+
+	// Authenticate API requests
+	Authenticator() func(http.Handler) http.Handler
 }
 
 // Compile time check to see if we implement the interfaces

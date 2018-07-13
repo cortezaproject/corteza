@@ -29,6 +29,9 @@ type {name}HandlersAPI interface {
 {foreach $calls as $call}
 	{call.name|capitalize}(http.ResponseWriter, *http.Request)
 {/foreach}
+
+	// Authenticate API requests
+	Authenticator() func(http.Handler) http.Handler
 }
 
 // Compile time check to see if we implement the interfaces
