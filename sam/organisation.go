@@ -13,6 +13,19 @@ const (
 	sqlOrganisationSelect = "SELECT * FROM organisations WHERE " + sqlOrganisationScope
 )
 
+func (*Organisation) Create(r *organisationCreateRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	// @todo: permission check if user can add/edit organisation
+	// @todo: make sure archived & deleted entries can not be edited
+
+	o := Organisation{}.New().SetName(r.name).SetID(factory.Sonyflake.NextID())
+	return o, db.Insert("organisation", o)
+}
+
 func (*Organisation) Edit(r *organisationEditRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
@@ -23,11 +36,7 @@ func (*Organisation) Edit(r *organisationEditRequest) (interface{}, error) {
 	// @todo: make sure archived & deleted entries can not be edited
 
 	o := Organisation{}.New().SetID(r.id).SetName(r.name)
-	if o.GetID() > 0 {
-		return o, db.Replace("organisation", o)
-	}
-	o.SetID(factory.Sonyflake.NextID())
-	return o, db.Insert("organisation", o)
+	return o, db.Replace("organisation", o)
 }
 
 func (*Organisation) Remove(r *organisationRemoveRequest) (interface{}, error) {
@@ -59,7 +68,7 @@ func (*Organisation) Read(r *organisationReadRequest) (interface{}, error) {
 	return o, db.Get(o, sqlOrganisationSelect+" AND id = ?", r.id)
 }
 
-func (*Organisation) Search(r *organisationSearchRequest) (interface{}, error) {
+func (*Organisation) List(r *organisationListRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
