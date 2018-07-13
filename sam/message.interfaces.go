@@ -50,6 +50,9 @@ type MessageHandlersAPI interface {
 	Search(http.ResponseWriter, *http.Request)
 	Pin(http.ResponseWriter, *http.Request)
 	Flag(http.ResponseWriter, *http.Request)
+
+	// Authenticate API requests
+	Authenticator() func(http.Handler) http.Handler
 }
 
 // Compile time check to see if we implement the interfaces
