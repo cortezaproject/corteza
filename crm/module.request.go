@@ -32,6 +32,7 @@ func (moduleListRequest) new() *moduleListRequest {
 }
 
 func (m *moduleListRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -60,6 +61,7 @@ func (moduleEditRequest) new() *moduleEditRequest {
 }
 
 func (m *moduleEditRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -89,6 +91,7 @@ func (moduleContentListRequest) new() *moduleContentListRequest {
 }
 
 func (m *moduleContentListRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -117,6 +120,7 @@ func (moduleContentEditRequest) new() *moduleContentEditRequest {
 }
 
 func (m *moduleContentEditRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -146,6 +150,7 @@ func (moduleContentDeleteRequest) new() *moduleContentDeleteRequest {
 }
 
 func (m *moduleContentDeleteRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()

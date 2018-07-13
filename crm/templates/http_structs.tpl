@@ -20,7 +20,7 @@ type ({foreach $structs as $struct}
 	// {api.title}
 	{struct.name} struct {
 {foreach $struct.fields as $field}
-		{field.name} {field.type}{if $field.tag} `{$field.tag}`{/if}{newline}
+		{field.name} {field.type} `{if $field.tag}{$field.tag} {/if}db:"{if $field.dbname}{$field.dbname}{else}{$field.name|decamel}{/if}"`{newline}
 {/foreach}
 
 		changed []string

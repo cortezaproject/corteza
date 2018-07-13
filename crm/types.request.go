@@ -31,6 +31,7 @@ func (typesListRequest) new() *typesListRequest {
 }
 
 func (t *typesListRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -56,6 +57,7 @@ func (typesTypeRequest) new() *typesTypeRequest {
 }
 
 func (t *typesTypeRequest) Fill(r *http.Request) error {
+	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
