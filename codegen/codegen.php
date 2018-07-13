@@ -20,6 +20,7 @@ function array_change_key_case_recursive($arr) {
 }
 
 $tpl = new Monotek\MiniTPL\Template;
+$tpl->set_paths(array(__DIR__ . "/templates/"));
 $tpl->set_compile_location("/tmp", true);
 $tpl->add_default("newline", "\n");
 
