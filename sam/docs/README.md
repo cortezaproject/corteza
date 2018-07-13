@@ -2,19 +2,47 @@
 
 Organisations represent a top-level grouping entity. There may be many organisations defined in a single deployment.
 
+## List organisations
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/organisation/` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| query | string | GET | Search query | N/A | NO |
+
+## Create organisation
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/organisation/` | HTTP/S | PUT | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| name | string | POST | Organisation Name | N/A | YES |
+
 ## Update organisation details
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/organisation/edit` | HTTP/S | POST | Client ID, Session ID |
+| `/organisation/{id}` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | Organisation ID | N/A | NO |
+| id | uint64 | PATH | Organisation ID | N/A | NO |
 | name | string | POST | Organisation Name | N/A | YES |
 
 ## Remove organisation
@@ -23,13 +51,13 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/organisation/remove` | HTTP/S | DELETE | Client ID, Session ID |
+| `/organisation/{id}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | GET | Organisation ID | N/A | YES |
+| id | uint64 | PATH | Organisation ID | N/A | YES |
 
 ## Read organisation details
 
@@ -37,7 +65,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/organisation/read` | HTTP/S | GET | Client ID, Session ID |
+| `/organisation/{id}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -45,33 +73,19 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | id | uint64 | GET | Organisation ID | N/A | YES |
 
-## Search organisations
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/organisation/search` | HTTP/S | GET | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| query | string | GET | Search query | N/A | NO |
-
 ## Archive organisation
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/organisation/archive` | HTTP/S | POST | Client ID, Session ID |
+| `/organisation/{id}/archive` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | Organisation ID | N/A | YES |
+| id | uint64 | PATH | Organisation ID | N/A | YES |
 
 
 
@@ -80,57 +94,13 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 An organisation may have many teams. Teams may have many channels available. Access to channels may be shared between teams.
 
-## Update team details
+## List teams
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/team/edit` | HTTP/S | POST | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | Team ID | N/A | NO |
-| name | string | POST | Name of Team | N/A | YES |
-| members | []uint64 | POST | Team member IDs | N/A | NO |
-
-## Remove team
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/team/remove` | HTTP/S | DELETE | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | GET | Organisation ID | N/A | YES |
-
-## Read team details and memberships
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/team/read` | HTTP/S | GET | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | GET | Organisation ID | N/A | YES |
-
-## Search teams
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/team/search` | HTTP/S | GET | Client ID, Session ID |
+| `/team/` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -138,19 +108,78 @@ An organisation may have many teams. Teams may have many channels available. Acc
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
 
+## Update team details
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/` | HTTP/S | PUT | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| name | string | POST | Name of Team | N/A | YES |
+| members | []uint64 | POST | Team member IDs | N/A | NO |
+
+## Update team details
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/{id}` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| id | uint64 | PATH | Team ID | N/A | YES |
+| name | string | POST | Name of Team | N/A | NO |
+| members | []uint64 | POST | Team member IDs | N/A | NO |
+
+## Read team details and memberships
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/{id}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| id | uint64 | PATH | Organisation ID | N/A | YES |
+
+## Remove team
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/team/{id}` | HTTP/S | DELETE | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| id | uint64 | PATH | Organisation ID | N/A | YES |
+
 ## Archive team
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/team/archive` | HTTP/S | POST | Client ID, Session ID |
+| `/team/{id}/archive` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | Organisation ID | N/A | YES |
+| id | uint64 | PATH | Organisation ID | N/A | YES |
 
 ## Move team to different organisation
 
@@ -158,13 +187,13 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/team/move` | HTTP/S | POST | Client ID, Session ID |
+| `/team/{id}/move` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | Organisation ID | N/A | YES |
+| id | uint64 | PATH | Organisation ID | N/A | YES |
 | organisation_id | uint64 | POST | Organisation ID | N/A | YES |
 
 ## Merge one team into another
@@ -173,14 +202,14 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/team/merge` | HTTP/S | POST | Client ID, Session ID |
+| `/team/{id}/merge` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+| id | uint64 | PATH | Source Channel ID | N/A | YES |
 | destination | uint64 | POST | Destination Channel ID | N/A | YES |
-| source | uint64 | POST | Source Channel ID | N/A | YES |
 
 
 
@@ -188,6 +217,35 @@ An organisation may have many teams. Teams may have many channels available. Acc
 # Channels
 
 A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or direct (between two users).
+
+## List channels
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channel/` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| query | string | GET | Search query | N/A | NO |
+
+## Create new channel
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channel/` | HTTP/S | PUT | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| name | string | POST | Name of Channel | N/A | YES |
+| topic | string | POST | Subject of Channel | N/A | NO |
 
 ## Update channel details
 
@@ -201,23 +259,11 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | Channel ID | N/A | NO |
-| name | string | POST | Name of Channel | N/A | YES |
-| topic | string | POST | Subject of Channel | N/A | YES |
-
-## Remove channel
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/channel/remove` | HTTP/S | DELETE | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | GET | Channel ID | N/A | YES |
+| id | uint64 | POST | Channel ID | N/A | YES |
+| name | string | POST | Name of Channel | N/A | NO |
+| topic | string | POST | Subject of Channel | N/A | NO |
+| archive | bool | POST | Request channel to be archived or unarchived | N/A | NO |
+| organisationId | uint64 | POST | Move channel to different organisation | N/A | NO |
 
 ## Read channel details
 
@@ -233,47 +279,19 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | id | uint64 | GET | Channel ID | N/A | YES |
 
-## Search channels
+## Remove channel
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channel/search` | HTTP/S | GET | Client ID, Session ID |
+| `/channel/delete` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| query | string | GET | Search query | N/A | NO |
-
-## Archive channel
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/channel/archive` | HTTP/S | POST | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | Channel ID | N/A | YES |
-
-## Move channel to different team or organisation
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/channel/move` | HTTP/S | POST | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | Channel ID | N/A | YES |
+| id | uint64 | GET | Channel ID | N/A | YES |
 
 
 
