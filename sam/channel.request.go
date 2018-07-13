@@ -22,6 +22,34 @@ import (
 
 var _ = chi.URLParam
 
+// Channel list request parameters
+type channelListRequest struct {
+	query string
+}
+
+func (channelListRequest) new() *channelListRequest {
+	return &channelListRequest{}
+}
+
+func (c *channelListRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	c.query = get["query"]
+	return nil
+}
+
+var _ RequestFiller = channelListRequest{}.new()
+
 // Channel create request parameters
 type channelCreateRequest struct {
 	name  string
@@ -93,34 +121,6 @@ func (c *channelEditRequest) Fill(r *http.Request) error {
 
 var _ RequestFiller = channelEditRequest{}.new()
 
-// Channel delete request parameters
-type channelDeleteRequest struct {
-	id uint64
-}
-
-func (channelDeleteRequest) new() *channelDeleteRequest {
-	return &channelDeleteRequest{}
-}
-
-func (c *channelDeleteRequest) Fill(r *http.Request) error {
-	r.ParseForm()
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := r.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := r.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	c.id = parseUInt64(get["id"])
-	return nil
-}
-
-var _ RequestFiller = channelDeleteRequest{}.new()
-
 // Channel read request parameters
 type channelReadRequest struct {
 	id uint64
@@ -149,16 +149,16 @@ func (c *channelReadRequest) Fill(r *http.Request) error {
 
 var _ RequestFiller = channelReadRequest{}.new()
 
-// Channel search request parameters
-type channelSearchRequest struct {
-	query string
+// Channel delete request parameters
+type channelDeleteRequest struct {
+	id uint64
 }
 
-func (channelSearchRequest) new() *channelSearchRequest {
-	return &channelSearchRequest{}
+func (channelDeleteRequest) new() *channelDeleteRequest {
+	return &channelDeleteRequest{}
 }
 
-func (c *channelSearchRequest) Fill(r *http.Request) error {
+func (c *channelDeleteRequest) Fill(r *http.Request) error {
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -171,8 +171,8 @@ func (c *channelSearchRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	c.query = get["query"]
+	c.id = parseUInt64(get["id"])
 	return nil
 }
 
-var _ RequestFiller = channelSearchRequest{}.new()
+var _ RequestFiller = channelDeleteRequest{}.new()

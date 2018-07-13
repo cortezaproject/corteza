@@ -32,19 +32,21 @@ func (OrganisationHandlers) new() *OrganisationHandlers {
 
 // Internal API interface
 type OrganisationAPI interface {
+	List(*organisationListRequest) (interface{}, error)
+	Create(*organisationCreateRequest) (interface{}, error)
 	Edit(*organisationEditRequest) (interface{}, error)
 	Remove(*organisationRemoveRequest) (interface{}, error)
 	Read(*organisationReadRequest) (interface{}, error)
-	Search(*organisationSearchRequest) (interface{}, error)
 	Archive(*organisationArchiveRequest) (interface{}, error)
 }
 
 // HTTP API interface
 type OrganisationHandlersAPI interface {
+	List(http.ResponseWriter, *http.Request)
+	Create(http.ResponseWriter, *http.Request)
 	Edit(http.ResponseWriter, *http.Request)
 	Remove(http.ResponseWriter, *http.Request)
 	Read(http.ResponseWriter, *http.Request)
-	Search(http.ResponseWriter, *http.Request)
 	Archive(http.ResponseWriter, *http.Request)
 }
 
