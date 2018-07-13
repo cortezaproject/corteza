@@ -13,6 +13,20 @@ const (
 	sqlTeamSelect = "SELECT * FROM teams WHERE " + sqlTeamScope
 )
 
+func (*Team) Create(r *teamCreateRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	// @todo: permission check if user can add/edit the team
+	// @todo: make sure archived & deleted entries can not be edited
+
+	t := Team{}.New()
+	t.SetName(r.name).SetMemberIDs(r.members).SetID(factory.Sonyflake.NextID())
+	return t, db.Insert("team", t)
+}
+
 func (*Team) Edit(r *teamEditRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
@@ -24,11 +38,7 @@ func (*Team) Edit(r *teamEditRequest) (interface{}, error) {
 
 	t := Team{}.New()
 	t.SetID(r.id).SetName(r.name).SetMemberIDs(r.members)
-	if t.GetID() > 0 {
-		return t, db.Replace("team", t)
-	}
-	t.SetID(factory.Sonyflake.NextID())
-	return t, db.Insert("team", t)
+	return t, db.Replace("team", t)
 }
 
 func (*Team) Remove(r *teamRemoveRequest) (interface{}, error) {
@@ -55,7 +65,7 @@ func (*Team) Read(r *teamReadRequest) (interface{}, error) {
 	return t, db.Get(t, sqlTeamSelect+" AND id = ?", r.id)
 }
 
-func (*Team) Search(r *teamSearchRequest) (interface{}, error) {
+func (*Team) List(r *teamListRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err

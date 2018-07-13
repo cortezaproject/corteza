@@ -101,7 +101,7 @@ func (o *organisationEditRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	o.id = chi.URLParam(r, "id")
+	o.id = parseUInt64(chi.URLParam(r, "id"))
 
 	o.name = post["name"]
 	return nil
@@ -131,7 +131,7 @@ func (o *organisationRemoveRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	o.id = chi.URLParam(r, "id")
+	o.id = parseUInt64(chi.URLParam(r, "id"))
 	return nil
 }
 
@@ -187,7 +187,7 @@ func (o *organisationArchiveRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	o.id = chi.URLParam(r, "id")
+	o.id = parseUInt64(chi.URLParam(r, "id"))
 	return nil
 }
 

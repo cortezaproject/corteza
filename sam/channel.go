@@ -84,7 +84,7 @@ func (*Channel) Read(r *channelReadRequest) (interface{}, error) {
 	return (&Channel{}).load(r.id)
 }
 
-func (*Channel) Search(r *channelSearchRequest) (interface{}, error) {
+func (*Channel) List(r *channelListRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err

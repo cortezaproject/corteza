@@ -103,7 +103,7 @@ func (t *teamEditRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.id = chi.URLParam(r, "id")
+	t.id = parseUInt64(chi.URLParam(r, "id"))
 
 	t.name = post["name"]
 	return nil
@@ -133,7 +133,7 @@ func (t *teamReadRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.id = chi.URLParam(r, "id")
+	t.id = parseUInt64(chi.URLParam(r, "id"))
 	return nil
 }
 
@@ -161,7 +161,7 @@ func (t *teamRemoveRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.id = chi.URLParam(r, "id")
+	t.id = parseUInt64(chi.URLParam(r, "id"))
 	return nil
 }
 
@@ -189,7 +189,7 @@ func (t *teamArchiveRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.id = chi.URLParam(r, "id")
+	t.id = parseUInt64(chi.URLParam(r, "id"))
 	return nil
 }
 
@@ -218,7 +218,7 @@ func (t *teamMoveRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.id = chi.URLParam(r, "id")
+	t.id = parseUInt64(chi.URLParam(r, "id"))
 
 	t.organisation_id = parseUInt64(post["organisation_id"])
 	return nil
@@ -249,7 +249,7 @@ func (t *teamMergeRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.id = chi.URLParam(r, "id")
+	t.id = parseUInt64(chi.URLParam(r, "id"))
 
 	t.destination = parseUInt64(post["destination"])
 	return nil
