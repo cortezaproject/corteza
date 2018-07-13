@@ -32,10 +32,11 @@ func (TeamHandlers) new() *TeamHandlers {
 
 // Internal API interface
 type TeamAPI interface {
+	List(*teamListRequest) (interface{}, error)
+	Create(*teamCreateRequest) (interface{}, error)
 	Edit(*teamEditRequest) (interface{}, error)
-	Remove(*teamRemoveRequest) (interface{}, error)
 	Read(*teamReadRequest) (interface{}, error)
-	Search(*teamSearchRequest) (interface{}, error)
+	Remove(*teamRemoveRequest) (interface{}, error)
 	Archive(*teamArchiveRequest) (interface{}, error)
 	Move(*teamMoveRequest) (interface{}, error)
 	Merge(*teamMergeRequest) (interface{}, error)
@@ -43,10 +44,11 @@ type TeamAPI interface {
 
 // HTTP API interface
 type TeamHandlersAPI interface {
+	List(http.ResponseWriter, *http.Request)
+	Create(http.ResponseWriter, *http.Request)
 	Edit(http.ResponseWriter, *http.Request)
-	Remove(http.ResponseWriter, *http.Request)
 	Read(http.ResponseWriter, *http.Request)
-	Search(http.ResponseWriter, *http.Request)
+	Remove(http.ResponseWriter, *http.Request)
 	Archive(http.ResponseWriter, *http.Request)
 	Move(http.ResponseWriter, *http.Request)
 	Merge(http.ResponseWriter, *http.Request)

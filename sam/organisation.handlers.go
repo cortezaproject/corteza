@@ -21,6 +21,14 @@ import (
 	"github.com/titpetric/factory/resputil"
 )
 
+func (oh *OrganisationHandlers) List(w http.ResponseWriter, r *http.Request) {
+	params := organisationListRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.List(params) })
+}
+func (oh *OrganisationHandlers) Create(w http.ResponseWriter, r *http.Request) {
+	params := organisationCreateRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.Create(params) })
+}
 func (oh *OrganisationHandlers) Edit(w http.ResponseWriter, r *http.Request) {
 	params := organisationEditRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.Edit(params) })
@@ -32,10 +40,6 @@ func (oh *OrganisationHandlers) Remove(w http.ResponseWriter, r *http.Request) {
 func (oh *OrganisationHandlers) Read(w http.ResponseWriter, r *http.Request) {
 	params := organisationReadRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.Read(params) })
-}
-func (oh *OrganisationHandlers) Search(w http.ResponseWriter, r *http.Request) {
-	params := organisationSearchRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.Search(params) })
 }
 func (oh *OrganisationHandlers) Archive(w http.ResponseWriter, r *http.Request) {
 	params := organisationArchiveRequest{}.new()

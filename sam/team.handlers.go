@@ -21,21 +21,25 @@ import (
 	"github.com/titpetric/factory/resputil"
 )
 
+func (th *TeamHandlers) List(w http.ResponseWriter, r *http.Request) {
+	params := teamListRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.List(params) })
+}
+func (th *TeamHandlers) Create(w http.ResponseWriter, r *http.Request) {
+	params := teamCreateRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Create(params) })
+}
 func (th *TeamHandlers) Edit(w http.ResponseWriter, r *http.Request) {
 	params := teamEditRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Edit(params) })
-}
-func (th *TeamHandlers) Remove(w http.ResponseWriter, r *http.Request) {
-	params := teamRemoveRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Remove(params) })
 }
 func (th *TeamHandlers) Read(w http.ResponseWriter, r *http.Request) {
 	params := teamReadRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Read(params) })
 }
-func (th *TeamHandlers) Search(w http.ResponseWriter, r *http.Request) {
-	params := teamSearchRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Search(params) })
+func (th *TeamHandlers) Remove(w http.ResponseWriter, r *http.Request) {
+	params := teamRemoveRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Remove(params) })
 }
 func (th *TeamHandlers) Archive(w http.ResponseWriter, r *http.Request) {
 	params := teamArchiveRequest{}.new()

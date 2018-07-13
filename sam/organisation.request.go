@@ -22,6 +22,62 @@ import (
 
 var _ = chi.URLParam
 
+// Organisation list request parameters
+type organisationListRequest struct {
+	query string
+}
+
+func (organisationListRequest) new() *organisationListRequest {
+	return &organisationListRequest{}
+}
+
+func (o *organisationListRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	o.query = get["query"]
+	return nil
+}
+
+var _ RequestFiller = organisationListRequest{}.new()
+
+// Organisation create request parameters
+type organisationCreateRequest struct {
+	name string
+}
+
+func (organisationCreateRequest) new() *organisationCreateRequest {
+	return &organisationCreateRequest{}
+}
+
+func (o *organisationCreateRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	o.name = post["name"]
+	return nil
+}
+
+var _ RequestFiller = organisationCreateRequest{}.new()
+
 // Organisation edit request parameters
 type organisationEditRequest struct {
 	id   uint64
@@ -45,7 +101,7 @@ func (o *organisationEditRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	o.id = parseUInt64(post["id"])
+	o.id = chi.URLParam(r, "id")
 
 	o.name = post["name"]
 	return nil
@@ -75,7 +131,7 @@ func (o *organisationRemoveRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	o.id = parseUInt64(get["id"])
+	o.id = chi.URLParam(r, "id")
 	return nil
 }
 
@@ -109,34 +165,6 @@ func (o *organisationReadRequest) Fill(r *http.Request) error {
 
 var _ RequestFiller = organisationReadRequest{}.new()
 
-// Organisation search request parameters
-type organisationSearchRequest struct {
-	query string
-}
-
-func (organisationSearchRequest) new() *organisationSearchRequest {
-	return &organisationSearchRequest{}
-}
-
-func (o *organisationSearchRequest) Fill(r *http.Request) error {
-	r.ParseForm()
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := r.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := r.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	o.query = get["query"]
-	return nil
-}
-
-var _ RequestFiller = organisationSearchRequest{}.new()
-
 // Organisation archive request parameters
 type organisationArchiveRequest struct {
 	id uint64
@@ -159,7 +187,7 @@ func (o *organisationArchiveRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	o.id = parseUInt64(post["id"])
+	o.id = chi.URLParam(r, "id")
 	return nil
 }
 

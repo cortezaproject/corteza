@@ -32,20 +32,20 @@ func (ChannelHandlers) new() *ChannelHandlers {
 
 // Internal API interface
 type ChannelAPI interface {
+	List(*channelListRequest) (interface{}, error)
 	Create(*channelCreateRequest) (interface{}, error)
 	Edit(*channelEditRequest) (interface{}, error)
-	Delete(*channelDeleteRequest) (interface{}, error)
 	Read(*channelReadRequest) (interface{}, error)
-	Search(*channelSearchRequest) (interface{}, error)
+	Delete(*channelDeleteRequest) (interface{}, error)
 }
 
 // HTTP API interface
 type ChannelHandlersAPI interface {
+	List(http.ResponseWriter, *http.Request)
 	Create(http.ResponseWriter, *http.Request)
 	Edit(http.ResponseWriter, *http.Request)
-	Delete(http.ResponseWriter, *http.Request)
 	Read(http.ResponseWriter, *http.Request)
-	Search(http.ResponseWriter, *http.Request)
+	Delete(http.ResponseWriter, *http.Request)
 }
 
 // Compile time check to see if we implement the interfaces

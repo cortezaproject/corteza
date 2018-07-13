@@ -22,6 +22,63 @@ import (
 
 var _ = chi.URLParam
 
+// Team list request parameters
+type teamListRequest struct {
+	query string
+}
+
+func (teamListRequest) new() *teamListRequest {
+	return &teamListRequest{}
+}
+
+func (t *teamListRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	t.query = get["query"]
+	return nil
+}
+
+var _ RequestFiller = teamListRequest{}.new()
+
+// Team create request parameters
+type teamCreateRequest struct {
+	name    string
+	members []uint64
+}
+
+func (teamCreateRequest) new() *teamCreateRequest {
+	return &teamCreateRequest{}
+}
+
+func (t *teamCreateRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	t.name = post["name"]
+	return nil
+}
+
+var _ RequestFiller = teamCreateRequest{}.new()
+
 // Team edit request parameters
 type teamEditRequest struct {
 	id      uint64
@@ -46,41 +103,13 @@ func (t *teamEditRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.id = parseUInt64(post["id"])
+	t.id = chi.URLParam(r, "id")
 
 	t.name = post["name"]
 	return nil
 }
 
 var _ RequestFiller = teamEditRequest{}.new()
-
-// Team remove request parameters
-type teamRemoveRequest struct {
-	id uint64
-}
-
-func (teamRemoveRequest) new() *teamRemoveRequest {
-	return &teamRemoveRequest{}
-}
-
-func (t *teamRemoveRequest) Fill(r *http.Request) error {
-	r.ParseForm()
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := r.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := r.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	t.id = parseUInt64(get["id"])
-	return nil
-}
-
-var _ RequestFiller = teamRemoveRequest{}.new()
 
 // Team read request parameters
 type teamReadRequest struct {
@@ -104,22 +133,22 @@ func (t *teamReadRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.id = parseUInt64(get["id"])
+	t.id = chi.URLParam(r, "id")
 	return nil
 }
 
 var _ RequestFiller = teamReadRequest{}.new()
 
-// Team search request parameters
-type teamSearchRequest struct {
-	query string
+// Team remove request parameters
+type teamRemoveRequest struct {
+	id uint64
 }
 
-func (teamSearchRequest) new() *teamSearchRequest {
-	return &teamSearchRequest{}
+func (teamRemoveRequest) new() *teamRemoveRequest {
+	return &teamRemoveRequest{}
 }
 
-func (t *teamSearchRequest) Fill(r *http.Request) error {
+func (t *teamRemoveRequest) Fill(r *http.Request) error {
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -132,11 +161,11 @@ func (t *teamSearchRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.query = get["query"]
+	t.id = chi.URLParam(r, "id")
 	return nil
 }
 
-var _ RequestFiller = teamSearchRequest{}.new()
+var _ RequestFiller = teamRemoveRequest{}.new()
 
 // Team archive request parameters
 type teamArchiveRequest struct {
@@ -160,7 +189,7 @@ func (t *teamArchiveRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.id = parseUInt64(post["id"])
+	t.id = chi.URLParam(r, "id")
 	return nil
 }
 
@@ -189,7 +218,7 @@ func (t *teamMoveRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.id = parseUInt64(post["id"])
+	t.id = chi.URLParam(r, "id")
 
 	t.organisation_id = parseUInt64(post["organisation_id"])
 	return nil
@@ -199,8 +228,8 @@ var _ RequestFiller = teamMoveRequest{}.new()
 
 // Team merge request parameters
 type teamMergeRequest struct {
+	id          uint64
 	destination uint64
-	source      uint64
 }
 
 func (teamMergeRequest) new() *teamMergeRequest {
@@ -220,9 +249,9 @@ func (t *teamMergeRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.destination = parseUInt64(post["destination"])
+	t.id = chi.URLParam(r, "id")
 
-	t.source = parseUInt64(post["source"])
+	t.destination = parseUInt64(post["destination"])
 	return nil
 }
 
