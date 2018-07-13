@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
+  version = "v1.1.0"
+
+[[projects]]
   name = "github.com/go-chi/chi"
   packages = [
     ".",
@@ -104,7 +110,7 @@
     "internal/timeseries",
     "trace"
   ]
-  revision = "32a936f46389aa10549d60bd7833e54b01685d09"
+  revision = "d0887baf81f4598189d4e12a37c6da86f0bba4d0"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -137,7 +143,7 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "ff3583edef7de132f219f0efc00e097cabcc0ec0"
+  revision = "e92b116572682a5b432ddd840aeaba2a559eeff1"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -174,6 +180,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9fb97075f79bbcd6f897c71ae4a44c1a430ac90689edee83fcd3b6d66bbc24cd"
+  inputs-digest = "3e1afdbbf83f09afe4420fbcb1a83dd17713403786009ec99ed41710b0c8a4ee"
   solver-name = "gps-cdcl"
   solver-version = 1
