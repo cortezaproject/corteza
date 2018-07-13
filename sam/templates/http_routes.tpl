@@ -14,10 +14,13 @@ func MountRoutes(r chi.Router) {
 	{api.interface|strtolower} := {api.interface|capitalize}Handlers{}.new()
 {/foreach}
 {foreach $apis as $api}
-	r.Route("{api.path}", func(r chi.Router) {
+	r.Group(func (r chi.Router) {
+			r.Use({api.interface|strtolower}.Authenticator())
+		r.Route("{api.path}", func(r chi.Router) {
 {foreach $api.apis as $call}
-		r.{eval echo capitalize(strtolower($call.method))}("{call.path}", {api.interface|strtolower}.{call.name|capitalize})
+			r.{eval echo capitalize(strtolower($call.method))}("{call.path}", {api.interface|strtolower}.{call.name|capitalize})
 {/foreach}
+		})
 	})
 {/foreach}
 

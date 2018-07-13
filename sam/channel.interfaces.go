@@ -46,6 +46,9 @@ type ChannelHandlersAPI interface {
 	Edit(http.ResponseWriter, *http.Request)
 	Read(http.ResponseWriter, *http.Request)
 	Delete(http.ResponseWriter, *http.Request)
+
+	// Authenticate API requests
+	Authenticator() func(http.Handler) http.Handler
 }
 
 // Compile time check to see if we implement the interfaces

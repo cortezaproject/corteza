@@ -48,6 +48,9 @@ type OrganisationHandlersAPI interface {
 	Remove(http.ResponseWriter, *http.Request)
 	Read(http.ResponseWriter, *http.Request)
 	Archive(http.ResponseWriter, *http.Request)
+
+	// Authenticate API requests
+	Authenticator() func(http.Handler) http.Handler
 }
 
 // Compile time check to see if we implement the interfaces
