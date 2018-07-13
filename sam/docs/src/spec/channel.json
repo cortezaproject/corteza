@@ -58,10 +58,26 @@
   "Path": "/channel",
   "APIs": [
     {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List channels",
+      "Path": "/",
+      "Parameters": {
+        "GET": [
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search query",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "Name": "create",
-      "Method": "POST",
+      "Method": "PUT",
       "Title": "Create new channel",
-      "Path": "/create",
+      "Path": "/",
       "Parameters": {
         "post": [
           {
@@ -120,22 +136,6 @@
       }
     },
     {
-      "Name": "delete",
-      "Method": "DELETE",
-      "Title": "Remove channel",
-      "Path": "/delete",
-      "Parameters": {
-        "get": [
-          {
-            "name": "id",
-            "required": true,
-            "title": "Channel ID",
-            "type": "uint64"
-          }
-        ]
-      }
-    },
-    {
       "Name": "read",
       "Method": "GET",
       "Title": "Read channel details",
@@ -152,17 +152,17 @@
       }
     },
     {
-      "Name": "search",
-      "Method": "GET",
-      "Title": "Search channels",
-      "Path": "/search",
+      "Name": "delete",
+      "Method": "DELETE",
+      "Title": "Remove channel",
+      "Path": "/delete",
       "Parameters": {
         "get": [
           {
-            "name": "query",
-            "required": false,
-            "title": "Search query",
-            "type": "string"
+            "name": "id",
+            "required": true,
+            "title": "Channel ID",
+            "type": "uint64"
           }
         ]
       }

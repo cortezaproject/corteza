@@ -19,12 +19,37 @@
 		],
 		"apis": [
 			{
+				"name": "list",
+				"method": "GET",
+				"title": "List organisations",
+				"path": "/",
+				"parameters": {
+					"get": [
+						{ "type": "string", "name": "query", "required": false, "title": "Search query" }
+					]
+				}
+			},
+			{
+				"name": "create",
+				"method": "PUT",
+				"title": "Create organisation",
+				"path": "/",
+				"parameters": {
+					"post": [
+						{ "type": "string", "name": "name", "required": true, "title": "Organisation Name" }
+					]
+				}
+			},
+			{
 				"name": "edit",
 				"method": "POST",
 				"title": "Update organisation details",
+				"path": "/{id}",
 				"parameters": {
+					"path": [
+						{ "type": "uint64", "name": "id", "required": false, "title": "Organisation ID" }
+					],
 					"post": [
-						{ "type": "uint64", "name": "id", "required": false, "title": "Organisation ID" },
 						{ "type": "string", "name": "name", "required": true, "title": "Organisation Name" }
 					]
 				}
@@ -33,8 +58,9 @@
 				"name": "remove",
 				"method": "DELETE",
 				"title": "Remove organisation",
+				"path": "/{id}",
 				"parameters": {
-					"get": [
+					"path": [
 						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
 					]
 				}
@@ -43,6 +69,7 @@
 				"name": "read",
 				"method": "GET",
 				"title": "Read organisation details",
+				"path": "/{id}",
 				"parameters": {
 					"get": [
 						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
@@ -50,21 +77,12 @@
 				}
 			},
 			{
-				"name": "search",
-				"method": "GET",
-				"title": "Search organisations",
-				"parameters": {
-					"get": [
-						{ "type": "string", "name": "query", "required": false, "title": "Search query" }
-					]
-				}
-			},
-			{
 				"name": "archive",
 				"method": "POST",
 				"title": "Archive organisation",
+				"path": "/{id}/archive",
 				"parameters": {
-					"post": [
+					"path": [
 						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
 					]
 				}
@@ -93,41 +111,10 @@
 		],
 		"apis": [
 			{
-				"name": "edit",
-				"method": "POST",
-				"title": "Update team details",
-				"parameters": {
-					"post": [
-						{ "type": "uint64", "name": "id", "required": false, "title": "Team ID" },
-						{ "type": "string", "name": "name", "required": true, "title": "Name of Team" },
-						{ "type": "[]uint64", "name": "members", "required": false, "title": "Team member IDs" }
-					]
-				}
-			},
-			{
-				"name": "remove",
-				"method": "DELETE",
-				"title": "Remove team",
-				"parameters": {
-					"get": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
-					]
-				}
-			},
-			{
-				"name": "read",
+				"name": "list",
 				"method": "GET",
-				"title": "Read team details and memberships",
-				"parameters": {
-					"get": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
-					]
-				}
-			},
-			{
-				"name": "search",
-				"method": "GET",
-				"title": "Search teams",
+				"title": "List teams",
+				"path": "/",
 				"parameters": {
 					"get": [
 						{ "type": "string", "name": "query", "required": false, "title": "Search query" }
@@ -135,11 +122,61 @@
 				}
 			},
 			{
+				"name": "create",
+				"method": "PUT",
+				"title": "Update team details",
+				"path": "/",
+				"parameters": {
+					"post": [
+						{ "type": "string", "name": "name", "required": true, "title": "Name of Team" },
+						{ "type": "[]uint64", "name": "members", "required": false, "title": "Team member IDs" }
+					]
+				}
+			},
+			{
+				"name": "edit",
+				"method": "POST",
+				"title": "Update team details",
+				"path": "/{id}",
+				"parameters": {
+					"path": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "Team ID" }
+					],
+					"post": [
+						{ "type": "string", "name": "name", "required": false, "title": "Name of Team" },
+						{ "type": "[]uint64", "name": "members", "required": false, "title": "Team member IDs" }
+					]
+				}
+			},
+			{
+				"name": "read",
+				"method": "GET",
+				"title": "Read team details and memberships",
+				"path": "/{id}",
+				"parameters": {
+					"path": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
+					]
+				}
+			},
+			{
+				"name": "remove",
+				"method": "DELETE",
+				"title": "Remove team",
+				"path": "/{id}",
+				"parameters": {
+					"path": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
+					]
+				}
+			},
+			{
 				"name": "archive",
 				"method": "POST",
 				"title": "Archive team",
+				"path": "/{id}/archive",
 				"parameters": {
-					"post": [
+					"path": [
 						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
 					]
 				}
@@ -148,9 +185,12 @@
 				"name": "move",
 				"method": "POST",
 				"title": "Move team to different organisation",
+				"path": "/{id}/move",
 				"parameters": {
-					"POST": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" },
+					"path": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
+					],
+					"post": [
 						{ "type": "uint64", "name": "organisation_id", "required": true, "title": "Organisation ID" }
 					]
 				}
@@ -159,10 +199,13 @@
 				"name": "merge",
 				"method": "POST",
 				"title": "Merge one team into another",
+				"path": "/{id}/merge",
 				"parameters": {
+					"path": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "Source Channel ID" }
+					],
 					"post": [
-						{ "type": "uint64", "name": "destination", "required": true, "title": "Destination Channel ID" },
-						{ "type": "uint64", "name": "source", "required": true, "title": "Source Channel ID" }
+						{ "type": "uint64", "name": "destination", "required": true, "title": "Destination Channel ID" }
 					]
 				}
 			}
@@ -179,7 +222,7 @@
 				"name": "Channel",
 				"imports": [
 					"time",
-                    "encoding/json"
+					"encoding/json"
 				],
 				"fields": [
 					{ "type": "uint64",          "name": "ID" },
@@ -194,9 +237,21 @@
 		],
 		"apis": [
 			{
+				"name": "list",
+				"method": "GET",
+				"title": "List channels",
+				"path": "/",
+				"parameters": {
+					"GET": [
+						{ "type": "string", "name": "query", "required": false, "title": "Search query" }
+					]
+				}
+			},
+			{
 				"name": "create",
-				"method": "POST",
+				"method": "PUT",
 				"title": "Create new channel",
+				"path": "/",
 				"parameters": {
 					"post": [
 						{ "type": "string", "name": "name", "required": true, "title": "Name of Channel" },
@@ -219,16 +274,6 @@
 				}
 			},
 			{
-				"name": "delete",
-				"method": "DELETE",
-				"title": "Remove channel",
-				"parameters": {
-					"get": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Channel ID" }
-					]
-				}
-			},
-			{
 				"name": "read",
 				"method": "GET",
 				"title": "Read channel details",
@@ -239,12 +284,12 @@
 				}
 			},
 			{
-				"name": "search",
-				"method": "GET",
-				"title": "Search channels",
+				"name": "delete",
+				"method": "DELETE",
+				"title": "Remove channel",
 				"parameters": {
 					"get": [
-						{ "type": "string", "name": "query", "required": false, "title": "Search query" }
+						{ "type": "uint64", "name": "id", "required": true, "title": "Channel ID" }
 					]
 				}
 			}

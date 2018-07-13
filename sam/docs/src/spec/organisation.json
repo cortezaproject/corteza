@@ -41,18 +41,52 @@
   "Path": "/organisation",
   "APIs": [
     {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List organisations",
+      "Path": "/",
+      "Parameters": {
+        "get": [
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search query",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "create",
+      "Method": "PUT",
+      "Title": "Create organisation",
+      "Path": "/",
+      "Parameters": {
+        "post": [
+          {
+            "name": "name",
+            "required": true,
+            "title": "Organisation Name",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "Name": "edit",
       "Method": "POST",
       "Title": "Update organisation details",
-      "Path": "/edit",
+      "Path": "/{id}",
       "Parameters": {
-        "post": [
+        "path": [
           {
             "name": "id",
             "required": false,
             "title": "Organisation ID",
             "type": "uint64"
-          },
+          }
+        ],
+        "post": [
           {
             "name": "name",
             "required": true,
@@ -66,9 +100,9 @@
       "Name": "remove",
       "Method": "DELETE",
       "Title": "Remove organisation",
-      "Path": "/remove",
+      "Path": "/{id}",
       "Parameters": {
-        "get": [
+        "path": [
           {
             "name": "id",
             "required": true,
@@ -82,7 +116,7 @@
       "Name": "read",
       "Method": "GET",
       "Title": "Read organisation details",
-      "Path": "/read",
+      "Path": "/{id}",
       "Parameters": {
         "get": [
           {
@@ -95,28 +129,12 @@
       }
     },
     {
-      "Name": "search",
-      "Method": "GET",
-      "Title": "Search organisations",
-      "Path": "/search",
-      "Parameters": {
-        "get": [
-          {
-            "name": "query",
-            "required": false,
-            "title": "Search query",
-            "type": "string"
-          }
-        ]
-      }
-    },
-    {
       "Name": "archive",
       "Method": "POST",
       "Title": "Archive organisation",
-      "Path": "/archive",
+      "Path": "/{id}/archive",
       "Parameters": {
-        "post": [
+        "path": [
           {
             "name": "id",
             "required": true,
