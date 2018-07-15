@@ -1,6 +1,6 @@
-# Types
+# Fields
 
-Types are building blocks for module forms
+Fields are building blocks for module forms
 
 ## List available types
 
@@ -8,7 +8,7 @@ Types are building blocks for module forms
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/types/list` | HTTP/S | GET |  |
+| `/field/` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -21,7 +21,7 @@ Types are building blocks for module forms
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/types/type/{id}` | HTTP/S | GET |  |
+| `/field/{id}` | HTTP/S | GET |  |
 
 #### Request parameters
 
