@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
+
+	"github.com/crusttech/crust/sam/rest"
+	"github.com/crusttech/crust/sam/types"
 )
 
 var _ = errors.Wrap
@@ -13,7 +16,13 @@ const (
 	sqlOrganisationSelect = "SELECT * FROM organisations WHERE " + sqlOrganisationScope
 )
 
-func (*Organisation) Create(r *organisationCreateRequest) (interface{}, error) {
+type Organisation struct{}
+
+func (Organisation) New() *Organisation {
+	return &Organisation{}
+}
+
+func (*Organisation) Create(r *rest.OrganisationCreateRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -22,11 +31,11 @@ func (*Organisation) Create(r *organisationCreateRequest) (interface{}, error) {
 	// @todo: permission check if user can add/edit organisation
 	// @todo: make sure archived & deleted entries can not be edited
 
-	o := Organisation{}.New().SetName(r.name).SetID(factory.Sonyflake.NextID())
+	o := types.Organisation{}.New().SetName(r.Name).SetID(factory.Sonyflake.NextID())
 	return o, db.Insert("organisation", o)
 }
 
-func (*Organisation) Edit(r *organisationEditRequest) (interface{}, error) {
+func (*Organisation) Edit(r *rest.OrganisationEditRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -35,11 +44,11 @@ func (*Organisation) Edit(r *organisationEditRequest) (interface{}, error) {
 	// @todo: permission check if user can add/edit organisation
 	// @todo: make sure archived & deleted entries can not be edited
 
-	o := Organisation{}.New().SetID(r.id).SetName(r.name)
+	o := types.Organisation{}.New().SetID(r.ID).SetName(r.Name)
 	return o, db.Replace("organisation", o)
 }
 
-func (*Organisation) Remove(r *organisationRemoveRequest) (interface{}, error) {
+func (*Organisation) Remove(r *rest.OrganisationRemoveRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -51,12 +60,12 @@ func (*Organisation) Remove(r *organisationRemoveRequest) (interface{}, error) {
 	stmt := "UPDATE organisationss SET deleted_at = NOW() WHERE deleted_at IS NULL AND id = ?"
 
 	return nil, func() error {
-		_, err := db.Exec(stmt, r.id)
+		_, err := db.Exec(stmt, r.ID)
 		return err
 	}()
 }
 
-func (*Organisation) Read(r *organisationReadRequest) (interface{}, error) {
+func (*Organisation) Read(r *rest.OrganisationReadRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -64,11 +73,11 @@ func (*Organisation) Read(r *organisationReadRequest) (interface{}, error) {
 
 	// @todo: permissions check
 
-	o := Organisation{}.New()
-	return o, db.Get(o, sqlOrganisationSelect+" AND id = ?", r.id)
+	o := types.Organisation{}.New()
+	return o, db.Get(o, sqlOrganisationSelect+" AND id = ?", r.ID)
 }
 
-func (*Organisation) List(r *organisationListRequest) (interface{}, error) {
+func (*Organisation) List(r *rest.OrganisationListRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -78,11 +87,11 @@ func (*Organisation) List(r *organisationListRequest) (interface{}, error) {
 	// @todo: actual search for org
 
 	res := make([]Organisation, 0)
-	err = db.Select(&res, sqlOrganisationSelect+" WHERE label LIKE = ? ORDER BY label ASC", r.query+"%")
+	err = db.Select(&res, sqlOrganisationSelect+" WHERE label LIKE = ? ORDER BY label ASC", r.Query+"%")
 	return res, err
 }
 
-func (*Organisation) Archive(r *organisationArchiveRequest) (interface{}, error) {
+func (*Organisation) Archive(r *rest.OrganisationArchiveRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -95,7 +104,7 @@ func (*Organisation) Archive(r *organisationArchiveRequest) (interface{}, error)
 		sqlChannelScope)
 
 	return nil, func() error {
-		_, err := db.Exec(stmt, r.id)
+		_, err := db.Exec(stmt, r.ID)
 		return err
 	}()
 }

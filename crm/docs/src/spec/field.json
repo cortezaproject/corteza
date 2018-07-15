@@ -1,0 +1,40 @@
+{
+  "Title": "Fields",
+  "Description": "Fields are building blocks for module forms",
+  "Package": "crm",
+  "Interface": "Field",
+  "Struct": [
+    {
+      "fields": [],
+      "name": "Field"
+    }
+  ],
+  "Protocol": "",
+  "Authentication": [],
+  "Path": "/field",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List available types",
+      "Path": "/",
+      "Parameters": null
+    },
+    {
+      "Name": "type",
+      "Method": "GET",
+      "Title": "Get type details",
+      "Path": "/{id}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "Type ID",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}

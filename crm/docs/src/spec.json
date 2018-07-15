@@ -1,14 +1,14 @@
 [
 	{
-		"title": "Types",
-		"description": "Types are building blocks for module forms",
+		"title": "Fields",
+		"description": "Fields are building blocks for module forms",
 		"package": "crm",
-		"entrypoint": "types",
-		"path": "types",
+		"entrypoint": "field",
+		"path": "field",
 		"authentication": [],
 		"struct": [
 			{
-				"name": "Types",
+				"name": "Field",
 				"fields": []
 			}
 		],
@@ -16,11 +16,12 @@
 			{
 				"name": "list",
 				"method": "GET",
+				"path": "/",
 				"title": "List available types"
 			},
 			{
 				"name": "type",
-				"path": "/type/{id}",
+				"path": "/{id}",
 				"method": "GET",
 				"title": "Get type details",
 				"parameters": {

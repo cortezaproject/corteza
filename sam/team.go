@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
+
+	"github.com/crusttech/crust/sam/rest"
+	"github.com/crusttech/crust/sam/types"
 )
 
 var _ = errors.Wrap
@@ -13,7 +16,13 @@ const (
 	sqlTeamSelect = "SELECT * FROM teams WHERE " + sqlTeamScope
 )
 
-func (*Team) Create(r *teamCreateRequest) (interface{}, error) {
+type Team struct{}
+
+func (Team) New() *Team {
+	return &Team{}
+}
+
+func (*Team) Create(r *rest.TeamCreateRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -22,12 +31,12 @@ func (*Team) Create(r *teamCreateRequest) (interface{}, error) {
 	// @todo: permission check if user can add/edit the team
 	// @todo: make sure archived & deleted entries can not be edited
 
-	t := Team{}.New()
-	t.SetName(r.name).SetMemberIDs(r.members).SetID(factory.Sonyflake.NextID())
+	t := types.Team{}.New()
+	t.SetName(r.Name).SetMemberIDs(r.Members).SetID(factory.Sonyflake.NextID())
 	return t, db.Insert("team", t)
 }
 
-func (*Team) Edit(r *teamEditRequest) (interface{}, error) {
+func (*Team) Edit(r *rest.TeamEditRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -36,12 +45,12 @@ func (*Team) Edit(r *teamEditRequest) (interface{}, error) {
 	// @todo: permission check if user can add/edit the team
 	// @todo: make sure archived & deleted entries can not be edited
 
-	t := Team{}.New()
-	t.SetID(r.id).SetName(r.name).SetMemberIDs(r.members)
+	t := types.Team{}.New()
+	t.SetID(r.ID).SetName(r.Name).SetMemberIDs(r.Members)
 	return t, db.Replace("team", t)
 }
 
-func (*Team) Remove(r *teamRemoveRequest) (interface{}, error) {
+func (*Team) Remove(r *rest.TeamRemoveRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -50,22 +59,22 @@ func (*Team) Remove(r *teamRemoveRequest) (interface{}, error) {
 	stmt := "UPDATE teams SET deleted_at = NOW() WHERE deleted_at IS NULL AND id = ?"
 
 	return nil, func() error {
-		_, err := db.Exec(stmt, r.id)
+		_, err := db.Exec(stmt, r.ID)
 		return err
 	}()
 }
 
-func (*Team) Read(r *teamReadRequest) (interface{}, error) {
+func (*Team) Read(r *rest.TeamReadRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
 	}
 
-	t := Team{}.New()
-	return t, db.Get(t, sqlTeamSelect+" AND id = ?", r.id)
+	t := types.Team{}.New()
+	return t, db.Get(t, sqlTeamSelect+" AND id = ?", r.ID)
 }
 
-func (*Team) List(r *teamListRequest) (interface{}, error) {
+func (*Team) List(r *rest.TeamListRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -76,7 +85,7 @@ func (*Team) List(r *teamListRequest) (interface{}, error) {
 	return res, err
 }
 
-func (*Team) Archive(r *teamArchiveRequest) (interface{}, error) {
+func (*Team) Archive(r *rest.TeamArchiveRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -87,15 +96,15 @@ func (*Team) Archive(r *teamArchiveRequest) (interface{}, error) {
 		sqlTeamScope)
 
 	return nil, func() error {
-		_, err := db.Exec(stmt, r.id)
+		_, err := db.Exec(stmt, r.ID)
 		return err
 	}()
 }
 
-func (*Team) Move(r *teamMoveRequest) (interface{}, error) {
+func (*Team) Move(r *rest.TeamMoveRequest) (interface{}, error) {
 	return nil, errors.New("Not implemented: Team.move")
 }
 
-func (*Team) Merge(r *teamMergeRequest) (interface{}, error) {
+func (*Team) Merge(r *rest.TeamMergeRequest) (interface{}, error) {
 	return nil, errors.New("Not implemented: Team.merge")
 }
