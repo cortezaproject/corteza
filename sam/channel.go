@@ -4,6 +4,9 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
+
+	"github.com/crusttech/crust/sam/rest"
+	"github.com/crusttech/crust/sam/types"
 )
 
 var _ = errors.Wrap
@@ -13,7 +16,13 @@ const (
 	sqlChannelSelect = "SELECT * FROM channels WHERE " + sqlChannelScope
 )
 
-func (*Channel) Create(r *channelCreateRequest) (interface{}, error) {
+type Channel struct{}
+
+func (Channel) New() *Channel {
+	return &Channel{}
+}
+
+func (*Channel) Create(r *rest.ChannelCreateRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -23,26 +32,26 @@ func (*Channel) Create(r *channelCreateRequest) (interface{}, error) {
 	// @todo: channel name cmessage/log entry
 	// @todo: permission check if user can add channel
 
-	c := Channel{}.
+	c := types.Channel{}.
 		New().
-		SetName(r.name).
-		SetTopic(r.topic).
+		SetName(r.Name).
+		SetTopic(r.Topic).
 		SetMeta([]byte("{}")).
 		SetID(factory.Sonyflake.NextID())
 
 	return c, db.Insert("channels", c)
 }
 
-func (*Channel) Edit(r *channelEditRequest) (interface{}, error) {
+func (*Channel) Edit(r *rest.ChannelEditRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
 	}
 
-	var c *Channel
-	if c, err = c.load(r.id); err != nil {
+	/*var c *types.Channel
+	if c, err = c.load(r.ID); err != nil {
 		return nil, err
-	}
+	}*/
 
 	// @todo: topic change message/log entry
 	// @todo: channel name change message/log entry
@@ -51,40 +60,43 @@ func (*Channel) Edit(r *channelEditRequest) (interface{}, error) {
 	// @todo: handle channel moving
 	// @todo: handle channel archiving
 
-	c.SetName(r.name).SetTopic(r.topic)
+	c := types.Channel{}.
+		New().
+		SetName(r.Name).
+		SetTopic(r.Topic)
 
 	return c, db.Replace("channels", c)
 
 }
 
-func (*Channel) Delete(r *channelDeleteRequest) (interface{}, error) {
+func (*Channel) Delete(r *rest.ChannelDeleteRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
 	}
 
-	var c *Channel
-	if c, err = c.load(r.id); err != nil {
+	/*var c *types.Channel
+	if c, err = c.load(r.ID); err != nil {
 		return nil, err
-	}
+	}*/
 
 	// @todo: make history unavailable
 	// @todo: notify users that channel has been removed (remove from web UI)
 	// @todo: permissions check if user cah remove channel
 
 	stmt := "UPDATE channels SET deleted_at = NOW() WHERE id = ? AND deleted_at IS NULL"
-	spew.Dump(r.id)
+	spew.Dump(r.ID)
 	return nil, func() error {
-		_, err := db.Exec(stmt, r.id)
+		_, err := db.Exec(stmt, r.ID)
 		return err
 	}()
 }
 
-func (*Channel) Read(r *channelReadRequest) (interface{}, error) {
-	return (&Channel{}).load(r.id)
+func (s *Channel) Read(r *rest.ChannelReadRequest) (interface{}, error) {
+	return s.load(r.ID)
 }
 
-func (*Channel) List(r *channelListRequest) (interface{}, error) {
+func (*Channel) List(r *rest.ChannelListRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -93,18 +105,18 @@ func (*Channel) List(r *channelListRequest) (interface{}, error) {
 	// @todo: permission check to return only channels that user has access to
 	// @todo: actual searching not just a full select
 
-	res := make([]Channel, 0)
+	res := make([]types.Channel, 0)
 	err = db.Select(&res, sqlChannelSelect+" ORDER BY name ASC")
 	return res, err
 }
 
-func (*Channel) load(id uint64) (*Channel, error) {
+func (*Channel) load(id uint64) (*types.Channel, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
 	}
 
-	c := Channel{}.New()
+	c := types.Channel{}.New()
 
 	if id == 0 {
 		return nil, errors.New("Provide channel ID")
