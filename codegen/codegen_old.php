@@ -1,32 +1,13 @@
 #!/usr/bin/env php
 <?php
 
-if (count($argv) < 2) {
-	echo "Usage: ./codegen [path]\n";
-	exit(255);
-}
-
-if (!is_dir(__DIR__ . "/" . $argv[1])) {
-	echo "No folder " . $argv[1] . "\n";
-	die;
-}
-
-$project = $argv[1];
-
 error_reporting(E_ALL^E_NOTICE);
 
-include(__DIR__ . "/vendor/autoload.php");
+include("docs/vendor/autoload.php");
 
 function capitalize($name) {
 	$names = explode("/", $name);
 	return implode("", array_map("ucfirst", $names));
-}
-
-function expose($name) {
-	if ($name == "id") {
-		return "ID";
-	}
-	return ucfirst($name);
 }
 
 function array_change_key_case_recursive($arr) {
@@ -39,13 +20,11 @@ function array_change_key_case_recursive($arr) {
 }
 
 $tpl = new Monotek\MiniTPL\Template;
+$tpl->set_paths(array(__DIR__ . "/"));
 $tpl->set_compile_location("/tmp", true);
 $tpl->add_default("newline", "\n");
 
-$generators = array();
-exec("find -L " . __DIR__ . "/" . $project . " -name index.php", $generators);
-
-$api_files = glob($project . "/docs/src/spec/*.json");
+$api_files = glob("docs/src/spec/*.json");
 $apis = array_map(function($filename) {
 	return array_change_key_case_recursive(json_decode(file_get_contents($filename), true));
 }, $api_files);
@@ -54,34 +33,17 @@ usort($apis, function($a, $b) {
 	return strcmp($a['interface'], $b['interface']);
 });
 
-$parsers = array(
-	"uint64" => "parseUInt64",
-	"bool" => "parseBool",
-);
-
-foreach ($generators as $generator) {
-	$tpl->set_paths(array(dirname($generator) . "/", __DIR__ . "/templates/"));
-
-	$dirname = strstr(dirname($generator), $project. "/");
-	if (empty($dirname)) {
-		$dirname = $project;
-	}
-	// echo "generator=". dirname($generator) . " project=$project, dirname=$dirname\n";
-	if (!is_dir($dirname) && !empty($dirname)) {
-		mkdir($dirname, 0777, true);
-	}
-	$common = compact("parsers");
-	include($generator);
-}
-
-/* foreach (array("structs", "handlers", "interfaces", "request", "") as $type) {
+foreach (array("structs", "handlers", "interfaces", "request", "") as $type) {
 	foreach ($apis as $api) {
 		if (is_array($api['struct'])) {
 			$name = ucfirst($api['interface']);
 			$filename = str_replace("..", ".", strtolower($name) . "." . $type . ".go");
 
 			$tpl->load("http_$type.tpl");
-			$tpl->assign("parsers", 
+			$tpl->assign("parsers", array(
+				"uint64" => "parseUInt64",
+				"bool" => "parseBool",
+			));
 			$tpl->assign("package", $api['package']);
 			$tpl->assign("name", $name);
 			$tpl->assign("self", strtolower(substr($name, 0, 1)));
@@ -120,7 +82,6 @@ foreach (array("routes") as $type) {
 
 	file_put_contents($filename, $contents);
 }
-*/
 
 // camel case to snake case
 function decamel($input) {

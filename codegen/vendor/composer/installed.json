@@ -1,0 +1,52 @@
+[
+    {
+        "name": "monotek/minitpl",
+        "version": "v1.1.4",
+        "version_normalized": "1.1.4.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/titpetric/minitpl.git",
+            "reference": "613a596b3dee3c121283fad3f84d06d83ecb5125"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/titpetric/minitpl/zipball/613a596b3dee3c121283fad3f84d06d83ecb5125",
+            "reference": "613a596b3dee3c121283fad3f84d06d83ecb5125",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0"
+        },
+        "time": "2016-02-07 13:23:38",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Monotek\\MiniTPL": "code"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "CC BY-SA 3.0"
+        ],
+        "authors": [
+            {
+                "name": "Tit Petric",
+                "email": "tit.petric@monotek.net",
+                "homepage": "http://titpetric.github.io",
+                "role": "developer"
+            }
+        ],
+        "description": "Miniature fully featured PHP template engine",
+        "homepage": "https://github.com/titpetric/minitpl",
+        "keywords": [
+            "minitpl",
+            "monotek",
+            "php",
+            "small",
+            "smarty",
+            "template",
+            "tiny"
+        ]
+    }
+]
