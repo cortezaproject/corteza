@@ -1,46 +1,72 @@
 package rest
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `module.go`, `module.util.go` or `module_test.go` to
-	implement your API calls, helper functions and tests. The file `module.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
-
 import (
-	"net/http"
+	"github.com/pkg/errors"
+	"github.com/titpetric/factory"
+
+	"github.com/crusttech/crust/crm/rest/server"
+	"github.com/crusttech/crust/crm/types"
 )
 
-// HTTP handlers are a superset of internal APIs
-type ModuleHandlers struct {
-	Module ModuleAPI
+var _ = errors.Wrap
+
+type Module struct{}
+
+func (Module) New() *Module {
+	return &Module{}
 }
 
-// Internal API interface
-type ModuleAPI interface {
-	List(*ModuleListRequest) (interface{}, error)
-	Edit(*ModuleEditRequest) (interface{}, error)
-	ContentList(*ModuleContentListRequest) (interface{}, error)
-	ContentEdit(*ModuleContentEditRequest) (interface{}, error)
-	ContentDelete(*ModuleContentDeleteRequest) (interface{}, error)
+func (*Module) List(r *server.ModuleListRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
 
-	// Authenticate API requests
-	Authenticator() func(http.Handler) http.Handler
+	if r.ID > 0 {
+		m := types.Module{}.New()
+		return m, db.Get(m, "select * from crm_module id=?", r.ID)
+	}
+
+	res := make([]Module, 0)
+	err = db.Select(&res, "select * from crm_module order by name asc")
+	return res, err
 }
 
-// HTTP API interface
-type ModuleHandlersAPI interface {
-	List(http.ResponseWriter, *http.Request)
-	Edit(http.ResponseWriter, *http.Request)
-	ContentList(http.ResponseWriter, *http.Request)
-	ContentEdit(http.ResponseWriter, *http.Request)
-	ContentDelete(http.ResponseWriter, *http.Request)
+func (*Module) Edit(r *server.ModuleEditRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	m := types.Module{}.New()
+	m.SetID(r.ID).SetName(r.Name)
+	if m.GetID() > 0 {
+		return m, db.Replace("crm_module", m)
+	}
+	m.SetID(factory.Sonyflake.NextID())
+	return m, db.Insert("crm_module", m)
+}
+
+func (*Module) ContentList(r *server.ModuleContentListRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	if r.ID > 0 {
+		m := types.ModuleContentRow{}.New()
+		return m, db.Get(m, "select * from crm_module id=?", r.ID)
+	}
+
+	res := make([]types.ModuleContentRow, 0)
+	err = db.Select(&res, "select * from crm_module order by name asc")
+	return res, err
+}
+
+func (*Module) ContentEdit(r *server.ModuleContentEditRequest) (interface{}, error) {
+	return nil, errors.New("Not implemented: Module.content/edit")
+}
+
+func (*Module) ContentDelete(r *server.ModuleContentDeleteRequest) (interface{}, error) {
+	return nil, errors.New("Not implemented: Module.content/delete")
 }

@@ -1,46 +1,133 @@
 package rest
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `channel.go`, `channel.util.go` or `channel_test.go` to
-	implement your API calls, helper functions and tests. The file `channel.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
-
 import (
-	"net/http"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/pkg/errors"
+	"github.com/titpetric/factory"
+
+	"github.com/crusttech/crust/sam/rest/server"
+	"github.com/crusttech/crust/sam/types"
 )
 
-// HTTP handlers are a superset of internal APIs
-type ChannelHandlers struct {
-	Channel ChannelAPI
+var _ = errors.Wrap
+
+const (
+	sqlChannelScope  = "deleted_at IS NULL AND archived_at IS NULL"
+	sqlChannelSelect = "SELECT * FROM channels WHERE " + sqlChannelScope
+)
+
+type Channel struct{}
+
+func (Channel) New() *Channel {
+	return &Channel{}
 }
 
-// Internal API interface
-type ChannelAPI interface {
-	List(*ChannelListRequest) (interface{}, error)
-	Create(*ChannelCreateRequest) (interface{}, error)
-	Edit(*ChannelEditRequest) (interface{}, error)
-	Read(*ChannelReadRequest) (interface{}, error)
-	Delete(*ChannelDeleteRequest) (interface{}, error)
+func (*Channel) Create(r *server.ChannelCreateRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
 
-	// Authenticate API requests
-	Authenticator() func(http.Handler) http.Handler
+	// @todo: topic message/log entry
+	// @todo: channel name cmessage/log entry
+	// @todo: permission check if user can add channel
+
+	c := types.Channel{}.
+		New().
+		SetName(r.Name).
+		SetTopic(r.Topic).
+		SetMeta([]byte("{}")).
+		SetID(factory.Sonyflake.NextID())
+
+	return c, db.Insert("channels", c)
 }
 
-// HTTP API interface
-type ChannelHandlersAPI interface {
-	List(http.ResponseWriter, *http.Request)
-	Create(http.ResponseWriter, *http.Request)
-	Edit(http.ResponseWriter, *http.Request)
-	Read(http.ResponseWriter, *http.Request)
-	Delete(http.ResponseWriter, *http.Request)
+func (*Channel) Edit(r *server.ChannelEditRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	/*var c *types.Channel
+	if c, err = c.load(r.ID); err != nil {
+		return nil, err
+	}*/
+
+	// @todo: topic change message/log entry
+	// @todo: channel name change message/log entry
+	// @todo: permission check if user can edit channel
+	// @todo: make sure archived & deleted entries can not be edited
+	// @todo: handle channel moving
+	// @todo: handle channel archiving
+
+	c := types.Channel{}.
+		New().
+		SetName(r.Name).
+		SetTopic(r.Topic)
+
+	return c, db.Replace("channels", c)
+
+}
+
+func (*Channel) Delete(r *server.ChannelDeleteRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	/*var c *types.Channel
+	if c, err = c.load(r.ID); err != nil {
+		return nil, err
+	}*/
+
+	// @todo: make history unavailable
+	// @todo: notify users that channel has been removed (remove from web UI)
+	// @todo: permissions check if user cah remove channel
+
+	stmt := "UPDATE channels SET deleted_at = NOW() WHERE id = ? AND deleted_at IS NULL"
+	spew.Dump(r.ID)
+	return nil, func() error {
+		_, err := db.Exec(stmt, r.ID)
+		return err
+	}()
+}
+
+func (s *Channel) Read(r *server.ChannelReadRequest) (interface{}, error) {
+	return s.load(r.ID)
+}
+
+func (*Channel) List(r *server.ChannelListRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	// @todo: permission check to return only channels that user has access to
+	// @todo: actual searching not just a full select
+
+	res := make([]types.Channel, 0)
+	err = db.Select(&res, sqlChannelSelect+" ORDER BY name ASC")
+	return res, err
+}
+
+func (*Channel) load(id uint64) (*types.Channel, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	c := types.Channel{}.New()
+
+	if id == 0 {
+		return nil, errors.New("Provide channel ID")
+	} else if err := db.Get(c, sqlChannelSelect+" AND id = ?", id); err != nil {
+		return nil, err
+	} else if c.ID != id {
+		spew.Dump(c)
+		return nil, errors.New("Unexisting channel")
+	}
+
+	// @todo: permission check if user can read channel
+
+	return c, nil
 }

@@ -1,40 +1,118 @@
 package rest
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `user.go`, `user.util.go` or `user_test.go` to
-	implement your API calls, helper functions and tests. The file `user.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
-
 import (
-	"net/http"
+	"github.com/pkg/errors"
+	"github.com/titpetric/factory"
+
+	"github.com/crusttech/crust/sam/rest/server"
+	"github.com/crusttech/crust/sam/service"
+	"github.com/crusttech/crust/sam/types"
 )
 
-// HTTP handlers are a superset of internal APIs
-type UserHandlers struct {
-	User UserAPI
+var _ = errors.Wrap
+
+const (
+	sqlUserScope  = "suspended_at IS NULL AND archived_at IS NULL"
+	sqlUserSelect = "SELECT * FROM users WHERE " + sqlUserScope
+)
+
+type (
+	User struct {
+		service UserInterface
+	}
+
+	UserInterface interface {
+		Set(*types.User)
+		CanLogin() bool
+		GeneratePassword(value string) ([]byte, error)
+		ValidatePassword(value string) bool
+		ValidateUser() bool
+	}
+)
+
+func (User) New() *User {
+	return &User{service.User{}.New()}
 }
 
-// Internal API interface
-type UserAPI interface {
-	Login(*UserLoginRequest) (interface{}, error)
-	Search(*UserSearchRequest) (interface{}, error)
+/*
+func (self *User) Read(r *teamReadRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
 
-	// Authenticate API requests
-	Authenticator() func(http.Handler) http.Handler
+	t := types.User{}.New()
+	return t, db.Get(t, sqlUserSelect+" AND id = ?", r.ID)
+}
+*/
+
+// User lookup & login
+func (self *User) Login(r *server.UserLoginRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	u := types.User{}.New()
+	if err = db.Get(u, sqlUserSelect+" AND username = ?", r.Username); err != nil {
+		return nil, err
+	}
+	self.service.Set(u)
+
+	if self.service.ValidateUser() || !self.service.ValidatePassword(r.Password) {
+		return nil, errors.New("Invalid username and password combination")
+	}
+
+	if !self.service.CanLogin() {
+		return nil, errors.New("User is not allowed to login")
+	}
+
+	return u, nil
 }
 
-// HTTP API interface
-type UserHandlersAPI interface {
-	Login(http.ResponseWriter, *http.Request)
-	Search(http.ResponseWriter, *http.Request)
+// Searches the users table in the database to find users by matching (by-prefix) their.Username
+func (*User) Search(r *server.UserSearchRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	uu := []types.User{}
+	if err != db.Get(uu, sqlUserSelect+" AND username LIKE ?", r.Query+"%") {
+		return nil, err
+	}
+
+	return uu, nil
 }
+
+/*
+func (self *User) Remove(r *teamRemoveRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	stmt := "UPDATE users SET deleted_at = NOW() WHERE deleted_at IS NULL AND id = ?"
+
+	return nil, func() error {
+		_, err := db.Exec(stmt, r.ID)
+		return err
+	}()
+}
+
+func (self *User) Archive(r *teamArchiveRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	stmt := fmt.Sprintf(
+		"UPDATE users SET archived_at = NOW() WHERE %s AND id = ?",
+		sqlUserScope)
+
+	return nil, func() error {
+		_, err := db.Exec(stmt, r.ID)
+		return err
+	}()
+}
+*/

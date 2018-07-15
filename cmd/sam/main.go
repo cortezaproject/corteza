@@ -11,7 +11,7 @@ import (
 	"github.com/go-chi/chi"
 	_ "github.com/joho/godotenv/autoload"
 
-	project "github.com/crusttech/crust/sam"
+	"github.com/crusttech/crust/sam/rest"
 	"github.com/titpetric/factory"
 )
 
@@ -72,6 +72,6 @@ func main() {
 
 	// mount routes
 	r := chi.NewRouter()
-	MountRoutes(r, routeOptions, project.MountRoutes)
+	MountRoutes(r, routeOptions, rest.MountRoutes)
 	http.Serve(listener, r)
 }
