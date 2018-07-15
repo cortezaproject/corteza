@@ -7,15 +7,17 @@ import (
 	"runtime"
 	"reflect"
 	"github.com/go-chi/chi"
+
+	"github.com/crusttech/crust/{package}/rest"
 )
 
 func MountRoutes(r chi.Router) {
 {foreach $apis as $api}
-	{api.interface|strtolower} := {api.interface|capitalize}Handlers{}.new()
+	{api.interface|strtolower} := &rest.{api.interface|capitalize}Handlers{{api.interface|capitalize}{ldelim}{rdelim}.New()}
 {/foreach}
 {foreach $apis as $api}
 	r.Group(func (r chi.Router) {
-			r.Use({api.interface|strtolower}.Authenticator())
+			r.Use({api.interface|strtolower}.{api.interface}.Authenticator())
 		r.Route("{api.path}", func(r chi.Router) {
 {foreach $api.apis as $call}
 			r.{eval echo capitalize(strtolower($call.method))}("{call.path}", {api.interface|strtolower}.{call.name|capitalize})
