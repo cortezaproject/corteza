@@ -1,50 +1,44 @@
 package rest
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `message.go`, `message.util.go` or `message_test.go` to
-	implement your API calls, helper functions and tests. The file `message.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
-
 import (
-	"net/http"
+	"github.com/pkg/errors"
+
+	"github.com/crusttech/crust/sam/rest/server"
+	_ "github.com/crusttech/crust/sam/types"
 )
 
-// HTTP handlers are a superset of internal APIs
-type MessageHandlers struct {
-	Message MessageAPI
+type Message struct{}
+
+func (Message) New() *Message {
+	return &Message{}
 }
 
-// Internal API interface
-type MessageAPI interface {
-	Edit(*MessageEditRequest) (interface{}, error)
-	Attach(*MessageAttachRequest) (interface{}, error)
-	Remove(*MessageRemoveRequest) (interface{}, error)
-	Read(*MessageReadRequest) (interface{}, error)
-	Search(*MessageSearchRequest) (interface{}, error)
-	Pin(*MessagePinRequest) (interface{}, error)
-	Flag(*MessageFlagRequest) (interface{}, error)
+var _ = errors.Wrap
 
-	// Authenticate API requests
-	Authenticator() func(http.Handler) http.Handler
+func (*Message) Edit(r *server.MessageEditRequest) (interface{}, error) {
+	return nil, errors.New("Not implemented: Message.edit")
 }
 
-// HTTP API interface
-type MessageHandlersAPI interface {
-	Edit(http.ResponseWriter, *http.Request)
-	Attach(http.ResponseWriter, *http.Request)
-	Remove(http.ResponseWriter, *http.Request)
-	Read(http.ResponseWriter, *http.Request)
-	Search(http.ResponseWriter, *http.Request)
-	Pin(http.ResponseWriter, *http.Request)
-	Flag(http.ResponseWriter, *http.Request)
+func (*Message) Attach(r *server.MessageAttachRequest) (interface{}, error) {
+	return nil, errors.New("Not implemented: Message.attach")
+}
+
+func (*Message) Remove(r *server.MessageRemoveRequest) (interface{}, error) {
+	return nil, errors.New("Not implemented: Message.remove")
+}
+
+func (*Message) Read(r *server.MessageReadRequest) (interface{}, error) {
+	return nil, errors.New("Not implemented: Message.read")
+}
+
+func (*Message) Search(r *server.MessageSearchRequest) (interface{}, error) {
+	return nil, errors.New("Not implemented: Message.search")
+}
+
+func (*Message) Pin(r *server.MessagePinRequest) (interface{}, error) {
+	return nil, errors.New("Not implemented: Message.pin")
+}
+
+func (*Message) Flag(r *server.MessageFlagRequest) (interface{}, error) {
+	return nil, errors.New("Not implemented: Message.flag")
 }

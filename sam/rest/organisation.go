@@ -1,48 +1,110 @@
 package rest
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `organisation.go`, `organisation.util.go` or `organisation_test.go` to
-	implement your API calls, helper functions and tests. The file `organisation.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
-
 import (
-	"net/http"
+	"fmt"
+	"github.com/pkg/errors"
+	"github.com/titpetric/factory"
+
+	"github.com/crusttech/crust/sam/rest/server"
+	"github.com/crusttech/crust/sam/types"
 )
 
-// HTTP handlers are a superset of internal APIs
-type OrganisationHandlers struct {
-	Organisation OrganisationAPI
+var _ = errors.Wrap
+
+const (
+	sqlOrganisationScope  = "deleted_at IS NULL AND archived_at IS NULL"
+	sqlOrganisationSelect = "SELECT * FROM organisations WHERE " + sqlOrganisationScope
+)
+
+type Organisation struct{}
+
+func (Organisation) New() *Organisation {
+	return &Organisation{}
 }
 
-// Internal API interface
-type OrganisationAPI interface {
-	List(*OrganisationListRequest) (interface{}, error)
-	Create(*OrganisationCreateRequest) (interface{}, error)
-	Edit(*OrganisationEditRequest) (interface{}, error)
-	Remove(*OrganisationRemoveRequest) (interface{}, error)
-	Read(*OrganisationReadRequest) (interface{}, error)
-	Archive(*OrganisationArchiveRequest) (interface{}, error)
+func (*Organisation) Create(r *server.OrganisationCreateRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
 
-	// Authenticate API requests
-	Authenticator() func(http.Handler) http.Handler
+	// @todo: permission check if user can add/edit organisation
+	// @todo: make sure archived & deleted entries can not be edited
+
+	o := types.Organisation{}.New().SetName(r.Name).SetID(factory.Sonyflake.NextID())
+	return o, db.Insert("organisation", o)
 }
 
-// HTTP API interface
-type OrganisationHandlersAPI interface {
-	List(http.ResponseWriter, *http.Request)
-	Create(http.ResponseWriter, *http.Request)
-	Edit(http.ResponseWriter, *http.Request)
-	Remove(http.ResponseWriter, *http.Request)
-	Read(http.ResponseWriter, *http.Request)
-	Archive(http.ResponseWriter, *http.Request)
+func (*Organisation) Edit(r *server.OrganisationEditRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	// @todo: permission check if user can add/edit organisation
+	// @todo: make sure archived & deleted entries can not be edited
+
+	o := types.Organisation{}.New().SetID(r.ID).SetName(r.Name)
+	return o, db.Replace("organisation", o)
+}
+
+func (*Organisation) Remove(r *server.OrganisationRemoveRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	// @todo: permission check
+	// @todo: don't actually delete organisation?!
+
+	stmt := "UPDATE organisationss SET deleted_at = NOW() WHERE deleted_at IS NULL AND id = ?"
+
+	return nil, func() error {
+		_, err := db.Exec(stmt, r.ID)
+		return err
+	}()
+}
+
+func (*Organisation) Read(r *server.OrganisationReadRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	// @todo: permissions check
+
+	o := types.Organisation{}.New()
+	return o, db.Get(o, sqlOrganisationSelect+" AND id = ?", r.ID)
+}
+
+func (*Organisation) List(r *server.OrganisationListRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	// @todo: permissions check
+	// @todo: actual search for org
+
+	res := make([]Organisation, 0)
+	err = db.Select(&res, sqlOrganisationSelect+" WHERE label LIKE = ? ORDER BY label ASC", r.Query+"%")
+	return res, err
+}
+
+func (*Organisation) Archive(r *server.OrganisationArchiveRequest) (interface{}, error) {
+	db, err := factory.Database.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	// @todo: permission check
+
+	stmt := fmt.Sprintf(
+		"UPDATE organisation SET archived_at = NOW() WHERE %s AND id = ?",
+		sqlChannelScope)
+
+	return nil, func() error {
+		_, err := db.Exec(stmt, r.ID)
+		return err
+	}()
 }

@@ -70,7 +70,7 @@ foreach ($generators as $generator) {
 	if (!is_dir($dirname) && !empty($dirname)) {
 		mkdir($dirname, 0777, true);
 	}
-	$common = compact("parsers");
+	$common = compact("parsers", "project");
 	include($generator);
 }
 

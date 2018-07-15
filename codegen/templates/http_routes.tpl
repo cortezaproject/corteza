@@ -8,12 +8,12 @@ import (
 	"reflect"
 	"github.com/go-chi/chi"
 
-	"github.com/crusttech/crust/{package}/rest"
+	"github.com/crusttech/crust/{project}/rest/server"
 )
 
 func MountRoutes(r chi.Router) {
 {foreach $apis as $api}
-	{api.interface|strtolower} := &rest.{api.interface|capitalize}Handlers{{api.interface|capitalize}{ldelim}{rdelim}.New()}
+	{api.interface|strtolower} := &server.{api.interface|capitalize}Handlers{{api.interface|capitalize}{ldelim}{rdelim}.New()}
 {/foreach}
 {foreach $apis as $api}
 	r.Group(func (r chi.Router) {
