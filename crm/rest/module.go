@@ -2,65 +2,53 @@ package rest
 
 import (
 	"github.com/pkg/errors"
-	"github.com/titpetric/factory"
 
+	"context"
 	"github.com/crusttech/crust/crm/rest/server"
+	"github.com/crusttech/crust/crm/service"
 	"github.com/crusttech/crust/crm/types"
 )
 
 var _ = errors.Wrap
 
-type Module struct{}
+type (
+	Module struct {
+		service moduleService
+	}
+
+	moduleService interface {
+		FindById(context.Context, uint64) (*types.Module, error)
+		Find(context.Context) ([]*types.Module, error)
+
+		Create(context.Context, *types.Module) (*types.Module, error)
+		Update(context.Context, *types.Module) (*types.Module, error)
+		Delete(context.Context, *types.Module) error
+	}
+)
 
 func (Module) New() *Module {
-	return &Module{}
+	return &Module{
+		service: service.Module(),
+	}
 }
 
-func (*Module) List(r *server.ModuleListRequest) (interface{}, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	if r.ID > 0 {
-		m := types.Module{}.New()
-		return m, db.Get(m, "select * from crm_module id=?", r.ID)
-	}
-
-	res := make([]Module, 0)
-	err = db.Select(&res, "select * from crm_module order by name asc")
-	return res, err
+func (c *Module) List(r *server.ModuleListRequest) (interface{}, error) {
+	return c.service.Find(context.TODO())
 }
 
-func (*Module) Edit(r *server.ModuleEditRequest) (interface{}, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, err
-	}
-
+func (c *Module) Edit(r *server.ModuleEditRequest) (interface{}, error) {
 	m := types.Module{}.New()
 	m.SetID(r.ID).SetName(r.Name)
+
 	if m.GetID() > 0 {
-		return m, db.Replace("crm_module", m)
+		return c.service.Update(context.TODO(), m)
 	}
-	m.SetID(factory.Sonyflake.NextID())
-	return m, db.Insert("crm_module", m)
+
+	return c.service.Create(context.TODO(), m)
 }
 
 func (*Module) ContentList(r *server.ModuleContentListRequest) (interface{}, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	if r.ID > 0 {
-		m := types.ModuleContentRow{}.New()
-		return m, db.Get(m, "select * from crm_module id=?", r.ID)
-	}
-
-	res := make([]types.ModuleContentRow, 0)
-	err = db.Select(&res, "select * from crm_module order by name asc")
-	return res, err
+	return nil, errors.New("Not implemented: Module.content/edit")
 }
 
 func (*Module) ContentEdit(r *server.ModuleContentEditRequest) (interface{}, error) {
