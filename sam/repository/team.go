@@ -57,7 +57,6 @@ func (r team) Find(ctx context.Context, filter *types.TeamFilter) ([]*types.Team
 
 	rval := make([]*types.Team, 0)
 	if err := db.Select(&rval, sql, params...); err != nil {
-		panic(err)
 		return nil, ErrDatabaseError
 	} else {
 		return rval, nil
