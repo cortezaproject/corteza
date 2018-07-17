@@ -1,62 +1,32 @@
 package service
 
 import (
-	"encoding/json"
-	"os"
-	"path"
-	"path/filepath"
-
-	"github.com/pkg/errors"
-
-	_ "github.com/crusttech/crust/crm/types"
+	"context"
+	"github.com/crusttech/crust/crm/repository"
+	"github.com/crusttech/crust/crm/types"
 )
 
-var _ = errors.Wrap
+type (
+	fieldType struct {
+		repository fieldTypeRepository
+	}
 
-type Field struct{}
+	fieldTypeRepository interface {
+		FindByName(context.Context, string) (*types.Field, error)
+		Find(context.Context) ([]*types.Field, error)
+	}
+)
 
-func (Field) New() *Field {
-	return &Field{}
+func Field() fieldType {
+	return fieldType{
+		repository: repository.Field(),
+	}
 }
 
-func (*Field) List() (interface{}, error) {
-	matches, err := filepath.Glob("../crm/data/*.json")
-	if err != nil {
-		return nil, err
-	}
-
-	res := make([]interface{}, 0)
-	for _, match := range matches {
-		t := path.Base(match)
-		t = t[:len(t)-5]
-		params, err := decodeJSON(match)
-		if err != nil {
-			return nil, errors.Wrap(err, "Error when parsing "+match)
-		}
-		params["type"] = t
-		res = append(res, params)
-	}
-	return res, nil
+func (svc fieldType) FindByName(ctx context.Context, name string) (*types.Field, error) {
+	return svc.repository.FindByName(ctx, name)
 }
 
-func (*Field) Type(id string) (interface{}, error) {
-	if id == "" {
-		return nil, errors.New("Missing id parameter")
-	}
-	params, err := decodeJSON("../crm/data/" + id + ".json")
-	if err != nil {
-		return nil, errors.Wrap(err, "Error reading field type: "+id)
-	}
-	params["type"] = id
-	return params, nil
-}
-
-func decodeJSON(filename string) (map[string]interface{}, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	result := make(map[string]interface{})
-	return result, json.NewDecoder(file).Decode(&result)
+func (svc fieldType) Find(ctx context.Context) ([]*types.Field, error) {
+	return svc.repository.Find(ctx)
 }

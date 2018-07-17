@@ -9,11 +9,16 @@ import (
 
 	"github.com/go-chi/chi"
 
-	"github.com/namsral/flag"
-
-	"github.com/crusttech/crust/rbac"
 	"github.com/crusttech/crust/crm/rest"
 	"github.com/titpetric/factory"
+)
+
+const (
+	defaultAddr = ":3000"
+	defaultDsn  = "crust:crust@tcp(db1:3306)/crust?collation=utf8mb4_general_ci"
+
+	envVarKey_HTTP_ADDR = "CRM_HTTP_ADDR"
+	envVarKey_DB_DSN    = "CRM_DB_DSN"
 )
 
 func handleError(err error, message string) {

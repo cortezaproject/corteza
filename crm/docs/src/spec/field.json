@@ -5,7 +5,18 @@
   "Interface": "Field",
   "Struct": [
     {
-      "fields": [],
+      "fields": [
+        {
+          "name": "Name",
+          "tag": "json:\"name\"",
+          "type": "string"
+        },
+        {
+          "name": "Type",
+          "tag": "json:\"type\"",
+          "type": "string"
+        }
+      ],
       "name": "Field"
     }
   ],

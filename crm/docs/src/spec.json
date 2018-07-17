@@ -9,7 +9,10 @@
 		"struct": [
 			{
 				"name": "Field",
-				"fields": []
+				"fields": [
+					{ "name": "Name", "type": "string", "tag": "json:\"name\"" },
+					{ "name": "Type", "type": "string", "tag": "json:\"type\"" }
+				]
 			}
 		],
 		"apis": [
