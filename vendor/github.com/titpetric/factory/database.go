@@ -131,6 +131,15 @@ func (r *DatabaseFactory) Get(dbName ...string) (*DB, error) {
 	return nil, fmt.Errorf("No configuration found for database: %v", names)
 }
 
+// MustGet is the same as Get, except it will panic on connection error
+func (r *DatabaseFactory) MustGet(dbName ...string) *DB {
+	db, err := r.Get(dbName...)
+	if err != nil {
+		panic(err)
+	}
+	return db
+}
+
 // DB struct encapsulates sqlx.DB to add new functions
 type DB struct {
 	*sqlx.DB
