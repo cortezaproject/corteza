@@ -10,6 +10,7 @@ type (
 		auth    string
 		tenant  string
 		baseURL string
+		timeout int
 	}
 )
 
@@ -33,4 +34,5 @@ func Flags() {
 	flag.StringVar(&config.auth, "rbac-auth", "username:password", "Credentials to use for RBAC queries")
 	flag.StringVar(&config.tenant, "rbac-tenant", "", "Tenant ID")
 	flag.StringVar(&config.baseURL, "rbac-base-url", "", "RBAC Base URL")
+	flag.IntVar(&config.timeout, "rbac-timeout", 30, "RBAC request timeout (seconds)")
 }
