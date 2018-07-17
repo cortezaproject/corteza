@@ -3,13 +3,16 @@ package rbac
 import (
 	"encoding/base64"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type (
 	Client struct {
-		Client *http.Client
+		Transport *http.Transport
+		Client    *http.Client
 
 		isDebug bool
 		config  configuration
@@ -21,10 +24,28 @@ func New() (*Client, error) {
 		return nil, err
 	}
 
+	timeout := time.Duration(config.timeout) * time.Second
+
+	transport := &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout: timeout,
+		}).Dial,
+		TLSHandshakeTimeout: timeout,
+	}
+
+	client := &http.Client{
+		Timeout:   timeout,
+		Transport: transport,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
 	return &Client{
-		Client:  &http.Client{}, // @todo: timeouts
-		isDebug: false,
-		config:  config,
+		Transport: transport,
+		Client:    client,
+		isDebug:   false,
+		config:    config,
 	}, nil
 }
 
