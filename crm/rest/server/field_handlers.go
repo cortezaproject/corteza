@@ -23,9 +23,9 @@ import (
 
 func (fh *FieldHandlers) List(w http.ResponseWriter, r *http.Request) {
 	params := FieldListRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return fh.Field.List(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return fh.Field.List(r.Context(), params) })
 }
 func (fh *FieldHandlers) Type(w http.ResponseWriter, r *http.Request) {
 	params := FieldTypeRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return fh.Field.Type(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return fh.Field.Type(r.Context(), params) })
 }

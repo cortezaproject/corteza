@@ -1,6 +1,8 @@
 package rest
 
 import (
+	"context"
+
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
@@ -35,7 +37,7 @@ func (User) New() *User {
 }
 
 /*
-func (self *User) Read(r *teamReadRequest) (interface{}, error) {
+func (self *User) Read(ctx context.Context, r *teamReadRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -47,7 +49,7 @@ func (self *User) Read(r *teamReadRequest) (interface{}, error) {
 */
 
 // User lookup & login
-func (self *User) Login(r *server.UserLoginRequest) (interface{}, error) {
+func (self *User) Login(ctx context.Context, r *server.UserLoginRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -71,7 +73,7 @@ func (self *User) Login(r *server.UserLoginRequest) (interface{}, error) {
 }
 
 // Searches the users table in the database to find users by matching (by-prefix) their.Username
-func (*User) Search(r *server.UserSearchRequest) (interface{}, error) {
+func (*User) Search(ctx context.Context, r *server.UserSearchRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -86,7 +88,7 @@ func (*User) Search(r *server.UserSearchRequest) (interface{}, error) {
 }
 
 /*
-func (self *User) Remove(r *teamRemoveRequest) (interface{}, error) {
+func (self *User) Remove(ctx context.Context, r *teamRemoveRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -100,7 +102,7 @@ func (self *User) Remove(r *teamRemoveRequest) (interface{}, error) {
 	}()
 }
 
-func (self *User) Archive(r *teamArchiveRequest) (interface{}, error) {
+func (self *User) Archive(ctx context.Context, r *teamArchiveRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err

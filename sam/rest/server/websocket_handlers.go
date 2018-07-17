@@ -23,5 +23,5 @@ import (
 
 func (wh *WebsocketHandlers) Client(w http.ResponseWriter, r *http.Request) {
 	params := WebsocketClientRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return wh.Websocket.Client(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return wh.Websocket.Client(r.Context(), params) })
 }

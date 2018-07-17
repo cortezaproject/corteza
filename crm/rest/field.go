@@ -26,10 +26,10 @@ func (Field) New() *Field {
 	return &Field{service: service.Field()}
 }
 
-func (self *Field) List(_ *server.FieldListRequest) (interface{}, error) {
-	return self.service.Find(context.TODO())
+func (self *Field) List(ctx context.Context,_ *server.FieldListRequest) (interface{}, error) {
+	return self.service.Find(ctx)
 }
 
-func (self *Field) Type(r *server.FieldTypeRequest) (interface{}, error) {
-	return self.service.FindByName(context.TODO(), r.ID)
+func (self *Field) Type(ctx context.Context, r *server.FieldTypeRequest) (interface{}, error) {
+	return self.service.FindByName(ctx, r.ID)
 }

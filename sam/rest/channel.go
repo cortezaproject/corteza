@@ -1,6 +1,8 @@
 package rest
 
 import (
+	"context"
+
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
@@ -22,7 +24,7 @@ func (Channel) New() *Channel {
 	return &Channel{}
 }
 
-func (*Channel) Create(r *server.ChannelCreateRequest) (interface{}, error) {
+func (*Channel) Create(ctx context.Context, r *server.ChannelCreateRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -42,7 +44,7 @@ func (*Channel) Create(r *server.ChannelCreateRequest) (interface{}, error) {
 	return c, db.Insert("channels", c)
 }
 
-func (*Channel) Edit(r *server.ChannelEditRequest) (interface{}, error) {
+func (*Channel) Edit(ctx context.Context, r *server.ChannelEditRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -69,7 +71,7 @@ func (*Channel) Edit(r *server.ChannelEditRequest) (interface{}, error) {
 
 }
 
-func (*Channel) Delete(r *server.ChannelDeleteRequest) (interface{}, error) {
+func (*Channel) Delete(ctx context.Context, r *server.ChannelDeleteRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -92,11 +94,11 @@ func (*Channel) Delete(r *server.ChannelDeleteRequest) (interface{}, error) {
 	}()
 }
 
-func (s *Channel) Read(r *server.ChannelReadRequest) (interface{}, error) {
+func (s *Channel) Read(ctx context.Context, r *server.ChannelReadRequest) (interface{}, error) {
 	return s.load(r.ID)
 }
 
-func (*Channel) List(r *server.ChannelListRequest) (interface{}, error) {
+func (*Channel) List(ctx context.Context, r *server.ChannelListRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err

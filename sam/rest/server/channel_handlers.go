@@ -23,21 +23,21 @@ import (
 
 func (ch *ChannelHandlers) List(w http.ResponseWriter, r *http.Request) {
 	params := ChannelListRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.List(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.List(r.Context(), params) })
 }
 func (ch *ChannelHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	params := ChannelCreateRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Create(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Create(r.Context(), params) })
 }
 func (ch *ChannelHandlers) Edit(w http.ResponseWriter, r *http.Request) {
 	params := ChannelEditRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Edit(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Edit(r.Context(), params) })
 }
 func (ch *ChannelHandlers) Read(w http.ResponseWriter, r *http.Request) {
 	params := ChannelReadRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Read(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Read(r.Context(), params) })
 }
 func (ch *ChannelHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 	params := ChannelDeleteRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Delete(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Delete(r.Context(), params) })
 }

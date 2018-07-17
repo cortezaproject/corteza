@@ -16,6 +16,7 @@ package server
 */
 
 import (
+	"context"
 	"net/http"
 )
 
@@ -26,7 +27,7 @@ type WebsocketHandlers struct {
 
 // Internal API interface
 type WebsocketAPI interface {
-	Client(*WebsocketClientRequest) (interface{}, error)
+	Client(context.Context, *WebsocketClientRequest) (interface{}, error)
 
 	// Authenticate API requests
 	Authenticator() func(http.Handler) http.Handler

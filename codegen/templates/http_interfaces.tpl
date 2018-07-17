@@ -3,6 +3,7 @@ package {package}
 {load warning.tpl}
 
 import (
+	"context"
 	"net/http"
 )
 
@@ -14,7 +15,7 @@ type {name}Handlers struct {
 // Internal API interface
 type {name}API interface {
 {foreach $calls as $call}
-	{call.name|capitalize}(*{name|expose}{call.name|capitalize}Request) (interface{}, error)
+	{call.name|capitalize}(context.Context, *{name|expose}{call.name|capitalize}Request) (interface{}, error)
 {/foreach}
 
 	// Authenticate API requests

@@ -16,6 +16,7 @@ package server
 */
 
 import (
+	"context"
 	"net/http"
 )
 
@@ -26,14 +27,14 @@ type TeamHandlers struct {
 
 // Internal API interface
 type TeamAPI interface {
-	List(*TeamListRequest) (interface{}, error)
-	Create(*TeamCreateRequest) (interface{}, error)
-	Edit(*TeamEditRequest) (interface{}, error)
-	Read(*TeamReadRequest) (interface{}, error)
-	Remove(*TeamRemoveRequest) (interface{}, error)
-	Archive(*TeamArchiveRequest) (interface{}, error)
-	Move(*TeamMoveRequest) (interface{}, error)
-	Merge(*TeamMergeRequest) (interface{}, error)
+	List(context.Context, *TeamListRequest) (interface{}, error)
+	Create(context.Context, *TeamCreateRequest) (interface{}, error)
+	Edit(context.Context, *TeamEditRequest) (interface{}, error)
+	Read(context.Context, *TeamReadRequest) (interface{}, error)
+	Remove(context.Context, *TeamRemoveRequest) (interface{}, error)
+	Archive(context.Context, *TeamArchiveRequest) (interface{}, error)
+	Move(context.Context, *TeamMoveRequest) (interface{}, error)
+	Merge(context.Context, *TeamMergeRequest) (interface{}, error)
 
 	// Authenticate API requests
 	Authenticator() func(http.Handler) http.Handler
