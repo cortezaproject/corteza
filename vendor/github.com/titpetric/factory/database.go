@@ -168,6 +168,17 @@ func (r *DB) SetFields(fields []string) string {
 	return sql
 }
 
+// NamedExec adds profiling on top of the parent DB.NameExec
+func (r *DB) NamedExec(query string, arg interface{}) (sql.Result, error) {
+	if r.Profiler != nil {
+		ctx := DatabaseProfilerContext{}.new(query, arg)
+		res, err := r.DB.NamedExec(query, arg)
+		r.Profiler.Post(ctx)
+		return res, err
+	}
+	return r.DB.NamedExec(query, arg)
+}
+
 // Select is a helper function that will ignore sql.ErrNoRows
 func (r *DB) Select(dest interface{}, query string, args ...interface{}) error {
 	var err error
@@ -204,39 +215,97 @@ func (r *DB) Get(dest interface{}, query string, args ...interface{}) error {
 
 // set uses reflection to iterate over struct fields tags, producing bindings for struct values
 func (r *DB) set(data interface{}) string {
+	set := r.setMap(data)
+	return r.setImplode(", ", set)
+}
+
+func (r *DB) tag(tag string) string {
+	if tag != "" && tag != "-" {
+		return strings.Split(tag, ",")[0]
+	}
+	return ""
+}
+
+func (r *DB) setMap(data interface{}) map[string]string {
 	message_value := reflect.ValueOf(data)
 	if message_value.Kind() == reflect.Ptr {
 		message_value = message_value.Elem()
 	}
 
-	message_fields := make([]string, message_value.NumField())
-
-	for i := 0; i < len(message_fields); i++ {
+	set := make(map[string]string)
+	length := message_value.NumField()
+	for i := 0; i < length; i++ {
 		fieldType := message_value.Type().Field(i)
-		message_fields[i] = fieldType.Tag.Get("db")
-	}
-
-	sql := ""
-	for _, tagFull := range message_fields {
-		if tagFull != "" && tagFull != "-" {
-			tag := strings.Split(tagFull, ",")
-			sql = sql + " " + tag[0] + "=:" + tag[0] + ","
+		if tag := r.tag(fieldType.Tag.Get("db")); tag != "" {
+			set[tag] = ":" + tag
 		}
 	}
-	return sql[1 : len(sql)-1]
+	return set
+}
+
+func (r *DB) setImplode(delimiter string, set map[string]string) string {
+	result := ""
+	count := 0
+	for key, value := range set {
+		if count > 0 {
+			result = result + delimiter
+		}
+		result = result + key + "=" + value
+		count++
+	}
+	return result
+}
+
+// Update is a helper function which will issue an `update` statement to the db
+func (r *DB) Update(table string, args interface{}, keys ...string) error {
+	var err error
+	if len(keys) == 0 {
+		return errors.New("Full-table update not supported")
+	}
+	set := r.setMap(args)
+	setWhere := make(map[string]string)
+	for _, key := range keys {
+		value, ok := set[key]
+		if !ok {
+			return errors.New("Can't update table " + table + " by key " + key + " (no such field in struct)")
+		}
+		delete(set, key)
+		setWhere[key] = value
+	}
+	if len(set) == 0 {
+		return errors.New("Encountered update struct with no fields")
+	}
+	query := "update " + table + " set " + r.setImplode(", ", set) + " where " + r.setImplode(" AND ", setWhere)
+	_, err = r.NamedExec(query, args)
+	return err
+}
+
+// Update is a helper function which will issue an `update` statement to the db
+func (r *DB) Delete(table string, args interface{}, keys ...string) error {
+	var err error
+	if len(keys) == 0 {
+		return errors.New("Full-table delete not supported")
+	}
+	set := r.setMap(args)
+	setWhere := make(map[string]string)
+	for _, key := range keys {
+		value, ok := set[key]
+		if !ok {
+			return errors.New("Can't update table " + table + " by key " + key + " (no such field in struct)")
+		}
+		delete(set, key)
+		setWhere[key] = value
+	}
+	query := "delete " + table + " where " + r.setImplode(" AND ", setWhere)
+	_, err = r.NamedExec(query, args)
+	return err
 }
 
 // Replace is a helper function which will issue an `replace` statement to the database
 func (r *DB) Replace(table string, args interface{}) error {
 	var err error
 	query := "replace into " + table + " set " + r.set(args)
-	if r.Profiler != nil {
-		ctx := DatabaseProfilerContext{}.new(query, args)
-		_, err = r.NamedExec(query, args)
-		r.Profiler.Post(ctx)
-	} else {
-		_, err = r.NamedExec(query, args)
-	}
+	_, err = r.NamedExec(query, args)
 	return err
 }
 
@@ -244,13 +313,7 @@ func (r *DB) Replace(table string, args interface{}) error {
 func (r *DB) Insert(table string, args interface{}) error {
 	var err error
 	query := "insert into " + table + " set " + r.set(args)
-	if r.Profiler != nil {
-		ctx := DatabaseProfilerContext{}.new(query, args)
-		_, err = r.NamedExec(query, args)
-		r.Profiler.Post(ctx)
-	} else {
-		_, err = r.NamedExec(query, args)
-	}
+	_, err = r.NamedExec(query, args)
 	return err
 }
 
@@ -258,12 +321,6 @@ func (r *DB) Insert(table string, args interface{}) error {
 func (r *DB) InsertIgnore(table string, args interface{}) error {
 	var err error
 	query := "insert ignore into " + table + " set " + r.set(args)
-	if r.Profiler != nil {
-		ctx := DatabaseProfilerContext{}.new(query, args)
-		_, err = r.NamedExec(query, args)
-		r.Profiler.Post(ctx)
-	} else {
-		_, err = r.NamedExec(query, args)
-	}
+	_, err = r.NamedExec(query, args)
 	return err
 }
