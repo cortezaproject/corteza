@@ -74,7 +74,6 @@ func (r user) Find(ctx context.Context, filter *types.UserFilter) ([]*types.User
 
 	rval := make([]*types.User, 0)
 	if err := db.Select(&rval, sql, params...); err != nil {
-		panic(err)
 		return nil, ErrDatabaseError
 	} else {
 		return rval, nil

@@ -57,7 +57,6 @@ func (r organisation) Find(ctx context.Context, filter *types.OrganisationFilter
 
 	rval := make([]*types.Organisation, 0)
 	if err := db.Select(&rval, sql, params...); err != nil {
-		panic(err)
 		return nil, ErrDatabaseError
 	} else {
 		return rval, nil
