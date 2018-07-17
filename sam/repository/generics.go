@@ -7,10 +7,7 @@ import (
 )
 
 func simpleUpdate(ctx context.Context, tableName, columnName string, value interface{}, id uint64) error {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	sql := fmt.Sprintf("UPDATE %s SET %s = ? WHERE id = ?", tableName, columnName)
 
@@ -22,10 +19,7 @@ func simpleUpdate(ctx context.Context, tableName, columnName string, value inter
 }
 
 func simpleDelete(ctx context.Context, tableName string, id uint64) error {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	sql := fmt.Sprintf("DELETE %s WHERE id = ?", tableName)
 

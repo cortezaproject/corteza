@@ -23,10 +23,7 @@ func User() user {
 }
 
 func (r user) FindByUsername(ctx context.Context, username string) (*types.User, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	mod := &types.User{}
 	if err := db.Get(mod, "SELECT * FROM users WHERE username = ? AND "+sqlUserScope, username); err != nil {
@@ -39,10 +36,7 @@ func (r user) FindByUsername(ctx context.Context, username string) (*types.User,
 }
 
 func (r user) FindById(ctx context.Context, id uint64) (*types.User, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	mod := &types.User{}
 	if err := db.Get(mod, "SELECT * FROM users WHERE id = ? AND "+sqlUserScope, id); err != nil {
@@ -55,10 +49,7 @@ func (r user) FindById(ctx context.Context, id uint64) (*types.User, error) {
 }
 
 func (r user) Find(ctx context.Context, filter *types.UserFilter) ([]*types.User, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	var params = make([]interface{}, 0)
 	sql := "SELECT * FROM users WHERE " + sqlUserScope
@@ -81,10 +72,7 @@ func (r user) Find(ctx context.Context, filter *types.UserFilter) ([]*types.User
 }
 
 func (r user) Create(ctx context.Context, mod *types.User) (*types.User, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	mod.SetID(factory.Sonyflake.NextID())
 	if err := db.Insert("users", mod); err != nil {
@@ -95,10 +83,7 @@ func (r user) Create(ctx context.Context, mod *types.User) (*types.User, error) 
 }
 
 func (r user) Update(ctx context.Context, mod *types.User) (*types.User, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	if err := db.Replace("users", mod); err != nil {
 		return nil, ErrDatabaseError

@@ -22,10 +22,7 @@ func Channel() channel {
 }
 
 func (r channel) FindById(ctx context.Context, id uint64) (*types.Channel, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	mod := &types.Channel{}
 	if err := db.Get(mod, "SELECT * FROM channels WHERE id = ? AND "+sqlChannelScope, id); err != nil {
@@ -38,10 +35,7 @@ func (r channel) FindById(ctx context.Context, id uint64) (*types.Channel, error
 }
 
 func (r channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*types.Channel, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	var params = make([]interface{}, 0)
 	sql := "SELECT * FROM channels WHERE " + sqlChannelScope
@@ -64,10 +58,7 @@ func (r channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*type
 }
 
 func (r channel) Create(ctx context.Context, mod *types.Channel) (*types.Channel, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	mod.SetID(factory.Sonyflake.NextID())
 	if err := db.Insert("channels", mod); err != nil {
@@ -78,10 +69,7 @@ func (r channel) Create(ctx context.Context, mod *types.Channel) (*types.Channel
 }
 
 func (r channel) Update(ctx context.Context, mod *types.Channel) (*types.Channel, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	if err := db.Replace("channels", mod); err != nil {
 		return nil, ErrDatabaseError
