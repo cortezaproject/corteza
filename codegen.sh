@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-set -x
+
 _PWD=$PWD
 SPECS=$(find $PWD -name 'spec.json' | xargs -n1 dirname)
 for SPEC in $SPECS; do
