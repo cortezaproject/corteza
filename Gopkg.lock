@@ -93,7 +93,7 @@
     ".",
     "resputil"
   ]
-  revision = "48ba0357b31ad368f66fa2441bd23c12757c56a0"
+  revision = "382da457432419256cfbcf8806efcc1470adb60f"
 
 [[projects]]
   branch = "master"
