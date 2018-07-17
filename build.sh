@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 PROJECT=$(<.project)
-NAMES=$(ls cmd/* -d | xargs -n1 basename)
+NAMES=$(find cmd/* -type d | xargs -n1 basename)
 for NAME in $NAMES; do
 	OSES=${OSS:-"linux"}
 	ARCHS=${ARCHS:-"amd64"}
