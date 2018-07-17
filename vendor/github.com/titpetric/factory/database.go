@@ -218,22 +218,43 @@ func (r *DB) set(data interface{}) string {
 }
 
 // Replace is a helper function which will issue an `replace` statement to the database
-func (r *DB) Replace(table string, data interface{}) error {
-	sql := "replace into " + table + " set " + r.set(data)
-	_, err := r.NamedExec(sql, data)
+func (r *DB) Replace(table string, args interface{}) error {
+	var err error
+	query := "replace into " + table + " set " + r.set(args)
+	if r.Profiler != nil {
+		ctx := DatabaseProfilerContext{}.new(query, args)
+		_, err = r.NamedExec(query, args)
+		r.Profiler.Post(ctx)
+	} else {
+		_, err = r.NamedExec(query, args)
+	}
 	return err
 }
 
 // Insert is a helper function which will issue an `insert` statement to the database
-func (r *DB) Insert(table string, data interface{}) error {
-	sql := "insert into " + table + " set " + r.set(data)
-	_, err := r.NamedExec(sql, data)
+func (r *DB) Insert(table string, args interface{}) error {
+	var err error
+	query := "insert into " + table + " set " + r.set(args)
+	if r.Profiler != nil {
+		ctx := DatabaseProfilerContext{}.new(query, args)
+		_, err = r.NamedExec(query, args)
+		r.Profiler.Post(ctx)
+	} else {
+		_, err = r.NamedExec(query, args)
+	}
 	return err
 }
 
 // InsertIgnore is a helper function which will issue an `insert ignore` statement to the database
-func (r *DB) InsertIgnore(table string, data interface{}) error {
-	sql := "insert ignore into " + table + " set " + r.set(data)
-	_, err := r.NamedExec(sql, data)
+func (r *DB) InsertIgnore(table string, args interface{}) error {
+	var err error
+	query := "insert ignore into " + table + " set " + r.set(args)
+	if r.Profiler != nil {
+		ctx := DatabaseProfilerContext{}.new(query, args)
+		_, err = r.NamedExec(query, args)
+		r.Profiler.Post(ctx)
+	} else {
+		_, err = r.NamedExec(query, args)
+	}
 	return err
 }
