@@ -18,6 +18,9 @@ package types
 type (
 	// Fields
 	Field struct {
+		Name string `json:"name" db:"name"`
+		Type string `json:"type" db:"type"`
+
 		changed []string
 	}
 )
@@ -28,3 +31,25 @@ func (Field) New() *Field {
 }
 
 /* Getters/setters */
+func (f *Field) GetName() string {
+	return f.Name
+}
+
+func (f *Field) SetName(value string) *Field {
+	if f.Name != value {
+		f.changed = append(f.changed, "Name")
+		f.Name = value
+	}
+	return f
+}
+func (f *Field) GetType() string {
+	return f.Type
+}
+
+func (f *Field) SetType(value string) *Field {
+	if f.Type != value {
+		f.changed = append(f.changed, "Type")
+		f.Type = value
+	}
+	return f
+}
