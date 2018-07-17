@@ -49,31 +49,26 @@
     {
       "Name": "list",
       "Method": "GET",
-      "Title": "List defined modules",
-      "Path": "/list",
+      "Title": "List modules",
+      "Path": "/",
       "Parameters": {
         "get": [
           {
-            "name": "id",
-            "title": "Module ID",
-            "type": "uint64"
+            "name": "query",
+            "required": false,
+            "title": "Search query",
+            "type": "string"
           }
         ]
       }
     },
     {
-      "Name": "edit",
+      "Name": "create",
       "Method": "POST",
-      "Title": "Add/edit module",
-      "Path": "/edit",
+      "Title": "Create module",
+      "Path": "/",
       "Parameters": {
         "post": [
-          {
-            "name": "id",
-            "required": false,
-            "title": "Module ID",
-            "type": "uint64"
-          },
           {
             "name": "name",
             "required": true,
@@ -84,15 +79,118 @@
       }
     },
     {
+      "Name": "read",
+      "Method": "GET",
+      "Title": "Read module",
+      "Path": "/{id}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "Module ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "edit",
+      "Method": "POST",
+      "Title": "Edit module",
+      "Path": "/{id}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "Module ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "name",
+            "required": true,
+            "title": "Module Name",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "delete",
+      "Method": "DELETE",
+      "Title": "Delete module",
+      "Path": "/{id}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "Module ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
       "Name": "content/list",
       "Method": "GET",
       "Title": "List/read contents from module section",
-      "Path": "/content/list",
+      "Path": "/{module}/content",
       "Parameters": {
-        "get": [
+        "path": [
+          {
+            "name": "module",
+            "required": true,
+            "title": "Module ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "content/create",
+      "Method": "POST",
+      "Title": "List/read contents from module section",
+      "Path": "/{module}/content",
+      "Parameters": {
+        "path": [
+          {
+            "name": "module",
+            "required": true,
+            "title": "Module ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "payload",
+            "required": true,
+            "title": "Content JSON",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "content/read",
+      "Method": "GET",
+      "Title": "Read contents by ID from module section",
+      "Path": "/{module}/content/{id}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "module",
+            "required": true,
+            "title": "Module ID",
+            "type": "uint64"
+          },
           {
             "name": "id",
-            "title": "Module ID",
+            "required": true,
+            "title": "Content ID",
             "type": "uint64"
           }
         ]
@@ -102,15 +200,23 @@
       "Name": "content/edit",
       "Method": "POST",
       "Title": "Add/update contents in module section",
-      "Path": "/content/edit",
+      "Path": "/{module}/content/{id}",
       "Parameters": {
-        "post": [
+        "path": [
           {
-            "name": "id",
-            "required": false,
-            "title": "Content ID",
+            "name": "module",
+            "required": true,
+            "title": "Module ID",
             "type": "uint64"
           },
+          {
+            "name": "id",
+            "required": true,
+            "title": "Content ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
           {
             "name": "payload",
             "required": true,
@@ -124,9 +230,15 @@
       "Name": "content/delete",
       "Method": "DELETE",
       "Title": "Delete content row from module section",
-      "Path": "/content/delete",
+      "Path": "/{module}/content/{id}",
       "Parameters": {
-        "post": [
+        "path": [
+          {
+            "name": "module",
+            "required": true,
+            "title": "Module ID",
+            "type": "uint64"
+          },
           {
             "name": "id",
             "required": true,

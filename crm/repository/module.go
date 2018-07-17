@@ -15,11 +15,7 @@ func Module() module {
 }
 
 func (r module) FindById(ctx context.Context, id uint64) (*types.Module, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
-
+	db := factory.Database.MustGet()
 	mod := &types.Module{}
 	if err := db.Get(mod, "SELECT * FROM crm_module WHERE id = ?", id); err != nil {
 		println(err.Error())
@@ -30,11 +26,7 @@ func (r module) FindById(ctx context.Context, id uint64) (*types.Module, error) 
 }
 
 func (r module) Find(ctx context.Context) ([]*types.Module, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
-
+	db := factory.Database.MustGet()
 	mod := make([]*types.Module, 0)
 	if err := db.Select(&mod, "SELECT * FROM crm_module ORDER BY name ASC"); err != nil {
 		println(err.Error())
@@ -45,11 +37,7 @@ func (r module) Find(ctx context.Context) ([]*types.Module, error) {
 }
 
 func (r module) Create(ctx context.Context, mod *types.Module) (*types.Module, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
-
+	db := factory.Database.MustGet()
 	mod.SetID(factory.Sonyflake.NextID())
 	if err := db.Insert("crm_module", mod); err != nil {
 		return nil, ErrDatabaseError
@@ -59,11 +47,7 @@ func (r module) Create(ctx context.Context, mod *types.Module) (*types.Module, e
 }
 
 func (r module) Update(ctx context.Context, mod *types.Module) (*types.Module, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
-
+	db := factory.Database.MustGet()
 	if err := db.Replace("crm_module", mod); err != nil {
 		return nil, ErrDatabaseError
 	} else {
@@ -71,13 +55,9 @@ func (r module) Update(ctx context.Context, mod *types.Module) (*types.Module, e
 	}
 }
 
-func (r module) Delete(ctx context.Context, mod *types.Module) error {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return ErrDatabaseError
-	}
-
-	if _, err := db.Exec("DELETE FROM crm_module WHERE ID = ?", mod.ID); err != nil {
+func (r module) DeleteById(ctx context.Context, id uint64) error {
+	db := factory.Database.MustGet()
+	if _, err := db.Exec("DELETE FROM crm_module WHERE ID = ?", id); err != nil {
 		return ErrDatabaseError
 	} else {
 		return nil
@@ -85,11 +65,7 @@ func (r module) Delete(ctx context.Context, mod *types.Module) error {
 }
 
 //func (r module) Edit(r *moduleEditRequest) (interface{}, error) {
-//	db, err := factory.Database.Get()
-//	if err != nil {
-//		return nil, err
-//	}
-//
+//	db := factory.Database.MustGet()
 //	m := module{}.New()
 //	m.SetID(r.id).SetName(r.name)
 //	if m.GetID() > 0 {
@@ -100,11 +76,7 @@ func (r module) Delete(ctx context.Context, mod *types.Module) error {
 //}
 //
 //func (r module) ContentList(r *moduleContentListRequest) (interface{}, error) {
-//	db, err := factory.Database.Get()
-//	if err != nil {
-//		return nil, err
-//	}
-//
+//	db := factory.Database.MustGet()
 //	if r.id > 0 {
 //		m := ModuleContentRow{}.New()
 //		return m, db.Get(m, "select * from crm_module id=?", r.id)

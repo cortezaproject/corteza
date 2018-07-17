@@ -1,6 +1,6 @@
 {
   "Title": "Fields",
-  "Description": "Fields are building blocks for module forms",
+  "Description": "CRM input field definitions",
   "Package": "crm",
   "Interface": "Field",
   "Struct": [
@@ -27,14 +27,14 @@
     {
       "Name": "list",
       "Method": "GET",
-      "Title": "List available types",
+      "Title": "List available fields",
       "Path": "/",
       "Parameters": null
     },
     {
       "Name": "type",
       "Method": "GET",
-      "Title": "Get type details",
+      "Title": "Get field details",
       "Path": "/{id}",
       "Parameters": {
         "path": [

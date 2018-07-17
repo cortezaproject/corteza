@@ -37,11 +37,16 @@ func MountRoutes(r chi.Router) {
 	r.Group(func(r chi.Router) {
 		r.Use(module.Module.Authenticator())
 		r.Route("/module", func(r chi.Router) {
-			r.Get("/list", module.List)
-			r.Post("/edit", module.Edit)
-			r.Get("/content/list", module.ContentList)
-			r.Post("/content/edit", module.ContentEdit)
-			r.Delete("/content/delete", module.ContentDelete)
+			r.Get("/", module.List)
+			r.Post("/", module.Create)
+			r.Get("/{id}", module.Read)
+			r.Post("/{id}", module.Edit)
+			r.Delete("/{id}", module.Delete)
+			r.Get("/{module}/content", module.ContentList)
+			r.Post("/{module}/content", module.ContentCreate)
+			r.Get("/{module}/content/{id}", module.ContentRead)
+			r.Post("/{module}/content/{id}", module.ContentEdit)
+			r.Delete("/{module}/content/{id}", module.ContentDelete)
 		})
 	})
 
