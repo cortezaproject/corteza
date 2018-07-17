@@ -1,8 +1,8 @@
 package rest
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
