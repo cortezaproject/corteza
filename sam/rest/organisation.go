@@ -2,111 +2,63 @@ package rest
 
 import (
 	"context"
-	"fmt"
-
-	"github.com/pkg/errors"
-	"github.com/titpetric/factory"
-
 	"github.com/crusttech/crust/sam/rest/server"
 	"github.com/crusttech/crust/sam/types"
+	"github.com/pkg/errors"
 )
 
 var _ = errors.Wrap
 
-const (
-	sqlOrganisationScope  = "deleted_at IS NULL AND archived_at IS NULL"
-	sqlOrganisationSelect = "SELECT * FROM organisations WHERE " + sqlOrganisationScope
-)
+type (
+	Organisation struct {
+		service organisationService
+	}
 
-type Organisation struct{}
+	organisationService interface {
+		FindById(context.Context, uint64) (*types.Organisation, error)
+		Find(context.Context, *types.OrganisationFilter) ([]*types.Organisation, error)
+
+		Create(context.Context, *types.Organisation) (*types.Organisation, error)
+		Update(context.Context, *types.Organisation) (*types.Organisation, error)
+
+		deleter
+		archiver
+	}
+)
 
 func (Organisation) New() *Organisation {
 	return &Organisation{}
 }
 
-func (*Organisation) Create(ctx context.Context, r *server.OrganisationCreateRequest) (interface{}, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	// @todo: permission check if user can add/edit organisation
-	// @todo: make sure archived & deleted entries can not be edited
-
-	o := types.Organisation{}.New().SetName(r.Name).SetID(factory.Sonyflake.NextID())
-	return o, db.Insert("organisation", o)
+func (ctrl *Organisation) Read(ctx context.Context, r *server.OrganisationReadRequest) (interface{}, error) {
+	return ctrl.service.FindById(ctx, r.ID)
 }
 
-func (*Organisation) Edit(ctx context.Context, r *server.OrganisationEditRequest) (interface{}, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	// @todo: permission check if user can add/edit organisation
-	// @todo: make sure archived & deleted entries can not be edited
-
-	o := types.Organisation{}.New().SetID(r.ID).SetName(r.Name)
-	return o, db.Replace("organisation", o)
+func (ctrl *Organisation) List(ctx context.Context, r *server.OrganisationListRequest) (interface{}, error) {
+	return ctrl.service.Find(ctx, &types.OrganisationFilter{Query: r.Query})
 }
 
-func (*Organisation) Remove(ctx context.Context, r *server.OrganisationRemoveRequest) (interface{}, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, err
-	}
+func (ctrl *Organisation) Create(ctx context.Context, r *server.OrganisationCreateRequest) (interface{}, error) {
+	org := types.Organisation{}.
+		New().
+		SetName(r.Name)
 
-	// @todo: permission check
-	// @todo: don't actually delete organisation?!
-
-	stmt := "UPDATE organisationss SET deleted_at = NOW() WHERE deleted_at IS NULL AND id = ?"
-
-	return nil, func() error {
-		_, err := db.Exec(stmt, r.ID)
-		return err
-	}()
+	return ctrl.service.Create(ctx, org)
 }
 
-func (*Organisation) Read(ctx context.Context, r *server.OrganisationReadRequest) (interface{}, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, err
-	}
+func (ctrl *Organisation) Edit(ctx context.Context, r *server.OrganisationEditRequest) (interface{}, error) {
+	org := types.Organisation{}.
+		New().
+		SetID(r.ID).
+		SetName(r.Name)
 
-	// @todo: permissions check
-
-	o := types.Organisation{}.New()
-	return o, db.Get(o, sqlOrganisationSelect+" AND id = ?", r.ID)
+	return ctrl.service.Update(ctx, org)
 }
 
-func (*Organisation) List(ctx context.Context, r *server.OrganisationListRequest) (interface{}, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	// @todo: permissions check
-	// @todo: actual search for org
-
-	res := make([]Organisation, 0)
-	err = db.Select(&res, sqlOrganisationSelect+" WHERE label LIKE = ? ORDER BY label ASC", r.Query+"%")
-	return res, err
+func (ctrl *Organisation) Remove(ctx context.Context, r *server.OrganisationRemoveRequest) (interface{}, error) {
+	return nil, ctrl.service.Delete(ctx, r.ID)
 }
 
-func (*Organisation) Archive(ctx context.Context, r *server.OrganisationArchiveRequest) (interface{}, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	// @todo: permission check
-
-	stmt := fmt.Sprintf(
-		"UPDATE organisation SET archived_at = NOW() WHERE %s AND id = ?",
-		sqlChannelScope)
-
-	return nil, func() error {
-		_, err := db.Exec(stmt, r.ID)
-		return err
-	}()
+func (ctrl *Organisation) Archive(ctx context.Context, r *server.OrganisationArchiveRequest) (interface{}, error) {
+	return nil, ctrl.service.Archive(ctx, r.ID)
 }
