@@ -28,8 +28,13 @@ type ModuleHandlers struct {
 // Internal API interface
 type ModuleAPI interface {
 	List(context.Context, *ModuleListRequest) (interface{}, error)
+	Create(context.Context, *ModuleCreateRequest) (interface{}, error)
+	Read(context.Context, *ModuleReadRequest) (interface{}, error)
 	Edit(context.Context, *ModuleEditRequest) (interface{}, error)
+	Delete(context.Context, *ModuleDeleteRequest) (interface{}, error)
 	ContentList(context.Context, *ModuleContentListRequest) (interface{}, error)
+	ContentCreate(context.Context, *ModuleContentCreateRequest) (interface{}, error)
+	ContentRead(context.Context, *ModuleContentReadRequest) (interface{}, error)
 	ContentEdit(context.Context, *ModuleContentEditRequest) (interface{}, error)
 	ContentDelete(context.Context, *ModuleContentDeleteRequest) (interface{}, error)
 
@@ -40,8 +45,13 @@ type ModuleAPI interface {
 // HTTP API interface
 type ModuleHandlersAPI interface {
 	List(http.ResponseWriter, *http.Request)
+	Create(http.ResponseWriter, *http.Request)
+	Read(http.ResponseWriter, *http.Request)
 	Edit(http.ResponseWriter, *http.Request)
+	Delete(http.ResponseWriter, *http.Request)
 	ContentList(http.ResponseWriter, *http.Request)
+	ContentCreate(http.ResponseWriter, *http.Request)
+	ContentRead(http.ResponseWriter, *http.Request)
 	ContentEdit(http.ResponseWriter, *http.Request)
 	ContentDelete(http.ResponseWriter, *http.Request)
 }

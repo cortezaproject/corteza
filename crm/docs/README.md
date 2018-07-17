@@ -1,8 +1,8 @@
 # Fields
 
-Fields are building blocks for module forms
+CRM input field definitions
 
-## List available types
+## List available fields
 
 #### Method
 
@@ -15,7 +15,7 @@ Fields are building blocks for module forms
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 
-## Get type details
+## Get field details
 
 #### Method
 
@@ -36,34 +36,76 @@ Fields are building blocks for module forms
 
 CRM module definitions
 
-## List defined modules
+## List modules
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/list` | HTTP/S | GET |  |
+| `/module/` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | GET | Module ID | N/A | NO |
+| query | string | GET | Search query | N/A | NO |
 
-## Add/edit module
+## Create module
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/edit` | HTTP/S | POST |  |
+| `/module/` | HTTP/S | POST |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | Module ID | N/A | NO |
 | name | string | POST | Module Name | N/A | YES |
+
+## Read module
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/module/{id}` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| id | uint64 | PATH | Module ID | N/A | YES |
+
+## Edit module
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/module/{id}` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| id | uint64 | PATH | Module ID | N/A | YES |
+| name | string | POST | Module Name | N/A | YES |
+
+## Delete module
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/module/{id}` | HTTP/S | DELETE |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| id | uint64 | PATH | Module ID | N/A | YES |
 
 ## List/read contents from module section
 
@@ -71,13 +113,43 @@ CRM module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/content/list` | HTTP/S | GET |  |
+| `/module/{module}/content` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | GET | Module ID | N/A | NO |
+| module | uint64 | PATH | Module ID | N/A | YES |
+
+## List/read contents from module section
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/module/{module}/content` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| module | uint64 | PATH | Module ID | N/A | YES |
+| payload | string | POST | Content JSON | N/A | YES |
+
+## Read contents by ID from module section
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/module/{module}/content/{id}` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| module | uint64 | PATH | Module ID | N/A | YES |
+| id | uint64 | PATH | Content ID | N/A | YES |
 
 ## Add/update contents in module section
 
@@ -85,13 +157,14 @@ CRM module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/content/edit` | HTTP/S | POST |  |
+| `/module/{module}/content/{id}` | HTTP/S | POST |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | Content ID | N/A | NO |
+| module | uint64 | PATH | Module ID | N/A | YES |
+| id | uint64 | PATH | Content ID | N/A | YES |
 | payload | string | POST | Content JSON | N/A | YES |
 
 ## Delete content row from module section
@@ -100,10 +173,11 @@ CRM module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/content/delete` | HTTP/S | DELETE |  |
+| `/module/{module}/content/{id}` | HTTP/S | DELETE |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | Content ID | N/A | YES |
+| module | uint64 | PATH | Module ID | N/A | YES |
+| id | uint64 | PATH | Content ID | N/A | YES |

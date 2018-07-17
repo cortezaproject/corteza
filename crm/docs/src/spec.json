@@ -1,7 +1,7 @@
 [
 	{
 		"title": "Fields",
-		"description": "Fields are building blocks for module forms",
+		"description": "CRM input field definitions",
 		"package": "crm",
 		"entrypoint": "field",
 		"path": "field",
@@ -20,13 +20,13 @@
 				"name": "list",
 				"method": "GET",
 				"path": "/",
-				"title": "List available types"
+				"title": "List available fields"
 			},
 			{
 				"name": "type",
 				"path": "/{id}",
 				"method": "GET",
-				"title": "Get type details",
+				"title": "Get field details",
 				"parameters": {
 					"path": [
 						{ "type": "string", "name": "id", "required": true, "title": "Type ID" }
@@ -66,21 +66,58 @@
 			{
 				"name": "list",
 				"method": "GET",
-				"title": "List defined modules",
+				"title": "List modules",
+				"path": "/",
 				"parameters": {
 					"get": [
-						{ "type": "uint64", "name": "id", "title": "Module ID" }
+						{ "type": "string", "name": "query", "required": false, "title": "Search query" }
+					]
+				}
+			},
+			{
+				"name": "create",
+				"method": "POST",
+				"title": "Create module",
+				"path": "/",
+				"parameters": {
+					"post": [
+						{ "type": "string", "name": "name", "required": true, "title": "Module Name" }
+					]
+				}
+			},
+			{
+				"name": "read",
+				"method": "GET",
+				"title": "Read module",
+				"path": "/{id}",
+				"parameters": {
+					"path": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "Module ID" }
 					]
 				}
 			},
 			{
 				"name": "edit",
 				"method": "POST",
-				"title": "Add/edit module",
+				"title": "Edit module",
+				"path": "/{id}",
 				"parameters": {
+					"path": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "Module ID" }
+					],
 					"post": [
-						{ "type": "uint64", "name": "id", "required": false, "title": "Module ID" },
 						{ "type": "string", "name": "name", "required": true, "title": "Module Name" }
+					]
+				}
+			},
+			{
+				"name": "delete",
+				"method": "DELETE",
+				"title": "Delete module",
+				"path": "/{id}",
+				"parameters": {
+					"path": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "Module ID" }
 					]
 				}
 			},
@@ -88,9 +125,36 @@
 				"name": "content/list",
 				"method": "GET",
 				"title": "List/read contents from module section",
+				"path": "/{module}/content",
 				"parameters": {
-					"get": [
-						{ "type": "uint64", "name": "id", "title": "Module ID" }
+					"path": [
+						{ "type": "uint64", "name": "module", "required": true, "title": "Module ID" }
+					]
+				}
+			},
+			{
+				"name": "content/create",
+				"method": "POST",
+				"title": "List/read contents from module section",
+				"path": "/{module}/content",
+				"parameters": {
+					"path": [
+						{ "type": "uint64", "name": "module", "required": true, "title": "Module ID" }
+					],
+					"post": [
+						{ "type": "string", "name": "payload", "required": true, "title": "Content JSON" }
+					]
+				}
+			},
+			{
+				"name": "content/read",
+				"method": "GET",
+				"title": "Read contents by ID from module section",
+				"path": "/{module}/content/{id}",
+				"parameters": {
+					"path": [
+						{ "type": "uint64", "name": "module", "required": true, "title": "Module ID" },
+						{ "type": "uint64", "name": "id", "required": true, "title": "Content ID" }
 					]
 				}
 			},
@@ -98,9 +162,13 @@
 				"name": "content/edit",
 				"method": "POST",
 				"title": "Add/update contents in module section",
+				"path": "/{module}/content/{id}",
 				"parameters": {
+					"path": [
+						{ "type": "uint64", "name": "module", "required": true, "title": "Module ID" },
+						{ "type": "uint64", "name": "id", "required": true, "title": "Content ID" }
+					],
 					"post": [
-						{ "type": "uint64", "name": "id", "required": false, "title": "Content ID" },
 						{ "type": "string", "name": "payload", "required": true, "title": "Content JSON" }
 					]
 				}
@@ -109,8 +177,10 @@
 				"name": "content/delete",
 				"method": "DELETE",
 				"title": "Delete content row from module section",
+				"path": "/{module}/content/{id}",
 				"parameters": {
-					"post": [
+					"path": [
+						{ "type": "uint64", "name": "module", "required": true, "title": "Module ID" },
 						{ "type": "uint64", "name": "id", "required": true, "title": "Content ID" }
 					]
 				}
