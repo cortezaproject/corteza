@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"net"
 	"os"
@@ -10,6 +9,9 @@ import (
 
 	"github.com/go-chi/chi"
 
+	"github.com/namsral/flag"
+
+	"github.com/crusttech/crust/rbac"
 	"github.com/crusttech/crust/crm/rest"
 	"github.com/titpetric/factory"
 )
@@ -24,26 +26,21 @@ func handleError(err error, message string) {
 }
 
 func main() {
-	// set up flags
-	var (
-		addr = flag.String("addr", ":3000", "Listen address for HTTP server")
-		dsn = flag.String("dsn", "crust:crust@tcp(db1:3306)/crust?collation=utf8mb4_general_ci", "DSN for database connection")
-	)
-	flag.Parse()
+	config := flags("crm")
 
 	// log to stdout not stderr
 	log.SetOutput(os.Stdout)
 
 	// set up database connection
-	factory.Database.Add("default", dsn)
+	factory.Database.Add("default", config.dbDSN)
 	db, err := factory.Database.Get()
 	handleError(err, "Can't connect to database")
 	db.Profiler = &factory.Database.ProfilerStdout
 
 	// listen socket for http server
-	log.Println("Starting http server on address " + *addr)
-	listener, err := net.Listen("tcp", *addr)
-	handleError(err, "Can't listen on addr "+*addr)
+	log.Println("Starting http server on address " + config.httpAddr)
+	listener, err := net.Listen("tcp", config.httpAddr)
+	handleError(err, "Can't listen on addr "+config.httpAddr)
 
 	// route options
 	routeOptions, err := RouteOptions{}.New()
