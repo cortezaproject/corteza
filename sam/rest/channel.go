@@ -3,133 +3,66 @@ package rest
 import (
 	"context"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/sam/rest/server"
+	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
 )
 
 var _ = errors.Wrap
 
-const (
-	sqlChannelScope  = "deleted_at IS NULL AND archived_at IS NULL"
-	sqlChannelSelect = "SELECT * FROM channels WHERE " + sqlChannelScope
-)
-
-type Channel struct{}
-
-func (Channel) New() *Channel {
-	return &Channel{}
-}
-
-func (*Channel) Create(ctx context.Context, r *server.ChannelCreateRequest) (interface{}, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, err
+type (
+	Channel struct {
+		service channelService
 	}
 
-	// @todo: topic message/log entry
-	// @todo: channel name cmessage/log entry
-	// @todo: permission check if user can add channel
+	channelService interface {
+		FindById(context.Context, uint64) (*types.Channel, error)
+		Find(context.Context, *types.ChannelFilter) ([]*types.Channel, error)
 
-	c := types.Channel{}.
+		Create(context.Context, *types.Channel) (*types.Channel, error)
+		Update(context.Context, *types.Channel) (*types.Channel, error)
+
+		deleter
+		archiver
+	}
+)
+
+func (Channel) New() *Channel {
+	return &Channel{service: service.Channel()}
+}
+
+func (ctrl *Channel) Create(ctx context.Context, r *server.ChannelCreateRequest) (interface{}, error) {
+	channel := types.Channel{}.
 		New().
 		SetName(r.Name).
 		SetTopic(r.Topic).
 		SetMeta([]byte("{}")).
 		SetID(factory.Sonyflake.NextID())
 
-	return c, db.Insert("channels", c)
+	return ctrl.service.Create(ctx, channel)
 }
 
-func (*Channel) Edit(ctx context.Context, r *server.ChannelEditRequest) (interface{}, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	/*var c *types.Channel
-	if c, err = c.load(r.ID); err != nil {
-		return nil, err
-	}*/
-
-	// @todo: topic change message/log entry
-	// @todo: channel name change message/log entry
-	// @todo: permission check if user can edit channel
-	// @todo: make sure archived & deleted entries can not be edited
-	// @todo: handle channel moving
-	// @todo: handle channel archiving
-
-	c := types.Channel{}.
+func (ctrl *Channel) Edit(ctx context.Context, r *server.ChannelEditRequest) (interface{}, error) {
+	channel := types.Channel{}.
 		New().
 		SetName(r.Name).
 		SetTopic(r.Topic)
 
-	return c, db.Replace("channels", c)
+	return ctrl.service.Update(ctx, channel)
 
 }
 
-func (*Channel) Delete(ctx context.Context, r *server.ChannelDeleteRequest) (interface{}, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	/*var c *types.Channel
-	if c, err = c.load(r.ID); err != nil {
-		return nil, err
-	}*/
-
-	// @todo: make history unavailable
-	// @todo: notify users that channel has been removed (remove from web UI)
-	// @todo: permissions check if user cah remove channel
-
-	stmt := "UPDATE channels SET deleted_at = NOW() WHERE id = ? AND deleted_at IS NULL"
-	spew.Dump(r.ID)
-	return nil, func() error {
-		_, err := db.Exec(stmt, r.ID)
-		return err
-	}()
+func (ctrl *Channel) Delete(ctx context.Context, r *server.ChannelDeleteRequest) (interface{}, error) {
+	return nil, ctrl.service.Delete(ctx, r.ID)
 }
 
-func (s *Channel) Read(ctx context.Context, r *server.ChannelReadRequest) (interface{}, error) {
-	return s.load(r.ID)
+func (ctrl *Channel) Read(ctx context.Context, r *server.ChannelReadRequest) (interface{}, error) {
+	return ctrl.service.FindById(ctx, r.ID)
 }
 
-func (*Channel) List(ctx context.Context, r *server.ChannelListRequest) (interface{}, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	// @todo: permission check to return only channels that user has access to
-	// @todo: actual searching not just a full select
-
-	res := make([]types.Channel, 0)
-	err = db.Select(&res, sqlChannelSelect+" ORDER BY name ASC")
-	return res, err
-}
-
-func (*Channel) load(id uint64) (*types.Channel, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	c := types.Channel{}.New()
-
-	if id == 0 {
-		return nil, errors.New("Provide channel ID")
-	} else if err := db.Get(c, sqlChannelSelect+" AND id = ?", id); err != nil {
-		return nil, err
-	} else if c.ID != id {
-		spew.Dump(c)
-		return nil, errors.New("Unexisting channel")
-	}
-
-	// @todo: permission check if user can read channel
-
-	return c, nil
+func (ctrl *Channel) List(ctx context.Context, r *server.ChannelListRequest) (interface{}, error) {
+	return ctrl.service.Find(ctx, &types.ChannelFilter{Query: r.Query})
 }

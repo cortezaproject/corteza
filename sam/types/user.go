@@ -22,11 +22,13 @@ import (
 type (
 	// Users
 	User struct {
-		ID          uint64     `db:"id"`
-		Username    string     `db:"username"`
-		Password    []byte     `json:"-" db:"password"`
-		SuspendedAt *time.Time `json:",omitempty" db:"suspended_at"`
-		DeletedAt   *time.Time `json:",omitempty" db:"deleted_at"`
+		ID             uint64      `db:"id"`
+		Username       string      `db:"username"`
+		Meta           interface{} `json:"-" db:"meta"`
+		OrganisationID uint64      `db:"rel_organisation"`
+		Password       []byte      `json:"-" db:"password"`
+		SuspendedAt    *time.Time  `json:",omitempty" db:"suspended_at"`
+		DeletedAt      *time.Time  `json:",omitempty" db:"deleted_at"`
 
 		changed []string
 	}
@@ -57,6 +59,28 @@ func (u *User) SetUsername(value string) *User {
 	if u.Username != value {
 		u.changed = append(u.changed, "Username")
 		u.Username = value
+	}
+	return u
+}
+func (u *User) GetMeta() interface{} {
+	return u.Meta
+}
+
+func (u *User) SetMeta(value interface{}) *User {
+	if u.Meta != value {
+		u.changed = append(u.changed, "Meta")
+		u.Meta = value
+	}
+	return u
+}
+func (u *User) GetOrganisationID() uint64 {
+	return u.OrganisationID
+}
+
+func (u *User) SetOrganisationID(value uint64) *User {
+	if u.OrganisationID != value {
+		u.changed = append(u.changed, "OrganisationID")
+		u.OrganisationID = value
 	}
 	return u
 }
