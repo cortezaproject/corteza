@@ -18,7 +18,7 @@ settings:
 server:
   status: false
 schema:
-- name: crust
+- name: sam
   path: cmd/sam
   commands:
     vet:
@@ -33,6 +33,27 @@ schema:
     paths:
     - .
     - ../../sam
+    extensions:
+    - go
+    ignored_paths:
+    - .git
+    - .realize
+    - vendor
+- name: crm
+  path: cmd/crm
+  commands:
+    vet:
+      status: true
+    test:
+      status: false
+    run:
+      status: true
+  args:
+  - api
+  watcher:
+    paths:
+    - .
+    - ../../crm
     extensions:
     - go
     ignored_paths:
