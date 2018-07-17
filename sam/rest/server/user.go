@@ -16,6 +16,7 @@ package server
 */
 
 import (
+	"context"
 	"net/http"
 )
 
@@ -26,8 +27,8 @@ type UserHandlers struct {
 
 // Internal API interface
 type UserAPI interface {
-	Login(*UserLoginRequest) (interface{}, error)
-	Search(*UserSearchRequest) (interface{}, error)
+	Login(context.Context, *UserLoginRequest) (interface{}, error)
+	Search(context.Context, *UserSearchRequest) (interface{}, error)
 
 	// Authenticate API requests
 	Authenticator() func(http.Handler) http.Handler

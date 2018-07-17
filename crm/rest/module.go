@@ -32,29 +32,29 @@ func (Module) New() *Module {
 	}
 }
 
-func (c *Module) List(r *server.ModuleListRequest) (interface{}, error) {
-	return c.service.Find(context.TODO())
+func (c *Module) List(ctx context.Context, r *server.ModuleListRequest) (interface{}, error) {
+	return c.service.Find(ctx)
 }
 
-func (c *Module) Edit(r *server.ModuleEditRequest) (interface{}, error) {
+func (c *Module) Edit(ctx context.Context, r *server.ModuleEditRequest) (interface{}, error) {
 	m := types.Module{}.New()
 	m.SetID(r.ID).SetName(r.Name)
 
 	if m.GetID() > 0 {
-		return c.service.Update(context.TODO(), m)
+		return c.service.Update(ctx, m)
 	}
 
-	return c.service.Create(context.TODO(), m)
+	return c.service.Create(ctx, m)
 }
 
-func (*Module) ContentList(r *server.ModuleContentListRequest) (interface{}, error) {
+func (*Module) ContentList(ctx context.Context, r *server.ModuleContentListRequest) (interface{}, error) {
 	return nil, errors.New("Not implemented: Module.content/edit")
 }
 
-func (*Module) ContentEdit(r *server.ModuleContentEditRequest) (interface{}, error) {
+func (*Module) ContentEdit(ctx context.Context, r *server.ModuleContentEditRequest) (interface{}, error) {
 	return nil, errors.New("Not implemented: Module.content/edit")
 }
 
-func (*Module) ContentDelete(r *server.ModuleContentDeleteRequest) (interface{}, error) {
+func (*Module) ContentDelete(ctx context.Context, r *server.ModuleContentDeleteRequest) (interface{}, error) {
 	return nil, errors.New("Not implemented: Module.content/delete")
 }

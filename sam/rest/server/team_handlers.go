@@ -23,33 +23,33 @@ import (
 
 func (th *TeamHandlers) List(w http.ResponseWriter, r *http.Request) {
 	params := TeamListRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.List(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.List(r.Context(), params) })
 }
 func (th *TeamHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	params := TeamCreateRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Create(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Create(r.Context(), params) })
 }
 func (th *TeamHandlers) Edit(w http.ResponseWriter, r *http.Request) {
 	params := TeamEditRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Edit(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Edit(r.Context(), params) })
 }
 func (th *TeamHandlers) Read(w http.ResponseWriter, r *http.Request) {
 	params := TeamReadRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Read(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Read(r.Context(), params) })
 }
 func (th *TeamHandlers) Remove(w http.ResponseWriter, r *http.Request) {
 	params := TeamRemoveRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Remove(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Remove(r.Context(), params) })
 }
 func (th *TeamHandlers) Archive(w http.ResponseWriter, r *http.Request) {
 	params := TeamArchiveRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Archive(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Archive(r.Context(), params) })
 }
 func (th *TeamHandlers) Move(w http.ResponseWriter, r *http.Request) {
 	params := TeamMoveRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Move(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Move(r.Context(), params) })
 }
 func (th *TeamHandlers) Merge(w http.ResponseWriter, r *http.Request) {
 	params := TeamMergeRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Merge(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return th.Team.Merge(r.Context(), params) })
 }

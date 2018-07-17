@@ -16,6 +16,7 @@ package server
 */
 
 import (
+	"context"
 	"net/http"
 )
 
@@ -26,8 +27,8 @@ type FieldHandlers struct {
 
 // Internal API interface
 type FieldAPI interface {
-	List(*FieldListRequest) (interface{}, error)
-	Type(*FieldTypeRequest) (interface{}, error)
+	List(context.Context, *FieldListRequest) (interface{}, error)
+	Type(context.Context, *FieldTypeRequest) (interface{}, error)
 
 	// Authenticate API requests
 	Authenticator() func(http.Handler) http.Handler

@@ -2,6 +2,8 @@ package rest
 
 import (
 	"fmt"
+	"context"
+
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
@@ -22,7 +24,7 @@ func (Organisation) New() *Organisation {
 	return &Organisation{}
 }
 
-func (*Organisation) Create(r *server.OrganisationCreateRequest) (interface{}, error) {
+func (*Organisation) Create(ctx context.Context, r *server.OrganisationCreateRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -35,7 +37,7 @@ func (*Organisation) Create(r *server.OrganisationCreateRequest) (interface{}, e
 	return o, db.Insert("organisation", o)
 }
 
-func (*Organisation) Edit(r *server.OrganisationEditRequest) (interface{}, error) {
+func (*Organisation) Edit(ctx context.Context, r *server.OrganisationEditRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -48,7 +50,7 @@ func (*Organisation) Edit(r *server.OrganisationEditRequest) (interface{}, error
 	return o, db.Replace("organisation", o)
 }
 
-func (*Organisation) Remove(r *server.OrganisationRemoveRequest) (interface{}, error) {
+func (*Organisation) Remove(ctx context.Context, r *server.OrganisationRemoveRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -65,7 +67,7 @@ func (*Organisation) Remove(r *server.OrganisationRemoveRequest) (interface{}, e
 	}()
 }
 
-func (*Organisation) Read(r *server.OrganisationReadRequest) (interface{}, error) {
+func (*Organisation) Read(ctx context.Context, r *server.OrganisationReadRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -77,7 +79,7 @@ func (*Organisation) Read(r *server.OrganisationReadRequest) (interface{}, error
 	return o, db.Get(o, sqlOrganisationSelect+" AND id = ?", r.ID)
 }
 
-func (*Organisation) List(r *server.OrganisationListRequest) (interface{}, error) {
+func (*Organisation) List(ctx context.Context, r *server.OrganisationListRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -91,7 +93,7 @@ func (*Organisation) List(r *server.OrganisationListRequest) (interface{}, error
 	return res, err
 }
 
-func (*Organisation) Archive(r *server.OrganisationArchiveRequest) (interface{}, error) {
+func (*Organisation) Archive(ctx context.Context, r *server.OrganisationArchiveRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err

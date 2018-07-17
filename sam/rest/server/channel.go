@@ -16,6 +16,7 @@ package server
 */
 
 import (
+	"context"
 	"net/http"
 )
 
@@ -26,11 +27,11 @@ type ChannelHandlers struct {
 
 // Internal API interface
 type ChannelAPI interface {
-	List(*ChannelListRequest) (interface{}, error)
-	Create(*ChannelCreateRequest) (interface{}, error)
-	Edit(*ChannelEditRequest) (interface{}, error)
-	Read(*ChannelReadRequest) (interface{}, error)
-	Delete(*ChannelDeleteRequest) (interface{}, error)
+	List(context.Context, *ChannelListRequest) (interface{}, error)
+	Create(context.Context, *ChannelCreateRequest) (interface{}, error)
+	Edit(context.Context, *ChannelEditRequest) (interface{}, error)
+	Read(context.Context, *ChannelReadRequest) (interface{}, error)
+	Delete(context.Context, *ChannelDeleteRequest) (interface{}, error)
 
 	// Authenticate API requests
 	Authenticator() func(http.Handler) http.Handler

@@ -23,21 +23,21 @@ import (
 
 func (mh *ModuleHandlers) List(w http.ResponseWriter, r *http.Request) {
 	params := ModuleListRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Module.List(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Module.List(r.Context(), params) })
 }
 func (mh *ModuleHandlers) Edit(w http.ResponseWriter, r *http.Request) {
 	params := ModuleEditRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Module.Edit(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Module.Edit(r.Context(), params) })
 }
 func (mh *ModuleHandlers) ContentList(w http.ResponseWriter, r *http.Request) {
 	params := ModuleContentListRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Module.ContentList(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Module.ContentList(r.Context(), params) })
 }
 func (mh *ModuleHandlers) ContentEdit(w http.ResponseWriter, r *http.Request) {
 	params := ModuleContentEditRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Module.ContentEdit(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Module.ContentEdit(r.Context(), params) })
 }
 func (mh *ModuleHandlers) ContentDelete(w http.ResponseWriter, r *http.Request) {
 	params := ModuleContentDeleteRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Module.ContentDelete(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Module.ContentDelete(r.Context(), params) })
 }

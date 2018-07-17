@@ -16,6 +16,7 @@ package server
 */
 
 import (
+	"context"
 	"net/http"
 )
 
@@ -26,13 +27,13 @@ type MessageHandlers struct {
 
 // Internal API interface
 type MessageAPI interface {
-	Edit(*MessageEditRequest) (interface{}, error)
-	Attach(*MessageAttachRequest) (interface{}, error)
-	Remove(*MessageRemoveRequest) (interface{}, error)
-	Read(*MessageReadRequest) (interface{}, error)
-	Search(*MessageSearchRequest) (interface{}, error)
-	Pin(*MessagePinRequest) (interface{}, error)
-	Flag(*MessageFlagRequest) (interface{}, error)
+	Edit(context.Context, *MessageEditRequest) (interface{}, error)
+	Attach(context.Context, *MessageAttachRequest) (interface{}, error)
+	Remove(context.Context, *MessageRemoveRequest) (interface{}, error)
+	Read(context.Context, *MessageReadRequest) (interface{}, error)
+	Search(context.Context, *MessageSearchRequest) (interface{}, error)
+	Pin(context.Context, *MessagePinRequest) (interface{}, error)
+	Flag(context.Context, *MessageFlagRequest) (interface{}, error)
 
 	// Authenticate API requests
 	Authenticator() func(http.Handler) http.Handler

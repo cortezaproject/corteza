@@ -16,6 +16,7 @@ package server
 */
 
 import (
+	"context"
 	"net/http"
 )
 
@@ -26,12 +27,12 @@ type OrganisationHandlers struct {
 
 // Internal API interface
 type OrganisationAPI interface {
-	List(*OrganisationListRequest) (interface{}, error)
-	Create(*OrganisationCreateRequest) (interface{}, error)
-	Edit(*OrganisationEditRequest) (interface{}, error)
-	Remove(*OrganisationRemoveRequest) (interface{}, error)
-	Read(*OrganisationReadRequest) (interface{}, error)
-	Archive(*OrganisationArchiveRequest) (interface{}, error)
+	List(context.Context, *OrganisationListRequest) (interface{}, error)
+	Create(context.Context, *OrganisationCreateRequest) (interface{}, error)
+	Edit(context.Context, *OrganisationEditRequest) (interface{}, error)
+	Remove(context.Context, *OrganisationRemoveRequest) (interface{}, error)
+	Read(context.Context, *OrganisationReadRequest) (interface{}, error)
+	Archive(context.Context, *OrganisationArchiveRequest) (interface{}, error)
 
 	// Authenticate API requests
 	Authenticator() func(http.Handler) http.Handler

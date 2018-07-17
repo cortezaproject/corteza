@@ -23,29 +23,29 @@ import (
 
 func (mh *MessageHandlers) Edit(w http.ResponseWriter, r *http.Request) {
 	params := MessageEditRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Edit(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Edit(r.Context(), params) })
 }
 func (mh *MessageHandlers) Attach(w http.ResponseWriter, r *http.Request) {
 	params := MessageAttachRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Attach(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Attach(r.Context(), params) })
 }
 func (mh *MessageHandlers) Remove(w http.ResponseWriter, r *http.Request) {
 	params := MessageRemoveRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Remove(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Remove(r.Context(), params) })
 }
 func (mh *MessageHandlers) Read(w http.ResponseWriter, r *http.Request) {
 	params := MessageReadRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Read(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Read(r.Context(), params) })
 }
 func (mh *MessageHandlers) Search(w http.ResponseWriter, r *http.Request) {
 	params := MessageSearchRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Search(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Search(r.Context(), params) })
 }
 func (mh *MessageHandlers) Pin(w http.ResponseWriter, r *http.Request) {
 	params := MessagePinRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Pin(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Pin(r.Context(), params) })
 }
 func (mh *MessageHandlers) Flag(w http.ResponseWriter, r *http.Request) {
 	params := MessageFlagRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Flag(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Flag(r.Context(), params) })
 }

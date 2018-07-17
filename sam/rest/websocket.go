@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"github.com/pkg/errors"
 
 	"github.com/crusttech/crust/sam/rest/server"
@@ -15,6 +16,6 @@ func (Websocket) New() *Websocket {
 	return &Websocket{}
 }
 
-func (*Websocket) Client(r *server.WebsocketClientRequest) (interface{}, error) {
+func (*Websocket) Client(ctx context.Context, r *server.WebsocketClientRequest) (interface{}, error) {
 	return nil, errors.New("Not implemented: Websocket.client")
 }

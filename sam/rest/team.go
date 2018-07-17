@@ -2,6 +2,8 @@ package rest
 
 import (
 	"fmt"
+	"context"
+
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
@@ -22,7 +24,7 @@ func (Team) New() *Team {
 	return &Team{}
 }
 
-func (*Team) Create(r *server.TeamCreateRequest) (interface{}, error) {
+func (*Team) Create(ctx context.Context, r *server.TeamCreateRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -36,7 +38,7 @@ func (*Team) Create(r *server.TeamCreateRequest) (interface{}, error) {
 	return t, db.Insert("team", t)
 }
 
-func (*Team) Edit(r *server.TeamEditRequest) (interface{}, error) {
+func (*Team) Edit(ctx context.Context, r *server.TeamEditRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -50,7 +52,7 @@ func (*Team) Edit(r *server.TeamEditRequest) (interface{}, error) {
 	return t, db.Replace("team", t)
 }
 
-func (*Team) Remove(r *server.TeamRemoveRequest) (interface{}, error) {
+func (*Team) Remove(ctx context.Context, r *server.TeamRemoveRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -64,7 +66,7 @@ func (*Team) Remove(r *server.TeamRemoveRequest) (interface{}, error) {
 	}()
 }
 
-func (*Team) Read(r *server.TeamReadRequest) (interface{}, error) {
+func (*Team) Read(ctx context.Context, r *server.TeamReadRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -74,7 +76,7 @@ func (*Team) Read(r *server.TeamReadRequest) (interface{}, error) {
 	return t, db.Get(t, sqlTeamSelect+" AND id = ?", r.ID)
 }
 
-func (*Team) List(r *server.TeamListRequest) (interface{}, error) {
+func (*Team) List(ctx context.Context, r *server.TeamListRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -85,7 +87,7 @@ func (*Team) List(r *server.TeamListRequest) (interface{}, error) {
 	return res, err
 }
 
-func (*Team) Archive(r *server.TeamArchiveRequest) (interface{}, error) {
+func (*Team) Archive(ctx context.Context, r *server.TeamArchiveRequest) (interface{}, error) {
 	db, err := factory.Database.Get()
 	if err != nil {
 		return nil, err
@@ -101,10 +103,10 @@ func (*Team) Archive(r *server.TeamArchiveRequest) (interface{}, error) {
 	}()
 }
 
-func (*Team) Move(r *server.TeamMoveRequest) (interface{}, error) {
+func (*Team) Move(ctx context.Context, r *server.TeamMoveRequest) (interface{}, error) {
 	return nil, errors.New("Not implemented: Team.move")
 }
 
-func (*Team) Merge(r *server.TeamMergeRequest) (interface{}, error) {
+func (*Team) Merge(ctx context.Context, r *server.TeamMergeRequest) (interface{}, error) {
 	return nil, errors.New("Not implemented: Team.merge")
 }

@@ -16,6 +16,7 @@ package server
 */
 
 import (
+	"context"
 	"net/http"
 )
 
@@ -26,11 +27,11 @@ type ModuleHandlers struct {
 
 // Internal API interface
 type ModuleAPI interface {
-	List(*ModuleListRequest) (interface{}, error)
-	Edit(*ModuleEditRequest) (interface{}, error)
-	ContentList(*ModuleContentListRequest) (interface{}, error)
-	ContentEdit(*ModuleContentEditRequest) (interface{}, error)
-	ContentDelete(*ModuleContentDeleteRequest) (interface{}, error)
+	List(context.Context, *ModuleListRequest) (interface{}, error)
+	Edit(context.Context, *ModuleEditRequest) (interface{}, error)
+	ContentList(context.Context, *ModuleContentListRequest) (interface{}, error)
+	ContentEdit(context.Context, *ModuleContentEditRequest) (interface{}, error)
+	ContentDelete(context.Context, *ModuleContentDeleteRequest) (interface{}, error)
 
 	// Authenticate API requests
 	Authenticator() func(http.Handler) http.Handler

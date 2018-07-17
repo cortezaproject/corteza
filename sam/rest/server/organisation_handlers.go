@@ -23,25 +23,25 @@ import (
 
 func (oh *OrganisationHandlers) List(w http.ResponseWriter, r *http.Request) {
 	params := OrganisationListRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.List(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.List(r.Context(), params) })
 }
 func (oh *OrganisationHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	params := OrganisationCreateRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.Create(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.Create(r.Context(), params) })
 }
 func (oh *OrganisationHandlers) Edit(w http.ResponseWriter, r *http.Request) {
 	params := OrganisationEditRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.Edit(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.Edit(r.Context(), params) })
 }
 func (oh *OrganisationHandlers) Remove(w http.ResponseWriter, r *http.Request) {
 	params := OrganisationRemoveRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.Remove(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.Remove(r.Context(), params) })
 }
 func (oh *OrganisationHandlers) Read(w http.ResponseWriter, r *http.Request) {
 	params := OrganisationReadRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.Read(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.Read(r.Context(), params) })
 }
 func (oh *OrganisationHandlers) Archive(w http.ResponseWriter, r *http.Request) {
 	params := OrganisationArchiveRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.Archive(params) })
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return oh.Organisation.Archive(r.Context(), params) })
 }
