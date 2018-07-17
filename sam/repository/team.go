@@ -22,10 +22,7 @@ func Team() team {
 }
 
 func (r team) FindById(ctx context.Context, id uint64) (*types.Team, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	mod := &types.Team{}
 	if err := db.Get(mod, "SELECT * FROM teams WHERE id = ? AND "+sqlTeamScope, id); err != nil {
@@ -38,10 +35,7 @@ func (r team) FindById(ctx context.Context, id uint64) (*types.Team, error) {
 }
 
 func (r team) Find(ctx context.Context, filter *types.TeamFilter) ([]*types.Team, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	var params = make([]interface{}, 0)
 	sql := "SELECT * FROM teams WHERE " + sqlTeamScope
@@ -64,10 +58,7 @@ func (r team) Find(ctx context.Context, filter *types.TeamFilter) ([]*types.Team
 }
 
 func (r team) Create(ctx context.Context, mod *types.Team) (*types.Team, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	mod.SetID(factory.Sonyflake.NextID())
 	if err := db.Insert("teams", mod); err != nil {
@@ -78,10 +69,7 @@ func (r team) Create(ctx context.Context, mod *types.Team) (*types.Team, error) 
 }
 
 func (r team) Update(ctx context.Context, mod *types.Team) (*types.Team, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	if err := db.Replace("teams", mod); err != nil {
 		return nil, ErrDatabaseError

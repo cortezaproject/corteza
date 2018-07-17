@@ -22,10 +22,7 @@ func Organisation() organisation {
 }
 
 func (r organisation) FindById(ctx context.Context, id uint64) (*types.Organisation, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	mod := &types.Organisation{}
 	if err := db.Get(mod, "SELECT * FROM organisations WHERE id = ? AND "+sqlOrganisationScope, id); err != nil {
@@ -38,10 +35,7 @@ func (r organisation) FindById(ctx context.Context, id uint64) (*types.Organisat
 }
 
 func (r organisation) Find(ctx context.Context, filter *types.OrganisationFilter) ([]*types.Organisation, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	var params = make([]interface{}, 0)
 	sql := "SELECT * FROM organisations WHERE " + sqlOrganisationScope
@@ -64,10 +58,7 @@ func (r organisation) Find(ctx context.Context, filter *types.OrganisationFilter
 }
 
 func (r organisation) Create(ctx context.Context, mod *types.Organisation) (*types.Organisation, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	mod.SetID(factory.Sonyflake.NextID())
 	if err := db.Insert("organisations", mod); err != nil {
@@ -78,10 +69,7 @@ func (r organisation) Create(ctx context.Context, mod *types.Organisation) (*typ
 }
 
 func (r organisation) Update(ctx context.Context, mod *types.Organisation) (*types.Organisation, error) {
-	db, err := factory.Database.Get()
-	if err != nil {
-		return nil, ErrDatabaseError
-	}
+	db := factory.Database.MustGet()
 
 	if err := db.Replace("organisations", mod); err != nil {
 		return nil, ErrDatabaseError
