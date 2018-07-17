@@ -1,4 +1,4 @@
-.PHONY: build realize dep spec protobuf qa qa.test qa.vet
+.PHONY: build realize dep spec protobuf qa qa.test qa.vet codegen
 
 PKG       = "github.com/$(shell cat .project)"
 
@@ -28,9 +28,8 @@ dep.update:
 dep:
 	dep ensure -v
 
-spec: $(SPEC)
-	cd sam/docs/src && $(SPEC)
-	cd sam/ && ./_gen.sh
+codegen: $(SPEC)
+	./codegen.sh
 
 protobuf: $(PROTOC)
 	# @todo this needs work (it hangs and outputs nothing)
