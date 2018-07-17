@@ -26,7 +26,7 @@ func (Field) New() *Field {
 	return &Field{service: service.Field()}
 }
 
-func (self *Field) List(ctx context.Context,_ *server.FieldListRequest) (interface{}, error) {
+func (self *Field) List(ctx context.Context, _ *server.FieldListRequest) (interface{}, error) {
 	return self.service.Find(ctx)
 }
 
