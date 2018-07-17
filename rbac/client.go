@@ -19,6 +19,8 @@ type (
 	}
 )
 
+func (c *Client) Users() *Users { return &Users{c} }
+
 func New() (*Client, error) {
 	if err := config.validate(); err != nil {
 		return nil, err
@@ -50,10 +52,18 @@ func New() (*Client, error) {
 }
 
 func (c *Client) Get(url string) (*http.Response, error) {
-	return c.Request("GET", url)
+	return c.Request("GET", url, nil)
 }
 
-func (c *Client) Request(method string, url string) (*http.Response, error) {
+func (c *Client) Post(url string, body interface{}) (*http.Response, error) {
+	return c.Request("POST", url, body)
+}
+
+func (c *Client) Delete(url string) (*http.Response, error) {
+	return c.Request("DELETE", url, nil)
+}
+
+func (c *Client) Request(method string, url string, body interface{}) (*http.Response, error) {
 	link := strings.TrimRight(c.config.baseURL, "/") + "/" + strings.TrimLeft(url, "/")
 
 	if c.isDebug {
@@ -65,6 +75,7 @@ func (c *Client) Request(method string, url string) (*http.Response, error) {
 		return nil, err
 	}
 
+	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(c.config.auth)))
 	req.Header.Add("X-TENANT-ID", c.config.tenant)
 
