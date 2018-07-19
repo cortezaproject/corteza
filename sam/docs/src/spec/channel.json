@@ -50,6 +50,7 @@
       "name": "Channel"
     }
   ],
+  "Parameters": null,
   "Protocol": "",
   "Authentication": [
     "Client ID",

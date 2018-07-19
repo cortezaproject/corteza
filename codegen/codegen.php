@@ -47,7 +47,18 @@ exec("find -L " . __DIR__ . "/" . $project . " -name index.php", $generators);
 
 $api_files = glob($project . "/docs/src/spec/*.json");
 $apis = array_map(function($filename) {
-	return array_change_key_case_recursive(json_decode(file_get_contents($filename), true));
+	$api = array_change_key_case_recursive(json_decode(file_get_contents($filename), true));
+	if (empty($api['parameters'])) {
+		$api['parameters'] = array();
+	}
+	foreach ($api['apis'] as $kk => $call) {
+		if (empty($call['parameters'])) {
+			$call['parameters'] = array();
+		}
+		$call['parameters'] = array_merge($api['parameters'], $call['parameters']);
+		$api['apis'][$kk] = $call;
+	}
+	return $api;
 }, $api_files);
 
 usort($apis, function($a, $b) {
