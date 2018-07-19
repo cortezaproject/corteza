@@ -13,7 +13,7 @@ import (
 
 func MountRoutes(r chi.Router) {
 {foreach $apis as $api}
-	{api.interface|strtolower} := &server.{api.interface|capitalize}Handlers{{api.interface|capitalize}{ldelim}{rdelim}.New()}
+	{api.interface|strtolower} := &server.{api.interface|capitalize}Handlers{{api.interface|capitalize}:{api.interface|capitalize}{ldelim}{rdelim}.New()}
 {/foreach}
 {foreach $apis as $api}
 	r.Group(func (r chi.Router) {
