@@ -33,7 +33,6 @@
       "name": "Organisation"
     }
   ],
-  "Parameters": null,
   "Protocol": "",
   "Authentication": [
     "Client ID",

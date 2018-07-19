@@ -22,24 +22,31 @@ import (
 )
 
 func MountRoutes(r chi.Router) {
+	auth := &server.AuthHandlers{Auth: Auth{}.New()}
 	channel := &server.ChannelHandlers{Channel: Channel{}.New()}
 	message := &server.MessageHandlers{Message: Message{}.New()}
 	organisation := &server.OrganisationHandlers{Organisation: Organisation{}.New()}
 	team := &server.TeamHandlers{Team: Team{}.New()}
 	user := &server.UserHandlers{User: User{}.New()}
 	r.Group(func(r chi.Router) {
+		r.Use(auth.Auth.Authenticator())
+		r.Route("/auth", func(r chi.Router) {
+			r.Post("/login", auth.Login)
+		})
+	})
+	r.Group(func(r chi.Router) {
 		r.Use(channel.Channel.Authenticator())
 		r.Route("/channel", func(r chi.Router) {
 			r.Get("/", channel.List)
 			r.Put("/", channel.Create)
-			r.Post("/edit", channel.Edit)
-			r.Get("/read", channel.Read)
-			r.Delete("/delete", channel.Delete)
+			r.Post("/{channelId}", channel.Edit)
+			r.Get("/{channelId}", channel.Read)
+			r.Delete("/{channelId}", channel.Delete)
 		})
 	})
 	r.Group(func(r chi.Router) {
 		r.Use(message.Message.Authenticator())
-		r.Route("/channels/{channelId}/messages", func(r chi.Router) {
+		r.Route("/message", func(r chi.Router) {
 			r.Post("/", message.Create)
 			r.Put("/{messageId}", message.Edit)
 			r.Delete("/{messageId}", message.Delete)
@@ -80,7 +87,6 @@ func MountRoutes(r chi.Router) {
 	r.Group(func(r chi.Router) {
 		r.Use(user.User.Authenticator())
 		r.Route("/user", func(r chi.Router) {
-			r.Post("/login", user.Login)
 			r.Get("/search", user.Search)
 		})
 	})

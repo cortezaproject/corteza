@@ -56,11 +56,11 @@ func (ctrl *Channel) Edit(ctx context.Context, r *server.ChannelEditRequest) (in
 }
 
 func (ctrl *Channel) Delete(ctx context.Context, r *server.ChannelDeleteRequest) (interface{}, error) {
-	return nil, ctrl.service.Delete(ctx, r.ID)
+	return nil, ctrl.service.Delete(ctx, r.ChannelId)
 }
 
 func (ctrl *Channel) Read(ctx context.Context, r *server.ChannelReadRequest) (interface{}, error) {
-	return ctrl.service.FindById(ctx, r.ID)
+	return ctrl.service.FindById(ctx, r.ChannelId)
 }
 
 func (ctrl *Channel) List(ctx context.Context, r *server.ChannelListRequest) (interface{}, error) {

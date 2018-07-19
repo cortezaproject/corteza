@@ -50,7 +50,6 @@
       "name": "Channel"
     }
   ],
-  "Parameters": null,
   "Protocol": "",
   "Authentication": [
     "Client ID",
@@ -100,15 +99,17 @@
       "Name": "edit",
       "Method": "POST",
       "Title": "Update channel details",
-      "Path": "/edit",
+      "Path": "/{channelId}",
       "Parameters": {
-        "post": [
+        "path": [
           {
-            "name": "id",
+            "name": "channelId",
             "required": true,
             "title": "Channel ID",
             "type": "uint64"
-          },
+          }
+        ],
+        "post": [
           {
             "name": "name",
             "required": false,
@@ -140,11 +141,11 @@
       "Name": "read",
       "Method": "GET",
       "Title": "Read channel details",
-      "Path": "/read",
+      "Path": "/{channelId}",
       "Parameters": {
-        "get": [
+        "path": [
           {
-            "name": "id",
+            "name": "channelId",
             "required": true,
             "title": "Channel ID",
             "type": "uint64"
@@ -156,11 +157,11 @@
       "Name": "delete",
       "Method": "DELETE",
       "Title": "Remove channel",
-      "Path": "/delete",
+      "Path": "/{channelId}",
       "Parameters": {
-        "get": [
+        "path": [
           {
-            "name": "id",
+            "name": "channelId",
             "required": true,
             "title": "Channel ID",
             "type": "uint64"

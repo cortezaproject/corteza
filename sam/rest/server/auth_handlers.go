@@ -10,8 +10,8 @@ package server
 	1. run [spec](https://github.com/titpetric/spec) in the same folder,
 	2. run `./_gen.php` in this folder.
 
-	You may edit `user.go`, `user.util.go` or `user_test.go` to
-	implement your API calls, helper functions and tests. The file `user.go`
+	You may edit `auth.go`, `auth.util.go` or `auth_test.go` to
+	implement your API calls, helper functions and tests. The file `auth.go`
 	is only generated the first time, and will not be overwritten if it exists.
 */
 
@@ -21,7 +21,7 @@ import (
 	"github.com/titpetric/factory/resputil"
 )
 
-func (uh *UserHandlers) Search(w http.ResponseWriter, r *http.Request) {
-	params := UserSearchRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return uh.User.Search(r.Context(), params) })
+func (ah *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
+	params := AuthLoginRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ah.Auth.Login(r.Context(), params) })
 }

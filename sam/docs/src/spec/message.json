@@ -127,22 +127,12 @@
       "name": "Attachment"
     }
   ],
-  "Parameters": {
-    "path": [
-      {
-        "name": "channelId",
-        "required": true,
-        "title": "Channel ID",
-        "type": "uint64"
-      }
-    ]
-  },
   "Protocol": "",
   "Authentication": [
     "Client ID",
     "Session ID"
   ],
-  "Path": "/channels/{channelId}/messages",
+  "Path": "/message",
   "APIs": [
     {
       "Name": "create",
