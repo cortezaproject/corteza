@@ -16,7 +16,7 @@ package types
 */
 
 type (
-	// Messages
+	// Messages -
 	Message struct {
 		Service    string      `db:"service"`
 		Channel    string      `db:"channel"`
@@ -32,16 +32,17 @@ type (
 	}
 )
 
-/* Constructors */
+// New constructs a new instance of Message
 func (Message) New() *Message {
 	return &Message{}
 }
 
-/* Getters/setters */
+// Get the value of Service
 func (m *Message) GetService() string {
 	return m.Service
 }
 
+// Set the value of Service
 func (m *Message) SetService(value string) *Message {
 	if m.Service != value {
 		m.changed = append(m.changed, "Service")
@@ -49,10 +50,13 @@ func (m *Message) SetService(value string) *Message {
 	}
 	return m
 }
+
+// Get the value of Channel
 func (m *Message) GetChannel() string {
 	return m.Channel
 }
 
+// Set the value of Channel
 func (m *Message) SetChannel(value string) *Message {
 	if m.Channel != value {
 		m.changed = append(m.changed, "Channel")
@@ -60,10 +64,13 @@ func (m *Message) SetChannel(value string) *Message {
 	}
 	return m
 }
+
+// Get the value of UserName
 func (m *Message) GetUserName() string {
 	return m.UserName
 }
 
+// Set the value of UserName
 func (m *Message) SetUserName(value string) *Message {
 	if m.UserName != value {
 		m.changed = append(m.changed, "UserName")
@@ -71,10 +78,13 @@ func (m *Message) SetUserName(value string) *Message {
 	}
 	return m
 }
+
+// Get the value of UserID
 func (m *Message) GetUserID() uint64 {
 	return m.UserID
 }
 
+// Set the value of UserID
 func (m *Message) SetUserID(value uint64) *Message {
 	if m.UserID != value {
 		m.changed = append(m.changed, "UserID")
@@ -82,18 +92,25 @@ func (m *Message) SetUserID(value uint64) *Message {
 	}
 	return m
 }
+
+// Get the value of User
 func (m *Message) GetUser() *User {
 	return m.User
 }
 
+// Set the value of User
 func (m *Message) SetUser(value *User) *Message {
+	m.changed = append(m.changed, "User")
 	m.User = value
 	return m
 }
+
+// Get the value of UserAvatar
 func (m *Message) GetUserAvatar() string {
 	return m.UserAvatar
 }
 
+// Set the value of UserAvatar
 func (m *Message) SetUserAvatar(value string) *Message {
 	if m.UserAvatar != value {
 		m.changed = append(m.changed, "UserAvatar")
@@ -101,10 +118,13 @@ func (m *Message) SetUserAvatar(value string) *Message {
 	}
 	return m
 }
+
+// Get the value of Message
 func (m *Message) GetMessage() string {
 	return m.Message
 }
 
+// Set the value of Message
 func (m *Message) SetMessage(value string) *Message {
 	if m.Message != value {
 		m.changed = append(m.changed, "Message")
@@ -112,10 +132,13 @@ func (m *Message) SetMessage(value string) *Message {
 	}
 	return m
 }
+
+// Get the value of MessageID
 func (m *Message) GetMessageID() string {
 	return m.MessageID
 }
 
+// Set the value of MessageID
 func (m *Message) SetMessageID(value string) *Message {
 	if m.MessageID != value {
 		m.changed = append(m.changed, "MessageID")
@@ -123,14 +146,22 @@ func (m *Message) SetMessageID(value string) *Message {
 	}
 	return m
 }
+
+// Get the value of Type
 func (m *Message) GetType() MessageType {
 	return m.Type
 }
 
+// Set the value of Type
 func (m *Message) SetType(value MessageType) *Message {
 	if m.Type != value {
 		m.changed = append(m.changed, "Type")
 		m.Type = value
 	}
 	return m
+}
+
+// Changes returns the names of changed fields
+func (m *Message) Changes() []string {
+	return m.changed
 }

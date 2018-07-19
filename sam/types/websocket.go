@@ -16,7 +16,7 @@ package types
 */
 
 type (
-	// Websocket
+	// Websocket -
 	Websocket struct {
 		UserID uint64 `db:"user_id"`
 		User   User   `db:"user"`
@@ -25,16 +25,17 @@ type (
 	}
 )
 
-/* Constructors */
+// New constructs a new instance of Websocket
 func (Websocket) New() *Websocket {
 	return &Websocket{}
 }
 
-/* Getters/setters */
+// Get the value of UserID
 func (w *Websocket) GetUserID() uint64 {
 	return w.UserID
 }
 
+// Set the value of UserID
 func (w *Websocket) SetUserID(value uint64) *Websocket {
 	if w.UserID != value {
 		w.changed = append(w.changed, "UserID")
@@ -42,11 +43,20 @@ func (w *Websocket) SetUserID(value uint64) *Websocket {
 	}
 	return w
 }
+
+// Get the value of User
 func (w *Websocket) GetUser() User {
 	return w.User
 }
 
+// Set the value of User
 func (w *Websocket) SetUser(value User) *Websocket {
+	w.changed = append(w.changed, "User")
 	w.User = value
 	return w
+}
+
+// Changes returns the names of changed fields
+func (w *Websocket) Changes() []string {
+	return w.changed
 }

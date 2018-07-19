@@ -20,7 +20,7 @@ import (
 )
 
 type (
-	// Users
+	// Users -
 	User struct {
 		ID             uint64      `db:"id"`
 		Username       string      `db:"username"`
@@ -34,16 +34,17 @@ type (
 	}
 )
 
-/* Constructors */
+// New constructs a new instance of User
 func (User) New() *User {
 	return &User{}
 }
 
-/* Getters/setters */
+// Get the value of ID
 func (u *User) GetID() uint64 {
 	return u.ID
 }
 
+// Set the value of ID
 func (u *User) SetID(value uint64) *User {
 	if u.ID != value {
 		u.changed = append(u.changed, "ID")
@@ -51,10 +52,13 @@ func (u *User) SetID(value uint64) *User {
 	}
 	return u
 }
+
+// Get the value of Username
 func (u *User) GetUsername() string {
 	return u.Username
 }
 
+// Set the value of Username
 func (u *User) SetUsername(value string) *User {
 	if u.Username != value {
 		u.changed = append(u.changed, "Username")
@@ -62,10 +66,13 @@ func (u *User) SetUsername(value string) *User {
 	}
 	return u
 }
+
+// Get the value of Meta
 func (u *User) GetMeta() interface{} {
 	return u.Meta
 }
 
+// Set the value of Meta
 func (u *User) SetMeta(value interface{}) *User {
 	if u.Meta != value {
 		u.changed = append(u.changed, "Meta")
@@ -73,10 +80,13 @@ func (u *User) SetMeta(value interface{}) *User {
 	}
 	return u
 }
+
+// Get the value of OrganisationID
 func (u *User) GetOrganisationID() uint64 {
 	return u.OrganisationID
 }
 
+// Set the value of OrganisationID
 func (u *User) SetOrganisationID(value uint64) *User {
 	if u.OrganisationID != value {
 		u.changed = append(u.changed, "OrganisationID")
@@ -84,27 +94,44 @@ func (u *User) SetOrganisationID(value uint64) *User {
 	}
 	return u
 }
+
+// Get the value of Password
 func (u *User) GetPassword() []byte {
 	return u.Password
 }
 
+// Set the value of Password
 func (u *User) SetPassword(value []byte) *User {
+	u.changed = append(u.changed, "Password")
 	u.Password = value
 	return u
 }
+
+// Get the value of SuspendedAt
 func (u *User) GetSuspendedAt() *time.Time {
 	return u.SuspendedAt
 }
 
+// Set the value of SuspendedAt
 func (u *User) SetSuspendedAt(value *time.Time) *User {
+	u.changed = append(u.changed, "SuspendedAt")
 	u.SuspendedAt = value
 	return u
 }
+
+// Get the value of DeletedAt
 func (u *User) GetDeletedAt() *time.Time {
 	return u.DeletedAt
 }
 
+// Set the value of DeletedAt
 func (u *User) SetDeletedAt(value *time.Time) *User {
+	u.changed = append(u.changed, "DeletedAt")
 	u.DeletedAt = value
 	return u
+}
+
+// Changes returns the names of changed fields
+func (u *User) Changes() []string {
+	return u.changed
 }
