@@ -1,6 +1,8 @@
 package {package}
 
 import (
+	"context"
+	"github.com/crusttech/crust/sam/rest/server"
 	"github.com/pkg/errors"
 )
 
@@ -13,7 +15,7 @@ func ({name}) New() *{name} {
 }
 
 {foreach $calls as $call}
-func (*{name}) {call.name|capitalize}(r *{name|lcfirst}{call.name|capitalize}Request) (interface{}, error) {
+func (ctrl *{name}) {call.name|capitalize}(ctx context.Context, r *server.{name|ucfirst}{call.name|capitalize}Request) (interface{}, error) {
 	return nil, errors.New("Not implemented: {name}.{call.name}")
 }
 

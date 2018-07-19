@@ -26,10 +26,6 @@ func (*Channel) Authenticator() func(http.Handler) http.Handler {
 	return pass
 }
 
-func (*Event) Authenticator() func(http.Handler) http.Handler {
-	return pass
-}
-
 func (*User) Authenticator() func(http.Handler) http.Handler {
 	return pass
 }
