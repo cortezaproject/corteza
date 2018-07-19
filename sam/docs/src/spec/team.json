@@ -45,6 +45,7 @@
       "name": "Team"
     }
   ],
+  "Parameters": null,
   "Protocol": "",
   "Authentication": [
     "Client ID",

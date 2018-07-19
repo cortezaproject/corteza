@@ -28,7 +28,7 @@
           "type": "uint64"
         },
         {
-          "dbname": "rel_message",
+          "dbname": "reply_to",
           "name": "ReplyTo",
           "type": "uint64"
         },
@@ -127,32 +127,30 @@
       "name": "Attachment"
     }
   ],
+  "Parameters": {
+    "path": [
+      {
+        "name": "channelId",
+        "required": true,
+        "title": "Channel ID",
+        "type": "uint64"
+      }
+    ]
+  },
   "Protocol": "",
   "Authentication": [
     "Client ID",
     "Session ID"
   ],
-  "Path": "/message",
+  "Path": "/channels/{channelId}/messages",
   "APIs": [
     {
-      "Name": "edit",
+      "Name": "create",
       "Method": "POST",
-      "Title": "New message / edit message",
-      "Path": "/edit",
+      "Title": "Post new message to the channel",
+      "Path": "/",
       "Parameters": {
         "post": [
-          {
-            "name": "id",
-            "required": false,
-            "title": "Message ID",
-            "type": "uint64"
-          },
-          {
-            "name": "channel_id",
-            "required": false,
-            "title": "Channel ID where to post message",
-            "type": "uint64"
-          },
           {
             "name": "contents",
             "required": true,
@@ -163,21 +161,38 @@
       }
     },
     {
-      "Name": "attach",
+      "Name": "edit",
       "Method": "PUT",
-      "Title": "Attach file to message",
-      "Path": "/attach",
-      "Parameters": null
+      "Title": "Edit existing message",
+      "Path": "/{messageId}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "messageId",
+            "required": true,
+            "title": "Message ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "contents",
+            "required": true,
+            "title": "Message contents (markdown)",
+            "type": "string"
+          }
+        ]
+      }
     },
     {
-      "Name": "remove",
+      "Name": "delete",
       "Method": "DELETE",
-      "Title": "Remove message",
-      "Path": "/remove",
+      "Title": "Delete existing message",
+      "Path": "/{messageId}",
       "Parameters": {
-        "get": [
+        "path": [
           {
-            "name": "id",
+            "name": "messageId",
             "required": true,
             "title": "Message ID",
             "type": "uint64"
@@ -186,20 +201,11 @@
       }
     },
     {
-      "Name": "read",
-      "Method": "GET",
-      "Title": "Read message details",
-      "Path": "/read",
-      "Parameters": {
-        "post": [
-          {
-            "name": "channel_id",
-            "required": true,
-            "title": "Channel ID to read messages from",
-            "type": "uint64"
-          }
-        ]
-      }
+      "Name": "attach",
+      "Method": "PUT",
+      "Title": "Attach file to message",
+      "Path": "/{messageId}/attach",
+      "Parameters": null
     },
     {
       "Name": "search",
@@ -233,11 +239,27 @@
       "Name": "pin",
       "Method": "POST",
       "Title": "Pin message to channel (public bookmark)",
-      "Path": "/pin",
+      "Path": "/{messageId}/pin",
       "Parameters": {
-        "post": [
+        "path": [
           {
-            "name": "id",
+            "name": "messageId",
+            "required": true,
+            "title": "Message ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "unpin",
+      "Method": "DELETE",
+      "Title": "Pin message to channel (public bookmark)",
+      "Path": "/{messageId}/pin",
+      "Parameters": {
+        "path": [
+          {
+            "name": "messageId",
             "required": true,
             "title": "Message ID",
             "type": "uint64"
@@ -248,14 +270,76 @@
     {
       "Name": "flag",
       "Method": "POST",
-      "Title": "Flag message for user (bookmark)",
-      "Path": "/flag",
+      "Title": "Flag a message (private bookmark)",
+      "Path": "/{messageId}/flag",
       "Parameters": {
-        "post": [
+        "path": [
           {
-            "name": "id",
+            "name": "messageId",
             "required": true,
             "title": "Message ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "deflag",
+      "Method": "DELETE",
+      "Title": "Remove flag from message (private bookmark)",
+      "Path": "/{messageId}/flag",
+      "Parameters": {
+        "path": [
+          {
+            "name": "messageId",
+            "required": true,
+            "title": "Message ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "react",
+      "Method": "POST",
+      "Title": "React to a message",
+      "Path": "/{messageId}/react",
+      "Parameters": {
+        "path": [
+          {
+            "name": "messageId",
+            "required": true,
+            "title": "Message ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "reaction",
+            "required": true,
+            "title": "Reaction",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "unreact",
+      "Method": "DELETE",
+      "Title": "Delete reaction from a message",
+      "Path": "/{messageId}/react/{reactionId}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "messageId",
+            "required": true,
+            "title": "Message ID",
+            "type": "uint64"
+          },
+          {
+            "name": "reactionId",
+            "required": true,
+            "title": "Reaction ID",
             "type": "uint64"
           }
         ]

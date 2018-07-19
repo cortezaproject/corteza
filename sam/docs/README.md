@@ -318,21 +318,48 @@ The following event types may be sent with a message event:
 | EDITED | A message has been edited by the sender |
 | REMOVED | A message has been removed by the sender |
 
-## New message / edit message
+## Post new message to the channel
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/message/edit` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelId}/messages/` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | Message ID | N/A | NO |
-| channel_id | uint64 | POST | Channel ID where to post message | N/A | NO |
 | contents | string | POST | Message contents (markdown) | N/A | YES |
+
+## Edit existing message
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channels/{channelId}/messages/{messageId}` | HTTP/S | PUT | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| messageId | uint64 | PATH | Message ID | N/A | YES |
+| contents | string | POST | Message contents (markdown) | N/A | YES |
+
+## Delete existing message
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channels/{channelId}/messages/{messageId}` | HTTP/S | DELETE | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| messageId | uint64 | PATH | Message ID | N/A | YES |
 
 ## Attach file to message
 
@@ -340,40 +367,12 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/message/attach` | HTTP/S | PUT | Client ID, Session ID |
+| `/channels/{channelId}/messages/{messageId}/attach` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-
-## Remove message
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/message/remove` | HTTP/S | DELETE | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | GET | Message ID | N/A | YES |
-
-## Read message details
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/message/read` | HTTP/S | GET | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| channel_id | uint64 | POST | Channel ID to read messages from | N/A | YES |
 
 ## Search messages
 
@@ -381,7 +380,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/message/search` | HTTP/S | GET | Client ID, Session ID |
+| `/channels/{channelId}/messages/search` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -396,27 +395,85 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/message/pin` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelId}/messages/{messageId}/pin` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | Message ID | N/A | YES |
+| messageId | uint64 | PATH | Message ID | N/A | YES |
 
-## Flag message for user (bookmark)
+## Pin message to channel (public bookmark)
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/message/flag` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelId}/messages/{messageId}/pin` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | POST | Message ID | N/A | YES |
+| messageId | uint64 | PATH | Message ID | N/A | YES |
+
+## Flag a message (private bookmark)
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channels/{channelId}/messages/{messageId}/flag` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| messageId | uint64 | PATH | Message ID | N/A | YES |
+
+## Remove flag from message (private bookmark)
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channels/{channelId}/messages/{messageId}/flag` | HTTP/S | DELETE | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| messageId | uint64 | PATH | Message ID | N/A | YES |
+
+## React to a message
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channels/{channelId}/messages/{messageId}/react` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| messageId | uint64 | PATH | Message ID | N/A | YES |
+| reaction | string | POST | Reaction | N/A | YES |
+
+## Delete reaction from a message
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channels/{channelId}/messages/{messageId}/react/{reactionId}` | HTTP/S | DELETE | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| messageId | uint64 | PATH | Message ID | N/A | YES |
+| reactionId | uint64 | PATH | Reaction ID | N/A | YES |
 
 
 

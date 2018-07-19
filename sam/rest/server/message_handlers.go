@@ -21,21 +21,21 @@ import (
 	"github.com/titpetric/factory/resputil"
 )
 
+func (mh *MessageHandlers) Create(w http.ResponseWriter, r *http.Request) {
+	params := MessageCreateRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Create(r.Context(), params) })
+}
 func (mh *MessageHandlers) Edit(w http.ResponseWriter, r *http.Request) {
 	params := MessageEditRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Edit(r.Context(), params) })
 }
+func (mh *MessageHandlers) Delete(w http.ResponseWriter, r *http.Request) {
+	params := MessageDeleteRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Delete(r.Context(), params) })
+}
 func (mh *MessageHandlers) Attach(w http.ResponseWriter, r *http.Request) {
 	params := MessageAttachRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Attach(r.Context(), params) })
-}
-func (mh *MessageHandlers) Remove(w http.ResponseWriter, r *http.Request) {
-	params := MessageRemoveRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Remove(r.Context(), params) })
-}
-func (mh *MessageHandlers) Read(w http.ResponseWriter, r *http.Request) {
-	params := MessageReadRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Read(r.Context(), params) })
 }
 func (mh *MessageHandlers) Search(w http.ResponseWriter, r *http.Request) {
 	params := MessageSearchRequest{}.new()
@@ -45,7 +45,23 @@ func (mh *MessageHandlers) Pin(w http.ResponseWriter, r *http.Request) {
 	params := MessagePinRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Pin(r.Context(), params) })
 }
+func (mh *MessageHandlers) Unpin(w http.ResponseWriter, r *http.Request) {
+	params := MessageUnpinRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Unpin(r.Context(), params) })
+}
 func (mh *MessageHandlers) Flag(w http.ResponseWriter, r *http.Request) {
 	params := MessageFlagRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Flag(r.Context(), params) })
+}
+func (mh *MessageHandlers) Deflag(w http.ResponseWriter, r *http.Request) {
+	params := MessageDeflagRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Deflag(r.Context(), params) })
+}
+func (mh *MessageHandlers) React(w http.ResponseWriter, r *http.Request) {
+	params := MessageReactRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.React(r.Context(), params) })
+}
+func (mh *MessageHandlers) Unreact(w http.ResponseWriter, r *http.Request) {
+	params := MessageUnreactRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Unreact(r.Context(), params) })
 }

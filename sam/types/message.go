@@ -28,7 +28,7 @@ type (
 		Message   string     `db:"message"`
 		UserId    uint64     `db:"rel_user"`
 		ChannelId uint64     `db:"rel_channel"`
-		ReplyTo   uint64     `db:"rel_message"`
+		ReplyTo   uint64     `db:"reply_to"`
 		UpdatedAt *time.Time `json:",omitempty" db:"updated_at"`
 		DeletedAt *time.Time `json:",omitempty" db:"deleted_at"`
 

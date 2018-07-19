@@ -27,13 +27,17 @@ type MessageHandlers struct {
 
 // Internal API interface
 type MessageAPI interface {
+	Create(context.Context, *MessageCreateRequest) (interface{}, error)
 	Edit(context.Context, *MessageEditRequest) (interface{}, error)
+	Delete(context.Context, *MessageDeleteRequest) (interface{}, error)
 	Attach(context.Context, *MessageAttachRequest) (interface{}, error)
-	Remove(context.Context, *MessageRemoveRequest) (interface{}, error)
-	Read(context.Context, *MessageReadRequest) (interface{}, error)
 	Search(context.Context, *MessageSearchRequest) (interface{}, error)
 	Pin(context.Context, *MessagePinRequest) (interface{}, error)
+	Unpin(context.Context, *MessageUnpinRequest) (interface{}, error)
 	Flag(context.Context, *MessageFlagRequest) (interface{}, error)
+	Deflag(context.Context, *MessageDeflagRequest) (interface{}, error)
+	React(context.Context, *MessageReactRequest) (interface{}, error)
+	Unreact(context.Context, *MessageUnreactRequest) (interface{}, error)
 
 	// Authenticate API requests
 	Authenticator() func(http.Handler) http.Handler
@@ -41,11 +45,15 @@ type MessageAPI interface {
 
 // HTTP API interface
 type MessageHandlersAPI interface {
+	Create(http.ResponseWriter, *http.Request)
 	Edit(http.ResponseWriter, *http.Request)
+	Delete(http.ResponseWriter, *http.Request)
 	Attach(http.ResponseWriter, *http.Request)
-	Remove(http.ResponseWriter, *http.Request)
-	Read(http.ResponseWriter, *http.Request)
 	Search(http.ResponseWriter, *http.Request)
 	Pin(http.ResponseWriter, *http.Request)
+	Unpin(http.ResponseWriter, *http.Request)
 	Flag(http.ResponseWriter, *http.Request)
+	Deflag(http.ResponseWriter, *http.Request)
+	React(http.ResponseWriter, *http.Request)
+	Unreact(http.ResponseWriter, *http.Request)
 }

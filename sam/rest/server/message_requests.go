@@ -22,11 +22,41 @@ import (
 
 var _ = chi.URLParam
 
+// Message create request parameters
+type MessageCreateRequest struct {
+	ChannelId uint64
+	Contents  string
+}
+
+func (MessageCreateRequest) new() *MessageCreateRequest {
+	return &MessageCreateRequest{}
+}
+
+func (m *MessageCreateRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
+
+	m.Contents = post["contents"]
+	return nil
+}
+
+var _ RequestFiller = MessageCreateRequest{}.new()
+
 // Message edit request parameters
 type MessageEditRequest struct {
-	ID         uint64
-	Channel_id uint64
-	Contents   string
+	MessageId uint64
+	Contents  string
 }
 
 func (MessageEditRequest) new() *MessageEditRequest {
@@ -46,9 +76,7 @@ func (m *MessageEditRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	m.ID = parseUInt64(post["id"])
-
-	m.Channel_id = parseUInt64(post["channel_id"])
+	m.MessageId = parseUInt64(chi.URLParam(r, "messageId"))
 
 	m.Contents = post["contents"]
 	return nil
@@ -56,8 +84,37 @@ func (m *MessageEditRequest) Fill(r *http.Request) error {
 
 var _ RequestFiller = MessageEditRequest{}.new()
 
+// Message delete request parameters
+type MessageDeleteRequest struct {
+	MessageId uint64
+}
+
+func (MessageDeleteRequest) new() *MessageDeleteRequest {
+	return &MessageDeleteRequest{}
+}
+
+func (m *MessageDeleteRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	m.MessageId = parseUInt64(chi.URLParam(r, "messageId"))
+	return nil
+}
+
+var _ RequestFiller = MessageDeleteRequest{}.new()
+
 // Message attach request parameters
 type MessageAttachRequest struct {
+	ChannelId uint64
 }
 
 func (MessageAttachRequest) new() *MessageAttachRequest {
@@ -76,69 +133,16 @@ func (m *MessageAttachRequest) Fill(r *http.Request) error {
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
+
+	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
 	return nil
 }
 
 var _ RequestFiller = MessageAttachRequest{}.new()
 
-// Message remove request parameters
-type MessageRemoveRequest struct {
-	ID uint64
-}
-
-func (MessageRemoveRequest) new() *MessageRemoveRequest {
-	return &MessageRemoveRequest{}
-}
-
-func (m *MessageRemoveRequest) Fill(r *http.Request) error {
-	r.ParseForm()
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := r.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := r.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	m.ID = parseUInt64(get["id"])
-	return nil
-}
-
-var _ RequestFiller = MessageRemoveRequest{}.new()
-
-// Message read request parameters
-type MessageReadRequest struct {
-	Channel_id uint64
-}
-
-func (MessageReadRequest) new() *MessageReadRequest {
-	return &MessageReadRequest{}
-}
-
-func (m *MessageReadRequest) Fill(r *http.Request) error {
-	r.ParseForm()
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := r.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := r.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	m.Channel_id = parseUInt64(post["channel_id"])
-	return nil
-}
-
-var _ RequestFiller = MessageReadRequest{}.new()
-
 // Message search request parameters
 type MessageSearchRequest struct {
+	ChannelId    uint64
 	Query        string
 	Message_type string
 }
@@ -160,6 +164,8 @@ func (m *MessageSearchRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
+	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
+
 	m.Query = get["query"]
 
 	m.Message_type = get["message_type"]
@@ -170,7 +176,7 @@ var _ RequestFiller = MessageSearchRequest{}.new()
 
 // Message pin request parameters
 type MessagePinRequest struct {
-	ID uint64
+	MessageId uint64
 }
 
 func (MessagePinRequest) new() *MessagePinRequest {
@@ -190,15 +196,43 @@ func (m *MessagePinRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	m.ID = parseUInt64(post["id"])
+	m.MessageId = parseUInt64(chi.URLParam(r, "messageId"))
 	return nil
 }
 
 var _ RequestFiller = MessagePinRequest{}.new()
 
+// Message unpin request parameters
+type MessageUnpinRequest struct {
+	MessageId uint64
+}
+
+func (MessageUnpinRequest) new() *MessageUnpinRequest {
+	return &MessageUnpinRequest{}
+}
+
+func (m *MessageUnpinRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	m.MessageId = parseUInt64(chi.URLParam(r, "messageId"))
+	return nil
+}
+
+var _ RequestFiller = MessageUnpinRequest{}.new()
+
 // Message flag request parameters
 type MessageFlagRequest struct {
-	ID uint64
+	MessageId uint64
 }
 
 func (MessageFlagRequest) new() *MessageFlagRequest {
@@ -218,8 +252,98 @@ func (m *MessageFlagRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	m.ID = parseUInt64(post["id"])
+	m.MessageId = parseUInt64(chi.URLParam(r, "messageId"))
 	return nil
 }
 
 var _ RequestFiller = MessageFlagRequest{}.new()
+
+// Message deflag request parameters
+type MessageDeflagRequest struct {
+	MessageId uint64
+}
+
+func (MessageDeflagRequest) new() *MessageDeflagRequest {
+	return &MessageDeflagRequest{}
+}
+
+func (m *MessageDeflagRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	m.MessageId = parseUInt64(chi.URLParam(r, "messageId"))
+	return nil
+}
+
+var _ RequestFiller = MessageDeflagRequest{}.new()
+
+// Message react request parameters
+type MessageReactRequest struct {
+	MessageId uint64
+	Reaction  string
+}
+
+func (MessageReactRequest) new() *MessageReactRequest {
+	return &MessageReactRequest{}
+}
+
+func (m *MessageReactRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	m.MessageId = parseUInt64(chi.URLParam(r, "messageId"))
+
+	m.Reaction = post["reaction"]
+	return nil
+}
+
+var _ RequestFiller = MessageReactRequest{}.new()
+
+// Message unreact request parameters
+type MessageUnreactRequest struct {
+	MessageId  uint64
+	ReactionId uint64
+}
+
+func (MessageUnreactRequest) new() *MessageUnreactRequest {
+	return &MessageUnreactRequest{}
+}
+
+func (m *MessageUnreactRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	m.MessageId = parseUInt64(chi.URLParam(r, "messageId"))
+
+	m.ReactionId = parseUInt64(chi.URLParam(r, "reactionId"))
+	return nil
+}
+
+var _ RequestFiller = MessageUnreactRequest{}.new()
