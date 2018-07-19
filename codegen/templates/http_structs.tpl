@@ -10,6 +10,8 @@ import (
 )
 {/if}
 
+
+{if !empty($structs)}
 type ({foreach $structs as $struct}
 
 {if strpos($name, "Literal") !== false}
@@ -28,6 +30,7 @@ type ({foreach $structs as $struct}
 
 {/if}{/foreach}
 )
+{/if}
 
 {foreach $structs as $struct}
 // New constructs a new instance of {struct.name}

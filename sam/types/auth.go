@@ -14,5 +14,3 @@ package types
 	implement your API calls, helper functions and tests. The file `auth.go`
 	is only generated the first time, and will not be overwritten if it exists.
 */
-
-type ()
