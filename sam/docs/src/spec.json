@@ -3,6 +3,7 @@
 		"title": "Organisations",
 		"description": "Organisations represent a top-level grouping entity. There may be many organisations defined in a single deployment.",
 		"package": "sam",
+		"path": "/organisations",
 		"entrypoint": "organisation",
 		"authentication": ["Client ID", "Session ID"],
 		"struct": [
@@ -93,6 +94,7 @@
 		"title": "Teams",
 		"description": "An organisation may have many teams. Teams may have many channels available. Access to channels may be shared between teams.",
 		"package": "sam",
+		"path": "/teams",
 		"entrypoint": "team",
 		"authentication": ["Client ID", "Session ID"],
 		"struct": [
@@ -140,7 +142,7 @@
 				"path": "/{id}",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Team ID" }
+						{ "type": "uint64", "name": "teamId", "required": true, "title": "Team ID" }
 					],
 					"post": [
 						{ "type": "string", "name": "name", "required": false, "title": "Name of Team" },
@@ -155,7 +157,7 @@
 				"path": "/{id}",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
+						{ "type": "uint64", "name": "teamId", "required": true, "title": "Organisation ID" }
 					]
 				}
 			},
@@ -166,7 +168,7 @@
 				"path": "/{id}",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
+						{ "type": "uint64", "name": "teamId", "required": true, "title": "Organisation ID" }
 					]
 				}
 			},
@@ -177,7 +179,7 @@
 				"path": "/{id}/archive",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
+						{ "type": "uint64", "name": "teamId", "required": true, "title": "Organisation ID" }
 					]
 				}
 			},
@@ -188,7 +190,7 @@
 				"path": "/{id}/move",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
+						{ "type": "uint64", "name": "teamId", "required": true, "title": "Organisation ID" }
 					],
 					"post": [
 						{ "type": "uint64", "name": "organisation_id", "required": true, "title": "Organisation ID" }
@@ -202,7 +204,7 @@
 				"path": "/{id}/merge",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Source Channel ID" }
+						{ "type": "uint64", "name": "teamId", "required": true, "title": "Source Channel ID" }
 					],
 					"post": [
 						{ "type": "uint64", "name": "destination", "required": true, "title": "Destination Channel ID" }
@@ -216,6 +218,7 @@
 		"description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or direct (between two users).",
 		"package": "sam",
 		"entrypoint": "channel",
+		"path": "/channels",
 		"authentication": ["Client ID", "Session ID"],
 		"struct": [
 			{
@@ -262,10 +265,13 @@
 			{
 				"name": "edit",
 				"method": "POST",
+				"path": "/{channelId}",
 				"title": "Update channel details",
 				"parameters": {
+					"path": [
+						{ "type": "uint64", "name": "channelId", "required": true, "title": "Channel ID" }
+					],
 					"post": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Channel ID" },
 						{ "type": "string", "name": "name", "required": false, "title": "Name of Channel" },
 						{ "type": "string", "name": "topic", "required": false, "title": "Subject of Channel" },
 						{ "type": "bool",   "name": "archive", "required": false, "title": "Request channel to be archived or unarchived" },
@@ -276,20 +282,22 @@
 			{
 				"name": "read",
 				"method": "GET",
+				"path": "/{channelId}",
 				"title": "Read channel details",
 				"parameters": {
-					"get": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Channel ID" }
+					"path": [
+						{ "type": "uint64", "name": "channelId", "required": true, "title": "Channel ID" }
 					]
 				}
 			},
 			{
 				"name": "delete",
 				"method": "DELETE",
+				"path": "/{channelId}",
 				"title": "Remove channel",
 				"parameters": {
-					"get": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Channel ID" }
+					"path": [
+						{ "type": "uint64", "name": "channelId", "required": true, "title": "Channel ID" }
 					]
 				}
 			}
@@ -491,6 +499,7 @@
 	{
 		"title": "Users",
 		"package": "sam",
+		"path": "/users",
 		"entrypoint": "user",
 		"authentication": ["Client ID", "Session ID"],
 		"struct": [
@@ -510,6 +519,25 @@
 		],
 		"apis": [
 			{
+				"name": "search",
+				"method": "GET",
+				"title": "Search users (Directory)",
+				"parameters": {
+					"get": [
+						{ "type": "string", "name": "query", "required": false, "title": "Search query to match against users" }
+					]
+				}
+			}
+		]
+	},
+	{
+		"title": "Authentication",
+		"package": "sam",
+		"path": "/auth",
+		"entrypoint": "auth",
+		"struct": [],
+		"apis": [
+			{
 				"name": "login",
 				"method": "POST",
 				"title": "User login",
@@ -517,16 +545,6 @@
 					"post": [
 						{ "type": "string", "name": "username", "required": true, "title": "Username or email" },
 						{ "type": "string", "name": "password", "required": true, "title": "Password for user" }
-					]
-				}
-			},
-			{
-				"name": "search",
-				"method": "GET",
-				"title": "Search users (Directory)",
-				"parameters": {
-					"get": [
-						{ "type": "string", "name": "query", "required": false, "title": "Search query to match against users" }
 					]
 				}
 			}

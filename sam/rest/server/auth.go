@@ -10,8 +10,8 @@ package server
 	1. run [spec](https://github.com/titpetric/spec) in the same folder,
 	2. run `./_gen.php` in this folder.
 
-	You may edit `user.go`, `user.util.go` or `user_test.go` to
-	implement your API calls, helper functions and tests. The file `user.go`
+	You may edit `auth.go`, `auth.util.go` or `auth_test.go` to
+	implement your API calls, helper functions and tests. The file `auth.go`
 	is only generated the first time, and will not be overwritten if it exists.
 */
 
@@ -21,19 +21,19 @@ import (
 )
 
 // HTTP handlers are a superset of internal APIs
-type UserHandlers struct {
-	User UserAPI
+type AuthHandlers struct {
+	Auth AuthAPI
 }
 
 // Internal API interface
-type UserAPI interface {
-	Search(context.Context, *UserSearchRequest) (interface{}, error)
+type AuthAPI interface {
+	Login(context.Context, *AuthLoginRequest) (interface{}, error)
 
 	// Authenticate API requests
 	Authenticator() func(http.Handler) http.Handler
 }
 
 // HTTP API interface
-type UserHandlersAPI interface {
-	Search(http.ResponseWriter, *http.Request)
+type AuthHandlersAPI interface {
+	Login(http.ResponseWriter, *http.Request)
 }

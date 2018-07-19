@@ -1,31 +1,30 @@
 package rest
 
 import (
-	"net/http"
+	"context"
+	"github.com/crusttech/crust/sam/rest/server"
+	"github.com/crusttech/crust/sam/service"
+	"github.com/crusttech/crust/sam/types"
+	"github.com/pkg/errors"
 )
 
-var pass = func(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
-	})
+var _ = errors.Wrap
+
+type (
+	Auth struct {
+		service authUserService
+	}
+
+	authUserService interface {
+		ValidateCredentials(context.Context, string, string) (*types.User, error)
+	}
+)
+
+func (Auth) New() *Auth {
+	return &Auth{service: service.User()}
 }
 
-func (*Organisation) Authenticator() func(http.Handler) http.Handler {
-	return pass
-}
+func (ctrl *Auth) Login(ctx context.Context, r *server.AuthLoginRequest) (interface{}, error) {
+	return ctrl.service.ValidateCredentials(ctx, r.Username, r.Password)
 
-func (*Team) Authenticator() func(http.Handler) http.Handler {
-	return pass
-}
-
-func (*Message) Authenticator() func(http.Handler) http.Handler {
-	return pass
-}
-
-func (*Channel) Authenticator() func(http.Handler) http.Handler {
-	return pass
-}
-
-func (*User) Authenticator() func(http.Handler) http.Handler {
-	return pass
 }

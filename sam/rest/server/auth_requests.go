@@ -10,8 +10,8 @@ package server
 	1. run [spec](https://github.com/titpetric/spec) in the same folder,
 	2. run `./_gen.php` in this folder.
 
-	You may edit `user.go`, `user.util.go` or `user_test.go` to
-	implement your API calls, helper functions and tests. The file `user.go`
+	You may edit `auth.go`, `auth.util.go` or `auth_test.go` to
+	implement your API calls, helper functions and tests. The file `auth.go`
 	is only generated the first time, and will not be overwritten if it exists.
 */
 
@@ -22,16 +22,17 @@ import (
 
 var _ = chi.URLParam
 
-// User search request parameters
-type UserSearchRequest struct {
-	Query string
+// Auth login request parameters
+type AuthLoginRequest struct {
+	Username string
+	Password string
 }
 
-func (UserSearchRequest) new() *UserSearchRequest {
-	return &UserSearchRequest{}
+func (AuthLoginRequest) new() *AuthLoginRequest {
+	return &AuthLoginRequest{}
 }
 
-func (u *UserSearchRequest) Fill(r *http.Request) error {
+func (a *AuthLoginRequest) Fill(r *http.Request) error {
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -44,8 +45,10 @@ func (u *UserSearchRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	u.Query = get["query"]
+	a.Username = post["username"]
+
+	a.Password = post["password"]
 	return nil
 }
 
-var _ RequestFiller = UserSearchRequest{}.new()
+var _ RequestFiller = AuthLoginRequest{}.new()

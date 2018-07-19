@@ -83,7 +83,7 @@ var _ RequestFiller = ChannelCreateRequest{}.new()
 
 // Channel edit request parameters
 type ChannelEditRequest struct {
-	ID             uint64
+	ChannelId      uint64
 	Name           string
 	Topic          string
 	Archive        bool
@@ -107,7 +107,7 @@ func (c *ChannelEditRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	c.ID = parseUInt64(post["id"])
+	c.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
 
 	c.Name = post["name"]
 
@@ -123,7 +123,7 @@ var _ RequestFiller = ChannelEditRequest{}.new()
 
 // Channel read request parameters
 type ChannelReadRequest struct {
-	ID uint64
+	ChannelId uint64
 }
 
 func (ChannelReadRequest) new() *ChannelReadRequest {
@@ -143,7 +143,7 @@ func (c *ChannelReadRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	c.ID = parseUInt64(get["id"])
+	c.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
 	return nil
 }
 
@@ -151,7 +151,7 @@ var _ RequestFiller = ChannelReadRequest{}.new()
 
 // Channel delete request parameters
 type ChannelDeleteRequest struct {
-	ID uint64
+	ChannelId uint64
 }
 
 func (ChannelDeleteRequest) new() *ChannelDeleteRequest {
@@ -171,7 +171,7 @@ func (c *ChannelDeleteRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	c.ID = parseUInt64(get["id"])
+	c.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
 	return nil
 }
 

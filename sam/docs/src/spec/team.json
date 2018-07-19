@@ -45,7 +45,6 @@
       "name": "Team"
     }
   ],
-  "Parameters": null,
   "Protocol": "",
   "Authentication": [
     "Client ID",
@@ -99,7 +98,7 @@
       "Parameters": {
         "path": [
           {
-            "name": "id",
+            "name": "teamId",
             "required": true,
             "title": "Team ID",
             "type": "uint64"
@@ -129,7 +128,7 @@
       "Parameters": {
         "path": [
           {
-            "name": "id",
+            "name": "teamId",
             "required": true,
             "title": "Organisation ID",
             "type": "uint64"
@@ -145,7 +144,7 @@
       "Parameters": {
         "path": [
           {
-            "name": "id",
+            "name": "teamId",
             "required": true,
             "title": "Organisation ID",
             "type": "uint64"
@@ -161,7 +160,7 @@
       "Parameters": {
         "path": [
           {
-            "name": "id",
+            "name": "teamId",
             "required": true,
             "title": "Organisation ID",
             "type": "uint64"
@@ -177,7 +176,7 @@
       "Parameters": {
         "path": [
           {
-            "name": "id",
+            "name": "teamId",
             "required": true,
             "title": "Organisation ID",
             "type": "uint64"
@@ -201,7 +200,7 @@
       "Parameters": {
         "path": [
           {
-            "name": "id",
+            "name": "teamId",
             "required": true,
             "title": "Source Channel ID",
             "type": "uint64"

@@ -48,7 +48,6 @@
       "name": "User"
     }
   ],
-  "Parameters": null,
   "Protocol": "",
   "Authentication": [
     "Client ID",
@@ -56,28 +55,6 @@
   ],
   "Path": "/user",
   "APIs": [
-    {
-      "Name": "login",
-      "Method": "POST",
-      "Title": "User login",
-      "Path": "/login",
-      "Parameters": {
-        "post": [
-          {
-            "name": "username",
-            "required": true,
-            "title": "Username or email",
-            "type": "string"
-          },
-          {
-            "name": "password",
-            "required": true,
-            "title": "Password for user",
-            "type": "string"
-          }
-        ]
-      }
-    },
     {
       "Name": "search",
       "Method": "GET",

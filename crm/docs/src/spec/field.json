@@ -20,7 +20,6 @@
       "name": "Field"
     }
   ],
-  "Parameters": null,
   "Protocol": "",
   "Authentication": [],
   "Path": "/field",
