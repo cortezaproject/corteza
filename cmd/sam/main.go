@@ -9,7 +9,9 @@ import (
 
 	"github.com/go-chi/chi"
 
+	"github.com/crusttech/crust/rbac"
 	"github.com/crusttech/crust/sam/rest"
+	"github.com/crusttech/crust/sam/websocket"
 	"github.com/titpetric/factory"
 )
 
@@ -23,7 +25,7 @@ func handleError(err error, message string) {
 }
 
 func main() {
-	config := flags("sam")
+	config := flags("sam", rbac.Flags, websocket.Flags)
 
 	// log to stdout not stderr
 	log.SetOutput(os.Stdout)
@@ -45,6 +47,6 @@ func main() {
 
 	// mount routes
 	r := chi.NewRouter()
-	MountRoutes(r, routeOptions, rest.MountRoutes)
+	MountRoutes(r, routeOptions, rest.MountRoutes, websocket.MountRoutes)
 	http.Serve(listener, r)
 }
