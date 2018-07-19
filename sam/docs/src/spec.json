@@ -303,16 +303,41 @@
 		"struct": [
 			{
 				"name": "Message",
+				"imports": ["time"],
 				"fields": [
-					{ "name": "Service", "type": "string" },
-					{ "name": "Channel", "type": "string" },
-					{ "name": "UserName", "type": "string" },
-					{ "name": "UserID", "type": "uint64" },
-					{ "name": "User", "type": "*User", "complex": true },
-					{ "name": "UserAvatar", "type": "string" },
-					{ "name": "Message", "type": "string" },
-					{ "name": "MessageID", "type": "string" },
-					{ "name": "Type", "type": "MessageType" }
+					{ "name": "ID",         "type": "uint64" },
+					{ "name": "Type",       "type": "string" },
+					{ "name": "Message",    "type": "string" },
+					{ "name": "UserId",     "type": "uint64",  "dbname": "rel_user" },
+					{ "name": "ChannelId",  "type": "uint64",  "dbname": "rel_channel"},
+					{ "name": "ReplyTo",    "type": "uint64",  "dbname": "rel_message" },
+					{ "name": "UpdatedAt",  "type": "*time.Time", "tag": "json:\",omitempty\"", "complex": true },
+					{ "name": "DeletedAt",  "type": "*time.Time", "tag": "json:\",omitempty\"", "complex": true }
+
+				]
+			},
+			{
+				"name": "Reaction",
+				"imports": ["time"],
+				"fields": [
+					{ "name": "ID",         "type": "uint64" },
+					{ "name": "UserId",     "type": "uint64",  "dbname": "rel_user" },
+					{ "name": "MessageId",  "type": "uint64",  "dbname": "rel_message"},
+					{ "name": "ChannelId",  "type": "uint64",  "dbname": "rel_channel"},
+					{ "name": "Reaction",   "type": "string" },
+					{ "name": "DeletedAt",  "type": "*time.Time", "tag": "json:\",omitempty\"", "complex": true }
+				]
+			},
+			{
+				"name": "Attachment",
+				"imports": ["time", "encoding/json"],
+				"fields": [
+					{ "name": "ID",         "type": "uint64" },
+					{ "name": "UserId",     "type": "uint64",  "dbname": "rel_user" },
+					{ "name": "MessageId",  "type": "uint64",  "dbname": "rel_message"},
+					{ "name": "ChannelId",  "type": "uint64",  "dbname": "rel_channel"},
+					{ "name": "Attachment", "type": "json.RawMessage" , "complex": true},
+					{ "name": "DeletedAt",  "type": "*time.Time", "tag": "json:\",omitempty\"", "complex": true }
 				]
 			}
 		],

@@ -6,28 +6,11 @@
     {
       "fields": [
         {
-          "name": "Service",
-          "type": "string"
-        },
-        {
-          "name": "Channel",
-          "type": "string"
-        },
-        {
-          "name": "UserName",
-          "type": "string"
-        },
-        {
-          "name": "UserID",
+          "name": "ID",
           "type": "uint64"
         },
         {
-          "complex": true,
-          "name": "User",
-          "type": "*User"
-        },
-        {
-          "name": "UserAvatar",
+          "name": "Type",
           "type": "string"
         },
         {
@@ -35,15 +18,113 @@
           "type": "string"
         },
         {
-          "name": "MessageID",
+          "dbname": "rel_user",
+          "name": "UserId",
+          "type": "uint64"
+        },
+        {
+          "dbname": "rel_channel",
+          "name": "ChannelId",
+          "type": "uint64"
+        },
+        {
+          "dbname": "rel_message",
+          "name": "ReplyTo",
+          "type": "uint64"
+        },
+        {
+          "complex": true,
+          "name": "UpdatedAt",
+          "tag": "json:\",omitempty\"",
+          "type": "*time.Time"
+        },
+        {
+          "complex": true,
+          "name": "DeletedAt",
+          "tag": "json:\",omitempty\"",
+          "type": "*time.Time"
+        }
+      ],
+      "imports": [
+        "time"
+      ],
+      "name": "Message"
+    },
+    {
+      "fields": [
+        {
+          "name": "ID",
+          "type": "uint64"
+        },
+        {
+          "dbname": "rel_user",
+          "name": "UserId",
+          "type": "uint64"
+        },
+        {
+          "dbname": "rel_message",
+          "name": "MessageId",
+          "type": "uint64"
+        },
+        {
+          "dbname": "rel_channel",
+          "name": "ChannelId",
+          "type": "uint64"
+        },
+        {
+          "name": "Reaction",
           "type": "string"
         },
         {
-          "name": "Type",
-          "type": "MessageType"
+          "complex": true,
+          "name": "DeletedAt",
+          "tag": "json:\",omitempty\"",
+          "type": "*time.Time"
         }
       ],
-      "name": "Message"
+      "imports": [
+        "time"
+      ],
+      "name": "Reaction"
+    },
+    {
+      "fields": [
+        {
+          "name": "ID",
+          "type": "uint64"
+        },
+        {
+          "dbname": "rel_user",
+          "name": "UserId",
+          "type": "uint64"
+        },
+        {
+          "dbname": "rel_message",
+          "name": "MessageId",
+          "type": "uint64"
+        },
+        {
+          "dbname": "rel_channel",
+          "name": "ChannelId",
+          "type": "uint64"
+        },
+        {
+          "complex": true,
+          "name": "Attachment",
+          "type": "json.RawMessage"
+        },
+        {
+          "complex": true,
+          "name": "DeletedAt",
+          "tag": "json:\",omitempty\"",
+          "type": "*time.Time"
+        }
+      ],
+      "imports": [
+        "time",
+        "encoding/json"
+      ],
+      "name": "Attachment"
     }
   ],
   "Protocol": "",
