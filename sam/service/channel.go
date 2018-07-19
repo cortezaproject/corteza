@@ -39,7 +39,7 @@ func (svc channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*ty
 }
 
 func (svc channel) Create(ctx context.Context, mod *types.Channel) (*types.Channel, error) {
-	// @todo: topic message/log entry
+	// @todo: topic channelEvent/log entry
 	// @todo: channel name cmessage/log entry
 	// @todo: permission check if channel can add channel
 
@@ -47,8 +47,8 @@ func (svc channel) Create(ctx context.Context, mod *types.Channel) (*types.Chann
 }
 
 func (svc channel) Update(ctx context.Context, mod *types.Channel) (*types.Channel, error) {
-	// @todo: topic change message/log entry
-	// @todo: channel name change message/log entry
+	// @todo: topic change channelEvent/log entry
+	// @todo: channel name change channelEvent/log entry
 	// @todo: permission check if current user can edit channel
 	// @todo: make sure archived & deleted entries can not be edited
 	// @todo: handle channel movinga

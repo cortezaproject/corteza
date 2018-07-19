@@ -2,19 +2,17 @@ package rest
 
 import (
 	"context"
-	"github.com/pkg/errors"
-
 	"github.com/crusttech/crust/sam/rest/server"
-	_ "github.com/crusttech/crust/sam/types"
+	"github.com/pkg/errors"
 )
+
+var _ = errors.Wrap
 
 type Message struct{}
 
 func (Message) New() *Message {
 	return &Message{}
 }
-
-var _ = errors.Wrap
 
 func (*Message) Edit(ctx context.Context, r *server.MessageEditRequest) (interface{}, error) {
 	return nil, errors.New("Not implemented: Message.edit")
