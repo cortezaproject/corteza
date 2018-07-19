@@ -29,7 +29,3 @@ func (*Message) Authenticator() func(http.Handler) http.Handler {
 func (*User) Authenticator() func(http.Handler) http.Handler {
 	return pass
 }
-
-func (*Websocket) Authenticator() func(http.Handler) http.Handler {
-	return pass
-}

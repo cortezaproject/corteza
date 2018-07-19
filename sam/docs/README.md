@@ -451,21 +451,3 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query to match against users | N/A | NO |
-
-
-
-
-# Websocket
-
-## Bidirectional websocket chat connection
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/websocket/client` | WebSockets | GET | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
