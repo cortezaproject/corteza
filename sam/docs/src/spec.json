@@ -442,28 +442,5 @@
 				}
 			}
 		]
-	},
-	{
-		"title": "Websocket",
-		"package": "sam",
-		"entrypoint": "websocket",
-		"protocol": "WebSockets",
-		"authentication": ["Client ID", "Session ID"],
-		"struct": [
-			{
-				"name": "Websocket",
-				"fields": [
-					{ "type": "uint64", "name": "UserID" },
-					{ "type": "User", "name": "User", "complex": true }
-				]
-			}
-		],
-		"apis": [
-			{
-				"name": "client",
-				"method": "GET",
-				"title": "Bidirectional websocket chat connection"
-			}
-		]
 	}
 ]

@@ -10,8 +10,8 @@ package rest
 	1. run [spec](https://github.com/titpetric/spec) in the same folder,
 	2. run `./_gen.php` in this folder.
 
-	You may edit `websocket.go`, `websocket.util.go` or `websocket_test.go` to
-	implement your API calls, helper functions and tests. The file `websocket.go`
+	You may edit `user.go`, `user.util.go` or `user_test.go` to
+	implement your API calls, helper functions and tests. The file `user.go`
 	is only generated the first time, and will not be overwritten if it exists.
 */
 
@@ -30,7 +30,6 @@ func MountRoutes(r chi.Router) {
 	organisation := &server.OrganisationHandlers{Organisation{}.New()}
 	team := &server.TeamHandlers{Team{}.New()}
 	user := &server.UserHandlers{User{}.New()}
-	websocket := &server.WebsocketHandlers{Websocket{}.New()}
 	r.Group(func(r chi.Router) {
 		r.Use(channel.Channel.Authenticator())
 		r.Route("/channel", func(r chi.Router) {
@@ -82,12 +81,6 @@ func MountRoutes(r chi.Router) {
 		r.Route("/user", func(r chi.Router) {
 			r.Post("/login", user.Login)
 			r.Get("/search", user.Search)
-		})
-	})
-	r.Group(func(r chi.Router) {
-		r.Use(websocket.Websocket.Authenticator())
-		r.Route("/websocket", func(r chi.Router) {
-			r.Get("/client", websocket.Client)
 		})
 	})
 
