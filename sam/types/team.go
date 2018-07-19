@@ -20,7 +20,7 @@ import (
 )
 
 type (
-	// Teams
+	// Teams - An organisation may have many teams. Teams may have many channels available. Access to channels may be shared between teams.
 	Team struct {
 		ID         uint64     `db:"id"`
 		Name       string     `db:"name"`
@@ -33,16 +33,17 @@ type (
 	}
 )
 
-/* Constructors */
+// New constructs a new instance of Team
 func (Team) New() *Team {
 	return &Team{}
 }
 
-/* Getters/setters */
+// Get the value of ID
 func (t *Team) GetID() uint64 {
 	return t.ID
 }
 
+// Set the value of ID
 func (t *Team) SetID(value uint64) *Team {
 	if t.ID != value {
 		t.changed = append(t.changed, "ID")
@@ -50,10 +51,13 @@ func (t *Team) SetID(value uint64) *Team {
 	}
 	return t
 }
+
+// Get the value of Name
 func (t *Team) GetName() string {
 	return t.Name
 }
 
+// Set the value of Name
 func (t *Team) SetName(value string) *Team {
 	if t.Name != value {
 		t.changed = append(t.changed, "Name")
@@ -61,35 +65,56 @@ func (t *Team) SetName(value string) *Team {
 	}
 	return t
 }
+
+// Get the value of MemberIDs
 func (t *Team) GetMemberIDs() []uint64 {
 	return t.MemberIDs
 }
 
+// Set the value of MemberIDs
 func (t *Team) SetMemberIDs(value []uint64) *Team {
+	t.changed = append(t.changed, "MemberIDs")
 	t.MemberIDs = value
 	return t
 }
+
+// Get the value of Members
 func (t *Team) GetMembers() []User {
 	return t.Members
 }
 
+// Set the value of Members
 func (t *Team) SetMembers(value []User) *Team {
+	t.changed = append(t.changed, "Members")
 	t.Members = value
 	return t
 }
+
+// Get the value of ArchivedAt
 func (t *Team) GetArchivedAt() *time.Time {
 	return t.ArchivedAt
 }
 
+// Set the value of ArchivedAt
 func (t *Team) SetArchivedAt(value *time.Time) *Team {
+	t.changed = append(t.changed, "ArchivedAt")
 	t.ArchivedAt = value
 	return t
 }
+
+// Get the value of DeletedAt
 func (t *Team) GetDeletedAt() *time.Time {
 	return t.DeletedAt
 }
 
+// Set the value of DeletedAt
 func (t *Team) SetDeletedAt(value *time.Time) *Team {
+	t.changed = append(t.changed, "DeletedAt")
 	t.DeletedAt = value
 	return t
+}
+
+// Changes returns the names of changed fields
+func (t *Team) Changes() []string {
+	return t.changed
 }

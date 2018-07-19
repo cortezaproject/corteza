@@ -20,7 +20,7 @@ import (
 )
 
 type (
-	// Organisations
+	// Organisations - Organisations represent a top-level grouping entity. There may be many organisations defined in a single deployment.
 	Organisation struct {
 		ID         uint64     `db:"id"`
 		Name       string     `db:"name"`
@@ -31,16 +31,17 @@ type (
 	}
 )
 
-/* Constructors */
+// New constructs a new instance of Organisation
 func (Organisation) New() *Organisation {
 	return &Organisation{}
 }
 
-/* Getters/setters */
+// Get the value of ID
 func (o *Organisation) GetID() uint64 {
 	return o.ID
 }
 
+// Set the value of ID
 func (o *Organisation) SetID(value uint64) *Organisation {
 	if o.ID != value {
 		o.changed = append(o.changed, "ID")
@@ -48,10 +49,13 @@ func (o *Organisation) SetID(value uint64) *Organisation {
 	}
 	return o
 }
+
+// Get the value of Name
 func (o *Organisation) GetName() string {
 	return o.Name
 }
 
+// Set the value of Name
 func (o *Organisation) SetName(value string) *Organisation {
 	if o.Name != value {
 		o.changed = append(o.changed, "Name")
@@ -59,19 +63,32 @@ func (o *Organisation) SetName(value string) *Organisation {
 	}
 	return o
 }
+
+// Get the value of ArchivedAt
 func (o *Organisation) GetArchivedAt() *time.Time {
 	return o.ArchivedAt
 }
 
+// Set the value of ArchivedAt
 func (o *Organisation) SetArchivedAt(value *time.Time) *Organisation {
+	o.changed = append(o.changed, "ArchivedAt")
 	o.ArchivedAt = value
 	return o
 }
+
+// Get the value of DeletedAt
 func (o *Organisation) GetDeletedAt() *time.Time {
 	return o.DeletedAt
 }
 
+// Set the value of DeletedAt
 func (o *Organisation) SetDeletedAt(value *time.Time) *Organisation {
+	o.changed = append(o.changed, "DeletedAt")
 	o.DeletedAt = value
 	return o
+}
+
+// Changes returns the names of changed fields
+func (o *Organisation) Changes() []string {
+	return o.changed
 }

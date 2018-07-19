@@ -17,7 +17,7 @@ type ({foreach $structs as $struct}
 		{field}{newline}
 	{/foreach}
 {else}
-	// {api.title}
+	// {api.title} - {api.description}
 	{struct.name} struct {
 {foreach $struct.fields as $field}
 		{field.name} {field.type} `{if $field.tag}{$field.tag} {/if}db:"{if $field.dbname}{$field.dbname}{else}{$field.name|decamel}{/if}"`{newline}
@@ -29,30 +29,37 @@ type ({foreach $structs as $struct}
 {/if}{/foreach}
 )
 
-/* Constructors */
 {foreach $structs as $struct}
+// New constructs a new instance of {struct.name}
 func ({struct.name}) New() *{struct.name} {
 	return &{struct.name}{}
 }
 {/foreach}
 
-/* Getters/setters */
 {foreach $structs as $struct}
 {foreach $struct.fields as $field}
+// Get the value of {field.name}
 func ({self} *{struct.name}) Get{field.name}() {field.type} {
 	return {self}.{field.name}
 }
 
+// Set the value of {field.name}
 func ({self} *{struct.name}) Set{field.name}(value {field.type}) *{struct.name} {{if !$field.complex}
 	if {self}.{field.name} != value {
 		{self}.changed = append({self}.changed, "{field.name}")
 		{self}.{field.name} = value
 	}
 {else}
+	{self}.changed = append({self}.changed, "{field.name}")
 	{self}.{field.name} = value
 {/if}
 	return {self}
 }
 {/foreach}
+
+// Changes returns the names of changed fields
+func ({self} *{struct.name}) Changes() []string {
+	return {self}.changed
+}
 
 {/foreach}

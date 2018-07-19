@@ -21,7 +21,7 @@ import (
 )
 
 type (
-	// Channels
+	// Channels - A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or direct (between two users).
 	Channel struct {
 		ID            uint64          `db:"id"`
 		Name          string          `db:"name"`
@@ -35,16 +35,17 @@ type (
 	}
 )
 
-/* Constructors */
+// New constructs a new instance of Channel
 func (Channel) New() *Channel {
 	return &Channel{}
 }
 
-/* Getters/setters */
+// Get the value of ID
 func (c *Channel) GetID() uint64 {
 	return c.ID
 }
 
+// Set the value of ID
 func (c *Channel) SetID(value uint64) *Channel {
 	if c.ID != value {
 		c.changed = append(c.changed, "ID")
@@ -52,10 +53,13 @@ func (c *Channel) SetID(value uint64) *Channel {
 	}
 	return c
 }
+
+// Get the value of Name
 func (c *Channel) GetName() string {
 	return c.Name
 }
 
+// Set the value of Name
 func (c *Channel) SetName(value string) *Channel {
 	if c.Name != value {
 		c.changed = append(c.changed, "Name")
@@ -63,10 +67,13 @@ func (c *Channel) SetName(value string) *Channel {
 	}
 	return c
 }
+
+// Get the value of Topic
 func (c *Channel) GetTopic() string {
 	return c.Topic
 }
 
+// Set the value of Topic
 func (c *Channel) SetTopic(value string) *Channel {
 	if c.Topic != value {
 		c.changed = append(c.changed, "Topic")
@@ -74,18 +81,25 @@ func (c *Channel) SetTopic(value string) *Channel {
 	}
 	return c
 }
+
+// Get the value of Meta
 func (c *Channel) GetMeta() json.RawMessage {
 	return c.Meta
 }
 
+// Set the value of Meta
 func (c *Channel) SetMeta(value json.RawMessage) *Channel {
+	c.changed = append(c.changed, "Meta")
 	c.Meta = value
 	return c
 }
+
+// Get the value of LastMessageId
 func (c *Channel) GetLastMessageId() uint64 {
 	return c.LastMessageId
 }
 
+// Set the value of LastMessageId
 func (c *Channel) SetLastMessageId(value uint64) *Channel {
 	if c.LastMessageId != value {
 		c.changed = append(c.changed, "LastMessageId")
@@ -93,19 +107,32 @@ func (c *Channel) SetLastMessageId(value uint64) *Channel {
 	}
 	return c
 }
+
+// Get the value of ArchivedAt
 func (c *Channel) GetArchivedAt() *time.Time {
 	return c.ArchivedAt
 }
 
+// Set the value of ArchivedAt
 func (c *Channel) SetArchivedAt(value *time.Time) *Channel {
+	c.changed = append(c.changed, "ArchivedAt")
 	c.ArchivedAt = value
 	return c
 }
+
+// Get the value of DeletedAt
 func (c *Channel) GetDeletedAt() *time.Time {
 	return c.DeletedAt
 }
 
+// Set the value of DeletedAt
 func (c *Channel) SetDeletedAt(value *time.Time) *Channel {
+	c.changed = append(c.changed, "DeletedAt")
 	c.DeletedAt = value
 	return c
+}
+
+// Changes returns the names of changed fields
+func (c *Channel) Changes() []string {
+	return c.changed
 }

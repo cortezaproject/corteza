@@ -20,7 +20,7 @@ import (
 )
 
 type (
-	// Modules
+	// Modules - CRM module definitions
 	Module struct {
 		ID   uint64 `db:"id"`
 		Name string `db:"name"`
@@ -28,7 +28,7 @@ type (
 		changed []string
 	}
 
-	// Modules
+	// Modules - CRM module definitions
 	ModuleContentRow struct {
 		ID       uint64         `db:"id" db:"id"`
 		ModuleID uint64         `db:"module_id" db:"module_id"`
@@ -38,19 +38,22 @@ type (
 	}
 )
 
-/* Constructors */
+// New constructs a new instance of Module
 func (Module) New() *Module {
 	return &Module{}
 }
+
+// New constructs a new instance of ModuleContentRow
 func (ModuleContentRow) New() *ModuleContentRow {
 	return &ModuleContentRow{}
 }
 
-/* Getters/setters */
+// Get the value of ID
 func (m *Module) GetID() uint64 {
 	return m.ID
 }
 
+// Set the value of ID
 func (m *Module) SetID(value uint64) *Module {
 	if m.ID != value {
 		m.changed = append(m.changed, "ID")
@@ -58,10 +61,13 @@ func (m *Module) SetID(value uint64) *Module {
 	}
 	return m
 }
+
+// Get the value of Name
 func (m *Module) GetName() string {
 	return m.Name
 }
 
+// Set the value of Name
 func (m *Module) SetName(value string) *Module {
 	if m.Name != value {
 		m.changed = append(m.changed, "Name")
@@ -69,10 +75,18 @@ func (m *Module) SetName(value string) *Module {
 	}
 	return m
 }
+
+// Changes returns the names of changed fields
+func (m *Module) Changes() []string {
+	return m.changed
+}
+
+// Get the value of ID
 func (m *ModuleContentRow) GetID() uint64 {
 	return m.ID
 }
 
+// Set the value of ID
 func (m *ModuleContentRow) SetID(value uint64) *ModuleContentRow {
 	if m.ID != value {
 		m.changed = append(m.changed, "ID")
@@ -80,10 +94,13 @@ func (m *ModuleContentRow) SetID(value uint64) *ModuleContentRow {
 	}
 	return m
 }
+
+// Get the value of ModuleID
 func (m *ModuleContentRow) GetModuleID() uint64 {
 	return m.ModuleID
 }
 
+// Set the value of ModuleID
 func (m *ModuleContentRow) SetModuleID(value uint64) *ModuleContentRow {
 	if m.ModuleID != value {
 		m.changed = append(m.changed, "ModuleID")
@@ -91,11 +108,20 @@ func (m *ModuleContentRow) SetModuleID(value uint64) *ModuleContentRow {
 	}
 	return m
 }
+
+// Get the value of Fields
 func (m *ModuleContentRow) GetFields() types.JSONText {
 	return m.Fields
 }
 
+// Set the value of Fields
 func (m *ModuleContentRow) SetFields(value types.JSONText) *ModuleContentRow {
+	m.changed = append(m.changed, "Fields")
 	m.Fields = value
 	return m
+}
+
+// Changes returns the names of changed fields
+func (m *ModuleContentRow) Changes() []string {
+	return m.changed
 }
