@@ -15,18 +15,46 @@ package types
 	is only generated the first time, and will not be overwritten if it exists.
 */
 
+import (
+	"encoding/json"
+	"time"
+)
+
 type (
 	// Messages -
 	Message struct {
-		Service    string      `db:"service"`
-		Channel    string      `db:"channel"`
-		UserName   string      `db:"user_name"`
-		UserID     uint64      `db:"user_id"`
-		User       *User       `db:"user"`
-		UserAvatar string      `db:"user_avatar"`
-		Message    string      `db:"message"`
-		MessageID  string      `db:"message_id"`
-		Type       MessageType `db:"type"`
+		ID        uint64     `db:"id"`
+		Type      string     `db:"type"`
+		Message   string     `db:"message"`
+		UserId    uint64     `db:"rel_user"`
+		ChannelId uint64     `db:"rel_channel"`
+		ReplyTo   uint64     `db:"rel_message"`
+		UpdatedAt *time.Time `json:",omitempty" db:"updated_at"`
+		DeletedAt *time.Time `json:",omitempty" db:"deleted_at"`
+
+		changed []string
+	}
+
+	// Messages -
+	Reaction struct {
+		ID        uint64     `db:"id"`
+		UserId    uint64     `db:"rel_user"`
+		MessageId uint64     `db:"rel_message"`
+		ChannelId uint64     `db:"rel_channel"`
+		Reaction  string     `db:"reaction"`
+		DeletedAt *time.Time `json:",omitempty" db:"deleted_at"`
+
+		changed []string
+	}
+
+	// Messages -
+	Attachment struct {
+		ID         uint64          `db:"id"`
+		UserId     uint64          `db:"rel_user"`
+		MessageId  uint64          `db:"rel_message"`
+		ChannelId  uint64          `db:"rel_channel"`
+		Attachment json.RawMessage `db:"attachment"`
+		DeletedAt  *time.Time      `json:",omitempty" db:"deleted_at"`
 
 		changed []string
 	}
@@ -37,84 +65,40 @@ func (Message) New() *Message {
 	return &Message{}
 }
 
-// Get the value of Service
-func (m *Message) GetService() string {
-	return m.Service
+// New constructs a new instance of Reaction
+func (Reaction) New() *Reaction {
+	return &Reaction{}
 }
 
-// Set the value of Service
-func (m *Message) SetService(value string) *Message {
-	if m.Service != value {
-		m.changed = append(m.changed, "Service")
-		m.Service = value
+// New constructs a new instance of Attachment
+func (Attachment) New() *Attachment {
+	return &Attachment{}
+}
+
+// Get the value of ID
+func (m *Message) GetID() uint64 {
+	return m.ID
+}
+
+// Set the value of ID
+func (m *Message) SetID(value uint64) *Message {
+	if m.ID != value {
+		m.changed = append(m.changed, "ID")
+		m.ID = value
 	}
 	return m
 }
 
-// Get the value of Channel
-func (m *Message) GetChannel() string {
-	return m.Channel
+// Get the value of Type
+func (m *Message) GetType() string {
+	return m.Type
 }
 
-// Set the value of Channel
-func (m *Message) SetChannel(value string) *Message {
-	if m.Channel != value {
-		m.changed = append(m.changed, "Channel")
-		m.Channel = value
-	}
-	return m
-}
-
-// Get the value of UserName
-func (m *Message) GetUserName() string {
-	return m.UserName
-}
-
-// Set the value of UserName
-func (m *Message) SetUserName(value string) *Message {
-	if m.UserName != value {
-		m.changed = append(m.changed, "UserName")
-		m.UserName = value
-	}
-	return m
-}
-
-// Get the value of UserID
-func (m *Message) GetUserID() uint64 {
-	return m.UserID
-}
-
-// Set the value of UserID
-func (m *Message) SetUserID(value uint64) *Message {
-	if m.UserID != value {
-		m.changed = append(m.changed, "UserID")
-		m.UserID = value
-	}
-	return m
-}
-
-// Get the value of User
-func (m *Message) GetUser() *User {
-	return m.User
-}
-
-// Set the value of User
-func (m *Message) SetUser(value *User) *Message {
-	m.changed = append(m.changed, "User")
-	m.User = value
-	return m
-}
-
-// Get the value of UserAvatar
-func (m *Message) GetUserAvatar() string {
-	return m.UserAvatar
-}
-
-// Set the value of UserAvatar
-func (m *Message) SetUserAvatar(value string) *Message {
-	if m.UserAvatar != value {
-		m.changed = append(m.changed, "UserAvatar")
-		m.UserAvatar = value
+// Set the value of Type
+func (m *Message) SetType(value string) *Message {
+	if m.Type != value {
+		m.changed = append(m.changed, "Type")
+		m.Type = value
 	}
 	return m
 }
@@ -133,35 +117,245 @@ func (m *Message) SetMessage(value string) *Message {
 	return m
 }
 
-// Get the value of MessageID
-func (m *Message) GetMessageID() string {
-	return m.MessageID
+// Get the value of UserId
+func (m *Message) GetUserId() uint64 {
+	return m.UserId
 }
 
-// Set the value of MessageID
-func (m *Message) SetMessageID(value string) *Message {
-	if m.MessageID != value {
-		m.changed = append(m.changed, "MessageID")
-		m.MessageID = value
+// Set the value of UserId
+func (m *Message) SetUserId(value uint64) *Message {
+	if m.UserId != value {
+		m.changed = append(m.changed, "UserId")
+		m.UserId = value
 	}
 	return m
 }
 
-// Get the value of Type
-func (m *Message) GetType() MessageType {
-	return m.Type
+// Get the value of ChannelId
+func (m *Message) GetChannelId() uint64 {
+	return m.ChannelId
 }
 
-// Set the value of Type
-func (m *Message) SetType(value MessageType) *Message {
-	if m.Type != value {
-		m.changed = append(m.changed, "Type")
-		m.Type = value
+// Set the value of ChannelId
+func (m *Message) SetChannelId(value uint64) *Message {
+	if m.ChannelId != value {
+		m.changed = append(m.changed, "ChannelId")
+		m.ChannelId = value
 	}
+	return m
+}
+
+// Get the value of ReplyTo
+func (m *Message) GetReplyTo() uint64 {
+	return m.ReplyTo
+}
+
+// Set the value of ReplyTo
+func (m *Message) SetReplyTo(value uint64) *Message {
+	if m.ReplyTo != value {
+		m.changed = append(m.changed, "ReplyTo")
+		m.ReplyTo = value
+	}
+	return m
+}
+
+// Get the value of UpdatedAt
+func (m *Message) GetUpdatedAt() *time.Time {
+	return m.UpdatedAt
+}
+
+// Set the value of UpdatedAt
+func (m *Message) SetUpdatedAt(value *time.Time) *Message {
+	m.changed = append(m.changed, "UpdatedAt")
+	m.UpdatedAt = value
+	return m
+}
+
+// Get the value of DeletedAt
+func (m *Message) GetDeletedAt() *time.Time {
+	return m.DeletedAt
+}
+
+// Set the value of DeletedAt
+func (m *Message) SetDeletedAt(value *time.Time) *Message {
+	m.changed = append(m.changed, "DeletedAt")
+	m.DeletedAt = value
 	return m
 }
 
 // Changes returns the names of changed fields
 func (m *Message) Changes() []string {
+	return m.changed
+}
+
+// Get the value of ID
+func (m *Reaction) GetID() uint64 {
+	return m.ID
+}
+
+// Set the value of ID
+func (m *Reaction) SetID(value uint64) *Reaction {
+	if m.ID != value {
+		m.changed = append(m.changed, "ID")
+		m.ID = value
+	}
+	return m
+}
+
+// Get the value of UserId
+func (m *Reaction) GetUserId() uint64 {
+	return m.UserId
+}
+
+// Set the value of UserId
+func (m *Reaction) SetUserId(value uint64) *Reaction {
+	if m.UserId != value {
+		m.changed = append(m.changed, "UserId")
+		m.UserId = value
+	}
+	return m
+}
+
+// Get the value of MessageId
+func (m *Reaction) GetMessageId() uint64 {
+	return m.MessageId
+}
+
+// Set the value of MessageId
+func (m *Reaction) SetMessageId(value uint64) *Reaction {
+	if m.MessageId != value {
+		m.changed = append(m.changed, "MessageId")
+		m.MessageId = value
+	}
+	return m
+}
+
+// Get the value of ChannelId
+func (m *Reaction) GetChannelId() uint64 {
+	return m.ChannelId
+}
+
+// Set the value of ChannelId
+func (m *Reaction) SetChannelId(value uint64) *Reaction {
+	if m.ChannelId != value {
+		m.changed = append(m.changed, "ChannelId")
+		m.ChannelId = value
+	}
+	return m
+}
+
+// Get the value of Reaction
+func (m *Reaction) GetReaction() string {
+	return m.Reaction
+}
+
+// Set the value of Reaction
+func (m *Reaction) SetReaction(value string) *Reaction {
+	if m.Reaction != value {
+		m.changed = append(m.changed, "Reaction")
+		m.Reaction = value
+	}
+	return m
+}
+
+// Get the value of DeletedAt
+func (m *Reaction) GetDeletedAt() *time.Time {
+	return m.DeletedAt
+}
+
+// Set the value of DeletedAt
+func (m *Reaction) SetDeletedAt(value *time.Time) *Reaction {
+	m.changed = append(m.changed, "DeletedAt")
+	m.DeletedAt = value
+	return m
+}
+
+// Changes returns the names of changed fields
+func (m *Reaction) Changes() []string {
+	return m.changed
+}
+
+// Get the value of ID
+func (m *Attachment) GetID() uint64 {
+	return m.ID
+}
+
+// Set the value of ID
+func (m *Attachment) SetID(value uint64) *Attachment {
+	if m.ID != value {
+		m.changed = append(m.changed, "ID")
+		m.ID = value
+	}
+	return m
+}
+
+// Get the value of UserId
+func (m *Attachment) GetUserId() uint64 {
+	return m.UserId
+}
+
+// Set the value of UserId
+func (m *Attachment) SetUserId(value uint64) *Attachment {
+	if m.UserId != value {
+		m.changed = append(m.changed, "UserId")
+		m.UserId = value
+	}
+	return m
+}
+
+// Get the value of MessageId
+func (m *Attachment) GetMessageId() uint64 {
+	return m.MessageId
+}
+
+// Set the value of MessageId
+func (m *Attachment) SetMessageId(value uint64) *Attachment {
+	if m.MessageId != value {
+		m.changed = append(m.changed, "MessageId")
+		m.MessageId = value
+	}
+	return m
+}
+
+// Get the value of ChannelId
+func (m *Attachment) GetChannelId() uint64 {
+	return m.ChannelId
+}
+
+// Set the value of ChannelId
+func (m *Attachment) SetChannelId(value uint64) *Attachment {
+	if m.ChannelId != value {
+		m.changed = append(m.changed, "ChannelId")
+		m.ChannelId = value
+	}
+	return m
+}
+
+// Get the value of Attachment
+func (m *Attachment) GetAttachment() json.RawMessage {
+	return m.Attachment
+}
+
+// Set the value of Attachment
+func (m *Attachment) SetAttachment(value json.RawMessage) *Attachment {
+	m.changed = append(m.changed, "Attachment")
+	m.Attachment = value
+	return m
+}
+
+// Get the value of DeletedAt
+func (m *Attachment) GetDeletedAt() *time.Time {
+	return m.DeletedAt
+}
+
+// Set the value of DeletedAt
+func (m *Attachment) SetDeletedAt(value *time.Time) *Attachment {
+	m.changed = append(m.changed, "DeletedAt")
+	m.DeletedAt = value
+	return m
+}
+
+// Changes returns the names of changed fields
+func (m *Attachment) Changes() []string {
 	return m.changed
 }

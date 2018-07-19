@@ -72,51 +72,6 @@ CREATE TABLE channel_members (
   PRIMARY KEY (rel_channel, rel_user)
 );
 
-CREATE TABLE messages (
-  id               BIGINT UNSIGNED NOT NULL,
-
-  -- basic set:
-  --    NULL                            for common text messages
-  --    image/*; disposition=inline     for inline images (does not follow stdandard http headers, but
-  --    crust/system                    body holds one of defined system messages (user joining, parting...)
-  --    crust/reaction                  body holds reaction to a message
-  --    crust/preview                   body holds preview of the message it relates to in form of metadata (no binary blobs!)
-  --    crust/url                       body holds only URL
-  --    crust/pin                       message it relates to is pinned, body holds pin details
-  --    crust/flag                      message it relates to is flaged, body holds flag information
-  --    */*                             body holds reference to the uploaded file and its metadata
-  --
-  mimetype         VARCHAR(255)         NULL,
-
-  -- null body only valid when rel_message is set => message removal
-  body             TEXT                 NULL,
-
-  -- the contributor
-  rel_user         BIGINT  UNSIGNED NOT NULL REFERENCES users(id),
-
-  -- message's channel
-  rel_channel      BIGINT  UNSIGNED NOT NULL REFERENCES channels(id),
-
-  -- replies, edits, reactions, flags, attachments...
-  rel_message      BIGINT  UNSIGNED NOT NULL REFERENCES messages(id),
-
-  PRIMARY KEY (id)
-);
-
-
--- temp copy of messages (when they are pushed to the primary organisation, row gets removed)
-CREATE TABLE messages_queue (
-  id               BIGINT UNSIGNED NOT NULL,
-  mimetype         VARCHAR(255)         NULL,
-  body             TEXT                 NULL,
-  rel_user         BIGINT  UNSIGNED NOT NULL REFERENCES users(id),
-  rel_channel      BIGINT  UNSIGNED NOT NULL REFERENCES channels(id),
-  rel_message      BIGINT  UNSIGNED NOT NULL REFERENCES messages(id),
-
-  PRIMARY KEY (id)
-);
-
-
 CREATE TABLE channel_views (
   rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
   rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
@@ -128,4 +83,53 @@ CREATE TABLE channel_views (
   new_since        INT    UNSIGNED NOT NULL DEFAULT 0,
 
   PRIMARY KEY (rel_user, rel_channel)
+);
+
+CREATE TABLE channel_pins (
+  rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
+  rel_message      BIGINT UNSIGNED     NULL REFERENCES messages(id),
+  rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
+
+  PRIMARY KEY (rel_channel, rel_message)
+);
+
+CREATE TABLE messages (
+  id               BIGINT   UNSIGNED NOT NULL,
+  type             TEXT,
+  message          TEXT              NOT NULL,
+  meta             JSON,
+  rel_user         BIGINT   UNSIGNED NOT NULL REFERENCES users(id),
+  rel_channel      BIGINT   UNSIGNED NOT NULL REFERENCES channels(id),
+  reply_to         BIGINT   UNSIGNED     NULL REFERENCES messages(id),
+
+  updated_at       DATETIME              NULL,
+  deleted_at       DATETIME              NULL,
+
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE reactions (
+  id               BIGINT   UNSIGNED NOT NULL,
+  rel_user         BIGINT   UNSIGNED NOT NULL REFERENCES users(id),
+  rel_message      BIGINT   UNSIGNED NOT NULL REFERENCES messages(id),
+  rel_channel      BIGINT   UNSIGNED NOT NULL REFERENCES channels(id),
+  reaction         TEXT              NOT NULL,
+
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE attachments (
+  id               BIGINT   UNSIGNED NOT NULL,
+  rel_user         BIGINT   UNSIGNED NOT NULL REFERENCES users(id),
+  rel_message      BIGINT   UNSIGNED NOT NULL REFERENCES messages(id),
+  rel_channel      BIGINT   UNSIGNED NOT NULL REFERENCES channels(id),
+  url              TEXT              NOT NULL,
+  preview_url      TEXT              NOT NULL,
+  size             INT      UNSIGNED NOT NULL,
+  mimetype         TEXT              NOT NULL,
+  name             TEXT              NOT NULL,
+  attachment       JSON              NOT NULL,
+  deleted_at       DATETIME              NULL,
+
+  PRIMARY KEY (id)
 );

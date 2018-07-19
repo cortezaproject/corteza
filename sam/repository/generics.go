@@ -11,7 +11,7 @@ func simpleUpdate(ctx context.Context, tableName, columnName string, value inter
 
 	sql := fmt.Sprintf("UPDATE %s SET %s = ? WHERE id = ?", tableName, columnName)
 
-	if _, err := db.Exec(sql, value, id); err != nil {
+	if _, err := db.ExecContext(ctx, sql, value, id); err != nil {
 		return ErrDatabaseError
 	} else {
 		return nil
@@ -23,7 +23,7 @@ func simpleDelete(ctx context.Context, tableName string, id uint64) error {
 
 	sql := fmt.Sprintf("DELETE %s WHERE id = ?", tableName)
 
-	if _, err := db.Exec(sql, id); err != nil {
+	if _, err := db.ExecContext(ctx, sql, id); err != nil {
 		return ErrDatabaseError
 	} else {
 		return nil
