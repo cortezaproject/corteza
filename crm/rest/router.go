@@ -22,8 +22,8 @@ import (
 )
 
 func MountRoutes(r chi.Router) {
-	field := &server.FieldHandlers{Field{}.New()}
-	module := &server.ModuleHandlers{Module{}.New()}
+	field := &server.FieldHandlers{Field: Field{}.New()}
+	module := &server.ModuleHandlers{Module: Module{}.New()}
 	r.Group(func(r chi.Router) {
 		r.Use(field.Field.Authenticator())
 		r.Route("/field", func(r chi.Router) {

@@ -18,11 +18,11 @@ func (*Team) Authenticator() func(http.Handler) http.Handler {
 	return pass
 }
 
-func (*Channel) Authenticator() func(http.Handler) http.Handler {
+func (*Message) Authenticator() func(http.Handler) http.Handler {
 	return pass
 }
 
-func (*Message) Authenticator() func(http.Handler) http.Handler {
+func (*Channel) Authenticator() func(http.Handler) http.Handler {
 	return pass
 }
 
