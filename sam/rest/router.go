@@ -22,11 +22,11 @@ import (
 )
 
 func MountRoutes(r chi.Router) {
-	channel := &server.ChannelHandlers{Channel{}.New()}
-	message := &server.MessageHandlers{Message{}.New()}
-	organisation := &server.OrganisationHandlers{Organisation{}.New()}
-	team := &server.TeamHandlers{Team{}.New()}
-	user := &server.UserHandlers{User{}.New()}
+	channel := &server.ChannelHandlers{Channel: Channel{}.New()}
+	message := &server.MessageHandlers{Message: Message{}.New()}
+	organisation := &server.OrganisationHandlers{Organisation: Organisation{}.New()}
+	team := &server.TeamHandlers{Team: Team{}.New()}
+	user := &server.UserHandlers{User: User{}.New()}
 	r.Group(func(r chi.Router) {
 		r.Use(channel.Channel.Authenticator())
 		r.Route("/channel", func(r chi.Router) {
