@@ -48,12 +48,13 @@
       "name": "User"
     }
   ],
+  "Parameters": null,
   "Protocol": "",
   "Authentication": [
     "Client ID",
     "Session ID"
   ],
-  "Path": "/user",
+  "Path": "/users",
   "APIs": [
     {
       "Name": "search",

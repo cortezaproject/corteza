@@ -33,12 +33,13 @@
       "name": "Organisation"
     }
   ],
+  "Parameters": null,
   "Protocol": "",
   "Authentication": [
     "Client ID",
     "Session ID"
   ],
-  "Path": "/organisation",
+  "Path": "/organisations",
   "APIs": [
     {
       "Name": "list",

@@ -45,12 +45,13 @@
       "name": "Team"
     }
   ],
+  "Parameters": null,
   "Protocol": "",
   "Authentication": [
     "Client ID",
     "Session ID"
   ],
-  "Path": "/team",
+  "Path": "/teams",
   "APIs": [
     {
       "Name": "list",

@@ -8,7 +8,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/organisation/` | HTTP/S | GET | Client ID, Session ID |
+| `/organisations/` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -22,7 +22,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/organisation/` | HTTP/S | PUT | Client ID, Session ID |
+| `/organisations/` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
@@ -36,7 +36,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/organisation/{id}` | HTTP/S | POST | Client ID, Session ID |
+| `/organisations/{id}` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -51,7 +51,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/organisation/{id}` | HTTP/S | DELETE | Client ID, Session ID |
+| `/organisations/{id}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
@@ -65,7 +65,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/organisation/{id}` | HTTP/S | GET | Client ID, Session ID |
+| `/organisations/{id}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -79,7 +79,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/organisation/{id}/archive` | HTTP/S | POST | Client ID, Session ID |
+| `/organisations/{id}/archive` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -100,7 +100,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/team/` | HTTP/S | GET | Client ID, Session ID |
+| `/teams/` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -114,7 +114,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/team/` | HTTP/S | PUT | Client ID, Session ID |
+| `/teams/` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
@@ -129,7 +129,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/team/{id}` | HTTP/S | POST | Client ID, Session ID |
+| `/teams/{id}` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -145,7 +145,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/team/{id}` | HTTP/S | GET | Client ID, Session ID |
+| `/teams/{id}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -159,7 +159,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/team/{id}` | HTTP/S | DELETE | Client ID, Session ID |
+| `/teams/{id}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
@@ -173,7 +173,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/team/{id}/archive` | HTTP/S | POST | Client ID, Session ID |
+| `/teams/{id}/archive` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -187,7 +187,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/team/{id}/move` | HTTP/S | POST | Client ID, Session ID |
+| `/teams/{id}/move` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -202,7 +202,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/team/{id}/merge` | HTTP/S | POST | Client ID, Session ID |
+| `/teams/{id}/merge` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -224,7 +224,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channel/` | HTTP/S | GET | Client ID, Session ID |
+| `/channels/` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -238,7 +238,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channel/` | HTTP/S | PUT | Client ID, Session ID |
+| `/channels/` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
@@ -253,7 +253,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channel/{channelId}` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelId}` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -271,7 +271,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channel/{channelId}` | HTTP/S | GET | Client ID, Session ID |
+| `/channels/{channelId}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -285,7 +285,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channel/{channelId}` | HTTP/S | DELETE | Client ID, Session ID |
+| `/channels/{channelId}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
@@ -324,7 +324,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/message/` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelId}/messages/` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -338,7 +338,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/message/{messageId}` | HTTP/S | PUT | Client ID, Session ID |
+| `/channels/{channelId}/messages/{messageId}` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
@@ -353,7 +353,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/message/{messageId}` | HTTP/S | DELETE | Client ID, Session ID |
+| `/channels/{channelId}/messages/{messageId}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
@@ -367,7 +367,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/message/{messageId}/attach` | HTTP/S | PUT | Client ID, Session ID |
+| `/channels/{channelId}/messages/{messageId}/attach` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
@@ -380,7 +380,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/message/search` | HTTP/S | GET | Client ID, Session ID |
+| `/channels/{channelId}/messages/search` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -395,7 +395,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/message/{messageId}/pin` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelId}/messages/{messageId}/pin` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -409,7 +409,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/message/{messageId}/pin` | HTTP/S | DELETE | Client ID, Session ID |
+| `/channels/{channelId}/messages/{messageId}/pin` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
@@ -423,7 +423,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/message/{messageId}/flag` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelId}/messages/{messageId}/flag` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -437,7 +437,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/message/{messageId}/flag` | HTTP/S | DELETE | Client ID, Session ID |
+| `/channels/{channelId}/messages/{messageId}/flag` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
@@ -451,7 +451,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/message/{messageId}/react` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelId}/messages/{messageId}/react` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -466,7 +466,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/message/{messageId}/react/{reactionId}` | HTTP/S | DELETE | Client ID, Session ID |
+| `/channels/{channelId}/messages/{messageId}/react/{reactionId}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
@@ -486,7 +486,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/user/search` | HTTP/S | GET | Client ID, Session ID |
+| `/users/search` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
