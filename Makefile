@@ -61,3 +61,6 @@ $(SPEC):
 $(PROTOC):
 	$(GOGET) github.com/golang/protobuf/protoc-gen-go
 
+
+clean.tools:
+	rm -f $(SPEC) $(PROTOC) $(REALIZE)
