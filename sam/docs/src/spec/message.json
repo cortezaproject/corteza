@@ -152,10 +152,26 @@
       "Parameters": {
         "post": [
           {
-            "name": "contents",
+            "name": "message",
             "required": true,
             "title": "Message contents (markdown)",
             "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "history",
+      "Method": "GET",
+      "Title": "All messages (channel history)",
+      "Path": "/",
+      "Parameters": {
+        "get": [
+          {
+            "name": "lastMessageId",
+            "required": false,
+            "title": "",
+            "type": "uint64"
           }
         ]
       }
@@ -176,7 +192,7 @@
         ],
         "post": [
           {
-            "name": "contents",
+            "name": "message",
             "required": true,
             "title": "Message contents (markdown)",
             "type": "string"
@@ -284,7 +300,7 @@
       }
     },
     {
-      "Name": "deflag",
+      "Name": "unflag",
       "Method": "DELETE",
       "Title": "Remove flag from message (private bookmark)",
       "Path": "/{messageId}/flag",
@@ -301,9 +317,9 @@
     },
     {
       "Name": "react",
-      "Method": "POST",
+      "Method": "PUT",
       "Title": "React to a message",
-      "Path": "/{messageId}/react",
+      "Path": "/{messageId}/reaction/{reaction}",
       "Parameters": {
         "path": [
           {
@@ -311,9 +327,7 @@
             "required": true,
             "title": "Message ID",
             "type": "uint64"
-          }
-        ],
-        "post": [
+          },
           {
             "name": "reaction",
             "required": true,
@@ -327,7 +341,7 @@
       "Name": "unreact",
       "Method": "DELETE",
       "Title": "Delete reaction from a message",
-      "Path": "/{messageId}/react/{reactionId}",
+      "Path": "/{messageId}/react/{reaction}",
       "Parameters": {
         "path": [
           {
@@ -337,10 +351,10 @@
             "type": "uint64"
           },
           {
-            "name": "reactionId",
+            "name": "reaction",
             "required": true,
-            "title": "Reaction ID",
-            "type": "uint64"
+            "title": "Reaction",
+            "type": "string"
           }
         ]
       }

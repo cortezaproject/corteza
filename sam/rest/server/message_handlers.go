@@ -25,6 +25,10 @@ func (mh *MessageHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	params := MessageCreateRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Create(r.Context(), params) })
 }
+func (mh *MessageHandlers) History(w http.ResponseWriter, r *http.Request) {
+	params := MessageHistoryRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.History(r.Context(), params) })
+}
 func (mh *MessageHandlers) Edit(w http.ResponseWriter, r *http.Request) {
 	params := MessageEditRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Edit(r.Context(), params) })
@@ -53,9 +57,9 @@ func (mh *MessageHandlers) Flag(w http.ResponseWriter, r *http.Request) {
 	params := MessageFlagRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Flag(r.Context(), params) })
 }
-func (mh *MessageHandlers) Deflag(w http.ResponseWriter, r *http.Request) {
-	params := MessageDeflagRequest{}.new()
-	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Deflag(r.Context(), params) })
+func (mh *MessageHandlers) Unflag(w http.ResponseWriter, r *http.Request) {
+	params := MessageUnflagRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return mh.Message.Unflag(r.Context(), params) })
 }
 func (mh *MessageHandlers) React(w http.ResponseWriter, r *http.Request) {
 	params := MessageReactRequest{}.new()

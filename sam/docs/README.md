@@ -231,6 +231,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
+| sinceMessageId | uint64 | GET |  | N/A | NO |
 
 ## Create new channel
 
@@ -330,7 +331,21 @@ The following event types may be sent with a message event:
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| contents | string | POST | Message contents (markdown) | N/A | YES |
+| message | string | POST | Message contents (markdown) | N/A | YES |
+
+## All messages (channel history)
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channels/{channelId}/messages/` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| lastMessageId | uint64 | GET |  | N/A | NO |
 
 ## Edit existing message
 
@@ -345,7 +360,7 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageId | uint64 | PATH | Message ID | N/A | YES |
-| contents | string | POST | Message contents (markdown) | N/A | YES |
+| message | string | POST | Message contents (markdown) | N/A | YES |
 
 ## Delete existing message
 
@@ -451,14 +466,14 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}/messages/{messageId}/react` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelId}/messages/{messageId}/reaction/{reaction}` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageId | uint64 | PATH | Message ID | N/A | YES |
-| reaction | string | POST | Reaction | N/A | YES |
+| reaction | string | PATH | Reaction | N/A | YES |
 
 ## Delete reaction from a message
 
@@ -466,14 +481,14 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}/messages/{messageId}/react/{reactionId}` | HTTP/S | DELETE | Client ID, Session ID |
+| `/channels/{channelId}/messages/{messageId}/react/{reaction}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageId | uint64 | PATH | Message ID | N/A | YES |
-| reactionId | uint64 | PATH | Reaction ID | N/A | YES |
+| reaction | string | PATH | Reaction | N/A | YES |
 
 
 
