@@ -24,7 +24,8 @@ var _ = chi.URLParam
 
 // Channel list request parameters
 type ChannelListRequest struct {
-	Query string
+	Query          string
+	SinceMessageId uint64
 }
 
 func (ChannelListRequest) new() *ChannelListRequest {
@@ -45,6 +46,8 @@ func (c *ChannelListRequest) Fill(r *http.Request) error {
 	}
 
 	c.Query = get["query"]
+
+	c.SinceMessageId = parseUInt64(get["sinceMessageId"])
 	return nil
 }
 

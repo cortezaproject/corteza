@@ -48,6 +48,7 @@ func MountRoutes(r chi.Router) {
 		r.Use(message.Message.Authenticator())
 		r.Route("/channels/{channelId}/messages", func(r chi.Router) {
 			r.Post("/", message.Create)
+			r.Get("/", message.History)
 			r.Put("/{messageId}", message.Edit)
 			r.Delete("/{messageId}", message.Delete)
 			r.Put("/{messageId}/attach", message.Attach)
@@ -55,9 +56,9 @@ func MountRoutes(r chi.Router) {
 			r.Post("/{messageId}/pin", message.Pin)
 			r.Delete("/{messageId}/pin", message.Unpin)
 			r.Post("/{messageId}/flag", message.Flag)
-			r.Delete("/{messageId}/flag", message.Deflag)
-			r.Post("/{messageId}/react", message.React)
-			r.Delete("/{messageId}/react/{reactionId}", message.Unreact)
+			r.Delete("/{messageId}/flag", message.Unflag)
+			r.Put("/{messageId}/reaction/{reaction}", message.React)
+			r.Delete("/{messageId}/react/{reaction}", message.Unreact)
 		})
 	})
 	r.Group(func(r chi.Router) {

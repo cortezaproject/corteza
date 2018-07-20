@@ -246,7 +246,7 @@
 				"path": "/",
 				"parameters": {
 					"GET": [
-						{ "type": "string", "name": "query", "required": false, "title": "Search query" }
+						{ "type": "string", "name": "query", "required": false, "title": "Search query" },
 					]
 				}
 			},
@@ -363,7 +363,18 @@
 				"title": "Post new message to the channel",
 				"parameters": {
 					"post": [
-						{ "type": "string", "name": "contents", "required": true, "title": "Message contents (markdown)" }
+						{ "type": "string", "name": "message", "required": true, "title": "Message contents (markdown)" }
+					]
+				}
+			},
+			{
+				"name": "history",
+				"path": "/",
+				"method": "GET",
+				"title": "All messages (channel history)",
+				"parameters": {
+					"get": [
+						{ "name": "lastMessageId", "type": "uint64", "required": false, "title": "" }
 					]
 				}
 			},
@@ -377,7 +388,7 @@
 						{ "name": "messageId", "type": "uint64", "required": true, "title": "Message ID" }
 					],
 					"post": [
-						{ "type": "string", "name": "contents", "required": true, "title": "Message contents (markdown)" }
+						{ "type": "string", "name": "message", "required": true, "title": "Message contents (markdown)" }
 					]
 				}
 			},
@@ -458,7 +469,7 @@
 				}
 			},
 			{
-				"name": "deflag",
+				"name": "unflag",
 				"path": "/{messageId}/flag",
 				"method": "DELETE",
 				"title": "Remove flag from message (private bookmark)",
@@ -470,27 +481,25 @@
 			},
 			{
 				"name": "react",
-				"path": "/{messageId}/react",
-				"method": "POST",
+				"path": "/{messageId}/reaction/{reaction}",
+				"method": "PUT",
 				"title": "React to a message",
 				"parameters": {
 					"path": [
-						{ "name": "messageId", "type": "uint64", "required": true, "title": "Message ID" }
-					],
-					"post": [
-						{ "type": "string", "name": "reaction", "required": true, "title": "Reaction" }
+						{ "name": "messageId", "type": "uint64", "required": true, "title": "Message ID" },
+						{ "name": "reaction",  "type": "string", "required": true, "title": "Reaction" }
 					]
 				}
 			},
 			{
 				"name": "unreact",
-				"path": "/{messageId}/react/{reactionId}",
+				"path": "/{messageId}/react/{reaction}",
 				"method": "DELETE",
 				"title": "Delete reaction from a message",
 				"parameters": {
 					"path": [
 						{ "name": "messageId", "type": "uint64", "required": true, "title": "Message ID" },
-						{ "name": "reactionId", "type": "uint64", "required": true, "title": "Reaction ID" }
+						{ "name": "reaction", "type": "string", "required": true, "title": "Reaction" }
 					]
 				}
 			}

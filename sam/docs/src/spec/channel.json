@@ -70,6 +70,12 @@
             "required": false,
             "title": "Search query",
             "type": "string"
+          },
+          {
+            "name": "sinceMessageId",
+            "required": false,
+            "title": "",
+            "type": "uint64"
           }
         ]
       }

@@ -2,7 +2,8 @@ package types
 
 type (
 	MessageFilter struct {
-		Query     string
-		ChannelId string
+		Query         string
+		ChannelId     uint64
+		LastMessageId uint64
 	}
 )

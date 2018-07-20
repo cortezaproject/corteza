@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"github.com/crusttech/crust/sam/types"
+	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 )
 
@@ -23,9 +24,11 @@ func Message() message {
 func (r message) FindById(ctx context.Context, id uint64) (*types.Message, error) {
 	db := factory.Database.MustGet()
 
+	sql := "SELECT id, COALESCE(type,'') AS type, message, rel_user, rel_channel, COALESCE(reply_to, 0) AS reply_to FROM messages WHERE id = ? AND " + sqlMessageScope
+
 	mod := &types.Message{}
-	if err := db.GetContext(ctx, mod, "SELECT * FROM messages WHERE id = ? AND "+sqlMessageScope, id); err != nil {
-		return nil, ErrDatabaseError
+	if err := db.GetContext(ctx, mod, sql, id); err != nil {
+		return nil, errors.Wrap(err, ErrDatabaseError.String())
 	} else if mod.ID == 0 {
 		return nil, ErrMessageNotFound
 	} else {
@@ -37,7 +40,7 @@ func (r message) Find(ctx context.Context, filter *types.MessageFilter) ([]*type
 	db := factory.Database.MustGet()
 
 	var params = make([]interface{}, 0)
-	sql := "SELECT * FROM messages WHERE " + sqlMessageScope
+	sql := "SELECT id, COALESCE(type,'') AS type, message, rel_user, rel_channel, COALESCE(reply_to, 0) AS reply_to FROM messages WHERE " + sqlMessageScope
 
 	if filter != nil {
 		if filter.Query != "" {
@@ -46,11 +49,21 @@ func (r message) Find(ctx context.Context, filter *types.MessageFilter) ([]*type
 		}
 	}
 
-	sql += " ORDER BY name ASC"
+	if filter.ChannelId > 0 {
+		sql += " AND rel_channel = ? "
+		params = append(params, filter.ChannelId)
+	}
+
+	if filter.LastMessageId > 0 {
+		sql += " AND id > ? "
+		params = append(params, filter.LastMessageId)
+	}
+
+	sql += " ORDER BY id ASC"
 
 	rval := make([]*types.Message, 0)
 	if err := db.SelectContext(ctx, &rval, sql, params...); err != nil {
-		return nil, ErrDatabaseError
+		return nil, errors.Wrap(err, ErrDatabaseError.String())
 	} else {
 		return rval, nil
 	}

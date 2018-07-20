@@ -53,6 +53,7 @@ func (svc message) Find(ctx context.Context, filter *types.MessageFilter) ([]*ty
 
 	// @todo verify if current user can access & write to this channel
 	_ = currentUserId
+	_ = filter.ChannelId
 
 	return svc.repository.message.Find(ctx, filter)
 }
@@ -95,7 +96,7 @@ func (svc message) Delete(ctx context.Context, id uint64) error {
 	return svc.repository.message.Delete(ctx, id)
 }
 
-func (svc message) React(ctx context.Context, messageId uint64, reaction string) (*types.Reaction, error) {
+func (svc message) React(ctx context.Context, messageId uint64, reaction string) error {
 	// @todo get user from context
 	var currentUserId uint64 = 0
 
@@ -111,10 +112,14 @@ func (svc message) React(ctx context.Context, messageId uint64, reaction string)
 		Reaction:  reaction,
 	}
 
-	return svc.repository.reaction.Create(ctx, r)
+	if _, err := svc.repository.reaction.Create(ctx, r); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (svc message) Unreact(ctx context.Context, reactionId uint64) error {
+func (svc message) Unreact(ctx context.Context, messageId uint64, reaction string) error {
 	// @todo get user from context
 	var currentUserId uint64 = 0
 
@@ -122,8 +127,49 @@ func (svc message) Unreact(ctx context.Context, reactionId uint64) error {
 	_ = currentUserId
 
 	// @todo load reaction and verify ownership
+	var r *types.Reaction
 
-	return svc.repository.reaction.Delete(ctx, reactionId)
+	return svc.repository.reaction.Delete(ctx, r.ID)
+}
+
+func (svc message) Pin(ctx context.Context, messageId uint64) error {
+	// @todo get user from context
+	var currentUserId uint64 = 0
+
+	// @todo verify if current user can access & write to this channel
+	_ = currentUserId
+
+	return nil
+}
+
+func (svc message) Unpin(ctx context.Context, messageId uint64) error {
+	// @todo get user from context
+	var currentUserId uint64 = 0
+
+	// @todo verify if current user can access & write to this channel
+	_ = currentUserId
+
+	return nil
+}
+
+func (svc message) Flag(ctx context.Context, messageId uint64) error {
+	// @todo get user from context
+	var currentUserId uint64 = 0
+
+	// @todo verify if current user can access & write to this channel
+	_ = currentUserId
+
+	return nil
+}
+
+func (svc message) Unflag(ctx context.Context, messageId uint64) error {
+	// @todo get user from context
+	var currentUserId uint64 = 0
+
+	// @todo verify if current user can access & write to this channel
+	_ = currentUserId
+
+	return nil
 }
 
 func (svc message) Attach(ctx context.Context) (*types.Attachment, error) {
