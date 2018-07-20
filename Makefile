@@ -1,4 +1,4 @@
-.PHONY: build realize dep spec protobuf qa qa.test qa.vet codegen
+.PHONY: build realize dep spec protobuf test qa qa.test qa.vet codegen
 
 PKG       = "github.com/$(shell cat .project)"
 
@@ -10,7 +10,7 @@ GOGET     = $(GO) get -u
 SPEC      = $(GOPATH)/bin/spec
 PROTOC    = $(GOPATH)/bin/protoc-gen-go
 REALIZE   = ${GOPATH}/bin/realize
-
+GOTEST    = ${GOPATH}/bin/gotest
 
 build:
 	docker build --rm -t $(shell cat .project) .
@@ -39,6 +39,9 @@ protobuf: $(PROTOC)
 ########################################################################################################################
 # QA
 
+test: $(GOTEST)
+	$(GOTEST) -cover -v ./...
+
 qa: qa.vet qa.test
 
 qa.vet:
@@ -51,6 +54,9 @@ qa.test:
 
 ########################################################################################################################
 # Toolset
+
+$(GOTEST):
+	$(GOGET) github.com/rakyll/gotest
 
 $(REALIZE):
 	$(GOGET) github.com/tockins/realize
