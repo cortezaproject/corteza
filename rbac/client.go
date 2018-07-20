@@ -1,10 +1,14 @@
 package rbac
 
 import (
+	"bytes"
+	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"strings"
 	"time"
 )
@@ -33,6 +37,8 @@ func New() (*Client, error) {
 			Timeout: timeout,
 		}).Dial,
 		TLSHandshakeTimeout: timeout,
+		// @todo: === remove this line ===
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 
 	client := &http.Client{
@@ -51,6 +57,11 @@ func New() (*Client, error) {
 	}, nil
 }
 
+func (c *Client) Debug(debug bool) *Client {
+	c.isDebug = debug
+	return c
+}
+
 func (c *Client) Get(url string) (*http.Response, error) {
 	return c.Request("GET", url, nil)
 }
@@ -67,21 +78,62 @@ func (c *Client) Request(method string, url string, body interface{}) (*http.Res
 	link := strings.TrimRight(c.config.baseURL, "/") + "/" + strings.TrimLeft(url, "/")
 
 	if c.isDebug {
-		fmt.Println("RBAC >>> ", link)
+		fmt.Println("RBAC >>>", method, link)
 	}
 
-	req, err := http.NewRequest(method, link, nil)
+	request := func() (*http.Request, error) {
+		if body != nil {
+			b, err := json.Marshal(body)
+			if err != nil {
+				return nil, err
+			}
+			return http.NewRequest(method, link, bytes.NewBuffer(b))
+		}
+		return http.NewRequest(method, link, nil)
+	}
+
+	req, err := request()
 	if err != nil {
 		return nil, err
 	}
 
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(c.config.auth)))
-	req.Header.Add("X-TENANT-ID", c.config.tenant)
+	// req.Header.Add("X-TENANT-ID", c.config.tenant)
+	req.Header["X-TENANT-ID"] = []string{c.config.tenant}
+
+	if c.isDebug {
+		fmt.Println("RBAC >>> (request)")
+		b, err := httputil.DumpRequestOut(req, true)
+		if err != nil {
+			fmt.Println("RBAC >>> Error:", err)
+		} else {
+			if b != nil {
+				fmt.Println(strings.TrimSpace(string(b)))
+			}
+		}
+		fmt.Println("---")
+	}
 
 	resp, err := c.Client.Do(req)
+	if c.isDebug {
+		fmt.Println("RBAC <<< (response)")
+		if err != nil {
+			fmt.Println("RBAC <<< Error:", err)
+		} else {
+
+			b, err := httputil.DumpResponse(resp, true)
+			if err != nil {
+				fmt.Println("RBAC <<< Error:", err)
+			} else {
+				if b != nil {
+					fmt.Println(string(b))
+				}
+			}
+		}
+		fmt.Println("-----------------")
+	}
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 
