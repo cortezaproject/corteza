@@ -505,9 +505,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/auth/login` | HTTP/S | POST |
-Warning: implode(): Invalid arguments passed in /private/tmp/README.tpl on line 22
-|
+| `/auth/login` | HTTP/S | POST |  |
 
 #### Request parameters
 

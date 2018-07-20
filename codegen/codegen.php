@@ -55,7 +55,12 @@ $apis = array_map(function($filename) {
 		if (empty($call['parameters'])) {
 			$call['parameters'] = array();
 		}
-		$call['parameters'] = array_merge($api['parameters'], $call['parameters']);
+		foreach ($api['parameters'] as $type => $params) {
+			if (empty($call['parameters'][$type])) {
+				$call['parameters'][$type] = array();
+			}
+			$call['parameters'][$type] = array_merge($call['parameters'][$type], $params);
+		}
 		$api['apis'][$kk] = $call;
 	}
 	return $api;
