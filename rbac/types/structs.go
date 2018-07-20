@@ -2,6 +2,11 @@ package types
 
 type (
 	User struct {
-		username string
+		Username string `json:"username"`
+	}
+
+	Session struct {
+		Username string `json:"username"`
+		Roles []string `json:"roles"`
 	}
 )
