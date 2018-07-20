@@ -24,8 +24,8 @@ var _ = chi.URLParam
 
 // Message create request parameters
 type MessageCreateRequest struct {
-	ChannelId uint64
 	Contents  string
+	ChannelId uint64
 }
 
 func (MessageCreateRequest) new() *MessageCreateRequest {
@@ -45,9 +45,9 @@ func (m *MessageCreateRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
-
 	m.Contents = post["contents"]
+
+	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
 	return nil
 }
 
@@ -56,6 +56,7 @@ var _ RequestFiller = MessageCreateRequest{}.new()
 // Message edit request parameters
 type MessageEditRequest struct {
 	MessageId uint64
+	ChannelId uint64
 	Contents  string
 }
 
@@ -78,6 +79,8 @@ func (m *MessageEditRequest) Fill(r *http.Request) error {
 
 	m.MessageId = parseUInt64(chi.URLParam(r, "messageId"))
 
+	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
+
 	m.Contents = post["contents"]
 	return nil
 }
@@ -87,6 +90,7 @@ var _ RequestFiller = MessageEditRequest{}.new()
 // Message delete request parameters
 type MessageDeleteRequest struct {
 	MessageId uint64
+	ChannelId uint64
 }
 
 func (MessageDeleteRequest) new() *MessageDeleteRequest {
@@ -107,6 +111,8 @@ func (m *MessageDeleteRequest) Fill(r *http.Request) error {
 	}
 
 	m.MessageId = parseUInt64(chi.URLParam(r, "messageId"))
+
+	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
 	return nil
 }
 
@@ -142,9 +148,9 @@ var _ RequestFiller = MessageAttachRequest{}.new()
 
 // Message search request parameters
 type MessageSearchRequest struct {
-	ChannelId    uint64
 	Query        string
 	Message_type string
+	ChannelId    uint64
 }
 
 func (MessageSearchRequest) new() *MessageSearchRequest {
@@ -164,11 +170,11 @@ func (m *MessageSearchRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
-
 	m.Query = get["query"]
 
 	m.Message_type = get["message_type"]
+
+	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
 	return nil
 }
 
@@ -177,6 +183,7 @@ var _ RequestFiller = MessageSearchRequest{}.new()
 // Message pin request parameters
 type MessagePinRequest struct {
 	MessageId uint64
+	ChannelId uint64
 }
 
 func (MessagePinRequest) new() *MessagePinRequest {
@@ -197,6 +204,8 @@ func (m *MessagePinRequest) Fill(r *http.Request) error {
 	}
 
 	m.MessageId = parseUInt64(chi.URLParam(r, "messageId"))
+
+	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
 	return nil
 }
 
@@ -205,6 +214,7 @@ var _ RequestFiller = MessagePinRequest{}.new()
 // Message unpin request parameters
 type MessageUnpinRequest struct {
 	MessageId uint64
+	ChannelId uint64
 }
 
 func (MessageUnpinRequest) new() *MessageUnpinRequest {
@@ -225,6 +235,8 @@ func (m *MessageUnpinRequest) Fill(r *http.Request) error {
 	}
 
 	m.MessageId = parseUInt64(chi.URLParam(r, "messageId"))
+
+	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
 	return nil
 }
 
@@ -233,6 +245,7 @@ var _ RequestFiller = MessageUnpinRequest{}.new()
 // Message flag request parameters
 type MessageFlagRequest struct {
 	MessageId uint64
+	ChannelId uint64
 }
 
 func (MessageFlagRequest) new() *MessageFlagRequest {
@@ -253,6 +266,8 @@ func (m *MessageFlagRequest) Fill(r *http.Request) error {
 	}
 
 	m.MessageId = parseUInt64(chi.URLParam(r, "messageId"))
+
+	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
 	return nil
 }
 
@@ -261,6 +276,7 @@ var _ RequestFiller = MessageFlagRequest{}.new()
 // Message deflag request parameters
 type MessageDeflagRequest struct {
 	MessageId uint64
+	ChannelId uint64
 }
 
 func (MessageDeflagRequest) new() *MessageDeflagRequest {
@@ -281,6 +297,8 @@ func (m *MessageDeflagRequest) Fill(r *http.Request) error {
 	}
 
 	m.MessageId = parseUInt64(chi.URLParam(r, "messageId"))
+
+	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
 	return nil
 }
 
@@ -289,6 +307,7 @@ var _ RequestFiller = MessageDeflagRequest{}.new()
 // Message react request parameters
 type MessageReactRequest struct {
 	MessageId uint64
+	ChannelId uint64
 	Reaction  string
 }
 
@@ -311,6 +330,8 @@ func (m *MessageReactRequest) Fill(r *http.Request) error {
 
 	m.MessageId = parseUInt64(chi.URLParam(r, "messageId"))
 
+	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
+
 	m.Reaction = post["reaction"]
 	return nil
 }
@@ -321,6 +342,7 @@ var _ RequestFiller = MessageReactRequest{}.new()
 type MessageUnreactRequest struct {
 	MessageId  uint64
 	ReactionId uint64
+	ChannelId  uint64
 }
 
 func (MessageUnreactRequest) new() *MessageUnreactRequest {
@@ -343,6 +365,8 @@ func (m *MessageUnreactRequest) Fill(r *http.Request) error {
 	m.MessageId = parseUInt64(chi.URLParam(r, "messageId"))
 
 	m.ReactionId = parseUInt64(chi.URLParam(r, "reactionId"))
+
+	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
 	return nil
 }
 

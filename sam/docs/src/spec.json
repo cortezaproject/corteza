@@ -536,6 +536,7 @@
 		"path": "/auth",
 		"entrypoint": "auth",
 		"struct": [],
+		"authentication": [],
 		"apis": [
 			{
 				"name": "login",
