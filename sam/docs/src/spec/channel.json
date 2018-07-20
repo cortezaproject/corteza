@@ -50,12 +50,13 @@
       "name": "Channel"
     }
   ],
+  "Parameters": null,
   "Protocol": "",
   "Authentication": [
     "Client ID",
     "Session ID"
   ],
-  "Path": "/channel",
+  "Path": "/channels",
   "APIs": [
     {
       "Name": "list",

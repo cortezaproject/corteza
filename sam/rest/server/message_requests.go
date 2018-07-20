@@ -24,7 +24,8 @@ var _ = chi.URLParam
 
 // Message create request parameters
 type MessageCreateRequest struct {
-	Contents string
+	ChannelId uint64
+	Contents  string
 }
 
 func (MessageCreateRequest) new() *MessageCreateRequest {
@@ -43,6 +44,8 @@ func (m *MessageCreateRequest) Fill(r *http.Request) error {
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
+
+	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
 
 	m.Contents = post["contents"]
 	return nil
@@ -111,6 +114,7 @@ var _ RequestFiller = MessageDeleteRequest{}.new()
 
 // Message attach request parameters
 type MessageAttachRequest struct {
+	ChannelId uint64
 }
 
 func (MessageAttachRequest) new() *MessageAttachRequest {
@@ -129,6 +133,8 @@ func (m *MessageAttachRequest) Fill(r *http.Request) error {
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
+
+	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
 	return nil
 }
 
@@ -136,6 +142,7 @@ var _ RequestFiller = MessageAttachRequest{}.new()
 
 // Message search request parameters
 type MessageSearchRequest struct {
+	ChannelId    uint64
 	Query        string
 	Message_type string
 }
@@ -156,6 +163,8 @@ func (m *MessageSearchRequest) Fill(r *http.Request) error {
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
+
+	m.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
 
 	m.Query = get["query"]
 

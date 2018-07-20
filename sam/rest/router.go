@@ -36,7 +36,7 @@ func MountRoutes(r chi.Router) {
 	})
 	r.Group(func(r chi.Router) {
 		r.Use(channel.Channel.Authenticator())
-		r.Route("/channel", func(r chi.Router) {
+		r.Route("/channels", func(r chi.Router) {
 			r.Get("/", channel.List)
 			r.Put("/", channel.Create)
 			r.Post("/{channelId}", channel.Edit)
@@ -46,7 +46,7 @@ func MountRoutes(r chi.Router) {
 	})
 	r.Group(func(r chi.Router) {
 		r.Use(message.Message.Authenticator())
-		r.Route("/message", func(r chi.Router) {
+		r.Route("/channels/{channelId}/messages", func(r chi.Router) {
 			r.Post("/", message.Create)
 			r.Put("/{messageId}", message.Edit)
 			r.Delete("/{messageId}", message.Delete)
@@ -62,7 +62,7 @@ func MountRoutes(r chi.Router) {
 	})
 	r.Group(func(r chi.Router) {
 		r.Use(organisation.Organisation.Authenticator())
-		r.Route("/organisation", func(r chi.Router) {
+		r.Route("/organisations", func(r chi.Router) {
 			r.Get("/", organisation.List)
 			r.Put("/", organisation.Create)
 			r.Post("/{id}", organisation.Edit)
@@ -73,7 +73,7 @@ func MountRoutes(r chi.Router) {
 	})
 	r.Group(func(r chi.Router) {
 		r.Use(team.Team.Authenticator())
-		r.Route("/team", func(r chi.Router) {
+		r.Route("/teams", func(r chi.Router) {
 			r.Get("/", team.List)
 			r.Put("/", team.Create)
 			r.Post("/{id}", team.Edit)
@@ -86,7 +86,7 @@ func MountRoutes(r chi.Router) {
 	})
 	r.Group(func(r chi.Router) {
 		r.Use(user.User.Authenticator())
-		r.Route("/user", func(r chi.Router) {
+		r.Route("/users", func(r chi.Router) {
 			r.Get("/search", user.Search)
 		})
 	})
