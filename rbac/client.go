@@ -13,6 +13,8 @@ import (
 	"time"
 )
 
+var _ = tls.Config{}
+
 type (
 	Client struct {
 		Transport *http.Transport
@@ -21,9 +23,21 @@ type (
 		isDebug bool
 		config  configuration
 	}
+
+	ClientInterface interface {
+		Users() *Users
+		Roles() *Roles
+		Resources() *Resources
+		Sessions() *Sessions
+	}
 )
 
-func (c *Client) Users() *Users { return &Users{c} }
+func (c *Client) Users() *Users         { return &Users{c} }
+func (c *Client) Roles() *Roles         { return &Roles{c} }
+func (c *Client) Resources() *Resources { return &Resources{c} }
+func (c *Client) Sessions() *Sessions   { return &Sessions{c} }
+
+var _ ClientInterface = &Client{}
 
 func New() (*Client, error) {
 	if err := config.validate(); err != nil {
@@ -38,7 +52,7 @@ func New() (*Client, error) {
 		}).Dial,
 		TLSHandshakeTimeout: timeout,
 		// @todo: === remove this line ===
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		//TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 
 	client := &http.Client{
@@ -68,6 +82,10 @@ func (c *Client) Get(url string) (*http.Response, error) {
 
 func (c *Client) Post(url string, body interface{}) (*http.Response, error) {
 	return c.Request("POST", url, body)
+}
+
+func (c *Client) Patch(url string, body interface{}) (*http.Response, error) {
+	return c.Request("PATCH", url, body)
 }
 
 func (c *Client) Delete(url string) (*http.Response, error) {

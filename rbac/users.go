@@ -15,6 +15,8 @@ type (
 		Create(username, password string) error
 		Get(username string) (*types.User, error)
 		Delete(username string) error
+
+		Assign(username string, roles []string) error
 	}
 )
 
@@ -24,6 +26,42 @@ func (u *Users) Create(username, password string) error {
 	}{password}
 
 	resp, err := u.Client.Post("/users/"+username, body)
+	if err != nil {
+		return errors.Wrap(err, "request failed")
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		return nil
+	default:
+		return toError(resp)
+	}
+}
+
+func (u *Users) Assign(username string, roles []string) error {
+	body := struct {
+		Roles []string `json:"roles"`
+	}{roles}
+
+	resp, err := u.Client.Patch("/users/"+username+"/assignRoles", body)
+	if err != nil {
+		return errors.Wrap(err, "request failed")
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		return nil
+	default:
+		return toError(resp)
+	}
+}
+
+func (u *Users) Deassign(username string, roles []string) error {
+	body := struct {
+		Roles []string `json:"roles"`
+	}{roles}
+
+	resp, err := u.Client.Patch("/users/"+username+"/deassignRoles", body)
 	if err != nil {
 		return errors.Wrap(err, "request failed")
 	}
