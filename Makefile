@@ -13,7 +13,7 @@ REALIZE   = ${GOPATH}/bin/realize
 GOTEST    = ${GOPATH}/bin/gotest
 
 build:
-	docker build --rm -t $(shell cat .project) .
+	docker build --no-cache --rm -t $(shell cat .project) .
 
 
 ########################################################################################################################
