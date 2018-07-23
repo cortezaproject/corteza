@@ -1,8 +1,8 @@
 package rbac
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"github.com/crusttech/crust/rbac/types"
 	"github.com/pkg/errors"
 )
@@ -24,10 +24,10 @@ type (
 
 const (
 	usersCreate = "/users/%s"
-	usersGet = "/users/%s"
+	usersGet    = "/users/%s"
 	usersDelete = "/users/%s"
 	// @todo: plural for users, but singular for sessions
-	usersAddRole = "/users/%s/assignRoles"
+	usersAddRole    = "/users/%s/assignRoles"
 	usersRemoveRole = "/users/%s/deassignRoles"
 )
 

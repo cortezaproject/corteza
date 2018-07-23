@@ -148,11 +148,14 @@ func (c *Client) Request(method string, url string, body interface{}) (*http.Res
 		}
 		fmt.Println("-----------------")
 	}
-	if c.debugLevel == "info" {
-		fmt.Println("RBAC <<< Response with", resp.StatusCode)
-	}
 	if err != nil {
+		if c.debugLevel == "info" {
+			fmt.Println("RBAC <<< Response error", err)
+		}
 		return nil, err
+	}
+	if c.debugLevel == "info" {
+		fmt.Println("RBAC <<< Response", resp.StatusCode)
 	}
 	return resp, nil
 }

@@ -16,6 +16,7 @@ func TestRoles(t *testing.T) {
 
 	if err := roles.Create("test-role"); err != nil {
 		t.Errorf("Error when creating test-role: %+v", err)
+		return
 	}
 
 	if err := roles.Create("test-role/nested/role"); err == nil {
@@ -30,12 +31,15 @@ func TestRoles(t *testing.T) {
 
 	{
 		role, err := roles.Get("test-role")
-		assert(t, err == nil, "Unexpected error when getting role, %+v", err)
+		if !assert(t, err == nil, "Unexpected error when getting role, %+v", err) {
+			return
+		}
 		assert(t, role.Name == "test-role", "Unexpected role name, test-role != '%s'", role.Name)
 	}
 
 	if err := roles.Delete("test-role"); err != nil {
 		t.Errorf("Error when deleting test-role: %+v", err)
+		return
 	}
 
 	if err := roles.Delete("non-existant"); err == nil {

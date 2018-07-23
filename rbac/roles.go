@@ -1,10 +1,10 @@
 package rbac
 
 import (
-	"fmt"
 	"encoding/json"
-	"github.com/pkg/errors"
+	"fmt"
 	"github.com/crusttech/crust/rbac/types"
+	"github.com/pkg/errors"
 )
 
 type (
@@ -21,7 +21,7 @@ type (
 
 const (
 	rolesCreate = "/roles/%s"
-	rolesGet = "/roles/%s"
+	rolesGet    = "/roles/%s"
 	rolesDelete = "/roles/%s"
 )
 
@@ -67,6 +67,5 @@ func (u *Roles) Delete(rolepath string) error {
 		return toError(resp)
 	}
 }
-
 
 var _ RolesInterface = &Roles{}
