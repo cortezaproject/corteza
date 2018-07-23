@@ -12,4 +12,12 @@ type (
 		Username string `json:"username"`
 		Roles []string `json:"roles"`
 	}
+
+	// @todo: need to list nested roles,
+	// @todo: don't return users=null - return users: []?
+	Role struct {
+		Name string `json:"rolename"`
+		Users []string `json:"users"`
+		Permissions []string `json:"users"`
+	}
 )
