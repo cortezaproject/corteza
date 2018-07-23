@@ -20,8 +20,8 @@ type (
 		Transport *http.Transport
 		Client    *http.Client
 
-		isDebug bool
-		config  configuration
+		debugLevel string
+		config     configuration
 	}
 
 	ClientInterface interface {
@@ -51,8 +51,6 @@ func New() (*Client, error) {
 			Timeout: timeout,
 		}).Dial,
 		TLSHandshakeTimeout: timeout,
-		// @todo: === remove this line ===
-		//TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 
 	client := &http.Client{
@@ -66,13 +64,12 @@ func New() (*Client, error) {
 	return &Client{
 		Transport: transport,
 		Client:    client,
-		isDebug:   false,
 		config:    config,
 	}, nil
 }
 
-func (c *Client) Debug(debug bool) *Client {
-	c.isDebug = debug
+func (c *Client) Debug(debugLevel string) *Client {
+	c.debugLevel = debugLevel
 	return c
 }
 
@@ -95,7 +92,7 @@ func (c *Client) Delete(url string) (*http.Response, error) {
 func (c *Client) Request(method string, url string, body interface{}) (*http.Response, error) {
 	link := strings.TrimRight(c.config.baseURL, "/") + "/" + strings.TrimLeft(url, "/")
 
-	if c.isDebug {
+	if c.debugLevel == "info" {
 		fmt.Println("RBAC >>>", method, link)
 	}
 
@@ -120,7 +117,7 @@ func (c *Client) Request(method string, url string, body interface{}) (*http.Res
 	// req.Header.Add("X-TENANT-ID", c.config.tenant)
 	req.Header["X-TENANT-ID"] = []string{c.config.tenant}
 
-	if c.isDebug {
+	if c.debugLevel == "debug" {
 		fmt.Println("RBAC >>> (request)")
 		b, err := httputil.DumpRequestOut(req, true)
 		if err != nil {
@@ -134,7 +131,7 @@ func (c *Client) Request(method string, url string, body interface{}) (*http.Res
 	}
 
 	resp, err := c.Client.Do(req)
-	if c.isDebug {
+	if c.debugLevel == "debug" {
 		fmt.Println("RBAC <<< (response)")
 		if err != nil {
 			fmt.Println("RBAC <<< Error:", err)
@@ -151,9 +148,11 @@ func (c *Client) Request(method string, url string, body interface{}) (*http.Res
 		}
 		fmt.Println("-----------------")
 	}
+	if c.debugLevel == "info" {
+		fmt.Println("RBAC <<< Response with", resp.StatusCode)
+	}
 	if err != nil {
 		return nil, err
 	}
-
 	return resp, nil
 }
