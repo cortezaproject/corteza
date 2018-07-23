@@ -1,4 +1,4 @@
-.PHONY: build realize dep spec protobuf test qa qa.test qa.vet codegen
+.PHONY: build realize dep spec protobuf test test.rbac qa qa.test qa.vet codegen
 
 PKG       = "github.com/$(shell cat .project)"
 
@@ -41,6 +41,9 @@ protobuf: $(PROTOC)
 
 test: $(GOTEST)
 	$(GOTEST) -cover -v ./...
+
+test.rbac: $(GOTEST)
+	$(GOTEST) -cover -v ./rbac
 
 qa: qa.vet qa.test
 
