@@ -9,7 +9,7 @@ func TestResources(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error when creating RBAC instance: %+v", err)
 	}
-	rbac.Debug(false)
+	rbac.Debug("info")
 
 	resources := rbac.Resources()
 	resources.Delete("test-resource")
