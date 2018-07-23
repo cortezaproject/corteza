@@ -9,24 +9,75 @@ func TestUsers(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error when creating RBAC instance: %+v", err)
 	}
-	rbac.Debug(false)
+	rbac.Debug("info")
 
 	users := rbac.Users()
+	roles := rbac.Roles()
+
 	users.Delete("test-user")
+	roles.Delete("test-role")
+
+	if err := roles.Create("test-role"); err != nil {
+		t.Errorf("Unexpected error when creating test-role, %+v", err)
+		return
+	}
 
 	if err := users.Create("test-user", "test-password"); err != nil {
 		t.Errorf("Error when creating test-user: %+v", err)
+	}
+
+	// check if we inherited some roles (should be empty)
+	{
+		user, err := users.Get("test-user")
+		if !assert(t, err == nil, "Unexpected error when retrieving test-user 1, %+v", err) {
+			return
+		}
+		assert(t, user.Username == "test-user", "Unexpected username, test-user != '%s'", user.Username)
+		assert(t, len(user.AssignedRoles) == 0, "Unexpected number of roles, expected empty, got %+v", user.AssignedRoles)
+	}
+
+	if err := users.AddRole("test-user", "test-role"); err != nil {
+		t.Errorf("Unexpected error when assigning test-role to test-user 2, %+v", err)
+		return
+	}
+
+	// check if we inherited some roles (should be empty)
+	{
+		user, err := users.Get("test-user")
+		if !assert(t, err == nil, "Unexpected error when retrieving test-user 3, %+v", err) {
+			return
+		}
+		assert(t, user.Username == "test-user", "Unexpected username, test-user != '%s'", user.Username)
+		if !assert(t, len(user.AssignedRoles) == 1, "Unexpected number of roles, expected 1, got %+v", user.AssignedRoles) {
+			return
+		}
+		assert(t, user.AssignedRoles[0] == "test-role", "Unexpected role name, test-role != '%s'", user.AssignedRoles[0])
+	}
+
+	if err := users.RemoveRole("test-user", "test-role"); err != nil {
+		t.Errorf("Unexpected error when deassigning test-role to test-user, %+v", err)
+		return
+	}
+
+	// check roles are empty after de-assign
+	{
+		user, err := users.Get("test-user")
+		if !assert(t, err == nil, "Unexpected error when retrieving test-user 4, %+v", err) {
+			return
+		}
+		assert(t, user.Username == "test-user", "Unexpected username, test-user != '%s'", user.Username)
+		assert(t, len(user.AssignedRoles) == 0, "Unexpected number of roles, expected empty, got %+v", user.AssignedRoles)
 	}
 
 	if err := users.Delete("test-user"); err != nil {
 		t.Errorf("Error when deleting test-user: %+v", err)
 	}
 
-	if _, err := users.Get("non-existant"); err == nil {
+	if _, err := users.Get("test-user"); err == nil {
 		t.Errorf("Expected error on retrieving a non-existant user")
 	}
 
-	if err := users.Delete("non-existant"); err == nil {
+	if err := users.Delete("test-user"); err == nil {
 		t.Errorf("Expected error on deleting a non-existant user")
 	}
 }

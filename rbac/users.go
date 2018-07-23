@@ -1,6 +1,7 @@
 package rbac
 
 import (
+	"fmt"
 	"encoding/json"
 	"github.com/crusttech/crust/rbac/types"
 	"github.com/pkg/errors"
@@ -16,8 +17,18 @@ type (
 		Get(username string) (*types.User, error)
 		Delete(username string) error
 
-		Assign(username string, roles []string) error
+		AddRole(username string, roles ...string) error
+		RemoveRole(username string, roles ...string) error
 	}
+)
+
+const (
+	usersCreate = "/users/%s"
+	usersGet = "/users/%s"
+	usersDelete = "/users/%s"
+	// @todo: plural for users, but singular for sessions
+	usersAddRole = "/users/%s/assignRoles"
+	usersRemoveRole = "/users/%s/deassignRoles"
 )
 
 func (u *Users) Create(username, password string) error {
@@ -25,7 +36,7 @@ func (u *Users) Create(username, password string) error {
 		Password string `json:"password"`
 	}{password}
 
-	resp, err := u.Client.Post("/users/"+username, body)
+	resp, err := u.Client.Post(fmt.Sprintf(usersCreate, username), body)
 	if err != nil {
 		return errors.Wrap(err, "request failed")
 	}
@@ -38,12 +49,12 @@ func (u *Users) Create(username, password string) error {
 	}
 }
 
-func (u *Users) Assign(username string, roles []string) error {
+func (u *Users) AddRole(username string, roles ...string) error {
 	body := struct {
 		Roles []string `json:"roles"`
 	}{roles}
 
-	resp, err := u.Client.Patch("/users/"+username+"/assignRoles", body)
+	resp, err := u.Client.Patch(fmt.Sprintf(usersAddRole, username), body)
 	if err != nil {
 		return errors.Wrap(err, "request failed")
 	}
@@ -56,12 +67,12 @@ func (u *Users) Assign(username string, roles []string) error {
 	}
 }
 
-func (u *Users) Deassign(username string, roles []string) error {
+func (u *Users) RemoveRole(username string, roles ...string) error {
 	body := struct {
 		Roles []string `json:"roles"`
 	}{roles}
 
-	resp, err := u.Client.Patch("/users/"+username+"/deassignRoles", body)
+	resp, err := u.Client.Patch(fmt.Sprintf(usersRemoveRole, username), body)
 	if err != nil {
 		return errors.Wrap(err, "request failed")
 	}
@@ -75,7 +86,7 @@ func (u *Users) Deassign(username string, roles []string) error {
 }
 
 func (u *Users) Get(username string) (*types.User, error) {
-	resp, err := u.Client.Get("/users/" + username)
+	resp, err := u.Client.Get(fmt.Sprintf(usersGet, username))
 	if err != nil {
 		return nil, errors.Wrap(err, "request failed")
 	}
@@ -90,7 +101,7 @@ func (u *Users) Get(username string) (*types.User, error) {
 }
 
 func (u *Users) Delete(username string) error {
-	resp, err := u.Client.Delete("/users/" + username)
+	resp, err := u.Client.Delete(fmt.Sprintf(usersDelete, username))
 	if err != nil {
 		return errors.Wrap(err, "request failed")
 	}
