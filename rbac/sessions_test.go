@@ -43,7 +43,9 @@ func TestSessions(t *testing.T) {
 	// check role is created
 	{
 		session, err := sessions.Get("test-session")
-		assert(t, err == nil, "Unexpected error when getting test-session, %+v", err)
+		if !assert(t, err == nil, "Unexpected error when getting test-session, %+v", err) {
+			return
+		}
 		// @todo: DAASI should return session ID from a get-query as well
 		// assert(t, session.ID == "test-session", "Unexpected returned Session ID, test-session != '%s'", session.ID)
 		assert(t, session.Username == "test-user", "Unexpected returned user, test-user != '%s'", session.Username)
@@ -55,12 +57,15 @@ func TestSessions(t *testing.T) {
 
 	if err := sessions.DeactivateRole("test-session", "test-role"); err != nil {
 		t.Errorf("Unexpected error when deactivating session role, %+v", err)
+		return
 	}
 
 	// check role is deactivated
 	{
 		session, err := sessions.Get("test-session")
-		assert(t, err == nil, "Unexpected error when getting test-session, %+v", err)
+		if !assert(t, err == nil, "Unexpected error when getting test-session, %+v", err) {
+			return
+		}
 		// @todo: DAASI should return session ID from a get-query as well
 		// assert(t, session.ID == "test-session", "Unexpected returned Session ID, test-session != '%s'", session.ID)
 		assert(t, session.Username == "test-user", "Unexpected returned user, test-user != '%s'", session.Username)
@@ -71,12 +76,15 @@ func TestSessions(t *testing.T) {
 
 	if err := sessions.ActivateRole("test-session", "test-role"); err != nil {
 		t.Errorf("Unexpected error when deactivating session role, %+v", err)
+		return
 	}
 
 	// check role is activated
 	{
 		session, err := sessions.Get("test-session")
-		assert(t, err == nil, "Unexpected error when getting test-session, %+v", err)
+		if !assert(t, err == nil, "Unexpected error when getting test-session, %+v", err) {
+			return
+		}
 		// @todo: DAASI should return session ID from a get-query as well
 		// assert(t, session.ID == "test-session", "Unexpected returned Session ID, test-session != '%s'", session.ID)
 		assert(t, session.Username == "test-user", "Unexpected returned user, test-user != '%s'", session.Username)

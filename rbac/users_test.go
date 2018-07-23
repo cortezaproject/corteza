@@ -24,6 +24,7 @@ func TestUsers(t *testing.T) {
 
 	if err := users.Create("test-user", "test-password"); err != nil {
 		t.Errorf("Error when creating test-user: %+v", err)
+		return
 	}
 
 	// check if we inherited some roles (should be empty)
@@ -71,10 +72,12 @@ func TestUsers(t *testing.T) {
 
 	if err := users.Delete("test-user"); err != nil {
 		t.Errorf("Error when deleting test-user: %+v", err)
+		return
 	}
 
 	if _, err := users.Get("test-user"); err == nil {
 		t.Errorf("Expected error on retrieving a non-existant user")
+		return
 	}
 
 	if err := users.Delete("test-user"); err == nil {

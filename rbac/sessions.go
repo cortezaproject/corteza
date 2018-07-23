@@ -23,10 +23,10 @@ type (
 )
 
 const (
-	sessionsCreate = "/sessions/%s"
-	sessionsGet    = "/sessions/%s"
-	sessionsDelete = "/sessions/%s"
-	sessionsActivateRole = "/sessions/%s/activateRole"
+	sessionsCreate         = "/sessions/%s"
+	sessionsGet            = "/sessions/%s"
+	sessionsDelete         = "/sessions/%s"
+	sessionsActivateRole   = "/sessions/%s/activateRole"
 	sessionsDeactivateRole = "/sessions/%s/deactivateRole"
 )
 
@@ -113,6 +113,5 @@ func (u *Sessions) DeactivateRole(sessionID string, roles ...string) error {
 		return toError(resp)
 	}
 }
-
 
 var _ SessionsInterface = &Sessions{}
