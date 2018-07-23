@@ -1,4 +1,4 @@
-.PHONY: build realize dep spec protobuf test test.rbac qa qa.test qa.vet codegen
+.PHONY: build realize dep spec protobuf critic test test.rbac qa qa.test qa.vet codegen
 
 PKG       = "github.com/$(shell cat .project)"
 
@@ -11,6 +11,7 @@ SPEC      = $(GOPATH)/bin/spec
 PROTOC    = $(GOPATH)/bin/protoc-gen-go
 REALIZE   = ${GOPATH}/bin/realize
 GOTEST    = ${GOPATH}/bin/gotest
+GOCRITIC  = ${GOPATH}/bin/gocritic
 
 build:
 	docker build --no-cache --rm -t $(shell cat .project) .
@@ -38,6 +39,9 @@ protobuf: $(PROTOC)
 
 ########################################################################################################################
 # QA
+
+critic: $(GOCRITIC)
+	$(GOCRITIC) check-project .
 
 test: $(GOTEST)
 	$(GOTEST) -cover -v ./...
@@ -70,6 +74,8 @@ $(SPEC):
 $(PROTOC):
 	$(GOGET) github.com/golang/protobuf/protoc-gen-go
 
+$(GOCRITIC):
+	$(GOGET) github.com/go-critic/go-critic/...
 
 clean.tools:
 	rm -f $(SPEC) $(PROTOC) $(REALIZE)

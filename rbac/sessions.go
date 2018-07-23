@@ -13,7 +13,7 @@ type (
 	}
 
 	SessionsInterface interface {
-		Create(sessionID string, username string, roles ...string) error
+		Create(sessionID, username string, roles ...string) error
 		Get(sessionID string) (*types.Session, error)
 		Delete(sessionID string) error
 
@@ -30,7 +30,7 @@ const (
 	sessionsDeactivateRole = "/sessions/%s/deactivateRole"
 )
 
-func (u *Sessions) Create(sessionID string, username string, roles ...string) error {
+func (u *Sessions) Create(sessionID, username string, roles ...string) error {
 	body := struct {
 		Username string   `json:"username"`
 		Roles    []string `json:"roles,omitempty"`
