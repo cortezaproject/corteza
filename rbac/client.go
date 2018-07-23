@@ -89,7 +89,7 @@ func (c *Client) Delete(url string) (*http.Response, error) {
 	return c.Request("DELETE", url, nil)
 }
 
-func (c *Client) Request(method string, url string, body interface{}) (*http.Response, error) {
+func (c *Client) Request(method, url string, body interface{}) (*http.Response, error) {
 	link := strings.TrimRight(c.config.baseURL, "/") + "/" + strings.TrimLeft(url, "/")
 
 	if c.debugLevel == "info" {
