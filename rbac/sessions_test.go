@@ -30,7 +30,7 @@ func TestSessions(t *testing.T) {
 		return
 	}
 
-	if err := users.Assign("test-user", "test-role"); err != nil {
+	if err := users.AddRole("test-user", "test-role"); err != nil {
 		t.Errorf("Unexpected error when assigning test-role to test-user, %+v", err)
 		return
 	}
