@@ -9,7 +9,7 @@ func TestRoles(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error when creating RBAC instance: %+v", err)
 	}
-	rbac.Debug(false)
+	rbac.Debug("info")
 
 	roles := rbac.Roles()
 	roles.Delete("test-role")
