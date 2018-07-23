@@ -13,9 +13,12 @@ type (
 	}
 
 	SessionsInterface interface {
-		Create(sessionID string, username string, roles []string) error
+		Create(sessionID string, username string, roles ...string) error
 		Get(sessionID string) (*types.Session, error)
 		Delete(sessionID string) error
+
+		ActivateRole(sessionID string, roles ...string) error
+		DeactivateRole(sessionID string, roles ...string) error
 	}
 )
 
@@ -23,9 +26,11 @@ const (
 	sessionsCreate = "/sessions/%s"
 	sessionsGet    = "/sessions/%s"
 	sessionsDelete = "/sessions/%s"
+	sessionsActivateRole = "/sessions/%s/activateRole"
+	sessionsDeactivateRole = "/sessions/%s/deactivateRole"
 )
 
-func (u *Sessions) Create(sessionID string, username string, roles []string) error {
+func (u *Sessions) Create(sessionID string, username string, roles ...string) error {
 	body := struct {
 		Username string   `json:"username"`
 		Roles    []string `json:"roles,omitempty"`
@@ -72,5 +77,42 @@ func (u *Sessions) Delete(sessionID string) error {
 		return toError(resp)
 	}
 }
+
+func (u *Sessions) ActivateRole(sessionID string, roles ...string) error {
+	body := struct {
+		Roles []string `json:"roles"`
+	}{roles}
+
+	resp, err := u.Client.Patch(fmt.Sprintf(sessionsActivateRole, sessionID), body)
+	if err != nil {
+		return errors.Wrap(err, "request failed")
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		return nil
+	default:
+		return toError(resp)
+	}
+}
+
+func (u *Sessions) DeactivateRole(sessionID string, roles ...string) error {
+	body := struct {
+		Roles []string `json:"roles"`
+	}{roles}
+
+	resp, err := u.Client.Patch(fmt.Sprintf(sessionsDeactivateRole, sessionID), body)
+	if err != nil {
+		return errors.Wrap(err, "request failed")
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		return nil
+	default:
+		return toError(resp)
+	}
+}
+
 
 var _ SessionsInterface = &Sessions{}
