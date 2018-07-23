@@ -99,7 +99,7 @@
     ".",
     "resputil"
   ]
-  revision = "3257f6c1bf4665187bee7a68c95e6ee22afed69d"
+  revision = "48b00599c6785e46f875b5192c60c488f1958a13"
 
 [[projects]]
   branch = "master"
@@ -122,7 +122,7 @@
     "internal/timeseries",
     "trace"
   ]
-  revision = "81d44fd177a98d09fe3bc40a5a78d495d3f042ea"
+  revision = "a680a1efc54dd51c040b3b5ce4939ea3cf2ea0d1"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -155,7 +155,7 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "fedd2861243fd1a8152376292b921b394c7bef7e"
+  revision = "02b4e95473316948020af0b7a4f0f22c73929b0e"
 
 [[projects]]
   name = "google.golang.org/grpc"
