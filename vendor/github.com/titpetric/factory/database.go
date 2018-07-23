@@ -1,6 +1,7 @@
 package factory
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
@@ -124,7 +125,7 @@ func (r *DatabaseFactory) Get(dbName ...string) (*DB, error) {
 			if err != nil {
 				return nil, err
 			}
-			r.instances[name] = &DB{handle, nil}
+			r.instances[name] = &DB{handle, context.Background(), nil}
 			return r.instances[name], nil
 		}
 	}
@@ -144,6 +145,8 @@ func (r *DatabaseFactory) MustGet(dbName ...string) *DB {
 type DB struct {
 	*sqlx.DB
 
+	ctx context.Context
+
 	Profiler DatabaseProfiler
 }
 
@@ -151,6 +154,14 @@ type DB struct {
 func (r *DB) Quiet() *DB {
 	return &DB{
 		DB: r.DB,
+	}
+}
+
+// With will return a DB handle with a bound context (throw-away)
+func (r *DB) With(ctx context.Context) *DB {
+	return &DB{
+		DB:  r.DB,
+		ctx: ctx,
 	}
 }
 
@@ -172,11 +183,11 @@ func (r *DB) SetFields(fields []string) string {
 func (r *DB) NamedExec(query string, arg interface{}) (sql.Result, error) {
 	if r.Profiler != nil {
 		ctx := DatabaseProfilerContext{}.new(query, arg)
-		res, err := r.DB.NamedExec(query, arg)
+		res, err := r.DB.NamedExecContext(r.ctx, query, arg)
 		r.Profiler.Post(ctx)
 		return res, err
 	}
-	return r.DB.NamedExec(query, arg)
+	return r.DB.NamedExecContext(r.ctx, query, arg)
 }
 
 // Select is a helper function that will ignore sql.ErrNoRows
@@ -184,10 +195,10 @@ func (r *DB) Select(dest interface{}, query string, args ...interface{}) error {
 	var err error
 	if r.Profiler != nil {
 		ctx := DatabaseProfilerContext{}.new(query, args...)
-		err = r.DB.Select(dest, query, args...)
+		err = r.DB.SelectContext(r.ctx, dest, query, args...)
 		r.Profiler.Post(ctx)
 	} else {
-		err = r.DB.Select(dest, query, args...)
+		err = r.DB.SelectContext(r.ctx, dest, query, args...)
 	}
 	// clear no rows returned error
 	if err == sql.ErrNoRows {
@@ -201,10 +212,10 @@ func (r *DB) Get(dest interface{}, query string, args ...interface{}) error {
 	var err error
 	if r.Profiler != nil {
 		ctx := DatabaseProfilerContext{}.new(query, args...)
-		err = r.DB.Get(dest, query, args...)
+		err = r.DB.GetContext(r.ctx, dest, query, args...)
 		r.Profiler.Post(ctx)
 	} else {
-		err = r.DB.Get(dest, query, args...)
+		err = r.DB.GetContext(r.ctx, dest, query, args...)
 	}
 	// clear no rows returned error
 	if err == sql.ErrNoRows {

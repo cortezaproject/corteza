@@ -34,6 +34,7 @@ type errorMessage struct {
 type Options struct {
 	Pretty bool // formats JSON output with indentation
 	Trace  bool // prints a stack backtrace if exists (pkg/errors)
+	Logger func(error)
 }
 
 var config Options
@@ -101,7 +102,11 @@ func JSON(w http.ResponseWriter, responses ...interface{}) {
 			result = value
 		case error:
 			// main key is "error"
-			result, err = encode(errorResponse(errors.WithStack(value)))
+			errWithStack := errors.WithStack(value)
+			if config.Logger != nil {
+				config.Logger(errWithStack)
+			}
+			result, err = encode(errorResponse(errWithStack))
 		case successMessage:
 			// main key is "success"
 			result, err = encode(value)
