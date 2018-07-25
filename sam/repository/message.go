@@ -21,7 +21,7 @@ func Message() message {
 	return message{}
 }
 
-func (r message) FindById(ctx context.Context, id uint64) (*types.Message, error) {
+func (r message) FindByID(ctx context.Context, id uint64) (*types.Message, error) {
 	db := factory.Database.MustGet()
 
 	sql := "SELECT id, COALESCE(type,'') AS type, message, rel_user, rel_channel, COALESCE(reply_to, 0) AS reply_to FROM messages WHERE id = ? AND " + sqlMessageScope
@@ -49,19 +49,19 @@ func (r message) Find(ctx context.Context, filter *types.MessageFilter) ([]*type
 		}
 	}
 
-	if filter.ChannelId > 0 {
+	if filter.ChannelID > 0 {
 		sql += " AND rel_channel = ? "
-		params = append(params, filter.ChannelId)
+		params = append(params, filter.ChannelID)
 	}
 
-	if filter.FromMessageId > 0 {
+	if filter.FromMessageID > 0 {
 		sql += " AND id > ? "
-		params = append(params, filter.FromMessageId)
+		params = append(params, filter.FromMessageID)
 	}
 
-	if filter.UntilMessageId > 0 {
+	if filter.UntilMessageID > 0 {
 		sql += " AND id < ? "
-		params = append(params, filter.UntilMessageId)
+		params = append(params, filter.UntilMessageID)
 	}
 
 	sql += " ORDER BY id ASC"

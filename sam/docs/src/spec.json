@@ -139,10 +139,10 @@
 				"name": "edit",
 				"method": "POST",
 				"title": "Update team details",
-				"path": "/{id}",
+				"path": "/{teamID}",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "teamId", "required": true, "title": "Team ID" }
+						{ "type": "uint64", "name": "teamID", "required": true, "title": "Team ID" }
 					],
 					"post": [
 						{ "type": "string", "name": "name", "required": false, "title": "Name of Team" },
@@ -154,10 +154,10 @@
 				"name": "read",
 				"method": "GET",
 				"title": "Read team details and memberships",
-				"path": "/{id}",
+				"path": "/{teamID}",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "teamId", "required": true, "title": "Organisation ID" }
+						{ "type": "uint64", "name": "teamID", "required": true, "title": "Team ID" }
 					]
 				}
 			},
@@ -165,10 +165,10 @@
 				"name": "remove",
 				"method": "DELETE",
 				"title": "Remove team",
-				"path": "/{id}",
+				"path": "/{teamID}",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "teamId", "required": true, "title": "Organisation ID" }
+						{ "type": "uint64", "name": "teamID", "required": true, "title": "Team ID" }
 					]
 				}
 			},
@@ -176,10 +176,10 @@
 				"name": "archive",
 				"method": "POST",
 				"title": "Archive team",
-				"path": "/{id}/archive",
+				"path": "/{teamID}/archive",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "teamId", "required": true, "title": "Organisation ID" }
+						{ "type": "uint64", "name": "teamID", "required": true, "title": "Team ID" }
 					]
 				}
 			},
@@ -187,13 +187,13 @@
 				"name": "move",
 				"method": "POST",
 				"title": "Move team to different organisation",
-				"path": "/{id}/move",
+				"path": "/{teamID}/move",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "teamId", "required": true, "title": "Organisation ID" }
+						{ "type": "uint64", "name": "teamID", "required": true, "title": "Team ID" }
 					],
 					"post": [
-						{ "type": "uint64", "name": "organisation_id", "required": true, "title": "Organisation ID" }
+						{ "type": "uint64", "name": "organisation_id", "required": true, "title": "Team ID" }
 					]
 				}
 			},
@@ -201,13 +201,13 @@
 				"name": "merge",
 				"method": "POST",
 				"title": "Merge one team into another",
-				"path": "/{id}/merge",
+				"path": "/{teamID}/merge",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "teamId", "required": true, "title": "Source Channel ID" }
+						{ "type": "uint64", "name": "teamID", "required": true, "title": "Source Team ID" }
 					],
 					"post": [
-						{ "type": "uint64", "name": "destination", "required": true, "title": "Destination Channel ID" }
+						{ "type": "uint64", "name": "destination", "required": true, "title": "Destination Team ID" }
 					]
 				}
 			}
@@ -232,7 +232,7 @@
 					{ "type": "string",          "name": "Name" },
 					{ "type": "string",          "name": "Topic", "dbname": "-" },
 					{ "type": "json.RawMessage", "name": "Meta", "complex": true},
-					{ "type": "uint64",          "name": "LastMessageId", "tag": "json:\",omitempty\"", "dbname": "rel_last_message" },
+					{ "type": "uint64",          "name": "LastMessageID", "tag": "json:\",omitempty\"", "dbname": "rel_last_message" },
 					{ "type": "*time.Time",      "name": "ArchivedAt",    "tag": "json:\",omitempty\"", "complex": true },
 					{ "type": "*time.Time",      "name": "DeletedAt",     "tag": "json:\",omitempty\"", "complex": true }
 				]
@@ -246,7 +246,7 @@
 				"path": "/",
 				"parameters": {
 					"GET": [
-						{ "type": "string", "name": "query", "required": false, "title": "Search query" },
+						{ "type": "string", "name": "query", "required": false, "title": "Search query" }
 					]
 				}
 			},
@@ -265,39 +265,39 @@
 			{
 				"name": "edit",
 				"method": "POST",
-				"path": "/{channelId}",
+				"path": "/{channelID}",
 				"title": "Update channel details",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "channelId", "required": true, "title": "Channel ID" }
+						{ "type": "uint64", "name": "channelID", "required": true, "title": "Channel ID" }
 					],
 					"post": [
 						{ "type": "string", "name": "name", "required": false, "title": "Name of Channel" },
 						{ "type": "string", "name": "topic", "required": false, "title": "Subject of Channel" },
 						{ "type": "bool",   "name": "archive", "required": false, "title": "Request channel to be archived or unarchived" },
-						{ "type": "uint64", "name": "organisationId", "required": false, "title": "Move channel to different organisation" }
+						{ "type": "uint64", "name": "organisationID", "required": false, "title": "Move channel to different organisation" }
 					]
 				}
 			},
 			{
 				"name": "read",
 				"method": "GET",
-				"path": "/{channelId}",
+				"path": "/{channelID}",
 				"title": "Read channel details",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "channelId", "required": true, "title": "Channel ID" }
+						{ "type": "uint64", "name": "channelID", "required": true, "title": "Channel ID" }
 					]
 				}
 			},
 			{
 				"name": "delete",
 				"method": "DELETE",
-				"path": "/{channelId}",
+				"path": "/{channelID}",
 				"title": "Remove channel",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "channelId", "required": true, "title": "Channel ID" }
+						{ "type": "uint64", "name": "channelID", "required": true, "title": "Channel ID" }
 					]
 				}
 			}
@@ -306,10 +306,10 @@
 	{
 		"title": "Messages",
 		"package": "sam",
-		"path": "/channels/{channelId}/messages",
+		"path": "/channels/{channelID}/messages",
 		"parameters": {
 			"path": [
-				{ "name": "channelId", "type": "uint64", "required": true, "title": "Channel ID" }
+				{ "name": "channelID", "type": "uint64", "required": true, "title": "Channel ID" }
 			]
 		},
 		"entrypoint": "message",
@@ -322,8 +322,8 @@
 					{ "name": "ID",         "type": "uint64" },
 					{ "name": "Type",       "type": "string" },
 					{ "name": "Message",    "type": "string" },
-					{ "name": "UserId",     "type": "uint64",  "dbname": "rel_user" },
-					{ "name": "ChannelId",  "type": "uint64",  "dbname": "rel_channel"},
+					{ "name": "UserID",     "type": "uint64",  "dbname": "rel_user" },
+					{ "name": "ChannelID",  "type": "uint64",  "dbname": "rel_channel"},
 					{ "name": "ReplyTo",    "type": "uint64",  "dbname": "reply_to" },
 					{ "name": "UpdatedAt",  "type": "*time.Time", "tag": "json:\",omitempty\"", "complex": true },
 					{ "name": "DeletedAt",  "type": "*time.Time", "tag": "json:\",omitempty\"", "complex": true }
@@ -335,9 +335,9 @@
 				"imports": ["time"],
 				"fields": [
 					{ "name": "ID",         "type": "uint64" },
-					{ "name": "UserId",     "type": "uint64",  "dbname": "rel_user" },
-					{ "name": "MessageId",  "type": "uint64",  "dbname": "rel_message"},
-					{ "name": "ChannelId",  "type": "uint64",  "dbname": "rel_channel"},
+					{ "name": "UserID",     "type": "uint64",  "dbname": "rel_user" },
+					{ "name": "MessageID",  "type": "uint64",  "dbname": "rel_message"},
+					{ "name": "ChannelID",  "type": "uint64",  "dbname": "rel_channel"},
 					{ "name": "Reaction",   "type": "string" },
 					{ "name": "DeletedAt",  "type": "*time.Time", "tag": "json:\",omitempty\"", "complex": true }
 				]
@@ -347,9 +347,9 @@
 				"imports": ["time", "encoding/json"],
 				"fields": [
 					{ "name": "ID",         "type": "uint64" },
-					{ "name": "UserId",     "type": "uint64",  "dbname": "rel_user" },
-					{ "name": "MessageId",  "type": "uint64",  "dbname": "rel_message"},
-					{ "name": "ChannelId",  "type": "uint64",  "dbname": "rel_channel"},
+					{ "name": "UserID",     "type": "uint64",  "dbname": "rel_user" },
+					{ "name": "MessageID",  "type": "uint64",  "dbname": "rel_message"},
+					{ "name": "ChannelID",  "type": "uint64",  "dbname": "rel_channel"},
 					{ "name": "Attachment", "type": "json.RawMessage" , "complex": true},
 					{ "name": "DeletedAt",  "type": "*time.Time", "tag": "json:\",omitempty\"", "complex": true }
 				]
@@ -374,18 +374,18 @@
 				"title": "All messages (channel history)",
 				"parameters": {
 					"get": [
-						{ "name": "lastMessageId", "type": "uint64", "required": false, "title": "" }
+						{ "name": "lastMessageID", "type": "uint64", "required": false, "title": "" }
 					]
 				}
 			},
 			{
 				"name": "edit",
-				"path": "/{messageId}",
+				"path": "/{messageID}",
 				"method": "PUT",
 				"title": "Edit existing message",
 				"parameters": {
 					"path": [
-						{ "name": "messageId", "type": "uint64", "required": true, "title": "Message ID" }
+						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
 					],
 					"post": [
 						{ "type": "string", "name": "message", "required": true, "title": "Message contents (markdown)" }
@@ -394,23 +394,23 @@
 			},
 			{
 				"name": "delete",
-				"path": "/{messageId}",
+				"path": "/{messageID}",
 				"method": "DELETE",
 				"title": "Delete existing message",
 				"parameters": {
 					"path": [
-						{ "name": "messageId", "type": "uint64", "required": true, "title": "Message ID" }
+						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
 					]
 				}
 			},
 			{
 				"name": "attach",
-				"path": "/{messageId}/attach",
+				"path": "/{messageID}/attach",
 				"method": "PUT",
 				"title": "Attach file to message",
 				"params": {
 					"path": [
-						{ "name": "messageId", "type": "uint64", "required": true, "title": "Message ID" }
+						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
 					],
 					"post": [
 						{ "name": "name", "type": "string", "title": "File name to drop" }
@@ -437,68 +437,68 @@
 			},
 			{
 				"name": "pin",
-				"path": "/{messageId}/pin",
+				"path": "/{messageID}/pin",
 				"method": "POST",
 				"title": "Pin message to channel (public bookmark)",
 				"parameters": {
 					"path": [
-						{ "name": "messageId", "type": "uint64", "required": true, "title": "Message ID" }
+						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
 					]
 				}
 			},
 			{
 				"name": "unpin",
-				"path": "/{messageId}/pin",
+				"path": "/{messageID}/pin",
 				"method": "DELETE",
 				"title": "Pin message to channel (public bookmark)",
 				"parameters": {
 					"path": [
-						{ "name": "messageId", "type": "uint64", "required": true, "title": "Message ID" }
+						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
 					]
 				}
 			},
 			{
 				"name": "flag",
-				"path": "/{messageId}/flag",
+				"path": "/{messageID}/flag",
 				"method": "POST",
 				"title": "Flag a message (private bookmark)",
 				"parameters": {
 					"path": [
-						{ "name": "messageId", "type": "uint64", "required": true, "title": "Message ID" }
+						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
 					]
 				}
 			},
 			{
 				"name": "unflag",
-				"path": "/{messageId}/flag",
+				"path": "/{messageID}/flag",
 				"method": "DELETE",
 				"title": "Remove flag from message (private bookmark)",
 				"parameters": {
 					"path": [
-						{ "name": "messageId", "type": "uint64", "required": true, "title": "Message ID" }
+						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
 					]
 				}
 			},
 			{
 				"name": "react",
-				"path": "/{messageId}/reaction/{reaction}",
+				"path": "/{messageID}/reaction/{reaction}",
 				"method": "PUT",
 				"title": "React to a message",
 				"parameters": {
 					"path": [
-						{ "name": "messageId", "type": "uint64", "required": true, "title": "Message ID" },
+						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" },
 						{ "name": "reaction",  "type": "string", "required": true, "title": "Reaction" }
 					]
 				}
 			},
 			{
 				"name": "unreact",
-				"path": "/{messageId}/react/{reaction}",
+				"path": "/{messageID}/react/{reaction}",
 				"method": "DELETE",
 				"title": "Delete reaction from a message",
 				"parameters": {
 					"path": [
-						{ "name": "messageId", "type": "uint64", "required": true, "title": "Message ID" },
+						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" },
 						{ "name": "reaction", "type": "string", "required": true, "title": "Reaction" }
 					]
 				}

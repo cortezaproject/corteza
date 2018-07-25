@@ -15,7 +15,7 @@ type (
 	}
 
 	organisationService interface {
-		FindById(context.Context, uint64) (*types.Organisation, error)
+		FindByID(context.Context, uint64) (*types.Organisation, error)
 		Find(context.Context, *types.OrganisationFilter) ([]*types.Organisation, error)
 
 		Create(context.Context, *types.Organisation) (*types.Organisation, error)
@@ -31,7 +31,7 @@ func (Organisation) New() *Organisation {
 }
 
 func (ctrl *Organisation) Read(ctx context.Context, r *server.OrganisationReadRequest) (interface{}, error) {
-	return ctrl.service.FindById(ctx, r.ID)
+	return ctrl.service.FindByID(ctx, r.ID)
 }
 
 func (ctrl *Organisation) List(ctx context.Context, r *server.OrganisationListRequest) (interface{}, error) {

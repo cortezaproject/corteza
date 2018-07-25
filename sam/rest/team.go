@@ -15,7 +15,7 @@ type (
 	}
 
 	teamService interface {
-		FindById(context.Context, uint64) (*types.Team, error)
+		FindByID(context.Context, uint64) (*types.Team, error)
 		Find(context.Context, *types.TeamFilter) ([]*types.Team, error)
 
 		Create(context.Context, *types.Team) (*types.Team, error)
@@ -33,7 +33,7 @@ func (Team) New() *Team {
 }
 
 func (ctrl *Team) Read(ctx context.Context, r *server.TeamReadRequest) (interface{}, error) {
-	return ctrl.service.FindById(ctx, r.TeamId)
+	return ctrl.service.FindByID(ctx, r.TeamID)
 }
 
 func (ctrl *Team) List(ctx context.Context, r *server.TeamListRequest) (interface{}, error) {
@@ -51,24 +51,24 @@ func (ctrl *Team) Create(ctx context.Context, r *server.TeamCreateRequest) (inte
 func (ctrl *Team) Edit(ctx context.Context, r *server.TeamEditRequest) (interface{}, error) {
 	org := types.Team{}.
 		New().
-		SetID(r.TeamId).
+		SetID(r.TeamID).
 		SetName(r.Name)
 
 	return ctrl.service.Update(ctx, org)
 }
 
 func (ctrl *Team) Remove(ctx context.Context, r *server.TeamRemoveRequest) (interface{}, error) {
-	return nil, ctrl.service.Delete(ctx, r.TeamId)
+	return nil, ctrl.service.Delete(ctx, r.TeamID)
 }
 
 func (ctrl *Team) Archive(ctx context.Context, r *server.TeamArchiveRequest) (interface{}, error) {
-	return nil, ctrl.service.Archive(ctx, r.TeamId)
+	return nil, ctrl.service.Archive(ctx, r.TeamID)
 }
 
 func (ctrl *Team) Merge(ctx context.Context, r *server.TeamMergeRequest) (interface{}, error) {
-	return nil, ctrl.service.Merge(ctx, &types.Team{ID: r.TeamId})
+	return nil, ctrl.service.Merge(ctx, &types.Team{ID: r.TeamID})
 }
 
 func (ctrl *Team) Move(ctx context.Context, r *server.TeamMoveRequest) (interface{}, error) {
-	return nil, ctrl.service.Move(ctx, &types.Team{ID: r.TeamId})
+	return nil, ctrl.service.Move(ctx, &types.Team{ID: r.TeamID})
 }

@@ -26,8 +26,8 @@ type (
 		ID        uint64     `db:"id"`
 		Type      string     `db:"type"`
 		Message   string     `db:"message"`
-		UserId    uint64     `db:"rel_user"`
-		ChannelId uint64     `db:"rel_channel"`
+		UserID    uint64     `db:"rel_user"`
+		ChannelID uint64     `db:"rel_channel"`
 		ReplyTo   uint64     `db:"reply_to"`
 		UpdatedAt *time.Time `json:",omitempty" db:"updated_at"`
 		DeletedAt *time.Time `json:",omitempty" db:"deleted_at"`
@@ -38,9 +38,9 @@ type (
 	// Messages -
 	Reaction struct {
 		ID        uint64     `db:"id"`
-		UserId    uint64     `db:"rel_user"`
-		MessageId uint64     `db:"rel_message"`
-		ChannelId uint64     `db:"rel_channel"`
+		UserID    uint64     `db:"rel_user"`
+		MessageID uint64     `db:"rel_message"`
+		ChannelID uint64     `db:"rel_channel"`
 		Reaction  string     `db:"reaction"`
 		DeletedAt *time.Time `json:",omitempty" db:"deleted_at"`
 
@@ -50,9 +50,9 @@ type (
 	// Messages -
 	Attachment struct {
 		ID         uint64          `db:"id"`
-		UserId     uint64          `db:"rel_user"`
-		MessageId  uint64          `db:"rel_message"`
-		ChannelId  uint64          `db:"rel_channel"`
+		UserID     uint64          `db:"rel_user"`
+		MessageID  uint64          `db:"rel_message"`
+		ChannelID  uint64          `db:"rel_channel"`
 		Attachment json.RawMessage `db:"attachment"`
 		DeletedAt  *time.Time      `json:",omitempty" db:"deleted_at"`
 
@@ -117,30 +117,30 @@ func (m *Message) SetMessage(value string) *Message {
 	return m
 }
 
-// Get the value of UserId
-func (m *Message) GetUserId() uint64 {
-	return m.UserId
+// Get the value of UserID
+func (m *Message) GetUserID() uint64 {
+	return m.UserID
 }
 
-// Set the value of UserId
-func (m *Message) SetUserId(value uint64) *Message {
-	if m.UserId != value {
-		m.changed = append(m.changed, "UserId")
-		m.UserId = value
+// Set the value of UserID
+func (m *Message) SetUserID(value uint64) *Message {
+	if m.UserID != value {
+		m.changed = append(m.changed, "UserID")
+		m.UserID = value
 	}
 	return m
 }
 
-// Get the value of ChannelId
-func (m *Message) GetChannelId() uint64 {
-	return m.ChannelId
+// Get the value of ChannelID
+func (m *Message) GetChannelID() uint64 {
+	return m.ChannelID
 }
 
-// Set the value of ChannelId
-func (m *Message) SetChannelId(value uint64) *Message {
-	if m.ChannelId != value {
-		m.changed = append(m.changed, "ChannelId")
-		m.ChannelId = value
+// Set the value of ChannelID
+func (m *Message) SetChannelID(value uint64) *Message {
+	if m.ChannelID != value {
+		m.changed = append(m.changed, "ChannelID")
+		m.ChannelID = value
 	}
 	return m
 }
@@ -202,44 +202,44 @@ func (m *Reaction) SetID(value uint64) *Reaction {
 	return m
 }
 
-// Get the value of UserId
-func (m *Reaction) GetUserId() uint64 {
-	return m.UserId
+// Get the value of UserID
+func (m *Reaction) GetUserID() uint64 {
+	return m.UserID
 }
 
-// Set the value of UserId
-func (m *Reaction) SetUserId(value uint64) *Reaction {
-	if m.UserId != value {
-		m.changed = append(m.changed, "UserId")
-		m.UserId = value
+// Set the value of UserID
+func (m *Reaction) SetUserID(value uint64) *Reaction {
+	if m.UserID != value {
+		m.changed = append(m.changed, "UserID")
+		m.UserID = value
 	}
 	return m
 }
 
-// Get the value of MessageId
-func (m *Reaction) GetMessageId() uint64 {
-	return m.MessageId
+// Get the value of MessageID
+func (m *Reaction) GetMessageID() uint64 {
+	return m.MessageID
 }
 
-// Set the value of MessageId
-func (m *Reaction) SetMessageId(value uint64) *Reaction {
-	if m.MessageId != value {
-		m.changed = append(m.changed, "MessageId")
-		m.MessageId = value
+// Set the value of MessageID
+func (m *Reaction) SetMessageID(value uint64) *Reaction {
+	if m.MessageID != value {
+		m.changed = append(m.changed, "MessageID")
+		m.MessageID = value
 	}
 	return m
 }
 
-// Get the value of ChannelId
-func (m *Reaction) GetChannelId() uint64 {
-	return m.ChannelId
+// Get the value of ChannelID
+func (m *Reaction) GetChannelID() uint64 {
+	return m.ChannelID
 }
 
-// Set the value of ChannelId
-func (m *Reaction) SetChannelId(value uint64) *Reaction {
-	if m.ChannelId != value {
-		m.changed = append(m.changed, "ChannelId")
-		m.ChannelId = value
+// Set the value of ChannelID
+func (m *Reaction) SetChannelID(value uint64) *Reaction {
+	if m.ChannelID != value {
+		m.changed = append(m.changed, "ChannelID")
+		m.ChannelID = value
 	}
 	return m
 }
@@ -289,44 +289,44 @@ func (m *Attachment) SetID(value uint64) *Attachment {
 	return m
 }
 
-// Get the value of UserId
-func (m *Attachment) GetUserId() uint64 {
-	return m.UserId
+// Get the value of UserID
+func (m *Attachment) GetUserID() uint64 {
+	return m.UserID
 }
 
-// Set the value of UserId
-func (m *Attachment) SetUserId(value uint64) *Attachment {
-	if m.UserId != value {
-		m.changed = append(m.changed, "UserId")
-		m.UserId = value
+// Set the value of UserID
+func (m *Attachment) SetUserID(value uint64) *Attachment {
+	if m.UserID != value {
+		m.changed = append(m.changed, "UserID")
+		m.UserID = value
 	}
 	return m
 }
 
-// Get the value of MessageId
-func (m *Attachment) GetMessageId() uint64 {
-	return m.MessageId
+// Get the value of MessageID
+func (m *Attachment) GetMessageID() uint64 {
+	return m.MessageID
 }
 
-// Set the value of MessageId
-func (m *Attachment) SetMessageId(value uint64) *Attachment {
-	if m.MessageId != value {
-		m.changed = append(m.changed, "MessageId")
-		m.MessageId = value
+// Set the value of MessageID
+func (m *Attachment) SetMessageID(value uint64) *Attachment {
+	if m.MessageID != value {
+		m.changed = append(m.changed, "MessageID")
+		m.MessageID = value
 	}
 	return m
 }
 
-// Get the value of ChannelId
-func (m *Attachment) GetChannelId() uint64 {
-	return m.ChannelId
+// Get the value of ChannelID
+func (m *Attachment) GetChannelID() uint64 {
+	return m.ChannelID
 }
 
-// Set the value of ChannelId
-func (m *Attachment) SetChannelId(value uint64) *Attachment {
-	if m.ChannelId != value {
-		m.changed = append(m.changed, "ChannelId")
-		m.ChannelId = value
+// Set the value of ChannelID
+func (m *Attachment) SetChannelID(value uint64) *Attachment {
+	if m.ChannelID != value {
+		m.changed = append(m.changed, "ChannelID")
+		m.ChannelID = value
 	}
 	return m
 }

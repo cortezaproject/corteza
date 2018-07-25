@@ -19,7 +19,7 @@ type (
 	}
 
 	channelService interface {
-		FindById(context.Context, uint64) (*types.Channel, error)
+		FindByID(context.Context, uint64) (*types.Channel, error)
 		Find(context.Context, *types.ChannelFilter) ([]*types.Channel, error)
 
 		Create(context.Context, *types.Channel) (*types.Channel, error)
@@ -56,11 +56,11 @@ func (ctrl *Channel) Edit(ctx context.Context, r *server.ChannelEditRequest) (in
 }
 
 func (ctrl *Channel) Delete(ctx context.Context, r *server.ChannelDeleteRequest) (interface{}, error) {
-	return nil, ctrl.service.Delete(ctx, r.ChannelId)
+	return nil, ctrl.service.Delete(ctx, r.ChannelID)
 }
 
 func (ctrl *Channel) Read(ctx context.Context, r *server.ChannelReadRequest) (interface{}, error) {
-	return ctrl.service.FindById(ctx, r.ChannelId)
+	return ctrl.service.FindByID(ctx, r.ChannelID)
 }
 
 func (ctrl *Channel) List(ctx context.Context, r *server.ChannelListRequest) (interface{}, error) {

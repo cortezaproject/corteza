@@ -34,7 +34,7 @@ func (Websocket) Open(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session := store.Save(Session{}.New(ws))
+	session := store.Save(Session{}.New(r.Context(), ws))
 	if err := session.Handle(); err != nil {
 		// @todo: log error, because at this point we can't really write it to w
 	}

@@ -12,7 +12,7 @@ type (
 	}
 
 	channelRepository interface {
-		FindById(context.Context, uint64) (*types.Channel, error)
+		FindByID(context.Context, uint64) (*types.Channel, error)
 		Find(context.Context, *types.ChannelFilter) ([]*types.Channel, error)
 
 		Create(context.Context, *types.Channel) (*types.Channel, error)
@@ -27,9 +27,9 @@ func Channel() *channel {
 	return &channel{repository: repository.Channel()}
 }
 
-func (svc channel) FindById(ctx context.Context, id uint64) (*types.Channel, error) {
+func (svc channel) FindByID(ctx context.Context, id uint64) (*types.Channel, error) {
 	// @todo: permission check if current user can read channel
-	return svc.repository.FindById(ctx, id)
+	return svc.repository.FindByID(ctx, id)
 }
 
 func (svc channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*types.Channel, error) {

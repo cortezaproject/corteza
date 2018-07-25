@@ -26,7 +26,7 @@
         },
         {
           "dbname": "rel_last_message",
-          "name": "LastMessageId",
+          "name": "LastMessageID",
           "tag": "json:\",omitempty\"",
           "type": "uint64"
         },
@@ -70,12 +70,6 @@
             "required": false,
             "title": "Search query",
             "type": "string"
-          },
-          {
-            "name": "sinceMessageId",
-            "required": false,
-            "title": "",
-            "type": "uint64"
           }
         ]
       }
@@ -106,11 +100,11 @@
       "Name": "edit",
       "Method": "POST",
       "Title": "Update channel details",
-      "Path": "/{channelId}",
+      "Path": "/{channelID}",
       "Parameters": {
         "path": [
           {
-            "name": "channelId",
+            "name": "channelID",
             "required": true,
             "title": "Channel ID",
             "type": "uint64"
@@ -136,7 +130,7 @@
             "type": "bool"
           },
           {
-            "name": "organisationId",
+            "name": "organisationID",
             "required": false,
             "title": "Move channel to different organisation",
             "type": "uint64"
@@ -148,11 +142,11 @@
       "Name": "read",
       "Method": "GET",
       "Title": "Read channel details",
-      "Path": "/{channelId}",
+      "Path": "/{channelID}",
       "Parameters": {
         "path": [
           {
-            "name": "channelId",
+            "name": "channelID",
             "required": true,
             "title": "Channel ID",
             "type": "uint64"
@@ -164,11 +158,11 @@
       "Name": "delete",
       "Method": "DELETE",
       "Title": "Remove channel",
-      "Path": "/{channelId}",
+      "Path": "/{channelID}",
       "Parameters": {
         "path": [
           {
-            "name": "channelId",
+            "name": "channelID",
             "required": true,
             "title": "Channel ID",
             "type": "uint64"

@@ -24,8 +24,7 @@ var _ = chi.URLParam
 
 // Channel list request parameters
 type ChannelListRequest struct {
-	Query          string
-	SinceMessageId uint64
+	Query string
 }
 
 func (ChannelListRequest) new() *ChannelListRequest {
@@ -46,8 +45,6 @@ func (c *ChannelListRequest) Fill(r *http.Request) error {
 	}
 
 	c.Query = get["query"]
-
-	c.SinceMessageId = parseUInt64(get["sinceMessageId"])
 	return nil
 }
 
@@ -86,11 +83,11 @@ var _ RequestFiller = ChannelCreateRequest{}.new()
 
 // Channel edit request parameters
 type ChannelEditRequest struct {
-	ChannelId      uint64
+	ChannelID      uint64
 	Name           string
 	Topic          string
 	Archive        bool
-	OrganisationId uint64
+	OrganisationID uint64
 }
 
 func (ChannelEditRequest) new() *ChannelEditRequest {
@@ -110,7 +107,7 @@ func (c *ChannelEditRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	c.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
+	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	c.Name = post["name"]
 
@@ -118,7 +115,7 @@ func (c *ChannelEditRequest) Fill(r *http.Request) error {
 
 	c.Archive = parseBool(post["archive"])
 
-	c.OrganisationId = parseUInt64(post["organisationId"])
+	c.OrganisationID = parseUInt64(post["organisationID"])
 	return nil
 }
 
@@ -126,7 +123,7 @@ var _ RequestFiller = ChannelEditRequest{}.new()
 
 // Channel read request parameters
 type ChannelReadRequest struct {
-	ChannelId uint64
+	ChannelID uint64
 }
 
 func (ChannelReadRequest) new() *ChannelReadRequest {
@@ -146,7 +143,7 @@ func (c *ChannelReadRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	c.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
+	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 	return nil
 }
 
@@ -154,7 +151,7 @@ var _ RequestFiller = ChannelReadRequest{}.new()
 
 // Channel delete request parameters
 type ChannelDeleteRequest struct {
-	ChannelId uint64
+	ChannelID uint64
 }
 
 func (ChannelDeleteRequest) new() *ChannelDeleteRequest {
@@ -174,7 +171,7 @@ func (c *ChannelDeleteRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	c.ChannelId = parseUInt64(chi.URLParam(r, "channelId"))
+	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 	return nil
 }
 

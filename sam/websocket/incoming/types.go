@@ -1,21 +1,21 @@
 package incoming
 
 type ChannelJoin struct {
-	ChannelId string `json:"cid"`
+	ChannelID string `json:"cid"`
 }
 
 type ChannelPart struct {
-	ChannelId string `json:"cid"`
+	ChannelID string `json:"cid"`
 }
 
 type ChannelOpen struct {
-	ChannelId string `json:"cid"`
+	ChannelID string `json:"cid"`
 	Since     string `json:"since,omitempty"`
 	Until     string `json:"until,omitempty"`
 }
 
 type MessageCreate struct {
-	ChannelId string `json:"cid"`
+	ChannelID string `json:"cid"`
 	Message   string `json:"msg"`
 }
 

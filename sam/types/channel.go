@@ -27,7 +27,7 @@ type (
 		Name          string          `db:"name"`
 		Topic         string          `db:"-"`
 		Meta          json.RawMessage `db:"meta"`
-		LastMessageId uint64          `json:",omitempty" db:"rel_last_message"`
+		LastMessageID uint64          `json:",omitempty" db:"rel_last_message"`
 		ArchivedAt    *time.Time      `json:",omitempty" db:"archived_at"`
 		DeletedAt     *time.Time      `json:",omitempty" db:"deleted_at"`
 
@@ -94,16 +94,16 @@ func (c *Channel) SetMeta(value json.RawMessage) *Channel {
 	return c
 }
 
-// Get the value of FromMessageId
-func (c *Channel) GetLastMessageId() uint64 {
-	return c.LastMessageId
+// Get the value of LastMessageID
+func (c *Channel) GetLastMessageID() uint64 {
+	return c.LastMessageID
 }
 
-// Set the value of FromMessageId
-func (c *Channel) SetLastMessageId(value uint64) *Channel {
-	if c.LastMessageId != value {
-		c.changed = append(c.changed, "FromMessageId")
-		c.LastMessageId = value
+// Set the value of LastMessageID
+func (c *Channel) SetLastMessageID(value uint64) *Channel {
+	if c.LastMessageID != value {
+		c.changed = append(c.changed, "LastMessageID")
+		c.LastMessageID = value
 	}
 	return c
 }

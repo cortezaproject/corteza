@@ -35,7 +35,7 @@ func (r user) FindByUsername(ctx context.Context, username string) (*types.User,
 	}
 }
 
-func (r user) FindById(ctx context.Context, id uint64) (*types.User, error) {
+func (r user) FindByID(ctx context.Context, id uint64) (*types.User, error) {
 	db := factory.Database.MustGet()
 
 	mod := &types.User{}
