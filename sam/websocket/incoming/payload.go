@@ -2,8 +2,9 @@ package incoming
 
 type Payload struct {
 	// Channel actions
-	*ChannelJoin `json:"chjoin"`
-	*ChannelPart `json:"chpart"`
+	*ChannelJoin    `json:"chjoin"`
+	*ChannelPart    `json:"chpart"`
+	*ChannelPartAll `json:"chpartall"`
 
 	// Get channel message history
 	*ChannelOpen `json:"chopen"`
