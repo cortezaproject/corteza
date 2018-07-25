@@ -54,7 +54,7 @@ func (ctrl *Message) Create(ctx context.Context, r *server.MessageCreateRequest)
 func (ctrl *Message) History(ctx context.Context, r *server.MessageHistoryRequest) (interface{}, error) {
 	return ctrl.service.Find(ctx, &types.MessageFilter{
 		ChannelId:     r.ChannelId,
-		LastMessageId: r.LastMessageId,
+		FromMessageId: r.LastMessageId,
 	})
 }
 

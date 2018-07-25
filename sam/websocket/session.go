@@ -66,9 +66,10 @@ func (sess *Session) readLoop() error {
 		if err != nil {
 			return errors.Wrap(err, "sess.readLoop")
 		}
+
 		if err := sess.dispatch(raw); err != nil {
 			// @todo: log error?
-			sess.send <- outgoing.Message{}.New().FromError(err)
+			sess.send <- outgoing.NewError(err)
 		}
 	}
 }
@@ -82,15 +83,15 @@ func (sess *Session) writeLoop() error {
 	}()
 
 	write := func(mt int, msg interface{}) error {
-		var bits []byte
-		if msg != nil {
-			bits = msg.([]byte)
-		} else {
-			// PintMessage = empty frame
-			bits = []byte{}
-		}
 		sess.conn.SetWriteDeadline(time.Now().Add(sess.config.writeTimeout))
-		return sess.conn.WriteMessage(mt, bits)
+
+		switch msg := msg.(type) {
+		case *outgoing.WsMessage:
+			return sess.conn.WriteJSON(msg)
+		default:
+			return sess.conn.WriteMessage(mt, nil)
+		}
+
 	}
 
 	for {
@@ -100,6 +101,7 @@ func (sess *Session) writeLoop() error {
 				// channel closed
 				return nil
 			}
+
 			if err := write(websocket.TextMessage, msg); err != nil {
 				return errors.Wrap(err, "writeLoop send")
 			}

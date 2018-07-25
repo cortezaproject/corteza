@@ -5,29 +5,17 @@ import (
 )
 
 type Message struct {
-	// User login
-	Login *Login `json:"login"`
-
 	// Channel actions
-	Join  *Join  `json:"join"`
-	Leave *Leave `json:"leave"`
+	*ChannelJoin `json:"chjoin"`
+	*ChannelPart `json:"chpart"`
 
 	// Get channel message history
-	History *History `json:"history"`
+	*ChannelOpen `json:"chopen"`
 
 	// Message actions
-	Create *Create `json:"create"`
-	Edit   *Edit   `json:"edit"`
-	Delete *Delete `json:"delete"`
-
-	// Client notifications (message received, message read, typing indicator)
-	Note *Note `json:"note"`
+	*MessageCreate `json:"msgcre"`
+	*MessageUpdate `json:"msgupd"`
+	*MessageDelete `json:"msgdel"`
 
 	timestamp time.Time
-}
-
-func (Message) New() *Message {
-	return &Message{
-		timestamp: time.Now().UTC(),
-	}
 }
