@@ -7,36 +7,32 @@ import (
 	"github.com/crusttech/crust/sam/types"
 	"github.com/crusttech/crust/sam/websocket/incoming"
 	"github.com/pkg/errors"
-	"strconv"
 )
 
 func (s *Session) dispatch(raw []byte) (err error) {
-	var payload = &incoming.Message{}
-	if err = json.Unmarshal(raw, payload); err != nil {
+	var p = &incoming.Payload{}
+	if err = json.Unmarshal(raw, p); err != nil {
 		return errors.Wrap(err, "Session.incoming: payload malformed")
 	}
 
 	ctx := s.Context()
-	if p := payload.MessageCreate; p != nil {
-		return s.dispatchMessageCreate(ctx, p)
-	}
-
-	if p := payload.ChannelOpen; p != nil {
-		return s.dispatchChannelOpen(ctx, p)
+	switch {
+	case p.MessageCreate != nil:
+		return s.messageCreate(ctx, p)
+	case p.ChannelOpen != nil:
+		return s.channelOpen(ctx, p)
 	}
 
 	return nil
 }
 
-func (s *Session) dispatchMessageCreate(ctx context.Context, payload *incoming.MessageCreate) (err error) {
+func (s *Session) messageCreate(ctx context.Context, payload *incoming.Payload) (err error) {
 	var (
-		msg = &types.Message{Message: payload.Message}
+		request = payload.MessageCreate
+		msg     = &types.Message{Message: request.Message}
 	)
 
-	if msg.ChannelID, err = strconv.ParseUint(payload.ChannelID, 10, 64); err != nil {
-		return
-	}
-
+	msg.ChannelID = parseUInt64(request.ChannelID)
 	if msg, err = service.Message().Create(ctx, msg); err != nil {
 		return
 	} else {
@@ -47,16 +43,14 @@ func (s *Session) dispatchMessageCreate(ctx context.Context, payload *incoming.M
 	return
 }
 
-func (s *Session) dispatchChannelOpen(ctx context.Context, payload *incoming.ChannelOpen) (err error) {
-	var filter = &types.MessageFilter{}
+func (s *Session) channelOpen(ctx context.Context, payload *incoming.Payload) (err error) {
+	var (
+		request = payload.ChannelOpen
+		filter  = &types.MessageFilter{}
+	)
 
-	if filter.ChannelID, err = strconv.ParseUint(payload.ChannelID, 10, 64); err != nil {
-		return
-	}
-
-	if filter.FromMessageID, err = strconv.ParseUint(payload.Since, 10, 64); err != nil {
-		return
-	}
+	filter.ChannelID = parseUInt64(request.ChannelID)
+	filter.FromMessageID = parseUInt64(request.Since)
 
 	if messages, err := service.Message().Find(ctx, filter); err != nil {
 		return err

@@ -1,10 +1,6 @@
 package incoming
 
-import (
-	"time"
-)
-
-type Message struct {
+type Payload struct {
 	// Channel actions
 	*ChannelJoin `json:"chjoin"`
 	*ChannelPart `json:"chpart"`
@@ -16,6 +12,4 @@ type Message struct {
 	*MessageCreate `json:"msgcre"`
 	*MessageUpdate `json:"msgupd"`
 	*MessageDelete `json:"msgdel"`
-
-	timestamp time.Time
 }
