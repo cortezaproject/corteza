@@ -8,6 +8,10 @@ import (
 
 var truthy = regexp.MustCompile("^\\s*(t(rue)?|y(es)?|1)\\s*$")
 
+func uint64toa(i uint64) string {
+	return strconv.FormatUint(i, 10)
+}
+
 // parseInt64 parses an string to int64
 func parseInt64(s string) int64 {
 	if s == "" {

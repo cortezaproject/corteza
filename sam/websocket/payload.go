@@ -16,3 +16,12 @@ func payloadFromMessage(msg *types.Message) *outgoing.Message {
 		ReplyTo:   strconv.FormatUint(msg.ReplyTo, 10),
 	}
 }
+
+func payloadFromMessages(msg []*types.Message) *outgoing.Messages {
+	msgs := make([]*outgoing.Message, len(msg))
+	for k, m := range msg {
+		msgs[k] = payloadFromMessage(m)
+	}
+	retval := outgoing.Messages(msgs)
+	return &retval
+}

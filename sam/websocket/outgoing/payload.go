@@ -5,13 +5,21 @@ import (
 	"time"
 )
 
-type Payload struct {
-	*Error   `json:"error,omitempty"`
-	*Message `json:"m"`
+type (
+	Payload struct {
+		*Error         `json:"error,omitempty"`
+		*Message       `json:"m,omitempty"`
+		*MessageDelete `json:"md,omitempty"`
+		*MessageUpdate `json:"mu,omitempty"`
+		*Messages      `json:"ms,omitempty"`
 
-	// @todo: implement outgoing message types
-	timestamp time.Time
-}
+		// @todo: implement outgoing message types
+		timestamp time.Time
+	}
+	PayloadType interface {
+		valid() bool
+	}
+)
 
 func (p *Payload) Load(payload PayloadType) *Payload {
 	switch val := payload.(type) {
@@ -19,6 +27,12 @@ func (p *Payload) Load(payload PayloadType) *Payload {
 		p.Error = val
 	case *Message:
 		p.Message = val
+	case *Messages:
+		p.Messages = val
+	case *MessageDelete:
+		p.MessageDelete = val
+	case *MessageUpdate:
+		p.MessageUpdate = val
 	default:
 		panic(fmt.Sprintf("Unknown/unsupported Payload type: %T", val))
 	}

@@ -7,6 +7,8 @@ import (
 type (
 	// A subscription holds a "channel" that the user is joined to
 	Subscription struct {
+		// for tracking new messages
+		lastCommentID string
 	}
 
 	// A list of all user-joined channels
