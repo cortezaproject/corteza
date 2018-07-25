@@ -12,7 +12,7 @@ type (
 	}
 
 	teamRepository interface {
-		FindById(context.Context, uint64) (*types.Team, error)
+		FindByID(context.Context, uint64) (*types.Team, error)
 		Find(context.Context, *types.TeamFilter) ([]*types.Team, error)
 
 		Create(context.Context, *types.Team) (*types.Team, error)
@@ -30,9 +30,9 @@ func Team() *team {
 	return &team{repository: repository.Team()}
 }
 
-func (svc team) FindById(ctx context.Context, id uint64) (*types.Team, error) {
+func (svc team) FindByID(ctx context.Context, id uint64) (*types.Team, error) {
 	// @todo: permission check if current user has access to this team
-	return svc.repository.FindById(ctx, id)
+	return svc.repository.FindByID(ctx, id)
 }
 
 func (svc team) Find(ctx context.Context, filter *types.TeamFilter) ([]*types.Team, error) {
@@ -74,12 +74,12 @@ func (svc team) Unarchive(ctx context.Context, id uint64) error {
 	return svc.repository.Unarchive(ctx, id)
 }
 
-func (svc team) Merge(ctx context.Context, id, targetTeamId uint64) error {
+func (svc team) Merge(ctx context.Context, id, targetTeamID uint64) error {
 	// @todo: permission check if current user can merge team
-	return svc.repository.Merge(ctx, id, targetTeamId)
+	return svc.repository.Merge(ctx, id, targetTeamID)
 }
 
-func (svc team) Move(ctx context.Context, id, targetOrganisationId uint64) error {
+func (svc team) Move(ctx context.Context, id, targetOrganisationID uint64) error {
 	// @todo: permission check if current user can move team to another organisation
-	return svc.repository.Move(ctx, id, targetOrganisationId)
+	return svc.repository.Move(ctx, id, targetOrganisationID)
 }

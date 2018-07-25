@@ -81,7 +81,7 @@ var _ RequestFiller = TeamCreateRequest{}.new()
 
 // Team edit request parameters
 type TeamEditRequest struct {
-	TeamId  uint64
+	TeamID  uint64
 	Name    string
 	Members []uint64
 }
@@ -103,7 +103,7 @@ func (t *TeamEditRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.TeamId = parseUInt64(chi.URLParam(r, "teamId"))
+	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
 
 	t.Name = post["name"]
 	return nil
@@ -113,7 +113,7 @@ var _ RequestFiller = TeamEditRequest{}.new()
 
 // Team read request parameters
 type TeamReadRequest struct {
-	TeamId uint64
+	TeamID uint64
 }
 
 func (TeamReadRequest) new() *TeamReadRequest {
@@ -133,7 +133,7 @@ func (t *TeamReadRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.TeamId = parseUInt64(chi.URLParam(r, "teamId"))
+	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
 	return nil
 }
 
@@ -141,7 +141,7 @@ var _ RequestFiller = TeamReadRequest{}.new()
 
 // Team remove request parameters
 type TeamRemoveRequest struct {
-	TeamId uint64
+	TeamID uint64
 }
 
 func (TeamRemoveRequest) new() *TeamRemoveRequest {
@@ -161,7 +161,7 @@ func (t *TeamRemoveRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.TeamId = parseUInt64(chi.URLParam(r, "teamId"))
+	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
 	return nil
 }
 
@@ -169,7 +169,7 @@ var _ RequestFiller = TeamRemoveRequest{}.new()
 
 // Team archive request parameters
 type TeamArchiveRequest struct {
-	TeamId uint64
+	TeamID uint64
 }
 
 func (TeamArchiveRequest) new() *TeamArchiveRequest {
@@ -189,7 +189,7 @@ func (t *TeamArchiveRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.TeamId = parseUInt64(chi.URLParam(r, "teamId"))
+	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
 	return nil
 }
 
@@ -197,7 +197,7 @@ var _ RequestFiller = TeamArchiveRequest{}.new()
 
 // Team move request parameters
 type TeamMoveRequest struct {
-	TeamId          uint64
+	TeamID          uint64
 	Organisation_id uint64
 }
 
@@ -218,7 +218,7 @@ func (t *TeamMoveRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.TeamId = parseUInt64(chi.URLParam(r, "teamId"))
+	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
 
 	t.Organisation_id = parseUInt64(post["organisation_id"])
 	return nil
@@ -228,7 +228,7 @@ var _ RequestFiller = TeamMoveRequest{}.new()
 
 // Team merge request parameters
 type TeamMergeRequest struct {
-	TeamId      uint64
+	TeamID      uint64
 	Destination uint64
 }
 
@@ -249,7 +249,7 @@ func (t *TeamMergeRequest) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.TeamId = parseUInt64(chi.URLParam(r, "teamId"))
+	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
 
 	t.Destination = parseUInt64(post["destination"])
 	return nil

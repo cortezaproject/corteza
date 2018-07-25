@@ -19,12 +19,12 @@
         },
         {
           "dbname": "rel_user",
-          "name": "UserId",
+          "name": "UserID",
           "type": "uint64"
         },
         {
           "dbname": "rel_channel",
-          "name": "ChannelId",
+          "name": "ChannelID",
           "type": "uint64"
         },
         {
@@ -58,17 +58,17 @@
         },
         {
           "dbname": "rel_user",
-          "name": "UserId",
+          "name": "UserID",
           "type": "uint64"
         },
         {
           "dbname": "rel_message",
-          "name": "MessageId",
+          "name": "MessageID",
           "type": "uint64"
         },
         {
           "dbname": "rel_channel",
-          "name": "ChannelId",
+          "name": "ChannelID",
           "type": "uint64"
         },
         {
@@ -95,17 +95,17 @@
         },
         {
           "dbname": "rel_user",
-          "name": "UserId",
+          "name": "UserID",
           "type": "uint64"
         },
         {
           "dbname": "rel_message",
-          "name": "MessageId",
+          "name": "MessageID",
           "type": "uint64"
         },
         {
           "dbname": "rel_channel",
-          "name": "ChannelId",
+          "name": "ChannelID",
           "type": "uint64"
         },
         {
@@ -130,7 +130,7 @@
   "Parameters": {
     "path": [
       {
-        "name": "channelId",
+        "name": "channelID",
         "required": true,
         "title": "Channel ID",
         "type": "uint64"
@@ -142,7 +142,7 @@
     "Client ID",
     "Session ID"
   ],
-  "Path": "/channels/{channelId}/messages",
+  "Path": "/channels/{channelID}/messages",
   "APIs": [
     {
       "Name": "create",
@@ -168,7 +168,7 @@
       "Parameters": {
         "get": [
           {
-            "name": "lastMessageId",
+            "name": "lastMessageID",
             "required": false,
             "title": "",
             "type": "uint64"
@@ -180,11 +180,11 @@
       "Name": "edit",
       "Method": "PUT",
       "Title": "Edit existing message",
-      "Path": "/{messageId}",
+      "Path": "/{messageID}",
       "Parameters": {
         "path": [
           {
-            "name": "messageId",
+            "name": "messageID",
             "required": true,
             "title": "Message ID",
             "type": "uint64"
@@ -204,11 +204,11 @@
       "Name": "delete",
       "Method": "DELETE",
       "Title": "Delete existing message",
-      "Path": "/{messageId}",
+      "Path": "/{messageID}",
       "Parameters": {
         "path": [
           {
-            "name": "messageId",
+            "name": "messageID",
             "required": true,
             "title": "Message ID",
             "type": "uint64"
@@ -220,7 +220,7 @@
       "Name": "attach",
       "Method": "PUT",
       "Title": "Attach file to message",
-      "Path": "/{messageId}/attach",
+      "Path": "/{messageID}/attach",
       "Parameters": null
     },
     {
@@ -255,11 +255,11 @@
       "Name": "pin",
       "Method": "POST",
       "Title": "Pin message to channel (public bookmark)",
-      "Path": "/{messageId}/pin",
+      "Path": "/{messageID}/pin",
       "Parameters": {
         "path": [
           {
-            "name": "messageId",
+            "name": "messageID",
             "required": true,
             "title": "Message ID",
             "type": "uint64"
@@ -271,11 +271,11 @@
       "Name": "unpin",
       "Method": "DELETE",
       "Title": "Pin message to channel (public bookmark)",
-      "Path": "/{messageId}/pin",
+      "Path": "/{messageID}/pin",
       "Parameters": {
         "path": [
           {
-            "name": "messageId",
+            "name": "messageID",
             "required": true,
             "title": "Message ID",
             "type": "uint64"
@@ -287,11 +287,11 @@
       "Name": "flag",
       "Method": "POST",
       "Title": "Flag a message (private bookmark)",
-      "Path": "/{messageId}/flag",
+      "Path": "/{messageID}/flag",
       "Parameters": {
         "path": [
           {
-            "name": "messageId",
+            "name": "messageID",
             "required": true,
             "title": "Message ID",
             "type": "uint64"
@@ -303,11 +303,11 @@
       "Name": "unflag",
       "Method": "DELETE",
       "Title": "Remove flag from message (private bookmark)",
-      "Path": "/{messageId}/flag",
+      "Path": "/{messageID}/flag",
       "Parameters": {
         "path": [
           {
-            "name": "messageId",
+            "name": "messageID",
             "required": true,
             "title": "Message ID",
             "type": "uint64"
@@ -319,11 +319,11 @@
       "Name": "react",
       "Method": "PUT",
       "Title": "React to a message",
-      "Path": "/{messageId}/reaction/{reaction}",
+      "Path": "/{messageID}/reaction/{reaction}",
       "Parameters": {
         "path": [
           {
-            "name": "messageId",
+            "name": "messageID",
             "required": true,
             "title": "Message ID",
             "type": "uint64"
@@ -341,11 +341,11 @@
       "Name": "unreact",
       "Method": "DELETE",
       "Title": "Delete reaction from a message",
-      "Path": "/{messageId}/react/{reaction}",
+      "Path": "/{messageID}/react/{reaction}",
       "Parameters": {
         "path": [
           {
-            "name": "messageId",
+            "name": "messageID",
             "required": true,
             "title": "Message ID",
             "type": "uint64"

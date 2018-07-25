@@ -47,7 +47,8 @@ test: $(GOTEST)
 	$(GOTEST) -cover -v ./...
 
 test.rbac: $(GOTEST)
-	$(GOTEST) -cover -v ./rbac
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./rbac
+	go tool cover -func=.cover.out 
 
 qa: qa.vet qa.test
 

@@ -21,7 +21,7 @@ func Organisation() organisation {
 	return organisation{}
 }
 
-func (r organisation) FindById(ctx context.Context, id uint64) (*types.Organisation, error) {
+func (r organisation) FindByID(ctx context.Context, id uint64) (*types.Organisation, error) {
 	db := factory.Database.MustGet()
 
 	mod := &types.Organisation{}

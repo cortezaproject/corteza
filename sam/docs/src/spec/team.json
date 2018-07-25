@@ -95,11 +95,11 @@
       "Name": "edit",
       "Method": "POST",
       "Title": "Update team details",
-      "Path": "/{id}",
+      "Path": "/{teamID}",
       "Parameters": {
         "path": [
           {
-            "name": "teamId",
+            "name": "teamID",
             "required": true,
             "title": "Team ID",
             "type": "uint64"
@@ -125,13 +125,13 @@
       "Name": "read",
       "Method": "GET",
       "Title": "Read team details and memberships",
-      "Path": "/{id}",
+      "Path": "/{teamID}",
       "Parameters": {
         "path": [
           {
-            "name": "teamId",
+            "name": "teamID",
             "required": true,
-            "title": "Organisation ID",
+            "title": "Team ID",
             "type": "uint64"
           }
         ]
@@ -141,13 +141,13 @@
       "Name": "remove",
       "Method": "DELETE",
       "Title": "Remove team",
-      "Path": "/{id}",
+      "Path": "/{teamID}",
       "Parameters": {
         "path": [
           {
-            "name": "teamId",
+            "name": "teamID",
             "required": true,
-            "title": "Organisation ID",
+            "title": "Team ID",
             "type": "uint64"
           }
         ]
@@ -157,13 +157,13 @@
       "Name": "archive",
       "Method": "POST",
       "Title": "Archive team",
-      "Path": "/{id}/archive",
+      "Path": "/{teamID}/archive",
       "Parameters": {
         "path": [
           {
-            "name": "teamId",
+            "name": "teamID",
             "required": true,
-            "title": "Organisation ID",
+            "title": "Team ID",
             "type": "uint64"
           }
         ]
@@ -173,13 +173,13 @@
       "Name": "move",
       "Method": "POST",
       "Title": "Move team to different organisation",
-      "Path": "/{id}/move",
+      "Path": "/{teamID}/move",
       "Parameters": {
         "path": [
           {
-            "name": "teamId",
+            "name": "teamID",
             "required": true,
-            "title": "Organisation ID",
+            "title": "Team ID",
             "type": "uint64"
           }
         ],
@@ -187,7 +187,7 @@
           {
             "name": "organisation_id",
             "required": true,
-            "title": "Organisation ID",
+            "title": "Team ID",
             "type": "uint64"
           }
         ]
@@ -197,13 +197,13 @@
       "Name": "merge",
       "Method": "POST",
       "Title": "Merge one team into another",
-      "Path": "/{id}/merge",
+      "Path": "/{teamID}/merge",
       "Parameters": {
         "path": [
           {
-            "name": "teamId",
+            "name": "teamID",
             "required": true,
-            "title": "Source Channel ID",
+            "title": "Source Team ID",
             "type": "uint64"
           }
         ],
@@ -211,7 +211,7 @@
           {
             "name": "destination",
             "required": true,
-            "title": "Destination Channel ID",
+            "title": "Destination Team ID",
             "type": "uint64"
           }
         ]

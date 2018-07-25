@@ -21,7 +21,7 @@ func Team() team {
 	return team{}
 }
 
-func (r team) FindById(ctx context.Context, id uint64) (*types.Team, error) {
+func (r team) FindByID(ctx context.Context, id uint64) (*types.Team, error) {
 	db := factory.Database.MustGet()
 
 	mod := &types.Team{}
@@ -90,10 +90,10 @@ func (r team) Delete(ctx context.Context, id uint64) error {
 	return simpleDelete(ctx, "teams", id)
 }
 
-func (r team) Merge(ctx context.Context, id, targetTeamId uint64) error {
+func (r team) Merge(ctx context.Context, id, targetTeamID uint64) error {
 	return ErrNotImplemented
 }
 
-func (r team) Move(ctx context.Context, id, targetOrganisationId uint64) error {
+func (r team) Move(ctx context.Context, id, targetOrganisationID uint64) error {
 	return ErrNotImplemented
 }

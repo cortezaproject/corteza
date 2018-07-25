@@ -21,7 +21,7 @@ func Channel() channel {
 	return channel{}
 }
 
-func (r channel) FindById(ctx context.Context, id uint64) (*types.Channel, error) {
+func (r channel) FindByID(ctx context.Context, id uint64) (*types.Channel, error) {
 	db := factory.Database.MustGet()
 
 	mod := &types.Channel{}

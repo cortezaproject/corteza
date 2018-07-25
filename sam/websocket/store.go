@@ -44,11 +44,12 @@ func (s *Store) Delete(id uint64) {
 	delete(s.Sessions, id)
 }
 
-func (s *Store) MessageFanout(messages ...*outgoing.WsMessage) {
+func (s *Store) MessageFanout(messages ...outgoing.PayloadType) {
 	// @todo this should probably implement some logic behind...
 	for _, message := range messages {
+		p := outgoing.Payload{}.New().Load(message)
 		for _, sess := range s.Sessions {
-			sess.send <- message
+			sess.send <- p
 		}
 	}
 }

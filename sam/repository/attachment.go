@@ -20,7 +20,7 @@ func Attachment() attachment {
 	return attachment{}
 }
 
-func (r attachment) FindById(ctx context.Context, id uint64) (*types.Attachment, error) {
+func (r attachment) FindByID(ctx context.Context, id uint64) (*types.Attachment, error) {
 	db := factory.Database.MustGet()
 
 	mod := &types.Attachment{}
@@ -33,7 +33,7 @@ func (r attachment) FindById(ctx context.Context, id uint64) (*types.Attachment,
 	}
 }
 
-func (r attachment) FindByRange(ctx context.Context, channelId, fromAttachmentId, toAttachmentId uint64) ([]*types.Attachment, error) {
+func (r attachment) FindByRange(ctx context.Context, channelID, fromAttachmentID, toAttachmentID uint64) ([]*types.Attachment, error) {
 	db := factory.Database.MustGet()
 
 	sql := `
@@ -44,7 +44,7 @@ func (r attachment) FindByRange(ctx context.Context, channelId, fromAttachmentId
            AND deleted_at IS NULL`
 
 	rval := make([]*types.Attachment, 0)
-	if err := db.Select(&rval, sql, fromAttachmentId, toAttachmentId, channelId); err != nil {
+	if err := db.Select(&rval, sql, fromAttachmentID, toAttachmentID, channelID); err != nil {
 		return nil, ErrDatabaseError
 	}
 

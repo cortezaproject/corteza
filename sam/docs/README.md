@@ -129,13 +129,13 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/{id}` | HTTP/S | POST | Client ID, Session ID |
+| `/teams/{teamID}` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| teamId | uint64 | PATH | Team ID | N/A | YES |
+| teamID | uint64 | PATH | Team ID | N/A | YES |
 | name | string | POST | Name of Team | N/A | NO |
 | members | []uint64 | POST | Team member IDs | N/A | NO |
 
@@ -145,13 +145,13 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/{id}` | HTTP/S | GET | Client ID, Session ID |
+| `/teams/{teamID}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| teamId | uint64 | PATH | Organisation ID | N/A | YES |
+| teamID | uint64 | PATH | Team ID | N/A | YES |
 
 ## Remove team
 
@@ -159,13 +159,13 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/{id}` | HTTP/S | DELETE | Client ID, Session ID |
+| `/teams/{teamID}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| teamId | uint64 | PATH | Organisation ID | N/A | YES |
+| teamID | uint64 | PATH | Team ID | N/A | YES |
 
 ## Archive team
 
@@ -173,13 +173,13 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/{id}/archive` | HTTP/S | POST | Client ID, Session ID |
+| `/teams/{teamID}/archive` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| teamId | uint64 | PATH | Organisation ID | N/A | YES |
+| teamID | uint64 | PATH | Team ID | N/A | YES |
 
 ## Move team to different organisation
 
@@ -187,14 +187,14 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/{id}/move` | HTTP/S | POST | Client ID, Session ID |
+| `/teams/{teamID}/move` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| teamId | uint64 | PATH | Organisation ID | N/A | YES |
-| organisation_id | uint64 | POST | Organisation ID | N/A | YES |
+| teamID | uint64 | PATH | Team ID | N/A | YES |
+| organisation_id | uint64 | POST | Team ID | N/A | YES |
 
 ## Merge one team into another
 
@@ -202,14 +202,14 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/{id}/merge` | HTTP/S | POST | Client ID, Session ID |
+| `/teams/{teamID}/merge` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| teamId | uint64 | PATH | Source Channel ID | N/A | YES |
-| destination | uint64 | POST | Destination Channel ID | N/A | YES |
+| teamID | uint64 | PATH | Source Team ID | N/A | YES |
+| destination | uint64 | POST | Destination Team ID | N/A | YES |
 
 
 
@@ -231,7 +231,6 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
-| sinceMessageId | uint64 | GET |  | N/A | NO |
 
 ## Create new channel
 
@@ -254,17 +253,17 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelID}` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| channelId | uint64 | PATH | Channel ID | N/A | YES |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
 | name | string | POST | Name of Channel | N/A | NO |
 | topic | string | POST | Subject of Channel | N/A | NO |
 | archive | bool | POST | Request channel to be archived or unarchived | N/A | NO |
-| organisationId | uint64 | POST | Move channel to different organisation | N/A | NO |
+| organisationID | uint64 | POST | Move channel to different organisation | N/A | NO |
 
 ## Read channel details
 
@@ -272,13 +271,13 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}` | HTTP/S | GET | Client ID, Session ID |
+| `/channels/{channelID}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| channelId | uint64 | PATH | Channel ID | N/A | YES |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
 
 ## Remove channel
 
@@ -286,13 +285,13 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}` | HTTP/S | DELETE | Client ID, Session ID |
+| `/channels/{channelID}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| channelId | uint64 | PATH | Channel ID | N/A | YES |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
 
 
 
@@ -325,7 +324,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}/messages/` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelID}/messages/` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -339,13 +338,13 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}/messages/` | HTTP/S | GET | Client ID, Session ID |
+| `/channels/{channelID}/messages/` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| lastMessageId | uint64 | GET |  | N/A | NO |
+| lastMessageID | uint64 | GET |  | N/A | NO |
 
 ## Edit existing message
 
@@ -353,13 +352,13 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}/messages/{messageId}` | HTTP/S | PUT | Client ID, Session ID |
+| `/channels/{channelID}/messages/{messageID}` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| messageId | uint64 | PATH | Message ID | N/A | YES |
+| messageID | uint64 | PATH | Message ID | N/A | YES |
 | message | string | POST | Message contents (markdown) | N/A | YES |
 
 ## Delete existing message
@@ -368,13 +367,13 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}/messages/{messageId}` | HTTP/S | DELETE | Client ID, Session ID |
+| `/channels/{channelID}/messages/{messageID}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| messageId | uint64 | PATH | Message ID | N/A | YES |
+| messageID | uint64 | PATH | Message ID | N/A | YES |
 
 ## Attach file to message
 
@@ -382,7 +381,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}/messages/{messageId}/attach` | HTTP/S | PUT | Client ID, Session ID |
+| `/channels/{channelID}/messages/{messageID}/attach` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
@@ -395,7 +394,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}/messages/search` | HTTP/S | GET | Client ID, Session ID |
+| `/channels/{channelID}/messages/search` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -410,13 +409,13 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}/messages/{messageId}/pin` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelID}/messages/{messageID}/pin` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| messageId | uint64 | PATH | Message ID | N/A | YES |
+| messageID | uint64 | PATH | Message ID | N/A | YES |
 
 ## Pin message to channel (public bookmark)
 
@@ -424,13 +423,13 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}/messages/{messageId}/pin` | HTTP/S | DELETE | Client ID, Session ID |
+| `/channels/{channelID}/messages/{messageID}/pin` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| messageId | uint64 | PATH | Message ID | N/A | YES |
+| messageID | uint64 | PATH | Message ID | N/A | YES |
 
 ## Flag a message (private bookmark)
 
@@ -438,13 +437,13 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}/messages/{messageId}/flag` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelID}/messages/{messageID}/flag` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| messageId | uint64 | PATH | Message ID | N/A | YES |
+| messageID | uint64 | PATH | Message ID | N/A | YES |
 
 ## Remove flag from message (private bookmark)
 
@@ -452,13 +451,13 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}/messages/{messageId}/flag` | HTTP/S | DELETE | Client ID, Session ID |
+| `/channels/{channelID}/messages/{messageID}/flag` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| messageId | uint64 | PATH | Message ID | N/A | YES |
+| messageID | uint64 | PATH | Message ID | N/A | YES |
 
 ## React to a message
 
@@ -466,13 +465,13 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}/messages/{messageId}/reaction/{reaction}` | HTTP/S | PUT | Client ID, Session ID |
+| `/channels/{channelID}/messages/{messageID}/reaction/{reaction}` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| messageId | uint64 | PATH | Message ID | N/A | YES |
+| messageID | uint64 | PATH | Message ID | N/A | YES |
 | reaction | string | PATH | Reaction | N/A | YES |
 
 ## Delete reaction from a message
@@ -481,13 +480,13 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelId}/messages/{messageId}/react/{reaction}` | HTTP/S | DELETE | Client ID, Session ID |
+| `/channels/{channelID}/messages/{messageID}/react/{reaction}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| messageId | uint64 | PATH | Message ID | N/A | YES |
+| messageID | uint64 | PATH | Message ID | N/A | YES |
 | reaction | string | PATH | Reaction | N/A | YES |
 
 

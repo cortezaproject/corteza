@@ -47,26 +47,26 @@ func (Message) New() *Message {
 func (ctrl *Message) Create(ctx context.Context, r *server.MessageCreateRequest) (interface{}, error) {
 	spew.Dump(r)
 	return ctrl.service.Create(ctx, (&types.Message{}).
-		SetChannelId(r.ChannelId).
+		SetChannelID(r.ChannelID).
 		SetMessage(r.Message))
 }
 
 func (ctrl *Message) History(ctx context.Context, r *server.MessageHistoryRequest) (interface{}, error) {
 	return ctrl.service.Find(ctx, &types.MessageFilter{
-		ChannelId:     r.ChannelId,
-		FromMessageId: r.LastMessageId,
+		ChannelID:     r.ChannelID,
+		FromMessageID: r.LastMessageID,
 	})
 }
 
 func (ctrl *Message) Edit(ctx context.Context, r *server.MessageEditRequest) (interface{}, error) {
 	return ctrl.service.Update(ctx, (&types.Message{}).
-		SetID(r.MessageId).
-		SetChannelId(r.ChannelId).
+		SetID(r.MessageID).
+		SetChannelID(r.ChannelID).
 		SetMessage(r.Message))
 }
 
 func (ctrl *Message) Delete(ctx context.Context, r *server.MessageDeleteRequest) (interface{}, error) {
-	return nil, ctrl.service.Delete(ctx, r.MessageId)
+	return nil, ctrl.service.Delete(ctx, r.MessageID)
 }
 
 func (ctrl *Message) Attach(ctx context.Context, r *server.MessageAttachRequest) (interface{}, error) {
@@ -75,31 +75,31 @@ func (ctrl *Message) Attach(ctx context.Context, r *server.MessageAttachRequest)
 
 func (ctrl *Message) Search(ctx context.Context, r *server.MessageSearchRequest) (interface{}, error) {
 	return ctrl.service.Find(ctx, &types.MessageFilter{
-		ChannelId: r.ChannelId,
+		ChannelID: r.ChannelID,
 		Query:     r.Query,
 	})
 }
 
 func (ctrl *Message) Pin(ctx context.Context, r *server.MessagePinRequest) (interface{}, error) {
-	return nil, ctrl.service.Pin(ctx, r.MessageId)
+	return nil, ctrl.service.Pin(ctx, r.MessageID)
 }
 
 func (ctrl *Message) Unpin(ctx context.Context, r *server.MessageUnpinRequest) (interface{}, error) {
-	return nil, ctrl.service.Unpin(ctx, r.MessageId)
+	return nil, ctrl.service.Unpin(ctx, r.MessageID)
 }
 
 func (ctrl *Message) Flag(ctx context.Context, r *server.MessageFlagRequest) (interface{}, error) {
-	return nil, ctrl.service.Flag(ctx, r.MessageId)
+	return nil, ctrl.service.Flag(ctx, r.MessageID)
 }
 
 func (ctrl *Message) Unflag(ctx context.Context, r *server.MessageUnflagRequest) (interface{}, error) {
-	return nil, ctrl.service.Unflag(ctx, r.MessageId)
+	return nil, ctrl.service.Unflag(ctx, r.MessageID)
 }
 
 func (ctrl *Message) React(ctx context.Context, r *server.MessageReactRequest) (interface{}, error) {
-	return nil, ctrl.service.React(ctx, r.MessageId, r.Reaction)
+	return nil, ctrl.service.React(ctx, r.MessageID, r.Reaction)
 }
 
 func (ctrl *Message) Unreact(ctx context.Context, r *server.MessageUnreactRequest) (interface{}, error) {
-	return nil, ctrl.service.Unreact(ctx, r.MessageId, r.Reaction)
+	return nil, ctrl.service.Unreact(ctx, r.MessageID, r.Reaction)
 }

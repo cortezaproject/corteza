@@ -20,7 +20,7 @@ func Reaction() reaction {
 	return reaction{}
 }
 
-func (r reaction) FindById(ctx context.Context, id uint64) (*types.Reaction, error) {
+func (r reaction) FindByID(ctx context.Context, id uint64) (*types.Reaction, error) {
 	db := factory.Database.MustGet()
 
 	mod := &types.Reaction{}
@@ -33,7 +33,7 @@ func (r reaction) FindById(ctx context.Context, id uint64) (*types.Reaction, err
 	}
 }
 
-func (r reaction) FindByRange(ctx context.Context, channelId, fromReactionId, toReactionId uint64) ([]*types.Reaction, error) {
+func (r reaction) FindByRange(ctx context.Context, channelID, fromReactionID, toReactionID uint64) ([]*types.Reaction, error) {
 	db := factory.Database.MustGet()
 
 	sql := `
@@ -43,7 +43,7 @@ func (r reaction) FindByRange(ctx context.Context, channelId, fromReactionId, to
            AND rel_channel = ?`
 
 	rval := make([]*types.Reaction, 0)
-	if err := db.Select(&rval, sql, fromReactionId, toReactionId, channelId); err != nil {
+	if err := db.Select(&rval, sql, fromReactionID, toReactionID, channelID); err != nil {
 		return nil, ErrDatabaseError
 	}
 

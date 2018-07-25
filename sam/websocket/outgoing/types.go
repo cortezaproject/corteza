@@ -1,16 +1,23 @@
 package outgoing
 
 type (
+	PayloadType interface {
+		valid() bool
+	}
+
 	Error struct {
 		Message string `json:"m"`
 	}
 
 	Message struct {
-		Id        string `json:"id"`
-		ChannelId string `json:"cid""`
+		ID        string `json:"id"`
+		ChannelID string `json:"cid""`
 		Message   string `json:"m"`
 		Type      string `json:"t"`
 		ReplyTo   string `json:"rid"`
-		UserId    string `json:"uid"`
+		UserID    string `json:"uid"`
 	}
 )
+
+func (*Error) valid() bool   { return true }
+func (*Message) valid() bool { return true }

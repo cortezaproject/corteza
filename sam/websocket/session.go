@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -15,6 +16,7 @@ type (
 	Session struct {
 		id   uint64
 		conn *websocket.Conn
+		ctx  context.Context
 
 		subs *Subscriptions
 
@@ -28,15 +30,20 @@ type (
 	}
 )
 
-func (Session) New(conn *websocket.Conn) *Session {
+func (Session) New(ctx context.Context, conn *websocket.Conn) *Session {
 	return &Session{
 		conn:   conn,
+		ctx:    ctx,
 		config: config,
 		subs:   Subscriptions{}.New(),
 		send:   make(chan interface{}, 512),
 		stop:   make(chan interface{}, 1),
 		detach: make(chan string, 64),
 	}
+}
+
+func (sess *Session) Context() context.Context {
+	return sess.ctx
 }
 
 func (sess *Session) Handle() error {
@@ -86,7 +93,7 @@ func (sess *Session) writeLoop() error {
 		sess.conn.SetWriteDeadline(time.Now().Add(sess.config.writeTimeout))
 
 		switch msg := msg.(type) {
-		case *outgoing.WsMessage:
+		case *outgoing.Payload:
 			return sess.conn.WriteJSON(msg)
 		default:
 			return sess.conn.WriteMessage(mt, nil)

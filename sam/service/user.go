@@ -19,7 +19,7 @@ type (
 
 	userRepository interface {
 		FindByUsername(context.Context, string) (*types.User, error)
-		FindById(context.Context, uint64) (*types.User, error)
+		FindByID(context.Context, uint64) (*types.User, error)
 		Find(context.Context, *types.UserFilter) ([]*types.User, error)
 
 		Create(context.Context, *types.User) (*types.User, error)
@@ -51,8 +51,8 @@ func (svc user) ValidateCredentials(ctx context.Context, username, password stri
 	return user, nil
 }
 
-func (svc user) FindById(ctx context.Context, id uint64) (*types.User, error) {
-	return svc.repository.FindById(ctx, id)
+func (svc user) FindByID(ctx context.Context, id uint64) (*types.User, error) {
+	return svc.repository.FindByID(ctx, id)
 }
 
 func (svc user) Find(ctx context.Context, filter *types.UserFilter) ([]*types.User, error) {

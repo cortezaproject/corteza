@@ -12,7 +12,7 @@ type (
 	}
 
 	organisationRepository interface {
-		FindById(context.Context, uint64) (*types.Organisation, error)
+		FindByID(context.Context, uint64) (*types.Organisation, error)
 		Find(context.Context, *types.OrganisationFilter) ([]*types.Organisation, error)
 
 		Create(context.Context, *types.Organisation) (*types.Organisation, error)
@@ -27,9 +27,9 @@ func Organisation() *organisation {
 	return &organisation{repository: repository.Organisation()}
 }
 
-func (svc organisation) FindById(ctx context.Context, id uint64) (*types.Organisation, error) {
+func (svc organisation) FindByID(ctx context.Context, id uint64) (*types.Organisation, error) {
 	// @todo: permission check if current user can read organisation
-	return svc.repository.FindById(ctx, id)
+	return svc.repository.FindByID(ctx, id)
 }
 
 func (svc organisation) Find(ctx context.Context, filter *types.OrganisationFilter) ([]*types.Organisation, error) {
