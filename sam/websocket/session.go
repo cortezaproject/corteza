@@ -95,6 +95,8 @@ func (sess *Session) writeLoop() error {
 		switch msg := msg.(type) {
 		case *outgoing.Payload:
 			return sess.conn.WriteJSON(msg)
+		case []byte:
+			return sess.conn.WriteMessage(mt, msg)
 		default:
 			return sess.conn.WriteMessage(mt, nil)
 		}
