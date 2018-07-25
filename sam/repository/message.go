@@ -54,12 +54,23 @@ func (r message) Find(ctx context.Context, filter *types.MessageFilter) ([]*type
 		params = append(params, filter.ChannelId)
 	}
 
-	if filter.LastMessageId > 0 {
+	if filter.FromMessageId > 0 {
 		sql += " AND id > ? "
-		params = append(params, filter.LastMessageId)
+		params = append(params, filter.FromMessageId)
+	}
+
+	if filter.UntilMessageId > 0 {
+		sql += " AND id < ? "
+		params = append(params, filter.UntilMessageId)
 	}
 
 	sql += " ORDER BY id ASC"
+
+	if filter.Limit > 0 {
+		// @todo implement some kind of protection
+		sql += " LIMIT ? "
+		params = append(params, filter.Limit)
+	}
 
 	rval := make([]*types.Message, 0)
 	if err := db.SelectContext(ctx, &rval, sql, params...); err != nil {

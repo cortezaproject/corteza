@@ -94,15 +94,15 @@ func (c *Channel) SetMeta(value json.RawMessage) *Channel {
 	return c
 }
 
-// Get the value of LastMessageId
+// Get the value of FromMessageId
 func (c *Channel) GetLastMessageId() uint64 {
 	return c.LastMessageId
 }
 
-// Set the value of LastMessageId
+// Set the value of FromMessageId
 func (c *Channel) SetLastMessageId(value uint64) *Channel {
 	if c.LastMessageId != value {
-		c.changed = append(c.changed, "LastMessageId")
+		c.changed = append(c.changed, "FromMessageId")
 		c.LastMessageId = value
 	}
 	return c

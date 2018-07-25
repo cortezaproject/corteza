@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"github.com/crusttech/crust/sam/websocket/outgoing"
 	"github.com/titpetric/factory"
 	"sync"
 )
@@ -41,4 +42,13 @@ func (s *Store) Delete(id uint64) {
 	s.Lock()
 	defer s.Unlock()
 	delete(s.Sessions, id)
+}
+
+func (s *Store) MessageFanout(messages ...*outgoing.WsMessage) {
+	// @todo this should probably implement some logic behind...
+	for _, message := range messages {
+		for _, sess := range s.Sessions {
+			sess.send <- message
+		}
+	}
 }
