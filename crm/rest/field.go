@@ -5,7 +5,6 @@ import (
 
 	"context"
 	"github.com/crusttech/crust/crm/rest/server"
-	"github.com/crusttech/crust/crm/service"
 	"github.com/crusttech/crust/crm/types"
 )
 
@@ -13,7 +12,7 @@ var _ = errors.Wrap
 
 type (
 	Field struct {
-		service fieldService
+		svc fieldService
 	}
 
 	fieldService interface {
@@ -22,14 +21,16 @@ type (
 	}
 )
 
-func (Field) New() *Field {
-	return &Field{service: service.Field()}
+func (Field) New(fieldSvc fieldService) *Field {
+	var ctrl = &Field{}
+	ctrl.svc = fieldSvc
+	return ctrl
 }
 
 func (self *Field) List(ctx context.Context, _ *server.FieldListRequest) (interface{}, error) {
-	return self.service.Find(ctx)
+	return self.svc.Find(ctx)
 }
 
 func (self *Field) Type(ctx context.Context, r *server.FieldTypeRequest) (interface{}, error) {
-	return self.service.FindByName(ctx, r.ID)
+	return self.svc.FindByName(ctx, r.ID)
 }

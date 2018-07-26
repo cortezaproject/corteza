@@ -9,7 +9,9 @@ import (
 
 	"github.com/go-chi/chi"
 
+	"github.com/crusttech/crust/auth"
 	"github.com/crusttech/crust/crm/rest"
+	"github.com/labstack/gommon/random"
 	"github.com/titpetric/factory"
 )
 
@@ -43,8 +45,18 @@ func main() {
 	routeOptions, err := RouteOptions{}.New()
 	handleError(err, "Error creating RouteOptions object")
 
-	// mount routes
 	r := chi.NewRouter()
-	MountRoutes(r, routeOptions, rest.MountRoutes)
+
+	// JWT Auth
+	jwtAuth := auth.JWT([]byte(config.jwtSecret))
+	r.Use(jwtAuth.Verifier(), jwtAuth.Authenticator())
+
+	if len(config.jwtSecret) == 0 {
+		println("Environment variable JWT_SECRET not set! Add next line to your .env file:")
+		println("JWR_SECRET=" + random.String(64, random.Alphabetic))
+	}
+
+	// mount routes
+	MountRoutes(r, routeOptions, rest.MountRoutes(jwtAuth))
 	http.Serve(listener, r)
 }

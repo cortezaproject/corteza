@@ -3,29 +3,53 @@ package websocket
 import (
 	"net/http"
 
+	"context"
+	"github.com/crusttech/crust/auth"
+	"github.com/crusttech/crust/sam/types"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 )
 
 type (
-	Websocket struct{}
+	Websocket struct {
+		svc struct {
+			userFinder wsUserFinder
+		}
+	}
+
+	wsUserFinder interface {
+		FindByID(ctx context.Context, userId uint64) (*types.User, error)
+	}
 )
 
-func (Websocket) New() *Websocket {
-	return &Websocket{}
+func (Websocket) New(svcUser wsUserFinder) *Websocket {
+	ws := &Websocket{}
+	ws.svc.userFinder = svcUser
+	return ws
 }
 
 // Handles websocket requests from peers
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+
 	// Allow connections from any Origin
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-func (Websocket) Open(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
+func (ws Websocket) Open(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Disallow all unauthorized!
+	if !auth.GetIdentityFromContext(ctx).Valid() {
+		resputil.JSON(w, errors.New("Unauthorized"))
+		return
+	}
+
+	// @todo validate user (ws.svc.userFinder) here...
+
+	conn, err := upgrader.Upgrade(w, r, nil)
 	if _, ok := err.(websocket.HandshakeError); ok {
 		resputil.JSON(w, errors.Wrap(err, "ws: need a websocket handshake"))
 		return
@@ -34,7 +58,8 @@ func (Websocket) Open(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session := store.Save(Session{}.New(r.Context(), ws))
+	session := store.Save(Session{}.New(r.Context(), conn))
+
 	if err := session.Handle(); err != nil {
 		// @todo: log error, because at this point we can't really write it to w
 	}

@@ -2,8 +2,8 @@ package rest
 
 import (
 	"context"
+	"github.com/crusttech/crust/auth"
 	"github.com/crusttech/crust/sam/rest/server"
-	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/pkg/errors"
 )
@@ -12,19 +12,40 @@ var _ = errors.Wrap
 
 type (
 	Auth struct {
-		service authUserService
+		svc struct {
+			user  authCredentialsValidator
+			token authTokenEncoder
+		}
 	}
 
-	authUserService interface {
-		ValidateCredentials(context.Context, string, string) (*types.User, error)
+	authCredentialsValidator interface {
+		ValidateCredentials(ctx context.Context, username, password string) (*types.User, error)
+	}
+
+	authTokenEncoder interface {
+		Encode(identity auth.Identifiable) string
 	}
 )
 
-func (Auth) New() *Auth {
-	return &Auth{service: service.User()}
+func (Auth) New(credValidator authCredentialsValidator, tknEncoder authTokenEncoder) *Auth {
+	auth := &Auth{}
+	auth.svc.user = credValidator
+	auth.svc.token = tknEncoder
+
+	return auth
 }
 
 func (ctrl *Auth) Login(ctx context.Context, r *server.AuthLoginRequest) (interface{}, error) {
-	return ctrl.service.ValidateCredentials(ctx, r.Username, r.Password)
+	user, err := ctrl.svc.user.ValidateCredentials(ctx, r.Username, r.Password)
+	if err != nil {
+		return nil, err
+	}
 
+	return struct {
+		JWT  string
+		User *types.User
+	}{
+		JWT:  ctrl.svc.token.Encode(user),
+		User: user,
+	}, nil
 }

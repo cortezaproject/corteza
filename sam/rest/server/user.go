@@ -28,9 +28,6 @@ type UserHandlers struct {
 // Internal API interface
 type UserAPI interface {
 	Search(context.Context, *UserSearchRequest) (interface{}, error)
-
-	// Authenticate API requests
-	Authenticator() func(http.Handler) http.Handler
 }
 
 // HTTP API interface

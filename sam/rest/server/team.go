@@ -35,9 +35,6 @@ type TeamAPI interface {
 	Archive(context.Context, *TeamArchiveRequest) (interface{}, error)
 	Move(context.Context, *TeamMoveRequest) (interface{}, error)
 	Merge(context.Context, *TeamMergeRequest) (interface{}, error)
-
-	// Authenticate API requests
-	Authenticator() func(http.Handler) http.Handler
 }
 
 // HTTP API interface

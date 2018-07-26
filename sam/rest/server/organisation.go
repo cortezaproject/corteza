@@ -33,9 +33,6 @@ type OrganisationAPI interface {
 	Remove(context.Context, *OrganisationRemoveRequest) (interface{}, error)
 	Read(context.Context, *OrganisationReadRequest) (interface{}, error)
 	Archive(context.Context, *OrganisationArchiveRequest) (interface{}, error)
-
-	// Authenticate API requests
-	Authenticator() func(http.Handler) http.Handler
 }
 
 // HTTP API interface

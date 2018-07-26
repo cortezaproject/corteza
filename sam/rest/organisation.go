@@ -11,7 +11,7 @@ var _ = errors.Wrap
 
 type (
 	Organisation struct {
-		service organisationService
+		svc organisationService
 	}
 
 	organisationService interface {
@@ -26,16 +26,18 @@ type (
 	}
 )
 
-func (Organisation) New() *Organisation {
-	return &Organisation{}
+func (Organisation) New(organisationSvc organisationService) *Organisation {
+	var ctrl = &Organisation{}
+	ctrl.svc = organisationSvc
+	return ctrl
 }
 
 func (ctrl *Organisation) Read(ctx context.Context, r *server.OrganisationReadRequest) (interface{}, error) {
-	return ctrl.service.FindByID(ctx, r.ID)
+	return ctrl.svc.FindByID(ctx, r.ID)
 }
 
 func (ctrl *Organisation) List(ctx context.Context, r *server.OrganisationListRequest) (interface{}, error) {
-	return ctrl.service.Find(ctx, &types.OrganisationFilter{Query: r.Query})
+	return ctrl.svc.Find(ctx, &types.OrganisationFilter{Query: r.Query})
 }
 
 func (ctrl *Organisation) Create(ctx context.Context, r *server.OrganisationCreateRequest) (interface{}, error) {
@@ -43,7 +45,7 @@ func (ctrl *Organisation) Create(ctx context.Context, r *server.OrganisationCrea
 		New().
 		SetName(r.Name)
 
-	return ctrl.service.Create(ctx, org)
+	return ctrl.svc.Create(ctx, org)
 }
 
 func (ctrl *Organisation) Edit(ctx context.Context, r *server.OrganisationEditRequest) (interface{}, error) {
@@ -52,13 +54,13 @@ func (ctrl *Organisation) Edit(ctx context.Context, r *server.OrganisationEditRe
 		SetID(r.ID).
 		SetName(r.Name)
 
-	return ctrl.service.Update(ctx, org)
+	return ctrl.svc.Update(ctx, org)
 }
 
 func (ctrl *Organisation) Remove(ctx context.Context, r *server.OrganisationRemoveRequest) (interface{}, error) {
-	return nil, ctrl.service.Delete(ctx, r.ID)
+	return nil, ctrl.svc.Delete(ctx, r.ID)
 }
 
 func (ctrl *Organisation) Archive(ctx context.Context, r *server.OrganisationArchiveRequest) (interface{}, error) {
-	return nil, ctrl.service.Archive(ctx, r.ID)
+	return nil, ctrl.svc.Archive(ctx, r.ID)
 }

@@ -9,7 +9,10 @@ $templates = array(
 	},
 	"http_handlers.tpl" => function($name, $api) {
 		return strtolower($name) . "_handlers.go";
-	}
+	},
+    "http_routes.tpl" => function($name, $api) {
+        return strtolower($name) . "_routes.go";
+    }
 );
 
 foreach ($templates as $template => $fn)
@@ -23,6 +26,7 @@ foreach ($apis as $api) {
 		$tpl->assign("package", basename(__DIR__));
 		$tpl->assign("name", $name);
 		$tpl->assign("api", $api);
+		$tpl->assign("apis", $apis);
 		$tpl->assign("self", strtolower(substr($name, 0, 1)));
 		$tpl->assign("structs", $api['struct']);
 		$imports = array();

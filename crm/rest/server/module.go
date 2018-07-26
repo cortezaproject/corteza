@@ -37,9 +37,6 @@ type ModuleAPI interface {
 	ContentRead(context.Context, *ModuleContentReadRequest) (interface{}, error)
 	ContentEdit(context.Context, *ModuleContentEditRequest) (interface{}, error)
 	ContentDelete(context.Context, *ModuleContentDeleteRequest) (interface{}, error)
-
-	// Authenticate API requests
-	Authenticator() func(http.Handler) http.Handler
 }
 
 // HTTP API interface

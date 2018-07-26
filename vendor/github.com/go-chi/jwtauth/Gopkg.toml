@@ -1,0 +1,6 @@
+[[constraint]]
+  name = "github.com/dgrijalva/jwt-go"
+  version = "^3.1.0"
+[[constraint]]
+  name = "github.com/go-chi/chi"
+  version = "^3.0.0"

@@ -28,9 +28,6 @@ type AuthHandlers struct {
 // Internal API interface
 type AuthAPI interface {
 	Login(context.Context, *AuthLoginRequest) (interface{}, error)
-
-	// Authenticate API requests
-	Authenticator() func(http.Handler) http.Handler
 }
 
 // HTTP API interface

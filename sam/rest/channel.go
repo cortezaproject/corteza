@@ -7,7 +7,6 @@ import (
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/sam/rest/server"
-	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
 )
 
@@ -15,7 +14,7 @@ var _ = errors.Wrap
 
 type (
 	Channel struct {
-		service channelService
+		svc channelService
 	}
 
 	channelService interface {
@@ -30,8 +29,10 @@ type (
 	}
 )
 
-func (Channel) New() *Channel {
-	return &Channel{service: service.Channel()}
+func (Channel) New(channelSvc channelService) *Channel {
+	var ctrl = &Channel{}
+	ctrl.svc = channelSvc
+	return ctrl
 }
 
 func (ctrl *Channel) Create(ctx context.Context, r *server.ChannelCreateRequest) (interface{}, error) {
@@ -42,7 +43,7 @@ func (ctrl *Channel) Create(ctx context.Context, r *server.ChannelCreateRequest)
 		SetMeta([]byte("{}")).
 		SetID(factory.Sonyflake.NextID())
 
-	return ctrl.service.Create(ctx, channel)
+	return ctrl.svc.Create(ctx, channel)
 }
 
 func (ctrl *Channel) Edit(ctx context.Context, r *server.ChannelEditRequest) (interface{}, error) {
@@ -51,18 +52,18 @@ func (ctrl *Channel) Edit(ctx context.Context, r *server.ChannelEditRequest) (in
 		SetName(r.Name).
 		SetTopic(r.Topic)
 
-	return ctrl.service.Update(ctx, channel)
+	return ctrl.svc.Update(ctx, channel)
 
 }
 
 func (ctrl *Channel) Delete(ctx context.Context, r *server.ChannelDeleteRequest) (interface{}, error) {
-	return nil, ctrl.service.Delete(ctx, r.ChannelID)
+	return nil, ctrl.svc.Delete(ctx, r.ChannelID)
 }
 
 func (ctrl *Channel) Read(ctx context.Context, r *server.ChannelReadRequest) (interface{}, error) {
-	return ctrl.service.FindByID(ctx, r.ChannelID)
+	return ctrl.svc.FindByID(ctx, r.ChannelID)
 }
 
 func (ctrl *Channel) List(ctx context.Context, r *server.ChannelListRequest) (interface{}, error) {
-	return ctrl.service.Find(ctx, &types.ChannelFilter{Query: r.Query})
+	return ctrl.svc.Find(ctx, &types.ChannelFilter{Query: r.Query})
 }

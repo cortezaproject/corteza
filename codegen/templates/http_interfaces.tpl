@@ -17,9 +17,6 @@ type {name}API interface {
 {foreach $calls as $call}
 	{call.name|capitalize}(context.Context, *{name|expose}{call.name|capitalize}Request) (interface{}, error)
 {/foreach}
-
-	// Authenticate API requests
-	Authenticator() func(http.Handler) http.Handler
 }
 
 // HTTP API interface

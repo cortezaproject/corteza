@@ -39,9 +39,6 @@ type MessageAPI interface {
 	Unflag(context.Context, *MessageUnflagRequest) (interface{}, error)
 	React(context.Context, *MessageReactRequest) (interface{}, error)
 	Unreact(context.Context, *MessageUnreactRequest) (interface{}, error)
-
-	// Authenticate API requests
-	Authenticator() func(http.Handler) http.Handler
 }
 
 // HTTP API interface
