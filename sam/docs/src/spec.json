@@ -299,17 +299,65 @@
 					]
 				}
 			},
-			{
-				"name": "delete",
-				"method": "DELETE",
-				"path": "/{channelID}",
-				"title": "Remove channel",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "channelID", "required": true, "title": "Channel ID" }
-					]
-				}
-			}
+            {
+              "name": "delete",
+              "method": "DELETE",
+              "path": "/{channelID}",
+              "title": "Remove channel",
+              "parameters": {
+                "path": [
+                  { "type": "uint64", "name": "channelID", "required": true, "title": "Channel ID" }
+                ]
+              }
+            },
+            {
+              "name": "members",
+              "method": "GET",
+              "path": "/{channelID}/members",
+              "title": "Join channel",
+              "parameters": {
+                "path": [
+                  { "name": "channelID", "type": "uint64", "required": true, "title": "Channel ID" }
+                ]
+              }
+            },
+            {
+              "name": "join",
+              "method": "POST",
+              "path": "/{channelID}/members/{userID}",
+              "title": "Join channel",
+              "parameters": {
+                "path": [
+                  { "name": "channelID", "type": "uint64", "required": true, "title": "Channel ID" }
+                ]
+              }
+            },
+            {
+              "name": "part",
+              "method": "DELETE",
+              "path": "/{channelID}/members/{userID}",
+              "title": "Remove member from channel",
+              "parameters": {
+                "path": [
+                  { "name": "channelID",     "type": "uint64", "required": true, "title": "Channel ID" },
+                  { "name": "userID",        "type": "uint64", "required": true, "title": "Member ID" }
+                ]
+              }
+            },
+            {
+              "name": "invite",
+              "method": "POST",
+              "path": "/{channelID}/invite",
+              "title": "Join channel",
+              "parameters": {
+                "path": [
+                  { "name": "channelID", "type": "uint64", "required": true, "title": "Channel ID" }
+                ],
+                "post": [
+                  { "name": "userID",    "type": "[]uint64", "required": false, "title": "User ID" }
+                ]
+              }
+            }
 		]
 	},
 	{

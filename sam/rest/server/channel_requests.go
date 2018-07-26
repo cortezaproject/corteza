@@ -176,3 +176,119 @@ func (c *ChannelDeleteRequest) Fill(r *http.Request) error {
 }
 
 var _ RequestFiller = ChannelDeleteRequest{}.new()
+
+// Channel members request parameters
+type ChannelMembersRequest struct {
+	ChannelID uint64
+}
+
+func (ChannelMembersRequest) new() *ChannelMembersRequest {
+	return &ChannelMembersRequest{}
+}
+
+func (c *ChannelMembersRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	return nil
+}
+
+var _ RequestFiller = ChannelMembersRequest{}.new()
+
+// Channel join request parameters
+type ChannelJoinRequest struct {
+	ChannelID uint64
+}
+
+func (ChannelJoinRequest) new() *ChannelJoinRequest {
+	return &ChannelJoinRequest{}
+}
+
+func (c *ChannelJoinRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	return nil
+}
+
+var _ RequestFiller = ChannelJoinRequest{}.new()
+
+// Channel part request parameters
+type ChannelPartRequest struct {
+	ChannelID uint64
+	UserID    uint64
+}
+
+func (ChannelPartRequest) new() *ChannelPartRequest {
+	return &ChannelPartRequest{}
+}
+
+func (c *ChannelPartRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+
+	c.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	return nil
+}
+
+var _ RequestFiller = ChannelPartRequest{}.new()
+
+// Channel invite request parameters
+type ChannelInviteRequest struct {
+	ChannelID uint64
+	UserID    []uint64
+}
+
+func (ChannelInviteRequest) new() *ChannelInviteRequest {
+	return &ChannelInviteRequest{}
+}
+
+func (c *ChannelInviteRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	return nil
+}
+
+var _ RequestFiller = ChannelInviteRequest{}.new()

@@ -41,3 +41,19 @@ func (ch *ChannelHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 	params := ChannelDeleteRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Delete(r.Context(), params) })
 }
+func (ch *ChannelHandlers) Members(w http.ResponseWriter, r *http.Request) {
+	params := ChannelMembersRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Members(r.Context(), params) })
+}
+func (ch *ChannelHandlers) Join(w http.ResponseWriter, r *http.Request) {
+	params := ChannelJoinRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Join(r.Context(), params) })
+}
+func (ch *ChannelHandlers) Part(w http.ResponseWriter, r *http.Request) {
+	params := ChannelPartRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Part(r.Context(), params) })
+}
+func (ch *ChannelHandlers) Invite(w http.ResponseWriter, r *http.Request) {
+	params := ChannelInviteRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ch.Channel.Invite(r.Context(), params) })
+}
