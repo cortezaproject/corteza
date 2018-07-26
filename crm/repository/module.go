@@ -14,7 +14,7 @@ func Module() module {
 	return module{}
 }
 
-func (r module) FindById(ctx context.Context, id uint64) (*types.Module, error) {
+func (r module) FindByID(ctx context.Context, id uint64) (*types.Module, error) {
 	db := factory.Database.MustGet()
 	mod := &types.Module{}
 	if err := db.Get(mod, "SELECT * FROM crm_module WHERE id = ?", id); err != nil {

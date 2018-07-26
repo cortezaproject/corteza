@@ -29,9 +29,6 @@ type FieldHandlers struct {
 type FieldAPI interface {
 	List(context.Context, *FieldListRequest) (interface{}, error)
 	Type(context.Context, *FieldTypeRequest) (interface{}, error)
-
-	// Authenticate API requests
-	Authenticator() func(http.Handler) http.Handler
 }
 
 // HTTP API interface

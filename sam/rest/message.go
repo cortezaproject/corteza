@@ -3,9 +3,7 @@ package rest
 import (
 	"context"
 	"github.com/crusttech/crust/sam/rest/server"
-	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 )
 
@@ -13,7 +11,7 @@ var _ = errors.Wrap
 
 type (
 	Message struct {
-		service messageService
+		svc messageService
 	}
 
 	messageService interface {
@@ -38,68 +36,67 @@ type (
 	}
 )
 
-func (Message) New() *Message {
-	return &Message{
-		service: service.Message(),
-	}
+func (Message) New(messageSvc messageService) *Message {
+	var ctrl = &Message{}
+	ctrl.svc = messageSvc
+	return ctrl
 }
 
 func (ctrl *Message) Create(ctx context.Context, r *server.MessageCreateRequest) (interface{}, error) {
-	spew.Dump(r)
-	return ctrl.service.Create(ctx, (&types.Message{}).
+	return ctrl.svc.Create(ctx, (&types.Message{}).
 		SetChannelID(r.ChannelID).
 		SetMessage(r.Message))
 }
 
 func (ctrl *Message) History(ctx context.Context, r *server.MessageHistoryRequest) (interface{}, error) {
-	return ctrl.service.Find(ctx, &types.MessageFilter{
+	return ctrl.svc.Find(ctx, &types.MessageFilter{
 		ChannelID:     r.ChannelID,
 		FromMessageID: r.LastMessageID,
 	})
 }
 
 func (ctrl *Message) Edit(ctx context.Context, r *server.MessageEditRequest) (interface{}, error) {
-	return ctrl.service.Update(ctx, (&types.Message{}).
+	return ctrl.svc.Update(ctx, (&types.Message{}).
 		SetID(r.MessageID).
 		SetChannelID(r.ChannelID).
 		SetMessage(r.Message))
 }
 
 func (ctrl *Message) Delete(ctx context.Context, r *server.MessageDeleteRequest) (interface{}, error) {
-	return nil, ctrl.service.Delete(ctx, r.MessageID)
+	return nil, ctrl.svc.Delete(ctx, r.MessageID)
 }
 
 func (ctrl *Message) Attach(ctx context.Context, r *server.MessageAttachRequest) (interface{}, error) {
-	return ctrl.service.Attach(ctx)
+	return ctrl.svc.Attach(ctx)
 }
 
 func (ctrl *Message) Search(ctx context.Context, r *server.MessageSearchRequest) (interface{}, error) {
-	return ctrl.service.Find(ctx, &types.MessageFilter{
+	return ctrl.svc.Find(ctx, &types.MessageFilter{
 		ChannelID: r.ChannelID,
 		Query:     r.Query,
 	})
 }
 
 func (ctrl *Message) Pin(ctx context.Context, r *server.MessagePinRequest) (interface{}, error) {
-	return nil, ctrl.service.Pin(ctx, r.MessageID)
+	return nil, ctrl.svc.Pin(ctx, r.MessageID)
 }
 
 func (ctrl *Message) Unpin(ctx context.Context, r *server.MessageUnpinRequest) (interface{}, error) {
-	return nil, ctrl.service.Unpin(ctx, r.MessageID)
+	return nil, ctrl.svc.Unpin(ctx, r.MessageID)
 }
 
 func (ctrl *Message) Flag(ctx context.Context, r *server.MessageFlagRequest) (interface{}, error) {
-	return nil, ctrl.service.Flag(ctx, r.MessageID)
+	return nil, ctrl.svc.Flag(ctx, r.MessageID)
 }
 
 func (ctrl *Message) Unflag(ctx context.Context, r *server.MessageUnflagRequest) (interface{}, error) {
-	return nil, ctrl.service.Unflag(ctx, r.MessageID)
+	return nil, ctrl.svc.Unflag(ctx, r.MessageID)
 }
 
 func (ctrl *Message) React(ctx context.Context, r *server.MessageReactRequest) (interface{}, error) {
-	return nil, ctrl.service.React(ctx, r.MessageID, r.Reaction)
+	return nil, ctrl.svc.React(ctx, r.MessageID, r.Reaction)
 }
 
 func (ctrl *Message) Unreact(ctx context.Context, r *server.MessageUnreactRequest) (interface{}, error) {
-	return nil, ctrl.service.Unreact(ctx, r.MessageID, r.Reaction)
+	return nil, ctrl.svc.Unreact(ctx, r.MessageID, r.Reaction)
 }

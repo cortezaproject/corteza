@@ -12,7 +12,7 @@ type (
 	}
 
 	moduleRepository interface {
-		FindById(context.Context, uint64) (*types.Module, error)
+		FindByID(context.Context, uint64) (*types.Module, error)
 		Find(context.Context) ([]*types.Module, error)
 
 		Create(context.Context, *types.Module) (*types.Module, error)
@@ -27,8 +27,8 @@ func Module() module {
 	}
 }
 
-func (svc module) FindById(ctx context.Context, id uint64) (*types.Module, error) {
-	return svc.repository.FindById(ctx, id)
+func (svc module) FindByID(ctx context.Context, id uint64) (*types.Module, error) {
+	return svc.repository.FindByID(ctx, id)
 }
 
 func (svc module) Find(ctx context.Context) ([]*types.Module, error) {

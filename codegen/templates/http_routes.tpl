@@ -4,22 +4,16 @@ package {package}
 
 import (
 	"github.com/go-chi/chi"
-
-	"github.com/crusttech/crust/{project}/rest/server"
+    "net/http"
 )
 
-func MountRoutes(r chi.Router) {
-{foreach $apis as $api}
-	{api.interface|strtolower} := &server.{api.interface|capitalize}Handlers{{api.interface|capitalize}:{api.interface|capitalize}{ldelim}{rdelim}.New()}
-{/foreach}
-{foreach $apis as $api}
+func ({self}h *{name}Handlers)MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func (r chi.Router) {
-			r.Use({api.interface|strtolower}.{api.interface}.Authenticator())
+			r.Use(middlewares...)
 		r.Route("{api.path}", func(r chi.Router) {
 {foreach $api.apis as $call}
-			r.{eval echo capitalize(strtolower($call.method))}("{call.path}", {api.interface|strtolower}.{call.name|capitalize})
+			r.{eval echo capitalize(strtolower($call.method))}("{call.path}", {self}h.{call.name|capitalize})
 {/foreach}
 		})
 	})
-{/foreach}
 }

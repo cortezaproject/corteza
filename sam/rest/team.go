@@ -11,7 +11,7 @@ var _ = errors.Wrap
 
 type (
 	Team struct {
-		service teamService
+		svc teamService
 	}
 
 	teamService interface {
@@ -20,24 +20,26 @@ type (
 
 		Create(context.Context, *types.Team) (*types.Team, error)
 		Update(context.Context, *types.Team) (*types.Team, error)
-		Merge(context.Context, *types.Team) error
-		Move(context.Context, *types.Team) error
+		Merge(ctx context.Context, id, targetTeamId uint64) error
+		Move(ctx context.Context, id, organisationId uint64) error
 
 		deleter
 		archiver
 	}
 )
 
-func (Team) New() *Team {
-	return &Team{}
+func (Team) New(teamSvc teamService) *Team {
+	var ctrl = &Team{}
+	ctrl.svc = teamSvc
+	return ctrl
 }
 
 func (ctrl *Team) Read(ctx context.Context, r *server.TeamReadRequest) (interface{}, error) {
-	return ctrl.service.FindByID(ctx, r.TeamID)
+	return ctrl.svc.FindByID(ctx, r.TeamID)
 }
 
 func (ctrl *Team) List(ctx context.Context, r *server.TeamListRequest) (interface{}, error) {
-	return ctrl.service.Find(ctx, &types.TeamFilter{Query: r.Query})
+	return ctrl.svc.Find(ctx, &types.TeamFilter{Query: r.Query})
 }
 
 func (ctrl *Team) Create(ctx context.Context, r *server.TeamCreateRequest) (interface{}, error) {
@@ -45,7 +47,7 @@ func (ctrl *Team) Create(ctx context.Context, r *server.TeamCreateRequest) (inte
 		New().
 		SetName(r.Name)
 
-	return ctrl.service.Create(ctx, org)
+	return ctrl.svc.Create(ctx, org)
 }
 
 func (ctrl *Team) Edit(ctx context.Context, r *server.TeamEditRequest) (interface{}, error) {
@@ -54,21 +56,21 @@ func (ctrl *Team) Edit(ctx context.Context, r *server.TeamEditRequest) (interfac
 		SetID(r.TeamID).
 		SetName(r.Name)
 
-	return ctrl.service.Update(ctx, org)
+	return ctrl.svc.Update(ctx, org)
 }
 
 func (ctrl *Team) Remove(ctx context.Context, r *server.TeamRemoveRequest) (interface{}, error) {
-	return nil, ctrl.service.Delete(ctx, r.TeamID)
+	return nil, ctrl.svc.Delete(ctx, r.TeamID)
 }
 
 func (ctrl *Team) Archive(ctx context.Context, r *server.TeamArchiveRequest) (interface{}, error) {
-	return nil, ctrl.service.Archive(ctx, r.TeamID)
+	return nil, ctrl.svc.Archive(ctx, r.TeamID)
 }
 
 func (ctrl *Team) Merge(ctx context.Context, r *server.TeamMergeRequest) (interface{}, error) {
-	return nil, ctrl.service.Merge(ctx, &types.Team{ID: r.TeamID})
+	return nil, ctrl.svc.Merge(ctx, r.TeamID, r.Destination)
 }
 
 func (ctrl *Team) Move(ctx context.Context, r *server.TeamMoveRequest) (interface{}, error) {
-	return nil, ctrl.service.Move(ctx, &types.Team{ID: r.TeamID})
+	return nil, ctrl.svc.Move(ctx, r.TeamID, r.Organisation_id)
 }

@@ -32,9 +32,6 @@ type ChannelAPI interface {
 	Edit(context.Context, *ChannelEditRequest) (interface{}, error)
 	Read(context.Context, *ChannelReadRequest) (interface{}, error)
 	Delete(context.Context, *ChannelDeleteRequest) (interface{}, error)
-
-	// Authenticate API requests
-	Authenticator() func(http.Handler) http.Handler
 }
 
 // HTTP API interface
