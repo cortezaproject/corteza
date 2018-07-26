@@ -18,12 +18,12 @@ type (
 	}
 
 	userRepository interface {
-		FindByUsername(context.Context, string) (*types.User, error)
-		FindByID(context.Context, uint64) (*types.User, error)
-		Find(context.Context, *types.UserFilter) ([]*types.User, error)
+		FindByUsername(ctx context.Context, username string) (*types.User, error)
+		FindByID(ctx context.Context, userID uint64) (*types.User, error)
+		Find(ctx context.Context, filter *types.UserFilter) ([]*types.User, error)
 
-		Create(context.Context, *types.User) (*types.User, error)
-		Update(context.Context, *types.User) (*types.User, error)
+		Create(ctx context.Context, user *types.User) (*types.User, error)
+		Update(ctx context.Context, user *types.User) (*types.User, error)
 
 		deleter
 		suspender

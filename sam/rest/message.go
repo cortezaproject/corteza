@@ -15,22 +15,22 @@ type (
 	}
 
 	messageService interface {
-		Find(context.Context, *types.MessageFilter) ([]*types.Message, error)
+		Find(ctx context.Context, filter *types.MessageFilter) ([]*types.Message, error)
 
-		Create(context.Context, *types.Message) (*types.Message, error)
-		Update(context.Context, *types.Message) (*types.Message, error)
+		Create(ctx context.Context, messages *types.Message) (*types.Message, error)
+		Update(ctx context.Context, messages *types.Message) (*types.Message, error)
 
-		React(context.Context, uint64, string) error
-		Unreact(context.Context, uint64, string) error
+		React(ctx context.Context, messageID uint64, reaction string) error
+		Unreact(ctx context.Context, messageID uint64, reaction string) error
 
-		Pin(context.Context, uint64) error
-		Unpin(context.Context, uint64) error
+		Pin(ctx context.Context, messageID uint64) error
+		Unpin(ctx context.Context, messageID uint64) error
 
-		Flag(context.Context, uint64) error
-		Unflag(context.Context, uint64) error
+		Flag(ctx context.Context, messageID uint64) error
+		Unflag(ctx context.Context, messageID uint64) error
 
-		Attach(context.Context) (*types.Attachment, error)
-		Detach(context.Context, uint64) error
+		Attach(ctx context.Context) (*types.Attachment, error)
+		Detach(ctx context.Context, messageID uint64) error
 
 		deleter
 	}

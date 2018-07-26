@@ -12,11 +12,11 @@ type (
 	}
 
 	organisationRepository interface {
-		FindByID(context.Context, uint64) (*types.Organisation, error)
-		Find(context.Context, *types.OrganisationFilter) ([]*types.Organisation, error)
+		FindByID(ctx context.Context, organisationID uint64) (*types.Organisation, error)
+		Find(ctx context.Context, filter *types.OrganisationFilter) ([]*types.Organisation, error)
 
-		Create(context.Context, *types.Organisation) (*types.Organisation, error)
-		Update(context.Context, *types.Organisation) (*types.Organisation, error)
+		Create(ctx context.Context, organisation *types.Organisation) (*types.Organisation, error)
+		Update(ctx context.Context, organisation *types.Organisation) (*types.Organisation, error)
 
 		deleter
 		archiver

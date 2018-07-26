@@ -16,8 +16,8 @@ type (
 	}
 
 	fieldService interface {
-		FindByName(context.Context, string) (*types.Field, error)
-		Find(context.Context) ([]*types.Field, error)
+		FindByName(ctx context.Context, name string) (*types.Field, error)
+		Find(ctx context.Context) ([]*types.Field, error)
 	}
 )
 

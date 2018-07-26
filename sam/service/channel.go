@@ -12,11 +12,11 @@ type (
 	}
 
 	channelRepository interface {
-		FindByID(context.Context, uint64) (*types.Channel, error)
-		Find(context.Context, *types.ChannelFilter) ([]*types.Channel, error)
+		FindByID(ctx context.Context, channelID uint64) (*types.Channel, error)
+		Find(ctx context.Context, filter *types.ChannelFilter) ([]*types.Channel, error)
 
-		Create(context.Context, *types.Channel) (*types.Channel, error)
-		Update(context.Context, *types.Channel) (*types.Channel, error)
+		Create(ctx context.Context, channel *types.Channel) (*types.Channel, error)
+		Update(ctx context.Context, channel *types.Channel) (*types.Channel, error)
 
 		deleter
 		archiver

@@ -19,7 +19,7 @@ type (
 	}
 
 	wsUserFinder interface {
-		FindByID(ctx context.Context, userId uint64) (*types.User, error)
+		FindByID(ctx context.Context, userID uint64) (*types.User, error)
 	}
 )
 

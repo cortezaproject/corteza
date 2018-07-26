@@ -16,7 +16,7 @@ type (
 	}
 
 	userService interface {
-		Find(context.Context, *types.UserFilter) ([]*types.User, error)
+		Find(ctx context.Context, filter *types.UserFilter) ([]*types.User, error)
 	}
 )
 
