@@ -15,27 +15,31 @@
           "type": "string"
         },
         {
-          "complex": true,
-          "name": "MemberIDs",
-          "tag": "json:\"-\"",
-          "type": "[]uint64"
+          "name": "Handle",
+          "type": "string"
         },
         {
           "complex": true,
-          "name": "Members",
-          "tag": "json:\",omitempty\"",
-          "type": "[]User"
+          "name": "CreatedAt",
+          "tag": "json:\"created_at,omitempty\"",
+          "type": "time.Time"
+        },
+        {
+          "complex": true,
+          "name": "UpdatedAt",
+          "tag": "json:\"updated_at,omitempty\"",
+          "type": "*time.Time"
         },
         {
           "complex": true,
           "name": "ArchivedAt",
-          "tag": "json:\",omitempty\"",
+          "tag": "json:\"archived_at,omitempty\"",
           "type": "*time.Time"
         },
         {
           "complex": true,
           "name": "DeletedAt",
-          "tag": "json:\",omitempty\"",
+          "tag": "json:\"deleted_at,omitempty\"",
           "type": "*time.Time"
         }
       ],

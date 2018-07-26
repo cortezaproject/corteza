@@ -31,14 +31,26 @@
         },
         {
           "complex": true,
+          "name": "CreatedAt",
+          "tag": "json:\"created_at,omitempty\"",
+          "type": "time.Time"
+        },
+        {
+          "complex": true,
+          "name": "UpdatedAt",
+          "tag": "json:\"updated_at,omitempty\"",
+          "type": "*time.Time"
+        },
+        {
+          "complex": true,
           "name": "SuspendedAt",
-          "tag": "json:\",omitempty\"",
+          "tag": "json:\"suspended_at,omitempty\"",
           "type": "*time.Time"
         },
         {
           "complex": true,
           "name": "DeletedAt",
-          "tag": "json:\",omitempty\"",
+          "tag": "json:\"deleted_at,omitempty\"",
           "type": "*time.Time"
         }
       ],

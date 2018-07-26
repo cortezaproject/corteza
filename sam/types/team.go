@@ -24,10 +24,11 @@ type (
 	Team struct {
 		ID         uint64     `db:"id"`
 		Name       string     `db:"name"`
-		MemberIDs  []uint64   `json:"-" db:"member_i_ds"`
-		Members    []User     `json:",omitempty" db:"members"`
-		ArchivedAt *time.Time `json:",omitempty" db:"archived_at"`
-		DeletedAt  *time.Time `json:",omitempty" db:"deleted_at"`
+		Handle     string     `db:"handle"`
+		CreatedAt  time.Time  `json:"created_at,omitempty" db:"created_at"`
+		UpdatedAt  *time.Time `json:"updated_at,omitempty" db:"updated_at"`
+		ArchivedAt *time.Time `json:"archived_at,omitempty" db:"archived_at"`
+		DeletedAt  *time.Time `json:"deleted_at,omitempty" db:"deleted_at"`
 
 		changed []string
 	}
@@ -66,27 +67,41 @@ func (t *Team) SetName(value string) *Team {
 	return t
 }
 
-// Get the value of MemberIDs
-func (t *Team) GetMemberIDs() []uint64 {
-	return t.MemberIDs
+// Get the value of Handle
+func (t *Team) GetHandle() string {
+	return t.Handle
 }
 
-// Set the value of MemberIDs
-func (t *Team) SetMemberIDs(value []uint64) *Team {
-	t.changed = append(t.changed, "MemberIDs")
-	t.MemberIDs = value
+// Set the value of Handle
+func (t *Team) SetHandle(value string) *Team {
+	if t.Handle != value {
+		t.changed = append(t.changed, "Handle")
+		t.Handle = value
+	}
 	return t
 }
 
-// Get the value of Members
-func (t *Team) GetMembers() []User {
-	return t.Members
+// Get the value of CreatedAt
+func (t *Team) GetCreatedAt() time.Time {
+	return t.CreatedAt
 }
 
-// Set the value of Members
-func (t *Team) SetMembers(value []User) *Team {
-	t.changed = append(t.changed, "Members")
-	t.Members = value
+// Set the value of CreatedAt
+func (t *Team) SetCreatedAt(value time.Time) *Team {
+	t.changed = append(t.changed, "CreatedAt")
+	t.CreatedAt = value
+	return t
+}
+
+// Get the value of UpdatedAt
+func (t *Team) GetUpdatedAt() *time.Time {
+	return t.UpdatedAt
+}
+
+// Set the value of UpdatedAt
+func (t *Team) SetUpdatedAt(value *time.Time) *Team {
+	t.changed = append(t.changed, "UpdatedAt")
+	t.UpdatedAt = value
 	return t
 }
 

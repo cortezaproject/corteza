@@ -29,20 +29,21 @@ type (
 		UserID    uint64     `db:"rel_user"`
 		ChannelID uint64     `db:"rel_channel"`
 		ReplyTo   uint64     `db:"reply_to"`
-		UpdatedAt *time.Time `json:",omitempty" db:"updated_at"`
-		DeletedAt *time.Time `json:",omitempty" db:"deleted_at"`
+		CreatedAt time.Time  `json:"created_at,omitempty" db:"created_at"`
+		UpdatedAt *time.Time `json:"updated_at,omitempty" db:"updated_at"`
+		DeletedAt *time.Time `json:"deleted_at,omitempty" db:"deleted_at"`
 
 		changed []string
 	}
 
 	// Messages -
 	Reaction struct {
-		ID        uint64     `db:"id"`
-		UserID    uint64     `db:"rel_user"`
-		MessageID uint64     `db:"rel_message"`
-		ChannelID uint64     `db:"rel_channel"`
-		Reaction  string     `db:"reaction"`
-		DeletedAt *time.Time `json:",omitempty" db:"deleted_at"`
+		ID        uint64    `db:"id"`
+		UserID    uint64    `db:"rel_user"`
+		MessageID uint64    `db:"rel_message"`
+		ChannelID uint64    `db:"rel_channel"`
+		Reaction  string    `db:"reaction"`
+		CreatedAt time.Time `json:"created_at,omitempty" db:"created_at"`
 
 		changed []string
 	}
@@ -54,7 +55,14 @@ type (
 		MessageID  uint64          `db:"rel_message"`
 		ChannelID  uint64          `db:"rel_channel"`
 		Attachment json.RawMessage `db:"attachment"`
-		DeletedAt  *time.Time      `json:",omitempty" db:"deleted_at"`
+		Url        string          `db:"url"`
+		PreviewUrl string          `db:"preview_url"`
+		Size       uint            `db:"size"`
+		Mimetype   string          `db:"mimetype"`
+		Name       string          `db:"name"`
+		CreatedAt  time.Time       `json:"created_at,omitempty" db:"created_at"`
+		UpdatedAt  *time.Time      `json:"updated_at,omitempty" db:"updated_at"`
+		DeletedAt  *time.Time      `json:"deleted_at,omitempty" db:"deleted_at"`
 
 		changed []string
 	}
@@ -159,6 +167,18 @@ func (m *Message) SetReplyTo(value uint64) *Message {
 	return m
 }
 
+// Get the value of CreatedAt
+func (m *Message) GetCreatedAt() time.Time {
+	return m.CreatedAt
+}
+
+// Set the value of CreatedAt
+func (m *Message) SetCreatedAt(value time.Time) *Message {
+	m.changed = append(m.changed, "CreatedAt")
+	m.CreatedAt = value
+	return m
+}
+
 // Get the value of UpdatedAt
 func (m *Message) GetUpdatedAt() *time.Time {
 	return m.UpdatedAt
@@ -258,15 +278,15 @@ func (m *Reaction) SetReaction(value string) *Reaction {
 	return m
 }
 
-// Get the value of DeletedAt
-func (m *Reaction) GetDeletedAt() *time.Time {
-	return m.DeletedAt
+// Get the value of CreatedAt
+func (m *Reaction) GetCreatedAt() time.Time {
+	return m.CreatedAt
 }
 
-// Set the value of DeletedAt
-func (m *Reaction) SetDeletedAt(value *time.Time) *Reaction {
-	m.changed = append(m.changed, "DeletedAt")
-	m.DeletedAt = value
+// Set the value of CreatedAt
+func (m *Reaction) SetCreatedAt(value time.Time) *Reaction {
+	m.changed = append(m.changed, "CreatedAt")
+	m.CreatedAt = value
 	return m
 }
 
@@ -340,6 +360,100 @@ func (m *Attachment) GetAttachment() json.RawMessage {
 func (m *Attachment) SetAttachment(value json.RawMessage) *Attachment {
 	m.changed = append(m.changed, "Attachment")
 	m.Attachment = value
+	return m
+}
+
+// Get the value of Url
+func (m *Attachment) GetUrl() string {
+	return m.Url
+}
+
+// Set the value of Url
+func (m *Attachment) SetUrl(value string) *Attachment {
+	if m.Url != value {
+		m.changed = append(m.changed, "Url")
+		m.Url = value
+	}
+	return m
+}
+
+// Get the value of PreviewUrl
+func (m *Attachment) GetPreviewUrl() string {
+	return m.PreviewUrl
+}
+
+// Set the value of PreviewUrl
+func (m *Attachment) SetPreviewUrl(value string) *Attachment {
+	if m.PreviewUrl != value {
+		m.changed = append(m.changed, "PreviewUrl")
+		m.PreviewUrl = value
+	}
+	return m
+}
+
+// Get the value of Size
+func (m *Attachment) GetSize() uint {
+	return m.Size
+}
+
+// Set the value of Size
+func (m *Attachment) SetSize(value uint) *Attachment {
+	if m.Size != value {
+		m.changed = append(m.changed, "Size")
+		m.Size = value
+	}
+	return m
+}
+
+// Get the value of Mimetype
+func (m *Attachment) GetMimetype() string {
+	return m.Mimetype
+}
+
+// Set the value of Mimetype
+func (m *Attachment) SetMimetype(value string) *Attachment {
+	if m.Mimetype != value {
+		m.changed = append(m.changed, "Mimetype")
+		m.Mimetype = value
+	}
+	return m
+}
+
+// Get the value of Name
+func (m *Attachment) GetName() string {
+	return m.Name
+}
+
+// Set the value of Name
+func (m *Attachment) SetName(value string) *Attachment {
+	if m.Name != value {
+		m.changed = append(m.changed, "Name")
+		m.Name = value
+	}
+	return m
+}
+
+// Get the value of CreatedAt
+func (m *Attachment) GetCreatedAt() time.Time {
+	return m.CreatedAt
+}
+
+// Set the value of CreatedAt
+func (m *Attachment) SetCreatedAt(value time.Time) *Attachment {
+	m.changed = append(m.changed, "CreatedAt")
+	m.CreatedAt = value
+	return m
+}
+
+// Get the value of UpdatedAt
+func (m *Attachment) GetUpdatedAt() *time.Time {
+	return m.UpdatedAt
+}
+
+// Set the value of UpdatedAt
+func (m *Attachment) SetUpdatedAt(value *time.Time) *Attachment {
+	m.changed = append(m.changed, "UpdatedAt")
+	m.UpdatedAt = value
 	return m
 }
 
