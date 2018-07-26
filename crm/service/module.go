@@ -12,12 +12,12 @@ type (
 	}
 
 	moduleRepository interface {
-		FindByID(context.Context, uint64) (*types.Module, error)
-		Find(context.Context) ([]*types.Module, error)
+		FindByID(ctx context.Context, moduleID uint64) (*types.Module, error)
+		Find(ctx context.Context) ([]*types.Module, error)
 
-		Create(context.Context, *types.Module) (*types.Module, error)
-		Update(context.Context, *types.Module) (*types.Module, error)
-		DeleteById(context.Context, uint64) error
+		Create(ctx context.Context, module *types.Module) (*types.Module, error)
+		Update(ctx context.Context, module *types.Module) (*types.Module, error)
+		DeleteByID(ctx context.Context, moduleID uint64) error
 	}
 )
 
@@ -43,6 +43,6 @@ func (svc module) Update(ctx context.Context, mod *types.Module) (*types.Module,
 	return svc.repository.Update(ctx, mod)
 }
 
-func (svc module) DeleteById(ctx context.Context, id uint64) error {
-	return svc.repository.DeleteById(ctx, id)
+func (svc module) DeleteByID(ctx context.Context, id uint64) error {
+	return svc.repository.DeleteByID(ctx, id)
 }

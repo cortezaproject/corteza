@@ -55,7 +55,7 @@ func (r module) Update(ctx context.Context, mod *types.Module) (*types.Module, e
 	}
 }
 
-func (r module) DeleteById(ctx context.Context, id uint64) error {
+func (r module) DeleteByID(ctx context.Context, id uint64) error {
 	db := factory.Database.MustGet()
 	if _, err := db.Exec("DELETE FROM crm_module WHERE ID = ?", id); err != nil {
 		return ErrDatabaseError

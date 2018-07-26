@@ -10,17 +10,17 @@ import (
 
 type (
 	suspender interface {
-		Suspend(context.Context, uint64) error
-		Unsuspend(context.Context, uint64) error
+		Suspend(ctx context.Context, ID uint64) error
+		Unsuspend(ctx context.Context, ID uint64) error
 	}
 
 	archiver interface {
-		Archive(context.Context, uint64) error
-		Unarchive(context.Context, uint64) error
+		Archive(ctx context.Context, ID uint64) error
+		Unarchive(ctx context.Context, ID uint64) error
 	}
 
 	deleter interface {
-		Delete(context.Context, uint64) error
+		Delete(ctx context.Context, ID uint64) error
 	}
 )
 

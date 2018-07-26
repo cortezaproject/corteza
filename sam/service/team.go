@@ -12,14 +12,14 @@ type (
 	}
 
 	teamRepository interface {
-		FindByID(context.Context, uint64) (*types.Team, error)
-		Find(context.Context, *types.TeamFilter) ([]*types.Team, error)
+		FindByID(ctx context.Context, teamID uint64) (*types.Team, error)
+		Find(ctx context.Context, filter *types.TeamFilter) ([]*types.Team, error)
 
-		Create(context.Context, *types.Team) (*types.Team, error)
-		Update(context.Context, *types.Team) (*types.Team, error)
+		Create(ctx context.Context, team *types.Team) (*types.Team, error)
+		Update(ctx context.Context, team *types.Team) (*types.Team, error)
 
-		Merge(context.Context, uint64, uint64) error
-		Move(context.Context, uint64, uint64) error
+		Merge(ctx context.Context, teamID, targetTeamID uint64) error
+		Move(ctx context.Context, teamID, organisationID uint64) error
 
 		deleter
 		archiver

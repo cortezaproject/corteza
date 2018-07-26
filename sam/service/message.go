@@ -16,25 +16,25 @@ type (
 	}
 
 	messageRepository interface {
-		FindByID(context.Context, uint64) (*types.Message, error)
-		Find(context.Context, *types.MessageFilter) ([]*types.Message, error)
+		FindByID(ctx context.Context, messageID uint64) (*types.Message, error)
+		Find(ctx context.Context, filter *types.MessageFilter) ([]*types.Message, error)
 
-		Create(context.Context, *types.Message) (*types.Message, error)
-		Update(context.Context, *types.Message) (*types.Message, error)
+		Create(ctx context.Context, message *types.Message) (*types.Message, error)
+		Update(ctx context.Context, message *types.Message) (*types.Message, error)
 
 		deleter
 	}
 
 	messageReactionRepository interface {
-		FindByID(context.Context, uint64) (*types.Reaction, error)
-		Create(context.Context, *types.Reaction) (*types.Reaction, error)
-		Delete(context.Context, uint64) error
+		FindByID(ctx context.Context, reactionID uint64) (*types.Reaction, error)
+		Create(ctx context.Context, reaction *types.Reaction) (*types.Reaction, error)
+		Delete(ctx context.Context, reactionID uint64) error
 	}
 
 	messageAttachmentRepository interface {
-		FindByID(context.Context, uint64) (*types.Attachment, error)
-		Create(context.Context, *types.Attachment) (*types.Attachment, error)
-		Delete(context.Context, uint64) error
+		FindByID(ctx context.Context, attachmentID uint64) (*types.Attachment, error)
+		Create(ctx context.Context, attachment *types.Attachment) (*types.Attachment, error)
+		Delete(ctx context.Context, attachmentID uint64) error
 	}
 )
 
