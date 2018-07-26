@@ -26,7 +26,7 @@ func (r team) FindByID(ctx context.Context, id uint64) (*types.Team, error) {
 
 	mod := &types.Team{}
 	if err := db.Get(mod, "SELECT * FROM teams WHERE id = ? AND "+sqlTeamScope, id); err != nil {
-		return nil, ErrDatabaseError
+		return nil, err
 	} else if mod.ID == 0 {
 		return nil, ErrTeamNotFound
 	} else {
@@ -42,7 +42,7 @@ func (r team) Find(ctx context.Context, filter *types.TeamFilter) ([]*types.Team
 
 	if filter != nil {
 		if filter.Query != "" {
-			sql += "AND name LIKE ?"
+			sql += " AND name LIKE ?"
 			params = append(params, filter.Query+"%")
 		}
 	}
@@ -51,7 +51,7 @@ func (r team) Find(ctx context.Context, filter *types.TeamFilter) ([]*types.Team
 
 	rval := make([]*types.Team, 0)
 	if err := db.Select(&rval, sql, params...); err != nil {
-		return nil, ErrDatabaseError
+		return nil, err
 	} else {
 		return rval, nil
 	}
@@ -61,8 +61,10 @@ func (r team) Create(ctx context.Context, mod *types.Team) (*types.Team, error) 
 	db := factory.Database.MustGet()
 
 	mod.SetID(factory.Sonyflake.NextID())
+	mod.SetCreatedAt(time.Now())
+
 	if err := db.Insert("teams", mod); err != nil {
-		return nil, ErrDatabaseError
+		return nil, err
 	} else {
 		return mod, nil
 	}
@@ -71,8 +73,11 @@ func (r team) Create(ctx context.Context, mod *types.Team) (*types.Team, error) 
 func (r team) Update(ctx context.Context, mod *types.Team) (*types.Team, error) {
 	db := factory.Database.MustGet()
 
+	now := time.Now()
+	mod.SetUpdatedAt(&now)
+
 	if err := db.Replace("teams", mod); err != nil {
-		return nil, ErrDatabaseError
+		return nil, err
 	} else {
 		return mod, nil
 	}

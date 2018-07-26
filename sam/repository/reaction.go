@@ -4,11 +4,10 @@ import (
 	"context"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/titpetric/factory"
+	"time"
 )
 
 const (
-	sqlReactionScope = "deleted_at IS NULL AND archived_at IS NULL"
-
 	ErrReactionNotFound = repositoryError("ReactionNotFound")
 )
 
@@ -24,8 +23,8 @@ func (r reaction) FindByID(ctx context.Context, id uint64) (*types.Reaction, err
 	db := factory.Database.MustGet()
 
 	mod := &types.Reaction{}
-	if err := db.GetContext(ctx, mod, "SELECT * FROM reactions WHERE id = ? AND "+sqlReactionScope, id); err != nil {
-		return nil, ErrDatabaseError
+	if err := db.GetContext(ctx, mod, "SELECT * FROM reactions WHERE id = ?", id); err != nil {
+		return nil, err
 	} else if mod.ID == 0 {
 		return nil, ErrReactionNotFound
 	} else {
@@ -44,7 +43,7 @@ func (r reaction) FindByRange(ctx context.Context, channelID, fromReactionID, to
 
 	rval := make([]*types.Reaction, 0)
 	if err := db.Select(&rval, sql, fromReactionID, toReactionID, channelID); err != nil {
-		return nil, ErrDatabaseError
+		return nil, err
 	}
 
 	return rval, nil
@@ -54,8 +53,10 @@ func (r reaction) Create(ctx context.Context, mod *types.Reaction) (*types.React
 	db := factory.Database.MustGet()
 
 	mod.SetID(factory.Sonyflake.NextID())
+	mod.SetCreatedAt(time.Now())
+
 	if err := db.Insert("reactions", mod); err != nil {
-		return nil, ErrDatabaseError
+		return nil, err
 	} else {
 		return mod, nil
 	}
@@ -65,7 +66,7 @@ func (r reaction) Delete(ctx context.Context, id uint64) error {
 	db := factory.Database.MustGet()
 
 	if _, err := db.ExecContext(ctx, "DELETE FROM reactions WHERE id = ?", id); err != nil {
-		return ErrDatabaseError
+		return err
 	} else {
 		return nil
 	}

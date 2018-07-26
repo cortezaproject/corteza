@@ -2,8 +2,10 @@
 CREATE TABLE organisations (
   id               BIGINT UNSIGNED NOT NULL,
   fqn              TEXT            NOT NULL, -- fully qualified name of the organisation
-  label            TEXT            NOT NULL, -- display name of the organisation
+  name             TEXT            NOT NULL, -- display name of the organisation
 
+  created_at       DATETIME        NOT NULL DEFAULT NOW(),
+  updated_at       DATETIME            NULL,
   archived_at      DATETIME            NULL,
   deleted_at       DATETIME            NULL, -- organisation soft delete
 
@@ -13,9 +15,11 @@ CREATE TABLE organisations (
 -- Keeps all known teams
 CREATE TABLE teams (
   id               BIGINT UNSIGNED NOT NULL,
-  label            TEXT            NOT NULL, -- display name of the team
+  name             TEXT            NOT NULL, -- display name of the team
   handle           TEXT            NOT NULL, -- team handle string
 
+  created_at       DATETIME        NOT NULL DEFAULT NOW(),
+  updated_at       DATETIME            NULL,
   archived_at      DATETIME            NULL,
   deleted_at       DATETIME            NULL, -- team soft delete
 
@@ -28,6 +32,8 @@ CREATE TABLE channels (
   name             TEXT            NOT NULL, -- display name of the channel
   meta             JSON            NOT NULL,
 
+  created_at       DATETIME        NOT NULL DEFAULT NOW(),
+  updated_at       DATETIME            NULL,
   archived_at      DATETIME            NULL,
   deleted_at       DATETIME            NULL, -- channel soft delete
 
@@ -46,6 +52,8 @@ CREATE TABLE users (
 
   rel_organisation BIGINT UNSIGNED NOT NULL REFERENCES organisation(id),
 
+  created_at       DATETIME        NOT NULL DEFAULT NOW(),
+  updated_at       DATETIME            NULL,
   suspended_at     DATETIME            NULL,
   deleted_at       DATETIME            NULL, -- user soft delete
 
@@ -69,6 +77,8 @@ CREATE TABLE channel_members (
   messages_since   DATETIME            NULL,
   messages_until   DATETIME            NULL,
 
+  created_at       DATETIME        NOT NULL DEFAULT NOW(),
+
   PRIMARY KEY (rel_channel, rel_user)
 );
 
@@ -87,49 +97,57 @@ CREATE TABLE channel_views (
 
 CREATE TABLE channel_pins (
   rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
-  rel_message      BIGINT UNSIGNED     NULL REFERENCES messages(id),
+  rel_message      BIGINT UNSIGNED NOT NULL REFERENCES messages(id),
   rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
+
+  created_at       DATETIME        NOT NULL DEFAULT NOW(),
 
   PRIMARY KEY (rel_channel, rel_message)
 );
 
 CREATE TABLE messages (
-  id               BIGINT   UNSIGNED NOT NULL,
+  id               BIGINT UNSIGNED NOT NULL,
   type             TEXT,
-  message          TEXT              NOT NULL,
+  message          TEXT            NOT NULL,
   meta             JSON,
-  rel_user         BIGINT   UNSIGNED NOT NULL REFERENCES users(id),
-  rel_channel      BIGINT   UNSIGNED NOT NULL REFERENCES channels(id),
-  reply_to         BIGINT   UNSIGNED     NULL REFERENCES messages(id),
+  rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
+  rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
+  reply_to         BIGINT UNSIGNED     NULL REFERENCES messages(id),
 
-  updated_at       DATETIME              NULL,
-  deleted_at       DATETIME              NULL,
+  created_at       DATETIME        NOT NULL DEFAULT NOW(),
+  updated_at       DATETIME            NULL,
+  deleted_at       DATETIME            NULL,
 
   PRIMARY KEY (id)
 );
 
 CREATE TABLE reactions (
-  id               BIGINT   UNSIGNED NOT NULL,
-  rel_user         BIGINT   UNSIGNED NOT NULL REFERENCES users(id),
-  rel_message      BIGINT   UNSIGNED NOT NULL REFERENCES messages(id),
-  rel_channel      BIGINT   UNSIGNED NOT NULL REFERENCES channels(id),
-  reaction         TEXT              NOT NULL,
+  id               BIGINT UNSIGNED NOT NULL,
+  rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
+  rel_message      BIGINT UNSIGNED NOT NULL REFERENCES messages(id),
+  rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
+  reaction         TEXT            NOT NULL,
+
+  created_at       DATETIME        NOT NULL DEFAULT NOW(),
 
   PRIMARY KEY (id)
 );
 
 CREATE TABLE attachments (
-  id               BIGINT   UNSIGNED NOT NULL,
-  rel_user         BIGINT   UNSIGNED NOT NULL REFERENCES users(id),
-  rel_message      BIGINT   UNSIGNED NOT NULL REFERENCES messages(id),
-  rel_channel      BIGINT   UNSIGNED NOT NULL REFERENCES channels(id),
-  url              TEXT              NOT NULL,
-  preview_url      TEXT              NOT NULL,
-  size             INT      UNSIGNED NOT NULL,
-  mimetype         TEXT              NOT NULL,
-  name             TEXT              NOT NULL,
-  attachment       JSON              NOT NULL,
-  deleted_at       DATETIME              NULL,
+  id               BIGINT UNSIGNED NOT NULL,
+  rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
+  rel_message      BIGINT UNSIGNED NOT NULL REFERENCES messages(id),
+  rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
+  url              TEXT,
+  preview_url      TEXT,
+  size             INT    UNSIGNED,
+  mimetype         TEXT,
+  name             TEXT,
+  attachment       JSON            NOT NULL,
+
+  created_at       DATETIME        NOT NULL DEFAULT NOW(),
+  updated_at       DATETIME            NULL,
+  deleted_at       DATETIME            NULL,
 
   PRIMARY KEY (id)
 );

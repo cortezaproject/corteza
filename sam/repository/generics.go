@@ -6,26 +6,20 @@ import (
 	"github.com/titpetric/factory"
 )
 
-func simpleUpdate(ctx context.Context, tableName, columnName string, value interface{}, id uint64) error {
+func simpleUpdate(ctx context.Context, tableName, columnName string, value interface{}, id uint64) (err error) {
 	db := factory.Database.MustGet()
 
 	sql := fmt.Sprintf("UPDATE %s SET %s = ? WHERE id = ?", tableName, columnName)
 
-	if _, err := db.ExecContext(ctx, sql, value, id); err != nil {
-		return ErrDatabaseError
-	} else {
-		return nil
-	}
+	_, err = db.ExecContext(ctx, sql, value, id)
+	return err
 }
 
-func simpleDelete(ctx context.Context, tableName string, id uint64) error {
+func simpleDelete(ctx context.Context, tableName string, id uint64) (err error) {
 	db := factory.Database.MustGet()
 
-	sql := fmt.Sprintf("DELETE %s WHERE id = ?", tableName)
+	sql := fmt.Sprintf("DELETE FROM %s WHERE id = ?", tableName)
 
-	if _, err := db.ExecContext(ctx, sql, id); err != nil {
-		return ErrDatabaseError
-	} else {
-		return nil
-	}
+	_, err = db.ExecContext(ctx, sql, id)
+	return err
 }

@@ -25,8 +25,8 @@ func (r channel) FindByID(ctx context.Context, id uint64) (*types.Channel, error
 	db := factory.Database.MustGet()
 
 	mod := &types.Channel{}
-	if err := db.Get(mod, "SELECT * FROM channels WHERE id = ? AND "+sqlChannelScope, id); err != nil {
-		return nil, ErrDatabaseError
+	if err := db.GetContext(ctx, mod, "SELECT * FROM channels WHERE id = ? AND "+sqlChannelScope, id); err != nil {
+		return nil, err
 	} else if mod.ID == 0 {
 		return nil, ErrChannelNotFound
 	} else {
@@ -42,7 +42,7 @@ func (r channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*type
 
 	if filter != nil {
 		if filter.Query != "" {
-			sql += "AND name LIKE ?"
+			sql += " AND name LIKE ?"
 			params = append(params, filter.Query+"%")
 		}
 	}
@@ -50,8 +50,8 @@ func (r channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*type
 	sql += " ORDER BY name ASC"
 
 	rval := make([]*types.Channel, 0)
-	if err := db.Select(&rval, sql, params...); err != nil {
-		return nil, ErrDatabaseError
+	if err := db.SelectContext(ctx, &rval, sql, params...); err != nil {
+		return nil, err
 	} else {
 		return rval, nil
 	}
@@ -61,8 +61,14 @@ func (r channel) Create(ctx context.Context, mod *types.Channel) (*types.Channel
 	db := factory.Database.MustGet()
 
 	mod.SetID(factory.Sonyflake.NextID())
+	mod.SetCreatedAt(time.Now())
+
+	if mod.Meta == nil {
+		mod.SetMeta([]byte("{}"))
+	}
+
 	if err := db.Insert("channels", mod); err != nil {
-		return nil, ErrDatabaseError
+		return nil, err
 	} else {
 		return mod, nil
 	}
@@ -71,8 +77,11 @@ func (r channel) Create(ctx context.Context, mod *types.Channel) (*types.Channel
 func (r channel) Update(ctx context.Context, mod *types.Channel) (*types.Channel, error) {
 	db := factory.Database.MustGet()
 
+	now := time.Now()
+	mod.SetUpdatedAt(&now)
+
 	if err := db.Replace("channels", mod); err != nil {
-		return nil, ErrDatabaseError
+		return nil, err
 	} else {
 		return mod, nil
 	}

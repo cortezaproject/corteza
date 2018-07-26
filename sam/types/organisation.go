@@ -23,9 +23,12 @@ type (
 	// Organisations - Organisations represent a top-level grouping entity. There may be many organisations defined in a single deployment.
 	Organisation struct {
 		ID         uint64     `db:"id"`
+		FQN        string     `db:"fqn"`
 		Name       string     `db:"name"`
-		ArchivedAt *time.Time `json:",omitempty" db:"archived_at"`
-		DeletedAt  *time.Time `json:",omitempty" db:"deleted_at"`
+		CreatedAt  time.Time  `json:"created_at,omitempty" db:"created_at"`
+		UpdatedAt  *time.Time `json:"updated_at,omitempty" db:"updated_at"`
+		ArchivedAt *time.Time `json:"archived_at,omitempty" db:"archived_at"`
+		DeletedAt  *time.Time `json:"deleted_at,omitempty" db:"deleted_at"`
 
 		changed []string
 	}
@@ -50,6 +53,20 @@ func (o *Organisation) SetID(value uint64) *Organisation {
 	return o
 }
 
+// Get the value of FQN
+func (o *Organisation) GetFQN() string {
+	return o.FQN
+}
+
+// Set the value of FQN
+func (o *Organisation) SetFQN(value string) *Organisation {
+	if o.FQN != value {
+		o.changed = append(o.changed, "FQN")
+		o.FQN = value
+	}
+	return o
+}
+
 // Get the value of Name
 func (o *Organisation) GetName() string {
 	return o.Name
@@ -61,6 +78,30 @@ func (o *Organisation) SetName(value string) *Organisation {
 		o.changed = append(o.changed, "Name")
 		o.Name = value
 	}
+	return o
+}
+
+// Get the value of CreatedAt
+func (o *Organisation) GetCreatedAt() time.Time {
+	return o.CreatedAt
+}
+
+// Set the value of CreatedAt
+func (o *Organisation) SetCreatedAt(value time.Time) *Organisation {
+	o.changed = append(o.changed, "CreatedAt")
+	o.CreatedAt = value
+	return o
+}
+
+// Get the value of UpdatedAt
+func (o *Organisation) GetUpdatedAt() *time.Time {
+	return o.UpdatedAt
+}
+
+// Set the value of UpdatedAt
+func (o *Organisation) SetUpdatedAt(value *time.Time) *Organisation {
+	o.changed = append(o.changed, "UpdatedAt")
+	o.UpdatedAt = value
 	return o
 }
 

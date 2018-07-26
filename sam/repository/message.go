@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 	"github.com/crusttech/crust/sam/types"
-	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
+	"time"
 )
 
 const (
@@ -28,7 +28,7 @@ func (r message) FindByID(ctx context.Context, id uint64) (*types.Message, error
 
 	mod := &types.Message{}
 	if err := db.GetContext(ctx, mod, sql, id); err != nil {
-		return nil, errors.Wrap(err, ErrDatabaseError.String())
+		return nil, err
 	} else if mod.ID == 0 {
 		return nil, ErrMessageNotFound
 	} else {
@@ -44,7 +44,7 @@ func (r message) Find(ctx context.Context, filter *types.MessageFilter) ([]*type
 
 	if filter != nil {
 		if filter.Query != "" {
-			sql += "AND name LIKE ?"
+			sql += " AND message LIKE ?"
 			params = append(params, filter.Query+"%")
 		}
 	}
@@ -74,7 +74,7 @@ func (r message) Find(ctx context.Context, filter *types.MessageFilter) ([]*type
 
 	rval := make([]*types.Message, 0)
 	if err := db.SelectContext(ctx, &rval, sql, params...); err != nil {
-		return nil, errors.Wrap(err, ErrDatabaseError.String())
+		return nil, err
 	} else {
 		return rval, nil
 	}
@@ -84,8 +84,10 @@ func (r message) Create(ctx context.Context, mod *types.Message) (*types.Message
 	db := factory.Database.MustGet()
 
 	mod.SetID(factory.Sonyflake.NextID())
+	mod.SetCreatedAt(time.Now())
+
 	if err := db.Insert("messages", mod); err != nil {
-		return nil, ErrDatabaseError
+		return nil, err
 	} else {
 		return mod, nil
 	}
@@ -94,8 +96,11 @@ func (r message) Create(ctx context.Context, mod *types.Message) (*types.Message
 func (r message) Update(ctx context.Context, mod *types.Message) (*types.Message, error) {
 	db := factory.Database.MustGet()
 
+	now := time.Now()
+	mod.SetUpdatedAt(&now)
+
 	if err := db.Replace("messages", mod); err != nil {
-		return nil, ErrDatabaseError
+		return nil, err
 	} else {
 		return mod, nil
 	}

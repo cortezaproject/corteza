@@ -28,8 +28,10 @@ type (
 		Topic         string          `db:"-"`
 		Meta          json.RawMessage `db:"meta"`
 		LastMessageID uint64          `json:",omitempty" db:"rel_last_message"`
-		ArchivedAt    *time.Time      `json:",omitempty" db:"archived_at"`
-		DeletedAt     *time.Time      `json:",omitempty" db:"deleted_at"`
+		CreatedAt     time.Time       `json:"created_at,omitempty" db:"created_at"`
+		UpdatedAt     *time.Time      `json:"updated_at,omitempty" db:"updated_at"`
+		ArchivedAt    *time.Time      `json:"archived_at,omitempty" db:"archived_at"`
+		DeletedAt     *time.Time      `json:"deleted_at,omitempty" db:"deleted_at"`
 
 		changed []string
 	}
@@ -105,6 +107,30 @@ func (c *Channel) SetLastMessageID(value uint64) *Channel {
 		c.changed = append(c.changed, "LastMessageID")
 		c.LastMessageID = value
 	}
+	return c
+}
+
+// Get the value of CreatedAt
+func (c *Channel) GetCreatedAt() time.Time {
+	return c.CreatedAt
+}
+
+// Set the value of CreatedAt
+func (c *Channel) SetCreatedAt(value time.Time) *Channel {
+	c.changed = append(c.changed, "CreatedAt")
+	c.CreatedAt = value
+	return c
+}
+
+// Get the value of UpdatedAt
+func (c *Channel) GetUpdatedAt() *time.Time {
+	return c.UpdatedAt
+}
+
+// Set the value of UpdatedAt
+func (c *Channel) SetUpdatedAt(value *time.Time) *Channel {
+	c.changed = append(c.changed, "UpdatedAt")
+	c.UpdatedAt = value
 	return c
 }
 

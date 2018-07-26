@@ -27,8 +27,10 @@ type (
 		Meta           interface{} `json:"-" db:"meta"`
 		OrganisationID uint64      `db:"rel_organisation"`
 		Password       []byte      `json:"-" db:"password"`
-		SuspendedAt    *time.Time  `json:",omitempty" db:"suspended_at"`
-		DeletedAt      *time.Time  `json:",omitempty" db:"deleted_at"`
+		CreatedAt      time.Time   `json:"created_at,omitempty" db:"created_at"`
+		UpdatedAt      *time.Time  `json:"updated_at,omitempty" db:"updated_at"`
+		SuspendedAt    *time.Time  `json:"suspended_at,omitempty" db:"suspended_at"`
+		DeletedAt      *time.Time  `json:"deleted_at,omitempty" db:"deleted_at"`
 
 		changed []string
 	}
@@ -104,6 +106,30 @@ func (u *User) GetPassword() []byte {
 func (u *User) SetPassword(value []byte) *User {
 	u.changed = append(u.changed, "Password")
 	u.Password = value
+	return u
+}
+
+// Get the value of CreatedAt
+func (u *User) GetCreatedAt() time.Time {
+	return u.CreatedAt
+}
+
+// Set the value of CreatedAt
+func (u *User) SetCreatedAt(value time.Time) *User {
+	u.changed = append(u.changed, "CreatedAt")
+	u.CreatedAt = value
+	return u
+}
+
+// Get the value of UpdatedAt
+func (u *User) GetUpdatedAt() *time.Time {
+	return u.UpdatedAt
+}
+
+// Set the value of UpdatedAt
+func (u *User) SetUpdatedAt(value *time.Time) *User {
+	u.changed = append(u.changed, "UpdatedAt")
+	u.UpdatedAt = value
 	return u
 }
 

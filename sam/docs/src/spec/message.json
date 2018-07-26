@@ -34,14 +34,20 @@
         },
         {
           "complex": true,
+          "name": "CreatedAt",
+          "tag": "json:\"created_at,omitempty\"",
+          "type": "time.Time"
+        },
+        {
+          "complex": true,
           "name": "UpdatedAt",
-          "tag": "json:\",omitempty\"",
+          "tag": "json:\"updated_at,omitempty\"",
           "type": "*time.Time"
         },
         {
           "complex": true,
           "name": "DeletedAt",
-          "tag": "json:\",omitempty\"",
+          "tag": "json:\"deleted_at,omitempty\"",
           "type": "*time.Time"
         }
       ],
@@ -77,9 +83,9 @@
         },
         {
           "complex": true,
-          "name": "DeletedAt",
-          "tag": "json:\",omitempty\"",
-          "type": "*time.Time"
+          "name": "CreatedAt",
+          "tag": "json:\"created_at,omitempty\"",
+          "type": "time.Time"
         }
       ],
       "imports": [
@@ -114,9 +120,41 @@
           "type": "json.RawMessage"
         },
         {
+          "name": "Url",
+          "type": "string"
+        },
+        {
+          "name": "PreviewUrl",
+          "type": "string"
+        },
+        {
+          "name": "Size",
+          "type": "uint"
+        },
+        {
+          "name": "Mimetype",
+          "type": "string"
+        },
+        {
+          "name": "Name",
+          "type": "string"
+        },
+        {
+          "complex": true,
+          "name": "CreatedAt",
+          "tag": "json:\"created_at,omitempty\"",
+          "type": "time.Time"
+        },
+        {
+          "complex": true,
+          "name": "UpdatedAt",
+          "tag": "json:\"updated_at,omitempty\"",
+          "type": "*time.Time"
+        },
+        {
           "complex": true,
           "name": "DeletedAt",
-          "tag": "json:\",omitempty\"",
+          "tag": "json:\"deleted_at,omitempty\"",
           "type": "*time.Time"
         }
       ],

@@ -27,7 +27,7 @@ func (r user) FindByUsername(ctx context.Context, username string) (*types.User,
 
 	mod := &types.User{}
 	if err := db.Get(mod, "SELECT * FROM users WHERE username = ? AND "+sqlUserScope, username); err != nil {
-		return nil, ErrDatabaseError
+		return nil, err
 	} else if mod.ID == 0 {
 		return nil, ErrUserNotFound
 	} else {
@@ -40,7 +40,7 @@ func (r user) FindByID(ctx context.Context, id uint64) (*types.User, error) {
 
 	mod := &types.User{}
 	if err := db.Get(mod, "SELECT * FROM users WHERE id = ? AND "+sqlUserScope, id); err != nil {
-		return nil, ErrDatabaseError
+		return nil, err
 	} else if mod.ID == 0 {
 		return nil, ErrUserNotFound
 	} else {
@@ -56,7 +56,7 @@ func (r user) Find(ctx context.Context, filter *types.UserFilter) ([]*types.User
 
 	if filter != nil {
 		if filter.Query != "" {
-			sql += "AND username LIKE ?"
+			sql += " AND username LIKE ?"
 			params = append(params, filter.Query+"%")
 		}
 	}
@@ -65,7 +65,7 @@ func (r user) Find(ctx context.Context, filter *types.UserFilter) ([]*types.User
 
 	rval := make([]*types.User, 0)
 	if err := db.Select(&rval, sql, params...); err != nil {
-		return nil, ErrDatabaseError
+		return nil, err
 	} else {
 		return rval, nil
 	}
@@ -75,8 +75,14 @@ func (r user) Create(ctx context.Context, mod *types.User) (*types.User, error) 
 	db := factory.Database.MustGet()
 
 	mod.SetID(factory.Sonyflake.NextID())
+	mod.SetCreatedAt(time.Now())
+
+	if mod.Meta == nil {
+		mod.SetMeta([]byte("{}"))
+	}
+
 	if err := db.Insert("users", mod); err != nil {
-		return nil, ErrDatabaseError
+		return nil, err
 	} else {
 		return mod, nil
 	}
@@ -85,8 +91,11 @@ func (r user) Create(ctx context.Context, mod *types.User) (*types.User, error) 
 func (r user) Update(ctx context.Context, mod *types.User) (*types.User, error) {
 	db := factory.Database.MustGet()
 
+	now := time.Now()
+	mod.SetUpdatedAt(&now)
+
 	if err := db.Replace("users", mod); err != nil {
-		return nil, ErrDatabaseError
+		return nil, err
 	} else {
 		return mod, nil
 	}
