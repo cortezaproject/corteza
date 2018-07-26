@@ -32,6 +32,10 @@ type ChannelAPI interface {
 	Edit(context.Context, *ChannelEditRequest) (interface{}, error)
 	Read(context.Context, *ChannelReadRequest) (interface{}, error)
 	Delete(context.Context, *ChannelDeleteRequest) (interface{}, error)
+	Members(context.Context, *ChannelMembersRequest) (interface{}, error)
+	Join(context.Context, *ChannelJoinRequest) (interface{}, error)
+	Part(context.Context, *ChannelPartRequest) (interface{}, error)
+	Invite(context.Context, *ChannelInviteRequest) (interface{}, error)
 }
 
 // HTTP API interface
@@ -41,4 +45,8 @@ type ChannelHandlersAPI interface {
 	Edit(http.ResponseWriter, *http.Request)
 	Read(http.ResponseWriter, *http.Request)
 	Delete(http.ResponseWriter, *http.Request)
+	Members(http.ResponseWriter, *http.Request)
+	Join(http.ResponseWriter, *http.Request)
+	Part(http.ResponseWriter, *http.Request)
+	Invite(http.ResponseWriter, *http.Request)
 }

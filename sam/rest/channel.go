@@ -67,3 +67,19 @@ func (ctrl *Channel) Read(ctx context.Context, r *server.ChannelReadRequest) (in
 func (ctrl *Channel) List(ctx context.Context, r *server.ChannelListRequest) (interface{}, error) {
 	return ctrl.svc.Find(ctx, &types.ChannelFilter{Query: r.Query})
 }
+
+func (ctrl *Channel) Members(ctx context.Context, r *server.ChannelMembersRequest) (interface{}, error) {
+	return nil, nil
+}
+
+func (ctrl *Channel) Join(ctx context.Context, r *server.ChannelJoinRequest) (interface{}, error) {
+	return nil, nil
+}
+
+func (ctrl *Channel) Part(ctx context.Context, r *server.ChannelPartRequest) (interface{}, error) {
+	return nil, nil
+}
+
+func (ctrl *Channel) Invite(ctx context.Context, r *server.ChannelInviteRequest) (interface{}, error) {
+	return nil, nil
+}
