@@ -16,31 +16,31 @@ func TestChannel(t *testing.T) {
 
 	rpo := Channel()
 	ctx := context.Background()
-	att := types.Channel{}.New()
+	chn := types.Channel{}.New()
 
 	var name1, name2 = "Test channel v1", "Test channel v2"
 
 	var aa []*types.Channel
 
-	att.SetName(name1)
+	chn.SetName(name1)
 
-	att, err = rpo.Create(ctx, att)
+	chn, err = rpo.Create(ctx, chn)
 	must(t, err)
-	if att.Name != name1 {
+	if chn.Name != name1 {
 		t.Fatal("Changes were not stored")
 	}
 
-	att.SetName(name2)
+	chn.SetName(name2)
 
-	att, err = rpo.Update(ctx, att)
+	chn, err = rpo.Update(ctx, chn)
 	must(t, err)
-	if att.Name != name2 {
+	if chn.Name != name2 {
 		t.Fatal("Changes were not stored")
 	}
 
-	att, err = rpo.FindByID(ctx, att.ID)
+	chn, err = rpo.FindByID(ctx, chn.ID)
 	must(t, err)
-	if att.Name != name2 {
+	if chn.Name != name2 {
 		t.Fatal("Changes were not stored")
 	}
 
@@ -50,7 +50,30 @@ func TestChannel(t *testing.T) {
 		t.Fatal("No results found")
 	}
 
-	must(t, rpo.Archive(ctx, att.ID))
-	must(t, rpo.Unarchive(ctx, att.ID))
-	must(t, rpo.Delete(ctx, att.ID))
+	must(t, rpo.Archive(ctx, chn.ID))
+	must(t, rpo.Unarchive(ctx, chn.ID))
+	must(t, rpo.Delete(ctx, chn.ID))
+}
+
+func TestChannelMembers(t *testing.T) {
+	var err error
+
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+		return
+	}
+
+	rpo := Channel()
+	ctx := context.Background()
+
+	chn := types.Channel{}.New()
+	chn, err = rpo.Create(ctx, chn)
+	must(t, err)
+
+	usr := types.User{}.New()
+	usr, err = User().Create(ctx, usr)
+	must(t, err)
+
+	must(t, rpo.AddMember(ctx, chn.ID, usr.ID))
+	must(t, rpo.RemoveMember(ctx, chn.ID, usr.ID))
 }

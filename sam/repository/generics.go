@@ -23,3 +23,7 @@ func simpleDelete(ctx context.Context, tableName string, id uint64) (err error) 
 	_, err = db.ExecContext(ctx, sql, id)
 	return err
 }
+
+func exec(_ interface{}, err error) error {
+	return err
+}
