@@ -11,7 +11,7 @@ import (
 
 	"github.com/crusttech/crust/auth"
 	"github.com/crusttech/crust/crm/rest"
-	"github.com/labstack/gommon/random"
+	"github.com/crusttech/crust/rbac"
 	"github.com/titpetric/factory"
 )
 
@@ -25,7 +25,7 @@ func handleError(err error, message string) {
 }
 
 func main() {
-	config := flags("crm")
+	config := flags("crm", rbac.Flags, auth.Flags)
 
 	// log to stdout not stderr
 	log.SetOutput(os.Stdout)
@@ -48,13 +48,9 @@ func main() {
 	r := chi.NewRouter()
 
 	// JWT Auth
-	jwtAuth := auth.JWT([]byte(config.jwtSecret))
+	jwtAuth, err := auth.JWT()
+	handleError(err, "Error creating JWT Auth object")
 	r.Use(jwtAuth.Verifier(), jwtAuth.Authenticator())
-
-	if len(config.jwtSecret) == 0 {
-		println("Environment variable JWT_SECRET not set! Add next line to your .env file:")
-		println("JWR_SECRET=" + random.String(64, random.Alphabetic))
-	}
 
 	// mount routes
 	MountRoutes(r, routeOptions, rest.MountRoutes(jwtAuth))
