@@ -6,6 +6,7 @@ import (
 	"context"
 	"github.com/crusttech/crust/auth"
 	"github.com/crusttech/crust/sam/types"
+	"github.com/crusttech/crust/sam/websocket/outgoing"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
@@ -42,7 +43,8 @@ func (ws Websocket) Open(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// Disallow all unauthorized!
-	if !auth.GetIdentityFromContext(ctx).Valid() {
+	identity := auth.GetIdentityFromContext(ctx)
+	if !identity.Valid() {
 		resputil.JSON(w, errors.New("Unauthorized"))
 		return
 	}
@@ -60,7 +62,11 @@ func (ws Websocket) Open(w http.ResponseWriter, r *http.Request) {
 
 	session := store.Save(Session{}.New(r.Context(), conn))
 
+	session.sendToAll(&outgoing.Connected{UserID: uint64toa(identity.GetID())})
+
 	if err := session.Handle(); err != nil {
 		// @todo: log error, because at this point we can't really write it to w
 	}
+
+	session.sendToAll(&outgoing.Disconnected{UserID: uint64toa(identity.GetID())})
 }
