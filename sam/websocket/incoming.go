@@ -28,8 +28,8 @@ func (s *Session) dispatch(raw []byte) (err error) {
 		return s.channelJoin(ctx, *p.ChannelJoin)
 	case p.ChannelPart != nil:
 		return s.channelPart(ctx, *p.ChannelPart)
-	case p.ChannelPart != nil:
-		return s.channelPartAll(ctx, *p.ChannelPartAll)
+	case p.ChannelList != nil:
+		return s.channelList(ctx, *p.ChannelList)
 	case p.ChannelOpen != nil:
 		return s.channelOpen(ctx, *p.ChannelOpen)
 
