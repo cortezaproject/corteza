@@ -5,8 +5,11 @@ PKG       = "github.com/$(shell cat .project)"
 GO        = go
 GOGET     = $(GO) get -u
 
+BASEPKGS = rbac auth crm sam
+
 ########################################################################################################################
 # Tool bins
+DEP      = $(GOPATH)/bin/dep
 SPEC      = $(GOPATH)/bin/spec
 PROTOC    = $(GOPATH)/bin/protoc-gen-go
 REALIZE   = ${GOPATH}/bin/realize
@@ -23,11 +26,11 @@ build:
 realize: $(REALIZE)
 	$(REALIZE) start
 
-dep.update:
-	dep ensure -update -v
+dep.update: $(DEP)
+	$(DEP) ensure -update -v
 
-dep:
-	dep ensure -v
+dep: $(DEP)
+	$(DEP) ensure -v
 
 codegen: $(SPEC)
 	./codegen.sh
@@ -41,24 +44,20 @@ protobuf: $(PROTOC)
 # QA
 
 critic: $(GOCRITIC)
-	$(GOCRITIC) check-project .
+	PATH=${PATH}:${GOPATH}/bin $(GOCRITIC) check-project .
 
 test: $(GOTEST)
-	$(GOTEST) -cover -v ./...
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./...
+	$(GO) tool cover -func=.cover.out
 
 test.rbac: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./rbac
-	go tool cover -func=.cover.out 
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./rbac/...
+	$(GO) tool cover -func=.cover.out
 
-qa: qa.vet qa.test
+vet:
+	$(GO) vet `cd ${GOPATH}/src/; find $(PKG) -type f -name '*.go' -and -not -path '*vendor*'|xargs -n1 dirname|uniq`
 
-qa.vet:
-	go vet `cd ${GOPATH}/src/; find $(PKG) -type f -name '*.go' -and -not -path '*vendor*'|xargs -n1 dirname|uniq`
-
-qa.test:
-	go test `cd ${GOPATH}/src/; find $(PKG) -type f -name '*_test.go' -and -not -path '*vendor*'|xargs -n1 dirname|uniq`
-
-
+qa: vet critic test
 
 ########################################################################################################################
 # Toolset
@@ -78,5 +77,8 @@ $(PROTOC):
 $(GOCRITIC):
 	$(GOGET) github.com/go-critic/go-critic/...
 
-clean.tools:
-	rm -f $(SPEC) $(PROTOC) $(REALIZE)
+$(DEP):
+	$(GOGET) github.com/tools/godep
+
+clean:
+	rm -f $(SPEC) $(PROTOC) $(REALIZE) $(GOCRITIC) $(GOTEST)
