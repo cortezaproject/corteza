@@ -3,7 +3,7 @@ package outgoing
 type (
 	Message struct {
 		ID        string `json:"id"`
-		ChannelID string `json:"cid""`
+		ChannelID string `json:"cid"`
 		Message   string `json:"m"`
 		Type      string `json:"t"`
 		ReplyTo   string `json:"rid"`

@@ -36,7 +36,7 @@ func (s *Session) messageUpdate(ctx context.Context, payload *incoming.Payload) 
 	if err != nil {
 		return err
 	}
-	return s.sendMessageChannel(uint64toa(msg.ChannelID), &outgoing.MessageUpdate{request.ID, msg.Message})
+	return s.sendMessageChannel(uint64toa(msg.ChannelID), &outgoing.MessageUpdate{ID: request.ID, Message: msg.Message})
 }
 
 func (s *Session) messageDelete(ctx context.Context, payload *incoming.Payload) error {
@@ -49,5 +49,5 @@ func (s *Session) messageDelete(ctx context.Context, payload *incoming.Payload) 
 		return err
 	}
 
-	return s.sendMessageChannel(request.ChannelID, &outgoing.MessageDelete{request.ID})
+	return s.sendMessageChannel(request.ChannelID, &outgoing.MessageDelete{ID: request.ID})
 }
