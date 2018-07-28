@@ -8,12 +8,11 @@ import (
 	"github.com/crusttech/crust/sam/websocket/outgoing"
 )
 
-func (s *Session) messageCreate(ctx context.Context, payload *incoming.Payload) error {
+func (s *Session) messageCreate(ctx context.Context, p incoming.MessageCreate) error {
 	var (
-		request = payload.MessageCreate
-		msg     = &types.Message{
-			ChannelID: parseUInt64(request.ChannelID),
-			Message:   request.Message,
+		msg = &types.Message{
+			ChannelID: parseUInt64(p.ChannelID),
+			Message:   p.Message,
 		}
 	)
 
@@ -24,30 +23,28 @@ func (s *Session) messageCreate(ctx context.Context, payload *incoming.Payload) 
 	return s.sendMessageChannel(uint64toa(msg.ChannelID), payloadFromMessage(msg))
 }
 
-func (s *Session) messageUpdate(ctx context.Context, payload *incoming.Payload) error {
+func (s *Session) messageUpdate(ctx context.Context, p incoming.MessageUpdate) error {
 	var (
-		request = payload.MessageUpdate
-		msg     = &types.Message{
-			ID:      parseUInt64(request.ID),
-			Message: request.Message,
+		msg = &types.Message{
+			ID:      parseUInt64(p.ID),
+			Message: p.Message,
 		}
 	)
 	msg, err := service.Message().Update(ctx, msg)
 	if err != nil {
 		return err
 	}
-	return s.sendMessageChannel(uint64toa(msg.ChannelID), &outgoing.MessageUpdate{ID: request.ID, Message: msg.Message})
+	return s.sendMessageChannel(uint64toa(msg.ChannelID), &outgoing.MessageUpdate{ID: p.ID, Message: msg.Message})
 }
 
-func (s *Session) messageDelete(ctx context.Context, payload *incoming.Payload) error {
+func (s *Session) messageDelete(ctx context.Context, p incoming.MessageDelete) error {
 	var (
-		request = payload.MessageDelete
-		id      = parseUInt64(request.ID)
+		id = parseUInt64(p.ID)
 	)
 
 	if err := service.Message().Delete(ctx, id); err != nil {
 		return err
 	}
 
-	return s.sendMessageChannel(request.ChannelID, &outgoing.MessageDelete{ID: request.ID})
+	return s.sendMessageChannel(p.ChannelID, &outgoing.MessageDelete{ID: p.ID})
 }
