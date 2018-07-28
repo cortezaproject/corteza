@@ -2,16 +2,20 @@ package outgoing
 
 import (
 	"encoding/json"
+	"time"
 )
 
 type (
 	Message struct {
 		ID        string `json:"id"`
-		ChannelID string `json:"cid"`
-		Message   string `json:"m"`
 		Type      string `json:"t"`
-		ReplyTo   string `json:"rid"`
+		Message   string `json:"m"`
 		UserID    string `json:"uid"`
+		ChannelID string `json:"cid"`
+		ReplyTo   string `json:"rid"`
+
+		CreatedAt time.Time  `json:"created_at,omitempty" db:"created_at"`
+		UpdatedAt *time.Time `json:"updated_at,omitempty" db:"updated_at"`
 	}
 
 	Messages []*Message
@@ -19,6 +23,8 @@ type (
 	MessageUpdate struct {
 		ID      string `json:"id"`
 		Message string `json:"m"`
+
+		UpdatedAt time.Time `json:"updated_at,omitempty" db:"updated_at"`
 	}
 
 	MessageDelete struct {

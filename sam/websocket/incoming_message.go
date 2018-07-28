@@ -36,7 +36,13 @@ func (s *Session) messageUpdate(ctx context.Context, p *incoming.MessageUpdate) 
 		return err
 	}
 
-	return s.sendToAllSubscribers(&outgoing.MessageUpdate{ID: p.ID, Message: msg.Message}, p.ID)
+	omsg := &outgoing.MessageUpdate{
+		ID:        p.ID,
+		Message:   msg.Message,
+		UpdatedAt: *msg.UpdatedAt,
+	}
+
+	return s.sendToAllSubscribers(omsg, p.ID)
 }
 
 func (s *Session) messageDelete(ctx context.Context, p *incoming.MessageDelete) error {
