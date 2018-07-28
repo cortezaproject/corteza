@@ -117,7 +117,7 @@
     ".",
     "resputil"
   ]
-  revision = "48b00599c6785e46f875b5192c60c488f1958a13"
+  revision = "f3b1061ebdb281d6204f95fdc1b9cb84a48e1bd3"
 
 [[projects]]
   branch = "master"
@@ -210,6 +210,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6323fef5b870fba3f2c4eef8f7b0871d8196013ce2d796b45c2b94af6433a237"
+  inputs-digest = "7f142f5d723e442561d3cd97848ecf4c4d484f016d0942f1516344d4acf056af"
   solver-name = "gps-cdcl"
   solver-version = 1

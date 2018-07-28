@@ -307,7 +307,7 @@ func (r *DB) Delete(table string, args interface{}, keys ...string) error {
 		delete(set, key)
 		setWhere[key] = value
 	}
-	query := "delete " + table + " where " + r.setImplode(" AND ", setWhere)
+	query := "delete from " + table + " where " + r.setImplode(" AND ", setWhere)
 	_, err = r.NamedExec(query, args)
 	return err
 }
