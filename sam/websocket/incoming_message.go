@@ -48,6 +48,6 @@ func (s *Session) messageDelete(ctx context.Context, payload *incoming.Payload) 
 	if err := service.Message().Delete(ctx, id); err != nil {
 		return err
 	}
-	// @todo: delete broadcast to channel
-	return s.sendMessageChannel("TODO", &outgoing.MessageDelete{request.ID})
+
+	return s.sendMessageChannel(request.ChannelID, &outgoing.MessageDelete{request.ID})
 }

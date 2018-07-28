@@ -12,6 +12,7 @@ type (
 	}
 
 	MessageDelete struct {
-		ID    string `json:"id"`
+		ChannelID string `json:"cid"`
+		ID        string `json:"id"`
 	}
 )
