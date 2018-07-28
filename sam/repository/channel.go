@@ -23,21 +23,17 @@ func Channel() channel {
 
 func (r channel) FindByID(ctx context.Context, id uint64) (*types.Channel, error) {
 	db := factory.Database.MustGet()
-
 	mod := &types.Channel{}
-	if err := db.GetContext(ctx, mod, "SELECT * FROM channels WHERE id = ? AND "+sqlChannelScope, id); err != nil {
-		return nil, err
-	} else if mod.ID == 0 {
-		return nil, ErrChannelNotFound
-	} else {
-		return mod, nil
-	}
+	sql := "SELECT * FROM channels WHERE id = ? AND " + sqlChannelScope
+
+	return mod, isFound(db.With(ctx).Get(mod, sql, id), mod.ID > 0, ErrChannelNotFound)
 }
 
 func (r channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*types.Channel, error) {
 	db := factory.Database.MustGet()
+	params := make([]interface{}, 0)
+	rval := make([]*types.Channel, 0)
 
-	var params = make([]interface{}, 0)
 	sql := "SELECT * FROM channels WHERE " + sqlChannelScope
 
 	if filter != nil {
@@ -49,8 +45,7 @@ func (r channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*type
 
 	sql += " ORDER BY name ASC"
 
-	rval := make([]*types.Channel, 0)
-	return rval, db.SelectContext(ctx, &rval, sql, params...)
+	return rval, db.With(ctx).Select(&rval, sql, params...)
 }
 
 func (r channel) Create(ctx context.Context, mod *types.Channel) (*types.Channel, error) {
@@ -63,7 +58,7 @@ func (r channel) Create(ctx context.Context, mod *types.Channel) (*types.Channel
 		mod.SetMeta([]byte("{}"))
 	}
 
-	return mod, db.Insert("channels", mod)
+	return mod, db.With(ctx).Insert("channels", mod)
 }
 
 func (r channel) Update(ctx context.Context, mod *types.Channel) (*types.Channel, error) {
@@ -72,17 +67,17 @@ func (r channel) Update(ctx context.Context, mod *types.Channel) (*types.Channel
 	now := time.Now()
 	mod.SetUpdatedAt(&now)
 
-	return mod, db.Replace("channels", mod)
+	return mod, db.With(ctx).Replace("channels", mod)
 }
 
 func (r channel) AddMember(ctx context.Context, channelID, userID uint64) error {
 	sql := `INSERT INTO channel_members (rel_channel, rel_user) VALUES (?, ?)`
-	return exec(factory.Database.MustGet().ExecContext(ctx, sql, channelID, userID))
+	return exec(factory.Database.MustGet().With(ctx).Exec(sql, channelID, userID))
 }
 
 func (r channel) RemoveMember(ctx context.Context, channelID, userID uint64) error {
 	sql := `DELETE FROM channel_members WHERE rel_channel = ? AND rel_user = ?`
-	return exec(factory.Database.MustGet().ExecContext(ctx, sql, channelID, userID))
+	return exec(factory.Database.MustGet().With(ctx).Exec(sql, channelID, userID))
 }
 
 func (r channel) Archive(ctx context.Context, id uint64) error {
