@@ -1,27 +1,21 @@
 package websocket
 
 import (
-	"encoding/json"
 	"github.com/crusttech/crust/sam/websocket/outgoing"
 	"log"
 	"time"
 )
 
-// Sends message to all connected subscribers/users
-//
-// If channelID is nil, it broadcasts payload to anyone connected,
-// if it is set, it broadcasts only to clients subscribed to that channel
-func (s *Session) broadcast(message outgoing.PayloadType, channelID *string) error {
-	p := outgoing.Payload{}.New().Load(message)
-	// encode message once and send bytes
-	pb, err := json.Marshal(p)
+// Sends message to subscribers
+func (s *Session) sendToAllSubscribers(p outgoing.MessageEncoder, channelID string) error {
+	pb, err := p.EncodeMessage()
 	if err != nil {
 		return err
 	}
 
 	store.Walk(func(sess *Session) {
 		// send message only to users with subscribed channels
-		if channelID == nil || sess.subs.Get(*channelID) != nil {
+		if sess.subs.Get(channelID) != nil {
 			sess.sendBytes(pb)
 		}
 	})
@@ -29,14 +23,28 @@ func (s *Session) broadcast(message outgoing.PayloadType, channelID *string) err
 	return nil
 }
 
-func (s *Session) respond(message outgoing.PayloadType) error {
-	p := outgoing.Payload{}.New().Load(message)
-	select {
-	case s.send <- p:
-	case <-time.After(2 * time.Millisecond):
-		log.Println("websocket.respond send timeout")
+// Sends message to all connected clients
+func (s *Session) sendToAll(p outgoing.MessageEncoder) error {
+	pb, err := p.EncodeMessage()
+	if err != nil {
+		return err
 	}
+
+	store.Walk(func(sess *Session) {
+		// send message only to users with subscribed channels
+		sess.sendBytes(pb)
+	})
+
 	return nil
+}
+
+func (s *Session) sendReply(p outgoing.MessageEncoder) error {
+	pb, err := p.EncodeMessage()
+	if err != nil {
+		return err
+	}
+
+	return s.sendBytes(pb)
 }
 
 func (s *Session) sendBytes(p []byte) error {
