@@ -25,29 +25,29 @@ func (Subscriptions) New() *Subscriptions {
 
 // @todo: load/save all subscriptions from database
 
-func (s *Subscriptions) Add(name string, sub *Subscription) string {
+func (s *Subscriptions) Add(channelID string) *Subscription {
 	s.Lock()
 	defer s.Unlock()
-	s.Subscriptions[name] = sub
-	return name
+	s.Subscriptions[channelID] = &Subscription{}
+	return s.Subscriptions[channelID]
 }
 
-func (s *Subscriptions) Get(name string) *Subscription {
+func (s *Subscriptions) Get(channelID string) *Subscription {
 	s.RLock()
 	defer s.RUnlock()
-	return s.Subscriptions[name]
+	return s.Subscriptions[channelID]
 }
 
-func (s *Subscriptions) Delete(name string) {
+func (s *Subscriptions) Delete(channelID string) {
 	s.Lock()
 	defer s.Unlock()
-	delete(s.Subscriptions, name)
+	delete(s.Subscriptions, channelID)
 }
 
 func (s *Subscriptions) DeleteAll() {
 	s.Lock()
 	defer s.Unlock()
-	for index, _ := range s.Subscriptions {
+	for index := range s.Subscriptions {
 		delete(s.Subscriptions, index)
 	}
 }

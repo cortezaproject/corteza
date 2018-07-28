@@ -13,6 +13,11 @@ type (
 		*MessageUpdate `json:"mu,omitempty"`
 		*Messages      `json:"ms,omitempty"`
 
+		*ChannelJoin `json:"chj,omitempty"`
+		*ChannelPart `json:"chp,omitempty"`
+		*Channel     `json:"ch,omitempty"`
+		*Channels    `json:"chs,omitempty"`
+
 		// @todo: implement outgoing message types
 		timestamp time.Time
 	}
@@ -33,6 +38,14 @@ func (p *Payload) Load(payload PayloadType) *Payload {
 		p.MessageDelete = val
 	case *MessageUpdate:
 		p.MessageUpdate = val
+	case *ChannelJoin:
+		p.ChannelJoin = val
+	case *ChannelPart:
+		p.ChannelPart = val
+	case *Channel:
+		p.Channel = val
+	case *Channels:
+		p.Channels = val
 	default:
 		panic(fmt.Sprintf("Unknown/unsupported Payload type: %T", val))
 	}

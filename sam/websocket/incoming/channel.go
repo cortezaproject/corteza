@@ -1,16 +1,14 @@
 package incoming
 
 type (
+	ChannelList struct{}
+
 	ChannelJoin struct {
 		ChannelID string `json:"cid"`
 	}
 
 	ChannelPart struct {
-		ChannelID string `json:"cid"`
-	}
-
-	ChannelPartAll struct {
-		Leave bool `json:"leave"`
+		ChannelID *string `json:"cid"`
 	}
 
 	ChannelOpen struct {

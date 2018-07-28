@@ -20,7 +20,8 @@ func (s *Session) messageCreate(ctx context.Context, p incoming.MessageCreate) e
 	if err != nil {
 		return err
 	}
-	return s.sendMessageChannel(uint64toa(msg.ChannelID), payloadFromMessage(msg))
+
+	return s.broadcast(payloadFromMessage(msg), &p.ChannelID)
 }
 
 func (s *Session) messageUpdate(ctx context.Context, p incoming.MessageUpdate) error {
@@ -34,7 +35,8 @@ func (s *Session) messageUpdate(ctx context.Context, p incoming.MessageUpdate) e
 	if err != nil {
 		return err
 	}
-	return s.sendMessageChannel(uint64toa(msg.ChannelID), &outgoing.MessageUpdate{ID: p.ID, Message: msg.Message})
+
+	return s.broadcast(&outgoing.MessageUpdate{ID: p.ID, Message: msg.Message}, &p.ID)
 }
 
 func (s *Session) messageDelete(ctx context.Context, p incoming.MessageDelete) error {
@@ -46,5 +48,5 @@ func (s *Session) messageDelete(ctx context.Context, p incoming.MessageDelete) e
 		return err
 	}
 
-	return s.sendMessageChannel(p.ChannelID, &outgoing.MessageDelete{ID: p.ID})
+	return s.broadcast(&outgoing.MessageDelete{ID: p.ID}, &p.ChannelID)
 }
