@@ -18,7 +18,7 @@ type (
 	Role struct {
 		Name        string   `json:"rolename"`
 		Users       []string `json:"users"`
-		Permissions []string `json:"users"`
+		Permissions []string `json:"permissions"`
 	}
 
 	// @todo: read resource information
