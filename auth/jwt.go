@@ -11,10 +11,14 @@ type jwt struct {
 	tokenAuth *jwtauth.JWTAuth
 }
 
-func JWT(secret []byte) *jwt {
-	jwt := &jwt{tokenAuth: jwtauth.New("HS256", secret, nil)}
+func JWT() (*jwt, error) {
+	if err := config.validate(); err != nil {
+		return nil, err
+	}
 
-	return jwt
+	jwt := &jwt{tokenAuth: jwtauth.New("HS256", []byte(config.jwtSecret), nil)}
+
+	return jwt, nil
 }
 
 // Verifies JWT and stores it into context
