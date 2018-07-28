@@ -23,21 +23,16 @@ func Organisation() organisation {
 
 func (r organisation) FindByID(ctx context.Context, id uint64) (*types.Organisation, error) {
 	db := factory.Database.MustGet()
-
+	sql := "SELECT * FROM organisations WHERE id = ? AND " + sqlOrganisationScope
 	mod := &types.Organisation{}
-	if err := db.Get(mod, "SELECT * FROM organisations WHERE id = ? AND "+sqlOrganisationScope, id); err != nil {
-		return nil, err
-	} else if mod.ID == 0 {
-		return nil, ErrOrganisationNotFound
-	} else {
-		return mod, nil
-	}
+
+	return mod, isFound(db.Get(mod, sql, id), mod.ID > 0, ErrOrganisationNotFound)
 }
 
 func (r organisation) Find(ctx context.Context, filter *types.OrganisationFilter) ([]*types.Organisation, error) {
 	db := factory.Database.MustGet()
-
-	var params = make([]interface{}, 0)
+	rval := make([]*types.Organisation, 0)
+	params := make([]interface{}, 0)
 	sql := "SELECT * FROM organisations WHERE " + sqlOrganisationScope
 
 	if filter != nil {
@@ -49,12 +44,7 @@ func (r organisation) Find(ctx context.Context, filter *types.OrganisationFilter
 
 	sql += " ORDER BY name ASC"
 
-	rval := make([]*types.Organisation, 0)
-	if err := db.Select(&rval, sql, params...); err != nil {
-		return nil, err
-	} else {
-		return rval, nil
-	}
+	return rval, db.With(ctx).Select(&rval, sql, params...)
 }
 
 func (r organisation) Create(ctx context.Context, mod *types.Organisation) (*types.Organisation, error) {
@@ -63,11 +53,7 @@ func (r organisation) Create(ctx context.Context, mod *types.Organisation) (*typ
 	mod.SetID(factory.Sonyflake.NextID())
 	mod.SetCreatedAt(time.Now())
 
-	if err := db.Insert("organisations", mod); err != nil {
-		return nil, err
-	} else {
-		return mod, nil
-	}
+	return mod, db.With(ctx).Insert("organisations", mod)
 }
 
 func (r organisation) Update(ctx context.Context, mod *types.Organisation) (*types.Organisation, error) {
@@ -76,11 +62,7 @@ func (r organisation) Update(ctx context.Context, mod *types.Organisation) (*typ
 	now := time.Now()
 	mod.SetUpdatedAt(&now)
 
-	if err := db.Replace("organisations", mod); err != nil {
-		return nil, err
-	} else {
-		return mod, nil
-	}
+	return mod, db.With(ctx).Replace("organisations", mod)
 }
 
 func (r organisation) Archive(ctx context.Context, id uint64) error {

@@ -23,19 +23,15 @@ func Attachment() attachment {
 
 func (r attachment) FindByID(ctx context.Context, id uint64) (*types.Attachment, error) {
 	db := factory.Database.MustGet()
-
+	sql := "SELECT * FROM attachments WHERE id = ? AND " + sqlAttachmentScope
 	mod := &types.Attachment{}
-	if err := db.GetContext(ctx, mod, "SELECT * FROM attachments WHERE id = ? AND "+sqlAttachmentScope, id); err != nil {
-		return nil, err
-	} else if mod.ID == 0 {
-		return nil, ErrAttachmentNotFound
-	} else {
-		return mod, nil
-	}
+
+	return mod, isFound(db.With(ctx).Get(mod, sql, id), mod.ID > 0, ErrAttachmentNotFound)
 }
 
 func (r attachment) FindByRange(ctx context.Context, channelID, fromAttachmentID, toAttachmentID uint64) ([]*types.Attachment, error) {
 	db := factory.Database.MustGet()
+	rval := make([]*types.Attachment, 0)
 
 	sql := `
 		SELECT * 
@@ -44,12 +40,7 @@ func (r attachment) FindByRange(ctx context.Context, channelID, fromAttachmentID
            AND rel_channel = ?
            AND deleted_at IS NULL`
 
-	rval := make([]*types.Attachment, 0)
-	if err := db.SelectContext(ctx, &rval, sql, fromAttachmentID, toAttachmentID, channelID); err != nil {
-		return nil, err
-	}
-
-	return rval, nil
+	return rval, db.With(ctx).Select(&rval, sql, fromAttachmentID, toAttachmentID, channelID)
 }
 
 func (r attachment) Create(ctx context.Context, mod *types.Attachment) (*types.Attachment, error) {
@@ -62,11 +53,7 @@ func (r attachment) Create(ctx context.Context, mod *types.Attachment) (*types.A
 		mod.SetAttachment([]byte("{}"))
 	}
 
-	if err := db.Insert("attachments", mod); err != nil {
-		return nil, err
-	} else {
-		return mod, nil
-	}
+	return mod, db.With(ctx).Insert("attachments", mod)
 }
 
 func (r attachment) Update(ctx context.Context, mod *types.Attachment) (*types.Attachment, error) {
@@ -75,11 +62,7 @@ func (r attachment) Update(ctx context.Context, mod *types.Attachment) (*types.A
 	now := time.Now()
 	mod.SetUpdatedAt(&now)
 
-	if err := db.Replace("attachments", mod); err != nil {
-		return nil, err
-	} else {
-		return mod, nil
-	}
+	return mod, db.With(ctx).Replace("attachments", mod)
 }
 
 func (r attachment) Delete(ctx context.Context, id uint64) error {

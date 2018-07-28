@@ -24,34 +24,24 @@ func User() user {
 
 func (r user) FindByUsername(ctx context.Context, username string) (*types.User, error) {
 	db := factory.Database.MustGet()
-
+	sql := "SELECT * FROM users WHERE username = ? AND " + sqlUserScope
 	mod := &types.User{}
-	if err := db.Get(mod, "SELECT * FROM users WHERE username = ? AND "+sqlUserScope, username); err != nil {
-		return nil, err
-	} else if mod.ID == 0 {
-		return nil, ErrUserNotFound
-	} else {
-		return mod, nil
-	}
+
+	return mod, isFound(db.Get(mod, sql, username), mod.ID > 0, ErrUserNotFound)
 }
 
 func (r user) FindByID(ctx context.Context, id uint64) (*types.User, error) {
 	db := factory.Database.MustGet()
-
+	sql := "SELECT * FROM users WHERE id = ? AND " + sqlUserScope
 	mod := &types.User{}
-	if err := db.Get(mod, "SELECT * FROM users WHERE id = ? AND "+sqlUserScope, id); err != nil {
-		return nil, err
-	} else if mod.ID == 0 {
-		return nil, ErrUserNotFound
-	} else {
-		return mod, nil
-	}
+
+	return mod, isFound(db.Get(mod, sql, id), mod.ID > 0, ErrUserNotFound)
 }
 
 func (r user) Find(ctx context.Context, filter *types.UserFilter) ([]*types.User, error) {
 	db := factory.Database.MustGet()
-
-	var params = make([]interface{}, 0)
+	rval := make([]*types.User, 0)
+	params := make([]interface{}, 0)
 	sql := "SELECT * FROM users WHERE " + sqlUserScope
 
 	if filter != nil {
@@ -68,12 +58,7 @@ func (r user) Find(ctx context.Context, filter *types.UserFilter) ([]*types.User
 
 	sql += " ORDER BY username ASC"
 
-	rval := make([]*types.User, 0)
-	if err := db.Select(&rval, sql, params...); err != nil {
-		return nil, err
-	} else {
-		return rval, nil
-	}
+	return rval, db.With(ctx).Select(&rval, sql, params...)
 }
 
 func (r user) Create(ctx context.Context, mod *types.User) (*types.User, error) {
@@ -86,11 +71,7 @@ func (r user) Create(ctx context.Context, mod *types.User) (*types.User, error) 
 		mod.SetMeta([]byte("{}"))
 	}
 
-	if err := db.Insert("users", mod); err != nil {
-		return nil, err
-	} else {
-		return mod, nil
-	}
+	return mod, db.With(ctx).Insert("users", mod)
 }
 
 func (r user) Update(ctx context.Context, mod *types.User) (*types.User, error) {
@@ -99,11 +80,7 @@ func (r user) Update(ctx context.Context, mod *types.User) (*types.User, error) 
 	now := time.Now()
 	mod.SetUpdatedAt(&now)
 
-	if err := db.Replace("users", mod); err != nil {
-		return nil, err
-	} else {
-		return mod, nil
-	}
+	return mod, db.With(ctx).Replace("users", mod)
 }
 
 func (r user) Suspend(ctx context.Context, id uint64) error {

@@ -28,7 +28,7 @@ func (r module) FindByID(ctx context.Context, id uint64) (*types.Module, error) 
 func (r module) Find(ctx context.Context) ([]*types.Module, error) {
 	db := factory.Database.MustGet()
 	mod := make([]*types.Module, 0)
-	if err := db.Select(&mod, "SELECT * FROM crm_module ORDER BY name ASC"); err != nil {
+	if err := db.With(ctx).Select(&mod, "SELECT * FROM crm_module ORDER BY name ASC"); err != nil {
 		println(err.Error())
 		return nil, ErrDatabaseError
 	} else {
@@ -39,7 +39,7 @@ func (r module) Find(ctx context.Context) ([]*types.Module, error) {
 func (r module) Create(ctx context.Context, mod *types.Module) (*types.Module, error) {
 	db := factory.Database.MustGet()
 	mod.SetID(factory.Sonyflake.NextID())
-	if err := db.Insert("crm_module", mod); err != nil {
+	if err := db.With(ctx).Insert("crm_module", mod); err != nil {
 		return nil, ErrDatabaseError
 	} else {
 		return mod, nil
@@ -48,7 +48,7 @@ func (r module) Create(ctx context.Context, mod *types.Module) (*types.Module, e
 
 func (r module) Update(ctx context.Context, mod *types.Module) (*types.Module, error) {
 	db := factory.Database.MustGet()
-	if err := db.Replace("crm_module", mod); err != nil {
+	if err := db.With(ctx).Replace("crm_module", mod); err != nil {
 		return nil, ErrDatabaseError
 	} else {
 		return mod, nil
@@ -69,10 +69,10 @@ func (r module) DeleteByID(ctx context.Context, id uint64) error {
 //	m := module{}.New()
 //	m.SetID(r.id).SetName(r.name)
 //	if m.GetID() > 0 {
-//		return m, db.Replace("crm_module", m)
+//		return m, db.With(ctx).Replace("crm_module", m)
 //	}
 //	m.SetID(factory.Sonyflake.NextID())
-//	return m, db.Insert("crm_module", m)
+//	return m, db.With(ctx).Insert("crm_module", m)
 //}
 //
 //func (r module) ContentList(r *moduleContentListRequest) (interface{}, error) {
@@ -83,7 +83,7 @@ func (r module) DeleteByID(ctx context.Context, id uint64) error {
 //	}
 //
 //	res := make([]ModuleContentRow, 0)
-//	err = db.Select(&res, "select * from crm_module order by name asc")
+//	err = db.With(ctx).Select(&res, "select * from crm_module order by name asc")
 //	return res, err
 //}
 //
