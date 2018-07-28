@@ -50,11 +50,7 @@ func (r channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*type
 	sql += " ORDER BY name ASC"
 
 	rval := make([]*types.Channel, 0)
-	if err := db.SelectContext(ctx, &rval, sql, params...); err != nil {
-		return nil, err
-	} else {
-		return rval, nil
-	}
+	return rval, db.SelectContext(ctx, &rval, sql, params...)
 }
 
 func (r channel) Create(ctx context.Context, mod *types.Channel) (*types.Channel, error) {
@@ -67,11 +63,7 @@ func (r channel) Create(ctx context.Context, mod *types.Channel) (*types.Channel
 		mod.SetMeta([]byte("{}"))
 	}
 
-	if err := db.Insert("channels", mod); err != nil {
-		return nil, err
-	} else {
-		return mod, nil
-	}
+	return mod, db.Insert("channels", mod)
 }
 
 func (r channel) Update(ctx context.Context, mod *types.Channel) (*types.Channel, error) {
@@ -80,11 +72,17 @@ func (r channel) Update(ctx context.Context, mod *types.Channel) (*types.Channel
 	now := time.Now()
 	mod.SetUpdatedAt(&now)
 
-	if err := db.Replace("channels", mod); err != nil {
-		return nil, err
-	} else {
-		return mod, nil
-	}
+	return mod, db.Replace("channels", mod)
+}
+
+func (r channel) AddMember(ctx context.Context, channelID, userID uint64) error {
+	sql := `INSERT INTO channel_members (rel_channel, rel_user) VALUES (?, ?)`
+	return exec(factory.Database.MustGet().ExecContext(ctx, sql, channelID, userID))
+}
+
+func (r channel) RemoveMember(ctx context.Context, channelID, userID uint64) error {
+	sql := `DELETE FROM channel_members WHERE rel_channel = ? AND rel_user = ?`
+	return exec(factory.Database.MustGet().ExecContext(ctx, sql, channelID, userID))
 }
 
 func (r channel) Archive(ctx context.Context, id uint64) error {

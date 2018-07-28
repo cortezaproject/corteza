@@ -68,16 +68,10 @@ CREATE TABLE team_members (
   PRIMARY KEY (rel_team, rel_user)
 );
 
--- handles membership, visibility and level of access
+-- handles channel membership
 CREATE TABLE channel_members (
   rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
   rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
-
-  -- display only messages from-to to particular user/organisation
-  messages_since   DATETIME            NULL,
-  messages_until   DATETIME            NULL,
-
-  created_at       DATETIME        NOT NULL DEFAULT NOW(),
 
   PRIMARY KEY (rel_channel, rel_user)
 );
