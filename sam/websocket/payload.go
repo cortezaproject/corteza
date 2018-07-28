@@ -14,6 +14,9 @@ func payloadFromMessage(msg *types.Message) *outgoing.Message {
 		Type:      msg.Type,
 		UserID:    strconv.FormatUint(msg.UserID, 10),
 		ReplyTo:   strconv.FormatUint(msg.ReplyTo, 10),
+
+		CreatedAt: msg.CreatedAt,
+		UpdatedAt: msg.UpdatedAt,
 	}
 }
 
