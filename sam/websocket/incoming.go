@@ -17,19 +17,21 @@ func (s *Session) dispatch(raw []byte) (err error) {
 
 	// message actions
 	case p.MessageCreate != nil:
-		return s.messageCreate(ctx, p)
+		return s.messageCreate(ctx, *p.MessageCreate)
 	case p.MessageUpdate != nil:
-		return s.messageUpdate(ctx, p)
+		return s.messageUpdate(ctx, *p.MessageUpdate)
 	case p.MessageDelete != nil:
-		return s.messageDelete(ctx, p)
+		return s.messageDelete(ctx, *p.MessageDelete)
 
 	// channel actions
 	case p.ChannelJoin != nil:
-		return s.channelJoin(ctx, p)
+		return s.channelJoin(ctx, *p.ChannelJoin)
 	case p.ChannelPart != nil:
-		return s.channelPart(ctx, p)
+		return s.channelPart(ctx, *p.ChannelPart)
+	case p.ChannelPart != nil:
+		return s.channelPartAll(ctx, *p.ChannelPartAll)
 	case p.ChannelOpen != nil:
-		return s.channelOpen(ctx, p)
+		return s.channelOpen(ctx, *p.ChannelOpen)
 
 	}
 

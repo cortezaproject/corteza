@@ -7,37 +7,32 @@ import (
 	"github.com/crusttech/crust/sam/websocket/incoming"
 )
 
-func (s *Session) channelJoin(ctx context.Context, payload *incoming.Payload) error {
-	var (
-		request = payload.ChannelJoin
-	)
+func (s *Session) channelJoin(ctx context.Context, p incoming.ChannelJoin) error {
+	var ()
 	// @todo: check access to channel
-	s.subs.Add(request.ChannelID, &Subscription{})
+	s.subs.Add(p.ChannelID, &Subscription{})
 	return nil
 }
 
-func (s *Session) channelPart(ctx context.Context, payload *incoming.Payload) error {
-	var (
-		request = payload.ChannelJoin
-	)
+func (s *Session) channelPart(ctx context.Context, p incoming.ChannelPart) error {
+	var ()
 	// @todo: check access to channel
-	s.subs.Delete(request.ChannelID)
+	s.subs.Delete(p.ChannelID)
 	return nil
 }
 
-func (s *Session) channelPartAll(ctx context.Context, payload *incoming.Payload) error {
-	if payload.ChannelPartAll.Leave {
+func (s *Session) channelPartAll(ctx context.Context, p incoming.ChannelPartAll) error {
+	if p.Leave {
 		s.subs.DeleteAll()
 	}
 	return nil
 }
 
-func (s *Session) channelOpen(ctx context.Context, payload *incoming.Payload) error {
+func (s *Session) channelOpen(ctx context.Context, p incoming.ChannelOpen) error {
 	var (
-		request = payload.ChannelOpen
-		filter  = &types.MessageFilter{
-			ChannelID:     parseUInt64(request.ChannelID),
-			FromMessageID: parseUInt64(request.Since),
+		filter = &types.MessageFilter{
+			ChannelID:     parseUInt64(p.ChannelID),
+			FromMessageID: parseUInt64(p.Since),
 		}
 	)
 
