@@ -93,7 +93,7 @@ func (sess *Session) writeLoop() error {
 		sess.conn.SetWriteDeadline(time.Now().Add(sess.config.writeTimeout))
 
 		switch msg := msg.(type) {
-		case *outgoing.Payload:
+		case outgoing.MessageEncoder:
 			return sess.conn.WriteJSON(msg)
 		case []byte:
 			return sess.conn.WriteMessage(mt, msg)

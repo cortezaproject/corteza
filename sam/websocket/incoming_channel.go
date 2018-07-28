@@ -9,7 +9,7 @@ import (
 	"github.com/crusttech/crust/sam/websocket/outgoing"
 )
 
-func (s *Session) channelJoin(ctx context.Context, p incoming.ChannelJoin) error {
+func (s *Session) channelJoin(ctx context.Context, p *incoming.ChannelJoin) error {
 	// @todo: check access / can we join this channel (should be done by service layer)
 
 	s.subs.Add(p.ChannelID)
@@ -21,20 +21,16 @@ func (s *Session) channelJoin(ctx context.Context, p incoming.ChannelJoin) error
 	}
 
 	// Send to all channel subscribers
-	s.broadcast(chJoin, &p.ChannelID)
+	s.sendToAllSubscribers(chJoin, p.ChannelID)
 
 	return nil
 }
 
-func (s *Session) channelPart(ctx context.Context, p incoming.ChannelPart) error {
+func (s *Session) channelPart(ctx context.Context, p *incoming.ChannelPart) error {
 	// @todo: check access / can we part this channel? (should be done by service layer)
 
 	// First, let's unsubscribe, so we don't hear echos
-	if p.ChannelID != nil {
-		s.subs.Delete(*p.ChannelID)
-	} else {
-		s.subs.DeleteAll()
-	}
+	s.subs.Delete(p.ChannelID)
 
 	// This payload will tell everyone that we're parting from ALL channels
 	var chPart = &outgoing.ChannelPart{
@@ -42,21 +38,21 @@ func (s *Session) channelPart(ctx context.Context, p incoming.ChannelPart) error
 		UserID: uint64toa(auth.GetIdentityFromContext(ctx).GetID()),
 	}
 
-	s.broadcast(chPart, p.ChannelID)
+	s.sendToAllSubscribers(chPart, p.ChannelID)
 
 	return nil
 }
 
-func (s *Session) channelList(ctx context.Context, p incoming.ChannelList) error {
+func (s *Session) channelList(ctx context.Context, p *incoming.ChannelList) error {
 	channels, err := service.Channel().Find(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	return s.respond(payloadFromChannels(channels))
+	return s.sendReply(payloadFromChannels(channels))
 }
 
-func (s *Session) channelOpen(ctx context.Context, p incoming.ChannelOpen) error {
+func (s *Session) channelOpen(ctx context.Context, p *incoming.ChannelOpen) error {
 	var (
 		filter = &types.MessageFilter{
 			ChannelID:     parseUInt64(p.ChannelID),
@@ -69,5 +65,5 @@ func (s *Session) channelOpen(ctx context.Context, p incoming.ChannelOpen) error
 		return err
 	}
 
-	return s.respond(payloadFromMessages(messages))
+	return s.sendReply(payloadFromMessages(messages))
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/crusttech/crust/sam/websocket/outgoing"
 )
 
-func (s *Session) messageCreate(ctx context.Context, p incoming.MessageCreate) error {
+func (s *Session) messageCreate(ctx context.Context, p *incoming.MessageCreate) error {
 	var (
 		msg = &types.Message{
 			ChannelID: parseUInt64(p.ChannelID),
@@ -21,10 +21,10 @@ func (s *Session) messageCreate(ctx context.Context, p incoming.MessageCreate) e
 		return err
 	}
 
-	return s.broadcast(payloadFromMessage(msg), &p.ChannelID)
+	return s.sendToAllSubscribers(payloadFromMessage(msg), p.ChannelID)
 }
 
-func (s *Session) messageUpdate(ctx context.Context, p incoming.MessageUpdate) error {
+func (s *Session) messageUpdate(ctx context.Context, p *incoming.MessageUpdate) error {
 	var (
 		msg = &types.Message{
 			ID:      parseUInt64(p.ID),
@@ -36,10 +36,10 @@ func (s *Session) messageUpdate(ctx context.Context, p incoming.MessageUpdate) e
 		return err
 	}
 
-	return s.broadcast(&outgoing.MessageUpdate{ID: p.ID, Message: msg.Message}, &p.ID)
+	return s.sendToAllSubscribers(&outgoing.MessageUpdate{ID: p.ID, Message: msg.Message}, p.ID)
 }
 
-func (s *Session) messageDelete(ctx context.Context, p incoming.MessageDelete) error {
+func (s *Session) messageDelete(ctx context.Context, p *incoming.MessageDelete) error {
 	var (
 		id = parseUInt64(p.ID)
 	)
@@ -48,5 +48,5 @@ func (s *Session) messageDelete(ctx context.Context, p incoming.MessageDelete) e
 		return err
 	}
 
-	return s.broadcast(&outgoing.MessageDelete{ID: p.ID}, &p.ChannelID)
+	return s.sendToAllSubscribers(&outgoing.MessageDelete{ID: p.ID}, p.ChannelID)
 }

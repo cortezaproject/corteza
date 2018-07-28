@@ -114,7 +114,7 @@ func joinCh(conn *websocket.Conn, channelId string) {
 }
 
 func partCh(conn *websocket.Conn, channelId string) {
-	pb, err := json.Marshal(incoming.Payload{ChannelPart: &incoming.ChannelPart{ChannelID: &channelId}})
+	pb, err := json.Marshal(incoming.Payload{ChannelPart: &incoming.ChannelPart{ChannelID: channelId}})
 	should(err)
 	should(conn.WriteMessage(websocket.TextMessage, pb))
 }

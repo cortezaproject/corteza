@@ -8,7 +8,7 @@ type (
 	}
 
 	ChannelPart struct {
-		ChannelID *string `json:"cid"`
+		ChannelID string `json:"cid"`
 	}
 
 	ChannelOpen struct {
