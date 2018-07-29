@@ -24,7 +24,7 @@ func TestChannel(t *testing.T) {
 
 	chn.Name = name1
 
-	chn, err = rpo.Create(ctx, chn)
+	chn, err = rpo.CreateChannel(ctx, chn)
 	must(t, err)
 	if chn.Name != name1 {
 		t.Fatal("Changes were not stored")
@@ -32,27 +32,27 @@ func TestChannel(t *testing.T) {
 
 	chn.Name = name2
 
-	chn, err = rpo.Update(ctx, chn)
+	chn, err = rpo.UpdateChannel(ctx, chn)
 	must(t, err)
 	if chn.Name != name2 {
 		t.Fatal("Changes were not stored")
 	}
 
-	chn, err = rpo.FindByID(ctx, chn.ID)
+	chn, err = rpo.FindChannelByID(ctx, chn.ID)
 	must(t, err)
 	if chn.Name != name2 {
 		t.Fatal("Changes were not stored")
 	}
 
-	cc, err = rpo.Find(ctx, &types.ChannelFilter{Query: name2})
+	cc, err = rpo.FindChannels(ctx, &types.ChannelFilter{Query: name2})
 	must(t, err)
 	if len(cc) == 0 {
 		t.Fatal("No results found")
 	}
 
-	must(t, rpo.Archive(ctx, chn.ID))
-	must(t, rpo.Unarchive(ctx, chn.ID))
-	must(t, rpo.Delete(ctx, chn.ID))
+	must(t, rpo.ArchiveChannel(ctx, chn.ID))
+	must(t, rpo.UnarchiveChannel(ctx, chn.ID))
+	must(t, rpo.DeleteChannelByID(ctx, chn.ID))
 }
 
 func TestChannelMembers(t *testing.T) {
@@ -67,13 +67,13 @@ func TestChannelMembers(t *testing.T) {
 	ctx := context.Background()
 
 	chn := &types.Channel{}
-	chn, err = rpo.Create(ctx, chn)
+	chn, err = rpo.CreateChannel(ctx, chn)
 	must(t, err)
 
 	usr := &types.User{}
 	usr, err = User().Create(ctx, usr)
 	must(t, err)
 
-	must(t, rpo.AddMember(ctx, chn.ID, usr.ID))
-	must(t, rpo.RemoveMember(ctx, chn.ID, usr.ID))
+	must(t, rpo.AddChannelMember(ctx, chn.ID, usr.ID))
+	must(t, rpo.RemoveChannelMember(ctx, chn.ID, usr.ID))
 }

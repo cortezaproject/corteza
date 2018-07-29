@@ -9,42 +9,19 @@ import (
 
 type (
 	message struct {
-		repository struct {
-			message    messageRepository
-			reaction   messageReactionRepository
-			attachment messageAttachmentRepository
-		}
+		rpo messageRepository
 	}
 
 	messageRepository interface {
-		FindByID(ctx context.Context, messageID uint64) (*types.Message, error)
-		Find(ctx context.Context, filter *types.MessageFilter) ([]*types.Message, error)
-
-		Create(ctx context.Context, message *types.Message) (*types.Message, error)
-		Update(ctx context.Context, message *types.Message) (*types.Message, error)
-
-		deleter
-	}
-
-	messageReactionRepository interface {
-		FindByID(ctx context.Context, reactionID uint64) (*types.Reaction, error)
-		Create(ctx context.Context, reaction *types.Reaction) (*types.Reaction, error)
-		Delete(ctx context.Context, reactionID uint64) error
-	}
-
-	messageAttachmentRepository interface {
-		FindByID(ctx context.Context, attachmentID uint64) (*types.Attachment, error)
-		Create(ctx context.Context, attachment *types.Attachment) (*types.Attachment, error)
-		Delete(ctx context.Context, attachmentID uint64) error
+		repository.Transactionable
+		repository.Message
+		repository.Reaction
+		repository.Attachment
 	}
 )
 
 func Message() *message {
-	m := &message{}
-	m.repository.message = repository.Message()
-	m.repository.reaction = repository.Reaction()
-	m.repository.attachment = repository.Attachment()
-
+	m := &message{rpo: repository.New()}
 	return m
 }
 
@@ -56,7 +33,7 @@ func (svc message) Find(ctx context.Context, filter *types.MessageFilter) ([]*ty
 	_ = currentUserID
 	_ = filter.ChannelID
 
-	return svc.repository.message.Find(ctx, filter)
+	return svc.rpo.FindMessages(filter)
 }
 
 func (svc message) Create(ctx context.Context, mod *types.Message) (*types.Message, error) {
@@ -66,7 +43,7 @@ func (svc message) Create(ctx context.Context, mod *types.Message) (*types.Messa
 	// @todo verify if current user can access & write to this channel
 	_ = currentUserID
 
-	return svc.repository.message.Create(ctx, mod)
+	return svc.rpo.CreateMessage(mod)
 }
 
 func (svc message) Update(ctx context.Context, mod *types.Message) (*types.Message, error) {
@@ -80,7 +57,7 @@ func (svc message) Update(ctx context.Context, mod *types.Message) (*types.Messa
 
 	// @todo verify ownership
 
-	return svc.repository.message.Update(ctx, mod)
+	return svc.rpo.UpdateMessage(mod)
 }
 
 func (svc message) Delete(ctx context.Context, id uint64) error {
@@ -94,7 +71,7 @@ func (svc message) Delete(ctx context.Context, id uint64) error {
 
 	// @todo verify ownership
 
-	return svc.repository.message.Delete(ctx, id)
+	return svc.rpo.DeleteMessageByID(id)
 }
 
 func (svc message) React(ctx context.Context, messageID uint64, reaction string) error {
@@ -113,7 +90,7 @@ func (svc message) React(ctx context.Context, messageID uint64, reaction string)
 		Reaction:  reaction,
 	}
 
-	if _, err := svc.repository.reaction.Create(ctx, r); err != nil {
+	if _, err := svc.rpo.CreateReaction(r); err != nil {
 		return err
 	}
 
@@ -130,7 +107,7 @@ func (svc message) Unreact(ctx context.Context, messageID uint64, reaction strin
 	// @todo load reaction and verify ownership
 	var r *types.Reaction
 
-	return svc.repository.reaction.Delete(ctx, r.ID)
+	return svc.rpo.DeleteReactionByID(r.ID)
 }
 
 func (svc message) Pin(ctx context.Context, messageID uint64) error {
@@ -194,5 +171,5 @@ func (svc message) Detach(ctx context.Context, attachmentID uint64) error {
 
 	// @todo verify if current user can remove this attachment
 
-	return svc.repository.attachment.Delete(ctx, attachmentID)
+	return svc.rpo.DeleteAttachmentByID(attachmentID)
 }

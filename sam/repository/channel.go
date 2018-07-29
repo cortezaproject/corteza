@@ -1,10 +1,23 @@
 package repository
 
 import (
-	"context"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/titpetric/factory"
 	"time"
+)
+
+type (
+	Channel interface {
+		FindChannelByID(id uint64) (*types.Channel, error)
+		FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error)
+		CreateChannel(mod *types.Channel) (*types.Channel, error)
+		UpdateChannel(mod *types.Channel) (*types.Channel, error)
+		AddChannelMember(channelID, userID uint64) error
+		RemoveChannelMember(channelID, userID uint64) error
+		ArchiveChannelByID(id uint64) error
+		UnarchiveChannelByID(id uint64) error
+		DeleteChannelByID(id uint64) error
+	}
 )
 
 const (
@@ -13,23 +26,15 @@ const (
 	ErrChannelNotFound = repositoryError("ChannelNotFound")
 )
 
-type (
-	channel struct{}
-)
-
-func Channel() channel {
-	return channel{}
-}
-
-func (r channel) FindByID(ctx context.Context, id uint64) (*types.Channel, error) {
+func (r *repository) FindChannelByID(id uint64) (*types.Channel, error) {
 	db := factory.Database.MustGet()
 	mod := &types.Channel{}
 	sql := "SELECT * FROM channels WHERE id = ? AND " + sqlChannelScope
 
-	return mod, isFound(db.With(ctx).Get(mod, sql, id), mod.ID > 0, ErrChannelNotFound)
+	return mod, isFound(db.With(r.ctx).Get(mod, sql, id), mod.ID > 0, ErrChannelNotFound)
 }
 
-func (r channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*types.Channel, error) {
+func (r *repository) FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error) {
 	db := factory.Database.MustGet()
 	params := make([]interface{}, 0)
 	rval := make([]*types.Channel, 0)
@@ -45,42 +50,42 @@ func (r channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*type
 
 	sql += " ORDER BY name ASC"
 
-	return rval, db.With(ctx).Select(&rval, sql, params...)
+	return rval, db.With(r.ctx).Select(&rval, sql, params...)
 }
 
-func (r channel) Create(ctx context.Context, mod *types.Channel) (*types.Channel, error) {
+func (r *repository) CreateChannel(mod *types.Channel) (*types.Channel, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 	mod.Meta = coalesceJson(mod.Meta, []byte("{}"))
 
-	return mod, factory.Database.MustGet().With(ctx).Insert("channels", mod)
+	return mod, factory.Database.MustGet().With(r.ctx).Insert("channels", mod)
 }
 
-func (r channel) Update(ctx context.Context, mod *types.Channel) (*types.Channel, error) {
+func (r *repository) UpdateChannel(mod *types.Channel) (*types.Channel, error) {
 	mod.UpdatedAt = timeNowPtr()
 	mod.Meta = coalesceJson(mod.Meta, []byte("{}"))
 
-	return mod, factory.Database.MustGet().With(ctx).Replace("channels", mod)
+	return mod, factory.Database.MustGet().With(r.ctx).Replace("channels", mod)
 }
 
-func (r channel) AddMember(ctx context.Context, channelID, userID uint64) error {
+func (r *repository) AddChannelMember(channelID, userID uint64) error {
 	sql := `INSERT INTO channel_members (rel_channel, rel_user) VALUES (?, ?)`
-	return exec(factory.Database.MustGet().With(ctx).Exec(sql, channelID, userID))
+	return exec(factory.Database.MustGet().With(r.ctx).Exec(sql, channelID, userID))
 }
 
-func (r channel) RemoveMember(ctx context.Context, channelID, userID uint64) error {
+func (r *repository) RemoveChannelMember(channelID, userID uint64) error {
 	sql := `DELETE FROM channel_members WHERE rel_channel = ? AND rel_user = ?`
-	return exec(factory.Database.MustGet().With(ctx).Exec(sql, channelID, userID))
+	return exec(factory.Database.MustGet().With(r.ctx).Exec(sql, channelID, userID))
 }
 
-func (r channel) Archive(ctx context.Context, id uint64) error {
-	return simpleUpdate(ctx, "channels", "archived_at", time.Now(), id)
+func (r *repository) ArchiveChannelByID(id uint64) error {
+	return simpleUpdate(r.ctx, "channels", "archived_at", time.Now(), id)
 }
 
-func (r channel) Unarchive(ctx context.Context, id uint64) error {
-	return simpleUpdate(ctx, "channels", "archived_at", nil, id)
+func (r *repository) UnarchiveChannelByID(id uint64) error {
+	return simpleUpdate(r.ctx, "channels", "archived_at", nil, id)
 }
 
-func (r channel) Delete(ctx context.Context, id uint64) error {
-	return simpleDelete(ctx, "channels", id)
+func (r *repository) DeleteChannelByID(id uint64) error {
+	return simpleDelete(r.ctx, "channels", id)
 }

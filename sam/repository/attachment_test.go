@@ -22,7 +22,7 @@ func TestAttachment(t *testing.T) {
 
 	att.ChannelID = 1
 
-	att, err = rpo.Create(ctx, att)
+	att, err = rpo.CreateAttachment(ctx, att)
 	must(t, err)
 	if att.ChannelID != 1 {
 		t.Fatal("Changes were not stored")
@@ -30,23 +30,23 @@ func TestAttachment(t *testing.T) {
 
 	att.ChannelID = 2
 
-	att, err = rpo.Update(ctx, att)
+	att, err = rpo.UpdateAttachment(ctx, att)
 	must(t, err)
 	if att.ChannelID != 2 {
 		t.Fatal("Changes were not stored")
 	}
 
-	att, err = rpo.FindByID(ctx, att.ID)
+	att, err = rpo.FindAttachmentByID(ctx, att.ID)
 	must(t, err)
 	if att.ChannelID != 2 {
 		t.Fatal("Changes were not stored")
 	}
 
-	aa, err = rpo.FindByRange(ctx, 2, 0, att.ID)
+	aa, err = rpo.FindAttachmentByRange(ctx, 2, 0, att.ID)
 	must(t, err)
 	if len(aa) == 0 {
 		t.Fatal("No results found")
 	}
 
-	must(t, rpo.Delete(ctx, att.ID))
+	must(t, rpo.DeleteAttachmentByID(ctx, att.ID))
 }

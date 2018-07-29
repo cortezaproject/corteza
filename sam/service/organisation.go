@@ -8,67 +8,61 @@ import (
 
 type (
 	organisation struct {
-		repository organisationRepository
+		rpo organisationRepository
 	}
 
 	organisationRepository interface {
-		FindByID(ctx context.Context, organisationID uint64) (*types.Organisation, error)
-		Find(ctx context.Context, filter *types.OrganisationFilter) ([]*types.Organisation, error)
-
-		Create(ctx context.Context, organisation *types.Organisation) (*types.Organisation, error)
-		Update(ctx context.Context, organisation *types.Organisation) (*types.Organisation, error)
-
-		deleter
-		archiver
+		repository.Transactionable
+		repository.Organisation
 	}
 )
 
 func Organisation() *organisation {
-	return &organisation{repository: repository.Organisation()}
+	return &organisation{rpo: repository.New()}
 }
 
 func (svc organisation) FindByID(ctx context.Context, id uint64) (*types.Organisation, error) {
 	// @todo: permission check if current user can read organisation
-	return svc.repository.FindByID(ctx, id)
+	return svc.rpo.FindOrganisationByID(id)
 }
 
 func (svc organisation) Find(ctx context.Context, filter *types.OrganisationFilter) ([]*types.Organisation, error) {
 	// @todo: permission check to return only organisations that organisation has access to
 	// @todo: actual searching not just a full select
-	return svc.repository.Find(ctx, filter)
+	return svc.rpo.FindOrganisations(filter)
 }
 
 func (svc organisation) Create(ctx context.Context, mod *types.Organisation) (*types.Organisation, error) {
 	// @todo: permission check if current user can add/edit organisation
 	// @todo: make sure archived & deleted entries can not be edited
 
-	return svc.repository.Create(ctx, mod)
+	return svc.rpo.CreateOrganisation(mod)
 }
 
 func (svc organisation) Update(ctx context.Context, mod *types.Organisation) (*types.Organisation, error) {
 	// @todo: permission check if current user can add/edit organisation
 	// @todo: make sure archived & deleted entries can not be edited
 
-	return svc.repository.Update(ctx, mod)
+	return svc.rpo.UpdateOrganisation(mod)
 }
 
 func (svc organisation) Delete(ctx context.Context, id uint64) error {
 	// @todo: permissions check if current user can remove organisation
 	// @todo: make history unavailable
 	// @todo: notify users that organisation has been removed (remove from web UI)
-	return svc.repository.Delete(ctx, id)
+	return svc.rpo.DeleteOrganisationByID(id)
 }
 
 func (svc organisation) Archive(ctx context.Context, id uint64) error {
 	// @todo: make history unavailable
 	// @todo: notify users that organisation has been removed (remove from web UI)
 	// @todo: permissions check if current user can archive organisation
-	return svc.repository.Archive(ctx, id)
+	return svc.rpo.ArchiveOrganisationByID(id)
 }
 
 func (svc organisation) Unarchive(ctx context.Context, id uint64) error {
 	// @todo: make history unavailable
 	// @todo: notify users that organisation has been removed (remove from web UI)
 	// @todo: permissions check if current user can unarchive organisation
-	return svc.repository.Unarchive(ctx, id)
+	return svc.rpo.UnarchiveOrganisationByID(id)
 }
