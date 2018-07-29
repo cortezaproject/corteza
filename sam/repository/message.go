@@ -69,21 +69,16 @@ func (r message) Find(ctx context.Context, filter *types.MessageFilter) ([]*type
 }
 
 func (r message) Create(ctx context.Context, mod *types.Message) (*types.Message, error) {
-	db := factory.Database.MustGet()
+	mod.ID = factory.Sonyflake.NextID()
+	mod.CreatedAt = time.Now()
 
-	mod.SetID(factory.Sonyflake.NextID())
-	mod.SetCreatedAt(time.Now())
-
-	return mod, db.With(ctx).Insert("messages", mod)
+	return mod, factory.Database.MustGet().With(ctx).Insert("messages", mod)
 }
 
 func (r message) Update(ctx context.Context, mod *types.Message) (*types.Message, error) {
-	db := factory.Database.MustGet()
+	mod.UpdatedAt = timeNowPtr()
 
-	now := time.Now()
-	mod.SetUpdatedAt(&now)
-
-	return mod, db.With(ctx).Replace("messages", mod)
+	return mod, factory.Database.MustGet().With(ctx).Replace("messages", mod)
 }
 
 func (r message) Delete(ctx context.Context, id uint64) error {

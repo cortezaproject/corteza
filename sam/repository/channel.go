@@ -49,25 +49,18 @@ func (r channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*type
 }
 
 func (r channel) Create(ctx context.Context, mod *types.Channel) (*types.Channel, error) {
-	db := factory.Database.MustGet()
+	mod.ID = factory.Sonyflake.NextID()
+	mod.CreatedAt = time.Now()
+	mod.Meta = coalesceJson(mod.Meta, []byte("{}"))
 
-	mod.SetID(factory.Sonyflake.NextID())
-	mod.SetCreatedAt(time.Now())
-
-	if mod.Meta == nil {
-		mod.SetMeta([]byte("{}"))
-	}
-
-	return mod, db.With(ctx).Insert("channels", mod)
+	return mod, factory.Database.MustGet().With(ctx).Insert("channels", mod)
 }
 
 func (r channel) Update(ctx context.Context, mod *types.Channel) (*types.Channel, error) {
-	db := factory.Database.MustGet()
+	mod.UpdatedAt = timeNowPtr()
+	mod.Meta = coalesceJson(mod.Meta, []byte("{}"))
 
-	now := time.Now()
-	mod.SetUpdatedAt(&now)
-
-	return mod, db.With(ctx).Replace("channels", mod)
+	return mod, factory.Database.MustGet().With(ctx).Replace("channels", mod)
 }
 
 func (r channel) AddMember(ctx context.Context, channelID, userID uint64) error {

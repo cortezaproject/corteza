@@ -48,21 +48,16 @@ func (r organisation) Find(ctx context.Context, filter *types.OrganisationFilter
 }
 
 func (r organisation) Create(ctx context.Context, mod *types.Organisation) (*types.Organisation, error) {
-	db := factory.Database.MustGet()
+	mod.ID = factory.Sonyflake.NextID()
+	mod.CreatedAt = time.Now()
 
-	mod.SetID(factory.Sonyflake.NextID())
-	mod.SetCreatedAt(time.Now())
-
-	return mod, db.With(ctx).Insert("organisations", mod)
+	return mod, factory.Database.MustGet().With(ctx).Insert("organisations", mod)
 }
 
 func (r organisation) Update(ctx context.Context, mod *types.Organisation) (*types.Organisation, error) {
-	db := factory.Database.MustGet()
+	mod.UpdatedAt = timeNowPtr()
 
-	now := time.Now()
-	mod.SetUpdatedAt(&now)
-
-	return mod, db.With(ctx).Replace("organisations", mod)
+	return mod, factory.Database.MustGet().With(ctx).Replace("organisations", mod)
 }
 
 func (r organisation) Archive(ctx context.Context, id uint64) error {

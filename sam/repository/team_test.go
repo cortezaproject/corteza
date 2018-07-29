@@ -16,31 +16,31 @@ func TestTeam(t *testing.T) {
 
 	rpo := Team()
 	ctx := context.Background()
-	att := types.Team{}.New()
+	team := &types.Team{}
 
 	var name1, name2 = "Test team v1", "Test team v2"
 
 	var aa []*types.Team
 
-	att.SetName(name1)
+	team.Name = name1
 
-	att, err = rpo.Create(ctx, att)
+	team, err = rpo.Create(ctx, team)
 	must(t, err)
-	if att.Name != name1 {
+	if team.Name != name1 {
 		t.Fatal("Changes were not stored")
 	}
 
-	att.SetName(name2)
+	team.Name = name2
 
-	att, err = rpo.Update(ctx, att)
+	team, err = rpo.Update(ctx, team)
 	must(t, err)
-	if att.Name != name2 {
+	if team.Name != name2 {
 		t.Fatal("Changes were not stored")
 	}
 
-	att, err = rpo.FindByID(ctx, att.ID)
+	team, err = rpo.FindByID(ctx, team.ID)
 	must(t, err)
-	if att.Name != name2 {
+	if team.Name != name2 {
 		t.Fatal("Changes were not stored")
 	}
 
@@ -50,7 +50,7 @@ func TestTeam(t *testing.T) {
 		t.Fatal("No results found")
 	}
 
-	must(t, rpo.Archive(ctx, att.ID))
-	must(t, rpo.Unarchive(ctx, att.ID))
-	must(t, rpo.Delete(ctx, att.ID))
+	must(t, rpo.Archive(ctx, team.ID))
+	must(t, rpo.Unarchive(ctx, team.ID))
+	must(t, rpo.Delete(ctx, team.ID))
 }

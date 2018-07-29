@@ -43,18 +43,18 @@ func (ctrl *Team) List(ctx context.Context, r *server.TeamListRequest) (interfac
 }
 
 func (ctrl *Team) Create(ctx context.Context, r *server.TeamCreateRequest) (interface{}, error) {
-	org := types.Team{}.
-		New().
-		SetName(r.Name)
+	org := &types.Team{
+		Name: r.Name,
+	}
 
 	return ctrl.svc.Create(ctx, org)
 }
 
 func (ctrl *Team) Edit(ctx context.Context, r *server.TeamEditRequest) (interface{}, error) {
-	org := types.Team{}.
-		New().
-		SetID(r.TeamID).
-		SetName(r.Name)
+	org := &types.Team{
+		ID:   r.TeamID,
+		Name: r.Name,
+	}
 
 	return ctrl.svc.Update(ctx, org)
 }

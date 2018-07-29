@@ -78,7 +78,7 @@ func (svc user) generatePassword(user *types.User, password string) error {
 		return err
 	}
 
-	user.SetPassword(pwd)
+	user.Password = pwd
 	return nil
 }
 

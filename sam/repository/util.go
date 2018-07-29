@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/titpetric/factory"
+	"time"
 )
 
 func simpleUpdate(ctx context.Context, tableName, columnName string, value interface{}, id uint64) (err error) {
@@ -34,6 +36,21 @@ func isFound(err error, valid bool, nerr error) error {
 		return err
 	} else if !valid {
 		return nerr
+	}
+
+	return nil
+}
+
+func timeNowPtr() *time.Time {
+	n := time.Now()
+	return &n
+}
+
+func coalesceJson(vals ...json.RawMessage) json.RawMessage {
+	for _, val := range vals {
+		if val != nil {
+			return val
+		}
 	}
 
 	return nil

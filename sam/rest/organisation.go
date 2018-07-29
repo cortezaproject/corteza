@@ -41,18 +41,18 @@ func (ctrl *Organisation) List(ctx context.Context, r *server.OrganisationListRe
 }
 
 func (ctrl *Organisation) Create(ctx context.Context, r *server.OrganisationCreateRequest) (interface{}, error) {
-	org := types.Organisation{}.
-		New().
-		SetName(r.Name)
+	org := &types.Organisation{
+		Name: r.Name,
+	}
 
 	return ctrl.svc.Create(ctx, org)
 }
 
 func (ctrl *Organisation) Edit(ctx context.Context, r *server.OrganisationEditRequest) (interface{}, error) {
-	org := types.Organisation{}.
-		New().
-		SetID(r.ID).
-		SetName(r.Name)
+	org := &types.Organisation{
+		ID:   r.ID,
+		Name: r.Name,
+	}
 
 	return ctrl.svc.Update(ctx, org)
 }

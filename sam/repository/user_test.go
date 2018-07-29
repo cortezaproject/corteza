@@ -16,31 +16,31 @@ func TestUser(t *testing.T) {
 
 	rpo := User()
 	ctx := context.Background()
-	att := types.User{}.New()
+	usr := &types.User{}
 
 	var name1, name2 = "Test user v1", "Test user v2"
 
 	var aa []*types.User
 
-	att.SetUsername(name1)
+	usr.Username = name1
 
-	att, err = rpo.Create(ctx, att)
+	usr, err = rpo.Create(ctx, usr)
 	must(t, err)
-	if att.Username != name1 {
+	if usr.Username != name1 {
 		t.Fatal("Changes were not stored")
 	}
 
-	att.SetUsername(name2)
+	usr.Username = name2
 
-	att, err = rpo.Update(ctx, att)
+	usr, err = rpo.Update(ctx, usr)
 	must(t, err)
-	if att.Username != name2 {
+	if usr.Username != name2 {
 		t.Fatal("Changes were not stored")
 	}
 
-	att, err = rpo.FindByID(ctx, att.ID)
+	usr, err = rpo.FindByID(ctx, usr.ID)
 	must(t, err)
-	if att.Username != name2 {
+	if usr.Username != name2 {
 		t.Fatal("Changes were not stored")
 	}
 
@@ -50,5 +50,5 @@ func TestUser(t *testing.T) {
 		t.Fatal("No results found")
 	}
 
-	must(t, rpo.Delete(ctx, att.ID))
+	must(t, rpo.Delete(ctx, usr.ID))
 }

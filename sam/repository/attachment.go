@@ -44,25 +44,19 @@ func (r attachment) FindByRange(ctx context.Context, channelID, fromAttachmentID
 }
 
 func (r attachment) Create(ctx context.Context, mod *types.Attachment) (*types.Attachment, error) {
-	db := factory.Database.MustGet()
+	mod.ID = factory.Sonyflake.NextID()
+	mod.CreatedAt = time.Now()
 
-	mod.SetID(factory.Sonyflake.NextID())
-	mod.SetCreatedAt(time.Now())
+	mod.Attachment = coalesceJson(mod.Attachment, []byte("{}"))
 
-	if mod.Attachment == nil {
-		mod.SetAttachment([]byte("{}"))
-	}
-
-	return mod, db.With(ctx).Insert("attachments", mod)
+	return mod, factory.Database.MustGet().With(ctx).Insert("attachments", mod)
 }
 
 func (r attachment) Update(ctx context.Context, mod *types.Attachment) (*types.Attachment, error) {
-	db := factory.Database.MustGet()
+	mod.UpdatedAt = timeNowPtr()
+	mod.Attachment = coalesceJson(mod.Attachment, []byte("{}"))
 
-	now := time.Now()
-	mod.SetUpdatedAt(&now)
-
-	return mod, db.With(ctx).Replace("attachments", mod)
+	return mod, factory.Database.MustGet().With(ctx).Replace("attachments", mod)
 }
 
 func (r attachment) Delete(ctx context.Context, id uint64) error {

@@ -16,7 +16,7 @@ func (s *Session) channelJoin(ctx context.Context, p *incoming.ChannelJoin) erro
 	// Telling all subscribers of the channel we're joining that we are joining.
 	var chJoin = &outgoing.ChannelJoin{
 		ID:     p.ChannelID,
-		UserID: uint64toa(auth.GetIdentityFromContext(ctx).GetID()),
+		UserID: uint64toa(auth.GetIdentityFromContext(ctx).Identity()),
 	}
 
 	// Send to all channel subscribers
@@ -34,7 +34,7 @@ func (s *Session) channelPart(ctx context.Context, p *incoming.ChannelPart) erro
 	// This payload will tell everyone that we're parting from ALL channels
 	var chPart = &outgoing.ChannelPart{
 		ID:     p.ChannelID,
-		UserID: uint64toa(auth.GetIdentityFromContext(ctx).GetID()),
+		UserID: uint64toa(auth.GetIdentityFromContext(ctx).Identity()),
 	}
 
 	s.sendToAllSubscribers(chPart, p.ChannelID)
