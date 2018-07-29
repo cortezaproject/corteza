@@ -15,6 +15,7 @@ PROTOC    = $(GOPATH)/bin/protoc-gen-go
 REALIZE   = ${GOPATH}/bin/realize
 GOTEST    = ${GOPATH}/bin/gotest
 GOCRITIC  = ${GOPATH}/bin/gocritic
+MOCKGEN   = ${GOPATH}/bin/mockgen
 
 build:
 	docker build --no-cache --rm -t $(shell cat .project) .
@@ -59,6 +60,11 @@ vet:
 
 qa: vet critic test
 
+mocks: $(GOMOCK)
+	# See https://github.com/golang/mock for details
+	$(MOCKGEN) -source sam/service/service_test.go -destination sam/service/service_mock_test.go -package service
+
+
 ########################################################################################################################
 # Toolset
 
@@ -80,5 +86,11 @@ $(GOCRITIC):
 $(DEP):
 	$(GOGET) github.com/tools/godep
 
+$(MOCKGEN):
+	$(GOGET) github.com/golang/mock/gomock
+	$(GOGET) github.com/golang/mock/mockgen
+
 clean:
 	rm -f $(SPEC) $(PROTOC) $(REALIZE) $(GOCRITIC) $(GOTEST)
+
+
