@@ -16,11 +16,11 @@ func TestAttachment(t *testing.T) {
 
 	rpo := Attachment()
 	ctx := context.Background()
-	att := types.Attachment{}.New()
+	att := &types.Attachment{}
 
 	var aa []*types.Attachment
 
-	att.SetChannelID(1)
+	att.ChannelID = 1
 
 	att, err = rpo.Create(ctx, att)
 	must(t, err)
@@ -28,7 +28,7 @@ func TestAttachment(t *testing.T) {
 		t.Fatal("Changes were not stored")
 	}
 
-	att.SetChannelID(2)
+	att.ChannelID = 2
 
 	att, err = rpo.Update(ctx, att)
 	must(t, err)

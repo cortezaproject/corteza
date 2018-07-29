@@ -16,41 +16,41 @@ func TestOrganisation(t *testing.T) {
 
 	rpo := Organisation()
 	ctx := context.Background()
-	att := types.Organisation{}.New()
+	org := &types.Organisation{}
 
 	var name1, name2 = "Test organisation v1", "Test organisation v2"
 
-	var aa []*types.Organisation
+	var oo []*types.Organisation
 
-	att.SetName(name1)
+	org.Name = name1
 
-	att, err = rpo.Create(ctx, att)
+	org, err = rpo.Create(ctx, org)
 	must(t, err)
-	if att.Name != name1 {
+	if org.Name != name1 {
 		t.Fatal("Changes were not stored")
 	}
 
-	att.SetName(name2)
+	org.Name = name2
 
-	att, err = rpo.Update(ctx, att)
+	org, err = rpo.Update(ctx, org)
 	must(t, err)
-	if att.Name != name2 {
+	if org.Name != name2 {
 		t.Fatal("Changes were not stored")
 	}
 
-	att, err = rpo.FindByID(ctx, att.ID)
+	org, err = rpo.FindByID(ctx, org.ID)
 	must(t, err)
-	if att.Name != name2 {
+	if org.Name != name2 {
 		t.Fatal("Changes were not stored")
 	}
 
-	aa, err = rpo.Find(ctx, &types.OrganisationFilter{Query: name2})
+	oo, err = rpo.Find(ctx, &types.OrganisationFilter{Query: name2})
 	must(t, err)
-	if len(aa) == 0 {
+	if len(oo) == 0 {
 		t.Fatal("No results found")
 	}
 
-	must(t, rpo.Archive(ctx, att.ID))
-	must(t, rpo.Unarchive(ctx, att.ID))
-	must(t, rpo.Delete(ctx, att.ID))
+	must(t, rpo.Archive(ctx, org.ID))
+	must(t, rpo.Unarchive(ctx, org.ID))
+	must(t, rpo.Delete(ctx, org.ID))
 }

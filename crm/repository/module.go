@@ -37,22 +37,13 @@ func (r module) Find(ctx context.Context) ([]*types.Module, error) {
 }
 
 func (r module) Create(ctx context.Context, mod *types.Module) (*types.Module, error) {
-	db := factory.Database.MustGet()
-	mod.SetID(factory.Sonyflake.NextID())
-	if err := db.With(ctx).Insert("crm_module", mod); err != nil {
-		return nil, ErrDatabaseError
-	} else {
-		return mod, nil
-	}
+	mod.ID = factory.Sonyflake.NextID()
+	return mod, factory.Database.MustGet().With(ctx).Insert("crm_module", mod)
 }
 
 func (r module) Update(ctx context.Context, mod *types.Module) (*types.Module, error) {
-	db := factory.Database.MustGet()
-	if err := db.With(ctx).Replace("crm_module", mod); err != nil {
-		return nil, ErrDatabaseError
-	} else {
-		return mod, nil
-	}
+	return mod, factory.Database.MustGet().With(ctx).Replace("crm_module", mod)
+
 }
 
 func (r module) DeleteByID(ctx context.Context, id uint64) error {

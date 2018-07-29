@@ -16,39 +16,39 @@ func TestMessage(t *testing.T) {
 
 	rpo := Message()
 	ctx := context.Background()
-	att := types.Message{}.New()
+	msg := &types.Message{}
 
 	var msg1, msg2 = "Test message v1", "Test message v2"
 
-	var aa []*types.Message
+	var mm []*types.Message
 
-	att.SetMessage(msg1)
+	msg.Message = msg1
 
-	att, err = rpo.Create(ctx, att)
+	msg, err = rpo.Create(ctx, msg)
 	must(t, err)
-	if att.Message != msg1 {
+	if msg.Message != msg1 {
 		t.Fatal("Changes were not stored")
 	}
 
-	att.SetMessage(msg2)
+	msg.Message = msg2
 
-	att, err = rpo.Update(ctx, att)
+	msg, err = rpo.Update(ctx, msg)
 	must(t, err)
-	if att.Message != msg2 {
+	if msg.Message != msg2 {
 		t.Fatal("Changes were not stored")
 	}
 
-	att, err = rpo.FindByID(ctx, att.ID)
+	msg, err = rpo.FindByID(ctx, msg.ID)
 	must(t, err)
-	if att.Message != msg2 {
+	if msg.Message != msg2 {
 		t.Fatal("Changes were not stored")
 	}
 
-	aa, err = rpo.Find(ctx, &types.MessageFilter{Query: msg2})
+	mm, err = rpo.Find(ctx, &types.MessageFilter{Query: msg2})
 	must(t, err)
-	if len(aa) == 0 {
+	if len(mm) == 0 {
 		t.Fatal("No results found")
 	}
 
-	must(t, rpo.Delete(ctx, att.ID))
+	must(t, rpo.Delete(ctx, msg.ID))
 }

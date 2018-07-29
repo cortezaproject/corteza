@@ -42,11 +42,11 @@ func (svc channel) Create(ctx context.Context, mod *types.Channel) (*types.Chann
 	// @todo: topic channelEvent/log entry
 	// @todo: channel name cmessage/log entry
 	// @todo: permission check if channel can add channel
-
 	return svc.repository.Create(ctx, mod)
 }
 
 func (svc channel) Update(ctx context.Context, mod *types.Channel) (*types.Channel, error) {
+	// @todo: load current entry and merge changes
 	// @todo: topic change channelEvent/log entry
 	// @todo: channel name change channelEvent/log entry
 	// @todo: permission check if current user can edit channel

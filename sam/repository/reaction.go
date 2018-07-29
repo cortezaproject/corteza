@@ -41,12 +41,10 @@ func (r reaction) FindByRange(ctx context.Context, channelID, fromReactionID, to
 }
 
 func (r reaction) Create(ctx context.Context, mod *types.Reaction) (*types.Reaction, error) {
-	db := factory.Database.MustGet()
+	mod.ID = factory.Sonyflake.NextID()
+	mod.CreatedAt = time.Now()
 
-	mod.SetID(factory.Sonyflake.NextID())
-	mod.SetCreatedAt(time.Now())
-
-	return mod, db.With(ctx).Insert("reactions", mod)
+	return mod, factory.Database.MustGet().With(ctx).Insert("reactions", mod)
 }
 
 func (r reaction) Delete(ctx context.Context, id uint64) error {

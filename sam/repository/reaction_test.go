@@ -16,23 +16,23 @@ func TestReaction(t *testing.T) {
 
 	rpo := Reaction()
 	ctx := context.Background()
-	att := types.Reaction{}.New()
+	react := &types.Reaction{}
 
 	var reaction = ":laugh:"
 
-	att.SetReaction(reaction)
+	react.Reaction = reaction
 
-	att, err = rpo.Create(ctx, att)
+	react, err = rpo.Create(ctx, react)
 	must(t, err)
-	if att.Reaction != reaction {
+	if react.Reaction != reaction {
 		t.Fatal("Changes were not stored")
 	}
 
-	att, err = rpo.FindByID(ctx, att.ID)
+	react, err = rpo.FindByID(ctx, react.ID)
 	must(t, err)
-	if att.Reaction != reaction {
+	if react.Reaction != reaction {
 		t.Fatal("Changes were not stored")
 	}
 
-	must(t, rpo.Delete(ctx, att.ID))
+	must(t, rpo.Delete(ctx, react.ID))
 }

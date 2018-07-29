@@ -62,11 +62,11 @@ func (ws Websocket) Open(w http.ResponseWriter, r *http.Request) {
 
 	session := store.Save(Session{}.New(r.Context(), conn))
 
-	session.sendToAll(&outgoing.Connected{UserID: uint64toa(identity.GetID())})
+	session.sendToAll(&outgoing.Connected{UserID: uint64toa(identity.Identity())})
 
 	if err := session.Handle(); err != nil {
 		// @todo: log error, because at this point we can't really write it to w
 	}
 
-	session.sendToAll(&outgoing.Disconnected{UserID: uint64toa(identity.GetID())})
+	session.sendToAll(&outgoing.Disconnected{UserID: uint64toa(identity.Identity())})
 }

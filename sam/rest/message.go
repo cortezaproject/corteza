@@ -43,9 +43,10 @@ func (Message) New(messageSvc messageService) *Message {
 }
 
 func (ctrl *Message) Create(ctx context.Context, r *server.MessageCreateRequest) (interface{}, error) {
-	return ctrl.svc.Create(ctx, (&types.Message{}).
-		SetChannelID(r.ChannelID).
-		SetMessage(r.Message))
+	return ctrl.svc.Create(ctx, &types.Message{
+		ChannelID: r.ChannelID,
+		Message:   r.Message,
+	})
 }
 
 func (ctrl *Message) History(ctx context.Context, r *server.MessageHistoryRequest) (interface{}, error) {
@@ -56,10 +57,11 @@ func (ctrl *Message) History(ctx context.Context, r *server.MessageHistoryReques
 }
 
 func (ctrl *Message) Edit(ctx context.Context, r *server.MessageEditRequest) (interface{}, error) {
-	return ctrl.svc.Update(ctx, (&types.Message{}).
-		SetID(r.MessageID).
-		SetChannelID(r.ChannelID).
-		SetMessage(r.Message))
+	return ctrl.svc.Update(ctx, &types.Message{
+		ID:        r.MessageID,
+		ChannelID: r.ChannelID,
+		Message:   r.Message,
+	})
 }
 
 func (ctrl *Message) Delete(ctx context.Context, r *server.MessageDeleteRequest) (interface{}, error) {

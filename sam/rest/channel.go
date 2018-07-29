@@ -3,11 +3,9 @@ package rest
 import (
 	"context"
 
-	"github.com/pkg/errors"
-	"github.com/titpetric/factory"
-
 	"github.com/crusttech/crust/sam/rest/server"
 	"github.com/crusttech/crust/sam/types"
+	"github.com/pkg/errors"
 )
 
 var _ = errors.Wrap
@@ -36,21 +34,19 @@ func (Channel) New(channelSvc channelService) *Channel {
 }
 
 func (ctrl *Channel) Create(ctx context.Context, r *server.ChannelCreateRequest) (interface{}, error) {
-	channel := types.Channel{}.
-		New().
-		SetName(r.Name).
-		SetTopic(r.Topic).
-		SetMeta([]byte("{}")).
-		SetID(factory.Sonyflake.NextID())
+	channel := &types.Channel{
+		Name:  r.Name,
+		Topic: r.Topic,
+	}
 
 	return ctrl.svc.Create(ctx, channel)
 }
 
 func (ctrl *Channel) Edit(ctx context.Context, r *server.ChannelEditRequest) (interface{}, error) {
-	channel := types.Channel{}.
-		New().
-		SetName(r.Name).
-		SetTopic(r.Topic)
+	channel := &types.Channel{
+		Name:  r.Name,
+		Topic: r.Topic,
+	}
 
 	return ctrl.svc.Update(ctx, channel)
 

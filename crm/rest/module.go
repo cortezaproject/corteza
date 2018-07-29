@@ -46,14 +46,12 @@ func (c *Module) Delete(ctx context.Context, r *server.ModuleDeleteRequest) (int
 }
 
 func (c *Module) Create(ctx context.Context, r *server.ModuleCreateRequest) (interface{}, error) {
-	m := types.Module{}.New()
-	m.SetName(r.Name)
+	m := &types.Module{Name: r.Name}
 	return c.svc.Create(ctx, m)
 }
 
 func (c *Module) Edit(ctx context.Context, r *server.ModuleEditRequest) (interface{}, error) {
-	m := types.Module{}.New()
-	m.SetID(r.ID).SetName(r.Name)
+	m := &types.Module{ID: r.ID, Name: r.Name}
 	return c.svc.Update(ctx, m)
 }
 

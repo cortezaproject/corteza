@@ -49,21 +49,16 @@ func (r team) Find(ctx context.Context, filter *types.TeamFilter) ([]*types.Team
 }
 
 func (r team) Create(ctx context.Context, mod *types.Team) (*types.Team, error) {
-	db := factory.Database.MustGet()
+	mod.ID = factory.Sonyflake.NextID()
+	mod.CreatedAt = time.Now()
 
-	mod.SetID(factory.Sonyflake.NextID())
-	mod.SetCreatedAt(time.Now())
-
-	return mod, db.With(ctx).Insert("teams", mod)
+	return mod, factory.Database.MustGet().With(ctx).Insert("teams", mod)
 }
 
 func (r team) Update(ctx context.Context, mod *types.Team) (*types.Team, error) {
-	db := factory.Database.MustGet()
+	mod.UpdatedAt = timeNowPtr()
 
-	now := time.Now()
-	mod.SetUpdatedAt(&now)
-
-	return mod, db.With(ctx).Replace("teams", mod)
+	return mod, factory.Database.MustGet().With(ctx).Replace("teams", mod)
 }
 
 func (r team) Archive(ctx context.Context, id uint64) error {

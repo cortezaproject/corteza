@@ -62,25 +62,18 @@ func (r user) Find(ctx context.Context, filter *types.UserFilter) ([]*types.User
 }
 
 func (r user) Create(ctx context.Context, mod *types.User) (*types.User, error) {
-	db := factory.Database.MustGet()
+	mod.ID = factory.Sonyflake.NextID()
+	mod.CreatedAt = time.Now()
+	mod.Meta = coalesceJson(mod.Meta, []byte("{}"))
 
-	mod.SetID(factory.Sonyflake.NextID())
-	mod.SetCreatedAt(time.Now())
-
-	if mod.Meta == nil {
-		mod.SetMeta([]byte("{}"))
-	}
-
-	return mod, db.With(ctx).Insert("users", mod)
+	return mod, factory.Database.MustGet().With(ctx).Insert("users", mod)
 }
 
 func (r user) Update(ctx context.Context, mod *types.User) (*types.User, error) {
-	db := factory.Database.MustGet()
+	mod.UpdatedAt = timeNowPtr()
+	mod.Meta = coalesceJson(mod.Meta, []byte("{}"))
 
-	now := time.Now()
-	mod.SetUpdatedAt(&now)
-
-	return mod, db.With(ctx).Replace("users", mod)
+	return mod, factory.Database.MustGet().With(ctx).Replace("users", mod)
 }
 
 func (r user) Suspend(ctx context.Context, id uint64) error {

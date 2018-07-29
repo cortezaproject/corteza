@@ -30,7 +30,7 @@ func (t *jwt) Verifier() func(http.Handler) http.Handler {
 func (t *jwt) Encode(identity Identifiable) string {
 	// @todo Set expiry
 	claims := jwtauth.Claims{}
-	claims.Set("sub", strconv.FormatUint(identity.GetID(), 10))
+	claims.Set("sub", strconv.FormatUint(identity.Identity(), 10))
 	claims.SetExpiryIn(time.Duration(config.jwtExpiry) * time.Minute)
 
 	_, jwt, _ := t.tokenAuth.Encode(claims)
