@@ -50,7 +50,7 @@ func main() {
 				}
 
 				if text[:1] == "/" {
-					cmdSplit := strings.Split(text, " ")
+					cmdSplit := strings.SplitN(text, " ", 2)
 					switch cmdSplit[0] {
 					case "/join":
 						if len(cmdSplit) < 2 {
@@ -58,7 +58,7 @@ func main() {
 						} else {
 							joinCh(conn, cmdSplit[1])
 							chanId = cmdSplit[1]
-							openCh(conn, chanId)
+							msgHistory(conn, chanId)
 						}
 					case "/part":
 						partCh(conn, chanId)
@@ -67,11 +67,15 @@ func main() {
 					case "/list":
 						listCh(conn)
 
+					case "/raw":
+						sendRaw(conn, cmdSplit[1])
+
 					default:
 						println("Unknown command, try:")
 						println("   /join <channel-id>")
 						println("   /part")
 						println("   /list")
+						println("   /raw <raw json to send>")
 					}
 				} else {
 					sendMsg(conn, text, chanId)
@@ -119,8 +123,12 @@ func partCh(conn *websocket.Conn, channelId string) {
 	should(conn.WriteMessage(websocket.TextMessage, pb))
 }
 
-func openCh(conn *websocket.Conn, channelId string) {
-	pb, err := json.Marshal(incoming.Payload{ChannelOpen: &incoming.ChannelOpen{ChannelID: channelId}})
+func msgHistory(conn *websocket.Conn, channelId string) {
+	pb, err := json.Marshal(incoming.Payload{MessageHistory: &incoming.MessageHistory{ChannelID: channelId}})
 	should(err)
 	should(conn.WriteMessage(websocket.TextMessage, pb))
+}
+
+func sendRaw(conn *websocket.Conn, msg string) {
+	should(conn.WriteMessage(websocket.TextMessage, []byte(msg)))
 }

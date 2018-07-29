@@ -23,8 +23,10 @@ type (
 
 	Channel struct {
 		// Channel to part (nil) for ALL channels
-		ID   string `json:"id"`
-		Name string `json:"name"`
+		ID            string `json:"id"`
+		Name          string `json:"name"`
+		Topic         string `json:"topic"`
+		LastMessageID string `json:"lastMessageId"`
 	}
 
 	Channels []*Channel

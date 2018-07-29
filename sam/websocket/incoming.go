@@ -22,6 +22,8 @@ func (s *Session) dispatch(raw []byte) (err error) {
 		return s.messageUpdate(ctx, p.MessageUpdate)
 	case p.MessageDelete != nil:
 		return s.messageDelete(ctx, p.MessageDelete)
+	case p.MessageHistory != nil:
+		return s.messageHistory(ctx, p.MessageHistory)
 
 	// channel actions
 	case p.ChannelJoin != nil:
@@ -30,8 +32,10 @@ func (s *Session) dispatch(raw []byte) (err error) {
 		return s.channelPart(ctx, p.ChannelPart)
 	case p.ChannelList != nil:
 		return s.channelList(ctx, p.ChannelList)
-	case p.ChannelOpen != nil:
-		return s.channelOpen(ctx, p.ChannelOpen)
+	case p.ChannelRename != nil:
+		return s.channelRename(ctx, p.ChannelRename)
+	case p.ChannelChangeTopic != nil:
+		return s.channelChangeTopic(ctx, p.ChannelChangeTopic)
 
 	}
 

@@ -3,17 +3,16 @@ package websocket
 import (
 	"github.com/crusttech/crust/sam/types"
 	"github.com/crusttech/crust/sam/websocket/outgoing"
-	"strconv"
 )
 
 func payloadFromMessage(msg *types.Message) *outgoing.Message {
 	return &outgoing.Message{
 		Message:   msg.Message,
-		ID:        strconv.FormatUint(msg.ID, 10),
-		ChannelID: strconv.FormatUint(msg.ChannelID, 10),
+		ID:        uint64toa(msg.ID),
+		ChannelID: uint64toa(msg.ChannelID),
 		Type:      msg.Type,
-		UserID:    strconv.FormatUint(msg.UserID, 10),
-		ReplyTo:   strconv.FormatUint(msg.ReplyTo, 10),
+		UserID:    uint64toa(msg.UserID),
+		ReplyTo:   uint64toa(msg.ReplyTo),
 
 		CreatedAt: msg.CreatedAt,
 		UpdatedAt: msg.UpdatedAt,
@@ -31,8 +30,10 @@ func payloadFromMessages(msg []*types.Message) *outgoing.Messages {
 
 func payloadFromChannel(ch *types.Channel) *outgoing.Channel {
 	return &outgoing.Channel{
-		ID:   strconv.FormatUint(ch.ID, 10),
-		Name: ch.Name,
+		ID:            uint64toa(ch.ID),
+		Name:          ch.Name,
+		LastMessageID: uint64toa(ch.LastMessageID),
+		Topic:         ch.Topic,
 	}
 }
 

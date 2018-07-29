@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/crusttech/crust/auth"
 	"github.com/crusttech/crust/sam/service"
-	"github.com/crusttech/crust/sam/types"
 	"github.com/crusttech/crust/sam/websocket/incoming"
 	"github.com/crusttech/crust/sam/websocket/outgoing"
 )
@@ -52,18 +51,44 @@ func (s *Session) channelList(ctx context.Context, p *incoming.ChannelList) erro
 	return s.sendReply(payloadFromChannels(channels))
 }
 
-func (s *Session) channelOpen(ctx context.Context, p *incoming.ChannelOpen) error {
-	var (
-		filter = &types.MessageFilter{
-			ChannelID:     parseUInt64(p.ChannelID),
-			FromMessageID: parseUInt64(p.Since),
-		}
-	)
-
-	messages, err := service.Message().Find(ctx, filter)
+func (s *Session) channelRename(ctx context.Context, p *incoming.ChannelRename) error {
+	ch, err := service.Channel().FindByID(ctx, parseUInt64(p.ChannelID))
 	if err != nil {
 		return err
 	}
 
-	return s.sendReply(payloadFromMessages(messages))
+	if ch.Name == p.Name {
+		// No changes, ignore
+		return nil
+	}
+
+	ch.Name = p.Name
+
+	ch, err = service.Channel().Update(ctx, ch)
+	if err != nil {
+		return err
+	}
+
+	return s.sendToAllSubscribers(payloadFromChannel(ch), p.ChannelID)
+}
+
+func (s *Session) channelChangeTopic(ctx context.Context, p *incoming.ChannelChangeTopic) error {
+	ch, err := service.Channel().FindByID(ctx, parseUInt64(p.ChannelID))
+	if err != nil {
+		return err
+	}
+
+	if ch.Topic == p.Topic {
+		// No changes, ignore
+		return nil
+	}
+
+	ch.Topic = p.Topic
+
+	ch, err = service.Channel().Update(ctx, ch)
+	if err != nil {
+		return err
+	}
+
+	return s.sendToAllSubscribers(payloadFromChannel(ch), p.ChannelID)
 }
