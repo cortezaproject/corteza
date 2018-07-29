@@ -14,28 +14,22 @@ const (
 
 type (
 	user struct {
-		repository userRepository
+		rpo userRepository
 	}
 
 	userRepository interface {
-		FindByUsername(ctx context.Context, username string) (*types.User, error)
-		FindByID(ctx context.Context, userID uint64) (*types.User, error)
-		Find(ctx context.Context, filter *types.UserFilter) ([]*types.User, error)
-
-		Create(ctx context.Context, user *types.User) (*types.User, error)
-		Update(ctx context.Context, user *types.User) (*types.User, error)
-
-		deleter
-		suspender
+		repository.Transactionable
+		repository.Contextable
+		repository.User
 	}
 )
 
 func User() *user {
-	return &user{repository: repository.User()}
+	return &user{rpo: repository.New()}
 }
 
 func (svc user) ValidateCredentials(ctx context.Context, username, password string) (*types.User, error) {
-	user, err := svc.repository.FindByUsername(ctx, username)
+	user, err := svc.rpo.FindUserByUsername(username)
 	if err != nil {
 		return nil, err
 	}
@@ -52,19 +46,26 @@ func (svc user) ValidateCredentials(ctx context.Context, username, password stri
 }
 
 func (svc user) FindByID(ctx context.Context, id uint64) (*types.User, error) {
-	return svc.repository.FindByID(ctx, id)
+	return svc.rpo.WithCtx(ctx).FindUserByID(id)
 }
 
 func (svc user) Find(ctx context.Context, filter *types.UserFilter) ([]*types.User, error) {
-	return svc.repository.Find(ctx, filter)
+	return svc.rpo.FindUsers(filter)
 }
 
-func (svc user) Create(ctx context.Context, mod *types.User) (*types.User, error) {
-	return svc.repository.Create(ctx, mod)
+func (svc user) Create(ctx context.Context, input *types.User) (new *types.User, err error) {
+	// no real need for tx here, just presenting the capabilities
+	return new, svc.rpo.BeginWith(ctx, func(r repository.Interfaces) error {
+		if new, err = r.CreateUser(input); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (svc user) Update(ctx context.Context, mod *types.User) (*types.User, error) {
-	return svc.repository.Update(ctx, mod)
+	return svc.rpo.UpdateUser(mod)
 }
 
 func (svc user) validatePassword(user *types.User, password string) bool {
@@ -89,17 +90,17 @@ func (svc user) canLogin(u *types.User) bool {
 func (svc user) Delete(ctx context.Context, id uint64) error {
 	// @todo: permissions check if current user can delete this user
 	// @todo: notify users that user has been removed (remove from web UI)
-	return svc.repository.Delete(ctx, id)
+	return svc.rpo.DeleteUserByID(id)
 }
 
 func (svc user) Suspend(ctx context.Context, id uint64) error {
 	// @todo: permissions check if current user can suspend this user
 	// @todo: notify users that user has been supsended (remove from web UI)
-	return svc.repository.Suspend(ctx, id)
+	return svc.rpo.SuspendUserByID(id)
 }
 
 func (svc user) Unsuspend(ctx context.Context, id uint64) error {
 	// @todo: permissions check if current user can unsuspend this user
 	// @todo: notify users that user has been unsuspended
-	return svc.repository.Unsuspend(ctx, id)
+	return svc.rpo.UnsuspendUserByID(id)
 }

@@ -1,10 +1,19 @@
 package repository
 
 import (
-	"context"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/titpetric/factory"
 	"time"
+)
+
+type (
+	Message interface {
+		FindMessageByID(id uint64) (*types.Message, error)
+		FindMessages(filter *types.MessageFilter) ([]*types.Message, error)
+		CreateMessage(mod *types.Message) (*types.Message, error)
+		UpdateMessage(mod *types.Message) (*types.Message, error)
+		DeleteMessageByID(id uint64) error
+	}
 )
 
 const (
@@ -13,23 +22,15 @@ const (
 	ErrMessageNotFound = repositoryError("MessageNotFound")
 )
 
-type (
-	message struct{}
-)
-
-func Message() message {
-	return message{}
-}
-
-func (r message) FindByID(ctx context.Context, id uint64) (*types.Message, error) {
+func (r *repository) FindMessageByID(id uint64) (*types.Message, error) {
 	db := factory.Database.MustGet()
 	mod := &types.Message{}
 	sql := "SELECT id, COALESCE(type,'') AS type, message, rel_user, rel_channel, COALESCE(reply_to, 0) AS reply_to FROM messages WHERE id = ? AND " + sqlMessageScope
 
-	return mod, isFound(db.With(ctx).Get(mod, sql, id), mod.ID > 0, ErrMessageNotFound)
+	return mod, isFound(db.With(r.ctx).Get(mod, sql, id), mod.ID > 0, ErrMessageNotFound)
 }
 
-func (r message) Find(ctx context.Context, filter *types.MessageFilter) ([]*types.Message, error) {
+func (r *repository) FindMessages(filter *types.MessageFilter) ([]*types.Message, error) {
 	db := factory.Database.MustGet()
 	params := make([]interface{}, 0)
 	rval := make([]*types.Message, 0)
@@ -65,22 +66,22 @@ func (r message) Find(ctx context.Context, filter *types.MessageFilter) ([]*type
 		sql += " LIMIT ? "
 		params = append(params, filter.Limit)
 	}
-	return rval, db.With(ctx).Select(&rval, sql, params...)
+	return rval, db.With(r.ctx).Select(&rval, sql, params...)
 }
 
-func (r message) Create(ctx context.Context, mod *types.Message) (*types.Message, error) {
+func (r *repository) CreateMessage(mod *types.Message) (*types.Message, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
-	return mod, factory.Database.MustGet().With(ctx).Insert("messages", mod)
+	return mod, factory.Database.MustGet().With(r.ctx).Insert("messages", mod)
 }
 
-func (r message) Update(ctx context.Context, mod *types.Message) (*types.Message, error) {
+func (r *repository) UpdateMessage(mod *types.Message) (*types.Message, error) {
 	mod.UpdatedAt = timeNowPtr()
 
-	return mod, factory.Database.MustGet().With(ctx).Replace("messages", mod)
+	return mod, factory.Database.MustGet().With(r.ctx).Replace("messages", mod)
 }
 
-func (r message) Delete(ctx context.Context, id uint64) error {
-	return simpleDelete(ctx, "messages", id)
+func (r *repository) DeleteMessageByID(id uint64) error {
+	return simpleDelete(r.ctx, "messages", id)
 }

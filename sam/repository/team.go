@@ -1,10 +1,23 @@
 package repository
 
 import (
-	"context"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/titpetric/factory"
 	"time"
+)
+
+type (
+	Team interface {
+		FindTeamByID(id uint64) (*types.Team, error)
+		FindTeams(filter *types.TeamFilter) ([]*types.Team, error)
+		CreateTeam(mod *types.Team) (*types.Team, error)
+		UpdateTeam(mod *types.Team) (*types.Team, error)
+		ArchiveTeamByID(id uint64) error
+		UnarchiveTeamByID(id uint64) error
+		DeleteTeamByID(id uint64) error
+		MergeTeamByID(id, targetTeamID uint64) error
+		MoveTeamByID(id, targetOrganisationID uint64) error
+	}
 )
 
 const (
@@ -13,15 +26,7 @@ const (
 	ErrTeamNotFound = repositoryError("TeamNotFound")
 )
 
-type (
-	team struct{}
-)
-
-func Team() team {
-	return team{}
-}
-
-func (r team) FindByID(ctx context.Context, id uint64) (*types.Team, error) {
+func (r *repository) FindTeamByID(id uint64) (*types.Team, error) {
 	db := factory.Database.MustGet()
 	sql := "SELECT * FROM teams WHERE id = ? AND " + sqlTeamScope
 	mod := &types.Team{}
@@ -29,7 +34,7 @@ func (r team) FindByID(ctx context.Context, id uint64) (*types.Team, error) {
 	return mod, isFound(db.Get(mod, sql, id), mod.ID > 0, ErrTeamNotFound)
 }
 
-func (r team) Find(ctx context.Context, filter *types.TeamFilter) ([]*types.Team, error) {
+func (r *repository) FindTeams(filter *types.TeamFilter) ([]*types.Team, error) {
 	db := factory.Database.MustGet()
 	rval := make([]*types.Team, 0)
 	params := make([]interface{}, 0)
@@ -45,38 +50,38 @@ func (r team) Find(ctx context.Context, filter *types.TeamFilter) ([]*types.Team
 
 	sql += " ORDER BY name ASC"
 
-	return rval, db.With(ctx).Select(&rval, sql, params...)
+	return rval, db.With(r.ctx).Select(&rval, sql, params...)
 }
 
-func (r team) Create(ctx context.Context, mod *types.Team) (*types.Team, error) {
+func (r *repository) CreateTeam(mod *types.Team) (*types.Team, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
-	return mod, factory.Database.MustGet().With(ctx).Insert("teams", mod)
+	return mod, factory.Database.MustGet().With(r.ctx).Insert("teams", mod)
 }
 
-func (r team) Update(ctx context.Context, mod *types.Team) (*types.Team, error) {
+func (r *repository) UpdateTeam(mod *types.Team) (*types.Team, error) {
 	mod.UpdatedAt = timeNowPtr()
 
-	return mod, factory.Database.MustGet().With(ctx).Replace("teams", mod)
+	return mod, factory.Database.MustGet().With(r.ctx).Replace("teams", mod)
 }
 
-func (r team) Archive(ctx context.Context, id uint64) error {
-	return simpleUpdate(ctx, "teams", "archived_at", time.Now(), id)
+func (r *repository) ArchiveTeamByID(id uint64) error {
+	return simpleUpdate(r.ctx, "teams", "archived_at", time.Now(), id)
 }
 
-func (r team) Unarchive(ctx context.Context, id uint64) error {
-	return simpleUpdate(ctx, "teams", "archived_at", nil, id)
+func (r *repository) UnarchiveTeamByID(id uint64) error {
+	return simpleUpdate(r.ctx, "teams", "archived_at", nil, id)
 }
 
-func (r team) Delete(ctx context.Context, id uint64) error {
-	return simpleDelete(ctx, "teams", id)
+func (r *repository) DeleteTeamByID(id uint64) error {
+	return simpleDelete(r.ctx, "teams", id)
 }
 
-func (r team) Merge(ctx context.Context, id, targetTeamID uint64) error {
+func (r *repository) MergeTeamByID(id, targetTeamID uint64) error {
 	return ErrNotImplemented
 }
 
-func (r team) Move(ctx context.Context, id, targetOrganisationID uint64) error {
+func (r *repository) MoveTeamByID(id, targetOrganisationID uint64) error {
 	return ErrNotImplemented
 }

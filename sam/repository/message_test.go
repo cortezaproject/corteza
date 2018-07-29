@@ -24,7 +24,7 @@ func TestMessage(t *testing.T) {
 
 	msg.Message = msg1
 
-	msg, err = rpo.Create(ctx, msg)
+	msg, err = rpo.CreateMessage(ctx, msg)
 	must(t, err)
 	if msg.Message != msg1 {
 		t.Fatal("Changes were not stored")
@@ -38,13 +38,13 @@ func TestMessage(t *testing.T) {
 		t.Fatal("Changes were not stored")
 	}
 
-	msg, err = rpo.FindByID(ctx, msg.ID)
+	msg, err = rpo.FindMessageByID(ctx, msg.ID)
 	must(t, err)
 	if msg.Message != msg2 {
 		t.Fatal("Changes were not stored")
 	}
 
-	mm, err = rpo.Find(ctx, &types.MessageFilter{Query: msg2})
+	mm, err = rpo.FindMessages(ctx, &types.MessageFilter{Query: msg2})
 	must(t, err)
 	if len(mm) == 0 {
 		t.Fatal("No results found")
