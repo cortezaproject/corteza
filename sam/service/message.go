@@ -51,7 +51,7 @@ func (svc message) Find(ctx context.Context, filter *types.MessageFilter) ([]*ty
 	// @todo get user from context
 	var currentUserID uint64 = 0
 
-	// @todo verify if current user can access & write to this channel
+	// @todo verify if current user can access & read from this channel
 	_ = currentUserID
 	_ = filter.ChannelID
 

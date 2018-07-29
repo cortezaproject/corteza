@@ -15,4 +15,10 @@ type (
 		ChannelID string `json:"cid"`
 		ID        string `json:"id"`
 	}
+
+	MessageHistory struct {
+		ChannelID string `json:"cid"`
+		FromID    string `json:"fid,omitempty"`
+		UntilID   string `json:"uid,omitempty"`
+	}
 )

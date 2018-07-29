@@ -11,9 +11,13 @@ type (
 		ChannelID string `json:"cid"`
 	}
 
-	ChannelOpen struct {
+	ChannelRename struct {
 		ChannelID string `json:"cid"`
-		Since     string `json:"since,omitempty"`
-		Until     string `json:"until,omitempty"`
+		Name      string `json:"name"`
+	}
+
+	ChannelChangeTopic struct {
+		ChannelID string `json:"cid"`
+		Topic     string `json:"topic"`
 	}
 )

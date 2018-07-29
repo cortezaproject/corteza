@@ -56,3 +56,23 @@ func (s *Session) messageDelete(ctx context.Context, p *incoming.MessageDelete) 
 
 	return s.sendToAllSubscribers(&outgoing.MessageDelete{ID: p.ID}, p.ChannelID)
 }
+
+func (s *Session) messageHistory(ctx context.Context, p *incoming.MessageHistory) error {
+	var (
+		filter = &types.MessageFilter{
+			ChannelID:      parseUInt64(p.ChannelID),
+			FromMessageID:  parseUInt64(p.FromID),
+			UntilMessageID: parseUInt64(p.UntilID),
+
+			// Max no. of messages we will return
+			Limit: 50,
+		}
+	)
+
+	messages, err := service.Message().Find(ctx, filter)
+	if err != nil {
+		return err
+	}
+
+	return s.sendReply(payloadFromMessages(messages))
+}
