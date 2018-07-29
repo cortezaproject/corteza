@@ -125,7 +125,15 @@ func (r *DatabaseFactory) Get(dbName ...string) (*DB, error) {
 			if err != nil {
 				return nil, err
 			}
-			r.instances[name] = &DB{handle, context.Background(), nil}
+			r.instances[name] = &DB{
+				handle,
+				context.Background(),
+				nil,
+				&sql.TxOptions{
+					ReadOnly: false,
+				},
+				nil,
+			}
 			return r.instances[name], nil
 		}
 	}
@@ -147,22 +155,68 @@ type DB struct {
 
 	ctx context.Context
 
+	Tx     *sqlx.Tx
+	TxOpts *sql.TxOptions
+
 	Profiler DatabaseProfiler
 }
 
 // Quiet will return a DB handle without a profiler (throw-away)
 func (r *DB) Quiet() *DB {
 	return &DB{
-		DB: r.DB,
+		r.DB,
+		r.ctx,
+		r.Tx,
+		r.TxOpts,
+		nil,
 	}
 }
 
 // With will return a DB handle with a bound context (throw-away)
 func (r *DB) With(ctx context.Context) *DB {
 	return &DB{
-		DB:  r.DB,
-		ctx: ctx,
+		r.DB,
+		ctx,
+		r.Tx,
+		r.TxOpts,
+		r.Profiler,
 	}
+}
+
+// Begin will create a transaction in the DB with a context
+func (r *DB) Begin() error {
+	var err error
+	if r.Tx != nil {
+		return errors.New("Transaction already started")
+	}
+	if r.ctx == nil {
+		r.Tx, err = r.DB.Beginx()
+		return errors.WithStack(err)
+	}
+	r.Tx, err = r.DB.BeginTxx(r.ctx, r.TxOpts)
+	return errors.WithStack(err)
+}
+
+func (r *DB) Commit() error {
+	if r.Tx != nil {
+		if err := r.Tx.Commit(); err != nil {
+			return errors.WithStack(err)
+		}
+		r.Tx = nil
+		return nil
+	}
+	return errors.New("No transation active")
+}
+
+func (r *DB) Rollback() error {
+	if r.Tx != nil {
+		if err := r.Tx.Rollback(); err != nil {
+			return errors.WithStack(err)
+		}
+		r.Tx = nil
+		return nil
+	}
+	return errors.New("No transaction active")
 }
 
 // SetFields will provide a string with SQL named bindings from a string slice
@@ -180,25 +234,39 @@ func (r *DB) SetFields(fields []string) string {
 }
 
 // NamedExec adds profiling on top of the parent DB.NameExec
-func (r *DB) NamedExec(query string, arg interface{}) (sql.Result, error) {
+func (r *DB) NamedExec(query string, arg interface{}) (res sql.Result, err error) {
+	exec := func() (sql.Result, error) {
+		if r.Tx != nil {
+			return r.Tx.NamedExecContext(r.ctx, query, arg)
+		}
+		return r.DB.NamedExecContext(r.ctx, query, arg)
+	}
+
 	if r.Profiler != nil {
 		ctx := DatabaseProfilerContext{}.new(query, arg)
-		res, err := r.DB.NamedExecContext(r.ctx, query, arg)
+		res, err = exec()
 		r.Profiler.Post(ctx)
-		return res, err
+	} else {
+		res, err = exec()
 	}
-	return r.DB.NamedExecContext(r.ctx, query, arg)
+	return res, errors.Wrap(err, "exec query failed")
 }
 
 // Select is a helper function that will ignore sql.ErrNoRows
 func (r *DB) Select(dest interface{}, query string, args ...interface{}) error {
 	var err error
+	exec := func() error {
+		if r.Tx != nil {
+			return r.Tx.SelectContext(r.ctx, dest, query, args...)
+		}
+		return r.DB.SelectContext(r.ctx, dest, query, args...)
+	}
 	if r.Profiler != nil {
 		ctx := DatabaseProfilerContext{}.new(query, args...)
-		err = r.DB.SelectContext(r.ctx, dest, query, args...)
+		err = exec()
 		r.Profiler.Post(ctx)
 	} else {
-		err = r.DB.SelectContext(r.ctx, dest, query, args...)
+		err = exec()
 	}
 	// clear no rows returned error
 	if err == sql.ErrNoRows {
@@ -210,12 +278,18 @@ func (r *DB) Select(dest interface{}, query string, args ...interface{}) error {
 // Get is a helper function that will ignore sql.ErrNoRows
 func (r *DB) Get(dest interface{}, query string, args ...interface{}) error {
 	var err error
+	exec := func() error {
+		if r.Tx != nil {
+			return r.Tx.GetContext(r.ctx, dest, query, args...)
+		}
+		return r.DB.GetContext(r.ctx, dest, query, args...)
+	}
 	if r.Profiler != nil {
 		ctx := DatabaseProfilerContext{}.new(query, args...)
-		err = r.DB.GetContext(r.ctx, dest, query, args...)
+		err = exec()
 		r.Profiler.Post(ctx)
 	} else {
-		err = r.DB.GetContext(r.ctx, dest, query, args...)
+		err = exec()
 	}
 	// clear no rows returned error
 	if err == sql.ErrNoRows {

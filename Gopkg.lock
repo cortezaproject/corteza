@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/SentimensRG/sigctx"
+  packages = ["."]
+  revision = "c19b774db63bdcae0c335d8c4bab1207713a08c6"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -78,12 +84,6 @@
   version = "v1.2.0"
 
 [[projects]]
-  name = "github.com/labstack/gommon"
-  packages = ["random"]
-  revision = "d6898124de917583f5ff5592ef931d1dfe0ddc05"
-  version = "0.2.6"
-
-[[projects]]
   branch = "master"
   name = "github.com/lib/pq"
   packages = [
@@ -117,7 +117,7 @@
     ".",
     "resputil"
   ]
-  revision = "f3b1061ebdb281d6204f95fdc1b9cb84a48e1bd3"
+  revision = "3f10a81a8ec5ed5426c96e71a9029c1921d07aef"
 
 [[projects]]
   branch = "master"
@@ -126,7 +126,7 @@
     "bcrypt",
     "blowfish"
   ]
-  revision = "a2144134853fc9a27a7b1e3eb4f19f1a76df13c9"
+  revision = "c126467f60eb25f8f27e5a981f32a87e3965053f"
 
 [[projects]]
   branch = "master"
@@ -140,7 +140,7 @@
     "internal/timeseries",
     "trace"
   ]
-  revision = "a680a1efc54dd51c040b3b5ce4939ea3cf2ea0d1"
+  revision = "c4299a1a0d8524c11563db160fbf9bddbceadb21"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -173,7 +173,7 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "02b4e95473316948020af0b7a4f0f22c73929b0e"
+  revision = "2a72893556e4d1f6c795a4c039314c9fa751eedb"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -210,6 +210,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7f142f5d723e442561d3cd97848ecf4c4d484f016d0942f1516344d4acf056af"
+  inputs-digest = "297f1368fa993f29af05bf130133ca3e0b133c4fec4b039a6cb4ae3b94b7a63b"
   solver-name = "gps-cdcl"
   solver-version = 1
