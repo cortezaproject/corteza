@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"context"
 	"github.com/crusttech/crust/sam/types"
 	"testing"
 )
@@ -14,8 +13,7 @@ func TestOrganisation(t *testing.T) {
 		return
 	}
 
-	rpo := Organisation()
-	ctx := context.Background()
+	rpo := New()
 	org := &types.Organisation{}
 
 	var name1, name2 = "Test organisation v1", "Test organisation v2"

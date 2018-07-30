@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"context"
 	"github.com/crusttech/crust/sam/types"
 	"testing"
 )
@@ -15,7 +14,6 @@ func TestChannel(t *testing.T) {
 	}
 
 	rpo := New()
-	ctx := context.Background()
 	chn := &types.Channel{}
 
 	var name1, name2 = "Test channel v1", "Test channel v2"
