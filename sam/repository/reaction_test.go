@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"context"
 	"github.com/crusttech/crust/sam/types"
 	"testing"
 )
@@ -14,25 +13,24 @@ func TestReaction(t *testing.T) {
 		return
 	}
 
-	rpo := Reaction()
-	ctx := context.Background()
+	rpo := New()
 	react := &types.Reaction{}
 
 	var reaction = ":laugh:"
 
 	react.Reaction = reaction
 
-	react, err = rpo.Create(ctx, react)
+	react, err = rpo.CreateReaction(react)
 	must(t, err)
 	if react.Reaction != reaction {
 		t.Fatal("Changes were not stored")
 	}
 
-	react, err = rpo.FindByID(ctx, react.ID)
+	react, err = rpo.FindReactionByID(react.ID)
 	must(t, err)
 	if react.Reaction != reaction {
 		t.Fatal("Changes were not stored")
 	}
 
-	must(t, rpo.Delete(ctx, react.ID))
+	must(t, rpo.DeleteReactionByID(react.ID))
 }
