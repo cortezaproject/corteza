@@ -49,12 +49,8 @@ func (r *repository) WithCtx(ctx context.Context) Interfaces {
 }
 
 func (r *repository) BeginWith(ctx context.Context, callback BeginCallback) error {
-	tx := r.tx
-	if tx == nil {
-		tx = factory.Database.MustGet().With(ctx)
-	}
 
-	txr := &repository{ctx: ctx, tx: tx}
+	txr := &repository{ctx: ctx}
 
 	if err := txr.Begin(); err != nil {
 		return err
@@ -72,20 +68,21 @@ func (r *repository) BeginWith(ctx context.Context, callback BeginCallback) erro
 }
 
 func (r *repository) Begin() error {
-	// @todo implementation
-	return r.tx.Begin()
+	return r.db().Begin()
 }
 
 func (r *repository) Commit() error {
-	// @todo implementation
-	return r.tx.Commit()
+	return r.db().Commit()
 }
 
 func (r *repository) Rollback() error {
-	// @todo implementation
-	return r.tx.Rollback()
+	return r.db().Rollback()
 }
 
 func (r *repository) db() *factory.DB {
+	if r.tx == nil {
+		r.tx = factory.Database.MustGet().With(r.ctx)
+	}
+
 	return r.tx.With(r.ctx)
 }

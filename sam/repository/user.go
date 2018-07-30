@@ -66,7 +66,6 @@ func (r *repository) CreateUser(mod *types.User) (*types.User, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 	mod.Meta = coalesceJson(mod.Meta, []byte("{}"))
-
 	return mod, r.db().Insert("users", mod)
 }
 
