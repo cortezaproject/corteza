@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"context"
 	"github.com/crusttech/crust/sam/types"
 	"testing"
 )
@@ -14,8 +13,7 @@ func TestMessage(t *testing.T) {
 		return
 	}
 
-	rpo := Message()
-	ctx := context.Background()
+	rpo := New()
 	msg := &types.Message{}
 
 	var msg1, msg2 = "Test message v1", "Test message v2"
@@ -24,7 +22,7 @@ func TestMessage(t *testing.T) {
 
 	msg.Message = msg1
 
-	msg, err = rpo.CreateMessage(ctx, msg)
+	msg, err = rpo.CreateMessage(msg)
 	must(t, err)
 	if msg.Message != msg1 {
 		t.Fatal("Changes were not stored")
@@ -32,23 +30,23 @@ func TestMessage(t *testing.T) {
 
 	msg.Message = msg2
 
-	msg, err = rpo.Update(ctx, msg)
+	msg, err = rpo.UpdateMessage(msg)
 	must(t, err)
 	if msg.Message != msg2 {
 		t.Fatal("Changes were not stored")
 	}
 
-	msg, err = rpo.FindMessageByID(ctx, msg.ID)
+	msg, err = rpo.FindMessageByID(msg.ID)
 	must(t, err)
 	if msg.Message != msg2 {
 		t.Fatal("Changes were not stored")
 	}
 
-	mm, err = rpo.FindMessages(ctx, &types.MessageFilter{Query: msg2})
+	mm, err = rpo.FindMessages(&types.MessageFilter{Query: msg2})
 	must(t, err)
 	if len(mm) == 0 {
 		t.Fatal("No results found")
 	}
 
-	must(t, rpo.Delete(ctx, msg.ID))
+	must(t, rpo.DeleteMessageByID(msg.ID))
 }

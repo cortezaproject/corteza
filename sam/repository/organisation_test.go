@@ -24,7 +24,7 @@ func TestOrganisation(t *testing.T) {
 
 	org.Name = name1
 
-	org, err = rpo.Create(ctx, org)
+	org, err = rpo.CreateOrganisation(org)
 	must(t, err)
 	if org.Name != name1 {
 		t.Fatal("Changes were not stored")
@@ -32,25 +32,25 @@ func TestOrganisation(t *testing.T) {
 
 	org.Name = name2
 
-	org, err = rpo.Update(ctx, org)
+	org, err = rpo.UpdateOrganisation(org)
 	must(t, err)
 	if org.Name != name2 {
 		t.Fatal("Changes were not stored")
 	}
 
-	org, err = rpo.FindByID(ctx, org.ID)
+	org, err = rpo.FindOrganisationByID(org.ID)
 	must(t, err)
 	if org.Name != name2 {
 		t.Fatal("Changes were not stored")
 	}
 
-	oo, err = rpo.Find(ctx, &types.OrganisationFilter{Query: name2})
+	oo, err = rpo.FindOrganisations(&types.OrganisationFilter{Query: name2})
 	must(t, err)
 	if len(oo) == 0 {
 		t.Fatal("No results found")
 	}
 
-	must(t, rpo.Archive(ctx, org.ID))
-	must(t, rpo.Unarchive(ctx, org.ID))
-	must(t, rpo.Delete(ctx, org.ID))
+	must(t, rpo.ArchiveOrganisationByID(org.ID))
+	must(t, rpo.UnarchiveOrganisationByID(org.ID))
+	must(t, rpo.DeleteOrganisationByID(org.ID))
 }
