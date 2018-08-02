@@ -299,8 +299,8 @@ func (r *DB) Get(dest interface{}, query string, args ...interface{}) error {
 }
 
 // set uses reflection to iterate over struct fields tags, producing bindings for struct values
-func (r *DB) set(data interface{}) string {
-	set := r.setMap(data)
+func (r *DB) set(data interface{}, allowed ...string) string {
+	set := r.setMap(data, allowed...)
 	return r.setImplode(", ", set)
 }
 
@@ -311,7 +311,7 @@ func (r *DB) tag(tag string) string {
 	return ""
 }
 
-func (r *DB) setMap(data interface{}) map[string]string {
+func (r *DB) setMap(data interface{}, allowed ...string) map[string]string {
 	message_value := reflect.ValueOf(data)
 	if message_value.Kind() == reflect.Ptr {
 		message_value = message_value.Elem()
@@ -325,6 +325,23 @@ func (r *DB) setMap(data interface{}) map[string]string {
 			set[tag] = ":" + tag
 		}
 	}
+
+	// limit only to allowed fields
+	if len(allowed) > 0 {
+		for tag, _ := range set {
+			canDelete := true
+			for _, key := range allowed {
+				if tag == key {
+					canDelete = false
+					break
+				}
+			}
+			if canDelete {
+				delete(set, tag)
+			}
+		}
+	}
+
 	return set
 }
 
@@ -348,6 +365,30 @@ func (r *DB) Update(table string, args interface{}, keys ...string) error {
 		return errors.New("Full-table update not supported")
 	}
 	set := r.setMap(args)
+	setWhere := make(map[string]string)
+	for _, key := range keys {
+		value, ok := set[key]
+		if !ok {
+			return errors.New("Can't update table " + table + " by key " + key + " (no such field in struct)")
+		}
+		delete(set, key)
+		setWhere[key] = value
+	}
+	if len(set) == 0 {
+		return errors.New("Encountered update struct with no fields")
+	}
+	query := "update " + table + " set " + r.setImplode(", ", set) + " where " + r.setImplode(" AND ", setWhere)
+	_, err = r.NamedExec(query, args)
+	return err
+}
+
+// Update is a helper function which will issue an `update` statement to the db
+func (r *DB) UpdatePartial(table string, args interface{}, allowed []string, keys ...string) error {
+	var err error
+	if len(keys) == 0 {
+		return errors.New("Full-table update not supported")
+	}
+	set := r.setMap(args, allowed...)
 	setWhere := make(map[string]string)
 	for _, key := range keys {
 		value, ok := set[key]
