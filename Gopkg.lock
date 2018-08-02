@@ -150,14 +150,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:25ddf0e34456203a4fa38fc075deb1b695bbe3cd3e75c0cd62dcb3b102a41255"
+  digest = "1:d231adc5fb42ed766945f5ef237931534151c0b434f3df3da0304415214df706"
   name = "github.com/titpetric/factory"
   packages = [
     ".",
     "resputil",
   ]
   pruneopts = "UT"
-  revision = "3f10a81a8ec5ed5426c96e71a9029c1921d07aef"
+  revision = "4a0739ad2549603fbe5683932fc072895303b247"
 
 [[projects]]
   branch = "master"
