@@ -25,6 +25,7 @@ func (uh *UserHandlers) MountRoutes(r chi.Router, middlewares ...func(http.Handl
 		r.Use(middlewares...)
 		r.Route("/users", func(r chi.Router) {
 			r.Get("/search", uh.Search)
+			r.Post("/{userID}/message", uh.Message)
 		})
 	})
 }

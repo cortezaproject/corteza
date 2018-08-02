@@ -23,15 +23,13 @@ const (
 )
 
 func (r *repository) FindMessageByID(id uint64) (*types.Message, error) {
-	db := factory.Database.MustGet()
 	mod := &types.Message{}
 	sql := "SELECT id, COALESCE(type,'') AS type, message, rel_user, rel_channel, COALESCE(reply_to, 0) AS reply_to FROM messages WHERE id = ? AND " + sqlMessageScope
 
-	return mod, isFound(db.With(r.ctx).Get(mod, sql, id), mod.ID > 0, ErrMessageNotFound)
+	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrMessageNotFound)
 }
 
 func (r *repository) FindMessages(filter *types.MessageFilter) ([]*types.Message, error) {
-	db := factory.Database.MustGet()
 	params := make([]interface{}, 0)
 	rval := make([]*types.Message, 0)
 
@@ -66,22 +64,22 @@ func (r *repository) FindMessages(filter *types.MessageFilter) ([]*types.Message
 		sql += " LIMIT ? "
 		params = append(params, filter.Limit)
 	}
-	return rval, db.With(r.ctx).Select(&rval, sql, params...)
+	return rval, r.db().Select(&rval, sql, params...)
 }
 
 func (r *repository) CreateMessage(mod *types.Message) (*types.Message, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
-	return mod, factory.Database.MustGet().With(r.ctx).Insert("messages", mod)
+	return mod, r.db().With(r.ctx).Insert("messages", mod)
 }
 
 func (r *repository) UpdateMessage(mod *types.Message) (*types.Message, error) {
 	mod.UpdatedAt = timeNowPtr()
 
-	return mod, factory.Database.MustGet().With(r.ctx).Replace("messages", mod)
+	return mod, r.db().With(r.ctx).Replace("messages", mod)
 }
 
 func (r *repository) DeleteMessageByID(id uint64) error {
-	return simpleDelete(r.ctx, "messages", id)
+	return r.updateColumnByID("messages", "deleted_at", nil, id)
 }

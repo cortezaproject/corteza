@@ -64,13 +64,13 @@ func (r *repository) UpdateOrganisation(mod *types.Organisation) (*types.Organis
 }
 
 func (r *repository) ArchiveOrganisationByID(id uint64) error {
-	return simpleUpdate(r.ctx, "organisations", "archived_at", time.Now(), id)
+	return r.updateColumnByID("organisations", "archived_at", time.Now(), id)
 }
 
 func (r *repository) UnarchiveOrganisationByID(id uint64) error {
-	return simpleUpdate(r.ctx, "organisations", "archived_at", nil, id)
+	return r.updateColumnByID("organisations", "archived_at", nil, id)
 }
 
 func (r *repository) DeleteOrganisationByID(id uint64) error {
-	return simpleDelete(r.ctx, "organisations", id)
+	return r.updateColumnByID("organisations", "deleted_at", nil, id)
 }

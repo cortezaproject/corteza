@@ -25,15 +25,13 @@ const (
 var _ Attachment = &repository{}
 
 func (r *repository) FindAttachmentByID(id uint64) (*types.Attachment, error) {
-	db := factory.Database.MustGet()
 	sql := "SELECT * FROM attachments WHERE id = ? AND " + sqlAttachmentScope
 	mod := &types.Attachment{}
 
-	return mod, isFound(db.With(r.ctx).Get(mod, sql, id), mod.ID > 0, ErrAttachmentNotFound)
+	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrAttachmentNotFound)
 }
 
 func (r *repository) FindAttachmentByRange(channelID, fromAttachmentID, toAttachmentID uint64) ([]*types.Attachment, error) {
-	db := factory.Database.MustGet()
 	rval := make([]*types.Attachment, 0)
 
 	sql := `
@@ -43,7 +41,7 @@ func (r *repository) FindAttachmentByRange(channelID, fromAttachmentID, toAttach
            AND rel_channel = ?
            AND deleted_at IS NULL`
 
-	return rval, db.With(r.ctx).Select(&rval, sql, fromAttachmentID, toAttachmentID, channelID)
+	return rval, r.db().Select(&rval, sql, fromAttachmentID, toAttachmentID, channelID)
 }
 
 func (r *repository) CreateAttachment(mod *types.Attachment) (*types.Attachment, error) {
@@ -52,16 +50,16 @@ func (r *repository) CreateAttachment(mod *types.Attachment) (*types.Attachment,
 
 	mod.Attachment = coalesceJson(mod.Attachment, []byte("{}"))
 
-	return mod, factory.Database.MustGet().With(r.ctx).Insert("attachments", mod)
+	return mod, r.db().Insert("attachments", mod)
 }
 
 func (r *repository) UpdateAttachment(mod *types.Attachment) (*types.Attachment, error) {
 	mod.UpdatedAt = timeNowPtr()
 	mod.Attachment = coalesceJson(mod.Attachment, []byte("{}"))
 
-	return mod, factory.Database.MustGet().With(r.ctx).Replace("attachments", mod)
+	return mod, r.db().Replace("attachments", mod)
 }
 
 func (r *repository) DeleteAttachmentByID(id uint64) error {
-	return simpleDelete(r.ctx, "attachments", id)
+	return r.updateColumnByID("attachments", "deleted_at", nil, id)
 }

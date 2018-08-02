@@ -75,7 +75,7 @@
     },
     {
       "Name": "create",
-      "Method": "PUT",
+      "Method": "POST",
       "Title": "Update team details",
       "Path": "/",
       "Parameters": {
@@ -97,7 +97,7 @@
     },
     {
       "Name": "edit",
-      "Method": "POST",
+      "Method": "PUT",
       "Title": "Update team details",
       "Path": "/{teamID}",
       "Parameters": {

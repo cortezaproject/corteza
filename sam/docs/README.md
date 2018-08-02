@@ -22,7 +22,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/organisations/` | HTTP/S | PUT | Client ID, Session ID |
+| `/organisations/` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -36,7 +36,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/organisations/{id}` | HTTP/S | POST | Client ID, Session ID |
+| `/organisations/{id}` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
@@ -114,7 +114,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/` | HTTP/S | PUT | Client ID, Session ID |
+| `/teams/` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -129,7 +129,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/{teamID}` | HTTP/S | POST | Client ID, Session ID |
+| `/teams/{teamID}` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
@@ -238,7 +238,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/` | HTTP/S | PUT | Client ID, Session ID |
+| `/channels/` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -253,7 +253,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelID}` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelID}` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
@@ -565,6 +565,21 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query to match against users | N/A | NO |
+
+## Send direct message to user
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/users/{userID}/message` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| userID | uint64 | PATH | User ID | N/A | YES |
+| message | string | POST | Message contents (markdown) | N/A | YES |
 
 
 

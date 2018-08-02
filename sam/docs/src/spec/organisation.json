@@ -76,7 +76,7 @@
     },
     {
       "Name": "create",
-      "Method": "PUT",
+      "Method": "POST",
       "Title": "Create organisation",
       "Path": "/",
       "Parameters": {
@@ -92,7 +92,7 @@
     },
     {
       "Name": "edit",
-      "Method": "POST",
+      "Method": "PUT",
       "Title": "Update organisation details",
       "Path": "/{id}",
       "Parameters": {

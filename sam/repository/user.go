@@ -77,13 +77,13 @@ func (r *repository) UpdateUser(mod *types.User) (*types.User, error) {
 }
 
 func (r *repository) SuspendUserByID(id uint64) error {
-	return simpleUpdate(r.ctx, "users", "suspend_at", time.Now(), id)
+	return r.updateColumnByID("users", "suspend_at", time.Now(), id)
 }
 
 func (r *repository) UnsuspendUserByID(id uint64) error {
-	return simpleUpdate(r.ctx, "users", "suspend_at", nil, id)
+	return r.updateColumnByID("users", "suspend_at", nil, id)
 }
 
 func (r *repository) DeleteUserByID(id uint64) error {
-	return simpleDelete(r.ctx, "users", id)
+	return r.updateColumnByID("users", "deleted_at", nil, id)
 }

@@ -172,6 +172,19 @@ func (mr *MockRepositoryMockRecorder) FindChannelByID(id interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindChannelByID", reflect.TypeOf((*MockRepository)(nil).FindChannelByID), id)
 }
 
+// FindDirectChannelByUserID mocks base method
+func (m *MockRepository) FindDirectChannelByUserID(fromUserID, toUserID uint64) (*types.Channel, error) {
+	ret := m.ctrl.Call(m, "FindDirectChannelByUserID", fromUserID, toUserID)
+	ret0, _ := ret[0].(*types.Channel)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindDirectChannelByUserID indicates an expected call of FindDirectChannelByUserID
+func (mr *MockRepositoryMockRecorder) FindDirectChannelByUserID(fromUserID, toUserID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindDirectChannelByUserID", reflect.TypeOf((*MockRepository)(nil).FindDirectChannelByUserID), fromUserID, toUserID)
+}
+
 // FindChannels mocks base method
 func (m *MockRepository) FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error) {
 	ret := m.ctrl.Call(m, "FindChannels", filter)
@@ -212,15 +225,16 @@ func (mr *MockRepositoryMockRecorder) UpdateChannel(mod interface{}) *gomock.Cal
 }
 
 // AddChannelMember mocks base method
-func (m *MockRepository) AddChannelMember(channelID, userID uint64) error {
-	ret := m.ctrl.Call(m, "AddChannelMember", channelID, userID)
-	ret0, _ := ret[0].(error)
-	return ret0
+func (m *MockRepository) AddChannelMember(mod *types.ChannelMember) (*types.ChannelMember, error) {
+	ret := m.ctrl.Call(m, "AddChannelMember", mod)
+	ret0, _ := ret[0].(*types.ChannelMember)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddChannelMember indicates an expected call of AddChannelMember
-func (mr *MockRepositoryMockRecorder) AddChannelMember(channelID, userID interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddChannelMember", reflect.TypeOf((*MockRepository)(nil).AddChannelMember), channelID, userID)
+func (mr *MockRepositoryMockRecorder) AddChannelMember(mod interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddChannelMember", reflect.TypeOf((*MockRepository)(nil).AddChannelMember), mod)
 }
 
 // RemoveChannelMember mocks base method

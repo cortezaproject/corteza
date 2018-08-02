@@ -30,7 +30,13 @@ CREATE TABLE teams (
 CREATE TABLE channels (
   id               BIGINT UNSIGNED NOT NULL,
   name             TEXT            NOT NULL, -- display name of the channel
+  topic            TEXT            NOT NULL,
   meta             JSON            NOT NULL,
+
+  type             ENUM ('private', 'public', 'direct') NOT NULL DEFAULT 'public',
+
+  rel_organisation BIGINT UNSIGNED NOT NULL REFERENCES organisation(id),
+  rel_creator      BIGINT UNSIGNED NOT NULL REFERENCES users(id),
 
   created_at       DATETIME        NOT NULL DEFAULT NOW(),
   updated_at       DATETIME            NULL,
@@ -72,6 +78,11 @@ CREATE TABLE team_members (
 CREATE TABLE channel_members (
   rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
   rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
+
+  type             ENUM ('owner', 'member') NOT NULL DEFAULT 'member',
+
+  created_at       DATETIME        NOT NULL DEFAULT NOW(),
+  updated_at       DATETIME            NULL
 
   PRIMARY KEY (rel_channel, rel_user)
 );

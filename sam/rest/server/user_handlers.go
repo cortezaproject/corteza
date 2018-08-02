@@ -25,3 +25,7 @@ func (uh *UserHandlers) Search(w http.ResponseWriter, r *http.Request) {
 	params := UserSearchRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return uh.User.Search(r.Context(), params) })
 }
+func (uh *UserHandlers) Message(w http.ResponseWriter, r *http.Request) {
+	params := UserMessageRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return uh.User.Message(r.Context(), params) })
+}

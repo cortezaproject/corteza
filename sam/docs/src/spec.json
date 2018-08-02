@@ -36,7 +36,7 @@
 			},
 			{
 				"name": "create",
-				"method": "PUT",
+				"method": "POST",
 				"title": "Create organisation",
 				"path": "/",
 				"parameters": {
@@ -47,7 +47,7 @@
 			},
 			{
 				"name": "edit",
-				"method": "POST",
+				"method": "PUT",
 				"title": "Update organisation details",
 				"path": "/{id}",
 				"parameters": {
@@ -131,7 +131,7 @@
 			},
 			{
 				"name": "create",
-				"method": "PUT",
+				"method": "POST",
 				"title": "Update team details",
 				"path": "/",
 				"parameters": {
@@ -143,7 +143,7 @@
 			},
 			{
 				"name": "edit",
-				"method": "POST",
+				"method": "PUT",
 				"title": "Update team details",
 				"path": "/{teamID}",
 				"parameters": {
@@ -261,7 +261,7 @@
 			},
 			{
 				"name": "create",
-				"method": "PUT",
+				"method": "POST",
 				"title": "Create new channel",
 				"path": "/",
 				"parameters": {
@@ -273,7 +273,7 @@
 			},
 			{
 				"name": "edit",
-				"method": "POST",
+				"method": "PUT",
 				"path": "/{channelID}",
 				"title": "Update channel details",
 				"parameters": {
@@ -605,6 +605,20 @@
 				"parameters": {
 					"get": [
 						{ "type": "string", "name": "query", "required": false, "title": "Search query to match against users" }
+					]
+				}
+			},
+			{
+				"name": "message",
+				"path": "/{userID}/message",
+				"method": "POST",
+				"title": "Send direct message to user",
+				"parameters": {
+					"path": [
+						{ "name": "userID", "type": "uint64", "required": true, "title": "User ID" }
+					],
+					"post": [
+						{ "type": "string", "name": "message", "required": true, "title": "Message contents (markdown)" }
 					]
 				}
 			}

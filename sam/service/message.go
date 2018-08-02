@@ -5,6 +5,7 @@ import (
 	"github.com/crusttech/crust/auth"
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
+	"github.com/pkg/errors"
 )
 
 type (
@@ -17,6 +18,7 @@ type (
 		repository.Message
 		repository.Reaction
 		repository.Attachment
+		repository.Channel
 	}
 )
 
@@ -34,6 +36,56 @@ func (svc message) Find(ctx context.Context, filter *types.MessageFilter) ([]*ty
 	_ = filter.ChannelID
 
 	return svc.rpo.FindMessages(filter)
+}
+
+func (svc message) Direct(ctx context.Context, recipientID uint64, in *types.Message) (out *types.Message, err error) {
+	return out, svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
+		var currentUserID = auth.GetIdentityFromContext(ctx).Identity()
+
+		// @todo [SECURITY] verify if current user can send direct messages to anyone?
+		if false {
+			return errors.New("Not allowed to send direct messages")
+		}
+
+		// @todo [SECURITY] verify if current user can send direct messages to this user
+		if false {
+			return errors.New("Not allowed to send direct messages to this user")
+		}
+
+		dch, err := r.FindDirectChannelByUserID(currentUserID, recipientID)
+		if err == repository.ErrChannelNotFound {
+			dch, err = r.CreateChannel(&types.Channel{
+				Type: types.ChannelTypeDirect,
+			})
+
+			if err != nil {
+				return
+			}
+
+			membership := &types.ChannelMember{ChannelID: dch.ID, Type: types.ChannelMembershipTypeOwner}
+
+			membership.UserID = currentUserID
+			if _, err = r.AddChannelMember(membership); err != nil {
+				return
+			}
+
+			membership.UserID = recipientID
+			if _, err = r.AddChannelMember(membership); err != nil {
+				return
+			}
+
+		} else if err != nil {
+			return errors.Wrap(err, "Could not send direct message")
+		}
+
+		// Make sure our message is sent to the right channel
+		in.ChannelID = dch.ID
+		in.UserID = currentUserID
+
+		// @todo send new msg to the event-loop
+		out, err = r.CreateMessage(in)
+		return
+	})
 }
 
 func (svc message) Create(ctx context.Context, mod *types.Message) (*types.Message, error) {

@@ -71,6 +71,7 @@ func TestChannelMembers(t *testing.T) {
 	usr, err = rpo.CreateUser(usr)
 	must(t, err)
 
-	must(t, rpo.AddChannelMember(chn.ID, usr.ID))
+	_, err = rpo.AddChannelMember(&types.ChannelMember{ChannelID: chn.ID, UserID: usr.ID})
+	must(t, err)
 	must(t, rpo.RemoveChannelMember(chn.ID, usr.ID))
 }

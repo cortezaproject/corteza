@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 )
 
@@ -72,11 +73,11 @@ func (r *repository) Begin() error {
 }
 
 func (r *repository) Commit() error {
-	return r.db().Commit()
+	return errors.Wrap(r.db().Commit(), "Can not commit changes")
 }
 
 func (r *repository) Rollback() error {
-	return r.db().Rollback()
+	return errors.Wrap(r.db().Rollback(), "Can not rollback changes")
 }
 
 func (r *repository) db() *factory.DB {
@@ -84,5 +85,5 @@ func (r *repository) db() *factory.DB {
 		r.tx = factory.Database.MustGet().With(r.ctx)
 	}
 
-	return r.tx.With(r.ctx)
+	return r.tx
 }
