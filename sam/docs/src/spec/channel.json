@@ -88,7 +88,7 @@
     },
     {
       "Name": "create",
-      "Method": "PUT",
+      "Method": "POST",
       "Title": "Create new channel",
       "Path": "/",
       "Parameters": {
@@ -110,7 +110,7 @@
     },
     {
       "Name": "edit",
-      "Method": "POST",
+      "Method": "PUT",
       "Title": "Update channel details",
       "Path": "/{channelID}",
       "Parameters": {

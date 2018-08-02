@@ -25,8 +25,8 @@ func (oh *OrganisationHandlers) MountRoutes(r chi.Router, middlewares ...func(ht
 		r.Use(middlewares...)
 		r.Route("/organisations", func(r chi.Router) {
 			r.Get("/", oh.List)
-			r.Put("/", oh.Create)
-			r.Post("/{id}", oh.Edit)
+			r.Post("/", oh.Create)
+			r.Put("/{id}", oh.Edit)
 			r.Delete("/{id}", oh.Remove)
 			r.Get("/{id}", oh.Read)
 			r.Post("/{id}/archive", oh.Archive)

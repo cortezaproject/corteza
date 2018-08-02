@@ -25,8 +25,8 @@ func (ch *ChannelHandlers) MountRoutes(r chi.Router, middlewares ...func(http.Ha
 		r.Use(middlewares...)
 		r.Route("/channels", func(r chi.Router) {
 			r.Get("/", ch.List)
-			r.Put("/", ch.Create)
-			r.Post("/{channelID}", ch.Edit)
+			r.Post("/", ch.Create)
+			r.Put("/{channelID}", ch.Edit)
 			r.Get("/{channelID}", ch.Read)
 			r.Delete("/{channelID}", ch.Delete)
 			r.Get("/{channelID}/members", ch.Members)

@@ -25,8 +25,8 @@ func (th *TeamHandlers) MountRoutes(r chi.Router, middlewares ...func(http.Handl
 		r.Use(middlewares...)
 		r.Route("/teams", func(r chi.Router) {
 			r.Get("/", th.List)
-			r.Put("/", th.Create)
-			r.Post("/{teamID}", th.Edit)
+			r.Post("/", th.Create)
+			r.Put("/{teamID}", th.Edit)
 			r.Get("/{teamID}", th.Read)
 			r.Delete("/{teamID}", th.Remove)
 			r.Post("/{teamID}/archive", th.Archive)

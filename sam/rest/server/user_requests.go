@@ -49,3 +49,34 @@ func (u *UserSearchRequest) Fill(r *http.Request) error {
 }
 
 var _ RequestFiller = UserSearchRequest{}.new()
+
+// User message request parameters
+type UserMessageRequest struct {
+	UserID  uint64
+	Message string
+}
+
+func (UserMessageRequest) new() *UserMessageRequest {
+	return &UserMessageRequest{}
+}
+
+func (u *UserMessageRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	u.UserID = parseUInt64(chi.URLParam(r, "userID"))
+
+	u.Message = post["message"]
+	return nil
+}
+
+var _ RequestFiller = UserMessageRequest{}.new()

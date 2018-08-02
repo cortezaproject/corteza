@@ -61,7 +61,7 @@ func MountRoutes(jwtAuth authTokenEncoder) func(chi.Router) {
 			}).MountRoutes(r)
 
 			(&server.UserHandlers{
-				User: (&User{}).New(userSvc),
+				User: (&User{}).New(userSvc, messageSvc),
 			}).MountRoutes(r)
 		})
 	}

@@ -9,10 +9,11 @@ import (
 type (
 	Channel interface {
 		FindChannelByID(id uint64) (*types.Channel, error)
+		FindDirectChannelByUserID(fromUserID, toUserID uint64) (*types.Channel, error)
 		FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error)
 		CreateChannel(mod *types.Channel) (*types.Channel, error)
 		UpdateChannel(mod *types.Channel) (*types.Channel, error)
-		AddChannelMember(channelID, userID uint64) error
+		AddChannelMember(mod *types.ChannelMember) (*types.ChannelMember, error)
 		RemoveChannelMember(channelID, userID uint64) error
 		ArchiveChannelByID(id uint64) error
 		UnarchiveChannelByID(id uint64) error
@@ -21,25 +22,71 @@ type (
 )
 
 const (
-	sqlChannelScope = "deleted_at IS NULL AND archived_at IS NULL"
+	sqlChannelColumns = `id, 
+		type,
+		COALESCE(name, '')  AS name,
+		COALESCE(topic, '') AS topic,
+		COALESCE(meta, '{}') AS meta,
+		
+		rel_creator, 
+		rel_organisation,
+
+		created_at,
+		updated_at,
+		archived_at,
+		deleted_at`
+
+	sqlChannelValidOnly = `type <> 'direct' 
+         AND archived_at IS NULL         
+         AND deleted_at IS NULL`
+
+	sqlChannelSelect = "SELECT " + sqlChannelColumns + `
+        FROM channels 
+       WHERE ` + sqlChannelValidOnly
+
+	sqlChannelDirect = "SELECT " + sqlChannelColumns + `
+        FROM channels 
+       WHERE type = 'direct' 
+         AND id IN (SELECT rel_channel 
+                      FROM channel_members 
+                     GROUP BY rel_channel
+                    HAVING COUNT(*) = 2
+                       AND MIN(rel_user) = ?
+                       AND MAX(rel_user) = ?)`
 
 	ErrChannelNotFound = repositoryError("ChannelNotFound")
 )
 
 func (r *repository) FindChannelByID(id uint64) (*types.Channel, error) {
-	db := factory.Database.MustGet()
 	mod := &types.Channel{}
-	sql := "SELECT * FROM channels WHERE id = ? AND " + sqlChannelScope
+	sql := sqlChannelSelect + " AND id = ?"
 
-	return mod, isFound(db.With(r.ctx).Get(mod, sql, id), mod.ID > 0, ErrChannelNotFound)
+	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrChannelNotFound)
+}
+
+func (r *repository) FindDirectChannelByUserID(fromUserID, toUserID uint64) (*types.Channel, error) {
+	mod := &types.Channel{}
+
+	if fromUserID == toUserID {
+		// do not waste any cpu cycles for his...
+		return nil, ErrChannelNotFound
+	}
+
+	// We're grouping and aggregating values by min/max value of the user ID
+	// so we need to swap values
+	if fromUserID > toUserID {
+		// Order by user idso we can simplifiy the search
+		toUserID, fromUserID = fromUserID, toUserID
+	}
+
+	return mod, isFound(r.db().Get(mod, sqlChannelDirect, fromUserID, toUserID), mod.ID > 0, ErrChannelNotFound)
 }
 
 func (r *repository) FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error) {
-	db := factory.Database.MustGet()
 	params := make([]interface{}, 0)
 	rval := make([]*types.Channel, 0)
 
-	sql := "SELECT * FROM channels WHERE " + sqlChannelScope
+	sql := sqlChannelSelect
 
 	if filter != nil {
 		if filter.Query != "" {
@@ -50,7 +97,7 @@ func (r *repository) FindChannels(filter *types.ChannelFilter) ([]*types.Channel
 
 	sql += " ORDER BY name ASC"
 
-	return rval, db.With(r.ctx).Select(&rval, sql, params...)
+	return rval, r.db().Select(&rval, sql, params...)
 }
 
 func (r *repository) CreateChannel(mod *types.Channel) (*types.Channel, error) {
@@ -58,34 +105,50 @@ func (r *repository) CreateChannel(mod *types.Channel) (*types.Channel, error) {
 	mod.CreatedAt = time.Now()
 	mod.Meta = coalesceJson(mod.Meta, []byte("{}"))
 
-	return mod, factory.Database.MustGet().With(r.ctx).Insert("channels", mod)
+	if mod.Type == "" {
+		mod.Type = types.ChannelTypePublic
+	}
+
+	return mod, r.db().Insert("channels", mod)
 }
 
 func (r *repository) UpdateChannel(mod *types.Channel) (*types.Channel, error) {
 	mod.UpdatedAt = timeNowPtr()
 	mod.Meta = coalesceJson(mod.Meta, []byte("{}"))
+	if mod.Type == "" {
+		mod.Type = types.ChannelTypePublic
+	}
 
-	return mod, factory.Database.MustGet().With(r.ctx).Replace("channels", mod)
+	whitelist := []string{"id", "name", "type", "topic", "meta", "updated_at"}
+
+	return mod, r.db().
+		UpdatePartial("channels", mod, whitelist, "id")
 }
 
-func (r *repository) AddChannelMember(channelID, userID uint64) error {
+func (r *repository) AddChannelMember(mod *types.ChannelMember) (*types.ChannelMember, error) {
 	sql := `INSERT INTO channel_members (rel_channel, rel_user) VALUES (?, ?)`
-	return exec(factory.Database.MustGet().With(r.ctx).Exec(sql, channelID, userID))
+	mod.CreatedAt = time.Now()
+
+	return mod, exec(r.db().Exec(sql, mod.ChannelID, mod.UserID))
 }
 
 func (r *repository) RemoveChannelMember(channelID, userID uint64) error {
 	sql := `DELETE FROM channel_members WHERE rel_channel = ? AND rel_user = ?`
-	return exec(factory.Database.MustGet().With(r.ctx).Exec(sql, channelID, userID))
+	return exec(r.db().Exec(sql, channelID, userID))
 }
 
 func (r *repository) ArchiveChannelByID(id uint64) error {
-	return simpleUpdate(r.ctx, "channels", "archived_at", time.Now(), id)
+	return r.updateColumnByID("channels", "archived_at", time.Now(), id)
 }
 
 func (r *repository) UnarchiveChannelByID(id uint64) error {
-	return simpleUpdate(r.ctx, "channels", "archived_at", nil, id)
+	return r.updateColumnByID("channels", "archived_at", nil, id)
 }
 
 func (r *repository) DeleteChannelByID(id uint64) error {
-	return simpleDelete(r.ctx, "channels", id)
+	return r.updateColumnByID("channels", "deleted_at", time.Now(), id)
+}
+
+func (r *repository) RecoverChannelByID(id uint64) error {
+	return r.updateColumnByID("channels", "deleted_at", nil, id)
 }

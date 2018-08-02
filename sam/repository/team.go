@@ -27,15 +27,13 @@ const (
 )
 
 func (r *repository) FindTeamByID(id uint64) (*types.Team, error) {
-	db := factory.Database.MustGet()
 	sql := "SELECT * FROM teams WHERE id = ? AND " + sqlTeamScope
 	mod := &types.Team{}
 
-	return mod, isFound(db.Get(mod, sql, id), mod.ID > 0, ErrTeamNotFound)
+	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrTeamNotFound)
 }
 
 func (r *repository) FindTeams(filter *types.TeamFilter) ([]*types.Team, error) {
-	db := factory.Database.MustGet()
 	rval := make([]*types.Team, 0)
 	params := make([]interface{}, 0)
 
@@ -50,32 +48,32 @@ func (r *repository) FindTeams(filter *types.TeamFilter) ([]*types.Team, error) 
 
 	sql += " ORDER BY name ASC"
 
-	return rval, db.With(r.ctx).Select(&rval, sql, params...)
+	return rval, r.db().Select(&rval, sql, params...)
 }
 
 func (r *repository) CreateTeam(mod *types.Team) (*types.Team, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
-	return mod, factory.Database.MustGet().With(r.ctx).Insert("teams", mod)
+	return mod, r.db().Insert("teams", mod)
 }
 
 func (r *repository) UpdateTeam(mod *types.Team) (*types.Team, error) {
 	mod.UpdatedAt = timeNowPtr()
 
-	return mod, factory.Database.MustGet().With(r.ctx).Replace("teams", mod)
+	return mod, r.db().Replace("teams", mod)
 }
 
 func (r *repository) ArchiveTeamByID(id uint64) error {
-	return simpleUpdate(r.ctx, "teams", "archived_at", time.Now(), id)
+	return r.updateColumnByID("teams", "archived_at", time.Now(), id)
 }
 
 func (r *repository) UnarchiveTeamByID(id uint64) error {
-	return simpleUpdate(r.ctx, "teams", "archived_at", nil, id)
+	return r.updateColumnByID("teams", "archived_at", nil, id)
 }
 
 func (r *repository) DeleteTeamByID(id uint64) error {
-	return simpleDelete(r.ctx, "teams", id)
+	return r.updateColumnByID("teams", "deleted_at", nil, id)
 }
 
 func (r *repository) MergeTeamByID(id, targetTeamID uint64) error {

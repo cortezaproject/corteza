@@ -28,9 +28,11 @@ type UserHandlers struct {
 // Internal API interface
 type UserAPI interface {
 	Search(context.Context, *UserSearchRequest) (interface{}, error)
+	Message(context.Context, *UserMessageRequest) (interface{}, error)
 }
 
 // HTTP API interface
 type UserHandlersAPI interface {
 	Search(http.ResponseWriter, *http.Request)
+	Message(http.ResponseWriter, *http.Request)
 }

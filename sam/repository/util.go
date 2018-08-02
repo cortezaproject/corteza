@@ -1,29 +1,16 @@
 package repository
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/titpetric/factory"
 	"time"
 )
 
-func simpleUpdate(ctx context.Context, tableName, columnName string, value interface{}, id uint64) (err error) {
-	db := factory.Database.MustGet()
-
-	sql := fmt.Sprintf("UPDATE %s SET %s = ? WHERE id = ?", tableName, columnName)
-
-	_, err = db.With(ctx).Exec(sql, value, id)
-	return err
-}
-
-func simpleDelete(ctx context.Context, tableName string, id uint64) (err error) {
-	db := factory.Database.MustGet()
-
-	sql := fmt.Sprintf("DELETE FROM %s WHERE id = ?", tableName)
-
-	_, err = db.With(ctx).Exec(sql, id)
-	return err
+func (r repository) updateColumnByID(tableName, columnName string, value interface{}, id uint64) (err error) {
+	return exec(r.db().Exec(
+		fmt.Sprintf("UPDATE %s SET %s = ? WHERE id = ?", tableName, columnName),
+		value,
+		id))
 }
 
 func exec(_ interface{}, err error) error {
