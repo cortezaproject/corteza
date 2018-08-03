@@ -30,7 +30,7 @@ func main() {
 
 	// log to stdout not stderr
 	log.SetOutput(os.Stdout)
-	NewMonitor(config.monitorInterval)
+	go NewMonitor(config.monitorInterval)
 
 	// set up database connection
 	factory.Database.Add("default", config.dbDSN)
