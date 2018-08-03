@@ -71,13 +71,13 @@ func (r *repository) CreateMessage(mod *types.Message) (*types.Message, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
-	return mod, r.db().With(r.ctx).Insert("messages", mod)
+	return mod, r.db().Insert("messages", mod)
 }
 
 func (r *repository) UpdateMessage(mod *types.Message) (*types.Message, error) {
 	mod.UpdatedAt = timeNowPtr()
 
-	return mod, r.db().With(r.ctx).Replace("messages", mod)
+	return mod, r.db().Replace("messages", mod)
 }
 
 func (r *repository) DeleteMessageByID(id uint64) error {

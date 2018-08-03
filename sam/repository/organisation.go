@@ -25,15 +25,13 @@ const (
 )
 
 func (r *repository) FindOrganisationByID(id uint64) (*types.Organisation, error) {
-	db := factory.Database.MustGet()
 	sql := "SELECT * FROM organisations WHERE id = ? AND " + sqlOrganisationScope
 	mod := &types.Organisation{}
 
-	return mod, isFound(db.Get(mod, sql, id), mod.ID > 0, ErrOrganisationNotFound)
+	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrOrganisationNotFound)
 }
 
 func (r *repository) FindOrganisations(filter *types.OrganisationFilter) ([]*types.Organisation, error) {
-	db := factory.Database.MustGet()
 	rval := make([]*types.Organisation, 0)
 	params := make([]interface{}, 0)
 	sql := "SELECT * FROM organisations WHERE " + sqlOrganisationScope
@@ -47,20 +45,20 @@ func (r *repository) FindOrganisations(filter *types.OrganisationFilter) ([]*typ
 
 	sql += " ORDER BY name ASC"
 
-	return rval, db.With(r.ctx).Select(&rval, sql, params...)
+	return rval, r.db().Select(&rval, sql, params...)
 }
 
 func (r *repository) CreateOrganisation(mod *types.Organisation) (*types.Organisation, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
-	return mod, factory.Database.MustGet().With(r.ctx).Insert("organisations", mod)
+	return mod, r.db().Insert("organisations", mod)
 }
 
 func (r *repository) UpdateOrganisation(mod *types.Organisation) (*types.Organisation, error) {
 	mod.UpdatedAt = timeNowPtr()
 
-	return mod, factory.Database.MustGet().With(r.ctx).Replace("organisations", mod)
+	return mod, r.db().Replace("organisations", mod)
 }
 
 func (r *repository) ArchiveOrganisationByID(id uint64) error {
