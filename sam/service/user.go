@@ -53,10 +53,10 @@ func (svc user) Find(ctx context.Context, filter *types.UserFilter) ([]*types.Us
 	return svc.rpo.FindUsers(filter)
 }
 
-func (svc user) Create(ctx context.Context, input *types.User) (new *types.User, err error) {
+func (svc user) Create(ctx context.Context, input *types.User) (user *types.User, err error) {
 	// no real need for tx here, just presenting the capabilities
-	return new, svc.rpo.BeginWith(ctx, func(r repository.Interfaces) error {
-		if new, err = r.CreateUser(input); err != nil {
+	return user, svc.rpo.BeginWith(ctx, func(r repository.Interfaces) error {
+		if user, err = r.CreateUser(input); err != nil {
 			return err
 		}
 

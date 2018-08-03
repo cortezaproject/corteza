@@ -216,7 +216,7 @@ func (svc channel) Update(ctx context.Context, in *types.Channel) (out *types.Ch
 	})
 }
 
-func (svc channel) Delete(ctx context.Context, ID uint64) error {
+func (svc channel) Delete(ctx context.Context, id uint64) error {
 	return svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
 		var ch *types.Channel
 
@@ -229,11 +229,11 @@ func (svc channel) Delete(ctx context.Context, ID uint64) error {
 		_, err = r.CreateMessage(svc.makeSystemMessage(ch,
 			"%s deleted this channel"))
 
-		return r.DeleteChannelByID(ID)
+		return r.DeleteChannelByID(id)
 	})
 }
 
-func (svc channel) Recover(ctx context.Context, ID uint64) error {
+func (svc channel) Recover(ctx context.Context, id uint64) error {
 	return svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
 		var ch *types.Channel
 
@@ -246,11 +246,11 @@ func (svc channel) Recover(ctx context.Context, ID uint64) error {
 		_, err = r.CreateMessage(svc.makeSystemMessage(ch,
 			"%s recovered this channel"))
 
-		return r.DeleteChannelByID(ID)
+		return r.DeleteChannelByID(id)
 	})
 }
 
-func (svc channel) Archive(ctx context.Context, ID uint64) error {
+func (svc channel) Archive(ctx context.Context, id uint64) error {
 	return svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
 		var ch *types.Channel
 
@@ -263,11 +263,11 @@ func (svc channel) Archive(ctx context.Context, ID uint64) error {
 		_, err = r.CreateMessage(svc.makeSystemMessage(ch,
 			"%s archived this channel"))
 
-		return r.ArchiveChannelByID(ID)
+		return r.ArchiveChannelByID(id)
 	})
 }
 
-func (svc channel) Unarchive(ctx context.Context, ID uint64) error {
+func (svc channel) Unarchive(ctx context.Context, id uint64) error {
 	return svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
 		var ch *types.Channel
 
@@ -280,7 +280,7 @@ func (svc channel) Unarchive(ctx context.Context, ID uint64) error {
 		_, err = r.CreateMessage(svc.makeSystemMessage(ch,
 			"%s unarchived this channel"))
 
-		return r.ArchiveChannelByID(ID)
+		return r.ArchiveChannelByID(id)
 	})
 
 }
