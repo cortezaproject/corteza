@@ -22,29 +22,15 @@ type (
 )
 
 const (
-	sqlChannelColumns = `id, 
-		type,
-		COALESCE(name, '')  AS name,
-		COALESCE(topic, '') AS topic,
-		COALESCE(meta, '{}') AS meta,
-		
-		rel_creator, 
-		rel_organisation,
-
-		created_at,
-		updated_at,
-		archived_at,
-		deleted_at`
-
 	sqlChannelValidOnly = `type <> 'direct' 
          AND archived_at IS NULL         
          AND deleted_at IS NULL`
 
-	sqlChannelSelect = "SELECT " + sqlChannelColumns + `
+	sqlChannelSelect = `SELECT *
         FROM channels 
        WHERE ` + sqlChannelValidOnly
 
-	sqlChannelDirect = "SELECT " + sqlChannelColumns + `
+	sqlChannelDirect = `SELECT *
         FROM channels 
        WHERE type = 'direct' 
          AND id IN (SELECT rel_channel 
