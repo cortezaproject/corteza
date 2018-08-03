@@ -252,6 +252,25 @@ func (r *DB) NamedExec(query string, arg interface{}) (res sql.Result, err error
 	return res, errors.Wrap(err, "exec query failed")
 }
 
+// Exec adds profiling on top of the parent DB.Exec
+func (r *DB) Exec(query string, args ...interface{}) (res sql.Result, err error) {
+	exec := func() (sql.Result, error) {
+		if r.Tx != nil {
+			return r.Tx.ExecContext(r.ctx, query, args...)
+		}
+		return r.DB.ExecContext(r.ctx, query, args...)
+	}
+
+	if r.Profiler != nil {
+		ctx := DatabaseProfilerContext{}.new(query, args...)
+		res, err = exec()
+		r.Profiler.Post(ctx)
+	} else {
+		res, err = exec()
+	}
+	return res, errors.Wrap(err, "exec query failed")
+}
+
 // Select is a helper function that will ignore sql.ErrNoRows
 func (r *DB) Select(dest interface{}, query string, args ...interface{}) error {
 	var err error
@@ -382,7 +401,7 @@ func (r *DB) Update(table string, args interface{}, keys ...string) error {
 	return err
 }
 
-// Update is a helper function which will issue an `update` statement to the db
+// UpdatePartial is a helper function which will issue an `update` statement to the db
 func (r *DB) UpdatePartial(table string, args interface{}, allowed []string, keys ...string) error {
 	var err error
 	if len(keys) == 0 {
