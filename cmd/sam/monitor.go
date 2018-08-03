@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"expvar"
 	"fmt"
 	"runtime"
 	"time"
@@ -21,8 +22,11 @@ type Monitor struct {
 }
 
 func NewMonitor(duration int) {
-	var m Monitor
-	var rtm runtime.MemStats
+	var (
+		m          = Monitor{}
+		rtm        runtime.MemStats
+		goroutines = expvar.NewInt("num_goroutine")
+	)
 	var interval = time.Duration(duration) * time.Second
 	for {
 		<-time.After(interval)
@@ -32,6 +36,7 @@ func NewMonitor(duration int) {
 
 		// Number of goroutines
 		m.NumGoroutine = runtime.NumGoroutine()
+		goroutines.Set(int64(m.NumGoroutine))
 
 		// Misc memory stats
 		m.Alloc = rtm.Alloc
