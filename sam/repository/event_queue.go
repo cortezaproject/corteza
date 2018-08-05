@@ -1,32 +1,20 @@
 package repository
 
 import (
-	"encoding/json"
+	"github.com/crusttech/crust/sam/types"
 	"github.com/titpetric/factory"
 )
 
 type (
 	EventQueue interface {
-		EventQueuePull(origin uint64) ([]*EventQueueItem, error)
-		EventQueuePush(eqi *EventQueueItem) error
+		EventQueuePull(origin uint64) ([]*types.EventQueueItem, error)
+		EventQueuePush(eqi *types.EventQueueItem) error
 		EventQueueSync(origin uint64, ID uint64) error
-	}
-
-	EventQueueItem struct {
-		ID         uint64          `db:"id"`
-		Origin     uint64          `db:"origin"`
-		Subscriber string          `db:"subscriber"`
-		Payload    json.RawMessage `db:"payload"`
-	}
-
-	evqs struct {
-		Origin    uint64 `db:"origin"`
-		LastEvent uint64 `db:"rel_last"`
 	}
 )
 
-func (r *repository) EventQueuePull(origin uint64) ([]*EventQueueItem, error) {
-	var ee = make([]*EventQueueItem, 0)
+func (r *repository) EventQueuePull(origin uint64) ([]*types.EventQueueItem, error) {
+	var ee = make([]*types.EventQueueItem, 0)
 
 	return ee, r.db().Quiet().Select(&ee, `
 		SELECT * 
@@ -36,12 +24,17 @@ func (r *repository) EventQueuePull(origin uint64) ([]*EventQueueItem, error) {
          LIMIT 50`, origin, origin, origin)
 }
 
-func (r *repository) EventQueuePush(eqi *EventQueueItem) error {
+func (r *repository) EventQueuePush(eqi *types.EventQueueItem) error {
 	eqi.ID = factory.Sonyflake.NextID()
 	return r.db().Quiet().Insert("event_queue", eqi)
 }
 
 func (r *repository) EventQueueSync(origin uint64, ID uint64) error {
+	type evqs struct {
+		Origin    uint64 `db:"origin"`
+		LastEvent uint64 `db:"rel_last"`
+	}
+
 	// @todo do we even need this?
 	return r.db().Quiet().Replace("event_queue_synced", evqs{
 		Origin:    origin,

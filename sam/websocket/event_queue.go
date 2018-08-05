@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"context"
-	"github.com/crusttech/crust/sam/repository"
+	"github.com/crusttech/crust/sam/types"
 	"github.com/titpetric/factory"
 	"log"
 	"time"
@@ -10,11 +10,11 @@ import (
 
 type (
 	eventQueuePuller interface {
-		EventQueuePull(origin uint64) ([]*repository.EventQueueItem, error)
+		EventQueuePull(origin uint64) ([]*types.EventQueueItem, error)
 		EventQueueSync(origin uint64, ID uint64) error
 	}
 	eventQueuePusher interface {
-		EventQueuePush(*repository.EventQueueItem) error
+		EventQueuePush(*types.EventQueueItem) error
 	}
 
 	eventQueueWalker interface {
@@ -23,7 +23,7 @@ type (
 
 	eventQueue struct {
 		origin uint64
-		queue  chan *repository.EventQueueItem
+		queue  chan *types.EventQueueItem
 	}
 )
 
@@ -36,7 +36,7 @@ func init() {
 func EventQueue(origin uint64) *eventQueue {
 	return &eventQueue{
 		origin: origin,
-		queue:  make(chan *repository.EventQueueItem, 512),
+		queue:  make(chan *types.EventQueueItem, 512),
 	}
 }
 
@@ -53,7 +53,7 @@ func (eq *eventQueue) store(ctx context.Context, qp eventQueuePusher) {
 }
 
 func (eq *eventQueue) feedSessions(ctx context.Context, qp eventQueuePuller, store eventQueueWalker) {
-	var items []*repository.EventQueueItem
+	var items []*types.EventQueueItem
 
 	go func() {
 		var err error
@@ -112,7 +112,7 @@ func (eq *eventQueue) feedSessions(ctx context.Context, qp eventQueuePuller, sto
 }
 
 // Adds origin to the event and puts it into queue.
-func (eq *eventQueue) push(ctx context.Context, eqi *repository.EventQueueItem) {
+func (eq *eventQueue) push(ctx context.Context, eqi *types.EventQueueItem) {
 	eqi.Origin = eq.origin
 
 	select {
