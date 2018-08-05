@@ -43,7 +43,7 @@ func (ctrl *Auth) Login(ctx context.Context, r *server.AuthLoginRequest) (interf
 
 	return struct {
 		JWT  string
-		User *types.User
+		User *types.User `json:"user"`
 	}{
 		JWT:  ctrl.svc.token.Encode(user),
 		User: user,
