@@ -3,53 +3,7 @@
   "Description": "Organisations represent a top-level grouping entity. There may be many organisations defined in a single deployment.",
   "Package": "sam",
   "Interface": "Organisation",
-  "Struct": [
-    {
-      "fields": [
-        {
-          "name": "ID",
-          "type": "uint64"
-        },
-        {
-          "dbname": "fqn",
-          "name": "FQN",
-          "type": "string"
-        },
-        {
-          "name": "Name",
-          "type": "string"
-        },
-        {
-          "complex": true,
-          "name": "CreatedAt",
-          "tag": "json:\"created_at,omitempty\"",
-          "type": "time.Time"
-        },
-        {
-          "complex": true,
-          "name": "UpdatedAt",
-          "tag": "json:\"updated_at,omitempty\"",
-          "type": "*time.Time"
-        },
-        {
-          "complex": true,
-          "name": "ArchivedAt",
-          "tag": "json:\"archived_at,omitempty\"",
-          "type": "*time.Time"
-        },
-        {
-          "complex": true,
-          "name": "DeletedAt",
-          "tag": "json:\"deleted_at,omitempty\"",
-          "type": "*time.Time"
-        }
-      ],
-      "imports": [
-        "time"
-      ],
-      "name": "Organisation"
-    }
-  ],
+  "Struct": null,
   "Parameters": null,
   "Protocol": "",
   "Authentication": [

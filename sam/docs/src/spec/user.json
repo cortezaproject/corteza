@@ -2,64 +2,7 @@
   "Title": "Users",
   "Package": "sam",
   "Interface": "User",
-  "Struct": [
-    {
-      "fields": [
-        {
-          "name": "ID",
-          "type": "uint64"
-        },
-        {
-          "name": "Username",
-          "type": "string"
-        },
-        {
-          "name": "Meta",
-          "tag": "json:\"-\"",
-          "type": "interface{}"
-        },
-        {
-          "dbname": "rel_organisation",
-          "name": "OrganisationID",
-          "type": "uint64"
-        },
-        {
-          "complex": true,
-          "name": "Password",
-          "tag": "json:\"-\"",
-          "type": "[]byte"
-        },
-        {
-          "complex": true,
-          "name": "CreatedAt",
-          "tag": "json:\"created_at,omitempty\"",
-          "type": "time.Time"
-        },
-        {
-          "complex": true,
-          "name": "UpdatedAt",
-          "tag": "json:\"updated_at,omitempty\"",
-          "type": "*time.Time"
-        },
-        {
-          "complex": true,
-          "name": "SuspendedAt",
-          "tag": "json:\"suspended_at,omitempty\"",
-          "type": "*time.Time"
-        },
-        {
-          "complex": true,
-          "name": "DeletedAt",
-          "tag": "json:\"deleted_at,omitempty\"",
-          "type": "*time.Time"
-        }
-      ],
-      "imports": [
-        "time"
-      ],
-      "name": "User"
-    }
-  ],
+  "Struct": null,
   "Parameters": null,
   "Protocol": "",
   "Authentication": [
