@@ -7,21 +7,23 @@ import (
 
 type (
 	Channel struct {
-		ID    uint64          `db:"id"`
-		Name  string          `db:"name"`
-		Topic string          `db:"topic"`
-		Type  ChannelType     `db:"type"`
-		Meta  json.RawMessage `db:"meta"`
+		ID    uint64          `json:"id" db:"id"`
+		Name  string          `json:"name" db:"name"`
+		Topic string          `json:"topic" db:"topic"`
+		Type  ChannelType     `json:"type" db:"type"`
+		Meta  json.RawMessage `json:"-" db:"meta"`
 
-		CreatorID      uint64 `db:"rel_creator"`
-		OrganisationID uint64 `db:"rel_organisation"`
+		CreatorID      uint64 `json:"creatorId" db:"rel_creator"`
+		OrganisationID uint64 `json:"organisationId" db:"rel_organisation"`
 
-		CreatedAt  time.Time  `json:"created_at,omitempty" db:"created_at"`
-		UpdatedAt  *time.Time `json:"updated_at,omitempty" db:"updated_at"`
-		ArchivedAt *time.Time `json:"archived_at,omitempty" db:"archived_at"`
-		DeletedAt  *time.Time `json:"deleted_at,omitempty" db:"deleted_at"`
+		CreatedAt  time.Time  `json:"createdAt,omitempty" db:"created_at"`
+		UpdatedAt  *time.Time `json:"updatedAt,omitempty" db:"updated_at"`
+		ArchivedAt *time.Time `json:"archivedAt,omitempty" db:"archived_at"`
+		DeletedAt  *time.Time `json:"deletedAt,omitempty" db:"deleted_at"`
 
 		LastMessageID uint64 `json:",omitempty" db:"rel_last_message"`
+
+		Member *ChannelMember `json:"-" db:"-"`
 	}
 
 	ChannelMember struct {
@@ -30,8 +32,8 @@ type (
 
 		Type ChannelMembershipType `db:"type"`
 
-		CreatedAt time.Time  `json:"created_at,omitempty" db:"created_at"`
-		UpdatedAt *time.Time `json:"updated_at,omitempty" db:"updated_at"`
+		CreatedAt time.Time  `json:"createdAt,omitempty" db:"created_at"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty" db:"updated_at"`
 	}
 
 	ChannelFilter struct {
@@ -48,5 +50,5 @@ const (
 
 	ChannelTypePublic  ChannelType = "public"
 	ChannelTypePrivate             = "private"
-	ChannelTypeDirect              = "direct"
+	ChannelTypeGroup               = "group"
 )
