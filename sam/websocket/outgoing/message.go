@@ -14,8 +14,8 @@ type (
 		ChannelID string `json:"cid"`
 		ReplyTo   string `json:"rid"`
 
-		CreatedAt time.Time  `json:"created_at,omitempty" db:"created_at"`
-		UpdatedAt *time.Time `json:"updated_at,omitempty" db:"updated_at"`
+		CreatedAt time.Time  `json:"cat,omitempty"`
+		UpdatedAt *time.Time `json:"uat,omitempty"`
 	}
 
 	Messages []*Message
@@ -24,7 +24,7 @@ type (
 		ID      string `json:"id"`
 		Message string `json:"m"`
 
-		UpdatedAt time.Time `json:"updated_at,omitempty" db:"updated_at"`
+		UpdatedAt time.Time `json:"uat,omitempty"`
 	}
 
 	MessageDelete struct {

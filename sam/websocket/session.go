@@ -8,6 +8,8 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 
+	"github.com/crusttech/crust/sam/service"
+	"github.com/crusttech/crust/sam/types"
 	"github.com/crusttech/crust/sam/websocket/outgoing"
 )
 
@@ -26,6 +28,8 @@ type (
 		remoteAddr string
 
 		config configuration
+
+		user *types.User
 	}
 )
 
@@ -44,7 +48,30 @@ func (sess *Session) Context() context.Context {
 	return sess.ctx
 }
 
+func (sess *Session) connected() {
+	// Tell everyone that user has connected
+	sess.sendToAll(&outgoing.Connected{UserID: uint64toa(sess.user.ID)})
+
+	// Subscribe this user to all channels
+	if chs, err := service.Channel().FindByMembership(sess.ctx); err != nil {
+		log.Printf("Error: %v", err)
+	} else {
+		for _, ch := range chs {
+			sess.subs.Add(uint64toa(ch.ID))
+		}
+		log.Printf("Subscribing %d to %d channels", sess.user.ID, len(chs))
+	}
+}
+
+func (sess *Session) disconnected() {
+	// Tell everyone that user has disconnected
+	sess.sendToAll(&outgoing.Disconnected{UserID: uint64toa(sess.user.ID)})
+}
+
 func (sess *Session) Handle() error {
+	sess.connected()
+	defer sess.disconnected()
+
 	go sess.readLoop()
 	return sess.writeLoop()
 }

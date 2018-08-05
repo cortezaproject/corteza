@@ -56,7 +56,7 @@ func main() {
 	r.Use(jwtAuth.Verifier(), jwtAuth.Authenticator())
 
 	// mount REST & WS routes
-	MountRoutes(r, routeOptions, rest.MountRoutes(jwtAuth), websocket.MountRoutes())
+	MountRoutes(r, routeOptions, rest.MountRoutes(jwtAuth), websocket.MountRoutes(ctx))
 
 	go http.Serve(listener, r)
 	<-ctx.Done()

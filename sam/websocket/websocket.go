@@ -6,10 +6,10 @@ import (
 	"context"
 	"github.com/crusttech/crust/auth"
 	"github.com/crusttech/crust/sam/types"
-	"github.com/crusttech/crust/sam/websocket/outgoing"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
+	"log"
 )
 
 type (
@@ -50,6 +50,11 @@ func (ws Websocket) Open(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// @todo validate user (ws.svc.userFinder) here...
+	user, err := ws.svc.userFinder.FindByID(ctx, identity.Identity())
+	if err != nil {
+		resputil.JSON(w, err)
+		return
+	}
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if _, ok := err.(websocket.HandshakeError); ok {
@@ -60,13 +65,11 @@ func (ws Websocket) Open(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session := store.Save(Session{}.New(r.Context(), conn))
-
-	session.sendToAll(&outgoing.Connected{UserID: uint64toa(identity.Identity())})
+	session := store.Save((&Session{}).New(ctx, conn))
+	session.user = user
 
 	if err := session.Handle(); err != nil {
-		// @todo: log error, because at this point we can't really write it to w
+		log.Printf("Session handler returned an error: %v", err)
 	}
 
-	session.sendToAll(&outgoing.Disconnected{UserID: uint64toa(identity.Identity())})
 }

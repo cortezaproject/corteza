@@ -36,6 +36,7 @@ type (
 		Reaction
 		Team
 		User
+		EventQueue
 	}
 
 	BeginCallback func(r Interfaces) error

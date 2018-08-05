@@ -56,15 +56,37 @@ func (svc channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*ty
 	return svc.rpo.FindChannels(filter)
 }
 
+// Returns all channels with membership info
+func (svc channel) FindByMembership(ctx context.Context) (rval []*types.Channel, err error) {
+	return rval, svc.rpo.BeginWith(ctx, func(r repository.Interfaces) error {
+		var chMemberId = auth.GetIdentityFromContext(ctx).Identity()
+		var mm []*types.ChannelMember
+
+		if mm, err = r.FindChannelsMembershipsByMemberId(chMemberId); err != nil {
+			return err
+		}
+
+		if rval, err = r.FindChannels(nil); err != nil {
+			return err
+		}
+
+		for _, m := range mm {
+			for _, c := range rval {
+				if c.ID == m.ChannelID {
+					c.Member = m
+				}
+			}
+		}
+
+		return nil
+	})
+}
+
 func (svc channel) Create(ctx context.Context, in *types.Channel) (out *types.Channel, err error) {
 	// @todo: [SECURITY] permission check if user can add channel
 
 	return out, svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
 		var msg *types.Message
-
-		if in.Type == types.ChannelTypeDirect {
-			return errors.New("Not allowed to create direct channels")
-		}
 
 		// @todo get organisation from somewhere
 		var organisationID uint64 = 0
@@ -84,6 +106,11 @@ func (svc channel) Create(ctx context.Context, in *types.Channel) (out *types.Ch
 		// @todo [SECURITY] check if user can create private channels
 		if in.Type == types.ChannelTypePrivate && false {
 			return errors.New("Not allowed to create public channels")
+		}
+
+		// @todo [SECURITY] check if user can create private channels
+		if in.Type == types.ChannelTypeGroup && false {
+			return errors.New("Not allowed to create group channels")
 		}
 
 		// This is a fresh channel, just copy values
@@ -143,10 +170,6 @@ func (svc channel) Update(ctx context.Context, in *types.Channel) (out *types.Ch
 			return
 		}
 
-		if out.Type != types.ChannelTypeDirect {
-			return errors.New("Not allowed to change direct channels")
-		}
-
 		if out.ArchivedAt != nil {
 			return errors.New("Not allowed to edit archived channels")
 		} else if out.DeletedAt != nil {
@@ -182,12 +205,17 @@ func (svc channel) Update(ctx context.Context, in *types.Channel) (out *types.Ch
 		if out.Type != in.Type {
 			// @todo [SECURITY] check if user can create public channels
 			if in.Type == types.ChannelTypePublic && false {
-				return errors.New("Not allowed to make this channel public")
+				return errors.New("Not allowed to change type of this channel to public")
 			}
 
 			// @todo [SECURITY] check if user can create private channels
 			if in.Type == types.ChannelTypePrivate && false {
-				return errors.New("Not allowed to make this channel private")
+				return errors.New("Not allowed to change type of this channel to private")
+			}
+
+			// @todo [SECURITY] check if user can create group channels
+			if in.Type == types.ChannelTypeGroup && false {
+				return errors.New("Not allowed to change type of this channel to group")
 			}
 		}
 
