@@ -3,52 +3,7 @@
   "Description": "An organisation may have many teams. Teams may have many channels available. Access to channels may be shared between teams.",
   "Package": "sam",
   "Interface": "Team",
-  "Struct": [
-    {
-      "fields": [
-        {
-          "name": "ID",
-          "type": "uint64"
-        },
-        {
-          "name": "Name",
-          "type": "string"
-        },
-        {
-          "name": "Handle",
-          "type": "string"
-        },
-        {
-          "complex": true,
-          "name": "CreatedAt",
-          "tag": "json:\"created_at,omitempty\"",
-          "type": "time.Time"
-        },
-        {
-          "complex": true,
-          "name": "UpdatedAt",
-          "tag": "json:\"updated_at,omitempty\"",
-          "type": "*time.Time"
-        },
-        {
-          "complex": true,
-          "name": "ArchivedAt",
-          "tag": "json:\"archived_at,omitempty\"",
-          "type": "*time.Time"
-        },
-        {
-          "complex": true,
-          "name": "DeletedAt",
-          "tag": "json:\"deleted_at,omitempty\"",
-          "type": "*time.Time"
-        }
-      ],
-      "imports": [
-        "time"
-      ],
-      "name": "Team"
-    }
-  ],
+  "Struct": null,
   "Parameters": null,
   "Protocol": "",
   "Authentication": [

@@ -97,7 +97,7 @@ foreach ($generators as $generator) {
 			$filename = str_replace("..", ".", strtolower($name) . "." . $type . ".go");
 
 			$tpl->load("http_$type.tpl");
-			$tpl->assign("parsers", 
+			$tpl->assign("parsers",
 			$tpl->assign("package", $api['package']);
 			$tpl->assign("name", $name);
 			$tpl->assign("self", strtolower(substr($name, 0, 1)));

@@ -3,65 +3,7 @@
   "Description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or direct (between two users).",
   "Package": "sam",
   "Interface": "Channel",
-  "Struct": [
-    {
-      "fields": [
-        {
-          "name": "ID",
-          "type": "uint64"
-        },
-        {
-          "name": "Name",
-          "type": "string"
-        },
-        {
-          "dbname": "-",
-          "name": "Topic",
-          "type": "string"
-        },
-        {
-          "complex": true,
-          "name": "Meta",
-          "type": "json.RawMessage"
-        },
-        {
-          "dbname": "rel_last_message",
-          "name": "LastMessageID",
-          "tag": "json:\",omitempty\"",
-          "type": "uint64"
-        },
-        {
-          "complex": true,
-          "name": "CreatedAt",
-          "tag": "json:\"created_at,omitempty\"",
-          "type": "time.Time"
-        },
-        {
-          "complex": true,
-          "name": "UpdatedAt",
-          "tag": "json:\"updated_at,omitempty\"",
-          "type": "*time.Time"
-        },
-        {
-          "complex": true,
-          "name": "ArchivedAt",
-          "tag": "json:\"archived_at,omitempty\"",
-          "type": "*time.Time"
-        },
-        {
-          "complex": true,
-          "name": "DeletedAt",
-          "tag": "json:\"deleted_at,omitempty\"",
-          "type": "*time.Time"
-        }
-      ],
-      "imports": [
-        "time",
-        "encoding/json"
-      ],
-      "name": "Channel"
-    }
-  ],
+  "Struct": null,
   "Parameters": null,
   "Protocol": "",
   "Authentication": [

@@ -6,22 +6,6 @@
 		"path": "/organisations",
 		"entrypoint": "organisation",
 		"authentication": ["Client ID", "Session ID"],
-		"struct": [
-			{
-				"name": "Organisation",
-				"imports": ["time"],
-				"fields": [
-					{ "name": "ID",   "type": "uint64" },
-					{ "name": "FQN",  "type": "string", "dbname": "fqn" },
-					{ "name": "Name", "type": "string" },
-
-					{ "name": "CreatedAt",  "type":  "time.Time", "tag": "json:\"created_at,omitempty\"",  "complex": true },
-					{ "name": "UpdatedAt",  "type": "*time.Time", "tag": "json:\"updated_at,omitempty\"",  "complex": true },
-					{ "name": "ArchivedAt", "type": "*time.Time", "tag": "json:\"archived_at,omitempty\"", "complex": true },
-					{ "name": "DeletedAt",  "type": "*time.Time", "tag": "json:\"deleted_at,omitempty\"",  "complex": true }
-				]
-			}
-		],
 		"apis": [
 			{
 				"name": "list",
@@ -101,22 +85,6 @@
 		"path": "/teams",
 		"entrypoint": "team",
 		"authentication": ["Client ID", "Session ID"],
-		"struct": [
-			{
-				"name": "Team",
-				"imports": [ "time" ],
-				"fields": [
-					{ "type": "uint64", "name": "ID" },
-					{ "type": "string", "name": "Name" },
-					{ "type": "string", "name": "Handle" },
-
-					{ "name": "CreatedAt",  "type":  "time.Time", "tag": "json:\"created_at,omitempty\"",  "complex": true },
-					{ "name": "UpdatedAt",  "type": "*time.Time", "tag": "json:\"updated_at,omitempty\"",  "complex": true },
-					{ "name": "ArchivedAt", "type": "*time.Time", "tag": "json:\"archived_at,omitempty\"", "complex": true },
-					{ "name": "DeletedAt",  "type": "*time.Time", "tag": "json:\"deleted_at,omitempty\"",  "complex": true }
-				]
-			}
-		],
 		"apis": [
 			{
 				"name": "list",
@@ -226,27 +194,6 @@
 		"entrypoint": "channel",
 		"path": "/channels",
 		"authentication": ["Client ID", "Session ID"],
-		"struct": [
-			{
-				"name": "Channel",
-				"imports": [
-					"time",
-					"encoding/json"
-				],
-				"fields": [
-					{ "type": "uint64",          "name": "ID" },
-					{ "type": "string",          "name": "Name" },
-					{ "type": "string",          "name": "Topic", "dbname": "-" },
-					{ "type": "json.RawMessage", "name": "Meta", "complex": true},
-					{ "type": "uint64",          "name": "LastMessageID", "tag": "json:\",omitempty\"", "dbname": "rel_last_message" },
-
-					{ "name": "CreatedAt",  "type":  "time.Time", "tag": "json:\"created_at,omitempty\"",  "complex": true },
-					{ "name": "UpdatedAt",  "type": "*time.Time", "tag": "json:\"updated_at,omitempty\"",  "complex": true },
-					{ "name": "ArchivedAt", "type": "*time.Time", "tag": "json:\"archived_at,omitempty\"", "complex": true },
-					{ "name": "DeletedAt",  "type": "*time.Time", "tag": "json:\"deleted_at,omitempty\"",  "complex": true }
-				]
-			}
-		],
 		"apis": [
 			{
 				"name": "list",
@@ -371,58 +318,6 @@
 		},
 		"entrypoint": "message",
 		"authentication": ["Client ID", "Session ID"],
-		"struct": [
-			{
-				"name": "Message",
-				"imports": ["time"],
-				"fields": [
-					{ "name": "ID",         "type": "uint64" },
-					{ "name": "Type",       "type": "string" },
-					{ "name": "Message",    "type": "string" },
-					{ "name": "UserID",     "type": "uint64",  "dbname": "rel_user" },
-					{ "name": "ChannelID",  "type": "uint64",  "dbname": "rel_channel"},
-					{ "name": "ReplyTo",    "type": "uint64",  "dbname": "reply_to" },
-
-					{ "name": "CreatedAt",  "type":  "time.Time", "tag": "json:\"created_at,omitempty\"",  "complex": true },
-					{ "name": "UpdatedAt",  "type": "*time.Time", "tag": "json:\"updated_at,omitempty\"",  "complex": true },
-					{ "name": "DeletedAt",  "type": "*time.Time", "tag": "json:\"deleted_at,omitempty\"",  "complex": true }
-				]
-			},
-			{
-				"name": "Reaction",
-				"imports": ["time"],
-				"fields": [
-					{ "name": "ID",         "type": "uint64" },
-					{ "name": "UserID",     "type": "uint64",  "dbname": "rel_user" },
-					{ "name": "MessageID",  "type": "uint64",  "dbname": "rel_message"},
-					{ "name": "ChannelID",  "type": "uint64",  "dbname": "rel_channel"},
-					{ "name": "Reaction",   "type": "string" },
-
-					{ "name": "CreatedAt",  "type":  "time.Time", "tag": "json:\"created_at,omitempty\"",  "complex": true }
-				]
-			},
-			{
-				"name": "Attachment",
-				"imports": ["time", "encoding/json"],
-				"fields": [
-					{ "name": "ID",         "type": "uint64" },
-					{ "name": "UserID",     "type": "uint64",  "dbname": "rel_user" },
-					{ "name": "MessageID",  "type": "uint64",  "dbname": "rel_message"},
-					{ "name": "ChannelID",  "type": "uint64",  "dbname": "rel_channel"},
-					{ "name": "Attachment", "type": "json.RawMessage" , "complex": true},
-
-					{ "name": "Url",        "type": "string" },
-					{ "name": "PreviewUrl", "type": "string" },
-					{ "name": "Size",       "type": "uint" },
-					{ "name": "Mimetype",   "type": "string" },
-					{ "name": "Name",       "type": "string" },
-
-					{ "name": "CreatedAt",  "type":  "time.Time", "tag": "json:\"created_at,omitempty\"",  "complex": true },
-					{ "name": "UpdatedAt",  "type": "*time.Time", "tag": "json:\"updated_at,omitempty\"",  "complex": true },
-					{ "name": "DeletedAt",  "type": "*time.Time", "tag": "json:\"deleted_at,omitempty\"",  "complex": true }
-				]
-			}
-		],
 		"apis": [
 			{
 				"name": "create",
@@ -579,24 +474,6 @@
 		"path": "/users",
 		"entrypoint": "user",
 		"authentication": ["Client ID", "Session ID"],
-		"struct": [
-			{
-				"name": "User",
-				"imports": ["time"],
-				"fields": [
-					{ "type": "uint64", "name": "ID" },
-					{ "type": "string", "name": "Username" },
-					{ "type": "interface{}", "name": "Meta", "tag": "json:\"-\"" },
-					{ "type": "uint64", "name": "OrganisationID", "dbname": "rel_organisation" },
-					{ "type": "[]byte", "name": "Password", "tag": "json:\"-\"", "complex": true },
-
-					{ "name": "CreatedAt",  "type":  "time.Time", "tag": "json:\"created_at,omitempty\"",  "complex": true },
-					{ "name": "UpdatedAt",  "type": "*time.Time", "tag": "json:\"updated_at,omitempty\"",  "complex": true },
-					{ "name": "SuspendedAt","type": "*time.Time", "tag": "json:\"suspended_at,omitempty\"","complex": true },
-					{ "name": "DeletedAt",  "type": "*time.Time", "tag": "json:\"deleted_at,omitempty\"",  "complex": true }
-				]
-			}
-		],
 		"apis": [
 			{
 				"name": "search",
@@ -629,7 +506,6 @@
 		"package": "sam",
 		"path": "/auth",
 		"entrypoint": "auth",
-		"struct": [],
 		"authentication": [],
 		"apis": [
 			{
