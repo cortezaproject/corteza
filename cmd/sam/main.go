@@ -1,19 +1,18 @@
 package main
 
 import (
-	"log"
-	"net"
-	"os"
-
-	"net/http"
-
-	"github.com/go-chi/chi"
-
 	"github.com/crusttech/crust/auth"
 	"github.com/crusttech/crust/rbac"
 	"github.com/crusttech/crust/sam/rest"
 	"github.com/crusttech/crust/sam/websocket"
+	"github.com/go-chi/chi"
+	"github.com/sentimensrg/sigctx"
 	"github.com/titpetric/factory"
+
+	"log"
+	"net"
+	"net/http"
+	"os"
 )
 
 func handleError(err error, message string) {
@@ -26,6 +25,8 @@ func handleError(err error, message string) {
 }
 
 func main() {
+	var ctx = sigctx.New()
+
 	config := flags("sam", auth.Flags, rbac.Flags, websocket.Flags)
 
 	// log to stdout not stderr
@@ -57,5 +58,6 @@ func main() {
 	// mount REST & WS routes
 	MountRoutes(r, routeOptions, rest.MountRoutes(jwtAuth), websocket.MountRoutes())
 
-	http.Serve(listener, r)
+	go http.Serve(listener, r)
+	<-ctx.Done()
 }
