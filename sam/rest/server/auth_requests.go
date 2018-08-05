@@ -52,3 +52,40 @@ func (a *AuthLoginRequest) Fill(r *http.Request) error {
 }
 
 var _ RequestFiller = AuthLoginRequest{}.new()
+
+// Auth create request parameters
+type AuthCreateRequest struct {
+	Name     string
+	Email    string
+	Username string
+	Password string
+}
+
+func (AuthCreateRequest) new() *AuthCreateRequest {
+	return &AuthCreateRequest{}
+}
+
+func (a *AuthCreateRequest) Fill(r *http.Request) error {
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	a.Name = post["name"]
+
+	a.Email = post["email"]
+
+	a.Username = post["username"]
+
+	a.Password = post["password"]
+	return nil
+}
+
+var _ RequestFiller = AuthCreateRequest{}.new()

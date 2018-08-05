@@ -28,9 +28,11 @@ type AuthHandlers struct {
 // Internal API interface
 type AuthAPI interface {
 	Login(context.Context, *AuthLoginRequest) (interface{}, error)
+	Create(context.Context, *AuthCreateRequest) (interface{}, error)
 }
 
 // HTTP API interface
 type AuthHandlersAPI interface {
 	Login(http.ResponseWriter, *http.Request)
+	Create(http.ResponseWriter, *http.Request)
 }

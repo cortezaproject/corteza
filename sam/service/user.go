@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
-	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -34,7 +33,7 @@ func (svc user) ValidateCredentials(ctx context.Context, username, password stri
 		return nil, err
 	}
 
-	if !svc.validatePassword(user, password) {
+	if !user.ValidatePassword(password) {
 		return nil, ErrUserInvalidCredentials
 	}
 
@@ -54,8 +53,8 @@ func (svc user) Find(ctx context.Context, filter *types.UserFilter) ([]*types.Us
 }
 
 func (svc user) Create(ctx context.Context, input *types.User) (user *types.User, err error) {
-	// no real need for tx here, just presenting the capabilities
 	return user, svc.rpo.BeginWith(ctx, func(r repository.Interfaces) error {
+		// Encrypt user password
 		if user, err = r.CreateUser(input); err != nil {
 			return err
 		}
@@ -66,21 +65,6 @@ func (svc user) Create(ctx context.Context, input *types.User) (user *types.User
 
 func (svc user) Update(ctx context.Context, mod *types.User) (*types.User, error) {
 	return svc.rpo.UpdateUser(mod)
-}
-
-func (svc user) validatePassword(user *types.User, password string) bool {
-	return user != nil &&
-		bcrypt.CompareHashAndPassword(user.Password, []byte(password)) == nil
-}
-
-func (svc user) generatePassword(user *types.User, password string) error {
-	pwd, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-
-	user.Password = pwd
-	return nil
 }
 
 func (svc user) canLogin(u *types.User) bool {

@@ -25,3 +25,7 @@ func (ah *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 	params := AuthLoginRequest{}.new()
 	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ah.Auth.Login(r.Context(), params) })
 }
+func (ah *AuthHandlers) Create(w http.ResponseWriter, r *http.Request) {
+	params := AuthCreateRequest{}.new()
+	resputil.JSON(w, params.Fill(r), func() (interface{}, error) { return ah.Auth.Create(r.Context(), params) })
+}
