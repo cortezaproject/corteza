@@ -13,6 +13,8 @@ type (
 		FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error)
 		CreateChannel(mod *types.Channel) (*types.Channel, error)
 		UpdateChannel(mod *types.Channel) (*types.Channel, error)
+
+		FindChannelsMembershipsByMemberId(memberId uint64) ([]*types.ChannelMember, error)
 		AddChannelMember(mod *types.ChannelMember) (*types.ChannelMember, error)
 		RemoveChannelMember(channelID, userID uint64) error
 		ArchiveChannelByID(id uint64) error
@@ -22,23 +24,27 @@ type (
 )
 
 const (
-	sqlChannelValidOnly = `type <> 'direct' 
-         AND archived_at IS NULL         
-         AND deleted_at IS NULL`
+	sqlChannelValidOnly = ` true
+         AND c.archived_at IS NULL         
+         AND c.deleted_at IS NULL`
 
 	sqlChannelSelect = `SELECT *
-        FROM channels 
+        FROM channels AS c
        WHERE ` + sqlChannelValidOnly
 
 	sqlChannelDirect = `SELECT *
-        FROM channels 
-       WHERE type = 'direct' 
-         AND id IN (SELECT rel_channel 
-                      FROM channel_members 
-                     GROUP BY rel_channel
-                    HAVING COUNT(*) = 2
-                       AND MIN(rel_user) = ?
-                       AND MAX(rel_user) = ?)`
+        FROM channels AS c
+       WHERE c.type = 'group' 
+         AND c.id IN (SELECT rel_channel 
+                        FROM channel_members 
+                       GROUP BY rel_channel
+                      HAVING COUNT(*) = 2
+                         AND MIN(rel_user) = ?
+                         AND MAX(rel_user) = ?)`
+
+	sqlChannelMemberships = `SELECT *
+        FROM channel_members AS cm
+       WHERE true`
 
 	ErrChannelNotFound = repositoryError("ChannelNotFound")
 )
@@ -59,7 +65,7 @@ func (r *repository) FindDirectChannelByUserID(fromUserID, toUserID uint64) (*ty
 	}
 
 	// We're grouping and aggregating values by min/max value of the user ID
-	// so we need to swap values
+	// so we need to swap valuess
 	if fromUserID > toUserID {
 		// Order by user idso we can simplifiy the search
 		toUserID, fromUserID = fromUserID, toUserID
@@ -76,12 +82,12 @@ func (r *repository) FindChannels(filter *types.ChannelFilter) ([]*types.Channel
 
 	if filter != nil {
 		if filter.Query != "" {
-			sql += " AND name LIKE ?"
+			sql += " AND c.name LIKE ?"
 			params = append(params, filter.Query+"%")
 		}
 	}
 
-	sql += " ORDER BY name ASC"
+	sql += " ORDER BY c.name ASC"
 
 	return rval, r.db().Select(&rval, sql, params...)
 }
@@ -109,6 +115,12 @@ func (r *repository) UpdateChannel(mod *types.Channel) (*types.Channel, error) {
 
 	return mod, r.db().
 		UpdatePartial("channels", mod, whitelist, "id")
+}
+
+func (r *repository) FindChannelsMembershipsByMemberId(memberId uint64) ([]*types.ChannelMember, error) {
+	var rval = make([]*types.ChannelMember, 0)
+
+	return rval, r.db().Select(&rval, sqlChannelMemberships+" AND cm.rel_user = ? ", memberId)
 }
 
 func (r *repository) AddChannelMember(mod *types.ChannelMember) (*types.ChannelMember, error) {

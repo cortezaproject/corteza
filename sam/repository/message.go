@@ -19,12 +19,24 @@ type (
 const (
 	sqlMessageScope = "deleted_at IS NULL"
 
+	sqlMessagesSelect = `SELECT id,
+             COALESCE(type,'') AS type,
+             message,
+             rel_user,
+             rel_channel,
+             COALESCE(reply_to, 0) AS reply_to,
+             created_at,
+             updated_at,
+             deleted_at
+        FROM messages
+       WHERE ` + sqlMessageScope
+
 	ErrMessageNotFound = repositoryError("MessageNotFound")
 )
 
 func (r *repository) FindMessageByID(id uint64) (*types.Message, error) {
 	mod := &types.Message{}
-	sql := "SELECT id, COALESCE(type,'') AS type, message, rel_user, rel_channel, COALESCE(reply_to, 0) AS reply_to FROM messages WHERE id = ? AND " + sqlMessageScope
+	sql := sqlMessagesSelect + " AND id = ?"
 
 	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrMessageNotFound)
 }
@@ -33,7 +45,7 @@ func (r *repository) FindMessages(filter *types.MessageFilter) ([]*types.Message
 	params := make([]interface{}, 0)
 	rval := make([]*types.Message, 0)
 
-	sql := "SELECT id, COALESCE(type,'') AS type, message, rel_user, rel_channel, COALESCE(reply_to, 0) AS reply_to FROM messages WHERE " + sqlMessageScope
+	sql := sqlMessagesSelect
 
 	if filter != nil {
 		if filter.Query != "" {

@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/websocket/outgoing"
 	"log"
 	"time"
@@ -12,6 +13,8 @@ func (s *Session) sendToAllSubscribers(p outgoing.MessageEncoder, channelID stri
 	if err != nil {
 		return err
 	}
+
+	eq.push(s.ctx, &repository.EventQueueItem{Payload: pb, Subscriber: channelID})
 
 	store.Walk(func(sess *Session) {
 		// send message only to users with subscribed channels
@@ -29,6 +32,8 @@ func (s *Session) sendToAll(p outgoing.MessageEncoder) error {
 	if err != nil {
 		return err
 	}
+
+	eq.push(s.ctx, &repository.EventQueueItem{Payload: pb})
 
 	store.Walk(func(sess *Session) {
 		// send message only to users with subscribed channels

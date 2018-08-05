@@ -33,7 +33,7 @@ CREATE TABLE channels (
   topic            TEXT            NOT NULL,
   meta             JSON            NOT NULL,
 
-  type             ENUM ('private', 'public', 'direct') NOT NULL DEFAULT 'public',
+  type             ENUM ('private', 'public', 'group') NOT NULL DEFAULT 'public',
 
   rel_organisation BIGINT UNSIGNED NOT NULL REFERENCES organisation(id),
   rel_creator      BIGINT UNSIGNED NOT NULL REFERENCES users(id),
@@ -43,7 +43,7 @@ CREATE TABLE channels (
   archived_at      DATETIME            NULL,
   deleted_at       DATETIME            NULL, -- channel soft delete
 
-  rel_last_message BIGINT UNSIGNED,
+  rel_last_message BIGINT UNSIGNED NOT NULL DEFAULT 0,
 
   PRIMARY KEY (id)
 );
@@ -155,4 +155,20 @@ CREATE TABLE attachments (
   deleted_at       DATETIME            NULL,
 
   PRIMARY KEY (id)
+);
+
+CREATE TABLE event_queue (
+  id               BIGINT UNSIGNED NOT NULL,
+  origin           BIGINT UNSIGNED NOT NULL,
+  subscriber       TEXT,
+  payload          JSON,
+
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE event_queue_synced (
+  origin           BIGINT UNSIGNED NOT NULL,
+  rel_last         BIGINT UNSIGNED NOT NULL,
+
+  PRIMARY KEY (origin)
 );

@@ -4,18 +4,18 @@ type (
 	Payload struct {
 		*Error `json:"error,omitempty"`
 
-		*Connected    `json:"conn,omitempty"`
-		*Disconnected `json:"disc,omitempty"`
+		*Connected    `json:"clientConnected,omitempty"`
+		*Disconnected `json:"clientDisconnected,omitempty"`
 
-		*Message       `json:"m,omitempty"`
-		*MessageDelete `json:"md,omitempty"`
-		*MessageUpdate `json:"mu,omitempty"`
-		*Messages      `json:"ms,omitempty"`
+		*Message       `json:"message,omitempty"`
+		*MessageDelete `json:"messageDeleted,omitempty"`
+		*MessageUpdate `json:"messageUpdated,omitempty"`
+		*Messages      `json:"messages,omitempty"`
 
-		*ChannelJoin `json:"chj,omitempty"`
-		*ChannelPart `json:"chp,omitempty"`
-		*Channel     `json:"ch,omitempty"`
-		*Channels    `json:"chs,omitempty"`
+		*ChannelJoin `json:"channelJoin,omitempty"`
+		*ChannelPart `json:"channelPart,omitempty"`
+		*Channel     `json:"channel,omitempty"`
+		*Channels    `json:"channels,omitempty"`
 	}
 
 	// This is same-same but different as using the json.Marshaler

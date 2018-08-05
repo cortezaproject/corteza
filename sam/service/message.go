@@ -55,7 +55,7 @@ func (svc message) Direct(ctx context.Context, recipientID uint64, in *types.Mes
 		dch, err := r.FindDirectChannelByUserID(currentUserID, recipientID)
 		if err == repository.ErrChannelNotFound {
 			dch, err = r.CreateChannel(&types.Channel{
-				Type: types.ChannelTypeDirect,
+				Type: types.ChannelTypeGroup,
 			})
 
 			if err != nil {
