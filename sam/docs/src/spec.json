@@ -642,6 +642,20 @@
 						{ "type": "string", "name": "password", "required": true, "title": "Password for user" }
 					]
 				}
+			},
+			{
+				"name": "create",
+				"path": "/create",
+				"method": "POST",
+				"title": "Create new user",
+				"parameters": {
+					"post": [
+						{ "type": "string", "name": "name", "required": true, "title": "Display name" },
+						{ "type": "string", "name": "email", "required": true, "title": "Email" },
+						{ "type": "string", "name": "username", "required": true, "title": "Username" },
+						{ "type": "string", "name": "password", "required": true, "title": "Password" }
+					]
+				}
 			}
 		]
 	}

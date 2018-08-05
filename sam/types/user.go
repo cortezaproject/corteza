@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
@@ -30,4 +31,18 @@ func (u *User) Valid() bool {
 
 func (u *User) Identity() uint64 {
 	return u.ID
+}
+
+func (u *User) ValidatePassword(password string) bool {
+	return bcrypt.CompareHashAndPassword(u.Password, []byte(password)) == nil
+}
+
+func (u *User) GeneratePassword(password string) error {
+	pwd, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	u.Password = pwd
+	return nil
 }

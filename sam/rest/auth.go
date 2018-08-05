@@ -13,13 +13,14 @@ var _ = errors.Wrap
 type (
 	Auth struct {
 		svc struct {
-			user  authCredentialsValidator
+			user  authUserBasics
 			token authTokenEncoder
 		}
 	}
 
-	authCredentialsValidator interface {
+	authUserBasics interface {
 		ValidateCredentials(ctx context.Context, username, password string) (*types.User, error)
+		Create(ctx context.Context, input *types.User) (user *types.User, err error)
 	}
 
 	authTokenEncoder interface {
@@ -27,7 +28,7 @@ type (
 	}
 )
 
-func (Auth) New(credValidator authCredentialsValidator, tknEncoder authTokenEncoder) *Auth {
+func (Auth) New(credValidator authUserBasics, tknEncoder authTokenEncoder) *Auth {
 	auth := &Auth{}
 	auth.svc.user = credValidator
 	auth.svc.token = tknEncoder
@@ -36,7 +37,18 @@ func (Auth) New(credValidator authCredentialsValidator, tknEncoder authTokenEnco
 }
 
 func (ctrl *Auth) Login(ctx context.Context, r *server.AuthLoginRequest) (interface{}, error) {
-	user, err := ctrl.svc.user.ValidateCredentials(ctx, r.Username, r.Password)
+	return ctrl.tokenize(ctrl.svc.user.ValidateCredentials(ctx, r.Username, r.Password))
+}
+
+func (ctrl *Auth) Create(ctx context.Context, r *server.AuthCreateRequest) (interface{}, error) {
+	user := &types.User{Username: r.Username}
+	user.GeneratePassword(r.Password)
+
+	return ctrl.tokenize(ctrl.svc.user.Create(ctx, user))
+}
+
+// Wraps user return value and appends JWT
+func (ctrl *Auth) tokenize(user *types.User, err error) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}

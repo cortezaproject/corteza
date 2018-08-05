@@ -600,3 +600,20 @@ The following event types may be sent with a message event:
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | username | string | POST | Username or email | N/A | YES |
 | password | string | POST | Password for user | N/A | YES |
+
+## Create new user
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/auth/create` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| name | string | POST | Display name | N/A | YES |
+| email | string | POST | Email | N/A | YES |
+| username | string | POST | Username | N/A | YES |
+| password | string | POST | Password | N/A | YES |

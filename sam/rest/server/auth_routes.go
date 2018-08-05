@@ -25,6 +25,7 @@ func (ah *AuthHandlers) MountRoutes(r chi.Router, middlewares ...func(http.Handl
 		r.Use(middlewares...)
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/login", ah.Login)
+			r.Post("/create", ah.Create)
 		})
 	})
 }
