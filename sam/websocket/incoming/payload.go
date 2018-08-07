@@ -8,6 +8,8 @@ type Payload struct {
 
 	*ChannelChangeTopic `json:"chct"`
 	*ChannelRename      `json:"chrn"`
+	*ChannelCreate      `json:"chcr"`
+	*ChannelDelete      `json:"chdel"`
 
 	// Get channel message history
 	*MessageHistory `json:"chopen"`

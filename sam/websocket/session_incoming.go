@@ -32,6 +32,10 @@ func (s *Session) dispatch(raw []byte) (err error) {
 		return s.channelPart(ctx, p.ChannelPart)
 	case p.ChannelList != nil:
 		return s.channelList(ctx, p.ChannelList)
+	case p.ChannelCreate != nil:
+		return s.channelCreate(ctx, p.ChannelCreate)
+	case p.ChannelDelete != nil:
+		return s.channelDelete(ctx, p.ChannelDelete)
 	case p.ChannelRename != nil:
 		return s.channelRename(ctx, p.ChannelRename)
 	case p.ChannelChangeTopic != nil:
