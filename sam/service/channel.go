@@ -246,7 +246,13 @@ func (svc channel) Update(ctx context.Context, in *types.Channel) (out *types.Ch
 
 func (svc channel) Delete(ctx context.Context, id uint64) error {
 	return svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
+		var userID = auth.GetIdentityFromContext(ctx).Identity()
 		var ch *types.Channel
+
+		// @todo [SECURITY] can user access this channel?
+		if ch, err = r.FindChannelByID(id); err != nil {
+			return
+		}
 
 		// @todo [SECURITY] can user delete this channel?
 
@@ -254,8 +260,7 @@ func (svc channel) Delete(ctx context.Context, id uint64) error {
 			return errors.New("Channel already deleted")
 		}
 
-		_, err = r.CreateMessage(svc.makeSystemMessage(ch,
-			"%s deleted this channel"))
+		_, err = r.CreateMessage(svc.makeSystemMessage(ch, "@%d deleted this channel", userID))
 
 		return r.DeleteChannelByID(id)
 	})
@@ -263,7 +268,13 @@ func (svc channel) Delete(ctx context.Context, id uint64) error {
 
 func (svc channel) Recover(ctx context.Context, id uint64) error {
 	return svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
+		var userID = auth.GetIdentityFromContext(ctx).Identity()
 		var ch *types.Channel
+
+		// @todo [SECURITY] can user access this channel?
+		if ch, err = r.FindChannelByID(id); err != nil {
+			return
+		}
 
 		// @todo [SECURITY] can user recover this channel?
 
@@ -271,8 +282,7 @@ func (svc channel) Recover(ctx context.Context, id uint64) error {
 			return errors.New("Channel not deleted")
 		}
 
-		_, err = r.CreateMessage(svc.makeSystemMessage(ch,
-			"%s recovered this channel"))
+		_, err = r.CreateMessage(svc.makeSystemMessage(ch, "@%d recovered this channel", userID))
 
 		return r.DeleteChannelByID(id)
 	})
@@ -280,7 +290,13 @@ func (svc channel) Recover(ctx context.Context, id uint64) error {
 
 func (svc channel) Archive(ctx context.Context, id uint64) error {
 	return svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
+		var userID = auth.GetIdentityFromContext(ctx).Identity()
 		var ch *types.Channel
+
+		// @todo [SECURITY] can user access this channel?
+		if ch, err = r.FindChannelByID(id); err != nil {
+			return
+		}
 
 		// @todo [SECURITY] can user archive this channel?
 
@@ -288,8 +304,7 @@ func (svc channel) Archive(ctx context.Context, id uint64) error {
 			return errors.New("Channel already archived")
 		}
 
-		_, err = r.CreateMessage(svc.makeSystemMessage(ch,
-			"%s archived this channel"))
+		_, err = r.CreateMessage(svc.makeSystemMessage(ch, "@%d archived this channel", userID))
 
 		return r.ArchiveChannelByID(id)
 	})
@@ -297,7 +312,13 @@ func (svc channel) Archive(ctx context.Context, id uint64) error {
 
 func (svc channel) Unarchive(ctx context.Context, id uint64) error {
 	return svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
+		var userID = auth.GetIdentityFromContext(ctx).Identity()
 		var ch *types.Channel
+
+		// @todo [SECURITY] can user access this channel?
+		if ch, err = r.FindChannelByID(id); err != nil {
+			return
+		}
 
 		// @todo [SECURITY] can user unarchive this channel?
 
@@ -305,8 +326,7 @@ func (svc channel) Unarchive(ctx context.Context, id uint64) error {
 			return errors.New("Channel not archived")
 		}
 
-		_, err = r.CreateMessage(svc.makeSystemMessage(ch,
-			"%s unarchived this channel"))
+		_, err = r.CreateMessage(svc.makeSystemMessage(ch, "@%d unarchived this channel", userID))
 
 		return r.ArchiveChannelByID(id)
 	})
