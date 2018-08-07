@@ -37,6 +37,8 @@ func (s *Session) dispatch(raw []byte) (err error) {
 	case p.ChannelChangeTopic != nil:
 		return s.channelChangeTopic(ctx, p.ChannelChangeTopic)
 
+	case p.UserList != nil:
+		return s.userList(ctx, p.UserList)
 	}
 
 	return nil

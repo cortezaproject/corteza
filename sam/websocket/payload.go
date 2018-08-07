@@ -45,3 +45,28 @@ func payloadFromChannels(channels []*types.Channel) *outgoing.Channels {
 	retval := outgoing.Channels(cc)
 	return &retval
 }
+
+func payloadFromUser(user *types.User) *outgoing.User {
+	return &outgoing.User{
+		ID:       uint64toa(user.ID),
+		Username: user.Username,
+	}
+}
+
+func payloadFromUsers(users []*types.User) *outgoing.Users {
+	uu := make([]*outgoing.User, len(users))
+	for k, u := range users {
+		uu[k] = payloadFromUser(u)
+		uu[k].Connections = 0
+
+		// @todo this is current instance only, need to sync this across all instances
+		store.Walk(func(session *Session) {
+			if session.user.ID == u.ID {
+				uu[k].Connections++
+			}
+		})
+	}
+
+	retval := outgoing.Users(uu)
+	return &retval
+}
