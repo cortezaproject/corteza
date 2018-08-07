@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/crusttech/crust/auth"
 	"github.com/crusttech/crust/sam/service"
+	"github.com/crusttech/crust/sam/types"
 	"github.com/crusttech/crust/sam/websocket/incoming"
 	"github.com/crusttech/crust/sam/websocket/outgoing"
 )
@@ -49,6 +50,40 @@ func (s *Session) channelList(ctx context.Context, p *incoming.ChannelList) erro
 	}
 
 	return s.sendReply(payloadFromChannels(channels))
+}
+
+func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) (err error) {
+	ch := &types.Channel{
+		Type:  types.ChannelTypePublic,
+		Name:  p.Name,
+		Topic: p.Topic,
+	}
+
+	ch, err = service.Channel().Create(ctx, ch)
+	if err != nil {
+		return err
+	}
+
+	pl := payloadFromChannel(ch)
+
+	if ch.Type == types.ChannelTypePublic {
+		return s.sendToAll(pl)
+	}
+
+	// By default, just send reply to user
+	return s.sendReply(pl)
+}
+
+func (s *Session) channelDelete(ctx context.Context, p *incoming.ChannelDelete) (err error) {
+	err = service.Channel().Delete(ctx, parseUInt64(p.ChannelID))
+	if err != nil {
+		return err
+	}
+
+	return s.sendToAllSubscribers(&outgoing.ChannelDeleted{
+		ID:     p.ChannelID,
+		UserID: uint64toa(auth.GetIdentityFromContext(ctx).Identity()),
+	}, p.ChannelID)
 }
 
 func (s *Session) channelRename(ctx context.Context, p *incoming.ChannelRename) error {

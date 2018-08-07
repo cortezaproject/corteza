@@ -21,6 +21,14 @@ type (
 		UserID string `json:"uid"`
 	}
 
+	ChannelDeleted struct {
+		// Channel that was deleted
+		ID string `json:"id"`
+
+		// Who deleted it
+		UserID string `json:"uid"`
+	}
+
 	Channel struct {
 		// Channel to part (nil) for ALL channels
 		ID            string `json:"id"`
@@ -38,6 +46,10 @@ func (p *ChannelJoin) EncodeMessage() ([]byte, error) {
 
 func (p *ChannelPart) EncodeMessage() ([]byte, error) {
 	return json.Marshal(Payload{ChannelPart: p})
+}
+
+func (p *ChannelDeleted) EncodeMessage() ([]byte, error) {
+	return json.Marshal(Payload{ChannelDeleted: p})
 }
 
 func (p *Channel) EncodeMessage() ([]byte, error) {

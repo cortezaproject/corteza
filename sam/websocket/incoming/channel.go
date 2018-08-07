@@ -11,6 +11,11 @@ type (
 		ChannelID string `json:"cid"`
 	}
 
+	ChannelCreate struct {
+		Name  string `json:"name"`
+		Topic string `json:"topic"`
+	}
+
 	ChannelRename struct {
 		ChannelID string `json:"cid"`
 		Name      string `json:"name"`
@@ -19,5 +24,9 @@ type (
 	ChannelChangeTopic struct {
 		ChannelID string `json:"cid"`
 		Topic     string `json:"topic"`
+	}
+
+	ChannelDelete struct {
+		ChannelID string `json:"cid"`
 	}
 )

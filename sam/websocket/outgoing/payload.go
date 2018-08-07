@@ -12,10 +12,11 @@ type (
 		*MessageUpdate `json:"messageUpdated,omitempty"`
 		*Messages      `json:"messages,omitempty"`
 
-		*ChannelJoin `json:"channelJoin,omitempty"`
-		*ChannelPart `json:"channelPart,omitempty"`
-		*Channel     `json:"channel,omitempty"`
-		*Channels    `json:"channels,omitempty"`
+		*ChannelJoin    `json:"channelJoin,omitempty"`
+		*ChannelPart    `json:"channelPart,omitempty"`
+		*ChannelDeleted `json:"channelDeleted,omitempty"`
+		*Channel        `json:"channel,omitempty"`
+		*Channels       `json:"channels,omitempty"`
 
 		*User  `json:"user,omitempty"`
 		*Users `json:"users,omitempty"`
