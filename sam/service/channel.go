@@ -143,8 +143,8 @@ func (svc channel) Create(ctx context.Context, in *types.Channel) (out *types.Ch
 		// message service constraints
 		msg, err = r.CreateMessage(svc.makeSystemMessage(
 			out,
-			"%s created new %s channel, topic is: %s",
-			"<USERNAME>",
+			"@%d created new %s channel, topic is: %s",
+			chCreatorID,
 			"<PRIVATE-OR-PUBLIC>",
 			"<TOPIC>"))
 
@@ -176,7 +176,7 @@ func (svc channel) Update(ctx context.Context, in *types.Channel) (out *types.Ch
 			return errors.New("Not allowed to edit deleted channels")
 		}
 
-		// var chCreatorID = auth.GetIdentityFromContext(ctx).Identity()
+		var chUpdatorId = auth.GetIdentityFromContext(ctx).Identity()
 
 		// Copy values
 		if out.Name != in.Name {
@@ -185,7 +185,7 @@ func (svc channel) Update(ctx context.Context, in *types.Channel) (out *types.Ch
 				return errors.New("Not allowed to rename channel")
 			} else {
 				msgs = append(msgs, svc.makeSystemMessage(
-					out, "%s renamed channel %s (was: %s)", "<USERNAME>", out.Name, in.Name))
+					out, "@%d renamed channel %s (was: %s)", chUpdatorId, out.Name, in.Name))
 			}
 			out.Name = in.Name
 		}
@@ -196,7 +196,7 @@ func (svc channel) Update(ctx context.Context, in *types.Channel) (out *types.Ch
 				return errors.New("Not allowed to change channel topic")
 			} else {
 				msgs = append(msgs, svc.makeSystemMessage(
-					out, "%s changed channel topic: %s (was: %s)", "<USERNAME>", out.Topic, in.Topic))
+					out, "@%d changed channel topic: %s (was: %s)", chUpdatorId, out.Topic, in.Topic))
 			}
 
 			out.Topic = in.Topic
