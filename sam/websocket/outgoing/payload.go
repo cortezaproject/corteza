@@ -16,6 +16,9 @@ type (
 		*ChannelPart `json:"channelPart,omitempty"`
 		*Channel     `json:"channel,omitempty"`
 		*Channels    `json:"channels,omitempty"`
+
+		*User  `json:"user,omitempty"`
+		*Users `json:"users,omitempty"`
 	}
 
 	// This is same-same but different as using the json.Marshaler

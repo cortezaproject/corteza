@@ -70,14 +70,15 @@ func (sess *Session) disconnected() {
 
 func (sess *Session) Handle() error {
 	sess.connected()
-	defer sess.disconnected()
-
 	go sess.readLoop()
 	return sess.writeLoop()
 }
 
 func (sess *Session) Close() {
+	// @todo fix "writeLoop send: websocket: close sent" caused by sending disconnect here
+	sess.disconnected()
 	sess.conn.Close()
+	store.Delete(sess.id)
 }
 
 func (sess *Session) readLoop() error {
@@ -100,11 +101,8 @@ func (sess *Session) readLoop() error {
 		}
 
 		if err := sess.dispatch(raw); err != nil {
-			// @todo: log error?
-			sess.send <- func() []byte {
-				b, _ := outgoing.NewError(err).EncodeMessage()
-				return b
-			}()
+			log.Printf("Error: %v", err)
+			sess.sendReply(outgoing.NewError(err))
 		}
 	}
 }

@@ -16,4 +16,6 @@ type Payload struct {
 	*MessageCreate `json:"msgcre"`
 	*MessageUpdate `json:"msgupd"`
 	*MessageDelete `json:"msgdel"`
+
+	*UserList `json:"users"`
 }
