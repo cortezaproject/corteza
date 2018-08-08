@@ -82,7 +82,7 @@ CREATE TABLE channel_members (
   type             ENUM ('owner', 'member') NOT NULL DEFAULT 'member',
 
   created_at       DATETIME        NOT NULL DEFAULT NOW(),
-  updated_at       DATETIME            NULL
+  updated_at       DATETIME            NULL,
 
   PRIMARY KEY (rel_channel, rel_user)
 );
