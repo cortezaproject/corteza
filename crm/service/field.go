@@ -7,26 +7,33 @@ import (
 )
 
 type (
-	fieldType struct {
-		repository fieldTypeRepository
+	field struct {
+		repository repository.Field
 	}
 
-	fieldTypeRepository interface {
-		FindByName(ctx context.Context, name string) (*types.Field, error)
-		Find(ctx context.Context) ([]*types.Field, error)
+	FieldService interface {
+		With(ctx context.Context) FieldService
+		FindByName(name string) (*types.Field, error)
+		Find() ([]*types.Field, error)
 	}
 )
 
-func Field() fieldType {
-	return fieldType{
-		repository: repository.Field(),
+func Field() FieldService {
+	return &field{
+		repository: repository.NewField(context.Background()),
 	}
 }
 
-func (svc fieldType) FindByName(ctx context.Context, name string) (*types.Field, error) {
-	return svc.repository.FindByName(ctx, name)
+func (s *field) With(ctx context.Context) FieldService {
+	return &field{
+		repository: s.repository.With(ctx),
+	}
 }
 
-func (svc fieldType) Find(ctx context.Context) ([]*types.Field, error) {
-	return svc.repository.Find(ctx)
+func (s *field) FindByName(name string) (*types.Field, error) {
+	return s.repository.FindByName(name)
+}
+
+func (s *field) Find() ([]*types.Field, error) {
+	return s.repository.Find()
 }

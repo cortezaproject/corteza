@@ -8,41 +8,49 @@ import (
 
 type (
 	module struct {
-		repository moduleRepository
+		repository repository.Module
 	}
 
-	moduleRepository interface {
-		FindByID(ctx context.Context, moduleID uint64) (*types.Module, error)
-		Find(ctx context.Context) ([]*types.Module, error)
+	ModuleService interface {
+		With(ctx context.Context) ModuleService
 
-		Create(ctx context.Context, module *types.Module) (*types.Module, error)
-		Update(ctx context.Context, module *types.Module) (*types.Module, error)
-		DeleteByID(ctx context.Context, moduleID uint64) error
+		FindByID(moduleID uint64) (*types.Module, error)
+		Find() ([]*types.Module, error)
+
+		Create(module *types.Module) (*types.Module, error)
+		Update(module *types.Module) (*types.Module, error)
+		DeleteByID(moduleID uint64) error
 	}
 )
 
-func Module() module {
-	return module{
-		repository: repository.Module(),
+func Module() ModuleService {
+	return &module{
+		repository: repository.NewModule(context.Background()),
 	}
 }
 
-func (svc module) FindByID(ctx context.Context, id uint64) (*types.Module, error) {
-	return svc.repository.FindByID(ctx, id)
+func (s *module) With(ctx context.Context) ModuleService {
+	return &module{
+		repository: s.repository.With(ctx),
+	}
 }
 
-func (svc module) Find(ctx context.Context) ([]*types.Module, error) {
-	return svc.repository.Find(ctx)
+func (s *module) FindByID(id uint64) (*types.Module, error) {
+	return s.repository.FindByID(id)
 }
 
-func (svc module) Create(ctx context.Context, mod *types.Module) (*types.Module, error) {
-	return svc.repository.Create(ctx, mod)
+func (s *module) Find() ([]*types.Module, error) {
+	return s.repository.Find()
 }
 
-func (svc module) Update(ctx context.Context, mod *types.Module) (*types.Module, error) {
-	return svc.repository.Update(ctx, mod)
+func (s *module) Create(mod *types.Module) (*types.Module, error) {
+	return s.repository.Create(mod)
 }
 
-func (svc module) DeleteByID(ctx context.Context, id uint64) error {
-	return svc.repository.DeleteByID(ctx, id)
+func (s *module) Update(mod *types.Module) (*types.Module, error) {
+	return s.repository.Update(mod)
+}
+
+func (s *module) DeleteByID(id uint64) error {
+	return s.repository.DeleteByID(id)
 }

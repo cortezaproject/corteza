@@ -8,51 +8,43 @@ import (
 	"context"
 	"github.com/crusttech/crust/crm/rest/server"
 	"github.com/crusttech/crust/crm/types"
+	"github.com/crusttech/crust/crm/service"
 )
 
 var _ = errors.Wrap
 
 type (
 	Module struct {
-		svc moduleService
-	}
-
-	moduleService interface {
-		FindByID(ctx context.Context, moduleID uint64) (*types.Module, error)
-		Find(ctx context.Context) ([]*types.Module, error)
-
-		Create(ctx context.Context, module *types.Module) (*types.Module, error)
-		Update(ctx context.Context, module *types.Module) (*types.Module, error)
-		DeleteByID(ctx context.Context, moduleID uint64) error
+		module service.ModuleService
 	}
 )
 
-func (Module) New(moduleSvc moduleService) *Module {
-	var ctrl = &Module{}
-	ctrl.svc = moduleSvc
-	return ctrl
+func (Module) New() server.ModuleAPI {
+	return &Module{
+		module: service.Module(),
+	}
 }
 
-func (c *Module) List(ctx context.Context, r *server.ModuleListRequest) (interface{}, error) {
-	return c.svc.Find(ctx)
+func (s *Module) List(ctx context.Context, r *server.ModuleListRequest) (interface{}, error) {
+	return s.module.With(ctx).Find()
 }
 
-func (c *Module) Read(ctx context.Context, r *server.ModuleReadRequest) (interface{}, error) {
-	return c.svc.FindByID(ctx, r.ID)
+func (s *Module) Read(ctx context.Context, r *server.ModuleReadRequest) (interface{}, error) {
+	return s.module.With(ctx).FindByID(r.ID)
 }
 
-func (c *Module) Delete(ctx context.Context, r *server.ModuleDeleteRequest) (interface{}, error) {
-	return resputil.OK(), c.svc.DeleteByID(ctx, r.ID)
+func (s *Module) Delete(ctx context.Context, r *server.ModuleDeleteRequest) (interface{}, error) {
+	return resputil.OK(), s.module.With(ctx).DeleteByID(r.ID)
 }
 
-func (c *Module) Create(ctx context.Context, r *server.ModuleCreateRequest) (interface{}, error) {
+func (s *Module) Create(ctx context.Context, r *server.ModuleCreateRequest) (interface{}, error) {
 	m := &types.Module{Name: r.Name}
-	return c.svc.Create(ctx, m)
+	return s.module.With(ctx).Create(m)
 }
 
-func (c *Module) Edit(ctx context.Context, r *server.ModuleEditRequest) (interface{}, error) {
+func (s *Module) Edit(ctx context.Context, r *server.ModuleEditRequest) (interface{}, error) {
 	m := &types.Module{ID: r.ID, Name: r.Name}
-	return c.svc.Update(ctx, m)
+	return s.module.With(ctx).Update(m)
 }
 
 func (*Module) ContentList(ctx context.Context, r *server.ModuleContentListRequest) (interface{}, error) {
