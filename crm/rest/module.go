@@ -7,21 +7,23 @@ import (
 
 	"context"
 	"github.com/crusttech/crust/crm/rest/server"
-	"github.com/crusttech/crust/crm/types"
 	"github.com/crusttech/crust/crm/service"
+	"github.com/crusttech/crust/crm/types"
 )
 
 var _ = errors.Wrap
 
 type (
 	Module struct {
-		module service.ModuleService
+		module  service.ModuleService
+		content service.ContentService
 	}
 )
 
 func (Module) New() server.ModuleAPI {
 	return &Module{
-		module: service.Module(),
+		module:  service.Module(),
+		content: service.Content(),
 	}
 }
 
@@ -38,31 +40,48 @@ func (s *Module) Delete(ctx context.Context, r *server.ModuleDeleteRequest) (int
 }
 
 func (s *Module) Create(ctx context.Context, r *server.ModuleCreateRequest) (interface{}, error) {
-	m := &types.Module{Name: r.Name}
-	return s.module.With(ctx).Create(m)
+	return s.module.With(ctx).Create(
+		&types.Module{Name: r.Name},
+	)
 }
 
 func (s *Module) Edit(ctx context.Context, r *server.ModuleEditRequest) (interface{}, error) {
-	m := &types.Module{ID: r.ID, Name: r.Name}
-	return s.module.With(ctx).Update(m)
+	return s.module.With(ctx).Update(
+		&types.Module{ID: r.ID, Name: r.Name},
+	)
 }
 
-func (*Module) ContentList(ctx context.Context, r *server.ModuleContentListRequest) (interface{}, error) {
-	return nil, errors.New("Not implemented: Module.content/edit")
+func (s *Module) ContentList(ctx context.Context, r *server.ModuleContentListRequest) (interface{}, error) {
+	return s.content.With(ctx).Find()
 }
 
-func (*Module) ContentRead(ctx context.Context, r *server.ModuleContentReadRequest) (interface{}, error) {
-	return nil, errors.New("Not implemented: Module.content/edit")
+func (s *Module) ContentRead(ctx context.Context, r *server.ModuleContentReadRequest) (interface{}, error) {
+	return s.content.With(ctx).FindByID(r.ID)
 }
 
-func (*Module) ContentCreate(ctx context.Context, r *server.ModuleContentCreateRequest) (interface{}, error) {
-	return nil, errors.New("Not implemented: Module.content/edit")
+func (s *Module) ContentCreate(ctx context.Context, r *server.ModuleContentCreateRequest) (interface{}, error) {
+	item := &types.Content{
+		ModuleID: r.Module,
+	}
+	fields := &item.Fields
+	if err := fields.Scan(r.Payload); err != nil {
+		return nil, err
+	}
+	return s.content.With(ctx).Create(item)
 }
 
-func (*Module) ContentEdit(ctx context.Context, r *server.ModuleContentEditRequest) (interface{}, error) {
-	return nil, errors.New("Not implemented: Module.content/edit")
+func (s *Module) ContentEdit(ctx context.Context, r *server.ModuleContentEditRequest) (interface{}, error) {
+	item := &types.Content{
+		ID: r.ID,
+		ModuleID: r.Module,
+	}
+	fields := &item.Fields
+	if err := fields.Scan(r.Payload); err != nil {
+		return nil, err
+	}
+	return s.content.With(ctx).Update(item)
 }
 
-func (*Module) ContentDelete(ctx context.Context, r *server.ModuleContentDeleteRequest) (interface{}, error) {
-	return nil, errors.New("Not implemented: Module.content/delete")
+func (s *Module) ContentDelete(ctx context.Context, r *server.ModuleContentDeleteRequest) (interface{}, error) {
+	return resputil.OK(), s.content.With(ctx).DeleteByID(r.ID)
 }
