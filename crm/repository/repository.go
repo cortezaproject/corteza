@@ -19,7 +19,7 @@ type (
 func (r *repository) With(ctx context.Context) *repository {
 	return &repository{
 		ctx: ctx,
-		tx: r.db().With(r.ctx),
+		tx:  r.db().With(r.ctx),
 	}
 }
 

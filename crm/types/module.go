@@ -9,8 +9,9 @@ import (
 type (
 	// Modules - CRM module definitions
 	Module struct {
-		ID   uint64 `db:"id"`
-		Name string `db:"name"`
+		ID     uint64         `db:"id"`
+		Name   string         `db:"name"`
+		Fields types.JSONText `db:"json"`
 	}
 
 	// Modules - CRM module definitions
