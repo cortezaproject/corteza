@@ -38,7 +38,7 @@ func (Session) New(ctx context.Context, conn *websocket.Conn) *Session {
 		conn:   conn,
 		ctx:    ctx,
 		config: config,
-		subs:   Subscriptions{}.New(),
+		subs:   NewSubscriptions(),
 		send:   make(chan []byte, 512),
 		stop:   make(chan []byte, 1),
 	}

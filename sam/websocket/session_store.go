@@ -13,14 +13,14 @@ type (
 	}
 )
 
-func (Store) New() *Store {
+func NewStore() *Store {
 	return &Store{sync.RWMutex{}, make(map[uint64]*Session)}
 }
 
 var store *Store
 
 func init() {
-	store = Store{}.New()
+	store = NewStore()
 }
 
 func (s *Store) Save(session *Session) *Session {
