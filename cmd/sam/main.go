@@ -6,7 +6,7 @@ import (
 	"github.com/crusttech/crust/sam/rest"
 	"github.com/crusttech/crust/sam/websocket"
 	"github.com/go-chi/chi"
-	"github.com/sentimensrg/sigctx"
+	"github.com/SentimensRG/sigctx"
 	"github.com/titpetric/factory"
 
 	"log"
