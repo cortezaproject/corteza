@@ -45,6 +45,10 @@ $tpl->add_default("newline", "\n");
 $generators = array();
 exec("find -L " . __DIR__ . "/" . $project . " -name index.php", $generators);
 
+if (getenv("DEBUG") === "true") {
+	fprintf(STDERR, print_r($generators, true));
+}
+
 $api_files = glob($project . "/docs/src/spec/*.json");
 $apis = array_map(function($filename) {
 	$api = array_change_key_case_recursive(json_decode(file_get_contents($filename), true));
@@ -87,6 +91,9 @@ foreach ($generators as $generator) {
 		mkdir($dirname, 0777, true);
 	}
 	$common = compact("parsers", "project");
+	if (getenv("DEBUG") === "true") {
+		fprintf(STDERR, print_r($common, true));
+	}
 	include($generator);
 }
 
