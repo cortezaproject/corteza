@@ -45,9 +45,13 @@
 		"struct": [
 			{
 				"name": "Module",
+				"imports": [
+					"github.com/jmoiron/sqlx/types"
+				],
 				"fields": [
 					{ "name": "ID", "type": "uint64" },
-					{ "name": "Name", "type": "string" }
+					{ "name": "Name", "type": "string" },
+					{ "name": "Fields", "type": "types.JSONText", "db": "json", "complex": true }
 				]
 			},
 			{

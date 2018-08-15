@@ -13,7 +13,16 @@
         {
           "name": "Name",
           "type": "string"
+        },
+        {
+          "complex": true,
+          "db": "json",
+          "name": "Fields",
+          "type": "types.JSONText"
         }
+      ],
+      "imports": [
+        "github.com/jmoiron/sqlx/types"
       ],
       "name": "Module"
     },
