@@ -51,6 +51,14 @@ test: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./...
 	$(GO) tool cover -func=.cover.out
 
+test.sam: $(GOTEST)
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./sam/repository/...
+	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
+
+test.crm: $(GOTEST)
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./crm/repository/...
+	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
+
 test.rbac: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./rbac/...
 	$(GO) tool cover -func=.cover.out
