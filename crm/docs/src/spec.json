@@ -51,14 +51,14 @@
 				]
 			},
 			{
-				"name": "ModuleContentRow",
+				"name": "Content",
 				"imports": [
 					"github.com/jmoiron/sqlx/types"
 				],
 				"fields": [
-					{ "name": "ID", "type": "uint64", "tag": "db:\"id\"" },
-					{ "name": "ModuleID", "type": "uint64", "tag": "db:\"module_id\"" },
-					{ "name": "Fields", "type": "types.JSONText", "tag": "db:\"address\"", "complex": true }
+					{ "name": "ID", "type": "uint64" },
+					{ "name": "ModuleID", "type": "uint64" },
+					{ "name": "Fields", "type": "types.JSONText", "db": "json", "complex": true }
 				]
 			}
 		],
