@@ -10,27 +10,40 @@ import (
 	"path/filepath"
 )
 
-const (
-	// @todo root should be configurable
-	// @todo move this to db or stack it inside the binary or container
-	fieldPath = "crm/data/%s.json"
-)
-
 type (
-	field struct{}
+	Field interface {
+		With(ctx context.Context) Field
+
+		FindByName(name string) (*types.Field, error)
+		Find() ([]*types.Field, error)
+	}
+
+	field struct {
+		*repository
+	}
 )
 
-func Field() field {
-	return field{}
+func NewField(ctx context.Context) Field {
+	return &field{
+		repository: &repository{
+			ctx: ctx,
+		},
+	}
+}
+
+func (r *field) With(ctx context.Context) Field {
+	return &field{
+		repository: r.repository.With(ctx),
+	}
 }
 
 // Finds field by it's name and returns it
-func (repo field) FindByName(ctx context.Context, name string) (*types.Field, error) {
-	return repo.decode(fmt.Sprintf(fieldPath, name))
+func (f *field) FindByName(name string) (*types.Field, error) {
+	return f.fieldDecode(fmt.Sprintf(fieldPath, name))
 }
 
 // Returns all known fields
-func (repo field) Find(ctx context.Context) ([]*types.Field, error) {
+func (f *field) Find() ([]*types.Field, error) {
 	matches, err := filepath.Glob(fmt.Sprintf(fieldPath, "*"))
 	if err != nil {
 		return nil, err
@@ -38,14 +51,14 @@ func (repo field) Find(ctx context.Context) ([]*types.Field, error) {
 
 	res := make([]*types.Field, len(matches))
 	for i, match := range matches {
-		if res[i], err = repo.decode(match); err != nil {
+		if res[i], err = f.fieldDecode(match); err != nil {
 			return nil, err
 		}
 	}
 	return res, nil
 }
 
-func (repo field) decode(filepath string) (*types.Field, error) {
+func (f *field) fieldDecode(filepath string) (*types.Field, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		// @todo wrap error
@@ -54,19 +67,19 @@ func (repo field) decode(filepath string) (*types.Field, error) {
 
 	defer file.Close()
 
+	// Removes path and extension from full filename
+	fieldTypeFromPath := func(filepath string) string {
+		t := path.Base(filepath)
+		return t[:len(t)-5]
+	}
+
 	// Preset field's type with name of the file (sans .json)
 	// if type is explicitly set within the file, it will be overwritten
-	field := &types.Field{Type: repo.typeFromPath(filepath)}
+	field := &types.Field{Type: fieldTypeFromPath(filepath)}
 	if err := json.NewDecoder(file).Decode(&field); err != nil {
 		// @todo wrap error
 		return nil, err
 	}
 
 	return field, nil
-}
-
-// Removes path and extension from full filename
-func (repo field) typeFromPath(filepath string) string {
-	t := path.Base(filepath)
-	return t[:len(t)-5]
 }

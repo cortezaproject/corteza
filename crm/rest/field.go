@@ -6,31 +6,32 @@ import (
 	"context"
 	"github.com/crusttech/crust/crm/rest/server"
 	"github.com/crusttech/crust/crm/types"
+	"github.com/crusttech/crust/crm/service"
 )
 
 var _ = errors.Wrap
 
 type (
 	Field struct {
-		svc fieldService
+		field service.FieldService
 	}
 
-	fieldService interface {
+	FieldService interface {
 		FindByName(ctx context.Context, name string) (*types.Field, error)
 		Find(ctx context.Context) ([]*types.Field, error)
 	}
 )
 
-func (Field) New(fieldSvc fieldService) *Field {
-	var ctrl = &Field{}
-	ctrl.svc = fieldSvc
-	return ctrl
+func (Field) New() server.FieldAPI {
+	return &Field{
+		field: service.Field(),
+	}
 }
 
-func (self *Field) List(ctx context.Context, _ *server.FieldListRequest) (interface{}, error) {
-	return self.svc.Find(ctx)
+func (s *Field) List(ctx context.Context, _ *server.FieldListRequest) (interface{}, error) {
+	return s.field.With(ctx).Find()
 }
 
-func (self *Field) Type(ctx context.Context, r *server.FieldTypeRequest) (interface{}, error) {
-	return self.svc.FindByName(ctx, r.ID)
+func (s *Field) Type(ctx context.Context, r *server.FieldTypeRequest) (interface{}, error) {
+	return s.field.With(ctx).FindByName(r.ID)
 }
