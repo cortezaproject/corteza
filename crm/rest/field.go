@@ -5,8 +5,8 @@ import (
 
 	"context"
 	"github.com/crusttech/crust/crm/rest/server"
-	"github.com/crusttech/crust/crm/types"
 	"github.com/crusttech/crust/crm/service"
+	"github.com/crusttech/crust/crm/types"
 )
 
 var _ = errors.Wrap

@@ -74,34 +74,3 @@ func (r *module) DeleteByID(id uint64) error {
 		return nil
 	}
 }
-
-//func (r *module) Edit(r *moduleEditRequest) (interface{}, error) {
-//	db := factory.Database.MustGet()
-//	m := module{}.New()
-//	m.SetID(r.id).SetName(r.name)
-//	if m.GetID() > 0 {
-//		return m, db.With(ctx).Replace("crm_module", m)
-//	}
-//	m.SetID(factory.Sonyflake.NextID())
-//	return m, db.With(ctx).Insert("crm_module", m)
-//}
-//
-//func (r *module) ContentList(r *moduleContentListRequest) (interface{}, error) {
-//	db := factory.Database.MustGet()
-//	if r.id > 0 {
-//		m := ModuleContentRow{}.New()
-//		return m, db.Get(m, "select * from crm_module id=?", r.id)
-//	}
-//
-//	res := make([]ModuleContentRow, 0)
-//	err = db.With(ctx).Select(&res, "select * from crm_module order by name asc")
-//	return res, err
-//}
-//
-//func (r *module) ContentEdit(r *moduleContentEditRequest) (interface{}, error) {
-//	return nil, errors.New("Not implemented: module.content/edit")
-//}
-//
-//func (r *module) ContentDelete(r *moduleContentDeleteRequest) (interface{}, error) {
-//	return nil, errors.New("Not implemented: module.content/delete")
-//}
