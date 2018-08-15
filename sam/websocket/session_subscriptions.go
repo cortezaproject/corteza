@@ -19,7 +19,7 @@ type (
 	}
 )
 
-func (Subscriptions) New() *Subscriptions {
+func NewSubscriptions() *Subscriptions {
 	return &Subscriptions{sync.RWMutex{}, make(map[string]*Subscription)}
 }
 
