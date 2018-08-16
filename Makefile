@@ -61,7 +61,7 @@ test.crm: $(GOTEST)
 
 test.rbac: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./rbac/...
-	$(GO) tool cover -func=.cover.out
+	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 vet:
 	$(GO) vet `cd ${GOPATH}/src/; find $(PKG) -type f -name '*.go' -and -not -path '*vendor*'|xargs -n1 dirname|uniq`

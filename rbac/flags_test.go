@@ -1,21 +1,21 @@
-package rbac_test
+package rbac
 
 import (
-	"github.com/crusttech/crust/rbac"
-	"github.com/namsral/flag"
 	"testing"
 )
 
-var loaded bool
-
-func getClient() (*rbac.Client, error) {
-	if !loaded {
-		rbac.Flags()
-		flag.Parse()
-		loaded = true
-	}
-	return rbac.New()
+func TestFlags(t *testing.T) {
+	c := configuration{}
+	mustFail(t, c.validate())
+	c.auth = "a"
+	mustFail(t, c.validate())
+	c.tenant = "a"
+	mustFail(t, c.validate())
+	c.baseURL = "a"
+	must(t, c.validate())
 }
+
+/* imported below from main_test.go because of different package namespace */
 
 func assert(t *testing.T, ok bool, format string, args ...interface{}) bool {
 	if !ok {

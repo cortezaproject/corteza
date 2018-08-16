@@ -6,34 +6,26 @@ import (
 
 func TestResources(t *testing.T) {
 	rbac, err := getClient()
-	if err != nil {
-		t.Errorf("Unexpected error when creating RBAC instance: %+v", err)
-	}
+	assert(t, err == nil, "Error when creating RBAC instance: %+v", err)
 	rbac.Debug("debug")
 
+	roles := rbac.Roles()
 	resources := rbac.Resources()
+
+	roles.Delete("test-role")
 	resources.Delete("test-resource")
 
-	if err := resources.Create("test-resource", []string{"view", "edit", "delete"}); err != nil {
-		t.Errorf("Error when creating test-resource, %+v", err)
-		return
-	}
+	must(t, roles.Create("test-role"), "Error when creating test-role")
+	must(t, resources.Create("test-resource", []string{"view", "edit", "delete"}), "Error when creating test-resource")
+	must(t, resources.Grant("test-resource", "test-role", []string{"view", "edit"}), "Error when granting permissions to role on resource")
 
-	// test get resources
+	// test get resources (not implemented) @todo
 	if false {
-		_, err := resources.Get("test-resource")
-		if err != nil {
-			t.Errorf("Error when retrieving test-resource, %+v", err)
-			return
-		}
+		res, err := resources.Get("test-resource")
+		must(t, err, "Error when retrieving test-resource")
+		assert(t, res != nil, "Expected non-nil test-resource")
 	}
 
-	if err := resources.Delete("test-resource"); err != nil {
-		t.Errorf("Unexpected error deleting a resource, %+v", err)
-		return
-	}
-
-	if err := resources.Delete("test-resource"); err == nil {
-		t.Errorf("Expected error when deleting unexistant resource, got none")
-	}
+	must(t, resources.Delete("test-resource"), "Error deleting a resource")
+	mustFail(t, resources.Delete("test-resource"))
 }

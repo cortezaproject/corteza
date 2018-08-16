@@ -8,8 +8,8 @@ import (
 
 func toError(resp *http.Response) error {
 	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return errors.Errorf("unexpected response (%d)", resp.StatusCode)
+	if body == nil || err != nil {
+		return errors.Errorf("unexpected response (%d, %s)", resp.StatusCode, err)
 	}
 	return errors.New(string(body))
 }
