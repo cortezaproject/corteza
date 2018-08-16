@@ -57,7 +57,10 @@ func (u *Sessions) Get(sessionID string) (*types.Session, error) {
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case 200:
-		session := &types.Session{}
+		// @todo: fix session get response to return ID too
+		session := &types.Session{
+			ID: sessionID,
+		}
 		return session, errors.Wrap(json.NewDecoder(resp.Body).Decode(session), "decoding json failed")
 	default:
 		return nil, toError(resp)
