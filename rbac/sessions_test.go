@@ -6,7 +6,7 @@ import (
 
 func TestSessions(t *testing.T) {
 	rbac, err := getClient()
-	assert(t, err == nil, "Error when creating RBAC instance: %+v", err)
+	must(t, err, "Error when creating RBAC instance")
 	rbac.Debug("info")
 
 	sessions := rbac.Sessions()
@@ -67,6 +67,9 @@ func TestSessions(t *testing.T) {
 	}
 
 	must(t, sessions.Delete("test-session"), "Error when deleting test-session")
-
-	// @todo: Write tests (need users, roles)
+	mustFail(t, func() error {
+		_, err := sessions.Get("test-session")
+		return err
+	}())
+	mustFail(t, sessions.Delete("test-session"))
 }
