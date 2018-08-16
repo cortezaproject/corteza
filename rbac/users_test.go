@@ -6,7 +6,7 @@ import (
 
 func TestUsers(t *testing.T) {
 	rbac, err := getClient()
-	assert(t, err == nil, "Error when creating RBAC instance: %+v", err)
+	must(t, err, "Error when creating RBAC instance")
 	rbac.Debug("info")
 
 	users := rbac.Users()
@@ -15,70 +15,42 @@ func TestUsers(t *testing.T) {
 	users.Delete("test-user")
 	roles.Delete("test-role")
 
-	if err := roles.Create("test-role"); err != nil {
-		t.Fatalf("Error when creating test-role, %+v", err)
-		return
-	}
-
-	if err := users.Create("test-user", "test-password"); err != nil {
-		t.Fatalf("Error when creating test-user: %+v", err)
-		return
-	}
+	must(t, roles.Create("test-role"), "Error when creating test-role")
+	must(t, users.Create("test-user", "test-password"), "Error when creating test-user")
 
 	// check if we inherited some roles (should be empty)
 	{
 		user, err := users.Get("test-user")
-		if !assert(t, err == nil, "Error when retrieving test-user 1, %+v", err) {
-			return
-		}
+		must(t, err, "Error when retrieving test-user 1")
 		assert(t, user.Username == "test-user", "Unexpected username, test-user != '%s'", user.Username)
 		assert(t, len(user.AssignedRoles) == 0, "Unexpected number of roles, expected empty, got %+v", user.AssignedRoles)
 	}
 
-	if err := users.AddRole("test-user", "test-role"); err != nil {
-		t.Fatalf("Error when assigning test-role to test-user 2, %+v", err)
-		return
-	}
+	must(t, users.AddRole("test-user", "test-role"), "Error when assigning test-role to test-user")
 
 	// check if we inherited some roles (should be empty)
 	{
 		user, err := users.Get("test-user")
-		if !assert(t, err == nil, "Error when retrieving test-user 3, %+v", err) {
-			return
-		}
+		must(t, err, "Error when retrieving test-user 3")
 		assert(t, user.Username == "test-user", "Unexpected username, test-user != '%s'", user.Username)
-		if !assert(t, len(user.AssignedRoles) == 1, "Unexpected number of roles, expected 1, got %+v", user.AssignedRoles) {
-			return
-		}
+		assert(t, len(user.AssignedRoles) == 1, "Unexpected number of roles, expected 1, got %+v", user.AssignedRoles)
 		assert(t, user.AssignedRoles[0] == "test-role", "Unexpected role name, test-role != '%s'", user.AssignedRoles[0])
 	}
 
-	if err := users.RemoveRole("test-user", "test-role"); err != nil {
-		t.Fatalf("Error when deassigning test-role to test-user, %+v", err)
-		return
-	}
+	must(t, users.RemoveRole("test-user", "test-role"), "Error when deassigning test-role to test-user")
 
 	// check roles are empty after de-assign
 	{
 		user, err := users.Get("test-user")
-		if !assert(t, err == nil, "Error when retrieving test-user 4, %+v", err) {
-			return
-		}
+		must(t, err, "Error when retrieving test-user 4")
 		assert(t, user.Username == "test-user", "Unexpected username, test-user != '%s'", user.Username)
 		assert(t, len(user.AssignedRoles) == 0, "Unexpected number of roles, expected empty, got %+v", user.AssignedRoles)
 	}
 
-	if err := users.Delete("test-user"); err != nil {
-		t.Fatalf("Error when deleting test-user: %+v", err)
-		return
-	}
-
-	if _, err := users.Get("test-user"); err == nil {
-		t.Fatalf("Expected error on retrieving a non-existant user")
-		return
-	}
-
-	if err := users.Delete("test-user"); err == nil {
-		t.Fatalf("Expected error on deleting a non-existant user")
-	}
+	must(t, users.Delete("test-user"), "Error when deleting test-user")
+	mustFail(t, func() error {
+		_, err := users.Get("test-user")
+		return err
+	}())
+	mustFail(t, users.Delete("test-user"))
 }
