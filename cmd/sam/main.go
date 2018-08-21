@@ -1,12 +1,12 @@
 package main
 
 import (
+	"github.com/SentimensRG/sigctx"
 	"github.com/crusttech/crust/auth"
 	"github.com/crusttech/crust/rbac"
 	"github.com/crusttech/crust/sam/rest"
 	"github.com/crusttech/crust/sam/websocket"
 	"github.com/go-chi/chi"
-	"github.com/SentimensRG/sigctx"
 	"github.com/titpetric/factory"
 
 	"log"

@@ -26,8 +26,6 @@ func MountRoutes(r chi.Router, opts *RouteOptions, mountRoutes ...func(r chi.Rou
 		r.Use(middleware.Logger)
 	}
 
-	r.Mount("/debug", middleware.Profiler())
-
 	for _, mount := range mountRoutes {
 		mount(r)
 	}
@@ -47,4 +45,6 @@ func MountRoutes(r chi.Router, opts *RouteOptions, mountRoutes ...func(r chi.Rou
 		}
 	}
 	printRoutes(r, "", "")
+
+	r.Mount("/debug", middleware.Profiler())
 }
