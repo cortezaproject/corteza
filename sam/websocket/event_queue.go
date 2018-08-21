@@ -2,9 +2,9 @@ package websocket
 
 import (
 	"context"
+	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/titpetric/factory"
-	"log"
 	"time"
 )
 
@@ -23,8 +23,13 @@ type (
 
 	eventQueue struct {
 		origin uint64
+		pubsub *service.PubSub
 		queue  chan *types.EventQueueItem
 	}
+)
+
+const (
+	eventQueueBacklog = 512
 )
 
 var eq *eventQueue
@@ -36,7 +41,7 @@ func init() {
 func EventQueue(origin uint64) *eventQueue {
 	return &eventQueue{
 		origin: origin,
-		queue:  make(chan *types.EventQueueItem, 512),
+		queue:  make(chan *types.EventQueueItem, eventQueueBacklog),
 	}
 }
 
@@ -52,63 +57,89 @@ func (eq *eventQueue) store(ctx context.Context, qp eventQueuePusher) {
 	}()
 }
 
-func (eq *eventQueue) feedSessions(ctx context.Context, qp eventQueuePuller, store eventQueueWalker) {
-	var items []*types.EventQueueItem
+func (eq *eventQueue) feedSessions(ctx context.Context, qp eventQueuePuller, store eventQueueWalker) error {
+	newMessageEvent := make(chan struct{}, eventQueueBacklog)
+	done := make(chan error, 1)
 
-	go func() {
-		var err error
-	mainLoop:
-		for {
-			select {
-			case <-ctx.Done():
-				log.Printf("Error: %v", ctx.Err())
-			case <-time.After(time.Second * 1):
-				// How often do we check the database for new events?
-				// @todo make this interval configurable
-			}
+	// feed events from redis into newMessageEvent channel
+	if config.pubSubMode == "redis" && config.pubSubRedis != "" {
+		onConnect := func() error {
+			return nil
+		}
+		onMessage := func(message string, payload []byte) error {
+			newMessageEvent <- struct{}{}
+			return nil
+		}
+		pubsub := service.PubSub{}.New(config.pubSubRedis, ctx)
+		go func() {
+			done <- pubsub.Subscribe(onConnect, onMessage, "events")
+		}()
+	}
 
+	if config.pubSubMode == "poll" {
+		polling := func() error {
 			for {
-				items, err = qp.EventQueuePull(eq.origin)
-				if err != nil {
-					log.Printf("Error: %v", err)
-					return
+				select {
+				case <-ctx.Done():
+				case <-time.After(config.pubSubInterval):
+					newMessageEvent <- struct{}{}
 				}
-
-				if len(items) == 0 {
-					// No more items to sync, continue the mainLoop loop
-					continue mainLoop
-				}
-
-				var lastSyncedId uint64
-
-				for _, item := range items {
-					if item.Subscriber == "" {
-						// Distribute payload to all connected sessions
-						store.Walk(func(s *Session) {
-							s.sendBytes(item.Payload)
-						})
-					} else {
-						// Distribute payload to specific subscribers
-						store.Walk(func(s *Session) {
-							if s.subs.Get(item.Subscriber) != nil {
-								s.sendBytes(item.Payload)
-							}
-						})
-					}
-
-					lastSyncedId = item.ID
-
-				}
-
-				if lastSyncedId > 0 {
-					qp.EventQueueSync(eq.origin, lastSyncedId)
-				}
-
 			}
 		}
-	}()
+		go func() {
+			done <- polling()
+		}()
+	}
 
-	return
+	poll := func() error {
+		for {
+			items, err := qp.EventQueuePull(eq.origin)
+			if err != nil {
+				return err
+			}
+			if len(items) == 0 {
+				return nil
+			}
+
+			var lastSyncedId uint64
+
+			for _, item := range items {
+				if item.Subscriber == "" {
+					// Distribute payload to all connected sessions
+					store.Walk(func(s *Session) {
+						s.sendBytes(item.Payload)
+					})
+				} else {
+					// Distribute payload to specific subscribers
+					store.Walk(func(s *Session) {
+						if s.subs.Get(item.Subscriber) != nil {
+							s.sendBytes(item.Payload)
+						}
+					})
+				}
+
+				lastSyncedId = item.ID
+
+			}
+
+			if lastSyncedId > 0 {
+				qp.EventQueueSync(eq.origin, lastSyncedId)
+			}
+		}
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-newMessageEvent:
+			if err := poll(); err != nil {
+				return err
+			}
+		case err := <-done:
+			return err
+		}
+	}
 }
 
 // Adds origin to the event and puts it into queue.

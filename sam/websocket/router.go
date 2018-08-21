@@ -16,7 +16,7 @@ func MountRoutes(ctx context.Context) func(chi.Router) {
 
 		repo := repository.New()
 
-		eq.feedSessions(ctx, repo, store)
+		go eq.feedSessions(ctx, repo, store)
 		eq.store(ctx, repo)
 
 		websocket := Websocket{}.New(svcUser)
