@@ -197,6 +197,18 @@ func (r *DB) Begin() error {
 	return errors.WithStack(err)
 }
 
+// Transaction will create a transaction and invoke a callback
+func (r *DB) Transaction(callback func() error) error {
+	if err := r.Begin(); err != nil {
+		return err
+	}
+	defer r.Rollback()
+	if err := callback(); err != nil {
+		return err
+	}
+	return r.Commit()
+}
+
 func (r *DB) Commit() error {
 	if r.Tx != nil {
 		if err := r.Tx.Commit(); err != nil {
