@@ -23,11 +23,7 @@ type (
 )
 
 func NewContent(ctx context.Context) Content {
-	return &content{
-		repository: &repository{
-			ctx: ctx,
-		},
-	}
+	return (&content{}).With(ctx)
 }
 
 func (r *content) With(ctx context.Context) Content {

@@ -13,7 +13,7 @@ type (
 
 	FieldService interface {
 		With(ctx context.Context) FieldService
-		FindByName(name string) (*types.Field, error)
+		FindByType(t string) (*types.Field, error)
 		Find() ([]*types.Field, error)
 	}
 )
@@ -30,8 +30,8 @@ func (s *field) With(ctx context.Context) FieldService {
 	}
 }
 
-func (s *field) FindByName(name string) (*types.Field, error) {
-	return s.repository.FindByName(name)
+func (s *field) FindByType(t string) (*types.Field, error) {
+	return s.repository.FindByType(t)
 }
 
 func (s *field) Find() ([]*types.Field, error) {

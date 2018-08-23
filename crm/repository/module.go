@@ -23,11 +23,7 @@ type (
 )
 
 func NewModule(ctx context.Context) Module {
-	return &module{
-		repository: &repository{
-			ctx: ctx,
-		},
-	}
+	return (&module{}).With(ctx)
 }
 
 func (r *module) With(ctx context.Context) Module {
