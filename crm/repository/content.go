@@ -55,7 +55,6 @@ func (r *content) Create(mod *types.Content) (*types.Content, error) {
 
 func (r *content) Update(mod *types.Content) (*types.Content, error) {
 	return mod, r.db().Replace("crm_module_content", mod)
-
 }
 
 func (r *content) DeleteByID(id uint64) error {
