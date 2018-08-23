@@ -15,6 +15,7 @@ import (
 	"github.com/crusttech/crust/sam/websocket"
 
 	"github.com/titpetric/factory"
+	"github.com/titpetric/factory/resputil"
 )
 
 func Init() error {
@@ -29,7 +30,21 @@ func Init() error {
 	if err != nil {
 		return err
 	}
-	db.Profiler = &factory.Database.ProfilerStdout
+	switch config.db.profiler {
+	case "stdout":
+		db.Profiler = &factory.Database.ProfilerStdout
+		// @todo: profiling as an external service?
+	}
+
+	// configure resputil options
+	resputil.SetConfig(resputil.Options{
+		Pretty: config.http.pretty,
+		Trace:  config.http.tracing,
+		Logger: func(err error) {
+			// @todo: error logging
+		},
+	})
+
 	return nil
 }
 
