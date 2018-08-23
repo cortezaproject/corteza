@@ -16,7 +16,7 @@ type (
        // {api.title} - {api.description}
        {struct.name} struct {
 {foreach $struct.fields as $field}
-               {field.name} {field.type} `{if $field.tag}{$field.tag} {/if}db:"{if $field.db}{$field.db}{else}{$field.name|decamel}{/if}"`{newline}
+               {field.name} {field.type} `json:"{if $field.json}{$field.json}{elseif $field.db}{$field.db}{else}{$field.name|decamel}{/if}{if $field.omitempty},omitempty{/if}" db:"{if $field.db}{$field.db}{else}{$field.name|decamel}{/if}"`{newline}
 {/foreach}
        }
 
