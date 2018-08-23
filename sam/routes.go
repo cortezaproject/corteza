@@ -1,4 +1,4 @@
-package main
+package sam
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 )
 
 // MountRoutes will register API routes
-func MountRoutes(r chi.Router, opts *RouteOptions, mountRoutes ...func(r chi.Router)) {
+func MountRoutes(r chi.Router, opts *configuration, mountRoutes ...func(r chi.Router)) {
 	// CORS for local development...
 	cors := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
@@ -22,7 +22,7 @@ func MountRoutes(r chi.Router, opts *RouteOptions, mountRoutes ...func(r chi.Rou
 	})
 	r.Use(cors.Handler)
 
-	if opts.enableLogging {
+	if opts.http.logging {
 		r.Use(middleware.Logger)
 	}
 

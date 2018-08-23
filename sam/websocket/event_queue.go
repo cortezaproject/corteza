@@ -57,7 +57,7 @@ func (eq *eventQueue) store(ctx context.Context, qp eventQueuePusher) {
 	}()
 }
 
-func (eq *eventQueue) feedSessions(ctx context.Context, qp eventQueuePuller, store eventQueueWalker) error {
+func (eq *eventQueue) feedSessions(ctx context.Context, config Configuration, qp eventQueuePuller, store eventQueueWalker) error {
 	newMessageEvent := make(chan struct{}, eventQueueBacklog)
 	done := make(chan error, 1)
 
