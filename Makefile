@@ -34,7 +34,7 @@ dep: $(DEP)
 	$(DEP) ensure -v
 
 codegen: $(SPEC)
-	./codegen.sh
+	@PATH=${PATH}:${GOPATH}/bin ./codegen.sh
 
 protobuf: $(PROTOC)
 	# @todo this needs work (it hangs and outputs nothing)
