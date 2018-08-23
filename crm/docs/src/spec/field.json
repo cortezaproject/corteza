@@ -7,13 +7,19 @@
     {
       "fields": [
         {
+          "db": "field_name",
           "name": "Name",
-          "tag": "json:\"name\"",
           "type": "string"
         },
         {
+          "db": "field_type",
           "name": "Type",
-          "tag": "json:\"type\"",
+          "type": "string"
+        },
+        {
+          "db": "field_template",
+          "name": "Template",
+          "omitempty": true,
           "type": "string"
         }
       ],

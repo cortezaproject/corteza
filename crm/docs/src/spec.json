@@ -10,8 +10,9 @@
 			{
 				"name": "Field",
 				"fields": [
-					{ "name": "Name", "type": "string", "tag": "json:\"name\"" },
-					{ "name": "Type", "type": "string", "tag": "json:\"type\"" }
+					{ "name": "Name", "type": "string", "db": "field_name" },
+					{ "name": "Type", "type": "string", "db": "field_type" },
+					{ "name": "Template", "type": "string", "db": "field_template", "omitempty": true }
 				]
 			}
 		],
