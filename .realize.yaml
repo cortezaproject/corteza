@@ -22,7 +22,7 @@ schema:
   path: cmd/sam
   commands:
     vet:
-      status: true
+      status: false
     test:
       status: false
     run:
@@ -44,7 +44,7 @@ schema:
   path: cmd/crm
   commands:
     vet:
-      status: true
+      status: false
     test:
       status: false
     run:
