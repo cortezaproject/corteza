@@ -3,6 +3,7 @@ package auth
 import (
 	"github.com/go-chi/jwtauth"
 	"github.com/titpetric/factory/resputil"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -18,6 +19,10 @@ func JWT() (*jwt, error) {
 	}
 
 	jwt := &jwt{tokenAuth: jwtauth.New("HS256", []byte(config.jwtSecret), nil)}
+
+	if config.jwtDebug {
+		log.Println("DEBUG JWT TOKEN:", jwt.Encode(NewIdentity(1)))
+	}
 
 	return jwt, nil
 }
