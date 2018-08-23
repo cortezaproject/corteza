@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi"
 )
 
-func MountRoutes(ctx context.Context) func(chi.Router) {
+func MountRoutes(ctx context.Context, config Configuration) func(chi.Router) {
 	return func(r chi.Router) {
 		var (
 			// @todo move this 1 level up & join with rest init functions
@@ -16,10 +16,10 @@ func MountRoutes(ctx context.Context) func(chi.Router) {
 
 		repo := repository.New()
 
-		go eq.feedSessions(ctx, repo, store)
+		go eq.feedSessions(ctx, config, repo, store)
 		eq.store(ctx, repo)
 
-		websocket := Websocket{}.New(svcUser)
+		websocket := Websocket{}.New(svcUser, config)
 		r.Group(func(r chi.Router) {
 			r.Route("/websocket", func(r chi.Router) {
 				r.Get("/", websocket.Open)

@@ -17,6 +17,7 @@ type (
 		svc struct {
 			userFinder wsUserFinder
 		}
+		config Configuration
 	}
 
 	wsUserFinder interface {
@@ -24,8 +25,10 @@ type (
 	}
 )
 
-func (Websocket) New(svcUser wsUserFinder) *Websocket {
-	ws := &Websocket{}
+func (Websocket) New(svcUser wsUserFinder, config Configuration) *Websocket {
+	ws := &Websocket{
+		config: config,
+	}
 	ws.svc.userFinder = svcUser
 	return ws
 }
@@ -65,7 +68,7 @@ func (ws Websocket) Open(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session := store.Save((&Session{}).New(ctx, conn))
+	session := store.Save((&Session{}).New(ctx, ws.config, conn))
 	session.user = user
 
 	if err := session.Handle(); err != nil {

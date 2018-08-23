@@ -30,7 +30,7 @@ func (c configuration) validate() error {
 }
 
 // Flags should be called from main to register flags
-func Flags() {
+func Flags(_ ...string) {
 	flag.StringVar(&config.auth, "rbac-auth", "username:password", "Credentials to use for RBAC queries")
 	flag.StringVar(&config.tenant, "rbac-tenant", "", "Tenant ID")
 	flag.StringVar(&config.baseURL, "rbac-base-url", "", "RBAC Base URL")

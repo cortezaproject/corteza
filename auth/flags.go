@@ -23,7 +23,7 @@ func (c configuration) validate() error {
 }
 
 // Flags should be called from main to register flags
-func Flags() {
+func Flags(_ ...string) {
 	flag.StringVar(&config.jwtSecret, "auth-jwt-secret", "", "JWT Secret")
 	flag.Int64Var(&config.jwtExpiry, "auth-jwt-expiry", 3600, "JWT Expiration in minutes")
 }

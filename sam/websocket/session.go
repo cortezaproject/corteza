@@ -27,13 +27,13 @@ type (
 
 		remoteAddr string
 
-		config configuration
+		config Configuration
 
 		user *types.User
 	}
 )
 
-func (Session) New(ctx context.Context, conn *websocket.Conn) *Session {
+func (Session) New(ctx context.Context, config Configuration, conn *websocket.Conn) *Session {
 	return &Session{
 		conn:   conn,
 		ctx:    ctx,
