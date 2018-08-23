@@ -38,9 +38,13 @@ func db() *factory.DB {
 	return factory.Database.MustGet()
 }
 
-func must(t *testing.T, err error) {
+func must(t *testing.T, err error, message ...string) {
+	prefix := "Error"
+	if len(message) > 0 {
+		prefix = message[0]
+	}
 	if err != nil {
-		t.Fatalf("Error: %v", err)
+		t.Fatalf(prefix + ": %+v", err)
 	}
 }
 

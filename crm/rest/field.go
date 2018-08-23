@@ -17,7 +17,7 @@ type (
 	}
 
 	FieldService interface {
-		FindByName(ctx context.Context, name string) (*types.Field, error)
+		FindByType(ctx context.Context, t string) (*types.Field, error)
 		Find(ctx context.Context) ([]*types.Field, error)
 	}
 )
@@ -33,5 +33,5 @@ func (s *Field) List(ctx context.Context, _ *server.FieldListRequest) (interface
 }
 
 func (s *Field) Type(ctx context.Context, r *server.FieldTypeRequest) (interface{}, error) {
-	return s.field.With(ctx).FindByName(r.ID)
+	return s.field.With(ctx).FindByType(r.ID)
 }
