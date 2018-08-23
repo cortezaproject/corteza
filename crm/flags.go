@@ -39,7 +39,7 @@ func Flags(prefix ...string) {
 	if len(prefix) == 0 {
 		panic("crm.Flags() needs prefix on first call")
 	}
-	config := new(configuration)
+	config = new(configuration)
 
 	p := func(s string) string {
 		return prefix[0] + "-" + s

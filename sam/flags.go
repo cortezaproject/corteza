@@ -45,7 +45,7 @@ func Flags(prefix ...string) {
 	if len(prefix) == 0 {
 		panic("sam.Flags() needs prefix on first call")
 	}
-	config := new(configuration)
+	config = new(configuration)
 	(&config.websocket).Init()
 
 	p := func(s string) string {
