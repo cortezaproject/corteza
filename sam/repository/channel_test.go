@@ -20,37 +20,47 @@ func TestChannel(t *testing.T) {
 
 	var cc []*types.Channel
 
-	chn.Name = name1
+	{
+		chn.Name = name1
+		chn, err = rpo.CreateChannel(chn)
+		assert(t, err == nil, "CreateChannel error: %v", err)
+		assert(t, chn.Name == name1, "Changes were not stored")
 
-	chn, err = rpo.CreateChannel(chn)
-	must(t, err)
-	if chn.Name != name1 {
-		t.Fatal("Changes were not stored")
+		{
+			chn.Name = name2
+
+			chn, err = rpo.UpdateChannel(chn)
+			assert(t, err == nil, "UpdateChannel error: %v", err)
+			assert(t, chn.Name == name2, "Changes were not stored")
+		}
+
+		{
+			chn, err = rpo.FindChannelByID(chn.ID)
+			assert(t, err == nil, "FindChannelByID error: %v", err)
+			assert(t, chn.Name == name2, "Changes were not stored")
+		}
+
+		{
+			cc, err = rpo.FindChannels(&types.ChannelFilter{Query: name2})
+			assert(t, err == nil, "FindChannels error: %v", err)
+			assert(t, len(cc) > 0, "No results found")
+		}
+
+		{
+			err = rpo.ArchiveChannelByID(chn.ID)
+			assert(t, err == nil, "ArchiveChannelByID error: %v", err)
+		}
+
+		{
+			err = rpo.UnarchiveChannelByID(chn.ID)
+			assert(t, err == nil, "UnarchiveChannelByID error: %v", err)
+		}
+
+		{
+			err = rpo.DeleteChannelByID(chn.ID)
+			assert(t, err == nil, "DeleteChannelByID error: %v", err)
+		}
 	}
-
-	chn.Name = name2
-
-	chn, err = rpo.UpdateChannel(chn)
-	must(t, err)
-	if chn.Name != name2 {
-		t.Fatal("Changes were not stored")
-	}
-
-	chn, err = rpo.FindChannelByID(chn.ID)
-	must(t, err)
-	if chn.Name != name2 {
-		t.Fatal("Changes were not stored")
-	}
-
-	cc, err = rpo.FindChannels(&types.ChannelFilter{Query: name2})
-	must(t, err)
-	if len(cc) == 0 {
-		t.Fatal("No results found")
-	}
-
-	must(t, rpo.ArchiveChannelByID(chn.ID))
-	must(t, rpo.UnarchiveChannelByID(chn.ID))
-	must(t, rpo.DeleteChannelByID(chn.ID))
 }
 
 func TestChannelMembers(t *testing.T) {
@@ -62,16 +72,21 @@ func TestChannelMembers(t *testing.T) {
 	}
 
 	rpo := New()
-
 	chn := &types.Channel{}
-	chn, err = rpo.CreateChannel(chn)
-	must(t, err)
-
 	usr := &types.User{}
-	usr, err = rpo.CreateUser(usr)
-	must(t, err)
 
-	_, err = rpo.AddChannelMember(&types.ChannelMember{ChannelID: chn.ID, UserID: usr.ID})
-	must(t, err)
-	must(t, rpo.RemoveChannelMember(chn.ID, usr.ID))
+	{
+		chn, err = rpo.CreateChannel(chn)
+		assert(t, err == nil, "CreateChannel: %v", err)
+
+		{
+			usr, err = rpo.CreateUser(usr)
+			assert(t, err == nil, "CreateUser error: %v", err)
+
+			{
+				_, err = rpo.AddChannelMember(&types.ChannelMember{ChannelID: chn.ID, UserID: usr.ID})
+				assert(t, err == nil, "AddChannelMember error: %v", err)
+			}
+		}
+	}
 }

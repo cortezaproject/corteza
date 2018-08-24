@@ -20,35 +20,46 @@ func TestOrganisation(t *testing.T) {
 
 	var oo []*types.Organisation
 
-	org.Name = name1
+	{
+		org.Name = name1
 
-	org, err = rpo.CreateOrganisation(org)
-	must(t, err)
-	if org.Name != name1 {
-		t.Fatal("Changes were not stored")
+		org, err = rpo.CreateOrganisation(org)
+		assert(t, err == nil, "CreateOrganisation error: %v", err)
+		assert(t, org.Name == name1, "Changes were not stored")
+
+		{
+			org.Name = name2
+
+			org, err = rpo.UpdateOrganisation(org)
+			assert(t, err == nil, "UpdateOrganisation error: %v", err)
+			assert(t, org.Name == name2, "Changes were not stored")
+		}
+
+		{
+			org, err = rpo.FindOrganisationByID(org.ID)
+			assert(t, err == nil, "FindOrganisationByID error: %v", err)
+			assert(t, org.Name == name2, "Changes were not stored")
+		}
+
+		{
+			oo, err = rpo.FindOrganisations(&types.OrganisationFilter{Query: name2})
+			assert(t, err == nil, "FindOrganisations error: %v", err)
+			assert(t, len(oo) != 0, "No results found")
+		}
+
+		{
+			err = rpo.ArchiveOrganisationByID(org.ID)
+			assert(t, err == nil, "ArchiveOrganisationByID error: %v", err)
+		}
+
+		{
+			err = rpo.UnarchiveOrganisationByID(org.ID)
+			assert(t, err == nil, "UnarchiveOrganisationByID error: %v", err)
+		}
+
+		{
+			err = rpo.DeleteOrganisationByID(org.ID)
+			assert(t, err == nil, "DeleteOrganisationByID error: %v", err)
+		}
 	}
-
-	org.Name = name2
-
-	org, err = rpo.UpdateOrganisation(org)
-	must(t, err)
-	if org.Name != name2 {
-		t.Fatal("Changes were not stored")
-	}
-
-	org, err = rpo.FindOrganisationByID(org.ID)
-	must(t, err)
-	if org.Name != name2 {
-		t.Fatal("Changes were not stored")
-	}
-
-	oo, err = rpo.FindOrganisations(&types.OrganisationFilter{Query: name2})
-	must(t, err)
-	if len(oo) == 0 {
-		t.Fatal("No results found")
-	}
-
-	must(t, rpo.ArchiveOrganisationByID(org.ID))
-	must(t, rpo.UnarchiveOrganisationByID(org.ID))
-	must(t, rpo.DeleteOrganisationByID(org.ID))
 }

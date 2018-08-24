@@ -14,39 +14,40 @@ func TestUser(t *testing.T) {
 	}
 
 	rpo := New()
-	team := &types.Team{}
+	team := &types.User{}
 
 	var name1, name2 = "Test user v1", "Test user v2"
 
-	var aa []*types.Team
+	var aa []*types.User
 
-	team.Name = name1
+	{
+		team.Username = name1
+		team, err = rpo.CreateUser(team)
+		assert(t, err == nil, "CreateUser error: %v", err)
+		assert(t, team.Username == name1, "Changes were not stored")
 
-	team, err = rpo.CreateTeam(team)
-	must(t, err)
-	if team.Name != name1 {
-		t.Fatal("Changes were not stored")
+		{
+			team.Username = name2
+			team, err = rpo.UpdateUser(team)
+			assert(t, err == nil, "UpdateUser error: %v", err)
+			assert(t, team.Username == name2, "Changes were not stored")
+		}
+
+		{
+			team, err = rpo.FindUserByID(team.ID)
+			assert(t, err == nil, "FindUserByID error: %v", err)
+			assert(t, team.Username == name2, "Changes were not stored")
+		}
+
+		{
+			aa, err = rpo.FindUsers(&types.UserFilter{Query: name2})
+			assert(t, err == nil, "FindUsers error: %v", err)
+			assert(t, len(aa) > 0, "No results found")
+		}
+
+		{
+			err = rpo.DeleteUserByID(team.ID)
+			assert(t, err == nil, "DeleteUserByID error: %v", err)
+		}
 	}
-
-	team.Name = name2
-
-	team, err = rpo.UpdateTeam(team)
-	must(t, err)
-	if team.Name != name2 {
-		t.Fatal("Changes were not stored")
-	}
-
-	team, err = rpo.FindTeamByID(team.ID)
-	must(t, err)
-	if team.Name != name2 {
-		t.Fatal("Changes were not stored")
-	}
-
-	aa, err = rpo.FindTeams(&types.TeamFilter{Query: name2})
-	must(t, err)
-	if len(aa) == 0 {
-		t.Fatal("No results found")
-	}
-
-	must(t, rpo.DeleteTeamByID(team.ID))
 }

@@ -1,10 +1,12 @@
 package repository
 
 import (
-	"github.com/namsral/flag"
+	"fmt"
 	"github.com/joho/godotenv"
+	"github.com/namsral/flag"
 	"github.com/titpetric/factory"
 	"os"
+	"runtime"
 	"testing"
 )
 
@@ -32,8 +34,12 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func must(t *testing.T, err error) {
-	if err != nil {
-		t.Fatalf("Error: %v", err)
+func assert(t *testing.T, ok bool, format string, args ...interface{}) bool {
+	if !ok {
+		_, file, line, _ := runtime.Caller(1)
+		caller := fmt.Sprintf("\nAsserted at:%s:%d", file, line)
+
+		t.Fatalf(format+caller, args...)
 	}
+	return ok
 }
