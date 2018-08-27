@@ -3,9 +3,21 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/766b/chi-prometheus"
+  packages = ["."]
+  revision = "46ac2b31aa306875aa11f58794b0bb71d4828fa8"
+
+[[projects]]
+  branch = "master"
   name = "github.com/SentimensRG/sigctx"
   packages = ["."]
   revision = "c19b774db63bdcae0c335d8c4bab1207713a08c6"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/beorn7/perks"
+  packages = ["quantile"]
+  revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -108,6 +120,12 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/matttproud/golang_protobuf_extensions"
+  packages = ["pbutil"]
+  revision = "c12348ce28de40eed0136aa2b644d0ee0650e56c"
+  version = "v1.0.1"
+
+[[projects]]
   name = "github.com/namsral/flag"
   packages = ["."]
   revision = "71ceffbeb0ba60fccc853971bb3ed4d7d90bfd04"
@@ -118,6 +136,39 @@
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
+
+[[projects]]
+  name = "github.com/prometheus/client_golang"
+  packages = ["prometheus"]
+  revision = "c5b7fccd204277076155f10851dad72b76a49317"
+  version = "v0.8.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/prometheus/client_model"
+  packages = ["go"]
+  revision = "5c3871d89910bfb32f5fcab2aa4b9ec68e65a99f"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/prometheus/common"
+  packages = [
+    "expfmt",
+    "internal/bitbucket.org/ww/goautoneg",
+    "model"
+  ]
+  revision = "c7de2306084e37d54b8be01f3541a8464345e9a5"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/prometheus/procfs"
+  packages = [
+    ".",
+    "internal/util",
+    "nfs",
+    "xfs"
+  ]
+  revision = "05ee40e3a273f7245e8777337fc7b46e533a9a92"
 
 [[projects]]
   branch = "master"
@@ -132,7 +183,7 @@
     ".",
     "resputil"
   ]
-  revision = "0530ab3d7c678a5b4ea59c2b1304670392737f04"
+  revision = "a3528c8755f58e9c4858ead739761fd23b0306df"
 
 [[projects]]
   branch = "master"
@@ -155,13 +206,13 @@
     "internal/timeseries",
     "trace"
   ]
-  revision = "922f4815f713f213882e8ef45e0d315b164d705c"
+  revision = "8a410e7b638dca158bf9e766925842f6651ff828"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "3b58ed4ad3395d483fc92d5d14123ce2c3581fec"
+  revision = "4910a1d54f876d7b22162a85f4d066d3ee649450"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -232,6 +283,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ecfd339b1f4ee5108c2a0f0f62a7db172e7197bd54df69221521f37d968e3df1"
+  inputs-digest = "b2f1fafcccbb969afc112faab64d5fa716d2234a2d4aa363e9156c83ac80030d"
   solver-name = "gps-cdcl"
   solver-version = 1
