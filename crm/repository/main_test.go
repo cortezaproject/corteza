@@ -44,7 +44,7 @@ func must(t *testing.T, err error, message ...string) {
 		prefix = message[0]
 	}
 	if err != nil {
-		t.Fatalf(prefix + ": %+v", err)
+		t.Fatalf(prefix+": %+v", err)
 	}
 }
 

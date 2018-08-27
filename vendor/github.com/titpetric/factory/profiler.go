@@ -2,6 +2,7 @@ package factory
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -53,19 +54,25 @@ func (*DatabaseProfilerStdout) Flush() {
 
 // DatabaseProfilerMemory logs query statistics to internal buffer
 type DatabaseProfilerMemory struct {
+	sync.Mutex
+
 	Log []string
 }
 
 // Post prints the query statistics
 func (this *DatabaseProfilerMemory) Post(p *DatabaseProfilerContext) {
+	this.Lock()
 	this.Log = append(this.Log, p.String())
+	this.Unlock()
 }
 
 // Flush log to stdout with fmt.Println
 func (this *DatabaseProfilerMemory) Flush() {
+	this.Lock()
 	count := len(this.Log)
 	for _, line := range this.Log[:count] {
 		fmt.Println(line)
 	}
 	this.Log = this.Log[count:]
+	this.Unlock()
 }

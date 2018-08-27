@@ -10,8 +10,7 @@ import (
 	"github.com/go-chi/cors"
 )
 
-// MountRoutes will register API routes
-func MountRoutes(r chi.Router, opts *configuration, mountRoutes ...func(r chi.Router)) {
+func mountRoutes(r chi.Router, opts *configuration, mounts ...func(r chi.Router)) {
 	// CORS for local development...
 	cors := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
@@ -25,11 +24,23 @@ func MountRoutes(r chi.Router, opts *configuration, mountRoutes ...func(r chi.Ro
 	if opts.http.logging {
 		r.Use(middleware.Logger)
 	}
-
-	for _, mount := range mountRoutes {
-		mount(r)
+	if opts.http.metrics {
+		r.Use(metrics{}.Middleware("crm"))
 	}
 
+	for _, mount := range mounts {
+		mount(r)
+	}
+}
+
+func mountSystemRoutes(r chi.Router, opts *configuration) {
+	if opts.http.metrics {
+		r.Handle("/metrics", metrics{}.Handler())
+	}
+	r.Mount("/debug", middleware.Profiler())
+}
+
+func printRoutes(r chi.Router, opts *configuration) {
 	var printRoutes func(chi.Routes, string, string)
 	printRoutes = func(r chi.Routes, indent string, prefix string) {
 		routes := r.Routes()
@@ -45,6 +56,4 @@ func MountRoutes(r chi.Router, opts *configuration, mountRoutes ...func(r chi.Ro
 		}
 	}
 	printRoutes(r, "", "")
-
-	r.Mount("/debug", middleware.Profiler())
 }

@@ -65,10 +65,15 @@ func Start() error {
 	}
 
 	r := chi.NewRouter()
-	r.Use(jwtAuth.Verifier(), jwtAuth.Authenticator())
 
-	// mount routes
-	MountRoutes(r, config, rest.MountRoutes(jwtAuth))
+	// Only protect application routes with JWT
+	r.Group(func(r chi.Router) {
+		r.Use(jwtAuth.Verifier(), jwtAuth.Authenticator())
+		mountRoutes(r, config, rest.MountRoutes(jwtAuth))
+	})
+
+	printRoutes(r, config)
+	mountSystemRoutes(r, config)
 
 	go http.Serve(listener, r)
 	<-ctx.Done()
