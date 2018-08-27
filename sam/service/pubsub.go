@@ -107,7 +107,7 @@ func (ps *PubSub) Subscribe(onStart func() error, onMessage func(channel string,
 	}
 }
 
-func (ps *PubSub) Publish(channel string, payload string) error {
+func (ps *PubSub) Publish(channel, payload string) error {
 	// main redis connection
 	conn, err := ps.dial()
 	if err != nil {
