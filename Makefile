@@ -1,4 +1,4 @@
-.PHONY: build realize dep spec protobuf critic test test.rbac qa qa.test qa.vet codegen
+.PHONY: nothing docker docker-push realize dep dep.update protobuf test test.rbac test.sam test.crm qa critic vet codegen
 
 PKG       = "github.com/$(shell cat .project)"
 
@@ -17,9 +17,29 @@ GOTEST    = ${GOPATH}/bin/gotest
 GOCRITIC  = ${GOPATH}/bin/gocritic
 MOCKGEN   = ${GOPATH}/bin/mockgen
 
-build:
-	docker build --no-cache --rm -t $(shell cat .project) .
+nothing:
+	@echo
+	@echo Usage: make [target]
+	@echo
+	@echo - docker: builds docker images locally
+	@echo - docker-push: push built images
+	@echo
+	@echo - vet - run go vet on all code
+	@echo - critic - run go critic on all code
+	@echo - test.crm - individual package unit tests
+	@echo - test.sam - individual package unit tests
+	@echo - test.rbac - individual package unit tests
+	@echo - test - run all available unit tests
+	@echo - qa - run vet, critic and test on code
+	@echo
 
+docker:
+	docker build --no-cache --rm --build-arg APP=sam -f docker/Dockerfile -t crusttech/sam .
+	docker build --no-cache --rm --build-arg APP=crm -f docker/Dockerfile -t crusttech/crm .
+
+docker-push:
+	docker push crusttech/sam
+	docker push crusttech/crm
 
 ########################################################################################################################
 # Development
@@ -44,9 +64,6 @@ protobuf: $(PROTOC)
 ########################################################################################################################
 # QA
 
-critic: $(GOCRITIC)
-	PATH=${PATH}:${GOPATH}/bin $(GOCRITIC) check-project .
-
 test: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./...
 	$(GO) tool cover -func=.cover.out
@@ -64,7 +81,10 @@ test.rbac: $(GOTEST)
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 vet:
-	$(GO) vet `cd ${GOPATH}/src/; find $(PKG) -type f -name '*.go' -and -not -path '*vendor*'|xargs -n1 dirname|uniq`
+	$(GO) vet ./...
+
+critic: $(GOCRITIC)
+	$(GOCRITIC) check-project .
 
 qa: vet critic test
 
