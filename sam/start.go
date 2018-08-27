@@ -30,10 +30,12 @@ func Init() error {
 	if err != nil {
 		return err
 	}
+	// @todo: profiling as an external service?
 	switch config.db.profiler {
 	case "stdout":
 		db.Profiler = &factory.Database.ProfilerStdout
-		// @todo: profiling as an external service?
+	default:
+		fmt.Println("No database query profiler selected")
 	}
 
 	// configure resputil options

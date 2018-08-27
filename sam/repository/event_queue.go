@@ -9,7 +9,7 @@ type (
 	EventQueue interface {
 		EventQueuePull(origin uint64) ([]*types.EventQueueItem, error)
 		EventQueuePush(eqi *types.EventQueueItem) error
-		EventQueueSync(origin uint64, ID uint64) error
+		EventQueueSync(origin, id uint64) error
 	}
 )
 
@@ -29,7 +29,7 @@ func (r *repository) EventQueuePush(eqi *types.EventQueueItem) error {
 	return r.db().Quiet().Insert("event_queue", eqi)
 }
 
-func (r *repository) EventQueueSync(origin uint64, ID uint64) error {
+func (r *repository) EventQueueSync(origin, id uint64) error {
 	type evqs struct {
 		Origin    uint64 `db:"origin"`
 		LastEvent uint64 `db:"rel_last"`
@@ -38,7 +38,7 @@ func (r *repository) EventQueueSync(origin uint64, ID uint64) error {
 	// @todo do we even need this?
 	return r.db().Quiet().Replace("event_queue_synced", evqs{
 		Origin:    origin,
-		LastEvent: ID,
+		LastEvent: id,
 	})
 }
 
