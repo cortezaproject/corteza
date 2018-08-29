@@ -17,6 +17,14 @@ func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 		userSvc         = service.User()
 	)
 
+	var (
+		channel      = Channel{}.New(channelSvc)
+		message      = Message{}.New(messageSvc)
+		organisation = Organisation{}.New(organisationSvc)
+		team         = Team{}.New(teamSvc)
+		user         = User{}.New(userSvc, messageSvc)
+	)
+
 	// Initialize handers & controllers.
 	return func(r chi.Router) {
 		handlers.NewAuth(Auth{}.New(userSvc, jwtAuth)).MountRoutes(r)
@@ -25,11 +33,11 @@ func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 		r.Group(func(r chi.Router) {
 			r.Use(auth.AuthenticationMiddlewareValidOnly)
 
-			handlers.NewChannel(Channel{}.New(channelSvc)).MountRoutes(r)
-			handlers.NewMessage(Message{}.New(messageSvc)).MountRoutes(r)
-			handlers.NewOrganisation(Organisation{}.New(organisationSvc)).MountRoutes(r)
-			handlers.NewTeam(Team{}.New(teamSvc)).MountRoutes(r)
-			handlers.NewUser(User{}.New(userSvc, messageSvc)).MountRoutes(r)
+			handlers.NewChannel(channel).MountRoutes(r)
+			handlers.NewMessage(message).MountRoutes(r)
+			handlers.NewOrganisation(organisation).MountRoutes(r)
+			handlers.NewTeam(team).MountRoutes(r)
+			handlers.NewUser(user).MountRoutes(r)
 		})
 	}
 }
