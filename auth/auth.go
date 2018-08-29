@@ -1,11 +1,6 @@
 package auth
 
 type (
-	Identifiable interface {
-		Identity() uint64
-		Valid() bool
-	}
-
 	Identity struct {
 		identity uint64
 	}
