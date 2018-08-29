@@ -18,6 +18,17 @@ type (
 		//}
 	}
 
+	ChannelService interface {
+		FindByID(ctx context.Context, channelID uint64) (*types.Channel, error)
+		Find(ctx context.Context, filter *types.ChannelFilter) ([]*types.Channel, error)
+
+		Create(ctx context.Context, channel *types.Channel) (*types.Channel, error)
+		Update(ctx context.Context, channel *types.Channel) (*types.Channel, error)
+
+		deleter
+		archiver
+	}
+
 	channelRepository interface {
 		repository.Transactionable
 		repository.Channel
@@ -371,3 +382,5 @@ func (svc channel) makeSystemMessage(ch *types.Channel, format string, a ...inte
 //
 //	return err != nil && user.Valid()
 //}
+
+var _ ChannelService = &channel{}
