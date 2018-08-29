@@ -3,7 +3,7 @@ package rest
 import (
 	"context"
 	"github.com/crusttech/crust/auth"
-	"github.com/crusttech/crust/sam/rest/server"
+	"github.com/crusttech/crust/sam/rest/request"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/pkg/errors"
 )
@@ -13,8 +13,9 @@ var _ = errors.Wrap
 type (
 	Auth struct {
 		svc struct {
-			user  authUserBasics
-			token authTokenEncoder
+			user authUserBasics
+
+			token auth.TokenEncoder
 		}
 	}
 
@@ -22,13 +23,9 @@ type (
 		ValidateCredentials(ctx context.Context, username, password string) (*types.User, error)
 		Create(ctx context.Context, input *types.User) (user *types.User, err error)
 	}
-
-	authTokenEncoder interface {
-		Encode(identity auth.Identifiable) string
-	}
 )
 
-func (Auth) New(credValidator authUserBasics, tknEncoder authTokenEncoder) *Auth {
+func (Auth) New(credValidator authUserBasics, tknEncoder auth.TokenEncoder) *Auth {
 	auth := &Auth{}
 	auth.svc.user = credValidator
 	auth.svc.token = tknEncoder
@@ -36,11 +33,11 @@ func (Auth) New(credValidator authUserBasics, tknEncoder authTokenEncoder) *Auth
 	return auth
 }
 
-func (ctrl *Auth) Login(ctx context.Context, r *server.AuthLoginRequest) (interface{}, error) {
+func (ctrl *Auth) Login(ctx context.Context, r *request.AuthLogin) (interface{}, error) {
 	return ctrl.tokenize(ctrl.svc.user.ValidateCredentials(ctx, r.Username, r.Password))
 }
 
-func (ctrl *Auth) Create(ctx context.Context, r *server.AuthCreateRequest) (interface{}, error) {
+func (ctrl *Auth) Create(ctx context.Context, r *request.AuthCreate) (interface{}, error) {
 	user := &types.User{Username: r.Username}
 	user.GeneratePassword(r.Password)
 

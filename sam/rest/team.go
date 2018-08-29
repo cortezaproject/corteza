@@ -2,7 +2,7 @@ package rest
 
 import (
 	"context"
-	"github.com/crusttech/crust/sam/rest/server"
+	"github.com/crusttech/crust/sam/rest/request"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/pkg/errors"
 )
@@ -34,15 +34,15 @@ func (Team) New(teamSvc teamService) *Team {
 	return ctrl
 }
 
-func (ctrl *Team) Read(ctx context.Context, r *server.TeamReadRequest) (interface{}, error) {
+func (ctrl *Team) Read(ctx context.Context, r *request.TeamRead) (interface{}, error) {
 	return ctrl.svc.FindByID(ctx, r.TeamID)
 }
 
-func (ctrl *Team) List(ctx context.Context, r *server.TeamListRequest) (interface{}, error) {
+func (ctrl *Team) List(ctx context.Context, r *request.TeamList) (interface{}, error) {
 	return ctrl.svc.Find(ctx, &types.TeamFilter{Query: r.Query})
 }
 
-func (ctrl *Team) Create(ctx context.Context, r *server.TeamCreateRequest) (interface{}, error) {
+func (ctrl *Team) Create(ctx context.Context, r *request.TeamCreate) (interface{}, error) {
 	org := &types.Team{
 		Name: r.Name,
 	}
@@ -50,7 +50,7 @@ func (ctrl *Team) Create(ctx context.Context, r *server.TeamCreateRequest) (inte
 	return ctrl.svc.Create(ctx, org)
 }
 
-func (ctrl *Team) Edit(ctx context.Context, r *server.TeamEditRequest) (interface{}, error) {
+func (ctrl *Team) Edit(ctx context.Context, r *request.TeamEdit) (interface{}, error) {
 	org := &types.Team{
 		ID:   r.TeamID,
 		Name: r.Name,
@@ -59,18 +59,18 @@ func (ctrl *Team) Edit(ctx context.Context, r *server.TeamEditRequest) (interfac
 	return ctrl.svc.Update(ctx, org)
 }
 
-func (ctrl *Team) Remove(ctx context.Context, r *server.TeamRemoveRequest) (interface{}, error) {
+func (ctrl *Team) Remove(ctx context.Context, r *request.TeamRemove) (interface{}, error) {
 	return nil, ctrl.svc.Delete(ctx, r.TeamID)
 }
 
-func (ctrl *Team) Archive(ctx context.Context, r *server.TeamArchiveRequest) (interface{}, error) {
+func (ctrl *Team) Archive(ctx context.Context, r *request.TeamArchive) (interface{}, error) {
 	return nil, ctrl.svc.Archive(ctx, r.TeamID)
 }
 
-func (ctrl *Team) Merge(ctx context.Context, r *server.TeamMergeRequest) (interface{}, error) {
+func (ctrl *Team) Merge(ctx context.Context, r *request.TeamMerge) (interface{}, error) {
 	return nil, ctrl.svc.Merge(ctx, r.TeamID, r.Destination)
 }
 
-func (ctrl *Team) Move(ctx context.Context, r *server.TeamMoveRequest) (interface{}, error) {
+func (ctrl *Team) Move(ctx context.Context, r *request.TeamMove) (interface{}, error) {
 	return nil, ctrl.svc.Move(ctx, r.TeamID, r.Organisation_id)
 }
