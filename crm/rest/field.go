@@ -4,7 +4,7 @@ import (
 	"github.com/pkg/errors"
 
 	"context"
-	"github.com/crusttech/crust/crm/rest/server"
+	"github.com/crusttech/crust/crm/rest/request"
 	"github.com/crusttech/crust/crm/service"
 	"github.com/crusttech/crust/crm/types"
 )
@@ -22,16 +22,16 @@ type (
 	}
 )
 
-func (Field) New() server.FieldAPI {
+func (Field) New() *Field {
 	return &Field{
 		field: service.Field(),
 	}
 }
 
-func (s *Field) List(ctx context.Context, _ *server.FieldListRequest) (interface{}, error) {
+func (s *Field) List(ctx context.Context, _ *request.FieldList) (interface{}, error) {
 	return s.field.With(ctx).Find()
 }
 
-func (s *Field) Type(ctx context.Context, r *server.FieldTypeRequest) (interface{}, error) {
+func (s *Field) Type(ctx context.Context, r *request.FieldType) (interface{}, error) {
 	return s.field.With(ctx).FindByType(r.ID)
 }
