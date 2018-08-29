@@ -2,7 +2,7 @@ package {package}
 
 import (
 	"context"
-	"github.com/crusttech/crust/sam/rest/server"
+	"github.com/crusttech/crust/{project}/rest/server"
 	"github.com/pkg/errors"
 )
 

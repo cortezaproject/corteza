@@ -1,23 +1,13 @@
 <?php
 
 $templates = array(
-	"http_interfaces.tpl" => function($name, $api) {
+	"http_handlers_inline.tpl" => function($name, $api) {
 		return strtolower($name) . ".go";
 	},
-	"http_request.tpl" => function($name, $api) {
-		return strtolower($name) . "_requests.go"; 
-	},
-	"http_handlers.tpl" => function($name, $api) {
-		return strtolower($name) . "_handlers.go";
-	},
-    "http_routes.tpl" => function($name, $api) {
-        return strtolower($name) . "_routes.go";
-    }
 );
 
 foreach ($templates as $template => $fn)
 foreach ($apis as $api) {
-	if (is_array($api['struct'])) {
 		$name = ucfirst($api['interface']);
 		$filename = $dirname . "/" . $fn($name, $api);
 
@@ -30,6 +20,7 @@ foreach ($apis as $api) {
 		$tpl->assign("self", strtolower(substr($name, 0, 1)));
 		$tpl->assign("structs", $api['struct']);
 		$imports = array();
+		if (is_array($api['struct']))
 		foreach ($api['struct'] as $struct) {
 			if (isset($struct['imports']))
 			foreach ($struct['imports'] as $import) {
@@ -42,5 +33,4 @@ foreach ($apis as $api) {
 
 		file_put_contents($filename, $contents);
 		echo $filename . "\n";
-	}
 }
