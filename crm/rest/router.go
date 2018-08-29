@@ -19,8 +19,6 @@ func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 		module = Module{}.New(moduleSvc, contentSvc)
 	)
 
-	// @todo pass jwtAuth to auth handlers (signUp) for JWT generation
-
 	// Initialize handers & controllers.
 	return func(r chi.Router) {
 		// Protect all _private_ routes
