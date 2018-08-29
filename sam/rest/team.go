@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"github.com/crusttech/crust/sam/rest/request"
+	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/pkg/errors"
 )
@@ -11,27 +12,12 @@ var _ = errors.Wrap
 
 type (
 	Team struct {
-		svc teamService
-	}
-
-	teamService interface {
-		FindByID(ctx context.Context, teamID uint64) (*types.Team, error)
-		Find(ctx context.Context, filter *types.TeamFilter) ([]*types.Team, error)
-
-		Create(ctx context.Context, team *types.Team) (*types.Team, error)
-		Update(ctx context.Context, team *types.Team) (*types.Team, error)
-		Merge(ctx context.Context, teamID, targetTeamID uint64) error
-		Move(ctx context.Context, teamID, organisationID uint64) error
-
-		deleter
-		archiver
+		svc service.TeamService
 	}
 )
 
-func (Team) New(teamSvc teamService) *Team {
-	var ctrl = &Team{}
-	ctrl.svc = teamSvc
-	return ctrl
+func (Team) New(team service.TeamService) *Team {
+	return &Team{team}
 }
 
 func (ctrl *Team) Read(ctx context.Context, r *request.TeamRead) (interface{}, error) {

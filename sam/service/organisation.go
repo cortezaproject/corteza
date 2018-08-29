@@ -11,6 +11,17 @@ type (
 		rpo organisationRepository
 	}
 
+	OrganisationService interface {
+		FindByID(ctx context.Context, organisationID uint64) (*types.Organisation, error)
+		Find(ctx context.Context, filter *types.OrganisationFilter) ([]*types.Organisation, error)
+
+		Create(ctx context.Context, organisation *types.Organisation) (*types.Organisation, error)
+		Update(ctx context.Context, organisation *types.Organisation) (*types.Organisation, error)
+
+		deleter
+		archiver
+	}
+
 	organisationRepository interface {
 		repository.Transactionable
 		repository.Organisation
@@ -66,3 +77,5 @@ func (svc organisation) Unarchive(ctx context.Context, id uint64) error {
 	// @todo: permissions check if current user can unarchive organisation
 	return svc.rpo.UnarchiveOrganisationByID(id)
 }
+
+var _ OrganisationService = &organisation{}

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/crusttech/crust/sam/rest/request"
+	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/pkg/errors"
 )
@@ -12,25 +13,12 @@ var _ = errors.Wrap
 
 type (
 	Channel struct {
-		svc channelService
-	}
-
-	channelService interface {
-		FindByID(ctx context.Context, channelID uint64) (*types.Channel, error)
-		Find(ctx context.Context, filter *types.ChannelFilter) ([]*types.Channel, error)
-
-		Create(ctx context.Context, channel *types.Channel) (*types.Channel, error)
-		Update(ctx context.Context, channel *types.Channel) (*types.Channel, error)
-
-		deleter
-		archiver
+		svc service.ChannelService
 	}
 )
 
-func (Channel) New(channelSvc channelService) *Channel {
-	var ctrl = &Channel{}
-	ctrl.svc = channelSvc
-	return ctrl
+func (Channel) New(channel service.ChannelService) *Channel {
+	return &Channel{channel}
 }
 
 func (ctrl *Channel) Create(ctx context.Context, r *request.ChannelCreate) (interface{}, error) {

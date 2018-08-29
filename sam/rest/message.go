@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"github.com/crusttech/crust/sam/rest/request"
+	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/pkg/errors"
 )
@@ -11,35 +12,12 @@ var _ = errors.Wrap
 
 type (
 	Message struct {
-		svc messageService
-	}
-
-	messageService interface {
-		Find(ctx context.Context, filter *types.MessageFilter) ([]*types.Message, error)
-
-		Create(ctx context.Context, messages *types.Message) (*types.Message, error)
-		Update(ctx context.Context, messages *types.Message) (*types.Message, error)
-
-		React(ctx context.Context, messageID uint64, reaction string) error
-		Unreact(ctx context.Context, messageID uint64, reaction string) error
-
-		Pin(ctx context.Context, messageID uint64) error
-		Unpin(ctx context.Context, messageID uint64) error
-
-		Flag(ctx context.Context, messageID uint64) error
-		Unflag(ctx context.Context, messageID uint64) error
-
-		Attach(ctx context.Context) (*types.Attachment, error)
-		Detach(ctx context.Context, messageID uint64) error
-
-		deleter
+		svc service.MessageService
 	}
 )
 
-func (Message) New(messageSvc messageService) *Message {
-	var ctrl = &Message{}
-	ctrl.svc = messageSvc
-	return ctrl
+func (Message) New(message service.MessageService) *Message {
+	return &Message{message}
 }
 
 func (ctrl *Message) Create(ctx context.Context, r *request.MessageCreate) (interface{}, error) {

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/crusttech/crust/sam/rest/request"
+	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/pkg/errors"
 )
@@ -13,24 +14,16 @@ var _ = errors.Wrap
 type (
 	User struct {
 		svc struct {
-			user    userService
-			message userMessageService
+			user    service.UserService
+			message service.MessageService
 		}
-	}
-
-	userService interface {
-		Find(ctx context.Context, filter *types.UserFilter) ([]*types.User, error)
-	}
-
-	userMessageService interface {
-		Direct(ctx context.Context, recipientID uint64, in *types.Message) (out *types.Message, err error)
 	}
 )
 
-func (User) New(userSvc userService, msgSvc userMessageService) *User {
-	var ctrl = &User{}
-	ctrl.svc.user = userSvc
-	ctrl.svc.message = msgSvc
+func (User) New(user service.UserService, message service.MessageService) *User {
+	ctrl := &User{}
+	ctrl.svc.user = user
+	ctrl.svc.message = message
 	return ctrl
 }
 

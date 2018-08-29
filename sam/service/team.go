@@ -11,6 +11,19 @@ type (
 		rpo teamRepository
 	}
 
+	TeamService interface {
+		FindByID(ctx context.Context, teamID uint64) (*types.Team, error)
+		Find(ctx context.Context, filter *types.TeamFilter) ([]*types.Team, error)
+
+		Create(ctx context.Context, team *types.Team) (*types.Team, error)
+		Update(ctx context.Context, team *types.Team) (*types.Team, error)
+		Merge(ctx context.Context, teamID, targetTeamID uint64) error
+		Move(ctx context.Context, teamID, organisationID uint64) error
+
+		deleter
+		archiver
+	}
+
 	teamRepository interface {
 		repository.Transactionable
 		repository.Team
@@ -74,3 +87,5 @@ func (svc team) Move(ctx context.Context, id, targetOrganisationID uint64) error
 	// @todo: permission check if current user can move team to another organisation
 	return svc.rpo.MoveTeamByID(id, targetOrganisationID)
 }
+
+var _ TeamService = &team{}

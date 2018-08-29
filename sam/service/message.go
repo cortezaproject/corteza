@@ -13,6 +13,29 @@ type (
 		rpo messageRepository
 	}
 
+	MessageService interface {
+		Find(ctx context.Context, filter *types.MessageFilter) ([]*types.Message, error)
+
+		Create(ctx context.Context, messages *types.Message) (*types.Message, error)
+		Update(ctx context.Context, messages *types.Message) (*types.Message, error)
+
+		React(ctx context.Context, messageID uint64, reaction string) error
+		Unreact(ctx context.Context, messageID uint64, reaction string) error
+
+		Pin(ctx context.Context, messageID uint64) error
+		Unpin(ctx context.Context, messageID uint64) error
+
+		Flag(ctx context.Context, messageID uint64) error
+		Unflag(ctx context.Context, messageID uint64) error
+
+		Attach(ctx context.Context) (*types.Attachment, error)
+		Detach(ctx context.Context, messageID uint64) error
+
+		Direct(ctx context.Context, recipientID uint64, in *types.Message) (out *types.Message, err error)
+
+		deleter
+	}
+
 	messageRepository interface {
 		repository.Transactionable
 		repository.Message
@@ -225,3 +248,5 @@ func (svc message) Detach(ctx context.Context, attachmentID uint64) error {
 
 	return svc.rpo.DeleteAttachmentByID(attachmentID)
 }
+
+var _ MessageService = &message{}

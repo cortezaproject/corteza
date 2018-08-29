@@ -16,6 +16,10 @@ type (
 		rpo userRepository
 	}
 
+	UserService interface {
+		Find(ctx context.Context, filter *types.UserFilter) ([]*types.User, error)
+	}
+
 	userRepository interface {
 		repository.Transactionable
 		repository.Contextable
@@ -88,3 +92,5 @@ func (svc user) Unsuspend(ctx context.Context, id uint64) error {
 	// @todo: notify users that user has been unsuspended
 	return svc.rpo.UnsuspendUserByID(id)
 }
+
+var _ UserService = &user{}
