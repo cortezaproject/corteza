@@ -3,13 +3,20 @@ package rest
 import (
 	"github.com/crusttech/crust/auth"
 	"github.com/crusttech/crust/crm/rest/handlers"
+	"github.com/crusttech/crust/crm/service"
 	"github.com/go-chi/chi"
 )
 
 func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 	var (
-		field  = Field{}.New()
-		module = Module{}.New()
+		fieldSvc   = service.Field()
+		moduleSvc  = service.Module()
+		contentSvc = service.Content()
+	)
+
+	var (
+		field  = Field{}.New(fieldSvc)
+		module = Module{}.New(moduleSvc, contentSvc)
 	)
 
 	// @todo pass jwtAuth to auth handlers (signUp) for JWT generation

@@ -22,10 +22,8 @@ type (
 	}
 )
 
-func (Field) New() *Field {
-	return &Field{
-		field: service.Field(),
-	}
+func (Field) New(field service.FieldService) *Field {
+	return &Field{field}
 }
 
 func (s *Field) List(ctx context.Context, _ *request.FieldList) (interface{}, error) {
