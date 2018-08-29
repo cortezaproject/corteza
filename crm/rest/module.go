@@ -20,11 +20,8 @@ type (
 	}
 )
 
-func (Module) New() *Module {
-	return &Module{
-		module:  service.Module(),
-		content: service.Content(),
-	}
+func (Module) New(module service.ModuleService, content service.ContentService) *Module {
+	return &Module{module, content}
 }
 
 func (s *Module) List(ctx context.Context, r *request.ModuleList) (interface{}, error) {
