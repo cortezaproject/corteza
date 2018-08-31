@@ -116,7 +116,8 @@ func (svc message) Create(ctx context.Context, mod *types.Message) (*types.Messa
 	var currentUserID uint64 = auth.GetIdentityFromContext(ctx).Identity()
 
 	// @todo verify if current user can access & write to this channel
-	_ = currentUserID
+
+	mod.UserID = currentUserID
 
 	return svc.rpo.CreateMessage(mod)
 }
