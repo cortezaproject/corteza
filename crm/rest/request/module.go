@@ -18,10 +18,14 @@ package request
 import (
 	"encoding/json"
 	"github.com/go-chi/chi"
+	"github.com/jmoiron/sqlx/types"
+	"github.com/pkg/errors"
+	"io"
 	"net/http"
 )
 
 var _ = chi.URLParam
+var _ = types.JSONText{}
 
 // Module list request parameters
 type ModuleList struct {
@@ -33,7 +37,14 @@ func NewModuleList() *ModuleList {
 }
 
 func (m *ModuleList) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -48,10 +59,11 @@ func (m *ModuleList) Fill(r *http.Request) error {
 	}
 
 	if val, ok := get["query"]; ok {
+
 		m.Query = val
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewModuleList()
@@ -59,7 +71,7 @@ var _ RequestFiller = NewModuleList()
 // Module create request parameters
 type ModuleCreate struct {
 	Name   string
-	Fields string
+	Fields types.JSONText
 }
 
 func NewModuleCreate() *ModuleCreate {
@@ -67,7 +79,14 @@ func NewModuleCreate() *ModuleCreate {
 }
 
 func (m *ModuleCreate) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -82,13 +101,17 @@ func (m *ModuleCreate) Fill(r *http.Request) error {
 	}
 
 	if val, ok := post["name"]; ok {
+
 		m.Name = val
 	}
 	if val, ok := post["fields"]; ok {
-		m.Fields = val
+
+		if m.Fields, err = parseJSONText(val); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewModuleCreate()
@@ -103,7 +126,14 @@ func NewModuleRead() *ModuleRead {
 }
 
 func (m *ModuleRead) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -119,7 +149,7 @@ func (m *ModuleRead) Fill(r *http.Request) error {
 
 	m.ID = parseUInt64(chi.URLParam(r, "id"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewModuleRead()
@@ -128,7 +158,7 @@ var _ RequestFiller = NewModuleRead()
 type ModuleEdit struct {
 	ID     uint64
 	Name   string
-	Fields string
+	Fields types.JSONText
 }
 
 func NewModuleEdit() *ModuleEdit {
@@ -136,7 +166,14 @@ func NewModuleEdit() *ModuleEdit {
 }
 
 func (m *ModuleEdit) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -152,13 +189,17 @@ func (m *ModuleEdit) Fill(r *http.Request) error {
 
 	m.ID = parseUInt64(chi.URLParam(r, "id"))
 	if val, ok := post["name"]; ok {
+
 		m.Name = val
 	}
 	if val, ok := post["fields"]; ok {
-		m.Fields = val
+
+		if m.Fields, err = parseJSONText(val); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewModuleEdit()
@@ -173,7 +214,14 @@ func NewModuleDelete() *ModuleDelete {
 }
 
 func (m *ModuleDelete) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -189,7 +237,7 @@ func (m *ModuleDelete) Fill(r *http.Request) error {
 
 	m.ID = parseUInt64(chi.URLParam(r, "id"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewModuleDelete()
@@ -204,7 +252,14 @@ func NewModuleContentList() *ModuleContentList {
 }
 
 func (m *ModuleContentList) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -220,15 +275,15 @@ func (m *ModuleContentList) Fill(r *http.Request) error {
 
 	m.Module = parseUInt64(chi.URLParam(r, "module"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewModuleContentList()
 
 // Module content/create request parameters
 type ModuleContentCreate struct {
-	Module  uint64
-	Payload string
+	Module uint64
+	Fields types.JSONText
 }
 
 func NewModuleContentCreate() *ModuleContentCreate {
@@ -236,7 +291,14 @@ func NewModuleContentCreate() *ModuleContentCreate {
 }
 
 func (m *ModuleContentCreate) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -251,11 +313,14 @@ func (m *ModuleContentCreate) Fill(r *http.Request) error {
 	}
 
 	m.Module = parseUInt64(chi.URLParam(r, "module"))
-	if val, ok := post["payload"]; ok {
-		m.Payload = val
+	if val, ok := post["fields"]; ok {
+
+		if m.Fields, err = parseJSONText(val); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewModuleContentCreate()
@@ -271,7 +336,14 @@ func NewModuleContentRead() *ModuleContentRead {
 }
 
 func (m *ModuleContentRead) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -288,16 +360,16 @@ func (m *ModuleContentRead) Fill(r *http.Request) error {
 	m.Module = parseUInt64(chi.URLParam(r, "module"))
 	m.ID = parseUInt64(chi.URLParam(r, "id"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewModuleContentRead()
 
 // Module content/edit request parameters
 type ModuleContentEdit struct {
-	Module  uint64
-	ID      uint64
-	Payload string
+	Module uint64
+	ID     uint64
+	Fields types.JSONText
 }
 
 func NewModuleContentEdit() *ModuleContentEdit {
@@ -305,7 +377,14 @@ func NewModuleContentEdit() *ModuleContentEdit {
 }
 
 func (m *ModuleContentEdit) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -321,11 +400,14 @@ func (m *ModuleContentEdit) Fill(r *http.Request) error {
 
 	m.Module = parseUInt64(chi.URLParam(r, "module"))
 	m.ID = parseUInt64(chi.URLParam(r, "id"))
-	if val, ok := post["payload"]; ok {
-		m.Payload = val
+	if val, ok := post["fields"]; ok {
+
+		if m.Fields, err = parseJSONText(val); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewModuleContentEdit()
@@ -341,7 +423,14 @@ func NewModuleContentDelete() *ModuleContentDelete {
 }
 
 func (m *ModuleContentDelete) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -358,7 +447,7 @@ func (m *ModuleContentDelete) Fill(r *http.Request) error {
 	m.Module = parseUInt64(chi.URLParam(r, "module"))
 	m.ID = parseUInt64(chi.URLParam(r, "id"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewModuleContentDelete()

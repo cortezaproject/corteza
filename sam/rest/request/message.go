@@ -18,10 +18,14 @@ package request
 import (
 	"encoding/json"
 	"github.com/go-chi/chi"
+	"github.com/jmoiron/sqlx/types"
+	"github.com/pkg/errors"
+	"io"
 	"net/http"
 )
 
 var _ = chi.URLParam
+var _ = types.JSONText{}
 
 // Message create request parameters
 type MessageCreate struct {
@@ -34,7 +38,14 @@ func NewMessageCreate() *MessageCreate {
 }
 
 func (m *MessageCreate) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -49,11 +60,12 @@ func (m *MessageCreate) Fill(r *http.Request) error {
 	}
 
 	if val, ok := post["message"]; ok {
+
 		m.Message = val
 	}
 	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewMessageCreate()
@@ -69,7 +81,14 @@ func NewMessageHistory() *MessageHistory {
 }
 
 func (m *MessageHistory) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -84,11 +103,12 @@ func (m *MessageHistory) Fill(r *http.Request) error {
 	}
 
 	if val, ok := get["lastMessageID"]; ok {
+
 		m.LastMessageID = parseUInt64(val)
 	}
 	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewMessageHistory()
@@ -105,7 +125,14 @@ func NewMessageEdit() *MessageEdit {
 }
 
 func (m *MessageEdit) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -122,10 +149,11 @@ func (m *MessageEdit) Fill(r *http.Request) error {
 	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
 	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 	if val, ok := post["message"]; ok {
+
 		m.Message = val
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewMessageEdit()
@@ -141,7 +169,14 @@ func NewMessageDelete() *MessageDelete {
 }
 
 func (m *MessageDelete) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -158,7 +193,7 @@ func (m *MessageDelete) Fill(r *http.Request) error {
 	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
 	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewMessageDelete()
@@ -173,7 +208,14 @@ func NewMessageAttach() *MessageAttach {
 }
 
 func (m *MessageAttach) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -189,7 +231,7 @@ func (m *MessageAttach) Fill(r *http.Request) error {
 
 	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewMessageAttach()
@@ -206,7 +248,14 @@ func NewMessageSearch() *MessageSearch {
 }
 
 func (m *MessageSearch) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -221,14 +270,16 @@ func (m *MessageSearch) Fill(r *http.Request) error {
 	}
 
 	if val, ok := get["query"]; ok {
+
 		m.Query = val
 	}
 	if val, ok := get["message_type"]; ok {
+
 		m.Message_type = val
 	}
 	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewMessageSearch()
@@ -244,7 +295,14 @@ func NewMessagePin() *MessagePin {
 }
 
 func (m *MessagePin) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -261,7 +319,7 @@ func (m *MessagePin) Fill(r *http.Request) error {
 	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
 	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewMessagePin()
@@ -277,7 +335,14 @@ func NewMessageUnpin() *MessageUnpin {
 }
 
 func (m *MessageUnpin) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -294,7 +359,7 @@ func (m *MessageUnpin) Fill(r *http.Request) error {
 	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
 	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewMessageUnpin()
@@ -310,7 +375,14 @@ func NewMessageFlag() *MessageFlag {
 }
 
 func (m *MessageFlag) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -327,7 +399,7 @@ func (m *MessageFlag) Fill(r *http.Request) error {
 	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
 	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewMessageFlag()
@@ -343,7 +415,14 @@ func NewMessageUnflag() *MessageUnflag {
 }
 
 func (m *MessageUnflag) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -360,7 +439,7 @@ func (m *MessageUnflag) Fill(r *http.Request) error {
 	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
 	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewMessageUnflag()
@@ -377,7 +456,14 @@ func NewMessageReact() *MessageReact {
 }
 
 func (m *MessageReact) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -395,7 +481,7 @@ func (m *MessageReact) Fill(r *http.Request) error {
 	m.Reaction = chi.URLParam(r, "reaction")
 	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewMessageReact()
@@ -412,7 +498,14 @@ func NewMessageUnreact() *MessageUnreact {
 }
 
 func (m *MessageUnreact) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(m)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(m)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -430,7 +523,7 @@ func (m *MessageUnreact) Fill(r *http.Request) error {
 	m.Reaction = chi.URLParam(r, "reaction")
 	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewMessageUnreact()

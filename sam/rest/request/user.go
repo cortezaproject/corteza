@@ -18,10 +18,14 @@ package request
 import (
 	"encoding/json"
 	"github.com/go-chi/chi"
+	"github.com/jmoiron/sqlx/types"
+	"github.com/pkg/errors"
+	"io"
 	"net/http"
 )
 
 var _ = chi.URLParam
+var _ = types.JSONText{}
 
 // User search request parameters
 type UserSearch struct {
@@ -33,7 +37,14 @@ func NewUserSearch() *UserSearch {
 }
 
 func (u *UserSearch) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(u)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(u)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -48,10 +59,11 @@ func (u *UserSearch) Fill(r *http.Request) error {
 	}
 
 	if val, ok := get["query"]; ok {
+
 		u.Query = val
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewUserSearch()
@@ -67,7 +79,14 @@ func NewUserMessage() *UserMessage {
 }
 
 func (u *UserMessage) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(u)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(u)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -83,10 +102,11 @@ func (u *UserMessage) Fill(r *http.Request) error {
 
 	u.UserID = parseUInt64(chi.URLParam(r, "userID"))
 	if val, ok := post["message"]; ok {
+
 		u.Message = val
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewUserMessage()

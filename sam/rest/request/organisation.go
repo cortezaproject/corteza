@@ -18,10 +18,14 @@ package request
 import (
 	"encoding/json"
 	"github.com/go-chi/chi"
+	"github.com/jmoiron/sqlx/types"
+	"github.com/pkg/errors"
+	"io"
 	"net/http"
 )
 
 var _ = chi.URLParam
+var _ = types.JSONText{}
 
 // Organisation list request parameters
 type OrganisationList struct {
@@ -33,7 +37,14 @@ func NewOrganisationList() *OrganisationList {
 }
 
 func (o *OrganisationList) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(o)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(o)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -48,10 +59,11 @@ func (o *OrganisationList) Fill(r *http.Request) error {
 	}
 
 	if val, ok := get["query"]; ok {
+
 		o.Query = val
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewOrganisationList()
@@ -66,7 +78,14 @@ func NewOrganisationCreate() *OrganisationCreate {
 }
 
 func (o *OrganisationCreate) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(o)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(o)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -81,10 +100,11 @@ func (o *OrganisationCreate) Fill(r *http.Request) error {
 	}
 
 	if val, ok := post["name"]; ok {
+
 		o.Name = val
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewOrganisationCreate()
@@ -100,7 +120,14 @@ func NewOrganisationEdit() *OrganisationEdit {
 }
 
 func (o *OrganisationEdit) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(o)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(o)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -116,10 +143,11 @@ func (o *OrganisationEdit) Fill(r *http.Request) error {
 
 	o.ID = parseUInt64(chi.URLParam(r, "id"))
 	if val, ok := post["name"]; ok {
+
 		o.Name = val
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewOrganisationEdit()
@@ -134,7 +162,14 @@ func NewOrganisationRemove() *OrganisationRemove {
 }
 
 func (o *OrganisationRemove) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(o)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(o)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -150,7 +185,7 @@ func (o *OrganisationRemove) Fill(r *http.Request) error {
 
 	o.ID = parseUInt64(chi.URLParam(r, "id"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewOrganisationRemove()
@@ -165,7 +200,14 @@ func NewOrganisationRead() *OrganisationRead {
 }
 
 func (o *OrganisationRead) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(o)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(o)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -180,10 +222,11 @@ func (o *OrganisationRead) Fill(r *http.Request) error {
 	}
 
 	if val, ok := get["id"]; ok {
+
 		o.ID = parseUInt64(val)
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewOrganisationRead()
@@ -198,7 +241,14 @@ func NewOrganisationArchive() *OrganisationArchive {
 }
 
 func (o *OrganisationArchive) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(o)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(o)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -214,7 +264,7 @@ func (o *OrganisationArchive) Fill(r *http.Request) error {
 
 	o.ID = parseUInt64(chi.URLParam(r, "id"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewOrganisationArchive()
