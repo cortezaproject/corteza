@@ -224,6 +224,19 @@ func (mr *MockRepositoryMockRecorder) UpdateChannel(mod interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateChannel", reflect.TypeOf((*MockRepository)(nil).UpdateChannel), mod)
 }
 
+// FindChannelsMembershipsByMemberId mocks base method
+func (m *MockRepository) FindChannelsMembershipsByMemberId(memberId uint64) ([]*types.ChannelMember, error) {
+	ret := m.ctrl.Call(m, "FindChannelsMembershipsByMemberId", memberId)
+	ret0, _ := ret[0].([]*types.ChannelMember)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindChannelsMembershipsByMemberId indicates an expected call of FindChannelsMembershipsByMemberId
+func (mr *MockRepositoryMockRecorder) FindChannelsMembershipsByMemberId(memberId interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindChannelsMembershipsByMemberId", reflect.TypeOf((*MockRepository)(nil).FindChannelsMembershipsByMemberId), memberId)
+}
+
 // AddChannelMember mocks base method
 func (m *MockRepository) AddChannelMember(mod *types.ChannelMember) (*types.ChannelMember, error) {
 	ret := m.ctrl.Call(m, "AddChannelMember", mod)
@@ -699,4 +712,41 @@ func (m *MockRepository) DeleteUserByID(id uint64) error {
 // DeleteUserByID indicates an expected call of DeleteUserByID
 func (mr *MockRepositoryMockRecorder) DeleteUserByID(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUserByID", reflect.TypeOf((*MockRepository)(nil).DeleteUserByID), id)
+}
+
+// EventQueuePull mocks base method
+func (m *MockRepository) EventQueuePull(origin uint64) ([]*types.EventQueueItem, error) {
+	ret := m.ctrl.Call(m, "EventQueuePull", origin)
+	ret0, _ := ret[0].([]*types.EventQueueItem)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// EventQueuePull indicates an expected call of EventQueuePull
+func (mr *MockRepositoryMockRecorder) EventQueuePull(origin interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventQueuePull", reflect.TypeOf((*MockRepository)(nil).EventQueuePull), origin)
+}
+
+// EventQueuePush mocks base method
+func (m *MockRepository) EventQueuePush(eqi *types.EventQueueItem) error {
+	ret := m.ctrl.Call(m, "EventQueuePush", eqi)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// EventQueuePush indicates an expected call of EventQueuePush
+func (mr *MockRepositoryMockRecorder) EventQueuePush(eqi interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventQueuePush", reflect.TypeOf((*MockRepository)(nil).EventQueuePush), eqi)
+}
+
+// EventQueueSync mocks base method
+func (m *MockRepository) EventQueueSync(origin, id uint64) error {
+	ret := m.ctrl.Call(m, "EventQueueSync", origin, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// EventQueueSync indicates an expected call of EventQueueSync
+func (mr *MockRepositoryMockRecorder) EventQueueSync(origin, id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventQueueSync", reflect.TypeOf((*MockRepository)(nil).EventQueueSync), origin, id)
 }
