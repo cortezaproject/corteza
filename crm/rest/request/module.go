@@ -16,6 +16,7 @@ package request
 */
 
 import (
+	"encoding/json"
 	"github.com/go-chi/chi"
 	"net/http"
 )
@@ -32,6 +33,8 @@ func NewModuleList() *ModuleList {
 }
 
 func (m *ModuleList) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -44,7 +47,9 @@ func (m *ModuleList) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	m.Query = get["query"]
+	if val, ok := get["query"]; ok {
+		m.Query = val
+	}
 
 	return nil
 }
@@ -62,6 +67,8 @@ func NewModuleCreate() *ModuleCreate {
 }
 
 func (m *ModuleCreate) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -74,8 +81,12 @@ func (m *ModuleCreate) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	m.Name = post["name"]
-	m.Fields = post["fields"]
+	if val, ok := post["name"]; ok {
+		m.Name = val
+	}
+	if val, ok := post["fields"]; ok {
+		m.Fields = val
+	}
 
 	return nil
 }
@@ -92,6 +103,8 @@ func NewModuleRead() *ModuleRead {
 }
 
 func (m *ModuleRead) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -123,6 +136,8 @@ func NewModuleEdit() *ModuleEdit {
 }
 
 func (m *ModuleEdit) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -136,8 +151,12 @@ func (m *ModuleEdit) Fill(r *http.Request) error {
 	}
 
 	m.ID = parseUInt64(chi.URLParam(r, "id"))
-	m.Name = post["name"]
-	m.Fields = post["fields"]
+	if val, ok := post["name"]; ok {
+		m.Name = val
+	}
+	if val, ok := post["fields"]; ok {
+		m.Fields = val
+	}
 
 	return nil
 }
@@ -154,6 +173,8 @@ func NewModuleDelete() *ModuleDelete {
 }
 
 func (m *ModuleDelete) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -183,6 +204,8 @@ func NewModuleContentList() *ModuleContentList {
 }
 
 func (m *ModuleContentList) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -213,6 +236,8 @@ func NewModuleContentCreate() *ModuleContentCreate {
 }
 
 func (m *ModuleContentCreate) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -226,7 +251,9 @@ func (m *ModuleContentCreate) Fill(r *http.Request) error {
 	}
 
 	m.Module = parseUInt64(chi.URLParam(r, "module"))
-	m.Payload = post["payload"]
+	if val, ok := post["payload"]; ok {
+		m.Payload = val
+	}
 
 	return nil
 }
@@ -244,6 +271,8 @@ func NewModuleContentRead() *ModuleContentRead {
 }
 
 func (m *ModuleContentRead) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -276,6 +305,8 @@ func NewModuleContentEdit() *ModuleContentEdit {
 }
 
 func (m *ModuleContentEdit) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -290,7 +321,9 @@ func (m *ModuleContentEdit) Fill(r *http.Request) error {
 
 	m.Module = parseUInt64(chi.URLParam(r, "module"))
 	m.ID = parseUInt64(chi.URLParam(r, "id"))
-	m.Payload = post["payload"]
+	if val, ok := post["payload"]; ok {
+		m.Payload = val
+	}
 
 	return nil
 }
@@ -308,6 +341,8 @@ func NewModuleContentDelete() *ModuleContentDelete {
 }
 
 func (m *ModuleContentDelete) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}

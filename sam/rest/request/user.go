@@ -16,6 +16,7 @@ package request
 */
 
 import (
+	"encoding/json"
 	"github.com/go-chi/chi"
 	"net/http"
 )
@@ -32,6 +33,8 @@ func NewUserSearch() *UserSearch {
 }
 
 func (u *UserSearch) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(u)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -44,7 +47,9 @@ func (u *UserSearch) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	u.Query = get["query"]
+	if val, ok := get["query"]; ok {
+		u.Query = val
+	}
 
 	return nil
 }
@@ -62,6 +67,8 @@ func NewUserMessage() *UserMessage {
 }
 
 func (u *UserMessage) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(u)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -75,7 +82,9 @@ func (u *UserMessage) Fill(r *http.Request) error {
 	}
 
 	u.UserID = parseUInt64(chi.URLParam(r, "userID"))
-	u.Message = post["message"]
+	if val, ok := post["message"]; ok {
+		u.Message = val
+	}
 
 	return nil
 }

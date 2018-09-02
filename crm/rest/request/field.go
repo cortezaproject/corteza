@@ -16,6 +16,7 @@ package request
 */
 
 import (
+	"encoding/json"
 	"github.com/go-chi/chi"
 	"net/http"
 )
@@ -31,6 +32,8 @@ func NewFieldList() *FieldList {
 }
 
 func (f *FieldList) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(f)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -58,6 +61,8 @@ func NewFieldType() *FieldType {
 }
 
 func (f *FieldType) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(f)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}

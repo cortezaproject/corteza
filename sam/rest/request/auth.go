@@ -16,6 +16,7 @@ package request
 */
 
 import (
+	"encoding/json"
 	"github.com/go-chi/chi"
 	"net/http"
 )
@@ -33,6 +34,8 @@ func NewAuthLogin() *AuthLogin {
 }
 
 func (a *AuthLogin) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(a)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -45,8 +48,12 @@ func (a *AuthLogin) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	a.Username = post["username"]
-	a.Password = post["password"]
+	if val, ok := post["username"]; ok {
+		a.Username = val
+	}
+	if val, ok := post["password"]; ok {
+		a.Password = val
+	}
 
 	return nil
 }
@@ -66,6 +73,8 @@ func NewAuthCreate() *AuthCreate {
 }
 
 func (a *AuthCreate) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(a)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -78,10 +87,18 @@ func (a *AuthCreate) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	a.Name = post["name"]
-	a.Email = post["email"]
-	a.Username = post["username"]
-	a.Password = post["password"]
+	if val, ok := post["name"]; ok {
+		a.Name = val
+	}
+	if val, ok := post["email"]; ok {
+		a.Email = val
+	}
+	if val, ok := post["username"]; ok {
+		a.Username = val
+	}
+	if val, ok := post["password"]; ok {
+		a.Password = val
+	}
 
 	return nil
 }

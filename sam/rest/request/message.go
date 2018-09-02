@@ -16,6 +16,7 @@ package request
 */
 
 import (
+	"encoding/json"
 	"github.com/go-chi/chi"
 	"net/http"
 )
@@ -33,6 +34,8 @@ func NewMessageCreate() *MessageCreate {
 }
 
 func (m *MessageCreate) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -45,7 +48,9 @@ func (m *MessageCreate) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	m.Message = post["message"]
+	if val, ok := post["message"]; ok {
+		m.Message = val
+	}
 	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	return nil
@@ -64,6 +69,8 @@ func NewMessageHistory() *MessageHistory {
 }
 
 func (m *MessageHistory) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -76,7 +83,9 @@ func (m *MessageHistory) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	m.LastMessageID = parseUInt64(get["lastMessageID"])
+	if val, ok := get["lastMessageID"]; ok {
+		m.LastMessageID = parseUInt64(val)
+	}
 	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	return nil
@@ -96,6 +105,8 @@ func NewMessageEdit() *MessageEdit {
 }
 
 func (m *MessageEdit) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -110,7 +121,9 @@ func (m *MessageEdit) Fill(r *http.Request) error {
 
 	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
 	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
-	m.Message = post["message"]
+	if val, ok := post["message"]; ok {
+		m.Message = val
+	}
 
 	return nil
 }
@@ -128,6 +141,8 @@ func NewMessageDelete() *MessageDelete {
 }
 
 func (m *MessageDelete) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -158,6 +173,8 @@ func NewMessageAttach() *MessageAttach {
 }
 
 func (m *MessageAttach) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -189,6 +206,8 @@ func NewMessageSearch() *MessageSearch {
 }
 
 func (m *MessageSearch) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -201,8 +220,12 @@ func (m *MessageSearch) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	m.Query = get["query"]
-	m.Message_type = get["message_type"]
+	if val, ok := get["query"]; ok {
+		m.Query = val
+	}
+	if val, ok := get["message_type"]; ok {
+		m.Message_type = val
+	}
 	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	return nil
@@ -221,6 +244,8 @@ func NewMessagePin() *MessagePin {
 }
 
 func (m *MessagePin) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -252,6 +277,8 @@ func NewMessageUnpin() *MessageUnpin {
 }
 
 func (m *MessageUnpin) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -283,6 +310,8 @@ func NewMessageFlag() *MessageFlag {
 }
 
 func (m *MessageFlag) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -314,6 +343,8 @@ func NewMessageUnflag() *MessageUnflag {
 }
 
 func (m *MessageUnflag) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -346,6 +377,8 @@ func NewMessageReact() *MessageReact {
 }
 
 func (m *MessageReact) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -379,6 +412,8 @@ func NewMessageUnreact() *MessageUnreact {
 }
 
 func (m *MessageUnreact) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(m)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}

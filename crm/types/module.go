@@ -11,7 +11,7 @@ type (
 	Module struct {
 		ID     uint64         `json:"id" db:"id"`
 		Name   string         `json:"name" db:"name"`
-		Fields types.JSONText `json:"json" db:"json"`
+		Fields types.JSONText `json:"fields" db:"json"`
 	}
 
 	// Modules - CRM module definitions

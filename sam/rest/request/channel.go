@@ -16,6 +16,7 @@ package request
 */
 
 import (
+	"encoding/json"
 	"github.com/go-chi/chi"
 	"net/http"
 )
@@ -32,6 +33,8 @@ func NewChannelList() *ChannelList {
 }
 
 func (c *ChannelList) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(c)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -44,7 +47,9 @@ func (c *ChannelList) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	c.Query = get["query"]
+	if val, ok := get["query"]; ok {
+		c.Query = val
+	}
 
 	return nil
 }
@@ -62,6 +67,8 @@ func NewChannelCreate() *ChannelCreate {
 }
 
 func (c *ChannelCreate) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(c)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -74,8 +81,12 @@ func (c *ChannelCreate) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	c.Name = post["name"]
-	c.Topic = post["topic"]
+	if val, ok := post["name"]; ok {
+		c.Name = val
+	}
+	if val, ok := post["topic"]; ok {
+		c.Topic = val
+	}
 
 	return nil
 }
@@ -96,6 +107,8 @@ func NewChannelEdit() *ChannelEdit {
 }
 
 func (c *ChannelEdit) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(c)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -109,10 +122,18 @@ func (c *ChannelEdit) Fill(r *http.Request) error {
 	}
 
 	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
-	c.Name = post["name"]
-	c.Topic = post["topic"]
-	c.Archive = parseBool(post["archive"])
-	c.OrganisationID = parseUInt64(post["organisationID"])
+	if val, ok := post["name"]; ok {
+		c.Name = val
+	}
+	if val, ok := post["topic"]; ok {
+		c.Topic = val
+	}
+	if val, ok := post["archive"]; ok {
+		c.Archive = parseBool(val)
+	}
+	if val, ok := post["organisationID"]; ok {
+		c.OrganisationID = parseUInt64(val)
+	}
 
 	return nil
 }
@@ -129,6 +150,8 @@ func NewChannelRead() *ChannelRead {
 }
 
 func (c *ChannelRead) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(c)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -158,6 +181,8 @@ func NewChannelDelete() *ChannelDelete {
 }
 
 func (c *ChannelDelete) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(c)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -187,6 +212,8 @@ func NewChannelMembers() *ChannelMembers {
 }
 
 func (c *ChannelMembers) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(c)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -216,6 +243,8 @@ func NewChannelJoin() *ChannelJoin {
 }
 
 func (c *ChannelJoin) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(c)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -246,6 +275,8 @@ func NewChannelPart() *ChannelPart {
 }
 
 func (c *ChannelPart) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(c)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -277,6 +308,8 @@ func NewChannelInvite() *ChannelInvite {
 }
 
 func (c *ChannelInvite) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(c)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}

@@ -16,6 +16,7 @@ package request
 */
 
 import (
+	"encoding/json"
 	"github.com/go-chi/chi"
 	"net/http"
 )
@@ -32,6 +33,8 @@ func NewOrganisationList() *OrganisationList {
 }
 
 func (o *OrganisationList) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(o)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -44,7 +47,9 @@ func (o *OrganisationList) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	o.Query = get["query"]
+	if val, ok := get["query"]; ok {
+		o.Query = val
+	}
 
 	return nil
 }
@@ -61,6 +66,8 @@ func NewOrganisationCreate() *OrganisationCreate {
 }
 
 func (o *OrganisationCreate) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(o)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -73,7 +80,9 @@ func (o *OrganisationCreate) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	o.Name = post["name"]
+	if val, ok := post["name"]; ok {
+		o.Name = val
+	}
 
 	return nil
 }
@@ -91,6 +100,8 @@ func NewOrganisationEdit() *OrganisationEdit {
 }
 
 func (o *OrganisationEdit) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(o)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -104,7 +115,9 @@ func (o *OrganisationEdit) Fill(r *http.Request) error {
 	}
 
 	o.ID = parseUInt64(chi.URLParam(r, "id"))
-	o.Name = post["name"]
+	if val, ok := post["name"]; ok {
+		o.Name = val
+	}
 
 	return nil
 }
@@ -121,6 +134,8 @@ func NewOrganisationRemove() *OrganisationRemove {
 }
 
 func (o *OrganisationRemove) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(o)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -150,6 +165,8 @@ func NewOrganisationRead() *OrganisationRead {
 }
 
 func (o *OrganisationRead) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(o)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -162,7 +179,9 @@ func (o *OrganisationRead) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	o.ID = parseUInt64(get["id"])
+	if val, ok := get["id"]; ok {
+		o.ID = parseUInt64(val)
+	}
 
 	return nil
 }
@@ -179,6 +198,8 @@ func NewOrganisationArchive() *OrganisationArchive {
 }
 
 func (o *OrganisationArchive) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(o)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}

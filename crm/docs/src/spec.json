@@ -52,7 +52,7 @@
 				"fields": [
 					{ "name": "ID", "type": "uint64" },
 					{ "name": "Name", "type": "string" },
-					{ "name": "Fields", "type": "types.JSONText", "db": "json", "complex": true }
+					{ "name": "Fields", "type": "types.JSONText", "json": "fields", "db": "json", "complex": true }
 				]
 			},
 			{

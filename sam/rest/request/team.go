@@ -16,6 +16,7 @@ package request
 */
 
 import (
+	"encoding/json"
 	"github.com/go-chi/chi"
 	"net/http"
 )
@@ -32,6 +33,8 @@ func NewTeamList() *TeamList {
 }
 
 func (t *TeamList) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(t)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -44,7 +47,9 @@ func (t *TeamList) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.Query = get["query"]
+	if val, ok := get["query"]; ok {
+		t.Query = val
+	}
 
 	return nil
 }
@@ -62,6 +67,8 @@ func NewTeamCreate() *TeamCreate {
 }
 
 func (t *TeamCreate) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(t)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -74,7 +81,9 @@ func (t *TeamCreate) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	t.Name = post["name"]
+	if val, ok := post["name"]; ok {
+		t.Name = val
+	}
 
 	return nil
 }
@@ -93,6 +102,8 @@ func NewTeamEdit() *TeamEdit {
 }
 
 func (t *TeamEdit) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(t)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -106,7 +117,9 @@ func (t *TeamEdit) Fill(r *http.Request) error {
 	}
 
 	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
-	t.Name = post["name"]
+	if val, ok := post["name"]; ok {
+		t.Name = val
+	}
 
 	return nil
 }
@@ -123,6 +136,8 @@ func NewTeamRead() *TeamRead {
 }
 
 func (t *TeamRead) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(t)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -152,6 +167,8 @@ func NewTeamRemove() *TeamRemove {
 }
 
 func (t *TeamRemove) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(t)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -181,6 +198,8 @@ func NewTeamArchive() *TeamArchive {
 }
 
 func (t *TeamArchive) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(t)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -211,6 +230,8 @@ func NewTeamMove() *TeamMove {
 }
 
 func (t *TeamMove) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(t)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -224,7 +245,9 @@ func (t *TeamMove) Fill(r *http.Request) error {
 	}
 
 	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
-	t.Organisation_id = parseUInt64(post["organisation_id"])
+	if val, ok := post["organisation_id"]; ok {
+		t.Organisation_id = parseUInt64(val)
+	}
 
 	return nil
 }
@@ -242,6 +265,8 @@ func NewTeamMerge() *TeamMerge {
 }
 
 func (t *TeamMerge) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode(t)
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -255,7 +280,9 @@ func (t *TeamMerge) Fill(r *http.Request) error {
 	}
 
 	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
-	t.Destination = parseUInt64(post["destination"])
+	if val, ok := post["destination"]; ok {
+		t.Destination = parseUInt64(val)
+	}
 
 	return nil
 }
