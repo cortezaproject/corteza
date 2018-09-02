@@ -6,9 +6,9 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/SentimensRG/sigctx"
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
+	"github.com/sentimensrg/sigctx"
 
 	"github.com/crusttech/crust/auth"
 	"github.com/crusttech/crust/sam/rest"

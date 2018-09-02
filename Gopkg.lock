@@ -9,7 +9,7 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/SentimensRG/sigctx"
+  name = "github.com/sentimensrg/sigctx"
   packages = ["."]
   revision = "c19b774db63bdcae0c335d8c4bab1207713a08c6"
 
