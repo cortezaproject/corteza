@@ -3,12 +3,16 @@ package {package}
 {load warning.tpl}
 
 import (
+	"io"
 	"net/http"
 	"encoding/json"
 	"github.com/go-chi/chi"
+	"github.com/pkg/errors"
+	"github.com/jmoiron/sqlx/types"
 )
 
 var _ = chi.URLParam
+var _ = types.JSONText{}
 
 {foreach $calls as $call}
 // {name} {call.name} request parameters
@@ -25,7 +29,14 @@ func New{name|expose}{call.name|capitalize}() *{name|expose}{call.name|capitaliz
 }
 
 func ({self} *{name|expose}{call.name|capitalize}) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode({self})
+	var err error
+	err = json.NewDecoder(r.Body).Decode({self})
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -44,11 +55,17 @@ func ({self} *{name|expose}{call.name|capitalize}) Fill(r *http.Request) error {
 	{self}.{param.name|expose} = {if ($param.type !== "string")}{$parsers[$param.type]}({/if}chi.URLParam(r, "{param.name}"){if ($param.type !== "string")}){/if}
 {elseif substr($param.type, 0, 2) !== '[]'}
         if val, ok := {method|strtolower}["{param.name}"]; ok {
+{if $param.type === "types.JSONText"}
+		if {self}.{param.name|expose}, err = {$parsers[$param.type]}(val); err != nil {
+			return err
+		}
+{else}
 		{self}.{param.name|expose} = {if ($param.type !== "string")}{$parsers[$param.type]}(val){else}val{/if}
+{/if}
 	}{/if}
 {/foreach}
 {/foreach}{newline}
-	return nil
+	return err
 }
 
 var _ RequestFiller = New{name|expose}{call.name|capitalize}()
