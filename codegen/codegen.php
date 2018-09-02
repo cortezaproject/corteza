@@ -77,6 +77,7 @@ usort($apis, function($a, $b) {
 $parsers = array(
 	"uint64" => "parseUInt64",
 	"bool" => "parseBool",
+	"types.JSONText" => "parseJSONText",
 );
 
 foreach ($generators as $generator) {
