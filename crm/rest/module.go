@@ -37,15 +37,26 @@ func (s *Module) Delete(ctx context.Context, r *request.ModuleDelete) (interface
 }
 
 func (s *Module) Create(ctx context.Context, r *request.ModuleCreate) (interface{}, error) {
-	return s.module.With(ctx).Create(
-		&types.Module{Name: r.Name},
-	)
+	item := &types.Module{
+		Name: r.Name,
+	}
+	fields := &item.Fields
+	if err := fields.Scan(r.Fields); err != nil {
+		return nil, err
+	}
+	return s.module.With(ctx).Create(item)
 }
 
 func (s *Module) Edit(ctx context.Context, r *request.ModuleEdit) (interface{}, error) {
-	return s.module.With(ctx).Update(
-		&types.Module{ID: r.ID, Name: r.Name},
-	)
+	item := &types.Module{
+		ID:   r.ID,
+		Name: r.Name,
+	}
+	fields := &item.Fields
+	if err := fields.Scan(r.Fields); err != nil {
+		return nil, err
+	}
+	return s.module.With(ctx).Update(item)
 }
 
 func (s *Module) ContentList(ctx context.Context, r *request.ModuleContentList) (interface{}, error) {

@@ -53,7 +53,8 @@ var _ RequestFiller = NewModuleList()
 
 // Module create request parameters
 type ModuleCreate struct {
-	Name string
+	Name   string
+	Fields string
 }
 
 func NewModuleCreate() *ModuleCreate {
@@ -74,6 +75,7 @@ func (m *ModuleCreate) Fill(r *http.Request) error {
 	}
 
 	m.Name = post["name"]
+	m.Fields = post["fields"]
 
 	return nil
 }
@@ -111,8 +113,9 @@ var _ RequestFiller = NewModuleRead()
 
 // Module edit request parameters
 type ModuleEdit struct {
-	ID   uint64
-	Name string
+	ID     uint64
+	Name   string
+	Fields string
 }
 
 func NewModuleEdit() *ModuleEdit {
@@ -134,6 +137,7 @@ func (m *ModuleEdit) Fill(r *http.Request) error {
 
 	m.ID = parseUInt64(chi.URLParam(r, "id"))
 	m.Name = post["name"]
+	m.Fields = post["fields"]
 
 	return nil
 }

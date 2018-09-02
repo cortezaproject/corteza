@@ -63,6 +63,7 @@ CRM module definitions
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | name | string | POST | Module Name | N/A | YES |
+| fields | string | POST | Fields JSON | N/A | YES |
 
 ## Read module
 
@@ -92,6 +93,7 @@ CRM module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | id | uint64 | PATH | Module ID | N/A | YES |
 | name | string | POST | Module Name | N/A | YES |
+| fields | string | POST | Fields JSON | N/A | YES |
 
 ## Delete module
 

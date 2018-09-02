@@ -56,6 +56,16 @@
 				]
 			},
 			{
+				"name": "ModuleField",
+				"fields": [
+					{ "name": "Name", "type": "string" },
+					{ "name": "Title", "type": "string" },
+					{ "name": "Kind", "type": "string" },
+					{ "name": "GDPR", "type": "bool" },
+					{ "name": "Show", "type": "bool" }
+				]
+			},
+			{
 				"name": "Content",
 				"imports": [
 					"github.com/jmoiron/sqlx/types"
@@ -86,7 +96,8 @@
 				"path": "/",
 				"parameters": {
 					"post": [
-						{ "type": "string", "name": "name", "required": true, "title": "Module Name" }
+						{ "type": "string", "name": "name", "required": true, "title": "Module Name" },
+						{ "type": "string", "name": "fields", "required": true, "title": "Fields JSON" }
 					]
 				}
 			},
@@ -111,7 +122,8 @@
 						{ "type": "uint64", "name": "id", "required": true, "title": "Module ID" }
 					],
 					"post": [
-						{ "type": "string", "name": "name", "required": true, "title": "Module Name" }
+						{ "type": "string", "name": "name", "required": true, "title": "Module Name" },
+						{ "type": "string", "name": "fields", "required": true, "title": "Fields JSON" }
 					]
 				}
 			},
