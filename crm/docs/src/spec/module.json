@@ -17,6 +17,7 @@
         {
           "complex": true,
           "db": "json",
+          "json": "fields",
           "name": "Fields",
           "type": "types.JSONText"
         }
