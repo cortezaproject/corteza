@@ -52,48 +52,56 @@ type Team struct {
 func NewTeam(th TeamAPI) *Team {
 	return &Team{
 		List: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewTeamList()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return th.List(r.Context(), params)
 			})
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewTeamCreate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return th.Create(r.Context(), params)
 			})
 		},
 		Edit: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewTeamEdit()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return th.Edit(r.Context(), params)
 			})
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewTeamRead()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return th.Read(r.Context(), params)
 			})
 		},
 		Remove: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewTeamRemove()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return th.Remove(r.Context(), params)
 			})
 		},
 		Archive: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewTeamArchive()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return th.Archive(r.Context(), params)
 			})
 		},
 		Move: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewTeamMove()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return th.Move(r.Context(), params)
 			})
 		},
 		Merge: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewTeamMerge()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return th.Merge(r.Context(), params)

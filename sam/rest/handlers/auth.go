@@ -40,12 +40,14 @@ type Auth struct {
 func NewAuth(ah AuthAPI) *Auth {
 	return &Auth{
 		Login: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewAuthLogin()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ah.Login(r.Context(), params)
 			})
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewAuthCreate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ah.Create(r.Context(), params)

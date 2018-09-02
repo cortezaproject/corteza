@@ -40,12 +40,14 @@ type Field struct {
 func NewField(fh FieldAPI) *Field {
 	return &Field{
 		List: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewFieldList()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return fh.List(r.Context(), params)
 			})
 		},
 		Type: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewFieldType()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return fh.Type(r.Context(), params)

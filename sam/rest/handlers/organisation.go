@@ -48,36 +48,42 @@ type Organisation struct {
 func NewOrganisation(oh OrganisationAPI) *Organisation {
 	return &Organisation{
 		List: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewOrganisationList()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return oh.List(r.Context(), params)
 			})
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewOrganisationCreate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return oh.Create(r.Context(), params)
 			})
 		},
 		Edit: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewOrganisationEdit()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return oh.Edit(r.Context(), params)
 			})
 		},
 		Remove: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewOrganisationRemove()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return oh.Remove(r.Context(), params)
 			})
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewOrganisationRead()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return oh.Read(r.Context(), params)
 			})
 		},
 		Archive: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewOrganisationArchive()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return oh.Archive(r.Context(), params)

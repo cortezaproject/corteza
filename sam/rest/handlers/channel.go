@@ -54,54 +54,63 @@ type Channel struct {
 func NewChannel(ch ChannelAPI) *Channel {
 	return &Channel{
 		List: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewChannelList()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ch.List(r.Context(), params)
 			})
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewChannelCreate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ch.Create(r.Context(), params)
 			})
 		},
 		Edit: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewChannelEdit()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ch.Edit(r.Context(), params)
 			})
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewChannelRead()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ch.Read(r.Context(), params)
 			})
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewChannelDelete()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ch.Delete(r.Context(), params)
 			})
 		},
 		Members: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewChannelMembers()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ch.Members(r.Context(), params)
 			})
 		},
 		Join: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewChannelJoin()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ch.Join(r.Context(), params)
 			})
 		},
 		Part: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewChannelPart()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ch.Part(r.Context(), params)
 			})
 		},
 		Invite: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewChannelInvite()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ch.Invite(r.Context(), params)
