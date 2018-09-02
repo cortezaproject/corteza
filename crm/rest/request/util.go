@@ -4,9 +4,18 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/jmoiron/sqlx/types"
+	"github.com/pkg/errors"
 )
 
 var truthy = regexp.MustCompile("^\\s*(t(rue)?|y(es)?|1)\\s*$")
+
+func parseJSONText(s string) (types.JSONText, error) {
+	result := &types.JSONText{}
+	err := errors.Wrap(result.Scan(s), "error when parsing JSONText")
+	return *result, err
+}
 
 // parseInt64 parses an string to int64
 func parseInt64(s string) int64 {
