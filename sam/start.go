@@ -8,16 +8,17 @@ import (
 
 	"github.com/SentimensRG/ctx"
 	"github.com/SentimensRG/ctx/sigctx"
-	authService "github.com/crusttech/crust/auth/service"
-	samService "github.com/crusttech/crust/sam/service"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"github.com/titpetric/factory/resputil"
+	"golang.org/x/oauth2"
 
+	authService "github.com/crusttech/crust/auth/service"
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/sam/rest"
+	samService "github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/websocket"
 )
 
@@ -73,6 +74,15 @@ func Start() error {
 
 	r := chi.NewRouter()
 	r.Use(handleCORS)
+
+	if oidc, err := OpenIdConnect(ctx, "https://accounts.google.com", oauth2.Config{}); err != nil {
+		return errors.Wrap(err, "Could not initialize OIDC")
+	} else {
+		r.Route("/oidc/satosa", func(r chi.Router) {
+			r.Get("/", oidc.HandleRedirect)
+			r.Get("/callback", oidc.HandleOAuth2Callback)
+		})
+	}
 
 	// Only protect application routes with JWT
 	r.Group(func(r chi.Router) {
