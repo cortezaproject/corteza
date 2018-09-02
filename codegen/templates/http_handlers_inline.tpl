@@ -30,6 +30,7 @@ func New{name}({self}h {name}API) *{name} {
 	return &{name}{ldelim}{newline}
 {foreach $calls as $call}
 		{call.name|capitalize}: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.New{name|capitalize}{call.name|capitalize}()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return {self}h.{call.name|capitalize}(r.Context(), params)

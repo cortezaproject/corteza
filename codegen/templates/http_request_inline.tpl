@@ -4,6 +4,7 @@ package {package}
 
 import (
 	"net/http"
+	"encoding/json"
 	"github.com/go-chi/chi"
 )
 
@@ -24,6 +25,8 @@ func New{name|expose}{call.name|capitalize}() *{name|expose}{call.name|capitaliz
 }
 
 func ({self} *{name|expose}{call.name|capitalize}) Fill(r *http.Request) error {
+	json.NewDecoder(r.Body).Decode({self})
+
 	r.ParseForm()
 	get := map[string]string{}
 	post := map[string]string{}
@@ -40,8 +43,9 @@ func ({self} *{name|expose}{call.name|capitalize}) Fill(r *http.Request) error {
 {if strtolower($method) === "path"}
 	{self}.{param.name|expose} = {if ($param.type !== "string")}{$parsers[$param.type]}({/if}chi.URLParam(r, "{param.name}"){if ($param.type !== "string")}){/if}
 {elseif substr($param.type, 0, 2) !== '[]'}
-	{self}.{param.name|expose} = {if ($param.type !== "string")}{$parsers[$param.type]}({method|strtolower}["{param.name}"]){else}{method|strtolower}["{param.name}"]{/if}
-{/if}
+        if val, ok := {method|strtolower}["{param.name}"]; ok {
+		{self}.{param.name|expose} = {if ($param.type !== "string")}{$parsers[$param.type]}(val){else}val{/if}
+	}{/if}
 {/foreach}
 {/foreach}{newline}
 	return nil
