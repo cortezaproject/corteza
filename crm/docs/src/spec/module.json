@@ -15,7 +15,6 @@
           "type": "string"
         },
         {
-          "complex": true,
           "db": "json",
           "json": "fields",
           "name": "Fields",
@@ -63,7 +62,6 @@
           "type": "uint64"
         },
         {
-          "complex": true,
           "db": "json",
           "name": "Fields",
           "type": "types.JSONText"
@@ -113,7 +111,7 @@
             "name": "fields",
             "required": true,
             "title": "Fields JSON",
-            "type": "string"
+            "type": "types.JSONText"
           }
         ]
       }
@@ -159,7 +157,7 @@
             "name": "fields",
             "required": true,
             "title": "Fields JSON",
-            "type": "string"
+            "type": "types.JSONText"
           }
         ]
       }
@@ -212,10 +210,10 @@
         ],
         "post": [
           {
-            "name": "payload",
+            "name": "fields",
             "required": true,
             "title": "Content JSON",
-            "type": "string"
+            "type": "types.JSONText"
           }
         ]
       }
@@ -264,10 +262,10 @@
         ],
         "post": [
           {
-            "name": "payload",
+            "name": "fields",
             "required": true,
             "title": "Content JSON",
-            "type": "string"
+            "type": "types.JSONText"
           }
         ]
       }
