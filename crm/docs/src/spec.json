@@ -52,7 +52,7 @@
 				"fields": [
 					{ "name": "ID", "type": "uint64" },
 					{ "name": "Name", "type": "string" },
-					{ "name": "Fields", "type": "types.JSONText", "json": "fields", "db": "json", "complex": true }
+					{ "name": "Fields", "type": "types.JSONText", "json": "fields", "db": "json" }
 				]
 			},
 			{
@@ -73,7 +73,7 @@
 				"fields": [
 					{ "name": "ID", "type": "uint64" },
 					{ "name": "ModuleID", "type": "uint64" },
-					{ "name": "Fields", "type": "types.JSONText", "db": "json", "complex": true }
+					{ "name": "Fields", "type": "types.JSONText", "db": "json" }
 				]
 			}
 		],
@@ -97,7 +97,7 @@
 				"parameters": {
 					"post": [
 						{ "type": "string", "name": "name", "required": true, "title": "Module Name" },
-						{ "type": "string", "name": "fields", "required": true, "title": "Fields JSON" }
+						{ "type": "types.JSONText", "name": "fields", "required": true, "title": "Fields JSON" }
 					]
 				}
 			},
@@ -123,7 +123,7 @@
 					],
 					"post": [
 						{ "type": "string", "name": "name", "required": true, "title": "Module Name" },
-						{ "type": "string", "name": "fields", "required": true, "title": "Fields JSON" }
+						{ "type": "types.JSONText", "name": "fields", "required": true, "title": "Fields JSON" }
 					]
 				}
 			},
@@ -159,7 +159,7 @@
 						{ "type": "uint64", "name": "module", "required": true, "title": "Module ID" }
 					],
 					"post": [
-						{ "type": "string", "name": "payload", "required": true, "title": "Content JSON" }
+						{ "type": "types.JSONText", "name": "fields", "required": true, "title": "Content JSON" }
 					]
 				}
 			},
@@ -186,7 +186,7 @@
 						{ "type": "uint64", "name": "id", "required": true, "title": "Content ID" }
 					],
 					"post": [
-						{ "type": "string", "name": "payload", "required": true, "title": "Content JSON" }
+						{ "type": "types.JSONText", "name": "fields", "required": true, "title": "Content JSON" }
 					]
 				}
 			},

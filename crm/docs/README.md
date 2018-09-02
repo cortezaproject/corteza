@@ -63,7 +63,7 @@ CRM module definitions
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | name | string | POST | Module Name | N/A | YES |
-| fields | string | POST | Fields JSON | N/A | YES |
+| fields | types.JSONText | POST | Fields JSON | N/A | YES |
 
 ## Read module
 
@@ -93,7 +93,7 @@ CRM module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | id | uint64 | PATH | Module ID | N/A | YES |
 | name | string | POST | Module Name | N/A | YES |
-| fields | string | POST | Fields JSON | N/A | YES |
+| fields | types.JSONText | POST | Fields JSON | N/A | YES |
 
 ## Delete module
 
@@ -136,7 +136,7 @@ CRM module definitions
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | module | uint64 | PATH | Module ID | N/A | YES |
-| payload | string | POST | Content JSON | N/A | YES |
+| fields | types.JSONText | POST | Content JSON | N/A | YES |
 
 ## Read contents by ID from module section
 
@@ -167,7 +167,7 @@ CRM module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | module | uint64 | PATH | Module ID | N/A | YES |
 | id | uint64 | PATH | Content ID | N/A | YES |
-| payload | string | POST | Content JSON | N/A | YES |
+| fields | types.JSONText | POST | Content JSON | N/A | YES |
 
 ## Delete content row from module section
 
