@@ -40,12 +40,14 @@ type User struct {
 func NewUser(uh UserAPI) *User {
 	return &User{
 		Search: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewUserSearch()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return uh.Search(r.Context(), params)
 			})
 		},
 		Message: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewUserMessage()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return uh.Message(r.Context(), params)

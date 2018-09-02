@@ -56,60 +56,70 @@ type Module struct {
 func NewModule(mh ModuleAPI) *Module {
 	return &Module{
 		List: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewModuleList()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.List(r.Context(), params)
 			})
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewModuleCreate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Create(r.Context(), params)
 			})
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewModuleRead()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Read(r.Context(), params)
 			})
 		},
 		Edit: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewModuleEdit()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Edit(r.Context(), params)
 			})
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewModuleDelete()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Delete(r.Context(), params)
 			})
 		},
 		ContentList: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewModuleContentList()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.ContentList(r.Context(), params)
 			})
 		},
 		ContentCreate: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewModuleContentCreate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.ContentCreate(r.Context(), params)
 			})
 		},
 		ContentRead: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewModuleContentRead()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.ContentRead(r.Context(), params)
 			})
 		},
 		ContentEdit: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewModuleContentEdit()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.ContentEdit(r.Context(), params)
 			})
 		},
 		ContentDelete: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewModuleContentDelete()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.ContentDelete(r.Context(), params)

@@ -60,72 +60,84 @@ type Message struct {
 func NewMessage(mh MessageAPI) *Message {
 	return &Message{
 		Create: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewMessageCreate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Create(r.Context(), params)
 			})
 		},
 		History: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewMessageHistory()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.History(r.Context(), params)
 			})
 		},
 		Edit: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewMessageEdit()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Edit(r.Context(), params)
 			})
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewMessageDelete()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Delete(r.Context(), params)
 			})
 		},
 		Attach: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewMessageAttach()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Attach(r.Context(), params)
 			})
 		},
 		Search: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewMessageSearch()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Search(r.Context(), params)
 			})
 		},
 		Pin: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewMessagePin()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Pin(r.Context(), params)
 			})
 		},
 		Unpin: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewMessageUnpin()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Unpin(r.Context(), params)
 			})
 		},
 		Flag: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewMessageFlag()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Flag(r.Context(), params)
 			})
 		},
 		Unflag: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewMessageUnflag()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Unflag(r.Context(), params)
 			})
 		},
 		React: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewMessageReact()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.React(r.Context(), params)
 			})
 		},
 		Unreact: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
 			params := request.NewMessageUnreact()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Unreact(r.Context(), params)
