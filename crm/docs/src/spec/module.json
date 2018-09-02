@@ -29,6 +29,31 @@
     {
       "fields": [
         {
+          "name": "Name",
+          "type": "string"
+        },
+        {
+          "name": "Title",
+          "type": "string"
+        },
+        {
+          "name": "Kind",
+          "type": "string"
+        },
+        {
+          "name": "GDPR",
+          "type": "bool"
+        },
+        {
+          "name": "Show",
+          "type": "bool"
+        }
+      ],
+      "name": "ModuleField"
+    },
+    {
+      "fields": [
+        {
           "name": "ID",
           "type": "uint64"
         },
@@ -82,6 +107,12 @@
             "required": true,
             "title": "Module Name",
             "type": "string"
+          },
+          {
+            "name": "fields",
+            "required": true,
+            "title": "Fields JSON",
+            "type": "string"
           }
         ]
       }
@@ -121,6 +152,12 @@
             "name": "name",
             "required": true,
             "title": "Module Name",
+            "type": "string"
+          },
+          {
+            "name": "fields",
+            "required": true,
+            "title": "Fields JSON",
             "type": "string"
           }
         ]

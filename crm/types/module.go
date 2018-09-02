@@ -15,6 +15,15 @@ type (
 	}
 
 	// Modules - CRM module definitions
+	ModuleField struct {
+		Name  string `json:"name" db:"name"`
+		Title string `json:"title" db:"title"`
+		Kind  string `json:"kind" db:"kind"`
+		GDPR  bool   `json:"gdpr" db:"gdpr"`
+		Show  bool   `json:"show" db:"show"`
+	}
+
+	// Modules - CRM module definitions
 	Content struct {
 		ID       uint64         `json:"id" db:"id"`
 		ModuleID uint64         `json:"module_id" db:"module_id"`
