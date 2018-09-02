@@ -8,7 +8,8 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
-	"github.com/sentimensrg/sigctx"
+
+	"github.com/SentimensRG/ctx/sigctx"
 
 	"github.com/crusttech/crust/auth"
 	"github.com/crusttech/crust/crm/rest"

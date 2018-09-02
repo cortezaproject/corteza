@@ -8,7 +8,9 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
-	"github.com/sentimensrg/sigctx"
+
+	"github.com/SentimensRG/ctx"
+	"github.com/SentimensRG/ctx/sigctx"
 
 	"github.com/crusttech/crust/auth"
 	"github.com/crusttech/crust/sam/rest"
@@ -52,7 +54,7 @@ func Init() error {
 }
 
 func Start() error {
-	var ctx = sigctx.New()
+	deadline := sigctx.New()
 
 	log.Println("Starting http server on address " + config.http.addr)
 	listener, err := net.Listen("tcp", config.http.addr)
@@ -72,14 +74,14 @@ func Start() error {
 	// Only protect application routes with JWT
 	r.Group(func(r chi.Router) {
 		r.Use(jwtAuth.Verifier(), jwtAuth.Authenticator())
-		mountRoutes(r, config, rest.MountRoutes(jwtAuth), websocket.MountRoutes(ctx, config.websocket))
+		mountRoutes(r, config, rest.MountRoutes(jwtAuth), websocket.MountRoutes(ctx.AsContext(deadline), config.websocket))
 	})
 
 	printRoutes(r, config)
 	mountSystemRoutes(r, config)
 
 	go http.Serve(listener, r)
-	<-ctx.Done()
+	<-deadline.Done()
 
 	return nil
 }
