@@ -18,10 +18,14 @@ package request
 import (
 	"encoding/json"
 	"github.com/go-chi/chi"
+	"github.com/jmoiron/sqlx/types"
+	"github.com/pkg/errors"
+	"io"
 	"net/http"
 )
 
 var _ = chi.URLParam
+var _ = types.JSONText{}
 
 // Field list request parameters
 type FieldList struct {
@@ -32,7 +36,14 @@ func NewFieldList() *FieldList {
 }
 
 func (f *FieldList) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(f)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(f)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -46,7 +57,7 @@ func (f *FieldList) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewFieldList()
@@ -61,7 +72,14 @@ func NewFieldType() *FieldType {
 }
 
 func (f *FieldType) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(f)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(f)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -77,7 +95,7 @@ func (f *FieldType) Fill(r *http.Request) error {
 
 	f.ID = chi.URLParam(r, "id")
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewFieldType()

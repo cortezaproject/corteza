@@ -18,10 +18,14 @@ package request
 import (
 	"encoding/json"
 	"github.com/go-chi/chi"
+	"github.com/jmoiron/sqlx/types"
+	"github.com/pkg/errors"
+	"io"
 	"net/http"
 )
 
 var _ = chi.URLParam
+var _ = types.JSONText{}
 
 // Team list request parameters
 type TeamList struct {
@@ -33,7 +37,14 @@ func NewTeamList() *TeamList {
 }
 
 func (t *TeamList) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(t)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(t)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -48,10 +59,11 @@ func (t *TeamList) Fill(r *http.Request) error {
 	}
 
 	if val, ok := get["query"]; ok {
+
 		t.Query = val
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewTeamList()
@@ -67,7 +79,14 @@ func NewTeamCreate() *TeamCreate {
 }
 
 func (t *TeamCreate) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(t)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(t)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -82,10 +101,11 @@ func (t *TeamCreate) Fill(r *http.Request) error {
 	}
 
 	if val, ok := post["name"]; ok {
+
 		t.Name = val
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewTeamCreate()
@@ -102,7 +122,14 @@ func NewTeamEdit() *TeamEdit {
 }
 
 func (t *TeamEdit) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(t)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(t)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -118,10 +145,11 @@ func (t *TeamEdit) Fill(r *http.Request) error {
 
 	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
 	if val, ok := post["name"]; ok {
+
 		t.Name = val
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewTeamEdit()
@@ -136,7 +164,14 @@ func NewTeamRead() *TeamRead {
 }
 
 func (t *TeamRead) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(t)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(t)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -152,7 +187,7 @@ func (t *TeamRead) Fill(r *http.Request) error {
 
 	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewTeamRead()
@@ -167,7 +202,14 @@ func NewTeamRemove() *TeamRemove {
 }
 
 func (t *TeamRemove) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(t)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(t)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -183,7 +225,7 @@ func (t *TeamRemove) Fill(r *http.Request) error {
 
 	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewTeamRemove()
@@ -198,7 +240,14 @@ func NewTeamArchive() *TeamArchive {
 }
 
 func (t *TeamArchive) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(t)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(t)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -214,7 +263,7 @@ func (t *TeamArchive) Fill(r *http.Request) error {
 
 	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewTeamArchive()
@@ -230,7 +279,14 @@ func NewTeamMove() *TeamMove {
 }
 
 func (t *TeamMove) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(t)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(t)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -246,10 +302,11 @@ func (t *TeamMove) Fill(r *http.Request) error {
 
 	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
 	if val, ok := post["organisation_id"]; ok {
+
 		t.Organisation_id = parseUInt64(val)
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewTeamMove()
@@ -265,7 +322,14 @@ func NewTeamMerge() *TeamMerge {
 }
 
 func (t *TeamMerge) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(t)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(t)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -281,10 +345,11 @@ func (t *TeamMerge) Fill(r *http.Request) error {
 
 	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
 	if val, ok := post["destination"]; ok {
+
 		t.Destination = parseUInt64(val)
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewTeamMerge()

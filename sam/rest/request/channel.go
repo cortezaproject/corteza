@@ -18,10 +18,14 @@ package request
 import (
 	"encoding/json"
 	"github.com/go-chi/chi"
+	"github.com/jmoiron/sqlx/types"
+	"github.com/pkg/errors"
+	"io"
 	"net/http"
 )
 
 var _ = chi.URLParam
+var _ = types.JSONText{}
 
 // Channel list request parameters
 type ChannelList struct {
@@ -33,7 +37,14 @@ func NewChannelList() *ChannelList {
 }
 
 func (c *ChannelList) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(c)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(c)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -48,10 +59,11 @@ func (c *ChannelList) Fill(r *http.Request) error {
 	}
 
 	if val, ok := get["query"]; ok {
+
 		c.Query = val
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewChannelList()
@@ -67,7 +79,14 @@ func NewChannelCreate() *ChannelCreate {
 }
 
 func (c *ChannelCreate) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(c)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(c)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -82,13 +101,15 @@ func (c *ChannelCreate) Fill(r *http.Request) error {
 	}
 
 	if val, ok := post["name"]; ok {
+
 		c.Name = val
 	}
 	if val, ok := post["topic"]; ok {
+
 		c.Topic = val
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewChannelCreate()
@@ -107,7 +128,14 @@ func NewChannelEdit() *ChannelEdit {
 }
 
 func (c *ChannelEdit) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(c)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(c)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -123,19 +151,23 @@ func (c *ChannelEdit) Fill(r *http.Request) error {
 
 	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 	if val, ok := post["name"]; ok {
+
 		c.Name = val
 	}
 	if val, ok := post["topic"]; ok {
+
 		c.Topic = val
 	}
 	if val, ok := post["archive"]; ok {
+
 		c.Archive = parseBool(val)
 	}
 	if val, ok := post["organisationID"]; ok {
+
 		c.OrganisationID = parseUInt64(val)
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewChannelEdit()
@@ -150,7 +182,14 @@ func NewChannelRead() *ChannelRead {
 }
 
 func (c *ChannelRead) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(c)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(c)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -166,7 +205,7 @@ func (c *ChannelRead) Fill(r *http.Request) error {
 
 	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewChannelRead()
@@ -181,7 +220,14 @@ func NewChannelDelete() *ChannelDelete {
 }
 
 func (c *ChannelDelete) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(c)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(c)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -197,7 +243,7 @@ func (c *ChannelDelete) Fill(r *http.Request) error {
 
 	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewChannelDelete()
@@ -212,7 +258,14 @@ func NewChannelMembers() *ChannelMembers {
 }
 
 func (c *ChannelMembers) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(c)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(c)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -228,7 +281,7 @@ func (c *ChannelMembers) Fill(r *http.Request) error {
 
 	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewChannelMembers()
@@ -243,7 +296,14 @@ func NewChannelJoin() *ChannelJoin {
 }
 
 func (c *ChannelJoin) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(c)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(c)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -259,7 +319,7 @@ func (c *ChannelJoin) Fill(r *http.Request) error {
 
 	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewChannelJoin()
@@ -275,7 +335,14 @@ func NewChannelPart() *ChannelPart {
 }
 
 func (c *ChannelPart) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(c)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(c)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -292,7 +359,7 @@ func (c *ChannelPart) Fill(r *http.Request) error {
 	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 	c.UserID = parseUInt64(chi.URLParam(r, "userID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewChannelPart()
@@ -308,7 +375,14 @@ func NewChannelInvite() *ChannelInvite {
 }
 
 func (c *ChannelInvite) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(c)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(c)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -324,7 +398,7 @@ func (c *ChannelInvite) Fill(r *http.Request) error {
 
 	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewChannelInvite()

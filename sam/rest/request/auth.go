@@ -18,10 +18,14 @@ package request
 import (
 	"encoding/json"
 	"github.com/go-chi/chi"
+	"github.com/jmoiron/sqlx/types"
+	"github.com/pkg/errors"
+	"io"
 	"net/http"
 )
 
 var _ = chi.URLParam
+var _ = types.JSONText{}
 
 // Auth login request parameters
 type AuthLogin struct {
@@ -34,7 +38,14 @@ func NewAuthLogin() *AuthLogin {
 }
 
 func (a *AuthLogin) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(a)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(a)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -49,13 +60,15 @@ func (a *AuthLogin) Fill(r *http.Request) error {
 	}
 
 	if val, ok := post["username"]; ok {
+
 		a.Username = val
 	}
 	if val, ok := post["password"]; ok {
+
 		a.Password = val
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewAuthLogin()
@@ -73,7 +86,14 @@ func NewAuthCreate() *AuthCreate {
 }
 
 func (a *AuthCreate) Fill(r *http.Request) error {
-	json.NewDecoder(r.Body).Decode(a)
+	var err error
+	err = json.NewDecoder(r.Body).Decode(a)
+	switch {
+	case err == io.EOF:
+		err = nil
+	case err != nil:
+		err = errors.Wrap(err, "error parsing http request body")
+	}
 
 	r.ParseForm()
 	get := map[string]string{}
@@ -88,19 +108,23 @@ func (a *AuthCreate) Fill(r *http.Request) error {
 	}
 
 	if val, ok := post["name"]; ok {
+
 		a.Name = val
 	}
 	if val, ok := post["email"]; ok {
+
 		a.Email = val
 	}
 	if val, ok := post["username"]; ok {
+
 		a.Username = val
 	}
 	if val, ok := post["password"]; ok {
+
 		a.Password = val
 	}
 
-	return nil
+	return err
 }
 
 var _ RequestFiller = NewAuthCreate()
