@@ -9,7 +9,7 @@ for SPEC in $SPECS; do
 
 	SRC=$(dirname $(dirname $SPEC))
 	echo "=== codegen $SRC ==="
-	GOPATHS=$(codegen/codegen.php $(basename $SRC) | tee -a /dev/stderr | xargs --no-run-if-empty -n1 dirname | sort | uniq)
+	GOPATHS=$(codegen/codegen.php $(basename $SRC) | tee -a /dev/stderr | xargs -n1 dirname | sort | uniq)
 	for FOLDER in $GOPATHS; do
 		if [[ $FOLDER != "." ]]; then
 			echo "== go fmt $FOLDER =="
