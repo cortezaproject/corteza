@@ -64,6 +64,11 @@ func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) 
 		return err
 	}
 
+	// Explicitly subscribe to newly created channel
+	s.subs.Add(uint64toa(ch.ID))
+
+	// @todo this should go over all user's sessons and subscribe there as well
+
 	pl := payloadFromChannel(ch)
 
 	if ch.Type == types.ChannelTypePublic {
