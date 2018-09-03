@@ -22,6 +22,7 @@ import (
 	"github.com/pkg/errors"
 	"io"
 	"net/http"
+	"strings"
 )
 
 var _ = chi.URLParam
@@ -39,12 +40,18 @@ func NewAuthLogin() *AuthLogin {
 
 func (a *AuthLogin) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(a)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(a)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -87,12 +94,18 @@ func NewAuthCreate() *AuthCreate {
 
 func (a *AuthCreate) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(a)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(a)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()

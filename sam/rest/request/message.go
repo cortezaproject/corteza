@@ -22,6 +22,7 @@ import (
 	"github.com/pkg/errors"
 	"io"
 	"net/http"
+	"strings"
 )
 
 var _ = chi.URLParam
@@ -39,12 +40,18 @@ func NewMessageCreate() *MessageCreate {
 
 func (m *MessageCreate) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -82,12 +89,18 @@ func NewMessageHistory() *MessageHistory {
 
 func (m *MessageHistory) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -126,12 +139,18 @@ func NewMessageEdit() *MessageEdit {
 
 func (m *MessageEdit) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -170,12 +189,18 @@ func NewMessageDelete() *MessageDelete {
 
 func (m *MessageDelete) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -209,12 +234,18 @@ func NewMessageAttach() *MessageAttach {
 
 func (m *MessageAttach) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -249,12 +280,18 @@ func NewMessageSearch() *MessageSearch {
 
 func (m *MessageSearch) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -296,12 +333,18 @@ func NewMessagePin() *MessagePin {
 
 func (m *MessagePin) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -336,12 +379,18 @@ func NewMessageUnpin() *MessageUnpin {
 
 func (m *MessageUnpin) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -376,12 +425,18 @@ func NewMessageFlag() *MessageFlag {
 
 func (m *MessageFlag) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -416,12 +471,18 @@ func NewMessageUnflag() *MessageUnflag {
 
 func (m *MessageUnflag) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -457,12 +518,18 @@ func NewMessageReact() *MessageReact {
 
 func (m *MessageReact) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -499,12 +566,18 @@ func NewMessageUnreact() *MessageUnreact {
 
 func (m *MessageUnreact) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()

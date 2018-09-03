@@ -22,6 +22,7 @@ import (
 	"github.com/pkg/errors"
 	"io"
 	"net/http"
+	"strings"
 )
 
 var _ = chi.URLParam
@@ -38,12 +39,18 @@ func NewTeamList() *TeamList {
 
 func (t *TeamList) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(t)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(t)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -80,12 +87,18 @@ func NewTeamCreate() *TeamCreate {
 
 func (t *TeamCreate) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(t)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(t)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -123,12 +136,18 @@ func NewTeamEdit() *TeamEdit {
 
 func (t *TeamEdit) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(t)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(t)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -165,12 +184,18 @@ func NewTeamRead() *TeamRead {
 
 func (t *TeamRead) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(t)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(t)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -203,12 +228,18 @@ func NewTeamRemove() *TeamRemove {
 
 func (t *TeamRemove) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(t)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(t)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -241,12 +272,18 @@ func NewTeamArchive() *TeamArchive {
 
 func (t *TeamArchive) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(t)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(t)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -280,12 +317,18 @@ func NewTeamMove() *TeamMove {
 
 func (t *TeamMove) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(t)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(t)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -323,12 +366,18 @@ func NewTeamMerge() *TeamMerge {
 
 func (t *TeamMerge) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(t)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(t)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()

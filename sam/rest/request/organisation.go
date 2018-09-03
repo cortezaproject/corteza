@@ -22,6 +22,7 @@ import (
 	"github.com/pkg/errors"
 	"io"
 	"net/http"
+	"strings"
 )
 
 var _ = chi.URLParam
@@ -38,12 +39,18 @@ func NewOrganisationList() *OrganisationList {
 
 func (o *OrganisationList) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(o)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(o)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -79,12 +86,18 @@ func NewOrganisationCreate() *OrganisationCreate {
 
 func (o *OrganisationCreate) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(o)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(o)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -121,12 +134,18 @@ func NewOrganisationEdit() *OrganisationEdit {
 
 func (o *OrganisationEdit) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(o)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(o)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -163,12 +182,18 @@ func NewOrganisationRemove() *OrganisationRemove {
 
 func (o *OrganisationRemove) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(o)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(o)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -201,12 +226,18 @@ func NewOrganisationRead() *OrganisationRead {
 
 func (o *OrganisationRead) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(o)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(o)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -242,12 +273,18 @@ func NewOrganisationArchive() *OrganisationArchive {
 
 func (o *OrganisationArchive) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(o)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(o)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
