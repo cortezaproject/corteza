@@ -22,6 +22,7 @@ import (
 	"github.com/pkg/errors"
 	"io"
 	"net/http"
+	"strings"
 )
 
 var _ = chi.URLParam
@@ -38,12 +39,18 @@ func NewModuleList() *ModuleList {
 
 func (m *ModuleList) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -80,12 +87,18 @@ func NewModuleCreate() *ModuleCreate {
 
 func (m *ModuleCreate) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -127,12 +140,18 @@ func NewModuleRead() *ModuleRead {
 
 func (m *ModuleRead) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -167,12 +186,18 @@ func NewModuleEdit() *ModuleEdit {
 
 func (m *ModuleEdit) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -215,12 +240,18 @@ func NewModuleDelete() *ModuleDelete {
 
 func (m *ModuleDelete) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -253,12 +284,18 @@ func NewModuleContentList() *ModuleContentList {
 
 func (m *ModuleContentList) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -292,12 +329,18 @@ func NewModuleContentCreate() *ModuleContentCreate {
 
 func (m *ModuleContentCreate) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -337,12 +380,18 @@ func NewModuleContentRead() *ModuleContentRead {
 
 func (m *ModuleContentRead) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -378,12 +427,18 @@ func NewModuleContentEdit() *ModuleContentEdit {
 
 func (m *ModuleContentEdit) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
@@ -424,12 +479,18 @@ func NewModuleContentDelete() *ModuleContentDelete {
 
 func (m *ModuleContentDelete) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode(m)
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()

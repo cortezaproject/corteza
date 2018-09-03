@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
 	"github.com/jmoiron/sqlx/types"
+	"strings"
 )
 
 var _ = chi.URLParam
@@ -30,12 +31,18 @@ func New{name|expose}{call.name|capitalize}() *{name|expose}{call.name|capitaliz
 
 func ({self} *{name|expose}{call.name|capitalize}) Fill(r *http.Request) error {
 	var err error
-	err = json.NewDecoder(r.Body).Decode({self})
-	switch {
-	case err == io.EOF:
-		err = nil
-	case err != nil:
-		err = errors.Wrap(err, "error parsing http request body")
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode({self})
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			err = errors.Wrap(err, "error parsing http request body")
+		}
+
+		return err
 	}
 
 	r.ParseForm()
