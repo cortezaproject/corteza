@@ -47,7 +47,7 @@ func (c *ChannelList) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -93,7 +93,7 @@ func (c *ChannelCreate) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -146,7 +146,7 @@ func (c *ChannelEdit) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -204,7 +204,7 @@ func (c *ChannelRead) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -246,7 +246,7 @@ func (c *ChannelDelete) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -288,7 +288,7 @@ func (c *ChannelMembers) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -330,7 +330,7 @@ func (c *ChannelJoin) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -373,7 +373,7 @@ func (c *ChannelPart) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -417,7 +417,7 @@ func (c *ChannelInvite) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 

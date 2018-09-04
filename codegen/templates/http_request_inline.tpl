@@ -39,7 +39,7 @@ func ({self} *{name|expose}{call.name|capitalize}) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 

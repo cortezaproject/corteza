@@ -47,7 +47,7 @@ func (t *TeamList) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -93,7 +93,7 @@ func (t *TeamCreate) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -140,7 +140,7 @@ func (t *TeamEdit) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -186,7 +186,7 @@ func (t *TeamRead) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -228,7 +228,7 @@ func (t *TeamRemove) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -270,7 +270,7 @@ func (t *TeamArchive) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -313,7 +313,7 @@ func (t *TeamMove) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -360,7 +360,7 @@ func (t *TeamMerge) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
