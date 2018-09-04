@@ -48,7 +48,7 @@ func (m *MessageCreate) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -95,7 +95,7 @@ func (m *MessageHistory) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -143,7 +143,7 @@ func (m *MessageEdit) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -191,7 +191,7 @@ func (m *MessageDelete) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -234,7 +234,7 @@ func (m *MessageAttach) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -278,7 +278,7 @@ func (m *MessageSearch) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -329,7 +329,7 @@ func (m *MessagePin) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -373,7 +373,7 @@ func (m *MessageUnpin) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -417,7 +417,7 @@ func (m *MessageFlag) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -461,7 +461,7 @@ func (m *MessageUnflag) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -506,7 +506,7 @@ func (m *MessageReact) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -552,7 +552,7 @@ func (m *MessageUnreact) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 

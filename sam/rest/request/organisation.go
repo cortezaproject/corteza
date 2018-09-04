@@ -47,7 +47,7 @@ func (o *OrganisationList) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -92,7 +92,7 @@ func (o *OrganisationCreate) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -138,7 +138,7 @@ func (o *OrganisationEdit) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -184,7 +184,7 @@ func (o *OrganisationRemove) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -226,7 +226,7 @@ func (o *OrganisationRead) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
@@ -271,7 +271,7 @@ func (o *OrganisationArchive) Fill(r *http.Request) error {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			err = errors.Wrap(err, "error parsing http request body")
+			return errors.Wrap(err, "error parsing http request body")
 		}
 	}
 
