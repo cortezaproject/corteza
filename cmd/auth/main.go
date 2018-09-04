@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	config := flags("auth", rbac.Flags, auth.Flags)
+	config := flags("auth", rbac.Flags, auth.FullFlags)
 
 	// log to stdout not stderr
 	log.SetOutput(os.Stdout)
