@@ -1,4 +1,4 @@
-package auth
+package types
 
 type (
 	Identifiable interface {
