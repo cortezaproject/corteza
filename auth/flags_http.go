@@ -16,13 +16,16 @@ type (
 )
 
 func (c *httpFlags) validate() error {
+	if c == nil {
+		return nil
+	}
 	if c.addr == "" {
 		return errors.New("No HTTP Addr is set, can't listen for HTTP")
 	}
 	return nil
 }
 
-func (c *httpFlags) flags(prefix ...string) {
+func (c *httpFlags) flags(prefix ...string) *httpFlags {
 	p := func(s string) string {
 		return prefix[0] + "-" + s
 	}
@@ -32,4 +35,6 @@ func (c *httpFlags) flags(prefix ...string) {
 	flag.BoolVar(&c.pretty, p("http-pretty-json"), false, "Prettify returned JSON output")
 	flag.BoolVar(&c.tracing, p("http-error-tracing"), false, "Return error stack frame")
 	flag.BoolVar(&c.metrics, p("http-metrics"), false, "Provide metrics export for prometheus")
+
+	return c
 }

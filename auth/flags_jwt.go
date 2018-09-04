@@ -14,14 +14,18 @@ type (
 )
 
 func (c *jwtFlags) validate() error {
+	if c == nil {
+		return nil
+	}
 	if c.secret == "" {
 		return errors.New("JWT Secret not set for AUTH")
 	}
 	return nil
 }
 
-func (c *jwtFlags) flags(prefix ...string) {
+func (c *jwtFlags) flags(prefix ...string) *jwtFlags {
 	flag.StringVar(&c.secret, "auth-jwt-secret", "", "JWT Secret")
 	flag.Int64Var(&c.expiry, "auth-jwt-expiry", 3600, "JWT Expiration in minutes")
 	flag.BoolVar(&c.debugToken, "auth-jwt-debug", false, "Generate debug JWT key")
+	return c
 }
