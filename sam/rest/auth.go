@@ -2,7 +2,7 @@ package rest
 
 import (
 	"context"
-	"github.com/crusttech/crust/auth"
+	auth "github.com/crusttech/crust/auth/types"
 	"github.com/crusttech/crust/sam/rest/request"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/pkg/errors"
@@ -12,11 +12,8 @@ var _ = errors.Wrap
 
 type (
 	Auth struct {
-		svc struct {
-			user authUserBasics
-
-			token auth.TokenEncoder
-		}
+		user  authUserBasics
+		token auth.TokenEncoder
 	}
 
 	authUserBasics interface {
@@ -26,22 +23,21 @@ type (
 )
 
 func (Auth) New(credValidator authUserBasics, tknEncoder auth.TokenEncoder) *Auth {
-	auth := &Auth{}
-	auth.svc.user = credValidator
-	auth.svc.token = tknEncoder
-
-	return auth
+	return &Auth{
+		credValidator,
+		tknEncoder,
+	}
 }
 
 func (ctrl *Auth) Login(ctx context.Context, r *request.AuthLogin) (interface{}, error) {
-	return ctrl.tokenize(ctrl.svc.user.ValidateCredentials(ctx, r.Username, r.Password))
+	return ctrl.tokenize(ctrl.user.ValidateCredentials(ctx, r.Username, r.Password))
 }
 
 func (ctrl *Auth) Create(ctx context.Context, r *request.AuthCreate) (interface{}, error) {
 	user := &types.User{Username: r.Username}
 	user.GeneratePassword(r.Password)
 
-	return ctrl.tokenize(ctrl.svc.user.Create(ctx, user))
+	return ctrl.tokenize(ctrl.user.Create(ctx, user))
 }
 
 // Wraps user return value and appends JWT
@@ -54,7 +50,7 @@ func (ctrl *Auth) tokenize(user *types.User, err error) (interface{}, error) {
 		JWT  string
 		User *types.User `json:"user"`
 	}{
-		JWT:  ctrl.svc.token.Encode(user),
+		JWT:  ctrl.token.Encode(user),
 		User: user,
 	}, nil
 }
