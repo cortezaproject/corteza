@@ -1,12 +1,14 @@
 package auth
 
 import (
-	"github.com/go-chi/jwtauth"
-	"github.com/titpetric/factory/resputil"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/crusttech/crust/auth/types"
+	"github.com/go-chi/jwtauth"
+	"github.com/titpetric/factory/resputil"
 )
 
 type jwt struct {
@@ -18,9 +20,9 @@ func JWT() (*jwt, error) {
 		return nil, err
 	}
 
-	jwt := &jwt{tokenAuth: jwtauth.New("HS256", []byte(config.jwtSecret), nil)}
+	jwt := &jwt{tokenAuth: jwtauth.New("HS256", []byte(config.jwt.secret), nil)}
 
-	if config.jwtDebug {
+	if config.jwt.debugToken {
 		log.Println("DEBUG JWT TOKEN:", jwt.Encode(NewIdentity(1)))
 	}
 
@@ -32,11 +34,11 @@ func (t *jwt) Verifier() func(http.Handler) http.Handler {
 	return jwtauth.Verifier(t.tokenAuth)
 }
 
-func (t *jwt) Encode(identity Identifiable) string {
+func (t *jwt) Encode(identity types.Identifiable) string {
 	// @todo Set expiry
 	claims := jwtauth.Claims{}
 	claims.Set("sub", strconv.FormatUint(identity.Identity(), 10))
-	claims.SetExpiryIn(time.Duration(config.jwtExpiry) * time.Minute)
+	claims.SetExpiryIn(time.Duration(config.jwt.expiry) * time.Minute)
 
 	_, jwt, _ := t.tokenAuth.Encode(claims)
 	return jwt

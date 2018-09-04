@@ -1,0 +1,36 @@
+[
+	{
+		"title": "Authentication",
+		"package": "auth",
+		"path": "/auth",
+		"entrypoint": "auth",
+		"authentication": [],
+		"apis": [
+			{
+				"name": "login",
+				"method": "POST",
+				"title": "User login",
+				"parameters": {
+					"post": [
+						{ "type": "string", "name": "username", "required": true, "title": "Username or email" },
+						{ "type": "string", "name": "password", "required": true, "title": "Password for user" }
+					]
+				}
+			},
+			{
+				"name": "create",
+				"path": "/create",
+				"method": "POST",
+				"title": "Create new user",
+				"parameters": {
+					"post": [
+						{ "type": "string", "name": "name", "required": true, "title": "Display name" },
+						{ "type": "string", "name": "email", "required": true, "title": "Email" },
+						{ "type": "string", "name": "username", "required": true, "title": "Username" },
+						{ "type": "string", "name": "password", "required": true, "title": "Password" }
+					]
+				}
+			}
+		]
+	}
+]
