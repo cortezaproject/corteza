@@ -49,8 +49,6 @@ func (t *TeamList) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -97,8 +95,6 @@ func (t *TeamCreate) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -146,8 +142,6 @@ func (t *TeamEdit) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -194,8 +188,6 @@ func (t *TeamRead) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -238,8 +230,6 @@ func (t *TeamRemove) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -282,8 +272,6 @@ func (t *TeamArchive) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -327,8 +315,6 @@ func (t *TeamMove) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -376,8 +362,6 @@ func (t *TeamMerge) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()

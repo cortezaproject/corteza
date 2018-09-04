@@ -49,8 +49,6 @@ func (m *ModuleList) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -97,8 +95,6 @@ func (m *ModuleCreate) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -150,8 +146,6 @@ func (m *ModuleRead) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -196,8 +190,6 @@ func (m *ModuleEdit) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -250,8 +242,6 @@ func (m *ModuleDelete) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -294,8 +284,6 @@ func (m *ModuleContentList) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -339,8 +327,6 @@ func (m *ModuleContentCreate) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -390,8 +376,6 @@ func (m *ModuleContentRead) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -437,8 +421,6 @@ func (m *ModuleContentEdit) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -489,8 +471,6 @@ func (m *ModuleContentDelete) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()

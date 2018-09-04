@@ -50,8 +50,6 @@ func (a *AuthLogin) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -104,8 +102,6 @@ func (a *AuthCreate) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
