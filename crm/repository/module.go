@@ -41,7 +41,7 @@ func (r *module) FindByID(id uint64) (*types.Module, error) {
 
 func (r *module) Find() ([]*types.Module, error) {
 	mod := make([]*types.Module, 0)
-	return mod, r.db().Select(&mod, "SELECT * FROM crm_module ORDER BY name ASC")
+	return mod, r.db().Select(&mod, "SELECT * FROM crm_module ORDER BY id ASC")
 }
 
 func (r *module) Create(mod *types.Module) (*types.Module, error) {
