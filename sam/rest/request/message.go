@@ -50,8 +50,6 @@ func (m *MessageCreate) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -99,8 +97,6 @@ func (m *MessageHistory) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -149,8 +145,6 @@ func (m *MessageEdit) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -199,8 +193,6 @@ func (m *MessageDelete) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -244,8 +236,6 @@ func (m *MessageAttach) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -290,8 +280,6 @@ func (m *MessageSearch) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -343,8 +331,6 @@ func (m *MessagePin) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -389,8 +375,6 @@ func (m *MessageUnpin) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -435,8 +419,6 @@ func (m *MessageFlag) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -481,8 +463,6 @@ func (m *MessageUnflag) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -528,8 +508,6 @@ func (m *MessageReact) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -576,8 +554,6 @@ func (m *MessageUnreact) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()

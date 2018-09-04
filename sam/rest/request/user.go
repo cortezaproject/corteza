@@ -49,8 +49,6 @@ func (u *UserSearch) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
@@ -97,8 +95,6 @@ func (u *UserMessage) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()

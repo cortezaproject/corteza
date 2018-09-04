@@ -41,8 +41,6 @@ func ({self} *{name|expose}{call.name|capitalize}) Fill(r *http.Request) error {
 		case err != nil:
 			err = errors.Wrap(err, "error parsing http request body")
 		}
-
-		return err
 	}
 
 	r.ParseForm()
