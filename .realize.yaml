@@ -18,6 +18,27 @@ settings:
 server:
   status: false
 schema:
+- name: auth
+  path: cmd/auth
+  commands:
+    vet:
+      status: false
+    test:
+      status: false
+    run:
+      status: true
+  args:
+  - api
+  watcher:
+    paths:
+    - .
+    - ../../auth
+    extensions:
+    - go
+    ignored_paths:
+    - .git
+    - .realize
+    - vendor
 - name: sam
   path: cmd/sam
   commands:
