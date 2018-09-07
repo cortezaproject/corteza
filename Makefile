@@ -80,6 +80,10 @@ test.rbac: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./rbac/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
+test.store: $(GOTEST)
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./store/...
+	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
+
 vet:
 	$(GO) vet ./...
 
