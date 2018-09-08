@@ -21,12 +21,14 @@ import (
 	"github.com/jmoiron/sqlx/types"
 	"github.com/pkg/errors"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"strings"
 )
 
 var _ = chi.URLParam
 var _ = types.JSONText{}
+var _ = multipart.FileHeader{}
 
 // Message create request parameters
 type MessageCreate struct {
@@ -214,48 +216,6 @@ func (m *MessageDelete) Fill(r *http.Request) error {
 }
 
 var _ RequestFiller = NewMessageDelete()
-
-// Message attach request parameters
-type MessageAttach struct {
-	ChannelID uint64
-}
-
-func NewMessageAttach() *MessageAttach {
-	return &MessageAttach{}
-}
-
-func (m *MessageAttach) Fill(r *http.Request) error {
-	var err error
-
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
-		}
-	}
-
-	r.ParseForm()
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := r.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := r.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
-
-	return err
-}
-
-var _ RequestFiller = NewMessageAttach()
 
 // Message search request parameters
 type MessageSearch struct {

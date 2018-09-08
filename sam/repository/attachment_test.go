@@ -26,14 +26,6 @@ func TestAttachment(t *testing.T) {
 		assert(t, att.ChannelID == 1, "Changes were not stored")
 
 		{
-			att.ChannelID = 2
-
-			att, err = rpo.UpdateAttachment(att)
-			assert(t, err == nil, "UpdateAttachment error: %v", err)
-			assert(t, att.ChannelID == 2, "Changes were not stored")
-		}
-
-		{
 			att, err = rpo.FindAttachmentByID(att.ID)
 			assert(t, err == nil, "FindAttachmentByID error: %v", err)
 			assert(t, att.ChannelID == 2, "Changes were not stored")

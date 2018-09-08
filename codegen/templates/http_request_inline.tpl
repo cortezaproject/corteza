@@ -9,11 +9,13 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
 	"github.com/jmoiron/sqlx/types"
+	"mime/multipart"
 	"strings"
 )
 
 var _ = chi.URLParam
 var _ = types.JSONText{}
+var _ = multipart.FileHeader{}
 
 {foreach $calls as $call}
 // {name} {call.name} request parameters
@@ -58,14 +60,18 @@ func ({self} *{name|expose}{call.name|capitalize}) Fill(r *http.Request) error {
 {foreach $params as $param}
 {if strtolower($method) === "path"}
 	{self}.{param.name|expose} = {if ($param.type !== "string")}{$parsers[$param.type]}({/if}chi.URLParam(r, "{param.name}"){if ($param.type !== "string")}){/if}
+{elseif $param.type === "*multipart.FileHeader"}
+        if _, {self}.{param.name|expose}, err = r.FormFile("{$param.name}"); err != nil {
+        	return errors.Wrap(err, "error procesing uploaded file")
+        }
 {elseif substr($param.type, 0, 2) !== '[]'}
         if val, ok := {method|strtolower}["{param.name}"]; ok {
 {if $param.type === "types.JSONText"}
-		if {self}.{param.name|expose}, err = {$parsers[$param.type]}(val); err != nil {
-			return err
-		}
+ 		if {self}.{param.name|expose}, err = {$parsers[$param.type]}(val); err != nil {
+ 			return err
+ 		}
 {else}
-		{self}.{param.name|expose} = {if ($param.type !== "string")}{$parsers[$param.type]}(val){else}val{/if}
+        {self}.{param.name|expose} = {if ($param.type !== "string")}{$parsers[$param.type]}(val){else}val{/if}
 {/if}
 	}{/if}
 {/foreach}

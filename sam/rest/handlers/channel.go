@@ -36,6 +36,7 @@ type ChannelAPI interface {
 	Join(context.Context, *request.ChannelJoin) (interface{}, error)
 	Part(context.Context, *request.ChannelPart) (interface{}, error)
 	Invite(context.Context, *request.ChannelInvite) (interface{}, error)
+	Attach(context.Context, *request.ChannelAttach) (interface{}, error)
 }
 
 // HTTP API interface
@@ -49,6 +50,7 @@ type Channel struct {
 	Join    func(http.ResponseWriter, *http.Request)
 	Part    func(http.ResponseWriter, *http.Request)
 	Invite  func(http.ResponseWriter, *http.Request)
+	Attach  func(http.ResponseWriter, *http.Request)
 }
 
 func NewChannel(ch ChannelAPI) *Channel {
@@ -116,6 +118,13 @@ func NewChannel(ch ChannelAPI) *Channel {
 				return ch.Invite(r.Context(), params)
 			})
 		},
+		Attach: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewChannelAttach()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return ch.Attach(r.Context(), params)
+			})
+		},
 	}
 }
 
@@ -132,6 +141,7 @@ func (ch *Channel) MountRoutes(r chi.Router, middlewares ...func(http.Handler) h
 			r.Post("/{channelID}/members/{userID}", ch.Join)
 			r.Delete("/{channelID}/members/{userID}", ch.Part)
 			r.Post("/{channelID}/invite", ch.Invite)
+			r.Post("/{channelID}/attach", ch.Attach)
 		})
 	})
 }

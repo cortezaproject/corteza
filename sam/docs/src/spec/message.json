@@ -93,13 +93,6 @@
       }
     },
     {
-      "Name": "attach",
-      "Method": "PUT",
-      "Title": "Attach file to message",
-      "Path": "/{messageID}/attach",
-      "Parameters": null
-    },
-    {
       "Name": "search",
       "Method": "GET",
       "Title": "Search messages",

@@ -21,12 +21,14 @@ import (
 	"github.com/jmoiron/sqlx/types"
 	"github.com/pkg/errors"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"strings"
 )
 
 var _ = chi.URLParam
 var _ = types.JSONText{}
+var _ = multipart.FileHeader{}
 
 // Channel list request parameters
 type ChannelList struct {
@@ -439,3 +441,49 @@ func (c *ChannelInvite) Fill(r *http.Request) error {
 }
 
 var _ RequestFiller = NewChannelInvite()
+
+// Channel attach request parameters
+type ChannelAttach struct {
+	ChannelID uint64
+	Upload    *multipart.FileHeader
+}
+
+func NewChannelAttach() *ChannelAttach {
+	return &ChannelAttach{}
+}
+
+func (c *ChannelAttach) Fill(r *http.Request) error {
+	var err error
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(c)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	if _, c.Upload, err = r.FormFile("upload"); err != nil {
+		return errors.Wrap(err, "error procesing uploaded file")
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewChannelAttach()

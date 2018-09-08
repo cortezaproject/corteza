@@ -21,12 +21,14 @@ import (
 	"github.com/jmoiron/sqlx/types"
 	"github.com/pkg/errors"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"strings"
 )
 
 var _ = chi.URLParam
 var _ = types.JSONText{}
+var _ = multipart.FileHeader{}
 
 // User search request parameters
 type UserSearch struct {

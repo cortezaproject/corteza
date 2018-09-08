@@ -10,7 +10,7 @@ CREATE TABLE organisations (
   deleted_at       DATETIME            NULL, -- organisation soft delete
 
   PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Keeps all known teams
 CREATE TABLE teams (
@@ -24,7 +24,7 @@ CREATE TABLE teams (
   deleted_at       DATETIME            NULL, -- team soft delete
 
   PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Keeps all known channels
 CREATE TABLE channels (
@@ -46,7 +46,7 @@ CREATE TABLE channels (
   rel_last_message BIGINT UNSIGNED NOT NULL DEFAULT 0,
 
   PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Keeps all known users, home and external organisation
 --   changes are stored in audit log
@@ -64,7 +64,7 @@ CREATE TABLE users (
   deleted_at       DATETIME            NULL, -- user soft delete
 
   PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Keeps team memberships
 CREATE TABLE team_members (
@@ -72,7 +72,7 @@ CREATE TABLE team_members (
   rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
 
   PRIMARY KEY (rel_team, rel_user)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- handles channel membership
 CREATE TABLE channel_members (
@@ -85,7 +85,7 @@ CREATE TABLE channel_members (
   updated_at       DATETIME            NULL,
 
   PRIMARY KEY (rel_channel, rel_user)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE channel_views (
   rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
@@ -98,7 +98,7 @@ CREATE TABLE channel_views (
   new_since        INT    UNSIGNED NOT NULL DEFAULT 0,
 
   PRIMARY KEY (rel_user, rel_channel)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE channel_pins (
   rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
@@ -108,7 +108,7 @@ CREATE TABLE channel_pins (
   created_at       DATETIME        NOT NULL DEFAULT NOW(),
 
   PRIMARY KEY (rel_channel, rel_message)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE messages (
   id               BIGINT UNSIGNED NOT NULL,
@@ -124,7 +124,7 @@ CREATE TABLE messages (
   deleted_at       DATETIME            NULL,
 
   PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE reactions (
   id               BIGINT UNSIGNED NOT NULL,
@@ -136,26 +136,32 @@ CREATE TABLE reactions (
   created_at       DATETIME        NOT NULL DEFAULT NOW(),
 
   PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE attachments (
   id               BIGINT UNSIGNED NOT NULL,
   rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
-  rel_message      BIGINT UNSIGNED NOT NULL REFERENCES messages(id),
-  rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
-  url              TEXT,
-  preview_url      TEXT,
+
+  url              VARCHAR(512),
+  preview_url      VARCHAR(512),
+
   size             INT    UNSIGNED,
-  mimetype         TEXT,
+  mimetype         VARCHAR(255),
   name             TEXT,
-  attachment       JSON            NOT NULL,
 
   created_at       DATETIME        NOT NULL DEFAULT NOW(),
   updated_at       DATETIME            NULL,
   deleted_at       DATETIME            NULL,
 
   PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE message_attachment (
+  rel_message      BIGINT UNSIGNED NOT NULL REFERENCES messages(id),
+  rel_attachment   BIGINT UNSIGNED NOT NULL REFERENCES attachment(id),
+
+  PRIMARY KEY (rel_message)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE event_queue (
   id               BIGINT UNSIGNED NOT NULL,
@@ -164,11 +170,11 @@ CREATE TABLE event_queue (
   payload          JSON,
 
   PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE event_queue_synced (
   origin           BIGINT UNSIGNED NOT NULL,
   rel_last         BIGINT UNSIGNED NOT NULL,
 
   PRIMARY KEY (origin)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
