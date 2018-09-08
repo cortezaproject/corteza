@@ -5,13 +5,21 @@ import (
 	"github.com/crusttech/crust/auth/types"
 	"github.com/crusttech/crust/sam/rest/handlers"
 	"github.com/crusttech/crust/sam/service"
+	"github.com/crusttech/crust/store"
 	"github.com/go-chi/chi"
+	"log"
 )
 
 func MountRoutes(jwtAuth types.TokenEncoder) func(chi.Router) {
 	// Initialize services
+	fs, err := store.New("/tmp/crust/messages")
+	if err != nil {
+		log.Fatalf("Failed to initialize stor: %v", err)
+	}
+
 	var (
 		channelSvc      = service.Channel()
+		attachmentSvc   = service.Attachment(fs)
 		messageSvc      = service.Message()
 		organisationSvc = service.Organisation()
 		teamSvc         = service.Team()
@@ -19,7 +27,7 @@ func MountRoutes(jwtAuth types.TokenEncoder) func(chi.Router) {
 	)
 
 	var (
-		channel      = Channel{}.New(channelSvc)
+		channel      = Channel{}.New(channelSvc, attachmentSvc)
 		message      = Message{}.New(messageSvc)
 		organisation = Organisation{}.New(organisationSvc)
 		team         = Team{}.New(teamSvc)

@@ -351,6 +351,21 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | channelID | uint64 | PATH | Channel ID | N/A | YES |
 | userID | []uint64 | POST | User ID | N/A | NO |
 
+## Attach file to channel
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channels/{channelID}/attach` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
+| upload | *multipart.FileHeader | POST | File to upload | N/A | YES |
+
 
 
 
@@ -432,19 +447,6 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageID | uint64 | PATH | Message ID | N/A | YES |
-
-## Attach file to message
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/channels/{channelID}/messages/{messageID}/attach` | HTTP/S | PUT | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
 
 ## Search messages
 

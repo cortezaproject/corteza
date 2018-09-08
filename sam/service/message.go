@@ -28,9 +28,6 @@ type (
 		Flag(ctx context.Context, messageID uint64) error
 		Unflag(ctx context.Context, messageID uint64) error
 
-		Attach(ctx context.Context) (*types.Attachment, error)
-		Detach(ctx context.Context, messageID uint64) error
-
 		Direct(ctx context.Context, recipientID uint64, in *types.Message) (out *types.Message, err error)
 
 		deleter
@@ -224,30 +221,6 @@ func (svc message) Unflag(ctx context.Context, messageID uint64) error {
 	_ = currentUserID
 
 	return nil
-}
-
-func (svc message) Attach(ctx context.Context) (*types.Attachment, error) {
-	// @todo define func signature
-
-	// @todo get user from context
-	var currentUserID uint64 = auth.GetIdentityFromContext(ctx).Identity()
-
-	// @todo verify if current user can access & write to this channel
-	_ = currentUserID
-
-	return nil, nil
-}
-
-func (svc message) Detach(ctx context.Context, attachmentID uint64) error {
-	// @todo get user from context
-	var currentUserID uint64 = auth.GetIdentityFromContext(ctx).Identity()
-
-	// @todo verify if current user can access & write to this channel
-	_ = currentUserID
-
-	// @todo verify if current user can remove this attachment
-
-	return svc.rpo.DeleteAttachmentByID(attachmentID)
 }
 
 var _ MessageService = &message{}

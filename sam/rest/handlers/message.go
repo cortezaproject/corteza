@@ -31,7 +31,6 @@ type MessageAPI interface {
 	History(context.Context, *request.MessageHistory) (interface{}, error)
 	Edit(context.Context, *request.MessageEdit) (interface{}, error)
 	Delete(context.Context, *request.MessageDelete) (interface{}, error)
-	Attach(context.Context, *request.MessageAttach) (interface{}, error)
 	Search(context.Context, *request.MessageSearch) (interface{}, error)
 	Pin(context.Context, *request.MessagePin) (interface{}, error)
 	Unpin(context.Context, *request.MessageUnpin) (interface{}, error)
@@ -47,7 +46,6 @@ type Message struct {
 	History func(http.ResponseWriter, *http.Request)
 	Edit    func(http.ResponseWriter, *http.Request)
 	Delete  func(http.ResponseWriter, *http.Request)
-	Attach  func(http.ResponseWriter, *http.Request)
 	Search  func(http.ResponseWriter, *http.Request)
 	Pin     func(http.ResponseWriter, *http.Request)
 	Unpin   func(http.ResponseWriter, *http.Request)
@@ -85,13 +83,6 @@ func NewMessage(mh MessageAPI) *Message {
 			params := request.NewMessageDelete()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Delete(r.Context(), params)
-			})
-		},
-		Attach: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewMessageAttach()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.Attach(r.Context(), params)
 			})
 		},
 		Search: func(w http.ResponseWriter, r *http.Request) {
@@ -154,7 +145,6 @@ func (mh *Message) MountRoutes(r chi.Router, middlewares ...func(http.Handler) h
 			r.Get("/", mh.History)
 			r.Put("/{messageID}", mh.Edit)
 			r.Delete("/{messageID}", mh.Delete)
-			r.Put("/{messageID}/attach", mh.Attach)
 			r.Get("/search", mh.Search)
 			r.Post("/{messageID}/pin", mh.Pin)
 			r.Delete("/{messageID}/pin", mh.Unpin)

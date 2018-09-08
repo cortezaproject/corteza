@@ -304,7 +304,21 @@
                   { "name": "userID",    "type": "[]uint64", "required": false, "title": "User ID" }
                 ]
               }
-            }
+            },
+			{
+				"name": "attach",
+				"path": "/{channelID}/attach",
+				"method": "POST",
+				"title": "Attach file to channel",
+				"parameters": {
+					"path": [
+						{ "name": "channelID", "type": "uint64", "required": true, "title": "Channel ID" }
+					],
+					"post": [
+						{ "name": "upload", "type": "*multipart.FileHeader", "required": true, "title": "File to upload" }
+					]
+				}
+			}
 		]
 	},
 	{
@@ -363,20 +377,6 @@
 				"parameters": {
 					"path": [
 						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
-					]
-				}
-			},
-			{
-				"name": "attach",
-				"path": "/{messageID}/attach",
-				"method": "PUT",
-				"title": "Attach file to message",
-				"params": {
-					"path": [
-						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
-					],
-					"post": [
-						{ "name": "name", "type": "string", "title": "File name to drop" }
 					]
 				}
 			},

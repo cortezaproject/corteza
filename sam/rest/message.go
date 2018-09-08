@@ -46,10 +46,6 @@ func (ctrl *Message) Delete(ctx context.Context, r *request.MessageDelete) (inte
 	return nil, ctrl.svc.Delete(ctx, r.MessageID)
 }
 
-func (ctrl *Message) Attach(ctx context.Context, r *request.MessageAttach) (interface{}, error) {
-	return ctrl.svc.Attach(ctx)
-}
-
 func (ctrl *Message) Search(ctx context.Context, r *request.MessageSearch) (interface{}, error) {
 	return ctrl.svc.Find(ctx, &types.MessageFilter{
 		ChannelID: r.ChannelID,
