@@ -14,6 +14,8 @@ type (
 		ChannelID string `json:"cid"`
 		ReplyTo   string `json:"rid"`
 
+		Attachment *Attachment `json:"att,omitempty"`
+
 		CreatedAt time.Time  `json:"cat,omitempty"`
 		UpdatedAt *time.Time `json:"uat,omitempty"`
 	}
@@ -29,6 +31,18 @@ type (
 
 	MessageDelete struct {
 		ID string `json:"id"`
+	}
+
+	Attachment struct {
+		ID         string     `json:"id"`
+		UserID     string     `json:"uid"`
+		Url        string     `json:"url"`
+		PreviewUrl string     `json:"prw"`
+		Size       int64      `json:"sze"`
+		Mimetype   string     `json:"typ"`
+		Name       string     `json:"nme"`
+		CreatedAt  time.Time  `json:"cat,omitempty"`
+		UpdatedAt  *time.Time `json:"uat,omitempty"`
 	}
 )
 

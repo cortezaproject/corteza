@@ -18,7 +18,7 @@ func TestMessage(t *testing.T) {
 
 	var msg1, msg2 = "Test message v1", "Test message v2"
 
-	var mm []*types.Message
+	var mm types.MessageSet
 
 	{
 		msg.Message = msg1

@@ -9,7 +9,7 @@ import (
 type (
 	Message interface {
 		FindMessageByID(id uint64) (*types.Message, error)
-		FindMessages(filter *types.MessageFilter) ([]*types.Message, error)
+		FindMessages(filter *types.MessageFilter) (types.MessageSet, error)
 		CreateMessage(mod *types.Message) (*types.Message, error)
 		UpdateMessage(mod *types.Message) (*types.Message, error)
 		DeleteMessageByID(id uint64) error
@@ -41,9 +41,9 @@ func (r *repository) FindMessageByID(id uint64) (*types.Message, error) {
 	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrMessageNotFound)
 }
 
-func (r *repository) FindMessages(filter *types.MessageFilter) ([]*types.Message, error) {
+func (r *repository) FindMessages(filter *types.MessageFilter) (types.MessageSet, error) {
 	params := make([]interface{}, 0)
-	rval := make([]*types.Message, 0)
+	rval := make(types.MessageSet, 0)
 
 	sql := sqlMessagesSelect
 
