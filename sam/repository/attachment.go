@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/crusttech/crust/sam/types"
+	"github.com/jmoiron/sqlx"
 	"github.com/titpetric/factory"
 	"time"
 )
@@ -9,6 +10,7 @@ import (
 type (
 	Attachment interface {
 		FindAttachmentByID(id uint64) (*types.Attachment, error)
+		FindAttachmentByMessageID(IDs ...uint64) (types.MessageAttachmentSet, error)
 		CreateAttachment(mod *types.Attachment) (*types.Attachment, error)
 		DeleteAttachmentByID(id uint64) error
 		BindAttachment(attachmentId, messageId uint64) error
@@ -30,27 +32,23 @@ func (r *repository) FindAttachmentByID(id uint64) (*types.Attachment, error) {
 	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrAttachmentNotFound)
 }
 
-func (r *repository) FindAttachmentByMessageID(id uint64) (*types.Attachment, error) {
-	sql := "SELECT a.* " +
-		"     FROM attachments AS a" +
-		"          INNER JOIN message_attachment AS ma ON a.id = ma.rel_attachment " +
-		"    WHERE ma.rel_message = ? AND " + sqlAttachmentScope
-	mod := &types.Attachment{}
+func (r *repository) FindAttachmentByMessageID(IDs ...uint64) (rval types.MessageAttachmentSet, err error) {
+	rval = make([]*types.MessageAttachment, 0)
 
-	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrAttachmentNotFound)
-}
+	if len(IDs) == 0 {
+		return
+	}
 
-func (r *repository) FindAttachmentByRange(channelID, fromAttachmentID, toAttachmentID uint64) ([]*types.Attachment, error) {
-	rval := make([]*types.Attachment, 0)
+	sql := `SELECT a.*, rel_message
+		      FROM attachments AS a
+		           INNER JOIN message_attachment AS ma ON a.id = ma.rel_attachment 
+		     WHERE ma.rel_message IN (?) AND ` + sqlAttachmentScope
 
-	sql := `
-		SELECT * 
-          FROM attachments
-         WHERE id BETWEEN ? AND ?
-           AND rel_channel = ?
-           AND deleted_at IS NULL`
-
-	return rval, r.db().Select(&rval, sql, fromAttachmentID, toAttachmentID, channelID)
+	if sql, args, err := sqlx.In(sql, IDs); err != nil {
+		return nil, err
+	} else {
+		return rval, r.db().Select(&rval, sql, args...)
+	}
 }
 
 func (r *repository) CreateAttachment(mod *types.Attachment) (*types.Attachment, error) {

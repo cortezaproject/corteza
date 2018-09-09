@@ -14,12 +14,14 @@ func payloadFromMessage(msg *types.Message) *outgoing.Message {
 		UserID:    uint64toa(msg.UserID),
 		ReplyTo:   uint64toa(msg.ReplyTo),
 
+		Attachment: payloadFromAttachment(msg.Attachment),
+
 		CreatedAt: msg.CreatedAt,
 		UpdatedAt: msg.UpdatedAt,
 	}
 }
 
-func payloadFromMessages(msg []*types.Message) *outgoing.Messages {
+func payloadFromMessages(msg types.MessageSet) *outgoing.Messages {
 	msgs := make([]*outgoing.Message, len(msg))
 	for k, m := range msg {
 		msgs[k] = payloadFromMessage(m)
@@ -69,4 +71,22 @@ func payloadFromUsers(users []*types.User) *outgoing.Users {
 
 	retval := outgoing.Users(uu)
 	return &retval
+}
+
+func payloadFromAttachment(in *types.Attachment) *outgoing.Attachment {
+	if in == nil {
+		return nil
+	}
+
+	return &outgoing.Attachment{
+		ID:         uint64toa(in.ID),
+		UserID:     uint64toa(in.UserID),
+		Url:        in.Url,
+		PreviewUrl: in.PreviewUrl,
+		Size:       in.Size,
+		Mimetype:   in.Mimetype,
+		Name:       in.Name,
+		CreatedAt:  in.CreatedAt,
+		UpdatedAt:  in.UpdatedAt,
+	}
 }

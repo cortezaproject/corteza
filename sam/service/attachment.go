@@ -7,6 +7,7 @@ import (
 	"github.com/crusttech/crust/sam/types"
 	"github.com/titpetric/factory"
 	"io"
+	"net/http"
 	"path"
 	"strings"
 )
@@ -100,7 +101,45 @@ func (svc attachment) Create(ctx context.Context, channelId uint64, name string,
 	})
 }
 
-func (svc attachment) makePreview(att *types.Attachment, originalFh io.ReadSeeker) (err error) {
+func (svc attachment) extractMeta(att *types.Attachment, file io.ReadSeeker) (err error) {
+	if _, err = file.Seek(0, 0); err != nil {
+		return err
+	}
+
+	// Make sure we rewind...
+	defer file.Seek(0, 0)
+
+	// See http.DetectContentType about 512 bytes
+	var buf = make([]byte, 512)
+	if _, err = file.Read(buf); err != nil {
+		return
+	}
+
+	att.Mimetype = http.DetectContentType(buf)
+
+	// @todo compare mime with extension (or better, enforce extension from mimetype)
+	//if extensions, err := mime.ExtensionsByType(att.Mimetype); err == nil {
+	//	extensions[0]
+	//}
+
+	// @todo extract image info so we can provide additional features if needed
+	//if strings.HasPrefix(att.Mimetype, "image/gif") {
+	//	if cfg, err := gif.DecodeAll(file); err == nil {
+	//		m.Width = cfg.Config.Width
+	//		m.Height = cfg.Config.Height
+	//		m.Animated = cfg.LoopCount > 0 || len(cfg.Delay) > 1
+	//	}
+	//} else if strings.HasPrefix(att.Mimetype, "image") {
+	//	if cfg, _, err := image.DecodeConfig(file); err == nil {
+	//		m.Width = cfg.Width
+	//		m.Height = cfg.Height
+	//	}
+	//}
+
+	return
+}
+
+func (svc attachment) makePreview(att *types.Attachment, original io.ReadSeeker) (err error) {
 	if true {
 		return
 	}
@@ -109,7 +148,7 @@ func (svc attachment) makePreview(att *types.Attachment, originalFh io.ReadSeeke
 	var ext = "jpg"
 	att.PreviewUrl = svc.sto.Preview(att.ID, ext)
 
-	return svc.sto.Save(att.PreviewUrl, originalFh)
+	return svc.sto.Save(att.PreviewUrl, original)
 }
 
 var _ AttachmentService = &attachment{}

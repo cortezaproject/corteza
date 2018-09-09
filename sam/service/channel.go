@@ -174,7 +174,7 @@ func (svc channel) Create(ctx context.Context, in *types.Channel) (out *types.Ch
 
 func (svc channel) Update(ctx context.Context, in *types.Channel) (out *types.Channel, err error) {
 	return out, svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
-		var msgs []*types.Message
+		var msgs types.MessageSet
 
 		// @todo [SECURITY] can user access this channel?
 		if out, err = r.FindChannelByID(in.ID); err != nil {

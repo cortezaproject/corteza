@@ -14,7 +14,7 @@ type (
 	}
 
 	MessageService interface {
-		Find(ctx context.Context, filter *types.MessageFilter) ([]*types.Message, error)
+		Find(ctx context.Context, filter *types.MessageFilter) (types.MessageSet, error)
 
 		Create(ctx context.Context, messages *types.Message) (*types.Message, error)
 		Update(ctx context.Context, messages *types.Message) (*types.Message, error)
@@ -47,7 +47,7 @@ func Message() *message {
 	return m
 }
 
-func (svc message) Find(ctx context.Context, filter *types.MessageFilter) ([]*types.Message, error) {
+func (svc message) Find(ctx context.Context, filter *types.MessageFilter) (mm types.MessageSet, err error) {
 	// @todo get user from context
 	var currentUserID uint64 = auth.GetIdentityFromContext(ctx).Identity()
 
@@ -55,7 +55,36 @@ func (svc message) Find(ctx context.Context, filter *types.MessageFilter) ([]*ty
 	_ = currentUserID
 	_ = filter.ChannelID
 
-	return svc.rpo.FindMessages(filter)
+	mm, err = svc.rpo.FindMessages(filter)
+	if err != nil {
+		return nil, err
+	}
+
+	{
+		var ids []uint64
+		mm.Walk(func(m *types.Message) error {
+			if m.Type == "attachment" {
+				ids = append(ids, m.ID)
+			}
+			return nil
+		})
+
+		if set, err := svc.rpo.FindAttachmentByMessageID(ids...); err != nil {
+			return nil, err
+		} else {
+			set.Walk(func(a *types.MessageAttachment) error {
+				if a.MessageID > 0 {
+					if m := mm.FindById(a.MessageID); m != nil {
+						m.Attachment = &a.Attachment
+					}
+				}
+
+				return nil
+			})
+		}
+	}
+
+	return
 }
 
 func (svc message) Direct(ctx context.Context, recipientID uint64, in *types.Message) (out *types.Message, err error) {

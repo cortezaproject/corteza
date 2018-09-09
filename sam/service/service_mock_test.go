@@ -108,17 +108,21 @@ func (mr *MockRepositoryMockRecorder) FindAttachmentByID(id interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAttachmentByID", reflect.TypeOf((*MockRepository)(nil).FindAttachmentByID), id)
 }
 
-// FindAttachmentByRange mocks base method
-func (m *MockRepository) FindAttachmentByRange(channelID, fromAttachmentID, toAttachmentID uint64) ([]*types.Attachment, error) {
-	ret := m.ctrl.Call(m, "FindAttachmentByRange", channelID, fromAttachmentID, toAttachmentID)
-	ret0, _ := ret[0].([]*types.Attachment)
+// FindAttachmentByMessageID mocks base method
+func (m *MockRepository) FindAttachmentByMessageID(IDs ...uint64) (types.MessageAttachmentSet, error) {
+	varargs := []interface{}{}
+	for _, a := range IDs {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "FindAttachmentByMessageID", varargs...)
+	ret0, _ := ret[0].(types.MessageAttachmentSet)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindAttachmentByRange indicates an expected call of FindAttachmentByRange
-func (mr *MockRepositoryMockRecorder) FindAttachmentByRange(channelID, fromAttachmentID, toAttachmentID interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAttachmentByRange", reflect.TypeOf((*MockRepository)(nil).FindAttachmentByRange), channelID, fromAttachmentID, toAttachmentID)
+// FindAttachmentByMessageID indicates an expected call of FindAttachmentByMessageID
+func (mr *MockRepositoryMockRecorder) FindAttachmentByMessageID(IDs ...interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAttachmentByMessageID", reflect.TypeOf((*MockRepository)(nil).FindAttachmentByMessageID), IDs...)
 }
 
 // CreateAttachment mocks base method
@@ -134,19 +138,6 @@ func (mr *MockRepositoryMockRecorder) CreateAttachment(mod interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAttachment", reflect.TypeOf((*MockRepository)(nil).CreateAttachment), mod)
 }
 
-// UpdateAttachment mocks base method
-func (m *MockRepository) UpdateAttachment(mod *types.Attachment) (*types.Attachment, error) {
-	ret := m.ctrl.Call(m, "UpdateAttachment", mod)
-	ret0, _ := ret[0].(*types.Attachment)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateAttachment indicates an expected call of UpdateAttachment
-func (mr *MockRepositoryMockRecorder) UpdateAttachment(mod interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAttachment", reflect.TypeOf((*MockRepository)(nil).UpdateAttachment), mod)
-}
-
 // DeleteAttachmentByID mocks base method
 func (m *MockRepository) DeleteAttachmentByID(id uint64) error {
 	ret := m.ctrl.Call(m, "DeleteAttachmentByID", id)
@@ -157,6 +148,18 @@ func (m *MockRepository) DeleteAttachmentByID(id uint64) error {
 // DeleteAttachmentByID indicates an expected call of DeleteAttachmentByID
 func (mr *MockRepositoryMockRecorder) DeleteAttachmentByID(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAttachmentByID", reflect.TypeOf((*MockRepository)(nil).DeleteAttachmentByID), id)
+}
+
+// BindAttachment mocks base method
+func (m *MockRepository) BindAttachment(attachmentId, messageId uint64) error {
+	ret := m.ctrl.Call(m, "BindAttachment", attachmentId, messageId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BindAttachment indicates an expected call of BindAttachment
+func (mr *MockRepositoryMockRecorder) BindAttachment(attachmentId, messageId interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BindAttachment", reflect.TypeOf((*MockRepository)(nil).BindAttachment), attachmentId, messageId)
 }
 
 // FindChannelByID mocks base method
@@ -312,9 +315,9 @@ func (mr *MockRepositoryMockRecorder) FindMessageByID(id interface{}) *gomock.Ca
 }
 
 // FindMessages mocks base method
-func (m *MockRepository) FindMessages(filter *types.MessageFilter) ([]*types.Message, error) {
+func (m *MockRepository) FindMessages(filter *types.MessageFilter) (types.MessageSet, error) {
 	ret := m.ctrl.Call(m, "FindMessages", filter)
-	ret0, _ := ret[0].([]*types.Message)
+	ret0, _ := ret[0].(types.MessageSet)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
