@@ -36,10 +36,12 @@ nothing:
 docker:
 	docker build --no-cache --rm --build-arg APP=sam -f docker/Dockerfile -t crusttech/sam .
 	docker build --no-cache --rm --build-arg APP=crm -f docker/Dockerfile -t crusttech/crm .
+	docker build --no-cache --rm --build-arg APP=auth -f docker/Dockerfile -t crusttech/auth .
 
 docker-push:
 	docker push crusttech/sam
 	docker push crusttech/crm
+	docker push crusttech/auth
 
 ########################################################################################################################
 # Development
