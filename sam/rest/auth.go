@@ -16,6 +16,11 @@ type (
 		token auth.TokenEncoder
 	}
 
+	authPayload struct {
+		JWT  string
+		User *types.User `json:"user"`
+	}
+
 	authUserBasics interface {
 		ValidateCredentials(ctx context.Context, username, password string) (*types.User, error)
 		Create(ctx context.Context, input *types.User) (user *types.User, err error)
@@ -46,11 +51,12 @@ func (ctrl *Auth) tokenize(user *types.User, err error) (interface{}, error) {
 		return nil, err
 	}
 
-	return struct {
-		JWT  string
-		User *types.User `json:"user"`
-	}{
+	return &authPayload{
 		JWT:  ctrl.token.Encode(user),
 		User: user,
 	}, nil
+}
+
+func (ap authPayload) Token() string {
+	return ap.JWT
 }

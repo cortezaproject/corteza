@@ -9,6 +9,7 @@ import (
 	"github.com/crusttech/crust/store"
 	"github.com/titpetric/factory"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -18,7 +19,7 @@ import (
 type (
 	attachment struct {
 		rpo attachmentRepository
-		sto attachmentStore
+		sto store.Store
 
 		config struct {
 			url        string
@@ -30,20 +31,19 @@ type (
 		FindByID(id uint64) (*types.Attachment, error)
 		Create(ctx context.Context, channelId uint64, name string, size int64, fh io.ReadSeeker) (*types.Attachment, error)
 		LoadFromMessages(ctx context.Context, mm types.MessageSet) (err error)
-		OpenOriginal(att *types.Attachment) (io.Reader, error)
-		OpenPreview(att *types.Attachment) (io.Reader, error)
+		OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
+		OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
 	}
 
 	attachmentRepository interface {
 		repository.Transactionable
 		repository.Attachment
 	}
-
-	attachmentStore store.Store
 )
 
-func Attachment(store attachmentStore) *attachment {
+func Attachment(store store.Store) *attachment {
 	svc := &attachment{}
+
 	svc.config.url = "/attachment/%d/%s"
 	svc.config.previewUrl = "/attachment/%d/%s/preview"
 	svc.rpo = repository.New()
@@ -56,13 +56,11 @@ func (svc attachment) FindByID(id uint64) (*types.Attachment, error) {
 	return svc.rpo.FindAttachmentByID(id)
 }
 
-func (svc attachment) OpenOriginal(att *types.Attachment) (io.Reader, error) {
-	// @todo update this to io.ReadSeeker when store's Open() func rval is updated
+func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
 	return svc.sto.Open(att.Url)
 }
 
-func (svc attachment) OpenPreview(att *types.Attachment) (io.Reader, error) {
-	// @todo update this to io.ReadSeeker when store's Open() func rval is updated
+func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
 	return svc.sto.Open(att.PreviewUrl)
 
 }
@@ -113,15 +111,20 @@ func (svc attachment) Create(ctx context.Context, channelId uint64, name string,
 
 	// @todo extract mimetype and update att.Mimetype
 
+	log.Printf("Processing uploaded file (name: %s, size: %d, mime: %s)", att.Name, att.Size, att.Mimetype)
+
 	if svc.sto != nil {
 		att.Url = svc.sto.Original(att.ID, ext)
 		if err = svc.sto.Save(att.Url, fh); err != nil {
+			log.Print(err.Error())
 			return
 		}
 
 		// Try to make preview
 		svc.makePreview(att, fh)
 	}
+
+	log.Printf("File %s stored as %s", att.Name, att.Url)
 
 	return att, svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
 
@@ -144,6 +147,8 @@ func (svc attachment) Create(ctx context.Context, channelId uint64, name string,
 		if err = r.BindAttachment(att.ID, msg.ID); err != nil {
 			return
 		}
+
+		log.Printf("File %s (id: %s) attached to message (id: %d)", att.Name, att.ID, msg.ID)
 
 		return
 	})
