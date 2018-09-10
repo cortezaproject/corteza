@@ -6,6 +6,7 @@ GO        = go
 GOGET     = $(GO) get -u
 
 BASEPKGS = rbac auth crm sam
+IMAGES   = auth crm sam
 
 ########################################################################################################################
 # Tool bins
@@ -33,15 +34,17 @@ nothing:
 	@echo - qa - run vet, critic and test on code
 	@echo
 
-docker:
-	docker build --no-cache --rm --build-arg APP=sam -f docker/Dockerfile -t crusttech/sam .
-	docker build --no-cache --rm --build-arg APP=crm -f docker/Dockerfile -t crusttech/crm .
-	docker build --no-cache --rm --build-arg APP=auth -f docker/Dockerfile -t crusttech/auth .
 
-docker-push:
-	docker push crusttech/sam
-	docker push crusttech/crm
-	docker push crusttech/auth
+docker: $(IMAGES:%=docker-image.%)
+
+docker-image.%: %
+	@ docker build --no-cache --rm --build-arg APP=$^  -f docker/Dockerfile -t crusttech/$^ .
+
+docker-push: $(IMAGES:%=docker-push.%)
+
+docker-push.%: %
+	@ docker push crusttech/$^
+
 
 ########################################################################################################################
 # Development
