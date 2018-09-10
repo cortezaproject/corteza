@@ -469,6 +469,38 @@
 		]
 	},
 	{
+		"title": "Attachments",
+		"package": "sam",
+		"path": "/attachment/{attachmentID}",
+		"parameters": {
+			"path": [
+				{ "name": "attachmentID", "type": "uint64", "required": true, "title": "Attachment ID" }
+			]
+		},
+		"entrypoint": "attachment",
+		"authentication": ["Client ID", "Session ID"],
+		"apis": [
+            {
+                "name": "original",
+                "path": "/{name}",
+                "method": "GET",
+                "title": "Serves attached file",
+
+                "parameters": {
+                    "GET": [
+                       { "type": "bool", "name": "download", "required": false, "title": "Force file download" }
+                    ]
+                }
+            },
+			{
+				"name": "preview",
+				"path": "/{name}/preview",
+				"method": "GET",
+				"title": "Serves preview of an attached file"
+			}
+		]
+	},
+	{
 		"title": "Users",
 		"package": "sam",
 		"path": "/users",

@@ -2,12 +2,14 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/crusttech/crust/auth"
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/titpetric/factory"
 	"io"
 	"net/http"
+	"net/url"
 	"path"
 	"strings"
 )
@@ -16,10 +18,19 @@ type (
 	attachment struct {
 		rpo attachmentRepository
 		sto attachmentStore
+
+		config struct {
+			url        string
+			previewUrl string
+		}
 	}
 
 	AttachmentService interface {
+		FindByID(id uint64) (*types.Attachment, error)
 		Create(ctx context.Context, channelId uint64, name string, size int64, fh io.ReadSeeker) (*types.Attachment, error)
+		LoadFromMessages(ctx context.Context, mm types.MessageSet) (err error)
+		OpenOriginal(att *types.Attachment) (io.Reader, error)
+		OpenPreview(att *types.Attachment) (io.Reader, error)
 	}
 
 	attachmentRepository interface {
@@ -39,11 +50,54 @@ type (
 
 func Attachment(store attachmentStore) *attachment {
 	svc := &attachment{}
+	svc.config.url = "/attachment/%d/%s"
+	svc.config.previewUrl = "/attachment/%d/%s/preview"
 	svc.rpo = repository.New()
 	svc.sto = store
-	// @todo bind file store
 
 	return svc
+}
+
+func (svc attachment) FindByID(id uint64) (*types.Attachment, error) {
+	return svc.rpo.FindAttachmentByID(id)
+}
+
+func (svc attachment) OpenOriginal(att *types.Attachment) (io.Reader, error) {
+	// @todo update this to io.ReadSeeker when store's Open() func rval is updated
+	return svc.sto.Open(att.Url)
+}
+
+func (svc attachment) OpenPreview(att *types.Attachment) (io.Reader, error) {
+	// @todo update this to io.ReadSeeker when store's Open() func rval is updated
+	return svc.sto.Open(att.PreviewUrl)
+
+}
+
+func (svc attachment) LoadFromMessages(ctx context.Context, mm types.MessageSet) (err error) {
+	var ids []uint64
+	mm.Walk(func(m *types.Message) error {
+		if m.Type == "attachment" {
+			ids = append(ids, m.ID)
+		}
+		return nil
+	})
+
+	if set, err := svc.rpo.FindAttachmentByMessageID(ids...); err != nil {
+		return err
+	} else {
+		return set.Walk(func(a *types.MessageAttachment) error {
+			if a.MessageID > 0 {
+				if m := mm.FindById(a.MessageID); m != nil {
+					m.Attachment = &a.Attachment
+
+					m.Attachment.Url = svc.url(&a.Attachment)
+					m.Attachment.PreviewUrl = svc.previewUrl(&a.Attachment)
+				}
+			}
+
+			return nil
+		})
+	}
 }
 
 func (svc attachment) Create(ctx context.Context, channelId uint64, name string, size int64, fh io.ReadSeeker) (att *types.Attachment, err error) {
@@ -99,6 +153,16 @@ func (svc attachment) Create(ctx context.Context, channelId uint64, name string,
 
 		return
 	})
+}
+
+// Generates URL to a location
+func (svc attachment) url(att *types.Attachment) string {
+	return fmt.Sprintf(svc.config.url, att.ID, url.PathEscape(att.Name))
+}
+
+// Generates URL to a location
+func (svc attachment) previewUrl(att *types.Attachment) string {
+	return fmt.Sprintf(svc.config.previewUrl, att.ID, url.PathEscape(att.Name))
 }
 
 func (svc attachment) extractMeta(att *types.Attachment, file io.ReadSeeker) (err error) {

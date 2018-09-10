@@ -11,6 +11,7 @@ import (
 type (
 	message struct {
 		rpo messageRepository
+		att AttachmentService
 	}
 
 	MessageService interface {
@@ -42,8 +43,11 @@ type (
 	}
 )
 
-func Message() *message {
-	m := &message{rpo: repository.New()}
+func Message(attSvc AttachmentService) *message {
+	m := &message{
+		att: attSvc,
+		rpo: repository.New(),
+	}
 	return m
 }
 
@@ -60,31 +64,7 @@ func (svc message) Find(ctx context.Context, filter *types.MessageFilter) (mm ty
 		return nil, err
 	}
 
-	{
-		var ids []uint64
-		mm.Walk(func(m *types.Message) error {
-			if m.Type == "attachment" {
-				ids = append(ids, m.ID)
-			}
-			return nil
-		})
-
-		if set, err := svc.rpo.FindAttachmentByMessageID(ids...); err != nil {
-			return nil, err
-		} else {
-			set.Walk(func(a *types.MessageAttachment) error {
-				if a.MessageID > 0 {
-					if m := mm.FindById(a.MessageID); m != nil {
-						m.Attachment = &a.Attachment
-					}
-				}
-
-				return nil
-			})
-		}
-	}
-
-	return
+	return mm, svc.att.LoadFromMessages(ctx, mm)
 }
 
 func (svc message) Direct(ctx context.Context, recipientID uint64, in *types.Message) (out *types.Message, err error) {
