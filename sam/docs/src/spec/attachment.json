@@ -1,0 +1,47 @@
+{
+  "Title": "Attachments",
+  "Package": "sam",
+  "Interface": "Attachment",
+  "Struct": null,
+  "Parameters": {
+    "path": [
+      {
+        "name": "attachmentID",
+        "required": true,
+        "title": "Attachment ID",
+        "type": "uint64"
+      }
+    ]
+  },
+  "Protocol": "",
+  "Authentication": [
+    "Client ID",
+    "Session ID"
+  ],
+  "Path": "/attachment/{attachmentID}",
+  "APIs": [
+    {
+      "Name": "original",
+      "Method": "GET",
+      "Title": "Serves attached file",
+      "Path": "/{name}",
+      "Parameters": {
+        "GET": [
+          {
+            "name": "download",
+            "required": false,
+            "title": "Force file download",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "preview",
+      "Method": "GET",
+      "Title": "Serves preview of an attached file",
+      "Path": "/{name}/preview",
+      "Parameters": null
+    }
+  ]
+}

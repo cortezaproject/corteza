@@ -552,6 +552,38 @@ The following event types may be sent with a message event:
 
 
 
+# Attachments
+
+## Serves attached file
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/attachment/{attachmentID}/{name}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| download | bool | GET | Force file download | N/A | NO |
+
+## Serves preview of an attached file
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/attachment/{attachmentID}/{name}/preview` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+
+
+
+
 # Users
 
 ## Search users (Directory)
