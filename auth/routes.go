@@ -16,7 +16,7 @@ func mountRoutes(r chi.Router, opts *config.HTTP, mounts ...func(r chi.Router)) 
 		r.Use(middleware.Logger)
 	}
 	if opts.Metrics {
-		r.Use(metrics{}.Middleware("crm"))
+		r.Use(metrics{}.Middleware("auth"))
 	}
 
 	for _, mount := range mounts {
