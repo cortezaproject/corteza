@@ -68,7 +68,7 @@ func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) 
 func (svc attachment) LoadFromMessages(ctx context.Context, mm types.MessageSet) (err error) {
 	var ids []uint64
 	mm.Walk(func(m *types.Message) error {
-		if m.Type == "attachment" {
+		if m.Type == types.MessageTypeAttachment || m.Type == types.MessageTypeInlineImage {
 			ids = append(ids, m.ID)
 		}
 		return nil
@@ -109,7 +109,9 @@ func (svc attachment) Create(ctx context.Context, channelId uint64, name string,
 	// Extract extension but make sure path.Ext is not confused by any leading/trailing dots
 	var ext = strings.Trim(path.Ext(strings.Trim(name, ".")), ".")
 
-	// @todo extract mimetype and update att.Mimetype
+	if err := svc.extractMeta(att, fh); err != nil {
+		// @todo logmeta extraction failure
+	}
 
 	log.Printf("Processing uploaded file (name: %s, size: %d, mime: %s)", att.Name, att.Size, att.Mimetype)
 
@@ -134,8 +136,13 @@ func (svc attachment) Create(ctx context.Context, channelId uint64, name string,
 
 		msg := &types.Message{
 			Message:   name,
-			Type:      "attachment",
+			Type:      types.MessageTypeAttachment,
 			ChannelID: channelId,
+			UserID:    currentUserID,
+		}
+
+		if strings.HasPrefix(att.Mimetype, "image/") {
+			msg.Type = types.MessageTypeInlineImage
 		}
 
 		// Create the first message, doing this directly with repository to circumvent
@@ -148,7 +155,7 @@ func (svc attachment) Create(ctx context.Context, channelId uint64, name string,
 			return
 		}
 
-		log.Printf("File %s (id: %s) attached to message (id: %d)", att.Name, att.ID, msg.ID)
+		log.Printf("File %s (id: %d) attached to message (id: %d)", att.Name, att.ID, msg.ID)
 
 		return
 	})
