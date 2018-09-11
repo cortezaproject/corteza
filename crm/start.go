@@ -21,18 +21,18 @@ import (
 
 func Init() error {
 	// validate configuration
-	if err := config.Validate(); err != nil {
+	if err := flags.Validate(); err != nil {
 		return err
 	}
 
 	// start/configure database connection
-	factory.Database.Add("default", config.db.dsn)
+	factory.Database.Add("default", flags.db.DSN)
 	db, err := factory.Database.Get()
 	if err != nil {
 		return err
 	}
 	// @todo: profiling as an external service?
-	switch config.db.profiler {
+	switch flags.db.Profiler {
 	case "stdout":
 		db.Profiler = &factory.Database.ProfilerStdout
 	default:
@@ -41,8 +41,8 @@ func Init() error {
 
 	// configure resputil options
 	resputil.SetConfig(resputil.Options{
-		Pretty: config.http.pretty,
-		Trace:  config.http.tracing,
+		Pretty: flags.http.Pretty,
+		Trace:  flags.http.Tracing,
 		Logger: func(err error) {
 			// @todo: error logging
 		},
@@ -54,10 +54,10 @@ func Init() error {
 func Start() error {
 	var ctx = sigctx.New()
 
-	log.Println("Starting http server on address " + config.http.addr)
-	listener, err := net.Listen("tcp", config.http.addr)
+	log.Println("Starting http server on address " + flags.http.Addr)
+	listener, err := net.Listen("tcp", flags.http.Addr)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Can't listen on addr %s", config.http.addr))
+		return errors.Wrap(err, fmt.Sprintf("Can't listen on addr %s", flags.http.Addr))
 	}
 
 	// JWT Auth
@@ -72,11 +72,11 @@ func Start() error {
 	// Only protect application routes with JWT
 	r.Group(func(r chi.Router) {
 		r.Use(jwtAuth.Verifier(), jwtAuth.Authenticator())
-		mountRoutes(r, config, rest.MountRoutes(jwtAuth))
+		mountRoutes(r, flags.http, rest.MountRoutes(jwtAuth))
 	})
 
-	printRoutes(r, config)
-	mountSystemRoutes(r, config)
+	printRoutes(r, flags.http)
+	mountSystemRoutes(r, flags.http)
 
 	go http.Serve(listener, r)
 	<-ctx.Done()
