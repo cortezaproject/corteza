@@ -13,8 +13,8 @@ type PubSubRedis struct {
 	config *config.PubSub
 }
 
-func (PubSubRedis) New(config *config.PubSub) (*PubSubRedis, error) {
-	return &PubSubRedis{config}, nil
+func (PubSubRedis) New(config *config.PubSub) *PubSubRedis {
+	return &PubSubRedis{config}
 }
 
 func (ps *PubSubRedis) dial() (redis.Conn, error) {

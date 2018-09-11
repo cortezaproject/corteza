@@ -14,8 +14,8 @@ type PubSubMemory struct {
 	input  chan *PubSubPayload
 }
 
-func (PubSubMemory) New(config *config.PubSub) (*PubSubMemory, error) {
-	return &PubSubMemory{config, make(chan *PubSubPayload, 512)}, nil
+func (PubSubMemory) New(config *config.PubSub) *PubSubMemory {
+	return &PubSubMemory{config, make(chan *PubSubPayload, 512)}
 }
 
 func (ps *PubSubMemory) Subscribe(ctx context.Context, channel string, onStart func() error, onMessage func(channel string, payload []byte) error) error {

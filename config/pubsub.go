@@ -1,9 +1,11 @@
 package config
 
 import (
+	"log"
+	"time"
+
 	"github.com/namsral/flag"
 	"github.com/pkg/errors"
-	"time"
 )
 
 type (
@@ -24,7 +26,8 @@ func (c *PubSub) Validate() error {
 	switch c.Mode {
 	case "redis":
 		if c.Mode == "redis" && c.RedisAddr == "" {
-			return errors.New("No host defined for mode=redis, PubSub.Redis is empty")
+			log.Println("[pubsub] No Redis Address defined for mode=redis, falling back to polling")
+			c.Mode = "poll"
 		}
 	case "poll":
 	default:
