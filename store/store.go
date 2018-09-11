@@ -5,8 +5,28 @@ import (
 	"io"
 	"path"
 
-	"github.com/spf13/afero"
 	"github.com/pkg/errors"
+	"github.com/spf13/afero"
+)
+
+type (
+	store struct {
+		namespace string
+
+		originalFn func(id uint64, ext string) string
+		previewFn  func(id uint64, ext string) string
+	}
+
+	Store interface {
+		Namespace() string
+
+		Original(id uint64, ext string) string
+		Preview(id uint64, ext string) string
+
+		Save(filename string, contents io.Reader) error
+		Remove(filename string) error
+		Open(filename string) (afero.File, error)
+	}
 )
 
 func New(namespace string) (Store, error) {
@@ -26,7 +46,7 @@ func (s *store) Namespace() string {
 }
 
 func (s *store) check(filename string) error {
-	if filename[:len(s.namespace)+1] != s.namespace + "/" {
+	if filename[:len(s.namespace)+1] != s.namespace+"/" {
 		return errors.Errorf("Invalid namespace when trying to store file: %s (for %s)", filename, s.namespace)
 	}
 	return nil
@@ -64,7 +84,7 @@ func (s *store) Remove(filename string) error {
 	return fs.Remove(filename)
 }
 
-func (s *store) Open(filename string) (io.Reader, error) {
+func (s *store) Open(filename string) (afero.File, error) {
 	// check filename for validity
 	if err := s.check(filename); err != nil {
 		return nil, err

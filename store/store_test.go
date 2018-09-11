@@ -1,8 +1,8 @@
 package store_test
 
 import (
-	"io"
 	"bytes"
+	"io"
 	"testing"
 
 	"github.com/crusttech/crust/store"
