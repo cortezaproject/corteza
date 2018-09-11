@@ -9,12 +9,9 @@ import (
 )
 
 func TestPubSubMemory(t *testing.T) {
-	p, err := PubSubMemory{}.New(&config.PubSub{
+	p := PubSubMemory{}.New(&config.PubSub{
 		PollingInterval: time.Second,
 	})
-	if err != nil {
-		t.Fatalf("Unexpected error when creating new PubSubMemory object: %+v", err)
-	}
 
 	calledOnConnect := false
 	calledOnMessage := 0
@@ -56,8 +53,7 @@ func TestPubSubMemory(t *testing.T) {
 		t.Fatalf("Expected PubSub channel exit after context cancellation")
 	}
 
-	err = p.Publish(ctx, "events", "new message event")
-	if err == nil {
+	if err := p.Publish(ctx, "events", "new message event"); err == nil {
 		t.Fatalf("Expected error from sending message on closed channel")
 	}
 }

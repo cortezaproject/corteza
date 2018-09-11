@@ -2,15 +2,19 @@ package repository
 
 import (
 	"context"
-	"log"
 )
 
 type (
 	PubSub struct {
-		client PubSubClient
+		client pubSubModule
 	}
 
 	PubSubClient interface {
+		pubSubModule
+		Event(ctx context.Context, message string) error
+	}
+
+	pubSubModule interface {
 		Subscribe(ctx context.Context, channel string, onStart func() error, onMessage func(channel string, message []byte) error) error
 		Publish(ctx context.Context, channel string, message string) error
 	}
@@ -21,31 +25,18 @@ type (
 	}
 )
 
-var pubsub PubSubClient
+var pubsub *PubSub
 
-func (PubSub) New() (PubSubClient, error) {
+func (PubSub) New() *PubSub {
 	// return singleton client
 	if pubsub != nil {
-		return pubsub, nil
-	}
-
-	// validate configs and fall back to poll mode on error
-	if err := flags.PubSub.Validate(); err != nil {
-		log.Printf("[pubsub] An error occured when creating PubSub instance: %+v", err)
-		log.Println("[pubsub] Reverting back to 'poll' and trying again")
-		flags.PubSub.Mode = "poll"
-		if err := flags.PubSub.Validate(); err != nil {
-			return nil, err
-		}
+		return pubsub
 	}
 
 	// store the singleton instance
-	save := func(client PubSubClient, err error) (PubSubClient, error) {
-		if err != nil {
-			return nil, err
-		}
-		pubsub = client
-		return pubsub, nil
+	save := func(client pubSubModule) *PubSub {
+		pubsub = &PubSub{client}
+		return pubsub
 	}
 
 	// create isntances based on mode
@@ -57,6 +48,10 @@ func (PubSub) New() (PubSubClient, error) {
 
 func (ps *PubSub) Subscribe(ctx context.Context, channel string, onStart func() error, onMessage func(channel string, message []byte) error) error {
 	return ps.client.Subscribe(ctx, channel, onStart, onMessage)
+}
+
+func (ps *PubSub) Event(ctx context.Context, message string) error {
+	return ps.Publish(ctx, "events", message)
 }
 
 func (ps *PubSub) Publish(ctx context.Context, channel, message string) error {

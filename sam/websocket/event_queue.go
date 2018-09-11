@@ -25,7 +25,6 @@ type (
 
 	eventQueue struct {
 		origin uint64
-		pubsub *service.PubSub
 		queue  chan *types.EventQueueItem
 	}
 )
@@ -63,11 +62,7 @@ func (eq *eventQueue) feedSessions(ctx context.Context, config *repository.Flags
 	newMessageEvent := make(chan struct{}, eventQueueBacklog)
 	done := make(chan error, 1)
 
-	pubsub, err := service.PubSub{}.New()
-	if err != nil {
-		return err
-	}
-
+	pubsub := service.PubSub()
 	go func() {
 		onConnect := func() error {
 			return nil
