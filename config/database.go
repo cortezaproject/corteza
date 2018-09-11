@@ -12,6 +12,8 @@ type (
 	}
 )
 
+var db *Database
+
 func (c *Database) Validate() error {
 	if c == nil {
 		return nil
@@ -22,13 +24,17 @@ func (c *Database) Validate() error {
 	return nil
 }
 
-func (c *Database) Init(prefix ...string) *Database {
+func (*Database) Init(prefix ...string) *Database {
+	if db != nil {
+		return db
+	}
+
 	p := func(s string) string {
 		return prefix[0] + "-" + s
 	}
 
-	flag.StringVar(&c.DSN, p("db-dsn"), "crust:crust@tcp(db1:3306)/crust?collation=utf8mb4_general_ci", "DSN for database connection")
-	flag.StringVar(&c.Profiler, p("db-profiler"), "", "Profiler for DB queries (none, stdout)")
-
-	return c
+	db := new(Database)
+	flag.StringVar(&db.DSN, p("db-dsn"), "crust:crust@tcp(db1:3306)/crust?collation=utf8mb4_general_ci", "DSN for database connection")
+	flag.StringVar(&db.Profiler, p("db-profiler"), "", "Profiler for DB queries (none, stdout)")
+	return db
 }
