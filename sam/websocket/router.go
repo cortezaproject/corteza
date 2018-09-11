@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi"
 )
 
-func MountRoutes(ctx context.Context, config Configuration) func(chi.Router) {
+func MountRoutes(ctx context.Context, config *repository.Flags) func(chi.Router) {
 	return func(r chi.Router) {
 		var (
 			// @todo move this 1 level up & join with rest init functions

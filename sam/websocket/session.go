@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 
+	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/crusttech/crust/sam/websocket/outgoing"
@@ -27,13 +28,13 @@ type (
 
 		remoteAddr string
 
-		config Configuration
+		config *repository.Flags
 
 		user *types.User
 	}
 )
 
-func (Session) New(ctx context.Context, config Configuration, conn *websocket.Conn) *Session {
+func (Session) New(ctx context.Context, config *repository.Flags, conn *websocket.Conn) *Session {
 	return &Session{
 		conn:   conn,
 		ctx:    ctx,
@@ -87,9 +88,9 @@ func (sess *Session) readLoop() error {
 		sess.Close()
 	}()
 
-	sess.conn.SetReadDeadline(time.Now().Add(sess.config.pingTimeout))
+	sess.conn.SetReadDeadline(time.Now().Add(sess.config.Websocket.PingTimeout))
 	sess.conn.SetPongHandler(func(string) error {
-		sess.conn.SetReadDeadline(time.Now().Add(sess.config.pingTimeout))
+		sess.conn.SetReadDeadline(time.Now().Add(sess.config.Websocket.PingTimeout))
 		return nil
 	})
 	sess.remoteAddr = sess.conn.RemoteAddr().String()
@@ -108,7 +109,7 @@ func (sess *Session) readLoop() error {
 }
 
 func (sess *Session) writeLoop() error {
-	ticker := time.NewTicker(sess.config.pingPeriod)
+	ticker := time.NewTicker(sess.config.Websocket.PingPeriod)
 
 	defer func() {
 		ticker.Stop()
@@ -116,7 +117,7 @@ func (sess *Session) writeLoop() error {
 	}()
 
 	write := func(msg []byte) error {
-		sess.conn.SetWriteDeadline(time.Now().Add(sess.config.writeTimeout))
+		sess.conn.SetWriteDeadline(time.Now().Add(sess.config.Websocket.Timeout))
 		if msg != nil {
 			return sess.conn.WriteMessage(websocket.TextMessage, msg)
 		}
@@ -124,7 +125,7 @@ func (sess *Session) writeLoop() error {
 	}
 
 	ping := func() error {
-		sess.conn.SetWriteDeadline(time.Now().Add(sess.config.writeTimeout))
+		sess.conn.SetWriteDeadline(time.Now().Add(sess.config.Websocket.Timeout))
 		return sess.conn.WriteMessage(websocket.PingMessage, nil)
 	}
 
