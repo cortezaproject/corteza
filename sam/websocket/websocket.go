@@ -1,15 +1,17 @@
 package websocket
 
 import (
+	"context"
+	"log"
 	"net/http"
 
-	"context"
-	"github.com/crusttech/crust/auth"
-	"github.com/crusttech/crust/sam/types"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
-	"log"
+
+	"github.com/crusttech/crust/auth"
+	"github.com/crusttech/crust/sam/repository"
+	"github.com/crusttech/crust/sam/types"
 )
 
 type (
@@ -17,7 +19,7 @@ type (
 		svc struct {
 			userFinder wsUserFinder
 		}
-		config Configuration
+		config *repository.Flags
 	}
 
 	wsUserFinder interface {
@@ -25,7 +27,7 @@ type (
 	}
 )
 
-func (Websocket) New(svcUser wsUserFinder, config Configuration) *Websocket {
+func (Websocket) New(svcUser wsUserFinder, config *repository.Flags) *Websocket {
 	ws := &Websocket{
 		config: config,
 	}

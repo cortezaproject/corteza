@@ -6,6 +6,7 @@ import (
 	"github.com/crusttech/crust/auth"
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
+	"github.com/crusttech/crust/store"
 	"github.com/titpetric/factory"
 	"io"
 	"net/http"
@@ -38,14 +39,7 @@ type (
 		repository.Attachment
 	}
 
-	attachmentStore interface {
-		Original(id uint64, ext string) string
-		Preview(id uint64, ext string) string
-
-		Save(filename string, contents io.Reader) error
-		Remove(filename string) error
-		Open(filename string) (io.Reader, error)
-	}
+	attachmentStore store.Store
 )
 
 func Attachment(store attachmentStore) *attachment {

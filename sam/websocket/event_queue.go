@@ -2,10 +2,14 @@ package websocket
 
 import (
 	"context"
+	"log"
+	"time"
+
+	"github.com/titpetric/factory"
+
+	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
-	"github.com/titpetric/factory"
-	"time"
 )
 
 type (
@@ -57,31 +61,37 @@ func (eq *eventQueue) store(ctx context.Context, qp eventQueuePusher) {
 	}()
 }
 
-func (eq *eventQueue) feedSessions(ctx context.Context, config Configuration, qp eventQueuePuller, store eventQueueWalker) error {
+func (eq *eventQueue) feedSessions(ctx context.Context, config *repository.Flags, qp eventQueuePuller, store eventQueueWalker) error {
 	newMessageEvent := make(chan struct{}, eventQueueBacklog)
 	done := make(chan error, 1)
 
 	// feed events from redis into newMessageEvent channel
-	if config.pubSubMode == "redis" && config.pubSubRedis != "" {
-		onConnect := func() error {
-			return nil
+	if config.PubSub.Mode == "redis" {
+		pubsub, err := service.PubSub{}.New(config.PubSub, ctx)
+		if err != nil {
+			log.Printf("PubSub: Error when starting in mode=redis, %+v\n", err)
+			log.Println("PubSub: Reverting to polling mode")
+			config.PubSub.Mode = "poll"
+		} else {
+			go func() {
+				onConnect := func() error {
+					return nil
+				}
+				onMessage := func(message string, payload []byte) error {
+					newMessageEvent <- struct{}{}
+					return nil
+				}
+				done <- pubsub.Subscribe(onConnect, onMessage, "events")
+			}()
 		}
-		onMessage := func(message string, payload []byte) error {
-			newMessageEvent <- struct{}{}
-			return nil
-		}
-		pubsub := service.PubSub{}.New(config.pubSubRedis, ctx)
-		go func() {
-			done <- pubsub.Subscribe(onConnect, onMessage, "events")
-		}()
 	}
 
-	if config.pubSubMode == "poll" {
+	if config.PubSub.Mode == "poll" {
 		polling := func() error {
 			for {
 				select {
 				case <-ctx.Done():
-				case <-time.After(config.pubSubInterval):
+				case <-time.After(config.PubSub.PollingInterval):
 					newMessageEvent <- struct{}{}
 				}
 			}

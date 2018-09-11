@@ -2,9 +2,12 @@ package service
 
 import (
 	"context"
+	"time"
+
 	"github.com/gomodule/redigo/redis"
 	"github.com/pkg/errors"
-	"time"
+
+	"github.com/crusttech/crust/config"
 )
 
 type PubSub struct {
@@ -15,12 +18,15 @@ type PubSub struct {
 	healthCheckInterval time.Duration
 }
 
-func (ps PubSub) New(redisServerAddr string, ctx context.Context) *PubSub {
+func (ps PubSub) New(config *config.PubSub, ctx context.Context) (*PubSub, error) {
+	if err := config.Validate(); err != nil {
+		return nil, err
+	}
 	return &PubSub{
 		ctx:                 ctx,
-		redisServerAddr:     redisServerAddr,
+		redisServerAddr:     config.RedisAddr,
 		healthCheckInterval: time.Minute,
-	}
+	}, nil
 }
 
 func (ps *PubSub) With(ctx context.Context) *PubSub {
