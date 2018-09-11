@@ -13,6 +13,8 @@ type (
 	}
 )
 
+var jwt *JWT
+
 func (c *JWT) Validate() error {
 	if c == nil {
 		return nil
@@ -23,9 +25,14 @@ func (c *JWT) Validate() error {
 	return nil
 }
 
-func (c *JWT) Init(prefix ...string) *JWT {
-	flag.StringVar(&c.Secret, "auth-jwt-secret", "", "JWT Secret")
-	flag.Int64Var(&c.Expiry, "auth-jwt-expiry", 3600, "JWT Expiration in minutes")
-	flag.BoolVar(&c.DebugToken, "auth-jwt-debug", false, "Generate debug JWT key")
-	return c
+func (*JWT) Init(prefix ...string) *JWT {
+	if jwt != nil {
+		return jwt
+	}
+
+	jwt := new(JWT)
+	flag.StringVar(&jwt.Secret, "auth-jwt-secret", "", "JWT Secret")
+	flag.Int64Var(&jwt.Expiry, "auth-jwt-expiry", 3600, "JWT Expiration in minutes")
+	flag.BoolVar(&jwt.DebugToken, "auth-jwt-debug", false, "Generate debug JWT key")
+	return jwt
 }
