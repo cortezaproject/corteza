@@ -2,119 +2,63 @@ package repository
 
 import (
 	"context"
-	"time"
-
-	"github.com/gomodule/redigo/redis"
-	"github.com/pkg/errors"
-
-	"github.com/crusttech/crust/config"
+	"log"
 )
 
-type PubSub struct {
-	ctx    context.Context
-	config *config.PubSub
-}
+type (
+	PubSub struct {
+		client PubSubClient
+	}
 
-func (PubSub) New(ctx context.Context) (*PubSub, error) {
+	PubSubClient interface {
+		Subscribe(ctx context.Context, channel string, onStart func() error, onMessage func(channel string, message []byte) error) error
+		Publish(ctx context.Context, channel string, message string) error
+	}
+
+	PubSubPayload struct {
+		Channel string
+		Message []byte
+	}
+)
+
+var pubsub PubSubClient
+
+func (PubSub) New() (PubSubClient, error) {
+	// return singleton client
+	if pubsub != nil {
+		return pubsub, nil
+	}
+
+	// validate configs and fall back to poll mode on error
 	if err := flags.PubSub.Validate(); err != nil {
-		return nil, err
-	}
-	return &PubSub{ctx, flags.PubSub}, nil
-}
-
-func (ps *PubSub) With(ctx context.Context) *PubSub {
-	return &PubSub{ctx, ps.config}
-}
-
-func (ps *PubSub) dial() (redis.Conn, error) {
-	return redis.Dial(
-		"tcp",
-		flags.PubSub.RedisAddr,
-		redis.DialReadTimeout(ps.config.PingTimeout+ps.config.Timeout),
-		redis.DialWriteTimeout(ps.config.Timeout),
-	)
-}
-
-func (ps *PubSub) Subscribe(onStart func() error, onMessage func(channel string, payload []byte) error, channels ...string) error {
-	if len(channels) == 0 {
-		return errors.New("Need to subscribe at least to one channel")
-	}
-
-	// main redis connection
-	conn, err := ps.dial()
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	// pubsub object
-	psc := redis.PubSubConn{Conn: conn}
-	if err := psc.Subscribe(redis.Args{}.AddFlat(channels)...); err != nil {
-		return err
-	}
-
-	done := make(chan error, 1)
-
-	// Start a goroutine to receive notifications from the server.
-	go func() {
-		for {
-			switch n := psc.Receive().(type) {
-			case error:
-				done <- n
-				return
-			case redis.Message:
-				if err := onMessage(n.Channel, n.Data); err != nil {
-					done <- err
-					return
-				}
-			case redis.Subscription:
-				switch n.Count {
-				case len(channels):
-					// Notify application when all channels are subscribed.
-					if err := onStart(); err != nil {
-						done <- err
-						return
-					}
-				case 0:
-					// Return from the goroutine when all channels are unsubscribed.
-					done <- nil
-					return
-				}
-			}
-		}
-	}()
-
-	ticker := time.NewTicker(ps.config.PingPeriod)
-	defer ticker.Stop()
-
-	cleanup := func(err error) error {
-		psc.Unsubscribe()
-		return err
-	}
-
-	for {
-		select {
-		case <-ticker.C:
-			if err := psc.Ping(""); err != nil {
-				return cleanup(err)
-			}
-		case <-ps.ctx.Done():
-			return cleanup(ps.ctx.Err())
-		case err := <-done:
-			return err
+		log.Printf("[pubsub] An error occured when creating PubSub instance: %+v", err)
+		log.Println("[pubsub] Reverting back to 'poll' and trying again")
+		flags.PubSub.Mode = "poll"
+		if err := flags.PubSub.Validate(); err != nil {
+			return nil, err
 		}
 	}
+
+	// store the singleton instance
+	save := func(client PubSubClient, err error) (PubSubClient, error) {
+		if err != nil {
+			return nil, err
+		}
+		pubsub = client
+		return pubsub, nil
+	}
+
+	// create isntances based on mode
+	if flags.PubSub.Mode == "redis" {
+		return save(PubSubRedis{}.New(flags.PubSub))
+	}
+	return save(PubSubMemory{}.New(flags.PubSub))
 }
 
-func (ps *PubSub) Publish(channel, payload string) error {
-	// main redis connection
-	conn, err := ps.dial()
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
+func (ps *PubSub) Subscribe(ctx context.Context, channel string, onStart func() error, onMessage func(channel string, message []byte) error) error {
+	return ps.client.Subscribe(ctx, channel, onStart, onMessage)
+}
 
-	// publish payload on channel
-	_, err = conn.Do("PUBLISH", channel, payload)
-	return err
+func (ps *PubSub) Publish(ctx context.Context, channel, message string) error {
+	return ps.client.Publish(ctx, channel, message)
 }

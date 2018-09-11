@@ -2,9 +2,12 @@ package websocket
 
 import (
 	"context"
+	"fmt"
+
+	"github.com/go-chi/chi"
+
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/service"
-	"github.com/go-chi/chi"
 )
 
 func MountRoutes(ctx context.Context, config *repository.Flags) func(chi.Router) {
@@ -16,7 +19,11 @@ func MountRoutes(ctx context.Context, config *repository.Flags) func(chi.Router)
 
 		repo := repository.New()
 
-		go eq.feedSessions(ctx, config, repo, store)
+		go func() {
+			if err := eq.feedSessions(ctx, config, repo, store); err != nil {
+				panic(fmt.Sprintf("Error when starting sessions event feed: %+v", err))
+			}
+		}()
 		eq.store(ctx, repo)
 
 		websocket := Websocket{}.New(svcUser, config)
