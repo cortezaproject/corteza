@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/crusttech/crust/crm"
 	"github.com/crusttech/crust/auth"
+	"github.com/crusttech/crust/crm"
 	"github.com/crusttech/crust/rbac"
 )
 
