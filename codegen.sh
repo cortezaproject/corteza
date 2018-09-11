@@ -1,6 +1,17 @@
 #!/bin/bash
 set -e
 
+function gofmt {
+	echo "=== fmt all folders ==="
+	GOPATHS=$(find -name '*.go' | grep -v vendor/ | xargs -n1 dirname | sort | uniq)
+	for FOLDER in $GOPATHS; do
+		#echo "== go fmt $FOLDER =="
+		cd $FOLDER
+		go fmt | xargs -n1 -I {} echo "$FOLDER/{}"
+		cd $_PWD
+	done
+}
+
 _PWD=$PWD
 SPECS=$(find $PWD -name 'spec.json' | xargs -n1 dirname)
 for SPEC in $SPECS; do
@@ -11,14 +22,8 @@ for SPEC in $SPECS; do
 
 	SRC=$(dirname $(dirname $SPEC))
 	echo "=== codegen $SRC ==="
-	GOPATHS=$(codegen/codegen.php $(basename $SRC) | tee -a /dev/stderr | xargs -n1 dirname | sort | uniq)
-	for FOLDER in $GOPATHS; do
-		if [[ $FOLDER != "." ]]; then
-			echo "== go fmt $FOLDER =="
-			cd $FOLDER
-			go fmt
-			cd $_PWD
-		fi
-	done
+
+	codegen/codegen.php $(basename $SRC) | tee -a /dev/stderr
 done
 
+gofmt
