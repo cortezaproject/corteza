@@ -125,7 +125,11 @@ func (svc message) Create(ctx context.Context, mod *types.Message) (*types.Messa
 
 	mod.UserID = currentUserID
 
-	return svc.rpo.CreateMessage(mod)
+	message, err := svc.rpo.CreateMessage(mod)
+	if err == nil {
+		PubSub().Event(ctx, "new message added")
+	}
+	return message, err
 }
 
 func (svc message) Update(ctx context.Context, mod *types.Message) (*types.Message, error) {
