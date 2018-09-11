@@ -7,13 +7,15 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+
+	"github.com/crusttech/crust/config"
 )
 
-func mountRoutes(r chi.Router, opts *configuration, mounts ...func(r chi.Router)) {
-	if opts.http.logging {
+func mountRoutes(r chi.Router, opts *config.HTTP, mounts ...func(r chi.Router)) {
+	if opts.Logging {
 		r.Use(middleware.Logger)
 	}
-	if opts.http.metrics {
+	if opts.Metrics {
 		r.Use(metrics{}.Middleware("crm"))
 	}
 
@@ -22,14 +24,14 @@ func mountRoutes(r chi.Router, opts *configuration, mounts ...func(r chi.Router)
 	}
 }
 
-func mountSystemRoutes(r chi.Router, opts *configuration) {
-	if opts.http.metrics {
+func mountSystemRoutes(r chi.Router, opts *config.HTTP) {
+	if opts.Metrics {
 		r.Handle("/metrics", metrics{}.Handler())
 	}
 	r.Mount("/debug", middleware.Profiler())
 }
 
-func printRoutes(r chi.Router, opts *configuration) {
+func printRoutes(r chi.Router, opts *config.HTTP) {
 	var printRoutes func(chi.Routes, string, string)
 	printRoutes = func(r chi.Routes, indent string, prefix string) {
 		routes := r.Routes()

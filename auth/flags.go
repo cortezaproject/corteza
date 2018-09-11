@@ -2,56 +2,58 @@ package auth
 
 import (
 	"github.com/pkg/errors"
+
+	"github.com/crusttech/crust/config"
 )
 
 type (
-	configuration struct {
-		http *httpFlags
-		db   *dbFlags
-		jwt  *jwtFlags
+	appFlags struct {
+		http *config.HTTP
+		db   *config.Database
+		jwt  *config.JWT
 	}
 )
 
-var config *configuration
+var flags *appFlags
 
-func (c *configuration) validate() error {
+func (c *appFlags) Validate() error {
 	if c == nil {
-		return errors.New("CRM config is not initialized, need to call Flags() or FullFlags()")
+		return errors.New("AUTH flags are not initialized, need to call Flags() or FullFlags()")
 	}
-	if err := c.http.validate(); err != nil {
+	if err := c.http.Validate(); err != nil {
 		return err
 	}
-	if err := c.db.validate(); err != nil {
+	if err := c.db.Validate(); err != nil {
 		return err
 	}
-	if err := c.jwt.validate(); err != nil {
+	if err := c.jwt.Validate(); err != nil {
 		return err
 	}
 	return nil
 }
 
 func Flags(prefix ...string) {
-	if config != nil {
+	if flags != nil {
 		return
 	}
 	if len(prefix) == 0 {
-		panic("crm.Flags() needs prefix on first call")
+		panic("auth.Flags() needs prefix on first call")
 	}
-	config = &configuration{
-		jwt: new(jwtFlags).flags(prefix...),
+	flags = &appFlags{
+		jwt: new(config.JWT).Init(prefix...),
 	}
 }
 
 func FullFlags(prefix ...string) {
-	if config != nil {
+	if flags != nil {
 		return
 	}
 	if len(prefix) == 0 {
-		panic("crm.Flags() needs prefix on first call")
+		panic("auth.Flags() needs prefix on first call")
 	}
-	config = &configuration{
-		new(httpFlags).flags(prefix...),
-		new(dbFlags).flags(prefix...),
-		new(jwtFlags).flags(prefix...),
+	flags = &appFlags{
+		new(config.HTTP).Init(prefix...),
+		new(config.Database).Init(prefix...),
+		new(config.JWT).Init(prefix...),
 	}
 }

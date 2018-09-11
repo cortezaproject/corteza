@@ -16,13 +16,13 @@ type jwt struct {
 }
 
 func JWT() (*jwt, error) {
-	if err := config.validate(); err != nil {
+	if err := flags.Validate(); err != nil {
 		return nil, err
 	}
 
-	jwt := &jwt{tokenAuth: jwtauth.New("HS256", []byte(config.jwt.secret), nil)}
+	jwt := &jwt{tokenAuth: jwtauth.New("HS256", []byte(flags.jwt.Secret), nil)}
 
-	if config.jwt.debugToken {
+	if flags.jwt.DebugToken {
 		log.Println("DEBUG JWT TOKEN:", jwt.Encode(NewIdentity(1)))
 	}
 
@@ -38,7 +38,7 @@ func (t *jwt) Encode(identity types.Identifiable) string {
 	// @todo Set expiry
 	claims := jwtauth.Claims{}
 	claims.Set("sub", strconv.FormatUint(identity.Identity(), 10))
-	claims.SetExpiryIn(time.Duration(config.jwt.expiry) * time.Minute)
+	claims.SetExpiryIn(time.Duration(flags.jwt.Expiry) * time.Minute)
 
 	_, jwt, _ := t.tokenAuth.Encode(claims)
 	return jwt
