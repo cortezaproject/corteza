@@ -67,7 +67,7 @@ func (eq *eventQueue) feedSessions(ctx context.Context, config *repository.Flags
 
 	// feed events from redis into newMessageEvent channel
 	if config.PubSub.Mode == "redis" {
-		pubsub, err := service.PubSub{}.New(config.PubSub, ctx)
+		pubsub, err := service.PubSub{}.New(ctx)
 		if err != nil {
 			log.Printf("PubSub: Error when starting in mode=redis, %+v\n", err)
 			log.Println("PubSub: Reverting to polling mode")
