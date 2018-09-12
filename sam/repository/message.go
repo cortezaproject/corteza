@@ -69,7 +69,7 @@ func (r *repository) FindMessages(filter *types.MessageFilter) (types.MessageSet
 		params = append(params, filter.UntilMessageID)
 	}
 
-	sql += " ORDER BY id ASC"
+	sql += " ORDER BY id DESC"
 
 	if filter.Limit > 0 {
 		// @todo implement some kind of protection
