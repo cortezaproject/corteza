@@ -7,9 +7,10 @@ import (
 
 type (
 	JWT struct {
-		Secret     string
-		Expiry     int64
-		DebugToken bool
+		Secret       string
+		Expiry       int64
+		DebugToken   bool
+		CookieDomain string
 	}
 )
 
@@ -33,6 +34,7 @@ func (*JWT) Init(prefix ...string) *JWT {
 	jwt := new(JWT)
 	flag.StringVar(&jwt.Secret, "auth-jwt-secret", "", "JWT Secret")
 	flag.Int64Var(&jwt.Expiry, "auth-jwt-expiry", 3600, "JWT Expiration in minutes")
+	flag.StringVar(&jwt.CookieDomain, "auth-jwt-cookie-domain", "", "JWT Cookie domain")
 	flag.BoolVar(&jwt.DebugToken, "auth-jwt-debug", false, "Generate debug JWT key")
 	return jwt
 }

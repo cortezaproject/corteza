@@ -25,10 +25,8 @@ type (
 
 		Create(input *types.User) (*types.User, error)
 		Update(mod *types.User) (*types.User, error)
-		Delete(id uint64) error
-		Suspend(id uint64) error
-		Unsuspend(id uint64) error
 
+		FindOrCreate(email string) (*types.User, error)
 		ValidateCredentials(username, password string) (*types.User, error)
 	}
 )
@@ -70,6 +68,19 @@ func (svc *user) Find(filter *types.UserFilter) ([]*types.User, error) {
 	return svc.repository.FindUsers(filter)
 }
 
+// Finds if user with a specific email exists and returns it otherwise it creates a fresh one
+func (svc *user) FindOrCreate(email string) (user *types.User, err error) {
+	return user, svc.repository.DB().Transaction(func() error {
+		if user, err = svc.repository.FindUserByEmail(email); err != repository.ErrUserNotFound {
+			return err
+		} else if user, err = svc.repository.CreateUser(&types.User{Email: email}); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
 func (svc *user) Create(input *types.User) (user *types.User, err error) {
 	return user, svc.repository.DB().Transaction(func() error {
 		// Encrypt user password
@@ -86,22 +97,4 @@ func (svc *user) Update(mod *types.User) (*types.User, error) {
 
 func (svc *user) canLogin(u *types.User) bool {
 	return u != nil && u.ID > 0 && u.SuspendedAt == nil && u.DeletedAt == nil
-}
-
-func (svc *user) Delete(id uint64) error {
-	// @todo: permissions check if current user can delete this user
-	// @todo: notify users that user has been removed (remove from web UI)
-	return svc.repository.DeleteUserByID(id)
-}
-
-func (svc *user) Suspend(id uint64) error {
-	// @todo: permissions check if current user can suspend this user
-	// @todo: notify users that user has been supsended (remove from web UI)
-	return svc.repository.SuspendUserByID(id)
-}
-
-func (svc *user) Unsuspend(id uint64) error {
-	// @todo: permissions check if current user can unsuspend this user
-	// @todo: notify users that user has been unsuspended
-	return svc.repository.UnsuspendUserByID(id)
 }

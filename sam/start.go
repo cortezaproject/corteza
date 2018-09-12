@@ -13,7 +13,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"github.com/titpetric/factory/resputil"
-	"golang.org/x/oauth2"
 
 	authService "github.com/crusttech/crust/auth/service"
 	"github.com/crusttech/crust/internal/auth"
@@ -74,15 +73,6 @@ func Start() error {
 
 	r := chi.NewRouter()
 	r.Use(handleCORS)
-
-	if oidc, err := OpenIdConnect(ctx, "https://accounts.google.com", oauth2.Config{}); err != nil {
-		return errors.Wrap(err, "Could not initialize OIDC")
-	} else {
-		r.Route("/oidc/satosa", func(r chi.Router) {
-			r.Get("/", oidc.HandleRedirect)
-			r.Get("/callback", oidc.HandleOAuth2Callback)
-		})
-	}
 
 	// Only protect application routes with JWT
 	r.Group(func(r chi.Router) {
