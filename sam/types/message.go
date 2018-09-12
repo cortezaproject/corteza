@@ -1,13 +1,14 @@
 package types
 
 import (
+	"database/sql/driver"
 	"time"
 )
 
 type (
 	Message struct {
 		ID         uint64      `json:"id" db:"id"`
-		Type       string      `json:"type" db:"type"`
+		Type       MessageType `json:"type" db:"type"`
 		Message    string      `json:"message" db:"message"`
 		UserID     uint64      `json:"userId" db:"rel_user"`
 		ChannelID  uint64      `json:"channelId" db:"rel_channel"`
@@ -27,6 +28,15 @@ type (
 		UntilMessageID uint64
 		Limit          uint
 	}
+
+	MessageType string
+)
+
+const (
+	MessageTypeSimpleMessage MessageType = ""
+	MessageTypeChannelEvent  MessageType = "channelEvent"
+	MessageTypeInlineImage   MessageType = "inlineImage"
+	MessageTypeAttachment    MessageType = "attachment"
 )
 
 func (mm MessageSet) Walk(w func(*Message) error) (err error) {
@@ -47,4 +57,42 @@ func (mm MessageSet) FindById(ID uint64) *Message {
 	}
 
 	return nil
+}
+
+func (mtype MessageType) String() string {
+	return string(mtype)
+}
+
+func (mtype MessageType) IsValid() bool {
+	switch mtype {
+	case MessageTypeSimpleMessage,
+		MessageTypeChannelEvent,
+		MessageTypeInlineImage,
+		MessageTypeAttachment:
+		return true
+	}
+
+	return false
+}
+
+//func (mtype *MessageType) Scan(value interface{}) error {
+//	switch value.(type) {
+//	case nil:
+//		*mtype = MessageTypeSimpleMessage
+//	case []uint8:
+//		*mtype = MessageType(string(value.([]uint8)))
+//		if !mtype.IsValid() {
+//			return errors.Errorf("Can not scan %v into MessageType", value)
+//		}
+//	}
+//
+//	return nil
+//}
+
+func (mtype MessageType) Value() (driver.Value, error) {
+	if mtype == MessageTypeSimpleMessage {
+		return nil, nil
+	}
+
+	return mtype.String(), nil
 }

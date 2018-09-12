@@ -11,7 +11,7 @@ import (
 
 func messageService() service.MessageService {
 	// @todo refactor, optimize this
-	store, _ := fstore.New("")
+	store, _ := fstore.New("var/store")
 	attSvc := service.Attachment(store)
 	msgSvc := service.Message(attSvc)
 

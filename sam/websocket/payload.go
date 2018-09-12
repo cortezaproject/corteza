@@ -10,7 +10,7 @@ func payloadFromMessage(msg *types.Message) *outgoing.Message {
 		Message:   msg.Message,
 		ID:        uint64toa(msg.ID),
 		ChannelID: uint64toa(msg.ChannelID),
-		Type:      msg.Type,
+		Type:      string(msg.Type),
 		UserID:    uint64toa(msg.UserID),
 		ReplyTo:   uint64toa(msg.ReplyTo),
 
