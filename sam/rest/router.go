@@ -12,7 +12,7 @@ import (
 
 func MountRoutes(jwtAuth types.TokenEncoder) func(chi.Router) {
 	// Initialize services
-	fs, err := store.New("/tmp/crust/messages")
+	fs, err := store.New("var/store")
 	if err != nil {
 		log.Fatalf("Failed to initialize stor: %v", err)
 	}
@@ -37,7 +37,14 @@ func MountRoutes(jwtAuth types.TokenEncoder) func(chi.Router) {
 
 	// Initialize handers & controllers.
 	return func(r chi.Router) {
-		handlers.NewAuth(Auth{}.New(userSvc, jwtAuth)).MountRoutes(r)
+		// Cookie expiration in minutes
+		// @todo pull this from auth/jwt config
+		var cookieExp = 3600
+
+		handlers.NewAuthCustom(Auth{}.New(userSvc, jwtAuth), cookieExp).MountRoutes(r)
+
+		// @todo solve cookie issues (
+		handlers.NewAttachmentDownloadable(attachment).MountRoutes(r)
 
 		// Protect all _private_ routes
 		r.Group(func(r chi.Router) {
@@ -48,7 +55,6 @@ func MountRoutes(jwtAuth types.TokenEncoder) func(chi.Router) {
 			handlers.NewOrganisation(organisation).MountRoutes(r)
 			handlers.NewTeam(team).MountRoutes(r)
 			handlers.NewUser(user).MountRoutes(r)
-			handlers.NewAttachment(attachment).MountRoutes(r)
 		})
 	}
 }
