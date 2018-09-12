@@ -9,8 +9,8 @@ import (
 type (
 	User struct {
 		ID             uint64          `json:"id" db:"id"`
-		Username       string          `json:"username" db:"username"`
 		Email          string          `json:"email" db:"email"`
+		Username       string          `json:"username" db:"username"`
 		Meta           json.RawMessage `json:"-" db:"meta"`
 		OrganisationID uint64          `json:"organisationId" db:"rel_organisation"`
 		Password       []byte          `json:"-" db:"password"`

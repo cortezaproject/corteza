@@ -10,6 +10,8 @@ type (
 	appFlags struct {
 		http *config.HTTP
 		db   *config.Database
+		jwt  *config.JWT
+		oidc *config.OIDC
 	}
 )
 
@@ -25,6 +27,12 @@ func (c *appFlags) Validate() error {
 	if err := c.db.Validate(); err != nil {
 		return err
 	}
+	if err := c.jwt.Validate(); err != nil {
+		return err
+	}
+	if err := c.oidc.Validate(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -38,5 +46,7 @@ func Flags(prefix ...string) {
 	flags = &appFlags{
 		new(config.HTTP).Init(prefix...),
 		new(config.Database).Init(prefix...),
+		new(config.JWT).Init(prefix...),
+		new(config.OIDC).Init(prefix...),
 	}
 }

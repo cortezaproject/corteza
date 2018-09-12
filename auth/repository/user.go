@@ -17,6 +17,7 @@ type (
 
 		With(context.Context) User
 
+		FindUserByEmail(email string) (*types.User, error)
 		FindUserByUsername(username string) (*types.User, error)
 		FindUserByID(id uint64) (*types.User, error)
 		FindUsers(filter *types.UserFilter) ([]*types.User, error)
@@ -50,6 +51,13 @@ func (r *user) FindUserByUsername(username string) (*types.User, error) {
 	mod := &types.User{}
 
 	return mod, isFound(r.db().Get(mod, sql, username), mod.ID > 0, ErrUserNotFound)
+}
+
+func (r *user) FindUserByEmail(email string) (*types.User, error) {
+	sql := "SELECT * FROM users WHERE email = ? AND " + sqlUserScope
+	mod := &types.User{}
+
+	return mod, isFound(r.db().Get(mod, sql, email), mod.ID > 0, ErrUserNotFound)
 }
 
 func (r *user) FindUserByID(id uint64) (*types.User, error) {

@@ -52,6 +52,7 @@ CREATE TABLE channels (
 --   changes are stored in audit log
 CREATE TABLE users (
   id               BIGINT UNSIGNED NOT NULL,
+  email            TEXT            NOT NULL,
   username         TEXT            NOT NULL,
   password         TEXT,
   meta             JSON            NOT NULL,

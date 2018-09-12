@@ -11,7 +11,9 @@ import (
 )
 
 type jwt struct {
-	tokenAuth *jwtauth.JWTAuth
+	expiry       int64
+	cookieDomain string
+	tokenAuth    *jwtauth.JWTAuth
 }
 
 func JWT() (*jwt, error) {
@@ -19,7 +21,11 @@ func JWT() (*jwt, error) {
 		return nil, err
 	}
 
-	jwt := &jwt{tokenAuth: jwtauth.New("HS256", []byte(flags.jwt.Secret), nil)}
+	jwt := &jwt{
+		expiry:       flags.jwt.Expiry,
+		cookieDomain: flags.jwt.CookieDomain,
+		tokenAuth:    jwtauth.New("HS256", []byte(flags.jwt.Secret), nil),
+	}
 
 	if flags.jwt.DebugToken {
 		log.Println("DEBUG JWT TOKEN:", jwt.Encode(NewIdentity(1)))
@@ -34,10 +40,9 @@ func (t *jwt) Verifier() func(http.Handler) http.Handler {
 }
 
 func (t *jwt) Encode(identity Identifiable) string {
-	// @todo Set expiry
 	claims := jwtauth.Claims{}
 	claims.Set("sub", strconv.FormatUint(identity.Identity(), 10))
-	claims.SetExpiryIn(time.Duration(flags.jwt.Expiry) * time.Minute)
+	claims.SetExpiryIn(time.Duration(t.expiry) * time.Minute)
 
 	_, jwt, _ := t.tokenAuth.Encode(claims)
 	return jwt
@@ -61,4 +66,19 @@ func (t *jwt) Authenticator() func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+// Extracts and authenticates JWT from context, validates claims
+func (t *jwt) SetToCookie(w http.ResponseWriter, r *http.Request, identity Identifiable) {
+	// Store state to cookie as well
+	http.SetCookie(w, &http.Cookie{
+		Name:  "jwt",
+		Value: t.Encode(identity),
+
+		Expires: time.Now().Add(time.Duration(t.expiry) * time.Minute),
+		Domain:  t.cookieDomain,
+
+		Secure: r.URL.Scheme == "https",
+		Path:   "/",
+	})
 }

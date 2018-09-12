@@ -7,13 +7,13 @@ import (
 	"net/http"
 
 	"github.com/SentimensRG/ctx/sigctx"
+	"github.com/crusttech/crust/auth/rest"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"github.com/titpetric/factory/resputil"
 
-	"github.com/crusttech/crust/auth/rest"
 	"github.com/crusttech/crust/internal/auth"
 )
 
@@ -70,7 +70,7 @@ func Start() error {
 	// Only protect application routes with JWT
 	r.Group(func(r chi.Router) {
 		r.Use(jwtAuth.Verifier(), jwtAuth.Authenticator())
-		mountRoutes(r, flags.http, rest.MountRoutes(jwtAuth))
+		mountRoutes(r, flags.http, rest.MountRoutes(flags.oidc, jwtAuth))
 	})
 
 	printRoutes(r, flags.http)
