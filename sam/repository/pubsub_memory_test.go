@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/crusttech/crust/config"
+	"github.com/crusttech/crust/internal/config"
 )
 
 func TestPubSubMemory(t *testing.T) {

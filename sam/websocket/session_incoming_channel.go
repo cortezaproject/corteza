@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"context"
-	"github.com/crusttech/crust/auth"
+	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/crusttech/crust/sam/websocket/incoming"

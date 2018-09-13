@@ -2,10 +2,13 @@ package rest
 
 import (
 	"context"
+
+	"github.com/pkg/errors"
+
 	"github.com/crusttech/crust/auth/rest/request"
 	"github.com/crusttech/crust/auth/service"
 	"github.com/crusttech/crust/auth/types"
-	"github.com/pkg/errors"
+	"github.com/crusttech/crust/internal/auth"
 )
 
 var _ = errors.Wrap
@@ -13,11 +16,11 @@ var _ = errors.Wrap
 type (
 	Auth struct {
 		user  service.UserService
-		token types.TokenEncoder
+		token auth.TokenEncoder
 	}
 )
 
-func (Auth) New(credValidator service.UserService, tknEncoder types.TokenEncoder) *Auth {
+func (Auth) New(credValidator service.UserService, tknEncoder auth.TokenEncoder) *Auth {
 	return &Auth{
 		credValidator,
 		tknEncoder,

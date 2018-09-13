@@ -6,19 +6,17 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/go-chi/chi"
-	"github.com/pkg/errors"
-
 	"github.com/SentimensRG/ctx"
 	"github.com/SentimensRG/ctx/sigctx"
-
-	"github.com/crusttech/crust/auth"
-	"github.com/crusttech/crust/sam/rest"
-	"github.com/crusttech/crust/sam/websocket"
-
+	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
+	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"github.com/titpetric/factory/resputil"
+
+	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/sam/rest"
+	"github.com/crusttech/crust/sam/websocket"
 )
 
 func Init() error {

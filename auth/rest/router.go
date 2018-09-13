@@ -1,13 +1,14 @@
 package rest
 
 import (
+	"github.com/go-chi/chi"
+
 	"github.com/crusttech/crust/auth/rest/handlers"
 	"github.com/crusttech/crust/auth/service"
-	"github.com/crusttech/crust/auth/types"
-	"github.com/go-chi/chi"
+	"github.com/crusttech/crust/internal/auth"
 )
 
-func MountRoutes(jwtAuth types.TokenEncoder) func(chi.Router) {
+func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 	var userSvc = service.User()
 
 	// Initialize handers & controllers.

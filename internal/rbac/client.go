@@ -11,6 +11,8 @@ import (
 	"net/http/httputil"
 	"strings"
 	"time"
+
+	"github.com/crusttech/crust/internal/config"
 )
 
 var _ = tls.Config{}
@@ -21,7 +23,7 @@ type (
 		Client    *http.Client
 
 		debugLevel string
-		config     configuration
+		config     *config.RBAC
 	}
 
 	ClientInterface interface {
@@ -40,11 +42,11 @@ func (c *Client) Sessions() *Sessions   { return &Sessions{c} }
 var _ ClientInterface = &Client{}
 
 func New() (*Client, error) {
-	if err := config.validate(); err != nil {
+	if err := flags.Validate(); err != nil {
 		return nil, err
 	}
 
-	timeout := time.Duration(config.timeout) * time.Second
+	timeout := time.Duration(flags.Timeout) * time.Second
 
 	transport := &http.Transport{
 		Dial: (&net.Dialer{
@@ -64,7 +66,7 @@ func New() (*Client, error) {
 	return &Client{
 		Transport: transport,
 		Client:    client,
-		config:    config,
+		config:    flags,
 	}, nil
 }
 
@@ -90,7 +92,7 @@ func (c *Client) Delete(url string) (*http.Response, error) {
 }
 
 func (c *Client) Request(method, url string, body interface{}) (*http.Response, error) {
-	link := strings.TrimRight(c.config.baseURL, "/") + "/" + strings.TrimLeft(url, "/")
+	link := strings.TrimRight(c.config.BaseURL, "/") + "/" + strings.TrimLeft(url, "/")
 
 	if c.debugLevel == "info" {
 		fmt.Println("RBAC >>>", method, link)
@@ -113,9 +115,10 @@ func (c *Client) Request(method, url string, body interface{}) (*http.Response, 
 	}
 
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(c.config.auth)))
-	// req.Header.Add("X-TENANT-ID", c.config.tenant)
-	req.Header["X-TENANT-ID"] = []string{c.config.tenant}
+	req.Header.Add("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(c.config.Auth)))
+	// @todo: DAASI should fix this according to standards
+	// req.Header.Add("X-TENANT-ID", c.config.Tenant)
+	req.Header["X-TENANT-ID"] = []string{c.config.Tenant}
 
 	if c.debugLevel == "debug" {
 		fmt.Println("RBAC >>> (request)")

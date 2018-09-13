@@ -8,7 +8,8 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 
-	"github.com/crusttech/crust/config"
+	"github.com/crusttech/crust/internal/config"
+	"github.com/crusttech/crust/internal/metrics"
 )
 
 func mountRoutes(r chi.Router, opts *config.HTTP, mounts ...func(r chi.Router)) {
@@ -16,7 +17,7 @@ func mountRoutes(r chi.Router, opts *config.HTTP, mounts ...func(r chi.Router)) 
 		r.Use(middleware.Logger)
 	}
 	if opts.Metrics {
-		r.Use(metrics{}.Middleware("crm"))
+		r.Use(metrics.Middleware("crm"))
 	}
 
 	for _, mount := range mounts {
@@ -26,7 +27,7 @@ func mountRoutes(r chi.Router, opts *config.HTTP, mounts ...func(r chi.Router)) 
 
 func mountSystemRoutes(r chi.Router, opts *config.HTTP) {
 	if opts.Metrics {
-		r.Handle("/metrics", metrics{}.Handler())
+		r.Handle("/metrics", metrics.Handler())
 	}
 	r.Mount("/debug", middleware.Profiler())
 }

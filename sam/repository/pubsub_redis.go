@@ -6,7 +6,7 @@ import (
 
 	"github.com/gomodule/redigo/redis"
 
-	"github.com/crusttech/crust/config"
+	"github.com/crusttech/crust/internal/config"
 )
 
 type PubSubRedis struct {

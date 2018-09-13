@@ -1,7 +1,7 @@
 package rbac_test
 
 import (
-	"github.com/crusttech/crust/rbac"
+	"github.com/crusttech/crust/internal/rbac"
 	"github.com/namsral/flag"
 	"testing"
 )

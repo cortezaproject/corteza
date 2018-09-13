@@ -2,11 +2,13 @@ package websocket
 
 import (
 	"context"
+
 	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/crusttech/crust/sam/websocket/incoming"
 	"github.com/crusttech/crust/sam/websocket/outgoing"
-	fstore "github.com/crusttech/crust/store"
+
+	fstore "github.com/crusttech/crust/internal/store"
 )
 
 func messageService() service.MessageService {

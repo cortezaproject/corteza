@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/crusttech/crust/config"
+	"github.com/crusttech/crust/internal/config"
 )
 
 type (

@@ -1,16 +1,16 @@
 package rest
 
 import (
-	"github.com/crusttech/crust/auth"
-	"github.com/crusttech/crust/auth/types"
-	"github.com/crusttech/crust/sam/rest/handlers"
-	"github.com/crusttech/crust/sam/service"
-	"github.com/crusttech/crust/store"
 	"github.com/go-chi/chi"
 	"log"
+
+	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/store"
+	"github.com/crusttech/crust/sam/rest/handlers"
+	"github.com/crusttech/crust/sam/service"
 )
 
-func MountRoutes(jwtAuth types.TokenEncoder) func(chi.Router) {
+func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 	// Initialize services
 	fs, err := store.New("var/store")
 	if err != nil {

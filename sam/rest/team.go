@@ -2,10 +2,12 @@ package rest
 
 import (
 	"context"
+
+	"github.com/pkg/errors"
+
 	"github.com/crusttech/crust/sam/rest/request"
 	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
-	"github.com/pkg/errors"
 )
 
 var _ = errors.Wrap
