@@ -1,9 +1,9 @@
 package rest
 
 import (
-	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/crm/rest/handlers"
 	"github.com/crusttech/crust/crm/service"
+	"github.com/crusttech/crust/internal/auth"
 	"github.com/go-chi/chi"
 )
 

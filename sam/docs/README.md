@@ -293,7 +293,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | channelID | uint64 | PATH | Channel ID | N/A | YES |
 
-## Join channel
+## List channel members
 
 #### Method
 
@@ -313,13 +313,14 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelID}/members/{userID}` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelID}/members/{userID}/join` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | channelID | uint64 | PATH | Channel ID | N/A | YES |
+| userID | uint64 | PATH | Member ID | N/A | NO |
 
 ## Remove member from channel
 
@@ -327,14 +328,14 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelID}/members/{userID}` | HTTP/S | DELETE | Client ID, Session ID |
+| `/channels/{channelID}/members/{userID}/part` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | channelID | uint64 | PATH | Channel ID | N/A | YES |
-| userID | uint64 | PATH | Member ID | N/A | YES |
+| userID | uint64 | PATH | Member ID | N/A | NO |
 
 ## Join channel
 

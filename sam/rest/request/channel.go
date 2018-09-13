@@ -316,6 +316,7 @@ var _ RequestFiller = NewChannelMembers()
 // Channel join request parameters
 type ChannelJoin struct {
 	ChannelID uint64
+	UserID    uint64
 }
 
 func NewChannelJoin() *ChannelJoin {
@@ -349,6 +350,7 @@ func (c *ChannelJoin) Fill(r *http.Request) error {
 	}
 
 	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	c.UserID = parseUInt64(chi.URLParam(r, "userID"))
 
 	return err
 }
