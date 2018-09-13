@@ -261,7 +261,7 @@
               "name": "members",
               "method": "GET",
               "path": "/{channelID}/members",
-              "title": "Join channel",
+              "title": "List channel members",
               "parameters": {
                 "path": [
                   { "name": "channelID", "type": "uint64", "required": true, "title": "Channel ID" }
@@ -271,23 +271,24 @@
             {
               "name": "join",
               "method": "POST",
-              "path": "/{channelID}/members/{userID}",
+              "path": "/{channelID}/members/{userID}/join",
               "title": "Join channel",
               "parameters": {
                 "path": [
-                  { "name": "channelID", "type": "uint64", "required": true, "title": "Channel ID" }
+                  { "name": "channelID", "type": "uint64", "required": true, "title": "Channel ID" },
+                  { "name": "userID",    "type": "uint64", "required": false, "title": "Member ID" }
                 ]
               }
             },
             {
               "name": "part",
               "method": "DELETE",
-              "path": "/{channelID}/members/{userID}",
+              "path": "/{channelID}/members/{userID}/part",
               "title": "Remove member from channel",
               "parameters": {
                 "path": [
-                  { "name": "channelID",     "type": "uint64", "required": true, "title": "Channel ID" },
-                  { "name": "userID",        "type": "uint64", "required": true, "title": "Member ID" }
+                  { "name": "channelID", "type": "uint64", "required": true, "title": "Channel ID" },
+                  { "name": "userID",    "type": "uint64", "required": false, "title": "Member ID" }
                 ]
               }
             },
