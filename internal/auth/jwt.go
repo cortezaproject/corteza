@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/crusttech/crust/auth/types"
 	"github.com/go-chi/jwtauth"
 	"github.com/titpetric/factory/resputil"
 )
@@ -34,7 +33,7 @@ func (t *jwt) Verifier() func(http.Handler) http.Handler {
 	return jwtauth.Verifier(t.tokenAuth)
 }
 
-func (t *jwt) Encode(identity types.Identifiable) string {
+func (t *jwt) Encode(identity Identifiable) string {
 	// @todo Set expiry
 	claims := jwtauth.Claims{}
 	claims.Set("sub", strconv.FormatUint(identity.Identity(), 10))

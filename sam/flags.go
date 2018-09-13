@@ -3,7 +3,7 @@ package sam
 import (
 	"github.com/pkg/errors"
 
-	"github.com/crusttech/crust/config"
+	"github.com/crusttech/crust/internal/config"
 	"github.com/crusttech/crust/sam/repository"
 )
 

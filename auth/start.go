@@ -6,16 +6,15 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/go-chi/chi"
-	"github.com/pkg/errors"
-
 	"github.com/SentimensRG/ctx/sigctx"
-
-	"github.com/crusttech/crust/auth/rest"
-
+	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
+	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"github.com/titpetric/factory/resputil"
+
+	"github.com/crusttech/crust/auth/rest"
+	"github.com/crusttech/crust/internal/auth"
 )
 
 func Init() error {
@@ -51,7 +50,7 @@ func Init() error {
 }
 
 func Start() error {
-	var ctx = sigctx.New()
+	var deadline = sigctx.New()
 
 	log.Println("Starting http server on address " + flags.http.Addr)
 	listener, err := net.Listen("tcp", flags.http.Addr)
@@ -60,7 +59,7 @@ func Start() error {
 	}
 
 	// JWT Auth
-	jwtAuth, err := JWT()
+	jwtAuth, err := auth.JWT()
 	if err != nil {
 		return errors.Wrap(err, "Error creating JWT Auth object")
 	}
@@ -78,7 +77,7 @@ func Start() error {
 	mountSystemRoutes(r, flags.http)
 
 	go http.Serve(listener, r)
-	<-ctx.Done()
+	<-deadline.Done()
 
 	return nil
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/crusttech/crust/auth/types"
 	"github.com/go-chi/jwtauth"
 	"github.com/pkg/errors"
 )
@@ -36,12 +35,12 @@ func getIdentityClaimFromContext(ctx context.Context) (uint64, error) {
 	}
 }
 
-func SetIdentityToContext(ctx context.Context, identity types.Identifiable) context.Context {
+func SetIdentityToContext(ctx context.Context, identity Identifiable) context.Context {
 	return context.WithValue(ctx, identityCtxKey, identity)
 }
 
-func GetIdentityFromContext(ctx context.Context) types.Identifiable {
-	if identity, ok := ctx.Value(identityCtxKey).(types.Identifiable); ok {
+func GetIdentityFromContext(ctx context.Context) Identifiable {
+	if identity, ok := ctx.Value(identityCtxKey).(Identifiable); ok {
 		return identity
 	} else {
 		return NewIdentity(0)

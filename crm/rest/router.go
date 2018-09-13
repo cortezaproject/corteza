@@ -1,14 +1,13 @@
 package rest
 
 import (
-	"github.com/crusttech/crust/auth"
-	"github.com/crusttech/crust/auth/types"
+	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/crm/rest/handlers"
 	"github.com/crusttech/crust/crm/service"
 	"github.com/go-chi/chi"
 )
 
-func MountRoutes(jwtAuth types.TokenEncoder) func(chi.Router) {
+func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 	var (
 		fieldSvc   = service.Field()
 		moduleSvc  = service.Module()

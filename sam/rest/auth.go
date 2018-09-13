@@ -2,7 +2,7 @@ package rest
 
 import (
 	"context"
-	auth "github.com/crusttech/crust/auth/types"
+	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/sam/rest/request"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/pkg/errors"

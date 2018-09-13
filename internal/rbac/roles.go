@@ -3,7 +3,7 @@ package rbac
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/crusttech/crust/rbac/types"
+	"github.com/crusttech/crust/internal/rbac/types"
 	"github.com/pkg/errors"
 	"strings"
 )

@@ -19,6 +19,9 @@ func (c *Websocket) Validate() error {
 }
 
 func (*Websocket) Init(prefix ...string) *Websocket {
+	if websocket != nil {
+		return websocket
+	}
 	websocket = new(Websocket)
 	websocket.Timeout = 15 * time.Second
 	websocket.PingTimeout = 120 * time.Second

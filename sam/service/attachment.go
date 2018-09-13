@@ -3,10 +3,10 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/crusttech/crust/auth"
+	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
-	"github.com/crusttech/crust/store"
+	"github.com/crusttech/crust/internal/store"
 	"github.com/titpetric/factory"
 	"io"
 	"log"
