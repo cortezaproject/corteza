@@ -12,10 +12,7 @@ import (
 type (
 	channel struct {
 		rpo channelRepository
-		//
-		//sec struct {
-		//	ch channelSecurity
-		//}
+		usr UserService
 	}
 
 	ChannelService interface {
@@ -43,6 +40,7 @@ func Channel() *channel {
 	var svc = &channel{}
 
 	svc.rpo = repository.New()
+	svc.usr = User()
 	//svc.sec.ch = ChannelSecurity(svc.rpo)
 
 	return svc
@@ -63,8 +61,11 @@ func (svc channel) FindByID(ctx context.Context, id uint64) (ch *types.Channel, 
 
 func (svc channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*types.Channel, error) {
 	// @todo: permission check to return only channels that channel has access to
-	// @todo: actual searching not just a full select
-	return svc.rpo.FindChannels(filter)
+	if cc, err := svc.rpo.FindChannels(filter); err != nil {
+		return nil, err
+	} else {
+		return cc, svc.usr.LoadFromChannels(ctx, cc)
+	}
 }
 
 // Returns all channels with membership info

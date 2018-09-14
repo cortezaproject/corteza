@@ -5,6 +5,7 @@ import (
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 )
 
@@ -84,7 +85,7 @@ func (svc message) Direct(ctx context.Context, recipientID uint64, in *types.Mes
 		dch, err := r.FindDirectChannelByUserID(currentUserID, recipientID)
 		if err == repository.ErrChannelNotFound {
 			dch, err = r.CreateChannel(&types.Channel{
-				Type: types.ChannelTypeGroup,
+				Type: types.ChannelTypeDirect,
 			})
 
 			if err != nil {
@@ -94,10 +95,12 @@ func (svc message) Direct(ctx context.Context, recipientID uint64, in *types.Mes
 			membership := &types.ChannelMember{ChannelID: dch.ID, Type: types.ChannelMembershipTypeOwner}
 
 			membership.UserID = currentUserID
+			spew.Dump(membership)
 			if _, err = r.AddChannelMember(membership); err != nil {
 				return
 			}
 
+			spew.Dump(membership)
 			membership.UserID = recipientID
 			if _, err = r.AddChannelMember(membership); err != nil {
 				return
@@ -110,6 +113,9 @@ func (svc message) Direct(ctx context.Context, recipientID uint64, in *types.Mes
 		// Make sure our message is sent to the right channel
 		in.ChannelID = dch.ID
 		in.UserID = currentUserID
+		in.Type = types.MessageTypeSimpleMessage
+
+		spew.Dump(in)
 
 		// @todo send new msg to the event-loop
 		out, err = r.CreateMessage(in)

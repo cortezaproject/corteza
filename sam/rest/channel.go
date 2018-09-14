@@ -44,6 +44,7 @@ func (ctrl *Channel) Create(ctx context.Context, r *request.ChannelCreate) (inte
 
 func (ctrl *Channel) Edit(ctx context.Context, r *request.ChannelEdit) (interface{}, error) {
 	channel := &types.Channel{
+		ID:    r.ChannelID,
 		Name:  r.Name,
 		Topic: r.Topic,
 	}

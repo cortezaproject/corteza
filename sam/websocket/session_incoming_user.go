@@ -6,7 +6,7 @@ import (
 	"github.com/crusttech/crust/sam/websocket/incoming"
 )
 
-func (s *Session) userList(ctx context.Context, p *incoming.UserList) error {
+func (s *Session) userList(ctx context.Context, p *incoming.Users) error {
 	users, err := service.User().Find(ctx, nil)
 	if err != nil {
 		return err

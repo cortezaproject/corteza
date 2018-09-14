@@ -2,22 +2,21 @@ package incoming
 
 type Payload struct {
 	// Channel actions
-	*ChannelList `json:"chlist"`
-	*ChannelJoin `json:"chjoin"`
-	*ChannelPart `json:"chpart"`
+	*Channels    `json:"channels"`
+	*ChannelJoin `json:"joinChannel"`
+	*ChannelPart `json:"partChannel"`
 
-	*ChannelChangeTopic `json:"chct"`
-	*ChannelRename      `json:"chrn"`
-	*ChannelCreate      `json:"chcr"`
-	*ChannelDelete      `json:"chdel"`
+	*ChannelCreate `json:"createChannel"`
+	*ChannelUpdate `json:"updateChannel"`
+	*ChannelDelete `json:"deleteChannel"`
 
 	// Get channel message history
-	*MessageHistory `json:"chopen"`
+	*Messages `json:"messages"`
 
 	// Message actions
-	*MessageCreate `json:"msgcre"`
-	*MessageUpdate `json:"msgupd"`
-	*MessageDelete `json:"msgdel"`
+	*MessageCreate `json:"createMessage"`
+	*MessageUpdate `json:"updateMessage"`
+	*MessageDelete `json:"deleteMessage"`
 
-	*UserList `json:"users"`
+	*Users `json:"getUsers"`
 }

@@ -18,6 +18,7 @@ type (
 
 	UserService interface {
 		Find(ctx context.Context, filter *types.UserFilter) ([]*types.User, error)
+		LoadFromChannels(ctx context.Context, cc types.ChannelSet) (err error)
 	}
 
 	userRepository interface {
@@ -50,6 +51,14 @@ func (svc user) ValidateCredentials(ctx context.Context, username, password stri
 
 func (svc user) FindByID(ctx context.Context, id uint64) (*types.User, error) {
 	return svc.rpo.WithCtx(ctx).FindUserByID(id)
+}
+
+func (svc user) LoadFromChannels(ctx context.Context, cc types.ChannelSet) (err error) {
+	return cc.Walk(func(c *types.Channel) error {
+		// @todo doing N selects (one per chan) for now, optimize!
+		c.Members, err = svc.rpo.FindUsers(&types.UserFilter{MembersOfChannel: c.ID})
+		return err
+	})
 }
 
 func (svc user) Find(ctx context.Context, filter *types.UserFilter) ([]*types.User, error) {
