@@ -1,7 +1,7 @@
 package incoming
 
 type (
-	ChannelList struct{}
+	Channels struct{}
 
 	ChannelJoin struct {
 		ChannelID string `json:"id"`
@@ -12,18 +12,16 @@ type (
 	}
 
 	ChannelCreate struct {
-		Name  string `json:"name"`
-		Topic string `json:"topic"`
+		Name  *string `json:"name"`
+		Topic *string `json:"topic"`
+		Type  *string `json:"type"`
 	}
 
-	ChannelRename struct {
-		ChannelID string `json:"id"`
-		Name      string `json:"name"`
-	}
-
-	ChannelChangeTopic struct {
-		ChannelID string `json:"id"`
-		Topic     string `json:"topic"`
+	ChannelUpdate struct {
+		ID    string  `json:"id"`
+		Name  *string `json:"name"`
+		Topic *string `json:"topic"`
+		Type  *string `json:"type"`
 	}
 
 	ChannelDelete struct {

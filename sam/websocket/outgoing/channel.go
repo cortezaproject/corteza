@@ -34,7 +34,9 @@ type (
 		ID            string `json:"id"`
 		Name          string `json:"name"`
 		Topic         string `json:"topic"`
+		Type          string `json:"type"`
 		LastMessageID string `json:"lastMessageId"`
+		Members       *Users `json:"members,omitempty"`
 	}
 
 	Channels []*Channel

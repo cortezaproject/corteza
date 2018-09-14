@@ -1,9 +1,10 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/crusttech/crust/sam/types"
 	"github.com/titpetric/factory"
-	"time"
 )
 
 type (
@@ -34,7 +35,7 @@ const (
 
 	sqlChannelDirect = `SELECT *
         FROM channels AS c
-       WHERE c.type = 'group' 
+       WHERE c.type = ? 
          AND c.id IN (SELECT rel_channel 
                         FROM channel_members 
                        GROUP BY rel_channel
@@ -71,10 +72,12 @@ func (r *repository) FindDirectChannelByUserID(fromUserID, toUserID uint64) (*ty
 		toUserID, fromUserID = fromUserID, toUserID
 	}
 
-	return mod, isFound(r.db().Get(mod, sqlChannelDirect, fromUserID, toUserID), mod.ID > 0, ErrChannelNotFound)
+	return mod, isFound(r.db().Get(mod, sqlChannelDirect, types.ChannelTypeDirect, fromUserID, toUserID), mod.ID > 0, ErrChannelNotFound)
 }
 
 func (r *repository) FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error) {
+	// @todo: actual searching (filter.Query) not just a full select
+
 	params := make([]interface{}, 0)
 	rval := make([]*types.Channel, 0)
 

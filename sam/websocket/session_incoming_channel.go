@@ -43,8 +43,8 @@ func (s *Session) channelPart(ctx context.Context, p *incoming.ChannelPart) erro
 	return nil
 }
 
-func (s *Session) channelList(ctx context.Context, p *incoming.ChannelList) error {
-	channels, err := service.Channel().Find(ctx, nil)
+func (s *Session) channelList(ctx context.Context, p *incoming.Channels) error {
+	channels, err := service.Channel().Find(ctx, &types.ChannelFilter{IncludeMembers: true})
 	if err != nil {
 		return err
 	}
@@ -54,9 +54,19 @@ func (s *Session) channelList(ctx context.Context, p *incoming.ChannelList) erro
 
 func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) (err error) {
 	ch := &types.Channel{
-		Type:  types.ChannelTypePublic,
-		Name:  p.Name,
-		Topic: p.Topic,
+		Type: types.ChannelTypePublic,
+	}
+
+	if p.Name != nil {
+		ch.Name = *p.Name
+	}
+
+	if p.Topic != nil {
+		ch.Topic = *p.Topic
+	}
+
+	if p.Type != nil {
+		ch.Type = types.ChannelType(*p.Type)
 	}
 
 	ch, err = service.Channel().Create(ctx, ch)
@@ -91,44 +101,28 @@ func (s *Session) channelDelete(ctx context.Context, p *incoming.ChannelDelete) 
 	}, p.ChannelID)
 }
 
-func (s *Session) channelRename(ctx context.Context, p *incoming.ChannelRename) error {
-	ch, err := service.Channel().FindByID(ctx, parseUInt64(p.ChannelID))
+func (s *Session) channelUpdate(ctx context.Context, p *incoming.ChannelUpdate) error {
+	ch, err := service.Channel().FindByID(ctx, parseUInt64(p.ID))
 	if err != nil {
 		return err
 	}
 
-	if ch.Name == p.Name {
-		// No changes, ignore
-		return nil
+	if p.Name != nil {
+		ch.Name = *p.Name
 	}
 
-	ch.Name = p.Name
+	if p.Topic != nil {
+		ch.Topic = *p.Topic
+	}
+
+	if p.Type != nil {
+		ch.Type = types.ChannelType(*p.Type)
+	}
 
 	ch, err = service.Channel().Update(ctx, ch)
 	if err != nil {
 		return err
 	}
 
-	return s.sendToAllSubscribers(payloadFromChannel(ch), p.ChannelID)
-}
-
-func (s *Session) channelChangeTopic(ctx context.Context, p *incoming.ChannelChangeTopic) error {
-	ch, err := service.Channel().FindByID(ctx, parseUInt64(p.ChannelID))
-	if err != nil {
-		return err
-	}
-
-	if ch.Topic == p.Topic {
-		// No changes, ignore
-		return nil
-	}
-
-	ch.Topic = p.Topic
-
-	ch, err = service.Channel().Update(ctx, ch)
-	if err != nil {
-		return err
-	}
-
-	return s.sendToAllSubscribers(payloadFromChannel(ch), p.ChannelID)
+	return s.sendToAllSubscribers(payloadFromChannel(ch), p.ID)
 }

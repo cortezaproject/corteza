@@ -69,7 +69,7 @@ func (s *Session) messageDelete(ctx context.Context, p *incoming.MessageDelete) 
 	return s.sendToAllSubscribers(&outgoing.MessageDelete{ID: p.ID}, p.ChannelID)
 }
 
-func (s *Session) messageHistory(ctx context.Context, p *incoming.MessageHistory) error {
+func (s *Session) messageHistory(ctx context.Context, p *incoming.Messages) error {
 	var (
 		filter = &types.MessageFilter{
 			ChannelID:      parseUInt64(p.ChannelID),

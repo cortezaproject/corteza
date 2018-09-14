@@ -23,7 +23,19 @@ type (
 		Query            string
 		MembersOfChannel uint64
 	}
+
+	UserSet []*User
 )
+
+func (uu UserSet) Walk(w func(*User) error) (err error) {
+	for i := range uu {
+		if err = w(uu[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
 
 func (u *User) Valid() bool {
 	return u.ID > 0 && u.SuspendedAt == nil && u.DeletedAt == nil

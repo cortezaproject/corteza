@@ -23,7 +23,8 @@ type (
 
 		LastMessageID uint64 `json:",omitempty" db:"rel_last_message"`
 
-		Member *ChannelMember `json:"-" db:"-"`
+		Member  *ChannelMember `json:"-" db:"-"`
+		Members []*User        `json:"-" db:"-"`
 	}
 
 	ChannelMember struct {
@@ -37,12 +38,25 @@ type (
 	}
 
 	ChannelFilter struct {
-		Query string
+		Query          string
+		IncludeMembers bool
 	}
 
 	ChannelMembershipType string
 	ChannelType           string
+
+	ChannelSet []*Channel
 )
+
+func (cc ChannelSet) Walk(w func(*Channel) error) (err error) {
+	for i := range cc {
+		if err = w(cc[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
 
 const (
 	ChannelMembershipTypeOwner  ChannelMembershipType = "owner"
@@ -51,4 +65,5 @@ const (
 	ChannelTypePublic  ChannelType = "public"
 	ChannelTypePrivate             = "private"
 	ChannelTypeGroup               = "group"
+	ChannelTypeDirect              = "direct"
 )

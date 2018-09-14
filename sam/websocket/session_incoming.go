@@ -3,6 +3,7 @@ package websocket
 import (
 	"encoding/json"
 	"github.com/crusttech/crust/sam/websocket/incoming"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 )
 
@@ -11,6 +12,8 @@ func (s *Session) dispatch(raw []byte) (err error) {
 	if err = json.Unmarshal(raw, p); err != nil {
 		return errors.Wrap(err, "Session.incoming: payload malformed")
 	}
+
+	spew.Dump(p, string(raw))
 
 	ctx := s.Context()
 	switch {
@@ -22,27 +25,25 @@ func (s *Session) dispatch(raw []byte) (err error) {
 		return s.messageUpdate(ctx, p.MessageUpdate)
 	case p.MessageDelete != nil:
 		return s.messageDelete(ctx, p.MessageDelete)
-	case p.MessageHistory != nil:
-		return s.messageHistory(ctx, p.MessageHistory)
+	case p.Messages != nil:
+		return s.messageHistory(ctx, p.Messages)
 
 	// channel actions
 	case p.ChannelJoin != nil:
 		return s.channelJoin(ctx, p.ChannelJoin)
 	case p.ChannelPart != nil:
 		return s.channelPart(ctx, p.ChannelPart)
-	case p.ChannelList != nil:
-		return s.channelList(ctx, p.ChannelList)
+	case p.Channels != nil:
+		return s.channelList(ctx, p.Channels)
 	case p.ChannelCreate != nil:
 		return s.channelCreate(ctx, p.ChannelCreate)
 	case p.ChannelDelete != nil:
 		return s.channelDelete(ctx, p.ChannelDelete)
-	case p.ChannelRename != nil:
-		return s.channelRename(ctx, p.ChannelRename)
-	case p.ChannelChangeTopic != nil:
-		return s.channelChangeTopic(ctx, p.ChannelChangeTopic)
+	case p.ChannelUpdate != nil:
+		return s.channelUpdate(ctx, p.ChannelUpdate)
 
-	case p.UserList != nil:
-		return s.userList(ctx, p.UserList)
+	case p.Users != nil:
+		return s.userList(ctx, p.Users)
 	}
 
 	return nil

@@ -1,5 +1,5 @@
 package incoming
 
 type (
-	UserList struct{}
+	Users struct{}
 )

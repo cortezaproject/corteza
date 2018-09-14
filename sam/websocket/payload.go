@@ -36,6 +36,8 @@ func payloadFromChannel(ch *types.Channel) *outgoing.Channel {
 		Name:          ch.Name,
 		LastMessageID: uint64toa(ch.LastMessageID),
 		Topic:         ch.Topic,
+		Type:          string(ch.Type),
+		Members:       payloadFromUsers(ch.Members),
 	}
 }
 
@@ -70,6 +72,7 @@ func payloadFromUsers(users []*types.User) *outgoing.Users {
 	}
 
 	retval := outgoing.Users(uu)
+
 	return &retval
 }
 
