@@ -62,31 +62,3 @@ func TestChannel(t *testing.T) {
 		}
 	}
 }
-
-func TestChannelMembers(t *testing.T) {
-	var err error
-
-	if testing.Short() {
-		t.Skip("skipping test in short mode.")
-		return
-	}
-
-	rpo := New()
-	chn := &types.Channel{}
-	usr := &types.User{}
-
-	{
-		chn, err = rpo.CreateChannel(chn)
-		assert(t, err == nil, "CreateChannel: %v", err)
-
-		{
-			usr, err = rpo.CreateUser(usr)
-			assert(t, err == nil, "CreateUser error: %v", err)
-
-			{
-				_, err = rpo.AddChannelMember(&types.ChannelMember{ChannelID: chn.ID, UserID: usr.ID})
-				assert(t, err == nil, "AddChannelMember error: %v", err)
-			}
-		}
-	}
-}

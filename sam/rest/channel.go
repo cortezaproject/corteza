@@ -7,7 +7,6 @@ import (
 	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/pkg/errors"
-	"io"
 )
 
 var _ = errors.Wrap
@@ -15,20 +14,16 @@ var _ = errors.Wrap
 type (
 	Channel struct {
 		svc struct {
-			ch service.ChannelService
-			at channelAttachmentService
+			ch  service.ChannelService
+			att service.AttachmentService
 		}
-	}
-
-	channelAttachmentService interface {
-		Create(ctx context.Context, channelID uint64, name string, size int64, fh io.ReadSeeker) (*types.Attachment, error)
 	}
 )
 
-func (Channel) New(chSvc service.ChannelService, atSvc service.AttachmentService) *Channel {
+func (Channel) New() *Channel {
 	ctrl := &Channel{}
-	ctrl.svc.ch = chSvc
-	ctrl.svc.at = atSvc
+	ctrl.svc.ch = service.DefaultChannel
+	ctrl.svc.att = service.DefaultAttachment
 
 	return ctrl
 }
@@ -89,7 +84,7 @@ func (ctrl *Channel) Attach(ctx context.Context, r *request.ChannelAttach) (inte
 
 	defer file.Close()
 
-	return ctrl.svc.at.Create(
+	return ctrl.svc.att.Create(
 		ctx,
 		r.ChannelID,
 		r.Upload.Filename,

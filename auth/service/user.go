@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/crusttech/crust/auth/repository"
 	"github.com/crusttech/crust/auth/types"
 )
@@ -19,7 +20,15 @@ type (
 	UserService interface {
 		With(ctx context.Context) UserService
 
+		FindByID(id uint64) (*types.User, error)
+		Find(filter *types.UserFilter) ([]*types.User, error)
+
 		Create(input *types.User) (*types.User, error)
+		Update(mod *types.User) (*types.User, error)
+		Delete(id uint64) error
+		Suspend(id uint64) error
+		Unsuspend(id uint64) error
+
 		ValidateCredentials(username, password string) (*types.User, error)
 	}
 )

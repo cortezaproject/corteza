@@ -35,7 +35,6 @@ type (
 		Organisation
 		Reaction
 		Team
-		User
 		EventQueue
 	}
 

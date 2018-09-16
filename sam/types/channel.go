@@ -24,7 +24,7 @@ type (
 		LastMessageID uint64 `json:",omitempty" db:"rel_last_message"`
 
 		Member  *ChannelMember `json:"-" db:"-"`
-		Members []*User        `json:"-" db:"-"`
+		Members []*uint64      `json:"-" db:"-"`
 	}
 
 	ChannelMember struct {

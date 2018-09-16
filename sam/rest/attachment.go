@@ -15,7 +15,9 @@ var _ = errors.Wrap
 
 type (
 	Attachment struct {
-		svc service.AttachmentService
+		svc struct {
+			att service.AttachmentService
+		}
 	}
 
 	file struct {
@@ -25,8 +27,10 @@ type (
 	}
 )
 
-func (Attachment) New(svc service.AttachmentService) *Attachment {
-	return &Attachment{svc: svc}
+func (Attachment) New() *Attachment {
+	ctrl := &Attachment{}
+	ctrl.svc.att = service.DefaultAttachment
+	return ctrl
 }
 
 func (ctrl *Attachment) Original(ctx context.Context, r *request.AttachmentOriginal) (interface{}, error) {
@@ -41,14 +45,14 @@ func (ctrl *Attachment) Preview(ctx context.Context, r *request.AttachmentPrevie
 func (ctrl Attachment) get(ID uint64, preview, download bool) (handlers.Downloadable, error) {
 	rval := &file{download: download}
 
-	if att, err := ctrl.svc.FindByID(ID); err != nil {
+	if att, err := ctrl.svc.att.FindByID(ID); err != nil {
 		return nil, err
 	} else {
 		rval.Attachment = att
 		if preview {
-			rval.content, err = ctrl.svc.OpenPreview(att)
+			rval.content, err = ctrl.svc.att.OpenPreview(att)
 		} else {
-			rval.content, err = ctrl.svc.OpenOriginal(att)
+			rval.content, err = ctrl.svc.att.OpenOriginal(att)
 		}
 
 		if err != nil {
