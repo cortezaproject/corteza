@@ -1,11 +1,12 @@
 package websocket
 
 import (
-	"github.com/crusttech/crust/sam/types"
+	authTypes "github.com/crusttech/crust/auth/types"
+	samTypes "github.com/crusttech/crust/sam/types"
 	"github.com/crusttech/crust/sam/websocket/outgoing"
 )
 
-func payloadFromMessage(msg *types.Message) *outgoing.Message {
+func payloadFromMessage(msg *samTypes.Message) *outgoing.Message {
 	return &outgoing.Message{
 		Message:   msg.Message,
 		ID:        uint64toa(msg.ID),
@@ -21,7 +22,7 @@ func payloadFromMessage(msg *types.Message) *outgoing.Message {
 	}
 }
 
-func payloadFromMessages(msg types.MessageSet) *outgoing.Messages {
+func payloadFromMessages(msg samTypes.MessageSet) *outgoing.Messages {
 	msgs := make([]*outgoing.Message, len(msg))
 	for k, m := range msg {
 		msgs[k] = payloadFromMessage(m)
@@ -30,18 +31,17 @@ func payloadFromMessages(msg types.MessageSet) *outgoing.Messages {
 	return &retval
 }
 
-func payloadFromChannel(ch *types.Channel) *outgoing.Channel {
+func payloadFromChannel(ch *samTypes.Channel) *outgoing.Channel {
 	return &outgoing.Channel{
 		ID:            uint64toa(ch.ID),
 		Name:          ch.Name,
 		LastMessageID: uint64toa(ch.LastMessageID),
 		Topic:         ch.Topic,
 		Type:          string(ch.Type),
-		Members:       payloadFromUsers(ch.Members),
 	}
 }
 
-func payloadFromChannels(channels []*types.Channel) *outgoing.Channels {
+func payloadFromChannels(channels []*samTypes.Channel) *outgoing.Channels {
 	cc := make([]*outgoing.Channel, len(channels))
 	for k, c := range channels {
 		cc[k] = payloadFromChannel(c)
@@ -50,14 +50,14 @@ func payloadFromChannels(channels []*types.Channel) *outgoing.Channels {
 	return &retval
 }
 
-func payloadFromUser(user *types.User) *outgoing.User {
+func payloadFromUser(user *authTypes.User) *outgoing.User {
 	return &outgoing.User{
 		ID:       uint64toa(user.ID),
 		Username: user.Username,
 	}
 }
 
-func payloadFromUsers(users []*types.User) *outgoing.Users {
+func payloadFromUsers(users []*authTypes.User) *outgoing.Users {
 	uu := make([]*outgoing.User, len(users))
 	for k, u := range users {
 		uu[k] = payloadFromUser(u)
@@ -65,7 +65,7 @@ func payloadFromUsers(users []*types.User) *outgoing.Users {
 
 		// @todo this is current instance only, need to sync this across all instances
 		store.Walk(func(session *Session) {
-			if session.user.ID == u.ID {
+			if session.user.Identity() == u.ID {
 				uu[k].Connections++
 			}
 		})
@@ -76,7 +76,7 @@ func payloadFromUsers(users []*types.User) *outgoing.Users {
 	return &retval
 }
 
-func payloadFromAttachment(in *types.Attachment) *outgoing.Attachment {
+func payloadFromAttachment(in *samTypes.Attachment) *outgoing.Attachment {
 	if in == nil {
 		return nil
 	}

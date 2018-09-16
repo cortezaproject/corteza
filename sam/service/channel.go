@@ -12,12 +12,12 @@ import (
 type (
 	channel struct {
 		rpo channelRepository
-		usr UserService
 	}
 
 	ChannelService interface {
 		FindByID(ctx context.Context, channelID uint64) (*types.Channel, error)
 		Find(ctx context.Context, filter *types.ChannelFilter) ([]*types.Channel, error)
+		FindByMembership(ctx context.Context) (rval []*types.Channel, err error)
 
 		Create(ctx context.Context, channel *types.Channel) (*types.Channel, error)
 		Update(ctx context.Context, channel *types.Channel) (*types.Channel, error)
@@ -40,7 +40,6 @@ func Channel() *channel {
 	var svc = &channel{}
 
 	svc.rpo = repository.New()
-	svc.usr = User()
 	//svc.sec.ch = ChannelSecurity(svc.rpo)
 
 	return svc
@@ -64,8 +63,13 @@ func (svc channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*ty
 	if cc, err := svc.rpo.FindChannels(filter); err != nil {
 		return nil, err
 	} else {
-		return cc, svc.usr.LoadFromChannels(ctx, cc)
+		return cc, svc.preloadMembers(ctx, cc)
 	}
+}
+
+func (svc channel) preloadMembers(ctx context.Context, set types.ChannelSet) error {
+	// @todo implement
+	return nil
 }
 
 // Returns all channels with membership info

@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"context"
 	"log"
 	"net/http"
 
@@ -9,29 +8,25 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 
+	authService "github.com/crusttech/crust/auth/service"
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/sam/repository"
-	"github.com/crusttech/crust/sam/types"
 )
 
 type (
 	Websocket struct {
 		svc struct {
-			userFinder wsUserFinder
+			user authService.UserService
 		}
 		config *repository.Flags
 	}
-
-	wsUserFinder interface {
-		FindByID(ctx context.Context, userID uint64) (*types.User, error)
-	}
 )
 
-func (Websocket) New(svcUser wsUserFinder, config *repository.Flags) *Websocket {
+func (Websocket) New(config *repository.Flags) *Websocket {
 	ws := &Websocket{
 		config: config,
 	}
-	ws.svc.userFinder = svcUser
+	ws.svc.user = authService.DefaultUser
 	return ws
 }
 
@@ -54,8 +49,7 @@ func (ws Websocket) Open(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// @todo validate user (ws.svc.userFinder) here...
-	user, err := ws.svc.userFinder.FindByID(ctx, identity.Identity())
+	user, err := ws.svc.user.With(ctx).FindByID(identity.Identity())
 	if err != nil {
 		resputil.JSON(w, err)
 		return

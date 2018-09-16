@@ -49,6 +49,8 @@ func (s *Session) channelList(ctx context.Context, p *incoming.Channels) error {
 		return err
 	}
 
+	// @todo count members for all channels
+
 	return s.sendReply(payloadFromChannels(channels))
 }
 
@@ -78,6 +80,8 @@ func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) 
 	s.subs.Add(uint64toa(ch.ID))
 
 	// @todo this should go over all user's sessons and subscribe there as well
+
+	// @todo load channel member count
 
 	pl := payloadFromChannel(ch)
 
@@ -123,6 +127,8 @@ func (s *Session) channelUpdate(ctx context.Context, p *incoming.ChannelUpdate) 
 	if err != nil {
 		return err
 	}
+
+	// @todo load channel member count
 
 	return s.sendToAllSubscribers(payloadFromChannel(ch), p.ID)
 }

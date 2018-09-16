@@ -7,16 +7,10 @@ import (
 	"github.com/go-chi/chi"
 
 	"github.com/crusttech/crust/sam/repository"
-	"github.com/crusttech/crust/sam/service"
 )
 
 func MountRoutes(ctx context.Context, config *repository.Flags) func(chi.Router) {
 	return func(r chi.Router) {
-		var (
-			// @todo move this 1 level up & join with rest init functions
-			svcUser = service.User()
-		)
-
 		repo := repository.New()
 
 		go func() {
@@ -26,7 +20,7 @@ func MountRoutes(ctx context.Context, config *repository.Flags) func(chi.Router)
 		}()
 		eq.store(ctx, repo)
 
-		websocket := Websocket{}.New(svcUser, config)
+		websocket := Websocket{}.New(config)
 		r.Group(func(r chi.Router) {
 			r.Route("/websocket", func(r chi.Router) {
 				r.Get("/", websocket.Open)

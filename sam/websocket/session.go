@@ -5,12 +5,13 @@ import (
 	"log"
 	"time"
 
+	"github.com/crusttech/crust/internal/auth"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 
+	authService "github.com/crusttech/crust/auth/service"
 	"github.com/crusttech/crust/sam/repository"
-	"github.com/crusttech/crust/sam/service"
-	"github.com/crusttech/crust/sam/types"
+	samService "github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/websocket/outgoing"
 )
 
@@ -30,12 +31,17 @@ type (
 
 		config *repository.Flags
 
-		user *types.User
+		user auth.Identifiable
+
+		svc struct {
+			user authService.UserService
+			ch   samService.ChannelService
+		}
 	}
 )
 
 func (Session) New(ctx context.Context, config *repository.Flags, conn *websocket.Conn) *Session {
-	return &Session{
+	s := &Session{
 		conn:   conn,
 		ctx:    ctx,
 		config: config,
@@ -43,6 +49,11 @@ func (Session) New(ctx context.Context, config *repository.Flags, conn *websocke
 		send:   make(chan []byte, 512),
 		stop:   make(chan []byte, 1),
 	}
+
+	s.svc.user = authService.DefaultUser
+	s.svc.ch = samService.DefaultChannel
+
+	return s
 }
 
 func (sess *Session) Context() context.Context {
@@ -51,22 +62,22 @@ func (sess *Session) Context() context.Context {
 
 func (sess *Session) connected() {
 	// Tell everyone that user has connected
-	sess.sendToAll(&outgoing.Connected{UserID: uint64toa(sess.user.ID)})
+	sess.sendToAll(&outgoing.Connected{UserID: uint64toa(sess.user.Identity())})
 
 	// Subscribe this user to all channels
-	if chs, err := service.Channel().FindByMembership(sess.ctx); err != nil {
+	if chs, err := sess.svc.ch.FindByMembership(sess.ctx); err != nil {
 		log.Printf("Error: %v", err)
 	} else {
 		for _, ch := range chs {
 			sess.subs.Add(uint64toa(ch.ID))
 		}
-		log.Printf("Subscribing %d to %d channels", sess.user.ID, len(chs))
+		log.Printf("Subscribing %d to %d channels", sess.user.Identity(), len(chs))
 	}
 }
 
 func (sess *Session) disconnected() {
 	// Tell everyone that user has disconnected
-	sess.sendToAll(&outgoing.Disconnected{UserID: uint64toa(sess.user.ID)})
+	sess.sendToAll(&outgoing.Disconnected{UserID: uint64toa(sess.user.Identity())})
 }
 
 func (sess *Session) Handle() error {
