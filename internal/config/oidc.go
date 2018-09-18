@@ -28,17 +28,8 @@ func (c *OIDC) Validate() error {
 	if c.Issuer == "" {
 		return errors.New("OIDC Issuer not set for AUTH")
 	}
-	if c.ClientID == "" {
-		return errors.New("OIDC ClientID not set for AUTH")
-	}
-	if c.ClientSecret == "" {
-		return errors.New("OIDC ClientSecret not set for AUTH")
-	}
 	if c.RedirectURL == "" {
 		return errors.New("OIDC RedirectURL not set for AUTH")
-	}
-	if c.AppURL == "" {
-		return errors.New("OIDC AppURL not set for AUTH")
 	}
 
 	return nil

@@ -36,7 +36,7 @@ CREATE TABLE channels (
   type             ENUM ('private', 'public', 'group') NOT NULL DEFAULT 'public',
 
   rel_organisation BIGINT UNSIGNED NOT NULL REFERENCES organisation(id),
-  rel_creator      BIGINT UNSIGNED NOT NULL REFERENCES users(id),
+  rel_creator      BIGINT UNSIGNED NOT NULL,
 
   created_at       DATETIME        NOT NULL DEFAULT NOW(),
   updated_at       DATETIME            NULL,
@@ -48,29 +48,10 @@ CREATE TABLE channels (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Keeps all known users, home and external organisation
---   changes are stored in audit log
-CREATE TABLE users (
-  id               BIGINT UNSIGNED NOT NULL,
-  email            TEXT            NOT NULL,
-  username         TEXT            NOT NULL,
-  password         TEXT,
-  meta             JSON            NOT NULL,
-
-  rel_organisation BIGINT UNSIGNED NOT NULL REFERENCES organisation(id),
-
-  created_at       DATETIME        NOT NULL DEFAULT NOW(),
-  updated_at       DATETIME            NULL,
-  suspended_at     DATETIME            NULL,
-  deleted_at       DATETIME            NULL, -- user soft delete
-
-  PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 -- Keeps team memberships
 CREATE TABLE team_members (
   rel_team         BIGINT UNSIGNED NOT NULL REFERENCES organisation(id),
-  rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
+  rel_user         BIGINT UNSIGNED NOT NULL,
 
   PRIMARY KEY (rel_team, rel_user)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -78,7 +59,7 @@ CREATE TABLE team_members (
 -- handles channel membership
 CREATE TABLE channel_members (
   rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
-  rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
+  rel_user         BIGINT UNSIGNED NOT NULL,
 
   type             ENUM ('owner', 'member') NOT NULL DEFAULT 'member',
 
@@ -90,7 +71,7 @@ CREATE TABLE channel_members (
 
 CREATE TABLE channel_views (
   rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
-  rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
+  rel_user         BIGINT UNSIGNED NOT NULL,
 
   -- timestamp of last view, should be enough to find out which messaghr
   viewed_at        DATETIME        NOT NULL DEFAULT NOW(),
@@ -104,7 +85,7 @@ CREATE TABLE channel_views (
 CREATE TABLE channel_pins (
   rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
   rel_message      BIGINT UNSIGNED NOT NULL REFERENCES messages(id),
-  rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
+  rel_user         BIGINT UNSIGNED NOT NULL,
 
   created_at       DATETIME        NOT NULL DEFAULT NOW(),
 
@@ -116,7 +97,7 @@ CREATE TABLE messages (
   type             TEXT,
   message          TEXT            NOT NULL,
   meta             JSON,
-  rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
+  rel_user         BIGINT UNSIGNED NOT NULL,
   rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
   reply_to         BIGINT UNSIGNED     NULL REFERENCES messages(id),
 
@@ -129,7 +110,7 @@ CREATE TABLE messages (
 
 CREATE TABLE reactions (
   id               BIGINT UNSIGNED NOT NULL,
-  rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
+  rel_user         BIGINT UNSIGNED NOT NULL,
   rel_message      BIGINT UNSIGNED NOT NULL REFERENCES messages(id),
   rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
   reaction         TEXT            NOT NULL,
@@ -141,7 +122,7 @@ CREATE TABLE reactions (
 
 CREATE TABLE attachments (
   id               BIGINT UNSIGNED NOT NULL,
-  rel_user         BIGINT UNSIGNED NOT NULL REFERENCES users(id),
+  rel_user         BIGINT UNSIGNED NOT NULL,
 
   url              VARCHAR(512),
   preview_url      VARCHAR(512),

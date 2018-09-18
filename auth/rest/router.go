@@ -1,23 +1,27 @@
 package rest
 
 import (
+	"context"
 	"log"
 	"net/http"
 
+	"github.com/crusttech/crust/auth/repository"
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/auth/rest/handlers"
 	"github.com/crusttech/crust/auth/service"
-	"github.com/crusttech/crust/config"
+	"github.com/crusttech/crust/internal/config"
 )
 
 func MountRoutes(oidcConfig *config.OIDC, jwtAuth jwtEncodeCookieSetter) func(chi.Router) {
 	var userSvc = service.User()
 
-	oidc, err := OpenIdConnect(oidcConfig, userSvc, jwtAuth)
+	var ctx = context.Background()
+
+	oidc, err := OpenIdConnect(ctx, oidcConfig, userSvc, jwtAuth, repository.NewSettings(ctx))
 	if err != nil {
-		log.Errorf("Could not initialize OIDC:", err.Error())
+		log.Print("Could not initialize OIDC:", err.Error())
 	}
 
 	// Initialize handers & controllers.
