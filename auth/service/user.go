@@ -26,7 +26,7 @@ type (
 		Create(input *types.User) (*types.User, error)
 		Update(mod *types.User) (*types.User, error)
 
-		FindOrCreate(email string) (*types.User, error)
+		FindOrCreate(*types.User) (*types.User, error)
 		ValidateCredentials(username, password string) (*types.User, error)
 	}
 )
@@ -69,16 +69,16 @@ func (svc *user) Find(filter *types.UserFilter) ([]*types.User, error) {
 }
 
 // Finds if user with a specific email exists and returns it otherwise it creates a fresh one
-func (svc *user) FindOrCreate(email string) (user *types.User, err error) {
-	return user, svc.repository.DB().Transaction(func() error {
-		if user, err = svc.repository.FindUserByEmail(email); err != repository.ErrUserNotFound {
-			return err
-		} else if user, err = svc.repository.CreateUser(&types.User{Email: email}); err != nil {
-			return err
-		}
+func (svc *user) FindOrCreate(user *types.User) (out *types.User, err error) {
+	//return out, svc.repository.DB().Transaction(func() error {
+	if out, err = svc.repository.FindUserByEmail(user.Email); err != repository.ErrUserNotFound {
+		return out, err
+	} else if out, err = svc.repository.CreateUser(user); err != nil {
+		return out, err
+	}
 
-		return nil
-	})
+	return out, nil
+	//})
 }
 
 func (svc *user) Create(input *types.User) (user *types.User, err error) {

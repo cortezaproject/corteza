@@ -2,17 +2,23 @@ package rest
 
 import (
 	"context"
-	"github.com/coreos/go-oidc"
-	"github.com/crusttech/crust/auth/service"
-	"github.com/crusttech/crust/auth/types"
-	"github.com/crusttech/crust/config"
-	"github.com/titpetric/factory/resputil"
-	"golang.org/x/oauth2"
 	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/crusttech/crust/auth/repository"
+	"github.com/crusttech/crust/auth/service"
+	"github.com/crusttech/crust/auth/types"
+	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/config"
+	"github.com/crusttech/go-oidc"
+	"github.com/pkg/errors"
+	"github.com/titpetric/factory/resputil"
+	"golang.org/x/oauth2"
 )
+
+const DB_SETTINGS_KEY_OIDC_CLIENT = "oidc-client"
 
 type (
 	openIdConnect struct {
@@ -29,14 +35,17 @@ type (
 	}
 
 	jwtEncodeCookieSetter interface {
-		types.TokenEncoder
-		SetToCookie(w http.ResponseWriter, r *http.Request, identity types.Identifiable)
+		auth.TokenEncoder
+		SetToCookie(w http.ResponseWriter, r *http.Request, identity auth.Identifiable)
 	}
 )
 
 const openIdConnectStateCookie = "oidc-state"
 
-func OpenIdConnect(cfg *config.OIDC, usvc service.UserService, jwt jwtEncodeCookieSetter) (c *openIdConnect, err error) {
+// Sets-up OIDC connection (issuer discovery, client registration)
+//
+// Client registration is done when no cfg.ClientID is provided.
+func OpenIdConnect(ctx context.Context, cfg *config.OIDC, usvc service.UserService, jwt jwtEncodeCookieSetter, settings repository.Settings) (c *openIdConnect, err error) {
 	c = &openIdConnect{
 		appURL:            cfg.AppURL,
 		stateCookieExpiry: cfg.StateCookieExpiry,
@@ -45,25 +54,52 @@ func OpenIdConnect(cfg *config.OIDC, usvc service.UserService, jwt jwtEncodeCook
 	}
 
 	// Allow 5 seconds for issuer discovery process
-	c.provider, err = oidc.NewProvider(context.Background(), cfg.Issuer)
+	c.provider, err = oidc.NewProvider(ctx, cfg.Issuer)
 	if err != nil {
 		return nil, err
 	}
 
-	// Configure an OpenID Connect aware OAuth2 client.
-	c.config = oauth2.Config{
-		ClientID:     cfg.ClientID,
-		ClientSecret: cfg.ClientSecret,
-		RedirectURL:  cfg.RedirectURL,
+	if len(cfg.ClientID) > 0 {
+		// System is configured with fixed OIDC client ID (probably through AUTH_OIDC_CLIENT_ID)
+		// Construct oauth2 config from provided configuration
+		c.config = oauth2.Config{
+			ClientID:     cfg.ClientID,
+			ClientSecret: cfg.ClientSecret,
+			RedirectURL:  cfg.RedirectURL,
 
-		// Discovery returns the OAuth2 endpoints.
-		Endpoint: c.provider.Endpoint(),
+			// Discovery returns the OAuth2 endpoints.
+			Endpoint: c.provider.Endpoint(),
+		}
+	} else {
+		client := &oidc.Client{}
 
-		// "openid" is a required scope for OpenID Connect flows.
-		Scopes: []string{oidc.ScopeOpenID, "profile", "email"},
+		if found, err := settings.Get(DB_SETTINGS_KEY_OIDC_CLIENT, client); err != nil {
+			return nil, errors.Wrap(err, "could not load oidc client settings from the database")
+		} else if !found {
+			// Perform dynamic client registration
+			client, err = c.provider.RegisterClient(ctx, &oidc.ClientRegistration{
+				Name:          "Crust",
+				RedirectURIs:  []string{cfg.RedirectURL},
+				ResponseTypes: []string{"token id_token", "code"},
+			})
+
+			if err := settings.Set(DB_SETTINGS_KEY_OIDC_CLIENT, client); err != nil {
+				return nil, errors.Wrap(err, "could not store oidc client settings from the database")
+			}
+		}
+
+		c.config = c.provider.OAuth2Config(client)
 	}
 
-	c.verifier = c.provider.Verifier(&oidc.Config{ClientID: cfg.ClientID})
+	c.config.Scopes = []string{
+		oidc.ScopeOpenID,
+		"email",
+		"profile",
+		"address",
+		"phone_number",
+	}
+
+	c.verifier = c.provider.Verifier(&oidc.Config{ClientID: c.config.ClientID})
 
 	return
 }
@@ -110,33 +146,26 @@ func (c *openIdConnect) HandleOAuth2Callback(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Parse and verify ID Token payload.
-	idToken, err := c.verifier.Verify(ctx, rawIDToken)
+	_, err = c.verifier.Verify(ctx, rawIDToken)
 	if err != nil {
 		resputil.JSON(w, err)
 		return
 	}
 
-	// Extract custom claims
-	var claims struct {
-		Email    string `json:"email"`
-		Verified bool   `json:"email_verified"`
+	u, _ := c.provider.UserInfo(ctx, oauth2.StaticTokenSource(oauth2Token))
+
+	var user = &types.User{
+		Email: u.Email,
 	}
 
-	if err := idToken.Claims(&claims); err != nil {
-		resputil.JSON(w, err)
-		return
-	}
-
-	var user *types.User
-
-	if user, err = c.userService.FindOrCreate(claims.Email); err != nil {
+	if user, err = c.userService.FindOrCreate(user); err != nil {
 		resputil.JSON(w, err)
 		return
 	} else {
 		c.jwt.SetToCookie(w, r, user)
 	}
 
-	http.Redirect(w, r, c.appURL+"?jwt="+c.jwt.Encode(user), http.StatusSeeOther)
+	http.Redirect(w, r, c.appURL, http.StatusSeeOther)
 }
 
 func (c *openIdConnect) stateCheck(r *http.Request) bool {

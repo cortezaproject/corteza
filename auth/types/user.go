@@ -11,6 +11,8 @@ type (
 		ID             uint64          `json:"id" db:"id"`
 		Username       string          `json:"username" db:"username"`
 		Email          string          `json:"email" db:"email"`
+		Name           string          `json:"name" db:"name"`
+		Handle         string          `json:"handle" db:"handle"`
 		Meta           json.RawMessage `json:"-" db:"meta"`
 		OrganisationID uint64          `json:"organisationId" db:"rel_organisation"`
 		Password       []byte          `json:"-" db:"password"`
