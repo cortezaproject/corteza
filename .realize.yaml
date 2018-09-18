@@ -33,6 +33,7 @@ schema:
     paths:
     - .
     - ../../auth
+    - ../../interal
     extensions:
     - go
     ignored_paths:
@@ -55,6 +56,7 @@ schema:
     - .
     - ../../sam
     - ../../auth
+    - ../../interal
     extensions:
     - go
     ignored_paths:
@@ -77,6 +79,7 @@ schema:
     - .
     - ../../crm
     - ../../auth
+    - ../../interal
     extensions:
     - go
     ignored_paths:
