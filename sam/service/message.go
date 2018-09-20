@@ -2,38 +2,43 @@ package service
 
 import (
 	"context"
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/sam/repository"
-	"github.com/crusttech/crust/sam/types"
+
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
+
+	"github.com/crusttech/crust/sam/repository"
+	"github.com/crusttech/crust/sam/types"
 )
 
 type (
 	message struct {
-		channel repository.Channel
-		message repository.Message
+		ctx context.Context
+
+		channel  repository.Channel
+		message  repository.Message
 		reaction repository.Reaction
 
 		att AttachmentService
 	}
 
 	MessageService interface {
-		Find(ctx context.Context, filter *types.MessageFilter) (types.MessageSet, error)
+		With(ctx context.Context) MessageService
 
-		Create(ctx context.Context, messages *types.Message) (*types.Message, error)
-		Update(ctx context.Context, messages *types.Message) (*types.Message, error)
+		Find(filter *types.MessageFilter) (types.MessageSet, error)
 
-		React(ctx context.Context, messageID uint64, reaction string) error
-		Unreact(ctx context.Context, messageID uint64, reaction string) error
+		Create(messages *types.Message) (*types.Message, error)
+		Update(messages *types.Message) (*types.Message, error)
 
-		Pin(ctx context.Context, messageID uint64) error
-		Unpin(ctx context.Context, messageID uint64) error
+		React(messageID uint64, reaction string) error
+		Unreact(messageID uint64, reaction string) error
 
-		Flag(ctx context.Context, messageID uint64) error
-		Unflag(ctx context.Context, messageID uint64) error
+		Pin(messageID uint64) error
+		Unpin(messageID uint64) error
 
-		Direct(ctx context.Context, recipientID uint64, in *types.Message) (out *types.Message, err error)
+		Flag(messageID uint64) error
+		Unflag(messageID uint64) error
+
+		Direct(recipientID uint64, in *types.Message) (out *types.Message, err error)
 
 		deleter
 	}
@@ -41,15 +46,28 @@ type (
 
 func Message(attSvc AttachmentService) *message {
 	m := &message{
-		att: attSvc,
-		message: repository.NewMessage(context.Background()),
+		ctx:      context.Background(),
+		att:      attSvc,
+		channel:  repository.NewChannel(context.Background()),
+		message:  repository.NewMessage(context.Background()),
+		reaction: repository.NewReaction(context.Background()),
 	}
 	return m
 }
 
-func (svc message) Find(ctx context.Context, filter *types.MessageFilter) (mm types.MessageSet, err error) {
+func (svc *message) With(ctx context.Context) MessageService {
+	return &message{
+		ctx:      ctx,
+		att:      svc.att,
+		channel:  svc.channel.With(ctx),
+		message:  svc.message.With(ctx),
+		reaction: svc.reaction.With(ctx),
+	}
+}
+
+func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err error) {
 	// @todo get user from context
-	var currentUserID uint64 = auth.GetIdentityFromContext(ctx).Identity()
+	var currentUserID uint64 = repository.Identity(svc.ctx)
 
 	// @todo verify if current user can access & read from this channel
 	_ = currentUserID
@@ -60,12 +78,12 @@ func (svc message) Find(ctx context.Context, filter *types.MessageFilter) (mm ty
 		return nil, err
 	}
 
-	return mm, svc.att.LoadFromMessages(ctx, mm)
+	return mm, svc.att.LoadFromMessages(mm)
 }
 
-func (svc message) Direct(ctx context.Context, recipientID uint64, in *types.Message) (out *types.Message, err error) {
+func (svc *message) Direct(recipientID uint64, in *types.Message) (out *types.Message, err error) {
 	return out, repository.DB().Transaction(func() (err error) {
-		var currentUserID = auth.GetIdentityFromContext(ctx).Identity()
+		var currentUserID = repository.Identity(svc.ctx)
 
 		// @todo [SECURITY] verify if current user can send direct messages to anyone?
 		if false {
@@ -118,9 +136,9 @@ func (svc message) Direct(ctx context.Context, recipientID uint64, in *types.Mes
 	})
 }
 
-func (svc message) Create(ctx context.Context, mod *types.Message) (*types.Message, error) {
+func (svc *message) Create(mod *types.Message) (*types.Message, error) {
 	// @todo get user from context
-	var currentUserID uint64 = auth.GetIdentityFromContext(ctx).Identity()
+	var currentUserID uint64 = repository.Identity(svc.ctx)
 
 	// @todo verify if current user can access & write to this channel
 
@@ -128,14 +146,14 @@ func (svc message) Create(ctx context.Context, mod *types.Message) (*types.Messa
 
 	message, err := svc.message.CreateMessage(mod)
 	if err == nil {
-		PubSub().Event(ctx, "new message added")
+		PubSub().Event(svc.ctx, "new message added")
 	}
 	return message, err
 }
 
-func (svc message) Update(ctx context.Context, mod *types.Message) (*types.Message, error) {
+func (svc *message) Update(mod *types.Message) (*types.Message, error) {
 	// @todo get user from context
-	var currentUserID uint64 = auth.GetIdentityFromContext(ctx).Identity()
+	var currentUserID uint64 = repository.Identity(svc.ctx)
 
 	// @todo verify if current user can access & write to this channel
 	_ = currentUserID
@@ -147,9 +165,9 @@ func (svc message) Update(ctx context.Context, mod *types.Message) (*types.Messa
 	return svc.message.UpdateMessage(mod)
 }
 
-func (svc message) Delete(ctx context.Context, id uint64) error {
+func (svc *message) Delete(id uint64) error {
 	// @todo get user from context
-	var currentUserID uint64 = auth.GetIdentityFromContext(ctx).Identity()
+	var currentUserID uint64 = repository.Identity(svc.ctx)
 
 	// @todo verify if current user can access & write to this channel
 	_ = currentUserID
@@ -161,9 +179,9 @@ func (svc message) Delete(ctx context.Context, id uint64) error {
 	return svc.message.DeleteMessageByID(id)
 }
 
-func (svc message) React(ctx context.Context, messageID uint64, reaction string) error {
+func (svc *message) React(messageID uint64, reaction string) error {
 	// @todo get user from context
-	var currentUserID uint64 = auth.GetIdentityFromContext(ctx).Identity()
+	var currentUserID uint64 = repository.Identity(svc.ctx)
 
 	// @todo verify if current user can access & write to this channel
 	var m *types.Message
@@ -184,9 +202,9 @@ func (svc message) React(ctx context.Context, messageID uint64, reaction string)
 	return nil
 }
 
-func (svc message) Unreact(ctx context.Context, messageID uint64, reaction string) error {
+func (svc *message) Unreact(messageID uint64, reaction string) error {
 	// @todo get user from context
-	var currentUserID uint64 = auth.GetIdentityFromContext(ctx).Identity()
+	var currentUserID uint64 = repository.Identity(svc.ctx)
 
 	// @todo verify if current user can access & write to this channel
 	_ = currentUserID
@@ -197,9 +215,9 @@ func (svc message) Unreact(ctx context.Context, messageID uint64, reaction strin
 	return svc.reaction.DeleteReactionByID(r.ID)
 }
 
-func (svc message) Pin(ctx context.Context, messageID uint64) error {
+func (svc *message) Pin(messageID uint64) error {
 	// @todo get user from context
-	var currentUserID uint64 = auth.GetIdentityFromContext(ctx).Identity()
+	var currentUserID uint64 = repository.Identity(svc.ctx)
 
 	// @todo verify if current user can access & write to this channel
 	_ = currentUserID
@@ -207,9 +225,9 @@ func (svc message) Pin(ctx context.Context, messageID uint64) error {
 	return nil
 }
 
-func (svc message) Unpin(ctx context.Context, messageID uint64) error {
+func (svc *message) Unpin(messageID uint64) error {
 	// @todo get user from context
-	var currentUserID uint64 = auth.GetIdentityFromContext(ctx).Identity()
+	var currentUserID uint64 = repository.Identity(svc.ctx)
 
 	// @todo verify if current user can access & write to this channel
 	_ = currentUserID
@@ -217,9 +235,9 @@ func (svc message) Unpin(ctx context.Context, messageID uint64) error {
 	return nil
 }
 
-func (svc message) Flag(ctx context.Context, messageID uint64) error {
+func (svc *message) Flag(messageID uint64) error {
 	// @todo get user from context
-	var currentUserID uint64 = auth.GetIdentityFromContext(ctx).Identity()
+	var currentUserID uint64 = repository.Identity(svc.ctx)
 
 	// @todo verify if current user can access & write to this channel
 	_ = currentUserID
@@ -227,9 +245,9 @@ func (svc message) Flag(ctx context.Context, messageID uint64) error {
 	return nil
 }
 
-func (svc message) Unflag(ctx context.Context, messageID uint64) error {
+func (svc *message) Unflag(messageID uint64) error {
 	// @todo get user from context
-	var currentUserID uint64 = auth.GetIdentityFromContext(ctx).Identity()
+	var currentUserID uint64 = repository.Identity(svc.ctx)
 
 	// @todo verify if current user can access & write to this channel
 	_ = currentUserID

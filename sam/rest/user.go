@@ -35,5 +35,5 @@ func (ctrl *User) Search(ctx context.Context, r *request.UserSearch) (interface{
 }
 
 func (ctrl *User) Message(ctx context.Context, r *request.UserMessage) (interface{}, error) {
-	return ctrl.svc.message.Direct(ctx, r.UserID, &types.Message{Message: r.Message})
+	return ctrl.svc.message.With(ctx).Direct(r.UserID, &types.Message{Message: r.Message})
 }

@@ -34,7 +34,7 @@ func (ctrl *Channel) Create(ctx context.Context, r *request.ChannelCreate) (inte
 		Topic: r.Topic,
 	}
 
-	return ctrl.svc.ch.Create(ctx, channel)
+	return ctrl.svc.ch.With(ctx).Create(channel)
 }
 
 func (ctrl *Channel) Edit(ctx context.Context, r *request.ChannelEdit) (interface{}, error) {
@@ -44,20 +44,20 @@ func (ctrl *Channel) Edit(ctx context.Context, r *request.ChannelEdit) (interfac
 		Topic: r.Topic,
 	}
 
-	return ctrl.svc.ch.Update(ctx, channel)
+	return ctrl.svc.ch.With(ctx).Update(channel)
 
 }
 
 func (ctrl *Channel) Delete(ctx context.Context, r *request.ChannelDelete) (interface{}, error) {
-	return nil, ctrl.svc.ch.Delete(ctx, r.ChannelID)
+	return nil, ctrl.svc.ch.With(ctx).Delete(r.ChannelID)
 }
 
 func (ctrl *Channel) Read(ctx context.Context, r *request.ChannelRead) (interface{}, error) {
-	return ctrl.svc.ch.FindByID(ctx, r.ChannelID)
+	return ctrl.svc.ch.With(ctx).FindByID(r.ChannelID)
 }
 
 func (ctrl *Channel) List(ctx context.Context, r *request.ChannelList) (interface{}, error) {
-	return ctrl.svc.ch.Find(ctx, &types.ChannelFilter{Query: r.Query})
+	return ctrl.svc.ch.With(ctx).Find(&types.ChannelFilter{Query: r.Query})
 }
 
 func (ctrl *Channel) Members(ctx context.Context, r *request.ChannelMembers) (interface{}, error) {
@@ -84,8 +84,7 @@ func (ctrl *Channel) Attach(ctx context.Context, r *request.ChannelAttach) (inte
 
 	defer file.Close()
 
-	return ctrl.svc.att.Create(
-		ctx,
+	return ctrl.svc.att.With(ctx).Create(
 		r.ChannelID,
 		r.Upload.Filename,
 		r.Upload.Size,

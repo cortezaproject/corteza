@@ -13,7 +13,6 @@ import (
 
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/store"
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
@@ -21,9 +20,11 @@ import (
 
 type (
 	attachment struct {
+		ctx context.Context
+
 		attachment repository.Attachment
-		message repository.Message
-		store store.Store
+		message    repository.Message
+		store      store.Store
 
 		config struct {
 			url        string
@@ -32,9 +33,11 @@ type (
 	}
 
 	AttachmentService interface {
+		With(ctx context.Context) AttachmentService
+
 		FindByID(id uint64) (*types.Attachment, error)
-		Create(ctx context.Context, channelId uint64, name string, size int64, fh io.ReadSeeker) (*types.Attachment, error)
-		LoadFromMessages(ctx context.Context, mm types.MessageSet) (err error)
+		Create(channelId uint64, name string, size int64, fh io.ReadSeeker) (*types.Attachment, error)
+		LoadFromMessages(mm types.MessageSet) (err error)
 		OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 		OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
 	}
@@ -42,29 +45,40 @@ type (
 
 func Attachment(store store.Store) *attachment {
 	svc := &attachment{
+		ctx:        context.Background(),
 		attachment: repository.NewAttachment(context.Background()),
-		message: repository.NewMessage(context.Background()),
-		store: store,
+		message:    repository.NewMessage(context.Background()),
+		store:      store,
 	}
 	svc.config.url = "/attachment/%d/%s"
 	svc.config.previewUrl = "/attachment/%d/%s/preview"
 	return svc
 }
 
-func (svc attachment) FindByID(id uint64) (*types.Attachment, error) {
+func (svc *attachment) With(ctx context.Context) AttachmentService {
+	return &attachment{
+		ctx:        ctx,
+		attachment: svc.attachment.With(ctx),
+		message:    svc.message.With(ctx),
+		store:      svc.store,
+		config:     svc.config,
+	}
+}
+
+func (svc *attachment) FindByID(id uint64) (*types.Attachment, error) {
 	return svc.attachment.FindAttachmentByID(id)
 }
 
-func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
+func (svc *attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
 	return svc.store.Open(att.Url)
 }
 
-func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
+func (svc *attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
 	return svc.store.Open(att.PreviewUrl)
 
 }
 
-func (svc attachment) LoadFromMessages(ctx context.Context, mm types.MessageSet) (err error) {
+func (svc *attachment) LoadFromMessages(mm types.MessageSet) (err error) {
 	var ids []uint64
 	mm.Walk(func(m *types.Message) error {
 		if m.Type == types.MessageTypeAttachment || m.Type == types.MessageTypeInlineImage {
@@ -91,8 +105,8 @@ func (svc attachment) LoadFromMessages(ctx context.Context, mm types.MessageSet)
 	}
 }
 
-func (svc attachment) Create(ctx context.Context, channelId uint64, name string, size int64, fh io.ReadSeeker) (att *types.Attachment, err error) {
-	var currentUserID uint64 = auth.GetIdentityFromContext(ctx).Identity()
+func (svc *attachment) Create(channelId uint64, name string, size int64, fh io.ReadSeeker) (att *types.Attachment, err error) {
+	var currentUserID uint64 = repository.Identity(svc.ctx)
 
 	// @todo verify if current user can access this channel
 	// @todo verify if current user can upload to this channel
@@ -161,16 +175,16 @@ func (svc attachment) Create(ctx context.Context, channelId uint64, name string,
 }
 
 // Generates URL to a location
-func (svc attachment) url(att *types.Attachment) string {
+func (svc *attachment) url(att *types.Attachment) string {
 	return fmt.Sprintf(svc.config.url, att.ID, url.PathEscape(att.Name))
 }
 
 // Generates URL to a location
-func (svc attachment) previewUrl(att *types.Attachment) string {
+func (svc *attachment) previewUrl(att *types.Attachment) string {
 	return fmt.Sprintf(svc.config.previewUrl, att.ID, url.PathEscape(att.Name))
 }
 
-func (svc attachment) extractMeta(att *types.Attachment, file io.ReadSeeker) (err error) {
+func (svc *attachment) extractMeta(att *types.Attachment, file io.ReadSeeker) (err error) {
 	if _, err = file.Seek(0, 0); err != nil {
 		return err
 	}
@@ -208,7 +222,7 @@ func (svc attachment) extractMeta(att *types.Attachment, file io.ReadSeeker) (er
 	return
 }
 
-func (svc attachment) makePreview(att *types.Attachment, original io.ReadSeeker) (err error) {
+func (svc *attachment) makePreview(att *types.Attachment, original io.ReadSeeker) (err error) {
 	if true {
 		return
 	}
