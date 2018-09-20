@@ -11,14 +11,14 @@ import (
 
 func MountRoutes(ctx context.Context, config *repository.Flags) func(chi.Router) {
 	return func(r chi.Router) {
-		repo := repository.New()
+		events := repository.NewEvents(ctx)
 
 		go func() {
-			if err := eq.feedSessions(ctx, config, repo, store); err != nil {
+			if err := eq.feedSessions(ctx, config, events, store); err != nil {
 				panic(fmt.Sprintf("Error when starting sessions event feed: %+v", err))
 			}
 		}()
-		eq.store(ctx, repo)
+		eq.store(ctx, events)
 
 		websocket := Websocket{}.New(config)
 		r.Group(func(r chi.Router) {

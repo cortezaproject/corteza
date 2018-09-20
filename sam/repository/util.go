@@ -1,9 +1,10 @@
 package repository
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
+
+	"encoding/json"
 )
 
 func (r repository) updateColumnByID(tableName, columnName string, value interface{}, id uint64) (err error) {

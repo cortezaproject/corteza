@@ -1,14 +1,18 @@
 package repository
 
 import (
+	"context"
 	"time"
 
-	"github.com/crusttech/crust/sam/types"
 	"github.com/titpetric/factory"
+
+	"github.com/crusttech/crust/sam/types"
 )
 
 type (
 	Channel interface {
+		With(ctx context.Context) Channel
+
 		FindChannelByID(id uint64) (*types.Channel, error)
 		FindDirectChannelByUserID(fromUserID, toUserID uint64) (*types.Channel, error)
 		FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error)
@@ -21,6 +25,10 @@ type (
 		ArchiveChannelByID(id uint64) error
 		UnarchiveChannelByID(id uint64) error
 		DeleteChannelByID(id uint64) error
+	}
+
+	channel struct {
+		*repository
 	}
 )
 
@@ -50,14 +58,24 @@ const (
 	ErrChannelNotFound = repositoryError("ChannelNotFound")
 )
 
-func (r *repository) FindChannelByID(id uint64) (*types.Channel, error) {
+func NewChannel(ctx context.Context) Channel {
+	return (&channel{}).With(ctx)
+}
+
+func (r *channel) With(ctx context.Context) Channel {
+	return &channel{
+		repository: r.repository.With(ctx),
+	}
+}
+
+func (r *channel) FindChannelByID(id uint64) (*types.Channel, error) {
 	mod := &types.Channel{}
 	sql := sqlChannelSelect + " AND id = ?"
 
 	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrChannelNotFound)
 }
 
-func (r *repository) FindDirectChannelByUserID(fromUserID, toUserID uint64) (*types.Channel, error) {
+func (r *channel) FindDirectChannelByUserID(fromUserID, toUserID uint64) (*types.Channel, error) {
 	mod := &types.Channel{}
 
 	if fromUserID == toUserID {
@@ -75,7 +93,7 @@ func (r *repository) FindDirectChannelByUserID(fromUserID, toUserID uint64) (*ty
 	return mod, isFound(r.db().Get(mod, sqlChannelDirect, types.ChannelTypeDirect, fromUserID, toUserID), mod.ID > 0, ErrChannelNotFound)
 }
 
-func (r *repository) FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error) {
+func (r *channel) FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error) {
 	// @todo: actual searching (filter.Query) not just a full select
 
 	params := make([]interface{}, 0)
@@ -95,7 +113,7 @@ func (r *repository) FindChannels(filter *types.ChannelFilter) ([]*types.Channel
 	return rval, r.db().Select(&rval, sql, params...)
 }
 
-func (r *repository) CreateChannel(mod *types.Channel) (*types.Channel, error) {
+func (r *channel) CreateChannel(mod *types.Channel) (*types.Channel, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 	mod.Meta = coalesceJson(mod.Meta, []byte("{}"))
@@ -107,7 +125,7 @@ func (r *repository) CreateChannel(mod *types.Channel) (*types.Channel, error) {
 	return mod, r.db().Insert("channels", mod)
 }
 
-func (r *repository) UpdateChannel(mod *types.Channel) (*types.Channel, error) {
+func (r *channel) UpdateChannel(mod *types.Channel) (*types.Channel, error) {
 	mod.UpdatedAt = timeNowPtr()
 	mod.Meta = coalesceJson(mod.Meta, []byte("{}"))
 	if mod.Type == "" {
@@ -120,36 +138,36 @@ func (r *repository) UpdateChannel(mod *types.Channel) (*types.Channel, error) {
 		UpdatePartial("channels", mod, whitelist, "id")
 }
 
-func (r *repository) FindChannelsMembershipsByMemberId(memberId uint64) ([]*types.ChannelMember, error) {
+func (r *channel) FindChannelsMembershipsByMemberId(memberId uint64) ([]*types.ChannelMember, error) {
 	var rval = make([]*types.ChannelMember, 0)
 
 	return rval, r.db().Select(&rval, sqlChannelMemberships+" AND cm.rel_user = ? ", memberId)
 }
 
-func (r *repository) AddChannelMember(mod *types.ChannelMember) (*types.ChannelMember, error) {
+func (r *channel) AddChannelMember(mod *types.ChannelMember) (*types.ChannelMember, error) {
 	sql := `INSERT INTO channel_members (rel_channel, rel_user) VALUES (?, ?)`
 	mod.CreatedAt = time.Now()
 
 	return mod, exec(r.db().Exec(sql, mod.ChannelID, mod.UserID))
 }
 
-func (r *repository) RemoveChannelMember(channelID, userID uint64) error {
+func (r *channel) RemoveChannelMember(channelID, userID uint64) error {
 	sql := `DELETE FROM channel_members WHERE rel_channel = ? AND rel_user = ?`
 	return exec(r.db().Exec(sql, channelID, userID))
 }
 
-func (r *repository) ArchiveChannelByID(id uint64) error {
+func (r *channel) ArchiveChannelByID(id uint64) error {
 	return r.updateColumnByID("channels", "archived_at", time.Now(), id)
 }
 
-func (r *repository) UnarchiveChannelByID(id uint64) error {
+func (r *channel) UnarchiveChannelByID(id uint64) error {
 	return r.updateColumnByID("channels", "archived_at", nil, id)
 }
 
-func (r *repository) DeleteChannelByID(id uint64) error {
+func (r *channel) DeleteChannelByID(id uint64) error {
 	return r.updateColumnByID("channels", "deleted_at", time.Now(), id)
 }
 
-func (r *repository) RecoverChannelByID(id uint64) error {
+func (r *channel) RecoverChannelByID(id uint64) error {
 	return r.updateColumnByID("channels", "deleted_at", nil, id)
 }

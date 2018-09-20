@@ -11,7 +11,10 @@ import (
 
 type (
 	message struct {
-		rpo messageRepository
+		channel repository.Channel
+		message repository.Message
+		reaction repository.Reaction
+
 		att AttachmentService
 	}
 
@@ -34,20 +37,12 @@ type (
 
 		deleter
 	}
-
-	messageRepository interface {
-		repository.Transactionable
-		repository.Message
-		repository.Reaction
-		repository.Attachment
-		repository.Channel
-	}
 )
 
 func Message(attSvc AttachmentService) *message {
 	m := &message{
 		att: attSvc,
-		rpo: repository.New(),
+		message: repository.NewMessage(context.Background()),
 	}
 	return m
 }
@@ -60,7 +55,7 @@ func (svc message) Find(ctx context.Context, filter *types.MessageFilter) (mm ty
 	_ = currentUserID
 	_ = filter.ChannelID
 
-	mm, err = svc.rpo.FindMessages(filter)
+	mm, err = svc.message.FindMessages(filter)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +64,7 @@ func (svc message) Find(ctx context.Context, filter *types.MessageFilter) (mm ty
 }
 
 func (svc message) Direct(ctx context.Context, recipientID uint64, in *types.Message) (out *types.Message, err error) {
-	return out, svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
+	return out, repository.DB().Transaction(func() (err error) {
 		var currentUserID = auth.GetIdentityFromContext(ctx).Identity()
 
 		// @todo [SECURITY] verify if current user can send direct messages to anyone?
@@ -82,9 +77,9 @@ func (svc message) Direct(ctx context.Context, recipientID uint64, in *types.Mes
 			return errors.New("Not allowed to send direct messages to this user")
 		}
 
-		dch, err := r.FindDirectChannelByUserID(currentUserID, recipientID)
+		dch, err := svc.channel.FindDirectChannelByUserID(currentUserID, recipientID)
 		if err == repository.ErrChannelNotFound {
-			dch, err = r.CreateChannel(&types.Channel{
+			dch, err = svc.channel.CreateChannel(&types.Channel{
 				Type: types.ChannelTypeDirect,
 			})
 
@@ -96,13 +91,13 @@ func (svc message) Direct(ctx context.Context, recipientID uint64, in *types.Mes
 
 			membership.UserID = currentUserID
 			spew.Dump(membership)
-			if _, err = r.AddChannelMember(membership); err != nil {
+			if _, err = svc.channel.AddChannelMember(membership); err != nil {
 				return
 			}
 
 			spew.Dump(membership)
 			membership.UserID = recipientID
-			if _, err = r.AddChannelMember(membership); err != nil {
+			if _, err = svc.channel.AddChannelMember(membership); err != nil {
 				return
 			}
 
@@ -118,7 +113,7 @@ func (svc message) Direct(ctx context.Context, recipientID uint64, in *types.Mes
 		spew.Dump(in)
 
 		// @todo send new msg to the event-loop
-		out, err = r.CreateMessage(in)
+		out, err = svc.message.CreateMessage(in)
 		return
 	})
 }
@@ -131,7 +126,7 @@ func (svc message) Create(ctx context.Context, mod *types.Message) (*types.Messa
 
 	mod.UserID = currentUserID
 
-	message, err := svc.rpo.CreateMessage(mod)
+	message, err := svc.message.CreateMessage(mod)
 	if err == nil {
 		PubSub().Event(ctx, "new message added")
 	}
@@ -149,7 +144,7 @@ func (svc message) Update(ctx context.Context, mod *types.Message) (*types.Messa
 
 	// @todo verify ownership
 
-	return svc.rpo.UpdateMessage(mod)
+	return svc.message.UpdateMessage(mod)
 }
 
 func (svc message) Delete(ctx context.Context, id uint64) error {
@@ -163,7 +158,7 @@ func (svc message) Delete(ctx context.Context, id uint64) error {
 
 	// @todo verify ownership
 
-	return svc.rpo.DeleteMessageByID(id)
+	return svc.message.DeleteMessageByID(id)
 }
 
 func (svc message) React(ctx context.Context, messageID uint64, reaction string) error {
@@ -182,7 +177,7 @@ func (svc message) React(ctx context.Context, messageID uint64, reaction string)
 		Reaction:  reaction,
 	}
 
-	if _, err := svc.rpo.CreateReaction(r); err != nil {
+	if _, err := svc.reaction.CreateReaction(r); err != nil {
 		return err
 	}
 
@@ -199,7 +194,7 @@ func (svc message) Unreact(ctx context.Context, messageID uint64, reaction strin
 	// @todo load reaction and verify ownership
 	var r *types.Reaction
 
-	return svc.rpo.DeleteReactionByID(r.ID)
+	return svc.reaction.DeleteReactionByID(r.ID)
 }
 
 func (svc message) Pin(ctx context.Context, messageID uint64) error {

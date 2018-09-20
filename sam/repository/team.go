@@ -1,13 +1,18 @@
 package repository
 
 import (
-	"github.com/crusttech/crust/sam/types"
-	"github.com/titpetric/factory"
+	"context"
 	"time"
+
+	"github.com/titpetric/factory"
+
+	"github.com/crusttech/crust/sam/types"
 )
 
 type (
 	Team interface {
+		With(ctx context.Context) Team
+
 		FindTeamByID(id uint64) (*types.Team, error)
 		FindTeams(filter *types.TeamFilter) ([]*types.Team, error)
 		CreateTeam(mod *types.Team) (*types.Team, error)
@@ -18,6 +23,10 @@ type (
 		MergeTeamByID(id, targetTeamID uint64) error
 		MoveTeamByID(id, targetOrganisationID uint64) error
 	}
+
+	team struct {
+		*repository
+	}
 )
 
 const (
@@ -26,14 +35,24 @@ const (
 	ErrTeamNotFound = repositoryError("TeamNotFound")
 )
 
-func (r *repository) FindTeamByID(id uint64) (*types.Team, error) {
+func NewTeam(ctx context.Context) Team {
+	return (&team{}).With(ctx)
+}
+
+func (r *team) With(ctx context.Context) Team {
+	return &team{
+		repository: r.repository.With(ctx),
+	}
+}
+
+func (r *team) FindTeamByID(id uint64) (*types.Team, error) {
 	sql := "SELECT * FROM teams WHERE id = ? AND " + sqlTeamScope
 	mod := &types.Team{}
 
 	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrTeamNotFound)
 }
 
-func (r *repository) FindTeams(filter *types.TeamFilter) ([]*types.Team, error) {
+func (r *team) FindTeams(filter *types.TeamFilter) ([]*types.Team, error) {
 	rval := make([]*types.Team, 0)
 	params := make([]interface{}, 0)
 
@@ -51,35 +70,35 @@ func (r *repository) FindTeams(filter *types.TeamFilter) ([]*types.Team, error) 
 	return rval, r.db().Select(&rval, sql, params...)
 }
 
-func (r *repository) CreateTeam(mod *types.Team) (*types.Team, error) {
+func (r *team) CreateTeam(mod *types.Team) (*types.Team, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
 	return mod, r.db().Insert("teams", mod)
 }
 
-func (r *repository) UpdateTeam(mod *types.Team) (*types.Team, error) {
+func (r *team) UpdateTeam(mod *types.Team) (*types.Team, error) {
 	mod.UpdatedAt = timeNowPtr()
 
 	return mod, r.db().Replace("teams", mod)
 }
 
-func (r *repository) ArchiveTeamByID(id uint64) error {
+func (r *team) ArchiveTeamByID(id uint64) error {
 	return r.updateColumnByID("teams", "archived_at", time.Now(), id)
 }
 
-func (r *repository) UnarchiveTeamByID(id uint64) error {
+func (r *team) UnarchiveTeamByID(id uint64) error {
 	return r.updateColumnByID("teams", "archived_at", nil, id)
 }
 
-func (r *repository) DeleteTeamByID(id uint64) error {
+func (r *team) DeleteTeamByID(id uint64) error {
 	return r.updateColumnByID("teams", "deleted_at", nil, id)
 }
 
-func (r *repository) MergeTeamByID(id, targetTeamID uint64) error {
+func (r *team) MergeTeamByID(id, targetTeamID uint64) error {
 	return ErrNotImplemented
 }
 
-func (r *repository) MoveTeamByID(id, targetOrganisationID uint64) error {
+func (r *team) MoveTeamByID(id, targetOrganisationID uint64) error {
 	return ErrNotImplemented
 }
