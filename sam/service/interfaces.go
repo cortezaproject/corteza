@@ -1,21 +1,17 @@
 package service
 
-import (
-	"context"
-)
-
 type (
 	suspender interface {
-		Suspend(ctx context.Context, ID uint64) error
-		Unsuspend(ctx context.Context, ID uint64) error
+		Suspend(ID uint64) error
+		Unsuspend(ID uint64) error
 	}
 
 	archiver interface {
-		Archive(ctx context.Context, ID uint64) error
-		Unarchive(ctx context.Context, ID uint64) error
+		Archive(ID uint64) error
+		Unarchive(ID uint64) error
 	}
 
 	deleter interface {
-		Delete(ctx context.Context, ID uint64) error
+		Delete(ID uint64) error
 	}
 )

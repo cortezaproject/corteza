@@ -11,13 +11,12 @@ import (
 	fstore "github.com/crusttech/crust/internal/store"
 )
 
-func messageService() service.MessageService {
+func messageService(ctx context.Context) service.MessageService {
 	// @todo refactor, optimize this
 	store, _ := fstore.New("var/store")
 	attSvc := service.Attachment(store)
 	msgSvc := service.Message(attSvc)
-
-	return msgSvc
+	return msgSvc.With(ctx)
 }
 
 func (s *Session) messageCreate(ctx context.Context, p *incoming.MessageCreate) error {
@@ -28,7 +27,7 @@ func (s *Session) messageCreate(ctx context.Context, p *incoming.MessageCreate) 
 		}
 	)
 
-	msg, err := messageService().Create(ctx, msg)
+	msg, err := messageService(ctx).Create(msg)
 	if err != nil {
 		return err
 	}
@@ -43,7 +42,7 @@ func (s *Session) messageUpdate(ctx context.Context, p *incoming.MessageUpdate) 
 			Message: p.Message,
 		}
 	)
-	msg, err := messageService().Update(ctx, msg)
+	msg, err := messageService(ctx).Update(msg)
 	if err != nil {
 		return err
 	}
@@ -62,7 +61,7 @@ func (s *Session) messageDelete(ctx context.Context, p *incoming.MessageDelete) 
 		id = parseUInt64(p.ID)
 	)
 
-	if err := messageService().Delete(ctx, id); err != nil {
+	if err := messageService(ctx).Delete(id); err != nil {
 		return err
 	}
 
@@ -81,7 +80,7 @@ func (s *Session) messageHistory(ctx context.Context, p *incoming.Messages) erro
 		}
 	)
 
-	messages, err := messageService().Find(ctx, filter)
+	messages, err := messageService(ctx).Find(filter)
 	if err != nil {
 		return err
 	}

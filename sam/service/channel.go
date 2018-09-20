@@ -3,37 +3,43 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/crusttech/crust/internal/auth"
+
+	"github.com/pkg/errors"
+
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
-	"github.com/pkg/errors"
 )
 
 type (
 	channel struct {
+		ctx context.Context
+
 		channel repository.Channel
 		message repository.Message
 	}
 
 	ChannelService interface {
-		FindByID(ctx context.Context, channelID uint64) (*types.Channel, error)
-		Find(ctx context.Context, filter *types.ChannelFilter) ([]*types.Channel, error)
-		FindByMembership(ctx context.Context) (rval []*types.Channel, err error)
+		With(ctx context.Context) ChannelService
 
-		Create(ctx context.Context, channel *types.Channel) (*types.Channel, error)
-		Update(ctx context.Context, channel *types.Channel) (*types.Channel, error)
+		FindByID(channelID uint64) (*types.Channel, error)
+		Find(filter *types.ChannelFilter) ([]*types.Channel, error)
+		FindByMembership() (rval []*types.Channel, err error)
+
+		Create(channel *types.Channel) (*types.Channel, error)
+		Update(channel *types.Channel) (*types.Channel, error)
 
 		deleter
 		archiver
 	}
 
 	//channelSecurity interface {
-	//	CanRead(ctx context.Context, ch *types.Channel) bool
+	//	CanRead(ch *types.Channel) bool
 	//}
 )
 
 func Channel() *channel {
 	var svc = &channel{
+		ctx:     context.Background(),
 		channel: repository.NewChannel(context.Background()),
 		message: repository.NewMessage(context.Background()),
 	}
@@ -41,7 +47,15 @@ func Channel() *channel {
 	return svc
 }
 
-func (svc channel) FindByID(ctx context.Context, id uint64) (ch *types.Channel, err error) {
+func (svc *channel) With(ctx context.Context) ChannelService {
+	return &channel{
+		ctx:     ctx,
+		channel: svc.channel.With(ctx),
+		message: svc.message.With(ctx),
+	}
+}
+
+func (svc *channel) FindByID(id uint64) (ch *types.Channel, err error) {
 	ch, err = svc.channel.FindChannelByID(id)
 	if err != nil {
 		return
@@ -54,24 +68,24 @@ func (svc channel) FindByID(ctx context.Context, id uint64) (ch *types.Channel, 
 	return
 }
 
-func (svc channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*types.Channel, error) {
+func (svc *channel) Find(filter *types.ChannelFilter) ([]*types.Channel, error) {
 	// @todo: permission check to return only channels that channel has access to
 	if cc, err := svc.channel.FindChannels(filter); err != nil {
 		return nil, err
 	} else {
-		return cc, svc.preloadMembers(ctx, cc)
+		return cc, svc.preloadMembers(cc)
 	}
 }
 
-func (svc channel) preloadMembers(ctx context.Context, set types.ChannelSet) error {
+func (svc *channel) preloadMembers(set types.ChannelSet) error {
 	// @todo implement
 	return nil
 }
 
 // Returns all channels with membership info
-func (svc channel) FindByMembership(ctx context.Context) (rval []*types.Channel, err error) {
+func (svc *channel) FindByMembership() (rval []*types.Channel, err error) {
 	return rval, repository.DB().Transaction(func() error {
-		var chMemberId = auth.GetIdentityFromContext(ctx).Identity()
+		var chMemberId = repository.Identity(svc.ctx)
 		var mm []*types.ChannelMember
 
 		if mm, err = svc.channel.FindChannelsMembershipsByMemberId(chMemberId); err != nil {
@@ -94,7 +108,7 @@ func (svc channel) FindByMembership(ctx context.Context) (rval []*types.Channel,
 	})
 }
 
-func (svc channel) Create(ctx context.Context, in *types.Channel) (out *types.Channel, err error) {
+func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 	// @todo: [SECURITY] permission check if user can add channel
 
 	return out, repository.DB().Transaction(func() (err error) {
@@ -103,7 +117,7 @@ func (svc channel) Create(ctx context.Context, in *types.Channel) (out *types.Ch
 		// @todo get organisation from somewhere
 		var organisationID uint64 = 0
 
-		var chCreatorID = auth.GetIdentityFromContext(ctx).Identity()
+		var chCreatorID = repository.Identity(svc.ctx)
 
 		// @todo [SECURITY] check if channel topic can be set
 		if in.Topic != "" && false {
@@ -173,7 +187,7 @@ func (svc channel) Create(ctx context.Context, in *types.Channel) (out *types.Ch
 	})
 }
 
-func (svc channel) Update(ctx context.Context, in *types.Channel) (out *types.Channel, err error) {
+func (svc *channel) Update(in *types.Channel) (out *types.Channel, err error) {
 	return out, repository.DB().Transaction(func() (err error) {
 		var msgs types.MessageSet
 
@@ -188,7 +202,7 @@ func (svc channel) Update(ctx context.Context, in *types.Channel) (out *types.Ch
 			return errors.New("Not allowed to edit deleted channels")
 		}
 
-		var chUpdatorId = auth.GetIdentityFromContext(ctx).Identity()
+		var chUpdatorId = repository.Identity(svc.ctx)
 
 		// Copy values
 		if out.Name != in.Name {
@@ -256,9 +270,9 @@ func (svc channel) Update(ctx context.Context, in *types.Channel) (out *types.Ch
 	})
 }
 
-func (svc channel) Delete(ctx context.Context, id uint64) error {
+func (svc *channel) Delete(id uint64) error {
 	return repository.DB().Transaction(func() (err error) {
-		var userID = auth.GetIdentityFromContext(ctx).Identity()
+		var userID = repository.Identity(svc.ctx)
 		var ch *types.Channel
 
 		// @todo [SECURITY] can user access this channel?
@@ -278,9 +292,9 @@ func (svc channel) Delete(ctx context.Context, id uint64) error {
 	})
 }
 
-func (svc channel) Recover(ctx context.Context, id uint64) error {
+func (svc *channel) Recover(id uint64) error {
 	return repository.DB().Transaction(func() (err error) {
-		var userID = auth.GetIdentityFromContext(ctx).Identity()
+		var userID = repository.Identity(svc.ctx)
 		var ch *types.Channel
 
 		// @todo [SECURITY] can user access this channel?
@@ -300,9 +314,9 @@ func (svc channel) Recover(ctx context.Context, id uint64) error {
 	})
 }
 
-func (svc channel) Archive(ctx context.Context, id uint64) error {
+func (svc *channel) Archive(id uint64) error {
 	return repository.DB().Transaction(func() (err error) {
-		var userID = auth.GetIdentityFromContext(ctx).Identity()
+		var userID = repository.Identity(svc.ctx)
 		var ch *types.Channel
 
 		// @todo [SECURITY] can user access this channel?
@@ -322,9 +336,9 @@ func (svc channel) Archive(ctx context.Context, id uint64) error {
 	})
 }
 
-func (svc channel) Unarchive(ctx context.Context, id uint64) error {
+func (svc *channel) Unarchive(id uint64) error {
 	return repository.DB().Transaction(func() (err error) {
-		var userID = auth.GetIdentityFromContext(ctx).Identity()
+		var userID = repository.Identity(svc.ctx)
 		var ch *types.Channel
 
 		// @todo [SECURITY] can user access this channel?
@@ -345,7 +359,7 @@ func (svc channel) Unarchive(ctx context.Context, id uint64) error {
 
 }
 
-func (svc channel) makeSystemMessage(ch *types.Channel, format string, a ...interface{}) *types.Message {
+func (svc *channel) makeSystemMessage(ch *types.Channel, format string, a ...interface{}) *types.Message {
 	return &types.Message{
 		ChannelID: ch.ID,
 		Message:   fmt.Sprintf(format, a...),
@@ -361,7 +375,7 @@ func (svc channel) makeSystemMessage(ch *types.Channel, format string, a ...inte
 //	}
 //
 //	nativeChannelSecChRepo interface {
-//		FindMember(ctx context.Context, channelId uint64, userId uint64) (*types.User, error)
+//		FindMember(channelId uint64, userId uint64) (*types.User, error)
 //	}
 //)
 //
@@ -374,10 +388,10 @@ func (svc channel) makeSystemMessage(ch *types.Channel, format string, a ...inte
 //}
 //
 //// Current user can read the channel if he is a member
-//func (sec nativeChannelSec) CanRead(ctx context.Context, ch *types.Channel) bool {
+//func (sec nativeChannelSec) CanRead(ch *types.Channel) bool {
 //	// @todo check if channel is public?
 //
-//	var currentUserID = auth.GetIdentityFromContext(ctx).Identity()
+//	var currentUserID = repository.Identity(svc.ctx)
 //
 //	user, err := sec.rpo.FindMember(ch.ID, currentUserID)
 //

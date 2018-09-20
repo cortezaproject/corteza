@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/titpetric/factory"
+
+	"github.com/crusttech/crust/internal/auth"
 )
 
 type (
@@ -15,7 +17,10 @@ type (
 	}
 )
 
-var _db *factory.DB
+var (
+_db *factory.DB
+_ctx context.Context
+)
 
 // DB returns a repository-wide singleton DB handle
 func DB(ctxs ...context.Context) *factory.DB {
@@ -24,9 +29,14 @@ func DB(ctxs ...context.Context) *factory.DB {
 	}
 	for _, ctx := range ctxs {
 		_db = _db.With(ctx)
+		_ctx = ctx
 		break
 	}
 	return _db
+}
+
+func Identity(ctx context.Context) uint64 {
+	return auth.GetIdentityFromContext(ctx).Identity()
 }
 
 // With updates repository and database contexts
@@ -40,6 +50,12 @@ func (r *repository) With(ctx context.Context) *repository {
 	}
 	return res
 }
+
+// Context returns current active repository context
+func (r *repository) Context() context.Context {
+	return r.ctx
+}
+
 
 // db returns context-aware db handle
 func (r *repository) db() *factory.DB {

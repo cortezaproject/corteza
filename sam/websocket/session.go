@@ -65,7 +65,7 @@ func (sess *Session) connected() {
 	sess.sendToAll(&outgoing.Connected{UserID: uint64toa(sess.user.Identity())})
 
 	// Subscribe this user to all channels
-	if chs, err := sess.svc.ch.FindByMembership(sess.ctx); err != nil {
+	if chs, err := sess.svc.ch.With(sess.ctx).FindByMembership(); err != nil {
 		log.Printf("Error: %v", err)
 	} else {
 		for _, ch := range chs {
