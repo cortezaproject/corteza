@@ -1,19 +1,28 @@
 package repository
 
 import (
-	"github.com/crusttech/crust/sam/types"
+	"context"
+	"time"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/titpetric/factory"
-	"time"
+
+	"github.com/crusttech/crust/sam/types"
 )
 
 type (
 	Attachment interface {
+		With(ctx context.Context) Attachment
+
 		FindAttachmentByID(id uint64) (*types.Attachment, error)
 		FindAttachmentByMessageID(IDs ...uint64) (types.MessageAttachmentSet, error)
 		CreateAttachment(mod *types.Attachment) (*types.Attachment, error)
 		DeleteAttachmentByID(id uint64) error
 		BindAttachment(attachmentId, messageId uint64) error
+	}
+
+	attachment struct {
+		*repository
 	}
 )
 
@@ -23,16 +32,24 @@ const (
 	ErrAttachmentNotFound = repositoryError("AttachmentNotFound")
 )
 
-var _ Attachment = &repository{}
+func NewAttachment(ctx context.Context) Attachment {
+	return (&attachment{}).With(ctx)
+}
 
-func (r *repository) FindAttachmentByID(id uint64) (*types.Attachment, error) {
+func (r *attachment) With(ctx context.Context) Attachment {
+	return &attachment{
+		repository: r.repository.With(ctx),
+	}
+}
+
+func (r *attachment) FindAttachmentByID(id uint64) (*types.Attachment, error) {
 	sql := "SELECT * FROM attachments WHERE id = ? AND " + sqlAttachmentScope
 	mod := &types.Attachment{}
 
 	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrAttachmentNotFound)
 }
 
-func (r *repository) FindAttachmentByMessageID(IDs ...uint64) (rval types.MessageAttachmentSet, err error) {
+func (r *attachment) FindAttachmentByMessageID(IDs ...uint64) (rval types.MessageAttachmentSet, err error) {
 	rval = make([]*types.MessageAttachment, 0)
 
 	if len(IDs) == 0 {
@@ -51,7 +68,7 @@ func (r *repository) FindAttachmentByMessageID(IDs ...uint64) (rval types.Messag
 	}
 }
 
-func (r *repository) CreateAttachment(mod *types.Attachment) (*types.Attachment, error) {
+func (r *attachment) CreateAttachment(mod *types.Attachment) (*types.Attachment, error) {
 	if mod.ID == 0 {
 		mod.ID = factory.Sonyflake.NextID()
 	}
@@ -61,11 +78,11 @@ func (r *repository) CreateAttachment(mod *types.Attachment) (*types.Attachment,
 	return mod, r.db().Insert("attachments", mod)
 }
 
-func (r *repository) DeleteAttachmentByID(id uint64) error {
+func (r *attachment) DeleteAttachmentByID(id uint64) error {
 	return r.updateColumnByID("attachments", "deleted_at", nil, id)
 }
 
-func (r *repository) BindAttachment(attachmentId, messageId uint64) error {
+func (r *attachment) BindAttachment(attachmentId, messageId uint64) error {
 	bond := struct {
 		RelAttachment uint64 `db:"rel_attachment"`
 		RelMessage    uint64 `db:"rel_message"`

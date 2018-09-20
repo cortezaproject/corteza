@@ -11,7 +11,8 @@ import (
 
 type (
 	channel struct {
-		rpo channelRepository
+		channel repository.Channel
+		message repository.Message
 	}
 
 	ChannelService interface {
@@ -26,27 +27,22 @@ type (
 		archiver
 	}
 
-	channelRepository interface {
-		repository.Transactionable
-		repository.Channel
-	}
-
 	//channelSecurity interface {
 	//	CanRead(ctx context.Context, ch *types.Channel) bool
 	//}
 )
 
 func Channel() *channel {
-	var svc = &channel{}
-
-	svc.rpo = repository.New()
-	//svc.sec.ch = ChannelSecurity(svc.rpo)
-
+	var svc = &channel{
+		channel: repository.NewChannel(context.Background()),
+		message: repository.NewMessage(context.Background()),
+	}
+	//svc.sec.ch = ChannelSecurity(svc.channel)
 	return svc
 }
 
 func (svc channel) FindByID(ctx context.Context, id uint64) (ch *types.Channel, err error) {
-	ch, err = svc.rpo.FindChannelByID(id)
+	ch, err = svc.channel.FindChannelByID(id)
 	if err != nil {
 		return
 	}
@@ -60,7 +56,7 @@ func (svc channel) FindByID(ctx context.Context, id uint64) (ch *types.Channel, 
 
 func (svc channel) Find(ctx context.Context, filter *types.ChannelFilter) ([]*types.Channel, error) {
 	// @todo: permission check to return only channels that channel has access to
-	if cc, err := svc.rpo.FindChannels(filter); err != nil {
+	if cc, err := svc.channel.FindChannels(filter); err != nil {
 		return nil, err
 	} else {
 		return cc, svc.preloadMembers(ctx, cc)
@@ -74,15 +70,15 @@ func (svc channel) preloadMembers(ctx context.Context, set types.ChannelSet) err
 
 // Returns all channels with membership info
 func (svc channel) FindByMembership(ctx context.Context) (rval []*types.Channel, err error) {
-	return rval, svc.rpo.BeginWith(ctx, func(r repository.Interfaces) error {
+	return rval, repository.DB().Transaction(func() error {
 		var chMemberId = auth.GetIdentityFromContext(ctx).Identity()
 		var mm []*types.ChannelMember
 
-		if mm, err = r.FindChannelsMembershipsByMemberId(chMemberId); err != nil {
+		if mm, err = svc.channel.FindChannelsMembershipsByMemberId(chMemberId); err != nil {
 			return err
 		}
 
-		if rval, err = r.FindChannels(nil); err != nil {
+		if rval, err = svc.channel.FindChannels(nil); err != nil {
 			return err
 		}
 
@@ -101,7 +97,7 @@ func (svc channel) FindByMembership(ctx context.Context) (rval []*types.Channel,
 func (svc channel) Create(ctx context.Context, in *types.Channel) (out *types.Channel, err error) {
 	// @todo: [SECURITY] permission check if user can add channel
 
-	return out, svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
+	return out, repository.DB().Transaction(func() (err error) {
 		var msg *types.Message
 
 		// @todo get organisation from somewhere
@@ -139,12 +135,12 @@ func (svc channel) Create(ctx context.Context, in *types.Channel) (out *types.Ch
 		}
 
 		// Save the channel
-		if out, err = r.CreateChannel(out); err != nil {
+		if out, err = svc.channel.CreateChannel(out); err != nil {
 			return
 		}
 
 		// Join current user as an member & owner
-		_, err = r.AddChannelMember(&types.ChannelMember{
+		_, err = svc.channel.AddChannelMember(&types.ChannelMember{
 			ChannelID: out.ID,
 			UserID:    chCreatorID,
 			Type:      types.ChannelMembershipTypeOwner,
@@ -157,7 +153,7 @@ func (svc channel) Create(ctx context.Context, in *types.Channel) (out *types.Ch
 
 		// Create the first message, doing this directly with repository to circumvent
 		// message service constraints
-		msg, err = r.CreateMessage(svc.makeSystemMessage(
+		msg, err = svc.message.CreateMessage(svc.makeSystemMessage(
 			out,
 			"@%d created new %s channel, topic is: %s",
 			chCreatorID,
@@ -178,11 +174,11 @@ func (svc channel) Create(ctx context.Context, in *types.Channel) (out *types.Ch
 }
 
 func (svc channel) Update(ctx context.Context, in *types.Channel) (out *types.Channel, err error) {
-	return out, svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
+	return out, repository.DB().Transaction(func() (err error) {
 		var msgs types.MessageSet
 
 		// @todo [SECURITY] can user access this channel?
-		if out, err = r.FindChannelByID(in.ID); err != nil {
+		if out, err = svc.channel.FindChannelByID(in.ID); err != nil {
 			return
 		}
 
@@ -236,7 +232,7 @@ func (svc channel) Update(ctx context.Context, in *types.Channel) (out *types.Ch
 		}
 
 		// Save the updated channel
-		if out, err = r.UpdateChannel(in); err != nil {
+		if out, err = svc.channel.UpdateChannel(in); err != nil {
 			return
 		}
 
@@ -245,7 +241,7 @@ func (svc channel) Update(ctx context.Context, in *types.Channel) (out *types.Ch
 		// Create the first message, doing this directly with repository to circumvent
 		// message service constraints
 		for _, msg := range msgs {
-			if msg, err = r.CreateMessage(msg); err != nil {
+			if msg, err = svc.message.CreateMessage(msg); err != nil {
 				// @todo send new msg to the event-loop
 				return err
 			}
@@ -261,12 +257,12 @@ func (svc channel) Update(ctx context.Context, in *types.Channel) (out *types.Ch
 }
 
 func (svc channel) Delete(ctx context.Context, id uint64) error {
-	return svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
+	return repository.DB().Transaction(func() (err error) {
 		var userID = auth.GetIdentityFromContext(ctx).Identity()
 		var ch *types.Channel
 
 		// @todo [SECURITY] can user access this channel?
-		if ch, err = r.FindChannelByID(id); err != nil {
+		if ch, err = svc.channel.FindChannelByID(id); err != nil {
 			return
 		}
 
@@ -276,19 +272,19 @@ func (svc channel) Delete(ctx context.Context, id uint64) error {
 			return errors.New("Channel already deleted")
 		}
 
-		_, err = r.CreateMessage(svc.makeSystemMessage(ch, "@%d deleted this channel", userID))
+		_, err = svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d deleted this channel", userID))
 
-		return r.DeleteChannelByID(id)
+		return svc.channel.DeleteChannelByID(id)
 	})
 }
 
 func (svc channel) Recover(ctx context.Context, id uint64) error {
-	return svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
+	return repository.DB().Transaction(func() (err error) {
 		var userID = auth.GetIdentityFromContext(ctx).Identity()
 		var ch *types.Channel
 
 		// @todo [SECURITY] can user access this channel?
-		if ch, err = r.FindChannelByID(id); err != nil {
+		if ch, err = svc.channel.FindChannelByID(id); err != nil {
 			return
 		}
 
@@ -298,19 +294,19 @@ func (svc channel) Recover(ctx context.Context, id uint64) error {
 			return errors.New("Channel not deleted")
 		}
 
-		_, err = r.CreateMessage(svc.makeSystemMessage(ch, "@%d recovered this channel", userID))
+		_, err = svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d recovered this channel", userID))
 
-		return r.DeleteChannelByID(id)
+		return svc.channel.DeleteChannelByID(id)
 	})
 }
 
 func (svc channel) Archive(ctx context.Context, id uint64) error {
-	return svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
+	return repository.DB().Transaction(func() (err error) {
 		var userID = auth.GetIdentityFromContext(ctx).Identity()
 		var ch *types.Channel
 
 		// @todo [SECURITY] can user access this channel?
-		if ch, err = r.FindChannelByID(id); err != nil {
+		if ch, err = svc.channel.FindChannelByID(id); err != nil {
 			return
 		}
 
@@ -320,19 +316,19 @@ func (svc channel) Archive(ctx context.Context, id uint64) error {
 			return errors.New("Channel already archived")
 		}
 
-		_, err = r.CreateMessage(svc.makeSystemMessage(ch, "@%d archived this channel", userID))
+		_, err = svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d archived this channel", userID))
 
-		return r.ArchiveChannelByID(id)
+		return svc.channel.ArchiveChannelByID(id)
 	})
 }
 
 func (svc channel) Unarchive(ctx context.Context, id uint64) error {
-	return svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
+	return repository.DB().Transaction(func() (err error) {
 		var userID = auth.GetIdentityFromContext(ctx).Identity()
 		var ch *types.Channel
 
 		// @todo [SECURITY] can user access this channel?
-		if ch, err = r.FindChannelByID(id); err != nil {
+		if ch, err = svc.channel.FindChannelByID(id); err != nil {
 			return
 		}
 
@@ -342,9 +338,9 @@ func (svc channel) Unarchive(ctx context.Context, id uint64) error {
 			return errors.New("Channel not archived")
 		}
 
-		_, err = r.CreateMessage(svc.makeSystemMessage(ch, "@%d unarchived this channel", userID))
+		_, err = svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d unarchived this channel", userID))
 
-		return r.ArchiveChannelByID(id)
+		return svc.channel.ArchiveChannelByID(id)
 	})
 
 }

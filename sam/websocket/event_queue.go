@@ -11,14 +11,6 @@ import (
 )
 
 type (
-	eventQueuePuller interface {
-		EventQueuePull(origin uint64) ([]*types.EventQueueItem, error)
-		EventQueueSync(origin uint64, ID uint64) error
-	}
-	eventQueuePusher interface {
-		EventQueuePush(*types.EventQueueItem) error
-	}
-
 	eventQueueWalker interface {
 		Walk(func(session *Session))
 	}
@@ -46,19 +38,19 @@ func EventQueue(origin uint64) *eventQueue {
 	}
 }
 
-func (eq *eventQueue) store(ctx context.Context, qp eventQueuePusher) {
+func (eq *eventQueue) store(ctx context.Context, qp repository.Events) {
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
 			case eqi := <-eq.queue:
-				qp.EventQueuePush(eqi)
+				qp.Push(eqi)
 			}
 		}
 	}()
 }
 
-func (eq *eventQueue) feedSessions(ctx context.Context, config *repository.Flags, qp eventQueuePuller, store eventQueueWalker) error {
+func (eq *eventQueue) feedSessions(ctx context.Context, config *repository.Flags, qp repository.Events, store eventQueueWalker) error {
 	newMessageEvent := make(chan struct{}, eventQueueBacklog)
 	done := make(chan error, 1)
 
@@ -76,7 +68,7 @@ func (eq *eventQueue) feedSessions(ctx context.Context, config *repository.Flags
 
 	poll := func() error {
 		for {
-			items, err := qp.EventQueuePull(eq.origin)
+			items, err := qp.Pull(eq.origin)
 			if err != nil {
 				return err
 			}
@@ -106,7 +98,7 @@ func (eq *eventQueue) feedSessions(ctx context.Context, config *repository.Flags
 			}
 
 			if lastSyncedId > 0 {
-				qp.EventQueueSync(eq.origin, lastSyncedId)
+				qp.Sync(eq.origin, lastSyncedId)
 			}
 		}
 	}

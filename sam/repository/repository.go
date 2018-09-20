@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"github.com/pkg/errors"
+
 	"github.com/titpetric/factory"
 )
 
@@ -10,80 +10,38 @@ type (
 	repository struct {
 		ctx context.Context
 
-		// Current transaction
-		tx *factory.DB
+		// Get database handle
+		dbh func(ctxs ...context.Context) *factory.DB
 	}
-
-	Transactionable interface {
-		BeginWith(ctx context.Context, callback BeginCallback) error
-		Begin() error
-		Rollback() error
-		Commit() error
-	}
-
-	Contextable interface {
-		WithCtx(ctx context.Context) Interfaces
-	}
-
-	Interfaces interface {
-		Transactionable
-		Contextable
-
-		Attachment
-		Channel
-		Message
-		Organisation
-		Reaction
-		Team
-		EventQueue
-	}
-
-	BeginCallback func(r Interfaces) error
 )
 
-func New() *repository {
-	return &repository{ctx: context.Background()}
-}
+var _db *factory.DB
 
-func (r *repository) WithCtx(ctx context.Context) Interfaces {
-	return &repository{ctx: ctx, tx: r.tx}
-}
-
-func (r *repository) BeginWith(ctx context.Context, callback BeginCallback) error {
-
-	txr := &repository{ctx: ctx}
-
-	if err := txr.Begin(); err != nil {
-		return err
+// DB returns a repository-wide singleton DB handle
+func DB(ctxs ...context.Context) *factory.DB {
+	if _db == nil {
+		_db = factory.Database.MustGet()
 	}
-
-	if err := callback(txr); err != nil {
-		if err := txr.Rollback(); err != nil {
-			return err
-		}
-
-		return err
+	for _, ctx := range ctxs {
+		_db = _db.With(ctx)
+		break
 	}
-
-	return txr.Commit()
+	return _db
 }
 
-func (r *repository) Begin() error {
-	return r.db().Begin()
+// With updates repository and database contexts
+func (r *repository) With(ctx context.Context) *repository {
+	res := &repository{
+		ctx: ctx,
+		dbh: DB,
+	}
+	if r != nil {
+		res.dbh = r.dbh
+	}
+	return res
 }
 
-func (r *repository) Commit() error {
-	return errors.Wrap(r.db().Commit(), "Can not commit changes")
-}
-
-func (r *repository) Rollback() error {
-	return errors.Wrap(r.db().Rollback(), "Can not rollback changes")
-}
-
+// db returns context-aware db handle
 func (r *repository) db() *factory.DB {
-	if r.tx == nil {
-		r.tx = factory.Database.MustGet().With(r.ctx)
-	}
-
-	return r.tx
+	return r.dbh(r.ctx)
 }

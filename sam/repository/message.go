@@ -1,18 +1,27 @@
 package repository
 
 import (
-	"github.com/crusttech/crust/sam/types"
-	"github.com/titpetric/factory"
+	"context"
 	"time"
+
+	"github.com/titpetric/factory"
+
+	"github.com/crusttech/crust/sam/types"
 )
 
 type (
 	Message interface {
+		With(ctx context.Context) Message
+
 		FindMessageByID(id uint64) (*types.Message, error)
 		FindMessages(filter *types.MessageFilter) (types.MessageSet, error)
 		CreateMessage(mod *types.Message) (*types.Message, error)
 		UpdateMessage(mod *types.Message) (*types.Message, error)
 		DeleteMessageByID(id uint64) error
+	}
+
+	message struct {
+		*repository
 	}
 )
 
@@ -34,14 +43,24 @@ const (
 	ErrMessageNotFound = repositoryError("MessageNotFound")
 )
 
-func (r *repository) FindMessageByID(id uint64) (*types.Message, error) {
+func NewMessage(ctx context.Context) Message {
+	return (&message{}).With(ctx)
+}
+
+func (r *message) With(ctx context.Context) Message {
+	return &message{
+		repository: r.repository.With(ctx),
+	}
+}
+
+func (r *message) FindMessageByID(id uint64) (*types.Message, error) {
 	mod := &types.Message{}
 	sql := sqlMessagesSelect + " AND id = ?"
 
 	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrMessageNotFound)
 }
 
-func (r *repository) FindMessages(filter *types.MessageFilter) (types.MessageSet, error) {
+func (r *message) FindMessages(filter *types.MessageFilter) (types.MessageSet, error) {
 	params := make([]interface{}, 0)
 	rval := make(types.MessageSet, 0)
 
@@ -79,19 +98,19 @@ func (r *repository) FindMessages(filter *types.MessageFilter) (types.MessageSet
 	return rval, r.db().Select(&rval, sql, params...)
 }
 
-func (r *repository) CreateMessage(mod *types.Message) (*types.Message, error) {
+func (r *message) CreateMessage(mod *types.Message) (*types.Message, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
 	return mod, r.db().Insert("messages", mod)
 }
 
-func (r *repository) UpdateMessage(mod *types.Message) (*types.Message, error) {
+func (r *message) UpdateMessage(mod *types.Message) (*types.Message, error) {
 	mod.UpdatedAt = timeNowPtr()
 
 	return mod, r.db().Replace("messages", mod)
 }
 
-func (r *repository) DeleteMessageByID(id uint64) error {
+func (r *message) DeleteMessageByID(id uint64) error {
 	return r.updateColumnByID("messages", "deleted_at", nil, id)
 }

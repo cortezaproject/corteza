@@ -8,7 +8,7 @@ import (
 
 type (
 	organisation struct {
-		rpo organisationRepository
+		rpo repository.Organisation
 	}
 
 	OrganisationService interface {
@@ -21,15 +21,10 @@ type (
 		deleter
 		archiver
 	}
-
-	organisationRepository interface {
-		repository.Transactionable
-		repository.Organisation
-	}
 )
 
 func Organisation() *organisation {
-	return &organisation{rpo: repository.New()}
+	return &organisation{rpo: repository.NewOrganisation(context.Background())}
 }
 
 func (svc organisation) FindByID(ctx context.Context, id uint64) (*types.Organisation, error) {

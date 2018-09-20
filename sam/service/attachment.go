@@ -3,23 +3,27 @@ package service
 import (
 	"context"
 	"fmt"
+	"io"
+	"log"
+	"path"
+	"strings"
+
+	"net/http"
+	"net/url"
+
+	"github.com/titpetric/factory"
+
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/store"
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
-	"github.com/titpetric/factory"
-	"io"
-	"log"
-	"net/http"
-	"net/url"
-	"path"
-	"strings"
 )
 
 type (
 	attachment struct {
-		rpo attachmentRepository
-		sto store.Store
+		attachment repository.Attachment
+		message repository.Message
+		store store.Store
 
 		config struct {
 			url        string
@@ -34,34 +38,29 @@ type (
 		OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 		OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
 	}
-
-	attachmentRepository interface {
-		repository.Transactionable
-		repository.Attachment
-	}
 )
 
 func Attachment(store store.Store) *attachment {
-	svc := &attachment{}
-
+	svc := &attachment{
+		attachment: repository.NewAttachment(context.Background()),
+		message: repository.NewMessage(context.Background()),
+		store: store,
+	}
 	svc.config.url = "/attachment/%d/%s"
 	svc.config.previewUrl = "/attachment/%d/%s/preview"
-	svc.rpo = repository.New()
-	svc.sto = store
-
 	return svc
 }
 
 func (svc attachment) FindByID(id uint64) (*types.Attachment, error) {
-	return svc.rpo.FindAttachmentByID(id)
+	return svc.attachment.FindAttachmentByID(id)
 }
 
 func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
-	return svc.sto.Open(att.Url)
+	return svc.store.Open(att.Url)
 }
 
 func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
-	return svc.sto.Open(att.PreviewUrl)
+	return svc.store.Open(att.PreviewUrl)
 
 }
 
@@ -74,7 +73,7 @@ func (svc attachment) LoadFromMessages(ctx context.Context, mm types.MessageSet)
 		return nil
 	})
 
-	if set, err := svc.rpo.FindAttachmentByMessageID(ids...); err != nil {
+	if set, err := svc.attachment.FindAttachmentByMessageID(ids...); err != nil {
 		return err
 	} else {
 		return set.Walk(func(a *types.MessageAttachment) error {
@@ -115,9 +114,9 @@ func (svc attachment) Create(ctx context.Context, channelId uint64, name string,
 
 	log.Printf("Processing uploaded file (name: %s, size: %d, mime: %s)", att.Name, att.Size, att.Mimetype)
 
-	if svc.sto != nil {
-		att.Url = svc.sto.Original(att.ID, ext)
-		if err = svc.sto.Save(att.Url, fh); err != nil {
+	if svc.store != nil {
+		att.Url = svc.store.Original(att.ID, ext)
+		if err = svc.store.Save(att.Url, fh); err != nil {
 			log.Print(err.Error())
 			return
 		}
@@ -128,9 +127,9 @@ func (svc attachment) Create(ctx context.Context, channelId uint64, name string,
 
 	log.Printf("File %s stored as %s", att.Name, att.Url)
 
-	return att, svc.rpo.BeginWith(ctx, func(r repository.Interfaces) (err error) {
+	return att, repository.DB().Transaction(func() (err error) {
 
-		if att, err = r.CreateAttachment(att); err != nil {
+		if att, err = svc.attachment.CreateAttachment(att); err != nil {
 			return
 		}
 
@@ -147,11 +146,11 @@ func (svc attachment) Create(ctx context.Context, channelId uint64, name string,
 
 		// Create the first message, doing this directly with repository to circumvent
 		// message service constraints
-		if msg, err = r.CreateMessage(msg); err != nil {
+		if msg, err = svc.message.CreateMessage(msg); err != nil {
 			return
 		}
 
-		if err = r.BindAttachment(att.ID, msg.ID); err != nil {
+		if err = svc.attachment.BindAttachment(att.ID, msg.ID); err != nil {
 			return
 		}
 
@@ -216,9 +215,9 @@ func (svc attachment) makePreview(att *types.Attachment, original io.ReadSeeker)
 
 	// Can and how we make a preview of this attachment?
 	var ext = "jpg"
-	att.PreviewUrl = svc.sto.Preview(att.ID, ext)
+	att.PreviewUrl = svc.store.Preview(att.ID, ext)
 
-	return svc.sto.Save(att.PreviewUrl, original)
+	return svc.store.Save(att.PreviewUrl, original)
 }
 
 var _ AttachmentService = &attachment{}
