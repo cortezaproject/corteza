@@ -2,8 +2,8 @@ package websocket
 
 import (
 	"encoding/json"
+
 	"github.com/crusttech/crust/sam/websocket/incoming"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 )
 
@@ -12,8 +12,6 @@ func (s *Session) dispatch(raw []byte) (err error) {
 	if err = json.Unmarshal(raw, p); err != nil {
 		return errors.Wrap(err, "Session.incoming: payload malformed")
 	}
-
-	spew.Dump(p, string(raw))
 
 	ctx := s.Context()
 	switch {
