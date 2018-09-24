@@ -9,13 +9,6 @@ import (
 func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 	// Initialize handers & controllers.
 	return func(r chi.Router) {
-		// Cookie expiration in minutes
-		// @todo pull this from auth/jwt config
-		var cookieExp = 3600
-
-		handlers.NewAuthCustom(Auth{}.New(jwtAuth), cookieExp).MountRoutes(r)
-
-		// @todo solve cookie issues (
 		handlers.NewAttachmentDownloadable(Attachment{}.New()).MountRoutes(r)
 
 		// Protect all _private_ routes

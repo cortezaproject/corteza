@@ -3,7 +3,7 @@ set -e
 
 function gofmt {
 	echo "=== fmt all folders ==="
-	GOPATHS=$(find -name '*.go' | grep -v vendor/ | xargs -n1 dirname | sort | uniq)
+	GOPATHS=$(find . -name '*.go' | grep -v vendor/ | xargs -n1 dirname | sort | uniq)
 	for FOLDER in $GOPATHS; do
 		#echo "== go fmt $FOLDER =="
 		cd $FOLDER

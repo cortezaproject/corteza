@@ -69,16 +69,20 @@ func (t *jwt) Authenticator() func(http.Handler) http.Handler {
 }
 
 // Extracts and authenticates JWT from context, validates claims
-func (t *jwt) SetToCookie(w http.ResponseWriter, r *http.Request, identity Identifiable) {
-	// Store state to cookie as well
-	http.SetCookie(w, &http.Cookie{
-		Name:  "jwt",
-		Value: t.Encode(identity),
-
+func (t *jwt) SetCookie(w http.ResponseWriter, r *http.Request, identity Identifiable) {
+	cookie := &http.Cookie{
+		Name:    "jwt",
 		Expires: time.Now().Add(time.Duration(t.expiry) * time.Minute),
+		Secure:  r.URL.Scheme == "https",
 		Domain:  t.cookieDomain,
+		Path:    "/",
+	}
 
-		Secure: r.URL.Scheme == "https",
-		Path:   "/",
-	})
+	if identity == nil {
+		cookie.Expires = time.Unix(0, 0)
+	} else {
+		cookie.Value = t.Encode(identity)
+	}
+
+	http.SetCookie(w, cookie)
 }

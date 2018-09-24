@@ -36,7 +36,7 @@ type (
 
 	jwtEncodeCookieSetter interface {
 		auth.TokenEncoder
-		SetToCookie(w http.ResponseWriter, r *http.Request, identity auth.Identifiable)
+		SetCookie(w http.ResponseWriter, r *http.Request, identity auth.Identifiable)
 	}
 )
 
@@ -162,7 +162,7 @@ func (c *openIdConnect) HandleOAuth2Callback(w http.ResponseWriter, r *http.Requ
 		resputil.JSON(w, err)
 		return
 	} else {
-		c.jwt.SetToCookie(w, r, user)
+		c.jwt.SetCookie(w, r, user)
 	}
 
 	http.Redirect(w, r, c.appURL, http.StatusSeeOther)
