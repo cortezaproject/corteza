@@ -8,6 +8,7 @@ import (
 
 	"github.com/SentimensRG/ctx/sigctx"
 	"github.com/crusttech/crust/auth/rest"
+	"github.com/crusttech/crust/auth/service"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/pkg/errors"
@@ -45,6 +46,8 @@ func Init() error {
 			// @todo: error logging
 		},
 	})
+
+	service.Init()
 
 	return nil
 }
