@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"context"
-	"fmt"
+	"log"
 
 	"github.com/go-chi/chi"
 
@@ -14,8 +14,10 @@ func MountRoutes(ctx context.Context, config *repository.Flags) func(chi.Router)
 		events := repository.NewEvents(ctx)
 
 		go func() {
-			if err := eq.feedSessions(ctx, config, events, store); err != nil {
-				panic(fmt.Sprintf("Error when starting sessions event feed: %+v", err))
+			for {
+				if err := eq.feedSessions(ctx, config, events, store); err != nil {
+					log.Printf("Error when starting sessions event feed: %+v", err)
+				}
 			}
 		}()
 		eq.store(ctx, events)
