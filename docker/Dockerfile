@@ -23,8 +23,7 @@ WORKDIR /crust
 # @todo copy crm/types, migrations
 
 COPY --from=builder /build/* /crust/
-
-ADD https://raw.githubusercontent.com/bagder/ca-bundle/master/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 ARG APP
 ENV APP=$APP
