@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 
 	"github.com/crusttech/crust/sam/repository"
@@ -108,12 +107,10 @@ func (svc *message) Direct(recipientID uint64, in *types.Message) (out *types.Me
 			membership := &types.ChannelMember{ChannelID: dch.ID, Type: types.ChannelMembershipTypeOwner}
 
 			membership.UserID = currentUserID
-			spew.Dump(membership)
 			if _, err = svc.channel.AddChannelMember(membership); err != nil {
 				return
 			}
 
-			spew.Dump(membership)
 			membership.UserID = recipientID
 			if _, err = svc.channel.AddChannelMember(membership); err != nil {
 				return
@@ -127,8 +124,6 @@ func (svc *message) Direct(recipientID uint64, in *types.Message) (out *types.Me
 		in.ChannelID = dch.ID
 		in.UserID = currentUserID
 		in.Type = types.MessageTypeSimpleMessage
-
-		spew.Dump(in)
 
 		// @todo send new msg to the event-loop
 		out, err = svc.message.CreateMessage(in)
