@@ -189,13 +189,13 @@ func (c *openIdConnect) setStateCookie(w http.ResponseWriter, r *http.Request, v
 
 	// Store state to cookie as well
 	http.SetCookie(w, &http.Cookie{
-		Name:  openIdConnectStateCookie,
-		Value: value,
-
+		Name:     openIdConnectStateCookie,
+		Value:    value,
 		Expires:  time.Now().Add(time.Duration(c.stateCookieExpiry) * time.Minute),
 		MaxAge:   maxAge,
 		HttpOnly: true,
 		Secure:   r.URL.Scheme == "https",
 		Path:     "/oidc",
+		Domain:   ".rustbucket.io", // @todo make this configurable (like stateCookieExpiry)
 	})
 }
