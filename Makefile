@@ -104,7 +104,11 @@ qa: vet critic test
 
 mocks: $(GOMOCK)
 	# See https://github.com/golang/mock for details
-	$(MOCKGEN) -source sam/service/service_test.go -destination sam/service/service_mock_test.go -package service
+	$(MOCKGEN) -package service -source sam/service/attachment.go   -destination sam/service/attachment_mock_test.go
+	$(MOCKGEN) -package service -source sam/service/channel.go      -destination sam/service/channel_mock_test.go
+	$(MOCKGEN) -package service -source sam/service/message.go      -destination sam/service/message_mock_test.go
+	$(MOCKGEN) -package service -source sam/service/organisation.go -destination sam/service/organisation_mock_test.go
+	$(MOCKGEN) -package service -source sam/service/team.go         -destination sam/service/team_mock_test.go
 
 
 ########################################################################################################################
