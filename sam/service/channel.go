@@ -30,8 +30,9 @@ type (
 		Create(channel *types.Channel) (*types.Channel, error)
 		Update(channel *types.Channel) (*types.Channel, error)
 
-		deleter
-		archiver
+		Archive(ID uint64) error
+		Unarchive(ID uint64) error
+		Delete(ID uint64) error
 	}
 
 	//channelSecurity interface {
@@ -39,10 +40,8 @@ type (
 	//}
 )
 
-func Channel() *channel {
-	svc := (&channel{}).With(context.Background()).(*channel)
-	//svc.sec.ch = ChannelSecurity(svc.channel)
-	return svc
+func Channel() ChannelService {
+	return (&channel{}).With(context.Background())
 }
 
 func (svc *channel) With(ctx context.Context) ChannelService {

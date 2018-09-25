@@ -2,16 +2,12 @@ package websocket
 
 import (
 	"context"
+
 	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/crusttech/crust/sam/websocket/incoming"
 	"github.com/crusttech/crust/sam/websocket/outgoing"
 )
-
-func channelService(ctx context.Context) service.ChannelService {
-	return service.Channel().With(ctx)
-}
 
 func (s *Session) channelJoin(ctx context.Context, p *incoming.ChannelJoin) error {
 	// @todo: check access / can we join this channel (should be done by service layer)
@@ -48,7 +44,7 @@ func (s *Session) channelPart(ctx context.Context, p *incoming.ChannelPart) erro
 }
 
 func (s *Session) channelList(ctx context.Context, p *incoming.Channels) error {
-	channels, err := channelService(ctx).Find(&types.ChannelFilter{IncludeMembers: true})
+	channels, err := s.svc.ch.With(ctx).Find(&types.ChannelFilter{IncludeMembers: true})
 	if err != nil {
 		return err
 	}
@@ -75,7 +71,7 @@ func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) 
 		ch.Type = types.ChannelType(*p.Type)
 	}
 
-	ch, err = channelService(ctx).Create(ch)
+	ch, err = s.svc.ch.With(ctx).Create(ch)
 	if err != nil {
 		return err
 	}
@@ -98,7 +94,7 @@ func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) 
 }
 
 func (s *Session) channelDelete(ctx context.Context, p *incoming.ChannelDelete) (err error) {
-	err = channelService(ctx).Delete(parseUInt64(p.ChannelID))
+	err = s.svc.ch.With(ctx).Delete(parseUInt64(p.ChannelID))
 	if err != nil {
 		return err
 	}
@@ -110,7 +106,7 @@ func (s *Session) channelDelete(ctx context.Context, p *incoming.ChannelDelete) 
 }
 
 func (s *Session) channelUpdate(ctx context.Context, p *incoming.ChannelUpdate) error {
-	ch, err := channelService(ctx).FindByID(parseUInt64(p.ID))
+	ch, err := s.svc.ch.With(ctx).FindByID(parseUInt64(p.ID))
 	if err != nil {
 		return err
 	}
@@ -127,7 +123,7 @@ func (s *Session) channelUpdate(ctx context.Context, p *incoming.ChannelUpdate) 
 		ch.Type = types.ChannelType(*p.Type)
 	}
 
-	ch, err = channelService(ctx).Update(ch)
+	ch, err = s.svc.ch.With(ctx).Update(ch)
 	if err != nil {
 		return err
 	}

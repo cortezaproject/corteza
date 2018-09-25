@@ -28,13 +28,14 @@ type (
 		Merge(teamID, targetTeamID uint64) error
 		Move(teamID, organisationID uint64) error
 
-		deleter
-		archiver
+		Archive(ID uint64) error
+		Unarchive(ID uint64) error
+		Delete(ID uint64) error
 	}
 )
 
-func Team() *team {
-	return (&team{}).With(context.Background()).(*team)
+func Team() TeamService {
+	return (&team{}).With(context.Background())
 }
 
 func (svc *team) With(ctx context.Context) TeamService {

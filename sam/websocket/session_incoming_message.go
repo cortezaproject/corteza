@@ -3,21 +3,10 @@ package websocket
 import (
 	"context"
 
-	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
 	"github.com/crusttech/crust/sam/websocket/incoming"
 	"github.com/crusttech/crust/sam/websocket/outgoing"
-
-	fstore "github.com/crusttech/crust/internal/store"
 )
-
-func messageService(ctx context.Context) service.MessageService {
-	// @todo refactor, optimize this
-	store, _ := fstore.New("var/store")
-	attSvc := service.Attachment(store)
-	msgSvc := service.Message(attSvc)
-	return msgSvc.With(ctx)
-}
 
 func (s *Session) messageCreate(ctx context.Context, p *incoming.MessageCreate) error {
 	var (
@@ -27,7 +16,7 @@ func (s *Session) messageCreate(ctx context.Context, p *incoming.MessageCreate) 
 		}
 	)
 
-	msg, err := messageService(ctx).Create(msg)
+	msg, err := s.svc.msg.With(ctx).Create(msg)
 	if err != nil {
 		return err
 	}
@@ -42,7 +31,7 @@ func (s *Session) messageUpdate(ctx context.Context, p *incoming.MessageUpdate) 
 			Message: p.Message,
 		}
 	)
-	msg, err := messageService(ctx).Update(msg)
+	msg, err := s.svc.msg.With(ctx).Update(msg)
 	if err != nil {
 		return err
 	}
@@ -61,7 +50,7 @@ func (s *Session) messageDelete(ctx context.Context, p *incoming.MessageDelete) 
 		id = parseUInt64(p.ID)
 	)
 
-	if err := messageService(ctx).Delete(id); err != nil {
+	if err := s.svc.msg.With(ctx).Delete(id); err != nil {
 		return err
 	}
 
@@ -80,7 +69,7 @@ func (s *Session) messageHistory(ctx context.Context, p *incoming.Messages) erro
 		}
 	)
 
-	messages, err := messageService(ctx).Find(filter)
+	messages, err := s.svc.msg.With(ctx).Find(filter)
 	if err != nil {
 		return err
 	}

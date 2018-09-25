@@ -26,13 +26,14 @@ type (
 		Create(organisation *types.Organisation) (*types.Organisation, error)
 		Update(organisation *types.Organisation) (*types.Organisation, error)
 
-		deleter
-		archiver
+		Archive(ID uint64) error
+		Unarchive(ID uint64) error
+		Delete(ID uint64) error
 	}
 )
 
-func Organisation() *organisation {
-	return (&organisation{}).With(context.Background()).(*organisation)
+func Organisation() OrganisationService {
+	return (&organisation{}).With(context.Background())
 }
 
 func (svc *organisation) With(ctx context.Context) OrganisationService {
