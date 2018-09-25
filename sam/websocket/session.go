@@ -36,6 +36,7 @@ type (
 		svc struct {
 			user authService.UserService
 			ch   samService.ChannelService
+			msg  samService.MessageService
 		}
 	}
 )
@@ -52,6 +53,7 @@ func (Session) New(ctx context.Context, config *repository.Flags, conn *websocke
 
 	s.svc.user = authService.DefaultUser
 	s.svc.ch = samService.DefaultChannel
+	s.svc.msg = samService.DefaultMessage
 
 	return s
 }

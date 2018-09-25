@@ -26,7 +26,7 @@ func Init() {
 
 		DefaultAttachment = Attachment(fs)
 		DefaultChannel = Channel()
-		DefaultMessage = Message(DefaultAttachment)
+		DefaultMessage = Message()
 		DefaultOrganisation = Organisation()
 		DefaultPubSub = PubSub()
 		DefaultTeam = Team()

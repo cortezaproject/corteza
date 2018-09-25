@@ -41,15 +41,12 @@ type (
 
 		Direct(recipientID uint64, in *types.Message) (out *types.Message, err error)
 
-		deleter
+		Delete(ID uint64) error
 	}
 )
 
-func Message(attSvc AttachmentService) *message {
-	m := (&message{
-		att: attSvc,
-	}).With(context.Background()).(*message)
-	return m
+func Message() MessageService {
+	return (&message{}).With(context.Background())
 }
 
 func (svc *message) With(ctx context.Context) MessageService {
@@ -57,7 +54,7 @@ func (svc *message) With(ctx context.Context) MessageService {
 	return &message{
 		db:       db,
 		ctx:      ctx,
-		att:      svc.att,
+		att:      DefaultAttachment.With(ctx),
 		channel:  repository.Channel(ctx, db),
 		message:  repository.Message(ctx, db),
 		reaction: repository.Reaction(ctx, db),

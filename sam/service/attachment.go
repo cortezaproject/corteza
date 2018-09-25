@@ -44,11 +44,10 @@ const (
 	attachmentPreviewURL = "/attachment/%d/%s/preview"
 )
 
-func Attachment(store store.Store) *attachment {
-	svc := (&attachment{
+func Attachment(store store.Store) AttachmentService {
+	return (&attachment{
 		store: store,
-	}).With(context.Background()).(*attachment)
-	return svc
+	}).With(context.Background())
 }
 
 func (svc *attachment) With(ctx context.Context) AttachmentService {
@@ -72,7 +71,6 @@ func (svc *attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error
 
 func (svc *attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
 	return svc.store.Open(att.PreviewUrl)
-
 }
 
 func (svc *attachment) LoadFromMessages(mm types.MessageSet) (err error) {
