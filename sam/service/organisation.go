@@ -3,14 +3,18 @@ package service
 import (
 	"context"
 
+	"github.com/titpetric/factory"
+
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
 )
 
 type (
 	organisation struct {
+		db  *factory.DB
 		ctx context.Context
-		rpo repository.Organisation
+
+		rpo repository.OrganisationRepository
 	}
 
 	OrganisationService interface {
@@ -28,16 +32,15 @@ type (
 )
 
 func Organisation() *organisation {
-	return &organisation{
-		ctx: context.Background(),
-		rpo: repository.NewOrganisation(context.Background()),
-	}
+	return (&organisation{}).With(context.Background()).(*organisation)
 }
 
 func (svc *organisation) With(ctx context.Context) OrganisationService {
+	db := repository.DB(ctx)
 	return &organisation{
+		db:  db,
 		ctx: ctx,
-		rpo: svc.rpo.With(ctx),
+		rpo: repository.Organisation(ctx, db),
 	}
 }
 

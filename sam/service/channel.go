@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
@@ -12,10 +13,11 @@ import (
 
 type (
 	channel struct {
+		db  *factory.DB
 		ctx context.Context
 
-		channel repository.Channel
-		message repository.Message
+		channel repository.ChannelRepository
+		message repository.MessageRepository
 	}
 
 	ChannelService interface {
@@ -38,20 +40,18 @@ type (
 )
 
 func Channel() *channel {
-	var svc = &channel{
-		ctx:     context.Background(),
-		channel: repository.NewChannel(context.Background()),
-		message: repository.NewMessage(context.Background()),
-	}
+	svc := (&channel{}).With(context.Background()).(*channel)
 	//svc.sec.ch = ChannelSecurity(svc.channel)
 	return svc
 }
 
 func (svc *channel) With(ctx context.Context) ChannelService {
+	db := repository.DB(ctx)
 	return &channel{
+		db:      db,
 		ctx:     ctx,
-		channel: svc.channel.With(ctx),
-		message: svc.message.With(ctx),
+		channel: repository.Channel(ctx, db),
+		message: repository.Message(ctx, db),
 	}
 }
 
@@ -84,7 +84,7 @@ func (svc *channel) preloadMembers(set types.ChannelSet) error {
 
 // Returns all channels with membership info
 func (svc *channel) FindByMembership() (rval []*types.Channel, err error) {
-	return rval, repository.DB().Transaction(func() error {
+	return rval, svc.db.Transaction(func() error {
 		var chMemberId = repository.Identity(svc.ctx)
 		var mm []*types.ChannelMember
 
@@ -111,7 +111,7 @@ func (svc *channel) FindByMembership() (rval []*types.Channel, err error) {
 func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 	// @todo: [SECURITY] permission check if user can add channel
 
-	return out, repository.DB().Transaction(func() (err error) {
+	return out, svc.db.Transaction(func() (err error) {
 		var msg *types.Message
 
 		// @todo get organisation from somewhere
@@ -188,7 +188,7 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 }
 
 func (svc *channel) Update(in *types.Channel) (out *types.Channel, err error) {
-	return out, repository.DB().Transaction(func() (err error) {
+	return out, svc.db.Transaction(func() (err error) {
 		var msgs types.MessageSet
 
 		// @todo [SECURITY] can user access this channel?
@@ -271,7 +271,7 @@ func (svc *channel) Update(in *types.Channel) (out *types.Channel, err error) {
 }
 
 func (svc *channel) Delete(id uint64) error {
-	return repository.DB().Transaction(func() (err error) {
+	return svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
 		var ch *types.Channel
 
@@ -293,7 +293,7 @@ func (svc *channel) Delete(id uint64) error {
 }
 
 func (svc *channel) Recover(id uint64) error {
-	return repository.DB().Transaction(func() (err error) {
+	return svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
 		var ch *types.Channel
 
@@ -315,7 +315,7 @@ func (svc *channel) Recover(id uint64) error {
 }
 
 func (svc *channel) Archive(id uint64) error {
-	return repository.DB().Transaction(func() (err error) {
+	return svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
 		var ch *types.Channel
 
@@ -337,7 +337,7 @@ func (svc *channel) Archive(id uint64) error {
 }
 
 func (svc *channel) Unarchive(id uint64) error {
-	return repository.DB().Transaction(func() (err error) {
+	return svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
 		var ch *types.Channel
 

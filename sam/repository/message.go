@@ -10,8 +10,8 @@ import (
 )
 
 type (
-	Message interface {
-		With(ctx context.Context) Message
+	MessageRepository interface {
+		With(ctx context.Context, db *factory.DB) MessageRepository
 
 		FindMessageByID(id uint64) (*types.Message, error)
 		FindMessages(filter *types.MessageFilter) (types.MessageSet, error)
@@ -43,13 +43,13 @@ const (
 	ErrMessageNotFound = repositoryError("MessageNotFound")
 )
 
-func NewMessage(ctx context.Context) Message {
-	return (&message{}).With(ctx)
+func Message(ctx context.Context, db *factory.DB) MessageRepository {
+	return (&message{}).With(ctx, db)
 }
 
-func (r *message) With(ctx context.Context) Message {
+func (r *message) With(ctx context.Context, db *factory.DB) MessageRepository {
 	return &message{
-		repository: r.repository.With(ctx),
+		repository: r.repository.With(ctx, db),
 	}
 }
 

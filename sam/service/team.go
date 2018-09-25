@@ -2,14 +2,19 @@ package service
 
 import (
 	"context"
+
+	"github.com/titpetric/factory"
+
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
 )
 
 type (
 	team struct {
-		ctx  context.Context
-		team repository.Team
+		db  *factory.DB
+		ctx context.Context
+
+		team repository.TeamRepository
 	}
 
 	TeamService interface {
@@ -29,16 +34,15 @@ type (
 )
 
 func Team() *team {
-	return &team{
-		ctx:  context.Background(),
-		team: repository.NewTeam(context.Background()),
-	}
+	return (&team{}).With(context.Background()).(*team)
 }
 
 func (svc *team) With(ctx context.Context) TeamService {
+	db := repository.DB(ctx)
 	return &team{
+		db:   db,
 		ctx:  ctx,
-		team: svc.team.With(ctx),
+		team: repository.Team(ctx, db),
 	}
 }
 

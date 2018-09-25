@@ -10,8 +10,8 @@ import (
 )
 
 type (
-	Team interface {
-		With(ctx context.Context) Team
+	TeamRepository interface {
+		With(ctx context.Context, db *factory.DB) TeamRepository
 
 		FindTeamByID(id uint64) (*types.Team, error)
 		FindTeams(filter *types.TeamFilter) ([]*types.Team, error)
@@ -35,13 +35,13 @@ const (
 	ErrTeamNotFound = repositoryError("TeamNotFound")
 )
 
-func NewTeam(ctx context.Context) Team {
-	return (&team{}).With(ctx)
+func Team(ctx context.Context, db *factory.DB) TeamRepository {
+	return (&team{}).With(ctx, db)
 }
 
-func (r *team) With(ctx context.Context) Team {
+func (r *team) With(ctx context.Context, db *factory.DB) TeamRepository {
 	return &team{
-		repository: r.repository.With(ctx),
+		repository: r.repository.With(ctx, db),
 	}
 }
 

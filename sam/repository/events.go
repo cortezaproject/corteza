@@ -33,7 +33,7 @@ The reading of the event queue table is triggered by pubsub.
 
 type (
 	Events interface {
-		With(ctx context.Context) Events
+		With(ctx context.Context, db *factory.DB) Events
 
 		Pull(origin uint64) ([]*types.EventQueueItem, error)
 		Push(eqi *types.EventQueueItem) error
@@ -45,13 +45,13 @@ type (
 	}
 )
 
-func NewEvents(ctx context.Context) Events {
-	return (&events{}).With(ctx)
+func NewEvents(ctx context.Context, db *factory.DB) Events {
+	return (&events{}).With(ctx, db)
 }
 
-func (r *events) With(ctx context.Context) Events {
+func (r *events) With(ctx context.Context, db *factory.DB) Events {
 	return &events{
-		repository: r.repository.With(ctx),
+		repository: r.repository.With(ctx, db),
 	}
 }
 

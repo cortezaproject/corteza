@@ -10,8 +10,8 @@ import (
 )
 
 type (
-	Channel interface {
-		With(ctx context.Context) Channel
+	ChannelRepository interface {
+		With(ctx context.Context, db *factory.DB) ChannelRepository
 
 		FindChannelByID(id uint64) (*types.Channel, error)
 		FindDirectChannelByUserID(fromUserID, toUserID uint64) (*types.Channel, error)
@@ -58,13 +58,13 @@ const (
 	ErrChannelNotFound = repositoryError("ChannelNotFound")
 )
 
-func NewChannel(ctx context.Context) Channel {
-	return (&channel{}).With(ctx)
+func Channel(ctx context.Context, db *factory.DB) ChannelRepository {
+	return (&channel{}).With(ctx, db)
 }
 
-func (r *channel) With(ctx context.Context) Channel {
+func (r *channel) With(ctx context.Context, db *factory.DB) ChannelRepository {
 	return &channel{
-		repository: r.repository.With(ctx),
+		repository: r.repository.With(ctx, db),
 	}
 }
 

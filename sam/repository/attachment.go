@@ -11,8 +11,8 @@ import (
 )
 
 type (
-	Attachment interface {
-		With(ctx context.Context) Attachment
+	AttachmentRepository interface {
+		With(ctx context.Context, db *factory.DB) AttachmentRepository
 
 		FindAttachmentByID(id uint64) (*types.Attachment, error)
 		FindAttachmentByMessageID(IDs ...uint64) (types.MessageAttachmentSet, error)
@@ -32,13 +32,13 @@ const (
 	ErrAttachmentNotFound = repositoryError("AttachmentNotFound")
 )
 
-func NewAttachment(ctx context.Context) Attachment {
-	return (&attachment{}).With(ctx)
+func Attachment(ctx context.Context, db *factory.DB) AttachmentRepository {
+	return (&attachment{}).With(ctx, db)
 }
 
-func (r *attachment) With(ctx context.Context) Attachment {
+func (r *attachment) With(ctx context.Context, db *factory.DB) AttachmentRepository {
 	return &attachment{
-		repository: r.repository.With(ctx),
+		repository: r.repository.With(ctx, db),
 	}
 }
 
