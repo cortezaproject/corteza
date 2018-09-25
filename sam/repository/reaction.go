@@ -10,8 +10,8 @@ import (
 )
 
 type (
-	Reaction interface {
-		With(ctx context.Context) Reaction
+	ReactionRepository interface {
+		With(ctx context.Context, db *factory.DB) ReactionRepository
 
 		FindReactionByID(id uint64) (*types.Reaction, error)
 		FindReactionsByRange(channelID, fromReactionID, toReactionID uint64) ([]*types.Reaction, error)
@@ -28,13 +28,13 @@ const (
 	ErrReactionNotFound = repositoryError("ReactionNotFound")
 )
 
-func NewReaction(ctx context.Context) Reaction {
-	return (&reaction{}).With(ctx)
+func Reaction(ctx context.Context, db *factory.DB) ReactionRepository {
+	return (&reaction{}).With(ctx, db)
 }
 
-func (r *reaction) With(ctx context.Context) Reaction {
+func (r *reaction) With(ctx context.Context, db *factory.DB) ReactionRepository {
 	return &reaction{
-		repository: r.repository.With(ctx),
+		repository: r.repository.With(ctx, db),
 	}
 }
 

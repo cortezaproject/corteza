@@ -10,8 +10,8 @@ import (
 )
 
 type (
-	Organisation interface {
-		With(ctx context.Context) Organisation
+	OrganisationRepository interface {
+		With(ctx context.Context, db *factory.DB) OrganisationRepository
 
 		FindOrganisationByID(id uint64) (*types.Organisation, error)
 		FindOrganisations(filter *types.OrganisationFilter) ([]*types.Organisation, error)
@@ -33,13 +33,13 @@ const (
 	ErrOrganisationNotFound = repositoryError("OrganisationNotFound")
 )
 
-func NewOrganisation(ctx context.Context) Organisation {
-	return (&organisation{}).With(ctx)
+func Organisation(ctx context.Context, db *factory.DB) OrganisationRepository {
+	return (&organisation{}).With(ctx, db)
 }
 
-func (r *organisation) With(ctx context.Context) Organisation {
+func (r *organisation) With(ctx context.Context, db *factory.DB) OrganisationRepository {
 	return &organisation{
-		repository: r.repository.With(ctx),
+		repository: r.repository.With(ctx, db),
 	}
 }
 

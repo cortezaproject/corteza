@@ -35,7 +35,6 @@ func (Attachment) New() *Attachment {
 
 func (ctrl *Attachment) Original(ctx context.Context, r *request.AttachmentOriginal) (interface{}, error) {
 	return ctrl.get(r.AttachmentID, false, r.Download)
-
 }
 
 func (ctrl *Attachment) Preview(ctx context.Context, r *request.AttachmentPreview) (interface{}, error) {

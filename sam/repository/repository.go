@@ -11,44 +11,24 @@ import (
 type (
 	repository struct {
 		ctx context.Context
-
-		// Get database handle
-		dbh func(ctxs ...context.Context) *factory.DB
+		dbh *factory.DB
 	}
 )
 
-var (
-	_db  *factory.DB
-	_ctx context.Context
-)
-
-// DB returns a repository-wide singleton DB handle
-func DB(ctxs ...context.Context) *factory.DB {
-	if _db == nil {
-		_db = factory.Database.MustGet()
-	}
-	for _, ctx := range ctxs {
-		_db = _db.With(ctx)
-		_ctx = ctx
-		break
-	}
-	return _db
+// DB produces a contextual DB handle
+func DB(ctx context.Context) *factory.DB {
+	return factory.Database.MustGet().With(ctx)
 }
 
 func Identity(ctx context.Context) uint64 {
 	return auth.GetIdentityFromContext(ctx).Identity()
 }
 
-// With updates repository and database contexts
-func (r *repository) With(ctx context.Context) *repository {
-	res := &repository{
+func (r *repository) With(ctx context.Context, db *factory.DB) *repository {
+	return &repository{
 		ctx: ctx,
-		dbh: DB,
+		dbh: db,
 	}
-	if r != nil {
-		res.dbh = r.dbh
-	}
-	return res
 }
 
 // Context returns current active repository context
@@ -58,5 +38,8 @@ func (r *repository) Context() context.Context {
 
 // db returns context-aware db handle
 func (r *repository) db() *factory.DB {
-	return r.dbh(r.ctx)
+	if r.dbh != nil {
+		return r.dbh
+	}
+	return DB(r.ctx)
 }

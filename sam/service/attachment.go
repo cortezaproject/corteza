@@ -20,16 +20,12 @@ import (
 
 type (
 	attachment struct {
+		db  *factory.DB
 		ctx context.Context
 
-		attachment repository.Attachment
-		message    repository.Message
+		attachment repository.AttachmentRepository
+		message    repository.MessageRepository
 		store      store.Store
-
-		config struct {
-			url        string
-			previewUrl string
-		}
 	}
 
 	AttachmentService interface {
@@ -43,25 +39,26 @@ type (
 	}
 )
 
+const (
+	attachmentURL        = "/attachment/%d/%s"
+	attachmentPreviewURL = "/attachment/%d/%s/preview"
+)
+
 func Attachment(store store.Store) *attachment {
-	svc := &attachment{
-		ctx:        context.Background(),
-		attachment: repository.NewAttachment(context.Background()),
-		message:    repository.NewMessage(context.Background()),
-		store:      store,
-	}
-	svc.config.url = "/attachment/%d/%s"
-	svc.config.previewUrl = "/attachment/%d/%s/preview"
+	svc := (&attachment{
+		store: store,
+	}).With(context.Background()).(*attachment)
 	return svc
 }
 
 func (svc *attachment) With(ctx context.Context) AttachmentService {
+	db := repository.DB(ctx)
 	return &attachment{
+		db:         db,
 		ctx:        ctx,
-		attachment: svc.attachment.With(ctx),
-		message:    svc.message.With(ctx),
+		attachment: repository.Attachment(ctx, db),
+		message:    repository.Message(ctx, db),
 		store:      svc.store,
-		config:     svc.config,
 	}
 }
 
@@ -70,11 +67,11 @@ func (svc *attachment) FindByID(id uint64) (*types.Attachment, error) {
 }
 
 func (svc *attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
-	return svc.store.Open(att.Url)
+	return svc.store.Open(attachmentURL)
 }
 
 func (svc *attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
-	return svc.store.Open(att.PreviewUrl)
+	return svc.store.Open(attachmentPreviewURL)
 
 }
 
@@ -141,7 +138,7 @@ func (svc *attachment) Create(channelId uint64, name string, size int64, fh io.R
 
 	log.Printf("File %s stored as %s", att.Name, att.Url)
 
-	return att, repository.DB().Transaction(func() (err error) {
+	return att, svc.db.Transaction(func() (err error) {
 
 		if att, err = svc.attachment.CreateAttachment(att); err != nil {
 			return
@@ -176,12 +173,12 @@ func (svc *attachment) Create(channelId uint64, name string, size int64, fh io.R
 
 // Generates URL to a location
 func (svc *attachment) url(att *types.Attachment) string {
-	return fmt.Sprintf(svc.config.url, att.ID, url.PathEscape(att.Name))
+	return fmt.Sprintf(attachmentURL, att.ID, url.PathEscape(att.Name))
 }
 
 // Generates URL to a location
 func (svc *attachment) previewUrl(att *types.Attachment) string {
-	return fmt.Sprintf(svc.config.previewUrl, att.ID, url.PathEscape(att.Name))
+	return fmt.Sprintf(attachmentPreviewURL, att.ID, url.PathEscape(att.Name))
 }
 
 func (svc *attachment) extractMeta(att *types.Attachment, file io.ReadSeeker) (err error) {

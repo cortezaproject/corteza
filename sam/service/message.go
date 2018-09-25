@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
@@ -11,11 +12,12 @@ import (
 
 type (
 	message struct {
+		db  *factory.DB
 		ctx context.Context
 
-		channel  repository.Channel
-		message  repository.Message
-		reaction repository.Reaction
+		channel  repository.ChannelRepository
+		message  repository.MessageRepository
+		reaction repository.ReactionRepository
 
 		att AttachmentService
 	}
@@ -44,23 +46,21 @@ type (
 )
 
 func Message(attSvc AttachmentService) *message {
-	m := &message{
-		ctx:      context.Background(),
-		att:      attSvc,
-		channel:  repository.NewChannel(context.Background()),
-		message:  repository.NewMessage(context.Background()),
-		reaction: repository.NewReaction(context.Background()),
-	}
+	m := (&message{
+		att: attSvc,
+	}).With(context.Background()).(*message)
 	return m
 }
 
 func (svc *message) With(ctx context.Context) MessageService {
+	db := repository.DB(ctx)
 	return &message{
+		db:       db,
 		ctx:      ctx,
 		att:      svc.att,
-		channel:  svc.channel.With(ctx),
-		message:  svc.message.With(ctx),
-		reaction: svc.reaction.With(ctx),
+		channel:  repository.Channel(ctx, db),
+		message:  repository.Message(ctx, db),
+		reaction: repository.Reaction(ctx, db),
 	}
 }
 
@@ -81,7 +81,7 @@ func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err 
 }
 
 func (svc *message) Direct(recipientID uint64, in *types.Message) (out *types.Message, err error) {
-	return out, repository.DB().Transaction(func() (err error) {
+	return out, svc.db.Transaction(func() (err error) {
 		var currentUserID = repository.Identity(svc.ctx)
 
 		// @todo [SECURITY] verify if current user can send direct messages to anyone?

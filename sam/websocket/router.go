@@ -11,7 +11,7 @@ import (
 
 func MountRoutes(ctx context.Context, config *repository.Flags) func(chi.Router) {
 	return func(r chi.Router) {
-		events := repository.NewEvents(ctx)
+		events := repository.NewEvents(ctx, nil)
 
 		go func() {
 			for {
