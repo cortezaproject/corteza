@@ -38,7 +38,11 @@ type (
 	}
 
 	ChannelFilter struct {
-		Query          string
+		Query string
+
+		// Only return channels accessible by this user
+		CurrentUserID uint64
+
 		IncludeMembers bool
 	}
 

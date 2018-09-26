@@ -55,6 +55,19 @@ const (
         FROM channel_members AS cm
        WHERE true`
 
+	// subquery that filters out all channels that current user has access to as a member
+	// or via channel type (public chans)
+	sqlChannelAccess = ` AND c.id IN (
+				SELECT id
+                  FROM channels c
+                       LEFT OUTER JOIN channel_members AS m ON (c.id = m.rel_channel)
+                 WHERE rel_user = ?
+              UNION
+                SELECT id
+                  FROM channels c
+                 WHERE c.type = ?
+			)`
+
 	ErrChannelNotFound = repositoryError("ChannelNotFound")
 )
 
@@ -105,6 +118,12 @@ func (r *channel) FindChannels(filter *types.ChannelFilter) ([]*types.Channel, e
 		if filter.Query != "" {
 			sql += " AND c.name LIKE ?"
 			params = append(params, filter.Query+"%")
+		}
+
+		if filter.CurrentUserID > 0 {
+			sql += sqlChannelAccess
+			params = append(params, filter.CurrentUserID, types.ChannelTypePublic)
+
 		}
 	}
 
