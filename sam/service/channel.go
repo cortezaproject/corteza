@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/crusttech/crust/internal/auth"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
@@ -24,7 +25,7 @@ type (
 		With(ctx context.Context) ChannelService
 
 		FindByID(channelID uint64) (*types.Channel, error)
-		Find(filter *types.ChannelFilter) ([]*types.Channel, error)
+		Find(filter *types.ChannelFilter) (types.ChannelSet, error)
 		FindByMembership() (rval []*types.Channel, err error)
 
 		Create(channel *types.Channel) (*types.Channel, error)
@@ -67,8 +68,9 @@ func (svc *channel) FindByID(id uint64) (ch *types.Channel, err error) {
 	return
 }
 
-func (svc *channel) Find(filter *types.ChannelFilter) ([]*types.Channel, error) {
-	// @todo: permission check to return only channels that channel has access to
+func (svc *channel) Find(filter *types.ChannelFilter) (types.ChannelSet, error) {
+	filter.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
+
 	if cc, err := svc.channel.FindChannels(filter); err != nil {
 		return nil, err
 	} else {
