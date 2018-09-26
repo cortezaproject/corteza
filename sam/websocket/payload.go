@@ -38,6 +38,7 @@ func payloadFromChannel(ch *samTypes.Channel) *outgoing.Channel {
 		LastMessageID: uint64toa(ch.LastMessageID),
 		Topic:         ch.Topic,
 		Type:          string(ch.Type),
+		Members:       uint64stoa(ch.Members),
 	}
 }
 

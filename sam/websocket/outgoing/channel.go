@@ -36,7 +36,7 @@ type (
 		Topic         string   `json:"topic"`
 		Type          string   `json:"type"`
 		LastMessageID string   `json:"lastMessageID"`
-		Members       *UserSet `json:"members,omitempty"`
+		Members       []string `json:"members,omitempty"`
 	}
 
 	ChannelSet []*Channel
