@@ -78,8 +78,18 @@ func (svc *channel) Find(filter *types.ChannelFilter) (types.ChannelSet, error) 
 	}
 }
 
-func (svc *channel) preloadMembers(set types.ChannelSet) error {
-	// @todo implement
+func (svc *channel) preloadMembers(cc types.ChannelSet) error {
+	var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
+
+	if mm, err := svc.channel.FindMembers(userID); err != nil {
+		return err
+	} else {
+		cc.Walk(func(ch *types.Channel) error {
+			ch.Members = mm.MembersOf(ch.ID)
+			return nil
+		})
+	}
+
 	return nil
 }
 

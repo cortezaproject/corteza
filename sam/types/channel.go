@@ -24,7 +24,7 @@ type (
 		LastMessageID uint64 `json:",omitempty" db:"rel_last_message"`
 
 		Member  *ChannelMember `json:"-" db:"-"`
-		Members []*uint64      `json:"-" db:"-"`
+		Members []uint64       `json:"-" db:"-"`
 	}
 
 	ChannelMember struct {
@@ -49,7 +49,8 @@ type (
 	ChannelMembershipType string
 	ChannelType           string
 
-	ChannelSet []*Channel
+	ChannelSet       []*Channel
+	ChannelMemberSet []*ChannelMember
 )
 
 func (cc ChannelSet) Walk(w func(*Channel) error) (err error) {
@@ -60,6 +61,28 @@ func (cc ChannelSet) Walk(w func(*Channel) error) (err error) {
 	}
 
 	return
+}
+
+func (mm ChannelMemberSet) Walk(w func(*ChannelMember) error) (err error) {
+	for i := range mm {
+		if err = w(mm[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (mm ChannelMemberSet) MembersOf(channelID uint64) []uint64 {
+	var mmof = make([]uint64, 0)
+
+	for i := range mm {
+		if mm[i].ChannelID == channelID {
+			mmof = append(mmof, mm[i].UserID)
+		}
+	}
+
+	return mmof
 }
 
 const (

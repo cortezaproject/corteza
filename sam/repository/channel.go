@@ -16,6 +16,7 @@ type (
 		FindChannelByID(id uint64) (*types.Channel, error)
 		FindDirectChannelByUserID(fromUserID, toUserID uint64) (*types.Channel, error)
 		FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error)
+		FindMembers(userID uint64) (types.ChannelMemberSet, error)
 		CreateChannel(mod *types.Channel) (*types.Channel, error)
 		UpdateChannel(mod *types.Channel) (*types.Channel, error)
 
@@ -41,6 +42,11 @@ const (
         FROM channels AS c
        WHERE ` + sqlChannelValidOnly
 
+	sqlChannelMemberSelect = `SELECT m.*
+        FROM channel_members AS m
+             INNER JOIN channels AS c ON (m.rel_channel = c.id)
+       WHERE ` + sqlChannelValidOnly
+
 	sqlChannelDirect = `SELECT *
         FROM channels AS c
        WHERE c.type = ? 
@@ -57,7 +63,7 @@ const (
 
 	// subquery that filters out all channels that current user has access to as a member
 	// or via channel type (public chans)
-	sqlChannelAccess = ` AND c.id IN (
+	sqlChannelAccess = ` (
 				SELECT id
                   FROM channels c
                        LEFT OUTER JOIN channel_members AS m ON (c.id = m.rel_channel)
@@ -121,13 +127,29 @@ func (r *channel) FindChannels(filter *types.ChannelFilter) ([]*types.Channel, e
 		}
 
 		if filter.CurrentUserID > 0 {
-			sql += sqlChannelAccess
+			sql += " AND c.id IN " + sqlChannelAccess
 			params = append(params, filter.CurrentUserID, types.ChannelTypePublic)
 
 		}
 	}
 
 	sql += " ORDER BY c.name ASC"
+
+	return rval, r.db().Select(&rval, sql, params...)
+}
+
+// Returns member ids of all channels that user has access to
+func (r *channel) FindMembers(userID uint64) (types.ChannelMemberSet, error) {
+	params := make([]interface{}, 0)
+	rval := types.ChannelMemberSet{}
+
+	sql := sqlChannelMemberSelect
+
+	if userID > 0 {
+		// scope: only channels we have access to
+		sql += " AND m.rel_channel IN " + sqlChannelAccess
+		params = append(params, userID, types.ChannelTypePublic)
+	}
 
 	return rval, r.db().Select(&rval, sql, params...)
 }
