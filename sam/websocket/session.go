@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/sam/types"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 
@@ -63,18 +64,30 @@ func (sess *Session) Context() context.Context {
 }
 
 func (sess *Session) connected() {
-	// Tell everyone that user has connected
-	sess.sendToAll(&outgoing.Connected{UserID: uint64toa(sess.user.Identity())})
-
-	// Subscribe this user to all channels
-	if chs, err := sess.svc.ch.With(sess.ctx).FindByMembership(); err != nil {
+	// Push user info about all users we know...
+	if users, err := sess.svc.user.With(sess.ctx).Find(nil); err != nil {
 		log.Printf("Error: %v", err)
 	} else {
-		for _, ch := range chs {
-			sess.subs.Add(uint64toa(ch.ID))
-		}
-		log.Printf("Subscribing %d to %d channels", sess.user.Identity(), len(chs))
+		sess.sendReply(payloadFromUsers(users))
 	}
+
+	// Push user info about all channels he has access to...
+	if cc, err := sess.svc.ch.With(sess.ctx).Find(&types.ChannelFilter{IncludeMembers: true}); err != nil {
+		log.Printf("Error: %v", err)
+	} else {
+		sess.sendReply(payloadFromChannels(cc))
+
+		log.Printf("Subscribing %d to %d channels", sess.user.Identity(), len(cc))
+
+		cc.Walk(func(c *types.Channel) error {
+			// Subscribe this user/session to all channels
+			sess.subs.Add(uint64toa(c.ID))
+			return nil
+		})
+	}
+
+	// Tell everyone that user has connected
+	sess.sendToAll(&outgoing.Connected{UserID: uint64toa(sess.user.Identity())})
 }
 
 func (sess *Session) disconnected() {
