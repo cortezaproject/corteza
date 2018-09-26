@@ -1174,7 +1174,7 @@ func init() {
 	proto.RegisterType((*StreamResponse_Join)(nil), "chat.StreamResponse.Join")
 	proto.RegisterType((*StreamResponse_Part)(nil), "chat.StreamResponse.Part")
 	proto.RegisterType((*StreamResponse_Names)(nil), "chat.StreamResponse.Names")
-	proto.RegisterType((*StreamResponse_Users)(nil), "chat.StreamResponse.Users")
+	proto.RegisterType((*StreamResponse_Users)(nil), "chat.StreamResponse.UserSet")
 	proto.RegisterType((*StreamResponse_User)(nil), "chat.StreamResponse.User")
 	proto.RegisterType((*StreamResponse_Message)(nil), "chat.StreamResponse.Message")
 	proto.RegisterType((*StreamResponse_Shutdown)(nil), "chat.StreamResponse.Shutdown")

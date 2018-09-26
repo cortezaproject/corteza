@@ -10,16 +10,16 @@ type (
 		*Message       `json:"message,omitempty"`
 		*MessageDelete `json:"messageDeleted,omitempty"`
 		*MessageUpdate `json:"messageUpdated,omitempty"`
-		*Messages      `json:"messages,omitempty"`
+		*MessageSet    `json:"messages,omitempty"`
 
 		*ChannelJoin    `json:"channelJoin,omitempty"`
 		*ChannelPart    `json:"channelPart,omitempty"`
 		*ChannelDeleted `json:"channelDeleted,omitempty"`
 		*Channel        `json:"channel,omitempty"`
-		*Channels       `json:"channels,omitempty"`
+		*ChannelSet     `json:"channels,omitempty"`
 
-		*User  `json:"user,omitempty"`
-		*Users `json:"users,omitempty"`
+		*User    `json:"user,omitempty"`
+		*UserSet `json:"users,omitempty"`
 	}
 
 	// This is same-same but different as using the json.Marshaler

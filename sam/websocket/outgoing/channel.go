@@ -31,15 +31,15 @@ type (
 
 	Channel struct {
 		// Channel to part (nil) for ALL channels
-		ID            string `json:"id"`
-		Name          string `json:"name"`
-		Topic         string `json:"topic"`
-		Type          string `json:"type"`
-		LastMessageID string `json:"lastMessageId"`
-		Members       *Users `json:"members,omitempty"`
+		ID            string   `json:"ID"`
+		Name          string   `json:"name"`
+		Topic         string   `json:"topic"`
+		Type          string   `json:"type"`
+		LastMessageID string   `json:"lastMessageID"`
+		Members       *UserSet `json:"members,omitempty"`
 	}
 
-	Channels []*Channel
+	ChannelSet []*Channel
 )
 
 func (p *ChannelJoin) EncodeMessage() ([]byte, error) {
@@ -58,6 +58,6 @@ func (p *Channel) EncodeMessage() ([]byte, error) {
 	return json.Marshal(Payload{Channel: p})
 }
 
-func (p *Channels) EncodeMessage() ([]byte, error) {
-	return json.Marshal(Payload{Channels: p})
+func (p *ChannelSet) EncodeMessage() ([]byte, error) {
+	return json.Marshal(Payload{ChannelSet: p})
 }

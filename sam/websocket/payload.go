@@ -12,9 +12,9 @@ func payloadFromMessage(msg *samTypes.Message) *outgoing.Message {
 		ID:        uint64toa(msg.ID),
 		ChannelID: uint64toa(msg.ChannelID),
 		Type:      string(msg.Type),
-		UserID:    uint64toa(msg.UserID),
 		ReplyTo:   uint64toa(msg.ReplyTo),
 
+		User:       payloadFromUser(msg.User),
 		Attachment: payloadFromAttachment(msg.Attachment),
 
 		CreatedAt: msg.CreatedAt,
@@ -22,12 +22,12 @@ func payloadFromMessage(msg *samTypes.Message) *outgoing.Message {
 	}
 }
 
-func payloadFromMessages(msg samTypes.MessageSet) *outgoing.Messages {
+func payloadFromMessages(msg samTypes.MessageSet) *outgoing.MessageSet {
 	msgs := make([]*outgoing.Message, len(msg))
 	for k, m := range msg {
 		msgs[k] = payloadFromMessage(m)
 	}
-	retval := outgoing.Messages(msgs)
+	retval := outgoing.MessageSet(msgs)
 	return &retval
 }
 
@@ -41,23 +41,27 @@ func payloadFromChannel(ch *samTypes.Channel) *outgoing.Channel {
 	}
 }
 
-func payloadFromChannels(channels []*samTypes.Channel) *outgoing.Channels {
+func payloadFromChannels(channels []*samTypes.Channel) *outgoing.ChannelSet {
 	cc := make([]*outgoing.Channel, len(channels))
 	for k, c := range channels {
 		cc[k] = payloadFromChannel(c)
 	}
-	retval := outgoing.Channels(cc)
+	retval := outgoing.ChannelSet(cc)
 	return &retval
 }
 
 func payloadFromUser(user *authTypes.User) *outgoing.User {
+	if user == nil {
+		return nil
+	}
+
 	return &outgoing.User{
 		ID:       uint64toa(user.ID),
 		Username: user.Username,
 	}
 }
 
-func payloadFromUsers(users []*authTypes.User) *outgoing.Users {
+func payloadFromUsers(users []*authTypes.User) *outgoing.UserSet {
 	uu := make([]*outgoing.User, len(users))
 	for k, u := range users {
 		uu[k] = payloadFromUser(u)
@@ -71,7 +75,7 @@ func payloadFromUsers(users []*authTypes.User) *outgoing.Users {
 		})
 	}
 
-	retval := outgoing.Users(uu)
+	retval := outgoing.UserSet(uu)
 
 	return &retval
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	authService "github.com/crusttech/crust/auth/service"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
@@ -19,6 +20,7 @@ type (
 		message  repository.MessageRepository
 		reaction repository.ReactionRepository
 
+		usr authService.UserService
 		att AttachmentService
 	}
 
@@ -46,7 +48,10 @@ type (
 )
 
 func Message() MessageService {
-	return (&message{}).With(context.Background())
+	return (&message{
+		usr: authService.DefaultUser,
+		att: DefaultAttachment,
+	}).With(context.Background())
 }
 
 func (svc *message) With(ctx context.Context) MessageService {
@@ -54,7 +59,8 @@ func (svc *message) With(ctx context.Context) MessageService {
 	return &message{
 		db:       db,
 		ctx:      ctx,
-		att:      DefaultAttachment.With(ctx),
+		att:      svc.att.With(ctx),
+		usr:      svc.usr.With(ctx),
 		channel:  repository.Channel(ctx, db),
 		message:  repository.Message(ctx, db),
 		reaction: repository.Reaction(ctx, db),
@@ -73,6 +79,11 @@ func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err 
 	if err != nil {
 		return nil, err
 	}
+
+	mm.Walk(func(i *types.Message) (err error) {
+		i.User, err = svc.usr.FindByID(i.UserID)
+		return
+	})
 
 	return mm, svc.att.LoadFromMessages(mm)
 }
