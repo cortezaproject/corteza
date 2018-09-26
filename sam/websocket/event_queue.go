@@ -3,6 +3,7 @@ package websocket
 import (
 	"context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/sam/repository"
@@ -108,6 +109,7 @@ func (eq *eventQueue) feedSessions(ctx context.Context, config *repository.Flags
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-newMessageEvent:
+			spew.Println("Received newMessageEvent, polling...")
 			if err := poll(); err != nil {
 				return err
 			}

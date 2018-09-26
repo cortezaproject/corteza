@@ -77,7 +77,7 @@ func Start() error {
 	// Only protect application routes with JWT
 	r.Group(func(r chi.Router) {
 		r.Use(jwtAuth.Verifier(), jwtAuth.Authenticator())
-		mountRoutes(r, flags.http, rest.MountRoutes(jwtAuth), websocket.MountRoutes(ctx.AsContext(deadline), flags.repository))
+		mountRoutes(r, flags.http, rest.MountRoutes(), websocket.MountRoutes(ctx.AsContext(deadline), flags.repository))
 	})
 
 	printRoutes(r, flags.http)

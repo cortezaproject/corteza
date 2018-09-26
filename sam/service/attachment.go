@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"path"
-	"strings"
-
 	"net/http"
 	"net/url"
+	"path"
+	"strings"
 
 	"github.com/titpetric/factory"
 

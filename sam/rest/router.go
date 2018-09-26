@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/chi"
 )
 
-func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
+func MountRoutes() func(chi.Router) {
 	// Initialize handers & controllers.
 	return func(r chi.Router) {
 		handlers.NewAttachmentDownloadable(Attachment{}.New()).MountRoutes(r)

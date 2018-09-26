@@ -7,30 +7,30 @@ import (
 
 type (
 	Message struct {
-		ID        string `json:"id"`
-		Type      string `json:"t"`
-		Message   string `json:"m"`
-		UserID    string `json:"uid"`
-		ChannelID string `json:"cid"`
-		ReplyTo   string `json:"rid"`
+		ID        string `json:"ID"`
+		Type      string `json:"type"`
+		Message   string `json:"message"`
+		ChannelID string `json:"channelID"`
+		ReplyTo   string `json:"replyID"`
 
+		User       *User       `json:"user"`
 		Attachment *Attachment `json:"att,omitempty"`
 
-		CreatedAt time.Time  `json:"cat,omitempty"`
-		UpdatedAt *time.Time `json:"uat,omitempty"`
+		CreatedAt time.Time  `json:"createdAt"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 	}
 
-	Messages []*Message
+	MessageSet []*Message
 
 	MessageUpdate struct {
-		ID      string `json:"id"`
-		Message string `json:"m"`
+		ID      string `json:"ID"`
+		Message string `json:"message"`
 
-		UpdatedAt time.Time `json:"uat,omitempty"`
+		UpdatedAt time.Time `json:"updatedAt,omitempty"`
 	}
 
 	MessageDelete struct {
-		ID string `json:"id"`
+		ID string `json:"ID"`
 	}
 )
 
@@ -38,8 +38,8 @@ func (p *Message) EncodeMessage() ([]byte, error) {
 	return json.Marshal(Payload{Message: p})
 }
 
-func (p *Messages) EncodeMessage() ([]byte, error) {
-	return json.Marshal(Payload{Messages: p})
+func (p *MessageSet) EncodeMessage() ([]byte, error) {
+	return json.Marshal(Payload{MessageSet: p})
 }
 
 func (p *MessageUpdate) EncodeMessage() ([]byte, error) {
