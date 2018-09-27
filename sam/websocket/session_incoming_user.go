@@ -2,7 +2,8 @@ package websocket
 
 import (
 	"context"
-	"github.com/crusttech/crust/sam/websocket/incoming"
+	"github.com/crusttech/crust/internal/payload"
+	"github.com/crusttech/crust/internal/payload/incoming"
 )
 
 func (s *Session) userList(ctx context.Context, p *incoming.Users) error {
@@ -10,5 +11,5 @@ func (s *Session) userList(ctx context.Context, p *incoming.Users) error {
 	if err != nil {
 		return err
 	}
-	return s.sendReply(payloadFromUsers(users))
+	return s.sendReply(payload.Users(users))
 }
