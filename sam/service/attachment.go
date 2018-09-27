@@ -2,11 +2,9 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"path"
 	"strings"
 
@@ -24,7 +22,9 @@ type (
 
 		attachment repository.AttachmentRepository
 		message    repository.MessageRepository
-		store      store.Store
+
+		store store.Store
+		evl   EventService
 	}
 
 	AttachmentService interface {
@@ -32,31 +32,29 @@ type (
 
 		FindByID(id uint64) (*types.Attachment, error)
 		Create(channelId uint64, name string, size int64, fh io.ReadSeeker) (*types.Attachment, error)
-		LoadFromMessages(mm types.MessageSet) (err error)
 		OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 		OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
 	}
 )
 
-const (
-	attachmentURL        = "/attachment/%d/%s"
-	attachmentPreviewURL = "/attachment/%d/%s/preview"
-)
-
 func Attachment(store store.Store) AttachmentService {
 	return (&attachment{
 		store: store,
+		evl:   DefaultEvent,
 	}).With(context.Background())
 }
 
 func (svc *attachment) With(ctx context.Context) AttachmentService {
 	db := repository.DB(ctx)
 	return &attachment{
-		db:         db,
-		ctx:        ctx,
+		db:  db,
+		ctx: ctx,
+
 		attachment: repository.Attachment(ctx, db),
 		message:    repository.Message(ctx, db),
-		store:      svc.store,
+
+		store: svc.store,
+		evl:   svc.evl.With(ctx),
 	}
 }
 
@@ -70,33 +68,6 @@ func (svc *attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error
 
 func (svc *attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
 	return svc.store.Open(att.PreviewUrl)
-}
-
-func (svc *attachment) LoadFromMessages(mm types.MessageSet) (err error) {
-	var ids []uint64
-	mm.Walk(func(m *types.Message) error {
-		if m.Type == types.MessageTypeAttachment || m.Type == types.MessageTypeInlineImage {
-			ids = append(ids, m.ID)
-		}
-		return nil
-	})
-
-	if set, err := svc.attachment.FindAttachmentByMessageID(ids...); err != nil {
-		return err
-	} else {
-		return set.Walk(func(a *types.MessageAttachment) error {
-			if a.MessageID > 0 {
-				if m := mm.FindById(a.MessageID); m != nil {
-					m.Attachment = &a.Attachment
-
-					m.Attachment.Url = svc.url(&a.Attachment)
-					m.Attachment.PreviewUrl = svc.previewUrl(&a.Attachment)
-				}
-			}
-
-			return nil
-		})
-	}
 }
 
 func (svc *attachment) Create(channelId uint64, name string, size int64, fh io.ReadSeeker) (att *types.Attachment, err error) {
@@ -164,18 +135,10 @@ func (svc *attachment) Create(channelId uint64, name string, size int64, fh io.R
 
 		log.Printf("File %s (id: %d) attached to message (id: %d)", att.Name, att.ID, msg.ID)
 
-		return
+		msg.Attachment = att
+		msg.Attachment.GenerateURLs()
+		return svc.evl.Message(msg)
 	})
-}
-
-// Generates URL to a location
-func (svc *attachment) url(att *types.Attachment) string {
-	return fmt.Sprintf(attachmentURL, att.ID, url.PathEscape(att.Name))
-}
-
-// Generates URL to a location
-func (svc *attachment) previewUrl(att *types.Attachment) string {
-	return fmt.Sprintf(attachmentPreviewURL, att.ID, url.PathEscape(att.Name))
 }
 
 func (svc *attachment) extractMeta(att *types.Attachment, file io.ReadSeeker) (err error) {

@@ -16,12 +16,13 @@ type (
 		db  *factory.DB
 		ctx context.Context
 
-		channel  repository.ChannelRepository
-		message  repository.MessageRepository
-		reaction repository.ReactionRepository
+		attachment repository.AttachmentRepository
+		channel    repository.ChannelRepository
+		message    repository.MessageRepository
+		reaction   repository.ReactionRepository
 
 		usr authService.UserService
-		att AttachmentService
+		evl EventService
 	}
 
 	MessageService interface {
@@ -48,22 +49,24 @@ type (
 )
 
 func Message() MessageService {
-	return (&message{
+	return &message{
 		usr: authService.DefaultUser,
-		att: DefaultAttachment,
-	}).With(context.Background())
+		evl: DefaultEvent,
+	}
 }
 
 func (svc *message) With(ctx context.Context) MessageService {
 	db := repository.DB(ctx)
 	return &message{
-		db:       db,
-		ctx:      ctx,
-		att:      svc.att.With(ctx),
-		usr:      svc.usr.With(ctx),
-		channel:  repository.Channel(ctx, db),
-		message:  repository.Message(ctx, db),
-		reaction: repository.Reaction(ctx, db),
+		db:  db,
+		ctx: ctx,
+		usr: svc.usr.With(ctx),
+		evl: svc.evl.With(ctx),
+
+		channel:    repository.Channel(ctx, db),
+		attachment: repository.Attachment(ctx, db),
+		message:    repository.Message(ctx, db),
+		reaction:   repository.Reaction(ctx, db),
 	}
 }
 
@@ -85,7 +88,32 @@ func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err 
 		return
 	})
 
-	return mm, svc.att.LoadFromMessages(mm)
+	return mm, svc.loadAttachments(mm)
+}
+
+func (svc *message) loadAttachments(mm types.MessageSet) (err error) {
+	var ids []uint64
+	mm.Walk(func(m *types.Message) error {
+		if m.Type == types.MessageTypeAttachment || m.Type == types.MessageTypeInlineImage {
+			ids = append(ids, m.ID)
+		}
+		return nil
+	})
+
+	if set, err := svc.attachment.FindAttachmentByMessageID(ids...); err != nil {
+		return err
+	} else {
+		return set.Walk(func(a *types.MessageAttachment) error {
+			if a.MessageID > 0 {
+				if m := mm.FindById(a.MessageID); m != nil {
+					m.Attachment = &a.Attachment
+					m.Attachment.GenerateURLs()
+				}
+			}
+
+			return nil
+		})
+	}
 }
 
 func (svc *message) Direct(recipientID uint64, in *types.Message) (out *types.Message, err error) {
@@ -135,7 +163,11 @@ func (svc *message) Direct(recipientID uint64, in *types.Message) (out *types.Me
 
 		// @todo send new msg to the event-loop
 		out, err = svc.message.CreateMessage(in)
-		return
+		if err != nil {
+			return
+		}
+
+		return svc.evl.Message(out)
 	})
 }
 
@@ -148,10 +180,12 @@ func (svc *message) Create(mod *types.Message) (*types.Message, error) {
 	mod.UserID = currentUserID
 
 	message, err := svc.message.CreateMessage(mod)
-	if err == nil {
-		PubSub().Event(svc.ctx, "new message added")
+
+	if err != nil {
+		return nil, err
 	}
-	return message, err
+
+	return message, svc.evl.Message(message)
 }
 
 func (svc *message) Update(mod *types.Message) (*types.Message, error) {
@@ -165,7 +199,13 @@ func (svc *message) Update(mod *types.Message) (*types.Message, error) {
 
 	// @todo verify ownership
 
-	return svc.message.UpdateMessage(mod)
+	message, err := svc.message.UpdateMessage(mod)
+
+	if err == nil {
+		return nil, err
+	}
+
+	return message, svc.evl.Message(message)
 }
 
 func (svc *message) Delete(id uint64) error {
@@ -176,10 +216,15 @@ func (svc *message) Delete(id uint64) error {
 	_ = currentUserID
 
 	// @todo load current message
-
 	// @todo verify ownership
 
-	return svc.message.DeleteMessageByID(id)
+	err := svc.message.DeleteMessageByID(id)
+
+	//if err == nil {
+	//	err = svc.evl.Message(message)
+	//}
+
+	return err
 }
 
 func (svc *message) React(messageID uint64, reaction string) error {

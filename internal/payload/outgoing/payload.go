@@ -7,10 +7,8 @@ type (
 		*Connected    `json:"clientConnected,omitempty"`
 		*Disconnected `json:"clientDisconnected,omitempty"`
 
-		*Message       `json:"message,omitempty"`
-		*MessageDelete `json:"messageDeleted,omitempty"`
-		*MessageUpdate `json:"messageUpdated,omitempty"`
-		*MessageSet    `json:"messages,omitempty"`
+		*Message    `json:"message,omitempty"`
+		*MessageSet `json:"messages,omitempty"`
 
 		*ChannelJoin    `json:"channelJoin,omitempty"`
 		*ChannelPart    `json:"channelPart,omitempty"`

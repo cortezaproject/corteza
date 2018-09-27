@@ -1,7 +1,14 @@
 package types
 
 import (
+	"fmt"
+	"net/url"
 	"time"
+)
+
+const (
+	attachmentURL        = "/attachment/%d/%s"
+	attachmentPreviewURL = "/attachment/%d/%s/preview"
 )
 
 type (
@@ -34,4 +41,9 @@ func (aa MessageAttachmentSet) Walk(w func(*MessageAttachment) error) (err error
 	}
 
 	return
+}
+
+func (a *Attachment) GenerateURLs() {
+	a.Url = fmt.Sprintf(attachmentURL, a.ID, url.PathEscape(a.Name))
+	a.PreviewUrl = fmt.Sprintf(attachmentPreviewURL, a.ID, url.PathEscape(a.Name))
 }

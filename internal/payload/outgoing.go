@@ -8,9 +8,9 @@ import (
 
 func Message(msg *sam.Message) *outgoing.Message {
 	return &outgoing.Message{
-		Message:   msg.Message,
 		ID:        Uint64toa(msg.ID),
 		ChannelID: Uint64toa(msg.ChannelID),
+		Message:   msg.Message,
 		Type:      string(msg.Type),
 		ReplyTo:   Uint64toa(msg.ReplyTo),
 
@@ -19,6 +19,7 @@ func Message(msg *sam.Message) *outgoing.Message {
 
 		CreatedAt: msg.CreatedAt,
 		UpdatedAt: msg.UpdatedAt,
+		DeletedAt: msg.DeletedAt,
 	}
 }
 
@@ -39,6 +40,11 @@ func Channel(ch *sam.Channel) *outgoing.Channel {
 		Topic:         ch.Topic,
 		Type:          string(ch.Type),
 		Members:       Uint64stoa(ch.Members),
+
+		CreatedAt:  ch.CreatedAt,
+		UpdatedAt:  ch.UpdatedAt,
+		ArchivedAt: ch.ArchivedAt,
+		DeletedAt:  ch.DeletedAt,
 	}
 }
 

@@ -17,6 +17,8 @@ type (
 		db  *factory.DB
 		ctx context.Context
 
+		evl EventService
+
 		channel repository.ChannelRepository
 		message repository.MessageRepository
 	}
@@ -42,14 +44,19 @@ type (
 )
 
 func Channel() ChannelService {
-	return (&channel{}).With(context.Background())
+	return (&channel{
+		evl: DefaultEvent,
+	}).With(context.Background())
 }
 
 func (svc *channel) With(ctx context.Context) ChannelService {
 	db := repository.DB(ctx)
 	return &channel{
-		db:      db,
-		ctx:     ctx,
+		db:  db,
+		ctx: ctx,
+
+		evl: svc.evl.With(ctx),
+
 		channel: repository.Channel(ctx, db),
 		message: repository.Message(ctx, db),
 	}
@@ -185,16 +192,15 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 			"<PRIVATE-OR-PUBLIC>",
 			"<TOPIC>"))
 
+		_ = msg
 		if err != nil {
 			// Message creation failed
 			return
 		}
 
-		// @todo send channel creation to the event-loop
-		// @todo send msg to the event-loop
-		_ = msg
+		svc.evl.Message(msg)
 
-		return nil
+		return svc.evl.Channel(out)
 	})
 }
 
@@ -261,15 +267,14 @@ func (svc *channel) Update(in *types.Channel) (out *types.Channel, err error) {
 			return
 		}
 
-		// @todo send channel creation to the event-loop
-
 		// Create the first message, doing this directly with repository to circumvent
 		// message service constraints
 		for _, msg := range msgs {
 			if msg, err = svc.message.CreateMessage(msg); err != nil {
-				// @todo send new msg to the event-loop
 				return err
 			}
+
+			svc.evl.Message(msg)
 		}
 
 		if err != nil {
@@ -277,7 +282,7 @@ func (svc *channel) Update(in *types.Channel) (out *types.Channel, err error) {
 			return
 		}
 
-		return nil
+		return svc.evl.Channel(out)
 	})
 }
 
@@ -297,9 +302,17 @@ func (svc *channel) Delete(id uint64) error {
 			return errors.New("Channel already deleted")
 		}
 
-		_, err = svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d deleted this channel", userID))
+		msg, err := svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d deleted this channel", userID))
+		if err != nil {
+			return
+		}
+		svc.evl.Message(msg)
 
-		return svc.channel.DeleteChannelByID(id)
+		if err = svc.channel.DeleteChannelByID(id); err != nil {
+			return
+		}
+
+		return svc.evl.Channel(ch)
 	})
 }
 
@@ -319,9 +332,19 @@ func (svc *channel) Recover(id uint64) error {
 			return errors.New("Channel not deleted")
 		}
 
-		_, err = svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d recovered this channel", userID))
+		msg, err := svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d recovered this channel", userID))
+		if err != nil {
+			return
+		}
+		svc.evl.Message(msg)
 
-		return svc.channel.DeleteChannelByID(id)
+		err = svc.channel.UnarchiveChannelByID(id)
+		if err != nil {
+			return
+		}
+
+		return svc.evl.Channel(ch)
+
 	})
 }
 
@@ -341,9 +364,18 @@ func (svc *channel) Archive(id uint64) error {
 			return errors.New("Channel already archived")
 		}
 
-		_, err = svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d archived this channel", userID))
+		msg, err := svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d archived this channel", userID))
+		if err != nil {
+			return
+		}
+		svc.evl.Message(msg)
 
-		return svc.channel.ArchiveChannelByID(id)
+		err = svc.channel.ArchiveChannelByID(id)
+		if err != nil {
+			return
+		}
+
+		return svc.evl.Channel(ch)
 	})
 }
 
@@ -363,9 +395,18 @@ func (svc *channel) Unarchive(id uint64) error {
 			return errors.New("Channel not archived")
 		}
 
-		_, err = svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d unarchived this channel", userID))
+		msg, err := svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d unarchived this channel", userID))
+		if err != nil {
+			return
+		}
+		svc.evl.Message(msg)
 
-		return svc.channel.ArchiveChannelByID(id)
+		err = svc.channel.ArchiveChannelByID(id)
+		if err != nil {
+			return
+		}
+
+		return svc.evl.Channel(ch)
 	})
 
 }
@@ -374,6 +415,7 @@ func (svc *channel) makeSystemMessage(ch *types.Channel, format string, a ...int
 	return &types.Message{
 		ChannelID: ch.ID,
 		Message:   fmt.Sprintf(format, a...),
+		Type:      types.MessageTypeChannelEvent,
 	}
 }
 
