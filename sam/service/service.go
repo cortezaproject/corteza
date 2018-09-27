@@ -15,6 +15,7 @@ var (
 	DefaultOrganisation OrganisationService
 	DefaultPubSub       *pubSub
 	DefaultTeam         TeamService
+	DefaultEvent        EventService
 )
 
 func Init() {
@@ -24,9 +25,10 @@ func Init() {
 			log.Fatalf("Failed to initialize stor: %v", err)
 		}
 
+		DefaultEvent = Event()
 		DefaultAttachment = Attachment(fs)
-		DefaultChannel = Channel()
 		DefaultMessage = Message()
+		DefaultChannel = Channel()
 		DefaultOrganisation = Organisation()
 		DefaultPubSub = PubSub()
 		DefaultTeam = Team()

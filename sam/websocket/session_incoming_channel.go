@@ -80,7 +80,7 @@ func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) 
 	// Explicitly subscribe to newly created channel
 	s.subs.Add(payload.Uint64toa(ch.ID))
 
-	// @todo this should go over all user's sessons and subscribe there as well
+	// @todo this should go over all user's sessions and subscribe there as well
 
 	// @todo load channel member count
 
@@ -95,15 +95,7 @@ func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) 
 }
 
 func (s *Session) channelDelete(ctx context.Context, p *incoming.ChannelDelete) (err error) {
-	err = s.svc.ch.With(ctx).Delete(payload.ParseUInt64(p.ChannelID))
-	if err != nil {
-		return err
-	}
-
-	return s.sendToAllSubscribers(&outgoing.ChannelDeleted{
-		ID:     p.ChannelID,
-		UserID: payload.Uint64toa(auth.GetIdentityFromContext(ctx).Identity()),
-	}, p.ChannelID)
+	return s.svc.ch.With(ctx).Delete(payload.ParseUInt64(p.ChannelID))
 }
 
 func (s *Session) channelUpdate(ctx context.Context, p *incoming.ChannelUpdate) error {

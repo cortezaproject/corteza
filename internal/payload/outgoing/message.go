@@ -18,20 +18,10 @@ type (
 
 		CreatedAt time.Time  `json:"createdAt"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 	}
 
 	MessageSet []*Message
-
-	MessageUpdate struct {
-		ID      string `json:"ID"`
-		Message string `json:"message"`
-
-		UpdatedAt time.Time `json:"updatedAt,omitempty"`
-	}
-
-	MessageDelete struct {
-		ID string `json:"ID"`
-	}
 )
 
 func (p *Message) EncodeMessage() ([]byte, error) {
@@ -40,12 +30,4 @@ func (p *Message) EncodeMessage() ([]byte, error) {
 
 func (p *MessageSet) EncodeMessage() ([]byte, error) {
 	return json.Marshal(Payload{MessageSet: p})
-}
-
-func (p *MessageUpdate) EncodeMessage() ([]byte, error) {
-	return json.Marshal(Payload{MessageUpdate: p})
-}
-
-func (p *MessageDelete) EncodeMessage() ([]byte, error) {
-	return json.Marshal(Payload{MessageDelete: p})
 }

@@ -2,6 +2,7 @@ package outgoing
 
 import (
 	"encoding/json"
+	"time"
 )
 
 type (
@@ -37,6 +38,11 @@ type (
 		Type          string   `json:"type"`
 		LastMessageID string   `json:"lastMessageID"`
 		Members       []string `json:"members,omitempty"`
+
+		CreatedAt  time.Time  `json:"createdAt"`
+		UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
+		ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+		DeletedAt  *time.Time `json:"deletedAt,omitempty"`
 	}
 
 	ChannelSet []*Channel
@@ -48,10 +54,6 @@ func (p *ChannelJoin) EncodeMessage() ([]byte, error) {
 
 func (p *ChannelPart) EncodeMessage() ([]byte, error) {
 	return json.Marshal(Payload{ChannelPart: p})
-}
-
-func (p *ChannelDeleted) EncodeMessage() ([]byte, error) {
-	return json.Marshal(Payload{ChannelDeleted: p})
 }
 
 func (p *Channel) EncodeMessage() ([]byte, error) {
