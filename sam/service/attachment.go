@@ -10,6 +10,7 @@ import (
 
 	"github.com/titpetric/factory"
 
+	authService "github.com/crusttech/crust/auth/service"
 	"github.com/crusttech/crust/internal/store"
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
@@ -20,11 +21,12 @@ type (
 		db  *factory.DB
 		ctx context.Context
 
+		store store.Store
+		usr   authService.UserService
+		evl   EventService
+
 		attachment repository.AttachmentRepository
 		message    repository.MessageRepository
-
-		store store.Store
-		evl   EventService
 	}
 
 	AttachmentService interface {
@@ -40,6 +42,7 @@ type (
 func Attachment(store store.Store) AttachmentService {
 	return (&attachment{
 		store: store,
+		usr:   authService.DefaultUser,
 		evl:   DefaultEvent,
 	}).With(context.Background())
 }
@@ -50,11 +53,12 @@ func (svc *attachment) With(ctx context.Context) AttachmentService {
 		db:  db,
 		ctx: ctx,
 
+		store: svc.store,
+		usr:   svc.usr.With(ctx),
+		evl:   svc.evl.With(ctx),
+
 		attachment: repository.Attachment(ctx, db),
 		message:    repository.Message(ctx, db),
-
-		store: svc.store,
-		evl:   svc.evl.With(ctx),
 	}
 }
 
@@ -135,9 +139,7 @@ func (svc *attachment) Create(channelId uint64, name string, size int64, fh io.R
 
 		log.Printf("File %s (id: %d) attached to message (id: %d)", att.Name, att.ID, msg.ID)
 
-		msg.Attachment = att
-		msg.Attachment.GenerateURLs()
-		return svc.evl.Message(msg)
+		return svc.sendEvent(msg, att)
 	})
 }
 
@@ -189,6 +191,23 @@ func (svc *attachment) makePreview(att *types.Attachment, original io.ReadSeeker
 	att.PreviewUrl = svc.store.Preview(att.ID, ext)
 
 	return svc.store.Save(att.PreviewUrl, original)
+}
+
+// Sends message to event loop
+//
+// It also preloads user
+func (svc *attachment) sendEvent(msg *types.Message, att *types.Attachment) (err error) {
+	msg.Attachment = att
+	msg.Attachment.GenerateURLs()
+
+	if msg.User == nil {
+		// @todo pull user from cache
+		if msg.User, err = svc.usr.FindByID(msg.UserID); err != nil {
+			return
+		}
+	}
+
+	return svc.evl.Message(msg)
 }
 
 var _ AttachmentService = &attachment{}

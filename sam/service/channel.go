@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
+	authService "github.com/crusttech/crust/auth/service"
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
 )
@@ -17,6 +18,7 @@ type (
 		db  *factory.DB
 		ctx context.Context
 
+		usr authService.UserService
 		evl EventService
 
 		channel repository.ChannelRepository
@@ -45,6 +47,7 @@ type (
 
 func Channel() ChannelService {
 	return (&channel{
+		usr: authService.DefaultUser,
 		evl: DefaultEvent,
 	}).With(context.Background())
 }
@@ -55,6 +58,7 @@ func (svc *channel) With(ctx context.Context) ChannelService {
 		db:  db,
 		ctx: ctx,
 
+		usr: svc.usr.With(ctx),
 		evl: svc.evl.With(ctx),
 
 		channel: repository.Channel(ctx, db),
@@ -198,7 +202,7 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 			return
 		}
 
-		svc.evl.Message(msg)
+		svc.sendMessageEvent(msg)
 
 		return svc.evl.Channel(out)
 	})
@@ -217,6 +221,23 @@ func (svc *channel) Update(in *types.Channel) (out *types.Channel, err error) {
 			return errors.New("Not allowed to edit archived channels")
 		} else if out.DeletedAt != nil {
 			return errors.New("Not allowed to edit deleted channels")
+		}
+
+		if out.Type != in.Type {
+			// @todo [SECURITY] check if user can create public channels
+			if in.Type == types.ChannelTypePublic && false {
+				return errors.New("Not allowed to change type of this channel to public")
+			}
+
+			// @todo [SECURITY] check if user can create private channels
+			if in.Type == types.ChannelTypePrivate && false {
+				return errors.New("Not allowed to change type of this channel to private")
+			}
+
+			// @todo [SECURITY] check if user can create group channels
+			if in.Type == types.ChannelTypeGroup && false {
+				return errors.New("Not allowed to change type of this channel to group")
+			}
 		}
 
 		var chUpdatorId = repository.Identity(svc.ctx)
@@ -245,23 +266,6 @@ func (svc *channel) Update(in *types.Channel) (out *types.Channel, err error) {
 			out.Topic = in.Topic
 		}
 
-		if out.Type != in.Type {
-			// @todo [SECURITY] check if user can create public channels
-			if in.Type == types.ChannelTypePublic && false {
-				return errors.New("Not allowed to change type of this channel to public")
-			}
-
-			// @todo [SECURITY] check if user can create private channels
-			if in.Type == types.ChannelTypePrivate && false {
-				return errors.New("Not allowed to change type of this channel to private")
-			}
-
-			// @todo [SECURITY] check if user can create group channels
-			if in.Type == types.ChannelTypeGroup && false {
-				return errors.New("Not allowed to change type of this channel to group")
-			}
-		}
-
 		// Save the updated channel
 		if out, err = svc.channel.UpdateChannel(in); err != nil {
 			return
@@ -274,7 +278,7 @@ func (svc *channel) Update(in *types.Channel) (out *types.Channel, err error) {
 				return err
 			}
 
-			svc.evl.Message(msg)
+			svc.sendMessageEvent(msg)
 		}
 
 		if err != nil {
@@ -306,7 +310,7 @@ func (svc *channel) Delete(id uint64) error {
 		if err != nil {
 			return
 		}
-		svc.evl.Message(msg)
+		svc.sendMessageEvent(msg)
 
 		if err = svc.channel.DeleteChannelByID(id); err != nil {
 			return
@@ -336,7 +340,7 @@ func (svc *channel) Recover(id uint64) error {
 		if err != nil {
 			return
 		}
-		svc.evl.Message(msg)
+		svc.sendMessageEvent(msg)
 
 		err = svc.channel.UnarchiveChannelByID(id)
 		if err != nil {
@@ -368,7 +372,7 @@ func (svc *channel) Archive(id uint64) error {
 		if err != nil {
 			return
 		}
-		svc.evl.Message(msg)
+		svc.sendMessageEvent(msg)
 
 		err = svc.channel.ArchiveChannelByID(id)
 		if err != nil {
@@ -399,7 +403,7 @@ func (svc *channel) Unarchive(id uint64) error {
 		if err != nil {
 			return
 		}
-		svc.evl.Message(msg)
+		svc.sendMessageEvent(msg)
 
 		err = svc.channel.ArchiveChannelByID(id)
 		if err != nil {
@@ -417,6 +421,20 @@ func (svc *channel) makeSystemMessage(ch *types.Channel, format string, a ...int
 		Message:   fmt.Sprintf(format, a...),
 		Type:      types.MessageTypeChannelEvent,
 	}
+}
+
+// Sends message to event loop
+//
+// It also preloads user
+func (svc *channel) sendMessageEvent(msg *types.Message) (err error) {
+	if msg.User == nil {
+		// @todo pull user from cache
+		if msg.User, err = svc.usr.FindByID(msg.UserID); err != nil {
+			return
+		}
+	}
+
+	return svc.evl.Message(msg)
 }
 
 //// @todo temp location, move this somewhere else
