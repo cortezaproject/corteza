@@ -4,9 +4,10 @@ import (
 	"context"
 
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/payload"
+	"github.com/crusttech/crust/internal/payload/incoming"
+	"github.com/crusttech/crust/internal/payload/outgoing"
 	"github.com/crusttech/crust/sam/types"
-	"github.com/crusttech/crust/sam/websocket/incoming"
-	"github.com/crusttech/crust/sam/websocket/outgoing"
 )
 
 func (s *Session) channelJoin(ctx context.Context, p *incoming.ChannelJoin) error {
@@ -17,7 +18,7 @@ func (s *Session) channelJoin(ctx context.Context, p *incoming.ChannelJoin) erro
 	// Telling all subscribers of the channel we're joining that we are joining.
 	var chJoin = &outgoing.ChannelJoin{
 		ID:     p.ChannelID,
-		UserID: uint64toa(auth.GetIdentityFromContext(ctx).Identity()),
+		UserID: payload.Uint64toa(auth.GetIdentityFromContext(ctx).Identity()),
 	}
 
 	// Send to all channel subscribers
@@ -35,7 +36,7 @@ func (s *Session) channelPart(ctx context.Context, p *incoming.ChannelPart) erro
 	// This payload will tell everyone that we're parting from ALL channels
 	var chPart = &outgoing.ChannelPart{
 		ID:     p.ChannelID,
-		UserID: uint64toa(auth.GetIdentityFromContext(ctx).Identity()),
+		UserID: payload.Uint64toa(auth.GetIdentityFromContext(ctx).Identity()),
 	}
 
 	s.sendToAllSubscribers(chPart, p.ChannelID)
@@ -51,7 +52,7 @@ func (s *Session) channelList(ctx context.Context, p *incoming.Channels) error {
 
 	// @todo count members for all channels
 
-	return s.sendReply(payloadFromChannels(channels))
+	return s.sendReply(payload.Channels(channels))
 }
 
 func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) (err error) {
@@ -77,13 +78,13 @@ func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) 
 	}
 
 	// Explicitly subscribe to newly created channel
-	s.subs.Add(uint64toa(ch.ID))
+	s.subs.Add(payload.Uint64toa(ch.ID))
 
 	// @todo this should go over all user's sessons and subscribe there as well
 
 	// @todo load channel member count
 
-	pl := payloadFromChannel(ch)
+	pl := payload.Channel(ch)
 
 	if ch.Type == types.ChannelTypePublic {
 		return s.sendToAll(pl)
@@ -94,19 +95,19 @@ func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) 
 }
 
 func (s *Session) channelDelete(ctx context.Context, p *incoming.ChannelDelete) (err error) {
-	err = s.svc.ch.With(ctx).Delete(parseUInt64(p.ChannelID))
+	err = s.svc.ch.With(ctx).Delete(payload.ParseUInt64(p.ChannelID))
 	if err != nil {
 		return err
 	}
 
 	return s.sendToAllSubscribers(&outgoing.ChannelDeleted{
 		ID:     p.ChannelID,
-		UserID: uint64toa(auth.GetIdentityFromContext(ctx).Identity()),
+		UserID: payload.Uint64toa(auth.GetIdentityFromContext(ctx).Identity()),
 	}, p.ChannelID)
 }
 
 func (s *Session) channelUpdate(ctx context.Context, p *incoming.ChannelUpdate) error {
-	ch, err := s.svc.ch.With(ctx).FindByID(parseUInt64(p.ID))
+	ch, err := s.svc.ch.With(ctx).FindByID(payload.ParseUInt64(p.ID))
 	if err != nil {
 		return err
 	}
@@ -130,5 +131,5 @@ func (s *Session) channelUpdate(ctx context.Context, p *incoming.ChannelUpdate) 
 
 	// @todo load channel member count
 
-	return s.sendToAllSubscribers(payloadFromChannel(ch), p.ID)
+	return s.sendToAllSubscribers(payload.Channel(ch), p.ID)
 }

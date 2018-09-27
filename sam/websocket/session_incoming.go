@@ -1,19 +1,18 @@
 package websocket
 
 import (
-	"encoding/json"
-
-	"github.com/crusttech/crust/sam/websocket/incoming"
+	"github.com/crusttech/crust/internal/payload"
 	"github.com/pkg/errors"
 )
 
-func (s *Session) dispatch(raw []byte) (err error) {
-	var p = &incoming.Payload{}
-	if err = json.Unmarshal(raw, p); err != nil {
+func (s *Session) dispatch(raw []byte) error {
+	var p, err = payload.Unmarshal(raw)
+	if err != nil {
 		return errors.Wrap(err, "Session.incoming: payload malformed")
 	}
 
 	ctx := s.Context()
+
 	switch {
 
 	// message actions

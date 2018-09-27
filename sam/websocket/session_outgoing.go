@@ -6,11 +6,10 @@ import (
 
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
-	"github.com/crusttech/crust/sam/websocket/outgoing"
 )
 
 // Sends message to subscribers
-func (s *Session) sendToAllSubscribers(p outgoing.MessageEncoder, channelID string) error {
+func (s *Session) sendToAllSubscribers(p MessageEncoder, channelID string) error {
 	pb, err := p.EncodeMessage()
 	if err != nil {
 		return err
@@ -20,7 +19,7 @@ func (s *Session) sendToAllSubscribers(p outgoing.MessageEncoder, channelID stri
 }
 
 // Sends message to all connected clients
-func (s *Session) sendToAll(p outgoing.MessageEncoder) error {
+func (s *Session) sendToAll(p MessageEncoder) error {
 	pb, err := p.EncodeMessage()
 	if err != nil {
 		return err
@@ -32,7 +31,7 @@ func (s *Session) sendToAll(p outgoing.MessageEncoder) error {
 // @todo: this isn't going to be correct - a user may have open multiple clients,
 //        that will connect to different edge SAM servers. It should also go
 //        through a repository.Events().Push (EventQueueItem) path.
-func (s *Session) sendReply(p outgoing.MessageEncoder) error {
+func (s *Session) sendReply(p MessageEncoder) error {
 	pb, err := p.EncodeMessage()
 	if err != nil {
 		return err
