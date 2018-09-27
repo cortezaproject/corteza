@@ -84,11 +84,6 @@ func (r *user) FindUsers(filter *types.UserFilter) ([]*types.User, error) {
 			sql += " AND username LIKE ?"
 			params = append(params, filter.Query+"%")
 		}
-
-		if filter.MembersOfChannel > 0 {
-			sql += " AND id IN (SELECT rel_user FROM channel_members WHERE rel_channel = ?)"
-			params = append(params, filter.MembersOfChannel)
-		}
 	}
 
 	sql += " ORDER BY username ASC"
