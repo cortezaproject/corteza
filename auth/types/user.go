@@ -2,8 +2,9 @@ package types
 
 import (
 	"encoding/json"
-	"golang.org/x/crypto/bcrypt"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type (
@@ -13,6 +14,7 @@ type (
 		Email          string          `json:"email" db:"email"`
 		Name           string          `json:"name" db:"name"`
 		Handle         string          `json:"handle" db:"handle"`
+		SatosaID       string          `json:"satosaId" db:"satosa_id"`
 		Meta           json.RawMessage `json:"-" db:"meta"`
 		OrganisationID uint64          `json:"organisationId" db:"rel_organisation"`
 		Password       []byte          `json:"-" db:"password"`

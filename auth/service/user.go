@@ -68,13 +68,25 @@ func (svc *user) Find(filter *types.UserFilter) ([]*types.User, error) {
 	return svc.repository.FindUsers(filter)
 }
 
-// Finds if user with a specific email exists and returns it otherwise it creates a fresh one
+// Finds if user with a specific satosa id exists and returns it otherwise it creates a fresh one
 func (svc *user) FindOrCreate(user *types.User) (out *types.User, err error) {
 	//return out, svc.repository.DB().Transaction(func() error {
-	if out, err = svc.repository.FindUserByEmail(user.Email); err != repository.ErrUserNotFound {
+	out, err = svc.repository.FindUserBySatosaID(user.SatosaID)
+
+	if err == repository.ErrUserNotFound {
+		out, err = svc.repository.CreateUser(user)
 		return out, err
-	} else if out, err = svc.repository.CreateUser(user); err != nil {
-		return out, err
+	}
+
+	if err != nil {
+		// FindUserBySatosaID error
+		return nil, err
+	}
+
+	// @todo need to be more selective with fields we update...
+	out, err = svc.repository.UpdateUser(out)
+	if err != nil {
+		return nil, err
 	}
 
 	return out, nil
