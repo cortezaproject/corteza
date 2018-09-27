@@ -26,7 +26,7 @@ func MountRoutes(oidcConfig *config.OIDC, jwtAuth jwtEncodeCookieSetter) func(ch
 	var userSvc = service.User()
 	var ctx = context.Background()
 
-	oidc, err := OpenIdConnect(ctx, oidcConfig, userSvc, jwtAuth, repository.NewSettings(ctx))
+	oidc, err := OpenIdConnect(ctx, oidcConfig, userSvc, jwtAuth, repository.NewSettings(ctx, repository.DB(ctx)))
 	if err != nil {
 		log.Print("Could not initialize OIDC:", err.Error())
 	}

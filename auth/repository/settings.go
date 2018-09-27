@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
+	"github.com/titpetric/factory"
 )
 
 type (
@@ -13,22 +14,20 @@ type (
 	}
 
 	Settings interface {
-		Repository
-
-		With(context.Context) Settings
+		With(ctx context.Context, db *factory.DB) Settings
 
 		Get(name string, value interface{}) (bool, error)
 		Set(name string, value interface{}) error
 	}
 )
 
-func NewSettings(ctx context.Context) Settings {
-	return (&settings{}).With(ctx)
+func NewSettings(ctx context.Context, db *factory.DB) Settings {
+	return (&settings{}).With(ctx, db)
 }
 
-func (r *settings) With(ctx context.Context) Settings {
+func (r *settings) With(ctx context.Context, db *factory.DB) Settings {
 	return &settings{
-		repository: r.repository.With(ctx),
+		repository: r.repository.With(ctx, db),
 	}
 }
 
