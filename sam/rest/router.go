@@ -9,11 +9,14 @@ import (
 func MountRoutes() func(chi.Router) {
 	// Initialize handers & controllers.
 	return func(r chi.Router) {
-		handlers.NewAttachmentDownloadable(Attachment{}.New()).MountRoutes(r)
+		r.Group(func(r chi.Router) {
+			r.Use(auth.MiddlewareValidOnly404)
+			handlers.NewAttachmentDownloadable(Attachment{}.New()).MountRoutes(r)
+		})
 
 		// Protect all _private_ routes
 		r.Group(func(r chi.Router) {
-			r.Use(auth.AuthenticationMiddlewareValidOnly)
+			r.Use(auth.MiddlewareValidOnly)
 
 			handlers.NewChannel(Channel{}.New()).MountRoutes(r)
 			handlers.NewMessage(Message{}.New()).MountRoutes(r)

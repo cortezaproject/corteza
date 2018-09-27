@@ -27,9 +27,9 @@ func NewAttachmentDownloadable(ah AttachmentAPI) *Attachment {
 		if err != nil {
 			switch true {
 			case err.Error() == "crust.sam.repository.AttachmentNotFound":
-				http.Error(w, "Attachment not found", 404)
+				w.WriteHeader(http.StatusNotFound)
 			default:
-				http.Error(w, err.Error(), 500)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 		} else if dl, ok := f.(Downloadable); ok {
 			if dl.Download() {
@@ -38,7 +38,7 @@ func NewAttachmentDownloadable(ah AttachmentAPI) *Attachment {
 
 			http.ServeContent(w, r, dl.Name(), dl.ModTime(), dl.Content())
 		} else {
-			http.Error(w, "Got incompatible type from controller", 500)
+			http.Error(w, "Got incompatible type from controller", http.StatusInternalServerError)
 		}
 	}
 
