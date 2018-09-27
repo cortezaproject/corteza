@@ -23,7 +23,7 @@ func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 	return func(r chi.Router) {
 		// Protect all _private_ routes
 		r.Group(func(r chi.Router) {
-			r.Use(auth.AuthenticationMiddlewareValidOnly)
+			r.Use(auth.MiddlewareValidOnly)
 
 			handlers.NewField(field).MountRoutes(r)
 			handlers.NewModule(module).MountRoutes(r)
