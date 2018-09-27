@@ -15,6 +15,7 @@ CREATE TABLE users (
   name             TEXT            NOT NULL,
   handle           TEXT            NOT NULL,
   meta             JSON            NOT NULL,
+  satosa_id        CHAR(36)            NULL,
 
   rel_organisation BIGINT UNSIGNED NOT NULL,
 
@@ -25,3 +26,5 @@ CREATE TABLE users (
 
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE UNIQUE INDEX uid_satosa ON users (satosa_id);

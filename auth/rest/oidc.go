@@ -34,6 +34,12 @@ type (
 		jwt jwtEncodeCookieSetter
 	}
 
+	oidcProfile struct {
+		Email string `json:"email"`
+		Name  string `json:"name"`
+		Sub   string `json:"sub"`
+	}
+
 	jwtEncodeCookieSetter interface {
 		auth.TokenEncoder
 		SetCookie(w http.ResponseWriter, r *http.Request, identity auth.Identifiable)
@@ -153,12 +159,15 @@ func (c *openIdConnect) HandleOAuth2Callback(w http.ResponseWriter, r *http.Requ
 	}
 
 	u, _ := c.provider.UserInfo(ctx, oauth2.StaticTokenSource(oauth2Token))
+	p := &oidcProfile{}
+	u.Claims(p)
 
 	var user = &types.User{
-		Email: u.Email,
+		Email: p.Email,
+		Name:  p.Name,
 	}
 
-	if user, err = c.userService.FindOrCreate(user); err != nil {
+	if user, err = c.userService.With(ctx).FindOrCreate(user); err != nil {
 		resputil.JSON(w, err)
 		return
 	} else {
