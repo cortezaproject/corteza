@@ -25,8 +25,7 @@ type (
 	}
 
 	UserFilter struct {
-		Query            string
-		MembersOfChannel uint64
+		Query string
 	}
 
 	UserSet []*User
