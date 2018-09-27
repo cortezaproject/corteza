@@ -5,16 +5,23 @@ import (
 
 	"github.com/crusttech/crust/auth/repository"
 	"github.com/crusttech/crust/auth/types"
+	"github.com/pkg/errors"
+	"github.com/titpetric/factory"
 )
 
 const (
 	ErrUserInvalidCredentials = serviceError("UserInvalidCredentials")
 	ErrUserLocked             = serviceError("UserLocked")
+
+	uuidLength = 36
 )
 
 type (
 	user struct {
-		repository repository.User
+		db  *factory.DB
+		ctx context.Context
+
+		user repository.UserRepository
 	}
 
 	UserService interface {
@@ -32,19 +39,21 @@ type (
 )
 
 func User() UserService {
-	return &user{
-		repository.NewUser(context.Background()),
-	}
+	return (&user{}).With(context.Background())
 }
 
 func (svc *user) With(ctx context.Context) UserService {
+	db := repository.DB(ctx)
+
 	return &user{
-		svc.repository.With(ctx),
+		db:   db,
+		ctx:  ctx,
+		user: repository.User(ctx, db),
 	}
 }
 
 func (svc *user) ValidateCredentials(username, password string) (*types.User, error) {
-	user, err := svc.repository.FindUserByUsername(username)
+	user, err := svc.user.FindUserByUsername(username)
 	if err != nil {
 		return nil, err
 	}
@@ -61,42 +70,47 @@ func (svc *user) ValidateCredentials(username, password string) (*types.User, er
 }
 
 func (svc *user) FindByID(id uint64) (*types.User, error) {
-	return svc.repository.FindUserByID(id)
+	return svc.user.FindUserByID(id)
 }
 
 func (svc *user) Find(filter *types.UserFilter) ([]*types.User, error) {
-	return svc.repository.FindUsers(filter)
+	return svc.user.FindUsers(filter)
 }
 
 // Finds if user with a specific satosa id exists and returns it otherwise it creates a fresh one
 func (svc *user) FindOrCreate(user *types.User) (out *types.User, err error) {
-	//return out, svc.repository.DB().Transaction(func() error {
-	out, err = svc.repository.FindUserBySatosaID(user.SatosaID)
+	return out, svc.db.Transaction(func() error {
+		if len(user.SatosaID) != uuidLength {
+			// @todo uuid format check
+			return errors.Errorf("Invalid UUID value (%v) for SATOSA ID", user.SatosaID)
+		}
 
-	if err == repository.ErrUserNotFound {
-		out, err = svc.repository.CreateUser(user)
-		return out, err
-	}
+		out, err = svc.user.FindUserBySatosaID(user.SatosaID)
 
-	if err != nil {
-		// FindUserBySatosaID error
-		return nil, err
-	}
+		if err == repository.ErrUserNotFound {
+			out, err = svc.user.CreateUser(user)
+			return err
+		}
 
-	// @todo need to be more selective with fields we update...
-	out, err = svc.repository.UpdateUser(out)
-	if err != nil {
-		return nil, err
-	}
+		if err != nil {
+			// FindUserBySatosaID error
+			return err
+		}
 
-	return out, nil
-	//})
+		// @todo need to be more selective with fields we update...
+		out, err = svc.user.UpdateUser(out)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
-func (svc *user) Create(input *types.User) (user *types.User, err error) {
-	return user, svc.repository.DB().Transaction(func() error {
+func (svc *user) Create(input *types.User) (out *types.User, err error) {
+	return out, svc.db.Transaction(func() error {
 		// Encrypt user password
-		if user, err = svc.repository.CreateUser(input); err != nil {
+		if out, err = svc.user.CreateUser(input); err != nil {
 			return err
 		}
 		return nil
@@ -104,7 +118,7 @@ func (svc *user) Create(input *types.User) (user *types.User, err error) {
 }
 
 func (svc *user) Update(mod *types.User) (*types.User, error) {
-	return svc.repository.UpdateUser(mod)
+	return svc.user.UpdateUser(mod)
 }
 
 func (svc *user) canLogin(u *types.User) bool {

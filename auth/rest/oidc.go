@@ -163,8 +163,9 @@ func (c *openIdConnect) HandleOAuth2Callback(w http.ResponseWriter, r *http.Requ
 	u.Claims(p)
 
 	var user = &types.User{
-		Email: p.Email,
-		Name:  p.Name,
+		SatosaID: p.Sub,
+		Email:    p.Email,
+		Name:     p.Name,
 	}
 
 	if user, err = c.userService.With(ctx).FindOrCreate(user); err != nil {

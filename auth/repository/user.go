@@ -8,14 +8,8 @@ import (
 )
 
 type (
-	user struct {
-		*repository
-	}
-
-	User interface {
-		Repository
-
-		With(context.Context) User
+	UserRepository interface {
+		With(ctx context.Context, db *factory.DB) UserRepository
 
 		FindUserByEmail(email string) (*types.User, error)
 		FindUserByUsername(username string) (*types.User, error)
@@ -27,6 +21,10 @@ type (
 		SuspendUserByID(id uint64) error
 		UnsuspendUserByID(id uint64) error
 		DeleteUserByID(id uint64) error
+	}
+
+	user struct {
+		*repository
 	}
 )
 
@@ -40,14 +38,12 @@ const (
 	ErrUserNotFound = repositoryError("UserNotFound")
 )
 
-func NewUser(ctx context.Context) User {
-	return (&user{}).With(ctx)
+func User(ctx context.Context, db *factory.DB) UserRepository {
+	return (&user{}).With(ctx, db)
 }
 
-func (r *user) With(ctx context.Context) User {
-	return &user{
-		repository: r.repository.With(ctx),
-	}
+func (r *user) With(ctx context.Context, db *factory.DB) UserRepository {
+	return &user{repository: r.repository.With(ctx, db)}
 }
 
 func (r *user) FindUserByUsername(username string) (*types.User, error) {

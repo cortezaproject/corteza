@@ -8,37 +8,32 @@ import (
 type (
 	repository struct {
 		ctx context.Context
-
-		// Get database handle
-		dbh func(ctxs ...context.Context) *factory.DB
-	}
-
-	Repository interface {
-		Context() context.Context
-		DB() *factory.DB
+		dbh *factory.DB
 	}
 )
 
-// With updates repository and database contexts
-func (r *repository) With(ctx context.Context) *repository {
-	res := &repository{
-		ctx: ctx,
-		dbh: DB,
-	}
-	if r != nil {
-		res.dbh = r.dbh
-	}
-	return res
+// DB produces a contextual DB handle
+func DB(ctx context.Context) *factory.DB {
+	return factory.Database.MustGet().With(ctx)
 }
 
+// With updates repository and database contexts
+func (r *repository) With(ctx context.Context, db *factory.DB) *repository {
+	return &repository{
+		ctx: ctx,
+		dbh: db,
+	}
+}
+
+// Context returns current active repository context
 func (r *repository) Context() context.Context {
 	return r.ctx
 }
 
-// Return context-aware db handle
+// db returns context-aware db handle
 func (r *repository) db() *factory.DB {
-	return r.dbh(r.ctx)
-}
-func (r *repository) DB() *factory.DB {
-	return r.db()
+	if r.dbh != nil {
+		return r.dbh
+	}
+	return DB(r.ctx)
 }
