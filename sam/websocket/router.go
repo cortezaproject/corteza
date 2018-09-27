@@ -11,12 +11,12 @@ import (
 
 func MountRoutes(ctx context.Context, config *repository.Flags) func(chi.Router) {
 	return func(r chi.Router) {
-		events := repository.NewEvents(ctx, nil)
+		events := repository.Events()
 
 		go func() {
 			for {
 				if err := eq.feedSessions(ctx, config, events, store); err != nil {
-					log.Printf("Error when starting sessions event feed: %+v", err)
+					log.Printf("Error in sessions event feed: %+v", err)
 				}
 			}
 		}()

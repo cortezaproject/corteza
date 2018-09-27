@@ -82,6 +82,11 @@ test.pubsub: $(GOTEST)
 	perl -pi -e 's/command-line-arguments/.\/sam\/repository/g' .cover.out
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
+test.events: $(GOTEST)
+	$(GOTEST) -run Events -covermode count -coverprofile .cover.out -v ./sam/repository/events*.go ./sam/repository/flags*.go ./sam/repository/error*.go
+	perl -pi -e 's/command-line-arguments/.\/sam\/repository/g' .cover.out
+	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
+
 test.crm: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./crm/repository/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
