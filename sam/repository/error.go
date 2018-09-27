@@ -9,9 +9,10 @@ type (
 )
 
 const (
-	ErrDatabaseError  = repositoryError("DatabaseError")
-	ErrNotImplemented = repositoryError("NotImplemented")
-	ErrConfigError    = repositoryError("ConfigError")
+	ErrDatabaseError    = repositoryError("DatabaseError")
+	ErrNotImplemented   = repositoryError("NotImplemented")
+	ErrConfigError      = repositoryError("ConfigError")
+	ErrEventsPullClosed = repositoryError("EventsPullClosed")
 )
 
 func (e repositoryError) Error() string {

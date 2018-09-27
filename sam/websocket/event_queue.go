@@ -6,7 +6,6 @@ import (
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/sam/repository"
-	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
 )
 
@@ -38,81 +37,38 @@ func EventQueue(origin uint64) *eventQueue {
 	}
 }
 
-func (eq *eventQueue) store(ctx context.Context, qp repository.Events) {
+// @todo: retire this function, use Events().Push(ctx, item) directly.
+func (eq *eventQueue) store(ctx context.Context, qp repository.EventsRepository) {
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
 			case eqi := <-eq.queue:
-				qp.Push(eqi)
+				qp.Push(ctx, eqi)
 			}
 		}
 	}()
 }
 
-func (eq *eventQueue) feedSessions(ctx context.Context, config *repository.Flags, qp repository.Events, store eventQueueWalker) error {
-	newMessageEvent := make(chan struct{}, eventQueueBacklog)
-	done := make(chan error, 1)
-
-	pubsub := service.PubSub()
-	go func() {
-		onConnect := func() error {
-			return nil
-		}
-		onMessage := func(message string, payload []byte) error {
-			newMessageEvent <- struct{}{}
-			return nil
-		}
-		done <- pubsub.Subscribe(ctx, "events", onConnect, onMessage)
-	}()
-
-	poll := func() error {
-		for {
-			items, err := qp.Pull(eq.origin)
-			if err != nil {
-				return err
-			}
-			if len(items) == 0 {
-				return nil
-			}
-
-			var lastSyncedId uint64
-
-			for _, item := range items {
-				if item.Subscriber == "" {
-					// Distribute payload to all connected sessions
-					store.Walk(func(s *Session) {
-						s.sendBytes(item.Payload)
-					})
-				} else {
-					// Distribute payload to specific subscribers
-					store.Walk(func(s *Session) {
-						if s.subs.Get(item.Subscriber) != nil {
-							s.sendBytes(item.Payload)
-						}
-					})
-				}
-
-				lastSyncedId = item.ID
-
-			}
-
-			if lastSyncedId > 0 {
-				qp.Sync(eq.origin, lastSyncedId)
-			}
-		}
-	}
-
+func (eq *eventQueue) feedSessions(ctx context.Context, config *repository.Flags, qp repository.EventsRepository, store eventQueueWalker) error {
 	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-newMessageEvent:
-			if err := poll(); err != nil {
-				return err
-			}
-		case err := <-done:
+		item, err := qp.Pull(ctx)
+		if err != nil {
 			return err
+		}
+
+		if item.Subscriber == "" {
+			// Distribute payload to all connected sessions
+			store.Walk(func(s *Session) {
+				s.sendBytes(item.Payload)
+			})
+		} else {
+			// Distribute payload to specific subscribers
+			store.Walk(func(s *Session) {
+				if s.subs.Get(item.Subscriber) != nil {
+					s.sendBytes(item.Payload)
+				}
+			})
 		}
 	}
 }

@@ -1,10 +1,12 @@
 package websocket
 
 import (
-	"github.com/crusttech/crust/sam/types"
-	"github.com/crusttech/crust/sam/websocket/outgoing"
 	"log"
 	"time"
+
+	"github.com/crusttech/crust/sam/repository"
+	"github.com/crusttech/crust/sam/types"
+	"github.com/crusttech/crust/sam/websocket/outgoing"
 )
 
 // Sends message to subscribers
@@ -14,16 +16,7 @@ func (s *Session) sendToAllSubscribers(p outgoing.MessageEncoder, channelID stri
 		return err
 	}
 
-	eq.push(s.ctx, &types.EventQueueItem{Payload: pb, Subscriber: channelID})
-
-	store.Walk(func(sess *Session) {
-		// send message only to users with subscribed channels
-		if sess.subs.Get(channelID) != nil {
-			sess.sendBytes(pb)
-		}
-	})
-
-	return nil
+	return repository.Events().Push(s.ctx, &types.EventQueueItem{Payload: pb, Subscriber: channelID})
 }
 
 // Sends message to all connected clients
@@ -33,16 +26,12 @@ func (s *Session) sendToAll(p outgoing.MessageEncoder) error {
 		return err
 	}
 
-	eq.push(s.ctx, &types.EventQueueItem{Payload: pb})
-
-	store.Walk(func(sess *Session) {
-		// send message only to users with subscribed channels
-		sess.sendBytes(pb)
-	})
-
-	return nil
+	return repository.Events().Push(s.ctx, &types.EventQueueItem{Payload: pb})
 }
 
+// @todo: this isn't going to be correct - a user may have open multiple clients,
+//        that will connect to different edge SAM servers. It should also go
+//        through a repository.Events().Push (EventQueueItem) path.
 func (s *Session) sendReply(p outgoing.MessageEncoder) error {
 	pb, err := p.EncodeMessage()
 	if err != nil {

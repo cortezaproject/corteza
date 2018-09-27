@@ -32,66 +32,43 @@ The reading of the event queue table is triggered by pubsub.
 */
 
 type (
-	Events interface {
-		With(ctx context.Context, db *factory.DB) Events
-
-		Pull(origin uint64) ([]*types.EventQueueItem, error)
-		Push(eqi *types.EventQueueItem) error
-		Sync(origin, id uint64) error
+	EventsRepository interface {
+		Pull(ctx context.Context) (*types.EventQueueItem, error)
+		Push(ctx context.Context, item *types.EventQueueItem) error
 	}
 
 	events struct {
-		*repository
+		pipe chan *types.EventQueueItem
 	}
 )
 
-func NewEvents(ctx context.Context, db *factory.DB) Events {
-	return (&events{}).With(ctx, db)
+var eventsPipe chan *types.EventQueueItem
+
+func Events() EventsRepository {
+	if eventsPipe == nil {
+		eventsPipe = make(chan *types.EventQueueItem, 512)
+	}
+	return &events{eventsPipe}
 }
 
-func (r *events) With(ctx context.Context, db *factory.DB) Events {
-	return &events{
-		repository: r.repository.With(ctx, db),
+func (r *events) Pull(ctx context.Context) (*types.EventQueueItem, error) {
+	select {
+	case res, ok := <-r.pipe:
+		if !ok {
+			return res, ErrEventsPullClosed.New()
+		}
+		return res, nil
+	case <-ctx.Done():
+		return nil, ctx.Err()
 	}
 }
 
-func (r *events) Pull(origin uint64) ([]*types.EventQueueItem, error) {
-	var ee = make([]*types.EventQueueItem, 0)
-
-	return ee, r.db().Quiet().Select(&ee, `
-		SELECT * 
-		  FROM event_queue 
-         WHERE origin <> ? 
-           AND id > GREATEST(COALESCE((SELECT rel_last FROM event_queue_synced WHERE origin = ?), 0), ?)
-         LIMIT 50`, origin, origin, origin)
-}
-
-func (r *events) Push(eqi *types.EventQueueItem) error {
-	eqi.ID = factory.Sonyflake.NextID()
-	return r.db().Quiet().Insert("event_queue", eqi)
-}
-
-func (r *events) Sync(origin, id uint64) error {
-	type evqs struct {
-		Origin    uint64 `db:"origin"`
-		LastEvent uint64 `db:"rel_last"`
+func (r *events) Push(ctx context.Context, item *types.EventQueueItem) error {
+	item.ID = factory.Sonyflake.NextID()
+	select {
+	case r.pipe <- item:
+	case <-ctx.Done():
+		return ctx.Err()
 	}
-
-	// @todo do we even need this?
-	return r.db().Quiet().Replace("event_queue_synced", evqs{
-		Origin:    origin,
-		LastEvent: id,
-	})
+	return nil
 }
-
-func (r *events) Cleanup() error {
-	return exec(r.db().Exec("DELETE FROM event_queue WHERE id < (SELECT MIN(rel_last) FROM event_queue_synced)"))
-}
-
-/*
-
-do we need event_queue_synced??
-do we need stable server id or can it be regenerad on each run?
-
-
-*/
