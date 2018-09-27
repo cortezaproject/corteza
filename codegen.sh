@@ -21,9 +21,10 @@ for SPEC in $SPECS; do
 	fi
 
 	SRC=$(dirname $(dirname $SPEC))
-	echo "=== codegen $SRC ==="
-
-	codegen/codegen.php $(basename $SRC) | tee -a /dev/stderr
+	if [ -d "codegen/$(basename $SRC)" ]; then
+		echo "=== codegen $SRC ==="
+		codegen/codegen.php $(basename $SRC)
+	fi
 done
 
 gofmt
