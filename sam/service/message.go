@@ -60,6 +60,7 @@ func (svc *message) With(ctx context.Context) MessageService {
 	return &message{
 		db:  db,
 		ctx: ctx,
+
 		usr: svc.usr.With(ctx),
 		evl: svc.evl.With(ctx),
 
@@ -167,7 +168,7 @@ func (svc *message) Direct(recipientID uint64, in *types.Message) (out *types.Me
 			return
 		}
 
-		return svc.evl.Message(out)
+		return svc.sendEvent(out)
 	})
 }
 
@@ -185,7 +186,7 @@ func (svc *message) Create(mod *types.Message) (*types.Message, error) {
 		return nil, err
 	}
 
-	return message, svc.evl.Message(message)
+	return message, svc.sendEvent(message)
 }
 
 func (svc *message) Update(mod *types.Message) (*types.Message, error) {
@@ -205,7 +206,7 @@ func (svc *message) Update(mod *types.Message) (*types.Message, error) {
 		return nil, err
 	}
 
-	return message, svc.evl.Message(message)
+	return message, svc.sendEvent(message)
 }
 
 func (svc *message) Delete(id uint64) error {
@@ -301,6 +302,20 @@ func (svc *message) Unflag(messageID uint64) error {
 	_ = currentUserID
 
 	return nil
+}
+
+// Sends message to event loop
+//
+// It also preloads user
+func (svc *message) sendEvent(msg *types.Message) (err error) {
+	if msg.User == nil {
+		// @todo pull user from cache
+		if msg.User, err = svc.usr.FindByID(msg.UserID); err != nil {
+			return
+		}
+	}
+
+	return svc.evl.Message(msg)
 }
 
 var _ MessageService = &message{}
