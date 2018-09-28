@@ -4,13 +4,11 @@ FROM golang:1.10-alpine AS builder
 
 WORKDIR /go/src/github.com/crusttech/crust
 
-ARG APP
-ENV APP=$APP
 ENV CGO_ENABLED=0
 
 COPY . .
 
-RUN mkdir /build; go build -o /build/$APP cmd/$APP/*.go
+RUN mkdir /build; go build -o /build/crm cmd/crm/*.go
 
 
 ## target image
@@ -25,7 +23,4 @@ WORKDIR /crust
 COPY --from=builder /build/* /crust/
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
-ARG APP
-ENV APP=$APP
-
-ENTRYPOINT /crust/$APP
+ENTRYPOINT /crust/crm
