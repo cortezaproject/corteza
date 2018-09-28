@@ -46,9 +46,14 @@ func (s *store) Namespace() string {
 }
 
 func (s *store) check(filename string) error {
-	if filename[:len(s.namespace)+1] != s.namespace+"/" {
-		return errors.Errorf("Invalid namespace when trying to store file: %s (for %s)", filename, s.namespace)
+	if len(filename) == 0 {
+		return errors.Errorf("Invalid filename when trying to store file: '%s' (for %s)", filename, s.namespace)
 	}
+
+	if filename[:len(s.namespace)+1] != s.namespace+"/" {
+		return errors.Errorf("Invalid namespace when trying to store file: '%s' (for %s)", filename, s.namespace)
+	}
+
 	return nil
 }
 

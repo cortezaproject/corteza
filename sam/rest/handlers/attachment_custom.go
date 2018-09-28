@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"net/http"
-
-	"github.com/crusttech/crust/sam/rest/request"
 	"io"
+	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/crusttech/crust/sam/rest/request"
 )
 
 // HTTP API interface
@@ -20,6 +20,7 @@ type Downloadable interface {
 	Download() bool
 	ModTime() time.Time
 	Content() io.ReadSeeker
+	Valid() bool
 }
 
 func NewAttachmentDownloadable(ah AttachmentAPI) *Attachment {
@@ -32,11 +33,15 @@ func NewAttachmentDownloadable(ah AttachmentAPI) *Attachment {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 		} else if dl, ok := f.(Downloadable); ok {
-			if dl.Download() {
-				w.Header().Add("Content-Disposition", "attachment; filename="+url.QueryEscape(dl.Name()))
-			}
+			if !dl.Valid() {
+				w.WriteHeader(http.StatusNotFound)
+			} else {
+				if dl.Download() {
+					w.Header().Add("Content-Disposition", "attachment; filename="+url.QueryEscape(dl.Name()))
+				}
 
-			http.ServeContent(w, r, dl.Name(), dl.ModTime(), dl.Content())
+				http.ServeContent(w, r, dl.Name(), dl.ModTime(), dl.Content())
+			}
 		} else {
 			http.Error(w, "Got incompatible type from controller", http.StatusInternalServerError)
 		}
