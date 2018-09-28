@@ -1,11 +1,9 @@
-package store_test
+package store
 
 import (
 	"bytes"
 	"io"
 	"testing"
-
-	"github.com/crusttech/crust/store"
 )
 
 func TestStore(t *testing.T) {
@@ -20,7 +18,7 @@ func TestStore(t *testing.T) {
 		return b.String()
 	}
 
-	store, err := store.New("test")
+	store, err := New("test")
 	assert(err == nil, "Unexpected error when creating store: %+v", err)
 	assert(store != nil, "Expected non-nil return for new store")
 	assert(store.Namespace() == "test", "Unexpected store namespace: test != %s", store.Namespace())
