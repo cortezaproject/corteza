@@ -77,3 +77,7 @@ func (f *file) ModTime() time.Time {
 func (f *file) Content() io.ReadSeeker {
 	return f.content
 }
+
+func (f *file) Valid() bool {
+	return f.content != nil
+}

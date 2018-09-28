@@ -67,10 +67,18 @@ func (svc *attachment) FindByID(id uint64) (*types.Attachment, error) {
 }
 
 func (svc *attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
+	if len(att.Url) == 0 {
+		return nil, nil
+	}
+
 	return svc.store.Open(att.Url)
 }
 
 func (svc *attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
+	if len(att.PreviewUrl) == 0 {
+		return nil, nil
+	}
+
 	return svc.store.Open(att.PreviewUrl)
 }
 

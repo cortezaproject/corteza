@@ -68,3 +68,14 @@ func TestStore(t *testing.T) {
 		assert(err != nil, "Expected error when deleting file outside of namespace")
 	}
 }
+
+func TestStoreCheckFunc(t *testing.T) {
+	assert := func(ok bool, format string, params ...interface{}) {
+		if !ok {
+			t.Fatalf(format, params...)
+		}
+	}
+
+	// Should not cause panic
+	assert((&store{}).check("") != nil, "Expecting an error to be returned on empty filename check")
+}
