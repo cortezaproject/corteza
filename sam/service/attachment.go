@@ -23,8 +23,8 @@ import (
 )
 
 const (
-	attachmentPreviewMaxWidth  = 800
-	attachmentPreviewMaxHeight = 400
+	attachmentPreviewMaxWidth  = 320
+	attachmentPreviewMaxHeight = 180
 )
 
 type (

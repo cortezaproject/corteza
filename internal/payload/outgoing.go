@@ -96,7 +96,12 @@ func Attachment(in *sam.Attachment) *outgoing.Attachment {
 	var preview string
 
 	if in.Meta.Preview != nil {
-		preview = fmt.Sprintf(attachmentPreviewURL, in.ID, in.Meta.Preview.Extension)
+		var ext = in.Meta.Preview.Extension
+		if ext == "" {
+			ext = "jpg"
+		}
+
+		preview = fmt.Sprintf(attachmentPreviewURL, in.ID, ext)
 	}
 
 	return &outgoing.Attachment{

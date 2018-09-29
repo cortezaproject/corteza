@@ -29,12 +29,12 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
-  digest = "1:f6e5e1bc64c2908167e6aa9a1fe0c084d515132a1c63ad5b6c84036aa06dc0c1"
+  branch = "v2"
+  digest = "1:c3f1a545cbca90c0991418e820cece89549dec4134394c0fde8db345ac1707f2"
   name = "github.com/crusttech/go-oidc"
   packages = ["."]
   pruneopts = "UT"
-  revision = "1180514eaf4d9f38d0d19eef639a1d695e066e72"
-  version = "v2.0.0"
+  revision = "982855dad3e1cd68828d2106997539f36fcf6601"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -51,6 +51,22 @@
   pruneopts = "UT"
   revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
   version = "v3.2.0"
+
+[[projects]]
+  digest = "1:2694597a20d303502ad1b7f1cc688977c7dc34da732ccf4d27e98b552cceed5b"
+  name = "github.com/disintegration/imaging"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "0bd5694c78c9c3d9a3cd06a706a8f3c59296a9ac"
+  version = "v1.5.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:248919e9b4c252b33d156e125f1192e55fea3cb01461c9c71e6b03adb2626732"
+  name = "github.com/edwvee/exiffix"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b57537c92a6b4155c5219ce0d7d2a9c0cc74b1c4"
 
 [[projects]]
   digest = "1:a9fe0f8ff72c388d0128e88ce5f3c27d37dcd0950acd7cdb8323555f12463396"
@@ -239,6 +255,17 @@
   revision = "05ee40e3a273f7245e8777337fc7b46e533a9a92"
 
 [[projects]]
+  branch = "go1"
+  digest = "1:392fafc4b5c7a34734e60ea4efa2199ab77e6e914db643232cbe9d99aa6d65cd"
+  name = "github.com/rwcarlsen/goexif"
+  packages = [
+    "exif",
+    "tiff",
+  ]
+  pruneopts = "UT"
+  revision = "8d986c03457a2057c7b0fb0a48113f7dd48f9619"
+
+[[projects]]
   branch = "master"
   digest = "1:8e9c06a6265bacd03807c0e4776c91b0d36d7ea0f91c87f7f044a04c44f489b2"
   name = "github.com/sony/sonyflake"
@@ -281,6 +308,18 @@
   ]
   pruneopts = "UT"
   revision = "0709b304e793a5edb4a2c0145f281ecdc20838a4"
+
+[[projects]]
+  branch = "master"
+  digest = "1:d3d337e91c35f337d548873978c858ecb723168a6303a41a3ba625c79094f899"
+  name = "golang.org/x/image"
+  packages = [
+    "bmp",
+    "tiff",
+    "tiff/lzw",
+  ]
+  pruneopts = "UT"
+  revision = "991ec62608f3c0da01d400756917825d1e2fd528"
 
 [[projects]]
   branch = "master"
@@ -422,6 +461,8 @@
     "github.com/SentimensRG/ctx/sigctx",
     "github.com/crusttech/go-oidc",
     "github.com/davecgh/go-spew/spew",
+    "github.com/disintegration/imaging",
+    "github.com/edwvee/exiffix",
     "github.com/go-chi/chi",
     "github.com/go-chi/chi/middleware",
     "github.com/go-chi/cors",
