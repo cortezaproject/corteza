@@ -3,6 +3,8 @@ package rest
 import (
 	"context"
 
+	"github.com/crusttech/crust/internal/payload"
+	"github.com/crusttech/crust/internal/payload/outgoing"
 	"github.com/crusttech/crust/sam/rest/request"
 	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
@@ -84,9 +86,17 @@ func (ctrl *Channel) Attach(ctx context.Context, r *request.ChannelAttach) (inte
 
 	defer file.Close()
 
-	return ctrl.svc.att.With(ctx).Create(
+	return ctrl.wrapAttachment(ctrl.svc.att.With(ctx).Create(
 		r.ChannelID,
 		r.Upload.Filename,
 		r.Upload.Size,
-		file)
+		file))
+}
+
+func (ctrl *Channel) wrapAttachment(attachment *types.Attachment, err error) (*outgoing.Attachment, error) {
+	if err != nil {
+		return nil, err
+	} else {
+		return payload.Attachment(attachment), nil
+	}
 }

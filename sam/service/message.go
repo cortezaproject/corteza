@@ -108,7 +108,6 @@ func (svc *message) loadAttachments(mm types.MessageSet) (err error) {
 			if a.MessageID > 0 {
 				if m := mm.FindById(a.MessageID); m != nil {
 					m.Attachment = &a.Attachment
-					m.Attachment.GenerateURLs()
 				}
 			}
 

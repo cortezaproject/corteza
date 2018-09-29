@@ -131,6 +131,8 @@ CREATE TABLE attachments (
   mimetype         VARCHAR(255),
   name             TEXT,
 
+  meta             JSON,
+
   created_at       DATETIME        NOT NULL DEFAULT NOW(),
   updated_at       DATETIME            NULL,
   deleted_at       DATETIME            NULL,
