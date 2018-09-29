@@ -41,6 +41,10 @@
   branch = "master"
   name = "github.com/titpetric/factory"
 
+[[constraint]]
+  branch = "v2"
+  name = "github.com/crusttech/go-oidc"
+
 [prune]
   go-tests = true
   unused-packages = true
