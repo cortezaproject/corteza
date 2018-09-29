@@ -38,12 +38,12 @@ nothing:
 docker: $(IMAGES:%=docker-image.%)
 
 docker-image.%: %
-	@ docker build --no-cache --rm -f docker/$^/Dockerfile -t crusttech/crust:latest-$^ .
+	@ docker build --no-cache --rm -f docker/$^/Dockerfile -t crusttech/api-$^:latest .
 
 docker-push: $(IMAGES:%=docker-push.%)
 
 docker-push.%: %
-	@ docker push crusttech/crust:latest-$^
+	@ docker push crusttech/api-$^:latest
 
 
 ########################################################################################################################
