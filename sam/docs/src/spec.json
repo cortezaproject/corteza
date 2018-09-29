@@ -483,7 +483,7 @@
 		"apis": [
             {
                 "name": "original",
-                "path": "/{name}",
+                "path": "/original/{name}",
                 "method": "GET",
                 "title": "Serves attached file",
 
@@ -495,7 +495,7 @@
             },
 			{
 				"name": "preview",
-				"path": "/{name}/preview",
+				"path": "/preview.{ext}",
 				"method": "GET",
 				"title": "Serves preview of an attached file"
 			}

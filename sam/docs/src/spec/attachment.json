@@ -24,7 +24,7 @@
       "Name": "original",
       "Method": "GET",
       "Title": "Serves attached file",
-      "Path": "/{name}",
+      "Path": "/original/{name}",
       "Parameters": {
         "GET": [
           {
@@ -40,7 +40,7 @@
       "Name": "preview",
       "Method": "GET",
       "Title": "Serves preview of an attached file",
-      "Path": "/{name}/preview",
+      "Path": "/preview.{ext}",
       "Parameters": null
     }
   ]

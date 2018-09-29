@@ -1,9 +1,17 @@
 package payload
 
 import (
+	"fmt"
+	"net/url"
+
 	auth "github.com/crusttech/crust/auth/types"
 	"github.com/crusttech/crust/internal/payload/outgoing"
 	sam "github.com/crusttech/crust/sam/types"
+)
+
+const (
+	attachmentURL        = "/attachment/%d/original/%s"
+	attachmentPreviewURL = "/attachment/%d/preview.%s"
 )
 
 func Message(msg *sam.Message) *outgoing.Message {
@@ -85,13 +93,18 @@ func Attachment(in *sam.Attachment) *outgoing.Attachment {
 		return nil
 	}
 
+	var preview string
+
+	if in.Meta.Preview != nil {
+		preview = fmt.Sprintf(attachmentPreviewURL, in.ID, in.Meta.Preview.Extension)
+	}
+
 	return &outgoing.Attachment{
 		ID:         Uint64toa(in.ID),
 		UserID:     Uint64toa(in.UserID),
-		Url:        in.Url,
-		PreviewUrl: in.PreviewUrl,
-		Size:       in.Size,
-		Mimetype:   in.Mimetype,
+		Url:        fmt.Sprintf(attachmentURL, in.ID, url.PathEscape(in.Name)),
+		PreviewUrl: preview,
+		Meta:       in.Meta,
 		Name:       in.Name,
 		CreatedAt:  in.CreatedAt,
 		UpdatedAt:  in.UpdatedAt,

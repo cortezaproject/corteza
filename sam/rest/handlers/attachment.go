@@ -60,8 +60,8 @@ func (ah *Attachment) MountRoutes(r chi.Router, middlewares ...func(http.Handler
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Route("/attachment/{attachmentID}", func(r chi.Router) {
-			r.Get("/{name}", ah.Original)
-			r.Get("/{name}/preview", ah.Preview)
+			r.Get("/original/{name}", ah.Original)
+			r.Get("/preview.{ext}", ah.Preview)
 		})
 	})
 }

@@ -38,6 +38,8 @@ func NewAttachmentDownloadable(ah AttachmentAPI) *Attachment {
 			} else {
 				if dl.Download() {
 					w.Header().Add("Content-Disposition", "attachment; filename="+url.QueryEscape(dl.Name()))
+				} else {
+					w.Header().Add("Content-Disposition", "inline; filename="+url.QueryEscape(dl.Name()))
 				}
 
 				http.ServeContent(w, r, dl.Name(), dl.ModTime(), dl.Content())

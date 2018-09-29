@@ -1,19 +1,30 @@
 package service
 
 import (
+	"bytes"
 	"context"
+	"image"
+	"image/gif"
 	"io"
 	"log"
 	"net/http"
 	"path"
 	"strings"
 
+	"github.com/disintegration/imaging"
+	"github.com/edwvee/exiffix"
+	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
 	authService "github.com/crusttech/crust/auth/service"
 	"github.com/crusttech/crust/internal/store"
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
+)
+
+const (
+	attachmentPreviewMaxWidth  = 800
+	attachmentPreviewMaxHeight = 400
 )
 
 type (
@@ -83,43 +94,47 @@ func (svc *attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
 }
 
 func (svc *attachment) Create(channelId uint64, name string, size int64, fh io.ReadSeeker) (att *types.Attachment, err error) {
+	if svc.store == nil {
+		return nil, errors.New("Can not create attachment: store handler not set")
+	}
+
 	var currentUserID uint64 = repository.Identity(svc.ctx)
 
 	// @todo verify if current user can access this channel
 	// @todo verify if current user can upload to this channel
 
 	att = &types.Attachment{
-		ID:       factory.Sonyflake.NextID(),
-		UserID:   currentUserID,
-		Name:     strings.TrimSpace(name),
-		Mimetype: "application/octet-stream",
-		Size:     size,
+		ID:     factory.Sonyflake.NextID(),
+		UserID: currentUserID,
+		Name:   strings.TrimSpace(name),
 	}
 
 	// Extract extension but make sure path.Ext is not confused by any leading/trailing dots
-	var ext = strings.Trim(path.Ext(strings.Trim(name, ".")), ".")
+	att.Meta.Original.Extension = strings.Trim(path.Ext(strings.Trim(name, ".")), ".")
 
-	if err := svc.extractMeta(att, fh); err != nil {
-		// @todo logmeta extraction failure
+	att.Meta.Original.Size = size
+	if att.Meta.Original.Mimetype, err = svc.extractMimetype(fh); err != nil {
+		return
 	}
 
-	log.Printf("Processing uploaded file (name: %s, size: %d, mime: %s)", att.Name, att.Size, att.Mimetype)
+	log.Printf(
+		"Processing uploaded file (name: %s, size: %d, mimetype: %s)",
+		att.Name,
+		att.Meta.Original.Size,
+		att.Meta.Original.Mimetype)
 
-	if svc.store != nil {
-		att.Url = svc.store.Original(att.ID, ext)
-		if err = svc.store.Save(att.Url, fh); err != nil {
-			log.Print(err.Error())
-			return
-		}
-
-		// Try to make preview
-		svc.makePreview(att, fh)
+	att.Url = svc.store.Original(att.ID, att.Meta.Original.Extension)
+	if err = svc.store.Save(att.Url, fh); err != nil {
+		log.Print(err.Error())
+		return
 	}
+
+	// Process image: extract width, height, make preview
+	log.Printf("Image processed, error: %v", svc.processImage(fh, att))
 
 	log.Printf("File %s stored as %s", att.Name, att.Url)
 
 	return att, svc.db.Transaction(func() (err error) {
-
 		if att, err = svc.attachment.CreateAttachment(att); err != nil {
 			return
 		}
@@ -131,7 +146,7 @@ func (svc *attachment) Create(channelId uint64, name string, size int64, fh io.R
 			UserID:    currentUserID,
 		}
 
-		if strings.HasPrefix(att.Mimetype, "image/") {
+		if strings.HasPrefix(att.Meta.Original.Mimetype, "image/") {
 			msg.Type = types.MessageTypeInlineImage
 		}
 
@@ -151,12 +166,12 @@ func (svc *attachment) Create(channelId uint64, name string, size int64, fh io.R
 	})
 }
 
-func (svc *attachment) extractMeta(att *types.Attachment, file io.ReadSeeker) (err error) {
+func (svc *attachment) extractMimetype(file io.ReadSeeker) (mimetype string, err error) {
 	if _, err = file.Seek(0, 0); err != nil {
-		return err
+		return
 	}
 
-	// Make sure we rewind...
+	// Make sure we rewind when we're done
 	defer file.Seek(0, 0)
 
 	// See http.DetectContentType about 512 bytes
@@ -165,40 +180,107 @@ func (svc *attachment) extractMeta(att *types.Attachment, file io.ReadSeeker) (e
 		return
 	}
 
-	att.Mimetype = http.DetectContentType(buf)
-
-	// @todo compare mime with extension (or better, enforce extension from mimetype)
-	//if extensions, err := mime.ExtensionsByType(att.Mimetype); err == nil {
-	//	extensions[0]
-	//}
-
-	// @todo extract image info so we can provide additional features if needed
-	//if strings.HasPrefix(att.Mimetype, "image/gif") {
-	//	if cfg, err := gif.DecodeAll(file); err == nil {
-	//		m.Width = cfg.Config.Width
-	//		m.Height = cfg.Config.Height
-	//		m.Animated = cfg.LoopCount > 0 || len(cfg.Delay) > 1
-	//	}
-	//} else if strings.HasPrefix(att.Mimetype, "image") {
-	//	if cfg, _, err := image.DecodeConfig(file); err == nil {
-	//		m.Width = cfg.Width
-	//		m.Height = cfg.Height
-	//	}
-	//}
-
-	return
+	return http.DetectContentType(buf), nil
 }
 
-func (svc *attachment) makePreview(att *types.Attachment, original io.ReadSeeker) (err error) {
-	if true {
+func (svc *attachment) processImage(original io.ReadSeeker, att *types.Attachment) (err error) {
+	if !strings.HasPrefix(att.Meta.Original.Mimetype, "image/") {
+		// Only supporting previews from images (for now)
 		return
 	}
 
-	// Can and how we make a preview of this attachment?
-	var ext = "jpg"
-	att.PreviewUrl = svc.store.Preview(att.ID, ext)
+	var (
+		preview       image.Image
+		opts          []imaging.EncodeOption
+		format        imaging.Format
+		previewFormat imaging.Format
+		animated      bool
+		f2m           = map[imaging.Format]string{
+			imaging.JPEG: "image/jpeg",
+			imaging.GIF:  "image/gif",
+		}
 
-	return svc.store.Save(att.PreviewUrl, original)
+		f2e = map[imaging.Format]string{
+			imaging.JPEG: "jpg",
+			imaging.GIF:  "gif",
+		}
+	)
+
+	if _, err = original.Seek(0, 0); err != nil {
+		return
+	}
+
+	if format, err = imaging.FormatFromExtension(att.Meta.Original.Extension); err != nil {
+		return errors.Wrapf(err, "Could not get format from extension '%s'", att.Meta.Original.Extension)
+	}
+
+	previewFormat = format
+
+	if imaging.JPEG == format {
+		// Rotate image if needed
+		if preview, _, err = exiffix.Decode(original); err != nil {
+			//return errors.Wrapf(err, "Could not decode EXIF from JPEG")
+		}
+
+	}
+
+	if imaging.GIF == format {
+		// Decode all and check loops & delay to determine if GIF is animated or not
+		if cfg, err := gif.DecodeAll(original); err == nil {
+			animated = cfg.LoopCount > 0 || len(cfg.Delay) > 1
+
+			// Use first image for the preview
+			preview = cfg.Image[0]
+		} else {
+			return errors.Wrapf(err, "Could not decode gif config")
+		}
+
+	} else {
+		// Use GIF preview for GIFs and JPEG for everything else!
+		previewFormat = imaging.JPEG
+
+		// Store with a bit lower quality
+		opts = append(opts, imaging.JPEGQuality(85))
+	}
+
+	// In case of JPEG we decode the image and rotate it beforehand
+	// other cases are handled here
+	if preview == nil {
+		if preview, err = imaging.Decode(original); err != nil {
+			return errors.Wrapf(err, "Could not decode original image")
+		}
+	}
+
+	var width, height = preview.Bounds().Max.X, preview.Bounds().Max.Y
+	att.SetOriginalImageMeta(width, height, animated)
+
+	if width > attachmentPreviewMaxWidth && width > height {
+		// Landscape does not fit
+		preview = imaging.Resize(preview, attachmentPreviewMaxWidth, 0, imaging.Lanczos)
+	} else if height > attachmentPreviewMaxHeight {
+		// Height does not fit
+		preview = imaging.Resize(preview, 0, attachmentPreviewMaxHeight, imaging.Lanczos)
+	}
+
+	// Get dimensions from the preview
+	width, height = preview.Bounds().Max.X, preview.Bounds().Max.Y
+
+	log.Printf("Generated preview %s (%dx%dpx)", previewFormat, width, height)
+
+	var buf = &bytes.Buffer{}
+	if err = imaging.Encode(buf, preview, previewFormat); err != nil {
+		return
+	}
+
+	meta := att.SetPreviewImageMeta(width, height, false)
+	meta.Size = int64(buf.Len())
+	meta.Mimetype = f2m[previewFormat]
+	meta.Extension = f2e[previewFormat]
+
+	// Can and how we make a preview of this attachment?
+	att.PreviewUrl = svc.store.Preview(att.ID, meta.Extension)
+
+	return svc.store.Save(att.PreviewUrl, buf)
 }
 
 // Sends message to event loop
@@ -206,7 +288,6 @@ func (svc *attachment) makePreview(att *types.Attachment, original io.ReadSeeker
 // It also preloads user
 func (svc *attachment) sendEvent(msg *types.Message, att *types.Attachment) (err error) {
 	msg.Attachment = att
-	msg.Attachment.GenerateURLs()
 
 	if msg.User == nil {
 		// @todo pull user from cache

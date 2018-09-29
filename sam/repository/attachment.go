@@ -27,7 +27,21 @@ type (
 )
 
 const (
+	sqlAttachmentColumns = `
+		a.id, a.rel_user,
+		a.url, a.preview_url,
+		a.name,
+		a.meta,
+		a.created_at, a.updated_at,	a.deleted_at
+	`
 	sqlAttachmentScope = "deleted_at IS NULL"
+
+	sqlAttachmentByID = `SELECT ` + sqlAttachmentColumns + ` FROM attachments AS a WHERE id = ? AND ` + sqlAttachmentScope
+
+	sqlAttachmentByMessageID = `SELECT ` + sqlAttachmentColumns + `, rel_message
+		      FROM attachments AS a
+		           INNER JOIN message_attachment AS ma ON a.id = ma.rel_attachment 
+		     WHERE ma.rel_message IN (?) AND ` + sqlAttachmentScope
 
 	ErrAttachmentNotFound = repositoryError("AttachmentNotFound")
 )
@@ -43,10 +57,9 @@ func (r *attachment) With(ctx context.Context, db *factory.DB) AttachmentReposit
 }
 
 func (r *attachment) FindAttachmentByID(id uint64) (*types.Attachment, error) {
-	sql := "SELECT * FROM attachments WHERE id = ? AND " + sqlAttachmentScope
 	mod := &types.Attachment{}
 
-	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrAttachmentNotFound)
+	return mod, isFound(r.db().Get(mod, sqlAttachmentByID, id), mod.ID > 0, ErrAttachmentNotFound)
 }
 
 func (r *attachment) FindAttachmentByMessageID(IDs ...uint64) (rval types.MessageAttachmentSet, err error) {
@@ -56,12 +69,7 @@ func (r *attachment) FindAttachmentByMessageID(IDs ...uint64) (rval types.Messag
 		return
 	}
 
-	sql := `SELECT a.*, rel_message
-		      FROM attachments AS a
-		           INNER JOIN message_attachment AS ma ON a.id = ma.rel_attachment 
-		     WHERE ma.rel_message IN (?) AND ` + sqlAttachmentScope
-
-	if sql, args, err := sqlx.In(sql, IDs); err != nil {
+	if sql, args, err := sqlx.In(sqlAttachmentByMessageID, IDs); err != nil {
 		return nil, err
 	} else {
 		return rval, r.db().Select(&rval, sql, args...)

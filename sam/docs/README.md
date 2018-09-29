@@ -561,7 +561,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/attachment/{attachmentID}/{name}` | HTTP/S | GET | Client ID, Session ID |
+| `/attachment/{attachmentID}/original/{name}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -575,7 +575,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/attachment/{attachmentID}/{name}/preview` | HTTP/S | GET | Client ID, Session ID |
+| `/attachment/{attachmentID}/preview.{ext}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
