@@ -48,8 +48,6 @@ func (svc *event) push(m outgoing.MessageEncoder, sub uint64) error {
 		return err
 	}
 
-	println("PUSHING EVENT !!", string(enc))
-
 	item := &types.EventQueueItem{Payload: enc}
 
 	if sub > 0 {
