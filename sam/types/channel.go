@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -52,6 +53,21 @@ type (
 	ChannelSet       []*Channel
 	ChannelMemberSet []*ChannelMember
 )
+
+// Scope returns permissions group that for this type
+func (r *Channel) Scope() string {
+	return "channel"
+}
+
+// Resource returns a RBAC resource ID for this type
+func (r *Channel) Resource() string {
+	return fmt.Sprintf("%s:%d", r.Scope(), r.ID)
+}
+
+// Operation returns a RBAC resource-scoped role name for an operation
+func (r *Channel) Operation(name string) string {
+	return fmt.Sprintf("%s/%s", r.Resource(), name)
+}
 
 func (cc ChannelSet) Walk(w func(*Channel) error) (err error) {
 	for i := range cc {

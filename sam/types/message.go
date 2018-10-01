@@ -37,9 +37,9 @@ type (
 
 const (
 	MessageTypeSimpleMessage MessageType = ""
-	MessageTypeChannelEvent  MessageType = "channelEvent"
-	MessageTypeInlineImage   MessageType = "inlineImage"
-	MessageTypeAttachment    MessageType = "attachment"
+	MessageTypeChannelEvent              = "channelEvent"
+	MessageTypeInlineImage               = "inlineImage"
+	MessageTypeAttachment                = "attachment"
 )
 
 func (mm MessageSet) Walk(w func(*Message) error) (err error) {
