@@ -1,0 +1,45 @@
+[
+  {
+    "title": "General permissions",
+    "operations": [
+      {
+        "key": "manage.webhooks",
+        "name": "Manage webhooks (@todo: implement webhooks)",
+        "title": "Members with this permission can create, edit and delete webhooks",
+        "enabled": false
+      }
+    ]
+  },
+  {
+    "title": "Text Permissions",
+    "operations": [
+      {
+        "key": "send",
+        "name": "Send Messages",
+        "enabled": true
+      },
+      {
+        "key": "embed",
+        "name": "Embed Links",
+        "enabled": true
+      },
+      {
+        "key": "attach",
+        "name": "Attach Files",
+        "enabled": true
+      },
+      {
+        "key": "manage.messages",
+        "name": "Manage messages",
+        "title": "Members with this permission can edit/delete messages inside this channel",
+        "enabled": true
+      },
+      {
+        "key": "react",
+        "name": "Manage reactions",
+        "title": "Members with this permission can add new reactions to a message",
+        "enabled": true
+      }
+    ]
+  }
+]
