@@ -1,6 +1,6 @@
-jwtauth - JWT authentication middleware for Go HTTP services
-============================================================
-[![GoDoc Widget]][GoDoc]
+# jwtauth - JWT authentication middleware for Go HTTP services
+
+[![GoDoc Widget]][godoc]
 
 The `jwtauth` http middleware package provides a simple way to verify a JWT token
 from a http request and send the result down the request context (`context.Context`).
@@ -13,11 +13,11 @@ This package uses the new `context` package in Go 1.7 stdlib and [net/http#Reque
 
 In a complete JWT-authentication flow, you'll first capture the token from a http
 request, decode it, verify it and then validate that its correctly signed and hasn't
-expired - the `jwtauth.Verifier` middleware handler takes care of all of that. The 
+expired - the `jwtauth.Verifier` middleware handler takes care of all of that. The
 `jwtauth.Verifier` will set the context values on keys `jwtauth.TokenCtxKey` and
 `jwtauth.ErrorCtxKey`.
 
-Next, it's up to an authentication handler to respond or continue processing after the 
+Next, it's up to an authentication handler to respond or continue processing after the
 `jwtauth.Verifier`. The `jwtauth.Authenticator` middleware responds with a 401 Unauthorized
 plain-text payload for all unverified tokens and passes the good ones through. You can
 also copy the Authenticator and customize it to handle invalid tokens to better fit
@@ -25,12 +25,12 @@ your flow (ie. with a JSON error response body).
 
 By default, the `Verifier` will search for a JWT token in a http request, in the order:
 
-1. 'jwt' URI query parameter
-2. 'Authorization: BEARER T' request header
-3. 'jwt' Cookie value
+1.  'jwt' URI query parameter
+2.  'Authorization: BEARER T' request header
+3.  'jwt' Cookie value
 
 The first JWT string that is found as a query parameter, authorization header
-or cookie header is then decoded by the `jwt-go` library and a *jwt.Token
+or cookie header is then decoded by the `jwt-go` library and a \*jwt.Token
 object is set on the request context. In the case of a signature decoding error
 the Verifier will also set the error on the request context.
 
@@ -42,7 +42,6 @@ http response.
 Note: jwtauth supports custom verification sequences for finding a token
 from a request by using the `Verify` middleware instantiator directly. The default
 `Verifier` is instantiated by calling `Verify(ja, TokenFromQuery, TokenFromHeader, TokenFromCookie)`.
-
 
 # Usage
 
@@ -66,7 +65,7 @@ func init() {
 
 	// For debugging/example purposes, we generate and print
 	// a sample jwt token with claims `user_id:123` here:
-	_, tokenString, _ := tokenAuth.Encode(jwtauth.Claims{"user_id": 123})
+	_, tokenString, _ := tokenAuth.Encode(jwt.MapClaims{"user_id": 123})
 	fmt.Printf("DEBUG: a sample jwt is %s\n\n", tokenString)
 }
 
@@ -111,5 +110,5 @@ func router() http.Handler {
 
 [MIT](/LICENSE)
 
-[GoDoc]: https://godoc.org/github.com/go-chi/jwtauth
-[GoDoc Widget]: https://godoc.org/github.com/go-chi/jwtauth?status.svg
+[godoc]: https://godoc.org/github.com/go-chi/jwtauth
+[godoc widget]: https://godoc.org/github.com/go-chi/jwtauth?status.svg
