@@ -294,6 +294,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:867c2915fb252b272b86235c13cffb60627ecc35e1f334c77aaf7f154fbba352"
+  name = "github.com/titpetric/dockertest"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3cd6aeb62a5fe526e54b1af7c05c5c9a2eac16dd"
+
+[[projects]]
+  branch = "master"
   digest = "1:da5d4db2177186b9dce6300624895ec6401ff49197568865a3b850fd767b590f"
   name = "github.com/titpetric/factory"
   packages = [
@@ -344,7 +352,7 @@
     "trace",
   ]
   pruneopts = "UT"
-  revision = "4dfa2610cdf3b287375bbba5b8f2a14d3b01d8de"
+  revision = "f5e5bdd778241bfefa8627f7124c39cd6ad8d74f"
 
 [[projects]]
   branch = "master"
@@ -489,6 +497,7 @@
     "github.com/prometheus/client_golang/prometheus",
     "github.com/rakyll/statik/fs",
     "github.com/spf13/afero",
+    "github.com/titpetric/dockertest",
     "github.com/titpetric/factory",
     "github.com/titpetric/factory/resputil",
     "golang.org/x/crypto/bcrypt",
