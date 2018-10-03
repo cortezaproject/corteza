@@ -1,27 +1,37 @@
 package db
 
 import (
+	"context"
 	"testing"
+	"time"
 
-	"github.com/joho/godotenv"
-	"github.com/namsral/flag"
+	"github.com/titpetric/dockertest"
 	"github.com/titpetric/factory"
-
-	"github.com/crusttech/crust/internal/config"
 )
 
 func TestMigrations(t *testing.T) {
-	// @todo this is a very optimistic initialization, make it more robust
-	godotenv.Load("../../.env")
-
-	dbConfig := new(config.Database).Init("sam")
-	flag.Parse()
-
-	if err := dbConfig.Validate(); err != nil {
-		t.Fatalf("Error in database config: %+v", err)
+	args := []string{
+		"--rm",
+		"-e", "MYSQL_ROOT_PASSWORD=root",
+		"-e", "MYSQL_DATABASE=test",
 	}
 
-	factory.Database.Add("default", dbConfig.DSN)
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(30*time.Second))
+	defer cancel()
+
+	count := 0
+
+	mysql, err := dockertest.RunContainerContext(ctx, "titpetric/percona-xtrabackup", "3306", func(addr string) error {
+		factory.Database.Add("default", "root:root@tcp("+addr+")/test?collation=utf8mb4_general_ci")
+		_, err := factory.Database.Get()
+		count++
+		time.Sleep(time.Second)
+		return err
+	}, args...)
+	defer mysql.Terminate() // Shutdown()
+	if err != nil {
+		t.Fatalf("Error starting mysql: %#v", err)
+	}
 
 	db := factory.Database.MustGet()
 	if err := Migrate(db); err != nil {

@@ -62,7 +62,9 @@ func Migrate(db *factory.DB) error {
 			log.Println("Running migration for", filename)
 			for _, query := range stmts {
 				if _, err := db.Exec(query); err != nil {
-					return err
+					if fmt.Sprintf("%s", err) != "exec query failed: Error 1065: Query was empty" {
+						return err
+					}
 				}
 			}
 			log.Println("Migration done OK")
