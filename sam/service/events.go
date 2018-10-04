@@ -23,6 +23,7 @@ type (
 	}
 )
 
+// Sends sends events back to all subscribers
 func Event() EventService {
 	return (&event{events: repository.Events()}).With(context.Background())
 }
@@ -38,8 +39,16 @@ func (svc *event) Message(m *types.Message) error {
 	return svc.push(payload.Message(m), m.ChannelID)
 }
 
-func (svc *event) Channel(m *types.Channel) error {
-	return svc.push(payload.Channel(m), m.ID)
+// Channel notifies subscribers about channel change
+//
+// If this is a public channel we notify everyone
+func (svc *event) Channel(ch *types.Channel) error {
+	sub := ch.ID
+	if ch.Type == types.ChannelTypePublic {
+		sub = 0
+	}
+
+	return svc.push(payload.Channel(ch), sub)
 }
 
 func (svc *event) push(m outgoing.MessageEncoder, sub uint64) error {
