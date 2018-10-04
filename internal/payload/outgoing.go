@@ -115,3 +115,23 @@ func Attachment(in *sam.Attachment) *outgoing.Attachment {
 		UpdatedAt:  in.UpdatedAt,
 	}
 }
+
+func Command(cmd *sam.Command) *outgoing.Command {
+	if cmd == nil {
+		return nil
+	}
+
+	return &outgoing.Command{
+		Name:        cmd.Name,
+		Description: cmd.Description,
+	}
+}
+
+func Commands(cc sam.CommandSet) *outgoing.CommandSet {
+	out := make([]*outgoing.Command, len(cc))
+	for k, m := range cc {
+		out[k] = Command(m)
+	}
+	retval := outgoing.CommandSet(out)
+	return &retval
+}

@@ -87,6 +87,8 @@ func (sess *Session) connected() {
 		})
 	}
 
+	sess.sendReply(payload.Commands(types.Preset))
+
 	// Tell everyone that user has connected
 	sess.sendToAll(&outgoing.Connected{UserID: payload.Uint64toa(sess.user.Identity())})
 }
