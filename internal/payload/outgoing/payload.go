@@ -18,6 +18,8 @@ type (
 
 		*User    `json:"user,omitempty"`
 		*UserSet `json:"users,omitempty"`
+
+		*CommandSet `json:"commands,omitempty"`
 	}
 
 	// This is same-same but different as using the json.Marshaler
