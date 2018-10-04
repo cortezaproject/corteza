@@ -36,7 +36,7 @@ func (ctrl *Channel) Create(ctx context.Context, r *request.ChannelCreate) (inte
 		Topic: r.Topic,
 	}
 
-	return ctrl.svc.ch.With(ctx).Create(channel)
+	return ctrl.wrap(ctrl.svc.ch.With(ctx).Create(channel))
 }
 
 func (ctrl *Channel) Edit(ctx context.Context, r *request.ChannelEdit) (interface{}, error) {
@@ -46,7 +46,7 @@ func (ctrl *Channel) Edit(ctx context.Context, r *request.ChannelEdit) (interfac
 		Topic: r.Topic,
 	}
 
-	return ctrl.svc.ch.With(ctx).Update(channel)
+	return ctrl.wrap(ctrl.svc.ch.With(ctx).Update(channel))
 
 }
 
@@ -55,11 +55,11 @@ func (ctrl *Channel) Delete(ctx context.Context, r *request.ChannelDelete) (inte
 }
 
 func (ctrl *Channel) Read(ctx context.Context, r *request.ChannelRead) (interface{}, error) {
-	return ctrl.svc.ch.With(ctx).FindByID(r.ChannelID)
+	return ctrl.wrap(ctrl.svc.ch.With(ctx).FindByID(r.ChannelID))
 }
 
 func (ctrl *Channel) List(ctx context.Context, r *request.ChannelList) (interface{}, error) {
-	return ctrl.svc.ch.With(ctx).Find(&types.ChannelFilter{Query: r.Query})
+	return ctrl.wrapSet(ctrl.svc.ch.With(ctx).Find(&types.ChannelFilter{Query: r.Query}))
 }
 
 func (ctrl *Channel) Members(ctx context.Context, r *request.ChannelMembers) (interface{}, error) {
@@ -98,5 +98,21 @@ func (ctrl *Channel) wrapAttachment(attachment *types.Attachment, err error) (*o
 		return nil, err
 	} else {
 		return payload.Attachment(attachment), nil
+	}
+}
+
+func (ctrl *Channel) wrap(channel *types.Channel, err error) (*outgoing.Channel, error) {
+	if err != nil {
+		return nil, err
+	} else {
+		return payload.Channel(channel), nil
+	}
+}
+
+func (ctrl *Channel) wrapSet(cc types.ChannelSet, err error) (*outgoing.ChannelSet, error) {
+	if err != nil {
+		return nil, err
+	} else {
+		return payload.Channels(cc), nil
 	}
 }
