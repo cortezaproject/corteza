@@ -6,22 +6,23 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/jwtauth"
 	"github.com/titpetric/factory/resputil"
 )
 
-type jwt struct {
+type token struct {
 	expiry       int64
 	cookieDomain string
 	tokenAuth    *jwtauth.JWTAuth
 }
 
-func JWT() (*jwt, error) {
+func JWT() (*token, error) {
 	if err := flags.Validate(); err != nil {
 		return nil, err
 	}
 
-	jwt := &jwt{
+	jwt := &token{
 		expiry:       flags.jwt.Expiry,
 		cookieDomain: flags.jwt.CookieDomain,
 		tokenAuth:    jwtauth.New("HS256", []byte(flags.jwt.Secret), nil),
@@ -35,21 +36,21 @@ func JWT() (*jwt, error) {
 }
 
 // Verifies JWT and stores it into context
-func (t *jwt) Verifier() func(http.Handler) http.Handler {
+func (t *token) Verifier() func(http.Handler) http.Handler {
 	return jwtauth.Verifier(t.tokenAuth)
 }
 
-func (t *jwt) Encode(identity Identifiable) string {
-	claims := jwtauth.Claims{}
-	claims.Set("sub", strconv.FormatUint(identity.Identity(), 10))
-	claims.SetExpiryIn(time.Duration(t.expiry) * time.Minute)
+func (t *token) Encode(identity Identifiable) string {
+	claims := jwt.StandardClaims{}
+	claims.Subject = strconv.FormatUint(identity.Identity(), 10)
+	claims.ExpiresAt = time.Now().Add(time.Duration(t.expiry) * time.Minute).Unix()
 
 	_, jwt, _ := t.tokenAuth.Encode(claims)
 	return jwt
 }
 
 // Extracts and authenticates JWT from context, validates claims
-func (t *jwt) Authenticator() func(http.Handler) http.Handler {
+func (t *token) Authenticator() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var ctx = r.Context()
@@ -69,7 +70,7 @@ func (t *jwt) Authenticator() func(http.Handler) http.Handler {
 }
 
 // Extracts and authenticates JWT from context, validates claims
-func (t *jwt) SetCookie(w http.ResponseWriter, r *http.Request, identity Identifiable) {
+func (t *token) SetCookie(w http.ResponseWriter, r *http.Request, identity Identifiable) {
 	cookie := &http.Cookie{
 		Name:    "jwt",
 		Expires: time.Now().Add(time.Duration(t.expiry) * time.Minute),

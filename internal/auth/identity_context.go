@@ -24,7 +24,7 @@ func getIdentityClaimFromContext(ctx context.Context) (uint64, error) {
 		return 0, errors.Wrap(err, "failed to authorize request")
 	} else if !jwt.Valid {
 		return 0, errors.New("JWT not valid")
-	} else if idInterface, has := claims.Get("sub"); !has {
+	} else if idInterface, has := claims["sub"]; !has {
 		return 0, errors.New("Malformed JWT claims")
 	} else if idString, ok := idInterface.(string); !ok {
 		return 0, errors.New("Malformed JWT claims (sub not a string)")
