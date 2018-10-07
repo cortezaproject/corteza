@@ -40,9 +40,9 @@ type (
 		Delete(ID uint64) error
 	}
 
-	//channelSecurity interface {
-	//	CanRead(ch *types.Channel) bool
-	//}
+	// channelSecurity interface {
+	// 	CanRead(ch *types.Channel) bool
+	// }
 )
 
 func Channel() ChannelService {
@@ -72,9 +72,9 @@ func (svc *channel) FindByID(id uint64) (ch *types.Channel, err error) {
 		return
 	}
 
-	//if !svc.sec.ch.CanRead(ch) {
-	//	return nil, errors.New("Not allowed to access channel")
-	//}
+	// if !svc.sec.ch.CanRead(ch) {
+	// 	return nil, errors.New("Not allowed to access channel")
+	// }
 
 	return
 }
