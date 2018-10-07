@@ -2,9 +2,12 @@ package websocket
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/titpetric/factory"
 
+	"github.com/crusttech/crust/internal/payload"
+	"github.com/crusttech/crust/internal/payload/outgoing"
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
 )
@@ -63,12 +66,30 @@ func (eq *eventQueue) feedSessions(ctx context.Context, config *repository.Flags
 				s.sendBytes(item.Payload)
 			})
 		} else {
-			// Distribute payload to specific subscribers
-			store.Walk(func(s *Session) {
-				if s.subs.Get(item.Subscriber) != nil {
-					s.sendBytes(item.Payload)
+			switch item.SubType {
+			case types.EventQueueItemSubTypeUser:
+				// Holds channel info (in fact, ID only) when payload is unmarshaled
+				var join *outgoing.Channel
+				if err := json.Unmarshal(item.Payload, join); err == nil {
+					return err
 				}
-			})
+
+				// This store.Walk handler does send to subscribed sessions but
+				// subscribes all sessions that belong to the same user
+				store.Walk(func(s *Session) {
+					if payload.Uint64toa(s.user.Identity()) == item.Subscriber {
+						s.subs.Add(join.ID)
+					}
+				})
+			case types.EventQueueItemSubTypeChannel:
+				// Distribute payload to specific subscribers
+				store.Walk(func(s *Session) {
+					if s.subs.Get(item.Subscriber) != nil {
+						s.sendBytes(item.Payload)
+					}
+				})
+			}
+
 		}
 	}
 }

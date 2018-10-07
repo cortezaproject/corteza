@@ -157,6 +157,7 @@ func (r *channel) FindMembers(userID uint64) (types.ChannelMemberSet, error) {
 func (r *channel) CreateChannel(mod *types.Channel) (*types.Channel, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
+	mod.UpdatedAt = nil
 	mod.Meta = coalesceJson(mod.Meta, []byte("{}"))
 
 	if mod.Type == "" {
