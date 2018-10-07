@@ -23,7 +23,7 @@ type (
 	}
 )
 
-// Sends sends events back to all subscribers
+// Event sends sends events back to all (or specific) subscribers
 func Event() EventService {
 	return (&event{events: repository.Events()}).With(context.Background())
 }
