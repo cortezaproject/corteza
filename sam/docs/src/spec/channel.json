@@ -142,9 +142,9 @@
     },
     {
       "Name": "join",
-      "Method": "POST",
+      "Method": "PUT",
       "Title": "Join channel",
-      "Path": "/{channelID}/members/{userID}/join",
+      "Path": "/{channelID}/members/{userID}",
       "Parameters": {
         "path": [
           {
@@ -166,7 +166,7 @@
       "Name": "part",
       "Method": "DELETE",
       "Title": "Remove member from channel",
-      "Path": "/{channelID}/members/{userID}/part",
+      "Path": "/{channelID}/members/{userID}",
       "Parameters": {
         "path": [
           {

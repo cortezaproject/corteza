@@ -313,7 +313,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelID}/members/{userID}/join` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelID}/members/{userID}` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
@@ -328,7 +328,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelID}/members/{userID}/part` | HTTP/S | DELETE | Client ID, Session ID |
+| `/channels/{channelID}/members/{userID}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 

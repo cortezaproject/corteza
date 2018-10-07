@@ -25,6 +25,8 @@ type (
 		channel repository.ChannelRepository
 		cmember repository.ChannelMemberRepository
 		message repository.MessageRepository
+
+		sysmsgs types.MessageSet
 	}
 
 	ChannelService interface {
@@ -32,11 +34,16 @@ type (
 
 		FindByID(channelID uint64) (*types.Channel, error)
 		Find(filter *types.ChannelFilter) (types.ChannelSet, error)
-		FindByMembership() (rval []*types.Channel, err error)
-		FindMembers(channelID uint64) (types.ChannelMemberSet, error)
 
 		Create(channel *types.Channel) (*types.Channel, error)
 		Update(channel *types.Channel) (*types.Channel, error)
+
+		FindByMembership() (rval []*types.Channel, err error)
+		FindMembers(channelID uint64) (types.ChannelMemberSet, error)
+
+		InviteUser(channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error)
+		AddMember(channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error)
+		DeleteMember(channelID uint64, memberIDs ...uint64) (err error)
 
 		Archive(ID uint64) error
 		Unarchive(ID uint64) error
@@ -67,6 +74,9 @@ func (svc *channel) With(ctx context.Context) ChannelService {
 		channel: repository.Channel(ctx, db),
 		cmember: repository.ChannelMember(ctx, db),
 		message: repository.Message(ctx, db),
+
+		// System messages should be flushed at the end of each session
+		sysmsgs: types.MessageSet{},
 	}
 }
 
@@ -219,12 +229,12 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 
 		// Create the first message, doing this directly with repository to circumvent
 		// message service constraints
-		msg, err = svc.message.CreateMessage(svc.makeSystemMessage(
+		svc.scheduleSystemMessage(
 			out,
 			"@%d created new %s channel, topic is: %s",
 			chCreatorID,
 			"<PRIVATE-OR-PUBLIC>",
-			"<TOPIC>"))
+			"<TOPIC>")
 
 		_ = msg
 		if err != nil {
@@ -232,18 +242,16 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 			return
 		}
 
-		svc.sendMessageEvent(msg)
+		svc.flushSystemMessages()
 
 		return svc.evl.Channel(out)
 	})
 }
 
-func (svc *channel) Update(in *types.Channel) (out *types.Channel, err error) {
+func (svc *channel) Update(ch *types.Channel) (out *types.Channel, err error) {
 	return out, svc.db.Transaction(func() (err error) {
-		var msgs types.MessageSet
-
 		// @todo [SECURITY] can user access this channel?
-		if out, err = svc.channel.FindChannelByID(in.ID); err != nil {
+		if out, err = svc.channel.FindChannelByID(ch.ID); err != nil {
 			return
 		}
 
@@ -253,19 +261,19 @@ func (svc *channel) Update(in *types.Channel) (out *types.Channel, err error) {
 			return errors.New("Not allowed to edit deleted channels")
 		}
 
-		if out.Type != in.Type {
+		if out.Type != ch.Type {
 			// @todo [SECURITY] check if user can create public channels
-			if in.Type == types.ChannelTypePublic && false {
+			if ch.Type == types.ChannelTypePublic && false {
 				return errors.New("Not allowed to change type of this channel to public")
 			}
 
 			// @todo [SECURITY] check if user can create private channels
-			if in.Type == types.ChannelTypePrivate && false {
+			if ch.Type == types.ChannelTypePrivate && false {
 				return errors.New("Not allowed to change type of this channel to private")
 			}
 
 			// @todo [SECURITY] check if user can create group channels
-			if in.Type == types.ChannelTypeGroup && false {
+			if ch.Type == types.ChannelTypeGroup && false {
 				return errors.New("Not allowed to change type of this channel to group")
 			}
 		}
@@ -273,48 +281,33 @@ func (svc *channel) Update(in *types.Channel) (out *types.Channel, err error) {
 		var chUpdatorId = repository.Identity(svc.ctx)
 
 		// Copy values
-		if out.Name != in.Name {
+		if out.Name != ch.Name {
 			// @todo [SECURITY] can we change channel's name?
 			if false {
 				return errors.New("Not allowed to rename channel")
 			} else {
-				msgs = append(msgs, svc.makeSystemMessage(
-					out, "@%d renamed channel %s (was: %s)", chUpdatorId, out.Name, in.Name))
+				svc.scheduleSystemMessage(ch, "@%d renamed channel %s (was: %s)", chUpdatorId, out.Name, ch.Name)
 			}
-			out.Name = in.Name
+			out.Name = ch.Name
 		}
 
-		if out.Topic != in.Topic && true {
+		if out.Topic != ch.Topic && true {
 			// @todo [SECURITY] can we change channel's topic?
 			if false {
 				return errors.New("Not allowed to change channel topic")
 			} else {
-				msgs = append(msgs, svc.makeSystemMessage(
-					out, "@%d changed channel topic: %s (was: %s)", chUpdatorId, out.Topic, in.Topic))
+				svc.scheduleSystemMessage(ch, "@%d changed channel topic: %s (was: %s)", chUpdatorId, out.Topic, ch.Topic)
 			}
 
-			out.Topic = in.Topic
+			out.Topic = ch.Topic
 		}
 
 		// Save the updated channel
-		if out, err = svc.channel.UpdateChannel(in); err != nil {
+		if out, err = svc.channel.UpdateChannel(ch); err != nil {
 			return
 		}
 
-		// Create the first message, doing this directly with repository to circumvent
-		// message service constraints
-		for _, msg := range msgs {
-			if msg, err = svc.message.CreateMessage(msg); err != nil {
-				return err
-			}
-
-			svc.sendMessageEvent(msg)
-		}
-
-		if err != nil {
-			// Message creation failed
-			return
-		}
+		svc.flushSystemMessages()
 
 		return svc.evl.Channel(out)
 	})
@@ -336,16 +329,13 @@ func (svc *channel) Delete(id uint64) error {
 			return errors.New("Channel already deleted")
 		}
 
-		msg, err := svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d deleted this channel", userID))
-		if err != nil {
-			return
-		}
-		svc.sendMessageEvent(msg)
+		svc.scheduleSystemMessage(ch, "@%d deleted this channel", userID)
 
 		if err = svc.channel.DeleteChannelByID(id); err != nil {
 			return
 		}
 
+		svc.flushSystemMessages()
 		return svc.evl.Channel(ch)
 	})
 }
@@ -366,24 +356,20 @@ func (svc *channel) Recover(id uint64) error {
 			return errors.New("Channel not deleted")
 		}
 
-		msg, err := svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d recovered this channel", userID))
-		if err != nil {
-			return
-		}
-		svc.sendMessageEvent(msg)
+		svc.scheduleSystemMessage(ch, "@%d recovered this channel", userID)
 
-		err = svc.channel.UnarchiveChannelByID(id)
-		if err != nil {
+		if err = svc.channel.UnarchiveChannelByID(id); err != nil {
 			return
 		}
 
+		svc.flushSystemMessages()
 		return svc.evl.Channel(ch)
-
 	})
 }
 
 func (svc *channel) Archive(id uint64) error {
 	return svc.db.Transaction(func() (err error) {
+
 		var userID = repository.Identity(svc.ctx)
 		var ch *types.Channel
 
@@ -398,17 +384,13 @@ func (svc *channel) Archive(id uint64) error {
 			return errors.New("Channel already archived")
 		}
 
-		msg, err := svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d archived this channel", userID))
-		if err != nil {
-			return
-		}
-		svc.sendMessageEvent(msg)
+		svc.scheduleSystemMessage(ch, "@%d archived this channel", userID)
 
-		err = svc.channel.ArchiveChannelByID(id)
-		if err != nil {
+		if err = svc.channel.ArchiveChannelByID(id); err != nil {
 			return
 		}
 
+		svc.flushSystemMessages()
 		return svc.evl.Channel(ch)
 	})
 }
@@ -429,64 +411,208 @@ func (svc *channel) Unarchive(id uint64) error {
 			return errors.New("Channel not archived")
 		}
 
-		msg, err := svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d unarchived this channel", userID))
-		if err != nil {
-			return
-		}
-		svc.sendMessageEvent(msg)
+		svc.scheduleSystemMessage(ch, "@%d unarchived this channel", userID)
 
-		err = svc.channel.ArchiveChannelByID(id)
-		if err != nil {
-			return
-		}
-
+		svc.flushSystemMessages()
 		return svc.evl.Channel(ch)
 	})
 }
 
-func (svc *channel) AddMember(m *types.ChannelMember) (out *types.ChannelMember, err error) {
+func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error) {
+	var (
+		userID   = repository.Identity(svc.ctx)
+		ch       *types.Channel
+		existing types.ChannelMemberSet
+	)
+
+	out = types.ChannelMemberSet{}
+
+	// @todo [SECURITY] can user access this channel?
+	if ch, err = svc.channel.FindChannelByID(channelID); err != nil {
+		return
+	}
+
+	// @todo [SECURITY] can user add members to this channel?
+
 	return out, svc.db.Transaction(func() (err error) {
-		var userID = repository.Identity(svc.ctx)
-
-		var ch *types.Channel
-
-		// @todo [SECURITY] can user access this channel?
-		if ch, err = svc.channel.FindChannelByID(m.ChannelID); err != nil {
+		if existing, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: channelID}); err != nil {
 			return
 		}
 
-		// @todo [SECURITY] can user add members to this channel?
-
-		msg, err := svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d added a new member to this channel: @%d", userID, m.UserID))
+		users, err := svc.usr.Find(nil)
 		if err != nil {
-			return
+			return err
 		}
-		svc.sendMessageEvent(msg)
 
-		return err
+		for _, memberID := range memberIDs {
+			user := users.FindById(memberID)
+			if user == nil {
+				return errors.New("Unexisting user")
+			}
+
+			if e := existing.FindByUserId(memberID); e != nil {
+				// Already a member/invited
+				e.User = user
+				out = append(out, e)
+				continue
+			}
+
+			svc.scheduleSystemMessage(ch, "@%d invited @%d to the channel", userID, memberID)
+
+			member := &types.ChannelMember{
+				ChannelID: channelID,
+				UserID:    memberID,
+				Type:      types.ChannelMembershipTypeInvitee,
+			}
+
+			if member, err = svc.cmember.Create(member); err != nil {
+				return err
+			}
+
+			out = append(out, member)
+		}
+
+		return svc.flushSystemMessages()
 	})
 }
 
-func (svc *channel) makeSystemMessage(ch *types.Channel, format string, a ...interface{}) *types.Message {
-	return &types.Message{
+func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error) {
+	var (
+		userID   = repository.Identity(svc.ctx)
+		ch       *types.Channel
+		existing types.ChannelMemberSet
+	)
+
+	out = types.ChannelMemberSet{}
+
+	// @todo [SECURITY] can user access this channel?
+	if ch, err = svc.channel.FindChannelByID(channelID); err != nil {
+		return
+	}
+
+	// @todo [SECURITY] can user add members to this channel?
+
+	return out, svc.db.Transaction(func() (err error) {
+		if existing, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: channelID}); err != nil {
+			return
+		}
+
+		users, err := svc.usr.Find(nil)
+		if err != nil {
+			return err
+		}
+
+		for _, memberID := range memberIDs {
+			var exists bool
+
+			user := users.FindById(memberID)
+			if user == nil {
+				return errors.New("Unexisting user")
+			}
+
+			if e := existing.FindByUserId(memberID); e != nil {
+				if e.Type != types.ChannelMembershipTypeInvitee {
+					e.User = user
+					out = append(out, e)
+					continue
+				} else {
+					exists = true
+				}
+			}
+
+			if !exists {
+				if userID == memberID {
+					svc.scheduleSystemMessage(ch, "@%d joined", memberID)
+				} else {
+					svc.scheduleSystemMessage(ch, "@%d added @%d to the channel", userID, memberID)
+				}
+			}
+
+			member := &types.ChannelMember{
+				ChannelID: channelID,
+				UserID:    memberID,
+				Type:      types.ChannelMembershipTypeOwner,
+			}
+
+			if exists {
+				member, err = svc.cmember.Update(member)
+			} else {
+				member, err = svc.cmember.Create(member)
+			}
+
+			if err != nil {
+				return err
+			}
+
+			out = append(out, member)
+		}
+
+		return svc.flushSystemMessages()
+	})
+}
+
+func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err error) {
+	var (
+		userID   = repository.Identity(svc.ctx)
+		ch       *types.Channel
+		existing types.ChannelMemberSet
+	)
+
+	// @todo [SECURITY] can user access this channel?
+	if ch, err = svc.channel.FindChannelByID(channelID); err != nil {
+		return
+	}
+
+	// @todo [SECURITY] can user remove members from this channel?
+
+	return svc.db.Transaction(func() (err error) {
+		if existing, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: channelID}); err != nil {
+			return
+		}
+
+		for _, memberID := range memberIDs {
+			if existing.FindByUserId(memberID) == nil {
+				// Not really a member...
+				continue
+			}
+
+			if userID == memberID {
+				svc.scheduleSystemMessage(ch, "@%d parted", memberID)
+			} else {
+				svc.scheduleSystemMessage(ch, "@%d kicked @%d out", userID, memberID)
+			}
+
+			if err = svc.cmember.Delete(channelID, memberID); err != nil {
+				return err
+			}
+		}
+
+		return svc.flushSystemMessages()
+	})
+}
+
+func (svc *channel) scheduleSystemMessage(ch *types.Channel, format string, a ...interface{}) {
+	svc.sysmsgs = append(svc.sysmsgs, &types.Message{
 		ChannelID: ch.ID,
 		Message:   fmt.Sprintf(format, a...),
 		Type:      types.MessageTypeChannelEvent,
-	}
+	})
 }
 
-// Sends message to event loop
-//
-// It also preloads user
-func (svc *channel) sendMessageEvent(msg *types.Message) (err error) {
-	if msg.User == nil {
-		// @todo pull user from cache
-		if msg.User, err = svc.usr.FindByID(msg.UserID); err != nil {
-			return
-		}
-	}
+// Flushes sys message stack, stores them into repo & pushes them into event loop
+func (svc *channel) flushSystemMessages() (err error) {
+	defer func() {
+		svc.sysmsgs = types.MessageSet{}
+	}()
 
-	return svc.evl.Message(msg)
+	return svc.sysmsgs.Walk(func(msg *types.Message) error {
+		if msg, err = svc.message.CreateMessage(msg); err != nil {
+			return err
+		} else {
+			return svc.evl.Message(msg)
+		}
+	})
+
 }
 
 //// @todo temp location, move this somewhere else
