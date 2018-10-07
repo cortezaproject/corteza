@@ -28,7 +28,7 @@ type (
 		With(ctx context.Context) UserService
 
 		FindByID(id uint64) (*types.User, error)
-		Find(filter *types.UserFilter) ([]*types.User, error)
+		Find(filter *types.UserFilter) (types.UserSet, error)
 
 		Create(input *types.User) (*types.User, error)
 		Update(mod *types.User) (*types.User, error)
@@ -73,7 +73,7 @@ func (svc *user) FindByID(id uint64) (*types.User, error) {
 	return svc.user.FindUserByID(id)
 }
 
-func (svc *user) Find(filter *types.UserFilter) ([]*types.User, error) {
+func (svc *user) Find(filter *types.UserFilter) (types.UserSet, error) {
 	return svc.user.FindUsers(filter)
 }
 

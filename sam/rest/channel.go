@@ -63,7 +63,7 @@ func (ctrl *Channel) List(ctx context.Context, r *request.ChannelList) (interfac
 }
 
 func (ctrl *Channel) Members(ctx context.Context, r *request.ChannelMembers) (interface{}, error) {
-	return nil, nil
+	return ctrl.wrapMemberSet(ctrl.svc.ch.With(ctx).FindMembers(r.ChannelID))
 }
 
 func (ctrl *Channel) Join(ctx context.Context, r *request.ChannelJoin) (interface{}, error) {
@@ -114,5 +114,13 @@ func (ctrl *Channel) wrapSet(cc types.ChannelSet, err error) (*outgoing.ChannelS
 		return nil, err
 	} else {
 		return payload.Channels(cc), nil
+	}
+}
+
+func (ctrl *Channel) wrapMemberSet(mm types.ChannelMemberSet, err error) (*outgoing.ChannelMemberSet, error) {
+	if err != nil {
+		return nil, err
+	} else {
+		return payload.ChannelMembers(mm), nil
 	}
 }
