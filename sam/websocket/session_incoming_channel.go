@@ -77,21 +77,7 @@ func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) 
 		return err
 	}
 
-	// Explicitly subscribe to newly created channel
-	s.subs.Add(payload.Uint64toa(ch.ID))
-
-	// @todo this should go over all user's sessions and subscribe there as well
-
-	// @todo load channel member count
-
-	pl := payload.Channel(ch)
-
-	if ch.Type == types.ChannelTypePublic {
-		return s.sendToAll(pl)
-	}
-
-	// By default, just send reply to user
-	return s.sendReply(pl)
+	return nil
 }
 
 func (s *Session) channelDelete(ctx context.Context, p *incoming.ChannelDelete) (err error) {
@@ -116,12 +102,6 @@ func (s *Session) channelUpdate(ctx context.Context, p *incoming.ChannelUpdate) 
 		ch.Type = types.ChannelType(*p.Type)
 	}
 
-	ch, err = s.svc.ch.With(ctx).Update(ch)
-	if err != nil {
-		return err
-	}
-
-	// @todo load channel member count
-
-	return s.sendToAllSubscribers(payload.Channel(ch), p.ID)
+	_, err = s.svc.ch.With(ctx).Update(ch)
+	return err
 }
