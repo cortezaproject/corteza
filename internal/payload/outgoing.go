@@ -72,6 +72,8 @@ func User(user *auth.User) *outgoing.User {
 
 	return &outgoing.User{
 		ID:       Uint64toa(user.ID),
+		Name:     user.Name,
+		Handle:   user.Handle,
 		Username: user.Username,
 	}
 }
