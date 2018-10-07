@@ -18,6 +18,8 @@ settings:
 server:
   status: false
 schema:
+
+# ######################################################################################################################
 - name: auth
   path: cmd/auth
   commands:
@@ -31,15 +33,14 @@ schema:
   - api
   watcher:
     paths:
-    - .
-    - ../../auth
-    - ../../interal
+      - ../..
     extensions:
     - go
     ignored_paths:
-    - .git
-    - .realize
-    - vendor
+      - ../../vendor
+      - ../../.git
+
+# ######################################################################################################################
 - name: sam
   path: cmd/sam
   commands:
@@ -54,15 +55,14 @@ schema:
   watcher:
     paths:
     - .
-    - ../../sam
-    - ../../auth
-    - ../../interal
+    - ../..
     extensions:
     - go
     ignored_paths:
-    - .git
-    - .realize
-    - vendor
+    - ../../vendor
+    - ../../.git
+
+# ######################################################################################################################
 - name: crm
   path: cmd/crm
   commands:
@@ -76,13 +76,9 @@ schema:
   - api
   watcher:
     paths:
-    - .
-    - ../../crm
-    - ../../auth
-    - ../../interal
+      - ../..
     extensions:
     - go
     ignored_paths:
-    - .git
-    - .realize
-    - vendor
+      - ../../vendor
+      - ../../.git
