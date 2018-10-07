@@ -60,9 +60,9 @@ func (mr *MockChannelServiceMockRecorder) FindByID(channelID interface{}) *gomoc
 }
 
 // Find mocks base method
-func (m *MockChannelService) Find(filter *types.ChannelFilter) ([]*types.Channel, error) {
+func (m *MockChannelService) Find(filter *types.ChannelFilter) (types.ChannelSet, error) {
 	ret := m.ctrl.Call(m, "Find", filter)
-	ret0, _ := ret[0].([]*types.Channel)
+	ret0, _ := ret[0].(types.ChannelSet)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -83,6 +83,19 @@ func (m *MockChannelService) FindByMembership() ([]*types.Channel, error) {
 // FindByMembership indicates an expected call of FindByMembership
 func (mr *MockChannelServiceMockRecorder) FindByMembership() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByMembership", reflect.TypeOf((*MockChannelService)(nil).FindByMembership))
+}
+
+// FindMembers mocks base method
+func (m *MockChannelService) FindMembers(channelID uint64) (types.ChannelMemberSet, error) {
+	ret := m.ctrl.Call(m, "FindMembers", channelID)
+	ret0, _ := ret[0].(types.ChannelMemberSet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindMembers indicates an expected call of FindMembers
+func (mr *MockChannelServiceMockRecorder) FindMembers(channelID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindMembers", reflect.TypeOf((*MockChannelService)(nil).FindMembers), channelID)
 }
 
 // Create mocks base method

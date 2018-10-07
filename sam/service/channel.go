@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/crusttech/crust/internal/auth"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
+
+	"github.com/crusttech/crust/internal/auth"
 
 	authService "github.com/crusttech/crust/auth/service"
 	"github.com/crusttech/crust/sam/repository"
@@ -22,6 +23,7 @@ type (
 		evl EventService
 
 		channel repository.ChannelRepository
+		cmember repository.ChannelMemberRepository
 		message repository.MessageRepository
 	}
 
@@ -31,6 +33,7 @@ type (
 		FindByID(channelID uint64) (*types.Channel, error)
 		Find(filter *types.ChannelFilter) (types.ChannelSet, error)
 		FindByMembership() (rval []*types.Channel, err error)
+		FindMembers(channelID uint64) (types.ChannelMemberSet, error)
 
 		Create(channel *types.Channel) (*types.Channel, error)
 		Update(channel *types.Channel) (*types.Channel, error)
@@ -62,6 +65,7 @@ func (svc *channel) With(ctx context.Context) ChannelService {
 		evl: svc.evl.With(ctx),
 
 		channel: repository.Channel(ctx, db),
+		cmember: repository.ChannelMember(ctx, db),
 		message: repository.Message(ctx, db),
 	}
 }
@@ -92,7 +96,7 @@ func (svc *channel) Find(filter *types.ChannelFilter) (types.ChannelSet, error) 
 func (svc *channel) preloadMembers(cc types.ChannelSet) error {
 	var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	if mm, err := svc.channel.FindMembers(userID); err != nil {
+	if mm, err := svc.cmember.Find(&types.ChannelMemberFilter{ComembersOf: userID}); err != nil {
 		return err
 	} else {
 		cc.Walk(func(ch *types.Channel) error {
@@ -104,13 +108,39 @@ func (svc *channel) preloadMembers(cc types.ChannelSet) error {
 	return nil
 }
 
+// FindMembers loads all members (and full users) for a specific channel
+func (svc *channel) FindMembers(channelID uint64) (out types.ChannelMemberSet, err error) {
+	var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
+
+	// @todo [SECURITY] check if we can return members on this channel
+	_ = channelID
+	_ = userID
+
+	return out, svc.db.Transaction(func() (err error) {
+		out, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: channelID})
+		if err != nil {
+			return err
+		}
+
+		if uu, err := svc.usr.Find(nil); err != nil {
+			return err
+		} else {
+			return out.Walk(func(member *types.ChannelMember) error {
+				member.User = uu.FindById(member.UserID)
+				return nil
+			})
+		}
+	})
+}
+
 // Returns all channels with membership info
 func (svc *channel) FindByMembership() (rval []*types.Channel, err error) {
 	return rval, svc.db.Transaction(func() error {
 		var chMemberId = repository.Identity(svc.ctx)
+
 		var mm []*types.ChannelMember
 
-		if mm, err = svc.channel.FindChannelsMembershipsByMemberId(chMemberId); err != nil {
+		if mm, err = svc.cmember.Find(&types.ChannelMemberFilter{MemberID: chMemberId}); err != nil {
 			return err
 		}
 
@@ -176,7 +206,7 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 		}
 
 		// Join current user as an member & owner
-		_, err = svc.channel.AddChannelMember(&types.ChannelMember{
+		_, err = svc.cmember.Create(&types.ChannelMember{
 			ChannelID: out.ID,
 			UserID:    chCreatorID,
 			Type:      types.ChannelMembershipTypeOwner,
@@ -412,7 +442,29 @@ func (svc *channel) Unarchive(id uint64) error {
 
 		return svc.evl.Channel(ch)
 	})
+}
 
+func (svc *channel) AddMember(m *types.ChannelMember) (out *types.ChannelMember, err error) {
+	return out, svc.db.Transaction(func() (err error) {
+		var userID = repository.Identity(svc.ctx)
+
+		var ch *types.Channel
+
+		// @todo [SECURITY] can user access this channel?
+		if ch, err = svc.channel.FindChannelByID(m.ChannelID); err != nil {
+			return
+		}
+
+		// @todo [SECURITY] can user add members to this channel?
+
+		msg, err := svc.message.CreateMessage(svc.makeSystemMessage(ch, "@%d added a new member to this channel: @%d", userID, m.UserID))
+		if err != nil {
+			return
+		}
+		svc.sendMessageEvent(msg)
+
+		return err
+	})
 }
 
 func (svc *channel) makeSystemMessage(ch *types.Channel, format string, a ...interface{}) *types.Message {

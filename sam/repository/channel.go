@@ -16,13 +16,9 @@ type (
 		FindChannelByID(id uint64) (*types.Channel, error)
 		FindDirectChannelByUserID(fromUserID, toUserID uint64) (*types.Channel, error)
 		FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error)
-		FindMembers(userID uint64) (types.ChannelMemberSet, error)
 		CreateChannel(mod *types.Channel) (*types.Channel, error)
 		UpdateChannel(mod *types.Channel) (*types.Channel, error)
 
-		FindChannelsMembershipsByMemberId(memberId uint64) ([]*types.ChannelMember, error)
-		AddChannelMember(mod *types.ChannelMember) (*types.ChannelMember, error)
-		RemoveChannelMember(channelID, userID uint64) error
 		ArchiveChannelByID(id uint64) error
 		UnarchiveChannelByID(id uint64) error
 		DeleteChannelByID(id uint64) error
@@ -42,11 +38,7 @@ const (
         FROM channels AS c
        WHERE ` + sqlChannelValidOnly
 
-	sqlChannelMemberSelect = `SELECT m.*
-        FROM channel_members AS m
-             INNER JOIN channels AS c ON (m.rel_channel = c.id)
-       WHERE ` + sqlChannelValidOnly
-
+	// Returns channel (group) with exactly 2 members
 	sqlChannelDirect = `SELECT *
         FROM channels AS c
        WHERE c.type = ? 
@@ -56,10 +48,6 @@ const (
                       HAVING COUNT(*) = 2
                          AND MIN(rel_user) = ?
                          AND MAX(rel_user) = ?)`
-
-	sqlChannelMemberships = `SELECT *
-        FROM channel_members AS cm
-       WHERE true`
 
 	// subquery that filters out all channels that current user has access to as a member
 	// or via channel type (public chans)
@@ -109,7 +97,7 @@ func (r *channel) FindDirectChannelByUserID(fromUserID, toUserID uint64) (*types
 		toUserID, fromUserID = fromUserID, toUserID
 	}
 
-	return mod, isFound(r.db().Get(mod, sqlChannelDirect, types.ChannelTypeDirect, fromUserID, toUserID), mod.ID > 0, ErrChannelNotFound)
+	return mod, isFound(r.db().Get(mod, sqlChannelDirect, types.ChannelTypeGroup, fromUserID, toUserID), mod.ID > 0, ErrChannelNotFound)
 }
 
 func (r *channel) FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error) {
@@ -138,22 +126,6 @@ func (r *channel) FindChannels(filter *types.ChannelFilter) ([]*types.Channel, e
 	return rval, r.db().Select(&rval, sql, params...)
 }
 
-// Returns member ids of all channels that user has access to
-func (r *channel) FindMembers(userID uint64) (types.ChannelMemberSet, error) {
-	params := make([]interface{}, 0)
-	rval := types.ChannelMemberSet{}
-
-	sql := sqlChannelMemberSelect
-
-	if userID > 0 {
-		// scope: only channels we have access to
-		sql += " AND m.rel_channel IN " + sqlChannelAccess
-		params = append(params, userID, types.ChannelTypePublic)
-	}
-
-	return rval, r.db().Select(&rval, sql, params...)
-}
-
 func (r *channel) CreateChannel(mod *types.Channel) (*types.Channel, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
@@ -178,24 +150,6 @@ func (r *channel) UpdateChannel(mod *types.Channel) (*types.Channel, error) {
 
 	return mod, r.db().
 		UpdatePartial("channels", mod, whitelist, "id")
-}
-
-func (r *channel) FindChannelsMembershipsByMemberId(memberId uint64) ([]*types.ChannelMember, error) {
-	var rval = make([]*types.ChannelMember, 0)
-
-	return rval, r.db().Select(&rval, sqlChannelMemberships+" AND cm.rel_user = ? ", memberId)
-}
-
-func (r *channel) AddChannelMember(mod *types.ChannelMember) (*types.ChannelMember, error) {
-	sql := `INSERT INTO channel_members (rel_channel, rel_user) VALUES (?, ?)`
-	mod.CreatedAt = time.Now()
-
-	return mod, exec(r.db().Exec(sql, mod.ChannelID, mod.UserID))
-}
-
-func (r *channel) RemoveChannelMember(channelID, userID uint64) error {
-	sql := `DELETE FROM channel_members WHERE rel_channel = ? AND rel_user = ?`
-	return exec(r.db().Exec(sql, channelID, userID))
 }
 
 func (r *channel) ArchiveChannelByID(id uint64) error {

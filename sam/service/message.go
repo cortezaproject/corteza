@@ -18,6 +18,7 @@ type (
 
 		attachment repository.AttachmentRepository
 		channel    repository.ChannelRepository
+		cmember    repository.ChannelMemberRepository
 		message    repository.MessageRepository
 		reaction   repository.ReactionRepository
 
@@ -64,8 +65,9 @@ func (svc *message) With(ctx context.Context) MessageService {
 		usr: svc.usr.With(ctx),
 		evl: svc.evl.With(ctx),
 
-		channel:    repository.Channel(ctx, db),
 		attachment: repository.Attachment(ctx, db),
+		channel:    repository.Channel(ctx, db),
+		cmember:    repository.ChannelMember(ctx, db),
 		message:    repository.Message(ctx, db),
 		reaction:   repository.Reaction(ctx, db),
 	}
@@ -133,7 +135,7 @@ func (svc *message) Direct(recipientID uint64, in *types.Message) (out *types.Me
 		dch, err := svc.channel.FindDirectChannelByUserID(currentUserID, recipientID)
 		if err == repository.ErrChannelNotFound {
 			dch, err = svc.channel.CreateChannel(&types.Channel{
-				Type: types.ChannelTypeDirect,
+				Type: types.ChannelTypeGroup,
 			})
 
 			if err != nil {
@@ -143,12 +145,12 @@ func (svc *message) Direct(recipientID uint64, in *types.Message) (out *types.Me
 			membership := &types.ChannelMember{ChannelID: dch.ID, Type: types.ChannelMembershipTypeOwner}
 
 			membership.UserID = currentUserID
-			if _, err = svc.channel.AddChannelMember(membership); err != nil {
+			if _, err = svc.cmember.Create(membership); err != nil {
 				return
 			}
 
 			membership.UserID = recipientID
-			if _, err = svc.channel.AddChannelMember(membership); err != nil {
+			if _, err = svc.cmember.Create(membership); err != nil {
 				return
 			}
 

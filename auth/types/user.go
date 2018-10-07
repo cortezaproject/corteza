@@ -62,3 +62,13 @@ func (uu UserSet) Walk(w func(*User) error) (err error) {
 
 	return
 }
+
+func (uu UserSet) FindById(ID uint64) *User {
+	for i := range uu {
+		if uu[i].ID == ID {
+			return uu[i]
+		}
+	}
+
+	return nil
+}

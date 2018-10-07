@@ -65,6 +65,24 @@ func Channels(channels sam.ChannelSet) *outgoing.ChannelSet {
 	return &retval
 }
 
+func ChannelMember(m *sam.ChannelMember) *outgoing.ChannelMember {
+	return &outgoing.ChannelMember{
+		User:      User(m.User),
+		Type:      string(m.Type),
+		CreatedAt: m.CreatedAt,
+		UpdatedAt: m.UpdatedAt,
+	}
+}
+
+func ChannelMembers(members sam.ChannelMemberSet) *outgoing.ChannelMemberSet {
+	mm := make([]*outgoing.ChannelMember, len(members))
+	for k, c := range members {
+		mm[k] = ChannelMember(c)
+	}
+	retval := outgoing.ChannelMemberSet(mm)
+	return &retval
+}
+
 func User(user *auth.User) *outgoing.User {
 	if user == nil {
 		return nil

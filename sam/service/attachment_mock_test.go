@@ -73,18 +73,6 @@ func (mr *MockAttachmentServiceMockRecorder) Create(channelId, name, size, fh in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAttachmentService)(nil).Create), channelId, name, size, fh)
 }
 
-// LoadFromMessages mocks base method
-func (m *MockAttachmentService) LoadFromMessages(mm types.MessageSet) error {
-	ret := m.ctrl.Call(m, "LoadFromMessages", mm)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// LoadFromMessages indicates an expected call of LoadFromMessages
-func (mr *MockAttachmentServiceMockRecorder) LoadFromMessages(mm interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadFromMessages", reflect.TypeOf((*MockAttachmentService)(nil).LoadFromMessages), mm)
-}
-
 // OpenOriginal mocks base method
 func (m *MockAttachmentService) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
 	ret := m.ctrl.Call(m, "OpenOriginal", att)

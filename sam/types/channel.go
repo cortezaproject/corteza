@@ -28,16 +28,6 @@ type (
 		Members []uint64       `json:"-" db:"-"`
 	}
 
-	ChannelMember struct {
-		ChannelID uint64 `db:"rel_channel"`
-		UserID    uint64 `db:"rel_user"`
-
-		Type ChannelMembershipType `db:"type"`
-
-		CreatedAt time.Time  `json:"createdAt,omitempty" db:"created_at"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty" db:"updated_at"`
-	}
-
 	ChannelFilter struct {
 		Query string
 
@@ -47,11 +37,9 @@ type (
 		IncludeMembers bool
 	}
 
-	ChannelMembershipType string
-	ChannelType           string
+	ChannelType string
 
-	ChannelSet       []*Channel
-	ChannelMemberSet []*ChannelMember
+	ChannelSet []*Channel
 )
 
 // Scope returns permissions group that for this type
@@ -79,34 +67,8 @@ func (cc ChannelSet) Walk(w func(*Channel) error) (err error) {
 	return
 }
 
-func (mm ChannelMemberSet) Walk(w func(*ChannelMember) error) (err error) {
-	for i := range mm {
-		if err = w(mm[i]); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-func (mm ChannelMemberSet) MembersOf(channelID uint64) []uint64 {
-	var mmof = make([]uint64, 0)
-
-	for i := range mm {
-		if mm[i].ChannelID == channelID {
-			mmof = append(mmof, mm[i].UserID)
-		}
-	}
-
-	return mmof
-}
-
 const (
-	ChannelMembershipTypeOwner  ChannelMembershipType = "owner"
-	ChannelMembershipTypeMember                       = "member"
-
 	ChannelTypePublic  ChannelType = "public"
 	ChannelTypePrivate             = "private"
 	ChannelTypeGroup               = "group"
-	ChannelTypeDirect              = "direct"
 )
