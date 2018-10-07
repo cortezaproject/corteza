@@ -52,6 +52,16 @@ func (mm ChannelMemberSet) MembersOf(channelID uint64) []uint64 {
 	return mmof
 }
 
+func (uu ChannelMemberSet) FindByUserId(userID uint64) *ChannelMember {
+	for i := range uu {
+		if uu[i].UserID == userID {
+			return uu[i]
+		}
+	}
+
+	return nil
+}
+
 const (
 	ChannelMembershipTypeOwner   ChannelMembershipType = "owner"
 	ChannelMembershipTypeMember                        = "member"

@@ -61,7 +61,7 @@ CREATE TABLE channel_members (
   rel_channel      BIGINT UNSIGNED NOT NULL REFERENCES channels(id),
   rel_user         BIGINT UNSIGNED NOT NULL,
 
-  type             ENUM ('owner', 'member') NOT NULL DEFAULT 'member',
+  type             ENUM ('owner', 'member', 'invitee') NOT NULL DEFAULT 'member',
 
   created_at       DATETIME        NOT NULL DEFAULT NOW(),
   updated_at       DATETIME            NULL,

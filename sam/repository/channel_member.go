@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/sam/types"
@@ -18,7 +17,8 @@ type (
 		Find(filter *types.ChannelMemberFilter) (types.ChannelMemberSet, error)
 
 		Create(mod *types.ChannelMember) (*types.ChannelMember, error)
-		Delete(channelMemberID, userID uint64) error
+		Update(mod *types.ChannelMember) (*types.ChannelMember, error)
+		Delete(channelID, userID uint64) error
 	}
 
 	channelMember struct {
@@ -85,8 +85,6 @@ func (r *channelMember) Find(filter *types.ChannelMemberFilter) (types.ChannelMe
 		}
 	}
 
-	spew.Dump(filter, sql, params)
-
 	return mm, r.db().Select(&mm, sql, params...)
 }
 
@@ -102,13 +100,13 @@ func (r *channelMember) Create(mod *types.ChannelMember) (*types.ChannelMember, 
 func (r *channelMember) Update(mod *types.ChannelMember) (*types.ChannelMember, error) {
 	mod.UpdatedAt = timeNowPtr()
 
-	whitelist := []string{"type", "updated_at"}
+	whitelist := []string{"type", "updated_at", "rel_channel", "rel_user"}
 
 	return mod, r.db().UpdatePartial("channel_members", mod, whitelist, "rel_channel", "rel_user")
 }
 
 // Delete removes existing channel membership record
-func (r *channelMember) Delete(channelMemberID, userID uint64) error {
-	sql := `DELETE FROM channel_members WHERE rel_channelMember = ? AND rel_user = ?`
-	return exec(r.db().Exec(sql, channelMemberID, userID))
+func (r *channelMember) Delete(channelID, userID uint64) error {
+	sql := `DELETE FROM channel_members WHERE rel_channel = ? AND rel_user = ?`
+	return exec(r.db().Exec(sql, channelID, userID))
 }
