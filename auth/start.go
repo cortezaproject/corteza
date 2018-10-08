@@ -7,14 +7,15 @@ import (
 	"net/http"
 
 	"github.com/SentimensRG/ctx/sigctx"
-	"github.com/crusttech/crust/auth/rest"
-	"github.com/crusttech/crust/auth/service"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"github.com/titpetric/factory/resputil"
 
+	migrate "github.com/crusttech/crust/auth/db"
+	"github.com/crusttech/crust/auth/rest"
+	"github.com/crusttech/crust/auth/service"
 	"github.com/crusttech/crust/internal/auth"
 )
 
@@ -30,12 +31,18 @@ func Init() error {
 	if err != nil {
 		return err
 	}
+
 	// @todo: profiling as an external service?
 	switch flags.db.Profiler {
 	case "stdout":
 		db.Profiler = &factory.Database.ProfilerStdout
 	default:
 		fmt.Println("No database query profiler selected")
+	}
+
+	// migrate database schema
+	if err := migrate.Migrate(db); err != nil {
+		return err
 	}
 
 	// configure resputil options

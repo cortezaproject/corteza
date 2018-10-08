@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	_ "github.com/crusttech/crust/sam/db/mysql"
+	_ "github.com/crusttech/crust/auth/db/mysql"
 	"github.com/pkg/errors"
 	"github.com/rakyll/statik/fs"
 	"github.com/titpetric/factory"
@@ -50,7 +50,7 @@ func Migrate(db *factory.DB) error {
 
 	migrate := func(filename string, useLog bool) error {
 		status := migration{
-			Project:  "sam",
+			Project:  "auth",
 			Filename: filename,
 		}
 		if useLog {
