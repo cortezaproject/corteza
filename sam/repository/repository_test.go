@@ -6,6 +6,6 @@ import (
 )
 
 func TestEvents(t *testing.T) {
-	repo = &repository{}
-	repo.With(context.Background())
+	repo := &repository{}
+	repo.With(context.Background(), nil)
 }

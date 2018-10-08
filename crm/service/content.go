@@ -11,8 +11,8 @@ import (
 
 type (
 	content struct {
-		db  *factory.DB
-		ctx context.Context
+		db         *factory.DB
+		ctx        context.Context
 		repository repository.ContentRepository
 	}
 
@@ -35,8 +35,8 @@ func Content() ContentService {
 func (s *content) With(ctx context.Context) ContentService {
 	db := repository.DB(ctx)
 	return &content{
-		db: db,
-		ctx: ctx,
+		db:         db,
+		ctx:        ctx,
 		repository: s.repository.With(ctx, db),
 	}
 }

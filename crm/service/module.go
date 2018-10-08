@@ -8,8 +8,8 @@ import (
 
 type (
 	module struct {
-		db  *factory.DB
-		ctx context.Context
+		db         *factory.DB
+		ctx        context.Context
 		repository repository.ModuleRepository
 	}
 
@@ -31,8 +31,8 @@ func Module() ModuleService {
 
 func (s *module) With(ctx context.Context) ModuleService {
 	return &module{
-		db: db,
-		ctx: ctx,
+		db:         db,
+		ctx:        ctx,
 		repository: s.repository.With(ctx, db),
 	}
 }
