@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 
 	_ "github.com/crusttech/crust/sam/db/mysql"
 	"github.com/pkg/errors"
@@ -22,6 +24,13 @@ func statements(contents []byte, err error) ([]string, error) {
 	return regexp.MustCompilePOSIX(";$").Split(string(contents), -1), nil
 }
 
+type migration struct {
+	Project        string
+	Filename       string
+	StatementIndex int `db:"statement_index"`
+	Status         string
+}
+
 func Migrate(db *factory.DB) error {
 	statikFS, err := fs.New()
 	if err != nil {
@@ -30,12 +39,15 @@ func Migrate(db *factory.DB) error {
 
 	var files []string
 
-	fs.Walk(statikFS, "/", func(filename string, info os.FileInfo, err error) error {
-		if len(filename) > 4 && filename[len(filename)-4:] == ".sql" {
+	if err := fs.Walk(statikFS, "/", func(filename string, info os.FileInfo, err error) error {
+		matched, err := filepath.Match("/*.up.sql", filename)
+		if matched {
 			files = append(files, filename)
 		}
-		return nil
-	})
+		return err
+	}); err != nil {
+		return errors.Wrap(err, "Error when listing files for migrations")
+	}
 
 	sort.Strings(files)
 
@@ -43,37 +55,56 @@ func Migrate(db *factory.DB) error {
 		return errors.New("No files encoded for migration, need at least one SQL file")
 	}
 
-	// @todo: create table migrations by hand, log each filename status/date
-	/*
-		create table if not exists migrations (
-			filename string, status [ok, fail], message string (may be error text?), stamp datetime
-		)
-	*/
-
-	for _, filename := range files {
-		// @todo: select * from migrations to check if (filename) was processed, skip if yes
-
-		stmts, err := statements(fs.ReadFile(statikFS, filename))
-		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("Error applying migration %s", filename))
+	migrate := func(filename string, useLog bool) error {
+		status := migration{
+			Project:  "sam",
+			Filename: filename,
+		}
+		if useLog {
+			if err := db.Get(&status, "select * from migrations where project=? and filename=?", status.Project, status.Filename); err != nil {
+				return err
+			}
+			if status.Status == "ok" {
+				return nil
+			}
 		}
 
 		up := func() error {
+			stmts, err := statements(fs.ReadFile(statikFS, filename))
+			if err != nil {
+				return errors.Wrap(err, fmt.Sprintf("Error reading migration %s", filename))
+			}
+
 			log.Println("Running migration for", filename)
-			for _, query := range stmts {
-				if _, err := db.Exec(query); err != nil {
-					if fmt.Sprintf("%s", err) != "exec query failed: Error 1065: Query was empty" {
+			for idx, query := range stmts {
+				if strings.TrimSpace(query) != "" && idx >= status.StatementIndex {
+					status.StatementIndex = idx
+					if _, err := db.Exec(query); err != nil {
 						return err
 					}
 				}
 			}
 			log.Println("Migration done OK")
-
-			// @todo: insert/update into migrations with (filename)
+			status.Status = "ok"
 			return nil
 		}
 
 		if err := db.Transaction(up); err != nil {
+			status.Status = err.Error()
+			if useLog {
+				db.Replace("migrations", status)
+			}
+			return err
+		}
+		return nil
+	}
+
+	if err := migrate("/migrations.sql", false); err != nil {
+		return err
+	}
+
+	for _, filename := range files {
+		if err := migrate(filename, true); err != nil {
 			return err
 		}
 	}
