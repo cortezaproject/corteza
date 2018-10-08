@@ -8,7 +8,9 @@ import (
 
 type (
 	field struct {
-		repository repository.Field
+		db  *factory.DB
+		ctx context.Context
+		repository repository.FieldRepository
 	}
 
 	FieldService interface {
@@ -19,14 +21,15 @@ type (
 )
 
 func Field() FieldService {
-	return &field{
-		repository: repository.NewField(context.Background()),
-	}
+	return (&field{}).With(context.Background())
 }
 
 func (s *field) With(ctx context.Context) FieldService {
+	db := repository.DB(ctx)
 	return &field{
-		repository: s.repository.With(ctx),
+		db: db,
+		ctx: ctx,
+		repository: s.repository.With(ctx, db),
 	}
 }
 

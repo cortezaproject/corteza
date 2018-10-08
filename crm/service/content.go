@@ -2,13 +2,18 @@ package service
 
 import (
 	"context"
+
+	"github.com/titpetric/factory"
+
 	"github.com/crusttech/crust/crm/repository"
 	"github.com/crusttech/crust/crm/types"
 )
 
 type (
 	content struct {
-		repository repository.Content
+		db  *factory.DB
+		ctx context.Context
+		repository repository.ContentRepository
 	}
 
 	ContentService interface {
@@ -24,14 +29,15 @@ type (
 )
 
 func Content() ContentService {
-	return &content{
-		repository: repository.NewContent(context.Background()),
-	}
+	return (&content{}).With(context.Background())
 }
 
 func (s *content) With(ctx context.Context) ContentService {
+	db := repository.DB(ctx)
 	return &content{
-		repository: s.repository.With(ctx),
+		db: db,
+		ctx: ctx,
+		repository: s.repository.With(ctx, db),
 	}
 }
 

@@ -8,7 +8,9 @@ import (
 
 type (
 	module struct {
-		repository repository.Module
+		db  *factory.DB
+		ctx context.Context
+		repository repository.ModuleRepository
 	}
 
 	ModuleService interface {
@@ -24,14 +26,14 @@ type (
 )
 
 func Module() ModuleService {
-	return &module{
-		repository: repository.NewModule(context.Background()),
-	}
+	return (&module{}).With(context.Background())
 }
 
 func (s *module) With(ctx context.Context) ModuleService {
 	return &module{
-		repository: s.repository.With(ctx),
+		db: db,
+		ctx: ctx,
+		repository: s.repository.With(ctx, db),
 	}
 }
 

@@ -3,25 +3,15 @@ package repository
 import (
 	"context"
 	"encoding/json"
-	"github.com/crusttech/crust/crm/types"
 	"testing"
+
+	"github.com/pkg/errors"
+
+	"github.com/crusttech/crust/crm/types"
 )
 
-type testContentRow struct {
-	Name  string `db:"name"`
-	Value string `db:"value"`
-}
-
 func TestContent(t *testing.T) {
-	repository := NewContent(context.TODO()).With(context.Background())
-
-	// clean up tables
-	{
-		for _, name := range []string{"crm_module", "crm_module_content"} {
-			_, err := db().Exec("truncate " + name)
-			assert(t, err == nil, "Error when clearing "+name+": %+v", err)
-		}
-	}
+	repository := Content(context.TODO(), nil).With(context.Background(), nil)
 
 	fields, err := json.Marshal([]types.Field{
 		types.Field{
@@ -42,7 +32,7 @@ func TestContent(t *testing.T) {
 
 	// set up a module
 	{
-		_, err := NewModule(context.TODO()).With(context.Background()).Create(module)
+		_, err := Module(context.TODO(), nil).With(context.Background(), nil).Create(module)
 		assert(t, err == nil, "Error when creating module: %+v", err)
 		assert(t, module.ID > 0, "Expected auto generated ID")
 	}
@@ -51,9 +41,15 @@ func TestContent(t *testing.T) {
 		ModuleID: module.ID,
 	}
 	(&content.Fields).Scan(func() []byte {
-		b, _ := json.Marshal([]testContentRow{
-			testContentRow{"name", "Tit Petric"},
-			testContentRow{"email", "tit.petric@example.com"},
+		b, _ := json.Marshal([]types.ContentColumn{
+			types.ContentColumn{
+				Name:  "name",
+				Value: "Tit Petric",
+			},
+			types.ContentColumn{
+				Name:  "email",
+				Value: "tit.petric@example.com",
+			},
 		})
 		return b
 	}())
@@ -72,9 +68,10 @@ func TestContent(t *testing.T) {
 			assert(t, ms.ID == m.ID, "Expected ID from database to match, %d != %d", m.ID, ms.ID)
 			assert(t, ms.ModuleID == m.ModuleID, "Expected Module ID from database to match, %d != %d", m.ModuleID, ms.ModuleID)
 
-			fields := make([]testContentRow, 0)
-			err = json.Unmarshal(ms.Fields, &fields)
-			assert(t, err == nil, "Didn't expect error when unmarshalling: %+v", err)
+			fields, err := repository.Fields(ms)
+			// fields := make([]testContentRow, 0)
+			// err = json.Unmarshal(ms.Fields, &fields)
+			assert(t, err == nil, "%+v", errors.Wrap(err, "Didn't expect error when unmarshalling"))
 			assert(t, len(fields) == 2, "Expected different field count: %d != %d", 2, len(fields))
 			assert(t, fields[0].Name == "name", "Expected field.0 type = name, got %s", fields[0].Name)
 			assert(t, fields[1].Name == "email", "Expected field.1 type = email, got %s", fields[1].Name)
@@ -112,7 +109,7 @@ func TestContent(t *testing.T) {
 		{
 			ms, err := repository.Find()
 			assert(t, err == nil, "Error when retrieving contents: %+v", err)
-			assert(t, len(ms) == 0, "Expected one content, got %d", len(ms))
+			assert(t, len(ms) == 0, "Expected no content, got %d", len(ms))
 		}
 	}
 
