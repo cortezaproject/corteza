@@ -16,6 +16,7 @@ import (
 
 	authService "github.com/crusttech/crust/auth/service"
 	"github.com/crusttech/crust/internal/auth"
+	migrate "github.com/crusttech/crust/sam/db"
 	"github.com/crusttech/crust/sam/rest"
 	samService "github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/websocket"
@@ -33,12 +34,18 @@ func Init() error {
 	if err != nil {
 		return err
 	}
+
 	// @todo: profiling as an external service?
 	switch flags.db.Profiler {
 	case "stdout":
 		db.Profiler = &factory.Database.ProfilerStdout
 	default:
 		fmt.Println("No database query profiler selected")
+	}
+
+	// migrate database schema
+	if err := migrate.Migrate(db); err != nil {
+		return err
 	}
 
 	// configure resputil options

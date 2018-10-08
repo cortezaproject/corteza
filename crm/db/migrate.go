@@ -24,13 +24,6 @@ func statements(contents []byte, err error) ([]string, error) {
 	return regexp.MustCompilePOSIX(";$").Split(string(contents), -1), nil
 }
 
-type migration struct {
-	Project        string
-	Filename       string
-	StatementIndex int `db:"statement_index"`
-	Status         string
-}
-
 func Migrate(db *factory.DB) error {
 	statikFS, err := fs.New()
 	if err != nil {
@@ -89,14 +82,16 @@ func Migrate(db *factory.DB) error {
 			return nil
 		}
 
-		if err := db.Transaction(up); err != nil {
+		err := db.Transaction(up)
+		if err != nil {
 			status.Status = err.Error()
-			if useLog {
-				db.Replace("migrations", status)
-			}
-			return err
 		}
-		return nil
+		if useLog {
+			if err := db.Replace("migrations", status); err != nil {
+				log.Println("replace failed", err)
+			}
+		}
+		return err
 	}
 
 	if err := migrate("/migrations.sql", false); err != nil {
