@@ -15,7 +15,7 @@ import (
 	"github.com/titpetric/factory"
 )
 
-//go:generate statik -p mysql -Z -f -src=schema/mysql
+//go:generate statik -p mysql -m -Z -f -src=schema/mysql
 
 func statements(contents []byte, err error) ([]string, error) {
 	if err != nil {
