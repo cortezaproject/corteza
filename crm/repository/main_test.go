@@ -31,6 +31,16 @@ func TestMain(m *testing.M) {
 	db := factory.Database.MustGet()
 	db.Profiler = &factory.Database.ProfilerStdout
 
+	// clean up tables
+	{
+		for _, name := range []string{"crm_module", "crm_content", "crm_content_column"} {
+			_, err := db.Exec("truncate " + name)
+			if err != nil {
+				panic("Error when clearing "+name+": "+err.Error())
+			}
+		}
+	}
+
 	os.Exit(m.Run())
 }
 

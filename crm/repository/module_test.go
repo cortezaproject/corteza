@@ -7,19 +7,15 @@ import (
 )
 
 func TestModule(t *testing.T) {
-
-	repository := NewModule(context.TODO()).With(context.Background())
-
-	// clean up tables
-	{
-		_, err := db().Exec("truncate crm_module")
-		assert(t, err == nil, "Error when clearing crm_module: %+v", err)
-	}
+	repository := Module(context.TODO(), nil).With(context.Background(), nil)
 
 	// the module object we're working with
 	module := &types.Module{
 		Name: "Test",
 	}
+	(&module.Fields).Scan([]byte("[]"))
+
+	prevModuleCount := 0
 
 	{
 		// create module
@@ -54,8 +50,8 @@ func TestModule(t *testing.T) {
 		{
 			ms, err := repository.Find()
 			assert(t, err == nil, "Error when retrieving modules: %+v", err)
-			assert(t, len(ms) == 1, "Expected one module, got %d", len(ms))
-			assert(t, ms[0].Name == m.Name, "Expected module name to match, %s != %s", m.Name, ms[0].Name)
+			assert(t, len(ms) >= 1, "Expected at least one module, got %d", len(ms))
+			prevModuleCount = len(ms)
 		}
 
 		// re-fetch module
@@ -68,7 +64,7 @@ func TestModule(t *testing.T) {
 		{
 			ms, err := repository.Find()
 			assert(t, err == nil, "Error when retrieving modules: %+v", err)
-			assert(t, len(ms) == 0, "Expected no modules, got %d", len(ms))
+			assert(t, len(ms) < prevModuleCount, "Expected modules count to decrease after deletion, %d < %d", len(ms), prevModuleCount)
 		}
 	}
 

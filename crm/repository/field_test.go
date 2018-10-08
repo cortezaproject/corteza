@@ -6,8 +6,7 @@ import (
 )
 
 func TestField(t *testing.T) {
-
-	repository := NewField(context.TODO()).With(context.Background())
+	repository := Field(context.TODO(), nil).With(context.Background(), nil)
 
 	{
 		// fetch all fields
