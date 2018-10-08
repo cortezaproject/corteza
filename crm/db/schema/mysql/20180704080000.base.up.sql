@@ -1,3 +1,20 @@
+CREATE TABLE `crm_content` (
+ `id` bigint(20) unsigned NOT NULL,
+ `module_id` bigint(20) unsigned NOT NULL,
+ `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ `updated_at` datetime DEFAULT NULL,
+ `archived_at` datetime DEFAULT NULL,
+ `deleted_at` datetime DEFAULT NULL,
+ PRIMARY KEY (`id`,`module_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `crm_content_columns` (
+ `content_id` bigint(20) NOT NULL,
+ `column_name` varchar(255) NOT NULL,
+ `column_value` text NOT NULL,
+ PRIMARY KEY (`content_id`,`column_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 CREATE TABLE `crm_fields` (
  `field_type` varchar(16) NOT NULL COMMENT 'Short field type (string, boolean,...)',
  `field_name` varchar(255) NOT NULL COMMENT 'Description of field contents',
@@ -12,13 +29,6 @@ CREATE TABLE `crm_module` (
  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `crm_module_content` (
- `id` bigint(20) unsigned NOT NULL,
- `module_id` bigint(20) unsigned NOT NULL,
- `json` json NOT NULL COMMENT 'Entry JSON blob based on module fields list',
- PRIMARY KEY (`id`,`module_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 CREATE TABLE `crm_module_form` (
  `module_id` bigint(20) unsigned NOT NULL,
  `place` tinyint(3) unsigned NOT NULL,
@@ -29,10 +39,3 @@ CREATE TABLE `crm_module_form` (
  PRIMARY KEY (`module_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO `crm_fields` VALUES ('bool','Boolean value (yes / no)','');
-INSERT INTO `crm_fields` VALUES ('email','E-mail input','');
-INSERT INTO `crm_fields` VALUES ('enum','Single option picker','');
-INSERT INTO `crm_fields` VALUES ('hidden','Hidden value','');
-INSERT INTO `crm_fields` VALUES ('stamp','Date/time input','');
-INSERT INTO `crm_fields` VALUES ('text','Text input','');
-INSERT INTO `crm_fields` VALUES ('textarea','Text input (multi-line)','');
