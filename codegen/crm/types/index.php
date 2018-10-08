@@ -6,6 +6,8 @@ $templates = array(
 	},
 );
 
+$templates = array();
+
 foreach ($templates as $template => $fn)
 foreach ($apis as $api) {
 	if (is_array($api['struct'])) {

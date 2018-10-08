@@ -8,8 +8,8 @@ import (
 
 type (
 	field struct {
-		db  *factory.DB
-		ctx context.Context
+		db         *factory.DB
+		ctx        context.Context
 		repository repository.FieldRepository
 	}
 
@@ -27,8 +27,8 @@ func Field() FieldService {
 func (s *field) With(ctx context.Context) FieldService {
 	db := repository.DB(ctx)
 	return &field{
-		db: db,
-		ctx: ctx,
+		db:         db,
+		ctx:        ctx,
 		repository: s.repository.With(ctx, db),
 	}
 }

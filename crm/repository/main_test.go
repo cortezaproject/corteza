@@ -36,7 +36,7 @@ func TestMain(m *testing.M) {
 		for _, name := range []string{"crm_module", "crm_content", "crm_content_column"} {
 			_, err := db.Exec("truncate " + name)
 			if err != nil {
-				panic("Error when clearing "+name+": "+err.Error())
+				panic("Error when clearing " + name + ": " + err.Error())
 			}
 		}
 	}
