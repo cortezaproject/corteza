@@ -1,8 +1,8 @@
 package db
 
 import (
-	"log"
 	"context"
+	"log"
 	"testing"
 	"time"
 

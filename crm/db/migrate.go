@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 
-	_ "github.com/crusttech/crust/sam/db/mysql"
+	_ "github.com/crusttech/crust/crm/db/mysql"
 	"github.com/pkg/errors"
 	"github.com/rakyll/statik/fs"
 	"github.com/titpetric/factory"
@@ -27,7 +27,7 @@ func statements(contents []byte, err error) ([]string, error) {
 type migration struct {
 	Project        string
 	Filename       string
-	StatementIndex int
+	StatementIndex int `db:"statement_index"`
 	Status         string
 }
 
@@ -39,13 +39,15 @@ func Migrate(db *factory.DB) error {
 
 	var files []string
 
-	fs.Walk(statikFS, "/", func(filename string, info os.FileInfo, err error) error {
-		matched, err := filepath.Match("*.up.sql", filename)
-		if err == nil && matched {
+	if err := fs.Walk(statikFS, "/", func(filename string, info os.FileInfo, err error) error {
+		matched, err := filepath.Match("/*.up.sql", filename)
+		if matched {
 			files = append(files, filename)
 		}
-		return nil
-	})
+		return err
+	}); err != nil {
+		return errors.Wrap(err, "Error when listing files for migrations")
+	}
 
 	sort.Strings(files)
 
@@ -97,12 +99,14 @@ func Migrate(db *factory.DB) error {
 		return nil
 	}
 
-	if err := migrate("/migration.sql", false); err != nil {
+	if err := migrate("/migrations.sql", false); err != nil {
 		return err
 	}
 
 	for _, filename := range files {
-		migrate(filename, true)
+		if err := migrate(filename, true); err != nil {
+			return err
+		}
 	}
 
 	return nil
