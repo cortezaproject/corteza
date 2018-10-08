@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"log"
 	"testing"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 
 func TestMigrations(t *testing.T) {
 	args := []string{
-		"--rm",
+		// "--rm",
 		"-e", "MYSQL_ROOT_PASSWORD=root",
 		"-e", "MYSQL_DATABASE=test",
 	}
@@ -23,6 +24,7 @@ func TestMigrations(t *testing.T) {
 
 	mysql, err := dockertest.RunContainerContext(ctx, "titpetric/percona-xtrabackup", "3306", func(addr string) error {
 		factory.Database.Add("default", "root:root@tcp("+addr+")/test?collation=utf8mb4_general_ci")
+		log.Println(addr)
 		_, err := factory.Database.Get()
 		count++
 		time.Sleep(time.Second)
