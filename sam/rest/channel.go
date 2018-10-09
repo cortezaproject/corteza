@@ -67,15 +67,15 @@ func (ctrl *Channel) Members(ctx context.Context, r *request.ChannelMembers) (in
 }
 
 func (ctrl *Channel) Invite(ctx context.Context, r *request.ChannelInvite) (interface{}, error) {
-	return ctrl.wrapMemberSet(ctrl.svc.ch.InviteUser(r.ChannelID, r.UserID...))
+	return ctrl.wrapMemberSet(ctrl.svc.ch.With(ctx).InviteUser(r.ChannelID, r.UserID...))
 }
 
 func (ctrl *Channel) Join(ctx context.Context, r *request.ChannelJoin) (interface{}, error) {
-	return ctrl.wrapMemberSet(ctrl.svc.ch.AddMember(r.ChannelID, r.UserID))
+	return ctrl.wrapMemberSet(ctrl.svc.ch.With(ctx).AddMember(r.ChannelID, r.UserID))
 }
 
 func (ctrl *Channel) Part(ctx context.Context, r *request.ChannelPart) (interface{}, error) {
-	return nil, ctrl.svc.ch.DeleteMember(r.ChannelID, r.UserID)
+	return nil, ctrl.svc.ch.With(ctx).DeleteMember(r.ChannelID, r.UserID)
 }
 
 func (ctrl *Channel) Attach(ctx context.Context, r *request.ChannelAttach) (interface{}, error) {
