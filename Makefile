@@ -52,13 +52,16 @@ docker-push.%: %
 realize: $(REALIZE)
 	$(REALIZE) start
 
+dep.codegen:
+	go install github.com/rakyll/statik
+
 dep.update: $(DEP)
 	$(DEP) ensure -update -v
 
 dep: $(DEP)
 	$(DEP) ensure -v
 
-codegen: $(SPEC)
+codegen: $(SPEC) dep.codegen
 	@PATH=${PATH}:${GOPATH}/bin ./codegen.sh
 
 protobuf: $(PROTOC)
