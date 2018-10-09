@@ -37,7 +37,7 @@ func (s *module) With(ctx context.Context) ModuleService {
 	return &module{
 		db:         db,
 		ctx:        ctx,
-		repository: s.repository.With(ctx, db),
+		repository: repository.Module(ctx, db),
 	}
 }
 
