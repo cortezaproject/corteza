@@ -477,6 +477,7 @@
     "github.com/SentimensRG/ctx/sigctx",
     "github.com/crusttech/go-oidc",
     "github.com/davecgh/go-spew/spew",
+    "github.com/dgrijalva/jwt-go",
     "github.com/disintegration/imaging",
     "github.com/edwvee/exiffix",
     "github.com/go-chi/chi",
