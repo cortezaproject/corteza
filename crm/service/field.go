@@ -32,7 +32,7 @@ func (s *field) With(ctx context.Context) FieldService {
 	return &field{
 		db:         db,
 		ctx:        ctx,
-		repository: s.repository.With(ctx, db),
+		repository: repository.Field(ctx, db),
 	}
 }
 

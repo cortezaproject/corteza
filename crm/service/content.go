@@ -37,7 +37,7 @@ func (s *content) With(ctx context.Context) ContentService {
 	return &content{
 		db:         db,
 		ctx:        ctx,
-		repository: s.repository.With(ctx, db),
+		repository: repository.Content(ctx, db),
 	}
 }
 
