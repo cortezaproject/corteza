@@ -532,6 +532,7 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 				ChannelID: channelID,
 				UserID:    memberID,
 				Type:      types.ChannelMembershipTypeOwner,
+				User:      user,
 			}
 
 			if exists {
