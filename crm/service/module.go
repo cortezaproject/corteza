@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+
+	"github.com/titpetric/factory"
+
 	"github.com/crusttech/crust/crm/repository"
 	"github.com/crusttech/crust/crm/types"
 )
@@ -30,6 +33,7 @@ func Module() ModuleService {
 }
 
 func (s *module) With(ctx context.Context) ModuleService {
+	db := repository.DB(ctx)
 	return &module{
 		db:         db,
 		ctx:        ctx,
