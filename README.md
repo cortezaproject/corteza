@@ -24,7 +24,11 @@ local environment.
 An access to a (local) instance of MySQL must be available.
 Configure access to your database with `SAM_DB_DSN` and `CRM_DB_DSN`.
 
-@todo how to setup crust database
+Please check the options available with `./app -h`.
+
+The database will be populated with migrations at the start of each
+service. You don't need to pre-populate the database, just make sure
+that your permissions include CREATE and ALTER capabilities.
 
 ### Running in local environment for development
 
@@ -32,3 +36,16 @@ Everything should be set and ready to run with `make realize`. This
 utilizes realize tool that monitors codebase for changes and restarts
 api http server for every file change. It is not 100% so it needs help 
 (manual restart) in certain cases (new files added, changes in non .go files etc..)
+
+### Making changes
+
+Please refer to each project's style guidelines and guidelines for submitting patches and additions.
+In general, we follow the "fork-and-pull" Git workflow.
+
+ 1. **Fork** the repo on GitHub
+ 2. **Clone** the project to your own machine
+ 3. **Commit** changes to your own branch
+ 4. **Push** your work back up to your fork
+ 5. Submit a **Pull request** so that we can review your changes
+
+NOTE: Be sure to merge the latest master from "upstream" before making a pull request!
