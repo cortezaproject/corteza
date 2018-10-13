@@ -1,6 +1,6 @@
 ALTER TABLE channel_views DROP viewed_at;
 ALTER TABLE channel_views ADD rel_last_message_id BIGINT UNSIGNED;
-ALTER TABLE channel_views RENAME COLUMN new_since TO new_messages_count;
+ALTER TABLE channel_views CHANGE new_since new_messages_count INT UNSIGNED;
 
 -- Table structure after these changes:
 -- +---------------------+---------------------+------+-----+---------+-------+
