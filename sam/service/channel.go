@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
@@ -120,8 +119,6 @@ func (svc *channel) preloadExtras(cc types.ChannelSet) (err error) {
 	if err = svc.preloadViews(cc); err != nil {
 		return
 	}
-
-	spew.Dump(cc.FindById(55955117148471560))
 
 	return
 }

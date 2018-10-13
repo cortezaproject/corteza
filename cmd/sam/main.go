@@ -8,10 +8,13 @@ import (
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/rbac"
+	"github.com/crusttech/crust/internal/version"
 )
 
 func main() {
 	config := flags("sam", service.Flags, auth.Flags, rbac.Flags)
+
+	log.Printf("Starting sam, version: %v, built on: %v", version.Version, version.BuildTime)
 
 	// log to stdout not stderr
 	log.SetOutput(os.Stdout)
