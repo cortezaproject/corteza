@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
@@ -24,6 +25,7 @@ type (
 
 		channel repository.ChannelRepository
 		cmember repository.ChannelMemberRepository
+		cview   repository.ChannelViewRepository
 		message repository.MessageRepository
 
 		sysmsgs types.MessageSet
@@ -48,6 +50,7 @@ type (
 		Archive(ID uint64) error
 		Unarchive(ID uint64) error
 		Delete(ID uint64) error
+		RecordView(channelID, userID, lastMessageID uint64) error
 	}
 
 	// channelSecurity interface {
@@ -73,6 +76,7 @@ func (svc *channel) With(ctx context.Context) ChannelService {
 
 		channel: repository.Channel(ctx, db),
 		cmember: repository.ChannelMember(ctx, db),
+		cview:   repository.ChannelView(ctx, db),
 		message: repository.Message(ctx, db),
 
 		// System messages should be flushed at the end of each session
@@ -93,14 +97,33 @@ func (svc *channel) FindByID(id uint64) (ch *types.Channel, err error) {
 	return
 }
 
-func (svc *channel) Find(filter *types.ChannelFilter) (types.ChannelSet, error) {
+func (svc *channel) Find(filter *types.ChannelFilter) (cc types.ChannelSet, err error) {
 	filter.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	if cc, err := svc.channel.FindChannels(filter); err != nil {
-		return nil, err
-	} else {
-		return cc, svc.preloadMembers(cc)
+	return cc, svc.db.Transaction(func() (err error) {
+		if cc, err = svc.channel.FindChannels(filter); err != nil {
+			return
+		} else if err = svc.preloadExtras(cc); err != nil {
+			return
+		}
+
+		return
+	})
+}
+
+// preloadExtras pre-loads channel's members, views
+func (svc *channel) preloadExtras(cc types.ChannelSet) (err error) {
+	if err = svc.preloadMembers(cc); err != nil {
+		return
 	}
+
+	if err = svc.preloadViews(cc); err != nil {
+		return
+	}
+
+	spew.Dump(cc.FindById(55955117148471560))
+
+	return
 }
 
 func (svc *channel) preloadMembers(cc types.ChannelSet) error {
@@ -111,6 +134,21 @@ func (svc *channel) preloadMembers(cc types.ChannelSet) error {
 	} else {
 		cc.Walk(func(ch *types.Channel) error {
 			ch.Members = mm.MembersOf(ch.ID)
+			return nil
+		})
+	}
+
+	return nil
+}
+
+func (svc *channel) preloadViews(cc types.ChannelSet) error {
+	var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
+
+	if vv, err := svc.cview.Find(&types.ChannelViewFilter{UserID: userID}); err != nil {
+		return err
+	} else {
+		cc.Walk(func(ch *types.Channel) error {
+			ch.View = vv.FindByChannelId(ch.ID)
 			return nil
 		})
 	}
@@ -144,8 +182,8 @@ func (svc *channel) FindMembers(channelID uint64) (out types.ChannelMemberSet, e
 }
 
 // Returns all channels with membership info
-func (svc *channel) FindByMembership() (rval []*types.Channel, err error) {
-	return rval, svc.db.Transaction(func() error {
+func (svc *channel) FindByMembership() (cc []*types.Channel, err error) {
+	return cc, svc.db.Transaction(func() error {
 		var chMemberId = repository.Identity(svc.ctx)
 
 		var mm []*types.ChannelMember
@@ -154,12 +192,14 @@ func (svc *channel) FindByMembership() (rval []*types.Channel, err error) {
 			return err
 		}
 
-		if rval, err = svc.channel.FindChannels(nil); err != nil {
+		if cc, err = svc.channel.FindChannels(nil); err != nil {
+			return err
+		} else if err = svc.preloadExtras(cc); err != nil {
 			return err
 		}
 
 		for _, m := range mm {
-			for _, c := range rval {
+			for _, c := range cc {
 				if c.ID == m.ChannelID {
 					c.Member = m
 				}
@@ -589,6 +629,12 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 		}
 
 		return svc.flushSystemMessages()
+	})
+}
+
+func (svc *channel) RecordView(channelID, userID, lastMessageID uint64) error {
+	return svc.db.Transaction(func() (err error) {
+		return svc.cview.Record(channelID, userID, lastMessageID, 0)
 	})
 }
 

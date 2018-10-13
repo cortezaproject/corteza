@@ -48,6 +48,7 @@ func Channel(ch *sam.Channel) *outgoing.Channel {
 		Topic:         ch.Topic,
 		Type:          string(ch.Type),
 		Members:       Uint64stoa(ch.Members),
+		View:          ChannelView(ch.View),
 
 		CreatedAt:  ch.CreatedAt,
 		UpdatedAt:  ch.UpdatedAt,
@@ -81,6 +82,17 @@ func ChannelMembers(members sam.ChannelMemberSet) *outgoing.ChannelMemberSet {
 	}
 	retval := outgoing.ChannelMemberSet(mm)
 	return &retval
+}
+
+func ChannelView(v *sam.ChannelView) *outgoing.ChannelView {
+	if v == nil {
+		return nil
+	}
+
+	return &outgoing.ChannelView{
+		LastMessageID:    Uint64toa(v.LastMessageID),
+		NewMessagesCount: v.NewMessagesCount,
+	}
 }
 
 func User(user *auth.User) *outgoing.User {
