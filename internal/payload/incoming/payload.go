@@ -10,6 +10,8 @@ type Payload struct {
 	*ChannelUpdate `json:"updateChannel"`
 	*ChannelDelete `json:"deleteChannel"`
 
+	*ChannelViewRecord `json:"recordChannelView"`
+
 	// Get channel message history
 	*Messages `json:"messages"`
 

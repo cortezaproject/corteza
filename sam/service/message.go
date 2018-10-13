@@ -19,6 +19,7 @@ type (
 		attachment repository.AttachmentRepository
 		channel    repository.ChannelRepository
 		cmember    repository.ChannelMemberRepository
+		cview      repository.ChannelViewRepository
 		message    repository.MessageRepository
 		reaction   repository.ReactionRepository
 
@@ -68,6 +69,7 @@ func (svc *message) With(ctx context.Context) MessageService {
 		attachment: repository.Attachment(ctx, db),
 		channel:    repository.Channel(ctx, db),
 		cmember:    repository.ChannelMember(ctx, db),
+		cview:      repository.ChannelView(ctx, db),
 		message:    repository.Message(ctx, db),
 		reaction:   repository.Reaction(ctx, db),
 	}
@@ -169,11 +171,15 @@ func (svc *message) Direct(recipientID uint64, in *types.Message) (out *types.Me
 			return
 		}
 
+		if err = svc.cview.Inc(in.ChannelID, in.UserID); err != nil {
+			return err
+		}
+
 		return svc.sendEvent(out)
 	})
 }
 
-func (svc *message) Create(mod *types.Message) (*types.Message, error) {
+func (svc *message) Create(mod *types.Message) (message *types.Message, err error) {
 	// @todo get user from context
 	var currentUserID uint64 = repository.Identity(svc.ctx)
 
@@ -181,13 +187,17 @@ func (svc *message) Create(mod *types.Message) (*types.Message, error) {
 
 	mod.UserID = currentUserID
 
-	message, err := svc.message.CreateMessage(mod)
+	return message, svc.db.Transaction(func() (err error) {
+		if message, err = svc.message.CreateMessage(mod); err != nil {
+			return err
+		}
 
-	if err != nil {
-		return nil, err
-	}
+		if err = svc.cview.Inc(message.ChannelID, message.UserID); err != nil {
+			return err
+		}
 
-	return message, svc.sendEvent(message)
+		return svc.sendEvent(message)
+	})
 }
 
 func (svc *message) Update(mod *types.Message) (*types.Message, error) {
@@ -220,13 +230,21 @@ func (svc *message) Delete(id uint64) error {
 	// @todo load current message
 	// @todo verify ownership
 
-	err := svc.message.DeleteMessageByID(id)
+	return svc.db.Transaction(func() (err error) {
+		if err = svc.message.DeleteMessageByID(id); err != nil {
+			return
+		}
 
-	//if err == nil {
-	//	err = svc.evl.Message(message)
-	//}
+		// if err == nil {
+		// 	err = svc.evl.Message(message)
+		// }
 
-	return err
+		// if err = svc.cview.Dec(message.ChannelID, message.UserID); err != nil {
+		// 	return err
+		// }
+
+		return nil
+	})
 }
 
 func (svc *message) React(messageID uint64, reaction string) error {

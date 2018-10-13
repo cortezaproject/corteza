@@ -11,6 +11,11 @@ type (
 		ChannelID string `json:"id"`
 	}
 
+	ChannelViewRecord struct {
+		ChannelID     string `json:"channelID"`
+		LastMessageID string `json:"lastMessageID"`
+	}
+
 	ChannelCreate struct {
 		Name  *string `json:"name"`
 		Topic *string `json:"topic"`

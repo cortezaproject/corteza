@@ -32,12 +32,13 @@ type (
 
 	Channel struct {
 		// Channel to part (nil) for ALL channels
-		ID            string   `json:"ID"`
-		Name          string   `json:"name"`
-		Topic         string   `json:"topic"`
-		Type          string   `json:"type"`
-		LastMessageID string   `json:"lastMessageID"`
-		Members       []string `json:"members,omitempty"`
+		ID            string       `json:"ID"`
+		Name          string       `json:"name"`
+		Topic         string       `json:"topic"`
+		Type          string       `json:"type"`
+		LastMessageID string       `json:"lastMessageID"`
+		Members       []string     `json:"members,omitempty"`
+		View          *ChannelView `json:"view,omitempty"`
 
 		CreatedAt  time.Time  `json:"createdAt"`
 		UpdatedAt  *time.Time `json:"updatedAt,omitempty"`

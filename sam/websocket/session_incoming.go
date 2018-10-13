@@ -14,7 +14,6 @@ func (s *Session) dispatch(raw []byte) error {
 	ctx := s.Context()
 
 	switch {
-
 	// message actions
 	case p.MessageCreate != nil:
 		return s.messageCreate(ctx, p.MessageCreate)
@@ -38,6 +37,8 @@ func (s *Session) dispatch(raw []byte) error {
 		return s.channelDelete(ctx, p.ChannelDelete)
 	case p.ChannelUpdate != nil:
 		return s.channelUpdate(ctx, p.ChannelUpdate)
+	case p.ChannelViewRecord != nil:
+		return s.channelViewRecord(ctx, p.ChannelViewRecord)
 
 	case p.Users != nil:
 		return s.userList(ctx, p.Users)

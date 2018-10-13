@@ -26,6 +26,7 @@ type (
 
 		Member  *ChannelMember `json:"-" db:"-"`
 		Members []uint64       `json:"-" db:"-"`
+		View    *ChannelView   `json:"-" db:"-"`
 	}
 
 	ChannelFilter struct {
@@ -65,6 +66,16 @@ func (cc ChannelSet) Walk(w func(*Channel) error) (err error) {
 	}
 
 	return
+}
+
+func (cc ChannelSet) FindById(ID uint64) *Channel {
+	for i := range cc {
+		if cc[i].ID == ID {
+			return cc[i]
+		}
+	}
+
+	return nil
 }
 
 const (

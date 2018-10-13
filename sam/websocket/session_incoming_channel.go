@@ -105,3 +105,17 @@ func (s *Session) channelUpdate(ctx context.Context, p *incoming.ChannelUpdate) 
 	_, err = s.svc.ch.With(ctx).Update(ch)
 	return err
 }
+
+func (s *Session) channelViewRecord(ctx context.Context, p *incoming.ChannelViewRecord) error {
+	var (
+		channelID     = payload.ParseUInt64(p.ChannelID)
+		lastMessageID = payload.ParseUInt64(p.LastMessageID)
+		userID        = auth.GetIdentityFromContext(ctx).Identity()
+	)
+
+	if channelID == 0 || lastMessageID == 0 {
+		return nil
+	}
+
+	return s.svc.ch.With(ctx).RecordView(channelID, userID, lastMessageID)
+}
