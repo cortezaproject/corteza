@@ -10,6 +10,7 @@ import (
 
 	"github.com/crusttech/crust/internal/config"
 	"github.com/crusttech/crust/internal/metrics"
+	"github.com/crusttech/crust/internal/version"
 )
 
 func mountRoutes(r chi.Router, opts *config.HTTP, mounts ...func(r chi.Router)) {
@@ -32,6 +33,7 @@ func mountSystemRoutes(r chi.Router, opts *config.HTTP) {
 		r.Handle("/metrics", metrics.Handler())
 	}
 	r.Mount("/debug", middleware.Profiler())
+	r.Get("/version", version.HttpHandler)
 }
 
 func printRoutes(r chi.Router, opts *config.HTTP) {
