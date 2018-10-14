@@ -9,6 +9,7 @@ type (
 		// Channel to part (nil) for ALL channels
 		ID          string `json:"ID"`
 		Name        string `json:"name"`
+		Email       string `json:"email"`
 		Username    string `json:"username"`
 		Handle      string `json:"handle"`
 		Connections uint   `json:"connections"`

@@ -105,6 +105,7 @@ func User(user *auth.User) *outgoing.User {
 		Name:     user.Name,
 		Handle:   user.Handle,
 		Username: user.Username,
+		Email:    user.Email,
 	}
 }
 

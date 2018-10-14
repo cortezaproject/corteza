@@ -6,8 +6,10 @@ import (
 	"net/http"
 
 	"github.com/crusttech/crust/auth/repository"
-	"github.com/crusttech/crust/auth/types"
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/payload"
+	"github.com/crusttech/crust/internal/payload/outgoing"
+
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
@@ -17,8 +19,8 @@ import (
 
 type (
 	checkResponse struct {
-		JWT  string      `json:"jwt"`
-		User *types.User `json:"user"`
+		JWT  string         `json:"jwt"`
+		User *outgoing.User `json:"user"`
 	}
 )
 
@@ -48,7 +50,7 @@ func MountRoutes(oidcConfig *config.OIDC, jwtAuth jwtEncodeCookieSetter) func(ch
 					if user, err := service.DefaultUser.With(ctx).FindByID(identity.Identity()); err == nil {
 						resputil.JSON(w, checkResponse{
 							JWT:  c.Value,
-							User: user,
+							User: payload.User(user),
 						})
 
 						return
