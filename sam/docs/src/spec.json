@@ -167,7 +167,7 @@
 						{ "type": "uint64", "name": "teamID", "required": true, "title": "Team ID" }
 					],
 					"post": [
-						{ "type": "uint64", "name": "organisation_id", "required": true, "title": "Team ID" }
+						{ "type": "uint64", "name": "organisationID", "required": true, "title": "Team ID" }
 					]
 				}
 			},
