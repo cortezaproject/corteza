@@ -297,8 +297,8 @@ var _ RequestFiller = NewTeamArchive()
 
 // Team move request parameters
 type TeamMove struct {
-	TeamID          uint64
-	Organisation_id uint64
+	TeamID         uint64
+	OrganisationID uint64
 }
 
 func NewTeamMove() *TeamMove {
@@ -332,9 +332,9 @@ func (t *TeamMove) Fill(r *http.Request) error {
 	}
 
 	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
-	if val, ok := post["organisation_id"]; ok {
+	if val, ok := post["organisationID"]; ok {
 
-		t.Organisation_id = parseUInt64(val)
+		t.OrganisationID = parseUInt64(val)
 	}
 
 	return err
