@@ -64,5 +64,5 @@ func (ctrl *Team) Merge(ctx context.Context, r *request.TeamMerge) (interface{},
 }
 
 func (ctrl *Team) Move(ctx context.Context, r *request.TeamMove) (interface{}, error) {
-	return nil, ctrl.svc.team.With(ctx).Move(r.TeamID, r.Organisation_id)
+	return nil, ctrl.svc.team.With(ctx).Move(r.TeamID, r.OrganisationID)
 }
