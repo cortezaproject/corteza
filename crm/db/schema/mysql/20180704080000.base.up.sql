@@ -44,3 +44,16 @@ CREATE TABLE `crm_module_form` (
  PRIMARY KEY (`module_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE `crm_page` (
+ `id` bigint(20) unsigned NOT NULL COMMENT 'Page ID',
+ `self_id` bigint(20) unsigned NOT NULL COMMENT 'Parent Page ID',
+ `module_id` bigint(20) unsigned NOT NULL COMMENT 'Module ID (optional)',
+ `title` varchar(255) NOT NULL COMMENT 'Title (required)',
+ `description` text NOT NULL COMMENT 'Description',
+ `blocks` json NOT NULL COMMENT 'JSON array of blocks for the page',
+ `visible` tinyint(4) NOT NULL COMMENT 'Is page visible in navigation?',
+ `weight` int(11) NOT NULL COMMENT 'Order for navigation',
+ PRIMARY KEY (`id`,`self_id`),
+ KEY `module_id` (`module_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
