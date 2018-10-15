@@ -53,7 +53,8 @@ CREATE TABLE `crm_page` (
  `blocks` json NOT NULL COMMENT 'JSON array of blocks for the page',
  `visible` tinyint(4) NOT NULL COMMENT 'Is page visible in navigation?',
  `weight` int(11) NOT NULL COMMENT 'Order for navigation',
- PRIMARY KEY (`id`,`self_id`),
- KEY `module_id` (`module_id`)
+ PRIMARY KEY (`id`) USING BTREE,
+ KEY `module_id` (`module_id`),
+ KEY `self_id` (`self_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
