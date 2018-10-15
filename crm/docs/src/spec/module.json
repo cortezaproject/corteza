@@ -58,7 +58,7 @@
           "type": "uint64"
         },
         {
-          "name": "ModuleID",
+          "name": "moduleID",
           "type": "uint64"
         },
         {
@@ -186,7 +186,7 @@
       "Parameters": {
         "path": [
           {
-            "name": "module",
+            "name": "moduleID",
             "required": true,
             "title": "Module ID",
             "type": "uint64"
@@ -202,7 +202,7 @@
       "Parameters": {
         "path": [
           {
-            "name": "module",
+            "name": "moduleID",
             "required": true,
             "title": "Module ID",
             "type": "uint64"
@@ -226,7 +226,7 @@
       "Parameters": {
         "path": [
           {
-            "name": "module",
+            "name": "moduleID",
             "required": true,
             "title": "Module ID",
             "type": "uint64"
@@ -248,7 +248,7 @@
       "Parameters": {
         "path": [
           {
-            "name": "module",
+            "name": "moduleID",
             "required": true,
             "title": "Module ID",
             "type": "uint64"
@@ -278,7 +278,7 @@
       "Parameters": {
         "path": [
           {
-            "name": "module",
+            "name": "moduleID",
             "required": true,
             "title": "Module ID",
             "type": "uint64"

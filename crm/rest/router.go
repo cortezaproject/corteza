@@ -1,10 +1,11 @@
 package rest
 
 import (
+	"github.com/go-chi/chi"
+
 	"github.com/crusttech/crust/crm/rest/handlers"
 	"github.com/crusttech/crust/crm/service"
 	"github.com/crusttech/crust/internal/auth"
-	"github.com/go-chi/chi"
 )
 
 func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
@@ -12,11 +13,13 @@ func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 		fieldSvc   = service.Field()
 		moduleSvc  = service.Module()
 		contentSvc = service.Content()
+		pageSvc    = service.Page()
 	)
 
 	var (
 		field  = Field{}.New(fieldSvc)
 		module = Module{}.New(moduleSvc, contentSvc)
+		page   = Page{}.New(pageSvc)
 	)
 
 	// Initialize handers & controllers.
@@ -26,6 +29,7 @@ func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 			r.Use(auth.MiddlewareValidOnly)
 
 			handlers.NewField(field).MountRoutes(r)
+			handlers.NewPage(page).MountRoutes(r)
 			handlers.NewModule(module).MountRoutes(r)
 		})
 	}

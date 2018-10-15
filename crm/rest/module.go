@@ -1,17 +1,14 @@
 package rest
 
 import (
-	"github.com/pkg/errors"
+	"context"
 
 	"github.com/titpetric/factory/resputil"
 
-	"context"
 	"github.com/crusttech/crust/crm/rest/request"
 	"github.com/crusttech/crust/crm/service"
 	"github.com/crusttech/crust/crm/types"
 )
-
-var _ = errors.Wrap
 
 type (
 	Module struct {
@@ -63,7 +60,7 @@ func (s *Module) ContentRead(ctx context.Context, r *request.ModuleContentRead) 
 
 func (s *Module) ContentCreate(ctx context.Context, r *request.ModuleContentCreate) (interface{}, error) {
 	item := &types.Content{
-		ModuleID: r.Module,
+		ModuleID: r.ModuleID,
 		Fields:   r.Fields,
 	}
 	return s.content.With(ctx).Create(item)
@@ -72,7 +69,7 @@ func (s *Module) ContentCreate(ctx context.Context, r *request.ModuleContentCrea
 func (s *Module) ContentEdit(ctx context.Context, r *request.ModuleContentEdit) (interface{}, error) {
 	item := &types.Content{
 		ID:       r.ID,
-		ModuleID: r.Module,
+		ModuleID: r.ModuleID,
 		Fields:   r.Fields,
 	}
 	return s.content.With(ctx).Update(item)

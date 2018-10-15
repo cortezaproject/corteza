@@ -1,0 +1,152 @@
+{
+  "Title": "Pages",
+  "Description": "CRM module pages",
+  "Package": "crm",
+  "Interface": "Page",
+  "Struct": [],
+  "Parameters": null,
+  "Protocol": "",
+  "Authentication": [],
+  "Path": "/page",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List available pages",
+      "Path": "/",
+      "Parameters": null
+    },
+    {
+      "Name": "create",
+      "Method": "POST",
+      "Title": "Create page",
+      "Path": "/",
+      "Parameters": {
+        "post": [
+          {
+            "name": "selfID",
+            "required": false,
+            "title": "Parent Page ID",
+            "type": "uint64"
+          },
+          {
+            "name": "moduleID",
+            "required": false,
+            "title": "Module ID (optional)",
+            "type": "uint64"
+          },
+          {
+            "name": "title",
+            "required": true,
+            "title": "Title",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "required": false,
+            "title": "Description",
+            "type": "string"
+          },
+          {
+            "name": "visible",
+            "required": false,
+            "title": "Visible in navigation",
+            "type": "bool"
+          },
+          {
+            "name": "blocks",
+            "required": true,
+            "title": "Blocks JSON",
+            "type": "types.JSONText"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "read",
+      "Method": "GET",
+      "Title": "Get page details",
+      "Path": "/{id}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "Page ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "edit",
+      "Method": "POST",
+      "Title": "Create page",
+      "Path": "/{id}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "Page ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "selfID",
+            "required": false,
+            "title": "Parent Page ID",
+            "type": "uint64"
+          },
+          {
+            "name": "moduleID",
+            "required": false,
+            "title": "Module ID (optional)",
+            "type": "uint64"
+          },
+          {
+            "name": "title",
+            "required": true,
+            "title": "Title",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "required": false,
+            "title": "Description",
+            "type": "string"
+          },
+          {
+            "name": "visible",
+            "required": false,
+            "title": "Visible in navigation",
+            "type": "bool"
+          },
+          {
+            "name": "blocks",
+            "required": true,
+            "title": "Blocks JSON",
+            "type": "types.JSONText"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "delete",
+      "Method": "Delete",
+      "Title": "Delete page",
+      "Path": "/{id}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "id",
+            "required": true,
+            "title": "Page ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    }
+  ]
+}
