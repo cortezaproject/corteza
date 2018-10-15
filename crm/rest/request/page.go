@@ -1,0 +1,300 @@
+package request
+
+/*
+	Hello! This file is auto-generated from `docs/src/spec.json`.
+
+	For development:
+	In order to update the generated files, edit this file under the location,
+	add your struct fields, imports, API definitions and whatever you want, and:
+
+	1. run [spec](https://github.com/titpetric/spec) in the same folder,
+	2. run `./_gen.php` in this folder.
+
+	You may edit `page.go`, `page.util.go` or `page_test.go` to
+	implement your API calls, helper functions and tests. The file `page.go`
+	is only generated the first time, and will not be overwritten if it exists.
+*/
+
+import (
+	"encoding/json"
+	"github.com/go-chi/chi"
+	"github.com/jmoiron/sqlx/types"
+	"github.com/pkg/errors"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"strings"
+)
+
+var _ = chi.URLParam
+var _ = types.JSONText{}
+var _ = multipart.FileHeader{}
+
+// Page list request parameters
+type PageList struct {
+}
+
+func NewPageList() *PageList {
+	return &PageList{}
+}
+
+func (p *PageList) Fill(r *http.Request) error {
+	var err error
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(p)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewPageList()
+
+// Page create request parameters
+type PageCreate struct {
+	SelfID      uint64
+	ModuleID    uint64
+	Title       string
+	Description string
+	Visible     bool
+	Blocks      types.JSONText
+}
+
+func NewPageCreate() *PageCreate {
+	return &PageCreate{}
+}
+
+func (p *PageCreate) Fill(r *http.Request) error {
+	var err error
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(p)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	if val, ok := post["selfID"]; ok {
+
+		p.SelfID = parseUInt64(val)
+	}
+	if val, ok := post["moduleID"]; ok {
+
+		p.ModuleID = parseUInt64(val)
+	}
+	if val, ok := post["title"]; ok {
+
+		p.Title = val
+	}
+	if val, ok := post["description"]; ok {
+
+		p.Description = val
+	}
+	if val, ok := post["visible"]; ok {
+
+		p.Visible = parseBool(val)
+	}
+	if val, ok := post["blocks"]; ok {
+
+		if p.Blocks, err = parseJSONText(val); err != nil {
+			return err
+		}
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewPageCreate()
+
+// Page read request parameters
+type PageRead struct {
+	ID uint64
+}
+
+func NewPageRead() *PageRead {
+	return &PageRead{}
+}
+
+func (p *PageRead) Fill(r *http.Request) error {
+	var err error
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(p)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	p.ID = parseUInt64(chi.URLParam(r, "id"))
+
+	return err
+}
+
+var _ RequestFiller = NewPageRead()
+
+// Page edit request parameters
+type PageEdit struct {
+	ID          uint64
+	SelfID      uint64
+	ModuleID    uint64
+	Title       string
+	Description string
+	Visible     bool
+	Blocks      types.JSONText
+}
+
+func NewPageEdit() *PageEdit {
+	return &PageEdit{}
+}
+
+func (p *PageEdit) Fill(r *http.Request) error {
+	var err error
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(p)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	p.ID = parseUInt64(chi.URLParam(r, "id"))
+	if val, ok := post["selfID"]; ok {
+
+		p.SelfID = parseUInt64(val)
+	}
+	if val, ok := post["moduleID"]; ok {
+
+		p.ModuleID = parseUInt64(val)
+	}
+	if val, ok := post["title"]; ok {
+
+		p.Title = val
+	}
+	if val, ok := post["description"]; ok {
+
+		p.Description = val
+	}
+	if val, ok := post["visible"]; ok {
+
+		p.Visible = parseBool(val)
+	}
+	if val, ok := post["blocks"]; ok {
+
+		if p.Blocks, err = parseJSONText(val); err != nil {
+			return err
+		}
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewPageEdit()
+
+// Page delete request parameters
+type PageDelete struct {
+	ID uint64
+}
+
+func NewPageDelete() *PageDelete {
+	return &PageDelete{}
+}
+
+func (p *PageDelete) Fill(r *http.Request) error {
+	var err error
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(p)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	p.ID = parseUInt64(chi.URLParam(r, "id"))
+
+	return err
+}
+
+var _ RequestFiller = NewPageDelete()

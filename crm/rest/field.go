@@ -1,15 +1,12 @@
 package rest
 
 import (
-	"github.com/pkg/errors"
-
 	"context"
+
 	"github.com/crusttech/crust/crm/rest/request"
 	"github.com/crusttech/crust/crm/service"
 	"github.com/crusttech/crust/crm/types"
 )
-
-var _ = errors.Wrap
 
 type (
 	Field struct {

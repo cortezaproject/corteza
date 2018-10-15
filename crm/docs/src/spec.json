@@ -37,6 +37,80 @@
 		]
 	},
 	{
+		"title": "Pages",
+		"description": "CRM module pages",
+		"package": "crm",
+		"entrypoint": "page",
+		"path": "/page",
+		"authentication": [],
+		"struct": [],
+		"apis": [
+			{
+				"name": "list",
+				"method": "GET",
+				"path": "/",
+				"title": "List available pages"
+			},
+			{
+				"name": "create",
+				"method": "POST",
+				"title": "Create page",
+				"path": "/",
+				"parameters": {
+					"post": [
+						{ "type": "uint64", "name": "selfID", "required": false, "title": "Parent Page ID" },
+						{ "type": "uint64", "name": "moduleID", "required": false, "title": "Module ID (optional)" },
+						{ "type": "string", "name": "title", "required": true, "title": "Title" },
+						{ "type": "string", "name": "description", "required": false, "title": "Description" },
+						{ "type": "bool", "name": "visible", "required": false, "title": "Visible in navigation" },
+						{ "type": "types.JSONText", "name": "blocks", "required": true, "title": "Blocks JSON" }
+					]
+				}
+			},
+			{
+				"name": "read",
+				"path": "/{id}",
+				"method": "GET",
+				"title": "Get page details",
+				"parameters": {
+					"path": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "Page ID" }
+					]
+				}
+			},
+			{
+				"name": "edit",
+				"method": "POST",
+				"title": "Create page",
+				"path": "/{id}",
+				"parameters": {
+					"path": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "Page ID" }
+					],
+					"post": [
+						{ "type": "uint64", "name": "selfID", "required": false, "title": "Parent Page ID" },
+						{ "type": "uint64", "name": "moduleID", "required": false, "title": "Module ID (optional)" },
+						{ "type": "string", "name": "title", "required": true, "title": "Title" },
+						{ "type": "string", "name": "description", "required": false, "title": "Description" },
+						{ "type": "bool", "name": "visible", "required": false, "title": "Visible in navigation" },
+						{ "type": "types.JSONText", "name": "blocks", "required": true, "title": "Blocks JSON" }
+					]
+				}
+			},
+			{
+				"name": "delete",
+				"path": "/{id}",
+				"method": "Delete",
+				"title": "Delete page",
+				"parameters": {
+					"path": [
+						{ "type": "uint64", "name": "id", "required": true, "title": "Page ID" }
+					]
+				}
+			}
+		]
+	},
+	{
 		"title": "Modules",
 		"description": "CRM module definitions",
 		"package": "crm",
@@ -72,7 +146,7 @@
 				],
 				"fields": [
 					{ "name": "ID", "type": "uint64" },
-					{ "name": "ModuleID", "type": "uint64" },
+					{ "name": "moduleID", "type": "uint64" },
 					{ "name": "Fields", "type": "types.JSONText", "db": "json" }
 				]
 			}
@@ -145,7 +219,7 @@
 				"path": "/{module}/content",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "module", "required": true, "title": "Module ID" }
+						{ "type": "uint64", "name": "moduleID", "required": true, "title": "Module ID" }
 					]
 				}
 			},
@@ -156,7 +230,7 @@
 				"path": "/{module}/content",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "module", "required": true, "title": "Module ID" }
+						{ "type": "uint64", "name": "moduleID", "required": true, "title": "Module ID" }
 					],
 					"post": [
 						{ "type": "types.JSONText", "name": "fields", "required": true, "title": "Content JSON" }
@@ -170,7 +244,7 @@
 				"path": "/{module}/content/{id}",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "module", "required": true, "title": "Module ID" },
+						{ "type": "uint64", "name": "moduleID", "required": true, "title": "Module ID" },
 						{ "type": "uint64", "name": "id", "required": true, "title": "Content ID" }
 					]
 				}
@@ -182,7 +256,7 @@
 				"path": "/{module}/content/{id}",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "module", "required": true, "title": "Module ID" },
+						{ "type": "uint64", "name": "moduleID", "required": true, "title": "Module ID" },
 						{ "type": "uint64", "name": "id", "required": true, "title": "Content ID" }
 					],
 					"post": [
@@ -197,7 +271,7 @@
 				"path": "/{module}/content/{id}",
 				"parameters": {
 					"path": [
-						{ "type": "uint64", "name": "module", "required": true, "title": "Module ID" },
+						{ "type": "uint64", "name": "moduleID", "required": true, "title": "Module ID" },
 						{ "type": "uint64", "name": "id", "required": true, "title": "Content ID" }
 					]
 				}
