@@ -11,7 +11,8 @@ func TestPage(t *testing.T) {
 
 	// the page object we're working with
 	page := &types.Page{
-		Name: "Test",
+		Title:    "Test",
+		ModuleID: 123,
 	}
 	(&page.Blocks).Scan([]byte("[]"))
 
@@ -28,12 +29,12 @@ func TestPage(t *testing.T) {
 			ms, err := repository.FindByID(m.ID)
 			assert(t, err == nil, "Error when retrieving page by id: %+v", err)
 			assert(t, ms.ID == m.ID, "Expected ID from database to match, %d != %d", m.ID, ms.ID)
-			assert(t, ms.Name == m.Name, "Expected Name from database to match, %s != %s", m.Name, ms.Name)
+			assert(t, ms.Title == m.Title, "Expected Title from database to match, %s != %s", m.Title, ms.Title)
 		}
 
 		// update created page
 		{
-			m.Name = "Updated test"
+			m.Title = "Updated test"
 			_, err := repository.Update(m)
 			assert(t, err == nil, "Error when updating page, %+v", err)
 		}
@@ -43,7 +44,15 @@ func TestPage(t *testing.T) {
 			ms, err := repository.FindByID(m.ID)
 			assert(t, err == nil, "Error when retrieving page by id: %+v", err)
 			assert(t, ms.ID == m.ID, "Expected ID from database to match, %d != %d", m.ID, ms.ID)
-			assert(t, ms.Name == m.Name, "Expected Name from database to match, %s != %s", m.Name, ms.Name)
+			assert(t, ms.Title == m.Title, "Expected Title from database to match, %s != %s", m.Title, ms.Title)
+		}
+
+		// re-fetch page with moduleID
+		{
+			ms, err := repository.FindByModuleID(m.ModuleID)
+			assert(t, err == nil, "Error when retrieving page by id: %+v", err)
+			assert(t, ms.ID == m.ID, "Expected ID from database to match, %d != %d", m.ID, ms.ID)
+			assert(t, ms.Title == m.Title, "Expected Title from database to match, %s != %s", m.Title, ms.Title)
 		}
 
 		// fetch all pages
