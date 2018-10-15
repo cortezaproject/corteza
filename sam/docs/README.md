@@ -194,7 +194,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | teamID | uint64 | PATH | Team ID | N/A | YES |
-| organisation_id | uint64 | POST | Team ID | N/A | YES |
+| organisationID | uint64 | POST | Team ID | N/A | YES |
 
 ## Merge one team into another
 
