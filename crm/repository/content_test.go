@@ -93,7 +93,7 @@ func TestContent(t *testing.T) {
 
 		// fetch all contents
 		{
-			ms, err := repository.Find()
+			ms, err := repository.Find(module.ID, 0, 20)
 			assert(t, err == nil, "Error when retrieving contents: %+v", err)
 			assert(t, len(ms) == 1, "Expected one content, got %d", len(ms))
 			assert(t, ms[0].ModuleID == m.ModuleID, "Expected content module to match, %s != %s", m.ModuleID, ms[0].ModuleID)
@@ -107,7 +107,7 @@ func TestContent(t *testing.T) {
 
 		// fetch all contents
 		{
-			ms, err := repository.Find()
+			ms, err := repository.Find(module.ID, 0, 20)
 			assert(t, err == nil, "Error when retrieving contents: %+v", err)
 			assert(t, len(ms) == 0, "Expected no content, got %d", len(ms))
 		}

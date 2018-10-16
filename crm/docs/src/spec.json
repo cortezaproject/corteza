@@ -220,6 +220,10 @@
 				"parameters": {
 					"path": [
 						{ "type": "uint64", "name": "moduleID", "required": true, "title": "Module ID" }
+					],
+					"get": [
+						{ "name": "page", "type": "int", "required": false, "title": "Page number (0 based)" },
+						{ "name": "perPage", "type": "int", "required": false, "title": "Returned items per page (default 50)" }
 					]
 				}
 			},

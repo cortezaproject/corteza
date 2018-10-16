@@ -17,13 +17,21 @@ func parseJSONText(s string) (types.JSONText, error) {
 	return *result, err
 }
 
+// parseInt parses a string to int
+func parseInt(s string) int {
+	if s == "" {
+		return 0
+	}
+	i, _ := strconv.Atoi(s)
+	return i
+}
+
 // parseInt64 parses an string to int64
 func parseInt64(s string) int64 {
 	if s == "" {
 		return 0
 	}
 	i, _ := strconv.ParseInt(s, 10, 64)
-
 	return i
 }
 

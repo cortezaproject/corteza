@@ -11,6 +11,7 @@ type (
 	Content struct {
 		ID       uint64 `json:"id" db:"id"`
 		ModuleID uint64 `json:"moduleID" db:"module_id"`
+		Page     *Page  `json:"page,omitempty"`
 
 		Fields types.JSONText `json:"fields,omitempty" db:"-"`
 

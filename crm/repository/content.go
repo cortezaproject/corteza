@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -18,7 +19,9 @@ type (
 		With(ctx context.Context, db *factory.DB) ContentRepository
 
 		FindByID(id uint64) (*types.Content, error)
-		Find() ([]*types.Content, error)
+
+		Find(moduleID uint64, page int, perPage int) ([]*types.Content, error)
+
 		Create(mod *types.Content) (*types.Content, error)
 		Update(mod *types.Content) (*types.Content, error)
 		DeleteByID(id uint64) error
@@ -54,9 +57,21 @@ func (r *content) FindByID(id uint64) (*types.Content, error) {
 	return mod, nil
 }
 
-func (r *content) Find() ([]*types.Content, error) {
+func (r *content) Find(moduleID uint64, page int, perPage int) ([]*types.Content, error) {
 	mod := make([]*types.Content, 0)
-	return mod, r.db().Select(&mod, "SELECT * FROM crm_content WHERE deleted_at IS NULL ORDER BY id DESC")
+	if page < 0 {
+		page = 0
+	}
+	if perPage <= 0 {
+		perPage = 50
+	}
+	if perPage > 100 {
+		perPage = 100
+	}
+	if perPage < 10 {
+		perPage = 10
+	}
+	return mod, r.db().Select(&mod, fmt.Sprintf("SELECT * FROM crm_content WHERE module_id=? and deleted_at IS NULL ORDER BY id DESC LIMIT %d, %d", page, perPage), moduleID)
 }
 
 func (r *content) Create(mod *types.Content) (*types.Content, error) {
