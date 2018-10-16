@@ -45,7 +45,13 @@ func (r *content) With(ctx context.Context, db *factory.DB) ContentRepository {
 
 func (r *content) FindByID(id uint64) (*types.Content, error) {
 	mod := &types.Content{}
-	return mod, r.db().Get(mod, "SELECT * FROM crm_content WHERE id=? and deleted_at IS NULL", id)
+	if err := r.db().Get(mod, "SELECT * FROM crm_content WHERE id=? and deleted_at IS NULL", id); err != nil {
+		return nil, err
+	}
+	if err := r.fillPage(mod); err != nil {
+		return nil, err
+	}
+	return mod, nil
 }
 
 func (r *content) Find() ([]*types.Content, error) {
@@ -121,4 +127,10 @@ func (r *content) Fields(content *types.Content) ([]*types.ContentColumn, error)
 		args = append(args, v)
 	}
 	return result, r.db().Select(&result, "select * from crm_content_column where content_id=? order by "+order, args...)
+}
+
+func (r *content) fillPage(content *types.Content) (err error) {
+	api := Page(r.Context(), r.db())
+	content.Page, err = api.FindByModuleID(content.ModuleID)
+	return
 }
