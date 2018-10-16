@@ -33,7 +33,7 @@ var _ = multipart.FileHeader{}
 // Message create request parameters
 type MessageCreate struct {
 	Message   string
-	ChannelID uint64
+	ChannelID uint64 `json:",string"`
 }
 
 func NewMessageCreate() *MessageCreate {
@@ -79,8 +79,8 @@ var _ RequestFiller = NewMessageCreate()
 
 // Message history request parameters
 type MessageHistory struct {
-	LastMessageID uint64
-	ChannelID     uint64
+	LastMessageID uint64 `json:",string"`
+	ChannelID     uint64 `json:",string"`
 }
 
 func NewMessageHistory() *MessageHistory {
@@ -126,8 +126,8 @@ var _ RequestFiller = NewMessageHistory()
 
 // Message edit request parameters
 type MessageEdit struct {
-	MessageID uint64
-	ChannelID uint64
+	MessageID uint64 `json:",string"`
+	ChannelID uint64 `json:",string"`
 	Message   string
 }
 
@@ -175,8 +175,8 @@ var _ RequestFiller = NewMessageEdit()
 
 // Message delete request parameters
 type MessageDelete struct {
-	MessageID uint64
-	ChannelID uint64
+	MessageID uint64 `json:",string"`
+	ChannelID uint64 `json:",string"`
 }
 
 func NewMessageDelete() *MessageDelete {
@@ -221,7 +221,7 @@ var _ RequestFiller = NewMessageDelete()
 type MessageSearch struct {
 	Query        string
 	Message_type string
-	ChannelID    uint64
+	ChannelID    uint64 `json:",string"`
 }
 
 func NewMessageSearch() *MessageSearch {
@@ -271,8 +271,8 @@ var _ RequestFiller = NewMessageSearch()
 
 // Message pin request parameters
 type MessagePin struct {
-	MessageID uint64
-	ChannelID uint64
+	MessageID uint64 `json:",string"`
+	ChannelID uint64 `json:",string"`
 }
 
 func NewMessagePin() *MessagePin {
@@ -315,8 +315,8 @@ var _ RequestFiller = NewMessagePin()
 
 // Message unpin request parameters
 type MessageUnpin struct {
-	MessageID uint64
-	ChannelID uint64
+	MessageID uint64 `json:",string"`
+	ChannelID uint64 `json:",string"`
 }
 
 func NewMessageUnpin() *MessageUnpin {
@@ -359,8 +359,8 @@ var _ RequestFiller = NewMessageUnpin()
 
 // Message flag request parameters
 type MessageFlag struct {
-	MessageID uint64
-	ChannelID uint64
+	MessageID uint64 `json:",string"`
+	ChannelID uint64 `json:",string"`
 }
 
 func NewMessageFlag() *MessageFlag {
@@ -403,8 +403,8 @@ var _ RequestFiller = NewMessageFlag()
 
 // Message unflag request parameters
 type MessageUnflag struct {
-	MessageID uint64
-	ChannelID uint64
+	MessageID uint64 `json:",string"`
+	ChannelID uint64 `json:",string"`
 }
 
 func NewMessageUnflag() *MessageUnflag {
@@ -447,9 +447,9 @@ var _ RequestFiller = NewMessageUnflag()
 
 // Message react request parameters
 type MessageReact struct {
-	MessageID uint64
+	MessageID uint64 `json:",string"`
 	Reaction  string
-	ChannelID uint64
+	ChannelID uint64 `json:",string"`
 }
 
 func NewMessageReact() *MessageReact {
@@ -493,9 +493,9 @@ var _ RequestFiller = NewMessageReact()
 
 // Message unreact request parameters
 type MessageUnreact struct {
-	MessageID uint64
+	MessageID uint64 `json:",string"`
 	Reaction  string
-	ChannelID uint64
+	ChannelID uint64 `json:",string"`
 }
 
 func NewMessageUnreact() *MessageUnreact {

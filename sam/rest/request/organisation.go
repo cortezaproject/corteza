@@ -122,7 +122,7 @@ var _ RequestFiller = NewOrganisationCreate()
 
 // Organisation edit request parameters
 type OrganisationEdit struct {
-	ID   uint64
+	ID   uint64 `json:",string"`
 	Name string
 }
 
@@ -169,7 +169,7 @@ var _ RequestFiller = NewOrganisationEdit()
 
 // Organisation remove request parameters
 type OrganisationRemove struct {
-	ID uint64
+	ID uint64 `json:",string"`
 }
 
 func NewOrganisationRemove() *OrganisationRemove {
@@ -211,7 +211,7 @@ var _ RequestFiller = NewOrganisationRemove()
 
 // Organisation read request parameters
 type OrganisationRead struct {
-	ID uint64
+	ID uint64 `json:",string"`
 }
 
 func NewOrganisationRead() *OrganisationRead {
@@ -256,7 +256,7 @@ var _ RequestFiller = NewOrganisationRead()
 
 // Organisation archive request parameters
 type OrganisationArchive struct {
-	ID uint64
+	ID uint64 `json:",string"`
 }
 
 func NewOrganisationArchive() *OrganisationArchive {
