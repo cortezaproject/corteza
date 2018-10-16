@@ -79,6 +79,7 @@ var _ RequestFiller = NewChannelList()
 type ChannelCreate struct {
 	Name  string
 	Topic string
+	Type  string
 }
 
 func NewChannelCreate() *ChannelCreate {
@@ -119,6 +120,10 @@ func (c *ChannelCreate) Fill(r *http.Request) error {
 
 		c.Topic = val
 	}
+	if val, ok := post["type"]; ok {
+
+		c.Type = val
+	}
 
 	return err
 }
@@ -130,6 +135,7 @@ type ChannelEdit struct {
 	ChannelID      uint64
 	Name           string
 	Topic          string
+	Type           string
 	Archive        bool
 	OrganisationID uint64
 }
@@ -172,6 +178,10 @@ func (c *ChannelEdit) Fill(r *http.Request) error {
 	if val, ok := post["topic"]; ok {
 
 		c.Topic = val
+	}
+	if val, ok := post["type"]; ok {
+
+		c.Type = val
 	}
 	if val, ok := post["archive"]; ok {
 

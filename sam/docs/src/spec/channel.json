@@ -46,6 +46,12 @@
             "required": false,
             "title": "Subject of Channel",
             "type": "string"
+          },
+          {
+            "name": "type",
+            "required": false,
+            "title": "Channel type",
+            "type": "string"
           }
         ]
       }
@@ -75,6 +81,12 @@
             "name": "topic",
             "required": false,
             "title": "Subject of Channel",
+            "type": "string"
+          },
+          {
+            "name": "type",
+            "required": false,
+            "title": "Channel type",
             "type": "string"
           },
           {
