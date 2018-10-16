@@ -20,6 +20,8 @@ type (
 		With(ctx context.Context) EventService
 		Message(m *types.Message) error
 		Channel(m *types.Channel) error
+		Join(userID, channelID uint64) error
+		Part(userID, channelID uint64) error
 	}
 )
 
@@ -45,6 +47,7 @@ func (svc *event) Message(m *types.Message) error {
 // If this is a public channel we notify everyone
 func (svc *event) Channel(ch *types.Channel) error {
 	sub := ch.ID
+
 	if ch.Type == types.ChannelTypePublic {
 		sub = 0
 	}
@@ -56,8 +59,40 @@ func (svc *event) Channel(ch *types.Channel) error {
 //
 // Subscription will match when session's user ID is the same as sub
 // We pack channel ID (the id to subscribe to) as payload
-func (svc *event) Join(userID, channelID uint64) error {
-	return svc.push(payload.Channel(&types.Channel{ID: channelID}), types.EventQueueItemSubTypeUser, userID)
+func (svc *event) Join(userID, channelID uint64) (err error) {
+	join := payload.ChannelJoin(channelID, userID)
+
+	// Subscribe user to the channel
+	if err = svc.push(join, types.EventQueueItemSubTypeUser, 0); err != nil {
+		return
+	}
+
+	// Let subscribers know that this user has joined the channel
+	if err = svc.push(join, types.EventQueueItemSubTypeChannel, channelID); err != nil {
+		return
+	}
+
+	return
+}
+
+// Part sends force-channel-part event to all matching subscriptions
+//
+// Subscription will match when session's user ID is the same as sub
+// We pack channel ID (the id to subscribe to) as payload
+func (svc *event) Part(userID, channelID uint64) (err error) {
+	part := payload.ChannelPart(channelID, userID)
+
+	// Let subscribers know that this user has parted the channel
+	if err = svc.push(part, types.EventQueueItemSubTypeChannel, channelID); err != nil {
+		return
+	}
+
+	// Subscribe user to the channel
+	if err = svc.push(part, types.EventQueueItemSubTypeUser, 0); err != nil {
+		return
+	}
+
+	return
 }
 
 func (svc *event) push(m outgoing.MessageEncoder, subType types.EventQueueItemSubType, sub uint64) error {
@@ -66,11 +101,10 @@ func (svc *event) push(m outgoing.MessageEncoder, subType types.EventQueueItemSu
 		return err
 	}
 
-	item := &types.EventQueueItem{Payload: enc}
+	item := &types.EventQueueItem{Payload: enc, SubType: subType}
 
 	if sub > 0 {
 		item.Subscriber = payload.Uint64toa(sub)
-		item.SubType = subType
 	}
 
 	return svc.events.Push(svc.ctx, item)

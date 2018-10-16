@@ -22,14 +22,6 @@ type (
 		UserID string `json:"uid"`
 	}
 
-	ChannelDeleted struct {
-		// Channel that was deleted
-		ID string `json:"id"`
-
-		// Who deleted it
-		UserID string `json:"uid"`
-	}
-
 	Channel struct {
 		// Channel to part (nil) for ALL channels
 		ID            string       `json:"ID"`
