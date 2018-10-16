@@ -39,6 +39,8 @@ type (
 		Name   string         `json:"name" db:"name"`
 		Fields types.JSONText `json:"fields" db:"json"`
 
+		Page *Page `json:"page,omitempty"`
+
 		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
