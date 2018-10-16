@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/internal/payload"
@@ -60,37 +61,53 @@ func (eq *eventQueue) feedSessions(ctx context.Context, config *repository.Flags
 			return err
 		}
 
-		if item.Subscriber == "" {
+		if item.SubType == types.EventQueueItemSubTypeUser {
+			p := &outgoing.Payload{}
+
+			spew.Dump(string(item.Payload))
+			if err := json.Unmarshal(item.Payload, p); err != nil {
+				return err
+			}
+
+			if p.ChannelJoin != nil {
+				// Handle subscribing
+
+				// This store.Walk handler does not send to subscribed sessions but
+				// subscribes all sessions that belong to the same user
+				store.Walk(func(s *Session) {
+					if payload.Uint64toa(s.user.Identity()) == p.ChannelJoin.UserID {
+						s.subs.Add(p.ChannelJoin.ID)
+					}
+				})
+			} else if p.ChannelPart != nil {
+				// Handle un-subscribing
+
+				// This store.Walk handler does not send to subscribed sessions but
+				// subscribes all sessions that belong to the same user
+				store.Walk(func(s *Session) {
+					if payload.Uint64toa(s.user.Identity()) == p.ChannelPart.UserID {
+						s.subs.Delete(p.ChannelPart.ID)
+					}
+				})
+			} else {
+				// No other payload types we can handle at the moment.
+				return nil
+			}
+
+		} else if item.Subscriber == "" {
 			// Distribute payload to all connected sessions
 			store.Walk(func(s *Session) {
 				s.sendBytes(item.Payload)
 			})
 		} else {
-			switch item.SubType {
-			case types.EventQueueItemSubTypeUser:
-				// Holds channel info (in fact, ID only) when payload is unmarshaled
-				var join *outgoing.Channel
-				if err := json.Unmarshal(item.Payload, join); err == nil {
-					return err
+			// Distribute payload to specific subscribers
+			store.Walk(func(s *Session) {
+				if s.subs.Get(item.Subscriber) != nil {
+					s.sendBytes(item.Payload)
 				}
-
-				// This store.Walk handler does send to subscribed sessions but
-				// subscribes all sessions that belong to the same user
-				store.Walk(func(s *Session) {
-					if payload.Uint64toa(s.user.Identity()) == item.Subscriber {
-						s.subs.Add(join.ID)
-					}
-				})
-			case types.EventQueueItemSubTypeChannel:
-				// Distribute payload to specific subscribers
-				store.Walk(func(s *Session) {
-					if s.subs.Get(item.Subscriber) != nil {
-						s.sendBytes(item.Payload)
-					}
-				})
-			}
-
+			})
 		}
+
 	}
 }
 

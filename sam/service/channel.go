@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
@@ -264,6 +265,12 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 			return
 		}
 
+		// When broadcasting, make sure we let the subscribers know
+		// that creator is also a member...
+		out.Members = append(out.Members, chCreatorID)
+
+		svc.evl.Join(chCreatorID, out.ID)
+
 		// Create the first message, doing this directly with repository to circumvent
 		// message service constraints
 		svc.scheduleSystemMessage(
@@ -364,6 +371,9 @@ func (svc *channel) Delete(id uint64) error {
 
 		if ch.DeletedAt != nil {
 			return errors.New("Channel already deleted")
+		} else {
+			now := time.Now()
+			ch.DeletedAt = &now
 		}
 
 		svc.scheduleSystemMessage(ch, "@%d deleted this channel", userID)
@@ -578,11 +588,14 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 				member, err = svc.cmember.Create(member)
 			}
 
+			svc.evl.Join(memberID, channelID)
+
 			if err != nil {
 				return err
 			}
 
 			out = append(out, member)
+
 		}
 
 		return svc.flushSystemMessages()
@@ -623,6 +636,8 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 			if err = svc.cmember.Delete(channelID, memberID); err != nil {
 				return err
 			}
+
+			svc.evl.Part(memberID, channelID)
 		}
 
 		return svc.flushSystemMessages()

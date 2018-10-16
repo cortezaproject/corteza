@@ -95,6 +95,20 @@ func ChannelView(v *sam.ChannelView) *outgoing.ChannelView {
 	}
 }
 
+func ChannelJoin(channelID, userID uint64) *outgoing.ChannelJoin {
+	return &outgoing.ChannelJoin{
+		ID:     Uint64toa(channelID),
+		UserID: Uint64toa(userID),
+	}
+}
+
+func ChannelPart(channelID, userID uint64) *outgoing.ChannelPart {
+	return &outgoing.ChannelPart{
+		ID:     Uint64toa(channelID),
+		UserID: Uint64toa(userID),
+	}
+}
+
 func User(user *auth.User) *outgoing.User {
 	if user == nil {
 		return nil
