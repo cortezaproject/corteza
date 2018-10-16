@@ -246,6 +246,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | name | string | POST | Name of Channel | N/A | YES |
 | topic | string | POST | Subject of Channel | N/A | NO |
+| type | string | POST | Channel type | N/A | NO |
 
 ## Update channel details
 
@@ -262,6 +263,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | channelID | uint64 | PATH | Channel ID | N/A | YES |
 | name | string | POST | Name of Channel | N/A | NO |
 | topic | string | POST | Subject of Channel | N/A | NO |
+| type | string | POST | Channel type | N/A | NO |
 | archive | bool | POST | Request channel to be archived or unarchived | N/A | NO |
 | organisationID | uint64 | POST | Move channel to different organisation | N/A | NO |
 
