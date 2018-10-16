@@ -77,7 +77,7 @@ var _ RequestFiller = NewUserSearch()
 
 // User message request parameters
 type UserMessage struct {
-	UserID  uint64
+	UserID  uint64 `json:",string"`
 	Message string
 }
 

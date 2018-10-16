@@ -129,7 +129,7 @@ var _ RequestFiller = NewModuleCreate()
 
 // Module read request parameters
 type ModuleRead struct {
-	ID uint64
+	ID uint64 `json:",string"`
 }
 
 func NewModuleRead() *ModuleRead {
@@ -171,7 +171,7 @@ var _ RequestFiller = NewModuleRead()
 
 // Module edit request parameters
 type ModuleEdit struct {
-	ID     uint64
+	ID     uint64 `json:",string"`
 	Name   string
 	Fields types.JSONText
 }
@@ -225,7 +225,7 @@ var _ RequestFiller = NewModuleEdit()
 
 // Module delete request parameters
 type ModuleDelete struct {
-	ID uint64
+	ID uint64 `json:",string"`
 }
 
 func NewModuleDelete() *ModuleDelete {
@@ -269,7 +269,7 @@ var _ RequestFiller = NewModuleDelete()
 type ModuleContentList struct {
 	Page     int
 	PerPage  int
-	ModuleID uint64
+	ModuleID uint64 `json:",string"`
 }
 
 func NewModuleContentList() *ModuleContentList {
@@ -319,7 +319,7 @@ var _ RequestFiller = NewModuleContentList()
 
 // Module content/create request parameters
 type ModuleContentCreate struct {
-	ModuleID uint64
+	ModuleID uint64 `json:",string"`
 	Fields   types.JSONText
 }
 
@@ -368,8 +368,8 @@ var _ RequestFiller = NewModuleContentCreate()
 
 // Module content/read request parameters
 type ModuleContentRead struct {
-	ModuleID uint64
-	ID       uint64
+	ModuleID uint64 `json:",string"`
+	ID       uint64 `json:",string"`
 }
 
 func NewModuleContentRead() *ModuleContentRead {
@@ -412,8 +412,8 @@ var _ RequestFiller = NewModuleContentRead()
 
 // Module content/edit request parameters
 type ModuleContentEdit struct {
-	ModuleID uint64
-	ID       uint64
+	ModuleID uint64 `json:",string"`
+	ID       uint64 `json:",string"`
 	Fields   types.JSONText
 }
 
@@ -463,8 +463,8 @@ var _ RequestFiller = NewModuleContentEdit()
 
 // Module content/delete request parameters
 type ModuleContentDelete struct {
-	ModuleID uint64
-	ID       uint64
+	ModuleID uint64 `json:",string"`
+	ID       uint64 `json:",string"`
 }
 
 func NewModuleContentDelete() *ModuleContentDelete {

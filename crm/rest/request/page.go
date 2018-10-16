@@ -71,8 +71,8 @@ var _ RequestFiller = NewPageList()
 
 // Page create request parameters
 type PageCreate struct {
-	SelfID      uint64
-	ModuleID    uint64
+	SelfID      uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
 	Title       string
 	Description string
 	Visible     bool
@@ -143,7 +143,7 @@ var _ RequestFiller = NewPageCreate()
 
 // Page read request parameters
 type PageRead struct {
-	ID uint64
+	ID uint64 `json:",string"`
 }
 
 func NewPageRead() *PageRead {
@@ -185,9 +185,9 @@ var _ RequestFiller = NewPageRead()
 
 // Page edit request parameters
 type PageEdit struct {
-	ID          uint64
-	SelfID      uint64
-	ModuleID    uint64
+	ID          uint64 `json:",string"`
+	SelfID      uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
 	Title       string
 	Description string
 	Visible     bool
@@ -259,7 +259,7 @@ var _ RequestFiller = NewPageEdit()
 
 // Page delete request parameters
 type PageDelete struct {
-	ID uint64
+	ID uint64 `json:",string"`
 }
 
 func NewPageDelete() *PageDelete {

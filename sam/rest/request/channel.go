@@ -132,12 +132,12 @@ var _ RequestFiller = NewChannelCreate()
 
 // Channel edit request parameters
 type ChannelEdit struct {
-	ChannelID      uint64
+	ChannelID      uint64 `json:",string"`
 	Name           string
 	Topic          string
 	Type           string
 	Archive        bool
-	OrganisationID uint64
+	OrganisationID uint64 `json:",string"`
 }
 
 func NewChannelEdit() *ChannelEdit {
@@ -199,7 +199,7 @@ var _ RequestFiller = NewChannelEdit()
 
 // Channel read request parameters
 type ChannelRead struct {
-	ChannelID uint64
+	ChannelID uint64 `json:",string"`
 }
 
 func NewChannelRead() *ChannelRead {
@@ -241,7 +241,7 @@ var _ RequestFiller = NewChannelRead()
 
 // Channel delete request parameters
 type ChannelDelete struct {
-	ChannelID uint64
+	ChannelID uint64 `json:",string"`
 }
 
 func NewChannelDelete() *ChannelDelete {
@@ -283,7 +283,7 @@ var _ RequestFiller = NewChannelDelete()
 
 // Channel members request parameters
 type ChannelMembers struct {
-	ChannelID uint64
+	ChannelID uint64 `json:",string"`
 }
 
 func NewChannelMembers() *ChannelMembers {
@@ -325,8 +325,8 @@ var _ RequestFiller = NewChannelMembers()
 
 // Channel join request parameters
 type ChannelJoin struct {
-	ChannelID uint64
-	UserID    uint64
+	ChannelID uint64 `json:",string"`
+	UserID    uint64 `json:",string"`
 }
 
 func NewChannelJoin() *ChannelJoin {
@@ -369,8 +369,8 @@ var _ RequestFiller = NewChannelJoin()
 
 // Channel part request parameters
 type ChannelPart struct {
-	ChannelID uint64
-	UserID    uint64
+	ChannelID uint64 `json:",string"`
+	UserID    uint64 `json:",string"`
 }
 
 func NewChannelPart() *ChannelPart {
@@ -413,7 +413,7 @@ var _ RequestFiller = NewChannelPart()
 
 // Channel invite request parameters
 type ChannelInvite struct {
-	ChannelID uint64
+	ChannelID uint64 `json:",string"`
 	UserID    []uint64
 }
 
@@ -456,7 +456,7 @@ var _ RequestFiller = NewChannelInvite()
 
 // Channel attach request parameters
 type ChannelAttach struct {
-	ChannelID uint64
+	ChannelID uint64 `json:",string"`
 	Upload    *multipart.FileHeader
 }
 

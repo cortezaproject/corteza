@@ -33,7 +33,7 @@ var _ = multipart.FileHeader{}
 // Attachment original request parameters
 type AttachmentOriginal struct {
 	Download     bool
-	AttachmentID uint64
+	AttachmentID uint64 `json:",string"`
 }
 
 func NewAttachmentOriginal() *AttachmentOriginal {
@@ -79,7 +79,7 @@ var _ RequestFiller = NewAttachmentOriginal()
 
 // Attachment preview request parameters
 type AttachmentPreview struct {
-	AttachmentID uint64
+	AttachmentID uint64 `json:",string"`
 }
 
 func NewAttachmentPreview() *AttachmentPreview {

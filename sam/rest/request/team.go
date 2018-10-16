@@ -123,7 +123,7 @@ var _ RequestFiller = NewTeamCreate()
 
 // Team edit request parameters
 type TeamEdit struct {
-	TeamID  uint64
+	TeamID  uint64 `json:",string"`
 	Name    string
 	Members []uint64
 }
@@ -171,7 +171,7 @@ var _ RequestFiller = NewTeamEdit()
 
 // Team read request parameters
 type TeamRead struct {
-	TeamID uint64
+	TeamID uint64 `json:",string"`
 }
 
 func NewTeamRead() *TeamRead {
@@ -213,7 +213,7 @@ var _ RequestFiller = NewTeamRead()
 
 // Team remove request parameters
 type TeamRemove struct {
-	TeamID uint64
+	TeamID uint64 `json:",string"`
 }
 
 func NewTeamRemove() *TeamRemove {
@@ -255,7 +255,7 @@ var _ RequestFiller = NewTeamRemove()
 
 // Team archive request parameters
 type TeamArchive struct {
-	TeamID uint64
+	TeamID uint64 `json:",string"`
 }
 
 func NewTeamArchive() *TeamArchive {
@@ -297,8 +297,8 @@ var _ RequestFiller = NewTeamArchive()
 
 // Team move request parameters
 type TeamMove struct {
-	TeamID         uint64
-	OrganisationID uint64
+	TeamID         uint64 `json:",string"`
+	OrganisationID uint64 `json:",string"`
 }
 
 func NewTeamMove() *TeamMove {
@@ -344,8 +344,8 @@ var _ RequestFiller = NewTeamMove()
 
 // Team merge request parameters
 type TeamMerge struct {
-	TeamID      uint64
-	Destination uint64
+	TeamID      uint64 `json:",string"`
+	Destination uint64 `json:",string"`
 }
 
 func NewTeamMerge() *TeamMerge {

@@ -9,8 +9,8 @@ import (
 type (
 	// Content is a stored row in the `content` table
 	Content struct {
-		ID       uint64 `json:"id" db:"id"`
-		ModuleID uint64 `json:"moduleID" db:"module_id"`
+		ID       uint64 `json:"id,string" db:"id"`
+		ModuleID uint64 `json:"moduleID,string" db:"module_id"`
 		Page     *Page  `json:"page,omitempty"`
 
 		Fields types.JSONText `json:"fields,omitempty" db:"-"`
@@ -22,7 +22,7 @@ type (
 
 	// ContentColumn is a stored row in the `content_column` table
 	ContentColumn struct {
-		ContentID uint64 `json:"contentID" db:"content_id"`
+		ContentID uint64 `json:"contentID,string" db:"content_id"`
 		Name      string `json:"name" db:"column_name"`
 		Value     string `json:"value" db:"column_value"`
 	}
@@ -36,7 +36,7 @@ type (
 
 	// Modules - CRM module definitions
 	Module struct {
-		ID     uint64         `json:"id" db:"id"`
+		ID     uint64         `json:"id,string" db:"id"`
 		Name   string         `json:"name" db:"name"`
 		Fields types.JSONText `json:"fields" db:"json"`
 
@@ -49,7 +49,7 @@ type (
 
 	// Modules - CRM module definitions
 	ModuleField struct {
-		ModuleID uint64 `json:"moduleID" db:"module_id"`
+		ModuleID uint64 `json:"moduleID,string" db:"module_id"`
 		Place    int    `json:"-" db:"place"`
 
 		Kind      string `json:"kind" db:"kind"`
@@ -63,10 +63,10 @@ type (
 
 	// Page - page structure
 	Page struct {
-		ID     uint64 `json:"id" db:"id"`
-		SelfID uint64 `json:"selfID" db:"self_id"`
+		ID     uint64 `json:"id,string" db:"id"`
+		SelfID uint64 `json:"selfID,string" db:"self_id"`
 
-		ModuleID uint64  `json:"moduleID" db:"module_id"`
+		ModuleID uint64  `json:"moduleID,string" db:"module_id"`
 		Module   *Module `json:"module,omitempty" db:"-"`
 
 		Title       string `json:"title" db:"title"`
