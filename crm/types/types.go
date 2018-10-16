@@ -60,9 +60,11 @@ type (
 
 	// Page - page structure
 	Page struct {
-		ID       uint64 `json:"id" db:"id"`
-		SelfID   uint64 `json:"selfID" db:"self_id"`
-		ModuleID uint64 `json:"moduleID" db:"module_id"`
+		ID     uint64 `json:"id" db:"id"`
+		SelfID uint64 `json:"selfID" db:"self_id"`
+
+		ModuleID uint64  `json:"moduleID" db:"module_id"`
+		Module   *Module `json:"module,omitempty" db:"-"`
 
 		Title       string `json:"title" db:"title"`
 		Description string `json:"description" db:"description"`
