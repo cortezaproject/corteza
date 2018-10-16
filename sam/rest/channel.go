@@ -34,6 +34,7 @@ func (ctrl *Channel) Create(ctx context.Context, r *request.ChannelCreate) (inte
 	channel := &types.Channel{
 		Name:  r.Name,
 		Topic: r.Topic,
+		Type:  types.ChannelType(r.Type),
 	}
 
 	return ctrl.wrap(ctrl.svc.ch.With(ctx).Create(channel))
@@ -44,6 +45,7 @@ func (ctrl *Channel) Edit(ctx context.Context, r *request.ChannelEdit) (interfac
 		ID:    r.ChannelID,
 		Name:  r.Name,
 		Topic: r.Topic,
+		Type:  types.ChannelType(r.Type),
 	}
 
 	return ctrl.wrap(ctrl.svc.ch.With(ctx).Update(channel))

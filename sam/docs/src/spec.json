@@ -214,7 +214,8 @@
 				"parameters": {
 					"post": [
 						{ "type": "string", "name": "name", "required": true, "title": "Name of Channel" },
-						{ "type": "string", "name": "topic", "required": false, "title": "Subject of Channel" }
+						{ "type": "string", "name": "topic", "required": false, "title": "Subject of Channel" },
+						{ "type": "string", "name": "type", "required": false, "title": "Channel type" }
 					]
 				}
 			},
@@ -230,6 +231,7 @@
 					"post": [
 						{ "type": "string", "name": "name", "required": false, "title": "Name of Channel" },
 						{ "type": "string", "name": "topic", "required": false, "title": "Subject of Channel" },
+						{ "type": "string", "name": "type", "required": false, "title": "Channel type" },
 						{ "type": "bool",   "name": "archive", "required": false, "title": "Request channel to be archived or unarchived" },
 						{ "type": "uint64", "name": "organisationID", "required": false, "title": "Move channel to different organisation" }
 					]
