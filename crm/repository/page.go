@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/crm/types"
@@ -50,10 +51,7 @@ func (r *page) FindByID(id uint64) (*types.Page, error) {
 func (r *page) FindByModuleID(id uint64) (*types.Page, error) {
 	page := &types.Page{}
 	if err := r.db().Get(page, "SELECT * FROM crm_page WHERE module_id=?", id); err != nil {
-		return page, err
-	}
-	if err := r.fillModule(page); err != nil {
-		return page, err
+		return nil, err
 	}
 	return page, nil
 }
@@ -73,6 +71,15 @@ func (r *page) Find() ([]*types.Page, error) {
 
 func (r *page) Create(page *types.Page) (*types.Page, error) {
 	page.ID = factory.Sonyflake.NextID()
+	if page.ModuleID > 0 {
+		check, err := r.FindByModuleID(page.ModuleID)
+		if err != nil {
+			return nil, err
+		}
+		if check.ID > 0 {
+			return nil, errors.New("Page for module already exists")
+		}
+	}
 	return page, r.db().Insert("crm_page", page)
 }
 
