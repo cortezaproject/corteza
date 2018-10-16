@@ -76,6 +76,7 @@ usort($apis, function($a, $b) {
 
 $parsers = array(
 	"uint64" => "parseUInt64",
+	"int" => "parseInt",
 	"bool" => "parseBool",
 	"types.JSONText" => "parseJSONText",
 );
