@@ -184,6 +184,20 @@
       "Title": "List/read contents from module section",
       "Path": "/{module}/content",
       "Parameters": {
+        "get": [
+          {
+            "name": "page",
+            "required": false,
+            "title": "Page number (0 based)",
+            "type": "int"
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "title": "Returned items per page (default 50)",
+            "type": "int"
+          }
+        ],
         "path": [
           {
             "name": "moduleID",

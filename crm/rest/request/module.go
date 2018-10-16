@@ -267,6 +267,8 @@ var _ RequestFiller = NewModuleDelete()
 
 // Module content/list request parameters
 type ModuleContentList struct {
+	Page     int
+	PerPage  int
 	ModuleID uint64
 }
 
@@ -300,6 +302,14 @@ func (m *ModuleContentList) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
+	if val, ok := get["page"]; ok {
+
+		m.Page = parseInt(val)
+	}
+	if val, ok := get["perPage"]; ok {
+
+		m.PerPage = parseInt(val)
+	}
 	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 
 	return err
