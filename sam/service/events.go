@@ -46,10 +46,10 @@ func (svc *event) Message(m *types.Message) error {
 //
 // If this is a public channel we notify everyone
 func (svc *event) Channel(ch *types.Channel) error {
-	sub := ch.ID
+	var sub uint64 = 0
 
-	if ch.Type == types.ChannelTypePublic {
-		sub = 0
+	if ch.Type != types.ChannelTypePublic {
+		sub = ch.ID
 	}
 
 	return svc.push(payload.Channel(ch), types.EventQueueItemSubTypeChannel, sub)

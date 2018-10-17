@@ -288,7 +288,7 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 
 		svc.flushSystemMessages()
 
-		return svc.evl.Channel(out)
+		return svc.sendChannelEvent(out)
 	})
 }
 
@@ -353,7 +353,7 @@ func (svc *channel) Update(ch *types.Channel) (out *types.Channel, err error) {
 
 		svc.flushSystemMessages()
 
-		return svc.evl.Channel(out)
+		return svc.sendChannelEvent(out)
 	})
 }
 
@@ -383,7 +383,7 @@ func (svc *channel) Delete(id uint64) error {
 		}
 
 		svc.flushSystemMessages()
-		return svc.evl.Channel(ch)
+		return svc.sendChannelEvent(ch)
 	})
 }
 
@@ -410,7 +410,7 @@ func (svc *channel) Recover(id uint64) error {
 		}
 
 		svc.flushSystemMessages()
-		return svc.evl.Channel(ch)
+		return svc.sendChannelEvent(ch)
 	})
 }
 
@@ -438,7 +438,7 @@ func (svc *channel) Archive(id uint64) error {
 		}
 
 		svc.flushSystemMessages()
-		return svc.evl.Channel(ch)
+		return svc.sendChannelEvent(ch)
 	})
 }
 
@@ -461,7 +461,7 @@ func (svc *channel) Unarchive(id uint64) error {
 		svc.scheduleSystemMessage(ch, "@%d unarchived this channel", userID)
 
 		svc.flushSystemMessages()
-		return svc.evl.Channel(ch)
+		return svc.sendChannelEvent(ch)
 	})
 }
 
@@ -595,7 +595,11 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 			}
 
 			out = append(out, member)
+		}
 
+		// Push channel to all members
+		if err = svc.sendChannelEvent(ch); err != nil {
+			return
 		}
 
 		return svc.flushSystemMessages()
@@ -671,7 +675,28 @@ func (svc *channel) flushSystemMessages() (err error) {
 			return svc.evl.Message(msg)
 		}
 	})
+}
 
+// Sends channel event
+func (svc *channel) sendChannelEvent(ch *types.Channel) (err error) {
+	if ch.DeletedAt == nil && ch.ArchivedAt == nil {
+		// Looks like a valid channel
+
+		// Preload members, if needed
+		if len(ch.Members) == 0 {
+			if mm, err := svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: ch.ID}); err != nil {
+				return err
+			} else {
+				ch.Members = mm.MembersOf(ch.ID)
+			}
+		}
+	}
+
+	if err = svc.evl.Channel(ch); err != nil {
+		return
+	}
+
+	return nil
 }
 
 //// @todo temp location, move this somewhere else

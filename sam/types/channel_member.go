@@ -40,6 +40,9 @@ func (mm ChannelMemberSet) Walk(w func(*ChannelMember) error) (err error) {
 	return
 }
 
+// MembersOf extracts member IDs from channel member set
+//
+// It filters out only members that match a particular channel
 func (mm ChannelMemberSet) MembersOf(channelID uint64) []uint64 {
 	var mmof = make([]uint64, 0)
 
