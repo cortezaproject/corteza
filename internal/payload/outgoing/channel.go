@@ -8,18 +8,18 @@ import (
 type (
 	ChannelJoin struct {
 		// ID of the channel user is joining
-		ID string `json:"id"`
+		ID string `json:"channelID"`
 
 		// ID of the user that is joining
-		UserID string `json:"uid"`
+		UserID string `json:"userID"`
 	}
 
 	ChannelPart struct {
 		// Channel to part (nil) for ALL channels
-		ID string `json:"id"`
+		ID string `json:"channelID"`
 
 		// Who is parting
-		UserID string `json:"uid"`
+		UserID string `json:"userID"`
 	}
 
 	Channel struct {
