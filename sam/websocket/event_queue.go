@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/internal/payload"
@@ -64,7 +63,6 @@ func (eq *eventQueue) feedSessions(ctx context.Context, config *repository.Flags
 		if item.SubType == types.EventQueueItemSubTypeUser {
 			p := &outgoing.Payload{}
 
-			spew.Dump(string(item.Payload))
 			if err := json.Unmarshal(item.Payload, p); err != nil {
 				return err
 			}
