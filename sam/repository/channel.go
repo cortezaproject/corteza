@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"sort"
+	"strconv"
 	"time"
 
 	"github.com/titpetric/factory"
@@ -14,7 +16,7 @@ type (
 		With(ctx context.Context, db *factory.DB) ChannelRepository
 
 		FindChannelByID(id uint64) (*types.Channel, error)
-		FindDirectChannelByUserID(fromUserID, toUserID uint64) (*types.Channel, error)
+		FindChannelByMemberSet(memberID ...uint64) (*types.Channel, error)
 		FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error)
 		CreateChannel(mod *types.Channel) (*types.Channel, error)
 		UpdateChannel(mod *types.Channel) (*types.Channel, error)
@@ -38,16 +40,13 @@ const (
         FROM channels AS c
        WHERE ` + sqlChannelValidOnly
 
-	// Returns channel (group) with exactly 2 members
-	sqlChannelDirect = `SELECT *
-        FROM channels AS c
-       WHERE c.type = ? 
-         AND c.id IN (SELECT rel_channel 
-                        FROM channel_members 
-                       GROUP BY rel_channel
-                      HAVING COUNT(*) = 2
-                         AND MIN(rel_user) = ?
-                         AND MAX(rel_user) = ?)`
+	sqlChannelGroupByMemberSet = sqlChannelSelect + ` AND c.type = ? AND c.id IN (
+            SELECT rel_channel 
+              FROM channel_members 
+             GROUP BY rel_channel 
+            HAVING COUNT(*) = ? 
+               AND CONCAT(GROUP_CONCAT(rel_user ORDER BY 1 ASC SEPARATOR ','),',') = ?
+        )`
 
 	// subquery that filters out all channels that current user has access to as a member
 	// or via channel type (public chans)
@@ -82,22 +81,21 @@ func (r *channel) FindChannelByID(id uint64) (*types.Channel, error) {
 	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrChannelNotFound)
 }
 
-func (r *channel) FindDirectChannelByUserID(fromUserID, toUserID uint64) (*types.Channel, error) {
+// FindChannelByMemberSet searches for channel (group!) with exactly the same membership structure
+func (r *channel) FindChannelByMemberSet(memberIDs ...uint64) (*types.Channel, error) {
 	mod := &types.Channel{}
 
-	if fromUserID == toUserID {
-		// do not waste any cpu cycles for his...
-		return nil, ErrChannelNotFound
+	sort.Slice(memberIDs, func(i, j int) bool {
+		return memberIDs[i] < memberIDs[j]
+	})
+
+	membersConcat := ""
+	for i := range memberIDs {
+		// Don't panic, we're adding , in the SQL as well
+		membersConcat += strconv.FormatUint(memberIDs[i], 10) + ","
 	}
 
-	// We're grouping and aggregating values by min/max value of the user ID
-	// so we need to swap valuess
-	if fromUserID > toUserID {
-		// Order by user idso we can simplifiy the search
-		toUserID, fromUserID = fromUserID, toUserID
-	}
-
-	return mod, isFound(r.db().Get(mod, sqlChannelDirect, types.ChannelTypeGroup, fromUserID, toUserID), mod.ID > 0, ErrChannelNotFound)
+	return mod, isFound(r.db().Get(mod, sqlChannelGroupByMemberSet, types.ChannelTypeGroup, len(memberIDs), membersConcat), mod.ID > 0, ErrChannelNotFound)
 }
 
 func (r *channel) FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error) {

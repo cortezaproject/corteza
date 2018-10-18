@@ -77,9 +77,10 @@ var _ RequestFiller = NewChannelList()
 
 // Channel create request parameters
 type ChannelCreate struct {
-	Name  string
-	Topic string
-	Type  string
+	Name    string
+	Topic   string
+	Type    string
+	Members []string
 }
 
 func NewChannelCreate() *ChannelCreate {

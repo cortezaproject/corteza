@@ -26,30 +26,6 @@
           }
         ]
       }
-    },
-    {
-      "Name": "message",
-      "Method": "POST",
-      "Title": "Send direct message to user",
-      "Path": "/{userID}/message",
-      "Parameters": {
-        "path": [
-          {
-            "name": "userID",
-            "required": true,
-            "title": "User ID",
-            "type": "uint64"
-          }
-        ],
-        "post": [
-          {
-            "name": "message",
-            "required": true,
-            "title": "Message contents (markdown)",
-            "type": "string"
-          }
-        ]
-      }
     }
   ]
 }

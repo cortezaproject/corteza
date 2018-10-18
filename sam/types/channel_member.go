@@ -55,6 +55,17 @@ func (mm ChannelMemberSet) MembersOf(channelID uint64) []uint64 {
 	return mmof
 }
 
+// AllMemberIDs returns IDs of all members
+func (mm ChannelMemberSet) AllMemberIDs() []uint64 {
+	var mmof = make([]uint64, 0)
+
+	for i := range mm {
+		mmof = append(mmof, mm[i].UserID)
+	}
+
+	return mmof
+}
+
 func (uu ChannelMemberSet) FindByUserId(userID uint64) *ChannelMember {
 	for i := range uu {
 		if uu[i].UserID == userID {

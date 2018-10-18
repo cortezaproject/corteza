@@ -216,7 +216,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 # Channels
 
-A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or direct (between two users).
+A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or group.
 
 ## List channels
 
@@ -247,6 +247,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | name | string | POST | Name of Channel | N/A | YES |
 | topic | string | POST | Subject of Channel | N/A | NO |
 | type | string | POST | Channel type | N/A | NO |
+| members | []string | POST | Initial members of the channel | N/A | NO |
 
 ## Update channel details
 
@@ -602,18 +603,3 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query to match against users | N/A | NO |
-
-## Send direct message to user
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/users/{userID}/message` | HTTP/S | POST | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| userID | uint64 | PATH | User ID | N/A | YES |
-| message | string | POST | Message contents (markdown) | N/A | YES |

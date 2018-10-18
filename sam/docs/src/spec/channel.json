@@ -1,6 +1,6 @@
 {
   "Title": "Channels",
-  "Description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or direct (between two users).",
+  "Description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or group.",
   "Package": "sam",
   "Interface": "Channel",
   "Struct": null,
@@ -52,6 +52,12 @@
             "required": false,
             "title": "Channel type",
             "type": "string"
+          },
+          {
+            "name": "members",
+            "required": false,
+            "title": "Initial members of the channel",
+            "type": "[]string"
           }
         ]
       }

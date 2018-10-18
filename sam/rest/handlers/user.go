@@ -28,13 +28,11 @@ import (
 // Internal API interface
 type UserAPI interface {
 	Search(context.Context, *request.UserSearch) (interface{}, error)
-	Message(context.Context, *request.UserMessage) (interface{}, error)
 }
 
 // HTTP API interface
 type User struct {
-	Search  func(http.ResponseWriter, *http.Request)
-	Message func(http.ResponseWriter, *http.Request)
+	Search func(http.ResponseWriter, *http.Request)
 }
 
 func NewUser(uh UserAPI) *User {
@@ -46,13 +44,6 @@ func NewUser(uh UserAPI) *User {
 				return uh.Search(r.Context(), params)
 			})
 		},
-		Message: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewUserMessage()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return uh.Message(r.Context(), params)
-			})
-		},
 	}
 }
 
@@ -61,7 +52,6 @@ func (uh *User) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Use(middlewares...)
 		r.Route("/users", func(r chi.Router) {
 			r.Get("/search", uh.Search)
-			r.Post("/{userID}/message", uh.Message)
 		})
 	})
 }

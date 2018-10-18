@@ -189,7 +189,7 @@
 	},
 	{
 		"title": "Channels",
-		"description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or direct (between two users).",
+		"description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or group.",
 		"package": "sam",
 		"entrypoint": "channel",
 		"path": "/channels",
@@ -213,9 +213,10 @@
 				"path": "/",
 				"parameters": {
 					"post": [
-						{ "type": "string", "name": "name", "required": true, "title": "Name of Channel" },
-						{ "type": "string", "name": "topic", "required": false, "title": "Subject of Channel" },
-						{ "type": "string", "name": "type", "required": false, "title": "Channel type" }
+						{ "type": "string",   "name": "name",     "required": true,  "title": "Name of Channel" },
+						{ "type": "string",   "name": "topic",    "required": false, "title": "Subject of Channel" },
+						{ "type": "string",   "name": "type",     "required": false, "title": "Channel type" },
+						{ "type": "[]string", "name": "members",  "required": false, "title": "Initial members of the channel" }
 					]
 				}
 			},
@@ -229,10 +230,10 @@
 						{ "type": "uint64", "name": "channelID", "required": true, "title": "Channel ID" }
 					],
 					"post": [
-						{ "type": "string", "name": "name", "required": false, "title": "Name of Channel" },
-						{ "type": "string", "name": "topic", "required": false, "title": "Subject of Channel" },
-						{ "type": "string", "name": "type", "required": false, "title": "Channel type" },
-						{ "type": "bool",   "name": "archive", "required": false, "title": "Request channel to be archived or unarchived" },
+						{ "type": "string", "name": "name",           "required": false, "title": "Name of Channel" },
+						{ "type": "string", "name": "topic",          "required": false, "title": "Subject of Channel" },
+						{ "type": "string", "name": "type",           "required": false, "title": "Channel type" },
+						{ "type": "bool",   "name": "archive",        "required": false, "title": "Request channel to be archived or unarchived" },
 						{ "type": "uint64", "name": "organisationID", "required": false, "title": "Move channel to different organisation" }
 					]
 				}
@@ -517,20 +518,6 @@
 				"parameters": {
 					"get": [
 						{ "type": "string", "name": "query", "required": false, "title": "Search query to match against users" }
-					]
-				}
-			},
-			{
-				"name": "message",
-				"path": "/{userID}/message",
-				"method": "POST",
-				"title": "Send direct message to user",
-				"parameters": {
-					"path": [
-						{ "name": "userID", "type": "uint64", "required": true, "title": "User ID" }
-					],
-					"post": [
-						{ "type": "string", "name": "message", "required": true, "title": "Message contents (markdown)" }
 					]
 				}
 			}
