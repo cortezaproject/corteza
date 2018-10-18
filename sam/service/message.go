@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
-	authService "github.com/crusttech/crust/auth/service"
-	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
+
+	authService "github.com/crusttech/crust/auth/service"
 
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
@@ -43,8 +43,6 @@ type (
 
 		Flag(messageID uint64) error
 		Unflag(messageID uint64) error
-
-		Direct(recipientID uint64, in *types.Message) (out *types.Message, err error)
 
 		Delete(ID uint64) error
 	}
@@ -118,65 +116,6 @@ func (svc *message) loadAttachments(mm types.MessageSet) (err error) {
 			return nil
 		})
 	}
-}
-
-func (svc *message) Direct(recipientID uint64, in *types.Message) (out *types.Message, err error) {
-	return out, svc.db.Transaction(func() (err error) {
-		var currentUserID = repository.Identity(svc.ctx)
-
-		// @todo [SECURITY] verify if current user can send direct messages to anyone?
-		if false {
-			return errors.New("Not allowed to send direct messages")
-		}
-
-		// @todo [SECURITY] verify if current user can send direct messages to this user
-		if false {
-			return errors.New("Not allowed to send direct messages to this user")
-		}
-
-		dch, err := svc.channel.FindDirectChannelByUserID(currentUserID, recipientID)
-		if err == repository.ErrChannelNotFound {
-			dch, err = svc.channel.CreateChannel(&types.Channel{
-				Type: types.ChannelTypeGroup,
-			})
-
-			if err != nil {
-				return
-			}
-
-			membership := &types.ChannelMember{ChannelID: dch.ID, Type: types.ChannelMembershipTypeOwner}
-
-			membership.UserID = currentUserID
-			if _, err = svc.cmember.Create(membership); err != nil {
-				return
-			}
-
-			membership.UserID = recipientID
-			if _, err = svc.cmember.Create(membership); err != nil {
-				return
-			}
-
-		} else if err != nil {
-			return errors.Wrap(err, "Could not send direct message")
-		}
-
-		// Make sure our message is sent to the right channel
-		in.ChannelID = dch.ID
-		in.UserID = currentUserID
-		in.Type = types.MessageTypeSimpleMessage
-
-		// @todo send new msg to the event-loop
-		out, err = svc.message.CreateMessage(in)
-		if err != nil {
-			return
-		}
-
-		if err = svc.cview.Inc(in.ChannelID, in.UserID); err != nil {
-			return err
-		}
-
-		return svc.sendEvent(out)
-	})
 }
 
 func (svc *message) Create(mod *types.Message) (message *types.Message, err error) {

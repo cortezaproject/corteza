@@ -219,6 +219,17 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 
 		var chCreatorID = repository.Identity(svc.ctx)
 
+		mm := svc.buildMemberSet(chCreatorID, in.Members...)
+
+		if in.Type == types.ChannelTypeGroup {
+			if out, err = svc.checkGroupExistance(mm); err != nil {
+				return err
+			} else if out != nil {
+				// Group already exists so let's just return it
+				return nil
+			}
+		}
+
 		// @todo [SECURITY] check if channel topic can be set
 		if in.Topic != "" && false {
 			return errors.New("Not allowed to set channel topic")
@@ -253,11 +264,17 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 			return
 		}
 
-		// Join current user as an member & owner
-		_, err = svc.cmember.Create(&types.ChannelMember{
-			ChannelID: out.ID,
-			UserID:    chCreatorID,
-			Type:      types.ChannelMembershipTypeOwner,
+		err = mm.Walk(func(m *types.ChannelMember) (err error) {
+			// Assign channel ID to membership
+			m.ChannelID = out.ID
+
+			// Create member
+			if m, err = svc.cmember.Create(m); err != nil {
+				return err
+			}
+
+			// Subscribe all members
+			return svc.evl.Join(m.UserID, out.ID)
 		})
 
 		if err != nil {
@@ -265,11 +282,8 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 			return
 		}
 
-		// When broadcasting, make sure we let the subscribers know
-		// that creator is also a member...
-		out.Members = append(out.Members, chCreatorID)
-
-		svc.evl.Join(chCreatorID, out.ID)
+		// Copy all member IDs to channel's member slice
+		out.Members = mm.AllMemberIDs()
 
 		// Create the first message, doing this directly with repository to circumvent
 		// message service constraints
@@ -290,6 +304,34 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 
 		return svc.sendChannelEvent(out)
 	})
+}
+
+func (svc *channel) buildMemberSet(owner uint64, members ...uint64) (mm types.ChannelMemberSet) {
+	// Join current user as an member & owner
+	mm = types.ChannelMemberSet{&types.ChannelMember{
+		UserID: owner,
+		Type:   types.ChannelMembershipTypeOwner,
+	}}
+
+	// Add all required members and make sure that list is unique
+	for _, m := range members {
+		if mm.FindByUserId(m) == nil {
+			mm = append(mm, &types.ChannelMember{
+				UserID: m,
+				Type:   types.ChannelMembershipTypeMember,
+			})
+		}
+	}
+
+	return mm
+}
+
+func (svc *channel) checkGroupExistance(mm types.ChannelMemberSet) (*types.Channel, error) {
+	if c, err := svc.channel.FindChannelByMemberSet(mm.AllMemberIDs()...); err == repository.ErrChannelNotFound {
+		return nil, nil
+	} else {
+		return c, err
+	}
 }
 
 func (svc *channel) Update(ch *types.Channel) (out *types.Channel, err error) {
@@ -479,6 +521,10 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 		return
 	}
 
+	if ch.Type == types.ChannelTypeGroup {
+		return nil, errors.New("Adding members to a group is not currently supported")
+	}
+
 	// @todo [SECURITY] can user add members to this channel?
 
 	return out, svc.db.Transaction(func() (err error) {
@@ -535,6 +581,10 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 	// @todo [SECURITY] can user access this channel?
 	if ch, err = svc.channel.FindChannelByID(channelID); err != nil {
 		return
+	}
+
+	if ch.Type == types.ChannelTypeGroup {
+		return nil, errors.New("Adding members to a group is not currently supported")
 	}
 
 	// @todo [SECURITY] can user add members to this channel?
@@ -618,6 +668,10 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 		return
 	}
 
+	if ch.Type == types.ChannelTypeGroup {
+		return errors.New("Removign members from a group is not currently supported")
+	}
+
 	// @todo [SECURITY] can user remove members from this channel?
 
 	return svc.db.Transaction(func() (err error) {
@@ -687,7 +741,7 @@ func (svc *channel) sendChannelEvent(ch *types.Channel) (err error) {
 			if mm, err := svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: ch.ID}); err != nil {
 				return err
 			} else {
-				ch.Members = mm.MembersOf(ch.ID)
+				ch.Members = mm.AllMemberIDs()
 			}
 		}
 	}

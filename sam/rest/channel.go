@@ -32,9 +32,10 @@ func (Channel) New() *Channel {
 
 func (ctrl *Channel) Create(ctx context.Context, r *request.ChannelCreate) (interface{}, error) {
 	channel := &types.Channel{
-		Name:  r.Name,
-		Topic: r.Topic,
-		Type:  types.ChannelType(r.Type),
+		Name:    r.Name,
+		Topic:   r.Topic,
+		Type:    types.ChannelType(r.Type),
+		Members: payload.ParseUInt64s(r.Members),
 	}
 
 	return ctrl.wrap(ctrl.svc.ch.With(ctx).Create(channel))
