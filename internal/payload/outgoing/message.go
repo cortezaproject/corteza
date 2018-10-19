@@ -7,11 +7,12 @@ import (
 
 type (
 	Message struct {
-		ID        string `json:"ID"`
+		ID        uint64 `json:"ID,string"`
 		Type      string `json:"type"`
 		Message   string `json:"message"`
 		ChannelID string `json:"channelID"`
-		ReplyTo   string `json:"replyID"`
+		ReplyTo   uint64 `json:"replyTo,omitempty,string"`
+		Replies   uint   `json:"replies,omitempty"`
 
 		User       *User       `json:"user"`
 		Attachment *Attachment `json:"att,omitempty"`

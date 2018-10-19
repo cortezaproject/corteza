@@ -157,19 +157,6 @@ func (mr *MockMessageServiceMockRecorder) Unflag(messageID interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unflag", reflect.TypeOf((*MockMessageService)(nil).Unflag), messageID)
 }
 
-// Direct mocks base method
-func (m *MockMessageService) Direct(recipientID uint64, in *types.Message) (*types.Message, error) {
-	ret := m.ctrl.Call(m, "Direct", recipientID, in)
-	ret0, _ := ret[0].(*types.Message)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Direct indicates an expected call of Direct
-func (mr *MockMessageServiceMockRecorder) Direct(recipientID, in interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Direct", reflect.TypeOf((*MockMessageService)(nil).Direct), recipientID, in)
-}
-
 // Delete mocks base method
 func (m *MockMessageService) Delete(ID uint64) error {
 	ret := m.ctrl.Call(m, "Delete", ID)

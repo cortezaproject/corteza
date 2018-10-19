@@ -34,10 +34,25 @@ func (ctrl *Message) Create(ctx context.Context, r *request.MessageCreate) (inte
 	}))
 }
 
+func (ctrl *Message) CreateReply(ctx context.Context, r *request.MessageCreateReply) (interface{}, error) {
+	return ctrl.wrap(ctrl.svc.msg.With(ctx).Create(&types.Message{
+		ChannelID: r.ChannelID,
+		ReplyTo:   r.MessageID,
+		Message:   r.Message,
+	}))
+}
+
+func (ctrl *Message) GetReplies(ctx context.Context, r *request.MessageGetReplies) (interface{}, error) {
+	return ctrl.wrapSet(ctrl.svc.msg.With(ctx).Find(&types.MessageFilter{
+		ChannelID: r.ChannelID,
+		RepliesTo: r.MessageID,
+	}))
+}
+
 func (ctrl *Message) History(ctx context.Context, r *request.MessageHistory) (interface{}, error) {
 	return ctrl.wrapSet(ctrl.svc.msg.With(ctx).Find(&types.MessageFilter{
-		ChannelID:     r.ChannelID,
-		FromMessageID: r.LastMessageID,
+		ChannelID: r.ChannelID,
+		FirstID:   r.LastMessageID,
 	}))
 }
 
@@ -83,7 +98,6 @@ func (ctrl *Message) React(ctx context.Context, r *request.MessageReact) (interf
 func (ctrl *Message) Unreact(ctx context.Context, r *request.MessageUnreact) (interface{}, error) {
 	return nil, ctrl.svc.msg.With(ctx).Unreact(r.MessageID, r.Reaction)
 }
-
 func (ctrl *Message) wrap(m *types.Message, err error) (*outgoing.Message, error) {
 	if err != nil {
 		return nil, err

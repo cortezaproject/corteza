@@ -1,8 +1,13 @@
 package repository
 
 import (
-	"github.com/crusttech/crust/sam/types"
+	"context"
+
+	"github.com/titpetric/factory"
+
 	"testing"
+
+	"github.com/crusttech/crust/sam/types"
 )
 
 func TestReaction(t *testing.T) {
@@ -13,7 +18,7 @@ func TestReaction(t *testing.T) {
 		return
 	}
 
-	rpo := New()
+	rpo := Reaction(context.Background(), factory.Database.MustGet())
 	react := &types.Reaction{}
 
 	var reaction = ":laugh:"

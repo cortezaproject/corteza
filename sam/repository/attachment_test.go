@@ -1,8 +1,13 @@
 package repository
 
 import (
-	"github.com/crusttech/crust/sam/types"
+	"context"
+
+	"github.com/titpetric/factory"
+
 	"testing"
+
+	"github.com/crusttech/crust/sam/types"
 )
 
 func TestAttachment(t *testing.T) {
@@ -13,28 +18,26 @@ func TestAttachment(t *testing.T) {
 		return
 	}
 
-	rpo := New()
+	rpo := Attachment(context.Background(), factory.Database.MustGet())
 	att := &types.Attachment{}
 
-	var aa []*types.Attachment
-
-	att.ChannelID = 1
+	att.UserID = 1
 
 	{
 		att, err = rpo.CreateAttachment(att)
 		assert(t, err == nil, "CreateAttachment error: %v", err)
-		assert(t, att.ChannelID == 1, "Changes were not stored")
+		assert(t, att.UserID == 1, "Changes were not stored")
 
 		{
 			att, err = rpo.FindAttachmentByID(att.ID)
 			assert(t, err == nil, "FindAttachmentByID error: %v", err)
-			assert(t, att.ChannelID == 2, "Changes were not stored")
+			assert(t, att.UserID == 1, "Changes were not stored")
 		}
 
 		{
-			aa, err = rpo.FindAttachmentByRange(2, 0, att.ID)
-			assert(t, err == nil, "FindAttachmentByRange error: %v", err)
-			assert(t, len(aa) > 0, "No results found")
+			att, err = rpo.FindAttachmentByID(att.ID)
+			assert(t, err == nil, "FindAttachmentByMessageID error: %v", err)
+			assert(t, att != nil, "No results found")
 		}
 
 		{

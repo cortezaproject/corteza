@@ -16,11 +16,12 @@ const (
 
 func Message(msg *sam.Message) *outgoing.Message {
 	return &outgoing.Message{
-		ID:        Uint64toa(msg.ID),
+		ID:        msg.ID,
 		ChannelID: Uint64toa(msg.ChannelID),
 		Message:   msg.Message,
 		Type:      string(msg.Type),
-		ReplyTo:   Uint64toa(msg.ReplyTo),
+		ReplyTo:   msg.ReplyTo,
+		Replies:   msg.Replies,
 
 		User:       User(msg.User),
 		Attachment: Attachment(msg.Attachment),

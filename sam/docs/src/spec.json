@@ -414,6 +414,31 @@
 				}
 			},
 			{
+				"name": "getReplies",
+				"path": "/{messageID}/replies",
+				"method": "GET",
+				"title": "Returns all replies to a message",
+				"parameters": {
+					"path": [
+						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
+					]
+				}
+			},
+			{
+				"name": "createReply",
+				"path": "/{messageID}/replies",
+				"method": "POST",
+				"title": "Reply to a message",
+				"parameters": {
+					"path": [
+						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
+					],
+					"post": [
+						{ "type": "string", "name": "message", "required": true, "title": "Message contents (markdown)" }
+					]
+				}
+			},
+			{
 				"name": "unpin",
 				"path": "/{messageID}/pin",
 				"method": "DELETE",

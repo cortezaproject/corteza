@@ -33,6 +33,8 @@ type MessageAPI interface {
 	Delete(context.Context, *request.MessageDelete) (interface{}, error)
 	Search(context.Context, *request.MessageSearch) (interface{}, error)
 	Pin(context.Context, *request.MessagePin) (interface{}, error)
+	GetReplies(context.Context, *request.MessageGetReplies) (interface{}, error)
+	CreateReply(context.Context, *request.MessageCreateReply) (interface{}, error)
 	Unpin(context.Context, *request.MessageUnpin) (interface{}, error)
 	Flag(context.Context, *request.MessageFlag) (interface{}, error)
 	Unflag(context.Context, *request.MessageUnflag) (interface{}, error)
@@ -42,17 +44,19 @@ type MessageAPI interface {
 
 // HTTP API interface
 type Message struct {
-	Create  func(http.ResponseWriter, *http.Request)
-	History func(http.ResponseWriter, *http.Request)
-	Edit    func(http.ResponseWriter, *http.Request)
-	Delete  func(http.ResponseWriter, *http.Request)
-	Search  func(http.ResponseWriter, *http.Request)
-	Pin     func(http.ResponseWriter, *http.Request)
-	Unpin   func(http.ResponseWriter, *http.Request)
-	Flag    func(http.ResponseWriter, *http.Request)
-	Unflag  func(http.ResponseWriter, *http.Request)
-	React   func(http.ResponseWriter, *http.Request)
-	Unreact func(http.ResponseWriter, *http.Request)
+	Create      func(http.ResponseWriter, *http.Request)
+	History     func(http.ResponseWriter, *http.Request)
+	Edit        func(http.ResponseWriter, *http.Request)
+	Delete      func(http.ResponseWriter, *http.Request)
+	Search      func(http.ResponseWriter, *http.Request)
+	Pin         func(http.ResponseWriter, *http.Request)
+	GetReplies  func(http.ResponseWriter, *http.Request)
+	CreateReply func(http.ResponseWriter, *http.Request)
+	Unpin       func(http.ResponseWriter, *http.Request)
+	Flag        func(http.ResponseWriter, *http.Request)
+	Unflag      func(http.ResponseWriter, *http.Request)
+	React       func(http.ResponseWriter, *http.Request)
+	Unreact     func(http.ResponseWriter, *http.Request)
 }
 
 func NewMessage(mh MessageAPI) *Message {
@@ -97,6 +101,20 @@ func NewMessage(mh MessageAPI) *Message {
 			params := request.NewMessagePin()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Pin(r.Context(), params)
+			})
+		},
+		GetReplies: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewMessageGetReplies()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return mh.GetReplies(r.Context(), params)
+			})
+		},
+		CreateReply: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewMessageCreateReply()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return mh.CreateReply(r.Context(), params)
 			})
 		},
 		Unpin: func(w http.ResponseWriter, r *http.Request) {
@@ -147,6 +165,8 @@ func (mh *Message) MountRoutes(r chi.Router, middlewares ...func(http.Handler) h
 			r.Delete("/{messageID}", mh.Delete)
 			r.Get("/search", mh.Search)
 			r.Post("/{messageID}/pin", mh.Pin)
+			r.Get("/{messageID}/replies", mh.GetReplies)
+			r.Post("/{messageID}/replies", mh.CreateReply)
 			r.Delete("/{messageID}/pin", mh.Unpin)
 			r.Post("/{messageID}/flag", mh.Flag)
 			r.Delete("/{messageID}/flag", mh.Unflag)

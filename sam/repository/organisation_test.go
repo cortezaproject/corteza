@@ -1,8 +1,13 @@
 package repository
 
 import (
-	"github.com/crusttech/crust/sam/types"
+	"context"
+
+	"github.com/titpetric/factory"
+
 	"testing"
+
+	"github.com/crusttech/crust/sam/types"
 )
 
 func TestOrganisation(t *testing.T) {
@@ -13,7 +18,7 @@ func TestOrganisation(t *testing.T) {
 		return
 	}
 
-	rpo := New()
+	rpo := Organisation(context.Background(), factory.Database.MustGet())
 	org := &types.Organisation{}
 
 	var name1, name2 = "Test organisation v1", "Test organisation v2"

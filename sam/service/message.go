@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
 	authService "github.com/crusttech/crust/auth/service"
@@ -122,11 +123,34 @@ func (svc *message) Create(mod *types.Message) (message *types.Message, err erro
 	// @todo get user from context
 	var currentUserID uint64 = repository.Identity(svc.ctx)
 
-	// @todo verify if current user can access & write to this channel
-
 	mod.UserID = currentUserID
 
 	return message, svc.db.Transaction(func() (err error) {
+		if mod.ReplyTo > 0 {
+			original, err := svc.message.FindMessageByID(mod.ReplyTo)
+			if err != nil {
+				return err
+			}
+
+			if original.ReplyTo > 0 {
+				// We do not want to have multi-level threads
+				// Take original's reply-to and use it
+				mod.ReplyTo = original.ReplyTo
+			}
+
+			mod.ChannelID = original.ChannelID
+
+			if err = svc.message.IncReplyCount(original.ID); err != nil {
+				return err
+			}
+		}
+
+		if mod.ChannelID == 0 {
+			return errors.New("ChannelID missing")
+		}
+
+		// @todo [SECURITY] verify if current user can access & write to this channel
+
 		if message, err = svc.message.CreateMessage(mod); err != nil {
 			return err
 		}
@@ -159,7 +183,7 @@ func (svc *message) Update(mod *types.Message) (*types.Message, error) {
 	return message, svc.sendEvent(message)
 }
 
-func (svc *message) Delete(id uint64) error {
+func (svc *message) Delete(ID uint64) error {
 	// @todo get user from context
 	var currentUserID uint64 = repository.Identity(svc.ctx)
 
@@ -170,7 +194,20 @@ func (svc *message) Delete(id uint64) error {
 	// @todo verify ownership
 
 	return svc.db.Transaction(func() (err error) {
-		if err = svc.message.DeleteMessageByID(id); err != nil {
+		msg, err := svc.message.FindMessageByID(ID)
+		if err != nil {
+			return err
+		}
+
+		if msg.ReplyTo > 0 {
+			// This is a reply to another message,
+			// decrease
+			if err = svc.message.DecReplyCount(msg.ReplyTo); err != nil {
+				return
+			}
+		}
+
+		if err = svc.message.DeleteMessageByID(ID); err != nil {
 			return
 		}
 
