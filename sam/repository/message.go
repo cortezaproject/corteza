@@ -38,7 +38,7 @@ const (
              rel_user,
              rel_channel,
              reply_to,
- 			 replies,
+             replies,
              created_at,
              updated_at,
              deleted_at
