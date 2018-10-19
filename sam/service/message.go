@@ -163,24 +163,33 @@ func (svc *message) Create(mod *types.Message) (message *types.Message, err erro
 	})
 }
 
-func (svc *message) Update(mod *types.Message) (*types.Message, error) {
+func (svc *message) Update(mod *types.Message) (message *types.Message, err error) {
 	// @todo get user from context
 	var currentUserID uint64 = repository.Identity(svc.ctx)
 
 	// @todo verify if current user can access & write to this channel
 	_ = currentUserID
 
-	// @todo load current message
+	return message, svc.db.Transaction(func() (err error) {
+		original, err := svc.message.FindMessageByID(mod.ID)
+		if err != nil {
+			return err
+		}
 
-	// @todo verify ownership
+		if original.UserID != currentUserID {
+			return errors.New("Not an owner")
+		}
 
-	message, err := svc.message.UpdateMessage(mod)
+		// Allow message content to be changed, ignore everything else
+		original.Message = mod.Message
 
-	if err == nil {
-		return nil, err
-	}
+		message, err = svc.message.UpdateMessage(original)
+		if err == nil {
+			return err
+		}
 
-	return message, svc.sendEvent(message)
+		return svc.sendEvent(message)
+	})
 }
 
 func (svc *message) Delete(ID uint64) error {
