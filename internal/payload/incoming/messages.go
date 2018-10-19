@@ -2,23 +2,24 @@ package incoming
 
 type (
 	MessageCreate struct {
-		ChannelID string `json:"channelId"`
+		ChannelID string `json:"channelID"`
+		ReplyTo   uint64 `json:"replyTo,omitempty,string"`
 		Message   string `json:"message"`
 	}
 
 	MessageUpdate struct {
-		ID      string `json:"id"`
+		ID      string `json:"messageID"`
 		Message string `json:"message"`
 	}
 
 	MessageDelete struct {
-		ChannelID string `json:"channelId"`
-		ID        string `json:"id"`
+		ID string `json:"messageID"`
 	}
 
 	Messages struct {
-		ChannelID string `json:"channelId"`
-		FromID    string `json:"fromId,omitempty"`
-		UntilID   string `json:"untilId,omitempty"`
+		ChannelID uint64 `json:"channelId,string"`
+		FirstID   uint64 `json:"firstID,string"`
+		LastID    uint64 `json:"lastID,string"`
+		RepliesTo uint64 `json:"repliesTo,string"`
 	}
 )

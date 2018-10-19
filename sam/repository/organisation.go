@@ -89,5 +89,5 @@ func (r *organisation) UnarchiveOrganisationByID(id uint64) error {
 }
 
 func (r *organisation) DeleteOrganisationByID(id uint64) error {
-	return r.updateColumnByID("organisations", "deleted_at", nil, id)
+	return r.updateColumnByID("organisations", "deleted_at", time.Now(), id)
 }

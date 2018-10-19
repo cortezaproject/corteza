@@ -1,8 +1,13 @@
 package repository
 
 import (
-	"github.com/crusttech/crust/sam/types"
+	"context"
+
+	"github.com/titpetric/factory"
+
 	"testing"
+
+	"github.com/crusttech/crust/sam/types"
 )
 
 func TestTeam(t *testing.T) {
@@ -13,7 +18,7 @@ func TestTeam(t *testing.T) {
 		return
 	}
 
-	rpo := New()
+	rpo := Team(context.Background(), factory.Database.MustGet())
 	team := &types.Team{}
 
 	var name1, name2 = "Test team v1", "Test team v2"

@@ -27,7 +27,7 @@ func (s *Session) execCommand(ctx context.Context, c *incoming.ExecCommand) erro
 			}
 
 			return s.sendReply(&outgoing.Message{
-				ID:        payload.Uint64toa(factory.Sonyflake.NextID()),
+				ID:        factory.Sonyflake.NextID(),
 				User:      payload.User(user),
 				CreatedAt: time.Now(),
 				Type:      "hallucination",

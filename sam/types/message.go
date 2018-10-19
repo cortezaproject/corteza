@@ -15,6 +15,7 @@ type (
 		UserID     uint64          `json:"userId" db:"rel_user"`
 		ChannelID  uint64          `json:"channelId" db:"rel_channel"`
 		ReplyTo    uint64          `json:"replyTo" db:"reply_to"`
+		Replies    uint            `json:"replies" db:"replies"`
 		CreatedAt  time.Time       `json:"createdAt,omitempty" db:"created_at"`
 		UpdatedAt  *time.Time      `json:"updatedAt,omitempty" db:"updated_at"`
 		DeletedAt  *time.Time      `json:"deletedAt,omitempty" db:"deleted_at"`
@@ -25,11 +26,21 @@ type (
 	MessageSet []*Message
 
 	MessageFilter struct {
-		Query          string
-		ChannelID      uint64
-		FromMessageID  uint64
-		UntilMessageID uint64
-		Limit          uint
+		Query string
+
+		// All messages that belong to a channel
+		ChannelID uint64
+
+		// Return all replies to a single message
+		RepliesTo uint64
+
+		// (FirstID...LastID), for paging
+		//
+		// Include all messsages which IDs range from "first" to "last" (exclusive!)
+		FirstID uint64
+		LastID  uint64
+
+		Limit uint
 	}
 
 	MessageType string

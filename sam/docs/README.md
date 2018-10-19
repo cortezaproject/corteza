@@ -481,6 +481,35 @@ The following event types may be sent with a message event:
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageID | uint64 | PATH | Message ID | N/A | YES |
 
+## Returns all replies to a message
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channels/{channelID}/messages/{messageID}/replies` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| messageID | uint64 | PATH | Message ID | N/A | YES |
+
+## Reply to a message
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channels/{channelID}/messages/{messageID}/replies` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| messageID | uint64 | PATH | Message ID | N/A | YES |
+| message | string | POST | Message contents (markdown) | N/A | YES |
+
 ## Pin message to channel (public bookmark)
 
 #### Method

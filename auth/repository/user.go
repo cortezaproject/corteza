@@ -2,9 +2,10 @@ package repository
 
 import (
 	"context"
+	"time"
+
 	"github.com/crusttech/crust/auth/types"
 	"github.com/titpetric/factory"
-	"time"
 )
 
 type (
@@ -114,5 +115,5 @@ func (r *user) UnsuspendUserByID(id uint64) error {
 }
 
 func (r *user) DeleteUserByID(id uint64) error {
-	return r.updateColumnByID("users", "deleted_at", nil, id)
+	return r.updateColumnByID("users", "deleted_at", time.Now(), id)
 }

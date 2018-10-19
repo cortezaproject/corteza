@@ -17,7 +17,9 @@ type (
 		FindMessages(filter *types.MessageFilter) (types.MessageSet, error)
 		CreateMessage(mod *types.Message) (*types.Message, error)
 		UpdateMessage(mod *types.Message) (*types.Message, error)
-		DeleteMessageByID(id uint64) error
+		DeleteMessageByID(ID uint64) error
+		IncReplyCount(ID uint64) error
+		DecReplyCount(ID uint64) error
 	}
 
 	message struct {
@@ -26,6 +28,8 @@ type (
 )
 
 const (
+	MESSAGES_MAX_LIMIT = 100
+
 	sqlMessageScope = "deleted_at IS NULL"
 
 	sqlMessagesSelect = `SELECT id,
@@ -33,12 +37,16 @@ const (
              message,
              rel_user,
              rel_channel,
-             COALESCE(reply_to, 0) AS reply_to,
+             reply_to,
+ 			 replies,
              created_at,
              updated_at,
              deleted_at
         FROM messages
        WHERE ` + sqlMessageScope
+
+	sqlMessageRepliesIncCount = `UPDATE messages SET replies = replies + 1 WHERE id = ? AND reply_to = 0`
+	sqlMessageRepliesDecCount = `UPDATE messages SET replies = replies - 1 WHERE id = ? AND reply_to = 0`
 
 	ErrMessageNotFound = repositoryError("MessageNotFound")
 )
@@ -78,23 +86,35 @@ func (r *message) FindMessages(filter *types.MessageFilter) (types.MessageSet, e
 		params = append(params, filter.ChannelID)
 	}
 
-	if filter.FromMessageID > 0 {
-		sql += " AND id > ? "
-		params = append(params, filter.FromMessageID)
+	if filter.RepliesTo > 0 {
+		sql += " AND reply_to = ? "
+		params = append(params, filter.RepliesTo)
+	} else {
+		sql += " AND reply_to = 0 "
 	}
 
-	if filter.UntilMessageID > 0 {
-		sql += " AND id < ? "
-		params = append(params, filter.UntilMessageID)
+	if filter.FirstID > 0 || filter.LastID > 0 {
+		// Fetching (exclusively) range of messages, without reply
+		if filter.FirstID > 0 {
+			sql += " AND id > ? "
+			params = append(params, filter.FirstID)
+		}
+
+		if filter.LastID > 0 {
+			sql += " AND id < ? "
+			params = append(params, filter.LastID)
+		}
 	}
 
 	sql += " ORDER BY id DESC"
 
-	if filter.Limit > 0 {
-		// @todo implement some kind of protection
-		sql += " LIMIT ? "
-		params = append(params, filter.Limit)
+	if filter.Limit == 0 || filter.Limit > MESSAGES_MAX_LIMIT {
+		filter.Limit = MESSAGES_MAX_LIMIT
 	}
+
+	sql += " LIMIT ? "
+	params = append(params, filter.Limit)
+
 	return rval, r.db().Select(&rval, sql, params...)
 }
 
@@ -111,6 +131,16 @@ func (r *message) UpdateMessage(mod *types.Message) (*types.Message, error) {
 	return mod, r.db().Replace("messages", mod)
 }
 
-func (r *message) DeleteMessageByID(id uint64) error {
-	return r.updateColumnByID("messages", "deleted_at", nil, id)
+func (r *message) DeleteMessageByID(ID uint64) error {
+	return r.updateColumnByID("messages", "deleted_at", time.Now(), ID)
+}
+
+func (r *message) IncReplyCount(ID uint64) error {
+	_, err := r.db().Exec(sqlMessageRepliesIncCount, ID)
+	return err
+}
+
+func (r *message) DecReplyCount(ID uint64) error {
+	_, err := r.db().Exec(sqlMessageRepliesDecCount, ID)
+	return err
 }

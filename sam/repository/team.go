@@ -92,7 +92,7 @@ func (r *team) UnarchiveTeamByID(id uint64) error {
 }
 
 func (r *team) DeleteTeamByID(id uint64) error {
-	return r.updateColumnByID("teams", "deleted_at", nil, id)
+	return r.updateColumnByID("teams", "deleted_at", time.Now(), id)
 }
 
 func (r *team) MergeTeamByID(id, targetTeamID uint64) error {

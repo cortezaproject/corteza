@@ -313,6 +313,99 @@ func (m *MessagePin) Fill(r *http.Request) error {
 
 var _ RequestFiller = NewMessagePin()
 
+// Message getReplies request parameters
+type MessageGetReplies struct {
+	MessageID uint64 `json:",string"`
+	ChannelID uint64 `json:",string"`
+}
+
+func NewMessageGetReplies() *MessageGetReplies {
+	return &MessageGetReplies{}
+}
+
+func (m *MessageGetReplies) Fill(r *http.Request) error {
+	var err error
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
+	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+
+	return err
+}
+
+var _ RequestFiller = NewMessageGetReplies()
+
+// Message createReply request parameters
+type MessageCreateReply struct {
+	MessageID uint64 `json:",string"`
+	ChannelID uint64 `json:",string"`
+	Message   string
+}
+
+func NewMessageCreateReply() *MessageCreateReply {
+	return &MessageCreateReply{}
+}
+
+func (m *MessageCreateReply) Fill(r *http.Request) error {
+	var err error
+
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	r.ParseForm()
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
+	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	if val, ok := post["message"]; ok {
+
+		m.Message = val
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewMessageCreateReply()
+
 // Message unpin request parameters
 type MessageUnpin struct {
 	MessageID uint64 `json:",string"`

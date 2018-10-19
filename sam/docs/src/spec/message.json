@@ -137,6 +137,46 @@
       }
     },
     {
+      "Name": "getReplies",
+      "Method": "GET",
+      "Title": "Returns all replies to a message",
+      "Path": "/{messageID}/replies",
+      "Parameters": {
+        "path": [
+          {
+            "name": "messageID",
+            "required": true,
+            "title": "Message ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "createReply",
+      "Method": "POST",
+      "Title": "Reply to a message",
+      "Path": "/{messageID}/replies",
+      "Parameters": {
+        "path": [
+          {
+            "name": "messageID",
+            "required": true,
+            "title": "Message ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "message",
+            "required": true,
+            "title": "Message contents (markdown)",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "Name": "unpin",
       "Method": "DELETE",
       "Title": "Pin message to channel (public bookmark)",

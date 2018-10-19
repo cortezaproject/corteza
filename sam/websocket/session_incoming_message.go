@@ -11,6 +11,7 @@ import (
 func (s *Session) messageCreate(ctx context.Context, p *incoming.MessageCreate) error {
 	_, err := s.svc.msg.With(ctx).Create(&types.Message{
 		ChannelID: payload.ParseUInt64(p.ChannelID),
+		ReplyTo:   p.ReplyTo,
 		Message:   p.Message,
 	})
 
@@ -33,9 +34,11 @@ func (s *Session) messageDelete(ctx context.Context, p *incoming.MessageDelete) 
 func (s *Session) messageHistory(ctx context.Context, p *incoming.Messages) error {
 	var (
 		filter = &types.MessageFilter{
-			ChannelID:      payload.ParseUInt64(p.ChannelID),
-			FromMessageID:  payload.ParseUInt64(p.FromID),
-			UntilMessageID: payload.ParseUInt64(p.UntilID),
+			ChannelID: p.ChannelID,
+			FirstID:   p.FirstID,
+			LastID:    p.LastID,
+
+			RepliesTo: p.RepliesTo,
 
 			// Max no. of messages we will return
 			Limit: 50,
@@ -47,5 +50,10 @@ func (s *Session) messageHistory(ctx context.Context, p *incoming.Messages) erro
 		return err
 	}
 
-	return s.sendReply(payload.Messages(messages))
+	err = s.sendReply(payload.Messages(messages))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

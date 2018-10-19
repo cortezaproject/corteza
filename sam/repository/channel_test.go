@@ -1,8 +1,13 @@
 package repository
 
 import (
-	"github.com/crusttech/crust/sam/types"
+	"context"
+
+	"github.com/titpetric/factory"
+
 	"testing"
+
+	"github.com/crusttech/crust/sam/types"
 )
 
 func TestChannel(t *testing.T) {
@@ -13,7 +18,7 @@ func TestChannel(t *testing.T) {
 		return
 	}
 
-	rpo := New()
+	rpo := Channel(context.Background(), factory.Database.MustGet())
 	chn := &types.Channel{}
 
 	var name1, name2 = "Test channel v1", "Test channel v2"
