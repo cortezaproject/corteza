@@ -182,7 +182,7 @@
       "Name": "content/list",
       "Method": "GET",
       "Title": "List/read contents from module section",
-      "Path": "/{module}/content",
+      "Path": "/{moduleID}/content",
       "Parameters": {
         "get": [
           {
@@ -212,7 +212,7 @@
       "Name": "content/create",
       "Method": "POST",
       "Title": "List/read contents from module section",
-      "Path": "/{module}/content",
+      "Path": "/{moduleID}/content",
       "Parameters": {
         "path": [
           {
@@ -236,7 +236,7 @@
       "Name": "content/read",
       "Method": "GET",
       "Title": "Read contents by ID from module section",
-      "Path": "/{module}/content/{id}",
+      "Path": "/{moduleID}/content/{id}",
       "Parameters": {
         "path": [
           {
@@ -258,7 +258,7 @@
       "Name": "content/edit",
       "Method": "POST",
       "Title": "Add/update contents in module section",
-      "Path": "/{module}/content/{id}",
+      "Path": "/{moduleID}/content/{id}",
       "Parameters": {
         "path": [
           {
@@ -288,7 +288,7 @@
       "Name": "content/delete",
       "Method": "DELETE",
       "Title": "Delete content row from module section",
-      "Path": "/{module}/content/{id}",
+      "Path": "/{moduleID}/content/{id}",
       "Parameters": {
         "path": [
           {
