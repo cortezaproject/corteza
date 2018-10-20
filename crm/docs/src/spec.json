@@ -216,7 +216,7 @@
 				"name": "content/list",
 				"method": "GET",
 				"title": "List/read contents from module section",
-				"path": "/{module}/content",
+				"path": "/{moduleID}/content",
 				"parameters": {
 					"path": [
 						{ "type": "uint64", "name": "moduleID", "required": true, "title": "Module ID" }
@@ -231,7 +231,7 @@
 				"name": "content/create",
 				"method": "POST",
 				"title": "List/read contents from module section",
-				"path": "/{module}/content",
+				"path": "/{moduleID}/content",
 				"parameters": {
 					"path": [
 						{ "type": "uint64", "name": "moduleID", "required": true, "title": "Module ID" }
@@ -245,7 +245,7 @@
 				"name": "content/read",
 				"method": "GET",
 				"title": "Read contents by ID from module section",
-				"path": "/{module}/content/{id}",
+				"path": "/{moduleID}/content/{id}",
 				"parameters": {
 					"path": [
 						{ "type": "uint64", "name": "moduleID", "required": true, "title": "Module ID" },
@@ -257,7 +257,7 @@
 				"name": "content/edit",
 				"method": "POST",
 				"title": "Add/update contents in module section",
-				"path": "/{module}/content/{id}",
+				"path": "/{moduleID}/content/{id}",
 				"parameters": {
 					"path": [
 						{ "type": "uint64", "name": "moduleID", "required": true, "title": "Module ID" },
@@ -272,7 +272,7 @@
 				"name": "content/delete",
 				"method": "DELETE",
 				"title": "Delete content row from module section",
-				"path": "/{module}/content/{id}",
+				"path": "/{moduleID}/content/{id}",
 				"parameters": {
 					"path": [
 						{ "type": "uint64", "name": "moduleID", "required": true, "title": "Module ID" },
