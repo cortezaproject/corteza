@@ -40,9 +40,7 @@ func NewAttachmentOriginal() *AttachmentOriginal {
 	return &AttachmentOriginal{}
 }
 
-func (a *AttachmentOriginal) Fill(r *http.Request) error {
-	var err error
-
+func (a *AttachmentOriginal) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(a)
 
@@ -54,7 +52,10 @@ func (a *AttachmentOriginal) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -86,9 +87,7 @@ func NewAttachmentPreview() *AttachmentPreview {
 	return &AttachmentPreview{}
 }
 
-func (a *AttachmentPreview) Fill(r *http.Request) error {
-	var err error
-
+func (a *AttachmentPreview) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(a)
 
@@ -100,7 +99,10 @@ func (a *AttachmentPreview) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()

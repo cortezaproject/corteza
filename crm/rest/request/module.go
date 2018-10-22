@@ -39,9 +39,7 @@ func NewModuleList() *ModuleList {
 	return &ModuleList{}
 }
 
-func (m *ModuleList) Fill(r *http.Request) error {
-	var err error
-
+func (m *ModuleList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -53,7 +51,10 @@ func (m *ModuleList) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -85,9 +86,7 @@ func NewModuleCreate() *ModuleCreate {
 	return &ModuleCreate{}
 }
 
-func (m *ModuleCreate) Fill(r *http.Request) error {
-	var err error
-
+func (m *ModuleCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -99,7 +98,10 @@ func (m *ModuleCreate) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -136,9 +138,7 @@ func NewModuleRead() *ModuleRead {
 	return &ModuleRead{}
 }
 
-func (m *ModuleRead) Fill(r *http.Request) error {
-	var err error
-
+func (m *ModuleRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -150,7 +150,10 @@ func (m *ModuleRead) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -180,9 +183,7 @@ func NewModuleEdit() *ModuleEdit {
 	return &ModuleEdit{}
 }
 
-func (m *ModuleEdit) Fill(r *http.Request) error {
-	var err error
-
+func (m *ModuleEdit) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -194,7 +195,10 @@ func (m *ModuleEdit) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -232,9 +236,7 @@ func NewModuleDelete() *ModuleDelete {
 	return &ModuleDelete{}
 }
 
-func (m *ModuleDelete) Fill(r *http.Request) error {
-	var err error
-
+func (m *ModuleDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -246,7 +248,10 @@ func (m *ModuleDelete) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -276,9 +281,7 @@ func NewModuleContentList() *ModuleContentList {
 	return &ModuleContentList{}
 }
 
-func (m *ModuleContentList) Fill(r *http.Request) error {
-	var err error
-
+func (m *ModuleContentList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -290,7 +293,10 @@ func (m *ModuleContentList) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -327,9 +333,7 @@ func NewModuleContentCreate() *ModuleContentCreate {
 	return &ModuleContentCreate{}
 }
 
-func (m *ModuleContentCreate) Fill(r *http.Request) error {
-	var err error
-
+func (m *ModuleContentCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -341,7 +345,10 @@ func (m *ModuleContentCreate) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -376,9 +383,7 @@ func NewModuleContentRead() *ModuleContentRead {
 	return &ModuleContentRead{}
 }
 
-func (m *ModuleContentRead) Fill(r *http.Request) error {
-	var err error
-
+func (m *ModuleContentRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -390,7 +395,10 @@ func (m *ModuleContentRead) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -421,9 +429,7 @@ func NewModuleContentEdit() *ModuleContentEdit {
 	return &ModuleContentEdit{}
 }
 
-func (m *ModuleContentEdit) Fill(r *http.Request) error {
-	var err error
-
+func (m *ModuleContentEdit) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -435,7 +441,10 @@ func (m *ModuleContentEdit) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -471,9 +480,7 @@ func NewModuleContentDelete() *ModuleContentDelete {
 	return &ModuleContentDelete{}
 }
 
-func (m *ModuleContentDelete) Fill(r *http.Request) error {
-	var err error
-
+func (m *ModuleContentDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -485,7 +492,10 @@ func (m *ModuleContentDelete) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()

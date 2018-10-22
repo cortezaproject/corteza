@@ -17,15 +17,13 @@ package request
 
 import (
 	"encoding/json"
+	"github.com/go-chi/chi"
+	"github.com/jmoiron/sqlx/types"
+	"github.com/pkg/errors"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"strings"
-
-	"github.com/davecgh/go-spew/spew"
-	"github.com/go-chi/chi"
-	"github.com/jmoiron/sqlx/types"
-	"github.com/pkg/errors"
 )
 
 var _ = chi.URLParam
@@ -41,9 +39,7 @@ func NewChannelList() *ChannelList {
 	return &ChannelList{}
 }
 
-func (c *ChannelList) Fill(r *http.Request) error {
-	var err error
-
+func (c *ChannelList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(c)
 
@@ -55,7 +51,10 @@ func (c *ChannelList) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -89,9 +88,7 @@ func NewChannelCreate() *ChannelCreate {
 	return &ChannelCreate{}
 }
 
-func (c *ChannelCreate) Fill(r *http.Request) error {
-	var err error
-
+func (c *ChannelCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(c)
 
@@ -103,7 +100,10 @@ func (c *ChannelCreate) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -147,9 +147,7 @@ func NewChannelEdit() *ChannelEdit {
 	return &ChannelEdit{}
 }
 
-func (c *ChannelEdit) Fill(r *http.Request) error {
-	var err error
-
+func (c *ChannelEdit) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(c)
 
@@ -161,7 +159,10 @@ func (c *ChannelEdit) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -209,9 +210,7 @@ func NewChannelRead() *ChannelRead {
 	return &ChannelRead{}
 }
 
-func (c *ChannelRead) Fill(r *http.Request) error {
-	var err error
-
+func (c *ChannelRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(c)
 
@@ -223,7 +222,10 @@ func (c *ChannelRead) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -251,9 +253,7 @@ func NewChannelDelete() *ChannelDelete {
 	return &ChannelDelete{}
 }
 
-func (c *ChannelDelete) Fill(r *http.Request) error {
-	var err error
-
+func (c *ChannelDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(c)
 
@@ -265,7 +265,10 @@ func (c *ChannelDelete) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -293,9 +296,7 @@ func NewChannelMembers() *ChannelMembers {
 	return &ChannelMembers{}
 }
 
-func (c *ChannelMembers) Fill(r *http.Request) error {
-	var err error
-
+func (c *ChannelMembers) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(c)
 
@@ -307,7 +308,10 @@ func (c *ChannelMembers) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -336,9 +340,7 @@ func NewChannelJoin() *ChannelJoin {
 	return &ChannelJoin{}
 }
 
-func (c *ChannelJoin) Fill(r *http.Request) error {
-	var err error
-
+func (c *ChannelJoin) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(c)
 
@@ -350,7 +352,10 @@ func (c *ChannelJoin) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -380,9 +385,7 @@ func NewChannelPart() *ChannelPart {
 	return &ChannelPart{}
 }
 
-func (c *ChannelPart) Fill(r *http.Request) error {
-	var err error
-
+func (c *ChannelPart) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(c)
 
@@ -394,7 +397,10 @@ func (c *ChannelPart) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -424,9 +430,7 @@ func NewChannelInvite() *ChannelInvite {
 	return &ChannelInvite{}
 }
 
-func (c *ChannelInvite) Fill(r *http.Request) error {
-	var err error
-
+func (c *ChannelInvite) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(c)
 
@@ -438,7 +442,10 @@ func (c *ChannelInvite) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -468,9 +475,7 @@ func NewChannelAttach() *ChannelAttach {
 	return &ChannelAttach{}
 }
 
-func (c *ChannelAttach) Fill(r *http.Request) error {
-	var err error
-
+func (c *ChannelAttach) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(c)
 
@@ -482,7 +487,10 @@ func (c *ChannelAttach) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseMultipartForm()
+	if err = r.ParseMultipartForm(32 << 20); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -493,8 +501,6 @@ func (c *ChannelAttach) Fill(r *http.Request) error {
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
-
-	spew.Dump(post)
 
 	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 	if val, ok := post["replyTo"]; ok {

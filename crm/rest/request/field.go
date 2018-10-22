@@ -38,9 +38,7 @@ func NewFieldList() *FieldList {
 	return &FieldList{}
 }
 
-func (f *FieldList) Fill(r *http.Request) error {
-	var err error
-
+func (f *FieldList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(f)
 
@@ -52,7 +50,10 @@ func (f *FieldList) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -78,9 +79,7 @@ func NewFieldType() *FieldType {
 	return &FieldType{}
 }
 
-func (f *FieldType) Fill(r *http.Request) error {
-	var err error
-
+func (f *FieldType) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(f)
 
@@ -92,7 +91,10 @@ func (f *FieldType) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()

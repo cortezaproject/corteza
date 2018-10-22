@@ -39,9 +39,7 @@ func NewOrganisationList() *OrganisationList {
 	return &OrganisationList{}
 }
 
-func (o *OrganisationList) Fill(r *http.Request) error {
-	var err error
-
+func (o *OrganisationList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(o)
 
@@ -53,7 +51,10 @@ func (o *OrganisationList) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -84,9 +85,7 @@ func NewOrganisationCreate() *OrganisationCreate {
 	return &OrganisationCreate{}
 }
 
-func (o *OrganisationCreate) Fill(r *http.Request) error {
-	var err error
-
+func (o *OrganisationCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(o)
 
@@ -98,7 +97,10 @@ func (o *OrganisationCreate) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -130,9 +132,7 @@ func NewOrganisationEdit() *OrganisationEdit {
 	return &OrganisationEdit{}
 }
 
-func (o *OrganisationEdit) Fill(r *http.Request) error {
-	var err error
-
+func (o *OrganisationEdit) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(o)
 
@@ -144,7 +144,10 @@ func (o *OrganisationEdit) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -176,9 +179,7 @@ func NewOrganisationRemove() *OrganisationRemove {
 	return &OrganisationRemove{}
 }
 
-func (o *OrganisationRemove) Fill(r *http.Request) error {
-	var err error
-
+func (o *OrganisationRemove) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(o)
 
@@ -190,7 +191,10 @@ func (o *OrganisationRemove) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -218,9 +222,7 @@ func NewOrganisationRead() *OrganisationRead {
 	return &OrganisationRead{}
 }
 
-func (o *OrganisationRead) Fill(r *http.Request) error {
-	var err error
-
+func (o *OrganisationRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(o)
 
@@ -232,7 +234,10 @@ func (o *OrganisationRead) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -263,9 +268,7 @@ func NewOrganisationArchive() *OrganisationArchive {
 	return &OrganisationArchive{}
 }
 
-func (o *OrganisationArchive) Fill(r *http.Request) error {
-	var err error
-
+func (o *OrganisationArchive) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(o)
 
@@ -277,7 +280,10 @@ func (o *OrganisationArchive) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()

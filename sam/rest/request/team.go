@@ -39,9 +39,7 @@ func NewTeamList() *TeamList {
 	return &TeamList{}
 }
 
-func (t *TeamList) Fill(r *http.Request) error {
-	var err error
-
+func (t *TeamList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(t)
 
@@ -53,7 +51,10 @@ func (t *TeamList) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -85,9 +86,7 @@ func NewTeamCreate() *TeamCreate {
 	return &TeamCreate{}
 }
 
-func (t *TeamCreate) Fill(r *http.Request) error {
-	var err error
-
+func (t *TeamCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(t)
 
@@ -99,7 +98,10 @@ func (t *TeamCreate) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -132,9 +134,7 @@ func NewTeamEdit() *TeamEdit {
 	return &TeamEdit{}
 }
 
-func (t *TeamEdit) Fill(r *http.Request) error {
-	var err error
-
+func (t *TeamEdit) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(t)
 
@@ -146,7 +146,10 @@ func (t *TeamEdit) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -178,9 +181,7 @@ func NewTeamRead() *TeamRead {
 	return &TeamRead{}
 }
 
-func (t *TeamRead) Fill(r *http.Request) error {
-	var err error
-
+func (t *TeamRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(t)
 
@@ -192,7 +193,10 @@ func (t *TeamRead) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -220,9 +224,7 @@ func NewTeamRemove() *TeamRemove {
 	return &TeamRemove{}
 }
 
-func (t *TeamRemove) Fill(r *http.Request) error {
-	var err error
-
+func (t *TeamRemove) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(t)
 
@@ -234,7 +236,10 @@ func (t *TeamRemove) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -262,9 +267,7 @@ func NewTeamArchive() *TeamArchive {
 	return &TeamArchive{}
 }
 
-func (t *TeamArchive) Fill(r *http.Request) error {
-	var err error
-
+func (t *TeamArchive) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(t)
 
@@ -276,7 +279,10 @@ func (t *TeamArchive) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -305,9 +311,7 @@ func NewTeamMove() *TeamMove {
 	return &TeamMove{}
 }
 
-func (t *TeamMove) Fill(r *http.Request) error {
-	var err error
-
+func (t *TeamMove) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(t)
 
@@ -319,7 +323,10 @@ func (t *TeamMove) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -352,9 +359,7 @@ func NewTeamMerge() *TeamMerge {
 	return &TeamMerge{}
 }
 
-func (t *TeamMerge) Fill(r *http.Request) error {
-	var err error
-
+func (t *TeamMerge) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(t)
 
@@ -366,7 +371,10 @@ func (t *TeamMerge) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
