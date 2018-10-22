@@ -126,10 +126,14 @@ func (svc *message) Create(mod *types.Message) (message *types.Message, err erro
 	mod.UserID = currentUserID
 
 	return message, svc.db.Transaction(func() (err error) {
+		// Broadcast queue
+		var bq = types.MessageSet{}
+
 		if mod.ReplyTo > 0 {
-			original, err := svc.message.FindMessageByID(mod.ReplyTo)
+		var original *types.Message
+			original, err = svc.message.FindMessageByID(mod.ReplyTo)
 			if err != nil {
-				return err
+				return
 			}
 
 			if original.ReplyTo > 0 {
@@ -140,9 +144,14 @@ func (svc *message) Create(mod *types.Message) (message *types.Message, err erro
 
 			mod.ChannelID = original.ChannelID
 
+			//
 			if err = svc.message.IncReplyCount(original.ID); err != nil {
-				return err
+				return
 			}
+
+			// Broadcast updated original
+			svc.sendEvent(original)
+			bq = append(bq, original)
 		}
 
 		if mod.ChannelID == 0 {
@@ -152,14 +161,14 @@ func (svc *message) Create(mod *types.Message) (message *types.Message, err erro
 		// @todo [SECURITY] verify if current user can access & write to this channel
 
 		if message, err = svc.message.CreateMessage(mod); err != nil {
-			return err
+			return
 		}
 
 		if err = svc.cview.Inc(message.ChannelID, message.UserID); err != nil {
-			return err
+			return
 		}
 
-		return svc.sendEvent(message)
+		return svc.sendEvent(append(bq, message)...)
 	})
 }
 
@@ -203,17 +212,28 @@ func (svc *message) Delete(ID uint64) error {
 	// @todo verify ownership
 
 	return svc.db.Transaction(func() (err error) {
-		msg, err := svc.message.FindMessageByID(ID)
+		// Broadcast queue
+		var bq = types.MessageSet{}
+		var deletedMsg, original *types.Message
+
+		deletedMsg, err = svc.message.FindMessageByID(ID)
 		if err != nil {
 			return err
 		}
 
-		if msg.ReplyTo > 0 {
-			// This is a reply to another message,
-			// decrease
-			if err = svc.message.DecReplyCount(msg.ReplyTo); err != nil {
-				return
+		if deletedMsg.ReplyTo > 0 {
+			original, err = svc.message.FindMessageByID(deletedMsg.ReplyTo)
+			if err != nil {
+				return err
 			}
+
+			// This is a reply to another message, decrease reply counter on the original
+			if err = svc.message.DecReplyCount(original.ID); err != nil {
+				return err
+			}
+
+			// Broadcast updated original
+			bq = append(bq, original)
 		}
 
 		if err = svc.message.DeleteMessageByID(ID); err != nil {
@@ -228,7 +248,7 @@ func (svc *message) Delete(ID uint64) error {
 		// 	return err
 		// }
 
-		return nil
+		return svc.sendEvent(append(bq, deletedMsg)...)
 	})
 }
 
@@ -311,15 +331,21 @@ func (svc *message) Unflag(messageID uint64) error {
 // Sends message to event loop
 //
 // It also preloads user
-func (svc *message) sendEvent(msg *types.Message) (err error) {
-	if msg.User == nil {
-		// @todo pull user from cache
-		if msg.User, err = svc.usr.FindByID(msg.UserID); err != nil {
+func (svc *message) sendEvent(messages ... *types.Message) (err error) {
+	for _, msg := range messages {
+		if msg.User == nil {
+			// @todo pull user from cache
+			if msg.User, err = svc.usr.FindByID(msg.UserID); err != nil {
+				return
+			}
+		}
+
+		if err = svc.evl.Message(msg); err != nil {
 			return
 		}
 	}
 
-	return svc.evl.Message(msg)
+	return
 }
 
 var _ MessageService = &message{}
