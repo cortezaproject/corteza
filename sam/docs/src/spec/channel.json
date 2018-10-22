@@ -242,6 +242,12 @@
         ],
         "post": [
           {
+            "name": "replyTo",
+            "required": false,
+            "title": "Upload as a reply",
+            "type": "uint64"
+          },
+          {
             "name": "upload",
             "required": true,
             "title": "File to upload",

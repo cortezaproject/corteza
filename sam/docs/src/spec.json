@@ -319,6 +319,7 @@
 						{ "name": "channelID", "type": "uint64", "required": true, "title": "Channel ID" }
 					],
 					"post": [
+						{ "name": "replyTo", "type": "uint64", "required": false, "title": "Upload as a reply" },
 						{ "name": "upload", "type": "*multipart.FileHeader", "required": true, "title": "File to upload" }
 					]
 				}

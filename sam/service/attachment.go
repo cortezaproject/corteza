@@ -11,6 +11,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/disintegration/imaging"
 	"github.com/edwvee/exiffix"
 	"github.com/pkg/errors"
@@ -44,7 +45,7 @@ type (
 		With(ctx context.Context) AttachmentService
 
 		FindByID(id uint64) (*types.Attachment, error)
-		Create(channelId uint64, name string, size int64, fh io.ReadSeeker) (*types.Attachment, error)
+		Create(name string, size int64, fh io.ReadSeeker, channelId, replyTo uint64) (*types.Attachment, error)
 		OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 		OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
 	}
@@ -93,7 +94,7 @@ func (svc *attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
 	return svc.store.Open(att.PreviewUrl)
 }
 
-func (svc *attachment) Create(channelId uint64, name string, size int64, fh io.ReadSeeker) (att *types.Attachment, err error) {
+func (svc *attachment) Create(name string, size int64, fh io.ReadSeeker, channelId, replyTo uint64) (att *types.Attachment, err error) {
 	if svc.store == nil {
 		return nil, errors.New("Can not create attachment: store handler not set")
 	}
@@ -140,10 +141,12 @@ func (svc *attachment) Create(channelId uint64, name string, size int64, fh io.R
 		}
 
 		msg := &types.Message{
-			Message:   name,
-			Type:      types.MessageTypeAttachment,
-			ChannelID: channelId,
-			UserID:    currentUserID,
+			Attachment: att,
+			Message:    name,
+			Type:       types.MessageTypeAttachment,
+			ChannelID:  channelId,
+			ReplyTo:    replyTo,
+			UserID:     currentUserID,
 		}
 
 		if strings.HasPrefix(att.Meta.Original.Mimetype, "image/") {
@@ -162,7 +165,7 @@ func (svc *attachment) Create(channelId uint64, name string, size int64, fh io.R
 
 		log.Printf("File %s (id: %d) attached to message (id: %d)", att.Name, att.ID, msg.ID)
 
-		return svc.sendEvent(msg, att)
+		return svc.sendEvent(msg)
 	})
 }
 
@@ -286,9 +289,7 @@ func (svc *attachment) processImage(original io.ReadSeeker, att *types.Attachmen
 // Sends message to event loop
 //
 // It also preloads user
-func (svc *attachment) sendEvent(msg *types.Message, att *types.Attachment) (err error) {
-	msg.Attachment = att
-
+func (svc *attachment) sendEvent(msg *types.Message) (err error) {
 	if msg.User == nil {
 		// @todo pull user from cache
 		if msg.User, err = svc.usr.FindByID(msg.UserID); err != nil {
@@ -296,6 +297,7 @@ func (svc *attachment) sendEvent(msg *types.Message, att *types.Attachment) (err
 		}
 	}
 
+	spew.Dump(msg)
 	return svc.evl.Message(msg)
 }
 

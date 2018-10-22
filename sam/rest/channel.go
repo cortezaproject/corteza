@@ -90,10 +90,12 @@ func (ctrl *Channel) Attach(ctx context.Context, r *request.ChannelAttach) (inte
 	defer file.Close()
 
 	return ctrl.wrapAttachment(ctrl.svc.att.With(ctx).Create(
-		r.ChannelID,
 		r.Upload.Filename,
 		r.Upload.Size,
-		file))
+		file,
+		r.ChannelID,
+		r.ReplyTo,
+	))
 }
 
 func (ctrl *Channel) wrapAttachment(attachment *types.Attachment, err error) (*outgoing.Attachment, error) {
