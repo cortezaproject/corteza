@@ -45,7 +45,9 @@ func ({self} *{name|expose}{call.name|capitalize}) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+{eval $parseForm = "ParseForm"}
+{foreach $call.parameters as $method => $params}{foreach $params as $param}{if $param.type === "*multipart.FileHeader"}{eval $parseForm = "ParseMultipartForm"}{/if}{/foreach}{/foreach}
+	r.{$parseForm}()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()

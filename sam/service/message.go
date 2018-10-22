@@ -130,7 +130,7 @@ func (svc *message) Create(mod *types.Message) (message *types.Message, err erro
 		var bq = types.MessageSet{}
 
 		if mod.ReplyTo > 0 {
-		var original *types.Message
+			var original *types.Message
 			original, err = svc.message.FindMessageByID(mod.ReplyTo)
 			if err != nil {
 				return
@@ -331,7 +331,7 @@ func (svc *message) Unflag(messageID uint64) error {
 // Sends message to event loop
 //
 // It also preloads user
-func (svc *message) sendEvent(messages ... *types.Message) (err error) {
+func (svc *message) sendEvent(messages ...*types.Message) (err error) {
 	for _, msg := range messages {
 		if msg.User == nil {
 			// @todo pull user from cache
