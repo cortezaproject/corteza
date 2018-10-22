@@ -36,7 +36,7 @@ const (
 
 	sqlChannelViewsDecCount = `UPDATE channel_views 
                                   SET new_messages_count = new_messages_count - 1
-                                WHERE rel_channel = ? AND rel_user <> ?`
+                                WHERE rel_channel = ? AND rel_user <> ? AND new_messages_count > 0`
 )
 
 // ChannelView creates new instance of channel member repository
