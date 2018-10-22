@@ -39,9 +39,7 @@ func NewUserSearch() *UserSearch {
 	return &UserSearch{}
 }
 
-func (u *UserSearch) Fill(r *http.Request) error {
-	var err error
-
+func (u *UserSearch) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(u)
 
@@ -53,7 +51,10 @@ func (u *UserSearch) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()

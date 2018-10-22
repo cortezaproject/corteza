@@ -38,9 +38,7 @@ func NewPageList() *PageList {
 	return &PageList{}
 }
 
-func (p *PageList) Fill(r *http.Request) error {
-	var err error
-
+func (p *PageList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(p)
 
@@ -52,7 +50,10 @@ func (p *PageList) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -83,9 +84,7 @@ func NewPageCreate() *PageCreate {
 	return &PageCreate{}
 }
 
-func (p *PageCreate) Fill(r *http.Request) error {
-	var err error
-
+func (p *PageCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(p)
 
@@ -97,7 +96,10 @@ func (p *PageCreate) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -150,9 +152,7 @@ func NewPageRead() *PageRead {
 	return &PageRead{}
 }
 
-func (p *PageRead) Fill(r *http.Request) error {
-	var err error
-
+func (p *PageRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(p)
 
@@ -164,7 +164,10 @@ func (p *PageRead) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -198,9 +201,7 @@ func NewPageEdit() *PageEdit {
 	return &PageEdit{}
 }
 
-func (p *PageEdit) Fill(r *http.Request) error {
-	var err error
-
+func (p *PageEdit) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(p)
 
@@ -212,7 +213,10 @@ func (p *PageEdit) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -266,9 +270,7 @@ func NewPageDelete() *PageDelete {
 	return &PageDelete{}
 }
 
-func (p *PageDelete) Fill(r *http.Request) error {
-	var err error
-
+func (p *PageDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(p)
 
@@ -280,7 +282,10 @@ func (p *PageDelete) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()

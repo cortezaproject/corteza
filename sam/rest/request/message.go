@@ -40,9 +40,7 @@ func NewMessageCreate() *MessageCreate {
 	return &MessageCreate{}
 }
 
-func (m *MessageCreate) Fill(r *http.Request) error {
-	var err error
-
+func (m *MessageCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -54,7 +52,10 @@ func (m *MessageCreate) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -87,9 +88,7 @@ func NewMessageHistory() *MessageHistory {
 	return &MessageHistory{}
 }
 
-func (m *MessageHistory) Fill(r *http.Request) error {
-	var err error
-
+func (m *MessageHistory) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -101,7 +100,10 @@ func (m *MessageHistory) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -135,9 +137,7 @@ func NewMessageEdit() *MessageEdit {
 	return &MessageEdit{}
 }
 
-func (m *MessageEdit) Fill(r *http.Request) error {
-	var err error
-
+func (m *MessageEdit) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -149,7 +149,10 @@ func (m *MessageEdit) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -183,9 +186,7 @@ func NewMessageDelete() *MessageDelete {
 	return &MessageDelete{}
 }
 
-func (m *MessageDelete) Fill(r *http.Request) error {
-	var err error
-
+func (m *MessageDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -197,7 +198,10 @@ func (m *MessageDelete) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -228,9 +232,7 @@ func NewMessageSearch() *MessageSearch {
 	return &MessageSearch{}
 }
 
-func (m *MessageSearch) Fill(r *http.Request) error {
-	var err error
-
+func (m *MessageSearch) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -242,7 +244,10 @@ func (m *MessageSearch) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -279,9 +284,7 @@ func NewMessagePin() *MessagePin {
 	return &MessagePin{}
 }
 
-func (m *MessagePin) Fill(r *http.Request) error {
-	var err error
-
+func (m *MessagePin) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -293,7 +296,10 @@ func (m *MessagePin) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -323,9 +329,7 @@ func NewMessageGetReplies() *MessageGetReplies {
 	return &MessageGetReplies{}
 }
 
-func (m *MessageGetReplies) Fill(r *http.Request) error {
-	var err error
-
+func (m *MessageGetReplies) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -337,7 +341,10 @@ func (m *MessageGetReplies) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -368,9 +375,7 @@ func NewMessageCreateReply() *MessageCreateReply {
 	return &MessageCreateReply{}
 }
 
-func (m *MessageCreateReply) Fill(r *http.Request) error {
-	var err error
-
+func (m *MessageCreateReply) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -382,7 +387,10 @@ func (m *MessageCreateReply) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -416,9 +424,7 @@ func NewMessageUnpin() *MessageUnpin {
 	return &MessageUnpin{}
 }
 
-func (m *MessageUnpin) Fill(r *http.Request) error {
-	var err error
-
+func (m *MessageUnpin) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -430,7 +436,10 @@ func (m *MessageUnpin) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -460,9 +469,7 @@ func NewMessageFlag() *MessageFlag {
 	return &MessageFlag{}
 }
 
-func (m *MessageFlag) Fill(r *http.Request) error {
-	var err error
-
+func (m *MessageFlag) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -474,7 +481,10 @@ func (m *MessageFlag) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -504,9 +514,7 @@ func NewMessageUnflag() *MessageUnflag {
 	return &MessageUnflag{}
 }
 
-func (m *MessageUnflag) Fill(r *http.Request) error {
-	var err error
-
+func (m *MessageUnflag) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -518,7 +526,10 @@ func (m *MessageUnflag) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -549,9 +560,7 @@ func NewMessageReact() *MessageReact {
 	return &MessageReact{}
 }
 
-func (m *MessageReact) Fill(r *http.Request) error {
-	var err error
-
+func (m *MessageReact) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -563,7 +572,10 @@ func (m *MessageReact) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
@@ -595,9 +607,7 @@ func NewMessageUnreact() *MessageUnreact {
 	return &MessageUnreact{}
 }
 
-func (m *MessageUnreact) Fill(r *http.Request) error {
-	var err error
-
+func (m *MessageUnreact) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -609,7 +619,10 @@ func (m *MessageUnreact) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()

@@ -31,9 +31,7 @@ func New{name|expose}{call.name|capitalize}() *{name|expose}{call.name|capitaliz
 	return &{name|expose}{call.name|capitalize}{}
 }
 
-func ({self} *{name|expose}{call.name|capitalize}) Fill(r *http.Request) error {
-	var err error
-
+func ({self} *{name|expose}{call.name|capitalize}) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode({self})
 
@@ -45,9 +43,12 @@ func ({self} *{name|expose}{call.name|capitalize}) Fill(r *http.Request) error {
 		}
 	}
 
-{eval $parseForm = "ParseForm"}
-{foreach $call.parameters as $method => $params}{foreach $params as $param}{if $param.type === "*multipart.FileHeader"}{eval $parseForm = "ParseMultipartForm"}{/if}{/foreach}{/foreach}
-	r.{$parseForm}()
+{eval $parseForm = "ParseForm()"}
+{foreach $call.parameters as $method => $params}{foreach $params as $param}{if $param.type === "*multipart.FileHeader"}{eval $parseForm = "ParseMultipartForm(32 << 20)"}{/if}{/foreach}{/foreach}
+	if err = r.{$parseForm}; err != nil {
+		return err
+	}
+
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
