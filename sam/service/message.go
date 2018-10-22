@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
@@ -192,12 +193,11 @@ func (svc *message) Update(mod *types.Message) (message *types.Message, err erro
 		// Allow message content to be changed, ignore everything else
 		original.Message = mod.Message
 
-		message, err = svc.message.UpdateMessage(original)
-		if err == nil {
+		if message, err = svc.message.UpdateMessage(original); err != nil {
 			return err
 		}
 
-		return svc.sendEvent(message)
+		return svc.sendEvent(original)
 	})
 }
 
@@ -240,13 +240,13 @@ func (svc *message) Delete(ID uint64) error {
 			return
 		}
 
-		// if err == nil {
-		// 	err = svc.evl.Message(message)
-		// }
+		// Set deletedAt timestamp so that our clients can react properly...
+		now := time.Now()
+		deletedMsg.DeletedAt = &now
 
-		// if err = svc.cview.Dec(message.ChannelID, message.UserID); err != nil {
-		// 	return err
-		// }
+		if err = svc.cview.Dec(deletedMsg.ChannelID, deletedMsg.UserID); err != nil {
+			return err
+		}
 
 		return svc.sendEvent(append(bq, deletedMsg)...)
 	})
