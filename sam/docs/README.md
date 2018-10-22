@@ -368,6 +368,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | channelID | uint64 | PATH | Channel ID | N/A | YES |
+| replyTo | uint64 | POST | Upload as a reply | N/A | NO |
 | upload | *multipart.FileHeader | POST | File to upload | N/A | YES |
 
 

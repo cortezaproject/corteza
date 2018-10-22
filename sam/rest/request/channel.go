@@ -17,13 +17,15 @@ package request
 
 import (
 	"encoding/json"
-	"github.com/go-chi/chi"
-	"github.com/jmoiron/sqlx/types"
-	"github.com/pkg/errors"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"strings"
+
+	"github.com/davecgh/go-spew/spew"
+	"github.com/go-chi/chi"
+	"github.com/jmoiron/sqlx/types"
+	"github.com/pkg/errors"
 )
 
 var _ = chi.URLParam
@@ -458,6 +460,7 @@ var _ RequestFiller = NewChannelInvite()
 // Channel attach request parameters
 type ChannelAttach struct {
 	ChannelID uint64 `json:",string"`
+	ReplyTo   uint64 `json:",string"`
 	Upload    *multipart.FileHeader
 }
 
@@ -491,7 +494,13 @@ func (c *ChannelAttach) Fill(r *http.Request) error {
 		post[name] = string(param[0])
 	}
 
+	spew.Dump(post)
+
 	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	if val, ok := post["replyTo"]; ok {
+
+		c.ReplyTo = parseUInt64(val)
+	}
 	if _, c.Upload, err = r.FormFile("upload"); err != nil {
 		return errors.Wrap(err, "error procesing uploaded file")
 	}
