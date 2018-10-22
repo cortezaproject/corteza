@@ -479,7 +479,7 @@ func (c *ChannelAttach) Fill(r *http.Request) error {
 		}
 	}
 
-	r.ParseForm()
+	r.ParseMultipartForm()
 	get := map[string]string{}
 	post := map[string]string{}
 	urlQuery := r.URL.Query()
