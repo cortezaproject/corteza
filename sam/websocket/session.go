@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	authTypes "github.com/crusttech/crust/auth/types"
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/internal/payload/outgoing"
@@ -64,33 +65,61 @@ func (sess *Session) Context() context.Context {
 	return sess.ctx
 }
 
-func (sess *Session) connected() {
+func (sess *Session) connected() (err error) {
+	var (
+		uu authTypes.UserSet
+		cc types.ChannelSet
+	)
+
 	// Push user info about all users we know...
-	if users, err := sess.svc.user.With(sess.ctx).Find(nil); err != nil {
+	if uu, err = sess.svc.user.With(sess.ctx).Find(nil); err != nil {
 		log.Printf("Error: %v", err)
 	} else {
-		sess.sendReply(payload.Users(users))
+		userPayload := payload.Users(uu)
+		store.Walk(func(session *Session) {
+			for _, u := range *userPayload {
+				if u.ID == session.user.Identity() {
+					u.Connections++
+				}
+			}
+		})
+
+		if err = sess.sendReply(userPayload); err != nil {
+			return
+		}
 	}
 
 	// Push user info about all channels he has access to...
-	if cc, err := sess.svc.ch.With(sess.ctx).Find(&types.ChannelFilter{IncludeMembers: true}); err != nil {
+	if cc, err = sess.svc.ch.With(sess.ctx).Find(&types.ChannelFilter{IncludeMembers: true}); err != nil {
 		log.Printf("Error: %v", err)
 	} else {
-		sess.sendReply(payload.Channels(cc))
+		if err = sess.sendReply(payload.Channels(cc)); err != nil {
+			return
+		}
 
 		log.Printf("Subscribing %d to %d channels", sess.user.Identity(), len(cc))
 
-		cc.Walk(func(c *types.Channel) error {
+		err = cc.Walk(func(c *types.Channel) error {
 			// Subscribe this user/session to all channels
 			sess.subs.Add(payload.Uint64toa(c.ID))
 			return nil
 		})
+
+		if err != nil {
+			return
+		}
 	}
 
-	sess.sendReply(payload.Commands(types.Preset))
+	if err = sess.sendReply(payload.Commands(types.Preset)); err != nil {
+		return
+	}
 
 	// Tell everyone that user has connected
-	sess.sendToAll(&outgoing.Connected{UserID: payload.Uint64toa(sess.user.Identity())})
+	if err = sess.sendToAll(&outgoing.Connected{UserID: payload.Uint64toa(sess.user.Identity())}); err != nil {
+		return
+	}
+
+	return nil
 }
 
 func (sess *Session) disconnected() {
@@ -98,8 +127,12 @@ func (sess *Session) disconnected() {
 	sess.sendToAll(&outgoing.Disconnected{UserID: payload.Uint64toa(sess.user.Identity())})
 }
 
-func (sess *Session) Handle() error {
-	sess.connected()
+func (sess *Session) Handle() (err error) {
+	if err = sess.connected(); err != nil {
+		sess.Close()
+		return
+	}
+
 	go sess.readLoop()
 	return sess.writeLoop()
 }
