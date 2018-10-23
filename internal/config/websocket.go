@@ -25,6 +25,6 @@ func (*Websocket) Init(prefix ...string) *Websocket {
 	websocket = new(Websocket)
 	websocket.Timeout = 15 * time.Second
 	websocket.PingTimeout = 120 * time.Second
-	websocket.PingPeriod = (websocket.PingTimeout * 10) / 9
+	websocket.PingPeriod = (websocket.PingTimeout * 9) / 10
 	return websocket
 }
