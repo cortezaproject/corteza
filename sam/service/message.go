@@ -145,7 +145,8 @@ func (svc *message) Create(mod *types.Message) (message *types.Message, err erro
 
 			mod.ChannelID = original.ChannelID
 
-			//
+			// Increment counter, on struct and in repostiry.
+			original.Replies++
 			if err = svc.message.IncReplyCount(original.ID); err != nil {
 				return
 			}
@@ -227,7 +228,12 @@ func (svc *message) Delete(ID uint64) error {
 				return err
 			}
 
-			// This is a reply to another message, decrease reply counter on the original
+			// This is a reply to another message, decrease reply counter on the original, on struct and in the
+			// repository
+			if original.Replies > 0 {
+				original.Replies--
+			}
+
 			if err = svc.message.DecReplyCount(original.ID); err != nil {
 				return err
 			}
