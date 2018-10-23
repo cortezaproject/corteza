@@ -111,17 +111,20 @@ func (sess *Session) Close() {
 	store.Delete(sess.id)
 }
 
-func (sess *Session) readLoop() error {
+func (sess *Session) readLoop() (err error) {
 	defer func() {
 		log.Println("serveWebsocket - stop")
 		sess.Close()
 	}()
 
-	sess.conn.SetReadDeadline(time.Now().Add(sess.config.Websocket.PingTimeout))
+	if err = sess.conn.SetReadDeadline(time.Now().Add(sess.config.Websocket.PingTimeout)); err != nil {
+		return
+	}
+
 	sess.conn.SetPongHandler(func(string) error {
-		sess.conn.SetReadDeadline(time.Now().Add(sess.config.Websocket.PingTimeout))
-		return nil
+		return sess.conn.SetReadDeadline(time.Now().Add(sess.config.Websocket.PingTimeout))
 	})
+
 	sess.remoteAddr = sess.conn.RemoteAddr().String()
 
 	for {
@@ -145,16 +148,23 @@ func (sess *Session) writeLoop() error {
 		sess.Close() // break readLoop
 	}()
 
-	write := func(msg []byte) error {
-		sess.conn.SetWriteDeadline(time.Now().Add(sess.config.Websocket.Timeout))
+	write := func(msg []byte) (err error) {
+		if err = sess.conn.SetWriteDeadline(time.Now().Add(sess.config.Websocket.Timeout)); err != nil {
+			return
+		}
+
 		if msg != nil {
 			return sess.conn.WriteMessage(websocket.TextMessage, msg)
 		}
-		return nil
+
+		return
 	}
 
-	ping := func() error {
-		sess.conn.SetWriteDeadline(time.Now().Add(sess.config.Websocket.Timeout))
+	ping := func() (err error) {
+		if err = sess.conn.SetWriteDeadline(time.Now().Add(sess.config.Websocket.Timeout)); err != nil {
+			return
+		}
+
 		return sess.conn.WriteMessage(websocket.PingMessage, nil)
 	}
 
