@@ -7,12 +7,12 @@ import (
 type (
 	User struct {
 		// Channel to part (nil) for ALL channels
-		ID          string `json:"ID"`
+		ID          uint64 `json:"ID,string"`
 		Name        string `json:"name"`
 		Email       string `json:"email"`
 		Username    string `json:"username"`
 		Handle      string `json:"handle"`
-		Connections uint   `json:"connections"`
+		Connections uint   `json:"connections,omitempty"`
 	}
 
 	UserSet []*User

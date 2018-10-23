@@ -116,7 +116,7 @@ func User(user *auth.User) *outgoing.User {
 	}
 
 	return &outgoing.User{
-		ID:       Uint64toa(user.ID),
+		ID:       user.ID,
 		Name:     user.Name,
 		Handle:   user.Handle,
 		Username: user.Username,
@@ -128,7 +128,6 @@ func Users(users []*auth.User) *outgoing.UserSet {
 	uu := make([]*outgoing.User, len(users))
 	for k, u := range users {
 		uu[k] = User(u)
-		uu[k].Connections = 0
 	}
 
 	retval := outgoing.UserSet(uu)
