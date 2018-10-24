@@ -39,6 +39,8 @@ func (s *Session) dispatch(raw []byte) error {
 		return s.channelUpdate(ctx, p.ChannelUpdate)
 	case p.ChannelViewRecord != nil:
 		return s.channelViewRecord(ctx, p.ChannelViewRecord)
+	case p.ChannelActivity != nil:
+		return s.channelActivity(ctx, p.ChannelActivity)
 
 	case p.Users != nil:
 		return s.userList(ctx, p.Users)
