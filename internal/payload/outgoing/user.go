@@ -12,7 +12,7 @@ type (
 		Email       string `json:"email"`
 		Username    string `json:"username"`
 		Handle      string `json:"handle"`
-		Connections uint   `json:"connections,omitempty"`
+		Connections uint   `json:"connections"`
 	}
 
 	UserSet []*User

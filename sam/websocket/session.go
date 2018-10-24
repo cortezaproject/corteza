@@ -124,7 +124,7 @@ func (sess *Session) connected() (err error) {
 
 func (sess *Session) disconnected() {
 	// Tell everyone that user has disconnected
-	sess.sendToAll(&outgoing.Disconnected{UserID: payload.Uint64toa(sess.user.Identity())})
+	_ = sess.sendToAll(&outgoing.Disconnected{UserID: payload.Uint64toa(sess.user.Identity())})
 }
 
 func (sess *Session) Handle() (err error) {
@@ -138,15 +138,20 @@ func (sess *Session) Handle() (err error) {
 }
 
 func (sess *Session) Close() {
-	// @todo fix "writeLoop send: websocket: close sent" caused by sending disconnect here
+	if sess.conn == nil {
+		// Do not close session
+		// if there is no connection
+		return
+	}
+
 	sess.disconnected()
 	sess.conn.Close()
 	store.Delete(sess.id)
+	sess.conn = nil
 }
 
 func (sess *Session) readLoop() (err error) {
 	defer func() {
-		log.Println("serveWebsocket - stop")
 		sess.Close()
 	}()
 
@@ -166,8 +171,9 @@ func (sess *Session) readLoop() (err error) {
 			return errors.Wrap(err, "sess.readLoop")
 		}
 
-		if err := sess.dispatch(raw); err != nil {
+		if err = sess.dispatch(raw); err != nil {
 			log.Printf("Error: %v", err)
+
 			sess.sendReply(outgoing.NewError(err))
 		}
 	}
@@ -182,6 +188,11 @@ func (sess *Session) writeLoop() error {
 	}()
 
 	write := func(msg []byte) (err error) {
+		if sess.conn == nil {
+			// Connection closed, nowhere to write
+			return
+		}
+
 		if err = sess.conn.SetWriteDeadline(time.Now().Add(sess.config.Websocket.Timeout)); err != nil {
 			return
 		}
@@ -194,6 +205,11 @@ func (sess *Session) writeLoop() error {
 	}
 
 	ping := func() (err error) {
+		if sess.conn == nil {
+			// Connection closed, nothing to ping
+			return
+		}
+
 		if err = sess.conn.SetWriteDeadline(time.Now().Add(sess.config.Websocket.Timeout)); err != nil {
 			return
 		}
@@ -215,7 +231,7 @@ func (sess *Session) writeLoop() error {
 
 		case msg := <-sess.stop:
 			// Shutdown requested, don't care if the message is delivered
-			write(msg)
+			_ = write(msg)
 			return nil
 
 		case <-ticker.C:
