@@ -12,6 +12,8 @@ type Payload struct {
 
 	*ChannelViewRecord `json:"recordChannelView"`
 
+	*ChannelActivity `json:"channelActivity"`
+
 	// Get channel message history
 	*Messages `json:"messages"`
 
