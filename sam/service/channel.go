@@ -50,7 +50,7 @@ type (
 		Archive(ID uint64) error
 		Unarchive(ID uint64) error
 		Delete(ID uint64) error
-		RecordView(channelID, userID, lastMessageID uint64) error
+		RecordView(userID, channelID, lastMessageID uint64) error
 	}
 
 	// channelSecurity interface {
@@ -704,7 +704,7 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 
 func (svc *channel) RecordView(channelID, userID, lastMessageID uint64) error {
 	return svc.db.Transaction(func() (err error) {
-		return svc.cview.Record(channelID, userID, lastMessageID, 0)
+		return svc.cview.Record(userID, channelID, lastMessageID, 0)
 	})
 }
 
