@@ -49,7 +49,12 @@
 				"name": "list",
 				"method": "GET",
 				"path": "/",
-				"title": "List available pages"
+				"title": "List available pages",
+				"parameters": {
+					"get": [
+						{ "type": "uint64", "name": "selfID", "required": false, "title": "Parent page ID" }
+					]
+				}
 			},
 			{
 				"name": "create",

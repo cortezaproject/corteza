@@ -21,7 +21,7 @@ func (Page) New(pageSvc service.PageService) *Page {
 }
 
 func (ctrl *Page) List(ctx context.Context, r *request.PageList) (interface{}, error) {
-	return ctrl.page.With(ctx).Find()
+	return ctrl.page.With(ctx).Find(r.SelfID)
 }
 
 func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{}, error) {
@@ -38,6 +38,10 @@ func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{
 
 func (ctrl *Page) Read(ctx context.Context, r *request.PageRead) (interface{}, error) {
 	return ctrl.page.With(ctx).FindByID(r.ID)
+}
+
+func (ctrl *Page) Reorder(ctx context.Context, r *request.PageReorder) (interface{}, error) {
+	return resputil.OK(), ctrl.page.With(ctx).Reorder(r.SelfID, r.PageIDs)
 }
 
 func (ctrl *Page) Edit(ctx context.Context, r *request.PageEdit) (interface{}, error) {

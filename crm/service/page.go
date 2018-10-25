@@ -20,11 +20,13 @@ type (
 		With(ctx context.Context) PageService
 
 		FindByID(pageID uint64) (*types.Page, error)
-		Find() ([]*types.Page, error)
+		Find(selfID uint64) ([]*types.Page, error)
 
 		Create(page *types.Page) (*types.Page, error)
 		Update(page *types.Page) (*types.Page, error)
 		DeleteByID(pageID uint64) error
+
+		Reorder(selfID uint64, pageIDs []uint64) error
 	}
 )
 
@@ -45,8 +47,12 @@ func (s *page) FindByID(id uint64) (*types.Page, error) {
 	return s.repository.FindByID(id)
 }
 
-func (s *page) Find() ([]*types.Page, error) {
-	return s.repository.Find()
+func (s *page) Find(selfID uint64) ([]*types.Page, error) {
+	return s.repository.Find(selfID)
+}
+
+func (s *page) Reorder(selfID uint64, pageIDs []uint64) error {
+	return s.repository.Reorder(selfID, pageIDs)
 }
 
 func (s *page) Create(mod *types.Page) (*types.Page, error) {

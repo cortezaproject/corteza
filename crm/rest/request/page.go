@@ -32,6 +32,7 @@ var _ = multipart.FileHeader{}
 
 // Page list request parameters
 type PageList struct {
+	SelfID uint64 `json:",string"`
 }
 
 func NewPageList() *PageList {
@@ -63,6 +64,11 @@ func (p *PageList) Fill(r *http.Request) (err error) {
 	postVars := r.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
+	}
+
+	if val, ok := get["selfID"]; ok {
+
+		p.SelfID = parseUInt64(val)
 	}
 
 	return err

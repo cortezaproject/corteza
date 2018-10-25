@@ -33,7 +33,7 @@ func TestMain(m *testing.M) {
 
 	// clean up tables
 	{
-		for _, name := range []string{"crm_module", "crm_content", "crm_content_column"} {
+		for _, name := range []string{"crm_module", "crm_module_form", "crm_content", "crm_content_column", "crm_page"} {
 			_, err := db.Exec("truncate " + name)
 			if err != nil {
 				panic("Error when clearing " + name + ": " + err.Error())
