@@ -458,6 +458,7 @@ func (c *ChannelInvite) Fill(r *http.Request) (err error) {
 	}
 
 	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	c.UserID = parseUInt64A(r.Form["userID"])
 
 	return err
 }

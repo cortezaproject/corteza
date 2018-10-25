@@ -26,7 +26,7 @@ func parseInt(s string) int {
 	return i
 }
 
-// parseInt64 parses an string to int64
+// parseInt64 parses a string to int64
 func parseInt64(s string) int64 {
 	if s == "" {
 		return 0
@@ -35,7 +35,7 @@ func parseInt64(s string) int64 {
 	return i
 }
 
-// parseUInt64 parses an string to uint64
+// parseUInt64 parses a string to uint64
 func parseUInt64(s string) uint64 {
 	if s == "" {
 		return 0
@@ -44,7 +44,17 @@ func parseUInt64(s string) uint64 {
 	return i
 }
 
-// parseUInt64 parses an string to uint64
+func parseUInt64A(values []string) []uint64 {
+	var result []uint64
+	if values != nil && len(values) > 0 {
+		for _, val := range values {
+			result = append(result, parseUInt64(val))
+		}
+	}
+	return result
+}
+
+// parseUInt64 parses a string to uint64
 func parseBool(s string) bool {
 	return truthy.MatchString(strings.ToLower(s))
 }

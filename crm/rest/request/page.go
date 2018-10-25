@@ -305,6 +305,7 @@ func (p *PageReorder) Fill(r *http.Request) (err error) {
 	}
 
 	p.SelfID = parseUInt64(chi.URLParam(r, "selfID"))
+	p.PageIDs = parseUInt64A(r.Form["pageIDs"])
 
 	return err
 }
