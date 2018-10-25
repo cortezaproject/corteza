@@ -88,7 +88,8 @@ func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err 
 		return nil, err
 	}
 
-	mm.Walk(func(i *types.Message) (err error) {
+	_ = mm.Walk(func(i *types.Message) (err error) {
+		// @todo fix this handler errors (ignore user-not-found, return others)
 		i.User, err = svc.usr.FindByID(i.UserID)
 		return
 	})
@@ -97,18 +98,26 @@ func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err 
 }
 
 func (svc *message) loadAttachments(mm types.MessageSet) (err error) {
-	var ids []uint64
-	mm.Walk(func(m *types.Message) error {
+	var (
+		ids []uint64
+		aa  types.MessageAttachmentSet
+	)
+
+	err = mm.Walk(func(m *types.Message) error {
 		if m.Type == types.MessageTypeAttachment || m.Type == types.MessageTypeInlineImage {
 			ids = append(ids, m.ID)
 		}
 		return nil
 	})
 
-	if set, err := svc.attachment.FindAttachmentByMessageID(ids...); err != nil {
-		return err
+	if err != nil {
+		return
+	}
+
+	if aa, err = svc.attachment.FindAttachmentByMessageID(ids...); err != nil {
+		return
 	} else {
-		return set.Walk(func(a *types.MessageAttachment) error {
+		return aa.Walk(func(a *types.MessageAttachment) error {
 			if a.MessageID > 0 {
 				if m := mm.FindById(a.MessageID); m != nil {
 					m.Attachment = &a.Attachment
@@ -337,13 +346,13 @@ func (svc *message) Unflag(messageID uint64) error {
 // Sends message to event loop
 //
 // It also preloads user
-func (svc *message) sendEvent(messages ...*types.Message) (err error) {
-	for _, msg := range messages {
+func (svc *message) sendEvent(mm ...*types.Message) (err error) {
+	svc.loadAttachments(mm)
+
+	for _, msg := range mm {
 		if msg.User == nil {
-			// @todo pull user from cache
-			if msg.User, err = svc.usr.FindByID(msg.UserID); err != nil {
-				return
-			}
+			// @todo fix this handler errors (ignore user-not-found, return others)
+			msg.User, _ = svc.usr.FindByID(msg.UserID)
 		}
 
 		if err = svc.evl.Message(msg); err != nil {
