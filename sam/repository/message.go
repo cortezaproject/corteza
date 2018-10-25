@@ -81,6 +81,12 @@ func (r *message) FindMessages(filter *types.MessageFilter) (types.MessageSet, e
 		}
 	}
 
+	if filter.ChannelID == 0 && filter.RepliesTo == 0 {
+		// Channel history or replies to a message...
+		// nothing more.
+		return nil, nil
+	}
+
 	if filter.ChannelID > 0 {
 		sql += " AND rel_channel = ? "
 		params = append(params, filter.ChannelID)
