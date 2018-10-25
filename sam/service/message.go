@@ -88,14 +88,11 @@ func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err 
 		return nil, err
 	}
 
-	err = mm.Walk(func(i *types.Message) (err error) {
+	_ = mm.Walk(func(i *types.Message) (err error) {
+		// @todo fix this handler errors (ignore user-not-found, return others)
 		i.User, err = svc.usr.FindByID(i.UserID)
 		return
 	})
-
-	if err != nil {
-		return
-	}
 
 	return mm, svc.loadAttachments(mm)
 }
@@ -354,10 +351,8 @@ func (svc *message) sendEvent(mm ...*types.Message) (err error) {
 
 	for _, msg := range mm {
 		if msg.User == nil {
-			// @todo pull user from cache
-			if msg.User, err = svc.usr.FindByID(msg.UserID); err != nil {
-				return
-			}
+			// @todo fix this handler errors (ignore user-not-found, return others)
+			msg.User, _ = svc.usr.FindByID(msg.UserID)
 		}
 
 		if err = svc.evl.Message(msg); err != nil {
