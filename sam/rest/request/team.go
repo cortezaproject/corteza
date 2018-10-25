@@ -79,7 +79,7 @@ var _ RequestFiller = NewTeamList()
 // Team create request parameters
 type TeamCreate struct {
 	Name    string
-	Members []uint64
+	Members []uint64 `json:",string"`
 }
 
 func NewTeamCreate() *TeamCreate {
@@ -127,7 +127,7 @@ var _ RequestFiller = NewTeamCreate()
 type TeamEdit struct {
 	TeamID  uint64 `json:",string"`
 	Name    string
-	Members []uint64
+	Members []uint64 `json:",string"`
 }
 
 func NewTeamEdit() *TeamEdit {

@@ -422,8 +422,8 @@ var _ RequestFiller = NewChannelPart()
 
 // Channel invite request parameters
 type ChannelInvite struct {
-	ChannelID uint64 `json:",string"`
-	UserID    []uint64
+	ChannelID uint64   `json:",string"`
+	UserID    []uint64 `json:",string"`
 }
 
 func NewChannelInvite() *ChannelInvite {
