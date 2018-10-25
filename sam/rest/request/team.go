@@ -117,6 +117,7 @@ func (t *TeamCreate) Fill(r *http.Request) (err error) {
 
 		t.Name = val
 	}
+	t.Members = parseUInt64A(r.Form["members"])
 
 	return err
 }
@@ -166,6 +167,7 @@ func (t *TeamEdit) Fill(r *http.Request) (err error) {
 
 		t.Name = val
 	}
+	t.Members = parseUInt64A(r.Form["members"])
 
 	return err
 }
