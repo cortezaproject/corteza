@@ -14,7 +14,16 @@
       "Method": "GET",
       "Title": "List available pages",
       "Path": "/",
-      "Parameters": null
+      "Parameters": {
+        "get": [
+          {
+            "name": "selfID",
+            "required": false,
+            "title": "Parent page ID",
+            "type": "uint64"
+          }
+        ]
+      }
     },
     {
       "Name": "create",

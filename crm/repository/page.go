@@ -13,13 +13,15 @@ type (
 	PageRepository interface {
 		With(ctx context.Context, db *factory.DB) PageRepository
 
-		Find() ([]*types.Page, error)
+		Find(selfID uint64) ([]*types.Page, error)
 		FindByID(id uint64) (*types.Page, error)
 		FindByModuleID(id uint64) (*types.Page, error)
 
 		Create(mod *types.Page) (*types.Page, error)
 		Update(mod *types.Page) (*types.Page, error)
 		DeleteByID(id uint64) error
+
+		Reorder(selfID uint64, pageIDs []uint64) error
 	}
 
 	page struct {
@@ -56,9 +58,9 @@ func (r *page) FindByModuleID(id uint64) (*types.Page, error) {
 	return page, nil
 }
 
-func (r *page) Find() ([]*types.Page, error) {
+func (r *page) Find(selfID uint64) ([]*types.Page, error) {
 	pages := make([]*types.Page, 0)
-	if err := r.db().Select(&pages, "SELECT * FROM crm_page ORDER BY id ASC"); err != nil {
+	if err := r.db().Select(&pages, "SELECT * FROM crm_page where self_id=? ORDER BY weight ASC", selfID); err != nil {
 		return pages, err
 	}
 	for _, page := range pages {
@@ -69,15 +71,50 @@ func (r *page) Find() ([]*types.Page, error) {
 	return pages, nil
 }
 
-func (r *page) Create(page *types.Page) (*types.Page, error) {
+func (r *page) Reorder(selfID uint64, pageIDs []uint64) error {
+	pageMap := map[uint64]bool{}
+	if pages, err := r.Find(selfID); err != nil {
+		return nil
+	} else {
+		for _, page := range pages {
+			pageMap[page.ID] = true
+		}
+	}
+	weight := 1
+	db := r.db()
+	// honor parameter first
+	for _, pageID := range pageIDs {
+		if pageMap[pageID] {
+			pageMap[pageID] = false
+			if _, err := db.Exec("UPDATE crm_page set weight=? where id=? and self_id=?", weight, pageID, selfID); err != nil {
+				return err
+			}
+			weight++
+		}
+	}
+	for pageID, update := range pageMap {
+		if update {
+			if _, err := db.Exec("UPDATE crm_page set weight=? where id=? and self_id=?", weight, pageID, selfID); err != nil {
+				return err
+			}
+			weight++
+		}
+	}
+	return nil
+}
+
+func (r *page) Create(item *types.Page) (*types.Page, error) {
+	page := &types.Page{}
+	*page = *item
+
 	page.ID = factory.Sonyflake.NextID()
 	if page.ModuleID > 0 {
-		check, err := r.FindByModuleID(page.ModuleID)
-		if err != nil {
+		if check, err := r.FindByModuleID(page.ModuleID); err != nil {
 			return nil, err
-		}
-		if check.ID > 0 {
-			return nil, errors.New("Page for module already exists")
+		} else {
+			if check.ID > 0 {
+				return nil, errors.New("Page for module already exists")
+			}
 		}
 	}
 	return page, r.db().Insert("crm_page", page)

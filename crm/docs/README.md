@@ -48,6 +48,7 @@ CRM module pages
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+| selfID | uint64 | GET | Parent page ID | N/A | NO |
 
 ## Create page
 

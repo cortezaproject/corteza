@@ -2,8 +2,12 @@ package repository
 
 import (
 	"context"
-	"github.com/crusttech/crust/crm/types"
 	"testing"
+
+	"github.com/davecgh/go-spew/spew"
+	"github.com/pkg/errors"
+
+	"github.com/crusttech/crust/crm/types"
 )
 
 func TestPage(t *testing.T) {
@@ -24,12 +28,29 @@ func TestPage(t *testing.T) {
 		assert(t, err == nil, "Error when creating page: %+v", err)
 		assert(t, m.ID > 0, "Expected auto generated ID")
 
+		page.SelfID = m.ID
+
+		{
+			_, err := repository.Create(page)
+			assert(t, err != nil, "%+v", errors.Errorf("Expected error when creating duplicate moduleID page"))
+		}
+
+		{
+			page.ModuleID = 0
+			_, err := repository.Create(page)
+			assert(t, err == nil, "Unexpected error when creating page, %+v", err)
+		}
+		{
+			_, err := repository.Create(page)
+			assert(t, err == nil, "Unexpected error when creating page, %+v", err)
+		}
+
 		// fetch created page
 		{
 			ms, err := repository.FindByID(m.ID)
 			assert(t, err == nil, "Error when retrieving page by id: %+v", err)
-			assert(t, ms.ID == m.ID, "Expected ID from database to match, %d != %d", m.ID, ms.ID)
-			assert(t, ms.Title == m.Title, "Expected Title from database to match, %s != %s", m.Title, ms.Title)
+			assert(t, ms.ID == m.ID, "Expected ID from database to match, %+v", errors.Errorf("%d != %d", m.ID, ms.ID))
+			assert(t, ms.Title == m.Title, "Expected Title from database to match, %+v", errors.Errorf("%s != %s", m.Title, ms.Title))
 		}
 
 		// update created page
@@ -43,7 +64,7 @@ func TestPage(t *testing.T) {
 		{
 			ms, err := repository.FindByID(m.ID)
 			assert(t, err == nil, "Error when retrieving page by id: %+v", err)
-			assert(t, ms.ID == m.ID, "Expected ID from database to match, %d != %d", m.ID, ms.ID)
+			assert(t, ms.ID == m.ID, "re-fetch: Expected ID from database to match, %d != %d", m.ID, ms.ID)
 			assert(t, ms.Title == m.Title, "Expected Title from database to match, %s != %s", m.Title, ms.Title)
 		}
 
@@ -51,16 +72,37 @@ func TestPage(t *testing.T) {
 		{
 			ms, err := repository.FindByModuleID(m.ModuleID)
 			assert(t, err == nil, "Error when retrieving page by id: %+v", err)
-			assert(t, ms.ID == m.ID, "Expected ID from database to match, %d != %d", m.ID, ms.ID)
+			assert(t, ms.ID == m.ID, "fetch-module: Expected ID from database to match, %d != %d", m.ID, ms.ID)
 			assert(t, ms.Title == m.Title, "Expected Title from database to match, %s != %s", m.Title, ms.Title)
 		}
 
 		// fetch all pages
 		{
-			ms, err := repository.Find()
+			ms, err := repository.Find(0)
 			assert(t, err == nil, "Error when retrieving pages: %+v", err)
 			assert(t, len(ms) >= 1, "Expected at least one page, got %d", len(ms))
 			prevPageCount = len(ms)
+		}
+
+		// fetch all pages
+		{
+			ms, err := repository.Find(m.ID)
+			assert(t, err == nil, "Error when retrieving pages: %+v", err)
+			assert(t, len(ms) == 2, "Expected two pages with selfID=%d, got %v", m.ID, spew.Sdump(ms))
+			prevPageCount = len(ms)
+
+			parent := m.ID
+			ids := []uint64{ms[0].ID, ms[1].ID}
+
+			{
+				err := repository.Reorder(parent, ids)
+				assert(t, err == nil, "Error when reordering pages: %+v", err)
+
+				ms, err = repository.Find(m.ID)
+				assert(t, err == nil, "Error when retrieving pages: %+v", err)
+				assert(t, len(ms) == 2, "Expected two pages with selfID=%d, got %v", m.ID, spew.Sdump(ms))
+				assert(t, ms[0].Weight < ms[1].Weight, "Expected ascending order, %+v", errors.Errorf("%d < %d", ms[0].Weight, ms[1].Weight))
+			}
 		}
 
 		// re-fetch page
@@ -71,7 +113,7 @@ func TestPage(t *testing.T) {
 
 		// fetch all pages
 		{
-			ms, err := repository.Find()
+			ms, err := repository.Find(0)
 			assert(t, err == nil, "Error when retrieving pages: %+v", err)
 			assert(t, len(ms) < prevPageCount, "Expected pages count to decrease after deletion, %d < %d", len(ms), prevPageCount)
 		}
