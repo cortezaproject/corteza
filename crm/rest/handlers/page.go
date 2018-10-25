@@ -31,16 +31,18 @@ type PageAPI interface {
 	Create(context.Context, *request.PageCreate) (interface{}, error)
 	Read(context.Context, *request.PageRead) (interface{}, error)
 	Edit(context.Context, *request.PageEdit) (interface{}, error)
+	Reorder(context.Context, *request.PageReorder) (interface{}, error)
 	Delete(context.Context, *request.PageDelete) (interface{}, error)
 }
 
 // HTTP API interface
 type Page struct {
-	List   func(http.ResponseWriter, *http.Request)
-	Create func(http.ResponseWriter, *http.Request)
-	Read   func(http.ResponseWriter, *http.Request)
-	Edit   func(http.ResponseWriter, *http.Request)
-	Delete func(http.ResponseWriter, *http.Request)
+	List    func(http.ResponseWriter, *http.Request)
+	Create  func(http.ResponseWriter, *http.Request)
+	Read    func(http.ResponseWriter, *http.Request)
+	Edit    func(http.ResponseWriter, *http.Request)
+	Reorder func(http.ResponseWriter, *http.Request)
+	Delete  func(http.ResponseWriter, *http.Request)
 }
 
 func NewPage(ph PageAPI) *Page {
@@ -73,6 +75,13 @@ func NewPage(ph PageAPI) *Page {
 				return ph.Edit(r.Context(), params)
 			})
 		},
+		Reorder: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewPageReorder()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return ph.Reorder(r.Context(), params)
+			})
+		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewPageDelete()
@@ -91,6 +100,7 @@ func (ph *Page) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 			r.Post("/", ph.Create)
 			r.Get("/{id}", ph.Read)
 			r.Post("/{id}", ph.Edit)
+			r.Post("/{selfID}/reorder", ph.Reorder)
 			r.Delete("/{id}", ph.Delete)
 		})
 	})

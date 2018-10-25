@@ -102,6 +102,21 @@ CRM module pages
 | visible | bool | POST | Visible in navigation | N/A | NO |
 | blocks | types.JSONText | POST | Blocks JSON | N/A | YES |
 
+## Reorder pages
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/page/{selfID}/reorder` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| selfID | uint64 | PATH | Parent page ID | N/A | YES |
+| pageIDs | []uint64 | POST | Page ID order | N/A | YES |
+
 ## Delete page
 
 #### Method

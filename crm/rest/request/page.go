@@ -261,6 +261,50 @@ func (p *PageEdit) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewPageEdit()
 
+// Page reorder request parameters
+type PageReorder struct {
+	SelfID  uint64   `json:",string"`
+	PageIDs []uint64 `json:",string"`
+}
+
+func NewPageReorder() *PageReorder {
+	return &PageReorder{}
+}
+
+func (p *PageReorder) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(p)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	p.SelfID = parseUInt64(chi.URLParam(r, "selfID"))
+
+	return err
+}
+
+var _ RequestFiller = NewPageReorder()
+
 // Page delete request parameters
 type PageDelete struct {
 	ID uint64 `json:",string"`

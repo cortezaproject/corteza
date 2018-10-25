@@ -133,6 +133,30 @@
       }
     },
     {
+      "Name": "reorder",
+      "Method": "POST",
+      "Title": "Reorder pages",
+      "Path": "/{selfID}/reorder",
+      "Parameters": {
+        "path": [
+          {
+            "name": "selfID",
+            "required": true,
+            "title": "Parent page ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "pageIDs",
+            "required": true,
+            "title": "Page ID order",
+            "type": "[]uint64"
+          }
+        ]
+      }
+    },
+    {
       "Name": "delete",
       "Method": "Delete",
       "Title": "Delete page",

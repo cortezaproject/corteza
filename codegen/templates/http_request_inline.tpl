@@ -22,7 +22,7 @@ var _ = multipart.FileHeader{}
 type {name|expose}{call.name|capitalize} struct {
 {foreach $call.parameters as $params}
 {foreach $params as $method => $param}
-	{param.name|expose} {param.type}{if $param.type === "uint64"} `json:",string"`{/if}{newline}
+	{param.name|expose} {param.type}{if $param.type === "uint64" || $param.type === "[]uint64"} `json:",string"`{/if}{newline}
 {/foreach}
 {/foreach}
 }
