@@ -14,7 +14,7 @@ type (
 		With(ctx context.Context, db *factory.DB) ChannelViewRepository
 
 		Find(filter *types.ChannelViewFilter) (types.ChannelViewSet, error)
-		Record(channelID, userID, lastMessageID uint64, count uint32) error
+		Record(userID, channelID, lastMessageID uint64, count uint32) error
 		Inc(channelID, userID uint64) error
 		Dec(channelID, userID uint64) error
 	}
@@ -72,7 +72,7 @@ func (r *channelViews) Find(filter *types.ChannelViewFilter) (types.ChannelViewS
 }
 
 // Records channel view
-func (r *channelViews) Record(channelID, userID, lastMessageID uint64, count uint32) error {
+func (r *channelViews) Record(userID, channelID, lastMessageID uint64, count uint32) error {
 	mod := &types.ChannelView{
 		ChannelID:        channelID,
 		UserID:           userID,

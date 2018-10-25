@@ -12,8 +12,8 @@ type (
 	}
 
 	ChannelViewRecord struct {
-		ChannelID     string `json:"channelID"`
-		LastMessageID string `json:"lastMessageID"`
+		ChannelID     uint64 `json:"channelID,string,omitempty"`
+		LastMessageID uint64 `json:"lastMessageID,string,omitempty"`
 	}
 
 	ChannelCreate struct {
