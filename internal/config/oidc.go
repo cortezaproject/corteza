@@ -40,7 +40,7 @@ func (*OIDC) Init(prefix ...string) *OIDC {
 		return oidc
 	}
 
-	oidc := new(OIDC)
+	oidc = new(OIDC)
 	flag.StringVar(&oidc.Issuer, "auth-oidc-issuer", "", "OIDC Issuer")
 	flag.StringVar(&oidc.ClientID, "auth-oidc-client-id", "", "OIDC Client ID")
 	flag.StringVar(&oidc.ClientSecret, "auth-oidc-client-secret", "", "OIDC Client Secret")

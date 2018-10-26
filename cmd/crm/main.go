@@ -11,12 +11,11 @@ import (
 )
 
 func main() {
-	config := flags("crm", service.Flags, auth.Flags, rbac.Flags)
+	flags("crm", service.Flags, auth.Flags, rbac.Flags)
 
 	// log to stdout not stderr
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	go NewMonitor(config.monitorInterval)
 
 	if err := service.Init(); err != nil {
 		log.Fatalf("Error initializing crm: %+v", err)
