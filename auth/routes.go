@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"runtime"
 
+	"github.com/99designs/basicauth-go"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 
@@ -28,7 +29,12 @@ func mountRoutes(r chi.Router, opts *config.HTTP, mounts ...func(r chi.Router)) 
 
 func mountSystemRoutes(r chi.Router, opts *config.HTTP) {
 	if opts.Metrics {
-		r.Handle("/metrics", metrics.Handler())
+		r.Group(func(r chi.Router) {
+			r.Use(basicauth.New("Metrics", map[string][]string{
+				opts.MetricsUsername: {opts.MetricsPassword},
+			}))
+			r.Handle("/metrics", metrics.Handler())
+		})
 	}
 	r.Mount("/debug", middleware.Profiler())
 	r.Get("/version", version.HttpHandler)

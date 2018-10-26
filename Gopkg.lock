@@ -11,6 +11,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:fa3f65e153117f7d341ace43a6198689237f8e1a21a845b53490323954c8988f"
+  name = "github.com/99designs/basicauth-go"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2a93ba0f464da2a77748a1dc2e9e5bea8bbdd4b9"
+
+[[projects]]
+  branch = "master"
   digest = "1:8029ebc737ffdac4a8df494853595eb086e93b24be9b5e439087f2c8a8f24698"
   name = "github.com/SentimensRG/ctx"
   packages = [
@@ -473,6 +481,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/766b/chi-prometheus",
+    "github.com/99designs/basicauth-go",
     "github.com/SentimensRG/ctx",
     "github.com/SentimensRG/ctx/sigctx",
     "github.com/crusttech/go-oidc",
