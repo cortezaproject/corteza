@@ -11,7 +11,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/disintegration/imaging"
 	"github.com/edwvee/exiffix"
 	"github.com/pkg/errors"
@@ -297,7 +296,6 @@ func (svc *attachment) sendEvent(msg *types.Message) (err error) {
 		}
 	}
 
-	spew.Dump(msg)
 	return svc.evl.Message(msg)
 }
 
