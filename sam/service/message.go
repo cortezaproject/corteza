@@ -89,45 +89,9 @@ func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err 
 		return nil, err
 	}
 
-	_ = mm.Walk(func(i *types.Message) (err error) {
-		// @todo fix this handler errors (ignore user-not-found, return others)
-		i.User, err = svc.usr.FindByID(i.UserID)
-		return
-	})
+	svc.preloadUsers(mm)
 
-	return mm, svc.loadAttachments(mm)
-}
-
-func (svc *message) loadAttachments(mm types.MessageSet) (err error) {
-	var (
-		ids []uint64
-		aa  types.MessageAttachmentSet
-	)
-
-	err = mm.Walk(func(m *types.Message) error {
-		if m.Type == types.MessageTypeAttachment || m.Type == types.MessageTypeInlineImage {
-			ids = append(ids, m.ID)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return
-	}
-
-	if aa, err = svc.attachment.FindAttachmentByMessageID(ids...); err != nil {
-		return
-	} else {
-		return aa.Walk(func(a *types.MessageAttachment) error {
-			if a.MessageID > 0 {
-				if m := mm.FindById(a.MessageID); m != nil {
-					m.Attachment = &a.Attachment
-				}
-			}
-
-			return nil
-		})
-	}
+	return mm, svc.preloadAttachments(mm)
 }
 
 func (svc *message) Create(mod *types.Message) (message *types.Message, err error) {
@@ -344,11 +308,64 @@ func (svc *message) Unflag(messageID uint64) error {
 	return nil
 }
 
+// Preload for all messages
+func (svc *message) preloadUsers(mm types.MessageSet) (err error) {
+	var uu authTypes.UserSet
+
+	for _, msg := range mm {
+		if msg.User != nil || msg.UserID == 0 {
+			continue
+		}
+
+		if msg.User = uu.FindById(msg.UserID); msg.User != nil {
+			continue
+		}
+
+		if msg.User, _ = svc.usr.FindByID(msg.UserID); msg.User != nil {
+			// @todo fix this handler errors (ignore user-not-found, return others)
+			uu = append(uu, msg.User)
+		}
+	}
+
+	return
+}
+
+func (svc *message) preloadAttachments(mm types.MessageSet) (err error) {
+	var (
+		ids []uint64
+		aa  types.MessageAttachmentSet
+	)
+
+	err = mm.Walk(func(m *types.Message) error {
+		if m.Type == types.MessageTypeAttachment || m.Type == types.MessageTypeInlineImage {
+			ids = append(ids, m.ID)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return
+	}
+
+	if aa, err = svc.attachment.FindAttachmentByMessageID(ids...); err != nil {
+		return
+	} else {
+		return aa.Walk(func(a *types.MessageAttachment) error {
+			if a.MessageID > 0 {
+				if m := mm.FindById(a.MessageID); m != nil {
+					m.Attachment = &a.Attachment
+				}
+			}
+
+			return nil
+		})
+	}
+}
+
 // Sends message to event loop
-//
-// It also preloads user
 func (svc *message) sendEvent(mm ...*types.Message) (err error) {
-	svc.loadAttachments(mm)
+	svc.preloadAttachments(mm)
+	svc.preloadUsers(mm)
 
 	for _, msg := range mm {
 		if msg.User == nil {
