@@ -3,6 +3,7 @@ package websocket
 import (
 	"context"
 	"log"
+	"sync"
 	"time"
 
 	authTypes "github.com/crusttech/crust/auth/types"
@@ -22,6 +23,7 @@ type (
 	// Session
 	Session struct {
 		id   uint64
+		once sync.Once
 		conn *websocket.Conn
 		ctx  context.Context
 
@@ -138,16 +140,12 @@ func (sess *Session) Handle() (err error) {
 }
 
 func (sess *Session) Close() {
-	if sess.conn == nil {
-		// Do not close session
-		// if there is no connection
-		return
-	}
-
-	sess.disconnected()
-	sess.conn.Close()
-	store.Delete(sess.id)
-	sess.conn = nil
+	sess.once.Do(func() {
+		sess.disconnected()
+		sess.conn.Close()
+		sess.conn = nil
+		store.Delete(sess.id)
+	})
 }
 
 func (sess *Session) readLoop() (err error) {
