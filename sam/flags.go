@@ -10,6 +10,7 @@ import (
 type (
 	appFlags struct {
 		http       *config.HTTP
+		monitor    *config.Monitor
 		db         *config.Database
 		repository *repository.Flags
 	}
@@ -22,6 +23,9 @@ func (c *appFlags) Validate() error {
 		return errors.New("SAM flags are not initialized, need to call Flags()")
 	}
 	if err := c.http.Validate(); err != nil {
+		return err
+	}
+	if err := c.monitor.Validate(); err != nil {
 		return err
 	}
 	if err := c.db.Validate(); err != nil {
@@ -43,6 +47,7 @@ func Flags(prefix ...string) {
 
 	flags = &appFlags{
 		new(config.HTTP).Init(prefix...),
+		new(config.Monitor).Init(prefix...),
 		new(config.Database).Init(prefix...),
 		new(repository.Flags).Init(prefix...),
 	}

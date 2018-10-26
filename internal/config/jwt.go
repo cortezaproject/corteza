@@ -31,7 +31,7 @@ func (*JWT) Init(prefix ...string) *JWT {
 		return jwt
 	}
 
-	jwt := new(JWT)
+	jwt = new(JWT)
 	flag.StringVar(&jwt.Secret, "auth-jwt-secret", "", "JWT Secret")
 	flag.Int64Var(&jwt.Expiry, "auth-jwt-expiry", 3600, "JWT Expiration in minutes")
 	flag.StringVar(&jwt.CookieDomain, "auth-jwt-cookie-domain", "", "JWT Cookie domain")

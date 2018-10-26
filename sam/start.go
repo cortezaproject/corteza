@@ -15,11 +15,14 @@ import (
 	"github.com/titpetric/factory/resputil"
 
 	authService "github.com/crusttech/crust/auth/service"
-	"github.com/crusttech/crust/internal/auth"
 	migrate "github.com/crusttech/crust/sam/db"
 	"github.com/crusttech/crust/sam/rest"
 	samService "github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/websocket"
+
+	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/metrics"
+	"github.com/crusttech/crust/internal/version"
 )
 
 func Init() error {
@@ -66,6 +69,7 @@ func Init() error {
 func Start() error {
 	deadline := sigctx.New()
 
+	log.Printf("Starting sam, version: %v, built on: %v", version.Version, version.BuildTime)
 	log.Println("Starting http server on address " + flags.http.Addr)
 	listener, err := net.Listen("tcp", flags.http.Addr)
 	if err != nil {
@@ -89,6 +93,10 @@ func Start() error {
 
 	printRoutes(r, flags.http)
 	mountSystemRoutes(r, flags.http)
+
+	if flags.monitor.Interval > 0 {
+		go metrics.NewMonitor(flags.monitor.Interval)
+	}
 
 	go http.Serve(listener, r)
 	<-deadline.Done()

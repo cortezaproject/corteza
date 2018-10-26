@@ -33,7 +33,7 @@ func (*Database) Init(prefix ...string) *Database {
 		return prefix[0] + "-" + s
 	}
 
-	db := new(Database)
+	db = new(Database)
 	flag.StringVar(&db.DSN, p("db-dsn"), "crust:crust@tcp(db1:3306)/crust?collation=utf8mb4_general_ci", "DSN for database connection")
 	flag.StringVar(&db.Profiler, p("db-profiler"), "", "Profiler for DB queries (none, stdout)")
 	return db
