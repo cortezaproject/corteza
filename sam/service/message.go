@@ -8,6 +8,7 @@ import (
 	"github.com/titpetric/factory"
 
 	authService "github.com/crusttech/crust/auth/service"
+	authTypes "github.com/crusttech/crust/auth/types"
 
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"

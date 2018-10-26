@@ -702,7 +702,7 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 	})
 }
 
-func (svc *channel) RecordView(channelID, userID, lastMessageID uint64) error {
+func (svc *channel) RecordView(userID, channelID, lastMessageID uint64) error {
 	return svc.db.Transaction(func() (err error) {
 		return svc.cview.Record(userID, channelID, lastMessageID, 0)
 	})
