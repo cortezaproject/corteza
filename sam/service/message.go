@@ -135,7 +135,6 @@ func (svc *message) Create(mod *types.Message) (message *types.Message, err erro
 			}
 
 			// Broadcast updated original
-			svc.sendEvent(original)
 			bq = append(bq, original)
 		}
 
