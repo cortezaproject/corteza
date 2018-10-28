@@ -1,12 +1,14 @@
 package payload
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 
-	auth "github.com/crusttech/crust/auth/types"
+	authTypes "github.com/crusttech/crust/auth/types"
+	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/payload/outgoing"
-	sam "github.com/crusttech/crust/sam/types"
+	samTypes "github.com/crusttech/crust/sam/types"
 )
 
 const (
@@ -14,7 +16,11 @@ const (
 	attachmentPreviewURL = "/attachment/%d/preview.%s"
 )
 
-func Message(msg *sam.Message) *outgoing.Message {
+func Message(ctx context.Context, msg *samTypes.Message) *outgoing.Message {
+	var currentUserID = auth.GetIdentityFromContext(ctx).Identity()
+	var canEdit = msg.Type.IsEditable() && msg.UserID == currentUserID
+	var canReply = msg.Type.IsRepliable() && msg.ReplyTo == 0
+
 	return &outgoing.Message{
 		ID:        msg.ID,
 		ChannelID: Uint64toa(msg.ChannelID),
@@ -26,22 +32,26 @@ func Message(msg *sam.Message) *outgoing.Message {
 		User:       User(msg.User),
 		Attachment: Attachment(msg.Attachment),
 
+		CanReply:  canReply,
+		CanEdit:   canEdit,
+		CanDelete: canEdit,
+
 		CreatedAt: msg.CreatedAt,
 		UpdatedAt: msg.UpdatedAt,
 		DeletedAt: msg.DeletedAt,
 	}
 }
 
-func Messages(msg sam.MessageSet) *outgoing.MessageSet {
+func Messages(ctx context.Context, msg samTypes.MessageSet) *outgoing.MessageSet {
 	msgs := make([]*outgoing.Message, len(msg))
 	for k, m := range msg {
-		msgs[k] = Message(m)
+		msgs[k] = Message(ctx, m)
 	}
 	retval := outgoing.MessageSet(msgs)
 	return &retval
 }
 
-func Channel(ch *sam.Channel) *outgoing.Channel {
+func Channel(ch *samTypes.Channel) *outgoing.Channel {
 	return &outgoing.Channel{
 		ID:            Uint64toa(ch.ID),
 		Name:          ch.Name,
@@ -58,7 +68,7 @@ func Channel(ch *sam.Channel) *outgoing.Channel {
 	}
 }
 
-func Channels(channels sam.ChannelSet) *outgoing.ChannelSet {
+func Channels(channels samTypes.ChannelSet) *outgoing.ChannelSet {
 	cc := make([]*outgoing.Channel, len(channels))
 	for k, c := range channels {
 		cc[k] = Channel(c)
@@ -67,7 +77,7 @@ func Channels(channels sam.ChannelSet) *outgoing.ChannelSet {
 	return &retval
 }
 
-func ChannelMember(m *sam.ChannelMember) *outgoing.ChannelMember {
+func ChannelMember(m *samTypes.ChannelMember) *outgoing.ChannelMember {
 	return &outgoing.ChannelMember{
 		User:      User(m.User),
 		Type:      string(m.Type),
@@ -76,7 +86,7 @@ func ChannelMember(m *sam.ChannelMember) *outgoing.ChannelMember {
 	}
 }
 
-func ChannelMembers(members sam.ChannelMemberSet) *outgoing.ChannelMemberSet {
+func ChannelMembers(members samTypes.ChannelMemberSet) *outgoing.ChannelMemberSet {
 	mm := make([]*outgoing.ChannelMember, len(members))
 	for k, c := range members {
 		mm[k] = ChannelMember(c)
@@ -85,7 +95,7 @@ func ChannelMembers(members sam.ChannelMemberSet) *outgoing.ChannelMemberSet {
 	return &retval
 }
 
-func ChannelView(v *sam.ChannelView) *outgoing.ChannelView {
+func ChannelView(v *samTypes.ChannelView) *outgoing.ChannelView {
 	if v == nil {
 		return nil
 	}
@@ -110,7 +120,7 @@ func ChannelPart(channelID, userID uint64) *outgoing.ChannelPart {
 	}
 }
 
-func User(user *auth.User) *outgoing.User {
+func User(user *authTypes.User) *outgoing.User {
 	if user == nil {
 		return nil
 	}
@@ -124,7 +134,7 @@ func User(user *auth.User) *outgoing.User {
 	}
 }
 
-func Users(users []*auth.User) *outgoing.UserSet {
+func Users(users []*authTypes.User) *outgoing.UserSet {
 	uu := make([]*outgoing.User, len(users))
 	for k, u := range users {
 		uu[k] = User(u)
@@ -135,7 +145,7 @@ func Users(users []*auth.User) *outgoing.UserSet {
 	return &retval
 }
 
-func Attachment(in *sam.Attachment) *outgoing.Attachment {
+func Attachment(in *samTypes.Attachment) *outgoing.Attachment {
 	if in == nil {
 		return nil
 	}
@@ -163,7 +173,7 @@ func Attachment(in *sam.Attachment) *outgoing.Attachment {
 	}
 }
 
-func Command(cmd *sam.Command) *outgoing.Command {
+func Command(cmd *samTypes.Command) *outgoing.Command {
 	if cmd == nil {
 		return nil
 	}
@@ -174,7 +184,7 @@ func Command(cmd *sam.Command) *outgoing.Command {
 	}
 }
 
-func Commands(cc sam.CommandSet) *outgoing.CommandSet {
+func Commands(cc samTypes.CommandSet) *outgoing.CommandSet {
 	out := make([]*outgoing.Command, len(cc))
 	for k, m := range cc {
 		out[k] = Command(m)

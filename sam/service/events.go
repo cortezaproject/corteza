@@ -39,7 +39,7 @@ func (svc *event) With(ctx context.Context) EventService {
 
 // Message sends message events to subscribers
 func (svc *event) Message(m *types.Message) error {
-	return svc.push(payload.Message(m), types.EventQueueItemSubTypeChannel, m.ChannelID)
+	return svc.push(payload.Message(svc.ctx, m), types.EventQueueItemSubTypeChannel, m.ChannelID)
 }
 
 // Channel notifies subscribers about channel change

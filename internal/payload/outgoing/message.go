@@ -17,6 +17,10 @@ type (
 		User       *User       `json:"user"`
 		Attachment *Attachment `json:"att,omitempty"`
 
+		CanReply  bool `json:"canReply"`
+		CanEdit   bool `json:"canEdit"`
+		CanDelete bool `json:"canDelete"`
+
 		CreatedAt time.Time  `json:"createdAt"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`

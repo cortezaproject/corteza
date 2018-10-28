@@ -28,14 +28,14 @@ func (Message) New() *Message {
 }
 
 func (ctrl *Message) Create(ctx context.Context, r *request.MessageCreate) (interface{}, error) {
-	return ctrl.wrap(ctrl.svc.msg.With(ctx).Create(&types.Message{
+	return ctrl.wrap(ctx)(ctrl.svc.msg.With(ctx).Create(&types.Message{
 		ChannelID: r.ChannelID,
 		Message:   r.Message,
 	}))
 }
 
 func (ctrl *Message) CreateReply(ctx context.Context, r *request.MessageCreateReply) (interface{}, error) {
-	return ctrl.wrap(ctrl.svc.msg.With(ctx).Create(&types.Message{
+	return ctrl.wrap(ctx)(ctrl.svc.msg.With(ctx).Create(&types.Message{
 		ChannelID: r.ChannelID,
 		ReplyTo:   r.MessageID,
 		Message:   r.Message,
@@ -43,21 +43,21 @@ func (ctrl *Message) CreateReply(ctx context.Context, r *request.MessageCreateRe
 }
 
 func (ctrl *Message) GetReplies(ctx context.Context, r *request.MessageGetReplies) (interface{}, error) {
-	return ctrl.wrapSet(ctrl.svc.msg.With(ctx).Find(&types.MessageFilter{
+	return ctrl.wrapSet(ctx)(ctrl.svc.msg.With(ctx).Find(&types.MessageFilter{
 		ChannelID: r.ChannelID,
 		RepliesTo: r.MessageID,
 	}))
 }
 
 func (ctrl *Message) History(ctx context.Context, r *request.MessageHistory) (interface{}, error) {
-	return ctrl.wrapSet(ctrl.svc.msg.With(ctx).Find(&types.MessageFilter{
+	return ctrl.wrapSet(ctx)(ctrl.svc.msg.With(ctx).Find(&types.MessageFilter{
 		ChannelID: r.ChannelID,
 		FirstID:   r.LastMessageID,
 	}))
 }
 
 func (ctrl *Message) Edit(ctx context.Context, r *request.MessageEdit) (interface{}, error) {
-	return ctrl.wrap(ctrl.svc.msg.With(ctx).Update(&types.Message{
+	return ctrl.wrap(ctx)(ctrl.svc.msg.With(ctx).Update(&types.Message{
 		ID:        r.MessageID,
 		ChannelID: r.ChannelID,
 		Message:   r.Message,
@@ -69,7 +69,7 @@ func (ctrl *Message) Delete(ctx context.Context, r *request.MessageDelete) (inte
 }
 
 func (ctrl *Message) Search(ctx context.Context, r *request.MessageSearch) (interface{}, error) {
-	return ctrl.wrapSet(ctrl.svc.msg.With(ctx).Find(&types.MessageFilter{
+	return ctrl.wrapSet(ctx)(ctrl.svc.msg.With(ctx).Find(&types.MessageFilter{
 		ChannelID: r.ChannelID,
 		Query:     r.Query,
 	}))
@@ -98,18 +98,22 @@ func (ctrl *Message) React(ctx context.Context, r *request.MessageReact) (interf
 func (ctrl *Message) Unreact(ctx context.Context, r *request.MessageUnreact) (interface{}, error) {
 	return nil, ctrl.svc.msg.With(ctx).Unreact(r.MessageID, r.Reaction)
 }
-func (ctrl *Message) wrap(m *types.Message, err error) (*outgoing.Message, error) {
-	if err != nil {
-		return nil, err
-	} else {
-		return payload.Message(m), nil
+func (ctrl *Message) wrap(ctx context.Context) func(m *types.Message, err error) (*outgoing.Message, error) {
+	return func(m *types.Message, err error) (*outgoing.Message, error) {
+		if err != nil {
+			return nil, err
+		} else {
+			return payload.Message(ctx, m), nil
+		}
 	}
 }
 
-func (ctrl *Message) wrapSet(mm types.MessageSet, err error) (*outgoing.MessageSet, error) {
-	if err != nil {
-		return nil, err
-	} else {
-		return payload.Messages(mm), nil
+func (ctrl *Message) wrapSet(ctx context.Context) func(mm types.MessageSet, err error) (*outgoing.MessageSet, error) {
+	return func(mm types.MessageSet, err error) (*outgoing.MessageSet, error) {
+		if err != nil {
+			return nil, err
+		} else {
+			return payload.Messages(ctx, mm), nil
+		}
 	}
 }

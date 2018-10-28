@@ -50,7 +50,7 @@ func (s *Session) messageHistory(ctx context.Context, p *incoming.Messages) erro
 		return err
 	}
 
-	err = s.sendReply(payload.Messages(messages))
+	err = s.sendReply(payload.Messages(ctx, messages))
 	if err != nil {
 		return err
 	}

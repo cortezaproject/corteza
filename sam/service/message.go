@@ -106,16 +106,25 @@ func (svc *message) Create(mod *types.Message) (message *types.Message, err erro
 
 		if mod.ReplyTo > 0 {
 			var original *types.Message
-			original, err = svc.message.FindMessageByID(mod.ReplyTo)
-			if err != nil {
-				return
+			var replyTo = mod.ReplyTo
+
+			for replyTo > 0 {
+				// Find original message
+				original, err = svc.message.FindMessageByID(mod.ReplyTo)
+				if err != nil {
+					return
+				}
+
+				replyTo = original.ReplyTo
 			}
 
-			if original.ReplyTo > 0 {
-				// We do not want to have multi-level threads
-				// Take original's reply-to and use it
-				mod.ReplyTo = original.ReplyTo
+			if !original.Type.IsRepliable() {
+				return errors.Errorf("Unable to reply on this message (type = %s)", original.Type)
 			}
+
+			// We do not want to have multi-level threads
+			// Take original's reply-to and use it
+			mod.ReplyTo = original.ID
 
 			mod.ChannelID = original.ChannelID
 
