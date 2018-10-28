@@ -89,6 +89,21 @@ func (mtype MessageType) IsValid() bool {
 	return false
 }
 
+func (mtype MessageType) IsRepliable() bool {
+	return mtype.IsEditable()
+}
+
+func (mtype MessageType) IsEditable() bool {
+	switch mtype {
+	case MessageTypeSimpleMessage,
+		MessageTypeInlineImage,
+		MessageTypeAttachment:
+		return true
+	}
+
+	return false
+}
+
 //func (mtype *MessageType) Scan(value interface{}) error {
 //	switch value.(type) {
 //	case nil:
