@@ -23,6 +23,8 @@ func main() {
 	flag.Parse()
 
 	export := func(s string) string {
+		s = strings.Replace(s, "true,", "true,\n", -1)
+		s = strings.Replace(s, "false,", "false,\n", -1)
 		s = strings.Replace(s, "{", "{\n", -1)
 		s = strings.Replace(s, "}", ",\n}", -1)
 		s = strings.Replace(s, "\", ", "\",\n", -1)
