@@ -78,10 +78,9 @@ func (svc *message) With(ctx context.Context) MessageService {
 
 func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err error) {
 	// @todo get user from context
-	var currentUserID uint64 = repository.Identity(svc.ctx)
+	filter.CurrentUserID = repository.Identity(svc.ctx)
 
 	// @todo verify if current user can access & read from this channel
-	_ = currentUserID
 	_ = filter.ChannelID
 
 	mm, err = svc.message.FindMessages(filter)

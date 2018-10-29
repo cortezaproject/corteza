@@ -112,6 +112,9 @@ func (r *message) FindMessages(filter *types.MessageFilter) (types.MessageSet, e
 		}
 	}
 
+	sql += " AND rel_channel IN " + sqlChannelAccess
+	params = append(params, filter.CurrentUserID, types.ChannelTypePublic)
+
 	sql += " ORDER BY id DESC"
 
 	if filter.Limit == 0 || filter.Limit > MESSAGES_MAX_LIMIT {
