@@ -28,6 +28,9 @@ type (
 	MessageFilter struct {
 		Query string
 
+		// Required param to filter accessible messages
+		CurrentUserID uint64
+
 		// All messages that belong to a channel
 		ChannelID uint64
 
