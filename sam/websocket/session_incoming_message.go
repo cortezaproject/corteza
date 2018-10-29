@@ -57,3 +57,28 @@ func (s *Session) messageHistory(ctx context.Context, p *incoming.Messages) erro
 
 	return nil
 }
+
+func (s *Session) messageThreads(ctx context.Context, p *incoming.MessageThreads) error {
+	var (
+		filter = &types.MessageFilter{
+			ChannelID: p.ChannelID,
+			FirstID:   p.FirstID,
+			LastID:    p.LastID,
+
+			// Max no. of messages we will return
+			Limit: 50,
+		}
+	)
+
+	messages, err := s.svc.msg.With(ctx).FindThreads(filter)
+	if err != nil {
+		return err
+	}
+
+	err = s.sendReply(payload.Messages(ctx, messages))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

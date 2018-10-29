@@ -22,4 +22,10 @@ type (
 		LastID    uint64 `json:"lastID,string"`
 		RepliesTo uint64 `json:"repliesTo,string"`
 	}
+
+	MessageThreads struct {
+		ChannelID uint64 `json:"channelId,string"`
+		FirstID   uint64 `json:"firstID,string"`
+		LastID    uint64 `json:"lastID,string"`
+	}
 )

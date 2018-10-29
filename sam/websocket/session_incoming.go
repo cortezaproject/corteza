@@ -23,6 +23,8 @@ func (s *Session) dispatch(raw []byte) error {
 		return s.messageDelete(ctx, p.MessageDelete)
 	case p.Messages != nil:
 		return s.messageHistory(ctx, p.Messages)
+	case p.MessageThreads != nil:
+		return s.messageThreads(ctx, p.MessageThreads)
 
 	// channel actions
 	case p.ChannelJoin != nil:
