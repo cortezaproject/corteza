@@ -95,6 +95,10 @@ func TestReplies(t *testing.T) {
 		assert(t, err == nil, "CreateMessage error: %v", err)
 		assert(t, rpl.ID > 0, "Reply did not get its ID")
 
+		// Let's increase this so that FindThreads
+		// can include it into results
+		msgRpo.IncReplyCount(msg.ID)
+
 		{
 			mm, err = msgRpo.FindMessages(&types.MessageFilter{
 				RepliesTo: msg.ID,
@@ -104,6 +108,17 @@ func TestReplies(t *testing.T) {
 			assert(t, err == nil, "FindMessages error: %v", err)
 			assert(t, len(mm) == 1, "Failed to fetch only reply, got: %d", len(mm))
 			assert(t, mm[0].ID == rpl.ID, "Reply ID does not match")
+		}
+
+		{
+			mm, err = msgRpo.FindThreads(&types.MessageFilter{
+				ChannelID: ch.ID,
+			})
+
+			assert(t, err == nil, "FindThreads error: %v", err)
+			assert(t, len(mm) == 2, "Failed to fetch messages in threads (2 messages), got: %d", len(mm))
+			assert(t, mm[0].ID == msg.ID, "Original message ID does not match")
+			assert(t, mm[1].ID == rpl.ID, "Reply ID does not match")
 		}
 
 		{
@@ -117,20 +132,20 @@ func TestReplies(t *testing.T) {
 		}
 
 		{
+
 			assert(t, msgRpo.IncReplyCount(msg.ID) == nil, "IncReplyCount should not return an error")
 			assert(t, msgRpo.IncReplyCount(msg.ID) == nil, "IncReplyCount should not return an error")
-			assert(t, msgRpo.IncReplyCount(msg.ID) == nil, "IncReplyCount should not return an error")
+			// +1 that we have from before
 
 			msg, err = msgRpo.FindMessageByID(msg.ID)
 			assert(t, err == nil, "FindMessageByID error: %v", err)
 			assert(t, msg.Replies == 3, "Reply counter check failed, expecting 3, got %v", msg.Replies)
 
 			assert(t, msgRpo.DecReplyCount(msg.ID) == nil, "DecReplyCount should not return an error")
-			assert(t, msgRpo.DecReplyCount(msg.ID) == nil, "DecReplyCount should not return an error")
 
 			msg, err = msgRpo.FindMessageByID(msg.ID)
 			assert(t, err == nil, "FindMessageByID error: %v", err)
-			assert(t, msg.Replies == 1, "Reply counter check failed, expecting 1, got %v", msg.Replies)
+			assert(t, msg.Replies == 2, "Reply counter check failed, expecting 1, got %v", msg.Replies)
 		}
 
 		return nil

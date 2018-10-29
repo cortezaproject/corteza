@@ -15,6 +15,7 @@ type (
 
 		FindMessageByID(id uint64) (*types.Message, error)
 		FindMessages(filter *types.MessageFilter) (types.MessageSet, error)
+		FindThreads(filter *types.MessageFilter) (types.MessageSet, error)
 		CreateMessage(mod *types.Message) (*types.Message, error)
 		UpdateMessage(mod *types.Message) (*types.Message, error)
 		DeleteMessageByID(ID uint64) error
@@ -30,20 +31,36 @@ type (
 const (
 	MESSAGES_MAX_LIMIT = 100
 
+	sqlMessageColumns = "id, " +
+		"COALESCE(type,'') AS type, " +
+		"message, " +
+		"rel_user, " +
+		"rel_channel, " +
+		"reply_to, " +
+		"replies, " +
+		"created_at, " +
+		"updated_at, " +
+		"deleted_at"
 	sqlMessageScope = "deleted_at IS NULL"
 
-	sqlMessagesSelect = `SELECT id,
-             COALESCE(type,'') AS type,
-             message,
-             rel_user,
-             rel_channel,
-             reply_to,
-             replies,
-             created_at,
-             updated_at,
-             deleted_at
+	sqlMessagesSelect = `SELECT ` + sqlMessageColumns + `
         FROM messages
        WHERE ` + sqlMessageScope
+
+	sqlMessagesThreads = "WITH originals AS (" +
+		" SELECT id AS original_id " +
+		"   FROM messages " +
+		"  WHERE " + sqlMessageScope +
+		"    AND rel_channel IN " + sqlChannelAccess +
+		"    AND reply_to = 0 " +
+		"    AND replies > 0 " +
+		"  ORDER BY id DESC " +
+		"  LIMIT ? " +
+		")" +
+		" SELECT " + sqlMessageColumns +
+		"   FROM messages, originals " +
+		"  WHERE " + sqlMessageScope +
+		"    AND original_id IN (id, reply_to)"
 
 	sqlMessageRepliesIncCount = `UPDATE messages SET replies = replies + 1 WHERE id = ? AND reply_to = 0`
 	sqlMessageRepliesDecCount = `UPDATE messages SET replies = replies - 1 WHERE id = ? AND reply_to = 0`
@@ -69,14 +86,12 @@ func (r *message) FindMessageByID(id uint64) (*types.Message, error) {
 }
 
 func (r *message) FindMessages(filter *types.MessageFilter) (types.MessageSet, error) {
+	r.sanitizeFilter(filter)
+
 	params := make([]interface{}, 0)
 	rval := make(types.MessageSet, 0)
 
 	sql := sqlMessagesSelect
-
-	if filter == nil {
-		filter = &types.MessageFilter{}
-	}
 
 	if filter.Query != "" {
 		sql += " AND message LIKE ?"
@@ -113,14 +128,41 @@ func (r *message) FindMessages(filter *types.MessageFilter) (types.MessageSet, e
 
 	sql += " ORDER BY id DESC"
 
-	if filter.Limit == 0 || filter.Limit > MESSAGES_MAX_LIMIT {
-		filter.Limit = MESSAGES_MAX_LIMIT
-	}
-
 	sql += " LIMIT ? "
 	params = append(params, filter.Limit)
 
 	return rval, r.db().Select(&rval, sql, params...)
+}
+
+func (r *message) FindThreads(filter *types.MessageFilter) (types.MessageSet, error) {
+	r.sanitizeFilter(filter)
+
+	params := make([]interface{}, 0)
+	rval := make(types.MessageSet, 0)
+
+	// for sqlChannelAccess
+	params = append(params, filter.CurrentUserID, types.ChannelTypePublic)
+
+	// for sqlMessagesThreads
+	params = append(params, filter.Limit)
+
+	sql := sqlMessagesThreads
+	if filter.ChannelID > 0 {
+		sql += " AND rel_channel = ? "
+		params = append(params, filter.ChannelID)
+	}
+
+	return rval, r.db().Select(&rval, sql, params...)
+}
+
+func (r *message) sanitizeFilter(filter *types.MessageFilter) {
+	if filter == nil {
+		filter = &types.MessageFilter{}
+	}
+
+	if filter.Limit == 0 || filter.Limit > MESSAGES_MAX_LIMIT {
+		filter.Limit = MESSAGES_MAX_LIMIT
+	}
 }
 
 func (r *message) CreateMessage(mod *types.Message) (*types.Message, error) {

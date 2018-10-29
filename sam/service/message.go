@@ -34,6 +34,7 @@ type (
 		With(ctx context.Context) MessageService
 
 		Find(filter *types.MessageFilter) (types.MessageSet, error)
+		FindThreads(filter *types.MessageFilter) (types.MessageSet, error)
 
 		Create(messages *types.Message) (*types.Message, error)
 		Update(messages *types.Message) (*types.Message, error)
@@ -84,6 +85,23 @@ func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err 
 	_ = filter.ChannelID
 
 	mm, err = svc.message.FindMessages(filter)
+	if err != nil {
+		return nil, err
+	}
+
+	svc.preloadUsers(mm)
+
+	return mm, svc.preloadAttachments(mm)
+}
+
+func (svc *message) FindThreads(filter *types.MessageFilter) (mm types.MessageSet, err error) {
+	// @todo get user from context
+	filter.CurrentUserID = repository.Identity(svc.ctx)
+
+	// @todo verify if current user can access & read from this channel
+	_ = filter.ChannelID
+
+	mm, err = svc.message.FindThreads(filter)
 	if err != nil {
 		return nil, err
 	}

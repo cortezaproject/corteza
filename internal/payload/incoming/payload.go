@@ -15,7 +15,8 @@ type Payload struct {
 	*ChannelActivity `json:"channelActivity"`
 
 	// Get channel message history
-	*Messages `json:"messages"`
+	*Messages       `json:"messages"`
+	*MessageThreads `json:"messageThreads"`
 
 	// Message actions
 	*MessageCreate `json:"createMessage"`
