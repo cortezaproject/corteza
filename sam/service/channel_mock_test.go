@@ -214,13 +214,13 @@ func (mr *MockChannelServiceMockRecorder) Delete(ID interface{}) *gomock.Call {
 }
 
 // RecordView mocks base method
-func (m *MockChannelService) RecordView(channelID, userID, lastMessageID uint64) error {
-	ret := m.ctrl.Call(m, "RecordView", channelID, userID, lastMessageID)
+func (m *MockChannelService) RecordView(userID, channelID, lastMessageID uint64) error {
+	ret := m.ctrl.Call(m, "RecordView", userID, channelID, lastMessageID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RecordView indicates an expected call of RecordView
-func (mr *MockChannelServiceMockRecorder) RecordView(channelID, userID, lastMessageID interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordView", reflect.TypeOf((*MockChannelService)(nil).RecordView), channelID, userID, lastMessageID)
+func (mr *MockChannelServiceMockRecorder) RecordView(userID, channelID, lastMessageID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordView", reflect.TypeOf((*MockChannelService)(nil).RecordView), userID, channelID, lastMessageID)
 }

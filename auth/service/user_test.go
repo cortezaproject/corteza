@@ -2,10 +2,11 @@ package service
 
 import (
 	"context"
+	"testing"
+
 	"github.com/crusttech/crust/sam/types"
 	"github.com/golang/mock/gomock"
 	"github.com/titpetric/factory"
-	"testing"
 )
 
 func TestUser(t *testing.T) {

@@ -125,6 +125,7 @@ mocks: $(GOMOCK)
 	$(MOCKGEN) -package service -source sam/service/message.go      -destination sam/service/message_mock_test.go
 	$(MOCKGEN) -package service -source sam/service/organisation.go -destination sam/service/organisation_mock_test.go
 	$(MOCKGEN) -package service -source sam/service/team.go         -destination sam/service/team_mock_test.go
+	$(MOCKGEN) -package service -source auth/service/user.go        -destination auth/service/user_mock_test.go
 
 
 ########################################################################################################################

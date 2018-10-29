@@ -61,16 +61,16 @@ func (mr *MockAttachmentServiceMockRecorder) FindByID(id interface{}) *gomock.Ca
 }
 
 // Create mocks base method
-func (m *MockAttachmentService) Create(channelId uint64, name string, size int64, fh io.ReadSeeker) (*types.Attachment, error) {
-	ret := m.ctrl.Call(m, "Create", channelId, name, size, fh)
+func (m *MockAttachmentService) Create(name string, size int64, fh io.ReadSeeker, channelId, replyTo uint64) (*types.Attachment, error) {
+	ret := m.ctrl.Call(m, "Create", name, size, fh, channelId, replyTo)
 	ret0, _ := ret[0].(*types.Attachment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create
-func (mr *MockAttachmentServiceMockRecorder) Create(channelId, name, size, fh interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAttachmentService)(nil).Create), channelId, name, size, fh)
+func (mr *MockAttachmentServiceMockRecorder) Create(name, size, fh, channelId, replyTo interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAttachmentService)(nil).Create), name, size, fh, channelId, replyTo)
 }
 
 // OpenOriginal mocks base method

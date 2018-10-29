@@ -74,17 +74,13 @@ func (r *message) FindMessages(filter *types.MessageFilter) (types.MessageSet, e
 
 	sql := sqlMessagesSelect
 
-	if filter != nil {
-		if filter.Query != "" {
-			sql += " AND message LIKE ?"
-			params = append(params, filter.Query+"%")
-		}
+	if filter == nil {
+		filter = &types.MessageFilter{}
 	}
 
-	if filter.ChannelID == 0 && filter.RepliesTo == 0 {
-		// Channel history or replies to a message...
-		// nothing more.
-		return nil, nil
+	if filter.Query != "" {
+		sql += " AND message LIKE ?"
+		params = append(params, filter.Query+"%")
 	}
 
 	if filter.ChannelID > 0 {
