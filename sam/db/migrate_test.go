@@ -11,8 +11,13 @@ import (
 )
 
 func TestMigrations(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+		return
+	}
+
 	args := []string{
-		// "--rm",
+		"--rm",
 		"-e", "MYSQL_ROOT_PASSWORD=root",
 		"-e", "MYSQL_DATABASE=test",
 	}
