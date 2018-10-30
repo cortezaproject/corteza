@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/internal/auth"
 
@@ -17,7 +16,7 @@ import (
 
 type (
 	channel struct {
-		db  *factory.DB
+		db  db
 		ctx context.Context
 
 		usr authService.UserService
@@ -56,6 +55,11 @@ type (
 	// channelSecurity interface {
 	// 	CanRead(ch *types.Channel) bool
 	// }
+)
+
+const (
+	settingsChannelNameLength  = 40
+	settingsChannelTopicLength = 200
 )
 
 func Channel() ChannelService {
@@ -250,6 +254,18 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 			return errors.New("Not allowed to create group channels")
 		}
 
+		if len(in.Name) == 0 {
+			return errors.New("Channel name not provided")
+		}
+
+		if settingsChannelNameLength > 0 && len(in.Name) > settingsChannelNameLength {
+			return errors.Errorf("Channel name (%d characters) too long (max: %d)", len(in.Name), settingsChannelNameLength)
+		}
+
+		if len(in.Topic) > 0 && settingsChannelTopicLength > 0 && len(in.Topic) > settingsChannelTopicLength {
+			return errors.Errorf("Channel topic (%d characters) too long (max: %d)", len(in.Topic), settingsChannelTopicLength)
+		}
+
 		// This is a fresh channel, just copy values
 		out = &types.Channel{
 			Name:           in.Name,
@@ -287,12 +303,11 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 
 		// Create the first message, doing this directly with repository to circumvent
 		// message service constraints
-		svc.scheduleSystemMessage(
-			out,
-			"@%d created new %s channel, topic is: %s",
-			chCreatorID,
-			"<PRIVATE-OR-PUBLIC>",
-			"<TOPIC>")
+		if len(out.Topic) == 0 {
+			svc.scheduleSystemMessage(out, `<@%d> created new %s channel *%s*`, chCreatorID, out.Type)
+		} else {
+			svc.scheduleSystemMessage(out, `<@%d> created new %s channel *%s*, topic: %s`, chCreatorID, out.Type, out.Topic)
+		}
 
 		_ = msg
 		if err != nil {
@@ -334,68 +349,81 @@ func (svc *channel) checkGroupExistance(mm types.ChannelMemberSet) (*types.Chann
 	}
 }
 
-func (svc *channel) Update(ch *types.Channel) (out *types.Channel, err error) {
-	return out, svc.db.Transaction(func() (err error) {
+func (svc *channel) Update(in *types.Channel) (ch *types.Channel, err error) {
+	return ch, svc.db.Transaction(func() (err error) {
+		var changed bool
+
 		// @todo [SECURITY] can user access this channel?
-		if out, err = svc.channel.FindChannelByID(ch.ID); err != nil {
+		if ch, err = svc.channel.FindChannelByID(in.ID); err != nil {
 			return
 		}
 
-		if out.ArchivedAt != nil {
+		if ch.ArchivedAt != nil {
 			return errors.New("Not allowed to edit archived channels")
-		} else if out.DeletedAt != nil {
+		} else if ch.DeletedAt != nil {
 			return errors.New("Not allowed to edit deleted channels")
 		}
 
-		if out.Type != ch.Type {
+		if in.Type.IsValid() && ch.Type != in.Type {
 			// @todo [SECURITY] check if user can create public channels
-			if ch.Type == types.ChannelTypePublic && false {
+			if in.Type == types.ChannelTypePublic && false {
 				return errors.New("Not allowed to change type of this channel to public")
 			}
 
 			// @todo [SECURITY] check if user can create private channels
-			if ch.Type == types.ChannelTypePrivate && false {
+			if in.Type == types.ChannelTypePrivate && false {
 				return errors.New("Not allowed to change type of this channel to private")
 			}
 
 			// @todo [SECURITY] check if user can create group channels
-			if ch.Type == types.ChannelTypeGroup && false {
+			if in.Type == types.ChannelTypeGroup && false {
 				return errors.New("Not allowed to change type of this channel to group")
 			}
+
+			changed = true
 		}
 
 		var chUpdatorId = repository.Identity(svc.ctx)
 
-		// Copy values
-		if out.Name != ch.Name {
+		if len(in.Name) > 0 && ch.Name != in.Name {
 			// @todo [SECURITY] can we change channel's name?
 			if false {
 				return errors.New("Not allowed to rename channel")
+			} else if settingsChannelNameLength > 0 && len(in.Name) > settingsChannelNameLength {
+				return errors.Errorf("Channel name (%d characters) too long (max: %d)", len(in.Name), settingsChannelNameLength)
 			} else {
-				svc.scheduleSystemMessage(ch, "@%d renamed channel %s (was: %s)", chUpdatorId, out.Name, ch.Name)
+				svc.scheduleSystemMessage(in, "<@%d> renamed channel %s (was: %s)", chUpdatorId, in.Name, ch.Name)
 			}
-			out.Name = ch.Name
+
+			ch.Name = in.Name
+			changed = true
 		}
 
-		if out.Topic != ch.Topic && true {
+		if len(in.Topic) > 0 && ch.Topic != in.Topic {
 			// @todo [SECURITY] can we change channel's topic?
 			if false {
 				return errors.New("Not allowed to change channel topic")
+			} else if settingsChannelTopicLength > 0 && len(in.Topic) > settingsChannelTopicLength {
+				return errors.Errorf("Channel topic (%d characters) too long (max: %d)", len(in.Topic), settingsChannelTopicLength)
 			} else {
-				svc.scheduleSystemMessage(ch, "@%d changed channel topic: %s (was: %s)", chUpdatorId, out.Topic, ch.Topic)
+				svc.scheduleSystemMessage(in, "<@%d> changed channel topic: %s (was: %s)", chUpdatorId, in.Topic, ch.Topic)
 			}
 
-			out.Topic = ch.Topic
+			ch.Topic = in.Topic
+			changed = true
 		}
 
+		if !changed {
+			return nil
+		}
 		// Save the updated channel
-		if out, err = svc.channel.UpdateChannel(ch); err != nil {
+		if ch, err = svc.channel.UpdateChannel(in); err != nil {
 			return
 		}
 
 		svc.flushSystemMessages()
 
-		return svc.sendChannelEvent(out)
+		return svc.sendChannelEvent(ch)
 	})
 }
 

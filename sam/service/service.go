@@ -7,6 +7,12 @@ import (
 	"github.com/crusttech/crust/internal/store"
 )
 
+type (
+	db interface {
+		Transaction(callback func() error) error
+	}
+)
+
 var (
 	o                   sync.Once
 	DefaultAttachment   AttachmentService

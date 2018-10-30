@@ -77,7 +77,7 @@ test: $(GOTEST)
 	$(GO) tool cover -func=.cover.out
 
 test.sam: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./sam/repository/...
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./sam/repository/... ./sam/service/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.sam.db: $(GOTEST)
@@ -119,6 +119,9 @@ critic: $(GOCRITIC)
 qa: vet critic test
 
 mocks: $(GOMOCK)
+	# Cleanup all pre-generated
+	rm -f */*/*_mock_test.go
+
 	# See https://github.com/golang/mock for details
 	$(MOCKGEN) -package service -source sam/service/attachment.go   -destination sam/service/attachment_mock_test.go
 	$(MOCKGEN) -package service -source sam/service/channel.go      -destination sam/service/channel_mock_test.go
