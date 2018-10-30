@@ -83,3 +83,18 @@ const (
 	ChannelTypePrivate             = "private"
 	ChannelTypeGroup               = "group"
 )
+
+func (mtype ChannelType) String() string {
+	return string(mtype)
+}
+
+func (mtype ChannelType) IsValid() bool {
+	switch mtype {
+	case ChannelTypePublic,
+		ChannelTypePrivate,
+		ChannelTypeGroup:
+		return true
+	}
+
+	return false
+}

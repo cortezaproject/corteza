@@ -59,6 +59,19 @@ func (mr *MockMessageServiceMockRecorder) Find(filter interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockMessageService)(nil).Find), filter)
 }
 
+// FindThreads mocks base method
+func (m *MockMessageService) FindThreads(filter *types.MessageFilter) (types.MessageSet, error) {
+	ret := m.ctrl.Call(m, "FindThreads", filter)
+	ret0, _ := ret[0].(types.MessageSet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindThreads indicates an expected call of FindThreads
+func (mr *MockMessageServiceMockRecorder) FindThreads(filter interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindThreads", reflect.TypeOf((*MockMessageService)(nil).FindThreads), filter)
+}
+
 // Create mocks base method
 func (m *MockMessageService) Create(messages *types.Message) (*types.Message, error) {
 	ret := m.ctrl.Call(m, "Create", messages)
