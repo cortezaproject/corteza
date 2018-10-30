@@ -53,7 +53,7 @@ type (
 )
 
 const (
-	settingsMessageBodyLength = 4000
+	settingsMessageBodyLength = 0
 )
 
 func Message() MessageService {
@@ -125,7 +125,7 @@ func (svc *message) Create(in *types.Message) (message *types.Message, err error
 
 	if mlen == 0 {
 		return nil, errors.Errorf("Refusing to create message without contents")
-	} else if mlen > settingsMessageBodyLength {
+	} else if settingsMessageBodyLength > 0 && mlen > settingsMessageBodyLength {
 		return nil, errors.Errorf("Message length (%d characters) too long (max: %d)", mlen, settingsMessageBodyLength)
 	}
 
@@ -200,7 +200,7 @@ func (svc *message) Update(in *types.Message) (message *types.Message, err error
 
 	if mlen == 0 {
 		return nil, errors.Errorf("Refusing to update message without contents")
-	} else if mlen > settingsMessageBodyLength {
+	} else if settingsMessageBodyLength > 0 && mlen > settingsMessageBodyLength {
 		return nil, errors.Errorf("Message length (%d characters) too long (max: %d)", mlen, settingsMessageBodyLength)
 	}
 
