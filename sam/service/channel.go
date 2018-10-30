@@ -391,8 +391,10 @@ func (svc *channel) Update(in *types.Channel) (ch *types.Channel, err error) {
 				return errors.New("Not allowed to rename channel")
 			} else if settingsChannelNameLength > 0 && len(in.Name) > settingsChannelNameLength {
 				return errors.Errorf("Channel name (%d characters) too long (max: %d)", len(in.Name), settingsChannelNameLength)
+			} else if ch.Name != "" {
+				svc.scheduleSystemMessage(in, "<@%d> renamed channel *%s* (was: %s)", chUpdatorId, in.Name, ch.Name)
 			} else {
-				svc.scheduleSystemMessage(in, "<@%d> renamed channel %s (was: %s)", chUpdatorId, in.Name, ch.Name)
+				svc.scheduleSystemMessage(in, "<@%d> set channel name to *%s*", chUpdatorId, in.Name)
 			}
 
 			ch.Name = in.Name
@@ -405,8 +407,10 @@ func (svc *channel) Update(in *types.Channel) (ch *types.Channel, err error) {
 				return errors.New("Not allowed to change channel topic")
 			} else if settingsChannelTopicLength > 0 && len(in.Topic) > settingsChannelTopicLength {
 				return errors.Errorf("Channel topic (%d characters) too long (max: %d)", len(in.Topic), settingsChannelTopicLength)
-			} else {
+			} else if ch.Topic != "" {
 				svc.scheduleSystemMessage(in, "<@%d> changed channel topic: %s (was: %s)", chUpdatorId, in.Topic, ch.Topic)
+			} else {
+				svc.scheduleSystemMessage(in, "<@%d> set channel topic to %s", chUpdatorId, in.Topic)
 			}
 
 			ch.Topic = in.Topic
@@ -446,7 +450,7 @@ func (svc *channel) Delete(id uint64) error {
 			ch.DeletedAt = &now
 		}
 
-		svc.scheduleSystemMessage(ch, "@%d deleted this channel", userID)
+		svc.scheduleSystemMessage(ch, "<@%d> deleted this channel", userID)
 
 		if err = svc.channel.DeleteChannelByID(id); err != nil {
 			return
@@ -473,7 +477,7 @@ func (svc *channel) Recover(id uint64) error {
 			return errors.New("Channel not deleted")
 		}
 
-		svc.scheduleSystemMessage(ch, "@%d recovered this channel", userID)
+		svc.scheduleSystemMessage(ch, "<@%d> recovered this channel", userID)
 
 		if err = svc.channel.UnarchiveChannelByID(id); err != nil {
 			return
@@ -501,7 +505,7 @@ func (svc *channel) Archive(id uint64) error {
 			return errors.New("Channel already archived")
 		}
 
-		svc.scheduleSystemMessage(ch, "@%d archived this channel", userID)
+		svc.scheduleSystemMessage(ch, "<@%d> archived this channel", userID)
 
 		if err = svc.channel.ArchiveChannelByID(id); err != nil {
 			return
@@ -528,7 +532,7 @@ func (svc *channel) Unarchive(id uint64) error {
 			return errors.New("Channel not archived")
 		}
 
-		svc.scheduleSystemMessage(ch, "@%d unarchived this channel", userID)
+		svc.scheduleSystemMessage(ch, "<@%d> unarchived this channel", userID)
 
 		svc.flushSystemMessages()
 		return svc.sendChannelEvent(ch)
@@ -578,7 +582,7 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 				continue
 			}
 
-			svc.scheduleSystemMessage(ch, "@%d invited @%d to the channel", userID, memberID)
+			svc.scheduleSystemMessage(ch, "<@%d> invited <@%d> to the channel", userID, memberID)
 
 			member := &types.ChannelMember{
 				ChannelID: channelID,
@@ -647,9 +651,9 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 
 			if !exists {
 				if userID == memberID {
-					svc.scheduleSystemMessage(ch, "@%d joined", memberID)
+					svc.scheduleSystemMessage(ch, "<@%d> joined", memberID)
 				} else {
-					svc.scheduleSystemMessage(ch, "@%d added @%d to the channel", userID, memberID)
+					svc.scheduleSystemMessage(ch, "<@%d> added <@%d> to the channel", userID, memberID)
 				}
 			}
 
@@ -714,9 +718,9 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 			}
 
 			if userID == memberID {
-				svc.scheduleSystemMessage(ch, "@%d parted", memberID)
+				svc.scheduleSystemMessage(ch, "<@%d> parted", memberID)
 			} else {
-				svc.scheduleSystemMessage(ch, "@%d kicked @%d out", userID, memberID)
+				svc.scheduleSystemMessage(ch, "<@%d> kicked <@%d> out", userID, memberID)
 			}
 
 			if err = svc.cmember.Delete(channelID, memberID); err != nil {
