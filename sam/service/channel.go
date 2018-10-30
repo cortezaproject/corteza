@@ -456,8 +456,9 @@ func (svc *channel) Delete(id uint64) error {
 			return
 		}
 
-		svc.flushSystemMessages()
-		return svc.sendChannelEvent(ch)
+		_ = svc.sendChannelEvent(ch)
+		_ = svc.flushSystemMessages()
+		return nil
 	})
 }
 
