@@ -45,7 +45,7 @@ func (s *Session) channelPart(ctx context.Context, p *incoming.ChannelPart) erro
 }
 
 func (s *Session) channelList(ctx context.Context, p *incoming.Channels) error {
-	channels, err := s.svc.ch.With(ctx).Find(&types.ChannelFilter{IncludeMembers: true})
+	channels, err := s.svc.ch.With(ctx).Find(&types.ChannelFilter{})
 	if err != nil {
 		return err
 	}
@@ -78,10 +78,6 @@ func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) 
 	}
 
 	return nil
-}
-
-func (s *Session) channelDelete(ctx context.Context, p *incoming.ChannelDelete) (err error) {
-	return s.svc.ch.With(ctx).Delete(payload.ParseUInt64(p.ChannelID))
 }
 
 func (s *Session) channelUpdate(ctx context.Context, p *incoming.ChannelUpdate) error {

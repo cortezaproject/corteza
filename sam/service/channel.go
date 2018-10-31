@@ -46,9 +46,10 @@ type (
 		AddMember(channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error)
 		DeleteMember(channelID uint64, memberIDs ...uint64) (err error)
 
-		Archive(ID uint64) error
-		Unarchive(ID uint64) error
-		Delete(ID uint64) error
+		Archive(ID uint64) (*types.Channel, error)
+		Unarchive(ID uint64) (*types.Channel, error)
+		Delete(ID uint64) (*types.Channel, error)
+		Undelete(ID uint64) (*types.Channel, error)
 		RecordView(userID, channelID, lastMessageID uint64) error
 	}
 
@@ -88,12 +89,14 @@ func (svc *channel) With(ctx context.Context) ChannelService {
 	}
 }
 
-func (svc *channel) FindByID(id uint64) (ch *types.Channel, err error) {
-	ch, err = svc.channel.FindChannelByID(id)
+func (svc *channel) FindByID(ID uint64) (ch *types.Channel, err error) {
+	ch, err = svc.channel.FindChannelByID(ID)
 	if err != nil {
 		return
 	}
 
+	// @todo [SECURITY] check if user can access this channel
+	// @todo [SECURITY] check if user can access inactive channels
 	// if !svc.sec.ch.CanRead(ch) {
 	// 	return nil, errors.New("Not allowed to access channel")
 	// }
@@ -110,6 +113,11 @@ func (svc *channel) Find(filter *types.ChannelFilter) (cc types.ChannelSet, err 
 		} else if err = svc.preloadExtras(cc); err != nil {
 			return
 		}
+
+		// @todo [SECURITY] check if user can access inactive channels
+		cc, _ = cc.Filter(func(i *types.Channel) (b bool, e error) {
+			return true || i.DeletedAt == nil, nil
+		})
 
 		return
 	})
@@ -425,19 +433,18 @@ func (svc *channel) Update(in *types.Channel) (ch *types.Channel, err error) {
 			return
 		}
 
-		svc.flushSystemMessages()
+		_ = svc.flushSystemMessages()
 
 		return svc.sendChannelEvent(ch)
 	})
 }
 
-func (svc *channel) Delete(id uint64) error {
-	return svc.db.Transaction(func() (err error) {
+func (svc *channel) Delete(ID uint64) (ch *types.Channel, err error) {
+	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
-		var ch *types.Channel
 
 		// @todo [SECURITY] can user access this channel?
-		if ch, err = svc.channel.FindChannelByID(id); err != nil {
+		if ch, err = svc.channel.FindChannelByID(ID); err != nil {
 			return
 		}
 
@@ -452,8 +459,11 @@ func (svc *channel) Delete(id uint64) error {
 
 		svc.scheduleSystemMessage(ch, "<@%d> deleted this channel", userID)
 
-		if err = svc.channel.DeleteChannelByID(id); err != nil {
+		if err = svc.channel.DeleteChannelByID(ID); err != nil {
 			return
+		} else {
+			// Set deletedAt timestamp so that our clients can react properly...
+			ch.DeletedAt = timeNowPtr()
 		}
 
 		_ = svc.sendChannelEvent(ch)
@@ -462,13 +472,12 @@ func (svc *channel) Delete(id uint64) error {
 	})
 }
 
-func (svc *channel) Recover(id uint64) error {
-	return svc.db.Transaction(func() (err error) {
+func (svc *channel) Undelete(ID uint64) (ch *types.Channel, err error) {
+	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
-		var ch *types.Channel
 
 		// @todo [SECURITY] can user access this channel?
-		if ch, err = svc.channel.FindChannelByID(id); err != nil {
+		if ch, err = svc.channel.FindChannelByID(ID); err != nil {
 			return
 		}
 
@@ -478,10 +487,13 @@ func (svc *channel) Recover(id uint64) error {
 			return errors.New("Channel not deleted")
 		}
 
-		svc.scheduleSystemMessage(ch, "<@%d> recovered this channel", userID)
+		svc.scheduleSystemMessage(ch, "<@%d> undeleted this channel", userID)
 
-		if err = svc.channel.UnarchiveChannelByID(id); err != nil {
+		if err = svc.channel.UndeleteChannelByID(ID); err != nil {
 			return
+		} else {
+			// Remove deletedAt timestamp so that our clients can react properly...
+			ch.DeletedAt = nil
 		}
 
 		svc.flushSystemMessages()
@@ -489,14 +501,12 @@ func (svc *channel) Recover(id uint64) error {
 	})
 }
 
-func (svc *channel) Archive(id uint64) error {
-	return svc.db.Transaction(func() (err error) {
-
+func (svc *channel) Archive(ID uint64) (ch *types.Channel, err error) {
+	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
-		var ch *types.Channel
 
 		// @todo [SECURITY] can user access this channel?
-		if ch, err = svc.channel.FindChannelByID(id); err != nil {
+		if ch, err = svc.channel.FindChannelByID(ID); err != nil {
 			return
 		}
 
@@ -508,8 +518,11 @@ func (svc *channel) Archive(id uint64) error {
 
 		svc.scheduleSystemMessage(ch, "<@%d> archived this channel", userID)
 
-		if err = svc.channel.ArchiveChannelByID(id); err != nil {
+		if err = svc.channel.ArchiveChannelByID(ID); err != nil {
 			return
+		} else {
+			// Set archivedAt timestamp so that our clients can react properly...
+			ch.ArchivedAt = timeNowPtr()
 		}
 
 		svc.flushSystemMessages()
@@ -517,13 +530,12 @@ func (svc *channel) Archive(id uint64) error {
 	})
 }
 
-func (svc *channel) Unarchive(id uint64) error {
-	return svc.db.Transaction(func() (err error) {
+func (svc *channel) Unarchive(ID uint64) (ch *types.Channel, err error) {
+	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
-		var ch *types.Channel
 
 		// @todo [SECURITY] can user access this channel?
-		if ch, err = svc.channel.FindChannelByID(id); err != nil {
+		if ch, err = svc.channel.FindChannelByID(ID); err != nil {
 			return
 		}
 
@@ -531,6 +543,9 @@ func (svc *channel) Unarchive(id uint64) error {
 
 		if ch.ArchivedAt == nil {
 			return errors.New("Channel not archived")
+		} else {
+			// Unset archivedAt timestamp so that our clients can react properly...
+			ch.ArchivedAt = nil
 		}
 
 		svc.scheduleSystemMessage(ch, "<@%d> unarchived this channel", userID)

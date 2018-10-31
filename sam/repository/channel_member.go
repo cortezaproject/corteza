@@ -28,21 +28,14 @@ type (
 
 const (
 	// Copy definitions to make it more obvious that we're reusing channel-scope sql
-	sqlChannelMemberChannelValidOnly = sqlChannelValidOnly
-
-	// Copy definitions to make it more obvious that we're reusing channel-scope sql
 	sqlChannelMemberChannelAccess = sqlChannelAccess
 
 	// Fetching channel members of all channels a specific user has access to
 	sqlChannelMemberSelect = `SELECT m.*
         FROM channel_members AS m
              INNER JOIN channels AS c ON (m.rel_channel = c.id)
-       WHERE ` + sqlChannelMemberChannelValidOnly
-
-	// Selects all user's memberships
-	sqlChannelMemberships = `SELECT *
-        FROM channel_members AS cm
-       WHERE true`
+       WHERE c.archived_at IS NULL         
+         AND c.deleted_at IS NULL`
 )
 
 // ChannelMember creates new instance of channel member repository

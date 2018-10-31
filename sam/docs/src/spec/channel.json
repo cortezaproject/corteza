@@ -63,7 +63,7 @@
       }
     },
     {
-      "Name": "edit",
+      "Name": "update",
       "Method": "PUT",
       "Title": "Update channel details",
       "Path": "/{channelID}",
@@ -96,12 +96,6 @@
             "type": "string"
           },
           {
-            "name": "archive",
-            "required": false,
-            "title": "Request channel to be archived or unarchived",
-            "type": "bool"
-          },
-          {
             "name": "organisationID",
             "required": false,
             "title": "Move channel to different organisation",
@@ -111,10 +105,10 @@
       }
     },
     {
-      "Name": "read",
-      "Method": "GET",
-      "Title": "Read channel details",
-      "Path": "/{channelID}",
+      "Name": "state",
+      "Method": "PUT",
+      "Title": "Update channel state",
+      "Path": "/{channelID}/state",
       "Parameters": {
         "path": [
           {
@@ -123,13 +117,21 @@
             "title": "Channel ID",
             "type": "uint64"
           }
+        ],
+        "post": [
+          {
+            "name": "state",
+            "required": true,
+            "title": "Valid values: delete, restore, archive, unarchive",
+            "type": "string"
+          }
         ]
       }
     },
     {
-      "Name": "delete",
-      "Method": "DELETE",
-      "Title": "Remove channel",
+      "Name": "read",
+      "Method": "GET",
+      "Title": "Read channel details",
       "Path": "/{channelID}",
       "Parameters": {
         "path": [

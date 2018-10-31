@@ -221,7 +221,7 @@
 				}
 			},
 			{
-				"name": "edit",
+				"name": "update",
 				"method": "PUT",
 				"path": "/{channelID}",
 				"title": "Update channel details",
@@ -233,8 +233,21 @@
 						{ "type": "string", "name": "name",           "required": false, "title": "Name of Channel" },
 						{ "type": "string", "name": "topic",          "required": false, "title": "Subject of Channel" },
 						{ "type": "string", "name": "type",           "required": false, "title": "Channel type" },
-						{ "type": "bool",   "name": "archive",        "required": false, "title": "Request channel to be archived or unarchived" },
 						{ "type": "uint64", "name": "organisationID", "required": false, "title": "Move channel to different organisation" }
+					]
+				}
+			},
+			{
+				"name": "state",
+				"method": "PUT",
+				"path": "/{channelID}/state",
+				"title": "Update channel state",
+				"parameters": {
+					"path": [
+						{ "type": "uint64", "name": "channelID", "required": true, "title": "Channel ID" }
+					],
+					"post": [
+						{ "type": "string",  "name": "state", "required": true, "title": "Valid values: delete, undelete, archive, unarchive" }
 					]
 				}
 			},
@@ -249,17 +262,6 @@
 					]
 				}
 			},
-            {
-              "name": "delete",
-              "method": "DELETE",
-              "path": "/{channelID}",
-              "title": "Remove channel",
-              "parameters": {
-                "path": [
-                  { "type": "uint64", "name": "channelID", "required": true, "title": "Channel ID" }
-                ]
-              }
-            },
             {
               "name": "members",
               "method": "GET",

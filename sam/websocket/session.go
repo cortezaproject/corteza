@@ -92,7 +92,7 @@ func (sess *Session) connected() (err error) {
 	}
 
 	// Push user info about all channels he has access to...
-	if cc, err = sess.svc.ch.With(sess.ctx).Find(&types.ChannelFilter{IncludeMembers: true}); err != nil {
+	if cc, err = sess.svc.ch.With(sess.ctx).Find(&types.ChannelFilter{}); err != nil {
 		log.Printf("Error: %v", err)
 	} else {
 		if err = sess.sendReply(payload.Channels(cc)); err != nil {

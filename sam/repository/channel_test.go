@@ -65,5 +65,10 @@ func TestChannel(t *testing.T) {
 			err = rpo.DeleteChannelByID(chn.ID)
 			assert(t, err == nil, "DeleteChannelByID error: %v", err)
 		}
+
+		{
+			err = rpo.UndeleteChannelByID(chn.ID)
+			assert(t, err == nil, "UndeleteChannelByID error: %v", err)
+		}
 	}
 }

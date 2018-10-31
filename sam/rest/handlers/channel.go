@@ -29,9 +29,9 @@ import (
 type ChannelAPI interface {
 	List(context.Context, *request.ChannelList) (interface{}, error)
 	Create(context.Context, *request.ChannelCreate) (interface{}, error)
-	Edit(context.Context, *request.ChannelEdit) (interface{}, error)
+	Update(context.Context, *request.ChannelUpdate) (interface{}, error)
+	State(context.Context, *request.ChannelState) (interface{}, error)
 	Read(context.Context, *request.ChannelRead) (interface{}, error)
-	Delete(context.Context, *request.ChannelDelete) (interface{}, error)
 	Members(context.Context, *request.ChannelMembers) (interface{}, error)
 	Join(context.Context, *request.ChannelJoin) (interface{}, error)
 	Part(context.Context, *request.ChannelPart) (interface{}, error)
@@ -43,9 +43,9 @@ type ChannelAPI interface {
 type Channel struct {
 	List    func(http.ResponseWriter, *http.Request)
 	Create  func(http.ResponseWriter, *http.Request)
-	Edit    func(http.ResponseWriter, *http.Request)
+	Update  func(http.ResponseWriter, *http.Request)
+	State   func(http.ResponseWriter, *http.Request)
 	Read    func(http.ResponseWriter, *http.Request)
-	Delete  func(http.ResponseWriter, *http.Request)
 	Members func(http.ResponseWriter, *http.Request)
 	Join    func(http.ResponseWriter, *http.Request)
 	Part    func(http.ResponseWriter, *http.Request)
@@ -69,11 +69,18 @@ func NewChannel(ch ChannelAPI) *Channel {
 				return ch.Create(r.Context(), params)
 			})
 		},
-		Edit: func(w http.ResponseWriter, r *http.Request) {
+		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewChannelEdit()
+			params := request.NewChannelUpdate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ch.Edit(r.Context(), params)
+				return ch.Update(r.Context(), params)
+			})
+		},
+		State: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewChannelState()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return ch.State(r.Context(), params)
 			})
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
@@ -81,13 +88,6 @@ func NewChannel(ch ChannelAPI) *Channel {
 			params := request.NewChannelRead()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ch.Read(r.Context(), params)
-			})
-		},
-		Delete: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewChannelDelete()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ch.Delete(r.Context(), params)
 			})
 		},
 		Members: func(w http.ResponseWriter, r *http.Request) {
@@ -134,9 +134,9 @@ func (ch *Channel) MountRoutes(r chi.Router, middlewares ...func(http.Handler) h
 		r.Route("/channels", func(r chi.Router) {
 			r.Get("/", ch.List)
 			r.Post("/", ch.Create)
-			r.Put("/{channelID}", ch.Edit)
+			r.Put("/{channelID}", ch.Update)
+			r.Put("/{channelID}/state", ch.State)
 			r.Get("/{channelID}", ch.Read)
-			r.Delete("/{channelID}", ch.Delete)
 			r.Get("/{channelID}/members", ch.Members)
 			r.Put("/{channelID}/members/{userID}", ch.Join)
 			r.Delete("/{channelID}/members/{userID}", ch.Part)

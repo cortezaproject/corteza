@@ -17,8 +17,9 @@ type (
 		CreatorID      uint64 `json:"creatorId" db:"rel_creator"`
 		OrganisationID uint64 `json:"organisationId" db:"rel_organisation"`
 
-		CreatedAt  time.Time  `json:"createdAt,omitempty" db:"created_at"`
-		UpdatedAt  *time.Time `json:"updatedAt,omitempty" db:"updated_at"`
+		CreatedAt time.Time  `json:"createdAt,omitempty" db:"created_at"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty" db:"updated_at"`
+
 		ArchivedAt *time.Time `json:"archivedAt,omitempty" db:"archived_at"`
 		DeletedAt  *time.Time `json:"deletedAt,omitempty" db:"deleted_at"`
 
@@ -35,7 +36,8 @@ type (
 		// Only return channels accessible by this user
 		CurrentUserID uint64
 
-		IncludeMembers bool
+		// Do not filter out deleted channels
+		IncludeDeleted bool
 	}
 
 	ChannelType string
@@ -44,24 +46,42 @@ type (
 )
 
 // Scope returns permissions group that for this type
-func (r *Channel) Scope() string {
+func (c *Channel) Scope() string {
 	return "channel"
 }
 
 // Resource returns a RBAC resource ID for this type
-func (r *Channel) Resource() string {
-	return fmt.Sprintf("%s:%d", r.Scope(), r.ID)
+func (c *Channel) Resource() string {
+	return fmt.Sprintf("%s:%d", c.Scope(), c.ID)
 }
 
 // Operation returns a RBAC resource-scoped role name for an operation
-func (r *Channel) Operation(name string) string {
-	return fmt.Sprintf("%s/%s", r.Resource(), name)
+func (c *Channel) Operation(name string) string {
+	return fmt.Sprintf("%s/%s", c.Resource(), name)
+}
+
+func (c *Channel) IsValid() bool {
+	return c.ArchivedAt == nil && c.DeletedAt == nil
 }
 
 func (cc ChannelSet) Walk(w func(*Channel) error) (err error) {
 	for i := range cc {
 		if err = w(cc[i]); err != nil {
 			return
+		}
+	}
+
+	return
+}
+
+func (cc ChannelSet) Filter(f func(*Channel) (bool, error)) (out ChannelSet, err error) {
+	var ok bool
+	out = ChannelSet{}
+	for i := range cc {
+		if ok, err = f(cc[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, cc[i])
 		}
 	}
 
