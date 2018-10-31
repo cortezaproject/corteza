@@ -312,9 +312,9 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 		// Create the first message, doing this directly with repository to circumvent
 		// message service constraints
 		if len(out.Topic) == 0 {
-			svc.scheduleSystemMessage(out, `<@%d> created new %s channel *%s*`, chCreatorID, out.Type)
+			svc.scheduleSystemMessage(out, `<@%d> created new %s channel *%s*`, chCreatorID, out.Type, out.Name)
 		} else {
-			svc.scheduleSystemMessage(out, `<@%d> created new %s channel *%s*, topic: %s`, chCreatorID, out.Type, out.Topic)
+			svc.scheduleSystemMessage(out, `<@%d> created new %s channel *%s*, topic: %s`, chCreatorID, out.Type, out.Name, out.Topic)
 		}
 
 		_ = msg
