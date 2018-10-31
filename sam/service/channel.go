@@ -262,7 +262,7 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 			return errors.New("Not allowed to create group channels")
 		}
 
-		if len(in.Name) == 0 {
+		if len(in.Name) == 0 && in.Type != types.ChannelTypeGroup {
 			return errors.New("Channel name not provided")
 		}
 
