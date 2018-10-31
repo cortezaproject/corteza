@@ -543,6 +543,10 @@ func (svc *channel) Unarchive(ID uint64) (ch *types.Channel, err error) {
 
 		if ch.ArchivedAt == nil {
 			return errors.New("Channel not archived")
+		}
+
+		if err = svc.channel.UnarchiveChannelByID(ID); err != nil {
+			return
 		} else {
 			// Unset archivedAt timestamp so that our clients can react properly...
 			ch.ArchivedAt = nil
