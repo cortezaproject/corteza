@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -280,12 +279,11 @@ func (svc *message) Delete(ID uint64) error {
 			return
 		}
 
-		// Set deletedAt timestamp so that our clients can react properly...
-		now := time.Now()
-		deletedMsg.DeletedAt = &now
-
 		if err = svc.cview.Dec(deletedMsg.ChannelID, deletedMsg.UserID); err != nil {
 			return err
+		} else {
+			// Set deletedAt timestamp so that our clients can react properly...
+			deletedMsg.DeletedAt = timeNowPtr()
 		}
 
 		return svc.sendEvent(append(bq, deletedMsg)...)

@@ -3,6 +3,7 @@ package service
 import (
 	"log"
 	"sync"
+	"time"
 
 	"github.com/crusttech/crust/internal/store"
 )
@@ -39,4 +40,9 @@ func Init() {
 		DefaultPubSub = PubSub()
 		DefaultTeam = Team()
 	})
+}
+
+func timeNowPtr() *time.Time {
+	now := time.Now()
+	return &now
 }

@@ -24,6 +24,7 @@ type (
 		ArchiveChannelByID(id uint64) error
 		UnarchiveChannelByID(id uint64) error
 		DeleteChannelByID(id uint64) error
+		UndeleteChannelByID(id uint64) error
 	}
 
 	channel struct {
@@ -32,13 +33,22 @@ type (
 )
 
 const (
-	sqlChannelValidOnly = ` true
-         AND c.archived_at IS NULL         
-         AND c.deleted_at IS NULL`
+	sqlChannelColumns = " id," +
+		"name, " +
+		"meta, " +
+		"created_at, " +
+		"updated_at, " +
+		"archived_at, " +
+		"deleted_at, " +
+		"rel_organisation, " +
+		"rel_creator, " +
+		"type  , " +
+		"rel_last_message, " +
+		"topic"
 
-	sqlChannelSelect = `SELECT *
+	sqlChannelSelect = `SELECT ` + sqlChannelColumns + `
         FROM channels AS c
-       WHERE ` + sqlChannelValidOnly
+       WHERE true `
 
 	sqlChannelGroupByMemberSet = sqlChannelSelect + ` AND c.type = ? AND c.id IN (
             SELECT rel_channel 
@@ -49,7 +59,7 @@ const (
         )`
 
 	// subquery that filters out all channels that current user has access to as a member
-	// or via channel type (public chans)
+	// or via channel type (public channels)
 	sqlChannelAccess = ` (
 				SELECT id
                   FROM channels c
@@ -115,7 +125,6 @@ func (r *channel) FindChannels(filter *types.ChannelFilter) ([]*types.Channel, e
 		if filter.CurrentUserID > 0 {
 			sql += " AND c.id IN " + sqlChannelAccess
 			params = append(params, filter.CurrentUserID, types.ChannelTypePublic)
-
 		}
 	}
 
@@ -162,6 +171,6 @@ func (r *channel) DeleteChannelByID(id uint64) error {
 	return r.updateColumnByID("channels", "deleted_at", time.Now(), id)
 }
 
-func (r *channel) RecoverChannelByID(id uint64) error {
+func (r *channel) UndeleteChannelByID(id uint64) error {
 	return r.updateColumnByID("channels", "deleted_at", nil, id)
 }

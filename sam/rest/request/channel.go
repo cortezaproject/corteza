@@ -133,21 +133,20 @@ func (c *ChannelCreate) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewChannelCreate()
 
-// Channel edit request parameters
-type ChannelEdit struct {
+// Channel update request parameters
+type ChannelUpdate struct {
 	ChannelID      uint64 `json:",string"`
 	Name           string
 	Topic          string
 	Type           string
-	Archive        bool
 	OrganisationID uint64 `json:",string"`
 }
 
-func NewChannelEdit() *ChannelEdit {
-	return &ChannelEdit{}
+func NewChannelUpdate() *ChannelUpdate {
+	return &ChannelUpdate{}
 }
 
-func (c *ChannelEdit) Fill(r *http.Request) (err error) {
+func (c *ChannelUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(c)
 
@@ -187,10 +186,6 @@ func (c *ChannelEdit) Fill(r *http.Request) (err error) {
 
 		c.Type = val
 	}
-	if val, ok := post["archive"]; ok {
-
-		c.Archive = parseBool(val)
-	}
 	if val, ok := post["organisationID"]; ok {
 
 		c.OrganisationID = parseUInt64(val)
@@ -199,7 +194,55 @@ func (c *ChannelEdit) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewChannelEdit()
+var _ RequestFiller = NewChannelUpdate()
+
+// Channel state request parameters
+type ChannelState struct {
+	ChannelID uint64 `json:",string"`
+	State     string
+}
+
+func NewChannelState() *ChannelState {
+	return &ChannelState{}
+}
+
+func (c *ChannelState) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(c)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	if val, ok := post["state"]; ok {
+
+		c.State = val
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewChannelState()
 
 // Channel read request parameters
 type ChannelRead struct {
@@ -243,49 +286,6 @@ func (c *ChannelRead) Fill(r *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewChannelRead()
-
-// Channel delete request parameters
-type ChannelDelete struct {
-	ChannelID uint64 `json:",string"`
-}
-
-func NewChannelDelete() *ChannelDelete {
-	return &ChannelDelete{}
-}
-
-func (c *ChannelDelete) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
-		}
-	}
-
-	if err = r.ParseForm(); err != nil {
-		return err
-	}
-
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := r.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := r.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
-
-	return err
-}
-
-var _ RequestFiller = NewChannelDelete()
 
 // Channel members request parameters
 type ChannelMembers struct {

@@ -35,8 +35,6 @@ func (s *Session) dispatch(raw []byte) error {
 		return s.channelList(ctx, p.Channels)
 	case p.ChannelCreate != nil:
 		return s.channelCreate(ctx, p.ChannelCreate)
-	case p.ChannelDelete != nil:
-		return s.channelDelete(ctx, p.ChannelDelete)
 	case p.ChannelUpdate != nil:
 		return s.channelUpdate(ctx, p.ChannelUpdate)
 	case p.ChannelViewRecord != nil:

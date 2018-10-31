@@ -41,7 +41,7 @@ func (ctrl *Channel) Create(ctx context.Context, r *request.ChannelCreate) (inte
 	return ctrl.wrap(ctrl.svc.ch.With(ctx).Create(channel))
 }
 
-func (ctrl *Channel) Edit(ctx context.Context, r *request.ChannelEdit) (interface{}, error) {
+func (ctrl *Channel) Update(ctx context.Context, r *request.ChannelUpdate) (interface{}, error) {
 	channel := &types.Channel{
 		ID:    r.ChannelID,
 		Name:  r.Name,
@@ -50,11 +50,21 @@ func (ctrl *Channel) Edit(ctx context.Context, r *request.ChannelEdit) (interfac
 	}
 
 	return ctrl.wrap(ctrl.svc.ch.With(ctx).Update(channel))
-
 }
 
-func (ctrl *Channel) Delete(ctx context.Context, r *request.ChannelDelete) (interface{}, error) {
-	return nil, ctrl.svc.ch.With(ctx).Delete(r.ChannelID)
+func (ctrl *Channel) State(ctx context.Context, r *request.ChannelState) (interface{}, error) {
+	switch r.State {
+	case "delete":
+		return ctrl.wrap(ctrl.svc.ch.With(ctx).Delete(r.ChannelID))
+	case "undelete":
+		return ctrl.wrap(ctrl.svc.ch.With(ctx).Undelete(r.ChannelID))
+	case "archive":
+		return ctrl.wrap(ctrl.svc.ch.With(ctx).Archive(r.ChannelID))
+	case "unarchive":
+		return ctrl.wrap(ctrl.svc.ch.With(ctx).Unarchive(r.ChannelID))
+	}
+
+	return nil, nil
 }
 
 func (ctrl *Channel) Read(ctx context.Context, r *request.ChannelRead) (interface{}, error) {

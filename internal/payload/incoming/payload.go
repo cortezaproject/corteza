@@ -8,7 +8,6 @@ type Payload struct {
 
 	*ChannelCreate `json:"createChannel"`
 	*ChannelUpdate `json:"updateChannel"`
-	*ChannelDelete `json:"deleteChannel"`
 
 	*ChannelViewRecord `json:"recordChannelView"`
 
