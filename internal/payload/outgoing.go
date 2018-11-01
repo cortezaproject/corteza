@@ -29,8 +29,11 @@ func Message(ctx context.Context, msg *samTypes.Message) *outgoing.Message {
 		ReplyTo:   msg.ReplyTo,
 		Replies:   msg.Replies,
 
-		User:       User(msg.User),
-		Attachment: Attachment(msg.Attachment),
+		User:         User(msg.User),
+		Attachment:   Attachment(msg.Attachment),
+		Reactions:    MessageReactions(msg.Flags),
+		IsPinned:     msg.Flags.IsPinned(),
+		IsBookmarked: msg.Flags.IsBookmarked(currentUserID),
 
 		CanReply:  canReply,
 		CanEdit:   canEdit,
@@ -49,6 +52,33 @@ func Messages(ctx context.Context, msg samTypes.MessageSet) *outgoing.MessageSet
 	}
 	retval := outgoing.MessageSet(msgs)
 	return &retval
+}
+
+func MessageReactions(flags samTypes.MessageFlagSet) outgoing.ReactionSet {
+	var (
+		rr     = make([]*outgoing.Reaction, 0)
+		rIndex = map[string]int{}
+		has    bool
+		i      int
+	)
+
+	_ = flags.Walk(func(flag *samTypes.MessageFlag) error {
+		if flag.IsReaction() {
+			r := &outgoing.Reaction{Reaction: flag.Flag, UserIDs: []string{}, Count: 0}
+
+			if i, has = rIndex[flag.Flag]; !has {
+				i, rIndex[flag.Flag] = len(rr), len(rr)
+				rr = append(rr, r)
+			}
+
+			rr[i].UserIDs = append(rr[i].UserIDs, Uint64toa(flag.UserID))
+			rr[i].Count++
+		}
+
+		return nil
+	})
+
+	return rr
 }
 
 func Channel(ch *samTypes.Channel) *outgoing.Channel {

@@ -453,20 +453,6 @@ The following event types may be sent with a message event:
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageID | uint64 | PATH | Message ID | N/A | YES |
 
-## Pin message to channel (public bookmark)
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/channels/{channelID}/messages/{messageID}/pin` | HTTP/S | POST | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| messageID | uint64 | PATH | Message ID | N/A | YES |
-
 ## Returns all replies to a message
 
 #### Method
@@ -502,6 +488,20 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
+| `/channels/{channelID}/messages/{messageID}/pin` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| messageID | uint64 | PATH | Message ID | N/A | YES |
+
+## Pin message to channel (public bookmark)
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
 | `/channels/{channelID}/messages/{messageID}/pin` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
@@ -510,13 +510,13 @@ The following event types may be sent with a message event:
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageID | uint64 | PATH | Message ID | N/A | YES |
 
-## Flag a message (private bookmark)
+## Bookmark a message (private bookmark)
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelID}/messages/{messageID}/flag` | HTTP/S | POST | Client ID, Session ID |
+| `/channels/{channelID}/messages/{messageID}/bookmark` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -524,13 +524,13 @@ The following event types may be sent with a message event:
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageID | uint64 | PATH | Message ID | N/A | YES |
 
-## Remove flag from message (private bookmark)
+## Remove boomark from message (private bookmark)
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelID}/messages/{messageID}/flag` | HTTP/S | DELETE | Client ID, Session ID |
+| `/channels/{channelID}/messages/{messageID}/bookmark` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
@@ -544,7 +544,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelID}/messages/{messageID}/reaction/{reaction}` | HTTP/S | PUT | Client ID, Session ID |
+| `/channels/{channelID}/messages/{messageID}/reaction/{reaction}` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -559,7 +559,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/channels/{channelID}/messages/{messageID}/react/{reaction}` | HTTP/S | DELETE | Client ID, Session ID |
+| `/channels/{channelID}/messages/{messageID}/reaction/{reaction}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 

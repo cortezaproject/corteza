@@ -23,7 +23,7 @@ type (
 		cmember    repository.ChannelMemberRepository
 		cview      repository.ChannelViewRepository
 		message    repository.MessageRepository
-		reaction   repository.ReactionRepository
+		mflag      repository.MessageFlagRepository
 
 		usr authService.UserService
 		evl EventService
@@ -39,13 +39,13 @@ type (
 		Update(messages *types.Message) (*types.Message, error)
 
 		React(messageID uint64, reaction string) error
-		Unreact(messageID uint64, reaction string) error
+		RemoveReaction(messageID uint64, reaction string) error
 
 		Pin(messageID uint64) error
-		Unpin(messageID uint64) error
+		RemovePin(messageID uint64) error
 
-		Flag(messageID uint64) error
-		Unflag(messageID uint64) error
+		Bookmark(messageID uint64) error
+		RemoveBookmark(messageID uint64) error
 
 		Delete(ID uint64) error
 	}
@@ -76,7 +76,7 @@ func (svc *message) With(ctx context.Context) MessageService {
 		cmember:    repository.ChannelMember(ctx, db),
 		cview:      repository.ChannelView(ctx, db),
 		message:    repository.Message(ctx, db),
-		reaction:   repository.Reaction(ctx, db),
+		mflag:      repository.MessageFlag(ctx, db),
 	}
 }
 
@@ -92,9 +92,7 @@ func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err 
 		return nil, err
 	}
 
-	svc.preloadUsers(mm)
-
-	return mm, svc.preloadAttachments(mm)
+	return mm, svc.preload(mm)
 }
 
 func (svc *message) FindThreads(filter *types.MessageFilter) (mm types.MessageSet, err error) {
@@ -109,9 +107,7 @@ func (svc *message) FindThreads(filter *types.MessageFilter) (mm types.MessageSe
 		return nil, err
 	}
 
-	svc.preloadUsers(mm)
-
-	return mm, svc.preloadAttachments(mm)
+	return mm, svc.preload(mm)
 }
 
 func (svc *message) Create(in *types.Message) (message *types.Message, err error) {
@@ -290,80 +286,114 @@ func (svc *message) Delete(ID uint64) error {
 	})
 }
 
+// React on a message with an emoji
 func (svc *message) React(messageID uint64, reaction string) error {
-	// @todo get user from context
-	var currentUserID uint64 = repository.Identity(svc.ctx)
-
-	// @todo verify if current user can access & write to this channel
-	var m *types.Message
-
-	// @todo validate reaction
-
-	r := &types.Reaction{
-		UserID:    currentUserID,
-		MessageID: messageID,
-		ChannelID: m.ChannelID,
-		Reaction:  reaction,
-	}
-
-	if _, err := svc.reaction.CreateReaction(r); err != nil {
-		return err
-	}
-
-	return nil
+	return svc.flag(messageID, reaction, false)
 }
 
-func (svc *message) Unreact(messageID uint64, reaction string) error {
-	// @todo get user from context
-	var currentUserID uint64 = repository.Identity(svc.ctx)
-
-	// @todo verify if current user can access & write to this channel
-	_ = currentUserID
-
-	// @todo load reaction and verify ownership
-	var r *types.Reaction
-
-	return svc.reaction.DeleteReactionByID(r.ID)
+// Remove reaction on a message
+func (svc *message) RemoveReaction(messageID uint64, reaction string) error {
+	return svc.flag(messageID, reaction, true)
 }
 
+// Pin message to the channel
 func (svc *message) Pin(messageID uint64) error {
-	// @todo get user from context
-	var currentUserID uint64 = repository.Identity(svc.ctx)
-
-	// @todo verify if current user can access & write to this channel
-	_ = currentUserID
-
-	return nil
+	return svc.flag(messageID, types.MessageFlagPinnedToChannel, false)
 }
 
-func (svc *message) Unpin(messageID uint64) error {
-	// @todo get user from context
-	var currentUserID uint64 = repository.Identity(svc.ctx)
-
-	// @todo verify if current user can access & write to this channel
-	_ = currentUserID
-
-	return nil
+// Remove pin from message
+func (svc *message) RemovePin(messageID uint64) error {
+	return svc.flag(messageID, types.MessageFlagPinnedToChannel, true)
 }
 
-func (svc *message) Flag(messageID uint64) error {
-	// @todo get user from context
-	var currentUserID uint64 = repository.Identity(svc.ctx)
-
-	// @todo verify if current user can access & write to this channel
-	_ = currentUserID
-
-	return nil
+// Bookmark message (private)
+func (svc *message) Bookmark(messageID uint64) error {
+	return svc.flag(messageID, types.MessageFlagBookmarkedMessage, false)
 }
 
-func (svc *message) Unflag(messageID uint64) error {
+// Remove bookmark message (private)
+func (svc *message) RemoveBookmark(messageID uint64) error {
+	return svc.flag(messageID, types.MessageFlagBookmarkedMessage, true)
+}
+
+// React on a message with an emoji
+func (svc *message) flag(messageID uint64, flag string, remove bool) error {
 	// @todo get user from context
 	var currentUserID uint64 = repository.Identity(svc.ctx)
 
 	// @todo verify if current user can access & write to this channel
 	_ = currentUserID
 
-	return nil
+	if strings.TrimSpace(flag) == "" {
+		// Sanitize
+		flag = types.MessageFlagPinnedToChannel
+	}
+
+	// @todo validate flags beyond empty string
+
+	err := svc.db.Transaction(func() (err error) {
+		var flagOwnerId = currentUserID
+		var f *types.MessageFlag
+
+		// @todo [SECURITY] verify if current user can access & write to this channel
+
+		if flag == types.MessageFlagPinnedToChannel {
+			// It does not matter how is the owner of the pin,
+			flagOwnerId = 0
+		}
+
+		f, err = svc.mflag.FindByFlag(messageID, flagOwnerId, flag)
+		if f.ID == 0 && remove {
+			// Skip removing, flag does not exists
+			return nil
+		} else if f.ID > 0 && !remove {
+			// Skip adding, flag already exists
+			return nil
+		} else if err != nil && err != repository.ErrMessageFlagNotFound {
+			// Other errors, exit
+			return
+		}
+
+		// Check message
+		var msg *types.Message
+		msg, err = svc.message.FindMessageByID(messageID)
+		if err != nil {
+			return
+		}
+
+		if remove {
+			err = svc.mflag.DeleteByID(f.ID)
+		} else {
+			_, err = svc.mflag.Create(&types.MessageFlag{
+				UserID:    currentUserID,
+				ChannelID: msg.ChannelID,
+				MessageID: msg.ID,
+				Flag:      flag,
+			})
+		}
+
+		svc.sendEvent(msg)
+
+		return
+	})
+
+	return errors.Wrap(err, "Can not flag/un-flag message")
+}
+
+func (svc *message) preload(mm types.MessageSet) (err error) {
+	if err = svc.preloadUsers(mm); err != nil {
+		return
+	}
+
+	if err = svc.preloadAttachments(mm); err != nil {
+		return
+	}
+
+	if err = svc.preloadFlags(mm); err != nil {
+		return
+	}
+
+	return
 }
 
 // Preload for all messages
@@ -386,6 +416,21 @@ func (svc *message) preloadUsers(mm types.MessageSet) (err error) {
 	}
 
 	return
+}
+
+// Preload for all messages
+func (svc *message) preloadFlags(mm types.MessageSet) (err error) {
+	var ff types.MessageFlagSet
+
+	ff, err = svc.mflag.FindByMessageIDs(mm.IDs()...)
+	if err != nil {
+		return
+	}
+
+	return ff.Walk(func(flag *types.MessageFlag) error {
+		mm.FindById(flag.MessageID).Flags = append(mm.FindById(flag.MessageID).Flags, flag)
+		return nil
+	})
 }
 
 func (svc *message) preloadAttachments(mm types.MessageSet) (err error) {
@@ -422,8 +467,9 @@ func (svc *message) preloadAttachments(mm types.MessageSet) (err error) {
 
 // Sends message to event loop
 func (svc *message) sendEvent(mm ...*types.Message) (err error) {
-	svc.preloadAttachments(mm)
-	svc.preloadUsers(mm)
+	if err = svc.preload(mm); err != nil {
+		return
+	}
 
 	for _, msg := range mm {
 		if msg.User == nil {

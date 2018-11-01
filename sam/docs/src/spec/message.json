@@ -93,22 +93,6 @@
       }
     },
     {
-      "Name": "pin",
-      "Method": "POST",
-      "Title": "Pin message to channel (public bookmark)",
-      "Path": "/{messageID}/pin",
-      "Parameters": {
-        "path": [
-          {
-            "name": "messageID",
-            "required": true,
-            "title": "Message ID",
-            "type": "uint64"
-          }
-        ]
-      }
-    },
-    {
       "Name": "getReplies",
       "Method": "GET",
       "Title": "Returns all replies to a message",
@@ -149,7 +133,23 @@
       }
     },
     {
-      "Name": "unpin",
+      "Name": "pin",
+      "Method": "POST",
+      "Title": "Pin message to channel (public bookmark)",
+      "Path": "/{messageID}/pin",
+      "Parameters": {
+        "path": [
+          {
+            "name": "messageID",
+            "required": true,
+            "title": "Message ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "removePin",
       "Method": "DELETE",
       "Title": "Pin message to channel (public bookmark)",
       "Path": "/{messageID}/pin",
@@ -165,10 +165,10 @@
       }
     },
     {
-      "Name": "flag",
+      "Name": "bookmark",
       "Method": "POST",
-      "Title": "Flag a message (private bookmark)",
-      "Path": "/{messageID}/flag",
+      "Title": "Bookmark a message (private bookmark)",
+      "Path": "/{messageID}/bookmark",
       "Parameters": {
         "path": [
           {
@@ -181,10 +181,10 @@
       }
     },
     {
-      "Name": "unflag",
+      "Name": "removeBookmark",
       "Method": "DELETE",
-      "Title": "Remove flag from message (private bookmark)",
-      "Path": "/{messageID}/flag",
+      "Title": "Remove boomark from message (private bookmark)",
+      "Path": "/{messageID}/bookmark",
       "Parameters": {
         "path": [
           {
@@ -198,7 +198,7 @@
     },
     {
       "Name": "react",
-      "Method": "PUT",
+      "Method": "POST",
       "Title": "React to a message",
       "Path": "/{messageID}/reaction/{reaction}",
       "Parameters": {
@@ -219,10 +219,10 @@
       }
     },
     {
-      "Name": "unreact",
+      "Name": "removeReaction",
       "Method": "DELETE",
       "Title": "Delete reaction from a message",
-      "Path": "/{messageID}/react/{reaction}",
+      "Path": "/{messageID}/reaction/{reaction}",
       "Parameters": {
         "path": [
           {
