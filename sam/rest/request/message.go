@@ -221,51 +221,6 @@ func (m *MessageDelete) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewMessageDelete()
 
-// Message pin request parameters
-type MessagePin struct {
-	MessageID uint64 `json:",string"`
-	ChannelID uint64 `json:",string"`
-}
-
-func NewMessagePin() *MessagePin {
-	return &MessagePin{}
-}
-
-func (m *MessagePin) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
-		}
-	}
-
-	if err = r.ParseForm(); err != nil {
-		return err
-	}
-
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := r.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := r.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
-
-	return err
-}
-
-var _ RequestFiller = NewMessagePin()
-
 // Message getReplies request parameters
 type MessageGetReplies struct {
 	MessageID uint64 `json:",string"`
@@ -361,17 +316,17 @@ func (m *MessageCreateReply) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewMessageCreateReply()
 
-// Message unpin request parameters
-type MessageUnpin struct {
+// Message pin request parameters
+type MessagePin struct {
 	MessageID uint64 `json:",string"`
 	ChannelID uint64 `json:",string"`
 }
 
-func NewMessageUnpin() *MessageUnpin {
-	return &MessageUnpin{}
+func NewMessagePin() *MessagePin {
+	return &MessagePin{}
 }
 
-func (m *MessageUnpin) Fill(r *http.Request) (err error) {
+func (m *MessagePin) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -404,19 +359,19 @@ func (m *MessageUnpin) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewMessageUnpin()
+var _ RequestFiller = NewMessagePin()
 
-// Message flag request parameters
-type MessageFlag struct {
+// Message removePin request parameters
+type MessageRemovePin struct {
 	MessageID uint64 `json:",string"`
 	ChannelID uint64 `json:",string"`
 }
 
-func NewMessageFlag() *MessageFlag {
-	return &MessageFlag{}
+func NewMessageRemovePin() *MessageRemovePin {
+	return &MessageRemovePin{}
 }
 
-func (m *MessageFlag) Fill(r *http.Request) (err error) {
+func (m *MessageRemovePin) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -449,19 +404,19 @@ func (m *MessageFlag) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewMessageFlag()
+var _ RequestFiller = NewMessageRemovePin()
 
-// Message unflag request parameters
-type MessageUnflag struct {
+// Message bookmark request parameters
+type MessageBookmark struct {
 	MessageID uint64 `json:",string"`
 	ChannelID uint64 `json:",string"`
 }
 
-func NewMessageUnflag() *MessageUnflag {
-	return &MessageUnflag{}
+func NewMessageBookmark() *MessageBookmark {
+	return &MessageBookmark{}
 }
 
-func (m *MessageUnflag) Fill(r *http.Request) (err error) {
+func (m *MessageBookmark) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -494,7 +449,52 @@ func (m *MessageUnflag) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewMessageUnflag()
+var _ RequestFiller = NewMessageBookmark()
+
+// Message removeBookmark request parameters
+type MessageRemoveBookmark struct {
+	MessageID uint64 `json:",string"`
+	ChannelID uint64 `json:",string"`
+}
+
+func NewMessageRemoveBookmark() *MessageRemoveBookmark {
+	return &MessageRemoveBookmark{}
+}
+
+func (m *MessageRemoveBookmark) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
+	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+
+	return err
+}
+
+var _ RequestFiller = NewMessageRemoveBookmark()
 
 // Message react request parameters
 type MessageReact struct {
@@ -543,18 +543,18 @@ func (m *MessageReact) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewMessageReact()
 
-// Message unreact request parameters
-type MessageUnreact struct {
+// Message removeReaction request parameters
+type MessageRemoveReaction struct {
 	MessageID uint64 `json:",string"`
 	Reaction  string
 	ChannelID uint64 `json:",string"`
 }
 
-func NewMessageUnreact() *MessageUnreact {
-	return &MessageUnreact{}
+func NewMessageRemoveReaction() *MessageRemoveReaction {
+	return &MessageRemoveReaction{}
 }
 
-func (m *MessageUnreact) Fill(r *http.Request) (err error) {
+func (m *MessageRemoveReaction) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -588,4 +588,4 @@ func (m *MessageUnreact) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewMessageUnreact()
+var _ RequestFiller = NewMessageRemoveReaction()

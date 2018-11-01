@@ -31,30 +31,30 @@ type MessageAPI interface {
 	History(context.Context, *request.MessageHistory) (interface{}, error)
 	Edit(context.Context, *request.MessageEdit) (interface{}, error)
 	Delete(context.Context, *request.MessageDelete) (interface{}, error)
-	Pin(context.Context, *request.MessagePin) (interface{}, error)
 	GetReplies(context.Context, *request.MessageGetReplies) (interface{}, error)
 	CreateReply(context.Context, *request.MessageCreateReply) (interface{}, error)
-	Unpin(context.Context, *request.MessageUnpin) (interface{}, error)
-	Flag(context.Context, *request.MessageFlag) (interface{}, error)
-	Unflag(context.Context, *request.MessageUnflag) (interface{}, error)
+	Pin(context.Context, *request.MessagePin) (interface{}, error)
+	RemovePin(context.Context, *request.MessageRemovePin) (interface{}, error)
+	Bookmark(context.Context, *request.MessageBookmark) (interface{}, error)
+	RemoveBookmark(context.Context, *request.MessageRemoveBookmark) (interface{}, error)
 	React(context.Context, *request.MessageReact) (interface{}, error)
-	Unreact(context.Context, *request.MessageUnreact) (interface{}, error)
+	RemoveReaction(context.Context, *request.MessageRemoveReaction) (interface{}, error)
 }
 
 // HTTP API interface
 type Message struct {
-	Create      func(http.ResponseWriter, *http.Request)
-	History     func(http.ResponseWriter, *http.Request)
-	Edit        func(http.ResponseWriter, *http.Request)
-	Delete      func(http.ResponseWriter, *http.Request)
-	Pin         func(http.ResponseWriter, *http.Request)
-	GetReplies  func(http.ResponseWriter, *http.Request)
-	CreateReply func(http.ResponseWriter, *http.Request)
-	Unpin       func(http.ResponseWriter, *http.Request)
-	Flag        func(http.ResponseWriter, *http.Request)
-	Unflag      func(http.ResponseWriter, *http.Request)
-	React       func(http.ResponseWriter, *http.Request)
-	Unreact     func(http.ResponseWriter, *http.Request)
+	Create         func(http.ResponseWriter, *http.Request)
+	History        func(http.ResponseWriter, *http.Request)
+	Edit           func(http.ResponseWriter, *http.Request)
+	Delete         func(http.ResponseWriter, *http.Request)
+	GetReplies     func(http.ResponseWriter, *http.Request)
+	CreateReply    func(http.ResponseWriter, *http.Request)
+	Pin            func(http.ResponseWriter, *http.Request)
+	RemovePin      func(http.ResponseWriter, *http.Request)
+	Bookmark       func(http.ResponseWriter, *http.Request)
+	RemoveBookmark func(http.ResponseWriter, *http.Request)
+	React          func(http.ResponseWriter, *http.Request)
+	RemoveReaction func(http.ResponseWriter, *http.Request)
 }
 
 func NewMessage(mh MessageAPI) *Message {
@@ -87,13 +87,6 @@ func NewMessage(mh MessageAPI) *Message {
 				return mh.Delete(r.Context(), params)
 			})
 		},
-		Pin: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewMessagePin()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.Pin(r.Context(), params)
-			})
-		},
 		GetReplies: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewMessageGetReplies()
@@ -108,25 +101,32 @@ func NewMessage(mh MessageAPI) *Message {
 				return mh.CreateReply(r.Context(), params)
 			})
 		},
-		Unpin: func(w http.ResponseWriter, r *http.Request) {
+		Pin: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewMessageUnpin()
+			params := request.NewMessagePin()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.Unpin(r.Context(), params)
+				return mh.Pin(r.Context(), params)
 			})
 		},
-		Flag: func(w http.ResponseWriter, r *http.Request) {
+		RemovePin: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewMessageFlag()
+			params := request.NewMessageRemovePin()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.Flag(r.Context(), params)
+				return mh.RemovePin(r.Context(), params)
 			})
 		},
-		Unflag: func(w http.ResponseWriter, r *http.Request) {
+		Bookmark: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewMessageUnflag()
+			params := request.NewMessageBookmark()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.Unflag(r.Context(), params)
+				return mh.Bookmark(r.Context(), params)
+			})
+		},
+		RemoveBookmark: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewMessageRemoveBookmark()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return mh.RemoveBookmark(r.Context(), params)
 			})
 		},
 		React: func(w http.ResponseWriter, r *http.Request) {
@@ -136,11 +136,11 @@ func NewMessage(mh MessageAPI) *Message {
 				return mh.React(r.Context(), params)
 			})
 		},
-		Unreact: func(w http.ResponseWriter, r *http.Request) {
+		RemoveReaction: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewMessageUnreact()
+			params := request.NewMessageRemoveReaction()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.Unreact(r.Context(), params)
+				return mh.RemoveReaction(r.Context(), params)
 			})
 		},
 	}
@@ -154,14 +154,14 @@ func (mh *Message) MountRoutes(r chi.Router, middlewares ...func(http.Handler) h
 			r.Get("/", mh.History)
 			r.Put("/{messageID}", mh.Edit)
 			r.Delete("/{messageID}", mh.Delete)
-			r.Post("/{messageID}/pin", mh.Pin)
 			r.Get("/{messageID}/replies", mh.GetReplies)
 			r.Post("/{messageID}/replies", mh.CreateReply)
-			r.Delete("/{messageID}/pin", mh.Unpin)
-			r.Post("/{messageID}/flag", mh.Flag)
-			r.Delete("/{messageID}/flag", mh.Unflag)
-			r.Put("/{messageID}/reaction/{reaction}", mh.React)
-			r.Delete("/{messageID}/react/{reaction}", mh.Unreact)
+			r.Post("/{messageID}/pin", mh.Pin)
+			r.Delete("/{messageID}/pin", mh.RemovePin)
+			r.Post("/{messageID}/bookmark", mh.Bookmark)
+			r.Delete("/{messageID}/bookmark", mh.RemoveBookmark)
+			r.Post("/{messageID}/reaction/{reaction}", mh.React)
+			r.Delete("/{messageID}/reaction/{reaction}", mh.RemoveReaction)
 		})
 	})
 }

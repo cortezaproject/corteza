@@ -21,6 +21,7 @@ type (
 		DeletedAt  *time.Time      `json:"deletedAt,omitempty" db:"deleted_at"`
 		Attachment *Attachment     `json:"attachment,omitempty"`
 		User       *authTypes.User `json:"user,omitempty"`
+		Flags      MessageFlagSet  `json:"flags,omitempty"`
 	}
 
 	MessageSet []*Message
@@ -83,6 +84,16 @@ func (mm MessageSet) FindById(ID uint64) *Message {
 	}
 
 	return nil
+}
+
+func (mm MessageSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(mm))
+
+	for i := range mm {
+		IDs[i] = mm[i].ID
+	}
+
+	return
 }
 
 func (mtype MessageType) String() string {
