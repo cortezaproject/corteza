@@ -388,24 +388,6 @@
 				}
 			},
 			{
-				"name": "search",
-				"path": "/search",
-				"method": "GET",
-				"title": "Search messages",
-				"parameters": {
-					"get": [
-						{ "type": "string", "name": "query", "required": false, "title": "Search string to match against messages" },
-						{
-							"type": "string",
-							"name": "message_type",
-							"required": false,
-							"title": "Limit results to message type",
-							"values": ["history", "message", "attachment", "media"]
-						}
-					]
-				}
-			},
-			{
 				"name": "pin",
 				"path": "/{messageID}/pin",
 				"method": "POST",
@@ -529,6 +511,37 @@
 				"path": "/preview.{ext}",
 				"method": "GET",
 				"title": "Serves preview of an attached file"
+			}
+		]
+	},
+	{
+		"name": "search",
+		"entrypoint": "search",
+		"authentication": ["Client ID", "Session ID"],
+		"path": "/search",
+		"method": "GET",
+		"title": "Search entry point",
+		"parameters": {
+			"get": [
+				{ "name": "query", "type": "string", "required": false,  "title": "Search query" }
+			]
+		},
+
+		"apis": [
+			{
+				"method": "GET",
+				"name": "messages",
+				"path": "/messages",
+				"title": "Search for messages",
+
+				"parameters": {
+					"GET": [
+						{ "name": "inChannel", "type": "uint64", "required": false, "title": "Search only in one channel"},
+						{ "name": "fromUser",  "type": "uint64", "required": false, "title": "Search only from one user"},
+						{ "name": "firstID",   "type": "uint64", "required": false, "title": "Paging; return newer messages only (higher id)"},
+						{ "name": "lastID",    "type": "uint64", "required": false, "title": "Paging; return older messages only (lower id)"}
+					]
+				}
 			}
 		]
 	},

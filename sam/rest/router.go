@@ -23,6 +23,7 @@ func MountRoutes() func(chi.Router) {
 			handlers.NewOrganisation(Organisation{}.New()).MountRoutes(r)
 			handlers.NewTeam(Team{}.New()).MountRoutes(r)
 			handlers.NewUser(User{}.New()).MountRoutes(r)
+			handlers.NewSearch(Search{}.New()).MountRoutes(r)
 		})
 	}
 }

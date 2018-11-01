@@ -122,7 +122,7 @@
           {
             "name": "state",
             "required": true,
-            "title": "Valid values: delete, restore, archive, unarchive",
+            "title": "Valid values: delete, undelete, archive, unarchive",
             "type": "string"
           }
         ]

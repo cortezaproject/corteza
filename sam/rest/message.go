@@ -68,13 +68,6 @@ func (ctrl *Message) Delete(ctx context.Context, r *request.MessageDelete) (inte
 	return nil, ctrl.svc.msg.With(ctx).Delete(r.MessageID)
 }
 
-func (ctrl *Message) Search(ctx context.Context, r *request.MessageSearch) (interface{}, error) {
-	return ctrl.wrapSet(ctx)(ctrl.svc.msg.With(ctx).Find(&types.MessageFilter{
-		ChannelID: r.ChannelID,
-		Query:     r.Query,
-	}))
-}
-
 func (ctrl *Message) Pin(ctx context.Context, r *request.MessagePin) (interface{}, error) {
 	return nil, ctrl.svc.msg.With(ctx).Pin(r.MessageID)
 }

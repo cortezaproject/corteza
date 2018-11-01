@@ -34,12 +34,15 @@ type (
 		// All messages that belong to a channel
 		ChannelID uint64
 
+		// Only messages that belong to a user
+		UserID uint64
+
 		// Return all replies to a single message
 		RepliesTo uint64
 
 		// (FirstID...LastID), for paging
 		//
-		// Include all messsages which IDs range from "first" to "last" (exclusive!)
+		// Include all messages which IDs range from "first" to "last" (exclusive!)
 		FirstID uint64
 		LastID  uint64
 
