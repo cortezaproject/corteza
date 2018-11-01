@@ -115,17 +115,28 @@ func (r *message) FindMessages(filter *types.MessageFilter) (types.MessageSet, e
 		sql += " AND reply_to = 0 "
 	}
 
-	if filter.FirstID > 0 || filter.LastID > 0 {
-		// Fetching (exclusively) range of messages, without reply
-		if filter.FirstID > 0 {
-			sql += " AND id > ? "
-			params = append(params, filter.FirstID)
-		}
+	// first, exclusive
+	if filter.FirstID > 0 {
+		sql += " AND id > ? "
+		params = append(params, filter.FirstID)
+	}
 
-		if filter.LastID > 0 {
-			sql += " AND id < ? "
-			params = append(params, filter.LastID)
-		}
+	// from, inclusive
+	if filter.FromID > 0 {
+		sql += " AND id >= ? "
+		params = append(params, filter.FromID)
+	}
+
+	// last, exclusive
+	if filter.LastID > 0 {
+		sql += " AND id < ? "
+		params = append(params, filter.LastID)
+	}
+
+	// to, inclusive
+	if filter.ToID > 0 {
+		sql += " AND id <= ? "
+		params = append(params, filter.ToID)
 	}
 
 	sql += " AND rel_channel IN " + sqlChannelAccess

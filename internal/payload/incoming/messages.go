@@ -18,6 +18,8 @@ type (
 
 	Messages struct {
 		ChannelID uint64 `json:"channelId,string"`
+		FromID    uint64 `json:"fromID,string"`
+		ToID      uint64 `json:"toID,string"`
 		FirstID   uint64 `json:"firstID,string"`
 		LastID    uint64 `json:"lastID,string"`
 		RepliesTo uint64 `json:"repliesTo,string"`

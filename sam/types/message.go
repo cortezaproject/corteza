@@ -46,6 +46,12 @@ type (
 		FirstID uint64
 		LastID  uint64
 
+		// [FromID...ToID, for paging
+		//
+		// Include all messages which IDs range from "from" to "to" (inclusive!)
+		FromID uint64
+		ToID   uint64
+
 		Limit uint
 	}
 

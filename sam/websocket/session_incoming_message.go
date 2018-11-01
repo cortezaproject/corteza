@@ -35,6 +35,8 @@ func (s *Session) messageHistory(ctx context.Context, p *incoming.Messages) erro
 	var (
 		filter = &types.MessageFilter{
 			ChannelID: p.ChannelID,
+			FromID:    p.FromID,
+			ToID:      p.ToID,
 			FirstID:   p.FirstID,
 			LastID:    p.LastID,
 
