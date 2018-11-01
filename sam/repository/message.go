@@ -95,12 +95,17 @@ func (r *message) FindMessages(filter *types.MessageFilter) (types.MessageSet, e
 
 	if filter.Query != "" {
 		sql += " AND message LIKE ?"
-		params = append(params, filter.Query+"%")
+		params = append(params, "%"+filter.Query+"%")
 	}
 
 	if filter.ChannelID > 0 {
 		sql += " AND rel_channel = ? "
 		params = append(params, filter.ChannelID)
+	}
+
+	if filter.UserID > 0 {
+		sql += " AND rel_user = ? "
+		params = append(params, filter.UserID)
 	}
 
 	if filter.RepliesTo > 0 {

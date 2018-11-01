@@ -221,59 +221,6 @@ func (m *MessageDelete) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewMessageDelete()
 
-// Message search request parameters
-type MessageSearch struct {
-	Query        string
-	Message_type string
-	ChannelID    uint64 `json:",string"`
-}
-
-func NewMessageSearch() *MessageSearch {
-	return &MessageSearch{}
-}
-
-func (m *MessageSearch) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
-		}
-	}
-
-	if err = r.ParseForm(); err != nil {
-		return err
-	}
-
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := r.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := r.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	if val, ok := get["query"]; ok {
-
-		m.Query = val
-	}
-	if val, ok := get["message_type"]; ok {
-
-		m.Message_type = val
-	}
-	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
-
-	return err
-}
-
-var _ RequestFiller = NewMessageSearch()
-
 // Message pin request parameters
 type MessagePin struct {
 	MessageID uint64 `json:",string"`

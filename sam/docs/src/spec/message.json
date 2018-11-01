@@ -93,34 +93,6 @@
       }
     },
     {
-      "Name": "search",
-      "Method": "GET",
-      "Title": "Search messages",
-      "Path": "/search",
-      "Parameters": {
-        "get": [
-          {
-            "name": "query",
-            "required": false,
-            "title": "Search string to match against messages",
-            "type": "string"
-          },
-          {
-            "name": "message_type",
-            "required": false,
-            "title": "Limit results to message type",
-            "type": "string",
-            "values": [
-              "history",
-              "message",
-              "attachment",
-              "media"
-            ]
-          }
-        ]
-      }
-    },
-    {
       "Name": "pin",
       "Method": "POST",
       "Title": "Pin message to channel (public bookmark)",

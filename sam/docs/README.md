@@ -280,7 +280,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | channelID | uint64 | PATH | Channel ID | N/A | YES |
-| state | string | POST | Valid values: delete, restore, archive, unarchive | N/A | YES |
+| state | string | POST | Valid values: delete, undelete, archive, unarchive | N/A | YES |
 
 ## Read channel details
 
@@ -453,21 +453,6 @@ The following event types may be sent with a message event:
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageID | uint64 | PATH | Message ID | N/A | YES |
 
-## Search messages
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/channels/{channelID}/messages/search` | HTTP/S | GET | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| query | string | GET | Search string to match against messages | N/A | NO |
-| message_type | string | GET | Limit results to message type | N/A<br><br>Values:<br><br><ul><li>`history`</li><li>`message`</li><li>`attachment`</li><li>`media`</li> | NO |
-
 ## Pin message to channel (public bookmark)
 
 #### Method
@@ -614,6 +599,28 @@ The following event types may be sent with a message event:
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+
+
+
+
+# Search entry point
+
+## Search for messages
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/search/messages` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| inChannel | uint64 | GET | Search only in one channel | N/A | NO |
+| fromUser | uint64 | GET | Search only from one user | N/A | NO |
+| firstID | uint64 | GET | Paging; return newer messages only (higher id) | N/A | NO |
+| lastID | uint64 | GET | Paging; return older messages only (lower id) | N/A | NO |
 
 
 
