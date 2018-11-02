@@ -8,7 +8,6 @@ import (
 
 	authService "github.com/crusttech/crust/auth/service"
 	authTypes "github.com/crusttech/crust/auth/types"
-
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
 )
@@ -363,8 +362,9 @@ func (svc *message) flag(messageID uint64, flag string, remove bool) error {
 
 		if remove {
 			err = svc.mflag.DeleteByID(f.ID)
+			f.DeletedAt = timeNowPtr()
 		} else {
-			_, err = svc.mflag.Create(&types.MessageFlag{
+			f, err = svc.mflag.Create(&types.MessageFlag{
 				UserID:    currentUserID,
 				ChannelID: msg.ChannelID,
 				MessageID: msg.ID,
@@ -372,7 +372,11 @@ func (svc *message) flag(messageID uint64, flag string, remove bool) error {
 			})
 		}
 
-		svc.sendEvent(msg)
+		if err != nil {
+			return err
+		}
+
+		svc.sendFlagEvent(f)
 
 		return
 	})
@@ -478,6 +482,17 @@ func (svc *message) sendEvent(mm ...*types.Message) (err error) {
 		}
 
 		if err = svc.evl.Message(msg); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Sends message to event loop
+func (svc *message) sendFlagEvent(ff ...*types.MessageFlag) (err error) {
+	for _, f := range ff {
+		if err = svc.evl.MessageFlag(f); err != nil {
 			return
 		}
 	}

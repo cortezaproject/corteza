@@ -31,7 +31,7 @@ func Message(ctx context.Context, msg *samTypes.Message) *outgoing.Message {
 
 		User:         User(msg.User),
 		Attachment:   Attachment(msg.Attachment),
-		Reactions:    MessageReactions(msg.Flags),
+		Reactions:    messageReactionSumSet(msg.Flags),
 		IsPinned:     msg.Flags.IsPinned(),
 		IsBookmarked: msg.Flags.IsBookmarked(currentUserID),
 
@@ -54,9 +54,9 @@ func Messages(ctx context.Context, msg samTypes.MessageSet) *outgoing.MessageSet
 	return &retval
 }
 
-func MessageReactions(flags samTypes.MessageFlagSet) outgoing.ReactionSet {
+func messageReactionSumSet(flags samTypes.MessageFlagSet) outgoing.MessageReactionSumSet {
 	var (
-		rr     = make([]*outgoing.Reaction, 0)
+		rr     = make([]*outgoing.MessageReactionSum, 0)
 		rIndex = map[string]int{}
 		has    bool
 		i      int
@@ -64,7 +64,7 @@ func MessageReactions(flags samTypes.MessageFlagSet) outgoing.ReactionSet {
 
 	_ = flags.Walk(func(flag *samTypes.MessageFlag) error {
 		if flag.IsReaction() {
-			r := &outgoing.Reaction{Reaction: flag.Flag, UserIDs: []string{}, Count: 0}
+			r := &outgoing.MessageReactionSum{Reaction: flag.Flag, UserIDs: []string{}, Count: 0}
 
 			if i, has = rIndex[flag.Flag]; !has {
 				i, rIndex[flag.Flag] = len(rr), len(rr)
@@ -79,6 +79,36 @@ func MessageReactions(flags samTypes.MessageFlagSet) outgoing.ReactionSet {
 	})
 
 	return rr
+}
+
+func MessageReaction(f *samTypes.MessageFlag) *outgoing.MessageReaction {
+	return &outgoing.MessageReaction{
+		UserID:    f.UserID,
+		MessageID: f.MessageID,
+		Reaction:  f.Flag,
+	}
+}
+
+func MessageReactionRemoved(f *samTypes.MessageFlag) *outgoing.MessageReactionRemoved {
+	return &outgoing.MessageReactionRemoved{
+		UserID:    f.UserID,
+		MessageID: f.MessageID,
+		Reaction:  f.Flag,
+	}
+}
+
+func MessagePin(f *samTypes.MessageFlag) *outgoing.MessagePin {
+	return &outgoing.MessagePin{
+		UserID:    f.UserID,
+		MessageID: f.MessageID,
+	}
+}
+
+func MessagePinRemoved(f *samTypes.MessageFlag) *outgoing.MessagePinRemoved {
+	return &outgoing.MessagePinRemoved{
+		UserID:    f.UserID,
+		MessageID: f.MessageID,
+	}
 }
 
 func Channel(ch *samTypes.Channel) *outgoing.Channel {

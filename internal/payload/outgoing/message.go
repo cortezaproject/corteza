@@ -14,11 +14,11 @@ type (
 		ReplyTo   uint64 `json:"replyTo,omitempty,string"`
 		Replies   uint   `json:"replies,omitempty"`
 
-		User         *User       `json:"user"`
-		Attachment   *Attachment `json:"att,omitempty"`
-		Reactions    ReactionSet `json:"reactions,omitempty"`
-		IsBookmarked bool        `json:"isBookmarked"`
-		IsPinned     bool        `json:"isPinned"`
+		User         *User                 `json:"user"`
+		Attachment   *Attachment           `json:"att,omitempty"`
+		Reactions    MessageReactionSumSet `json:"reactions,omitempty"`
+		IsBookmarked bool                  `json:"isBookmarked"`
+		IsPinned     bool                  `json:"isPinned"`
 
 		CanReply  bool `json:"canReply"`
 		CanEdit   bool `json:"canEdit"`
@@ -31,13 +31,31 @@ type (
 
 	MessageSet []*Message
 
-	Reaction struct {
+	// Used for single reaction event notification
+	MessageReactionSum struct {
 		UserIDs  []string `json:"userIDs"`
 		Reaction string   `json:"reaction"`
 		Count    uint     `json:"count"`
 	}
 
-	ReactionSet []*Reaction
+	MessageReactionSumSet []*MessageReactionSum
+
+	// Used for single reaction event notification
+	MessageReaction struct {
+		MessageID uint64 `json:"messageID,string"`
+		UserID    uint64 `json:"userID,string"`
+		Reaction  string `json:"reaction"`
+	}
+
+	MessageReactionRemoved MessageReaction
+
+	// Used for single pin/unpin event notification
+	MessagePin struct {
+		MessageID uint64 `json:"messageID,string"`
+		UserID    uint64 `json:"userID,string"`
+	}
+
+	MessagePinRemoved MessagePin
 )
 
 func (p *Message) EncodeMessage() ([]byte, error) {
@@ -46,4 +64,20 @@ func (p *Message) EncodeMessage() ([]byte, error) {
 
 func (p *MessageSet) EncodeMessage() ([]byte, error) {
 	return json.Marshal(Payload{MessageSet: p})
+}
+
+func (p *MessageReaction) EncodeMessage() ([]byte, error) {
+	return json.Marshal(Payload{MessageReaction: p})
+}
+
+func (p *MessageReactionRemoved) EncodeMessage() ([]byte, error) {
+	return json.Marshal(Payload{MessageReactionRemoved: p})
+}
+
+func (p *MessagePin) EncodeMessage() ([]byte, error) {
+	return json.Marshal(Payload{MessagePin: p})
+}
+
+func (p *MessagePinRemoved) EncodeMessage() ([]byte, error) {
+	return json.Marshal(Payload{MessagePinRemoved: p})
 }
