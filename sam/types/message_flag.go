@@ -12,6 +12,9 @@ type (
 		ChannelID uint64    `json:"channelId" db:"rel_channel"`
 		Flag      string    `json:"flag" db:"flag"`
 		CreatedAt time.Time `json:"createdAt,omitempty" db:"created_at"`
+
+		// Internal only
+		DeletedAt *time.Time `json:"-" db:"-"`
 	}
 
 	MessageFlagSet []*MessageFlag

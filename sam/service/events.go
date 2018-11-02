@@ -19,6 +19,7 @@ type (
 	EventService interface {
 		With(ctx context.Context) EventService
 		Message(m *types.Message) error
+		MessageFlag(m *types.MessageFlag) error
 		Channel(m *types.Channel) error
 		Join(userID, channelID uint64) error
 		Part(userID, channelID uint64) error
@@ -40,6 +41,30 @@ func (svc *event) With(ctx context.Context) EventService {
 // Message sends message events to subscribers
 func (svc *event) Message(m *types.Message) error {
 	return svc.push(payload.Message(svc.ctx, m), types.EventQueueItemSubTypeChannel, m.ChannelID)
+}
+
+// MessageFlag sends message flag events to subscribers
+func (svc *event) MessageFlag(f *types.MessageFlag) error {
+	var p outgoing.MessageEncoder
+
+	switch true {
+	case f.IsBookmark():
+		// Leaving this here so it is obvious.
+		return nil
+	case f.IsPin() && f.DeletedAt != nil:
+		p = payload.MessagePinRemoved(f)
+	case f.IsReaction() && f.DeletedAt != nil:
+		p = payload.MessageReactionRemoved(f)
+	case f.IsPin():
+		p = payload.MessagePin(f)
+	case f.IsReaction():
+		p = payload.MessageReaction(f)
+	default:
+		return nil
+	}
+
+	return svc.push(p, types.EventQueueItemSubTypeChannel, f.ChannelID)
+	return nil
 }
 
 // Channel notifies subscribers about channel change
