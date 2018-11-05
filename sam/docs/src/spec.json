@@ -1,567 +1,604 @@
 [
-	{
-		"title": "Organisations",
-		"description": "Organisations represent a top-level grouping entity. There may be many organisations defined in a single deployment.",
-		"package": "sam",
-		"path": "/organisations",
-		"entrypoint": "organisation",
-		"authentication": ["Client ID", "Session ID"],
-		"apis": [
-			{
-				"name": "list",
-				"method": "GET",
-				"title": "List organisations",
-				"path": "/",
-				"parameters": {
-					"get": [
-						{ "type": "string", "name": "query", "required": false, "title": "Search query" }
-					]
-				}
-			},
-			{
-				"name": "create",
-				"method": "POST",
-				"title": "Create organisation",
-				"path": "/",
-				"parameters": {
-					"post": [
-						{ "type": "string", "name": "name", "required": true, "title": "Organisation Name" }
-					]
-				}
-			},
-			{
-				"name": "edit",
-				"method": "PUT",
-				"title": "Update organisation details",
-				"path": "/{id}",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "id", "required": false, "title": "Organisation ID" }
-					],
-					"post": [
-						{ "type": "string", "name": "name", "required": true, "title": "Organisation Name" }
-					]
-				}
-			},
-			{
-				"name": "remove",
-				"method": "DELETE",
-				"title": "Remove organisation",
-				"path": "/{id}",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
-					]
-				}
-			},
-			{
-				"name": "read",
-				"method": "GET",
-				"title": "Read organisation details",
-				"path": "/{id}",
-				"parameters": {
-					"get": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
-					]
-				}
-			},
-			{
-				"name": "archive",
-				"method": "POST",
-				"title": "Archive organisation",
-				"path": "/{id}/archive",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Organisation ID" }
-					]
-				}
-			}
-		]
-	},
-	{
-		"title": "Teams",
-		"description": "An organisation may have many teams. Teams may have many channels available. Access to channels may be shared between teams.",
-		"package": "sam",
-		"path": "/teams",
-		"entrypoint": "team",
-		"authentication": ["Client ID", "Session ID"],
-		"apis": [
-			{
-				"name": "list",
-				"method": "GET",
-				"title": "List teams",
-				"path": "/",
-				"parameters": {
-					"get": [
-						{ "type": "string", "name": "query", "required": false, "title": "Search query" }
-					]
-				}
-			},
-			{
-				"name": "create",
-				"method": "POST",
-				"title": "Update team details",
-				"path": "/",
-				"parameters": {
-					"post": [
-						{ "type": "string", "name": "name", "required": true, "title": "Name of Team" },
-						{ "type": "[]uint64", "name": "members", "required": false, "title": "Team member IDs" }
-					]
-				}
-			},
-			{
-				"name": "edit",
-				"method": "PUT",
-				"title": "Update team details",
-				"path": "/{teamID}",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "teamID", "required": true, "title": "Team ID" }
-					],
-					"post": [
-						{ "type": "string", "name": "name", "required": false, "title": "Name of Team" },
-						{ "type": "[]uint64", "name": "members", "required": false, "title": "Team member IDs" }
-					]
-				}
-			},
-			{
-				"name": "read",
-				"method": "GET",
-				"title": "Read team details and memberships",
-				"path": "/{teamID}",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "teamID", "required": true, "title": "Team ID" }
-					]
-				}
-			},
-			{
-				"name": "remove",
-				"method": "DELETE",
-				"title": "Remove team",
-				"path": "/{teamID}",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "teamID", "required": true, "title": "Team ID" }
-					]
-				}
-			},
-			{
-				"name": "archive",
-				"method": "POST",
-				"title": "Archive team",
-				"path": "/{teamID}/archive",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "teamID", "required": true, "title": "Team ID" }
-					]
-				}
-			},
-			{
-				"name": "move",
-				"method": "POST",
-				"title": "Move team to different organisation",
-				"path": "/{teamID}/move",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "teamID", "required": true, "title": "Team ID" }
-					],
-					"post": [
-						{ "type": "uint64", "name": "organisationID", "required": true, "title": "Team ID" }
-					]
-				}
-			},
-			{
-				"name": "merge",
-				"method": "POST",
-				"title": "Merge one team into another",
-				"path": "/{teamID}/merge",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "teamID", "required": true, "title": "Source Team ID" }
-					],
-					"post": [
-						{ "type": "uint64", "name": "destination", "required": true, "title": "Destination Team ID" }
-					]
-				}
-			}
-		]
-	},
-	{
-		"title": "Channels",
-		"description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or group.",
-		"package": "sam",
-		"entrypoint": "channel",
-		"path": "/channels",
-		"authentication": ["Client ID", "Session ID"],
-		"apis": [
-			{
-				"name": "list",
-				"method": "GET",
-				"title": "List channels",
-				"path": "/",
-				"parameters": {
-					"GET": [
-						{ "type": "string", "name": "query", "required": false, "title": "Search query" }
-					]
-				}
-			},
-			{
-				"name": "create",
-				"method": "POST",
-				"title": "Create new channel",
-				"path": "/",
-				"parameters": {
-					"post": [
-						{ "type": "string",   "name": "name",     "required": true,  "title": "Name of Channel" },
-						{ "type": "string",   "name": "topic",    "required": false, "title": "Subject of Channel" },
-						{ "type": "string",   "name": "type",     "required": false, "title": "Channel type" },
-						{ "type": "[]string", "name": "members",  "required": false, "title": "Initial members of the channel" }
-					]
-				}
-			},
-			{
-				"name": "update",
-				"method": "PUT",
-				"path": "/{channelID}",
-				"title": "Update channel details",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "channelID", "required": true, "title": "Channel ID" }
-					],
-					"post": [
-						{ "type": "string", "name": "name",           "required": false, "title": "Name of Channel" },
-						{ "type": "string", "name": "topic",          "required": false, "title": "Subject of Channel" },
-						{ "type": "string", "name": "type",           "required": false, "title": "Channel type" },
-						{ "type": "uint64", "name": "organisationID", "required": false, "title": "Move channel to different organisation" }
-					]
-				}
-			},
-			{
-				"name": "state",
-				"method": "PUT",
-				"path": "/{channelID}/state",
-				"title": "Update channel state",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "channelID", "required": true, "title": "Channel ID" }
-					],
-					"post": [
-						{ "type": "string",  "name": "state", "required": true, "title": "Valid values: delete, undelete, archive, unarchive" }
-					]
-				}
-			},
-			{
-				"name": "read",
-				"method": "GET",
-				"path": "/{channelID}",
-				"title": "Read channel details",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "channelID", "required": true, "title": "Channel ID" }
-					]
-				}
-			},
+  {
+    "title": "Channels",
+    "description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or group.",
+    "package": "sam",
+    "entrypoint": "channel",
+    "path": "/channels",
+    "authentication": [
+      "Client ID",
+      "Session ID"
+    ],
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "title": "List channels",
+        "path": "/",
+        "parameters": {
+          "GET": [
             {
+              "type": "string",
+              "name": "query",
+              "required": false,
+              "title": "Search query"
+            }
+          ]
+        }
+      },
+      {
+        "name": "create",
+        "method": "POST",
+        "title": "Create new channel",
+        "path": "/",
+        "parameters": {
+          "post": [
+            {
+              "type": "string",
+              "name": "name",
+              "required": true,
+              "title": "Name of Channel"
+            },
+            {
+              "type": "string",
+              "name": "topic",
+              "required": false,
+              "title": "Subject of Channel"
+            },
+            {
+              "type": "string",
+              "name": "type",
+              "required": false,
+              "title": "Channel type"
+            },
+            {
+              "type": "[]string",
               "name": "members",
-              "method": "GET",
-              "path": "/{channelID}/members",
-              "title": "List channel members",
-              "parameters": {
-                "path": [
-                  { "name": "channelID", "type": "uint64", "required": true, "title": "Channel ID" }
-                ]
-              }
+              "required": false,
+              "title": "Initial members of the channel"
+            }
+          ]
+        }
+      },
+      {
+        "name": "update",
+        "method": "PUT",
+        "path": "/{channelID}",
+        "title": "Update channel details",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "channelID",
+              "required": true,
+              "title": "Channel ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "string",
+              "name": "name",
+              "required": false,
+              "title": "Name of Channel"
             },
             {
-              "name": "join",
-              "method": "PUT",
-              "path": "/{channelID}/members/{userID}",
-              "title": "Join channel",
-              "parameters": {
-                "path": [
-                  { "name": "channelID", "type": "uint64", "required": true, "title": "Channel ID" },
-                  { "name": "userID",    "type": "uint64", "required": false, "title": "Member ID" }
-                ]
-              }
+              "type": "string",
+              "name": "topic",
+              "required": false,
+              "title": "Subject of Channel"
             },
             {
-              "name": "part",
-              "method": "DELETE",
-              "path": "/{channelID}/members/{userID}",
-              "title": "Remove member from channel",
-              "parameters": {
-                "path": [
-                  { "name": "channelID", "type": "uint64", "required": true, "title": "Channel ID" },
-                  { "name": "userID",    "type": "uint64", "required": false, "title": "Member ID" }
-                ]
-              }
+              "type": "string",
+              "name": "type",
+              "required": false,
+              "title": "Channel type"
             },
             {
-              "name": "invite",
-              "method": "POST",
-              "path": "/{channelID}/invite",
-              "title": "Join channel",
-              "parameters": {
-                "path": [
-                  { "name": "channelID", "type": "uint64", "required": true, "title": "Channel ID" }
-                ],
-                "post": [
-                  { "name": "userID",    "type": "[]uint64", "required": false, "title": "User ID" }
-                ]
-              }
-            },
-			{
-				"name": "attach",
-				"path": "/{channelID}/attach",
-				"method": "POST",
-				"title": "Attach file to channel",
-				"parameters": {
-					"path": [
-						{ "name": "channelID", "type": "uint64", "required": true, "title": "Channel ID" }
-					],
-					"post": [
-						{ "name": "replyTo", "type": "uint64", "required": false, "title": "Upload as a reply" },
-						{ "name": "upload", "type": "*multipart.FileHeader", "required": true, "title": "File to upload" }
-					]
-				}
-			}
-		]
-	},
-	{
-		"title": "Messages",
-		"package": "sam",
-		"path": "/channels/{channelID}/messages",
-		"parameters": {
-			"path": [
-				{ "name": "channelID", "type": "uint64", "required": true, "title": "Channel ID" }
-			]
-		},
-		"entrypoint": "message",
-		"authentication": ["Client ID", "Session ID"],
-		"apis": [
-			{
-				"name": "create",
-				"path": "/",
-				"method": "POST",
-				"title": "Post new message to the channel",
-				"parameters": {
-					"post": [
-						{ "type": "string", "name": "message", "required": true, "title": "Message contents (markdown)" }
-					]
-				}
-			},
-			{
-				"name": "history",
-				"path": "/",
-				"method": "GET",
-				"title": "All messages (channel history)",
-				"parameters": {
-					"get": [
-						{ "name": "lastMessageID", "type": "uint64", "required": false, "title": "" }
-					]
-				}
-			},
-			{
-				"name": "edit",
-				"path": "/{messageID}",
-				"method": "PUT",
-				"title": "Edit existing message",
-				"parameters": {
-					"path": [
-						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
-					],
-					"post": [
-						{ "type": "string", "name": "message", "required": true, "title": "Message contents (markdown)" }
-					]
-				}
-			},
-			{
-				"name": "delete",
-				"path": "/{messageID}",
-				"method": "DELETE",
-				"title": "Delete existing message",
-				"parameters": {
-					"path": [
-						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
-					]
-				}
-			},
-			{
-				"name": "getReplies",
-				"path": "/{messageID}/replies",
-				"method": "GET",
-				"title": "Returns all replies to a message",
-				"parameters": {
-					"path": [
-						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
-					]
-				}
-			},
-			{
-				"name": "createReply",
-				"path": "/{messageID}/replies",
-				"method": "POST",
-				"title": "Reply to a message",
-				"parameters": {
-					"path": [
-						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
-					],
-					"post": [
-						{ "type": "string", "name": "message", "required": true, "title": "Message contents (markdown)" }
-					]
-				}
-			},
-			{
-				"name": "pin",
-				"path": "/{messageID}/pin",
-				"method": "POST",
-				"title": "Pin message to channel (public bookmark)",
-				"parameters": {
-					"path": [
-						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
-					]
-				}
-			},
-			{
-				"name": "removePin",
-				"path": "/{messageID}/pin",
-				"method": "DELETE",
-				"title": "Pin message to channel (public bookmark)",
-				"parameters": {
-					"path": [
-						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
-					]
-				}
-			},
-			{
-				"name": "bookmark",
-				"path": "/{messageID}/bookmark",
-				"method": "POST",
-				"title": "Bookmark a message (private bookmark)",
-				"parameters": {
-					"path": [
-						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
-					]
-				}
-			},
-			{
-				"name": "removeBookmark",
-				"path": "/{messageID}/bookmark",
-				"method": "DELETE",
-				"title": "Remove boomark from message (private bookmark)",
-				"parameters": {
-					"path": [
-						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" }
-					]
-				}
-			},
-			{
-				"name": "react",
-				"path": "/{messageID}/reaction/{reaction}",
-				"method": "POST",
-				"title": "React to a message",
-				"parameters": {
-					"path": [
-						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" },
-						{ "name": "reaction",  "type": "string", "required": true, "title": "Reaction" }
-					]
-				}
-			},
-			{
-				"name": "removeReaction",
-				"path": "/{messageID}/reaction/{reaction}",
-				"method": "DELETE",
-				"title": "Delete reaction from a message",
-				"parameters": {
-					"path": [
-						{ "name": "messageID", "type": "uint64", "required": true, "title": "Message ID" },
-						{ "name": "reaction", "type": "string", "required": true, "title": "Reaction" }
-					]
-				}
-			}
-		]
-	},
-	{
-		"title": "Attachments",
-		"package": "sam",
-		"path": "/attachment/{attachmentID}",
-		"parameters": {
-			"path": [
-				{ "name": "attachmentID", "type": "uint64", "required": true, "title": "Attachment ID" }
-			]
-		},
-		"entrypoint": "attachment",
-		"authentication": ["Client ID", "Session ID"],
-		"apis": [
+              "type": "uint64",
+              "name": "organisationID",
+              "required": false,
+              "title": "Move channel to different organisation"
+            }
+          ]
+        }
+      },
+      {
+        "name": "state",
+        "method": "PUT",
+        "path": "/{channelID}/state",
+        "title": "Update channel state",
+        "parameters": {
+          "path": [
             {
-                "name": "original",
-                "path": "/original/{name}",
-                "method": "GET",
-                "title": "Serves attached file",
-
-                "parameters": {
-                    "GET": [
-                       { "type": "bool", "name": "download", "required": false, "title": "Force file download" }
-                    ]
-                }
+              "type": "uint64",
+              "name": "channelID",
+              "required": true,
+              "title": "Channel ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "string",
+              "name": "state",
+              "required": true,
+              "title": "Valid values: delete, undelete, archive, unarchive"
+            }
+          ]
+        }
+      },
+      {
+        "name": "read",
+        "method": "GET",
+        "path": "/{channelID}",
+        "title": "Read channel details",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "channelID",
+              "required": true,
+              "title": "Channel ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "members",
+        "method": "GET",
+        "path": "/{channelID}/members",
+        "title": "List channel members",
+        "parameters": {
+          "path": [
+            {
+              "name": "channelID",
+              "type": "uint64",
+              "required": true,
+              "title": "Channel ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "join",
+        "method": "PUT",
+        "path": "/{channelID}/members/{userID}",
+        "title": "Join channel",
+        "parameters": {
+          "path": [
+            {
+              "name": "channelID",
+              "type": "uint64",
+              "required": true,
+              "title": "Channel ID"
             },
-			{
-				"name": "preview",
-				"path": "/preview.{ext}",
-				"method": "GET",
-				"title": "Serves preview of an attached file"
-			}
-		]
-	},
-	{
-		"name": "search",
-		"entrypoint": "search",
-		"authentication": ["Client ID", "Session ID"],
-		"path": "/search",
-		"method": "GET",
-		"title": "Search entry point",
-		"parameters": {
-			"get": [
-				{ "name": "query", "type": "string", "required": false,  "title": "Search query" }
-			]
-		},
-
-		"apis": [
-			{
-				"method": "GET",
-				"name": "messages",
-				"path": "/messages",
-				"title": "Search for messages",
-
-				"parameters": {
-					"GET": [
-						{ "name": "inChannel", "type": "uint64", "required": false, "title": "Search only in one channel"},
-						{ "name": "fromUser",  "type": "uint64", "required": false, "title": "Search only from one user"},
-						{ "name": "firstID",   "type": "uint64", "required": false, "title": "Paging; return newer messages only (higher id)"},
-						{ "name": "lastID",    "type": "uint64", "required": false, "title": "Paging; return older messages only (lower id)"}
-					]
-				}
-			}
-		]
-	},
-	{
-		"title": "Users",
-		"package": "sam",
-		"path": "/users",
-		"entrypoint": "user",
-		"authentication": ["Client ID", "Session ID"],
-		"apis": [
-			{
-				"name": "search",
-				"method": "GET",
-				"title": "Search users (Directory)",
-				"parameters": {
-					"get": [
-						{ "type": "string", "name": "query", "required": false, "title": "Search query to match against users" }
-					]
-				}
-			}
-		]
-	}
+            {
+              "name": "userID",
+              "type": "uint64",
+              "required": false,
+              "title": "Member ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "part",
+        "method": "DELETE",
+        "path": "/{channelID}/members/{userID}",
+        "title": "Remove member from channel",
+        "parameters": {
+          "path": [
+            {
+              "name": "channelID",
+              "type": "uint64",
+              "required": true,
+              "title": "Channel ID"
+            },
+            {
+              "name": "userID",
+              "type": "uint64",
+              "required": false,
+              "title": "Member ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "invite",
+        "method": "POST",
+        "path": "/{channelID}/invite",
+        "title": "Join channel",
+        "parameters": {
+          "path": [
+            {
+              "name": "channelID",
+              "type": "uint64",
+              "required": true,
+              "title": "Channel ID"
+            }
+          ],
+          "post": [
+            {
+              "name": "userID",
+              "type": "[]uint64",
+              "required": false,
+              "title": "User ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "attach",
+        "path": "/{channelID}/attach",
+        "method": "POST",
+        "title": "Attach file to channel",
+        "parameters": {
+          "path": [
+            {
+              "name": "channelID",
+              "type": "uint64",
+              "required": true,
+              "title": "Channel ID"
+            }
+          ],
+          "post": [
+            {
+              "name": "replyTo",
+              "type": "uint64",
+              "required": false,
+              "title": "Upload as a reply"
+            },
+            {
+              "name": "upload",
+              "type": "*multipart.FileHeader",
+              "required": true,
+              "title": "File to upload"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Messages",
+    "package": "sam",
+    "path": "/channels/{channelID}/messages",
+    "parameters": {
+      "path": [
+        {
+          "name": "channelID",
+          "type": "uint64",
+          "required": true,
+          "title": "Channel ID"
+        }
+      ]
+    },
+    "entrypoint": "message",
+    "authentication": [
+      "Client ID",
+      "Session ID"
+    ],
+    "apis": [
+      {
+        "name": "create",
+        "path": "/",
+        "method": "POST",
+        "title": "Post new message to the channel",
+        "parameters": {
+          "post": [
+            {
+              "type": "string",
+              "name": "message",
+              "required": true,
+              "title": "Message contents (markdown)"
+            }
+          ]
+        }
+      },
+      {
+        "name": "history",
+        "path": "/",
+        "method": "GET",
+        "title": "All messages (channel history)",
+        "parameters": {
+          "get": [
+            {
+              "name": "lastMessageID",
+              "type": "uint64",
+              "required": false,
+              "title": ""
+            }
+          ]
+        }
+      },
+      {
+        "name": "edit",
+        "path": "/{messageID}",
+        "method": "PUT",
+        "title": "Edit existing message",
+        "parameters": {
+          "path": [
+            {
+              "name": "messageID",
+              "type": "uint64",
+              "required": true,
+              "title": "Message ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "string",
+              "name": "message",
+              "required": true,
+              "title": "Message contents (markdown)"
+            }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "path": "/{messageID}",
+        "method": "DELETE",
+        "title": "Delete existing message",
+        "parameters": {
+          "path": [
+            {
+              "name": "messageID",
+              "type": "uint64",
+              "required": true,
+              "title": "Message ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "getReplies",
+        "path": "/{messageID}/replies",
+        "method": "GET",
+        "title": "Returns all replies to a message",
+        "parameters": {
+          "path": [
+            {
+              "name": "messageID",
+              "type": "uint64",
+              "required": true,
+              "title": "Message ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "createReply",
+        "path": "/{messageID}/replies",
+        "method": "POST",
+        "title": "Reply to a message",
+        "parameters": {
+          "path": [
+            {
+              "name": "messageID",
+              "type": "uint64",
+              "required": true,
+              "title": "Message ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "string",
+              "name": "message",
+              "required": true,
+              "title": "Message contents (markdown)"
+            }
+          ]
+        }
+      },
+      {
+        "name": "pin",
+        "path": "/{messageID}/pin",
+        "method": "POST",
+        "title": "Pin message to channel (public bookmark)",
+        "parameters": {
+          "path": [
+            {
+              "name": "messageID",
+              "type": "uint64",
+              "required": true,
+              "title": "Message ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "removePin",
+        "path": "/{messageID}/pin",
+        "method": "DELETE",
+        "title": "Pin message to channel (public bookmark)",
+        "parameters": {
+          "path": [
+            {
+              "name": "messageID",
+              "type": "uint64",
+              "required": true,
+              "title": "Message ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "bookmark",
+        "path": "/{messageID}/bookmark",
+        "method": "POST",
+        "title": "Bookmark a message (private bookmark)",
+        "parameters": {
+          "path": [
+            {
+              "name": "messageID",
+              "type": "uint64",
+              "required": true,
+              "title": "Message ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "removeBookmark",
+        "path": "/{messageID}/bookmark",
+        "method": "DELETE",
+        "title": "Remove boomark from message (private bookmark)",
+        "parameters": {
+          "path": [
+            {
+              "name": "messageID",
+              "type": "uint64",
+              "required": true,
+              "title": "Message ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "react",
+        "path": "/{messageID}/reaction/{reaction}",
+        "method": "POST",
+        "title": "React to a message",
+        "parameters": {
+          "path": [
+            {
+              "name": "messageID",
+              "type": "uint64",
+              "required": true,
+              "title": "Message ID"
+            },
+            {
+              "name": "reaction",
+              "type": "string",
+              "required": true,
+              "title": "Reaction"
+            }
+          ]
+        }
+      },
+      {
+        "name": "removeReaction",
+        "path": "/{messageID}/reaction/{reaction}",
+        "method": "DELETE",
+        "title": "Delete reaction from a message",
+        "parameters": {
+          "path": [
+            {
+              "name": "messageID",
+              "type": "uint64",
+              "required": true,
+              "title": "Message ID"
+            },
+            {
+              "name": "reaction",
+              "type": "string",
+              "required": true,
+              "title": "Reaction"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Attachments",
+    "package": "sam",
+    "path": "/attachment/{attachmentID}",
+    "parameters": {
+      "path": [
+        {
+          "name": "attachmentID",
+          "type": "uint64",
+          "required": true,
+          "title": "Attachment ID"
+        }
+      ]
+    },
+    "entrypoint": "attachment",
+    "authentication": [
+      "Client ID",
+      "Session ID"
+    ],
+    "apis": [
+      {
+        "name": "original",
+        "path": "/original/{name}",
+        "method": "GET",
+        "title": "Serves attached file",
+        "parameters": {
+          "GET": [
+            {
+              "type": "bool",
+              "name": "download",
+              "required": false,
+              "title": "Force file download"
+            }
+          ]
+        }
+      },
+      {
+        "name": "preview",
+        "path": "/preview.{ext}",
+        "method": "GET",
+        "title": "Serves preview of an attached file"
+      }
+    ]
+  },
+  {
+    "name": "search",
+    "entrypoint": "search",
+    "authentication": [
+      "Client ID",
+      "Session ID"
+    ],
+    "path": "/search",
+    "method": "GET",
+    "title": "Search entry point",
+    "parameters": {
+      "get": [
+        {
+          "name": "query",
+          "type": "string",
+          "required": false,
+          "title": "Search query"
+        }
+      ]
+    },
+    "apis": [
+      {
+        "method": "GET",
+        "name": "messages",
+        "path": "/messages",
+        "title": "Search for messages",
+        "parameters": {
+          "GET": [
+            {
+              "name": "inChannel",
+              "type": "uint64",
+              "required": false,
+              "title": "Search only in one channel"
+            },
+            {
+              "name": "fromUser",
+              "type": "uint64",
+              "required": false,
+              "title": "Search only from one user"
+            },
+            {
+              "name": "firstID",
+              "type": "uint64",
+              "required": false,
+              "title": "Paging; return newer messages only (higher id)"
+            },
+            {
+              "name": "lastID",
+              "type": "uint64",
+              "required": false,
+              "title": "Paging; return older messages only (lower id)"
+            }
+          ]
+        }
+      }
+    ]
+  }
 ]

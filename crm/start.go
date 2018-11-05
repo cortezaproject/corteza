@@ -1,4 +1,4 @@
-package crm
+package service
 
 import (
 	"fmt"

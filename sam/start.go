@@ -1,4 +1,4 @@
-package sam
+package service
 
 import (
 	"fmt"
@@ -14,11 +14,11 @@ import (
 	"github.com/titpetric/factory"
 	"github.com/titpetric/factory/resputil"
 
-	authService "github.com/crusttech/crust/auth/service"
 	migrate "github.com/crusttech/crust/sam/db"
 	"github.com/crusttech/crust/sam/rest"
 	samService "github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/websocket"
+	systemService "github.com/crusttech/crust/system/service"
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/metrics"
@@ -60,7 +60,7 @@ func Init() error {
 		},
 	})
 
-	authService.Init()
+	systemService.Init()
 	samService.Init()
 
 	return nil

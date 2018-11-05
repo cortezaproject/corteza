@@ -6,10 +6,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	authService "github.com/crusttech/crust/auth/service"
-	authTypes "github.com/crusttech/crust/auth/types"
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
+	systemService "github.com/crusttech/crust/system/service"
+	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 type (
@@ -24,7 +24,7 @@ type (
 		message    repository.MessageRepository
 		mflag      repository.MessageFlagRepository
 
-		usr authService.UserService
+		usr systemService.UserService
 		evl EventService
 	}
 
@@ -56,7 +56,7 @@ const (
 
 func Message() MessageService {
 	return &message{
-		usr: authService.DefaultUser,
+		usr: systemService.DefaultUser,
 		evl: DefaultEvent,
 	}
 }
@@ -402,7 +402,7 @@ func (svc *message) preload(mm types.MessageSet) (err error) {
 
 // Preload for all messages
 func (svc *message) preloadUsers(mm types.MessageSet) (err error) {
-	var uu authTypes.UserSet
+	var uu systemTypes.UserSet
 
 	for _, msg := range mm {
 		if msg.User != nil || msg.UserID == 0 {

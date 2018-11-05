@@ -8,15 +8,15 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 
-	authService "github.com/crusttech/crust/auth/service"
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/sam/repository"
+	systemService "github.com/crusttech/crust/system/service"
 )
 
 type (
 	Websocket struct {
 		svc struct {
-			user authService.UserService
+			user systemService.UserService
 		}
 		config *repository.Flags
 	}
@@ -26,7 +26,7 @@ func (Websocket) New(config *repository.Flags) *Websocket {
 	ws := &Websocket{
 		config: config,
 	}
-	ws.svc.user = authService.DefaultUser
+	ws.svc.user = systemService.DefaultUser
 	return ws
 }
 

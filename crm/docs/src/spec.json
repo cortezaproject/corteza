@@ -1,304 +1,548 @@
 [
-	{
-		"title": "Fields",
-		"description": "CRM input field definitions",
-		"package": "crm",
-		"entrypoint": "field",
-		"path": "/field",
-		"authentication": [],
-		"struct": [
-			{
-				"name": "Field",
-				"fields": [
-					{ "name": "Name", "type": "string", "db": "field_name" },
-					{ "name": "Type", "type": "string", "db": "field_type" },
-					{ "name": "Template", "type": "string", "db": "field_template", "omitempty": true }
-				]
-			}
-		],
-		"apis": [
-			{
-				"name": "list",
-				"method": "GET",
-				"path": "/",
-				"title": "List available fields"
-			},
-			{
-				"name": "type",
-				"path": "/{id}",
-				"method": "GET",
-				"title": "Get field details",
-				"parameters": {
-					"path": [
-						{ "type": "string", "name": "id", "required": true, "title": "Type ID" }
-					]
-				}
-			}
-		]
-	},
-	{
-		"title": "Pages",
-		"description": "CRM module pages",
-		"package": "crm",
-		"entrypoint": "page",
-		"path": "/page",
-		"authentication": [],
-		"struct": [],
-		"apis": [
-			{
-				"name": "list",
-				"method": "GET",
-				"path": "/",
-				"title": "List available pages",
-				"parameters": {
-					"get": [
-						{ "type": "uint64", "name": "selfID", "required": false, "title": "Parent page ID" }
-					]
-				}
-			},
-			{
-				"name": "create",
-				"method": "POST",
-				"title": "Create page",
-				"path": "/",
-				"parameters": {
-					"post": [
-						{ "type": "uint64", "name": "selfID", "required": false, "title": "Parent Page ID" },
-						{ "type": "uint64", "name": "moduleID", "required": false, "title": "Module ID (optional)" },
-						{ "type": "string", "name": "title", "required": true, "title": "Title" },
-						{ "type": "string", "name": "description", "required": false, "title": "Description" },
-						{ "type": "bool", "name": "visible", "required": false, "title": "Visible in navigation" },
-						{ "type": "types.JSONText", "name": "blocks", "required": true, "title": "Blocks JSON" }
-					]
-				}
-			},
-			{
-				"name": "read",
-				"path": "/{id}",
-				"method": "GET",
-				"title": "Get page details",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Page ID" }
-					]
-				}
-			},
-			{
-				"name": "edit",
-				"method": "POST",
-				"title": "Create page",
-				"path": "/{id}",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Page ID" }
-					],
-					"post": [
-						{ "type": "uint64", "name": "selfID", "required": false, "title": "Parent Page ID" },
-						{ "type": "uint64", "name": "moduleID", "required": false, "title": "Module ID (optional)" },
-						{ "type": "string", "name": "title", "required": true, "title": "Title" },
-						{ "type": "string", "name": "description", "required": false, "title": "Description" },
-						{ "type": "bool", "name": "visible", "required": false, "title": "Visible in navigation" },
-						{ "type": "types.JSONText", "name": "blocks", "required": true, "title": "Blocks JSON" }
-					]
-				}
-			},
-			{
-				"name": "reorder",
-				"method": "POST",
-				"title": "Reorder pages",
-				"path": "/{selfID}/reorder",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "selfID", "required": true, "title": "Parent page ID" }
-					],
-					"post": [
-						{ "type": "[]uint64", "name": "pageIDs", "required": true, "title": "Page ID order" }
-					]
-				}
-			},
-			{
-				"name": "delete",
-				"path": "/{id}",
-				"method": "Delete",
-				"title": "Delete page",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Page ID" }
-					]
-				}
-			}
-		]
-	},
-	{
-		"title": "Modules",
-		"description": "CRM module definitions",
-		"package": "crm",
-		"entrypoint": "module",
-		"path": "/module",
-		"authentication": [],
-		"struct": [
-			{
-				"name": "Module",
-				"imports": [
-					"github.com/jmoiron/sqlx/types"
-				],
-				"fields": [
-					{ "name": "ID", "type": "uint64" },
-					{ "name": "Name", "type": "string" },
-					{ "name": "Fields", "type": "types.JSONText", "json": "fields", "db": "json" }
-				]
-			},
-			{
-				"name": "ModuleField",
-				"fields": [
-					{ "name": "Name", "type": "string" },
-					{ "name": "Title", "type": "string" },
-					{ "name": "Kind", "type": "string" },
-					{ "name": "GDPR", "type": "bool" },
-					{ "name": "Show", "type": "bool" }
-				]
-			},
-			{
-				"name": "Content",
-				"imports": [
-					"github.com/jmoiron/sqlx/types"
-				],
-				"fields": [
-					{ "name": "ID", "type": "uint64" },
-					{ "name": "moduleID", "type": "uint64" },
-					{ "name": "Fields", "type": "types.JSONText", "db": "json" }
-				]
-			}
-		],
-		"apis": [
-			{
-				"name": "list",
-				"method": "GET",
-				"title": "List modules",
-				"path": "/",
-				"parameters": {
-					"get": [
-						{ "type": "string", "name": "query", "required": false, "title": "Search query" }
-					]
-				}
-			},
-			{
-				"name": "create",
-				"method": "POST",
-				"title": "Create module",
-				"path": "/",
-				"parameters": {
-					"post": [
-						{ "type": "string", "name": "name", "required": true, "title": "Module Name" },
-						{ "type": "types.JSONText", "name": "fields", "required": true, "title": "Fields JSON" }
-					]
-				}
-			},
-			{
-				"name": "read",
-				"method": "GET",
-				"title": "Read module",
-				"path": "/{id}",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Module ID" }
-					]
-				}
-			},
-			{
-				"name": "edit",
-				"method": "POST",
-				"title": "Edit module",
-				"path": "/{id}",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Module ID" }
-					],
-					"post": [
-						{ "type": "string", "name": "name", "required": true, "title": "Module Name" },
-						{ "type": "types.JSONText", "name": "fields", "required": true, "title": "Fields JSON" }
-					]
-				}
-			},
-			{
-				"name": "delete",
-				"method": "DELETE",
-				"title": "Delete module",
-				"path": "/{id}",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "id", "required": true, "title": "Module ID" }
-					]
-				}
-			},
-			{
-				"name": "content/list",
-				"method": "GET",
-				"title": "List/read contents from module section",
-				"path": "/{moduleID}/content",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "moduleID", "required": true, "title": "Module ID" }
-					],
-					"get": [
-						{ "name": "page", "type": "int", "required": false, "title": "Page number (0 based)" },
-						{ "name": "perPage", "type": "int", "required": false, "title": "Returned items per page (default 50)" }
-					]
-				}
-			},
-			{
-				"name": "content/create",
-				"method": "POST",
-				"title": "List/read contents from module section",
-				"path": "/{moduleID}/content",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "moduleID", "required": true, "title": "Module ID" }
-					],
-					"post": [
-						{ "type": "types.JSONText", "name": "fields", "required": true, "title": "Content JSON" }
-					]
-				}
-			},
-			{
-				"name": "content/read",
-				"method": "GET",
-				"title": "Read contents by ID from module section",
-				"path": "/{moduleID}/content/{id}",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "moduleID", "required": true, "title": "Module ID" },
-						{ "type": "uint64", "name": "id", "required": true, "title": "Content ID" }
-					]
-				}
-			},
-			{
-				"name": "content/edit",
-				"method": "POST",
-				"title": "Add/update contents in module section",
-				"path": "/{moduleID}/content/{id}",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "moduleID", "required": true, "title": "Module ID" },
-						{ "type": "uint64", "name": "id", "required": true, "title": "Content ID" }
-					],
-					"post": [
-						{ "type": "types.JSONText", "name": "fields", "required": true, "title": "Content JSON" }
-					]
-				}
-			},
-			{
-				"name": "content/delete",
-				"method": "DELETE",
-				"title": "Delete content row from module section",
-				"path": "/{moduleID}/content/{id}",
-				"parameters": {
-					"path": [
-						{ "type": "uint64", "name": "moduleID", "required": true, "title": "Module ID" },
-						{ "type": "uint64", "name": "id", "required": true, "title": "Content ID" }
-					]
-				}
-			}
-		]
-	}
+  {
+    "title": "Fields",
+    "description": "CRM input field definitions",
+    "package": "crm",
+    "entrypoint": "field",
+    "path": "/field",
+    "authentication": [],
+    "struct": [
+      {
+        "name": "Field",
+        "fields": [
+          {
+            "name": "Name",
+            "type": "string",
+            "db": "field_name"
+          },
+          {
+            "name": "Type",
+            "type": "string",
+            "db": "field_type"
+          },
+          {
+            "name": "Template",
+            "type": "string",
+            "db": "field_template",
+            "omitempty": true
+          }
+        ]
+      }
+    ],
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "path": "/",
+        "title": "List available fields"
+      },
+      {
+        "name": "type",
+        "path": "/{id}",
+        "method": "GET",
+        "title": "Get field details",
+        "parameters": {
+          "path": [
+            {
+              "type": "string",
+              "name": "id",
+              "required": true,
+              "title": "Type ID"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Pages",
+    "description": "CRM module pages",
+    "package": "crm",
+    "entrypoint": "page",
+    "path": "/page",
+    "authentication": [],
+    "struct": [],
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "path": "/",
+        "title": "List available pages",
+        "parameters": {
+          "get": [
+            {
+              "type": "uint64",
+              "name": "selfID",
+              "required": false,
+              "title": "Parent page ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "create",
+        "method": "POST",
+        "title": "Create page",
+        "path": "/",
+        "parameters": {
+          "post": [
+            {
+              "type": "uint64",
+              "name": "selfID",
+              "required": false,
+              "title": "Parent Page ID"
+            },
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": false,
+              "title": "Module ID (optional)"
+            },
+            {
+              "type": "string",
+              "name": "title",
+              "required": true,
+              "title": "Title"
+            },
+            {
+              "type": "string",
+              "name": "description",
+              "required": false,
+              "title": "Description"
+            },
+            {
+              "type": "bool",
+              "name": "visible",
+              "required": false,
+              "title": "Visible in navigation"
+            },
+            {
+              "type": "types.JSONText",
+              "name": "blocks",
+              "required": true,
+              "title": "Blocks JSON"
+            }
+          ]
+        }
+      },
+      {
+        "name": "read",
+        "path": "/{id}",
+        "method": "GET",
+        "title": "Get page details",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "id",
+              "required": true,
+              "title": "Page ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "edit",
+        "method": "POST",
+        "title": "Create page",
+        "path": "/{id}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "id",
+              "required": true,
+              "title": "Page ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "uint64",
+              "name": "selfID",
+              "required": false,
+              "title": "Parent Page ID"
+            },
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": false,
+              "title": "Module ID (optional)"
+            },
+            {
+              "type": "string",
+              "name": "title",
+              "required": true,
+              "title": "Title"
+            },
+            {
+              "type": "string",
+              "name": "description",
+              "required": false,
+              "title": "Description"
+            },
+            {
+              "type": "bool",
+              "name": "visible",
+              "required": false,
+              "title": "Visible in navigation"
+            },
+            {
+              "type": "types.JSONText",
+              "name": "blocks",
+              "required": true,
+              "title": "Blocks JSON"
+            }
+          ]
+        }
+      },
+      {
+        "name": "reorder",
+        "method": "POST",
+        "title": "Reorder pages",
+        "path": "/{selfID}/reorder",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "selfID",
+              "required": true,
+              "title": "Parent page ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "[]uint64",
+              "name": "pageIDs",
+              "required": true,
+              "title": "Page ID order"
+            }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "path": "/{id}",
+        "method": "Delete",
+        "title": "Delete page",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "id",
+              "required": true,
+              "title": "Page ID"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Modules",
+    "description": "CRM module definitions",
+    "package": "crm",
+    "entrypoint": "module",
+    "path": "/module",
+    "authentication": [],
+    "struct": [
+      {
+        "name": "Module",
+        "imports": [
+          "github.com/jmoiron/sqlx/types"
+        ],
+        "fields": [
+          {
+            "name": "ID",
+            "type": "uint64"
+          },
+          {
+            "name": "Name",
+            "type": "string"
+          },
+          {
+            "name": "Fields",
+            "type": "types.JSONText",
+            "json": "fields",
+            "db": "json"
+          }
+        ]
+      },
+      {
+        "name": "ModuleField",
+        "fields": [
+          {
+            "name": "Name",
+            "type": "string"
+          },
+          {
+            "name": "Title",
+            "type": "string"
+          },
+          {
+            "name": "Kind",
+            "type": "string"
+          },
+          {
+            "name": "GDPR",
+            "type": "bool"
+          },
+          {
+            "name": "Show",
+            "type": "bool"
+          }
+        ]
+      },
+      {
+        "name": "Content",
+        "imports": [
+          "github.com/jmoiron/sqlx/types"
+        ],
+        "fields": [
+          {
+            "name": "ID",
+            "type": "uint64"
+          },
+          {
+            "name": "moduleID",
+            "type": "uint64"
+          },
+          {
+            "name": "Fields",
+            "type": "types.JSONText",
+            "db": "json"
+          }
+        ]
+      }
+    ],
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "title": "List modules",
+        "path": "/",
+        "parameters": {
+          "get": [
+            {
+              "type": "string",
+              "name": "query",
+              "required": false,
+              "title": "Search query"
+            }
+          ]
+        }
+      },
+      {
+        "name": "create",
+        "method": "POST",
+        "title": "Create module",
+        "path": "/",
+        "parameters": {
+          "post": [
+            {
+              "type": "string",
+              "name": "name",
+              "required": true,
+              "title": "Module Name"
+            },
+            {
+              "type": "types.JSONText",
+              "name": "fields",
+              "required": true,
+              "title": "Fields JSON"
+            }
+          ]
+        }
+      },
+      {
+        "name": "read",
+        "method": "GET",
+        "title": "Read module",
+        "path": "/{id}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "id",
+              "required": true,
+              "title": "Module ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "edit",
+        "method": "POST",
+        "title": "Edit module",
+        "path": "/{id}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "id",
+              "required": true,
+              "title": "Module ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "string",
+              "name": "name",
+              "required": true,
+              "title": "Module Name"
+            },
+            {
+              "type": "types.JSONText",
+              "name": "fields",
+              "required": true,
+              "title": "Fields JSON"
+            }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "method": "DELETE",
+        "title": "Delete module",
+        "path": "/{id}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "id",
+              "required": true,
+              "title": "Module ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "content/list",
+        "method": "GET",
+        "title": "List/read contents from module section",
+        "path": "/{moduleID}/content",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": true,
+              "title": "Module ID"
+            }
+          ],
+          "get": [
+            {
+              "name": "page",
+              "type": "int",
+              "required": false,
+              "title": "Page number (0 based)"
+            },
+            {
+              "name": "perPage",
+              "type": "int",
+              "required": false,
+              "title": "Returned items per page (default 50)"
+            }
+          ]
+        }
+      },
+      {
+        "name": "content/create",
+        "method": "POST",
+        "title": "List/read contents from module section",
+        "path": "/{moduleID}/content",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": true,
+              "title": "Module ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "types.JSONText",
+              "name": "fields",
+              "required": true,
+              "title": "Content JSON"
+            }
+          ]
+        }
+      },
+      {
+        "name": "content/read",
+        "method": "GET",
+        "title": "Read contents by ID from module section",
+        "path": "/{moduleID}/content/{id}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": true,
+              "title": "Module ID"
+            },
+            {
+              "type": "uint64",
+              "name": "id",
+              "required": true,
+              "title": "Content ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "content/edit",
+        "method": "POST",
+        "title": "Add/update contents in module section",
+        "path": "/{moduleID}/content/{id}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": true,
+              "title": "Module ID"
+            },
+            {
+              "type": "uint64",
+              "name": "id",
+              "required": true,
+              "title": "Content ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "types.JSONText",
+              "name": "fields",
+              "required": true,
+              "title": "Content JSON"
+            }
+          ]
+        }
+      },
+      {
+        "name": "content/delete",
+        "method": "DELETE",
+        "title": "Delete content row from module section",
+        "path": "/{moduleID}/content/{id}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": true,
+              "title": "Module ID"
+            },
+            {
+              "type": "uint64",
+              "name": "id",
+              "required": true,
+              "title": "Content ID"
+            }
+          ]
+        }
+      }
+    ]
+  }
 ]
