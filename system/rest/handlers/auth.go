@@ -28,11 +28,13 @@ import (
 // Internal API interface
 type AuthAPI interface {
 	Check(context.Context, *request.AuthCheck) (interface{}, error)
+	Logout(context.Context, *request.AuthLogout) (interface{}, error)
 }
 
 // HTTP API interface
 type Auth struct {
-	Check func(http.ResponseWriter, *http.Request)
+	Check  func(http.ResponseWriter, *http.Request)
+	Logout func(http.ResponseWriter, *http.Request)
 }
 
 func NewAuth(ah AuthAPI) *Auth {
@@ -44,6 +46,13 @@ func NewAuth(ah AuthAPI) *Auth {
 				return ah.Check(r.Context(), params)
 			})
 		},
+		Logout: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewAuthLogout()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return ah.Logout(r.Context(), params)
+			})
+		},
 	}
 }
 
@@ -52,6 +61,7 @@ func (ah *Auth) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Use(middlewares...)
 		r.Route("/auth", func(r chi.Router) {
 			r.Get("/check", ah.Check)
+			r.Delete("/check", ah.Logout)
 		})
 	})
 }

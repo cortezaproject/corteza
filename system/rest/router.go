@@ -41,30 +41,16 @@ func MountRoutes(oidcConfig *config.OIDC, jwtAuth jwtEncodeCookieSetter) func(ch
 			})
 		}
 
-		r.Get("/check", func(w http.ResponseWriter, r *http.Request) {
-			if c, err := r.Cookie("jwt"); err == nil {
-				ctx := r.Context()
+		// Provide raw `/auth` handlers
+		Auth{}.New().Handlers(jwtAuth).MountRoutes(r)
 
-				if identity := auth.GetIdentityFromContext(ctx); identity != nil && identity.Valid() {
-					if user, err := service.DefaultUser.With(ctx).FindByID(identity.Identity()); err == nil {
-						resputil.JSON(w, checkResponse{
-							JWT:  c.Value,
-							User: payload.User(user),
-						})
+		// Protect all _private_ routes
+		r.Group(func(r chi.Router) {
+			r.Use(auth.MiddlewareValidOnly)
 
-						return
-					}
-				}
-
-				// Did not send response, assuming invalid cookie
-				jwtAuth.SetCookie(w, r, nil)
-			}
-
-			resputil.JSON(w, "")
-		})
-
-		r.Delete("/check", func(w http.ResponseWriter, r *http.Request) {
-			jwtAuth.SetCookie(w, r, nil)
+			handlers.NewUser(User{}.New()).MountRoutes(r)
+			handlers.NewTeam(Team{}.New()).MountRoutes(r)
+			handlers.NewOrganisation(Organisation{}.New()).MountRoutes(r)
 		})
 	}
 }

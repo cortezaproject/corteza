@@ -69,3 +69,43 @@ func (a *AuthCheck) Fill(r *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewAuthCheck()
+
+// Auth logout request parameters
+type AuthLogout struct {
+}
+
+func NewAuthLogout() *AuthLogout {
+	return &AuthLogout{}
+}
+
+func (a *AuthLogout) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(a)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewAuthLogout()
