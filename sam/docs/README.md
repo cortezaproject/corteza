@@ -1,3 +1,37 @@
+# Attachments
+
+## Serves attached file
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/attachment/{attachmentID}/original/{name}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| download | bool | GET | Force file download | N/A | NO |
+| attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
+
+## Serves preview of an attached file
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/attachment/{attachmentID}/preview.{ext}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
+
+
+
+
 # Channels
 
 A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or group.
@@ -193,6 +227,7 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | message | string | POST | Message contents (markdown) | N/A | YES |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
 
 ## All messages (channel history)
 
@@ -207,6 +242,7 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | lastMessageID | uint64 | GET |  | N/A | NO |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
 
 ## Edit existing message
 
@@ -221,6 +257,7 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageID | uint64 | PATH | Message ID | N/A | YES |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
 | message | string | POST | Message contents (markdown) | N/A | YES |
 
 ## Delete existing message
@@ -236,6 +273,7 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageID | uint64 | PATH | Message ID | N/A | YES |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
 
 ## Returns all replies to a message
 
@@ -250,6 +288,7 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageID | uint64 | PATH | Message ID | N/A | YES |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
 
 ## Reply to a message
 
@@ -264,6 +303,7 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageID | uint64 | PATH | Message ID | N/A | YES |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
 | message | string | POST | Message contents (markdown) | N/A | YES |
 
 ## Pin message to channel (public bookmark)
@@ -279,6 +319,7 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageID | uint64 | PATH | Message ID | N/A | YES |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
 
 ## Pin message to channel (public bookmark)
 
@@ -293,6 +334,7 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageID | uint64 | PATH | Message ID | N/A | YES |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
 
 ## Bookmark a message (private bookmark)
 
@@ -307,6 +349,7 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageID | uint64 | PATH | Message ID | N/A | YES |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
 
 ## Remove boomark from message (private bookmark)
 
@@ -321,6 +364,7 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageID | uint64 | PATH | Message ID | N/A | YES |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
 
 ## React to a message
 
@@ -336,6 +380,7 @@ The following event types may be sent with a message event:
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageID | uint64 | PATH | Message ID | N/A | YES |
 | reaction | string | PATH | Reaction | N/A | YES |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
 
 ## Delete reaction from a message
 
@@ -351,38 +396,7 @@ The following event types may be sent with a message event:
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | messageID | uint64 | PATH | Message ID | N/A | YES |
 | reaction | string | PATH | Reaction | N/A | YES |
-
-
-
-
-# Attachments
-
-## Serves attached file
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/attachment/{attachmentID}/original/{name}` | HTTP/S | GET | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| download | bool | GET | Force file download | N/A | NO |
-
-## Serves preview of an attached file
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/attachment/{attachmentID}/preview.{ext}` | HTTP/S | GET | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
 
 
 
@@ -405,3 +419,4 @@ The following event types may be sent with a message event:
 | fromUser | uint64 | GET | Search only from one user | N/A | NO |
 | firstID | uint64 | GET | Paging; return newer messages only (higher id) | N/A | NO |
 | lastID | uint64 | GET | Paging; return older messages only (lower id) | N/A | NO |
+| query | string | GET | Search query | N/A | NO |

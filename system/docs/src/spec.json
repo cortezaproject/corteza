@@ -12,6 +12,13 @@
         "title": "Check JWT token",
         "path": "/check",
         "parameters": []
+      },
+      {
+        "name": "logout",
+        "method": "DELETE",
+        "title": "Delete JWT token (Sign Out)",
+        "path": "/check",
+        "parameters": []
       }
     ]
   },

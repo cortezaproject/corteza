@@ -1,48 +1,45 @@
-# Fields
+# Authentication
 
-CRM input field definitions
-
-## List available fields
+## Check JWT token
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/field/` | HTTP/S | GET |  |
+| `/auth/check` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 
-## Get field details
+## Delete JWT token (Sign Out)
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/field/{id}` | HTTP/S | GET |  |
+| `/auth/check` | HTTP/S | DELETE |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | string | PATH | Type ID | N/A | YES |
 
 
 
 
-# Modules
+# Organisations
 
-CRM module definitions
+Organisations represent a top-level grouping entity. There may be many organisations defined in a single deployment.
 
-## List modules
+## List organisations
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/` | HTTP/S | GET |  |
+| `/organisations/` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -50,241 +47,216 @@ CRM module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
 
-## Create module
+## Create organisation
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/` | HTTP/S | POST |  |
+| `/organisations/` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| name | string | POST | Module Name | N/A | YES |
-| fields | types.JSONText | POST | Fields JSON | N/A | YES |
+| name | string | POST | Organisation Name | N/A | YES |
 
-## Read module
+## Update organisation details
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{id}` | HTTP/S | GET |  |
+| `/organisations/{id}` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | PATH | Module ID | N/A | YES |
+| id | uint64 | PATH | Organisation ID | N/A | NO |
+| name | string | POST | Organisation Name | N/A | YES |
 
-## Edit module
+## Remove organisation
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{id}` | HTTP/S | POST |  |
+| `/organisations/{id}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | PATH | Module ID | N/A | YES |
-| name | string | POST | Module Name | N/A | YES |
-| fields | types.JSONText | POST | Fields JSON | N/A | YES |
+| id | uint64 | PATH | Organisation ID | N/A | YES |
 
-## Delete module
+## Read organisation details
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{id}` | HTTP/S | DELETE |  |
+| `/organisations/{id}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | PATH | Module ID | N/A | YES |
+| id | uint64 | GET | Organisation ID | N/A | YES |
 
-## List/read contents from module section
+## Archive organisation
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/content` | HTTP/S | GET |  |
+| `/organisations/{id}/archive` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| page | int | GET | Page number (0 based) | N/A | NO |
-| perPage | int | GET | Returned items per page (default 50) | N/A | NO |
-| moduleID | uint64 | PATH | Module ID | N/A | YES |
+| id | uint64 | PATH | Organisation ID | N/A | YES |
 
-## List/read contents from module section
+
+
+
+# Teams
+
+An organisation may have many teams. Teams may have many channels available. Access to channels may be shared between teams.
+
+## List teams
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/content` | HTTP/S | POST |  |
+| `/teams/` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| moduleID | uint64 | PATH | Module ID | N/A | YES |
-| fields | types.JSONText | POST | Content JSON | N/A | YES |
+| query | string | GET | Search query | N/A | NO |
 
-## Read contents by ID from module section
+## Update team details
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/content/{id}` | HTTP/S | GET |  |
+| `/teams/` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| moduleID | uint64 | PATH | Module ID | N/A | YES |
-| id | uint64 | PATH | Content ID | N/A | YES |
+| name | string | POST | Name of Team | N/A | YES |
+| members | []uint64 | POST | Team member IDs | N/A | NO |
 
-## Add/update contents in module section
+## Update team details
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/content/{id}` | HTTP/S | POST |  |
+| `/teams/{teamID}` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| moduleID | uint64 | PATH | Module ID | N/A | YES |
-| id | uint64 | PATH | Content ID | N/A | YES |
-| fields | types.JSONText | POST | Content JSON | N/A | YES |
+| teamID | uint64 | PATH | Team ID | N/A | YES |
+| name | string | POST | Name of Team | N/A | NO |
+| members | []uint64 | POST | Team member IDs | N/A | NO |
 
-## Delete content row from module section
+## Read team details and memberships
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/content/{id}` | HTTP/S | DELETE |  |
+| `/teams/{teamID}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| moduleID | uint64 | PATH | Module ID | N/A | YES |
-| id | uint64 | PATH | Content ID | N/A | YES |
+| teamID | uint64 | PATH | Team ID | N/A | YES |
 
-
-
-
-# Pages
-
-CRM module pages
-
-## List available pages
+## Remove team
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/page/` | HTTP/S | GET |  |
+| `/teams/{teamID}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| selfID | uint64 | GET | Parent page ID | N/A | NO |
+| teamID | uint64 | PATH | Team ID | N/A | YES |
 
-## Create page
+## Archive team
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/page/` | HTTP/S | POST |  |
+| `/teams/{teamID}/archive` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| selfID | uint64 | POST | Parent Page ID | N/A | NO |
-| moduleID | uint64 | POST | Module ID (optional) | N/A | NO |
-| title | string | POST | Title | N/A | YES |
-| description | string | POST | Description | N/A | NO |
-| visible | bool | POST | Visible in navigation | N/A | NO |
-| blocks | types.JSONText | POST | Blocks JSON | N/A | YES |
+| teamID | uint64 | PATH | Team ID | N/A | YES |
 
-## Get page details
+## Move team to different organisation
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/page/{id}` | HTTP/S | GET |  |
+| `/teams/{teamID}/move` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | PATH | Page ID | N/A | YES |
+| teamID | uint64 | PATH | Team ID | N/A | YES |
+| organisationID | uint64 | POST | Team ID | N/A | YES |
 
-## Create page
+## Merge one team into another
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/page/{id}` | HTTP/S | POST |  |
+| `/teams/{teamID}/merge` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | PATH | Page ID | N/A | YES |
-| selfID | uint64 | POST | Parent Page ID | N/A | NO |
-| moduleID | uint64 | POST | Module ID (optional) | N/A | NO |
-| title | string | POST | Title | N/A | YES |
-| description | string | POST | Description | N/A | NO |
-| visible | bool | POST | Visible in navigation | N/A | NO |
-| blocks | types.JSONText | POST | Blocks JSON | N/A | YES |
+| teamID | uint64 | PATH | Source Team ID | N/A | YES |
+| destination | uint64 | POST | Destination Team ID | N/A | YES |
 
-## Reorder pages
+
+
+
+# Users
+
+## Search users (Directory)
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/page/{selfID}/reorder` | HTTP/S | POST |  |
+| `/users/search` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| selfID | uint64 | PATH | Parent page ID | N/A | YES |
-| pageIDs | []uint64 | POST | Page ID order | N/A | YES |
-
-## Delete page
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/page/{id}` | HTTP/S | Delete |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | PATH | Page ID | N/A | YES |
+| query | string | GET | Search query to match against users | N/A | NO |
