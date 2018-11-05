@@ -26,12 +26,20 @@
       "Title": "Serves attached file",
       "Path": "/original/{name}",
       "Parameters": {
-        "GET": [
+        "get": [
           {
             "name": "download",
             "required": false,
             "title": "Force file download",
             "type": "bool"
+          }
+        ],
+        "path": [
+          {
+            "name": "name",
+            "required": true,
+            "title": "File name",
+            "type": "string"
           }
         ]
       }
@@ -41,7 +49,16 @@
       "Method": "GET",
       "Title": "Serves preview of an attached file",
       "Path": "/preview.{ext}",
-      "Parameters": null
+      "Parameters": {
+        "path": [
+          {
+            "name": "ext",
+            "required": true,
+            "title": "Preview extension/format",
+            "type": "string"
+          }
+        ]
+      }
     }
   ]
 }

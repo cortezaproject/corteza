@@ -33,6 +33,7 @@ var _ = multipart.FileHeader{}
 // Attachment original request parameters
 type AttachmentOriginal struct {
 	Download     bool
+	Name         string
 	AttachmentID uint64 `json:",string"`
 }
 
@@ -71,6 +72,7 @@ func (a *AttachmentOriginal) Fill(r *http.Request) (err error) {
 
 		a.Download = parseBool(val)
 	}
+	a.Name = chi.URLParam(r, "name")
 	a.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
 
 	return err
@@ -80,6 +82,7 @@ var _ RequestFiller = NewAttachmentOriginal()
 
 // Attachment preview request parameters
 type AttachmentPreview struct {
+	Ext          string
 	AttachmentID uint64 `json:",string"`
 }
 
@@ -114,6 +117,7 @@ func (a *AttachmentPreview) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	a.Ext = chi.URLParam(r, "ext")
 	a.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
 
 	return err
