@@ -1,9 +1,10 @@
 package rest
 
 import (
+	"github.com/go-chi/chi"
+
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/sam/rest/handlers"
-	"github.com/go-chi/chi"
 )
 
 func MountRoutes() func(chi.Router) {
