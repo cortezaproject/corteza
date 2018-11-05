@@ -22,9 +22,6 @@ SPECS=$(find $PWD -name 'spec.json' | xargs -n1 dirname)
 for SPEC in $SPECS; do
 	echo "=== spec $SPEC ==="
 	cd $SPEC && rm -rf spec && /usr/bin/env spec && cd $_PWD
-	if [ -x "$(dirname $SPEC)/README.php" ]; then
-		cd $SPEC && cd .. && ./README.php && cd $_PWD
-	fi
 
 	SRC=$(dirname $(dirname $SPEC))
 	if [ -d "codegen/$(basename $SRC)" ]; then
@@ -38,6 +35,5 @@ echo "=== codegen permissions ==="
 go run sam/types/permissions/main.go -package types -function "func (c *Organisation) Permissions() []rbac.OperationGroup" -input sam/types/permissions/1-organisation.json -output sam/types/organisation_perms.go
 go run sam/types/permissions/main.go -package types -function "func (c *Team) Permissions() []rbac.OperationGroup" -input sam/types/permissions/2-team.json -output sam/types/team_perms.go
 go run sam/types/permissions/main.go -package types -function "func (c *Channel) Permissions() []rbac.OperationGroup" -input sam/types/permissions/3-channel.json -output sam/types/channel_perms.go
-
 
 gofmt
