@@ -34,7 +34,7 @@ func (ctrl *Message) Create(ctx context.Context, r *request.MessageCreate) (inte
 	}))
 }
 
-func (ctrl *Message) CreateReply(ctx context.Context, r *request.MessageCreateReply) (interface{}, error) {
+func (ctrl *Message) ReplyCreate(ctx context.Context, r *request.MessageReplyCreate) (interface{}, error) {
 	return ctrl.wrap(ctx)(ctrl.svc.msg.With(ctx).Create(&types.Message{
 		ChannelID: r.ChannelID,
 		ReplyTo:   r.MessageID,
@@ -42,7 +42,7 @@ func (ctrl *Message) CreateReply(ctx context.Context, r *request.MessageCreateRe
 	}))
 }
 
-func (ctrl *Message) GetReplies(ctx context.Context, r *request.MessageGetReplies) (interface{}, error) {
+func (ctrl *Message) ReplyGet(ctx context.Context, r *request.MessageReplyGet) (interface{}, error) {
 	return ctrl.wrapSet(ctx)(ctrl.svc.msg.With(ctx).Find(&types.MessageFilter{
 		ChannelID: r.ChannelID,
 		RepliesTo: r.MessageID,
@@ -68,27 +68,27 @@ func (ctrl *Message) Delete(ctx context.Context, r *request.MessageDelete) (inte
 	return nil, ctrl.svc.msg.With(ctx).Delete(r.MessageID)
 }
 
-func (ctrl *Message) Pin(ctx context.Context, r *request.MessagePin) (interface{}, error) {
+func (ctrl *Message) PinCreate(ctx context.Context, r *request.MessagePinCreate) (interface{}, error) {
 	return nil, ctrl.svc.msg.With(ctx).Pin(r.MessageID)
 }
 
-func (ctrl *Message) RemovePin(ctx context.Context, r *request.MessageRemovePin) (interface{}, error) {
+func (ctrl *Message) PinRemove(ctx context.Context, r *request.MessagePinRemove) (interface{}, error) {
 	return nil, ctrl.svc.msg.With(ctx).RemovePin(r.MessageID)
 }
 
-func (ctrl *Message) Bookmark(ctx context.Context, r *request.MessageBookmark) (interface{}, error) {
+func (ctrl *Message) BookmarkCreate(ctx context.Context, r *request.MessageBookmarkCreate) (interface{}, error) {
 	return nil, ctrl.svc.msg.With(ctx).Bookmark(r.MessageID)
 }
 
-func (ctrl *Message) RemoveBookmark(ctx context.Context, r *request.MessageRemoveBookmark) (interface{}, error) {
+func (ctrl *Message) BookmarkRemove(ctx context.Context, r *request.MessageBookmarkRemove) (interface{}, error) {
 	return nil, ctrl.svc.msg.With(ctx).RemoveBookmark(r.MessageID)
 }
 
-func (ctrl *Message) React(ctx context.Context, r *request.MessageReact) (interface{}, error) {
+func (ctrl *Message) ReactionCreate(ctx context.Context, r *request.MessageReactionCreate) (interface{}, error) {
 	return nil, ctrl.svc.msg.With(ctx).React(r.MessageID, r.Reaction)
 }
 
-func (ctrl *Message) RemoveReaction(ctx context.Context, r *request.MessageRemoveReaction) (interface{}, error) {
+func (ctrl *Message) ReactionRemove(ctx context.Context, r *request.MessageReactionRemove) (interface{}, error) {
 	return nil, ctrl.svc.msg.With(ctx).RemoveReaction(r.MessageID, r.Reaction)
 }
 func (ctrl *Message) wrap(ctx context.Context) func(m *types.Message, err error) (*outgoing.Message, error) {

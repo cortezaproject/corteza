@@ -31,14 +31,14 @@ type MessageAPI interface {
 	History(context.Context, *request.MessageHistory) (interface{}, error)
 	Edit(context.Context, *request.MessageEdit) (interface{}, error)
 	Delete(context.Context, *request.MessageDelete) (interface{}, error)
-	GetReplies(context.Context, *request.MessageGetReplies) (interface{}, error)
-	CreateReply(context.Context, *request.MessageCreateReply) (interface{}, error)
-	Pin(context.Context, *request.MessagePin) (interface{}, error)
-	RemovePin(context.Context, *request.MessageRemovePin) (interface{}, error)
-	Bookmark(context.Context, *request.MessageBookmark) (interface{}, error)
-	RemoveBookmark(context.Context, *request.MessageRemoveBookmark) (interface{}, error)
-	React(context.Context, *request.MessageReact) (interface{}, error)
-	RemoveReaction(context.Context, *request.MessageRemoveReaction) (interface{}, error)
+	ReplyGet(context.Context, *request.MessageReplyGet) (interface{}, error)
+	ReplyCreate(context.Context, *request.MessageReplyCreate) (interface{}, error)
+	PinCreate(context.Context, *request.MessagePinCreate) (interface{}, error)
+	PinRemove(context.Context, *request.MessagePinRemove) (interface{}, error)
+	BookmarkCreate(context.Context, *request.MessageBookmarkCreate) (interface{}, error)
+	BookmarkRemove(context.Context, *request.MessageBookmarkRemove) (interface{}, error)
+	ReactionCreate(context.Context, *request.MessageReactionCreate) (interface{}, error)
+	ReactionRemove(context.Context, *request.MessageReactionRemove) (interface{}, error)
 }
 
 // HTTP API interface
@@ -47,14 +47,14 @@ type Message struct {
 	History        func(http.ResponseWriter, *http.Request)
 	Edit           func(http.ResponseWriter, *http.Request)
 	Delete         func(http.ResponseWriter, *http.Request)
-	GetReplies     func(http.ResponseWriter, *http.Request)
-	CreateReply    func(http.ResponseWriter, *http.Request)
-	Pin            func(http.ResponseWriter, *http.Request)
-	RemovePin      func(http.ResponseWriter, *http.Request)
-	Bookmark       func(http.ResponseWriter, *http.Request)
-	RemoveBookmark func(http.ResponseWriter, *http.Request)
-	React          func(http.ResponseWriter, *http.Request)
-	RemoveReaction func(http.ResponseWriter, *http.Request)
+	ReplyGet       func(http.ResponseWriter, *http.Request)
+	ReplyCreate    func(http.ResponseWriter, *http.Request)
+	PinCreate      func(http.ResponseWriter, *http.Request)
+	PinRemove      func(http.ResponseWriter, *http.Request)
+	BookmarkCreate func(http.ResponseWriter, *http.Request)
+	BookmarkRemove func(http.ResponseWriter, *http.Request)
+	ReactionCreate func(http.ResponseWriter, *http.Request)
+	ReactionRemove func(http.ResponseWriter, *http.Request)
 }
 
 func NewMessage(mh MessageAPI) *Message {
@@ -87,60 +87,60 @@ func NewMessage(mh MessageAPI) *Message {
 				return mh.Delete(r.Context(), params)
 			})
 		},
-		GetReplies: func(w http.ResponseWriter, r *http.Request) {
+		ReplyGet: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewMessageGetReplies()
+			params := request.NewMessageReplyGet()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.GetReplies(r.Context(), params)
+				return mh.ReplyGet(r.Context(), params)
 			})
 		},
-		CreateReply: func(w http.ResponseWriter, r *http.Request) {
+		ReplyCreate: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewMessageCreateReply()
+			params := request.NewMessageReplyCreate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.CreateReply(r.Context(), params)
+				return mh.ReplyCreate(r.Context(), params)
 			})
 		},
-		Pin: func(w http.ResponseWriter, r *http.Request) {
+		PinCreate: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewMessagePin()
+			params := request.NewMessagePinCreate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.Pin(r.Context(), params)
+				return mh.PinCreate(r.Context(), params)
 			})
 		},
-		RemovePin: func(w http.ResponseWriter, r *http.Request) {
+		PinRemove: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewMessageRemovePin()
+			params := request.NewMessagePinRemove()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.RemovePin(r.Context(), params)
+				return mh.PinRemove(r.Context(), params)
 			})
 		},
-		Bookmark: func(w http.ResponseWriter, r *http.Request) {
+		BookmarkCreate: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewMessageBookmark()
+			params := request.NewMessageBookmarkCreate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.Bookmark(r.Context(), params)
+				return mh.BookmarkCreate(r.Context(), params)
 			})
 		},
-		RemoveBookmark: func(w http.ResponseWriter, r *http.Request) {
+		BookmarkRemove: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewMessageRemoveBookmark()
+			params := request.NewMessageBookmarkRemove()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.RemoveBookmark(r.Context(), params)
+				return mh.BookmarkRemove(r.Context(), params)
 			})
 		},
-		React: func(w http.ResponseWriter, r *http.Request) {
+		ReactionCreate: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewMessageReact()
+			params := request.NewMessageReactionCreate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.React(r.Context(), params)
+				return mh.ReactionCreate(r.Context(), params)
 			})
 		},
-		RemoveReaction: func(w http.ResponseWriter, r *http.Request) {
+		ReactionRemove: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewMessageRemoveReaction()
+			params := request.NewMessageReactionRemove()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.RemoveReaction(r.Context(), params)
+				return mh.ReactionRemove(r.Context(), params)
 			})
 		},
 	}
@@ -154,14 +154,14 @@ func (mh *Message) MountRoutes(r chi.Router, middlewares ...func(http.Handler) h
 			r.Get("/", mh.History)
 			r.Put("/{messageID}", mh.Edit)
 			r.Delete("/{messageID}", mh.Delete)
-			r.Get("/{messageID}/replies", mh.GetReplies)
-			r.Post("/{messageID}/replies", mh.CreateReply)
-			r.Post("/{messageID}/pin", mh.Pin)
-			r.Delete("/{messageID}/pin", mh.RemovePin)
-			r.Post("/{messageID}/bookmark", mh.Bookmark)
-			r.Delete("/{messageID}/bookmark", mh.RemoveBookmark)
-			r.Post("/{messageID}/reaction/{reaction}", mh.React)
-			r.Delete("/{messageID}/reaction/{reaction}", mh.RemoveReaction)
+			r.Get("/{messageID}/replies", mh.ReplyGet)
+			r.Post("/{messageID}/replies", mh.ReplyCreate)
+			r.Post("/{messageID}/pin", mh.PinCreate)
+			r.Delete("/{messageID}/pin", mh.PinRemove)
+			r.Post("/{messageID}/bookmark", mh.BookmarkCreate)
+			r.Delete("/{messageID}/bookmark", mh.BookmarkRemove)
+			r.Post("/{messageID}/reaction/{reaction}", mh.ReactionCreate)
+			r.Delete("/{messageID}/reaction/{reaction}", mh.ReactionRemove)
 		})
 	})
 }
