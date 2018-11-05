@@ -2,16 +2,29 @@ package rest
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/pkg/errors"
+	"github.com/titpetric/factory/resputil"
 
+	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/payload"
+	"github.com/crusttech/crust/internal/payload/outgoing"
 	"github.com/crusttech/crust/system/rest/handlers"
 	"github.com/crusttech/crust/system/rest/request"
+	"github.com/crusttech/crust/system/service"
 )
 
 var _ = errors.Wrap
 
-type Auth struct{}
+type (
+	Auth struct{}
+
+	checkResponse struct {
+		JWT  string         `json:"jwt"`
+		User *outgoing.User `json:"user"`
+	}
+)
 
 func (Auth) New() *Auth {
 	return &Auth{}

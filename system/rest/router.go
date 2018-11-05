@@ -3,24 +3,14 @@ package rest
 import (
 	"context"
 	"log"
-	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/config"
-	"github.com/crusttech/crust/internal/payload"
-	"github.com/crusttech/crust/internal/payload/outgoing"
 	"github.com/crusttech/crust/system/repository"
+	"github.com/crusttech/crust/system/rest/handlers"
 	"github.com/crusttech/crust/system/service"
-)
-
-type (
-	checkResponse struct {
-		JWT  string         `json:"jwt"`
-		User *outgoing.User `json:"user"`
-	}
 )
 
 func MountRoutes(oidcConfig *config.OIDC, jwtAuth jwtEncodeCookieSetter) func(chi.Router) {
