@@ -13,7 +13,7 @@ function gofmt {
 }
 
 echo "=== go generate ==="
-cd auth/db && go generate && cd ../..
+cd system/db && go generate && cd ../..
 cd crm/db && go generate && cd ../..
 cd sam/db && go generate && cd ../..
 
@@ -21,8 +21,9 @@ _PWD=$PWD
 SPECS=$(find $PWD -name 'spec.json' | xargs -n1 dirname)
 for SPEC in $SPECS; do
 	echo "=== spec $SPEC ==="
+	cd $SPEC && rm -rf spec && /usr/bin/env spec && cd $_PWD
 	if [ -x "$(dirname $SPEC)/README.php" ]; then
-		cd $SPEC && rm -rf spec && /usr/bin/env spec && cd .. && ./README.php && cd $_PWD
+		cd $SPEC && cd .. && ./README.php && cd $_PWD
 	fi
 
 	SRC=$(dirname $(dirname $SPEC))

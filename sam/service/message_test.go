@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	authTypes "github.com/crusttech/crust/auth/types"
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/sam/types"
+	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 // func TestChannelCreation(t *testing.T) {
@@ -33,7 +33,7 @@ func TesMessageLength(t *testing.T) {
 	// defer mockCtrl.Finish()
 
 	ctx := context.TODO()
-	auth.SetIdentityToContext(ctx, &authTypes.User{})
+	auth.SetIdentityToContext(ctx, &systemTypes.User{})
 
 	svc := message{db: &mockDB{}, ctx: ctx}
 	e := func(out *types.Message, err error) error { return err }

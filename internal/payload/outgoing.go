@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/url"
 
-	authTypes "github.com/crusttech/crust/auth/types"
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/payload/outgoing"
 	samTypes "github.com/crusttech/crust/sam/types"
+	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 const (
@@ -180,7 +180,7 @@ func ChannelPart(channelID, userID uint64) *outgoing.ChannelPart {
 	}
 }
 
-func User(user *authTypes.User) *outgoing.User {
+func User(user *systemTypes.User) *outgoing.User {
 	if user == nil {
 		return nil
 	}
@@ -194,7 +194,7 @@ func User(user *authTypes.User) *outgoing.User {
 	}
 }
 
-func Users(users []*authTypes.User) *outgoing.UserSet {
+func Users(users []*systemTypes.User) *outgoing.UserSet {
 	uu := make([]*outgoing.User, len(users))
 	for k, u := range users {
 		uu[k] = User(u)

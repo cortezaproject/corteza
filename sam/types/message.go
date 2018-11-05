@@ -4,24 +4,24 @@ import (
 	"database/sql/driver"
 	"time"
 
-	authTypes "github.com/crusttech/crust/auth/types"
+	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 type (
 	Message struct {
-		ID         uint64          `json:"id" db:"id"`
-		Type       MessageType     `json:"type" db:"type"`
-		Message    string          `json:"message" db:"message"`
-		UserID     uint64          `json:"userId" db:"rel_user"`
-		ChannelID  uint64          `json:"channelId" db:"rel_channel"`
-		ReplyTo    uint64          `json:"replyTo" db:"reply_to"`
-		Replies    uint            `json:"replies" db:"replies"`
-		CreatedAt  time.Time       `json:"createdAt,omitempty" db:"created_at"`
-		UpdatedAt  *time.Time      `json:"updatedAt,omitempty" db:"updated_at"`
-		DeletedAt  *time.Time      `json:"deletedAt,omitempty" db:"deleted_at"`
-		Attachment *Attachment     `json:"attachment,omitempty"`
-		User       *authTypes.User `json:"user,omitempty"`
-		Flags      MessageFlagSet  `json:"flags,omitempty"`
+		ID         uint64            `json:"id" db:"id"`
+		Type       MessageType       `json:"type" db:"type"`
+		Message    string            `json:"message" db:"message"`
+		UserID     uint64            `json:"userId" db:"rel_user"`
+		ChannelID  uint64            `json:"channelId" db:"rel_channel"`
+		ReplyTo    uint64            `json:"replyTo" db:"reply_to"`
+		Replies    uint              `json:"replies" db:"replies"`
+		CreatedAt  time.Time         `json:"createdAt,omitempty" db:"created_at"`
+		UpdatedAt  *time.Time        `json:"updatedAt,omitempty" db:"updated_at"`
+		DeletedAt  *time.Time        `json:"deletedAt,omitempty" db:"deleted_at"`
+		Attachment *Attachment       `json:"attachment,omitempty"`
+		User       *systemTypes.User `json:"user,omitempty"`
+		Flags      MessageFlagSet    `json:"flags,omitempty"`
 	}
 
 	MessageSet []*Message

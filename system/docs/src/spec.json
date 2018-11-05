@@ -1,0 +1,339 @@
+[
+  {
+    "title": "Authentication",
+    "package": "auth",
+    "path": "/auth",
+    "entrypoint": "auth",
+    "authentication": [],
+    "apis": [
+      {
+        "name": "check",
+        "method": "GET",
+        "title": "Check JWT token",
+        "path": "/check",
+        "parameters": []
+      }
+    ]
+  },
+  {
+    "title": "Organisations",
+    "description": "Organisations represent a top-level grouping entity. There may be many organisations defined in a single deployment.",
+    "package": "sam",
+    "path": "/organisations",
+    "entrypoint": "organisation",
+    "authentication": [
+      "Client ID",
+      "Session ID"
+    ],
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "title": "List organisations",
+        "path": "/",
+        "parameters": {
+          "get": [
+            {
+              "type": "string",
+              "name": "query",
+              "required": false,
+              "title": "Search query"
+            }
+          ]
+        }
+      },
+      {
+        "name": "create",
+        "method": "POST",
+        "title": "Create organisation",
+        "path": "/",
+        "parameters": {
+          "post": [
+            {
+              "type": "string",
+              "name": "name",
+              "required": true,
+              "title": "Organisation Name"
+            }
+          ]
+        }
+      },
+      {
+        "name": "edit",
+        "method": "PUT",
+        "title": "Update organisation details",
+        "path": "/{id}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "id",
+              "required": false,
+              "title": "Organisation ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "string",
+              "name": "name",
+              "required": true,
+              "title": "Organisation Name"
+            }
+          ]
+        }
+      },
+      {
+        "name": "remove",
+        "method": "DELETE",
+        "title": "Remove organisation",
+        "path": "/{id}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "id",
+              "required": true,
+              "title": "Organisation ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "read",
+        "method": "GET",
+        "title": "Read organisation details",
+        "path": "/{id}",
+        "parameters": {
+          "get": [
+            {
+              "type": "uint64",
+              "name": "id",
+              "required": true,
+              "title": "Organisation ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "archive",
+        "method": "POST",
+        "title": "Archive organisation",
+        "path": "/{id}/archive",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "id",
+              "required": true,
+              "title": "Organisation ID"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Teams",
+    "description": "An organisation may have many teams. Teams may have many channels available. Access to channels may be shared between teams.",
+    "package": "sam",
+    "path": "/teams",
+    "entrypoint": "team",
+    "authentication": [
+      "Client ID",
+      "Session ID"
+    ],
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "title": "List teams",
+        "path": "/",
+        "parameters": {
+          "get": [
+            {
+              "type": "string",
+              "name": "query",
+              "required": false,
+              "title": "Search query"
+            }
+          ]
+        }
+      },
+      {
+        "name": "create",
+        "method": "POST",
+        "title": "Update team details",
+        "path": "/",
+        "parameters": {
+          "post": [
+            {
+              "type": "string",
+              "name": "name",
+              "required": true,
+              "title": "Name of Team"
+            },
+            {
+              "type": "[]uint64",
+              "name": "members",
+              "required": false,
+              "title": "Team member IDs"
+            }
+          ]
+        }
+      },
+      {
+        "name": "edit",
+        "method": "PUT",
+        "title": "Update team details",
+        "path": "/{teamID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "teamID",
+              "required": true,
+              "title": "Team ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "string",
+              "name": "name",
+              "required": false,
+              "title": "Name of Team"
+            },
+            {
+              "type": "[]uint64",
+              "name": "members",
+              "required": false,
+              "title": "Team member IDs"
+            }
+          ]
+        }
+      },
+      {
+        "name": "read",
+        "method": "GET",
+        "title": "Read team details and memberships",
+        "path": "/{teamID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "teamID",
+              "required": true,
+              "title": "Team ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "remove",
+        "method": "DELETE",
+        "title": "Remove team",
+        "path": "/{teamID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "teamID",
+              "required": true,
+              "title": "Team ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "archive",
+        "method": "POST",
+        "title": "Archive team",
+        "path": "/{teamID}/archive",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "teamID",
+              "required": true,
+              "title": "Team ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "move",
+        "method": "POST",
+        "title": "Move team to different organisation",
+        "path": "/{teamID}/move",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "teamID",
+              "required": true,
+              "title": "Team ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "uint64",
+              "name": "organisationID",
+              "required": true,
+              "title": "Team ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "merge",
+        "method": "POST",
+        "title": "Merge one team into another",
+        "path": "/{teamID}/merge",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "teamID",
+              "required": true,
+              "title": "Source Team ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "uint64",
+              "name": "destination",
+              "required": true,
+              "title": "Destination Team ID"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Users",
+    "package": "sam",
+    "path": "/users",
+    "entrypoint": "user",
+    "authentication": [
+      "Client ID",
+      "Session ID"
+    ],
+    "apis": [
+      {
+        "name": "search",
+        "method": "GET",
+        "title": "Search users (Directory)",
+        "parameters": {
+          "get": [
+            {
+              "type": "string",
+              "name": "query",
+              "required": false,
+              "title": "Search query to match against users"
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

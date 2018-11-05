@@ -6,17 +6,17 @@ import (
 	"sync"
 	"time"
 
-	authTypes "github.com/crusttech/crust/auth/types"
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/payload"
-	"github.com/crusttech/crust/internal/payload/outgoing"
-	"github.com/crusttech/crust/sam/types"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 
-	authService "github.com/crusttech/crust/auth/service"
+	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/payload"
+	"github.com/crusttech/crust/internal/payload/outgoing"
 	"github.com/crusttech/crust/sam/repository"
 	samService "github.com/crusttech/crust/sam/service"
+	"github.com/crusttech/crust/sam/types"
+	systemService "github.com/crusttech/crust/system/service"
+	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 type (
@@ -39,7 +39,7 @@ type (
 		user auth.Identifiable
 
 		svc struct {
-			user authService.UserService
+			user systemService.UserService
 			ch   samService.ChannelService
 			msg  samService.MessageService
 		}
@@ -56,7 +56,7 @@ func (Session) New(ctx context.Context, config *repository.Flags, conn *websocke
 		stop:   make(chan []byte, 1),
 	}
 
-	s.svc.user = authService.DefaultUser
+	s.svc.user = systemService.DefaultUser
 	s.svc.ch = samService.DefaultChannel
 	s.svc.msg = samService.DefaultMessage
 
@@ -69,7 +69,7 @@ func (sess *Session) Context() context.Context {
 
 func (sess *Session) connected() (err error) {
 	var (
-		uu authTypes.UserSet
+		uu systemTypes.UserSet
 		cc types.ChannelSet
 	)
 

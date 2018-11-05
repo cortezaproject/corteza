@@ -16,10 +16,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
-	authService "github.com/crusttech/crust/auth/service"
 	"github.com/crusttech/crust/internal/store"
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
+	systemService "github.com/crusttech/crust/system/service"
 )
 
 const (
@@ -33,7 +33,7 @@ type (
 		ctx context.Context
 
 		store store.Store
-		usr   authService.UserService
+		usr   systemService.UserService
 		evl   EventService
 
 		attachment repository.AttachmentRepository
@@ -53,7 +53,7 @@ type (
 func Attachment(store store.Store) AttachmentService {
 	return (&attachment{
 		store: store,
-		usr:   authService.DefaultUser,
+		usr:   systemService.DefaultUser,
 		evl:   DefaultEvent,
 	}).With(context.Background())
 }

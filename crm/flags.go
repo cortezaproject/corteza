@@ -1,4 +1,4 @@
-package crm
+package service
 
 import (
 	"github.com/pkg/errors"

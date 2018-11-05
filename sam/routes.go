@@ -1,4 +1,4 @@
-package sam
+package service
 
 import (
 	"fmt"
