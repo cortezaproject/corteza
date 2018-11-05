@@ -13,6 +13,7 @@
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | download | bool | GET | Force file download | N/A | NO |
+| name | string | PATH | File name | N/A | YES |
 | attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
 
 ## Serves preview of an attached file
@@ -27,6 +28,7 @@
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+| ext | string | PATH | Preview extension/format | N/A | YES |
 | attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
 
 

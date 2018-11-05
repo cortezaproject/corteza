@@ -526,7 +526,15 @@
         "method": "GET",
         "title": "Serves attached file",
         "parameters": {
-          "GET": [
+          "path": [
+            {
+              "name": "name",
+              "type": "string",
+              "required": true,
+              "title": "File name"
+            }
+          ],
+          "get": [
             {
               "type": "bool",
               "name": "download",
@@ -540,7 +548,17 @@
         "name": "preview",
         "path": "/preview.{ext}",
         "method": "GET",
-        "title": "Serves preview of an attached file"
+        "title": "Serves preview of an attached file",
+        "parameters": {
+          "path": [
+            {
+              "name": "ext",
+              "type": "string",
+              "required": true,
+              "title": "Preview extension/format"
+            }
+          ]
+        }
       }
     ]
   },
