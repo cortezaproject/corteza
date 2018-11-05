@@ -93,7 +93,7 @@
       }
     },
     {
-      "Name": "getReplies",
+      "Name": "replyGet",
       "Method": "GET",
       "Title": "Returns all replies to a message",
       "Path": "/{messageID}/replies",
@@ -109,7 +109,7 @@
       }
     },
     {
-      "Name": "createReply",
+      "Name": "replyCreate",
       "Method": "POST",
       "Title": "Reply to a message",
       "Path": "/{messageID}/replies",
@@ -133,7 +133,7 @@
       }
     },
     {
-      "Name": "pin",
+      "Name": "pinCreate",
       "Method": "POST",
       "Title": "Pin message to channel (public bookmark)",
       "Path": "/{messageID}/pin",
@@ -149,7 +149,7 @@
       }
     },
     {
-      "Name": "removePin",
+      "Name": "pinRemove",
       "Method": "DELETE",
       "Title": "Pin message to channel (public bookmark)",
       "Path": "/{messageID}/pin",
@@ -165,7 +165,7 @@
       }
     },
     {
-      "Name": "bookmark",
+      "Name": "bookmarkCreate",
       "Method": "POST",
       "Title": "Bookmark a message (private bookmark)",
       "Path": "/{messageID}/bookmark",
@@ -181,7 +181,7 @@
       }
     },
     {
-      "Name": "removeBookmark",
+      "Name": "bookmarkRemove",
       "Method": "DELETE",
       "Title": "Remove boomark from message (private bookmark)",
       "Path": "/{messageID}/bookmark",
@@ -197,7 +197,7 @@
       }
     },
     {
-      "Name": "react",
+      "Name": "reactionCreate",
       "Method": "POST",
       "Title": "React to a message",
       "Path": "/{messageID}/reaction/{reaction}",
@@ -219,7 +219,7 @@
       }
     },
     {
-      "Name": "removeReaction",
+      "Name": "reactionRemove",
       "Method": "DELETE",
       "Title": "Delete reaction from a message",
       "Path": "/{messageID}/reaction/{reaction}",
