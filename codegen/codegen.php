@@ -52,6 +52,7 @@ if (getenv("DEBUG") === "true") {
 $api_files = glob($project . "/docs/src/spec/*.json");
 $apis = array_map(function($filename) {
 	$api = array_change_key_case_recursive(json_decode(file_get_contents($filename), true));
+	$api['entrypoint'] = strtolower($api['interface']);
 	if (empty($api['parameters'])) {
 		$api['parameters'] = array();
 	}
@@ -71,7 +72,7 @@ $apis = array_map(function($filename) {
 }, $api_files);
 
 usort($apis, function($a, $b) {
-	return strcmp($a['interface'], $b['interface']);
+	return strcmp($a['entrypoint'], $b['entrypoint']);
 });
 
 $parsers = array(
