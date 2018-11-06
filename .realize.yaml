@@ -20,8 +20,8 @@ server:
 schema:
 
 # ######################################################################################################################
-- name: auth
-  path: cmd/auth
+- name: system
+  path: cmd/system
   commands:
     vet:
       status: false
