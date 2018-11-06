@@ -21,7 +21,7 @@ CRM input field definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/field/{id}` | HTTP/S | GET |  |
+| `/field/{typeID}` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -71,7 +71,7 @@ CRM module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{id}` | HTTP/S | GET |  |
+| `/module/{moduleID}` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -85,7 +85,7 @@ CRM module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{id}` | HTTP/S | POST |  |
+| `/module/{moduleID}` | HTTP/S | POST |  |
 
 #### Request parameters
 
@@ -101,7 +101,7 @@ CRM module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{id}` | HTTP/S | DELETE |  |
+| `/module/{moduleID}` | HTTP/S | DELETE |  |
 
 #### Request parameters
 
@@ -146,7 +146,7 @@ CRM module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/content/{id}` | HTTP/S | GET |  |
+| `/module/{moduleID}/content/{contentID}` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -161,7 +161,7 @@ CRM module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/content/{id}` | HTTP/S | POST |  |
+| `/module/{moduleID}/content/{contentID}` | HTTP/S | POST |  |
 
 #### Request parameters
 
@@ -177,7 +177,7 @@ CRM module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/content/{id}` | HTTP/S | DELETE |  |
+| `/module/{moduleID}/content/{contentID}` | HTTP/S | DELETE |  |
 
 #### Request parameters
 
@@ -232,7 +232,7 @@ CRM module pages
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/page/{id}` | HTTP/S | GET |  |
+| `/page/{pageID}` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -246,7 +246,7 @@ CRM module pages
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/page/{id}` | HTTP/S | POST |  |
+| `/page/{pageID}` | HTTP/S | POST |  |
 
 #### Request parameters
 
@@ -281,7 +281,7 @@ CRM module pages
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/page/{id}` | HTTP/S | Delete |  |
+| `/page/{pageID}` | HTTP/S | Delete |  |
 
 #### Request parameters
 

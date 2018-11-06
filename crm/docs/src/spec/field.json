@@ -42,7 +42,7 @@
       "Name": "type",
       "Method": "GET",
       "Title": "Get field details",
-      "Path": "/{id}",
+      "Path": "/{typeID}",
       "Parameters": {
         "path": [
           {

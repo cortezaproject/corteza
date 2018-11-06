@@ -61,7 +61,7 @@ func (fh *Field) MountRoutes(r chi.Router, middlewares ...func(http.Handler) htt
 		r.Use(middlewares...)
 		r.Route("/field", func(r chi.Router) {
 			r.Get("/", fh.List)
-			r.Get("/{id}", fh.Type)
+			r.Get("/{typeID}", fh.Type)
 		})
 	})
 }

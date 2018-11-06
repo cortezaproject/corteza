@@ -75,7 +75,7 @@
       "Name": "read",
       "Method": "GET",
       "Title": "Get page details",
-      "Path": "/{id}",
+      "Path": "/{pageID}",
       "Parameters": {
         "path": [
           {
@@ -91,7 +91,7 @@
       "Name": "edit",
       "Method": "POST",
       "Title": "Create page",
-      "Path": "/{id}",
+      "Path": "/{pageID}",
       "Parameters": {
         "path": [
           {
@@ -169,7 +169,7 @@
       "Name": "delete",
       "Method": "Delete",
       "Title": "Delete page",
-      "Path": "/{id}",
+      "Path": "/{pageID}",
       "Parameters": {
         "path": [
           {

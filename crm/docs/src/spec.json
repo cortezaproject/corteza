@@ -38,7 +38,7 @@
       },
       {
         "name": "type",
-        "path": "/{id}",
+        "path": "/{typeID}",
         "method": "GET",
         "title": "Get field details",
         "parameters": {
@@ -127,7 +127,7 @@
       },
       {
         "name": "read",
-        "path": "/{id}",
+        "path": "/{pageID}",
         "method": "GET",
         "title": "Get page details",
         "parameters": {
@@ -145,7 +145,7 @@
         "name": "edit",
         "method": "POST",
         "title": "Create page",
-        "path": "/{id}",
+        "path": "/{pageID}",
         "parameters": {
           "path": [
             {
@@ -221,7 +221,7 @@
       },
       {
         "name": "delete",
-        "path": "/{id}",
+        "path": "/{pageID}",
         "method": "Delete",
         "title": "Delete page",
         "parameters": {
@@ -357,7 +357,7 @@
         "name": "read",
         "method": "GET",
         "title": "Read module",
-        "path": "/{id}",
+        "path": "/{moduleID}",
         "parameters": {
           "path": [
             {
@@ -373,7 +373,7 @@
         "name": "edit",
         "method": "POST",
         "title": "Edit module",
-        "path": "/{id}",
+        "path": "/{moduleID}",
         "parameters": {
           "path": [
             {
@@ -403,7 +403,7 @@
         "name": "delete",
         "method": "DELETE",
         "title": "Delete module",
-        "path": "/{id}",
+        "path": "/{moduleID}",
         "parameters": {
           "path": [
             {
@@ -473,7 +473,7 @@
         "name": "content/read",
         "method": "GET",
         "title": "Read contents by ID from module section",
-        "path": "/{moduleID}/content/{id}",
+        "path": "/{moduleID}/content/{contentID}",
         "parameters": {
           "path": [
             {
@@ -495,7 +495,7 @@
         "name": "content/edit",
         "method": "POST",
         "title": "Add/update contents in module section",
-        "path": "/{moduleID}/content/{id}",
+        "path": "/{moduleID}/content/{contentID}",
         "parameters": {
           "path": [
             {
@@ -525,7 +525,7 @@
         "name": "content/delete",
         "method": "DELETE",
         "title": "Delete content row from module section",
-        "path": "/{moduleID}/content/{id}",
+        "path": "/{moduleID}/content/{contentID}",
         "parameters": {
           "path": [
             {
