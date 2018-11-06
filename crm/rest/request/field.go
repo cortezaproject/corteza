@@ -72,7 +72,7 @@ var _ RequestFiller = NewFieldList()
 
 // Field type request parameters
 type FieldType struct {
-	ID string
+	TypeID string
 }
 
 func NewFieldType() *FieldType {
@@ -106,7 +106,7 @@ func (f *FieldType) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	f.ID = chi.URLParam(r, "id")
+	f.TypeID = chi.URLParam(r, "typeID")
 
 	return err
 }

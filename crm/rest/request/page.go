@@ -151,7 +151,7 @@ var _ RequestFiller = NewPageCreate()
 
 // Page read request parameters
 type PageRead struct {
-	ID uint64 `json:",string"`
+	PageID uint64 `json:",string"`
 }
 
 func NewPageRead() *PageRead {
@@ -185,7 +185,7 @@ func (p *PageRead) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	p.ID = parseUInt64(chi.URLParam(r, "id"))
+	p.PageID = parseUInt64(chi.URLParam(r, "pageID"))
 
 	return err
 }
@@ -194,7 +194,7 @@ var _ RequestFiller = NewPageRead()
 
 // Page edit request parameters
 type PageEdit struct {
-	ID          uint64 `json:",string"`
+	PageID      uint64 `json:",string"`
 	SelfID      uint64 `json:",string"`
 	ModuleID    uint64 `json:",string"`
 	Title       string
@@ -234,7 +234,7 @@ func (p *PageEdit) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	p.ID = parseUInt64(chi.URLParam(r, "id"))
+	p.PageID = parseUInt64(chi.URLParam(r, "pageID"))
 	if val, ok := post["selfID"]; ok {
 
 		p.SelfID = parseUInt64(val)
@@ -314,7 +314,7 @@ var _ RequestFiller = NewPageReorder()
 
 // Page delete request parameters
 type PageDelete struct {
-	ID uint64 `json:",string"`
+	PageID uint64 `json:",string"`
 }
 
 func NewPageDelete() *PageDelete {
@@ -348,7 +348,7 @@ func (p *PageDelete) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	p.ID = parseUInt64(chi.URLParam(r, "id"))
+	p.PageID = parseUInt64(chi.URLParam(r, "pageID"))
 
 	return err
 }
