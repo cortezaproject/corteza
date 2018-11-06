@@ -131,7 +131,7 @@ var _ RequestFiller = NewModuleCreate()
 
 // Module read request parameters
 type ModuleRead struct {
-	ID uint64 `json:",string"`
+	ModuleID uint64 `json:",string"`
 }
 
 func NewModuleRead() *ModuleRead {
@@ -165,7 +165,7 @@ func (m *ModuleRead) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.ID = parseUInt64(chi.URLParam(r, "id"))
+	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 
 	return err
 }
@@ -174,9 +174,9 @@ var _ RequestFiller = NewModuleRead()
 
 // Module edit request parameters
 type ModuleEdit struct {
-	ID     uint64 `json:",string"`
-	Name   string
-	Fields types.JSONText
+	ModuleID uint64 `json:",string"`
+	Name     string
+	Fields   types.JSONText
 }
 
 func NewModuleEdit() *ModuleEdit {
@@ -210,7 +210,7 @@ func (m *ModuleEdit) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.ID = parseUInt64(chi.URLParam(r, "id"))
+	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 	if val, ok := post["name"]; ok {
 
 		m.Name = val
@@ -229,7 +229,7 @@ var _ RequestFiller = NewModuleEdit()
 
 // Module delete request parameters
 type ModuleDelete struct {
-	ID uint64 `json:",string"`
+	ModuleID uint64 `json:",string"`
 }
 
 func NewModuleDelete() *ModuleDelete {
@@ -263,7 +263,7 @@ func (m *ModuleDelete) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.ID = parseUInt64(chi.URLParam(r, "id"))
+	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 
 	return err
 }
@@ -375,8 +375,8 @@ var _ RequestFiller = NewModuleContentCreate()
 
 // Module content/read request parameters
 type ModuleContentRead struct {
-	ModuleID uint64 `json:",string"`
-	ID       uint64 `json:",string"`
+	ModuleID  uint64 `json:",string"`
+	ContentID uint64 `json:",string"`
 }
 
 func NewModuleContentRead() *ModuleContentRead {
@@ -411,7 +411,7 @@ func (m *ModuleContentRead) Fill(r *http.Request) (err error) {
 	}
 
 	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
-	m.ID = parseUInt64(chi.URLParam(r, "id"))
+	m.ContentID = parseUInt64(chi.URLParam(r, "contentID"))
 
 	return err
 }
@@ -420,9 +420,9 @@ var _ RequestFiller = NewModuleContentRead()
 
 // Module content/edit request parameters
 type ModuleContentEdit struct {
-	ModuleID uint64 `json:",string"`
-	ID       uint64 `json:",string"`
-	Fields   types.JSONText
+	ModuleID  uint64 `json:",string"`
+	ContentID uint64 `json:",string"`
+	Fields    types.JSONText
 }
 
 func NewModuleContentEdit() *ModuleContentEdit {
@@ -457,7 +457,7 @@ func (m *ModuleContentEdit) Fill(r *http.Request) (err error) {
 	}
 
 	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
-	m.ID = parseUInt64(chi.URLParam(r, "id"))
+	m.ContentID = parseUInt64(chi.URLParam(r, "contentID"))
 	if val, ok := post["fields"]; ok {
 
 		if m.Fields, err = parseJSONText(val); err != nil {
@@ -472,8 +472,8 @@ var _ RequestFiller = NewModuleContentEdit()
 
 // Module content/delete request parameters
 type ModuleContentDelete struct {
-	ModuleID uint64 `json:",string"`
-	ID       uint64 `json:",string"`
+	ModuleID  uint64 `json:",string"`
+	ContentID uint64 `json:",string"`
 }
 
 func NewModuleContentDelete() *ModuleContentDelete {
@@ -508,7 +508,7 @@ func (m *ModuleContentDelete) Fill(r *http.Request) (err error) {
 	}
 
 	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
-	m.ID = parseUInt64(chi.URLParam(r, "id"))
+	m.ContentID = parseUInt64(chi.URLParam(r, "contentID"))
 
 	return err
 }

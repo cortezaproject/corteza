@@ -79,7 +79,7 @@
       "Parameters": {
         "path": [
           {
-            "name": "id",
+            "name": "pageID",
             "required": true,
             "title": "Page ID",
             "type": "uint64"
@@ -95,7 +95,7 @@
       "Parameters": {
         "path": [
           {
-            "name": "id",
+            "name": "pageID",
             "required": true,
             "title": "Page ID",
             "type": "uint64"
@@ -173,7 +173,7 @@
       "Parameters": {
         "path": [
           {
-            "name": "id",
+            "name": "pageID",
             "required": true,
             "title": "Page ID",
             "type": "uint64"

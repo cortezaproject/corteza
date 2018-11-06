@@ -37,7 +37,7 @@ func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{
 }
 
 func (ctrl *Page) Read(ctx context.Context, r *request.PageRead) (interface{}, error) {
-	return ctrl.page.With(ctx).FindByID(r.ID)
+	return ctrl.page.With(ctx).FindByID(r.PageID)
 }
 
 func (ctrl *Page) Reorder(ctx context.Context, r *request.PageReorder) (interface{}, error) {
@@ -46,7 +46,7 @@ func (ctrl *Page) Reorder(ctx context.Context, r *request.PageReorder) (interfac
 
 func (ctrl *Page) Edit(ctx context.Context, r *request.PageEdit) (interface{}, error) {
 	p := &types.Page{
-		ID:          r.ID,
+		ID:          r.PageID,
 		SelfID:      r.SelfID,
 		ModuleID:    r.ModuleID,
 		Title:       r.Title,
@@ -58,5 +58,5 @@ func (ctrl *Page) Edit(ctx context.Context, r *request.PageEdit) (interface{}, e
 }
 
 func (ctrl *Page) Delete(ctx context.Context, r *request.PageDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.page.With(ctx).DeleteByID(r.ID)
+	return resputil.OK(), ctrl.page.With(ctx).DeleteByID(r.PageID)
 }

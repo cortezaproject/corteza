@@ -26,11 +26,11 @@ func (s *Module) List(ctx context.Context, r *request.ModuleList) (interface{}, 
 }
 
 func (s *Module) Read(ctx context.Context, r *request.ModuleRead) (interface{}, error) {
-	return s.module.With(ctx).FindByID(r.ID)
+	return s.module.With(ctx).FindByID(r.ModuleID)
 }
 
 func (s *Module) Delete(ctx context.Context, r *request.ModuleDelete) (interface{}, error) {
-	return resputil.OK(), s.module.With(ctx).DeleteByID(r.ID)
+	return resputil.OK(), s.module.With(ctx).DeleteByID(r.ModuleID)
 }
 
 func (s *Module) Create(ctx context.Context, r *request.ModuleCreate) (interface{}, error) {
@@ -43,7 +43,7 @@ func (s *Module) Create(ctx context.Context, r *request.ModuleCreate) (interface
 
 func (s *Module) Edit(ctx context.Context, r *request.ModuleEdit) (interface{}, error) {
 	item := &types.Module{
-		ID:     r.ID,
+		ID:     r.ModuleID,
 		Name:   r.Name,
 		Fields: r.Fields,
 	}
@@ -55,7 +55,7 @@ func (s *Module) ContentList(ctx context.Context, r *request.ModuleContentList) 
 }
 
 func (s *Module) ContentRead(ctx context.Context, r *request.ModuleContentRead) (interface{}, error) {
-	return s.content.With(ctx).FindByID(r.ID)
+	return s.content.With(ctx).FindByID(r.ContentID)
 }
 
 func (s *Module) ContentCreate(ctx context.Context, r *request.ModuleContentCreate) (interface{}, error) {
@@ -68,7 +68,7 @@ func (s *Module) ContentCreate(ctx context.Context, r *request.ModuleContentCrea
 
 func (s *Module) ContentEdit(ctx context.Context, r *request.ModuleContentEdit) (interface{}, error) {
 	item := &types.Content{
-		ID:       r.ID,
+		ID:       r.ContentID,
 		ModuleID: r.ModuleID,
 		Fields:   r.Fields,
 	}
@@ -76,5 +76,5 @@ func (s *Module) ContentEdit(ctx context.Context, r *request.ModuleContentEdit) 
 }
 
 func (s *Module) ContentDelete(ctx context.Context, r *request.ModuleContentDelete) (interface{}, error) {
-	return resputil.OK(), s.content.With(ctx).DeleteByID(r.ID)
+	return resputil.OK(), s.content.With(ctx).DeleteByID(r.ContentID)
 }

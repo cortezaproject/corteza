@@ -27,7 +27,7 @@ CRM input field definitions
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | string | PATH | Type ID | N/A | YES |
+| typeID | string | PATH | Type ID | N/A | YES |
 
 
 
@@ -77,7 +77,7 @@ CRM module definitions
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | PATH | Module ID | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
 
 ## Edit module
 
@@ -91,7 +91,7 @@ CRM module definitions
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | PATH | Module ID | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
 | name | string | POST | Module Name | N/A | YES |
 | fields | types.JSONText | POST | Fields JSON | N/A | YES |
 
@@ -107,7 +107,7 @@ CRM module definitions
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | PATH | Module ID | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
 
 ## List/read contents from module section
 
@@ -153,7 +153,7 @@ CRM module definitions
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
-| id | uint64 | PATH | Content ID | N/A | YES |
+| contentID | uint64 | PATH | Content ID | N/A | YES |
 
 ## Add/update contents in module section
 
@@ -168,7 +168,7 @@ CRM module definitions
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
-| id | uint64 | PATH | Content ID | N/A | YES |
+| contentID | uint64 | PATH | Content ID | N/A | YES |
 | fields | types.JSONText | POST | Content JSON | N/A | YES |
 
 ## Delete content row from module section
@@ -184,7 +184,7 @@ CRM module definitions
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
-| id | uint64 | PATH | Content ID | N/A | YES |
+| contentID | uint64 | PATH | Content ID | N/A | YES |
 
 
 
@@ -238,7 +238,7 @@ CRM module pages
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | PATH | Page ID | N/A | YES |
+| pageID | uint64 | PATH | Page ID | N/A | YES |
 
 ## Create page
 
@@ -252,7 +252,7 @@ CRM module pages
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | PATH | Page ID | N/A | YES |
+| pageID | uint64 | PATH | Page ID | N/A | YES |
 | selfID | uint64 | POST | Parent Page ID | N/A | NO |
 | moduleID | uint64 | POST | Module ID (optional) | N/A | NO |
 | title | string | POST | Title | N/A | YES |
@@ -287,4 +287,4 @@ CRM module pages
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | PATH | Page ID | N/A | YES |
+| pageID | uint64 | PATH | Page ID | N/A | YES |

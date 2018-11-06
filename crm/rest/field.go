@@ -28,5 +28,5 @@ func (s *Field) List(ctx context.Context, _ *request.FieldList) (interface{}, er
 }
 
 func (s *Field) Type(ctx context.Context, r *request.FieldType) (interface{}, error) {
-	return s.field.With(ctx).FindByType(r.ID)
+	return s.field.With(ctx).FindByType(r.TypeID)
 }

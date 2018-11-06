@@ -45,7 +45,7 @@
           "path": [
             {
               "type": "string",
-              "name": "id",
+              "name": "typeID",
               "required": true,
               "title": "Type ID"
             }
@@ -134,7 +134,7 @@
           "path": [
             {
               "type": "uint64",
-              "name": "id",
+              "name": "pageID",
               "required": true,
               "title": "Page ID"
             }
@@ -150,7 +150,7 @@
           "path": [
             {
               "type": "uint64",
-              "name": "id",
+              "name": "pageID",
               "required": true,
               "title": "Page ID"
             }
@@ -228,7 +228,7 @@
           "path": [
             {
               "type": "uint64",
-              "name": "id",
+              "name": "pageID",
               "required": true,
               "title": "Page ID"
             }
@@ -362,7 +362,7 @@
           "path": [
             {
               "type": "uint64",
-              "name": "id",
+              "name": "moduleID",
               "required": true,
               "title": "Module ID"
             }
@@ -378,7 +378,7 @@
           "path": [
             {
               "type": "uint64",
-              "name": "id",
+              "name": "moduleID",
               "required": true,
               "title": "Module ID"
             }
@@ -408,7 +408,7 @@
           "path": [
             {
               "type": "uint64",
-              "name": "id",
+              "name": "moduleID",
               "required": true,
               "title": "Module ID"
             }
@@ -484,7 +484,7 @@
             },
             {
               "type": "uint64",
-              "name": "id",
+              "name": "contentID",
               "required": true,
               "title": "Content ID"
             }
@@ -506,7 +506,7 @@
             },
             {
               "type": "uint64",
-              "name": "id",
+              "name": "contentID",
               "required": true,
               "title": "Content ID"
             }
@@ -536,7 +536,7 @@
             },
             {
               "type": "uint64",
-              "name": "id",
+              "name": "contentID",
               "required": true,
               "title": "Content ID"
             }

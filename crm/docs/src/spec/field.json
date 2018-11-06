@@ -46,7 +46,7 @@
       "Parameters": {
         "path": [
           {
-            "name": "id",
+            "name": "typeID",
             "required": true,
             "title": "Type ID",
             "type": "string"
