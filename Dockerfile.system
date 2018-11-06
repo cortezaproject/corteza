@@ -11,7 +11,7 @@ RUN apk update && apk upgrade && apk add --no-cache git
 RUN mkdir /build; \
     go build \
         -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime="`date +%FT%T%z`" -X github.com/crusttech/crust/internal/version.Version="`git describe --always --tags` \
-        -o /build/auth cmd/auth/*.go
+        -o /build/system cmd/system/*.go
 
 ## target image
 FROM alpine:3.7
@@ -22,4 +22,4 @@ WORKDIR /crust
 COPY --from=builder /build/* /crust/
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
-ENTRYPOINT /crust/auth
+ENTRYPOINT /crust/system
