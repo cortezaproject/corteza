@@ -98,10 +98,10 @@ func (ph *Page) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Route("/page", func(r chi.Router) {
 			r.Get("/", ph.List)
 			r.Post("/", ph.Create)
-			r.Get("/{id}", ph.Read)
-			r.Post("/{id}", ph.Edit)
+			r.Get("/{pageID}", ph.Read)
+			r.Post("/{pageID}", ph.Edit)
 			r.Post("/{selfID}/reorder", ph.Reorder)
-			r.Delete("/{id}", ph.Delete)
+			r.Delete("/{pageID}", ph.Delete)
 		})
 	})
 }

@@ -120,7 +120,7 @@
       "Name": "read",
       "Method": "GET",
       "Title": "Read module",
-      "Path": "/{id}",
+      "Path": "/{moduleID}",
       "Parameters": {
         "path": [
           {
@@ -136,7 +136,7 @@
       "Name": "edit",
       "Method": "POST",
       "Title": "Edit module",
-      "Path": "/{id}",
+      "Path": "/{moduleID}",
       "Parameters": {
         "path": [
           {
@@ -166,7 +166,7 @@
       "Name": "delete",
       "Method": "DELETE",
       "Title": "Delete module",
-      "Path": "/{id}",
+      "Path": "/{moduleID}",
       "Parameters": {
         "path": [
           {
@@ -236,7 +236,7 @@
       "Name": "content/read",
       "Method": "GET",
       "Title": "Read contents by ID from module section",
-      "Path": "/{moduleID}/content/{id}",
+      "Path": "/{moduleID}/content/{contentID}",
       "Parameters": {
         "path": [
           {
@@ -258,7 +258,7 @@
       "Name": "content/edit",
       "Method": "POST",
       "Title": "Add/update contents in module section",
-      "Path": "/{moduleID}/content/{id}",
+      "Path": "/{moduleID}/content/{contentID}",
       "Parameters": {
         "path": [
           {
@@ -288,7 +288,7 @@
       "Name": "content/delete",
       "Method": "DELETE",
       "Title": "Delete content row from module section",
-      "Path": "/{moduleID}/content/{id}",
+      "Path": "/{moduleID}/content/{contentID}",
       "Parameters": {
         "path": [
           {
