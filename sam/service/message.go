@@ -205,28 +205,28 @@ func (svc *message) Update(in *types.Message) (message *types.Message, err error
 	_ = currentUserID
 
 	return message, svc.db.Transaction(func() (err error) {
-		original, err := svc.message.FindMessageByID(in.ID)
+		message, err = svc.message.FindMessageByID(in.ID)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "Could not load message for editing")
 		}
 
-		if original.Message == in.Message {
+		if message.Message == in.Message {
 			// Nothing changed
 			return nil
 		}
 
-		if original.UserID != currentUserID {
+		if message.UserID != currentUserID {
 			return errors.New("Not an owner")
 		}
 
-		// Allow message content to be changed, ignore everything else
-		original.Message = in.Message
+		// Allow message content to be changed
+		message.Message = in.Message
 
-		if message, err = svc.message.UpdateMessage(original); err != nil {
+		if message, err = svc.message.UpdateMessage(message); err != nil {
 			return err
 		}
 
-		return svc.sendEvent(original)
+		return svc.sendEvent(message)
 	})
 }
 

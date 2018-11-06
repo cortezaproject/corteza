@@ -3,12 +3,13 @@ package rest
 import (
 	"context"
 
+	"github.com/pkg/errors"
+
 	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/internal/payload/outgoing"
 	"github.com/crusttech/crust/sam/rest/request"
 	"github.com/crusttech/crust/sam/service"
 	"github.com/crusttech/crust/sam/types"
-	"github.com/pkg/errors"
 )
 
 var _ = errors.Wrap
@@ -93,7 +94,7 @@ func (ctrl *Message) ReactionRemove(ctx context.Context, r *request.MessageReact
 }
 func (ctrl *Message) wrap(ctx context.Context) func(m *types.Message, err error) (*outgoing.Message, error) {
 	return func(m *types.Message, err error) (*outgoing.Message, error) {
-		if err != nil {
+		if err != nil || m == nil {
 			return nil, err
 		} else {
 			return payload.Message(ctx, m), nil
