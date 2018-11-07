@@ -21,7 +21,7 @@ type (
 		DeleteByID(ID uint64) error
 	}
 
-	reaction struct {
+	messageFlag struct {
 		*repository
 	}
 )
@@ -31,22 +31,22 @@ const (
 )
 
 func MessageFlag(ctx context.Context, db *factory.DB) MessageFlagRepository {
-	return (&reaction{}).With(ctx, db)
+	return (&messageFlag{}).With(ctx, db)
 }
 
-func (r *reaction) With(ctx context.Context, db *factory.DB) MessageFlagRepository {
-	return &reaction{
+func (r *messageFlag) With(ctx context.Context, db *factory.DB) MessageFlagRepository {
+	return &messageFlag{
 		repository: r.repository.With(ctx, db),
 	}
 }
 
-func (r *reaction) FindByID(ID uint64) (*types.MessageFlag, error) {
+func (r *messageFlag) FindByID(ID uint64) (*types.MessageFlag, error) {
 	sql := "SELECT * FROM message_flags WHERE id = ?"
 	mod := &types.MessageFlag{}
 	return mod, isFound(r.db().Get(mod, sql, ID), mod.ID > 0, ErrMessageFlagNotFound)
 }
 
-func (r *reaction) FindByFlag(messageID, userID uint64, flag string) (*types.MessageFlag, error) {
+func (r *messageFlag) FindByFlag(messageID, userID uint64, flag string) (*types.MessageFlag, error) {
 	args := []interface{}{messageID, flag}
 	sql := "SELECT * FROM message_flags WHERE rel_message = ? AND flag = ? "
 
@@ -60,7 +60,7 @@ func (r *reaction) FindByFlag(messageID, userID uint64, flag string) (*types.Mes
 }
 
 // FindByMessageRange returns all flags by message id range
-func (r *reaction) FindByMessageIDs(IDs ...uint64) ([]*types.MessageFlag, error) {
+func (r *messageFlag) FindByMessageIDs(IDs ...uint64) ([]*types.MessageFlag, error) {
 	rval := make([]*types.MessageFlag, 0)
 
 	sql := `SELECT * FROM message_flags WHERE rel_message IN (?)`
@@ -72,12 +72,12 @@ func (r *reaction) FindByMessageIDs(IDs ...uint64) ([]*types.MessageFlag, error)
 	}
 }
 
-func (r *reaction) Create(mod *types.MessageFlag) (*types.MessageFlag, error) {
+func (r *messageFlag) Create(mod *types.MessageFlag) (*types.MessageFlag, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 	return mod, r.db().Insert("message_flags", mod)
 }
 
-func (r *reaction) DeleteByID(ID uint64) error {
+func (r *messageFlag) DeleteByID(ID uint64) error {
 	return exec(r.db().Exec("DELETE FROM message_flags WHERE id = ?", ID))
 }
