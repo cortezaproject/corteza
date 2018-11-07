@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"regexp"
 	"strings"
 
 	"github.com/pkg/errors"
 
+	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/sam/repository"
 	"github.com/crusttech/crust/sam/types"
 	systemService "github.com/crusttech/crust/system/service"
@@ -23,6 +25,7 @@ type (
 		cview      repository.ChannelViewRepository
 		message    repository.MessageRepository
 		mflag      repository.MessageFlagRepository
+		mentions   repository.MentionRepository
 
 		usr systemService.UserService
 		evl EventService
@@ -52,6 +55,11 @@ type (
 
 const (
 	settingsMessageBodyLength = 0
+	mentionRE                 = `<([@#])(\d+)((?:\s)([^>]+))?>`
+)
+
+var (
+	mentionsFinder = regexp.MustCompile(mentionRE)
 )
 
 func Message() MessageService {
@@ -76,6 +84,7 @@ func (svc *message) With(ctx context.Context) MessageService {
 		cview:      repository.ChannelView(ctx, db),
 		message:    repository.Message(ctx, db),
 		mflag:      repository.MessageFlag(ctx, db),
+		mentions:   repository.Mention(ctx, db),
 	}
 }
 
@@ -176,6 +185,10 @@ func (svc *message) Create(in *types.Message) (message *types.Message, err error
 			return
 		}
 
+		if err = svc.updateMentions(message.ID, svc.extractMentions(message)); err != nil {
+			return
+		}
+
 		if err = svc.cview.Inc(message.ChannelID, message.UserID); err != nil {
 			return
 		}
@@ -224,6 +237,10 @@ func (svc *message) Update(in *types.Message) (message *types.Message, err error
 
 		if message, err = svc.message.UpdateMessage(message); err != nil {
 			return err
+		}
+
+		if err = svc.updateMentions(message.ID, svc.extractMentions(message)); err != nil {
+			return
 		}
 
 		return svc.sendEvent(message)
@@ -279,6 +296,10 @@ func (svc *message) Delete(ID uint64) error {
 		} else {
 			// Set deletedAt timestamp so that our clients can react properly...
 			deletedMsg.DeletedAt = timeNowPtr()
+		}
+
+		if err = svc.updateMentions(ID, nil); err != nil {
+			return
 		}
 
 		return svc.sendEvent(append(bq, deletedMsg)...)
@@ -397,6 +418,10 @@ func (svc *message) preload(mm types.MessageSet) (err error) {
 		return
 	}
 
+	if err = svc.preloadMentions(mm); err != nil {
+		return
+	}
+
 	return
 }
 
@@ -433,6 +458,21 @@ func (svc *message) preloadFlags(mm types.MessageSet) (err error) {
 
 	return ff.Walk(func(flag *types.MessageFlag) error {
 		mm.FindById(flag.MessageID).Flags = append(mm.FindById(flag.MessageID).Flags, flag)
+		return nil
+	})
+}
+
+// Preload for all messages
+func (svc *message) preloadMentions(mm types.MessageSet) (err error) {
+	var mentions types.MentionSet
+
+	mentions, err = svc.mentions.FindByMessageIDs(mm.IDs()...)
+	if err != nil {
+		return
+	}
+
+	return mm.Walk(func(m *types.Message) error {
+		m.Mentions = mentions.FindByMessageID(m.ID)
 		return nil
 	})
 }
@@ -498,6 +538,61 @@ func (svc *message) sendFlagEvent(ff ...*types.MessageFlag) (err error) {
 	}
 
 	return
+}
+
+func (svc *message) extractMentions(m *types.Message) (mm types.MentionSet) {
+	const reSubID = 2
+	mm = types.MentionSet{}
+
+	match := mentionsFinder.FindAllStringSubmatch(m.Message, -1)
+
+	// Prepopulated with all we know from message
+	tpl := types.Mention{
+		ChannelID:     m.ChannelID,
+		MessageID:     m.ID,
+		MentionedByID: m.UserID,
+	}
+
+	for m := 0; m < len(match); m++ {
+		uid := payload.ParseUInt64(match[m][reSubID])
+		if len(mm.FindByUserID(uid)) == 0 {
+			// Copy template & assign user id
+			mnt := tpl
+			mnt.UserID = uid
+			mm = append(mm, &mnt)
+		}
+	}
+
+	return
+}
+
+func (svc *message) updateMentions(messageID uint64, mm types.MentionSet) error {
+	if existing, err := svc.mentions.FindByMessageIDs(messageID); err != nil {
+		return errors.Wrap(err, "Could not update mentions")
+	} else if len(mm) > 0 {
+		add, _, del := existing.Diff(mm)
+
+		err = add.Walk(func(m *types.Mention) error {
+			m, err = svc.mentions.Create(m)
+			return err
+		})
+
+		if err != nil {
+			return errors.Wrap(err, "Could not create mentions")
+		}
+
+		err = del.Walk(func(m *types.Mention) error {
+			return svc.mentions.DeleteByID(m.ID)
+		})
+
+		if err != nil {
+			return errors.Wrap(err, "Could not delete mentions")
+		}
+	} else {
+		return svc.mentions.DeleteByMessageID(messageID)
+	}
+
+	return nil
 }
 
 var _ MessageService = &message{}
