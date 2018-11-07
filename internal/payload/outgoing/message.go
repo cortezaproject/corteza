@@ -16,6 +16,7 @@ type (
 
 		User         *User                 `json:"user"`
 		Attachment   *Attachment           `json:"att,omitempty"`
+		Mentions     MessageMentionSet     `json:"mentions,omitempty"`
 		Reactions    MessageReactionSumSet `json:"reactions,omitempty"`
 		IsBookmarked bool                  `json:"isBookmarked"`
 		IsPinned     bool                  `json:"isPinned"`
@@ -30,6 +31,8 @@ type (
 	}
 
 	MessageSet []*Message
+
+	MessageMentionSet []string
 
 	// Used for single reaction event notification
 	MessageReactionSum struct {

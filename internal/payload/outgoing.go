@@ -31,6 +31,7 @@ func Message(ctx context.Context, msg *samTypes.Message) *outgoing.Message {
 
 		User:         User(msg.User),
 		Attachment:   Attachment(msg.Attachment),
+		Mentions:     messageMentionSet(msg.Mentions),
 		Reactions:    messageReactionSumSet(msg.Flags),
 		IsPinned:     msg.Flags.IsPinned(),
 		IsBookmarked: msg.Flags.IsBookmarked(currentUserID),
@@ -79,6 +80,12 @@ func messageReactionSumSet(flags samTypes.MessageFlagSet) outgoing.MessageReacti
 	})
 
 	return rr
+}
+
+// Converts slice of mentions into slice of strings containing all user IDs
+// These are IDs of users mentioned in the message
+func messageMentionSet(mm samTypes.MentionSet) outgoing.MessageMentionSet {
+	return Uint64stoa(mm.UserIDs())
 }
 
 func MessageReaction(f *samTypes.MessageFlag) *outgoing.MessageReaction {
