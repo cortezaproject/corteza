@@ -139,6 +139,16 @@ func (r *message) FindMessages(filter *types.MessageFilter) (types.MessageSet, e
 		params = append(params, filter.ToID)
 	}
 
+	if filter.BookmarkedOnly || filter.PinnedOnly {
+		sql += " AND id IN (SELECT rel_message FROM message_flags WHERE flag = ?) "
+
+		if filter.PinnedOnly {
+			params = append(params, types.MessageFlagBookmarkedMessage)
+		} else {
+			params = append(params, types.MessageFlagPinnedToChannel)
+		}
+	}
+
 	sql += " AND rel_channel IN " + sqlChannelAccess
 	params = append(params, filter.CurrentUserID, types.ChannelTypePublic)
 

@@ -23,6 +23,9 @@ type (
 		FirstID   uint64 `json:"firstID,string"`
 		LastID    uint64 `json:"lastID,string"`
 		RepliesTo uint64 `json:"repliesTo,string"`
+
+		PinnedOnly     bool `json:pinned`
+		BookmarkedOnly bool `json:bookmarked`
 	}
 
 	MessageThreads struct {
