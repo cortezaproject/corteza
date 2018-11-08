@@ -54,6 +54,9 @@ type (
 		FromID uint64
 		ToID   uint64
 
+		PinnedOnly     bool
+		BookmarkedOnly bool
+
 		Limit uint
 	}
 
