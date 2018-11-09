@@ -12,6 +12,7 @@ import (
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/crm/types"
+	systemRepository "github.com/crusttech/crust/system/repository"
 )
 
 type (
@@ -51,10 +52,7 @@ func (r *content) FindByID(id uint64) (*types.Content, error) {
 	if err := r.db().Get(mod, "SELECT * FROM crm_content WHERE id=? and deleted_at IS NULL", id); err != nil {
 		return nil, err
 	}
-	if err := r.fillPage(mod); err != nil {
-		return nil, err
-	}
-	return mod, nil
+	return mod, r.prepare(mod, "page", "user")
 }
 
 func (r *content) Find(moduleID uint64, page int, perPage int) ([]*types.Content, error) {
@@ -71,12 +69,16 @@ func (r *content) Find(moduleID uint64, page int, perPage int) ([]*types.Content
 	if perPage < 10 {
 		perPage = 10
 	}
-	return mod, r.db().Select(&mod, fmt.Sprintf("SELECT * FROM crm_content WHERE module_id=? and deleted_at IS NULL ORDER BY id DESC LIMIT %d, %d", page, perPage), moduleID)
+	if err := r.db().Select(&mod, fmt.Sprintf("SELECT * FROM crm_content WHERE module_id=? and deleted_at IS NULL ORDER BY id DESC LIMIT %d, %d", page, perPage), moduleID); err != nil {
+		return nil, err
+	}
+	return mod, r.prepareAll(mod, "user")
 }
 
 func (r *content) Create(mod *types.Content) (*types.Content, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
+	mod.UserID = Identity(r.Context())
 
 	fields := make([]types.ContentColumn, 0)
 	if err := json.Unmarshal(mod.Fields, &fields); err != nil {
@@ -90,7 +92,11 @@ func (r *content) Create(mod *types.Content) (*types.Content, error) {
 		}
 	}
 
-	return mod, r.db().Insert("crm_content", mod)
+	if err := r.db().Insert("crm_content", mod); err != nil {
+		return nil, err
+	}
+
+	return mod, r.prepare(mod, "user")
 }
 
 func (r *content) Update(mod *types.Content) (*types.Content, error) {
@@ -144,8 +150,31 @@ func (r *content) Fields(content *types.Content) ([]*types.ContentColumn, error)
 	return result, r.db().Select(&result, "select * from crm_content_column where content_id=? order by "+order, args...)
 }
 
-func (r *content) fillPage(content *types.Content) (err error) {
+func (r *content) prepareAll(contents []*types.Content, fields ...string) error {
+	for _, content := range contents {
+		if err := r.prepare(content, fields...); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *content) prepare(content *types.Content, fields ...string) (err error) {
 	api := Page(r.Context(), r.db())
-	content.Page, err = api.FindByModuleID(content.ModuleID)
+	usersAPI := systemRepository.User(r.Context(), r.db())
+	for _, field := range fields {
+		switch field {
+		case "page":
+			if content.Page, err = api.FindByModuleID(content.ModuleID); err != nil {
+				return
+			}
+		case "user":
+			if content.UserID > 0 {
+				if content.User, err = usersAPI.FindByID(content.UserID); err != nil {
+					return
+				}
+			}
+		}
+	}
 	return
 }

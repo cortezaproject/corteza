@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx/types"
+
+	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 type (
@@ -11,7 +13,11 @@ type (
 	Content struct {
 		ID       uint64 `json:"id,string" db:"id"`
 		ModuleID uint64 `json:"moduleID,string" db:"module_id"`
-		Page     *Page  `json:"page,omitempty"`
+
+		User   *systemTypes.User `json:"user,omitempty" db:"-"`
+		UserID uint64            `json:"userID,string" db:"user_id"`
+
+		Page *Page `json:"page,omitempty"`
 
 		Fields types.JSONText `json:"fields,omitempty" db:"-"`
 
