@@ -186,6 +186,12 @@
       "Parameters": {
         "get": [
           {
+            "name": "query",
+            "required": false,
+            "title": "Search query",
+            "type": "string"
+          },
+          {
             "name": "page",
             "required": false,
             "title": "Page number (0 based)",

@@ -21,13 +21,25 @@ type (
 
 		FindByID(id uint64) (*types.Content, error)
 
-		Find(moduleID uint64, page int, perPage int) ([]*types.Content, error)
+		Find(moduleID uint64, query string, page int, perPage int) (*FindResponse, error)
 
 		Create(mod *types.Content) (*types.Content, error)
 		Update(mod *types.Content) (*types.Content, error)
 		DeleteByID(id uint64) error
 
 		Fields(mod *types.Content) ([]*types.ContentColumn, error)
+	}
+
+	FindResponseMeta struct {
+		Query   string `json:"query,omitempty"`
+		Page    int    `json:"page"`
+		PerPage int    `json:"perPage"`
+		Count   int    `json:"count"`
+	}
+
+	FindResponse struct {
+		Meta     FindResponseMeta `json:"meta"`
+		Contents []*types.Content `json:"contents"`
 	}
 
 	content struct {
@@ -55,8 +67,7 @@ func (r *content) FindByID(id uint64) (*types.Content, error) {
 	return mod, r.prepare(mod, "page", "user")
 }
 
-func (r *content) Find(moduleID uint64, page int, perPage int) ([]*types.Content, error) {
-	mod := make([]*types.Content, 0)
+func (r *content) Find(moduleID uint64, query string, page int, perPage int) (*FindResponse, error) {
 	if page < 0 {
 		page = 0
 	}
@@ -69,10 +80,47 @@ func (r *content) Find(moduleID uint64, page int, perPage int) ([]*types.Content
 	if perPage < 10 {
 		perPage = 10
 	}
-	if err := r.db().Select(&mod, fmt.Sprintf("SELECT * FROM crm_content WHERE module_id=? and deleted_at IS NULL ORDER BY id DESC LIMIT %d, %d", page, perPage), moduleID); err != nil {
+	response := &FindResponse{
+		Meta: FindResponseMeta{
+			Page:    page,
+			PerPage: perPage,
+			Query:   query,
+		},
+		Contents: make([]*types.Content, 0),
+	}
+
+	query = "%" + query + "%"
+
+	sqlSelect := "SELECT * FROM crm_content"
+	sqlCount := "SELECT count(*) FROM crm_content"
+	sqlWhere := "WHERE module_id=? and deleted_at IS NULL"
+
+	sqlOrder := "ORDER BY id DESC"
+	sqlLimit := fmt.Sprintf("DESC LIMIT %d, %d", page, perPage)
+
+	switch true {
+	case query != "":
+		sqlWhere = sqlWhere + " AND id in (select distinct content_id from crm_content_column where column_value like ?)"
+		if err := r.db().Get(&response.Meta.Count, sqlCount+" "+sqlWhere, moduleID, query); err != nil {
+			return nil, err
+		}
+		if err := r.db().Select(&response.Contents, sqlSelect+" "+sqlWhere+" "+sqlOrder+" "+sqlLimit, moduleID, query); err != nil {
+			return nil, err
+		}
+	default:
+		if err := r.db().Get(&response.Meta.Count, sqlCount+" "+sqlWhere, moduleID); err != nil {
+			return nil, err
+		}
+		if err := r.db().Select(&response.Contents, fmt.Sprintf("SELECT * FROM crm_content WHERE module_id=? and deleted_at IS NULL ORDER BY id DESC LIMIT %d, %d", page, perPage), moduleID); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := r.prepareAll(response.Contents, "user"); err != nil {
 		return nil, err
 	}
-	return mod, r.prepareAll(mod, "user")
+
+	return response, nil
 }
 
 func (r *content) Create(mod *types.Content) (*types.Content, error) {
@@ -147,7 +195,7 @@ func (r *content) Fields(content *types.Content) ([]*types.ContentColumn, error)
 	for _, v := range fieldNames {
 		args = append(args, v)
 	}
-	return result, r.db().Select(&result, "select * from crm_content_column where content_id=? order by "+order, args...)
+	return result, r.db().Select(&result, "select * FROM crm_content_column where content_id=? order by "+order, args...)
 }
 
 func (r *content) prepareAll(contents []*types.Content, fields ...string) error {

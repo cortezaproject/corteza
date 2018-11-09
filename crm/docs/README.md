@@ -121,6 +121,7 @@ CRM module definitions
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+| query | string | GET | Search query | N/A | NO |
 | page | int | GET | Page number (0 based) | N/A | NO |
 | perPage | int | GET | Returned items per page (default 50) | N/A | NO |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |

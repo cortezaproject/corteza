@@ -272,6 +272,7 @@ var _ RequestFiller = NewModuleDelete()
 
 // Module content/list request parameters
 type ModuleContentList struct {
+	Query    string
 	Page     int
 	PerPage  int
 	ModuleID uint64 `json:",string"`
@@ -308,6 +309,10 @@ func (m *ModuleContentList) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	if val, ok := get["query"]; ok {
+
+		m.Query = val
+	}
 	if val, ok := get["page"]; ok {
 
 		m.Page = parseInt(val)
