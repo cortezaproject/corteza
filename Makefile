@@ -99,6 +99,7 @@ test.crm: $(GOTEST)
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.crm.db: $(GOTEST)
+	cd crm/db && $(GO) generate && cd ../..
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./crm/db/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
