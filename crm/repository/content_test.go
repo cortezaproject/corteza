@@ -8,10 +8,29 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/crusttech/crust/crm/types"
+	"github.com/crusttech/crust/internal/auth"
+	systemRepository "github.com/crusttech/crust/system/repository"
+	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 func TestContent(t *testing.T) {
-	repository := Content(context.TODO(), nil).With(context.Background(), nil)
+	user := &systemTypes.User{
+		ID:       1337,
+		Username: "TestUser",
+	}
+	{
+		err := user.GeneratePassword("Mary had a little lamb, little lamb, little lamb")
+		assert(t, err == nil, "Error generating password: %+v", err)
+	}
+
+	{
+		userAPI := systemRepository.User(context.Background(), nil)
+		_, err := userAPI.Create(user)
+		assert(t, err == nil, "Error when inserting user: %+v", err)
+	}
+
+	ctx := auth.SetIdentityToContext(context.Background(), auth.NewIdentity(user.Identity()))
+	repository := Content(context.TODO(), nil).With(ctx, nil)
 
 	fields, err := json.Marshal([]types.Field{
 		types.Field{
@@ -60,6 +79,8 @@ func TestContent(t *testing.T) {
 		m, err := repository.Create(content)
 		assert(t, err == nil, "Error when creating content: %+v", err)
 		assert(t, m.ID > 0, "Expected auto generated ID")
+		assert(t, m.User != nil, "Expected non-nil user when creating content")
+		assert(t, m.User.Username == "TestUser", "Expected 'TestUser' as username, got '%s'", m.User.Username)
 
 		// fetch created content
 		{

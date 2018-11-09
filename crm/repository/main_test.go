@@ -1,16 +1,21 @@
 package repository
 
 import (
+	"log"
+	"os"
+	"testing"
+
 	"github.com/joho/godotenv"
 	"github.com/namsral/flag"
 	"github.com/titpetric/factory"
-	"os"
-	"testing"
+
+	crmMigrate "github.com/crusttech/crust/crm/db"
+	systemMigrate "github.com/crusttech/crust/system/db"
 )
 
 func TestMain(m *testing.M) {
 	if testing.Short() {
-		t.Skip("skipping test in short mode.")
+		log.Println("skipping test in short mode.")
 		return
 	}
 
@@ -32,9 +37,19 @@ func TestMain(m *testing.M) {
 	db := factory.Database.MustGet()
 	db.Profiler = &factory.Database.ProfilerStdout
 
+	// migrate database schema
+	if err := systemMigrate.Migrate(db); err != nil {
+		log.Printf("Error running migrations: %+v\n", err)
+		return
+	}
+	if err := crmMigrate.Migrate(db); err != nil {
+		log.Printf("Error running migrations: %+v\n", err)
+		return
+	}
+
 	// clean up tables
 	{
-		for _, name := range []string{"crm_module", "crm_module_form", "crm_content", "crm_content_column", "crm_page"} {
+		for _, name := range []string{"crm_module", "crm_module_form", "crm_content", "crm_content_column", "crm_page", "users"} {
 			_, err := db.Exec("truncate " + name)
 			if err != nil {
 				panic("Error when clearing " + name + ": " + err.Error())
