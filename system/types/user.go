@@ -1,28 +1,28 @@
 package types
 
 import (
-	"encoding/json"
 	"time"
 
+	"github.com/jmoiron/sqlx/types"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type (
 	User struct {
-		ID             uint64          `json:"id" db:"id"`
-		Username       string          `json:"username" db:"username"`
-		Email          string          `json:"email" db:"email"`
-		Name           string          `json:"name" db:"name"`
-		Handle         string          `json:"handle" db:"handle"`
-		SatosaID       string          `json:"-" db:"satosa_id"`
-		Meta           json.RawMessage `json:"-" db:"meta"`
-		OrganisationID uint64          `json:"organisationId" db:"rel_organisation"`
-		Password       []byte          `json:"-" db:"password"`
+		ID             uint64         `json:"id" db:"id"`
+		Username       string         `json:"username" db:"username"`
+		Email          string         `json:"email" db:"email"`
+		Name           string         `json:"name" db:"name"`
+		Handle         string         `json:"handle" db:"handle"`
+		SatosaID       string         `json:"-" db:"satosa_id"`
+		Meta           types.JSONText `json:"-" db:"meta"`
+		OrganisationID uint64         `json:"organisationId" db:"rel_organisation"`
+		Password       []byte         `json:"-" db:"password"`
 
-		CreatedAt      time.Time       `json:"createdAt,omitempty" db:"created_at"`
-		UpdatedAt      *time.Time      `json:"updatedAt,omitempty" db:"updated_at"`
-		SuspendedAt    *time.Time      `json:"suspendedAt,omitempty" db:"suspended_at"`
-		DeletedAt      *time.Time      `json:"deletedAt,omitempty" db:"deleted_at"`
+		CreatedAt   time.Time  `json:"createdAt,omitempty" db:"created_at"`
+		UpdatedAt   *time.Time `json:"updatedAt,omitempty" db:"updated_at"`
+		SuspendedAt *time.Time `json:"suspendedAt,omitempty" db:"suspended_at"`
+		DeletedAt   *time.Time `json:"deletedAt,omitempty" db:"deleted_at"`
 	}
 
 	UserFilter struct {
