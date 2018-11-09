@@ -102,6 +102,15 @@ test.crm.db: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./crm/db/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
+test.system: $(GOTEST)
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./system/repository/...
+	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
+
+test.system.db: $(GOTEST)
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./system/db/...
+	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
+
+
 test.rbac: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./rbac/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
