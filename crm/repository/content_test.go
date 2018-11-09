@@ -114,10 +114,29 @@ func TestContent(t *testing.T) {
 
 		// fetch all contents
 		{
-			ms, err := repository.Find(module.ID, 0, 20)
+			mr, err := repository.Find(module.ID, "", 0, 20)
 			assert(t, err == nil, "Error when retrieving contents: %+v", err)
-			assert(t, len(ms) == 1, "Expected one content, got %d", len(ms))
-			assert(t, ms[0].ModuleID == m.ModuleID, "Expected content module to match, %s != %s", m.ModuleID, ms[0].ModuleID)
+			assert(t, len(mr.Contents) == 1, "Expected one content, got %d", len(mr.Contents))
+			assert(t, mr.Meta.Count == 1, "Expected Meta.Count == 1, got %d", mr.Meta.Count)
+			assert(t, mr.Contents[0].ModuleID == m.ModuleID, "Expected content module to match, %s != %s", m.ModuleID, mr.Contents[0].ModuleID)
+		}
+
+		// fetch all contents by query
+		{
+			mr, err := repository.Find(module.ID, "petric", 0, 20)
+			assert(t, err == nil, "Error when retrieving contents: %+v", err)
+			assert(t, len(mr.Contents) == 1, "Expected one content, got %d", len(mr.Contents))
+			assert(t, mr.Meta.Count == 1, "Expected Meta.Count == 1, got %d", mr.Meta.Count)
+			assert(t, mr.Meta.Page == 0, "Expected Meta.Page == 0, got %d", mr.Meta.Page)
+			assert(t, mr.Meta.PerPage == 20, "Expected Meta.PerPage == 20, got %d", mr.Meta.PerPage)
+			assert(t, mr.Meta.Query == "petric", "Expected Meta.Query == petric, got '%s'", mr.Meta.Query)
+		}
+
+		// fetch all contents by query
+		{
+			mr, err := repository.Find(module.ID, "niall", 0, 20)
+			assert(t, err == nil, "Error when retrieving contents: %+v", err)
+			assert(t, len(mr.Contents) == 0, "Expected no contents, got %d", len(mr.Contents))
 		}
 
 		// re-fetch content
@@ -128,9 +147,9 @@ func TestContent(t *testing.T) {
 
 		// fetch all contents
 		{
-			ms, err := repository.Find(module.ID, 0, 20)
+			mr, err := repository.Find(module.ID, "", 0, 20)
 			assert(t, err == nil, "Error when retrieving contents: %+v", err)
-			assert(t, len(ms) == 0, "Expected no content, got %d", len(ms))
+			assert(t, len(mr.Contents) == 0, "Expected no content, got %d", len(mr.Contents))
 		}
 	}
 
