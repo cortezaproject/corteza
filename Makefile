@@ -112,11 +112,11 @@ test.system.db: $(GOTEST)
 
 
 test.rbac: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./rbac/...
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/rbac/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.store: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./store/...
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/store/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 vet:
