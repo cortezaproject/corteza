@@ -38,7 +38,10 @@ func (*HTTP) Init(prefix ...string) *HTTP {
 	}
 
 	p := func(s string) string {
-		return prefix[0] + "-" + s
+		if len(prefix) > 0 {
+			return prefix[0] + "-" + s
+		}
+		return s
 	}
 
 	http = new(HTTP)
