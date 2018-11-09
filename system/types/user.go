@@ -14,10 +14,11 @@ type (
 		Email          string          `json:"email" db:"email"`
 		Name           string          `json:"name" db:"name"`
 		Handle         string          `json:"handle" db:"handle"`
-		SatosaID       string          `json:"satosaId" db:"satosa_id"`
+		SatosaID       string          `json:"-" db:"satosa_id"`
 		Meta           json.RawMessage `json:"-" db:"meta"`
 		OrganisationID uint64          `json:"organisationId" db:"rel_organisation"`
 		Password       []byte          `json:"-" db:"password"`
+
 		CreatedAt      time.Time       `json:"createdAt,omitempty" db:"created_at"`
 		UpdatedAt      *time.Time      `json:"updatedAt,omitempty" db:"updated_at"`
 		SuspendedAt    *time.Time      `json:"suspendedAt,omitempty" db:"suspended_at"`
