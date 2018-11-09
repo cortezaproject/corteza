@@ -21,7 +21,7 @@ type (
 
 		FindByID(contentID uint64) (*types.Content, error)
 
-		Find(moduleID uint64, page int, perPage int) ([]*types.Content, error)
+		Find(moduleID uint64, query string, page int, perPage int) (*repository.FindResponse, error)
 
 		Create(content *types.Content) (*types.Content, error)
 		Update(content *types.Content) (*types.Content, error)
@@ -46,8 +46,8 @@ func (s *content) FindByID(id uint64) (*types.Content, error) {
 	return s.repository.FindByID(id)
 }
 
-func (s *content) Find(moduleID uint64, page int, perPage int) ([]*types.Content, error) {
-	return s.repository.Find(moduleID, page, perPage)
+func (s *content) Find(moduleID uint64, query string, page int, perPage int) (*repository.FindResponse, error) {
+	return s.repository.Find(moduleID, query, page, perPage)
 }
 
 func (s *content) Create(mod *types.Content) (*types.Content, error) {

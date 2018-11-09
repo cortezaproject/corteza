@@ -431,6 +431,12 @@
           ],
           "get": [
             {
+              "type": "string",
+              "name": "query",
+              "required": false,
+              "title": "Search query"
+            },
+            {
               "name": "page",
               "type": "int",
               "required": false,
