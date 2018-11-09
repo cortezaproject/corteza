@@ -6,6 +6,7 @@ import (
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/crm/repository"
+	"github.com/crusttech/crust/crm/rest/request"
 	"github.com/crusttech/crust/crm/types"
 )
 
@@ -18,6 +19,8 @@ type (
 
 	ModuleService interface {
 		With(ctx context.Context) ModuleService
+
+		Chart(r *request.ModuleChart) (interface{}, error)
 
 		FindByID(moduleID uint64) (*types.Module, error)
 		Find() ([]*types.Module, error)
@@ -47,6 +50,10 @@ func (s *module) FindByID(id uint64) (*types.Module, error) {
 
 func (s *module) Find() ([]*types.Module, error) {
 	return s.repository.Find()
+}
+
+func (s *module) Chart(r *request.ModuleChart) (interface{}, error) {
+	return s.repository.Chart(r)
 }
 
 func (s *module) Create(mod *types.Module) (*types.Module, error) {
