@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -31,14 +30,4 @@ func isFound(err error, valid bool, nerr error) error {
 func timeNowPtr() *time.Time {
 	n := time.Now()
 	return &n
-}
-
-func coalesceJson(vals ...json.RawMessage) json.RawMessage {
-	for _, val := range vals {
-		if val != nil {
-			return val
-		}
-	}
-
-	return nil
 }

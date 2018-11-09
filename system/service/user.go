@@ -54,7 +54,7 @@ func (svc *user) With(ctx context.Context) UserService {
 }
 
 func (svc *user) ValidateCredentials(username, password string) (*types.User, error) {
-	user, err := svc.user.FindUserByUsername(username)
+	user, err := svc.user.FindByUsername(username)
 	if err != nil {
 		return nil, err
 	}
@@ -71,11 +71,11 @@ func (svc *user) ValidateCredentials(username, password string) (*types.User, er
 }
 
 func (svc *user) FindByID(id uint64) (*types.User, error) {
-	return svc.user.FindUserByID(id)
+	return svc.user.FindByID(id)
 }
 
 func (svc *user) Find(filter *types.UserFilter) (types.UserSet, error) {
-	return svc.user.FindUsers(filter)
+	return svc.user.Find(filter)
 }
 
 // Finds if user with a specific satosa id exists and returns it otherwise it creates a fresh one
@@ -86,20 +86,20 @@ func (svc *user) FindOrCreate(user *types.User) (out *types.User, err error) {
 			return errors.Errorf("Invalid UUID value (%v) for SATOSA ID", user.SatosaID)
 		}
 
-		out, err = svc.user.FindUserBySatosaID(user.SatosaID)
+		out, err = svc.user.FindBySatosaID(user.SatosaID)
 
 		if err == repository.ErrUserNotFound {
-			out, err = svc.user.CreateUser(user)
+			out, err = svc.user.Create(user)
 			return err
 		}
 
 		if err != nil {
-			// FindUserBySatosaID error
+			// FindBySatosaID error
 			return err
 		}
 
 		// @todo need to be more selective with fields we update...
-		out, err = svc.user.UpdateUser(out)
+		out, err = svc.user.Update(out)
 		if err != nil {
 			return err
 		}
@@ -111,7 +111,7 @@ func (svc *user) FindOrCreate(user *types.User) (out *types.User, err error) {
 func (svc *user) Create(input *types.User) (out *types.User, err error) {
 	return out, svc.db.Transaction(func() error {
 		// Encrypt user password
-		if out, err = svc.user.CreateUser(input); err != nil {
+		if out, err = svc.user.Create(input); err != nil {
 			return err
 		}
 		return nil
@@ -119,7 +119,7 @@ func (svc *user) Create(input *types.User) (out *types.User, err error) {
 }
 
 func (svc *user) Update(mod *types.User) (*types.User, error) {
-	return svc.user.UpdateUser(mod)
+	return svc.user.Update(mod)
 }
 
 func (svc *user) canLogin(u *types.User) bool {
