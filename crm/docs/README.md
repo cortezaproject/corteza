@@ -79,6 +79,30 @@ CRM module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
+## Analyze data for chart
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/module/{moduleID}/chart` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| name | string | GET | The chart name | N/A | YES |
+| description | string | GET | The chart description | N/A | YES |
+| xAxis | string | GET | X axis value | N/A | YES |
+| xMin | string | GET | Min value | N/A | NO |
+| xMax | string | GET | Max value | N/A | NO |
+| yAxis | string | GET | Y axis value | N/A | YES |
+| groupBy | string | GET | Group by field | N/A | YES |
+| sum | string | GET | Sum values field | N/A | YES |
+| count | string | GET | Count values field | N/A | YES |
+| kind | string | GET | Chart kind (line, spline, step, area, area-spline, area-step, bar, scatter, pie, donut, gauge) | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
+
 ## Edit module
 
 #### Method

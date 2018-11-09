@@ -8,12 +8,15 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
+	"github.com/crusttech/crust/crm/rest/request"
 	"github.com/crusttech/crust/crm/types"
 )
 
 type (
 	ModuleRepository interface {
 		With(ctx context.Context, db *factory.DB) ModuleRepository
+
+		Chart(r *request.ModuleChart) (interface{}, error)
 
 		FindByID(id uint64) (*types.Module, error)
 		Find() ([]*types.Module, error)

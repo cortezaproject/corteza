@@ -33,6 +33,10 @@ func (s *Module) Delete(ctx context.Context, r *request.ModuleDelete) (interface
 	return resputil.OK(), s.module.With(ctx).DeleteByID(r.ModuleID)
 }
 
+func (s *Module) Chart(ctx context.Context, r *request.ModuleChart) (interface{}, error) {
+	return s.module.With(ctx).Chart(r)
+}
+
 func (s *Module) Create(ctx context.Context, r *request.ModuleCreate) (interface{}, error) {
 	item := &types.Module{
 		Name:   r.Name,
