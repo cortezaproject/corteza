@@ -6,6 +6,7 @@ When the API generates a JSON like this we can generate charts (with some JS on 
 
 Example chart: select Opportunity value for all opportunities between 1/1/2018 and 31/12/2018 and show them in a line chart. 
 
+```
 {
   "kind": "line",
   "data": [
@@ -25,6 +26,7 @@ Example chart: select Opportunity value for all opportunities between 1/1/2018 a
     }
   }
 }
+```
 
 ## Example with Count:
 
@@ -36,6 +38,7 @@ Open, 10 (where the 10 is a count)
 Won, 5
 Lost, 2
 
+```
 {
   "kind": "pie",
   "data": [
@@ -50,6 +53,7 @@ Lost, 2
     }
   }
 }
+```
 
 ## Example with Sum:
 
@@ -57,6 +61,7 @@ Example donut chart: select opportunity.type sum by opportunity.value.
 
 This will need to return a sum of all the opportunies by type (very similar to count, but it sums instead of counts)
 
+```
 {
   "kind": "donut",
   "data": [
@@ -71,11 +76,13 @@ This will need to return a sum of all the opportunies by type (very similar to c
     }
   }
 }
+```
 
 ## Example with GroupBy and Count
 
 Example bar chart with number of leads per country: select lead.country from leads Count lead.id GroupBy lead.country
 
+```
 {
   "kind": "bar",
   "data": [
@@ -92,3 +99,4 @@ Example bar chart with number of leads per country: select lead.country from lea
     }
   }
 }
+```
