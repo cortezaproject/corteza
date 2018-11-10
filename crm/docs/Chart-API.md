@@ -48,8 +48,8 @@ Lost, 2
     ]
   ,
   "fields": {
-    "opportunity.state": {
-      "kind": "datetime",
+    "state": {
+      "kind": "string",
     }
   }
 }
@@ -71,8 +71,8 @@ This will need to return a sum of all the opportunies by type (very similar to c
     ]
   ,
   "fields": {
-    "value": {
-      "kind": "currency",
+    "type": {
+      "kind": "string",
     }
   }
 }
