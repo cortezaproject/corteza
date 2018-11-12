@@ -1,40 +1,31 @@
 {
-  "kind": "bar",
+  "kind": "donut",
   "data": [
     [
-      "France",
-      12
+      "Open",
+      120000
     ],
     [
-      "Slovenia",
-      10
+      "Won",
+      1000000
     ],
     [
-      "Spain",
-      3
-    ],
-    [
-      "United Kingdom",
-      5
-    ],
-    [
-      "Germany",
-      20
+      "Lost",
+      30000
     ]
   ],
   "fields": {
-    "country": {
+    "type": {
       "kind": "string"
     }
   },
   "meta": {
-    "name": "Bar chart",
-    "description": "",
-    "kind": "bar",
+    "name": "Donut chart",
+    "description": "Description for the chart",
+    "kind": "donut",
     "module": 62511111111111110,
     "x": 62522222222222220,
     "y": 62533333333333336,
-    "groupby": 62544444444444450,
-    "count": 62566666666666664
+    "sum": 62555555555555550
   }
 }
