@@ -31,6 +31,10 @@ func (m *module) Chart(r *request.ModuleChart) (interface{}, error) {
 		return nil, errors.Wrap(err, "Error creating statik filesystem")
 	}
 
-	filename := "./chart-" + r.Kind + ".json"
-	return fs.ReadFile(statikFS, filename)
+	filename := "/chart-" + r.Kind + ".json"
+	body, err := fs.ReadFile(statikFS, filename)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error when reading "+filename)
+	}
+	return body, err
 }
