@@ -1,16 +1,40 @@
 {
   "kind": "bar",
   "data": [
-      ["France", 12],
-      ["Slovenia", 10],
-      ["Spain", 3],
-      ["United Kingdom", 5],
-      ["Germany", 20]
+    [
+      "France",
+      12
+    ],
+    [
+      "Slovenia",
+      10
+    ],
+    [
+      "Spain",
+      3
+    ],
+    [
+      "United Kingdom",
+      5
+    ],
+    [
+      "Germany",
+      20
     ]
-  ,
+  ],
   "fields": {
     "country": {
-      "kind": "string",
+      "kind": "string"
     }
+  },
+  "meta": {
+    "name": "Bar chart",
+    "description": "",
+    "kind": "bar",
+    "module": 62511111111111110,
+    "x": 62522222222222220,
+    "y": 62533333333333336,
+    "groupby": 62544444444444450,
+    "count": 62566666666666664
   }
 }
