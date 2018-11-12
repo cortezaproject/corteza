@@ -19,6 +19,7 @@ func TestSessions(t *testing.T) {
 	sessions.Delete("test-session")
 	roles.Delete("test-role")
 	resources.Delete("test-resource")
+	resources.Delete("team-1", "team-2", "team-3")
 
 	must(t, roles.Create("test-role"), "Error when creating test-role")
 	must(t, users.Create("test-user", "test-password"), "Error when creating test-user")
