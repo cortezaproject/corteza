@@ -10,10 +10,21 @@ Example chart: select Opportunity value for all opportunities between 1/1/2018 a
 {
   "kind": "line",
   "data": [
-      ["Close date", "2018-01-01", "2018-01-02", "2018-01-03", "2018-01-04"],
-      ["Opportunity value", 30, 200, 100, 400]
+    [
+      "Close date",
+      "2018-01-01",
+      "2018-01-02",
+      "2018-01-03",
+      "2018-01-04"
+    ],
+    [
+      "Opportunity value",
+      30,
+      200,
+      100,
+      400
     ]
-  ,
+  ],
   "fields": {
     "Close date": {
       "kind": "datetime",
@@ -24,6 +35,16 @@ Example chart: select Opportunity value for all opportunities between 1/1/2018 a
       "name": "(Field name)",
       "kind": "(Field kind)"
     }
+  },
+  "meta": {
+    "name": "Line chart",
+    "description": "Description for the chart",
+    "kind": "line",
+    "module": 62511111111111110,
+    "x": 62522222222222220,
+    "xmin": "1/1/2018",
+    "xmax": "31/12/2018",
+    "y": 62533333333333336
   }
 }
 ```
@@ -42,15 +63,32 @@ Lost, 2
 {
   "kind": "pie",
   "data": [
-      ["Open", 10],
-      ["Won", 5],
-      ["Lost", 2]
+    [
+      "Open",
+      10
+    ],
+    [
+      "Won",
+      5
+    ],
+    [
+      "Lost",
+      2
     ]
-  ,
+  ],
   "fields": {
     "state": {
-      "kind": "string",
+      "kind": "string"
     }
+  },
+  "meta": {
+    "name": "Pie chart",
+    "description": "",
+    "kind": "pie",
+    "module": 62511111111111110,
+    "x": 62522222222222220,
+    "y": 62533333333333336,
+    "count": 62566666666666664
   }
 }
 ```
@@ -65,15 +103,32 @@ This will need to return a sum of all the opportunies by type (very similar to c
 {
   "kind": "donut",
   "data": [
-      ["Open", 120000],
-      ["Won", 1000000],
-      ["Lost", 30000]
+    [
+      "Open",
+      120000
+    ],
+    [
+      "Won",
+      1000000
+    ],
+    [
+      "Lost",
+      30000
     ]
-  ,
+  ],
   "fields": {
     "type": {
-      "kind": "string",
+      "kind": "string"
     }
+  },
+  "meta": {
+    "name": "Donut chart",
+    "description": "Description for the chart",
+    "kind": "donut",
+    "module": 62511111111111110,
+    "x": 62522222222222220,
+    "y": 62533333333333336,
+    "sum": 62555555555555550
   }
 }
 ```
@@ -86,17 +141,41 @@ Example bar chart with number of leads per country: select lead.country from lea
 {
   "kind": "bar",
   "data": [
-      ["France", 12],
-      ["Slovenia", 10],
-      ["Spain", 3],
-      ["United Kingdom", 5],
-      ["Germany", 20']
+    [
+      "France",
+      12
+    ],
+    [
+      "Slovenia",
+      10
+    ],
+    [
+      "Spain",
+      3
+    ],
+    [
+      "United Kingdom",
+      5
+    ],
+    [
+      "Germany",
+      20
     ]
-  ,
+  ],
   "fields": {
     "country": {
-      "kind": "string",
+      "kind": "string"
     }
+  },
+  "meta": {
+    "name": "Bar chart",
+    "description": "",
+    "kind": "bar",
+    "module": 62511111111111110,
+    "x": 62522222222222220,
+    "y": 62533333333333336,
+    "groupby": 62544444444444450,
+    "count": 62566666666666664
   }
 }
 ```

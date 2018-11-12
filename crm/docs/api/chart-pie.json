@@ -1,0 +1,31 @@
+{
+  "kind": "pie",
+  "data": [
+    [
+      "Open",
+      10
+    ],
+    [
+      "Won",
+      5
+    ],
+    [
+      "Lost",
+      2
+    ]
+  ],
+  "fields": {
+    "state": {
+      "kind": "string"
+    }
+  },
+  "meta": {
+    "name": "Pie chart",
+    "description": "",
+    "kind": "pie",
+    "module": 62511111111111110,
+    "x": 62522222222222220,
+    "y": 62533333333333336,
+    "count": 62566666666666664
+  }
+}
