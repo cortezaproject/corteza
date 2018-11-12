@@ -20,22 +20,54 @@ type (
 	ResourcesInterface interface {
 		Create(resourceID string, operations []string) error
 		Get(resourceID string) (*types.Resource, error)
-		Delete(resourceID string) error
+		Delete(resourceID string, resourceIDs ...string) error
 
 		Grant(resourceID, rolepath string, operations []string) error
 		GrantMultiple(resourceID string, roles []ResourcesRole) error
 
 		CheckAccess(resourceID, operation, sessionID string) error
+		CheckAccessMulti(resourceID, operation, sessionID string) error
+		CheckAccessMultiDetail(resourceID, operation, sessionID string) error
 	}
 )
 
 const (
-	resourcesCreate      = "/resources/%s"
-	resourcesGet         = "/resources/%s"
-	resourcesDelete      = "/resources/%s"
-	resourcesGrant       = "/resources/%s/grantPermission"
-	resourcesCheckAccess = "/resources/%s/checkAccess?operation=%s&session=%s"
+	resourcesCreate                 = "/resources/%s"
+	resourcesGet                    = "/resources/%s"
+	resourcesDelete                 = "/resources/%s"
+	resourcesGrant                  = "/resources/%s/grantPermission"
+	resourcesCheckAccess            = "/resources/%s/checkAccess?operation=%s&session=%s"
+	resourcesCheckAccessMulti       = "/resources/%s/checkMultiAccess?operation=%s&session=%s"
+	resourcesCheckAccessMultiDetail = "/resources/%s/checkMultiAccess/detailed?operation=%s&session=%s"
 )
+
+func (u *Resources) CheckAccessMulti(resourceID, operation, sessionID string) error {
+	resp, err := u.Client.Get(fmt.Sprintf(resourcesCheckAccessMulti, resourceID, operation, sessionID))
+	if err != nil {
+		return errors.Wrap(err, "request failed")
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		return nil
+	default:
+		return toError(resp)
+	}
+}
+
+func (u *Resources) CheckAccessMultiDetail(resourceID, operation, sessionID string) error {
+	resp, err := u.Client.Get(fmt.Sprintf(resourcesCheckAccessMultiDetail, resourceID, operation, sessionID))
+	if err != nil {
+		return errors.Wrap(err, "request failed")
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		return nil
+	default:
+		return toError(resp)
+	}
+}
 
 func (u *Resources) CheckAccess(resourceID, operation, sessionID string) error {
 	resp, err := u.Client.Get(fmt.Sprintf(resourcesCheckAccess, resourceID, operation, sessionID))
@@ -110,18 +142,29 @@ func (u *Resources) Get(resourceID string) (*types.Resource, error) {
 	}
 }
 
-func (u *Resources) Delete(resourceID string) error {
-	resp, err := u.Client.Delete(fmt.Sprintf(resourcesDelete, resourceID))
-	if err != nil {
-		return errors.Wrap(err, "request failed")
+func (u *Resources) Delete(resourceID string, resourceIDs ...string) error {
+	deleteResource := func(resourceID string) error {
+		resp, err := u.Client.Delete(fmt.Sprintf(resourcesDelete, resourceID))
+		if err != nil {
+			return errors.Wrap(err, "request failed")
+		}
+		defer resp.Body.Close()
+		switch resp.StatusCode {
+		case 200:
+			return nil
+		default:
+			return toError(resp)
+		}
 	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case 200:
-		return nil
-	default:
-		return toError(resp)
+	if err := deleteResource(resourceID); err != nil {
+		return err
 	}
+	for _, resourceID := range resourceIDs {
+		if err := deleteResource(resourceID); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 var _ ResourcesInterface = &Resources{}
