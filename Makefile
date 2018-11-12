@@ -53,7 +53,7 @@ realize: $(REALIZE)
 	$(REALIZE) start
 
 dep.codegen:
-	go install github.com/rakyll/statik
+	go install github.com/titpetric/statik
 
 dep.update: $(DEP)
 	$(DEP) ensure -update -v
@@ -114,6 +114,14 @@ test.system.db: $(GOTEST)
 
 test.rbac: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/rbac/...
+	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
+
+test.rbac.resources: $(GOTEST)
+	$(GOTEST) -run Resources -covermode count -coverprofile .cover.out -v ./internal/rbac/...
+	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
+
+test.rbac.sessions: $(GOTEST)
+	$(GOTEST) -run Sessions -covermode count -coverprofile .cover.out -v ./internal/rbac/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.store: $(GOTEST)
