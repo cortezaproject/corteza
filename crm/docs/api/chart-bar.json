@@ -1,0 +1,16 @@
+{
+  "kind": "bar",
+  "data": [
+      ["France", 12],
+      ["Slovenia", 10],
+      ["Spain", 3],
+      ["United Kingdom", 5],
+      ["Germany", 20]
+    ]
+  ,
+  "fields": {
+    "country": {
+      "kind": "string",
+    }
+  }
+}
