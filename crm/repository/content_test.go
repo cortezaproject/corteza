@@ -118,7 +118,7 @@ func TestContent(t *testing.T) {
 			assert(t, err == nil, "Error when retrieving contents: %+v", err)
 			assert(t, len(mr.Contents) == 1, "Expected one content, got %d", len(mr.Contents))
 			assert(t, mr.Meta.Count == 1, "Expected Meta.Count == 1, got %d", mr.Meta.Count)
-			assert(t, mr.Contents[0].ModuleID == m.ModuleID, "Expected content module to match, %s != %s", m.ModuleID, mr.Contents[0].ModuleID)
+			assert(t, mr.Contents[0].ModuleID == m.ModuleID, "Expected content module to match, %d != %d", m.ModuleID, mr.Contents[0].ModuleID)
 		}
 
 		// fetch all contents by query
