@@ -39,6 +39,16 @@ type (
 		Members       []string     `json:"members,omitempty"`
 		View          *ChannelView `json:"view,omitempty"`
 
+		CanJoin           bool `json:"canJoin"`
+		CanPart           bool `json:"canPart"`
+		CanObserve        bool `json:"canObserve"`
+		CanSendMessages   bool `json:"canSendMessages"`
+		CanDeleteMessages bool `json:"canDeleteMessages"`
+		CanChangeMembers  bool `json:"canChangeMembers"`
+		CanUpdate         bool `json:"canUpdate"`
+		CanArchive        bool `json:"canArchive"`
+		CanDelete         bool `json:"canDelete"`
+
 		CreatedAt  time.Time  `json:"createdAt"`
 		UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
 		ArchivedAt *time.Time `json:"archivedAt,omitempty"`

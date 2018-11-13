@@ -128,6 +128,16 @@ func Channel(ch *samTypes.Channel) *outgoing.Channel {
 		Members:       Uint64stoa(ch.Members),
 		View:          ChannelView(ch.View),
 
+		CanJoin:           ch.CanJoin,
+		CanPart:           ch.CanPart,
+		CanObserve:        ch.CanObserve,
+		CanSendMessages:   ch.CanSendMessages,
+		CanDeleteMessages: ch.CanDeleteMessages,
+		CanChangeMembers:  ch.CanChangeMembers,
+		CanUpdate:         ch.CanUpdate,
+		CanArchive:        ch.CanArchive,
+		CanDelete:         ch.CanDelete,
+
 		CreatedAt:  ch.CreatedAt,
 		UpdatedAt:  ch.UpdatedAt,
 		ArchivedAt: ch.ArchivedAt,
