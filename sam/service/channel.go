@@ -622,10 +622,6 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 		return nil, errors.New("Adding members to a group is not currently supported")
 	}
 
-	if !ch.CanChangeMembers {
-		return nil, errors.New("Not allowed to add members")
-	}
-
 	return out, svc.db.Transaction(func() (err error) {
 		if existing, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: channelID}); err != nil {
 			return
@@ -652,6 +648,11 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 				} else {
 					exists = true
 				}
+			}
+
+			// @todo [SECURITY] implement proper checking
+			if !(ch.CanChangeMembers || memberID == userID && ch.Type == types.ChannelTypePublic) {
+				return errors.New("Not allowed to add members")
 			}
 
 			if !exists {
@@ -708,10 +709,6 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 		return errors.New("Removign members from a group is not currently supported")
 	}
 
-	if !ch.CanChangeMembers {
-		return errors.New("Not allowed to remove members")
-	}
-
 	return svc.db.Transaction(func() (err error) {
 		if existing, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: channelID}); err != nil {
 			return
@@ -721,6 +718,11 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 			if existing.FindByUserID(memberID) == nil {
 				// Not really a member...
 				continue
+			}
+
+			// @todo [SECURITY] implement proper checking
+			if !(ch.CanChangeMembers || memberID == userID && ch.Type == types.ChannelTypePublic) {
+				return errors.New("Not allowed to add members")
 			}
 
 			if userID == memberID {
