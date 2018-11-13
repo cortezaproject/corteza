@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 
 	"github.com/crusttech/crust/internal/auth"
@@ -38,7 +39,6 @@ type (
 		Create(channel *types.Channel) (*types.Channel, error)
 		Update(channel *types.Channel) (*types.Channel, error)
 
-		FindByMembership() (rval []*types.Channel, err error)
 		FindMembers(channelID uint64) (types.ChannelMemberSet, error)
 
 		InviteUser(channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error)
@@ -92,13 +92,13 @@ func (svc *channel) FindByID(ID uint64) (ch *types.Channel, err error) {
 	ch, err = svc.channel.FindChannelByID(ID)
 	if err != nil {
 		return
+	} else if err = svc.preloadExtras(types.ChannelSet{ch}); err != nil {
+		return
 	}
 
-	// @todo [SECURITY] check if user can access this channel
-	// @todo [SECURITY] check if user can access inactive channels
-	// if !svc.sec.ch.CanRead(ch) {
-	// 	return nil, errors.New("Not allowed to access channel")
-	// }
+	if !ch.CanObserve {
+		return nil, errors.New("Not allowed to access channel")
+	}
 
 	return
 }
@@ -113,9 +113,8 @@ func (svc *channel) Find(filter *types.ChannelFilter) (cc types.ChannelSet, err 
 			return
 		}
 
-		// @todo [SECURITY] check if user can access inactive channels
-		cc, _ = cc.Filter(func(i *types.Channel) (b bool, e error) {
-			return true || i.DeletedAt == nil, nil
+		cc, err = cc.Filter(func(c *types.Channel) (b bool, e error) {
+			return c.CanObserve, nil
 		})
 
 		return
@@ -128,6 +127,10 @@ func (svc *channel) preloadExtras(cc types.ChannelSet) (err error) {
 		return
 	}
 
+	if err = cc.Walk(svc.setPermissionFlags); err != nil {
+		return err
+	}
+
 	if err = svc.preloadViews(cc); err != nil {
 		return
 	}
@@ -135,19 +138,24 @@ func (svc *channel) preloadExtras(cc types.ChannelSet) (err error) {
 	return
 }
 
-func (svc *channel) preloadMembers(cc types.ChannelSet) error {
-	var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
+func (svc *channel) preloadMembers(cc types.ChannelSet) (err error) {
+	var (
+		userID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		mm     types.ChannelMemberSet
+	)
 
-	if mm, err := svc.cmember.Find(&types.ChannelMemberFilter{ComembersOf: userID}); err != nil {
-		return err
+	if mm, err = svc.cmember.Find(&types.ChannelMemberFilter{ComembersOf: userID}); err != nil {
+		return
 	} else {
-		cc.Walk(func(ch *types.Channel) error {
+		spew.Dump(mm)
+		err = cc.Walk(func(ch *types.Channel) error {
 			ch.Members = mm.MembersOf(ch.ID)
+			ch.Member = mm.FindByChannelID(ch.ID).FindByUserID(userID)
 			return nil
 		})
 	}
 
-	return nil
+	return
 }
 
 func (svc *channel) preloadViews(cc types.ChannelSet) error {
@@ -167,13 +175,11 @@ func (svc *channel) preloadViews(cc types.ChannelSet) error {
 
 // FindMembers loads all members (and full users) for a specific channel
 func (svc *channel) FindMembers(channelID uint64) (out types.ChannelMemberSet, err error) {
-	var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
-
-	// @todo [SECURITY] check if we can return members on this channel
-	_ = channelID
-	_ = userID
-
 	return out, svc.db.Transaction(func() (err error) {
+		if _, err = svc.FindByID(channelID); err != nil {
+			return
+		}
+
 		out, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: channelID})
 		if err != nil {
 			return err
@@ -187,35 +193,6 @@ func (svc *channel) FindMembers(channelID uint64) (out types.ChannelMemberSet, e
 				return nil
 			})
 		}
-	})
-}
-
-// Returns all channels with membership info
-func (svc *channel) FindByMembership() (cc []*types.Channel, err error) {
-	return cc, svc.db.Transaction(func() error {
-		var chMemberId = repository.Identity(svc.ctx)
-
-		var mm []*types.ChannelMember
-
-		if mm, err = svc.cmember.Find(&types.ChannelMemberFilter{MemberID: chMemberId}); err != nil {
-			return err
-		}
-
-		if cc, err = svc.channel.FindChannels(nil); err != nil {
-			return err
-		} else if err = svc.preloadExtras(cc); err != nil {
-			return err
-		}
-
-		for _, m := range mm {
-			for _, c := range cc {
-				if c.ID == m.ChannelID {
-					c.Member = m
-				}
-			}
-		}
-
-		return nil
 	})
 }
 
@@ -235,9 +212,11 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 		if in.Type == types.ChannelTypeGroup {
 			if out, err = svc.checkGroupExistance(mm); err != nil {
 				return err
-			} else if out != nil {
+			} else if out != nil && out.CanObserve {
 				// Group already exists so let's just return it
 				return nil
+			} else if !out.CanObserve {
+				return errors.New("Not allowed to create this channel due to permission settings")
 			}
 		}
 
@@ -339,7 +318,7 @@ func (svc *channel) buildMemberSet(owner uint64, members ...uint64) (mm types.Ch
 
 	// Add all required members and make sure that list is unique
 	for _, m := range members {
-		if mm.FindByUserId(m) == nil {
+		if mm.FindByUserID(m) == nil {
 			mm = append(mm, &types.ChannelMember{
 				UserID: m,
 				Type:   types.ChannelMembershipTypeMember,
@@ -350,41 +329,40 @@ func (svc *channel) buildMemberSet(owner uint64, members ...uint64) (mm types.Ch
 	return mm
 }
 
-func (svc *channel) checkGroupExistance(mm types.ChannelMemberSet) (*types.Channel, error) {
-	if c, err := svc.channel.FindChannelByMemberSet(mm.AllMemberIDs()...); err == repository.ErrChannelNotFound {
+func (svc *channel) checkGroupExistance(mm types.ChannelMemberSet) (out *types.Channel, err error) {
+	if out, err = svc.channel.FindChannelByMemberSet(mm.AllMemberIDs()...); err == repository.ErrChannelNotFound {
 		return nil, nil
-	} else {
-		return c, err
+	} else if out != nil && err == nil {
+		err = svc.preloadExtras(types.ChannelSet{out})
 	}
+
+	return
 }
 
 func (svc *channel) Update(in *types.Channel) (ch *types.Channel, err error) {
 	return ch, svc.db.Transaction(func() (err error) {
 		var changed bool
 
-		// @todo [SECURITY] can user access this channel?
-		if ch, err = svc.channel.FindChannelByID(in.ID); err != nil {
+		if ch, err = svc.FindByID(in.ID); err != nil {
 			return
 		}
 
-		if ch.ArchivedAt != nil {
-			return errors.New("Not allowed to edit archived channels")
-		} else if ch.DeletedAt != nil {
-			return errors.New("Not allowed to edit deleted channels")
+		if !ch.CanUpdate {
+			return errors.New("Not allowed to update this channel")
 		}
 
 		if in.Type.IsValid() && ch.Type != in.Type {
-			// @todo [SECURITY] check if user can create public channels
+			// @todo [SECURITY] check if user can update channel type to public
 			if in.Type == types.ChannelTypePublic && false {
 				return errors.New("Not allowed to change type of this channel to **public**")
 			}
 
-			// @todo [SECURITY] check if user can create private channels
+			// @todo [SECURITY] check if user can create update channel type to private
 			if in.Type == types.ChannelTypePrivate && false {
 				return errors.New("Not allowed to change type of this channel to **private**")
 			}
 
-			// @todo [SECURITY] check if user can create group channels
+			// @todo [SECURITY] check if user can update channel type to group
 			if in.Type == types.ChannelTypeGroup && false {
 				return errors.New("Not allowed to change type of this channel to **group**")
 			}
@@ -444,12 +422,13 @@ func (svc *channel) Delete(ID uint64) (ch *types.Channel, err error) {
 	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
 
-		// @todo [SECURITY] can user access this channel?
-		if ch, err = svc.channel.FindChannelByID(ID); err != nil {
+		if ch, err = svc.FindByID(ID); err != nil {
 			return
 		}
 
-		// @todo [SECURITY] can user delete this channel?
+		if !ch.CanDelete {
+			return errors.New("Not allowed to delete this channel")
+		}
 
 		if ch.DeletedAt != nil {
 			return errors.New("Channel already deleted")
@@ -477,12 +456,13 @@ func (svc *channel) Undelete(ID uint64) (ch *types.Channel, err error) {
 	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
 
-		// @todo [SECURITY] can user access this channel?
-		if ch, err = svc.channel.FindChannelByID(ID); err != nil {
+		if ch, err = svc.FindByID(ID); err != nil {
 			return
 		}
 
-		// @todo [SECURITY] can user recover this channel?
+		if !ch.CanDelete {
+			return errors.New("Not allowed to undelete this channel")
+		}
 
 		if ch.DeletedAt == nil {
 			return errors.New("Channel not deleted")
@@ -506,12 +486,13 @@ func (svc *channel) Archive(ID uint64) (ch *types.Channel, err error) {
 	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
 
-		// @todo [SECURITY] can user access this channel?
-		if ch, err = svc.channel.FindChannelByID(ID); err != nil {
+		if ch, err = svc.FindByID(ID); err != nil {
 			return
 		}
 
-		// @todo [SECURITY] can user archive this channel?
+		if !ch.CanArchive {
+			return errors.New("Not allowed to archive this channel")
+		}
 
 		if ch.ArchivedAt != nil {
 			return errors.New("Channel already archived")
@@ -535,12 +516,13 @@ func (svc *channel) Unarchive(ID uint64) (ch *types.Channel, err error) {
 	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
 
-		// @todo [SECURITY] can user access this channel?
-		if ch, err = svc.channel.FindChannelByID(ID); err != nil {
+		if ch, err = svc.FindByID(ID); err != nil {
 			return
 		}
 
-		// @todo [SECURITY] can user unarchive this channel?
+		if !ch.CanArchive {
+			return errors.New("Not allowed to unarchive this channel")
+		}
 
 		if ch.ArchivedAt == nil {
 			return errors.New("Channel not archived")
@@ -569,8 +551,7 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 
 	out = types.ChannelMemberSet{}
 
-	// @todo [SECURITY] can user access this channel?
-	if ch, err = svc.channel.FindChannelByID(channelID); err != nil {
+	if ch, err = svc.FindByID(channelID); err != nil {
 		return
 	}
 
@@ -578,7 +559,9 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 		return nil, errors.New("Adding members to a group is not currently supported")
 	}
 
-	// @todo [SECURITY] can user add members to this channel?
+	if !ch.CanChangeMembers {
+		return nil, errors.New("Not allowed to invite members")
+	}
 
 	return out, svc.db.Transaction(func() (err error) {
 		if existing, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: channelID}); err != nil {
@@ -596,7 +579,7 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 				return errors.New("Unexisting user")
 			}
 
-			if e := existing.FindByUserId(memberID); e != nil {
+			if e := existing.FindByUserID(memberID); e != nil {
 				// Already a member/invited
 				e.User = user
 				out = append(out, e)
@@ -631,8 +614,7 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 
 	out = types.ChannelMemberSet{}
 
-	// @todo [SECURITY] can user access this channel?
-	if ch, err = svc.channel.FindChannelByID(channelID); err != nil {
+	if ch, err = svc.FindByID(channelID); err != nil {
 		return
 	}
 
@@ -640,7 +622,9 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 		return nil, errors.New("Adding members to a group is not currently supported")
 	}
 
-	// @todo [SECURITY] can user add members to this channel?
+	if !ch.CanChangeMembers {
+		return nil, errors.New("Not allowed to add members")
+	}
 
 	return out, svc.db.Transaction(func() (err error) {
 		if existing, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: channelID}); err != nil {
@@ -660,7 +644,7 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 				return errors.New("Unexisting user")
 			}
 
-			if e := existing.FindByUserId(memberID); e != nil {
+			if e := existing.FindByUserID(memberID); e != nil {
 				if e.Type != types.ChannelMembershipTypeInvitee {
 					e.User = user
 					out = append(out, e)
@@ -716,8 +700,7 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 		existing types.ChannelMemberSet
 	)
 
-	// @todo [SECURITY] can user access this channel?
-	if ch, err = svc.channel.FindChannelByID(channelID); err != nil {
+	if ch, err = svc.FindByID(channelID); err != nil {
 		return
 	}
 
@@ -725,7 +708,9 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 		return errors.New("Removign members from a group is not currently supported")
 	}
 
-	// @todo [SECURITY] can user remove members from this channel?
+	if !ch.CanChangeMembers {
+		return errors.New("Not allowed to remove members")
+	}
 
 	return svc.db.Transaction(func() (err error) {
 		if existing, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: channelID}); err != nil {
@@ -733,7 +718,7 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 		}
 
 		for _, memberID := range memberIDs {
-			if existing.FindByUserId(memberID) == nil {
+			if existing.FindByUserID(memberID) == nil {
 				// Not really a member...
 				continue
 			}
@@ -790,13 +775,18 @@ func (svc *channel) sendChannelEvent(ch *types.Channel) (err error) {
 		// Looks like a valid channel
 
 		// Preload members, if needed
-		if len(ch.Members) == 0 {
+		if len(ch.Members) == 0 || ch.Member == nil {
 			if mm, err := svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: ch.ID}); err != nil {
 				return err
 			} else {
 				ch.Members = mm.AllMemberIDs()
+				ch.Member = mm.FindByUserID(repository.Identity(svc.ctx))
 			}
 		}
+	}
+
+	if err = svc.setPermissionFlags(ch); err != nil {
+		return
 	}
 
 	if err = svc.evl.Channel(ch); err != nil {
@@ -806,36 +796,27 @@ func (svc *channel) sendChannelEvent(ch *types.Channel) (err error) {
 	return nil
 }
 
-//// @todo temp location, move this somewhere else
-//type (
-//	nativeChannelSec struct {
-//		rpo struct {
-//			ch nativeChannelSecChRepo
-//		}
-//	}
-//
-//	nativeChannelSecChRepo interface {
-//		FindMember(channelId uint64, userId uint64) (*types.User, error)
-//	}
-//)
-//
-//func ChannelSecurity(chRpo nativeChannelSecChRepo) channelSecurity {
-//	var sec = &nativeChannelSec{}
-//
-//	sec.rpo.ch = chRpo
-//
-//	return sec
-//}
-//
-//// Current user can read the channel if he is a member
-//func (sec nativeChannelSec) CanRead(ch *types.Channel) bool {
-//	// @todo check if channel is public?
-//
-//	var currentUserID = repository.Identity(svc.ctx)
-//
-//	user, err := sec.rpo.FindMember(ch.ID, currentUserID)
-//
-//	return err != nil && user.Valid()
-//}
+func (svc *channel) setPermissionFlags(ch *types.Channel) (err error) {
+	var userID = repository.Identity(svc.ctx)
+
+	var (
+		isMember  = ch.Member != nil
+		isCreator = ch.CreatorID == userID
+		isOwner   = isCreator || (isMember && ch.Member.Type == types.ChannelMembershipTypeOwner)
+		isPublic  = ch.Type == types.ChannelTypePublic
+	)
+
+	ch.CanJoin = (ch.IsValid() && isPublic) || isOwner
+	ch.CanPart = isMember
+	ch.CanObserve = ch.CanJoin
+	ch.CanSendMessages = ch.CanObserve && isMember
+	ch.CanDeleteMessages = isOwner
+	ch.CanChangeMembers = isOwner
+	ch.CanUpdate = isOwner
+	ch.CanArchive = isOwner
+	ch.CanDelete = isOwner
+
+	return nil
+}
 
 var _ ChannelService = &channel{}

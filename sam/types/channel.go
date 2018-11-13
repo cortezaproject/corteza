@@ -25,6 +25,16 @@ type (
 
 		LastMessageID uint64 `json:",omitempty" db:"rel_last_message"`
 
+		CanJoin           bool `json:"-" db:"-"`
+		CanPart           bool `json:"-" db:"-"`
+		CanObserve        bool `json:"-" db:"-"`
+		CanSendMessages   bool `json:"-" db:"-"`
+		CanDeleteMessages bool `json:"-" db:"-"`
+		CanChangeMembers  bool `json:"-" db:"-"`
+		CanUpdate         bool `json:"-" db:"-"`
+		CanArchive        bool `json:"-" db:"-"`
+		CanDelete         bool `json:"-" db:"-"`
+
 		Member  *ChannelMember `json:"-" db:"-"`
 		Members []uint64       `json:"-" db:"-"`
 		View    *ChannelView   `json:"-" db:"-"`

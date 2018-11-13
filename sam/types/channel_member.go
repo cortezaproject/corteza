@@ -66,14 +66,26 @@ func (mm ChannelMemberSet) AllMemberIDs() []uint64 {
 	return mmof
 }
 
-func (uu ChannelMemberSet) FindByUserId(userID uint64) *ChannelMember {
-	for i := range uu {
-		if uu[i].UserID == userID {
-			return uu[i]
+func (mm ChannelMemberSet) FindByUserID(userID uint64) *ChannelMember {
+	for i := range mm {
+		if mm[i].UserID == userID {
+			return mm[i]
 		}
 	}
 
 	return nil
+}
+
+func (mm ChannelMemberSet) FindByChannelID(channelID uint64) (out ChannelMemberSet) {
+	out = ChannelMemberSet{}
+
+	for i := range mm {
+		if mm[i].ChannelID == channelID {
+			out = append(out, mm[i])
+		}
+	}
+
+	return
 }
 
 const (
