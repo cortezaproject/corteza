@@ -310,10 +310,12 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 
 		// Create the first message, doing this directly with repository to circumvent
 		// message service constraints
-		if len(out.Topic) == 0 {
-			svc.scheduleSystemMessage(out, `<@%d> created new %s channel *%s*`, chCreatorID, out.Type, out.Name)
+		if len(out.Name) == 0 {
+			svc.scheduleSystemMessage(out, `<@%d> created %s channel`, chCreatorID, out.Type)
+		} else if len(out.Topic) == 0 {
+			svc.scheduleSystemMessage(out, `<@%d> created %s channel **%s**`, chCreatorID, out.Type, out.Name)
 		} else {
-			svc.scheduleSystemMessage(out, `<@%d> created new %s channel *%s*, topic: %s`, chCreatorID, out.Type, out.Name, out.Topic)
+			svc.scheduleSystemMessage(out, `<@%d> created %s channel **%s**, topic: %s`, chCreatorID, out.Type, out.Name, out.Topic)
 		}
 
 		_ = msg
@@ -374,17 +376,17 @@ func (svc *channel) Update(in *types.Channel) (ch *types.Channel, err error) {
 		if in.Type.IsValid() && ch.Type != in.Type {
 			// @todo [SECURITY] check if user can create public channels
 			if in.Type == types.ChannelTypePublic && false {
-				return errors.New("Not allowed to change type of this channel to public")
+				return errors.New("Not allowed to change type of this channel to **public**")
 			}
 
 			// @todo [SECURITY] check if user can create private channels
 			if in.Type == types.ChannelTypePrivate && false {
-				return errors.New("Not allowed to change type of this channel to private")
+				return errors.New("Not allowed to change type of this channel to **private**")
 			}
 
 			// @todo [SECURITY] check if user can create group channels
 			if in.Type == types.ChannelTypeGroup && false {
-				return errors.New("Not allowed to change type of this channel to group")
+				return errors.New("Not allowed to change type of this channel to **group**")
 			}
 
 			changed = true
@@ -399,9 +401,9 @@ func (svc *channel) Update(in *types.Channel) (ch *types.Channel, err error) {
 			} else if settingsChannelNameLength > 0 && len(in.Name) > settingsChannelNameLength {
 				return errors.Errorf("Channel name (%d characters) too long (max: %d)", len(in.Name), settingsChannelNameLength)
 			} else if ch.Name != "" {
-				svc.scheduleSystemMessage(in, "<@%d> renamed channel *%s* (was: %s)", chUpdatorId, in.Name, ch.Name)
+				svc.scheduleSystemMessage(in, "<@%d> renamed channel **%s** (was: %s)", chUpdatorId, in.Name, ch.Name)
 			} else {
-				svc.scheduleSystemMessage(in, "<@%d> set channel name to *%s*", chUpdatorId, in.Name)
+				svc.scheduleSystemMessage(in, "<@%d> set channel name to **%s**", chUpdatorId, in.Name)
 			}
 
 			ch.Name = in.Name
