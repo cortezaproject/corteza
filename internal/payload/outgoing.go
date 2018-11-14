@@ -26,8 +26,10 @@ func Message(ctx context.Context, msg *samTypes.Message) *outgoing.Message {
 		ChannelID: Uint64toa(msg.ChannelID),
 		Message:   msg.Message,
 		Type:      string(msg.Type),
-		ReplyTo:   msg.ReplyTo,
-		Replies:   msg.Replies,
+
+		ReplyTo:     msg.ReplyTo,
+		Replies:     msg.Replies,
+		RepliesFrom: Uint64stoa(msg.RepliesFrom),
 
 		User:         User(msg.User),
 		Attachment:   Attachment(msg.Attachment),

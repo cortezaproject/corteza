@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/sam/types"
@@ -16,6 +17,7 @@ type (
 		FindMessageByID(id uint64) (*types.Message, error)
 		FindMessages(filter *types.MessageFilter) (types.MessageSet, error)
 		FindThreads(filter *types.MessageFilter) (types.MessageSet, error)
+		PrefillThreadParticipants(mm types.MessageSet) error
 		CreateMessage(mod *types.Message) (*types.Message, error)
 		UpdateMessage(mod *types.Message) (*types.Message, error)
 		DeleteMessageByID(ID uint64) error
@@ -61,6 +63,8 @@ const (
 		"   FROM messages, originals " +
 		"  WHERE " + sqlMessageScope +
 		"    AND original_id IN (id, reply_to)"
+
+	sqlThreadParticipantsByMessageID = "SELECT DISTINCT reply_to, rel_user FROM messages WHERE reply_to IN (?)"
 
 	sqlMessageRepliesIncCount = `UPDATE messages SET replies = replies + 1 WHERE id = ? AND reply_to = 0`
 	sqlMessageRepliesDecCount = `UPDATE messages SET replies = replies - 1 WHERE id = ? AND reply_to = 0`
@@ -179,6 +183,25 @@ func (r *message) FindThreads(filter *types.MessageFilter) (types.MessageSet, er
 	}
 
 	return rval, r.db().Select(&rval, sql, params...)
+}
+
+func (r *message) PrefillThreadParticipants(mm types.MessageSet) error {
+	var rval = []struct {
+		ReplyTo uint64 `db:"reply_to"`
+		UserID  uint64 `db:"rel_user"`
+	}{}
+
+	if sql, args, err := sqlx.In(sqlThreadParticipantsByMessageID, mm.IDs()); err != nil {
+		return err
+	} else if err = r.db().Select(&rval, sql, args...); err != nil {
+		return err
+	} else {
+		for _, p := range rval {
+			mm.FindById(p.ReplyTo).RepliesFrom = append(mm.FindById(p.ReplyTo).RepliesFrom, p.UserID)
+		}
+	}
+
+	return nil
 }
 
 func (r *message) sanitizeFilter(filter *types.MessageFilter) {

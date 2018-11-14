@@ -422,6 +422,10 @@ func (svc *message) preload(mm types.MessageSet) (err error) {
 		return
 	}
 
+	if err = svc.message.PrefillThreadParticipants(mm); err != nil {
+		return
+	}
+
 	return
 }
 

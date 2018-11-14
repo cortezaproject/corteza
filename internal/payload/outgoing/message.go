@@ -11,8 +11,10 @@ type (
 		Type      string `json:"type"`
 		Message   string `json:"message"`
 		ChannelID string `json:"channelID"`
-		ReplyTo   uint64 `json:"replyTo,omitempty,string"`
-		Replies   uint   `json:"replies,omitempty"`
+
+		ReplyTo     uint64   `json:"replyTo,omitempty,string"`
+		Replies     uint     `json:"replies,omitempty"`
+		RepliesFrom []string `json:"repliesFrom,omitempty"`
 
 		User         *User                 `json:"user"`
 		Attachment   *Attachment           `json:"att,omitempty"`
