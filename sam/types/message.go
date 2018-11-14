@@ -22,7 +22,9 @@ type (
 		Attachment *Attachment       `json:"attachment,omitempty"`
 		User       *systemTypes.User `json:"user,omitempty"`
 		Flags      MessageFlagSet    `json:"flags,omitempty"`
-		Mentions   MentionSet
+
+		Mentions    MentionSet
+		RepliesFrom []uint64
 	}
 
 	MessageSet []*Message
