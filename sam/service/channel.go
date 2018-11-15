@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 
 	"github.com/crusttech/crust/internal/auth"
@@ -147,7 +146,6 @@ func (svc *channel) preloadMembers(cc types.ChannelSet) (err error) {
 	if mm, err = svc.cmember.Find(&types.ChannelMemberFilter{ComembersOf: userID}); err != nil {
 		return
 	} else {
-		spew.Dump(mm)
 		err = cc.Walk(func(ch *types.Channel) error {
 			ch.Members = mm.MembersOf(ch.ID)
 			ch.Member = mm.FindByChannelID(ch.ID).FindByUserID(userID)
@@ -161,11 +159,11 @@ func (svc *channel) preloadMembers(cc types.ChannelSet) (err error) {
 func (svc *channel) preloadViews(cc types.ChannelSet) error {
 	var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	if vv, err := svc.cview.Find(&types.ChannelViewFilter{UserID: userID}); err != nil {
+	if vv, err := svc.cview.Find(&types.UnreadFilter{UserID: userID}); err != nil {
 		return err
 	} else {
 		cc.Walk(func(ch *types.Channel) error {
-			ch.View = vv.FindByChannelId(ch.ID)
+			ch.Unread = vv.FindByChannelId(ch.ID)
 			return nil
 		})
 	}
@@ -744,7 +742,7 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 
 func (svc *channel) RecordView(userID, channelID, lastMessageID uint64) error {
 	return svc.db.Transaction(func() (err error) {
-		return svc.cview.Record(userID, channelID, lastMessageID, 0)
+		return svc.cview.Record(userID, channelID, lastMessageID, 0, 0)
 	})
 }
 

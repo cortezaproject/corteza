@@ -128,7 +128,7 @@ func Channel(ch *samTypes.Channel) *outgoing.Channel {
 		Topic:         ch.Topic,
 		Type:          string(ch.Type),
 		Members:       Uint64stoa(ch.Members),
-		View:          ChannelView(ch.View),
+		Unread:        Unread(ch.Unread),
 
 		CanJoin:           ch.CanJoin,
 		CanPart:           ch.CanPart,
@@ -174,14 +174,14 @@ func ChannelMembers(members samTypes.ChannelMemberSet) *outgoing.ChannelMemberSe
 	return &retval
 }
 
-func ChannelView(v *samTypes.ChannelView) *outgoing.ChannelView {
+func Unread(v *samTypes.Unread) *outgoing.Unread {
 	if v == nil {
 		return nil
 	}
 
-	return &outgoing.ChannelView{
-		LastMessageID:    Uint64toa(v.LastMessageID),
-		NewMessagesCount: v.NewMessagesCount,
+	return &outgoing.Unread{
+		LastMessageID: v.LastMessageID,
+		Count:         v.Count,
 	}
 }
 
