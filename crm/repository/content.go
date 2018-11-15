@@ -64,7 +64,7 @@ func (r *content) FindByID(id uint64) (*types.Content, error) {
 	if err := r.db().Get(mod, "SELECT * FROM crm_content WHERE id=? and deleted_at IS NULL", id); err != nil {
 		return nil, err
 	}
-	return mod, r.prepare(mod, "page", "user")
+	return mod, r.prepare(mod, "page", "user", "fields")
 }
 
 func (r *content) Find(moduleID uint64, query string, page int, perPage int) (*FindResponse, error) {
@@ -116,7 +116,7 @@ func (r *content) Find(moduleID uint64, query string, page int, perPage int) (*F
 		}
 	}
 
-	if err := r.prepareAll(response.Contents, "user"); err != nil {
+	if err := r.prepareAll(response.Contents, "user", "fields"); err != nil {
 		return nil, err
 	}
 
@@ -144,7 +144,7 @@ func (r *content) Create(mod *types.Content) (*types.Content, error) {
 		return nil, err
 	}
 
-	return mod, r.prepare(mod, "user")
+	return mod, r.prepare(mod, "user", "fields")
 }
 
 func (r *content) Update(mod *types.Content) (*types.Content, error) {
@@ -212,6 +212,18 @@ func (r *content) prepare(content *types.Content, fields ...string) (err error) 
 	usersAPI := systemRepository.User(r.Context(), r.db())
 	for _, field := range fields {
 		switch field {
+		case "fields":
+			fields, err := r.Fields(content)
+			if err != nil {
+				return err
+			}
+			json, err := json.Marshal(fields)
+			if err != nil {
+				return err
+			}
+			if err := (&content.Fields).Scan(json); err != nil {
+				return err
+			}
 		case "page":
 			if content.Page, err = api.FindByModuleID(content.ModuleID); err != nil {
 				return

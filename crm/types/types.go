@@ -28,7 +28,7 @@ type (
 
 	// ContentColumn is a stored row in the `content_column` table
 	ContentColumn struct {
-		ContentID uint64 `json:"contentID,string" db:"content_id"`
+		ContentID uint64 `json:"-" db:"content_id"`
 		Name      string `json:"name" db:"column_name"`
 		Value     string `json:"value" db:"column_value"`
 	}

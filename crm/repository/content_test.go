@@ -89,13 +89,23 @@ func TestContent(t *testing.T) {
 			assert(t, ms.ID == m.ID, "Expected ID from database to match, %d != %d", m.ID, ms.ID)
 			assert(t, ms.ModuleID == m.ModuleID, "Expected Module ID from database to match, %d != %d", m.ModuleID, ms.ModuleID)
 
-			fields, err := repository.Fields(ms)
-			// fields := make([]testContentRow, 0)
-			// err = json.Unmarshal(ms.Fields, &fields)
-			assert(t, err == nil, "%+v", errors.Wrap(err, "Didn't expect error when unmarshalling"))
-			assert(t, len(fields) == 2, "Expected different field count: %d != %d", 2, len(fields))
-			assert(t, fields[0].Name == "name", "Expected field.0 type = name, got %s", fields[0].Name)
-			assert(t, fields[1].Name == "email", "Expected field.1 type = email, got %s", fields[1].Name)
+			{
+				fields, err := repository.Fields(ms)
+				// fields := make([]testContentRow, 0)
+				// err = json.Unmarshal(ms.Fields, &fields)
+				assert(t, err == nil, "%+v", errors.Wrap(err, "Didn't expect error when unmarshalling"))
+				assert(t, len(fields) == 2, "Expected different field count: %d != %d", 2, len(fields))
+				assert(t, fields[0].Name == "name", "Expected field.0 type = name, got %s", fields[0].Name)
+				assert(t, fields[1].Name == "email", "Expected field.1 type = email, got %s", fields[1].Name)
+			}
+			{
+				fields := make([]types.ContentColumn, 0)
+				err := json.Unmarshal(ms.Fields, &fields)
+				assert(t, err == nil, "%+v", errors.Wrap(err, "Didn't expect error when unmarshalling"))
+				assert(t, len(fields) == 2, "Expected different field count: %d != %d", 2, len(fields))
+				assert(t, fields[0].Name == "name", "Expected field.0 type = name, got %s", fields[0].Name)
+				assert(t, fields[1].Name == "email", "Expected field.1 type = email, got %s", fields[1].Name)
+			}
 		}
 
 		// update created content
