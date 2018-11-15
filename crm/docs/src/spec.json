@@ -144,7 +144,7 @@
       {
         "name": "edit",
         "method": "POST",
-        "title": "Create page",
+        "title": "Edit page",
         "path": "/{pageID}",
         "parameters": {
           "path": [

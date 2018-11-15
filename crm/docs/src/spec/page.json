@@ -90,7 +90,7 @@
     {
       "Name": "edit",
       "Method": "POST",
-      "Title": "Create page",
+      "Title": "Edit page",
       "Path": "/{pageID}",
       "Parameters": {
         "path": [

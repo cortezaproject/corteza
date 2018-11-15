@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/titpetric/statik/fs"
 	"github.com/titpetric/factory"
+	"github.com/titpetric/statik/fs"
 
 	"github.com/crusttech/crust/crm/db/mysql"
 )
