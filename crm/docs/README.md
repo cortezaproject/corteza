@@ -265,7 +265,7 @@ CRM module pages
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | pageID | uint64 | PATH | Page ID | N/A | YES |
 
-## Create page
+## Edit page
 
 #### Method
 
