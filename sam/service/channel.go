@@ -23,7 +23,7 @@ type (
 
 		channel repository.ChannelRepository
 		cmember repository.ChannelMemberRepository
-		cview   repository.ChannelViewRepository
+		unread  repository.UnreadRepository
 		message repository.MessageRepository
 
 		sysmsgs types.MessageSet
@@ -79,7 +79,7 @@ func (svc *channel) With(ctx context.Context) ChannelService {
 
 		channel: repository.Channel(ctx, db),
 		cmember: repository.ChannelMember(ctx, db),
-		cview:   repository.ChannelView(ctx, db),
+		unread:  repository.ChannelView(ctx, db),
 		message: repository.Message(ctx, db),
 
 		// System messages should be flushed at the end of each session
@@ -159,7 +159,7 @@ func (svc *channel) preloadMembers(cc types.ChannelSet) (err error) {
 func (svc *channel) preloadViews(cc types.ChannelSet) error {
 	var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	if vv, err := svc.cview.Find(&types.UnreadFilter{UserID: userID}); err != nil {
+	if vv, err := svc.unread.Find(&types.UnreadFilter{UserID: userID}); err != nil {
 		return err
 	} else {
 		cc.Walk(func(ch *types.Channel) error {
@@ -742,7 +742,7 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 
 func (svc *channel) RecordView(userID, channelID, lastMessageID uint64) error {
 	return svc.db.Transaction(func() (err error) {
-		return svc.cview.Record(userID, channelID, lastMessageID, 0, 0)
+		return svc.unread.Record(userID, channelID, 0, lastMessageID, 0)
 	})
 }
 

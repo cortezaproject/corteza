@@ -17,6 +17,8 @@ type Payload struct {
 	*Messages       `json:"messages"`
 	*MessageThreads `json:"messageThreads"`
 
+	*MessageActivity `json:"messageActivity"`
+
 	// Message actions
 	*MessageCreate `json:"createMessage"`
 	*MessageUpdate `json:"updateMessage"`

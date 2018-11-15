@@ -116,3 +116,13 @@ func (s *Session) channelActivity(ctx context.Context, p *incoming.ChannelActivi
 		Kind:   p.Kind,
 	}, payload.Uint64toa(p.ChannelID))
 }
+
+// Echoes received channel activity back to all subscribers
+func (s *Session) messageActivity(ctx context.Context, p *incoming.MessageActivity) error {
+	return s.sendToAllSubscribers(&outgoing.MessageActivity{
+		ID:        p.MessageID,
+		ChannelID: p.ChannelID,
+		UserID:    auth.GetIdentityFromContext(ctx).Identity(),
+		Kind:      p.Kind,
+	}, payload.Uint64toa(p.ChannelID))
+}

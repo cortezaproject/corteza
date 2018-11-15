@@ -22,7 +22,7 @@ type (
 		attachment repository.AttachmentRepository
 		channel    repository.ChannelRepository
 		cmember    repository.ChannelMemberRepository
-		cview      repository.ChannelViewRepository
+		unreads    repository.UnreadRepository
 		message    repository.MessageRepository
 		mflag      repository.MessageFlagRepository
 		mentions   repository.MentionRepository
@@ -83,7 +83,7 @@ func (svc *message) With(ctx context.Context) MessageService {
 		attachment: repository.Attachment(ctx, db),
 		channel:    repository.Channel(ctx, db),
 		cmember:    repository.ChannelMember(ctx, db),
-		cview:      repository.ChannelView(ctx, db),
+		unreads:    repository.ChannelView(ctx, db),
 		message:    repository.Message(ctx, db),
 		mflag:      repository.MessageFlag(ctx, db),
 		mentions:   repository.Mention(ctx, db),
@@ -191,7 +191,7 @@ func (svc *message) Create(in *types.Message) (message *types.Message, err error
 			return
 		}
 
-		if err = svc.cview.Inc(message.ChannelID, message.UserID); err != nil {
+		if err = svc.unreads.Inc(message.ChannelID, message.ReplyTo, message.UserID); err != nil {
 			return
 		}
 
@@ -293,7 +293,7 @@ func (svc *message) Delete(ID uint64) error {
 			return
 		}
 
-		if err = svc.cview.Dec(deletedMsg.ChannelID, deletedMsg.UserID); err != nil {
+		if err = svc.unreads.Dec(deletedMsg.ChannelID, deletedMsg.ReplyTo, deletedMsg.UserID); err != nil {
 			return err
 		} else {
 			// Set deletedAt timestamp so that our clients can react properly...
@@ -322,9 +322,9 @@ func (svc *message) MarkAsUnread(messageID uint64) error {
 		}
 
 		if message.ReplyTo > 0 {
-			return svc.cview.Record(currentUserID, message.ChannelID, message.ReplyTo, messageID, 0)
+			return svc.unreads.Record(currentUserID, message.ChannelID, message.ReplyTo, messageID, 0)
 		} else {
-			return svc.cview.Record(currentUserID, message.ChannelID, 0, messageID, 0)
+			return svc.unreads.Record(currentUserID, message.ChannelID, 0, messageID, 0)
 		}
 	})
 }

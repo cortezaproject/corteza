@@ -61,6 +61,14 @@ type (
 	}
 
 	MessagePinRemoved MessagePin
+
+	// ChannelActivity indicates where the activity is and who is active
+	MessageActivity struct {
+		ID        uint64 `json:"messageID,string"`
+		ChannelID uint64 `json:"channelID,string"`
+		UserID    uint64 `json:"userID,string"`
+		Kind      string `json:"kind,omitempty"`
+	}
 )
 
 func (p *Message) EncodeMessage() ([]byte, error) {
@@ -85,4 +93,8 @@ func (p *MessagePin) EncodeMessage() ([]byte, error) {
 
 func (p *MessagePinRemoved) EncodeMessage() ([]byte, error) {
 	return json.Marshal(Payload{MessagePinRemoved: p})
+}
+
+func (p *MessageActivity) EncodeMessage() ([]byte, error) {
+	return json.Marshal(Payload{MessageActivity: p})
 }
