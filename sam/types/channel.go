@@ -37,7 +37,7 @@ type (
 
 		Member  *ChannelMember `json:"-" db:"-"`
 		Members []uint64       `json:"-" db:"-"`
-		View    *ChannelView   `json:"-" db:"-"`
+		Unread  *Unread        `json:"-" db:"-"`
 	}
 
 	ChannelFilter struct {

@@ -43,6 +43,8 @@ type (
 		React(messageID uint64, reaction string) error
 		RemoveReaction(messageID uint64, reaction string) error
 
+		MarkAsUnread(messageID uint64) error
+
 		Pin(messageID uint64) error
 		RemovePin(messageID uint64) error
 
@@ -303,6 +305,27 @@ func (svc *message) Delete(ID uint64) error {
 		}
 
 		return svc.sendEvent(append(bq, deletedMsg)...)
+	})
+}
+
+// Pin message to the channel
+func (svc *message) MarkAsUnread(messageID uint64) error {
+	var currentUserID uint64 = repository.Identity(svc.ctx)
+
+	return svc.db.Transaction(func() (err error) {
+		// Broadcast queue
+		var message *types.Message
+
+		message, err = svc.message.FindMessageByID(messageID)
+		if err != nil {
+			return err
+		}
+
+		if message.ReplyTo > 0 {
+			return svc.cview.Record(currentUserID, message.ChannelID, message.ReplyTo, messageID, 0)
+		} else {
+			return svc.cview.Record(currentUserID, message.ChannelID, 0, messageID, 0)
+		}
 	})
 }
 

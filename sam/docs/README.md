@@ -308,6 +308,21 @@ The following event types may be sent with a message event:
 | channelID | uint64 | PATH | Channel ID | N/A | YES |
 | message | string | POST | Message contents (markdown) | N/A | YES |
 
+## Mark message in channel (or thread) as unread
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channels/{channelID}/messages/{messageID}/unread` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| messageID | uint64 | PATH | Message ID | N/A | YES |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
+
 ## Pin message to channel (public bookmark)
 
 #### Method

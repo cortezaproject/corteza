@@ -133,6 +133,22 @@
       }
     },
     {
+      "Name": "markAsUnread",
+      "Method": "POST",
+      "Title": "Mark message in channel (or thread) as unread",
+      "Path": "/{messageID}/unread",
+      "Parameters": {
+        "path": [
+          {
+            "name": "messageID",
+            "required": true,
+            "title": "Message ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
       "Name": "pinCreate",
       "Method": "POST",
       "Title": "Pin message to channel (public bookmark)",

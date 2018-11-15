@@ -13,8 +13,8 @@ type (
 	ChannelViewRepository interface {
 		With(ctx context.Context, db *factory.DB) ChannelViewRepository
 
-		Find(filter *types.ChannelViewFilter) (types.ChannelViewSet, error)
-		Record(userID, channelID, lastMessageID uint64, count uint32) error
+		Find(filter *types.UnreadFilter) (types.UnreadSet, error)
+		Record(userID, channelID, replyTo, lastMessageID uint64, count uint32) error
 		Inc(channelID, userID uint64) error
 		Dec(channelID, userID uint64) error
 	}
@@ -26,17 +26,17 @@ type (
 
 const (
 	// Fetching channel members of all channels a specific user has access to
-	sqlChannelViewsSelect = `SELECT rel_channel, rel_user, new_messages_count, rel_last_message_id 
-                               FROM channel_views
+	sqlChannelViewsSelect = `SELECT rel_channel, rel_user, count, rel_last_message 
+                               FROM unreads
                               WHERE true `
 
-	sqlChannelViewsIncCount = `UPDATE channel_views 
-                                  SET new_messages_count = new_messages_count + 1
+	sqlChannelViewsIncCount = `UPDATE unreads 
+                                  SET count = count + 1
                                 WHERE rel_channel = ? AND rel_user <> ?`
 
-	sqlChannelViewsDecCount = `UPDATE channel_views 
-                                  SET new_messages_count = new_messages_count - 1
-                                WHERE rel_channel = ? AND rel_user <> ? AND new_messages_count > 0`
+	sqlChannelViewsDecCount = `UPDATE unreads 
+                                  SET count = count - 1
+                                WHERE rel_channel = ? AND rel_user <> ? AND count > 0`
 )
 
 // ChannelView creates new instance of channel member repository
@@ -55,9 +55,9 @@ func (r *channelViews) With(ctx context.Context, db *factory.DB) ChannelViewRepo
 //
 // If channelID > 0 it returns members of a specific channel
 // If userID    > 0 it returns members of all channels this user is member of
-func (r *channelViews) Find(filter *types.ChannelViewFilter) (types.ChannelViewSet, error) {
+func (r *channelViews) Find(filter *types.UnreadFilter) (types.UnreadSet, error) {
 	params := make([]interface{}, 0)
-	vv := types.ChannelViewSet{}
+	vv := types.UnreadSet{}
 	sql := sqlChannelViewsSelect
 
 	if filter != nil {
@@ -72,15 +72,16 @@ func (r *channelViews) Find(filter *types.ChannelViewFilter) (types.ChannelViewS
 }
 
 // Records channel view
-func (r *channelViews) Record(userID, channelID, lastMessageID uint64, count uint32) error {
-	mod := &types.ChannelView{
-		ChannelID:        channelID,
-		UserID:           userID,
-		LastMessageID:    lastMessageID,
-		NewMessagesCount: count,
+func (r *channelViews) Record(userID, channelID, replyTo, lastMessageID uint64, count uint32) error {
+	mod := &types.Unread{
+		ChannelID:     channelID,
+		UserID:        userID,
+		ReplyTo:       replyTo,
+		LastMessageID: lastMessageID,
+		Count:         count,
 	}
 
-	return r.db().Replace("channel_views", mod)
+	return r.db().Replace("unreads", mod)
 }
 
 // Increments unread (new) message count on a channel for all but one user
