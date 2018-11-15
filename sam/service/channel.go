@@ -808,7 +808,7 @@ func (svc *channel) setPermissionFlags(ch *types.Channel) (err error) {
 
 	ch.CanJoin = (ch.IsValid() && isPublic) || isOwner
 	ch.CanPart = isMember
-	ch.CanObserve = ch.CanJoin
+	ch.CanObserve = (ch.IsValid() && isPublic) || isMember
 	ch.CanSendMessages = ch.CanObserve && isMember
 	ch.CanDeleteMessages = isOwner
 	ch.CanChangeMembers = isOwner
