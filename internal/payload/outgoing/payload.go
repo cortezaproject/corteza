@@ -14,6 +14,7 @@ type (
 		*MessageReactionRemoved `json:"messageReactionRemoved,omitempty"`
 		*MessagePin             `json:"messagePin,omitempty"`
 		*MessagePinRemoved      `json:"messagePinRemoved,omitempty"`
+		*MessageActivity        `json:"messageActivity,omitempty"`
 
 		*ChannelJoin `json:"channelJoin,omitempty"`
 		*ChannelPart `json:"channelPart,omitempty"`

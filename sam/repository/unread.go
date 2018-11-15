@@ -9,44 +9,44 @@ import (
 )
 
 type (
-	// ChannelViewRepository interface to channel member repository
-	ChannelViewRepository interface {
-		With(ctx context.Context, db *factory.DB) ChannelViewRepository
+	// UnreadRepository interface to channel member repository
+	UnreadRepository interface {
+		With(ctx context.Context, db *factory.DB) UnreadRepository
 
 		Find(filter *types.UnreadFilter) (types.UnreadSet, error)
 		Record(userID, channelID, replyTo, lastMessageID uint64, count uint32) error
-		Inc(channelID, userID uint64) error
-		Dec(channelID, userID uint64) error
+		Inc(channelID, replyTo, userID uint64) error
+		Dec(channelID, replyTo, userID uint64) error
 	}
 
-	channelViews struct {
+	unread struct {
 		*repository
 	}
 )
 
 const (
 	// Fetching channel members of all channels a specific user has access to
-	sqlChannelViewsSelect = `SELECT rel_channel, rel_user, count, rel_last_message 
+	sqlUnreadSelect = `SELECT rel_channel, rel_reply_to, rel_user, count, rel_last_message 
                                FROM unreads
                               WHERE true `
 
-	sqlChannelViewsIncCount = `UPDATE unreads 
+	sqlUnreadIncCount = `UPDATE unreads 
                                   SET count = count + 1
-                                WHERE rel_channel = ? AND rel_user <> ?`
+                                WHERE rel_channel = ? AND rel_reply_to = ? AND rel_user <> ?`
 
-	sqlChannelViewsDecCount = `UPDATE unreads 
+	sqlUnreadDecCount = `UPDATE unreads 
                                   SET count = count - 1
-                                WHERE rel_channel = ? AND rel_user <> ? AND count > 0`
+                                WHERE rel_channel = ? AND rel_reply_to = ? AND rel_user <> ? AND count > 0`
 )
 
 // ChannelView creates new instance of channel member repository
-func ChannelView(ctx context.Context, db *factory.DB) ChannelViewRepository {
-	return (&channelViews{}).With(ctx, db)
+func ChannelView(ctx context.Context, db *factory.DB) UnreadRepository {
+	return (&unread{}).With(ctx, db)
 }
 
 // With context...
-func (r *channelViews) With(ctx context.Context, db *factory.DB) ChannelViewRepository {
-	return &channelViews{
+func (r *unread) With(ctx context.Context, db *factory.DB) UnreadRepository {
+	return &unread{
 		repository: r.repository.With(ctx, db),
 	}
 }
@@ -55,10 +55,10 @@ func (r *channelViews) With(ctx context.Context, db *factory.DB) ChannelViewRepo
 //
 // If channelID > 0 it returns members of a specific channel
 // If userID    > 0 it returns members of all channels this user is member of
-func (r *channelViews) Find(filter *types.UnreadFilter) (types.UnreadSet, error) {
+func (r *unread) Find(filter *types.UnreadFilter) (types.UnreadSet, error) {
 	params := make([]interface{}, 0)
 	vv := types.UnreadSet{}
-	sql := sqlChannelViewsSelect
+	sql := sqlUnreadSelect
 
 	if filter != nil {
 		if filter.UserID > 0 {
@@ -72,7 +72,7 @@ func (r *channelViews) Find(filter *types.UnreadFilter) (types.UnreadSet, error)
 }
 
 // Records channel view
-func (r *channelViews) Record(userID, channelID, replyTo, lastMessageID uint64, count uint32) error {
+func (r *unread) Record(userID, channelID, replyTo, lastMessageID uint64, count uint32) error {
 	mod := &types.Unread{
 		ChannelID:     channelID,
 		UserID:        userID,
@@ -85,13 +85,13 @@ func (r *channelViews) Record(userID, channelID, replyTo, lastMessageID uint64, 
 }
 
 // Increments unread (new) message count on a channel for all but one user
-func (r *channelViews) Inc(channelID, userID uint64) error {
-	_, err := r.db().Exec(sqlChannelViewsIncCount, channelID, userID)
+func (r *unread) Inc(channelID, replyTo, userID uint64) error {
+	_, err := r.db().Exec(sqlUnreadIncCount, channelID, replyTo, userID)
 	return err
 }
 
 // Increments unread (new) message count on a channel for all but one user
-func (r *channelViews) Dec(channelID, userID uint64) error {
-	_, err := r.db().Exec(sqlChannelViewsDecCount, channelID, userID)
+func (r *unread) Dec(channelID, replyTo, userID uint64) error {
+	_, err := r.db().Exec(sqlUnreadDecCount, channelID, replyTo, userID)
 	return err
 }

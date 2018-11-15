@@ -33,4 +33,11 @@ type (
 		FirstID   uint64 `json:"firstID,string"`
 		LastID    uint64 `json:"lastID,string"`
 	}
+
+	// MessageActivity is sent from the client when there is an activity on the message...
+	MessageActivity struct {
+		MessageID uint64 `json:"messageID,string"`
+		ChannelID uint64 `json:"channelID,string"`
+		Kind      string `json:"kind,omitempty"`
+	}
 )
