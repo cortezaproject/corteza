@@ -17,6 +17,7 @@ type (
 		FindMessageByID(id uint64) (*types.Message, error)
 		FindMessages(filter *types.MessageFilter) (types.MessageSet, error)
 		FindThreads(filter *types.MessageFilter) (types.MessageSet, error)
+		CountFromMessageID(channelID, threadID, messageID uint64) (uint32, error)
 		PrefillThreadParticipants(mm types.MessageSet) error
 		CreateMessage(mod *types.Message) (*types.Message, error)
 		UpdateMessage(mod *types.Message) (*types.Message, error)
@@ -65,6 +66,8 @@ const (
 		"    AND original_id IN (id, reply_to)"
 
 	sqlThreadParticipantsByMessageID = "SELECT DISTINCT reply_to, rel_user FROM messages WHERE reply_to IN (?)"
+
+	sqlCountFromMessageID = "SELECT COUNT(1) AS count FROM messages WHERE rel_channel = ? AND reply_to = ? AND id > ?"
 
 	sqlMessageRepliesIncCount = `UPDATE messages SET replies = replies + 1 WHERE id = ? AND reply_to = 0`
 	sqlMessageRepliesDecCount = `UPDATE messages SET replies = replies - 1 WHERE id = ? AND reply_to = 0`
@@ -183,6 +186,11 @@ func (r *message) FindThreads(filter *types.MessageFilter) (types.MessageSet, er
 	}
 
 	return rval, r.db().Select(&rval, sql, params...)
+}
+
+func (r *message) CountFromMessageID(channelID, threadID, messageID uint64) (uint32, error) {
+	rval := struct{ Count uint32 }{}
+	return rval.Count, r.db().Get(&rval, sqlCountFromMessageID, channelID, threadID, messageID)
 }
 
 func (r *message) PrefillThreadParticipants(mm types.MessageSet) error {

@@ -315,16 +315,26 @@ func (svc *message) MarkAsUnread(messageID uint64) error {
 	return svc.db.Transaction(func() (err error) {
 		// Broadcast queue
 		var message *types.Message
+		var count uint32
 
 		message, err = svc.message.FindMessageByID(messageID)
 		if err != nil {
 			return err
 		}
 
+		count, err = svc.message.CountFromMessageID(message.ChannelID, message.ReplyTo, message.ID)
+		if err != nil {
+			return
+		}
+
+		// Inc counter so that we take
+		// this message into account
+		count++
+
 		if message.ReplyTo > 0 {
-			return svc.unreads.Record(currentUserID, message.ChannelID, message.ReplyTo, messageID, 0)
+			return svc.unreads.Record(currentUserID, message.ChannelID, message.ReplyTo, messageID, count)
 		} else {
-			return svc.unreads.Record(currentUserID, message.ChannelID, 0, messageID, 0)
+			return svc.unreads.Record(currentUserID, message.ChannelID, 0, messageID, count)
 		}
 	})
 }
