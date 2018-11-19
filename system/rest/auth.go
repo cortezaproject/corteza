@@ -18,7 +18,9 @@ import (
 var _ = errors.Wrap
 
 type (
-	Auth struct{}
+	Auth struct {
+		jwt jwtEncodeCookieSetter
+	}
 
 	checkResponse struct {
 		JWT  string         `json:"jwt"`
@@ -38,6 +40,9 @@ func (ctrl *Auth) Logout(ctx context.Context, r *request.AuthLogout) (interface{
 	return nil, errors.New("Not implemented: Auth.logout")
 }
 
+// Handlers() func ignores "std" crust controllers
+//
+// Crush handlers are too abstract for our auth needs so we need (direct access to htt.ResponseWriter)
 func (ctrl *Auth) Handlers(jwtAuth jwtEncodeCookieSetter) *handlers.Auth {
 	h := handlers.NewAuth(ctrl)
 	// Check JWT if valid
@@ -47,6 +52,8 @@ func (ctrl *Auth) Handlers(jwtAuth jwtEncodeCookieSetter) *handlers.Auth {
 
 			if identity := auth.GetIdentityFromContext(ctx); identity != nil && identity.Valid() {
 				if user, err := service.DefaultUser.With(ctx).FindByID(identity.Identity()); err == nil {
+					jwtAuth.SetCookie(w, r, user)
+
 					resputil.JSON(w, checkResponse{
 						JWT:  c.Value,
 						User: payload.User(user),
@@ -62,6 +69,7 @@ func (ctrl *Auth) Handlers(jwtAuth jwtEncodeCookieSetter) *handlers.Auth {
 			resputil.JSON(w, err)
 		}
 	}
+
 	h.Logout = func(w http.ResponseWriter, r *http.Request) {
 		jwtAuth.SetCookie(w, r, nil)
 	}
