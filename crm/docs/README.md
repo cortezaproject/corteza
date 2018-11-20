@@ -298,7 +298,7 @@ CRM module pages
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | selfID | uint64 | PATH | Parent page ID | N/A | YES |
-| pageIDs | []uint64 | POST | Page ID order | N/A | YES |
+| pageIDs | []string | POST | Page ID order | N/A | YES |
 
 ## Delete page
 

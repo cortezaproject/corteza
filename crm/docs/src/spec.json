@@ -211,7 +211,7 @@
           ],
           "post": [
             {
-              "type": "[]uint64",
+              "type": "[]string",
               "name": "pageIDs",
               "required": true,
               "title": "Page ID order"

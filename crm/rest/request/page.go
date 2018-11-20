@@ -269,8 +269,8 @@ var _ RequestFiller = NewPageEdit()
 
 // Page reorder request parameters
 type PageReorder struct {
-	SelfID  uint64   `json:",string"`
-	PageIDs []uint64 `json:",string"`
+	SelfID  uint64 `json:",string"`
+	PageIDs []string
 }
 
 func NewPageReorder() *PageReorder {
@@ -305,7 +305,6 @@ func (p *PageReorder) Fill(r *http.Request) (err error) {
 	}
 
 	p.SelfID = parseUInt64(chi.URLParam(r, "selfID"))
-	p.PageIDs = parseUInt64A(r.Form["pageIDs"])
 
 	return err
 }
