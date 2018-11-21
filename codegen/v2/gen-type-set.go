@@ -142,6 +142,7 @@ func main() {
 			if output, err = os.Create(outputFile); err != nil {
 				exit(err)
 			}
+			fmt.Println(outputFile)
 			defer output.(io.Closer).Close()
 		}
 
