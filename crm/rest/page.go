@@ -25,6 +25,10 @@ func (ctrl *Page) List(ctx context.Context, r *request.PageList) (interface{}, e
 	return ctrl.page.With(ctx).Find(r.SelfID)
 }
 
+func (ctrl *Page) Tree(ctx context.Context, r *request.PageTree) (interface{}, error) {
+	return ctrl.page.With(ctx).Tree()
+}
+
 func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{}, error) {
 	p := &types.Page{
 		SelfID:      r.SelfID,

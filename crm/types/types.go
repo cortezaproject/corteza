@@ -1,5 +1,7 @@
 package types
 
+//go:generate go run ../../codegen/v2/type-set.go Module Page type-sets.gen.go
+
 import (
 	"time"
 
@@ -79,6 +81,8 @@ type (
 		Description string `json:"description" db:"description"`
 
 		Blocks types.JSONText `json:"blocks" db:"blocks"`
+
+		Children PageSet `json:"children,omitempty" db:"-"`
 
 		Visible bool `json:"visible" db:"visible"`
 		Weight  int  `json:"-" db:"weight"`

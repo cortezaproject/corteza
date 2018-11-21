@@ -88,6 +88,13 @@
       }
     },
     {
+      "Name": "tree",
+      "Method": "GET",
+      "Title": "Get page all pages, hierarchically",
+      "Path": "/tree",
+      "Parameters": {}
+    },
+    {
       "Name": "edit",
       "Method": "POST",
       "Title": "Edit page",
