@@ -1,5 +1,7 @@
 package types
 
+//go:generate go run ../../codegen/v2/type-set.go --types Channel --output channel.gen.go
+
 import (
 	"encoding/json"
 	"fmt"
@@ -51,8 +53,6 @@ type (
 	}
 
 	ChannelType string
-
-	ChannelSet []*Channel
 )
 
 // Scope returns permissions group that for this type
@@ -72,40 +72,6 @@ func (c *Channel) Operation(name string) string {
 
 func (c *Channel) IsValid() bool {
 	return c.ArchivedAt == nil && c.DeletedAt == nil
-}
-
-func (cc ChannelSet) Walk(w func(*Channel) error) (err error) {
-	for i := range cc {
-		if err = w(cc[i]); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-func (cc ChannelSet) Filter(f func(*Channel) (bool, error)) (out ChannelSet, err error) {
-	var ok bool
-	out = ChannelSet{}
-	for i := range cc {
-		if ok, err = f(cc[i]); err != nil {
-			return
-		} else if ok {
-			out = append(out, cc[i])
-		}
-	}
-
-	return
-}
-
-func (cc ChannelSet) FindById(ID uint64) *Channel {
-	for i := range cc {
-		if cc[i].ID == ID {
-			return cc[i]
-		}
-	}
-
-	return nil
 }
 
 const (

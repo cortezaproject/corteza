@@ -1,14 +1,23 @@
 package types
 
+// 	Hello! This file is auto-generated.
+
 type (
 
 	// ModuleSet slice of Module
+	//
+	// This type is auto-generated.
 	ModuleSet []*Module
+
 	// PageSet slice of Page
+	//
+	// This type is auto-generated.
 	PageSet []*Page
 )
 
 // Walk iterates through every slice item and calls w(Module) err
+//
+// This function is auto-generated.
 func (set ModuleSet) Walk(w func(*Module) error) (err error) {
 	for i := range set {
 		if err = w(set[i]); err != nil {
@@ -20,6 +29,8 @@ func (set ModuleSet) Walk(w func(*Module) error) (err error) {
 }
 
 // Filter iterates through every slice item, calls f(Module) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
 func (set ModuleSet) Filter(f func(*Module) (bool, error)) (out ModuleSet, err error) {
 	var ok bool
 	out = ModuleSet{}
@@ -34,7 +45,9 @@ func (set ModuleSet) Filter(f func(*Module) (bool, error)) (out ModuleSet, err e
 	return
 }
 
-// Finds slice item by its ID property
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
 func (set ModuleSet) FindByID(ID uint64) *Module {
 	for i := range set {
 		if set[i].ID == ID {
@@ -45,7 +58,9 @@ func (set ModuleSet) FindByID(ID uint64) *Module {
 	return nil
 }
 
-// Returns a slice of uint64s from all items in the set
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
 func (set ModuleSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
@@ -57,6 +72,8 @@ func (set ModuleSet) IDs() (IDs []uint64) {
 }
 
 // Walk iterates through every slice item and calls w(Page) err
+//
+// This function is auto-generated.
 func (set PageSet) Walk(w func(*Page) error) (err error) {
 	for i := range set {
 		if err = w(set[i]); err != nil {
@@ -68,6 +85,8 @@ func (set PageSet) Walk(w func(*Page) error) (err error) {
 }
 
 // Filter iterates through every slice item, calls f(Page) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
 func (set PageSet) Filter(f func(*Page) (bool, error)) (out PageSet, err error) {
 	var ok bool
 	out = PageSet{}
@@ -82,7 +101,9 @@ func (set PageSet) Filter(f func(*Page) (bool, error)) (out PageSet, err error) 
 	return
 }
 
-// Finds slice item by its ID property
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
 func (set PageSet) FindByID(ID uint64) *Page {
 	for i := range set {
 		if set[i].ID == ID {
@@ -93,7 +114,9 @@ func (set PageSet) FindByID(ID uint64) *Page {
 	return nil
 }
 
-// Returns a slice of uint64s from all items in the set
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
 func (set PageSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 

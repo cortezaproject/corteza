@@ -187,7 +187,7 @@ func (svc *channel) FindMembers(channelID uint64) (out types.ChannelMemberSet, e
 			return err
 		} else {
 			return out.Walk(func(member *types.ChannelMember) error {
-				member.User = uu.FindById(member.UserID)
+				member.User = uu.FindByID(member.UserID)
 				return nil
 			})
 		}
@@ -572,7 +572,7 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 		}
 
 		for _, memberID := range memberIDs {
-			user := users.FindById(memberID)
+			user := users.FindByID(memberID)
 			if user == nil {
 				return errors.New("Unexisting user")
 			}
@@ -633,7 +633,7 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 		for _, memberID := range memberIDs {
 			var exists bool
 
-			user := users.FindById(memberID)
+			user := users.FindByID(memberID)
 			if user == nil {
 				return errors.New("Unexisting user")
 			}

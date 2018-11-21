@@ -1,29 +1,36 @@
 package main
 
-// Makeshift *Set type generator for functions like Walk(), Filter(), FindByID() & IDs()
+// *Set type generator for functions like Walk(), Filter(), FindByID() & IDs()
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"go/format"
+	"io"
 	"os"
+	"strings"
 	"text/template"
-
-	"github.com/pkg/errors"
 )
 
 const tmplTypeSet = `package types
 
+// 	Hello! This file is auto-generated.
+
 type (
-{{ range .Sets }}
-	// {{ . }}Set slice of {{ . }}
-	{{ . }}Set []*{{ . }}
-{{- end }}
+{{ range $i, $set := .Sets }}
+	// {{ $set.Name }}Set slice of {{ $set.Name }}
+	//
+	// This type is auto-generated.
+	{{ $set.Name }}Set []*{{ $set.Name }}
+{{ end }}
 )
 
-{{ range .Sets }}
-// Walk iterates through every slice item and calls w({{ . }}) err
-func (set {{ . }}Set) Walk(w func(*{{ . }}) error) (err error) {
+{{ range $i, $set := .Sets }}
+// Walk iterates through every slice item and calls w({{ $set.Name }}) err
+//
+// This function is auto-generated.
+func (set {{ $set.Name }}Set) Walk(w func(*{{ $set.Name }}) error) (err error) {
 	for i := range set {
 		if err = w(set[i]); err != nil {
 			return
@@ -33,10 +40,12 @@ func (set {{ . }}Set) Walk(w func(*{{ . }}) error) (err error) {
 	return
 }
 
-// Filter iterates through every slice item, calls f({{ . }}) (bool, err) and return filtered slice
-func (set {{ . }}Set) Filter(f func(*{{ . }}) (bool, error)) (out {{ . }}Set, err error) {
+// Filter iterates through every slice item, calls f({{ $set.Name }}) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set {{ $set.Name }}Set) Filter(f func(*{{ $set.Name }}) (bool, error)) (out {{ $set.Name }}Set, err error) {
 	var ok bool
-	out = {{ . }}Set{}
+	out = {{ $set.Name }}Set{}
 	for i := range set {
 		if ok, err = f(set[i]); err != nil {
 			return
@@ -48,8 +57,11 @@ func (set {{ . }}Set) Filter(f func(*{{ . }}) (bool, error)) (out {{ . }}Set, er
 	return
 }
 
-// Finds slice item by its ID property
-func (set {{ . }}Set) FindByID(ID uint64) *{{ . }} {
+{{ if $set.PK }}
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set {{ $set.Name }}Set) FindByID(ID uint64) *{{ $set.Name }} {
 	for i := range set {
 		if set[i].ID == ID {
 			return set[i]
@@ -59,8 +71,10 @@ func (set {{ . }}Set) FindByID(ID uint64) *{{ . }} {
 	return nil
 }
 
-// Returns a slice of uint64s from all items in the set
-func (set {{ . }}Set) IDs() (IDs []uint64) {
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set {{ $set.Name }}Set) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {
@@ -69,7 +83,8 @@ func (set {{ . }}Set) IDs() (IDs []uint64) {
 
 	return
 }
-{{- end }}
+{{ end }}
+{{ end }}
 `
 
 func main() {
@@ -77,13 +92,38 @@ func main() {
 
 	tpl := template.Must(template.Must(t.Clone()).Parse(tmplTypeSet))
 
-	if len(os.Args) < 3 {
-		exit(errors.New("type-set.go <output-file> <type type2 type3 ...>"))
+	type (
+		set struct {
+			Name string
+			PK   bool
+		}
+	)
+	var (
+		stdTypesStr, nopkTypesStr, outputFile string
+		output                                io.Writer
+	)
+
+	flag.StringVar(&stdTypesStr, "types", "", "Comma separated list of types")
+	flag.StringVar(&nopkTypesStr, "no-pk-types", "", "Comma separated list of types without ID field")
+	flag.StringVar(&outputFile, "output", "", "JWT Expiration in minutes")
+
+	flag.Parse()
+
+	payload := struct {
+		Sets []set
+	}{}
+
+	for _, name := range strings.Split(stdTypesStr, ",") {
+		if name = strings.TrimSpace(name); len(name) > 0 {
+			payload.Sets = append(payload.Sets, set{Name: name, PK: true})
+		}
 	}
 
-	l := len(os.Args) - 1
-	outputFile := os.Args[l]
-	payload := struct{ Sets []string }{Sets: os.Args[1:l]}
+	for _, name := range strings.Split(nopkTypesStr, ",") {
+		if name = strings.TrimSpace(name); len(name) > 0 {
+			payload.Sets = append(payload.Sets, set{Name: name, PK: false})
+		}
+	}
 
 	buf := bytes.Buffer{}
 
@@ -96,12 +136,14 @@ func main() {
 			fmtsrc = buf.Bytes()
 		}
 
-		output, err := os.Create(outputFile)
-		if err != nil {
-			exit(err)
+		if outputFile == "" || outputFile == "-" {
+			output = os.Stdout
+		} else {
+			if output, err = os.Create(outputFile); err != nil {
+				exit(err)
+			}
+			defer output.(io.Closer).Close()
 		}
-
-		defer output.Close()
 
 		if _, err := output.Write(fmtsrc); err != nil {
 			exit(err)
@@ -110,7 +152,7 @@ func main() {
 }
 
 func stderr(format string, a ...interface{}) {
-	_, _ = os.Stderr.WriteString(fmt.Sprintf(format, a...))
+	_, _ = os.Stderr.WriteString(fmt.Sprintf(format+"\n", a...))
 }
 
 func exit(err error) {

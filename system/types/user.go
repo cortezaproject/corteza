@@ -1,5 +1,7 @@
 package types
 
+//go:generate go run ../../codegen/v2/type-set.go --types User --output user.gen.go
+
 import (
 	"time"
 
@@ -28,8 +30,6 @@ type (
 	UserFilter struct {
 		Query string
 	}
-
-	UserSet []*User
 )
 
 func (u *User) Valid() bool {
@@ -51,25 +51,5 @@ func (u *User) GeneratePassword(password string) error {
 	}
 
 	u.Password = pwd
-	return nil
-}
-
-func (uu UserSet) Walk(w func(*User) error) (err error) {
-	for i := range uu {
-		if err = w(uu[i]); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-func (uu UserSet) FindById(ID uint64) *User {
-	for i := range uu {
-		if uu[i].ID == ID {
-			return uu[i]
-		}
-	}
-
 	return nil
 }

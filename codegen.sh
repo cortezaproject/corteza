@@ -14,10 +14,12 @@ function gofmt {
 
 echo "=== go generate ==="
 cd system/db && go generate && cd ../..
+cd system/types && go generate && cd ../..
 cd crm/db && go generate && cd ../..
 cd crm/types && go generate && cd ../..
 cd crm/repository && go generate && cd ../..
 cd sam/db && go generate && cd ../..
+cd sam/types && go generate && cd ../..
 
 _PWD=$PWD
 SPECS=$(find $PWD -name 'spec.json' | xargs -n1 dirname)

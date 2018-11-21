@@ -1,5 +1,7 @@
 package types
 
+//go:generate go run ../../codegen/v2/type-set.go --types Message --output message.gen.go
+
 import (
 	"database/sql/driver"
 	"time"
@@ -26,8 +28,6 @@ type (
 		Mentions    MentionSet
 		RepliesFrom []uint64
 	}
-
-	MessageSet []*Message
 
 	MessageFilter struct {
 		Query string
@@ -71,36 +71,6 @@ const (
 	MessageTypeInlineImage               = "inlineImage"
 	MessageTypeAttachment                = "attachment"
 )
-
-func (mm MessageSet) Walk(w func(*Message) error) (err error) {
-	for i := range mm {
-		if err = w(mm[i]); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-func (mm MessageSet) FindById(ID uint64) *Message {
-	for i := range mm {
-		if mm[i].ID == ID {
-			return mm[i]
-		}
-	}
-
-	return nil
-}
-
-func (mm MessageSet) IDs() (IDs []uint64) {
-	IDs = make([]uint64, len(mm))
-
-	for i := range mm {
-		IDs[i] = mm[i].ID
-	}
-
-	return
-}
 
 func (mtype MessageType) String() string {
 	return string(mtype)
