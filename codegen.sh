@@ -18,7 +18,9 @@ function gofmt {
 
 function permissions {
 	yellow "> permissions"
-	CGO_ENABLED=0 go build -o ./build/gen-permissions codegen/v2/gen-permissions.go 
+	if [ ! -f "build/gen-permissions" ]; then
+		CGO_ENABLED=0 go build -o ./build/gen-permissions codegen/v2/permissions.go 
+	fi
 	
 	./build/gen-permissions -package types -function "func (c *Organisation) Permissions() []rbac.OperationGroup" -input sam/types/permissions/1-organisation.json -output sam/types/organisation.perms.go
 	./build/gen-permissions -package types -function "func (c *Team) Permissions() []rbac.OperationGroup" -input sam/types/permissions/2-team.json -output sam/types/team.perms.go
@@ -31,7 +33,9 @@ permissions
 
 function types {
 	yellow "> types"
-	CGO_ENABLED=0 go build -o ./build/gen-type-set codegen/v2/gen-type-set.go 
+	if [ ! -f "build/gen-type-set" ]; then
+		CGO_ENABLED=0 go build -o ./build/gen-type-set codegen/v2/type-set.go 
+	fi
 
 	./build/gen-type-set --types Module,Page --output crm/types/type.gen.go
 
