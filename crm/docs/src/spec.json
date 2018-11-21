@@ -142,6 +142,13 @@
         }
       },
       {
+        "name": "tree",
+        "path": "/tree",
+        "method": "GET",
+        "title": "Get page all pages, hierarchically",
+        "parameters": {}
+      },
+      {
         "name": "edit",
         "method": "POST",
         "title": "Edit page",

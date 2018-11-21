@@ -19,7 +19,7 @@ type (
 		Chart(r *request.ModuleChart) (interface{}, error)
 
 		FindByID(id uint64) (*types.Module, error)
-		Find() ([]*types.Module, error)
+		Find() (types.ModuleSet, error)
 		Create(mod *types.Module) (*types.Module, error)
 		Update(mod *types.Module) (*types.Module, error)
 		DeleteByID(id uint64) error
@@ -56,8 +56,8 @@ func (r *module) FindByID(id uint64) (*types.Module, error) {
 	return mod, nil
 }
 
-func (r *module) Find() ([]*types.Module, error) {
-	mod := make([]*types.Module, 0)
+func (r *module) Find() (types.ModuleSet, error) {
+	mod := types.ModuleSet{}
 	return mod, r.db().Select(&mod, "SELECT * FROM crm_module ORDER BY id ASC")
 }
 

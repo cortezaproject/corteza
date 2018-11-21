@@ -265,6 +265,19 @@ CRM module pages
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | pageID | uint64 | PATH | Page ID | N/A | YES |
 
+## Get page all pages, hierarchically
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/page/tree` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+
 ## Edit page
 
 #### Method

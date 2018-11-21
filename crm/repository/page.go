@@ -13,9 +13,10 @@ type (
 	PageRepository interface {
 		With(ctx context.Context, db *factory.DB) PageRepository
 
-		Find(selfID uint64) ([]*types.Page, error)
 		FindByID(id uint64) (*types.Page, error)
 		FindByModuleID(id uint64) (*types.Page, error)
+		FindBySelfID(selfID uint64) (types.PageSet, error)
+		FindAll() (types.PageSet, error)
 
 		Create(mod *types.Page) (*types.Page, error)
 		Update(mod *types.Page) (*types.Page, error)
@@ -58,9 +59,9 @@ func (r *page) FindByModuleID(id uint64) (*types.Page, error) {
 	return page, nil
 }
 
-func (r *page) Find(selfID uint64) ([]*types.Page, error) {
-	pages := make([]*types.Page, 0)
-	if err := r.db().Select(&pages, "SELECT * FROM crm_page where self_id=? ORDER BY weight ASC", selfID); err != nil {
+func (r *page) FindBySelfID(selfID uint64) (types.PageSet, error) {
+	pages := types.PageSet{}
+	if err := r.db().Select(&pages, "SELECT * FROM crm_page WHERE self_id = ? ORDER BY weight ASC", selfID); err != nil {
 		return pages, err
 	}
 	for _, page := range pages {
@@ -71,9 +72,14 @@ func (r *page) Find(selfID uint64) ([]*types.Page, error) {
 	return pages, nil
 }
 
+func (r *page) FindAll() (types.PageSet, error) {
+	pages := types.PageSet{}
+	return pages, r.db().Select(&pages, "SELECT * FROM crm_page ORDER BY self_id, weight ASC")
+}
+
 func (r *page) Reorder(selfID uint64, pageIDs []uint64) error {
 	pageMap := map[uint64]bool{}
-	if pages, err := r.Find(selfID); err != nil {
+	if pages, err := r.FindBySelfID(selfID); err != nil {
 		return nil
 	} else {
 		for _, page := range pages {
