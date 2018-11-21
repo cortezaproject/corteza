@@ -1,5 +1,7 @@
 package types
 
+//go:generate go run ../../codegen/v2/type-set.go --types MessageAttachment --output attachment.gen.go
+
 import (
 	"database/sql/driver"
 	"encoding/json"
@@ -43,19 +45,7 @@ type (
 		Attachment
 		MessageID uint64 `db:"rel_message" json:"-"`
 	}
-
-	MessageAttachmentSet []*MessageAttachment
 )
-
-func (aa MessageAttachmentSet) Walk(w func(*MessageAttachment) error) (err error) {
-	for i := range aa {
-		if err = w(aa[i]); err != nil {
-			return
-		}
-	}
-
-	return
-}
 
 func (a *Attachment) SetOriginalImageMeta(width, height int, animated bool) *attachmentFileMeta {
 	a.imageMeta(&a.Meta.Original, width, height, animated)

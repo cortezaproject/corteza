@@ -1,5 +1,7 @@
 package types
 
+//go:generate go run ../../codegen/v2/type-set.go --no-pk-types Unread --output unread.gen.go
+
 type (
 	Unread struct {
 		ChannelID     uint64 `db:"rel_channel"`
@@ -13,26 +15,4 @@ type (
 	UnreadFilter struct {
 		UserID uint64
 	}
-
-	UnreadSet []*Unread
 )
-
-func (mm UnreadSet) Walk(w func(*Unread) error) (err error) {
-	for i := range mm {
-		if err = w(mm[i]); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-func (uu UnreadSet) FindByChannelId(channelID uint64) *Unread {
-	for i := range uu {
-		if uu[i].ChannelID == channelID {
-			return uu[i]
-		}
-	}
-
-	return nil
-}

@@ -205,7 +205,7 @@ func (r *message) PrefillThreadParticipants(mm types.MessageSet) error {
 		return err
 	} else {
 		for _, p := range rval {
-			mm.FindById(p.ReplyTo).RepliesFrom = append(mm.FindById(p.ReplyTo).RepliesFrom, p.UserID)
+			mm.FindByID(p.ReplyTo).RepliesFrom = append(mm.FindByID(p.ReplyTo).RepliesFrom, p.UserID)
 		}
 	}
 

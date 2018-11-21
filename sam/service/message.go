@@ -471,7 +471,7 @@ func (svc *message) preloadUsers(mm types.MessageSet) (err error) {
 			continue
 		}
 
-		if msg.User = uu.FindById(msg.UserID); msg.User != nil {
+		if msg.User = uu.FindByID(msg.UserID); msg.User != nil {
 			continue
 		}
 
@@ -494,7 +494,7 @@ func (svc *message) preloadFlags(mm types.MessageSet) (err error) {
 	}
 
 	return ff.Walk(func(flag *types.MessageFlag) error {
-		mm.FindById(flag.MessageID).Flags = append(mm.FindById(flag.MessageID).Flags, flag)
+		mm.FindByID(flag.MessageID).Flags = append(mm.FindByID(flag.MessageID).Flags, flag)
 		return nil
 	})
 }
@@ -536,7 +536,7 @@ func (svc *message) preloadAttachments(mm types.MessageSet) (err error) {
 	} else {
 		return aa.Walk(func(a *types.MessageAttachment) error {
 			if a.MessageID > 0 {
-				if m := mm.FindById(a.MessageID); m != nil {
+				if m := mm.FindByID(a.MessageID); m != nil {
 					m.Attachment = &a.Attachment
 				}
 			}
