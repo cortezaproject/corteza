@@ -1,7 +1,5 @@
 package types
 
-//go:generate go run ../../codegen/v2/type-set.go --types MessageAttachment --output attachment.gen.go
-
 import (
 	"database/sql/driver"
 	"encoding/json"

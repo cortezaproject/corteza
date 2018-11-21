@@ -1,7 +1,5 @@
 package types
 
-//go:generate go run ../../codegen/v2/type-set.go --no-pk-types ChannelMember --output channel_member.gen.go
-
 import (
 	"time"
 

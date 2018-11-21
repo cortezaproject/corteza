@@ -1,7 +1,5 @@
 package types
 
-//go:generate go run ../../codegen/v2/type-set.go --types Channel --output channel.gen.go
-
 import (
 	"encoding/json"
 	"fmt"
