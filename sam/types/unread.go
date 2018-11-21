@@ -1,7 +1,5 @@
 package types
 
-//go:generate go run ../../codegen/v2/type-set.go --no-pk-types Unread --output unread.gen.go
-
 type (
 	Unread struct {
 		ChannelID     uint64 `db:"rel_channel"`

@@ -23,8 +23,6 @@ type ModuleChart struct {
 	ModuleID    uint64 `json:",string"`
 }
 
-//go:generate $GOPATH/bin/statik -p files -m -Z -f -src=data
-
 func (m *module) Chart(r *request.ModuleChart) (interface{}, error) {
 	statikFS, err := fs.New(files.Data())
 	if err != nil {

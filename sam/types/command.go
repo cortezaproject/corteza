@@ -1,7 +1,5 @@
 package types
 
-//go:generate go run ../../codegen/v2/type-set.go --no-pk-types Command,CommandParam --output command.gen.go
-
 type (
 	Command struct {
 		Name        string          `db:"name"        json:"name"`

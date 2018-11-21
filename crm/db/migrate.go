@@ -16,8 +16,6 @@ import (
 	"github.com/crusttech/crust/crm/db/mysql"
 )
 
-//go:generate $GOPATH/bin/statik -p mysql -m -Z -f -src=schema/mysql
-
 func statements(contents []byte, err error) ([]string, error) {
 	if err != nil {
 		return []string{}, err

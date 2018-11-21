@@ -1,7 +1,5 @@
 package types
 
-//go:generate go run ../../codegen/v2/type-set.go --types Module,Page --output type.gen.go
-
 import (
 	"time"
 

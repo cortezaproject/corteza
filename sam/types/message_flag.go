@@ -1,7 +1,5 @@
 package types
 
-//go:generate go run ../../codegen/v2/type-set.go --types MessageFlag --output message_flag.gen.go
-
 import (
 	"time"
 )

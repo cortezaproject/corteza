@@ -1,7 +1,5 @@
 package types
 
-//go:generate go run ../../codegen/v2/type-set.go --types Message --output message.gen.go
-
 import (
 	"database/sql/driver"
 	"time"
