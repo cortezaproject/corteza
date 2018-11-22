@@ -78,7 +78,7 @@ func TestPage(t *testing.T) {
 
 		// fetch all pages
 		{
-			ms, err := repository.Find(0)
+			ms, err := repository.FindBySelfID(0)
 			assert(t, err == nil, "Error when retrieving pages: %+v", err)
 			assert(t, len(ms) >= 1, "Expected at least one page, got %d", len(ms))
 			prevPageCount = len(ms)
@@ -86,7 +86,7 @@ func TestPage(t *testing.T) {
 
 		// fetch all pages
 		{
-			ms, err := repository.Find(m.ID)
+			ms, err := repository.FindBySelfID(m.ID)
 			assert(t, err == nil, "Error when retrieving pages: %+v", err)
 			assert(t, len(ms) == 2, "Expected two pages with selfID=%d, got %v", m.ID, spew.Sdump(ms))
 			prevPageCount = len(ms)
@@ -98,7 +98,7 @@ func TestPage(t *testing.T) {
 				err := repository.Reorder(parent, ids)
 				assert(t, err == nil, "Error when reordering pages: %+v", err)
 
-				ms, err = repository.Find(m.ID)
+				ms, err = repository.FindBySelfID(m.ID)
 				assert(t, err == nil, "Error when retrieving pages: %+v", err)
 				assert(t, len(ms) == 2, "Expected two pages with selfID=%d, got %v", m.ID, spew.Sdump(ms))
 				assert(t, ms[0].Weight < ms[1].Weight, "Expected ascending order, %+v", errors.Errorf("%d < %d", ms[0].Weight, ms[1].Weight))
@@ -113,7 +113,7 @@ func TestPage(t *testing.T) {
 
 		// fetch all pages
 		{
-			ms, err := repository.Find(0)
+			ms, err := repository.FindBySelfID(0)
 			assert(t, err == nil, "Error when retrieving pages: %+v", err)
 			assert(t, len(ms) < prevPageCount, "Expected pages count to decrease after deletion, %d < %d", len(ms), prevPageCount)
 		}

@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"encoding/json"
+
 	"github.com/pkg/errors"
 	"github.com/titpetric/statik/fs"
 
@@ -34,5 +36,8 @@ func (m *module) Chart(r *request.ModuleChart) (interface{}, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Error when reading "+filename)
 	}
-	return body, err
+
+	var response interface{}
+	err = json.Unmarshal(body, &response)
+	return response, err
 }
