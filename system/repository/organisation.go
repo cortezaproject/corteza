@@ -24,6 +24,9 @@ type (
 
 	organisation struct {
 		*repository
+
+		// sql table reference
+		organisations string
 	}
 )
 
@@ -39,12 +42,13 @@ func Organisation(ctx context.Context, db *factory.DB) OrganisationRepository {
 
 func (r *organisation) With(ctx context.Context, db *factory.DB) OrganisationRepository {
 	return &organisation{
-		repository: r.repository.With(ctx, db),
+		repository:    r.repository.With(ctx, db),
+		organisations: "sys_organisation",
 	}
 }
 
 func (r *organisation) FindOrganisationByID(id uint64) (*types.Organisation, error) {
-	sql := "SELECT * FROM organisations WHERE id = ? AND " + sqlOrganisationScope
+	sql := "SELECT * FROM " + r.organisations + " WHERE id = ? AND " + sqlOrganisationScope
 	mod := &types.Organisation{}
 
 	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrOrganisationNotFound)
@@ -53,7 +57,7 @@ func (r *organisation) FindOrganisationByID(id uint64) (*types.Organisation, err
 func (r *organisation) FindOrganisations(filter *types.OrganisationFilter) ([]*types.Organisation, error) {
 	rval := make([]*types.Organisation, 0)
 	params := make([]interface{}, 0)
-	sql := "SELECT * FROM organisations WHERE " + sqlOrganisationScope
+	sql := "SELECT * FROM " + r.organisations + " WHERE " + sqlOrganisationScope
 
 	if filter != nil {
 		if filter.Query != "" {
@@ -71,23 +75,23 @@ func (r *organisation) CreateOrganisation(mod *types.Organisation) (*types.Organ
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
-	return mod, r.db().Insert("organisations", mod)
+	return mod, r.db().Insert(r.organisations, mod)
 }
 
 func (r *organisation) UpdateOrganisation(mod *types.Organisation) (*types.Organisation, error) {
 	mod.UpdatedAt = timeNowPtr()
 
-	return mod, r.db().Replace("organisations", mod)
+	return mod, r.db().Replace(r.organisations, mod)
 }
 
 func (r *organisation) ArchiveOrganisationByID(id uint64) error {
-	return r.updateColumnByID("organisations", "archived_at", time.Now(), id)
+	return r.updateColumnByID(r.organisations, "archived_at", time.Now(), id)
 }
 
 func (r *organisation) UnarchiveOrganisationByID(id uint64) error {
-	return r.updateColumnByID("organisations", "archived_at", nil, id)
+	return r.updateColumnByID(r.organisations, "archived_at", nil, id)
 }
 
 func (r *organisation) DeleteOrganisationByID(id uint64) error {
-	return r.updateColumnByID("organisations", "deleted_at", time.Now(), id)
+	return r.updateColumnByID(r.organisations, "deleted_at", time.Now(), id)
 }

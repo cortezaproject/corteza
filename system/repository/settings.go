@@ -11,6 +11,9 @@ import (
 type (
 	settings struct {
 		*repository
+
+		// sql table reference
+		settings string
 	}
 
 	Settings interface {
@@ -28,6 +31,7 @@ func NewSettings(ctx context.Context, db *factory.DB) Settings {
 func (r *settings) With(ctx context.Context, db *factory.DB) Settings {
 	return &settings{
 		repository: r.repository.With(ctx, db),
+		settings:   "settings",
 	}
 }
 
@@ -35,7 +39,7 @@ func (r *settings) Set(name string, value interface{}) error {
 	if jsonValue, err := json.Marshal(value); err != nil {
 		return errors.Wrap(err, "Error marshaling settings value")
 	} else {
-		return r.db().Replace("settings", struct {
+		return r.db().Replace(r.settings, struct {
 			Key string          `db:"name"`
 			Val json.RawMessage `db:"value"`
 		}{name, jsonValue})
@@ -43,7 +47,7 @@ func (r *settings) Set(name string, value interface{}) error {
 }
 
 func (r *settings) Get(name string, value interface{}) (bool, error) {
-	sql := "SELECT value FROM settings WHERE name = ?"
+	sql := "SELECT value FROM " + r.settings + " WHERE name = ?"
 
 	var stored json.RawMessage
 
