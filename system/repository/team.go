@@ -26,6 +26,10 @@ type (
 
 	team struct {
 		*repository
+
+		// sql table reference
+		teams   string
+		members string
 	}
 )
 
@@ -42,11 +46,13 @@ func Team(ctx context.Context, db *factory.DB) TeamRepository {
 func (r *team) With(ctx context.Context, db *factory.DB) TeamRepository {
 	return &team{
 		repository: r.repository.With(ctx, db),
+		teams:      "sys_team",
+		members:    "sys_team_member",
 	}
 }
 
 func (r *team) FindTeamByID(id uint64) (*types.Team, error) {
-	sql := "SELECT * FROM teams WHERE id = ? AND " + sqlTeamScope
+	sql := "SELECT * FROM " + r.teams + " WHERE id = ? AND " + sqlTeamScope
 	mod := &types.Team{}
 
 	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrTeamNotFound)
@@ -56,7 +62,7 @@ func (r *team) FindTeams(filter *types.TeamFilter) ([]*types.Team, error) {
 	rval := make([]*types.Team, 0)
 	params := make([]interface{}, 0)
 
-	sql := "SELECT * FROM teams WHERE " + sqlTeamScope
+	sql := "SELECT * FROM " + r.teams + " WHERE " + sqlTeamScope
 
 	if filter != nil {
 		if filter.Query != "" {
@@ -74,25 +80,25 @@ func (r *team) CreateTeam(mod *types.Team) (*types.Team, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
-	return mod, r.db().Insert("teams", mod)
+	return mod, r.db().Insert(r.teams, mod)
 }
 
 func (r *team) UpdateTeam(mod *types.Team) (*types.Team, error) {
 	mod.UpdatedAt = timeNowPtr()
 
-	return mod, r.db().Replace("teams", mod)
+	return mod, r.db().Replace(r.teams, mod)
 }
 
 func (r *team) ArchiveTeamByID(id uint64) error {
-	return r.updateColumnByID("teams", "archived_at", time.Now(), id)
+	return r.updateColumnByID(r.teams, "archived_at", time.Now(), id)
 }
 
 func (r *team) UnarchiveTeamByID(id uint64) error {
-	return r.updateColumnByID("teams", "archived_at", nil, id)
+	return r.updateColumnByID(r.teams, "archived_at", nil, id)
 }
 
 func (r *team) DeleteTeamByID(id uint64) error {
-	return r.updateColumnByID("teams", "deleted_at", time.Now(), id)
+	return r.updateColumnByID(r.teams, "deleted_at", time.Now(), id)
 }
 
 func (r *team) MergeTeamByID(id, targetTeamID uint64) error {
