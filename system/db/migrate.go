@@ -9,10 +9,11 @@ import (
 	"sort"
 	"strings"
 
-	_ "github.com/crusttech/crust/system/db/mysql"
 	"github.com/pkg/errors"
-	"github.com/rakyll/statik/fs"
 	"github.com/titpetric/factory"
+	"github.com/titpetric/statik/fs"
+
+	"github.com/crusttech/crust/system/db/mysql"
 )
 
 func statements(contents []byte, err error) ([]string, error) {
@@ -23,7 +24,7 @@ func statements(contents []byte, err error) ([]string, error) {
 }
 
 func Migrate(db *factory.DB) error {
-	statikFS, err := fs.New()
+	statikFS, err := fs.New(mysql.Data())
 	if err != nil {
 		return errors.Wrap(err, "Error creating statik filesystem")
 	}

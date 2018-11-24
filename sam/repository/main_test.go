@@ -2,12 +2,17 @@ package repository
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
-	"github.com/namsral/flag"
-	"github.com/titpetric/factory"
+	"log"
 	"os"
 	"runtime"
 	"testing"
+
+	"github.com/joho/godotenv"
+	"github.com/namsral/flag"
+	"github.com/titpetric/factory"
+
+	samMigrate "github.com/crusttech/crust/sam/db"
+	systemMigrate "github.com/crusttech/crust/system/db"
 )
 
 func TestMain(m *testing.M) {
@@ -29,7 +34,19 @@ func TestMain(m *testing.M) {
 	}
 
 	factory.Database.Add("default", dsn)
-	factory.Database.MustGet().Profiler = &factory.Database.ProfilerStdout
+
+	db := factory.Database.MustGet()
+	db.Profiler = &factory.Database.ProfilerStdout
+
+	// migrate database schema
+	if err := systemMigrate.Migrate(db); err != nil {
+		log.Printf("Error running migrations: %+v\n", err)
+		return
+	}
+	if err := samMigrate.Migrate(db); err != nil {
+		log.Printf("Error running migrations: %+v\n", err)
+		return
+	}
 
 	os.Exit(m.Run())
 }
