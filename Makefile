@@ -1,4 +1,4 @@
-.PHONY: nothing docker docker-push realize dep dep.update protobuf test test.rbac test.sam test.crm qa critic vet codegen
+.PHONY: nothing docker docker-push realize dep dep.update test test.rbac test.sam test.crm qa critic vet codegen
 
 PKG       = "github.com/$(shell cat .project)"
 
@@ -63,11 +63,6 @@ dep: $(DEP)
 
 codegen: $(SPEC) dep.codegen
 	@PATH=${PATH}:${GOPATH}/bin ./codegen.sh
-
-protobuf: $(PROTOC)
-	# @todo this needs work (it hangs and outputs nothing)
-	$(PROTOC) --go_out=plugins=grpc:. -I. sam/chat/*.proto
-
 
 ########################################################################################################################
 # QA
