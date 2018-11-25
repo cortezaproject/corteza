@@ -89,11 +89,12 @@ for SPEC in $SPECS; do
 	cd $SPEC && rm -rf spec && /usr/bin/env spec && cd $_PWD
 	green "OK"
 done
+
 for SPEC in $SPECS; do
-	SRC=$(dirname $(dirname $SPEC))
-	if [ -d "codegen/$(basename $SRC)" ]; then
-		yellow "> README $SPEC"
-		codegen/codegen.php $(basename $SRC)
+	SRC=$(basename $SPEC)
+	if [ -d "codegen/$SRC" ]; then
+		yellow "> README $SRC"
+		codegen/codegen.php $SRC
 		green "OK"
 	fi
 done

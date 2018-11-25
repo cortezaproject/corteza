@@ -49,9 +49,10 @@ if (getenv("DEBUG") === "true") {
 	fprintf(STDERR, print_r($generators, true));
 }
 
-$api_files = glob($project . "/docs/src/spec/*.json");
+$api_files = glob("api/" . $project . "/spec/*.json");
 $apis = array_map(function($filename) {
 	$api = array_change_key_case_recursive(json_decode(file_get_contents($filename), true));
+	$api['dirname'] = dirname(dirname($filename)) . "/";
 	$api['entrypoint'] = strtolower($api['interface']);
 	if (empty($api['parameters'])) {
 		$api['parameters'] = array();
@@ -86,10 +87,11 @@ $parsers = array(
 foreach ($generators as $generator) {
 	$tpl->set_paths(array(dirname($generator) . "/", __DIR__ . "/templates/"));
 
-	$dirname = strstr(dirname($generator), $project. "/");
-	if (empty($dirname)) {
-		$dirname = $project;
+        $dirname = "docs/" . $project . "/";
+	if (basename(dirname($generator)) !== "docs") {
+		$dirname = strstr(dirname($generator), $project. "/");
 	}
+
 	// echo "generator=". dirname($generator) . " project=$project, dirname=$dirname\n";
 	if (!is_dir($dirname) && !empty($dirname)) {
 		mkdir($dirname, 0777, true);
