@@ -81,8 +81,10 @@ func (r *user) FindByEmail(email string) (*types.User, error) {
 func (r *user) FindByID(id uint64) (*types.User, error) {
 	sql := fmt.Sprintf(sqlUserSelect, r.users) + " AND id = ?"
 	mod := &types.User{}
-
-	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrUserNotFound)
+	if err := isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrUserNotFound); err != nil {
+		return nil, err
+	}
+	return mod, r.prepare(mod, "teams")
 }
 
 func (r *user) Find(filter *types.UserFilter) ([]*types.User, error) {
