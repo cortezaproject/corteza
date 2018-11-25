@@ -435,6 +435,12 @@
               "title": "Handle"
             },
             {
+              "name": "kind",
+              "type": "string",
+              "required": false,
+              "title": "Kind (normal, bot)"
+            },
+            {
               "name": "meta",
               "type": "types.JSONText",
               "required": false,
@@ -499,6 +505,12 @@
               "type": "string",
               "required": true,
               "title": "Handle"
+            },
+            {
+              "name": "kind",
+              "type": "string",
+              "required": false,
+              "title": "Kind (normal, bot)"
             },
             {
               "name": "meta",

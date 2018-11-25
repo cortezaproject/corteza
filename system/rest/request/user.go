@@ -83,6 +83,7 @@ type UserCreate struct {
 	Password       string
 	Name           string
 	Handle         string
+	Kind           string
 	Meta           types.JSONText
 	SatosaID       string
 	OrganisationID uint64 `json:",string"`
@@ -139,6 +140,10 @@ func (u *UserCreate) Fill(r *http.Request) (err error) {
 
 		u.Handle = val
 	}
+	if val, ok := post["kind"]; ok {
+
+		u.Kind = val
+	}
 	if val, ok := post["meta"]; ok {
 
 		if u.Meta, err = parseJSONText(val); err != nil {
@@ -167,6 +172,7 @@ type UserEdit struct {
 	Password       string
 	Name           string
 	Handle         string
+	Kind           string
 	Meta           types.JSONText
 	SatosaID       string
 	OrganisationID uint64 `json:",string"`
@@ -223,6 +229,10 @@ func (u *UserEdit) Fill(r *http.Request) (err error) {
 	if val, ok := post["handle"]; ok {
 
 		u.Handle = val
+	}
+	if val, ok := post["kind"]; ok {
+
+		u.Kind = val
 	}
 	if val, ok := post["meta"]; ok {
 
