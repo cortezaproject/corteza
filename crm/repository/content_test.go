@@ -41,6 +41,10 @@ func TestContent(t *testing.T) {
 			Name: "email",
 			Type: "email",
 		},
+		types.Field{
+			Name: "options",
+			Type: "select_multi",
+		},
 	})
 	assert(t, err == nil, "Error when encoding JSON fields: %+v", err)
 
@@ -56,20 +60,26 @@ func TestContent(t *testing.T) {
 		assert(t, module.ID > 0, "Expected auto generated ID")
 	}
 
+	columns := []types.ContentColumn{
+		types.ContentColumn{
+			Name:  "name",
+			Value: "Tit Petric",
+		},
+		types.ContentColumn{
+			Name:  "email",
+			Value: "tit.petric@example.com",
+		},
+		types.ContentColumn{
+			Name:    "options",
+			Related: []string{"1", "2", "3"},
+		},
+	}
+
 	content := &types.Content{
 		ModuleID: module.ID,
 	}
 	(&content.Fields).Scan(func() []byte {
-		b, _ := json.Marshal([]types.ContentColumn{
-			types.ContentColumn{
-				Name:  "name",
-				Value: "Tit Petric",
-			},
-			types.ContentColumn{
-				Name:  "email",
-				Value: "tit.petric@example.com",
-			},
-		})
+		b, _ := json.Marshal(columns)
 		return b
 	}())
 
@@ -94,17 +104,19 @@ func TestContent(t *testing.T) {
 				// fields := make([]testContentRow, 0)
 				// err = json.Unmarshal(ms.Fields, &fields)
 				assert(t, err == nil, "%+v", errors.Wrap(err, "Didn't expect error when unmarshalling"))
-				assert(t, len(fields) == 2, "Expected different field count: %d != %d", 2, len(fields))
-				assert(t, fields[0].Name == "name", "Expected field.0 type = name, got %s", fields[0].Name)
-				assert(t, fields[1].Name == "email", "Expected field.1 type = email, got %s", fields[1].Name)
+				assert(t, len(fields) == len(columns), "Expected different field count: %d != %d", 2, len(fields))
+				for k, v := range columns {
+					assert(t, fields[k].Name == v.Name, "Expected fields[%d].Name = %s, got %s", k, fields[k].Name, v.Name)
+				}
 			}
 			{
 				fields := make([]types.ContentColumn, 0)
 				err := json.Unmarshal(ms.Fields, &fields)
 				assert(t, err == nil, "%+v", errors.Wrap(err, "Didn't expect error when unmarshalling"))
-				assert(t, len(fields) == 2, "Expected different field count: %d != %d", 2, len(fields))
-				assert(t, fields[0].Name == "name", "Expected field.0 type = name, got %s", fields[0].Name)
-				assert(t, fields[1].Name == "email", "Expected field.1 type = email, got %s", fields[1].Name)
+				assert(t, len(fields) == len(columns), "Expected different field count: %d != %d", 2, len(fields))
+				for k, v := range columns {
+					assert(t, fields[k].Name == v.Name, "Expected fields[%d].Name = %s, got %s", k, fields[k].Name, v.Name)
+				}
 			}
 		}
 

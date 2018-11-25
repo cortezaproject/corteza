@@ -28,9 +28,18 @@ type (
 
 	// ContentColumn is a stored row in the `content_column` table
 	ContentColumn struct {
+		ContentID uint64   `json:"-" db:"content_id"`
+		Name      string   `json:"name" db:"column_name"`
+		Value     string   `json:"value" db:"column_value"`
+		Related   []string `json:"related" db:"-"`
+	}
+
+	Related struct {
 		ContentID uint64 `json:"-" db:"content_id"`
-		Name      string `json:"name" db:"column_name"`
-		Value     string `json:"value" db:"column_value"`
+		Name      string `json:"-" db:"column_name"`
+
+		// RelatedContentID isn't necessarily a content ID (multiple-select anything goes options)
+		RelatedContentID string `json:"-" db:"rel_content_id"`
 	}
 
 	// Field - CRM input field definitions

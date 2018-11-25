@@ -133,10 +133,21 @@ func (r *content) Create(mod *types.Content) (*types.Content, error) {
 		return nil, errors.Wrap(err, "No content")
 	}
 
+	r.db().Exec("delete from crm_content_links where content_id=?", mod.ID)
 	for _, v := range fields {
 		v.ContentID = mod.ID
 		if err := r.db().Replace("crm_content_column", v); err != nil {
 			return nil, errors.Wrap(err, "Error adding columns")
+		}
+		for _, related := range v.Related {
+			row := types.Related{
+				ContentID:        v.ContentID,
+				Name:             v.Name,
+				RelatedContentID: related,
+			}
+			if err := r.db().Replace("crm_content_links", row); err != nil {
+				return nil, errors.Wrap(err, "Error adding column links")
+			}
 		}
 	}
 
@@ -156,10 +167,21 @@ func (r *content) Update(mod *types.Content) (*types.Content, error) {
 		return nil, errors.Wrap(err, "Error when saving content, no content")
 	}
 
+	r.db().Exec("delete from crm_content_links where content_id=?", mod.ID)
 	for _, v := range fields {
 		v.ContentID = mod.ID
 		if err := r.db().Replace("crm_content_column", v); err != nil {
 			return nil, errors.Wrap(err, "Error adding columns to database")
+		}
+		for _, related := range v.Related {
+			row := types.Related{
+				ContentID:        v.ContentID,
+				Name:             v.Name,
+				RelatedContentID: related,
+			}
+			if err := r.db().Replace("crm_content_links", row); err != nil {
+				return nil, errors.Wrap(err, "Error adding column links")
+			}
 		}
 	}
 
