@@ -30,6 +30,97 @@ var _ = chi.URLParam
 var _ = types.JSONText{}
 var _ = multipart.FileHeader{}
 
+// User login request parameters
+type UserLogin struct {
+	Username string
+	Password string
+}
+
+func NewUserLogin() *UserLogin {
+	return &UserLogin{}
+}
+
+func (u *UserLogin) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(u)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	if val, ok := post["username"]; ok {
+
+		u.Username = val
+	}
+	if val, ok := post["password"]; ok {
+
+		u.Password = val
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewUserLogin()
+
+// User logout request parameters
+type UserLogout struct {
+}
+
+func NewUserLogout() *UserLogout {
+	return &UserLogout{}
+}
+
+func (u *UserLogout) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(u)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewUserLogout()
+
 // User list request parameters
 type UserList struct {
 	Query string

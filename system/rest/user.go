@@ -29,6 +29,14 @@ func (ctrl *User) List(ctx context.Context, r *request.UserList) (interface{}, e
 	return ctrl.user.With(ctx).Find(&types.UserFilter{Query: r.Query})
 }
 
+func (ctrl *User) Login(ctx context.Context, r *request.UserLogin) (interface{}, error) {
+	return nil, errors.New("Not implemented: User.Login")
+}
+
+func (ctrl *User) Logout(ctx context.Context, r *request.UserLogout) (interface{}, error) {
+	return nil, errors.New("Not implemented: User.Logout")
+}
+
 func (ctrl *User) Create(ctx context.Context, r *request.UserCreate) (interface{}, error) {
 	user := &types.User{
 		Email:          r.Email,

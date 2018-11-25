@@ -27,6 +27,8 @@ import (
 
 // Internal API interface
 type UserAPI interface {
+	Login(context.Context, *request.UserLogin) (interface{}, error)
+	Logout(context.Context, *request.UserLogout) (interface{}, error)
 	List(context.Context, *request.UserList) (interface{}, error)
 	Create(context.Context, *request.UserCreate) (interface{}, error)
 	Edit(context.Context, *request.UserEdit) (interface{}, error)
@@ -38,6 +40,8 @@ type UserAPI interface {
 
 // HTTP API interface
 type User struct {
+	Login     func(http.ResponseWriter, *http.Request)
+	Logout    func(http.ResponseWriter, *http.Request)
 	List      func(http.ResponseWriter, *http.Request)
 	Create    func(http.ResponseWriter, *http.Request)
 	Edit      func(http.ResponseWriter, *http.Request)
@@ -49,6 +53,20 @@ type User struct {
 
 func NewUser(uh UserAPI) *User {
 	return &User{
+		Login: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewUserLogin()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return uh.Login(r.Context(), params)
+			})
+		},
+		Logout: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewUserLogout()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return uh.Logout(r.Context(), params)
+			})
+		},
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewUserList()
@@ -105,6 +123,8 @@ func (uh *User) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Route("/users", func(r chi.Router) {
+			r.Post("/login", uh.Login)
+			r.Get("/logout", uh.Logout)
 			r.Get("/", uh.List)
 			r.Post("/", uh.Create)
 			r.Put("/{userID}", uh.Edit)

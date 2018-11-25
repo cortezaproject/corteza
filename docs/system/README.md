@@ -277,6 +277,34 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 # Users
 
+## Login user
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/users/login` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| username | string | POST | Username | N/A | YES |
+| password | string | POST | Password | N/A | YES |
+
+## Delete JWT token (Sign Out)
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/users/logout` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+
 ## Search users (Directory)
 
 #### Method

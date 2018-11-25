@@ -18,6 +18,35 @@
   "Path": "/users",
   "APIs": [
     {
+      "Name": "login",
+      "Method": "POST",
+      "Title": "Login user",
+      "Path": "/login",
+      "Parameters": {
+        "post": [
+          {
+            "name": "username",
+            "required": true,
+            "title": "Username",
+            "type": "string"
+          },
+          {
+            "name": "password",
+            "required": true,
+            "title": "Password",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "logout",
+      "Method": "GET",
+      "Title": "Delete JWT token (Sign Out)",
+      "Path": "/logout",
+      "Parameters": {}
+    },
+    {
       "Name": "list",
       "Method": "GET",
       "Title": "Search users (Directory)",

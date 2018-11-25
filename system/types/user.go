@@ -9,7 +9,7 @@ import (
 
 type (
 	User struct {
-		ID       uint64         `json:"id,string" db:"id"`
+		ID       uint64         `json:"userID,string" db:"id"`
 		Username string         `json:"username" db:"username"`
 		Email    string         `json:"email" db:"email"`
 		Name     string         `json:"name" db:"name"`
@@ -19,7 +19,7 @@ type (
 		Meta     types.JSONText `json:"-" db:"meta"`
 
 		OrganisationID uint64 `json:"organisationID,string" db:"rel_organisation"`
-		UserID         uint64 `json:"userID,string" db:"rel_user_id"`
+		RelatedUserID  uint64 `json:"relatedUserID,string" db:"rel_user_id"`
 		User           *User  `json:"user" db:"-"`
 
 		Password []byte `json:"-" db:"password"`
