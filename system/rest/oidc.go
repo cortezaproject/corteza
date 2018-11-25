@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -60,8 +59,6 @@ func OpenIdConnect(ctx context.Context, cfg *config.OIDC, usvc service.UserServi
 		userService:       usvc,
 		jwt:               jwt,
 	}
-
-	fmt.Printf("%#v\n", *cfg)
 
 	// Allow 5 seconds for issuer discovery process
 	c.provider, err = oidc.NewProvider(ctx, cfg.Issuer)
