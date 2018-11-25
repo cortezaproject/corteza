@@ -31,6 +31,9 @@ type (
 		Archive(ID uint64) error
 		Unarchive(ID uint64) error
 		Delete(ID uint64) error
+
+		MemberAdd(teamID, userID uint64) error
+		MemberRemove(teamID, userID uint64) error
 	}
 )
 
@@ -49,56 +52,66 @@ func (svc *team) With(ctx context.Context) TeamService {
 
 func (svc *team) FindByID(id uint64) (*types.Team, error) {
 	// @todo: permission check if current user has access to this team
-	return svc.team.FindTeamByID(id)
+	return svc.team.FindByID(id)
 }
 
 func (svc *team) Find(filter *types.TeamFilter) ([]*types.Team, error) {
 	// @todo: permission check to return only teams that current user has access to
-	return svc.team.FindTeams(filter)
+	return svc.team.Find(filter)
 }
 
 func (svc *team) Create(mod *types.Team) (*types.Team, error) {
 	// @todo: permission check if current user can add/edit team
 
-	return svc.team.CreateTeam(mod)
+	return svc.team.Create(mod)
 }
 
 func (svc *team) Update(mod *types.Team) (*types.Team, error) {
 	// @todo: permission check if current user can add/edit team
 	// @todo: make sure archived & deleted entries can not be edited
 
-	return svc.team.UpdateTeam(mod)
+	return svc.team.Update(mod)
 }
 
 func (svc *team) Delete(id uint64) error {
 	// @todo: make history unavailable
 	// @todo: notify users that team has been removed (remove from web UI)
 	// @todo: permissions check if current user can remove team
-	return svc.team.DeleteTeamByID(id)
+	return svc.team.DeleteByID(id)
 }
 
 func (svc *team) Archive(id uint64) error {
 	// @todo: make history unavailable
 	// @todo: notify users that team has been removed (remove from web UI)
 	// @todo: permissions check if current user can remove team
-	return svc.team.ArchiveTeamByID(id)
+	return svc.team.ArchiveByID(id)
 }
 
 func (svc *team) Unarchive(id uint64) error {
 	// @todo: permissions check if current user can unarchive team
 	// @todo: make history accessible
 	// @todo: notify users that team has been unarchived
-	return svc.team.UnarchiveTeamByID(id)
+	return svc.team.UnarchiveByID(id)
 }
 
 func (svc *team) Merge(id, targetTeamID uint64) error {
 	// @todo: permission check if current user can merge team
-	return svc.team.MergeTeamByID(id, targetTeamID)
+	return svc.team.MergeByID(id, targetTeamID)
 }
 
 func (svc *team) Move(id, targetOrganisationID uint64) error {
 	// @todo: permission check if current user can move team to another organisation
-	return svc.team.MoveTeamByID(id, targetOrganisationID)
+	return svc.team.MoveByID(id, targetOrganisationID)
+}
+
+func (svc *team) MemberAdd(id, userID uint64) error {
+	// @todo: permission check if current user can add user in to a team
+	return svc.team.MemberAddByID(id, userID)
+}
+
+func (svc *team) MemberRemove(id, userID uint64) error {
+	// @todo: permission check if current user can remove user from a team
+	return svc.team.MemberRemoveByID(id, userID)
 }
 
 var _ TeamService = &team{}

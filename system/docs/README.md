@@ -242,6 +242,36 @@ An organisation may have many teams. Teams may have many channels available. Acc
 | teamID | uint64 | PATH | Source Team ID | N/A | YES |
 | destination | uint64 | POST | Destination Team ID | N/A | YES |
 
+## Add member to a team
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/teams/{teamID}/memberAdd` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| teamID | uint64 | PATH | Source Team ID | N/A | YES |
+| userID | uint64 | POST | User ID | N/A | YES |
+
+## Remove member from a team
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/teams/{teamID}/memberRemove` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| teamID | uint64 | PATH | Source Team ID | N/A | YES |
+| userID | uint64 | POST | User ID | N/A | YES |
+
 
 
 

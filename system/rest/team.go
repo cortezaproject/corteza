@@ -66,3 +66,11 @@ func (ctrl *Team) Merge(ctx context.Context, r *request.TeamMerge) (interface{},
 func (ctrl *Team) Move(ctx context.Context, r *request.TeamMove) (interface{}, error) {
 	return nil, ctrl.svc.team.With(ctx).Move(r.TeamID, r.OrganisationID)
 }
+
+func (ctrl *Team) MemberAdd(ctx context.Context, r *request.TeamMemberAdd) (interface{}, error) {
+	return nil, ctrl.svc.team.With(ctx).Merge(r.TeamID, r.UserID)
+}
+
+func (ctrl *Team) MemberRemove(ctx context.Context, r *request.TeamMemberRemove) (interface{}, error) {
+	return nil, ctrl.svc.team.With(ctx).Move(r.TeamID, r.UserID)
+}

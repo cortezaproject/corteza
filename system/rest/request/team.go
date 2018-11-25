@@ -398,3 +398,99 @@ func (t *TeamMerge) Fill(r *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewTeamMerge()
+
+// Team memberAdd request parameters
+type TeamMemberAdd struct {
+	TeamID uint64 `json:",string"`
+	UserID uint64 `json:",string"`
+}
+
+func NewTeamMemberAdd() *TeamMemberAdd {
+	return &TeamMemberAdd{}
+}
+
+func (t *TeamMemberAdd) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(t)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
+	if val, ok := post["userID"]; ok {
+
+		t.UserID = parseUInt64(val)
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewTeamMemberAdd()
+
+// Team memberRemove request parameters
+type TeamMemberRemove struct {
+	TeamID uint64 `json:",string"`
+	UserID uint64 `json:",string"`
+}
+
+func NewTeamMemberRemove() *TeamMemberRemove {
+	return &TeamMemberRemove{}
+}
+
+func (t *TeamMemberRemove) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(t)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
+	if val, ok := post["userID"]; ok {
+
+		t.UserID = parseUInt64(val)
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewTeamMemberRemove()
