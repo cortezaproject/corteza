@@ -34,6 +34,10 @@ type (
 		Create(input *types.User) (*types.User, error)
 		Update(mod *types.User) (*types.User, error)
 
+		Delete(id uint64) error
+		Suspend(id uint64) error
+		Unsuspend(id uint64) error
+
 		FindOrCreate(*types.User) (*types.User, error)
 		ValidateCredentials(username, password string) (*types.User, error)
 	}
@@ -51,6 +55,18 @@ func (svc *user) With(ctx context.Context) UserService {
 		ctx:  ctx,
 		user: repository.User(ctx, db),
 	}
+}
+
+func (svc *user) Delete(id uint64) error {
+	return svc.user.DeleteByID(id)
+}
+
+func (svc *user) Suspend(id uint64) error {
+	return svc.user.SuspendByID(id)
+}
+
+func (svc *user) Unsuspend(id uint64) error {
+	return svc.user.UnsuspendByID(id)
 }
 
 func (svc *user) ValidateCredentials(username, password string) (*types.User, error) {
