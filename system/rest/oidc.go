@@ -2,10 +2,15 @@ package rest
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/pkg/errors"
+	"github.com/titpetric/factory/resputil"
+	"golang.org/x/oauth2"
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/config"
@@ -13,9 +18,6 @@ import (
 	"github.com/crusttech/crust/system/service"
 	"github.com/crusttech/crust/system/types"
 	"github.com/crusttech/go-oidc"
-	"github.com/pkg/errors"
-	"github.com/titpetric/factory/resputil"
-	"golang.org/x/oauth2"
 )
 
 const DB_SETTINGS_KEY_OIDC_CLIENT = "oidc-client"
@@ -58,6 +60,8 @@ func OpenIdConnect(ctx context.Context, cfg *config.OIDC, usvc service.UserServi
 		userService:       usvc,
 		jwt:               jwt,
 	}
+
+	fmt.Printf("%#v\n", *cfg)
 
 	// Allow 5 seconds for issuer discovery process
 	c.provider, err = oidc.NewProvider(ctx, cfg.Issuer)
