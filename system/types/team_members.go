@@ -3,7 +3,7 @@ package types
 type (
 	TeamMember struct {
 		TeamID uint64 `db:"rel_team"`
-		UserId uint64 `db:"rel_user"`
+		UserID uint64 `db:"rel_user"`
 	}
 
 	TeamMemberFilter struct {

@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/crusttech/crust/system/types"
 	"github.com/titpetric/factory"
+
+	"github.com/crusttech/crust/system/types"
 )
 
 type (
@@ -98,7 +99,14 @@ func (r *user) Find(filter *types.UserFilter) ([]*types.User, error) {
 
 	sql += " ORDER BY username ASC"
 
-	return rval, r.db().Select(&rval, sql, params...)
+	if err := r.db().Select(&rval, sql, params...); err != nil {
+		return nil, err
+	}
+	if err := r.prepareAll(rval, "teams"); err != nil {
+		return nil, err
+	}
+
+	return rval, nil
 }
 
 func (r *user) Create(mod *types.User) (*types.User, error) {
@@ -122,4 +130,30 @@ func (r *user) UnsuspendByID(id uint64) error {
 
 func (r *user) DeleteByID(id uint64) error {
 	return r.updateColumnByID(r.users, "deleted_at", time.Now(), id)
+}
+
+func (r *user) prepareAll(users []*types.User, fields ...string) error {
+	for _, user := range users {
+		if err := r.prepare(user, fields...); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *user) prepare(user *types.User, fields ...string) (err error) {
+	api := Team(r.Context(), r.db())
+	for _, field := range fields {
+		switch field {
+		case "teams":
+			if user.ID > 0 {
+				teams, err := api.FindByMemberID(user.ID)
+				if err != nil {
+					return err
+				}
+				user.Teams = teams
+			}
+		}
+	}
+	return
 }
