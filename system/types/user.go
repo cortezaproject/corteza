@@ -28,6 +28,8 @@ type (
 		UpdatedAt   *time.Time `json:"updatedAt,omitempty" db:"updated_at"`
 		SuspendedAt *time.Time `json:"suspendedAt,omitempty" db:"suspended_at"`
 		DeletedAt   *time.Time `json:"deletedAt,omitempty" db:"deleted_at"`
+
+		Teams []*Team `json:"page,omitempty"`
 	}
 
 	UserFilter struct {
