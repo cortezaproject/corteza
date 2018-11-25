@@ -11,7 +11,7 @@ import (
 type (
 	// Content is a stored row in the `content` table
 	Content struct {
-		ID       uint64 `json:"id,string" db:"id"`
+		ID       uint64 `json:"contentID,string" db:"id"`
 		ModuleID uint64 `json:"moduleID,string" db:"module_id"`
 
 		User   *systemTypes.User `json:"user,omitempty" db:"-"`
@@ -51,7 +51,7 @@ type (
 
 	// Modules - CRM module definitions
 	Module struct {
-		ID     uint64         `json:"id,string" db:"id"`
+		ID     uint64         `json:"moduleID,string" db:"id"`
 		Name   string         `json:"name" db:"name"`
 		Fields types.JSONText `json:"fields" db:"json"`
 
@@ -81,7 +81,7 @@ type (
 
 	// Page - page structure
 	Page struct {
-		ID     uint64 `json:"id,string" db:"id"`
+		ID     uint64 `json:"pageID,string" db:"id"`
 		SelfID uint64 `json:"selfID,string" db:"self_id"`
 
 		ModuleID uint64  `json:"moduleID,string" db:"module_id"`
