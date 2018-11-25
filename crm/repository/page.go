@@ -127,6 +127,18 @@ func (r *page) Create(item *types.Page) (*types.Page, error) {
 }
 
 func (r *page) Update(page *types.Page) (*types.Page, error) {
+	if page.ID == 0 {
+		return nil, errors.New("Error when savig page, invalid ID")
+	}
+	if page.ModuleID > 0 {
+		if check, err := r.FindByModuleID(page.ModuleID); err != nil {
+			return nil, err
+		} else {
+			if check.ID != page.ID {
+				return nil, errors.New("Page for this module already exists")
+			}
+		}
+	}
 	return page, r.db().Replace("crm_page", page)
 }
 
