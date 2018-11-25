@@ -71,6 +71,12 @@
             "type": "string"
           },
           {
+            "name": "kind",
+            "required": false,
+            "title": "Kind (normal, bot)",
+            "type": "string"
+          },
+          {
             "name": "meta",
             "required": false,
             "title": "Meta data",
@@ -134,6 +140,12 @@
             "name": "handle",
             "required": true,
             "title": "Handle",
+            "type": "string"
+          },
+          {
+            "name": "kind",
+            "required": false,
+            "title": "Kind (normal, bot)",
             "type": "string"
           },
           {
