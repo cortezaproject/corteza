@@ -2,13 +2,15 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
+
+	"encoding/json"
+	"go/format"
+	"io/ioutil"
 
 	"github.com/crusttech/crust/internal/rbac"
 )
@@ -22,7 +24,7 @@ func main() {
 	)
 	flag.Parse()
 
-	export := func(s string) string {
+	export := func(s string) []byte {
 		s = strings.Replace(s, "true,", "true,\n", -1)
 		s = strings.Replace(s, "false,", "false,\n", -1)
 		s = strings.Replace(s, "{", "{\n", -1)
@@ -41,7 +43,13 @@ func main() {
 		fmt.Fprintln(&w, "\treturn", s)
 		fmt.Fprintln(&w, "}")
 
-		return w.String()
+		fmtsrc, err := format.Source(buf.Bytes())
+		if err != nil {
+			stderr("fmt warn: %v", err)
+			fmtsrc = buf.Bytes()
+		}
+
+		return fmtsrc
 	}
 
 	var result []rbac.OperationGroup
@@ -53,7 +61,7 @@ func main() {
 		log.Fatal(err)
 	}
 	source := export(fmt.Sprintf("%#v", result))
-	if err := ioutil.WriteFile(*output, []byte(source), 0644); err != nil {
+	if err := ioutil.WriteFile(*output, source, 0644); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println(*output)
