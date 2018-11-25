@@ -80,6 +80,9 @@ func (r *module) Create(mod *types.Module) (*types.Module, error) {
 }
 
 func (r *module) Update(mod *types.Module) (*types.Module, error) {
+	if mod.ID == 0 {
+		return nil, errors.New("Error when savig module, invalid ID")
+	}
 	now := time.Now()
 	mod.UpdatedAt = &now
 

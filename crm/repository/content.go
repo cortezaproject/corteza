@@ -159,6 +159,9 @@ func (r *content) Create(mod *types.Content) (*types.Content, error) {
 }
 
 func (r *content) Update(mod *types.Content) (*types.Content, error) {
+	if mod.ID == 0 {
+		return nil, errors.New("Error when savig content, invalid ID")
+	}
 	now := time.Now()
 	mod.UpdatedAt = &now
 
