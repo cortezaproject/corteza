@@ -35,18 +35,22 @@ type TeamAPI interface {
 	Archive(context.Context, *request.TeamArchive) (interface{}, error)
 	Move(context.Context, *request.TeamMove) (interface{}, error)
 	Merge(context.Context, *request.TeamMerge) (interface{}, error)
+	MemberAdd(context.Context, *request.TeamMemberAdd) (interface{}, error)
+	MemberRemove(context.Context, *request.TeamMemberRemove) (interface{}, error)
 }
 
 // HTTP API interface
 type Team struct {
-	List    func(http.ResponseWriter, *http.Request)
-	Create  func(http.ResponseWriter, *http.Request)
-	Edit    func(http.ResponseWriter, *http.Request)
-	Read    func(http.ResponseWriter, *http.Request)
-	Remove  func(http.ResponseWriter, *http.Request)
-	Archive func(http.ResponseWriter, *http.Request)
-	Move    func(http.ResponseWriter, *http.Request)
-	Merge   func(http.ResponseWriter, *http.Request)
+	List         func(http.ResponseWriter, *http.Request)
+	Create       func(http.ResponseWriter, *http.Request)
+	Edit         func(http.ResponseWriter, *http.Request)
+	Read         func(http.ResponseWriter, *http.Request)
+	Remove       func(http.ResponseWriter, *http.Request)
+	Archive      func(http.ResponseWriter, *http.Request)
+	Move         func(http.ResponseWriter, *http.Request)
+	Merge        func(http.ResponseWriter, *http.Request)
+	MemberAdd    func(http.ResponseWriter, *http.Request)
+	MemberRemove func(http.ResponseWriter, *http.Request)
 }
 
 func NewTeam(th TeamAPI) *Team {
@@ -107,6 +111,20 @@ func NewTeam(th TeamAPI) *Team {
 				return th.Merge(r.Context(), params)
 			})
 		},
+		MemberAdd: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewTeamMemberAdd()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return th.MemberAdd(r.Context(), params)
+			})
+		},
+		MemberRemove: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewTeamMemberRemove()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return th.MemberRemove(r.Context(), params)
+			})
+		},
 	}
 }
 
@@ -122,6 +140,8 @@ func (th *Team) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 			r.Post("/{teamID}/archive", th.Archive)
 			r.Post("/{teamID}/move", th.Move)
 			r.Post("/{teamID}/merge", th.Merge)
+			r.Post("/{teamID}/memberAdd", th.MemberAdd)
+			r.Post("/{teamID}/memberRemove", th.MemberRemove)
 		})
 	})
 }

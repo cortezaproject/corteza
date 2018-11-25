@@ -175,6 +175,54 @@
           }
         ]
       }
+    },
+    {
+      "Name": "memberAdd",
+      "Method": "POST",
+      "Title": "Add member to a team",
+      "Path": "/{teamID}/memberAdd",
+      "Parameters": {
+        "path": [
+          {
+            "name": "teamID",
+            "required": true,
+            "title": "Source Team ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "userID",
+            "required": true,
+            "title": "User ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "memberRemove",
+      "Method": "POST",
+      "Title": "Remove member from a team",
+      "Path": "/{teamID}/memberRemove",
+      "Parameters": {
+        "path": [
+          {
+            "name": "teamID",
+            "required": true,
+            "title": "Source Team ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "userID",
+            "required": true,
+            "title": "User ID",
+            "type": "uint64"
+          }
+        ]
+      }
     }
   ]
 }

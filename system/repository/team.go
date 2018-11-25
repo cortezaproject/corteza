@@ -13,15 +13,17 @@ type (
 	TeamRepository interface {
 		With(ctx context.Context, db *factory.DB) TeamRepository
 
-		FindTeamByID(id uint64) (*types.Team, error)
-		FindTeams(filter *types.TeamFilter) ([]*types.Team, error)
-		CreateTeam(mod *types.Team) (*types.Team, error)
-		UpdateTeam(mod *types.Team) (*types.Team, error)
-		ArchiveTeamByID(id uint64) error
-		UnarchiveTeamByID(id uint64) error
-		DeleteTeamByID(id uint64) error
-		MergeTeamByID(id, targetTeamID uint64) error
-		MoveTeamByID(id, targetOrganisationID uint64) error
+		FindByID(id uint64) (*types.Team, error)
+		Find(filter *types.TeamFilter) ([]*types.Team, error)
+		Create(mod *types.Team) (*types.Team, error)
+		Update(mod *types.Team) (*types.Team, error)
+		ArchiveByID(id uint64) error
+		UnarchiveByID(id uint64) error
+		DeleteByID(id uint64) error
+		MergeByID(id, targetTeamID uint64) error
+		MoveByID(id, targetOrganisationID uint64) error
+		MemberAddByID(id, userID uint64) error
+		MemberRemoveByID(id, userID uint64) error
 	}
 
 	team struct {
@@ -51,14 +53,14 @@ func (r *team) With(ctx context.Context, db *factory.DB) TeamRepository {
 	}
 }
 
-func (r *team) FindTeamByID(id uint64) (*types.Team, error) {
+func (r *team) FindByID(id uint64) (*types.Team, error) {
 	sql := "SELECT * FROM " + r.teams + " WHERE id = ? AND " + sqlTeamScope
 	mod := &types.Team{}
 
 	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrTeamNotFound)
 }
 
-func (r *team) FindTeams(filter *types.TeamFilter) ([]*types.Team, error) {
+func (r *team) Find(filter *types.TeamFilter) ([]*types.Team, error) {
 	rval := make([]*types.Team, 0)
 	params := make([]interface{}, 0)
 
@@ -76,35 +78,51 @@ func (r *team) FindTeams(filter *types.TeamFilter) ([]*types.Team, error) {
 	return rval, r.db().Select(&rval, sql, params...)
 }
 
-func (r *team) CreateTeam(mod *types.Team) (*types.Team, error) {
+func (r *team) Create(mod *types.Team) (*types.Team, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
 	return mod, r.db().Insert(r.teams, mod)
 }
 
-func (r *team) UpdateTeam(mod *types.Team) (*types.Team, error) {
+func (r *team) Update(mod *types.Team) (*types.Team, error) {
 	mod.UpdatedAt = timeNowPtr()
 
 	return mod, r.db().Replace(r.teams, mod)
 }
 
-func (r *team) ArchiveTeamByID(id uint64) error {
+func (r *team) ArchiveByID(id uint64) error {
 	return r.updateColumnByID(r.teams, "archived_at", time.Now(), id)
 }
 
-func (r *team) UnarchiveTeamByID(id uint64) error {
+func (r *team) UnarchiveByID(id uint64) error {
 	return r.updateColumnByID(r.teams, "archived_at", nil, id)
 }
 
-func (r *team) DeleteTeamByID(id uint64) error {
+func (r *team) DeleteByID(id uint64) error {
 	return r.updateColumnByID(r.teams, "deleted_at", time.Now(), id)
 }
 
-func (r *team) MergeTeamByID(id, targetTeamID uint64) error {
+func (r *team) MergeByID(id, targetTeamID uint64) error {
 	return ErrNotImplemented
 }
 
-func (r *team) MoveTeamByID(id, targetOrganisationID uint64) error {
+func (r *team) MoveByID(id, targetOrganisationID uint64) error {
 	return ErrNotImplemented
+}
+
+func (r *team) MemberAddByID(id, userID uint64) error {
+	mod := &types.TeamMember{
+		TeamID: id,
+		UserId: userID,
+	}
+	return r.db().Replace(r.members, mod)
+}
+
+func (r *team) MemberRemoveByID(id, userID uint64) error {
+	mod := &types.TeamMember{
+		TeamID: id,
+		UserId: userID,
+	}
+	return r.db().Delete(r.members, mod, "rel_team", "rel_user")
 }

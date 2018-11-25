@@ -4,10 +4,10 @@ set -e
 _PWD=$PWD
 
 function yellow {
-	echo -e "\e[33m$@\e[39m"
+	echo -e "\033[33m$@\033[39m"
 }
 function green {
-	echo -e "\e[32m$@\e[39m"
+	echo -e "\033[32m$@\033[39m"
 }
 
 function gofmt {
@@ -56,7 +56,7 @@ types
 
 function database {
 	yellow "> database"
-	FOLDERS=$(find -type d -wholename '*/schema/mysql')
+	FOLDERS=$(find . -type d -wholename '*/schema/mysql')
 	for FOLDER in $FOLDERS; do
 		FOLDER=$(dirname $(dirname $FOLDER))
 		FOLDER=${FOLDER:2}
@@ -70,7 +70,7 @@ database
 
 function files {
 	yellow "> files"
-	FOLDERS=$(find -type d -wholename '*/data')
+	FOLDERS=$(find . -type d -wholename '*/data')
 	for FOLDER in $FOLDERS; do
 		FOLDER=$(dirname $FOLDER)
 		FOLDER=${FOLDER:2}
