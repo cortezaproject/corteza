@@ -1,7 +1,7 @@
 <?php
 
 $cleanUp = function($contents) {
-	$lines = array_map("trim", explode("\n", $contents));
+	$lines = array_map("rtrim", explode("\n", $contents));
 	$empty = true;
 	foreach ($lines as $k => $v) {
 		if ($v === "") {
