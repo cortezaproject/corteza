@@ -23,6 +23,12 @@ func TestPage(t *testing.T) {
 	prevPageCount := 0
 
 	{
+		{
+			m, err := repository.Update(page)
+			assert(t, m == nil, "Expected empty return for ivalid update, got %#v", m)
+			assert(t, err != nil, "Expected error when updating invalid content")
+		}
+
 		// create page
 		m, err := repository.Create(page)
 		assert(t, err == nil, "Error when creating page: %+v", err)

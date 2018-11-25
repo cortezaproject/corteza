@@ -85,6 +85,12 @@ func TestContent(t *testing.T) {
 
 	// now work with content
 	{
+		{
+			m, err := repository.Update(content)
+			assert(t, m == nil, "Expected empty return for ivalid update, got %#v", m)
+			assert(t, err != nil, "Expected error when updating invalid content")
+		}
+
 		// create content
 		m, err := repository.Create(content)
 		assert(t, err == nil, "Error when creating content: %+v", err)
