@@ -2,10 +2,9 @@ package repository
 
 import (
 	"context"
+	"testing"
 
 	"github.com/titpetric/factory"
-
-	"testing"
 
 	"github.com/crusttech/crust/system/types"
 )
@@ -25,9 +24,9 @@ func TestUser(t *testing.T) {
 	user.GeneratePassword("johndoe")
 
 	{
-		u1, err := userRepo.Create(user)
+		uu, err := userRepo.Create(user)
 		assert(t, err == nil, "User.Create error: %+v", err)
-		assert(t, user.ID == u1.ID, "Changes were not stored")
+		assert(t, user.ID == uu.ID, "Changes were not stored")
 	}
 
 	teamRepo := Team(context.Background(), factory.Database.MustGet())
@@ -39,17 +38,21 @@ func TestUser(t *testing.T) {
 		t1, err := teamRepo.Create(team)
 		assert(t, err == nil, "Team.Create error: %+v", err)
 		assert(t, team.Name == t1.Name, "Changes were not stored")
+
+		err = teamRepo.MemberAddByID(t1.ID, user.ID)
+		assert(t, err == nil, "Team.MemberAddByID error: %+v", err)
 	}
 
 	{
-		err := teamRepo.MemberAddByID(team.ID, user.ID)
-		assert(t, err == nil, "Team.MemberAddByID error: %+v", err)
+		uu, err := userRepo.FindByID(user.ID)
+		assert(t, err == nil, "User.FindByID error: %+v", err)
+		assert(t, len(uu.Teams) == 1, "Expected 1 team, got %d", len(uu.Teams))
 	}
 
 	{
 		users, err := userRepo.Find(&types.UserFilter{Query: ""})
 		assert(t, err == nil, "User.Find error: %+v", err)
-		assert(t, len(users) > 0, "No user results found")
-		assert(t, len(users[0].Teams) > 0, "No team results found")
+		assert(t, len(users) == 1, "User.Find: expected 1 user, got %d", len(users))
+		assert(t, len(users[0].Teams) == 1, "User.Find: expected 1 team, got %d", len(users[0].Teams))
 	}
 }
