@@ -2,7 +2,13 @@
   "Title": "Users",
   "Package": "sam",
   "Interface": "User",
-  "Struct": null,
+  "Struct": [
+    {
+      "imports": [
+        "github.com/jmoiron/sqlx/types"
+      ]
+    }
+  ],
   "Parameters": null,
   "Protocol": "",
   "Authentication": [
@@ -12,10 +18,10 @@
   "Path": "/users",
   "APIs": [
     {
-      "Name": "search",
+      "Name": "list",
       "Method": "GET",
       "Title": "Search users (Directory)",
-      "Path": "/search",
+      "Path": "/",
       "Parameters": {
         "get": [
           {
@@ -23,6 +29,194 @@
             "required": false,
             "title": "Search query to match against users",
             "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "create",
+      "Method": "POST",
+      "Title": "Create user",
+      "Path": "/",
+      "Parameters": {
+        "post": [
+          {
+            "name": "email",
+            "required": true,
+            "title": "Email",
+            "type": "string"
+          },
+          {
+            "name": "username",
+            "required": true,
+            "title": "Username",
+            "type": "string"
+          },
+          {
+            "name": "password",
+            "required": true,
+            "title": "Password",
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "required": true,
+            "title": "Name",
+            "type": "string"
+          },
+          {
+            "name": "handle",
+            "required": true,
+            "title": "Handle",
+            "type": "string"
+          },
+          {
+            "name": "meta",
+            "required": false,
+            "title": "Meta data",
+            "type": "types.JSONText"
+          },
+          {
+            "name": "satosaID",
+            "required": false,
+            "title": "Satosa ID",
+            "type": "string"
+          },
+          {
+            "name": "organisationID",
+            "required": false,
+            "title": "Organisation ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "edit",
+      "Method": "PUT",
+      "Title": "Update user details",
+      "Path": "/{userID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "userID",
+            "required": true,
+            "title": "User ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "email",
+            "required": true,
+            "title": "Email",
+            "type": "string"
+          },
+          {
+            "name": "username",
+            "required": true,
+            "title": "Username",
+            "type": "string"
+          },
+          {
+            "name": "password",
+            "required": true,
+            "title": "Password",
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "required": true,
+            "title": "Name",
+            "type": "string"
+          },
+          {
+            "name": "handle",
+            "required": true,
+            "title": "Handle",
+            "type": "string"
+          },
+          {
+            "name": "meta",
+            "required": false,
+            "title": "Meta data",
+            "type": "types.JSONText"
+          },
+          {
+            "name": "satosaID",
+            "required": false,
+            "title": "Satosa ID",
+            "type": "string"
+          },
+          {
+            "name": "organisationID",
+            "required": false,
+            "title": "Organisation ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "read",
+      "Method": "GET",
+      "Title": "Read user details and memberships",
+      "Path": "/{userID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "userID",
+            "required": true,
+            "title": "User ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "remove",
+      "Method": "DELETE",
+      "Title": "Remove user",
+      "Path": "/{userID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "userID",
+            "required": true,
+            "title": "User ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "suspend",
+      "Method": "POST",
+      "Title": "Suspend user",
+      "Path": "/{userID}/suspend",
+      "Parameters": {
+        "path": [
+          {
+            "name": "userID",
+            "required": true,
+            "title": "User ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "unsuspend",
+      "Method": "POST",
+      "Title": "Unsuspend user",
+      "Path": "/{userID}/unsuspend",
+      "Parameters": {
+        "path": [
+          {
+            "name": "userID",
+            "required": true,
+            "title": "User ID",
+            "type": "uint64"
           }
         ]
       }

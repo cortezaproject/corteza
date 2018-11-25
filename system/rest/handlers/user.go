@@ -27,21 +27,75 @@ import (
 
 // Internal API interface
 type UserAPI interface {
-	Search(context.Context, *request.UserSearch) (interface{}, error)
+	List(context.Context, *request.UserList) (interface{}, error)
+	Create(context.Context, *request.UserCreate) (interface{}, error)
+	Edit(context.Context, *request.UserEdit) (interface{}, error)
+	Read(context.Context, *request.UserRead) (interface{}, error)
+	Remove(context.Context, *request.UserRemove) (interface{}, error)
+	Suspend(context.Context, *request.UserSuspend) (interface{}, error)
+	Unsuspend(context.Context, *request.UserUnsuspend) (interface{}, error)
 }
 
 // HTTP API interface
 type User struct {
-	Search func(http.ResponseWriter, *http.Request)
+	List      func(http.ResponseWriter, *http.Request)
+	Create    func(http.ResponseWriter, *http.Request)
+	Edit      func(http.ResponseWriter, *http.Request)
+	Read      func(http.ResponseWriter, *http.Request)
+	Remove    func(http.ResponseWriter, *http.Request)
+	Suspend   func(http.ResponseWriter, *http.Request)
+	Unsuspend func(http.ResponseWriter, *http.Request)
 }
 
 func NewUser(uh UserAPI) *User {
 	return &User{
-		Search: func(w http.ResponseWriter, r *http.Request) {
+		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewUserSearch()
+			params := request.NewUserList()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return uh.Search(r.Context(), params)
+				return uh.List(r.Context(), params)
+			})
+		},
+		Create: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewUserCreate()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return uh.Create(r.Context(), params)
+			})
+		},
+		Edit: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewUserEdit()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return uh.Edit(r.Context(), params)
+			})
+		},
+		Read: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewUserRead()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return uh.Read(r.Context(), params)
+			})
+		},
+		Remove: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewUserRemove()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return uh.Remove(r.Context(), params)
+			})
+		},
+		Suspend: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewUserSuspend()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return uh.Suspend(r.Context(), params)
+			})
+		},
+		Unsuspend: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewUserUnsuspend()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return uh.Unsuspend(r.Context(), params)
 			})
 		},
 	}
@@ -51,7 +105,13 @@ func (uh *User) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Route("/users", func(r chi.Router) {
-			r.Get("/search", uh.Search)
+			r.Get("/", uh.List)
+			r.Post("/", uh.Create)
+			r.Put("/{userID}", uh.Edit)
+			r.Get("/{userID}", uh.Read)
+			r.Delete("/{userID}", uh.Remove)
+			r.Post("/{userID}/suspend", uh.Suspend)
+			r.Post("/{userID}/unsuspend", uh.Unsuspend)
 		})
 	})
 }

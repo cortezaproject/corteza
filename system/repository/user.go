@@ -21,6 +21,7 @@ type (
 
 		Create(mod *types.User) (*types.User, error)
 		Update(mod *types.User) (*types.User, error)
+
 		SuspendByID(id uint64) error
 		UnsuspendByID(id uint64) error
 		DeleteByID(id uint64) error

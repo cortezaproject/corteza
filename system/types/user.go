@@ -9,15 +9,19 @@ import (
 
 type (
 	User struct {
-		ID             uint64         `json:"id" db:"id"`
-		Username       string         `json:"username" db:"username"`
-		Email          string         `json:"email" db:"email"`
-		Name           string         `json:"name" db:"name"`
-		Handle         string         `json:"handle" db:"handle"`
-		SatosaID       string         `json:"-" db:"satosa_id"`
-		Meta           types.JSONText `json:"-" db:"meta"`
-		OrganisationID uint64         `json:"organisationId" db:"rel_organisation"`
-		Password       []byte         `json:"-" db:"password"`
+		ID       uint64         `json:"id,string" db:"id"`
+		Username string         `json:"username" db:"username"`
+		Email    string         `json:"email" db:"email"`
+		Name     string         `json:"name" db:"name"`
+		Handle   string         `json:"handle" db:"handle"`
+		SatosaID string         `json:"-" db:"satosa_id"`
+		Meta     types.JSONText `json:"-" db:"meta"`
+
+		OrganisationID uint64 `json:"organisationID,string" db:"rel_organisation"`
+		UserID         uint64 `json:"userID,string" db:"rel_user_id"`
+		User           *User  `json:"user" db:"-"`
+
+		Password []byte `json:"-" db:"password"`
 
 		CreatedAt   time.Time  `json:"createdAt,omitempty" db:"created_at"`
 		UpdatedAt   *time.Time `json:"updatedAt,omitempty" db:"updated_at"`

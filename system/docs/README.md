@@ -283,10 +283,109 @@ An organisation may have many teams. Teams may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/users/search` | HTTP/S | GET | Client ID, Session ID |
+| `/users/` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query to match against users | N/A | NO |
+
+## Create user
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/users/` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| email | string | POST | Email | N/A | YES |
+| username | string | POST | Username | N/A | YES |
+| password | string | POST | Password | N/A | YES |
+| name | string | POST | Name | N/A | YES |
+| handle | string | POST | Handle | N/A | YES |
+| meta | types.JSONText | POST | Meta data | N/A | NO |
+| satosaID | string | POST | Satosa ID | N/A | NO |
+| organisationID | uint64 | POST | Organisation ID | N/A | NO |
+
+## Update user details
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/users/{userID}` | HTTP/S | PUT | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| userID | uint64 | PATH | User ID | N/A | YES |
+| email | string | POST | Email | N/A | YES |
+| username | string | POST | Username | N/A | YES |
+| password | string | POST | Password | N/A | YES |
+| name | string | POST | Name | N/A | YES |
+| handle | string | POST | Handle | N/A | YES |
+| meta | types.JSONText | POST | Meta data | N/A | NO |
+| satosaID | string | POST | Satosa ID | N/A | NO |
+| organisationID | uint64 | POST | Organisation ID | N/A | NO |
+
+## Read user details and memberships
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/users/{userID}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| userID | uint64 | PATH | User ID | N/A | YES |
+
+## Remove user
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/users/{userID}` | HTTP/S | DELETE | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| userID | uint64 | PATH | User ID | N/A | YES |
+
+## Suspend user
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/users/{userID}/suspend` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| userID | uint64 | PATH | User ID | N/A | YES |
+
+## Unsuspend user
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/users/{userID}/unsuspend` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| userID | uint64 | PATH | User ID | N/A | YES |
