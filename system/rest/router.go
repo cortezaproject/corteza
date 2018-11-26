@@ -13,18 +13,24 @@ import (
 	"github.com/crusttech/crust/system/service"
 )
 
-func MountRoutes(oidcConfig *config.OIDC, jwtAuth jwtEncodeCookieSetter) func(chi.Router) {
+func MountRoutes(oidcConfig *config.OIDC, jwtEncoder auth.TokenEncoder) func(chi.Router) {
+	var err error
 	var userSvc = service.User()
 	var ctx = context.Background()
+	var oidc *openIdConnect
 
-	oidc, err := OpenIdConnect(ctx, oidcConfig, userSvc, jwtAuth, repository.NewSettings(ctx, repository.DB(ctx)))
-	if err != nil {
-		log.Print("Could not initialize OIDC:", err.Error())
+	if (oidcConfig.Enabled) {
+		oidc, err = OpenIdConnect(ctx, oidcConfig, userSvc, jwtEncoder, repository.NewSettings(ctx, repository.DB(ctx)))
+		if err != nil {
+			log.Println("Could not initialize OIDC:", err.Error())
+		}
+	} else {
+		log.Println("OIDC is disabled")
 	}
 
 	// Initialize handers & controllers.
 	return func(r chi.Router) {
-		if oidc != nil {
+		if oidcConfig.Enabled && oidc != nil {
 			r.Route("/oidc", func(r chi.Router) {
 				r.Get("/", oidc.HandleRedirect)
 				r.Get("/callback", oidc.HandleOAuth2Callback)
@@ -32,7 +38,7 @@ func MountRoutes(oidcConfig *config.OIDC, jwtAuth jwtEncodeCookieSetter) func(ch
 		}
 
 		// Provide raw `/auth` handlers
-		Auth{}.New().Handlers(jwtAuth).MountRoutes(r)
+		Auth{}.New().Handlers(jwtEncoder).MountRoutes(r)
 
 		// Protect all _private_ routes
 		r.Group(func(r chi.Router) {
