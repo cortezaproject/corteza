@@ -1,5 +1,9 @@
 package auth
 
+import (
+	"net/http"
+)
+
 type (
 	Identifiable interface {
 		Identity() uint64
@@ -8,5 +12,6 @@ type (
 
 	TokenEncoder interface {
 		Encode(identity Identifiable) string
+		SetCookie(w http.ResponseWriter, r *http.Request, identity Identifiable)
 	}
 )
