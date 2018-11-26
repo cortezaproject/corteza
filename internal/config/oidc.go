@@ -7,6 +7,7 @@ import (
 
 type (
 	OIDC struct {
+		Enabled      bool
 		Issuer       string
 		ClientID     string
 		ClientSecret string
@@ -24,7 +25,9 @@ func (c *OIDC) Validate() error {
 	if c == nil {
 		return nil
 	}
-
+	if c.Enabled == false {
+		return nil
+	}
 	if c.Issuer == "" {
 		return errors.New("OIDC Issuer not set for AUTH")
 	}
@@ -41,6 +44,7 @@ func (*OIDC) Init(prefix ...string) *OIDC {
 	}
 
 	oidc = new(OIDC)
+	flag.BoolVar(&oidc.Enabled, "auth-oidc-enabled", true, "OIDC enabled")
 	flag.StringVar(&oidc.Issuer, "auth-oidc-issuer", "", "OIDC Issuer")
 	flag.StringVar(&oidc.ClientID, "auth-oidc-client-id", "", "OIDC Client ID")
 	flag.StringVar(&oidc.ClientSecret, "auth-oidc-client-secret", "", "OIDC Client Secret")
