@@ -28,8 +28,12 @@ type (
 	UserService interface {
 		With(ctx context.Context) UserService
 
+		FindByUsername(username string) (*types.User, error)
+		FindByEmail(email string) (*types.User, error)
 		FindByID(id uint64) (*types.User, error)
 		Find(filter *types.UserFilter) (types.UserSet, error)
+
+		FindOrCreate(*types.User) (*types.User, error)
 
 		Create(input *types.User) (*types.User, error)
 		Update(mod *types.User) (*types.User, error)
@@ -38,7 +42,6 @@ type (
 		Suspend(id uint64) error
 		Unsuspend(id uint64) error
 
-		FindOrCreate(*types.User) (*types.User, error)
 		ValidateCredentials(username, password string) (*types.User, error)
 	}
 )
@@ -88,6 +91,14 @@ func (svc *user) ValidateCredentials(username, password string) (*types.User, er
 
 func (svc *user) FindByID(id uint64) (*types.User, error) {
 	return svc.user.FindByID(id)
+}
+
+func (svc *user) FindByEmail(email string) (*types.User, error) {
+	return svc.user.FindByEmail(email)
+}
+
+func (svc *user) FindByUsername(username string) (*types.User, error) {
+	return svc.user.FindByUsername(username)
 }
 
 func (svc *user) Find(filter *types.UserFilter) (types.UserSet, error) {

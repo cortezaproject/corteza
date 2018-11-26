@@ -19,7 +19,7 @@ var _ = errors.Wrap
 
 type (
 	Auth struct {
-		jwt jwtEncodeCookieSetter
+		jwt auth.TokenEncoder
 	}
 
 	checkResponse struct {
@@ -36,6 +36,10 @@ func (ctrl *Auth) Check(ctx context.Context, r *request.AuthCheck) (interface{},
 	return nil, errors.New("Not implemented: Auth.check")
 }
 
+func (ctrl *Auth) Login(ctx context.Context, r *request.AuthLogin) (interface{}, error) {
+	return nil, errors.New("Not implemented: Auth.login")
+}
+
 func (ctrl *Auth) Logout(ctx context.Context, r *request.AuthLogout) (interface{}, error) {
 	return nil, errors.New("Not implemented: Auth.logout")
 }
@@ -43,7 +47,7 @@ func (ctrl *Auth) Logout(ctx context.Context, r *request.AuthLogout) (interface{
 // Handlers() func ignores "std" crust controllers
 //
 // Crush handlers are too abstract for our auth needs so we need (direct access to htt.ResponseWriter)
-func (ctrl *Auth) Handlers(jwtAuth jwtEncodeCookieSetter) *handlers.Auth {
+func (ctrl *Auth) Handlers(jwtEncoder auth.TokenEncoder) *handlers.Auth {
 	h := handlers.NewAuth(ctrl)
 	// Check JWT if valid
 	h.Check = func(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +56,7 @@ func (ctrl *Auth) Handlers(jwtAuth jwtEncodeCookieSetter) *handlers.Auth {
 
 			if identity := auth.GetIdentityFromContext(ctx); identity != nil && identity.Valid() {
 				if user, err := service.DefaultUser.With(ctx).FindByID(identity.Identity()); err == nil {
-					jwtAuth.SetCookie(w, r, user)
+					jwtEncoder.SetCookie(w, r, user)
 
 					resputil.JSON(w, checkResponse{
 						JWT:  c.Value,
@@ -64,14 +68,41 @@ func (ctrl *Auth) Handlers(jwtAuth jwtEncodeCookieSetter) *handlers.Auth {
 			}
 
 			// Did not send response, assuming invalid cookie
-			jwtAuth.SetCookie(w, r, nil)
+			jwtEncoder.SetCookie(w, r, nil)
 		} else {
 			resputil.JSON(w, err)
 		}
 	}
 
 	h.Logout = func(w http.ResponseWriter, r *http.Request) {
-		jwtAuth.SetCookie(w, r, nil)
+		jwtEncoder.SetCookie(w, r, nil)
+	}
+	h.Login = func(w http.ResponseWriter, r *http.Request) {
+		params := request.NewAuthLogin()
+		ctx := r.Context()
+
+		userSvc := service.User().With(ctx)
+
+		// check email and username for login
+		user, err := userSvc.FindByEmail(params.Username)
+		if err != nil {
+			user, err = userSvc.FindByUsername(params.Username)
+		}
+
+		// can't find user
+		if err != nil {
+			resputil.JSON(w, err)
+			return
+		}
+
+		// validate password
+		if user.ValidatePassword(params.Password) {
+			jwtEncoder.SetCookie(w, r, user)
+			resputil.JSON(w, user, err)
+			return
+		}
+
+		resputil.JSON(w, errors.New("Password doesn't match"))
 	}
 	return h
 }

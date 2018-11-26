@@ -14,10 +14,32 @@
         "parameters": {}
       },
       {
+        "name": "login",
+        "method": "POST",
+        "title": "Login user",
+        "path": "/login",
+        "parameters": {
+          "post": [
+            {
+              "name": "username",
+              "type": "string",
+              "required": true,
+              "title": "Username"
+            },
+            {
+              "name": "password",
+              "type": "string",
+              "required": true,
+              "title": "Password"
+            }
+          ]
+        }
+      },
+      {
         "name": "logout",
-        "method": "DELETE",
+        "method": "GET",
         "title": "Delete JWT token (Sign Out)",
-        "path": "/check",
+        "path": "/logout",
         "parameters": {}
       }
     ]
@@ -381,35 +403,6 @@
       }
     ],
     "apis": [
-      {
-        "name": "login",
-        "method": "POST",
-        "title": "Login user",
-        "path": "/login",
-        "parameters": {
-          "post": [
-            {
-              "name": "username",
-              "type": "string",
-              "required": true,
-              "title": "Username"
-            },
-            {
-              "name": "password",
-              "type": "string",
-              "required": true,
-              "title": "Password"
-            }
-          ]
-        }
-      },
-      {
-        "name": "logout",
-        "method": "GET",
-        "title": "Delete JWT token (Sign Out)",
-        "path": "/logout",
-        "parameters": {}
-      },
       {
         "name": "list",
         "method": "GET",

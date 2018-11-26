@@ -32,18 +32,13 @@ type (
 
 		userService service.UserService
 
-		jwt jwtEncodeCookieSetter
+		jwt auth.TokenEncoder
 	}
 
 	oidcProfile struct {
 		Email string `json:"email"`
 		Name  string `json:"name"`
 		Sub   string `json:"sub"`
-	}
-
-	jwtEncodeCookieSetter interface {
-		auth.TokenEncoder
-		SetCookie(w http.ResponseWriter, r *http.Request, identity auth.Identifiable)
 	}
 )
 
@@ -52,7 +47,7 @@ const openIdConnectStateCookie = "oidc-state"
 // Sets-up OIDC connection (issuer discovery, client registration)
 //
 // Client registration is done when no cfg.ClientID is provided.
-func OpenIdConnect(ctx context.Context, cfg *config.OIDC, usvc service.UserService, jwt jwtEncodeCookieSetter, settings repository.Settings) (c *openIdConnect, err error) {
+func OpenIdConnect(ctx context.Context, cfg *config.OIDC, usvc service.UserService, jwt auth.TokenEncoder, settings repository.Settings) (c *openIdConnect, err error) {
 	c = &openIdConnect{
 		appURL:            cfg.AppURL,
 		stateCookieExpiry: cfg.StateCookieExpiry,
