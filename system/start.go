@@ -30,14 +30,14 @@ func Init() error {
 	if err := flags.Validate(); err != nil {
 		return err
 	}
-
 	// JWT Auth
-	jwtEncoder, err := auth.JWT()
-	if err != nil {
+	if jwtAuth, err := auth.JWT(); err != nil {
 		return errors.Wrap(err, "Error creating JWT Auth object")
+	} else {
+		jwtEncoder = jwtAuth
+		jwtVerifier = jwtAuth.Verifier()
+		jwtAuthenticator = jwtAuth.Authenticator()
 	}
-	jwtVerifier = jwtEncoder.Verifier()
-	jwtAuthenticator = jwtEncoder.Authenticator()
 
 	// start/configure database connection
 	factory.Database.Add("default", flags.db.DSN)
