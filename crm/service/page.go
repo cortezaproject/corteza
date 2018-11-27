@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/crm/repository"
@@ -13,9 +12,10 @@ import (
 
 type (
 	page struct {
-		db         *factory.DB
-		ctx        context.Context
-		repository repository.PageRepository
+		db  *factory.DB
+		ctx context.Context
+
+		pageRepo repository.PageRepository
 		moduleRepo repository.ModuleRepository
 	}
 
@@ -23,7 +23,8 @@ type (
 		With(ctx context.Context) PageService
 
 		FindByID(pageID uint64) (*types.Page, error)
-		Find(selfID uint64) (pages types.PageSet, err error)
+		FindByModuleID(moduleID uint64) (*types.Page, error)
+		FindBySelfID(selfID uint64) (pages types.PageSet, err error)
 		Tree() (pages types.PageSet, err error)
 
 		Create(page *types.Page) (*types.Page, error)
@@ -41,24 +42,42 @@ func Page() PageService {
 func (s *page) With(ctx context.Context) PageService {
 	db := repository.DB(ctx)
 	return &page{
-		db:         db,
-		ctx:        ctx,
-		repository: repository.Page(ctx, db),
+		db:        db,
+		ctx:       ctx,
+		pageRepo:  repository.Page(ctx, db),
 		moduleRepo: repository.Module(ctx, db),
 	}
 }
 
 func (s *page) FindByID(id uint64) (*types.Page, error) {
-	return s.repository.FindByID(id)
+	page, err := s.pageRepo.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.preload(page); err != nil {
+		return nil, err
+	}
+	return page, err
 }
 
-func (s *page) Find(selfID uint64) (pages types.PageSet, err error) {
+func (s *page) FindByModuleID(moduleID uint64) (*types.Page, error) {
+	page, err := s.pageRepo.FindByModuleID(moduleID)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.preload(page); err != nil {
+		return nil, err
+	}
+	return page, err
+}
+
+func (s *page) FindBySelfID(selfID uint64) (pages types.PageSet, err error) {
 	return pages, s.db.Transaction(func() (err error) {
-		if pages, err = s.repository.FindBySelfID(selfID); err != nil {
+		if pages, err = s.pageRepo.FindBySelfID(selfID); err != nil {
 			return
 		}
 
-		if err = s.preload(pages); err != nil {
+		if err = s.preloadAll(pages); err != nil {
 			return
 		}
 
@@ -70,11 +89,11 @@ func (s *page) Tree() (pages types.PageSet, err error) {
 	var tree types.PageSet
 
 	return tree, s.db.Transaction(func() (err error) {
-		if pages, err = s.repository.FindAll(); err != nil {
+		if pages, err = s.pageRepo.FindAll(); err != nil {
 			return
 		}
 
-		if err = s.preload(pages); err != nil {
+		if err = s.preloadAll(pages); err != nil {
 			return
 		}
 
@@ -99,56 +118,54 @@ func (s *page) Tree() (pages types.PageSet, err error) {
 }
 
 func (s *page) Reorder(selfID uint64, pageIDs []uint64) error {
-	return s.repository.Reorder(selfID, pageIDs)
+	return s.pageRepo.Reorder(selfID, pageIDs)
 }
 
-func (s *page) Create(mod *types.Page) (p *types.Page, err error) {
-	return p, s.db.Transaction(func() (err error) {
-		if mod.ModuleID > 0 {
+func (s *page) Create(page *types.Page) (p *types.Page, err error) {
+	validate := func() error {
+		if page.ModuleID > 0 {
 			// @todo check if module exists!
-			if p, err = s.repository.FindByModuleID(mod.ModuleID); err != nil {
+			if p, err = s.pageRepo.FindByModuleID(page.ModuleID); err != nil {
 				return err
 			} else if p.ID > 0 {
 				return errors.New("Page for module already exists")
 			}
 		}
-
-		p, err = s.repository.Create(mod)
+		return nil
+	}
+	if err := validate(); err != nil {
+		return nil, err
+	}
+	return p, s.db.Transaction(func() (err error) {
+		p, err = s.pageRepo.Create(page)
 		return
 	})
 }
 
-func (s *page) Update(mod *types.Page) (p *types.Page, err error) {
-	return p, s.db.Transaction(func() (err error) {
-		if mod.ModuleID > 0 {
+func (s *page) Update(page *types.Page) (p *types.Page, err error) {
+	validate := func() error {
+		if page.ID == 0 {
+			return errors.New("Error when savig page, invalid ID")
+		}
+		if page.ModuleID > 0 {
 			// @todo check if module exists!
-			if p, err = s.repository.FindByModuleID(mod.ModuleID); err != nil {
+			if p, err = s.pageRepo.FindByModuleID(page.ModuleID); err != nil {
 				return err
-			} else if p.ID > 0 && mod.ID != p.ID {
-				spew.Dump(mod, p)
+			} else if p.ID > 0 && page.ID != p.ID {
 				return errors.New("Page for module already exists")
 			}
 		}
-
-		p, err = s.repository.Update(mod)
+		return nil
+	}
+	if err := validate(); err != nil {
+		return nil, err
+	}
+	return p, s.db.Transaction(func() (err error) {
+		p, err = s.pageRepo.Update(page)
 		return
 	})
 }
 
 func (s *page) DeleteByID(id uint64) error {
-	return s.repository.DeleteByID(id)
-}
-
-// Preloads modules for all pages
-func (s *page) preload(pages types.PageSet) error {
-	if modules, err := s.moduleRepo.Find(); err != nil {
-		return err
-	} else {
-		_ = pages.Walk(func(page *types.Page) error {
-			page.Module = modules.FindByID(page.ModuleID)
-			return nil
-		})
-	}
-
-	return nil
+	return s.pageRepo.DeleteByID(id)
 }

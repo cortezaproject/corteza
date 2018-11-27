@@ -1,14 +1,14 @@
-package repository
+package service
 
 import (
-	"context"
 	"testing"
+	"context"
 
 	"github.com/crusttech/crust/crm/rest/request"
 )
 
 func TestModuleGraph(t *testing.T) {
-	repository := Module(context.TODO(), nil).With(context.Background(), nil)
+	repository := Module().With(context.Background())
 
 	params := &request.ModuleChart{
 		Kind: "line",

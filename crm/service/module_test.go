@@ -1,4 +1,4 @@
-package repository
+package service
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestModule(t *testing.T) {
-	repository := Module(context.TODO(), nil).With(context.Background(), nil)
+	repository := Module().With(context.Background())
 
 	// the module object we're working with
 	module := &types.Module{

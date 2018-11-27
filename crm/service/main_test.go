@@ -1,4 +1,4 @@
-package repository
+package service
 
 import (
 	"log"
@@ -11,6 +11,7 @@ import (
 
 	crmMigrate "github.com/crusttech/crust/crm/db"
 	systemMigrate "github.com/crusttech/crust/system/db"
+	systemService "github.com/crusttech/crust/system/service"
 )
 
 func TestMain(m *testing.M) {
@@ -56,6 +57,8 @@ func TestMain(m *testing.M) {
 			}
 		}
 	}
+
+	systemService.Init()
 
 	os.Exit(m.Run())
 }

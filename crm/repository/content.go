@@ -12,7 +12,6 @@ import (
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/crm/types"
-	systemRepository "github.com/crusttech/crust/system/repository"
 )
 
 type (
@@ -64,7 +63,7 @@ func (r *content) FindByID(id uint64) (*types.Content, error) {
 	if err := r.db().Get(mod, "SELECT * FROM crm_content WHERE id=? and deleted_at IS NULL", id); err != nil {
 		return nil, err
 	}
-	return mod, r.prepare(mod, "page", "user", "fields")
+	return mod, nil
 }
 
 func (r *content) Find(moduleID uint64, query string, page int, perPage int) (*FindResponse, error) {
@@ -116,10 +115,6 @@ func (r *content) Find(moduleID uint64, query string, page int, perPage int) (*F
 		}
 	}
 
-	if err := r.prepareAll(response.Contents, "user", "fields"); err != nil {
-		return nil, err
-	}
-
 	return response, nil
 }
 
@@ -154,14 +149,10 @@ func (r *content) Create(mod *types.Content) (*types.Content, error) {
 	if err := r.db().Insert("crm_content", mod); err != nil {
 		return nil, err
 	}
-
-	return mod, r.prepare(mod, "user", "fields")
+	return mod, nil
 }
 
 func (r *content) Update(mod *types.Content) (*types.Content, error) {
-	if mod.ID == 0 {
-		return nil, errors.New("Error when savig content, invalid ID")
-	}
 	now := time.Now()
 	mod.UpdatedAt = &now
 
@@ -221,45 +212,4 @@ func (r *content) Fields(content *types.Content) ([]*types.ContentColumn, error)
 		args = append(args, v)
 	}
 	return result, r.db().Select(&result, "select * FROM crm_content_column where content_id=? order by "+order, args...)
-}
-
-func (r *content) prepareAll(contents []*types.Content, fields ...string) error {
-	for _, content := range contents {
-		if err := r.prepare(content, fields...); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (r *content) prepare(content *types.Content, fields ...string) (err error) {
-	api := Page(r.Context(), r.db())
-	usersAPI := systemRepository.User(r.Context(), r.db())
-	for _, field := range fields {
-		switch field {
-		case "fields":
-			fields, err := r.Fields(content)
-			if err != nil {
-				return err
-			}
-			json, err := json.Marshal(fields)
-			if err != nil {
-				return err
-			}
-			if err := (&content.Fields).Scan(json); err != nil {
-				return err
-			}
-		case "page":
-			if content.Page, err = api.FindByModuleID(content.ModuleID); err != nil {
-				return
-			}
-		case "user":
-			if content.UserID > 0 {
-				if content.User, err = usersAPI.FindByID(content.UserID); err != nil {
-					return
-				}
-			}
-		}
-	}
-	return
 }

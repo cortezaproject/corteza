@@ -11,8 +11,9 @@ import (
 
 type (
 	field struct {
-		db         *factory.DB
-		ctx        context.Context
+		db  *factory.DB
+		ctx context.Context
+
 		repository repository.FieldRepository
 	}
 

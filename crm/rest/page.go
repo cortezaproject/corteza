@@ -22,7 +22,7 @@ func (Page) New(pageSvc service.PageService) *Page {
 }
 
 func (ctrl *Page) List(ctx context.Context, r *request.PageList) (interface{}, error) {
-	return ctrl.page.With(ctx).Find(r.SelfID)
+	return ctrl.page.With(ctx).FindBySelfID(r.SelfID)
 }
 
 func (ctrl *Page) Tree(ctx context.Context, r *request.PageTree) (interface{}, error) {

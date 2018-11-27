@@ -1,4 +1,4 @@
-package repository
+package service
 
 import (
 	"context"
@@ -30,7 +30,7 @@ func TestContent(t *testing.T) {
 	}
 
 	ctx := auth.SetIdentityToContext(context.Background(), auth.NewIdentity(user.Identity()))
-	repository := Content(context.TODO(), nil).With(ctx, nil)
+	repository := Content().With(ctx)
 
 	fields, err := json.Marshal([]types.Field{
 		types.Field{
@@ -55,7 +55,7 @@ func TestContent(t *testing.T) {
 
 	// set up a module
 	{
-		_, err := Module(context.TODO(), nil).With(context.Background(), nil).Create(module)
+		_, err := Module().With(context.Background()).Create(module)
 		assert(t, err == nil, "Error when creating module: %+v", err)
 		assert(t, module.ID > 0, "Expected auto generated ID")
 	}
