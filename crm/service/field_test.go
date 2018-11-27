@@ -1,4 +1,4 @@
-package repository
+package service
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 )
 
 func TestField(t *testing.T) {
-	repository := Field(context.TODO(), nil).With(context.Background(), nil)
+	repository := Field().With(context.Background())
 
 	{
 		// fetch all fields

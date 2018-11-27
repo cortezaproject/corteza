@@ -12,9 +12,11 @@ import (
 
 type (
 	module struct {
-		db         *factory.DB
-		ctx        context.Context
-		repository repository.ModuleRepository
+		db  *factory.DB
+		ctx context.Context
+
+		moduleRepo repository.ModuleRepository
+		pageRepo repository.PageRepository
 	}
 
 	ModuleService interface {
@@ -40,30 +42,38 @@ func (s *module) With(ctx context.Context) ModuleService {
 	return &module{
 		db:         db,
 		ctx:        ctx,
-		repository: repository.Module(ctx, db),
+		moduleRepo: repository.Module(ctx, db),
+		pageRepo:   repository.Page(ctx, db),
 	}
 }
 
 func (s *module) FindByID(id uint64) (*types.Module, error) {
-	return s.repository.FindByID(id)
+	mod, err := s.moduleRepo.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.preload(mod); err != nil {
+		return nil, err
+	}
+	return mod, err
 }
 
 func (s *module) Find() ([]*types.Module, error) {
-	return s.repository.Find()
+	return s.moduleRepo.Find()
 }
 
 func (s *module) Chart(r *request.ModuleChart) (interface{}, error) {
-	return s.repository.Chart(r)
+	return s.moduleRepo.Chart(r)
 }
 
 func (s *module) Create(mod *types.Module) (*types.Module, error) {
-	return s.repository.Create(mod)
+	return s.moduleRepo.Create(mod)
 }
 
 func (s *module) Update(mod *types.Module) (*types.Module, error) {
-	return s.repository.Update(mod)
+	return s.moduleRepo.Update(mod)
 }
 
 func (s *module) DeleteByID(id uint64) error {
-	return s.repository.DeleteByID(id)
+	return s.moduleRepo.DeleteByID(id)
 }

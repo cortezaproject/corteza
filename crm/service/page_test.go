@@ -1,4 +1,4 @@
-package repository
+package service
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 func TestPage(t *testing.T) {
-	repository := Page(context.TODO(), nil).With(context.Background(), nil)
+	repository := Page().With(context.Background())
 
 	// the page object we're working with
 	page := &types.Page{

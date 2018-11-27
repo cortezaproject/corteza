@@ -50,9 +50,6 @@ func (r *module) FindByID(id uint64) (*types.Module, error) {
 	if err := r.db().Get(mod, "SELECT * FROM crm_module WHERE id=?", id); err != nil {
 		return nil, err
 	}
-	if err := r.fillPage(mod); err != nil {
-		return nil, err
-	}
 	return mod, nil
 }
 
@@ -121,10 +118,4 @@ func (r *module) FieldNames(mod *types.Module) ([]string, error) {
 		}
 		return result, nil
 	}
-}
-
-func (r *module) fillPage(mod *types.Module) (err error) {
-	api := Page(r.Context(), r.db())
-	mod.Page, err = api.FindByModuleID(mod.ID)
-	return
 }

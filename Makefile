@@ -90,7 +90,7 @@ test.events: $(GOTEST)
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.crm: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./crm/repository/...
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./crm/service/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.crm.db: $(GOTEST)

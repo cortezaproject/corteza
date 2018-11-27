@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 
-	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/crm/types"
@@ -45,9 +44,6 @@ func (r *page) FindByID(id uint64) (*types.Page, error) {
 	if err := r.db().Get(page, "SELECT * FROM crm_page WHERE id=?", id); err != nil {
 		return page, err
 	}
-	if err := r.fillModule(page); err != nil {
-		return page, err
-	}
 	return page, nil
 }
 
@@ -63,11 +59,6 @@ func (r *page) FindBySelfID(selfID uint64) (types.PageSet, error) {
 	pages := types.PageSet{}
 	if err := r.db().Select(&pages, "SELECT * FROM crm_page WHERE self_id = ? ORDER BY weight ASC", selfID); err != nil {
 		return pages, err
-	}
-	for _, page := range pages {
-		if err := r.fillModule(page); err != nil {
-			return pages, err
-		}
 	}
 	return pages, nil
 }
@@ -118,23 +109,10 @@ func (r *page) Create(item *types.Page) (*types.Page, error) {
 }
 
 func (r *page) Update(page *types.Page) (*types.Page, error) {
-	if page.ID == 0 {
-		return nil, errors.New("Error when savig page, invalid ID")
-	}
 	return page, r.db().Replace("crm_page", page)
 }
 
 func (r *page) DeleteByID(id uint64) error {
 	_, err := r.db().Exec("DELETE FROM crm_page WHERE id=?", id)
 	return err
-}
-
-func (r *page) fillModule(page *types.Page) error {
-	if page.ModuleID > 0 {
-		api := Module(r.Context(), r.db())
-		module, err := api.FindByID(page.ModuleID)
-		page.Module = module
-		return err
-	}
-	return nil
 }
