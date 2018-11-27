@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"errors"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/crm/repository"
@@ -100,12 +102,37 @@ func (s *page) Reorder(selfID uint64, pageIDs []uint64) error {
 	return s.repository.Reorder(selfID, pageIDs)
 }
 
-func (s *page) Create(mod *types.Page) (*types.Page, error) {
-	return s.repository.Create(mod)
+func (s *page) Create(mod *types.Page) (p *types.Page, err error) {
+	return p, s.db.Transaction(func() (err error) {
+		if mod.ModuleID > 0 {
+			// @todo check if module exists!
+			if p, err = s.repository.FindByModuleID(mod.ModuleID); err != nil {
+				return err
+			} else if p.ID > 0 {
+				return errors.New("Page for module already exists")
+			}
+		}
+
+		p, err = s.repository.Create(mod)
+		return
+	})
 }
 
-func (s *page) Update(mod *types.Page) (*types.Page, error) {
-	return s.repository.Update(mod)
+func (s *page) Update(mod *types.Page) (p *types.Page, err error) {
+	return p, s.db.Transaction(func() (err error) {
+		if mod.ModuleID > 0 {
+			// @todo check if module exists!
+			if p, err = s.repository.FindByModuleID(mod.ModuleID); err != nil {
+				return err
+			} else if p.ID > 0 && mod.ID != p.ID {
+				spew.Dump(mod, p)
+				return errors.New("Page for module already exists")
+			}
+		}
+
+		p, err = s.repository.Update(mod)
+		return
+	})
 }
 
 func (s *page) DeleteByID(id uint64) error {
