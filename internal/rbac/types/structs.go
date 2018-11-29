@@ -16,9 +16,15 @@ type (
 	// @todo: need to list nested roles,
 	// @todo: don't return users=null - return users: []?
 	Role struct {
-		Name        string   `json:"rolename"`
-		Users       []string `json:"users"`
-		Permissions []string `json:"permissions"`
+		Name  string   `json:"rolename"`
+		Users []string `json:"users"`
+
+		// key = resource name
+		Permissions map[string]Operations `json:"permissions"`
+	}
+
+	Operations struct {
+		Operations []string `json:"operations"`
 	}
 
 	// @todo: read resource information
