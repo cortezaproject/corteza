@@ -15,7 +15,7 @@ type (
 		db  *factory.DB
 		ctx context.Context
 
-		pageRepo repository.PageRepository
+		pageRepo   repository.PageRepository
 		moduleRepo repository.ModuleRepository
 	}
 
@@ -42,9 +42,9 @@ func Page() PageService {
 func (s *page) With(ctx context.Context) PageService {
 	db := repository.DB(ctx)
 	return &page{
-		db:        db,
-		ctx:       ctx,
-		pageRepo:  repository.Page(ctx, db),
+		db:         db,
+		ctx:        ctx,
+		pageRepo:   repository.Page(ctx, db),
 		moduleRepo: repository.Module(ctx, db),
 	}
 }

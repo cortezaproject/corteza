@@ -16,7 +16,7 @@ type (
 		ctx context.Context
 
 		moduleRepo repository.ModuleRepository
-		pageRepo repository.PageRepository
+		pageRepo   repository.PageRepository
 	}
 
 	ModuleService interface {
