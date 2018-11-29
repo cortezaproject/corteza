@@ -43,10 +43,10 @@ func main() {
 		fmt.Fprintln(&w, "\treturn", s)
 		fmt.Fprintln(&w, "}")
 
-		fmtsrc, err := format.Source(buf.Bytes())
+		fmtsrc, err := format.Source(w.Bytes())
 		if err != nil {
-			stderr("fmt warn: %v", err)
-			fmtsrc = buf.Bytes()
+			log.Printf("fmt warn: %v\n", err)
+			fmtsrc = w.Bytes()
 		}
 
 		return fmtsrc

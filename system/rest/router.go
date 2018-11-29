@@ -19,7 +19,7 @@ func MountRoutes(oidcConfig *config.OIDC, jwtEncoder auth.TokenEncoder) func(chi
 	var ctx = context.Background()
 	var oidc *openIdConnect
 
-	if (oidcConfig.Enabled) {
+	if oidcConfig.Enabled {
 		oidc, err = OpenIdConnect(ctx, oidcConfig, userSvc, jwtEncoder, repository.NewSettings(ctx, repository.DB(ctx)))
 		if err != nil {
 			log.Println("Could not initialize OIDC:", err.Error())
