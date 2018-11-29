@@ -7,7 +7,6 @@ import (
 func TestRoles(t *testing.T) {
 	rbac, err := getClient()
 	must(t, err, "Error when creating RBAC instance")
-	rbac.Debug("info")
 
 	roles := rbac.Roles()
 	roles.Delete("test-role")
