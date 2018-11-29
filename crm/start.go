@@ -15,6 +15,8 @@ import (
 
 	migrate "github.com/crusttech/crust/crm/db"
 	"github.com/crusttech/crust/crm/rest"
+	crmService "github.com/crusttech/crust/crm/service"
+	systemService "github.com/crusttech/crust/system/service"
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/metrics"
@@ -55,6 +57,9 @@ func Init() error {
 			// @todo: error logging
 		},
 	})
+
+	systemService.Init()
+	crmService.Init()
 
 	return nil
 }
