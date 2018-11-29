@@ -7,7 +7,6 @@ import (
 func TestResources(t *testing.T) {
 	rbac, err := getClient()
 	must(t, err, "Error when creating RBAC instance")
-	rbac.Debug("debug")
 
 	roles := rbac.Roles()
 	resources := rbac.Resources()

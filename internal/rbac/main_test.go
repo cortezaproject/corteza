@@ -14,7 +14,13 @@ func getClient() (*rbac.Client, error) {
 		flag.Parse()
 		loaded = true
 	}
-	return rbac.New()
+	rbac.Debug()
+	client, err := rbac.New()
+	if err != nil {
+		return nil, err
+	}
+	client.Debug("info")
+	return client, nil
 }
 
 func assert(t *testing.T, ok bool, format string, args ...interface{}) bool {

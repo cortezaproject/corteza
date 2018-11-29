@@ -7,7 +7,6 @@ import (
 func TestSessions(t *testing.T) {
 	rbac, err := getClient()
 	must(t, err, "Error when creating RBAC instance")
-	rbac.Debug("info")
 
 	sessions := rbac.Sessions()
 	users := rbac.Users()

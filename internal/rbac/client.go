@@ -116,9 +116,7 @@ func (c *Client) Request(method, url string, body interface{}) (*http.Response, 
 
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(c.config.Auth)))
-	// @todo: DAASI should fix this according to standards
-	// req.Header.Add("X-TENANT-ID", c.config.Tenant)
-	req.Header["X-TENANT-ID"] = []string{c.config.Tenant}
+	req.Header.Add("X-Tenant-Id", c.config.Tenant)
 
 	if c.debugLevel == "debug" {
 		fmt.Println("RBAC >>> (request)")
