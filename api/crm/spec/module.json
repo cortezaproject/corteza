@@ -218,6 +218,12 @@
             "required": false,
             "title": "Returned items per page (default 50)",
             "type": "int"
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "title": "Sort field (default id desc)",
+            "type": "string"
           }
         ],
         "path": [

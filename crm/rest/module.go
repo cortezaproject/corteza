@@ -55,7 +55,7 @@ func (s *Module) Edit(ctx context.Context, r *request.ModuleEdit) (interface{}, 
 }
 
 func (s *Module) ContentList(ctx context.Context, r *request.ModuleContentList) (interface{}, error) {
-	return s.content.With(ctx).Find(r.ModuleID, r.Query, r.Page, r.PerPage)
+	return s.content.With(ctx).Find(r.ModuleID, r.Query, r.Page, r.PerPage, r.Sort)
 }
 
 func (s *Module) ContentRead(ctx context.Context, r *request.ModuleContentRead) (interface{}, error) {

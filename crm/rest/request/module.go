@@ -358,6 +358,7 @@ type ModuleContentList struct {
 	Query    string
 	Page     int
 	PerPage  int
+	Sort     string
 	ModuleID uint64 `json:",string"`
 }
 
@@ -403,6 +404,10 @@ func (m *ModuleContentList) Fill(r *http.Request) (err error) {
 	if val, ok := get["perPage"]; ok {
 
 		m.PerPage = parseInt(val)
+	}
+	if val, ok := get["sort"]; ok {
+
+		m.Sort = val
 	}
 	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 
