@@ -454,6 +454,12 @@
               "type": "int",
               "required": false,
               "title": "Returned items per page (default 50)"
+            },
+            {
+              "name": "sort",
+              "type": "string",
+              "required": false,
+              "title": "Sort field (default id desc)"
             }
           ]
         }

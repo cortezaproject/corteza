@@ -48,6 +48,10 @@ func TestContent(t *testing.T) {
 				Name: "options",
 				Kind: "select_multi",
 			},
+			types.ModuleField{
+				Name: "description",
+				Kind: "text",
+			},
 		},
 	}
 
@@ -71,37 +75,75 @@ func TestContent(t *testing.T) {
 			Name:    "options",
 			Related: []string{"1", "2", "3"},
 		},
+		types.ContentColumn{
+			Name:  "description",
+			Value: "jack of all trades",
+		},
 	}
 
-	content := &types.Content{
+	content1 := &types.Content{
 		ModuleID: module.ID,
 	}
-	(&content.Fields).Scan(func() []byte {
+	(&content1.Fields).Scan(func() []byte {
 		b, _ := json.Marshal(columns)
+		return b
+	}())
+
+	columns2 := []types.ContentColumn{
+		types.ContentColumn{
+			Name:  "name",
+			Value: "Marko Novak",
+		},
+		types.ContentColumn{
+			Name:  "email",
+			Value: "marko.n@example.com",
+		},
+		types.ContentColumn{
+			Name:    "options",
+			Related: []string{"1", "2", "3"},
+		},
+		types.ContentColumn{
+			Name:  "description",
+			Value: "persona non grata",
+		},
+	}
+
+	content2 := &types.Content{
+		ModuleID: module.ID,
+	}
+	(&content2.Fields).Scan(func() []byte {
+		b, _ := json.Marshal(columns2)
 		return b
 	}())
 
 	// now work with content
 	{
 		{
-			m, err := repository.Update(content)
-			assert(t, m == nil, "Expected empty return for ivalid update, got %#v", m)
+			m, err := repository.Update(content1)
+			assert(t, m == nil, "Expected empty return for invalid update, got %#v", m)
 			assert(t, err != nil, "Expected error when updating invalid content")
 		}
 
 		// create content
-		m, err := repository.Create(content)
+		m1, err := repository.Create(content1)
 		assert(t, err == nil, "Error when creating content: %+v", err)
-		assert(t, m.ID > 0, "Expected auto generated ID")
-		assert(t, m.User != nil, "Expected non-nil user when creating content")
-		assert(t, m.User.Username == "TestUser", "Expected 'TestUser' as username, got '%s'", m.User.Username)
+		assert(t, m1.ID > 0, "Expected auto generated ID")
+		assert(t, m1.User != nil, "Expected non-nil user when creating content")
+		assert(t, m1.User.Username == "TestUser", "Expected 'TestUser' as username, got '%s'", m1.User.Username)
+
+		// create content
+		m2, err := repository.Create(content2)
+		assert(t, err == nil, "Error when creating content: %+v", err)
+		assert(t, m2.ID > 0, "Expected auto generated ID")
+		assert(t, m2.User != nil, "Expected non-nil user when creating content")
+		assert(t, m2.User.Username == "TestUser", "Expected 'TestUser' as username, got '%s'", m2.User.Username)
 
 		// fetch created content
 		{
-			ms, err := repository.FindByID(m.ID)
+			ms, err := repository.FindByID(m1.ID)
 			assert(t, err == nil, "Error when retrieving content by id: %+v", err)
-			assert(t, ms.ID == m.ID, "Expected ID from database to match, %d != %d", m.ID, ms.ID)
-			assert(t, ms.ModuleID == m.ModuleID, "Expected Module ID from database to match, %d != %d", m.ModuleID, ms.ModuleID)
+			assert(t, ms.ID == m1.ID, "Expected ID from database to match, %d != %d", m1.ID, ms.ID)
+			assert(t, ms.ModuleID == m1.ModuleID, "Expected Module ID from database to match, %d != %d", m1.ModuleID, ms.ModuleID)
 
 			{
 				fields, err := repository.Fields(ms)
@@ -126,57 +168,84 @@ func TestContent(t *testing.T) {
 
 		// update created content
 		{
-			_, err := repository.Update(m)
+			_, err := repository.Update(m1)
 			assert(t, err == nil, "Error when updating content, %+v", err)
 		}
 
 		// re-fetch content
 		{
-			ms, err := repository.FindByID(m.ID)
+			ms, err := repository.FindByID(m1.ID)
 			assert(t, err == nil, "Error when retrieving content by id: %+v", err)
-			assert(t, ms.ID == m.ID, "Expected ID from database to match, %d != %d", m.ID, ms.ID)
-			assert(t, ms.ModuleID == m.ModuleID, "Expected ID from database to match, %d != %d", m.ModuleID, ms.ModuleID)
+			assert(t, ms.ID == m1.ID, "Expected ID from database to match, %d != %d", m1.ID, ms.ID)
+			assert(t, ms.ModuleID == m1.ModuleID, "Expected ID from database to match, %d != %d", m1.ModuleID, ms.ModuleID)
 		}
 
 		// fetch all contents
 		{
-			mr, err := repository.Find(module.ID, "", 0, 20)
+			mr, err := repository.Find(module.ID, "", 0, 20, "id desc")
 			assert(t, err == nil, "Error when retrieving contents: %+v", err)
-			assert(t, len(mr.Contents) == 1, "Expected one content, got %d", len(mr.Contents))
-			assert(t, mr.Meta.Count == 1, "Expected Meta.Count == 1, got %d", mr.Meta.Count)
-			assert(t, mr.Contents[0].ModuleID == m.ModuleID, "Expected content module to match, %d != %d", m.ModuleID, mr.Contents[0].ModuleID)
+			assert(t, len(mr.Contents) == 2, "Expected two content, got %d", len(mr.Contents))
+			assert(t, mr.Meta.Count == 2, "Expected Meta.Count == 2, got %d", mr.Meta.Count)
+			assert(t, mr.Meta.Sort == "id desc", "Expected Meta.Sort == id desc, got '%s'", mr.Meta.Sort)
+			assert(t, mr.Contents[0].ModuleID == m1.ModuleID, "Expected content module to match, %d != %d", m1.ModuleID, mr.Contents[0].ModuleID)
+			assert(t, mr.Contents[0].ID > mr.Contents[1].ID, "Expected order to be descending")
+		}
+
+		// fetch all contents
+		{
+			mr, err := repository.Find(module.ID, "", 0, 20, "name asc, email desc")
+			assert(t, err == nil, "Error when retrieving contents: %+v", err)
+			assert(t, len(mr.Contents) == 2, "Expected two content, got %d", len(mr.Contents))
+			assert(t, mr.Meta.Count == 2, "Expected Meta.Count == 2, got %d", mr.Meta.Count)
+			assert(t, mr.Meta.Sort == "name asc, email desc", "Expected Meta.Sort == 'name asc, email desc' '%s'", mr.Meta.Sort)
+			assert(t, mr.Contents[0].ModuleID == m1.ModuleID, "Expected content module to match, %d != %d", m1.ModuleID, mr.Contents[0].ModuleID)
+			assert(t, mr.Contents[0].ID > mr.Contents[1].ID, "Expected order to be ascending")
+		}
+
+		// fetch all contents
+		{
+			mr, err := repository.Find(module.ID, "", 0, 20, "created_at desc")
+			assert(t, err == nil, "Error when retrieving contents: %+v", err)
+			assert(t, len(mr.Contents) == 2, "Expected two content, got %d", len(mr.Contents))
+			assert(t, mr.Meta.Count == 2, "Expected Meta.Count == 2, got %d", mr.Meta.Count)
+			assert(t, mr.Meta.Sort == "created_at desc", "Expected Meta.Sort == created_at desc, got '%s'", mr.Meta.Sort)
+			assert(t, mr.Contents[0].ModuleID == m1.ModuleID, "Expected content module to match, %d != %d", m1.ModuleID, mr.Contents[0].ModuleID)
+			assert(t, mr.Contents[0].ID > mr.Contents[1].ID, "Expected order to be ascending")
 		}
 
 		// fetch all contents by query
 		{
-			mr, err := repository.Find(module.ID, "petric", 0, 20)
+			mr, err := repository.Find(module.ID, "petric", 0, 20, "id desc")
 			assert(t, err == nil, "Error when retrieving contents: %+v", err)
 			assert(t, len(mr.Contents) == 1, "Expected one content, got %d", len(mr.Contents))
 			assert(t, mr.Meta.Count == 1, "Expected Meta.Count == 1, got %d", mr.Meta.Count)
 			assert(t, mr.Meta.Page == 0, "Expected Meta.Page == 0, got %d", mr.Meta.Page)
 			assert(t, mr.Meta.PerPage == 20, "Expected Meta.PerPage == 20, got %d", mr.Meta.PerPage)
 			assert(t, mr.Meta.Query == "petric", "Expected Meta.Query == petric, got '%s'", mr.Meta.Query)
+			assert(t, mr.Meta.Sort == "id desc", "Expected Meta.Sort == id desc, got '%s'", mr.Meta.Sort)
 		}
 
 		// fetch all contents by query
 		{
-			mr, err := repository.Find(module.ID, "niall", 0, 20)
+			mr, err := repository.Find(module.ID, "niall", 0, 20, "id asc")
 			assert(t, err == nil, "Error when retrieving contents: %+v", err)
 			assert(t, len(mr.Contents) == 0, "Expected no contents, got %d", len(mr.Contents))
 		}
 
-		// re-fetch content
+		// delete content
 		{
-			err := repository.DeleteByID(m.ID)
+			err := repository.DeleteByID(m1.ID)
+			assert(t, err == nil, "Error when retrieving content by id: %+v", err)
+
+			err = repository.DeleteByID(m2.ID)
 			assert(t, err == nil, "Error when retrieving content by id: %+v", err)
 		}
 
 		// fetch all contents
 		{
-			mr, err := repository.Find(module.ID, "", 0, 20)
+			mr, err := repository.Find(module.ID, "", 0, 20, "")
 			assert(t, err == nil, "Error when retrieving contents: %+v", err)
 			assert(t, len(mr.Contents) == 0, "Expected no content, got %d", len(mr.Contents))
 		}
 	}
-
 }

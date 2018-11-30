@@ -28,7 +28,7 @@ type (
 
 		FindByID(contentID uint64) (*types.Content, error)
 
-		Find(moduleID uint64, query string, page int, perPage int) (*repository.FindResponse, error)
+		Find(moduleID uint64, query string, page int, perPage int, sort string) (*repository.FindResponse, error)
 
 		Create(content *types.Content) (*types.Content, error)
 		Update(content *types.Content) (*types.Content, error)
@@ -63,8 +63,8 @@ func (s *content) FindByID(id uint64) (*types.Content, error) {
 	return response, s.preload(response, "page", "user", "fields")
 }
 
-func (s *content) Find(moduleID uint64, query string, page int, perPage int) (*repository.FindResponse, error) {
-	response, err := s.repository.Find(moduleID, query, page, perPage)
+func (s *content) Find(moduleID uint64, query string, page int, perPage int, sort string) (*repository.FindResponse, error) {
+	response, err := s.repository.Find(moduleID, query, page, perPage, sort)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (s *content) Create(mod *types.Content) (*types.Content, error) {
 
 func (s *content) Update(mod *types.Content) (*types.Content, error) {
 	if mod.ID == 0 {
-		return nil, errors.New("Error when savig content, invalid ID")
+		return nil, errors.New("Error when saving content, invalid ID")
 	}
 	return s.repository.Update(mod)
 }

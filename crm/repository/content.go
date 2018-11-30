@@ -20,7 +20,7 @@ type (
 
 		FindByID(id uint64) (*types.Content, error)
 
-		Find(moduleID uint64, query string, page int, perPage int) (*FindResponse, error)
+		Find(moduleID uint64, query string, page int, perPage int, sort string) (*FindResponse, error)
 
 		Create(mod *types.Content) (*types.Content, error)
 		Update(mod *types.Content) (*types.Content, error)
@@ -34,6 +34,7 @@ type (
 		Page    int    `json:"page"`
 		PerPage int    `json:"perPage"`
 		Count   int    `json:"count"`
+		Sort    string `json:"sort"`
 	}
 
 	FindResponse struct {
@@ -66,7 +67,7 @@ func (r *content) FindByID(id uint64) (*types.Content, error) {
 	return mod, nil
 }
 
-func (r *content) Find(moduleID uint64, query string, page int, perPage int) (*FindResponse, error) {
+func (r *content) Find(moduleID uint64, query string, page int, perPage int, sort string) (*FindResponse, error) {
 	if page < 0 {
 		page = 0
 	}
@@ -84,6 +85,7 @@ func (r *content) Find(moduleID uint64, query string, page int, perPage int) (*F
 			Page:    page,
 			PerPage: perPage,
 			Query:   query,
+			Sort:    sort,
 		},
 		Contents: make([]*types.Content, 0),
 	}
@@ -93,9 +95,86 @@ func (r *content) Find(moduleID uint64, query string, page int, perPage int) (*F
 	sqlSelect := "SELECT * FROM crm_content"
 	sqlCount := "SELECT count(*) FROM crm_content"
 	sqlWhere := "WHERE module_id=? and deleted_at IS NULL"
-
 	sqlOrder := "ORDER BY id DESC"
 	sqlLimit := fmt.Sprintf("LIMIT %d, %d", page*perPage, perPage)
+
+	chuncks := strings.Split(sort, ",")
+	if len(chuncks) > 0 {
+
+		// Ger module fields.
+		modulRepo := Module(r.Context(), r.db())
+		mod, err := modulRepo.FindByID(moduleID)
+		if err != nil {
+			return nil, err
+		}
+		modFields, err := modulRepo.FieldNames(mod)
+		if err != nil {
+			return nil, err
+		}
+		fieldMap := make(map[string]bool)
+		for i := 0; i < len(modFields); i++ {
+			fieldMap[modFields[i]] = true
+		}
+
+		orderFields := make([]string, 0)
+		for _, c := range chuncks {
+			args := strings.Split(c, " ")
+
+			var field string
+			if _, ok := fieldMap[args[0]]; ok {
+				field = "JSON_UNQUOTE(JSON_EXTRACT(json, REPLACE(JSON_UNQUOTE(JSON_SEARCH(json, 'one', '" + args[0] + "')), '.name', '.value')))"
+			} else {
+				switch args[0] {
+				case "moduleId":
+					field = "module_id"
+				case "userId":
+					field = "user_id"
+				case "createdAt":
+					field = "created_at"
+				case "updatedAt":
+					field = "updated_at"
+				case "deletedAt":
+					field = "deleted_at"
+				default:
+					field = "id"
+				}
+			}
+
+			// Check for second order parameter or use default value ASC.
+			order := "ASC"
+			if len(args) == 2 {
+				order = strings.ToUpper(args[1])
+				switch order {
+				case "DESC":
+					order = "DESC"
+				default:
+					order = "ASC"
+				}
+			}
+
+			// We skip batch of parameters if there are more then 2 values.
+			if len(args) > 2 {
+				continue
+			}
+
+			// Add field and order to sort order fields.
+			orderFields = append(orderFields, field+" "+order)
+		}
+
+		sqlOrder = "ORDER BY " + strings.Join(orderFields, ", ")
+	}
+
+	// One possibility to order by field value without JSON, is query written bellow with FIELD over column names and order by value:
+	// SELECT * FROM crm_content
+	// LEFT JOIN crm_content_column ON crm_content.id = crm_content_column.content_id"
+	// WHERE column_name in ('name', 'email')
+	// ORDER BY FIELD(column_name, 'email', 'name'), column_value;
+
+	// Possibility to order with JSON:
+	// SELECT *,
+	// JSON_UNQUOTE(JSON_EXTRACT(json, REPLACE(JSON_UNQUOTE(JSON_SEARCH(json, 'all', 'email')), '.name', '.value'))) as emailField
+	// FROM crm_content
+	// ORDER by emailField asc;
 
 	switch true {
 	case query != "":
@@ -110,7 +189,7 @@ func (r *content) Find(moduleID uint64, query string, page int, perPage int) (*F
 		if err := r.db().Get(&response.Meta.Count, sqlCount+" "+sqlWhere, moduleID); err != nil {
 			return nil, err
 		}
-		if err := r.db().Select(&response.Contents, fmt.Sprintf("SELECT * FROM crm_content WHERE module_id=? and deleted_at IS NULL ORDER BY id DESC LIMIT %d, %d", page, perPage), moduleID); err != nil {
+		if err := r.db().Select(&response.Contents, sqlSelect+" "+sqlWhere+" "+sqlOrder+" "+sqlLimit, moduleID); err != nil {
 			return nil, err
 		}
 	}
