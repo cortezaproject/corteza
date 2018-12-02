@@ -96,7 +96,7 @@
               "type": "uint64",
               "name": "moduleID",
               "required": false,
-              "title": "Module ID (optional)"
+              "title": "Module ID"
             },
             {
               "type": "string",
@@ -145,7 +145,7 @@
         "name": "tree",
         "path": "/tree",
         "method": "GET",
-        "title": "Get page all pages, hierarchically",
+        "title": "Get page all (non-record) pages, hierarchically",
         "parameters": {}
       },
       {

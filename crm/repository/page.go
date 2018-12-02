@@ -15,7 +15,8 @@ type (
 		FindByID(id uint64) (*types.Page, error)
 		FindByModuleID(id uint64) (*types.Page, error)
 		FindBySelfID(selfID uint64) (types.PageSet, error)
-		FindAll() (types.PageSet, error)
+		Find() (types.PageSet, error)
+		FindRecordPages() (types.PageSet, error)
 
 		Create(mod *types.Page) (*types.Page, error)
 		Update(mod *types.Page) (*types.Page, error)
@@ -55,6 +56,10 @@ func (r *page) FindByModuleID(id uint64) (*types.Page, error) {
 	return page, nil
 }
 
+func (r *page) FindRecordPages() (set types.PageSet, err error) {
+	return set, r.db().Select(&set, "SELECT * FROM crm_page WHERE module_id > 0")
+}
+
 func (r *page) FindBySelfID(selfID uint64) (types.PageSet, error) {
 	pages := types.PageSet{}
 	if err := r.db().Select(&pages, "SELECT * FROM crm_page WHERE self_id = ? ORDER BY weight ASC", selfID); err != nil {
@@ -63,9 +68,9 @@ func (r *page) FindBySelfID(selfID uint64) (types.PageSet, error) {
 	return pages, nil
 }
 
-func (r *page) FindAll() (types.PageSet, error) {
-	pages := types.PageSet{}
-	return pages, r.db().Select(&pages, "SELECT * FROM crm_page ORDER BY self_id, weight ASC")
+// Find returns all of non-record pages
+func (r *page) Find() (set types.PageSet, err error) {
+	return set, r.db().Select(&set, "SELECT * FROM crm_page WHERE module_id = 0 ORDER BY self_id, weight ASC")
 }
 
 func (r *page) Reorder(selfID uint64, pageIDs []uint64) error {

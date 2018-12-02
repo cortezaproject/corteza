@@ -26,6 +26,7 @@ type (
 		FindByModuleID(moduleID uint64) (*types.Page, error)
 		FindBySelfID(selfID uint64) (pages types.PageSet, err error)
 		Tree() (pages types.PageSet, err error)
+		FindRecordPages() (pages types.PageSet, err error)
 
 		Create(page *types.Page) (*types.Page, error)
 		Update(page *types.Page) (*types.Page, error)
@@ -89,14 +90,13 @@ func (s *page) Tree() (pages types.PageSet, err error) {
 	var tree types.PageSet
 
 	return tree, s.db.Transaction(func() (err error) {
-		if pages, err = s.pageRepo.FindAll(); err != nil {
+		if pages, err = s.pageRepo.Find(); err != nil {
 			return
 		}
 
-		if err = s.preloadAll(pages); err != nil {
-			return
-		}
+		// No preloading - we do not need (or should have) any modules
 
+		// associated with us
 		_ = pages.Walk(func(p *types.Page) error {
 			if p.SelfID == 0 {
 				tree = append(tree, p)
@@ -112,6 +112,20 @@ func (s *page) Tree() (pages types.PageSet, err error) {
 
 			return nil
 		})
+
+		return nil
+	})
+}
+
+func (s *page) FindRecordPages() (pages types.PageSet, err error) {
+	return pages, s.db.Transaction(func() (err error) {
+		if pages, err = s.pageRepo.FindRecordPages(); err != nil {
+			return
+		}
+
+		if err = s.preloadAll(pages); err != nil {
+			return
+		}
 
 		return nil
 	})
