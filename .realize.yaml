@@ -33,7 +33,9 @@ schema:
   - api
   watcher:
     paths:
-      - ../..
+      - .
+      - ../../system
+      - ../../internal
     extensions:
     - go
     ignored_paths:
@@ -54,8 +56,9 @@ schema:
   - api
   watcher:
     paths:
-    - .
-    - ../..
+      - .
+      - ../../sam
+      - ../../internal
     extensions:
     - go
     ignored_paths:
@@ -76,7 +79,9 @@ schema:
   - api
   watcher:
     paths:
-      - ../..
+      - .
+      - ../../crm
+      - ../../internal
     extensions:
     - go
     ignored_paths:
