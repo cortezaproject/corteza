@@ -67,8 +67,9 @@ func (r *module) Create(mod *types.Module) (*types.Module, error) {
 		return nil, errors.Wrap(err, "No fields")
 	}
 
-	for _, v := range fields {
+	for idx, v := range fields {
 		v.ModuleID = mod.ID
+		v.Place = idx
 		if err := r.db().Replace("crm_module_form", v); err != nil {
 			return nil, errors.Wrap(err, "Error adding module fields")
 		}
@@ -78,7 +79,7 @@ func (r *module) Create(mod *types.Module) (*types.Module, error) {
 
 func (r *module) Update(mod *types.Module) (*types.Module, error) {
 	if mod.ID == 0 {
-		return nil, errors.New("Error when savig module, invalid ID")
+		return nil, errors.New("Error when saving module, invalid ID")
 	}
 	now := time.Now()
 	mod.UpdatedAt = &now
@@ -88,8 +89,9 @@ func (r *module) Update(mod *types.Module) (*types.Module, error) {
 		return nil, errors.Wrap(err, "No fields")
 	}
 
-	for _, v := range fields {
+	for idx, v := range fields {
 		v.ModuleID = mod.ID
+		v.Place = idx
 		if err := r.db().Replace("crm_module_form", v); err != nil {
 			return nil, errors.Wrap(err, "Error adding module fields")
 		}
