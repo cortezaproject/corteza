@@ -213,7 +213,7 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 			} else if out != nil && out.CanObserve {
 				// Group already exists so let's just return it
 				return nil
-			} else if !out.CanObserve {
+			} else if out != nil && !out.CanObserve {
 				return errors.New("Not allowed to create this channel due to permission settings")
 			}
 		}
