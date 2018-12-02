@@ -2,18 +2,40 @@ package service
 
 import (
 	"context"
-	"github.com/crusttech/crust/crm/types"
+	"encoding/json"
 	"testing"
+
+	"github.com/crusttech/crust/crm/types"
 )
 
 func TestModule(t *testing.T) {
 	repository := Module().With(context.Background())
 
+	fields, err := json.Marshal([]types.Field{
+		types.Field{
+			Name: "name",
+			Type: "input",
+		},
+		types.Field{
+			Name: "email",
+			Type: "email",
+		},
+		types.Field{
+			Name: "options",
+			Type: "select_multi",
+		},
+		types.Field{
+			Name: "description",
+			Type: "text",
+		},
+	})
+	assert(t, err == nil, "Error when encoding JSON fields: %+v", err)
+
 	// the module object we're working with
 	module := &types.Module{
 		Name: "Test",
 	}
-	(&module.Fields).Scan([]byte("[]"))
+	(&module.Fields).Scan(fields)
 
 	prevModuleCount := 0
 
@@ -42,6 +64,13 @@ func TestModule(t *testing.T) {
 			m.Name = "Updated test"
 			_, err := repository.Update(m)
 			assert(t, err == nil, "Error when updating module, %+v", err)
+		}
+
+		// fetch module fields
+		{
+			fl, err := repository.FieldNames(m)
+			assert(t, err == nil, "Error when retrieving module fields by module: %+v", err)
+			assert(t, len(fl) == 4, "Expected 4 fields, got %d", len(fl))
 		}
 
 		// re-fetch module
@@ -73,5 +102,4 @@ func TestModule(t *testing.T) {
 			assert(t, len(ms) < prevModuleCount, "Expected modules count to decrease after deletion, %d < %d", len(ms), prevModuleCount)
 		}
 	}
-
 }

@@ -30,6 +30,8 @@ type (
 		Create(module *types.Module) (*types.Module, error)
 		Update(module *types.Module) (*types.Module, error)
 		DeleteByID(moduleID uint64) error
+
+		FieldNames(mod *types.Module) ([]string, error)
 	}
 )
 
@@ -76,4 +78,8 @@ func (s *module) Update(mod *types.Module) (*types.Module, error) {
 
 func (s *module) DeleteByID(id uint64) error {
 	return s.moduleRepo.DeleteByID(id)
+}
+
+func (s *module) FieldNames(mod *types.Module) ([]string, error) {
+	return s.moduleRepo.FieldNames(mod)
 }
