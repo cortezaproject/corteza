@@ -41,7 +41,7 @@
           {
             "name": "moduleID",
             "required": false,
-            "title": "Module ID (optional)",
+            "title": "Module ID",
             "type": "uint64"
           },
           {
@@ -90,7 +90,7 @@
     {
       "Name": "tree",
       "Method": "GET",
-      "Title": "Get page all pages, hierarchically",
+      "Title": "Get page all (non-record) pages, hierarchically",
       "Path": "/tree",
       "Parameters": {}
     },

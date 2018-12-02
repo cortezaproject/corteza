@@ -430,7 +430,7 @@ CRM module pages
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | selfID | uint64 | POST | Parent Page ID | N/A | NO |
-| moduleID | uint64 | POST | Module ID (optional) | N/A | NO |
+| moduleID | uint64 | POST | Module ID | N/A | NO |
 | title | string | POST | Title | N/A | YES |
 | description | string | POST | Description | N/A | NO |
 | visible | bool | POST | Visible in navigation | N/A | NO |
@@ -450,7 +450,7 @@ CRM module pages
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | pageID | uint64 | PATH | Page ID | N/A | YES |
 
-## Get page all pages, hierarchically
+## Get page all (non-record) pages, hierarchically
 
 #### Method
 

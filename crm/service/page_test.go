@@ -90,6 +90,14 @@ func TestPage(t *testing.T) {
 			prevPageCount = len(ms)
 		}
 
+		// fetch all record pages
+		{
+			ms, err := repository.FindRecordPages()
+			assert(t, err == nil, "Error when retrieving pages: %+v", err)
+			assert(t, len(ms) >= 1, "Expected at least one page, got %d", len(ms))
+			prevPageCount = len(ms)
+		}
+
 		// fetch all pages
 		{
 			ms, err := repository.FindBySelfID(m.ID)
