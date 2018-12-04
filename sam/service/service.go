@@ -15,12 +15,13 @@ type (
 )
 
 var (
-	o                 sync.Once
-	DefaultAttachment AttachmentService
-	DefaultChannel    ChannelService
-	DefaultMessage    MessageService
-	DefaultPubSub     *pubSub
-	DefaultEvent      EventService
+	o                  sync.Once
+	DefaultAttachment  AttachmentService
+	DefaultChannel     ChannelService
+	DefaultMessage     MessageService
+	DefaultPermissions PermissionsService
+	DefaultPubSub      *pubSub
+	DefaultEvent       EventService
 )
 
 func Init() {
@@ -33,6 +34,7 @@ func Init() {
 		DefaultEvent = Event()
 		DefaultAttachment = Attachment(fs)
 		DefaultMessage = Message()
+		DefaultPermissions = Permissions()
 		DefaultChannel = Channel()
 		DefaultPubSub = PubSub()
 	})

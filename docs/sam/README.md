@@ -418,6 +418,55 @@ The following event types may be sent with a message event:
 
 
 
+# Permissions
+
+## List default permissions
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/permissions/permissions` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+
+## Retrieve current permission settings
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/permissions/permissions/{team}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| scope | string | GET | Permissions scope | N/A | YES |
+| resource | string | GET | Permissions resource | N/A | YES |
+| team | string | PATH | Team ID | N/A | YES |
+
+## Update permission settings
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/permissions/permissions/{team}` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| team | string | PATH | Team ID | N/A | YES |
+| permissions | []rbac.Permission | POST | List of permissions to set | N/A | YES |
+
+
+
+
 # Search entry point
 
 ## Search for messages
