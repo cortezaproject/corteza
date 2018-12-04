@@ -17,7 +17,7 @@ import (
 var _ = chi.URLParam
 var _ = types.JSONText{}
 var _ = multipart.FileHeader{}
-var _ = rbac.Operation
+var _ = rbac.Operation{}
 
 {foreach $calls as $call}
 // {name} {call.name} request parameters
