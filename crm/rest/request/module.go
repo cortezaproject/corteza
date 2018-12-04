@@ -25,6 +25,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
 
+	"github.com/crusttech/crust/crm/types"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
 )
 
@@ -80,7 +81,7 @@ var _ RequestFiller = NewModuleList()
 // Module create request parameters
 type ModuleCreate struct {
 	Name   string
-	Fields sqlxTypes.JSONText
+	Fields types.ModuleFieldSet
 }
 
 func NewModuleCreate() *ModuleCreate {
@@ -117,12 +118,6 @@ func (m *ModuleCreate) Fill(r *http.Request) (err error) {
 	if val, ok := post["name"]; ok {
 
 		m.Name = val
-	}
-	if val, ok := post["fields"]; ok {
-
-		if m.Fields, err = parseJSONTextWithErr(val); err != nil {
-			return err
-		}
 	}
 
 	return err
@@ -270,7 +265,7 @@ var _ RequestFiller = NewModuleChart()
 type ModuleEdit struct {
 	ModuleID uint64 `json:",string"`
 	Name     string
-	Fields   sqlxTypes.JSONText
+	Fields   types.ModuleFieldSet
 }
 
 func NewModuleEdit() *ModuleEdit {
@@ -308,12 +303,6 @@ func (m *ModuleEdit) Fill(r *http.Request) (err error) {
 	if val, ok := post["name"]; ok {
 
 		m.Name = val
-	}
-	if val, ok := post["fields"]; ok {
-
-		if m.Fields, err = parseJSONTextWithErr(val); err != nil {
-			return err
-		}
 	}
 
 	return err

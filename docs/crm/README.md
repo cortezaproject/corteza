@@ -63,7 +63,7 @@ CRM module definitions
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | name | string | POST | Module Name | N/A | YES |
-| fields | sqlxTypes.JSONText | POST | Fields JSON | N/A | YES |
+| fields | types.ModuleFieldSet | POST | Fields JSON | N/A | YES |
 
 ## Read module
 
@@ -302,7 +302,7 @@ Example bar chart with number of leads per country: select lead.country from lea
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 | name | string | POST | Module Name | N/A | YES |
-| fields | sqlxTypes.JSONText | POST | Fields JSON | N/A | YES |
+| fields | types.ModuleFieldSet | POST | Fields JSON | N/A | YES |
 
 ## Delete module
 
