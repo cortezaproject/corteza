@@ -1,0 +1,76 @@
+{
+  "Title": "Permissions",
+  "Package": "sam",
+  "Interface": "Permissions",
+  "Struct": null,
+  "Parameters": {},
+  "Protocol": "",
+  "Authentication": [
+    "Client ID",
+    "Session ID"
+  ],
+  "Path": "/permissions",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List default permissions",
+      "Path": "/permissions",
+      "Parameters": {}
+    },
+    {
+      "Name": "getTeam",
+      "Method": "GET",
+      "Title": "Retrieve current permission settings",
+      "Path": "/permissions/{team}",
+      "Parameters": {
+        "get": [
+          {
+            "name": "scope",
+            "required": true,
+            "title": "Permissions scope",
+            "type": "string"
+          },
+          {
+            "name": "resource",
+            "required": true,
+            "title": "Permissions resource",
+            "type": "string"
+          }
+        ],
+        "path": [
+          {
+            "name": "team",
+            "required": true,
+            "title": "Team ID",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "setTeam",
+      "Method": "POST",
+      "Title": "Update permission settings",
+      "Path": "/permissions/{team}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "team",
+            "required": true,
+            "title": "Team ID",
+            "type": "string"
+          }
+        ],
+        "post": [
+          {
+            "name": "permissions",
+            "required": true,
+            "title": "List of permissions to set",
+            "type": "[]rbac.Permission"
+          }
+        ]
+      }
+    }
+  ]
+}

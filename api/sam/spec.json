@@ -634,5 +634,78 @@
         }
       }
     ]
+  },
+  {
+    "title": "Permissions",
+    "package": "sam",
+    "parameters": {},
+    "entrypoint": "permissions",
+    "authentication": [
+      "Client ID",
+      "Session ID"
+    ],
+    "apis": [
+      {
+        "name": "list",
+        "path": "/permissions",
+        "method": "GET",
+        "title": "List default permissions",
+        "parameters": {}
+      },
+      {
+        "name": "getTeam",
+        "path": "/permissions/{team}",
+        "method": "GET",
+        "title": "Retrieve current permission settings",
+        "parameters": {
+          "path": [
+            {
+              "name": "team",
+              "type": "string",
+              "required": true,
+              "title": "Team ID"
+            }
+          ],
+          "get": [
+            {
+              "name": "scope",
+              "type": "string",
+              "required": true,
+              "title": "Permissions scope"
+            },
+            {
+              "name": "resource",
+              "type": "string",
+              "required": true,
+              "title": "Permissions resource"
+            }
+          ]
+        }
+      },
+      {
+        "name": "setTeam",
+        "path": "/permissions/{team}",
+        "method": "POST",
+        "title": "Update permission settings",
+        "parameters": {
+          "path": [
+            {
+              "name": "team",
+              "type": "string",
+              "required": true,
+              "title": "Team ID"
+            }
+          ],
+          "post": [
+            {
+              "name": "permissions",
+              "type": "[]rbac.Permission",
+              "required": true,
+              "title": "List of permissions to set"
+            }
+          ]
+        }
+      }
+    ]
   }
 ]
