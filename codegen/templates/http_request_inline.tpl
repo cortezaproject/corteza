@@ -65,13 +65,13 @@ func ({self} *{name|expose}{call.name|capitalize}) Fill(r *http.Request) (err er
 {foreach $params as $param}
 {if strtolower($method) === "path"}
 	{self}.{param.name|expose} = {if ($param.type !== "string")}{$parsers[$param.type]}({/if}chi.URLParam(r, "{param.name}"){if ($param.type !== "string")}){/if}
-{elseif substr($param.type, 0, 2) === '[]' && isset($parsers[$param.type])}
+{elseif (substr($param.type, 0, 2) === '[]' || substr($param.type, -3) === "Set") && isset($parsers[$param.type])}
 	{self}.{param.name|expose} = {$parsers[$param.type]}({if $method === "post"}r.Form["{param.name}"]{else}urlQuery["{param.name}"]{/if})
 {elseif $param.type === "*multipart.FileHeader"}
 	if _, {self}.{param.name|expose}, err = r.FormFile("{$param.name}"); err != nil {
 		return errors.Wrap(err, "error procesing uploaded file")
 	}
-{elseif substr($param.type, 0, 2) !== '[]'}
+{elseif substr($param.type, 0, 2) !== '[]' && substr($param.type, -3) !== 'Set'}
 	if val, ok := {method|strtolower}["{param.name}"]; ok {
 {if substr($parsers[$param.type], -7) === 'WithErr'}
 		if {self}.{param.name|expose}, err = {$parsers[$param.type]}(val); err != nil {
