@@ -61,7 +61,13 @@
     "entrypoint": "page",
     "path": "/page",
     "authentication": [],
-    "struct": [],
+    "struct": [
+      {
+        "imports": [
+          "sqlxTypes github.com/jmoiron/sqlx/types"
+        ]
+      }
+    ],
     "apis": [
       {
         "name": "list",
@@ -117,7 +123,7 @@
               "title": "Visible in navigation"
             },
             {
-              "type": "types.JSONText",
+              "type": "sqlxTypes.JSONText",
               "name": "blocks",
               "required": true,
               "title": "Blocks JSON"
@@ -194,7 +200,7 @@
               "title": "Visible in navigation"
             },
             {
-              "type": "types.JSONText",
+              "type": "sqlxTypes.JSONText",
               "name": "blocks",
               "required": true,
               "title": "Blocks JSON"
@@ -255,7 +261,7 @@
       {
         "name": "Module",
         "imports": [
-          "github.com/jmoiron/sqlx/types"
+          "sqlxTypes github.com/jmoiron/sqlx/types"
         ],
         "fields": [
           {
@@ -268,7 +274,7 @@
           },
           {
             "name": "Fields",
-            "type": "types.JSONText",
+            "type": "sqlxTypes.JSONText",
             "json": "fields",
             "db": "json"
           }
@@ -302,7 +308,7 @@
       {
         "name": "Content",
         "imports": [
-          "github.com/jmoiron/sqlx/types"
+          "sqlxTypes github.com/jmoiron/sqlx/types"
         ],
         "fields": [
           {
@@ -315,7 +321,7 @@
           },
           {
             "name": "Fields",
-            "type": "types.JSONText",
+            "type": "sqlxTypes.JSONText",
             "db": "json"
           }
         ]
@@ -352,7 +358,7 @@
               "title": "Module Name"
             },
             {
-              "type": "types.JSONText",
+              "type": "sqlxTypes.JSONText",
               "name": "fields",
               "required": true,
               "title": "Fields JSON"
@@ -476,7 +482,7 @@
               "title": "Module Name"
             },
             {
-              "type": "types.JSONText",
+              "type": "sqlxTypes.JSONText",
               "name": "fields",
               "required": true,
               "title": "Fields JSON"
@@ -552,7 +558,7 @@
           ],
           "post": [
             {
-              "type": "types.JSONText",
+              "type": "sqlxTypes.JSONText",
               "name": "fields",
               "required": true,
               "title": "Content JSON"
@@ -604,7 +610,7 @@
           ],
           "post": [
             {
-              "type": "types.JSONText",
+              "type": "sqlxTypes.JSONText",
               "name": "fields",
               "required": true,
               "title": "Content JSON"

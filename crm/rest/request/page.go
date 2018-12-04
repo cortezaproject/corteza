@@ -17,20 +17,19 @@ package request
 
 import (
 	"encoding/json"
-	"github.com/crusttech/crust/internal/rbac"
-	"github.com/go-chi/chi"
-	"github.com/jmoiron/sqlx/types"
-	"github.com/pkg/errors"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"strings"
+
+	"github.com/go-chi/chi"
+	"github.com/pkg/errors"
+
+	sqlxTypes "github.com/jmoiron/sqlx/types"
 )
 
 var _ = chi.URLParam
-var _ = types.JSONText{}
 var _ = multipart.FileHeader{}
-var _ = rbac.Operation{}
 
 // Page list request parameters
 type PageList struct {
@@ -85,7 +84,7 @@ type PageCreate struct {
 	Title       string
 	Description string
 	Visible     bool
-	Blocks      types.JSONText
+	Blocks      sqlxTypes.JSONText
 }
 
 func NewPageCreate() *PageCreate {
@@ -141,7 +140,7 @@ func (p *PageCreate) Fill(r *http.Request) (err error) {
 	}
 	if val, ok := post["blocks"]; ok {
 
-		if p.Blocks, err = parseJSONText(val); err != nil {
+		if p.Blocks, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
@@ -242,7 +241,7 @@ type PageEdit struct {
 	Title       string
 	Description string
 	Visible     bool
-	Blocks      types.JSONText
+	Blocks      sqlxTypes.JSONText
 }
 
 func NewPageEdit() *PageEdit {
@@ -299,7 +298,7 @@ func (p *PageEdit) Fill(r *http.Request) (err error) {
 	}
 	if val, ok := post["blocks"]; ok {
 
-		if p.Blocks, err = parseJSONText(val); err != nil {
+		if p.Blocks, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}

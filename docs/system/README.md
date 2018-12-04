@@ -324,7 +324,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 | name | string | POST | Name | N/A | YES |
 | handle | string | POST | Handle | N/A | YES |
 | kind | string | POST | Kind (normal, bot) | N/A | NO |
-| meta | types.JSONText | POST | Meta data | N/A | NO |
+| meta | sqlxTypes.JSONText | POST | Meta data | N/A | NO |
 | satosaID | string | POST | Satosa ID | N/A | NO |
 | organisationID | uint64 | POST | Organisation ID | N/A | NO |
 
@@ -347,7 +347,7 @@ An organisation may have many teams. Teams may have many channels available. Acc
 | name | string | POST | Name | N/A | YES |
 | handle | string | POST | Handle | N/A | YES |
 | kind | string | POST | Kind (normal, bot) | N/A | NO |
-| meta | types.JSONText | POST | Meta data | N/A | NO |
+| meta | sqlxTypes.JSONText | POST | Meta data | N/A | NO |
 | satosaID | string | POST | Satosa ID | N/A | NO |
 | organisationID | uint64 | POST | Organisation ID | N/A | NO |
 

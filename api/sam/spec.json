@@ -644,6 +644,13 @@
       "Client ID",
       "Session ID"
     ],
+    "struct": [
+      {
+        "imports": [
+          "github.com/crusttech/crust/internal/rbac"
+        ]
+      }
+    ],
     "apis": [
       {
         "name": "list",

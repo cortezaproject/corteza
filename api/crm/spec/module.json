@@ -18,11 +18,11 @@
           "db": "json",
           "json": "fields",
           "name": "Fields",
-          "type": "types.JSONText"
+          "type": "sqlxTypes.JSONText"
         }
       ],
       "imports": [
-        "github.com/jmoiron/sqlx/types"
+        "sqlxTypes github.com/jmoiron/sqlx/types"
       ],
       "name": "Module"
     },
@@ -64,11 +64,11 @@
         {
           "db": "json",
           "name": "Fields",
-          "type": "types.JSONText"
+          "type": "sqlxTypes.JSONText"
         }
       ],
       "imports": [
-        "github.com/jmoiron/sqlx/types"
+        "sqlxTypes github.com/jmoiron/sqlx/types"
       ],
       "name": "Content"
     }
@@ -111,7 +111,7 @@
             "name": "fields",
             "required": true,
             "title": "Fields JSON",
-            "type": "types.JSONText"
+            "type": "sqlxTypes.JSONText"
           }
         ]
       }
@@ -235,7 +235,7 @@
             "name": "fields",
             "required": true,
             "title": "Fields JSON",
-            "type": "types.JSONText"
+            "type": "sqlxTypes.JSONText"
           }
         ]
       }
@@ -311,7 +311,7 @@
             "name": "fields",
             "required": true,
             "title": "Content JSON",
-            "type": "types.JSONText"
+            "type": "sqlxTypes.JSONText"
           }
         ]
       }
@@ -363,7 +363,7 @@
             "name": "fields",
             "required": true,
             "title": "Content JSON",
-            "type": "types.JSONText"
+            "type": "sqlxTypes.JSONText"
           }
         ]
       }
