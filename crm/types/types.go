@@ -3,6 +3,9 @@ package types
 import (
 	"time"
 
+	"database/sql/driver"
+	"encoding/json"
+
 	"github.com/jmoiron/sqlx/types"
 
 	systemTypes "github.com/crusttech/crust/system/types"
@@ -53,7 +56,7 @@ type (
 	Module struct {
 		ID     uint64         `json:"moduleID,string" db:"id"`
 		Name   string         `json:"name" db:"name"`
-		Fields types.JSONText `json:"fields" db:"json"`
+		Fields ModuleFieldSet `json:"fields" db:"json"`
 
 		Page *Page `json:"page,omitempty"`
 
@@ -80,6 +83,8 @@ type (
 		Required bool `json:"isRequired" db:"is_required"`
 		Visible  bool `json:"isVisible" db:"is_visible"`
 	}
+
+	ModuleFieldSet []ModuleField
 
 	// Page - page structure
 	Page struct {
@@ -112,3 +117,14 @@ type (
 		Height      int            `json:"height"`
 	}
 )
+
+func (f *ModuleFieldSet) Scan(src interface{}) error {
+	if data, ok := src.([]byte); ok {
+		return json.Unmarshal(data, f)
+	}
+	return nil
+}
+
+func (f ModuleFieldSet) Value() (driver.Value, error) {
+	return json.Marshal(f)
+}
