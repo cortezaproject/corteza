@@ -4,43 +4,43 @@
     "operations": [
       {
         "key": "admin",
-        "name": "Administrator",
-        "title": "Members with this permission have every permission and also bypass channel specific permissions. Granting this permission is dangerous",
+        "title": "Administrator",
+        "subtitle": "Members with this permission have every permission and also bypass channel specific permissions. Granting this permission is dangerous",
         "enabled": true,
         "default": "deny"
       },
       {
         "key": "audit",
-        "name": "View Audit Log (@todo: add audit logs)",
-        "title": "Members with this permission have access to view the servers audit logs",
+        "title": "View Audit Log (@todo: add audit logs)",
+        "subtitle": "Members with this permission have access to view the servers audit logs",
         "enabled": false,
         "default": "deny"
       },
       {
         "key": "manage.organisation",
-        "name": "Manage Organisation",
-        "title": "Members with this permission can change the organisation name and other organisation details",
+        "title": "Manage Organisation",
+        "subtitle": "Members with this permission can change the organisation name and other organisation details",
         "enabled": true,
         "default": "deny"
       },
       {
         "key": "manage.roles",
-        "name": "Manage Roles",
-        "title": "Members with this permission can create/edit/delete roles inside this organisation",
+        "title": "Manage Roles",
+        "subtitle": "Members with this permission can create/edit/delete roles inside this organisation",
         "enabled": true,
         "default": "deny"
       },
       {
         "key": "manage.channels",
-        "name": "Manage channels",
-        "title": "Members with this permission can create/edit/delete channels inside this organisation",
+        "title": "Manage channels",
+        "subtitle": "Members with this permission can create/edit/delete channels inside this organisation",
         "enabled": true,
         "default": "deny"
       },
       {
         "key": "manage.webhooks",
-        "name": "Manage webhooks (@todo: implement webhooks)",
-        "title": "Members with this permission can create, edit and delete webhooks",
+        "title": "Manage webhooks (@todo: implement webhooks)",
+        "subtitle": "Members with this permission can create, edit and delete webhooks",
         "enabled": false,
         "default": "deny"
       }
@@ -51,33 +51,33 @@
     "operations": [
       {
         "key": "send",
-        "name": "Send Messages",
+        "title": "Send Messages",
         "enabled": true,
         "default": "allow"
       },
       {
         "key": "embed",
-        "name": "Embed Links",
+        "title": "Embed Links",
         "enabled": true,
         "default": "allow"
       },
       {
         "key": "attach",
-        "name": "Attach Files",
+        "title": "Attach Files",
         "enabled": true,
         "default": "allow"
       },
       {
         "key": "manage.messages",
-        "name": "Manage messages",
-        "title": "Members with this permission can edit/delete messages inside channels",
+        "title": "Manage messages",
+        "subtitle": "Members with this permission can edit/delete messages inside channels",
         "enabled": true,
         "default": "deny"
       },
       {
         "key": "react",
-        "name": "Manage reactions",
-        "title": "Members with this permission can add new reactions to a message",
+        "title": "Manage reactions",
+        "subtitle": "Members with this permission can add new reactions to a message",
         "enabled": true,
         "default": "allow"
       }

@@ -37,7 +37,7 @@ func main() {
 		fmt.Fprintln(&w)
 		fmt.Fprintln(&w, "import \"github.com/crusttech/crust/internal/rbac\"")
 		fmt.Fprintln(&w)
-		fmt.Fprintln(&w, "/* File is generated from", *input, "& main.go */")
+		fmt.Fprintln(&w, "/* File is generated from", *input, "with permissions.go */")
 		fmt.Fprintln(&w)
 		fmt.Fprintln(&w, *fname, "{")
 		fmt.Fprintln(&w, "\treturn", s)

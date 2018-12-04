@@ -2,54 +2,54 @@ package types
 
 import "github.com/crusttech/crust/internal/rbac"
 
-/* File is generated from sam/types/permissions/2-team.json & main.go */
+/* File is generated from sam/types/permissions/2-team.json  with permissions.go */
 
 func (c *Team) Permissions() []rbac.OperationGroup {
 	return []rbac.OperationGroup{
 		rbac.OperationGroup{
-			Name: "",
+			Title: "General permissions",
 			Operations: []rbac.Operation{
 				rbac.Operation{
-					Key:     "manage.webhooks",
-					Name:    "Manage webhooks (@todo: implement webhooks)",
-					Title:   "Members with this permission can create, edit and delete webhooks",
-					Enabled: false,
-					Default: "",
+					Key:      "manage.webhooks",
+					Title:    "Manage webhooks (@todo: implement webhooks)",
+					Subtitle: "Members with this permission can create, edit and delete webhooks",
+					Enabled:  false,
+					Default:  "",
 				},
 			},
 		}, rbac.OperationGroup{
-			Name: "",
+			Title: "Text Permissions",
 			Operations: []rbac.Operation{
 				rbac.Operation{
-					Key:     "send",
-					Name:    "Send Messages",
-					Title:   "",
-					Enabled: true,
-					Default: "",
+					Key:      "send",
+					Title:    "Send Messages",
+					Subtitle: "",
+					Enabled:  true,
+					Default:  "",
 				}, rbac.Operation{
-					Key:     "embed",
-					Name:    "Embed Links",
-					Title:   "",
-					Enabled: true,
-					Default: "",
+					Key:      "embed",
+					Title:    "Embed Links",
+					Subtitle: "",
+					Enabled:  true,
+					Default:  "",
 				}, rbac.Operation{
-					Key:     "attach",
-					Name:    "Attach Files",
-					Title:   "",
-					Enabled: true,
-					Default: "",
+					Key:      "attach",
+					Title:    "Attach Files",
+					Subtitle: "",
+					Enabled:  true,
+					Default:  "",
 				}, rbac.Operation{
-					Key:     "manage.messages",
-					Name:    "Manage messages",
-					Title:   "Members with this permission can edit/delete messages inside channels",
-					Enabled: true,
-					Default: "",
+					Key:      "manage.messages",
+					Title:    "Manage messages",
+					Subtitle: "Members with this permission can edit/delete messages inside channels",
+					Enabled:  true,
+					Default:  "",
 				}, rbac.Operation{
-					Key:     "react",
-					Name:    "Manage reactions",
-					Title:   "Members with this permission can add new reactions to a message",
-					Enabled: true,
-					Default: "",
+					Key:      "react",
+					Title:    "Manage reactions",
+					Subtitle: "Members with this permission can add new reactions to a message",
+					Enabled:  true,
+					Default:  "",
 				},
 			},
 		},
