@@ -398,7 +398,7 @@
     "struct": [
       {
         "imports": [
-          "github.com/jmoiron/sqlx/types"
+          "sqlxTypes github.com/jmoiron/sqlx/types"
         ]
       }
     ],
@@ -464,7 +464,7 @@
             },
             {
               "name": "meta",
-              "type": "types.JSONText",
+              "type": "sqlxTypes.JSONText",
               "required": false,
               "title": "Meta data"
             },
@@ -536,7 +536,7 @@
             },
             {
               "name": "meta",
-              "type": "types.JSONText",
+              "type": "sqlxTypes.JSONText",
               "required": false,
               "title": "Meta data"
             },
