@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/pkg/errors"
@@ -61,13 +60,7 @@ func (r *module) Find() (types.ModuleSet, error) {
 func (r *module) Create(mod *types.Module) (*types.Module, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
-
-	fields := make([]types.ModuleField, 0)
-	if err := json.Unmarshal(mod.Fields, &fields); err != nil {
-		return nil, errors.Wrap(err, "No fields")
-	}
-
-	for idx, v := range fields {
+	for idx, v := range mod.Fields {
 		v.ModuleID = mod.ID
 		v.Place = idx
 		if err := r.db().Replace("crm_module_form", v); err != nil {
@@ -78,18 +71,9 @@ func (r *module) Create(mod *types.Module) (*types.Module, error) {
 }
 
 func (r *module) Update(mod *types.Module) (*types.Module, error) {
-	if mod.ID == 0 {
-		return nil, errors.New("Error when saving module, invalid ID")
-	}
 	now := time.Now()
 	mod.UpdatedAt = &now
-
-	fields := make([]types.ModuleField, 0)
-	if err := json.Unmarshal(mod.Fields, &fields); err != nil {
-		return nil, errors.Wrap(err, "No fields")
-	}
-
-	for idx, v := range fields {
+	for idx, v := range mod.Fields {
 		v.ModuleID = mod.ID
 		v.Place = idx
 		if err := r.db().Replace("crm_module_form", v); err != nil {
