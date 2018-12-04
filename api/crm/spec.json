@@ -6,29 +6,7 @@
     "entrypoint": "field",
     "path": "/field",
     "authentication": [],
-    "struct": [
-      {
-        "name": "Field",
-        "fields": [
-          {
-            "name": "Name",
-            "type": "string",
-            "db": "field_name"
-          },
-          {
-            "name": "Type",
-            "type": "string",
-            "db": "field_type"
-          },
-          {
-            "name": "Template",
-            "type": "string",
-            "db": "field_template",
-            "omitempty": true
-          }
-        ]
-      }
-    ],
+    "struct": [],
     "apis": [
       {
         "name": "list",
@@ -259,71 +237,9 @@
     "authentication": [],
     "struct": [
       {
-        "name": "Module",
         "imports": [
-          "sqlxTypes github.com/jmoiron/sqlx/types"
-        ],
-        "fields": [
-          {
-            "name": "ID",
-            "type": "uint64"
-          },
-          {
-            "name": "Name",
-            "type": "string"
-          },
-          {
-            "name": "Fields",
-            "type": "sqlxTypes.JSONText",
-            "json": "fields",
-            "db": "json"
-          }
-        ]
-      },
-      {
-        "name": "ModuleField",
-        "fields": [
-          {
-            "name": "Name",
-            "type": "string"
-          },
-          {
-            "name": "Title",
-            "type": "string"
-          },
-          {
-            "name": "Kind",
-            "type": "string"
-          },
-          {
-            "name": "GDPR",
-            "type": "bool"
-          },
-          {
-            "name": "Show",
-            "type": "bool"
-          }
-        ]
-      },
-      {
-        "name": "Content",
-        "imports": [
-          "sqlxTypes github.com/jmoiron/sqlx/types"
-        ],
-        "fields": [
-          {
-            "name": "ID",
-            "type": "uint64"
-          },
-          {
-            "name": "moduleID",
-            "type": "uint64"
-          },
-          {
-            "name": "Fields",
-            "type": "sqlxTypes.JSONText",
-            "db": "json"
-          }
+          "sqlxTypes github.com/jmoiron/sqlx/types",
+          "github.com/crusttech/crust/crm/types"
         ]
       }
     ],
@@ -358,7 +274,7 @@
               "title": "Module Name"
             },
             {
-              "type": "sqlxTypes.JSONText",
+              "type": "types.ModuleFieldSet",
               "name": "fields",
               "required": true,
               "title": "Fields JSON"
@@ -482,7 +398,7 @@
               "title": "Module Name"
             },
             {
-              "type": "sqlxTypes.JSONText",
+              "type": "types.ModuleFieldSet",
               "name": "fields",
               "required": true,
               "title": "Fields JSON"

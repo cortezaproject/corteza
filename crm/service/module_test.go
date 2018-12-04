@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/crusttech/crust/crm/types"
@@ -11,31 +10,28 @@ import (
 func TestModule(t *testing.T) {
 	repository := Module().With(context.Background())
 
-	fields, err := json.Marshal([]types.Field{
-		types.Field{
-			Name: "name",
-			Type: "input",
-		},
-		types.Field{
-			Name: "email",
-			Type: "email",
-		},
-		types.Field{
-			Name: "options",
-			Type: "select_multi",
-		},
-		types.Field{
-			Name: "description",
-			Type: "text",
-		},
-	})
-	assert(t, err == nil, "Error when encoding JSON fields: %+v", err)
-
 	// the module object we're working with
 	module := &types.Module{
 		Name: "Test",
+		Fields: []types.ModuleField{
+			types.ModuleField{
+				Name: "name",
+				Kind: "input",
+			},
+			types.ModuleField{
+				Name: "email",
+				Kind: "email",
+			},
+			types.ModuleField{
+				Name: "options",
+				Kind: "select_multi",
+			},
+			types.ModuleField{
+				Name: "description",
+				Kind: "text",
+			},
+		},
 	}
-	(&module.Fields).Scan(fields)
 
 	prevModuleCount := 0
 
@@ -57,6 +53,7 @@ func TestModule(t *testing.T) {
 			assert(t, err == nil, "Error when retrieving module by id: %+v", err)
 			assert(t, ms.ID == m.ID, "Expected ID from database to match, %d != %d", m.ID, ms.ID)
 			assert(t, ms.Name == m.Name, "Expected Name from database to match, %s != %s", m.Name, ms.Name)
+			assert(t, len(ms.Fields) == 4, "Expected Fields count from database to match, 4 != %d", len(ms.Fields))
 		}
 
 		// update created module

@@ -3,29 +3,7 @@
   "Description": "CRM input field definitions",
   "Package": "crm",
   "Interface": "Field",
-  "Struct": [
-    {
-      "fields": [
-        {
-          "db": "field_name",
-          "name": "Name",
-          "type": "string"
-        },
-        {
-          "db": "field_type",
-          "name": "Type",
-          "type": "string"
-        },
-        {
-          "db": "field_template",
-          "name": "Template",
-          "omitempty": true,
-          "type": "string"
-        }
-      ],
-      "name": "Field"
-    }
-  ],
+  "Struct": [],
   "Parameters": null,
   "Protocol": "",
   "Authentication": [],
