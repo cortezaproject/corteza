@@ -17,6 +17,7 @@ package request
 
 import (
 	"encoding/json"
+	"github.com/crusttech/crust/internal/rbac"
 	"github.com/go-chi/chi"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/pkg/errors"
@@ -29,6 +30,7 @@ import (
 var _ = chi.URLParam
 var _ = types.JSONText{}
 var _ = multipart.FileHeader{}
+var _ = rbac.Operation{}
 
 // Field list request parameters
 type FieldList struct {
