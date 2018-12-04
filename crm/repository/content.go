@@ -67,8 +67,8 @@ func (r *content) FindByID(id uint64) (*types.Content, error) {
 }
 
 func (r *content) Find(moduleID uint64, query string, page int, perPage int) (*FindResponse, error) {
-	if page < 0 {
-		page = 0
+	if page < 1 {
+		page = 1
 	}
 	if perPage <= 0 {
 		perPage = 50
@@ -95,7 +95,7 @@ func (r *content) Find(moduleID uint64, query string, page int, perPage int) (*F
 	sqlWhere := "WHERE module_id=? and deleted_at IS NULL"
 
 	sqlOrder := "ORDER BY id DESC"
-	sqlLimit := fmt.Sprintf("LIMIT %d, %d", page, perPage)
+	sqlLimit := fmt.Sprintf("LIMIT %d, %d", (page-1)*perPage, perPage)
 
 	switch true {
 	case query != "":
