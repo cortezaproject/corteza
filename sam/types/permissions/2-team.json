@@ -4,8 +4,8 @@
     "operations": [
       {
         "key": "manage.webhooks",
-        "name": "Manage webhooks (@todo: implement webhooks)",
-        "title": "Members with this permission can create, edit and delete webhooks",
+        "title": "Manage webhooks (@todo: implement webhooks)",
+        "subtitle": "Members with this permission can create, edit and delete webhooks",
         "enabled": false
       }
     ]
@@ -15,29 +15,29 @@
     "operations": [
       {
         "key": "send",
-        "name": "Send Messages",
+        "title": "Send Messages",
         "enabled": true
       },
       {
         "key": "embed",
-        "name": "Embed Links",
+        "title": "Embed Links",
         "enabled": true
       },
       {
         "key": "attach",
-        "name": "Attach Files",
+        "title": "Attach Files",
         "enabled": true
       },
       {
         "key": "manage.messages",
-        "name": "Manage messages",
-        "title": "Members with this permission can edit/delete messages inside channels",
+        "title": "Manage messages",
+        "subtitle": "Members with this permission can edit/delete messages inside channels",
         "enabled": true
       },
       {
         "key": "react",
-        "name": "Manage reactions",
-        "title": "Members with this permission can add new reactions to a message",
+        "title": "Manage reactions",
+        "subtitle": "Members with this permission can add new reactions to a message",
         "enabled": true
       }
     ]

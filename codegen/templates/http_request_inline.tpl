@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
 	"github.com/jmoiron/sqlx/types"
+	"github.com/crusttech/crust/internal/rbac"
 	"mime/multipart"
 	"strings"
 )
@@ -16,6 +17,7 @@ import (
 var _ = chi.URLParam
 var _ = types.JSONText{}
 var _ = multipart.FileHeader{}
+var _ = rbac.Operation
 
 {foreach $calls as $call}
 // {name} {call.name} request parameters
