@@ -74,6 +74,8 @@ type (
 		Default   string `json:"defaultValue,omitempty" db:"default_value"`
 		MaxLength int    `json:"maxLength" db:"max_length"`
 
+		Options types.JSONText `json:"options" db:"json"`
+
 		Private  bool `json:"isPrivate" db:"is_private"`
 		Required bool `json:"isRequired" db:"is_required"`
 		Visible  bool `json:"isVisible" db:"is_visible"`
