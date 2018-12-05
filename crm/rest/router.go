@@ -15,6 +15,7 @@ func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 		contentSvc  = service.Content()
 		pageSvc     = service.Page()
 		workflowSvc = service.Workflow()
+		jobSvc      = service.Job()
 	)
 
 	var (
@@ -22,6 +23,7 @@ func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 		module   = Module{}.New(moduleSvc, contentSvc)
 		page     = Page{}.New(pageSvc)
 		workflow = Workflow{}.New(workflowSvc)
+		job      = Job{}.New(jobSvc)
 	)
 
 	// Initialize handers & controllers.
@@ -34,6 +36,7 @@ func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 			handlers.NewPage(page).MountRoutes(r)
 			handlers.NewModule(module).MountRoutes(r)
 			handlers.NewWorkflow(workflow).MountRoutes(r)
+			handlers.NewJob(job).MountRoutes(r)
 		})
 	}
 }

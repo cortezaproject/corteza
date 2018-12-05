@@ -11,6 +11,7 @@ var (
 	DefaultModule   ModuleService
 	DefaultPage     PageService
 	DefaultWorkflow WorkflowService
+	DefaultJob      JobService
 )
 
 func Init() {
@@ -20,5 +21,6 @@ func Init() {
 		DefaultModule = Module()
 		DefaultPage = Page()
 		DefaultWorkflow = Workflow()
+		DefaultJob = Job()
 	})
 }

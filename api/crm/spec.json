@@ -91,7 +91,7 @@
         "name": "get",
         "method": "GET",
         "path": "/{workflowID}",
-        "title": "Get existing workflow details",
+        "title": "Get workflow details",
         "parameters": {
           "path": [
             {
@@ -157,6 +157,188 @@
               "name": "workflowID",
               "required": true,
               "title": "Workflow ID"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Jobs",
+    "description": "Workflow Jobs",
+    "package": "crm",
+    "entrypoint": "job",
+    "path": "/job",
+    "authentication": [],
+    "struct": [
+      {
+        "imports": [
+          "github.com/crusttech/crust/crm/types",
+          "sqlxTypes github.com/jmoiron/sqlx/types"
+        ]
+      }
+    ],
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "path": "/",
+        "title": "List jobs",
+        "parameters": {
+          "get": [
+            {
+              "type": "string",
+              "name": "status",
+              "required": false,
+              "title": "Job status (`ok`, `error`, `running`, `cancelled` or `queued`)"
+            },
+            {
+              "name": "page",
+              "type": "int",
+              "required": false,
+              "title": "Page number (0 based)"
+            },
+            {
+              "name": "perPage",
+              "type": "int",
+              "required": false,
+              "title": "Returned items per page (default 50)"
+            }
+          ]
+        }
+      },
+      {
+        "name": "run",
+        "path": "/",
+        "method": "POST",
+        "title": "Create a new job",
+        "parameters": {
+          "post": [
+            {
+              "type": "string",
+              "name": "workflowID",
+              "required": true,
+              "title": "Workflow ID"
+            },
+            {
+              "type": "string",
+              "name": "startAt",
+              "required": false,
+              "title": "Start datetime for a delayed job"
+            },
+            {
+              "type": "types.JobParameterSet",
+              "name": "parameters",
+              "required": false,
+              "title": "Extra job parameters (map[string]string)"
+            }
+          ]
+        }
+      },
+      {
+        "name": "get",
+        "method": "GET",
+        "path": "/{jobID}",
+        "title": "Get job details",
+        "parameters": {
+          "path": [
+            {
+              "type": "string",
+              "name": "jobID",
+              "required": true,
+              "title": "Job ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "logs",
+        "method": "GET",
+        "path": "/{jobID}/logs",
+        "title": "Get job logs",
+        "parameters": {
+          "path": [
+            {
+              "type": "string",
+              "name": "jobID",
+              "required": true,
+              "title": "Job ID"
+            },
+            {
+              "name": "page",
+              "type": "int",
+              "required": false,
+              "title": "Page number (0 based)"
+            },
+            {
+              "name": "perPage",
+              "type": "int",
+              "required": false,
+              "title": "Returned items per page (default 50)"
+            }
+          ]
+        }
+      },
+      {
+        "name": "update",
+        "method": "POST",
+        "path": "/{jobID}",
+        "title": "Update job details",
+        "parameters": {
+          "path": [
+            {
+              "type": "string",
+              "name": "jobID",
+              "required": true,
+              "title": "Job ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "string",
+              "name": "status",
+              "required": false,
+              "title": "Job status (`ok`, `error`, `running`, `cancelled` or `queued`)"
+            },
+            {
+              "type": "sqlxTypes.JSONText",
+              "name": "log",
+              "required": false,
+              "title": "Job log item (append-only)"
+            },
+            {
+              "type": "string",
+              "name": "workflowID",
+              "required": false,
+              "title": "Workflow ID"
+            },
+            {
+              "type": "string",
+              "name": "startAt",
+              "required": false,
+              "title": "Start datetime for a delayed job"
+            },
+            {
+              "type": "types.JobParameterSet",
+              "name": "parameters",
+              "required": false,
+              "title": "Extra job parameters (map[string]string)"
+            }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "method": "DELETE",
+        "path": "/{jobID}",
+        "title": "Cancel job",
+        "parameters": {
+          "path": [
+            {
+              "type": "string",
+              "name": "jobID",
+              "required": true,
+              "title": "Job ID"
             }
           ]
         }
