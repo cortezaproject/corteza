@@ -76,14 +76,31 @@ func (s *module) Create(mod *types.Module) (*types.Module, error) {
 	return s.moduleRepo.Create(mod)
 }
 
-func (s *module) Update(mod *types.Module) (*types.Module, error) {
-	if mod.ID == 0 {
-		return nil, errors.New("Error updating module: invalid ID")
+func (s *module) Update(module *types.Module) (m *types.Module, err error) {
+	validate := func() error {
+		if module.ID == 0 {
+			return errors.New("Error updating module: invalid ID")
+		} else if m, err = s.moduleRepo.FindByID(module.ID); err != nil {
+			return errors.Wrap(err, "Error while loading module for update")
+		} else {
+			module.CreatedAt = m.CreatedAt
+		}
+
+		if len(module.Fields) == 0 {
+			return errors.New("Error updating module: no fields")
+		}
+
+		return nil
 	}
-	if len(mod.Fields) == 0 {
-		return nil, errors.New("Error updating module: no fields")
+
+	if err = validate(); err != nil {
+		return nil, err
 	}
-	return s.moduleRepo.Update(mod)
+
+	return m, s.db.Transaction(func() (err error) {
+		m, err = s.moduleRepo.Update(module)
+		return
+	})
 }
 
 func (s *module) DeleteByID(id uint64) error {
