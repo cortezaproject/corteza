@@ -2,6 +2,8 @@ package rbac_test
 
 import (
 	"testing"
+
+	"github.com/pkg/errors"
 )
 
 func TestRoles(t *testing.T) {
@@ -20,25 +22,25 @@ func TestRoles(t *testing.T) {
 	{
 		role, err := roles.Get("test-role")
 		must(t, err, "Error when getting role")
-		assert(t, role.Name == "test-role", "Unexpected role name, test-role != '%s'", role.Name)
+		assert(t, role.Name == "test-role", "%+v", errors.Errorf("Unexpected role name, 'test-role' != '%s'", role.Name))
 	}
 
 	{
 		role, err := roles.Get("test-role/nested/role")
 		must(t, err, "Error when getting role")
-		assert(t, role.Name == "test-role/nested/role", "Unexpected role name, test != '%s'", role.Name)
+		assert(t, role.Name == "test-role/nested/role", "%+v", errors.Errorf("Unexpected role name, 'test-role/nested/role' != '%s'", role.Name))
 	}
 
 	{
 		role, err := roles.GetNested()
 		mustFail(t, err)
-		assert(t, role == nil, "Expected role=nil, got %+v", role)
+		assert(t, role == nil, "%+v", errors.Errorf("Expected role=nil, got %#v", role))
 	}
 
 	{
 		role, err := roles.GetNested("test-role", "nested")
 		must(t, err, "Error when getting role")
-		assert(t, role.Name == "test-role/nested", "Unexpected role name, test != '%s'", role.Name)
+		assert(t, role.Name == "test-role/nested", "%+v", errors.Errorf("Unexpected role name, 'test-role/nested' != '%s'", role.Name))
 	}
 
 	must(t, roles.Delete("test-role"), "Error when deleting test-role")

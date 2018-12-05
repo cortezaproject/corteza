@@ -19,7 +19,7 @@ func getClient() (*rbac.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	client.Debug("info")
+	client.Debug("debug")
 	return client, nil
 }
 
