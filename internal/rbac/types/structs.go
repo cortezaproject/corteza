@@ -2,6 +2,7 @@ package types
 
 type (
 	User struct {
+		UserID          string   `json:"userid"`
 		Username        string   `json:"username"`
 		AssignedRoles   []string `json:"assignedRoles"`
 		AuthorizedRoles []string `json:"authorizedRoles"`
