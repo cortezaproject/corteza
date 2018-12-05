@@ -59,7 +59,7 @@
     {
       "Name": "get",
       "Method": "GET",
-      "Title": "Get existing workflow details",
+      "Title": "Get workflow details",
       "Path": "/{workflowID}",
       "Parameters": {
         "path": [
