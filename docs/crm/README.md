@@ -512,3 +512,86 @@ CRM module pages
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | pageID | uint64 | PATH | Page ID | N/A | YES |
+
+
+
+
+# Workflows
+
+CRM workflow definitions
+
+## List available workflows
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/workflow/` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+
+## Create new workflow
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/workflow/` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| name | string | POST | Workflow name | N/A | YES |
+| tasks | types.WorkflowTaskSet | POST | Type ID | N/A | NO |
+| onError | types.WorkflowTaskSet | POST | Type ID | N/A | NO |
+| timeout | int | POST | Timeout in seconds | N/A | NO |
+
+## Get existing workflow details
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/workflow/{workflowID}` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| workflowID | string | PATH | Workflow ID | N/A | YES |
+
+## Update workflow details
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/workflow/{workflowID}` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| workflowID | string | PATH | Workflow ID | N/A | YES |
+| name | string | POST | Workflow name | N/A | YES |
+| tasks | types.WorkflowTaskSet | POST | Type ID | N/A | NO |
+| onError | types.WorkflowTaskSet | POST | Type ID | N/A | NO |
+| timeout | int | POST | Timeout in seconds | N/A | NO |
+
+## Delete workflow
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/workflow/{workflowID}` | HTTP/S | DELETE |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| workflowID | string | PATH | Workflow ID | N/A | YES |

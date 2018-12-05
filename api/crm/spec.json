@@ -33,6 +33,137 @@
     ]
   },
   {
+    "title": "Workflows",
+    "description": "CRM workflow definitions",
+    "package": "crm",
+    "entrypoint": "workflow",
+    "path": "/workflow",
+    "authentication": [],
+    "struct": [
+      {
+        "imports": [
+          "github.com/crusttech/crust/crm/types"
+        ]
+      }
+    ],
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "path": "/",
+        "title": "List available workflows"
+      },
+      {
+        "name": "create",
+        "path": "/",
+        "method": "POST",
+        "title": "Create new workflow",
+        "parameters": {
+          "post": [
+            {
+              "type": "string",
+              "name": "name",
+              "required": true,
+              "title": "Workflow name"
+            },
+            {
+              "type": "types.WorkflowTaskSet",
+              "name": "tasks",
+              "required": false,
+              "title": "Type ID"
+            },
+            {
+              "type": "types.WorkflowTaskSet",
+              "name": "onError",
+              "required": false,
+              "title": "Type ID"
+            },
+            {
+              "type": "int",
+              "name": "timeout",
+              "required": false,
+              "title": "Timeout in seconds"
+            }
+          ]
+        }
+      },
+      {
+        "name": "get",
+        "method": "GET",
+        "path": "/{workflowID}",
+        "title": "Get existing workflow details",
+        "parameters": {
+          "path": [
+            {
+              "type": "string",
+              "name": "workflowID",
+              "required": true,
+              "title": "Workflow ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "update",
+        "method": "POST",
+        "path": "/{workflowID}",
+        "title": "Update workflow details",
+        "parameters": {
+          "path": [
+            {
+              "type": "string",
+              "name": "workflowID",
+              "required": true,
+              "title": "Workflow ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "string",
+              "name": "name",
+              "required": true,
+              "title": "Workflow name"
+            },
+            {
+              "type": "types.WorkflowTaskSet",
+              "name": "tasks",
+              "required": false,
+              "title": "Type ID"
+            },
+            {
+              "type": "types.WorkflowTaskSet",
+              "name": "onError",
+              "required": false,
+              "title": "Type ID"
+            },
+            {
+              "type": "int",
+              "name": "timeout",
+              "required": false,
+              "title": "Timeout in seconds"
+            }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "method": "DELETE",
+        "path": "/{workflowID}",
+        "title": "Delete workflow",
+        "parameters": {
+          "path": [
+            {
+              "type": "string",
+              "name": "workflowID",
+              "required": true,
+              "title": "Workflow ID"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
     "title": "Pages",
     "description": "CRM module pages",
     "package": "crm",
