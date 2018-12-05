@@ -11,7 +11,7 @@ import (
 
 var truthy = regexp.MustCompile("^\\s*(t(rue)?|y(es)?|1)\\s*$")
 
-func parseJSONText(s string) (types.JSONText, error) {
+func parseJSONTextWithErr(s string) (types.JSONText, error) {
 	result := &types.JSONText{}
 	err := errors.Wrap(result.Scan(s), "error when parsing JSONText")
 	return *result, err

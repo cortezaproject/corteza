@@ -2,7 +2,7 @@ package types
 
 import "github.com/crusttech/crust/internal/rbac"
 
-/* File is generated from sam/types/permissions/2-team.json  with permissions.go */
+/* File is generated from sam/types/permissions/2-team.json with permissions.go */
 
 func (c *Team) Permissions() []rbac.OperationGroup {
 	return []rbac.OperationGroup{

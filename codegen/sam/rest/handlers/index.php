@@ -19,14 +19,7 @@ foreach ($apis as $api) {
 		$tpl->assign("apis", $apis);
 		$tpl->assign("self", strtolower(substr($name, 0, 1)));
 		$tpl->assign("structs", $api['struct']);
-		$imports = array();
-		if (is_array($api['struct']))
-		foreach ($api['struct'] as $struct) {
-			if (isset($struct['imports']))
-			foreach ($struct['imports'] as $import) {
-				$imports[] = $import;
-			}
-		}
+		$imports = imports($api);
 		$tpl->assign("imports", $imports);
 		$tpl->assign("calls", $api['apis']);
 		$contents = str_replace("\n\n}", "\n}", $tpl->get());

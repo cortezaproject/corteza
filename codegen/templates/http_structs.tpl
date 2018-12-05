@@ -5,8 +5,7 @@ package {package}
 {if !empty($imports)}
 import (
 {foreach ($imports as $import)}
-       "{import}"
-{/foreach}
+	{import}{EOL}{/foreach}
 )
 {/if}
 

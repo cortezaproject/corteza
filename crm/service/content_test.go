@@ -2,8 +2,9 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
+
+	"encoding/json"
 
 	"github.com/pkg/errors"
 
@@ -32,26 +33,23 @@ func TestContent(t *testing.T) {
 	ctx := auth.SetIdentityToContext(context.Background(), auth.NewIdentity(user.Identity()))
 	repository := Content().With(ctx)
 
-	fields, err := json.Marshal([]types.Field{
-		types.Field{
-			Name: "name",
-			Type: "input",
-		},
-		types.Field{
-			Name: "email",
-			Type: "email",
-		},
-		types.Field{
-			Name: "options",
-			Type: "select_multi",
-		},
-	})
-	assert(t, err == nil, "Error when encoding JSON fields: %+v", err)
-
 	module := &types.Module{
 		Name: "Test",
+		Fields: []types.ModuleField{
+			types.ModuleField{
+				Name: "name",
+				Kind: "input",
+			},
+			types.ModuleField{
+				Name: "email",
+				Kind: "email",
+			},
+			types.ModuleField{
+				Name: "options",
+				Kind: "select_multi",
+			},
+		},
 	}
-	(&module.Fields).Scan(fields)
 
 	// set up a module
 	{

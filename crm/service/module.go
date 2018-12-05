@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/crm/repository"
@@ -69,10 +70,19 @@ func (s *module) Chart(r *request.ModuleChart) (interface{}, error) {
 }
 
 func (s *module) Create(mod *types.Module) (*types.Module, error) {
+	if len(mod.Fields) == 0 {
+		return nil, errors.New("Error creating module: no fields")
+	}
 	return s.moduleRepo.Create(mod)
 }
 
 func (s *module) Update(mod *types.Module) (*types.Module, error) {
+	if mod.ID == 0 {
+		return nil, errors.New("Error updating module: invalid ID")
+	}
+	if len(mod.Fields) == 0 {
+		return nil, errors.New("Error updating module: no fields")
+	}
 	return s.moduleRepo.Update(mod)
 }
 
