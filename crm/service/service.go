@@ -5,11 +5,12 @@ import (
 )
 
 var (
-	o              sync.Once
-	DefaultContent ContentService
-	DefaultField   FieldService
-	DefaultModule  ModuleService
-	DefaultPage    PageService
+	o               sync.Once
+	DefaultContent  ContentService
+	DefaultField    FieldService
+	DefaultModule   ModuleService
+	DefaultPage     PageService
+	DefaultWorkflow WorkflowService
 )
 
 func Init() {
@@ -18,5 +19,6 @@ func Init() {
 		DefaultField = Field()
 		DefaultModule = Module()
 		DefaultPage = Page()
+		DefaultWorkflow = Workflow()
 	})
 }
