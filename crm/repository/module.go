@@ -60,27 +60,35 @@ func (r *module) Find() (types.ModuleSet, error) {
 func (r *module) Create(mod *types.Module) (*types.Module, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
-	for idx, v := range mod.Fields {
-		v.ModuleID = mod.ID
-		v.Place = idx
-		if err := r.db().Replace("crm_module_form", v); err != nil {
-			return nil, errors.Wrap(err, "Error adding module fields")
-		}
+
+	if err := r.updateFields(mod.ID, mod.Fields); err != nil {
+		return nil, err
 	}
+
 	return mod, r.db().Insert("crm_module", mod)
 }
 
 func (r *module) Update(mod *types.Module) (*types.Module, error) {
 	now := time.Now()
 	mod.UpdatedAt = &now
-	for idx, v := range mod.Fields {
-		v.ModuleID = mod.ID
+
+	if err := r.updateFields(mod.ID, mod.Fields); err != nil {
+		return nil, err
+	}
+
+	return mod, r.db().Replace("crm_module", mod)
+}
+
+func (r *module) updateFields(moduleID uint64, ff types.ModuleFieldSet) error {
+	for idx, v := range ff {
+		v.ModuleID = moduleID
 		v.Place = idx
 		if err := r.db().Replace("crm_module_form", v); err != nil {
-			return nil, errors.Wrap(err, "Error adding module fields")
+			return errors.Wrap(err, "Error adding module fields")
 		}
 	}
-	return mod, r.db().Replace("crm_module", mod)
+
+	return nil
 }
 
 func (r *module) DeleteByID(id uint64) error {
