@@ -17,20 +17,20 @@ package request
 
 import (
 	"encoding/json"
-	"github.com/crusttech/crust/internal/rbac"
-	"github.com/go-chi/chi"
-	"github.com/jmoiron/sqlx/types"
-	"github.com/pkg/errors"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"strings"
+
+	"github.com/go-chi/chi"
+	"github.com/pkg/errors"
+
+	"github.com/crusttech/crust/crm/types"
+	sqlxTypes "github.com/jmoiron/sqlx/types"
 )
 
 var _ = chi.URLParam
-var _ = types.JSONText{}
 var _ = multipart.FileHeader{}
-var _ = rbac.Operation{}
 
 // Module list request parameters
 type ModuleList struct {
@@ -81,7 +81,7 @@ var _ RequestFiller = NewModuleList()
 // Module create request parameters
 type ModuleCreate struct {
 	Name   string
-	Fields types.JSONText
+	Fields types.ModuleFieldSet
 }
 
 func NewModuleCreate() *ModuleCreate {
@@ -118,12 +118,6 @@ func (m *ModuleCreate) Fill(r *http.Request) (err error) {
 	if val, ok := post["name"]; ok {
 
 		m.Name = val
-	}
-	if val, ok := post["fields"]; ok {
-
-		if m.Fields, err = parseJSONText(val); err != nil {
-			return err
-		}
 	}
 
 	return err
@@ -271,7 +265,7 @@ var _ RequestFiller = NewModuleChart()
 type ModuleEdit struct {
 	ModuleID uint64 `json:",string"`
 	Name     string
-	Fields   types.JSONText
+	Fields   types.ModuleFieldSet
 }
 
 func NewModuleEdit() *ModuleEdit {
@@ -309,12 +303,6 @@ func (m *ModuleEdit) Fill(r *http.Request) (err error) {
 	if val, ok := post["name"]; ok {
 
 		m.Name = val
-	}
-	if val, ok := post["fields"]; ok {
-
-		if m.Fields, err = parseJSONText(val); err != nil {
-			return err
-		}
 	}
 
 	return err
@@ -426,7 +414,7 @@ var _ RequestFiller = NewModuleContentList()
 // Module content/create request parameters
 type ModuleContentCreate struct {
 	ModuleID uint64 `json:",string"`
-	Fields   types.JSONText
+	Fields   sqlxTypes.JSONText
 }
 
 func NewModuleContentCreate() *ModuleContentCreate {
@@ -463,7 +451,7 @@ func (m *ModuleContentCreate) Fill(r *http.Request) (err error) {
 	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 	if val, ok := post["fields"]; ok {
 
-		if m.Fields, err = parseJSONText(val); err != nil {
+		if m.Fields, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
@@ -522,7 +510,7 @@ var _ RequestFiller = NewModuleContentRead()
 type ModuleContentEdit struct {
 	ModuleID  uint64 `json:",string"`
 	ContentID uint64 `json:",string"`
-	Fields    types.JSONText
+	Fields    sqlxTypes.JSONText
 }
 
 func NewModuleContentEdit() *ModuleContentEdit {
@@ -560,7 +548,7 @@ func (m *ModuleContentEdit) Fill(r *http.Request) (err error) {
 	m.ContentID = parseUInt64(chi.URLParam(r, "contentID"))
 	if val, ok := post["fields"]; ok {
 
-		if m.Fields, err = parseJSONText(val); err != nil {
+		if m.Fields, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}

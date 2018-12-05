@@ -63,7 +63,7 @@ CRM module definitions
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | name | string | POST | Module Name | N/A | YES |
-| fields | types.JSONText | POST | Fields JSON | N/A | YES |
+| fields | types.ModuleFieldSet | POST | Fields JSON | N/A | YES |
 
 ## Read module
 
@@ -302,7 +302,7 @@ Example bar chart with number of leads per country: select lead.country from lea
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 | name | string | POST | Module Name | N/A | YES |
-| fields | types.JSONText | POST | Fields JSON | N/A | YES |
+| fields | types.ModuleFieldSet | POST | Fields JSON | N/A | YES |
 
 ## Delete module
 
@@ -348,7 +348,7 @@ Example bar chart with number of leads per country: select lead.country from lea
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
-| fields | types.JSONText | POST | Content JSON | N/A | YES |
+| fields | sqlxTypes.JSONText | POST | Content JSON | N/A | YES |
 
 ## Read contents by ID from module section
 
@@ -379,7 +379,7 @@ Example bar chart with number of leads per country: select lead.country from lea
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 | contentID | uint64 | PATH | Content ID | N/A | YES |
-| fields | types.JSONText | POST | Content JSON | N/A | YES |
+| fields | sqlxTypes.JSONText | POST | Content JSON | N/A | YES |
 
 ## Delete content row from module section
 
@@ -434,7 +434,7 @@ CRM module pages
 | title | string | POST | Title | N/A | YES |
 | description | string | POST | Description | N/A | NO |
 | visible | bool | POST | Visible in navigation | N/A | NO |
-| blocks | types.JSONText | POST | Blocks JSON | N/A | YES |
+| blocks | sqlxTypes.JSONText | POST | Blocks JSON | N/A | YES |
 
 ## Get page details
 
@@ -481,7 +481,7 @@ CRM module pages
 | title | string | POST | Title | N/A | YES |
 | description | string | POST | Description | N/A | NO |
 | visible | bool | POST | Visible in navigation | N/A | NO |
-| blocks | types.JSONText | POST | Blocks JSON | N/A | YES |
+| blocks | sqlxTypes.JSONText | POST | Blocks JSON | N/A | YES |
 
 ## Reorder pages
 

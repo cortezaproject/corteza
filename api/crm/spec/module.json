@@ -5,72 +5,10 @@
   "Interface": "Module",
   "Struct": [
     {
-      "fields": [
-        {
-          "name": "ID",
-          "type": "uint64"
-        },
-        {
-          "name": "Name",
-          "type": "string"
-        },
-        {
-          "db": "json",
-          "json": "fields",
-          "name": "Fields",
-          "type": "types.JSONText"
-        }
-      ],
       "imports": [
-        "github.com/jmoiron/sqlx/types"
-      ],
-      "name": "Module"
-    },
-    {
-      "fields": [
-        {
-          "name": "Name",
-          "type": "string"
-        },
-        {
-          "name": "Title",
-          "type": "string"
-        },
-        {
-          "name": "Kind",
-          "type": "string"
-        },
-        {
-          "name": "GDPR",
-          "type": "bool"
-        },
-        {
-          "name": "Show",
-          "type": "bool"
-        }
-      ],
-      "name": "ModuleField"
-    },
-    {
-      "fields": [
-        {
-          "name": "ID",
-          "type": "uint64"
-        },
-        {
-          "name": "moduleID",
-          "type": "uint64"
-        },
-        {
-          "db": "json",
-          "name": "Fields",
-          "type": "types.JSONText"
-        }
-      ],
-      "imports": [
-        "github.com/jmoiron/sqlx/types"
-      ],
-      "name": "Content"
+        "sqlxTypes github.com/jmoiron/sqlx/types",
+        "github.com/crusttech/crust/crm/types"
+      ]
     }
   ],
   "Parameters": null,
@@ -111,7 +49,7 @@
             "name": "fields",
             "required": true,
             "title": "Fields JSON",
-            "type": "types.JSONText"
+            "type": "types.ModuleFieldSet"
           }
         ]
       }
@@ -235,7 +173,7 @@
             "name": "fields",
             "required": true,
             "title": "Fields JSON",
-            "type": "types.JSONText"
+            "type": "types.ModuleFieldSet"
           }
         ]
       }
@@ -311,7 +249,7 @@
             "name": "fields",
             "required": true,
             "title": "Content JSON",
-            "type": "types.JSONText"
+            "type": "sqlxTypes.JSONText"
           }
         ]
       }
@@ -363,7 +301,7 @@
             "name": "fields",
             "required": true,
             "title": "Content JSON",
-            "type": "types.JSONText"
+            "type": "sqlxTypes.JSONText"
           }
         ]
       }

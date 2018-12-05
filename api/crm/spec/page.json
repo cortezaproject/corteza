@@ -3,7 +3,13 @@
   "Description": "CRM module pages",
   "Package": "crm",
   "Interface": "Page",
-  "Struct": [],
+  "Struct": [
+    {
+      "imports": [
+        "sqlxTypes github.com/jmoiron/sqlx/types"
+      ]
+    }
+  ],
   "Parameters": null,
   "Protocol": "",
   "Authentication": [],
@@ -66,7 +72,7 @@
             "name": "blocks",
             "required": true,
             "title": "Blocks JSON",
-            "type": "types.JSONText"
+            "type": "sqlxTypes.JSONText"
           }
         ]
       }
@@ -143,7 +149,7 @@
             "name": "blocks",
             "required": true,
             "title": "Blocks JSON",
-            "type": "types.JSONText"
+            "type": "sqlxTypes.JSONText"
           }
         ]
       }

@@ -38,9 +38,27 @@ function array_change_key_case_recursive($arr) {
 	}, array_change_key_case($arr));
 }
 
+function imports($api) {
+	$imports = array();
+	if (is_array($api['struct']))
+	foreach ($api['struct'] as $struct) {
+		if (isset($struct['imports']))
+		foreach ($struct['imports'] as $import) {
+			$import = explode(" ", $import);
+			if (count($import) == 1) {
+				$imports[] = '"' . $import[0] . '"';
+			} else {
+				$imports[] = $import[0] . ' "' . $import[1] . '"';
+			}
+		}
+	}
+	return array_unique($imports);
+}
+
 $tpl = new Monotek\MiniTPL\Template;
 $tpl->set_compile_location("/tmp", true);
 $tpl->add_default("newline", "\n");
+$tpl->add_default("EOL", "\n");
 
 $generators = array();
 exec("find -L " . __DIR__ . "/" . $project . " -name index.php", $generators);
@@ -81,7 +99,7 @@ $parsers = array(
 	"[]uint64" => "parseUInt64A",
 	"int" => "parseInt",
 	"bool" => "parseBool",
-	"types.JSONText" => "parseJSONText",
+	"sqlxTypes.JSONText" => "parseJSONTextWithErr",
 );
 
 foreach ($generators as $generator) {

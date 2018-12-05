@@ -17,20 +17,19 @@ package request
 
 import (
 	"encoding/json"
-	"github.com/crusttech/crust/internal/rbac"
-	"github.com/go-chi/chi"
-	"github.com/jmoiron/sqlx/types"
-	"github.com/pkg/errors"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"strings"
+
+	"github.com/go-chi/chi"
+	"github.com/pkg/errors"
+
+	"github.com/crusttech/crust/internal/rbac"
 )
 
 var _ = chi.URLParam
-var _ = types.JSONText{}
 var _ = multipart.FileHeader{}
-var _ = rbac.Operation{}
 
 // Permissions list request parameters
 type PermissionsList struct {

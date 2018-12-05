@@ -17,20 +17,19 @@ package request
 
 import (
 	"encoding/json"
-	"github.com/crusttech/crust/internal/rbac"
-	"github.com/go-chi/chi"
-	"github.com/jmoiron/sqlx/types"
-	"github.com/pkg/errors"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"strings"
+
+	"github.com/go-chi/chi"
+	"github.com/pkg/errors"
+
+	sqlxTypes "github.com/jmoiron/sqlx/types"
 )
 
 var _ = chi.URLParam
-var _ = types.JSONText{}
 var _ = multipart.FileHeader{}
-var _ = rbac.Operation{}
 
 // User list request parameters
 type UserList struct {
@@ -86,7 +85,7 @@ type UserCreate struct {
 	Name           string
 	Handle         string
 	Kind           string
-	Meta           types.JSONText
+	Meta           sqlxTypes.JSONText
 	SatosaID       string
 	OrganisationID uint64 `json:",string"`
 }
@@ -148,7 +147,7 @@ func (u *UserCreate) Fill(r *http.Request) (err error) {
 	}
 	if val, ok := post["meta"]; ok {
 
-		if u.Meta, err = parseJSONText(val); err != nil {
+		if u.Meta, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
@@ -175,7 +174,7 @@ type UserEdit struct {
 	Name           string
 	Handle         string
 	Kind           string
-	Meta           types.JSONText
+	Meta           sqlxTypes.JSONText
 	SatosaID       string
 	OrganisationID uint64 `json:",string"`
 }
@@ -238,7 +237,7 @@ func (u *UserEdit) Fill(r *http.Request) (err error) {
 	}
 	if val, ok := post["meta"]; ok {
 
-		if u.Meta, err = parseJSONText(val); err != nil {
+		if u.Meta, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}

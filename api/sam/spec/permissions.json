@@ -2,7 +2,13 @@
   "Title": "Permissions",
   "Package": "sam",
   "Interface": "Permissions",
-  "Struct": null,
+  "Struct": [
+    {
+      "imports": [
+        "github.com/crusttech/crust/internal/rbac"
+      ]
+    }
+  ],
   "Parameters": {},
   "Protocol": "",
   "Authentication": [
