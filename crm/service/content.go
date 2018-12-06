@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
@@ -82,11 +83,28 @@ func (s *content) Create(mod *types.Content) (*types.Content, error) {
 	return response, s.preload(response, "user", "fields")
 }
 
-func (s *content) Update(mod *types.Content) (*types.Content, error) {
-	if mod.ID == 0 {
-		return nil, errors.New("Error when saving content, invalid ID")
+func (s *content) Update(content *types.Content) (c *types.Content, err error) {
+	validate := func() error {
+		if content.ID == 0 {
+			return errors.New("Error updating content: invalid ID")
+		} else if c, err = s.repository.FindByID(content.ID); err != nil {
+			return errors.Wrap(err, "Error while loading content for update")
+		} else {
+			content.CreatedAt = c.CreatedAt
+		}
+
+		return nil
 	}
-	return s.repository.Update(mod)
+
+	if err = validate(); err != nil {
+		return nil, err
+	}
+
+	return c, s.db.Transaction(func() (err error) {
+		spew.Dump(content)
+		c, err = s.repository.Update(content)
+		return
+	})
 }
 
 func (s *content) Fields(mod *types.Content) ([]*types.ContentColumn, error) {
