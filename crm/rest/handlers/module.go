@@ -33,6 +33,7 @@ type ModuleAPI interface {
 	Chart(context.Context, *request.ModuleChart) (interface{}, error)
 	Edit(context.Context, *request.ModuleEdit) (interface{}, error)
 	Delete(context.Context, *request.ModuleDelete) (interface{}, error)
+	ContentReport(context.Context, *request.ModuleContentReport) (interface{}, error)
 	ContentList(context.Context, *request.ModuleContentList) (interface{}, error)
 	ContentCreate(context.Context, *request.ModuleContentCreate) (interface{}, error)
 	ContentRead(context.Context, *request.ModuleContentRead) (interface{}, error)
@@ -48,6 +49,7 @@ type Module struct {
 	Chart         func(http.ResponseWriter, *http.Request)
 	Edit          func(http.ResponseWriter, *http.Request)
 	Delete        func(http.ResponseWriter, *http.Request)
+	ContentReport func(http.ResponseWriter, *http.Request)
 	ContentList   func(http.ResponseWriter, *http.Request)
 	ContentCreate func(http.ResponseWriter, *http.Request)
 	ContentRead   func(http.ResponseWriter, *http.Request)
@@ -99,6 +101,13 @@ func NewModule(mh ModuleAPI) *Module {
 				return mh.Delete(r.Context(), params)
 			})
 		},
+		ContentReport: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewModuleContentReport()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return mh.ContentReport(r.Context(), params)
+			})
+		},
 		ContentList: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewModuleContentList()
@@ -147,6 +156,7 @@ func (mh *Module) MountRoutes(r chi.Router, middlewares ...func(http.Handler) ht
 			r.Get("/{moduleID}/chart", mh.Chart)
 			r.Post("/{moduleID}", mh.Edit)
 			r.Delete("/{moduleID}", mh.Delete)
+			r.Get("/{moduleID}/report", mh.ContentReport)
 			r.Get("/{moduleID}/content", mh.ContentList)
 			r.Post("/{moduleID}/content", mh.ContentCreate)
 			r.Get("/{moduleID}/content/{contentID}", mh.ContentRead)

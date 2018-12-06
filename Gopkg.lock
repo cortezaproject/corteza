@@ -170,6 +170,22 @@
   version = "v1.3.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:a7fc52742a5d011497b6a24024c857d260f809083424cd84110c9e40c34f64fc"
+  name = "github.com/lann/builder"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "47ae307949d02aa1f1069fdafc00ca08e1dbabac"
+
+[[projects]]
+  branch = "master"
+  digest = "1:225499d25a9f1486f3b77cdc4f7d6590c506c3839bb9d8497113f6d19676d54a"
+  name = "github.com/lann/ps"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "62de8c46ede02a7675c4c79c84883eb164cb71e3"
+
+[[projects]]
   digest = "1:8ef506fc2bb9ced9b151dafa592d4046063d744c646c1bbe801982ce87e4bc24"
   name = "github.com/lib/pq"
   packages = [
