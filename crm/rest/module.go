@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"strings"
 
 	"github.com/titpetric/factory/resputil"
 
@@ -52,6 +53,14 @@ func (s *Module) Edit(ctx context.Context, r *request.ModuleEdit) (interface{}, 
 		Fields: r.Fields,
 	}
 	return s.module.With(ctx).Update(item)
+}
+
+func (s *Module) ContentReport(ctx context.Context, r *request.ModuleContentReport) (interface{}, error) {
+	reportParams := &types.ContentReport{}
+
+	reportParams.ScanMetrics(strings.Split(r.Metrics, ",")...)
+	reportParams.ScanDimensions(strings.Split(r.Dimensions, ",")...)
+	return s.content.With(ctx).Report(r.ModuleID, reportParams)
 }
 
 func (s *Module) ContentList(ctx context.Context, r *request.ModuleContentList) (interface{}, error) {

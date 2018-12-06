@@ -353,6 +353,59 @@ func (m *ModuleDelete) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewModuleDelete()
 
+// Module content/report request parameters
+type ModuleContentReport struct {
+	Metrics    string
+	Dimensions string
+	ModuleID   uint64 `json:",string"`
+}
+
+func NewModuleContentReport() *ModuleContentReport {
+	return &ModuleContentReport{}
+}
+
+func (m *ModuleContentReport) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(m)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	if val, ok := get["metrics"]; ok {
+
+		m.Metrics = val
+	}
+	if val, ok := get["dimensions"]; ok {
+
+		m.Dimensions = val
+	}
+	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
+
+	return err
+}
+
+var _ RequestFiller = NewModuleContentReport()
+
 // Module content/list request parameters
 type ModuleContentList struct {
 	Query    string

@@ -420,6 +420,22 @@ Example bar chart with number of leads per country: select lead.country from lea
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
+## Generates report from module records
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/module/{moduleID}/report` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| metrics | string | GET | Metrics (syntax: alias:expression;...) | N/A | YES |
+| dimensions | string | GET | Dimensions (syntax: alias:field|modifier|modifier2;...) | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
+
 ## List/read contents from module section
 
 #### Method

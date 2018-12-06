@@ -195,6 +195,36 @@
       }
     },
     {
+      "Name": "content/report",
+      "Method": "GET",
+      "Title": "Generates report from module records",
+      "Path": "/{moduleID}/report",
+      "Parameters": {
+        "get": [
+          {
+            "name": "metrics",
+            "required": true,
+            "title": "Metrics (syntax: alias:expression;...)",
+            "type": "string"
+          },
+          {
+            "name": "dimensions",
+            "required": true,
+            "title": "Dimensions (syntax: alias:field|modifier|modifier2;...)",
+            "type": "string"
+          }
+        ],
+        "path": [
+          {
+            "name": "moduleID",
+            "required": true,
+            "title": "Module ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
       "Name": "content/list",
       "Method": "GET",
       "Title": "List/read contents from module section",
