@@ -13,7 +13,7 @@ import (
 	"github.com/crusttech/crust/system/service"
 )
 
-func MountRoutes(oidcConfig *config.OIDC, jwtEncoder auth.TokenEncoder) func(chi.Router) {
+func MountRoutes(oidcConfig *config.OIDC, socialConfig *config.Social, jwtEncoder auth.TokenEncoder) func(chi.Router) {
 	var err error
 	var userSvc = service.User()
 	var ctx = context.Background()
@@ -36,6 +36,8 @@ func MountRoutes(oidcConfig *config.OIDC, jwtEncoder auth.TokenEncoder) func(chi
 				r.Get("/callback", oidc.HandleOAuth2Callback)
 			})
 		}
+
+		NewSocial(socialConfig, jwtEncoder).MountRoutes(r)
 
 		// Provide raw `/auth` handlers
 		Auth{}.New().Handlers(jwtEncoder).MountRoutes(r)

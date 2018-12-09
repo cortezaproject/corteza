@@ -13,7 +13,7 @@ type (
 		monitor *config.Monitor
 		db      *config.Database
 		oidc    *config.OIDC
-		//jwt   *config.JWT
+		social  *config.Social
 	}
 )
 
@@ -57,6 +57,6 @@ func Flags(prefix ...string) {
 		new(config.Monitor).Init(prefix...),
 		new(config.Database).Init(prefix...),
 		new(config.OIDC).Init(prefix...),
-		//new(config.JWT).Init(prefix...),
+		new(config.Social).Init(prefix...),
 	}
 }
