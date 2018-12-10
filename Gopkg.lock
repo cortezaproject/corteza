@@ -139,6 +139,38 @@
   version = "v2.0.0"
 
 [[projects]]
+  digest = "1:c79fb010be38a59d657c48c6ba1d003a8aa651fa56b579d959d74573b7dff8e1"
+  name = "github.com/gorilla/context"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
+  version = "v1.1.1"
+
+[[projects]]
+  digest = "1:e73f5b0152105f18bc131fba127d9949305c8693f8a762588a82a48f61756f5f"
+  name = "github.com/gorilla/mux"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+  version = "v1.6.2"
+
+[[projects]]
+  digest = "1:e72d1ebb8d395cf9f346fd9cbc652e5ae222dd85e0ac842dc57f175abed6d195"
+  name = "github.com/gorilla/securecookie"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "e59506cc896acb7f7bf732d4fdf5e25f7ccd8983"
+  version = "v1.1.1"
+
+[[projects]]
+  digest = "1:e5bf52fd66a2e984b57b4c0f2c4ee024ed749a19886246240629998dc0cf31ce"
+  name = "github.com/gorilla/sessions"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "f57b7e2d29c6211d16ffa52a0998272f75799030"
+  version = "v1.1.3"
+
+[[projects]]
   digest = "1:7b5c6e2eeaa9ae5907c391a91c132abfd5c9e8a784a341b5625e750c67e6825d"
   name = "github.com/gorilla/websocket"
   packages = ["."]
@@ -195,6 +227,21 @@
   pruneopts = "UT"
   revision = "4ded0e9383f75c197b3a2aaa6d590ac52df6fd79"
   version = "v1.0.0"
+
+[[projects]]
+  digest = "1:b756f004cafbb7631e9eb078af2e6817bd37e274fa21678ede3bcb54d6ae2006"
+  name = "github.com/markbates/goth"
+  packages = [
+    ".",
+    "gothic",
+    "providers/facebook",
+    "providers/github",
+    "providers/gplus",
+    "providers/linkedin",
+  ]
+  pruneopts = "UT"
+  revision = "bc6d8ddf751a745f37ca5567dbbfc4157bbf5da9"
+  version = "v1.47.2"
 
 [[projects]]
   digest = "1:ff5ebae34cfbf047d505ee150de27e60570e8c394b3b8fdbb720ff6ac71985fc"
@@ -475,11 +522,18 @@
     "github.com/go-chi/jwtauth",
     "github.com/golang/mock/gomock",
     "github.com/gomodule/redigo/redis",
+    "github.com/gorilla/sessions",
     "github.com/gorilla/websocket",
     "github.com/jmoiron/sqlx",
     "github.com/jmoiron/sqlx/types",
     "github.com/joho/godotenv",
     "github.com/joho/godotenv/autoload",
+    "github.com/markbates/goth",
+    "github.com/markbates/goth/gothic",
+    "github.com/markbates/goth/providers/facebook",
+    "github.com/markbates/goth/providers/github",
+    "github.com/markbates/goth/providers/gplus",
+    "github.com/markbates/goth/providers/linkedin",
     "github.com/namsral/flag",
     "github.com/pkg/errors",
     "github.com/prometheus/client_golang/prometheus",
