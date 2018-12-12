@@ -29,7 +29,7 @@ var (
 )
 
 func init() {
-	contentReportMetricScanRE = regexp.MustCompile("^(?:(\\w+):)?(\\w+)$")
+	contentReportMetricScanRE = regexp.MustCompile("^(?:(\\w+):)?(.+)$")
 	contentReportDimensionScanRE = regexp.MustCompile("^(?:(\\w+):)?(\\w+)((?:\\|?\\w+)+)?$")
 }
 
