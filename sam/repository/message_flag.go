@@ -63,6 +63,10 @@ func (r *messageFlag) FindByFlag(messageID, userID uint64, flag string) (*types.
 func (r *messageFlag) FindByMessageIDs(IDs ...uint64) ([]*types.MessageFlag, error) {
 	rval := make([]*types.MessageFlag, 0)
 
+	if len(IDs) == 0 {
+		return rval, nil
+	}
+
 	sql := `SELECT * FROM message_flags WHERE rel_message IN (?)`
 
 	if sql, args, err := sqlx.In(sql, IDs); err != nil {
