@@ -199,6 +199,10 @@ func (r *message) PrefillThreadParticipants(mm types.MessageSet) error {
 		UserID  uint64 `db:"rel_user"`
 	}{}
 
+	if len(mm) == 0 {
+		return nil
+	}
+
 	if sql, args, err := sqlx.In(sqlThreadParticipantsByMessageID, mm.IDs()); err != nil {
 		return err
 	} else if err = r.db().Select(&rval, sql, args...); err != nil {
