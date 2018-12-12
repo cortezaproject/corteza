@@ -107,7 +107,9 @@ func (s *page) Tree() (pages types.PageSet, err error) {
 
 				c.Children = append(c.Children, p)
 			} else {
-				// Ignore orphans :(
+				// Move orphans to root
+				p.SelfID = 0
+				tree = append(tree, p)
 			}
 
 			return nil
