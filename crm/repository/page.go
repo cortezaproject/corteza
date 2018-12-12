@@ -68,9 +68,8 @@ func (r *page) FindBySelfID(selfID uint64) (types.PageSet, error) {
 	return pages, nil
 }
 
-// Find returns all of non-record pages
 func (r *page) Find() (set types.PageSet, err error) {
-	return set, r.db().Select(&set, "SELECT * FROM crm_page WHERE module_id = 0 ORDER BY self_id, weight ASC")
+	return set, r.db().Select(&set, "SELECT * FROM crm_page ORDER BY self_id, weight ASC")
 }
 
 func (r *page) Reorder(selfID uint64, pageIDs []uint64) error {
