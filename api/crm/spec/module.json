@@ -117,7 +117,7 @@
       }
     },
     {
-      "Name": "content/report",
+      "Name": "record/report",
       "Method": "GET",
       "Title": "Generates report from module records",
       "Path": "/{moduleID}/report",
@@ -147,10 +147,10 @@
       }
     },
     {
-      "Name": "content/list",
+      "Name": "record/list",
       "Method": "GET",
-      "Title": "List/read contents from module section",
-      "Path": "/{moduleID}/content",
+      "Title": "List/read records from module section",
+      "Path": "/{moduleID}/record",
       "Parameters": {
         "get": [
           {
@@ -189,10 +189,10 @@
       }
     },
     {
-      "Name": "content/create",
+      "Name": "record/create",
       "Method": "POST",
-      "Title": "List/read contents from module section",
-      "Path": "/{moduleID}/content",
+      "Title": "Create record in module section",
+      "Path": "/{moduleID}/record",
       "Parameters": {
         "path": [
           {
@@ -206,17 +206,17 @@
           {
             "name": "fields",
             "required": true,
-            "title": "Content JSON",
+            "title": "Record JSON",
             "type": "sqlxTypes.JSONText"
           }
         ]
       }
     },
     {
-      "Name": "content/read",
+      "Name": "record/read",
       "Method": "GET",
-      "Title": "Read contents by ID from module section",
-      "Path": "/{moduleID}/content/{contentID}",
+      "Title": "Read records by ID from module section",
+      "Path": "/{moduleID}/record/{recordID}",
       "Parameters": {
         "path": [
           {
@@ -226,19 +226,19 @@
             "type": "uint64"
           },
           {
-            "name": "contentID",
+            "name": "recordID",
             "required": true,
-            "title": "Content ID",
+            "title": "Record ID",
             "type": "uint64"
           }
         ]
       }
     },
     {
-      "Name": "content/edit",
+      "Name": "record/edit",
       "Method": "POST",
-      "Title": "Add/update contents in module section",
-      "Path": "/{moduleID}/content/{contentID}",
+      "Title": "Add/update records in module section",
+      "Path": "/{moduleID}/record/{recordID}",
       "Parameters": {
         "path": [
           {
@@ -248,9 +248,9 @@
             "type": "uint64"
           },
           {
-            "name": "contentID",
+            "name": "recordID",
             "required": true,
-            "title": "Content ID",
+            "title": "Record ID",
             "type": "uint64"
           }
         ],
@@ -258,17 +258,17 @@
           {
             "name": "fields",
             "required": true,
-            "title": "Content JSON",
+            "title": "Record JSON",
             "type": "sqlxTypes.JSONText"
           }
         ]
       }
     },
     {
-      "Name": "content/delete",
+      "Name": "record/delete",
       "Method": "DELETE",
-      "Title": "Delete content row from module section",
-      "Path": "/{moduleID}/content/{contentID}",
+      "Title": "Delete record row from module section",
+      "Path": "/{moduleID}/record/{recordID}",
       "Parameters": {
         "path": [
           {
@@ -278,9 +278,9 @@
             "type": "uint64"
           },
           {
-            "name": "contentID",
+            "name": "recordID",
             "required": true,
-            "title": "Content ID",
+            "title": "Record ID",
             "type": "uint64"
           }
         ]
