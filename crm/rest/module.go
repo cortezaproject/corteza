@@ -54,7 +54,7 @@ func (s *Module) Edit(ctx context.Context, r *request.ModuleEdit) (interface{}, 
 	return s.module.With(ctx).Update(item)
 }
 
-func (s *Module) ContentReport(ctx context.Context, r *request.ModuleContentReport) (interface{}, error) {
+func (s *Module) RecordReport(ctx context.Context, r *request.ModuleRecordReport) (interface{}, error) {
 	reportParams := &types.ContentReport{}
 
 	if strings.TrimSpace(r.Metrics) != "" {
@@ -68,15 +68,15 @@ func (s *Module) ContentReport(ctx context.Context, r *request.ModuleContentRepo
 	return s.content.With(ctx).Report(r.ModuleID, reportParams)
 }
 
-func (s *Module) ContentList(ctx context.Context, r *request.ModuleContentList) (interface{}, error) {
+func (s *Module) RecordList(ctx context.Context, r *request.ModuleRecordList) (interface{}, error) {
 	return s.content.With(ctx).Find(r.ModuleID, r.Query, r.Page, r.PerPage, r.Sort)
 }
 
-func (s *Module) ContentRead(ctx context.Context, r *request.ModuleContentRead) (interface{}, error) {
-	return s.content.With(ctx).FindByID(r.ContentID)
+func (s *Module) RecordRead(ctx context.Context, r *request.ModuleRecordRead) (interface{}, error) {
+	return s.content.With(ctx).FindByID(r.RecordID)
 }
 
-func (s *Module) ContentCreate(ctx context.Context, r *request.ModuleContentCreate) (interface{}, error) {
+func (s *Module) RecordCreate(ctx context.Context, r *request.ModuleRecordCreate) (interface{}, error) {
 	item := &types.Content{
 		ModuleID: r.ModuleID,
 		Fields:   r.Fields,
@@ -84,15 +84,15 @@ func (s *Module) ContentCreate(ctx context.Context, r *request.ModuleContentCrea
 	return s.content.With(ctx).Create(item)
 }
 
-func (s *Module) ContentEdit(ctx context.Context, r *request.ModuleContentEdit) (interface{}, error) {
+func (s *Module) RecordEdit(ctx context.Context, r *request.ModuleRecordEdit) (interface{}, error) {
 	item := &types.Content{
-		ID:       r.ContentID,
+		ID:       r.RecordID,
 		ModuleID: r.ModuleID,
 		Fields:   r.Fields,
 	}
 	return s.content.With(ctx).Update(item)
 }
 
-func (s *Module) ContentDelete(ctx context.Context, r *request.ModuleContentDelete) (interface{}, error) {
-	return resputil.OK(), s.content.With(ctx).DeleteByID(r.ContentID)
+func (s *Module) RecordDelete(ctx context.Context, r *request.ModuleRecordDelete) (interface{}, error) {
+	return resputil.OK(), s.content.With(ctx).DeleteByID(r.RecordID)
 }
