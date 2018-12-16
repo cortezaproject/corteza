@@ -17,9 +17,8 @@ package handlers
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/go-chi/chi"
+	"net/http"
 
 	"github.com/titpetric/factory/resputil"
 
@@ -46,7 +45,6 @@ type Module struct {
 	List         func(http.ResponseWriter, *http.Request)
 	Create       func(http.ResponseWriter, *http.Request)
 	Read         func(http.ResponseWriter, *http.Request)
-	Chart        func(http.ResponseWriter, *http.Request)
 	Edit         func(http.ResponseWriter, *http.Request)
 	Delete       func(http.ResponseWriter, *http.Request)
 	RecordReport func(http.ResponseWriter, *http.Request)

@@ -61,7 +61,7 @@ func (r *content) With(ctx context.Context, db *factory.DB) ContentRepository {
 
 func (r *content) FindByID(id uint64) (*types.Content, error) {
 	mod := &types.Content{}
-	if err := r.db().Get(mod, "SELECT * FROM crm_content WHERE id=? and deleted_at IS NULL", id); err != nil {
+	if err := r.db().Get(mod, "SELECT * FROM crm_record WHERE id=? and deleted_at IS NULL", id); err != nil {
 		return nil, err
 	}
 	return mod, nil
@@ -110,8 +110,8 @@ func (r *content) Find(moduleID uint64, query string, page int, perPage int, sor
 
 	query = "%" + query + "%"
 
-	sqlSelect := "SELECT * FROM crm_content"
-	sqlCount := "SELECT count(*) FROM crm_content"
+	sqlSelect := "SELECT * FROM crm_record"
+	sqlCount := "SELECT count(*) FROM crm_record"
 	sqlWhere := "WHERE module_id=? and deleted_at IS NULL"
 	sqlOrder := "ORDER BY id DESC"
 	sqlLimit := fmt.Sprintf("LIMIT %d, %d", page*perPage, perPage)
@@ -183,20 +183,20 @@ func (r *content) Find(moduleID uint64, query string, page int, perPage int, sor
 	}
 
 	// One possibility to order by field value without JSON, is query written bellow with FIELD over column names and order by value:
-	// SELECT * FROM crm_content
-	// LEFT JOIN crm_content_column ON crm_content.id = crm_content_column.content_id"
+	// SELECT * FROM crm_record
+	// LEFT JOIN crm_record ON crm_record.id = crm_record_column.record_id"
 	// WHERE column_name in ('name', 'email')
 	// ORDER BY FIELD(column_name, 'email', 'name'), column_value;
 
 	// Possibility to order with JSON:
 	// SELECT *,
 	// JSON_UNQUOTE(JSON_EXTRACT(json, REPLACE(JSON_UNQUOTE(JSON_SEARCH(json, 'all', 'email')), '.name', '.value'))) as emailField
-	// FROM crm_content
+	// FROM crm_record
 	// ORDER by emailField asc;
 
 	switch true {
 	case query != "":
-		sqlWhere = sqlWhere + " AND id in (select distinct content_id from crm_content_column where column_value like ?)"
+		sqlWhere = sqlWhere + " AND id in (select distinct record_id from crm_record_column where column_value like ?)"
 		if err := r.db().Get(&response.Meta.Count, sqlCount+" "+sqlWhere, moduleID, query); err != nil {
 			return nil, err
 		}
@@ -225,10 +225,10 @@ func (r *content) Create(mod *types.Content) (*types.Content, error) {
 		return nil, errors.Wrap(err, "No content")
 	}
 
-	r.db().Exec("delete from crm_content_links where content_id=?", mod.ID)
+	r.db().Exec("delete from crm_record_links where record_id=?", mod.ID)
 	for _, v := range fields {
 		v.ContentID = mod.ID
-		if err := r.db().Replace("crm_content_column", v); err != nil {
+		if err := r.db().Replace("crm_record_column", v); err != nil {
 			return nil, errors.Wrap(err, "Error adding columns")
 		}
 		for _, related := range v.Related {
@@ -237,13 +237,13 @@ func (r *content) Create(mod *types.Content) (*types.Content, error) {
 				Name:             v.Name,
 				RelatedContentID: related,
 			}
-			if err := r.db().Replace("crm_content_links", row); err != nil {
+			if err := r.db().Replace("crm_record_links", row); err != nil {
 				return nil, errors.Wrap(err, "Error adding column links")
 			}
 		}
 	}
 
-	if err := r.db().Insert("crm_content", mod); err != nil {
+	if err := r.db().Insert("crm_record", mod); err != nil {
 		return nil, err
 	}
 	return mod, nil
@@ -258,10 +258,10 @@ func (r *content) Update(mod *types.Content) (*types.Content, error) {
 		return nil, errors.Wrap(err, "Error when saving content, no content")
 	}
 
-	r.db().Exec("delete from crm_content_links where content_id=?", mod.ID)
+	r.db().Exec("delete from crm_record_links where record_id=?", mod.ID)
 	for _, v := range fields {
 		v.ContentID = mod.ID
-		if err := r.db().Replace("crm_content_column", v); err != nil {
+		if err := r.db().Replace("crm_record_column", v); err != nil {
 			return nil, errors.Wrap(err, "Error adding columns to database")
 		}
 		for _, related := range v.Related {
@@ -270,17 +270,17 @@ func (r *content) Update(mod *types.Content) (*types.Content, error) {
 				Name:             v.Name,
 				RelatedContentID: related,
 			}
-			if err := r.db().Replace("crm_content_links", row); err != nil {
+			if err := r.db().Replace("crm_record_links", row); err != nil {
 				return nil, errors.Wrap(err, "Error adding column links")
 			}
 		}
 	}
 
-	return mod, r.db().Replace("crm_content", mod)
+	return mod, r.db().Replace("crm_record", mod)
 }
 
 func (r *content) DeleteByID(id uint64) error {
-	_, err := r.db().Exec("update crm_content set deleted_at=? where id=?", time.Now(), id)
+	_, err := r.db().Exec("update crm_record set deleted_at=? where id=?", time.Now(), id)
 	return err
 }
 
@@ -308,5 +308,5 @@ func (r *content) Fields(content *types.Content) ([]*types.ContentColumn, error)
 	for _, v := range fieldNames {
 		args = append(args, v)
 	}
-	return result, r.db().Select(&result, "select * FROM crm_content_column where content_id=? order by "+order, args...)
+	return result, r.db().Select(&result, "select * FROM crm_record_column where record_id=? order by "+order, args...)
 }
