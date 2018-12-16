@@ -96,11 +96,11 @@ func (b *contentReportBuilder) Build() (sql string, args []interface{}, err erro
 	report := squirrel.
 		Select().
 		Column(squirrel.Alias(squirrel.Expr("COUNT(*)"), "count")).
-		From("crm_content").
+		From("crm_record").
 		Where("module_id = ?", b.moduleID)
 
 	if b.params == nil {
-		return "", nil, errors.New("Can not generate report without parameters")
+		return "", nil, errors.New("can not generate report without parameters")
 	}
 
 	for i, m := range b.params.Metrics {
