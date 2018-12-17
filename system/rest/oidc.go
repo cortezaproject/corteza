@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -11,12 +12,13 @@ import (
 	"github.com/titpetric/factory/resputil"
 	"golang.org/x/oauth2"
 
+	"github.com/crusttech/go-oidc"
+
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/config"
 	"github.com/crusttech/crust/system/repository"
 	"github.com/crusttech/crust/system/service"
 	"github.com/crusttech/crust/system/types"
-	"github.com/crusttech/go-oidc"
 )
 
 const DB_SETTINGS_KEY_OIDC_CLIENT = "oidc-client"
@@ -77,13 +79,19 @@ func OpenIdConnect(ctx context.Context, cfg *config.OIDC, usvc service.UserServi
 
 		if found, err := settings.Get(DB_SETTINGS_KEY_OIDC_CLIENT, client); err != nil {
 			return nil, errors.Wrap(err, "could not load oidc client settings from the database")
-		} else if !found {
+		} else if !found || client == nil {
+			log.Printf("OIDC client not found, registering new")
+
 			// Perform dynamic client registration
 			client, err = c.provider.RegisterClient(ctx, &oidc.ClientRegistration{
 				Name:          "Crust",
 				RedirectURIs:  []string{cfg.RedirectURL},
 				ResponseTypes: []string{"token id_token", "code"},
 			})
+
+			if err != nil {
+				return nil, errors.Wrap(err, "could not register OIDC client")
+			}
 
 			if err := settings.Set(DB_SETTINGS_KEY_OIDC_CLIENT, client); err != nil {
 				return nil, errors.Wrap(err, "could not store oidc client settings from the database")
