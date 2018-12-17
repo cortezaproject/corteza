@@ -612,84 +612,6 @@
         }
       },
       {
-        "name": "chart",
-        "method": "GET",
-        "title": "Analyze data for chart",
-        "path": "/{moduleID}/chart",
-        "parameters": {
-          "path": [
-            {
-              "type": "uint64",
-              "name": "moduleID",
-              "required": true,
-              "title": "Module ID"
-            }
-          ],
-          "get": [
-            {
-              "type": "string",
-              "name": "name",
-              "required": true,
-              "title": "The chart name"
-            },
-            {
-              "type": "string",
-              "name": "description",
-              "required": true,
-              "title": "The chart description"
-            },
-            {
-              "type": "string",
-              "name": "xAxis",
-              "required": true,
-              "title": "X axis value"
-            },
-            {
-              "type": "string",
-              "name": "xMin",
-              "required": false,
-              "title": "Min value"
-            },
-            {
-              "type": "string",
-              "name": "xMax",
-              "required": false,
-              "title": "Max value"
-            },
-            {
-              "type": "string",
-              "name": "yAxis",
-              "required": true,
-              "title": "Y axis value"
-            },
-            {
-              "type": "string",
-              "name": "groupBy",
-              "required": true,
-              "title": "Group by field"
-            },
-            {
-              "type": "string",
-              "name": "sum",
-              "required": true,
-              "title": "Sum values field"
-            },
-            {
-              "type": "string",
-              "name": "count",
-              "required": true,
-              "title": "Count values field"
-            },
-            {
-              "type": "string",
-              "name": "kind",
-              "required": true,
-              "title": "Chart kind (line, spline, step, area, area-spline, area-step, bar, scatter, pie, donut, gauge)"
-            }
-          ]
-        }
-      },
-      {
         "name": "edit",
         "method": "POST",
         "title": "Edit module",
@@ -901,6 +823,110 @@
               "name": "contentID",
               "required": true,
               "title": "Content ID"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Charts",
+    "path": "/chart",
+    "entrypoint": "chart",
+    "struct": [
+      {
+        "imports": [
+          "sqlxTypes github.com/jmoiron/sqlx/types"
+        ]
+      }
+    ],
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "title": "List/read charts from module section",
+        "path": "/"
+      },
+      {
+        "name": "create",
+        "method": "POST",
+        "title": "List/read charts from module section",
+        "path": "/",
+        "parameters": {
+          "post": [
+            {
+              "type": "sqlxTypes.JSONText",
+              "name": "config",
+              "required": true,
+              "title": "Chart JSON"
+            },
+            {
+              "name": "name",
+              "title": "Chart name",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      },
+      {
+        "name": "read",
+        "method": "GET",
+        "title": "Read charts by ID from module section",
+        "path": "/{chartID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "chartID",
+              "required": true,
+              "title": "Chart ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "edit",
+        "method": "POST",
+        "title": "Add/update charts in module section",
+        "path": "/{chartID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "chartID",
+              "required": true,
+              "title": "Chart ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "sqlxTypes.JSONText",
+              "name": "config",
+              "required": true,
+              "title": "Chart JSON"
+            },
+            {
+              "name": "name",
+              "title": "Chart name",
+              "type": "string",
+              "required": true
+            }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "method": "DELETE",
+        "title": "Delete chart",
+        "path": "/{chartID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "chartID",
+              "required": true,
+              "title": "Chart ID"
             }
           ]
         }

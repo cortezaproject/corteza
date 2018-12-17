@@ -9,6 +9,7 @@ var (
 	DefaultContent  ContentService
 	DefaultField    FieldService
 	DefaultModule   ModuleService
+	DefaultChart    ChartService
 	DefaultPage     PageService
 	DefaultWorkflow WorkflowService
 	DefaultJob      JobService
@@ -20,6 +21,7 @@ func Init() {
 		DefaultField = Field()
 		DefaultModule = Module()
 		DefaultPage = Page()
+		DefaultChart = Chart()
 		DefaultWorkflow = Workflow()
 		DefaultJob = Job()
 	})
