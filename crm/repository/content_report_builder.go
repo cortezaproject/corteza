@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jmoiron/sqlx"
 	"gopkg.in/Masterminds/squirrel.v1"
 
@@ -104,7 +103,6 @@ func (b *contentReportBuilder) Build() (sql string, args []interface{}, err erro
 		return "", nil, errors.New("Can not generate report without parameters")
 	}
 
-	spew.Dump(b.params)
 	for i, m := range b.params.Metrics {
 		col := SqlConcatExpr("CAST(", b.parseExpression(m.Expression), " AS DECIMAL(14,2))")
 		col, m.Alias = b.alias(col, m.Alias, fmt.Sprintf("metric_%d", i))
@@ -128,7 +126,6 @@ func (b *contentReportBuilder) Build() (sql string, args []interface{}, err erro
 		b.params.Dimensions[i].Alias = d.Alias // copy generated alias back
 	}
 
-	spew.Dump(b.params)
 	return report.ToSql()
 }
 

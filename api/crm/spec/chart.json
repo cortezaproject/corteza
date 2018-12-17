@@ -1,0 +1,109 @@
+{
+  "Title": "Charts",
+  "Package": "",
+  "Interface": "Chart",
+  "Struct": [
+    {
+      "imports": [
+        "sqlxTypes github.com/jmoiron/sqlx/types"
+      ]
+    }
+  ],
+  "Parameters": null,
+  "Protocol": "",
+  "Authentication": null,
+  "Path": "/chart",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List/read charts from module section",
+      "Path": "/",
+      "Parameters": null
+    },
+    {
+      "Name": "create",
+      "Method": "POST",
+      "Title": "List/read charts from module section",
+      "Path": "/",
+      "Parameters": {
+        "post": [
+          {
+            "name": "config",
+            "required": true,
+            "title": "Chart JSON",
+            "type": "sqlxTypes.JSONText"
+          },
+          {
+            "name": "name",
+            "required": true,
+            "title": "Chart name",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "read",
+      "Method": "GET",
+      "Title": "Read charts by ID from module section",
+      "Path": "/{chartID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "chartID",
+            "required": true,
+            "title": "Chart ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "edit",
+      "Method": "POST",
+      "Title": "Add/update charts in module section",
+      "Path": "/{chartID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "chartID",
+            "required": true,
+            "title": "Chart ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "config",
+            "required": true,
+            "title": "Chart JSON",
+            "type": "sqlxTypes.JSONText"
+          },
+          {
+            "name": "name",
+            "required": true,
+            "title": "Chart name",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "delete",
+      "Method": "DELETE",
+      "Title": "Delete chart",
+      "Path": "/{chartID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "chartID",
+            "required": true,
+            "title": "Chart ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    }
+  ]
+}

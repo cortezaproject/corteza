@@ -37,7 +37,7 @@ function types {
 		CGO_ENABLED=0 go build -o ./build/gen-type-set codegen/v2/type-set.go 
 	fi
 
-	./build/gen-type-set --types Module,Page --output crm/types/type.gen.go
+	./build/gen-type-set --types Module,Page,Chart --output crm/types/type.gen.go
 
 	./build/gen-type-set --types MessageAttachment --output sam/types/attachment.gen.go
 	./build/gen-type-set --types Channel --output sam/types/channel.gen.go
