@@ -13,12 +13,14 @@ var _ = errors.Wrap
 
 type (
 	Workflow struct {
-		workflow service.WorkflowService
+		workflowSvc service.WorkflowService
 	}
 )
 
-func (Workflow) New(workflowSvc service.WorkflowService) *Workflow {
-	return &Workflow{workflowSvc}
+func (Workflow) New() *Workflow {
+	return &Workflow{
+		workflowSvc: service.DefaultWorkflow,
+	}
 }
 
 func (ctrl *Workflow) List(ctx context.Context, r *request.WorkflowList) (interface{}, error) {

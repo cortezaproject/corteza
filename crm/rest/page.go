@@ -17,8 +17,10 @@ type (
 	}
 )
 
-func (Page) New(pageSvc service.PageService) *Page {
-	return &Page{pageSvc}
+func (Page) New() *Page {
+	return &Page{
+		page: service.DefaultPage,
+	}
 }
 
 func (ctrl *Page) List(ctx context.Context, r *request.PageList) (interface{}, error) {
