@@ -13,12 +13,12 @@ var _ = errors.Wrap
 
 type (
 	Job struct {
-		job service.JobService
+		jobSvc service.JobService
 	}
 )
 
-func (Job) New(jobSvc service.JobService) *Job {
-	return &Job{jobSvc}
+func (Job) New() *Job {
+	return &Job{jobSvc: service.DefaultJob}
 }
 
 func (ctrl *Job) List(ctx context.Context, r *request.JobList) (interface{}, error) {
