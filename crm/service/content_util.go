@@ -6,7 +6,7 @@ import (
 	"github.com/crusttech/crust/crm/types"
 )
 
-func (r *content) preloadAll(contents []*types.Content, fields ...string) error {
+func (r *content) preloadAll(contents []*types.Record, fields ...string) error {
 	for _, content := range contents {
 		if err := r.preload(content, fields...); err != nil {
 			return err
@@ -15,7 +15,7 @@ func (r *content) preloadAll(contents []*types.Content, fields ...string) error 
 	return nil
 }
 
-func (r *content) preload(content *types.Content, fields ...string) (err error) {
+func (r *content) preload(content *types.Record, fields ...string) (err error) {
 	for _, field := range fields {
 		switch field {
 		case "fields":

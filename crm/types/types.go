@@ -12,8 +12,8 @@ import (
 )
 
 type (
-	// Content is a stored row in the `record` table
-	Content struct {
+	// Record is a stored row in the `record` table
+	Record struct {
 		ID       uint64 `json:"contentID,string" db:"id"`
 		ModuleID uint64 `json:"moduleID,string" db:"module_id"`
 
@@ -29,20 +29,20 @@ type (
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
 	}
 
-	// ContentColumn is a stored row in the `record_column` table
-	ContentColumn struct {
-		ContentID uint64   `json:"-" db:"record_id"`
-		Name      string   `json:"name" db:"column_name"`
-		Value     string   `json:"value" db:"column_value"`
-		Related   []string `json:"related" db:"-"`
+	// RecordColumn is a stored row in the `record_column` table
+	RecordColumn struct {
+		RecordID uint64   `json:"-" db:"record_id"`
+		Name     string   `json:"name" db:"column_name"`
+		Value    string   `json:"value" db:"column_value"`
+		Related  []string `json:"related" db:"-"`
 	}
 
 	Related struct {
-		ContentID uint64 `json:"-" db:"record_id"`
-		Name      string `json:"-" db:"column_name"`
+		RecordID uint64 `json:"-" db:"record_id"`
+		Name     string `json:"-" db:"column_name"`
 
-		// RelatedContentID isn't necessarily a content ID (multiple-select anything goes options)
-		RelatedContentID string `json:"-" db:"rel_record_id"`
+		// RelatedRecordID isn't necessarily a record ID (multiple-select anything goes options)
+		RelatedRecordID string `json:"-" db:"rel_record_id"`
 	}
 
 	// Field - CRM input field definitions

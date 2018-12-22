@@ -26,16 +26,16 @@ type (
 	ContentService interface {
 		With(ctx context.Context) ContentService
 
-		FindByID(contentID uint64) (*types.Content, error)
+		FindByID(contentID uint64) (*types.Record, error)
 
-		Report(moduleID uint64, params *types.ContentReport) (interface{}, error)
+		Report(moduleID uint64, params *types.RecordReport) (interface{}, error)
 		Find(moduleID uint64, query string, page int, perPage int, sort string) (*repository.FindResponse, error)
 
-		Create(content *types.Content) (*types.Content, error)
-		Update(content *types.Content) (*types.Content, error)
+		Create(content *types.Record) (*types.Record, error)
+		Update(content *types.Record) (*types.Record, error)
 		DeleteByID(contentID uint64) error
 
-		Fields(mod *types.Content) ([]*types.ContentColumn, error)
+		Fields(mod *types.Record) ([]*types.RecordColumn, error)
 	}
 )
 
@@ -56,7 +56,7 @@ func (s *content) With(ctx context.Context) ContentService {
 	}
 }
 
-func (s *content) FindByID(id uint64) (*types.Content, error) {
+func (s *content) FindByID(id uint64) (*types.Record, error) {
 	response, err := s.repository.FindByID(id)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (s *content) FindByID(id uint64) (*types.Content, error) {
 	return response, s.preload(response, "page", "user", "fields")
 }
 
-func (s *content) Report(moduleID uint64, params *types.ContentReport) (interface{}, error) {
+func (s *content) Report(moduleID uint64, params *types.RecordReport) (interface{}, error) {
 	return s.repository.Report(moduleID, params)
 }
 
@@ -79,7 +79,7 @@ func (s *content) Find(moduleID uint64, query string, page int, perPage int, sor
 	return response, nil
 }
 
-func (s *content) Create(mod *types.Content) (*types.Content, error) {
+func (s *content) Create(mod *types.Record) (*types.Record, error) {
 	response, err := s.repository.Create(mod)
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func (s *content) Create(mod *types.Content) (*types.Content, error) {
 	return response, s.preload(response, "user", "fields")
 }
 
-func (s *content) Update(content *types.Content) (c *types.Content, err error) {
+func (s *content) Update(content *types.Record) (c *types.Record, err error) {
 	validate := func() error {
 		if content.ID == 0 {
 			return errors.New("Error updating content: invalid ID")
@@ -110,7 +110,7 @@ func (s *content) Update(content *types.Content) (c *types.Content, err error) {
 	})
 }
 
-func (s *content) Fields(mod *types.Content) ([]*types.ContentColumn, error) {
+func (s *content) Fields(mod *types.Record) ([]*types.RecordColumn, error) {
 	return s.repository.Fields(mod)
 }
 
