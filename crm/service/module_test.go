@@ -38,7 +38,7 @@ func TestModule(t *testing.T) {
 	{
 		{
 			m, err := repository.Update(module)
-			assert(t, m == nil, "Expected empty return for ivalid update, got %#v", m)
+			assert(t, m == nil, "Expected empty return for invalid update, got %#v", m)
 			assert(t, err != nil, "Expected error when updating invalid content")
 		}
 
