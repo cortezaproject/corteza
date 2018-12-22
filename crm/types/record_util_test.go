@@ -4,8 +4,8 @@ import (
 	"testing"
 )
 
-func TestContentReport(t *testing.T) {
-	r := &ContentReport{}
+func TestRecordReport(t *testing.T) {
+	r := &RecordReport{}
 	r.ScanMetrics("alias:exp")
 	if len(r.Metrics) == 0 {
 		t.Log("No metrics scanned")

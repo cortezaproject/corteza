@@ -62,26 +62,26 @@ func TestContent(t *testing.T) {
 		assert(t, module.ID > 0, "Expected auto generated ID")
 	}
 
-	columns := []types.ContentColumn{
-		types.ContentColumn{
+	columns := []types.RecordColumn{
+		types.RecordColumn{
 			Name:  "name",
 			Value: "Tit Petric",
 		},
-		types.ContentColumn{
+		types.RecordColumn{
 			Name:  "email",
 			Value: "tit.petric@example.com",
 		},
-		types.ContentColumn{
+		types.RecordColumn{
 			Name:    "options",
 			Related: []string{"1", "2", "3"},
 		},
-		types.ContentColumn{
+		types.RecordColumn{
 			Name:  "description",
 			Value: "jack of all trades",
 		},
 	}
 
-	content1 := &types.Content{
+	content1 := &types.Record{
 		ModuleID: module.ID,
 	}
 	(&content1.Fields).Scan(func() []byte {
@@ -89,26 +89,26 @@ func TestContent(t *testing.T) {
 		return b
 	}())
 
-	columns2 := []types.ContentColumn{
-		types.ContentColumn{
+	columns2 := []types.RecordColumn{
+		types.RecordColumn{
 			Name:  "name",
 			Value: "Marko Novak",
 		},
-		types.ContentColumn{
+		types.RecordColumn{
 			Name:  "email",
 			Value: "marko.n@example.com",
 		},
-		types.ContentColumn{
+		types.RecordColumn{
 			Name:    "options",
 			Related: []string{"1", "2", "3"},
 		},
-		types.ContentColumn{
+		types.RecordColumn{
 			Name:  "description",
 			Value: "persona non grata",
 		},
 	}
 
-	content2 := &types.Content{
+	content2 := &types.Record{
 		ModuleID: module.ID,
 	}
 	(&content2.Fields).Scan(func() []byte {
@@ -156,7 +156,7 @@ func TestContent(t *testing.T) {
 				}
 			}
 			{
-				fields := make([]types.ContentColumn, 0)
+				fields := make([]types.RecordColumn, 0)
 				err := json.Unmarshal(ms.Fields, &fields)
 				assert(t, err == nil, "%+v", errors.Wrap(err, "Didn't expect error when unmarshalling"))
 				assert(t, len(fields) == len(columns), "Expected different field count: %d != %d", 2, len(fields))

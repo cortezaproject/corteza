@@ -17,16 +17,16 @@ type (
 	ContentRepository interface {
 		With(ctx context.Context, db *factory.DB) ContentRepository
 
-		FindByID(id uint64) (*types.Content, error)
+		FindByID(id uint64) (*types.Record, error)
 
-		Report(moduleID uint64, params *types.ContentReport) (results interface{}, err error)
+		Report(moduleID uint64, params *types.RecordReport) (results interface{}, err error)
 		Find(moduleID uint64, query string, page int, perPage int, sort string) (*FindResponse, error)
 
-		Create(mod *types.Content) (*types.Content, error)
-		Update(mod *types.Content) (*types.Content, error)
+		Create(mod *types.Record) (*types.Record, error)
+		Update(mod *types.Record) (*types.Record, error)
 		DeleteByID(id uint64) error
 
-		Fields(mod *types.Content) ([]*types.ContentColumn, error)
+		Fields(mod *types.Record) ([]*types.RecordColumn, error)
 	}
 
 	FindResponseMeta struct {
@@ -39,7 +39,7 @@ type (
 
 	FindResponse struct {
 		Meta     FindResponseMeta `json:"meta"`
-		Contents []*types.Content `json:"contents"`
+		Contents []*types.Record  `json:"contents"`
 	}
 
 	content struct {
@@ -59,15 +59,15 @@ func (r *content) With(ctx context.Context, db *factory.DB) ContentRepository {
 
 // @todo: update to accepted DeletedAt column semantics from SAM
 
-func (r *content) FindByID(id uint64) (*types.Content, error) {
-	mod := &types.Content{}
+func (r *content) FindByID(id uint64) (*types.Record, error) {
+	mod := &types.Record{}
 	if err := r.db().Get(mod, "SELECT * FROM crm_record WHERE id=? and deleted_at IS NULL", id); err != nil {
 		return nil, err
 	}
 	return mod, nil
 }
 
-func (r *content) Report(moduleID uint64, params *types.ContentReport) (results interface{}, err error) {
+func (r *content) Report(moduleID uint64, params *types.RecordReport) (results interface{}, err error) {
 	crb := NewContentReportBuilder(moduleID, params)
 
 	var result = make([]map[string]interface{}, 0)
@@ -105,7 +105,7 @@ func (r *content) Find(moduleID uint64, query string, page int, perPage int, sor
 			Query:   query,
 			Sort:    sort,
 		},
-		Contents: make([]*types.Content, 0),
+		Contents: make([]*types.Record, 0),
 	}
 
 	query = "%" + query + "%"
@@ -215,27 +215,27 @@ func (r *content) Find(moduleID uint64, query string, page int, perPage int, sor
 	return response, nil
 }
 
-func (r *content) Create(mod *types.Content) (*types.Content, error) {
+func (r *content) Create(mod *types.Record) (*types.Record, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 	mod.UserID = Identity(r.Context())
 
-	fields := make([]types.ContentColumn, 0)
+	fields := make([]types.RecordColumn, 0)
 	if err := json.Unmarshal(mod.Fields, &fields); err != nil {
 		return nil, errors.Wrap(err, "No content")
 	}
 
 	r.db().Exec("delete from crm_record_links where record_id=?", mod.ID)
 	for _, v := range fields {
-		v.ContentID = mod.ID
+		v.RecordID = mod.ID
 		if err := r.db().Replace("crm_record_column", v); err != nil {
 			return nil, errors.Wrap(err, "Error adding columns")
 		}
 		for _, related := range v.Related {
 			row := types.Related{
-				ContentID:        v.ContentID,
-				Name:             v.Name,
-				RelatedContentID: related,
+				RecordID:        v.RecordID,
+				Name:            v.Name,
+				RelatedRecordID: related,
 			}
 			if err := r.db().Replace("crm_record_links", row); err != nil {
 				return nil, errors.Wrap(err, "Error adding column links")
@@ -249,26 +249,26 @@ func (r *content) Create(mod *types.Content) (*types.Content, error) {
 	return mod, nil
 }
 
-func (r *content) Update(mod *types.Content) (*types.Content, error) {
+func (r *content) Update(mod *types.Record) (*types.Record, error) {
 	now := time.Now()
 	mod.UpdatedAt = &now
 
-	fields := make([]types.ContentColumn, 0)
+	fields := make([]types.RecordColumn, 0)
 	if err := json.Unmarshal(mod.Fields, &fields); err != nil {
 		return nil, errors.Wrap(err, "Error when saving content, no content")
 	}
 
 	r.db().Exec("delete from crm_record_links where record_id=?", mod.ID)
 	for _, v := range fields {
-		v.ContentID = mod.ID
+		v.RecordID = mod.ID
 		if err := r.db().Replace("crm_record_column", v); err != nil {
 			return nil, errors.Wrap(err, "Error adding columns to database")
 		}
 		for _, related := range v.Related {
 			row := types.Related{
-				ContentID:        v.ContentID,
-				Name:             v.Name,
-				RelatedContentID: related,
+				RecordID:        v.RecordID,
+				Name:            v.Name,
+				RelatedRecordID: related,
 			}
 			if err := r.db().Replace("crm_record_links", row); err != nil {
 				return nil, errors.Wrap(err, "Error adding column links")
@@ -284,8 +284,8 @@ func (r *content) DeleteByID(id uint64) error {
 	return err
 }
 
-func (r *content) Fields(content *types.Content) ([]*types.ContentColumn, error) {
-	result := make([]*types.ContentColumn, 0)
+func (r *content) Fields(content *types.Record) ([]*types.RecordColumn, error) {
+	result := make([]*types.RecordColumn, 0)
 	module := Module(r.ctx, r.db())
 
 	mod, err := module.FindByID(content.ModuleID)
