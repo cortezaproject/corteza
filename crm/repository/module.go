@@ -98,7 +98,7 @@ func (r *module) Fields(mod *types.Module) ([]*types.ModuleField, error) {
 	return fields, r.db().Select(&fields, "select * from crm_module_form where module_id=? order by place asc", mod.ID)
 }
 
-// FieldNames returns a slice of field names, used for ordering content row columns
+// FieldNames returns a slice of field names, used for ordering record row columns
 func (r *module) FieldNames(mod *types.Module) ([]string, error) {
 	if fields, err := r.Fields(mod); err != nil {
 		return []string{}, err
