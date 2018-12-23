@@ -17,7 +17,7 @@ type (
 		db  *factory.DB
 		ctx context.Context
 
-		repository repository.ContentRepository
+		repository repository.RecordRepository
 		pageRepo   repository.PageRepository
 
 		userSvc systemService.UserService
@@ -50,7 +50,7 @@ func (s *record) With(ctx context.Context) RecordService {
 	return &record{
 		db:         db,
 		ctx:        ctx,
-		repository: repository.Content(ctx, db),
+		repository: repository.Record(ctx, db),
 		pageRepo:   repository.Page(ctx, db),
 		userSvc:    s.userSvc.With(ctx),
 	}
@@ -73,7 +73,7 @@ func (s *record) Find(moduleID uint64, query string, page int, perPage int, sort
 	if err != nil {
 		return nil, err
 	}
-	if err := s.preloadAll(response.Contents, "user", "fields"); err != nil {
+	if err := s.preloadAll(response.Records, "user", "fields"); err != nil {
 		return nil, err
 	}
 	return response, nil

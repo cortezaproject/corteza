@@ -14,8 +14,8 @@ import (
 )
 
 type (
-	ContentRepository interface {
-		With(ctx context.Context, db *factory.DB) ContentRepository
+	RecordRepository interface {
+		With(ctx context.Context, db *factory.DB) RecordRepository
 
 		FindByID(id uint64) (*types.Record, error)
 
@@ -38,28 +38,28 @@ type (
 	}
 
 	FindResponse struct {
-		Meta     FindResponseMeta `json:"meta"`
-		Contents []*types.Record  `json:"contents"`
+		Meta    FindResponseMeta `json:"meta"`
+		Records []*types.Record  `json:"contents"`
 	}
 
-	content struct {
+	record struct {
 		*repository
 	}
 )
 
-func Content(ctx context.Context, db *factory.DB) ContentRepository {
-	return (&content{}).With(ctx, db)
+func Record(ctx context.Context, db *factory.DB) RecordRepository {
+	return (&record{}).With(ctx, db)
 }
 
-func (r *content) With(ctx context.Context, db *factory.DB) ContentRepository {
-	return &content{
+func (r *record) With(ctx context.Context, db *factory.DB) RecordRepository {
+	return &record{
 		repository: r.repository.With(ctx, db),
 	}
 }
 
 // @todo: update to accepted DeletedAt column semantics from SAM
 
-func (r *content) FindByID(id uint64) (*types.Record, error) {
+func (r *record) FindByID(id uint64) (*types.Record, error) {
 	mod := &types.Record{}
 	if err := r.db().Get(mod, "SELECT * FROM crm_record WHERE id=? and deleted_at IS NULL", id); err != nil {
 		return nil, err
@@ -67,8 +67,8 @@ func (r *content) FindByID(id uint64) (*types.Record, error) {
 	return mod, nil
 }
 
-func (r *content) Report(moduleID uint64, params *types.RecordReport) (results interface{}, err error) {
-	crb := NewContentReportBuilder(moduleID, params)
+func (r *record) Report(moduleID uint64, params *types.RecordReport) (results interface{}, err error) {
+	crb := NewRecordReportBuilder(moduleID, params)
 
 	var result = make([]map[string]interface{}, 0)
 
@@ -85,7 +85,7 @@ func (r *content) Report(moduleID uint64, params *types.RecordReport) (results i
 	}
 }
 
-func (r *content) Find(moduleID uint64, query string, page int, perPage int, sort string) (*FindResponse, error) {
+func (r *record) Find(moduleID uint64, query string, page int, perPage int, sort string) (*FindResponse, error) {
 	if page < 0 {
 		page = 0
 	}
@@ -105,7 +105,7 @@ func (r *content) Find(moduleID uint64, query string, page int, perPage int, sor
 			Query:   query,
 			Sort:    sort,
 		},
-		Contents: make([]*types.Record, 0),
+		Records: make([]*types.Record, 0),
 	}
 
 	query = "%" + query + "%"
@@ -200,14 +200,14 @@ func (r *content) Find(moduleID uint64, query string, page int, perPage int, sor
 		if err := r.db().Get(&response.Meta.Count, sqlCount+" "+sqlWhere, moduleID, query); err != nil {
 			return nil, err
 		}
-		if err := r.db().Select(&response.Contents, sqlSelect+" "+sqlWhere+" "+sqlOrder+" "+sqlLimit, moduleID, query); err != nil {
+		if err := r.db().Select(&response.Records, sqlSelect+" "+sqlWhere+" "+sqlOrder+" "+sqlLimit, moduleID, query); err != nil {
 			return nil, err
 		}
 	default:
 		if err := r.db().Get(&response.Meta.Count, sqlCount+" "+sqlWhere, moduleID); err != nil {
 			return nil, err
 		}
-		if err := r.db().Select(&response.Contents, sqlSelect+" "+sqlWhere+" "+sqlOrder+" "+sqlLimit, moduleID); err != nil {
+		if err := r.db().Select(&response.Records, sqlSelect+" "+sqlWhere+" "+sqlOrder+" "+sqlLimit, moduleID); err != nil {
 			return nil, err
 		}
 	}
@@ -215,7 +215,7 @@ func (r *content) Find(moduleID uint64, query string, page int, perPage int, sor
 	return response, nil
 }
 
-func (r *content) Create(mod *types.Record) (*types.Record, error) {
+func (r *record) Create(mod *types.Record) (*types.Record, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 	mod.UserID = Identity(r.Context())
@@ -249,13 +249,13 @@ func (r *content) Create(mod *types.Record) (*types.Record, error) {
 	return mod, nil
 }
 
-func (r *content) Update(mod *types.Record) (*types.Record, error) {
+func (r *record) Update(mod *types.Record) (*types.Record, error) {
 	now := time.Now()
 	mod.UpdatedAt = &now
 
 	fields := make([]types.RecordColumn, 0)
 	if err := json.Unmarshal(mod.Fields, &fields); err != nil {
-		return nil, errors.Wrap(err, "Error when saving content, no content")
+		return nil, errors.Wrap(err, "Error when saving record, no content")
 	}
 
 	r.db().Exec("delete from crm_record_links where record_id=?", mod.ID)
@@ -279,16 +279,16 @@ func (r *content) Update(mod *types.Record) (*types.Record, error) {
 	return mod, r.db().Replace("crm_record", mod)
 }
 
-func (r *content) DeleteByID(id uint64) error {
+func (r *record) DeleteByID(id uint64) error {
 	_, err := r.db().Exec("update crm_record set deleted_at=? where id=?", time.Now(), id)
 	return err
 }
 
-func (r *content) Fields(content *types.Record) ([]*types.RecordColumn, error) {
+func (r *record) Fields(record *types.Record) ([]*types.RecordColumn, error) {
 	result := make([]*types.RecordColumn, 0)
 	module := Module(r.ctx, r.db())
 
-	mod, err := module.FindByID(content.ModuleID)
+	mod, err := module.FindByID(record.ModuleID)
 	if err != nil {
 		return result, err
 	}
@@ -303,7 +303,7 @@ func (r *content) Fields(content *types.Record) ([]*types.RecordColumn, error) {
 
 	order := "FIELD(column_name" + strings.Repeat(",?", len(fieldNames)) + ")"
 	args := []interface{}{
-		content.ID,
+		record.ID,
 	}
 	for _, v := range fieldNames {
 		args = append(args, v)

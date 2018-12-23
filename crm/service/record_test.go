@@ -184,40 +184,40 @@ func TestRecord(t *testing.T) {
 		{
 			mr, err := repository.Find(module.ID, "", 0, 20, "id desc")
 			assert(t, err == nil, "Error when retrieving records: %+v", err)
-			assert(t, len(mr.Contents) == 2, "Expected two record, got %d", len(mr.Contents))
+			assert(t, len(mr.Records) == 2, "Expected two record, got %d", len(mr.Records))
 			assert(t, mr.Meta.Count == 2, "Expected Meta.Count == 2, got %d", mr.Meta.Count)
 			assert(t, mr.Meta.Sort == "id desc", "Expected Meta.Sort == id desc, got '%s'", mr.Meta.Sort)
-			assert(t, mr.Contents[0].ModuleID == m1.ModuleID, "Expected record module to match, %d != %d", m1.ModuleID, mr.Contents[0].ModuleID)
-			assert(t, mr.Contents[0].ID > mr.Contents[1].ID, "Expected order to be descending")
+			assert(t, mr.Records[0].ModuleID == m1.ModuleID, "Expected record module to match, %d != %d", m1.ModuleID, mr.Records[0].ModuleID)
+			assert(t, mr.Records[0].ID > mr.Records[1].ID, "Expected order to be descending")
 		}
 
 		// fetch all records
 		{
 			mr, err := repository.Find(module.ID, "", 0, 20, "name asc, email desc")
 			assert(t, err == nil, "Error when retrieving records: %+v", err)
-			assert(t, len(mr.Contents) == 2, "Expected two record, got %d", len(mr.Contents))
+			assert(t, len(mr.Records) == 2, "Expected two record, got %d", len(mr.Records))
 			assert(t, mr.Meta.Count == 2, "Expected Meta.Count == 2, got %d", mr.Meta.Count)
 			assert(t, mr.Meta.Sort == "name asc, email desc", "Expected Meta.Sort == 'name asc, email desc' '%s'", mr.Meta.Sort)
-			assert(t, mr.Contents[0].ModuleID == m1.ModuleID, "Expected record module to match, %d != %d", m1.ModuleID, mr.Contents[0].ModuleID)
-			assert(t, mr.Contents[0].ID > mr.Contents[1].ID, "Expected order to be ascending")
+			assert(t, mr.Records[0].ModuleID == m1.ModuleID, "Expected record module to match, %d != %d", m1.ModuleID, mr.Records[0].ModuleID)
+			assert(t, mr.Records[0].ID > mr.Records[1].ID, "Expected order to be ascending")
 		}
 
 		// fetch all records
 		{
 			mr, err := repository.Find(module.ID, "", 0, 20, "created_at desc")
 			assert(t, err == nil, "Error when retrieving records: %+v", err)
-			assert(t, len(mr.Contents) == 2, "Expected two record, got %d", len(mr.Contents))
+			assert(t, len(mr.Records) == 2, "Expected two record, got %d", len(mr.Records))
 			assert(t, mr.Meta.Count == 2, "Expected Meta.Count == 2, got %d", mr.Meta.Count)
 			assert(t, mr.Meta.Sort == "created_at desc", "Expected Meta.Sort == created_at desc, got '%s'", mr.Meta.Sort)
-			assert(t, mr.Contents[0].ModuleID == m1.ModuleID, "Expected record module to match, %d != %d", m1.ModuleID, mr.Contents[0].ModuleID)
-			assert(t, mr.Contents[0].ID > mr.Contents[1].ID, "Expected order to be ascending")
+			assert(t, mr.Records[0].ModuleID == m1.ModuleID, "Expected record module to match, %d != %d", m1.ModuleID, mr.Records[0].ModuleID)
+			assert(t, mr.Records[0].ID > mr.Records[1].ID, "Expected order to be ascending")
 		}
 
 		// fetch all records by query
 		{
 			mr, err := repository.Find(module.ID, "petric", 0, 20, "id desc")
 			assert(t, err == nil, "Error when retrieving records: %+v", err)
-			assert(t, len(mr.Contents) == 1, "Expected one record, got %d", len(mr.Contents))
+			assert(t, len(mr.Records) == 1, "Expected one record, got %d", len(mr.Records))
 			assert(t, mr.Meta.Count == 1, "Expected Meta.Count == 1, got %d", mr.Meta.Count)
 			assert(t, mr.Meta.Page == 0, "Expected Meta.Page == 0, got %d", mr.Meta.Page)
 			assert(t, mr.Meta.PerPage == 20, "Expected Meta.PerPage == 20, got %d", mr.Meta.PerPage)
@@ -229,7 +229,7 @@ func TestRecord(t *testing.T) {
 		{
 			mr, err := repository.Find(module.ID, "niall", 0, 20, "id asc")
 			assert(t, err == nil, "Error when retrieving records: %+v", err)
-			assert(t, len(mr.Contents) == 0, "Expected no records, got %d", len(mr.Contents))
+			assert(t, len(mr.Records) == 0, "Expected no records, got %d", len(mr.Records))
 		}
 
 		// delete record
@@ -245,7 +245,7 @@ func TestRecord(t *testing.T) {
 		{
 			mr, err := repository.Find(module.ID, "", 0, 20, "")
 			assert(t, err == nil, "Error when retrieving records: %+v", err)
-			assert(t, len(mr.Contents) == 0, "Expected no record, got %d", len(mr.Contents))
+			assert(t, len(mr.Records) == 0, "Expected no record, got %d", len(mr.Records))
 		}
 	}
 }

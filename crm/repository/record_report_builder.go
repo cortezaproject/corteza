@@ -14,7 +14,7 @@ import (
 )
 
 type (
-	contentReportBuilder struct {
+	recordReportBuilder struct {
 		jsonField string
 
 		moduleID uint64
@@ -23,18 +23,18 @@ type (
 )
 
 var (
-	contentReportExprMatch = regexp.MustCompile(`^\s*(\w+)\((.+)\)\s*$`)
+	recordReportExprMatch = regexp.MustCompile(`^\s*(\w+)\((.+)\)\s*$`)
 )
 
-func NewContentReportBuilder(moduleID uint64, params *types.RecordReport) *contentReportBuilder {
-	return &contentReportBuilder{
+func NewRecordReportBuilder(moduleID uint64, params *types.RecordReport) *recordReportBuilder {
+	return &recordReportBuilder{
 		moduleID:  moduleID,
 		params:    params,
 		jsonField: `JSON_UNQUOTE(JSON_EXTRACT(json, REPLACE(JSON_UNQUOTE(JSON_SEARCH(json, 'one', ?)), '.name', '.value')))`,
 	}
 }
 
-func (b contentReportBuilder) field(name string) squirrel.Sqlizer {
+func (b recordReportBuilder) field(name string) squirrel.Sqlizer {
 	switch name {
 	case "created_at", "updated_at":
 		return squirrel.Expr(name)
@@ -43,7 +43,7 @@ func (b contentReportBuilder) field(name string) squirrel.Sqlizer {
 	}
 }
 
-func (b contentReportBuilder) alias(col squirrel.Sqlizer, alias, fallback string) (squirrel.Sqlizer, string) {
+func (b recordReportBuilder) alias(col squirrel.Sqlizer, alias, fallback string) (squirrel.Sqlizer, string) {
 	if alias != "" {
 		return squirrel.Alias(col, alias), alias
 	}
@@ -51,7 +51,7 @@ func (b contentReportBuilder) alias(col squirrel.Sqlizer, alias, fallback string
 	return squirrel.Alias(col, fallback), fallback
 }
 
-func (b contentReportBuilder) wrapInModifiers(col squirrel.Sqlizer, mm ...string) squirrel.Sqlizer {
+func (b recordReportBuilder) wrapInModifiers(col squirrel.Sqlizer, mm ...string) squirrel.Sqlizer {
 	for _, m := range mm {
 		switch strings.ToUpper(m) {
 		case "WEEKDAY":
@@ -72,8 +72,8 @@ func (b contentReportBuilder) wrapInModifiers(col squirrel.Sqlizer, mm ...string
 	return col
 }
 
-func (b contentReportBuilder) parseExpression(exp string) squirrel.Sqlizer {
-	res := contentReportExprMatch.FindStringSubmatch(exp)
+func (b recordReportBuilder) parseExpression(exp string) squirrel.Sqlizer {
+	res := recordReportExprMatch.FindStringSubmatch(exp)
 	if len(res) > 0 {
 		aggrFuncName := strings.ToUpper(res[1])
 		aggrFuncArgs := b.parseExpression(res[2])
@@ -92,7 +92,7 @@ func (b contentReportBuilder) parseExpression(exp string) squirrel.Sqlizer {
 	return nil
 }
 
-func (b *contentReportBuilder) Build() (sql string, args []interface{}, err error) {
+func (b *recordReportBuilder) Build() (sql string, args []interface{}, err error) {
 	report := squirrel.
 		Select().
 		Column(squirrel.Alias(squirrel.Expr("COUNT(*)"), "count")).
@@ -129,7 +129,7 @@ func (b *contentReportBuilder) Build() (sql string, args []interface{}, err erro
 	return report.ToSql()
 }
 
-func (b contentReportBuilder) Cast(row sqlx.ColScanner) map[string]interface{} {
+func (b recordReportBuilder) Cast(row sqlx.ColScanner) map[string]interface{} {
 	out := map[string]interface{}{}
 	sqlx.MapScan(row, out)
 	for k, v := range out {
