@@ -14,7 +14,7 @@ import (
 type (
 	// Record is a stored row in the `record` table
 	Record struct {
-		ID       uint64 `json:"contentID,string" db:"id"`
+		ID       uint64 `json:"recordID,string" db:"id"`
 		ModuleID uint64 `json:"moduleID,string" db:"module_id"`
 
 		User   *systemTypes.User `json:"user,omitempty" db:"-"`

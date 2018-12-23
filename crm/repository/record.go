@@ -39,7 +39,7 @@ type (
 
 	FindResponse struct {
 		Meta    FindResponseMeta `json:"meta"`
-		Records []*types.Record  `json:"contents"`
+		Records []*types.Record  `json:"records"`
 	}
 
 	record struct {
