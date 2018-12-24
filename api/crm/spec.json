@@ -1,38 +1,5 @@
 [
   {
-    "title": "Fields",
-    "description": "CRM input field definitions",
-    "package": "crm",
-    "entrypoint": "field",
-    "path": "/field",
-    "authentication": [],
-    "struct": [],
-    "apis": [
-      {
-        "name": "list",
-        "method": "GET",
-        "path": "/",
-        "title": "List available fields"
-      },
-      {
-        "name": "type",
-        "path": "/{typeID}",
-        "method": "GET",
-        "title": "Get field details",
-        "parameters": {
-          "path": [
-            {
-              "type": "string",
-              "name": "typeID",
-              "required": true,
-              "title": "Type ID"
-            }
-          ]
-        }
-      }
-    ]
-  },
-  {
     "title": "Workflows",
     "description": "CRM workflow definitions",
     "package": "crm",

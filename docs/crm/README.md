@@ -75,40 +75,6 @@
 
 
 
-# Fields
-
-CRM input field definitions
-
-## List available fields
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/field/` | HTTP/S | GET |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-
-## Get field details
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/field/{typeID}` | HTTP/S | GET |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| typeID | string | PATH | Type ID | N/A | YES |
-
-
-
-
 # Jobs
 
 Workflow Jobs
