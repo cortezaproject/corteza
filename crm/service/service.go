@@ -7,7 +7,6 @@ import (
 var (
 	o               sync.Once
 	DefaultRecord   RecordService
-	DefaultField    FieldService
 	DefaultModule   ModuleService
 	DefaultChart    ChartService
 	DefaultPage     PageService
@@ -18,7 +17,6 @@ var (
 func Init() {
 	o.Do(func() {
 		DefaultRecord = Record()
-		DefaultField = Field()
 		DefaultModule = Module()
 		DefaultPage = Page()
 		DefaultChart = Chart()

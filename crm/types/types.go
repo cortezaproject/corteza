@@ -45,13 +45,6 @@ type (
 		RelatedRecordID string `json:"-" db:"rel_record_id"`
 	}
 
-	// Field - CRM input field definitions
-	Field struct {
-		Name     string `json:"name" db:"field_name"`
-		Type     string `json:"type" db:"field_type"`
-		Template string `json:"template,omitempty" db:"field_template"`
-	}
-
 	// Modules - CRM module definitions
 	Module struct {
 		ID     uint64         `json:"moduleID,string" db:"id"`
