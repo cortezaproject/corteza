@@ -4,8 +4,8 @@ import (
 	"testing"
 )
 
-func TestContentReportBuilder_parseExpression(t *testing.T) {
-	b := contentReportBuilder{jsonField: "JSONFIELD"}
+func TestRecordReportBuilder_parseExpression(t *testing.T) {
+	b := recordReportBuilder{jsonField: "JSONFIELD"}
 
 	tc := []struct {
 		exp string

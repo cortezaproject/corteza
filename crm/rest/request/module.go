@@ -260,18 +260,18 @@ func (m *ModuleDelete) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewModuleDelete()
 
-// Module content/report request parameters
-type ModuleContentReport struct {
+// Module record/report request parameters
+type ModuleRecordReport struct {
 	Metrics    string
 	Dimensions string
 	ModuleID   uint64 `json:",string"`
 }
 
-func NewModuleContentReport() *ModuleContentReport {
-	return &ModuleContentReport{}
+func NewModuleRecordReport() *ModuleRecordReport {
+	return &ModuleRecordReport{}
 }
 
-func (m *ModuleContentReport) Fill(r *http.Request) (err error) {
+func (m *ModuleRecordReport) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -311,10 +311,10 @@ func (m *ModuleContentReport) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewModuleContentReport()
+var _ RequestFiller = NewModuleRecordReport()
 
-// Module content/list request parameters
-type ModuleContentList struct {
+// Module record/list request parameters
+type ModuleRecordList struct {
 	Query    string
 	Page     int
 	PerPage  int
@@ -322,11 +322,11 @@ type ModuleContentList struct {
 	ModuleID uint64 `json:",string"`
 }
 
-func NewModuleContentList() *ModuleContentList {
-	return &ModuleContentList{}
+func NewModuleRecordList() *ModuleRecordList {
+	return &ModuleRecordList{}
 }
 
-func (m *ModuleContentList) Fill(r *http.Request) (err error) {
+func (m *ModuleRecordList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -374,19 +374,19 @@ func (m *ModuleContentList) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewModuleContentList()
+var _ RequestFiller = NewModuleRecordList()
 
-// Module content/create request parameters
-type ModuleContentCreate struct {
+// Module record/create request parameters
+type ModuleRecordCreate struct {
 	ModuleID uint64 `json:",string"`
 	Fields   sqlxTypes.JSONText
 }
 
-func NewModuleContentCreate() *ModuleContentCreate {
-	return &ModuleContentCreate{}
+func NewModuleRecordCreate() *ModuleRecordCreate {
+	return &ModuleRecordCreate{}
 }
 
-func (m *ModuleContentCreate) Fill(r *http.Request) (err error) {
+func (m *ModuleRecordCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -424,19 +424,19 @@ func (m *ModuleContentCreate) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewModuleContentCreate()
+var _ RequestFiller = NewModuleRecordCreate()
 
-// Module content/read request parameters
-type ModuleContentRead struct {
-	ModuleID  uint64 `json:",string"`
-	ContentID uint64 `json:",string"`
+// Module record/read request parameters
+type ModuleRecordRead struct {
+	ModuleID uint64 `json:",string"`
+	RecordID uint64 `json:",string"`
 }
 
-func NewModuleContentRead() *ModuleContentRead {
-	return &ModuleContentRead{}
+func NewModuleRecordRead() *ModuleRecordRead {
+	return &ModuleRecordRead{}
 }
 
-func (m *ModuleContentRead) Fill(r *http.Request) (err error) {
+func (m *ModuleRecordRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -464,25 +464,25 @@ func (m *ModuleContentRead) Fill(r *http.Request) (err error) {
 	}
 
 	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
-	m.ContentID = parseUInt64(chi.URLParam(r, "contentID"))
+	m.RecordID = parseUInt64(chi.URLParam(r, "recordID"))
 
 	return err
 }
 
-var _ RequestFiller = NewModuleContentRead()
+var _ RequestFiller = NewModuleRecordRead()
 
-// Module content/edit request parameters
-type ModuleContentEdit struct {
-	ModuleID  uint64 `json:",string"`
-	ContentID uint64 `json:",string"`
-	Fields    sqlxTypes.JSONText
+// Module record/edit request parameters
+type ModuleRecordEdit struct {
+	ModuleID uint64 `json:",string"`
+	RecordID uint64 `json:",string"`
+	Fields   sqlxTypes.JSONText
 }
 
-func NewModuleContentEdit() *ModuleContentEdit {
-	return &ModuleContentEdit{}
+func NewModuleRecordEdit() *ModuleRecordEdit {
+	return &ModuleRecordEdit{}
 }
 
-func (m *ModuleContentEdit) Fill(r *http.Request) (err error) {
+func (m *ModuleRecordEdit) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -510,7 +510,7 @@ func (m *ModuleContentEdit) Fill(r *http.Request) (err error) {
 	}
 
 	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
-	m.ContentID = parseUInt64(chi.URLParam(r, "contentID"))
+	m.RecordID = parseUInt64(chi.URLParam(r, "recordID"))
 	if val, ok := post["fields"]; ok {
 
 		if m.Fields, err = parseJSONTextWithErr(val); err != nil {
@@ -521,19 +521,19 @@ func (m *ModuleContentEdit) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewModuleContentEdit()
+var _ RequestFiller = NewModuleRecordEdit()
 
-// Module content/delete request parameters
-type ModuleContentDelete struct {
-	ModuleID  uint64 `json:",string"`
-	ContentID uint64 `json:",string"`
+// Module record/delete request parameters
+type ModuleRecordDelete struct {
+	ModuleID uint64 `json:",string"`
+	RecordID uint64 `json:",string"`
 }
 
-func NewModuleContentDelete() *ModuleContentDelete {
-	return &ModuleContentDelete{}
+func NewModuleRecordDelete() *ModuleRecordDelete {
+	return &ModuleRecordDelete{}
 }
 
-func (m *ModuleContentDelete) Fill(r *http.Request) (err error) {
+func (m *ModuleRecordDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -561,9 +561,9 @@ func (m *ModuleContentDelete) Fill(r *http.Request) (err error) {
 	}
 
 	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
-	m.ContentID = parseUInt64(chi.URLParam(r, "contentID"))
+	m.RecordID = parseUInt64(chi.URLParam(r, "recordID"))
 
 	return err
 }
 
-var _ RequestFiller = NewModuleContentDelete()
+var _ RequestFiller = NewModuleRecordDelete()
