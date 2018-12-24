@@ -14,14 +14,14 @@ import (
 type (
 	Module struct {
 		module  service.ModuleService
-		content service.ContentService
+		content service.RecordService
 	}
 )
 
 func (Module) New() *Module {
 	return &Module{
 		module:  service.DefaultModule,
-		content: service.DefaultContent,
+		content: service.DefaultRecord,
 	}
 }
 
@@ -55,7 +55,7 @@ func (s *Module) Edit(ctx context.Context, r *request.ModuleEdit) (interface{}, 
 }
 
 func (s *Module) RecordReport(ctx context.Context, r *request.ModuleRecordReport) (interface{}, error) {
-	reportParams := &types.ContentReport{}
+	reportParams := &types.RecordReport{}
 
 	if strings.TrimSpace(r.Metrics) != "" {
 		reportParams.ScanMetrics(strings.Split(r.Metrics, ",")...)
@@ -77,7 +77,7 @@ func (s *Module) RecordRead(ctx context.Context, r *request.ModuleRecordRead) (i
 }
 
 func (s *Module) RecordCreate(ctx context.Context, r *request.ModuleRecordCreate) (interface{}, error) {
-	item := &types.Content{
+	item := &types.Record{
 		ModuleID: r.ModuleID,
 		Fields:   r.Fields,
 	}
@@ -85,7 +85,7 @@ func (s *Module) RecordCreate(ctx context.Context, r *request.ModuleRecordCreate
 }
 
 func (s *Module) RecordEdit(ctx context.Context, r *request.ModuleRecordEdit) (interface{}, error) {
-	item := &types.Content{
+	item := &types.Record{
 		ID:       r.RecordID,
 		ModuleID: r.ModuleID,
 		Fields:   r.Fields,
