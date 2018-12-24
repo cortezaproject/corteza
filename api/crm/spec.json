@@ -833,6 +833,7 @@
     "title": "Charts",
     "path": "/chart",
     "entrypoint": "chart",
+    "authentication": [],
     "struct": [
       {
         "imports": [
