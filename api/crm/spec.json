@@ -658,7 +658,7 @@
         }
       },
       {
-        "name": "content/report",
+        "name": "record/report",
         "method": "GET",
         "title": "Generates report from module records",
         "path": "/{moduleID}/report",
@@ -688,10 +688,10 @@
         }
       },
       {
-        "name": "content/list",
+        "name": "record/list",
         "method": "GET",
-        "title": "List/read contents from module section",
-        "path": "/{moduleID}/content",
+        "title": "List/read records from module section",
+        "path": "/{moduleID}/record",
         "parameters": {
           "path": [
             {
@@ -730,10 +730,10 @@
         }
       },
       {
-        "name": "content/create",
+        "name": "record/create",
         "method": "POST",
-        "title": "List/read contents from module section",
-        "path": "/{moduleID}/content",
+        "title": "Create record in module section",
+        "path": "/{moduleID}/record",
         "parameters": {
           "path": [
             {
@@ -748,16 +748,16 @@
               "type": "sqlxTypes.JSONText",
               "name": "fields",
               "required": true,
-              "title": "Content JSON"
+              "title": "Record JSON"
             }
           ]
         }
       },
       {
-        "name": "content/read",
+        "name": "record/read",
         "method": "GET",
-        "title": "Read contents by ID from module section",
-        "path": "/{moduleID}/content/{contentID}",
+        "title": "Read records by ID from module section",
+        "path": "/{moduleID}/record/{recordID}",
         "parameters": {
           "path": [
             {
@@ -768,18 +768,18 @@
             },
             {
               "type": "uint64",
-              "name": "contentID",
+              "name": "recordID",
               "required": true,
-              "title": "Content ID"
+              "title": "Record ID"
             }
           ]
         }
       },
       {
-        "name": "content/edit",
+        "name": "record/edit",
         "method": "POST",
-        "title": "Add/update contents in module section",
-        "path": "/{moduleID}/content/{contentID}",
+        "title": "Add/update records in module section",
+        "path": "/{moduleID}/record/{recordID}",
         "parameters": {
           "path": [
             {
@@ -790,9 +790,9 @@
             },
             {
               "type": "uint64",
-              "name": "contentID",
+              "name": "recordID",
               "required": true,
-              "title": "Content ID"
+              "title": "Record ID"
             }
           ],
           "post": [
@@ -800,16 +800,16 @@
               "type": "sqlxTypes.JSONText",
               "name": "fields",
               "required": true,
-              "title": "Content JSON"
+              "title": "Record JSON"
             }
           ]
         }
       },
       {
-        "name": "content/delete",
+        "name": "record/delete",
         "method": "DELETE",
-        "title": "Delete content row from module section",
-        "path": "/{moduleID}/content/{contentID}",
+        "title": "Delete record row from module section",
+        "path": "/{moduleID}/record/{recordID}",
         "parameters": {
           "path": [
             {
@@ -820,9 +820,9 @@
             },
             {
               "type": "uint64",
-              "name": "contentID",
+              "name": "recordID",
               "required": true,
-              "title": "Content ID"
+              "title": "Record ID"
             }
           ]
         }

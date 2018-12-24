@@ -32,27 +32,27 @@ type ModuleAPI interface {
 	Read(context.Context, *request.ModuleRead) (interface{}, error)
 	Edit(context.Context, *request.ModuleEdit) (interface{}, error)
 	Delete(context.Context, *request.ModuleDelete) (interface{}, error)
-	ContentReport(context.Context, *request.ModuleContentReport) (interface{}, error)
-	ContentList(context.Context, *request.ModuleContentList) (interface{}, error)
-	ContentCreate(context.Context, *request.ModuleContentCreate) (interface{}, error)
-	ContentRead(context.Context, *request.ModuleContentRead) (interface{}, error)
-	ContentEdit(context.Context, *request.ModuleContentEdit) (interface{}, error)
-	ContentDelete(context.Context, *request.ModuleContentDelete) (interface{}, error)
+	RecordReport(context.Context, *request.ModuleRecordReport) (interface{}, error)
+	RecordList(context.Context, *request.ModuleRecordList) (interface{}, error)
+	RecordCreate(context.Context, *request.ModuleRecordCreate) (interface{}, error)
+	RecordRead(context.Context, *request.ModuleRecordRead) (interface{}, error)
+	RecordEdit(context.Context, *request.ModuleRecordEdit) (interface{}, error)
+	RecordDelete(context.Context, *request.ModuleRecordDelete) (interface{}, error)
 }
 
 // HTTP API interface
 type Module struct {
-	List          func(http.ResponseWriter, *http.Request)
-	Create        func(http.ResponseWriter, *http.Request)
-	Read          func(http.ResponseWriter, *http.Request)
-	Edit          func(http.ResponseWriter, *http.Request)
-	Delete        func(http.ResponseWriter, *http.Request)
-	ContentReport func(http.ResponseWriter, *http.Request)
-	ContentList   func(http.ResponseWriter, *http.Request)
-	ContentCreate func(http.ResponseWriter, *http.Request)
-	ContentRead   func(http.ResponseWriter, *http.Request)
-	ContentEdit   func(http.ResponseWriter, *http.Request)
-	ContentDelete func(http.ResponseWriter, *http.Request)
+	List         func(http.ResponseWriter, *http.Request)
+	Create       func(http.ResponseWriter, *http.Request)
+	Read         func(http.ResponseWriter, *http.Request)
+	Edit         func(http.ResponseWriter, *http.Request)
+	Delete       func(http.ResponseWriter, *http.Request)
+	RecordReport func(http.ResponseWriter, *http.Request)
+	RecordList   func(http.ResponseWriter, *http.Request)
+	RecordCreate func(http.ResponseWriter, *http.Request)
+	RecordRead   func(http.ResponseWriter, *http.Request)
+	RecordEdit   func(http.ResponseWriter, *http.Request)
+	RecordDelete func(http.ResponseWriter, *http.Request)
 }
 
 func NewModule(mh ModuleAPI) *Module {
@@ -92,46 +92,46 @@ func NewModule(mh ModuleAPI) *Module {
 				return mh.Delete(r.Context(), params)
 			})
 		},
-		ContentReport: func(w http.ResponseWriter, r *http.Request) {
+		RecordReport: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewModuleContentReport()
+			params := request.NewModuleRecordReport()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.ContentReport(r.Context(), params)
+				return mh.RecordReport(r.Context(), params)
 			})
 		},
-		ContentList: func(w http.ResponseWriter, r *http.Request) {
+		RecordList: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewModuleContentList()
+			params := request.NewModuleRecordList()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.ContentList(r.Context(), params)
+				return mh.RecordList(r.Context(), params)
 			})
 		},
-		ContentCreate: func(w http.ResponseWriter, r *http.Request) {
+		RecordCreate: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewModuleContentCreate()
+			params := request.NewModuleRecordCreate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.ContentCreate(r.Context(), params)
+				return mh.RecordCreate(r.Context(), params)
 			})
 		},
-		ContentRead: func(w http.ResponseWriter, r *http.Request) {
+		RecordRead: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewModuleContentRead()
+			params := request.NewModuleRecordRead()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.ContentRead(r.Context(), params)
+				return mh.RecordRead(r.Context(), params)
 			})
 		},
-		ContentEdit: func(w http.ResponseWriter, r *http.Request) {
+		RecordEdit: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewModuleContentEdit()
+			params := request.NewModuleRecordEdit()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.ContentEdit(r.Context(), params)
+				return mh.RecordEdit(r.Context(), params)
 			})
 		},
-		ContentDelete: func(w http.ResponseWriter, r *http.Request) {
+		RecordDelete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewModuleContentDelete()
+			params := request.NewModuleRecordDelete()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.ContentDelete(r.Context(), params)
+				return mh.RecordDelete(r.Context(), params)
 			})
 		},
 	}
@@ -146,12 +146,12 @@ func (mh *Module) MountRoutes(r chi.Router, middlewares ...func(http.Handler) ht
 			r.Get("/{moduleID}", mh.Read)
 			r.Post("/{moduleID}", mh.Edit)
 			r.Delete("/{moduleID}", mh.Delete)
-			r.Get("/{moduleID}/report", mh.ContentReport)
-			r.Get("/{moduleID}/content", mh.ContentList)
-			r.Post("/{moduleID}/content", mh.ContentCreate)
-			r.Get("/{moduleID}/content/{contentID}", mh.ContentRead)
-			r.Post("/{moduleID}/content/{contentID}", mh.ContentEdit)
-			r.Delete("/{moduleID}/content/{contentID}", mh.ContentDelete)
+			r.Get("/{moduleID}/report", mh.RecordReport)
+			r.Get("/{moduleID}/record", mh.RecordList)
+			r.Post("/{moduleID}/record", mh.RecordCreate)
+			r.Get("/{moduleID}/record/{recordID}", mh.RecordRead)
+			r.Post("/{moduleID}/record/{recordID}", mh.RecordEdit)
+			r.Delete("/{moduleID}/record/{recordID}", mh.RecordDelete)
 		})
 	})
 }

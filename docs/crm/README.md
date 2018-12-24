@@ -314,13 +314,13 @@ CRM module definitions
 | dimensions | string | GET | Dimensions (syntax: alias:field|modifier|modifier2;...) | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
-## List/read contents from module section
+## List/read records from module section
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/content` | HTTP/S | GET |  |
+| `/module/{moduleID}/record` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -332,66 +332,66 @@ CRM module definitions
 | sort | string | GET | Sort field (default id desc) | N/A | NO |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
-## List/read contents from module section
+## Create record in module section
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/content` | HTTP/S | POST |  |
+| `/module/{moduleID}/record` | HTTP/S | POST |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
-| fields | sqlxTypes.JSONText | POST | Content JSON | N/A | YES |
+| fields | sqlxTypes.JSONText | POST | Record JSON | N/A | YES |
 
-## Read contents by ID from module section
+## Read records by ID from module section
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/content/{contentID}` | HTTP/S | GET |  |
+| `/module/{moduleID}/record/{recordID}` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
-| contentID | uint64 | PATH | Content ID | N/A | YES |
+| recordID | uint64 | PATH | Record ID | N/A | YES |
 
-## Add/update contents in module section
+## Add/update records in module section
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/content/{contentID}` | HTTP/S | POST |  |
+| `/module/{moduleID}/record/{recordID}` | HTTP/S | POST |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
-| contentID | uint64 | PATH | Content ID | N/A | YES |
-| fields | sqlxTypes.JSONText | POST | Content JSON | N/A | YES |
+| recordID | uint64 | PATH | Record ID | N/A | YES |
+| fields | sqlxTypes.JSONText | POST | Record JSON | N/A | YES |
 
-## Delete content row from module section
+## Delete record row from module section
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/content/{contentID}` | HTTP/S | DELETE |  |
+| `/module/{moduleID}/record/{recordID}` | HTTP/S | DELETE |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
-| contentID | uint64 | PATH | Content ID | N/A | YES |
+| recordID | uint64 | PATH | Record ID | N/A | YES |
 
 
 
