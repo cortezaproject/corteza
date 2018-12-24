@@ -6,9 +6,7 @@
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/chart/` | HTTP/S | GET |
-Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work/go/src/github.com/crusttech/crust/codegen/templates/README.tpl on line 22
- |
+| `/chart/` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -21,9 +19,7 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work/go/
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/chart/` | HTTP/S | POST |
-Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work/go/src/github.com/crusttech/crust/codegen/templates/README.tpl on line 22
- |
+| `/chart/` | HTTP/S | POST |  |
 
 #### Request parameters
 
@@ -38,9 +34,7 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work/go/
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/chart/{chartID}` | HTTP/S | GET |
-Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work/go/src/github.com/crusttech/crust/codegen/templates/README.tpl on line 22
- |
+| `/chart/{chartID}` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -54,9 +48,7 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work/go/
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/chart/{chartID}` | HTTP/S | POST |
-Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work/go/src/github.com/crusttech/crust/codegen/templates/README.tpl on line 22
- |
+| `/chart/{chartID}` | HTTP/S | POST |  |
 
 #### Request parameters
 
@@ -72,9 +64,7 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work/go/
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/chart/{chartID}` | HTTP/S | DELETE |
-Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work/go/src/github.com/crusttech/crust/codegen/templates/README.tpl on line 22
- |
+| `/chart/{chartID}` | HTTP/S | DELETE |  |
 
 #### Request parameters
 

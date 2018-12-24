@@ -11,7 +11,7 @@
   ],
   "Parameters": null,
   "Protocol": "",
-  "Authentication": null,
+  "Authentication": [],
   "Path": "/chart",
   "APIs": [
     {
