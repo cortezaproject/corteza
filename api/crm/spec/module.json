@@ -126,13 +126,19 @@
           {
             "name": "metrics",
             "required": true,
-            "title": "Metrics (syntax: alias:expression;...)",
+            "title": "Metrics (eg: 'COUNT(*) AS count, SUM(money)')",
             "type": "string"
           },
           {
             "name": "dimensions",
             "required": true,
-            "title": "Dimensions (syntax: alias:field|modifier|modifier2;...)",
+            "title": "Dimensions (eg: 'DATE(foo), status')",
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "required": true,
+            "title": "Filter (eg: 'DATE(foo) \u003e 2010')",
             "type": "string"
           }
         ],

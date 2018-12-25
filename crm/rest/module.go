@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"strings"
 
 	"github.com/titpetric/factory/resputil"
 
@@ -55,17 +54,7 @@ func (s *Module) Edit(ctx context.Context, r *request.ModuleEdit) (interface{}, 
 }
 
 func (s *Module) RecordReport(ctx context.Context, r *request.ModuleRecordReport) (interface{}, error) {
-	reportParams := &types.RecordReport{}
-
-	if strings.TrimSpace(r.Metrics) != "" {
-		reportParams.ScanMetrics(strings.Split(r.Metrics, ",")...)
-	}
-
-	if strings.TrimSpace(r.Dimensions) != "" {
-		reportParams.ScanDimensions(strings.Split(r.Dimensions, ",")...)
-	}
-
-	return s.content.With(ctx).Report(r.ModuleID, reportParams)
+	return s.content.With(ctx).Report(r.ModuleID, r.Metrics, r.Dimensions, r.Filter)
 }
 
 func (s *Module) RecordList(ctx context.Context, r *request.ModuleRecordList) (interface{}, error) {

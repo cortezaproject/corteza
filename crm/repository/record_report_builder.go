@@ -1,95 +1,92 @@
 package repository
 
 import (
-	"errors"
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"gopkg.in/Masterminds/squirrel.v1"
 
-	"github.com/crusttech/crust/crm/types"
+	"github.com/crusttech/crust/crm/repository/ql"
 )
 
 type (
 	recordReportBuilder struct {
-		jsonField string
-
 		moduleID uint64
-		params   *types.RecordReport
+
+		metrics    ql.Columns
+		dimensions ql.Columns
+		filter     ql.ASTNode
+
+		// This is set by metric/column building to assist Cast()
+		numerics []string
 	}
 )
 
-var (
-	recordReportExprMatch = regexp.MustCompile(`^\s*(\w+)\((.+)\)\s*$`)
-)
-
-func NewRecordReportBuilder(moduleID uint64, params *types.RecordReport) *recordReportBuilder {
-	return &recordReportBuilder{
-		moduleID:  moduleID,
-		params:    params,
-		jsonField: `JSON_UNQUOTE(JSON_EXTRACT(json, REPLACE(JSON_UNQUOTE(JSON_SEARCH(json, 'one', ?)), '.name', '.value')))`,
-	}
-}
-
-func (b recordReportBuilder) field(name string) squirrel.Sqlizer {
-	switch name {
-	case "created_at", "updated_at":
-		return squirrel.Expr(name)
+// Identifiers should be names of the fields (physical table columns OR json fields, defined in module)
+func stdAggregationHandler(f ql.Function) (ql.Function, error) {
+	switch strings.ToUpper(f.Name) {
+	// case "COUNTD":
+	// 	return SqlConcatExpr("COUNT(DISTINCT ", aggrFuncArgs, ")")
+	//
+	case "COUNT", "SUM", "MAX", "MIN", "AVG", "STD":
+		return f, nil
 	default:
-		return squirrel.Expr(b.jsonField, name)
+		return f, fmt.Errorf("unsupported aggregate function %q", f.Name)
 	}
 }
 
-func (b recordReportBuilder) alias(col squirrel.Sqlizer, alias, fallback string) (squirrel.Sqlizer, string) {
-	if alias != "" {
-		return squirrel.Alias(col, alias), alias
-	}
-
-	return squirrel.Alias(col, fallback), fallback
-}
-
-func (b recordReportBuilder) wrapInModifiers(col squirrel.Sqlizer, mm ...string) squirrel.Sqlizer {
-	for _, m := range mm {
-		switch strings.ToUpper(m) {
-		case "WEEKDAY":
-			col = SqlConcatExpr("DATE_FORMAT(", col, ", '%W')")
-		case "DATE":
-			col = SqlConcatExpr("DATE_FORMAT(", col, ", '%Y-%m-%d')")
-		case "WEEK":
-			col = SqlConcatExpr("DATE_FORMAT(", col, ", '%Y-%u')")
-		case "MONTH":
-			col = SqlConcatExpr("DATE_FORMAT(", col, ", '%Y-%m')")
-		case "QUARTER":
-			col = SqlConcatExpr("CONCAT(", "YEAR(", col, "), 'Q', ", "QUARTER(", col, ")", ")")
-		case "YEAR":
-			col = SqlConcatExpr("DATE_FORMAT(", col, ", '%Y')")
+// Identifiers should be names of the fields (physical table columns OR json fields, defined in module)
+func stdGroupByFuncHandler(f ql.Function) (ql.Function, error) {
+	switch strings.ToUpper(f.Name) {
+	case "DATE_FORMAT":
+		if len(f.Arguments) == 2 {
+			return f, nil
+		} else {
+			return f, fmt.Errorf("incorrect parameter count for group-by function '%s'", f.Name)
 		}
+	case "CONCAT", "QUARTER", "YEAR", "DATE", "NOW":
+		return f, nil
+
+	default:
+		return f, fmt.Errorf("unsupported group-by function %q", f.Name)
 	}
 
-	return col
 }
 
-func (b recordReportBuilder) parseExpression(exp string) squirrel.Sqlizer {
-	res := recordReportExprMatch.FindStringSubmatch(exp)
-	if len(res) > 0 {
-		aggrFuncName := strings.ToUpper(res[1])
-		aggrFuncArgs := b.parseExpression(res[2])
+func NewRecordReportBuilder(moduleID uint64) *recordReportBuilder {
+	return &recordReportBuilder{moduleID: moduleID}
+}
 
-		switch aggrFuncName {
-		case "COUNTD":
-			return SqlConcatExpr("COUNT(DISTINCT ", aggrFuncArgs, ")")
+func (b *recordReportBuilder) SetMetrics(metrics string) (err error) {
+	p := ql.NewParser()
 
-		case "SUM", "MAX", "MIN", "AVG", "STD":
-			return SqlConcatExpr(aggrFuncName+"(CAST(", aggrFuncArgs, " AS DECIMAL(14,2)))")
-		}
-	} else {
-		return b.field(exp)
-	}
+	p.OnIdent = ql.MakeIdentWrapHandler(jsonWrap, "created_at", "updated_at")
+	p.OnFunction = stdAggregationHandler
 
-	return nil
+	b.metrics, err = p.ParseColumns(metrics)
+	return
+}
+
+func (b *recordReportBuilder) SetDimensions(dimensions string) (err error) {
+	p := ql.NewParser()
+
+	p.OnIdent = ql.MakeIdentWrapHandler(jsonWrap, "created_at", "updated_at")
+	p.OnFunction = stdGroupByFuncHandler
+
+	b.dimensions, err = p.ParseColumns(dimensions)
+	return
+}
+
+func (b *recordReportBuilder) SetFilter(filters string) (err error) {
+	p := ql.NewParser()
+
+	p.OnIdent = ql.MakeIdentWrapHandler(jsonWrap, "created_at", "updated_at", "id", "user_id")
+	p.OnFunction = stdGroupByFuncHandler
+
+	b.filter, err = p.ParseExpression(filters)
+	return
 }
 
 func (b *recordReportBuilder) Build() (sql string, args []interface{}, err error) {
@@ -99,32 +96,32 @@ func (b *recordReportBuilder) Build() (sql string, args []interface{}, err error
 		From("crm_record").
 		Where("module_id = ?", b.moduleID)
 
-	if b.params == nil {
-		return "", nil, errors.New("can not generate report without parameters")
-	}
+	// Add all metrics to columns
+	for i, m := range b.metrics {
+		if m.Alias == "" {
+			// Generate alias
+			m.Alias = fmt.Sprintf("metric_%d", i)
+		}
 
-	for i, m := range b.params.Metrics {
-		col := SqlConcatExpr("CAST(", b.parseExpression(m.Expression), " AS DECIMAL(14,2))")
-		col, m.Alias = b.alias(col, m.Alias, fmt.Sprintf("metric_%d", i))
-
+		// Wrap to cast func to ensure numeric output
+		col := squirrel.Alias(SqlConcatExpr("CAST(", m.Expr, " AS DECIMAL(14,2))"), m.Alias)
 		report = report.Column(col)
 
-		b.params.Metrics[i].Alias = m.Alias // copy generated alias back
+		b.numerics = append(b.numerics, m.Alias)
 	}
 
-	for i, d := range b.params.Dimensions {
-		col := b.field(d.Field)
+	// Add all dimensions to columns
+	for i, d := range b.dimensions {
+		if d.Alias == "" {
+			d.Alias = fmt.Sprintf("dimension_%d", i)
+		}
 
-		col = b.wrapInModifiers(col, d.Modifiers...)
-
-		col, d.Alias = b.alias(col, d.Alias, fmt.Sprintf("dimension_%d", i))
-
-		report = report.Column(col)
+		report = report.Column(d)
 		report = report.GroupBy(d.Alias)
 		report = report.OrderBy(d.Alias)
-
-		b.params.Dimensions[i].Alias = d.Alias // copy generated alias back
 	}
+
+	report = report.Where(b.filter)
 
 	return report.ToSql()
 }
@@ -140,8 +137,8 @@ func (b recordReportBuilder) Cast(row sqlx.ColScanner) map[string]interface{} {
 	}
 
 	// Cast all metrics to float64
-	for _, m := range b.params.Metrics {
-		out[m.Alias], _ = strconv.ParseFloat(out[m.Alias].(string), 64)
+	for _, numeric := range b.numerics {
+		out[numeric], _ = strconv.ParseFloat(out[numeric].(string), 64)
 	}
 
 	return out

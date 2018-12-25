@@ -19,7 +19,7 @@ type (
 
 		FindByID(id uint64) (*types.Record, error)
 
-		Report(moduleID uint64, params *types.RecordReport) (results interface{}, err error)
+		Report(moduleID uint64, metrics, dimensions, filter string) (results interface{}, err error)
 		Find(moduleID uint64, query string, page int, perPage int, sort string) (*FindResponse, error)
 
 		Create(mod *types.Record) (*types.Record, error)
@@ -47,6 +47,10 @@ type (
 	}
 )
 
+const (
+	jsonWrap = `JSON_UNQUOTE(JSON_EXTRACT(json, REPLACE(JSON_UNQUOTE(JSON_SEARCH(json, 'one', ?)), '.name', '.value')))`
+)
+
 func Record(ctx context.Context, db *factory.DB) RecordRepository {
 	return (&record{}).With(ctx, db)
 }
@@ -67,8 +71,20 @@ func (r *record) FindByID(id uint64) (*types.Record, error) {
 	return mod, nil
 }
 
-func (r *record) Report(moduleID uint64, params *types.RecordReport) (results interface{}, err error) {
-	crb := NewRecordReportBuilder(moduleID, params)
+func (r *record) Report(moduleID uint64, metrics, dimensions, filter string) (results interface{}, err error) {
+	crb := NewRecordReportBuilder(moduleID)
+
+	if err = crb.SetMetrics(metrics); err != nil {
+		return
+	}
+
+	if err = crb.SetDimensions(dimensions); err != nil {
+		return
+	}
+
+	if err = crb.SetFilter(filter); err != nil {
+		return
+	}
 
 	var result = make([]map[string]interface{}, 0)
 

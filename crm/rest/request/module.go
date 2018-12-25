@@ -264,6 +264,7 @@ var _ RequestFiller = NewModuleDelete()
 type ModuleRecordReport struct {
 	Metrics    string
 	Dimensions string
+	Filter     string
 	ModuleID   uint64 `json:",string"`
 }
 
@@ -305,6 +306,10 @@ func (m *ModuleRecordReport) Fill(r *http.Request) (err error) {
 	if val, ok := get["dimensions"]; ok {
 
 		m.Dimensions = val
+	}
+	if val, ok := get["filter"]; ok {
+
+		m.Filter = val
 	}
 	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 

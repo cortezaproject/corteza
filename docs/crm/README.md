@@ -300,8 +300,9 @@ CRM module definitions
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| metrics | string | GET | Metrics (syntax: alias:expression;...) | N/A | YES |
-| dimensions | string | GET | Dimensions (syntax: alias:field|modifier|modifier2;...) | N/A | YES |
+| metrics | string | GET | Metrics (eg: 'COUNT(*) AS count, SUM(money)') | N/A | YES |
+| dimensions | string | GET | Dimensions (eg: 'DATE(foo), status') | N/A | YES |
+| filter | string | GET | Filter (eg: 'DATE(foo) > 2010') | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
 ## List/read records from module section
