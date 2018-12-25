@@ -28,7 +28,7 @@ type (
 
 		FindByID(recordID uint64) (*types.Record, error)
 
-		Report(moduleID uint64, params *types.RecordReport) (interface{}, error)
+		Report(moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
 		Find(moduleID uint64, query string, page int, perPage int, sort string) (*repository.FindResponse, error)
 
 		Create(record *types.Record) (*types.Record, error)
@@ -64,8 +64,8 @@ func (s *record) FindByID(id uint64) (*types.Record, error) {
 	return response, s.preload(response, "page", "user", "fields")
 }
 
-func (s *record) Report(moduleID uint64, params *types.RecordReport) (interface{}, error) {
-	return s.repository.Report(moduleID, params)
+func (s *record) Report(moduleID uint64, metrics, dimensions, filter string) (interface{}, error) {
+	return s.repository.Report(moduleID, metrics, dimensions, filter)
 }
 
 func (s *record) Find(moduleID uint64, query string, page int, perPage int, sort string) (*repository.FindResponse, error) {
