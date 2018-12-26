@@ -676,10 +676,10 @@
           ],
           "get": [
             {
+              "name": "filter",
               "type": "string",
-              "name": "query",
               "required": false,
-              "title": "Search query"
+              "title": "Filtering condition"
             },
             {
               "name": "page",
