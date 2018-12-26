@@ -9,7 +9,6 @@ import (
 
 func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 	var (
-		field    = Field{}.New()
 		module   = Module{}.New()
 		page     = Page{}.New()
 		chart    = Chart{}.New()
@@ -23,7 +22,6 @@ func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 		r.Group(func(r chi.Router) {
 			r.Use(auth.MiddlewareValidOnly)
 
-			handlers.NewField(field).MountRoutes(r)
 			handlers.NewPage(page).MountRoutes(r)
 			handlers.NewModule(module).MountRoutes(r)
 			handlers.NewChart(chart).MountRoutes(r)
