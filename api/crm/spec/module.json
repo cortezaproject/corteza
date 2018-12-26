@@ -160,9 +160,9 @@
       "Parameters": {
         "get": [
           {
-            "name": "query",
+            "name": "filter",
             "required": false,
-            "title": "Search query",
+            "title": "Filtering condition",
             "type": "string"
           },
           {

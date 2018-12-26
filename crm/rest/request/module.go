@@ -320,7 +320,7 @@ var _ RequestFiller = NewModuleRecordReport()
 
 // Module record/list request parameters
 type ModuleRecordList struct {
-	Query    string
+	Filter   string
 	Page     int
 	PerPage  int
 	Sort     string
@@ -358,9 +358,9 @@ func (m *ModuleRecordList) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	if val, ok := get["query"]; ok {
+	if val, ok := get["filter"]; ok {
 
-		m.Query = val
+		m.Filter = val
 	}
 	if val, ok := get["page"]; ok {
 

@@ -3,12 +3,13 @@ package repository
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
+	"github.com/crusttech/crust/crm/repository/ql"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
+	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/crusttech/crust/crm/types"
 )
@@ -20,7 +21,7 @@ type (
 		FindByID(id uint64) (*types.Record, error)
 
 		Report(moduleID uint64, metrics, dimensions, filter string) (results interface{}, err error)
-		Find(moduleID uint64, query string, page int, perPage int, sort string) (*FindResponse, error)
+		Find(moduleID uint64, filter string, sort string, page int, perPage int) (*FindResponse, error)
 
 		Create(mod *types.Record) (*types.Record, error)
 		Update(mod *types.Record) (*types.Record, error)
@@ -30,7 +31,7 @@ type (
 	}
 
 	FindResponseMeta struct {
-		Query   string `json:"query,omitempty"`
+		Filter  string `json:"filter,omitempty"`
 		Page    int    `json:"page"`
 		PerPage int    `json:"perPage"`
 		Count   int    `json:"count"`
@@ -101,7 +102,7 @@ func (r *record) Report(moduleID uint64, metrics, dimensions, filter string) (re
 	}
 }
 
-func (r *record) Find(moduleID uint64, query string, page int, perPage int, sort string) (*FindResponse, error) {
+func (r *record) Find(moduleID uint64, filter string, sort string, page int, perPage int) (*FindResponse, error) {
 	if page < 0 {
 		page = 0
 	}
@@ -116,22 +117,58 @@ func (r *record) Find(moduleID uint64, query string, page int, perPage int, sort
 	}
 	response := &FindResponse{
 		Meta: FindResponseMeta{
+			Filter:  filter,
 			Page:    page,
 			PerPage: perPage,
-			Query:   query,
 			Sort:    sort,
 		},
 		Records: make([]*types.Record, 0),
 	}
 
-	query = "%" + query + "%"
+	// Create query for fetching and counting records.
+	query := squirrel.
+		Select().
+		From("crm_record").
+		Where("module_id = ?", moduleID).
+		Where(squirrel.Eq{"deleted_at": nil})
 
-	sqlSelect := "SELECT * FROM crm_record"
-	sqlCount := "SELECT count(*) FROM crm_record"
-	sqlWhere := "WHERE module_id=? and deleted_at IS NULL"
-	sqlOrder := "ORDER BY id DESC"
-	sqlLimit := fmt.Sprintf("LIMIT %d, %d", page*perPage, perPage)
+	// Parse filters.
+	p := ql.NewParser()
+	p.OnIdent = ql.MakeIdentWrapHandler(jsonWrap, "created_at", "updated_at", "id", "user_id")
 
+	where, err := p.ParseExpression(filter)
+	if err != nil {
+		return nil, err
+	}
+
+	// Append filtering to query.
+	query = query.Where(where)
+
+	// Create count SQL sentences.
+	count := query.Column(squirrel.Alias(squirrel.Expr("COUNT(*)"), "count"))
+
+	sqlSelect, argsSelect, err := count.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	// Execute count query.
+	if err := r.db().Get(&response.Meta.Count, sqlSelect, argsSelect...); err != nil {
+		return nil, err
+	}
+
+	// Return empty response if count of records is zero.
+	if response.Meta.Count == 0 {
+		return response, nil
+	}
+
+	// Create query for fetching records.
+	query = query.
+		Column("*").
+		Limit(uint64(perPage)).
+		Offset(uint64(page))
+
+	// Append Sorting.
 	chuncks := strings.Split(sort, ",")
 	if len(chuncks) > 0 {
 
@@ -195,37 +232,35 @@ func (r *record) Find(moduleID uint64, query string, page int, perPage int, sort
 			orderFields = append(orderFields, field+" "+order)
 		}
 
-		sqlOrder = "ORDER BY " + strings.Join(orderFields, ", ")
+		query = query.OrderBy(orderFields...)
 	}
 
-	// One possibility to order by field value without JSON, is query written bellow with FIELD over column names and order by value:
-	// SELECT * FROM crm_record
-	// LEFT JOIN crm_record ON crm_record.id = crm_record_column.record_id"
-	// WHERE column_name in ('name', 'email')
-	// ORDER BY FIELD(column_name, 'email', 'name'), column_value;
+	/*
+		p = ql.NewParser()
+		p.OnIdent = ql.MakeIdentWrapHandler(jsonWrap, "id", "module_id", "user_id", "created_at", "updated_at")
 
-	// Possibility to order with JSON:
-	// SELECT *,
-	// JSON_UNQUOTE(JSON_EXTRACT(json, REPLACE(JSON_UNQUOTE(JSON_SEARCH(json, 'all', 'email')), '.name', '.value'))) as emailField
-	// FROM crm_record
-	// ORDER by emailField asc;
+		order, err := p.ParseExpression(sort)
+		if err != nil {
+			return nil, err
+		}
 
-	switch true {
-	case query != "":
-		sqlWhere = sqlWhere + " AND id in (select distinct record_id from crm_record_column where column_value like ?)"
-		if err := r.db().Get(&response.Meta.Count, sqlCount+" "+sqlWhere, moduleID, query); err != nil {
+		sqlOrder, argsOrder, err := order.ToSql()
+		if err != nil {
 			return nil, err
 		}
-		if err := r.db().Select(&response.Records, sqlSelect+" "+sqlWhere+" "+sqlOrder+" "+sqlLimit, moduleID, query); err != nil {
-			return nil, err
-		}
-	default:
-		if err := r.db().Get(&response.Meta.Count, sqlCount+" "+sqlWhere, moduleID); err != nil {
-			return nil, err
-		}
-		if err := r.db().Select(&response.Records, sqlSelect+" "+sqlWhere+" "+sqlOrder+" "+sqlLimit, moduleID); err != nil {
-			return nil, err
-		}
+		query = query.OrderBy(sqlOrder)
+	*/
+
+	// Create actual fetch SQL sentences.
+	sqlSelect, argsSelect, err = query.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	// Append order args to select args and execute actual query.
+	// argsSelect = append(argsSelect, argsOrder...)
+	if err := r.db().Select(&response.Records, sqlSelect, argsSelect...); err != nil {
+		return nil, err
 	}
 
 	return response, nil

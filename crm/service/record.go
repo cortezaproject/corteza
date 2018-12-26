@@ -29,7 +29,7 @@ type (
 		FindByID(recordID uint64) (*types.Record, error)
 
 		Report(moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
-		Find(moduleID uint64, query string, page int, perPage int, sort string) (*repository.FindResponse, error)
+		Find(moduleID uint64, filter string, sort string, page int, perPage int) (*repository.FindResponse, error)
 
 		Create(record *types.Record) (*types.Record, error)
 		Update(record *types.Record) (*types.Record, error)
@@ -68,8 +68,8 @@ func (s *record) Report(moduleID uint64, metrics, dimensions, filter string) (in
 	return s.repository.Report(moduleID, metrics, dimensions, filter)
 }
 
-func (s *record) Find(moduleID uint64, query string, page int, perPage int, sort string) (*repository.FindResponse, error) {
-	response, err := s.repository.Find(moduleID, query, page, perPage, sort)
+func (s *record) Find(moduleID uint64, filter string, sort string, page int, perPage int) (*repository.FindResponse, error) {
+	response, err := s.repository.Find(moduleID, filter, sort, page, perPage)
 	if err != nil {
 		return nil, err
 	}
