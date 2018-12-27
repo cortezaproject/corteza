@@ -94,7 +94,11 @@ func (r *user) Find(filter *types.UserFilter) ([]*types.User, error) {
 
 	if filter != nil {
 		if filter.Query != "" {
-			sql += " AND username LIKE ?"
+			sql += " AND (username LIKE ?"
+			params = append(params, filter.Query+"%")
+			sql += " OR email LIKE ?"
+			params = append(params, filter.Query+"%")
+			sql += " OR name LIKE ?)"
 			params = append(params, filter.Query+"%")
 		}
 	}
