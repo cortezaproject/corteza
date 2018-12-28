@@ -151,7 +151,7 @@ func TestAstParser_ParseExpression(t *testing.T) {
 				},
 				Operator{Kind: "!="},
 				Number{Value: "2010"},
-				Keyword{"AND"},
+				Operator{"AND"},
 				Function{
 					Name: "month",
 					Arguments: ASTSet{
@@ -160,6 +160,22 @@ func TestAstParser_ParseExpression(t *testing.T) {
 				},
 				Operator{Kind: "="},
 				Number{Value: "6"},
+			},
+		},
+		{
+			in: `foo LIKE 'bar%'`,
+			tree: ASTNodes{
+				Ident{Value: "foo"},
+				Operator{Kind: "LIKE"},
+				String{Value: "bar%"},
+			},
+		},
+		{
+			in: `foo NOT LIKE 'bar%'`,
+			tree: ASTNodes{
+				Ident{Value: "foo"},
+				Operator{Kind: "NOT LIKE"},
+				String{Value: "bar%"},
 			},
 		},
 	}
@@ -207,6 +223,22 @@ func TestAstParser_ColumnParser(t *testing.T) {
 							Ident{Value: "value2"},
 						},
 					}},
+				},
+			},
+		},
+		{
+			in: `a DESC`,
+			cols: Columns{
+				Column{
+					Expr: ASTNodes{Ident{Value: "a"}, Keyword{Keyword: "DESC"}},
+				},
+			},
+		},
+		{
+			in: `a ASC`,
+			cols: Columns{
+				Column{
+					Expr: ASTNodes{Ident{Value: "a"}, Keyword{Keyword: "ASC"}},
 				},
 			},
 		},

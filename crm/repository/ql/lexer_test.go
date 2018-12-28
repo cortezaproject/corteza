@@ -58,9 +58,18 @@ func TestScanner_ScanComplex(t *testing.T) {
 		tokens []tokenCode
 	}{
 		// Special tokens (EOF, ILLEGAL, WS)
-		{`func(arg1, arg2)`, []tokenCode{IDENT, PARENTHESIS_OPEN, IDENT, COMMA, WS, IDENT, PARENTHESIS_CLOSE}},
-		{`arg1 * arg2`, []tokenCode{IDENT, WS, OPERATOR, WS, IDENT}},
-		{`date_format(created_at,'%Y')`, []tokenCode{IDENT, PARENTHESIS_OPEN, IDENT, COMMA, STRING, PARENTHESIS_CLOSE}},
+		{`func(arg1, arg2)`,
+			[]tokenCode{IDENT, PARENTHESIS_OPEN, IDENT, COMMA, WS, IDENT, PARENTHESIS_CLOSE}},
+		{`arg1 * arg2`,
+			[]tokenCode{IDENT, WS, OPERATOR, WS, IDENT}},
+		{`date_format(created_at,'%Y')`,
+			[]tokenCode{IDENT, PARENTHESIS_OPEN, IDENT, COMMA, STRING, PARENTHESIS_CLOSE}},
+		{`foo LIKE 'abc%'`,
+			[]tokenCode{IDENT, WS, OPERATOR, WS, STRING}},
+		{`foo NOT LIKE 'abc%'`,
+			[]tokenCode{IDENT, WS, OPERATOR, WS, OPERATOR, WS, STRING}},
+		{`foo DESC`,
+			[]tokenCode{IDENT, WS, KEYWORD}},
 	}
 
 	for _, test := range tests {

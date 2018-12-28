@@ -2,6 +2,7 @@ package ql
 
 import (
 	"bytes"
+	"strings"
 )
 
 type (
@@ -73,6 +74,15 @@ func (TokenConsumerIdent) Consume(s RuneReader) Token {
 		} else {
 			_, _ = buf.WriteRune(ch)
 		}
+	}
+
+	lit := strings.ToUpper(buf.String())
+
+	switch lit {
+	case "LIKE", "NOT", "AND", "OR", "XOR":
+		return Token{code: OPERATOR, literal: lit}
+	case "DESC", "ASC":
+		return Token{code: KEYWORD, literal: lit}
 	}
 
 	// Otherwise return as a regular identifier.
