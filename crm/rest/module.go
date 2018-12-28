@@ -58,7 +58,7 @@ func (s *Module) RecordReport(ctx context.Context, r *request.ModuleRecordReport
 }
 
 func (s *Module) RecordList(ctx context.Context, r *request.ModuleRecordList) (interface{}, error) {
-	return s.content.With(ctx).Find(r.ModuleID, r.Filter, r.Page, r.PerPage, r.Sort)
+	return s.content.With(ctx).Find(r.ModuleID, r.Filter, r.Sort, r.Page, r.PerPage)
 }
 
 func (s *Module) RecordRead(ctx context.Context, r *request.ModuleRecordRead) (interface{}, error) {
