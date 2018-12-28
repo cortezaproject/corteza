@@ -6,10 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/crusttech/crust/crm/repository/ql"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"gopkg.in/Masterminds/squirrel.v1"
+
+	"github.com/crusttech/crust/crm/repository/ql"
 
 	"github.com/crusttech/crust/crm/types"
 )
@@ -146,7 +147,6 @@ func (r *record) Find(moduleID uint64, filter string, sort string, page int, per
 
 	// Create count SQL sentences.
 	count := query.Column(squirrel.Alias(squirrel.Expr("COUNT(*)"), "count"))
-
 	sqlSelect, argsSelect, err := count.ToSql()
 	if err != nil {
 		return nil, err

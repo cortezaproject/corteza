@@ -76,7 +76,15 @@ func (n Keyword) ToSql() (string, []interface{}, error) {
 }
 
 func (n Operator) ToSql() (string, []interface{}, error) {
-	return n.Kind, nil, nil
+	var op = n.Kind
+
+	switch n.Kind {
+	case "LIKE", "NOT LIKE":
+		// Make sure we are doing case insensitive search
+		op = "COLLATE utf8mb4_general_ci " + n.Kind
+	}
+
+	return " " + op + " ", nil, nil
 }
 
 func (n String) ToSql() (string, []interface{}, error) {

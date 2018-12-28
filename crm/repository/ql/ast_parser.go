@@ -162,11 +162,21 @@ checkToken:
 			return nil, err
 		} else {
 			list = append(list, ident)
-
 			goto next
 		}
 	case OPERATOR:
+		if len(list) > 0 {
+			// Merge with previous operator node
+			if prevOp, ok := list[len(list)-1].(Operator); ok {
+				list[len(list)-1] = Operator{Kind: prevOp.Kind + " " + t.literal}
+				goto next
+			}
+		}
+
 		list = append(list, Operator{Kind: t.literal})
+		goto next
+	case KEYWORD:
+		list = append(list, Keyword{Keyword: t.literal})
 		goto next
 	case NUMBER:
 		list = append(list, Number{Value: t.literal})
@@ -189,11 +199,7 @@ checkToken:
 }
 
 func (p *Parser) parseIdent(t Token) (list ASTNode, err error) {
-	var ucLiteral = strings.ToUpper(t.literal)
-
-	if ucLiteral == "AND" || ucLiteral == "OR" {
-		return Keyword{ucLiteral}, nil
-	} else if p.peekToken(1).Is(PARENTHESIS_OPEN) {
+	if p.peekToken(1).Is(PARENTHESIS_OPEN) {
 		// Handle function calls: <IDENT><PARENTHESIS_OPEN>...
 		f := Function{Name: t.literal}
 		if f.Arguments, err = p.parseSet(); err != nil {
