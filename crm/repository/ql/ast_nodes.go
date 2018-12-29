@@ -40,6 +40,11 @@ type (
 		Keyword string
 	}
 
+	Interval struct {
+		Value string
+		Unit  string
+	}
+
 	Column struct {
 		Expr  ASTNodes
 		Alias string
@@ -57,6 +62,8 @@ func (n Number) String() string { return n.Value }
 func (n Operator) String() string { return n.Kind }
 
 func (n Keyword) String() string { return n.Keyword }
+
+func (n Interval) String() string { return fmt.Sprintf("INTERVAL %s %s", n.Value, n.Unit) }
 
 func (n Function) String() string { return fmt.Sprintf("%s(%s)", n.Name, n.Arguments) }
 

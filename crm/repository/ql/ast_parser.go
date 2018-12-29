@@ -176,7 +176,11 @@ checkToken:
 		list = append(list, Operator{Kind: t.literal})
 		goto next
 	case KEYWORD:
-		list = append(list, Keyword{Keyword: t.literal})
+		if keyword, err := p.parseKeyword(t); err != nil {
+			return nil, err
+		} else {
+			list = append(list, keyword)
+		}
 		goto next
 	case NUMBER:
 		list = append(list, Number{Value: t.literal})
@@ -239,6 +243,13 @@ next:
 	case OPERATOR:
 		list = append(list, Operator{Kind: t.literal})
 		goto next
+	case KEYWORD:
+		if keyword, err := p.parseKeyword(t); err != nil {
+			return nil, err
+		} else {
+			list = append(list, keyword)
+		}
+		goto next
 	case IDENT:
 		if p.peekToken(1).Is(OPERATOR) {
 			// Looks like we have an expression ahead of us
@@ -278,5 +289,35 @@ next:
 		return
 	default:
 		return nil, fmt.Errorf("unexpected token while parsing set (%v)", t)
+	}
+}
+
+func (p *Parser) parseKeyword(t Token) (list ASTNode, err error) {
+	switch strings.ToUpper(t.literal) {
+	case "INTERVAL":
+		i := Interval{Value: p.nextToken().literal}
+		u := p.nextToken()
+
+		if u.code != IDENT {
+			return nil, fmt.Errorf("expecting identifier, got %v", t)
+		} else {
+			switch strings.ToUpper(u.literal) {
+			case "MICROSECOND", "SECOND", "MINUTE", "HOUR",
+				"DAY", "WEEK", "MONTH", "QUARTER", "YEAR",
+				"SECOND_MICROSECOND", "MINUTE_MICROSECOND", "MINUTE_SECOND", "HOUR_MICROSECOND", "HOUR_SECOND",
+				"HOUR_MINUTE", "DAY_MICROSECOND", "DAY_SECOND", "DAY_MINUTE", "DAY_HOUR", "YEAR_MONTH":
+				// All good
+				break
+			default:
+				return nil, fmt.Errorf("expecting interval unit, got %v", u.literal)
+			}
+		}
+
+		i.Unit = u.literal
+
+		return i, nil
+
+	default:
+		return Keyword{Keyword: t.literal}, nil
 	}
 }

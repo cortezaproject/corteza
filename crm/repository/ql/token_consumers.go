@@ -87,7 +87,7 @@ func (TokenConsumerIdent) Consume(s RuneReader) Token {
 	switch lit {
 	case "LIKE", "NOT", "AND", "OR", "XOR":
 		return Token{code: OPERATOR, literal: lit}
-	case "DESC", "ASC":
+	case "DESC", "ASC", "INTERVAL":
 		return Token{code: KEYWORD, literal: lit}
 	}
 

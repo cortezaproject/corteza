@@ -52,7 +52,17 @@ func stdGroupByFuncHandler(f ql.Function) (ql.Function, error) {
 	default:
 		return f, fmt.Errorf("unsupported group-by function %q", f.Name)
 	}
+}
 
+// Identifiers should be names of the fields (physical table columns OR json fields, defined in module)
+func stdFilterFuncHandler(f ql.Function) (ql.Function, error) {
+	switch strings.ToUpper(f.Name) {
+	case "CONCAT", "QUARTER", "YEAR", "DATE", "NOW", "DATE_ADD", "DATE_SUB", "DATE_FORMAT":
+		return f, nil
+
+	default:
+		return f, fmt.Errorf("unsupported group-by function %q", f.Name)
+	}
 }
 
 func NewRecordReportBuilder(moduleID uint64) *recordReportBuilder {
@@ -83,7 +93,7 @@ func (b *recordReportBuilder) SetFilter(filters string) (err error) {
 	p := ql.NewParser()
 
 	p.OnIdent = ql.MakeIdentWrapHandler(jsonWrap, "created_at", "updated_at", "id", "user_id")
-	p.OnFunction = stdGroupByFuncHandler
+	p.OnFunction = stdFilterFuncHandler
 
 	b.filter, err = p.ParseExpression(filters)
 	return
