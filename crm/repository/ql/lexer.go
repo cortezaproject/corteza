@@ -43,9 +43,9 @@ func NewLexer(r io.Reader) *Lexer {
 			&TokenConsumerGeneric{token: WS, whitelist: CHAR_WHITELIST_WHITESPACE},
 			// @todo ensure operator order (eg != is valid, =! is not)
 			&TokenConsumerGeneric{token: OPERATOR, whitelist: CHAR_WHITELIST_OPERATORS},
-			&TokenConsumerGeneric{token: COMMA, whitelist: ","},
-			&TokenConsumerGeneric{token: PARENTHESIS_OPEN, whitelist: "("},
-			&TokenConsumerGeneric{token: PARENTHESIS_CLOSE, whitelist: ")"},
+			&TokenConsumerGeneric{token: COMMA, whitelist: ",", maxLength: 1},
+			&TokenConsumerGeneric{token: PARENTHESIS_OPEN, whitelist: "(", maxLength: 1},
+			&TokenConsumerGeneric{token: PARENTHESIS_CLOSE, whitelist: ")", maxLength: 1},
 			&TokenConsumerString{},
 			&TokenConsumerNumber{},
 			&TokenConsumerIdent{},
