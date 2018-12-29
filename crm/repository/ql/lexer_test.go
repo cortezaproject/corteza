@@ -70,6 +70,8 @@ func TestScanner_ScanComplex(t *testing.T) {
 			[]tokenCode{IDENT, WS, OPERATOR, WS, OPERATOR, WS, STRING}},
 		{`foo DESC`,
 			[]tokenCode{IDENT, WS, KEYWORD}},
+		{`year(now())-1`,
+			[]tokenCode{IDENT, PARENTHESIS_OPEN, IDENT, PARENTHESIS_OPEN, PARENTHESIS_CLOSE, PARENTHESIS_CLOSE, OPERATOR, NUMBER}},
 	}
 
 	for _, test := range tests {

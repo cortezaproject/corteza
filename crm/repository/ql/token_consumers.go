@@ -15,6 +15,7 @@ type (
 	TokenConsumerGeneric  struct {
 		token     tokenCode
 		whitelist string
+		maxLength int
 	}
 )
 
@@ -40,6 +41,11 @@ func (g TokenConsumerGeneric) Consume(s RuneReader) Token {
 	// Read every subsequent whitespace character into the buffer.
 	// Non-whitespace characters and EOF will cause the loop to exit.
 	for {
+		if g.maxLength > 0 && buf.Len() >= g.maxLength {
+			// Length control
+			break
+		}
+
 		if ch := s.read(); ch == eof {
 			break
 		} else if !g.Test(ch) {

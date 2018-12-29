@@ -7,13 +7,14 @@ import (
 )
 
 // Ensure the parser can parse strings into Statement ASTs.
-func TestAstParser_ParseSet(t *testing.T) {
+func TestAstParser_Parser(t *testing.T) {
 	var tests = []struct {
-		in   string
-		tree ASTNode
-		err  error
-		sql  string
-		args []interface{}
+		in     string
+		tree   ASTNode
+		err    error
+		sql    string
+		args   []interface{}
+		parser func(s string) (ASTNode, error)
 	}{
 		{
 			in: `log( arg1 ), arg2 / 100`,
@@ -69,56 +70,9 @@ func TestAstParser_ParseSet(t *testing.T) {
 			sql:  `date_format(created_at, ?)`,
 			args: []interface{}{"%Y"},
 		},
-		// {
-		// 	in: `year(created_at) > year(NOW()) - 2`,
-		// 	tree: ASTSet{
-		// 		Function{
-		// 			Name: "year",
-		// 			Arguments: ASTSet{
-		// 				Ident{Value: "created_at"},
-		// 			},
-		// 		},
-		// 		Operator{Kind: ">"},
-		// 		Function{
-		// 			Name: "year",
-		// 			Arguments: ASTSet{
-		// 				Function{
-		// 					Name: "NOW",
-		// 				},
-		// 			},
-		// 		},
-		// 		Operator{Kind: "-"},
-		// 		Number{Value: "2"},
-		// 	},
-		// 	sql: `year(created_at) > year(NOW()) - 2 `,
-		// },
-	}
-
-	for i, test := range tests {
-		if tree, err := NewParser().ParseSet(test.in); err != test.err {
-			t.Fatalf("%d. %s: error mismatch:\n  expected: %v\n       got: %v\n\n", i, test.in, test.err, err)
-		} else if test.err == nil && !reflect.DeepEqual(test.tree, tree) {
-			t.Errorf("%d. %s\n\ntree does not match:\n\nexpected: %#v\n     got: %#v\n\n", i, test.in, test.tree, tree)
-		} else if sql, args, err := tree.ToSql(); err != nil {
-			t.Fatal(err)
-		} else if test.sql != "" && sql != test.sql {
-			t.Errorf("%d. %s\n\nsql does not match:\n\nexpected: %#v\n     got: %#v\n\n", i, test.in, test.sql, sql)
-		} else if test.args != nil && !reflect.DeepEqual(test.args, args) {
-			t.Errorf("%d. %s\n\nargs does not match:\n\nexpected: %#v\n     got: %#v\n\n", i, test.in, test.args, args)
-
-		}
-	}
-}
-
-// Ensure the parser can parse strings into Statement ASTs.
-func TestAstParser_ParseExpression(t *testing.T) {
-	var tests = []struct {
-		in   string
-		tree ASTNode
-		err  error
-	}{
 		{
-			in: `func(arg1, arg2)`,
+			parser: NewParser().ParseExpression,
+			in:     `func(arg1, arg2)`,
 			tree: Function{
 				Name: "func",
 				Arguments: ASTSet{
@@ -128,7 +82,8 @@ func TestAstParser_ParseExpression(t *testing.T) {
 			},
 		},
 		{
-			in: `year(created_at) != 2010`,
+			parser: NewParser().ParseExpression,
+			in:     `year(created_at) != 2010`,
 			tree: ASTNodes{
 				Function{
 					Name: "year",
@@ -141,7 +96,8 @@ func TestAstParser_ParseExpression(t *testing.T) {
 			},
 		},
 		{
-			in: `year(created_at) != 2010 AND month(created_at) = 6`,
+			parser: NewParser().ParseExpression,
+			in:     `year(created_at) != 2010 AND month(created_at) = 6`,
 			tree: ASTNodes{
 				Function{
 					Name: "year",
@@ -163,7 +119,19 @@ func TestAstParser_ParseExpression(t *testing.T) {
 			},
 		},
 		{
-			in: `foo LIKE 'bar%'`,
+			parser: NewParser().ParseExpression,
+			in:     `year(created_at) = year(now()) - 1`,
+			tree: ASTNodes{
+				Function{Name: "year", Arguments: ASTSet{Ident{Value: "created_at"}}},
+				Operator{Kind: "="},
+				Function{Name: "year", Arguments: ASTSet{Function{Name: "now"}}},
+				Operator{Kind: "-"},
+				Number{Value: "1"},
+			},
+		},
+		{
+			parser: NewParser().ParseExpression,
+			in:     `foo LIKE 'bar%'`,
 			tree: ASTNodes{
 				Ident{Value: "foo"},
 				Operator{Kind: "LIKE"},
@@ -171,7 +139,8 @@ func TestAstParser_ParseExpression(t *testing.T) {
 			},
 		},
 		{
-			in: `foo NOT LIKE 'bar%'`,
+			parser: NewParser().ParseExpression,
+			in:     `foo NOT LIKE 'bar%'`,
 			tree: ASTNodes{
 				Ident{Value: "foo"},
 				Operator{Kind: "NOT LIKE"},
@@ -181,10 +150,32 @@ func TestAstParser_ParseExpression(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		if tree, err := NewParser().ParseExpression(test.in); err != test.err {
-			t.Fatalf("%d. %s: error mismatch:\n  expected: %v\n       got: %v\n\n", i, test.in, test.err, err)
+		if test.parser == nil {
+			test.parser = NewParser().ParseSet
+		}
+
+		if tree, err := test.parser(test.in); err != test.err {
+			t.Fatalf("error mismatch:\n"+
+				"test case: %d. %s\n"+
+				" expected: %v\n"+
+				"      got: %v\n\n", i, test.in, test.err, err)
 		} else if test.err == nil && !reflect.DeepEqual(test.tree, tree) {
-			t.Errorf("%d. %s\n\ntree does not match:\n\nexpected: %#v\n     got: %#v\n\n", i, test.in, test.tree, tree)
+			t.Errorf("tree does not match:\n"+
+				"test case: %d. %s\n"+
+				" expected: %#v\n"+
+				"      got: %#v\n\n", i, test.in, test.tree, tree)
+		} else if sql, args, err := tree.ToSql(); err != nil {
+			t.Fatal(err)
+		} else if test.sql != "" && sql != test.sql {
+			t.Errorf("sql does not match:\n"+
+				"test case: %d. %s\n"+
+				" expected: %#v\n"+
+				"      got: %#v\n\n", i, test.in, test.sql, sql)
+		} else if test.args != nil && !reflect.DeepEqual(test.args, args) {
+			t.Errorf("args does not match:\n"+
+				"test case: %d. %s\n"+
+				" expected: %#v\n"+
+				"      got: %#v\n\n", i, test.in, test.args, args)
 		}
 	}
 }
