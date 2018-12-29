@@ -75,6 +75,10 @@ func (n Keyword) ToSql() (string, []interface{}, error) {
 	return n.Keyword, nil, nil
 }
 
+func (n Interval) ToSql() (string, []interface{}, error) {
+	return fmt.Sprintf("INTERVAL ? %s", n.Unit), []interface{}{n.Value}, nil
+}
+
 func (n Operator) ToSql() (string, []interface{}, error) {
 	var op = n.Kind
 

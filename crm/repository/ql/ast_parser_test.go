@@ -131,6 +131,15 @@ func TestAstParser_Parser(t *testing.T) {
 		},
 		{
 			parser: NewParser().ParseExpression,
+			in:     `NOW() > DATE_SUB(col, INTERVAL 31 DAY)`,
+			tree: ASTNodes{
+				Function{Name: "NOW"},
+				Operator{Kind: ">"},
+				Function{Name: "DATE_SUB", Arguments: ASTSet{Ident{Value: "col"}, Interval{Value: "31", Unit: "DAY"}}},
+			},
+		},
+		{
+			parser: NewParser().ParseExpression,
 			in:     `foo LIKE 'bar%'`,
 			tree: ASTNodes{
 				Ident{Value: "foo"},
