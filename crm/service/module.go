@@ -28,8 +28,6 @@ type (
 		Create(module *types.Module) (*types.Module, error)
 		Update(module *types.Module) (*types.Module, error)
 		DeleteByID(moduleID uint64) error
-
-		FieldNames(mod *types.Module) ([]string, error)
 	}
 )
 
@@ -52,9 +50,7 @@ func (s *module) FindByID(id uint64) (*types.Module, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := s.preload(mod); err != nil {
-		return nil, err
-	}
+
 	return mod, err
 }
 
@@ -98,20 +94,4 @@ func (s *module) Update(module *types.Module) (m *types.Module, err error) {
 
 func (s *module) DeleteByID(id uint64) error {
 	return s.moduleRepo.DeleteByID(id)
-}
-
-func (s *module) FieldNames(mod *types.Module) ([]string, error) {
-	return s.moduleRepo.FieldNames(mod)
-}
-
-func (s *module) preload(mod *types.Module) (err error) {
-	if mod.Page, err = s.pageRepo.FindByModuleID(mod.ID); err != nil {
-		return
-	}
-
-	if mod.Fields, err = s.moduleRepo.Fields(mod); err != nil {
-		return
-	}
-
-	return
 }

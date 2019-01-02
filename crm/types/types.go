@@ -77,8 +77,6 @@ type (
 		Visible  bool `json:"isVisible" db:"is_visible"`
 	}
 
-	ModuleFieldSet []ModuleField
-
 	// Page - page structure
 	Page struct {
 		ID     uint64 `json:"pageID,string" db:"id"`
@@ -111,13 +109,33 @@ type (
 	}
 )
 
-func (f *ModuleFieldSet) Scan(src interface{}) error {
+func (set *ModuleFieldSet) Scan(src interface{}) error {
 	if data, ok := src.([]byte); ok {
-		return json.Unmarshal(data, f)
+		return json.Unmarshal(data, set)
 	}
 	return nil
 }
 
-func (f ModuleFieldSet) Value() (driver.Value, error) {
-	return json.Marshal(f)
+func (set ModuleFieldSet) Value() (driver.Value, error) {
+	return json.Marshal(set)
+}
+
+func (set ModuleFieldSet) Names() (names []string) {
+	names = make([]string, len(set))
+
+	for i := range set {
+		names[i] = set[i].Name
+	}
+
+	return
+}
+
+func (set ModuleFieldSet) FilterByModule(moduleID uint64) (ff ModuleFieldSet) {
+	for i := range set {
+		if set[i].ModuleID == moduleID {
+			ff = append(ff, set[i])
+		}
+	}
+
+	return
 }

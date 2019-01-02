@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
@@ -19,14 +20,21 @@ type (
 		Create(mod *types.Module) (*types.Module, error)
 		Update(mod *types.Module) (*types.Module, error)
 		DeleteByID(id uint64) error
-
-		Fields(mod *types.Module) (types.ModuleFieldSet, error)
-		FieldNames(mod *types.Module) ([]string, error)
 	}
 
 	module struct {
 		*repository
 	}
+)
+
+const (
+	sqlModuleColumns = `
+		id, name, json, 
+		created_at, updated_at, deleted_at
+	`
+	sqlModuleSelect = `
+		SELECT ` + sqlModuleColumns + ` FROM crm_module WHERE deleted_at IS NULL
+	`
 )
 
 func Module(ctx context.Context, db *factory.DB) ModuleRepository {
@@ -41,17 +49,36 @@ func (r *module) With(ctx context.Context, db *factory.DB) ModuleRepository {
 
 // @todo: update to accepted DeletedAt column semantics from SAM
 
-func (r *module) FindByID(id uint64) (*types.Module, error) {
-	mod := &types.Module{}
-	if err := r.db().Get(mod, "SELECT * FROM crm_module WHERE id=?", id); err != nil {
-		return nil, err
+func (r *module) FindByID(id uint64) (mod *types.Module, err error) {
+	mod = &types.Module{}
+
+	if err = r.db().Get(mod, sqlModuleSelect+" AND id = ? ", id); err != nil {
+		return
 	}
-	return mod, nil
+
+	if mod.Fields, err = r.fields(id); err != nil {
+		return
+	}
+
+	return
 }
 
-func (r *module) Find() (types.ModuleSet, error) {
-	mod := types.ModuleSet{}
-	return mod, r.db().Select(&mod, "SELECT * FROM crm_module ORDER BY id ASC")
+func (r *module) Find() (mm types.ModuleSet, err error) {
+	if err = r.db().Select(&mm, sqlModuleSelect+" ORDER BY id ASC"); err != nil {
+		return
+	}
+
+	var ff types.ModuleFieldSet
+	if ff, err = r.fields(mm.IDs()...); err != nil {
+		return
+	} else {
+		_ = ff.Walk(func(f *types.ModuleField) error {
+			mm.FindByID(f.ModuleID).Fields = append(mm.FindByID(f.ModuleID).Fields, f)
+			return nil
+		})
+	}
+
+	return mm, nil
 }
 
 func (r *module) Create(mod *types.Module) (*types.Module, error) {
@@ -98,19 +125,27 @@ func (r *module) DeleteByID(id uint64) error {
 	return err
 }
 
-func (r *module) Fields(mod *types.Module) (ff types.ModuleFieldSet, err error) {
-	return ff, r.db().Select(&ff, "select * from crm_module_form where module_id=? order by place asc", mod.ID)
-}
+func (r *module) fields(IDs ...uint64) (ff types.ModuleFieldSet, err error) {
+	if len(IDs) == 0 {
+		return
+	}
 
-// FieldNames returns a slice of field names, used for ordering record row columns
-func (r *module) FieldNames(mod *types.Module) ([]string, error) {
-	if fields, err := r.Fields(mod); err != nil {
-		return []string{}, err
+	if sql, args, err := sqlx.In("SELECT * FROM crm_module_form WHERE module_id IN (?) ORDER BY module_id AND place", IDs); err != nil {
+		return nil, err
 	} else {
-		result := make([]string, len(fields))
-		for k, v := range fields {
-			result[k] = v.Name
-		}
-		return result, nil
+		return ff, r.db().Select(&ff, sql, args...)
 	}
 }
+
+// // FieldNames returns a slice of field names, used for ordering record row columns
+// func (r *module) FieldNames(mod *types.Module) ([]string, error) {
+// 	if fields, err := r.Fields(mod.ID); err != nil {
+// 		return []string{}, err
+// 	} else {
+// 		result := make([]string, len(fields))
+// 		for k, v := range fields {
+// 			result[k] = v.Name
+// 		}
+// 		return result, nil
+// 	}
+// }
