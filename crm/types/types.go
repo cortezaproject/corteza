@@ -49,9 +49,9 @@ type (
 	Module struct {
 		ID     uint64         `json:"moduleID,string" db:"id"`
 		Name   string         `json:"name" db:"name"`
-		Fields ModuleFieldSet `json:"fields" db:"json"`
-
-		Page *Page `json:"page,omitempty"`
+		Meta   types.JSONText `json:"meta" db:"json"`
+		Fields ModuleFieldSet `json:"fields" db:"-"`
+		Page   *Page          `json:"page,omitempty"`
 
 		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`

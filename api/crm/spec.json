@@ -558,6 +558,12 @@
               "name": "fields",
               "required": true,
               "title": "Fields JSON"
+            },
+            {
+              "type": "sqlxTypes.JSONText",
+              "name": "meta",
+              "required": true,
+              "title": "Module meta data"
             }
           ]
         }
@@ -604,6 +610,12 @@
               "name": "fields",
               "required": true,
               "title": "Fields JSON"
+            },
+            {
+              "type": "sqlxTypes.JSONText",
+              "name": "meta",
+              "required": true,
+              "title": "Module meta data"
             }
           ]
         }

@@ -20,7 +20,7 @@ type (
 		Update(mod *types.Module) (*types.Module, error)
 		DeleteByID(id uint64) error
 
-		Fields(mod *types.Module) ([]*types.ModuleField, error)
+		Fields(mod *types.Module) (types.ModuleFieldSet, error)
 		FieldNames(mod *types.Module) ([]string, error)
 	}
 
@@ -77,11 +77,16 @@ func (r *module) Update(mod *types.Module) (*types.Module, error) {
 }
 
 func (r *module) updateFields(moduleID uint64, ff types.ModuleFieldSet) error {
+	// @todo be more selective when deleting
+	if _, err := r.db().Exec("DELETE FROM crm_module_form WHERE module_id = ?", moduleID); err != nil {
+		return errors.Wrap(err, "Error updating module fields")
+	}
+
 	for idx, v := range ff {
 		v.ModuleID = moduleID
 		v.Place = idx
 		if err := r.db().Replace("crm_module_form", v); err != nil {
-			return errors.Wrap(err, "Error adding module fields")
+			return errors.Wrap(err, "Error updating module fields")
 		}
 	}
 
@@ -93,9 +98,8 @@ func (r *module) DeleteByID(id uint64) error {
 	return err
 }
 
-func (r *module) Fields(mod *types.Module) ([]*types.ModuleField, error) {
-	fields := make([]*types.ModuleField, 0)
-	return fields, r.db().Select(&fields, "select * from crm_module_form where module_id=? order by place asc", mod.ID)
+func (r *module) Fields(mod *types.Module) (ff types.ModuleFieldSet, err error) {
+	return ff, r.db().Select(&ff, "select * from crm_module_form where module_id=? order by place asc", mod.ID)
 }
 
 // FieldNames returns a slice of field names, used for ordering record row columns
