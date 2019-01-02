@@ -50,6 +50,12 @@
             "required": true,
             "title": "Fields JSON",
             "type": "types.ModuleFieldSet"
+          },
+          {
+            "name": "meta",
+            "required": true,
+            "title": "Module meta data",
+            "type": "sqlxTypes.JSONText"
           }
         ]
       }
@@ -96,6 +102,12 @@
             "required": true,
             "title": "Fields JSON",
             "type": "types.ModuleFieldSet"
+          },
+          {
+            "name": "meta",
+            "required": true,
+            "title": "Module meta data",
+            "type": "sqlxTypes.JSONText"
           }
         ]
       }

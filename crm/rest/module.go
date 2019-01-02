@@ -40,6 +40,7 @@ func (s *Module) Create(ctx context.Context, r *request.ModuleCreate) (interface
 	item := &types.Module{
 		Name:   r.Name,
 		Fields: r.Fields,
+		Meta:   r.Meta,
 	}
 	return s.module.With(ctx).Create(item)
 }
@@ -49,6 +50,7 @@ func (s *Module) Edit(ctx context.Context, r *request.ModuleEdit) (interface{}, 
 		ID:     r.ModuleID,
 		Name:   r.Name,
 		Fields: r.Fields,
+		Meta:   r.Meta,
 	}
 	return s.module.With(ctx).Update(item)
 }

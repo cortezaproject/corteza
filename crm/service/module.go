@@ -103,3 +103,15 @@ func (s *module) DeleteByID(id uint64) error {
 func (s *module) FieldNames(mod *types.Module) ([]string, error) {
 	return s.moduleRepo.FieldNames(mod)
 }
+
+func (s *module) preload(mod *types.Module) (err error) {
+	if mod.Page, err = s.pageRepo.FindByModuleID(mod.ID); err != nil {
+		return
+	}
+
+	if mod.Fields, err = s.moduleRepo.Fields(mod); err != nil {
+		return
+	}
+
+	return
+}

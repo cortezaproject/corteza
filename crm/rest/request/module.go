@@ -82,6 +82,7 @@ var _ RequestFiller = NewModuleList()
 type ModuleCreate struct {
 	Name   string
 	Fields types.ModuleFieldSet
+	Meta   sqlxTypes.JSONText
 }
 
 func NewModuleCreate() *ModuleCreate {
@@ -118,6 +119,12 @@ func (m *ModuleCreate) Fill(r *http.Request) (err error) {
 	if val, ok := post["name"]; ok {
 
 		m.Name = val
+	}
+	if val, ok := post["meta"]; ok {
+
+		if m.Meta, err = parseJSONTextWithErr(val); err != nil {
+			return err
+		}
 	}
 
 	return err
@@ -173,6 +180,7 @@ type ModuleEdit struct {
 	ModuleID uint64 `json:",string"`
 	Name     string
 	Fields   types.ModuleFieldSet
+	Meta     sqlxTypes.JSONText
 }
 
 func NewModuleEdit() *ModuleEdit {
@@ -210,6 +218,12 @@ func (m *ModuleEdit) Fill(r *http.Request) (err error) {
 	if val, ok := post["name"]; ok {
 
 		m.Name = val
+	}
+	if val, ok := post["meta"]; ok {
+
+		if m.Meta, err = parseJSONTextWithErr(val); err != nil {
+			return err
+		}
 	}
 
 	return err

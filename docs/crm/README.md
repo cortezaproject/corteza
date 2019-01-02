@@ -209,6 +209,7 @@ CRM module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | name | string | POST | Module Name | N/A | YES |
 | fields | types.ModuleFieldSet | POST | Fields JSON | N/A | YES |
+| meta | sqlxTypes.JSONText | POST | Module meta data | N/A | YES |
 
 ## Read module
 
@@ -239,6 +240,7 @@ CRM module definitions
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 | name | string | POST | Module Name | N/A | YES |
 | fields | types.ModuleFieldSet | POST | Fields JSON | N/A | YES |
+| meta | sqlxTypes.JSONText | POST | Module meta data | N/A | YES |
 
 ## Delete module
 
