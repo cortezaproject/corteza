@@ -22,13 +22,13 @@ type (
 		FindByID(id uint64) (*types.Record, error)
 
 		Report(moduleID uint64, metrics, dimensions, filter string) (results interface{}, err error)
-		Find(moduleID uint64, filter string, sort string, page int, perPage int) (*FindResponse, error)
+		Find(module *types.Module, filter string, sort string, page int, perPage int) (*FindResponse, error)
 
 		Create(mod *types.Record) (*types.Record, error)
 		Update(mod *types.Record) (*types.Record, error)
 		DeleteByID(id uint64) error
 
-		Fields(mod *types.Record) ([]*types.RecordColumn, error)
+		Fields(module *types.Module, record *types.Record) ([]*types.RecordColumn, error)
 	}
 
 	FindResponseMeta struct {
@@ -103,7 +103,7 @@ func (r *record) Report(moduleID uint64, metrics, dimensions, filter string) (re
 	}
 }
 
-func (r *record) Find(moduleID uint64, filter string, sort string, page int, perPage int) (*FindResponse, error) {
+func (r *record) Find(module *types.Module, filter string, sort string, page int, perPage int) (*FindResponse, error) {
 	if page < 0 {
 		page = 0
 	}
@@ -116,6 +116,7 @@ func (r *record) Find(moduleID uint64, filter string, sort string, page int, per
 	if perPage < 10 {
 		perPage = 10
 	}
+
 	response := &FindResponse{
 		Meta: FindResponseMeta{
 			Filter:  filter,
@@ -130,7 +131,7 @@ func (r *record) Find(moduleID uint64, filter string, sort string, page int, per
 	query := squirrel.
 		Select().
 		From("crm_record").
-		Where("(module_id = ? AND deleted_at IS NULL AND json IS NOT NULL)", moduleID)
+		Where("(module_id = ? AND deleted_at IS NULL AND json IS NOT NULL)", module.ID)
 
 	// Parse filters.
 	p := ql.NewParser()
@@ -170,18 +171,9 @@ func (r *record) Find(moduleID uint64, filter string, sort string, page int, per
 	// Append Sorting.
 	chuncks := strings.Split(sort, ",")
 	if len(chuncks) > 0 {
-
-		// Ger module fields.
-		modulRepo := Module(r.Context(), r.db())
-		mod, err := modulRepo.FindByID(moduleID)
-		if err != nil {
-			return nil, err
-		}
-		modFields, err := modulRepo.FieldNames(mod)
-		if err != nil {
-			return nil, err
-		}
 		fieldMap := make(map[string]bool)
+		modFields := module.Fields.Names()
+
 		for i := 0; i < len(modFields); i++ {
 			fieldMap[modFields[i]] = true
 		}
@@ -334,19 +326,15 @@ func (r *record) DeleteByID(id uint64) error {
 	return err
 }
 
-func (r *record) Fields(record *types.Record) ([]*types.RecordColumn, error) {
+func (r *record) Fields(module *types.Module, record *types.Record) ([]*types.RecordColumn, error) {
 	result := make([]*types.RecordColumn, 0)
-	module := Module(r.ctx, r.db())
 
-	mod, err := module.FindByID(record.ModuleID)
-	if err != nil {
-		return result, err
+	if module.ID != record.ModuleID {
+		return result, errors.New("Record does not belong to the module")
 	}
 
-	fieldNames, err := module.FieldNames(mod)
-	if err != nil {
-		return result, err
-	}
+	fieldNames := module.Fields.Names()
+
 	if len(fieldNames) == 0 {
 		return result, errors.New("Module has no fields")
 	}

@@ -35,20 +35,20 @@ func TestRecord(t *testing.T) {
 
 	module := &types.Module{
 		Name: "Test",
-		Fields: []types.ModuleField{
-			types.ModuleField{
+		Fields: types.ModuleFieldSet{
+			&types.ModuleField{
 				Name: "name",
 				Kind: "input",
 			},
-			types.ModuleField{
+			&types.ModuleField{
 				Name: "email",
 				Kind: "email",
 			},
-			types.ModuleField{
+			&types.ModuleField{
 				Name: "options",
 				Kind: "select_multi",
 			},
-			types.ModuleField{
+			&types.ModuleField{
 				Name: "description",
 				Kind: "text",
 			},
@@ -56,11 +56,10 @@ func TestRecord(t *testing.T) {
 	}
 
 	// set up a module
-	{
-		_, err := Module().With(context.Background()).Create(module)
-		assert(t, err == nil, "Error when creating module: %+v", err)
-		assert(t, module.ID > 0, "Expected auto generated ID")
-	}
+	var err error
+	module, err = Module().With(context.Background()).Create(module)
+	assert(t, err == nil, "Error when creating module: %+v", err)
+	assert(t, module.ID > 0, "Expected auto generated ID")
 
 	columns := []types.RecordColumn{
 		types.RecordColumn{
@@ -140,13 +139,13 @@ func TestRecord(t *testing.T) {
 
 		// fetch created record
 		{
-			ms, err := repository.FindByID(m1.ID)
+			ms, err := repository.FindByID(module.ID, m1.ID)
 			assert(t, err == nil, "Error when retrieving record by id: %+v", err)
 			assert(t, ms.ID == m1.ID, "Expected ID from database to match, %d != %d", m1.ID, ms.ID)
 			assert(t, ms.ModuleID == m1.ModuleID, "Expected Module ID from database to match, %d != %d", m1.ModuleID, ms.ModuleID)
 
 			{
-				fields, err := repository.Fields(ms)
+				fields, err := repository.Fields(module, ms)
 				// fields := make([]testRecordRow, 0)
 				// err = json.Unmarshal(ms.Fields, &fields)
 				assert(t, err == nil, "%+v", errors.Wrap(err, "Didn't expect error when unmarshalling"))
@@ -174,7 +173,7 @@ func TestRecord(t *testing.T) {
 
 		// re-fetch record
 		{
-			ms, err := repository.FindByID(m1.ID)
+			ms, err := repository.FindByID(module.ID, m1.ID)
 			assert(t, err == nil, "Error when retrieving record by id: %+v", err)
 			assert(t, ms.ID == m1.ID, "Expected ID from database to match, %d != %d", m1.ID, ms.ID)
 			assert(t, ms.ModuleID == m1.ModuleID, "Expected ID from database to match, %d != %d", m1.ModuleID, ms.ModuleID)

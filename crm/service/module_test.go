@@ -13,20 +13,20 @@ func TestModule(t *testing.T) {
 	// the module object we're working with
 	module := &types.Module{
 		Name: "Test",
-		Fields: []types.ModuleField{
-			types.ModuleField{
+		Fields: types.ModuleFieldSet{
+			&types.ModuleField{
 				Name: "name",
 				Kind: "input",
 			},
-			types.ModuleField{
+			&types.ModuleField{
 				Name: "email",
 				Kind: "email",
 			},
-			types.ModuleField{
+			&types.ModuleField{
 				Name: "options",
 				Kind: "select_multi",
 			},
-			types.ModuleField{
+			&types.ModuleField{
 				Name: "description",
 				Kind: "text",
 			},
@@ -65,7 +65,7 @@ func TestModule(t *testing.T) {
 
 		// fetch module fields
 		{
-			fl, err := repository.FieldNames(m)
+			fl := m.Fields.Names()
 			assert(t, err == nil, "Error when retrieving module fields by module: %+v", err)
 			assert(t, len(fl) == 4, "Expected 4 fields, got %d", len(fl))
 		}

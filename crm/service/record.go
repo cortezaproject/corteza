@@ -19,6 +19,7 @@ type (
 
 		repository repository.RecordRepository
 		pageRepo   repository.PageRepository
+		moduleRepo repository.ModuleRepository
 
 		userSvc systemService.UserService
 	}
@@ -26,7 +27,7 @@ type (
 	RecordService interface {
 		With(ctx context.Context) RecordService
 
-		FindByID(recordID uint64) (*types.Record, error)
+		FindByID(moduleID uint64, recordID uint64) (*types.Record, error)
 
 		Report(moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
 		Find(moduleID uint64, filter string, sort string, page int, perPage int) (*repository.FindResponse, error)
@@ -35,7 +36,7 @@ type (
 		Update(record *types.Record) (*types.Record, error)
 		DeleteByID(recordID uint64) error
 
-		Fields(mod *types.Record) ([]*types.RecordColumn, error)
+		Fields(module *types.Module, record *types.Record) ([]*types.RecordColumn, error)
 	}
 )
 
@@ -52,30 +53,39 @@ func (s *record) With(ctx context.Context) RecordService {
 		ctx:        ctx,
 		repository: repository.Record(ctx, db),
 		pageRepo:   repository.Page(ctx, db),
+		moduleRepo: repository.Module(ctx, db),
 		userSvc:    s.userSvc.With(ctx),
 	}
 }
 
-func (s *record) FindByID(id uint64) (*types.Record, error) {
-	response, err := s.repository.FindByID(id)
-	if err != nil {
+func (s *record) FindByID(moduleID uint64, id uint64) (response *types.Record, err error) {
+	var module *types.Module
+
+	if module, err = s.moduleRepo.FindByID(moduleID); err != nil {
 		return nil, err
 	}
-	return response, s.preload(response, "page", "user", "fields")
+
+	if response, err = s.repository.FindByID(id); err != nil {
+		return nil, err
+	}
+	return response, s.preload(module, response, "page", "user", "fields")
 }
 
 func (s *record) Report(moduleID uint64, metrics, dimensions, filter string) (interface{}, error) {
 	return s.repository.Report(moduleID, metrics, dimensions, filter)
 }
 
-func (s *record) Find(moduleID uint64, filter string, sort string, page int, perPage int) (*repository.FindResponse, error) {
-	response, err := s.repository.Find(moduleID, filter, sort, page, perPage)
-	if err != nil {
+func (s *record) Find(moduleID uint64, filter string, sort string, page int, perPage int) (response *repository.FindResponse, err error) {
+	var module *types.Module
+
+	if module, err = s.moduleRepo.FindByID(moduleID); err != nil {
+		return nil, err
+	} else if response, err = s.repository.Find(module, filter, sort, page, perPage); err != nil {
+		return nil, err
+	} else if err := s.preloadAll(module, response.Records, "user", "fields"); err != nil {
 		return nil, err
 	}
-	if err := s.preloadAll(response.Records, "user", "fields"); err != nil {
-		return nil, err
-	}
+
 	return response, nil
 }
 
@@ -84,7 +94,7 @@ func (s *record) Create(mod *types.Record) (*types.Record, error) {
 	if err != nil {
 		return nil, err
 	}
-	return response, s.preload(response, "user", "fields")
+	return response, s.preload(nil, response, "user", "fields")
 }
 
 func (s *record) Update(record *types.Record) (c *types.Record, err error) {
@@ -110,8 +120,8 @@ func (s *record) Update(record *types.Record) (c *types.Record, err error) {
 	})
 }
 
-func (s *record) Fields(mod *types.Record) ([]*types.RecordColumn, error) {
-	return s.repository.Fields(mod)
+func (s *record) Fields(module *types.Module, record *types.Record) ([]*types.RecordColumn, error) {
+	return s.repository.Fields(module, record)
 }
 
 func (s *record) DeleteByID(id uint64) error {
