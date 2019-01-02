@@ -130,8 +130,7 @@ func (r *record) Find(moduleID uint64, filter string, sort string, page int, per
 	query := squirrel.
 		Select().
 		From("crm_record").
-		Where("module_id = ?", moduleID).
-		Where(squirrel.Eq{"deleted_at": nil})
+		Where("(module_id = ? AND deleted_at IS NULL AND json IS NOT NULL)", moduleID)
 
 	// Parse filters.
 	p := ql.NewParser()
@@ -143,7 +142,7 @@ func (r *record) Find(moduleID uint64, filter string, sort string, page int, per
 	}
 
 	// Append filtering to query.
-	query = query.Where(where)
+	query = query.Where(squirrel.And{where})
 
 	// Create count SQL sentences.
 	count := query.Column(squirrel.Alias(squirrel.Expr("COUNT(*)"), "count"))
