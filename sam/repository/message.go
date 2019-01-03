@@ -57,6 +57,8 @@ const (
 		"    AND rel_channel IN " + sqlChannelAccess +
 		"    AND reply_to = 0 " +
 		"    AND replies > 0 " +
+		// for finding only threads we've created or replied to
+		"    AND (rel_user = ? OR id IN (SELECT DISTINCT reply_to FROM messages WHERE rel_user = ?))" +
 		"  ORDER BY id DESC " +
 		"  LIMIT ? " +
 		")" +
@@ -175,6 +177,9 @@ func (r *message) FindThreads(filter *types.MessageFilter) (types.MessageSet, er
 
 	// for sqlChannelAccess
 	params = append(params, filter.CurrentUserID, types.ChannelTypePublic)
+
+	// for finding only threads we've created or replied to
+	params = append(params, filter.CurrentUserID, filter.CurrentUserID)
 
 	// for sqlMessagesThreads
 	params = append(params, filter.Limit)
