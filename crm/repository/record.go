@@ -169,78 +169,23 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 		Offset(uint64(page))
 
 	// Append Sorting.
-	chuncks := strings.Split(sort, ",")
-	if len(chuncks) > 0 {
-		fieldMap := make(map[string]bool)
-		modFields := module.Fields.Names()
+	p = ql.NewParser()
+	p.OnIdent = ql.MakeIdentOrderWrapHandler(jsonWrap, "id", "module_id", "user_id", "created_at", "updated_at")
 
-		for i := 0; i < len(modFields); i++ {
-			fieldMap[modFields[i]] = true
-		}
-
-		orderFields := make([]string, 0)
-		for _, c := range chuncks {
-			args := strings.Split(c, " ")
-
-			var field string
-			if _, ok := fieldMap[args[0]]; ok {
-				field = "JSON_UNQUOTE(JSON_EXTRACT(json, REPLACE(JSON_UNQUOTE(JSON_SEARCH(json, 'one', '" + args[0] + "')), '.name', '.value')))"
-			} else {
-				switch args[0] {
-				case "moduleId":
-					field = "module_id"
-				case "userId":
-					field = "user_id"
-				case "createdAt":
-					field = "created_at"
-				case "updatedAt":
-					field = "updated_at"
-				case "deletedAt":
-					field = "deleted_at"
-				default:
-					field = "id"
-				}
-			}
-
-			// Check for second order parameter or use default value ASC.
-			order := "ASC"
-			if len(args) == 2 {
-				order = strings.ToUpper(args[1])
-				switch order {
-				case "DESC":
-					order = "DESC"
-				default:
-					order = "ASC"
-				}
-			}
-
-			// We skip batch of parameters if there are more then 2 values.
-			if len(args) > 2 {
-				continue
-			}
-
-			// Add field and order to sort order fields.
-			orderFields = append(orderFields, field+" "+order)
-		}
-
-		query = query.OrderBy(orderFields...)
+	orderColumns, err := p.ParseColumns(sort)
+	if err != nil {
+		return nil, err
 	}
 
-	/*
-		p = ql.NewParser()
-		p.OnIdent = ql.MakeIdentWrapHandler(jsonWrap, "id", "module_id", "user_id", "created_at", "updated_at")
-
-		order, err := p.ParseExpression(sort)
+	var argsOrder = make([]interface{}, 0)
+	for _, column := range orderColumns {
+		sql, args, err := column.ToSql()
 		if err != nil {
 			return nil, err
 		}
-
-		sqlOrder, argsOrder, err := order.ToSql()
-		if err != nil {
-			return nil, err
-		}
-		query = query.OrderBy(sqlOrder)
-	*/
+		argsOrder = append(argsOrder, args...)
+		query = query.OrderBy(sql)
+	}
 
 	// Create actual fetch SQL sentences.
 	sqlSelect, argsSelect, err = query.ToSql()
@@ -249,7 +194,7 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 	}
 
 	// Append order args to select args and execute actual query.
-	// argsSelect = append(argsSelect, argsOrder...)
+	argsSelect = append(argsSelect, argsOrder...)
 	if err := r.db().Select(&response.Records, sqlSelect, argsSelect...); err != nil {
 		return nil, err
 	}
