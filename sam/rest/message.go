@@ -70,7 +70,7 @@ func (ctrl *Message) Delete(ctx context.Context, r *request.MessageDelete) (inte
 }
 
 func (ctrl *Message) MarkAsUnread(ctx context.Context, r *request.MessageMarkAsUnread) (interface{}, error) {
-	return true, ctrl.svc.msg.With(ctx).MarkAsUnread(r.MessageID)
+	return ctrl.svc.msg.With(ctx).MarkAsUnread(r.MessageID)
 }
 
 func (ctrl *Message) PinCreate(ctx context.Context, r *request.MessagePinCreate) (interface{}, error) {

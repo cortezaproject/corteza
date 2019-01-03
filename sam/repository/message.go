@@ -67,7 +67,7 @@ const (
 
 	sqlThreadParticipantsByMessageID = "SELECT DISTINCT reply_to, rel_user FROM messages WHERE reply_to IN (?)"
 
-	sqlCountFromMessageID = "SELECT COUNT(1) AS count FROM messages WHERE rel_channel = ? AND reply_to = ? AND id > ?"
+	sqlCountFromMessageID = "SELECT COUNT(*) AS count FROM messages WHERE rel_channel = ? AND reply_to = ? AND id > ?"
 
 	sqlMessageRepliesIncCount = `UPDATE messages SET replies = replies + 1 WHERE id = ? AND reply_to = 0`
 	sqlMessageRepliesDecCount = `UPDATE messages SET replies = replies - 1 WHERE id = ? AND reply_to = 0`
