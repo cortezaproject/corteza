@@ -81,6 +81,13 @@ func (ctrl *Auth) Handlers(jwtEncoder auth.TokenEncoder) *handlers.Auth {
 		params := request.NewAuthLogin()
 		ctx := r.Context()
 
+		// parse request to fill parameters
+		err := params.Fill(r)
+		if err != nil {
+			resputil.JSON(w, err)
+			return
+		}
+
 		userSvc := service.User().With(ctx)
 
 		// check email and username for login
