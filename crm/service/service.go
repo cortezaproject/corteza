@@ -5,22 +5,20 @@ import (
 )
 
 var (
-	o               sync.Once
-	DefaultRecord   RecordService
-	DefaultModule   ModuleService
-	DefaultChart    ChartService
-	DefaultPage     PageService
-	DefaultWorkflow WorkflowService
-	DefaultJob      JobService
+	o              sync.Once
+	DefaultRecord  RecordService
+	DefaultModule  ModuleService
+	DefaultTrigger TriggerService
+	DefaultChart   ChartService
+	DefaultPage    PageService
 )
 
 func Init() {
 	o.Do(func() {
 		DefaultRecord = Record()
 		DefaultModule = Module()
+		DefaultTrigger = Trigger()
 		DefaultPage = Page()
 		DefaultChart = Chart()
-		DefaultWorkflow = Workflow()
-		DefaultJob = Job()
 	})
 }
