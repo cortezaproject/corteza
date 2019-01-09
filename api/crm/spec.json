@@ -605,5 +605,151 @@
         }
       }
     ]
+  },
+  {
+    "title": "Triggers",
+    "description": "CRM Triggers",
+    "package": "crm",
+    "entrypoint": "trigger",
+    "path": "/trigger",
+    "authentication": [],
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "path": "/",
+        "title": "List available triggers",
+        "parameters": {
+          "get": [
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": false,
+              "title": "Filter triggers by module"
+            }
+          ]
+        }
+      },
+      {
+        "name": "create",
+        "method": "POST",
+        "title": "Create trigger",
+        "path": "/",
+        "parameters": {
+          "post": [
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": false,
+              "title": "Module ID"
+            },
+            {
+              "type": "string",
+              "name": "name",
+              "required": true,
+              "title": "Name"
+            },
+            {
+              "type": "[]string",
+              "name": "actions",
+              "required": false,
+              "title": "Actions that trigger this trigger"
+            },
+            {
+              "type": "bool",
+              "name": "enabled",
+              "required": false,
+              "title": "Enabled"
+            },
+            {
+              "type": "string",
+              "name": "source",
+              "required": false,
+              "title": "Trigger source code"
+            }
+          ]
+        }
+      },
+      {
+        "name": "read",
+        "path": "/{triggerID}",
+        "method": "GET",
+        "title": "Get trigger details",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "triggerID",
+              "required": true,
+              "title": "Trigger ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "edit",
+        "method": "POST",
+        "title": "Edit trigger",
+        "path": "/{triggerID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "triggerID",
+              "required": true,
+              "title": "Trigger ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": false,
+              "title": "Module ID"
+            },
+            {
+              "type": "string",
+              "name": "name",
+              "required": true,
+              "title": "Name"
+            },
+            {
+              "type": "[]string",
+              "name": "actions",
+              "required": false,
+              "title": "Actions that trigger this trigger"
+            },
+            {
+              "type": "bool",
+              "name": "enabled",
+              "required": false,
+              "title": "Enabled"
+            },
+            {
+              "type": "string",
+              "name": "source",
+              "required": false,
+              "title": "Trigger source code"
+            }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "path": "/{triggerID}",
+        "method": "Delete",
+        "title": "Delete trigger",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "triggerID",
+              "required": true,
+              "title": "Trigger ID"
+            }
+          ]
+        }
+      }
+    ]
   }
 ]

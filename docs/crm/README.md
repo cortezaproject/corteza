@@ -369,82 +369,85 @@ CRM module pages
 
 
 
-# Workflows
+# Triggers
 
-CRM workflow definitions
+CRM Triggers
 
-## List available workflows
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/workflow/` | HTTP/S | GET |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-
-## Create new workflow
+## List available triggers
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/workflow/` | HTTP/S | POST |  |
+| `/trigger/` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| name | string | POST | Workflow name | N/A | YES |
-| tasks | types.WorkflowTaskSet | POST | Type ID | N/A | NO |
-| onError | types.WorkflowTaskSet | POST | Type ID | N/A | NO |
-| timeout | int | POST | Timeout in seconds | N/A | NO |
+| moduleID | uint64 | GET | Filter triggers by module | N/A | NO |
 
-## Get workflow details
+## Create trigger
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/workflow/{workflowID}` | HTTP/S | GET |  |
+| `/trigger/` | HTTP/S | POST |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| workflowID | string | PATH | Workflow ID | N/A | YES |
+| moduleID | uint64 | POST | Module ID | N/A | NO |
+| name | string | POST | Name | N/A | YES |
+| actions | []string | POST | Actions that trigger this trigger | N/A | NO |
+| enabled | bool | POST | Enabled | N/A | NO |
+| source | string | POST | Trigger source code | N/A | NO |
 
-## Update workflow details
+## Get trigger details
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/workflow/{workflowID}` | HTTP/S | POST |  |
+| `/trigger/{triggerID}` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| workflowID | string | PATH | Workflow ID | N/A | YES |
-| name | string | POST | Workflow name | N/A | YES |
-| tasks | types.WorkflowTaskSet | POST | Type ID | N/A | NO |
-| onError | types.WorkflowTaskSet | POST | Type ID | N/A | NO |
-| timeout | int | POST | Timeout in seconds | N/A | NO |
+| triggerID | uint64 | PATH | Trigger ID | N/A | YES |
 
-## Delete workflow
+## Edit trigger
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/workflow/{workflowID}` | HTTP/S | DELETE |  |
+| `/trigger/{triggerID}` | HTTP/S | POST |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| workflowID | string | PATH | Workflow ID | N/A | YES |
+| triggerID | uint64 | PATH | Trigger ID | N/A | YES |
+| moduleID | uint64 | POST | Module ID | N/A | NO |
+| name | string | POST | Name | N/A | YES |
+| actions | []string | POST | Actions that trigger this trigger | N/A | NO |
+| enabled | bool | POST | Enabled | N/A | NO |
+| source | string | POST | Trigger source code | N/A | NO |
+
+## Delete trigger
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/trigger/{triggerID}` | HTTP/S | Delete |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| triggerID | uint64 | PATH | Trigger ID | N/A | YES |
