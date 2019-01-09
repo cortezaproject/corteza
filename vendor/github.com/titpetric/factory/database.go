@@ -437,7 +437,7 @@ func (r *DB) UpdatePartial(table string, args interface{}, allowed []string, key
 	return err
 }
 
-// Update is a helper function which will issue an `update` statement to the db
+// Delete is a helper function which will issue an `delete` statement to the db
 func (r *DB) Delete(table string, args interface{}, keys ...string) error {
 	var err error
 	if len(keys) == 0 {
