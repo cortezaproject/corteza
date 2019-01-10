@@ -61,10 +61,7 @@ func (ctrl *Trigger) Edit(ctx context.Context, r *request.TriggerEdit) (interfac
 		trigger.Actions = r.Actions
 		trigger.Enabled = r.Enabled
 		trigger.Source = r.Source
-
-		if r.ModuleID > 0 {
-			trigger.ModuleID = r.ModuleID
-		}
+		trigger.ModuleID = r.ModuleID
 
 		return ctrl.trigger.With(ctx).Update(trigger)
 	}
