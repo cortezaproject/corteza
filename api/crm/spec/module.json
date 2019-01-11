@@ -149,7 +149,7 @@
           },
           {
             "name": "filter",
-            "required": true,
+            "required": false,
             "title": "Filter (eg: 'DATE(foo) \u003e 2010')",
             "type": "string"
           }
