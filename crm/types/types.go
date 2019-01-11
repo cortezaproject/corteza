@@ -22,7 +22,7 @@ type (
 
 		Page *Page `json:"page,omitempty"`
 
-		Fields types.JSONText `json:"fields,omitempty" db:"json"`
+		Fields types.JSONText `json:"fields,omitempty" db:"-"`
 
 		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`

@@ -214,19 +214,23 @@ func TestRecord(t *testing.T) {
 
 		// fetch all records by query
 		{
-			mr, err := repository.Find(module.ID, "name='Tit Petric'", "id desc", 0, 20)
+			mr, err := repository.Find(module.ID, "name='Tit Petric' AND email='tit.petric@example.com'", "id desc", 0, 20)
 			assert(t, err == nil, "Error when retrieving records: %+v", err)
 			assert(t, len(mr.Records) == 1, "Expected one record, got %d", len(mr.Records))
 			assert(t, mr.Meta.Count == 1, "Expected Meta.Count == 1, got %d", mr.Meta.Count)
 			assert(t, mr.Meta.Page == 0, "Expected Meta.Page == 0, got %d", mr.Meta.Page)
 			assert(t, mr.Meta.PerPage == 20, "Expected Meta.PerPage == 20, got %d", mr.Meta.PerPage)
-			assert(t, mr.Meta.Filter == "name='Tit Petric'", "Expected Meta.Filter == name='Tit Petric', got '%s'", mr.Meta.Filter)
+			assert(t,
+				mr.Meta.Filter == "name='Tit Petric' AND email='tit.petric@example.com'",
+				"Expected Meta.Filter == name='Tit Petric' AND email='tit.petric@example.com', got '%s'",
+				mr.Meta.Filter,
+			)
 			assert(t, mr.Meta.Sort == "id desc", "Expected Meta.Sort == id desc, got '%s'", mr.Meta.Sort)
 		}
 
 		// fetch all records by query
 		{
-			mr, err := repository.Find(module.ID, "niall", "id asc", 0, 20)
+			mr, err := repository.Find(module.ID, "name='niall'", "id asc", 0, 20)
 			assert(t, err == nil, "Error when retrieving records: %+v", err)
 			assert(t, len(mr.Records) == 0, "Expected no records, got %d", len(mr.Records))
 		}
