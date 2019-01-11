@@ -24,6 +24,10 @@ type (
 	}
 )
 
+const (
+	jsonWrap = `JSON_UNQUOTE(JSON_EXTRACT(json, REPLACE(JSON_UNQUOTE(JSON_SEARCH(json, 'one', ?)), '.name', '.value')))`
+)
+
 // Identifiers should be names of the fields (physical table columns OR json fields, defined in module)
 func stdAggregationHandler(f ql.Function) (ql.Function, error) {
 	switch strings.ToUpper(f.Name) {

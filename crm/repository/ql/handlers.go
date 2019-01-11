@@ -32,7 +32,7 @@ func MakeIdentOrderWrapHandler(wrap string, ss ...string) IdentHandler {
 		}
 
 		i.Args = []interface{}{i.Value}
-		i.Value = wrap + " "
+		i.Value = wrap + i.Value + " "
 
 		return i, nil
 	}

@@ -3,12 +3,14 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
-	"gopkg.in/Masterminds/squirrel.v1"
+	sq "gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/crusttech/crust/crm/repository/ql"
 
@@ -50,7 +52,7 @@ type (
 )
 
 const (
-	jsonWrap = `JSON_UNQUOTE(JSON_EXTRACT(json, REPLACE(JSON_UNQUOTE(JSON_SEARCH(json, 'one', ?)), '.name', '.value')))`
+	sortWrap = `sort`
 )
 
 func Record(ctx context.Context, db *factory.DB) RecordRepository {
@@ -128,25 +130,30 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 	}
 
 	// Create query for fetching and counting records.
-	query := squirrel.
+	query := sq.
 		Select().
 		From("crm_record").
-		Where("(module_id = ? AND deleted_at IS NULL AND json IS NOT NULL)", module.ID)
+		Where(sq.Eq{"module_id": module.ID}).
+		Where(sq.Eq{"deleted_at": nil})
 
 	// Parse filters.
-	p := ql.NewParser()
-	p.OnIdent = ql.MakeIdentWrapHandler(jsonWrap, "created_at", "updated_at", "id", "user_id")
-
-	where, err := p.ParseExpression(filter)
-	if err != nil {
-		return nil, err
+	if filter != "" {
+		// p.OnIdent = ql.MakeFilterIdentInjectHandler(filterWrap, "created_at", "updated_at", "id", "user_id")
+		where, err := ql.NewParser().ParseExpression(filter)
+		if err != nil {
+			return nil, err
+		}
+		// Get filter column_values
+		_, args, err := where.ToSql()
+		for i, arg := range args {
+			alias := "f" + strconv.Itoa(i)
+			query = query.JoinClause("INNER JOIN crm_record_column "+alias+" "+
+				"ON crm_record.id = "+alias+".record_id AND "+alias+".column_value = ?", arg)
+		}
 	}
 
-	// Append filtering to query.
-	query = query.Where(squirrel.And{where})
-
 	// Create count SQL sentences.
-	count := query.Column(squirrel.Alias(squirrel.Expr("COUNT(*)"), "count"))
+	count := query.Column(sq.Alias(sq.Expr("COUNT(*)"), "count"))
 	sqlSelect, argsSelect, err := count.ToSql()
 	if err != nil {
 		return nil, err
@@ -164,26 +171,36 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 
 	// Create query for fetching records.
 	query = query.
-		Column("*").
+		Column("crm_record.*").
 		Limit(uint64(perPage)).
 		Offset(uint64(page))
 
 	// Append Sorting.
-	p = ql.NewParser()
-	p.OnIdent = ql.MakeIdentOrderWrapHandler(jsonWrap, "id", "module_id", "user_id", "created_at", "updated_at")
+	p := ql.NewParser()
+	p.OnIdent = ql.MakeIdentOrderWrapHandler(sortWrap, "id", "module_id", "user_id", "created_at", "updated_at")
 
 	orderColumns, err := p.ParseColumns(sort)
 	if err != nil {
 		return nil, err
 	}
 
-	var argsOrder = make([]interface{}, 0)
-	for _, column := range orderColumns {
+	for i, column := range orderColumns {
 		sql, args, err := column.ToSql()
 		if err != nil {
 			return nil, err
 		}
-		argsOrder = append(argsOrder, args...)
+		if len(args) > 0 {
+			alias := "s" + strconv.Itoa(i)
+
+			join := fmt.Sprintf(" LEFT JOIN ("+
+				" SELECT record_id, column_name, column_value as sort%s "+
+				" FROM crm_record_column"+
+				" ) %s "+
+				" ON crm_record.id = %s.record_id AND %s.column_name = ? ", args[0], alias, alias, alias)
+
+			query = query.JoinClause(join, args[0])
+		}
+
 		query = query.OrderBy(sql)
 	}
 
@@ -194,7 +211,6 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 	}
 
 	// Append order args to select args and execute actual query.
-	argsSelect = append(argsSelect, argsOrder...)
 	if err := r.db().Select(&response.Records, sqlSelect, argsSelect...); err != nil {
 		return nil, err
 	}
