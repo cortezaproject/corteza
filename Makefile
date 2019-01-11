@@ -143,9 +143,9 @@ mocks: $(GOMOCK)
 	$(MOCKGEN) -package service -source sam/service/attachment.go   -destination sam/service/attachment_mock_test.go
 	$(MOCKGEN) -package service -source sam/service/channel.go      -destination sam/service/channel_mock_test.go
 	$(MOCKGEN) -package service -source sam/service/message.go      -destination sam/service/message_mock_test.go
-	$(MOCKGEN) -package service -source sam/service/organisation.go -destination sam/service/organisation_mock_test.go
-	$(MOCKGEN) -package service -source sam/service/team.go         -destination sam/service/team_mock_test.go
-	$(MOCKGEN) -package service -source system/service/user.go      -destination system/service/user_mock_test.go
+	$(MOCKGEN) -package service -source system/service/organisation.go -destination system/service/organisation_mock_test.go
+	$(MOCKGEN) -package service -source system/service/team.go         -destination system/service/team_mock_test.go
+	$(MOCKGEN) -package service -source system/service/user.go         -destination system/service/user_mock_test.go
 
 
 ########################################################################################################################

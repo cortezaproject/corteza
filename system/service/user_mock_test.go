@@ -46,6 +46,32 @@ func (mr *MockUserServiceMockRecorder) With(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "With", reflect.TypeOf((*MockUserService)(nil).With), ctx)
 }
 
+// FindByUsername mocks base method
+func (m *MockUserService) FindByUsername(username string) (*types.User, error) {
+	ret := m.ctrl.Call(m, "FindByUsername", username)
+	ret0, _ := ret[0].(*types.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByUsername indicates an expected call of FindByUsername
+func (mr *MockUserServiceMockRecorder) FindByUsername(username interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByUsername", reflect.TypeOf((*MockUserService)(nil).FindByUsername), username)
+}
+
+// FindByEmail mocks base method
+func (m *MockUserService) FindByEmail(email string) (*types.User, error) {
+	ret := m.ctrl.Call(m, "FindByEmail", email)
+	ret0, _ := ret[0].(*types.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByEmail indicates an expected call of FindByEmail
+func (mr *MockUserServiceMockRecorder) FindByEmail(email interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByEmail", reflect.TypeOf((*MockUserService)(nil).FindByEmail), email)
+}
+
 // FindByID mocks base method
 func (m *MockUserService) FindByID(id uint64) (*types.User, error) {
 	ret := m.ctrl.Call(m, "FindByID", id)
@@ -70,6 +96,19 @@ func (m *MockUserService) Find(filter *types.UserFilter) (types.UserSet, error) 
 // Find indicates an expected call of Find
 func (mr *MockUserServiceMockRecorder) Find(filter interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockUserService)(nil).Find), filter)
+}
+
+// FindOrCreate mocks base method
+func (m *MockUserService) FindOrCreate(arg0 *types.User) (*types.User, error) {
+	ret := m.ctrl.Call(m, "FindOrCreate", arg0)
+	ret0, _ := ret[0].(*types.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindOrCreate indicates an expected call of FindOrCreate
+func (mr *MockUserServiceMockRecorder) FindOrCreate(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOrCreate", reflect.TypeOf((*MockUserService)(nil).FindOrCreate), arg0)
 }
 
 // Create mocks base method
@@ -98,17 +137,40 @@ func (mr *MockUserServiceMockRecorder) Update(mod interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockUserService)(nil).Update), mod)
 }
 
-// FindOrCreate mocks base method
-func (m *MockUserService) FindOrCreate(arg0 *types.User) (*types.User, error) {
-	ret := m.ctrl.Call(m, "FindOrCreate", arg0)
-	ret0, _ := ret[0].(*types.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+// Delete mocks base method
+func (m *MockUserService) Delete(id uint64) error {
+	ret := m.ctrl.Call(m, "Delete", id)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// FindOrCreate indicates an expected call of FindOrCreate
-func (mr *MockUserServiceMockRecorder) FindOrCreate(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOrCreate", reflect.TypeOf((*MockUserService)(nil).FindOrCreate), arg0)
+// Delete indicates an expected call of Delete
+func (mr *MockUserServiceMockRecorder) Delete(id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockUserService)(nil).Delete), id)
+}
+
+// Suspend mocks base method
+func (m *MockUserService) Suspend(id uint64) error {
+	ret := m.ctrl.Call(m, "Suspend", id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Suspend indicates an expected call of Suspend
+func (mr *MockUserServiceMockRecorder) Suspend(id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Suspend", reflect.TypeOf((*MockUserService)(nil).Suspend), id)
+}
+
+// Unsuspend mocks base method
+func (m *MockUserService) Unsuspend(id uint64) error {
+	ret := m.ctrl.Call(m, "Unsuspend", id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Unsuspend indicates an expected call of Unsuspend
+func (mr *MockUserServiceMockRecorder) Unsuspend(id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unsuspend", reflect.TypeOf((*MockUserService)(nil).Unsuspend), id)
 }
 
 // ValidateCredentials mocks base method
