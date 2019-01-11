@@ -168,7 +168,7 @@ CRM module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | metrics | string | GET | Metrics (eg: 'COUNT(*) AS count, SUM(money)') | N/A | YES |
 | dimensions | string | GET | Dimensions (eg: 'DATE(foo), status') | N/A | YES |
-| filter | string | GET | Filter (eg: 'DATE(foo) > 2010') | N/A | YES |
+| filter | string | GET | Filter (eg: 'DATE(foo) > 2010') | N/A | NO |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
 ## List/read records from module section

@@ -353,7 +353,7 @@
             {
               "type": "string",
               "name": "filter",
-              "required": true,
+              "required": false,
               "title": "Filter (eg: 'DATE(foo) > 2010')"
             }
           ]
