@@ -110,16 +110,29 @@ func (mr *MockMessageServiceMockRecorder) React(messageID, reaction interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "React", reflect.TypeOf((*MockMessageService)(nil).React), messageID, reaction)
 }
 
-// Unreact mocks base method
-func (m *MockMessageService) Unreact(messageID uint64, reaction string) error {
-	ret := m.ctrl.Call(m, "Unreact", messageID, reaction)
+// RemoveReaction mocks base method
+func (m *MockMessageService) RemoveReaction(messageID uint64, reaction string) error {
+	ret := m.ctrl.Call(m, "RemoveReaction", messageID, reaction)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Unreact indicates an expected call of Unreact
-func (mr *MockMessageServiceMockRecorder) Unreact(messageID, reaction interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unreact", reflect.TypeOf((*MockMessageService)(nil).Unreact), messageID, reaction)
+// RemoveReaction indicates an expected call of RemoveReaction
+func (mr *MockMessageServiceMockRecorder) RemoveReaction(messageID, reaction interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveReaction", reflect.TypeOf((*MockMessageService)(nil).RemoveReaction), messageID, reaction)
+}
+
+// MarkAsUnread mocks base method
+func (m *MockMessageService) MarkAsUnread(messageID uint64) (uint32, error) {
+	ret := m.ctrl.Call(m, "MarkAsUnread", messageID)
+	ret0, _ := ret[0].(uint32)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// MarkAsUnread indicates an expected call of MarkAsUnread
+func (mr *MockMessageServiceMockRecorder) MarkAsUnread(messageID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkAsUnread", reflect.TypeOf((*MockMessageService)(nil).MarkAsUnread), messageID)
 }
 
 // Pin mocks base method
@@ -134,40 +147,40 @@ func (mr *MockMessageServiceMockRecorder) Pin(messageID interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Pin", reflect.TypeOf((*MockMessageService)(nil).Pin), messageID)
 }
 
-// Unpin mocks base method
-func (m *MockMessageService) Unpin(messageID uint64) error {
-	ret := m.ctrl.Call(m, "Unpin", messageID)
+// RemovePin mocks base method
+func (m *MockMessageService) RemovePin(messageID uint64) error {
+	ret := m.ctrl.Call(m, "RemovePin", messageID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Unpin indicates an expected call of Unpin
-func (mr *MockMessageServiceMockRecorder) Unpin(messageID interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unpin", reflect.TypeOf((*MockMessageService)(nil).Unpin), messageID)
+// RemovePin indicates an expected call of RemovePin
+func (mr *MockMessageServiceMockRecorder) RemovePin(messageID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemovePin", reflect.TypeOf((*MockMessageService)(nil).RemovePin), messageID)
 }
 
-// Flag mocks base method
-func (m *MockMessageService) Flag(messageID uint64) error {
-	ret := m.ctrl.Call(m, "Flag", messageID)
+// Bookmark mocks base method
+func (m *MockMessageService) Bookmark(messageID uint64) error {
+	ret := m.ctrl.Call(m, "Bookmark", messageID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Flag indicates an expected call of Flag
-func (mr *MockMessageServiceMockRecorder) Flag(messageID interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Flag", reflect.TypeOf((*MockMessageService)(nil).Flag), messageID)
+// Bookmark indicates an expected call of Bookmark
+func (mr *MockMessageServiceMockRecorder) Bookmark(messageID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Bookmark", reflect.TypeOf((*MockMessageService)(nil).Bookmark), messageID)
 }
 
-// Unflag mocks base method
-func (m *MockMessageService) Unflag(messageID uint64) error {
-	ret := m.ctrl.Call(m, "Unflag", messageID)
+// RemoveBookmark mocks base method
+func (m *MockMessageService) RemoveBookmark(messageID uint64) error {
+	ret := m.ctrl.Call(m, "RemoveBookmark", messageID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Unflag indicates an expected call of Unflag
-func (mr *MockMessageServiceMockRecorder) Unflag(messageID interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unflag", reflect.TypeOf((*MockMessageService)(nil).Unflag), messageID)
+// RemoveBookmark indicates an expected call of RemoveBookmark
+func (mr *MockMessageServiceMockRecorder) RemoveBookmark(messageID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveBookmark", reflect.TypeOf((*MockMessageService)(nil).RemoveBookmark), messageID)
 }
 
 // Delete mocks base method

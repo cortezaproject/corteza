@@ -157,3 +157,27 @@ func (m *MockTeamService) Delete(ID uint64) error {
 func (mr *MockTeamServiceMockRecorder) Delete(ID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockTeamService)(nil).Delete), ID)
 }
+
+// MemberAdd mocks base method
+func (m *MockTeamService) MemberAdd(teamID, userID uint64) error {
+	ret := m.ctrl.Call(m, "MemberAdd", teamID, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MemberAdd indicates an expected call of MemberAdd
+func (mr *MockTeamServiceMockRecorder) MemberAdd(teamID, userID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MemberAdd", reflect.TypeOf((*MockTeamService)(nil).MemberAdd), teamID, userID)
+}
+
+// MemberRemove mocks base method
+func (m *MockTeamService) MemberRemove(teamID, userID uint64) error {
+	ret := m.ctrl.Call(m, "MemberRemove", teamID, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MemberRemove indicates an expected call of MemberRemove
+func (mr *MockTeamServiceMockRecorder) MemberRemove(teamID, userID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MemberRemove", reflect.TypeOf((*MockTeamService)(nil).MemberRemove), teamID, userID)
+}
