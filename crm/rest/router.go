@@ -9,10 +9,11 @@ import (
 
 func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 	var (
-		module  = Module{}.New()
-		page    = Page{}.New()
-		chart   = Chart{}.New()
-		trigger = Trigger{}.New()
+		module       = Module{}.New()
+		page         = Page{}.New()
+		chart        = Chart{}.New()
+		trigger      = Trigger{}.New()
+		notification = Notification{}.New()
 	)
 
 	// Initialize handers & controllers.
@@ -25,6 +26,7 @@ func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
 			handlers.NewModule(module).MountRoutes(r)
 			handlers.NewChart(chart).MountRoutes(r)
 			handlers.NewTrigger(trigger).MountRoutes(r)
+			handlers.NewNotification(notification).MountRoutes(r)
 		})
 	}
 }

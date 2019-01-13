@@ -143,6 +143,8 @@ mocks: $(GOMOCK)
 	rm -f */*/*_mock_test.go
 
 	# See https://github.com/golang/mock for details
+	$(MOCKGEN) -package service -source crm/service/notification.go -destination crm/service/notification_mock_test.go
+
 	$(MOCKGEN) -package service -source sam/service/attachment.go   -destination sam/service/attachment_mock_test.go
 	$(MOCKGEN) -package service -source sam/service/channel.go      -destination sam/service/channel_mock_test.go
 	$(MOCKGEN) -package service -source sam/service/message.go      -destination sam/service/message_mock_test.go
