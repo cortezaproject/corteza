@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/titpetric/factory"
 	"gopkg.in/Masterminds/squirrel.v1"
 
@@ -54,8 +53,6 @@ func (r *trigger) Find(filter types.TriggerFilter) (mod types.TriggerSet, err er
 	if filter.ModuleID > 0 {
 		query = query.Where("rel_module = ?", filter.ModuleID)
 	}
-	spew.Dump(filter)
-	spew.Dump(query.ToSql())
 
 	if sql, args, err := query.ToSql(); err != nil {
 		return nil, err
