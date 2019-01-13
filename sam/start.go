@@ -14,6 +14,7 @@ import (
 	"github.com/titpetric/factory"
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/crusttech/crust/internal/mail"
 	migrate "github.com/crusttech/crust/sam/db"
 	"github.com/crusttech/crust/sam/rest"
 	samService "github.com/crusttech/crust/sam/service"
@@ -30,6 +31,8 @@ func Init() error {
 	if err := flags.Validate(); err != nil {
 		return err
 	}
+
+	mail.SetupDialer(flags.smtp)
 
 	// start/configure database connection
 	factory.Database.Add("default", flags.db.DSN)

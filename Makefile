@@ -64,6 +64,9 @@ dep: $(DEP)
 codegen: $(SPEC) dep.codegen
 	@PATH=${PATH}:${GOPATH}/bin ./codegen.sh
 
+mailhog.up:
+	docker run --rm --publish 8025:8025 --publish 1025:1025 mailhog/mailhog
+
 ########################################################################################################################
 # QA
 
@@ -146,6 +149,8 @@ mocks: $(GOMOCK)
 	$(MOCKGEN) -package service -source system/service/organisation.go -destination system/service/organisation_mock_test.go
 	$(MOCKGEN) -package service -source system/service/team.go         -destination system/service/team_mock_test.go
 	$(MOCKGEN) -package service -source system/service/user.go         -destination system/service/user_mock_test.go
+
+	$(MOCKGEN) -package mail -source internal/mail/mail.go -destination internal/mail/mail_mock_test.go
 
 
 ########################################################################################################################

@@ -11,6 +11,7 @@ import (
 	"github.com/titpetric/factory"
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/crusttech/crust/internal/mail"
 	migrate "github.com/crusttech/crust/system/db"
 	"github.com/crusttech/crust/system/service"
 
@@ -38,6 +39,8 @@ func Init() error {
 		jwtVerifier = jwtAuth.Verifier()
 		jwtAuthenticator = jwtAuth.Authenticator()
 	}
+
+	mail.SetupDialer(flags.smtp)
 
 	// start/configure database connection
 	factory.Database.Add("default", flags.db.DSN)
