@@ -19,6 +19,7 @@ import (
 	systemService "github.com/crusttech/crust/system/service"
 
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/mail"
 	"github.com/crusttech/crust/internal/metrics"
 	"github.com/crusttech/crust/internal/version"
 )
@@ -28,6 +29,8 @@ func Init() error {
 	if err := flags.Validate(); err != nil {
 		return err
 	}
+
+	mail.SetupDialer(flags.smtp)
 
 	// start/configure database connection
 	factory.Database.Add("default", flags.db.DSN)
