@@ -751,5 +751,37 @@
         }
       }
     ]
+  },
+  {
+    "title": "Notifications",
+    "description": "CRM Notifications",
+    "package": "crm",
+    "entrypoint": "notification",
+    "path": "/notification",
+    "authentication": [],
+    "struct": [
+      {
+        "imports": [
+          "sqlxTypes github.com/jmoiron/sqlx/types"
+        ]
+      }
+    ],
+    "apis": [
+      {
+        "name": "email/send",
+        "method": "POST",
+        "title": "Send email from the CRM",
+        "path": "/email",
+        "parameters": {
+          "post": [
+            { "name": "to",          "type": "[]string",           "required": true,  "title": "Email addresses or Crust user IDs" },
+            { "name": "cc",          "type": "[]string",           "required": false, "title": "Email addresses or Crust user IDs" },
+            { "name": "replyTo",     "type": "string",             "required": false, "title": "Crust user ID or email address in reply-to field" },
+            { "name": "subject ",    "type": "string",             "required": false, "title": "Email subject" },
+            { "name": "content",     "type": "sqlxTypes.JSONText", "required": true,  "title": "Message content" }
+          ]
+        }
+      }
+    ]
   }
 ]

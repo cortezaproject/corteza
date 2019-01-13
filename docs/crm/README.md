@@ -253,6 +253,31 @@ CRM module definitions
 
 
 
+# Notifications
+
+CRM Notifications
+
+## Send email from the CRM
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/notification/email` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| to | []string | POST | Email addresses or Crust user IDs | N/A | YES |
+| cc | []string | POST | Email addresses or Crust user IDs | N/A | NO |
+| replyTo | string | POST | Crust user ID or email address in reply-to field | N/A | NO |
+| subject  | string | POST | Email subject | N/A | NO |
+| content | sqlxTypes.JSONText | POST | Message content | N/A | YES |
+
+
+
+
 # Pages
 
 CRM module pages

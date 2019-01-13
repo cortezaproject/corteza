@@ -5,12 +5,13 @@ import (
 )
 
 var (
-	o              sync.Once
-	DefaultRecord  RecordService
-	DefaultModule  ModuleService
-	DefaultTrigger TriggerService
-	DefaultChart   ChartService
-	DefaultPage    PageService
+	o                   sync.Once
+	DefaultRecord       RecordService
+	DefaultModule       ModuleService
+	DefaultTrigger      TriggerService
+	DefaultChart        ChartService
+	DefaultPage         PageService
+	DefaultNotification NotificationService
 )
 
 func Init() {
@@ -20,5 +21,6 @@ func Init() {
 		DefaultTrigger = Trigger()
 		DefaultPage = Page()
 		DefaultChart = Chart()
+		DefaultNotification = Notification()
 	})
 }
