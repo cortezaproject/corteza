@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
+	"github.com/lann/builder"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	sq "gopkg.in/Masterminds/squirrel.v1"
@@ -129,31 +129,14 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 		Records: make([]*types.Record, 0),
 	}
 
-	// Create query for fetching and counting records.
-	query := sq.
-		Select().
-		From("crm_record").
-		Where(sq.Eq{"module_id": module.ID}).
-		Where(sq.Eq{"deleted_at": nil})
-
-	// Parse filters.
-	if filter != "" {
-		// p.OnIdent = ql.MakeFilterIdentInjectHandler(filterWrap, "created_at", "updated_at", "id", "user_id")
-		where, err := ql.NewParser().ParseExpression(filter)
-		if err != nil {
-			return nil, err
-		}
-		// Get filter column_values
-		_, args, err := where.ToSql()
-		for i, arg := range args {
-			alias := "f" + strconv.Itoa(i)
-			query = query.JoinClause("INNER JOIN crm_record_column "+alias+" "+
-				"ON crm_record.id = "+alias+".record_id AND "+alias+".column_value = ?", arg)
-		}
+	var query, err = r.buildQuery(module, filter, sort)
+	if err != nil {
+		return nil, err
 	}
 
-	// Create count SQL sentences.
-	count := query.Column(sq.Alias(sq.Expr("COUNT(*)"), "count"))
+	// Assemble SQL for counting (includes only where)
+	count := query.Column("COUNT(*)")
+	count = builder.Delete(count, "OrderBys").(sq.SelectBuilder)
 	sqlSelect, argsSelect, err := count.ToSql()
 	if err != nil {
 		return nil, err
@@ -169,40 +152,11 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 		return response, nil
 	}
 
-	// Create query for fetching records.
+	// Assemble SQL for fetching record (where + sorting + paging)...
 	query = query.
 		Column("crm_record.*").
 		Limit(uint64(perPage)).
 		Offset(uint64(page))
-
-	// Append Sorting.
-	p := ql.NewParser()
-	p.OnIdent = ql.MakeIdentOrderWrapHandler(sortWrap, "id", "module_id", "user_id", "created_at", "updated_at")
-
-	orderColumns, err := p.ParseColumns(sort)
-	if err != nil {
-		return nil, err
-	}
-
-	for i, column := range orderColumns {
-		sql, args, err := column.ToSql()
-		if err != nil {
-			return nil, err
-		}
-		if len(args) > 0 {
-			alias := "s" + strconv.Itoa(i)
-
-			join := fmt.Sprintf(" LEFT JOIN ("+
-				" SELECT record_id, column_name, column_value as sort%s "+
-				" FROM crm_record_column"+
-				" ) %s "+
-				" ON crm_record.id = %s.record_id AND %s.column_name = ? ", args[0], alias, alias, alias)
-
-			query = query.JoinClause(join, args[0])
-		}
-
-		query = query.OrderBy(sql)
-	}
 
 	// Create actual fetch SQL sentences.
 	sqlSelect, argsSelect, err = query.ToSql()
@@ -216,6 +170,94 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 	}
 
 	return response, nil
+}
+
+func (r *record) buildQuery(module *types.Module, filter string, sort string) (query sq.SelectBuilder, err error) {
+	// Create query for fetching and counting records.
+	query = sq.Select().
+		From("crm_record").
+		Where(sq.Eq{"module_id": module.ID}).
+		Where(sq.Eq{"deleted_at": nil})
+
+	// Do not translate/wrap these
+	var realColumns = []string{
+		"id",
+		"module_id",
+		"user_id",
+		"created_at",
+		"updated_at",
+	}
+
+	const colWrap = `(SELECT column_value FROM crm_record_column WHERE column_name = ? AND record_id = crm_record.id)`
+
+	// Parse filters.
+	if filter != "" {
+		var (
+			// Filter parser
+			fp = ql.NewParser()
+
+			// Filter node
+			fn ql.ASTNode
+		)
+
+		// Make a nice wrapper that will translate module fields to subqueries
+		fp.OnIdent = func(i ql.Ident) (ql.Ident, error) {
+			for _, s := range realColumns {
+				if s == i.Value {
+					return i, nil
+				}
+			}
+
+			if !module.Fields.HasName(i.Value) {
+				return i, errors.Errorf("unknown field %q", i.Value)
+			}
+
+			i.Args = []interface{}{i.Value}
+			i.Value = colWrap
+
+			return i, nil
+		}
+
+		if fn, err = fp.ParseExpression(filter); err != nil {
+			return
+		}
+
+		query = query.Where(fn)
+	}
+
+	if sort != "" {
+		var (
+			// Sort parser
+			sp = ql.NewParser()
+
+			// Sort columns
+			sc ql.Columns
+		)
+
+		sp.OnIdent = func(i ql.Ident) (ql.Ident, error) {
+			for _, s := range realColumns {
+				if s == i.Value {
+					i.Value += " "
+					return i, nil
+				}
+			}
+
+			if !module.Fields.HasName(i.Value) {
+				return i, errors.Errorf("unknown field %q", i.Value)
+			}
+
+			i.Value = strings.Replace(colWrap, "?", fmt.Sprintf("'%s'", i.Value), 1) + " "
+			return i, nil
+		}
+
+		if sc, err = sp.ParseColumns(sort); err != nil {
+			return
+		}
+
+		query = query.OrderBy(sc.Strings()...)
+	}
+
+	return
 }
 
 func (r *record) Create(mod *types.Record) (*types.Record, error) {

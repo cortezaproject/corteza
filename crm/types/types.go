@@ -130,6 +130,16 @@ func (set ModuleFieldSet) Names() (names []string) {
 	return
 }
 
+func (set ModuleFieldSet) HasName(name string) bool {
+	for i := range set {
+		if name == set[i].Name {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (set ModuleFieldSet) FilterByModule(moduleID uint64) (ff ModuleFieldSet) {
 	for i := range set {
 		if set[i].ModuleID == moduleID {
