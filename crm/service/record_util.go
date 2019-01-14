@@ -1,8 +1,6 @@
 package service
 
 import (
-	"encoding/json"
-
 	"github.com/crusttech/crust/crm/types"
 )
 
@@ -36,17 +34,17 @@ func (s *record) preload(module *types.Module, record *types.Record, fields ...s
 	for _, field := range fields {
 		switch field {
 		case "fields":
-			fields, err := s.Fields(module, record)
-			if err != nil {
-				return err
-			}
-			json, err := json.Marshal(fields)
-			if err != nil {
-				return err
-			}
-			if err := (&record.Fields).Scan(json); err != nil {
-				return err
-			}
+			// fields, err := s.Fields(module, record)
+			// if err != nil {
+			// 	return err
+			// }
+			// json, err := json.Marshal(fields)
+			// if err != nil {
+			// 	return err
+			// }
+			// if err := (&record.Values).Scan(json); err != nil {
+			// 	return err
+			// }
 		case "page":
 			if record.Page, err = s.pageRepo.FindByModuleID(record.ModuleID); err != nil {
 				return

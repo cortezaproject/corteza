@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -26,11 +25,11 @@ type (
 		Report(moduleID uint64, metrics, dimensions, filter string) (results interface{}, err error)
 		Find(module *types.Module, filter string, sort string, page int, perPage int) (*FindResponse, error)
 
-		Create(mod *types.Record) (*types.Record, error)
-		Update(mod *types.Record) (*types.Record, error)
+		Create(record *types.Record) (*types.Record, error)
+		Update(record *types.Record) (*types.Record, error)
 		DeleteByID(id uint64) error
 
-		Fields(module *types.Module, record *types.Record) ([]*types.RecordValue, error)
+		UpdateValues(recordID uint64, rvs types.RecordValueSet) (err error)
 	}
 
 	FindResponseMeta struct {
@@ -188,7 +187,7 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 		"updated_at",
 	}
 
-	const colWrap = `(SELECT value FROM crm_record_value WHERE name = ? AND record_id = crm_record.id)`
+	const colWrap = `(SELECT value FROM crm_record_value WHERE name = ? AND record_id = crm_record.id AND deleted_at IS NULL)`
 
 	// Parse filters.
 	if filter != "" {
@@ -260,60 +259,43 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 	return
 }
 
-func (r *record) Create(mod *types.Record) (*types.Record, error) {
-	mod.ID = factory.Sonyflake.NextID()
-	mod.CreatedAt = time.Now()
-	mod.UserID = Identity(r.Context())
+func (r *record) Create(record *types.Record) (*types.Record, error) {
+	record.ID = factory.Sonyflake.NextID()
+	record.CreatedAt = time.Now()
+	record.UserID = Identity(r.Context())
 
-	fields := make([]types.RecordValue, 0)
-	if err := json.Unmarshal(mod.Fields, &fields); err != nil {
-		return nil, errors.Wrap(err, "No content")
+	if err := r.db().Replace("crm_record", record); err != nil {
+		return nil, errors.Wrap(err, "could not update record")
 	}
 
-	for _, v := range fields {
-		v.RecordID = mod.ID
-		if err := r.db().Replace("crm_record_value", v); err != nil {
-			return nil, errors.Wrap(err, "Error adding columns")
-		}
-		// for _, related := range v.Related {
-		// 	row := types.Related{
-		// 		RecordID:        v.RecordID,
-		// 		Name:            v.Name,
-		// 		RelatedRecordID: related,
-		// 	}
-		// }
-	}
-
-	if err := r.db().Insert("crm_record", mod); err != nil {
-		return nil, err
-	}
-	return mod, nil
+	return record, nil
 }
 
-func (r *record) Update(mod *types.Record) (*types.Record, error) {
+func (r *record) Update(record *types.Record) (*types.Record, error) {
 	now := time.Now()
-	mod.UpdatedAt = &now
+	record.UpdatedAt = &now
 
-	fields := make([]types.RecordValue, 0)
-	if err := json.Unmarshal(mod.Fields, &fields); err != nil {
-		return nil, errors.Wrap(err, "Error when saving record, no content")
+	if err := r.db().Replace("crm_record", record); err != nil {
+		return nil, errors.Wrap(err, "could not update record")
 	}
 
-	for _, v := range fields {
-		v.RecordID = mod.ID
-		if err := r.db().Replace("crm_record_value", v); err != nil {
-			return nil, errors.Wrap(err, "Error adding columns to database")
-		}
-		// for _, related := range v.Related {
-		// 	row := types.Related{
-		// 		RecordID:        v.RecordID,
-		// 		Name:            v.Name,
-		// 		RelatedRecordID: related,
-		// 	}
-		// }
+	return record, nil
+}
+
+func (r *record) UpdateValues(recordID uint64, rvs types.RecordValueSet) (err error) {
+	// Remove all records and prepare to be updated
+	// @todo be more selective and delete only removed values
+	if _, err = r.db().Exec("DELETE FROM crm_record_value WHERE record_id = ?", recordID); err != nil {
+		return errors.Wrap(err, "could not remove record values")
 	}
 
-	return mod, r.db().Replace("crm_record", mod)
+	err = rvs.Walk(func(value *types.RecordValue) error {
+		value.RecordID = recordID
+		return r.db().Replace("crm_record_value", value)
+	})
+
+	return errors.Wrap(err, "could not replace record values")
+
 }
 
 func (r *record) DeleteByID(id uint64) error {

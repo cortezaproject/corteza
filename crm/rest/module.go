@@ -12,15 +12,15 @@ import (
 
 type (
 	Module struct {
-		module  service.ModuleService
-		content service.RecordService
+		module service.ModuleService
+		record service.RecordService
 	}
 )
 
 func (Module) New() *Module {
 	return &Module{
-		module:  service.DefaultModule,
-		content: service.DefaultRecord,
+		module: service.DefaultModule,
+		record: service.DefaultRecord,
 	}
 }
 
@@ -56,34 +56,25 @@ func (s *Module) Edit(ctx context.Context, r *request.ModuleEdit) (interface{}, 
 }
 
 func (s *Module) RecordReport(ctx context.Context, r *request.ModuleRecordReport) (interface{}, error) {
-	return s.content.With(ctx).Report(r.ModuleID, r.Metrics, r.Dimensions, r.Filter)
+	return s.record.With(ctx).Report(r.ModuleID, r.Metrics, r.Dimensions, r.Filter)
 }
 
 func (s *Module) RecordList(ctx context.Context, r *request.ModuleRecordList) (interface{}, error) {
-	return s.content.With(ctx).Find(r.ModuleID, r.Filter, r.Sort, r.Page, r.PerPage)
+	return s.record.With(ctx).Find(r.ModuleID, r.Filter, r.Sort, r.Page, r.PerPage)
 }
 
 func (s *Module) RecordRead(ctx context.Context, r *request.ModuleRecordRead) (interface{}, error) {
-	return s.content.With(ctx).FindByID(r.ModuleID, r.RecordID)
+	return s.record.With(ctx).FindByID(r.ModuleID, r.RecordID)
 }
 
 func (s *Module) RecordCreate(ctx context.Context, r *request.ModuleRecordCreate) (interface{}, error) {
-	item := &types.Record{
-		ModuleID: r.ModuleID,
-		Fields:   r.Fields,
-	}
-	return s.content.With(ctx).Create(item)
+	return s.record.With(ctx).Create(&types.Record{ModuleID: r.ModuleID, Values: r.Values})
 }
 
 func (s *Module) RecordEdit(ctx context.Context, r *request.ModuleRecordEdit) (interface{}, error) {
-	item := &types.Record{
-		ID:       r.RecordID,
-		ModuleID: r.ModuleID,
-		Fields:   r.Fields,
-	}
-	return s.content.With(ctx).Update(item)
+	return s.record.With(ctx).Update(&types.Record{ModuleID: r.ModuleID, Values: r.Values})
 }
 
 func (s *Module) RecordDelete(ctx context.Context, r *request.ModuleRecordDelete) (interface{}, error) {
-	return resputil.OK(), s.content.With(ctx).DeleteByID(r.RecordID)
+	return resputil.OK(), s.record.With(ctx).DeleteByID(r.RecordID)
 }

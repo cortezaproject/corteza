@@ -31,12 +31,12 @@ func TestRecordFinder(t *testing.T) {
 			filter: "id = 5 AND foo = 7",
 			match: []string{
 				" AND id = 5",
-				" AND (SELECT value FROM crm_record_value WHERE name = ? AND record_id = crm_record.id) = 7"},
+				" AND (SELECT value FROM crm_record_value WHERE name = ? AND record_id = crm_record.id AND deleted_at IS NULL) = 7"},
 			args: []interface{}{123}},
 		{
 			sort: "id ASC, foo DESC",
 			match: []string{
-				" id ASC, (SELECT value FROM crm_record_value WHERE name = 'foo' AND record_id = crm_record.id) DESC"},
+				" id ASC, (SELECT value FROM crm_record_value WHERE name = 'foo' AND record_id = crm_record.id AND deleted_at IS NULL) DESC"},
 			args: []interface{}{123}},
 	}
 
@@ -57,5 +57,4 @@ func TestRecordFinder(t *testing.T) {
 		// 	"assertion failed; args %v \n  "+
 		// 		"     do not match expected %v", args, tc.args)
 	}
-
 }

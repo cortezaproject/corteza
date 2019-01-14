@@ -398,7 +398,7 @@ var _ RequestFiller = NewModuleRecordList()
 // Module record/create request parameters
 type ModuleRecordCreate struct {
 	ModuleID uint64 `json:",string"`
-	Fields   sqlxTypes.JSONText
+	Values   types.RecordValueSet
 }
 
 func NewModuleRecordCreate() *ModuleRecordCreate {
@@ -433,12 +433,6 @@ func (m *ModuleRecordCreate) Fill(r *http.Request) (err error) {
 	}
 
 	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
-	if val, ok := post["fields"]; ok {
-
-		if m.Fields, err = parseJSONTextWithErr(val); err != nil {
-			return err
-		}
-	}
 
 	return err
 }
@@ -494,7 +488,7 @@ var _ RequestFiller = NewModuleRecordRead()
 type ModuleRecordEdit struct {
 	ModuleID uint64 `json:",string"`
 	RecordID uint64 `json:",string"`
-	Fields   sqlxTypes.JSONText
+	Values   types.RecordValueSet
 }
 
 func NewModuleRecordEdit() *ModuleRecordEdit {
@@ -530,12 +524,6 @@ func (m *ModuleRecordEdit) Fill(r *http.Request) (err error) {
 
 	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 	m.RecordID = parseUInt64(chi.URLParam(r, "recordID"))
-	if val, ok := post["fields"]; ok {
-
-		if m.Fields, err = parseJSONTextWithErr(val); err != nil {
-			return err
-		}
-	}
 
 	return err
 }

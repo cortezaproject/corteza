@@ -22,7 +22,7 @@ type (
 
 		Page *Page `json:"page,omitempty"`
 
-		Fields types.JSONText `json:"fields,omitempty" db:"-"`
+		Values RecordValueSet `json:"values,omitempty" db:"-"`
 
 		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`
@@ -31,10 +31,11 @@ type (
 
 	// RecordValue is a stored row in the `record_value` table
 	RecordValue struct {
-		RecordID uint64 `json:"-" db:"record_id"`
-		Name     string `json:"name" db:"name"`
-		Value    string `json:"value" db:"value"`
-		Ref      uint64 `json:"related" db:"ref"`
+		RecordID  uint64     `db:"record_id"  json:"-"`
+		Name      string     `db:"name"       json:"name"`
+		Value     string     `db:"value"      json:"value,omitempty"`
+		Ref       uint64     `db:"ref"        json:"-"`
+		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
 	}
 
 	// Modules - CRM module definitions
@@ -55,12 +56,9 @@ type (
 		ModuleID uint64 `json:"moduleID,string" db:"module_id"`
 		Place    int    `json:"-" db:"place"`
 
-		Kind      string `json:"kind" db:"kind"`
-		Name      string `json:"name" db:"name"`
-		Label     string `json:"label" db:"label"`
-		HelpText  string `json:"helpText,omitempty" db:"help_text"`
-		Default   string `json:"defaultValue,omitempty" db:"default_value"`
-		MaxLength int    `json:"maxLength" db:"max_length"`
+		Kind  string `json:"kind" db:"kind"`
+		Name  string `json:"name" db:"name"`
+		Label string `json:"label" db:"label"`
 
 		Options types.JSONText `json:"options" db:"json"`
 
@@ -133,10 +131,35 @@ func (set ModuleFieldSet) HasName(name string) bool {
 	return false
 }
 
+func (set ModuleFieldSet) FindByName(name string) *ModuleField {
+	for i := range set {
+		if name == set[i].Name {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
 func (set ModuleFieldSet) FilterByModule(moduleID uint64) (ff ModuleFieldSet) {
 	for i := range set {
 		if set[i].ModuleID == moduleID {
 			ff = append(ff, set[i])
+		}
+	}
+
+	return
+}
+
+// IsRef tells us if value of this field be a reference to something (another record, user)?
+func (f ModuleField) IsRef() bool {
+	return f.Kind == "Record" || f.Kind == "User"
+}
+
+func (set RecordValueSet) FilterByName(name string) (vv RecordValueSet) {
+	for i := range set {
+		if set[i].Name == name {
+			vv = append(vv, set[i])
 		}
 	}
 
