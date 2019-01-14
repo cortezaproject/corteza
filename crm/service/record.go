@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
@@ -36,7 +37,7 @@ type (
 		Update(record *types.Record) (*types.Record, error)
 		DeleteByID(recordID uint64) error
 
-		Fields(module *types.Module, record *types.Record) ([]*types.RecordValue, error)
+		// Fields(module *types.Module, record *types.Record) ([]*types.RecordValue, error)
 	}
 )
 
@@ -89,41 +90,103 @@ func (s *record) Find(moduleID uint64, filter string, sort string, page int, per
 	return response, nil
 }
 
-func (s *record) Create(mod *types.Record) (*types.Record, error) {
-	response, err := s.repository.Create(mod)
-	if err != nil {
-		return nil, err
-	}
-	return response, s.preload(nil, response, "user", "fields")
-}
+func (s *record) Create(new *types.Record) (record *types.Record, err error) {
+	var module *types.Module
 
-func (s *record) Update(record *types.Record) (c *types.Record, err error) {
-	validate := func() error {
-		if record.ID == 0 {
-			return errors.New("Error updating record: invalid ID")
-		} else if c, err = s.repository.FindByID(record.ID); err != nil {
-			return errors.Wrap(err, "Error while loading record for update")
-		} else {
-			record.CreatedAt = c.CreatedAt
+	err = s.db.Transaction(func() (err error) {
+		if module, err = s.moduleRepo.FindByID(new.ModuleID); err != nil {
+			return
 		}
 
-		return nil
-	}
+		if err = s.sanitizeValues(module, new.Values); err != nil {
+			return
+		}
 
-	if err = validate(); err != nil {
-		return nil, err
-	}
+		if record, err = s.repository.Create(new); err != nil {
+			return
+		}
 
-	return c, s.db.Transaction(func() (err error) {
-		c, err = s.repository.Update(record)
-		return
+		if err = s.repository.UpdateValues(record.ID, new.Values); err != nil {
+			return
+		}
+
+		return s.preload(module, record, "user")
 	})
+
+	return record, errors.Wrap(err, "unable to create record")
 }
 
-func (s *record) Fields(module *types.Module, record *types.Record) ([]*types.RecordValue, error) {
-	return s.repository.Fields(module, record)
+func (s *record) Update(updated *types.Record) (record *types.Record, err error) {
+	var module *types.Module
+
+	err = s.db.Transaction(func() (err error) {
+		if updated.ID == 0 {
+			return errors.New("invalid record ID")
+		}
+
+		if record, err = s.repository.FindByID(updated.ID); err != nil {
+			return errors.Wrap(err, "unexisting record")
+		}
+
+		updated.CreatedAt = record.CreatedAt
+		updated.UserID = record.UserID
+
+		if module, err = s.moduleRepo.FindByID(updated.ModuleID); err != nil {
+			return
+		}
+
+		if err = s.sanitizeValues(module, updated.Values); err != nil {
+			return
+		}
+
+		if record, err = s.repository.Update(updated); err != nil {
+			return
+		}
+
+		if err = s.repository.UpdateValues(record.ID, updated.Values); err != nil {
+			return
+		}
+
+		return s.preload(module, record, "user")
+	})
+
+	return record, errors.Wrap(err, "unable to update record")
 }
+
+// func (s *record) Fields(module *types.Module, record *types.Record) ([]*types.RecordValue, error) {
+// 	return s.repository.Fields(module, record)
+// }
 
 func (s *record) DeleteByID(id uint64) error {
 	return s.repository.DeleteByID(id)
+}
+
+// Validates and filters record values
+func (s *record) sanitizeValues(module *types.Module, values types.RecordValueSet) (err error) {
+	// Make sure there are no multi values in a non-multi value fields
+	err = module.Fields.Walk(func(field *types.ModuleField) error {
+		if !field.Multi && len(values.FilterByName(field.Name)) > 1 {
+			return errors.Errorf("more than one value for a single-value field %q", field.Name)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return
+	}
+
+	return values.Walk(func(value *types.RecordValue) (err error) {
+		var field = module.Fields.FindByName(value.Name)
+		if field == nil {
+			return errors.Errorf("no such field %q", value.Name)
+		}
+
+		if field.IsRef() {
+			if value.Ref, err = strconv.ParseUint(value.Value, 10, 64); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }

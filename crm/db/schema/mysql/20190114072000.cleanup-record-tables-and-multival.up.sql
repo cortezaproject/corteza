@@ -10,6 +10,7 @@ ALTER TABLE `crm_record_value` CHANGE COLUMN `column_value` `value` TEXT;
 
 -- Add reference
 ALTER TABLE `crm_record_value` ADD  COLUMN `ref` BIGINT UNSIGNED;
+ALTER TABLE `crm_record_value` ADD  COLUMN `deleted_at` datetime DEFAULT NULL;
 CREATE INDEX crm_record_value_ref ON crm_record_value (ref);
 
 -- We want this as a real field
