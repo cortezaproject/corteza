@@ -36,7 +36,7 @@ type (
 		Update(record *types.Record) (*types.Record, error)
 		DeleteByID(recordID uint64) error
 
-		Fields(module *types.Module, record *types.Record) ([]*types.RecordColumn, error)
+		Fields(module *types.Module, record *types.Record) ([]*types.RecordValue, error)
 	}
 )
 
@@ -120,7 +120,7 @@ func (s *record) Update(record *types.Record) (c *types.Record, err error) {
 	})
 }
 
-func (s *record) Fields(module *types.Module, record *types.Record) ([]*types.RecordColumn, error) {
+func (s *record) Fields(module *types.Module, record *types.Record) ([]*types.RecordValue, error) {
 	return s.repository.Fields(module, record)
 }
 

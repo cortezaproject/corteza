@@ -30,7 +30,7 @@ type (
 		Update(mod *types.Record) (*types.Record, error)
 		DeleteByID(id uint64) error
 
-		Fields(module *types.Module, record *types.Record) ([]*types.RecordColumn, error)
+		Fields(module *types.Module, record *types.Record) ([]*types.RecordValue, error)
 	}
 
 	FindResponseMeta struct {
@@ -188,7 +188,7 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 		"updated_at",
 	}
 
-	const colWrap = `(SELECT column_value FROM crm_record_column WHERE column_name = ? AND record_id = crm_record.id)`
+	const colWrap = `(SELECT value FROM crm_record_value WHERE name = ? AND record_id = crm_record.id)`
 
 	// Parse filters.
 	if filter != "" {
@@ -265,27 +265,23 @@ func (r *record) Create(mod *types.Record) (*types.Record, error) {
 	mod.CreatedAt = time.Now()
 	mod.UserID = Identity(r.Context())
 
-	fields := make([]types.RecordColumn, 0)
+	fields := make([]types.RecordValue, 0)
 	if err := json.Unmarshal(mod.Fields, &fields); err != nil {
 		return nil, errors.Wrap(err, "No content")
 	}
 
-	r.db().Exec("delete from crm_record_links where record_id=?", mod.ID)
 	for _, v := range fields {
 		v.RecordID = mod.ID
-		if err := r.db().Replace("crm_record_column", v); err != nil {
+		if err := r.db().Replace("crm_record_value", v); err != nil {
 			return nil, errors.Wrap(err, "Error adding columns")
 		}
-		for _, related := range v.Related {
-			row := types.Related{
-				RecordID:        v.RecordID,
-				Name:            v.Name,
-				RelatedRecordID: related,
-			}
-			if err := r.db().Replace("crm_record_links", row); err != nil {
-				return nil, errors.Wrap(err, "Error adding column links")
-			}
-		}
+		// for _, related := range v.Related {
+		// 	row := types.Related{
+		// 		RecordID:        v.RecordID,
+		// 		Name:            v.Name,
+		// 		RelatedRecordID: related,
+		// 	}
+		// }
 	}
 
 	if err := r.db().Insert("crm_record", mod); err != nil {
@@ -298,27 +294,23 @@ func (r *record) Update(mod *types.Record) (*types.Record, error) {
 	now := time.Now()
 	mod.UpdatedAt = &now
 
-	fields := make([]types.RecordColumn, 0)
+	fields := make([]types.RecordValue, 0)
 	if err := json.Unmarshal(mod.Fields, &fields); err != nil {
 		return nil, errors.Wrap(err, "Error when saving record, no content")
 	}
 
-	r.db().Exec("delete from crm_record_links where record_id=?", mod.ID)
 	for _, v := range fields {
 		v.RecordID = mod.ID
-		if err := r.db().Replace("crm_record_column", v); err != nil {
+		if err := r.db().Replace("crm_record_value", v); err != nil {
 			return nil, errors.Wrap(err, "Error adding columns to database")
 		}
-		for _, related := range v.Related {
-			row := types.Related{
-				RecordID:        v.RecordID,
-				Name:            v.Name,
-				RelatedRecordID: related,
-			}
-			if err := r.db().Replace("crm_record_links", row); err != nil {
-				return nil, errors.Wrap(err, "Error adding column links")
-			}
-		}
+		// for _, related := range v.Related {
+		// 	row := types.Related{
+		// 		RecordID:        v.RecordID,
+		// 		Name:            v.Name,
+		// 		RelatedRecordID: related,
+		// 	}
+		// }
 	}
 
 	return mod, r.db().Replace("crm_record", mod)
@@ -329,8 +321,8 @@ func (r *record) DeleteByID(id uint64) error {
 	return err
 }
 
-func (r *record) Fields(module *types.Module, record *types.Record) ([]*types.RecordColumn, error) {
-	result := make([]*types.RecordColumn, 0)
+func (r *record) Fields(module *types.Module, record *types.Record) ([]*types.RecordValue, error) {
+	result := make([]*types.RecordValue, 0)
 
 	if module.ID != record.ModuleID {
 		return result, errors.New("Record does not belong to the module")
@@ -342,12 +334,12 @@ func (r *record) Fields(module *types.Module, record *types.Record) ([]*types.Re
 		return result, errors.New("Module has no fields")
 	}
 
-	order := "FIELD(column_name" + strings.Repeat(",?", len(fieldNames)) + ")"
+	order := "FIELD(name" + strings.Repeat(",?", len(fieldNames)) + ")"
 	args := []interface{}{
 		record.ID,
 	}
 	for _, v := range fieldNames {
 		args = append(args, v)
 	}
-	return result, r.db().Select(&result, "select * FROM crm_record_column where record_id=? order by "+order, args...)
+	return result, r.db().Select(&result, "select * FROM crm_record_value where record_id=? order by "+order, args...)
 }

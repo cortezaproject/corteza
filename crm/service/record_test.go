@@ -61,20 +61,20 @@ func TestRecord(t *testing.T) {
 	assert(t, err == nil, "Error when creating module: %+v", err)
 	assert(t, module.ID > 0, "Expected auto generated ID")
 
-	columns := []types.RecordColumn{
-		types.RecordColumn{
+	columns := []types.RecordValue{
+		types.RecordValue{
 			Name:  "name",
 			Value: "Tit Petric",
 		},
-		types.RecordColumn{
+		types.RecordValue{
 			Name:  "email",
 			Value: "tit.petric@example.com",
 		},
-		types.RecordColumn{
+		types.RecordValue{
 			Name:    "options",
 			Related: []string{"1", "2", "3"},
 		},
-		types.RecordColumn{
+		types.RecordValue{
 			Name:  "description",
 			Value: "jack of all trades",
 		},
@@ -88,20 +88,20 @@ func TestRecord(t *testing.T) {
 		return b
 	}())
 
-	columns2 := []types.RecordColumn{
-		types.RecordColumn{
+	columns2 := []types.RecordValue{
+		types.RecordValue{
 			Name:  "name",
 			Value: "Marko Novak",
 		},
-		types.RecordColumn{
+		types.RecordValue{
 			Name:  "email",
 			Value: "marko.n@example.com",
 		},
-		types.RecordColumn{
+		types.RecordValue{
 			Name:    "options",
 			Related: []string{"1", "2", "3"},
 		},
-		types.RecordColumn{
+		types.RecordValue{
 			Name:  "description",
 			Value: "persona non grata",
 		},
@@ -155,7 +155,7 @@ func TestRecord(t *testing.T) {
 				}
 			}
 			{
-				fields := make([]types.RecordColumn, 0)
+				fields := make([]types.RecordValue, 0)
 				err := json.Unmarshal(ms.Fields, &fields)
 				assert(t, err == nil, "%+v", errors.Wrap(err, "Didn't expect error when unmarshalling"))
 				assert(t, len(fields) == len(columns), "Expected different field count: %d != %d", 2, len(fields))
