@@ -31,12 +31,12 @@ func TestRecordFinder(t *testing.T) {
 			filter: "id = 5 AND foo = 7",
 			match: []string{
 				" AND id = 5",
-				" AND (SELECT column_value FROM crm_record_column WHERE column_name = ? AND record_id = crm_record.id) = 7"},
+				" AND (SELECT value FROM crm_record_value WHERE name = ? AND record_id = crm_record.id) = 7"},
 			args: []interface{}{123}},
 		{
 			sort: "id ASC, foo DESC",
 			match: []string{
-				" id ASC, (SELECT column_value FROM crm_record_column WHERE column_name = 'foo' AND record_id = crm_record.id) DESC"},
+				" id ASC, (SELECT value FROM crm_record_value WHERE name = 'foo' AND record_id = crm_record.id) DESC"},
 			args: []interface{}{123}},
 	}
 

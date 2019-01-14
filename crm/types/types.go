@@ -29,20 +29,12 @@ type (
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
 	}
 
-	// RecordColumn is a stored row in the `record_column` table
-	RecordColumn struct {
-		RecordID uint64   `json:"-" db:"record_id"`
-		Name     string   `json:"name" db:"column_name"`
-		Value    string   `json:"value" db:"column_value"`
-		Related  []string `json:"related" db:"-"`
-	}
-
-	Related struct {
+	// RecordValue is a stored row in the `record_value` table
+	RecordValue struct {
 		RecordID uint64 `json:"-" db:"record_id"`
-		Name     string `json:"-" db:"column_name"`
-
-		// RelatedRecordID isn't necessarily a record ID (multiple-select anything goes options)
-		RelatedRecordID string `json:"-" db:"rel_record_id"`
+		Name     string `json:"name" db:"name"`
+		Value    string `json:"value" db:"value"`
+		Ref      uint64 `json:"related" db:"ref"`
 	}
 
 	// Modules - CRM module definitions
@@ -75,6 +67,7 @@ type (
 		Private  bool `json:"isPrivate" db:"is_private"`
 		Required bool `json:"isRequired" db:"is_required"`
 		Visible  bool `json:"isVisible" db:"is_visible"`
+		Multi    bool `json:"isMulti" db:"is_multi"`
 	}
 
 	// Page - page structure
