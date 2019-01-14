@@ -109,42 +109,18 @@ func TestRecord(t *testing.T) {
 		m1, err := repository.Create(record1)
 		assert(t, err == nil, "Error when creating record: %+v", err)
 		assert(t, m1.ID > 0, "Expected auto generated ID")
-		assert(t, m1.User != nil, "Expected non-nil user when creating record")
-		assert(t, m1.User.Username == "TestUser", "Expected 'TestUser' as username, got '%s'", m1.User.Username)
 
 		// create record
 		m2, err := repository.Create(record2)
 		assert(t, err == nil, "Error when creating record: %+v", err)
 		assert(t, m2.ID > 0, "Expected auto generated ID")
-		assert(t, m2.User != nil, "Expected non-nil user when creating record")
-		assert(t, m2.User.Username == "TestUser", "Expected 'TestUser' as username, got '%s'", m2.User.Username)
 
 		// fetch created record
 		{
-			ms, err := repository.FindByID(module.ID, m1.ID)
+			ms, err := repository.FindByID(m1.ID)
 			assert(t, err == nil, "Error when retrieving record by id: %+v", err)
 			assert(t, ms.ID == m1.ID, "Expected ID from database to match, %d != %d", m1.ID, ms.ID)
 			assert(t, ms.ModuleID == m1.ModuleID, "Expected Module ID from database to match, %d != %d", m1.ModuleID, ms.ModuleID)
-
-			// {
-			// 	fields, err := repository.Fields(module, ms)
-			// 	// fields := make([]testRecordRow, 0)
-			// 	// err = json.Unmarshal(ms.Fields, &fields)
-			// 	assert(t, err == nil, "%+v", errors.Wrap(err, "Didn't expect error when unmarshalling"))
-			// 	assert(t, len(fields) == len(columns), "Expected different field count: %d != %d", 2, len(fields))
-			// 	for k, v := range columns {
-			// 		assert(t, fields[k].Name == v.Name, "Expected fields[%d].Name = %s, got %s", k, fields[k].Name, v.Name)
-			// 	}
-			// }
-			// {
-			// 	fields := make([]types.RecordValue, 0)
-			// 	err := json.Unmarshal(ms.Fields, &fields)
-			// 	assert(t, err == nil, "%+v", errors.Wrap(err, "Didn't expect error when unmarshalling"))
-			// 	assert(t, len(fields) == len(columns), "Expected different field count: %d != %d", 2, len(fields))
-			// 	for k, v := range columns {
-			// 		assert(t, fields[k].Name == v.Name, "Expected fields[%d].Name = %s, got %s", k, fields[k].Name, v.Name)
-			// 	}
-			// }
 		}
 
 		// update created record
@@ -155,7 +131,7 @@ func TestRecord(t *testing.T) {
 
 		// re-fetch record
 		{
-			ms, err := repository.FindByID(module.ID, m1.ID)
+			ms, err := repository.FindByID(m1.ID)
 			assert(t, err == nil, "Error when retrieving record by id: %+v", err)
 			assert(t, ms.ID == m1.ID, "Expected ID from database to match, %d != %d", m1.ID, ms.ID)
 			assert(t, ms.ModuleID == m1.ModuleID, "Expected ID from database to match, %d != %d", m1.ModuleID, ms.ModuleID)
@@ -265,6 +241,8 @@ func TestValueSanitizer(t *testing.T) {
 	rvs = types.RecordValueSet{{Name: "multi1", Value: "multi1"}, {Name: "multi1", Value: "multi1"}}
 	test.ErrNil(t, svc.sanitizeValues(module, rvs), "unexpected error for sanitizeValues() call: %v")
 	test.Assert(t, len(rvs) == 2, "expecting 2 record values after sanitization, got %d", len(rvs))
+	test.Assert(t, rvs[0].Place == 0, "expecting first value to have place value 0, got %d", rvs[0].Place)
+	test.Assert(t, rvs[1].Place == 1, "expecting second value to have place value 1, got %d", rvs[1].Place)
 
 	rvs = types.RecordValueSet{{Name: "ref1", Value: "multi1"}}
 	test.Assert(t, svc.sanitizeValues(module, rvs) != nil, "expecting sanitizeValues() to return an error, got nil")

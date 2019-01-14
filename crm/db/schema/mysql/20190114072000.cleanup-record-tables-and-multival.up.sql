@@ -11,7 +11,10 @@ ALTER TABLE `crm_record_value` CHANGE COLUMN `column_value` `value` TEXT;
 -- Add reference
 ALTER TABLE `crm_record_value` ADD  COLUMN `ref` BIGINT UNSIGNED;
 ALTER TABLE `crm_record_value` ADD  COLUMN `deleted_at` datetime DEFAULT NULL;
+ALTER TABLE `crm_record_value` ADD  COLUMN `place` INT UNSIGNED DEFAULT 0;
+ALTER TABLE `crm_record_value` DROP PRIMARY KEY, ADD PRIMARY KEY(`record_id`, `name`, `place`);
 CREATE INDEX crm_record_value_ref ON crm_record_value (ref);
+
 
 -- We want this as a real field
 ALTER TABLE `crm_module_form`  ADD  COLUMN `is_multi` TINYINT(1) NOT NULL;
