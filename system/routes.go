@@ -25,7 +25,7 @@ func Routes() *chi.Mux {
 	// Only protect application routes with JWT
 	r.Group(func(r chi.Router) {
 		r.Use(jwtVerifier, jwtAuthenticator)
-		mountRoutes(r, flags.http, rest.MountRoutes(flags.oidc, jwtEncoder))
+		mountRoutes(r, flags.http, rest.MountRoutes(flags.oidc, flags.social, jwtEncoder))
 	})
 
 	printRoutes(r, flags.http)

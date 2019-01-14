@@ -49,6 +49,7 @@ function types {
 	./build/gen-type-set --no-pk-types Unread --output sam/types/unread.gen.go
 
 	./build/gen-type-set --types User --output system/types/user.gen.go
+	./build/gen-type-set --types Credentials --output system/types/credentials.gen.go
 	green "OK"
 }
 
