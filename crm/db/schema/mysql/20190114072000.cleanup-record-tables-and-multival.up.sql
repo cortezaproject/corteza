@@ -9,9 +9,9 @@ ALTER TABLE `crm_record_value` CHANGE COLUMN `column_name`  `name`  VARCHAR(64);
 ALTER TABLE `crm_record_value` CHANGE COLUMN `column_value` `value` TEXT;
 
 -- Add reference
-ALTER TABLE `crm_record_value` ADD  COLUMN `ref` BIGINT UNSIGNED;
+ALTER TABLE `crm_record_value` ADD  COLUMN `ref` BIGINT UNSIGNED DEFAULT 0 NOT NULL;
 ALTER TABLE `crm_record_value` ADD  COLUMN `deleted_at` datetime DEFAULT NULL;
-ALTER TABLE `crm_record_value` ADD  COLUMN `place` INT UNSIGNED DEFAULT 0;
+ALTER TABLE `crm_record_value` ADD  COLUMN `place` INT UNSIGNED DEFAULT 0 NOT NULL;
 ALTER TABLE `crm_record_value` DROP PRIMARY KEY, ADD PRIMARY KEY(`record_id`, `name`, `place`);
 CREATE INDEX crm_record_value_ref ON crm_record_value (ref);
 

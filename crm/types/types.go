@@ -157,6 +157,26 @@ func (f ModuleField) IsRef() bool {
 	return f.Kind == "Record" || f.Kind == "User"
 }
 
+// UserIDs returns a slice of user IDs from all items in the set
+//
+// This function is auto-generated.
+func (set RecordSet) UserIDs() (IDs []uint64) {
+	IDs = make([]uint64, 0)
+
+loop:
+	for i := range set {
+		for _, id := range IDs {
+			if id == set[i].UserID {
+				continue loop
+			}
+		}
+
+		IDs = append(IDs, set[i].UserID)
+	}
+
+	return
+}
+
 func (set RecordValueSet) FilterByName(name string) (vv RecordValueSet) {
 	for i := range set {
 		if set[i].Name == name {
