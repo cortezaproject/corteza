@@ -320,6 +320,26 @@ func (set RecordSet) IDs() (IDs []uint64) {
 	return
 }
 
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set RecordSet) UserIDs() (IDs []uint64) {
+	IDs = make([]uint64, 0)
+
+loop:
+	for i := range set {
+		for _, id := range IDs {
+			if id == set[i].UserID {
+				continue loop
+			}
+		}
+
+		IDs = append(IDs, set[i].UserID)
+	}
+
+	return
+}
+
 // Walk iterates through every slice item and calls w(ModuleField) err
 //
 // This function is auto-generated.

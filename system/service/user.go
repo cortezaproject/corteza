@@ -31,6 +31,7 @@ type (
 		FindByUsername(username string) (*types.User, error)
 		FindByEmail(email string) (*types.User, error)
 		FindByID(id uint64) (*types.User, error)
+		FindByIDs(id ...uint64) (types.UserSet, error)
 		Find(filter *types.UserFilter) (types.UserSet, error)
 
 		FindOrCreate(*types.User) (*types.User, error)
@@ -91,6 +92,10 @@ func (svc *user) ValidateCredentials(username, password string) (*types.User, er
 
 func (svc *user) FindByID(id uint64) (*types.User, error) {
 	return svc.user.FindByID(id)
+}
+
+func (svc *user) FindByIDs(ids ...uint64) (types.UserSet, error) {
+	return svc.user.FindByIDs(ids...)
 }
 
 func (svc *user) FindByEmail(email string) (*types.User, error) {

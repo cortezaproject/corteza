@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/lann/builder"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
@@ -22,7 +23,7 @@ type (
 
 		FindByID(id uint64) (*types.Record, error)
 
-		Report(moduleID uint64, metrics, dimensions, filter string) (results interface{}, err error)
+		Report(module *types.Module, metrics, dimensions, filter string) (results interface{}, err error)
 		Find(module *types.Module, filter string, sort string, page int, perPage int) (*FindResponse, error)
 
 		Create(record *types.Record) (*types.Record, error)
@@ -30,19 +31,21 @@ type (
 		DeleteByID(id uint64) error
 
 		UpdateValues(recordID uint64, rvs types.RecordValueSet) (err error)
+		LoadValues(IDs ...uint64) (rvs types.RecordValueSet, err error)
 	}
 
 	FindResponseMeta struct {
-		Filter  string `json:"filter,omitempty"`
-		Page    int    `json:"page"`
-		PerPage int    `json:"perPage"`
-		Count   int    `json:"count"`
-		Sort    string `json:"sort"`
+		Filter string `json:"filter,omitempty"`
+		Sort   string `json:"sort,omitempty"`
+
+		Page    int `json:"page"`
+		PerPage int `json:"perPage"`
+		Count   int `json:"count"`
 	}
 
 	FindResponse struct {
 		Meta    FindResponseMeta `json:"meta"`
-		Records []*types.Record  `json:"records"`
+		Records types.RecordSet  `json:"records"`
 	}
 
 	record struct {
@@ -74,8 +77,8 @@ func (r *record) FindByID(id uint64) (*types.Record, error) {
 	return mod, nil
 }
 
-func (r *record) Report(moduleID uint64, metrics, dimensions, filter string) (results interface{}, err error) {
-	crb := NewRecordReportBuilder(moduleID)
+func (r *record) Report(module *types.Module, metrics, dimensions, filter string) (results interface{}, err error) {
+	crb := NewRecordReportBuilder(module)
 
 	if err = crb.SetMetrics(metrics); err != nil {
 		return
@@ -211,6 +214,8 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 				return i, errors.Errorf("unknown field %q", i.Value)
 			}
 
+			// @todo switch value for ref when doing Record/User lookup
+
 			i.Args = []interface{}{i.Value}
 			i.Value = colWrap
 
@@ -282,6 +287,11 @@ func (r *record) Update(record *types.Record) (*types.Record, error) {
 	return record, nil
 }
 
+func (r *record) DeleteByID(id uint64) error {
+	_, err := r.db().Exec("update crm_record set deleted_at=? where id=?", time.Now(), id)
+	return err
+}
+
 func (r *record) UpdateValues(recordID uint64, rvs types.RecordValueSet) (err error) {
 	// Remove all records and prepare to be updated
 	// @todo be more selective and delete only removed values
@@ -298,30 +308,16 @@ func (r *record) UpdateValues(recordID uint64, rvs types.RecordValueSet) (err er
 
 }
 
-func (r *record) DeleteByID(id uint64) error {
-	_, err := r.db().Exec("update crm_record set deleted_at=? where id=?", time.Now(), id)
-	return err
-}
-
-func (r *record) Fields(module *types.Module, record *types.Record) ([]*types.RecordValue, error) {
-	result := make([]*types.RecordValue, 0)
-
-	if module.ID != record.ModuleID {
-		return result, errors.New("Record does not belong to the module")
+func (r *record) LoadValues(IDs ...uint64) (rvs types.RecordValueSet, err error) {
+	if len(IDs) == 0 {
+		return
 	}
 
-	fieldNames := module.Fields.Names()
+	var sql = "SELECT * FROM crm_record_value WHERE record_id IN (?) AND deleted_at IS NULL ORDER BY record_id, place"
 
-	if len(fieldNames) == 0 {
-		return result, errors.New("Module has no fields")
+	if sql, args, err := sqlx.In(sql, IDs); err != nil {
+		return nil, err
+	} else {
+		return rvs, r.db().Select(&rvs, sql, args...)
 	}
-
-	order := "FIELD(name" + strings.Repeat(",?", len(fieldNames)) + ")"
-	args := []interface{}{
-		record.ID,
-	}
-	for _, v := range fieldNames {
-		args = append(args, v)
-	}
-	return result, r.db().Select(&result, "select * FROM crm_record_value where record_id=? order by "+order, args...)
 }

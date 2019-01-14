@@ -64,7 +64,7 @@ func (s *Module) RecordList(ctx context.Context, r *request.ModuleRecordList) (i
 }
 
 func (s *Module) RecordRead(ctx context.Context, r *request.ModuleRecordRead) (interface{}, error) {
-	return s.record.With(ctx).FindByID(r.ModuleID, r.RecordID)
+	return s.record.With(ctx).FindByID(r.RecordID)
 }
 
 func (s *Module) RecordCreate(ctx context.Context, r *request.ModuleRecordCreate) (interface{}, error) {
