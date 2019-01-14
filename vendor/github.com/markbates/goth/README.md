@@ -56,12 +56,14 @@ $ go get github.com/markbates/goth
 * Tumblr
 * Twitch
 * Twitter
+* Typetalk
 * Uber
 * VK
 * Wepay
 * Xero
 * Yahoo
 * Yammer
+* Yandex
 
 ## Examples
 
@@ -106,7 +108,7 @@ As configured, this default store (`gothic.Store`) will generate cookies with `O
 
 To tailor these fields for your application, you can override the `gothic.Store` variable at startup.
 
-The follow snippet show one way to do this:
+The following snippet shows one way to do this:
 
 ```go
 key := ""             // Replace with your SESSION_SECRET or similar

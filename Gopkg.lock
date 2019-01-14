@@ -229,7 +229,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:b756f004cafbb7631e9eb078af2e6817bd37e274fa21678ede3bcb54d6ae2006"
+  digest = "1:c6a991538ddd77daaad1380ec85e1d7c6a0ae2bc2732b059ddb95f9a49569d3d"
   name = "github.com/markbates/goth"
   packages = [
     ".",
@@ -240,8 +240,8 @@
     "providers/linkedin",
   ]
   pruneopts = "UT"
-  revision = "bc6d8ddf751a745f37ca5567dbbfc4157bbf5da9"
-  version = "v1.47.2"
+  revision = "157987f620ff2fc5e1f6a1427a3685219fbf6ff4"
+  version = "v1.49.0"
 
 [[projects]]
   digest = "1:ff5ebae34cfbf047d505ee150de27e60570e8c394b3b8fdbb720ff6ac71985fc"
@@ -295,7 +295,7 @@
   name = "github.com/prometheus/client_model"
   packages = ["go"]
   pruneopts = "UT"
-  revision = "5c3871d89910bfb32f5fcab2aa4b9ec68e65a99f"
+  revision = "f287a105a20ec685d797f65cd0ce8fbeaef42da1"
 
 [[projects]]
   branch = "master"
@@ -422,18 +422,18 @@
     "context/ctxhttp",
   ]
   pruneopts = "UT"
-  revision = "1e06a53dbb7e2ed46e91183f219db23c6943c532"
+  revision = "915654e7eabcea33ae277abbecf52f0d8b7a9fdc"
 
 [[projects]]
   branch = "master"
-  digest = "1:5276e08fe6a1dfdb65b4f46a2e5d5c9e00be6e499105e441049c3c04a0c83b36"
+  digest = "1:62bf0fe61cbb370876c32f605ce8f9dd16ace3fdeab28f7a9d7b46f2ee2a87a4"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
     "internal",
   ]
   pruneopts = "UT"
-  revision = "d668ce993890a79bda886613ee587a69dd5da7a6"
+  revision = "36a7019397c4c86cf59eeab3bc0d188bac444277"
 
 [[projects]]
   digest = "1:8029e9743749d4be5bc9f7d42ea1659471767860f0cdc34d37c3111bd308a295"
