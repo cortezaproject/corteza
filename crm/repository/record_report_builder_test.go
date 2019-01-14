@@ -2,26 +2,32 @@ package repository
 
 import (
 	"testing"
+
+	"github.com/crusttech/crust/crm/types"
+	"github.com/crusttech/crust/internal/test"
 )
 
-func TestRecordReportBuilder_parseExpression(t *testing.T) {
-	// b := recordReportBuilder{jsonField: "JSONFIELD"}
-	//
-	// tc := []struct {
-	// 	exp string
-	// 	sql string
-	// 	arg []interface{}
-	// 	err error
-	// }{
-	// 	{exp: "count(foo)", sql: "COUNT(JSONFIELD)", arg: []interface{}{"foo"}},
-	// 	{exp: "sum(count(foo))", sql: "SUM(COUNT(JSONFIELD))", arg: []interface{}{"foo"}},
-	// 	{exp: "sum( count( foo))  ", sql: "SUM(COUNT(JSONFIELD))", arg: []interface{}{"foo"}},
-	// }
-	//
-	// for _, c := range tc {
-	// 	sql, arg, err := b.parseExpression(c.exp).ToSql()
-	// 	assert(t, sql == c.sql, "Expecting expression SQL to match (%v == %v)", sql, c.sql)
-	// 	assert(t, len(arg) == len(c.arg), "Expecting arguments count to match (%v == %v)", arg, c.arg)
-	// 	assert(t, err == c.err, "Expecting errors to match (%v == %v)", err, c.err)
-	// }
+func TestRecordReportBuilder2(t *testing.T) {
+	builder := NewRecordReportBuilder(&types.Module{
+		ID: 1000,
+		Fields: types.ModuleFieldSet{
+			&types.ModuleField{Name: "single1"},
+			&types.ModuleField{Name: "multi1", Multi: true},
+			&types.ModuleField{Name: "ref1", Kind: "Record"},
+			&types.ModuleField{Name: "multiRef1", Kind: "Record", Multi: true},
+		}},
+	)
+
+	expected := "SELECT (COUNT(*)) AS count, (CAST(max(rv_single1.value) AS DECIMAL(14,2))) AS metric_0, " +
+		"(QUARTER(rv_ref1.value)) AS dimension_0 " +
+		"FROM crm_record " +
+		"LEFT JOIN crm_record_value AS rv_single1 ON (rv_single1.record_id = crm_record.id AND rv_single1.name = ? AND rv_single1.deleted_at IS NULL) " +
+		"LEFT JOIN crm_record_value AS rv_ref1 ON (rv_ref1.record_id = crm_record.id AND rv_ref1.name = ? AND rv_ref1.deleted_at IS NULL) " +
+		"WHERE module_id = ? AND rv_ref1.value = 2 " +
+		"GROUP BY dimension_0 " +
+		"ORDER BY dimension_0"
+
+	sql, _, err := builder.Build("max(single1)", "QUARTER(ref1)", "ref1 = 2")
+	test.ErrNil(t, err, "report builder returned an error: %v")
+	test.Assert(t, expected == sql, "did not get expected sql for report, got: %s", sql)
 }

@@ -80,21 +80,9 @@ func (r *record) FindByID(id uint64) (*types.Record, error) {
 func (r *record) Report(module *types.Module, metrics, dimensions, filter string) (results interface{}, err error) {
 	crb := NewRecordReportBuilder(module)
 
-	if err = crb.SetMetrics(metrics); err != nil {
-		return
-	}
-
-	if err = crb.SetDimensions(dimensions); err != nil {
-		return
-	}
-
-	if err = crb.SetFilter(filter); err != nil {
-		return
-	}
-
 	var result = make([]map[string]interface{}, 0)
 
-	if query, args, err := crb.Build(); err != nil {
+	if query, args, err := crb.Build(metrics, dimensions, filter); err != nil {
 		return nil, errors.Wrap(err, "Can not generate report query")
 	} else if rows, err := r.db().Query(query, args...); err != nil {
 		return nil, errors.Wrapf(err, "Can not execute report query (%s)", query)
