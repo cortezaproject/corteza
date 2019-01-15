@@ -72,7 +72,10 @@ func (s *Module) RecordCreate(ctx context.Context, r *request.ModuleRecordCreate
 }
 
 func (s *Module) RecordEdit(ctx context.Context, r *request.ModuleRecordEdit) (interface{}, error) {
-	return s.record.With(ctx).Update(&types.Record{ModuleID: r.ModuleID, Values: r.Values})
+	return s.record.With(ctx).Update(&types.Record{
+		ID:       r.RecordID,
+		ModuleID: r.ModuleID,
+		Values:   r.Values})
 }
 
 func (s *Module) RecordDelete(ctx context.Context, r *request.ModuleRecordDelete) (interface{}, error) {
