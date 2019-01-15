@@ -30,7 +30,7 @@ type ChartAPI interface {
 	List(context.Context, *request.ChartList) (interface{}, error)
 	Create(context.Context, *request.ChartCreate) (interface{}, error)
 	Read(context.Context, *request.ChartRead) (interface{}, error)
-	Edit(context.Context, *request.ChartEdit) (interface{}, error)
+	Update(context.Context, *request.ChartUpdate) (interface{}, error)
 	Delete(context.Context, *request.ChartDelete) (interface{}, error)
 }
 
@@ -39,7 +39,7 @@ type Chart struct {
 	List   func(http.ResponseWriter, *http.Request)
 	Create func(http.ResponseWriter, *http.Request)
 	Read   func(http.ResponseWriter, *http.Request)
-	Edit   func(http.ResponseWriter, *http.Request)
+	Update func(http.ResponseWriter, *http.Request)
 	Delete func(http.ResponseWriter, *http.Request)
 }
 
@@ -66,11 +66,11 @@ func NewChart(ch ChartAPI) *Chart {
 				return ch.Read(r.Context(), params)
 			})
 		},
-		Edit: func(w http.ResponseWriter, r *http.Request) {
+		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewChartEdit()
+			params := request.NewChartUpdate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ch.Edit(r.Context(), params)
+				return ch.Update(r.Context(), params)
 			})
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
@@ -90,7 +90,7 @@ func (ch *Chart) MountRoutes(r chi.Router, middlewares ...func(http.Handler) htt
 			r.Get("/", ch.List)
 			r.Post("/", ch.Create)
 			r.Get("/{chartID}", ch.Read)
-			r.Post("/{chartID}", ch.Edit)
+			r.Post("/{chartID}", ch.Update)
 			r.Delete("/{chartID}", ch.Delete)
 		})
 	})

@@ -175,19 +175,19 @@ func (m *ModuleRead) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewModuleRead()
 
-// Module edit request parameters
-type ModuleEdit struct {
+// Module update request parameters
+type ModuleUpdate struct {
 	ModuleID uint64 `json:",string"`
 	Name     string
 	Fields   types.ModuleFieldSet
 	Meta     sqlxTypes.JSONText
 }
 
-func NewModuleEdit() *ModuleEdit {
-	return &ModuleEdit{}
+func NewModuleUpdate() *ModuleUpdate {
+	return &ModuleUpdate{}
 }
 
-func (m *ModuleEdit) Fill(r *http.Request) (err error) {
+func (m *ModuleUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -229,7 +229,7 @@ func (m *ModuleEdit) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewModuleEdit()
+var _ RequestFiller = NewModuleUpdate()
 
 // Module delete request parameters
 type ModuleDelete struct {
@@ -484,18 +484,18 @@ func (m *ModuleRecordRead) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewModuleRecordRead()
 
-// Module record/edit request parameters
-type ModuleRecordEdit struct {
+// Module record/update request parameters
+type ModuleRecordUpdate struct {
 	ModuleID uint64 `json:",string"`
 	RecordID uint64 `json:",string"`
 	Values   types.RecordValueSet
 }
 
-func NewModuleRecordEdit() *ModuleRecordEdit {
-	return &ModuleRecordEdit{}
+func NewModuleRecordUpdate() *ModuleRecordUpdate {
+	return &ModuleRecordUpdate{}
 }
 
-func (m *ModuleRecordEdit) Fill(r *http.Request) (err error) {
+func (m *ModuleRecordUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(m)
 
@@ -528,7 +528,7 @@ func (m *ModuleRecordEdit) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewModuleRecordEdit()
+var _ RequestFiller = NewModuleRecordUpdate()
 
 // Module record/delete request parameters
 type ModuleRecordDelete struct {

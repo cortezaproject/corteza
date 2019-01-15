@@ -43,7 +43,7 @@ func (ctrl *Chart) Read(ctx context.Context, r *request.ChartRead) (interface{},
 	return ctrl.chart.With(ctx).FindByID(r.ChartID)
 }
 
-func (ctrl *Chart) Edit(ctx context.Context, r *request.ChartEdit) (interface{}, error) {
+func (ctrl *Chart) Update(ctx context.Context, r *request.ChartUpdate) (interface{}, error) {
 	chart := &types.Chart{
 		ID:     r.ChartID,
 		Name:   r.Name,

@@ -77,9 +77,9 @@
       }
     },
     {
-      "Name": "edit",
+      "Name": "update",
       "Method": "POST",
-      "Title": "Edit module",
+      "Title": "Update module",
       "Path": "/{moduleID}",
       "Parameters": {
         "path": [
@@ -253,9 +253,9 @@
       }
     },
     {
-      "Name": "record/edit",
+      "Name": "record/update",
       "Method": "POST",
-      "Title": "Add/update records in module section",
+      "Title": "Update records in module section",
       "Path": "/{moduleID}/record/{recordID}",
       "Parameters": {
         "path": [

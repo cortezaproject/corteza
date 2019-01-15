@@ -167,18 +167,18 @@ func (c *ChartRead) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewChartRead()
 
-// Chart edit request parameters
-type ChartEdit struct {
+// Chart update request parameters
+type ChartUpdate struct {
 	ChartID uint64 `json:",string"`
 	Config  sqlxTypes.JSONText
 	Name    string
 }
 
-func NewChartEdit() *ChartEdit {
-	return &ChartEdit{}
+func NewChartUpdate() *ChartUpdate {
+	return &ChartUpdate{}
 }
 
-func (c *ChartEdit) Fill(r *http.Request) (err error) {
+func (c *ChartUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(c)
 
@@ -220,7 +220,7 @@ func (c *ChartEdit) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewChartEdit()
+var _ RequestFiller = NewChartUpdate()
 
 // Chart delete request parameters
 type ChartDelete struct {

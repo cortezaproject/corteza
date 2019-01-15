@@ -60,7 +60,7 @@
       }
     },
     {
-      "Name": "edit",
+      "Name": "update",
       "Method": "POST",
       "Title": "Add/update charts in module section",
       "Path": "/{chartID}",

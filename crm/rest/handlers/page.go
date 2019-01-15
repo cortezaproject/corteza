@@ -31,7 +31,7 @@ type PageAPI interface {
 	Create(context.Context, *request.PageCreate) (interface{}, error)
 	Read(context.Context, *request.PageRead) (interface{}, error)
 	Tree(context.Context, *request.PageTree) (interface{}, error)
-	Edit(context.Context, *request.PageEdit) (interface{}, error)
+	Update(context.Context, *request.PageUpdate) (interface{}, error)
 	Reorder(context.Context, *request.PageReorder) (interface{}, error)
 	Delete(context.Context, *request.PageDelete) (interface{}, error)
 }
@@ -42,7 +42,7 @@ type Page struct {
 	Create  func(http.ResponseWriter, *http.Request)
 	Read    func(http.ResponseWriter, *http.Request)
 	Tree    func(http.ResponseWriter, *http.Request)
-	Edit    func(http.ResponseWriter, *http.Request)
+	Update  func(http.ResponseWriter, *http.Request)
 	Reorder func(http.ResponseWriter, *http.Request)
 	Delete  func(http.ResponseWriter, *http.Request)
 }
@@ -77,11 +77,11 @@ func NewPage(ph PageAPI) *Page {
 				return ph.Tree(r.Context(), params)
 			})
 		},
-		Edit: func(w http.ResponseWriter, r *http.Request) {
+		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewPageEdit()
+			params := request.NewPageUpdate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ph.Edit(r.Context(), params)
+				return ph.Update(r.Context(), params)
 			})
 		},
 		Reorder: func(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +109,7 @@ func (ph *Page) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 			r.Post("/", ph.Create)
 			r.Get("/{pageID}", ph.Read)
 			r.Get("/tree", ph.Tree)
-			r.Post("/{pageID}", ph.Edit)
+			r.Post("/{pageID}", ph.Update)
 			r.Post("/{selfID}/reorder", ph.Reorder)
 			r.Delete("/{pageID}", ph.Delete)
 		})
