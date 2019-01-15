@@ -242,10 +242,27 @@ func TestAstParser_ColumnParser(t *testing.T) {
 				},
 			},
 		},
+		{
+			in: `DATE_FORMAT(some_date, '%Y-%m-01')`,
+			cols: Columns{
+				Column{
+					Expr: ASTNodes{
+						Function{
+							Name: "DATE_FORMAT",
+							Arguments: ASTSet{
+								Ident{Value: "some_date"},
+								String{Value: "%Y-%m-01"},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
+	p := NewParser()
 	for i, test := range tests {
-		if cols, err := NewParser().ParseColumns(test.in); err != test.err {
+		if cols, err := p.ParseColumns(test.in); err != test.err {
 			t.Fatalf("%d. %s: error mismatch:\n  expected: %v\n        got: %v\n\n", i, test.in, test.err, err)
 		} else if test.err == nil && !reflect.DeepEqual(test.cols, cols) {
 			t.Errorf("%d. %s\n\ncols does not match:\n\nexpected: %#v\n     got: %#v\n\n", i, test.in, test.cols, cols)
@@ -265,9 +282,8 @@ func TestAstParser_IdentModifier(t *testing.T) {
 		},
 	}
 
+	p := NewParser()
 	for i, test := range tests {
-		p := NewParser()
-
 		p.OnIdent = func(ident Ident) (Ident, error) {
 			ident.Value = fmt.Sprintf("__wrap_%s_wrap__", ident.Value)
 			return ident, nil

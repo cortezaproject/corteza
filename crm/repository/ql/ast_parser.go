@@ -25,7 +25,6 @@ type (
 // NewParser returns a new instance of Parser.
 func NewParser() *Parser {
 	p := &Parser{
-		tokbuf:     make([]Token, 3),
 		OnIdent:    func(ident Ident) (Ident, error) { return ident, nil },
 		OnFunction: func(ident Function) (Function, error) { return ident, nil },
 	}
@@ -51,6 +50,7 @@ func (p *Parser) peekToken(s int) Token {
 
 func (p *Parser) initLexer(s string) {
 	p.lexer = NewLexer(strings.NewReader(s))
+	p.tokbuf = make([]Token, 3)
 
 	for c := 1; c < cap(p.tokbuf); c++ {
 		// Fill the buffer
