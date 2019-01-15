@@ -83,9 +83,9 @@ func (r *record) Report(module *types.Module, metrics, dimensions, filter string
 	var result = make([]map[string]interface{}, 0)
 
 	if query, args, err := crb.Build(metrics, dimensions, filter); err != nil {
-		return nil, errors.Wrap(err, "Can not generate report query")
+		return nil, errors.Wrap(err, "can not generate report query")
 	} else if rows, err := r.db().Query(query, args...); err != nil {
-		return nil, errors.Wrapf(err, "Can not execute report query (%s)", query)
+		return nil, errors.Wrapf(err, "can not execute report query (%s)", query)
 	} else {
 		for rows.Next() {
 			result = append(result, crb.Cast(rows))

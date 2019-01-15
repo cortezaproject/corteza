@@ -114,6 +114,7 @@ func (b *recordReportBuilder) Build(metrics, dimensions, filters string) (sql st
 	var columns ql.Columns
 	b.parser.OnFunction = stdAggregationHandler
 	if columns, err = b.parser.ParseColumns(metrics); err != nil {
+		err = errors.Wrapf(err, "could not parse metrics %q", metrics)
 		return
 	}
 
@@ -133,6 +134,7 @@ func (b *recordReportBuilder) Build(metrics, dimensions, filters string) (sql st
 
 	b.parser.OnFunction = stdFilterFuncHandler
 	if columns, err = b.parser.ParseColumns(dimensions); err != nil {
+		err = errors.Wrapf(err, "could not parse dimensions %q", dimensions)
 		return
 	}
 
@@ -153,6 +155,7 @@ func (b *recordReportBuilder) Build(metrics, dimensions, filters string) (sql st
 
 	var filter ql.ASTNode
 	if filter, err = b.parser.ParseExpression(filters); err != nil {
+		err = errors.Wrapf(err, "could not parse filters %q", filters)
 		return
 	}
 
