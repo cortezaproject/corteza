@@ -100,9 +100,9 @@
         "parameters": {}
       },
       {
-        "name": "edit",
+        "name": "update",
         "method": "POST",
-        "title": "Edit page",
+        "title": "Update page",
         "path": "/{pageID}",
         "parameters": {
           "path": [
@@ -272,9 +272,9 @@
         }
       },
       {
-        "name": "edit",
+        "name": "update",
         "method": "POST",
-        "title": "Edit module",
+        "title": "Update module",
         "path": "/{moduleID}",
         "parameters": {
           "path": [
@@ -448,9 +448,9 @@
         }
       },
       {
-        "name": "record/edit",
+        "name": "record/update",
         "method": "POST",
-        "title": "Add/update records in module section",
+        "title": "Update records in module section",
         "path": "/{moduleID}/record/{recordID}",
         "parameters": {
           "path": [
@@ -559,7 +559,7 @@
         }
       },
       {
-        "name": "edit",
+        "name": "update",
         "method": "POST",
         "title": "Add/update charts in module section",
         "path": "/{chartID}",
@@ -687,9 +687,9 @@
         }
       },
       {
-        "name": "edit",
+        "name": "update",
         "method": "POST",
-        "title": "Edit trigger",
+        "title": "Update trigger",
         "path": "/{triggerID}",
         "parameters": {
           "path": [

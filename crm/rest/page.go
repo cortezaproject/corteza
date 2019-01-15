@@ -51,7 +51,7 @@ func (ctrl *Page) Reorder(ctx context.Context, r *request.PageReorder) (interfac
 	return resputil.OK(), ctrl.page.With(ctx).Reorder(r.SelfID, payload.ParseUInt64s(r.PageIDs))
 }
 
-func (ctrl *Page) Edit(ctx context.Context, r *request.PageEdit) (interface{}, error) {
+func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{}, error) {
 	p := &types.Page{
 		ID:          r.PageID,
 		SelfID:      r.SelfID,

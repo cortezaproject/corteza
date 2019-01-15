@@ -101,9 +101,9 @@
       "Parameters": {}
     },
     {
-      "Name": "edit",
+      "Name": "update",
       "Method": "POST",
-      "Title": "Edit page",
+      "Title": "Update page",
       "Path": "/{pageID}",
       "Parameters": {
         "path": [

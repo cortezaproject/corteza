@@ -30,7 +30,7 @@ type TriggerAPI interface {
 	List(context.Context, *request.TriggerList) (interface{}, error)
 	Create(context.Context, *request.TriggerCreate) (interface{}, error)
 	Read(context.Context, *request.TriggerRead) (interface{}, error)
-	Edit(context.Context, *request.TriggerEdit) (interface{}, error)
+	Update(context.Context, *request.TriggerUpdate) (interface{}, error)
 	Delete(context.Context, *request.TriggerDelete) (interface{}, error)
 }
 
@@ -39,7 +39,7 @@ type Trigger struct {
 	List   func(http.ResponseWriter, *http.Request)
 	Create func(http.ResponseWriter, *http.Request)
 	Read   func(http.ResponseWriter, *http.Request)
-	Edit   func(http.ResponseWriter, *http.Request)
+	Update func(http.ResponseWriter, *http.Request)
 	Delete func(http.ResponseWriter, *http.Request)
 }
 
@@ -66,11 +66,11 @@ func NewTrigger(th TriggerAPI) *Trigger {
 				return th.Read(r.Context(), params)
 			})
 		},
-		Edit: func(w http.ResponseWriter, r *http.Request) {
+		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewTriggerEdit()
+			params := request.NewTriggerUpdate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.Edit(r.Context(), params)
+				return th.Update(r.Context(), params)
 			})
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
@@ -90,7 +90,7 @@ func (th *Trigger) MountRoutes(r chi.Router, middlewares ...func(http.Handler) h
 			r.Get("/", th.List)
 			r.Post("/", th.Create)
 			r.Get("/{triggerID}", th.Read)
-			r.Post("/{triggerID}", th.Edit)
+			r.Post("/{triggerID}", th.Update)
 			r.Delete("/{triggerID}", th.Delete)
 		})
 	})

@@ -233,8 +233,8 @@ func (p *PageTree) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewPageTree()
 
-// Page edit request parameters
-type PageEdit struct {
+// Page update request parameters
+type PageUpdate struct {
 	PageID      uint64 `json:",string"`
 	SelfID      uint64 `json:",string"`
 	ModuleID    uint64 `json:",string"`
@@ -244,11 +244,11 @@ type PageEdit struct {
 	Blocks      sqlxTypes.JSONText
 }
 
-func NewPageEdit() *PageEdit {
-	return &PageEdit{}
+func NewPageUpdate() *PageUpdate {
+	return &PageUpdate{}
 }
 
-func (p *PageEdit) Fill(r *http.Request) (err error) {
+func (p *PageUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(p)
 
@@ -306,7 +306,7 @@ func (p *PageEdit) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewPageEdit()
+var _ RequestFiller = NewPageUpdate()
 
 // Page reorder request parameters
 type PageReorder struct {

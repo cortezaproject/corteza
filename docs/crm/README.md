@@ -123,7 +123,7 @@ CRM module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
-## Edit module
+## Update module
 
 #### Method
 
@@ -219,7 +219,7 @@ CRM module definitions
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 | recordID | uint64 | PATH | Record ID | N/A | YES |
 
-## Add/update records in module section
+## Update records in module section
 
 #### Method
 
@@ -342,7 +342,7 @@ CRM module pages
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 
-## Edit page
+## Update page
 
 #### Method
 
@@ -444,7 +444,7 @@ CRM Triggers
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | triggerID | uint64 | PATH | Trigger ID | N/A | YES |
 
-## Edit trigger
+## Update trigger
 
 #### Method
 

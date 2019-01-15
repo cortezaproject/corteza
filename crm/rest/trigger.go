@@ -53,7 +53,7 @@ func (ctrl *Trigger) Read(ctx context.Context, r *request.TriggerRead) (interfac
 	return ctrl.trigger.With(ctx).FindByID(r.TriggerID)
 }
 
-func (ctrl *Trigger) Edit(ctx context.Context, r *request.TriggerEdit) (interface{}, error) {
+func (ctrl *Trigger) Update(ctx context.Context, r *request.TriggerUpdate) (interface{}, error) {
 	if trigger, err := ctrl.trigger.FindByID(r.TriggerID); err != nil {
 		return nil, err
 	} else {

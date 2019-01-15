@@ -82,9 +82,9 @@
       }
     },
     {
-      "Name": "edit",
+      "Name": "update",
       "Method": "POST",
-      "Title": "Edit trigger",
+      "Title": "Update trigger",
       "Path": "/{triggerID}",
       "Parameters": {
         "path": [

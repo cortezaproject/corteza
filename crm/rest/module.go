@@ -45,7 +45,7 @@ func (s *Module) Create(ctx context.Context, r *request.ModuleCreate) (interface
 	return s.module.With(ctx).Create(item)
 }
 
-func (s *Module) Edit(ctx context.Context, r *request.ModuleEdit) (interface{}, error) {
+func (s *Module) Update(ctx context.Context, r *request.ModuleUpdate) (interface{}, error) {
 	item := &types.Module{
 		ID:     r.ModuleID,
 		Name:   r.Name,
@@ -71,7 +71,7 @@ func (s *Module) RecordCreate(ctx context.Context, r *request.ModuleRecordCreate
 	return s.record.With(ctx).Create(&types.Record{ModuleID: r.ModuleID, Values: r.Values})
 }
 
-func (s *Module) RecordEdit(ctx context.Context, r *request.ModuleRecordEdit) (interface{}, error) {
+func (s *Module) RecordUpdate(ctx context.Context, r *request.ModuleRecordUpdate) (interface{}, error) {
 	return s.record.With(ctx).Update(&types.Record{
 		ID:       r.RecordID,
 		ModuleID: r.ModuleID,

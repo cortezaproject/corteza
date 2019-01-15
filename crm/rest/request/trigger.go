@@ -180,8 +180,8 @@ func (t *TriggerRead) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewTriggerRead()
 
-// Trigger edit request parameters
-type TriggerEdit struct {
+// Trigger update request parameters
+type TriggerUpdate struct {
 	TriggerID uint64 `json:",string"`
 	ModuleID  uint64 `json:",string"`
 	Name      string
@@ -190,11 +190,11 @@ type TriggerEdit struct {
 	Source    string
 }
 
-func NewTriggerEdit() *TriggerEdit {
-	return &TriggerEdit{}
+func NewTriggerUpdate() *TriggerUpdate {
+	return &TriggerUpdate{}
 }
 
-func (t *TriggerEdit) Fill(r *http.Request) (err error) {
+func (t *TriggerUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(t)
 
@@ -242,7 +242,7 @@ func (t *TriggerEdit) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewTriggerEdit()
+var _ RequestFiller = NewTriggerUpdate()
 
 // Trigger delete request parameters
 type TriggerDelete struct {
