@@ -2,13 +2,15 @@ package repository
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
+	"github.com/jmoiron/sqlx"
+	"github.com/lann/builder"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
-	"gopkg.in/Masterminds/squirrel.v1"
+	sq "gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/crusttech/crust/crm/repository/ql"
 
@@ -21,27 +23,29 @@ type (
 
 		FindByID(id uint64) (*types.Record, error)
 
-		Report(moduleID uint64, metrics, dimensions, filter string) (results interface{}, err error)
+		Report(module *types.Module, metrics, dimensions, filter string) (results interface{}, err error)
 		Find(module *types.Module, filter string, sort string, page int, perPage int) (*FindResponse, error)
 
-		Create(mod *types.Record) (*types.Record, error)
-		Update(mod *types.Record) (*types.Record, error)
+		Create(record *types.Record) (*types.Record, error)
+		Update(record *types.Record) (*types.Record, error)
 		DeleteByID(id uint64) error
 
-		Fields(module *types.Module, record *types.Record) ([]*types.RecordColumn, error)
+		UpdateValues(recordID uint64, rvs types.RecordValueSet) (err error)
+		LoadValues(IDs ...uint64) (rvs types.RecordValueSet, err error)
 	}
 
 	FindResponseMeta struct {
-		Filter  string `json:"filter,omitempty"`
-		Page    int    `json:"page"`
-		PerPage int    `json:"perPage"`
-		Count   int    `json:"count"`
-		Sort    string `json:"sort"`
+		Filter string `json:"filter,omitempty"`
+		Sort   string `json:"sort,omitempty"`
+
+		Page    int `json:"page"`
+		PerPage int `json:"perPage"`
+		Count   int `json:"count"`
 	}
 
 	FindResponse struct {
 		Meta    FindResponseMeta `json:"meta"`
-		Records []*types.Record  `json:"records"`
+		Records types.RecordSet  `json:"records"`
 	}
 
 	record struct {
@@ -50,7 +54,7 @@ type (
 )
 
 const (
-	jsonWrap = `JSON_UNQUOTE(JSON_EXTRACT(json, REPLACE(JSON_UNQUOTE(JSON_SEARCH(json, 'one', ?)), '.name', '.value')))`
+	sortWrap = `sort`
 )
 
 func Record(ctx context.Context, db *factory.DB) RecordRepository {
@@ -73,27 +77,15 @@ func (r *record) FindByID(id uint64) (*types.Record, error) {
 	return mod, nil
 }
 
-func (r *record) Report(moduleID uint64, metrics, dimensions, filter string) (results interface{}, err error) {
-	crb := NewRecordReportBuilder(moduleID)
-
-	if err = crb.SetMetrics(metrics); err != nil {
-		return
-	}
-
-	if err = crb.SetDimensions(dimensions); err != nil {
-		return
-	}
-
-	if err = crb.SetFilter(filter); err != nil {
-		return
-	}
+func (r *record) Report(module *types.Module, metrics, dimensions, filter string) (results interface{}, err error) {
+	crb := NewRecordReportBuilder(module)
 
 	var result = make([]map[string]interface{}, 0)
 
-	if query, args, err := crb.Build(); err != nil {
-		return nil, errors.Wrap(err, "Can not generate report query")
+	if query, args, err := crb.Build(metrics, dimensions, filter); err != nil {
+		return nil, errors.Wrap(err, "can not generate report query")
 	} else if rows, err := r.db().Query(query, args...); err != nil {
-		return nil, errors.Wrapf(err, "Can not execute report query (%s)", query)
+		return nil, errors.Wrapf(err, "can not execute report query (%s)", query)
 	} else {
 		for rows.Next() {
 			result = append(result, crb.Cast(rows))
@@ -127,26 +119,14 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 		Records: make([]*types.Record, 0),
 	}
 
-	// Create query for fetching and counting records.
-	query := squirrel.
-		Select().
-		From("crm_record").
-		Where("(module_id = ? AND deleted_at IS NULL AND json IS NOT NULL)", module.ID)
-
-	// Parse filters.
-	p := ql.NewParser()
-	p.OnIdent = ql.MakeIdentWrapHandler(jsonWrap, "created_at", "updated_at", "id", "user_id")
-
-	where, err := p.ParseExpression(filter)
+	var query, err = r.buildQuery(module, filter, sort)
 	if err != nil {
 		return nil, err
 	}
 
-	// Append filtering to query.
-	query = query.Where(squirrel.And{where})
-
-	// Create count SQL sentences.
-	count := query.Column(squirrel.Alias(squirrel.Expr("COUNT(*)"), "count"))
+	// Assemble SQL for counting (includes only where)
+	count := query.Column("COUNT(*)")
+	count = builder.Delete(count, "OrderBys").(sq.SelectBuilder)
 	sqlSelect, argsSelect, err := count.ToSql()
 	if err != nil {
 		return nil, err
@@ -162,30 +142,11 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 		return response, nil
 	}
 
-	// Create query for fetching records.
+	// Assemble SQL for fetching record (where + sorting + paging)...
 	query = query.
-		Column("*").
+		Column("crm_record.*").
 		Limit(uint64(perPage)).
 		Offset(uint64(page))
-
-	// Append Sorting.
-	p = ql.NewParser()
-	p.OnIdent = ql.MakeIdentOrderWrapHandler(jsonWrap, "id", "module_id", "user_id", "created_at", "updated_at")
-
-	orderColumns, err := p.ParseColumns(sort)
-	if err != nil {
-		return nil, err
-	}
-
-	var argsOrder = make([]interface{}, 0)
-	for _, column := range orderColumns {
-		sql, args, err := column.ToSql()
-		if err != nil {
-			return nil, err
-		}
-		argsOrder = append(argsOrder, args...)
-		query = query.OrderBy(sql)
-	}
 
 	// Create actual fetch SQL sentences.
 	sqlSelect, argsSelect, err = query.ToSql()
@@ -194,7 +155,6 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 	}
 
 	// Append order args to select args and execute actual query.
-	argsSelect = append(argsSelect, argsOrder...)
 	if err := r.db().Select(&response.Records, sqlSelect, argsSelect...); err != nil {
 		return nil, err
 	}
@@ -202,68 +162,117 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 	return response, nil
 }
 
-func (r *record) Create(mod *types.Record) (*types.Record, error) {
-	mod.ID = factory.Sonyflake.NextID()
-	mod.CreatedAt = time.Now()
-	mod.UserID = Identity(r.Context())
+func (r *record) buildQuery(module *types.Module, filter string, sort string) (query sq.SelectBuilder, err error) {
+	// Create query for fetching and counting records.
+	query = sq.Select().
+		From("crm_record").
+		Where(sq.Eq{"module_id": module.ID}).
+		Where(sq.Eq{"deleted_at": nil})
 
-	fields := make([]types.RecordColumn, 0)
-	if err := json.Unmarshal(mod.Fields, &fields); err != nil {
-		return nil, errors.Wrap(err, "No content")
+	// Do not translate/wrap these
+	var realColumns = []string{
+		"id",
+		"module_id",
+		"user_id",
+		"created_at",
+		"updated_at",
 	}
 
-	r.db().Exec("delete from crm_record_links where record_id=?", mod.ID)
-	for _, v := range fields {
-		v.RecordID = mod.ID
-		if err := r.db().Replace("crm_record_column", v); err != nil {
-			return nil, errors.Wrap(err, "Error adding columns")
-		}
-		for _, related := range v.Related {
-			row := types.Related{
-				RecordID:        v.RecordID,
-				Name:            v.Name,
-				RelatedRecordID: related,
+	const colWrap = `(SELECT value FROM crm_record_value WHERE name = ? AND record_id = crm_record.id AND deleted_at IS NULL)`
+
+	// Parse filters.
+	if filter != "" {
+		var (
+			// Filter parser
+			fp = ql.NewParser()
+
+			// Filter node
+			fn ql.ASTNode
+		)
+
+		// Make a nice wrapper that will translate module fields to subqueries
+		fp.OnIdent = func(i ql.Ident) (ql.Ident, error) {
+			for _, s := range realColumns {
+				if s == i.Value {
+					return i, nil
+				}
 			}
-			if err := r.db().Replace("crm_record_links", row); err != nil {
-				return nil, errors.Wrap(err, "Error adding column links")
+
+			if !module.Fields.HasName(i.Value) {
+				return i, errors.Errorf("unknown field %q", i.Value)
 			}
+
+			// @todo switch value for ref when doing Record/User lookup
+
+			i.Args = []interface{}{i.Value}
+			i.Value = colWrap
+
+			return i, nil
 		}
+
+		if fn, err = fp.ParseExpression(filter); err != nil {
+			return
+		}
+
+		query = query.Where(fn)
 	}
 
-	if err := r.db().Insert("crm_record", mod); err != nil {
-		return nil, err
+	if sort != "" {
+		var (
+			// Sort parser
+			sp = ql.NewParser()
+
+			// Sort columns
+			sc ql.Columns
+		)
+
+		sp.OnIdent = func(i ql.Ident) (ql.Ident, error) {
+			for _, s := range realColumns {
+				if s == i.Value {
+					i.Value += " "
+					return i, nil
+				}
+			}
+
+			if !module.Fields.HasName(i.Value) {
+				return i, errors.Errorf("unknown field %q", i.Value)
+			}
+
+			i.Value = strings.Replace(colWrap, "?", fmt.Sprintf("'%s'", i.Value), 1) + " "
+			return i, nil
+		}
+
+		if sc, err = sp.ParseColumns(sort); err != nil {
+			return
+		}
+
+		query = query.OrderBy(sc.Strings()...)
 	}
-	return mod, nil
+
+	return
 }
 
-func (r *record) Update(mod *types.Record) (*types.Record, error) {
+func (r *record) Create(record *types.Record) (*types.Record, error) {
+	record.ID = factory.Sonyflake.NextID()
+	record.CreatedAt = time.Now()
+	record.UserID = Identity(r.Context())
+
+	if err := r.db().Replace("crm_record", record); err != nil {
+		return nil, errors.Wrap(err, "could not update record")
+	}
+
+	return record, nil
+}
+
+func (r *record) Update(record *types.Record) (*types.Record, error) {
 	now := time.Now()
-	mod.UpdatedAt = &now
+	record.UpdatedAt = &now
 
-	fields := make([]types.RecordColumn, 0)
-	if err := json.Unmarshal(mod.Fields, &fields); err != nil {
-		return nil, errors.Wrap(err, "Error when saving record, no content")
+	if err := r.db().Replace("crm_record", record); err != nil {
+		return nil, errors.Wrap(err, "could not update record")
 	}
 
-	r.db().Exec("delete from crm_record_links where record_id=?", mod.ID)
-	for _, v := range fields {
-		v.RecordID = mod.ID
-		if err := r.db().Replace("crm_record_column", v); err != nil {
-			return nil, errors.Wrap(err, "Error adding columns to database")
-		}
-		for _, related := range v.Related {
-			row := types.Related{
-				RecordID:        v.RecordID,
-				Name:            v.Name,
-				RelatedRecordID: related,
-			}
-			if err := r.db().Replace("crm_record_links", row); err != nil {
-				return nil, errors.Wrap(err, "Error adding column links")
-			}
-		}
-	}
-
-	return mod, r.db().Replace("crm_record", mod)
+	return record, nil
 }
 
 func (r *record) DeleteByID(id uint64) error {
@@ -271,25 +280,32 @@ func (r *record) DeleteByID(id uint64) error {
 	return err
 }
 
-func (r *record) Fields(module *types.Module, record *types.Record) ([]*types.RecordColumn, error) {
-	result := make([]*types.RecordColumn, 0)
-
-	if module.ID != record.ModuleID {
-		return result, errors.New("Record does not belong to the module")
+func (r *record) UpdateValues(recordID uint64, rvs types.RecordValueSet) (err error) {
+	// Remove all records and prepare to be updated
+	// @todo be more selective and delete only removed values
+	if _, err = r.db().Exec("DELETE FROM crm_record_value WHERE record_id = ?", recordID); err != nil {
+		return errors.Wrap(err, "could not remove record values")
 	}
 
-	fieldNames := module.Fields.Names()
+	err = rvs.Walk(func(value *types.RecordValue) error {
+		value.RecordID = recordID
+		return r.db().Replace("crm_record_value", value)
+	})
 
-	if len(fieldNames) == 0 {
-		return result, errors.New("Module has no fields")
+	return errors.Wrap(err, "could not replace record values")
+
+}
+
+func (r *record) LoadValues(IDs ...uint64) (rvs types.RecordValueSet, err error) {
+	if len(IDs) == 0 {
+		return
 	}
 
-	order := "FIELD(column_name" + strings.Repeat(",?", len(fieldNames)) + ")"
-	args := []interface{}{
-		record.ID,
+	var sql = "SELECT * FROM crm_record_value WHERE record_id IN (?) AND deleted_at IS NULL ORDER BY record_id, place"
+
+	if sql, args, err := sqlx.In(sql, IDs); err != nil {
+		return nil, err
+	} else {
+		return rvs, r.db().Select(&rvs, sql, args...)
 	}
-	for _, v := range fieldNames {
-		args = append(args, v)
-	}
-	return result, r.db().Select(&result, "select * FROM crm_record_column where record_id=? order by "+order, args...)
 }

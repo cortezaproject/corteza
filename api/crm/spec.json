@@ -417,10 +417,10 @@
           ],
           "post": [
             {
-              "type": "sqlxTypes.JSONText",
-              "name": "fields",
+              "type": "types.RecordValueSet",
+              "name": "values",
               "required": true,
-              "title": "Record JSON"
+              "title": "Record values"
             }
           ]
         }
@@ -469,10 +469,10 @@
           ],
           "post": [
             {
-              "type": "sqlxTypes.JSONText",
-              "name": "fields",
+              "type": "types.RecordValueSet",
+              "name": "values",
               "required": true,
-              "title": "Record JSON"
+              "title": "Record values"
             }
           ]
         }

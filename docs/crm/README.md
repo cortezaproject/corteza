@@ -202,7 +202,7 @@ CRM module definitions
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
-| fields | sqlxTypes.JSONText | POST | Record JSON | N/A | YES |
+| values | types.RecordValueSet | POST | Record values | N/A | YES |
 
 ## Read records by ID from module section
 
@@ -233,7 +233,7 @@ CRM module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 | recordID | uint64 | PATH | Record ID | N/A | YES |
-| fields | sqlxTypes.JSONText | POST | Record JSON | N/A | YES |
+| values | types.RecordValueSet | POST | Record values | N/A | YES |
 
 ## Delete record row from module section
 

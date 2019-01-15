@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/system/types"
@@ -17,6 +18,7 @@ type (
 		FindByEmail(email string) (*types.User, error)
 		FindByUsername(username string) (*types.User, error)
 		FindByID(id uint64) (*types.User, error)
+		FindByIDs(id ...uint64) (types.UserSet, error)
 		FindBySatosaID(id string) (*types.User, error)
 		Find(filter *types.UserFilter) ([]*types.User, error)
 
@@ -85,6 +87,21 @@ func (r *user) FindByID(id uint64) (*types.User, error) {
 		return nil, err
 	}
 	return mod, r.prepare(mod, "teams")
+}
+
+func (r *user) FindByIDs(IDs ...uint64) (uu types.UserSet, err error) {
+	if len(IDs) == 0 {
+		return
+	}
+
+	sql := fmt.Sprintf(sqlUserSelect, r.users) + " AND id IN (?)"
+
+	if sql, args, err := sqlx.In(sql, IDs); err != nil {
+		return nil, err
+	} else {
+		return uu, r.db().Select(&uu, sql, args...)
+	}
+
 }
 
 func (r *user) Find(filter *types.UserFilter) ([]*types.User, error) {

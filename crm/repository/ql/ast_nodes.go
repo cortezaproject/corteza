@@ -107,3 +107,12 @@ func (nn Columns) String() (out string) {
 
 	return
 }
+
+func (nn Columns) Strings() (out []string) {
+	out = make([]string, len(nn))
+	for i, n := range nn {
+		out[i] = n.String()
+	}
+
+	return
+}
