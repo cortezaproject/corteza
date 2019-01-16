@@ -13,11 +13,11 @@ import (
 	"github.com/titpetric/factory"
 	"github.com/titpetric/factory/resputil"
 
-	"github.com/crusttech/crust/internal/mail"
 	migrate "github.com/crusttech/crust/sam/db"
 	systemService "github.com/crusttech/crust/system/service"
 
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/mail"
 	"github.com/crusttech/crust/internal/metrics"
 	"github.com/crusttech/crust/internal/version"
 	"github.com/crusttech/crust/sam/service"
