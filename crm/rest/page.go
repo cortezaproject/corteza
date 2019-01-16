@@ -24,7 +24,11 @@ func (Page) New() *Page {
 }
 
 func (ctrl *Page) List(ctx context.Context, r *request.PageList) (interface{}, error) {
-	return ctrl.page.With(ctx).FindBySelfID(r.SelfID)
+	if r.SelfID > 0 {
+		return ctrl.page.With(ctx).FindBySelfID(r.SelfID)
+	} else {
+		return ctrl.page.With(ctx).Find()
+	}
 }
 
 func (ctrl *Page) Tree(ctx context.Context, r *request.PageTree) (interface{}, error) {
