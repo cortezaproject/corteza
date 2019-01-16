@@ -15,7 +15,7 @@ import (
 
 	"github.com/crusttech/crust/internal/mail"
 	migrate "github.com/crusttech/crust/system/db"
-	"github.com/crusttech/crust/system/service"
+	systemService "github.com/crusttech/crust/system/service"
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/metrics"
@@ -70,7 +70,7 @@ func Init() error {
 		},
 	})
 
-	service.Init()
+	systemService.Init()
 
 	return nil
 }
