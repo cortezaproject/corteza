@@ -114,6 +114,10 @@ test.rbac: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/rbac/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
+test.rules: $(GOTEST)
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/rules/...
+	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
+
 test.mail: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/mail/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
