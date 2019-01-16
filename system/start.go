@@ -5,7 +5,9 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 
+	"github.com/SentimensRG/ctx"
 	"github.com/SentimensRG/ctx/sigctx"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
@@ -74,7 +76,7 @@ func Init() error {
 }
 
 func Start() error {
-	log.Printf("Starting auth, version: %v, built on: %v", version.Version, version.BuildTime)
+	log.Printf("Starting "+os.Args[0]+", version: %v, built on: %v", version.Version, version.BuildTime)
 	log.Println("Starting http server on address " + flags.http.Addr)
 	listener, err := net.Listen("tcp", flags.http.Addr)
 	if err != nil {
@@ -84,9 +86,9 @@ func Start() error {
 	if flags.monitor.Interval > 0 {
 		go metrics.NewMonitor(flags.monitor.Interval)
 	}
-	go http.Serve(listener, Routes())
 
 	var deadline = sigctx.New()
+	go http.Serve(listener, Routes(ctx.AsContext(deadline)))
 	<-deadline.Done()
 
 	return nil
