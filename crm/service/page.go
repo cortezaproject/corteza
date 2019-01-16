@@ -25,6 +25,7 @@ type (
 		FindByID(pageID uint64) (*types.Page, error)
 		FindByModuleID(moduleID uint64) (*types.Page, error)
 		FindBySelfID(selfID uint64) (pages types.PageSet, err error)
+		Find() (pages types.PageSet, err error)
 		Tree() (pages types.PageSet, err error)
 		FindRecordPages() (pages types.PageSet, err error)
 
@@ -51,39 +52,19 @@ func (s *page) With(ctx context.Context) PageService {
 }
 
 func (s *page) FindByID(id uint64) (*types.Page, error) {
-	page, err := s.pageRepo.FindByID(id)
-	if err != nil {
-		return nil, err
-	}
-	if err := s.preload(page); err != nil {
-		return nil, err
-	}
-	return page, err
+	return s.pageRepo.FindByID(id)
 }
 
 func (s *page) FindByModuleID(moduleID uint64) (*types.Page, error) {
-	page, err := s.pageRepo.FindByModuleID(moduleID)
-	if err != nil {
-		return nil, err
-	}
-	if err := s.preload(page); err != nil {
-		return nil, err
-	}
-	return page, err
+	return s.pageRepo.FindByModuleID(moduleID)
 }
 
 func (s *page) FindBySelfID(selfID uint64) (pages types.PageSet, err error) {
-	return pages, s.db.Transaction(func() (err error) {
-		if pages, err = s.pageRepo.FindBySelfID(selfID); err != nil {
-			return
-		}
+	return s.pageRepo.FindBySelfID(selfID)
+}
 
-		if err = s.preloadAll(pages); err != nil {
-			return
-		}
-
-		return nil
-	})
+func (s *page) Find() (pages types.PageSet, err error) {
+	return s.pageRepo.Find()
 }
 
 func (s *page) Tree() (pages types.PageSet, err error) {
@@ -120,17 +101,7 @@ func (s *page) Tree() (pages types.PageSet, err error) {
 }
 
 func (s *page) FindRecordPages() (pages types.PageSet, err error) {
-	return pages, s.db.Transaction(func() (err error) {
-		if pages, err = s.pageRepo.FindRecordPages(); err != nil {
-			return
-		}
-
-		if err = s.preloadAll(pages); err != nil {
-			return
-		}
-
-		return nil
-	})
+	return s.pageRepo.FindRecordPages()
 }
 
 func (s *page) Reorder(selfID uint64, pageIDs []uint64) error {
