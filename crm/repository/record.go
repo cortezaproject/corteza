@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -144,7 +143,7 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 
 	// Assemble SQL for fetching record (where + sorting + paging)...
 	query = query.
-		Column("crm_record.*").
+		Column("r.*").
 		Limit(uint64(perPage)).
 		Offset(uint64(page))
 
@@ -165,9 +164,9 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 func (r *record) buildQuery(module *types.Module, filter string, sort string) (query sq.SelectBuilder, err error) {
 	// Create query for fetching and counting records.
 	query = sq.Select().
-		From("crm_record").
-		Where(sq.Eq{"module_id": module.ID}).
-		Where(sq.Eq{"deleted_at": nil})
+		From("crm_record AS r").
+		Where(sq.Eq{"r.module_id": module.ID}).
+		Where(sq.Eq{"r.deleted_at": nil})
 
 	// Do not translate/wrap these
 	var realColumns = []string{
@@ -178,7 +177,17 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 		"updated_at",
 	}
 
-	const colWrap = `(SELECT value FROM crm_record_value WHERE name = ? AND record_id = crm_record.id AND deleted_at IS NULL)`
+	var joinedFields = []string{}
+	var alreadyJoined = func(f string) bool {
+		for _, a := range joinedFields {
+			if a == f {
+				return true
+			}
+		}
+
+		joinedFields = append(joinedFields, f)
+		return false
+	}
 
 	// Parse filters.
 	if filter != "" {
@@ -202,19 +211,26 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 				return i, errors.Errorf("unknown field %q", i.Value)
 			}
 
-			// @todo switch value for ref when doing Record/User lookup
+			if !alreadyJoined(i.Value) {
+				query = query.LeftJoin(fmt.Sprintf(
+					"crm_record_value AS rv_%s ON (rv_%s.record_id = r.id AND rv_%s.name = ? AND rv_%s.deleted_at IS NULL)",
+					i.Value, i.Value, i.Value, i.Value,
+				), i.Value)
+			}
 
-			i.Args = []interface{}{i.Value}
-			i.Value = colWrap
+			// @todo switch value for ref when doing Record/User lookup
+			i.Value = fmt.Sprintf("rv_%s.value", i.Value)
 
 			return i, nil
 		}
 
 		if fn, err = fp.ParseExpression(filter); err != nil {
 			return
+		} else if filterSql, filterArgs, err := fn.ToSql(); err != nil {
+			return query, err
+		} else {
+			query = query.Where("("+filterSql+")", filterArgs...)
 		}
-
-		query = query.Where(fn)
 	}
 
 	if sort != "" {
@@ -238,7 +254,16 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 				return i, errors.Errorf("unknown field %q", i.Value)
 			}
 
-			i.Value = strings.Replace(colWrap, "?", fmt.Sprintf("'%s'", i.Value), 1) + " "
+			if !alreadyJoined(i.Value) {
+				query = query.LeftJoin(fmt.Sprintf(
+					"crm_record_value AS rv_%s ON (rv_%s.record_id = r.id AND rv_%s.name = ? AND rv_%s.deleted_at IS NULL)",
+					i.Value, i.Value, i.Value, i.Value,
+				), i.Value)
+			}
+
+			// @todo switch value for ref when doing Record/User lookup
+			i.Value = fmt.Sprintf("rv_%s.value ", i.Value)
+
 			return i, nil
 		}
 
