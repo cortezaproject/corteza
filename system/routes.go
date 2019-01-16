@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"runtime"
@@ -18,9 +19,11 @@ import (
 	"github.com/crusttech/crust/system/rest"
 )
 
-func Routes() *chi.Mux {
+func Routes(ctx context.Context) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(handleCORS)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.RequestID)
 
 	// Only protect application routes with JWT
 	r.Group(func(r chi.Router) {

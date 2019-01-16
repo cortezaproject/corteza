@@ -38,9 +38,6 @@ func (c *appFlags) Validate() error {
 	if err := c.oidc.Validate(); err != nil {
 		return err
 	}
-	//if err := c.jwt.Validate(); err != nil {
-	//	return err
-	//}
 	return nil
 }
 
