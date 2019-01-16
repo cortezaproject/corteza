@@ -13,10 +13,10 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 
+	"github.com/crusttech/crust/crm/rest"
 	"github.com/crusttech/crust/internal/config"
 	"github.com/crusttech/crust/internal/metrics"
 	"github.com/crusttech/crust/internal/version"
-	"github.com/crusttech/crust/sam/rest"
 )
 
 func Routes(ctx context.Context) *chi.Mux {
