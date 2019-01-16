@@ -7,7 +7,7 @@ import (
 	"github.com/crusttech/crust/internal/auth"
 )
 
-func MountRoutes(jwtAuth auth.TokenEncoder) func(chi.Router) {
+func MountRoutes() func(chi.Router) {
 	var (
 		module       = Module{}.New()
 		page         = Page{}.New()
