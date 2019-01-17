@@ -341,8 +341,8 @@
             {
               "type": "string",
               "name": "metrics",
-              "required": true,
-              "title": "Metrics (eg: 'COUNT(*) AS count, SUM(money)')"
+              "required": false,
+              "title": "Metrics (eg: 'SUM(money), MAX(calls)')"
             },
             {
               "type": "string",

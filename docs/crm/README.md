@@ -166,7 +166,7 @@ CRM module definitions
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| metrics | string | GET | Metrics (eg: 'COUNT(*) AS count, SUM(money)') | N/A | YES |
+| metrics | string | GET | Metrics (eg: 'SUM(money), MAX(calls)') | N/A | NO |
 | dimensions | string | GET | Dimensions (eg: 'DATE(foo), status') | N/A | YES |
 | filter | string | GET | Filter (eg: 'DATE(foo) > 2010') | N/A | NO |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
