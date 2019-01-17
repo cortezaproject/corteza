@@ -29,11 +29,11 @@ import (
 type MessageAPI interface {
 	Create(context.Context, *request.MessageCreate) (interface{}, error)
 	History(context.Context, *request.MessageHistory) (interface{}, error)
+	MarkAsRead(context.Context, *request.MessageMarkAsRead) (interface{}, error)
 	Edit(context.Context, *request.MessageEdit) (interface{}, error)
 	Delete(context.Context, *request.MessageDelete) (interface{}, error)
 	ReplyGet(context.Context, *request.MessageReplyGet) (interface{}, error)
 	ReplyCreate(context.Context, *request.MessageReplyCreate) (interface{}, error)
-	MarkAsUnread(context.Context, *request.MessageMarkAsUnread) (interface{}, error)
 	PinCreate(context.Context, *request.MessagePinCreate) (interface{}, error)
 	PinRemove(context.Context, *request.MessagePinRemove) (interface{}, error)
 	BookmarkCreate(context.Context, *request.MessageBookmarkCreate) (interface{}, error)
@@ -46,11 +46,11 @@ type MessageAPI interface {
 type Message struct {
 	Create         func(http.ResponseWriter, *http.Request)
 	History        func(http.ResponseWriter, *http.Request)
+	MarkAsRead     func(http.ResponseWriter, *http.Request)
 	Edit           func(http.ResponseWriter, *http.Request)
 	Delete         func(http.ResponseWriter, *http.Request)
 	ReplyGet       func(http.ResponseWriter, *http.Request)
 	ReplyCreate    func(http.ResponseWriter, *http.Request)
-	MarkAsUnread   func(http.ResponseWriter, *http.Request)
 	PinCreate      func(http.ResponseWriter, *http.Request)
 	PinRemove      func(http.ResponseWriter, *http.Request)
 	BookmarkCreate func(http.ResponseWriter, *http.Request)
@@ -73,6 +73,13 @@ func NewMessage(mh MessageAPI) *Message {
 			params := request.NewMessageHistory()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.History(r.Context(), params)
+			})
+		},
+		MarkAsRead: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewMessageMarkAsRead()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return mh.MarkAsRead(r.Context(), params)
 			})
 		},
 		Edit: func(w http.ResponseWriter, r *http.Request) {
@@ -101,13 +108,6 @@ func NewMessage(mh MessageAPI) *Message {
 			params := request.NewMessageReplyCreate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.ReplyCreate(r.Context(), params)
-			})
-		},
-		MarkAsUnread: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewMessageMarkAsUnread()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.MarkAsUnread(r.Context(), params)
 			})
 		},
 		PinCreate: func(w http.ResponseWriter, r *http.Request) {
@@ -161,11 +161,11 @@ func (mh *Message) MountRoutes(r chi.Router, middlewares ...func(http.Handler) h
 		r.Route("/channels/{channelID}/messages", func(r chi.Router) {
 			r.Post("/", mh.Create)
 			r.Get("/", mh.History)
+			r.Get("/mark-as-read", mh.MarkAsRead)
 			r.Put("/{messageID}", mh.Edit)
 			r.Delete("/{messageID}", mh.Delete)
 			r.Get("/{messageID}/replies", mh.ReplyGet)
 			r.Post("/{messageID}/replies", mh.ReplyCreate)
-			r.Post("/{messageID}/unread", mh.MarkAsUnread)
 			r.Post("/{messageID}/pin", mh.PinCreate)
 			r.Delete("/{messageID}/pin", mh.PinRemove)
 			r.Post("/{messageID}/bookmark", mh.BookmarkCreate)

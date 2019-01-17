@@ -43,7 +43,7 @@ type (
 		React(messageID uint64, reaction string) error
 		RemoveReaction(messageID uint64, reaction string) error
 
-		MarkAsUnread(messageID uint64) (uint32, error)
+		MarkAsRead(channelID, threadID, lastReadMessageID uint64) (uint32, error)
 
 		Pin(messageID uint64) error
 		RemovePin(messageID uint64) error
@@ -308,30 +308,50 @@ func (svc *message) Delete(ID uint64) error {
 	})
 }
 
-// Pin message to the channel
-func (svc *message) MarkAsUnread(messageID uint64) (count uint32, err error) {
+// M
+func (svc *message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (count uint32, err error) {
 	var currentUserID uint64 = repository.Identity(svc.ctx)
 
-	return count, svc.db.Transaction(func() (err error) {
-		// Broadcast queue
-		var message *types.Message
+	err = svc.db.Transaction(func() (err error) {
+		var ch *types.Channel
+		var thread *types.Message
+		var lastMessage *types.Message
 
-		message, err = svc.message.FindMessageByID(messageID)
+		// Validate channel
+		if ch, err = svc.channel.FindChannelByID(channelID); err != nil {
+			return errors.Wrap(err, "unable to verify channel")
+		} else if !ch.IsValid() {
+			return errors.New("invalid channel")
+		}
+
+		if threadID > 0 {
+			// Validate thread
+			if thread, err = svc.message.FindMessageByID(threadID); err != nil {
+				return errors.Wrap(err, "unable to verify thread")
+			} else if !thread.IsValid() {
+				return errors.New("invalid thread")
+			}
+		}
+
+		if lastReadMessageID > 0 {
+			// Validate thread
+			if lastMessage, err = svc.message.FindMessageByID(lastReadMessageID); err != nil {
+				return errors.Wrap(err, "unable to verify last message")
+			} else if !lastMessage.IsValid() {
+				return errors.New("invalid message")
+			}
+		}
+
+		count, err = svc.message.CountFromMessageID(channelID, threadID, lastReadMessageID)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "unable to count unread messages")
 		}
 
-		count, err = svc.message.CountFromMessageID(message.ChannelID, message.ReplyTo, message.ID)
-		if err != nil {
-			return
-		}
-
-		if message.ReplyTo > 0 {
-			return svc.unreads.Record(currentUserID, message.ChannelID, message.ReplyTo, messageID, count)
-		} else {
-			return svc.unreads.Record(currentUserID, message.ChannelID, 0, messageID, count)
-		}
+		err = svc.unreads.Record(currentUserID, channelID, threadID, lastReadMessageID, count)
+		return errors.Wrap(err, "unable to record unread messages")
 	})
+
+	return count, errors.Wrap(err, "unable to mark as read")
 }
 
 // React on a message with an emoji

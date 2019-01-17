@@ -14,7 +14,7 @@ type (
 		With(ctx context.Context, db *factory.DB) UnreadRepository
 
 		Find(filter *types.UnreadFilter) (types.UnreadSet, error)
-		Record(userID, channelID, replyTo, lastMessageID uint64, count uint32) error
+		Record(userID, channelID, threadID, lastReadMessageID uint64, count uint32) error
 		Inc(channelID, replyTo, userID uint64) error
 		Dec(channelID, replyTo, userID uint64) error
 	}
@@ -72,26 +72,26 @@ func (r *unread) Find(filter *types.UnreadFilter) (types.UnreadSet, error) {
 }
 
 // Records channel view
-func (r *unread) Record(userID, channelID, replyTo, lastMessageID uint64, count uint32) error {
+func (r *unread) Record(userID, channelID, threadID, lastReadMessageID uint64, count uint32) error {
 	mod := &types.Unread{
 		ChannelID:     channelID,
 		UserID:        userID,
-		ReplyTo:       replyTo,
-		LastMessageID: lastMessageID,
+		ReplyTo:       threadID,
+		LastMessageID: lastReadMessageID,
 		Count:         count,
 	}
 
 	return r.db().Replace("unreads", mod)
 }
 
-// Increments unread (new) message count on a channel for all but one user
-func (r *unread) Inc(channelID, replyTo, userID uint64) error {
-	_, err := r.db().Exec(sqlUnreadIncCount, channelID, replyTo, userID)
+// Increments unread message count on a channel/thread for all but one user
+func (r *unread) Inc(channelID, threadID, userID uint64) error {
+	_, err := r.db().Exec(sqlUnreadIncCount, channelID, threadID, userID)
 	return err
 }
 
-// Increments unread (new) message count on a channel for all but one user
-func (r *unread) Dec(channelID, replyTo, userID uint64) error {
-	_, err := r.db().Exec(sqlUnreadDecCount, channelID, replyTo, userID)
+// Decrements unread message count on a channel/thread for all but one user
+func (r *unread) Dec(channelID, threadID, userID uint64) error {
+	_, err := r.db().Exec(sqlUnreadDecCount, channelID, threadID, userID)
 	return err
 }

@@ -246,6 +246,22 @@ The following event types may be sent with a message event:
 | lastMessageID | uint64 | GET |  | N/A | NO |
 | channelID | uint64 | PATH | Channel ID | N/A | YES |
 
+## Manages read/unread messages in a channel or a thread
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channels/{channelID}/messages/mark-as-read` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
+| threadID | uint64 | POST | ID of thread (messageID)  | N/A | NO |
+| lastReadMessageID | uint64 | POST | ID of the last read message | N/A | NO |
+
 ## Edit existing message
 
 #### Method
@@ -307,21 +323,6 @@ The following event types may be sent with a message event:
 | messageID | uint64 | PATH | Message ID | N/A | YES |
 | channelID | uint64 | PATH | Channel ID | N/A | YES |
 | message | string | POST | Message contents (markdown) | N/A | YES |
-
-## Mark message in channel (or thread) as unread
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/channels/{channelID}/messages/{messageID}/unread` | HTTP/S | POST | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| messageID | uint64 | PATH | Message ID | N/A | YES |
-| channelID | uint64 | PATH | Channel ID | N/A | YES |
 
 ## Pin message to channel (public bookmark)
 
