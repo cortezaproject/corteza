@@ -326,10 +326,6 @@ func (svc *message) MarkAsUnread(messageID uint64) (count uint32, err error) {
 			return
 		}
 
-		// Inc counter so that we take
-		// this message into account
-		count++
-
 		if message.ReplyTo > 0 {
 			return svc.unreads.Record(currentUserID, message.ChannelID, message.ReplyTo, messageID, count)
 		} else {
