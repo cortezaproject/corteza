@@ -198,14 +198,18 @@ func (r *message) FindThreads(filter *types.MessageFilter) (types.MessageSet, er
 	return rval, r.db().Select(&rval, sql, params...)
 }
 
-func (r *message) CountFromMessageID(channelID, threadID, messageID uint64) (uint32, error) {
+func (r *message) CountFromMessageID(channelID, threadID, lastReadMessageID uint64) (uint32, error) {
+	if lastReadMessageID == 0 {
+		// No need for counting, zero unread messages...
+		return 0, nil
+	}
 	rval := struct{ Count uint32 }{}
 	return rval.Count, r.db().Get(&rval,
 		sqlCountFromMessageID,
 		channelID,
 		threadID,
 		types.MessageTypeChannelEvent,
-		messageID,
+		lastReadMessageID,
 	)
 }
 

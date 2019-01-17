@@ -740,6 +740,8 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 	})
 }
 
+// RecordView
+// @deprecated
 func (svc *channel) RecordView(userID, channelID, lastMessageID uint64) error {
 	return svc.db.Transaction(func() (err error) {
 		return svc.unread.Record(userID, channelID, 0, lastMessageID, 0)

@@ -122,3 +122,7 @@ func (mtype MessageType) Value() (driver.Value, error) {
 
 	return mtype.String(), nil
 }
+
+func (m *Message) IsValid() bool {
+	return m.DeletedAt == nil
+}

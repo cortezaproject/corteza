@@ -37,8 +37,11 @@ func (s *Session) dispatch(raw []byte) error {
 		return s.channelCreate(ctx, p.ChannelCreate)
 	case p.ChannelUpdate != nil:
 		return s.channelUpdate(ctx, p.ChannelUpdate)
+
+	// @deprecated
 	case p.ChannelViewRecord != nil:
 		return s.channelViewRecord(ctx, p.ChannelViewRecord)
+
 	case p.ChannelActivity != nil:
 		return s.channelActivity(ctx, p.ChannelActivity)
 	case p.MessageActivity != nil:

@@ -11,6 +11,7 @@ type (
 		ChannelID string `json:"id"`
 	}
 
+	// @deprecated
 	ChannelViewRecord struct {
 		ChannelID     uint64 `json:"channelID,string,omitempty"`
 		LastMessageID uint64 `json:"lastMessageID,string,omitempty"`

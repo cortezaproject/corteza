@@ -53,6 +53,29 @@
       }
     },
     {
+      "Name": "markAsRead",
+      "Method": "GET",
+      "Title": "Manages read/unread messages in a channel or a thread",
+      "Path": "/mark-as-read",
+      "Parameters": {
+        "path": [],
+        "post": [
+          {
+            "name": "threadID",
+            "required": false,
+            "title": "ID of thread (messageID) ",
+            "type": "uint64"
+          },
+          {
+            "name": "lastReadMessageID",
+            "required": false,
+            "title": "ID of the last read message",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
       "Name": "edit",
       "Method": "PUT",
       "Title": "Edit existing message",
@@ -128,22 +151,6 @@
             "required": true,
             "title": "Message contents (markdown)",
             "type": "string"
-          }
-        ]
-      }
-    },
-    {
-      "Name": "markAsUnread",
-      "Method": "POST",
-      "Title": "Mark message in channel (or thread) as unread",
-      "Path": "/{messageID}/unread",
-      "Parameters": {
-        "path": [
-          {
-            "name": "messageID",
-            "required": true,
-            "title": "Message ID",
-            "type": "uint64"
           }
         ]
       }

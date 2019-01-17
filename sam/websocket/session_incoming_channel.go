@@ -102,6 +102,7 @@ func (s *Session) channelUpdate(ctx context.Context, p *incoming.ChannelUpdate) 
 	return err
 }
 
+// @deprecated
 func (s *Session) channelViewRecord(ctx context.Context, p *incoming.ChannelViewRecord) error {
 	var userID = auth.GetIdentityFromContext(ctx).Identity()
 
