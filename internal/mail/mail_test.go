@@ -64,7 +64,7 @@ func TestMailSendWithDefaultDialer(t *testing.T) {
 	defaultDialerError = nil
 	defaultDialer = dDialer
 
-	test.ErrNil(t, Send(msg), "Send() returned an error: %v")
+	test.NoError(t, Send(msg), "Send() returned an error: %v")
 	defaultDialer = nil
 }
 
@@ -82,7 +82,7 @@ func TestMailSendWithSpecificDialer(t *testing.T) {
 	dDialer.EXPECT().DialAndSend(msg).Times(0)
 
 	defaultDialer = dDialer
-	test.ErrNil(t, Send(msg, sDailer), "Send() returned an error: %v")
+	test.NoError(t, Send(msg, sDailer), "Send() returned an error: %v")
 	defaultDialer = nil
 }
 

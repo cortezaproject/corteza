@@ -28,6 +28,6 @@ func TestRecordReportBuilder2(t *testing.T) {
 		"ORDER BY dimension_0"
 
 	sql, _, err := builder.Build("max(single1)", "QUARTER(ref1)", "ref1 = 2")
-	test.ErrNil(t, err, "report builder returned an error: %v")
+	test.NoError(t, err, "report builder returned an error: %v")
 	test.Assert(t, expected == sql, "did not get expected sql for report, got: %s", sql)
 }

@@ -229,7 +229,7 @@ func TestValueSanitizer(t *testing.T) {
 	)
 
 	rvs = types.RecordValueSet{{Name: "single1", Value: "single"}}
-	test.ErrNil(t, svc.sanitizeValues(module, rvs), "unexpected error for sanitizeValues() call: %v")
+	test.NoError(t, svc.sanitizeValues(module, rvs), "unexpected error for sanitizeValues() call: %v")
 	test.Assert(t, len(rvs) == 1, "expecting 1 record value after sanitization, got %d", len(rvs))
 
 	rvs = types.RecordValueSet{{Name: "unknown", Value: "single"}}
@@ -239,7 +239,7 @@ func TestValueSanitizer(t *testing.T) {
 	test.Assert(t, svc.sanitizeValues(module, rvs) != nil, "expecting sanitizeValues() to return an error, got nil")
 
 	rvs = types.RecordValueSet{{Name: "multi1", Value: "multi1"}, {Name: "multi1", Value: "multi1"}}
-	test.ErrNil(t, svc.sanitizeValues(module, rvs), "unexpected error for sanitizeValues() call: %v")
+	test.NoError(t, svc.sanitizeValues(module, rvs), "unexpected error for sanitizeValues() call: %v")
 	test.Assert(t, len(rvs) == 2, "expecting 2 record values after sanitization, got %d", len(rvs))
 	test.Assert(t, rvs[0].Place == 0, "expecting first value to have place value 0, got %d", rvs[0].Place)
 	test.Assert(t, rvs[1].Place == 1, "expecting second value to have place value 1, got %d", rvs[1].Place)
@@ -248,12 +248,12 @@ func TestValueSanitizer(t *testing.T) {
 	test.Assert(t, svc.sanitizeValues(module, rvs) != nil, "expecting sanitizeValues() to return an error, got nil")
 
 	rvs = types.RecordValueSet{{Name: "ref1", Value: "12345"}}
-	test.ErrNil(t, svc.sanitizeValues(module, rvs), "unexpected error for sanitizeValues() call: %v")
+	test.NoError(t, svc.sanitizeValues(module, rvs), "unexpected error for sanitizeValues() call: %v")
 	test.Assert(t, len(rvs) == 1, "expecting 1 record values after sanitization, got %d", len(rvs))
 	test.Assert(t, rvs[0].Ref == 12345, "expecting parsed ref value to match, got %d", rvs[0].Ref)
 
 	rvs = types.RecordValueSet{{Name: "multiRef1", Value: "12345"}, {Name: "multiRef1", Value: "67890"}}
-	test.ErrNil(t, svc.sanitizeValues(module, rvs), "unexpected error for sanitizeValues() call: %v")
+	test.NoError(t, svc.sanitizeValues(module, rvs), "unexpected error for sanitizeValues() call: %v")
 	test.Assert(t, len(rvs) == 2, "expecting 2 record values after sanitization, got %d", len(rvs))
 	test.Assert(t, rvs[0].Ref == 12345, "expecting parsed ref value to match, got %d", rvs[0].Ref)
 	test.Assert(t, rvs[1].Ref == 67890, "expecting parsed ref value to match, got %d", rvs[1].Ref)
