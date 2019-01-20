@@ -102,7 +102,7 @@ func (s *notification) expandUserRefs(usrLookup notificationUserService, recipie
 		// First, get userID off the table
 		if userID, _ := strconv.ParseUint(rcpt, 10, 64); userID > 0 {
 			if user, err := usrLookup.FindByID(userID); err != nil {
-				return nil, errors.Wrapf(err, "invalid recipient %s", userID)
+				return nil, errors.Wrapf(err, "invalid recipient %v", userID)
 			} else {
 				recipients[r] = user.Email + " " + user.Name
 			}
