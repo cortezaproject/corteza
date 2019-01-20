@@ -11,6 +11,8 @@ import (
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/rules"
 	"github.com/crusttech/crust/system/types"
+
+	. "github.com/crusttech/crust/internal/test"
 )
 
 func TestRules(t *testing.T) {
@@ -18,7 +20,8 @@ func TestRules(t *testing.T) {
 	ctx := auth.SetIdentityToContext(context.Background(), user)
 
 	db := factory.Database.MustGet()
-	mustFail(t, db.Transaction(func() error {
+
+	Error(t, db.Transaction(func() error {
 		db.Insert("sys_user", user)
 		var i uint64 = 0
 		for i < 5 {
@@ -32,33 +35,33 @@ func TestRules(t *testing.T) {
 
 		// default (unset=deny)
 		{
-			mustFail(t, resources.CheckAccess("channel:1", "edit"))
-			mustFail(t, resources.CheckAccessMulti("channel:*", "edit"))
+			Error(t, resources.CheckAccess("channel:1", "edit"), "expected error, got nil")
+			Error(t, resources.CheckAccessMulti("channel:*", "edit"), "expected error, got nil")
 		}
 
 		// allow channel:2 group:2 (default deny, multi=allow)
 		{
 			resources.Grant("channel:2", 2, []string{"edit", "delete"}, rules.Allow)
-			mustFail(t, resources.CheckAccess("channel:1", "edit"))
-			must(t, resources.CheckAccess("channel:2", "edit"))
-			must(t, resources.CheckAccessMulti("channel:*", "edit"))
+			Error(t, resources.CheckAccess("channel:1", "edit"), "expected error, got nil")
+			NoError(t, resources.CheckAccess("channel:2", "edit"), "channel:2 edit, expected no error")
+			NoError(t, resources.CheckAccessMulti("channel:*", "edit"), "channel:* edit, expected no error")
 		}
 
 		// deny channel:1 group:1 (explicit deny, multi=deny)
 		{
 			resources.Grant("channel:1", 1, []string{"edit"}, rules.Deny)
-			mustFail(t, resources.CheckAccess("channel:1", "edit"))
-			must(t, resources.CheckAccess("channel:2", "edit"))
-			mustFail(t, resources.CheckAccessMulti("channel:*", "edit"))
+			Error(t, resources.CheckAccess("channel:1", "edit"), "expected error, got nil")
+			NoError(t, resources.CheckAccess("channel:2", "edit"), "channel:2 edit, expected no error")
+			Error(t, resources.CheckAccessMulti("channel:*", "edit"), "expected error, got nil")
 		}
 
 		// reset (unset=deny)
 		{
 			resources.Grant("channel:2", 2, []string{"edit", "delete"}, rules.Inherit)
 			resources.Grant("channel:1", 1, []string{"edit", "delete"}, rules.Inherit)
-			mustFail(t, resources.CheckAccess("channel:1", "edit"))
-			mustFail(t, resources.CheckAccessMulti("channel:*", "edit"))
+			Error(t, resources.CheckAccess("channel:1", "edit"), "expected error, got nil")
+			Error(t, resources.CheckAccessMulti("channel:*", "edit"), "expected error, got nil")
 		}
 		return errors.New("Rollback")
-	}))
+	}), "Expected rollback error, got nil")
 }
