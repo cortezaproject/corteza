@@ -25,7 +25,7 @@ func TestUserRefExpanding(t *testing.T) {
 
 	input := []string{"sample@domain.tld", "sample@domain.tld Name", "72932592256548967"}
 	rcpts, err := ntf.expandUserRefs(usrSvc, input)
-	test.ErrNil(t, err, "expandUserRefs returned an error: %v")
+	test.NoError(t, err, "expandUserRefs returned an error: %v")
 	test.Assert(t, len(rcpts) == len(input), "Expecting %d headers, got %d", len(input), len(rcpts))
 	test.Assert(t, rcpts[2] == usr.Email+" "+usr.Name, "Expecting %d headers, got %d", len(input), len(rcpts))
 }
@@ -46,7 +46,7 @@ func TestAttachEmailRecipients(t *testing.T) {
 	err := ntf.AttachEmailRecipients(msg, "To", input...)
 	to := msg.GetHeader("To")
 
-	test.ErrNil(t, err, "AttachEmailRecipients returned an error: %v")
+	test.NoError(t, err, "AttachEmailRecipients returned an error: %v")
 
 	test.Assert(t, len(input) == len(to), "Expecting %d headers, got %d", len(input), len(to))
 
