@@ -43,22 +43,3 @@ func TestMain(m *testing.M) {
 
 	os.Exit(m.Run())
 }
-
-func assert(t *testing.T, ok bool, format string, args ...interface{}) bool {
-	if !ok {
-		t.Fatalf(format, args...)
-	}
-	return ok
-}
-
-func must(t *testing.T, err error, message ...string) {
-	if len(message) > 0 {
-		assert(t, err == nil, message[0]+": %+v", err)
-		return
-	}
-	assert(t, err == nil, "Error: %+v", err)
-}
-
-func mustFail(t *testing.T, err error) {
-	assert(t, err != nil, "Expected error, got nil")
-}

@@ -25,3 +25,7 @@ func NoError(t *testing.T, err error, format string, args ...interface{}) bool {
 	}
 	return true
 }
+
+func Error(t *testing.T, err error, message string) {
+	Assert(t, err != nil, message)
+}
