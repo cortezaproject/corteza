@@ -17,7 +17,7 @@ func TestUserRefExpanding(t *testing.T) {
 	ntf := &notification{}
 
 	// msg := &gomail.Message{}
-	usr := &types.User{ID: 72932592256548967, Email: "user@mock.ed", Name: "Mocked User"}
+	usr := &types.User{ID: 72932592256548967, Email: "user@mock.ed", Name: "Mocked Owner"}
 
 	usrSvc := NewMocknotificationUserService(mockCtrl)
 	usrSvc.EXPECT().FindByID(usr.ID).Times(1).Return(usr, nil)

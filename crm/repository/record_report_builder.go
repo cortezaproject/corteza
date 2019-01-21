@@ -105,7 +105,7 @@ func (b *recordReportBuilder) Build(metrics, dimensions, filters string) (sql st
 			), i.Value)
 		}
 
-		// @todo switch value for ref when doing Record/User lookup
+		// @todo switch value for ref when doing Record/Owner lookup
 		i.Value = fmt.Sprintf("rv_%s.value", i.Value)
 
 		return i, nil

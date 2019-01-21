@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lann/builder"
@@ -27,10 +26,11 @@ type (
 
 		Create(record *types.Record) (*types.Record, error)
 		Update(record *types.Record) (*types.Record, error)
-		DeleteByID(id uint64) error
+		Delete(record *types.Record) error
 
-		UpdateValues(recordID uint64, rvs types.RecordValueSet) (err error)
 		LoadValues(IDs ...uint64) (rvs types.RecordValueSet, err error)
+		DeleteValues(record *types.Record) error
+		UpdateValues(recordID uint64, rvs types.RecordValueSet) (err error)
 	}
 
 	FindResponseMeta struct {
@@ -215,7 +215,7 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 				), i.Value)
 			}
 
-			// @todo switch value for ref when doing Record/User lookup
+			// @todo switch value for ref when doing Record/Owner lookup
 			i.Value = fmt.Sprintf("rv_%s.value", i.Value)
 
 			return i, nil
@@ -258,7 +258,7 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 				), i.Value)
 			}
 
-			// @todo switch value for ref when doing Record/User lookup
+			// @todo switch value for ref when doing Record/Owner lookup
 			i.Value = fmt.Sprintf("rv_%s.value ", i.Value)
 
 			return i, nil
@@ -266,6 +266,7 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 
 		if sc, err = sp.ParseColumns(sort); err != nil {
 			return
+
 		}
 
 		query = query.OrderBy(sc.Strings()...)
@@ -276,8 +277,6 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 
 func (r *record) Create(record *types.Record) (*types.Record, error) {
 	record.ID = factory.Sonyflake.NextID()
-	record.CreatedAt = time.Now()
-	record.UserID = Identity(r.Context())
 
 	if err := r.db().Replace("crm_record", record); err != nil {
 		return nil, errors.Wrap(err, "could not update record")
@@ -287,9 +286,6 @@ func (r *record) Create(record *types.Record) (*types.Record, error) {
 }
 
 func (r *record) Update(record *types.Record) (*types.Record, error) {
-	now := time.Now()
-	record.UpdatedAt = &now
-
 	if err := r.db().Replace("crm_record", record); err != nil {
 		return nil, errors.Wrap(err, "could not update record")
 	}
@@ -297,8 +293,23 @@ func (r *record) Update(record *types.Record) (*types.Record, error) {
 	return record, nil
 }
 
-func (r *record) DeleteByID(id uint64) error {
-	_, err := r.db().Exec("update crm_record set deleted_at=? where id=?", time.Now(), id)
+func (r *record) Delete(record *types.Record) error {
+	_, err := r.db().Exec(
+		"UPDATE crm_record SET deleted_at = ?, deleted_by = ? WHERE id = ?",
+		record.DeletedAt,
+		record.DeletedBy,
+		record.ID,
+	)
+
+	return err
+}
+
+func (r *record) DeleteValues(record *types.Record) error {
+	_, err := r.db().Exec(
+		"UPDATE crm_record_value SET deleted_at = ? WHERE record_id = ?",
+		record.DeletedAt,
+		record.ID)
+
 	return err
 }
 

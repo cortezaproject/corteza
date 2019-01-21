@@ -25,7 +25,7 @@ func TestTeam(t *testing.T) {
 
 	{
 		u1, err := userRepo.Create(user)
-		assert(t, err == nil, "User.Create error: %+v", err)
+		assert(t, err == nil, "Owner.Create error: %+v", err)
 		assert(t, user.ID == u1.ID, "Changes were not stored")
 	}
 
@@ -98,6 +98,6 @@ func TestTeam(t *testing.T) {
 
 	{
 		err := userRepo.DeleteByID(user.ID)
-		assert(t, err == nil, "User.DeleteByID error: %+v", err)
+		assert(t, err == nil, "Owner.DeleteByID error: %+v", err)
 	}
 }

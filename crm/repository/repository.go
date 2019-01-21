@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/titpetric/factory"
-
-	"github.com/crusttech/crust/internal/auth"
 )
 
 type (
@@ -18,10 +16,6 @@ type (
 // DB produces a contextual DB handle
 func DB(ctx context.Context) *factory.DB {
 	return factory.Database.MustGet().With(ctx)
-}
-
-func Identity(ctx context.Context) uint64 {
-	return auth.GetIdentityFromContext(ctx).Identity()
 }
 
 func (r *repository) With(ctx context.Context, db *factory.DB) *repository {

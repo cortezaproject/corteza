@@ -4,7 +4,7 @@ package config
 // type (
 // 	// AuthSettings holds configuration settings for auth service
 // 	AuthSettings struct {
-// 		User struct {
+// 		Owner struct {
 // 			Handle struct {
 // 				// How long can a user's handle be
 // 				MaxLength uint `json:"maxLength,omitempty"`
@@ -17,8 +17,8 @@ package config
 // )
 //
 // func DefaultAuthSettings() (s AuthSettings) {
-// 	s.User.Handle.MaxLength = 20
-// 	s.User.Handle.Enabled = true
+// 	s.Owner.Handle.MaxLength = 20
+// 	s.Owner.Handle.Enabled = true
 //
 // 	return s
 // }

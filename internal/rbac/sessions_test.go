@@ -49,7 +49,7 @@ func TestSessions(t *testing.T) {
 
 	// check user has permissions from role
 	{
-		must(t, resources.CheckAccess("test-resource", "view", "test-session"), "User has permission, but CheckAccess reports error")
+		must(t, resources.CheckAccess("test-resource", "view", "test-session"), "Owner has permission, but CheckAccess reports error")
 		mustFail(t, resources.CheckAccess("test-resource", "delete", "test-session"))
 	}
 

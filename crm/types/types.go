@@ -1,14 +1,11 @@
 package types
 
 import (
-	"time"
-
 	"database/sql/driver"
 	"encoding/json"
+	"time"
 
 	"github.com/jmoiron/sqlx/types"
-
-	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 type (
@@ -17,16 +14,15 @@ type (
 		ID       uint64 `json:"recordID,string" db:"id"`
 		ModuleID uint64 `json:"moduleID,string" db:"module_id"`
 
-		User   *systemTypes.User `json:"user,omitempty" db:"-"`
-		UserID uint64            `json:"userID,string" db:"user_id"`
-
-		Page *Page `json:"page,omitempty"`
-
 		Values RecordValueSet `json:"values,omitempty" db:"-"`
 
+		OwnedBy   uint64     `db:"owned_by"   json:"ownedBy,string"`
 		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`
+		CreatedBy uint64     `db:"created_by" json:"createdBy,string" `
+		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty,omitempty"`
+		UpdatedBy uint64     `db:"updated_by" json:"updatedBy,string,omitempty" `
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
+		DeletedBy uint64     `db:"deleted_by" json:"deletedBy,string,omitempty" `
 	}
 
 	// RecordValue is a stored row in the `record_value` table
@@ -154,7 +150,7 @@ func (set ModuleFieldSet) FilterByModule(moduleID uint64) (ff ModuleFieldSet) {
 
 // IsRef tells us if value of this field be a reference to something (another record, user)?
 func (f ModuleField) IsRef() bool {
-	return f.Kind == "Record" || f.Kind == "User"
+	return f.Kind == "Record" || f.Kind == "Owner"
 }
 
 // UserIDs returns a slice of user IDs from all items in the set
@@ -166,12 +162,12 @@ func (set RecordSet) UserIDs() (IDs []uint64) {
 loop:
 	for i := range set {
 		for _, id := range IDs {
-			if id == set[i].UserID {
+			if id == set[i].OwnedBy {
 				continue loop
 			}
 		}
 
-		IDs = append(IDs, set[i].UserID)
+		IDs = append(IDs, set[i].OwnedBy)
 	}
 
 	return
