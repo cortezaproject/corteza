@@ -75,7 +75,7 @@ func TestMentionsExtraction(t *testing.T) {
 		assert(t, len(mm) == len(c.ids), "Number of extracted (%d) and expected (%d) user IDs do not match (%s)", len(mm), len(c.ids), c.text)
 
 		for _, id := range c.ids {
-			assert(t, len(mm.FindByUserID(id)) == 1, "User ID (%d) was not extracted (%s)", id, c.text)
+			assert(t, len(mm.FindByUserID(id)) == 1, "Owner ID (%d) was not extracted (%s)", id, c.text)
 		}
 	}
 }

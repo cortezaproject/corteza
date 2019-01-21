@@ -135,7 +135,7 @@ func (svc *auth) Social(profile goth.User) (u *types.User, err error) {
 				c.ID,
 			)
 
-			// User created
+			// Owner created
 			return nil
 		} else if err != nil {
 			return err
@@ -153,7 +153,7 @@ func (svc *auth) Social(profile goth.User) (u *types.User, err error) {
 			profile.Provider,
 		)
 
-		// User loaded, carry on.
+		// Owner loaded, carry on.
 		return nil
 	})
 }

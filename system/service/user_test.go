@@ -4,7 +4,7 @@ package service
 // 	mockCtrl := gomock.NewController(t)
 // 	defer mockCtrl.Finish()
 //
-// 	usr := &types.User{ID: factory.Sonyflake.NextID()}
+// 	usr := &types.Owner{ID: factory.Sonyflake.NextID()}
 //
 // 	usrRpoMock := NewMockRepository(mockCtrl)
 // 	usrRpoMock.EXPECT().WithCtx(gomock.Any()).AnyTimes().Return(usrRpoMock)
@@ -13,7 +13,7 @@ package service
 // 		Times(1).
 // 		Return(usr, nil)
 //
-// 	svc := User()
+// 	svc := Owner()
 // 	svc.rpo = usrRpoMock
 //
 // 	found, err := svc.FindByID(context.Background(), usr.ID)

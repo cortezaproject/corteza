@@ -3,12 +3,14 @@ package service
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/crm/repository"
 	"github.com/crusttech/crust/crm/types"
+	"github.com/crusttech/crust/internal/auth"
 
 	systemService "github.com/crusttech/crust/system/service"
 )
@@ -34,6 +36,7 @@ type (
 
 		Create(record *types.Record) (*types.Record, error)
 		Update(record *types.Record) (*types.Record, error)
+
 		DeleteByID(recordID uint64) error
 
 		// Fields(module *types.Module, record *types.Record) ([]*types.RecordValue, error)
@@ -64,10 +67,6 @@ func (svc *record) FindByID(recordID uint64) (r *types.Record, err error) {
 		}
 
 		if err = svc.preloadValues(r); err != nil {
-			return
-		}
-
-		if err = svc.preloadUsers(r); err != nil {
 			return
 		}
 
@@ -108,10 +107,6 @@ func (svc *record) Find(moduleID uint64, filter, sort string, page, perPage int)
 			return
 		}
 
-		if err = svc.preloadUsers(rsp.Records...); err != nil {
-			return
-		}
-
 		return
 	})
 
@@ -131,6 +126,9 @@ func (svc *record) Create(new *types.Record) (record *types.Record, err error) {
 			return
 		}
 
+		new.OwnedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
+		new.CreatedBy = new.OwnedBy
+		new.CreatedAt = time.Now()
 		if record, err = svc.repository.Create(new); err != nil {
 			return
 		}
@@ -140,10 +138,6 @@ func (svc *record) Create(new *types.Record) (record *types.Record, err error) {
 		}
 
 		if err = svc.preloadValues(record); err != nil {
-			return
-		}
-
-		if err = svc.preloadUsers(record); err != nil {
 			return
 		}
 
@@ -165,9 +159,6 @@ func (svc *record) Update(updated *types.Record) (record *types.Record, err erro
 			return errors.Wrap(err, "nonexistent record")
 		}
 
-		updated.CreatedAt = record.CreatedAt
-		updated.UserID = record.UserID
-
 		if module, err = svc.moduleRepo.FindByID(updated.ModuleID); err != nil {
 			return
 		}
@@ -176,15 +167,15 @@ func (svc *record) Update(updated *types.Record) (record *types.Record, err erro
 			return
 		}
 
-		if record, err = svc.repository.Update(updated); err != nil {
+		now := time.Now()
+		record.UpdatedAt = &now
+		record.UpdatedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
+
+		if record, err = svc.repository.Update(record); err != nil {
 			return
 		}
 
 		if err = svc.repository.UpdateValues(record.ID, updated.Values); err != nil {
-			return
-		}
-
-		if err = svc.preloadUsers(record); err != nil {
 			return
 		}
 
@@ -198,8 +189,30 @@ func (svc *record) Update(updated *types.Record) (record *types.Record, err erro
 // 	return s.repository.Fields(module, record)
 // }
 
-func (svc *record) DeleteByID(id uint64) error {
-	return svc.repository.DeleteByID(id)
+func (svc *record) DeleteByID(ID uint64) (err error) {
+	err = svc.db.Transaction(func() (err error) {
+		var record *types.Record
+
+		if record, err = svc.repository.FindByID(ID); err != nil {
+			return errors.Wrap(err, "nonexistent record")
+		}
+
+		now := time.Now()
+		record.DeletedAt = &now
+		record.DeletedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
+
+		if err = svc.repository.Delete(record); err != nil {
+			return
+		}
+
+		if err = svc.repository.DeleteValues(record); err != nil {
+			return
+		}
+
+		return
+	})
+
+	return errors.Wrap(err, "unable to delete record")
 }
 
 // Validates and filters record values
@@ -244,17 +257,6 @@ func (svc *record) preloadValues(rr ...*types.Record) error {
 	} else {
 		return types.RecordSet(rr).Walk(func(r *types.Record) error {
 			r.Values = rvs.FilterByRecordID(r.ID)
-			return nil
-		})
-	}
-}
-
-func (svc *record) preloadUsers(rr ...*types.Record) error {
-	if uu, err := svc.userSvc.FindByIDs(types.RecordSet(rr).UserIDs()...); err != nil {
-		return err
-	} else {
-		return types.RecordSet(rr).Walk(func(r *types.Record) error {
-			r.User = uu.FindByID(r.UserID)
 			return nil
 		})
 	}

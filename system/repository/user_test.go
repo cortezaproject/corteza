@@ -25,7 +25,7 @@ func TestUser(t *testing.T) {
 
 	{
 		uu, err := userRepo.Create(user)
-		assert(t, err == nil, "User.Create error: %+v", err)
+		assert(t, err == nil, "Owner.Create error: %+v", err)
 		assert(t, user.ID == uu.ID, "Changes were not stored")
 	}
 
@@ -45,14 +45,14 @@ func TestUser(t *testing.T) {
 
 	{
 		uu, err := userRepo.FindByID(user.ID)
-		assert(t, err == nil, "User.FindByID error: %+v", err)
+		assert(t, err == nil, "Owner.FindByID error: %+v", err)
 		assert(t, len(uu.Teams) == 1, "Expected 1 team, got %d", len(uu.Teams))
 	}
 
 	{
 		users, err := userRepo.Find(&types.UserFilter{Query: ""})
-		assert(t, err == nil, "User.Find error: %+v", err)
-		assert(t, len(users) == 1, "User.Find: expected 1 user, got %d", len(users))
-		assert(t, len(users[0].Teams) == 1, "User.Find: expected 1 team, got %d", len(users[0].Teams))
+		assert(t, err == nil, "Owner.Find error: %+v", err)
+		assert(t, len(users) == 1, "Owner.Find: expected 1 user, got %d", len(users))
+		assert(t, len(users[0].Teams) == 1, "Owner.Find: expected 1 team, got %d", len(users[0].Teams))
 	}
 }
