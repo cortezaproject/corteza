@@ -11,12 +11,12 @@ import (
 	"github.com/crusttech/crust/system/types"
 )
 
-type Access string
+type Access int
 
 const (
-	Allow   Access = "yes"
-	Deny           = "no"
-	Inherit        = ""
+	Allow   Access = 1
+	Deny           = 0
+	Inherit        = -1
 )
 
 type resources struct {
@@ -104,8 +104,9 @@ func (r *resources) Grant(resource string, teamID uint64, operations []string, v
 	row := types.Rules{
 		TeamID:   teamID,
 		Resource: resource,
-		Value:    string(value),
+		Value:    int(value),
 	}
+
 	var err error
 	for _, operation := range operations {
 		row.Operation = operation
