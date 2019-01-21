@@ -104,9 +104,6 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 	if perPage > 100 {
 		perPage = 100
 	}
-	if perPage < 10 {
-		perPage = 10
-	}
 
 	response := &FindResponse{
 		Meta: FindResponseMeta{
