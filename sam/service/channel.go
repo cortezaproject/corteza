@@ -726,7 +726,7 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 			if userID == memberID {
 				svc.scheduleSystemMessage(ch, "<@%d> parted", memberID)
 			} else {
-				svc.scheduleSystemMessage(ch, "<@%d> kicked <@%d> out", userID, memberID)
+				svc.scheduleSystemMessage(ch, "<@%d> removed from the channel", memberID)
 			}
 
 			if err = svc.cmember.Delete(channelID, memberID); err != nil {
