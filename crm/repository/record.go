@@ -142,7 +142,7 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 	query = query.
 		Column("r.*").
 		Limit(uint64(perPage)).
-		Offset(uint64(page))
+		Offset(uint64(page * perPage))
 
 	// Create actual fetch SQL sentences.
 	sqlSelect, argsSelect, err = query.ToSql()
