@@ -31,6 +31,8 @@ type ChannelAPI interface {
 	Create(context.Context, *request.ChannelCreate) (interface{}, error)
 	Update(context.Context, *request.ChannelUpdate) (interface{}, error)
 	State(context.Context, *request.ChannelState) (interface{}, error)
+	SetFlag(context.Context, *request.ChannelSetFlag) (interface{}, error)
+	RemoveFlag(context.Context, *request.ChannelRemoveFlag) (interface{}, error)
 	Read(context.Context, *request.ChannelRead) (interface{}, error)
 	Members(context.Context, *request.ChannelMembers) (interface{}, error)
 	Join(context.Context, *request.ChannelJoin) (interface{}, error)
@@ -41,16 +43,18 @@ type ChannelAPI interface {
 
 // HTTP API interface
 type Channel struct {
-	List    func(http.ResponseWriter, *http.Request)
-	Create  func(http.ResponseWriter, *http.Request)
-	Update  func(http.ResponseWriter, *http.Request)
-	State   func(http.ResponseWriter, *http.Request)
-	Read    func(http.ResponseWriter, *http.Request)
-	Members func(http.ResponseWriter, *http.Request)
-	Join    func(http.ResponseWriter, *http.Request)
-	Part    func(http.ResponseWriter, *http.Request)
-	Invite  func(http.ResponseWriter, *http.Request)
-	Attach  func(http.ResponseWriter, *http.Request)
+	List       func(http.ResponseWriter, *http.Request)
+	Create     func(http.ResponseWriter, *http.Request)
+	Update     func(http.ResponseWriter, *http.Request)
+	State      func(http.ResponseWriter, *http.Request)
+	SetFlag    func(http.ResponseWriter, *http.Request)
+	RemoveFlag func(http.ResponseWriter, *http.Request)
+	Read       func(http.ResponseWriter, *http.Request)
+	Members    func(http.ResponseWriter, *http.Request)
+	Join       func(http.ResponseWriter, *http.Request)
+	Part       func(http.ResponseWriter, *http.Request)
+	Invite     func(http.ResponseWriter, *http.Request)
+	Attach     func(http.ResponseWriter, *http.Request)
 }
 
 func NewChannel(ch ChannelAPI) *Channel {
@@ -81,6 +85,20 @@ func NewChannel(ch ChannelAPI) *Channel {
 			params := request.NewChannelState()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ch.State(r.Context(), params)
+			})
+		},
+		SetFlag: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewChannelSetFlag()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return ch.SetFlag(r.Context(), params)
+			})
+		},
+		RemoveFlag: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewChannelRemoveFlag()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return ch.RemoveFlag(r.Context(), params)
 			})
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
@@ -136,6 +154,8 @@ func (ch *Channel) MountRoutes(r chi.Router, middlewares ...func(http.Handler) h
 			r.Post("/", ch.Create)
 			r.Put("/{channelID}", ch.Update)
 			r.Put("/{channelID}/state", ch.State)
+			r.Put("/{channelID}/flag", ch.SetFlag)
+			r.Delete("/{channelID}/flag", ch.RemoveFlag)
 			r.Get("/{channelID}", ch.Read)
 			r.Get("/{channelID}/members", ch.Members)
 			r.Put("/{channelID}/members/{userID}", ch.Join)

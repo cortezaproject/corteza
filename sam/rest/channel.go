@@ -67,6 +67,19 @@ func (ctrl *Channel) State(ctx context.Context, r *request.ChannelState) (interf
 	return nil, nil
 }
 
+func (ctrl *Channel) SetFlag(ctx context.Context, r *request.ChannelSetFlag) (interface{}, error) {
+	switch r.Flag {
+	case "pinned", "hidden", "ignored":
+		return ctrl.wrap(ctrl.svc.ch.With(ctx).SetFlag(r.ChannelID, types.ChannelMembershipFlag(r.Flag)))
+	}
+
+	return nil, nil
+}
+
+func (ctrl *Channel) RemoveFlag(ctx context.Context, r *request.ChannelRemoveFlag) (interface{}, error) {
+	return ctrl.wrap(ctrl.svc.ch.With(ctx).SetFlag(r.ChannelID, types.ChannelMembershipFlagNone))
+}
+
 func (ctrl *Channel) Read(ctx context.Context, r *request.ChannelRead) (interface{}, error) {
 	return ctrl.wrap(ctrl.svc.ch.With(ctx).FindByID(r.ChannelID))
 }

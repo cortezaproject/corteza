@@ -44,6 +44,8 @@ type (
 		AddMember(channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error)
 		DeleteMember(channelID uint64, memberIDs ...uint64) (err error)
 
+		SetFlag(ID uint64, flag types.ChannelMembershipFlag) (*types.Channel, error)
+
 		Archive(ID uint64) (*types.Channel, error)
 		Unarchive(ID uint64) (*types.Channel, error)
 		Delete(ID uint64) (*types.Channel, error)
@@ -480,6 +482,35 @@ func (svc *channel) Undelete(ID uint64) (ch *types.Channel, err error) {
 	})
 }
 
+func (svc *channel) SetFlag(ID uint64, flag types.ChannelMembershipFlag) (ch *types.Channel, err error) {
+	return ch, svc.db.Transaction(func() (err error) {
+		var membership *types.ChannelMember
+		var userID = repository.Identity(svc.ctx)
+
+		if ch, err = svc.FindByID(ID); err != nil {
+			return
+		}
+
+		if members, err := svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: ch.ID, MemberID: userID}); err != nil {
+			return err
+		} else if len(members) == 1 {
+			membership = members[0]
+			membership.Flag = flag
+		}
+
+		if membership == nil {
+			return errors.New("not a member")
+		}
+
+		if ch.Member, err = svc.cmember.Update(membership); err != nil {
+			return
+		}
+
+		svc.flushSystemMessages()
+		return svc.sendChannelEvent(ch)
+	})
+}
+
 func (svc *channel) Archive(ID uint64) (ch *types.Channel, err error) {
 	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
@@ -809,7 +840,7 @@ func (svc *channel) setPermissionFlags(ch *types.Channel) (err error) {
 	)
 
 	ch.CanJoin = (ch.IsValid() && isPublic) || isOwner
-	ch.CanPart = isMember
+	ch.CanPart = isMember && ch.Type != types.ChannelTypeGroup
 	ch.CanObserve = (ch.IsValid() && isPublic) || isMember
 	ch.CanSendMessages = ch.CanObserve && isMember
 	ch.CanDeleteMessages = isOwner
