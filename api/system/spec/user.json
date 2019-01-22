@@ -29,6 +29,18 @@
             "required": false,
             "title": "Search query to match against users",
             "type": "string"
+          },
+          {
+            "name": "username",
+            "required": false,
+            "title": "Search username to match against users",
+            "type": "string"
+          },
+          {
+            "name": "email",
+            "required": false,
+            "title": "Search email to match against users",
+            "type": "string"
           }
         ]
       }
