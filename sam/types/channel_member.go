@@ -14,6 +14,7 @@ type (
 		User   *systemTypes.User `db:"-"`
 
 		Type ChannelMembershipType `db:"type"`
+		Flag ChannelMembershipFlag `db:"flag"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty" db:"created_at"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty" db:"updated_at"`
@@ -26,10 +27,16 @@ type (
 	}
 
 	ChannelMembershipType string
+	ChannelMembershipFlag string
 )
 
 const (
 	ChannelMembershipTypeOwner   ChannelMembershipType = "owner"
-	ChannelMembershipTypeMember                        = "member"
-	ChannelMembershipTypeInvitee                       = "invitee"
+	ChannelMembershipTypeMember  ChannelMembershipType = "member"
+	ChannelMembershipTypeInvitee ChannelMembershipType = "invitee"
+
+	ChannelMembershipFlagPinned  ChannelMembershipFlag = "pinned"
+	ChannelMembershipFlagHidden  ChannelMembershipFlag = "hidden"
+	ChannelMembershipFlagIgnored ChannelMembershipFlag = "ignored"
+	ChannelMembershipFlagNone    ChannelMembershipFlag = ""
 )

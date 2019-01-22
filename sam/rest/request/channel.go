@@ -243,6 +243,97 @@ func (c *ChannelState) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewChannelState()
 
+// Channel setFlag request parameters
+type ChannelSetFlag struct {
+	ChannelID uint64 `json:",string"`
+	Flag      string
+}
+
+func NewChannelSetFlag() *ChannelSetFlag {
+	return &ChannelSetFlag{}
+}
+
+func (c *ChannelSetFlag) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(c)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	if val, ok := post["flag"]; ok {
+
+		c.Flag = val
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewChannelSetFlag()
+
+// Channel removeFlag request parameters
+type ChannelRemoveFlag struct {
+	ChannelID uint64 `json:",string"`
+}
+
+func NewChannelRemoveFlag() *ChannelRemoveFlag {
+	return &ChannelRemoveFlag{}
+}
+
+func (c *ChannelRemoveFlag) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(c)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+
+	return err
+}
+
+var _ RequestFiller = NewChannelRemoveFlag()
+
 // Channel read request parameters
 type ChannelRead struct {
 	ChannelID uint64 `json:",string"`

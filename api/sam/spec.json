@@ -127,6 +127,46 @@
         }
       },
       {
+        "name": "setFlag",
+        "method": "PUT",
+        "path": "/{channelID}/flag",
+        "title": "Update channel membership flag",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "channelID",
+              "required": true,
+              "title": "Channel ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "string",
+              "name": "flag",
+              "required": true,
+              "title": "Valid values: pinned, hidden, ignored"
+            }
+          ]
+        }
+      },
+      {
+        "name": "removeFlag",
+        "method": "DELETE",
+        "path": "/{channelID}/flag",
+        "title": "Remove channel membership flag",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "channelID",
+              "required": true,
+              "title": "Channel ID"
+            }
+          ]
+        }
+      },
+      {
         "name": "read",
         "method": "GET",
         "path": "/{channelID}",

@@ -93,7 +93,7 @@ func (r *channelMember) Create(mod *types.ChannelMember) (*types.ChannelMember, 
 func (r *channelMember) Update(mod *types.ChannelMember) (*types.ChannelMember, error) {
 	mod.UpdatedAt = timeNowPtr()
 
-	whitelist := []string{"type", "updated_at", "rel_channel", "rel_user"}
+	whitelist := []string{"type", "flag", "updated_at", "rel_channel", "rel_user"}
 
 	return mod, r.db().UpdatePartial("channel_members", mod, whitelist, "rel_channel", "rel_user")
 }

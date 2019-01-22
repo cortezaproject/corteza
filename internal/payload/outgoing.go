@@ -121,14 +121,21 @@ func MessagePinRemoved(f *samTypes.MessageFlag) *outgoing.MessagePinRemoved {
 }
 
 func Channel(ch *samTypes.Channel) *outgoing.Channel {
+	var flag = samTypes.ChannelMembershipFlagNone
+
+	if ch.Member != nil {
+		flag = ch.Member.Flag
+	}
+
 	return &outgoing.Channel{
-		ID:            Uint64toa(ch.ID),
-		Name:          ch.Name,
-		LastMessageID: Uint64toa(ch.LastMessageID),
-		Topic:         ch.Topic,
-		Type:          string(ch.Type),
-		Members:       Uint64stoa(ch.Members),
-		Unread:        Unread(ch.Unread),
+		ID:             Uint64toa(ch.ID),
+		Name:           ch.Name,
+		LastMessageID:  Uint64toa(ch.LastMessageID),
+		Topic:          ch.Topic,
+		Type:           string(ch.Type),
+		MembershipFlag: string(flag),
+		Members:        Uint64stoa(ch.Members),
+		Unread:         Unread(ch.Unread),
 
 		CanJoin:           ch.CanJoin,
 		CanPart:           ch.CanPart,

@@ -102,6 +102,35 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | channelID | uint64 | PATH | Channel ID | N/A | YES |
 | state | string | POST | Valid values: delete, undelete, archive, unarchive | N/A | YES |
 
+## Update channel membership flag
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channels/{channelID}/flag` | HTTP/S | PUT | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
+| flag | string | POST | Valid values: pinned, hidden, ignored | N/A | YES |
+
+## Remove channel membership flag
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channels/{channelID}/flag` | HTTP/S | DELETE | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
+
 ## Read channel details
 
 #### Method

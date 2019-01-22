@@ -31,13 +31,14 @@ type (
 
 	Channel struct {
 		// Channel to part (nil) for ALL channels
-		ID            string   `json:"ID"`
-		Name          string   `json:"name"`
-		Topic         string   `json:"topic"`
-		Type          string   `json:"type"`
-		LastMessageID string   `json:"lastMessageID"`
-		Members       []string `json:"members,omitempty"`
-		Unread        *Unread  `json:"unread,omitempty"`
+		ID             string   `json:"ID"`
+		Name           string   `json:"name"`
+		Topic          string   `json:"topic"`
+		Type           string   `json:"type"`
+		LastMessageID  string   `json:"lastMessageID"`
+		Unread         *Unread  `json:"unread,omitempty"`
+		Members        []string `json:"members,omitempty"`
+		MembershipFlag string   `json:"membershipFlag"`
 
 		CanJoin           bool `json:"canJoin"`
 		CanPart           bool `json:"canPart"`
