@@ -33,7 +33,9 @@ type (
 	}
 
 	UserFilter struct {
-		Query string
+		Query    string
+		Email    string
+		Username string
 	}
 )
 

@@ -118,6 +118,16 @@ func (r *user) Find(filter *types.UserFilter) ([]*types.User, error) {
 			sql += " OR name LIKE ?)"
 			params = append(params, filter.Query+"%")
 		}
+
+		if filter.Email != "" {
+			sql += " AND (email = ?)"
+			params = append(params, filter.Email)
+		}
+
+		if filter.Username != "" {
+			sql += " AND (username = ?)"
+			params = append(params, filter.Username)
+		}
 	}
 
 	sql += " ORDER BY username ASC"

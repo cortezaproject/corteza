@@ -26,7 +26,11 @@ func (User) New() *User {
 
 // Searches the users table in the database to find users by matching (by-prefix) their.Username
 func (ctrl *User) List(ctx context.Context, r *request.UserList) (interface{}, error) {
-	return ctrl.user.With(ctx).Find(&types.UserFilter{Query: r.Query})
+	return ctrl.user.With(ctx).Find(&types.UserFilter{
+		Query:    r.Query,
+		Email:    r.Email,
+		Username: r.Username,
+	})
 }
 
 func (ctrl *User) Create(ctx context.Context, r *request.UserCreate) (interface{}, error) {

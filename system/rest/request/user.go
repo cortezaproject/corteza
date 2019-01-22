@@ -33,7 +33,9 @@ var _ = multipart.FileHeader{}
 
 // User list request parameters
 type UserList struct {
-	Query string
+	Query    string
+	Username string
+	Email    string
 }
 
 func NewUserList() *UserList {
@@ -70,6 +72,14 @@ func (u *UserList) Fill(r *http.Request) (err error) {
 	if val, ok := get["query"]; ok {
 
 		u.Query = val
+	}
+	if val, ok := get["username"]; ok {
+
+		u.Username = val
+	}
+	if val, ok := get["email"]; ok {
+
+		u.Email = val
 	}
 
 	return err

@@ -305,6 +305,8 @@ An organisation may have many teams. Teams may have many channels available. Acc
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query to match against users | N/A | NO |
+| username | string | GET | Search username to match against users | N/A | NO |
+| email | string | GET | Search email to match against users | N/A | NO |
 
 ## Create user
 
