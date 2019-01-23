@@ -735,7 +735,7 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 	}
 
 	if ch.Type == types.ChannelTypeGroup {
-		return errors.New("Removign members from a group is not currently supported")
+		return errors.New("removing members from a group is currently not supported")
 	}
 
 	return svc.db.Transaction(func() (err error) {
@@ -755,7 +755,7 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 			}
 
 			if userID == memberID {
-				svc.scheduleSystemMessage(ch, "<@%d> parted", memberID)
+				svc.scheduleSystemMessage(ch, "<@%d> left the channel", memberID)
 			} else {
 				svc.scheduleSystemMessage(ch, "<@%d> removed from the channel", memberID)
 			}
