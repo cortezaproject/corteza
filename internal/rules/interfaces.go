@@ -15,4 +15,5 @@ type ResourcesInterface interface {
 	CheckAccess(resource string, operation string) error
 
 	Grant(resource string, teamID uint64, operations []string, value types.Access) error
+	ListGrants(resource string, teamID uint64) ([]types.Rules, error)
 }

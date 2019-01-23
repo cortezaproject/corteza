@@ -122,3 +122,13 @@ func (r *resources) Grant(resource string, teamID uint64, operations []string, v
 	}
 	return err
 }
+
+func (r *resources) ListGrants(resource string, teamID uint64) ([]types.Rules, error) {
+	result := []types.Rules{}
+
+	query := "select * from sys_rules where rel_team = ? and resource = ?"
+	if err := r.db.Select(&result, query, teamID, resource); err != nil {
+		return nil, err
+	}
+	return result, nil
+}

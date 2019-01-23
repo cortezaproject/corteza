@@ -47,6 +47,17 @@ func TestRules(t *testing.T) {
 			NoError(t, resources.CheckAccessMulti("channel:*", "edit"), "channel:* edit, expected no error")
 		}
 
+		// list grants for team
+		{
+			grants, err := resources.ListGrants("channel:2", 2)
+			NoError(t, err, "expect no error")
+			Assert(t, len(grants) == 2, "expected 2 grants")
+			Assert(t, grants[0].TeamID == 2, "expected TeamID == 2, got %v", grants[0].TeamID)
+			Assert(t, grants[0].Resource == "channel:2", "expected Resource == channel:2, got %s", grants[0].Resource)
+			Assert(t, grants[0].Operation == "delete", "expected Operation == delete, got %s", grants[0].Operation)
+			Assert(t, grants[0].Value == rules.Allow, "expected Value == Allow, got %s", grants[0].Value)
+		}
+
 		// deny channel:1 group:1 (explicit deny, multi=deny)
 		{
 			resources.Grant("channel:1", 1, []string{"edit"}, rules.Deny)
