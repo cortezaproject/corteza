@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lann/builder"
@@ -165,15 +166,6 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 		Where(sq.Eq{"r.module_id": module.ID}).
 		Where(sq.Eq{"r.deleted_at": nil})
 
-	// Do not translate/wrap these
-	var realColumns = []string{
-		"id",
-		"module_id",
-		"user_id",
-		"created_at",
-		"updated_at",
-	}
-
 	var joinedFields = []string{}
 	var alreadyJoined = func(f string) bool {
 		for _, a := range joinedFields {
@@ -198,10 +190,9 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 
 		// Make a nice wrapper that will translate module fields to subqueries
 		fp.OnIdent = func(i ql.Ident) (ql.Ident, error) {
-			for _, s := range realColumns {
-				if s == i.Value {
-					return i, nil
-				}
+			var is bool
+			if i.Value, is = isRealRecordCol(i.Value); is {
+				return i, nil
 			}
 
 			if !module.Fields.HasName(i.Value) {
@@ -240,11 +231,10 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 		)
 
 		sp.OnIdent = func(i ql.Ident) (ql.Ident, error) {
-			for _, s := range realColumns {
-				if s == i.Value {
-					i.Value += " "
-					return i, nil
-				}
+			var is bool
+			if i.Value, is = isRealRecordCol(i.Value); is {
+				i.Value += " "
+				return i, nil
 			}
 
 			if !module.Fields.HasName(i.Value) {
@@ -341,4 +331,34 @@ func (r *record) LoadValues(IDs ...uint64) (rvs types.RecordValueSet, err error)
 	} else {
 		return rvs, r.db().Select(&rvs, sql, args...)
 	}
+}
+
+// Checks if field name is "real column", reformats it and returns
+func isRealRecordCol(name string) (string, bool) {
+	switch name {
+	case
+		"id",
+		"module_id",
+		"owned_by",
+		"created_by",
+		"created_at",
+		"updated_by",
+		"updated_at",
+		"deleted_by",
+		"deleted_at":
+		return name, true
+
+	case
+		"moduleID",
+		"ownedBy",
+		"createdBy",
+		"createdAt",
+		"updatedBy",
+		"updatedAt",
+		"deletedBy",
+		"deletedAt":
+		return name[0:len(name)-2] + "_" + strings.ToLower(name[len(name)-2:]), true
+	}
+
+	return name, false
 }
