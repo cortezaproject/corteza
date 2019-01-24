@@ -63,19 +63,6 @@ func NewRecordReportBuilder(module *types.Module) *recordReportBuilder {
 	}
 }
 
-func (b *recordReportBuilder) isRealCol(name string) bool {
-	switch name {
-	case "id",
-		"module_id",
-		"user_id",
-		"created_at",
-		"updated_at":
-		return true
-	}
-
-	return false
-}
-
 func (b *recordReportBuilder) Build(metrics, dimensions, filters string) (sql string, args []interface{}, err error) {
 	var joinedFields = []string{}
 	var alreadyJoined = func(f string) bool {
@@ -90,7 +77,8 @@ func (b *recordReportBuilder) Build(metrics, dimensions, filters string) (sql st
 	}
 
 	b.parser.OnIdent = func(i ql.Ident) (ql.Ident, error) {
-		if b.isRealCol(i.Value) {
+		var is bool
+		if i.Value, is = isRealRecordCol(i.Value); is {
 			return i, nil
 		}
 
