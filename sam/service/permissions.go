@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/crusttech/crust/internal/rbac"
+	"github.com/crusttech/crust/internal/rules"
 	"github.com/crusttech/crust/sam/repository"
 )
 
@@ -20,7 +20,7 @@ type (
 
 		List() (interface{}, error)
 		Get(team string, scope string, resource string) (interface{}, error)
-		Set(team string, permissions []rbac.Permission) (interface{}, error)
+		Set(team string, permissions []rules.Permission) (interface{}, error)
 	}
 )
 
@@ -44,6 +44,6 @@ func (p *permissions) Get(team string, scope string, resource string) (interface
 	return nil, errors.New("service.permissions.get: not implemented")
 }
 
-func (p *permissions) Set(team string, permissions []rbac.Permission) (interface{}, error) {
+func (p *permissions) Set(team string, permissions []rules.Permission) (interface{}, error) {
 	return nil, errors.New("service.permissions.set: not implemented")
 }

@@ -1,11 +1,16 @@
 package types
 
+import (
+	"encoding/json"
+	"errors"
+)
+
 type Access int
 
 const (
-	Allow   Access = 1
-	Deny    Access = 0
-	Inherit Access = -1
+	Allow   Access = 2
+	Deny    Access = 1
+	Inherit Access = 0
 )
 
 type Rules struct {
@@ -13,4 +18,27 @@ type Rules struct {
 	Resource  string `db:"resource"`
 	Operation string `db:"operation"`
 	Value     Access `db:"value"`
+}
+
+func (a *Access) UnmarshalJSON(data []byte) error {
+	var i interface{}
+	err := json.Unmarshal(data, &i)
+	if err != nil {
+		return err
+	}
+
+	s, ok := i.(string)
+	if !ok {
+		return errors.New("Type assertion .(string) failed.")
+	}
+
+	switch s {
+	case "allow":
+		*a = Allow
+	case "deny":
+		*a = Deny
+	default:
+		*a = Inherit
+	}
+	return nil
 }

@@ -16,14 +16,6 @@ type resources struct {
 	db  *factory.DB
 }
 
-type Access types.Access
-
-var (
-	Allow   = types.Allow
-	Deny    = types.Deny
-	Inherit = types.Inherit
-)
-
 func NewResources(ctx context.Context, db *factory.DB) ResourcesInterface {
 	return (&resources{}).With(ctx, db)
 }
