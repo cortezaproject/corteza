@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/crusttech/crust/internal/rbac"
+	"github.com/crusttech/crust/internal/rules"
 )
 
 type (
@@ -9,7 +9,7 @@ type (
 		Scope() string
 		Resource() string
 		Operation(name string) string
-		Permissions() []rbac.OperationGroup
+		Permissions() []rules.OperationGroup
 	}
 )
 

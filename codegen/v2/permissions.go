@@ -12,7 +12,7 @@ import (
 	"go/format"
 	"io/ioutil"
 
-	"github.com/crusttech/crust/internal/rbac"
+	"github.com/crusttech/crust/internal/rules"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 		pkg    = flag.String("package", "main", "Package name")
 		input  = flag.String("input", "", "Input .json filename")
 		output = flag.String("output", "", "Output .go filename")
-		fname  = flag.String("function", "func Permissions() []rbac.OperationGroup", "Default function declaration")
+		fname  = flag.String("function", "func Permissions() []rules.OperationGroup", "Default function declaration")
 	)
 	flag.Parse()
 
@@ -31,11 +31,15 @@ func main() {
 		s = strings.Replace(s, "}", ",\n}", -1)
 		s = strings.Replace(s, "\", ", "\",\n", -1)
 
+		s = strings.Replace(s, "Default:2,", "Default: rules.Allow,", -1)
+		s = strings.Replace(s, "Default:1,", "Default: rules.Deny,", -1)
+		s = strings.Replace(s, "Default:0,", "Default: rules.Inherit,", -1)
+
 		var w bytes.Buffer
 
 		fmt.Fprintln(&w, "package", *pkg)
 		fmt.Fprintln(&w)
-		fmt.Fprintln(&w, "import \"github.com/crusttech/crust/internal/rbac\"")
+		fmt.Fprintln(&w, "import \"github.com/crusttech/crust/internal/rules\"")
 		fmt.Fprintln(&w)
 		fmt.Fprintln(&w, "/* File is generated from", *input, "with permissions.go */")
 		fmt.Fprintln(&w)
@@ -52,7 +56,7 @@ func main() {
 		return fmtsrc
 	}
 
-	var result []rbac.OperationGroup
+	var result []rules.OperationGroup
 	f, err := os.Open(*input)
 	if err != nil {
 		log.Fatal(err)

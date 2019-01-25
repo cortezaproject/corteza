@@ -1,4 +1,8 @@
-package rbac
+package rules
+
+import (
+	"github.com/crusttech/crust/system/types"
+)
 
 type (
 	OperationGroup struct {
@@ -19,11 +23,10 @@ type (
 		// nil = unset (inherit),
 		// true = checked (allow),
 		// false = unchecked (deny)
-
-		Default OperationState `json:"default"`
+		Default types.Access `json:"default"`
 	}
 
-	OperationState string
+	Access types.Access
 
 	Permission struct {
 		// Scope (organisation, team, channel)
@@ -33,12 +36,12 @@ type (
 		// Operation name (Operation.Key)
 		Operation string `json:"operation"`
 		// Operation state (inherit, allow, deny)
-		State OperationState `json:"state"`
+		State types.Access `json:"state"`
 	}
 )
 
 const (
-	OperationStateInherit OperationState = ""
-	OperationStateAllow                  = "allow"
-	OperationStateDeny                   = "deny"
+	Allow   = types.Allow
+	Deny    = types.Deny
+	Inherit = types.Inherit
 )
