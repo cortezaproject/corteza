@@ -45,7 +45,7 @@ func (*HTTP) Init(prefix ...string) *HTTP {
 	}
 
 	http = new(HTTP)
-	flag.StringVar(&http.Addr, p("http-addr"), ":3000", "Listen address for HTTP server")
+	flag.StringVar(&http.Addr, p("http-addr"), ":80", "Listen address for HTTP server")
 	flag.BoolVar(&http.Logging, p("http-log"), true, "Enable/disable HTTP request log")
 	flag.BoolVar(&http.Pretty, p("http-pretty-json"), false, "Prettify returned JSON output")
 	flag.BoolVar(&http.Tracing, p("http-error-tracing"), false, "Return error stack frame")

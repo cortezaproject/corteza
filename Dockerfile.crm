@@ -22,4 +22,6 @@ WORKDIR /crust
 COPY --from=builder /build/* /crust/
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
+EXPOSE 80
+
 ENTRYPOINT /crust/crm
