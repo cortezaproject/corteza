@@ -15,6 +15,7 @@ type (
 		RedirectURL string
 		AppURL      string
 
+		StateCookieDomain string
 		StateCookieExpiry int64
 	}
 )
@@ -34,6 +35,9 @@ func (c *OIDC) Validate() error {
 	if c.RedirectURL == "" {
 		return errors.New("OIDC RedirectURL not set for AUTH")
 	}
+	if c.StateCookieDomain == "" {
+		return errors.New("OIDC CookieDomain not set")
+	}
 
 	return nil
 }
@@ -50,6 +54,7 @@ func (*OIDC) Init(prefix ...string) *OIDC {
 	flag.StringVar(&oidc.ClientSecret, "auth-oidc-client-secret", "", "OIDC Client Secret")
 	flag.StringVar(&oidc.RedirectURL, "auth-oidc-redirect-url", "", "OIDC RedirectURL")
 	flag.StringVar(&oidc.AppURL, "auth-oidc-app-url", "", "OIDC AppURL")
+	flag.StringVar(&oidc.StateCookieDomain, "auth-oidc-cookie-domain", "", "JWT Cookie domain")
 	flag.Int64Var(&oidc.StateCookieExpiry, "auth-oidc-state-cookie-expiry", 15, "OIDC State cookie expiry in minutes")
 	return oidc
 }

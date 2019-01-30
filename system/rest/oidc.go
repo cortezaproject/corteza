@@ -31,6 +31,7 @@ type (
 
 		appURL            string
 		stateCookieExpiry int64
+		stateCookieDomain string
 
 		userService service.UserService
 
@@ -53,6 +54,7 @@ func OpenIdConnect(ctx context.Context, cfg *config.OIDC, usvc service.UserServi
 	c = &openIdConnect{
 		appURL:            cfg.AppURL,
 		stateCookieExpiry: cfg.StateCookieExpiry,
+		stateCookieDomain: cfg.StateCookieDomain,
 		userService:       usvc,
 		jwt:               jwt,
 	}
@@ -210,6 +212,6 @@ func (c *openIdConnect) setStateCookie(w http.ResponseWriter, r *http.Request, v
 		HttpOnly: true,
 		Secure:   r.URL.Scheme == "https",
 		Path:     "/oidc",
-		Domain:   ".rustbucket.io", // @todo make this configurable (like stateCookieExpiry)
+		Domain:   c.stateCookieDomain,
 	})
 }
