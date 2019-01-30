@@ -25,7 +25,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
 
-	"github.com/crusttech/crust/internal/rbac"
+	"github.com/crusttech/crust/internal/rules"
 )
 
 var _ = chi.URLParam
@@ -127,7 +127,7 @@ var _ RequestFiller = NewPermissionsGetTeam()
 // Permissions setTeam request parameters
 type PermissionsSetTeam struct {
 	Team        string
-	Permissions []rbac.Permission
+	Permissions []rules.Permission
 }
 
 func NewPermissionsSetTeam() *PermissionsSetTeam {
