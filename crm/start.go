@@ -10,10 +10,10 @@ import (
 	"github.com/SentimensRG/ctx"
 	"github.com/SentimensRG/ctx/sigctx"
 	"github.com/pkg/errors"
-	"github.com/titpetric/factory"
 	"github.com/titpetric/factory/resputil"
 
 	migrate "github.com/crusttech/crust/crm/db"
+	"github.com/crusttech/crust/internal/db"
 	systemService "github.com/crusttech/crust/system/service"
 
 	"github.com/crusttech/crust/crm/service"
@@ -46,15 +46,9 @@ func Init() error {
 	mail.SetupDialer(flags.smtp)
 
 	// start/configure database connection
-	factory.Database.Add("default", flags.db.DSN)
-	db := factory.Database.MustGet()
-
-	// @todo: profiling as an external service?
-	switch flags.db.Profiler {
-	case "stdout":
-		db.Profiler = &factory.Database.ProfilerStdout
-	default:
-		log.Println("No database query profiler selected")
+	db, err := db.TryToConnect(flags.db.DSN, flags.db.Profiler)
+	if err != nil {
+		return errors.Wrap(err, "could not connect to database")
 	}
 
 	// migrate database schema
