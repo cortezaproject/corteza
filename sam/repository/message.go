@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -24,6 +25,11 @@ type (
 		DeleteMessageByID(ID uint64) error
 		IncReplyCount(ID uint64) error
 		DecReplyCount(ID uint64) error
+
+		CountOwned(userID uint64) (c int, err error)
+		ChangeOwner(userID, target uint64) error
+		CountUserTags(userID uint64) (c int, err error)
+		ChangeUserTag(userID, target uint64) error
 	}
 
 	message struct {
@@ -270,5 +276,30 @@ func (r *message) IncReplyCount(ID uint64) error {
 
 func (r *message) DecReplyCount(ID uint64) error {
 	_, err := r.db().Exec(sqlMessageRepliesDecCount, ID)
+	return err
+}
+
+func (r *message) CountOwned(userID uint64) (c int, err error) {
+	return c, r.db().Get(&c,
+		"SELECT COUNT(*) FROM messages WHERE rel_user = ?",
+		userID)
+}
+
+func (r *message) CountUserTags(userID uint64) (c int, err error) {
+	return c, r.db().Get(&c,
+		"SELECT COUNT(*) FROM messages WHERE message LIKE ?",
+		fmt.Sprintf("%%@%d%%", userID))
+}
+
+func (r *message) ChangeOwner(userID, target uint64) error {
+	_, err := r.db().Exec("UPDATE messages SET rel_user = ? WHERE rel_user = ?", target, userID)
+	return err
+}
+
+func (r *message) ChangeUserTag(userID, target uint64) error {
+	_, err := r.db().Exec("UPDATE messages SET message = replace(message, ?, ?) WHERE message LIKE ?",
+		fmt.Sprintf("@%d", userID),
+		fmt.Sprintf("@%d", target),
+		fmt.Sprintf("%%@%d%%", userID))
 	return err
 }

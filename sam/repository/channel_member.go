@@ -19,6 +19,9 @@ type (
 		Create(mod *types.ChannelMember) (*types.ChannelMember, error)
 		Update(mod *types.ChannelMember) (*types.ChannelMember, error)
 		Delete(channelID, userID uint64) error
+
+		CountMemberships(userID uint64) (c int, err error)
+		ChangeMembership(userID, target uint64) error
 	}
 
 	channelMember struct {
@@ -102,4 +105,27 @@ func (r *channelMember) Update(mod *types.ChannelMember) (*types.ChannelMember, 
 func (r *channelMember) Delete(channelID, userID uint64) error {
 	sql := `DELETE FROM channel_members WHERE rel_channel = ? AND rel_user = ?`
 	return exec(r.db().Exec(sql, channelID, userID))
+}
+
+func (r *channelMember) CountMemberships(userID uint64) (c int, err error) {
+	return c, r.db().Get(&c,
+		"SELECT COUNT(*) FROM channel_members WHERE rel_user = ?",
+		userID)
+}
+
+func (r *channelMember) ChangeMembership(userID, target uint64) (err error) {
+	// Remove dups
+	// with an ugly mysql workaround
+	_, err = r.db().Exec(
+		"DELETE FROM channel_members WHERE rel_user = ? "+
+			"AND rel_channel IN (SELECT rel_channel FROM (SELECT * FROM channel_members) AS workaround WHERE rel_user = ?)",
+		userID,
+		target)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db().Exec("UPDATE channel_members SET rel_user = ? WHERE rel_user = ?", target, userID)
+	return err
 }

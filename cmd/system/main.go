@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	service "github.com/crusttech/crust/system"
+	"github.com/crusttech/crust/system"
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/rbac"
@@ -20,7 +20,19 @@ func main() {
 	if err := service.Init(); err != nil {
 		log.Fatalf("Error initializing system: %+v", err)
 	}
-	if err := service.Start(); err != nil {
-		log.Fatalf("Error starting/running system: %+v", err)
+
+	var command string
+	if len(os.Args) > 1 {
+		command = os.Args[1]
 	}
+
+	switch command {
+	case "help":
+	case "merge-users":
+	default:
+		if err := service.Start(); err != nil {
+			log.Fatalf("Error starting/running system: %+v", err)
+		}
+	}
+
 }

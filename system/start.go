@@ -44,16 +44,7 @@ func Init() error {
 
 	mail.SetupDialer(flags.smtp)
 
-	// start/configure database connection
-	db, err := db.TryToConnect(flags.db.DSN, flags.db.Profiler)
-	if err != nil {
-		return errors.Wrap(err, "could not connect to database")
-	}
-
-	// migrate database schema
-	if err := migrate.Migrate(db); err != nil {
-		return err
-	}
+	InitDb()
 
 	// configure resputil options
 	resputil.SetConfig(resputil.Options{
@@ -65,6 +56,21 @@ func Init() error {
 	})
 
 	systemService.Init()
+
+	return nil
+}
+
+func InitDb() error {
+	// start/configure database connection
+	db, err := db.TryToConnect(flags.db.DSN, flags.db.Profiler)
+	if err != nil {
+		return errors.Wrap(err, "could not connect to database")
+	}
+
+	// migrate database schema
+	if err := migrate.Migrate(db); err != nil {
+		return err
+	}
 
 	return nil
 }

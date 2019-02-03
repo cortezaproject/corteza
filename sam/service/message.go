@@ -83,7 +83,7 @@ func (svc *message) With(ctx context.Context) MessageService {
 		attachment: repository.Attachment(ctx, db),
 		channel:    repository.Channel(ctx, db),
 		cmember:    repository.ChannelMember(ctx, db),
-		unreads:    repository.ChannelView(ctx, db),
+		unreads:    repository.Unread(ctx, db),
 		message:    repository.Message(ctx, db),
 		mflag:      repository.MessageFlag(ctx, db),
 		mentions:   repository.Mention(ctx, db),

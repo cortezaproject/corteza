@@ -20,6 +20,9 @@ type (
 		Create(m *types.Mention) (*types.Mention, error)
 		DeleteByMessageID(ID uint64) error
 		DeleteByID(ID uint64) error
+
+		CountMentions(userID uint64) (c int, err error)
+		ChangeMention(userID, target uint64) error
 	}
 
 	mention struct {
@@ -77,4 +80,15 @@ func (r *mention) DeleteByMessageID(ID uint64) error {
 
 func (r *mention) DeleteByID(ID uint64) error {
 	return exec(r.db().Exec("DELETE FROM mentions WHERE id = ?", ID))
+}
+
+func (r *mention) CountMentions(userID uint64) (c int, err error) {
+	return c, r.db().Get(&c,
+		"SELECT COUNT(*) FROM mentions WHERE rel_user = ?",
+		userID)
+}
+
+func (r *mention) ChangeMention(userID, target uint64) error {
+	_, err := r.db().Exec("UPDATE mentions SET rel_user = ? WHERE rel_user = ?", target, userID)
+	return err
 }

@@ -17,6 +17,9 @@ type (
 		Record(userID, channelID, threadID, lastReadMessageID uint64, count uint32) error
 		Inc(channelID, replyTo, userID uint64) error
 		Dec(channelID, replyTo, userID uint64) error
+
+		CountOwned(userID uint64) (c int, err error)
+		ChangeOwner(userID, target uint64) error
 	}
 
 	unread struct {
@@ -39,8 +42,8 @@ const (
                                 WHERE rel_channel = ? AND rel_reply_to = ? AND rel_user <> ? AND count > 0`
 )
 
-// ChannelView creates new instance of channel member repository
-func ChannelView(ctx context.Context, db *factory.DB) UnreadRepository {
+// Unread creates new instance of channel member repository
+func Unread(ctx context.Context, db *factory.DB) UnreadRepository {
 	return (&unread{}).With(ctx, db)
 }
 
@@ -93,5 +96,32 @@ func (r *unread) Inc(channelID, threadID, userID uint64) error {
 // Decrements unread message count on a channel/thread for all but one user
 func (r *unread) Dec(channelID, threadID, userID uint64) error {
 	_, err := r.db().Exec(sqlUnreadDecCount, channelID, threadID, userID)
+	return err
+}
+
+func (r *unread) CountOwned(userID uint64) (c int, err error) {
+	return c, r.db().Get(&c,
+		"SELECT COUNT(*) FROM unreads WHERE rel_user = ?",
+		userID)
+}
+
+func (r *unread) ChangeOwner(userID, target uint64) (err error) {
+	// Remove dups
+	// with an ugly mysql workaround
+	_, err = r.db().Exec(
+		"DELETE FROM unreads WHERE rel_user = ? "+
+			"AND rel_channel IN (SELECT rel_channel FROM (SELECT * FROM unreads) AS workaround WHERE rel_user = ?)",
+		userID,
+		target)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db().Exec(
+		"UPDATE unreads SET rel_user = ? WHERE rel_user = ?",
+		target,
+		userID)
+
 	return err
 }
