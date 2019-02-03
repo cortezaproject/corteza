@@ -19,6 +19,9 @@ type (
 		CreateAttachment(mod *types.Attachment) (*types.Attachment, error)
 		DeleteAttachmentByID(id uint64) error
 		BindAttachment(attachmentId, messageId uint64) error
+
+		CountOwned(userID uint64) (c int, err error)
+		ChangeOwnership(userID, target uint64) error
 	}
 
 	attachment struct {
@@ -97,4 +100,15 @@ func (r *attachment) BindAttachment(attachmentId, messageId uint64) error {
 	}{attachmentId, messageId}
 
 	return r.db().Insert("message_attachment", bond)
+}
+
+func (r *attachment) CountOwned(userID uint64) (c int, err error) {
+	return c, r.db().Get(&c,
+		"SELECT COUNT(*) FROM attachments WHERE rel_user = ?",
+		userID)
+}
+
+func (r *attachment) ChangeOwnership(userID, target uint64) error {
+	_, err := r.db().Exec("UPDATE attachments SET rel_user = ? WHERE rel_user = ?", target, userID)
+	return err
 }

@@ -25,6 +25,9 @@ type (
 		UnarchiveChannelByID(id uint64) error
 		DeleteChannelByID(id uint64) error
 		UndeleteChannelByID(id uint64) error
+
+		CountCreated(userID uint64) (c int, err error)
+		ChangeCreator(userID, target uint64) error
 	}
 
 	channel struct {
@@ -173,4 +176,15 @@ func (r *channel) DeleteChannelByID(id uint64) error {
 
 func (r *channel) UndeleteChannelByID(id uint64) error {
 	return r.updateColumnByID("channels", "deleted_at", nil, id)
+}
+
+func (r *channel) CountCreated(userID uint64) (c int, err error) {
+	return c, r.db().Get(&c,
+		"SELECT COUNT(*) FROM channels WHERE rel_creator = ?",
+		userID)
+}
+
+func (r *channel) ChangeCreator(userID, target uint64) error {
+	_, err := r.db().Exec("UPDATE channels SET rel_creator = ? WHERE rel_creator = ?", target, userID)
+	return err
 }

@@ -32,6 +32,11 @@ type (
 		LoadValues(IDs ...uint64) (rvs types.RecordValueSet, err error)
 		DeleteValues(record *types.Record) error
 		UpdateValues(recordID uint64, rvs types.RecordValueSet) (err error)
+
+		CountAuthored(userID uint64) (c int, err error)
+		ChangeAuthor(userID, target uint64) error
+		CountReferenced(userID uint64) (c int, err error)
+		ChangeReferences(userID, target uint64) error
 	}
 
 	FindResponseMeta struct {
@@ -361,4 +366,36 @@ func isRealRecordCol(name string) (string, bool) {
 	}
 
 	return name, false
+}
+
+func (r *record) CountAuthored(userID uint64) (c int, err error) {
+	return c, r.db().Get(&c,
+		"SELECT COUNT(*) FROM crm_record WHERE created_by = ? OR updated_by = ? OR deleted_by = ?",
+		userID, userID, userID)
+}
+
+func (r *record) ChangeAuthor(userID, target uint64) error {
+	if _, err := r.db().Exec("UPDATE crm_record SET created_by = ? WHERE created_by = ?", target, userID); err != nil {
+		return err
+	}
+	if _, err := r.db().Exec("UPDATE crm_record SET updated_by = ? WHERE updated_by = ?", target, userID); err != nil {
+		return err
+	}
+	if _, err := r.db().Exec("UPDATE crm_record SET deleted_by = ? WHERE deleted_by = ?", target, userID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *record) CountReferenced(userID uint64) (c int, err error) {
+	// @todo add field type (User) check
+	return c, r.db().Get(&c,
+		"SELECT COUNT(*) FROM crm_record_value WHERE ref = ?",
+		userID)
+}
+
+func (r *record) ChangeReferences(userID, target uint64) error {
+	_, err := r.db().Exec("UPDATE crm_record_value SET ref = ? WHERE ref = ?", target, userID)
+	return err
 }

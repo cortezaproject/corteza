@@ -81,7 +81,7 @@ func (svc *channel) With(ctx context.Context) ChannelService {
 
 		channel: repository.Channel(ctx, db),
 		cmember: repository.ChannelMember(ctx, db),
-		unread:  repository.ChannelView(ctx, db),
+		unread:  repository.Unread(ctx, db),
 		message: repository.Message(ctx, db),
 
 		// System messages should be flushed at the end of each session
