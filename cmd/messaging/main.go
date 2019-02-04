@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	flags("sam", service.Flags, auth.Flags, rbac.Flags)
+	flags("messaging", service.Flags, auth.Flags, rbac.Flags)
 
 	// log to stdout not stderr
 	log.SetOutput(os.Stdout)

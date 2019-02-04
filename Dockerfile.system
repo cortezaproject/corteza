@@ -11,7 +11,10 @@ RUN apk update && apk upgrade && apk add --no-cache git
 RUN mkdir /build; \
     go build \
         -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime="`date +%FT%T%z`" -X github.com/crusttech/crust/internal/version.Version="`git describe --always --tags` \
-        -o /build/system cmd/system/*.go
+        -o /build/system cmd/system/*.go; \
+    go build \
+        -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime="`date +%FT%T%z`" -X github.com/crusttech/crust/internal/version.Version="`git describe --always --tags` \
+        -o /build/cli cmd/system-cli/*.go
 
 ## target image
 FROM alpine:3.7

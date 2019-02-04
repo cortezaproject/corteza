@@ -6,7 +6,7 @@ GO        = go
 GOGET     = $(GO) get -u
 
 BASEPKGS = rbac system crm sam
-IMAGES   = system crm sam
+IMAGES   = system crm messaging
 
 ########################################################################################################################
 # Tool bins
