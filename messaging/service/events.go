@@ -47,7 +47,7 @@ func (svc *event) Message(m *types.Message) error {
 func (svc *event) MessageFlag(f *types.MessageFlag) error {
 	var p outgoing.MessageEncoder
 
-	switch true {
+	switch {
 	case f.IsBookmark():
 		// Leaving this here so it is obvious.
 		return nil
