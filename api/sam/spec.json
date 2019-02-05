@@ -695,7 +695,7 @@
     "struct": [
       {
         "imports": [
-          "github.com/crusttech/crust/internal/rbac"
+          "github.com/crusttech/crust/internal/rules"
         ]
       }
     ],
@@ -754,7 +754,7 @@
           "post": [
             {
               "name": "permissions",
-              "type": "[]rbac.Permission",
+              "type": "[]rules.Permission",
               "required": true,
               "title": "List of permissions to set"
             }
