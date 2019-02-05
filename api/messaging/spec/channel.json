@@ -1,0 +1,301 @@
+{
+  "Title": "Channels",
+  "Description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or group.",
+  "Interface": "Channel",
+  "Struct": null,
+  "Parameters": null,
+  "Protocol": "",
+  "Authentication": [
+    "Client ID",
+    "Session ID"
+  ],
+  "Path": "/channels",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List channels",
+      "Path": "/",
+      "Parameters": {
+        "GET": [
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search query",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "create",
+      "Method": "POST",
+      "Title": "Create new channel",
+      "Path": "/",
+      "Parameters": {
+        "post": [
+          {
+            "name": "name",
+            "required": true,
+            "title": "Name of Channel",
+            "type": "string"
+          },
+          {
+            "name": "topic",
+            "required": false,
+            "title": "Subject of Channel",
+            "type": "string"
+          },
+          {
+            "name": "type",
+            "required": false,
+            "title": "Channel type",
+            "type": "string"
+          },
+          {
+            "name": "members",
+            "required": false,
+            "title": "Initial members of the channel",
+            "type": "[]string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "update",
+      "Method": "PUT",
+      "Title": "Update channel details",
+      "Path": "/{channelID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "channelID",
+            "required": true,
+            "title": "Channel ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "name",
+            "required": false,
+            "title": "Name of Channel",
+            "type": "string"
+          },
+          {
+            "name": "topic",
+            "required": false,
+            "title": "Subject of Channel",
+            "type": "string"
+          },
+          {
+            "name": "type",
+            "required": false,
+            "title": "Channel type",
+            "type": "string"
+          },
+          {
+            "name": "organisationID",
+            "required": false,
+            "title": "Move channel to different organisation",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "state",
+      "Method": "PUT",
+      "Title": "Update channel state",
+      "Path": "/{channelID}/state",
+      "Parameters": {
+        "path": [
+          {
+            "name": "channelID",
+            "required": true,
+            "title": "Channel ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "state",
+            "required": true,
+            "title": "Valid values: delete, undelete, archive, unarchive",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "setFlag",
+      "Method": "PUT",
+      "Title": "Update channel membership flag",
+      "Path": "/{channelID}/flag",
+      "Parameters": {
+        "path": [
+          {
+            "name": "channelID",
+            "required": true,
+            "title": "Channel ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "flag",
+            "required": true,
+            "title": "Valid values: pinned, hidden, ignored",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "removeFlag",
+      "Method": "DELETE",
+      "Title": "Remove channel membership flag",
+      "Path": "/{channelID}/flag",
+      "Parameters": {
+        "path": [
+          {
+            "name": "channelID",
+            "required": true,
+            "title": "Channel ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "read",
+      "Method": "GET",
+      "Title": "Read channel details",
+      "Path": "/{channelID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "channelID",
+            "required": true,
+            "title": "Channel ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "members",
+      "Method": "GET",
+      "Title": "List channel members",
+      "Path": "/{channelID}/members",
+      "Parameters": {
+        "path": [
+          {
+            "name": "channelID",
+            "required": true,
+            "title": "Channel ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "join",
+      "Method": "PUT",
+      "Title": "Join channel",
+      "Path": "/{channelID}/members/{userID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "channelID",
+            "required": true,
+            "title": "Channel ID",
+            "type": "uint64"
+          },
+          {
+            "name": "userID",
+            "required": false,
+            "title": "Member ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "part",
+      "Method": "DELETE",
+      "Title": "Remove member from channel",
+      "Path": "/{channelID}/members/{userID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "channelID",
+            "required": true,
+            "title": "Channel ID",
+            "type": "uint64"
+          },
+          {
+            "name": "userID",
+            "required": false,
+            "title": "Member ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "invite",
+      "Method": "POST",
+      "Title": "Join channel",
+      "Path": "/{channelID}/invite",
+      "Parameters": {
+        "path": [
+          {
+            "name": "channelID",
+            "required": true,
+            "title": "Channel ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "userID",
+            "required": false,
+            "title": "User ID",
+            "type": "[]uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "attach",
+      "Method": "POST",
+      "Title": "Attach file to channel",
+      "Path": "/{channelID}/attach",
+      "Parameters": {
+        "path": [
+          {
+            "name": "channelID",
+            "required": true,
+            "title": "Channel ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "replyTo",
+            "required": false,
+            "title": "Upload as a reply",
+            "type": "uint64"
+          },
+          {
+            "name": "upload",
+            "required": true,
+            "title": "File to upload",
+            "type": "*multipart.FileHeader"
+          }
+        ]
+      }
+    }
+  ]
+}

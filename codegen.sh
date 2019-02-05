@@ -22,9 +22,9 @@ function permissions {
 		CGO_ENABLED=0 go build -o ./build/gen-permissions codegen/v2/permissions.go 
 	fi
 	
-	./build/gen-permissions -package types -function "func (c *Organisation) Permissions() []rules.OperationGroup" -input sam/types/permissions/1-organisation.json -output sam/types/organisation.perms.gen.go
-	./build/gen-permissions -package types -function "func (c *Team) Permissions() []rules.OperationGroup" -input sam/types/permissions/2-team.json -output sam/types/team.perms.gen.go
-	./build/gen-permissions -package types -function "func (c *Channel) Permissions() []rules.OperationGroup" -input sam/types/permissions/3-channel.json -output sam/types/channel.perms.gen.go
+	./build/gen-permissions -package types -function "func (c *Organisation) Permissions() []rules.OperationGroup" -input messaging/types/permissions/1-organisation.json -output messaging/types/organisation.perms.gen.go
+	./build/gen-permissions -package types -function "func (c *Team) Permissions() []rules.OperationGroup" -input messaging/types/permissions/2-team.json -output messaging/types/team.perms.gen.go
+	./build/gen-permissions -package types -function "func (c *Channel) Permissions() []rules.OperationGroup" -input messaging/types/permissions/3-channel.json -output messaging/types/channel.perms.gen.go
 
 	green "OK"
 }
@@ -42,14 +42,14 @@ function types {
 	./build/gen-type-set --with-primary-key=false --types ModuleField,RecordValue \
 	                      --output crm/types/type.other.gen.go
 
-	./build/gen-type-set --types MessageAttachment --output sam/types/attachment.gen.go
-	./build/gen-type-set --with-resources=true --types Channel --resource-type "types.Resource" --imports "github.com/crusttech/crust/system/types" --output sam/types/channel.gen.go
-	./build/gen-type-set --with-primary-key=false --types ChannelMember --output sam/types/channel_member.gen.go
-	./build/gen-type-set --with-primary-key=false --types Command,CommandParam --output sam/types/command.gen.go
-	./build/gen-type-set --types Mention --output sam/types/mention.gen.go
-	./build/gen-type-set --types MessageFlag --output sam/types/message_flag.gen.go
-	./build/gen-type-set --types Message --output sam/types/message.gen.go
-	./build/gen-type-set --with-primary-key=false --types Unread --output sam/types/unread.gen.go
+	./build/gen-type-set --types MessageAttachment --output messaging/types/attachment.gen.go
+	./build/gen-type-set --with-resources=true --types Channel --resource-type "types.Resource" --imports "github.com/crusttech/crust/system/types" --output messaging/types/channel.gen.go
+	./build/gen-type-set --with-primary-key=false --types ChannelMember --output messaging/types/channel_member.gen.go
+	./build/gen-type-set --with-primary-key=false --types Command,CommandParam --output messaging/types/command.gen.go
+	./build/gen-type-set --types Mention --output messaging/types/mention.gen.go
+	./build/gen-type-set --types MessageFlag --output messaging/types/message_flag.gen.go
+	./build/gen-type-set --types Message --output messaging/types/message.gen.go
+	./build/gen-type-set --with-primary-key=false --types Unread --output messaging/types/unread.gen.go
 
 	./build/gen-type-set --types User --output system/types/user.gen.go
 	./build/gen-type-set --with-resources=true --resource-type "Resource" --types Team --output system/types/team.gen.go
@@ -88,21 +88,29 @@ function files {
 
 files
 
-_PWD=$PWD
-SPECS=$(find $PWD -name 'spec.json' | xargs -n1 dirname)
-for SPEC in $SPECS; do
-	yellow "> spec $SPEC"
-	cd $SPEC && rm -rf spec && /usr/bin/env spec && cd $_PWD
-	green "OK"
-done
-
-for SPEC in $SPECS; do
-	SRC=$(basename $SPEC)
-	if [ -d "codegen/$SRC" ]; then
-		yellow "> README $SRC"
-		codegen/codegen.php $SRC
-		green "OK"
+function specs {
+	yellow "> specs"
+	if [ ! -f "build/gen-spec" ]; then
+		CGO_ENABLED=0 go build -o ./build/gen-spec codegen/v2/spec.go 
 	fi
-done
+	_PWD=$PWD
+	SPECS=$(find $PWD -name 'spec.json' | xargs -n1 dirname)
+	for SPEC in $SPECS; do
+		yellow "> spec $SPEC"
+		cd $SPEC && rm -rf spec && ../../build/gen-spec && cd $_PWD
+		green "OK"
+	done
+
+	for SPEC in $SPECS; do
+		SRC=$(basename $SPEC)
+		if [ -d "codegen/$SRC" ]; then
+			yellow "> README $SRC"
+			codegen/codegen.php $SRC
+			green "OK"
+		fi
+	done
+}
+
+specs
 
 gofmt

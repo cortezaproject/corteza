@@ -5,8 +5,8 @@
 package repository
 
 import (
+	repository "app/system/repository"
 	context "context"
-	repository "github.com/crusttech/crust/system/repository"
 	types "github.com/crusttech/crust/system/types"
 	gomock "github.com/golang/mock/gomock"
 	factory "github.com/titpetric/factory"
@@ -85,6 +85,23 @@ func (m *MockUserRepository) FindByID(id uint64) (*types.User, error) {
 // FindByID indicates an expected call of FindByID
 func (mr *MockUserRepositoryMockRecorder) FindByID(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockUserRepository)(nil).FindByID), id)
+}
+
+// FindByIDs mocks base method
+func (m *MockUserRepository) FindByIDs(id ...uint64) (types.UserSet, error) {
+	varargs := []interface{}{}
+	for _, a := range id {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "FindByIDs", varargs...)
+	ret0, _ := ret[0].(types.UserSet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByIDs indicates an expected call of FindByIDs
+func (mr *MockUserRepositoryMockRecorder) FindByIDs(id ...interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByIDs", reflect.TypeOf((*MockUserRepository)(nil).FindByIDs), id...)
 }
 
 // FindBySatosaID mocks base method

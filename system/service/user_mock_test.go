@@ -85,6 +85,23 @@ func (mr *MockUserServiceMockRecorder) FindByID(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockUserService)(nil).FindByID), id)
 }
 
+// FindByIDs mocks base method
+func (m *MockUserService) FindByIDs(id ...uint64) (types.UserSet, error) {
+	varargs := []interface{}{}
+	for _, a := range id {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "FindByIDs", varargs...)
+	ret0, _ := ret[0].(types.UserSet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByIDs indicates an expected call of FindByIDs
+func (mr *MockUserServiceMockRecorder) FindByIDs(id ...interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByIDs", reflect.TypeOf((*MockUserService)(nil).FindByIDs), id...)
+}
+
 // Find mocks base method
 func (m *MockUserService) Find(filter *types.UserFilter) (types.UserSet, error) {
 	ret := m.ctrl.Call(m, "Find", filter)

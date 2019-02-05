@@ -23,8 +23,8 @@ import (
 )
 
 var (
-	jwtVerifier      (func(http.Handler) http.Handler)
-	jwtAuthenticator (func(http.Handler) http.Handler)
+	jwtVerifier      func(http.Handler) http.Handler
+	jwtAuthenticator func(http.Handler) http.Handler
 	jwtEncoder       auth.TokenEncoder
 )
 

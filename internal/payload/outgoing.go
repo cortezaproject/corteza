@@ -7,7 +7,7 @@ import (
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/payload/outgoing"
-	samTypes "github.com/crusttech/crust/sam/types"
+	messagingTypes "github.com/crusttech/crust/messaging/types"
 	systemTypes "github.com/crusttech/crust/system/types"
 )
 
@@ -16,7 +16,7 @@ const (
 	attachmentPreviewURL = "/attachment/%d/preview.%s"
 )
 
-func Message(ctx context.Context, msg *samTypes.Message) *outgoing.Message {
+func Message(ctx context.Context, msg *messagingTypes.Message) *outgoing.Message {
 	var currentUserID = auth.GetIdentityFromContext(ctx).Identity()
 	var canEdit = msg.Type.IsEditable() && msg.UserID == currentUserID
 	var canReply = msg.Type.IsRepliable() && msg.ReplyTo == 0
@@ -48,7 +48,7 @@ func Message(ctx context.Context, msg *samTypes.Message) *outgoing.Message {
 	}
 }
 
-func Messages(ctx context.Context, msg samTypes.MessageSet) *outgoing.MessageSet {
+func Messages(ctx context.Context, msg messagingTypes.MessageSet) *outgoing.MessageSet {
 	msgs := make([]*outgoing.Message, len(msg))
 	for k, m := range msg {
 		msgs[k] = Message(ctx, m)
@@ -57,7 +57,7 @@ func Messages(ctx context.Context, msg samTypes.MessageSet) *outgoing.MessageSet
 	return &retval
 }
 
-func messageReactionSumSet(flags samTypes.MessageFlagSet) outgoing.MessageReactionSumSet {
+func messageReactionSumSet(flags messagingTypes.MessageFlagSet) outgoing.MessageReactionSumSet {
 	var (
 		rr     = make([]*outgoing.MessageReactionSum, 0)
 		rIndex = map[string]int{}
@@ -65,7 +65,7 @@ func messageReactionSumSet(flags samTypes.MessageFlagSet) outgoing.MessageReacti
 		i      int
 	)
 
-	_ = flags.Walk(func(flag *samTypes.MessageFlag) error {
+	_ = flags.Walk(func(flag *messagingTypes.MessageFlag) error {
 		if flag.IsReaction() {
 			r := &outgoing.MessageReactionSum{Reaction: flag.Flag, UserIDs: []string{}, Count: 0}
 
@@ -86,11 +86,11 @@ func messageReactionSumSet(flags samTypes.MessageFlagSet) outgoing.MessageReacti
 
 // Converts slice of mentions into slice of strings containing all user IDs
 // These are IDs of users mentioned in the message
-func messageMentionSet(mm samTypes.MentionSet) outgoing.MessageMentionSet {
+func messageMentionSet(mm messagingTypes.MentionSet) outgoing.MessageMentionSet {
 	return Uint64stoa(mm.UserIDs())
 }
 
-func MessageReaction(f *samTypes.MessageFlag) *outgoing.MessageReaction {
+func MessageReaction(f *messagingTypes.MessageFlag) *outgoing.MessageReaction {
 	return &outgoing.MessageReaction{
 		UserID:    f.UserID,
 		MessageID: f.MessageID,
@@ -98,7 +98,7 @@ func MessageReaction(f *samTypes.MessageFlag) *outgoing.MessageReaction {
 	}
 }
 
-func MessageReactionRemoved(f *samTypes.MessageFlag) *outgoing.MessageReactionRemoved {
+func MessageReactionRemoved(f *messagingTypes.MessageFlag) *outgoing.MessageReactionRemoved {
 	return &outgoing.MessageReactionRemoved{
 		UserID:    f.UserID,
 		MessageID: f.MessageID,
@@ -106,22 +106,22 @@ func MessageReactionRemoved(f *samTypes.MessageFlag) *outgoing.MessageReactionRe
 	}
 }
 
-func MessagePin(f *samTypes.MessageFlag) *outgoing.MessagePin {
+func MessagePin(f *messagingTypes.MessageFlag) *outgoing.MessagePin {
 	return &outgoing.MessagePin{
 		UserID:    f.UserID,
 		MessageID: f.MessageID,
 	}
 }
 
-func MessagePinRemoved(f *samTypes.MessageFlag) *outgoing.MessagePinRemoved {
+func MessagePinRemoved(f *messagingTypes.MessageFlag) *outgoing.MessagePinRemoved {
 	return &outgoing.MessagePinRemoved{
 		UserID:    f.UserID,
 		MessageID: f.MessageID,
 	}
 }
 
-func Channel(ch *samTypes.Channel) *outgoing.Channel {
-	var flag = samTypes.ChannelMembershipFlagNone
+func Channel(ch *messagingTypes.Channel) *outgoing.Channel {
+	var flag = messagingTypes.ChannelMembershipFlagNone
 
 	if ch.Member != nil {
 		flag = ch.Member.Flag
@@ -154,7 +154,7 @@ func Channel(ch *samTypes.Channel) *outgoing.Channel {
 	}
 }
 
-func Channels(channels samTypes.ChannelSet) *outgoing.ChannelSet {
+func Channels(channels messagingTypes.ChannelSet) *outgoing.ChannelSet {
 	cc := make([]*outgoing.Channel, len(channels))
 	for k, c := range channels {
 		cc[k] = Channel(c)
@@ -163,7 +163,7 @@ func Channels(channels samTypes.ChannelSet) *outgoing.ChannelSet {
 	return &retval
 }
 
-func ChannelMember(m *samTypes.ChannelMember) *outgoing.ChannelMember {
+func ChannelMember(m *messagingTypes.ChannelMember) *outgoing.ChannelMember {
 	return &outgoing.ChannelMember{
 		User:      User(m.User),
 		Type:      string(m.Type),
@@ -172,7 +172,7 @@ func ChannelMember(m *samTypes.ChannelMember) *outgoing.ChannelMember {
 	}
 }
 
-func ChannelMembers(members samTypes.ChannelMemberSet) *outgoing.ChannelMemberSet {
+func ChannelMembers(members messagingTypes.ChannelMemberSet) *outgoing.ChannelMemberSet {
 	mm := make([]*outgoing.ChannelMember, len(members))
 	for k, c := range members {
 		mm[k] = ChannelMember(c)
@@ -181,7 +181,7 @@ func ChannelMembers(members samTypes.ChannelMemberSet) *outgoing.ChannelMemberSe
 	return &retval
 }
 
-func Unread(v *samTypes.Unread) *outgoing.Unread {
+func Unread(v *messagingTypes.Unread) *outgoing.Unread {
 	if v == nil {
 		return nil
 	}
@@ -231,7 +231,7 @@ func Users(users []*systemTypes.User) *outgoing.UserSet {
 	return &retval
 }
 
-func Attachment(in *samTypes.Attachment) *outgoing.Attachment {
+func Attachment(in *messagingTypes.Attachment) *outgoing.Attachment {
 	if in == nil {
 		return nil
 	}
@@ -259,7 +259,7 @@ func Attachment(in *samTypes.Attachment) *outgoing.Attachment {
 	}
 }
 
-func Command(cmd *samTypes.Command) *outgoing.Command {
+func Command(cmd *messagingTypes.Command) *outgoing.Command {
 	if cmd == nil {
 		return nil
 	}
@@ -270,7 +270,7 @@ func Command(cmd *samTypes.Command) *outgoing.Command {
 	}
 }
 
-func Commands(cc samTypes.CommandSet) *outgoing.CommandSet {
+func Commands(cc messagingTypes.CommandSet) *outgoing.CommandSet {
 	out := make([]*outgoing.Command, len(cc))
 	for k, m := range cc {
 		out[k] = Command(m)

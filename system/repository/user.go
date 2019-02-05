@@ -186,6 +186,7 @@ func (r *user) prepare(user *types.User, fields ...string) (err error) {
 				}
 				user.Teams = teams
 			}
+		default:
 		}
 	}
 	return

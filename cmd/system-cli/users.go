@@ -9,7 +9,7 @@ import (
 
 	crmRepository "github.com/crusttech/crust/crm/repository"
 	"github.com/crusttech/crust/internal/payload"
-	messagingRepository "github.com/crusttech/crust/sam/repository"
+	messagingRepository "github.com/crusttech/crust/messaging/repository"
 	"github.com/crusttech/crust/system/service"
 	"github.com/crusttech/crust/system/types"
 )
