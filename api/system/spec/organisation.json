@@ -1,7 +1,6 @@
 {
   "Title": "Organisations",
   "Description": "Organisations represent a top-level grouping entity. There may be many organisations defined in a single deployment.",
-  "Package": "sam",
   "Interface": "Organisation",
   "Struct": null,
   "Parameters": null,

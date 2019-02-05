@@ -57,7 +57,7 @@ func (*Social) Init(prefix ...string) *Social {
 	}
 
 	social = new(Social)
-	flag.BoolVar(&social.Enabled, "auth-social-enabled", true, "SocialAuth enabled")
+	flag.BoolVar(&social.Enabled, "auth-social-enabled", false, "SocialAuth enabled")
 
 	b("Facebook", &social.FacebookKey, &social.FacebookSecret)
 	b("GPlus", &social.GPlusKey, &social.GPlusSecret)

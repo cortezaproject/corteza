@@ -1,7 +1,6 @@
 {
   "Title": "Triggers",
   "Description": "CRM Triggers",
-  "Package": "crm",
   "Interface": "Trigger",
   "Struct": null,
   "Parameters": null,

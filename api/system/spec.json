@@ -1,7 +1,6 @@
 [
   {
     "title": "Authentication",
-    "package": "auth",
     "path": "/auth",
     "entrypoint": "auth",
     "authentication": [],
@@ -47,7 +46,6 @@
   {
     "title": "Organisations",
     "description": "Organisations represent a top-level grouping entity. There may be many organisations defined in a single deployment.",
-    "package": "sam",
     "path": "/organisations",
     "entrypoint": "organisation",
     "authentication": [
@@ -164,7 +162,6 @@
   {
     "title": "Teams",
     "description": "An organisation may have many teams. Teams may have many channels available. Access to channels may be shared between teams.",
-    "package": "sam",
     "path": "/teams",
     "entrypoint": "team",
     "authentication": [
@@ -388,7 +385,6 @@
   },
   {
     "title": "Users",
-    "package": "sam",
     "path": "/users",
     "entrypoint": "user",
     "authentication": [

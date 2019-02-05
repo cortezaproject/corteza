@@ -1,7 +1,6 @@
 {
   "Title": "Notifications",
   "Description": "CRM Notifications",
-  "Package": "crm",
   "Interface": "Notification",
   "Struct": [
     {

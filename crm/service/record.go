@@ -114,26 +114,26 @@ func (svc *record) Find(moduleID uint64, filter, sort string, page, perPage int)
 
 }
 
-func (svc *record) Create(new *types.Record) (record *types.Record, err error) {
+func (svc *record) Create(in *types.Record) (record *types.Record, err error) {
 	var module *types.Module
 
 	err = svc.db.Transaction(func() (err error) {
-		if module, err = svc.moduleRepo.FindByID(new.ModuleID); err != nil {
+		if module, err = svc.moduleRepo.FindByID(in.ModuleID); err != nil {
 			return
 		}
 
-		if err = svc.sanitizeValues(module, new.Values); err != nil {
+		if err = svc.sanitizeValues(module, in.Values); err != nil {
 			return
 		}
 
-		new.OwnedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
-		new.CreatedBy = new.OwnedBy
-		new.CreatedAt = time.Now()
-		if record, err = svc.repository.Create(new); err != nil {
+		in.OwnedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
+		in.CreatedBy = in.OwnedBy
+		in.CreatedAt = time.Now()
+		if record, err = svc.repository.Create(in); err != nil {
 			return
 		}
 
-		if err = svc.repository.UpdateValues(record.ID, new.Values); err != nil {
+		if err = svc.repository.UpdateValues(record.ID, in.Values); err != nil {
 			return
 		}
 

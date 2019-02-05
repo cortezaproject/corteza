@@ -3,15 +3,17 @@ package service
 import (
 	"github.com/pkg/errors"
 
+	"github.com/crusttech/crust/crm/repository"
 	"github.com/crusttech/crust/internal/config"
 )
 
 type (
 	appFlags struct {
-		smtp    *config.SMTP
-		http    *config.HTTP
-		monitor *config.Monitor
-		db      *config.Database
+		smtp       *config.SMTP
+		http       *config.HTTP
+		monitor    *config.Monitor
+		db         *config.Database
+		repository *repository.Flags
 	}
 )
 
@@ -19,7 +21,7 @@ var flags *appFlags
 
 func (c *appFlags) Validate() error {
 	if c == nil {
-		return errors.New("CRM flags are not initialized, need to call Flags()")
+		return errors.New("Flags are not initialized, need to call Flags()")
 	}
 	if err := c.http.Validate(); err != nil {
 		return err
@@ -33,6 +35,9 @@ func (c *appFlags) Validate() error {
 	if err := c.db.Validate(); err != nil {
 		return err
 	}
+	if err := c.repository.Validate(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -41,7 +46,7 @@ func Flags(prefix ...string) {
 		return
 	}
 	if len(prefix) == 0 {
-		panic("crm.Flags() needs prefix on first call")
+		panic("Flags() needs prefix on first call")
 	}
 
 	flags = &appFlags{
@@ -49,5 +54,6 @@ func Flags(prefix ...string) {
 		new(config.HTTP).Init(prefix...),
 		new(config.Monitor).Init(prefix...),
 		new(config.Database).Init(prefix...),
+		new(repository.Flags).Init(prefix...),
 	}
 }

@@ -47,7 +47,7 @@ func (r *module) With(ctx context.Context, db *factory.DB) ModuleRepository {
 	}
 }
 
-// @todo: update to accepted DeletedAt column semantics from SAM
+// @todo: update to accepted DeletedAt column semantics from Messaging
 
 func (r *module) FindByID(id uint64) (mod *types.Module, err error) {
 	mod = &types.Module{}

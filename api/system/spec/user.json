@@ -1,6 +1,5 @@
 {
   "Title": "Users",
-  "Package": "sam",
   "Interface": "User",
   "Struct": [
     {

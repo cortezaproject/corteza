@@ -21,7 +21,7 @@ var flags *appFlags
 
 func (c *appFlags) Validate() error {
 	if c == nil {
-		return errors.New("AUTH flags are not initialized, need to call Flags() or FullFlags()")
+		return errors.New("Flags are not initialized, need to call Flags()")
 	}
 	if err := c.http.Validate(); err != nil {
 		return err
@@ -38,6 +38,9 @@ func (c *appFlags) Validate() error {
 	if err := c.oidc.Validate(); err != nil {
 		return err
 	}
+	if err := c.social.Validate(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -46,7 +49,7 @@ func Flags(prefix ...string) {
 		return
 	}
 	if len(prefix) == 0 {
-		panic("auth.Flags() needs prefix on first call")
+		panic("Flags() needs prefix on first call")
 	}
 	flags = &appFlags{
 		new(config.SMTP).Init(prefix...),

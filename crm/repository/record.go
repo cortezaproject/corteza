@@ -72,7 +72,7 @@ func (r *record) With(ctx context.Context, db *factory.DB) RecordRepository {
 	}
 }
 
-// @todo: update to accepted DeletedAt column semantics from SAM
+// @todo: update to accepted DeletedAt column semantics from Messaging
 
 func (r *record) FindByID(id uint64) (*types.Record, error) {
 	mod := &types.Record{}

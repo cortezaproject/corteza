@@ -1,7 +1,6 @@
 {
   "Title": "Pages",
   "Description": "CRM module pages",
-  "Package": "crm",
   "Interface": "Page",
   "Struct": [
     {
