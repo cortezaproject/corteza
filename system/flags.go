@@ -21,7 +21,7 @@ var flags *appFlags
 
 func (c *appFlags) Validate() error {
 	if c == nil {
-		return errors.New("Flags are not initialized, need to call Flags() or FullFlags()")
+		return errors.New("Flags are not initialized, need to call Flags()")
 	}
 	if err := c.http.Validate(); err != nil {
 		return err
@@ -36,6 +36,9 @@ func (c *appFlags) Validate() error {
 		return err
 	}
 	if err := c.oidc.Validate(); err != nil {
+		return err
+	}
+	if err := c.social.Validate(); err != nil {
 		return err
 	}
 	return nil
