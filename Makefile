@@ -1,11 +1,11 @@
-.PHONY: nothing docker docker-push realize dep dep.update test test.rbac test.sam test.crm qa critic vet codegen
+.PHONY: nothing docker docker-push realize dep dep.update test test.rbac test.messaging test.crm qa critic vet codegen
 
 PKG       = "github.com/$(shell cat .project)"
 
 GO        = go
 GOGET     = $(GO) get -u
 
-BASEPKGS = rbac system crm sam
+BASEPKGS = rbac system crm messaging
 IMAGES   = system crm messaging
 
 ########################################################################################################################
@@ -28,7 +28,7 @@ nothing:
 	@echo - vet - run go vet on all code
 	@echo - critic - run go critic on all code
 	@echo - test.crm - individual package unit tests
-	@echo - test.sam - individual package unit tests
+	@echo - test.messaging - individual package unit tests
 	@echo - test.rbac - individual package unit tests
 	@echo - test - run all available unit tests
 	@echo - qa - run vet, critic and test on code
@@ -74,22 +74,22 @@ test: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./...
 	$(GO) tool cover -func=.cover.out
 
-test.sam: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./sam/repository/... ./sam/service/...
+test.messaging: $(GOTEST)
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./messaging/repository/... ./messaging/service/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
-test.sam.db: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./sam/db/...
+test.messaging.db: $(GOTEST)
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./messaging/db/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.pubsub: $(GOTEST)
-	$(GOTEST) -run PubSubMemory -covermode count -coverprofile .cover.out -v ./sam/repository/pubsub*.go ./sam/repository/flags*.go ./sam/repository/error*.go
-	perl -pi -e 's/command-line-arguments/.\/sam\/repository/g' .cover.out
+	$(GOTEST) -run PubSubMemory -covermode count -coverprofile .cover.out -v ./messaging/repository/pubsub*.go ./messaging/repository/flags*.go ./messaging/repository/error*.go
+	perl -pi -e 's/command-line-arguments/.\/messaging\/repository/g' .cover.out
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.events: $(GOTEST)
-	$(GOTEST) -run Events -covermode count -coverprofile .cover.out -v ./sam/repository/events*.go ./sam/repository/flags*.go ./sam/repository/error*.go
-	perl -pi -e 's/command-line-arguments/.\/sam\/repository/g' .cover.out
+	$(GOTEST) -run Events -covermode count -coverprofile .cover.out -v ./messaging/repository/events*.go ./messaging/repository/flags*.go ./messaging/repository/error*.go
+	perl -pi -e 's/command-line-arguments/.\/messaging\/repository/g' .cover.out
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.crm: $(GOTEST)
@@ -149,9 +149,9 @@ mocks: $(GOMOCK)
 	# See https://github.com/golang/mock for details
 	$(MOCKGEN) -package service -source crm/service/notification.go -destination crm/service/notification_mock_test.go
 
-	$(MOCKGEN) -package service -source sam/service/attachment.go   -destination sam/service/attachment_mock_test.go
-	$(MOCKGEN) -package service -source sam/service/channel.go      -destination sam/service/channel_mock_test.go
-	$(MOCKGEN) -package service -source sam/service/message.go      -destination sam/service/message_mock_test.go
+	$(MOCKGEN) -package service -source messaging/service/attachment.go   -destination messaging/service/attachment_mock_test.go
+	$(MOCKGEN) -package service -source messaging/service/channel.go      -destination messaging/service/channel_mock_test.go
+	$(MOCKGEN) -package service -source messaging/service/message.go      -destination messaging/service/message_mock_test.go
 	$(MOCKGEN) -package service -source system/service/organisation.go -destination system/service/organisation_mock_test.go
 	$(MOCKGEN) -package service -source system/service/team.go         -destination system/service/team_mock_test.go
 	$(MOCKGEN) -package service -source system/service/user.go         -destination system/service/user_mock_test.go
