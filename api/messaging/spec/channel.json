@@ -1,7 +1,6 @@
 {
   "Title": "Channels",
   "Description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or group.",
-  "Package": "sam",
   "Interface": "Channel",
   "Struct": null,
   "Parameters": null,

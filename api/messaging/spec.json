@@ -2,7 +2,6 @@
   {
     "title": "Channels",
     "description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or group.",
-    "package": "sam",
     "entrypoint": "channel",
     "path": "/channels",
     "authentication": [
@@ -300,7 +299,6 @@
   },
   {
     "title": "Messages",
-    "package": "sam",
     "path": "/channels/{channelID}/messages",
     "parameters": {
       "path": [
@@ -566,7 +564,6 @@
   },
   {
     "title": "Attachments",
-    "package": "sam",
     "path": "/attachment/{attachmentID}",
     "parameters": {
       "path": [
@@ -685,7 +682,6 @@
   },
   {
     "title": "Permissions",
-    "package": "sam",
     "parameters": {},
     "entrypoint": "permissions",
     "authentication": [

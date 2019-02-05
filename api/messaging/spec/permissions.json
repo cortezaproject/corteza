@@ -1,6 +1,5 @@
 {
   "Title": "Permissions",
-  "Package": "sam",
   "Interface": "Permissions",
   "Struct": [
     {

@@ -2,7 +2,6 @@
   {
     "title": "Pages",
     "description": "CRM module pages",
-    "package": "crm",
     "entrypoint": "page",
     "path": "/page",
     "authentication": [],
@@ -198,7 +197,6 @@
   {
     "title": "Modules",
     "description": "CRM module definitions",
-    "package": "crm",
     "entrypoint": "module",
     "path": "/module",
     "authentication": [],
@@ -609,7 +607,6 @@
   {
     "title": "Triggers",
     "description": "CRM Triggers",
-    "package": "crm",
     "entrypoint": "trigger",
     "path": "/trigger",
     "authentication": [],
@@ -755,7 +752,6 @@
   {
     "title": "Notifications",
     "description": "CRM Notifications",
-    "package": "crm",
     "entrypoint": "notification",
     "path": "/notification",
     "authentication": [],

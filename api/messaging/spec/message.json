@@ -1,6 +1,5 @@
 {
   "Title": "Messages",
-  "Package": "sam",
   "Interface": "Message",
   "Struct": null,
   "Parameters": {

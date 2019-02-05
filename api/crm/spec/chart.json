@@ -1,6 +1,5 @@
 {
   "Title": "Charts",
-  "Package": "",
   "Interface": "Chart",
   "Struct": [
     {
