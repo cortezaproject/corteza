@@ -21,7 +21,7 @@ var flags *appFlags
 
 func (c *appFlags) Validate() error {
 	if c == nil {
-		return errors.New("SAM flags are not initialized, need to call Flags()")
+		return errors.New("Flags are not initialized, need to call Flags()")
 	}
 	if err := c.http.Validate(); err != nil {
 		return err
@@ -46,7 +46,7 @@ func Flags(prefix ...string) {
 		return
 	}
 	if len(prefix) == 0 {
-		panic("sam.Flags() needs prefix on first call")
+		panic("Flags() needs prefix on first call")
 	}
 
 	flags = &appFlags{

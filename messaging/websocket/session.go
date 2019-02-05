@@ -13,7 +13,7 @@ import (
 	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/internal/payload/outgoing"
 	"github.com/crusttech/crust/messaging/repository"
-	samService "github.com/crusttech/crust/messaging/service"
+	messagingService "github.com/crusttech/crust/messaging/service"
 	"github.com/crusttech/crust/messaging/types"
 	systemService "github.com/crusttech/crust/system/service"
 	systemTypes "github.com/crusttech/crust/system/types"
@@ -40,8 +40,8 @@ type (
 
 		svc struct {
 			user systemService.UserService
-			ch   samService.ChannelService
-			msg  samService.MessageService
+			ch   messagingService.ChannelService
+			msg  messagingService.MessageService
 		}
 	}
 )
@@ -57,8 +57,8 @@ func (Session) New(ctx context.Context, config *repository.Flags, conn *websocke
 	}
 
 	s.svc.user = systemService.DefaultUser
-	s.svc.ch = samService.DefaultChannel
-	s.svc.msg = samService.DefaultMessage
+	s.svc.ch = messagingService.DefaultChannel
+	s.svc.msg = messagingService.DefaultMessage
 
 	return s
 }

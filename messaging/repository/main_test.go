@@ -11,7 +11,7 @@ import (
 	"github.com/namsral/flag"
 	"github.com/titpetric/factory"
 
-	samMigrate "github.com/crusttech/crust/messaging/db"
+	messagingMigrate "github.com/crusttech/crust/messaging/db"
 	systemMigrate "github.com/crusttech/crust/system/db"
 )
 
@@ -19,7 +19,7 @@ func TestMain(m *testing.M) {
 	// @todo this is a very optimistic initialization, make it more robust
 	godotenv.Load("../../.env")
 
-	prefix := "sam"
+	prefix := "messaging"
 	dsn := ""
 
 	p := func(s string) string {
@@ -43,7 +43,7 @@ func TestMain(m *testing.M) {
 		log.Printf("Error running migrations: %+v\n", err)
 		return
 	}
-	if err := samMigrate.Migrate(db); err != nil {
+	if err := messagingMigrate.Migrate(db); err != nil {
 		log.Printf("Error running migrations: %+v\n", err)
 		return
 	}

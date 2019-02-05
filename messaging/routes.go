@@ -42,7 +42,7 @@ func mountRoutes(r chi.Router, opts *config.HTTP, mounts ...func(r chi.Router)) 
 		r.Use(middleware.Logger)
 	}
 	if opts.Metrics {
-		r.Use(metrics.Middleware("sam"))
+		r.Use(metrics.Middleware("messaging"))
 	}
 
 	for _, mount := range mounts {

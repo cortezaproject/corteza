@@ -7,12 +7,11 @@ import (
 	service "github.com/crusttech/crust/messaging"
 
 	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/mail"
 	"github.com/crusttech/crust/internal/rbac"
 )
 
 func main() {
-	flags("messaging", service.Flags, auth.Flags, rbac.Flags, mail.Flags)
+	flags("messaging", service.Flags, auth.Flags, rbac.Flags)
 
 	// log to stdout not stderr
 	log.SetOutput(os.Stdout)
