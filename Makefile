@@ -11,8 +11,6 @@ IMAGES   = system crm messaging
 ########################################################################################################################
 # Tool bins
 DEP      = $(GOPATH)/bin/dep
-SPEC      = $(GOPATH)/bin/spec
-PROTOC    = $(GOPATH)/bin/protoc-gen-go
 REALIZE   = ${GOPATH}/bin/realize
 GOTEST    = ${GOPATH}/bin/gotest
 GOCRITIC  = ${GOPATH}/bin/gocritic
@@ -61,7 +59,7 @@ dep.update: $(DEP)
 dep: $(DEP)
 	$(DEP) ensure -v
 
-codegen: $(SPEC) dep.codegen
+codegen: dep.codegen
 	@PATH=${PATH}:${GOPATH}/bin ./codegen.sh
 
 mailhog.up:
@@ -172,12 +170,6 @@ $(GOTEST):
 $(REALIZE):
 	$(GOGET) github.com/tockins/realize
 
-$(SPEC):
-	$(GOGET) github.com/titpetric/spec/cmd/spec
-
-$(PROTOC):
-	$(GOGET) github.com/golang/protobuf/protoc-gen-go
-
 $(GOCRITIC):
 	$(GOGET) github.com/go-critic/go-critic/...
 
@@ -189,6 +181,6 @@ $(MOCKGEN):
 	$(GOGET) github.com/golang/mock/mockgen
 
 clean:
-	rm -f $(SPEC) $(PROTOC) $(REALIZE) $(GOCRITIC) $(GOTEST)
+	rm -f $(REALIZE) $(GOCRITIC) $(GOTEST)
 
 
