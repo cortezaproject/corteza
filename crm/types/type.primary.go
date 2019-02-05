@@ -28,16 +28,6 @@ type (
 	//
 	// This type is auto-generated.
 	RecordSet []*Record
-
-	// ModuleFieldSet slice of ModuleField
-	//
-	// This type is auto-generated.
-	ModuleFieldSet []*ModuleField
-
-	// RecordValueSet slice of RecordValue
-	//
-	// This type is auto-generated.
-	RecordValueSet []*RecordValue
 )
 
 // Walk iterates through every slice item and calls w(Module) err
@@ -315,66 +305,6 @@ func (set RecordSet) IDs() (IDs []uint64) {
 
 	for i := range set {
 		IDs[i] = set[i].ID
-	}
-
-	return
-}
-
-// Walk iterates through every slice item and calls w(ModuleField) err
-//
-// This function is auto-generated.
-func (set ModuleFieldSet) Walk(w func(*ModuleField) error) (err error) {
-	for i := range set {
-		if err = w(set[i]); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-// Filter iterates through every slice item, calls f(ModuleField) (bool, err) and return filtered slice
-//
-// This function is auto-generated.
-func (set ModuleFieldSet) Filter(f func(*ModuleField) (bool, error)) (out ModuleFieldSet, err error) {
-	var ok bool
-	out = ModuleFieldSet{}
-	for i := range set {
-		if ok, err = f(set[i]); err != nil {
-			return
-		} else if ok {
-			out = append(out, set[i])
-		}
-	}
-
-	return
-}
-
-// Walk iterates through every slice item and calls w(RecordValue) err
-//
-// This function is auto-generated.
-func (set RecordValueSet) Walk(w func(*RecordValue) error) (err error) {
-	for i := range set {
-		if err = w(set[i]); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-// Filter iterates through every slice item, calls f(RecordValue) (bool, err) and return filtered slice
-//
-// This function is auto-generated.
-func (set RecordValueSet) Filter(f func(*RecordValue) (bool, error)) (out RecordValueSet, err error) {
-	var ok bool
-	out = RecordValueSet{}
-	for i := range set {
-		if ok, err = f(set[i]); err != nil {
-			return
-		} else if ok {
-			out = append(out, set[i])
-		}
 	}
 
 	return
