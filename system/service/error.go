@@ -5,5 +5,5 @@ type (
 )
 
 func (e serviceError) Error() string {
-	return "crust.sam.service." + string(e)
+	return "crust.messaging.service." + string(e)
 }
