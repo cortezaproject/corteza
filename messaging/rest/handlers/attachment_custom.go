@@ -27,7 +27,8 @@ func NewAttachmentDownloadable(ah AttachmentAPI) *Attachment {
 	serve := func(f interface{}, err error, w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			switch true {
-			case err.Error() == "crust.sam.repository.AttachmentNotFound":
+			// @todo: compare concrete exported error type? Go2 .As() like check?
+			case err.Error() == "crust.messaging.repository.AttachmentNotFound":
 				w.WriteHeader(http.StatusNotFound)
 			default:
 				http.Error(w, err.Error(), http.StatusInternalServerError)
