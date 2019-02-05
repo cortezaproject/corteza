@@ -4,8 +4,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/crusttech/crust/sam/repository"
-	"github.com/crusttech/crust/sam/types"
+	"github.com/crusttech/crust/messaging/repository"
+	"github.com/crusttech/crust/messaging/types"
 )
 
 // Sends message to subscribers

@@ -9,7 +9,7 @@ import (
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/sam/repository"
+	"github.com/crusttech/crust/messaging/repository"
 	systemService "github.com/crusttech/crust/system/service"
 )
 

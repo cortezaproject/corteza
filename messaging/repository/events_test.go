@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/crusttech/crust/sam/types"
+	"github.com/crusttech/crust/messaging/types"
 )
 
 func TestEvents(t *testing.T) {

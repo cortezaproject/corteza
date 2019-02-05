@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	service "github.com/crusttech/crust/sam"
+	service "github.com/crusttech/crust/messaging"
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/rbac"

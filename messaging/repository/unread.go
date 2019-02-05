@@ -5,7 +5,7 @@ import (
 
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/sam/types"
+	"github.com/crusttech/crust/messaging/types"
 )
 
 type (

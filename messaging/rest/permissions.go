@@ -3,9 +3,9 @@ package rest
 import (
 	"context"
 
-	"github.com/crusttech/crust/sam/rest/request"
-	"github.com/crusttech/crust/sam/service"
-	_ "github.com/crusttech/crust/sam/types"
+	"github.com/crusttech/crust/messaging/rest/request"
+	"github.com/crusttech/crust/messaging/service"
+	_ "github.com/crusttech/crust/messaging/types"
 )
 
 type Permissions struct {

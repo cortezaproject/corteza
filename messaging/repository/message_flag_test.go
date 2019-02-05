@@ -7,7 +7,7 @@ import (
 
 	"testing"
 
-	"github.com/crusttech/crust/sam/types"
+	"github.com/crusttech/crust/messaging/types"
 )
 
 func TestReaction(t *testing.T) {

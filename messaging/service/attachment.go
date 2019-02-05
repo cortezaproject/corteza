@@ -17,8 +17,8 @@ import (
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/internal/store"
-	"github.com/crusttech/crust/sam/repository"
-	"github.com/crusttech/crust/sam/types"
+	"github.com/crusttech/crust/messaging/repository"
+	"github.com/crusttech/crust/messaging/types"
 	systemService "github.com/crusttech/crust/system/service"
 )
 

@@ -8,8 +8,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/crusttech/crust/internal/payload"
-	"github.com/crusttech/crust/sam/repository"
-	"github.com/crusttech/crust/sam/types"
+	"github.com/crusttech/crust/messaging/repository"
+	"github.com/crusttech/crust/messaging/types"
 	systemService "github.com/crusttech/crust/system/service"
 	systemTypes "github.com/crusttech/crust/system/types"
 )

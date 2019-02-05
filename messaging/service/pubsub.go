@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/crusttech/crust/sam/repository"
+	"github.com/crusttech/crust/messaging/repository"
 )
 
 type pubSub struct {

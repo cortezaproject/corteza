@@ -13,7 +13,7 @@ import (
 	"github.com/titpetric/factory"
 	"github.com/titpetric/statik/fs"
 
-	"github.com/crusttech/crust/sam/db/mysql"
+	"github.com/crusttech/crust/messaging/db/mysql"
 )
 
 func statements(contents []byte, err error) ([]string, error) {

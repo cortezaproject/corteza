@@ -2,7 +2,7 @@ package types
 
 import "github.com/crusttech/crust/internal/rules"
 
-/* File is generated from sam/types/permissions/1-organisation.json with permissions.go */
+/* File is generated from messaging/types/permissions/1-organisation.json with permissions.go */
 
 func (c *Organisation) Permissions() []rules.OperationGroup {
 	return []rules.OperationGroup{
