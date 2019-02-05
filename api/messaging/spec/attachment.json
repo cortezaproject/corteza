@@ -1,6 +1,5 @@
 {
   "Title": "Attachments",
-  "Package": "sam",
   "Interface": "Attachment",
   "Struct": null,
   "Parameters": {

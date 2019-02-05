@@ -1,7 +1,6 @@
 {
   "Title": "Modules",
   "Description": "CRM module definitions",
-  "Package": "crm",
   "Interface": "Module",
   "Struct": [
     {

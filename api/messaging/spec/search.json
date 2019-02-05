@@ -1,6 +1,5 @@
 {
   "Title": "Search entry point",
-  "Package": "",
   "Interface": "Search",
   "Struct": null,
   "Parameters": {
