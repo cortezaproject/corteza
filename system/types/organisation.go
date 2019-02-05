@@ -20,3 +20,12 @@ type (
 		Query string
 	}
 )
+
+// Resource returns a system resource ID for this type
+func (r *Organisation) Resource() Resource {
+	return Resource{
+		ID:    r.ID,
+		Name:  r.Name,
+		Scope: "organisation",
+	}
+}
