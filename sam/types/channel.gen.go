@@ -1,5 +1,9 @@
 package types
 
+import (
+	"github.com/crusttech/crust/system/types"
+)
+
 // 	Hello! This file is auto-generated.
 
 type (
@@ -61,6 +65,19 @@ func (set ChannelSet) IDs() (IDs []uint64) {
 
 	for i := range set {
 		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Resources returns a slice of types.Resource from all items in the set
+//
+// This function is auto-generated.
+func (set ChannelSet) Resources() (Resources []types.Resource) {
+	Resources = make([]types.Resource, len(set))
+
+	for i := range set {
+		Resources[i] = set[i].Resource()
 	}
 
 	return
