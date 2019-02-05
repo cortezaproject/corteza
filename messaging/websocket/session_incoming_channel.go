@@ -7,7 +7,7 @@ import (
 	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/internal/payload/incoming"
 	"github.com/crusttech/crust/internal/payload/outgoing"
-	"github.com/crusttech/crust/sam/types"
+	"github.com/crusttech/crust/messaging/types"
 )
 
 func (s *Session) channelJoin(ctx context.Context, p *incoming.ChannelJoin) error {

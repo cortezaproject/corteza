@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/crusttech/crust/sam/rest/request"
+	"github.com/crusttech/crust/messaging/rest/request"
 )
 
 // HTTP API interface

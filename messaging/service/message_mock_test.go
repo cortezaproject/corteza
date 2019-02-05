@@ -6,7 +6,7 @@ package service
 
 import (
 	context "context"
-	types "github.com/crusttech/crust/sam/types"
+	types "github.com/crusttech/crust/messaging/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

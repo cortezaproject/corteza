@@ -10,7 +10,7 @@ import (
 	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/internal/payload/incoming"
 	"github.com/crusttech/crust/internal/payload/outgoing"
-	"github.com/crusttech/crust/sam/types"
+	"github.com/crusttech/crust/messaging/types"
 )
 
 func (s *Session) execCommand(ctx context.Context, c *incoming.ExecCommand) error {

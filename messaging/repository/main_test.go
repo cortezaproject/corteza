@@ -11,7 +11,7 @@ import (
 	"github.com/namsral/flag"
 	"github.com/titpetric/factory"
 
-	samMigrate "github.com/crusttech/crust/sam/db"
+	samMigrate "github.com/crusttech/crust/messaging/db"
 	systemMigrate "github.com/crusttech/crust/system/db"
 )
 

@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/crusttech/crust/internal/rules"
-	"github.com/crusttech/crust/sam/repository"
+	"github.com/crusttech/crust/messaging/repository"
 )
 
 type (

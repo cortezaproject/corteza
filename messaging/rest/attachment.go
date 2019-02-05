@@ -2,10 +2,10 @@ package rest
 
 import (
 	"context"
-	"github.com/crusttech/crust/sam/rest/handlers"
-	"github.com/crusttech/crust/sam/rest/request"
-	"github.com/crusttech/crust/sam/service"
-	"github.com/crusttech/crust/sam/types"
+	"github.com/crusttech/crust/messaging/rest/handlers"
+	"github.com/crusttech/crust/messaging/rest/request"
+	"github.com/crusttech/crust/messaging/service"
+	"github.com/crusttech/crust/messaging/types"
 	"github.com/pkg/errors"
 	"io"
 	"time"

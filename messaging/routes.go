@@ -16,8 +16,8 @@ import (
 	"github.com/crusttech/crust/internal/config"
 	"github.com/crusttech/crust/internal/metrics"
 	"github.com/crusttech/crust/internal/version"
-	"github.com/crusttech/crust/sam/rest"
-	"github.com/crusttech/crust/sam/websocket"
+	"github.com/crusttech/crust/messaging/rest"
+	"github.com/crusttech/crust/messaging/websocket"
 )
 
 func Routes(ctx context.Context) *chi.Mux {

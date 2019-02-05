@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi"
 
-	"github.com/crusttech/crust/sam/repository"
+	"github.com/crusttech/crust/messaging/repository"
 )
 
 func MountRoutes(ctx context.Context, config *repository.Flags) func(chi.Router) {

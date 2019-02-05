@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/sam/types"
+	"github.com/crusttech/crust/messaging/types"
 	systemTypes "github.com/crusttech/crust/system/types"
 )
 

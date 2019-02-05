@@ -12,9 +12,9 @@ import (
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/internal/payload/outgoing"
-	"github.com/crusttech/crust/sam/repository"
-	samService "github.com/crusttech/crust/sam/service"
-	"github.com/crusttech/crust/sam/types"
+	"github.com/crusttech/crust/messaging/repository"
+	samService "github.com/crusttech/crust/messaging/service"
+	"github.com/crusttech/crust/messaging/types"
 	systemService "github.com/crusttech/crust/system/service"
 	systemTypes "github.com/crusttech/crust/system/types"
 )

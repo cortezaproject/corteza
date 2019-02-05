@@ -7,7 +7,7 @@ import (
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/payload/outgoing"
-	samTypes "github.com/crusttech/crust/sam/types"
+	samTypes "github.com/crusttech/crust/messaging/types"
 	systemTypes "github.com/crusttech/crust/system/types"
 )
 

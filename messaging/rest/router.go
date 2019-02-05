@@ -4,7 +4,7 @@ import (
 	"github.com/go-chi/chi"
 
 	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/sam/rest/handlers"
+	"github.com/crusttech/crust/messaging/rest/handlers"
 )
 
 func MountRoutes() func(chi.Router) {

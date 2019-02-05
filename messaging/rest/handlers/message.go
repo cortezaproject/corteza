@@ -22,7 +22,7 @@ import (
 
 	"github.com/titpetric/factory/resputil"
 
-	"github.com/crusttech/crust/sam/rest/request"
+	"github.com/crusttech/crust/messaging/rest/request"
 )
 
 // Internal API interface
