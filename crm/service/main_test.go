@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 	// @todo this is a very optimistic initialization, make it more robust
 	godotenv.Load("../../.env")
 
-	prefix := "sam"
+	prefix := "crm"
 	dsn := ""
 
 	p := func(s string) string {
