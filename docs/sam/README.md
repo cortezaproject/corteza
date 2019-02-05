@@ -492,7 +492,7 @@ The following event types may be sent with a message event:
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | team | string | PATH | Team ID | N/A | YES |
-| permissions | []rbac.Permission | POST | List of permissions to set | N/A | YES |
+| permissions | []rules.Permission | POST | List of permissions to set | N/A | YES |
 
 
 
