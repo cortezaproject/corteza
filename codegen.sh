@@ -22,9 +22,9 @@ function permissions {
 		CGO_ENABLED=0 go build -o ./build/gen-permissions codegen/v2/permissions.go 
 	fi
 	
-	./build/gen-permissions -package types -function "func (c *Organisation) Permissions() []rules.OperationGroup" -input sam/types/permissions/1-organisation.json -output sam/types/organisation.perms.go
-	./build/gen-permissions -package types -function "func (c *Team) Permissions() []rules.OperationGroup" -input sam/types/permissions/2-team.json -output sam/types/team.perms.go
-	./build/gen-permissions -package types -function "func (c *Channel) Permissions() []rules.OperationGroup" -input sam/types/permissions/3-channel.json -output sam/types/channel.perms.go
+	./build/gen-permissions -package types -function "func (c *Organisation) Permissions() []rules.OperationGroup" -input sam/types/permissions/1-organisation.json -output sam/types/organisation.perms.gen.go
+	./build/gen-permissions -package types -function "func (c *Team) Permissions() []rules.OperationGroup" -input sam/types/permissions/2-team.json -output sam/types/team.perms.gen.go
+	./build/gen-permissions -package types -function "func (c *Channel) Permissions() []rules.OperationGroup" -input sam/types/permissions/3-channel.json -output sam/types/channel.perms.gen.go
 
 	green "OK"
 }
@@ -38,19 +38,22 @@ function types {
 	fi
 
 	./build/gen-type-set --types Module,Page,Chart,Trigger,Record \
-	                      --no-pk-types ModuleField,RecordValue \
-	                      --output crm/types/type.gen.go
+	                      --output crm/types/type.primary.gen.go
+	./build/gen-type-set --with-primary-key=false --types ModuleField,RecordValue \
+	                      --output crm/types/type.other.gen.go
 
 	./build/gen-type-set --types MessageAttachment --output sam/types/attachment.gen.go
-	./build/gen-type-set --types Channel --output sam/types/channel.gen.go
-	./build/gen-type-set --no-pk-types ChannelMember --output sam/types/channel_member.gen.go
-	./build/gen-type-set --no-pk-types Command,CommandParam --output sam/types/command.gen.go
+	./build/gen-type-set --with-resources=true --types Channel --resource-type "types.Resource" --imports "github.com/crusttech/crust/system/types" --output sam/types/channel.gen.go
+	./build/gen-type-set --with-primary-key=false --types ChannelMember --output sam/types/channel_member.gen.go
+	./build/gen-type-set --with-primary-key=false --types Command,CommandParam --output sam/types/command.gen.go
 	./build/gen-type-set --types Mention --output sam/types/mention.gen.go
 	./build/gen-type-set --types MessageFlag --output sam/types/message_flag.gen.go
 	./build/gen-type-set --types Message --output sam/types/message.gen.go
-	./build/gen-type-set --no-pk-types Unread --output sam/types/unread.gen.go
+	./build/gen-type-set --with-primary-key=false --types Unread --output sam/types/unread.gen.go
 
 	./build/gen-type-set --types User --output system/types/user.gen.go
+	./build/gen-type-set --with-resources=true --resource-type "Resource" --types Team --output system/types/team.gen.go
+	./build/gen-type-set --with-resources=true --resource-type "Resource" --types Organisation --output system/types/organisation.gen.go
 	./build/gen-type-set --types Credentials --output system/types/credentials.gen.go
 	green "OK"
 }

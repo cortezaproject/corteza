@@ -15,22 +15,30 @@ import (
 
 const tmplTypeSet = `package types
 
+{{ if .Imports }}
+import (
+	{{ range $i, $import := .Imports }}
+	"{{ $import }}"
+	{{ end }}
+)
+{{ end }}
+
 // 	Hello! This file is auto-generated.
 
 type (
 {{ range $i, $set := .Sets }}
-	// {{ $set.Name }}Set slice of {{ $set.Name }}
+	// {{ $set }}Set slice of {{ $set }}
 	//
 	// This type is auto-generated.
-	{{ $set.Name }}Set []*{{ $set.Name }}
+	{{ $set }}Set []*{{ $set }}
 {{ end }}
 )
 
 {{ range $i, $set := .Sets }}
-// Walk iterates through every slice item and calls w({{ $set.Name }}) err
+// Walk iterates through every slice item and calls w({{ $set }}) err
 //
 // This function is auto-generated.
-func (set {{ $set.Name }}Set) Walk(w func(*{{ $set.Name }}) error) (err error) {
+func (set {{ $set }}Set) Walk(w func(*{{ $set }}) error) (err error) {
 	for i := range set {
 		if err = w(set[i]); err != nil {
 			return
@@ -40,12 +48,12 @@ func (set {{ $set.Name }}Set) Walk(w func(*{{ $set.Name }}) error) (err error) {
 	return
 }
 
-// Filter iterates through every slice item, calls f({{ $set.Name }}) (bool, err) and return filtered slice
+// Filter iterates through every slice item, calls f({{ $set }}) (bool, err) and return filtered slice
 //
 // This function is auto-generated.
-func (set {{ $set.Name }}Set) Filter(f func(*{{ $set.Name }}) (bool, error)) (out {{ $set.Name }}Set, err error) {
+func (set {{ $set }}Set) Filter(f func(*{{ $set }}) (bool, error)) (out {{ $set }}Set, err error) {
 	var ok bool
-	out = {{ $set.Name }}Set{}
+	out = {{ $set }}Set{}
 	for i := range set {
 		if ok, err = f(set[i]); err != nil {
 			return
@@ -57,11 +65,11 @@ func (set {{ $set.Name }}Set) Filter(f func(*{{ $set.Name }}) (bool, error)) (ou
 	return
 }
 
-{{ if $set.PK }}
+{{ if $.WithPrimaryKey }}
 // FindByID finds items from slice by its ID property
 //
 // This function is auto-generated.
-func (set {{ $set.Name }}Set) FindByID(ID uint64) *{{ $set.Name }} {
+func (set {{ $set }}Set) FindByID(ID uint64) *{{ $set }} {
 	for i := range set {
 		if set[i].ID == ID {
 			return set[i]
@@ -74,7 +82,7 @@ func (set {{ $set.Name }}Set) FindByID(ID uint64) *{{ $set.Name }} {
 // IDs returns a slice of uint64s from all items in the set
 //
 // This function is auto-generated.
-func (set {{ $set.Name }}Set) IDs() (IDs []uint64) {
+func (set {{ $set }}Set) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {
@@ -83,6 +91,23 @@ func (set {{ $set.Name }}Set) IDs() (IDs []uint64) {
 
 	return
 }
+
+{{ end }}
+
+{{ if $.WithResources }}
+// Resources returns a slice of types.Resource from all items in the set
+//
+// This function is auto-generated.
+func (set {{ $set }}Set) Resources() (Resources []{{ $.ResourceType }}) {
+	Resources = make([]{{ $.ResourceType }}, len(set))
+
+	for i := range set {
+		Resources[i] = set[i].Resource()
+	}
+
+	return
+}
+
 {{ end }}
 {{ end }}
 `
@@ -92,36 +117,43 @@ func main() {
 
 	tpl := template.Must(template.Must(t.Clone()).Parse(tmplTypeSet))
 
-	type (
-		set struct {
-			Name string
-			PK   bool
-		}
-	)
 	var (
-		stdTypesStr, nopkTypesStr, outputFile string
-		output                                io.Writer
+		importsStr,
+		stdTypesStr,
+		outputFile string
+		output io.Writer
 	)
 
+	payload := struct {
+		Sets    []string
+		Imports []string
+
+		ResourceType string
+
+		WithPrimaryKey bool
+		WithResources  bool
+	}{}
+
 	flag.StringVar(&stdTypesStr, "types", "", "Comma separated list of types")
-	flag.StringVar(&nopkTypesStr, "no-pk-types", "", "Comma separated list of types without ID field")
+	flag.StringVar(&importsStr, "imports", "", "Comma separated list of imports")
+
+	flag.BoolVar(&payload.WithPrimaryKey, "with-primary-key", true, "Generate types with ID field")
+
+	flag.BoolVar(&payload.WithResources, "with-resources", false, "Generate Resources() functions")
+	flag.StringVar(&payload.ResourceType, "resource-type", "Resource", "Resource type name to use (with imports)")
+
 	flag.StringVar(&outputFile, "output", "", "JWT Expiration in minutes")
 
 	flag.Parse()
-
-	payload := struct {
-		Sets []set
-	}{}
-
-	for _, name := range strings.Split(stdTypesStr, ",") {
+	for _, name := range strings.Split(importsStr, ",") {
 		if name = strings.TrimSpace(name); len(name) > 0 {
-			payload.Sets = append(payload.Sets, set{Name: name, PK: true})
+			payload.Imports = append(payload.Imports, name)
 		}
 	}
 
-	for _, name := range strings.Split(nopkTypesStr, ",") {
+	for _, name := range strings.Split(stdTypesStr, ",") {
 		if name = strings.TrimSpace(name); len(name) > 0 {
-			payload.Sets = append(payload.Sets, set{Name: name, PK: false})
+			payload.Sets = append(payload.Sets, name)
 		}
 	}
 
