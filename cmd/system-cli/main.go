@@ -44,5 +44,6 @@ func cliRouter(commands ...string) {
 	switch commands[0] {
 	case "users":
 		cliExecUsers(commands[1:]...)
+	default:
 	}
 }

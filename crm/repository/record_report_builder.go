@@ -159,6 +159,7 @@ func (b recordReportBuilder) Cast(row sqlx.ColScanner) map[string]interface{} {
 		switch cv := v.(type) {
 		case []uint8:
 			out[k] = string(cv)
+		default:
 		}
 	}
 
