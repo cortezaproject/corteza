@@ -1,9 +1,11 @@
 package types
 
 import (
-	"encoding/json"
-	"fmt"
 	"time"
+
+	"encoding/json"
+
+	"github.com/crusttech/crust/system/types"
 )
 
 type (
@@ -53,19 +55,13 @@ type (
 	ChannelType string
 )
 
-// Scope returns permissions group that for this type
-func (c *Channel) Scope() string {
-	return "channel"
-}
-
-// Resource returns a RBAC resource ID for this type
-func (c *Channel) Resource() string {
-	return fmt.Sprintf("%s:%d", c.Scope(), c.ID)
-}
-
-// Operation returns a RBAC resource-scoped role name for an operation
-func (c *Channel) Operation(name string) string {
-	return fmt.Sprintf("%s/%s", c.Resource(), name)
+// Resource returns a system resource ID for this type
+func (r *Channel) Resource() types.Resource {
+	return types.Resource{
+		ID:    r.ID,
+		Name:  r.Name,
+		Scope: "channel",
+	}
 }
 
 func (c *Channel) IsValid() bool {

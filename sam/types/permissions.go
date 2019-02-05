@@ -1,15 +1,12 @@
 package types
 
 import (
-	"github.com/crusttech/crust/internal/rules"
+	"github.com/crusttech/crust/system/types"
 )
 
 type (
 	ResourceProvider interface {
-		Scope() string
-		Resource() string
-		Operation(name string) string
-		Permissions() []rules.OperationGroup
+		Resource() types.Resource
 	}
 )
 
