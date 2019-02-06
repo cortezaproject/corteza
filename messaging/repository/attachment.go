@@ -43,7 +43,7 @@ const (
 
 	sqlAttachmentByMessageID = `SELECT ` + sqlAttachmentColumns + `, rel_message
 		      FROM attachments AS a
-		           INNER JOIN message_attachment AS ma ON a.id = ma.rel_attachment 
+		           INNER JOIN messaging_message_attachment AS ma ON a.id = ma.rel_attachment 
 		     WHERE ma.rel_message IN (?) AND ` + sqlAttachmentScope
 
 	ErrAttachmentNotFound = repositoryError("AttachmentNotFound")
@@ -99,7 +99,7 @@ func (r *attachment) BindAttachment(attachmentId, messageId uint64) error {
 		RelMessage    uint64 `db:"rel_message"`
 	}{attachmentId, messageId}
 
-	return r.db().Insert("message_attachment", bond)
+	return r.db().Insert("messaging_message_attachment", bond)
 }
 
 func (r *attachment) CountOwned(userID uint64) (c int, err error) {
