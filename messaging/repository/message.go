@@ -53,37 +53,37 @@ const (
 	sqlMessageScope = "deleted_at IS NULL"
 
 	sqlMessagesSelect = `SELECT ` + sqlMessageColumns + `
-        FROM messages
+        FROM messaging_message
        WHERE ` + sqlMessageScope
 
 	sqlMessagesThreads = "WITH originals AS (" +
 		" SELECT id AS original_id " +
-		"   FROM messages " +
+		"   FROM messaging_message " +
 		"  WHERE " + sqlMessageScope +
 		"    AND rel_channel IN " + sqlChannelAccess +
 		"    AND reply_to = 0 " +
 		"    AND replies > 0 " +
 		// for finding only threads we've created or replied to
-		"    AND (rel_user = ? OR id IN (SELECT DISTINCT reply_to FROM messages WHERE rel_user = ?))" +
+		"    AND (rel_user = ? OR id IN (SELECT DISTINCT reply_to FROM messaging_message WHERE rel_user = ?))" +
 		"  ORDER BY id DESC " +
 		"  LIMIT ? " +
 		")" +
 		" SELECT " + sqlMessageColumns +
-		"   FROM messages, originals " +
+		"   FROM messaging_message, originals " +
 		"  WHERE " + sqlMessageScope +
 		"    AND original_id IN (id, reply_to)"
 
-	sqlThreadParticipantsByMessageID = "SELECT DISTINCT reply_to, rel_user FROM messages WHERE reply_to IN (?)"
+	sqlThreadParticipantsByMessageID = "SELECT DISTINCT reply_to, rel_user FROM messaging_message WHERE reply_to IN (?)"
 
 	sqlCountFromMessageID = "SELECT COUNT(*) AS count " +
-		"FROM messages " +
+		"FROM messaging_message " +
 		"WHERE rel_channel = ? " +
 		"AND reply_to = ? " +
 		"AND COALESCE(type, '') NOT IN (?) " +
 		"AND id > ? AND deleted_at IS NULL"
 
-	sqlMessageRepliesIncCount = `UPDATE messages SET replies = replies + 1 WHERE id = ? AND reply_to = 0`
-	sqlMessageRepliesDecCount = `UPDATE messages SET replies = replies - 1 WHERE id = ? AND reply_to = 0`
+	sqlMessageRepliesIncCount = `UPDATE messaging_message SET replies = replies + 1 WHERE id = ? AND reply_to = 0`
+	sqlMessageRepliesDecCount = `UPDATE messaging_message SET replies = replies - 1 WHERE id = ? AND reply_to = 0`
 
 	ErrMessageNotFound = repositoryError("MessageNotFound")
 )
@@ -256,17 +256,17 @@ func (r *message) CreateMessage(mod *types.Message) (*types.Message, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
-	return mod, r.db().Insert("messages", mod)
+	return mod, r.db().Insert("messaging_message", mod)
 }
 
 func (r *message) UpdateMessage(mod *types.Message) (*types.Message, error) {
 	mod.UpdatedAt = timeNowPtr()
 
-	return mod, r.db().Replace("messages", mod)
+	return mod, r.db().Replace("messaging_message", mod)
 }
 
 func (r *message) DeleteMessageByID(ID uint64) error {
-	return r.updateColumnByID("messages", "deleted_at", time.Now(), ID)
+	return r.updateColumnByID("messaging_message", "deleted_at", time.Now(), ID)
 }
 
 func (r *message) IncReplyCount(ID uint64) error {
@@ -281,23 +281,23 @@ func (r *message) DecReplyCount(ID uint64) error {
 
 func (r *message) CountOwned(userID uint64) (c int, err error) {
 	return c, r.db().Get(&c,
-		"SELECT COUNT(*) FROM messages WHERE rel_user = ?",
+		"SELECT COUNT(*) FROM messaging_message WHERE rel_user = ?",
 		userID)
 }
 
 func (r *message) CountUserTags(userID uint64) (c int, err error) {
 	return c, r.db().Get(&c,
-		"SELECT COUNT(*) FROM messages WHERE message LIKE ?",
+		"SELECT COUNT(*) FROM messaging_message WHERE message LIKE ?",
 		fmt.Sprintf("%%@%d%%", userID))
 }
 
 func (r *message) ChangeOwner(userID, target uint64) error {
-	_, err := r.db().Exec("UPDATE messages SET rel_user = ? WHERE rel_user = ?", target, userID)
+	_, err := r.db().Exec("UPDATE messaging_message SET rel_user = ? WHERE rel_user = ?", target, userID)
 	return err
 }
 
 func (r *message) ChangeUserTag(userID, target uint64) error {
-	_, err := r.db().Exec("UPDATE messages SET message = replace(message, ?, ?) WHERE message LIKE ?",
+	_, err := r.db().Exec("UPDATE messaging_message SET message = replace(message, ?, ?) WHERE message LIKE ?",
 		fmt.Sprintf("@%d", userID),
 		fmt.Sprintf("@%d", target),
 		fmt.Sprintf("%%@%d%%", userID))
