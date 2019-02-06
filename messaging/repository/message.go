@@ -160,7 +160,7 @@ func (r *message) FindMessages(filter *types.MessageFilter) (types.MessageSet, e
 	}
 
 	if filter.BookmarkedOnly || filter.PinnedOnly {
-		sql += " AND id IN (SELECT rel_message FROM message_flags WHERE flag = ?) "
+		sql += " AND id IN (SELECT rel_message FROM messaging_message_flag WHERE flag = ?) "
 
 		if filter.PinnedOnly {
 			params = append(params, types.MessageFlagBookmarkedMessage)
