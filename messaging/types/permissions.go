@@ -1,12 +1,12 @@
 package types
 
 import (
-	"github.com/crusttech/crust/system/types"
+	"github.com/crusttech/crust/internal/rules"
 )
 
 type (
 	ResourceProvider interface {
-		Resource() types.Resource
+		Resource() rules.Resource
 	}
 )
 

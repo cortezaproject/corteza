@@ -1,4 +1,4 @@
-package types
+package rules
 
 import (
 	"encoding/json"
@@ -9,8 +9,8 @@ type Access int
 
 const (
 	Allow   Access = 2
-	Deny    Access = 1
-	Inherit Access = 0
+	Deny           = 1
+	Inherit        = 0
 )
 
 type Rules struct {

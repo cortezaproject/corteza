@@ -1,5 +1,9 @@
 package types
 
+import (
+	"github.com/crusttech/crust/internal/rules"
+)
+
 // 	Hello! This file is auto-generated.
 
 type (
@@ -69,8 +73,8 @@ func (set OrganisationSet) IDs() (IDs []uint64) {
 // Resources returns a slice of types.Resource from all items in the set
 //
 // This function is auto-generated.
-func (set OrganisationSet) Resources() (Resources []Resource) {
-	Resources = make([]Resource, len(set))
+func (set OrganisationSet) Resources() (Resources []rules.Resource) {
+	Resources = make([]rules.Resource, len(set))
 
 	for i := range set {
 		Resources[i] = set[i].Resource()

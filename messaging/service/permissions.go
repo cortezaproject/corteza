@@ -13,6 +13,8 @@ type (
 	permissions struct {
 		db  db
 		ctx context.Context
+
+		scopes rules.ScopeInterface
 	}
 
 	PermissionsService interface {
@@ -24,20 +26,23 @@ type (
 	}
 )
 
-func Permissions() PermissionsService {
-	return (&permissions{}).With(context.Background())
+func Permissions(scopes rules.ScopeInterface) PermissionsService {
+	return (&permissions{
+		scopes: scopes,
+	}).With(context.Background())
 }
 
 func (svc *permissions) With(ctx context.Context) PermissionsService {
 	db := repository.DB(ctx)
 	return &permissions{
-		db:  db,
-		ctx: ctx,
+		db:     db,
+		ctx:    ctx,
+		scopes: svc.scopes,
 	}
 }
 
 func (p *permissions) List() (interface{}, error) {
-	return nil, errors.New("service.permissions.list: not implemented")
+	return p.scopes.List(), nil
 }
 
 func (p *permissions) Get(team string, scope string, resource string) (interface{}, error) {
