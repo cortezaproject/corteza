@@ -59,7 +59,7 @@ func (r *mention) findByIDs(col string, IDs ...uint64) (mm types.MentionSet, err
 		return
 	}
 
-	sql := fmt.Sprintf(`SELECT * FROM mentions WHERE %s IN (?)`, col)
+	sql := fmt.Sprintf(`SELECT * FROM messaging_mention WHERE %s IN (?)`, col)
 
 	if sql, args, err := sqlx.In(sql, IDs); err != nil {
 		return nil, err
@@ -71,24 +71,24 @@ func (r *mention) findByIDs(col string, IDs ...uint64) (mm types.MentionSet, err
 func (r *mention) Create(m *types.Mention) (*types.Mention, error) {
 	m.ID = factory.Sonyflake.NextID()
 	m.CreatedAt = time.Now()
-	return m, r.db().Insert("mentions", m)
+	return m, r.db().Insert("messaging_mention", m)
 }
 
 func (r *mention) DeleteByMessageID(ID uint64) error {
-	return exec(r.db().Exec("DELETE FROM mentions WHERE rel_message = ?", ID))
+	return exec(r.db().Exec("DELETE FROM messaging_mention WHERE rel_message = ?", ID))
 }
 
 func (r *mention) DeleteByID(ID uint64) error {
-	return exec(r.db().Exec("DELETE FROM mentions WHERE id = ?", ID))
+	return exec(r.db().Exec("DELETE FROM messaging_mention WHERE id = ?", ID))
 }
 
 func (r *mention) CountMentions(userID uint64) (c int, err error) {
 	return c, r.db().Get(&c,
-		"SELECT COUNT(*) FROM mentions WHERE rel_user = ?",
+		"SELECT COUNT(*) FROM messaging_mention WHERE rel_user = ?",
 		userID)
 }
 
 func (r *mention) ChangeMention(userID, target uint64) error {
-	_, err := r.db().Exec("UPDATE mentions SET rel_user = ? WHERE rel_user = ?", target, userID)
+	_, err := r.db().Exec("UPDATE messaging_mention SET rel_user = ? WHERE rel_user = ?", target, userID)
 	return err
 }
