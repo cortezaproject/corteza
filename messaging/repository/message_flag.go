@@ -44,14 +44,14 @@ func (r *messageFlag) With(ctx context.Context, db *factory.DB) MessageFlagRepos
 }
 
 func (r *messageFlag) FindByID(ID uint64) (*types.MessageFlag, error) {
-	sql := "SELECT * FROM message_flags WHERE id = ?"
+	sql := "SELECT * FROM messaging_message_flag WHERE id = ?"
 	mod := &types.MessageFlag{}
 	return mod, isFound(r.db().Get(mod, sql, ID), mod.ID > 0, ErrMessageFlagNotFound)
 }
 
 func (r *messageFlag) FindByFlag(messageID, userID uint64, flag string) (*types.MessageFlag, error) {
 	args := []interface{}{messageID, flag}
-	sql := "SELECT * FROM message_flags WHERE rel_message = ? AND flag = ? "
+	sql := "SELECT * FROM messaging_message_flag WHERE rel_message = ? AND flag = ? "
 
 	if userID > 0 {
 		sql += "AND rel_user = ? "
@@ -70,7 +70,7 @@ func (r *messageFlag) FindByMessageIDs(IDs ...uint64) ([]*types.MessageFlag, err
 		return rval, nil
 	}
 
-	sql := `SELECT * FROM message_flags WHERE rel_message IN (?)`
+	sql := `SELECT * FROM messaging_message_flag WHERE rel_message IN (?)`
 
 	if sql, args, err := sqlx.In(sql, IDs); err != nil {
 		return nil, err
@@ -82,11 +82,11 @@ func (r *messageFlag) FindByMessageIDs(IDs ...uint64) ([]*types.MessageFlag, err
 func (r *messageFlag) Create(mod *types.MessageFlag) (*types.MessageFlag, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
-	return mod, r.db().Insert("message_flags", mod)
+	return mod, r.db().Insert("messaging_message_flag", mod)
 }
 
 func (r *messageFlag) DeleteByID(ID uint64) error {
-	return exec(r.db().Exec("DELETE FROM message_flags WHERE id = ?", ID))
+	return exec(r.db().Exec("DELETE FROM messaging_message_flag WHERE id = ?", ID))
 }
 
 func (r *messageFlag) CountOwned(userID uint64) (c int, err error) {
