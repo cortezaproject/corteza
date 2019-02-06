@@ -22,9 +22,9 @@ function permissions {
 		CGO_ENABLED=0 go build -o ./build/gen-permissions codegen/v2/permissions.go 
 	fi
 	
-	./build/gen-permissions -package types -function "func (c *Organisation) Permissions() []rules.OperationGroup" -input messaging/types/permissions/1-organisation.json -output messaging/types/organisation.perms.gen.go
-	./build/gen-permissions -package types -function "func (c *Team) Permissions() []rules.OperationGroup" -input messaging/types/permissions/2-team.json -output messaging/types/team.perms.gen.go
-	./build/gen-permissions -package types -function "func (c *Channel) Permissions() []rules.OperationGroup" -input messaging/types/permissions/3-channel.json -output messaging/types/channel.perms.gen.go
+	./build/gen-permissions -package types -object-name Organisation -input messaging/types/permissions/1-organisation.json -output messaging/types/organisation.perms.gen.go
+	./build/gen-permissions -package types -object-name Team -input messaging/types/permissions/2-team.json -output messaging/types/team.perms.gen.go
+	./build/gen-permissions -package types -object-name Channel -input messaging/types/permissions/3-channel.json -output messaging/types/channel.perms.gen.go
 
 	green "OK"
 }
