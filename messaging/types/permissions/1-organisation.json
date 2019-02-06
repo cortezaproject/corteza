@@ -71,7 +71,8 @@
         "key": "text.edit_own",
         "title": "Manage own messages",
         "subtitle": "Members with this permission can edit/delete their own messages inside channels",
-        "enabled": true
+        "enabled": true,
+        "default": "allow"
       },
       {
         "key": "text.edit_all",

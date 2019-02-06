@@ -57,11 +57,14 @@ type (
 
 // Resource returns a system resource ID for this type
 func (r *Channel) Resource() rules.Resource {
-	return rules.Resource{
-		ID:    r.ID,
-		Name:  r.Name,
+	resource := rules.Resource{
 		Scope: "channel",
 	}
+	if r != nil {
+		resource.ID = r.ID
+		resource.Name = r.Name
+	}
+	return resource
 }
 
 func (c *Channel) IsValid() bool {

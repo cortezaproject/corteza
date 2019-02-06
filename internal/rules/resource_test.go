@@ -30,4 +30,9 @@ func TestResource(t *testing.T) {
 		json.Unmarshal(b, &r)
 		assert(t, r.String() == "team:123", "Decoded full-json resource ID doesn't match, team:123 != '%s'", r.String())
 	}
+
+	{
+		r.ID = 0
+		assert(t, r.String() == "", "Empty resource should return empty string, got '%s'", r.String())
+	}
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/internal/auth"
@@ -30,7 +29,14 @@ func (r *resources) identity() uint64 {
 	return auth.GetIdentityFromContext(r.ctx).Identity()
 }
 
-func (r *resources) CheckAccessMulti(resource string, operation string) error {
+func (r *resources) IsAllowed(resource string, operation string) Access {
+	if strings.Contains(resource, "*") {
+		return r.checkAccessMulti(resource, operation)
+	}
+	return r.checkAccess(resource, operation)
+}
+
+func (r *resources) checkAccessMulti(resource string, operation string) Access {
 	user := r.identity()
 	result := []Access{}
 	query := []string{
@@ -44,24 +50,25 @@ func (r *resources) CheckAccessMulti(resource string, operation string) error {
 	resource = strings.Replace(resource, "*", "%", -1)
 	queryString := strings.Join(query, " ")
 	if err := r.db.Select(&result, queryString, user, resource, operation); err != nil {
-		return err
+		// @todo: log error
+		return Deny
 	}
 
 	// order by deny, allow
 	for _, val := range result {
 		if val == Deny {
-			return errors.New("Access not allowed")
+			return Deny
 		}
 	}
 	for _, val := range result {
 		if val == Allow {
-			return nil
+			return Allow
 		}
 	}
-	return errors.New("Access not allowed")
+	return Inherit
 }
 
-func (r *resources) CheckAccess(resource string, operation string) error {
+func (r *resources) checkAccess(resource string, operation string) Access {
 	user := r.identity()
 	result := []Access{}
 	query := []string{
@@ -74,21 +81,22 @@ func (r *resources) CheckAccess(resource string, operation string) error {
 	}
 	queryString := strings.Join(query, " ")
 	if err := r.db.Select(&result, queryString, user, resource, operation); err != nil {
-		return err
+		// @todo: log error
+		return Deny
 	}
 
 	// order by deny, allow
 	for _, val := range result {
 		if val == Deny {
-			return errors.New("Access not allowed")
+			return Deny
 		}
 	}
 	for _, val := range result {
 		if val == Allow {
-			return nil
+			return Allow
 		}
 	}
-	return errors.New("Access not allowed")
+	return Inherit
 }
 
 func (r *resources) Grant(resource string, teamID uint64, operations []string, value Access) error {
