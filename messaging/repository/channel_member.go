@@ -35,7 +35,7 @@ const (
 
 	// Fetching channel members of all channels a specific user has access to
 	sqlChannelMemberSelect = `SELECT m.*
-        FROM channel_members AS m
+        FROM messaging_channel_member AS m
              INNER JOIN channels AS c ON (m.rel_channel = c.id)
        WHERE c.archived_at IS NULL         
          AND c.deleted_at IS NULL`
@@ -89,7 +89,7 @@ func (r *channelMember) Create(mod *types.ChannelMember) (*types.ChannelMember, 
 	mod.CreatedAt = time.Now()
 	mod.UpdatedAt = nil
 
-	return mod, r.db().Insert("channel_members", mod)
+	return mod, r.db().Insert("messaging_channel_member", mod)
 }
 
 // Update modifies existing channel membership record
@@ -98,18 +98,18 @@ func (r *channelMember) Update(mod *types.ChannelMember) (*types.ChannelMember, 
 
 	whitelist := []string{"type", "flag", "updated_at", "rel_channel", "rel_user"}
 
-	return mod, r.db().UpdatePartial("channel_members", mod, whitelist, "rel_channel", "rel_user")
+	return mod, r.db().UpdatePartial("messaging_channel_member", mod, whitelist, "rel_channel", "rel_user")
 }
 
 // Delete removes existing channel membership record
 func (r *channelMember) Delete(channelID, userID uint64) error {
-	sql := `DELETE FROM channel_members WHERE rel_channel = ? AND rel_user = ?`
+	sql := `DELETE FROM messaging_channel_member WHERE rel_channel = ? AND rel_user = ?`
 	return exec(r.db().Exec(sql, channelID, userID))
 }
 
 func (r *channelMember) CountMemberships(userID uint64) (c int, err error) {
 	return c, r.db().Get(&c,
-		"SELECT COUNT(*) FROM channel_members WHERE rel_user = ?",
+		"SELECT COUNT(*) FROM messaging_channel_member WHERE rel_user = ?",
 		userID)
 }
 
@@ -117,8 +117,8 @@ func (r *channelMember) ChangeMembership(userID, target uint64) (err error) {
 	// Remove dups
 	// with an ugly mysql workaround
 	_, err = r.db().Exec(
-		"DELETE FROM channel_members WHERE rel_user = ? "+
-			"AND rel_channel IN (SELECT rel_channel FROM (SELECT * FROM channel_members) AS workaround WHERE rel_user = ?)",
+		"DELETE FROM messaging_channel_member WHERE rel_user = ? "+
+			"AND rel_channel IN (SELECT rel_channel FROM (SELECT * FROM messaging_channel_member) AS workaround WHERE rel_user = ?)",
 		userID,
 		target)
 
@@ -126,6 +126,6 @@ func (r *channelMember) ChangeMembership(userID, target uint64) (err error) {
 		return err
 	}
 
-	_, err = r.db().Exec("UPDATE channel_members SET rel_user = ? WHERE rel_user = ?", target, userID)
+	_, err = r.db().Exec("UPDATE messaging_channel_member SET rel_user = ? WHERE rel_user = ?", target, userID)
 	return err
 }

@@ -55,7 +55,7 @@ const (
 
 	sqlChannelGroupByMemberSet = sqlChannelSelect + ` AND c.type = ? AND c.id IN (
             SELECT rel_channel 
-              FROM channel_members 
+              FROM messaging_channel_member 
              GROUP BY rel_channel 
             HAVING COUNT(*) = ? 
                AND CONCAT(GROUP_CONCAT(rel_user ORDER BY 1 ASC SEPARATOR ','),',') = ?
@@ -66,7 +66,7 @@ const (
 	sqlChannelAccess = ` (
 				SELECT id
                   FROM channels c
-                       LEFT OUTER JOIN channel_members AS m ON (c.id = m.rel_channel)
+                       LEFT OUTER JOIN messaging_channel_member AS m ON (c.id = m.rel_channel)
                  WHERE rel_user = ?
               UNION
                 SELECT id
