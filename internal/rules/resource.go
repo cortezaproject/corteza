@@ -20,7 +20,10 @@ type ResourceJSON struct {
 }
 
 func (r Resource) String() string {
-	return fmt.Sprintf("%s:%d", r.Scope, r.ID)
+	if r.ID > 0 {
+		return fmt.Sprintf("%s:%d", r.Scope, r.ID)
+	}
+	return ""
 }
 
 func (r Resource) All() string {

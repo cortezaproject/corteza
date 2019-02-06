@@ -9,8 +9,7 @@ import (
 type ResourcesInterface interface {
 	With(ctx context.Context, db *factory.DB) ResourcesInterface
 
-	CheckAccessMulti(resource string, operation string) error
-	CheckAccess(resource string, operation string) error
+	IsAllowed(resource string, operation string) Access
 
 	Grant(resource string, teamID uint64, operations []string, value Access) error
 	ListGrants(resource string, teamID uint64) ([]Rules, error)
