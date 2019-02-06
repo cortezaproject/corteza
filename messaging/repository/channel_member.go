@@ -36,7 +36,7 @@ const (
 	// Fetching channel members of all channels a specific user has access to
 	sqlChannelMemberSelect = `SELECT m.*
         FROM messaging_channel_member AS m
-             INNER JOIN channels AS c ON (m.rel_channel = c.id)
+             INNER JOIN messaging_channel AS c ON (m.rel_channel = c.id)
        WHERE c.archived_at IS NULL         
          AND c.deleted_at IS NULL`
 )
