@@ -5,7 +5,7 @@ import (
 
 	"encoding/json"
 
-	"github.com/crusttech/crust/system/types"
+	"github.com/crusttech/crust/internal/rules"
 )
 
 type (
@@ -56,8 +56,8 @@ type (
 )
 
 // Resource returns a system resource ID for this type
-func (r *Channel) Resource() types.Resource {
-	return types.Resource{
+func (r *Channel) Resource() rules.Resource {
+	return rules.Resource{
 		ID:    r.ID,
 		Name:  r.Name,
 		Scope: "channel",

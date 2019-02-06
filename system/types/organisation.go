@@ -2,6 +2,8 @@ package types
 
 import (
 	"time"
+
+	"github.com/crusttech/crust/internal/rules"
 )
 
 type (
@@ -22,8 +24,8 @@ type (
 )
 
 // Resource returns a system resource ID for this type
-func (r *Organisation) Resource() Resource {
-	return Resource{
+func (r *Organisation) Resource() rules.Resource {
+	return rules.Resource{
 		ID:    r.ID,
 		Name:  r.Name,
 		Scope: "organisation",

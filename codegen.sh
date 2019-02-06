@@ -43,7 +43,7 @@ function types {
 	                      --output crm/types/type.other.gen.go
 
 	./build/gen-type-set --types MessageAttachment --output messaging/types/attachment.gen.go
-	./build/gen-type-set --with-resources=true --types Channel --resource-type "types.Resource" --imports "github.com/crusttech/crust/system/types" --output messaging/types/channel.gen.go
+	./build/gen-type-set --with-resources=true --types Channel --resource-type "rules.Resource" --imports "github.com/crusttech/crust/internal/rules" --output messaging/types/channel.gen.go
 	./build/gen-type-set --with-primary-key=false --types ChannelMember --output messaging/types/channel_member.gen.go
 	./build/gen-type-set --with-primary-key=false --types Command,CommandParam --output messaging/types/command.gen.go
 	./build/gen-type-set --types Mention --output messaging/types/mention.gen.go
@@ -52,8 +52,8 @@ function types {
 	./build/gen-type-set --with-primary-key=false --types Unread --output messaging/types/unread.gen.go
 
 	./build/gen-type-set --types User --output system/types/user.gen.go
-	./build/gen-type-set --with-resources=true --resource-type "Resource" --types Team --output system/types/team.gen.go
-	./build/gen-type-set --with-resources=true --resource-type "Resource" --types Organisation --output system/types/organisation.gen.go
+	./build/gen-type-set --with-resources=true --resource-type "rules.Resource" --imports "github.com/crusttech/crust/internal/rules" --types Team --output system/types/team.gen.go
+	./build/gen-type-set --with-resources=true --resource-type "rules.Resource" --imports "github.com/crusttech/crust/internal/rules" --types Organisation --output system/types/organisation.gen.go
 	./build/gen-type-set --types Credentials --output system/types/credentials.gen.go
 	green "OK"
 }

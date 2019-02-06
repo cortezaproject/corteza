@@ -1,9 +1,5 @@
 package rules
 
-import (
-	"github.com/crusttech/crust/system/types"
-)
-
 type (
 	OperationGroup struct {
 		Title      string      `json:"title"`
@@ -23,10 +19,8 @@ type (
 		// nil = unset (inherit),
 		// true = checked (allow),
 		// false = unchecked (deny)
-		Default types.Access `json:"default"`
+		Default Access `json:"default"`
 	}
-
-	Access types.Access
 
 	Permission struct {
 		// Scope (organisation, team, channel)
@@ -36,12 +30,6 @@ type (
 		// Operation name (Operation.Key)
 		Operation string `json:"operation"`
 		// Operation state (inherit, allow, deny)
-		State types.Access `json:"state"`
+		State Access `json:"state"`
 	}
-)
-
-const (
-	Allow   = types.Allow
-	Deny    = types.Deny
-	Inherit = types.Inherit
 )
