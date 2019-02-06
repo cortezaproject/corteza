@@ -30,14 +30,14 @@ type (
 const (
 	// Fetching channel members of all channels a specific user has access to
 	sqlUnreadSelect = `SELECT rel_channel, rel_reply_to, rel_user, count, rel_last_message 
-                               FROM unreads
+                               FROM messaging_unread
                               WHERE true `
 
-	sqlUnreadIncCount = `UPDATE unreads 
+	sqlUnreadIncCount = `UPDATE messaging_unread 
                                   SET count = count + 1
                                 WHERE rel_channel = ? AND rel_reply_to = ? AND rel_user <> ?`
 
-	sqlUnreadDecCount = `UPDATE unreads 
+	sqlUnreadDecCount = `UPDATE messaging_unread 
                                   SET count = count - 1
                                 WHERE rel_channel = ? AND rel_reply_to = ? AND rel_user <> ? AND count > 0`
 )
@@ -84,7 +84,7 @@ func (r *unread) Record(userID, channelID, threadID, lastReadMessageID uint64, c
 		Count:         count,
 	}
 
-	return r.db().Replace("unreads", mod)
+	return r.db().Replace("messaging_unread", mod)
 }
 
 // Increments unread message count on a channel/thread for all but one user
@@ -101,7 +101,7 @@ func (r *unread) Dec(channelID, threadID, userID uint64) error {
 
 func (r *unread) CountOwned(userID uint64) (c int, err error) {
 	return c, r.db().Get(&c,
-		"SELECT COUNT(*) FROM unreads WHERE rel_user = ?",
+		"SELECT COUNT(*) FROM messaging_unread WHERE rel_user = ?",
 		userID)
 }
 
@@ -109,8 +109,8 @@ func (r *unread) ChangeOwner(userID, target uint64) (err error) {
 	// Remove dups
 	// with an ugly mysql workaround
 	_, err = r.db().Exec(
-		"DELETE FROM unreads WHERE rel_user = ? "+
-			"AND rel_channel IN (SELECT rel_channel FROM (SELECT * FROM unreads) AS workaround WHERE rel_user = ?)",
+		"DELETE FROM messaging_unread WHERE rel_user = ? "+
+			"AND rel_channel IN (SELECT rel_channel FROM (SELECT * FROM messaging_unread) AS workaround WHERE rel_user = ?)",
 		userID,
 		target)
 
@@ -119,7 +119,7 @@ func (r *unread) ChangeOwner(userID, target uint64) (err error) {
 	}
 
 	_, err = r.db().Exec(
-		"UPDATE unreads SET rel_user = ? WHERE rel_user = ?",
+		"UPDATE messaging_unread SET rel_user = ? WHERE rel_user = ?",
 		target,
 		userID)
 
