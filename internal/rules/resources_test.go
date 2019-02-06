@@ -31,20 +31,24 @@ func TestRules(t *testing.T) {
 		db.Insert("sys_team_member", types.TeamMember{TeamID: 1, UserID: user.ID})
 		db.Insert("sys_team_member", types.TeamMember{TeamID: 2, UserID: user.ID})
 
+		Expect := func(expected rules.Access, actual rules.Access, format string, params ...interface{}) {
+			Assert(t, expected == actual, format, params...)
+		}
+
 		resources := rules.NewResources(ctx, db)
 
 		// default (unset=deny)
 		{
-			Error(t, resources.CheckAccess("channel:1", "edit"), "expected error, got nil")
-			Error(t, resources.CheckAccessMulti("channel:*", "edit"), "expected error, got nil")
+			Expect(rules.Inherit, resources.IsAllowed("channel:1", "edit"), "expected inherit")
+			Expect(rules.Inherit, resources.IsAllowed("channel:*", "edit"), "expected inherit")
 		}
 
 		// allow channel:2 group:2 (default deny, multi=allow)
 		{
 			resources.Grant("channel:2", 2, []string{"edit", "delete"}, rules.Allow)
-			Error(t, resources.CheckAccess("channel:1", "edit"), "expected error, got nil")
-			NoError(t, resources.CheckAccess("channel:2", "edit"), "channel:2 edit, expected no error")
-			NoError(t, resources.CheckAccessMulti("channel:*", "edit"), "channel:* edit, expected no error")
+			Expect(rules.Inherit, resources.IsAllowed("channel:1", "edit"), "expected error, got nil")
+			Expect(rules.Allow, resources.IsAllowed("channel:2", "edit"), "channel:2 edit, expected no error")
+			Expect(rules.Allow, resources.IsAllowed("channel:*", "edit"), "channel:* edit, expected no error")
 		}
 
 		// list grants for team
@@ -61,17 +65,17 @@ func TestRules(t *testing.T) {
 		// deny channel:1 group:1 (explicit deny, multi=deny)
 		{
 			resources.Grant("channel:1", 1, []string{"edit"}, rules.Deny)
-			Error(t, resources.CheckAccess("channel:1", "edit"), "expected error, got nil")
-			NoError(t, resources.CheckAccess("channel:2", "edit"), "channel:2 edit, expected no error")
-			Error(t, resources.CheckAccessMulti("channel:*", "edit"), "expected error, got nil")
+			Expect(rules.Deny, resources.IsAllowed("channel:1", "edit"), "expected error, got nil")
+			Expect(rules.Allow, resources.IsAllowed("channel:2", "edit"), "channel:2 edit, expected no error")
+			Expect(rules.Deny, resources.IsAllowed("channel:*", "edit"), "expected error, got nil")
 		}
 
 		// reset (unset=deny)
 		{
 			resources.Grant("channel:2", 2, []string{"edit", "delete"}, rules.Inherit)
 			resources.Grant("channel:1", 1, []string{"edit", "delete"}, rules.Inherit)
-			Error(t, resources.CheckAccess("channel:1", "edit"), "expected error, got nil")
-			Error(t, resources.CheckAccessMulti("channel:*", "edit"), "expected error, got nil")
+			Expect(rules.Inherit, resources.IsAllowed("channel:1", "edit"), "expected error, got nil")
+			Expect(rules.Inherit, resources.IsAllowed("channel:*", "edit"), "expected error, got nil")
 		}
 		return errors.New("Rollback")
 	}), "Expected rollback error, got nil")
