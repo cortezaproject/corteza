@@ -39,10 +39,10 @@ const (
 	`
 	sqlAttachmentScope = "deleted_at IS NULL"
 
-	sqlAttachmentByID = `SELECT ` + sqlAttachmentColumns + ` FROM attachments AS a WHERE id = ? AND ` + sqlAttachmentScope
+	sqlAttachmentByID = `SELECT ` + sqlAttachmentColumns + ` FROM messaging_attachment AS a WHERE id = ? AND ` + sqlAttachmentScope
 
 	sqlAttachmentByMessageID = `SELECT ` + sqlAttachmentColumns + `, rel_message
-		      FROM attachments AS a
+		      FROM messaging_attachment AS a
 		           INNER JOIN messaging_message_attachment AS ma ON a.id = ma.rel_attachment 
 		     WHERE ma.rel_message IN (?) AND ` + sqlAttachmentScope
 
@@ -86,11 +86,11 @@ func (r *attachment) CreateAttachment(mod *types.Attachment) (*types.Attachment,
 
 	mod.CreatedAt = time.Now()
 
-	return mod, r.db().Insert("attachments", mod)
+	return mod, r.db().Insert("messaging_attachment", mod)
 }
 
 func (r *attachment) DeleteAttachmentByID(id uint64) error {
-	return r.updateColumnByID("attachments", "deleted_at", nil, id)
+	return r.updateColumnByID("messaging_attachment", "deleted_at", nil, id)
 }
 
 func (r *attachment) BindAttachment(attachmentId, messageId uint64) error {
@@ -104,11 +104,11 @@ func (r *attachment) BindAttachment(attachmentId, messageId uint64) error {
 
 func (r *attachment) CountOwned(userID uint64) (c int, err error) {
 	return c, r.db().Get(&c,
-		"SELECT COUNT(*) FROM attachments WHERE rel_user = ?",
+		"SELECT COUNT(*) FROM messaging_attachment WHERE rel_user = ?",
 		userID)
 }
 
 func (r *attachment) ChangeOwnership(userID, target uint64) error {
-	_, err := r.db().Exec("UPDATE attachments SET rel_user = ? WHERE rel_user = ?", target, userID)
+	_, err := r.db().Exec("UPDATE messaging_attachment SET rel_user = ? WHERE rel_user = ?", target, userID)
 	return err
 }
