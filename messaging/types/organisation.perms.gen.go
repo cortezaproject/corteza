@@ -4,7 +4,7 @@ import "github.com/crusttech/crust/internal/rules"
 
 /* File is generated from messaging/types/permissions/1-organisation.json with permissions.go */
 
-func (c *Organisation) Permissions() []rules.OperationGroup {
+func (*Organisation) Permissions() []rules.OperationGroup {
 	return []rules.OperationGroup{
 		rules.OperationGroup{
 			Title: "General permissions",
@@ -51,31 +51,37 @@ func (c *Organisation) Permissions() []rules.OperationGroup {
 			Title: "Text Permissions",
 			Operations: []rules.Operation{
 				rules.Operation{
-					Key:      "send",
+					Key:      "text.send",
 					Title:    "Send Messages",
 					Subtitle: "",
 					Enabled:  true,
 					Default:  rules.Allow,
 				}, rules.Operation{
-					Key:      "embed",
+					Key:      "text.embed",
 					Title:    "Embed Links",
 					Subtitle: "",
 					Enabled:  true,
 					Default:  rules.Allow,
 				}, rules.Operation{
-					Key:      "attach",
+					Key:      "text.attach",
 					Title:    "Attach Files",
 					Subtitle: "",
 					Enabled:  true,
 					Default:  rules.Allow,
 				}, rules.Operation{
-					Key:      "manage.messages",
+					Key:      "text.edit_own",
+					Title:    "Manage own messages",
+					Subtitle: "Members with this permission can edit/delete their own messages inside channels",
+					Enabled:  true,
+					Default:  rules.Allow,
+				}, rules.Operation{
+					Key:      "text.edit_all",
 					Title:    "Manage messages",
 					Subtitle: "Members with this permission can edit/delete messages inside channels",
 					Enabled:  true,
 					Default:  rules.Deny,
 				}, rules.Operation{
-					Key:      "react",
+					Key:      "text.react",
 					Title:    "Manage reactions",
 					Subtitle: "Members with this permission can add new reactions to a message",
 					Enabled:  true,
@@ -84,4 +90,25 @@ func (c *Organisation) Permissions() []rules.OperationGroup {
 			},
 		},
 	}
+}
+
+func (*Organisation) PermissionDefault(key string) rules.Access {
+	values := map[string]rules.Access{
+		"admin":               rules.Deny,
+		"manage.organisation": rules.Deny,
+		"manage.roles":        rules.Deny,
+		"text.react":          rules.Allow,
+		"text.embed":          rules.Allow,
+		"text.attach":         rules.Allow,
+		"text.edit_own":       rules.Allow,
+		"text.edit_all":       rules.Deny,
+		"audit":               rules.Deny,
+		"manage.channels":     rules.Deny,
+		"manage.webhooks":     rules.Deny,
+		"text.send":           rules.Allow,
+	}
+	if value, ok := values[key]; ok {
+		return value
+	}
+	return rules.Inherit
 }

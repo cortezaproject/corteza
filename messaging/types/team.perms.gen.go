@@ -4,7 +4,7 @@ import "github.com/crusttech/crust/internal/rules"
 
 /* File is generated from messaging/types/permissions/2-team.json with permissions.go */
 
-func (c *Team) Permissions() []rules.OperationGroup {
+func (*Team) Permissions() []rules.OperationGroup {
 	return []rules.OperationGroup{
 		rules.OperationGroup{
 			Title: "General permissions",
@@ -21,31 +21,37 @@ func (c *Team) Permissions() []rules.OperationGroup {
 			Title: "Text Permissions",
 			Operations: []rules.Operation{
 				rules.Operation{
-					Key:      "send",
+					Key:      "text.send",
 					Title:    "Send Messages",
 					Subtitle: "",
 					Enabled:  true,
 					Default:  rules.Inherit,
 				}, rules.Operation{
-					Key:      "embed",
+					Key:      "text.embed",
 					Title:    "Embed Links",
 					Subtitle: "",
 					Enabled:  true,
 					Default:  rules.Inherit,
 				}, rules.Operation{
-					Key:      "attach",
+					Key:      "text.attach",
 					Title:    "Attach Files",
 					Subtitle: "",
 					Enabled:  true,
 					Default:  rules.Inherit,
 				}, rules.Operation{
-					Key:      "manage.messages",
+					Key:      "text.edit_own",
+					Title:    "Manage own messages",
+					Subtitle: "Members with this permission can edit/delete their own messages inside channels",
+					Enabled:  true,
+					Default:  rules.Inherit,
+				}, rules.Operation{
+					Key:      "text.edit_all",
 					Title:    "Manage messages",
 					Subtitle: "Members with this permission can edit/delete messages inside channels",
 					Enabled:  true,
 					Default:  rules.Inherit,
 				}, rules.Operation{
-					Key:      "react",
+					Key:      "text.react",
 					Title:    "Manage reactions",
 					Subtitle: "Members with this permission can add new reactions to a message",
 					Enabled:  true,
@@ -54,4 +60,20 @@ func (c *Team) Permissions() []rules.OperationGroup {
 			},
 		},
 	}
+}
+
+func (*Team) PermissionDefault(key string) rules.Access {
+	values := map[string]rules.Access{
+		"manage.webhooks": rules.Inherit,
+		"text.send":       rules.Inherit,
+		"text.embed":      rules.Inherit,
+		"text.attach":     rules.Inherit,
+		"text.edit_own":   rules.Inherit,
+		"text.edit_all":   rules.Inherit,
+		"text.react":      rules.Inherit,
+	}
+	if value, ok := values[key]; ok {
+		return value
+	}
+	return rules.Inherit
 }
