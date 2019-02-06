@@ -50,7 +50,7 @@ const (
 		"topic"
 
 	sqlChannelSelect = `SELECT ` + sqlChannelColumns + `
-        FROM channels AS c
+        FROM messaging_channel AS c
        WHERE true `
 
 	sqlChannelGroupByMemberSet = sqlChannelSelect + ` AND c.type = ? AND c.id IN (
@@ -65,12 +65,12 @@ const (
 	// or via channel type (public channels)
 	sqlChannelAccess = ` (
 				SELECT id
-                  FROM channels c
+                  FROM messaging_channel c
                        LEFT OUTER JOIN messaging_channel_member AS m ON (c.id = m.rel_channel)
                  WHERE rel_user = ?
               UNION
                 SELECT id
-                  FROM channels c
+                  FROM messaging_channel c
                  WHERE c.type = ?
 			)`
 
@@ -146,7 +146,7 @@ func (r *channel) CreateChannel(mod *types.Channel) (*types.Channel, error) {
 		mod.Type = types.ChannelTypePublic
 	}
 
-	return mod, r.db().Insert("channels", mod)
+	return mod, r.db().Insert("messaging_channel", mod)
 }
 
 func (r *channel) UpdateChannel(mod *types.Channel) (*types.Channel, error) {
@@ -159,32 +159,32 @@ func (r *channel) UpdateChannel(mod *types.Channel) (*types.Channel, error) {
 	whitelist := []string{"id", "name", "type", "topic", "meta", "updated_at"}
 
 	return mod, r.db().
-		UpdatePartial("channels", mod, whitelist, "id")
+		UpdatePartial("messaging_channel", mod, whitelist, "id")
 }
 
 func (r *channel) ArchiveChannelByID(id uint64) error {
-	return r.updateColumnByID("channels", "archived_at", time.Now(), id)
+	return r.updateColumnByID("messaging_channel", "archived_at", time.Now(), id)
 }
 
 func (r *channel) UnarchiveChannelByID(id uint64) error {
-	return r.updateColumnByID("channels", "archived_at", nil, id)
+	return r.updateColumnByID("messaging_channel", "archived_at", nil, id)
 }
 
 func (r *channel) DeleteChannelByID(id uint64) error {
-	return r.updateColumnByID("channels", "deleted_at", time.Now(), id)
+	return r.updateColumnByID("messaging_channel", "deleted_at", time.Now(), id)
 }
 
 func (r *channel) UndeleteChannelByID(id uint64) error {
-	return r.updateColumnByID("channels", "deleted_at", nil, id)
+	return r.updateColumnByID("messaging_channel", "deleted_at", nil, id)
 }
 
 func (r *channel) CountCreated(userID uint64) (c int, err error) {
 	return c, r.db().Get(&c,
-		"SELECT COUNT(*) FROM channels WHERE rel_creator = ?",
+		"SELECT COUNT(*) FROM messaging_channel WHERE rel_creator = ?",
 		userID)
 }
 
 func (r *channel) ChangeCreator(userID, target uint64) error {
-	_, err := r.db().Exec("UPDATE channels SET rel_creator = ? WHERE rel_creator = ?", target, userID)
+	_, err := r.db().Exec("UPDATE messaging_channel SET rel_creator = ? WHERE rel_creator = ?", target, userID)
 	return err
 }
