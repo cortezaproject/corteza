@@ -29,18 +29,40 @@ func cliExecUsers(commands ...string) {
 
 func cliExecUsersList(params ...string) {
 	var (
+		upd, del string
+
 		err error
 		uu  types.UserSet
 		ctx = context.Background()
 	)
 
-	if uu, err = service.DefaultUser.With(ctx).Find(nil); err != nil {
+	uf := &types.UserFilter{
+		OrderBy: "updated_at",
+	}
+
+	if uu, err = service.DefaultUser.With(ctx).Find(uf); err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
 
+	fmt.Println("ID                   Updated    Deleted    [email / name / username]")
 	for _, u := range uu {
-		fmt.Printf("%20d | %-40s | %-20s\n", u.ID, u.Email+" / "+u.Name+" / "+u.Username, u.UpdatedAt)
+		upd, del = "---- -- --", "---- -- --"
+
+		if u.UpdatedAt != nil {
+			upd = u.UpdatedAt.Format("2006-01-02")
+		}
+
+		if u.DeletedAt != nil {
+			upd = u.DeletedAt.Format("2006-01-02")
+		}
+
+		fmt.Printf(
+			"%20d %s %s %s\n",
+			u.ID,
+			upd,
+			del,
+			u.Email+" / "+u.Name+" / "+u.Username)
 	}
 }
 

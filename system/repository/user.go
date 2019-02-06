@@ -105,32 +105,39 @@ func (r *user) FindByIDs(IDs ...uint64) (uu types.UserSet, err error) {
 }
 
 func (r *user) Find(filter *types.UserFilter) ([]*types.User, error) {
+	if filter == nil {
+		filter = &types.UserFilter{}
+	}
+
 	rval := make([]*types.User, 0)
 	params := make([]interface{}, 0)
 	sql := fmt.Sprintf(sqlUserSelect, r.users)
 
-	if filter != nil {
-		if filter.Query != "" {
-			sql += " AND (username LIKE ?"
-			params = append(params, filter.Query+"%")
-			sql += " OR email LIKE ?"
-			params = append(params, filter.Query+"%")
-			sql += " OR name LIKE ?)"
-			params = append(params, filter.Query+"%")
-		}
-
-		if filter.Email != "" {
-			sql += " AND (email = ?)"
-			params = append(params, filter.Email)
-		}
-
-		if filter.Username != "" {
-			sql += " AND (username = ?)"
-			params = append(params, filter.Username)
-		}
+	if filter.Query != "" {
+		sql += " AND (username LIKE ?"
+		params = append(params, filter.Query+"%")
+		sql += " OR email LIKE ?"
+		params = append(params, filter.Query+"%")
+		sql += " OR name LIKE ?)"
+		params = append(params, filter.Query+"%")
 	}
 
-	sql += " ORDER BY username ASC"
+	if filter.Email != "" {
+		sql += " AND (email = ?)"
+		params = append(params, filter.Email)
+	}
+
+	if filter.Username != "" {
+		sql += " AND (username = ?)"
+		params = append(params, filter.Username)
+	}
+
+	switch filter.OrderBy {
+	case "updated_at", "createdAt":
+		sql += " ORDER BY updated_at DESC"
+	default:
+		sql += " ORDER BY username ASC"
+	}
 
 	if err := r.db().Select(&rval, sql, params...); err != nil {
 		return nil, err

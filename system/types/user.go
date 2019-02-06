@@ -36,6 +36,7 @@ type (
 		Query    string
 		Email    string
 		Username string
+		OrderBy  string
 	}
 )
 
