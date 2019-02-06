@@ -29,13 +29,19 @@
         "enabled": true
       },
       {
+        "key": "manage.own_messages",
+        "title": "Manage own messages",
+        "subtitle": "Members with this permission can edit/delete their own messages inside this channel",
+        "enabled": true
+      },
+      {
         "key": "manage.messages",
         "title": "Manage messages",
         "subtitle": "Members with this permission can edit/delete messages inside this channel",
         "enabled": true
       },
       {
-        "key": "react",
+        "key": "manage.react",
         "title": "Manage reactions",
         "subtitle": "Members with this permission can add new reactions to a message",
         "enabled": true
