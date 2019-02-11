@@ -44,7 +44,7 @@
       }
     },
     {
-      "Name": "edit",
+      "Name": "update",
       "Method": "PUT",
       "Title": "Update organisation details",
       "Path": "/{id}",

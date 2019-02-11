@@ -42,7 +42,7 @@ func (ctrl *Team) Create(ctx context.Context, r *request.TeamCreate) (interface{
 	return ctrl.svc.team.With(ctx).Create(org)
 }
 
-func (ctrl *Team) Edit(ctx context.Context, r *request.TeamEdit) (interface{}, error) {
+func (ctrl *Team) Update(ctx context.Context, r *request.TeamUpdate) (interface{}, error) {
 	org := &types.Team{
 		ID:   r.TeamID,
 		Name: r.Name,

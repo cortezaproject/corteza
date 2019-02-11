@@ -42,7 +42,7 @@ func (ctrl *Organisation) Create(ctx context.Context, r *request.OrganisationCre
 	return ctrl.svc.org.With(ctx).Create(org)
 }
 
-func (ctrl *Organisation) Edit(ctx context.Context, r *request.OrganisationEdit) (interface{}, error) {
+func (ctrl *Organisation) Update(ctx context.Context, r *request.OrganisationUpdate) (interface{}, error) {
 	org := &types.Organisation{
 		ID:   r.ID,
 		Name: r.Name,

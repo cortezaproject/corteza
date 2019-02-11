@@ -1,13 +1,7 @@
 {
   "Title": "Users",
   "Interface": "User",
-  "Struct": [
-    {
-      "imports": [
-        "sqlxTypes github.com/jmoiron/sqlx/types"
-      ]
-    }
-  ],
+  "Struct": null,
   "Parameters": null,
   "Protocol": "",
   "Authentication": [
@@ -58,26 +52,14 @@
             "type": "string"
           },
           {
-            "name": "username",
-            "required": true,
-            "title": "Username",
-            "type": "string"
-          },
-          {
-            "name": "password",
-            "required": true,
-            "title": "Password",
-            "type": "string"
-          },
-          {
             "name": "name",
-            "required": true,
+            "required": false,
             "title": "Name",
             "type": "string"
           },
           {
             "name": "handle",
-            "required": true,
+            "required": false,
             "title": "Handle",
             "type": "string"
           },
@@ -86,30 +68,12 @@
             "required": false,
             "title": "Kind (normal, bot)",
             "type": "string"
-          },
-          {
-            "name": "meta",
-            "required": false,
-            "title": "Meta data",
-            "type": "sqlxTypes.JSONText"
-          },
-          {
-            "name": "satosaID",
-            "required": false,
-            "title": "Satosa ID",
-            "type": "string"
-          },
-          {
-            "name": "organisationID",
-            "required": false,
-            "title": "Organisation ID",
-            "type": "uint64"
           }
         ]
       }
     },
     {
-      "Name": "edit",
+      "Name": "update",
       "Method": "PUT",
       "Title": "Update user details",
       "Path": "/{userID}",
@@ -130,18 +94,6 @@
             "type": "string"
           },
           {
-            "name": "username",
-            "required": true,
-            "title": "Username",
-            "type": "string"
-          },
-          {
-            "name": "password",
-            "required": true,
-            "title": "Password",
-            "type": "string"
-          },
-          {
             "name": "name",
             "required": true,
             "title": "Name",
@@ -149,7 +101,7 @@
           },
           {
             "name": "handle",
-            "required": true,
+            "required": false,
             "title": "Handle",
             "type": "string"
           },
@@ -158,24 +110,6 @@
             "required": false,
             "title": "Kind (normal, bot)",
             "type": "string"
-          },
-          {
-            "name": "meta",
-            "required": false,
-            "title": "Meta data",
-            "type": "sqlxTypes.JSONText"
-          },
-          {
-            "name": "satosaID",
-            "required": false,
-            "title": "Satosa ID",
-            "type": "string"
-          },
-          {
-            "name": "organisationID",
-            "required": false,
-            "title": "Organisation ID",
-            "type": "uint64"
           }
         ]
       }

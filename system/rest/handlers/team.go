@@ -29,7 +29,7 @@ import (
 type TeamAPI interface {
 	List(context.Context, *request.TeamList) (interface{}, error)
 	Create(context.Context, *request.TeamCreate) (interface{}, error)
-	Edit(context.Context, *request.TeamEdit) (interface{}, error)
+	Update(context.Context, *request.TeamUpdate) (interface{}, error)
 	Read(context.Context, *request.TeamRead) (interface{}, error)
 	Remove(context.Context, *request.TeamRemove) (interface{}, error)
 	Archive(context.Context, *request.TeamArchive) (interface{}, error)
@@ -43,7 +43,7 @@ type TeamAPI interface {
 type Team struct {
 	List         func(http.ResponseWriter, *http.Request)
 	Create       func(http.ResponseWriter, *http.Request)
-	Edit         func(http.ResponseWriter, *http.Request)
+	Update       func(http.ResponseWriter, *http.Request)
 	Read         func(http.ResponseWriter, *http.Request)
 	Remove       func(http.ResponseWriter, *http.Request)
 	Archive      func(http.ResponseWriter, *http.Request)
@@ -69,11 +69,11 @@ func NewTeam(th TeamAPI) *Team {
 				return th.Create(r.Context(), params)
 			})
 		},
-		Edit: func(w http.ResponseWriter, r *http.Request) {
+		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewTeamEdit()
+			params := request.NewTeamUpdate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.Edit(r.Context(), params)
+				return th.Update(r.Context(), params)
 			})
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
@@ -134,7 +134,7 @@ func (th *Team) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Route("/teams", func(r chi.Router) {
 			r.Get("/", th.List)
 			r.Post("/", th.Create)
-			r.Put("/{teamID}", th.Edit)
+			r.Put("/{teamID}", th.Update)
 			r.Get("/{teamID}", th.Read)
 			r.Delete("/{teamID}", th.Remove)
 			r.Post("/{teamID}/archive", th.Archive)

@@ -24,8 +24,6 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
-
-	sqlxTypes "github.com/jmoiron/sqlx/types"
 )
 
 var _ = chi.URLParam
@@ -89,15 +87,10 @@ var _ RequestFiller = NewUserList()
 
 // User create request parameters
 type UserCreate struct {
-	Email          string
-	Username       string
-	Password       string
-	Name           string
-	Handle         string
-	Kind           string
-	Meta           sqlxTypes.JSONText
-	SatosaID       string
-	OrganisationID uint64 `json:",string"`
+	Email  string
+	Name   string
+	Handle string
+	Kind   string
 }
 
 func NewUserCreate() *UserCreate {
@@ -135,14 +128,6 @@ func (u *UserCreate) Fill(r *http.Request) (err error) {
 
 		u.Email = val
 	}
-	if val, ok := post["username"]; ok {
-
-		u.Username = val
-	}
-	if val, ok := post["password"]; ok {
-
-		u.Password = val
-	}
 	if val, ok := post["name"]; ok {
 
 		u.Name = val
@@ -155,45 +140,26 @@ func (u *UserCreate) Fill(r *http.Request) (err error) {
 
 		u.Kind = val
 	}
-	if val, ok := post["meta"]; ok {
-
-		if u.Meta, err = parseJSONTextWithErr(val); err != nil {
-			return err
-		}
-	}
-	if val, ok := post["satosaID"]; ok {
-
-		u.SatosaID = val
-	}
-	if val, ok := post["organisationID"]; ok {
-
-		u.OrganisationID = parseUInt64(val)
-	}
 
 	return err
 }
 
 var _ RequestFiller = NewUserCreate()
 
-// User edit request parameters
-type UserEdit struct {
-	UserID         uint64 `json:",string"`
-	Email          string
-	Username       string
-	Password       string
-	Name           string
-	Handle         string
-	Kind           string
-	Meta           sqlxTypes.JSONText
-	SatosaID       string
-	OrganisationID uint64 `json:",string"`
+// User update request parameters
+type UserUpdate struct {
+	UserID uint64 `json:",string"`
+	Email  string
+	Name   string
+	Handle string
+	Kind   string
 }
 
-func NewUserEdit() *UserEdit {
-	return &UserEdit{}
+func NewUserUpdate() *UserUpdate {
+	return &UserUpdate{}
 }
 
-func (u *UserEdit) Fill(r *http.Request) (err error) {
+func (u *UserUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(u)
 
@@ -225,14 +191,6 @@ func (u *UserEdit) Fill(r *http.Request) (err error) {
 
 		u.Email = val
 	}
-	if val, ok := post["username"]; ok {
-
-		u.Username = val
-	}
-	if val, ok := post["password"]; ok {
-
-		u.Password = val
-	}
 	if val, ok := post["name"]; ok {
 
 		u.Name = val
@@ -245,25 +203,11 @@ func (u *UserEdit) Fill(r *http.Request) (err error) {
 
 		u.Kind = val
 	}
-	if val, ok := post["meta"]; ok {
-
-		if u.Meta, err = parseJSONTextWithErr(val); err != nil {
-			return err
-		}
-	}
-	if val, ok := post["satosaID"]; ok {
-
-		u.SatosaID = val
-	}
-	if val, ok := post["organisationID"]; ok {
-
-		u.OrganisationID = parseUInt64(val)
-	}
 
 	return err
 }
 
-var _ RequestFiller = NewUserEdit()
+var _ RequestFiller = NewUserUpdate()
 
 // User read request parameters
 type UserRead struct {
