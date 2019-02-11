@@ -5,8 +5,8 @@
 package repository
 
 import (
-	repository "app/system/repository"
 	context "context"
+	repository "github.com/crusttech/crust/system/repository"
 	types "github.com/crusttech/crust/system/types"
 	gomock "github.com/golang/mock/gomock"
 	factory "github.com/titpetric/factory"
