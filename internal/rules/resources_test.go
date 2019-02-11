@@ -45,7 +45,7 @@ func TestRules(t *testing.T) {
 
 		// allow channel:2 group:2 (default deny, multi=allow)
 		{
-			resources.Grant("channel:2", 2, []string{"edit", "delete"}, rules.Allow)
+			resources.Grant(2, "channel:2", []string{"edit", "delete"}, rules.Allow)
 			Expect(rules.Inherit, resources.IsAllowed("channel:1", "edit"), "expected error, got nil")
 			Expect(rules.Allow, resources.IsAllowed("channel:2", "edit"), "channel:2 edit, expected no error")
 			Expect(rules.Allow, resources.IsAllowed("channel:*", "edit"), "channel:* edit, expected no error")
@@ -53,7 +53,7 @@ func TestRules(t *testing.T) {
 
 		// list grants for team
 		{
-			grants, err := resources.ListGrants("channel:2", 2)
+			grants, err := resources.ListGrants(2, "channel:2")
 			NoError(t, err, "expect no error")
 			Assert(t, len(grants) == 2, "expected 2 grants")
 			Assert(t, grants[0].TeamID == 2, "expected TeamID == 2, got %v", grants[0].TeamID)
@@ -64,7 +64,7 @@ func TestRules(t *testing.T) {
 
 		// deny channel:1 group:1 (explicit deny, multi=deny)
 		{
-			resources.Grant("channel:1", 1, []string{"edit"}, rules.Deny)
+			resources.Grant(1, "channel:1", []string{"edit"}, rules.Deny)
 			Expect(rules.Deny, resources.IsAllowed("channel:1", "edit"), "expected error, got nil")
 			Expect(rules.Allow, resources.IsAllowed("channel:2", "edit"), "channel:2 edit, expected no error")
 			Expect(rules.Deny, resources.IsAllowed("channel:*", "edit"), "expected error, got nil")
@@ -72,8 +72,8 @@ func TestRules(t *testing.T) {
 
 		// reset (unset=deny)
 		{
-			resources.Grant("channel:2", 2, []string{"edit", "delete"}, rules.Inherit)
-			resources.Grant("channel:1", 1, []string{"edit", "delete"}, rules.Inherit)
+			resources.Grant(2, "channel:2", []string{"edit", "delete"}, rules.Inherit)
+			resources.Grant(1, "channel:1", []string{"edit", "delete"}, rules.Inherit)
 			Expect(rules.Inherit, resources.IsAllowed("channel:1", "edit"), "expected error, got nil")
 			Expect(rules.Inherit, resources.IsAllowed("channel:*", "edit"), "expected error, got nil")
 		}

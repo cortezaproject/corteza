@@ -11,6 +11,6 @@ type ResourcesInterface interface {
 
 	IsAllowed(resource string, operation string) Access
 
-	Grant(resource string, teamID uint64, operations []string, value Access) error
-	ListGrants(resource string, teamID uint64) ([]Rules, error)
+	Grant(teamID uint64, resource string, operations []string, value Access) error
+	ListGrants(teamID uint64, resource string) ([]Rules, error)
 }

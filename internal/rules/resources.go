@@ -99,7 +99,7 @@ func (r *resources) checkAccess(resource string, operation string) Access {
 	return Inherit
 }
 
-func (r *resources) Grant(resource string, teamID uint64, operations []string, value Access) error {
+func (r *resources) Grant(teamID uint64, resource string, operations []string, value Access) error {
 	row := Rules{
 		TeamID:   teamID,
 		Resource: resource,
@@ -122,7 +122,7 @@ func (r *resources) Grant(resource string, teamID uint64, operations []string, v
 	return err
 }
 
-func (r *resources) ListGrants(resource string, teamID uint64) ([]Rules, error) {
+func (r *resources) ListGrants(teamID uint64, resource string) ([]Rules, error) {
 	result := []Rules{}
 
 	query := "select * from sys_rules where rel_team = ? and resource = ?"
