@@ -64,13 +64,13 @@ func (*Team) Permissions() []rules.OperationGroup {
 
 func (*Team) PermissionDefault(key string) rules.Access {
 	values := map[string]rules.Access{
+		"text.edit_all":   rules.Inherit,
+		"text.react":      rules.Inherit,
 		"manage.webhooks": rules.Inherit,
 		"text.send":       rules.Inherit,
 		"text.embed":      rules.Inherit,
 		"text.attach":     rules.Inherit,
 		"text.edit_own":   rules.Inherit,
-		"text.edit_all":   rules.Inherit,
-		"text.react":      rules.Inherit,
 	}
 	if value, ok := values[key]; ok {
 		return value
