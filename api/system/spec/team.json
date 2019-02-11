@@ -50,7 +50,7 @@
       }
     },
     {
-      "Name": "edit",
+      "Name": "update",
       "Method": "PUT",
       "Title": "Update team details",
       "Path": "/{teamID}",

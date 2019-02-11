@@ -29,7 +29,7 @@ import (
 type UserAPI interface {
 	List(context.Context, *request.UserList) (interface{}, error)
 	Create(context.Context, *request.UserCreate) (interface{}, error)
-	Edit(context.Context, *request.UserEdit) (interface{}, error)
+	Update(context.Context, *request.UserUpdate) (interface{}, error)
 	Read(context.Context, *request.UserRead) (interface{}, error)
 	Remove(context.Context, *request.UserRemove) (interface{}, error)
 	Suspend(context.Context, *request.UserSuspend) (interface{}, error)
@@ -40,7 +40,7 @@ type UserAPI interface {
 type User struct {
 	List      func(http.ResponseWriter, *http.Request)
 	Create    func(http.ResponseWriter, *http.Request)
-	Edit      func(http.ResponseWriter, *http.Request)
+	Update    func(http.ResponseWriter, *http.Request)
 	Read      func(http.ResponseWriter, *http.Request)
 	Remove    func(http.ResponseWriter, *http.Request)
 	Suspend   func(http.ResponseWriter, *http.Request)
@@ -63,11 +63,11 @@ func NewUser(uh UserAPI) *User {
 				return uh.Create(r.Context(), params)
 			})
 		},
-		Edit: func(w http.ResponseWriter, r *http.Request) {
+		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewUserEdit()
+			params := request.NewUserUpdate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return uh.Edit(r.Context(), params)
+				return uh.Update(r.Context(), params)
 			})
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
@@ -107,7 +107,7 @@ func (uh *User) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Route("/users", func(r chi.Router) {
 			r.Get("/", uh.List)
 			r.Post("/", uh.Create)
-			r.Put("/{userID}", uh.Edit)
+			r.Put("/{userID}", uh.Update)
 			r.Get("/{userID}", uh.Read)
 			r.Delete("/{userID}", uh.Remove)
 			r.Post("/{userID}/suspend", uh.Suspend)

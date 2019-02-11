@@ -86,7 +86,7 @@
         }
       },
       {
-        "name": "edit",
+        "name": "update",
         "method": "PUT",
         "title": "Update organisation details",
         "path": "/{id}",
@@ -208,7 +208,7 @@
         }
       },
       {
-        "name": "edit",
+        "name": "update",
         "method": "PUT",
         "title": "Update team details",
         "path": "/{teamID}",
@@ -391,13 +391,6 @@
       "Client ID",
       "Session ID"
     ],
-    "struct": [
-      {
-        "imports": [
-          "sqlxTypes github.com/jmoiron/sqlx/types"
-        ]
-      }
-    ],
     "apis": [
       {
         "name": "list",
@@ -441,27 +434,15 @@
               "title": "Email"
             },
             {
-              "name": "username",
-              "type": "string",
-              "required": true,
-              "title": "Username"
-            },
-            {
-              "name": "password",
-              "type": "string",
-              "required": true,
-              "title": "Password"
-            },
-            {
               "name": "name",
               "type": "string",
-              "required": true,
+              "required": false,
               "title": "Name"
             },
             {
               "name": "handle",
               "type": "string",
-              "required": true,
+              "required": false,
               "title": "Handle"
             },
             {
@@ -469,30 +450,12 @@
               "type": "string",
               "required": false,
               "title": "Kind (normal, bot)"
-            },
-            {
-              "name": "meta",
-              "type": "sqlxTypes.JSONText",
-              "required": false,
-              "title": "Meta data"
-            },
-            {
-              "name": "satosaID",
-              "type": "string",
-              "required": false,
-              "title": "Satosa ID"
-            },
-            {
-              "name": "organisationID",
-              "type": "uint64",
-              "required": false,
-              "title": "Organisation ID"
             }
           ]
         }
       },
       {
-        "name": "edit",
+        "name": "update",
         "method": "PUT",
         "title": "Update user details",
         "path": "/{userID}",
@@ -513,18 +476,6 @@
               "title": "Email"
             },
             {
-              "name": "username",
-              "type": "string",
-              "required": true,
-              "title": "Username"
-            },
-            {
-              "name": "password",
-              "type": "string",
-              "required": true,
-              "title": "Password"
-            },
-            {
               "name": "name",
               "type": "string",
               "required": true,
@@ -533,7 +484,7 @@
             {
               "name": "handle",
               "type": "string",
-              "required": true,
+              "required": false,
               "title": "Handle"
             },
             {
@@ -541,24 +492,6 @@
               "type": "string",
               "required": false,
               "title": "Kind (normal, bot)"
-            },
-            {
-              "name": "meta",
-              "type": "sqlxTypes.JSONText",
-              "required": false,
-              "title": "Meta data"
-            },
-            {
-              "name": "satosaID",
-              "type": "string",
-              "required": false,
-              "title": "Satosa ID"
-            },
-            {
-              "name": "organisationID",
-              "type": "uint64",
-              "required": false,
-              "title": "Organisation ID"
             }
           ]
         }

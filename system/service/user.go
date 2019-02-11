@@ -150,8 +150,25 @@ func (svc *user) Create(input *types.User) (out *types.User, err error) {
 	})
 }
 
-func (svc *user) Update(mod *types.User) (*types.User, error) {
-	return svc.user.Update(mod)
+func (svc *user) Update(mod *types.User) (u *types.User, err error) {
+	return u, svc.db.Transaction(func() (err error) {
+		if u, err = svc.user.FindByID(mod.ID); err != nil {
+			return
+		}
+
+		// Assign changed values
+		u.Email = mod.Email
+		u.Username = mod.Username
+		u.Name = mod.Name
+		u.Handle = mod.Handle
+		u.Kind = mod.Kind
+
+		if u, err = svc.user.Update(u); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (svc *user) canLogin(u *types.User) bool {

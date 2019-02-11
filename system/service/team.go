@@ -66,11 +66,25 @@ func (svc *team) Create(mod *types.Team) (*types.Team, error) {
 	return svc.team.Create(mod)
 }
 
-func (svc *team) Update(mod *types.Team) (*types.Team, error) {
+func (svc *team) Update(mod *types.Team) (t *types.Team, err error) {
 	// @todo: permission check if current user can add/edit team
 	// @todo: make sure archived & deleted entries can not be edited
 
-	return svc.team.Update(mod)
+	return t, svc.db.Transaction(func() (err error) {
+		if t, err = svc.team.FindByID(mod.ID); err != nil {
+			return
+		}
+
+		// Assign changed values
+		t.Name = mod.Name
+		t.Handle = mod.Handle
+
+		if t, err = svc.team.Update(t); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (svc *team) Delete(id uint64) error {

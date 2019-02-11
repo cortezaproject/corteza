@@ -121,17 +121,17 @@ func (o *OrganisationCreate) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewOrganisationCreate()
 
-// Organisation edit request parameters
-type OrganisationEdit struct {
+// Organisation update request parameters
+type OrganisationUpdate struct {
 	ID   uint64 `json:",string"`
 	Name string
 }
 
-func NewOrganisationEdit() *OrganisationEdit {
-	return &OrganisationEdit{}
+func NewOrganisationUpdate() *OrganisationUpdate {
+	return &OrganisationUpdate{}
 }
 
-func (o *OrganisationEdit) Fill(r *http.Request) (err error) {
+func (o *OrganisationUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(o)
 
@@ -167,7 +167,7 @@ func (o *OrganisationEdit) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewOrganisationEdit()
+var _ RequestFiller = NewOrganisationUpdate()
 
 // Organisation remove request parameters
 type OrganisationRemove struct {

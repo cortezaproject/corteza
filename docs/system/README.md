@@ -321,14 +321,9 @@ An organisation may have many teams. Teams may have many channels available. Acc
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | email | string | POST | Email | N/A | YES |
-| username | string | POST | Username | N/A | YES |
-| password | string | POST | Password | N/A | YES |
-| name | string | POST | Name | N/A | YES |
-| handle | string | POST | Handle | N/A | YES |
+| name | string | POST | Name | N/A | NO |
+| handle | string | POST | Handle | N/A | NO |
 | kind | string | POST | Kind (normal, bot) | N/A | NO |
-| meta | sqlxTypes.JSONText | POST | Meta data | N/A | NO |
-| satosaID | string | POST | Satosa ID | N/A | NO |
-| organisationID | uint64 | POST | Organisation ID | N/A | NO |
 
 ## Update user details
 
@@ -344,14 +339,9 @@ An organisation may have many teams. Teams may have many channels available. Acc
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | userID | uint64 | PATH | User ID | N/A | YES |
 | email | string | POST | Email | N/A | YES |
-| username | string | POST | Username | N/A | YES |
-| password | string | POST | Password | N/A | YES |
 | name | string | POST | Name | N/A | YES |
-| handle | string | POST | Handle | N/A | YES |
+| handle | string | POST | Handle | N/A | NO |
 | kind | string | POST | Kind (normal, bot) | N/A | NO |
-| meta | sqlxTypes.JSONText | POST | Meta data | N/A | NO |
-| satosaID | string | POST | Satosa ID | N/A | NO |
-| organisationID | uint64 | POST | Organisation ID | N/A | NO |
 
 ## Read user details and memberships
 

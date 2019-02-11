@@ -123,18 +123,18 @@ func (t *TeamCreate) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewTeamCreate()
 
-// Team edit request parameters
-type TeamEdit struct {
+// Team update request parameters
+type TeamUpdate struct {
 	TeamID  uint64 `json:",string"`
 	Name    string
 	Members []uint64 `json:",string"`
 }
 
-func NewTeamEdit() *TeamEdit {
-	return &TeamEdit{}
+func NewTeamUpdate() *TeamUpdate {
+	return &TeamUpdate{}
 }
 
-func (t *TeamEdit) Fill(r *http.Request) (err error) {
+func (t *TeamUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(t)
 
@@ -171,7 +171,7 @@ func (t *TeamEdit) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewTeamEdit()
+var _ RequestFiller = NewTeamUpdate()
 
 // Team read request parameters
 type TeamRead struct {
