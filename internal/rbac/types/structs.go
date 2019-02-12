@@ -2,16 +2,16 @@ package types
 
 type (
 	User struct {
-		UserID          string   `json:"userid"`
+		ID              string   `json:"userid"`
 		Username        string   `json:"username"`
 		AssignedRoles   []string `json:"assignedRoles"`
 		AuthorizedRoles []string `json:"authorizedRoles"`
 	}
 
 	Session struct {
-		ID       string   `json:"session"`
-		Username string   `json:"username"`
-		Roles    []string `json:"roles"`
+		ID     string   `json:"session"`
+		UserID string   `json:"userid"`
+		Roles  []string `json:"roles"`
 	}
 
 	// @todo: need to list nested roles,

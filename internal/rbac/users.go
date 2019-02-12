@@ -3,8 +3,10 @@ package rbac
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/crusttech/crust/internal/rbac/types"
+
 	"github.com/pkg/errors"
+
+	"github.com/crusttech/crust/internal/rbac/types"
 )
 
 type (
@@ -14,11 +16,11 @@ type (
 
 	UsersInterface interface {
 		Create(username, password string) (*types.User, error)
-		Get(username string) (*types.User, error)
-		Delete(username string) error
+		Get(userID string) (*types.User, error)
+		Delete(userID string) error
 
-		AddRole(username string, roles ...string) error
-		RemoveRole(username string, roles ...string) error
+		AddRole(userID string, roles ...string) error
+		RemoveRole(userID string, roles ...string) error
 	}
 )
 
@@ -51,12 +53,12 @@ func (u *Users) Create(username, password string) (*types.User, error) {
 	}
 }
 
-func (u *Users) AddRole(username string, roles ...string) error {
+func (u *Users) AddRole(userID string, roles ...string) error {
 	body := struct {
 		Roles []string `json:"roles"`
 	}{roles}
 
-	resp, err := u.Client.Patch(fmt.Sprintf(usersAddRole, username), body)
+	resp, err := u.Client.Patch(fmt.Sprintf(usersAddRole, userID), body)
 	if err != nil {
 		return errors.Wrap(err, "request failed")
 	}
@@ -69,12 +71,12 @@ func (u *Users) AddRole(username string, roles ...string) error {
 	}
 }
 
-func (u *Users) RemoveRole(username string, roles ...string) error {
+func (u *Users) RemoveRole(userID string, roles ...string) error {
 	body := struct {
 		Roles []string `json:"roles"`
 	}{roles}
 
-	resp, err := u.Client.Patch(fmt.Sprintf(usersRemoveRole, username), body)
+	resp, err := u.Client.Patch(fmt.Sprintf(usersRemoveRole, userID), body)
 	if err != nil {
 		return errors.Wrap(err, "request failed")
 	}
@@ -87,8 +89,8 @@ func (u *Users) RemoveRole(username string, roles ...string) error {
 	}
 }
 
-func (u *Users) Get(username string) (*types.User, error) {
-	resp, err := u.Client.Get(fmt.Sprintf(usersGet, username))
+func (u *Users) Get(userID string) (*types.User, error) {
+	resp, err := u.Client.Get(fmt.Sprintf(usersGet, userID))
 	if err != nil {
 		return nil, errors.Wrap(err, "request failed")
 	}
@@ -102,8 +104,8 @@ func (u *Users) Get(username string) (*types.User, error) {
 	}
 }
 
-func (u *Users) Delete(username string) error {
-	resp, err := u.Client.Delete(fmt.Sprintf(usersDelete, username))
+func (u *Users) Delete(userID string) error {
+	resp, err := u.Client.Delete(fmt.Sprintf(usersDelete, userID))
 	if err != nil {
 		return errors.Wrap(err, "request failed")
 	}

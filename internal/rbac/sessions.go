@@ -3,6 +3,7 @@ package rbac
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/crusttech/crust/internal/rbac/types"
 	"github.com/pkg/errors"
 )
@@ -13,7 +14,7 @@ type (
 	}
 
 	SessionsInterface interface {
-		Create(sessionID, username string, roles ...string) error
+		Create(sessionID, userID string, roles ...string) error
 		Get(sessionID string) (*types.Session, error)
 		Delete(sessionID string) error
 
@@ -30,11 +31,11 @@ const (
 	sessionsDeactivateRole = "/sessions/%s/deactivateRole"
 )
 
-func (u *Sessions) Create(sessionID, username string, roles ...string) error {
+func (u *Sessions) Create(sessionID, userID string, roles ...string) error {
 	body := struct {
-		Username string   `json:"username"`
-		Roles    []string `json:"roles,omitempty"`
-	}{username, roles}
+		UserID string   `json:"userid"`
+		Roles  []string `json:"roles,omitempty"`
+	}{userID, roles}
 
 	resp, err := u.Client.Post(fmt.Sprintf(sessionsCreate, sessionID), body)
 	if err != nil {

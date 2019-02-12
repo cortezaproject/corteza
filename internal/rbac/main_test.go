@@ -1,15 +1,20 @@
 package rbac_test
 
 import (
-	"github.com/crusttech/crust/internal/rbac"
-	"github.com/namsral/flag"
 	"testing"
+
+	"github.com/joho/godotenv"
+	"github.com/namsral/flag"
+
+	"github.com/crusttech/crust/internal/rbac"
 )
 
 var loaded bool
 
 func getClient() (*rbac.Client, error) {
 	if !loaded {
+		godotenv.Load("../../.env")
+
 		rbac.Flags()
 		flag.Parse()
 		loaded = true
