@@ -16,8 +16,7 @@ func TestSessions(t *testing.T) {
 	roles := rbac.Roles()
 	resources := rbac.Resources()
 
-	// clean up data
-	users.Delete("test-user")
+	// @todo until users.Get implements getting user by email, we need to delete users at end of the test successful and unsuccessful.
 	sessions.Delete("test-session")
 	roles.Delete("test-role")
 	resources.Delete("test-resource")
@@ -25,15 +24,14 @@ func TestSessions(t *testing.T) {
 
 	must(t, roles.Create("test-role"), "Error when creating test-role")
 
-	{
-		user, err := users.Create("test-user", "test-password")
-		must(t, err, "Error when creating test-user")
-		assert(t, user != nil, "%+v", errors.New("Expected non-nil user"))
-		assert(t, user.UserID != "", "%+v", errors.New("Expected non-empty user.UserID"))
-		assert(t, user.Username == "test-user", "%+v", errors.Errorf("Expected test-user == %s", user.Username))
-	}
-	must(t, users.AddRole("test-user", "test-role"), "Error when assigning test-role to test-user")
-	must(t, sessions.Create("test-session", "test-user", "test-role"), "Error when creating test-session")
+	user, err := users.Create("test-user@crust.tech", "test-password")
+	must(t, err, "Error when creating test-user@crust.tech")
+	assert(t, user != nil, "%+v", errors.New("Expected non-nil user"))
+	assert(t, user.ID != "", "%+v", errors.New("Expected non-empty user.ID"))
+	assert(t, user.Username == "test-user@crust.tech", "%+v", errors.Errorf("Expected test-user@crust.tech == %s", user.Username))
+
+	must(t, users.AddRole(user.ID, "test-role"), "Error when assigning test-role to test-user@crust.tech")
+	must(t, sessions.Create("test-session", user.ID, "test-role"), "Error when creating test-session")
 	must(t, resources.Create("test-resource", []string{"view", "edit", "delete"}), "Error when creating test-resource")
 	must(t, resources.Grant("test-resource", "test-role", []string{"view", "edit"}), "Error when granting permissions to role on resource")
 
@@ -42,7 +40,6 @@ func TestSessions(t *testing.T) {
 		session, err := sessions.Get("test-session")
 		must(t, err, "Error when getting test-session")
 		assert(t, session.ID == "test-session", "Unexpected Session ID, test-session != '%s'", session.ID)
-		// assert(t, session.Username == "test-user", "Unexpected user, test-user != '%s'", session.Username)
 		assert(t, len(session.Roles) == 1, "Expected one session role, got %+v", session.Roles)
 		assert(t, session.Roles[0] == "test-role", "Unexpected session role, test-role != '%s'", session.Roles[0])
 	}
@@ -94,4 +91,11 @@ func TestSessions(t *testing.T) {
 		return err
 	}())
 	mustFail(t, sessions.Delete("test-session"))
+
+	must(t, users.Delete(user.ID), "Error when deleting test-user")
+	mustFail(t, func() error {
+		_, err := users.Get(user.ID)
+		return err
+	}())
+	mustFail(t, users.Delete(user.ID))
 }
