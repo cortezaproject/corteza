@@ -11,37 +11,37 @@
     ]
   },
   {
-    "title": "Text Permissions",
+    "title": "Message Permissions",
     "operations": [
       {
-        "key": "text.send",
+        "key": "message.send",
         "title": "Send Messages",
         "enabled": true
       },
       {
-        "key": "text.embed",
+        "key": "message.embed",
         "title": "Embed Links",
         "enabled": true
       },
       {
-        "key": "text.attach",
+        "key": "message.attach",
         "title": "Attach Files",
         "enabled": true
       },
       {
-        "key": "text.edit_own",
-        "title": "Manage own messages",
-        "subtitle": "Members with this permission can edit/delete their own messages inside channels",
+        "key": "message.update_own",
+        "title": "Update own messages",
+        "subtitle": "Members with this permission can update/delete their own messages inside channels",
         "enabled": true
       },
       {
-        "key": "text.edit_all",
-        "title": "Manage messages",
-        "subtitle": "Members with this permission can edit/delete messages inside channels",
+        "key": "message.update_all",
+        "title": "Update messages",
+        "subtitle": "Members with this permission can update/delete messages inside channels",
         "enabled": true
       },
       {
-        "key": "text.react",
+        "key": "message.react",
         "title": "Manage reactions",
         "subtitle": "Members with this permission can add new reactions to a message",
         "enabled": true

@@ -18,40 +18,40 @@ func (*Channel) Permissions() []rules.OperationGroup {
 				},
 			},
 		}, rules.OperationGroup{
-			Title: "Text Permissions",
+			Title: "Message Permissions",
 			Operations: []rules.Operation{
 				rules.Operation{
-					Key:      "text.send",
+					Key:      "message.send",
 					Title:    "Send Messages",
 					Subtitle: "",
 					Enabled:  true,
 					Default:  rules.Inherit,
 				}, rules.Operation{
-					Key:      "text.embed",
+					Key:      "message.embed",
 					Title:    "Embed Links",
 					Subtitle: "",
 					Enabled:  true,
 					Default:  rules.Inherit,
 				}, rules.Operation{
-					Key:      "text.attach",
+					Key:      "message.attach",
 					Title:    "Attach Files",
 					Subtitle: "",
 					Enabled:  true,
 					Default:  rules.Inherit,
 				}, rules.Operation{
-					Key:      "text.edit_own",
-					Title:    "Manage own messages",
-					Subtitle: "Members with this permission can edit/delete their own messages inside this channel",
+					Key:      "message.update_own",
+					Title:    "Update own messages",
+					Subtitle: "Members with this permission can update/delete their own messages inside this channel",
 					Enabled:  true,
 					Default:  rules.Inherit,
 				}, rules.Operation{
-					Key:      "text.edit_all",
-					Title:    "Manage messages",
-					Subtitle: "Members with this permission can edit/delete messages inside this channel",
+					Key:      "message.update_all",
+					Title:    "Update messages",
+					Subtitle: "Members with this permission can update/delete messages inside this channel",
 					Enabled:  true,
 					Default:  rules.Inherit,
 				}, rules.Operation{
-					Key:      "text.react",
+					Key:      "message.react",
 					Title:    "Manage reactions",
 					Subtitle: "Members with this permission can add new reactions to a message",
 					Enabled:  true,
@@ -64,13 +64,13 @@ func (*Channel) Permissions() []rules.OperationGroup {
 
 func (*Channel) PermissionDefault(key string) rules.Access {
 	values := map[string]rules.Access{
-		"text.attach":     rules.Inherit,
-		"text.edit_own":   rules.Inherit,
-		"text.edit_all":   rules.Inherit,
-		"text.react":      rules.Inherit,
-		"manage.webhooks": rules.Inherit,
-		"text.send":       rules.Inherit,
-		"text.embed":      rules.Inherit,
+		"message.react":      rules.Inherit,
+		"manage.webhooks":    rules.Inherit,
+		"message.send":       rules.Inherit,
+		"message.embed":      rules.Inherit,
+		"message.attach":     rules.Inherit,
+		"message.update_own": rules.Inherit,
+		"message.update_all": rules.Inherit,
 	}
 	if value, ok := values[key]; ok {
 		return value

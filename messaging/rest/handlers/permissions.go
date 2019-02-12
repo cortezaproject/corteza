@@ -28,15 +28,15 @@ import (
 // Internal API interface
 type PermissionsAPI interface {
 	List(context.Context, *request.PermissionsList) (interface{}, error)
-	GetTeam(context.Context, *request.PermissionsGetTeam) (interface{}, error)
-	SetTeam(context.Context, *request.PermissionsSetTeam) (interface{}, error)
+	Get(context.Context, *request.PermissionsGet) (interface{}, error)
+	Set(context.Context, *request.PermissionsSet) (interface{}, error)
 }
 
 // HTTP API interface
 type Permissions struct {
-	List    func(http.ResponseWriter, *http.Request)
-	GetTeam func(http.ResponseWriter, *http.Request)
-	SetTeam func(http.ResponseWriter, *http.Request)
+	List func(http.ResponseWriter, *http.Request)
+	Get  func(http.ResponseWriter, *http.Request)
+	Set  func(http.ResponseWriter, *http.Request)
 }
 
 func NewPermissions(ph PermissionsAPI) *Permissions {
@@ -48,18 +48,18 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 				return ph.List(r.Context(), params)
 			})
 		},
-		GetTeam: func(w http.ResponseWriter, r *http.Request) {
+		Get: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewPermissionsGetTeam()
+			params := request.NewPermissionsGet()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ph.GetTeam(r.Context(), params)
+				return ph.Get(r.Context(), params)
 			})
 		},
-		SetTeam: func(w http.ResponseWriter, r *http.Request) {
+		Set: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewPermissionsSetTeam()
+			params := request.NewPermissionsSet()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ph.SetTeam(r.Context(), params)
+				return ph.Set(r.Context(), params)
 			})
 		},
 	}
@@ -70,8 +70,8 @@ func (ph *Permissions) MountRoutes(r chi.Router, middlewares ...func(http.Handle
 		r.Use(middlewares...)
 		r.Route("/permissions", func(r chi.Router) {
 			r.Get("/permissions", ph.List)
-			r.Get("/permissions/{team}", ph.GetTeam)
-			r.Post("/permissions/{team}", ph.SetTeam)
+			r.Get("/permissions/{teamID}", ph.Get)
+			r.Post("/permissions/{teamID}", ph.Set)
 		})
 	})
 }

@@ -71,18 +71,18 @@ func (p *PermissionsList) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewPermissionsList()
 
-// Permissions getTeam request parameters
-type PermissionsGetTeam struct {
+// Permissions get request parameters
+type PermissionsGet struct {
 	Scope    string
 	Resource string
-	Team     string
+	TeamID   uint64 `json:",string"`
 }
 
-func NewPermissionsGetTeam() *PermissionsGetTeam {
-	return &PermissionsGetTeam{}
+func NewPermissionsGet() *PermissionsGet {
+	return &PermissionsGet{}
 }
 
-func (p *PermissionsGetTeam) Fill(r *http.Request) (err error) {
+func (p *PermissionsGet) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(p)
 
@@ -117,24 +117,24 @@ func (p *PermissionsGetTeam) Fill(r *http.Request) (err error) {
 
 		p.Resource = val
 	}
-	p.Team = chi.URLParam(r, "team")
+	p.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
 
 	return err
 }
 
-var _ RequestFiller = NewPermissionsGetTeam()
+var _ RequestFiller = NewPermissionsGet()
 
-// Permissions setTeam request parameters
-type PermissionsSetTeam struct {
-	Team        string
-	Permissions []rules.Permission
+// Permissions set request parameters
+type PermissionsSet struct {
+	TeamID      uint64 `json:",string"`
+	Permissions []rules.Rules
 }
 
-func NewPermissionsSetTeam() *PermissionsSetTeam {
-	return &PermissionsSetTeam{}
+func NewPermissionsSet() *PermissionsSet {
+	return &PermissionsSet{}
 }
 
-func (p *PermissionsSetTeam) Fill(r *http.Request) (err error) {
+func (p *PermissionsSet) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(p)
 
@@ -161,9 +161,9 @@ func (p *PermissionsSetTeam) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	p.Team = chi.URLParam(r, "team")
+	p.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
 
 	return err
 }
 
-var _ RequestFiller = NewPermissionsSetTeam()
+var _ RequestFiller = NewPermissionsSet()

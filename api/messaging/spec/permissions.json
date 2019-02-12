@@ -24,10 +24,10 @@
       "Parameters": {}
     },
     {
-      "Name": "getTeam",
+      "Name": "get",
       "Method": "GET",
       "Title": "Retrieve current permission settings",
-      "Path": "/permissions/{team}",
+      "Path": "/permissions/{teamID}",
       "Parameters": {
         "get": [
           {
@@ -45,34 +45,34 @@
         ],
         "path": [
           {
-            "name": "team",
+            "name": "teamID",
             "required": true,
             "title": "Team ID",
-            "type": "string"
+            "type": "uint64"
           }
         ]
       }
     },
     {
-      "Name": "setTeam",
+      "Name": "set",
       "Method": "POST",
       "Title": "Update permission settings",
-      "Path": "/permissions/{team}",
+      "Path": "/permissions/{teamID}",
       "Parameters": {
         "path": [
           {
-            "name": "team",
+            "name": "teamID",
             "required": true,
             "title": "Team ID",
-            "type": "string"
+            "type": "uint64"
           }
         ],
         "post": [
           {
             "name": "permissions",
             "required": true,
-            "title": "List of permissions to set",
-            "type": "[]rules.Permission"
+            "title": "List of rules to set",
+            "type": "[]rules.Rules"
           }
         ]
       }
