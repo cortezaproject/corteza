@@ -21,15 +21,4 @@ type (
 		// false = unchecked (deny)
 		Default Access `json:"default"`
 	}
-
-	Permission struct {
-		// Scope (organisation, team, channel)
-		Scope string `json:"scope"`
-		// Resource (org:1, team:123123, etc.)
-		Resource string `json:"resource"`
-		// Operation name (Operation.Key)
-		Operation string `json:"operation"`
-		// Operation state (inherit, allow, deny)
-		State Access `json:"state"`
-	}
 )

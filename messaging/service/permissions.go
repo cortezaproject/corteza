@@ -21,8 +21,8 @@ type (
 		With(ctx context.Context) PermissionsService
 
 		List() (interface{}, error)
-		Get(team string, scope string, resource string) (interface{}, error)
-		Set(team string, permissions []rules.Permission) (interface{}, error)
+		Get(teamID uint64, scope string, resource string) (interface{}, error)
+		Set(teamID uint64, rules []rules.Rules) (interface{}, error)
 	}
 )
 
@@ -45,10 +45,10 @@ func (p *permissions) List() (interface{}, error) {
 	return p.scopes.List(), nil
 }
 
-func (p *permissions) Get(team string, scope string, resource string) (interface{}, error) {
+func (p *permissions) Get(teamID uint64, scope string, resource string) (interface{}, error) {
 	return nil, errors.New("service.permissions.get: not implemented")
 }
 
-func (p *permissions) Set(team string, permissions []rules.Permission) (interface{}, error) {
+func (p *permissions) Set(teamID uint64, rules []rules.Rules) (interface{}, error) {
 	return nil, errors.New("service.permissions.set: not implemented")
 }

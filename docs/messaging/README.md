@@ -469,7 +469,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/permissions/permissions/{team}` | HTTP/S | GET | Client ID, Session ID |
+| `/permissions/permissions/{teamID}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -477,7 +477,7 @@ The following event types may be sent with a message event:
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | scope | string | GET | Permissions scope | N/A | YES |
 | resource | string | GET | Permissions resource | N/A | YES |
-| team | string | PATH | Team ID | N/A | YES |
+| teamID | uint64 | PATH | Team ID | N/A | YES |
 
 ## Update permission settings
 
@@ -485,14 +485,14 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/permissions/permissions/{team}` | HTTP/S | POST | Client ID, Session ID |
+| `/permissions/permissions/{teamID}` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| team | string | PATH | Team ID | N/A | YES |
-| permissions | []rules.Permission | POST | List of permissions to set | N/A | YES |
+| teamID | uint64 | PATH | Team ID | N/A | YES |
+| permissions | []rules.Rules | POST | List of rules to set | N/A | YES |
 
 
 

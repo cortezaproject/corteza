@@ -24,10 +24,10 @@ func (ctrl *Permissions) List(ctx context.Context, r *request.PermissionsList) (
 	return ctrl.svc.perms.List()
 }
 
-func (ctrl *Permissions) GetTeam(ctx context.Context, r *request.PermissionsGetTeam) (interface{}, error) {
-	return ctrl.svc.perms.Get(r.Team, r.Scope, r.Resource)
+func (ctrl *Permissions) Get(ctx context.Context, r *request.PermissionsGet) (interface{}, error) {
+	return ctrl.svc.perms.Get(r.TeamID, r.Scope, r.Resource)
 }
 
-func (ctrl *Permissions) SetTeam(ctx context.Context, r *request.PermissionsSetTeam) (interface{}, error) {
-	return ctrl.svc.perms.Set(r.Team, r.Permissions)
+func (ctrl *Permissions) SetTeam(ctx context.Context, r *request.PermissionsSet) (interface{}, error) {
+	return ctrl.svc.perms.Set(r.TeamID, r.Permissions)
 }
