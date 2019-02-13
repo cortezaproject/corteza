@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/crusttech/crust/internal/rules"
+	internalRules "github.com/crusttech/crust/internal/rules"
 	"github.com/crusttech/crust/internal/store"
 
 	"github.com/crusttech/crust/messaging/types"
@@ -34,7 +34,7 @@ func Init() {
 			log.Fatalf("Failed to initialize stor: %v", err)
 		}
 
-		scopes := rules.NewScope()
+		scopes := internalRules.NewScope()
 		scopes.Add(&types.Organisation{})
 		scopes.Add(&types.Team{})
 		scopes.Add(&types.Channel{})
