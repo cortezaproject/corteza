@@ -164,8 +164,11 @@ func (b recordReportBuilder) Cast(row sqlx.ColScanner) map[string]interface{} {
 	}
 
 	// Cast all metrics to float64
-	for _, numeric := range b.numerics {
-		out[numeric], _ = strconv.ParseFloat(out[numeric].(string), 64)
+	for _, fname := range b.numerics {
+		switch num := out[fname].(type) {
+		case string:
+			out[fname], _ = strconv.ParseFloat(num, 64)
+		}
 	}
 
 	return out
