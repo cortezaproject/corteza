@@ -73,7 +73,6 @@ var _ RequestFiller = NewPermissionsList()
 
 // Permissions get request parameters
 type PermissionsGet struct {
-	Scope    string
 	Resource string
 	TeamID   uint64 `json:",string"`
 }
@@ -109,10 +108,6 @@ func (p *PermissionsGet) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	if val, ok := get["scope"]; ok {
-
-		p.Scope = val
-	}
 	if val, ok := get["resource"]; ok {
 
 		p.Resource = val
@@ -167,3 +162,46 @@ func (p *PermissionsSet) Fill(r *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewPermissionsSet()
+
+// Permissions scopes request parameters
+type PermissionsScopes struct {
+	Scope string
+}
+
+func NewPermissionsScopes() *PermissionsScopes {
+	return &PermissionsScopes{}
+}
+
+func (p *PermissionsScopes) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(p)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	p.Scope = chi.URLParam(r, "scope")
+
+	return err
+}
+
+var _ RequestFiller = NewPermissionsScopes()

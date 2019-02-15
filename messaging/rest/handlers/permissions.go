@@ -30,13 +30,15 @@ type PermissionsAPI interface {
 	List(context.Context, *request.PermissionsList) (interface{}, error)
 	Get(context.Context, *request.PermissionsGet) (interface{}, error)
 	Set(context.Context, *request.PermissionsSet) (interface{}, error)
+	Scopes(context.Context, *request.PermissionsScopes) (interface{}, error)
 }
 
 // HTTP API interface
 type Permissions struct {
-	List func(http.ResponseWriter, *http.Request)
-	Get  func(http.ResponseWriter, *http.Request)
-	Set  func(http.ResponseWriter, *http.Request)
+	List   func(http.ResponseWriter, *http.Request)
+	Get    func(http.ResponseWriter, *http.Request)
+	Set    func(http.ResponseWriter, *http.Request)
+	Scopes func(http.ResponseWriter, *http.Request)
 }
 
 func NewPermissions(ph PermissionsAPI) *Permissions {
@@ -62,6 +64,13 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 				return ph.Set(r.Context(), params)
 			})
 		},
+		Scopes: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewPermissionsScopes()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return ph.Scopes(r.Context(), params)
+			})
+		},
 	}
 }
 
@@ -72,6 +81,7 @@ func (ph *Permissions) MountRoutes(r chi.Router, middlewares ...func(http.Handle
 			r.Get("/permissions", ph.List)
 			r.Get("/permissions/{teamID}", ph.Get)
 			r.Post("/permissions/{teamID}", ph.Set)
+			r.Get("/permissions/scopes/{scope}", ph.Scopes)
 		})
 	})
 }
