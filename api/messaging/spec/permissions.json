@@ -31,12 +31,6 @@
       "Parameters": {
         "get": [
           {
-            "name": "scope",
-            "required": true,
-            "title": "Permissions scope",
-            "type": "string"
-          },
-          {
             "name": "resource",
             "required": true,
             "title": "Permissions resource",
@@ -73,6 +67,22 @@
             "required": true,
             "title": "List of rules to set",
             "type": "[]rules.Rules"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "scopes",
+      "Method": "GET",
+      "Title": "List resources for given scope",
+      "Path": "/permissions/scopes/{scope}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "scope",
+            "required": true,
+            "title": "Scope",
+            "type": "string"
           }
         ]
       }

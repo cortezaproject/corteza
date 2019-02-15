@@ -719,12 +719,6 @@
           ],
           "get": [
             {
-              "name": "scope",
-              "type": "string",
-              "required": true,
-              "title": "Permissions scope"
-            },
-            {
               "name": "resource",
               "type": "string",
               "required": true,
@@ -753,6 +747,22 @@
               "type": "[]rules.Rules",
               "required": true,
               "title": "List of rules to set"
+            }
+          ]
+        }
+      },
+      {
+        "name": "scopes",
+        "path": "/permissions/scopes/{scope}",
+        "method": "GET",
+        "title": "List resources for given scope",
+        "parameters": {
+          "path": [
+            {
+              "name": "scope",
+              "type": "string",
+              "required": true,
+              "title": "Scope"
             }
           ]
         }

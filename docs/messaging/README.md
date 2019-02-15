@@ -475,7 +475,6 @@ The following event types may be sent with a message event:
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| scope | string | GET | Permissions scope | N/A | YES |
 | resource | string | GET | Permissions resource | N/A | YES |
 | teamID | uint64 | PATH | Team ID | N/A | YES |
 
@@ -493,6 +492,20 @@ The following event types may be sent with a message event:
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | teamID | uint64 | PATH | Team ID | N/A | YES |
 | permissions | []rules.Rules | POST | List of rules to set | N/A | YES |
+
+## List resources for given scope
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/permissions/permissions/scopes/{scope}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| scope | string | PATH | Scope | N/A | YES |
 
 
 

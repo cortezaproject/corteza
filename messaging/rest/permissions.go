@@ -25,9 +25,13 @@ func (ctrl *Permissions) List(ctx context.Context, r *request.PermissionsList) (
 }
 
 func (ctrl *Permissions) Get(ctx context.Context, r *request.PermissionsGet) (interface{}, error) {
-	return ctrl.svc.perms.Get(r.TeamID, r.Scope, r.Resource)
+	return ctrl.svc.perms.Get(r.TeamID, r.Resource)
 }
 
-func (ctrl *Permissions) SetTeam(ctx context.Context, r *request.PermissionsSet) (interface{}, error) {
+func (ctrl *Permissions) Set(ctx context.Context, r *request.PermissionsSet) (interface{}, error) {
 	return ctrl.svc.perms.Set(r.TeamID, r.Permissions)
+}
+
+func (ctrl *Permissions) Scopes(ctx context.Context, r *request.PermissionsScopes) (interface{}, error) {
+	return ctrl.svc.perms.Scopes(r.Scope)
 }
