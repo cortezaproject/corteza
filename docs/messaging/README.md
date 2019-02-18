@@ -456,7 +456,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/permissions/permissions` | HTTP/S | GET | Client ID, Session ID |
+| `/permissions/` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -469,7 +469,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/permissions/permissions/{teamID}` | HTTP/S | GET | Client ID, Session ID |
+| `/permissions/{teamID}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -484,7 +484,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/permissions/permissions/{teamID}` | HTTP/S | POST | Client ID, Session ID |
+| `/permissions/{teamID}` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -499,7 +499,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/permissions/permissions/scopes/{scope}` | HTTP/S | GET | Client ID, Session ID |
+| `/permissions/scopes/{scope}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 

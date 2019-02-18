@@ -78,10 +78,10 @@ func (ph *Permissions) MountRoutes(r chi.Router, middlewares ...func(http.Handle
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Route("/permissions", func(r chi.Router) {
-			r.Get("/permissions", ph.List)
-			r.Get("/permissions/{teamID}", ph.Get)
-			r.Post("/permissions/{teamID}", ph.Set)
-			r.Get("/permissions/scopes/{scope}", ph.Scopes)
+			r.Get("/", ph.List)
+			r.Get("/{teamID}", ph.Get)
+			r.Post("/{teamID}", ph.Set)
+			r.Get("/scopes/{scope}", ph.Scopes)
 		})
 	})
 }

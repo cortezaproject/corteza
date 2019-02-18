@@ -20,14 +20,14 @@
       "Name": "list",
       "Method": "GET",
       "Title": "List default permissions",
-      "Path": "/permissions",
+      "Path": "/",
       "Parameters": {}
     },
     {
       "Name": "get",
       "Method": "GET",
       "Title": "Retrieve current permission settings",
-      "Path": "/permissions/{teamID}",
+      "Path": "/{teamID}",
       "Parameters": {
         "get": [
           {
@@ -51,7 +51,7 @@
       "Name": "set",
       "Method": "POST",
       "Title": "Update permission settings",
-      "Path": "/permissions/{teamID}",
+      "Path": "/{teamID}",
       "Parameters": {
         "path": [
           {
@@ -75,7 +75,7 @@
       "Name": "scopes",
       "Method": "GET",
       "Title": "List resources for given scope",
-      "Path": "/permissions/scopes/{scope}",
+      "Path": "/scopes/{scope}",
       "Parameters": {
         "path": [
           {
