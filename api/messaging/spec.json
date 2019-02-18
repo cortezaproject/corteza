@@ -698,14 +698,14 @@
     "apis": [
       {
         "name": "list",
-        "path": "/permissions",
+        "path": "/",
         "method": "GET",
         "title": "List default permissions",
         "parameters": {}
       },
       {
         "name": "get",
-        "path": "/permissions/{teamID}",
+        "path": "/{teamID}",
         "method": "GET",
         "title": "Retrieve current permission settings",
         "parameters": {
@@ -729,7 +729,7 @@
       },
       {
         "name": "set",
-        "path": "/permissions/{teamID}",
+        "path": "/{teamID}",
         "method": "POST",
         "title": "Update permission settings",
         "parameters": {
@@ -753,7 +753,7 @@
       },
       {
         "name": "scopes",
-        "path": "/permissions/scopes/{scope}",
+        "path": "/scopes/{scope}",
         "method": "GET",
         "title": "List resources for given scope",
         "parameters": {
