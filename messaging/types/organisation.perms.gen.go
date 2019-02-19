@@ -97,15 +97,15 @@ func (*Organisation) PermissionDefault(key string) rules.Access {
 		"audit":               rules.Deny,
 		"manage.organisation": rules.Deny,
 		"manage.roles":        rules.Deny,
-		"message.send":        rules.Allow,
-		"message.embed":       rules.Allow,
-		"message.attach":      rules.Allow,
-		"admin":               rules.Deny,
 		"manage.channels":     rules.Deny,
 		"manage.webhooks":     rules.Deny,
-		"message.update_own":  rules.Allow,
+		"message.attach":      rules.Allow,
 		"message.update_all":  rules.Deny,
 		"message.react":       rules.Allow,
+		"admin":               rules.Deny,
+		"message.send":        rules.Allow,
+		"message.embed":       rules.Allow,
+		"message.update_own":  rules.Allow,
 	}
 	if value, ok := values[key]; ok {
 		return value
