@@ -684,6 +684,7 @@
     "title": "Permissions",
     "parameters": {},
     "entrypoint": "permissions",
+    "path": "/permissions",
     "authentication": [
       "Client ID",
       "Session ID"
