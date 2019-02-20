@@ -38,9 +38,9 @@ func NewOrganisationList() *OrganisationList {
 	return &OrganisationList{}
 }
 
-func (o *OrganisationList) Fill(r *http.Request) (err error) {
+func (or *OrganisationList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(o)
+		err = json.NewDecoder(r.Body).Decode(or)
 
 		switch {
 		case err == io.EOF:
@@ -67,7 +67,7 @@ func (o *OrganisationList) Fill(r *http.Request) (err error) {
 
 	if val, ok := get["query"]; ok {
 
-		o.Query = val
+		or.Query = val
 	}
 
 	return err
@@ -84,9 +84,9 @@ func NewOrganisationCreate() *OrganisationCreate {
 	return &OrganisationCreate{}
 }
 
-func (o *OrganisationCreate) Fill(r *http.Request) (err error) {
+func (or *OrganisationCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(o)
+		err = json.NewDecoder(r.Body).Decode(or)
 
 		switch {
 		case err == io.EOF:
@@ -113,7 +113,7 @@ func (o *OrganisationCreate) Fill(r *http.Request) (err error) {
 
 	if val, ok := post["name"]; ok {
 
-		o.Name = val
+		or.Name = val
 	}
 
 	return err
@@ -131,9 +131,9 @@ func NewOrganisationUpdate() *OrganisationUpdate {
 	return &OrganisationUpdate{}
 }
 
-func (o *OrganisationUpdate) Fill(r *http.Request) (err error) {
+func (or *OrganisationUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(o)
+		err = json.NewDecoder(r.Body).Decode(or)
 
 		switch {
 		case err == io.EOF:
@@ -158,10 +158,10 @@ func (o *OrganisationUpdate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	o.ID = parseUInt64(chi.URLParam(r, "id"))
+	or.ID = parseUInt64(chi.URLParam(r, "id"))
 	if val, ok := post["name"]; ok {
 
-		o.Name = val
+		or.Name = val
 	}
 
 	return err
@@ -178,9 +178,9 @@ func NewOrganisationRemove() *OrganisationRemove {
 	return &OrganisationRemove{}
 }
 
-func (o *OrganisationRemove) Fill(r *http.Request) (err error) {
+func (or *OrganisationRemove) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(o)
+		err = json.NewDecoder(r.Body).Decode(or)
 
 		switch {
 		case err == io.EOF:
@@ -205,7 +205,7 @@ func (o *OrganisationRemove) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	o.ID = parseUInt64(chi.URLParam(r, "id"))
+	or.ID = parseUInt64(chi.URLParam(r, "id"))
 
 	return err
 }
@@ -221,9 +221,9 @@ func NewOrganisationRead() *OrganisationRead {
 	return &OrganisationRead{}
 }
 
-func (o *OrganisationRead) Fill(r *http.Request) (err error) {
+func (or *OrganisationRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(o)
+		err = json.NewDecoder(r.Body).Decode(or)
 
 		switch {
 		case err == io.EOF:
@@ -250,7 +250,7 @@ func (o *OrganisationRead) Fill(r *http.Request) (err error) {
 
 	if val, ok := get["id"]; ok {
 
-		o.ID = parseUInt64(val)
+		or.ID = parseUInt64(val)
 	}
 
 	return err
@@ -267,9 +267,9 @@ func NewOrganisationArchive() *OrganisationArchive {
 	return &OrganisationArchive{}
 }
 
-func (o *OrganisationArchive) Fill(r *http.Request) (err error) {
+func (or *OrganisationArchive) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(o)
+		err = json.NewDecoder(r.Body).Decode(or)
 
 		switch {
 		case err == io.EOF:
@@ -294,7 +294,7 @@ func (o *OrganisationArchive) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	o.ID = parseUInt64(chi.URLParam(r, "id"))
+	or.ID = parseUInt64(chi.URLParam(r, "id"))
 
 	return err
 }

@@ -40,9 +40,9 @@ func NewUserList() *UserList {
 	return &UserList{}
 }
 
-func (u *UserList) Fill(r *http.Request) (err error) {
+func (us *UserList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(u)
+		err = json.NewDecoder(r.Body).Decode(us)
 
 		switch {
 		case err == io.EOF:
@@ -69,15 +69,15 @@ func (u *UserList) Fill(r *http.Request) (err error) {
 
 	if val, ok := get["query"]; ok {
 
-		u.Query = val
+		us.Query = val
 	}
 	if val, ok := get["username"]; ok {
 
-		u.Username = val
+		us.Username = val
 	}
 	if val, ok := get["email"]; ok {
 
-		u.Email = val
+		us.Email = val
 	}
 
 	return err
@@ -97,9 +97,9 @@ func NewUserCreate() *UserCreate {
 	return &UserCreate{}
 }
 
-func (u *UserCreate) Fill(r *http.Request) (err error) {
+func (us *UserCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(u)
+		err = json.NewDecoder(r.Body).Decode(us)
 
 		switch {
 		case err == io.EOF:
@@ -126,19 +126,19 @@ func (u *UserCreate) Fill(r *http.Request) (err error) {
 
 	if val, ok := post["email"]; ok {
 
-		u.Email = val
+		us.Email = val
 	}
 	if val, ok := post["name"]; ok {
 
-		u.Name = val
+		us.Name = val
 	}
 	if val, ok := post["handle"]; ok {
 
-		u.Handle = val
+		us.Handle = val
 	}
 	if val, ok := post["kind"]; ok {
 
-		u.Kind = val
+		us.Kind = val
 	}
 
 	return err
@@ -159,9 +159,9 @@ func NewUserUpdate() *UserUpdate {
 	return &UserUpdate{}
 }
 
-func (u *UserUpdate) Fill(r *http.Request) (err error) {
+func (us *UserUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(u)
+		err = json.NewDecoder(r.Body).Decode(us)
 
 		switch {
 		case err == io.EOF:
@@ -186,22 +186,22 @@ func (u *UserUpdate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	u.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	us.UserID = parseUInt64(chi.URLParam(r, "userID"))
 	if val, ok := post["email"]; ok {
 
-		u.Email = val
+		us.Email = val
 	}
 	if val, ok := post["name"]; ok {
 
-		u.Name = val
+		us.Name = val
 	}
 	if val, ok := post["handle"]; ok {
 
-		u.Handle = val
+		us.Handle = val
 	}
 	if val, ok := post["kind"]; ok {
 
-		u.Kind = val
+		us.Kind = val
 	}
 
 	return err
@@ -218,9 +218,9 @@ func NewUserRead() *UserRead {
 	return &UserRead{}
 }
 
-func (u *UserRead) Fill(r *http.Request) (err error) {
+func (us *UserRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(u)
+		err = json.NewDecoder(r.Body).Decode(us)
 
 		switch {
 		case err == io.EOF:
@@ -245,7 +245,7 @@ func (u *UserRead) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	u.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	us.UserID = parseUInt64(chi.URLParam(r, "userID"))
 
 	return err
 }
@@ -261,9 +261,9 @@ func NewUserRemove() *UserRemove {
 	return &UserRemove{}
 }
 
-func (u *UserRemove) Fill(r *http.Request) (err error) {
+func (us *UserRemove) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(u)
+		err = json.NewDecoder(r.Body).Decode(us)
 
 		switch {
 		case err == io.EOF:
@@ -288,7 +288,7 @@ func (u *UserRemove) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	u.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	us.UserID = parseUInt64(chi.URLParam(r, "userID"))
 
 	return err
 }
@@ -304,9 +304,9 @@ func NewUserSuspend() *UserSuspend {
 	return &UserSuspend{}
 }
 
-func (u *UserSuspend) Fill(r *http.Request) (err error) {
+func (us *UserSuspend) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(u)
+		err = json.NewDecoder(r.Body).Decode(us)
 
 		switch {
 		case err == io.EOF:
@@ -331,7 +331,7 @@ func (u *UserSuspend) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	u.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	us.UserID = parseUInt64(chi.URLParam(r, "userID"))
 
 	return err
 }
@@ -347,9 +347,9 @@ func NewUserUnsuspend() *UserUnsuspend {
 	return &UserUnsuspend{}
 }
 
-func (u *UserUnsuspend) Fill(r *http.Request) (err error) {
+func (us *UserUnsuspend) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(u)
+		err = json.NewDecoder(r.Body).Decode(us)
 
 		switch {
 		case err == io.EOF:
@@ -374,7 +374,7 @@ func (u *UserUnsuspend) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	u.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	us.UserID = parseUInt64(chi.URLParam(r, "userID"))
 
 	return err
 }

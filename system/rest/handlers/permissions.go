@@ -22,34 +22,25 @@ import (
 
 	"github.com/titpetric/factory/resputil"
 
-	"github.com/crusttech/crust/messaging/rest/request"
+	"github.com/crusttech/crust/system/rest/request"
 )
 
 // Internal API interface
 type PermissionsAPI interface {
-	List(context.Context, *request.PermissionsList) (interface{}, error)
 	Get(context.Context, *request.PermissionsGet) (interface{}, error)
-	Set(context.Context, *request.PermissionsSet) (interface{}, error)
-	Scopes(context.Context, *request.PermissionsScopes) (interface{}, error)
+	Delete(context.Context, *request.PermissionsDelete) (interface{}, error)
+	Update(context.Context, *request.PermissionsUpdate) (interface{}, error)
 }
 
 // HTTP API interface
 type Permissions struct {
-	List   func(http.ResponseWriter, *http.Request)
 	Get    func(http.ResponseWriter, *http.Request)
-	Set    func(http.ResponseWriter, *http.Request)
-	Scopes func(http.ResponseWriter, *http.Request)
+	Delete func(http.ResponseWriter, *http.Request)
+	Update func(http.ResponseWriter, *http.Request)
 }
 
 func NewPermissions(ph PermissionsAPI) *Permissions {
 	return &Permissions{
-		List: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewPermissionsList()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ph.List(r.Context(), params)
-			})
-		},
 		Get: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewPermissionsGet()
@@ -57,18 +48,18 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 				return ph.Get(r.Context(), params)
 			})
 		},
-		Set: func(w http.ResponseWriter, r *http.Request) {
+		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewPermissionsSet()
+			params := request.NewPermissionsDelete()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ph.Set(r.Context(), params)
+				return ph.Delete(r.Context(), params)
 			})
 		},
-		Scopes: func(w http.ResponseWriter, r *http.Request) {
+		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewPermissionsScopes()
+			params := request.NewPermissionsUpdate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ph.Scopes(r.Context(), params)
+				return ph.Update(r.Context(), params)
 			})
 		},
 	}
@@ -78,10 +69,9 @@ func (ph *Permissions) MountRoutes(r chi.Router, middlewares ...func(http.Handle
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Route("/permissions", func(r chi.Router) {
-			r.Get("/", ph.List)
-			r.Get("/{teamID}", ph.Get)
-			r.Post("/{teamID}", ph.Set)
-			r.Get("/scopes/{scope}", ph.Scopes)
+			r.Get("/{roleID}/rules", ph.Get)
+			r.Delete("/{roleID}/rules", ph.Delete)
+			r.Patch("/{roleID}/rules", ph.Update)
 		})
 	})
 }

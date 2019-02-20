@@ -160,10 +160,10 @@
     ]
   },
   {
-    "title": "Teams",
-    "description": "An organisation may have many teams. Teams may have many channels available. Access to channels may be shared between teams.",
-    "path": "/teams",
-    "entrypoint": "team",
+    "title": "Roles",
+    "description": "An organisation may have many roles. Roles may have many channels available. Access to channels may be shared between roles.",
+    "path": "/roles",
+    "entrypoint": "role",
     "authentication": [
       "Client ID",
       "Session ID"
@@ -172,7 +172,7 @@
       {
         "name": "list",
         "method": "GET",
-        "title": "List teams",
+        "title": "List roles",
         "path": "/",
         "parameters": {
           "get": [
@@ -188,7 +188,7 @@
       {
         "name": "create",
         "method": "POST",
-        "title": "Update team details",
+        "title": "Update role details",
         "path": "/",
         "parameters": {
           "post": [
@@ -196,13 +196,13 @@
               "type": "string",
               "name": "name",
               "required": true,
-              "title": "Name of Team"
+              "title": "Name of Role"
             },
             {
               "type": "[]uint64",
               "name": "members",
               "required": false,
-              "title": "Team member IDs"
+              "title": "Role member IDs"
             }
           ]
         }
@@ -210,15 +210,15 @@
       {
         "name": "update",
         "method": "PUT",
-        "title": "Update team details",
-        "path": "/{teamID}",
+        "title": "Update role details",
+        "path": "/{roleID}",
         "parameters": {
           "path": [
             {
               "type": "uint64",
-              "name": "teamID",
+              "name": "roleID",
               "required": true,
-              "title": "Team ID"
+              "title": "Role ID"
             }
           ],
           "post": [
@@ -226,13 +226,13 @@
               "type": "string",
               "name": "name",
               "required": false,
-              "title": "Name of Team"
+              "title": "Name of Role"
             },
             {
               "type": "[]uint64",
               "name": "members",
               "required": false,
-              "title": "Team member IDs"
+              "title": "Role member IDs"
             }
           ]
         }
@@ -240,15 +240,15 @@
       {
         "name": "read",
         "method": "GET",
-        "title": "Read team details and memberships",
-        "path": "/{teamID}",
+        "title": "Read role details and memberships",
+        "path": "/{roleID}",
         "parameters": {
           "path": [
             {
               "type": "uint64",
-              "name": "teamID",
+              "name": "roleID",
               "required": true,
-              "title": "Team ID"
+              "title": "Role ID"
             }
           ]
         }
@@ -256,15 +256,15 @@
       {
         "name": "remove",
         "method": "DELETE",
-        "title": "Remove team",
-        "path": "/{teamID}",
+        "title": "Remove role",
+        "path": "/{roleID}",
         "parameters": {
           "path": [
             {
               "type": "uint64",
-              "name": "teamID",
+              "name": "roleID",
               "required": true,
-              "title": "Team ID"
+              "title": "Role ID"
             }
           ]
         }
@@ -272,15 +272,15 @@
       {
         "name": "archive",
         "method": "POST",
-        "title": "Archive team",
-        "path": "/{teamID}/archive",
+        "title": "Archive role",
+        "path": "/{roleID}/archive",
         "parameters": {
           "path": [
             {
               "type": "uint64",
-              "name": "teamID",
+              "name": "roleID",
               "required": true,
-              "title": "Team ID"
+              "title": "Role ID"
             }
           ]
         }
@@ -288,15 +288,15 @@
       {
         "name": "move",
         "method": "POST",
-        "title": "Move team to different organisation",
-        "path": "/{teamID}/move",
+        "title": "Move role to different organisation",
+        "path": "/{roleID}/move",
         "parameters": {
           "path": [
             {
               "type": "uint64",
-              "name": "teamID",
+              "name": "roleID",
               "required": true,
-              "title": "Team ID"
+              "title": "Role ID"
             }
           ],
           "post": [
@@ -304,7 +304,7 @@
               "type": "uint64",
               "name": "organisationID",
               "required": true,
-              "title": "Team ID"
+              "title": "Role ID"
             }
           ]
         }
@@ -312,15 +312,15 @@
       {
         "name": "merge",
         "method": "POST",
-        "title": "Merge one team into another",
-        "path": "/{teamID}/merge",
+        "title": "Merge one role into another",
+        "path": "/{roleID}/merge",
         "parameters": {
           "path": [
             {
               "type": "uint64",
-              "name": "teamID",
+              "name": "roleID",
               "required": true,
-              "title": "Source Team ID"
+              "title": "Source Role ID"
             }
           ],
           "post": [
@@ -328,7 +328,7 @@
               "type": "uint64",
               "name": "destination",
               "required": true,
-              "title": "Destination Team ID"
+              "title": "Destination Role ID"
             }
           ]
         }
@@ -336,15 +336,15 @@
       {
         "name": "memberAdd",
         "method": "POST",
-        "title": "Add member to a team",
-        "path": "/{teamID}/memberAdd",
+        "title": "Add member to a role",
+        "path": "/{roleID}/memberAdd",
         "parameters": {
           "path": [
             {
               "type": "uint64",
-              "name": "teamID",
+              "name": "roleID",
               "required": true,
-              "title": "Source Team ID"
+              "title": "Source Role ID"
             }
           ],
           "post": [
@@ -360,15 +360,15 @@
       {
         "name": "memberRemove",
         "method": "POST",
-        "title": "Remove member from a team",
-        "path": "/{teamID}/memberRemove",
+        "title": "Remove member from a role",
+        "path": "/{roleID}/memberRemove",
         "parameters": {
           "path": [
             {
               "type": "uint64",
-              "name": "teamID",
+              "name": "roleID",
               "required": true,
-              "title": "Source Team ID"
+              "title": "Source Role ID"
             }
           ],
           "post": [
@@ -556,6 +556,81 @@
               "name": "userID",
               "required": true,
               "title": "User ID"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Permissions",
+    "parameters": {},
+    "entrypoint": "permissions",
+    "path": "/permissions",
+    "authentication": [
+      "Client ID",
+      "Session ID"
+    ],
+    "struct": [
+      {
+        "imports": [
+          "github.com/crusttech/crust/internal/rules"
+        ]
+      }
+    ],
+    "apis": [
+      {
+        "name": "get",
+        "path": "/{roleID}/rules",
+        "method": "GET",
+        "title": "Retrieve role permissions",
+        "parameters": {
+          "path": [
+            {
+              "name": "roleID",
+              "type": "uint64",
+              "required": true,
+              "title": "Role ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "path": "/{roleID}/rules",
+        "method": "DELETE",
+        "title": "Remove all defined role permissions",
+        "parameters": {
+          "path": [
+            {
+              "name": "roleID",
+              "type": "uint64",
+              "required": true,
+              "title": "Role ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "update",
+        "path": "/{roleID}/rules",
+        "method": "PATCH",
+        "title": "Update permission settings",
+        "parameters": {
+          "path": [
+            {
+              "name": "roleID",
+              "type": "uint64",
+              "required": true,
+              "title": "Role ID"
+            }
+          ],
+          "post": [
+            {
+              "name": "permissions",
+              "type": "[]rules.Rule",
+              "required": true,
+              "title": "List of permissions to set"
             }
           ]
         }

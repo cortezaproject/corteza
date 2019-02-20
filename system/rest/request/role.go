@@ -10,8 +10,8 @@ package request
 	1. run [spec](https://github.com/titpetric/spec) in the same folder,
 	2. run `./_gen.php` in this folder.
 
-	You may edit `team.go`, `team.util.go` or `team_test.go` to
-	implement your API calls, helper functions and tests. The file `team.go`
+	You may edit `role.go`, `role.util.go` or `role_test.go` to
+	implement your API calls, helper functions and tests. The file `role.go`
 	is only generated the first time, and will not be overwritten if it exists.
 */
 
@@ -29,18 +29,18 @@ import (
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
 
-// Team list request parameters
-type TeamList struct {
+// Role list request parameters
+type RoleList struct {
 	Query string
 }
 
-func NewTeamList() *TeamList {
-	return &TeamList{}
+func NewRoleList() *RoleList {
+	return &RoleList{}
 }
 
-func (t *TeamList) Fill(r *http.Request) (err error) {
+func (ro *RoleList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(t)
+		err = json.NewDecoder(r.Body).Decode(ro)
 
 		switch {
 		case err == io.EOF:
@@ -67,27 +67,27 @@ func (t *TeamList) Fill(r *http.Request) (err error) {
 
 	if val, ok := get["query"]; ok {
 
-		t.Query = val
+		ro.Query = val
 	}
 
 	return err
 }
 
-var _ RequestFiller = NewTeamList()
+var _ RequestFiller = NewRoleList()
 
-// Team create request parameters
-type TeamCreate struct {
+// Role create request parameters
+type RoleCreate struct {
 	Name    string
 	Members []uint64 `json:",string"`
 }
 
-func NewTeamCreate() *TeamCreate {
-	return &TeamCreate{}
+func NewRoleCreate() *RoleCreate {
+	return &RoleCreate{}
 }
 
-func (t *TeamCreate) Fill(r *http.Request) (err error) {
+func (ro *RoleCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(t)
+		err = json.NewDecoder(r.Body).Decode(ro)
 
 		switch {
 		case err == io.EOF:
@@ -114,29 +114,29 @@ func (t *TeamCreate) Fill(r *http.Request) (err error) {
 
 	if val, ok := post["name"]; ok {
 
-		t.Name = val
+		ro.Name = val
 	}
-	t.Members = parseUInt64A(r.Form["members"])
+	ro.Members = parseUInt64A(r.Form["members"])
 
 	return err
 }
 
-var _ RequestFiller = NewTeamCreate()
+var _ RequestFiller = NewRoleCreate()
 
-// Team update request parameters
-type TeamUpdate struct {
-	TeamID  uint64 `json:",string"`
+// Role update request parameters
+type RoleUpdate struct {
+	RoleID  uint64 `json:",string"`
 	Name    string
 	Members []uint64 `json:",string"`
 }
 
-func NewTeamUpdate() *TeamUpdate {
-	return &TeamUpdate{}
+func NewRoleUpdate() *RoleUpdate {
+	return &RoleUpdate{}
 }
 
-func (t *TeamUpdate) Fill(r *http.Request) (err error) {
+func (ro *RoleUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(t)
+		err = json.NewDecoder(r.Body).Decode(ro)
 
 		switch {
 		case err == io.EOF:
@@ -161,30 +161,30 @@ func (t *TeamUpdate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
+	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 	if val, ok := post["name"]; ok {
 
-		t.Name = val
+		ro.Name = val
 	}
-	t.Members = parseUInt64A(r.Form["members"])
+	ro.Members = parseUInt64A(r.Form["members"])
 
 	return err
 }
 
-var _ RequestFiller = NewTeamUpdate()
+var _ RequestFiller = NewRoleUpdate()
 
-// Team read request parameters
-type TeamRead struct {
-	TeamID uint64 `json:",string"`
+// Role read request parameters
+type RoleRead struct {
+	RoleID uint64 `json:",string"`
 }
 
-func NewTeamRead() *TeamRead {
-	return &TeamRead{}
+func NewRoleRead() *RoleRead {
+	return &RoleRead{}
 }
 
-func (t *TeamRead) Fill(r *http.Request) (err error) {
+func (ro *RoleRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(t)
+		err = json.NewDecoder(r.Body).Decode(ro)
 
 		switch {
 		case err == io.EOF:
@@ -209,25 +209,25 @@ func (t *TeamRead) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
+	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 
 	return err
 }
 
-var _ RequestFiller = NewTeamRead()
+var _ RequestFiller = NewRoleRead()
 
-// Team remove request parameters
-type TeamRemove struct {
-	TeamID uint64 `json:",string"`
+// Role remove request parameters
+type RoleRemove struct {
+	RoleID uint64 `json:",string"`
 }
 
-func NewTeamRemove() *TeamRemove {
-	return &TeamRemove{}
+func NewRoleRemove() *RoleRemove {
+	return &RoleRemove{}
 }
 
-func (t *TeamRemove) Fill(r *http.Request) (err error) {
+func (ro *RoleRemove) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(t)
+		err = json.NewDecoder(r.Body).Decode(ro)
 
 		switch {
 		case err == io.EOF:
@@ -252,25 +252,25 @@ func (t *TeamRemove) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
+	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 
 	return err
 }
 
-var _ RequestFiller = NewTeamRemove()
+var _ RequestFiller = NewRoleRemove()
 
-// Team archive request parameters
-type TeamArchive struct {
-	TeamID uint64 `json:",string"`
+// Role archive request parameters
+type RoleArchive struct {
+	RoleID uint64 `json:",string"`
 }
 
-func NewTeamArchive() *TeamArchive {
-	return &TeamArchive{}
+func NewRoleArchive() *RoleArchive {
+	return &RoleArchive{}
 }
 
-func (t *TeamArchive) Fill(r *http.Request) (err error) {
+func (ro *RoleArchive) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(t)
+		err = json.NewDecoder(r.Body).Decode(ro)
 
 		switch {
 		case err == io.EOF:
@@ -295,26 +295,26 @@ func (t *TeamArchive) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
+	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 
 	return err
 }
 
-var _ RequestFiller = NewTeamArchive()
+var _ RequestFiller = NewRoleArchive()
 
-// Team move request parameters
-type TeamMove struct {
-	TeamID         uint64 `json:",string"`
+// Role move request parameters
+type RoleMove struct {
+	RoleID         uint64 `json:",string"`
 	OrganisationID uint64 `json:",string"`
 }
 
-func NewTeamMove() *TeamMove {
-	return &TeamMove{}
+func NewRoleMove() *RoleMove {
+	return &RoleMove{}
 }
 
-func (t *TeamMove) Fill(r *http.Request) (err error) {
+func (ro *RoleMove) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(t)
+		err = json.NewDecoder(r.Body).Decode(ro)
 
 		switch {
 		case err == io.EOF:
@@ -339,30 +339,30 @@ func (t *TeamMove) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
+	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 	if val, ok := post["organisationID"]; ok {
 
-		t.OrganisationID = parseUInt64(val)
+		ro.OrganisationID = parseUInt64(val)
 	}
 
 	return err
 }
 
-var _ RequestFiller = NewTeamMove()
+var _ RequestFiller = NewRoleMove()
 
-// Team merge request parameters
-type TeamMerge struct {
-	TeamID      uint64 `json:",string"`
+// Role merge request parameters
+type RoleMerge struct {
+	RoleID      uint64 `json:",string"`
 	Destination uint64 `json:",string"`
 }
 
-func NewTeamMerge() *TeamMerge {
-	return &TeamMerge{}
+func NewRoleMerge() *RoleMerge {
+	return &RoleMerge{}
 }
 
-func (t *TeamMerge) Fill(r *http.Request) (err error) {
+func (ro *RoleMerge) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(t)
+		err = json.NewDecoder(r.Body).Decode(ro)
 
 		switch {
 		case err == io.EOF:
@@ -387,30 +387,30 @@ func (t *TeamMerge) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
+	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 	if val, ok := post["destination"]; ok {
 
-		t.Destination = parseUInt64(val)
+		ro.Destination = parseUInt64(val)
 	}
 
 	return err
 }
 
-var _ RequestFiller = NewTeamMerge()
+var _ RequestFiller = NewRoleMerge()
 
-// Team memberAdd request parameters
-type TeamMemberAdd struct {
-	TeamID uint64 `json:",string"`
+// Role memberAdd request parameters
+type RoleMemberAdd struct {
+	RoleID uint64 `json:",string"`
 	UserID uint64 `json:",string"`
 }
 
-func NewTeamMemberAdd() *TeamMemberAdd {
-	return &TeamMemberAdd{}
+func NewRoleMemberAdd() *RoleMemberAdd {
+	return &RoleMemberAdd{}
 }
 
-func (t *TeamMemberAdd) Fill(r *http.Request) (err error) {
+func (ro *RoleMemberAdd) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(t)
+		err = json.NewDecoder(r.Body).Decode(ro)
 
 		switch {
 		case err == io.EOF:
@@ -435,30 +435,30 @@ func (t *TeamMemberAdd) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
+	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 	if val, ok := post["userID"]; ok {
 
-		t.UserID = parseUInt64(val)
+		ro.UserID = parseUInt64(val)
 	}
 
 	return err
 }
 
-var _ RequestFiller = NewTeamMemberAdd()
+var _ RequestFiller = NewRoleMemberAdd()
 
-// Team memberRemove request parameters
-type TeamMemberRemove struct {
-	TeamID uint64 `json:",string"`
+// Role memberRemove request parameters
+type RoleMemberRemove struct {
+	RoleID uint64 `json:",string"`
 	UserID uint64 `json:",string"`
 }
 
-func NewTeamMemberRemove() *TeamMemberRemove {
-	return &TeamMemberRemove{}
+func NewRoleMemberRemove() *RoleMemberRemove {
+	return &RoleMemberRemove{}
 }
 
-func (t *TeamMemberRemove) Fill(r *http.Request) (err error) {
+func (ro *RoleMemberRemove) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(t)
+		err = json.NewDecoder(r.Body).Decode(ro)
 
 		switch {
 		case err == io.EOF:
@@ -483,13 +483,13 @@ func (t *TeamMemberRemove) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	t.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
+	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 	if val, ok := post["userID"]; ok {
 
-		t.UserID = parseUInt64(val)
+		ro.UserID = parseUInt64(val)
 	}
 
 	return err
 }
 
-var _ RequestFiller = NewTeamMemberRemove()
+var _ RequestFiller = NewRoleMemberRemove()

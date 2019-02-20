@@ -16,7 +16,7 @@ type (
 
 		// identity is passed with context
 		resources internalRules.ResourcesInterface
-		team      *systemTypes.Team
+		role      *systemTypes.Role
 		org       *types.Organisation
 	}
 
@@ -31,7 +31,6 @@ type (
 		canManageRoles() bool
 		canManageChannels() bool
 
-		// types.Team derived from identity uses a wildcard match
 		canManageWebhooks(ch *types.Channel) bool
 
 		// Messaging rules
@@ -46,7 +45,7 @@ type (
 
 func Rules() RulesService {
 	return (&rules{
-		team: &systemTypes.Team{},
+		role: &systemTypes.Role{},
 	}).With(context.Background())
 }
 
@@ -57,7 +56,7 @@ func (r *rules) With(ctx context.Context) RulesService {
 		db:   db,
 		ctx:  ctx,
 		org:  org,
-		team: r.team,
+		role: r.role,
 
 		resources: internalRules.NewResources(ctx, db),
 	}
@@ -87,37 +86,37 @@ func (r *rules) canManageChannels() bool {
 
 func (r *rules) canManageWebhooks(ch *types.Channel) bool {
 	op := "manage.webhooks"
-	return r.hasAccess(op, r.org.PermissionDefault(op), r.org.Resource().String(), r.team.Resource().All(), ch.Resource().String())
+	return r.hasAccess(op, r.org.PermissionDefault(op), r.org.Resource().String(), r.role.Resource().All(), ch.Resource().String())
 }
 
 func (r *rules) canSendMessages(ch *types.Channel) bool {
 	op := "message.send"
-	return r.hasAccess(op, r.org.PermissionDefault(op), r.org.Resource().String(), r.team.Resource().All(), ch.Resource().String())
+	return r.hasAccess(op, r.org.PermissionDefault(op), r.org.Resource().String(), r.role.Resource().All(), ch.Resource().String())
 }
 
 func (r *rules) canEmbedLinks(ch *types.Channel) bool {
 	op := "message.embed"
-	return r.hasAccess(op, r.org.PermissionDefault(op), r.org.Resource().String(), r.team.Resource().All(), ch.Resource().String())
+	return r.hasAccess(op, r.org.PermissionDefault(op), r.org.Resource().String(), r.role.Resource().All(), ch.Resource().String())
 }
 
 func (r *rules) canAttachFiles(ch *types.Channel) bool {
 	op := "message.attach"
-	return r.hasAccess(op, r.org.PermissionDefault(op), r.org.Resource().String(), r.team.Resource().All(), ch.Resource().String())
+	return r.hasAccess(op, r.org.PermissionDefault(op), r.org.Resource().String(), r.role.Resource().All(), ch.Resource().String())
 }
 
 func (r *rules) canUpdateOwnMessages(ch *types.Channel) bool {
 	op := "message.update_own"
-	return r.hasAccess(op, r.org.PermissionDefault(op), r.org.Resource().String(), r.team.Resource().All(), ch.Resource().String())
+	return r.hasAccess(op, r.org.PermissionDefault(op), r.org.Resource().String(), r.role.Resource().All(), ch.Resource().String())
 }
 
 func (r *rules) canUpdateMessages(ch *types.Channel) bool {
 	op := "message.update_all"
-	return r.hasAccess(op, r.org.PermissionDefault(op), r.org.Resource().String(), r.team.Resource().All(), ch.Resource().String())
+	return r.hasAccess(op, r.org.PermissionDefault(op), r.org.Resource().String(), r.role.Resource().All(), ch.Resource().String())
 }
 
 func (r *rules) canReact(ch *types.Channel) bool {
 	op := "message.react"
-	return r.hasAccess(op, r.org.PermissionDefault(op), r.org.Resource().String(), r.team.Resource().All(), ch.Resource().String())
+	return r.hasAccess(op, r.org.PermissionDefault(op), r.org.Resource().String(), r.role.Resource().All(), ch.Resource().String())
 }
 
 func (r *rules) hasAccess(operation string, value internalRules.Access, scopes ...string) bool {

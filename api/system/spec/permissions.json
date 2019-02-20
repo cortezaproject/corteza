@@ -1,0 +1,76 @@
+{
+  "Title": "Permissions",
+  "Interface": "Permissions",
+  "Struct": [
+    {
+      "imports": [
+        "github.com/crusttech/crust/internal/rules"
+      ]
+    }
+  ],
+  "Parameters": {},
+  "Protocol": "",
+  "Authentication": [
+    "Client ID",
+    "Session ID"
+  ],
+  "Path": "/permissions",
+  "APIs": [
+    {
+      "Name": "get",
+      "Method": "GET",
+      "Title": "Retrieve role permissions",
+      "Path": "/{roleID}/rules",
+      "Parameters": {
+        "path": [
+          {
+            "name": "roleID",
+            "required": true,
+            "title": "Role ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "delete",
+      "Method": "DELETE",
+      "Title": "Remove all defined role permissions",
+      "Path": "/{roleID}/rules",
+      "Parameters": {
+        "path": [
+          {
+            "name": "roleID",
+            "required": true,
+            "title": "Role ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "update",
+      "Method": "PATCH",
+      "Title": "Update permission settings",
+      "Path": "/{roleID}/rules",
+      "Parameters": {
+        "path": [
+          {
+            "name": "roleID",
+            "required": true,
+            "title": "Role ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "permissions",
+            "required": true,
+            "title": "List of permissions to set",
+            "type": "[]rules.Rule"
+          }
+        ]
+      }
+    }
+  ]
+}

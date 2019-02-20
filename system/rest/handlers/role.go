@@ -10,8 +10,8 @@ package handlers
 	1. run [spec](https://github.com/titpetric/spec) in the same folder,
 	2. run `./_gen.php` in this folder.
 
-	You may edit `team.go`, `team.util.go` or `team_test.go` to
-	implement your API calls, helper functions and tests. The file `team.go`
+	You may edit `role.go`, `role.util.go` or `role_test.go` to
+	implement your API calls, helper functions and tests. The file `role.go`
 	is only generated the first time, and will not be overwritten if it exists.
 */
 
@@ -26,21 +26,21 @@ import (
 )
 
 // Internal API interface
-type TeamAPI interface {
-	List(context.Context, *request.TeamList) (interface{}, error)
-	Create(context.Context, *request.TeamCreate) (interface{}, error)
-	Update(context.Context, *request.TeamUpdate) (interface{}, error)
-	Read(context.Context, *request.TeamRead) (interface{}, error)
-	Remove(context.Context, *request.TeamRemove) (interface{}, error)
-	Archive(context.Context, *request.TeamArchive) (interface{}, error)
-	Move(context.Context, *request.TeamMove) (interface{}, error)
-	Merge(context.Context, *request.TeamMerge) (interface{}, error)
-	MemberAdd(context.Context, *request.TeamMemberAdd) (interface{}, error)
-	MemberRemove(context.Context, *request.TeamMemberRemove) (interface{}, error)
+type RoleAPI interface {
+	List(context.Context, *request.RoleList) (interface{}, error)
+	Create(context.Context, *request.RoleCreate) (interface{}, error)
+	Update(context.Context, *request.RoleUpdate) (interface{}, error)
+	Read(context.Context, *request.RoleRead) (interface{}, error)
+	Remove(context.Context, *request.RoleRemove) (interface{}, error)
+	Archive(context.Context, *request.RoleArchive) (interface{}, error)
+	Move(context.Context, *request.RoleMove) (interface{}, error)
+	Merge(context.Context, *request.RoleMerge) (interface{}, error)
+	MemberAdd(context.Context, *request.RoleMemberAdd) (interface{}, error)
+	MemberRemove(context.Context, *request.RoleMemberRemove) (interface{}, error)
 }
 
 // HTTP API interface
-type Team struct {
+type Role struct {
 	List         func(http.ResponseWriter, *http.Request)
 	Create       func(http.ResponseWriter, *http.Request)
 	Update       func(http.ResponseWriter, *http.Request)
@@ -53,95 +53,95 @@ type Team struct {
 	MemberRemove func(http.ResponseWriter, *http.Request)
 }
 
-func NewTeam(th TeamAPI) *Team {
-	return &Team{
+func NewRole(rh RoleAPI) *Role {
+	return &Role{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewTeamList()
+			params := request.NewRoleList()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.List(r.Context(), params)
+				return rh.List(r.Context(), params)
 			})
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewTeamCreate()
+			params := request.NewRoleCreate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.Create(r.Context(), params)
+				return rh.Create(r.Context(), params)
 			})
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewTeamUpdate()
+			params := request.NewRoleUpdate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.Update(r.Context(), params)
+				return rh.Update(r.Context(), params)
 			})
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewTeamRead()
+			params := request.NewRoleRead()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.Read(r.Context(), params)
+				return rh.Read(r.Context(), params)
 			})
 		},
 		Remove: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewTeamRemove()
+			params := request.NewRoleRemove()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.Remove(r.Context(), params)
+				return rh.Remove(r.Context(), params)
 			})
 		},
 		Archive: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewTeamArchive()
+			params := request.NewRoleArchive()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.Archive(r.Context(), params)
+				return rh.Archive(r.Context(), params)
 			})
 		},
 		Move: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewTeamMove()
+			params := request.NewRoleMove()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.Move(r.Context(), params)
+				return rh.Move(r.Context(), params)
 			})
 		},
 		Merge: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewTeamMerge()
+			params := request.NewRoleMerge()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.Merge(r.Context(), params)
+				return rh.Merge(r.Context(), params)
 			})
 		},
 		MemberAdd: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewTeamMemberAdd()
+			params := request.NewRoleMemberAdd()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.MemberAdd(r.Context(), params)
+				return rh.MemberAdd(r.Context(), params)
 			})
 		},
 		MemberRemove: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewTeamMemberRemove()
+			params := request.NewRoleMemberRemove()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.MemberRemove(r.Context(), params)
+				return rh.MemberRemove(r.Context(), params)
 			})
 		},
 	}
 }
 
-func (th *Team) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (rh *Role) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("/teams", func(r chi.Router) {
-			r.Get("/", th.List)
-			r.Post("/", th.Create)
-			r.Put("/{teamID}", th.Update)
-			r.Get("/{teamID}", th.Read)
-			r.Delete("/{teamID}", th.Remove)
-			r.Post("/{teamID}/archive", th.Archive)
-			r.Post("/{teamID}/move", th.Move)
-			r.Post("/{teamID}/merge", th.Merge)
-			r.Post("/{teamID}/memberAdd", th.MemberAdd)
-			r.Post("/{teamID}/memberRemove", th.MemberRemove)
+		r.Route("/roles", func(r chi.Router) {
+			r.Get("/", rh.List)
+			r.Post("/", rh.Create)
+			r.Put("/{roleID}", rh.Update)
+			r.Get("/{roleID}", rh.Read)
+			r.Delete("/{roleID}", rh.Remove)
+			r.Post("/{roleID}/archive", rh.Archive)
+			r.Post("/{roleID}/move", rh.Move)
+			r.Post("/{roleID}/merge", rh.Merge)
+			r.Post("/{roleID}/memberAdd", rh.MemberAdd)
+			r.Post("/{roleID}/memberRemove", rh.MemberRemove)
 		})
 	})
 }

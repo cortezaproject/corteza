@@ -17,7 +17,7 @@ foreach ($apis as $api) {
 		$tpl->assign("name", $name);
 		$tpl->assign("api", $api);
 		$tpl->assign("apis", $apis);
-		$tpl->assign("self", strtolower(substr($name, 0, 1)));
+		$tpl->assign("self", strtolower(substr($name, 0, 2)));
 		$tpl->assign("structs", $api['struct']);
 		$imports = imports($api);
 		$tpl->assign("imports", $imports);

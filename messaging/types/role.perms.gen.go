@@ -2,9 +2,9 @@ package types
 
 import "github.com/crusttech/crust/internal/rules"
 
-/* File is generated from messaging/types/permissions/2-team.json with permissions.go */
+/* File is generated from messaging/types/permissions/2-role.json with permissions.go */
 
-func (*Team) Permissions() []rules.OperationGroup {
+func (*Role) Permissions() []rules.OperationGroup {
 	return []rules.OperationGroup{
 		rules.OperationGroup{
 			Title: "General permissions",
@@ -62,15 +62,15 @@ func (*Team) Permissions() []rules.OperationGroup {
 	}
 }
 
-func (*Team) PermissionDefault(key string) rules.Access {
+func (*Role) PermissionDefault(key string) rules.Access {
 	values := map[string]rules.Access{
-		"manage.webhooks":    rules.Inherit,
-		"message.send":       rules.Inherit,
 		"message.embed":      rules.Inherit,
 		"message.attach":     rules.Inherit,
 		"message.update_own": rules.Inherit,
 		"message.update_all": rules.Inherit,
 		"message.react":      rules.Inherit,
+		"manage.webhooks":    rules.Inherit,
+		"message.send":       rules.Inherit,
 	}
 	if value, ok := values[key]; ok {
 		return value

@@ -8,16 +8,16 @@ import (
 
 type (
 
-	// TeamSet slice of Team
+	// RoleSet slice of Role
 	//
 	// This type is auto-generated.
-	TeamSet []*Team
+	RoleSet []*Role
 )
 
-// Walk iterates through every slice item and calls w(Team) err
+// Walk iterates through every slice item and calls w(Role) err
 //
 // This function is auto-generated.
-func (set TeamSet) Walk(w func(*Team) error) (err error) {
+func (set RoleSet) Walk(w func(*Role) error) (err error) {
 	for i := range set {
 		if err = w(set[i]); err != nil {
 			return
@@ -27,12 +27,12 @@ func (set TeamSet) Walk(w func(*Team) error) (err error) {
 	return
 }
 
-// Filter iterates through every slice item, calls f(Team) (bool, err) and return filtered slice
+// Filter iterates through every slice item, calls f(Role) (bool, err) and return filtered slice
 //
 // This function is auto-generated.
-func (set TeamSet) Filter(f func(*Team) (bool, error)) (out TeamSet, err error) {
+func (set RoleSet) Filter(f func(*Role) (bool, error)) (out RoleSet, err error) {
 	var ok bool
-	out = TeamSet{}
+	out = RoleSet{}
 	for i := range set {
 		if ok, err = f(set[i]); err != nil {
 			return
@@ -47,7 +47,7 @@ func (set TeamSet) Filter(f func(*Team) (bool, error)) (out TeamSet, err error) 
 // FindByID finds items from slice by its ID property
 //
 // This function is auto-generated.
-func (set TeamSet) FindByID(ID uint64) *Team {
+func (set RoleSet) FindByID(ID uint64) *Role {
 	for i := range set {
 		if set[i].ID == ID {
 			return set[i]
@@ -60,7 +60,7 @@ func (set TeamSet) FindByID(ID uint64) *Team {
 // IDs returns a slice of uint64s from all items in the set
 //
 // This function is auto-generated.
-func (set TeamSet) IDs() (IDs []uint64) {
+func (set RoleSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {
@@ -73,7 +73,7 @@ func (set TeamSet) IDs() (IDs []uint64) {
 // Resources returns a slice of types.Resource from all items in the set
 //
 // This function is auto-generated.
-func (set TeamSet) Resources() (Resources []rules.Resource) {
+func (set RoleSet) Resources() (Resources []rules.Resource) {
 	Resources = make([]rules.Resource, len(set))
 
 	for i := range set {

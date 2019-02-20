@@ -1,7 +1,7 @@
 {
-  "Title": "Teams",
-  "Description": "An organisation may have many teams. Teams may have many channels available. Access to channels may be shared between teams.",
-  "Interface": "Team",
+  "Title": "Roles",
+  "Description": "An organisation may have many roles. Roles may have many channels available. Access to channels may be shared between roles.",
+  "Interface": "Role",
   "Struct": null,
   "Parameters": null,
   "Protocol": "",
@@ -9,12 +9,12 @@
     "Client ID",
     "Session ID"
   ],
-  "Path": "/teams",
+  "Path": "/roles",
   "APIs": [
     {
       "Name": "list",
       "Method": "GET",
-      "Title": "List teams",
+      "Title": "List roles",
       "Path": "/",
       "Parameters": {
         "get": [
@@ -30,20 +30,20 @@
     {
       "Name": "create",
       "Method": "POST",
-      "Title": "Update team details",
+      "Title": "Update role details",
       "Path": "/",
       "Parameters": {
         "post": [
           {
             "name": "name",
             "required": true,
-            "title": "Name of Team",
+            "title": "Name of Role",
             "type": "string"
           },
           {
             "name": "members",
             "required": false,
-            "title": "Team member IDs",
+            "title": "Role member IDs",
             "type": "[]uint64"
           }
         ]
@@ -52,14 +52,14 @@
     {
       "Name": "update",
       "Method": "PUT",
-      "Title": "Update team details",
-      "Path": "/{teamID}",
+      "Title": "Update role details",
+      "Path": "/{roleID}",
       "Parameters": {
         "path": [
           {
-            "name": "teamID",
+            "name": "roleID",
             "required": true,
-            "title": "Team ID",
+            "title": "Role ID",
             "type": "uint64"
           }
         ],
@@ -67,13 +67,13 @@
           {
             "name": "name",
             "required": false,
-            "title": "Name of Team",
+            "title": "Name of Role",
             "type": "string"
           },
           {
             "name": "members",
             "required": false,
-            "title": "Team member IDs",
+            "title": "Role member IDs",
             "type": "[]uint64"
           }
         ]
@@ -82,14 +82,14 @@
     {
       "Name": "read",
       "Method": "GET",
-      "Title": "Read team details and memberships",
-      "Path": "/{teamID}",
+      "Title": "Read role details and memberships",
+      "Path": "/{roleID}",
       "Parameters": {
         "path": [
           {
-            "name": "teamID",
+            "name": "roleID",
             "required": true,
-            "title": "Team ID",
+            "title": "Role ID",
             "type": "uint64"
           }
         ]
@@ -98,14 +98,14 @@
     {
       "Name": "remove",
       "Method": "DELETE",
-      "Title": "Remove team",
-      "Path": "/{teamID}",
+      "Title": "Remove role",
+      "Path": "/{roleID}",
       "Parameters": {
         "path": [
           {
-            "name": "teamID",
+            "name": "roleID",
             "required": true,
-            "title": "Team ID",
+            "title": "Role ID",
             "type": "uint64"
           }
         ]
@@ -114,14 +114,14 @@
     {
       "Name": "archive",
       "Method": "POST",
-      "Title": "Archive team",
-      "Path": "/{teamID}/archive",
+      "Title": "Archive role",
+      "Path": "/{roleID}/archive",
       "Parameters": {
         "path": [
           {
-            "name": "teamID",
+            "name": "roleID",
             "required": true,
-            "title": "Team ID",
+            "title": "Role ID",
             "type": "uint64"
           }
         ]
@@ -130,14 +130,14 @@
     {
       "Name": "move",
       "Method": "POST",
-      "Title": "Move team to different organisation",
-      "Path": "/{teamID}/move",
+      "Title": "Move role to different organisation",
+      "Path": "/{roleID}/move",
       "Parameters": {
         "path": [
           {
-            "name": "teamID",
+            "name": "roleID",
             "required": true,
-            "title": "Team ID",
+            "title": "Role ID",
             "type": "uint64"
           }
         ],
@@ -145,7 +145,7 @@
           {
             "name": "organisationID",
             "required": true,
-            "title": "Team ID",
+            "title": "Role ID",
             "type": "uint64"
           }
         ]
@@ -154,14 +154,14 @@
     {
       "Name": "merge",
       "Method": "POST",
-      "Title": "Merge one team into another",
-      "Path": "/{teamID}/merge",
+      "Title": "Merge one role into another",
+      "Path": "/{roleID}/merge",
       "Parameters": {
         "path": [
           {
-            "name": "teamID",
+            "name": "roleID",
             "required": true,
-            "title": "Source Team ID",
+            "title": "Source Role ID",
             "type": "uint64"
           }
         ],
@@ -169,7 +169,7 @@
           {
             "name": "destination",
             "required": true,
-            "title": "Destination Team ID",
+            "title": "Destination Role ID",
             "type": "uint64"
           }
         ]
@@ -178,14 +178,14 @@
     {
       "Name": "memberAdd",
       "Method": "POST",
-      "Title": "Add member to a team",
-      "Path": "/{teamID}/memberAdd",
+      "Title": "Add member to a role",
+      "Path": "/{roleID}/memberAdd",
       "Parameters": {
         "path": [
           {
-            "name": "teamID",
+            "name": "roleID",
             "required": true,
-            "title": "Source Team ID",
+            "title": "Source Role ID",
             "type": "uint64"
           }
         ],
@@ -202,14 +202,14 @@
     {
       "Name": "memberRemove",
       "Method": "POST",
-      "Title": "Remove member from a team",
-      "Path": "/{teamID}/memberRemove",
+      "Title": "Remove member from a role",
+      "Path": "/{roleID}/memberRemove",
       "Parameters": {
         "path": [
           {
-            "name": "teamID",
+            "name": "roleID",
             "required": true,
-            "title": "Source Team ID",
+            "title": "Source Role ID",
             "type": "uint64"
           }
         ],

@@ -86,7 +86,7 @@ func (r *user) FindByID(id uint64) (*types.User, error) {
 	if err := isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrUserNotFound); err != nil {
 		return nil, err
 	}
-	return mod, r.prepare(mod, "teams")
+	return mod, r.prepare(mod, "roles")
 }
 
 func (r *user) FindByIDs(IDs ...uint64) (uu types.UserSet, err error) {
@@ -142,7 +142,7 @@ func (r *user) Find(filter *types.UserFilter) ([]*types.User, error) {
 	if err := r.db().Select(&rval, sql, params...); err != nil {
 		return nil, err
 	}
-	if err := r.prepareAll(rval, "teams"); err != nil {
+	if err := r.prepareAll(rval, "roles"); err != nil {
 		return nil, err
 	}
 
@@ -182,16 +182,16 @@ func (r *user) prepareAll(users []*types.User, fields ...string) error {
 }
 
 func (r *user) prepare(user *types.User, fields ...string) (err error) {
-	api := Team(r.Context(), r.db())
+	api := Role(r.Context(), r.db())
 	for _, field := range fields {
 		switch field {
-		case "teams":
+		case "roles":
 			if user.ID > 0 {
-				teams, err := api.FindByMemberID(user.ID)
+				roles, err := api.FindByMemberID(user.ID)
 				if err != nil {
 					return err
 				}
-				user.Teams = teams
+				user.Roles = roles
 			}
 		default:
 		}
