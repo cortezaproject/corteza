@@ -29,30 +29,30 @@ func TestUser(t *testing.T) {
 		assert(t, user.ID == uu.ID, "Changes were not stored")
 	}
 
-	teamRepo := Team(context.Background(), factory.Database.MustGet())
-	team := &types.Team{
-		Name: "Test team v1",
+	roleRepo := Role(context.Background(), factory.Database.MustGet())
+	role := &types.Role{
+		Name: "Test role v1",
 	}
 
 	{
-		t1, err := teamRepo.Create(team)
-		assert(t, err == nil, "Team.Create error: %+v", err)
-		assert(t, team.Name == t1.Name, "Changes were not stored")
+		t1, err := roleRepo.Create(role)
+		assert(t, err == nil, "Role.Create error: %+v", err)
+		assert(t, role.Name == t1.Name, "Changes were not stored")
 
-		err = teamRepo.MemberAddByID(t1.ID, user.ID)
-		assert(t, err == nil, "Team.MemberAddByID error: %+v", err)
+		err = roleRepo.MemberAddByID(t1.ID, user.ID)
+		assert(t, err == nil, "Role.MemberAddByID error: %+v", err)
 	}
 
 	{
 		uu, err := userRepo.FindByID(user.ID)
 		assert(t, err == nil, "Owner.FindByID error: %+v", err)
-		assert(t, len(uu.Teams) == 1, "Expected 1 team, got %d", len(uu.Teams))
+		assert(t, len(uu.Roles) == 1, "Expected 1 role, got %d", len(uu.Roles))
 	}
 
 	{
 		users, err := userRepo.Find(&types.UserFilter{Query: ""})
 		assert(t, err == nil, "Owner.Find error: %+v", err)
 		assert(t, len(users) == 1, "Owner.Find: expected 1 user, got %d", len(users))
-		assert(t, len(users[0].Teams) == 1, "Owner.Find: expected 1 team, got %d", len(users[0].Teams))
+		assert(t, len(users[0].Roles) == 1, "Owner.Find: expected 1 role, got %d", len(users[0].Roles))
 	}
 }

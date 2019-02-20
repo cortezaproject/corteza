@@ -18,13 +18,12 @@ type (
 )
 
 var (
-	o                  sync.Once
-	DefaultAttachment  AttachmentService
-	DefaultChannel     ChannelService
-	DefaultMessage     MessageService
-	DefaultPermissions PermissionsService
-	DefaultPubSub      *pubSub
-	DefaultEvent       EventService
+	o                 sync.Once
+	DefaultAttachment AttachmentService
+	DefaultChannel    ChannelService
+	DefaultMessage    MessageService
+	DefaultPubSub     *pubSub
+	DefaultEvent      EventService
 )
 
 func Init() {
@@ -36,13 +35,12 @@ func Init() {
 
 		scopes := internalRules.NewScope()
 		scopes.Add(&types.Organisation{})
-		scopes.Add(&types.Team{})
+		scopes.Add(&types.Role{})
 		scopes.Add(&types.Channel{})
 
 		DefaultEvent = Event()
 		DefaultAttachment = Attachment(fs)
 		DefaultMessage = Message()
-		DefaultPermissions = Permissions(scopes)
 		DefaultChannel = Channel()
 		DefaultPubSub = PubSub()
 	})

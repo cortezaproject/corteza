@@ -23,7 +23,7 @@ function permissions {
 	fi
 	
 	./build/gen-permissions -package types -object-name Organisation -input messaging/types/permissions/1-organisation.json -output messaging/types/organisation.perms.gen.go
-	./build/gen-permissions -package types -object-name Team -input messaging/types/permissions/2-team.json -output messaging/types/team.perms.gen.go
+	./build/gen-permissions -package types -object-name Role -input messaging/types/permissions/2-role.json -output messaging/types/role.perms.gen.go
 	./build/gen-permissions -package types -object-name Channel -input messaging/types/permissions/3-channel.json -output messaging/types/channel.perms.gen.go
 
 	green "OK"
@@ -52,7 +52,7 @@ function types {
 	./build/gen-type-set --with-primary-key=false --types Unread --output messaging/types/unread.gen.go
 
 	./build/gen-type-set --types User --output system/types/user.gen.go
-	./build/gen-type-set --with-resources=true --resource-type "rules.Resource" --imports "github.com/crusttech/crust/internal/rules" --types Team --output system/types/team.gen.go
+	./build/gen-type-set --with-resources=true --resource-type "rules.Resource" --imports "github.com/crusttech/crust/internal/rules" --types Role --output system/types/role.gen.go
 	./build/gen-type-set --with-resources=true --resource-type "rules.Resource" --imports "github.com/crusttech/crust/internal/rules" --types Organisation --output system/types/organisation.gen.go
 	./build/gen-type-set --types Credentials --output system/types/credentials.gen.go
 	green "OK"

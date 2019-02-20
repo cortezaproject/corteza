@@ -43,7 +43,7 @@ func (r *resources) checkAccessMulti(resource string, operation string) Access {
 		// select rules
 		"select r.value from sys_rules r",
 		// join members
-		"inner join sys_team_member m on (m.rel_team = r.rel_team and m.rel_user=?)",
+		"inner join sys_role_member m on (m.rel_role = r.rel_role and m.rel_user=?)",
 		// add conditions
 		"where r.resource LIKE ? and r.operation=?",
 	}
@@ -75,7 +75,7 @@ func (r *resources) checkAccess(resource string, operation string) Access {
 		// select rules
 		"select r.value from sys_rules r",
 		// join members
-		"inner join sys_team_member m on (m.rel_team = r.rel_team and m.rel_user=?)",
+		"inner join sys_role_member m on (m.rel_role = r.rel_role and m.rel_user=?)",
 		// add conditions
 		"where r.resource=? and r.operation=?",
 	}
@@ -99,35 +99,75 @@ func (r *resources) checkAccess(resource string, operation string) Access {
 	return Inherit
 }
 
-func (r *resources) Grant(teamID uint64, resource string, operations []string, value Access) error {
-	row := Rules{
-		TeamID:   teamID,
-		Resource: resource,
-		Value:    value,
-	}
+func (r *resources) GrantByResource(roleID uint64, resource string, operations []string, value Access) error {
+	return r.db.Transaction(func() error {
+		row := Rule{
+			RoleID:   roleID,
+			Resource: resource,
+			Value:    value,
+		}
 
-	var err error
-	for _, operation := range operations {
-		row.Operation = operation
-		switch value {
-		case Inherit:
-			_, err = r.db.NamedExec("delete from sys_rules where rel_team=:rel_team and resource=:resource and operation=:operation", row)
-		default:
-			err = r.db.Replace("sys_rules", row)
+		var err error
+		for _, operation := range operations {
+			row.Operation = operation
+			switch value {
+			case Inherit:
+				_, err = r.db.NamedExec("delete from sys_rules where rel_role=:rel_role and resource=:resource and operation=:operation", row)
+			default:
+				err = r.db.Replace("sys_rules", row)
+			}
+			if err != nil {
+				return err
+			}
 		}
-		if err != nil {
-			break
-		}
-	}
-	return err
+		return nil
+	})
 }
 
-func (r *resources) ListGrants(teamID uint64, resource string) ([]Rules, error) {
-	result := []Rules{}
+func (r *resources) ListByResource(roleID uint64, resource string) ([]Rule, error) {
+	result := []Rule{}
 
-	query := "select * from sys_rules where rel_team = ? and resource = ?"
-	if err := r.db.Select(&result, query, teamID, resource); err != nil {
+	query := "select * from sys_rules where rel_role = ? and resource = ?"
+	if err := r.db.Select(&result, query, roleID, resource); err != nil {
 		return nil, err
 	}
 	return result, nil
+}
+
+func (r *resources) Grant(roleID uint64, rules []Rule) error {
+	return r.db.Transaction(func() error {
+		var err error
+		for _, rule := range rules {
+			rule.RoleID = roleID
+
+			switch rule.Value {
+			case Inherit:
+				_, err = r.db.NamedExec("delete from sys_rules where rel_role=:rel_role and resource=:resource and operation=:operation", rule)
+			default:
+				err = r.db.Replace("sys_rules", rule)
+			}
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+func (r *resources) List(roleID uint64) ([]Rule, error) {
+	result := []Rule{}
+
+	query := "select * from sys_rules where rel_role = ?"
+	if err := r.db.Select(&result, query, roleID); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *resources) Delete(roleID uint64) error {
+	query := "delete from sys_rules where rel_role = ?"
+	if _, err := r.db.Exec(query, roleID); err != nil {
+		return err
+	}
+	return nil
 }

@@ -29,7 +29,7 @@ type (
 		SuspendedAt *time.Time `json:"suspendedAt,omitempty" db:"suspended_at"`
 		DeletedAt   *time.Time `json:"deletedAt,omitempty" db:"deleted_at"`
 
-		Teams []*Team `json:"teams,omitempty" db:"-"`
+		Roles []*Role `json:"roles,omitempty" db:"-"`
 	}
 
 	UserFilter struct {

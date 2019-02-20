@@ -5,7 +5,7 @@ import (
 )
 
 type (
-	Team struct {
-		types.Team
+	Role struct {
+		types.Role
 	}
 )

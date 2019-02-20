@@ -12,5 +12,5 @@ type (
 
 // These entities create resources in RBAC
 var _ ResourceProvider = &Organisation{}
-var _ ResourceProvider = &Team{}
+var _ ResourceProvider = &Role{}
 var _ ResourceProvider = &Channel{}

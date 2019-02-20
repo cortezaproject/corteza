@@ -47,8 +47,9 @@ func MountRoutes(oidcConfig *config.OIDC, socialConfig *config.Social, jwtEncode
 			r.Use(auth.MiddlewareValidOnly)
 
 			handlers.NewUser(User{}.New()).MountRoutes(r)
-			handlers.NewTeam(Team{}.New()).MountRoutes(r)
+			handlers.NewRole(Role{}.New()).MountRoutes(r)
 			handlers.NewOrganisation(Organisation{}.New()).MountRoutes(r)
+			handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
 		})
 	}
 }

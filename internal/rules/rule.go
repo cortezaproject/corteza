@@ -13,8 +13,8 @@ const (
 	Inherit        = 0
 )
 
-type Rules struct {
-	TeamID    uint64 `db:"rel_team"`
+type Rule struct {
+	RoleID    uint64 `db:"rel_role"`
 	Resource  string `db:"resource"`
 	Operation string `db:"operation"`
 	Value     Access `db:"value"`

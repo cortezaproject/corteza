@@ -136,17 +136,65 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 
 
-# Teams
+# Permissions
 
-An organisation may have many teams. Teams may have many channels available. Access to channels may be shared between teams.
-
-## List teams
+## Retrieve role permissions
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/` | HTTP/S | GET | Client ID, Session ID |
+| `/permissions/{roleID}/rules` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| roleID | uint64 | PATH | Role ID | N/A | YES |
+
+## Remove all defined role permissions
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/permissions/{roleID}/rules` | HTTP/S | DELETE | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| roleID | uint64 | PATH | Role ID | N/A | YES |
+
+## Update permission settings
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/permissions/{roleID}/rules` | HTTP/S | PATCH | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| roleID | uint64 | PATH | Role ID | N/A | YES |
+| permissions | []rules.Rule | POST | List of permissions to set | N/A | YES |
+
+
+
+
+# Roles
+
+An organisation may have many roles. Roles may have many channels available. Access to channels may be shared between roles.
+
+## List roles
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/roles/` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -154,137 +202,137 @@ An organisation may have many teams. Teams may have many channels available. Acc
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
 
-## Update team details
+## Update role details
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/` | HTTP/S | POST | Client ID, Session ID |
+| `/roles/` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| name | string | POST | Name of Team | N/A | YES |
-| members | []uint64 | POST | Team member IDs | N/A | NO |
+| name | string | POST | Name of Role | N/A | YES |
+| members | []uint64 | POST | Role member IDs | N/A | NO |
 
-## Update team details
+## Update role details
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/{teamID}` | HTTP/S | PUT | Client ID, Session ID |
+| `/roles/{roleID}` | HTTP/S | PUT | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| teamID | uint64 | PATH | Team ID | N/A | YES |
-| name | string | POST | Name of Team | N/A | NO |
-| members | []uint64 | POST | Team member IDs | N/A | NO |
+| roleID | uint64 | PATH | Role ID | N/A | YES |
+| name | string | POST | Name of Role | N/A | NO |
+| members | []uint64 | POST | Role member IDs | N/A | NO |
 
-## Read team details and memberships
+## Read role details and memberships
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/{teamID}` | HTTP/S | GET | Client ID, Session ID |
+| `/roles/{roleID}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| teamID | uint64 | PATH | Team ID | N/A | YES |
+| roleID | uint64 | PATH | Role ID | N/A | YES |
 
-## Remove team
+## Remove role
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/{teamID}` | HTTP/S | DELETE | Client ID, Session ID |
+| `/roles/{roleID}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| teamID | uint64 | PATH | Team ID | N/A | YES |
+| roleID | uint64 | PATH | Role ID | N/A | YES |
 
-## Archive team
+## Archive role
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/{teamID}/archive` | HTTP/S | POST | Client ID, Session ID |
+| `/roles/{roleID}/archive` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| teamID | uint64 | PATH | Team ID | N/A | YES |
+| roleID | uint64 | PATH | Role ID | N/A | YES |
 
-## Move team to different organisation
+## Move role to different organisation
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/{teamID}/move` | HTTP/S | POST | Client ID, Session ID |
+| `/roles/{roleID}/move` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| teamID | uint64 | PATH | Team ID | N/A | YES |
-| organisationID | uint64 | POST | Team ID | N/A | YES |
+| roleID | uint64 | PATH | Role ID | N/A | YES |
+| organisationID | uint64 | POST | Role ID | N/A | YES |
 
-## Merge one team into another
+## Merge one role into another
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/{teamID}/merge` | HTTP/S | POST | Client ID, Session ID |
+| `/roles/{roleID}/merge` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| teamID | uint64 | PATH | Source Team ID | N/A | YES |
-| destination | uint64 | POST | Destination Team ID | N/A | YES |
+| roleID | uint64 | PATH | Source Role ID | N/A | YES |
+| destination | uint64 | POST | Destination Role ID | N/A | YES |
 
-## Add member to a team
+## Add member to a role
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/{teamID}/memberAdd` | HTTP/S | POST | Client ID, Session ID |
+| `/roles/{roleID}/memberAdd` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| teamID | uint64 | PATH | Source Team ID | N/A | YES |
+| roleID | uint64 | PATH | Source Role ID | N/A | YES |
 | userID | uint64 | POST | User ID | N/A | YES |
 
-## Remove member from a team
+## Remove member from a role
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/teams/{teamID}/memberRemove` | HTTP/S | POST | Client ID, Session ID |
+| `/roles/{roleID}/memberRemove` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| teamID | uint64 | PATH | Source Team ID | N/A | YES |
+| roleID | uint64 | PATH | Source Role ID | N/A | YES |
 | userID | uint64 | POST | User ID | N/A | YES |
 
 

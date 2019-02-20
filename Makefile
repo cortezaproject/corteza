@@ -151,7 +151,7 @@ mocks: $(GOMOCK)
 	$(MOCKGEN) -package service -source messaging/service/channel.go      -destination messaging/service/channel_mock_test.go
 	$(MOCKGEN) -package service -source messaging/service/message.go      -destination messaging/service/message_mock_test.go
 	$(MOCKGEN) -package service -source system/service/organisation.go -destination system/service/organisation_mock_test.go
-	$(MOCKGEN) -package service -source system/service/team.go         -destination system/service/team_mock_test.go
+	$(MOCKGEN) -package service -source system/service/role.go         -destination system/service/role_mock_test.go
 	$(MOCKGEN) -package service -source system/service/user.go         -destination system/service/user_mock_test.go
 
 	$(MOCKGEN) -package mail -source internal/mail/mail.go -destination internal/mail/mail_mock_test.go

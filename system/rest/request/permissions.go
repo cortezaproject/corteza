@@ -31,59 +31,18 @@ import (
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
 
-// Permissions list request parameters
-type PermissionsList struct {
-}
-
-func NewPermissionsList() *PermissionsList {
-	return &PermissionsList{}
-}
-
-func (p *PermissionsList) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(p)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
-		}
-	}
-
-	if err = r.ParseForm(); err != nil {
-		return err
-	}
-
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := r.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := r.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	return err
-}
-
-var _ RequestFiller = NewPermissionsList()
-
 // Permissions get request parameters
 type PermissionsGet struct {
-	Resource string
-	TeamID   uint64 `json:",string"`
+	RoleID uint64 `json:",string"`
 }
 
 func NewPermissionsGet() *PermissionsGet {
 	return &PermissionsGet{}
 }
 
-func (p *PermissionsGet) Fill(r *http.Request) (err error) {
+func (pe *PermissionsGet) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(p)
+		err = json.NewDecoder(r.Body).Decode(pe)
 
 		switch {
 		case err == io.EOF:
@@ -108,30 +67,25 @@ func (p *PermissionsGet) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	if val, ok := get["resource"]; ok {
-
-		p.Resource = val
-	}
-	p.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
+	pe.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 
 	return err
 }
 
 var _ RequestFiller = NewPermissionsGet()
 
-// Permissions set request parameters
-type PermissionsSet struct {
-	TeamID      uint64 `json:",string"`
-	Permissions []rules.Rules
+// Permissions delete request parameters
+type PermissionsDelete struct {
+	RoleID uint64 `json:",string"`
 }
 
-func NewPermissionsSet() *PermissionsSet {
-	return &PermissionsSet{}
+func NewPermissionsDelete() *PermissionsDelete {
+	return &PermissionsDelete{}
 }
 
-func (p *PermissionsSet) Fill(r *http.Request) (err error) {
+func (pe *PermissionsDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(p)
+		err = json.NewDecoder(r.Body).Decode(pe)
 
 		switch {
 		case err == io.EOF:
@@ -156,25 +110,26 @@ func (p *PermissionsSet) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	p.TeamID = parseUInt64(chi.URLParam(r, "teamID"))
+	pe.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 
 	return err
 }
 
-var _ RequestFiller = NewPermissionsSet()
+var _ RequestFiller = NewPermissionsDelete()
 
-// Permissions scopes request parameters
-type PermissionsScopes struct {
-	Scope string
+// Permissions update request parameters
+type PermissionsUpdate struct {
+	RoleID      uint64 `json:",string"`
+	Permissions []rules.Rule
 }
 
-func NewPermissionsScopes() *PermissionsScopes {
-	return &PermissionsScopes{}
+func NewPermissionsUpdate() *PermissionsUpdate {
+	return &PermissionsUpdate{}
 }
 
-func (p *PermissionsScopes) Fill(r *http.Request) (err error) {
+func (pe *PermissionsUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(p)
+		err = json.NewDecoder(r.Body).Decode(pe)
 
 		switch {
 		case err == io.EOF:
@@ -199,9 +154,9 @@ func (p *PermissionsScopes) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	p.Scope = chi.URLParam(r, "scope")
+	pe.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 
 	return err
 }
 
-var _ RequestFiller = NewPermissionsScopes()
+var _ RequestFiller = NewPermissionsUpdate()

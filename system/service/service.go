@@ -14,7 +14,8 @@ var (
 	o                   sync.Once
 	DefaultAuth         AuthService
 	DefaultUser         UserService
-	DefaultTeam         TeamService
+	DefaultRole         RoleService
+	DefaultPermission   PermissionService
 	DefaultOrganisation OrganisationService
 )
 
@@ -22,7 +23,8 @@ func Init() {
 	o.Do(func() {
 		DefaultAuth = Auth()
 		DefaultUser = User()
-		DefaultTeam = Team()
+		DefaultRole = Role()
+		DefaultPermission = Permission()
 		DefaultOrganisation = Organisation()
 	})
 }
