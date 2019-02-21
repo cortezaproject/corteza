@@ -9,6 +9,10 @@ import (
 	"github.com/crusttech/crust/internal/auth"
 )
 
+const (
+	delimiter = ":"
+)
+
 type resources struct {
 	ctx context.Context
 	db  *factory.DB
@@ -29,43 +33,27 @@ func (r *resources) identity() uint64 {
 	return auth.GetIdentityFromContext(r.ctx).Identity()
 }
 
+// IsAllowed function checks granted permission for specific resource and operation. Permission checks on
+// global level are not allowed and will always return Deny.
 func (r *resources) IsAllowed(resource string, operation string) Access {
-	if strings.Contains(resource, "*") {
-		return r.checkAccessMulti(resource, operation)
-	}
-	return r.checkAccess(resource, operation)
-}
+	parts := strings.Split(resource, delimiter)
 
-func (r *resources) checkAccessMulti(resource string, operation string) Access {
-	user := r.identity()
-	result := []Access{}
-	query := []string{
-		// select rules
-		"select r.value from sys_rules r",
-		// join members
-		"inner join sys_role_member m on (m.rel_role = r.rel_role and m.rel_user=?)",
-		// add conditions
-		"where r.resource LIKE ? and r.operation=?",
-	}
-	resource = strings.Replace(resource, "*", "%", -1)
-	queryString := strings.Join(query, " ")
-	if err := r.db.Select(&result, queryString, user, resource, operation); err != nil {
-		// @todo: log error
+	// Permission check on global level is not allowed.
+	if parts[len(parts)-1] == "*" {
 		return Deny
 	}
 
-	// order by deny, allow
-	for _, val := range result {
-		if val == Deny {
-			return Deny
-		}
+	access := r.checkAccess(resource, operation)
+	if access == Inherit {
+		// Create resource definition for global level.
+		parts[len(parts)-1] = "*"
+
+		resource = strings.Join(parts, delimiter)
+
+		// If rule for specific resource is not set we check on global level.
+		return r.checkAccess(resource, operation)
 	}
-	for _, val := range result {
-		if val == Allow {
-			return Allow
-		}
-	}
-	return Inherit
+	return access
 }
 
 func (r *resources) checkAccess(resource string, operation string) Access {

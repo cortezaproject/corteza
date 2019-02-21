@@ -43,6 +43,12 @@ func (p *permission) Get(roleID uint64) (interface{}, error) {
 }
 
 func (p *permission) Update(roleID uint64, rules []rules.Rule) (interface{}, error) {
+	for _, rule := range rules {
+		err := validatePermission(rule.Resource, rule.Operation)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return nil, p.resources.Grant(roleID, rules)
 }
 
