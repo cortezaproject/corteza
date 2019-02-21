@@ -13,7 +13,7 @@ import (
 	systemTypes "github.com/crusttech/crust/system/types"
 )
 
-func TestPermissions(t *testing.T) {
+func TestPermission(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 		return
@@ -50,21 +50,45 @@ func TestPermissions(t *testing.T) {
 	// Create permission service.
 	permissionSvc := Permission().With(ctx)
 
-	// Setup rules for test role.
+	// Update rules for test role.
 	{
-		rules := []rules.Rule{
-			rules.Rule{Resource: "messaging:channel:*", Operation: "update", Value: rules.Allow},
-			rules.Rule{Resource: "messaging:channel:1", Operation: "update", Value: rules.Deny},
-			rules.Rule{Resource: "messaging:channel:2", Operation: "update"},
+		list := []rules.Rule{
+			rules.Rule{Resource: "messaging:channel:*", Operation: "message.update.all", Value: rules.Allow},
+			rules.Rule{Resource: "messaging:channel:1", Operation: "message.update.all", Value: rules.Deny},
+			rules.Rule{Resource: "messaging:channel:2", Operation: "message.update.all"},
 			rules.Rule{Resource: "system", Operation: "organisation.create", Value: rules.Allow},
-			rules.Rule{Resource: "system:organisation:*", Operation: "update", Value: rules.Allow},
-			rules.Rule{Resource: "system:organisation:*", Operation: "delete", Value: rules.Allow},
-			rules.Rule{Resource: "messaging:channel:*", Operation: "update.name", Value: rules.Allow},
-			rules.Rule{Resource: "messaging:channel:*", Operation: "update.topic", Value: rules.Allow},
-			rules.Rule{Resource: "messaging:channel:*", Operation: "members.manage", Value: rules.Allow},
+			rules.Rule{Resource: "system:organisation:*", Operation: "access", Value: rules.Allow},
+			rules.Rule{Resource: "messaging:channel", Operation: "message.update.all", Value: rules.Allow},
 		}
-		_, err := permissionSvc.Update(role.ID, rules)
+		_, err := permissionSvc.Update(role.ID, list)
 		NoError(t, err, "expected no error, setting rules")
+	}
+
+	// Update with invalid roles
+	{
+		list := []rules.Rule{
+			rules.Rule{Resource: "nosystem:channel:*", Operation: "message.update.all", Value: rules.Allow},
+		}
+		_, err := permissionSvc.Update(role.ID, list)
+		Error(t, err, "expected error")
+
+		list = []rules.Rule{
+			rules.Rule{Resource: "messaging:noresource:1", Operation: "message.update.all", Value: rules.Deny},
+		}
+		_, err = permissionSvc.Update(role.ID, list)
+		Error(t, err, "expected error")
+
+		list = []rules.Rule{
+			rules.Rule{Resource: "messaging:channel:", Operation: "message.update.all"},
+		}
+		_, err = permissionSvc.Update(role.ID, list)
+		Error(t, err, "expected error")
+
+		list = []rules.Rule{
+			rules.Rule{Resource: "system:organisation:*", Operation: "invalid", Value: rules.Allow},
+		}
+		_, err = permissionSvc.Update(role.ID, list)
+		Error(t, err, "expected error")
 	}
 
 	// List rules for test role.
@@ -74,7 +98,7 @@ func TestPermissions(t *testing.T) {
 
 		rules := ret.([]rules.Rule)
 
-		Assert(t, len(rules) == 8, "expected len(rules) == 8, got %v", len(rules))
+		Assert(t, len(rules) == 5, "expected len(rules) == 5, got %v", len(rules))
 	}
 
 	// Delete rules for test role.
