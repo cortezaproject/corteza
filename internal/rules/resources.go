@@ -99,41 +99,6 @@ func (r *resources) checkAccess(resource string, operation string) Access {
 	return Inherit
 }
 
-func (r *resources) GrantByResource(roleID uint64, resource string, operations []string, value Access) error {
-	return r.db.Transaction(func() error {
-		row := Rule{
-			RoleID:   roleID,
-			Resource: resource,
-			Value:    value,
-		}
-
-		var err error
-		for _, operation := range operations {
-			row.Operation = operation
-			switch value {
-			case Inherit:
-				_, err = r.db.NamedExec("delete from sys_rules where rel_role=:rel_role and resource=:resource and operation=:operation", row)
-			default:
-				err = r.db.Replace("sys_rules", row)
-			}
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-}
-
-func (r *resources) ListByResource(roleID uint64, resource string) ([]Rule, error) {
-	result := []Rule{}
-
-	query := "select * from sys_rules where rel_role = ? and resource = ?"
-	if err := r.db.Select(&result, query, roleID, resource); err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
 func (r *resources) Grant(roleID uint64, rules []Rule) error {
 	return r.db.Transaction(func() error {
 		var err error
