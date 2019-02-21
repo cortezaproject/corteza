@@ -37,50 +37,64 @@ func TestRules(t *testing.T) {
 
 	// default (unset=deny)
 	{
-		Expect(rules.Inherit, resources.IsAllowed("channel:1", "edit"), "expected inherit")
-		Expect(rules.Inherit, resources.IsAllowed("channel:*", "edit"), "expected inherit")
+		Expect(rules.Inherit, resources.IsAllowed("channel:1", "update"), "expected inherit")
+		Expect(rules.Inherit, resources.IsAllowed("channel:*", "update"), "expected inherit")
 	}
 
 	// allow channel:2 group:2 (default deny, multi=allow)
 	{
-		resources.GrantByResource(2, "channel:2", []string{"edit", "delete"}, rules.Allow)
-		Expect(rules.Inherit, resources.IsAllowed("channel:1", "edit"), "expected error, got nil")
-		Expect(rules.Allow, resources.IsAllowed("channel:2", "edit"), "channel:2 edit, expected no error")
-		Expect(rules.Allow, resources.IsAllowed("channel:*", "edit"), "channel:* edit, expected no error")
+		list := []rules.Rule{
+			rules.Rule{Resource: "channel:2", Operation: "update", Value: rules.Allow},
+			rules.Rule{Resource: "channel:2", Operation: "delete", Value: rules.Allow},
+		}
+
+		resources.Grant(2, list)
+		Expect(rules.Inherit, resources.IsAllowed("channel:1", "update"), "expected error, got nil")
+		Expect(rules.Allow, resources.IsAllowed("channel:2", "update"), "channel:2 update, expected no error")
+		Expect(rules.Allow, resources.IsAllowed("channel:*", "update"), "channel:* update, expected no error")
 	}
 
-	// list grants for role
-	{
-		grants, err := resources.ListByResource(2, "channel:2")
-		NoError(t, err, "expect no error")
-		Assert(t, len(grants) == 2, "expected 2 grants")
-		Assert(t, grants[0].RoleID == 2, "expected RoleID == 2, got %v", grants[0].RoleID)
-		Assert(t, grants[0].Resource == "channel:2", "expected Resource == channel:2, got %s", grants[0].Resource)
-		Assert(t, grants[0].Operation == "delete", "expected Operation == delete, got %s", grants[0].Operation)
-		Assert(t, grants[0].Value == rules.Allow, "expected Value == Allow, got %s", grants[0].Value)
-	}
-
-	// list all by role
+	// list grants for role 2
 	{
 		grants, err := resources.List(2)
-		NoError(t, err, "expected no error")
-		Assert(t, len(grants) == 2, "expected grants == 2, got %v", len(grants))
+		NoError(t, err, "expect no error")
+		Assert(t, len(grants) == 2, "expected 2 grants")
+
+		for _, grant := range grants {
+			Assert(t, grant.RoleID == 2, "expected RoleID == 2, got %v", grant.RoleID)
+			Assert(t, grant.Resource == "channel:2", "expected Resource == channel:2, got %s", grant.Resource)
+			// Assert(t, grant.Operation == "delete", "expected Operation == delete, got %s", grant.Operation)
+			Assert(t, grant.Value == rules.Allow, "expected Value == Allow, got %s", grant.Value)
+		}
 	}
 
 	// deny channel:1 group:1 (explicit deny, multi=deny)
 	{
-		resources.GrantByResource(1, "channel:1", []string{"edit"}, rules.Deny)
-		Expect(rules.Deny, resources.IsAllowed("channel:1", "edit"), "expected error, got nil")
-		Expect(rules.Allow, resources.IsAllowed("channel:2", "edit"), "channel:2 edit, expected no error")
-		Expect(rules.Deny, resources.IsAllowed("channel:*", "edit"), "expected error, got nil")
+		list := []rules.Rule{
+			rules.Rule{Resource: "channel:1", Operation: "update", Value: rules.Deny},
+		}
+		resources.Grant(1, list)
+		Expect(rules.Deny, resources.IsAllowed("channel:1", "update"), "expected error, got nil")
+		Expect(rules.Allow, resources.IsAllowed("channel:2", "update"), "channel:2 update, expected no error")
+		Expect(rules.Deny, resources.IsAllowed("channel:*", "update"), "expected error, got nil")
 	}
 
 	// reset (unset=deny)
 	{
-		resources.GrantByResource(2, "channel:2", []string{"edit", "delete"}, rules.Inherit)
-		resources.GrantByResource(1, "channel:1", []string{"edit", "delete"}, rules.Inherit)
-		Expect(rules.Inherit, resources.IsAllowed("channel:1", "edit"), "expected error, got nil")
-		Expect(rules.Inherit, resources.IsAllowed("channel:*", "edit"), "expected error, got nil")
+		list1 := []rules.Rule{
+			rules.Rule{Resource: "channel:1", Operation: "update", Value: rules.Inherit},
+			rules.Rule{Resource: "channel:1", Operation: "delete", Value: rules.Inherit},
+		}
+		resources.Grant(1, list1)
+
+		list2 := []rules.Rule{
+			rules.Rule{Resource: "channel:2", Operation: "update", Value: rules.Inherit},
+			rules.Rule{Resource: "channel:2", Operation: "delete", Value: rules.Inherit},
+		}
+		resources.Grant(2, list2)
+
+		Expect(rules.Inherit, resources.IsAllowed("channel:1", "update"), "expected error, got nil")
+		Expect(rules.Inherit, resources.IsAllowed("channel:*", "update"), "expected error, got nil")
 	}
 
 	// Grant by roleID
@@ -105,13 +119,13 @@ func TestRules(t *testing.T) {
 		Assert(t, len(grants) == 3, "expected grants == 3, got %v", len(grants))
 	}
 
-	// delete all by role
+	// delete all by roleID
 	{
 		err := resources.Delete(2)
 		NoError(t, err, "expected no error")
 	}
 
-	// list all by role
+	// list all by roleID
 	{
 		grants, err := resources.List(2)
 		NoError(t, err, "expected no error")
