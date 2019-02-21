@@ -26,6 +26,12 @@ func NoError(t *testing.T, err error, format string, args ...interface{}) bool {
 	return true
 }
 
-func Error(t *testing.T, err error, message string) {
-	Assert(t, err != nil, message)
+func Error(t *testing.T, err error, format string, args ...interface{}) bool {
+	if err == nil {
+		_, file, line, _ := runtime.Caller(1)
+		caller := fmt.Sprintf("\nAsserted at:%s:%d", file, line)
+		t.Fatalf(format+caller, args...)
+		return false
+	}
+	return true
 }
