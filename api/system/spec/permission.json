@@ -1,6 +1,6 @@
 {
   "Title": "Permissions",
-  "Interface": "Permissions",
+  "Interface": "Permission",
   "Struct": [
     {
       "imports": [
