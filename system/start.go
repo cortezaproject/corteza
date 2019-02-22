@@ -1,14 +1,13 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"os"
 
-	"github.com/SentimensRG/ctx"
-	"github.com/SentimensRG/ctx/sigctx"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 
@@ -75,7 +74,7 @@ func InitDb() error {
 	return nil
 }
 
-func Start() error {
+func StartRestAPI(ctx context.Context) error {
 	log.Printf("Starting "+os.Args[0]+", version: %v, built on: %v", version.Version, version.BuildTime)
 	log.Println("Starting http server on address " + flags.http.Addr)
 	listener, err := net.Listen("tcp", flags.http.Addr)
@@ -87,9 +86,8 @@ func Start() error {
 		go metrics.NewMonitor(flags.monitor.Interval)
 	}
 
-	var deadline = sigctx.New()
-	go http.Serve(listener, Routes(ctx.AsContext(deadline)))
-	<-deadline.Done()
+	go http.Serve(listener, Routes(ctx))
+	<-ctx.Done()
 
 	return nil
 }

@@ -4,6 +4,10 @@ import (
 	"log"
 	"os"
 
+	context "github.com/SentimensRG/ctx"
+	"github.com/SentimensRG/ctx/sigctx"
+
+	"github.com/crusttech/crust/internal/subscription"
 	service "github.com/crusttech/crust/system"
 
 	"github.com/crusttech/crust/internal/auth"
@@ -11,7 +15,15 @@ import (
 )
 
 func main() {
-	flags("system", service.Flags, auth.Flags, rbac.Flags)
+	ctx := context.AsContext(sigctx.New())
+
+	flags(
+		"system",
+		service.Flags,
+		auth.Flags,
+		rbac.Flags,
+		subscription.Flags,
+	)
 
 	// log to stdout not stderr
 	log.SetOutput(os.Stdout)
@@ -30,7 +42,16 @@ func main() {
 	case "help":
 	case "merge-users":
 	default:
-		if err := service.Start(); err != nil {
+		log.Println("Validating subscription")
+		// Checks subscription & runs internal checker that runs every 24h
+		if err := subscription.Check(ctx); err != nil {
+			log.Printf("Subscription could not be validated, reason: %v", err)
+			os.Exit(-1)
+		} else {
+			log.Println("Subscription valdiated")
+		}
+
+		if err := service.StartRestAPI(ctx); err != nil {
 			log.Fatalf("Error starting/running: %+v", err)
 		}
 	}

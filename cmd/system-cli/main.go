@@ -23,7 +23,6 @@ func main() {
 
 	var commands []string
 	if len(os.Args) > 0 {
-
 		// @todo migrate to a proper solution (eg: https://github.com/spf13/cobra)
 		commands = os.Args[1:]
 		for a, arg := range os.Args {
