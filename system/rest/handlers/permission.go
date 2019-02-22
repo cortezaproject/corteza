@@ -10,8 +10,8 @@ package handlers
 	1. run [spec](https://github.com/titpetric/spec) in the same folder,
 	2. run `./_gen.php` in this folder.
 
-	You may edit `permissions.go`, `permissions.util.go` or `permissions_test.go` to
-	implement your API calls, helper functions and tests. The file `permissions.go`
+	You may edit `permission.go`, `permission.util.go` or `permission_test.go` to
+	implement your API calls, helper functions and tests. The file `permission.go`
 	is only generated the first time, and will not be overwritten if it exists.
 */
 
@@ -26,38 +26,38 @@ import (
 )
 
 // Internal API interface
-type PermissionsAPI interface {
-	Get(context.Context, *request.PermissionsGet) (interface{}, error)
-	Delete(context.Context, *request.PermissionsDelete) (interface{}, error)
-	Update(context.Context, *request.PermissionsUpdate) (interface{}, error)
+type PermissionAPI interface {
+	Get(context.Context, *request.PermissionGet) (interface{}, error)
+	Delete(context.Context, *request.PermissionDelete) (interface{}, error)
+	Update(context.Context, *request.PermissionUpdate) (interface{}, error)
 }
 
 // HTTP API interface
-type Permissions struct {
+type Permission struct {
 	Get    func(http.ResponseWriter, *http.Request)
 	Delete func(http.ResponseWriter, *http.Request)
 	Update func(http.ResponseWriter, *http.Request)
 }
 
-func NewPermissions(ph PermissionsAPI) *Permissions {
-	return &Permissions{
+func NewPermission(ph PermissionAPI) *Permission {
+	return &Permission{
 		Get: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewPermissionsGet()
+			params := request.NewPermissionGet()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ph.Get(r.Context(), params)
 			})
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewPermissionsDelete()
+			params := request.NewPermissionDelete()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ph.Delete(r.Context(), params)
 			})
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewPermissionsUpdate()
+			params := request.NewPermissionUpdate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ph.Update(r.Context(), params)
 			})
@@ -65,7 +65,7 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 	}
 }
 
-func (ph *Permissions) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (ph *Permission) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Route("/permissions", func(r chi.Router) {
