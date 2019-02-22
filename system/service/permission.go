@@ -49,7 +49,11 @@ func (p *permission) Update(roleID uint64, rules []rules.Rule) (interface{}, err
 			return nil, err
 		}
 	}
-	return nil, p.resources.Grant(roleID, rules)
+	err := p.resources.Grant(roleID, rules)
+	if err != nil {
+		return nil, err
+	}
+	return p.resources.List(roleID)
 }
 
 func (p *permission) Delete(roleID uint64) (interface{}, error) {
