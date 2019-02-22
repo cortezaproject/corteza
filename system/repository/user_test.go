@@ -17,7 +17,7 @@ func TestUser(t *testing.T) {
 
 	userRepo := User(context.Background(), factory.Database.MustGet())
 	user := &types.User{
-		Name:     "John Doe",
+		Name:     "John User Doe",
 		Username: "johndoe",
 		SatosaID: "1234",
 	}
@@ -50,7 +50,7 @@ func TestUser(t *testing.T) {
 	}
 
 	{
-		users, err := userRepo.Find(&types.UserFilter{Query: ""})
+		users, err := userRepo.Find(&types.UserFilter{Query: "John User Doe"})
 		assert(t, err == nil, "Owner.Find error: %+v", err)
 		assert(t, len(users) == 1, "Owner.Find: expected 1 user, got %d", len(users))
 		assert(t, len(users[0].Roles) == 1, "Owner.Find: expected 1 role, got %d", len(users[0].Roles))

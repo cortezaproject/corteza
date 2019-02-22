@@ -18,7 +18,7 @@ func TestRole(t *testing.T) {
 
 	userRepo := User(context.Background(), factory.Database.MustGet())
 	user := &types.User{
-		Name:     "John Doe",
+		Name:     "John Role Doe",
 		Username: "johndoe",
 	}
 	user.GeneratePassword("johndoe")
