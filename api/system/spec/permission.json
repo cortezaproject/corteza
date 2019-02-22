@@ -17,7 +17,7 @@
   "Path": "/permissions",
   "APIs": [
     {
-      "Name": "get",
+      "Name": "read",
       "Method": "GET",
       "Title": "Retrieve role permissions",
       "Path": "/{roleID}/rules",

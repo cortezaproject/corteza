@@ -27,25 +27,25 @@ import (
 
 // Internal API interface
 type PermissionAPI interface {
-	Get(context.Context, *request.PermissionGet) (interface{}, error)
+	Read(context.Context, *request.PermissionRead) (interface{}, error)
 	Delete(context.Context, *request.PermissionDelete) (interface{}, error)
 	Update(context.Context, *request.PermissionUpdate) (interface{}, error)
 }
 
 // HTTP API interface
 type Permission struct {
-	Get    func(http.ResponseWriter, *http.Request)
+	Read   func(http.ResponseWriter, *http.Request)
 	Delete func(http.ResponseWriter, *http.Request)
 	Update func(http.ResponseWriter, *http.Request)
 }
 
 func NewPermission(ph PermissionAPI) *Permission {
 	return &Permission{
-		Get: func(w http.ResponseWriter, r *http.Request) {
+		Read: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewPermissionGet()
+			params := request.NewPermissionRead()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ph.Get(r.Context(), params)
+				return ph.Read(r.Context(), params)
 			})
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +69,7 @@ func (ph *Permission) MountRoutes(r chi.Router, middlewares ...func(http.Handler
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Route("/permissions", func(r chi.Router) {
-			r.Get("/{roleID}/rules", ph.Get)
+			r.Get("/{roleID}/rules", ph.Read)
 			r.Delete("/{roleID}/rules", ph.Delete)
 			r.Patch("/{roleID}/rules", ph.Update)
 		})
