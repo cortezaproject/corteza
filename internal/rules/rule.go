@@ -1,10 +1,5 @@
 package rules
 
-import (
-	"encoding/json"
-	"errors"
-)
-
 type Access int
 
 const (
@@ -21,18 +16,7 @@ type Rule struct {
 }
 
 func (a *Access) UnmarshalJSON(data []byte) error {
-	var i interface{}
-	err := json.Unmarshal(data, &i)
-	if err != nil {
-		return err
-	}
-
-	s, ok := i.(string)
-	if !ok {
-		return errors.New("Type assertion .(string) failed.")
-	}
-
-	switch s {
+	switch string(data) {
 	case "allow":
 		*a = Allow
 	case "deny":
@@ -41,4 +25,19 @@ func (a *Access) UnmarshalJSON(data []byte) error {
 		*a = Inherit
 	}
 	return nil
+}
+
+func (a Access) MarshalJSON() ([]byte, error) {
+	var str string
+
+	switch a {
+	case Allow:
+		str = "allow"
+	case Deny:
+		str = "deny"
+	default:
+		str = "inherit"
+	}
+
+	return []byte(`"` + str + `"`), nil
 }
