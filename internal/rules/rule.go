@@ -14,10 +14,10 @@ const (
 )
 
 type Rule struct {
-	RoleID    uint64 `db:"rel_role"`
-	Resource  string `db:"resource"`
-	Operation string `db:"operation"`
-	Value     Access `db:"value"`
+	RoleID    uint64 `json:"roleID,string" db:"rel_role"`
+	Resource  string `json:"resource" db:"resource"`
+	Operation string `json:"operation" db:"operation"`
+	Value     Access `json:"value,string" db:"value"`
 }
 
 func (a *Access) UnmarshalJSON(data []byte) error {
