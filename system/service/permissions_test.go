@@ -91,7 +91,7 @@ func TestPermission(t *testing.T) {
 		Error(t, err, "expected error")
 	}
 
-	// List rules for test role.
+	// Read rules for test role.
 	{
 		ret, err := permissionSvc.Read(role.ID)
 		NoError(t, err, "expected no error, setting rules")
@@ -107,7 +107,7 @@ func TestPermission(t *testing.T) {
 		NoError(t, err, "expected no error, setting rules")
 	}
 
-	// List rules for test role.
+	// Read rules for test role.
 	{
 		ret, err := permissionSvc.Read(role.ID)
 		NoError(t, err, "expected no error, setting rules")
@@ -115,5 +115,15 @@ func TestPermission(t *testing.T) {
 		rules := ret.([]rules.Rule)
 
 		Assert(t, len(rules) == 0, "expected len(rules) == 0, got %v", len(rules))
+	}
+
+	// List defined permissions.
+	{
+		ret, err := permissionSvc.List()
+		NoError(t, err, "expected no error, setting rules")
+
+		perms := ret.([]systemTypes.Permission)
+
+		Assert(t, len(perms) > 0, "expected len(rules) > 0, got %v", len(perms))
 	}
 }

@@ -6,8 +6,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-func validatePermission(resource string, operation string) error {
-	var services = map[string]map[string]bool{
+var (
+	permissionList = map[string]map[string]bool{
 		"system": map[string]bool{
 			"access":              true,
 			"organisation.create": true,
@@ -82,7 +82,9 @@ func validatePermission(resource string, operation string) error {
 			"delete": true,
 		},
 	}
+)
 
+func validatePermission(resource string, operation string) error {
 	delimiter := ":"
 	resourceParts := strings.Split(resource, delimiter)
 	if len(resourceParts) < 1 {
@@ -94,7 +96,7 @@ func validatePermission(resource string, operation string) error {
 		resourceName = resourceParts[0] + delimiter + resourceParts[1]
 	}
 
-	if service, ok := services[resourceName]; ok {
+	if service, ok := permissionList[resourceName]; ok {
 		if op := service[operation]; op {
 			if len(resourceParts) == 3 {
 				if val := resourceParts[2]; val != "" {

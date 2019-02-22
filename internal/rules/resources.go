@@ -107,7 +107,7 @@ func (r *resources) Grant(roleID uint64, rules []Rule) error {
 	})
 }
 
-func (r *resources) List(roleID uint64) ([]Rule, error) {
+func (r *resources) Read(roleID uint64) ([]Rule, error) {
 	result := []Rule{}
 
 	query := "select * from sys_rules where rel_role = ?"

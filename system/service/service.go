@@ -15,7 +15,7 @@ var (
 	DefaultAuth         AuthService
 	DefaultUser         UserService
 	DefaultRole         RoleService
-	DefaultPermission   PermissionService
+	DefaultPermission   PermissionsService
 	DefaultOrganisation OrganisationService
 )
 

@@ -565,7 +565,7 @@
   {
     "title": "Permissions",
     "parameters": {},
-    "entrypoint": "permission",
+    "entrypoint": "permissions",
     "path": "/permissions",
     "authentication": [
       "Client ID",
@@ -579,6 +579,13 @@
       }
     ],
     "apis": [
+      {
+        "name": "list",
+        "path": "/",
+        "method": "GET",
+        "title": "Retrieve defined permissions",
+        "parameters": {}
+      },
       {
         "name": "read",
         "path": "/{roleID}/rules",

@@ -1,6 +1,6 @@
 {
   "Title": "Permissions",
-  "Interface": "Permission",
+  "Interface": "Permissions",
   "Struct": [
     {
       "imports": [
@@ -16,6 +16,13 @@
   ],
   "Path": "/permissions",
   "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "Retrieve defined permissions",
+      "Path": "/",
+      "Parameters": {}
+    },
     {
       "Name": "read",
       "Method": "GET",
