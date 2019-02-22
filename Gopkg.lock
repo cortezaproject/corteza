@@ -45,6 +45,14 @@
   revision = "982855dad3e1cd68828d2106997539f36fcf6601"
 
 [[projects]]
+  branch = "master"
+  digest = "1:b2d8bf10f6279453f6771158d7afcbb2e047714f7d2e2204f2ea9d630d90d4f2"
+  name = "github.com/crusttech/permit"
+  packages = ["pkg/permit"]
+  pruneopts = "UT"
+  revision = "6c0c4bece8da7f75a52930f3c07d01a5406499bb"
+
+[[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -512,6 +520,7 @@
     "github.com/SentimensRG/ctx",
     "github.com/SentimensRG/ctx/sigctx",
     "github.com/crusttech/go-oidc",
+    "github.com/crusttech/permit/pkg/permit",
     "github.com/davecgh/go-spew/spew",
     "github.com/dgrijalva/jwt-go",
     "github.com/disintegration/imaging",
@@ -528,6 +537,7 @@
     "github.com/jmoiron/sqlx/types",
     "github.com/joho/godotenv",
     "github.com/joho/godotenv/autoload",
+    "github.com/lann/builder",
     "github.com/markbates/goth",
     "github.com/markbates/goth/gothic",
     "github.com/markbates/goth/providers/facebook",
