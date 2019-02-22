@@ -93,7 +93,7 @@ func TestPermission(t *testing.T) {
 
 	// List rules for test role.
 	{
-		ret, err := permissionSvc.Get(role.ID)
+		ret, err := permissionSvc.Read(role.ID)
 		NoError(t, err, "expected no error, setting rules")
 
 		rules := ret.([]rules.Rule)
@@ -109,7 +109,7 @@ func TestPermission(t *testing.T) {
 
 	// List rules for test role.
 	{
-		ret, err := permissionSvc.Get(role.ID)
+		ret, err := permissionSvc.Read(role.ID)
 		NoError(t, err, "expected no error, setting rules")
 
 		rules := ret.([]rules.Rule)

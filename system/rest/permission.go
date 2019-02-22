@@ -25,8 +25,8 @@ func (Permission) New() *Permission {
 	return ctrl
 }
 
-func (ctrl *Permission) Get(ctx context.Context, r *request.PermissionGet) (interface{}, error) {
-	return ctrl.svc.perm.Get(r.RoleID)
+func (ctrl *Permission) Read(ctx context.Context, r *request.PermissionRead) (interface{}, error) {
+	return ctrl.svc.perm.Read(r.RoleID)
 }
 
 func (ctrl *Permission) Delete(ctx context.Context, r *request.PermissionDelete) (interface{}, error) {

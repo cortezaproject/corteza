@@ -580,7 +580,7 @@
     ],
     "apis": [
       {
-        "name": "get",
+        "name": "read",
         "path": "/{roleID}/rules",
         "method": "GET",
         "title": "Retrieve role permissions",

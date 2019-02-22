@@ -18,7 +18,7 @@ type (
 	PermissionService interface {
 		With(ctx context.Context) PermissionService
 
-		Get(roleID uint64) (interface{}, error)
+		Read(roleID uint64) (interface{}, error)
 		Update(roleID uint64, rules []rules.Rule) (interface{}, error)
 		Delete(roleID uint64) (interface{}, error)
 	}
@@ -38,7 +38,7 @@ func (p *permission) With(ctx context.Context) PermissionService {
 	}
 }
 
-func (p *permission) Get(roleID uint64) (interface{}, error) {
+func (p *permission) Read(roleID uint64) (interface{}, error) {
 	return p.resources.List(roleID)
 }
 

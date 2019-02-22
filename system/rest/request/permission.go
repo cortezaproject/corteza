@@ -31,16 +31,16 @@ import (
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
 
-// Permission get request parameters
-type PermissionGet struct {
+// Permission read request parameters
+type PermissionRead struct {
 	RoleID uint64 `json:",string"`
 }
 
-func NewPermissionGet() *PermissionGet {
-	return &PermissionGet{}
+func NewPermissionRead() *PermissionRead {
+	return &PermissionRead{}
 }
 
-func (pe *PermissionGet) Fill(r *http.Request) (err error) {
+func (pe *PermissionRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(pe)
 
@@ -72,7 +72,7 @@ func (pe *PermissionGet) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewPermissionGet()
+var _ RequestFiller = NewPermissionRead()
 
 // Permission delete request parameters
 type PermissionDelete struct {
