@@ -60,7 +60,7 @@ func TestRules(t *testing.T) {
 
 	// list grants for test role
 	{
-		grants, err := resources.List(roleID)
+		grants, err := resources.Read(roleID)
 		NoError(t, err, "expect no error")
 		Assert(t, len(grants) == 2, "expected 2 grants")
 
@@ -116,7 +116,7 @@ func TestRules(t *testing.T) {
 
 	// list all by roleID
 	{
-		grants, err := resources.List(roleID)
+		grants, err := resources.Read(roleID)
 		NoError(t, err, "expected no error")
 		Assert(t, len(grants) == 3, "expected grants == 3, got %v", len(grants))
 	}
@@ -129,7 +129,7 @@ func TestRules(t *testing.T) {
 
 	// list all by roleID
 	{
-		grants, err := resources.List(roleID)
+		grants, err := resources.Read(roleID)
 		NoError(t, err, "expected no error")
 		Assert(t, len(grants) == 0, "expected grants == 0, got %v", len(grants))
 	}

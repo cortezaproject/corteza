@@ -12,6 +12,6 @@ type ResourcesInterface interface {
 	IsAllowed(resource string, operation string) Access
 
 	Grant(roleID uint64, rules []Rule) error
-	List(roleID uint64) ([]Rule, error)
+	Read(roleID uint64) ([]Rule, error)
 	Delete(roleID uint64) error
 }

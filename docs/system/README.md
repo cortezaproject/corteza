@@ -138,6 +138,19 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 # Permissions
 
+## Retrieve defined permissions
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/permissions/` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+
 ## Retrieve role permissions
 
 #### Method

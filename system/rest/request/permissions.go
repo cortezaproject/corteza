@@ -10,8 +10,8 @@ package request
 	1. run [spec](https://github.com/titpetric/spec) in the same folder,
 	2. run `./_gen.php` in this folder.
 
-	You may edit `permission.go`, `permission.util.go` or `permission_test.go` to
-	implement your API calls, helper functions and tests. The file `permission.go`
+	You may edit `permissions.go`, `permissions.util.go` or `permissions_test.go` to
+	implement your API calls, helper functions and tests. The file `permissions.go`
 	is only generated the first time, and will not be overwritten if it exists.
 */
 
@@ -31,16 +31,56 @@ import (
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
 
-// Permission read request parameters
-type PermissionRead struct {
+// Permissions list request parameters
+type PermissionsList struct {
+}
+
+func NewPermissionsList() *PermissionsList {
+	return &PermissionsList{}
+}
+
+func (pe *PermissionsList) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(pe)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewPermissionsList()
+
+// Permissions read request parameters
+type PermissionsRead struct {
 	RoleID uint64 `json:",string"`
 }
 
-func NewPermissionRead() *PermissionRead {
-	return &PermissionRead{}
+func NewPermissionsRead() *PermissionsRead {
+	return &PermissionsRead{}
 }
 
-func (pe *PermissionRead) Fill(r *http.Request) (err error) {
+func (pe *PermissionsRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(pe)
 
@@ -72,18 +112,18 @@ func (pe *PermissionRead) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewPermissionRead()
+var _ RequestFiller = NewPermissionsRead()
 
-// Permission delete request parameters
-type PermissionDelete struct {
+// Permissions delete request parameters
+type PermissionsDelete struct {
 	RoleID uint64 `json:",string"`
 }
 
-func NewPermissionDelete() *PermissionDelete {
-	return &PermissionDelete{}
+func NewPermissionsDelete() *PermissionsDelete {
+	return &PermissionsDelete{}
 }
 
-func (pe *PermissionDelete) Fill(r *http.Request) (err error) {
+func (pe *PermissionsDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(pe)
 
@@ -115,19 +155,19 @@ func (pe *PermissionDelete) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewPermissionDelete()
+var _ RequestFiller = NewPermissionsDelete()
 
-// Permission update request parameters
-type PermissionUpdate struct {
+// Permissions update request parameters
+type PermissionsUpdate struct {
 	RoleID      uint64 `json:",string"`
 	Permissions []rules.Rule
 }
 
-func NewPermissionUpdate() *PermissionUpdate {
-	return &PermissionUpdate{}
+func NewPermissionsUpdate() *PermissionsUpdate {
+	return &PermissionsUpdate{}
 }
 
-func (pe *PermissionUpdate) Fill(r *http.Request) (err error) {
+func (pe *PermissionsUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(pe)
 
@@ -159,4 +199,4 @@ func (pe *PermissionUpdate) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewPermissionUpdate()
+var _ RequestFiller = NewPermissionsUpdate()
