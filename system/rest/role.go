@@ -40,7 +40,17 @@ func (ctrl *Role) Create(ctx context.Context, r *request.RoleCreate) (interface{
 		Name: r.Name,
 	}
 
-	return ctrl.svc.role.With(ctx).Create(role)
+	role, err := ctrl.svc.role.With(ctx).Create(role)
+	if err != nil {
+		return nil, err
+	}
+	for _, userID := range r.Members {
+		err := ctrl.svc.role.With(ctx).MemberAdd(role.ID, userID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return role, nil
 }
 
 func (ctrl *Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{}, error) {
@@ -49,7 +59,31 @@ func (ctrl *Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{
 		Name: r.Name,
 	}
 
-	return ctrl.svc.role.With(ctx).Update(role)
+	role, err := ctrl.svc.role.With(ctx).Update(role)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(r.Members) > 0 {
+		members, err := ctrl.svc.role.With(ctx).MemberList(r.RoleID)
+		if err != nil {
+			return nil, err
+		}
+		for _, member := range members {
+			err := ctrl.svc.role.With(ctx).MemberRemove(role.ID, member.UserID)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		for _, userID := range r.Members {
+			err := ctrl.svc.role.With(ctx).MemberAdd(role.ID, userID)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return role, nil
 }
 
 func (ctrl *Role) Remove(ctx context.Context, r *request.RoleRemove) (interface{}, error) {
