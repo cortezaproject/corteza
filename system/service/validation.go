@@ -9,7 +9,7 @@ import (
 var (
 	permissionList = map[string]map[string]bool{
 		"system": map[string]bool{
-			"access":              true,
+			"grant":               true,
 			"organisation.create": true,
 			"role.create":         true,
 		},
@@ -24,6 +24,7 @@ var (
 		},
 		"messaging": map[string]bool{
 			"access":                 true,
+			"grant":                  true,
 			"channel.public.create":  true,
 			"channel.private.create": true,
 			"channel.direct.create":  true,
@@ -46,6 +47,7 @@ var (
 		},
 		"compose": map[string]bool{
 			"access":           true,
+			"grant":            true,
 			"namespace.create": true,
 		},
 		"compose:namespace": map[string]bool{
