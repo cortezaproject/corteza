@@ -35,6 +35,7 @@ type RoleAPI interface {
 	Archive(context.Context, *request.RoleArchive) (interface{}, error)
 	Move(context.Context, *request.RoleMove) (interface{}, error)
 	Merge(context.Context, *request.RoleMerge) (interface{}, error)
+	MemberList(context.Context, *request.RoleMemberList) (interface{}, error)
 	MemberAdd(context.Context, *request.RoleMemberAdd) (interface{}, error)
 	MemberRemove(context.Context, *request.RoleMemberRemove) (interface{}, error)
 }
@@ -49,6 +50,7 @@ type Role struct {
 	Archive      func(http.ResponseWriter, *http.Request)
 	Move         func(http.ResponseWriter, *http.Request)
 	Merge        func(http.ResponseWriter, *http.Request)
+	MemberList   func(http.ResponseWriter, *http.Request)
 	MemberAdd    func(http.ResponseWriter, *http.Request)
 	MemberRemove func(http.ResponseWriter, *http.Request)
 }
@@ -111,6 +113,13 @@ func NewRole(rh RoleAPI) *Role {
 				return rh.Merge(r.Context(), params)
 			})
 		},
+		MemberList: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRoleMemberList()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return rh.MemberList(r.Context(), params)
+			})
+		},
 		MemberAdd: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewRoleMemberAdd()
@@ -140,8 +149,9 @@ func (rh *Role) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 			r.Post("/{roleID}/archive", rh.Archive)
 			r.Post("/{roleID}/move", rh.Move)
 			r.Post("/{roleID}/merge", rh.Merge)
-			r.Post("/{roleID}/memberAdd", rh.MemberAdd)
-			r.Post("/{roleID}/memberRemove", rh.MemberRemove)
+			r.Get("/{roleID}/members", rh.MemberList)
+			r.Post("/{roleID}/member/{userID}", rh.MemberAdd)
+			r.Delete("/{roleID}/member/{userID}", rh.MemberRemove)
 		})
 	})
 }

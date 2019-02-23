@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 
 	"github.com/crusttech/crust/system/rest/request"
@@ -35,20 +36,20 @@ func (ctrl *Role) List(ctx context.Context, r *request.RoleList) (interface{}, e
 }
 
 func (ctrl *Role) Create(ctx context.Context, r *request.RoleCreate) (interface{}, error) {
-	org := &types.Role{
+	role := &types.Role{
 		Name: r.Name,
 	}
 
-	return ctrl.svc.role.With(ctx).Create(org)
+	return ctrl.svc.role.With(ctx).Create(role)
 }
 
 func (ctrl *Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{}, error) {
-	org := &types.Role{
+	role := &types.Role{
 		ID:   r.RoleID,
 		Name: r.Name,
 	}
 
-	return ctrl.svc.role.With(ctx).Update(org)
+	return ctrl.svc.role.With(ctx).Update(role)
 }
 
 func (ctrl *Role) Remove(ctx context.Context, r *request.RoleRemove) (interface{}, error) {
@@ -65,6 +66,19 @@ func (ctrl *Role) Merge(ctx context.Context, r *request.RoleMerge) (interface{},
 
 func (ctrl *Role) Move(ctx context.Context, r *request.RoleMove) (interface{}, error) {
 	return nil, ctrl.svc.role.With(ctx).Move(r.RoleID, r.OrganisationID)
+}
+
+func (ctrl *Role) MemberList(ctx context.Context, r *request.RoleMemberList) (interface{}, error) {
+	if mm, err := ctrl.svc.role.With(ctx).MemberList(r.RoleID); err != nil {
+		return nil, err
+	} else {
+		rval := make([]uint64, len(mm))
+		for i := range mm {
+			rval[i] = mm[i].UserID
+		}
+		spew.Dump(rval)
+		return rval, nil
+	}
 }
 
 func (ctrl *Role) MemberAdd(ctx context.Context, r *request.RoleMemberAdd) (interface{}, error) {

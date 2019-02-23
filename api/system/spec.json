@@ -334,10 +334,10 @@
         }
       },
       {
-        "name": "memberAdd",
-        "method": "POST",
-        "title": "Add member to a role",
-        "path": "/{roleID}/memberAdd",
+        "name": "memberList",
+        "method": "GET",
+        "title": "Returns all role members",
+        "path": "/{roleID}/members",
         "parameters": {
           "path": [
             {
@@ -346,8 +346,22 @@
               "required": true,
               "title": "Source Role ID"
             }
-          ],
-          "post": [
+          ]
+        }
+      },
+      {
+        "name": "memberAdd",
+        "method": "POST",
+        "title": "Add member to a role",
+        "path": "/{roleID}/member/{userID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "roleID",
+              "required": true,
+              "title": "Source Role ID"
+            },
             {
               "type": "uint64",
               "name": "userID",
@@ -359,9 +373,9 @@
       },
       {
         "name": "memberRemove",
-        "method": "POST",
+        "method": "DELETE",
         "title": "Remove member from a role",
-        "path": "/{roleID}/memberRemove",
+        "path": "/{roleID}/member/{userID}",
         "parameters": {
           "path": [
             {
@@ -369,9 +383,7 @@
               "name": "roleID",
               "required": true,
               "title": "Source Role ID"
-            }
-          ],
-          "post": [
+            },
             {
               "type": "uint64",
               "name": "userID",
