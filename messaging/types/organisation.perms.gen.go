@@ -94,18 +94,18 @@ func (*Organisation) Permissions() []rules.OperationGroup {
 
 func (*Organisation) PermissionDefault(key string) rules.Access {
 	values := map[string]rules.Access{
-		"audit":               rules.Deny,
-		"manage.organisation": rules.Deny,
-		"manage.roles":        rules.Deny,
-		"manage.channels":     rules.Deny,
-		"manage.webhooks":     rules.Deny,
-		"message.attach":      rules.Allow,
+		"message.send":        rules.Allow,
+		"message.update_own":  rules.Allow,
 		"message.update_all":  rules.Deny,
 		"message.react":       rules.Allow,
 		"admin":               rules.Deny,
-		"message.send":        rules.Allow,
+		"manage.organisation": rules.Deny,
+		"manage.channels":     rules.Deny,
 		"message.embed":       rules.Allow,
-		"message.update_own":  rules.Allow,
+		"message.attach":      rules.Allow,
+		"audit":               rules.Deny,
+		"manage.roles":        rules.Deny,
+		"manage.webhooks":     rules.Deny,
 	}
 	if value, ok := values[key]; ok {
 		return value

@@ -32,6 +32,7 @@ type (
 		Unarchive(ID uint64) error
 		Delete(ID uint64) error
 
+		MemberList(roleID uint64) ([]*types.RoleMember, error)
 		MemberAdd(roleID, userID uint64) error
 		MemberRemove(roleID, userID uint64) error
 	}
@@ -116,6 +117,11 @@ func (svc *role) Merge(id, targetroleID uint64) error {
 func (svc *role) Move(id, targetOrganisationID uint64) error {
 	// @todo: permission check if current user can move role to another organisation
 	return svc.role.MoveByID(id, targetOrganisationID)
+}
+
+func (svc *role) MemberList(roleID uint64) ([]*types.RoleMember, error) {
+	// @todo: permission check if current user can read role members
+	return svc.role.MemberFindByRoleID(roleID)
 }
 
 func (svc *role) MemberAdd(id, userID uint64) error {
