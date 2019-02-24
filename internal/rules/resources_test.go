@@ -40,8 +40,8 @@ func TestRules(t *testing.T) {
 
 	// default (unset=deny), forbidden check ...:*
 	{
-		Expect(rules.Inherit, resources.IsAllowed("messaging:channel:1", "update"), "messaging:channel:1 update - Inherit")
-		Expect(rules.Deny, resources.IsAllowed("messaging:channel:*", "update"), "messaging:channel:* update - Deny")
+		Expect(rules.Inherit, resources.Check("messaging:channel:1", "update"), "messaging:channel:1 update - Inherit")
+		Expect(rules.Deny, resources.Check("messaging:channel:*", "update"), "messaging:channel:* update - Deny")
 	}
 
 	// allow messaging:channel:2 update,delete
@@ -53,9 +53,9 @@ func TestRules(t *testing.T) {
 		err := resources.Grant(roleID, list)
 		NoError(t, err, "expect no error")
 
-		Expect(rules.Inherit, resources.IsAllowed("messaging:channel:1", "update"), "messaging:channel:1 update - Inherit")
-		Expect(rules.Allow, resources.IsAllowed("messaging:channel:2", "update"), "messaging:channel:2 update - Allow")
-		Expect(rules.Deny, resources.IsAllowed("messaging:channel:*", "update"), "messaging:channel:* update - Deny")
+		Expect(rules.Inherit, resources.Check("messaging:channel:1", "update"), "messaging:channel:1 update - Inherit")
+		Expect(rules.Allow, resources.Check("messaging:channel:2", "update"), "messaging:channel:2 update - Allow")
+		Expect(rules.Deny, resources.Check("messaging:channel:*", "update"), "messaging:channel:* update - Deny")
 	}
 
 	// list grants for test role
@@ -79,9 +79,9 @@ func TestRules(t *testing.T) {
 		err := resources.Grant(roleID, list)
 		NoError(t, err, "expect no error")
 
-		Expect(rules.Deny, resources.IsAllowed("messaging:channel:1", "update"), "messaging:channel:1 update - Deny")
-		Expect(rules.Allow, resources.IsAllowed("messaging:channel:2", "update"), "messaging:channel:2 update - Allow")
-		Expect(rules.Deny, resources.IsAllowed("messaging:channel:*", "update"), "messaging:channel:* update - Deny")
+		Expect(rules.Deny, resources.Check("messaging:channel:1", "update"), "messaging:channel:1 update - Deny")
+		Expect(rules.Allow, resources.Check("messaging:channel:2", "update"), "messaging:channel:2 update - Allow")
+		Expect(rules.Deny, resources.Check("messaging:channel:*", "update"), "messaging:channel:* update - Deny")
 	}
 
 	// reset messaging:channel:1, messaging:channel:2
@@ -95,8 +95,8 @@ func TestRules(t *testing.T) {
 		err := resources.Grant(roleID, list)
 		NoError(t, err, "expect no error")
 
-		Expect(rules.Inherit, resources.IsAllowed("messaging:channel:1", "update"), "messaging:channel:1 update - Inherit")
-		Expect(rules.Inherit, resources.IsAllowed("messaging:channel:2", "update"), "messaging:channel:2 update - Inherit")
+		Expect(rules.Inherit, resources.Check("messaging:channel:1", "update"), "messaging:channel:1 update - Inherit")
+		Expect(rules.Inherit, resources.Check("messaging:channel:2", "update"), "messaging:channel:2 update - Inherit")
 	}
 
 	// [messaging:channel:*,update] - allow, [messaging:channel:1, deny]
@@ -110,8 +110,8 @@ func TestRules(t *testing.T) {
 		err := resources.Grant(roleID, list)
 		NoError(t, err, "expected no error")
 
-		Expect(rules.Deny, resources.IsAllowed("messaging:channel:1", "update"), "messaging:channel:1 update - Deny")
-		Expect(rules.Allow, resources.IsAllowed("messaging:channel:2", "update"), "messaging:channel:2 update - Allow")
+		Expect(rules.Deny, resources.Check("messaging:channel:1", "update"), "messaging:channel:1 update - Deny")
+		Expect(rules.Allow, resources.Check("messaging:channel:2", "update"), "messaging:channel:2 update - Allow")
 	}
 
 	// list all by roleID

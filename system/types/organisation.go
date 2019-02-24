@@ -26,7 +26,8 @@ type (
 // Resource returns a system resource ID for this type
 func (r *Organisation) Resource() rules.Resource {
 	resource := rules.Resource{
-		Scope: "organisation",
+		Service: "system",
+		Scope:   "organisation",
 	}
 	if r != nil {
 		resource.ID = r.ID

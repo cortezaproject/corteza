@@ -21,7 +21,7 @@ type (
 
 func (Permissions) New() *Permissions {
 	ctrl := &Permissions{}
-	ctrl.svc.perm = service.DefaultPermission
+	ctrl.svc.perm = service.DefaultPermissions
 	return ctrl
 }
 

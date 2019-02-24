@@ -5,10 +5,7 @@ import (
 	"sync"
 	"time"
 
-	internalRules "github.com/crusttech/crust/internal/rules"
 	"github.com/crusttech/crust/internal/store"
-
-	"github.com/crusttech/crust/messaging/types"
 )
 
 type (
@@ -18,12 +15,13 @@ type (
 )
 
 var (
-	o                 sync.Once
-	DefaultAttachment AttachmentService
-	DefaultChannel    ChannelService
-	DefaultMessage    MessageService
-	DefaultPubSub     *pubSub
-	DefaultEvent      EventService
+	o                  sync.Once
+	DefaultAttachment  AttachmentService
+	DefaultChannel     ChannelService
+	DefaultMessage     MessageService
+	DefaultPubSub      *pubSub
+	DefaultEvent       EventService
+	DefaultPermissions PermissionsService
 )
 
 func Init() {
@@ -33,11 +31,7 @@ func Init() {
 			log.Fatalf("Failed to initialize stor: %v", err)
 		}
 
-		scopes := internalRules.NewScope()
-		scopes.Add(&types.Organisation{})
-		scopes.Add(&types.Role{})
-		scopes.Add(&types.Channel{})
-
+		DefaultPermissions = Permissions()
 		DefaultEvent = Event()
 		DefaultAttachment = Attachment(fs)
 		DefaultMessage = Message()
