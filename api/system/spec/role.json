@@ -96,7 +96,7 @@
       }
     },
     {
-      "Name": "remove",
+      "Name": "delete",
       "Method": "DELETE",
       "Title": "Remove role",
       "Path": "/{roleID}",

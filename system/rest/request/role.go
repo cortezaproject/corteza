@@ -214,16 +214,16 @@ func (ro *RoleRead) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewRoleRead()
 
-// Role remove request parameters
-type RoleRemove struct {
+// Role delete request parameters
+type RoleDelete struct {
 	RoleID uint64 `json:",string"`
 }
 
-func NewRoleRemove() *RoleRemove {
-	return &RoleRemove{}
+func NewRoleDelete() *RoleDelete {
+	return &RoleDelete{}
 }
 
-func (ro *RoleRemove) Fill(r *http.Request) (err error) {
+func (ro *RoleDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(ro)
 
@@ -255,7 +255,7 @@ func (ro *RoleRemove) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewRoleRemove()
+var _ RequestFiller = NewRoleDelete()
 
 // Role archive request parameters
 type RoleArchive struct {

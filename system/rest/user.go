@@ -60,7 +60,7 @@ func (ctrl *User) Read(ctx context.Context, r *request.UserRead) (interface{}, e
 	return ctrl.user.With(ctx).FindByID(r.UserID)
 }
 
-func (ctrl *User) Remove(ctx context.Context, r *request.UserRemove) (interface{}, error) {
+func (ctrl *User) Delete(ctx context.Context, r *request.UserDelete) (interface{}, error) {
 	return nil, ctrl.user.With(ctx).Delete(r.UserID)
 }
 

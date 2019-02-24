@@ -51,7 +51,7 @@ func (ctrl *Organisation) Update(ctx context.Context, r *request.OrganisationUpd
 	return ctrl.svc.org.With(ctx).Update(org)
 }
 
-func (ctrl *Organisation) Remove(ctx context.Context, r *request.OrganisationRemove) (interface{}, error) {
+func (ctrl *Organisation) Delete(ctx context.Context, r *request.OrganisationDelete) (interface{}, error) {
 	return nil, ctrl.svc.org.With(ctx).Delete(r.ID)
 }
 

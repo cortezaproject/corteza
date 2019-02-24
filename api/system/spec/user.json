@@ -131,7 +131,7 @@
       }
     },
     {
-      "Name": "remove",
+      "Name": "delete",
       "Method": "DELETE",
       "Title": "Remove user",
       "Path": "/{userID}",

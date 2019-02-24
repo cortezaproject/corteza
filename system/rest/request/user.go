@@ -252,16 +252,16 @@ func (us *UserRead) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewUserRead()
 
-// User remove request parameters
-type UserRemove struct {
+// User delete request parameters
+type UserDelete struct {
 	UserID uint64 `json:",string"`
 }
 
-func NewUserRemove() *UserRemove {
-	return &UserRemove{}
+func NewUserDelete() *UserDelete {
+	return &UserDelete{}
 }
 
-func (us *UserRemove) Fill(r *http.Request) (err error) {
+func (us *UserDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(us)
 
@@ -293,7 +293,7 @@ func (us *UserRemove) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewUserRemove()
+var _ RequestFiller = NewUserDelete()
 
 // User suspend request parameters
 type UserSuspend struct {
