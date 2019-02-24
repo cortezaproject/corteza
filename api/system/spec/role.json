@@ -44,7 +44,7 @@
             "name": "members",
             "required": false,
             "title": "Role member IDs",
-            "type": "[]uint64"
+            "type": "[]string"
           }
         ]
       }
@@ -74,7 +74,7 @@
             "name": "members",
             "required": false,
             "title": "Role member IDs",
-            "type": "[]uint64"
+            "type": "[]string"
           }
         ]
       }

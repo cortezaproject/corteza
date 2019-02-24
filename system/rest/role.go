@@ -3,9 +3,9 @@ package rest
 import (
 	"context"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 
+	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/system/rest/request"
 	"github.com/crusttech/crust/system/service"
 	"github.com/crusttech/crust/system/types"
@@ -44,7 +44,8 @@ func (ctrl *Role) Create(ctx context.Context, r *request.RoleCreate) (interface{
 	if err != nil {
 		return nil, err
 	}
-	for _, userID := range r.Members {
+
+	for _, userID := range payload.ParseUInt64s(r.Members) {
 		err := ctrl.svc.role.With(ctx).MemberAdd(role.ID, userID)
 		if err != nil {
 			return nil, err
@@ -76,7 +77,7 @@ func (ctrl *Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{
 			}
 		}
 
-		for _, userID := range r.Members {
+		for _, userID := range payload.ParseUInt64s(r.Members) {
 			err := ctrl.svc.role.With(ctx).MemberAdd(role.ID, userID)
 			if err != nil {
 				return nil, err
@@ -106,11 +107,10 @@ func (ctrl *Role) MemberList(ctx context.Context, r *request.RoleMemberList) (in
 	if mm, err := ctrl.svc.role.With(ctx).MemberList(r.RoleID); err != nil {
 		return nil, err
 	} else {
-		rval := make([]uint64, len(mm))
+		rval := make([]string, len(mm))
 		for i := range mm {
-			rval[i] = mm[i].UserID
+			rval[i] = payload.Uint64toa(mm[i].UserID)
 		}
-		spew.Dump(rval)
 		return rval, nil
 	}
 }

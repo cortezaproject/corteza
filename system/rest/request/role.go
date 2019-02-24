@@ -78,7 +78,7 @@ var _ RequestFiller = NewRoleList()
 // Role create request parameters
 type RoleCreate struct {
 	Name    string
-	Members []uint64 `json:",string"`
+	Members []string
 }
 
 func NewRoleCreate() *RoleCreate {
@@ -116,7 +116,6 @@ func (ro *RoleCreate) Fill(r *http.Request) (err error) {
 
 		ro.Name = val
 	}
-	ro.Members = parseUInt64A(r.Form["members"])
 
 	return err
 }
@@ -127,7 +126,7 @@ var _ RequestFiller = NewRoleCreate()
 type RoleUpdate struct {
 	RoleID  uint64 `json:",string"`
 	Name    string
-	Members []uint64 `json:",string"`
+	Members []string
 }
 
 func NewRoleUpdate() *RoleUpdate {
@@ -166,7 +165,6 @@ func (ro *RoleUpdate) Fill(r *http.Request) (err error) {
 
 		ro.Name = val
 	}
-	ro.Members = parseUInt64A(r.Form["members"])
 
 	return err
 }
