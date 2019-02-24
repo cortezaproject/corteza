@@ -228,7 +228,7 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | name | string | POST | Name of Role | N/A | YES |
-| members | []uint64 | POST | Role member IDs | N/A | NO |
+| members | []string | POST | Role member IDs | N/A | NO |
 
 ## Update role details
 
@@ -244,7 +244,7 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | roleID | uint64 | PATH | Role ID | N/A | YES |
 | name | string | POST | Name of Role | N/A | NO |
-| members | []uint64 | POST | Role member IDs | N/A | NO |
+| members | []string | POST | Role member IDs | N/A | NO |
 
 ## Read role details and memberships
 
@@ -318,20 +318,34 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | roleID | uint64 | PATH | Source Role ID | N/A | YES |
 | destination | uint64 | POST | Destination Role ID | N/A | YES |
 
-## Add member to a role
+## Returns all role members
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/roles/{roleID}/memberAdd` | HTTP/S | POST | Client ID, Session ID |
+| `/roles/{roleID}/members` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | roleID | uint64 | PATH | Source Role ID | N/A | YES |
-| userID | uint64 | POST | User ID | N/A | YES |
+
+## Add member to a role
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/roles/{roleID}/member/{userID}` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| roleID | uint64 | PATH | Source Role ID | N/A | YES |
+| userID | uint64 | PATH | User ID | N/A | YES |
 
 ## Remove member from a role
 
@@ -339,14 +353,14 @@ An organisation may have many roles. Roles may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/roles/{roleID}/memberRemove` | HTTP/S | POST | Client ID, Session ID |
+| `/roles/{roleID}/member/{userID}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | roleID | uint64 | PATH | Source Role ID | N/A | YES |
-| userID | uint64 | POST | User ID | N/A | YES |
+| userID | uint64 | PATH | User ID | N/A | YES |
 
 
 

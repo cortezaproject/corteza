@@ -64,13 +64,13 @@ func (*Role) Permissions() []rules.OperationGroup {
 
 func (*Role) PermissionDefault(key string) rules.Access {
 	values := map[string]rules.Access{
-		"message.embed":      rules.Inherit,
 		"message.attach":     rules.Inherit,
 		"message.update_own": rules.Inherit,
 		"message.update_all": rules.Inherit,
 		"message.react":      rules.Inherit,
 		"manage.webhooks":    rules.Inherit,
 		"message.send":       rules.Inherit,
+		"message.embed":      rules.Inherit,
 	}
 	if value, ok := values[key]; ok {
 		return value

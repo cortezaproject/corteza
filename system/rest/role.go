@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/system/rest/request"
 	"github.com/crusttech/crust/system/service"
 	"github.com/crusttech/crust/system/types"
@@ -35,20 +36,55 @@ func (ctrl *Role) List(ctx context.Context, r *request.RoleList) (interface{}, e
 }
 
 func (ctrl *Role) Create(ctx context.Context, r *request.RoleCreate) (interface{}, error) {
-	org := &types.Role{
+	role := &types.Role{
 		Name: r.Name,
 	}
 
-	return ctrl.svc.role.With(ctx).Create(org)
+	role, err := ctrl.svc.role.With(ctx).Create(role)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, userID := range payload.ParseUInt64s(r.Members) {
+		err := ctrl.svc.role.With(ctx).MemberAdd(role.ID, userID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return role, nil
 }
 
 func (ctrl *Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{}, error) {
-	org := &types.Role{
+	role := &types.Role{
 		ID:   r.RoleID,
 		Name: r.Name,
 	}
 
-	return ctrl.svc.role.With(ctx).Update(org)
+	role, err := ctrl.svc.role.With(ctx).Update(role)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(r.Members) > 0 {
+		members, err := ctrl.svc.role.With(ctx).MemberList(r.RoleID)
+		if err != nil {
+			return nil, err
+		}
+		for _, member := range members {
+			err := ctrl.svc.role.With(ctx).MemberRemove(role.ID, member.UserID)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		for _, userID := range payload.ParseUInt64s(r.Members) {
+			err := ctrl.svc.role.With(ctx).MemberAdd(role.ID, userID)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return role, nil
 }
 
 func (ctrl *Role) Remove(ctx context.Context, r *request.RoleRemove) (interface{}, error) {
@@ -65,6 +101,18 @@ func (ctrl *Role) Merge(ctx context.Context, r *request.RoleMerge) (interface{},
 
 func (ctrl *Role) Move(ctx context.Context, r *request.RoleMove) (interface{}, error) {
 	return nil, ctrl.svc.role.With(ctx).Move(r.RoleID, r.OrganisationID)
+}
+
+func (ctrl *Role) MemberList(ctx context.Context, r *request.RoleMemberList) (interface{}, error) {
+	if mm, err := ctrl.svc.role.With(ctx).MemberList(r.RoleID); err != nil {
+		return nil, err
+	} else {
+		rval := make([]string, len(mm))
+		for i := range mm {
+			rval[i] = payload.Uint64toa(mm[i].UserID)
+		}
+		return rval, nil
+	}
 }
 
 func (ctrl *Role) MemberAdd(ctx context.Context, r *request.RoleMemberAdd) (interface{}, error) {
