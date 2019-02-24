@@ -27,6 +27,7 @@ type (
 		MergeByID(id, targetRoleID uint64) error
 		MoveByID(id, targetOrganisationID uint64) error
 
+		MemberFindByRoleID(roleID uint64) ([]*types.RoleMember, error)
 		MemberAddByID(id, userID uint64) error
 		MemberRemoveByID(id, userID uint64) error
 	}
@@ -138,6 +139,12 @@ func (r *role) MergeByID(id, targetRoleID uint64) error {
 
 func (r *role) MoveByID(id, targetOrganisationID uint64) error {
 	return ErrNotImplemented
+}
+
+func (r *role) MemberFindByRoleID(roleID uint64) (mm []*types.RoleMember, err error) {
+	rval := make([]*types.RoleMember, 0)
+	sql := "SELECT * FROM " + r.members + " WHERE rel_role = ?"
+	return rval, r.db().Select(&rval, sql, roleID)
 }
 
 func (r *role) MemberAddByID(id, userID uint64) error {

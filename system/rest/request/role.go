@@ -78,7 +78,7 @@ var _ RequestFiller = NewRoleList()
 // Role create request parameters
 type RoleCreate struct {
 	Name    string
-	Members []uint64 `json:",string"`
+	Members []string
 }
 
 func NewRoleCreate() *RoleCreate {
@@ -116,7 +116,6 @@ func (ro *RoleCreate) Fill(r *http.Request) (err error) {
 
 		ro.Name = val
 	}
-	ro.Members = parseUInt64A(r.Form["members"])
 
 	return err
 }
@@ -127,7 +126,7 @@ var _ RequestFiller = NewRoleCreate()
 type RoleUpdate struct {
 	RoleID  uint64 `json:",string"`
 	Name    string
-	Members []uint64 `json:",string"`
+	Members []string
 }
 
 func NewRoleUpdate() *RoleUpdate {
@@ -166,7 +165,6 @@ func (ro *RoleUpdate) Fill(r *http.Request) (err error) {
 
 		ro.Name = val
 	}
-	ro.Members = parseUInt64A(r.Form["members"])
 
 	return err
 }
@@ -398,6 +396,49 @@ func (ro *RoleMerge) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewRoleMerge()
 
+// Role memberList request parameters
+type RoleMemberList struct {
+	RoleID uint64 `json:",string"`
+}
+
+func NewRoleMemberList() *RoleMemberList {
+	return &RoleMemberList{}
+}
+
+func (ro *RoleMemberList) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(ro)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+
+	return err
+}
+
+var _ RequestFiller = NewRoleMemberList()
+
 // Role memberAdd request parameters
 type RoleMemberAdd struct {
 	RoleID uint64 `json:",string"`
@@ -436,10 +477,7 @@ func (ro *RoleMemberAdd) Fill(r *http.Request) (err error) {
 	}
 
 	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
-	if val, ok := post["userID"]; ok {
-
-		ro.UserID = parseUInt64(val)
-	}
+	ro.UserID = parseUInt64(chi.URLParam(r, "userID"))
 
 	return err
 }
@@ -484,10 +522,7 @@ func (ro *RoleMemberRemove) Fill(r *http.Request) (err error) {
 	}
 
 	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
-	if val, ok := post["userID"]; ok {
-
-		ro.UserID = parseUInt64(val)
-	}
+	ro.UserID = parseUInt64(chi.URLParam(r, "userID"))
 
 	return err
 }
