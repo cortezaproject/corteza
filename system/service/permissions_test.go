@@ -48,7 +48,7 @@ func TestPermission(t *testing.T) {
 	ctx = internalAuth.SetIdentityToContext(ctx, user)
 
 	// Create permission service.
-	permissionSvc := Permission().With(ctx)
+	permissionSvc := Permissions().With(ctx)
 
 	// Update rules for test role.
 	{

@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/organization"
 	"github.com/crusttech/crust/messaging/repository"
 	"github.com/crusttech/crust/messaging/types"
 	systemService "github.com/crusttech/crust/system/service"
@@ -19,7 +20,9 @@ type (
 		ctx context.Context
 
 		usr systemService.UserService
+
 		evl EventService
+		prm PermissionsService
 
 		channel repository.ChannelRepository
 		cmember repository.ChannelMemberRepository
@@ -52,10 +55,11 @@ type (
 		Undelete(ID uint64) (*types.Channel, error)
 		RecordView(userID, channelID, lastMessageID uint64) error
 	}
+)
 
-	// channelSecurity interface {
-	// 	CanRead(ch *types.Channel) bool
-	// }
+var (
+	ErrUnknownChannelType = errors.New("Unknown ChannelType")
+	ErrNoPermission       = errors.New("No permissions")
 )
 
 const (
@@ -67,6 +71,7 @@ func Channel() ChannelService {
 	return (&channel{
 		usr: systemService.DefaultUser,
 		evl: DefaultEvent,
+		prm: DefaultPermissions,
 	}).With(context.Background())
 }
 
@@ -78,6 +83,7 @@ func (svc *channel) With(ctx context.Context) ChannelService {
 
 		usr: svc.usr.With(ctx),
 		evl: svc.evl.With(ctx),
+		prm: svc.prm.With(ctx),
 
 		channel: repository.Channel(ctx, db),
 		cmember: repository.ChannelMember(ctx, db),
@@ -197,13 +203,10 @@ func (svc *channel) FindMembers(channelID uint64) (out types.ChannelMemberSet, e
 }
 
 func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
-	// @todo: [SECURITY] permission check if user can add channel
-
 	return out, svc.db.Transaction(func() (err error) {
 		var msg *types.Message
 
-		// @todo get organisation from somewhere
-		var organisationID uint64 = 0
+		var organisationID = organization.Crust().ID
 
 		var chCreatorID = repository.Identity(svc.ctx)
 
@@ -220,23 +223,19 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 			}
 		}
 
-		// @todo [SECURITY] check if channel topic can be set
-		if in.Topic != "" && false {
+		if in.Topic != "" && svc.prm.CanUpdate(in) {
 			return errors.New("Not allowed to set channel topic")
 		}
 
-		// @todo [SECURITY] check if user can create public channels
-		if in.Type == types.ChannelTypePublic && false {
+		if in.Type == types.ChannelTypePublic && svc.prm.CanCreatePublicChannel() {
 			return errors.New("Not allowed to create public channels")
 		}
 
-		// @todo [SECURITY] check if user can create private channels
-		if in.Type == types.ChannelTypePrivate && false {
-			return errors.New("Not allowed to create public channels")
+		if in.Type == types.ChannelTypePrivate && svc.prm.CanCreatePrivateChannel() {
+			return errors.New("Not allowed to create private channels")
 		}
 
-		// @todo [SECURITY] check if user can create private channels
-		if in.Type == types.ChannelTypeGroup && false {
+		if in.Type == types.ChannelTypeGroup && svc.prm.CanCreateDirectChannel() {
 			return errors.New("Not allowed to create group channels")
 		}
 

@@ -15,7 +15,7 @@ var (
 	DefaultAuth         AuthService
 	DefaultUser         UserService
 	DefaultRole         RoleService
-	DefaultPermission   PermissionsService
+	DefaultPermissions  PermissionsService
 	DefaultOrganisation OrganisationService
 )
 
@@ -24,7 +24,7 @@ func Init() {
 		DefaultAuth = Auth()
 		DefaultUser = User()
 		DefaultRole = Role()
-		DefaultPermission = Permission()
+		DefaultPermissions = Permissions()
 		DefaultOrganisation = Organisation()
 	})
 }

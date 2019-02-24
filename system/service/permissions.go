@@ -20,13 +20,16 @@ type (
 		With(ctx context.Context) PermissionsService
 
 		List() (interface{}, error)
+
+		Check(resource string, operation string) rules.Access
+
 		Read(roleID uint64) (interface{}, error)
 		Update(roleID uint64, rules []rules.Rule) (interface{}, error)
 		Delete(roleID uint64) (interface{}, error)
 	}
 )
 
-func Permission() PermissionsService {
+func Permissions() PermissionsService {
 	return (&permissions{}).With(context.Background())
 }
 
@@ -48,6 +51,10 @@ func (p *permissions) List() (interface{}, error) {
 		}
 	}
 	return perms, nil
+}
+
+func (p *permissions) Check(resource string, operation string) rules.Access {
+	return p.resources.Check(resource, operation)
 }
 
 func (p *permissions) Read(roleID uint64) (interface{}, error) {

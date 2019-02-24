@@ -58,7 +58,8 @@ type (
 // Resource returns a system resource ID for this type
 func (r *Channel) Resource() rules.Resource {
 	resource := rules.Resource{
-		Scope: "channel",
+		Service: "messaging",
+		Scope:   "channel",
 	}
 	if r != nil {
 		resource.ID = r.ID
