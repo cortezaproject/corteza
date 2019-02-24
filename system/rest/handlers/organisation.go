@@ -30,7 +30,7 @@ type OrganisationAPI interface {
 	List(context.Context, *request.OrganisationList) (interface{}, error)
 	Create(context.Context, *request.OrganisationCreate) (interface{}, error)
 	Update(context.Context, *request.OrganisationUpdate) (interface{}, error)
-	Remove(context.Context, *request.OrganisationRemove) (interface{}, error)
+	Delete(context.Context, *request.OrganisationDelete) (interface{}, error)
 	Read(context.Context, *request.OrganisationRead) (interface{}, error)
 	Archive(context.Context, *request.OrganisationArchive) (interface{}, error)
 }
@@ -40,7 +40,7 @@ type Organisation struct {
 	List    func(http.ResponseWriter, *http.Request)
 	Create  func(http.ResponseWriter, *http.Request)
 	Update  func(http.ResponseWriter, *http.Request)
-	Remove  func(http.ResponseWriter, *http.Request)
+	Delete  func(http.ResponseWriter, *http.Request)
 	Read    func(http.ResponseWriter, *http.Request)
 	Archive func(http.ResponseWriter, *http.Request)
 }
@@ -68,11 +68,11 @@ func NewOrganisation(oh OrganisationAPI) *Organisation {
 				return oh.Update(r.Context(), params)
 			})
 		},
-		Remove: func(w http.ResponseWriter, r *http.Request) {
+		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewOrganisationRemove()
+			params := request.NewOrganisationDelete()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return oh.Remove(r.Context(), params)
+				return oh.Delete(r.Context(), params)
 			})
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
@@ -99,7 +99,7 @@ func (oh *Organisation) MountRoutes(r chi.Router, middlewares ...func(http.Handl
 			r.Get("/", oh.List)
 			r.Post("/", oh.Create)
 			r.Put("/{id}", oh.Update)
-			r.Delete("/{id}", oh.Remove)
+			r.Delete("/{id}", oh.Delete)
 			r.Get("/{id}", oh.Read)
 			r.Post("/{id}/archive", oh.Archive)
 		})

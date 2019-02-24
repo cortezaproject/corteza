@@ -31,7 +31,7 @@ type RoleAPI interface {
 	Create(context.Context, *request.RoleCreate) (interface{}, error)
 	Update(context.Context, *request.RoleUpdate) (interface{}, error)
 	Read(context.Context, *request.RoleRead) (interface{}, error)
-	Remove(context.Context, *request.RoleRemove) (interface{}, error)
+	Delete(context.Context, *request.RoleDelete) (interface{}, error)
 	Archive(context.Context, *request.RoleArchive) (interface{}, error)
 	Move(context.Context, *request.RoleMove) (interface{}, error)
 	Merge(context.Context, *request.RoleMerge) (interface{}, error)
@@ -46,7 +46,7 @@ type Role struct {
 	Create       func(http.ResponseWriter, *http.Request)
 	Update       func(http.ResponseWriter, *http.Request)
 	Read         func(http.ResponseWriter, *http.Request)
-	Remove       func(http.ResponseWriter, *http.Request)
+	Delete       func(http.ResponseWriter, *http.Request)
 	Archive      func(http.ResponseWriter, *http.Request)
 	Move         func(http.ResponseWriter, *http.Request)
 	Merge        func(http.ResponseWriter, *http.Request)
@@ -85,11 +85,11 @@ func NewRole(rh RoleAPI) *Role {
 				return rh.Read(r.Context(), params)
 			})
 		},
-		Remove: func(w http.ResponseWriter, r *http.Request) {
+		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewRoleRemove()
+			params := request.NewRoleDelete()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return rh.Remove(r.Context(), params)
+				return rh.Delete(r.Context(), params)
 			})
 		},
 		Archive: func(w http.ResponseWriter, r *http.Request) {
@@ -145,7 +145,7 @@ func (rh *Role) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 			r.Post("/", rh.Create)
 			r.Put("/{roleID}", rh.Update)
 			r.Get("/{roleID}", rh.Read)
-			r.Delete("/{roleID}", rh.Remove)
+			r.Delete("/{roleID}", rh.Delete)
 			r.Post("/{roleID}/archive", rh.Archive)
 			r.Post("/{roleID}/move", rh.Move)
 			r.Post("/{roleID}/merge", rh.Merge)

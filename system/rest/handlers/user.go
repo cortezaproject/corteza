@@ -31,7 +31,7 @@ type UserAPI interface {
 	Create(context.Context, *request.UserCreate) (interface{}, error)
 	Update(context.Context, *request.UserUpdate) (interface{}, error)
 	Read(context.Context, *request.UserRead) (interface{}, error)
-	Remove(context.Context, *request.UserRemove) (interface{}, error)
+	Delete(context.Context, *request.UserDelete) (interface{}, error)
 	Suspend(context.Context, *request.UserSuspend) (interface{}, error)
 	Unsuspend(context.Context, *request.UserUnsuspend) (interface{}, error)
 }
@@ -42,7 +42,7 @@ type User struct {
 	Create    func(http.ResponseWriter, *http.Request)
 	Update    func(http.ResponseWriter, *http.Request)
 	Read      func(http.ResponseWriter, *http.Request)
-	Remove    func(http.ResponseWriter, *http.Request)
+	Delete    func(http.ResponseWriter, *http.Request)
 	Suspend   func(http.ResponseWriter, *http.Request)
 	Unsuspend func(http.ResponseWriter, *http.Request)
 }
@@ -77,11 +77,11 @@ func NewUser(uh UserAPI) *User {
 				return uh.Read(r.Context(), params)
 			})
 		},
-		Remove: func(w http.ResponseWriter, r *http.Request) {
+		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewUserRemove()
+			params := request.NewUserDelete()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return uh.Remove(r.Context(), params)
+				return uh.Delete(r.Context(), params)
 			})
 		},
 		Suspend: func(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +109,7 @@ func (uh *User) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 			r.Post("/", uh.Create)
 			r.Put("/{userID}", uh.Update)
 			r.Get("/{userID}", uh.Read)
-			r.Delete("/{userID}", uh.Remove)
+			r.Delete("/{userID}", uh.Delete)
 			r.Post("/{userID}/suspend", uh.Suspend)
 			r.Post("/{userID}/unsuspend", uh.Unsuspend)
 		})

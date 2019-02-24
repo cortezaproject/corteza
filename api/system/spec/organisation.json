@@ -68,7 +68,7 @@
       }
     },
     {
-      "Name": "remove",
+      "Name": "delete",
       "Method": "DELETE",
       "Title": "Remove organisation",
       "Path": "/{id}",

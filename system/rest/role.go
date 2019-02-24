@@ -87,7 +87,7 @@ func (ctrl *Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{
 	return role, nil
 }
 
-func (ctrl *Role) Remove(ctx context.Context, r *request.RoleRemove) (interface{}, error) {
+func (ctrl *Role) Delete(ctx context.Context, r *request.RoleDelete) (interface{}, error) {
 	return nil, ctrl.svc.role.With(ctx).Delete(r.RoleID)
 }
 

@@ -110,7 +110,7 @@
         }
       },
       {
-        "name": "remove",
+        "name": "delete",
         "method": "DELETE",
         "title": "Remove organisation",
         "path": "/{id}",
@@ -254,7 +254,7 @@
         }
       },
       {
-        "name": "remove",
+        "name": "delete",
         "method": "DELETE",
         "title": "Remove role",
         "path": "/{roleID}",
@@ -525,7 +525,7 @@
         }
       },
       {
-        "name": "remove",
+        "name": "delete",
         "method": "DELETE",
         "title": "Remove user",
         "path": "/{userID}",
