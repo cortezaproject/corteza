@@ -42,7 +42,12 @@ func TestPermissions(t *testing.T) {
 	ctx = auth.SetIdentityToContext(ctx, user)
 
 	// Generate services.
-	channelSvc := Channel().With(ctx)
+	channelSvc := (&channel{
+		usr: systemService.User(),
+		evl: Event(),
+		prm: Permissions(),
+	}).With(ctx)
+
 	permissionsSvc := Permissions().With(ctx)
 	systemPermissionSvc := systemService.Permissions().With(ctx)
 

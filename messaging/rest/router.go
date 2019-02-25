@@ -18,6 +18,7 @@ func MountRoutes() func(chi.Router) {
 		// Protect all _private_ routes
 		r.Group(func(r chi.Router) {
 			r.Use(auth.MiddlewareValidOnly)
+			r.Use(middlewareAllowedAccess)
 
 			handlers.NewChannel(Channel{}.New()).MountRoutes(r)
 			handlers.NewMessage(Message{}.New()).MountRoutes(r)
