@@ -1,4 +1,4 @@
-# What is CRUST?
+# What is Crust?
 
 Crust brings your user ecosystem and essential applications together on one platform, unifying them via CRM, Team Messaging and Advanced Identity and Access Management.
 
@@ -6,35 +6,28 @@ Crust brings your user ecosystem and essential applications together on one plat
 
 **Crust CRM** is the highly flexible, scalable and open source Salesforce alternative, that enables you to sell faster and interact with leads, clients and team members easier then ever before. Seamless integration with Crust Messaging and Crust Identity and Access Management make it the most complete and flexible self-hosted CRM platform on the market.
 
-**Crust Unify** Crust Unify manages user experience for Crust applications, such as CRM and Messaging, as well as providing an integrated interface for third party or other bespoke applications. 100% responsive and with an intuitive design, Crust Unify increases productivity and ease of access to all IT resources.
+**Crust Unify** manages user experience for Crust applications, such as CRM and Messaging, as well as providing an integrated interface for third party or other bespoke applications. 100% responsive and with an intuitive design, Crust Unify increases productivity and ease of access to all IT resources.
 
 ## Contributing
 
 ### Setup
 
-Copy `.env.example` to `.env` and make proper modifications for your 
-local environment.
+Copy `.env.example` to `.env` and make proper modifications for your local environment.
 
 An access to a (local) instance of MySQL must be available.
 Configure access to your database with `SAM_DB_DSN` and `CRM_DB_DSN`.
 
 Please check the options available with `./app -h`.
 
-The database will be populated with migrations at the start of each
-service. You don't need to pre-populate the database, just make sure
-that your permissions include CREATE and ALTER capabilities.
+The database will be populated with migrations at the start of each service. You don't need to pre-populate the database, just make sure that your permissions include CREATE and ALTER capabilities.
 
 ### Running in local environment for development
 
-Everything should be set and ready to run with `make realize`. This
-utilizes realize tool that monitors codebase for changes and restarts
-api http server for every file change. It is not 100% so it needs help 
-(manual restart) in certain cases (new files added, changes in non .go files etc..)
+Everything should be set and ready to run with `make realize`. This utilizes realize tool that monitors codebase for changes and restarts api http server for every file change. It is not 100% so it needs help (manual restart) in certain cases (new files added, changes in non .go files etc..)
 
 ### Making changes
 
-Please refer to each project's style guidelines and guidelines for submitting patches and additions.
-In general, we follow the "fork-and-pull" Git workflow.
+Please refer to each project's style guidelines and guidelines for submitting patches and additions. In general, we follow the "fork-and-pull" Git workflow.
 
  1. **Fork** the repo on GitHub
  2. **Clone** the project to your own machine
