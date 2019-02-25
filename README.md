@@ -1,18 +1,12 @@
 # What is CRUST?
 
-**CRUST Messaging** is a high performance, self-hosted, open source Slack alternative. It has an API centric design and all data exchange is in JSON format. CRUST Messaging is tightly coupled with CRUST IAM.
+Crust brings your user ecosystem and essential applications together on one platform, unifying them via CRM, Team Messaging and Advanced Identity and Access Management.
 
-**CRUST CRM** is a scalable, self-hosted, open source Salesforce alternative. It provides a suite of tools to build API centric microservice modules. CRUST CRM can be loosely coupled with CRUST Messaging for the purposes of customer engagement and addition of rich external data sources. All data exchange is in JSON format. Business Logic, Workflow, Search and AI (later!) can be applied across both CRM and Messaging stores. CRUST CRM is tightly coupled with CRUST IAM.
+**Crust Messaging** is a secure, high performance, open source Slack alternative that allows your teams to collaborate more efficiently, as well as communicate safely with other organisations or customers.
 
-**CRUST IAM** is an advanced Identity and Access Management infrastructure which includes:
- - Social Logins
- - Single Sign On
- - Multi-factor Authentication
- - User Identity Self-Service
- - User and Organisational Privacy Controls
- - Standardised ANSI Role Based Access Control
+**Crust CRM** is the highly flexible, scalable and open source Salesforce alternative, that enables you to sell faster and interact with leads, clients and team members easier then ever before. Seamless integration with Crust Messaging and Crust Identity and Access Management make it the most complete and flexible self-hosted CRM platform on the market.
 
-**CRUST Client** is a multi-functional client which unifies the user experience of CRUST IAM, Messaging and CRM, allowing organisations to extend access to third party applications internal and external to their firewall (e.g. Video, Docs, Dev Tools) via a common user interface. The design is inspired by popular browser UX, though not identical. CRUST Client will be available on web, desktop and mobile platforms.
+**Crust Unify** Crust Unify manages user experience for Crust applications, such as CRM and Messaging, as well as providing an integrated interface for third party or other bespoke applications. 100% responsive and with an intuitive design, Crust Unify increases productivity and ease of access to all IT resources.
 
 ## Contributing
 
