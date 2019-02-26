@@ -57,18 +57,20 @@ func (r *resources) Check(resource string, operation string) Access {
 }
 
 func (r *resources) checkAccess(resource string, operation string) Access {
+	const everyoneRoleId uint64 = 1
 	user := r.identity()
 	result := []Access{}
 	query := []string{
 		// select rules
 		"select r.value from sys_rules r",
 		// join members
-		"inner join sys_role_member m on (m.rel_role = r.rel_role and m.rel_user=?)",
+		"inner join sys_role_member m on ",
+		"((m.rel_role = r.rel_role and m.rel_user=?) or (r.rel_role = ?))",
 		// add conditions
 		"where r.resource=? and r.operation=?",
 	}
 	queryString := strings.Join(query, " ")
-	if err := r.db.Select(&result, queryString, user, resource, operation); err != nil {
+	if err := r.db.Select(&result, queryString, user, everyoneRoleId, resource, operation); err != nil {
 		// @todo: log error
 		return Deny
 	}
