@@ -63,20 +63,6 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func db() *factory.DB {
-	return factory.Database.MustGet()
-}
-
-func must(t *testing.T, err error, message ...string) {
-	prefix := "Error"
-	if len(message) > 0 {
-		prefix = message[0]
-	}
-	if err != nil {
-		t.Fatalf(prefix+": %+v", err)
-	}
-}
-
 func assert(t *testing.T, ok bool, format string, args ...interface{}) bool {
 	if !ok {
 		t.Fatalf(format, args...)

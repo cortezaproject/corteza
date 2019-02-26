@@ -16,11 +16,12 @@ func MountRoutes() func(chi.Router) {
 		notification = Notification{}.New()
 	)
 
-	// Initialize handers & controllers.
+	// Initialize handlers & controllers.
 	return func(r chi.Router) {
 		// Protect all _private_ routes
 		r.Group(func(r chi.Router) {
 			r.Use(auth.MiddlewareValidOnly)
+			r.Use(middlewareAllowedAccess)
 
 			handlers.NewPage(page).MountRoutes(r)
 			handlers.NewModule(module).MountRoutes(r)
