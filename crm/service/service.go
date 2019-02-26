@@ -4,6 +4,12 @@ import (
 	"sync"
 )
 
+type (
+	db interface {
+		Transaction(callback func() error) error
+	}
+)
+
 var (
 	o                   sync.Once
 	DefaultRecord       RecordService
@@ -12,6 +18,7 @@ var (
 	DefaultChart        ChartService
 	DefaultPage         PageService
 	DefaultNotification NotificationService
+	DefaultPermissions  PermissionsService
 )
 
 func Init() {
@@ -22,5 +29,6 @@ func Init() {
 		DefaultPage = Page()
 		DefaultChart = Chart()
 		DefaultNotification = Notification()
+		DefaultPermissions = Permissions()
 	})
 }
