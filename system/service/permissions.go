@@ -2,10 +2,17 @@ package service
 
 import (
 	"context"
+	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/crusttech/crust/internal/rules"
 	"github.com/crusttech/crust/system/repository"
 	"github.com/crusttech/crust/system/types"
+)
+
+const (
+	delimiter = ":"
 )
 
 type (
@@ -67,6 +74,10 @@ func (p *permissions) Update(roleID uint64, rules []rules.Rule) (interface{}, er
 		if err != nil {
 			return nil, err
 		}
+		err = p.checkServiceAccess(rule.Resource)
+		if err != nil {
+			return nil, err
+		}
 	}
 	err := p.resources.Grant(roleID, rules)
 	if err != nil {
@@ -77,4 +88,14 @@ func (p *permissions) Update(roleID uint64, rules []rules.Rule) (interface{}, er
 
 func (p *permissions) Delete(roleID uint64) (interface{}, error) {
 	return nil, p.resources.Delete(roleID)
+}
+
+func (p *permissions) checkServiceAccess(resource string) error {
+	service := strings.Split(resource, delimiter)[0]
+
+	grant := p.resources.Check(service, "grant")
+	if grant == rules.Allow {
+		return nil
+	}
+	return errors.Errorf("No grant permissions for: %v", service)
 }

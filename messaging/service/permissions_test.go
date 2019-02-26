@@ -7,6 +7,8 @@ import (
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/rules"
 	. "github.com/crusttech/crust/internal/test"
+
+	"github.com/crusttech/crust/messaging/repository"
 	"github.com/crusttech/crust/messaging/types"
 	systemService "github.com/crusttech/crust/system/service"
 	systemTypes "github.com/crusttech/crust/system/types"
@@ -40,6 +42,19 @@ func TestPermissions(t *testing.T) {
 
 	// Set Identity.
 	ctx = auth.SetIdentityToContext(ctx, user)
+
+	// Insert `grant` permission for `messaging`.
+	{
+		db := repository.DB(ctx)
+		resources := rules.NewResources(ctx, db)
+
+		list := []rules.Rule{
+			rules.Rule{Resource: "messaging", Operation: "grant", Value: rules.Allow},
+		}
+
+		err := resources.Grant(role.ID, list)
+		NoError(t, err, "expected no error, got %v", err)
+	}
 
 	// Generate services.
 	channelSvc := (&channel{

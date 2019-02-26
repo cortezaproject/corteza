@@ -87,7 +87,6 @@ var (
 )
 
 func validatePermission(resource string, operation string) error {
-	delimiter := ":"
 	resourceParts := strings.Split(resource, delimiter)
 	if len(resourceParts) < 1 {
 		return errors.Errorf("Invalid resource format, expected >= 1, got %d", len(resourceParts))

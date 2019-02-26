@@ -15,11 +15,6 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	if testing.Short() {
-		log.Println("skipping test in short mode.")
-		return
-	}
-
 	// @todo this is a very optimistic initialization, make it more robust
 	godotenv.Load("../../.env")
 
