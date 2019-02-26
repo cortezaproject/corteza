@@ -8,6 +8,7 @@ import (
 	"github.com/crusttech/crust/internal/rules"
 	. "github.com/crusttech/crust/internal/test"
 
+	"github.com/crusttech/crust/crm/repository"
 	systemService "github.com/crusttech/crust/system/service"
 	systemTypes "github.com/crusttech/crust/system/types"
 )
@@ -40,6 +41,19 @@ func TestPermissions(t *testing.T) {
 
 	// Set Identity.
 	ctx = auth.SetIdentityToContext(ctx, user)
+
+	// Insert `grant` permission for `compose`.
+	{
+		db := repository.DB(ctx)
+		resources := rules.NewResources(ctx, db)
+
+		list := []rules.Rule{
+			rules.Rule{Resource: "compose", Operation: "grant", Value: rules.Allow},
+		}
+
+		err := resources.Grant(role.ID, list)
+		NoError(t, err, "expected no error, got %v", err)
+	}
 
 	// Generate services.
 	permissionsSvc := Permissions().With(ctx)
