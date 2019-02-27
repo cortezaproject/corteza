@@ -38,9 +38,9 @@ func NewRoleList() *RoleList {
 	return &RoleList{}
 }
 
-func (ro *RoleList) Fill(r *http.Request) (err error) {
+func (roReq *RoleList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(ro)
+		err = json.NewDecoder(r.Body).Decode(roReq)
 
 		switch {
 		case err == io.EOF:
@@ -67,7 +67,7 @@ func (ro *RoleList) Fill(r *http.Request) (err error) {
 
 	if val, ok := get["query"]; ok {
 
-		ro.Query = val
+		roReq.Query = val
 	}
 
 	return err
@@ -85,9 +85,9 @@ func NewRoleCreate() *RoleCreate {
 	return &RoleCreate{}
 }
 
-func (ro *RoleCreate) Fill(r *http.Request) (err error) {
+func (roReq *RoleCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(ro)
+		err = json.NewDecoder(r.Body).Decode(roReq)
 
 		switch {
 		case err == io.EOF:
@@ -114,7 +114,7 @@ func (ro *RoleCreate) Fill(r *http.Request) (err error) {
 
 	if val, ok := post["name"]; ok {
 
-		ro.Name = val
+		roReq.Name = val
 	}
 
 	return err
@@ -133,9 +133,9 @@ func NewRoleUpdate() *RoleUpdate {
 	return &RoleUpdate{}
 }
 
-func (ro *RoleUpdate) Fill(r *http.Request) (err error) {
+func (roReq *RoleUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(ro)
+		err = json.NewDecoder(r.Body).Decode(roReq)
 
 		switch {
 		case err == io.EOF:
@@ -160,10 +160,10 @@ func (ro *RoleUpdate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 	if val, ok := post["name"]; ok {
 
-		ro.Name = val
+		roReq.Name = val
 	}
 
 	return err
@@ -180,9 +180,9 @@ func NewRoleRead() *RoleRead {
 	return &RoleRead{}
 }
 
-func (ro *RoleRead) Fill(r *http.Request) (err error) {
+func (roReq *RoleRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(ro)
+		err = json.NewDecoder(r.Body).Decode(roReq)
 
 		switch {
 		case err == io.EOF:
@@ -207,7 +207,7 @@ func (ro *RoleRead) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 
 	return err
 }
@@ -223,9 +223,9 @@ func NewRoleDelete() *RoleDelete {
 	return &RoleDelete{}
 }
 
-func (ro *RoleDelete) Fill(r *http.Request) (err error) {
+func (roReq *RoleDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(ro)
+		err = json.NewDecoder(r.Body).Decode(roReq)
 
 		switch {
 		case err == io.EOF:
@@ -250,7 +250,7 @@ func (ro *RoleDelete) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 
 	return err
 }
@@ -266,9 +266,9 @@ func NewRoleArchive() *RoleArchive {
 	return &RoleArchive{}
 }
 
-func (ro *RoleArchive) Fill(r *http.Request) (err error) {
+func (roReq *RoleArchive) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(ro)
+		err = json.NewDecoder(r.Body).Decode(roReq)
 
 		switch {
 		case err == io.EOF:
@@ -293,7 +293,7 @@ func (ro *RoleArchive) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 
 	return err
 }
@@ -310,9 +310,9 @@ func NewRoleMove() *RoleMove {
 	return &RoleMove{}
 }
 
-func (ro *RoleMove) Fill(r *http.Request) (err error) {
+func (roReq *RoleMove) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(ro)
+		err = json.NewDecoder(r.Body).Decode(roReq)
 
 		switch {
 		case err == io.EOF:
@@ -337,10 +337,10 @@ func (ro *RoleMove) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 	if val, ok := post["organisationID"]; ok {
 
-		ro.OrganisationID = parseUInt64(val)
+		roReq.OrganisationID = parseUInt64(val)
 	}
 
 	return err
@@ -358,9 +358,9 @@ func NewRoleMerge() *RoleMerge {
 	return &RoleMerge{}
 }
 
-func (ro *RoleMerge) Fill(r *http.Request) (err error) {
+func (roReq *RoleMerge) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(ro)
+		err = json.NewDecoder(r.Body).Decode(roReq)
 
 		switch {
 		case err == io.EOF:
@@ -385,10 +385,10 @@ func (ro *RoleMerge) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 	if val, ok := post["destination"]; ok {
 
-		ro.Destination = parseUInt64(val)
+		roReq.Destination = parseUInt64(val)
 	}
 
 	return err
@@ -405,9 +405,9 @@ func NewRoleMemberList() *RoleMemberList {
 	return &RoleMemberList{}
 }
 
-func (ro *RoleMemberList) Fill(r *http.Request) (err error) {
+func (roReq *RoleMemberList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(ro)
+		err = json.NewDecoder(r.Body).Decode(roReq)
 
 		switch {
 		case err == io.EOF:
@@ -432,7 +432,7 @@ func (ro *RoleMemberList) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 
 	return err
 }
@@ -449,9 +449,9 @@ func NewRoleMemberAdd() *RoleMemberAdd {
 	return &RoleMemberAdd{}
 }
 
-func (ro *RoleMemberAdd) Fill(r *http.Request) (err error) {
+func (roReq *RoleMemberAdd) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(ro)
+		err = json.NewDecoder(r.Body).Decode(roReq)
 
 		switch {
 		case err == io.EOF:
@@ -476,8 +476,8 @@ func (ro *RoleMemberAdd) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
-	ro.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	roReq.UserID = parseUInt64(chi.URLParam(r, "userID"))
 
 	return err
 }
@@ -494,9 +494,9 @@ func NewRoleMemberRemove() *RoleMemberRemove {
 	return &RoleMemberRemove{}
 }
 
-func (ro *RoleMemberRemove) Fill(r *http.Request) (err error) {
+func (roReq *RoleMemberRemove) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(ro)
+		err = json.NewDecoder(r.Body).Decode(roReq)
 
 		switch {
 		case err == io.EOF:
@@ -521,8 +521,8 @@ func (ro *RoleMemberRemove) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	ro.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
-	ro.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	roReq.UserID = parseUInt64(chi.URLParam(r, "userID"))
 
 	return err
 }

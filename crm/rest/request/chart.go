@@ -39,9 +39,9 @@ func NewChartList() *ChartList {
 	return &ChartList{}
 }
 
-func (c *ChartList) Fill(r *http.Request) (err error) {
+func (cReq *ChartList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -81,9 +81,9 @@ func NewChartCreate() *ChartCreate {
 	return &ChartCreate{}
 }
 
-func (c *ChartCreate) Fill(r *http.Request) (err error) {
+func (cReq *ChartCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -110,13 +110,13 @@ func (c *ChartCreate) Fill(r *http.Request) (err error) {
 
 	if val, ok := post["config"]; ok {
 
-		if c.Config, err = parseJSONTextWithErr(val); err != nil {
+		if cReq.Config, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
 	if val, ok := post["name"]; ok {
 
-		c.Name = val
+		cReq.Name = val
 	}
 
 	return err
@@ -133,9 +133,9 @@ func NewChartRead() *ChartRead {
 	return &ChartRead{}
 }
 
-func (c *ChartRead) Fill(r *http.Request) (err error) {
+func (cReq *ChartRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -160,7 +160,7 @@ func (c *ChartRead) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	c.ChartID = parseUInt64(chi.URLParam(r, "chartID"))
+	cReq.ChartID = parseUInt64(chi.URLParam(r, "chartID"))
 
 	return err
 }
@@ -178,9 +178,9 @@ func NewChartUpdate() *ChartUpdate {
 	return &ChartUpdate{}
 }
 
-func (c *ChartUpdate) Fill(r *http.Request) (err error) {
+func (cReq *ChartUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -205,16 +205,16 @@ func (c *ChartUpdate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	c.ChartID = parseUInt64(chi.URLParam(r, "chartID"))
+	cReq.ChartID = parseUInt64(chi.URLParam(r, "chartID"))
 	if val, ok := post["config"]; ok {
 
-		if c.Config, err = parseJSONTextWithErr(val); err != nil {
+		if cReq.Config, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
 	if val, ok := post["name"]; ok {
 
-		c.Name = val
+		cReq.Name = val
 	}
 
 	return err
@@ -231,9 +231,9 @@ func NewChartDelete() *ChartDelete {
 	return &ChartDelete{}
 }
 
-func (c *ChartDelete) Fill(r *http.Request) (err error) {
+func (cReq *ChartDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -258,7 +258,7 @@ func (c *ChartDelete) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	c.ChartID = parseUInt64(chi.URLParam(r, "chartID"))
+	cReq.ChartID = parseUInt64(chi.URLParam(r, "chartID"))
 
 	return err
 }

@@ -44,9 +44,9 @@ func NewNotificationEmailSend() *NotificationEmailSend {
 	return &NotificationEmailSend{}
 }
 
-func (n *NotificationEmailSend) Fill(r *http.Request) (err error) {
+func (nReq *NotificationEmailSend) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(n)
+		err = json.NewDecoder(r.Body).Decode(nReq)
 
 		switch {
 		case err == io.EOF:
@@ -73,15 +73,15 @@ func (n *NotificationEmailSend) Fill(r *http.Request) (err error) {
 
 	if val, ok := post["replyTo"]; ok {
 
-		n.ReplyTo = val
+		nReq.ReplyTo = val
 	}
 	if val, ok := post["subject "]; ok {
 
-		n.Subject = val
+		nReq.Subject = val
 	}
 	if val, ok := post["content"]; ok {
 
-		if n.Content, err = parseJSONTextWithErr(val); err != nil {
+		if nReq.Content, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}

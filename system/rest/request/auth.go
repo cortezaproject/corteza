@@ -37,9 +37,9 @@ func NewAuthCheck() *AuthCheck {
 	return &AuthCheck{}
 }
 
-func (au *AuthCheck) Fill(r *http.Request) (err error) {
+func (auReq *AuthCheck) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(au)
+		err = json.NewDecoder(r.Body).Decode(auReq)
 
 		switch {
 		case err == io.EOF:
@@ -79,9 +79,9 @@ func NewAuthLogin() *AuthLogin {
 	return &AuthLogin{}
 }
 
-func (au *AuthLogin) Fill(r *http.Request) (err error) {
+func (auReq *AuthLogin) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(au)
+		err = json.NewDecoder(r.Body).Decode(auReq)
 
 		switch {
 		case err == io.EOF:
@@ -108,11 +108,11 @@ func (au *AuthLogin) Fill(r *http.Request) (err error) {
 
 	if val, ok := post["username"]; ok {
 
-		au.Username = val
+		auReq.Username = val
 	}
 	if val, ok := post["password"]; ok {
 
-		au.Password = val
+		auReq.Password = val
 	}
 
 	return err
@@ -128,9 +128,9 @@ func NewAuthLogout() *AuthLogout {
 	return &AuthLogout{}
 }
 
-func (au *AuthLogout) Fill(r *http.Request) (err error) {
+func (auReq *AuthLogout) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(au)
+		err = json.NewDecoder(r.Body).Decode(auReq)
 
 		switch {
 		case err == io.EOF:

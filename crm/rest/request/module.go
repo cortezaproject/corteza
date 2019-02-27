@@ -41,9 +41,9 @@ func NewModuleList() *ModuleList {
 	return &ModuleList{}
 }
 
-func (m *ModuleList) Fill(r *http.Request) (err error) {
+func (mReq *ModuleList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -70,7 +70,7 @@ func (m *ModuleList) Fill(r *http.Request) (err error) {
 
 	if val, ok := get["query"]; ok {
 
-		m.Query = val
+		mReq.Query = val
 	}
 
 	return err
@@ -89,9 +89,9 @@ func NewModuleCreate() *ModuleCreate {
 	return &ModuleCreate{}
 }
 
-func (m *ModuleCreate) Fill(r *http.Request) (err error) {
+func (mReq *ModuleCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -118,11 +118,11 @@ func (m *ModuleCreate) Fill(r *http.Request) (err error) {
 
 	if val, ok := post["name"]; ok {
 
-		m.Name = val
+		mReq.Name = val
 	}
 	if val, ok := post["meta"]; ok {
 
-		if m.Meta, err = parseJSONTextWithErr(val); err != nil {
+		if mReq.Meta, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
@@ -141,9 +141,9 @@ func NewModuleRead() *ModuleRead {
 	return &ModuleRead{}
 }
 
-func (m *ModuleRead) Fill(r *http.Request) (err error) {
+func (mReq *ModuleRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -168,12 +168,73 @@ func (m *ModuleRead) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
+	mReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 
 	return err
 }
 
 var _ RequestFiller = NewModuleRead()
+
+// Module attachments request parameters
+type ModuleAttachments struct {
+	Filter  string
+	Page    int
+	PerPage int
+	Sort    string
+}
+
+func NewModuleAttachments() *ModuleAttachments {
+	return &ModuleAttachments{}
+}
+
+func (mReq *ModuleAttachments) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(mReq)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	if val, ok := get["filter"]; ok {
+
+		mReq.Filter = val
+	}
+	if val, ok := get["page"]; ok {
+
+		mReq.Page = parseInt(val)
+	}
+	if val, ok := get["perPage"]; ok {
+
+		mReq.PerPage = parseInt(val)
+	}
+	if val, ok := get["sort"]; ok {
+
+		mReq.Sort = val
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewModuleAttachments()
 
 // Module update request parameters
 type ModuleUpdate struct {
@@ -187,9 +248,9 @@ func NewModuleUpdate() *ModuleUpdate {
 	return &ModuleUpdate{}
 }
 
-func (m *ModuleUpdate) Fill(r *http.Request) (err error) {
+func (mReq *ModuleUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -214,14 +275,14 @@ func (m *ModuleUpdate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
+	mReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 	if val, ok := post["name"]; ok {
 
-		m.Name = val
+		mReq.Name = val
 	}
 	if val, ok := post["meta"]; ok {
 
-		if m.Meta, err = parseJSONTextWithErr(val); err != nil {
+		if mReq.Meta, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
@@ -240,9 +301,9 @@ func NewModuleDelete() *ModuleDelete {
 	return &ModuleDelete{}
 }
 
-func (m *ModuleDelete) Fill(r *http.Request) (err error) {
+func (mReq *ModuleDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -267,7 +328,7 @@ func (m *ModuleDelete) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
+	mReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 
 	return err
 }
@@ -286,9 +347,9 @@ func NewModuleRecordReport() *ModuleRecordReport {
 	return &ModuleRecordReport{}
 }
 
-func (m *ModuleRecordReport) Fill(r *http.Request) (err error) {
+func (mReq *ModuleRecordReport) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -315,17 +376,17 @@ func (m *ModuleRecordReport) Fill(r *http.Request) (err error) {
 
 	if val, ok := get["metrics"]; ok {
 
-		m.Metrics = val
+		mReq.Metrics = val
 	}
 	if val, ok := get["dimensions"]; ok {
 
-		m.Dimensions = val
+		mReq.Dimensions = val
 	}
 	if val, ok := get["filter"]; ok {
 
-		m.Filter = val
+		mReq.Filter = val
 	}
-	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
+	mReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 
 	return err
 }
@@ -345,9 +406,9 @@ func NewModuleRecordList() *ModuleRecordList {
 	return &ModuleRecordList{}
 }
 
-func (m *ModuleRecordList) Fill(r *http.Request) (err error) {
+func (mReq *ModuleRecordList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -374,21 +435,21 @@ func (m *ModuleRecordList) Fill(r *http.Request) (err error) {
 
 	if val, ok := get["filter"]; ok {
 
-		m.Filter = val
+		mReq.Filter = val
 	}
 	if val, ok := get["page"]; ok {
 
-		m.Page = parseInt(val)
+		mReq.Page = parseInt(val)
 	}
 	if val, ok := get["perPage"]; ok {
 
-		m.PerPage = parseInt(val)
+		mReq.PerPage = parseInt(val)
 	}
 	if val, ok := get["sort"]; ok {
 
-		m.Sort = val
+		mReq.Sort = val
 	}
-	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
+	mReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 
 	return err
 }
@@ -405,9 +466,9 @@ func NewModuleRecordCreate() *ModuleRecordCreate {
 	return &ModuleRecordCreate{}
 }
 
-func (m *ModuleRecordCreate) Fill(r *http.Request) (err error) {
+func (mReq *ModuleRecordCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -432,7 +493,7 @@ func (m *ModuleRecordCreate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
+	mReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 
 	return err
 }
@@ -449,9 +510,9 @@ func NewModuleRecordRead() *ModuleRecordRead {
 	return &ModuleRecordRead{}
 }
 
-func (m *ModuleRecordRead) Fill(r *http.Request) (err error) {
+func (mReq *ModuleRecordRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -476,8 +537,8 @@ func (m *ModuleRecordRead) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
-	m.RecordID = parseUInt64(chi.URLParam(r, "recordID"))
+	mReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
+	mReq.RecordID = parseUInt64(chi.URLParam(r, "recordID"))
 
 	return err
 }
@@ -495,9 +556,9 @@ func NewModuleRecordUpdate() *ModuleRecordUpdate {
 	return &ModuleRecordUpdate{}
 }
 
-func (m *ModuleRecordUpdate) Fill(r *http.Request) (err error) {
+func (mReq *ModuleRecordUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -522,8 +583,8 @@ func (m *ModuleRecordUpdate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
-	m.RecordID = parseUInt64(chi.URLParam(r, "recordID"))
+	mReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
+	mReq.RecordID = parseUInt64(chi.URLParam(r, "recordID"))
 
 	return err
 }
@@ -540,9 +601,9 @@ func NewModuleRecordDelete() *ModuleRecordDelete {
 	return &ModuleRecordDelete{}
 }
 
-func (m *ModuleRecordDelete) Fill(r *http.Request) (err error) {
+func (mReq *ModuleRecordDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -567,8 +628,8 @@ func (m *ModuleRecordDelete) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
-	m.RecordID = parseUInt64(chi.URLParam(r, "recordID"))
+	mReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
+	mReq.RecordID = parseUInt64(chi.URLParam(r, "recordID"))
 
 	return err
 }

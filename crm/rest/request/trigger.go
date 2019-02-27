@@ -38,9 +38,9 @@ func NewTriggerList() *TriggerList {
 	return &TriggerList{}
 }
 
-func (t *TriggerList) Fill(r *http.Request) (err error) {
+func (tReq *TriggerList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(t)
+		err = json.NewDecoder(r.Body).Decode(tReq)
 
 		switch {
 		case err == io.EOF:
@@ -67,7 +67,7 @@ func (t *TriggerList) Fill(r *http.Request) (err error) {
 
 	if val, ok := get["moduleID"]; ok {
 
-		t.ModuleID = parseUInt64(val)
+		tReq.ModuleID = parseUInt64(val)
 	}
 
 	return err
@@ -88,9 +88,9 @@ func NewTriggerCreate() *TriggerCreate {
 	return &TriggerCreate{}
 }
 
-func (t *TriggerCreate) Fill(r *http.Request) (err error) {
+func (tReq *TriggerCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(t)
+		err = json.NewDecoder(r.Body).Decode(tReq)
 
 		switch {
 		case err == io.EOF:
@@ -117,19 +117,19 @@ func (t *TriggerCreate) Fill(r *http.Request) (err error) {
 
 	if val, ok := post["moduleID"]; ok {
 
-		t.ModuleID = parseUInt64(val)
+		tReq.ModuleID = parseUInt64(val)
 	}
 	if val, ok := post["name"]; ok {
 
-		t.Name = val
+		tReq.Name = val
 	}
 	if val, ok := post["enabled"]; ok {
 
-		t.Enabled = parseBool(val)
+		tReq.Enabled = parseBool(val)
 	}
 	if val, ok := post["source"]; ok {
 
-		t.Source = val
+		tReq.Source = val
 	}
 
 	return err
@@ -146,9 +146,9 @@ func NewTriggerRead() *TriggerRead {
 	return &TriggerRead{}
 }
 
-func (t *TriggerRead) Fill(r *http.Request) (err error) {
+func (tReq *TriggerRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(t)
+		err = json.NewDecoder(r.Body).Decode(tReq)
 
 		switch {
 		case err == io.EOF:
@@ -173,7 +173,7 @@ func (t *TriggerRead) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	t.TriggerID = parseUInt64(chi.URLParam(r, "triggerID"))
+	tReq.TriggerID = parseUInt64(chi.URLParam(r, "triggerID"))
 
 	return err
 }
@@ -194,9 +194,9 @@ func NewTriggerUpdate() *TriggerUpdate {
 	return &TriggerUpdate{}
 }
 
-func (t *TriggerUpdate) Fill(r *http.Request) (err error) {
+func (tReq *TriggerUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(t)
+		err = json.NewDecoder(r.Body).Decode(tReq)
 
 		switch {
 		case err == io.EOF:
@@ -221,22 +221,22 @@ func (t *TriggerUpdate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	t.TriggerID = parseUInt64(chi.URLParam(r, "triggerID"))
+	tReq.TriggerID = parseUInt64(chi.URLParam(r, "triggerID"))
 	if val, ok := post["moduleID"]; ok {
 
-		t.ModuleID = parseUInt64(val)
+		tReq.ModuleID = parseUInt64(val)
 	}
 	if val, ok := post["name"]; ok {
 
-		t.Name = val
+		tReq.Name = val
 	}
 	if val, ok := post["enabled"]; ok {
 
-		t.Enabled = parseBool(val)
+		tReq.Enabled = parseBool(val)
 	}
 	if val, ok := post["source"]; ok {
 
-		t.Source = val
+		tReq.Source = val
 	}
 
 	return err
@@ -253,9 +253,9 @@ func NewTriggerDelete() *TriggerDelete {
 	return &TriggerDelete{}
 }
 
-func (t *TriggerDelete) Fill(r *http.Request) (err error) {
+func (tReq *TriggerDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(t)
+		err = json.NewDecoder(r.Body).Decode(tReq)
 
 		switch {
 		case err == io.EOF:
@@ -280,7 +280,7 @@ func (t *TriggerDelete) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	t.TriggerID = parseUInt64(chi.URLParam(r, "triggerID"))
+	tReq.TriggerID = parseUInt64(chi.URLParam(r, "triggerID"))
 
 	return err
 }

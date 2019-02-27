@@ -39,9 +39,9 @@ func NewPermissionsList() *PermissionsList {
 	return &PermissionsList{}
 }
 
-func (pe *PermissionsList) Fill(r *http.Request) (err error) {
+func (peReq *PermissionsList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(pe)
+		err = json.NewDecoder(r.Body).Decode(peReq)
 
 		switch {
 		case err == io.EOF:
@@ -80,9 +80,9 @@ func NewPermissionsRead() *PermissionsRead {
 	return &PermissionsRead{}
 }
 
-func (pe *PermissionsRead) Fill(r *http.Request) (err error) {
+func (peReq *PermissionsRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(pe)
+		err = json.NewDecoder(r.Body).Decode(peReq)
 
 		switch {
 		case err == io.EOF:
@@ -107,7 +107,7 @@ func (pe *PermissionsRead) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	pe.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	peReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 
 	return err
 }
@@ -123,9 +123,9 @@ func NewPermissionsDelete() *PermissionsDelete {
 	return &PermissionsDelete{}
 }
 
-func (pe *PermissionsDelete) Fill(r *http.Request) (err error) {
+func (peReq *PermissionsDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(pe)
+		err = json.NewDecoder(r.Body).Decode(peReq)
 
 		switch {
 		case err == io.EOF:
@@ -150,7 +150,7 @@ func (pe *PermissionsDelete) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	pe.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	peReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 
 	return err
 }
@@ -167,9 +167,9 @@ func NewPermissionsUpdate() *PermissionsUpdate {
 	return &PermissionsUpdate{}
 }
 
-func (pe *PermissionsUpdate) Fill(r *http.Request) (err error) {
+func (peReq *PermissionsUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(pe)
+		err = json.NewDecoder(r.Body).Decode(peReq)
 
 		switch {
 		case err == io.EOF:
@@ -194,7 +194,7 @@ func (pe *PermissionsUpdate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	pe.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	peReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
 
 	return err
 }

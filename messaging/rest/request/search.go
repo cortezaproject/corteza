@@ -42,9 +42,9 @@ func NewSearchMessages() *SearchMessages {
 	return &SearchMessages{}
 }
 
-func (s *SearchMessages) Fill(r *http.Request) (err error) {
+func (sReq *SearchMessages) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(s)
+		err = json.NewDecoder(r.Body).Decode(sReq)
 
 		switch {
 		case err == io.EOF:
@@ -71,23 +71,23 @@ func (s *SearchMessages) Fill(r *http.Request) (err error) {
 
 	if val, ok := get["inChannel"]; ok {
 
-		s.InChannel = parseUInt64(val)
+		sReq.InChannel = parseUInt64(val)
 	}
 	if val, ok := get["fromUser"]; ok {
 
-		s.FromUser = parseUInt64(val)
+		sReq.FromUser = parseUInt64(val)
 	}
 	if val, ok := get["firstID"]; ok {
 
-		s.FirstID = parseUInt64(val)
+		sReq.FirstID = parseUInt64(val)
 	}
 	if val, ok := get["lastID"]; ok {
 
-		s.LastID = parseUInt64(val)
+		sReq.LastID = parseUInt64(val)
 	}
 	if val, ok := get["query"]; ok {
 
-		s.Query = val
+		sReq.Query = val
 	}
 
 	return err
