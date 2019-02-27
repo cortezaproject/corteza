@@ -23,9 +23,11 @@ function types {
 	fi
 
 	./build/gen-type-set --types Module,Page,Chart,Trigger,Record \
-	                      --output crm/types/type.primary.gen.go
+	                     --output crm/types/type.primary.gen.go
 	./build/gen-type-set --with-primary-key=false --types ModuleField,RecordValue \
-	                      --output crm/types/type.other.gen.go
+	                     --output crm/types/type.other.gen.go
+	./build/gen-type-set --types Attachment \
+	                     --output crm/types/attachment.gen.go
 
 	./build/gen-type-set --types MessageAttachment --output messaging/types/attachment.gen.go
 	./build/gen-type-set --with-resources=true --types Channel --resource-type "rules.Resource" --imports "github.com/crusttech/crust/internal/rules" --output messaging/types/channel.gen.go

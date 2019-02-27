@@ -13,13 +13,15 @@ import (
 
 type (
 	Page struct {
-		page service.PageService
+		page       service.PageService
+		attachment service.AttachmentService
 	}
 )
 
 func (Page) New() *Page {
 	return &Page{
-		page: service.DefaultPage,
+		page:       service.DefaultPage,
+		attachment: service.DefaultAttachment,
 	}
 }
 
@@ -70,4 +72,27 @@ func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{
 
 func (ctrl *Page) Delete(ctx context.Context, r *request.PageDelete) (interface{}, error) {
 	return resputil.OK(), ctrl.page.With(ctx).DeleteByID(r.PageID)
+}
+
+func (ctrl *Page) Upload(ctx context.Context, r *request.PageUpload) (interface{}, error) {
+	// @todo [SECURITY] check if attachments can be added to this page
+	file, err := r.Upload.Open()
+	if err != nil {
+		return nil, err
+	}
+
+	defer file.Close()
+
+	a, err := ctrl.attachment.With(ctx).CreatePageAttachment(
+		r.Upload.Filename,
+		r.Upload.Size,
+		file,
+		r.PageID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return makeAttachmentPayload(a), nil
 }

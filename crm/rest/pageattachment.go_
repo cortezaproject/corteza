@@ -1,0 +1,67 @@
+package rest
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/pkg/errors"
+
+	"github.com/crusttech/crust/crm/rest/request"
+	"github.com/crusttech/crust/crm/service"
+)
+
+var _ = errors.Wrap
+
+type PageAttachment struct {
+	att service.AttachmentService
+}
+
+func (PageAttachment) New() *PageAttachment {
+	return &PageAttachment{att: service.DefaultAttachment}
+}
+
+func (ctrl *PageAttachment) Upload(ctx context.Context, r *request.PageAttachmentUpload) (interface{}, error) {
+	// @todo [SECURITY] check if attachments can be added to this page
+	file, err := r.Upload.Open()
+	if err != nil {
+		return nil, err
+	}
+
+	defer file.Close()
+
+	a, err := ctrl.att.With(ctx).CreatePageAttachment(
+		r.Upload.Filename,
+		r.Upload.Size,
+		file,
+		r.PageID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	baseURL := fmt.Sprintf("/page/%d/attachment", r.PageID)
+	return makeAttachmentPayload(baseURL, a), nil
+}
+
+func (ctrl *PageAttachment) Details(ctx context.Context, r *request.PageAttachmentDetails) (interface{}, error) {
+	// @todo [SECURITY] check if page can be accessed
+	// @todo [SECURITY] test any of the page blocks contain this attachment, return 404 if not
+	if a, err := ctrl.att.FindByID(r.AttachmentID); err != nil {
+		return nil, err
+	} else {
+		return makePageAttachmentPayload(r.PageID, a), nil
+	}
+}
+
+func (ctrl *PageAttachment) Original(ctx context.Context, r *request.PageAttachmentOriginal) (interface{}, error) {
+	// @todo [SECURITY] check if page can be accessed
+	// @todo [SECURITY] test any of the page blocks contain this attachment, return 404 if not
+	return loadAttachedFile(ctrl.att, r.AttachmentID, false, r.Download)
+}
+
+func (ctrl *PageAttachment) Preview(ctx context.Context, r *request.PageAttachmentPreview) (interface{}, error) {
+	// @todo [SECURITY] check if page can be accessed
+	// @todo [SECURITY] test any of the page blocks contain this attachment, return 404 if not
+	return loadAttachedFile(ctrl.att, r.AttachmentID, true, false)
+}

@@ -193,67 +193,6 @@ func (pReq *PageRead) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewPageRead()
 
-// Page attachments request parameters
-type PageAttachments struct {
-	Filter  string
-	Page    int
-	PerPage int
-	Sort    string
-}
-
-func NewPageAttachments() *PageAttachments {
-	return &PageAttachments{}
-}
-
-func (pReq *PageAttachments) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(pReq)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
-		}
-	}
-
-	if err = r.ParseForm(); err != nil {
-		return err
-	}
-
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := r.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := r.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	if val, ok := get["filter"]; ok {
-
-		pReq.Filter = val
-	}
-	if val, ok := get["page"]; ok {
-
-		pReq.Page = parseInt(val)
-	}
-	if val, ok := get["perPage"]; ok {
-
-		pReq.PerPage = parseInt(val)
-	}
-	if val, ok := get["sort"]; ok {
-
-		pReq.Sort = val
-	}
-
-	return err
-}
-
-var _ RequestFiller = NewPageAttachments()
-
 // Page tree request parameters
 type PageTree struct {
 }
@@ -455,3 +394,50 @@ func (pReq *PageDelete) Fill(r *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewPageDelete()
+
+// Page upload request parameters
+type PageUpload struct {
+	PageID uint64 `json:",string"`
+	Upload *multipart.FileHeader
+}
+
+func NewPageUpload() *PageUpload {
+	return &PageUpload{}
+}
+
+func (pReq *PageUpload) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(pReq)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseMultipartForm(32 << 20); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	pReq.PageID = parseUInt64(chi.URLParam(r, "pageID"))
+	if _, pReq.Upload, err = r.FormFile("upload"); err != nil {
+		return errors.Wrap(err, "error procesing uploaded file")
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewPageUpload()

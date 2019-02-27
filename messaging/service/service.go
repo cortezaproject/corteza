@@ -28,7 +28,7 @@ func Init() {
 	o.Do(func() {
 		fs, err := store.New("var/store")
 		if err != nil {
-			log.Fatalf("Failed to initialize stor: %v", err)
+			log.Fatalf("Failed to initialize store: %v", err)
 		}
 
 		DefaultPermissions = Permissions()

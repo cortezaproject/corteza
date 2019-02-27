@@ -192,6 +192,30 @@
           }
         ]
       }
+    },
+    {
+      "Name": "upload",
+      "Method": "POST",
+      "Title": "Uploads attachment to page",
+      "Path": "/{pageID}/attachment",
+      "Parameters": {
+        "path": [
+          {
+            "name": "pageID",
+            "required": true,
+            "title": "Page ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "upload",
+            "required": true,
+            "title": "File to upload",
+            "type": "*multipart.FileHeader"
+          }
+        ]
+      }
     }
   ]
 }

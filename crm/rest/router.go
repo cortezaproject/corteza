@@ -10,10 +10,14 @@ import (
 func MountRoutes() func(chi.Router) {
 	var (
 		module       = Module{}.New()
+		record       = Record{}.New()
 		page         = Page{}.New()
 		chart        = Chart{}.New()
 		trigger      = Trigger{}.New()
 		notification = Notification{}.New()
+		attachment   = Attachment{}.New()
+		// pageAttachment   = PageAttachment{}.New()
+		// recordAttachment = RecordAttachment{}.New()
 	)
 
 	// Initialize handlers & controllers.
@@ -25,9 +29,13 @@ func MountRoutes() func(chi.Router) {
 
 			handlers.NewPage(page).MountRoutes(r)
 			handlers.NewModule(module).MountRoutes(r)
+			handlers.NewRecord(record).MountRoutes(r)
 			handlers.NewChart(chart).MountRoutes(r)
 			handlers.NewTrigger(trigger).MountRoutes(r)
 			handlers.NewNotification(notification).MountRoutes(r)
+
+			// Use alternative handlers that support file serving
+			handlers.NewAttachmentDownloadable(attachment).MountRoutes(r)
 		})
 	}
 }

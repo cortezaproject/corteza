@@ -98,6 +98,7 @@ $parsers = array(
 	"uint64" => "parseUInt64",
 	"[]uint64" => "parseUInt64A",
 	"int" => "parseInt",
+	"uint" => "parseUint",
 	"bool" => "parseBool",
 	"sqlxTypes.JSONText" => "parseJSONTextWithErr",
 );

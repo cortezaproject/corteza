@@ -191,6 +191,30 @@
             }
           ]
         }
+      },
+      {
+        "name": "upload",
+        "path": "/{pageID}/attachment",
+        "method": "POST",
+        "title": "Uploads attachment to page",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "pageID",
+              "required": true,
+              "title": "Page ID"
+            }
+          ],
+          "post": [
+            {
+              "name": "upload",
+              "type": "*multipart.FileHeader",
+              "required": true,
+              "title": "File to upload"
+            }
+          ]
+        }
       }
     ]
   },
@@ -320,21 +344,39 @@
             }
           ]
         }
-      },
+      }
+    ]
+  },
+  {
+    "title": "Records",
+    "description": "CRM records ",
+    "entrypoint": "record",
+    "path": "/module/{moduleID}",
+    "authentication": [],
+    "struct": [
       {
-        "name": "record/report",
+        "imports": [
+          "github.com/crusttech/crust/crm/types"
+        ]
+      }
+    ],
+    "parameters": {
+      "path": [
+        {
+          "type": "uint64",
+          "name": "moduleID",
+          "required": true,
+          "title": "Module ID"
+        }
+      ]
+    },
+    "apis": [
+      {
+        "name": "report",
         "method": "GET",
         "title": "Generates report from module records",
-        "path": "/{moduleID}/report",
+        "path": "/report",
         "parameters": {
-          "path": [
-            {
-              "type": "uint64",
-              "name": "moduleID",
-              "required": true,
-              "title": "Module ID"
-            }
-          ],
           "get": [
             {
               "type": "string",
@@ -358,19 +400,11 @@
         }
       },
       {
-        "name": "record/list",
+        "name": "list",
         "method": "GET",
         "title": "List/read records from module section",
-        "path": "/{moduleID}/record",
+        "path": "/record",
         "parameters": {
-          "path": [
-            {
-              "type": "uint64",
-              "name": "moduleID",
-              "required": true,
-              "title": "Module ID"
-            }
-          ],
           "get": [
             {
               "name": "filter",
@@ -400,19 +434,11 @@
         }
       },
       {
-        "name": "record/create",
+        "name": "create",
         "method": "POST",
         "title": "Create record in module section",
-        "path": "/{moduleID}/record",
+        "path": "/record",
         "parameters": {
-          "path": [
-            {
-              "type": "uint64",
-              "name": "moduleID",
-              "required": true,
-              "title": "Module ID"
-            }
-          ],
           "post": [
             {
               "type": "types.RecordValueSet",
@@ -424,18 +450,12 @@
         }
       },
       {
-        "name": "record/read",
+        "name": "read",
         "method": "GET",
         "title": "Read records by ID from module section",
-        "path": "/{moduleID}/record/{recordID}",
+        "path": "/record/{recordID}",
         "parameters": {
           "path": [
-            {
-              "type": "uint64",
-              "name": "moduleID",
-              "required": true,
-              "title": "Module ID"
-            },
             {
               "type": "uint64",
               "name": "recordID",
@@ -446,18 +466,12 @@
         }
       },
       {
-        "name": "record/update",
+        "name": "update",
         "method": "POST",
         "title": "Update records in module section",
-        "path": "/{moduleID}/record/{recordID}",
+        "path": "/record/{recordID}",
         "parameters": {
           "path": [
-            {
-              "type": "uint64",
-              "name": "moduleID",
-              "required": true,
-              "title": "Module ID"
-            },
             {
               "type": "uint64",
               "name": "recordID",
@@ -476,23 +490,47 @@
         }
       },
       {
-        "name": "record/delete",
+        "name": "delete",
         "method": "DELETE",
         "title": "Delete record row from module section",
-        "path": "/{moduleID}/record/{recordID}",
+        "path": "/record/{recordID}",
         "parameters": {
           "path": [
-            {
-              "type": "uint64",
-              "name": "moduleID",
-              "required": true,
-              "title": "Module ID"
-            },
             {
               "type": "uint64",
               "name": "recordID",
               "required": true,
               "title": "Record ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "upload",
+        "path": "/record/{recordID}/{fieldName}/attachment",
+        "method": "POST",
+        "title": "Uploads attachment and validates it against record field requirements",
+        "parameters": {
+          "path": [
+            {
+              "name": "recordID",
+              "type": "uint64",
+              "required": true,
+              "title": "Record ID"
+            },
+            {
+              "name": "fieldName",
+              "type": "string",
+              "required": true,
+              "title": "Field name"
+            }
+          ],
+          "post": [
+            {
+              "name": "upload",
+              "type": "*multipart.FileHeader",
+              "required": true,
+              "title": "File to upload"
             }
           ]
         }
@@ -775,6 +813,141 @@
             { "name": "replyTo",     "type": "string",             "required": false, "title": "Crust user ID or email address in reply-to field" },
             { "name": "subject ",    "type": "string",             "required": false, "title": "Email subject" },
             { "name": "content",     "type": "sqlxTypes.JSONText", "required": true,  "title": "Message content" }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Attachments",
+    "path": "/attachment/{kind}",
+    "entrypoint": "attachment",
+    "authentication": [
+      "Client ID",
+      "Session ID"
+    ],
+    "parameters": {
+      "path": [
+        {
+          "name": "kind",
+          "type": "string",
+          "required": true,
+          "title": "Attachment kind"
+        }
+      ]
+    },
+    "apis": [
+      {
+        "name": "list",
+        "path": "/",
+        "method": "GET",
+        "title": "List, filter all page attachments",
+        "parameters": {
+          "get": [
+            {
+              "name": "pageID",
+              "type": "uint64",
+              "required": false,
+              "title": "Filter attachments by page ID"
+            },
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": false,
+              "title": "Filter attachments by mnodule ID"
+            },
+            {
+              "name": "recordID",
+              "type": "uint64",
+              "required": false,
+              "title": "Filter attachments by record ID"
+            },
+            {
+              "name": "fieldName",
+              "type": "string",
+              "required": false,
+              "title": "Filter attachments by field name"
+            },
+            {
+              "name": "page",
+              "type": "uint",
+              "required": false,
+              "title": "Page number (0 based)"
+            },
+            {
+              "name": "perPage",
+              "type": "uint",
+              "required": false,
+              "title": "Returned items per page (default 50)"
+            }
+          ]
+        }
+      },
+      {
+        "name": "details",
+        "path": "/{attachmentID}",
+        "method": "GET",
+        "title": "Attachment details",
+        "parameters": {
+          "path": [
+            {
+              "name": "attachmentID",
+              "type": "uint64",
+              "required": true,
+              "title": "Attachment ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "original",
+        "path": "/{attachmentID}/original/{name}",
+        "method": "GET",
+        "title": "Serves attached file",
+        "parameters": {
+          "path": [
+            {
+              "name": "attachmentID",
+              "type": "uint64",
+              "required": true,
+              "title": "Attachment ID"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "required": true,
+              "title": "File name"
+            }
+          ],
+          "get": [
+            {
+              "type": "bool",
+              "name": "download",
+              "required": false,
+              "title": "Force file download"
+            }
+          ]
+        }
+      },
+      {
+        "name": "preview",
+        "path": "/{attachmentID}/preview.{ext}",
+        "method": "GET",
+        "title": "Serves preview of an attached file",
+        "parameters": {
+          "path": [
+            {
+              "name": "attachmentID",
+              "type": "uint64",
+              "required": true,
+              "title": "Attachment ID"
+            },
+            {
+              "name": "ext",
+              "type": "string",
+              "required": true,
+              "title": "Preview extension/format"
+            }
           ]
         }
       }

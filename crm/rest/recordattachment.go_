@@ -1,0 +1,69 @@
+package rest
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/pkg/errors"
+
+	"github.com/crusttech/crust/crm/rest/request"
+	"github.com/crusttech/crust/crm/service"
+)
+
+var _ = errors.Wrap
+
+type RecordAttachment struct {
+	att service.AttachmentService
+}
+
+func (RecordAttachment) New() *RecordAttachment {
+	return &RecordAttachment{att: service.DefaultAttachment}
+}
+
+func (ctrl *RecordAttachment) Upload(ctx context.Context, r *request.RecordAttachmentUpload) (interface{}, error) {
+	// @todo [SECURITY] check if attachments can be added to this page
+	file, err := r.Upload.Open()
+	if err != nil {
+		return nil, err
+	}
+
+	defer file.Close()
+
+	a, err := ctrl.att.With(ctx).CreateRecordAttachment(
+		r.Upload.Filename,
+		r.Upload.Size,
+		file,
+		r.ModuleID,
+		r.RecordID,
+		r.FieldName,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	baseURL := fmt.Sprintf("/module/%d/record/%d/attachment/%s/", r.ModuleID, r.RecordID, r.FieldName)
+	return makeAttachmentPayload(baseURL, a), nil
+}
+
+func (ctrl *RecordAttachment) Details(ctx context.Context, r *request.RecordAttachmentDetails) (interface{}, error) {
+	// @todo [security] check if record can be accessed
+	// @todo [SECURITY] test if module/record/field has this attachment, return 404 if not
+	if a, err := ctrl.att.FindByID(r.AttachmentID); err != nil {
+		return nil, err
+	} else {
+		return makeRecordAttachmentPayload(r.ModuleID, r.RecordID, r.FieldName, a), nil
+	}
+}
+
+func (ctrl *RecordAttachment) Original(ctx context.Context, r *request.RecordAttachmentOriginal) (interface{}, error) {
+	// @todo [security] check if record can be accessed
+	// @todo [SECURITY] test if module/record/field has this attachment, return 404 if not
+	return loadAttachedFile(ctrl.att, r.AttachmentID, false, r.Download)
+}
+
+func (ctrl *RecordAttachment) Preview(ctx context.Context, r *request.RecordAttachmentPreview) (interface{}, error) {
+	// @todo [security] check if record can be accessed
+	// @todo [SECURITY] test if module/record/field has this attachment, return 404 if not
+	return loadAttachedFile(ctrl.att, r.AttachmentID, true, false)
+}
