@@ -223,19 +223,19 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 			}
 		}
 
-		if in.Topic != "" && svc.prm.CanUpdate(in) {
+		if in.Topic != "" && !svc.prm.CanUpdate(in) {
 			return errors.New("Not allowed to set channel topic")
 		}
 
-		if in.Type == types.ChannelTypePublic && svc.prm.CanCreatePublicChannel() {
+		if in.Type == types.ChannelTypePublic && !svc.prm.CanCreatePublicChannel() {
 			return errors.New("Not allowed to create public channels")
 		}
 
-		if in.Type == types.ChannelTypePrivate && svc.prm.CanCreatePrivateChannel() {
+		if in.Type == types.ChannelTypePrivate && !svc.prm.CanCreatePrivateChannel() {
 			return errors.New("Not allowed to create private channels")
 		}
 
-		if in.Type == types.ChannelTypeGroup && svc.prm.CanCreateDirectChannel() {
+		if in.Type == types.ChannelTypeGroup && !svc.prm.CanCreateDirectChannel() {
 			return errors.New("Not allowed to create group channels")
 		}
 
