@@ -53,8 +53,11 @@ func (p *permissions) With(ctx context.Context) PermissionsService {
 func (p *permissions) List() (interface{}, error) {
 	perms := []types.Permission{}
 	for resource, operations := range permissionList {
-		for ops := range operations {
-			perms = append(perms, types.Permission{Resource: resource, Operation: ops})
+		err := p.checkServiceAccess(resource)
+		if err == nil {
+			for ops := range operations {
+				perms = append(perms, types.Permission{Resource: resource, Operation: ops})
+			}
 		}
 	}
 	return perms, nil
@@ -65,7 +68,20 @@ func (p *permissions) Check(resource string, operation string) rules.Access {
 }
 
 func (p *permissions) Read(roleID uint64) (interface{}, error) {
-	return p.resources.Read(roleID)
+	ret, err := p.resources.Read(roleID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Only display rules under granted scopes.
+	rules := []rules.Rule{}
+	for _, rule := range ret {
+		err = p.checkServiceAccess(rule.Resource)
+		if err == nil {
+			rules = append(rules, rule)
+		}
+	}
+	return rules, nil
 }
 
 func (p *permissions) Update(roleID uint64, rules []rules.Rule) (interface{}, error) {
