@@ -154,7 +154,8 @@ mocks: $(GOMOCK)
 	$(MOCKGEN) -package service -source system/service/role.go         -destination system/service/role_mock_test.go
 	$(MOCKGEN) -package service -source system/service/user.go         -destination system/service/user_mock_test.go
 
-	$(MOCKGEN) -package mail -source internal/mail/mail.go -destination internal/mail/mail_mock_test.go
+	$(MOCKGEN) -package mail  -source internal/mail/mail.go        -destination internal/mail/mail_mock_test.go
+	$(MOCKGEN) -package rules -source internal/rules/interfaces.go -destination internal/rules/resources_mock_test.go
 
 	mkdir -p system/repository/mocks
 	$(MOCKGEN) -package repository -source system/repository/user.go         -destination system/repository/mocks/user.go
