@@ -40,9 +40,9 @@ func NewAttachmentOriginal() *AttachmentOriginal {
 	return &AttachmentOriginal{}
 }
 
-func (a *AttachmentOriginal) Fill(r *http.Request) (err error) {
+func (aReq *AttachmentOriginal) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(a)
+		err = json.NewDecoder(r.Body).Decode(aReq)
 
 		switch {
 		case err == io.EOF:
@@ -69,10 +69,10 @@ func (a *AttachmentOriginal) Fill(r *http.Request) (err error) {
 
 	if val, ok := get["download"]; ok {
 
-		a.Download = parseBool(val)
+		aReq.Download = parseBool(val)
 	}
-	a.Name = chi.URLParam(r, "name")
-	a.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
+	aReq.Name = chi.URLParam(r, "name")
+	aReq.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
 
 	return err
 }
@@ -89,9 +89,9 @@ func NewAttachmentPreview() *AttachmentPreview {
 	return &AttachmentPreview{}
 }
 
-func (a *AttachmentPreview) Fill(r *http.Request) (err error) {
+func (aReq *AttachmentPreview) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(a)
+		err = json.NewDecoder(r.Body).Decode(aReq)
 
 		switch {
 		case err == io.EOF:
@@ -116,8 +116,8 @@ func (a *AttachmentPreview) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	a.Ext = chi.URLParam(r, "ext")
-	a.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
+	aReq.Ext = chi.URLParam(r, "ext")
+	aReq.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
 
 	return err
 }

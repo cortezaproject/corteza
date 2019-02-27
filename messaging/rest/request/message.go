@@ -39,9 +39,9 @@ func NewMessageCreate() *MessageCreate {
 	return &MessageCreate{}
 }
 
-func (m *MessageCreate) Fill(r *http.Request) (err error) {
+func (mReq *MessageCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -68,9 +68,9 @@ func (m *MessageCreate) Fill(r *http.Request) (err error) {
 
 	if val, ok := post["message"]; ok {
 
-		m.Message = val
+		mReq.Message = val
 	}
-	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	return err
 }
@@ -87,9 +87,9 @@ func NewMessageHistory() *MessageHistory {
 	return &MessageHistory{}
 }
 
-func (m *MessageHistory) Fill(r *http.Request) (err error) {
+func (mReq *MessageHistory) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -116,9 +116,9 @@ func (m *MessageHistory) Fill(r *http.Request) (err error) {
 
 	if val, ok := get["lastMessageID"]; ok {
 
-		m.LastMessageID = parseUInt64(val)
+		mReq.LastMessageID = parseUInt64(val)
 	}
-	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	return err
 }
@@ -136,9 +136,9 @@ func NewMessageMarkAsRead() *MessageMarkAsRead {
 	return &MessageMarkAsRead{}
 }
 
-func (m *MessageMarkAsRead) Fill(r *http.Request) (err error) {
+func (mReq *MessageMarkAsRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -163,14 +163,14 @@ func (m *MessageMarkAsRead) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 	if val, ok := post["threadID"]; ok {
 
-		m.ThreadID = parseUInt64(val)
+		mReq.ThreadID = parseUInt64(val)
 	}
 	if val, ok := post["lastReadMessageID"]; ok {
 
-		m.LastReadMessageID = parseUInt64(val)
+		mReq.LastReadMessageID = parseUInt64(val)
 	}
 
 	return err
@@ -189,9 +189,9 @@ func NewMessageEdit() *MessageEdit {
 	return &MessageEdit{}
 }
 
-func (m *MessageEdit) Fill(r *http.Request) (err error) {
+func (mReq *MessageEdit) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -216,11 +216,11 @@ func (m *MessageEdit) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
+	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 	if val, ok := post["message"]; ok {
 
-		m.Message = val
+		mReq.Message = val
 	}
 
 	return err
@@ -238,9 +238,9 @@ func NewMessageDelete() *MessageDelete {
 	return &MessageDelete{}
 }
 
-func (m *MessageDelete) Fill(r *http.Request) (err error) {
+func (mReq *MessageDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -265,8 +265,8 @@ func (m *MessageDelete) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
+	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	return err
 }
@@ -283,9 +283,9 @@ func NewMessageReplyGet() *MessageReplyGet {
 	return &MessageReplyGet{}
 }
 
-func (m *MessageReplyGet) Fill(r *http.Request) (err error) {
+func (mReq *MessageReplyGet) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -310,8 +310,8 @@ func (m *MessageReplyGet) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
+	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	return err
 }
@@ -329,9 +329,9 @@ func NewMessageReplyCreate() *MessageReplyCreate {
 	return &MessageReplyCreate{}
 }
 
-func (m *MessageReplyCreate) Fill(r *http.Request) (err error) {
+func (mReq *MessageReplyCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -356,11 +356,11 @@ func (m *MessageReplyCreate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
+	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 	if val, ok := post["message"]; ok {
 
-		m.Message = val
+		mReq.Message = val
 	}
 
 	return err
@@ -378,9 +378,9 @@ func NewMessagePinCreate() *MessagePinCreate {
 	return &MessagePinCreate{}
 }
 
-func (m *MessagePinCreate) Fill(r *http.Request) (err error) {
+func (mReq *MessagePinCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -405,8 +405,8 @@ func (m *MessagePinCreate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
+	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	return err
 }
@@ -423,9 +423,9 @@ func NewMessagePinRemove() *MessagePinRemove {
 	return &MessagePinRemove{}
 }
 
-func (m *MessagePinRemove) Fill(r *http.Request) (err error) {
+func (mReq *MessagePinRemove) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -450,8 +450,8 @@ func (m *MessagePinRemove) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
+	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	return err
 }
@@ -468,9 +468,9 @@ func NewMessageBookmarkCreate() *MessageBookmarkCreate {
 	return &MessageBookmarkCreate{}
 }
 
-func (m *MessageBookmarkCreate) Fill(r *http.Request) (err error) {
+func (mReq *MessageBookmarkCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -495,8 +495,8 @@ func (m *MessageBookmarkCreate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
+	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	return err
 }
@@ -513,9 +513,9 @@ func NewMessageBookmarkRemove() *MessageBookmarkRemove {
 	return &MessageBookmarkRemove{}
 }
 
-func (m *MessageBookmarkRemove) Fill(r *http.Request) (err error) {
+func (mReq *MessageBookmarkRemove) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -540,8 +540,8 @@ func (m *MessageBookmarkRemove) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
+	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	return err
 }
@@ -559,9 +559,9 @@ func NewMessageReactionCreate() *MessageReactionCreate {
 	return &MessageReactionCreate{}
 }
 
-func (m *MessageReactionCreate) Fill(r *http.Request) (err error) {
+func (mReq *MessageReactionCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -586,9 +586,9 @@ func (m *MessageReactionCreate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	m.Reaction = chi.URLParam(r, "reaction")
-	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
+	mReq.Reaction = chi.URLParam(r, "reaction")
+	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	return err
 }
@@ -606,9 +606,9 @@ func NewMessageReactionRemove() *MessageReactionRemove {
 	return &MessageReactionRemove{}
 }
 
-func (m *MessageReactionRemove) Fill(r *http.Request) (err error) {
+func (mReq *MessageReactionRemove) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(m)
+		err = json.NewDecoder(r.Body).Decode(mReq)
 
 		switch {
 		case err == io.EOF:
@@ -633,9 +633,9 @@ func (m *MessageReactionRemove) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	m.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	m.Reaction = chi.URLParam(r, "reaction")
-	m.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
+	mReq.Reaction = chi.URLParam(r, "reaction")
+	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	return err
 }

@@ -40,9 +40,9 @@ func NewPageList() *PageList {
 	return &PageList{}
 }
 
-func (p *PageList) Fill(r *http.Request) (err error) {
+func (pReq *PageList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(p)
+		err = json.NewDecoder(r.Body).Decode(pReq)
 
 		switch {
 		case err == io.EOF:
@@ -69,7 +69,7 @@ func (p *PageList) Fill(r *http.Request) (err error) {
 
 	if val, ok := get["selfID"]; ok {
 
-		p.SelfID = parseUInt64(val)
+		pReq.SelfID = parseUInt64(val)
 	}
 
 	return err
@@ -91,9 +91,9 @@ func NewPageCreate() *PageCreate {
 	return &PageCreate{}
 }
 
-func (p *PageCreate) Fill(r *http.Request) (err error) {
+func (pReq *PageCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(p)
+		err = json.NewDecoder(r.Body).Decode(pReq)
 
 		switch {
 		case err == io.EOF:
@@ -120,27 +120,27 @@ func (p *PageCreate) Fill(r *http.Request) (err error) {
 
 	if val, ok := post["selfID"]; ok {
 
-		p.SelfID = parseUInt64(val)
+		pReq.SelfID = parseUInt64(val)
 	}
 	if val, ok := post["moduleID"]; ok {
 
-		p.ModuleID = parseUInt64(val)
+		pReq.ModuleID = parseUInt64(val)
 	}
 	if val, ok := post["title"]; ok {
 
-		p.Title = val
+		pReq.Title = val
 	}
 	if val, ok := post["description"]; ok {
 
-		p.Description = val
+		pReq.Description = val
 	}
 	if val, ok := post["visible"]; ok {
 
-		p.Visible = parseBool(val)
+		pReq.Visible = parseBool(val)
 	}
 	if val, ok := post["blocks"]; ok {
 
-		if p.Blocks, err = parseJSONTextWithErr(val); err != nil {
+		if pReq.Blocks, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
@@ -159,9 +159,9 @@ func NewPageRead() *PageRead {
 	return &PageRead{}
 }
 
-func (p *PageRead) Fill(r *http.Request) (err error) {
+func (pReq *PageRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(p)
+		err = json.NewDecoder(r.Body).Decode(pReq)
 
 		switch {
 		case err == io.EOF:
@@ -186,12 +186,73 @@ func (p *PageRead) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	p.PageID = parseUInt64(chi.URLParam(r, "pageID"))
+	pReq.PageID = parseUInt64(chi.URLParam(r, "pageID"))
 
 	return err
 }
 
 var _ RequestFiller = NewPageRead()
+
+// Page attachments request parameters
+type PageAttachments struct {
+	Filter  string
+	Page    int
+	PerPage int
+	Sort    string
+}
+
+func NewPageAttachments() *PageAttachments {
+	return &PageAttachments{}
+}
+
+func (pReq *PageAttachments) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(pReq)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	if val, ok := get["filter"]; ok {
+
+		pReq.Filter = val
+	}
+	if val, ok := get["page"]; ok {
+
+		pReq.Page = parseInt(val)
+	}
+	if val, ok := get["perPage"]; ok {
+
+		pReq.PerPage = parseInt(val)
+	}
+	if val, ok := get["sort"]; ok {
+
+		pReq.Sort = val
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewPageAttachments()
 
 // Page tree request parameters
 type PageTree struct {
@@ -201,9 +262,9 @@ func NewPageTree() *PageTree {
 	return &PageTree{}
 }
 
-func (p *PageTree) Fill(r *http.Request) (err error) {
+func (pReq *PageTree) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(p)
+		err = json.NewDecoder(r.Body).Decode(pReq)
 
 		switch {
 		case err == io.EOF:
@@ -248,9 +309,9 @@ func NewPageUpdate() *PageUpdate {
 	return &PageUpdate{}
 }
 
-func (p *PageUpdate) Fill(r *http.Request) (err error) {
+func (pReq *PageUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(p)
+		err = json.NewDecoder(r.Body).Decode(pReq)
 
 		switch {
 		case err == io.EOF:
@@ -275,30 +336,30 @@ func (p *PageUpdate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	p.PageID = parseUInt64(chi.URLParam(r, "pageID"))
+	pReq.PageID = parseUInt64(chi.URLParam(r, "pageID"))
 	if val, ok := post["selfID"]; ok {
 
-		p.SelfID = parseUInt64(val)
+		pReq.SelfID = parseUInt64(val)
 	}
 	if val, ok := post["moduleID"]; ok {
 
-		p.ModuleID = parseUInt64(val)
+		pReq.ModuleID = parseUInt64(val)
 	}
 	if val, ok := post["title"]; ok {
 
-		p.Title = val
+		pReq.Title = val
 	}
 	if val, ok := post["description"]; ok {
 
-		p.Description = val
+		pReq.Description = val
 	}
 	if val, ok := post["visible"]; ok {
 
-		p.Visible = parseBool(val)
+		pReq.Visible = parseBool(val)
 	}
 	if val, ok := post["blocks"]; ok {
 
-		if p.Blocks, err = parseJSONTextWithErr(val); err != nil {
+		if pReq.Blocks, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
@@ -318,9 +379,9 @@ func NewPageReorder() *PageReorder {
 	return &PageReorder{}
 }
 
-func (p *PageReorder) Fill(r *http.Request) (err error) {
+func (pReq *PageReorder) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(p)
+		err = json.NewDecoder(r.Body).Decode(pReq)
 
 		switch {
 		case err == io.EOF:
@@ -345,7 +406,7 @@ func (p *PageReorder) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	p.SelfID = parseUInt64(chi.URLParam(r, "selfID"))
+	pReq.SelfID = parseUInt64(chi.URLParam(r, "selfID"))
 
 	return err
 }
@@ -361,9 +422,9 @@ func NewPageDelete() *PageDelete {
 	return &PageDelete{}
 }
 
-func (p *PageDelete) Fill(r *http.Request) (err error) {
+func (pReq *PageDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(p)
+		err = json.NewDecoder(r.Body).Decode(pReq)
 
 		switch {
 		case err == io.EOF:
@@ -388,7 +449,7 @@ func (p *PageDelete) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	p.PageID = parseUInt64(chi.URLParam(r, "pageID"))
+	pReq.PageID = parseUInt64(chi.URLParam(r, "pageID"))
 
 	return err
 }

@@ -38,9 +38,9 @@ func NewChannelList() *ChannelList {
 	return &ChannelList{}
 }
 
-func (c *ChannelList) Fill(r *http.Request) (err error) {
+func (cReq *ChannelList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -67,7 +67,7 @@ func (c *ChannelList) Fill(r *http.Request) (err error) {
 
 	if val, ok := get["query"]; ok {
 
-		c.Query = val
+		cReq.Query = val
 	}
 
 	return err
@@ -87,9 +87,9 @@ func NewChannelCreate() *ChannelCreate {
 	return &ChannelCreate{}
 }
 
-func (c *ChannelCreate) Fill(r *http.Request) (err error) {
+func (cReq *ChannelCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -116,15 +116,15 @@ func (c *ChannelCreate) Fill(r *http.Request) (err error) {
 
 	if val, ok := post["name"]; ok {
 
-		c.Name = val
+		cReq.Name = val
 	}
 	if val, ok := post["topic"]; ok {
 
-		c.Topic = val
+		cReq.Topic = val
 	}
 	if val, ok := post["type"]; ok {
 
-		c.Type = val
+		cReq.Type = val
 	}
 
 	return err
@@ -145,9 +145,9 @@ func NewChannelUpdate() *ChannelUpdate {
 	return &ChannelUpdate{}
 }
 
-func (c *ChannelUpdate) Fill(r *http.Request) (err error) {
+func (cReq *ChannelUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -172,22 +172,22 @@ func (c *ChannelUpdate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	cReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 	if val, ok := post["name"]; ok {
 
-		c.Name = val
+		cReq.Name = val
 	}
 	if val, ok := post["topic"]; ok {
 
-		c.Topic = val
+		cReq.Topic = val
 	}
 	if val, ok := post["type"]; ok {
 
-		c.Type = val
+		cReq.Type = val
 	}
 	if val, ok := post["organisationID"]; ok {
 
-		c.OrganisationID = parseUInt64(val)
+		cReq.OrganisationID = parseUInt64(val)
 	}
 
 	return err
@@ -205,9 +205,9 @@ func NewChannelState() *ChannelState {
 	return &ChannelState{}
 }
 
-func (c *ChannelState) Fill(r *http.Request) (err error) {
+func (cReq *ChannelState) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -232,10 +232,10 @@ func (c *ChannelState) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	cReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 	if val, ok := post["state"]; ok {
 
-		c.State = val
+		cReq.State = val
 	}
 
 	return err
@@ -253,9 +253,9 @@ func NewChannelSetFlag() *ChannelSetFlag {
 	return &ChannelSetFlag{}
 }
 
-func (c *ChannelSetFlag) Fill(r *http.Request) (err error) {
+func (cReq *ChannelSetFlag) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -280,10 +280,10 @@ func (c *ChannelSetFlag) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	cReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 	if val, ok := post["flag"]; ok {
 
-		c.Flag = val
+		cReq.Flag = val
 	}
 
 	return err
@@ -300,9 +300,9 @@ func NewChannelRemoveFlag() *ChannelRemoveFlag {
 	return &ChannelRemoveFlag{}
 }
 
-func (c *ChannelRemoveFlag) Fill(r *http.Request) (err error) {
+func (cReq *ChannelRemoveFlag) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -327,7 +327,7 @@ func (c *ChannelRemoveFlag) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	cReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	return err
 }
@@ -343,9 +343,9 @@ func NewChannelRead() *ChannelRead {
 	return &ChannelRead{}
 }
 
-func (c *ChannelRead) Fill(r *http.Request) (err error) {
+func (cReq *ChannelRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -370,7 +370,7 @@ func (c *ChannelRead) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	cReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	return err
 }
@@ -386,9 +386,9 @@ func NewChannelMembers() *ChannelMembers {
 	return &ChannelMembers{}
 }
 
-func (c *ChannelMembers) Fill(r *http.Request) (err error) {
+func (cReq *ChannelMembers) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -413,7 +413,7 @@ func (c *ChannelMembers) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	cReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 
 	return err
 }
@@ -430,9 +430,9 @@ func NewChannelJoin() *ChannelJoin {
 	return &ChannelJoin{}
 }
 
-func (c *ChannelJoin) Fill(r *http.Request) (err error) {
+func (cReq *ChannelJoin) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -457,8 +457,8 @@ func (c *ChannelJoin) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
-	c.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	cReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	cReq.UserID = parseUInt64(chi.URLParam(r, "userID"))
 
 	return err
 }
@@ -475,9 +475,9 @@ func NewChannelPart() *ChannelPart {
 	return &ChannelPart{}
 }
 
-func (c *ChannelPart) Fill(r *http.Request) (err error) {
+func (cReq *ChannelPart) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -502,8 +502,8 @@ func (c *ChannelPart) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
-	c.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	cReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	cReq.UserID = parseUInt64(chi.URLParam(r, "userID"))
 
 	return err
 }
@@ -520,9 +520,9 @@ func NewChannelInvite() *ChannelInvite {
 	return &ChannelInvite{}
 }
 
-func (c *ChannelInvite) Fill(r *http.Request) (err error) {
+func (cReq *ChannelInvite) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -547,8 +547,8 @@ func (c *ChannelInvite) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
-	c.UserID = parseUInt64A(r.Form["userID"])
+	cReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	cReq.UserID = parseUInt64A(r.Form["userID"])
 
 	return err
 }
@@ -566,9 +566,9 @@ func NewChannelAttach() *ChannelAttach {
 	return &ChannelAttach{}
 }
 
-func (c *ChannelAttach) Fill(r *http.Request) (err error) {
+func (cReq *ChannelAttach) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(c)
+		err = json.NewDecoder(r.Body).Decode(cReq)
 
 		switch {
 		case err == io.EOF:
@@ -593,12 +593,12 @@ func (c *ChannelAttach) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	c.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	cReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 	if val, ok := post["replyTo"]; ok {
 
-		c.ReplyTo = parseUInt64(val)
+		cReq.ReplyTo = parseUInt64(val)
 	}
-	if _, c.Upload, err = r.FormFile("upload"); err != nil {
+	if _, cReq.Upload, err = r.FormFile("upload"); err != nil {
 		return errors.Wrap(err, "error procesing uploaded file")
 	}
 
