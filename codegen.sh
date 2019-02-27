@@ -16,21 +16,6 @@ function gofmt {
 	green "OK"
 }
 
-function permissions {
-	yellow "> permissions"
-	if [ ! -f "build/gen-permissions" ]; then
-		CGO_ENABLED=0 go build -o ./build/gen-permissions codegen/v2/permissions.go 
-	fi
-	
-	./build/gen-permissions -package types -object-name Organisation -input messaging/types/permissions/1-organisation.json -output messaging/types/organisation.perms.gen.go
-	./build/gen-permissions -package types -object-name Role -input messaging/types/permissions/2-role.json -output messaging/types/role.perms.gen.go
-	./build/gen-permissions -package types -object-name Channel -input messaging/types/permissions/3-channel.json -output messaging/types/channel.perms.gen.go
-
-	green "OK"
-}
-
-permissions
-
 function types {
 	yellow "> types"
 	if [ ! -f "build/gen-type-set" ]; then
