@@ -158,6 +158,19 @@ func (mr *MockRoleServiceMockRecorder) Delete(ID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRoleService)(nil).Delete), ID)
 }
 
+// MemberList mocks base method
+func (m *MockRoleService) MemberList(roleID uint64) ([]*types.RoleMember, error) {
+	ret := m.ctrl.Call(m, "MemberList", roleID)
+	ret0, _ := ret[0].([]*types.RoleMember)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// MemberList indicates an expected call of MemberList
+func (mr *MockRoleServiceMockRecorder) MemberList(roleID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MemberList", reflect.TypeOf((*MockRoleService)(nil).MemberList), roleID)
+}
+
 // MemberAdd mocks base method
 func (m *MockRoleService) MemberAdd(roleID, userID uint64) error {
 	ret := m.ctrl.Call(m, "MemberAdd", roleID, userID)
