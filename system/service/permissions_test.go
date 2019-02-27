@@ -74,6 +74,16 @@ func TestPermission(t *testing.T) {
 		NoError(t, err, "expected no error, got %v", err)
 	}
 
+	// List possible permissions with `messaging` and `system` grants.
+	{
+		ret, err := permissionSvc.List()
+		NoError(t, err, "expected no error, got %v", err)
+
+		perms := ret.([]types.Permission)
+
+		Assert(t, len(perms) > 0, "expected len(rules) > 0, got %v", len(perms))
+	}
+
 	// Update rules for test role.
 	{
 		list := []rules.Rule{
@@ -141,13 +151,13 @@ func TestPermission(t *testing.T) {
 		Assert(t, len(rules) == 0, "expected len(rules) == 0, got %v", len(rules))
 	}
 
-	// List defined permissions.
+	// List possible permissions with no grants.
 	{
 		ret, err := permissionSvc.List()
 		NoError(t, err, "expected no error, got %v", err)
 
 		perms := ret.([]types.Permission)
 
-		Assert(t, len(perms) > 0, "expected len(rules) > 0, got %v", len(perms))
+		Assert(t, len(perms) == 0, "expected len(rules) == 0, got %v", len(perms))
 	}
 }
