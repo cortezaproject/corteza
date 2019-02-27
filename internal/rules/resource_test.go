@@ -1,7 +1,6 @@
 package rules
 
 import (
-	"fmt"
 	"testing"
 
 	"encoding/json"
@@ -17,8 +16,6 @@ func TestResource(t *testing.T) {
 	assert(t, r.String() == "messaging:channel:123", "Resource ID doesn't match, messaging:channel:123 != '%s'", r.String())
 
 	b, _ := json.Marshal(r)
-	fmt.Println(string(b))
-
 	{
 		r := ResourceJSON{}
 		json.Unmarshal(b, &r)
