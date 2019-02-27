@@ -223,7 +223,7 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 			}
 		}
 
-		if in.Topic != "" && !svc.prm.CanUpdate(in) {
+		if in.Topic != "" && false {
 			return errors.New("Not allowed to set channel topic")
 		}
 
