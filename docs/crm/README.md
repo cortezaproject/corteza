@@ -1,3 +1,76 @@
+# Attachments
+
+## List, filter all page attachments
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/attachment/{kind}/` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| pageID | uint64 | GET | Filter attachments by page ID | N/A | NO |
+| moduleID | uint64 | GET | Filter attachments by mnodule ID | N/A | NO |
+| recordID | uint64 | GET | Filter attachments by record ID | N/A | NO |
+| fieldName | string | GET | Filter attachments by field name | N/A | NO |
+| page | uint | GET | Page number (0 based) | N/A | NO |
+| perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
+| kind | string | PATH | Attachment kind | N/A | YES |
+
+## Attachment details
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/attachment/{kind}/{attachmentID}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
+| kind | string | PATH | Attachment kind | N/A | YES |
+
+## Serves attached file
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/attachment/{kind}/{attachmentID}/original/{name}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| download | bool | GET | Force file download | N/A | NO |
+| attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
+| name | string | PATH | File name | N/A | YES |
+| kind | string | PATH | Attachment kind | N/A | YES |
+
+## Serves preview of an attached file
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/attachment/{kind}/{attachmentID}/preview.{ext}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
+| ext | string | PATH | Preview extension/format | N/A | YES |
+| kind | string | PATH | Attachment kind | N/A | YES |
+
+
+
+
 # Charts
 
 ## List/read charts from module section
@@ -154,102 +227,6 @@ CRM module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
-## Generates report from module records
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/report` | HTTP/S | GET |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| metrics | string | GET | Metrics (eg: 'SUM(money), MAX(calls)') | N/A | NO |
-| dimensions | string | GET | Dimensions (eg: 'DATE(foo), status') | N/A | YES |
-| filter | string | GET | Filter (eg: 'DATE(foo) > 2010') | N/A | NO |
-| moduleID | uint64 | PATH | Module ID | N/A | YES |
-
-## List/read records from module section
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/record` | HTTP/S | GET |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| filter | string | GET | Filtering condition | N/A | NO |
-| page | int | GET | Page number (0 based) | N/A | NO |
-| perPage | int | GET | Returned items per page (default 50) | N/A | NO |
-| sort | string | GET | Sort field (default id desc) | N/A | NO |
-| moduleID | uint64 | PATH | Module ID | N/A | YES |
-
-## Create record in module section
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/record` | HTTP/S | POST |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| moduleID | uint64 | PATH | Module ID | N/A | YES |
-| values | types.RecordValueSet | POST | Record values | N/A | YES |
-
-## Read records by ID from module section
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/record/{recordID}` | HTTP/S | GET |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| moduleID | uint64 | PATH | Module ID | N/A | YES |
-| recordID | uint64 | PATH | Record ID | N/A | YES |
-
-## Update records in module section
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/record/{recordID}` | HTTP/S | POST |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| moduleID | uint64 | PATH | Module ID | N/A | YES |
-| recordID | uint64 | PATH | Record ID | N/A | YES |
-| values | types.RecordValueSet | POST | Record values | N/A | YES |
-
-## Delete record row from module section
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/record/{recordID}` | HTTP/S | DELETE |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| moduleID | uint64 | PATH | Module ID | N/A | YES |
-| recordID | uint64 | PATH | Record ID | N/A | YES |
-
 
 
 
@@ -390,6 +367,141 @@ CRM module pages
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | pageID | uint64 | PATH | Page ID | N/A | YES |
+
+## Uploads attachment to page
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/page/{pageID}/attachment` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| pageID | uint64 | PATH | Page ID | N/A | YES |
+| upload | *multipart.FileHeader | POST | File to upload | N/A | YES |
+
+
+
+
+# Records
+
+CRM records
+
+## Generates report from module records
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/module/{moduleID}/report` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| metrics | string | GET | Metrics (eg: 'SUM(money), MAX(calls)') | N/A | NO |
+| dimensions | string | GET | Dimensions (eg: 'DATE(foo), status') | N/A | YES |
+| filter | string | GET | Filter (eg: 'DATE(foo) > 2010') | N/A | NO |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
+
+## List/read records from module section
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/module/{moduleID}/record` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| filter | string | GET | Filtering condition | N/A | NO |
+| page | int | GET | Page number (0 based) | N/A | NO |
+| perPage | int | GET | Returned items per page (default 50) | N/A | NO |
+| sort | string | GET | Sort field (default id desc) | N/A | NO |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
+
+## Create record in module section
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/module/{moduleID}/record` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| values | types.RecordValueSet | POST | Record values | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
+
+## Read records by ID from module section
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/module/{moduleID}/record/{recordID}` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| recordID | uint64 | PATH | Record ID | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
+
+## Update records in module section
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/module/{moduleID}/record/{recordID}` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| recordID | uint64 | PATH | Record ID | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
+| values | types.RecordValueSet | POST | Record values | N/A | YES |
+
+## Delete record row from module section
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/module/{moduleID}/record/{recordID}` | HTTP/S | DELETE |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| recordID | uint64 | PATH | Record ID | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
+
+## Uploads attachment and validates it against record field requirements
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/module/{moduleID}/record/{recordID}/{fieldName}/attachment` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| recordID | uint64 | PATH | Record ID | N/A | YES |
+| fieldName | string | PATH | Field name | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
+| upload | *multipart.FileHeader | POST | File to upload | N/A | YES |
 
 
 

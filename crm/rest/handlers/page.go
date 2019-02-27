@@ -34,6 +34,7 @@ type PageAPI interface {
 	Update(context.Context, *request.PageUpdate) (interface{}, error)
 	Reorder(context.Context, *request.PageReorder) (interface{}, error)
 	Delete(context.Context, *request.PageDelete) (interface{}, error)
+	Upload(context.Context, *request.PageUpload) (interface{}, error)
 }
 
 // HTTP API interface
@@ -45,6 +46,7 @@ type Page struct {
 	Update  func(http.ResponseWriter, *http.Request)
 	Reorder func(http.ResponseWriter, *http.Request)
 	Delete  func(http.ResponseWriter, *http.Request)
+	Upload  func(http.ResponseWriter, *http.Request)
 }
 
 func NewPage(ph PageAPI) *Page {
@@ -98,6 +100,13 @@ func NewPage(ph PageAPI) *Page {
 				return ph.Delete(r.Context(), params)
 			})
 		},
+		Upload: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewPageUpload()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return ph.Upload(r.Context(), params)
+			})
+		},
 	}
 }
 
@@ -112,6 +121,7 @@ func (ph *Page) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 			r.Post("/{pageID}", ph.Update)
 			r.Post("/{selfID}/reorder", ph.Reorder)
 			r.Delete("/{pageID}", ph.Delete)
+			r.Post("/{pageID}/attachment", ph.Upload)
 		})
 	})
 }

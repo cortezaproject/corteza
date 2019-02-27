@@ -26,6 +26,15 @@ func parseInt(s string) int {
 	return i
 }
 
+// parseInt parses a string to int
+func parseUint(s string) uint {
+	if s == "" {
+		return 0
+	}
+	i, _ := strconv.ParseUint(s, 10, 32)
+	return uint(i)
+}
+
 // parseInt64 parses a string to int64
 func parseInt64(s string) int64 {
 	if s == "" {
