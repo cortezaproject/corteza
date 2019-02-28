@@ -47,15 +47,20 @@ func (mr *MockResourcesInterfaceMockRecorder) With(ctx, db interface{}) *gomock.
 }
 
 // Check mocks base method
-func (m *MockResourcesInterface) Check(resource, operation string) Access {
-	ret := m.ctrl.Call(m, "Check", resource, operation)
+func (m *MockResourcesInterface) Check(resource, operation string, fallbacks ...CheckAccessFunc) Access {
+	varargs := []interface{}{resource, operation}
+	for _, a := range fallbacks {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Check", varargs...)
 	ret0, _ := ret[0].(Access)
 	return ret0
 }
 
 // Check indicates an expected call of Check
-func (mr *MockResourcesInterfaceMockRecorder) Check(resource, operation interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockResourcesInterface)(nil).Check), resource, operation)
+func (mr *MockResourcesInterfaceMockRecorder) Check(resource, operation interface{}, fallbacks ...interface{}) *gomock.Call {
+	varargs := append([]interface{}{resource, operation}, fallbacks...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockResourcesInterface)(nil).Check), varargs...)
 }
 
 // Grant mocks base method

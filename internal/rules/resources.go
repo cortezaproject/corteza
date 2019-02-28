@@ -10,13 +10,20 @@ import (
 )
 
 const (
-	delimiter = ":"
+	delimiter             = ":"
+	everyoneRoleId uint64 = 1
+	defaultAccess  Access = Deny
 )
 
-type resources struct {
-	ctx context.Context
-	db  *factory.DB
-}
+type (
+	resources struct {
+		ctx context.Context
+		db  *factory.DB
+	}
+
+	// CheckAccessFunc function.
+	CheckAccessFunc func() Access
+)
 
 func NewResources(ctx context.Context, db *factory.DB) ResourcesInterface {
 	return (&resources{}).With(ctx, db)
@@ -35,42 +42,48 @@ func (r *resources) identity() uint64 {
 
 // IsAllowed function checks granted permission for specific resource and operation. Permission checks on
 // global level are not allowed and will always return Deny.
-func (r *resources) Check(resource string, operation string) Access {
+func (r *resources) Check(resource string, operation string, fallbacks ...CheckAccessFunc) Access {
 	parts := strings.Split(resource, delimiter)
 
 	// Permission check on global level is not allowed.
-	if parts[len(parts)-1] == "*" {
+	if parts[len(parts)-1] == "*" || parts[len(parts)-1] == "" {
 		return Deny
 	}
 
-	access := r.checkAccess(resource, operation)
-	if access == Inherit {
-		// Create resource definition for global level.
-		parts[len(parts)-1] = "*"
+	// Create resource definition for global level.
+	parts[len(parts)-1] = "*"
+	globalResource := strings.Join(parts, delimiter)
 
-		resource = strings.Join(parts, delimiter)
-
-		// If rule for specific resource is not set we check on global level.
-		return r.checkAccess(resource, operation)
+	// Access checks.
+	checks := []CheckAccessFunc{
+		func() Access { return r.checkAccess(resource, operation) },
+		func() Access { return r.checkAccessEveryone(resource, operation) },
+		func() Access { return r.checkAccess(globalResource, operation) },
+		func() Access { return r.checkAccessEveryone(globalResource, operation) },
 	}
-	return access
+	checks = append(checks, fallbacks...)
+
+	for _, check := range checks {
+		if access := check(); access != Inherit {
+			return access
+		}
+	}
+	return defaultAccess
 }
 
 func (r *resources) checkAccess(resource string, operation string) Access {
-	const everyoneRoleId uint64 = 1
 	user := r.identity()
 	result := []Access{}
 	query := []string{
 		// select rules
 		"select r.value from sys_rules r",
 		// join members
-		"inner join sys_role_member m on ",
-		"((m.rel_role = r.rel_role and m.rel_user=?) or (r.rel_role = ?))",
+		"inner join sys_role_member m on (m.rel_role = r.rel_role and m.rel_user=?)",
 		// add conditions
 		"where r.resource=? and r.operation=?",
 	}
 	queryString := strings.Join(query, " ")
-	if err := r.db.Select(&result, queryString, user, everyoneRoleId, resource, operation); err != nil {
+	if err := r.db.Select(&result, queryString, user, resource, operation); err != nil {
 		// @todo: log error
 		return Deny
 	}
@@ -85,6 +98,26 @@ func (r *resources) checkAccess(resource string, operation string) Access {
 		if val == Allow {
 			return Allow
 		}
+	}
+	return Inherit
+}
+
+func (r *resources) checkAccessEveryone(resource string, operation string) Access {
+	result := []Access{}
+	query := []string{
+		// select rules
+		"select r.value from sys_rules r",
+		// add conditions
+		"where r.rel_role = ? and r.resource=? and r.operation=?",
+	}
+	queryString := strings.Join(query, " ")
+	if err := r.db.Select(&result, queryString, everyoneRoleId, resource, operation); err != nil {
+		// @todo: log error
+		return Deny
+	}
+
+	if len(result) > 0 {
+		return result[0]
 	}
 	return Inherit
 }

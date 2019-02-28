@@ -17,9 +17,6 @@ type (
 		prm systemService.PermissionsService
 	}
 
-	// Fallback option
-	Fallback func() bool
-
 	PermissionsService interface {
 		With(context.Context) PermissionsService
 
@@ -140,19 +137,10 @@ func (p *permissions) CanReactMessage(ch *types.Channel) bool {
 	return p.checkAccess(ch.Resource().String(), "message.react")
 }
 
-func (p *permissions) checkAccess(resource string, operation string, fbs ...Fallback) bool {
-	access := p.prm.Check(resource, operation)
-	switch access {
-	case internalRules.Allow:
+func (p *permissions) checkAccess(resource string, operation string, fallbacks ...internalRules.CheckAccessFunc) bool {
+	access := p.prm.Check(resource, operation, fallbacks...)
+	if access == internalRules.Allow {
 		return true
-	case internalRules.Deny:
-		return false
-	default:
-		for _, fb := range fbs {
-			if fb() == true {
-				return true
-			}
-		}
-		return false
 	}
+	return false
 }

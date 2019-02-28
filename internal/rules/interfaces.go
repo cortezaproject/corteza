@@ -9,7 +9,7 @@ import (
 type ResourcesInterface interface {
 	With(ctx context.Context, db *factory.DB) ResourcesInterface
 
-	Check(resource string, operation string) Access
+	Check(resource string, operation string, fallbacks ...CheckAccessFunc) Access
 
 	Grant(roleID uint64, rules []Rule) error
 	Read(roleID uint64) ([]Rule, error)
