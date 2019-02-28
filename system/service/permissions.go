@@ -28,7 +28,7 @@ type (
 
 		List() (interface{}, error)
 
-		Check(resource string, operation string) rules.Access
+		Check(resource string, operation string, fallbacks ...rules.CheckAccessFunc) rules.Access
 
 		Read(roleID uint64) (interface{}, error)
 		Update(roleID uint64, rules []rules.Rule) (interface{}, error)
@@ -63,8 +63,8 @@ func (p *permissions) List() (interface{}, error) {
 	return perms, nil
 }
 
-func (p *permissions) Check(resource string, operation string) rules.Access {
-	return p.resources.Check(resource, operation)
+func (p *permissions) Check(resource string, operation string, fallbacks ...rules.CheckAccessFunc) rules.Access {
+	return p.resources.Check(resource, operation, fallbacks...)
 }
 
 func (p *permissions) Read(roleID uint64) (interface{}, error) {
