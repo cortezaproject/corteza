@@ -90,8 +90,10 @@ func (r *attachment) Find(filter types.AttachmentFilter) (set types.AttachmentSe
 	switch f.Kind {
 	case types.PageAttachment:
 		// @todo implement filtering by page
-		err = errors.New("filtering by page not implemented")
-		return
+		if f.PageID > 0 {
+			err = errors.New("filtering by pageID not implemented")
+			return
+		}
 	case types.RecordAttachment:
 		query = query.
 			Join("crm_record_value AS v ON (v.ref = a.id)")
@@ -109,6 +111,8 @@ func (r *attachment) Find(filter types.AttachmentFilter) (set types.AttachmentSe
 		if f.FieldName != "" {
 			query = query.Where(sq.Eq{"v.name": f.FieldName})
 		}
+	default:
+		err = errors.New("unsupported kind value")
 	}
 
 	if f.Filter != "" {

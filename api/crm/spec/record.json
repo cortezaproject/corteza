@@ -21,7 +21,7 @@
   },
   "Protocol": "",
   "Authentication": [],
-  "Path": "/module/{moduleID}",
+  "Path": "/module/{moduleID}/record",
   "APIs": [
     {
       "Name": "report",
@@ -55,7 +55,7 @@
       "Name": "list",
       "Method": "GET",
       "Title": "List/read records from module section",
-      "Path": "/record",
+      "Path": "/",
       "Parameters": {
         "get": [
           {
@@ -89,7 +89,7 @@
       "Name": "create",
       "Method": "POST",
       "Title": "Create record in module section",
-      "Path": "/record",
+      "Path": "/",
       "Parameters": {
         "post": [
           {
@@ -105,7 +105,7 @@
       "Name": "read",
       "Method": "GET",
       "Title": "Read records by ID from module section",
-      "Path": "/record/{recordID}",
+      "Path": "/{recordID}",
       "Parameters": {
         "path": [
           {
@@ -121,7 +121,7 @@
       "Name": "update",
       "Method": "POST",
       "Title": "Update records in module section",
-      "Path": "/record/{recordID}",
+      "Path": "/{recordID}",
       "Parameters": {
         "path": [
           {
@@ -145,7 +145,7 @@
       "Name": "delete",
       "Method": "DELETE",
       "Title": "Delete record row from module section",
-      "Path": "/record/{recordID}",
+      "Path": "/{recordID}",
       "Parameters": {
         "path": [
           {
@@ -161,7 +161,7 @@
       "Name": "upload",
       "Method": "POST",
       "Title": "Uploads attachment and validates it against record field requirements",
-      "Path": "/record/{recordID}/{fieldName}/attachment",
+      "Path": "/{recordID}/{fieldName}/attachment",
       "Parameters": {
         "path": [
           {

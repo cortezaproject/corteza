@@ -104,14 +104,14 @@ func NewRecord(rh RecordAPI) *Record {
 func (rh *Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("/module/{moduleID}", func(r chi.Router) {
+		r.Route("/module/{moduleID}/record", func(r chi.Router) {
 			r.Get("/report", rh.Report)
-			r.Get("/record", rh.List)
-			r.Post("/record", rh.Create)
-			r.Get("/record/{recordID}", rh.Read)
-			r.Post("/record/{recordID}", rh.Update)
-			r.Delete("/record/{recordID}", rh.Delete)
-			r.Post("/record/{recordID}/{fieldName}/attachment", rh.Upload)
+			r.Get("/", rh.List)
+			r.Post("/", rh.Create)
+			r.Get("/{recordID}", rh.Read)
+			r.Post("/{recordID}", rh.Update)
+			r.Delete("/{recordID}", rh.Delete)
+			r.Post("/{recordID}/{fieldName}/attachment", rh.Upload)
 		})
 	})
 }
