@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi"
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
@@ -90,7 +89,6 @@ func (ctrl *Social) MountRoutes(r chi.Router) {
 
 			// Always set redir cookie, even if not requested. If param is empty, cookie is removed
 			ctrl.setCookie(w, r, "redir", r.URL.Query().Get("redir"))
-			spew.Dump("REDIR=" + r.URL.Query().Get("redir"))
 
 			// try to get the user without re-authenticating
 			if user, err := gothic.CompleteUserAuth(w, r); err != nil {
@@ -149,7 +147,6 @@ func (ctrl *Social) handleSuccessfulAuth(w http.ResponseWriter, r *http.Request,
 		ctrl.jwtEncoder.SetCookie(w, r, u)
 
 		if c, err := r.Cookie("redir"); c != nil && err == nil {
-			spew.Dump("REDIR=" + c.Value)
 			ctrl.setCookie(w, r, "redir", "")
 			w.Header().Set("Location", c.Value)
 			w.WriteHeader(http.StatusSeeOther)
