@@ -351,7 +351,7 @@
     "title": "Records",
     "description": "CRM records ",
     "entrypoint": "record",
-    "path": "/module/{moduleID}",
+    "path": "/module/{moduleID}/record",
     "authentication": [],
     "struct": [
       {
@@ -403,7 +403,7 @@
         "name": "list",
         "method": "GET",
         "title": "List/read records from module section",
-        "path": "/record",
+        "path": "/",
         "parameters": {
           "get": [
             {
@@ -437,7 +437,7 @@
         "name": "create",
         "method": "POST",
         "title": "Create record in module section",
-        "path": "/record",
+        "path": "/",
         "parameters": {
           "post": [
             {
@@ -453,7 +453,7 @@
         "name": "read",
         "method": "GET",
         "title": "Read records by ID from module section",
-        "path": "/record/{recordID}",
+        "path": "/{recordID}",
         "parameters": {
           "path": [
             {
@@ -469,7 +469,7 @@
         "name": "update",
         "method": "POST",
         "title": "Update records in module section",
-        "path": "/record/{recordID}",
+        "path": "/{recordID}",
         "parameters": {
           "path": [
             {
@@ -493,7 +493,7 @@
         "name": "delete",
         "method": "DELETE",
         "title": "Delete record row from module section",
-        "path": "/record/{recordID}",
+        "path": "/{recordID}",
         "parameters": {
           "path": [
             {
@@ -507,7 +507,7 @@
       },
       {
         "name": "upload",
-        "path": "/record/{recordID}/{fieldName}/attachment",
+        "path": "/{recordID}/{fieldName}/attachment",
         "method": "POST",
         "title": "Uploads attachment and validates it against record field requirements",
         "parameters": {

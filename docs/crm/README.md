@@ -396,7 +396,7 @@ CRM records
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/report` | HTTP/S | GET |  |
+| `/module/{moduleID}/record/report` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -413,7 +413,7 @@ CRM records
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/record` | HTTP/S | GET |  |
+| `/module/{moduleID}/record/` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -431,7 +431,7 @@ CRM records
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/record` | HTTP/S | POST |  |
+| `/module/{moduleID}/record/` | HTTP/S | POST |  |
 
 #### Request parameters
 
