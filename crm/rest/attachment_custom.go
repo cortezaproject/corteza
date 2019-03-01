@@ -6,8 +6,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/crusttech/crust/crm/rest/handlers"
 	"github.com/crusttech/crust/crm/service"
 	"github.com/crusttech/crust/crm/types"
@@ -60,7 +58,6 @@ func loadAttachedFile(svc service.AttachmentService, ID uint64, preview, downloa
 	} else {
 		rval.Attachment = att
 		if preview {
-			spew.Dump(att)
 			rval.content, err = svc.OpenPreview(att)
 		} else {
 			rval.content, err = svc.OpenOriginal(att)
