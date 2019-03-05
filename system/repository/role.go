@@ -81,7 +81,7 @@ func (r *role) FindByMemberID(userID uint64) ([]*types.Role, error) {
 	rval := make([]*types.Role, 0)
 	for _, id := range ids {
 		mod, err := r.FindByID(id)
-		if err != nil {
+		if err != nil && err != ErrRoleNotFound {
 			return nil, err
 		}
 		rval = append(rval, mod)
