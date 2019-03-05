@@ -86,7 +86,13 @@ func (r *user) FindByID(id uint64) (*types.User, error) {
 	if err := isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrUserNotFound); err != nil {
 		return nil, err
 	}
-	return mod, r.prepare(mod, "roles")
+
+	err := r.prepare(mod, "roles")
+	if err != nil {
+		return nil, err
+	}
+
+	return mod, nil
 }
 
 func (r *user) FindByIDs(IDs ...uint64) (uu types.UserSet, err error) {
