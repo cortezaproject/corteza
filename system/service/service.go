@@ -17,6 +17,7 @@ var (
 	DefaultRole         RoleService
 	DefaultPermissions  PermissionsService
 	DefaultOrganisation OrganisationService
+	DefaultApplication  ApplicationService
 )
 
 func Init() {
@@ -26,5 +27,6 @@ func Init() {
 		DefaultRole = Role()
 		DefaultPermissions = Permissions()
 		DefaultOrganisation = Organisation()
+		DefaultApplication = Application()
 	})
 }

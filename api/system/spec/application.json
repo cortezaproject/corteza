@@ -1,0 +1,132 @@
+{
+  "Title": "Applications",
+  "Interface": "Application",
+  "Struct": [
+    {
+      "imports": [
+        "sqlxTypes github.com/jmoiron/sqlx/types"
+      ]
+    }
+  ],
+  "Parameters": null,
+  "Protocol": "",
+  "Authentication": [],
+  "Path": "/application",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List applications",
+      "Path": "/",
+      "Parameters": null
+    },
+    {
+      "Name": "create",
+      "Method": "POST",
+      "Title": "Create application",
+      "Path": "/",
+      "Parameters": {
+        "post": [
+          {
+            "name": "name",
+            "required": true,
+            "title": "Email",
+            "type": "string"
+          },
+          {
+            "name": "enabled",
+            "required": false,
+            "title": "Enabled",
+            "type": "bool"
+          },
+          {
+            "name": "unify",
+            "required": false,
+            "title": "Unify properties",
+            "type": "sqlxTypes.JSONText"
+          },
+          {
+            "name": "config",
+            "required": false,
+            "title": "Arbitrary JSON holding application configuration",
+            "type": "sqlxTypes.JSONText"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "update",
+      "Method": "PUT",
+      "Title": "Update user details",
+      "Path": "/{applicationID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "applicationID",
+            "required": true,
+            "title": "Application ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "name",
+            "required": true,
+            "title": "Email",
+            "type": "string"
+          },
+          {
+            "name": "enabled",
+            "required": false,
+            "title": "Enabled",
+            "type": "bool"
+          },
+          {
+            "name": "unify",
+            "required": false,
+            "title": "Unify properties",
+            "type": "sqlxTypes.JSONText"
+          },
+          {
+            "name": "config",
+            "required": false,
+            "title": "Arbitrary JSON holding application configuration",
+            "type": "sqlxTypes.JSONText"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "read",
+      "Method": "GET",
+      "Title": "Read application details",
+      "Path": "/{applicationID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "applicationID",
+            "required": true,
+            "title": "Application ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "delete",
+      "Method": "DELETE",
+      "Title": "Remove application",
+      "Path": "/{applicationID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "applicationID",
+            "required": true,
+            "title": "Application ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    }
+  ]
+}

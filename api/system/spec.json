@@ -575,6 +575,95 @@
     ]
   },
   {
+    "title": "Applications",
+    "path": "/application",
+    "entrypoint": "application",
+    "authentication": [],
+    "struct": [
+      {
+        "imports": [
+          "sqlxTypes github.com/jmoiron/sqlx/types"
+        ]
+      }
+    ],
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "title": "List applications",
+        "path": "/"
+      },
+      {
+        "name": "create",
+        "method": "POST",
+        "title": "Create application",
+        "path": "/",
+        "parameters": {
+          "post": [
+            { "name": "name",    "type": "string",             "required": true,   "title": "Email"},
+            { "name": "enabled", "type": "bool",               "required": false,  "title": "Enabled"},
+            { "name": "unify",   "type": "sqlxTypes.JSONText", "required": false,  "title": "Unify properties"},
+            { "name": "config",  "type": "sqlxTypes.JSONText", "required": false,  "title": "Arbitrary JSON holding application configuration"}
+          ]
+        }
+      },
+      {
+        "name": "update",
+        "method": "PUT",
+        "title": "Update user details",
+        "path": "/{applicationID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "applicationID",
+              "required": true,
+              "title": "Application ID"
+            }
+          ],
+          "post": [
+            { "name": "name",    "type": "string",             "required": true,   "title": "Email"},
+            { "name": "enabled", "type": "bool",               "required": false,  "title": "Enabled"},
+            { "name": "unify",   "type": "sqlxTypes.JSONText", "required": false,  "title": "Unify properties"},
+            { "name": "config",  "type": "sqlxTypes.JSONText", "required": false,  "title": "Arbitrary JSON holding application configuration"}
+          ]
+        }
+      },
+      {
+        "name": "read",
+        "method": "GET",
+        "title": "Read application details",
+        "path": "/{applicationID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "applicationID",
+              "required": true,
+              "title": "Application ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "method": "DELETE",
+        "title": "Remove application",
+        "path": "/{applicationID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "applicationID",
+              "required": true,
+              "title": "Application ID"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
     "title": "Permissions",
     "parameters": {},
     "entrypoint": "permissions",
