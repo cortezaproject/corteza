@@ -12,6 +12,7 @@ var (
 			"grant":               true,
 			"organisation.create": true,
 			"role.create":         true,
+			"application.create":  true,
 		},
 		"system:organisation": map[string]bool{
 			"access": true,
@@ -21,6 +22,11 @@ var (
 			"update":         true,
 			"delete":         true,
 			"members.manage": true,
+		},
+		"application:role": map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
 		},
 		"messaging": map[string]bool{
 			"access":                 true,

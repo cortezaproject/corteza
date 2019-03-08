@@ -39,6 +39,7 @@ function types {
 	./build/gen-type-set --with-primary-key=false --types Unread --output messaging/types/unread.gen.go
 
 	./build/gen-type-set --types User --output system/types/user.gen.go
+	./build/gen-type-set --types Application --output system/types/application.gen.go
 	./build/gen-type-set --with-resources=true --resource-type "rules.Resource" --imports "github.com/crusttech/crust/internal/rules" --types Role --output system/types/role.gen.go
 	./build/gen-type-set --with-resources=true --resource-type "rules.Resource" --imports "github.com/crusttech/crust/internal/rules" --types Organisation --output system/types/organisation.gen.go
 	./build/gen-type-set --types Credentials --output system/types/credentials.gen.go

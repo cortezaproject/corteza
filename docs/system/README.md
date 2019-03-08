@@ -1,3 +1,84 @@
+# Applications
+
+## List applications
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/application/` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+
+## Create application
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/application/` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| name | string | POST | Email | N/A | YES |
+| enabled | bool | POST | Enabled | N/A | NO |
+| unify | sqlxTypes.JSONText | POST | Unify properties | N/A | NO |
+| config | sqlxTypes.JSONText | POST | Arbitrary JSON holding application configuration | N/A | NO |
+
+## Update user details
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/application/{applicationID}` | HTTP/S | PUT |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| applicationID | uint64 | PATH | Application ID | N/A | YES |
+| name | string | POST | Email | N/A | YES |
+| enabled | bool | POST | Enabled | N/A | NO |
+| unify | sqlxTypes.JSONText | POST | Unify properties | N/A | NO |
+| config | sqlxTypes.JSONText | POST | Arbitrary JSON holding application configuration | N/A | NO |
+
+## Read application details
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/application/{applicationID}` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| applicationID | uint64 | PATH | Application ID | N/A | YES |
+
+## Remove application
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/application/{applicationID}` | HTTP/S | DELETE |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| applicationID | uint64 | PATH | Application ID | N/A | YES |
+
+
+
+
 # Authentication
 
 ## Check JWT token

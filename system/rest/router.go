@@ -50,6 +50,7 @@ func MountRoutes(oidcConfig *config.OIDC, socialConfig *config.Social, jwtEncode
 			handlers.NewRole(Role{}.New()).MountRoutes(r)
 			handlers.NewOrganisation(Organisation{}.New()).MountRoutes(r)
 			handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
+			handlers.NewApplication(Application{}.New()).MountRoutes(r)
 		})
 	}
 }
