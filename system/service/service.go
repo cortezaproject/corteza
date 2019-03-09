@@ -18,6 +18,7 @@ var (
 	DefaultRules        RulesService
 	DefaultOrganisation OrganisationService
 	DefaultApplication  ApplicationService
+	DefaultPermissions  PermissionsService
 )
 
 func Init() {
@@ -28,5 +29,6 @@ func Init() {
 		DefaultRules = Rules()
 		DefaultOrganisation = Organisation()
 		DefaultApplication = Application()
+		DefaultPermissions = Permissions()
 	})
 }
