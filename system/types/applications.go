@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+
+	"github.com/crusttech/crust/internal/rules"
 )
 
 type (
@@ -39,6 +41,19 @@ func (u *Application) Valid() bool {
 
 func (u *Application) Identity() uint64 {
 	return u.ID
+}
+
+// Resource returns a system resource ID for this type
+func (u *Application) Resource() rules.Resource {
+	resource := rules.Resource{
+		Service: "system",
+		Scope:   "application",
+	}
+	if u != nil {
+		resource.ID = u.ID
+		resource.Name = u.Name
+	}
+	return resource
 }
 
 func (au *ApplicationUnify) Scan(value interface{}) error {

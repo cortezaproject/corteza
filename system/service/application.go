@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/system/repository"
@@ -13,6 +14,8 @@ type (
 	application struct {
 		db  *factory.DB
 		ctx context.Context
+
+		prm PermissionsService
 
 		application repository.ApplicationRepository
 	}
@@ -30,7 +33,9 @@ type (
 )
 
 func Application() ApplicationService {
-	return (&application{}).With(context.Background())
+	return (&application{
+		prm: DefaultPermissions,
+	}).With(context.Background())
 }
 
 func (svc *application) With(ctx context.Context) ApplicationService {
@@ -38,28 +43,51 @@ func (svc *application) With(ctx context.Context) ApplicationService {
 	return &application{
 		db:          db,
 		ctx:         ctx,
+		prm:         svc.prm.With(ctx),
 		application: repository.Application(ctx, db),
 	}
 }
 
 func (svc *application) FindByID(id uint64) (*types.Application, error) {
-	// @todo: permission check if current user has access to this application
-	return svc.application.FindByID(id)
+	app, err := svc.application.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if !svc.prm.CanReadApplication(app) {
+		return nil, errors.New("Not allowed to access application")
+	}
+
+	return app, nil
 }
 
 func (svc *application) Find() (types.ApplicationSet, error) {
-	// @todo: permission check to return only applications that current user has access to
-	return svc.application.Find()
+	apps, err := svc.application.Find()
+	if err != nil {
+		return nil, err
+	}
+
+	ret := []*types.Application{}
+	for _, app := range apps {
+		if svc.prm.CanReadApplication(app) {
+			ret = append(ret, app)
+		}
+	}
+	return ret, nil
 }
 
 func (svc *application) Create(mod *types.Application) (*types.Application, error) {
-	// @todo: permission check if current user can add/edit application
-
+	if !svc.prm.CanCreateApplication() {
+		return nil, errors.New("Not allowed to create application")
+	}
 	return svc.application.Create(mod)
 }
 
 func (svc *application) Update(mod *types.Application) (t *types.Application, err error) {
-	// @todo: permission check if current user can add/edit application
+	if !svc.prm.CanUpdateApplication(mod) {
+		return nil, errors.New("Not allowed to update application")
+	}
+
 	// @todo: make sure archived & deleted entries can not be edited
 
 	return t, svc.db.Transaction(func() (err error) {
@@ -83,7 +111,11 @@ func (svc *application) Update(mod *types.Application) (t *types.Application, er
 func (svc *application) DeleteByID(id uint64) error {
 	// @todo: make history unavailable
 	// @todo: notify users that application has been removed (remove from web UI)
-	// @todo: permissions check if current user can remove application
+
+	app := &types.Application{ID: id}
+	if !svc.prm.CanDeleteApplication(app) {
+		return errors.New("Not allowed to delete application")
+	}
 	return svc.application.DeleteByID(id)
 }
 

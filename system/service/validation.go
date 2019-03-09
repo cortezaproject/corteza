@@ -23,7 +23,7 @@ var (
 			"delete":         true,
 			"members.manage": true,
 		},
-		"application:role": map[string]bool{
+		"system:application": map[string]bool{
 			"read":   true,
 			"update": true,
 			"delete": true,
