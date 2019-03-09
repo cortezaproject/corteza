@@ -57,17 +57,17 @@ func TestPermissions(t *testing.T) {
 
 	// Generate services.
 	permissionsSvc := Permissions().With(ctx)
-	systemPermissionSvc := systemService.Permissions().With(ctx)
+	systemRulesSvc := systemService.Rules().With(ctx)
 
 	// Test `access` to compose service.
 	ret := permissionsSvc.CanAccessCompose()
-	Assert(t, ret == false, "expected CanAccessCompose == false, got %v", ret)
+	Assert(t, ret == true, "expected CanAccessCompose == true, got %v", ret)
 
 	// Add `access` to compose service.
 	list := []rules.Rule{
 		rules.Rule{Resource: "compose", Operation: "access", Value: rules.Allow},
 	}
-	_, err = systemPermissionSvc.Update(role.ID, list)
+	_, err = systemRulesSvc.Update(role.ID, list)
 	NoError(t, err, "expected no error, got %v", err)
 
 	// Test `access` to compose service.

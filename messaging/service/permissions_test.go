@@ -64,7 +64,7 @@ func TestPermissions(t *testing.T) {
 	}).With(ctx)
 
 	permissionsSvc := Permissions().With(ctx)
-	systemPermissionSvc := systemService.Permissions().With(ctx)
+	systemRulesSvc := systemService.Rules().With(ctx)
 
 	// Test `access` to messaging service.
 	ret := permissionsSvc.CanAccessMessaging()
@@ -74,7 +74,7 @@ func TestPermissions(t *testing.T) {
 	list := []rules.Rule{
 		rules.Rule{Resource: "messaging", Operation: "access", Value: rules.Allow},
 	}
-	_, err = systemPermissionSvc.Update(role.ID, list)
+	_, err = systemRulesSvc.Update(role.ID, list)
 	NoError(t, err, "expected no error, got %v", err)
 
 	// Test `access` to messaging service.
@@ -100,7 +100,7 @@ func TestPermissions(t *testing.T) {
 		list = []rules.Rule{
 			rules.Rule{Resource: "messaging:channel:*", Operation: "read", Value: rules.Allow},
 		}
-		_, err = systemPermissionSvc.Update(role.ID, list)
+		_, err = systemRulesSvc.Update(role.ID, list)
 		NoError(t, err, "expected no error, got %v", err)
 
 		ret = permissionsSvc.CanRead(ch)
@@ -113,7 +113,7 @@ func TestPermissions(t *testing.T) {
 		list = []rules.Rule{
 			rules.Rule{Resource: "messaging:channel:*", Operation: "join", Value: rules.Deny},
 		}
-		_, err = systemPermissionSvc.Update(role.ID, list)
+		_, err = systemRulesSvc.Update(role.ID, list)
 		NoError(t, err, "expected no error, got %v", err)
 
 		ret = permissionsSvc.CanJoin(ch)
@@ -123,7 +123,7 @@ func TestPermissions(t *testing.T) {
 		list = []rules.Rule{
 			rules.Rule{Resource: ch.Resource().String(), Operation: "join", Value: rules.Allow},
 		}
-		_, err = systemPermissionSvc.Update(role.ID, list)
+		_, err = systemRulesSvc.Update(role.ID, list)
 		NoError(t, err, "expected no error, got %v", err)
 
 		ret = permissionsSvc.CanJoin(ch)

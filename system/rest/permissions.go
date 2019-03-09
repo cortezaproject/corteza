@@ -14,29 +14,29 @@ var _ = errors.Wrap
 type (
 	Permissions struct {
 		svc struct {
-			perm service.PermissionsService
+			rules service.RulesService
 		}
 	}
 )
 
 func (Permissions) New() *Permissions {
 	ctrl := &Permissions{}
-	ctrl.svc.perm = service.DefaultPermissions
+	ctrl.svc.rules = service.DefaultRules
 	return ctrl
 }
 
 func (ctrl *Permissions) List(ctx context.Context, r *request.PermissionsList) (interface{}, error) {
-	return ctrl.svc.perm.List()
+	return ctrl.svc.rules.List()
 }
 
 func (ctrl *Permissions) Read(ctx context.Context, r *request.PermissionsRead) (interface{}, error) {
-	return ctrl.svc.perm.Read(r.RoleID)
+	return ctrl.svc.rules.Read(r.RoleID)
 }
 
 func (ctrl *Permissions) Delete(ctx context.Context, r *request.PermissionsDelete) (interface{}, error) {
-	return ctrl.svc.perm.Delete(r.RoleID)
+	return ctrl.svc.rules.Delete(r.RoleID)
 }
 
 func (ctrl *Permissions) Update(ctx context.Context, r *request.PermissionsUpdate) (interface{}, error) {
-	return ctrl.svc.perm.Update(r.RoleID, r.Permissions)
+	return ctrl.svc.rules.Update(r.RoleID, r.Permissions)
 }
