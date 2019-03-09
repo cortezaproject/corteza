@@ -13,7 +13,7 @@ type (
 		db  db
 		ctx context.Context
 
-		prm systemService.PermissionsService
+		rules systemService.RulesService
 	}
 
 	PermissionsService interface {
@@ -25,7 +25,7 @@ type (
 
 func Permissions() PermissionsService {
 	return (&permissions{
-		prm: systemService.DefaultPermissions,
+		rules: systemService.DefaultRules,
 	}).With(context.Background())
 }
 
@@ -35,7 +35,7 @@ func (p *permissions) With(ctx context.Context) PermissionsService {
 		db:  db,
 		ctx: ctx,
 
-		prm: p.prm.With(ctx),
+		rules: p.rules.With(ctx),
 	}
 }
 
@@ -43,8 +43,12 @@ func (p *permissions) CanAccessCompose() bool {
 	return p.checkAccess("compose", "access")
 }
 
+func (p *permissions) CanCreateNamspace() bool {
+	return p.checkAccess("compose", "namespace.create")
+}
+
 func (p *permissions) checkAccess(resource string, operation string, fallbacks ...internalRules.CheckAccessFunc) bool {
-	access := p.prm.Check(resource, operation, fallbacks...)
+	access := p.rules.Check(resource, operation, fallbacks...)
 	if access == internalRules.Allow {
 		return true
 	}

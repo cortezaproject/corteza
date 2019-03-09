@@ -14,7 +14,7 @@ type (
 		db  db
 		ctx context.Context
 
-		prm systemService.PermissionsService
+		rules systemService.RulesService
 	}
 
 	PermissionsService interface {
@@ -47,7 +47,7 @@ type (
 
 func Permissions() PermissionsService {
 	return (&permissions{
-		prm: systemService.Permissions(),
+		rules: systemService.Rules(),
 	}).With(context.Background())
 }
 
@@ -57,7 +57,7 @@ func (p *permissions) With(ctx context.Context) PermissionsService {
 		db:  db,
 		ctx: ctx,
 
-		prm: p.prm.With(ctx),
+		rules: p.rules.With(ctx),
 	}
 }
 
@@ -138,7 +138,7 @@ func (p *permissions) CanReactMessage(ch *types.Channel) bool {
 }
 
 func (p *permissions) checkAccess(resource string, operation string, fallbacks ...internalRules.CheckAccessFunc) bool {
-	access := p.prm.Check(resource, operation, fallbacks...)
+	access := p.rules.Check(resource, operation, fallbacks...)
 	if access == internalRules.Allow {
 		return true
 	}

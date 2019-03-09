@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/crusttech/crust/internal/rules"
+	internalRules "github.com/crusttech/crust/internal/rules"
 	"github.com/crusttech/crust/system/repository"
 	"github.com/crusttech/crust/system/types"
 )
@@ -16,41 +16,41 @@ const (
 )
 
 type (
-	permissions struct {
+	rules struct {
 		db  db
 		ctx context.Context
 
-		resources rules.ResourcesInterface
+		resources internalRules.ResourcesInterface
 	}
 
-	PermissionsService interface {
-		With(ctx context.Context) PermissionsService
+	RulesService interface {
+		With(ctx context.Context) RulesService
 
 		List() (interface{}, error)
 
-		Check(resource string, operation string, fallbacks ...rules.CheckAccessFunc) rules.Access
+		Check(resource string, operation string, fallbacks ...internalRules.CheckAccessFunc) internalRules.Access
 
 		Read(roleID uint64) (interface{}, error)
-		Update(roleID uint64, rules []rules.Rule) (interface{}, error)
+		Update(roleID uint64, rules []internalRules.Rule) (interface{}, error)
 		Delete(roleID uint64) (interface{}, error)
 	}
 )
 
-func Permissions() PermissionsService {
-	return (&permissions{}).With(context.Background())
+func Rules() RulesService {
+	return (&rules{}).With(context.Background())
 }
 
-func (p *permissions) With(ctx context.Context) PermissionsService {
+func (p *rules) With(ctx context.Context) RulesService {
 	db := repository.DB(ctx)
-	return &permissions{
+	return &rules{
 		db:  db,
 		ctx: ctx,
 
-		resources: rules.NewResources(ctx, db),
+		resources: internalRules.NewResources(ctx, db),
 	}
 }
 
-func (p *permissions) List() (interface{}, error) {
+func (p *rules) List() (interface{}, error) {
 	perms := []types.Permission{}
 	for resource, operations := range permissionList {
 		err := p.checkServiceAccess(resource)
@@ -63,18 +63,18 @@ func (p *permissions) List() (interface{}, error) {
 	return perms, nil
 }
 
-func (p *permissions) Check(resource string, operation string, fallbacks ...rules.CheckAccessFunc) rules.Access {
+func (p *rules) Check(resource string, operation string, fallbacks ...internalRules.CheckAccessFunc) internalRules.Access {
 	return p.resources.Check(resource, operation, fallbacks...)
 }
 
-func (p *permissions) Read(roleID uint64) (interface{}, error) {
+func (p *rules) Read(roleID uint64) (interface{}, error) {
 	ret, err := p.resources.Read(roleID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Only display rules under granted scopes.
-	rules := []rules.Rule{}
+	rules := []internalRules.Rule{}
 	for _, rule := range ret {
 		err = p.checkServiceAccess(rule.Resource)
 		if err == nil {
@@ -84,7 +84,7 @@ func (p *permissions) Read(roleID uint64) (interface{}, error) {
 	return rules, nil
 }
 
-func (p *permissions) Update(roleID uint64, rules []rules.Rule) (interface{}, error) {
+func (p *rules) Update(roleID uint64, rules []internalRules.Rule) (interface{}, error) {
 	for _, rule := range rules {
 		err := validatePermission(rule.Resource, rule.Operation)
 		if err != nil {
@@ -102,15 +102,15 @@ func (p *permissions) Update(roleID uint64, rules []rules.Rule) (interface{}, er
 	return p.resources.Read(roleID)
 }
 
-func (p *permissions) Delete(roleID uint64) (interface{}, error) {
+func (p *rules) Delete(roleID uint64) (interface{}, error) {
 	return nil, p.resources.Delete(roleID)
 }
 
-func (p *permissions) checkServiceAccess(resource string) error {
+func (p *rules) checkServiceAccess(resource string) error {
 	service := strings.Split(resource, delimiter)[0]
 
 	grant := p.resources.Check(service, "grant")
-	if grant == rules.Allow {
+	if grant == internalRules.Allow {
 		return nil
 	}
 	return errors.Errorf("No grant permissions for: %v", service)
