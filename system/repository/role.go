@@ -28,8 +28,8 @@ type (
 		MoveByID(id, targetOrganisationID uint64) error
 
 		MemberFindByRoleID(roleID uint64) ([]*types.RoleMember, error)
-		MemberAddByID(id, userID uint64) error
-		MemberRemoveByID(id, userID uint64) error
+		MemberAddByID(roleID, userID uint64) error
+		MemberRemoveByID(roleID, userID uint64) error
 	}
 
 	role struct {
@@ -147,17 +147,17 @@ func (r *role) MemberFindByRoleID(roleID uint64) (mm []*types.RoleMember, err er
 	return rval, r.db().Select(&rval, sql, roleID)
 }
 
-func (r *role) MemberAddByID(id, userID uint64) error {
+func (r *role) MemberAddByID(roleID, userID uint64) error {
 	mod := &types.RoleMember{
-		RoleID: id,
+		RoleID: roleID,
 		UserID: userID,
 	}
 	return r.db().Replace(r.members, mod)
 }
 
-func (r *role) MemberRemoveByID(id, userID uint64) error {
+func (r *role) MemberRemoveByID(roleID, userID uint64) error {
 	mod := &types.RoleMember{
-		RoleID: id,
+		RoleID: roleID,
 		UserID: userID,
 	}
 	return r.db().Delete(r.members, mod, "rel_role", "rel_user")
