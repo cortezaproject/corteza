@@ -27,6 +27,10 @@ type (
 		CanUpdateRole(rl *types.Role) bool
 		CanDeleteRole(rl *types.Role) bool
 		CanManageRoleMembers(rl *types.Role) bool
+
+		CanReadApplication(app *types.Application) bool
+		CanUpdateApplication(app *types.Application) bool
+		CanDeleteApplication(app *types.Application) bool
 	}
 )
 
@@ -72,6 +76,18 @@ func (p *permissions) CanDeleteRole(rl *types.Role) bool {
 
 func (p *permissions) CanManageRoleMembers(rl *types.Role) bool {
 	return p.checkAccess(rl.Resource().String(), "members.manage")
+}
+
+func (p *permissions) CanReadApplication(app *types.Application) bool {
+	return p.checkAccess(app.Resource().String(), "read")
+}
+
+func (p *permissions) CanUpdateApplication(app *types.Application) bool {
+	return p.checkAccess(app.Resource().String(), "update")
+}
+
+func (p *permissions) CanDeleteApplication(app *types.Application) bool {
+	return p.checkAccess(app.Resource().String(), "delete")
 }
 
 func (p *permissions) checkAccess(resource string, operation string, fallbacks ...internalRules.CheckAccessFunc) bool {
