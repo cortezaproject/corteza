@@ -223,10 +223,6 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 			}
 		}
 
-		if in.Topic != "" && false {
-			return errors.New("Not allowed to set channel topic")
-		}
-
 		if in.Type == types.ChannelTypePublic && !svc.prm.CanCreatePublicChannel() {
 			return errors.New("Not allowed to create public channels")
 		}
