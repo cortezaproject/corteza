@@ -23,12 +23,12 @@ var (
 
 func Init() {
 	o.Do(func() {
+		DefaultRules = Rules()
+		DefaultPermissions = Permissions()
 		DefaultAuth = Auth()
 		DefaultUser = User()
 		DefaultRole = Role()
-		DefaultRules = Rules()
 		DefaultOrganisation = Organisation()
 		DefaultApplication = Application()
-		DefaultPermissions = Permissions()
 	})
 }
