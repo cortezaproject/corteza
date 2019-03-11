@@ -20,10 +20,11 @@ type (
 		db  *factory.DB
 		ctx context.Context
 
+		prmSvc  PermissionsService
+		userSvc systemService.UserService
+
 		repository repository.RecordRepository
 		moduleRepo repository.ModuleRepository
-
-		userSvc systemService.UserService
 	}
 
 	RecordService interface {
@@ -45,6 +46,7 @@ type (
 
 func Record() RecordService {
 	return (&record{
+		prmSvc:  DefaultPermissions,
 		userSvc: systemService.DefaultUser,
 	}).With(context.Background())
 }
@@ -52,11 +54,14 @@ func Record() RecordService {
 func (svc *record) With(ctx context.Context) RecordService {
 	db := repository.DB(ctx)
 	return &record{
-		db:         db,
-		ctx:        ctx,
+		db:  db,
+		ctx: ctx,
+
+		prmSvc:  svc.prmSvc.With(ctx),
+		userSvc: svc.userSvc.With(ctx),
+
 		repository: repository.Record(ctx, db),
 		moduleRepo: repository.Module(ctx, db),
-		userSvc:    svc.userSvc.With(ctx),
 	}
 }
 
@@ -64,6 +69,8 @@ func (svc *record) FindByID(recordID uint64) (r *types.Record, err error) {
 	err = svc.db.Transaction(func() (err error) {
 		if r, err = svc.repository.FindByID(recordID); err != nil {
 			return
+		} else if !svc.prmSvc.CanReadRecord(r) {
+			return errors.New("not allowed to access this record")
 		}
 
 		if err = svc.preloadValues(r); err != nil {
@@ -82,6 +89,8 @@ func (svc *record) Report(moduleID uint64, metrics, dimensions, filter string) (
 	err = svc.db.Transaction(func() (err error) {
 		if module, err = svc.moduleRepo.FindByID(moduleID); err != nil {
 			return
+		} else if !svc.prmSvc.CanReadRecord(module) {
+			return errors.New("not allowed to access this record")
 		}
 
 		out, err = svc.repository.Report(module, metrics, dimensions, filter)
@@ -97,6 +106,8 @@ func (svc *record) Find(moduleID uint64, filter, sort string, page, perPage int)
 	err = svc.db.Transaction(func() (err error) {
 		if module, err = svc.moduleRepo.FindByID(moduleID); err != nil {
 			return
+		} else if !svc.prmSvc.CanReadRecord(module) {
+			return errors.New("not allowed to access this record")
 		}
 
 		if rsp, err = svc.repository.Find(module, filter, sort, page, perPage); err != nil {
@@ -120,6 +131,8 @@ func (svc *record) Create(in *types.Record) (record *types.Record, err error) {
 	err = svc.db.Transaction(func() (err error) {
 		if module, err = svc.moduleRepo.FindByID(in.ModuleID); err != nil {
 			return
+		} else if !svc.prmSvc.CanCreateRecord(module) {
+			return errors.New("not allowed to create records for this module")
 		}
 
 		if err = svc.sanitizeValues(module, in.Values); err != nil {
@@ -157,6 +170,8 @@ func (svc *record) Update(updated *types.Record) (record *types.Record, err erro
 
 		if record, err = svc.repository.FindByID(updated.ID); err != nil {
 			return errors.Wrap(err, "nonexistent record")
+		} else if !svc.prmSvc.CanUpdateRecord(record) {
+			return errors.New("not allowed to update this record")
 		}
 
 		if module, err = svc.moduleRepo.FindByID(updated.ModuleID); err != nil {
