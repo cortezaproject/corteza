@@ -50,17 +50,25 @@ func (r *resources) Check(resource string, operation string, fallbacks ...CheckA
 		return Deny
 	}
 
-	// Create resource definition for global level.
-	parts[len(parts)-1] = "*"
-	globalResource := strings.Join(parts, delimiter)
-
-	// Access checks.
+	// Resource-specific check
 	checks := []CheckAccessFunc{
 		func() Access { return r.checkAccess(resource, operation) },
 		func() Access { return r.checkAccessEveryone(resource, operation) },
-		func() Access { return r.checkAccess(globalResource, operation) },
-		func() Access { return r.checkAccessEveryone(globalResource, operation) },
 	}
+
+	if len(parts) > 1 {
+		// If this is a non-service resource (so, not system, messaging),
+		// add checks for any-resouce (ending with `*`)
+		parts[len(parts)-1] = "*"
+		anyResource := strings.Join(parts, delimiter)
+
+		checks = append(
+			checks,
+			func() Access { return r.checkAccess(anyResource, operation) },
+			func() Access { return r.checkAccessEveryone(anyResource, operation) },
+		)
+	}
+
 	checks = append(checks, fallbacks...)
 
 	for _, check := range checks {
