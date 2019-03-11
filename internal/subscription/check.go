@@ -68,7 +68,7 @@ func Check(ctx context.Context) (err error) {
 		}
 
 		if err != nil {
-			log.Println("unable to check for licence: %v, try %d/%d", err, try, checkMaxTries)
+			log.Printf("unable to check for licence: %v, try %d/%d", err, try, checkMaxTries)
 		}
 
 		if try >= checkMaxTries {
