@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx/types"
+
+	"github.com/crusttech/crust/internal/rules"
 )
 
 type (
@@ -191,4 +193,37 @@ func (set RecordValueSet) FilterByRecordID(recordID uint64) (vv RecordValueSet) 
 	}
 
 	return
+}
+
+// Resource returns a system resource ID for this type
+func (r *Module) Resource() rules.Resource {
+	resource := rules.Resource{
+		Service: "compose",
+		Scope:   "module",
+		ID:      r.ID,
+	}
+
+	return resource
+}
+
+// Resource returns a system resource ID for this type
+func (r *Record) Resource() rules.Resource {
+	resource := rules.Resource{
+		Service: "compose",
+		Scope:   "module", // intentionally using module here so we can use Record's resource
+		ID:      r.ModuleID,
+	}
+
+	return resource
+}
+
+// Resource returns a system resource ID for this type
+func (r *Page) Resource() rules.Resource {
+	resource := rules.Resource{
+		Service: "compose",
+		Scope:   "page",
+		ID:      r.ID,
+	}
+
+	return resource
 }
