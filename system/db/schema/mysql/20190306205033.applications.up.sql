@@ -33,8 +33,9 @@ REPLACE INTO `sys_application` (`id`, `name`, `enabled`, `rel_owner`, `unify`) V
 
 -- Allow admin access to applications
 INSERT INTO `sys_rules` (`rel_role`, `resource`, `operation`, `value`) VALUES
+  (1, 'system:application:*', 'read', 2),
   (2, 'system', 'application.create', 2),
-  (2, 'application:role:*', 'read', 2),
-  (2, 'application:role:*', 'update', 2),
-  (2, 'application:role:*', 'delete', 2)
+  (2, 'system:application:*', 'read', 2),
+  (2, 'system:application:*', 'update', 2),
+  (2, 'system:application:*', 'delete', 2)
 ;

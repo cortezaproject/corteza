@@ -58,7 +58,7 @@ func (r *resources) Check(resource string, operation string, fallbacks ...CheckA
 
 	if len(parts) > 1 {
 		// If this is a non-service resource (so, not system, messaging),
-		// add checks for any-resouce (ending with `*`)
+		// add checks for any-resource (ending with `*`)
 		parts[len(parts)-1] = "*"
 		anyResource := strings.Join(parts, delimiter)
 
@@ -127,6 +127,7 @@ func (r *resources) checkAccessEveryone(resource string, operation string) Acces
 	if len(result) > 0 {
 		return result[0]
 	}
+
 	return Inherit
 }
 
