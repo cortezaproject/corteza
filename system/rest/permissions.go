@@ -26,17 +26,17 @@ func (Permissions) New() *Permissions {
 }
 
 func (ctrl *Permissions) List(ctx context.Context, r *request.PermissionsList) (interface{}, error) {
-	return ctrl.svc.rules.List()
+	return ctrl.svc.rules.With(ctx).List()
 }
 
 func (ctrl *Permissions) Read(ctx context.Context, r *request.PermissionsRead) (interface{}, error) {
-	return ctrl.svc.rules.Read(r.RoleID)
+	return ctrl.svc.rules.With(ctx).Read(r.RoleID)
 }
 
 func (ctrl *Permissions) Delete(ctx context.Context, r *request.PermissionsDelete) (interface{}, error) {
-	return ctrl.svc.rules.Delete(r.RoleID)
+	return ctrl.svc.rules.With(ctx).Delete(r.RoleID)
 }
 
 func (ctrl *Permissions) Update(ctx context.Context, r *request.PermissionsUpdate) (interface{}, error) {
-	return ctrl.svc.rules.Update(r.RoleID, r.Permissions)
+	return ctrl.svc.rules.With(ctx).Update(r.RoleID, r.Permissions)
 }
