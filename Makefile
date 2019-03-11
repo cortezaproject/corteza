@@ -1,4 +1,4 @@
-.PHONY: nothing docker docker-push realize dep dep.update test test.rbac test.messaging test.crm qa critic vet codegen
+.PHONY: help docker docker-push realize dep dep.update test test.rbac test.messaging test.crm qa critic vet codegen
 
 PKG       = "github.com/$(shell cat .project)"
 
@@ -16,7 +16,7 @@ GOTEST    = ${GOPATH}/bin/gotest
 GOCRITIC  = ${GOPATH}/bin/gocritic
 MOCKGEN   = ${GOPATH}/bin/mockgen
 
-nothing:
+help:
 	@echo
 	@echo Usage: make [target]
 	@echo
