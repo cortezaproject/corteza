@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx/types"
+
+	"github.com/crusttech/crust/internal/rules"
 )
 
 type (
@@ -18,3 +20,14 @@ type (
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
 	}
 )
+
+// Resource returns a system resource ID for this type
+func (r *Chart) Resource() rules.Resource {
+	resource := rules.Resource{
+		Service: "compose",
+		Scope:   "page",
+		ID:      r.ID,
+	}
+
+	return resource
+}
