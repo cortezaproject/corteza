@@ -6,7 +6,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
@@ -18,7 +17,6 @@ import (
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/mail"
 	"github.com/crusttech/crust/internal/metrics"
-	"github.com/crusttech/crust/internal/version"
 )
 
 var (
@@ -75,7 +73,6 @@ func InitDb() error {
 }
 
 func StartRestAPI(ctx context.Context) error {
-	log.Printf("Starting "+os.Args[0]+", version: %v, built on: %v", version.Version, version.BuildTime)
 	log.Println("Starting http server on address " + flags.http.Addr)
 	listener, err := net.Listen("tcp", flags.http.Addr)
 	if err != nil {

@@ -1,14 +1,12 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
-	"os"
 
-	"github.com/SentimensRG/ctx"
-	"github.com/SentimensRG/ctx/sigctx"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 
@@ -20,7 +18,6 @@ import (
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/mail"
 	"github.com/crusttech/crust/internal/metrics"
-	"github.com/crusttech/crust/internal/version"
 )
 
 var (
@@ -71,8 +68,7 @@ func Init() error {
 	return nil
 }
 
-func Start() error {
-	log.Printf("Starting "+os.Args[0]+", version: %v, built on: %v", version.Version, version.BuildTime)
+func StartRestAPI(ctx context.Context) error {
 	log.Println("Starting http server on address " + flags.http.Addr)
 	listener, err := net.Listen("tcp", flags.http.Addr)
 	if err != nil {
@@ -83,9 +79,8 @@ func Start() error {
 		go metrics.NewMonitor(flags.monitor.Interval)
 	}
 
-	var deadline = sigctx.New()
-	go http.Serve(listener, Routes(ctx.AsContext(deadline)))
-	<-deadline.Done()
+	go http.Serve(listener, Routes(ctx))
+	<-ctx.Done()
 
 	return nil
 }

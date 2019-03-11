@@ -7,19 +7,21 @@ import (
 	context "github.com/SentimensRG/ctx"
 	"github.com/SentimensRG/ctx/sigctx"
 
-	"github.com/crusttech/crust/internal/subscription"
-	service "github.com/crusttech/crust/system"
-
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/rbac"
+	"github.com/crusttech/crust/internal/subscription"
+	"github.com/crusttech/crust/internal/version"
+	sub "github.com/crusttech/crust/system"
 )
 
 func main() {
+	log.Printf("Starting "+os.Args[0]+", version: %v, built on: %v", version.Version, version.BuildTime)
+
 	ctx := context.AsContext(sigctx.New())
 
 	flags(
 		"system",
-		service.Flags,
+		sub.Flags,
 		auth.Flags,
 		rbac.Flags,
 		subscription.Flags,
@@ -29,7 +31,7 @@ func main() {
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	if err := service.Init(); err != nil {
+	if err := sub.Init(); err != nil {
 		log.Fatalf("Error initializing: %+v", err)
 	}
 
@@ -40,18 +42,11 @@ func main() {
 
 	switch command {
 	case "help":
-	case "merge-users":
 	default:
-		log.Println("Validating subscription")
-		// Checks subscription & runs internal checker that runs every 24h
-		if err := subscription.Check(ctx); err != nil {
-			log.Printf("Subscription could not be validated, reason: %v", err)
-			os.Exit(-1)
-		} else {
-			log.Println("Subscription valdiated")
-		}
+		// Checks subscription, will os.Exit(1) if there is an error
+		ctx = subscription.Monitor(ctx)
 
-		if err := service.StartRestAPI(ctx); err != nil {
+		if err := sub.StartRestAPI(ctx); err != nil {
 			log.Fatalf("Error starting/running: %+v", err)
 		}
 	}
