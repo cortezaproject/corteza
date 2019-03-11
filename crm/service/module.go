@@ -15,6 +15,8 @@ type (
 		db  *factory.DB
 		ctx context.Context
 
+		prmSvc PermissionsService
+
 		moduleRepo repository.ModuleRepository
 		pageRepo   repository.PageRepository
 	}
@@ -23,7 +25,7 @@ type (
 		With(ctx context.Context) ModuleService
 
 		FindByID(moduleID uint64) (*types.Module, error)
-		Find() ([]*types.Module, error)
+		Find() (types.ModuleSet, error)
 
 		Create(module *types.Module) (*types.Module, error)
 		Update(module *types.Module) (*types.Module, error)
@@ -32,46 +34,67 @@ type (
 )
 
 func Module() ModuleService {
-	return (&module{}).With(context.Background())
+	return (&module{
+		prmSvc: DefaultPermissions,
+	}).With(context.Background())
 }
 
-func (s *module) With(ctx context.Context) ModuleService {
+func (svc *module) With(ctx context.Context) ModuleService {
 	db := repository.DB(ctx)
 	return &module{
-		db:         db,
-		ctx:        ctx,
+		db:  db,
+		ctx: ctx,
+
+		prmSvc: svc.prmSvc.With(ctx),
+
 		moduleRepo: repository.Module(ctx, db),
 		pageRepo:   repository.Page(ctx, db),
 	}
 }
 
-func (s *module) FindByID(id uint64) (*types.Module, error) {
-	mod, err := s.moduleRepo.FindByID(id)
-	if err != nil {
-		return nil, err
+func (svc *module) FindByID(id uint64) (m *types.Module, err error) {
+	if m, err = svc.moduleRepo.FindByID(id); err != nil {
+		return
+	} else if !svc.prmSvc.CanReadModule(m) {
+		return nil, errors.New("not allowed to access this module")
 	}
 
-	return mod, err
+	return
 }
 
-func (s *module) Find() ([]*types.Module, error) {
-	return s.moduleRepo.Find()
+func (svc *module) Find() (mm types.ModuleSet, err error) {
+	if mm, err = svc.moduleRepo.Find(); err != nil {
+		return nil, err
+	} else {
+		return mm.Filter(func(m *types.Module) (bool, error) {
+			return svc.prmSvc.CanReadModule(m), nil
+		})
+	}
 }
 
-func (s *module) Create(mod *types.Module) (*types.Module, error) {
+func (svc *module) Create(mod *types.Module) (*types.Module, error) {
+	if !svc.prmSvc.CanCreateModule() {
+		return nil, errors.New("not allowed to create this module")
+	}
+
 	if len(mod.Fields) == 0 {
 		return nil, errors.New("Error creating module: no fields")
 	}
-	return s.moduleRepo.Create(mod)
+
+	return svc.moduleRepo.Create(mod)
 }
 
-func (s *module) Update(module *types.Module) (m *types.Module, err error) {
+func (svc *module) Update(module *types.Module) (m *types.Module, err error) {
 	validate := func() error {
 		if module.ID == 0 {
 			return errors.New("Error updating module: invalid ID")
-		} else if m, err = s.moduleRepo.FindByID(module.ID); err != nil {
+		} else if m, err = svc.moduleRepo.FindByID(module.ID); err != nil {
 			return errors.Wrap(err, "Error while loading module for update")
 		} else {
+			if !svc.prmSvc.CanUpdateModule(m) {
+				return errors.New("not allowed to update this module")
+			}
+
 			module.CreatedAt = m.CreatedAt
 		}
 
@@ -86,12 +109,16 @@ func (s *module) Update(module *types.Module) (m *types.Module, err error) {
 		return nil, err
 	}
 
-	return m, s.db.Transaction(func() (err error) {
-		m, err = s.moduleRepo.Update(module)
+	return m, svc.db.Transaction(func() (err error) {
+		m, err = svc.moduleRepo.Update(module)
 		return
 	})
 }
 
-func (s *module) DeleteByID(id uint64) error {
-	return s.moduleRepo.DeleteByID(id)
+func (svc *module) DeleteByID(ID uint64) error {
+	if !svc.prmSvc.CanDeleteModuleByID(ID) {
+		return errors.New("not allowed to delete this module")
+	}
+
+	return svc.moduleRepo.DeleteByID(ID)
 }
