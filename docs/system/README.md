@@ -232,6 +232,20 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 
+## Effective rules for current user
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/permissions/effective` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| resource | string | GET | Show only rules for a specific resource | N/A | NO |
+
 ## Retrieve role permissions
 
 #### Method

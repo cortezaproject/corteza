@@ -1,8 +1,9 @@
-INSERT INTO `sys_role` (`id`, `name`, `handle`) VALUES (1, 'Everyone', 'everyone');
-INSERT INTO `sys_role` (`id`, `name`, `handle`) VALUES (2, 'Administrators', 'admins');
+REPLACE INTO `sys_role` (`id`, `name`, `handle`) VALUES
+  (1, 'Everyone', 'everyone'),
+  (2, 'Administrators', 'admins');
 
 -- Value: Allow (2), Deny (1), Inherit(0),
-INSERT INTO `sys_rules` (`rel_role`, `resource`, `operation`, `value`) VALUES
+REPLACE INTO `sys_rules` (`rel_role`, `resource`, `operation`, `value`) VALUES
 -- Everyone
   (1, 'compose:*', 'access', 2),
   (1, 'messaging:*', 'access', 2),
@@ -26,6 +27,7 @@ INSERT INTO `sys_rules` (`rel_role`, `resource`, `operation`, `value`) VALUES
   (2, 'compose:page:*', 'read', 2),
   (2, 'compose:page:*', 'update', 2),
   (2, 'compose:page:*', 'delete', 2),
+  (2, 'system:*', 'access', 2),
   (2, 'system:*', 'grant', 2),
   (2, 'system:*', 'organisation.create', 2),
   (2, 'system:*', 'role.create', 2),
@@ -38,20 +40,26 @@ INSERT INTO `sys_rules` (`rel_role`, `resource`, `operation`, `value`) VALUES
   (2, 'messaging:*', 'grant', 2),
   (2, 'messaging:*', 'channel.public.create', 2),
   (2, 'messaging:*', 'channel.private.create', 2),
-  (2, 'messaging:*', 'channel.direct.create', 2),
+  (2, 'messaging:*', 'channel.group.create', 2),
   (2, 'messaging:channel:*', 'update', 2),
-  (2, 'messaging:channel:*', 'message.attach', 2),
-  (2, 'messaging:channel:*', 'message.update.all', 2),
   (2, 'messaging:channel:*', 'leave', 2),
-  (2, 'messaging:channel:*', 'webhooks.manage', 2),
-  (2, 'messaging:channel:*', 'message.embed', 2),
-  (2, 'messaging:channel:*', 'members.manage', 2),
-  (2, 'messaging:channel:*', 'attachments.manage', 2),
-  (2, 'messaging:channel:*', 'message.send', 2),
-  (2, 'messaging:channel:*', 'message.reply', 2),
   (2, 'messaging:channel:*', 'read', 2),
   (2, 'messaging:channel:*', 'join', 2),
+  (2, 'messaging:channel:*', 'delete', 2),
+  (2, 'messaging:channel:*', 'undelete', 2),
+  (2, 'messaging:channel:*', 'archive', 2),
+  (2, 'messaging:channel:*', 'unarchive', 2),
+  (2, 'messaging:channel:*', 'members.manage', 2),
+  (2, 'messaging:channel:*', 'webhooks.manage', 2),
+  (2, 'messaging:channel:*', 'attachments.manage', 2),
+  (2, 'messaging:channel:*', 'message.attach', 2),
+  (2, 'messaging:channel:*', 'message.update.all', 2),
   (2, 'messaging:channel:*', 'message.update.own', 2),
+  (2, 'messaging:channel:*', 'message.delete.all', 2),
+  (2, 'messaging:channel:*', 'message.delete.own', 2),
+  (2, 'messaging:channel:*', 'message.embed', 2),
+  (2, 'messaging:channel:*', 'message.send', 2),
+  (2, 'messaging:channel:*', 'message.reply', 2),
   (2, 'messaging:channel:*', 'message.react', 2),
   (2, 'compose:module:*', 'read', 2),
   (2, 'compose:module:*', 'update', 2),

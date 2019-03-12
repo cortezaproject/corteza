@@ -9,6 +9,7 @@ import (
 var (
 	permissionList = map[string]map[string]bool{
 		"system": map[string]bool{
+			"access":              true,
 			"grant":               true,
 			"organisation.create": true,
 			"role.create":         true,

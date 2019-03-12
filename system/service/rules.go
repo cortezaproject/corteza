@@ -23,10 +23,17 @@ type (
 		resources internalRules.ResourcesInterface
 	}
 
+	effectiveRules struct {
+		Resource  string `json:"resource"`
+		Operation string `json:"operation"`
+		Allow     bool   `json:"allow"`
+	}
+
 	RulesService interface {
 		With(ctx context.Context) RulesService
 
 		List() (interface{}, error)
+		Effective(filter string) ([]effectiveRules, error)
 
 		Check(resource string, operation string, fallbacks ...internalRules.CheckAccessFunc) internalRules.Access
 
@@ -61,6 +68,23 @@ func (p *rules) List() (interface{}, error) {
 		}
 	}
 	return perms, nil
+}
+
+func (p *rules) Effective(filter string) (eff []effectiveRules, err error) {
+	eff = []effectiveRules{}
+	for resource, operations := range permissionList {
+		// err := p.checkServiceAccess(resource)
+		if err == nil {
+			for ops := range operations {
+				eff = append(eff, effectiveRules{
+					Resource:  resource,
+					Operation: ops,
+					Allow:     false,
+				})
+			}
+		}
+	}
+	return
 }
 
 func (p *rules) Check(resource string, operation string, fallbacks ...internalRules.CheckAccessFunc) internalRules.Access {

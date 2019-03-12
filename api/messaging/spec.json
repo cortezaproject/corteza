@@ -1,5 +1,29 @@
 [
   {
+    "title": "Permissions",
+    "parameters": {},
+    "entrypoint": "permissions",
+    "path": "/permissions",
+    "apis": [
+      {
+        "name": "effective",
+        "path": "/effective",
+        "method": "GET",
+        "title": "Effective rules for current user",
+        "parameters": {
+          "get": [
+            {
+              "name": "resource",
+              "type": "string",
+              "required": false,
+              "title": "Show only rules for a specific resource"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
     "title": "Channels",
     "description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or group.",
     "entrypoint": "channel",

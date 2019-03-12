@@ -3,8 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/crusttech/crust/crm/repository"
 	"github.com/crusttech/crust/crm/types"
 	internalRules "github.com/crusttech/crust/internal/rules"
@@ -26,7 +24,9 @@ type (
 	PermissionsService interface {
 		With(context.Context) PermissionsService
 
-		CanAccessCompose() bool
+		Effective() (ee []effectivePermission, err error)
+
+		CanAccess() bool
 		CanCreateNamspace() bool
 		CanCreateModule() bool
 		CanReadModule(r resource) bool
@@ -53,6 +53,12 @@ type (
 		CanUpdatePage(r resource) bool
 		CanDeletePage(r resource) bool
 		CanDeletePageByID(ID uint64) bool
+	}
+
+	effectivePermission struct {
+		Resource  string `json:"resource"`
+		Operation string `json:"operation"`
+		Allow     bool   `json:"allow"`
 	}
 
 	Compose struct{}
@@ -82,9 +88,34 @@ func (p *permissions) baseResource() resource {
 	return &Compose{}
 }
 
-func (p *permissions) CanAccessCompose() bool {
-	spew.Dump(p.baseResource().Resource().String())
+// Return permissions
+func (p *permissions) Effective() (ee []effectivePermission, err error) {
+	ep := func(res, op string, allow bool) effectivePermission {
+		return effectivePermission{
+			Resource:  res,
+			Operation: op,
+			Allow:     allow,
+		}
+	}
+
+	ee = append(ee, ep("compose", "access", p.CanAccess()))
+	ee = append(ee, ep("compose", "grant", p.CanGrant()))
+	ee = append(ee, ep("compose", "namespace.create", p.CanCreateNamspace()))
+
+	ee = append(ee, ep("compose:namespace:crm", "module.create", p.CanCreateModule()))
+	ee = append(ee, ep("compose:namespace:crm", "chart.create", p.CanCreateChart()))
+	ee = append(ee, ep("compose:namespace:crm", "trigger.create", p.CanCreateTrigger()))
+	ee = append(ee, ep("compose:namespace:crm", "page.create", p.CanCreatePage()))
+
+	return
+}
+
+func (p *permissions) CanAccess() bool {
 	return p.checkAccess(p.baseResource(), "access")
+}
+
+func (p *permissions) CanGrant() bool {
+	return p.checkAccess(p.baseResource(), "grant")
 }
 
 func (p *permissions) CanCreateNamspace() bool {
@@ -93,7 +124,7 @@ func (p *permissions) CanCreateNamspace() bool {
 
 func (p *permissions) CanCreateModule() bool {
 	// @todo move to func args when namespaces are implemented
-	ns := &types.Namespace{ID: "crm"}
+	ns := &types.Namespace{ID: types.NamespaceCRM}
 	return p.checkAccess(ns, "module.create")
 }
 
@@ -135,7 +166,7 @@ func (p *permissions) CanDeleteRecordByModuleID(moduleID uint64) bool {
 
 func (p *permissions) CanCreateChart() bool {
 	// @todo move to func args when namespaces are implemented
-	ns := &types.Namespace{ID: "crm"}
+	ns := &types.Namespace{ID: types.NamespaceCRM}
 	return p.checkAccess(ns, "chart.create")
 }
 
@@ -157,7 +188,7 @@ func (p *permissions) CanDeleteChartByID(ID uint64) bool {
 
 func (p *permissions) CanCreateTrigger() bool {
 	// @todo move to func args when namespaces are implemented
-	ns := &types.Namespace{ID: "crm"}
+	ns := &types.Namespace{ID: types.NamespaceCRM}
 	return p.checkAccess(ns, "trigger.create")
 }
 
@@ -179,7 +210,7 @@ func (p *permissions) CanDeleteTriggerByID(ID uint64) bool {
 
 func (p *permissions) CanCreatePage() bool {
 	// @todo move to func args when namespaces are implemented
-	ns := &types.Namespace{ID: "crm"}
+	ns := &types.Namespace{ID: types.NamespaceCRM}
 	return p.checkAccess(ns, "page.create")
 }
 

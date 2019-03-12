@@ -28,6 +28,7 @@ import (
 // Internal API interface
 type PermissionsAPI interface {
 	List(context.Context, *request.PermissionsList) (interface{}, error)
+	Effective(context.Context, *request.PermissionsEffective) (interface{}, error)
 	Read(context.Context, *request.PermissionsRead) (interface{}, error)
 	Delete(context.Context, *request.PermissionsDelete) (interface{}, error)
 	Update(context.Context, *request.PermissionsUpdate) (interface{}, error)
@@ -35,10 +36,11 @@ type PermissionsAPI interface {
 
 // HTTP API interface
 type Permissions struct {
-	List   func(http.ResponseWriter, *http.Request)
-	Read   func(http.ResponseWriter, *http.Request)
-	Delete func(http.ResponseWriter, *http.Request)
-	Update func(http.ResponseWriter, *http.Request)
+	List      func(http.ResponseWriter, *http.Request)
+	Effective func(http.ResponseWriter, *http.Request)
+	Read      func(http.ResponseWriter, *http.Request)
+	Delete    func(http.ResponseWriter, *http.Request)
+	Update    func(http.ResponseWriter, *http.Request)
 }
 
 func NewPermissions(ph PermissionsAPI) *Permissions {
@@ -48,6 +50,13 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 			params := request.NewPermissionsList()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ph.List(r.Context(), params)
+			})
+		},
+		Effective: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewPermissionsEffective()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return ph.Effective(r.Context(), params)
 			})
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
@@ -79,6 +88,7 @@ func (ph *Permissions) MountRoutes(r chi.Router, middlewares ...func(http.Handle
 		r.Use(middlewares...)
 		r.Route("/permissions", func(r chi.Router) {
 			r.Get("/", ph.List)
+			r.Get("/effective", ph.Effective)
 			r.Get("/{roleID}/rules", ph.Read)
 			r.Delete("/{roleID}/rules", ph.Delete)
 			r.Patch("/{roleID}/rules", ph.Update)

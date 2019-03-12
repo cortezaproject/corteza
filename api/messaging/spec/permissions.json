@@ -1,0 +1,27 @@
+{
+  "Title": "Permissions",
+  "Interface": "Permissions",
+  "Struct": null,
+  "Parameters": {},
+  "Protocol": "",
+  "Authentication": null,
+  "Path": "/permissions",
+  "APIs": [
+    {
+      "Name": "effective",
+      "Method": "GET",
+      "Title": "Effective rules for current user",
+      "Path": "/effective",
+      "Parameters": {
+        "get": [
+          {
+            "name": "resource",
+            "required": false,
+            "title": "Show only rules for a specific resource",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}
