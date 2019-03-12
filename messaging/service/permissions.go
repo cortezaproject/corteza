@@ -104,15 +104,15 @@ func (p *permissions) CanGrant() bool {
 }
 
 func (p *permissions) CanCreatePublicChannel() bool {
-	return p.checkAccess("messaging", "channel.public.create")
+	return p.checkAccess("messaging", "channel.public.create", p.allow())
 }
 
 func (p *permissions) CanCreatePrivateChannel() bool {
-	return p.checkAccess("messaging", "channel.private.create")
+	return p.checkAccess("messaging", "channel.private.create", p.allow())
 }
 
 func (p *permissions) CanCreateGroupChannel() bool {
-	return p.checkAccess("messaging", "channel.group.create")
+	return p.checkAccess("messaging", "channel.group.create", p.allow())
 }
 
 func (p *permissions) CanUpdateChannel(ch *types.Channel) bool {
@@ -239,6 +239,12 @@ func (p permissions) canLeaveFallback(ch *types.Channel) func() internalRules.Ac
 			return internalRules.Allow
 		}
 		return internalRules.Deny
+	}
+}
+
+func (p permissions) allow() func() internalRules.Access {
+	return func() internalRules.Access {
+		return internalRules.Allow
 	}
 }
 
