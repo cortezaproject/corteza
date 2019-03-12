@@ -97,7 +97,7 @@ func (svc *message) With(ctx context.Context) MessageService {
 func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err error) {
 	filter.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	if !svc.prm.CanReadChannelByID(filter.ChannelID) {
+	if filter.ChannelID > 0 && !svc.prm.CanReadChannelByID(filter.ChannelID) {
 		return nil, errors.New("not allowed to access channel")
 	}
 
@@ -112,7 +112,7 @@ func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err 
 func (svc *message) FindThreads(filter *types.MessageFilter) (mm types.MessageSet, err error) {
 	filter.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	if !svc.prm.CanReadChannelByID(filter.ChannelID) {
+	if filter.ChannelID > 0 && !svc.prm.CanReadChannelByID(filter.ChannelID) {
 		return nil, errors.New("not allowed to access channel")
 	}
 
