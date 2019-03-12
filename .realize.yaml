@@ -57,7 +57,7 @@ schema:
   watcher:
     paths:
       - .
-      - ../../sam
+      - ../../messaging
       - ../../internal
     extensions:
     - go
