@@ -24,6 +24,22 @@
       "Parameters": {}
     },
     {
+      "Name": "effective",
+      "Method": "GET",
+      "Title": "Effective rules for current user",
+      "Path": "/effective",
+      "Parameters": {
+        "get": [
+          {
+            "name": "resource",
+            "required": false,
+            "title": "Show only rules for a specific resource",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "Name": "read",
       "Method": "GET",
       "Title": "Retrieve role permissions",

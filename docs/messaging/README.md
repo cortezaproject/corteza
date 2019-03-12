@@ -448,6 +448,27 @@ The following event types may be sent with a message event:
 
 
 
+# Permissions
+
+## Effective rules for current user
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/permissions/effective` | HTTP/S | GET |
+Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work/go/src/github.com/crusttech/crust/codegen/templates/README.tpl on line 22
+ |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| resource | string | GET | Show only rules for a specific resource | N/A | NO |
+
+
+
+
 # Search entry point
 
 ## Search for messages

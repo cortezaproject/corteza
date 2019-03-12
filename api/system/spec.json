@@ -688,6 +688,22 @@
         "parameters": {}
       },
       {
+        "name": "effective",
+        "path": "/effective",
+        "method": "GET",
+        "title": "Effective rules for current user",
+        "parameters": {
+          "get": [
+            {
+              "name": "resource",
+              "type": "string",
+              "required": false,
+              "title": "Show only rules for a specific resource"
+            }
+          ]
+        }
+      },
+      {
         "name": "read",
         "path": "/{roleID}/rules",
         "method": "GET",

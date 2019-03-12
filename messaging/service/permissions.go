@@ -21,8 +21,10 @@ type (
 	PermissionsService interface {
 		With(context.Context) PermissionsService
 
-		CanAccessMessaging() bool
-		CanGrantMessaging() bool
+		Effective() (ee []effectivePermission, err error)
+
+		CanAccess() bool
+		CanGrant() bool
 		CanCreatePublicChannel() bool
 		CanCreatePrivateChannel() bool
 		CanCreateGroupChannel() bool
@@ -51,6 +53,12 @@ type (
 		CanDeleteMessages(ch *types.Channel) bool
 		CanReactMessage(ch *types.Channel) bool
 	}
+
+	effectivePermission struct {
+		Resource  string `json:"resource"`
+		Operation string `json:"operation"`
+		Allow     bool   `json:"allow"`
+	}
 )
 
 func Permissions() PermissionsService {
@@ -69,11 +77,29 @@ func (p *permissions) With(ctx context.Context) PermissionsService {
 	}
 }
 
-func (p *permissions) CanAccessMessaging() bool {
+func (p *permissions) Effective() (ee []effectivePermission, err error) {
+	ep := func(res, op string, allow bool) effectivePermission {
+		return effectivePermission{
+			Resource:  res,
+			Operation: op,
+			Allow:     allow,
+		}
+	}
+
+	ee = append(ee, ep("messaging", "access", p.CanAccess()))
+	ee = append(ee, ep("messaging", "grant", p.CanGrant()))
+	ee = append(ee, ep("messaging", "channel.public.create", p.CanCreatePublicChannel()))
+	ee = append(ee, ep("messaging", "channel.private.create", p.CanCreatePrivateChannel()))
+	ee = append(ee, ep("messaging", "channel.group.create", p.CanCreateGroupChannel()))
+
+	return
+}
+
+func (p *permissions) CanAccess() bool {
 	return p.checkAccess("messaging", "access")
 }
 
-func (p *permissions) CanGrantMessaging() bool {
+func (p *permissions) CanGrant() bool {
 	return p.checkAccess("messaging", "grant")
 }
 

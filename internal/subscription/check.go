@@ -68,11 +68,11 @@ func Check(ctx context.Context) (err error) {
 		}
 
 		if err != nil {
-			log.Printf("unable to check for licence: %v, try %d/%d", err, try, checkMaxTries)
+			log.Printf("unable to check for subscription: %v, try %d/%d", err, try, checkMaxTries)
 		}
 
 		if try >= checkMaxTries {
-			return errors.Wrap(err, "unable to check for licence")
+			return errors.Wrap(err, "unable to check for subscription")
 		}
 
 		time.Sleep(time.Second * checkTryDelay * checkTryDelay)

@@ -67,8 +67,8 @@ func TestPermissions(t *testing.T) {
 			NoError(t, err, "expected no error, got %v", err)
 
 			// Test `access` to messaging service.
-			ret := permissionsSvc.CanAccessMessaging()
-			Assert(t, ret == false, "expected CanAccessMessaging == false, got %v", ret)
+			ret := permissionsSvc.CanAccess()
+			Assert(t, ret == false, "expected CanAccess == false, got %v", ret)
 		}
 
 		// Add `access` to messaging service.
@@ -80,8 +80,8 @@ func TestPermissions(t *testing.T) {
 			NoError(t, err, "expected no error, got %v", err)
 
 			// Test `access` to messaging service.
-			ret := permissionsSvc.CanAccessMessaging()
-			Assert(t, ret == true, "expected CanAccessMessaging == true, got %v", ret)
+			ret := permissionsSvc.CanAccess()
+			Assert(t, ret == true, "expected CanAccess == true, got %v", ret)
 		}
 
 		// Create test channel.
