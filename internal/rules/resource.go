@@ -24,7 +24,10 @@ type ResourceJSON struct {
 func (r Resource) String() string {
 	if r.ID > 0 {
 		return fmt.Sprintf("%s:%s:%d", r.Service, r.Scope, r.ID)
+	} else if r.Scope == "" {
+		return r.Service
 	}
+
 	return ""
 }
 
