@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/crusttech/crust/internal/auth"
 	internalRules "github.com/crusttech/crust/internal/rules"
 	"github.com/crusttech/crust/messaging/repository"
 	"github.com/crusttech/crust/messaging/types"
@@ -24,16 +25,21 @@ type (
 		CanGrantMessaging() bool
 		CanCreatePublicChannel() bool
 		CanCreatePrivateChannel() bool
-		CanCreateDirectChannel() bool
+		CanCreateGroupChannel() bool
 
-		CanUpdate(ch *types.Channel) bool
-		CanRead(ch *types.Channel) bool
-		CanJoin(ch *types.Channel) bool
-		CanLeave(ch *types.Channel) bool
+		CanUpdateChannel(ch *types.Channel) bool
+		CanReadChannel(ch *types.Channel) bool
+		CanReadChannelByID(id uint64) bool
+		CanJoinChannel(ch *types.Channel) bool
+		CanLeaveChannel(ch *types.Channel) bool
+		CanDeleteChannel(ch *types.Channel) bool
+		CanUndeleteChannel(ch *types.Channel) bool
+		CanArchiveChannel(ch *types.Channel) bool
+		CanUnarchiveChannel(ch *types.Channel) bool
 
-		CanManageMembers(ch *types.Channel) bool
-		CanManageWebhooks(ch *types.Channel) bool
-		CanManageAttachments(ch *types.Channel) bool
+		CanManageChannelMembers(ch *types.Channel) bool
+		CanManageChannelWebhooks(ch *types.Channel) bool
+		CanManageChannelAttachments(ch *types.Channel) bool
 
 		CanSendMessage(ch *types.Channel) bool
 		CanReplyMessage(ch *types.Channel) bool
@@ -41,6 +47,8 @@ type (
 		CanAttachMessage(ch *types.Channel) bool
 		CanUpdateOwnMessages(ch *types.Channel) bool
 		CanUpdateMessages(ch *types.Channel) bool
+		CanDeleteOwnMessages(ch *types.Channel) bool
+		CanDeleteMessages(ch *types.Channel) bool
 		CanReactMessage(ch *types.Channel) bool
 	}
 )
@@ -77,40 +85,60 @@ func (p *permissions) CanCreatePrivateChannel() bool {
 	return p.checkAccess("messaging", "channel.private.create")
 }
 
-func (p *permissions) CanCreateDirectChannel() bool {
-	return p.checkAccess("messaging", "channel.direct.create")
+func (p *permissions) CanCreateGroupChannel() bool {
+	return p.checkAccess("messaging", "channel.group.create")
 }
 
-func (p *permissions) CanUpdate(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "update")
+func (p *permissions) CanUpdateChannel(ch *types.Channel) bool {
+	return p.checkAccess(ch.Resource().String(), "update", p.isChannelOwnerFallback(ch))
 }
 
-func (p *permissions) CanRead(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "read")
+func (p *permissions) CanReadChannel(ch *types.Channel) bool {
+	return p.checkAccess(ch.Resource().String(), "read", p.canReadFallback(ch))
 }
 
-func (p *permissions) CanJoin(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "join")
+func (p *permissions) CanReadChannelByID(id uint64) bool {
+	return p.CanReadChannel(&types.Channel{ID: id})
 }
 
-func (p *permissions) CanLeave(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "leave")
+func (p *permissions) CanJoinChannel(ch *types.Channel) bool {
+	return p.checkAccess(ch.Resource().String(), "join", p.canJoinFallback(ch))
 }
 
-func (p *permissions) CanManageMembers(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "members.manage")
+func (p *permissions) CanLeaveChannel(ch *types.Channel) bool {
+	return p.checkAccess(ch.Resource().String(), "leave", p.canLeaveFallback(ch))
 }
 
-func (p *permissions) CanManageWebhooks(ch *types.Channel) bool {
+func (p *permissions) CanArchiveChannel(ch *types.Channel) bool {
+	return p.checkAccess(ch.Resource().String(), "archive", p.isChannelOwnerFallback(ch))
+}
+
+func (p *permissions) CanUnarchiveChannel(ch *types.Channel) bool {
+	return p.checkAccess(ch.Resource().String(), "unarchive", p.isChannelOwnerFallback(ch))
+}
+
+func (p *permissions) CanDeleteChannel(ch *types.Channel) bool {
+	return p.checkAccess(ch.Resource().String(), "delete", p.isChannelOwnerFallback(ch))
+}
+
+func (p *permissions) CanUndeleteChannel(ch *types.Channel) bool {
+	return p.checkAccess(ch.Resource().String(), "undelete", p.isChannelOwnerFallback(ch))
+}
+
+func (p *permissions) CanManageChannelMembers(ch *types.Channel) bool {
+	return p.checkAccess(ch.Resource().String(), "members.manage", p.isChannelOwnerFallback(ch))
+}
+
+func (p *permissions) CanManageChannelWebhooks(ch *types.Channel) bool {
 	return p.checkAccess(ch.Resource().String(), "webhooks.manage")
 }
 
-func (p *permissions) CanManageAttachments(ch *types.Channel) bool {
+func (p *permissions) CanManageChannelAttachments(ch *types.Channel) bool {
 	return p.checkAccess(ch.Resource().String(), "attachments.manage")
 }
 
 func (p *permissions) CanSendMessage(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "message.send")
+	return p.checkAccess(ch.Resource().String(), "message.send", p.canSendMessagesFallback(ch))
 }
 
 func (p *permissions) CanReplyMessage(ch *types.Channel) bool {
@@ -126,15 +154,81 @@ func (p *permissions) CanAttachMessage(ch *types.Channel) bool {
 }
 
 func (p *permissions) CanUpdateOwnMessages(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "message.update.own")
+	return p.checkAccess(ch.Resource().String(), "message.update.own", p.isChannelOwnerFallback(ch))
 }
 
 func (p *permissions) CanUpdateMessages(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "message.update.all")
+	return p.checkAccess(ch.Resource().String(), "message.update.all", p.isChannelOwnerFallback(ch))
+}
+
+func (p *permissions) CanDeleteOwnMessages(ch *types.Channel) bool {
+	return p.checkAccess(ch.Resource().String(), "message.delete.own", p.isChannelOwnerFallback(ch))
+}
+
+func (p *permissions) CanDeleteMessages(ch *types.Channel) bool {
+	return p.checkAccess(ch.Resource().String(), "message.delete.all", p.isChannelOwnerFallback(ch))
 }
 
 func (p *permissions) CanReactMessage(ch *types.Channel) bool {
 	return p.checkAccess(ch.Resource().String(), "message.react")
+}
+
+func (p permissions) canJoinFallback(ch *types.Channel) func() internalRules.Access {
+	return func() internalRules.Access {
+		userID := auth.GetIdentityFromContext(p.ctx).Identity()
+
+		isMember := ch.Member != nil
+		isCreator := ch.CreatorID == userID
+		isOwner := isCreator || (isMember && ch.Member.Type == types.ChannelMembershipTypeOwner)
+		isPublic := ch.Type == types.ChannelTypePublic
+
+		if (ch.IsValid() && isPublic) || isOwner {
+			return internalRules.Allow
+		}
+		return internalRules.Deny
+	}
+}
+
+func (p permissions) canReadFallback(ch *types.Channel) func() internalRules.Access {
+	return func() internalRules.Access {
+		if (ch.IsValid() && ch.Type == types.ChannelTypePublic) || ch.Member != nil {
+			return internalRules.Allow
+		}
+		return internalRules.Deny
+	}
+}
+
+func (p permissions) canSendMessagesFallback(ch *types.Channel) func() internalRules.Access {
+	return func() internalRules.Access {
+		if ch.IsValid() && ch.Type == types.ChannelTypePublic && ch.Member != nil {
+			return internalRules.Allow
+		}
+		return internalRules.Deny
+	}
+}
+
+func (p permissions) canLeaveFallback(ch *types.Channel) func() internalRules.Access {
+	return func() internalRules.Access {
+		if ch.Member != nil && ch.Type != types.ChannelTypeGroup {
+			return internalRules.Allow
+		}
+		return internalRules.Deny
+	}
+}
+
+func (p permissions) isChannelOwnerFallback(ch *types.Channel) func() internalRules.Access {
+	return func() internalRules.Access {
+		userID := auth.GetIdentityFromContext(p.ctx).Identity()
+
+		isMember := ch.Member != nil
+		isCreator := ch.CreatorID == userID
+		isOwner := isCreator || (isMember && ch.Member.Type == types.ChannelMembershipTypeOwner)
+
+		if isOwner {
+			return internalRules.Allow
+		}
+		return internalRules.Deny
+	}
 }
 
 func (p *permissions) checkAccess(resource string, operation string, fallbacks ...internalRules.CheckAccessFunc) bool {

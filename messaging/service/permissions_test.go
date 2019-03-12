@@ -4,6 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/pkg/errors"
+	"github.com/titpetric/factory"
+
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/rules"
 	. "github.com/crusttech/crust/internal/test"
@@ -15,121 +18,126 @@ import (
 )
 
 func TestPermissions(t *testing.T) {
-	ctx := context.TODO()
+	// Create test user and role.
+	user := &systemTypes.User{ID: 1337}
+	role := &systemTypes.Role{ID: 1234567, Name: "Admins"}
 
-	// Create user with role and add it to context.
-	userSvc := systemService.User().With(ctx)
-	user := &systemTypes.User{
-		Name:     "John Doe",
-		Username: "johndoe",
-		SatosaID: "1234",
-	}
-	err := user.GeneratePassword("johndoe")
-	NoError(t, err, "expected no error generating password, got %v", err)
+	// Write user to context.
+	ctx := auth.SetIdentityToContext(context.Background(), user)
 
-	_, err = userSvc.Create(user)
-	NoError(t, err, "expected no error creating user, got %v", err)
+	// Connect do DB.
+	db := factory.Database.MustGet()
 
-	roleSvc := systemService.Role().With(ctx)
-	role := &systemTypes.Role{
-		Name: "Test role v1",
-	}
-	role, err = roleSvc.Create(role)
-	NoError(t, err, "expected no error creating role, got %v", err)
+	// Run test with savepoint.
+	err := func() error {
+		db.Exec("SAVEPOINT permissions_test")
 
-	err = roleSvc.MemberAdd(role.ID, user.ID)
-	NoError(t, err, "expected no error adding user to role, got %v", err)
+		db.Insert("sys_user", user)
+		db.Insert("sys_role_member", systemTypes.RoleMember{RoleID: role.ID, UserID: user.ID})
 
-	// Set Identity.
-	ctx = auth.SetIdentityToContext(ctx, user)
+		// Insert `grant` permission for `messaging`.
+		{
+			db := repository.DB(ctx)
+			resources := rules.NewResources(ctx, db)
 
-	// Insert `grant` permission for `messaging`.
-	{
-		db := repository.DB(ctx)
-		resources := rules.NewResources(ctx, db)
+			list := []rules.Rule{
+				rules.Rule{Resource: "messaging", Operation: "grant", Value: rules.Allow},
+			}
 
-		list := []rules.Rule{
-			rules.Rule{Resource: "messaging", Operation: "grant", Value: rules.Allow},
+			err := resources.Grant(role.ID, list)
+			NoError(t, err, "expected no error, got %v", err)
 		}
 
-		err := resources.Grant(role.ID, list)
-		NoError(t, err, "expected no error, got %v", err)
-	}
+		// Generate services.
+		channelSvc := (&channel{
+			usr: systemService.User(),
+			evl: Event(),
+			prm: Permissions(),
+		}).With(ctx)
 
-	// Generate services.
-	channelSvc := (&channel{
-		usr: systemService.User(),
-		evl: Event(),
-		prm: Permissions(),
-	}).With(ctx)
+		permissionsSvc := Permissions().With(ctx)
+		systemRulesSvc := systemService.Rules().With(ctx)
 
-	permissionsSvc := Permissions().With(ctx)
-	systemRulesSvc := systemService.Rules().With(ctx)
+		// Remove `access` to messaging service.
+		{
+			list := []rules.Rule{
+				rules.Rule{Resource: "messaging", Operation: "access", Value: rules.Deny},
+			}
+			_, err := systemRulesSvc.Update(role.ID, list)
+			NoError(t, err, "expected no error, got %v", err)
 
-	// Test `access` to messaging service.
-	ret := permissionsSvc.CanAccessMessaging()
-	Assert(t, ret == false, "expected CanAccessMessaging == false, got %v", ret)
-
-	// Add `access` to messaging service.
-	list := []rules.Rule{
-		rules.Rule{Resource: "messaging", Operation: "access", Value: rules.Allow},
-	}
-	_, err = systemRulesSvc.Update(role.ID, list)
-	NoError(t, err, "expected no error, got %v", err)
-
-	// Test `access` to messaging service.
-	ret = permissionsSvc.CanAccessMessaging()
-	Assert(t, ret == true, "expected CanAccessMessaging == true, got %v", ret)
-
-	// Create test channel.
-	ch := &types.Channel{
-		Name:  "TestChan",
-		Topic: "No topic",
-	}
-	ch, err = channelSvc.Create(ch)
-	NoError(t, err, "expected no error, got %v", err)
-
-	// @Todo: add permission for create channel and test it.
-
-	// Test CanRead permissions. [1 - no permission, 2 - allow]
-	{
-		ret = permissionsSvc.CanRead(ch)
-		Assert(t, ret == false, "expected CanRead == false, got %v")
-
-		// Add [messaging:channel:*, read, allow]
-		list = []rules.Rule{
-			rules.Rule{Resource: "messaging:channel:*", Operation: "read", Value: rules.Allow},
+			// Test `access` to messaging service.
+			ret := permissionsSvc.CanAccessMessaging()
+			Assert(t, ret == false, "expected CanAccessMessaging == false, got %v", ret)
 		}
-		_, err = systemRulesSvc.Update(role.ID, list)
-		NoError(t, err, "expected no error, got %v", err)
 
-		ret = permissionsSvc.CanRead(ch)
-		Assert(t, ret == true, "expected CanRead == true, got %v")
-	}
+		// Add `access` to messaging service.
+		{
+			list := []rules.Rule{
+				rules.Rule{Resource: "messaging", Operation: "access", Value: rules.Allow},
+			}
+			_, err := systemRulesSvc.Update(role.ID, list)
+			NoError(t, err, "expected no error, got %v", err)
 
-	// Test CanJoin permissions [1 - deny, 2 - allow for resourceID]
-	{
-		// Add [messaging:channel:*, join, deny]
-		list = []rules.Rule{
-			rules.Rule{Resource: "messaging:channel:*", Operation: "join", Value: rules.Deny},
+			// Test `access` to messaging service.
+			ret := permissionsSvc.CanAccessMessaging()
+			Assert(t, ret == true, "expected CanAccessMessaging == true, got %v", ret)
 		}
-		_, err = systemRulesSvc.Update(role.ID, list)
-		NoError(t, err, "expected no error, got %v", err)
 
-		ret = permissionsSvc.CanJoin(ch)
-		Assert(t, ret == false, "expected CanJoin == false, got %v")
-
-		// Add [messaging:channel:ID, join, allow]
-		list = []rules.Rule{
-			rules.Rule{Resource: ch.Resource().String(), Operation: "join", Value: rules.Allow},
+		// Create test channel.
+		ch := &types.Channel{
+			Name:  "TestChan",
+			Topic: "No topic",
 		}
-		_, err = systemRulesSvc.Update(role.ID, list)
+		ch, err := channelSvc.Create(ch)
 		NoError(t, err, "expected no error, got %v", err)
 
-		ret = permissionsSvc.CanJoin(ch)
-		Assert(t, ret == true, "expected CanJoin == true, got %v")
-	}
+		// @Todo: add permission for create channel and test it.
 
-	// Remove test channel.
-	channelSvc.Delete(ch.ID)
+		// Test CanReadChannel permissions. [1 - allow, 2 no permission]
+		{
+			ret := permissionsSvc.CanReadChannel(ch)
+			Assert(t, ret == true, "expected CanReadChannel == true, got %v", ret)
+
+			// Add [messaging:channel:*, read, deny]
+			list := []rules.Rule{
+				rules.Rule{Resource: "messaging:channel:*", Operation: "read", Value: rules.Deny},
+			}
+			_, err = systemRulesSvc.Update(role.ID, list)
+			NoError(t, err, "expected no error, got %v", err)
+
+			ret = permissionsSvc.CanReadChannel(ch)
+			Assert(t, ret == false, "expected CanReadChannel == false, got %v", ret)
+		}
+
+		// Test CanJoinChannel permissions [1 - deny, 2 - allow for resourceID]
+		{
+			// Add [messaging:channel:*, join, deny]
+			list := []rules.Rule{
+				rules.Rule{Resource: "messaging:channel:*", Operation: "join", Value: rules.Deny},
+			}
+			_, err = systemRulesSvc.Update(role.ID, list)
+			NoError(t, err, "expected no error, got %v", err)
+
+			ret := permissionsSvc.CanJoinChannel(ch)
+			Assert(t, ret == false, "expected CanJoinChannel == false, got %v")
+
+			// Add [messaging:channel:ID, join, allow]
+			list = []rules.Rule{
+				rules.Rule{Resource: ch.Resource().String(), Operation: "join", Value: rules.Allow},
+			}
+			_, err = systemRulesSvc.Update(role.ID, list)
+			NoError(t, err, "expected no error, got %v", err)
+
+			ret = permissionsSvc.CanJoinChannel(ch)
+			Assert(t, ret == true, "expected CanJoinChannel == true, got %v")
+		}
+
+		// Remove test channel.
+		channelSvc.Delete(ch.ID)
+		return errors.New("Rollback")
+	}()
+	if err != nil {
+		db.Exec("ROLLBACK TO SAVEPOINT permissions_test")
+	}
 }
