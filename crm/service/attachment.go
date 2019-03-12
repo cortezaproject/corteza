@@ -34,7 +34,12 @@ type (
 		ctx context.Context
 
 		store store.Store
-		usr   systemService.UserService
+
+		prmSvc    PermissionsService
+		pageSvc   PageService
+		moduleSvc ModuleService
+		recordSvc RecordService
+		usr       systemService.UserService
 
 		attachment repository.AttachmentRepository
 	}
@@ -53,8 +58,12 @@ type (
 
 func Attachment(store store.Store) AttachmentService {
 	return (&attachment{
-		store: store,
-		usr:   systemService.DefaultUser,
+		store:     store,
+		prmSvc:    DefaultPermissions,
+		pageSvc:   DefaultPage,
+		moduleSvc: DefaultModule,
+		recordSvc: DefaultRecord,
+		usr:       systemService.DefaultUser,
 	}).With(context.Background())
 }
 
@@ -64,20 +73,40 @@ func (svc *attachment) With(ctx context.Context) AttachmentService {
 		db:  db,
 		ctx: ctx,
 
-		store: svc.store,
-		usr:   svc.usr.With(ctx),
+		prmSvc:    svc.prmSvc.With(ctx),
+		pageSvc:   svc.pageSvc.With(ctx),
+		moduleSvc: svc.moduleSvc.With(ctx),
+		recordSvc: svc.recordSvc.With(ctx),
+		usr:       svc.usr.With(ctx),
+		store:     svc.store,
 
 		attachment: repository.Attachment(ctx, db),
 	}
 }
 
 func (svc *attachment) FindByID(id uint64) (*types.Attachment, error) {
-	// @todo [SECURITY] check if record/page can be accessed
 	return svc.attachment.FindByID(id)
 }
 
 func (svc *attachment) Find(filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error) {
-	// @todo [SECURITY] enforce filter combination (page / module+record+field) & check access
+	if filter.PageID > 0 {
+		if _, err := svc.pageSvc.FindByID(filter.PageID); err != nil {
+			return nil, filter, err
+		}
+	}
+
+	if filter.ModuleID > 0 {
+		if _, err := svc.moduleSvc.FindByID(filter.ModuleID); err != nil {
+			return nil, filter, err
+		}
+	}
+
+	if filter.RecordID > 0 {
+		if _, err := svc.recordSvc.FindByID(filter.RecordID); err != nil {
+			return nil, filter, err
+		}
+	}
+
 	return svc.attachment.Find(filter)
 }
 
@@ -100,8 +129,11 @@ func (svc *attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
 func (svc *attachment) CreatePageAttachment(name string, size int64, fh io.ReadSeeker, pageID uint64) (*types.Attachment, error) {
 	var currentUserID uint64 = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	// @todo verify if current user can access this page
-	// @todo verify if current user can upload to this page
+	if p, err := svc.pageSvc.FindByID(pageID); err != nil {
+		return nil, err
+	} else if !svc.prmSvc.CanUpdatePage(p) {
+		return nil, errors.New("not allowed to add attachments to this page")
+	}
 
 	att := &types.Attachment{
 		ID:      factory.Sonyflake.NextID(),
@@ -115,8 +147,13 @@ func (svc *attachment) CreatePageAttachment(name string, size int64, fh io.ReadS
 func (svc *attachment) CreateRecordAttachment(name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64, fieldName string) (*types.Attachment, error) {
 	var currentUserID uint64 = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	// @todo verify if current user can access this record
-	// @todo verify if current user can upload to this record
+	if _, err := svc.moduleSvc.FindByID(moduleID); err != nil {
+		return nil, err
+	} else if r, err := svc.recordSvc.FindByID(recordID); err != nil {
+		return nil, err
+	} else if !svc.prmSvc.CanUpdateRecord(r) {
+		return nil, errors.New("not allowed to add attachments to this record")
+	}
 
 	att := &types.Attachment{
 		ID:      factory.Sonyflake.NextID(),

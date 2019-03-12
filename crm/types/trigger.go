@@ -4,6 +4,8 @@ import (
 	"database/sql/driver"
 	"strings"
 	"time"
+
+	"github.com/crusttech/crust/internal/rules"
 )
 
 type (
@@ -42,4 +44,15 @@ func (set *ActionSet) Scan(src interface{}) error {
 
 func (set ActionSet) Value() (driver.Value, error) {
 	return strings.Trim(strings.Join(set, ","), " ,"), nil
+}
+
+// Resource returns a system resource ID for this type
+func (r *Trigger) Resource() rules.Resource {
+	resource := rules.Resource{
+		Service: "compose",
+		Scope:   "trigger",
+		ID:      r.ID,
+	}
+
+	return resource
 }

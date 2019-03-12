@@ -32,13 +32,13 @@ func Init() {
 			log.Fatalf("Failed to initialize store: %v", err)
 		}
 
+		DefaultPermissions = Permissions()
 		DefaultRecord = Record()
 		DefaultModule = Module()
 		DefaultTrigger = Trigger()
 		DefaultPage = Page()
 		DefaultChart = Chart()
 		DefaultNotification = Notification()
-		DefaultPermissions = Permissions()
 		DefaultAttachment = Attachment(fs)
 	})
 }
