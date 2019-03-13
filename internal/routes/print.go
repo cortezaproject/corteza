@@ -2,8 +2,8 @@ package routes
 
 import (
 	"fmt"
-	"runtime"
 	"reflect"
+	"runtime"
 
 	"github.com/go-chi/chi"
 )
