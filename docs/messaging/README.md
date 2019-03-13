@@ -456,9 +456,7 @@ The following event types may be sent with a message event:
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/permissions/effective` | HTTP/S | GET |
-Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work/go/src/github.com/crusttech/crust/codegen/templates/README.tpl on line 22
- |
+| `/permissions/effective` | HTTP/S | GET |  |
 
 #### Request parameters
 

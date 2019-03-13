@@ -4,6 +4,7 @@
     "parameters": {},
     "entrypoint": "permissions",
     "path": "/permissions",
+    "authentication": [],
     "apis": [
       {
         "name": "effective",
@@ -25,7 +26,7 @@
   },
   {
     "title": "Permissions",
-    "description": "Permssions",
+    "description": "Permissions",
     "entrypoint": "page",
     "path": "/permissions",
     "authentication": [],
