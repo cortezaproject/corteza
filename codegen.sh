@@ -22,12 +22,15 @@ function types {
 		CGO_ENABLED=0 go build -o ./build/gen-type-set codegen/v2/type-set.go 
 	fi
 
-	./build/gen-type-set --types Module,Page,Chart,Trigger,Record \
-	                     --output crm/types/type.primary.gen.go
-	./build/gen-type-set --with-primary-key=false --types ModuleField,RecordValue \
-	                     --output crm/types/type.other.gen.go
-	./build/gen-type-set --types Attachment \
-	                     --output crm/types/attachment.gen.go
+	./build/gen-type-set --types Attachment --output crm/types/attachment.gen.go
+	./build/gen-type-set --types Module     --output crm/types/module.gen.go
+	./build/gen-type-set --types Page       --output crm/types/page.gen.go
+	./build/gen-type-set --types Chart      --output crm/types/chart.gen.go
+	./build/gen-type-set --types Trigger    --output crm/types/trigger.gen.go
+	./build/gen-type-set --types Record     --output crm/types/record.gen.go
+
+	./build/gen-type-set --with-primary-key=false --types ModuleField --output crm/types/module_field.gen.go
+	./build/gen-type-set --with-primary-key=false --types RecordValue --output crm/types/record_value.gen.go
 
 	./build/gen-type-set --types MessageAttachment --output messaging/types/attachment.gen.go
 	./build/gen-type-set --with-resources=true --types Channel --resource-type "rules.Resource" --imports "github.com/crusttech/crust/internal/rules" --output messaging/types/channel.gen.go
