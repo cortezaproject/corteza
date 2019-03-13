@@ -32,10 +32,9 @@ func TestRules(t *testing.T) {
 	// Create resources interface.
 	resources := rules.NewResources(ctx, db)
 
-	// Run test with savepoint.
-	err := func() error {
-		db.Exec("SAVEPOINT rules_test")
-
+	// Run tests in transaction to maintain DB state.
+	Error(t, db.Transaction(func() error {
+		db.Delete("sys_rules", "1=1")
 		db.Insert("sys_user", user)
 		db.Insert("sys_role", role)
 		db.Insert("sys_role_member", types.RoleMember{RoleID: role.ID, UserID: user.ID})
@@ -43,7 +42,7 @@ func TestRules(t *testing.T) {
 		// delete all for test roleID = 123456
 		{
 			err := resources.Delete(role.ID)
-			NoError(t, err, "expected no error")
+			NoError(t, err, "expected no error, got %+v", err)
 		}
 
 		// default (unset=deny), forbidden check ...:*
@@ -59,7 +58,7 @@ func TestRules(t *testing.T) {
 				rules.Rule{Resource: "messaging:channel:2", Operation: "delete", Value: rules.Allow},
 			}
 			err := resources.Grant(role.ID, list)
-			NoError(t, err, "expect no error")
+			NoError(t, err, "expect no error, got %+v", err)
 
 			Expect(rules.Deny, resources.Check("messaging:channel:1", "update"), "messaging:channel:1 update - Deny")
 			Expect(rules.Allow, resources.Check("messaging:channel:2", "update"), "messaging:channel:2 update - Allow")
@@ -69,8 +68,8 @@ func TestRules(t *testing.T) {
 		// list grants for test role
 		{
 			grants, err := resources.Read(role.ID)
-			NoError(t, err, "expect no error")
-			Assert(t, len(grants) == 2, "expected 2 grants")
+			NoError(t, err, "expect no error, got %+v", err)
+			Assert(t, len(grants) == 2, "expected 2 grants, got %v", len(grants))
 
 			for _, grant := range grants {
 				Assert(t, grant.RoleID == role.ID, "expected RoleID == 123456, got %v", grant.RoleID)
@@ -85,7 +84,7 @@ func TestRules(t *testing.T) {
 				rules.Rule{Resource: "messaging:channel:1", Operation: "update", Value: rules.Deny},
 			}
 			err := resources.Grant(role.ID, list)
-			NoError(t, err, "expect no error")
+			NoError(t, err, "expect no error, got %+v", err)
 
 			Expect(rules.Deny, resources.Check("messaging:channel:1", "update"), "messaging:channel:1 update - Deny")
 			Expect(rules.Allow, resources.Check("messaging:channel:2", "update"), "messaging:channel:2 update - Allow")
@@ -101,7 +100,7 @@ func TestRules(t *testing.T) {
 				rules.Rule{Resource: "messaging:channel:2", Operation: "delete", Value: rules.Inherit},
 			}
 			err := resources.Grant(role.ID, list)
-			NoError(t, err, "expect no error")
+			NoError(t, err, "expect no error, got %+v", err)
 
 			Expect(rules.Deny, resources.Check("messaging:channel:1", "update"), "messaging:channel:1 update - Deny")
 			Expect(rules.Deny, resources.Check("messaging:channel:2", "update"), "messaging:channel:2 update - Deny")
@@ -116,7 +115,7 @@ func TestRules(t *testing.T) {
 				rules.Rule{Resource: "system", Operation: "organisation.create", Value: rules.Allow},
 			}
 			err := resources.Grant(role.ID, list)
-			NoError(t, err, "expected no error")
+			NoError(t, err, "expect no error, got %+v", err)
 
 			Expect(rules.Deny, resources.Check("messaging:channel:1", "update"), "messaging:channel:1 update - Deny")
 			Expect(rules.Allow, resources.Check("messaging:channel:2", "update"), "messaging:channel:2 update - Allow")
@@ -125,25 +124,22 @@ func TestRules(t *testing.T) {
 		// list all by roleID
 		{
 			grants, err := resources.Read(role.ID)
-			NoError(t, err, "expected no error")
+			NoError(t, err, "expect no error, got %+v", err)
 			Assert(t, len(grants) == 3, "expected grants == 3, got %v", len(grants))
 		}
 
 		// delete all by roleID
 		{
 			err := resources.Delete(role.ID)
-			NoError(t, err, "expected no error")
+			NoError(t, err, "expect no error, got %+v", err)
 		}
 
 		// list all by roleID
 		{
 			grants, err := resources.Read(role.ID)
-			NoError(t, err, "expected no error")
+			NoError(t, err, "expect no error, got %+v", err)
 			Assert(t, len(grants) == 0, "expected grants == 0, got %v", len(grants))
 		}
 		return errors.New("Rollback")
-	}()
-	if err != nil {
-		db.Exec("ROLLBACK TO SAVEPOINT rules_test")
-	}
+	}), "expected rollback error")
 }

@@ -128,6 +128,7 @@ func (r *DatabaseFactory) Get(dbName ...string) (*DB, error) {
 			r.instances[name] = &DB{
 				handle,
 				context.Background(),
+				0,
 				nil,
 				&sql.TxOptions{
 					ReadOnly: false,
@@ -155,6 +156,7 @@ type DB struct {
 
 	ctx context.Context
 
+	inTx   int32
 	Tx     *sqlx.Tx
 	TxOpts *sql.TxOptions
 
@@ -166,6 +168,7 @@ func (r *DB) Quiet() *DB {
 	return &DB{
 		r.DB,
 		r.ctx,
+		r.inTx,
 		r.Tx,
 		r.TxOpts,
 		nil,
@@ -177,6 +180,7 @@ func (r *DB) With(ctx context.Context) *DB {
 	return &DB{
 		r.DB,
 		ctx,
+		r.inTx,
 		r.Tx,
 		r.TxOpts,
 		r.Profiler,
@@ -184,17 +188,23 @@ func (r *DB) With(ctx context.Context) *DB {
 }
 
 // Begin will create a transaction in the DB with a context
-func (r *DB) Begin() error {
-	var err error
-	if r.Tx != nil {
-		return errors.New("Transaction already started")
+func (r *DB) Begin() (err error) {
+	if r.inTx > 0 {
+		_, err = r.Exec(fmt.Sprintf("SAVEPOINT sp_%d", r.inTx))
 	}
-	if r.ctx == nil {
-		r.Tx, err = r.DB.Beginx()
+	if r.inTx == 0 {
+		if r.ctx == nil {
+			r.Tx, err = r.DB.Beginx()
+		} else {
+			r.Tx, err = r.DB.BeginTxx(r.ctx, r.TxOpts)
+		}
+	}
+	if err != nil {
 		return errors.WithStack(err)
 	}
-	r.Tx, err = r.DB.BeginTxx(r.ctx, r.TxOpts)
-	return errors.WithStack(err)
+
+	r.inTx++
+	return nil
 }
 
 // Transaction will create a transaction and invoke a callback
@@ -202,8 +212,8 @@ func (r *DB) Transaction(callback func() error) error {
 	if err := r.Begin(); err != nil {
 		return err
 	}
-	defer r.Rollback()
 	if err := callback(); err != nil {
+		r.Rollback()
 		return err
 	}
 	return r.Commit()
@@ -211,22 +221,36 @@ func (r *DB) Transaction(callback func() error) error {
 
 func (r *DB) Commit() error {
 	if r.Tx != nil {
-		if err := r.Tx.Commit(); err != nil {
-			return errors.WithStack(err)
+		if r.inTx > 0 {
+			r.inTx--
 		}
-		r.Tx = nil
-		return nil
+		if r.inTx == 0 {
+			if err := r.Tx.Commit(); err != nil {
+				return errors.WithStack(err)
+			}
+			r.Tx = nil
+			return nil
+		}
+		_, err := r.Exec(fmt.Sprintf("RELEASE SAVEPOINT sp_%d", r.inTx))
+		return errors.WithStack(err)
 	}
-	return errors.New("No transation active")
+	return errors.New("No transaction active")
 }
 
 func (r *DB) Rollback() error {
 	if r.Tx != nil {
-		if err := r.Tx.Rollback(); err != nil {
-			return errors.WithStack(err)
+		if r.inTx > 0 {
+			r.inTx--
 		}
-		r.Tx = nil
-		return nil
+		if r.inTx == 0 {
+			if err := r.Tx.Rollback(); err != nil {
+				return errors.WithStack(err)
+			}
+			r.Tx = nil
+			return nil
+		}
+		_, err := r.Exec(fmt.Sprintf("ROLLBACK SAVEPOINT sp_%d", r.inTx))
+		return errors.WithStack(err)
 	}
 	return errors.New("No transaction active")
 }
