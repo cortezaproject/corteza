@@ -43,6 +43,11 @@ func (r *resources) identity() uint64 {
 // IsAllowed function checks granted permission for specific resource and operation. Permission checks on
 // global level are not allowed and will always return Deny.
 func (r *resources) Check(resource string, operation string, fallbacks ...CheckAccessFunc) Access {
+	// Number one check, do we have a valid identity?
+	if !auth.GetIdentityFromContext(r.ctx).Valid() {
+		return Deny
+	}
+
 	parts := strings.Split(resource, delimiter)
 
 	// Permission check on global level is not allowed.
