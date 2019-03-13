@@ -1,4 +1,5 @@
 /*.iml
-/.*
+/.env*
+/.cover*
 /build
 /var
