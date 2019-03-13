@@ -1,5 +1,6 @@
 /*.iml
 /.env*
 /.cover*
+/public_html
 /build
 /var
