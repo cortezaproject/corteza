@@ -9,7 +9,6 @@ import (
 
 func MountRoutes() func(chi.Router) {
 	var (
-		permissions  = Permissions{}.New()
 		module       = Module{}.New()
 		record       = Record{}.New()
 		page         = Page{}.New()
@@ -23,12 +22,16 @@ func MountRoutes() func(chi.Router) {
 
 	// Initialize handlers & controllers.
 	return func(r chi.Router) {
+
+		r.Group(func(r chi.Router) {
+			handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
+		})
+
 		// Protect all _private_ routes
 		r.Group(func(r chi.Router) {
 			r.Use(auth.MiddlewareValidOnly)
 			r.Use(middlewareAllowedAccess)
 
-			handlers.NewPermissions(permissions).MountRoutes(r)
 			handlers.NewPage(page).MountRoutes(r)
 			handlers.NewModule(module).MountRoutes(r)
 			handlers.NewRecord(record).MountRoutes(r)
