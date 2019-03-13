@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"path"
 
 	"net/http"
 
@@ -20,11 +21,26 @@ import (
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/config"
 	"github.com/crusttech/crust/internal/metrics"
+	"github.com/crusttech/crust/internal/middleware"
 	"github.com/crusttech/crust/internal/rbac"
 	"github.com/crusttech/crust/internal/routes"
 	"github.com/crusttech/crust/internal/subscription"
 	"github.com/crusttech/crust/internal/version"
 )
+
+// Serves index.html in case the requested file isn't found (or some other os.Stat error)
+func serveIndex(assetPath string, indexPath string, serve http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		indexPage := path.Join(assetPath, indexPath)
+		requestedPage := path.Join(assetPath, r.URL.Path)
+		_, err := os.Stat(requestedPage)
+		if err != nil {
+			http.ServeFile(w, r, indexPage)
+			return
+		}
+		serve.ServeHTTP(w, r)
+	}
+}
 
 func main() {
 	// log to stdout not stderr
@@ -86,6 +102,10 @@ func main() {
 		}
 
 		r := chi.NewRouter()
+
+		// logging, cors and such
+		middleware.Mount(ctx, r, flags.http)
+
 		r.Route("/api", func(r chi.Router) {
 			r.Route("/crm", func(r chi.Router) {
 				crm.MountRoutes(ctx, r)
@@ -96,8 +116,15 @@ func main() {
 			r.Route("/system", func(r chi.Router) {
 				system.MountRoutes(ctx, r)
 			})
-			system.MountSystemRoutes(r, flags.http)
+			middleware.MountSystemRoutes(ctx, r, flags.http)
 		})
+
+		fileserver := http.FileServer(http.Dir("public_html"))
+
+		for _, service := range []string{"system", "messaging", "crm"} {
+			r.HandleFunc("/"+service+"*", serveIndex("public_html", "crm/index.html", fileserver))
+		}
+		r.HandleFunc("/*", serveIndex("public_html", "index.html", fileserver))
 
 		routes.Print(r)
 
