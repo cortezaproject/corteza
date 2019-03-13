@@ -39,16 +39,6 @@ func TestMain(m *testing.M) {
 		return
 	}
 
-	// clean up tables
-	{
-		for _, name := range []string{"sys_user", "sys_role", "sys_role_member", "sys_organisation", "settings"} {
-			_, err := db.Exec("truncate " + name)
-			if err != nil {
-				panic("Error when clearing " + name + ": " + err.Error())
-			}
-		}
-	}
-
 	os.Exit(m.Run())
 }
 
