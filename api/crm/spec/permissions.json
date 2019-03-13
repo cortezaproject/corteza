@@ -4,7 +4,7 @@
   "Struct": null,
   "Parameters": {},
   "Protocol": "",
-  "Authentication": null,
+  "Authentication": [],
   "Path": "/permissions",
   "APIs": [
     {
