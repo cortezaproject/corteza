@@ -12,7 +12,7 @@ type (
 	}
 )
 
-var db *Database
+var dbs map[string]*Database
 
 func (c *Database) Validate() error {
 	if c == nil {
@@ -25,7 +25,16 @@ func (c *Database) Validate() error {
 }
 
 func (*Database) Init(prefix ...string) *Database {
-	if db != nil {
+	if dbs == nil {
+		dbs = make(map[string]*Database)
+	}
+
+	name := "default"
+	if len(prefix) > 0 {
+		name = prefix[0]
+	}
+
+	if db := dbs[name]; db != nil {
 		return db
 	}
 
@@ -36,8 +45,9 @@ func (*Database) Init(prefix ...string) *Database {
 		return s
 	}
 
-	db = new(Database)
+	db := new(Database)
 	flag.StringVar(&db.DSN, p("db-dsn"), "", "DSN for database connection (e.g. user:pass@tcp(db1:3306)/dbname?collation=utf8mb4_general_ci)")
 	flag.StringVar(&db.Profiler, p("db-profiler"), "", "Profiler for DB queries (none, stdout)")
+	dbs[name] = db
 	return db
 }
