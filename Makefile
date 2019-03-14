@@ -1,11 +1,11 @@
-.PHONY: help docker docker-push realize dep dep.update test test.rbac test.messaging test.crm qa critic vet codegen
+.PHONY: help docker docker-push realize dep dep.update test test.messaging test.crm qa critic vet codegen
 
 PKG       = "github.com/$(shell cat .project)"
 
 GO        = go
 GOGET     = $(GO) get -u
 
-BASEPKGS = rbac system crm messaging
+BASEPKGS = system crm messaging
 IMAGES   = system crm messaging
 
 ########################################################################################################################
@@ -27,7 +27,6 @@ help:
 	@echo - critic - run go critic on all code
 	@echo - test.crm - individual package unit tests
 	@echo - test.messaging - individual package unit tests
-	@echo - test.rbac - individual package unit tests
 	@echo - test - run all available unit tests
 	@echo - qa - run vet, critic and test on code
 	@echo
@@ -100,16 +99,11 @@ test.crm.db: $(GOTEST)
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.system: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./system/repository/... ./system/service/...
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./system/internal/repository/... ./system/internal/service/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.system.db: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./system/db/...
-	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
-
-
-test.rbac: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/rbac/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.rules: $(GOTEST)
@@ -118,14 +112,6 @@ test.rules: $(GOTEST)
 
 test.mail: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/mail/...
-	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
-
-test.rbac.resources: $(GOTEST)
-	$(GOTEST) -run Resources -covermode count -coverprofile .cover.out -v ./internal/rbac/...
-	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
-
-test.rbac.sessions: $(GOTEST)
-	$(GOTEST) -run Sessions -covermode count -coverprofile .cover.out -v ./internal/rbac/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.store: $(GOTEST)
@@ -154,7 +140,7 @@ mocks: $(GOMOCK)
 	$(MOCKGEN) -package service -source system/internal/service/role.go         -destination system/internal/service/role_mock_test.go
 	$(MOCKGEN) -package service -source system/internal/service/user.go         -destination system/internal/service/user_mock_test.go
 
-	$(MOCKGEN) -package mail  -source internal/mail/mail.go        -destination internal/mail/mail_mock_test.go
+	# $(MOCKGEN) -package mail  -source internal/mail/mail.go        -destination internal/mail/mail_mock_test.go
 	$(MOCKGEN) -package rules -source internal/rules/interfaces.go -destination internal/rules/resources_mock_test.go
 
 	mkdir -p system/internal/repository/mocks
