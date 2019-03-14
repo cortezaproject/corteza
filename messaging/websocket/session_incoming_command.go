@@ -11,6 +11,7 @@ import (
 	"github.com/crusttech/crust/internal/payload/incoming"
 	"github.com/crusttech/crust/internal/payload/outgoing"
 	"github.com/crusttech/crust/messaging/types"
+	systemService "github.com/crusttech/crust/system/service"
 )
 
 func (s *Session) execCommand(ctx context.Context, c *incoming.ExecCommand) error {
@@ -21,7 +22,7 @@ func (s *Session) execCommand(ctx context.Context, c *incoming.ExecCommand) erro
 	switch c.Command {
 	case "echo":
 		if c.Input != "" {
-			user, err := s.svc.user.With(ctx).FindByID(s.user.Identity())
+			user, err := systemService.User(ctx).FindByID(s.user.Identity())
 			if err != nil {
 				return err
 			}

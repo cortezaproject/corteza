@@ -5,8 +5,8 @@ import (
 
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/crusttech/crust/crm/internal/service"
 	"github.com/crusttech/crust/crm/rest/request"
-	"github.com/crusttech/crust/crm/service"
 	"github.com/crusttech/crust/crm/types"
 
 	"github.com/pkg/errors"

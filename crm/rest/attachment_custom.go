@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/crusttech/crust/crm/internal/service"
 	"github.com/crusttech/crust/crm/rest/handlers"
-	"github.com/crusttech/crust/crm/service"
 	"github.com/crusttech/crust/crm/types"
 )
 
