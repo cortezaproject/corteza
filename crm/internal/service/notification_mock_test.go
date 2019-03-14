@@ -6,8 +6,6 @@ package service
 
 import (
 	context "context"
-	service0 "github.com/crusttech/crust/system/service"
-	types "github.com/crusttech/crust/system/types"
 	gomock "github.com/golang/mock/gomock"
 	mail_v2 "gopkg.in/mail.v2"
 	reflect "reflect"
@@ -75,52 +73,4 @@ func (m *MockNotificationService) AttachEmailRecipients(message *mail_v2.Message
 func (mr *MockNotificationServiceMockRecorder) AttachEmailRecipients(message, field interface{}, recipients ...interface{}) *gomock.Call {
 	varargs := append([]interface{}{message, field}, recipients...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AttachEmailRecipients", reflect.TypeOf((*MockNotificationService)(nil).AttachEmailRecipients), varargs...)
-}
-
-// MocknotificationUserService is a mock of notificationUserService interface
-type MocknotificationUserService struct {
-	ctrl     *gomock.Controller
-	recorder *MocknotificationUserServiceMockRecorder
-}
-
-// MocknotificationUserServiceMockRecorder is the mock recorder for MocknotificationUserService
-type MocknotificationUserServiceMockRecorder struct {
-	mock *MocknotificationUserService
-}
-
-// NewMocknotificationUserService creates a new mock instance
-func NewMocknotificationUserService(ctrl *gomock.Controller) *MocknotificationUserService {
-	mock := &MocknotificationUserService{ctrl: ctrl}
-	mock.recorder = &MocknotificationUserServiceMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MocknotificationUserService) EXPECT() *MocknotificationUserServiceMockRecorder {
-	return m.recorder
-}
-
-// With mocks base method
-func (m *MocknotificationUserService) With(ctx context.Context) service0.UserService {
-	ret := m.ctrl.Call(m, "With", ctx)
-	ret0, _ := ret[0].(service0.UserService)
-	return ret0
-}
-
-// With indicates an expected call of With
-func (mr *MocknotificationUserServiceMockRecorder) With(ctx interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "With", reflect.TypeOf((*MocknotificationUserService)(nil).With), ctx)
-}
-
-// FindByID mocks base method
-func (m *MocknotificationUserService) FindByID(userID uint64) (*types.User, error) {
-	ret := m.ctrl.Call(m, "FindByID", userID)
-	ret0, _ := ret[0].(*types.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindByID indicates an expected call of FindByID
-func (mr *MocknotificationUserServiceMockRecorder) FindByID(userID interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MocknotificationUserService)(nil).FindByID), userID)
 }
