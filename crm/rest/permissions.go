@@ -3,8 +3,8 @@ package rest
 import (
 	"context"
 
+	"github.com/crusttech/crust/crm/internal/service"
 	"github.com/crusttech/crust/crm/rest/request"
-	"github.com/crusttech/crust/crm/service"
 
 	"github.com/pkg/errors"
 )

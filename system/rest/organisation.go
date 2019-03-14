@@ -5,8 +5,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/crusttech/crust/system/internal/service"
 	"github.com/crusttech/crust/system/rest/request"
-	"github.com/crusttech/crust/system/service"
 	"github.com/crusttech/crust/system/types"
 )
 

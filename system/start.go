@@ -12,7 +12,6 @@ import (
 
 	"github.com/crusttech/crust/internal/db"
 	migrate "github.com/crusttech/crust/system/db"
-	systemService "github.com/crusttech/crust/system/service"
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/mail"
@@ -51,8 +50,6 @@ func Init() error {
 			// @todo: error logging
 		},
 	})
-
-	systemService.Init()
 
 	return nil
 }

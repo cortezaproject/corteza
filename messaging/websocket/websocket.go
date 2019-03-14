@@ -9,7 +9,7 @@ import (
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/messaging/repository"
+	"github.com/crusttech/crust/messaging/internal/repository"
 	systemService "github.com/crusttech/crust/system/service"
 )
 
@@ -49,7 +49,7 @@ func (ws Websocket) Open(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := ws.svc.user.With(ctx).FindByID(identity.Identity())
+	user, err := systemService.User(ctx).FindByID(identity.Identity())
 	if err != nil {
 		resputil.JSON(w, err)
 		return

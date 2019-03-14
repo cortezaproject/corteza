@@ -8,7 +8,7 @@ import (
 
 	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/internal/payload/outgoing"
-	"github.com/crusttech/crust/messaging/repository"
+	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
 )
 

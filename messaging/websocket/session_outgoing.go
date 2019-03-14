@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/crusttech/crust/messaging/repository"
+	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
 )
 
