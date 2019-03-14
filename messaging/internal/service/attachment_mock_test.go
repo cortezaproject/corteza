@@ -37,6 +37,7 @@ func (m *MockAttachmentService) EXPECT() *MockAttachmentServiceMockRecorder {
 
 // With mocks base method
 func (m *MockAttachmentService) With(ctx context.Context) AttachmentService {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "With", ctx)
 	ret0, _ := ret[0].(AttachmentService)
 	return ret0
@@ -44,11 +45,13 @@ func (m *MockAttachmentService) With(ctx context.Context) AttachmentService {
 
 // With indicates an expected call of With
 func (mr *MockAttachmentServiceMockRecorder) With(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "With", reflect.TypeOf((*MockAttachmentService)(nil).With), ctx)
 }
 
 // FindByID mocks base method
 func (m *MockAttachmentService) FindByID(id uint64) (*types.Attachment, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByID", id)
 	ret0, _ := ret[0].(*types.Attachment)
 	ret1, _ := ret[1].(error)
@@ -57,11 +60,13 @@ func (m *MockAttachmentService) FindByID(id uint64) (*types.Attachment, error) {
 
 // FindByID indicates an expected call of FindByID
 func (mr *MockAttachmentServiceMockRecorder) FindByID(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockAttachmentService)(nil).FindByID), id)
 }
 
 // Create mocks base method
 func (m *MockAttachmentService) Create(name string, size int64, fh io.ReadSeeker, channelId, replyTo uint64) (*types.Attachment, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", name, size, fh, channelId, replyTo)
 	ret0, _ := ret[0].(*types.Attachment)
 	ret1, _ := ret[1].(error)
@@ -70,11 +75,13 @@ func (m *MockAttachmentService) Create(name string, size int64, fh io.ReadSeeker
 
 // Create indicates an expected call of Create
 func (mr *MockAttachmentServiceMockRecorder) Create(name, size, fh, channelId, replyTo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAttachmentService)(nil).Create), name, size, fh, channelId, replyTo)
 }
 
 // OpenOriginal mocks base method
 func (m *MockAttachmentService) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "OpenOriginal", att)
 	ret0, _ := ret[0].(io.ReadSeeker)
 	ret1, _ := ret[1].(error)
@@ -83,11 +90,13 @@ func (m *MockAttachmentService) OpenOriginal(att *types.Attachment) (io.ReadSeek
 
 // OpenOriginal indicates an expected call of OpenOriginal
 func (mr *MockAttachmentServiceMockRecorder) OpenOriginal(att interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OpenOriginal", reflect.TypeOf((*MockAttachmentService)(nil).OpenOriginal), att)
 }
 
 // OpenPreview mocks base method
 func (m *MockAttachmentService) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "OpenPreview", att)
 	ret0, _ := ret[0].(io.ReadSeeker)
 	ret1, _ := ret[1].(error)
@@ -96,5 +105,6 @@ func (m *MockAttachmentService) OpenPreview(att *types.Attachment) (io.ReadSeeke
 
 // OpenPreview indicates an expected call of OpenPreview
 func (mr *MockAttachmentServiceMockRecorder) OpenPreview(att interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OpenPreview", reflect.TypeOf((*MockAttachmentService)(nil).OpenPreview), att)
 }

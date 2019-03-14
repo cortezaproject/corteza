@@ -36,6 +36,7 @@ func (m *MockChannelService) EXPECT() *MockChannelServiceMockRecorder {
 
 // With mocks base method
 func (m *MockChannelService) With(ctx context.Context) ChannelService {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "With", ctx)
 	ret0, _ := ret[0].(ChannelService)
 	return ret0
@@ -43,11 +44,13 @@ func (m *MockChannelService) With(ctx context.Context) ChannelService {
 
 // With indicates an expected call of With
 func (mr *MockChannelServiceMockRecorder) With(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "With", reflect.TypeOf((*MockChannelService)(nil).With), ctx)
 }
 
 // FindByID mocks base method
 func (m *MockChannelService) FindByID(channelID uint64) (*types.Channel, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByID", channelID)
 	ret0, _ := ret[0].(*types.Channel)
 	ret1, _ := ret[1].(error)
@@ -56,11 +59,13 @@ func (m *MockChannelService) FindByID(channelID uint64) (*types.Channel, error) 
 
 // FindByID indicates an expected call of FindByID
 func (mr *MockChannelServiceMockRecorder) FindByID(channelID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockChannelService)(nil).FindByID), channelID)
 }
 
 // Find mocks base method
 func (m *MockChannelService) Find(filter *types.ChannelFilter) (types.ChannelSet, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Find", filter)
 	ret0, _ := ret[0].(types.ChannelSet)
 	ret1, _ := ret[1].(error)
@@ -69,11 +74,13 @@ func (m *MockChannelService) Find(filter *types.ChannelFilter) (types.ChannelSet
 
 // Find indicates an expected call of Find
 func (mr *MockChannelServiceMockRecorder) Find(filter interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockChannelService)(nil).Find), filter)
 }
 
 // Create mocks base method
 func (m *MockChannelService) Create(channel *types.Channel) (*types.Channel, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", channel)
 	ret0, _ := ret[0].(*types.Channel)
 	ret1, _ := ret[1].(error)
@@ -82,11 +89,13 @@ func (m *MockChannelService) Create(channel *types.Channel) (*types.Channel, err
 
 // Create indicates an expected call of Create
 func (mr *MockChannelServiceMockRecorder) Create(channel interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockChannelService)(nil).Create), channel)
 }
 
 // Update mocks base method
 func (m *MockChannelService) Update(channel *types.Channel) (*types.Channel, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", channel)
 	ret0, _ := ret[0].(*types.Channel)
 	ret1, _ := ret[1].(error)
@@ -95,11 +104,13 @@ func (m *MockChannelService) Update(channel *types.Channel) (*types.Channel, err
 
 // Update indicates an expected call of Update
 func (mr *MockChannelServiceMockRecorder) Update(channel interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockChannelService)(nil).Update), channel)
 }
 
 // FindMembers mocks base method
 func (m *MockChannelService) FindMembers(channelID uint64) (types.ChannelMemberSet, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindMembers", channelID)
 	ret0, _ := ret[0].(types.ChannelMemberSet)
 	ret1, _ := ret[1].(error)
@@ -108,11 +119,13 @@ func (m *MockChannelService) FindMembers(channelID uint64) (types.ChannelMemberS
 
 // FindMembers indicates an expected call of FindMembers
 func (mr *MockChannelServiceMockRecorder) FindMembers(channelID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindMembers", reflect.TypeOf((*MockChannelService)(nil).FindMembers), channelID)
 }
 
 // InviteUser mocks base method
 func (m *MockChannelService) InviteUser(channelID uint64, memberIDs ...uint64) (types.ChannelMemberSet, error) {
+	m.ctrl.T.Helper()
 	varargs := []interface{}{channelID}
 	for _, a := range memberIDs {
 		varargs = append(varargs, a)
@@ -125,12 +138,14 @@ func (m *MockChannelService) InviteUser(channelID uint64, memberIDs ...uint64) (
 
 // InviteUser indicates an expected call of InviteUser
 func (mr *MockChannelServiceMockRecorder) InviteUser(channelID interface{}, memberIDs ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{channelID}, memberIDs...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InviteUser", reflect.TypeOf((*MockChannelService)(nil).InviteUser), varargs...)
 }
 
 // AddMember mocks base method
 func (m *MockChannelService) AddMember(channelID uint64, memberIDs ...uint64) (types.ChannelMemberSet, error) {
+	m.ctrl.T.Helper()
 	varargs := []interface{}{channelID}
 	for _, a := range memberIDs {
 		varargs = append(varargs, a)
@@ -143,12 +158,14 @@ func (m *MockChannelService) AddMember(channelID uint64, memberIDs ...uint64) (t
 
 // AddMember indicates an expected call of AddMember
 func (mr *MockChannelServiceMockRecorder) AddMember(channelID interface{}, memberIDs ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{channelID}, memberIDs...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddMember", reflect.TypeOf((*MockChannelService)(nil).AddMember), varargs...)
 }
 
 // DeleteMember mocks base method
 func (m *MockChannelService) DeleteMember(channelID uint64, memberIDs ...uint64) error {
+	m.ctrl.T.Helper()
 	varargs := []interface{}{channelID}
 	for _, a := range memberIDs {
 		varargs = append(varargs, a)
@@ -160,12 +177,14 @@ func (m *MockChannelService) DeleteMember(channelID uint64, memberIDs ...uint64)
 
 // DeleteMember indicates an expected call of DeleteMember
 func (mr *MockChannelServiceMockRecorder) DeleteMember(channelID interface{}, memberIDs ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{channelID}, memberIDs...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMember", reflect.TypeOf((*MockChannelService)(nil).DeleteMember), varargs...)
 }
 
 // SetFlag mocks base method
 func (m *MockChannelService) SetFlag(ID uint64, flag types.ChannelMembershipFlag) (*types.Channel, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetFlag", ID, flag)
 	ret0, _ := ret[0].(*types.Channel)
 	ret1, _ := ret[1].(error)
@@ -174,11 +193,13 @@ func (m *MockChannelService) SetFlag(ID uint64, flag types.ChannelMembershipFlag
 
 // SetFlag indicates an expected call of SetFlag
 func (mr *MockChannelServiceMockRecorder) SetFlag(ID, flag interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetFlag", reflect.TypeOf((*MockChannelService)(nil).SetFlag), ID, flag)
 }
 
 // Archive mocks base method
 func (m *MockChannelService) Archive(ID uint64) (*types.Channel, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Archive", ID)
 	ret0, _ := ret[0].(*types.Channel)
 	ret1, _ := ret[1].(error)
@@ -187,11 +208,13 @@ func (m *MockChannelService) Archive(ID uint64) (*types.Channel, error) {
 
 // Archive indicates an expected call of Archive
 func (mr *MockChannelServiceMockRecorder) Archive(ID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Archive", reflect.TypeOf((*MockChannelService)(nil).Archive), ID)
 }
 
 // Unarchive mocks base method
 func (m *MockChannelService) Unarchive(ID uint64) (*types.Channel, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Unarchive", ID)
 	ret0, _ := ret[0].(*types.Channel)
 	ret1, _ := ret[1].(error)
@@ -200,11 +223,13 @@ func (m *MockChannelService) Unarchive(ID uint64) (*types.Channel, error) {
 
 // Unarchive indicates an expected call of Unarchive
 func (mr *MockChannelServiceMockRecorder) Unarchive(ID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unarchive", reflect.TypeOf((*MockChannelService)(nil).Unarchive), ID)
 }
 
 // Delete mocks base method
 func (m *MockChannelService) Delete(ID uint64) (*types.Channel, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", ID)
 	ret0, _ := ret[0].(*types.Channel)
 	ret1, _ := ret[1].(error)
@@ -213,11 +238,13 @@ func (m *MockChannelService) Delete(ID uint64) (*types.Channel, error) {
 
 // Delete indicates an expected call of Delete
 func (mr *MockChannelServiceMockRecorder) Delete(ID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockChannelService)(nil).Delete), ID)
 }
 
 // Undelete mocks base method
 func (m *MockChannelService) Undelete(ID uint64) (*types.Channel, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Undelete", ID)
 	ret0, _ := ret[0].(*types.Channel)
 	ret1, _ := ret[1].(error)
@@ -226,11 +253,13 @@ func (m *MockChannelService) Undelete(ID uint64) (*types.Channel, error) {
 
 // Undelete indicates an expected call of Undelete
 func (mr *MockChannelServiceMockRecorder) Undelete(ID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Undelete", reflect.TypeOf((*MockChannelService)(nil).Undelete), ID)
 }
 
 // RecordView mocks base method
 func (m *MockChannelService) RecordView(userID, channelID, lastMessageID uint64) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RecordView", userID, channelID, lastMessageID)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -238,5 +267,6 @@ func (m *MockChannelService) RecordView(userID, channelID, lastMessageID uint64)
 
 // RecordView indicates an expected call of RecordView
 func (mr *MockChannelServiceMockRecorder) RecordView(userID, channelID, lastMessageID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordView", reflect.TypeOf((*MockChannelService)(nil).RecordView), userID, channelID, lastMessageID)
 }
