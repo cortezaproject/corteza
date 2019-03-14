@@ -7,13 +7,13 @@ import (
 	"github.com/titpetric/factory"
 )
 
-func TryToConnect(dsn, profiler string) (db *factory.DB, err error) {
-	factory.Database.Add("default", dsn)
+func TryToConnect(name, dsn, profiler string) (db *factory.DB, err error) {
+	factory.Database.Add(name, dsn)
 	var try = 0
 
 connect:
 	try++
-	db, err = factory.Database.Get()
+	db, err = factory.Database.Get(name)
 
 	if err != nil {
 		delay := time.Second * 5
