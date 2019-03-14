@@ -25,7 +25,7 @@ func TestCredentials(t *testing.T) {
 
 	// Run tests in transaction to maintain DB state.
 	Error(t, db.Transaction(func() error {
-		db.Delete("sys_credentials", "1=1")
+		db.Exec("DELETE FROM sys_credentials WHERE 1=1")
 
 		cc := types.CredentialsSet{
 			&types.Credentials{OwnerID: 10000, Kind: types.CredentialsKindLinkedin, Credentials: "linkedin-profile-id"},

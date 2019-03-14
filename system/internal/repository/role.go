@@ -67,26 +67,11 @@ func (r *role) FindByID(id uint64) (*types.Role, error) {
 }
 
 func (r *role) FindByMemberID(userID uint64) ([]*types.Role, error) {
-	ids := make([]uint64, 0)
-	params := make([]interface{}, 0)
-
-	sql := "SELECT DISTINCT rel_role FROM " + r.members + "  "
-	sql += "WHERE rel_user = ?"
-	params = append(params, userID)
-
-	if err := r.db().Select(&ids, sql, params...); err != nil {
+	sql := "SELECT * FROM " + r.roles + " where id in (select rel_role from " + r.members + " where rel_user=?) and " + sqlRoleScope
+	rval := make([]*types.Role, 0)
+	if err := r.db().Select(&rval, sql, userID); err != nil {
 		return nil, err
 	}
-
-	rval := make([]*types.Role, 0)
-	for _, id := range ids {
-		mod, err := r.FindByID(id)
-		if err != nil && err != ErrRoleNotFound {
-			return nil, err
-		}
-		rval = append(rval, mod)
-	}
-
 	return rval, nil
 }
 
