@@ -21,7 +21,7 @@ import (
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/config"
-	"github.com/crusttech/crust/system/service"
+	"github.com/crusttech/crust/system/internal/service"
 )
 
 type (

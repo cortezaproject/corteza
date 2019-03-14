@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/Masterminds/squirrel.v1"
 
-	"github.com/crusttech/crust/crm/repository/ql"
+	"github.com/crusttech/crust/crm/internal/repository/ql"
 	"github.com/crusttech/crust/crm/types"
 )
 

@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/crusttech/crust/crm/repository"
+	"github.com/crusttech/crust/crm/internal/repository"
 	"github.com/crusttech/crust/crm/types"
 	internalRules "github.com/crusttech/crust/internal/rules"
 	systemService "github.com/crusttech/crust/system/service"
@@ -80,7 +80,7 @@ func (p *permissions) With(ctx context.Context) PermissionsService {
 		db:  db,
 		ctx: ctx,
 
-		rules: p.rules.With(ctx),
+		rules: systemService.Rules(ctx),
 	}
 }
 

@@ -8,9 +8,9 @@ import (
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/config"
-	"github.com/crusttech/crust/system/repository"
+	"github.com/crusttech/crust/system/internal/repository"
 	"github.com/crusttech/crust/system/rest/handlers"
-	"github.com/crusttech/crust/system/service"
+	"github.com/crusttech/crust/system/internal/service"
 )
 
 func MountRoutes(oidcConfig *config.OIDC, socialConfig *config.Social, jwtEncoder auth.TokenEncoder) func(chi.Router) {

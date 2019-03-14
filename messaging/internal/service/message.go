@@ -9,7 +9,7 @@ import (
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/payload"
-	"github.com/crusttech/crust/messaging/repository"
+	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
 	systemService "github.com/crusttech/crust/system/service"
 	systemTypes "github.com/crusttech/crust/system/types"
@@ -80,7 +80,7 @@ func (svc *message) With(ctx context.Context) MessageService {
 		db:  db,
 		ctx: ctx,
 
-		usr: svc.usr.With(ctx),
+		usr: systemService.User(ctx),
 		evl: svc.evl.With(ctx),
 		prm: svc.prm.With(ctx),
 

@@ -8,7 +8,7 @@ import (
 	"github.com/crusttech/crust/internal/rules"
 	. "github.com/crusttech/crust/internal/test"
 
-	"github.com/crusttech/crust/crm/repository"
+	"github.com/crusttech/crust/crm/internal/repository"
 	systemService "github.com/crusttech/crust/system/service"
 	systemTypes "github.com/crusttech/crust/system/types"
 )

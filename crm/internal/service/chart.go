@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/crm/repository"
+	"github.com/crusttech/crust/crm/internal/repository"
 	"github.com/crusttech/crust/crm/types"
 )
 

@@ -17,7 +17,7 @@ import (
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/internal/store"
-	"github.com/crusttech/crust/messaging/repository"
+	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
 	systemService "github.com/crusttech/crust/system/service"
 )
@@ -65,7 +65,7 @@ func (svc *attachment) With(ctx context.Context) AttachmentService {
 		ctx: ctx,
 
 		store: svc.store,
-		usr:   svc.usr.With(ctx),
+		usr:   systemService.User(ctx),
 		evl:   svc.evl.With(ctx),
 
 		attachment: repository.Attachment(ctx, db),

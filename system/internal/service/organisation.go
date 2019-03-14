@@ -5,7 +5,7 @@ import (
 
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/system/repository"
+	"github.com/crusttech/crust/system/internal/repository"
 	"github.com/crusttech/crust/system/types"
 )
 

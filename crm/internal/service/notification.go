@@ -10,25 +10,20 @@ import (
 
 	"github.com/crusttech/crust/internal/mail"
 	systemService "github.com/crusttech/crust/system/service"
-	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 type (
 	notification struct {
 		ctx context.Context
 
-		userSvc notificationUserService
+		userSvc systemService.UserService
 	}
 
 	NotificationService interface {
 		With(ctx context.Context) NotificationService
+
 		SendEmail(message *gomail.Message) error
 		AttachEmailRecipients(message *gomail.Message, field string, recipients ...string) error
-	}
-
-	notificationUserService interface {
-		With(ctx context.Context) systemService.UserService
-		FindByID(userID uint64) (*systemTypes.User, error)
 	}
 )
 
@@ -41,8 +36,7 @@ func Notification() NotificationService {
 func (s *notification) With(ctx context.Context) NotificationService {
 	return &notification{
 		ctx: ctx,
-
-		userSvc: s.userSvc.With(ctx),
+		userSvc: systemService.User(ctx),
 	}
 }
 
@@ -67,7 +61,7 @@ func (s *notification) AttachEmailRecipients(message *gomail.Message, field stri
 		return
 	}
 
-	if recipients, err = s.expandUserRefs(s.userSvc.With(s.ctx), recipients); err != nil {
+	if recipients, err = s.expandUserRefs(recipients); err != nil {
 		return
 	}
 
@@ -97,11 +91,11 @@ func (s *notification) AttachEmailRecipients(message *gomail.Message, field stri
 // Expands references to users (strings as numeric uint64)
 //
 // This func is extracted to make testing/mocking mocking
-func (s *notification) expandUserRefs(usrLookup notificationUserService, recipients []string) ([]string, error) {
+func (s *notification) expandUserRefs(recipients []string) ([]string, error) {
 	for r, rcpt := range recipients {
 		// First, get userID off the table
 		if userID, _ := strconv.ParseUint(rcpt, 10, 64); userID > 0 {
-			if user, err := usrLookup.FindByID(userID); err != nil {
+			if user, err := s.userSvc.FindByID(userID); err != nil {
 				return nil, errors.Wrapf(err, "invalid recipient %v", userID)
 			} else {
 				recipients[r] = user.Email + " " + user.Name
