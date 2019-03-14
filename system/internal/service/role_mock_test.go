@@ -36,6 +36,7 @@ func (m *MockRoleService) EXPECT() *MockRoleServiceMockRecorder {
 
 // With mocks base method
 func (m *MockRoleService) With(ctx context.Context) RoleService {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "With", ctx)
 	ret0, _ := ret[0].(RoleService)
 	return ret0
@@ -43,11 +44,13 @@ func (m *MockRoleService) With(ctx context.Context) RoleService {
 
 // With indicates an expected call of With
 func (mr *MockRoleServiceMockRecorder) With(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "With", reflect.TypeOf((*MockRoleService)(nil).With), ctx)
 }
 
 // FindByID mocks base method
 func (m *MockRoleService) FindByID(roleID uint64) (*types.Role, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByID", roleID)
 	ret0, _ := ret[0].(*types.Role)
 	ret1, _ := ret[1].(error)
@@ -56,11 +59,13 @@ func (m *MockRoleService) FindByID(roleID uint64) (*types.Role, error) {
 
 // FindByID indicates an expected call of FindByID
 func (mr *MockRoleServiceMockRecorder) FindByID(roleID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockRoleService)(nil).FindByID), roleID)
 }
 
 // Find mocks base method
 func (m *MockRoleService) Find(filter *types.RoleFilter) ([]*types.Role, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Find", filter)
 	ret0, _ := ret[0].([]*types.Role)
 	ret1, _ := ret[1].(error)
@@ -69,11 +74,13 @@ func (m *MockRoleService) Find(filter *types.RoleFilter) ([]*types.Role, error) 
 
 // Find indicates an expected call of Find
 func (mr *MockRoleServiceMockRecorder) Find(filter interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockRoleService)(nil).Find), filter)
 }
 
 // Create mocks base method
 func (m *MockRoleService) Create(role *types.Role) (*types.Role, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", role)
 	ret0, _ := ret[0].(*types.Role)
 	ret1, _ := ret[1].(error)
@@ -82,11 +89,13 @@ func (m *MockRoleService) Create(role *types.Role) (*types.Role, error) {
 
 // Create indicates an expected call of Create
 func (mr *MockRoleServiceMockRecorder) Create(role interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRoleService)(nil).Create), role)
 }
 
 // Update mocks base method
 func (m *MockRoleService) Update(role *types.Role) (*types.Role, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", role)
 	ret0, _ := ret[0].(*types.Role)
 	ret1, _ := ret[1].(error)
@@ -95,11 +104,13 @@ func (m *MockRoleService) Update(role *types.Role) (*types.Role, error) {
 
 // Update indicates an expected call of Update
 func (mr *MockRoleServiceMockRecorder) Update(role interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockRoleService)(nil).Update), role)
 }
 
 // Merge mocks base method
 func (m *MockRoleService) Merge(roleID, targetroleID uint64) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Merge", roleID, targetroleID)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -107,11 +118,13 @@ func (m *MockRoleService) Merge(roleID, targetroleID uint64) error {
 
 // Merge indicates an expected call of Merge
 func (mr *MockRoleServiceMockRecorder) Merge(roleID, targetroleID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Merge", reflect.TypeOf((*MockRoleService)(nil).Merge), roleID, targetroleID)
 }
 
 // Move mocks base method
 func (m *MockRoleService) Move(roleID, organisationID uint64) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Move", roleID, organisationID)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -119,11 +132,13 @@ func (m *MockRoleService) Move(roleID, organisationID uint64) error {
 
 // Move indicates an expected call of Move
 func (mr *MockRoleServiceMockRecorder) Move(roleID, organisationID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Move", reflect.TypeOf((*MockRoleService)(nil).Move), roleID, organisationID)
 }
 
 // Archive mocks base method
 func (m *MockRoleService) Archive(ID uint64) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Archive", ID)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -131,11 +146,13 @@ func (m *MockRoleService) Archive(ID uint64) error {
 
 // Archive indicates an expected call of Archive
 func (mr *MockRoleServiceMockRecorder) Archive(ID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Archive", reflect.TypeOf((*MockRoleService)(nil).Archive), ID)
 }
 
 // Unarchive mocks base method
 func (m *MockRoleService) Unarchive(ID uint64) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Unarchive", ID)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -143,11 +160,13 @@ func (m *MockRoleService) Unarchive(ID uint64) error {
 
 // Unarchive indicates an expected call of Unarchive
 func (mr *MockRoleServiceMockRecorder) Unarchive(ID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unarchive", reflect.TypeOf((*MockRoleService)(nil).Unarchive), ID)
 }
 
 // Delete mocks base method
 func (m *MockRoleService) Delete(ID uint64) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", ID)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -155,11 +174,13 @@ func (m *MockRoleService) Delete(ID uint64) error {
 
 // Delete indicates an expected call of Delete
 func (mr *MockRoleServiceMockRecorder) Delete(ID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRoleService)(nil).Delete), ID)
 }
 
 // MemberList mocks base method
 func (m *MockRoleService) MemberList(roleID uint64) ([]*types.RoleMember, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MemberList", roleID)
 	ret0, _ := ret[0].([]*types.RoleMember)
 	ret1, _ := ret[1].(error)
@@ -168,11 +189,13 @@ func (m *MockRoleService) MemberList(roleID uint64) ([]*types.RoleMember, error)
 
 // MemberList indicates an expected call of MemberList
 func (mr *MockRoleServiceMockRecorder) MemberList(roleID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MemberList", reflect.TypeOf((*MockRoleService)(nil).MemberList), roleID)
 }
 
 // MemberAdd mocks base method
 func (m *MockRoleService) MemberAdd(roleID, userID uint64) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MemberAdd", roleID, userID)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -180,11 +203,13 @@ func (m *MockRoleService) MemberAdd(roleID, userID uint64) error {
 
 // MemberAdd indicates an expected call of MemberAdd
 func (mr *MockRoleServiceMockRecorder) MemberAdd(roleID, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MemberAdd", reflect.TypeOf((*MockRoleService)(nil).MemberAdd), roleID, userID)
 }
 
 // MemberRemove mocks base method
 func (m *MockRoleService) MemberRemove(roleID, userID uint64) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MemberRemove", roleID, userID)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -192,5 +217,6 @@ func (m *MockRoleService) MemberRemove(roleID, userID uint64) error {
 
 // MemberRemove indicates an expected call of MemberRemove
 func (mr *MockRoleServiceMockRecorder) MemberRemove(roleID, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MemberRemove", reflect.TypeOf((*MockRoleService)(nil).MemberRemove), roleID, userID)
 }

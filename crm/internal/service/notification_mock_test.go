@@ -36,6 +36,7 @@ func (m *MockNotificationService) EXPECT() *MockNotificationServiceMockRecorder 
 
 // With mocks base method
 func (m *MockNotificationService) With(ctx context.Context) NotificationService {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "With", ctx)
 	ret0, _ := ret[0].(NotificationService)
 	return ret0
@@ -43,11 +44,13 @@ func (m *MockNotificationService) With(ctx context.Context) NotificationService 
 
 // With indicates an expected call of With
 func (mr *MockNotificationServiceMockRecorder) With(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "With", reflect.TypeOf((*MockNotificationService)(nil).With), ctx)
 }
 
 // SendEmail mocks base method
 func (m *MockNotificationService) SendEmail(message *mail_v2.Message) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendEmail", message)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -55,11 +58,13 @@ func (m *MockNotificationService) SendEmail(message *mail_v2.Message) error {
 
 // SendEmail indicates an expected call of SendEmail
 func (mr *MockNotificationServiceMockRecorder) SendEmail(message interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendEmail", reflect.TypeOf((*MockNotificationService)(nil).SendEmail), message)
 }
 
 // AttachEmailRecipients mocks base method
 func (m *MockNotificationService) AttachEmailRecipients(message *mail_v2.Message, field string, recipients ...string) error {
+	m.ctrl.T.Helper()
 	varargs := []interface{}{message, field}
 	for _, a := range recipients {
 		varargs = append(varargs, a)
@@ -71,6 +76,7 @@ func (m *MockNotificationService) AttachEmailRecipients(message *mail_v2.Message
 
 // AttachEmailRecipients indicates an expected call of AttachEmailRecipients
 func (mr *MockNotificationServiceMockRecorder) AttachEmailRecipients(message, field interface{}, recipients ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{message, field}, recipients...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AttachEmailRecipients", reflect.TypeOf((*MockNotificationService)(nil).AttachEmailRecipients), varargs...)
 }
