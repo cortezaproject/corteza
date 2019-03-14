@@ -25,7 +25,7 @@ func TestApplication(t *testing.T) {
 
 	// Run tests in transaction to maintain DB state.
 	Error(t, db.Transaction(func() error {
-		db.Delete("sys_application", "1=1")
+		db.Exec("DELETE FROM sys_application WHERE 1=1")
 
 		app := &types.Application{
 			Name:    "created",
