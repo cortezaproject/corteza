@@ -665,8 +665,10 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 				}
 			}
 
-			if !(svc.prm.CanManageChannelMembers(ch) || memberID == userID && ch.Type == types.ChannelTypePublic) {
-				return errors.New("not allowed to add members")
+			if memberID == userID && !svc.prm.CanJoinChannel(ch) {
+				return errors.New("not allowed to join")
+			} else if !svc.prm.CanManageChannelMembers(ch) {
+				return errors.New("not allowed to add channel members")
 			}
 
 			if !exists {
@@ -734,8 +736,10 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 				continue
 			}
 
-			if !(svc.prm.CanManageChannelMembers(ch) || memberID == userID && ch.Type == types.ChannelTypePublic) {
-				return errors.New("not allowed to add members")
+			if memberID == userID && !svc.prm.CanJoinChannel(ch) {
+				return errors.New("not allowed to leave")
+			} else if !svc.prm.CanManageChannelMembers(ch) {
+				return errors.New("not allowed to remove channel members")
 			}
 
 			if userID == memberID {
