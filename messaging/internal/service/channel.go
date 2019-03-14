@@ -9,7 +9,7 @@ import (
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/organization"
-	"github.com/crusttech/crust/messaging/repository"
+	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
 	systemService "github.com/crusttech/crust/system/service"
 )
@@ -81,7 +81,7 @@ func (svc *channel) With(ctx context.Context) ChannelService {
 		db:  db,
 		ctx: ctx,
 
-		usr: svc.usr.With(ctx),
+		usr: systemService.User(ctx),
 		evl: svc.evl.With(ctx),
 		prm: svc.prm.With(ctx),
 

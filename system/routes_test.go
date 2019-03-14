@@ -18,7 +18,7 @@ import (
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/rbac"
-	systemRepository "github.com/crusttech/crust/system/repository"
+	systemRepository "github.com/crusttech/crust/system/internal/repository"
 	systemTypes "github.com/crusttech/crust/system/types"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/joho/godotenv"

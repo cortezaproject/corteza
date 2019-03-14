@@ -12,12 +12,10 @@ import (
 
 	"github.com/crusttech/crust/internal/db"
 	migrate "github.com/crusttech/crust/messaging/db"
-	systemService "github.com/crusttech/crust/system/service"
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/mail"
 	"github.com/crusttech/crust/internal/metrics"
-	"github.com/crusttech/crust/messaging/service"
 )
 
 var (
@@ -61,9 +59,6 @@ func Init() error {
 			// @todo: error logging
 		},
 	})
-
-	systemService.Init()
-	service.Init()
 
 	return nil
 }

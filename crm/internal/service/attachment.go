@@ -16,10 +16,11 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/crm/repository"
+	"github.com/crusttech/crust/crm/internal/repository"
 	"github.com/crusttech/crust/crm/types"
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/store"
+
 	systemService "github.com/crusttech/crust/system/service"
 )
 
@@ -77,7 +78,7 @@ func (svc *attachment) With(ctx context.Context) AttachmentService {
 		pageSvc:   svc.pageSvc.With(ctx),
 		moduleSvc: svc.moduleSvc.With(ctx),
 		recordSvc: svc.recordSvc.With(ctx),
-		usr:       svc.usr.With(ctx),
+		usr:       systemService.User(ctx),
 		store:     svc.store,
 
 		attachment: repository.Attachment(ctx, db),

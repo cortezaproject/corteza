@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	internalRules "github.com/crusttech/crust/internal/rules"
-	"github.com/crusttech/crust/system/repository"
+	"github.com/crusttech/crust/system/internal/repository"
 	"github.com/crusttech/crust/system/types"
 )
 
@@ -23,7 +23,7 @@ type (
 		resources internalRules.ResourcesInterface
 	}
 
-	effectiveRules struct {
+	EffectiveRules struct {
 		Resource  string `json:"resource"`
 		Operation string `json:"operation"`
 		Allow     bool   `json:"allow"`
@@ -33,7 +33,7 @@ type (
 		With(ctx context.Context) RulesService
 
 		List() (interface{}, error)
-		Effective(filter string) ([]effectiveRules, error)
+		Effective(filter string) ([]EffectiveRules, error)
 
 		Check(resource string, operation string, fallbacks ...internalRules.CheckAccessFunc) internalRules.Access
 
@@ -70,13 +70,13 @@ func (p *rules) List() (interface{}, error) {
 	return perms, nil
 }
 
-func (p *rules) Effective(filter string) (eff []effectiveRules, err error) {
-	eff = []effectiveRules{}
+func (p *rules) Effective(filter string) (eff []EffectiveRules, err error) {
+	eff = []EffectiveRules{}
 	for resource, operations := range permissionList {
 		// err := p.checkServiceAccess(resource)
 		if err == nil {
 			for ops := range operations {
-				eff = append(eff, effectiveRules{
+				eff = append(eff, EffectiveRules{
 					Resource:  resource,
 					Operation: ops,
 					Allow:     false,

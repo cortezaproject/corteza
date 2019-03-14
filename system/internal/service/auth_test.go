@@ -6,8 +6,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/markbates/goth"
 
-	"github.com/crusttech/crust/system/repository"
-	repomock "github.com/crusttech/crust/system/repository/mocks"
+	"github.com/crusttech/crust/system/internal/repository"
+	repomock "github.com/crusttech/crust/system/internal/repository/mocks"
 	"github.com/crusttech/crust/system/types"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	internalRules "github.com/crusttech/crust/internal/rules"
-	"github.com/crusttech/crust/system/repository"
+	"github.com/crusttech/crust/system/internal/repository"
 	"github.com/crusttech/crust/system/types"
 )
 

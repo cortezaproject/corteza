@@ -5,7 +5,7 @@ import (
 
 	"github.com/crusttech/crust/internal/auth"
 	internalRules "github.com/crusttech/crust/internal/rules"
-	"github.com/crusttech/crust/messaging/repository"
+	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
 	systemService "github.com/crusttech/crust/system/service"
 )
@@ -63,7 +63,7 @@ type (
 
 func Permissions() PermissionsService {
 	return (&permissions{
-		rules: systemService.Rules(),
+		rules: systemService.DefaultRules,
 	}).With(context.Background())
 }
 
@@ -73,7 +73,7 @@ func (p *permissions) With(ctx context.Context) PermissionsService {
 		db:  db,
 		ctx: ctx,
 
-		rules: p.rules.With(ctx),
+		rules: systemService.Rules(ctx),
 	}
 }
 

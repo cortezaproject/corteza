@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/crm/repository"
+	"github.com/crusttech/crust/crm/internal/repository"
 	"github.com/crusttech/crust/crm/types"
 	"github.com/crusttech/crust/internal/auth"
 
@@ -58,7 +58,7 @@ func (svc *record) With(ctx context.Context) RecordService {
 		ctx: ctx,
 
 		prmSvc:  svc.prmSvc.With(ctx),
-		userSvc: svc.userSvc.With(ctx),
+		userSvc: systemService.User(ctx),
 
 		repository: repository.Record(ctx, db),
 		moduleRepo: repository.Module(ctx, db),

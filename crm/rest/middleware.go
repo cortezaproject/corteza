@@ -3,7 +3,7 @@ package rest
 import (
 	"net/http"
 
-	"github.com/crusttech/crust/crm/service"
+	"github.com/crusttech/crust/crm/internal/service"
 )
 
 func middlewareAllowedAccess(next http.Handler) http.Handler {

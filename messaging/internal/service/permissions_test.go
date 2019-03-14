@@ -11,7 +11,7 @@ import (
 	"github.com/crusttech/crust/internal/rules"
 	. "github.com/crusttech/crust/internal/test"
 
-	"github.com/crusttech/crust/messaging/repository"
+	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
 	systemService "github.com/crusttech/crust/system/service"
 	systemTypes "github.com/crusttech/crust/system/types"

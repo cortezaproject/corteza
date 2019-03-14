@@ -25,7 +25,7 @@ var (
 	DefaultAttachment   AttachmentService
 )
 
-func Init() {
+func init() {
 	o.Do(func() {
 		fs, err := store.New("var/store")
 		if err != nil {

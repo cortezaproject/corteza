@@ -12,9 +12,10 @@ import (
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/internal/payload/outgoing"
-	"github.com/crusttech/crust/messaging/repository"
-	messagingService "github.com/crusttech/crust/messaging/service"
+	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
+	"github.com/crusttech/crust/messaging/internal/service"
+
 	systemService "github.com/crusttech/crust/system/service"
 	systemTypes "github.com/crusttech/crust/system/types"
 )
@@ -40,8 +41,8 @@ type (
 
 		svc struct {
 			user systemService.UserService
-			ch   messagingService.ChannelService
-			msg  messagingService.MessageService
+			ch   service.ChannelService
+			msg  service.MessageService
 		}
 	}
 )
@@ -57,8 +58,8 @@ func (Session) New(ctx context.Context, config *repository.Flags, conn *websocke
 	}
 
 	s.svc.user = systemService.DefaultUser
-	s.svc.ch = messagingService.DefaultChannel
-	s.svc.msg = messagingService.DefaultMessage
+	s.svc.ch = service.DefaultChannel
+	s.svc.msg = service.DefaultMessage
 
 	return s
 }
@@ -74,7 +75,7 @@ func (sess *Session) connected() (err error) {
 	)
 
 	// Push user info about all users we know...
-	if uu, err = sess.svc.user.With(sess.ctx).Find(nil); err != nil {
+	if uu, err = systemService.User(sess.ctx).Find(nil); err != nil {
 		log.Printf("Error: %v", err)
 	} else {
 		userPayload := payload.Users(uu)
