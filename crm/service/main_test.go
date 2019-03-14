@@ -29,6 +29,8 @@ func TestMain(m *testing.M) {
 	flag.Parse()
 
 	factory.Database.Add("default", dsn)
+	factory.Database.Add("crm", dsn)
+	factory.Database.Add("system", dsn)
 
 	db := factory.Database.MustGet()
 	db.Profiler = &factory.Database.ProfilerStdout
