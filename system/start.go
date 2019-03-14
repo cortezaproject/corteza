@@ -41,7 +41,7 @@ func Init() error {
 
 	mail.SetupDialer(flags.smtp)
 
-	InitDb()
+	InitDatabase()
 
 	// configure resputil options
 	resputil.SetConfig(resputil.Options{
@@ -57,9 +57,9 @@ func Init() error {
 	return nil
 }
 
-func InitDb() error {
+func InitDatabase() error {
 	// start/configure database connection
-	db, err := db.TryToConnect(flags.db.DSN, flags.db.Profiler)
+	db, err := db.TryToConnect("system", flags.db.DSN, flags.db.Profiler)
 	if err != nil {
 		return errors.Wrap(err, "could not connect to database")
 	}

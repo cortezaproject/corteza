@@ -19,7 +19,7 @@ type (
 
 // DB produces a contextual DB handle
 func DB(ctx context.Context) *factory.DB {
-	return factory.Database.MustGet().With(ctx)
+	return factory.Database.MustGet("messaging").With(ctx)
 }
 
 func Identity(ctx context.Context) uint64 {

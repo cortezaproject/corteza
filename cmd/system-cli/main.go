@@ -18,7 +18,7 @@ func main() {
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	service.InitDb()
+	service.InitDatabase()
 	systemService.Init()
 
 	var commands []string
