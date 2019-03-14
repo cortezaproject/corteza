@@ -13,7 +13,10 @@ steps:
     GOOS: linux
     GOARCH: amd64
   commands:
-  - apk add --no-cache git
+  - apk add --no-cache git make
+  - go get -u github.com/golang/mock/gomock
+  - go get -u github.com/golang/mock/mockgen
+  - make mocks
   - go build -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime=`date +%FT%T%z` -X github.com/crusttech/crust/internal/version.Version=`git describe --always --tags`" -o build/crust-$GOOS-$GOARCH cmd/crust/*.go
   - go build -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime=`date +%FT%T%z` -X github.com/crusttech/crust/internal/version.Version=`git describe --always --tags`" -o build/crm-$GOOS-$GOARCH cmd/crm/*.go
   - go build -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime=`date +%FT%T%z` -X github.com/crusttech/crust/internal/version.Version=`git describe --always --tags`" -o build/messaging-$GOOS-$GOARCH cmd/messaging/*.go
