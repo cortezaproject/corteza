@@ -22,7 +22,6 @@ import (
 	"github.com/crusttech/crust/internal/config"
 	"github.com/crusttech/crust/internal/metrics"
 	"github.com/crusttech/crust/internal/middleware"
-	"github.com/crusttech/crust/internal/rbac"
 	"github.com/crusttech/crust/internal/routes"
 	"github.com/crusttech/crust/internal/subscription"
 	"github.com/crusttech/crust/internal/version"
@@ -62,7 +61,6 @@ func main() {
 	system.Flags("system")
 
 	auth.Flags()
-	rbac.Flags()
 	subscription.Flags()
 
 	flag.Parse()

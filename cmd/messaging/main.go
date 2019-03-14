@@ -6,15 +6,18 @@ import (
 
 	context "github.com/SentimensRG/ctx"
 	"github.com/SentimensRG/ctx/sigctx"
+	"github.com/namsral/flag"
 
 	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/rbac"
 	"github.com/crusttech/crust/internal/subscription"
 	"github.com/crusttech/crust/internal/version"
 	sub "github.com/crusttech/crust/messaging"
 )
 
 func main() {
+	// log to stdout not stderr
+	log.SetOutput(os.Stdout)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Printf("Starting "+os.Args[0]+", version: %v, built on: %v", version.Version, version.BuildTime)
 
 	ctx := context.AsContext(sigctx.New())
@@ -23,13 +26,8 @@ func main() {
 		"messaging",
 		sub.Flags,
 		auth.Flags,
-		rbac.Flags,
 		subscription.Flags,
 	)
-
-	// log to stdout not stderr
-	log.SetOutput(os.Stdout)
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	if err := sub.Init(); err != nil {
 		log.Fatalf("Error initializing: %+v", err)
@@ -42,7 +40,7 @@ func main() {
 
 	switch command {
 	case "help":
-	case "merge-users":
+		flag.PrintDefaults()
 	default:
 		// Checks subscription, will os.Exit(1) if there is an error
 		// Disabled for now, system service is the only one that validates subscription

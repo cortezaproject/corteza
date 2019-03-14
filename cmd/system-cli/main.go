@@ -8,15 +8,14 @@ import (
 	systemService "github.com/crusttech/crust/system/service"
 
 	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/rbac"
 )
 
 func main() {
-	flags("system", service.Flags, auth.Flags, rbac.Flags)
-
 	// log to stdout not stderr
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	flags("system", service.Flags, auth.Flags)
 
 	service.InitDatabase()
 	systemService.Init()
