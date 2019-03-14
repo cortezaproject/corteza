@@ -12,7 +12,7 @@ import (
 	"github.com/titpetric/factory"
 
 	systemMigrate "github.com/crusttech/crust/system/db"
-	systemService "github.com/crusttech/crust/system/service"
+	_ "github.com/crusttech/crust/system/service"
 )
 
 type mockDB struct{}
@@ -55,8 +55,6 @@ func TestMain(m *testing.M) {
 			}
 		}
 	}
-
-	systemService.Init()
 
 	os.Exit(m.Run())
 }
