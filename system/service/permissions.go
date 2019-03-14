@@ -93,7 +93,7 @@ func (p *permissions) CanCreateApplication() bool {
 }
 
 func (p *permissions) CanReadRole(rl *types.Role) bool {
-	return p.checkAccess(rl.Resource().String(), "read")
+	return p.checkAccess(rl.Resource().String(), "read", p.allow())
 }
 
 func (p *permissions) CanUpdateRole(rl *types.Role) bool {
@@ -109,7 +109,7 @@ func (p *permissions) CanManageRoleMembers(rl *types.Role) bool {
 }
 
 func (p *permissions) CanReadApplication(app *types.Application) bool {
-	return p.checkAccess(app.Resource().String(), "read")
+	return p.checkAccess(app.Resource().String(), "read", p.allow())
 }
 
 func (p *permissions) CanUpdateApplication(app *types.Application) bool {
@@ -126,4 +126,10 @@ func (p *permissions) checkAccess(resource string, operation string, fallbacks .
 		return true
 	}
 	return false
+}
+
+func (p permissions) allow() func() internalRules.Access {
+	return func() internalRules.Access {
+		return internalRules.Allow
+	}
 }
