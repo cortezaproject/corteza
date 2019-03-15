@@ -14,6 +14,7 @@ steps:
     GOARCH: amd64
   commands:
   - apk add --no-cache git make
+  - go fmt ./cmd/... ./internal/... ./crm/... ./messaging/... ./system/...
   - go get -u github.com/golang/mock/gomock
   - go get -u github.com/golang/mock/mockgen
   - make mocks
