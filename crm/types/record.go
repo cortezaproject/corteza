@@ -43,12 +43,6 @@ loop:
 }
 
 // Resource returns a system resource ID for this type
-func (r *Record) Resource() rules.Resource {
-	resource := rules.Resource{
-		Service: "compose",
-		Scope:   "module", // intentionally using module here so we can use Record's resource
-		ID:      r.ModuleID,
-	}
-
-	return resource
+func (r Record) PermissionResource() rules.Resource {
+	return ModulePermissionResource.AppendID(r.ModuleID)
 }

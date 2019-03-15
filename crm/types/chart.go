@@ -22,12 +22,6 @@ type (
 )
 
 // Resource returns a system resource ID for this type
-func (r *Chart) Resource() rules.Resource {
-	resource := rules.Resource{
-		Service: "compose",
-		Scope:   "page",
-		ID:      r.ID,
-	}
-
-	return resource
+func (c Chart) PermissionResource() rules.Resource {
+	return ChartPermissionResource.AppendID(c.ID)
 }

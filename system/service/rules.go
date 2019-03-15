@@ -11,13 +11,13 @@ type (
 	RulesService interface {
 		List() (interface{}, error)
 		Effective(filter string) ([]service.EffectiveRules, error)
-		Check(resource string, operation string, fallbacks ...rules.CheckAccessFunc) rules.Access
+		Check(resource rules.Resource, operation string, fallbacks ...rules.CheckAccessFunc) rules.Access
 		Read(roleID uint64) (interface{}, error)
 	}
 )
 
 var DefaultRules = service.DefaultRules
 
-func Rules(ctx context.Context) RulesService {
+func Rules(ctx context.Context) service.RulesService {
 	return DefaultRules.With(ctx)
 }

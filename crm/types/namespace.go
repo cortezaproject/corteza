@@ -15,12 +15,6 @@ const (
 )
 
 // Resource returns a system resource ID for this type
-func (r *Namespace) Resource() rules.Resource {
-	resource := rules.Resource{
-		Service: "compose",
-		Scope:   "namespace",
-		ID:      r.ID,
-	}
-
-	return resource
+func (n Namespace) PermissionResource() rules.Resource {
+	return NamespacePermissionResource.AppendID(n.ID)
 }

@@ -73,7 +73,7 @@ func (svc *module) Find() (mm types.ModuleSet, err error) {
 }
 
 func (svc *module) Create(mod *types.Module) (*types.Module, error) {
-	if !svc.prmSvc.CanCreateModule() {
+	if !svc.prmSvc.CanCreateModule(crmNamespace()) {
 		return nil, errors.New("not allowed to create this module")
 	}
 
@@ -116,7 +116,9 @@ func (svc *module) Update(module *types.Module) (m *types.Module, err error) {
 }
 
 func (svc *module) DeleteByID(ID uint64) error {
-	if !svc.prmSvc.CanDeleteModuleByID(ID) {
+	if m, err := svc.moduleRepo.FindByID(ID); err != nil {
+		return errors.Wrap(err, "could not delete module")
+	} else if !svc.prmSvc.CanDeleteModule(m) {
 		return errors.New("not allowed to delete this module")
 	}
 

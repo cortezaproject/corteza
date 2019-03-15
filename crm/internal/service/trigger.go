@@ -72,7 +72,7 @@ func (svc *trigger) Find(filter types.TriggerFilter) (tt types.TriggerSet, err e
 }
 
 func (svc *trigger) Create(trigger *types.Trigger) (p *types.Trigger, err error) {
-	if !svc.prmSvc.CanCreateTrigger() {
+	if !svc.prmSvc.CanCreateTrigger(crmNamespace()) {
 		return nil, errors.New("not allowed to create this trigger")
 	}
 
@@ -110,7 +110,9 @@ func (svc *trigger) Update(trigger *types.Trigger) (t *types.Trigger, err error)
 }
 
 func (svc *trigger) DeleteByID(ID uint64) error {
-	if !svc.prmSvc.CanDeleteTriggerByID(ID) {
+	if t, err := svc.triggerRepo.FindByID(ID); err != nil {
+		return errors.Wrap(err, "could not delete trigger")
+	} else if !svc.prmSvc.CanDeleteTrigger(t) {
 		return errors.New("not allowed to delete this trigger")
 	}
 

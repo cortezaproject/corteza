@@ -91,24 +91,9 @@ func (set {{ $set }}Set) IDs() (IDs []uint64) {
 
 	return
 }
-
 {{ end }}
 
-{{ if $.WithResources }}
-// Resources returns a slice of types.Resource from all items in the set
-//
-// This function is auto-generated.
-func (set {{ $set }}Set) Resources() (Resources []{{ $.ResourceType }}) {
-	Resources = make([]{{ $.ResourceType }}, len(set))
 
-	for i := range set {
-		Resources[i] = set[i].Resource()
-	}
-
-	return
-}
-
-{{ end }}
 {{ end }}
 `
 

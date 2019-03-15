@@ -156,7 +156,7 @@ func (r *record) Find(module *types.Module, filter string, sort string, page int
 		return nil, err
 	}
 
-	// Append order args to select args and execute actual query.
+	// append order args to select args and execute actual query.
 	if err := r.db().Select(&response.Records, sqlSelect, argsSelect...); err != nil {
 		return nil, err
 	}

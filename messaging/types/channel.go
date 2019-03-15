@@ -61,16 +61,8 @@ type (
 )
 
 // Resource returns a system resource ID for this type
-func (r *Channel) Resource() rules.Resource {
-	resource := rules.Resource{
-		Service: "messaging",
-		Scope:   "channel",
-	}
-	if r != nil {
-		resource.ID = r.ID
-		resource.Name = r.Name
-	}
-	return resource
+func (c Channel) PermissionResource() rules.Resource {
+	return ChannelPermissionResource.AppendID(c.ID)
 }
 
 func (c *Channel) IsValid() bool {

@@ -24,12 +24,6 @@ type (
 )
 
 // Resource returns a system resource ID for this type
-func (r *Module) Resource() rules.Resource {
-	resource := rules.Resource{
-		Service: "compose",
-		Scope:   "module",
-		ID:      r.ID,
-	}
-
-	return resource
+func (m Module) PermissionResource() rules.Resource {
+	return ModulePermissionResource.AppendID(m.ID)
 }

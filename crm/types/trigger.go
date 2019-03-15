@@ -47,12 +47,6 @@ func (set ActionSet) Value() (driver.Value, error) {
 }
 
 // Resource returns a system resource ID for this type
-func (r *Trigger) Resource() rules.Resource {
-	resource := rules.Resource{
-		Service: "compose",
-		Scope:   "trigger",
-		ID:      r.ID,
-	}
-
-	return resource
+func (t Trigger) PermissionResource() rules.Resource {
+	return TriggerPermissionResource.AppendID(t.ID)
 }

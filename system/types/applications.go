@@ -43,17 +43,9 @@ func (u *Application) Identity() uint64 {
 	return u.ID
 }
 
-// Resource returns a system resource ID for this type
-func (u *Application) Resource() rules.Resource {
-	resource := rules.Resource{
-		Service: "system",
-		Scope:   "application",
-	}
-	if u != nil {
-		resource.ID = u.ID
-		resource.Name = u.Name
-	}
-	return resource
+// Resource returns a resource ID for this type
+func (u Application) PermissionResource() rules.Resource {
+	return ApplicationPermissionResource.AppendID(u.ID)
 }
 
 func (au *ApplicationUnify) Scan(value interface{}) error {

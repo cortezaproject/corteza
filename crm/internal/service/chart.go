@@ -71,7 +71,7 @@ func (svc *chart) Find() (cc types.ChartSet, err error) {
 }
 
 func (svc *chart) Create(mod *types.Chart) (c *types.Chart, err error) {
-	if !svc.prmSvc.CanCreateChart() {
+	if !svc.prmSvc.CanCreateChart(crmNamespace()) {
 		return nil, errors.New("not allowed to create this chart")
 	}
 
@@ -112,7 +112,9 @@ func (svc *chart) Update(mod *types.Chart) (c *types.Chart, err error) {
 }
 
 func (svc *chart) DeleteByID(ID uint64) error {
-	if !svc.prmSvc.CanDeleteChartByID(ID) {
+	if c, err := svc.chartRepo.FindByID(ID); err != nil {
+		return errors.Wrap(err, "could not delete chart")
+	} else if !svc.prmSvc.CanDeleteChart(c) {
 		return errors.New("not allowed to delete this chart")
 	}
 

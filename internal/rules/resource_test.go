@@ -3,33 +3,61 @@ package rules
 import (
 	"testing"
 
-	"encoding/json"
-
 	"github.com/crusttech/crust/internal/test"
 )
 
 func TestResource(t *testing.T) {
 	var (
 		assert = test.Assert
+
+		sCases = []struct {
+			r Resource
+			s string
+		}{
+			{
+				Resource("a:b:c"),
+				"a:b:c"},
+			{
+				Resource("a:b:c").PermissionResource(),
+				"a:b:c"},
+			{
+				Resource("a:b:").AppendID(1),
+				"a:b:1"},
+			{
+				Resource("a:b:").AppendWildcard(),
+				"a:b:*"},
+			{
+				Resource("a:b:1").TrimID(),
+				"a:b:"},
+			{
+				Resource("a:b:1").GetService(),
+				"a"},
+		}
 	)
-	r := Resource{123, "Test name", "channel", "messaging"}
-	assert(t, r.String() == "messaging:channel:123", "Resource ID doesn't match, messaging:channel:123 != '%s'", r.String())
 
-	b, _ := json.Marshal(r)
-	{
-		r := ResourceJSON{}
-		json.Unmarshal(b, &r)
-		assert(t, r.ResourceID == "messaging:channel:123", "Decoded full-json resource ID doesn't match, messaging:channel:123 != '%s'", r.ResourceID)
+	for _, sc := range sCases {
+		assert(t, sc.r.String() == sc.s, "Resource check failed (%s != %s)", sc.r, sc.s)
 	}
 
-	{
-		r := Resource{}
-		json.Unmarshal(b, &r)
-		assert(t, r.String() == "messaging:channel:123", "Decoded full-json resource ID doesn't match, messaging:channel:123 != '%s'", r.String())
-	}
+	var r string
+	r = "a:"
+	assert(t, Resource(r).IsAppendable(), "Expecting resource %q to be appendable", r)
+	r = "a:1"
+	assert(t, Resource(r).IsAppendable(), "Expecting resource %q to be appendable", r)
+	r = "a:*"
+	assert(t, Resource(r).IsAppendable(), "Expecting resource %q to be appendable", r)
 
-	{
-		r.ID = 0
-		assert(t, r.String() == "", "Empty resource should return empty string, got '%s'", r.String())
-	}
+	r = "a"
+	assert(t, Resource(r).IsValid(), "Expecting resource %q to be valid", r)
+	r = "a:"
+	assert(t, !Resource(r).IsValid(), "Expecting resource %q not to be valid", r)
+	r = "a:1"
+	assert(t, Resource(r).IsValid(), "Expecting resource %q to be valid", r)
+	r = "a:*"
+	assert(t, Resource(r).IsValid(), "Expecting resource %q to be valid", r)
+
+	r = "a:1"
+	assert(t, !Resource(r).HasWildcard(), "Expecting resource %q to not have wildcard", r)
+	r = "a:*"
+	assert(t, Resource(r).HasWildcard(), "Expecting resource %q to have wildcard", r)
 }

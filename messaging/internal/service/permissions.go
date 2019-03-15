@@ -18,6 +18,10 @@ type (
 		rules systemService.RulesService
 	}
 
+	resource interface {
+		PermissionResource() internalRules.Resource
+	}
+
 	PermissionsService interface {
 		With(context.Context) PermissionsService
 
@@ -55,9 +59,9 @@ type (
 	}
 
 	effectivePermission struct {
-		Resource  string `json:"resource"`
-		Operation string `json:"operation"`
-		Allow     bool   `json:"allow"`
+		Resource  internalRules.Resource `json:"resource"`
+		Operation string                 `json:"operation"`
+		Allow     bool                   `json:"allow"`
 	}
 )
 
@@ -78,7 +82,7 @@ func (p *permissions) With(ctx context.Context) PermissionsService {
 }
 
 func (p *permissions) Effective() (ee []effectivePermission, err error) {
-	ep := func(res, op string, allow bool) effectivePermission {
+	ep := func(res internalRules.Resource, op string, allow bool) effectivePermission {
 		return effectivePermission{
 			Resource:  res,
 			Operation: op,
@@ -86,41 +90,41 @@ func (p *permissions) Effective() (ee []effectivePermission, err error) {
 		}
 	}
 
-	ee = append(ee, ep("messaging", "access", p.CanAccess()))
-	ee = append(ee, ep("messaging", "grant", p.CanGrant()))
-	ee = append(ee, ep("messaging", "channel.public.create", p.CanCreatePublicChannel()))
-	ee = append(ee, ep("messaging", "channel.private.create", p.CanCreatePrivateChannel()))
-	ee = append(ee, ep("messaging", "channel.group.create", p.CanCreateGroupChannel()))
+	ee = append(ee, ep(types.PermissionResource, "access", p.CanAccess()))
+	ee = append(ee, ep(types.PermissionResource, "grant", p.CanGrant()))
+	ee = append(ee, ep(types.PermissionResource, "channel.public.create", p.CanCreatePublicChannel()))
+	ee = append(ee, ep(types.PermissionResource, "channel.private.create", p.CanCreatePrivateChannel()))
+	ee = append(ee, ep(types.PermissionResource, "channel.group.create", p.CanCreateGroupChannel()))
 
 	return
 }
 
 func (p *permissions) CanAccess() bool {
-	return p.checkAccess("messaging", "access")
+	return p.checkAccess(types.PermissionResource, "access")
 }
 
 func (p *permissions) CanGrant() bool {
-	return p.checkAccess("messaging", "grant")
+	return p.checkAccess(types.PermissionResource, "grant")
 }
 
 func (p *permissions) CanCreatePublicChannel() bool {
-	return p.checkAccess("messaging", "channel.public.create", p.allow())
+	return p.checkAccess(types.PermissionResource, "channel.public.create", p.allow())
 }
 
 func (p *permissions) CanCreatePrivateChannel() bool {
-	return p.checkAccess("messaging", "channel.private.create", p.allow())
+	return p.checkAccess(types.PermissionResource, "channel.private.create", p.allow())
 }
 
 func (p *permissions) CanCreateGroupChannel() bool {
-	return p.checkAccess("messaging", "channel.group.create", p.allow())
+	return p.checkAccess(types.PermissionResource, "channel.group.create", p.allow())
 }
 
 func (p *permissions) CanUpdateChannel(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "update", p.isChannelOwnerFallback(ch))
+	return p.checkAccess(ch, "update", p.isChannelOwnerFallback(ch))
 }
 
 func (p *permissions) CanReadChannel(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "read", p.canReadFallback(ch))
+	return p.checkAccess(ch, "read", p.canReadFallback(ch))
 }
 
 func (p *permissions) CanReadChannelByID(id uint64) bool {
@@ -128,76 +132,76 @@ func (p *permissions) CanReadChannelByID(id uint64) bool {
 }
 
 func (p *permissions) CanJoinChannel(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "join", p.canJoinFallback(ch))
+	return p.checkAccess(ch, "join", p.canJoinFallback(ch))
 }
 
 func (p *permissions) CanLeaveChannel(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "leave", p.allow())
+	return p.checkAccess(ch, "leave", p.allow())
 }
 
 func (p *permissions) CanArchiveChannel(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "archive", p.isChannelOwnerFallback(ch))
+	return p.checkAccess(ch, "archive", p.isChannelOwnerFallback(ch))
 }
 
 func (p *permissions) CanUnarchiveChannel(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "unarchive", p.isChannelOwnerFallback(ch))
+	return p.checkAccess(ch, "unarchive", p.isChannelOwnerFallback(ch))
 }
 
 func (p *permissions) CanDeleteChannel(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "delete", p.isChannelOwnerFallback(ch))
+	return p.checkAccess(ch, "delete", p.isChannelOwnerFallback(ch))
 }
 
 func (p *permissions) CanUndeleteChannel(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "undelete", p.isChannelOwnerFallback(ch))
+	return p.checkAccess(ch, "undelete", p.isChannelOwnerFallback(ch))
 }
 
 func (p *permissions) CanManageChannelMembers(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "members.manage", p.isChannelOwnerFallback(ch))
+	return p.checkAccess(ch, "members.manage", p.isChannelOwnerFallback(ch))
 }
 
 func (p *permissions) CanManageChannelWebhooks(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "webhooks.manage")
+	return p.checkAccess(ch, "webhooks.manage")
 }
 
 func (p *permissions) CanManageChannelAttachments(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "attachments.manage")
+	return p.checkAccess(ch, "attachments.manage")
 }
 
 func (p *permissions) CanSendMessage(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "message.send", p.canSendMessagesFallback(ch))
+	return p.checkAccess(ch, "message.send", p.canSendMessagesFallback(ch))
 }
 
 func (p *permissions) CanReplyMessage(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "message.reply", p.allow())
+	return p.checkAccess(ch, "message.reply", p.allow())
 }
 
 func (p *permissions) CanEmbedMessage(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "message.embed", p.allow())
+	return p.checkAccess(ch, "message.embed", p.allow())
 }
 
 func (p *permissions) CanAttachMessage(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "message.attach", p.allow())
+	return p.checkAccess(ch, "message.attach", p.allow())
 }
 
 func (p *permissions) CanUpdateOwnMessages(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "message.update.own", p.allow())
+	return p.checkAccess(ch, "message.update.own", p.allow())
 }
 
 func (p *permissions) CanUpdateMessages(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "message.update.all")
+	return p.checkAccess(ch, "message.update.all")
 }
 
 func (p *permissions) CanDeleteOwnMessages(ch *types.Channel) bool {
 	// @todo implement
-	return p.checkAccess(ch.Resource().String(), "message.delete.own", p.allow())
+	return p.checkAccess(ch, "message.delete.own", p.allow())
 }
 
 func (p *permissions) CanDeleteMessages(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "message.delete.all")
+	return p.checkAccess(ch, "message.delete.all")
 }
 
 func (p *permissions) CanReactMessage(ch *types.Channel) bool {
-	return p.checkAccess(ch.Resource().String(), "message.react", p.allow())
+	return p.checkAccess(ch, "message.react", p.allow())
 }
 
 func (p permissions) canJoinFallback(ch *types.Channel) func() internalRules.Access {
@@ -255,8 +259,8 @@ func (p permissions) isChannelOwnerFallback(ch *types.Channel) func() internalRu
 	}
 }
 
-func (p *permissions) checkAccess(resource string, operation string, fallbacks ...internalRules.CheckAccessFunc) bool {
-	access := p.rules.Check(resource, operation, fallbacks...)
+func (p *permissions) checkAccess(res resource, operation string, fallbacks ...internalRules.CheckAccessFunc) bool {
+	access := p.rules.Check(res.PermissionResource(), operation, fallbacks...)
 	if access == internalRules.Allow {
 		return true
 	}

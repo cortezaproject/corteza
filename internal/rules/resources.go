@@ -2,7 +2,6 @@ package rules
 
 import (
 	"context"
-	"strings"
 
 	"github.com/titpetric/factory"
 
@@ -10,7 +9,6 @@ import (
 )
 
 const (
-	delimiter             = ":"
 	everyoneRoleId uint64 = 1
 	defaultAccess  Access = Deny
 )
@@ -29,48 +27,43 @@ func NewResources(ctx context.Context, db *factory.DB) ResourcesInterface {
 	return (&resources{}).With(ctx, db)
 }
 
-func (r *resources) With(ctx context.Context, db *factory.DB) ResourcesInterface {
+func (rr *resources) With(ctx context.Context, db *factory.DB) ResourcesInterface {
 	return &resources{
 		ctx: ctx,
 		db:  db,
 	}
 }
 
-func (r *resources) identity() uint64 {
-	return auth.GetIdentityFromContext(r.ctx).Identity()
+func (rr *resources) identity() uint64 {
+	return auth.GetIdentityFromContext(rr.ctx).Identity()
 }
 
 // IsAllowed function checks granted permission for specific resource and operation. Permission checks on
 // global level are not allowed and will always return Deny.
-func (r *resources) Check(resource string, operation string, fallbacks ...CheckAccessFunc) Access {
+func (rr *resources) Check(r Resource, operation string, fallbacks ...CheckAccessFunc) Access {
 	// Number one check, do we have a valid identity?
-	if !auth.GetIdentityFromContext(r.ctx).Valid() {
+	if !auth.GetIdentityFromContext(rr.ctx).Valid() {
 		return Deny
 	}
 
-	parts := strings.Split(resource, delimiter)
-
-	// Permission check on global level is not allowed.
-	if parts[len(parts)-1] == "*" || parts[len(parts)-1] == "" {
+	if !r.IsValid() {
+		// Make sure we do not let through wildcard or undefined resources
 		return Deny
 	}
 
 	// Resource-specific check
 	checks := []CheckAccessFunc{
-		func() Access { return r.checkAccess(resource, operation) },
-		func() Access { return r.checkAccessEveryone(resource, operation) },
+		func() Access { return rr.checkAccess(r, operation) },
+		func() Access { return rr.checkAccessEveryone(r, operation) },
 	}
 
-	if len(parts) > 1 {
-		// If this is a non-service resource (so, not system, messaging),
-		// add checks for any-resource (ending with `*`)
-		parts[len(parts)-1] = "*"
-		anyResource := strings.Join(parts, delimiter)
+	if r.IsAppendable() {
+		wc := r.AppendWildcard()
 
 		checks = append(
 			checks,
-			func() Access { return r.checkAccess(anyResource, operation) },
-			func() Access { return r.checkAccessEveryone(anyResource, operation) },
+			func() Access { return rr.checkAccess(wc, operation) },
+			func() Access { return rr.checkAccessEveryone(wc, operation) },
 		)
 	}
 
@@ -84,19 +77,19 @@ func (r *resources) Check(resource string, operation string, fallbacks ...CheckA
 	return defaultAccess
 }
 
-func (r *resources) checkAccess(resource string, operation string) Access {
-	user := r.identity()
-	result := []Access{}
-	query := []string{
-		// select rules
-		"select r.value from sys_rules r",
-		// join members
-		"inner join sys_role_member m on (m.rel_role = r.rel_role and m.rel_user=?)",
-		// add conditions
-		"where r.resource=? and r.operation=?",
-	}
-	queryString := strings.Join(query, " ")
-	if err := r.db.Select(&result, queryString, user, resource, operation); err != nil {
+//
+func (rr *resources) checkAccess(resource Resource, operation string) Access {
+	var result = make([]Access, 0)
+
+	user := rr.identity()
+
+	query := "" +
+		"SELECT r.value " +
+		"  FROM sys_rules r" +
+		"       INNER JOIN sys_role_member m ON (m.rel_role = r.rel_role AND m.rel_user = ?)" +
+		" WHERE r.resource = ? AND  r.operation = ?"
+
+	if err := rr.db.Select(&result, query, user, resource, operation); err != nil {
 		// @todo: log error
 		return Deny
 	}
@@ -115,16 +108,15 @@ func (r *resources) checkAccess(resource string, operation string) Access {
 	return Inherit
 }
 
-func (r *resources) checkAccessEveryone(resource string, operation string) Access {
-	result := []Access{}
-	query := []string{
-		// select rules
-		"select r.value from sys_rules r",
-		// add conditions
-		"where r.rel_role = ? and r.resource=? and r.operation=?",
-	}
-	queryString := strings.Join(query, " ")
-	if err := r.db.Select(&result, queryString, everyoneRoleId, resource, operation); err != nil {
+func (rr *resources) checkAccessEveryone(resource Resource, operation string) Access {
+	var result = make([]Access, 0)
+
+	query := "" +
+		"SELECT r.value " +
+		"  FROM sys_rules r" +
+		" WHERE r.rel_role = ?  AND r.resource = ? AND  r.operation = ?"
+
+	if err := rr.db.Select(&result, query, everyoneRoleId, resource, operation); err != nil {
 		// @todo: log error
 		return Deny
 	}
@@ -136,17 +128,17 @@ func (r *resources) checkAccessEveryone(resource string, operation string) Acces
 	return Inherit
 }
 
-func (r *resources) Grant(roleID uint64, rules []Rule) error {
-	return r.db.Transaction(func() error {
+func (rr *resources) Grant(roleID uint64, rules []Rule) error {
+	return rr.db.Transaction(func() error {
 		var err error
 		for _, rule := range rules {
 			rule.RoleID = roleID
 
 			switch rule.Value {
 			case Inherit:
-				_, err = r.db.NamedExec("delete from sys_rules where rel_role=:rel_role and resource=:resource and operation=:operation", rule)
+				_, err = rr.db.NamedExec("delete from sys_rules where rel_role=:rel_role and resource=:resource and operation=:operation", rule)
 			default:
-				err = r.db.Replace("sys_rules", rule)
+				err = rr.db.Replace("sys_rules", rule)
 			}
 			if err != nil {
 				return err
@@ -156,19 +148,19 @@ func (r *resources) Grant(roleID uint64, rules []Rule) error {
 	})
 }
 
-func (r *resources) Read(roleID uint64) ([]Rule, error) {
+func (rr *resources) Read(roleID uint64) ([]Rule, error) {
 	result := []Rule{}
 
 	query := "select * from sys_rules where rel_role = ?"
-	if err := r.db.Select(&result, query, roleID); err != nil {
+	if err := rr.db.Select(&result, query, roleID); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (r *resources) Delete(roleID uint64) error {
+func (rr *resources) Delete(roleID uint64) error {
 	query := "delete from sys_rules where rel_role = ?"
-	if _, err := r.db.Exec(query, roleID); err != nil {
+	if _, err := rr.db.Exec(query, roleID); err != nil {
 		return err
 	}
 	return nil
