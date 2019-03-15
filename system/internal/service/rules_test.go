@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"log"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -10,7 +11,6 @@ import (
 	internalAuth "github.com/crusttech/crust/internal/auth"
 	internalRules "github.com/crusttech/crust/internal/rules"
 	. "github.com/crusttech/crust/internal/test"
-	"github.com/crusttech/crust/system/internal/repository"
 	"github.com/crusttech/crust/system/types"
 )
 
@@ -27,15 +27,20 @@ func TestRules(t *testing.T) {
 	// Write user to context.
 	ctx := internalAuth.SetIdentityToContext(context.Background(), user)
 
+	// Create rules service.
+	rulesSvc := Rules().With(ctx)
+	rulesObj := rulesSvc.(*rules)
+
 	// Connect do DB.
-	db := factory.Database.MustGet()
+
+	db := rulesObj.db.(*factory.DB) // factory.Database.MustGet()
 
 	// Create resources interface.
 	resources := internalRules.NewResources(ctx, db)
 
 	// Run tests in transaction to maintain DB state.
 	Error(t, db.Transaction(func() error {
-		db.Delete("sys_rules", "1=1")
+		db.Exec("DELETE FROM sys_rules WHERE 1=1")
 		db.Insert("sys_user", user)
 		db.Insert("sys_role", role)
 		db.Insert("sys_role_member", types.RoleMember{RoleID: role.ID, UserID: user.ID})
@@ -45,9 +50,6 @@ func TestRules(t *testing.T) {
 			err := resources.Delete(role.ID)
 			NoError(t, err, "expected no error, got %+v", err)
 		}
-
-		// Create rules service.
-		rulesSvc := Rules().With(ctx)
 
 		// Update rules for test role, with error.
 		{
@@ -71,6 +73,11 @@ func TestRules(t *testing.T) {
 
 		// List possible permissions with `messaging` and `system` grants.
 		{
+
+			count := []internalRules.Rule{}
+			db.Select(&count, "select * from sys_rules")
+			log.Println("count:", count)
+
 			ret, err := rulesSvc.List()
 			NoError(t, err, "expected no error, got %+v", err)
 
