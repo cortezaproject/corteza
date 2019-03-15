@@ -10,12 +10,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 
-	"github.com/crusttech/crust/internal/db"
-	migrate "github.com/crusttech/crust/system/db"
-
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/db"
 	"github.com/crusttech/crust/internal/mail"
 	"github.com/crusttech/crust/internal/metrics"
+	migrate "github.com/crusttech/crust/system/db"
+	"github.com/crusttech/crust/system/service"
 )
 
 var (
@@ -50,6 +50,9 @@ func Init() error {
 			// @todo: error logging
 		},
 	})
+
+	// Don't change this, it needs Database
+	service.Init()
 
 	return nil
 }
