@@ -24,7 +24,7 @@ var (
 	DefaultPermissions PermissionsService
 )
 
-func init() {
+func Init() {
 	o.Do(func() {
 		fs, err := store.New("var/store")
 		if err != nil {

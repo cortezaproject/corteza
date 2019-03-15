@@ -11,11 +11,12 @@ import (
 	"github.com/titpetric/factory/resputil"
 
 	migrate "github.com/crusttech/crust/crm/db"
-	"github.com/crusttech/crust/internal/db"
-
+	"github.com/crusttech/crust/crm/internal/service"
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/db"
 	"github.com/crusttech/crust/internal/mail"
 	"github.com/crusttech/crust/internal/metrics"
+	systemService "github.com/crusttech/crust/system/service"
 )
 
 var (
@@ -50,6 +51,10 @@ func Init() error {
 			// @todo: error logging
 		},
 	})
+
+	// Don't change this, it needs Database
+	systemService.Init()
+	service.Init()
 
 	return nil
 }

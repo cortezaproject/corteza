@@ -21,7 +21,7 @@ var (
 	DefaultPermissions  PermissionsService
 )
 
-func init() {
+func Init() {
 	o.Do(func() {
 		DefaultRules = Rules()
 		DefaultPermissions = Permissions()
