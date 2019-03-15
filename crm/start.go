@@ -16,7 +16,6 @@ import (
 	"github.com/crusttech/crust/internal/db"
 	"github.com/crusttech/crust/internal/mail"
 	"github.com/crusttech/crust/internal/metrics"
-	systemService "github.com/crusttech/crust/system/service"
 )
 
 var (
@@ -53,7 +52,6 @@ func Init() error {
 	})
 
 	// Don't change this, it needs Database
-	systemService.Init()
 	service.Init()
 
 	return nil
