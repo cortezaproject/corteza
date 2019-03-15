@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"strings"
 
 	"github.com/pkg/errors"
 
@@ -35,7 +34,7 @@ type (
 		List() (interface{}, error)
 		Effective(filter string) ([]EffectiveRules, error)
 
-		Check(resource string, operation string, fallbacks ...internalRules.CheckAccessFunc) internalRules.Access
+		Check(resource internalRules.Resource, operation string, fallbacks ...internalRules.CheckAccessFunc) internalRules.Access
 
 		Read(roleID uint64) (interface{}, error)
 		Update(roleID uint64, rules []internalRules.Rule) (interface{}, error)
@@ -60,11 +59,8 @@ func (p *rules) With(ctx context.Context) RulesService {
 func (p *rules) List() (interface{}, error) {
 	perms := []types.Permission{}
 	for resource, operations := range permissionList {
-		err := p.checkServiceAccess(resource)
-		if err == nil {
-			for ops := range operations {
-				perms = append(perms, types.Permission{Resource: resource, Operation: ops})
-			}
+		for ops := range operations {
+			perms = append(perms, types.Permission{Resource: resource, Operation: ops})
 		}
 	}
 	return perms, nil
@@ -87,7 +83,7 @@ func (p *rules) Effective(filter string) (eff []EffectiveRules, err error) {
 	return
 }
 
-func (p *rules) Check(resource string, operation string, fallbacks ...internalRules.CheckAccessFunc) internalRules.Access {
+func (p *rules) Check(resource internalRules.Resource, operation string, fallbacks ...internalRules.CheckAccessFunc) internalRules.Access {
 	return p.resources.Check(resource, operation, fallbacks...)
 }
 
@@ -130,12 +126,11 @@ func (p *rules) Delete(roleID uint64) (interface{}, error) {
 	return nil, p.resources.Delete(roleID)
 }
 
-func (p *rules) checkServiceAccess(resource string) error {
-	service := strings.Split(resource, delimiter)[0]
-
-	grant := p.resources.Check(service, "grant")
+func (p *rules) checkServiceAccess(resource internalRules.Resource) error {
+	// First, we trim off resource to get service - only service resource have grant operation
+	grant := p.resources.Check(resource.GetService(), "grant")
 	if grant == internalRules.Allow {
 		return nil
 	}
-	return errors.Errorf("No grant permissions for: %v", service)
+	return errors.Errorf("No grant permissions for: %q", resource)
 }

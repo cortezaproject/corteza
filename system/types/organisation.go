@@ -23,15 +23,7 @@ type (
 	}
 )
 
-// Resource returns a system resource ID for this type
-func (r *Organisation) Resource() rules.Resource {
-	resource := rules.Resource{
-		Service: "system",
-		Scope:   "organisation",
-	}
-	if r != nil {
-		resource.ID = r.ID
-		resource.Name = r.Name
-	}
-	return resource
+// Resource returns a resource ID for this type
+func (o *Organisation) PermissionResource() rules.Resource {
+	return OrganisationPermissionResource.AppendID(o.ID)
 }

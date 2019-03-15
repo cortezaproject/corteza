@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"time"
 
+	"github.com/crusttech/crust/internal/rules"
 	systemTypes "github.com/crusttech/crust/system/types"
 )
 
@@ -125,4 +126,8 @@ func (mtype MessageType) Value() (driver.Value, error) {
 
 func (m *Message) IsValid() bool {
 	return m.DeletedAt == nil
+}
+
+func (m Message) PermissionResource() rules.Resource {
+	return ChannelPermissionResource.AppendID(m.ChannelID)
 }

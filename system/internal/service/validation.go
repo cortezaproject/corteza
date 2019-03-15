@@ -1,9 +1,9 @@
 package service
 
 import (
-	"strings"
-
 	"github.com/pkg/errors"
+
+	internalRules "github.com/crusttech/crust/internal/rules"
 )
 
 var (
@@ -15,16 +15,16 @@ var (
 			"role.create":         true,
 			"application.create":  true,
 		},
-		"system:organisation": map[string]bool{
+		"system:organisation:": map[string]bool{
 			"access": true,
 		},
-		"system:role": map[string]bool{
+		"system:role:": map[string]bool{
 			"read":           true,
 			"update":         true,
 			"delete":         true,
 			"members.manage": true,
 		},
-		"system:application": map[string]bool{
+		"system:application:": map[string]bool{
 			"read":   true,
 			"update": true,
 			"delete": true,
@@ -36,7 +36,7 @@ var (
 			"channel.private.create": true,
 			"channel.group.create":   true,
 		},
-		"messaging:channel": map[string]bool{
+		"messaging:channel:": map[string]bool{
 			"update":             true,
 			"read":               true,
 			"join":               true,
@@ -63,7 +63,7 @@ var (
 			"grant":            true,
 			"namespace.create": true,
 		},
-		"compose:namespace": map[string]bool{
+		"compose:namespace:": map[string]bool{
 			"read":           true,
 			"update":         true,
 			"delete":         true,
@@ -72,7 +72,7 @@ var (
 			"trigger.create": true,
 			"page.create":    true,
 		},
-		"compose:module": map[string]bool{
+		"compose:module:": map[string]bool{
 			"read":          true,
 			"update":        true,
 			"delete":        true,
@@ -81,17 +81,17 @@ var (
 			"record.update": true,
 			"record.delete": true,
 		},
-		"compose:chart": map[string]bool{
+		"compose:chart:": map[string]bool{
 			"read":   true,
 			"update": true,
 			"delete": true,
 		},
-		"compose:trigger": map[string]bool{
+		"compose:trigger:": map[string]bool{
 			"read":   true,
 			"update": true,
 			"delete": true,
 		},
-		"compose:page": map[string]bool{
+		"compose:page:": map[string]bool{
 			"read":   true,
 			"update": true,
 			"delete": true,
@@ -99,28 +99,18 @@ var (
 	}
 )
 
-func validatePermission(resource string, operation string) error {
-	resourceParts := strings.Split(resource, delimiter)
-	if len(resourceParts) < 1 {
-		return errors.Errorf("Invalid resource format, expected >= 1, got %d", len(resourceParts))
+func validatePermission(resource internalRules.Resource, operation string) error {
+	if !resource.IsValid() {
+		return errors.Errorf("invalid resource format: %q", resource)
 	}
 
-	resourceName := resourceParts[0]
-	if len(resourceParts) > 1 {
-		resourceName = resourceParts[0] + delimiter + resourceParts[1]
-	}
+	res := resource.TrimID().String()
 
-	if service, ok := permissionList[resourceName]; ok {
+	if service, ok := permissionList[res]; ok {
 		if op := service[operation]; op {
-			if len(resourceParts) == 3 {
-				if val := resourceParts[2]; val != "" {
-					return nil
-				}
-				return errors.Errorf("Invalid resource format, missing resource ID")
-			}
 			return nil
 		}
 		return errors.Errorf("Unknown operation: '%s'", operation)
 	}
-	return errors.Errorf("Unknown resource name: '%s'", resourceName)
+	return errors.Errorf("Unknown resource name: '%s'", resource)
 }

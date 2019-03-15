@@ -16,6 +16,10 @@ type (
 		rules RulesService
 	}
 
+	resource interface {
+		PermissionResource() internalRules.Resource
+	}
+
 	PermissionsService interface {
 		With(context.Context) PermissionsService
 
@@ -77,55 +81,51 @@ func (p *permissions) Effective() (ee []effectivePermission, err error) {
 }
 
 func (p *permissions) CanAccess() bool {
-	return p.checkAccess("system", "access")
+	return p.checkAccess(types.PermissionResource, "access")
 }
 
 func (p *permissions) CanCreateOrganisation() bool {
-	return p.checkAccess("system", "organisation.create")
+	return p.checkAccess(types.PermissionResource, "organisation.create")
 }
 
 func (p *permissions) CanCreateRole() bool {
-	return p.checkAccess("system", "role.create")
+	return p.checkAccess(types.PermissionResource, "role.create")
 }
 
 func (p *permissions) CanCreateApplication() bool {
-	return p.checkAccess("system", "application.create")
+	return p.checkAccess(types.PermissionResource, "application.create")
 }
 
 func (p *permissions) CanReadRole(rl *types.Role) bool {
-	return p.checkAccess(rl.Resource().String(), "read", p.allow())
+	return p.checkAccess(rl, "read", p.allow())
 }
 
 func (p *permissions) CanUpdateRole(rl *types.Role) bool {
-	return p.checkAccess(rl.Resource().String(), "update")
+	return p.checkAccess(rl, "update")
 }
 
 func (p *permissions) CanDeleteRole(rl *types.Role) bool {
-	return p.checkAccess(rl.Resource().String(), "delete")
+	return p.checkAccess(rl, "delete")
 }
 
 func (p *permissions) CanManageRoleMembers(rl *types.Role) bool {
-	return p.checkAccess(rl.Resource().String(), "members.manage")
+	return p.checkAccess(rl, "members.manage")
 }
 
 func (p *permissions) CanReadApplication(app *types.Application) bool {
-	return p.checkAccess(app.Resource().String(), "read", p.allow())
+	return p.checkAccess(app, "read", p.allow())
 }
 
 func (p *permissions) CanUpdateApplication(app *types.Application) bool {
-	return p.checkAccess(app.Resource().String(), "update")
+	return p.checkAccess(app, "update")
 }
 
 func (p *permissions) CanDeleteApplication(app *types.Application) bool {
-	return p.checkAccess(app.Resource().String(), "delete")
+	return p.checkAccess(app, "delete")
 }
 
-func (p *permissions) checkAccess(resource string, operation string, fallbacks ...internalRules.CheckAccessFunc) bool {
-	access := p.rules.Check(resource, operation, fallbacks...)
-	if access == internalRules.Allow {
-		return true
-	}
-	return false
+func (p *permissions) checkAccess(r resource, operation string, fallbacks ...internalRules.CheckAccessFunc) bool {
+	return p.rules.Check(r.PermissionResource(), operation, fallbacks...) == internalRules.Allow
 }
 
 func (p permissions) allow() func() internalRules.Access {

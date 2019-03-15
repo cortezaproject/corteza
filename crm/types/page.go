@@ -40,12 +40,6 @@ type (
 )
 
 // Resource returns a system resource ID for this type
-func (r *Page) Resource() rules.Resource {
-	resource := rules.Resource{
-		Service: "compose",
-		Scope:   "page",
-		ID:      r.ID,
-	}
-
-	return resource
+func (p Page) PermissionResource() rules.Resource {
+	return PagePermissionResource.AppendID(p.ID)
 }

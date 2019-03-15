@@ -136,7 +136,7 @@ func (svc *page) Reorder(selfID uint64, pageIDs []uint64) error {
 
 func (svc *page) Create(page *types.Page) (p *types.Page, err error) {
 	validate := func() error {
-		if !svc.prmSvc.CanCreatePage() {
+		if !svc.prmSvc.CanCreatePage(crmNamespace()) {
 			return errors.New("not allowed to create this module")
 		}
 
@@ -189,7 +189,9 @@ func (svc *page) Update(page *types.Page) (p *types.Page, err error) {
 }
 
 func (svc *page) DeleteByID(ID uint64) error {
-	if !svc.prmSvc.CanDeletePageByID(ID) {
+	if p, err := svc.pageRepo.FindByID(ID); err != nil {
+		return errors.Wrap(err, "could not delete page")
+	} else if !svc.prmSvc.CanDeletePage(p) {
 		return errors.New("not allowed to delete this page")
 	}
 
