@@ -4,10 +4,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/crusttech/crust/system"
-	systemService "github.com/crusttech/crust/system/service"
-
 	"github.com/crusttech/crust/internal/auth"
+	system "github.com/crusttech/crust/system"
+	systemService "github.com/crusttech/crust/system/service"
 )
 
 func main() {
@@ -15,33 +14,10 @@ func main() {
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	flags("system", service.Flags, auth.Flags)
+	flags("system", system.Flags, auth.Flags)
 
-	service.InitDatabase()
+	system.InitDatabase()
 	systemService.Init()
 
-	var commands []string
-	if len(os.Args) > 0 {
-		// @todo migrate to a proper solution (eg: https://github.com/spf13/cobra)
-		commands = os.Args[1:]
-		for a, arg := range os.Args {
-			if arg == "--" && a+1 < len(os.Args) {
-				commands = os.Args[a+1:]
-			}
-		}
-	}
-
-	cliRouter(commands...)
-}
-
-func cliRouter(commands ...string) {
-	if len(commands) == 0 {
-		return
-	}
-
-	switch commands[0] {
-	case "users":
-		cliExecUsers(commands[1:]...)
-	default:
-	}
+	setupCobra()
 }
