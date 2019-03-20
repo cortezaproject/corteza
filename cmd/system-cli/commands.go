@@ -29,6 +29,17 @@ func setupCobra() {
 	}
 	cmdUsers.AddCommand(cmdUsersList)
 
+	// Assign role to user.
+	var cmdUserAssignRole = &cobra.Command{
+		Use:   "roleadd [userID] [roleID]",
+		Short: "Assign role to user",
+		Args:  cobra.ExactArgs(2),
+		Run: func(cmd *cobra.Command, args []string) {
+			systemCli.RoleAssignUser(args[1], args[0])
+		},
+	}
+	cmdUsers.AddCommand(cmdUserAssignRole)
+
 	// Role management commands.
 	var cmdRole = &cobra.Command{
 		Use:   "roles",
@@ -36,7 +47,7 @@ func setupCobra() {
 	}
 	rootCmd.AddCommand(cmdRole)
 
-	// Reset permissions.
+	// Reset roles.
 	var cmdRolesReset = &cobra.Command{
 		Use:   "reset",
 		Short: "Reset roles",
@@ -45,6 +56,17 @@ func setupCobra() {
 		},
 	}
 	cmdRole.AddCommand(cmdRolesReset)
+
+	// Add user to role.
+	var cmdRoleAddUser = &cobra.Command{
+		Use:   "useradd [roleID] [userID]",
+		Short: "Add user to role",
+		Args:  cobra.ExactArgs(2),
+		Run: func(cmd *cobra.Command, args []string) {
+			systemCli.RoleAssignUser(args[0], args[1])
+		},
+	}
+	cmdRole.AddCommand(cmdRoleAddUser)
 
 	err := rootCmd.Execute()
 	if err != nil {

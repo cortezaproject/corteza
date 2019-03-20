@@ -6,7 +6,6 @@ import (
 
 	"github.com/crusttech/crust/internal/auth"
 	system "github.com/crusttech/crust/system"
-	systemService "github.com/crusttech/crust/system/service"
 )
 
 func main() {
@@ -16,8 +15,7 @@ func main() {
 
 	flags("system", system.Flags, auth.Flags)
 
-	system.InitDatabase()
-	systemService.Init()
+	system.Init()
 
 	setupCobra()
 }
