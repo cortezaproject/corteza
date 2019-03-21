@@ -33,19 +33,22 @@ function types {
 	./build/gen-type-set --with-primary-key=false --types RecordValue --output crm/types/record_value.gen.go
 
 	./build/gen-type-set --types MessageAttachment --output messaging/types/attachment.gen.go
-	./build/gen-type-set --types Channel --output messaging/types/channel.gen.go
-	./build/gen-type-set --with-primary-key=false --types ChannelMember --output messaging/types/channel_member.gen.go
-	./build/gen-type-set --with-primary-key=false --types Command,CommandParam --output messaging/types/command.gen.go
-	./build/gen-type-set --types Mention --output messaging/types/mention.gen.go
-	./build/gen-type-set --types MessageFlag --output messaging/types/message_flag.gen.go
-	./build/gen-type-set --types Message --output messaging/types/message.gen.go
-	./build/gen-type-set --with-primary-key=false --types Unread --output messaging/types/unread.gen.go
+	./build/gen-type-set --types Mention           --output messaging/types/mention.gen.go
+	./build/gen-type-set --types MessageFlag       --output messaging/types/message_flag.gen.go
+	./build/gen-type-set --types Message           --output messaging/types/message.gen.go
+	./build/gen-type-set --types Channel           --output messaging/types/channel.gen.go
 
-	./build/gen-type-set --types User --output system/types/user.gen.go
-	./build/gen-type-set --types Application --output system/types/application.gen.go
-	./build/gen-type-set --types Role --output system/types/role.gen.go
+	./build/gen-type-set --with-primary-key=false --types ChannelMember --output messaging/types/channel_member.gen.go
+	./build/gen-type-set --with-primary-key=false --types Command       --output messaging/types/command.gen.go
+	./build/gen-type-set --with-primary-key=false --types CommandParam  --output messaging/types/command_param.gen.go
+	./build/gen-type-set --with-primary-key=false --types Unread        --output messaging/types/unread.gen.go
+
+	./build/gen-type-set --types User         --output system/types/user.gen.go
+	./build/gen-type-set --types Application  --output system/types/application.gen.go
+	./build/gen-type-set --types Role         --output system/types/role.gen.go
 	./build/gen-type-set --types Organisation --output system/types/organisation.gen.go
-	./build/gen-type-set --types Credentials --output system/types/credentials.gen.go
+	./build/gen-type-set --types Credentials  --output system/types/credentials.gen.go
+
 	green "OK"
 }
 
