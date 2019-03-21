@@ -49,7 +49,7 @@ func (mr *MockResourcesInterfaceMockRecorder) With(ctx, db interface{}) *gomock.
 }
 
 // Check mocks base method
-func (m *MockResourcesInterface) Check(resource, operation string, fallbacks ...CheckAccessFunc) Access {
+func (m *MockResourcesInterface) Check(resource Resource, operation string, fallbacks ...CheckAccessFunc) Access {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{resource, operation}
 	for _, a := range fallbacks {
