@@ -164,7 +164,11 @@ func (c *openIdConnect) HandleOAuth2Callback(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	u, _ := c.provider.UserInfo(ctx, oauth2.StaticTokenSource(oauth2Token))
+	u, err := c.provider.UserInfo(ctx, oauth2.StaticTokenSource(oauth2Token))
+	if err != nil {
+		resputil.JSON(w, err)
+		return
+	}
 	p := &oidcProfile{}
 	u.Claims(p)
 
