@@ -1,0 +1,25 @@
+Please take a look.
+
+<!--
+Checklist:
+
+1. API changes have been discussed,
+2. Source code must be formatted (`go fmt`),
+3. Codegen shouldn't produce modified files,
+4. Builds pass,
+5. Tests pass,
+6. Linked to relevant issues
+
+Please make sure that your commit message summary line and pull
+request title match our commit message conventions; Examples:
+
+- add(messaging): import webhooks api
+- upd(crm): check for error when saving page
+- add(system): api calls for creating bot users
+- fix(system): tests are running in transaction
+- ws(all): fix whitespace, formatted json
+
+More natural language commits are permitted, so you could commit
+as `Added api calls for bot user creation to system`, but you
+are encouraged to stick to the above format.
+-->
