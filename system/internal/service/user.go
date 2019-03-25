@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
+	internalAuth "github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/system/internal/repository"
 	"github.com/crusttech/crust/system/types"
 )
@@ -21,6 +22,8 @@ type (
 	user struct {
 		db  *factory.DB
 		ctx context.Context
+
+		prm PermissionsService
 
 		user repository.UserRepository
 	}
@@ -57,20 +60,54 @@ func (svc *user) With(ctx context.Context) UserService {
 	return &user{
 		db:   db,
 		ctx:  ctx,
+		prm:  DefaultPermissions,
 		user: repository.User(ctx, db),
 	}
 }
 
 func (svc *user) Delete(id uint64) error {
-	return svc.user.DeleteByID(id)
+	return svc.db.Transaction(func() (err error) {
+		var u *types.User
+		if u, err = svc.user.FindByID(id); err != nil {
+			return
+		}
+
+		if !svc.prm.CanDeleteUser(u) {
+			return errors.New("not allowed to update this user")
+		}
+
+		return svc.user.DeleteByID(id)
+	})
 }
 
 func (svc *user) Suspend(id uint64) error {
-	return svc.user.SuspendByID(id)
+	return svc.db.Transaction(func() (err error) {
+		var u *types.User
+		if u, err = svc.user.FindByID(id); err != nil {
+			return
+		}
+
+		if !svc.prm.CanSuspendUser(u) {
+			return errors.New("not allowed to update this user")
+		}
+
+		return svc.user.SuspendByID(id)
+	})
 }
 
 func (svc *user) Unsuspend(id uint64) error {
-	return svc.user.UnsuspendByID(id)
+	return svc.db.Transaction(func() (err error) {
+		var u *types.User
+		if u, err = svc.user.FindByID(id); err != nil {
+			return
+		}
+
+		if !svc.prm.CanUnsuspendUser(u) {
+			return errors.New("not allowed to update this user")
+		}
+
+		return svc.user.UnsuspendByID(id)
+	})
 }
 
 func (svc *user) ValidateCredentials(username, password string) (*types.User, error) {
@@ -121,6 +158,7 @@ func (svc *user) FindOrCreate(user *types.User) (out *types.User, err error) {
 		out, err = svc.user.FindBySatosaID(user.SatosaID)
 
 		if err == repository.ErrUserNotFound {
+			// @todo do we allow autocreation of nonexisting users?
 			out, err = svc.user.Create(user)
 			return err
 		}
@@ -130,7 +168,6 @@ func (svc *user) FindOrCreate(user *types.User) (out *types.User, err error) {
 			return err
 		}
 
-		// @todo need to be more selective with fields we update...
 		out, err = svc.user.Update(out)
 		if err != nil {
 			return err
@@ -142,10 +179,14 @@ func (svc *user) FindOrCreate(user *types.User) (out *types.User, err error) {
 
 func (svc *user) Create(input *types.User) (out *types.User, err error) {
 	return out, svc.db.Transaction(func() error {
-		// Encrypt user password
 		if out, err = svc.user.Create(input); err != nil {
 			return err
 		}
+
+		if !svc.prm.CanCreateUser() {
+			return errors.New("not allowed to create users")
+		}
+
 		return nil
 	})
 }
@@ -154,6 +195,10 @@ func (svc *user) Update(mod *types.User) (u *types.User, err error) {
 	return u, svc.db.Transaction(func() (err error) {
 		if u, err = svc.user.FindByID(mod.ID); err != nil {
 			return
+		}
+
+		if mod.ID != internalAuth.GetIdentityFromContext(svc.ctx).Identity() && !svc.prm.CanUpdateUser(u) {
+			return errors.New("not allowed to update this user")
 		}
 
 		// Assign changed values

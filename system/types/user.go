@@ -5,6 +5,8 @@ import (
 
 	"github.com/jmoiron/sqlx/types"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/crusttech/crust/internal/rules"
 )
 
 type (
@@ -60,4 +62,9 @@ func (u *User) GeneratePassword(password string) error {
 
 	u.Password = pwd
 	return nil
+}
+
+// Resource returns a resource ID for this type
+func (u *User) PermissionResource() rules.Resource {
+	return UserPermissionResource.AppendID(u.ID)
 }
