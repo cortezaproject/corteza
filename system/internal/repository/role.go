@@ -163,6 +163,7 @@ func (r *role) Reset() error {
 	// Value: Allow (2), Deny (1), Inherit(0)
 	sql = `REPLACE INTO sys_rules (rel_role, resource, operation, value) VALUES
 		-- Everyone
+		(1, 'system', 'user.create', 2),
 		(1, 'compose:*', 'access', 2),
 		(1, 'messaging:*', 'access', 2),
 		-- Admins
@@ -188,8 +189,14 @@ func (r *role) Reset() error {
 		(2, 'system', 'access', 2),
 		(2, 'system', 'grant', 2),
 		(2, 'system', 'organisation.create', 2),
+		(2, 'system', 'user.create', 2),
 		(2, 'system', 'role.create', 2),
 		(2, 'system:organisation:*', 'access', 2),
+		(2, 'system:user:*', 'read', 2),
+		(2, 'system:user:*', 'update', 2),
+		(2, 'system:user:*', 'suspend', 2),
+		(2, 'system:user:*', 'unsuspend', 2),
+		(2, 'system:user:*', 'delete', 2),
 		(2, 'system:role:*', 'read', 2),
 		(2, 'system:role:*', 'update', 2),
 		(2, 'system:role:*', 'delete', 2),

@@ -26,6 +26,7 @@ type (
 		Effective() (ee []effectivePermission, err error)
 
 		CanCreateOrganisation() bool
+		CanCreateUser() bool
 		CanCreateRole() bool
 		CanCreateApplication() bool
 
@@ -37,6 +38,11 @@ type (
 		CanReadApplication(app *types.Application) bool
 		CanUpdateApplication(app *types.Application) bool
 		CanDeleteApplication(app *types.Application) bool
+
+		CanUpdateUser(u *types.User) bool
+		CanSuspendUser(u *types.User) bool
+		CanUnsuspendUser(u *types.User) bool
+		CanDeleteUser(u *types.User) bool
 	}
 
 	effectivePermission struct {
@@ -88,6 +94,10 @@ func (p *permissions) CanCreateOrganisation() bool {
 	return p.checkAccess(types.PermissionResource, "organisation.create")
 }
 
+func (p *permissions) CanCreateUser() bool {
+	return p.checkAccess(types.PermissionResource, "user.create", p.allow())
+}
+
 func (p *permissions) CanCreateRole() bool {
 	return p.checkAccess(types.PermissionResource, "role.create")
 }
@@ -122,6 +132,22 @@ func (p *permissions) CanUpdateApplication(app *types.Application) bool {
 
 func (p *permissions) CanDeleteApplication(app *types.Application) bool {
 	return p.checkAccess(app, "delete")
+}
+
+func (p *permissions) CanUpdateUser(u *types.User) bool {
+	return p.checkAccess(u, "update")
+}
+
+func (p *permissions) CanSuspendUser(u *types.User) bool {
+	return p.checkAccess(u, "suspend")
+}
+
+func (p *permissions) CanUnsuspendUser(u *types.User) bool {
+	return p.checkAccess(u, "unsuspend")
+}
+
+func (p *permissions) CanDeleteUser(u *types.User) bool {
+	return p.checkAccess(u, "delete")
 }
 
 func (p *permissions) checkAccess(r resource, operation string, fallbacks ...internalRules.CheckAccessFunc) bool {
