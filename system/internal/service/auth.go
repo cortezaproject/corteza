@@ -74,6 +74,15 @@ func (svc *auth) Social(profile goth.User) (u *types.User, err error) {
 				}
 
 				if u, err = svc.users.FindByID(c.OwnerID); err != nil {
+					if err == repository.ErrUserNotFound {
+						// Orphaned credentials (no owner)
+						// try to auto-fix this by removing credentials and recreating user
+						if err := svc.credentials.DeleteByID(c.ID); err != nil {
+							return errors.Wrap(err, "could not cleanup orphaned credentials")
+						} else {
+							goto findByEmail
+						}
+					}
 					return nil
 				} else if u.Valid() && u.Email != profile.Email {
 					return errors.Errorf(
@@ -98,6 +107,7 @@ func (svc *auth) Social(profile goth.User) (u *types.User, err error) {
 			return err
 		}
 
+	findByEmail:
 		// Find user via his email
 		if u, err = svc.users.FindByEmail(profile.Email); err == repository.ErrUserNotFound {
 			// In case we do not have this email, create a new user
