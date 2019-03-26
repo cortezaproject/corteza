@@ -46,7 +46,7 @@ type (
 		Suspend(id uint64) error
 		Unsuspend(id uint64) error
 
-		ValidateCredentials(username, password string) (*types.User, error)
+		// ValidateCredentials(username, password string) (*types.User, error)
 	}
 )
 
@@ -63,68 +63,6 @@ func (svc *user) With(ctx context.Context) UserService {
 		prm:  DefaultPermissions,
 		user: repository.User(ctx, db),
 	}
-}
-
-func (svc *user) Delete(id uint64) error {
-	return svc.db.Transaction(func() (err error) {
-		var u *types.User
-		if u, err = svc.user.FindByID(id); err != nil {
-			return
-		}
-
-		if !svc.prm.CanDeleteUser(u) {
-			return errors.New("not allowed to update this user")
-		}
-
-		return svc.user.DeleteByID(id)
-	})
-}
-
-func (svc *user) Suspend(id uint64) error {
-	return svc.db.Transaction(func() (err error) {
-		var u *types.User
-		if u, err = svc.user.FindByID(id); err != nil {
-			return
-		}
-
-		if !svc.prm.CanSuspendUser(u) {
-			return errors.New("not allowed to update this user")
-		}
-
-		return svc.user.SuspendByID(id)
-	})
-}
-
-func (svc *user) Unsuspend(id uint64) error {
-	return svc.db.Transaction(func() (err error) {
-		var u *types.User
-		if u, err = svc.user.FindByID(id); err != nil {
-			return
-		}
-
-		if !svc.prm.CanUnsuspendUser(u) {
-			return errors.New("not allowed to update this user")
-		}
-
-		return svc.user.UnsuspendByID(id)
-	})
-}
-
-func (svc *user) ValidateCredentials(username, password string) (*types.User, error) {
-	user, err := svc.user.FindByUsername(username)
-	if err != nil {
-		return nil, err
-	}
-
-	if !user.ValidatePassword(password) {
-		return nil, ErrUserInvalidCredentials
-	}
-
-	if !svc.canLogin(user) {
-		return nil, ErrUserLocked
-	}
-
-	return user, nil
 }
 
 func (svc *user) FindByID(id uint64) (*types.User, error) {
@@ -147,7 +85,7 @@ func (svc *user) Find(filter *types.UserFilter) (types.UserSet, error) {
 	return svc.user.Find(filter)
 }
 
-// Finds if user with a specific satosa id exists and returns it otherwise it creates a fresh one
+// FindOrCreate finds existing or creates new user wrapped in db transaction
 func (svc *user) FindOrCreate(user *types.User) (out *types.User, err error) {
 	return out, svc.db.Transaction(func() error {
 		if len(user.SatosaID) != uuidLength {
@@ -216,6 +154,47 @@ func (svc *user) Update(mod *types.User) (u *types.User, err error) {
 	})
 }
 
-func (svc *user) canLogin(u *types.User) bool {
-	return u != nil && u.ID > 0 && u.SuspendedAt == nil && u.DeletedAt == nil
+func (svc *user) Delete(id uint64) error {
+	return svc.db.Transaction(func() (err error) {
+		var u *types.User
+		if u, err = svc.user.FindByID(id); err != nil {
+			return
+		}
+
+		if !svc.prm.CanDeleteUser(u) {
+			return errors.New("not allowed to update this user")
+		}
+
+		return svc.user.DeleteByID(id)
+	})
+}
+
+func (svc *user) Suspend(id uint64) error {
+	return svc.db.Transaction(func() (err error) {
+		var u *types.User
+		if u, err = svc.user.FindByID(id); err != nil {
+			return
+		}
+
+		if !svc.prm.CanSuspendUser(u) {
+			return errors.New("not allowed to update this user")
+		}
+
+		return svc.user.SuspendByID(id)
+	})
+}
+
+func (svc *user) Unsuspend(id uint64) error {
+	return svc.db.Transaction(func() (err error) {
+		var u *types.User
+		if u, err = svc.user.FindByID(id); err != nil {
+			return
+		}
+
+		if !svc.prm.CanUnsuspendUser(u) {
+			return errors.New("not allowed to update this user")
+		}
+
+		return svc.user.UnsuspendByID(id)
+	})
 }
