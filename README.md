@@ -1,6 +1,7 @@
 # What is Crust?
 
 [![Build Status](https://drone.crust.tech/api/badges/crusttech/crust/status.svg)](https://drone.crust.tech/crusttech/crust)
+[![Go Report Card](https://goreportcard.com/badge/github.com/crusttech/crust)](https://goreportcard.com/report/github.com/crusttech/crust)
 
 Crust brings your user ecosystem and essential applications together on one platform, unifying them via CRM, Team Messaging and Advanced Identity and Access Management.
 
