@@ -54,7 +54,9 @@ func (ctrl *Trigger) Read(ctx context.Context, r *request.TriggerRead) (interfac
 }
 
 func (ctrl *Trigger) Update(ctx context.Context, r *request.TriggerUpdate) (interface{}, error) {
-	if trigger, err := ctrl.trigger.FindByID(r.TriggerID); err != nil {
+	svc := ctrl.trigger.With(ctx)
+
+	if trigger, err := svc.FindByID(r.TriggerID); err != nil {
 		return nil, err
 	} else {
 		trigger.Name = r.Name
@@ -63,7 +65,7 @@ func (ctrl *Trigger) Update(ctx context.Context, r *request.TriggerUpdate) (inte
 		trigger.Source = r.Source
 		trigger.ModuleID = r.ModuleID
 
-		return ctrl.trigger.With(ctx).Update(trigger)
+		return svc.Update(trigger)
 	}
 }
 
