@@ -97,8 +97,12 @@ func (svc *message) With(ctx context.Context) MessageService {
 func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err error) {
 	filter.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	if filter.ChannelID > 0 && !svc.prm.CanReadChannelByID(filter.ChannelID) {
-		return nil, errors.New("not allowed to access channel")
+	if filter.ChannelID > 0 {
+		if ch, err := svc.findChannelByID(filter.ChannelID); err != nil {
+			return nil, err
+		} else if !svc.prm.CanReadChannel(ch) {
+			return nil, errors.New("not allowed to access channel")
+		}
 	}
 
 	mm, err = svc.message.FindMessages(filter)
@@ -112,8 +116,12 @@ func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err 
 func (svc *message) FindThreads(filter *types.MessageFilter) (mm types.MessageSet, err error) {
 	filter.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	if filter.ChannelID > 0 && !svc.prm.CanReadChannelByID(filter.ChannelID) {
-		return nil, errors.New("not allowed to access channel")
+	if filter.ChannelID > 0 {
+		if ch, err := svc.findChannelByID(filter.ChannelID); err != nil {
+			return nil, err
+		} else if !svc.prm.CanReadChannel(ch) {
+			return nil, errors.New("not allowed to access channel")
+		}
 	}
 
 	mm, err = svc.message.FindThreads(filter)
@@ -183,7 +191,7 @@ func (svc *message) Create(in *types.Message) (message *types.Message, err error
 
 		if in.ChannelID == 0 {
 			return errors.New("channelID missing")
-		} else if ch, err = svc.channel.FindChannelByID(in.ChannelID); err != nil {
+		} else if ch, err = svc.findChannelByID(in.ChannelID); err != nil {
 			return
 		} else if in.ReplyTo > 0 && !svc.prm.CanReplyMessage(ch) {
 			return errors.New("not allowed to reply in this channel")
@@ -222,13 +230,16 @@ func (svc *message) Update(in *types.Message) (message *types.Message, err error
 	}
 
 	var currentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
-	var ch *types.Channel
-
-	if !svc.prm.CanReadChannelByID(in.ChannelID) {
-		return nil, errors.New("not allowed to access channel")
-	}
 
 	return message, svc.db.Transaction(func() (err error) {
+		var ch *types.Channel
+
+		if ch, err = svc.findChannelByID(in.ChannelID); err != nil {
+			return err
+		} else if !svc.prm.CanReadChannel(ch) {
+			return errors.New("not allowed to access channel")
+		}
+
 		message, err = svc.message.FindMessageByID(in.ID)
 		if err != nil {
 			return errors.Wrap(err, "could not load message for editing")
@@ -239,11 +250,9 @@ func (svc *message) Update(in *types.Message) (message *types.Message, err error
 			return nil
 		}
 
-		if ch, err = svc.channel.FindChannelByID(message.ChannelID); err != nil {
-			return
-		} else if message.UserID == currentUserID && !svc.prm.CanUpdateOwnMessages(ch) {
+		if message.UserID == currentUserID && !svc.prm.CanUpdateOwnMessages(ch) {
 			return errors.New("not allowed to edit your messages in this channel")
-		} else if !svc.prm.CanUpdateMessages(ch) {
+		} else if message.UserID != currentUserID && !svc.prm.CanUpdateMessages(ch) {
 			return errors.New("not allowed to edit messages in this channel")
 		}
 
@@ -278,7 +287,9 @@ func (svc *message) Delete(ID uint64) error {
 			return err
 		}
 
-		if !svc.prm.CanReadChannelByID(deletedMsg.ChannelID) {
+		if ch, err = svc.findChannelByID(deletedMsg.ChannelID); err != nil {
+			return err
+		} else if !svc.prm.CanReadChannel(ch) {
 			return errors.New("not allowed to access channel")
 		}
 
@@ -338,9 +349,10 @@ func (svc *message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (c
 		var thread *types.Message
 		var lastMessage *types.Message
 
-		// Validate channel
-		if ch, err = svc.channel.FindChannelByID(channelID); err != nil {
-			return errors.Wrap(err, "unable to verify channel")
+		if ch, err = svc.findChannelByID(channelID); err != nil {
+			return err
+		} else if !svc.prm.CanReadChannel(ch) {
+			return errors.New("not allowed to access channel")
 		} else if !ch.IsValid() {
 			return errors.New("invalid channel")
 		}
@@ -443,7 +455,7 @@ func (svc *message) flag(messageID uint64, flag string, remove bool) error {
 
 		if msg, err = svc.message.FindMessageByID(messageID); err != nil {
 			return
-		} else if ch, err = svc.channel.FindChannelByID(msg.ChannelID); err != nil {
+		} else if ch, err = svc.findChannelByID(msg.ChannelID); err != nil {
 			return
 		} else if !svc.prm.CanReadChannel(ch) {
 			return errors.New("not allowed to access channel")
@@ -667,6 +679,25 @@ func (svc *message) updateMentions(messageID uint64, mm types.MentionSet) error 
 	}
 
 	return nil
+}
+
+// findChannelByID loads channel and it's members
+func (svc message) findChannelByID(channelID uint64) (ch *types.Channel, err error) {
+	var (
+		currentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		mm            types.ChannelMemberSet
+	)
+
+	if ch, err = svc.channel.FindChannelByID(channelID); err != nil {
+		return nil, err
+	} else if mm, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: ch.ID}); err != nil {
+		return nil, err
+	} else {
+		ch.Members = mm.AllMemberIDs()
+		ch.Member = mm.FindByUserID(currentUserID)
+	}
+
+	return
 }
 
 var _ MessageService = &message{}

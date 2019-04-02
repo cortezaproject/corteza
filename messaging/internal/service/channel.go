@@ -667,7 +667,7 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 
 			if memberID == userID && !svc.prm.CanJoinChannel(ch) {
 				return errors.New("not allowed to join")
-			} else if !svc.prm.CanManageChannelMembers(ch) {
+			} else if memberID != userID && !svc.prm.CanManageChannelMembers(ch) {
 				return errors.New("not allowed to add channel members")
 			}
 
