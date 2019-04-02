@@ -164,8 +164,8 @@ func (r *role) Reset() error {
 	sql = `REPLACE INTO sys_rules (rel_role, resource, operation, value) VALUES
 		-- Everyone
 		(1, 'system', 'user.create', 2),
-		(1, 'compose:*', 'access', 2),
-		(1, 'messaging:*', 'access', 2),
+		(1, 'compose', 'access', 2),
+		(1, 'messaging', 'access', 2),
 		-- Admins
 		(2, 'compose', 'namespace.create', 2),
 		(2, 'compose', 'access', 2),
