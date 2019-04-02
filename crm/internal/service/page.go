@@ -137,7 +137,7 @@ func (svc *page) Reorder(selfID uint64, pageIDs []uint64) error {
 func (svc *page) Create(page *types.Page) (p *types.Page, err error) {
 	validate := func() error {
 		if !svc.prmSvc.CanCreatePage(crmNamespace()) {
-			return errors.New("not allowed to create this module")
+			return errors.New("not allowed to create this page")
 		}
 
 		if page.ModuleID > 0 {
@@ -161,12 +161,12 @@ func (svc *page) Create(page *types.Page) (p *types.Page, err error) {
 func (svc *page) Update(page *types.Page) (p *types.Page, err error) {
 	validate := func() error {
 		if page.ID == 0 {
-			return errors.New("Error when savig page, invalid ID")
+			return errors.New("Error when saving page, invalid ID")
 		} else if p, err = svc.pageRepo.FindByID(page.ID); err != nil {
-			return errors.Wrap(err, "Error while loading module for update")
+			return errors.Wrap(err, "Error while loading page for update")
 		} else {
 			if !svc.prmSvc.CanUpdatePage(p) {
-				return errors.New("not allowed to update this pahe")
+				return errors.New("not allowed to update this page")
 			}
 		}
 
