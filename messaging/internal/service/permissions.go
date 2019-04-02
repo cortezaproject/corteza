@@ -35,7 +35,6 @@ type (
 
 		CanUpdateChannel(ch *types.Channel) bool
 		CanReadChannel(ch *types.Channel) bool
-		CanReadChannelByID(id uint64) bool
 		CanJoinChannel(ch *types.Channel) bool
 		CanLeaveChannel(ch *types.Channel) bool
 		CanDeleteChannel(ch *types.Channel) bool
@@ -125,10 +124,6 @@ func (p *permissions) CanUpdateChannel(ch *types.Channel) bool {
 
 func (p *permissions) CanReadChannel(ch *types.Channel) bool {
 	return p.checkAccess(ch, "read", p.canReadFallback(ch))
-}
-
-func (p *permissions) CanReadChannelByID(id uint64) bool {
-	return p.CanReadChannel(&types.Channel{ID: id})
 }
 
 func (p *permissions) CanJoinChannel(ch *types.Channel) bool {
@@ -222,7 +217,7 @@ func (p permissions) canJoinFallback(ch *types.Channel) func() internalRules.Acc
 
 func (p permissions) canReadFallback(ch *types.Channel) func() internalRules.Access {
 	return func() internalRules.Access {
-		if (ch.IsValid() && ch.Type == types.ChannelTypePublic) || ch.Member != nil {
+		if ch.IsValid() && (ch.Type == types.ChannelTypePublic || ch.Member != nil) {
 			return internalRules.Allow
 		}
 		return internalRules.Deny
@@ -231,7 +226,7 @@ func (p permissions) canReadFallback(ch *types.Channel) func() internalRules.Acc
 
 func (p permissions) canSendMessagesFallback(ch *types.Channel) func() internalRules.Access {
 	return func() internalRules.Access {
-		if ch.IsValid() && ch.Type == types.ChannelTypePublic && ch.Member != nil {
+		if ch.IsValid() && (ch.Type == types.ChannelTypePublic || ch.Member != nil) {
 			return internalRules.Allow
 		}
 		return internalRules.Deny
