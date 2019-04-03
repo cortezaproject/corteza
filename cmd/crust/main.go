@@ -117,12 +117,12 @@ func main() {
 			middleware.MountSystemRoutes(ctx, r, flags.http)
 		})
 
-		fileserver := http.FileServer(http.Dir("public_html"))
+		fileserver := http.FileServer(http.Dir("webapp"))
 
-		for _, service := range []string{"system", "messaging", "crm"} {
-			r.HandleFunc("/"+service+"*", serveIndex("public_html", "crm/index.html", fileserver))
+		for _, service := range []string{"admin", "system", "messaging", "crm"} {
+			r.HandleFunc("/"+service+"*", serveIndex("webapp", "crm/index.html", fileserver))
 		}
-		r.HandleFunc("/*", serveIndex("public_html", "index.html", fileserver))
+		r.HandleFunc("/*", serveIndex("webapp", "index.html", fileserver))
 
 		routes.Print(r)
 
