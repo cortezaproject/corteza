@@ -253,7 +253,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:c6a991538ddd77daaad1380ec85e1d7c6a0ae2bc2732b059ddb95f9a49569d3d"
+  digest = "1:eb5f06b8a308f49f2205386975ab854606f01784546996964ade50fc41156875"
   name = "github.com/markbates/goth"
   packages = [
     ".",
@@ -262,6 +262,7 @@
     "providers/github",
     "providers/gplus",
     "providers/linkedin",
+    "providers/openidConnect",
   ]
   pruneopts = "UT"
   revision = "157987f620ff2fc5e1f6a1427a3685219fbf6ff4"
@@ -554,6 +555,7 @@
     "github.com/markbates/goth/providers/github",
     "github.com/markbates/goth/providers/gplus",
     "github.com/markbates/goth/providers/linkedin",
+    "github.com/markbates/goth/providers/openidConnect",
     "github.com/namsral/flag",
     "github.com/pkg/errors",
     "github.com/prometheus/client_golang/prometheus",

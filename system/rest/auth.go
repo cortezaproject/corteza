@@ -79,7 +79,7 @@ func (ctrl *Auth) Handlers(jwtEncoder auth.TokenEncoder) *handlers.Auth {
 	}
 	h.Login = func(w http.ResponseWriter, r *http.Request) {
 		params := request.NewAuthLogin()
-		ctx := r.Context()
+		// ctx := r.Context()
 
 		// parse request to fill parameters
 		err := params.Fill(r)
@@ -88,26 +88,28 @@ func (ctrl *Auth) Handlers(jwtEncoder auth.TokenEncoder) *handlers.Auth {
 			return
 		}
 
-		userSvc := service.User(ctx)
+		// userSvc := service.User(ctx)
 
 		// check email and username for login
-		user, err := userSvc.FindByEmail(params.Username)
-		if err != nil {
-			user, err = userSvc.FindByUsername(params.Username)
-		}
-
-		// can't find user
-		if err != nil {
-			resputil.JSON(w, err)
-			return
-		}
+		// @todo disabled until we migrate to local users through credentials
+		// user, err := userSvc.FindByEmail(params.Username)
+		// if err != nil {
+		// 	user, err = userSvc.FindByUsername(params.Username)
+		// }
+		//
+		// // can't find user
+		// if err != nil {
+		// 	resputil.JSON(w, err)
+		// 	return
+		// }
 
 		// validate password
-		if user.ValidatePassword(params.Password) {
-			jwtEncoder.SetCookie(w, r, user)
-			resputil.JSON(w, user, err)
-			return
-		}
+		// @todo disabled until we migrate to local users through credentials
+		// if user.ValidatePassword(params.Password) {
+		// 	jwtEncoder.SetCookie(w, r, user)
+		// 	resputil.JSON(w, user, err)
+		// 	return
+		// }
 
 		resputil.JSON(w, errors.New("Password doesn't match"))
 	}

@@ -160,6 +160,12 @@ func (r *role) Reset() error {
 		return err
 	}
 
+	// Remove all rules for both roles
+	sql = "DELETE FROM sys_rules WHERE rel_role IN (1, 2)"
+	if _, err = r.db().Exec(sql); err != nil {
+		return err
+	}
+
 	// Value: Allow (2), Deny (1), Inherit(0)
 	sql = `REPLACE INTO sys_rules (rel_role, resource, operation, value) VALUES
 		-- Everyone

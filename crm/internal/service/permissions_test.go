@@ -27,7 +27,6 @@ func TestPermissions(t *testing.T) {
 	user := &systemTypes.User{
 		Name:     "John Crm Doe",
 		Username: "johndoe",
-		SatosaID: "12345",
 	}
 	err := user.GeneratePassword("johndoe")
 	NoError(t, err, "expected no error generating password, got %+v", err)

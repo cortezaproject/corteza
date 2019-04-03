@@ -29,9 +29,9 @@ func TestCredentials(t *testing.T) {
 		db.Exec("DELETE FROM sys_credentials WHERE 1=1")
 
 		cc := types.CredentialsSet{
-			&types.Credentials{OwnerID: 10000, Kind: types.CredentialsKindLinkedin, Credentials: "linkedin-profile-id"},
-			&types.Credentials{OwnerID: 10000, Kind: types.CredentialsKindGPlus, Credentials: "gplus-profile-id"},
-			&types.Credentials{OwnerID: 20000, Kind: types.CredentialsKindFacebook, Credentials: "facebook-profile-id"},
+			&types.Credentials{OwnerID: 10000, Kind: "li", Credentials: "linkedin-profile-id"},
+			&types.Credentials{OwnerID: 10000, Kind: "g+", Credentials: "gplus-profile-id"},
+			&types.Credentials{OwnerID: 20000, Kind: "fb", Credentials: "facebook-profile-id"},
 		}
 
 		for _, c := range cc {
