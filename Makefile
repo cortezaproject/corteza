@@ -1,4 +1,4 @@
-.PHONY: help docker docker-push realize dep dep.update test test.messaging test.crm qa critic vet codegen
+.PHONY: help docker docker-push realize dep dep.update test test.messaging test.crm qa critic vet codegen integration
 
 PKG       = "github.com/$(shell cat .project)"
 
@@ -162,3 +162,5 @@ clean:
 	rm -f $(REALIZE) $(GOCRITIC) $(GOTEST)
 
 
+integration:
+	drone exec --pipeline integration
