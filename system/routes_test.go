@@ -36,6 +36,8 @@ type (
 )
 
 func TestUsers(t *testing.T) {
+	ctx := context.Background()
+
 	// we need to set this due to using Init()
 	os.Setenv("SYSTEM_DB_DSN", "crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci")
 
@@ -46,10 +48,8 @@ func TestUsers(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	// Initialize routes and exit on failure.
-	err := Init()
+	err := Init(ctx)
 	test.Assert(t, err == nil, "Error initializing: %+v", err)
-
-	ctx := context.Background()
 
 	routes := Routes(ctx)
 

@@ -42,8 +42,8 @@ type (
 	}
 )
 
-func Rules() RulesService {
-	return (&rules{}).With(context.Background())
+func Rules(ctx context.Context) RulesService {
+	return (&rules{}).With(ctx)
 }
 
 func (p *rules) With(ctx context.Context) RulesService {

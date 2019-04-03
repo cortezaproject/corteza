@@ -30,7 +30,7 @@ func TestRules(t *testing.T) {
 	ctx := internalAuth.SetIdentityToContext(context.Background(), user)
 
 	// Create rules service.
-	rulesSvc := Rules().With(ctx)
+	rulesSvc := Rules(ctx)
 	rulesObj := rulesSvc.(*rules)
 
 	// Connect do DB.

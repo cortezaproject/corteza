@@ -20,6 +20,9 @@ func TestRecord(t *testing.T) {
 		ID:       1337,
 		Username: "TestUser",
 	}
+
+	ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(user.Identity()))
+
 	{
 		err := user.GeneratePassword("Mary had a little lamb, little lamb, little lamb")
 		test.Assert(t, err == nil, "Error generating password: %+v", err)
@@ -27,11 +30,9 @@ func TestRecord(t *testing.T) {
 
 	{
 		userSvc := systemService.TestUser(t, ctx)
-		_, err := userSvc.Create(user, nil, "")
+		_, err := userSvc.Create(user)
 		test.NoError(t, err, "expected no error creating user, got %v", err)
 	}
-
-	ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(user.Identity()))
 
 	svc := Record().With(ctx)
 

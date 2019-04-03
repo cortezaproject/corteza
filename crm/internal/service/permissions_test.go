@@ -17,6 +17,10 @@ import (
 
 func TestPermissions(t *testing.T) {
 	ctx := context.WithValue(context.Background(), "testing", true)
+	{
+		user := &systemTypes.User{ID: 1337}
+		ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(user.Identity()))
+	}
 
 	// Create user with role and add it to context.
 	userSvc := systemService.TestUser(t, ctx)
@@ -26,12 +30,11 @@ func TestPermissions(t *testing.T) {
 		SatosaID: "12345",
 	}
 	err := user.GeneratePassword("johndoe")
-	NoError(t, err, "expected no error generating password, got %v", err)
+	NoError(t, err, "expected no error generating password, got %+v", err)
 
-	_, err = userSvc.Create(user, nil, "")
-	NoError(t, err, "expected no error creating user, got %v", err)
+	_, err = userSvc.Create(user)
+	NoError(t, err, "expected no error creating user, got %+v", err)
 
-	// Set Identity.
 	ctx = auth.SetIdentityToContext(ctx, user)
 
 	roleSvc := systemService.TestRole(t, ctx)
@@ -39,10 +42,10 @@ func TestPermissions(t *testing.T) {
 		Name: "Test role v1",
 	}
 	role, err = roleSvc.Create(role)
-	NoError(t, err, "expected no error creating role, got %v", err)
+	NoError(t, err, "expected no error creating role, got %+v", err)
 
 	err = roleSvc.MemberAdd(role.ID, user.ID)
-	NoError(t, err, "expected no error adding user to role, got %v", err)
+	NoError(t, err, "expected no error adding user to role, got %+v", err)
 
 	// Insert `grant` permission for `compose`.
 	{
@@ -54,7 +57,7 @@ func TestPermissions(t *testing.T) {
 		}
 
 		err := resources.Grant(role.ID, list)
-		NoError(t, err, "expected no error, got %v", err)
+		NoError(t, err, "expected no error, got %+v", err)
 	}
 
 	// Generate services.
@@ -64,16 +67,16 @@ func TestPermissions(t *testing.T) {
 
 	// Test `access` to compose service.
 	ret := permissionsSvc.CanAccess()
-	Assert(t, ret == false, "expected CanAccess == false, got %v", ret)
+	Assert(t, ret == false, "expected CanAccess == false, got %+v", ret)
 
 	// Add `access` to compose service.
 	list := []rules.Rule{
 		rules.Rule{Resource: types.PermissionResource, Operation: "access", Value: rules.Allow},
 	}
 	_, err = systemRulesSvc.Update(role.ID, list)
-	NoError(t, err, "expected no error, got %v", err)
+	NoError(t, err, "expected no error, got %+v", err)
 
 	// Test `access` to compose service.
 	ret = permissionsSvc.CanAccess()
-	Assert(t, ret == true, "expected CanAccess == true, got %v", ret)
+	Assert(t, ret == true, "expected CanAccess == true, got %+v", ret)
 }

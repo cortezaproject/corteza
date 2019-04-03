@@ -32,8 +32,8 @@ type (
 	}
 )
 
-func Auth() AuthService {
-	return (&auth{}).With(context.Background())
+func Auth(ctx context.Context) AuthService {
+	return (&auth{}).With(ctx)
 }
 
 func (svc *auth) With(ctx context.Context) AuthService {

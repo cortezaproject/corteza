@@ -1,5 +1,9 @@
 package service
 
+import (
+	"context"
+)
+
 type (
 	db interface {
 		Transaction(callback func() error) error
@@ -17,12 +21,13 @@ var (
 )
 
 func Init() error {
-	DefaultRules = Rules()
-	DefaultPermissions = Permissions()
-	DefaultAuth = Auth()
-	DefaultUser = User()
-	DefaultRole = Role()
-	DefaultOrganisation = Organisation()
-	DefaultApplication = Application()
+	ctx := context.Background()
+	DefaultRules = Rules(ctx)
+	DefaultPermissions = Permissions(ctx)
+	DefaultAuth = Auth(ctx)
+	DefaultUser = User(ctx)
+	DefaultRole = Role(ctx)
+	DefaultOrganisation = Organisation(ctx)
+	DefaultApplication = Application(ctx)
 	return nil
 }
