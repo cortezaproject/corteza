@@ -1,3 +1,5 @@
+// +build integration
+
 package repository
 
 import (
@@ -7,9 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
+	"github.com/crusttech/crust/internal/test"
 	"github.com/crusttech/crust/system/types"
-
-	. "github.com/crusttech/crust/internal/test"
 )
 
 func TestCredentials(t *testing.T) {
@@ -24,7 +25,7 @@ func TestCredentials(t *testing.T) {
 	crepo := Credentials(context.Background(), db)
 
 	// Run tests in transaction to maintain DB state.
-	Error(t, db.Transaction(func() error {
+	test.Error(t, db.Transaction(func() error {
 		db.Exec("DELETE FROM sys_credentials WHERE 1=1")
 
 		cc := types.CredentialsSet{
@@ -35,23 +36,23 @@ func TestCredentials(t *testing.T) {
 
 		for _, c := range cc {
 			cNew, err := crepo.Create(c)
-			assert(t, err == nil, "Credentials.Create error: %+v", err)
-			assert(t, c.ID > 0, "Expecting credentials to have a valid ID")
-			assert(t, c.Valid(), "Expecting credentials to be valid after creation")
+			test.Assert(t, err == nil, "Credentials.Create error: %+v", err)
+			test.Assert(t, c.ID > 0, "Expecting credentials to have a valid ID")
+			test.Assert(t, c.Valid(), "Expecting credentials to be valid after creation")
 
 			_, err = crepo.FindByID(cNew.ID)
-			assert(t, err == nil, "Credentials.FindByID error: %+v", err)
+			test.Assert(t, err == nil, "Credentials.FindByID error: %+v", err)
 
 			{
 				r, err := crepo.FindByKind(c.OwnerID, c.Kind)
-				assert(t, err == nil, "Credentials.FindByKind error: %+v", err)
-				assert(t, len(r) == 1, "Expecting exactly 1 result from FindByKind, got: %v", len(r))
+				test.Assert(t, err == nil, "Credentials.FindByKind error: %+v", err)
+				test.Assert(t, len(r) == 1, "Expecting exactly 1 result from FindByKind, got: %d", len(r))
 			}
 
 			{
 				r, err := crepo.FindByCredentials(c.Kind, c.Credentials)
-				assert(t, err == nil, "Credentials.FindByKind error: %+v", err)
-				assert(t, len(r) == 1, "Expecting exactly 1 result from FindByCredentials, got: %v", len(r))
+				test.Assert(t, err == nil, "Credentials.FindByKind error: %+v", err)
+				test.Assert(t, len(r) == 1, "Expecting exactly 1 result from FindByCredentials, got: %d", len(r))
 			}
 		}
 		return errors.New("Rollback")

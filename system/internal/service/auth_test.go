@@ -1,3 +1,5 @@
+// +build unit
+
 package service
 
 import (
@@ -6,6 +8,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/markbates/goth"
 
+	"github.com/crusttech/crust/internal/test"
 	"github.com/crusttech/crust/system/internal/repository"
 	repomock "github.com/crusttech/crust/system/internal/repository/mocks"
 	"github.com/crusttech/crust/system/types"
@@ -36,8 +39,8 @@ func TestSocialSigninWithExistingCredentials(t *testing.T) {
 
 	{
 		auser, err := svc.Social(p)
-		assert(t, err == nil, "Auth.Social error: %+v", err)
-		assert(t, auser.ID == u.ID, "Did not receive expected user")
+		test.Assert(t, err == nil, "Auth.Social error: %+v", err)
+		test.Assert(t, auser.ID == u.ID, "Did not receive expected user")
 	}
 }
 
@@ -79,7 +82,7 @@ func TestSocialSigninWithNewUserCredentials(t *testing.T) {
 
 	{
 		auser, err := svc.Social(p)
-		assert(t, err == nil, "Auth.Social error: %+v", err)
-		assert(t, auser.ID == u.ID, "Did not receive expected user")
+		test.Assert(t, err == nil, "Auth.Social error: %+v", err)
+		test.Assert(t, auser.ID == u.ID, "Did not receive expected user")
 	}
 }
