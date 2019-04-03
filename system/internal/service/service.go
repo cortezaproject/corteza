@@ -11,6 +11,7 @@ type (
 )
 
 var (
+	DefaultSettings     SettingsService
 	DefaultAuth         AuthService
 	DefaultUser         UserService
 	DefaultRole         RoleService
@@ -22,6 +23,7 @@ var (
 
 func Init() error {
 	ctx := context.Background()
+	DefaultSettings = Settings(ctx)
 	DefaultRules = Rules(ctx)
 	DefaultPermissions = Permissions(ctx)
 	DefaultAuth = Auth(ctx)

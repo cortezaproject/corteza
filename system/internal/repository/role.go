@@ -188,6 +188,8 @@ func (r *role) Reset() error {
 		(2, 'compose:page:*', 'delete', 2),
 		(2, 'system', 'access', 2),
 		(2, 'system', 'grant', 2),
+		(2, 'system', 'settings.read', 2),
+		(2, 'system', 'settings.manage', 2),
 		(2, 'system', 'organisation.create', 2),
 		(2, 'system', 'user.create', 2),
 		(2, 'system', 'role.create', 2),

@@ -50,6 +50,8 @@ function types {
 	./build/gen-type-set --types Organisation --output system/types/organisation.gen.go
 	./build/gen-type-set --types Credentials  --output system/types/credentials.gen.go
 
+	./build/gen-type-set --types Value --output internal/settings/types.gen.go --with-primary-key=false --package settings
+
 	green "OK"
 }
 

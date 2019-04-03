@@ -11,6 +11,8 @@ var (
 		"system": map[string]bool{
 			"access":              true,
 			"grant":               true,
+			"settings.read":       true,
+			"settings.manage":     true,
 			"organisation.create": true,
 			"role.create":         true,
 			"application.create":  true,

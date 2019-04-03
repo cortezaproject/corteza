@@ -1,0 +1,100 @@
+{
+  "Title": "Settings",
+  "Interface": "Settings",
+  "Struct": [
+    {
+      "imports": [
+        "sqlxTypes github.com/jmoiron/sqlx/types"
+      ]
+    }
+  ],
+  "Parameters": null,
+  "Protocol": "",
+  "Authentication": [],
+  "Path": "/settings",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List settings",
+      "Path": "/",
+      "Parameters": {
+        "get": [
+          {
+            "name": "prefix",
+            "title": "Key prefix",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "update",
+      "Method": "PATCH",
+      "Title": "Update settings",
+      "Path": "/",
+      "Parameters": {
+        "post": [
+          {
+            "name": "values",
+            "required": true,
+            "title": "Array of new settings: `[{ name: ..., value: ... }]`. Omit value to remove setting",
+            "type": "sqlxTypes.JSONText"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "get",
+      "Method": "GET",
+      "Title": "Check JWT token",
+      "Path": "/{key}",
+      "Parameters": {
+        "get": [
+          {
+            "name": "ownerID",
+            "title": "Owner ID",
+            "type": "uint64"
+          }
+        ],
+        "path": [
+          {
+            "name": "key",
+            "required": true,
+            "title": "Setting key",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "set",
+      "Method": "PUT",
+      "Title": "Set a value for a key",
+      "Path": "/{key}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "key",
+            "required": true,
+            "title": "Setting key",
+            "type": "string"
+          }
+        ],
+        "post": [
+          {
+            "name": "ownerID",
+            "title": "Owner",
+            "type": "uint64"
+          },
+          {
+            "name": "value",
+            "required": true,
+            "title": "Setting value",
+            "type": "sqlxTypes.JSONText"
+          }
+        ]
+      }
+    }
+  ]
+}

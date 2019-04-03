@@ -14,7 +14,9 @@ import (
 	"github.com/crusttech/crust/internal/db"
 	"github.com/crusttech/crust/internal/mail"
 	"github.com/crusttech/crust/internal/metrics"
+	"github.com/crusttech/crust/internal/settings"
 	migrate "github.com/crusttech/crust/system/db"
+	"github.com/crusttech/crust/system/internal/repository"
 	"github.com/crusttech/crust/system/service"
 )
 
@@ -43,6 +45,17 @@ func Init(ctx context.Context) error {
 	if err := InitDatabase(ctx); err != nil {
 		return err
 	}
+
+	// Load settings from the database,
+	// for now, only at start-up time.
+	ctx := context.Background()
+	// settingsRepository := internalRepository.NewSettings(repository.DB(ctx), "sys_settings")
+	// if ss, err := settingsRepository.Find(types.SettingsFilter{}); err != nil {
+	// 	panic(err)
+	// } else {
+	// 	spew.Dump(ss.KV())
+	// }
+	settingService := settings.NewService(settings.NewRepository(repository.DB(ctx), "sys_settings"))
 
 	// configure resputil options
 	resputil.SetConfig(resputil.Options{
