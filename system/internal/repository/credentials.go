@@ -15,12 +15,13 @@ type (
 		With(ctx context.Context, db *factory.DB) CredentialsRepository
 
 		FindByID(ID uint64) (*types.Credentials, error)
-		FindByCredentials(kind types.CredentialsKind, credentials string) (cc types.CredentialsSet, err error)
-		FindByKind(ownerID uint64, kind types.CredentialsKind) (cc types.CredentialsSet, err error)
+		FindByCredentials(kind, credentials string) (cc types.CredentialsSet, err error)
+		FindByKind(ownerID uint64, kind string) (cc types.CredentialsSet, err error)
 		FindByOwnerID(ownerID uint64) (cc types.CredentialsSet, err error)
 		Find() (cc types.CredentialsSet, err error)
 
 		Create(c *types.Credentials) (*types.Credentials, error)
+		Update(c *types.Credentials) (*types.Credentials, error)
 		DeleteByID(id uint64) error
 	}
 
@@ -59,14 +60,14 @@ func (r *credentials) FindByID(ID uint64) (*types.Credentials, error) {
 	return mod, isFound(r.db().Get(mod, sql, ID), mod.ID > 0, ErrCredentialsNotFound)
 }
 
-func (r *credentials) FindByCredentials(kind types.CredentialsKind, credentials string) (cc types.CredentialsSet, err error) {
+func (r *credentials) FindByCredentials(kind, credentials string) (cc types.CredentialsSet, err error) {
 	return r.fetchSet(
 		fmt.Sprintf(sqlCredentialsSelect+" AND kind = ? AND credentials = ?", r.tblname),
 		kind,
 		credentials)
 }
 
-func (r *credentials) FindByKind(ownerID uint64, kind types.CredentialsKind) (cc types.CredentialsSet, err error) {
+func (r *credentials) FindByKind(ownerID uint64, kind string) (cc types.CredentialsSet, err error) {
 	return r.fetchSet(
 		fmt.Sprintf(sqlCredentialsSelect+" AND rel_owner = ? AND kind = ?", r.tblname),
 		ownerID,
@@ -93,6 +94,12 @@ func (r *credentials) Create(c *types.Credentials) (*types.Credentials, error) {
 	c.ID = factory.Sonyflake.NextID()
 	c.CreatedAt = time.Now()
 	return c, r.db().Insert(r.tblname, c)
+}
+
+func (r *credentials) Update(c *types.Credentials) (*types.Credentials, error) {
+	updatedAt := time.Now()
+	c.UpdatedAt = &updatedAt
+	return c, r.db().Update(r.tblname, c)
 }
 
 func (r *credentials) DeleteByID(id uint64) error {

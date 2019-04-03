@@ -16,6 +16,7 @@ import (
 	"github.com/crusttech/crust/internal/metrics"
 	"github.com/crusttech/crust/internal/settings"
 	migrate "github.com/crusttech/crust/system/db"
+	"github.com/crusttech/crust/system/internal/auth/external"
 	"github.com/crusttech/crust/system/internal/repository"
 	"github.com/crusttech/crust/system/service"
 )
@@ -48,13 +49,6 @@ func Init(ctx context.Context) error {
 
 	// Load settings from the database,
 	// for now, only at start-up time.
-	ctx := context.Background()
-	// settingsRepository := internalRepository.NewSettings(repository.DB(ctx), "sys_settings")
-	// if ss, err := settingsRepository.Find(types.SettingsFilter{}); err != nil {
-	// 	panic(err)
-	// } else {
-	// 	spew.Dump(ss.KV())
-	// }
 	settingService := settings.NewService(settings.NewRepository(repository.DB(ctx), "sys_settings"))
 
 	// configure resputil options
@@ -66,8 +60,15 @@ func Init(ctx context.Context) error {
 		},
 	})
 
-	// Don't change this to init(), it needs Database
-	return service.Init()
+	// Don't change this, it needs database connection
+	if err := service.Init(); err != nil {
+		return err
+	}
+
+	// Setup goth/social authentication
+	external.Init(settingService.With(ctx))
+
+	return nil
 }
 
 func InitDatabase(ctx context.Context) error {

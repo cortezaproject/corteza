@@ -27,7 +27,6 @@ func TestUser(t *testing.T) {
 		user := &types.User{
 			Name:     "John User Doe",
 			Username: "johndoe",
-			SatosaID: "1234",
 			Meta: &types.UserMeta{
 				Avatar: "123",
 			},

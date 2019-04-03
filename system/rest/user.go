@@ -38,7 +38,7 @@ func (ctrl *User) Create(ctx context.Context, r *request.UserCreate) (interface{
 		Email:  r.Email,
 		Name:   r.Name,
 		Handle: r.Handle,
-		Kind:   r.Kind,
+		Kind:   types.UserKind(r.Kind),
 	}
 
 	return ctrl.user.With(ctx).Create(user)
@@ -50,7 +50,7 @@ func (ctrl *User) Update(ctx context.Context, r *request.UserUpdate) (interface{
 		Email:  r.Email,
 		Name:   r.Name,
 		Handle: r.Handle,
-		Kind:   r.Kind,
+		Kind:   types.UserKind(r.Kind),
 	}
 
 	return ctrl.user.With(ctx).Update(user)

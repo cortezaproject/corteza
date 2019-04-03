@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/markbates/goth"
 	"github.com/pkg/errors"
@@ -23,7 +24,7 @@ type (
 	AuthService interface {
 		With(ctx context.Context) AuthService
 
-		Social(profile goth.User) (*types.User, error)
+		External(profile goth.User) (*types.User, error)
 
 		CheckPassword(username, password string) (*types.User, error)
 		ChangePassword(user *types.User, password string) error
@@ -50,14 +51,11 @@ func (svc *auth) With(ctx context.Context) AuthService {
 // Social user verifies existance by using email value from social profile and creates user if needed
 //
 // It does not update user's info
-func (svc *auth) Social(profile goth.User) (u *types.User, err error) {
-	var kind types.CredentialsKind
+func (svc *auth) External(profile goth.User) (u *types.User, err error) {
+	var lastUsedAt = time.Now()
 
-	switch profile.Provider {
-	case "facebook", "gplus", "github", "linkedin":
-		kind = types.CredentialsKind(profile.Provider)
-	default:
-		return nil, errors.New("Unsupported provider")
+	if _, err := goth.GetProvider(profile.Provider); err != nil {
+		return nil, err
 	}
 
 	if profile.Email == "" {
@@ -66,7 +64,7 @@ func (svc *auth) Social(profile goth.User) (u *types.User, err error) {
 
 	return u, svc.db.Transaction(func() error {
 		var c *types.Credentials
-		if cc, err := svc.credentials.FindByCredentials(kind, profile.UserID); err == nil {
+		if cc, err := svc.credentials.FindByCredentials(profile.Provider, profile.UserID); err == nil {
 			// Credentials found, load user
 			for _, c := range cc {
 				if !c.Valid() {
@@ -110,6 +108,8 @@ func (svc *auth) Social(profile goth.User) (u *types.User, err error) {
 	findByEmail:
 		// Find user via his email
 		if u, err = svc.users.FindByEmail(profile.Email); err == repository.ErrUserNotFound {
+			// @todo check if it is ok to auto-create a user here
+
 			// In case we do not have this email, create a new user
 			u = &types.User{
 				Email:    profile.Email,
@@ -119,13 +119,35 @@ func (svc *auth) Social(profile goth.User) (u *types.User, err error) {
 			}
 
 			if u, err = svc.users.Create(u); err != nil {
-				return err
+				return errors.Wrap(err, "could not create user after successful social auth")
 			}
 
+			log.Printf("Created new user after successful social auth (%v, %v)", u.ID, u.Email)
+
+			// Owner created
+			return nil
+		} else if err != nil {
+			return err
+		} else if !u.Valid() {
+			return errors.Errorf(
+				"Social login to an invalid/suspended user (user ID: %v)",
+				u.ID,
+			)
+		} else {
+			log.Printf(
+				"Autheticated user (%v, %v) via %s, existing user",
+				u.ID,
+				u.Email,
+				profile.Provider,
+			)
+		}
+
+		if c == nil {
 			c = &types.Credentials{
-				Kind:        kind,
+				Kind:        profile.Provider,
 				OwnerID:     u.ID,
 				Credentials: profile.UserID,
+				LastUsedAt:  &lastUsedAt,
 			}
 
 			if !profile.ExpiresAt.IsZero() {
@@ -138,30 +160,31 @@ func (svc *auth) Social(profile goth.User) (u *types.User, err error) {
 			}
 
 			log.Printf(
-				"Autheticated user (%v, %v) via %s, created user and credentials (%v)",
+				"Creating new credential entry (%v, %v) for exisintg user (%v, %v)",
+				c.ID,
+				profile.Provider,
 				u.ID,
 				u.Email,
-				profile.Provider,
-				c.ID,
 			)
+		} else {
+			if !profile.ExpiresAt.IsZero() {
+				// Copy expiration date when provided
+				c.ExpiresAt = &profile.ExpiresAt
+			}
 
-			// Owner created
-			return nil
-		} else if err != nil {
-			return err
-		} else if !u.Valid() {
-			return errors.Errorf(
-				"Social login to an invalid/suspended user (user ID: %v)",
+			c.LastUsedAt = &lastUsedAt
+			if c, err = svc.credentials.Update(c); err != nil {
+				return err
+			}
+
+			log.Printf(
+				"Updating credential entry (%v, %v) for exisintg user (%v, %v)",
+				c.ID,
+				profile.Provider,
 				u.ID,
+				u.Email,
 			)
 		}
-
-		log.Printf(
-			"Autheticated user (%v, %v) via %s, existing user",
-			u.ID,
-			u.Email,
-			profile.Provider,
-		)
 
 		// Owner loaded, carry on.
 		return nil

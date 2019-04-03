@@ -24,7 +24,7 @@ func MountRoutes(ctx context.Context, r chi.Router) {
 	// Only protect application routes with JWT
 	r.Group(func(r chi.Router) {
 		r.Use(jwtVerifier, jwtAuthenticator)
-		mountRoutes(r, flags.http, rest.MountRoutes(flags.oidc, flags.social, jwtEncoder))
+		mountRoutes(r, flags.http, rest.MountRoutes(jwtEncoder))
 	})
 }
 

@@ -20,7 +20,6 @@ type (
 		FindByUsername(username string) (*types.User, error)
 		FindByID(id uint64) (*types.User, error)
 		FindByIDs(id ...uint64) (types.UserSet, error)
-		FindBySatosaID(id string) (*types.User, error)
 		Find(filter *types.UserFilter) ([]*types.User, error)
 
 		Create(mod *types.User) (*types.User, error)
@@ -42,8 +41,8 @@ type (
 )
 
 const (
-	sqlUserColumns = "id, email, username, password, name, handle, " +
-		"meta, satosa_id, rel_organisation, " +
+	sqlUserColumns = "id, email, username, name, handle, " +
+		"meta, rel_organisation, " +
 		"created_at, updated_at, suspended_at, deleted_at"
 	sqlUserScope  = "suspended_at IS NULL AND deleted_at IS NULL"
 	sqlUserSelect = "SELECT " + sqlUserColumns + " FROM %s WHERE " + sqlUserScope
@@ -67,13 +66,6 @@ func (r *user) FindByUsername(username string) (*types.User, error) {
 	mod := &types.User{}
 
 	return mod, isFound(r.db().Get(mod, sql, username), mod.ID > 0, ErrUserNotFound)
-}
-
-func (r *user) FindBySatosaID(satosaID string) (*types.User, error) {
-	sql := fmt.Sprintf(sqlUserSelect, r.users) + " AND satosa_id = ?"
-	mod := &types.User{}
-
-	return mod, isFound(r.db().Get(mod, sql, satosaID), mod.ID > 0, ErrUserNotFound)
 }
 
 func (r *user) FindByEmail(email string) (*types.User, error) {

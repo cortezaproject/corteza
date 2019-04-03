@@ -37,8 +37,6 @@ type (
 		FindByIDs(id ...uint64) (types.UserSet, error)
 		Find(filter *types.UserFilter) (types.UserSet, error)
 
-		FindOrCreate(*types.User) (*types.User, error)
-
 		Create(input *types.User) (*types.User, error)
 		Update(mod *types.User) (*types.User, error)
 
@@ -85,36 +83,6 @@ func (svc *user) Find(filter *types.UserFilter) (types.UserSet, error) {
 	return svc.user.Find(filter)
 }
 
-// FindOrCreate finds existing or creates new user wrapped in db transaction
-func (svc *user) FindOrCreate(user *types.User) (out *types.User, err error) {
-	return out, svc.db.Transaction(func() error {
-		if len(user.SatosaID) != uuidLength {
-			// @todo uuid format check
-			return errors.Errorf("Invalid UUID value (%v) for SATOSA ID", user.SatosaID)
-		}
-
-		out, err = svc.user.FindBySatosaID(user.SatosaID)
-
-		if err == repository.ErrUserNotFound {
-			// @todo do we allow autocreation of nonexisting users?
-			out, err = svc.user.Create(user)
-			return err
-		}
-
-		if err != nil {
-			// FindBySatosaID error
-			return err
-		}
-
-		out, err = svc.user.Update(out)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-}
-
 func (svc *user) Create(input *types.User) (out *types.User, err error) {
 	return out, svc.db.Transaction(func() error {
 		if !svc.prm.CanCreateUser() {
@@ -124,6 +92,7 @@ func (svc *user) Create(input *types.User) (out *types.User, err error) {
 		if out, err = svc.user.Create(input); err != nil {
 			return err
 		}
+
 		return nil
 	})
 }

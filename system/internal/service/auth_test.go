@@ -24,7 +24,7 @@ func TestSocialSigninWithExistingCredentials(t *testing.T) {
 
 	crdRpoMock := repomock.NewMockCredentialsRepository(mockCtrl)
 	crdRpoMock.EXPECT().
-		FindByCredentials(types.CredentialsKindGPlus, p.UserID).
+		FindByCredentials("g+", p.UserID).
 		Times(1).
 		Return(types.CredentialsSet{c}, nil)
 
@@ -54,12 +54,12 @@ func TestSocialSigninWithNewUserCredentials(t *testing.T) {
 
 	crdRpoMock := repomock.NewMockCredentialsRepository(mockCtrl)
 	crdRpoMock.EXPECT().
-		FindByCredentials(types.CredentialsKindGPlus, p.UserID).
+		FindByCredentials("g+", p.UserID).
 		Times(1).
 		Return(types.CredentialsSet{}, nil)
 
 	crdRpoMock.EXPECT().
-		Create(&types.Credentials{Kind: types.CredentialsKindGPlus, OwnerID: u.ID, Credentials: p.UserID}).
+		Create(&types.Credentials{Kind: "g+", OwnerID: u.ID, Credentials: p.UserID}).
 		Times(1).
 		Return(c, nil)
 

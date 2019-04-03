@@ -12,8 +12,6 @@ type (
 		http    *config.HTTP
 		monitor *config.Monitor
 		db      *config.Database
-		oidc    *config.OIDC
-		social  *config.Social
 	}
 )
 
@@ -35,12 +33,6 @@ func (c *appFlags) Validate() error {
 	if err := c.db.Validate(); err != nil {
 		return err
 	}
-	if err := c.oidc.Validate(); err != nil {
-		return err
-	}
-	if err := c.social.Validate(); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -56,7 +48,5 @@ func Flags(prefix ...string) {
 		new(config.HTTP).Init(prefix...),
 		new(config.Monitor).Init(prefix...),
 		new(config.Database).Init(prefix...),
-		new(config.OIDC).Init(prefix...),
-		new(config.Social).Init(prefix...),
 	}
 }
