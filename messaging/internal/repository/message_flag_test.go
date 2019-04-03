@@ -1,12 +1,14 @@
+// +build integration
+
 package repository
 
 import (
 	"context"
+	"testing"
 
 	"github.com/titpetric/factory"
 
-	"testing"
-
+	"github.com/crusttech/crust/internal/test"
 	"github.com/crusttech/crust/messaging/types"
 )
 
@@ -32,18 +34,18 @@ func TestReaction(t *testing.T) {
 			Flag:      "success",
 		})
 
-		assert(t, err == nil, "Should create message flag without an error, got: %v", err)
+		test.Assert(t, err == nil, "Should create message flag without an error, got: %+v", err)
 
 		f, err = rpo.FindByID(f.ID)
-		assert(t, err == nil, "Should fetch message flag without an error, got: %v", err)
-		assert(t, f != nil && f.ChannelID == chID, "fetch should return valid type struct")
+		test.Assert(t, err == nil, "Should fetch message flag without an error, got: %+v", err)
+		test.Assert(t, f != nil && f.ChannelID == chID, "fetch should return valid type struct")
 
 		ff, err = rpo.FindByMessageIDs(msgID)
-		assert(t, err == nil, "Should fetch message flag by range without an error, got: %v", err)
-		assert(t, len(ff) == 1, "fetch by range should return 1 message")
+		test.Assert(t, err == nil, "Should fetch message flag by range without an error, got: %+v", err)
+		test.Assert(t, len(ff) == 1, "fetch by range should return 1 message")
 
 		err = rpo.DeleteByID(f.ID)
-		assert(t, err == nil, "Should delete message flag without an error, got: %v", err)
+		test.Assert(t, err == nil, "Should delete message flag without an error, got: %+v", err)
 
 		return nil
 	})

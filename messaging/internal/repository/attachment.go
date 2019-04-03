@@ -16,8 +16,10 @@ type (
 
 		FindAttachmentByID(id uint64) (*types.Attachment, error)
 		FindAttachmentByMessageID(IDs ...uint64) (types.MessageAttachmentSet, error)
+
 		CreateAttachment(mod *types.Attachment) (*types.Attachment, error)
 		DeleteAttachmentByID(id uint64) error
+
 		BindAttachment(attachmentId, messageId uint64) error
 
 		CountOwned(userID uint64) (c int, err error)
