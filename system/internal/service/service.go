@@ -1,9 +1,5 @@
 package service
 
-import (
-	"sync"
-)
-
 type (
 	db interface {
 		Transaction(callback func() error) error
@@ -11,7 +7,6 @@ type (
 )
 
 var (
-	o                   sync.Once
 	DefaultAuth         AuthService
 	DefaultUser         UserService
 	DefaultRole         RoleService
@@ -21,14 +16,13 @@ var (
 	DefaultPermissions  PermissionsService
 )
 
-func Init() {
-	o.Do(func() {
-		DefaultRules = Rules()
-		DefaultPermissions = Permissions()
-		DefaultAuth = Auth()
-		DefaultUser = User()
-		DefaultRole = Role()
-		DefaultOrganisation = Organisation()
-		DefaultApplication = Application()
-	})
+func Init() error {
+	DefaultRules = Rules()
+	DefaultPermissions = Permissions()
+	DefaultAuth = Auth()
+	DefaultUser = User()
+	DefaultRole = Role()
+	DefaultOrganisation = Organisation()
+	DefaultApplication = Application()
+	return nil
 }
