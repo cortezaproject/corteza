@@ -56,6 +56,11 @@ func TestAuth_External_Existing(t *testing.T) {
 		Times(1).
 		Return(types.CredentialsSet{c}, nil)
 
+	crdRpoMock.EXPECT().
+		Update(gomock.Any()).
+		Times(1).
+		Return(c, nil)
+
 	usrRpoMock := repomock.NewMockUserRepository(mockCtrl)
 	usrRpoMock.EXPECT().FindByID(u.ID).Times(1).Return(u, nil)
 
