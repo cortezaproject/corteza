@@ -28,8 +28,6 @@ func TestPermissions(t *testing.T) {
 		Name:     "John Crm Doe",
 		Username: "johndoe",
 	}
-	err := user.GeneratePassword("johndoe")
-	NoError(t, err, "expected no error generating password, got %+v", err)
 
 	_, err = userSvc.Create(user)
 	NoError(t, err, "expected no error creating user, got %+v", err)

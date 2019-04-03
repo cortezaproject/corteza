@@ -27,8 +27,6 @@ func TestRole(t *testing.T) {
 			Name:     "John Role Doe",
 			Username: "johndoe",
 		}
-		user.GeneratePassword("johndoe")
-
 		{
 			u1, err := userRepo.Create(user)
 			test.Assert(t, err == nil, "Owner.Create error: %+v", err)
