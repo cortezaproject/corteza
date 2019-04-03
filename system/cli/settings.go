@@ -1,23 +1,12 @@
 package cli
 
 import (
-	"os"
-
 	"github.com/spf13/cobra"
 
 	"github.com/crusttech/crust/internal/settings"
 )
 
 func Settings(rootCmd *cobra.Command, service settings.Service) {
-	exit := func(err error) {
-		if err != nil {
-			rootCmd.Printf("Error: %v\n", err)
-			os.Exit(1)
-		} else {
-			os.Exit(0)
-		}
-	}
-
 	settingsCmd := &cobra.Command{
 		Use:   "settings",
 		Short: "Settings management",
@@ -29,7 +18,7 @@ func Settings(rootCmd *cobra.Command, service settings.Service) {
 		Run: func(cmd *cobra.Command, args []string) {
 			prefix := cmd.Flags().Lookup("prefix").Value.String()
 			if kv, err := service.FindByPrefix(prefix); err != nil {
-				exit(err)
+				exit(cmd, err)
 			} else {
 				for _, v := range kv {
 					cmd.Printf("%s\t%v\n", v.Name, v.Value)
@@ -47,11 +36,11 @@ func Settings(rootCmd *cobra.Command, service settings.Service) {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if v, err := service.Get(args[0], 0); err != nil {
-				exit(err)
+				exit(cmd, err)
 			} else if v != nil {
 				cmd.Printf("%v\n", v.Value)
 			}
-			exit(nil)
+			exit(cmd, nil)
 		},
 	}
 
@@ -66,10 +55,10 @@ func Settings(rootCmd *cobra.Command, service settings.Service) {
 			}
 
 			if err := v.SetValueAsString(value); err != nil {
-				exit(err)
+				exit(cmd, err)
 			}
 
-			exit(service.Set(v))
+			exit(cmd, service.Set(v))
 		},
 	}
 
@@ -78,7 +67,7 @@ func Settings(rootCmd *cobra.Command, service settings.Service) {
 		Short: "Set value (raw JSON) for a specific key",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			exit(service.Delete(args[0], 0))
+			exit(cmd, service.Delete(args[0], 0))
 		},
 	}
 
