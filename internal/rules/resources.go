@@ -17,6 +17,9 @@ type (
 	resources struct {
 		ctx context.Context
 		db  *factory.DB
+
+		// sql table reference
+		dbTable string
 	}
 
 	// CheckAccessFunc function.
@@ -31,6 +34,8 @@ func (rr *resources) With(ctx context.Context, db *factory.DB) ResourcesInterfac
 	return &resources{
 		ctx: ctx,
 		db:  db,
+
+		dbTable: "sys_rules",
 	}
 }
 
@@ -169,4 +174,17 @@ func (rr *resources) Delete(roleID uint64) error {
 		return err
 	}
 	return nil
+}
+
+// Resets rules on all roles and inserts new
+func (rr *resources) Reset(rules []Rule) error {
+	return rr.db.Transaction(func() error {
+		for r := range rules {
+			if err := rr.db.Replace(rr.dbTable, rules[r]); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
