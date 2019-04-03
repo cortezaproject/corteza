@@ -403,6 +403,13 @@
             "Client ID",
             "Session ID"
         ],
+        "struct": [
+            {
+                "imports": [
+                    "github.com/crusttech/crust/system/types"
+                ]
+            }
+        ],
         "apis": [
             {
                 "name": "list",
@@ -459,7 +466,7 @@
                         },
                         {
                             "name": "kind",
-                            "type": "string",
+                            "type": "types.UserKind",
                             "required": false,
                             "title": "Kind (normal, bot)"
                         }
@@ -501,7 +508,7 @@
                         },
                         {
                             "name": "kind",
-                            "type": "string",
+                            "type": "types.UserKind",
                             "required": false,
                             "title": "Kind (normal, bot)"
                         }
