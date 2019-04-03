@@ -25,6 +25,9 @@ type (
 
 		Effective() (ee []effectivePermission, err error)
 
+		CanReadSettings() bool
+		CanManageSettings() bool
+
 		CanCreateOrganisation() bool
 		CanCreateUser() bool
 		CanCreateRole() bool
@@ -76,6 +79,8 @@ func (p *permissions) Effective() (ee []effectivePermission, err error) {
 	}
 
 	ee = append(ee, ep("system", "access", p.CanAccess()))
+	ee = append(ee, ep("system", "settings.read", p.CanReadSettings()))
+	ee = append(ee, ep("system", "settings.manage", p.CanManageSettings()))
 	ee = append(ee, ep("system", "application.create", p.CanCreateApplication()))
 	ee = append(ee, ep("system", "role.create", p.CanCreateRole()))
 	ee = append(ee, ep("system", "organisation.create", p.CanCreateOrganisation()))
@@ -86,6 +91,14 @@ func (p *permissions) Effective() (ee []effectivePermission, err error) {
 
 func (p *permissions) CanAccess() bool {
 	return p.checkAccess(types.PermissionResource, "access")
+}
+
+func (p *permissions) CanReadSettings() bool {
+	return p.checkAccess(types.PermissionResource, "settings.read")
+}
+
+func (p *permissions) CanManageSettings() bool {
+	return p.checkAccess(types.PermissionResource, "settings.manage")
 }
 
 func (p *permissions) CanCreateOrganisation() bool {
