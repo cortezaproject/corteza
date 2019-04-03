@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"testing"
 
 	"github.com/crusttech/crust/system/internal/service"
 	"github.com/crusttech/crust/system/types"
@@ -20,5 +21,10 @@ type (
 var DefaultUser = service.DefaultUser
 
 func User(ctx context.Context) UserService {
+	return DefaultUser.With(ctx)
+}
+
+// Expose the full User API for testing
+func TestUser(_ *testing.T, ctx context.Context) service.UserService {
 	return DefaultUser.With(ctx)
 }

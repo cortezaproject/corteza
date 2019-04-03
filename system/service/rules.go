@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"testing"
 
 	"github.com/crusttech/crust/internal/rules"
 	"github.com/crusttech/crust/system/internal/service"
@@ -18,6 +19,11 @@ type (
 
 var DefaultRules = service.DefaultRules
 
-func Rules(ctx context.Context) service.RulesService {
+func Rules(ctx context.Context) RulesService {
+	return DefaultRules.With(ctx)
+}
+
+// Expose the full Rules API for testing
+func TestRules(_ *testing.T, ctx context.Context) service.RulesService {
 	return DefaultRules.With(ctx)
 }
