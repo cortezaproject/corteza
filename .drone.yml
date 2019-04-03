@@ -35,7 +35,7 @@ kind: pipeline
 name: integration
 
 steps:
-- name: build
+- name: tests
   image: crusttech/crust-builder:latest
   pull: always
   environment:
