@@ -30,7 +30,7 @@ func Init() error {
 		return err
 	}
 
-	_, err := http.New(&config.HTTPClient{
+	_, err = http.New(&config.HTTPClient{
 		Timeout: 10,
 	})
 	if err != nil {
