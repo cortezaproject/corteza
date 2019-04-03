@@ -9,9 +9,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/goware/statik/fs"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
-	"github.com/titpetric/statik/fs"
 
 	"github.com/crusttech/crust/crm/db/mysql"
 )
@@ -24,7 +24,7 @@ func statements(contents []byte, err error) ([]string, error) {
 }
 
 func Migrate(db *factory.DB) error {
-	statikFS, err := fs.New(mysql.Data())
+	statikFS, err := fs.New(mysql.Asset)
 	if err != nil {
 		return errors.Wrap(err, "Error creating statik filesystem")
 	}
