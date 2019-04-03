@@ -1,3 +1,5 @@
+// +build integration
+
 package service
 
 import (
@@ -7,28 +9,31 @@ import (
 	"github.com/crusttech/crust/crm/types"
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/test"
-	systemRepository "github.com/crusttech/crust/system/repository"
+	systemService "github.com/crusttech/crust/system/service"
 	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 func TestRecord(t *testing.T) {
+	ctx := context.WithValue(context.Background(), "testing", true)
+
 	user := &systemTypes.User{
 		ID:       1337,
 		Username: "TestUser",
 	}
 	{
 		err := user.GeneratePassword("Mary had a little lamb, little lamb, little lamb")
-		assert(t, err == nil, "Error generating password: %+v", err)
+		test.Assert(t, err == nil, "Error generating password: %+v", err)
 	}
 
 	{
-		userAPI := systemRepository.User(context.Background(), nil)
-		_, err := userAPI.Create(user)
-		assert(t, err == nil, "Error when inserting user: %+v", err)
+		userSvc := systemService.TestUser(t, ctx)
+		_, err := userSvc.Create(user, nil, "")
+		test.NoError(t, err, "expected no error creating user, got %v", err)
 	}
 
-	ctx := auth.SetIdentityToContext(context.Background(), auth.NewIdentity(user.Identity()))
-	repository := Record().With(ctx)
+	ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(user.Identity()))
+
+	svc := Record().With(ctx)
 
 	module := &types.Module{
 		Name: "Test",
@@ -55,9 +60,9 @@ func TestRecord(t *testing.T) {
 
 	// set up a module
 	var err error
-	module, err = Module().With(context.Background()).Create(module)
-	assert(t, err == nil, "Error when creating module: %+v", err)
-	assert(t, module.ID > 0, "Expected auto generated ID")
+	module, err = Module().With(ctx).Create(module)
+	test.Assert(t, err == nil, "Error when creating module: %+v", err)
+	test.Assert(t, module.ID > 0, "Expected auto generated ID")
 
 	record1 := &types.Record{
 		ModuleID: module.ID,
@@ -100,78 +105,78 @@ func TestRecord(t *testing.T) {
 	// now work with records
 	{
 		{
-			m, err := repository.Update(record1)
-			assert(t, m == nil, "Expected empty return for invalid update, got %#v", m)
-			assert(t, err != nil, "Expected error when updating invalid record")
+			m, err := svc.Update(record1)
+			test.Assert(t, m == nil, "Expected empty return for invalid update, got %#v", m)
+			test.Assert(t, err != nil, "Expected error when updating invalid record")
 		}
 
 		// create record
-		m1, err := repository.Create(record1)
-		assert(t, err == nil, "Error when creating record: %+v", err)
-		assert(t, m1.ID > 0, "Expected auto generated ID")
+		m1, err := svc.Create(record1)
+		test.Assert(t, err == nil, "Error when creating record: %+v", err)
+		test.Assert(t, m1.ID > 0, "Expected auto generated ID")
 
 		// create record
-		m2, err := repository.Create(record2)
-		assert(t, err == nil, "Error when creating record: %+v", err)
-		assert(t, m2.ID > 0, "Expected auto generated ID")
+		m2, err := svc.Create(record2)
+		test.Assert(t, err == nil, "Error when creating record: %+v", err)
+		test.Assert(t, m2.ID > 0, "Expected auto generated ID")
 
 		// fetch created record
 		{
-			ms, err := repository.FindByID(m1.ID)
-			assert(t, err == nil, "Error when retrieving record by id: %+v", err)
-			assert(t, ms.ID == m1.ID, "Expected ID from database to match, %d != %d", m1.ID, ms.ID)
-			assert(t, ms.ModuleID == m1.ModuleID, "Expected Module ID from database to match, %d != %d", m1.ModuleID, ms.ModuleID)
+			ms, err := svc.FindByID(m1.ID)
+			test.Assert(t, err == nil, "Error when retrieving record by id: %+v", err)
+			test.Assert(t, ms.ID == m1.ID, "Expected ID from database to match, %d != %d", m1.ID, ms.ID)
+			test.Assert(t, ms.ModuleID == m1.ModuleID, "Expected Module ID from database to match, %d != %d", m1.ModuleID, ms.ModuleID)
 		}
 
 		// update created record
 		{
-			_, err := repository.Update(m1)
-			assert(t, err == nil, "Error when updating record, %+v", err)
+			_, err := svc.Update(m1)
+			test.Assert(t, err == nil, "Error when updating record, %+v", err)
 		}
 
 		// re-fetch record
 		{
-			ms, err := repository.FindByID(m1.ID)
-			assert(t, err == nil, "Error when retrieving record by id: %+v", err)
-			assert(t, ms.ID == m1.ID, "Expected ID from database to match, %d != %d", m1.ID, ms.ID)
-			assert(t, ms.ModuleID == m1.ModuleID, "Expected ID from database to match, %d != %d", m1.ModuleID, ms.ModuleID)
+			ms, err := svc.FindByID(m1.ID)
+			test.Assert(t, err == nil, "Error when retrieving record by id: %+v", err)
+			test.Assert(t, ms.ID == m1.ID, "Expected ID from database to match, %d != %d", m1.ID, ms.ID)
+			test.Assert(t, ms.ModuleID == m1.ModuleID, "Expected ID from database to match, %d != %d", m1.ModuleID, ms.ModuleID)
 		}
 
 		// fetch all records
 		{
-			mr, err := repository.Find(module.ID, "", "id desc", 0, 20)
-			assert(t, err == nil, "Error when retrieving records: %+v", err)
-			assert(t, len(mr.Records) == 2, "Expected two record, got %d", len(mr.Records))
-			assert(t, mr.Meta.Count == 2, "Expected Meta.Count == 2, got %d", mr.Meta.Count)
-			assert(t, mr.Meta.Sort == "id desc", "Expected Meta.Sort == id desc, got '%s'", mr.Meta.Sort)
-			assert(t, mr.Records[0].ModuleID == m1.ModuleID, "Expected record module to match, %d != %d", m1.ModuleID, mr.Records[0].ModuleID)
-			assert(t, mr.Records[0].ID > mr.Records[1].ID, "Expected order to be descending")
+			mr, err := svc.Find(module.ID, "", "id desc", 0, 20)
+			test.Assert(t, err == nil, "Error when retrieving records: %+v", err)
+			test.Assert(t, len(mr.Records) == 2, "Expected two record, got %d", len(mr.Records))
+			test.Assert(t, mr.Meta.Count == 2, "Expected Meta.Count == 2, got %d", mr.Meta.Count)
+			test.Assert(t, mr.Meta.Sort == "id desc", "Expected Meta.Sort == id desc, got '%s'", mr.Meta.Sort)
+			test.Assert(t, mr.Records[0].ModuleID == m1.ModuleID, "Expected record module to match, %d != %d", m1.ModuleID, mr.Records[0].ModuleID)
+			test.Assert(t, mr.Records[0].ID > mr.Records[1].ID, "Expected order to be descending")
 		}
 
 		// fetch all records
 		{
-			mr, err := repository.Find(module.ID, "", "name asc, email desc", 0, 20)
-			assert(t, err == nil, "Error when retrieving records: %+v", err)
-			assert(t, len(mr.Records) == 2, "Expected two record, got %d", len(mr.Records))
-			assert(t, mr.Meta.Count == 2, "Expected Meta.Count == 2, got %d", mr.Meta.Count)
-			assert(t, mr.Meta.Sort == "name asc, email desc", "Expected Meta.Sort == 'name asc, email desc' '%s'", mr.Meta.Sort)
-			assert(t, mr.Records[0].ModuleID == m1.ModuleID, "Expected record module to match, %d != %d", m1.ModuleID, mr.Records[0].ModuleID)
+			mr, err := svc.Find(module.ID, "", "name asc, email desc", 0, 20)
+			test.Assert(t, err == nil, "Error when retrieving records: %+v", err)
+			test.Assert(t, len(mr.Records) == 2, "Expected two record, got %d", len(mr.Records))
+			test.Assert(t, mr.Meta.Count == 2, "Expected Meta.Count == 2, got %d", mr.Meta.Count)
+			test.Assert(t, mr.Meta.Sort == "name asc, email desc", "Expected Meta.Sort == 'name asc, email desc' '%s'", mr.Meta.Sort)
+			test.Assert(t, mr.Records[0].ModuleID == m1.ModuleID, "Expected record module to match, %d != %d", m1.ModuleID, mr.Records[0].ModuleID)
 
 			// @todo sort is not stable
-			// assert(t, mr.Records[0].ID > mr.Records[1].ID, "Expected order to be ascending")
+			// test.Assert(t, mr.Records[0].ID > mr.Records[1].ID, "Expected order to be ascending")
 		}
 
 		// fetch all records
 		{
-			mr, err := repository.Find(module.ID, "", "created_at desc", 0, 20)
-			assert(t, err == nil, "Error when retrieving records: %+v", err)
-			assert(t, len(mr.Records) == 2, "Expected two record, got %d", len(mr.Records))
-			assert(t, mr.Meta.Count == 2, "Expected Meta.Count == 2, got %d", mr.Meta.Count)
-			assert(t, mr.Meta.Sort == "created_at desc", "Expected Meta.Sort == created_at desc, got '%s'", mr.Meta.Sort)
-			assert(t, mr.Records[0].ModuleID == m1.ModuleID, "Expected record module to match, %d != %d", m1.ModuleID, mr.Records[0].ModuleID)
+			mr, err := svc.Find(module.ID, "", "created_at desc", 0, 20)
+			test.Assert(t, err == nil, "Error when retrieving records: %+v", err)
+			test.Assert(t, len(mr.Records) == 2, "Expected two record, got %d", len(mr.Records))
+			test.Assert(t, mr.Meta.Count == 2, "Expected Meta.Count == 2, got %d", mr.Meta.Count)
+			test.Assert(t, mr.Meta.Sort == "created_at desc", "Expected Meta.Sort == created_at desc, got '%s'", mr.Meta.Sort)
+			test.Assert(t, mr.Records[0].ModuleID == m1.ModuleID, "Expected record module to match, %d != %d", m1.ModuleID, mr.Records[0].ModuleID)
 
 			// @todo sort is not stable
-			// assert(t, mr.Records[0].ID > mr.Records[1].ID, "Expected order to be ascending")
+			// test.Assert(t, mr.Records[0].ID > mr.Records[1].ID, "Expected order to be ascending")
 		}
 
 		// fetch all records by query
@@ -179,37 +184,37 @@ func TestRecord(t *testing.T) {
 			filter := "name='John Doe' AND email='john.doe@example.com'"
 			sort := "id desc"
 
-			mr, err := repository.Find(module.ID, filter, sort, 0, 20)
-			assert(t, err == nil, "Error when retrieving records: %+v", err)
-			assert(t, len(mr.Records) == 1, "Expected one record, got %d", len(mr.Records))
-			assert(t, mr.Meta.Count == 1, "Expected Meta.Count == 1, got %d", mr.Meta.Count)
-			assert(t, mr.Meta.Page == 0, "Expected Meta.Page == 0, got %d", mr.Meta.Page)
-			assert(t, mr.Meta.PerPage == 20, "Expected Meta.PerPage == 20, got %d", mr.Meta.PerPage)
-			assert(t, mr.Meta.Filter == filter, "Expected Meta.Filter == %q, got %q", filter, mr.Meta.Filter)
-			assert(t, mr.Meta.Sort == sort, "Expected Meta.Sort == %q, got %q", sort, mr.Meta.Sort)
+			mr, err := svc.Find(module.ID, filter, sort, 0, 20)
+			test.Assert(t, err == nil, "Error when retrieving records: %+v", err)
+			test.Assert(t, len(mr.Records) == 1, "Expected one record, got %d", len(mr.Records))
+			test.Assert(t, mr.Meta.Count == 1, "Expected Meta.Count == 1, got %d", mr.Meta.Count)
+			test.Assert(t, mr.Meta.Page == 0, "Expected Meta.Page == 0, got %d", mr.Meta.Page)
+			test.Assert(t, mr.Meta.PerPage == 20, "Expected Meta.PerPage == 20, got %d", mr.Meta.PerPage)
+			test.Assert(t, mr.Meta.Filter == filter, "Expected Meta.Filter == %q, got %q", filter, mr.Meta.Filter)
+			test.Assert(t, mr.Meta.Sort == sort, "Expected Meta.Sort == %q, got %q", sort, mr.Meta.Sort)
 		}
 
 		// fetch all records by query
 		{
-			mr, err := repository.Find(module.ID, "name='niall'", "id asc", 0, 20)
-			assert(t, err == nil, "Error when retrieving records: %+v", err)
-			assert(t, len(mr.Records) == 0, "Expected no records, got %d", len(mr.Records))
+			mr, err := svc.Find(module.ID, "name='niall'", "id asc", 0, 20)
+			test.Assert(t, err == nil, "Error when retrieving records: %+v", err)
+			test.Assert(t, len(mr.Records) == 0, "Expected no records, got %d", len(mr.Records))
 		}
 
 		// delete record
 		{
-			err := repository.DeleteByID(m1.ID)
-			assert(t, err == nil, "Error when retrieving record by id: %+v", err)
+			err := svc.DeleteByID(m1.ID)
+			test.Assert(t, err == nil, "Error when retrieving record by id: %+v", err)
 
-			err = repository.DeleteByID(m2.ID)
-			assert(t, err == nil, "Error when retrieving record by id: %+v", err)
+			err = svc.DeleteByID(m2.ID)
+			test.Assert(t, err == nil, "Error when retrieving record by id: %+v", err)
 		}
 
 		// fetch all records
 		{
-			mr, err := repository.Find(module.ID, "", "", 0, 20)
-			assert(t, err == nil, "Error when retrieving records: %+v", err)
-			assert(t, len(mr.Records) == 0, "Expected no record, got %d", len(mr.Records))
+			mr, err := svc.Find(module.ID, "", "", 0, 20)
+			test.Assert(t, err == nil, "Error when retrieving records: %+v", err)
+			test.Assert(t, len(mr.Records) == 0, "Expected no record, got %d", len(mr.Records))
 		}
 	}
 }
