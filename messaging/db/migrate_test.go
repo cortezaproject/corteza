@@ -1,12 +1,11 @@
+// +build migrations
+
 package db
 
 import (
-	"context"
-	"log"
 	"testing"
-	"time"
 
-	"github.com/titpetric/dockertest"
+	"github.com/namsral/flag"
 	"github.com/titpetric/factory"
 )
 
@@ -16,29 +15,13 @@ func TestMigrations(t *testing.T) {
 		return
 	}
 
-	args := []string{
-		"--rm",
-		"-e", "MYSQL_ROOT_PASSWORD=root",
-		"-e", "MYSQL_DATABASE=test",
-	}
+	var dsn string
 
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(30*time.Second))
-	defer cancel()
+	flag.StringVar(&dsn, "db-dsn", "crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci", "DSN for database connection")
+	flag.Parse()
 
-	count := 0
-
-	mysql, err := dockertest.RunContainerContext(ctx, "titpetric/percona-xtrabackup", "3306", func(addr string) error {
-		factory.Database.Add("default", "root:root@tcp("+addr+")/test?collation=utf8mb4_general_ci")
-		log.Println(addr)
-		_, err := factory.Database.Get()
-		count++
-		time.Sleep(time.Second)
-		return err
-	}, args...)
-	defer mysql.Terminate() // Shutdown()
-	if err != nil {
-		t.Fatalf("Error starting mysql: %#v", err)
-	}
+	factory.Database.Add("default", dsn)
+	factory.Database.Add("system", dsn)
 
 	db := factory.Database.MustGet()
 	if err := Migrate(db); err != nil {
