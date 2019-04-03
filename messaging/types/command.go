@@ -6,12 +6,6 @@ type (
 		Params      CommandParamSet `db:"params"      json:"params"`
 		Description string          `db:"description" json:"description"`
 	}
-
-	CommandParam struct {
-		Name     string `db:"name"     json:"name"`
-		Type     string `db:"type"     json:"type"`
-		Required bool   `db:"required" json:"required"`
-	}
 )
 
 var (
