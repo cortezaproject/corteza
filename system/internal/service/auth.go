@@ -19,6 +19,9 @@ type (
 
 		credentials repository.CredentialsRepository
 		users       repository.UserRepository
+
+		providerValidator func(string) error
+		now               func() *time.Time
 	}
 
 	AuthService interface {
@@ -33,6 +36,11 @@ type (
 	}
 )
 
+func defaultProviderValidator(provider string) error {
+	_, err := goth.GetProvider(provider)
+	return err
+}
+
 func Auth(ctx context.Context) AuthService {
 	return (&auth{}).With(ctx)
 }
@@ -45,6 +53,12 @@ func (svc *auth) With(ctx context.Context) AuthService {
 
 		credentials: repository.Credentials(ctx, db),
 		users:       repository.User(ctx, db),
+
+		providerValidator: defaultProviderValidator,
+		now: func() *time.Time {
+			var now = time.Now()
+			return &now
+		},
 	}
 }
 
@@ -52,9 +66,7 @@ func (svc *auth) With(ctx context.Context) AuthService {
 //
 // It does not update user's info
 func (svc *auth) External(profile goth.User) (u *types.User, err error) {
-	var lastUsedAt = time.Now()
-
-	if _, err := goth.GetProvider(profile.Provider); err != nil {
+	if err = svc.providerValidator(profile.Provider); err != nil {
 		return nil, err
 	}
 
@@ -119,23 +131,20 @@ func (svc *auth) External(profile goth.User) (u *types.User, err error) {
 			}
 
 			if u, err = svc.users.Create(u); err != nil {
-				return errors.Wrap(err, "could not create user after successful social auth")
+				return errors.Wrap(err, "could not create user after successful external authentication")
 			}
 
-			log.Printf("Created new user after successful social auth (%v, %v)", u.ID, u.Email)
-
-			// Owner created
-			return nil
+			log.Printf("created new user after successful social auth (%v, %v)", u.ID, u.Email)
 		} else if err != nil {
 			return err
 		} else if !u.Valid() {
 			return errors.Errorf(
-				"Social login to an invalid/suspended user (user ID: %v)",
+				"can not use invalid user (user ID: %v)",
 				u.ID,
 			)
 		} else {
 			log.Printf(
-				"Autheticated user (%v, %v) via %s, existing user",
+				"autheticated user (%v, %v) via %s, existing user",
 				u.ID,
 				u.Email,
 				profile.Provider,
@@ -147,7 +156,7 @@ func (svc *auth) External(profile goth.User) (u *types.User, err error) {
 				Kind:        profile.Provider,
 				OwnerID:     u.ID,
 				Credentials: profile.UserID,
-				LastUsedAt:  &lastUsedAt,
+				LastUsedAt:  svc.now(),
 			}
 
 			if !profile.ExpiresAt.IsZero() {
@@ -160,7 +169,7 @@ func (svc *auth) External(profile goth.User) (u *types.User, err error) {
 			}
 
 			log.Printf(
-				"Creating new credential entry (%v, %v) for exisintg user (%v, %v)",
+				"creating new credential entry (%v, %v) for exisintg user (%v, %v)",
 				c.ID,
 				profile.Provider,
 				u.ID,
@@ -172,13 +181,13 @@ func (svc *auth) External(profile goth.User) (u *types.User, err error) {
 				c.ExpiresAt = &profile.ExpiresAt
 			}
 
-			c.LastUsedAt = &lastUsedAt
+			c.LastUsedAt = svc.now()
 			if c, err = svc.credentials.Update(c); err != nil {
 				return err
 			}
 
 			log.Printf(
-				"Updating credential entry (%v, %v) for exisintg user (%v, %v)",
+				"updating credential entry (%v, %v) for exisintg user (%v, %v)",
 				c.ID,
 				profile.Provider,
 				u.ID,
