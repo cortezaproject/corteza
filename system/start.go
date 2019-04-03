@@ -53,10 +53,8 @@ func Init(ctx context.Context) error {
 		},
 	})
 
-	// Don't change this, it needs Database
-	service.Init()
-
-	return nil
+	// Don't change this to init(), it needs Database
+	return service.Init()
 }
 
 func InitDatabase(ctx context.Context) error {
