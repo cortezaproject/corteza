@@ -1,4 +1,4 @@
-// +build unit
+// +-build unit
 
 package service
 
@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/markbates/goth"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/crusttech/crust/internal/test"
 	"github.com/crusttech/crust/system/internal/repository"
@@ -103,5 +104,86 @@ func TestAuth_External_NonExisting(t *testing.T) {
 		auser, err := svc.External(p)
 		test.NoError(t, err, "unexpected error from auth.External", err)
 		test.Assert(t, auser.ID == u.ID, "Did not receive expected user")
+	}
+}
+
+func Test_auth_validateCredentials(t *testing.T) {
+	type args struct {
+		email    string
+		password []byte
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{name: "no email", args: args{"", []byte("")}, wantErr: true},
+		{name: "bad email", args: args{"test", []byte("")}, wantErr: true},
+		{name: "no pass", args: args{"test@domain.tld", []byte("")}, wantErr: true},
+		{name: "all good", args: args{"test@domain.tld", []byte("password")}, wantErr: false},
+	}
+	svc := auth{}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := svc.validateCredentials(tt.args.email, tt.args.password); (err != nil) != tt.wantErr {
+				t.Errorf("auth.validateCredentials() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func Test_auth_checkPassword(t *testing.T) {
+	plainPassword := []byte(" ... plain password ... ")
+	hashedPassword, _ := bcrypt.GenerateFromPassword(plainPassword, bcrypt.DefaultCost)
+	type args struct {
+		password []byte
+		cc       types.CredentialsSet
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name:    "empty set",
+			wantErr: true,
+			args:    args{}},
+		{
+			name:    "bad pwd",
+			wantErr: true,
+			args: args{
+				password: []byte(" foo "),
+				cc:       types.CredentialsSet{&types.Credentials{ID: 1, Credentials: string(hashedPassword)}}}},
+		{
+			name:    "invalid credentials",
+			wantErr: true,
+			args: args{
+				password: []byte(" foo "),
+				cc:       types.CredentialsSet{&types.Credentials{ID: 0, Credentials: string(hashedPassword)}}}},
+		{
+			name:    "ok",
+			wantErr: false,
+			args: args{
+				password: plainPassword,
+				cc:       types.CredentialsSet{&types.Credentials{ID: 1, Credentials: string(hashedPassword)}}}},
+		{
+			name:    "multipass",
+			wantErr: false,
+			args: args{
+				password: plainPassword,
+				cc: types.CredentialsSet{
+					&types.Credentials{ID: 0, Credentials: string(hashedPassword)},
+					&types.Credentials{ID: 1, Credentials: "$2a$10$8sOZxfZinxnu3bAtpkqEx.wBBwOfci6aG1szgUyxm5.BL2WiLu.ni"},
+					&types.Credentials{ID: 2, Credentials: string(hashedPassword)},
+					&types.Credentials{ID: 3, Credentials: ""},
+				}}},
+	}
+	svc := auth{}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := svc.checkPassword(tt.args.password, tt.args.cc); (err != nil) != tt.wantErr {
+				t.Errorf("auth.checkPassword() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
 	}
 }
