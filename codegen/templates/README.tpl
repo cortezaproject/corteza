@@ -3,6 +3,13 @@
 
 {api.description}
 
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+{foreach $api.apis as $name => $call}
+| `{call.method}` | `{api.path}{call.path}` | {call.title} |
+{/foreach}
+
+
 {foreach $api.apis as $name => $call}
 ## {call.title}
 
@@ -27,5 +34,7 @@
 
 
 {/foreach}
+
+---
 
 {/foreach}

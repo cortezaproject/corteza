@@ -4,13 +4,14 @@ package {package}
 
 import (
 	"net/http"
+
 	"github.com/go-chi/chi"
 )
 
 var _ = chi.URLParam
 
 {foreach $calls as $call}
-// {name} {call.name} request parameters
+// {name|expose} {call.name} request parameters
 type {name|expose}{call.name|capitalize}Request struct {
 {foreach $call.parameters as $params}
 {foreach $params as $method => $param}

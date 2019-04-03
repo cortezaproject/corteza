@@ -3,31 +3,32 @@ package {package}
 {load warning.tpl}
 
 import (
-	"net/http"
 	"context"
-	"github.com/go-chi/chi"
 
+	"net/http"
+
+	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/{project}/rest/request"
 )
 
 // Internal API interface
-type {name}API interface {
+type {name|expose}API interface {
 {foreach $calls as $call}
 	{call.name|capitalize}(context.Context, *request.{name|expose}{call.name|capitalize}) (interface{}, error)
 {/foreach}
 }
 
 // HTTP API interface
-type {name} struct {
+type {name|expose} struct {
 {foreach $calls as $call}
 	{call.name|capitalize} func(http.ResponseWriter, *http.Request)
 {/foreach}
 }
 
-func New{name}({self}h {name}API) *{name} {
-	return &{name}{ldelim}{newline}
+func New{name|expose}({self}h {name|expose}API) *{name|expose} {
+	return &{name|expose}{ldelim}{newline}
 {foreach $calls as $call}
 		{call.name|capitalize}: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -40,13 +41,11 @@ func New{name}({self}h {name}API) *{name} {
 	{rdelim}
 }
 
-func ({self}h *{name})MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func ({self}h *{name|expose})MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func (r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("{api.path}", func(r chi.Router) {
 {foreach $api.apis as $call}
-			r.{eval echo capitalize(strtolower($call.method))}("{call.path}", {self}h.{call.name|capitalize})
+		r.{eval echo capitalize(strtolower($call.method))}("{api.path}{call.path}", {self}h.{call.name|capitalize})
 {/foreach}
-		})
 	})
 }
