@@ -18,6 +18,7 @@ error_reporting(E_ALL^E_NOTICE);
 include(__DIR__ . "/vendor/autoload.php");
 
 function capitalize($name) {
+	$name = str_replace("_", "/", $name);
 	$names = explode("/", $name);
 	return implode("", array_map("ucfirst", $names));
 }
@@ -26,7 +27,7 @@ function expose($name) {
 	if ($name == "id") {
 		return "ID";
 	}
-	return ucfirst($name);
+	return capitalize($name);
 }
 
 function array_change_key_case_recursive($arr) {
