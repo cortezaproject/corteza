@@ -84,7 +84,6 @@ func main() {
 		if err := messaging.Init(ctx); err != nil {
 			log.Fatalf("Error initializing messaging: %+v", err)
 		}
-
 		// Checks subscription, will os.Exit(1) if there is an error
 		// Disabled for now, system service is the only one that validates subscription
 		// ctx = subscription.Monitor(ctx)

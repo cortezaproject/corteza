@@ -1,16 +1,26 @@
-package main
+package cli
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
-	systemCli "github.com/crusttech/crust/system/cli"
+	"github.com/crusttech/crust/internal/settings"
+	"github.com/crusttech/crust/system/internal/repository"
 )
 
-func setupCobra() {
+func Init(ctx context.Context) {
 	// Main command.
 	rootCmd := &cobra.Command{Use: "system-cli"}
+
+	settingsService := settings.NewService(settings.NewRepository(repository.DB(ctx), "sys_settings"))
+
+	Settings(rootCmd, settingsService)
+
+	ExternalAuth(ctx, rootCmd, settingsService)
+
+	// @todo move cmd setup lines below to similar structure as Settings()
 
 	// User management commands.
 	var cmdUsers = &cobra.Command{
@@ -24,7 +34,7 @@ func setupCobra() {
 		Use:   "list",
 		Short: "List users",
 		Run: func(cmd *cobra.Command, args []string) {
-			systemCli.UsersList()
+			UsersList()
 		},
 	}
 	cmdUsers.AddCommand(cmdUsersList)
@@ -35,7 +45,7 @@ func setupCobra() {
 		Short: "Assign role to user",
 		Args:  cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			systemCli.RoleAssignUser(args[1], args[0])
+			RoleAssignUser(args[1], args[0])
 		},
 	}
 	cmdUsers.AddCommand(cmdUserAssignRole)
@@ -52,7 +62,7 @@ func setupCobra() {
 		Use:   "reset",
 		Short: "Reset roles",
 		Run: func(cmd *cobra.Command, args []string) {
-			systemCli.RolesReset()
+			RolesReset()
 		},
 	}
 	cmdRole.AddCommand(cmdRolesReset)
@@ -63,7 +73,7 @@ func setupCobra() {
 		Short: "Add user to role",
 		Args:  cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			systemCli.RoleAssignUser(args[0], args[1])
+			RoleAssignUser(args[0], args[1])
 		},
 	}
 	cmdRole.AddCommand(cmdRoleAddUser)
