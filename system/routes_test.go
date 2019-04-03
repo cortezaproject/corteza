@@ -35,7 +35,7 @@ type (
 	}
 )
 
-func TestUsers(t *testing.T) {
+func disabledTestUsers(t *testing.T) {
 	ctx := context.Background()
 
 	// we need to set this due to using Init()
