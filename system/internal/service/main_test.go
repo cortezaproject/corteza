@@ -13,10 +13,6 @@ import (
 	systemMigrate "github.com/crusttech/crust/system/db"
 )
 
-type mockDB struct{}
-
-func (mockDB) Transaction(callback func() error) error { return callback() }
-
 func TestMain(m *testing.M) {
 	dsn := ""
 	flag.StringVar(&dsn, "db-dsn", "crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci", "DSN for database connection")
