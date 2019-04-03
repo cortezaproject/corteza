@@ -40,7 +40,7 @@ func (PubSub) New() *PubSub {
 	}
 
 	// create isntances based on mode
-	if flags.PubSub.Mode == "redis" {
+	if flags != nil && flags.PubSub.Mode == "redis" {
 		return save(PubSubRedis{}.New(flags.PubSub))
 	}
 	return save(PubSubMemory{}.New(flags.PubSub))

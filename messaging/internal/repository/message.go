@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -15,14 +16,18 @@ type (
 	MessageRepository interface {
 		With(ctx context.Context, db *factory.DB) MessageRepository
 
-		FindMessageByID(id uint64) (*types.Message, error)
-		FindMessages(filter *types.MessageFilter) (types.MessageSet, error)
+		FindByID(id uint64) (*types.Message, error)
+		Find(filter *types.MessageFilter) (types.MessageSet, error)
 		FindThreads(filter *types.MessageFilter) (types.MessageSet, error)
 		CountFromMessageID(channelID, threadID, messageID uint64) (uint32, error)
 		PrefillThreadParticipants(mm types.MessageSet) error
-		CreateMessage(mod *types.Message) (*types.Message, error)
-		UpdateMessage(mod *types.Message) (*types.Message, error)
-		DeleteMessageByID(ID uint64) error
+
+		Create(mod *types.Message) (*types.Message, error)
+		Update(mod *types.Message) (*types.Message, error)
+		DeleteByID(ID uint64) error
+
+		BindAvatar(message *types.Message, avatar io.Reader) (*types.Message, error)
+
 		IncReplyCount(ID uint64) error
 		DecReplyCount(ID uint64) error
 
@@ -98,14 +103,14 @@ func (r *message) With(ctx context.Context, db *factory.DB) MessageRepository {
 	}
 }
 
-func (r *message) FindMessageByID(id uint64) (*types.Message, error) {
+func (r *message) FindByID(id uint64) (*types.Message, error) {
 	mod := &types.Message{}
 	sql := sqlMessagesSelect + " AND id = ?"
 
 	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrMessageNotFound)
 }
 
-func (r *message) FindMessages(filter *types.MessageFilter) (types.MessageSet, error) {
+func (r *message) Find(filter *types.MessageFilter) (types.MessageSet, error) {
 	r.sanitizeFilter(filter)
 
 	params := make([]interface{}, 0)
@@ -252,20 +257,26 @@ func (r *message) sanitizeFilter(filter *types.MessageFilter) {
 	}
 }
 
-func (r *message) CreateMessage(mod *types.Message) (*types.Message, error) {
+func (r *message) Create(mod *types.Message) (*types.Message, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
 	return mod, r.db().Insert("messaging_message", mod)
 }
 
-func (r *message) UpdateMessage(mod *types.Message) (*types.Message, error) {
+func (r *message) Update(mod *types.Message) (*types.Message, error) {
 	mod.UpdatedAt = timeNowPtr()
 
 	return mod, r.db().Replace("messaging_message", mod)
 }
 
-func (r *message) DeleteMessageByID(ID uint64) error {
+func (svc *message) BindAvatar(in *types.Message, avatar io.Reader) (*types.Message, error) {
+	// @todo: implement setting avatar on a message
+	in.Meta.Avatar = ""
+	return in, nil
+}
+
+func (r *message) DeleteByID(ID uint64) error {
 	return r.updateColumnByID("messaging_message", "deleted_at", time.Now(), ID)
 }
 
