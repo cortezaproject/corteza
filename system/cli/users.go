@@ -6,29 +6,30 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/system/internal/service"
+	"github.com/crusttech/crust/system/internal/repository"
 	"github.com/crusttech/crust/system/types"
 )
 
-func users(ctx context.Context, rootCmd *cobra.Command, userService service.UserService) {
+func usersCmd(ctx context.Context, db *factory.DB) *cobra.Command {
 	// User management commands.
-	var cmdUsers = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "users",
 		Short: "User management",
 	}
-	rootCmd.AddCommand(cmdUsers)
 
 	// List users.
-	var cmdUsersList = &cobra.Command{
+	cmdUsersList := &cobra.Command{
 		Use:   "list",
 		Short: "List users",
 		Run: func(cmd *cobra.Command, args []string) {
+			userRepo := repository.User(ctx, db)
 			uf := &types.UserFilter{
 				OrderBy: "updated_at",
 			}
 
-			users, err := userService.With(ctx).Find(uf)
+			users, err := userRepo.Find(uf)
 			if err != nil {
 				fmt.Printf("Error: %v\n", err)
 				os.Exit(1)
@@ -52,6 +53,8 @@ func users(ctx context.Context, rootCmd *cobra.Command, userService service.User
 			}
 		},
 	}
-	cmdUsers.AddCommand(cmdUsersList)
 
+	cmd.AddCommand(cmdUsersList)
+
+	return cmd
 }

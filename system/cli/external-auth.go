@@ -10,8 +10,13 @@ import (
 )
 
 // Will perform OpenID connect auto-configuration
-func ExternalAuth(ctx context.Context, rootCmd *cobra.Command, settingsService settings.Service) {
-	autoDiscover := &cobra.Command{
+func externalAuthCmd(ctx context.Context, settingsService settings.Service) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "external-auth",
+		Short: "External authentication",
+	}
+
+	autoDiscoverCmd := &cobra.Command{
 		Use:   "auto-discovery [name] [url]",
 		Short: "Auto discovers new OIDC client",
 		Args:  cobra.ExactArgs(2),
@@ -30,12 +35,7 @@ func ExternalAuth(ctx context.Context, rootCmd *cobra.Command, settingsService s
 		},
 	}
 
-	settingsCmd := &cobra.Command{
-		Use:   "external-auth",
-		Short: "External authentication",
-	}
+	cmd.AddCommand(autoDiscoverCmd)
 
-	settingsCmd.AddCommand(autoDiscover)
-
-	rootCmd.AddCommand(settingsCmd)
+	return cmd
 }

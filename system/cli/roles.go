@@ -15,31 +15,31 @@ import (
 	"github.com/crusttech/crust/system/types"
 )
 
-func roles(ctx context.Context, rootCmd *cobra.Command, db *factory.DB) {
+func rolesCmd(ctx context.Context, db *factory.DB) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "roles",
+		Short: "Role management",
+	}
+
 	resetCmd := &cobra.Command{
 		Use:   "reset",
 		Short: "Reset roles",
-		Run:   rolesReset(ctx, db),
+		Run:   rolesResetCmd(ctx, db),
 	}
 
 	addUserCmd := &cobra.Command{
 		Use:   "useradd [role-ID-or-name-or-handle] [user-ID-or-email]",
 		Short: "Add user to role",
 		Args:  cobra.ExactArgs(2),
-		Run:   rolesUserAdd(ctx, db),
+		Run:   rolesUserAddCmd(ctx, db),
 	}
 
-	// Role management commands.
-	var cmdRole = &cobra.Command{
-		Use:   "roles",
-		Short: "Role management",
-	}
+	cmd.AddCommand(resetCmd, addUserCmd)
 
-	cmdRole.AddCommand(resetCmd, addUserCmd)
-	rootCmd.AddCommand(cmdRole)
+	return cmd
 }
 
-func rolesReset(ctx context.Context, db *factory.DB) func(cmd *cobra.Command, args []string) {
+func rolesResetCmd(ctx context.Context, db *factory.DB) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		var (
 			err      error
@@ -158,7 +158,7 @@ func rolesReset(ctx context.Context, db *factory.DB) func(cmd *cobra.Command, ar
 	}
 }
 
-func rolesUserAdd(ctx context.Context, db *factory.DB) func(cmd *cobra.Command, args []string) {
+func rolesUserAddCmd(ctx context.Context, db *factory.DB) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		// Create role and user repository.
 		var (
