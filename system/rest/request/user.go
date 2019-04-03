@@ -25,6 +25,8 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
+
+	"github.com/crusttech/crust/system/types"
 )
 
 var _ = chi.URLParam
@@ -91,7 +93,7 @@ type UserCreate struct {
 	Email  string
 	Name   string
 	Handle string
-	Kind   string
+	Kind   types.UserKind
 }
 
 func NewUserCreate() *UserCreate {
@@ -139,7 +141,7 @@ func (usReq *UserCreate) Fill(r *http.Request) (err error) {
 	}
 	if val, ok := post["kind"]; ok {
 
-		usReq.Kind = val
+		usReq.Kind = types.UserKind(val)
 	}
 
 	return err
@@ -153,7 +155,7 @@ type UserUpdate struct {
 	Email  string
 	Name   string
 	Handle string
-	Kind   string
+	Kind   types.UserKind
 }
 
 func NewUserUpdate() *UserUpdate {
@@ -202,7 +204,7 @@ func (usReq *UserUpdate) Fill(r *http.Request) (err error) {
 	}
 	if val, ok := post["kind"]; ok {
 
-		usReq.Kind = val
+		usReq.Kind = types.UserKind(val)
 	}
 
 	return err

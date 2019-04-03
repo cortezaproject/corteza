@@ -1,7 +1,13 @@
 {
   "Title": "Users",
   "Interface": "User",
-  "Struct": null,
+  "Struct": [
+    {
+      "imports": [
+        "github.com/crusttech/crust/system/types"
+      ]
+    }
+  ],
   "Parameters": null,
   "Protocol": "",
   "Authentication": [
@@ -67,7 +73,7 @@
             "name": "kind",
             "required": false,
             "title": "Kind (normal, bot)",
-            "type": "string"
+            "type": "types.UserKind"
           }
         ]
       }
@@ -109,7 +115,7 @@
             "name": "kind",
             "required": false,
             "title": "Kind (normal, bot)",
-            "type": "string"
+            "type": "types.UserKind"
           }
         ]
       }

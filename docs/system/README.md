@@ -558,7 +558,7 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | email | string | POST | Email | N/A | YES |
 | name | string | POST | Name | N/A | NO |
 | handle | string | POST | Handle | N/A | NO |
-| kind | string | POST | Kind (normal, bot) | N/A | NO |
+| kind | types.UserKind | POST | Kind (normal, bot) | N/A | NO |
 
 ## Update user details
 
@@ -576,7 +576,7 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | email | string | POST | Email | N/A | YES |
 | name | string | POST | Name | N/A | YES |
 | handle | string | POST | Handle | N/A | NO |
-| kind | string | POST | Kind (normal, bot) | N/A | NO |
+| kind | types.UserKind | POST | Kind (normal, bot) | N/A | NO |
 
 ## Read user details and memberships
 
