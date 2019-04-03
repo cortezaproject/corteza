@@ -3,18 +3,18 @@ package types
 import (
 	"time"
 
-	"encoding/json"
+	"github.com/jmoiron/sqlx/types"
 
 	"github.com/crusttech/crust/internal/rules"
 )
 
 type (
 	Channel struct {
-		ID    uint64          `json:"id" db:"id"`
-		Name  string          `json:"name" db:"name"`
-		Topic string          `json:"topic" db:"topic"`
-		Type  ChannelType     `json:"type" db:"type"`
-		Meta  json.RawMessage `json:"-" db:"meta"`
+		ID    uint64         `json:"id" db:"id"`
+		Name  string         `json:"name" db:"name"`
+		Topic string         `json:"topic" db:"topic"`
+		Type  ChannelType    `json:"type" db:"type"`
+		Meta  types.JSONText `json:"-" db:"meta"`
 
 		CreatorID      uint64 `json:"creatorId" db:"rel_creator"`
 		OrganisationID uint64 `json:"organisationId" db:"rel_organisation"`
