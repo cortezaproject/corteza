@@ -3,8 +3,6 @@ package repository
 import (
 	"fmt"
 	"time"
-
-	"encoding/json"
 )
 
 func (r repository) updateColumnByID(tableName, columnName string, value interface{}, id uint64) (err error) {
@@ -32,14 +30,4 @@ func isFound(err error, valid bool, nerr error) error {
 func timeNowPtr() *time.Time {
 	n := time.Now()
 	return &n
-}
-
-func coalesceJson(vals ...json.RawMessage) json.RawMessage {
-	for _, val := range vals {
-		if val != nil {
-			return val
-		}
-	}
-
-	return nil
 }

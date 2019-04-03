@@ -15,16 +15,17 @@ type (
 	ChannelRepository interface {
 		With(ctx context.Context, db *factory.DB) ChannelRepository
 
-		FindChannelByID(id uint64) (*types.Channel, error)
-		FindChannelByMemberSet(memberID ...uint64) (*types.Channel, error)
-		FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error)
-		CreateChannel(mod *types.Channel) (*types.Channel, error)
-		UpdateChannel(mod *types.Channel) (*types.Channel, error)
+		FindByID(id uint64) (*types.Channel, error)
+		FindByMemberSet(memberID ...uint64) (*types.Channel, error)
+		Find(filter *types.ChannelFilter) ([]*types.Channel, error)
 
-		ArchiveChannelByID(id uint64) error
-		UnarchiveChannelByID(id uint64) error
-		DeleteChannelByID(id uint64) error
-		UndeleteChannelByID(id uint64) error
+		Create(mod *types.Channel) (*types.Channel, error)
+		Update(mod *types.Channel) (*types.Channel, error)
+
+		ArchiveByID(id uint64) error
+		UnarchiveByID(id uint64) error
+		DeleteByID(id uint64) error
+		UndeleteByID(id uint64) error
 
 		CountCreated(userID uint64) (c int, err error)
 		ChangeCreator(userID, target uint64) error
@@ -87,7 +88,7 @@ func (r *channel) With(ctx context.Context, db *factory.DB) ChannelRepository {
 	}
 }
 
-func (r *channel) FindChannelByID(id uint64) (*types.Channel, error) {
+func (r *channel) FindByID(id uint64) (*types.Channel, error) {
 	mod := &types.Channel{}
 	sql := sqlChannelSelect + " AND id = ?"
 
@@ -95,7 +96,7 @@ func (r *channel) FindChannelByID(id uint64) (*types.Channel, error) {
 }
 
 // FindChannelByMemberSet searches for channel (group!) with exactly the same membership structure
-func (r *channel) FindChannelByMemberSet(memberIDs ...uint64) (*types.Channel, error) {
+func (r *channel) FindByMemberSet(memberIDs ...uint64) (*types.Channel, error) {
 	mod := &types.Channel{}
 
 	sort.Slice(memberIDs, func(i, j int) bool {
@@ -111,7 +112,7 @@ func (r *channel) FindChannelByMemberSet(memberIDs ...uint64) (*types.Channel, e
 	return mod, isFound(r.db().Get(mod, sqlChannelGroupByMemberSet, types.ChannelTypeGroup, len(memberIDs), membersConcat), mod.ID > 0, ErrChannelNotFound)
 }
 
-func (r *channel) FindChannels(filter *types.ChannelFilter) ([]*types.Channel, error) {
+func (r *channel) Find(filter *types.ChannelFilter) ([]*types.Channel, error) {
 	// @todo: actual searching (filter.Query) not just a full select
 
 	params := make([]interface{}, 0)
@@ -136,11 +137,10 @@ func (r *channel) FindChannels(filter *types.ChannelFilter) ([]*types.Channel, e
 	return rval, r.db().Select(&rval, sql, params...)
 }
 
-func (r *channel) CreateChannel(mod *types.Channel) (*types.Channel, error) {
+func (r *channel) Create(mod *types.Channel) (*types.Channel, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 	mod.UpdatedAt = nil
-	mod.Meta = coalesceJson(mod.Meta, []byte("{}"))
 
 	if mod.Type == "" {
 		mod.Type = types.ChannelTypePublic
@@ -149,39 +149,35 @@ func (r *channel) CreateChannel(mod *types.Channel) (*types.Channel, error) {
 	return mod, r.db().Insert("messaging_channel", mod)
 }
 
-func (r *channel) UpdateChannel(mod *types.Channel) (*types.Channel, error) {
+func (r *channel) Update(mod *types.Channel) (*types.Channel, error) {
 	mod.UpdatedAt = timeNowPtr()
-	mod.Meta = coalesceJson(mod.Meta, []byte("{}"))
 	if mod.Type == "" {
 		mod.Type = types.ChannelTypePublic
 	}
 
 	whitelist := []string{"id", "name", "type", "topic", "meta", "updated_at"}
 
-	return mod, r.db().
-		UpdatePartial("messaging_channel", mod, whitelist, "id")
+	return mod, r.db().UpdatePartial("messaging_channel", mod, whitelist, "id")
 }
 
-func (r *channel) ArchiveChannelByID(id uint64) error {
+func (r *channel) ArchiveByID(id uint64) error {
 	return r.updateColumnByID("messaging_channel", "archived_at", time.Now(), id)
 }
 
-func (r *channel) UnarchiveChannelByID(id uint64) error {
+func (r *channel) UnarchiveByID(id uint64) error {
 	return r.updateColumnByID("messaging_channel", "archived_at", nil, id)
 }
 
-func (r *channel) DeleteChannelByID(id uint64) error {
+func (r *channel) DeleteByID(id uint64) error {
 	return r.updateColumnByID("messaging_channel", "deleted_at", time.Now(), id)
 }
 
-func (r *channel) UndeleteChannelByID(id uint64) error {
+func (r *channel) UndeleteByID(id uint64) error {
 	return r.updateColumnByID("messaging_channel", "deleted_at", nil, id)
 }
 
 func (r *channel) CountCreated(userID uint64) (c int, err error) {
-	return c, r.db().Get(&c,
-		"SELECT COUNT(*) FROM messaging_channel WHERE rel_creator = ?",
-		userID)
+	return c, r.db().Get(&c, "SELECT COUNT(*) FROM messaging_channel WHERE rel_creator = ?", userID)
 }
 
 func (r *channel) ChangeCreator(userID, target uint64) error {
