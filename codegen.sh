@@ -37,6 +37,7 @@ function types {
 	./build/gen-type-set --types MessageFlag       --output messaging/types/message_flag.gen.go
 	./build/gen-type-set --types Message           --output messaging/types/message.gen.go
 	./build/gen-type-set --types Channel           --output messaging/types/channel.gen.go
+	./build/gen-type-set --types Webhook           --output messaging/types/webhook.gen.go
 
 	./build/gen-type-set --with-primary-key=false --types ChannelMember --output messaging/types/channel_member.gen.go
 	./build/gen-type-set --with-primary-key=false --types Command       --output messaging/types/command.gen.go
