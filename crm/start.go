@@ -24,7 +24,7 @@ var (
 	jwtEncoder       auth.TokenEncoder
 )
 
-func Init() error {
+func Init(ctx context.Context) error {
 	// validate configuration
 	if err := flags.Validate(); err != nil {
 		return err
@@ -40,7 +40,9 @@ func Init() error {
 
 	mail.SetupDialer(flags.smtp)
 
-	InitDatabase()
+	if err := InitDatabase(ctx); err != nil {
+		return err
+	}
 
 	// configure resputil options
 	resputil.SetConfig(resputil.Options{
@@ -57,9 +59,9 @@ func Init() error {
 	return nil
 }
 
-func InitDatabase() error {
+func InitDatabase(ctx context.Context) error {
 	// start/configure database connection
-	db, err := db.TryToConnect("crm", flags.db.DSN, flags.db.Profiler)
+	db, err := db.TryToConnect(ctx, "crm", flags.db.DSN, flags.db.Profiler)
 	if err != nil {
 		return errors.Wrap(err, "could not connect to database")
 	}

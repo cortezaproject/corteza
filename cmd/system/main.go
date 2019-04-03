@@ -31,7 +31,7 @@ func main() {
 
 	flag.Parse()
 
-	if err := system.Init(); err != nil {
+	if err := system.Init(ctx); err != nil {
 		log.Fatalf("Error initializing: %+v", err)
 	}
 

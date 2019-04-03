@@ -75,13 +75,13 @@ func main() {
 		flag.PrintDefaults()
 	default:
 		// Initialize configuration of our services
-		if err := system.Init(); err != nil {
+		if err := system.Init(ctx); err != nil {
 			log.Fatalf("Error initializing system: %+v", err)
 		}
-		if err := crm.Init(); err != nil {
+		if err := crm.Init(ctx); err != nil {
 			log.Fatalf("Error initializing crm: %+v", err)
 		}
-		if err := messaging.Init(); err != nil {
+		if err := messaging.Init(ctx); err != nil {
 			log.Fatalf("Error initializing messaging: %+v", err)
 		}
 
