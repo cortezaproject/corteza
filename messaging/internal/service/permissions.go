@@ -33,28 +33,30 @@ type (
 		CanCreatePrivateChannel() bool
 		CanCreateGroupChannel() bool
 
-		CanUpdateChannel(ch *types.Channel) bool
-		CanReadChannel(ch *types.Channel) bool
-		CanJoinChannel(ch *types.Channel) bool
-		CanLeaveChannel(ch *types.Channel) bool
-		CanDeleteChannel(ch *types.Channel) bool
-		CanUndeleteChannel(ch *types.Channel) bool
-		CanArchiveChannel(ch *types.Channel) bool
-		CanUnarchiveChannel(ch *types.Channel) bool
+		CanUpdateChannel(*types.Channel) bool
+		CanReadChannel(*types.Channel) bool
+		CanJoinChannel(*types.Channel) bool
+		CanLeaveChannel(*types.Channel) bool
+		CanDeleteChannel(*types.Channel) bool
+		CanUndeleteChannel(*types.Channel) bool
+		CanArchiveChannel(*types.Channel) bool
+		CanUnarchiveChannel(*types.Channel) bool
 
-		CanManageChannelMembers(ch *types.Channel) bool
-		CanManageChannelWebhooks(ch *types.Channel) bool
-		CanManageChannelAttachments(ch *types.Channel) bool
+		CanManageChannelMembers(*types.Channel) bool
+		CanManageChannelAttachments(*types.Channel) bool
 
-		CanSendMessage(ch *types.Channel) bool
-		CanReplyMessage(ch *types.Channel) bool
-		CanEmbedMessage(ch *types.Channel) bool
-		CanAttachMessage(ch *types.Channel) bool
-		CanUpdateOwnMessages(ch *types.Channel) bool
-		CanUpdateMessages(ch *types.Channel) bool
-		CanDeleteOwnMessages(ch *types.Channel) bool
-		CanDeleteMessages(ch *types.Channel) bool
-		CanReactMessage(ch *types.Channel) bool
+		CanManageWebhooks(*types.Webhook) bool
+		CanManageOwnWebhooks(*types.Webhook) bool
+
+		CanSendMessage(*types.Channel) bool
+		CanReplyMessage(*types.Channel) bool
+		CanEmbedMessage(*types.Channel) bool
+		CanAttachMessage(*types.Channel) bool
+		CanUpdateOwnMessages(*types.Channel) bool
+		CanUpdateMessages(*types.Channel) bool
+		CanDeleteOwnMessages(*types.Channel) bool
+		CanDeleteMessages(*types.Channel) bool
+		CanReactMessage(*types.Channel) bool
 	}
 
 	effectivePermission struct {
@@ -64,10 +66,8 @@ type (
 	}
 )
 
-func Permissions() PermissionsService {
-	return (&permissions{
-		rules: systemService.DefaultRules,
-	}).With(context.Background())
+func Permissions(ctx context.Context) PermissionsService {
+	return (&permissions{}).With(ctx)
 }
 
 func (p *permissions) With(ctx context.Context) PermissionsService {
@@ -154,8 +154,12 @@ func (p *permissions) CanManageChannelMembers(ch *types.Channel) bool {
 	return p.checkAccess(ch, "members.manage", p.isChannelOwnerFallback(ch))
 }
 
-func (p *permissions) CanManageChannelWebhooks(ch *types.Channel) bool {
-	return p.checkAccess(ch, "webhooks.manage")
+func (p *permissions) CanManageWebhooks(webhook *types.Webhook) bool {
+	return p.checkAccess(webhook, "webhook.manage.all")
+}
+
+func (p *permissions) CanManageOwnWebhooks(webhook *types.Webhook) bool {
+	return p.checkAccess(webhook, "webhook.manage.own")
 }
 
 func (p *permissions) CanManageChannelAttachments(ch *types.Channel) bool {

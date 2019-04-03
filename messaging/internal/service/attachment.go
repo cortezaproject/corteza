@@ -33,8 +33,8 @@ type (
 		ctx context.Context
 
 		store store.Store
-		usr   systemService.UserService
-		evl   EventService
+		user  systemService.UserService
+		event EventService
 
 		attachment repository.AttachmentRepository
 		message    repository.MessageRepository
@@ -50,12 +50,10 @@ type (
 	}
 )
 
-func Attachment(store store.Store) AttachmentService {
+func Attachment(ctx context.Context, store store.Store) AttachmentService {
 	return (&attachment{
 		store: store,
-		usr:   systemService.DefaultUser,
-		evl:   DefaultEvent,
-	}).With(context.Background())
+	}).With(ctx)
 }
 
 func (svc *attachment) With(ctx context.Context) AttachmentService {
@@ -65,8 +63,8 @@ func (svc *attachment) With(ctx context.Context) AttachmentService {
 		ctx: ctx,
 
 		store: svc.store,
-		usr:   systemService.User(ctx),
-		evl:   svc.evl.With(ctx),
+		user:  systemService.User(ctx),
+		event: Event(ctx),
 
 		attachment: repository.Attachment(ctx, db),
 		message:    repository.Message(ctx, db),
@@ -154,7 +152,7 @@ func (svc *attachment) Create(name string, size int64, fh io.ReadSeeker, channel
 
 		// Create the first message, doing this directly with repository to circumvent
 		// message service constraints
-		if msg, err = svc.message.CreateMessage(msg); err != nil {
+		if msg, err = svc.message.Create(msg); err != nil {
 			return
 		}
 
@@ -291,12 +289,12 @@ func (svc *attachment) processImage(original io.ReadSeeker, att *types.Attachmen
 func (svc *attachment) sendEvent(msg *types.Message) (err error) {
 	if msg.User == nil {
 		// @todo pull user from cache
-		if msg.User, err = svc.usr.FindByID(msg.UserID); err != nil {
+		if msg.User, err = svc.user.FindByID(msg.UserID); err != nil {
 			return
 		}
 	}
 
-	return svc.evl.Message(msg)
+	return svc.event.Message(msg)
 }
 
 var _ AttachmentService = &attachment{}

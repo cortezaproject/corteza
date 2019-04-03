@@ -1,10 +1,11 @@
 package service
 
 import (
-	"log"
-	"sync"
+	"context"
 	"time"
 
+	"github.com/crusttech/crust/internal/config"
+	"github.com/crusttech/crust/internal/http"
 	"github.com/crusttech/crust/internal/store"
 )
 
@@ -15,7 +16,6 @@ type (
 )
 
 var (
-	o                  sync.Once
 	DefaultAttachment  AttachmentService
 	DefaultChannel     ChannelService
 	DefaultMessage     MessageService
@@ -24,20 +24,29 @@ var (
 	DefaultPermissions PermissionsService
 )
 
-func Init() {
-	o.Do(func() {
-		fs, err := store.New("var/store")
-		if err != nil {
-			log.Fatalf("Failed to initialize store: %v", err)
-		}
+func Init() error {
+	fs, err := store.New("var/store")
+	if err != nil {
+		return err
+	}
 
-		DefaultPermissions = Permissions()
-		DefaultEvent = Event()
-		DefaultAttachment = Attachment(fs)
-		DefaultMessage = Message()
-		DefaultChannel = Channel()
-		DefaultPubSub = PubSub()
+	_, err := http.New(&config.HTTPClient{
+		Timeout: 10,
 	})
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
+	DefaultPermissions = Permissions(ctx)
+	DefaultEvent = Event(ctx)
+	DefaultAttachment = Attachment(ctx, fs)
+	DefaultMessage = Message(ctx)
+	DefaultChannel = Channel(ctx)
+	DefaultPubSub = PubSub()
+
+	return nil
 }
 
 func timeNowPtr() *time.Time {
