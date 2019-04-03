@@ -25,3 +25,53 @@ trigger:
     - "refs/heads/**"
     - "refs/pull/**"
     - "refs/tags/**"
+
+---
+workspace:
+  base: /go/src
+  path: github.com/crusttech/crust
+
+kind: pipeline
+name: integration
+
+steps:
+- name: build
+  image: crusttech/crust-builder:latest
+  pull: always
+  environment:
+    CGO_ENABLED: 0
+    GOOS: linux
+    GOARCH: amd64
+    CI: circleci
+    AUTH_OIDC_ENABLED: 0
+    AUTH_JWT_SECRET: bRxJ37sJ6Qu4
+  commands:
+  - go fmt ./cmd/... ./internal/... ./crm/... ./messaging/... ./system/...
+  - make mocks
+  # check all tests are able to build
+  - wait-for-it.sh -t 60 --strict crust-db:3306 -- echo "Crust DB1 is up"
+  - gotest -v --tags="migrations" ./system/db/...
+  - gotest -v --tags="migrations" ./crm/db/...
+  - gotest -v --tags="migrations" ./messaging/db/...
+  - go test -run=^$ --tags="unit integration external" ./cmd/... ./internal/... ./crm/... ./messaging/... ./system/...
+  - gotest -failfast --coverprofile=coverage.txt -v --tags="unit integration external" ./internal/... ./system/... ./crm/... ./messaging/...
+- name: coverage
+  image: plugins/codecov
+  settings:
+    token: ac2e49d3-b29d-42c9-a2e1-9c8f286e4c24
+    files:
+     - coverage.txt
+
+services:
+- name: crust-db
+  pull: always
+  image: percona:8.0
+  ports:
+    - 3306
+  environment:
+    MYSQL_ROOT_PASSWORD: bRxJ37sJ6Qu4
+    MYSQL_DATABASE: crust
+    MYSQL_USER: crust
+    MYSQL_PASSWORD: crust
+
+trigger:
