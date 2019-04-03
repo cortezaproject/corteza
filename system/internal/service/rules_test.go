@@ -1,3 +1,5 @@
+// +build integration
+
 package service
 
 import (
@@ -10,7 +12,7 @@ import (
 
 	internalAuth "github.com/crusttech/crust/internal/auth"
 	internalRules "github.com/crusttech/crust/internal/rules"
-	. "github.com/crusttech/crust/internal/test"
+	"github.com/crusttech/crust/internal/test"
 	"github.com/crusttech/crust/system/types"
 )
 
@@ -39,7 +41,7 @@ func TestRules(t *testing.T) {
 	resources := internalRules.NewResources(ctx, db)
 
 	// Run tests in transaction to maintain DB state.
-	Error(t, db.Transaction(func() error {
+	test.Error(t, db.Transaction(func() error {
 		db.Exec("DELETE FROM sys_rules WHERE 1=1")
 		db.Insert("sys_user", user)
 		db.Insert("sys_role", role)
@@ -48,7 +50,7 @@ func TestRules(t *testing.T) {
 		// delete all for test roleID = 123456
 		{
 			err := resources.Delete(role.ID)
-			NoError(t, err, "expected no error, got %+v", err)
+			test.NoError(t, err, "expected no error, got %+v", err)
 		}
 
 		// Update rules for test role, with error.
@@ -57,7 +59,7 @@ func TestRules(t *testing.T) {
 				internalRules.Rule{Resource: "messaging:channel:1", Operation: "message.update.all", Value: internalRules.Allow},
 			}
 			_, err := rulesSvc.Update(role.ID, list)
-			Error(t, err, "expected error == No Allow rule for messaging")
+			test.Error(t, err, "expected error == No Allow rule for messaging")
 		}
 
 		// Insert `grant` permission for `messaging` and `system`.
@@ -68,7 +70,7 @@ func TestRules(t *testing.T) {
 			}
 
 			err := resources.Grant(role.ID, list)
-			NoError(t, err, "expected no error, got %v+", err)
+			test.NoError(t, err, "expected no error, got %v+", err)
 		}
 
 		// List possible permissions with `messaging` and `system` grants.
@@ -79,11 +81,11 @@ func TestRules(t *testing.T) {
 			log.Println("count:", count)
 
 			ret, err := rulesSvc.List()
-			NoError(t, err, "expected no error, got %+v", err)
+			test.NoError(t, err, "expected no error, got %+v", err)
 
 			perms := ret.([]types.Permission)
 
-			Assert(t, len(perms) > 0, "expected len(rules) > 0, got %v", len(perms))
+			test.Assert(t, len(perms) > 0, "expected len(rules) > 0, got %v", len(perms))
 		}
 
 		// Update rules for test role.
@@ -94,10 +96,9 @@ func TestRules(t *testing.T) {
 				internalRules.Rule{Resource: "messaging:channel:2", Operation: "message.update.all"},
 				internalRules.Rule{Resource: "system", Operation: "organisation.create", Value: internalRules.Allow},
 				internalRules.Rule{Resource: "system:organisation:*", Operation: "access", Value: internalRules.Allow},
-				internalRules.Rule{Resource: "messaging:channel", Operation: "message.update.all", Value: internalRules.Allow},
 			}
 			_, err := rulesSvc.Update(role.ID, list)
-			NoError(t, err, "expected no error, got %+v", err)
+			test.NoError(t, err, "expected no error, got %+v", err)
 		}
 
 		// Update with invalid roles
@@ -106,61 +107,51 @@ func TestRules(t *testing.T) {
 				internalRules.Rule{Resource: "nosystem:channel:*", Operation: "message.update.all", Value: internalRules.Allow},
 			}
 			_, err := rulesSvc.Update(role.ID, list)
-			Error(t, err, "expected error")
+			test.Error(t, err, "expected error")
 
 			list = []internalRules.Rule{
 				internalRules.Rule{Resource: "messaging:noresource:1", Operation: "message.update.all", Value: internalRules.Deny},
 			}
 			_, err = rulesSvc.Update(role.ID, list)
-			Error(t, err, "expected error")
+			test.Error(t, err, "expected error")
 
 			list = []internalRules.Rule{
 				internalRules.Rule{Resource: "messaging:channel:", Operation: "message.update.all"},
 			}
 			_, err = rulesSvc.Update(role.ID, list)
-			Error(t, err, "expected error")
+			test.Error(t, err, "expected error")
 
 			list = []internalRules.Rule{
 				internalRules.Rule{Resource: "system:organisation:*", Operation: "invalid", Value: internalRules.Allow},
 			}
 			_, err = rulesSvc.Update(role.ID, list)
-			Error(t, err, "expected error")
+			test.Error(t, err, "expected error")
 		}
 
 		// Read rules for test role.
 		{
 			ret, err := rulesSvc.Read(role.ID)
-			NoError(t, err, "expected no error, got %+v", err)
+			test.NoError(t, err, "expected no error, got %+v", err)
 
 			rules := ret.([]internalRules.Rule)
 
-			Assert(t, len(rules) == 7, "expected len(rules) == 7, got %v", len(rules))
+			test.Assert(t, len(rules) == 6, "expected len(rules) == 6, got %v", len(rules))
 		}
 
 		// Delete rules for test role.
 		{
 			_, err := rulesSvc.Delete(role.ID)
-			NoError(t, err, "expected no error, got %+v", err)
+			test.NoError(t, err, "expected no error, got %+v", err)
 		}
 
 		// Read rules for test role.
 		{
 			ret, err := rulesSvc.Read(role.ID)
-			NoError(t, err, "expected no error, got %+v", err)
+			test.NoError(t, err, "expected no error, got %+v", err)
 
 			rules := ret.([]internalRules.Rule)
 
-			Assert(t, len(rules) == 0, "expected len(rules) == 0, got %v", len(rules))
-		}
-
-		// List possible permissions with no grants.
-		{
-			ret, err := rulesSvc.List()
-			NoError(t, err, "expected no error, got %+v", err)
-
-			perms := ret.([]types.Permission)
-
-			Assert(t, len(perms) == 0, "expected len(rules) == 0, got %v", len(perms))
+			test.Assert(t, len(rules) == 0, "expected len(rules) == 0, got %v", len(rules))
 		}
 		return errors.New("Rollback")
 	}), "expected rollback error")

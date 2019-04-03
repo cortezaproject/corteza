@@ -10,6 +10,7 @@ import (
 	types "github.com/crusttech/crust/system/types"
 	gomock "github.com/golang/mock/gomock"
 	factory "github.com/titpetric/factory"
+	io "io"
 	reflect "reflect"
 )
 
@@ -172,6 +173,21 @@ func (m *MockUserRepository) Update(mod *types.User) (*types.User, error) {
 func (mr *MockUserRepositoryMockRecorder) Update(mod interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockUserRepository)(nil).Update), mod)
+}
+
+// BindAvatar mocks base method
+func (m *MockUserRepository) BindAvatar(user *types.User, avatar io.Reader) (*types.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BindAvatar", user, avatar)
+	ret0, _ := ret[0].(*types.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BindAvatar indicates an expected call of BindAvatar
+func (mr *MockUserRepositoryMockRecorder) BindAvatar(user, avatar interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BindAvatar", reflect.TypeOf((*MockUserRepository)(nil).BindAvatar), user, avatar)
 }
 
 // SuspendByID mocks base method
