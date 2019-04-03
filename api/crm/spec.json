@@ -25,38 +25,6 @@
         ]
     },
     {
-        "title": "Permissions",
-        "description": "Permissions",
-        "entrypoint": "page",
-        "path": "/permissions",
-        "authentication": [],
-        "struct": [
-            {
-                "imports": [
-                    "sqlxTypes github.com/jmoiron/sqlx/types"
-                ]
-            }
-        ],
-        "apis": [
-            {
-                "name": "list",
-                "method": "GET",
-                "path": "/",
-                "title": "List available pages",
-                "parameters": {
-                    "get": [
-                        {
-                            "type": "uint64",
-                            "name": "selfID",
-                            "required": false,
-                            "title": "Parent page ID"
-                        }
-                    ]
-                }
-            }
-        ]
-    },
-    {
         "title": "Pages",
         "description": "CRM module pages",
         "entrypoint": "page",
