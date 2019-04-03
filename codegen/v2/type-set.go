@@ -13,7 +13,7 @@ import (
 	"text/template"
 )
 
-const tmplTypeSet = `package types
+const tmplTypeSet = `package {{ .Package }}
 
 {{ if .Imports }}
 import (
@@ -110,6 +110,7 @@ func main() {
 	)
 
 	payload := struct {
+		Package string
 		Sets    []string
 		Imports []string
 
@@ -121,6 +122,7 @@ func main() {
 
 	flag.StringVar(&stdTypesStr, "types", "", "Comma separated list of types")
 	flag.StringVar(&importsStr, "imports", "", "Comma separated list of imports")
+	flag.StringVar(&payload.Package, "package", "types", "Package name")
 
 	flag.BoolVar(&payload.WithPrimaryKey, "with-primary-key", true, "Generate types with ID field")
 
