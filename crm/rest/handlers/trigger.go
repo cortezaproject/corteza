@@ -17,9 +17,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
+
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/crm/rest/request"
@@ -86,12 +87,10 @@ func NewTrigger(th TriggerAPI) *Trigger {
 func (th *Trigger) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("/trigger", func(r chi.Router) {
-			r.Get("/", th.List)
-			r.Post("/", th.Create)
-			r.Get("/{triggerID}", th.Read)
-			r.Post("/{triggerID}", th.Update)
-			r.Delete("/{triggerID}", th.Delete)
-		})
+		r.Get("/trigger/", th.List)
+		r.Post("/trigger/", th.Create)
+		r.Get("/trigger/{triggerID}", th.Read)
+		r.Post("/trigger/{triggerID}", th.Update)
+		r.Delete("/trigger/{triggerID}", th.Delete)
 	})
 }

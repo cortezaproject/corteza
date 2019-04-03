@@ -17,9 +17,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
+
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/messaging/rest/request"
@@ -158,20 +159,18 @@ func NewMessage(mh MessageAPI) *Message {
 func (mh *Message) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("/channels/{channelID}/messages", func(r chi.Router) {
-			r.Post("/", mh.Create)
-			r.Get("/", mh.History)
-			r.Get("/mark-as-read", mh.MarkAsRead)
-			r.Put("/{messageID}", mh.Edit)
-			r.Delete("/{messageID}", mh.Delete)
-			r.Get("/{messageID}/replies", mh.ReplyGet)
-			r.Post("/{messageID}/replies", mh.ReplyCreate)
-			r.Post("/{messageID}/pin", mh.PinCreate)
-			r.Delete("/{messageID}/pin", mh.PinRemove)
-			r.Post("/{messageID}/bookmark", mh.BookmarkCreate)
-			r.Delete("/{messageID}/bookmark", mh.BookmarkRemove)
-			r.Post("/{messageID}/reaction/{reaction}", mh.ReactionCreate)
-			r.Delete("/{messageID}/reaction/{reaction}", mh.ReactionRemove)
-		})
+		r.Post("/channels/{channelID}/messages/", mh.Create)
+		r.Get("/channels/{channelID}/messages/", mh.History)
+		r.Get("/channels/{channelID}/messages/mark-as-read", mh.MarkAsRead)
+		r.Put("/channels/{channelID}/messages/{messageID}", mh.Edit)
+		r.Delete("/channels/{channelID}/messages/{messageID}", mh.Delete)
+		r.Get("/channels/{channelID}/messages/{messageID}/replies", mh.ReplyGet)
+		r.Post("/channels/{channelID}/messages/{messageID}/replies", mh.ReplyCreate)
+		r.Post("/channels/{channelID}/messages/{messageID}/pin", mh.PinCreate)
+		r.Delete("/channels/{channelID}/messages/{messageID}/pin", mh.PinRemove)
+		r.Post("/channels/{channelID}/messages/{messageID}/bookmark", mh.BookmarkCreate)
+		r.Delete("/channels/{channelID}/messages/{messageID}/bookmark", mh.BookmarkRemove)
+		r.Post("/channels/{channelID}/messages/{messageID}/reaction/{reaction}", mh.ReactionCreate)
+		r.Delete("/channels/{channelID}/messages/{messageID}/reaction/{reaction}", mh.ReactionRemove)
 	})
 }

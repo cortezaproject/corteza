@@ -1,5 +1,12 @@
 # Attachments
 
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/attachment/{kind}/` | List, filter all page attachments |
+| `GET` | `/attachment/{kind}/{attachmentID}` | Attachment details |
+| `GET` | `/attachment/{kind}/{attachmentID}/original/{name}` | Serves attached file |
+| `GET` | `/attachment/{kind}/{attachmentID}/preview.{ext}` | Serves preview of an attached file |
+
 ## List, filter all page attachments
 
 #### Method
@@ -68,10 +75,20 @@
 | ext | string | PATH | Preview extension/format | N/A | YES |
 | kind | string | PATH | Attachment kind | N/A | YES |
 
+---
+
 
 
 
 # Charts
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/chart/` | List/read charts from module section |
+| `POST` | `/chart/` | List/read charts from module section |
+| `GET` | `/chart/{chartID}` | Read charts by ID from module section |
+| `POST` | `/chart/{chartID}` | Add/update charts in module section |
+| `DELETE` | `/chart/{chartID}` | Delete chart |
 
 ## List/read charts from module section
 
@@ -145,12 +162,22 @@
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | chartID | uint64 | PATH | Chart ID | N/A | YES |
 
+---
+
 
 
 
 # Modules
 
 CRM module definitions
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/module/` | List modules |
+| `POST` | `/module/` | Create module |
+| `GET` | `/module/{moduleID}` | Read module |
+| `POST` | `/module/{moduleID}` | Update module |
+| `DELETE` | `/module/{moduleID}` | Delete module |
 
 ## List modules
 
@@ -227,12 +254,18 @@ CRM module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
+---
+
 
 
 
 # Notifications
 
 CRM Notifications
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `POST` | `/notification/email` | Send email from the CRM |
 
 ## Send email from the CRM
 
@@ -252,12 +285,25 @@ CRM Notifications
 | subject  | string | POST | Email subject | N/A | NO |
 | content | sqlxTypes.JSONText | POST | Message content | N/A | YES |
 
+---
+
 
 
 
 # Pages
 
 CRM module pages
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/page/` | List available pages |
+| `POST` | `/page/` | Create page |
+| `GET` | `/page/{pageID}` | Get page details |
+| `GET` | `/page/tree` | Get page all (non-record) pages, hierarchically |
+| `POST` | `/page/{pageID}` | Update page |
+| `POST` | `/page/{selfID}/reorder` | Reorder pages |
+| `Delete` | `/page/{pageID}` | Delete page |
+| `POST` | `/page/{pageID}/attachment` | Uploads attachment to page |
 
 ## List available pages
 
@@ -383,10 +429,16 @@ CRM module pages
 | pageID | uint64 | PATH | Page ID | N/A | YES |
 | upload | *multipart.FileHeader | POST | File to upload | N/A | YES |
 
+---
+
 
 
 
 # Permissions
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/permissions/effective` | Effective rules for current user |
 
 ## Effective rules for current user
 
@@ -402,12 +454,24 @@ CRM module pages
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | resource | string | GET | Show only rules for a specific resource | N/A | NO |
 
+---
+
 
 
 
 # Records
 
 CRM records
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/module/{moduleID}/record/report` | Generates report from module records |
+| `GET` | `/module/{moduleID}/record/` | List/read records from module section |
+| `POST` | `/module/{moduleID}/record/` | Create record in module section |
+| `GET` | `/module/{moduleID}/record/{recordID}` | Read records by ID from module section |
+| `POST` | `/module/{moduleID}/record/{recordID}` | Update records in module section |
+| `DELETE` | `/module/{moduleID}/record/{recordID}` | Delete record row from module section |
+| `POST` | `/module/{moduleID}/record/{recordID}/{fieldName}/attachment` | Uploads attachment and validates it against record field requirements |
 
 ## Generates report from module records
 
@@ -522,12 +586,22 @@ CRM records
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 | upload | *multipart.FileHeader | POST | File to upload | N/A | YES |
 
+---
+
 
 
 
 # Triggers
 
 CRM Triggers
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/trigger/` | List available triggers |
+| `POST` | `/trigger/` | Create trigger |
+| `GET` | `/trigger/{triggerID}` | Get trigger details |
+| `POST` | `/trigger/{triggerID}` | Update trigger |
+| `Delete` | `/trigger/{triggerID}` | Delete trigger |
 
 ## List available triggers
 
@@ -607,3 +681,5 @@ CRM Triggers
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | triggerID | uint64 | PATH | Trigger ID | N/A | YES |
+
+---

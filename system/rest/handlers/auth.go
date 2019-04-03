@@ -17,9 +17,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
+
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/system/rest/request"
@@ -68,10 +69,8 @@ func NewAuth(ah AuthAPI) *Auth {
 func (ah *Auth) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("/auth", func(r chi.Router) {
-			r.Get("/check", ah.Check)
-			r.Post("/login", ah.Login)
-			r.Get("/logout", ah.Logout)
-		})
+		r.Get("/auth/check", ah.Check)
+		r.Post("/auth/login", ah.Login)
+		r.Get("/auth/logout", ah.Logout)
 	})
 }

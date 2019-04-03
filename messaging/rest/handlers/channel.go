@@ -17,9 +17,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
+
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/messaging/rest/request"
@@ -149,19 +150,17 @@ func NewChannel(ch ChannelAPI) *Channel {
 func (ch *Channel) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("/channels", func(r chi.Router) {
-			r.Get("/", ch.List)
-			r.Post("/", ch.Create)
-			r.Put("/{channelID}", ch.Update)
-			r.Put("/{channelID}/state", ch.State)
-			r.Put("/{channelID}/flag", ch.SetFlag)
-			r.Delete("/{channelID}/flag", ch.RemoveFlag)
-			r.Get("/{channelID}", ch.Read)
-			r.Get("/{channelID}/members", ch.Members)
-			r.Put("/{channelID}/members/{userID}", ch.Join)
-			r.Delete("/{channelID}/members/{userID}", ch.Part)
-			r.Post("/{channelID}/invite", ch.Invite)
-			r.Post("/{channelID}/attach", ch.Attach)
-		})
+		r.Get("/channels/", ch.List)
+		r.Post("/channels/", ch.Create)
+		r.Put("/channels/{channelID}", ch.Update)
+		r.Put("/channels/{channelID}/state", ch.State)
+		r.Put("/channels/{channelID}/flag", ch.SetFlag)
+		r.Delete("/channels/{channelID}/flag", ch.RemoveFlag)
+		r.Get("/channels/{channelID}", ch.Read)
+		r.Get("/channels/{channelID}/members", ch.Members)
+		r.Put("/channels/{channelID}/members/{userID}", ch.Join)
+		r.Delete("/channels/{channelID}/members/{userID}", ch.Part)
+		r.Post("/channels/{channelID}/invite", ch.Invite)
+		r.Post("/channels/{channelID}/attach", ch.Attach)
 	})
 }

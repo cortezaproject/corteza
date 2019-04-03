@@ -1,5 +1,13 @@
 # Applications
 
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/application/` | List applications |
+| `POST` | `/application/` | Create application |
+| `PUT` | `/application/{applicationID}` | Update user details |
+| `GET` | `/application/{applicationID}` | Read application details |
+| `DELETE` | `/application/{applicationID}` | Remove application |
+
 ## List applications
 
 #### Method
@@ -76,10 +84,18 @@
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | applicationID | uint64 | PATH | Application ID | N/A | YES |
 
+---
+
 
 
 
 # Authentication
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/auth/check` | Check JWT token |
+| `POST` | `/auth/login` | Login user |
+| `GET` | `/auth/logout` | Delete JWT token (Sign Out) |
 
 ## Check JWT token
 
@@ -122,12 +138,23 @@
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 
+---
+
 
 
 
 # Organisations
 
 Organisations represent a top-level grouping entity. There may be many organisations defined in a single deployment.
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/organisations/` | List organisations |
+| `POST` | `/organisations/` | Create organisation |
+| `PUT` | `/organisations/{id}` | Update organisation details |
+| `DELETE` | `/organisations/{id}` | Remove organisation |
+| `GET` | `/organisations/{id}` | Read organisation details |
+| `POST` | `/organisations/{id}/archive` | Archive organisation |
 
 ## List organisations
 
@@ -214,10 +241,20 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | id | uint64 | PATH | Organisation ID | N/A | YES |
 
+---
+
 
 
 
 # Permissions
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/permissions/` | Retrieve defined permissions |
+| `GET` | `/permissions/effective` | Effective rules for current user |
+| `GET` | `/permissions/{roleID}/rules` | Retrieve role permissions |
+| `DELETE` | `/permissions/{roleID}/rules` | Remove all defined role permissions |
+| `PATCH` | `/permissions/{roleID}/rules` | Update permission settings |
 
 ## Retrieve defined permissions
 
@@ -289,12 +326,28 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | roleID | uint64 | PATH | Role ID | N/A | YES |
 | permissions | []rules.Rule | POST | List of permissions to set | N/A | YES |
 
+---
+
 
 
 
 # Roles
 
 An organisation may have many roles. Roles may have many channels available. Access to channels may be shared between roles.
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/roles/` | List roles |
+| `POST` | `/roles/` | Update role details |
+| `PUT` | `/roles/{roleID}` | Update role details |
+| `GET` | `/roles/{roleID}` | Read role details and memberships |
+| `DELETE` | `/roles/{roleID}` | Remove role |
+| `POST` | `/roles/{roleID}/archive` | Archive role |
+| `POST` | `/roles/{roleID}/move` | Move role to different organisation |
+| `POST` | `/roles/{roleID}/merge` | Merge one role into another |
+| `GET` | `/roles/{roleID}/members` | Returns all role members |
+| `POST` | `/roles/{roleID}/member/{userID}` | Add member to a role |
+| `DELETE` | `/roles/{roleID}/member/{userID}` | Remove member from a role |
 
 ## List roles
 
@@ -457,10 +510,22 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | roleID | uint64 | PATH | Source Role ID | N/A | YES |
 | userID | uint64 | PATH | User ID | N/A | YES |
 
+---
+
 
 
 
 # Users
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/users/` | Search users (Directory) |
+| `POST` | `/users/` | Create user |
+| `PUT` | `/users/{userID}` | Update user details |
+| `GET` | `/users/{userID}` | Read user details and memberships |
+| `DELETE` | `/users/{userID}` | Remove user |
+| `POST` | `/users/{userID}/suspend` | Suspend user |
+| `POST` | `/users/{userID}/unsuspend` | Unsuspend user |
 
 ## Search users (Directory)
 
@@ -568,3 +633,5 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | userID | uint64 | PATH | User ID | N/A | YES |
+
+---
