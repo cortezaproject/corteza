@@ -1,9 +1,6 @@
 package service
 
 import (
-	"log"
-	"sync"
-
 	"github.com/crusttech/crust/internal/store"
 )
 
@@ -14,7 +11,6 @@ type (
 )
 
 var (
-	o                   sync.Once
 	DefaultRecord       RecordService
 	DefaultModule       ModuleService
 	DefaultTrigger      TriggerService
@@ -25,20 +21,20 @@ var (
 	DefaultAttachment   AttachmentService
 )
 
-func Init() {
-	o.Do(func() {
-		fs, err := store.New("var/store")
-		if err != nil {
-			log.Fatalf("Failed to initialize store: %v", err)
-		}
+func Init() error {
+	fs, err := store.New("var/store")
+	if err != nil {
+		return err
+	}
 
-		DefaultPermissions = Permissions()
-		DefaultRecord = Record()
-		DefaultModule = Module()
-		DefaultTrigger = Trigger()
-		DefaultPage = Page()
-		DefaultChart = Chart()
-		DefaultNotification = Notification()
-		DefaultAttachment = Attachment(fs)
-	})
+	DefaultPermissions = Permissions()
+	DefaultRecord = Record()
+	DefaultModule = Module()
+	DefaultTrigger = Trigger()
+	DefaultPage = Page()
+	DefaultChart = Chart()
+	DefaultNotification = Notification()
+	DefaultAttachment = Attachment(fs)
+
+	return nil
 }
