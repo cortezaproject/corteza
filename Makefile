@@ -67,8 +67,8 @@ mailhog.up:
 ########################################################################################################################
 # QA
 
-test: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./...
+test.internal: $(GOTEST)
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/...
 	$(GO) tool cover -func=.cover.out
 
 test.messaging: $(GOTEST)
@@ -128,7 +128,7 @@ qa: vet critic test
 
 mocks: $(GOMOCK)
 	# Cleanup all pre-generated
-	find -name '*_mock_test.go' -delete
+	find . -name '*_mock_test.go' -delete
 	rm -rf system/internal/repository/mocks && mkdir -p system/internal/repository/mocks
 
 	$(MOCKGEN) -package repository -source system/internal/repository/user.go         -destination system/internal/repository/mocks/user.go
