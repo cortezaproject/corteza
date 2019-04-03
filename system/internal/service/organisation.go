@@ -32,8 +32,8 @@ type (
 	}
 )
 
-func Organisation() OrganisationService {
-	return (&organisation{}).With(context.Background())
+func Organisation(ctx context.Context) OrganisationService {
+	return (&organisation{}).With(ctx)
 }
 
 func (svc *organisation) With(ctx context.Context) OrganisationService {

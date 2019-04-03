@@ -32,10 +32,8 @@ type (
 	}
 )
 
-func Application() ApplicationService {
-	return (&application{
-		prm: DefaultPermissions,
-	}).With(context.Background())
+func Application(ctx context.Context) ApplicationService {
+	return (&application{}).With(ctx)
 }
 
 func (svc *application) With(ctx context.Context) ApplicationService {
@@ -43,7 +41,7 @@ func (svc *application) With(ctx context.Context) ApplicationService {
 	return &application{
 		db:          db,
 		ctx:         ctx,
-		prm:         svc.prm.With(ctx),
+		prm:         Permissions(ctx),
 		application: repository.Application(ctx, db),
 	}
 }

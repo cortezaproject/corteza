@@ -52,10 +52,8 @@ type (
 	}
 )
 
-func Permissions() PermissionsService {
-	return (&permissions{
-		rules: DefaultRules,
-	}).With(context.Background())
+func Permissions(ctx context.Context) PermissionsService {
+	return (&permissions{}).With(ctx)
 }
 
 func (p *permissions) With(ctx context.Context) PermissionsService {
@@ -64,7 +62,7 @@ func (p *permissions) With(ctx context.Context) PermissionsService {
 		db:  db,
 		ctx: ctx,
 
-		rules: p.rules.With(ctx),
+		rules: Rules(ctx),
 	}
 }
 

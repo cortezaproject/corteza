@@ -88,7 +88,7 @@ func (ctrl *Auth) Handlers(jwtEncoder auth.TokenEncoder) *handlers.Auth {
 			return
 		}
 
-		userSvc := service.User().With(ctx)
+		userSvc := service.User(ctx)
 
 		// check email and username for login
 		user, err := userSvc.FindByEmail(params.Username)

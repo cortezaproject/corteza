@@ -15,7 +15,7 @@ import (
 
 func MountRoutes(oidcConfig *config.OIDC, socialConfig *config.Social, jwtEncoder auth.TokenEncoder) func(chi.Router) {
 	var err error
-	var userSvc = service.User()
+	var userSvc = service.User(context.Background())
 	var ctx = context.Background()
 	var oidc *openIdConnect
 

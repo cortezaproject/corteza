@@ -41,10 +41,8 @@ type (
 	}
 )
 
-func Role() RoleService {
-	return (&role{
-		prm: DefaultPermissions,
-	}).With(context.Background())
+func Role(ctx context.Context) RoleService {
+	return (&role{}).With(ctx)
 }
 
 func (svc *role) With(ctx context.Context) RoleService {
@@ -53,8 +51,7 @@ func (svc *role) With(ctx context.Context) RoleService {
 		db:  db,
 		ctx: ctx,
 
-		prm: svc.prm.With(ctx),
-
+		prm:  Permissions(ctx),
 		role: repository.Role(ctx, db),
 	}
 }

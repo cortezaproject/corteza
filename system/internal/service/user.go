@@ -50,8 +50,8 @@ type (
 	}
 )
 
-func User() UserService {
-	return (&user{}).With(context.Background())
+func User(ctx context.Context) UserService {
+	return (&user{}).With(ctx)
 }
 
 func (svc *user) With(ctx context.Context) UserService {
@@ -60,7 +60,7 @@ func (svc *user) With(ctx context.Context) UserService {
 	return &user{
 		db:   db,
 		ctx:  ctx,
-		prm:  DefaultPermissions,
+		prm:  Permissions(ctx),
 		user: repository.User(ctx, db),
 	}
 }
@@ -117,14 +117,13 @@ func (svc *user) FindOrCreate(user *types.User) (out *types.User, err error) {
 
 func (svc *user) Create(input *types.User) (out *types.User, err error) {
 	return out, svc.db.Transaction(func() error {
-		if out, err = svc.user.Create(input); err != nil {
-			return err
-		}
-
 		if !svc.prm.CanCreateUser() {
 			return errors.New("not allowed to create users")
 		}
 
+		if out, err = svc.user.Create(input); err != nil {
+			return err
+		}
 		return nil
 	})
 }
