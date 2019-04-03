@@ -150,3 +150,15 @@ func (m *MockCredentialsRepository) DeleteByID(id uint64) error {
 func (mr *MockCredentialsRepositoryMockRecorder) DeleteByID(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockCredentialsRepository)(nil).DeleteByID), id)
 }
+
+// DeleteByKind mocks base method
+func (m *MockCredentialsRepository) DeleteByKind(ownerID uint64, kind string) error {
+	ret := m.ctrl.Call(m, "DeleteByKind", ownerID, kind)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByKind indicates an expected call of DeleteByKind
+func (mr *MockCredentialsRepositoryMockRecorder) DeleteByKind(ownerID, kind interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByKind", reflect.TypeOf((*MockCredentialsRepository)(nil).DeleteByKind), ownerID, kind)
+}

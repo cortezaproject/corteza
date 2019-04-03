@@ -3,10 +3,12 @@ package service
 import (
 	"context"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/markbates/goth"
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/crusttech/crust/system/internal/repository"
 	"github.com/crusttech/crust/system/types"
@@ -29,11 +31,19 @@ type (
 
 		External(profile goth.User) (*types.User, error)
 
-		CheckPassword(username, password string) (*types.User, error)
-		ChangePassword(user *types.User, password string) error
+		CheckPassword(email string, password []byte) (*types.User, error)
+		ChangePassword(user *types.User, password []byte) error
 		CheckCredentials(credentialsID uint64, secret string) (*types.User, error)
 		RevokeCredentialsByID(user *types.User, credentialsID uint64) error
 	}
+)
+
+const (
+	CredentialsTypePassword = "password"
+)
+
+var (
+	reEmail = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 )
 
 func defaultProviderValidator(provider string) error {
@@ -203,15 +213,98 @@ func (svc *auth) External(profile goth.User) (u *types.User, err error) {
 // CheckPassword verifies username/password combination
 //
 // Expects plain text password as an input
-func (svc *auth) CheckPassword(username, password string) (*types.User, error) {
-	panic("svc.auth.CheckPassword, not implemented")
+func (svc *auth) CheckPassword(email string, password []byte) (u *types.User, err error) {
+	if err = svc.validateCredentials(email, password); err != nil {
+		return
+	}
+
+	return u, svc.db.Transaction(func() error {
+		var (
+			cc types.CredentialsSet
+		)
+
+		u, err = svc.users.FindByEmail(email)
+		if err != repository.ErrUserNotFound {
+			return errors.New("invalid username/password combination")
+		}
+
+		if err != nil {
+			return errors.Wrap(err, "could not check password")
+		}
+
+		cc, err := svc.credentials.FindByKind(u.ID, CredentialsTypePassword)
+		if err != nil {
+			return errors.Wrap(err, "could not find credentials")
+		}
+
+		return svc.checkPassword(password, cc)
+	})
+}
+
+// validateCredentials does basic format & length check
+func (svc auth) validateCredentials(email string, password []byte) error {
+	if !reEmail.MatchString(email) {
+		return errors.New("invalid email format")
+	}
+
+	if len(password) == 0 {
+		return errors.New("empty password")
+	}
+
+	return nil
+}
+
+func (svc auth) checkPassword(password []byte, cc types.CredentialsSet) (err error) {
+	// We need only valid credentials (skip deleted, expired)
+	cc, _ = cc.Filter(func(c *types.Credentials) (b bool, e error) {
+		return c.Valid(), nil
+	})
+
+	for _, c := range cc {
+		if len(c.Credentials) == 0 {
+			continue
+		}
+
+		err = bcrypt.CompareHashAndPassword([]byte(c.Credentials), password)
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			// Mismatch, continue with the checking
+			continue
+		} else if err != nil {
+			// Some other error
+			return errors.Wrap(err, "could not compare passwords")
+		} else {
+			// Password matched one of credentials
+			return nil
+		}
+	}
+
+	return errors.New("invalid username/password combination")
 }
 
 // ChangePassword (soft) deletes old password entry and creates a new one
 //
 // Expects plain text password as an input
-func (svc *auth) ChangePassword(user *types.User, password string) error {
-	panic("svc.auth.ChangePassword, not implemented")
+func (svc *auth) ChangePassword(user *types.User, password []byte) (err error) {
+	var hash []byte
+
+	hash, err = bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return errors.Wrap(err, "could not hash password")
+	}
+
+	return svc.db.Transaction(func() error {
+		if err = svc.credentials.DeleteByKind(user.ID, CredentialsTypePassword); err != nil {
+			return errors.Wrap(err, "could not remove old passswords")
+		}
+
+		_, err = svc.credentials.Create(&types.Credentials{
+			OwnerID:     user.ID,
+			Kind:        CredentialsTypePassword,
+			Credentials: string(hash),
+		})
+
+		return errors.Wrap(err, "could not create new password")
+	})
 }
 
 // CheckCredentials searches for credentials/secret combination and returns loaded user if successful
