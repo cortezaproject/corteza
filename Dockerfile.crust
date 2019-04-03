@@ -1,0 +1,34 @@
+## == builder image ==
+
+FROM golang:1.12-alpine AS builder
+
+WORKDIR /go/src/github.com/crusttech/crust
+
+COPY . .
+
+RUN apk add --no-cache git
+RUN mkdir /build; \
+    CGO_ENABLED=0 go build \
+        -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime="`date +%FT%T%z`" -X github.com/crusttech/crust/internal/version.Version="`git describe --always --tags` \
+        -o /build/crust cmd/crust/*.go
+
+## == webapp image ==
+
+FROM crusttech/webapp:latest as webapp
+
+
+
+## == target image ==
+
+FROM alpine:3.7
+
+RUN apk add --no-cache ca-certificates
+
+COPY --from=builder /build /crust
+COPY --from=webapp /crust/webapp /crust/webapp
+
+EXPOSE 80
+
+WORKDIR /crust
+
+ENTRYPOINT /crust/crust
