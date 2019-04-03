@@ -25,12 +25,9 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"sort"
 	"strings"
 	"time"
 )
-
-var zipData string
 
 // file holds unzipped read-only file contents and file metadata.
 type file struct {
@@ -41,28 +38,20 @@ type file struct {
 
 type statikFS struct {
 	files map[string]file
-	dirs  map[string][]string
-}
-
-// Register registers zip contents data, later used to initialize
-// the statik file system.
-func Register(data string) {
-	zipData = data
 }
 
 // New creates a new file system with the registered zip contents data.
 // It unzips all files and stores them in an in-memory map.
-func New() (http.FileSystem, error) {
+func New(zipData string) (http.FileSystem, error) {
 	if zipData == "" {
-		return nil, errors.New("statik/fs: no zip data registered")
+		return nil, errors.New("statik/fs: empty zip data")
 	}
 	zipReader, err := zip.NewReader(strings.NewReader(zipData), int64(len(zipData)))
 	if err != nil {
 		return nil, err
 	}
 	files := make(map[string]file, len(zipReader.File))
-	dirs := make(map[string][]string)
-	fs := &statikFS{files: files, dirs: dirs}
+	fs := &statikFS{files: files}
 	for _, zipFile := range zipReader.File {
 		fi := zipFile.FileInfo()
 		f := file{FileInfo: fi, fs: fs}
@@ -73,24 +62,10 @@ func New() (http.FileSystem, error) {
 		files["/"+zipFile.Name] = f
 	}
 	for fn := range files {
-		// go up directories recursively in order to care deep directory
-		for dn := path.Dir(fn); dn != fn; {
-			if _, ok := files[dn]; !ok {
-				files[dn] = file{FileInfo: dirInfo{dn}, fs: fs}
-			} else {
-				break
-			}
-			fn, dn = dn, path.Dir(dn)
-		}
-	}
-	for fn := range files {
 		dn := path.Dir(fn)
-		if fn != dn {
-			fs.dirs[dn] = append(fs.dirs[dn], path.Base(fn))
+		if _, ok := files[dn]; !ok {
+			files[dn] = file{FileInfo: dirInfo{dn}, fs: fs}
 		}
-	}
-	for _, s := range fs.dirs {
-		sort.Strings(s)
 	}
 	return fs, nil
 }
@@ -101,7 +76,7 @@ type dirInfo struct {
 	name string
 }
 
-func (di dirInfo) Name() string       { return path.Base(di.name) }
+func (di dirInfo) Name() string       { return di.name }
 func (di dirInfo) Size() int64        { return 0 }
 func (di dirInfo) Mode() os.FileMode  { return 0755 | os.ModeDir }
 func (di dirInfo) ModTime() time.Time { return time.Time{} }
@@ -143,7 +118,6 @@ type httpFile struct {
 
 	reader *bytes.Reader
 	isDir  bool
-	dirIdx int
 }
 
 // Read reads bytes into p, returns the number of read bytes.
@@ -176,38 +150,12 @@ func (f *httpFile) Readdir(count int) ([]os.FileInfo, error) {
 	if !f.isDir {
 		return fis, nil
 	}
-	di, ok := f.FileInfo.(dirInfo)
-	if !ok {
-		return nil, fmt.Errorf("failed to read directory: %q", f.Name())
+	prefix := f.Name()
+	for fn, f := range f.file.fs.files {
+		if strings.HasPrefix(fn, prefix) && len(fn) > len(prefix) {
+			fis = append(fis, f.FileInfo)
+		}
 	}
-
-	// If count is positive, the specified number of files will be returned,
-	// and if negative, all remaining files will be returned.
-	// The reading position of which file is returned is held in dirIndex.
-	fnames := f.file.fs.dirs[di.name]
-	flen := len(fnames)
-
-	// If dirIdx reaches the end and the count is a positive value,
-	// an io.EOF error is returned.
-	// In other cases, no error will be returned even if, for example,
-	// you specified more counts than the number of remaining files.
-	start := f.dirIdx
-	if start >= flen && count > 0 {
-		return fis, io.EOF
-	}
-	var end int
-	if count < 0 {
-		end = flen
-	} else {
-		end = start + count
-	}
-	if end > flen {
-		end = flen
-	}
-	for i := start; i < end; i++ {
-		fis = append(fis, f.file.fs.files[path.Join(di.name, fnames[i])].FileInfo)
-	}
-	f.dirIdx += len(fis)
 	return fis, nil
 }
 
