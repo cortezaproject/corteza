@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -81,5 +82,14 @@ func Init(ctx context.Context) {
 	err := rootCmd.Execute()
 	if err != nil {
 		fmt.Println(err)
+	}
+}
+
+func exit(cmd *cobra.Command, err error) {
+	if err != nil {
+		cmd.Printf("Error: %v\n", err)
+		os.Exit(1)
+	} else {
+		os.Exit(0)
 	}
 }
