@@ -16,6 +16,7 @@ import (
 )
 
 func TestPermissions(t *testing.T) {
+	var err error
 	ctx := context.WithValue(context.Background(), "testing", true)
 	{
 		user := &systemTypes.User{ID: 1337}

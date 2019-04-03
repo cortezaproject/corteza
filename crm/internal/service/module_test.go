@@ -19,7 +19,6 @@ func TestModule(t *testing.T) {
 		ID:       1337,
 		Name:     "John Crm Doe",
 		Username: "johndoe",
-		SatosaID: "12345",
 	}
 
 	// Set Identity (required for permission checks).
