@@ -14,8 +14,9 @@ import (
 func Init(ctx context.Context) {
 	// Main command.
 	rootCmd := &cobra.Command{Use: "system-cli"}
+	db := repository.DB(ctx)
 
-	settingsService := settings.NewService(settings.NewRepository(repository.DB(ctx), "sys_settings"))
+	settingsService := settings.NewService(settings.NewRepository(db, "sys_settings"))
 
 	Settings(rootCmd, settingsService)
 
@@ -40,44 +41,7 @@ func Init(ctx context.Context) {
 	}
 	cmdUsers.AddCommand(cmdUsersList)
 
-	// Assign role to user.
-	var cmdUserAssignRole = &cobra.Command{
-		Use:   "roleadd [userID] [roleID]",
-		Short: "Assign role to user",
-		Args:  cobra.ExactArgs(2),
-		Run: func(cmd *cobra.Command, args []string) {
-			RoleAssignUser(args[1], args[0])
-		},
-	}
-	cmdUsers.AddCommand(cmdUserAssignRole)
-
-	// Role management commands.
-	var cmdRole = &cobra.Command{
-		Use:   "roles",
-		Short: "Role management",
-	}
-	rootCmd.AddCommand(cmdRole)
-
-	// Reset roles.
-	var cmdRolesReset = &cobra.Command{
-		Use:   "reset",
-		Short: "Reset roles",
-		Run: func(cmd *cobra.Command, args []string) {
-			RolesReset()
-		},
-	}
-	cmdRole.AddCommand(cmdRolesReset)
-
-	// Add user to role.
-	var cmdRoleAddUser = &cobra.Command{
-		Use:   "useradd [roleID] [userID]",
-		Short: "Add user to role",
-		Args:  cobra.ExactArgs(2),
-		Run: func(cmd *cobra.Command, args []string) {
-			RoleAssignUser(args[0], args[1])
-		},
-	}
-	cmdRole.AddCommand(cmdRoleAddUser)
+	roles(ctx, rootCmd, db)
 
 	err := rootCmd.Execute()
 	if err != nil {
