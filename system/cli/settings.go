@@ -1,13 +1,15 @@
 package cli
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 
 	"github.com/crusttech/crust/internal/settings"
 )
 
-func Settings(rootCmd *cobra.Command, service settings.Service) {
-	settingsCmd := &cobra.Command{
+func settingsCmd(ctx context.Context, service settings.Service) *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "settings",
 		Short: "Settings management",
 	}
@@ -71,7 +73,7 @@ func Settings(rootCmd *cobra.Command, service settings.Service) {
 		},
 	}
 
-	settingsCmd.AddCommand(list, get, set, del)
+	cmd.AddCommand(list, get, set, del)
 
-	rootCmd.AddCommand(settingsCmd)
+	return cmd
 }

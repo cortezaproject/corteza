@@ -9,26 +9,24 @@ import (
 
 	"github.com/crusttech/crust/internal/settings"
 	"github.com/crusttech/crust/system/internal/repository"
-	"github.com/crusttech/crust/system/internal/service"
 )
 
 func Init(ctx context.Context) {
-	// Main command.
-	rootCmd := &cobra.Command{Use: "system-cli"}
-	db := repository.DB(ctx)
+	var (
+		db              = repository.DB(ctx)
+		settingsService = settings.NewService(settings.NewRepository(db, "sys_settings"))
 
-	settingsService := settings.NewService(settings.NewRepository(db, "sys_settings"))
+		cmd = &cobra.Command{Use: "system-cli"}
+	)
 
-	Settings(rootCmd, settingsService)
+	cmd.AddCommand(
+		settingsCmd(ctx, settingsService),
+		externalAuthCmd(ctx, settingsService),
+		usersCmd(ctx, db),
+		rolesCmd(ctx, db),
+	)
 
-	ExternalAuth(ctx, rootCmd, settingsService)
-
-	users(ctx, rootCmd, service.DefaultUser)
-
-	roles(ctx, rootCmd, db)
-
-	err := rootCmd.Execute()
-	if err != nil {
+	if err := cmd.Execute(); err != nil {
 		fmt.Println(err)
 	}
 }
