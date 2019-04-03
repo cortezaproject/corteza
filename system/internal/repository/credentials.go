@@ -100,7 +100,7 @@ func (r *credentials) Create(c *types.Credentials) (*types.Credentials, error) {
 func (r *credentials) Update(c *types.Credentials) (*types.Credentials, error) {
 	updatedAt := time.Now()
 	c.UpdatedAt = &updatedAt
-	return c, r.db().Update(r.tblname, c)
+	return c, r.db().Replace(r.tblname, c)
 }
 
 func (r *credentials) DeleteByID(id uint64) error {

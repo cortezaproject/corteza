@@ -112,6 +112,19 @@ func (svc *auth) External(profile goth.User) (u *types.User, err error) {
 						c.ID)
 				} else if u.Valid() {
 					// Valid user, matching emails. Bingo!
+					c.LastUsedAt = svc.now()
+					if c, err = svc.credentials.Update(c); err != nil {
+						return err
+					}
+
+					log.Printf(
+						"updating credential entry (%v, %v) for exisintg user (%v, %v)",
+						c.ID,
+						profile.Provider,
+						u.ID,
+						u.Email,
+					)
+
 					return nil
 				} else {
 					// Scenario: linked to an invalid user
@@ -161,49 +174,29 @@ func (svc *auth) External(profile goth.User) (u *types.User, err error) {
 			)
 		}
 
-		if c == nil {
-			c = &types.Credentials{
-				Kind:        profile.Provider,
-				OwnerID:     u.ID,
-				Credentials: profile.UserID,
-				LastUsedAt:  svc.now(),
-			}
-
-			if !profile.ExpiresAt.IsZero() {
-				// Copy expiration date when provided
-				c.ExpiresAt = &profile.ExpiresAt
-			}
-
-			if c, err = svc.credentials.Create(c); err != nil {
-				return err
-			}
-
-			log.Printf(
-				"creating new credential entry (%v, %v) for exisintg user (%v, %v)",
-				c.ID,
-				profile.Provider,
-				u.ID,
-				u.Email,
-			)
-		} else {
-			if !profile.ExpiresAt.IsZero() {
-				// Copy expiration date when provided
-				c.ExpiresAt = &profile.ExpiresAt
-			}
-
-			c.LastUsedAt = svc.now()
-			if c, err = svc.credentials.Update(c); err != nil {
-				return err
-			}
-
-			log.Printf(
-				"updating credential entry (%v, %v) for exisintg user (%v, %v)",
-				c.ID,
-				profile.Provider,
-				u.ID,
-				u.Email,
-			)
+		c = &types.Credentials{
+			Kind:        profile.Provider,
+			OwnerID:     u.ID,
+			Credentials: profile.UserID,
+			LastUsedAt:  svc.now(),
 		}
+
+		if !profile.ExpiresAt.IsZero() {
+			// Copy expiration date when provided
+			c.ExpiresAt = &profile.ExpiresAt
+		}
+
+		if c, err = svc.credentials.Create(c); err != nil {
+			return err
+		}
+
+		log.Printf(
+			"creating new credential entry (%v, %v) for exisintg user (%v, %v)",
+			c.ID,
+			profile.Provider,
+			u.ID,
+			u.Email,
+		)
 
 		// Owner loaded, carry on.
 		return nil
