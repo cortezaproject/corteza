@@ -34,13 +34,13 @@ help:
 
 docker: $(IMAGES:%=docker-image.%)
 
-docker-image.%: %
-	@ docker build --no-cache --rm -f Dockerfile.$^ -t crusttech/api-$^:latest .
+docker-image.%: Dockerfile.%
+	@ docker build --no-cache --rm -f Dockerfile.$* -t crusttech/$*:latest .
 
 docker-push: $(IMAGES:%=docker-push.%)
 
-docker-push.%: %
-	@ docker push crusttech/api-$^:latest
+docker-push.%: Dockerfile.%
+	@ docker push crusttech/$*:latest
 
 
 ########################################################################################################################
@@ -50,7 +50,7 @@ realize: $(REALIZE)
 	$(REALIZE) start
 
 dep.codegen:
-	go install github.com/titpetric/statik
+	go install github.com/goware/statik
 
 dep.update: $(DEP)
 	$(DEP) ensure -update -v
