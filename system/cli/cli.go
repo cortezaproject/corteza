@@ -9,6 +9,7 @@ import (
 
 	"github.com/crusttech/crust/internal/settings"
 	"github.com/crusttech/crust/system/internal/repository"
+	"github.com/crusttech/crust/system/internal/service"
 )
 
 func Init(ctx context.Context) {
@@ -22,24 +23,7 @@ func Init(ctx context.Context) {
 
 	ExternalAuth(ctx, rootCmd, settingsService)
 
-	// @todo move cmd setup lines below to similar structure as Settings()
-
-	// User management commands.
-	var cmdUsers = &cobra.Command{
-		Use:   "users",
-		Short: "User management",
-	}
-	rootCmd.AddCommand(cmdUsers)
-
-	// List users.
-	var cmdUsersList = &cobra.Command{
-		Use:   "list",
-		Short: "List users",
-		Run: func(cmd *cobra.Command, args []string) {
-			UsersList()
-		},
-	}
-	cmdUsers.AddCommand(cmdUsersList)
+	users(ctx, rootCmd, service.DefaultUser)
 
 	roles(ctx, rootCmd, db)
 
