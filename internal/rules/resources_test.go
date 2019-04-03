@@ -1,3 +1,5 @@
+// +build integration
+
 package rules_test
 
 import (
@@ -43,6 +45,12 @@ func TestRules(t *testing.T) {
 		{
 			err := resources.Delete(role.ID)
 			NoError(t, err, "expected no error, got %+v", err)
+		}
+
+		// check that testing context allows anything
+		{
+			ctxAdmin := context.WithValue(ctx, "testing", true)
+			Expect(rules.Allow, resources.With(ctxAdmin, db).Check("crm", "anything"), "testing context should allow anything")
 		}
 
 		// default (unset=deny), forbidden check ...:*
