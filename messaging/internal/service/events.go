@@ -27,14 +27,14 @@ type (
 )
 
 // Event sends sends events back to all (or specific) subscribers
-func Event() EventService {
-	return (&event{events: repository.Events()}).With(context.Background())
+func Event(ctx context.Context) EventService {
+	return (&event{}).With(ctx)
 }
 
 func (svc *event) With(ctx context.Context) EventService {
 	return &event{
 		ctx:    ctx,
-		events: svc.events,
+		events: repository.Events(),
 	}
 }
 
