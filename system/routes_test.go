@@ -140,10 +140,6 @@ func disabledTestUsers(t *testing.T) {
 		Username: "johndoe",
 	}
 	{
-		err := user.GeneratePassword("johndoe123")
-		test.Assert(t, err == nil, "Error generating password: %+v", err)
-	}
-	{
 		userAPI := systemRepository.User(context.Background(), nil)
 		_, err := userAPI.Create(user)
 		test.Assert(t, err == nil, "Error when inserting user: %+v", err)

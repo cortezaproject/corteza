@@ -31,8 +31,6 @@ func TestUser(t *testing.T) {
 				Avatar: "123",
 			},
 		}
-		user.GeneratePassword("johndoe")
-
 		{
 			uu, err := userRepo.Create(user)
 			test.Assert(t, err == nil, "Owner.Create error: %+v", err)

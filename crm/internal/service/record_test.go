@@ -24,11 +24,6 @@ func TestRecord(t *testing.T) {
 	ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(user.Identity()))
 
 	{
-		err := user.GeneratePassword("Mary had a little lamb, little lamb, little lamb")
-		test.Assert(t, err == nil, "Error generating password: %+v", err)
-	}
-
-	{
 		userSvc := systemService.TestUser(t, ctx)
 		_, err := userSvc.Create(user)
 		test.NoError(t, err, "expected no error creating user, got %v", err)
