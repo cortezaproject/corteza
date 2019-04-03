@@ -17,9 +17,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
+
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/system/rest/request"
@@ -86,12 +87,10 @@ func NewApplication(ah ApplicationAPI) *Application {
 func (ah *Application) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("/application", func(r chi.Router) {
-			r.Get("/", ah.List)
-			r.Post("/", ah.Create)
-			r.Put("/{applicationID}", ah.Update)
-			r.Get("/{applicationID}", ah.Read)
-			r.Delete("/{applicationID}", ah.Delete)
-		})
+		r.Get("/application/", ah.List)
+		r.Post("/application/", ah.Create)
+		r.Put("/application/{applicationID}", ah.Update)
+		r.Get("/application/{applicationID}", ah.Read)
+		r.Delete("/application/{applicationID}", ah.Delete)
 	})
 }

@@ -17,9 +17,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
+
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/system/rest/request"
@@ -104,14 +105,12 @@ func NewUser(uh UserAPI) *User {
 func (uh *User) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("/users", func(r chi.Router) {
-			r.Get("/", uh.List)
-			r.Post("/", uh.Create)
-			r.Put("/{userID}", uh.Update)
-			r.Get("/{userID}", uh.Read)
-			r.Delete("/{userID}", uh.Delete)
-			r.Post("/{userID}/suspend", uh.Suspend)
-			r.Post("/{userID}/unsuspend", uh.Unsuspend)
-		})
+		r.Get("/users/", uh.List)
+		r.Post("/users/", uh.Create)
+		r.Put("/users/{userID}", uh.Update)
+		r.Get("/users/{userID}", uh.Read)
+		r.Delete("/users/{userID}", uh.Delete)
+		r.Post("/users/{userID}/suspend", uh.Suspend)
+		r.Post("/users/{userID}/unsuspend", uh.Unsuspend)
 	})
 }

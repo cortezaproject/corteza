@@ -1,5 +1,10 @@
 # Attachments
 
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/attachment/{attachmentID}/original/{name}` | Serves attached file |
+| `GET` | `/attachment/{attachmentID}/preview.{ext}` | Serves preview of an attached file |
+
 ## Serves attached file
 
 #### Method
@@ -31,12 +36,29 @@
 | ext | string | PATH | Preview extension/format | N/A | YES |
 | attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
 
+---
+
 
 
 
 # Channels
 
 A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or group.
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/channels/` | List channels |
+| `POST` | `/channels/` | Create new channel |
+| `PUT` | `/channels/{channelID}` | Update channel details |
+| `PUT` | `/channels/{channelID}/state` | Update channel state |
+| `PUT` | `/channels/{channelID}/flag` | Update channel membership flag |
+| `DELETE` | `/channels/{channelID}/flag` | Remove channel membership flag |
+| `GET` | `/channels/{channelID}` | Read channel details |
+| `GET` | `/channels/{channelID}/members` | List channel members |
+| `PUT` | `/channels/{channelID}/members/{userID}` | Join channel |
+| `DELETE` | `/channels/{channelID}/members/{userID}` | Remove member from channel |
+| `POST` | `/channels/{channelID}/invite` | Join channel |
+| `POST` | `/channels/{channelID}/attach` | Attach file to channel |
 
 ## List channels
 
@@ -220,6 +242,8 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | replyTo | uint64 | POST | Upload as a reply | N/A | NO |
 | upload | *multipart.FileHeader | POST | File to upload | N/A | YES |
 
+---
+
 
 
 
@@ -244,6 +268,22 @@ The following event types may be sent with a message event:
 | CREATED | A message has been created on a channel |
 | EDITED | A message has been edited by the sender |
 | REMOVED | A message has been removed by the sender |
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `POST` | `/channels/{channelID}/messages/` | Post new message to the channel |
+| `GET` | `/channels/{channelID}/messages/` | All messages (channel history) |
+| `GET` | `/channels/{channelID}/messages/mark-as-read` | Manages read/unread messages in a channel or a thread |
+| `PUT` | `/channels/{channelID}/messages/{messageID}` | Edit existing message |
+| `DELETE` | `/channels/{channelID}/messages/{messageID}` | Delete existing message |
+| `GET` | `/channels/{channelID}/messages/{messageID}/replies` | Returns all replies to a message |
+| `POST` | `/channels/{channelID}/messages/{messageID}/replies` | Reply to a message |
+| `POST` | `/channels/{channelID}/messages/{messageID}/pin` | Pin message to channel (public bookmark) |
+| `DELETE` | `/channels/{channelID}/messages/{messageID}/pin` | Pin message to channel (public bookmark) |
+| `POST` | `/channels/{channelID}/messages/{messageID}/bookmark` | Bookmark a message (private bookmark) |
+| `DELETE` | `/channels/{channelID}/messages/{messageID}/bookmark` | Remove boomark from message (private bookmark) |
+| `POST` | `/channels/{channelID}/messages/{messageID}/reaction/{reaction}` | React to a message |
+| `DELETE` | `/channels/{channelID}/messages/{messageID}/reaction/{reaction}` | Delete reaction from a message |
 
 ## Post new message to the channel
 
@@ -445,10 +485,16 @@ The following event types may be sent with a message event:
 | reaction | string | PATH | Reaction | N/A | YES |
 | channelID | uint64 | PATH | Channel ID | N/A | YES |
 
+---
+
 
 
 
 # Permissions
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/permissions/effective` | Effective rules for current user |
 
 ## Effective rules for current user
 
@@ -464,10 +510,16 @@ The following event types may be sent with a message event:
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | resource | string | GET | Show only rules for a specific resource | N/A | NO |
 
+---
+
 
 
 
 # Search entry point
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/search/messages` | Search for messages |
 
 ## Search for messages
 
@@ -486,3 +538,5 @@ The following event types may be sent with a message event:
 | firstID | uint64 | GET | Paging; return newer messages only (higher id) | N/A | NO |
 | lastID | uint64 | GET | Paging; return older messages only (lower id) | N/A | NO |
 | query | string | GET | Search query | N/A | NO |
+
+---

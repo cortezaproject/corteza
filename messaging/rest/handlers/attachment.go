@@ -17,9 +17,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
+
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/messaging/rest/request"
@@ -59,9 +60,7 @@ func NewAttachment(ah AttachmentAPI) *Attachment {
 func (ah *Attachment) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("/attachment/{attachmentID}", func(r chi.Router) {
-			r.Get("/original/{name}", ah.Original)
-			r.Get("/preview.{ext}", ah.Preview)
-		})
+		r.Get("/attachment/{attachmentID}/original/{name}", ah.Original)
+		r.Get("/attachment/{attachmentID}/preview.{ext}", ah.Preview)
 	})
 }

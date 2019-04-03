@@ -17,9 +17,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
+
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/crm/rest/request"
@@ -104,14 +105,12 @@ func NewRecord(rh RecordAPI) *Record {
 func (rh *Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("/module/{moduleID}/record", func(r chi.Router) {
-			r.Get("/report", rh.Report)
-			r.Get("/", rh.List)
-			r.Post("/", rh.Create)
-			r.Get("/{recordID}", rh.Read)
-			r.Post("/{recordID}", rh.Update)
-			r.Delete("/{recordID}", rh.Delete)
-			r.Post("/{recordID}/{fieldName}/attachment", rh.Upload)
-		})
+		r.Get("/module/{moduleID}/record/report", rh.Report)
+		r.Get("/module/{moduleID}/record/", rh.List)
+		r.Post("/module/{moduleID}/record/", rh.Create)
+		r.Get("/module/{moduleID}/record/{recordID}", rh.Read)
+		r.Post("/module/{moduleID}/record/{recordID}", rh.Update)
+		r.Delete("/module/{moduleID}/record/{recordID}", rh.Delete)
+		r.Post("/module/{moduleID}/record/{recordID}/{fieldName}/attachment", rh.Upload)
 	})
 }

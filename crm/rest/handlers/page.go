@@ -17,9 +17,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
+
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/crm/rest/request"
@@ -113,15 +114,13 @@ func NewPage(ph PageAPI) *Page {
 func (ph *Page) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("/page", func(r chi.Router) {
-			r.Get("/", ph.List)
-			r.Post("/", ph.Create)
-			r.Get("/{pageID}", ph.Read)
-			r.Get("/tree", ph.Tree)
-			r.Post("/{pageID}", ph.Update)
-			r.Post("/{selfID}/reorder", ph.Reorder)
-			r.Delete("/{pageID}", ph.Delete)
-			r.Post("/{pageID}/attachment", ph.Upload)
-		})
+		r.Get("/page/", ph.List)
+		r.Post("/page/", ph.Create)
+		r.Get("/page/{pageID}", ph.Read)
+		r.Get("/page/tree", ph.Tree)
+		r.Post("/page/{pageID}", ph.Update)
+		r.Post("/page/{selfID}/reorder", ph.Reorder)
+		r.Delete("/page/{pageID}", ph.Delete)
+		r.Post("/page/{pageID}/attachment", ph.Upload)
 	})
 }

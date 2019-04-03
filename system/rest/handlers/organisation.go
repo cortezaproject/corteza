@@ -17,9 +17,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
+
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/system/rest/request"
@@ -95,13 +96,11 @@ func NewOrganisation(oh OrganisationAPI) *Organisation {
 func (oh *Organisation) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("/organisations", func(r chi.Router) {
-			r.Get("/", oh.List)
-			r.Post("/", oh.Create)
-			r.Put("/{id}", oh.Update)
-			r.Delete("/{id}", oh.Delete)
-			r.Get("/{id}", oh.Read)
-			r.Post("/{id}/archive", oh.Archive)
-		})
+		r.Get("/organisations/", oh.List)
+		r.Post("/organisations/", oh.Create)
+		r.Put("/organisations/{id}", oh.Update)
+		r.Delete("/organisations/{id}", oh.Delete)
+		r.Get("/organisations/{id}", oh.Read)
+		r.Post("/organisations/{id}/archive", oh.Archive)
 	})
 }

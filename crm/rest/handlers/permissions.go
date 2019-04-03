@@ -17,9 +17,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
+
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/crm/rest/request"
@@ -50,8 +51,6 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 func (ph *Permissions) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("/permissions", func(r chi.Router) {
-			r.Get("/effective", ph.Effective)
-		})
+		r.Get("/permissions/effective", ph.Effective)
 	})
 }

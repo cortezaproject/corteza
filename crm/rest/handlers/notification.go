@@ -17,9 +17,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
+
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/crm/rest/request"
@@ -50,8 +51,6 @@ func NewNotification(nh NotificationAPI) *Notification {
 func (nh *Notification) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("/notification", func(r chi.Router) {
-			r.Post("/email", nh.EmailSend)
-		})
+		r.Post("/notification/email", nh.EmailSend)
 	})
 }

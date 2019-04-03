@@ -17,9 +17,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
+
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/crm/rest/request"
@@ -86,12 +87,10 @@ func NewChart(ch ChartAPI) *Chart {
 func (ch *Chart) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("/chart", func(r chi.Router) {
-			r.Get("/", ch.List)
-			r.Post("/", ch.Create)
-			r.Get("/{chartID}", ch.Read)
-			r.Post("/{chartID}", ch.Update)
-			r.Delete("/{chartID}", ch.Delete)
-		})
+		r.Get("/chart/", ch.List)
+		r.Post("/chart/", ch.Create)
+		r.Get("/chart/{chartID}", ch.Read)
+		r.Post("/chart/{chartID}", ch.Update)
+		r.Delete("/chart/{chartID}", ch.Delete)
 	})
 }

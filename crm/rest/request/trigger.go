@@ -16,11 +16,12 @@ package request
 */
 
 import (
-	"encoding/json"
 	"io"
+	"strings"
+
+	"encoding/json"
 	"mime/multipart"
 	"net/http"
-	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"

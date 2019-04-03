@@ -17,9 +17,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
+
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/system/rest/request"
@@ -140,18 +141,16 @@ func NewRole(rh RoleAPI) *Role {
 func (rh *Role) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Route("/roles", func(r chi.Router) {
-			r.Get("/", rh.List)
-			r.Post("/", rh.Create)
-			r.Put("/{roleID}", rh.Update)
-			r.Get("/{roleID}", rh.Read)
-			r.Delete("/{roleID}", rh.Delete)
-			r.Post("/{roleID}/archive", rh.Archive)
-			r.Post("/{roleID}/move", rh.Move)
-			r.Post("/{roleID}/merge", rh.Merge)
-			r.Get("/{roleID}/members", rh.MemberList)
-			r.Post("/{roleID}/member/{userID}", rh.MemberAdd)
-			r.Delete("/{roleID}/member/{userID}", rh.MemberRemove)
-		})
+		r.Get("/roles/", rh.List)
+		r.Post("/roles/", rh.Create)
+		r.Put("/roles/{roleID}", rh.Update)
+		r.Get("/roles/{roleID}", rh.Read)
+		r.Delete("/roles/{roleID}", rh.Delete)
+		r.Post("/roles/{roleID}/archive", rh.Archive)
+		r.Post("/roles/{roleID}/move", rh.Move)
+		r.Post("/roles/{roleID}/merge", rh.Merge)
+		r.Get("/roles/{roleID}/members", rh.MemberList)
+		r.Post("/roles/{roleID}/member/{userID}", rh.MemberAdd)
+		r.Delete("/roles/{roleID}/member/{userID}", rh.MemberRemove)
 	})
 }
