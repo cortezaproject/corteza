@@ -1,5 +1,3 @@
-// +-build unit
-
 package service
 
 import (
@@ -112,7 +110,7 @@ func TestAuth_External_NonExisting(t *testing.T) {
 	}
 }
 
-func Test_auth_validateCredentials(t *testing.T) {
+func Test_auth_validateLocalSignIn(t *testing.T) {
 	type args struct {
 		email    string
 		password []byte
@@ -130,8 +128,8 @@ func Test_auth_validateCredentials(t *testing.T) {
 	svc := auth{}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := svc.validateCredentials(tt.args.email, tt.args.password); (err != nil) != tt.wantErr {
-				t.Errorf("auth.validateCredentials() error = %v, wantErr %v", err, tt.wantErr)
+			if err := svc.validateLocalSignIn(tt.args.email, tt.args.password); (err != nil) != tt.wantErr {
+				t.Errorf("auth.validateLocalSignIn() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
