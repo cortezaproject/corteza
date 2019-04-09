@@ -20,7 +20,9 @@ func main() {
 	ctx := context.AsContext(sigctx.New())
 
 	flags("system", system.Flags, auth.Flags)
+	if err := system.Init(ctx); err != nil {
+		log.Fatalf("Error initializing system: %+v", err)
+	}
 
-	system.Init(ctx)
-	cli.Init(ctx)
+	cli.Run(ctx)
 }
