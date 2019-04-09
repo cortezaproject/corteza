@@ -19,6 +19,11 @@ type (
 		User *types.User `json:"user"`
 	}
 
+	authPasswordResetTokenExchangeResponse struct {
+		Token string      `json:"token"`
+		User  *types.User `json:"user"`
+	}
+
 	AuthInternal struct {
 		tokenEncoder auth.TokenEncoder
 		authSvc      service.AuthService
@@ -69,6 +74,18 @@ func (ctrl *AuthInternal) Signup(ctx context.Context, r *request.AuthInternalSig
 
 func (ctrl *AuthInternal) RequestPasswordReset(ctx context.Context, r *request.AuthInternalRequestPasswordReset) (interface{}, error) {
 	return true, ctrl.authSvc.SendPasswordResetToken(r.Email)
+}
+
+func (ctrl *AuthInternal) ExchangePasswordResetToken(ctx context.Context, r *request.AuthInternalExchangePasswordResetToken) (interface{}, error) {
+	u, token, err := ctrl.authSvc.ExchangePasswordResetToken(r.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	return authPasswordResetTokenExchangeResponse{
+		Token: token,
+		User:  u,
+	}, nil
 }
 
 func (ctrl *AuthInternal) ResetPassword(ctx context.Context, r *request.AuthInternalResetPassword) (interface{}, error) {

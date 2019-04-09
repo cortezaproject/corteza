@@ -31,6 +31,7 @@ type AuthInternalAPI interface {
 	Login(context.Context, *request.AuthInternalLogin) (interface{}, error)
 	Signup(context.Context, *request.AuthInternalSignup) (interface{}, error)
 	RequestPasswordReset(context.Context, *request.AuthInternalRequestPasswordReset) (interface{}, error)
+	ExchangePasswordResetToken(context.Context, *request.AuthInternalExchangePasswordResetToken) (interface{}, error)
 	ResetPassword(context.Context, *request.AuthInternalResetPassword) (interface{}, error)
 	ConfirmEmail(context.Context, *request.AuthInternalConfirmEmail) (interface{}, error)
 	ChangePassword(context.Context, *request.AuthInternalChangePassword) (interface{}, error)
@@ -38,12 +39,13 @@ type AuthInternalAPI interface {
 
 // HTTP API interface
 type AuthInternal struct {
-	Login                func(http.ResponseWriter, *http.Request)
-	Signup               func(http.ResponseWriter, *http.Request)
-	RequestPasswordReset func(http.ResponseWriter, *http.Request)
-	ResetPassword        func(http.ResponseWriter, *http.Request)
-	ConfirmEmail         func(http.ResponseWriter, *http.Request)
-	ChangePassword       func(http.ResponseWriter, *http.Request)
+	Login                      func(http.ResponseWriter, *http.Request)
+	Signup                     func(http.ResponseWriter, *http.Request)
+	RequestPasswordReset       func(http.ResponseWriter, *http.Request)
+	ExchangePasswordResetToken func(http.ResponseWriter, *http.Request)
+	ResetPassword              func(http.ResponseWriter, *http.Request)
+	ConfirmEmail               func(http.ResponseWriter, *http.Request)
+	ChangePassword             func(http.ResponseWriter, *http.Request)
 }
 
 func NewAuthInternal(ah AuthInternalAPI) *AuthInternal {
@@ -67,6 +69,13 @@ func NewAuthInternal(ah AuthInternalAPI) *AuthInternal {
 			params := request.NewAuthInternalRequestPasswordReset()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return ah.RequestPasswordReset(r.Context(), params)
+			})
+		},
+		ExchangePasswordResetToken: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewAuthInternalExchangePasswordResetToken()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return ah.ExchangePasswordResetToken(r.Context(), params)
 			})
 		},
 		ResetPassword: func(w http.ResponseWriter, r *http.Request) {
@@ -99,6 +108,7 @@ func (ah *AuthInternal) MountRoutes(r chi.Router, middlewares ...func(http.Handl
 		r.Post("/auth/internal/login", ah.Login)
 		r.Post("/auth/internal/signup", ah.Signup)
 		r.Post("/auth/internal/request-password-reset", ah.RequestPasswordReset)
+		r.Post("/auth/internal/exchange-password-reset-token", ah.ExchangePasswordResetToken)
 		r.Post("/auth/internal/reset-password", ah.ResetPassword)
 		r.Post("/auth/internal/confirm-email", ah.ConfirmEmail)
 		r.Post("/auth/internal/change-password", ah.ChangePassword)

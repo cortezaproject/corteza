@@ -133,8 +133,9 @@
 | ------ | -------- | ------- |
 | `POST` | `/auth/internal/login` | Login user |
 | `POST` | `/auth/internal/signup` | User signup/registration |
-| `POST` | `/auth/internal/request-password-reset` | Request password reset token |
-| `POST` | `/auth/internal/reset-password` | Reset password with token |
+| `POST` | `/auth/internal/request-password-reset` | Request password reset token (via email) |
+| `POST` | `/auth/internal/exchange-password-reset-token` | Exchange password reset token for new token and user info |
+| `POST` | `/auth/internal/reset-password` | Reset password with exchanged password reset token |
 | `POST` | `/auth/internal/confirm-email` | Confirm email with token |
 | `POST` | `/auth/internal/change-password` | Changes password for current user, requires current password |
 
@@ -171,7 +172,7 @@
 | handle | string | POST | User handle | N/A | NO |
 | name | string | POST | Display name | N/A | NO |
 
-## Request password reset token
+## Request password reset token (via email)
 
 #### Method
 
@@ -185,7 +186,21 @@
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | email | string | POST | Email | N/A | YES |
 
-## Reset password with token
+## Exchange password reset token for new token and user info
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/auth/internal/exchange-password-reset-token` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| token | string | POST | Token | N/A | YES |
+
+## Reset password with exchanged password reset token
 
 #### Method
 

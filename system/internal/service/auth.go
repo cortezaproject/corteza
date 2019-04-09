@@ -42,6 +42,7 @@ type (
 		ChangePassword(userID uint64, oldPassword, newPassword string) error
 
 		ValidateEmailConfirmationToken(token string) (user *types.User, err error)
+		ExchangePasswordResetToken(token string) (user *types.User, exchangedToken string, err error)
 		ValidatePasswordResetToken(token string) (user *types.User, err error)
 		SendEmailAddressConfirmationToken(email string) (err error)
 		SendPasswordResetToken(email string) (err error)
@@ -49,9 +50,10 @@ type (
 )
 
 const (
-	credentialsTypePassword           = "password"
-	credentialsTypeEmailAuthToken     = "email-authentication-token"
-	credentialsTypeResetPasswordToken = "password-reset-token"
+	credentialsTypePassword                    = "password"
+	credentialsTypeEmailAuthToken              = "email-authentication-token"
+	credentialsTypeResetPasswordToken          = "password-reset-token"
+	credentialsTypeResetPasswordTokenExchanged = "password-reset-token-exchanged"
 
 	credentialsTokenLength = 32
 )
@@ -560,7 +562,35 @@ func (svc auth) ValidatePasswordResetToken(token string) (user *types.User, err 
 		return nil, errors.New("password reset disabled")
 	}
 
-	return svc.loadUserFromToken(token, credentialsTypeResetPasswordToken)
+	return svc.loadUserFromToken(token, credentialsTypeResetPasswordTokenExchanged)
+}
+
+// ExchangePasswordResetToken exchanges reset password token for a new one and returns it with user info
+func (svc auth) ExchangePasswordResetToken(token string) (user *types.User, exchangedToken string, err error) {
+	if !svc.settings.internalEnabled {
+		err = errors.New("internal authentication disabled")
+		return
+	}
+
+	if !svc.settings.internalPasswordResetEnabled {
+		err = errors.New("password reset disabled")
+		return
+	}
+
+	user, err = svc.loadUserFromToken(token, credentialsTypeResetPasswordToken)
+	if err != nil {
+		user = nil
+		return
+	}
+
+	exchangedToken, err = svc.createUserToken(user, credentialsTypeResetPasswordTokenExchanged)
+	if err != nil {
+		user = nil
+		exchangedToken = ""
+		return
+	}
+
+	return
 }
 
 func (svc auth) SendEmailAddressConfirmationToken(email string) error {

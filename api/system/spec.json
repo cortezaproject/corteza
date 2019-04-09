@@ -93,7 +93,7 @@
       {
         "name": "requestPasswordReset",
         "method": "POST",
-        "title": "Request password reset token",
+        "title": "Request password reset token (via email)",
         "path": "/request-password-reset",
         "parameters": {
           "post": [
@@ -107,9 +107,25 @@
         }
       },
       {
+        "name": "exchangePasswordResetToken",
+        "method": "POST",
+        "title": "Exchange password reset token for new token and user info",
+        "path": "/exchange-password-reset-token",
+        "parameters": {
+          "post": [
+            {
+              "name": "token",
+              "type": "string",
+              "required": true,
+              "title": "Token"
+            }
+          ]
+        }
+      },
+      {
         "name": "resetPassword",
         "method": "POST",
-        "title": "Reset password with token",
+        "title": "Reset password with exchanged password reset token",
         "path": "/reset-password",
         "parameters": {
           "post": [
