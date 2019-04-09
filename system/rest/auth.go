@@ -36,10 +36,6 @@ func (ctrl *Auth) Check(ctx context.Context, r *request.AuthCheck) (interface{},
 	return nil, errors.New("Not implemented: Auth.check")
 }
 
-func (ctrl *Auth) Login(ctx context.Context, r *request.AuthLogin) (interface{}, error) {
-	return nil, errors.New("Not implemented: Auth.login")
-}
-
 func (ctrl *Auth) Logout(ctx context.Context, r *request.AuthLogout) (interface{}, error) {
 	return nil, errors.New("Not implemented: Auth.logout")
 }
@@ -77,41 +73,6 @@ func (ctrl *Auth) Handlers(jwtEncoder auth.TokenEncoder) *handlers.Auth {
 	h.Logout = func(w http.ResponseWriter, r *http.Request) {
 		jwtEncoder.SetCookie(w, r, nil)
 	}
-	h.Login = func(w http.ResponseWriter, r *http.Request) {
-		params := request.NewAuthLogin()
-		// ctx := r.Context()
 
-		// parse request to fill parameters
-		err := params.Fill(r)
-		if err != nil {
-			resputil.JSON(w, err)
-			return
-		}
-
-		// userSvc := service.User(ctx)
-
-		// check email and username for login
-		// @todo disabled until we migrate to local users through credentials
-		// user, err := userSvc.FindByEmail(params.Username)
-		// if err != nil {
-		// 	user, err = userSvc.FindByUsername(params.Username)
-		// }
-		//
-		// // can't find user
-		// if err != nil {
-		// 	resputil.JSON(w, err)
-		// 	return
-		// }
-
-		// validate password
-		// @todo disabled until we migrate to local users through credentials
-		// if user.ValidatePassword(params.Password) {
-		// 	jwtEncoder.SetCookie(w, r, user)
-		// 	resputil.JSON(w, user, err)
-		// 	return
-		// }
-
-		resputil.JSON(w, errors.New("Password doesn't match"))
-	}
 	return h
 }
