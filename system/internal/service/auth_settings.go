@@ -47,8 +47,8 @@ func AuthSettings(kv authSettingsStore) authSettings {
 		externalEnabled: kv.Bool("auth.external.enabled"),
 		internalEnabled: kv.Bool("auth.internal.enabled"),
 
-		internalSignUpEnabled:                   kv.Bool("auth.internal.sign-up.enabled"),
-		internalSignUpEmailConfirmationRequired: kv.Bool("auth.internal.sign-up-email-confirmation-required.enabled"),
+		internalSignUpEnabled:                   kv.Bool("auth.internal.signup.enabled"),
+		internalSignUpEmailConfirmationRequired: kv.Bool("auth.internal.signup-email-confirmation-required"),
 
 		internalPasswordResetEnabled: kv.Bool("auth.internal.password-reset.enabled"),
 	}

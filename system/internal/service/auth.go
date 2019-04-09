@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/markbates/goth"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
@@ -239,7 +238,7 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 	}
 
 	if !svc.settings.internalSignUpEnabled {
-		return nil, errors.New("internal sign-up disabled")
+		return nil, errors.New("internal signup disabled")
 	}
 
 	if input == nil {
@@ -265,8 +264,8 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 					return err
 				}
 
-				if !u.EmailConfirmed {
-					err = svc.sendEmailAddressConfirmationToken(u)
+				if !existing.EmailConfirmed {
+					err = svc.sendEmailAddressConfirmationToken(existing)
 					if err != nil {
 						return err
 					}
@@ -295,7 +294,8 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 			return errors.New("could not check existing emails")
 		}
 
-		new := &types.User{
+		// Whitelisted user data to copy
+		u, err = svc.users.Create(&types.User{
 			Email:    input.Email,
 			Name:     input.Name,
 			Username: input.Username,
@@ -303,10 +303,7 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 
 			// Do we need confirmed email?
 			EmailConfirmed: !svc.settings.internalSignUpEmailConfirmationRequired,
-		}
-
-		// Whitelisted user data to copy
-		u, err = svc.users.Create(new)
+		})
 
 		if err != nil {
 			return errors.Wrap(err, "could not create user")
@@ -326,7 +323,7 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 		}
 
 		if !u.EmailConfirmed {
-			err = svc.sendEmailAddressConfirmationToken(new)
+			err = svc.sendEmailAddressConfirmationToken(u)
 			if err != nil {
 				return err
 			}
@@ -592,7 +589,7 @@ func (svc auth) sendEmailAddressConfirmationToken(u *types.User) (err error) {
 
 	log.Printf("email address validation token generated: %q", token)
 
-	url = token
+	url = svc.settings.frontendUrlEmailConfirmation + token
 
 	err = svc.notifications.EmailConfirmation(notificationLang, u.Email, url)
 	if err != nil {
@@ -635,8 +632,8 @@ func (svc auth) sendPasswordResetToken(u *types.User) (err error) {
 
 	log.Printf("password reset token generated: %q", token)
 
-	url = token
-	spew.Dump(notificationLang, u.Email, url)
+	url = svc.settings.frontendUrlPasswordReset + token
+
 	err = svc.notifications.PasswordReset(notificationLang, u.Email, url)
 	if err != nil {
 		return errors.Wrap(err, "could not send password reset notification")
@@ -654,7 +651,6 @@ func (svc auth) loadUserFromToken(token, kind string) (u *types.User, err error)
 	}
 
 	return u, svc.db.Transaction(func() error {
-		spew.Dump(credentialsID)
 		c, err := svc.credentials.FindByID(credentialsID)
 		if err == repository.ErrCredentialsNotFound {
 			return errors.New("no such token")

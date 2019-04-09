@@ -22,7 +22,7 @@ const (
 
 func setupGoth(eas *externalAuthSettings) {
 	if eas == nil || !eas.enabled {
-		log.Printf("external authentication disabled (%v)", eas)
+		log.Printf("external authentication disabled")
 		return
 	}
 

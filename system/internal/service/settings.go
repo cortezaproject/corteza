@@ -74,12 +74,11 @@ func (svc settings) Get(name string, ownedBy uint64) (out *internalSettings.Valu
 	return svc.internalSettings.Get(name, ownedBy)
 }
 
-// Loads auth.* settings, initializes & fills auth settings struct
+// Loads auth.% settings, initializes & fills auth settings struct
 func (svc settings) LoadAuthSettings() (authSettings, error) {
-	vv, err := svc.internalSettings.FindByPrefix("auth.*")
+	vv, err := svc.internalSettings.FindByPrefix("auth.")
 	if err != nil {
 		return authSettings{}, err
 	}
-
 	return AuthSettings(vv.KV()), nil
 }

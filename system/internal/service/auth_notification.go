@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"html/template"
+	"log"
 
-	"github.com/labstack/gommon/log"
 	gomail "gopkg.in/mail.v2"
 
 	"github.com/crusttech/crust/internal/mail"
@@ -31,13 +31,12 @@ type (
 	}
 )
 
+// @todo Temporary email template storage
 var emailTemplates = map[string]string{
 	"email-confirmation.en.subject": `[Crust] Confirm your email address`,
-	"email-confirmation.en.plain":   `Confirm your email address {{ .EmailAddress }}:\n{{ .URL }}`,
 	"email-confirmation.en.html":    `<p><a href="{{ .URL }}">Confirm your email address ({{ .EmailAddress }})</a></p>`,
 
 	"password-reset.en.subject": `[Crust] Change your password`,
-	"password-reset.en.plain":   `Use this link to change your password:\n{{ .URL }}`,
 	"password-reset.en.html":    `<p><a href="{{ .URL }}">Change your password</a></p>`,
 }
 
@@ -54,7 +53,7 @@ func (svc authNotification) With(ctx context.Context) AuthNotificationService {
 }
 
 func (svc authNotification) EmailConfirmation(lang string, emailAddress string, url string) error {
-	return svc.send("email-notification", lang, authNotificationPayload{
+	return svc.send("email-confirmation", lang, authNotificationPayload{
 		EmailAddress: emailAddress,
 		URL:          url,
 	})
@@ -78,8 +77,9 @@ func (svc authNotification) send(name, lang string, payload authNotificationPayl
 
 	ntf.SetAddressHeader("To", payload.EmailAddress, "")
 	ntf.SetHeader("Subject", svc.render(emailTemplates[name+"."+lang+".subject"], payload))
-	ntf.SetBody("text/plain", svc.render(emailTemplates[name+"."+lang+".plain"], payload))
 	ntf.SetBody("text/html", svc.render(emailTemplates[name+"."+lang+".html"], payload))
+
+	log.Printf("sending auth notification (%s.%s) to %q", name, lang, payload.EmailAddress)
 
 	return mail.Send(ntf)
 }

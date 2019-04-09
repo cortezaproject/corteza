@@ -43,10 +43,6 @@ func Init() (err error) {
 
 	// Authentication helpers & services
 	DefaultAuthSettings, err = DefaultSettings.LoadAuthSettings()
-	DefaultAuthSettings.internalEnabled = true
-	DefaultAuthSettings.internalSignUpEmailConfirmationRequired = true
-	DefaultAuthSettings.internalPasswordResetEnabled = true
-	DefaultAuthSettings.mailFromAddress = "denis.arh@gmail.com"
 	if err != nil {
 		return
 	}
