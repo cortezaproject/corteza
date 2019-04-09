@@ -11,7 +11,7 @@ import (
 
 	"github.com/crusttech/crust/internal/rand"
 	"github.com/crusttech/crust/internal/settings"
-	service2 "github.com/crusttech/crust/system/internal/service"
+	systemService "github.com/crusttech/crust/system/internal/service"
 )
 
 func settingsCmd(ctx context.Context, setSvc settings.Service) *cobra.Command {
@@ -24,7 +24,7 @@ func settingsCmd(ctx context.Context, setSvc settings.Service) *cobra.Command {
 		Use:   "auto-configure",
 		Short: "Run autoconfiguration",
 		Run: func(cmd *cobra.Command, args []string) {
-			service2.DefaultSettings.LoadAuthSettings()
+			systemService.DefaultSettings.LoadAuthSettings()
 
 			settingsAutoConfigure(
 				setSvc,
@@ -119,15 +119,11 @@ func settingsAutoConfigure(setSvc settings.Service, systemApiUrl, frontendUrl, f
 			err error
 		)
 
-		if existing, err := setSvc.Get("name", 0); err != nil {
-			return
-		} else if setFn, ok := value.(func() interface{}); ok {
-			if existing == nil {
-				// No existing value found
-				if value = setFn(); value == nil {
-					// setFn returned nil, skip everything..
-					return
-				}
+		if setFn, ok := value.(func() interface{}); ok {
+			// No existing value found
+			if value = setFn(); value == nil {
+				// setFn returned nil, skip everything..
+				return
 			}
 		}
 
@@ -148,7 +144,7 @@ func settingsAutoConfigure(setSvc settings.Service, systemApiUrl, frontendUrl, f
 	}
 
 	setIfMissing := func(name string, value interface{}) {
-		if existing, err := setSvc.Get(name, 0); err == nil && existing != nil {
+		if existing, err := setSvc.Get(name, 0); err == nil && existing == nil {
 			set(name, value)
 		}
 	}
@@ -192,21 +188,25 @@ func settingsAutoConfigure(setSvc settings.Service, systemApiUrl, frontendUrl, f
 		})
 
 		setIfMissing("auth.frontend.url.email-confirmation", func() interface{} {
-			return frontendUrl + "/auth/email-confirmation?token="
+			return frontendUrl + "/auth/confirm-email?token="
 		})
 	}
 
-	if len(fromAddress) > 0 {
-		setIfMissing("auth.frontend.url.email-confirmation", func() interface{} {
+	// Auth email (password reset, email confirmation)
+	setIfMissing("auth.frontend.url.email-confirmation", func() interface{} {
+		if len(fromAddress) > 0 {
 			return fromAddress
-		})
-	}
+		}
+		return "change-me@local.crust.tech"
+	})
 
-	if len(fromName) > 0 {
-		setIfMissing("auth.frontend.url.email-confirmation", func() interface{} {
+	setIfMissing("auth.mail.from-name", func() interface{} {
+		if len(fromName) > 0 {
 			return fromName
-		})
-	}
+		}
+
+		return "Crust"
+	})
 
 	// No external providers preconfigured, so disable
 	setIfMissing("auth.external.enabled", false)
@@ -215,10 +215,10 @@ func settingsAutoConfigure(setSvc settings.Service, systemApiUrl, frontendUrl, f
 	setIfMissing("auth.internal.enabled", true)
 
 	// Enable user creation
-	setIfMissing("auth.sign-up.enabled", true)
+	setIfMissing("auth.internal.signup.enabled", true)
 
 	// No need to confirm email
-	setIfMissing("sign-up-email-confirmation-required.enabled", false)
+	setIfMissing("auth.internal.signup-email-confirmation-required", false)
 
 	// We need password reset
 	setIfMissing("auth.internal.password-reset.enabled", true)
