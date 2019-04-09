@@ -25,6 +25,8 @@ type (
 		RelatedUserID  uint64 `json:"relatedUserID,string" db:"rel_user_id"`
 		User           *User  `json:"user" db:"-"`
 
+		EmailConfirmed bool `json:"-" db:"email_confirmed"`
+
 		CreatedAt   time.Time  `json:"createdAt,omitempty" db:"created_at"`
 		UpdatedAt   *time.Time `json:"updatedAt,omitempty" db:"updated_at"`
 		SuspendedAt *time.Time `json:"suspendedAt,omitempty" db:"suspended_at"`

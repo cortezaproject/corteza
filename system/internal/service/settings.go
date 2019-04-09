@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	internalSettings "github.com/crusttech/crust/internal/settings"
-	"github.com/crusttech/crust/system/internal/repository"
 )
 
 type (
@@ -24,19 +23,22 @@ type (
 		Set(v *internalSettings.Value) (err error)
 		BulkSet(vv internalSettings.ValueSet) (err error)
 		Get(name string, ownedBy uint64) (out *internalSettings.Value, err error)
+
+		LoadAuthSettings() (authSettings, error)
 	}
 )
 
-func Settings(ctx context.Context) SettingsService {
-	return (&settings{}).With(ctx)
+func Settings(ctx context.Context, intSet internalSettings.Service) SettingsService {
+	return (&settings{
+		internalSettings: intSet,
+	}).With(ctx)
 }
 
 func (svc settings) With(ctx context.Context) SettingsService {
-	db := repository.DB(ctx)
 	return &settings{
 		ctx:              ctx,
 		prm:              Permissions(ctx),
-		internalSettings: internalSettings.NewService(internalSettings.NewRepository(db, "sys_settings")).With(ctx),
+		internalSettings: svc.internalSettings.With(ctx),
 	}
 }
 
@@ -70,4 +72,14 @@ func (svc settings) Get(name string, ownedBy uint64) (out *internalSettings.Valu
 	}
 
 	return svc.internalSettings.Get(name, ownedBy)
+}
+
+// Loads auth.* settings, initializes & fills auth settings struct
+func (svc settings) LoadAuthSettings() (authSettings, error) {
+	vv, err := svc.internalSettings.FindByPrefix("auth.*")
+	if err != nil {
+		return authSettings{}, err
+	}
+
+	return AuthSettings(vv.KV()), nil
 }
