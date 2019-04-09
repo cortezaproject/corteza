@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"syscall"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
 	"github.com/titpetric/factory"
 	"golang.org/x/crypto/ssh/terminal"
@@ -37,7 +36,7 @@ func usersCmd(ctx context.Context, db *factory.DB) *cobra.Command {
 				exit(cmd, err)
 			}
 
-			fmt.Println("                     Created    Updated    Email")
+			fmt.Println("                     Created    Updated    EmailAddress")
 			for _, u := range users {
 				upd := "---- -- --"
 
@@ -78,7 +77,7 @@ func usersCmd(ctx context.Context, db *factory.DB) *cobra.Command {
 
 			cmd.Printf("User created [%d].\n", user.ID)
 
-			cmd.Print("Set password password: ")
+			cmd.Print("Set password: ")
 			if password, err = terminal.ReadPassword(syscall.Stdin); err != nil {
 				exit(cmd, err)
 			}
@@ -88,14 +87,51 @@ func usersCmd(ctx context.Context, db *factory.DB) *cobra.Command {
 				exit(cmd, nil)
 			}
 
-			spew.Dump(password)
-			if err = authSvc.ChangePassword(user, password); err != nil {
+			if err = authSvc.SetPassword(user.ID, string(password)); err != nil {
 				exit(cmd, err)
 			}
 		},
 	}
 
-	cmd.AddCommand(listCmd, addCmd)
+	pwdCmd := &cobra.Command{
+		Use:   "password [email]",
+		Short: "Add new user",
+		Args:  cobra.MinimumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			var (
+				userRepo = repository.User(ctx, db)
+				authSvc  = service.Auth(ctx)
+
+				user     *types.User
+				err      error
+				password []byte
+			)
+
+			if user, err = userRepo.FindByEmail(args[0]); err != nil {
+				exit(cmd, err)
+			}
+
+			cmd.Print("Set password: ")
+			if password, err = terminal.ReadPassword(syscall.Stdin); err != nil {
+				exit(cmd, err)
+			}
+
+			if len(password) == 0 {
+				// Password not set, that's ok too.
+				exit(cmd, nil)
+			}
+
+			if err = authSvc.SetPassword(user.ID, string(password)); err != nil {
+				exit(cmd, err)
+			}
+		},
+	}
+
+	cmd.AddCommand(
+		listCmd,
+		addCmd,
+		pwdCmd,
+	)
 
 	return cmd
 }
