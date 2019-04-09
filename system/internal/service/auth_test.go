@@ -190,3 +190,58 @@ func Test_auth_checkPassword(t *testing.T) {
 		})
 	}
 }
+
+func Test_auth_validateToken(t *testing.T) {
+	type args struct {
+		token string
+	}
+	tests := []struct {
+		name            string
+		args            args
+		wantID          uint64
+		wantCredentials string
+		wantErr         bool
+	}{
+		// TODO: Add test cases.
+		{
+			name:            "empty",
+			wantID:          0,
+			wantCredentials: "",
+			wantErr:         true,
+			args:            args{token: ""}},
+		{
+			name:            "foo",
+			wantID:          0,
+			wantCredentials: "",
+			wantErr:         true,
+			args:            args{token: "foo1"}},
+		{
+			name:            "semivalid",
+			wantID:          0,
+			wantCredentials: "",
+			wantErr:         true,
+			args:            args{token: "foofoofoofoofoofoofoofoofoofoofo0"}},
+		{
+			name:            "valid",
+			wantID:          1,
+			wantCredentials: "foofoofoofoofoofoofoofoofoofoofo",
+			wantErr:         false,
+			args:            args{token: "foofoofoofoofoofoofoofoofoofoofo1"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := auth{}
+			gotID, gotCredentials, err := svc.validateToken(tt.args.token)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("auth.validateToken() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotID != tt.wantID {
+				t.Errorf("auth.validateToken() gotID = %v, want %v", gotID, tt.wantID)
+			}
+			if gotCredentials != tt.wantCredentials {
+				t.Errorf("auth.validateToken() gotCredentials = %v, want %v", gotCredentials, tt.wantCredentials)
+			}
+		})
+	}
+}
