@@ -47,10 +47,6 @@ func Init(ctx context.Context) error {
 		return err
 	}
 
-	// Load settings from the database,
-	// for now, only at start-up time.
-	settingService := settings.NewService(settings.NewRepository(repository.DB(ctx), "sys_settings"))
-
 	// configure resputil options
 	resputil.SetConfig(resputil.Options{
 		Pretty: flags.http.Pretty,
@@ -64,9 +60,6 @@ func Init(ctx context.Context) error {
 	if err := service.Init(); err != nil {
 		return err
 	}
-
-	// Setup goth/social authentication
-	external.Init(settingService.With(ctx))
 
 	return nil
 }
@@ -87,6 +80,13 @@ func InitDatabase(ctx context.Context) error {
 }
 
 func StartRestAPI(ctx context.Context) error {
+	// Load settings from the database,
+	// for now, only at start-up time.
+	settingService := settings.NewService(settings.NewRepository(repository.DB(ctx), "sys_settings"))
+
+	// Setup goth/social authentication
+	external.Init(settingService.With(ctx))
+
 	log.Println("Starting http server on address " + flags.http.Addr)
 	listener, err := net.Listen("tcp", flags.http.Addr)
 	if err != nil {
