@@ -94,8 +94,7 @@
 | Method | Endpoint | Purpose |
 | ------ | -------- | ------- |
 | `GET` | `/auth/check` | Check JWT token |
-| `POST` | `/auth/login` | Login user |
-| `GET` | `/auth/logout` | Delete JWT token (Sign Out) |
+| `GET` | `/auth/logout` | Logout |
 
 ## Check JWT token
 
@@ -110,22 +109,7 @@
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 
-## Login user
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/auth/login` | HTTP/S | POST |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| username | string | POST | Username | N/A | YES |
-| password | string | POST | Password | N/A | YES |
-
-## Delete JWT token (Sign Out)
+## Logout
 
 #### Method
 
@@ -137,6 +121,113 @@
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+
+---
+
+
+
+
+# Internal authentication
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `POST` | `/auth/internal/login` | Login user |
+| `POST` | `/auth/internal/signup` | User signup/registration |
+| `POST` | `/auth/internal/request-password-reset` | Request password reset token |
+| `POST` | `/auth/internal/reset-password` | Reset password with token |
+| `POST` | `/auth/internal/confirm-email` | Confirm email with token |
+| `POST` | `/auth/internal/change-password` | Changes password for current user, requires current password |
+
+## Login user
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/auth/internal/login` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| email | string | POST | Email | N/A | YES |
+| password | string | POST | Password | N/A | YES |
+
+## User signup/registration
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/auth/internal/signup` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| email | string | POST | Email | N/A | YES |
+| username | string | POST | Username | N/A | NO |
+| password | string | POST | Password | N/A | YES |
+| handle | string | POST | User handle | N/A | NO |
+| name | string | POST | Display name | N/A | NO |
+
+## Request password reset token
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/auth/internal/request-password-reset` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| email | string | POST | Email | N/A | YES |
+
+## Reset password with token
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/auth/internal/reset-password` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| token | string | POST | Token | N/A | YES |
+| password | string | POST | Password | N/A | YES |
+
+## Confirm email with token
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/auth/internal/confirm-email` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| token | string | POST | Token | N/A | YES |
+
+## Changes password for current user, requires current password
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/auth/internal/change-password` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| oldPassword | string | POST | Old password | N/A | YES |
+| newPassword | string | POST | New password | N/A | YES |
 
 ---
 

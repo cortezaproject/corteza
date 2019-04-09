@@ -15,6 +15,8 @@ func MountRoutes(jwtEncoder auth.TokenEncoder) func(chi.Router) {
 		// Provide raw `/auth` handlers
 		Auth{}.New().Handlers(jwtEncoder).MountRoutes(r)
 
+		handlers.NewAuthInternal((AuthInternal{}).New(jwtEncoder)).MountRoutes(r)
+
 		// Protect all _private_ routes
 		r.Group(func(r chi.Router) {
 			r.Use(auth.MiddlewareValidOnly)

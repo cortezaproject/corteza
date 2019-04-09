@@ -2,24 +2,51 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
+	"log"
+	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 
+	"github.com/crusttech/crust/internal/rand"
 	"github.com/crusttech/crust/internal/settings"
+	service2 "github.com/crusttech/crust/system/internal/service"
 )
 
-func settingsCmd(ctx context.Context, service settings.Service) *cobra.Command {
+func settingsCmd(ctx context.Context, setSvc settings.Service) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "settings",
 		Short: "Settings management",
 	}
+
+	auto := &cobra.Command{
+		Use:   "auto-configure",
+		Short: "Run autoconfiguration",
+		Run: func(cmd *cobra.Command, args []string) {
+			service2.DefaultSettings.LoadAuthSettings()
+
+			settingsAutoConfigure(
+				setSvc,
+				cmd.Flags().Lookup("system-api-url").Value.String(),
+				cmd.Flags().Lookup("auth-frontend-url").Value.String(),
+				cmd.Flags().Lookup("auth-from-address").Value.String(),
+				cmd.Flags().Lookup("auth-from-address").Value.String(),
+			)
+		},
+	}
+
+	auto.Flags().String("system-api-url", "", "System API URL (http://sytem.api.example.tld)")
+	auto.Flags().String("auth-frontend-url", "", "http://example.tld/auth")
+	auto.Flags().String("auth-from-address", "", "name@example.tld")
+	auto.Flags().String("auth-from-name", "", "Name Surname")
 
 	list := &cobra.Command{
 		Use:   "list",
 		Short: "List all",
 		Run: func(cmd *cobra.Command, args []string) {
 			prefix := cmd.Flags().Lookup("prefix").Value.String()
-			if kv, err := service.FindByPrefix(prefix); err != nil {
+			if kv, err := setSvc.FindByPrefix(prefix); err != nil {
 				exit(cmd, err)
 			} else {
 				for _, v := range kv {
@@ -37,7 +64,7 @@ func settingsCmd(ctx context.Context, service settings.Service) *cobra.Command {
 		Short: "Get value (raw JSON) for a specific key",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			if v, err := service.Get(args[0], 0); err != nil {
+			if v, err := setSvc.Get(args[0], 0); err != nil {
 				exit(cmd, err)
 			} else if v != nil {
 				cmd.Printf("%v\n", v.Value)
@@ -60,7 +87,7 @@ func settingsCmd(ctx context.Context, service settings.Service) *cobra.Command {
 				exit(cmd, err)
 			}
 
-			exit(cmd, service.Set(v))
+			exit(cmd, setSvc.Set(v))
 		},
 	}
 
@@ -69,11 +96,130 @@ func settingsCmd(ctx context.Context, service settings.Service) *cobra.Command {
 		Short: "Set value (raw JSON) for a specific key",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			exit(cmd, service.Delete(args[0], 0))
+			exit(cmd, setSvc.Delete(args[0], 0))
 		},
 	}
 
-	cmd.AddCommand(list, get, set, del)
+	cmd.AddCommand(
+		auto,
+		list,
+		get,
+		set,
+		del,
+	)
 
 	return cmd
+}
+
+func settingsAutoConfigure(setSvc settings.Service, systemApiUrl, frontendUrl, fromAddress, fromName string) {
+	set := func(name string, value interface{}) {
+		var (
+			v   *settings.Value
+			ok  bool
+			err error
+		)
+
+		if existing, err := setSvc.Get("name", 0); err != nil {
+			return
+		} else if setFn, ok := value.(func() interface{}); ok {
+			if existing == nil {
+				// No existing value found
+				if value = setFn(); value == nil {
+					// setFn returned nil, skip everything..
+					return
+				}
+			}
+		}
+
+		// Did we get something else than *settings.Value?
+		// if so, wrap/marshal it into *settings.Value
+		if v, ok = value.(*settings.Value); !ok {
+			v = &settings.Value{Name: name}
+			if v.Value, err = json.Marshal(value); err != nil {
+				log.Printf("could not marshal setting value: %v", err)
+				return
+			}
+		}
+
+		err = setSvc.Set(v)
+		if err != nil {
+			log.Printf("could not store setting: %v", err)
+		}
+	}
+
+	setIfMissing := func(name string, value interface{}) {
+		if existing, err := setSvc.Get(name, 0); err == nil && existing != nil {
+			set(name, value)
+		}
+	}
+
+	// Where should external authentication providers redirect to?
+	setIfMissing("auth.external.redirect-url", func() interface{} {
+		path := "/auth/external/%s/callback"
+
+		if len(systemApiUrl) > 0 {
+			if strings.Index(systemApiUrl, "http") != 0 {
+				return "https://" + systemApiUrl + path
+			} else {
+				return systemApiUrl + path
+			}
+		}
+
+		if leHost, has := os.LookupEnv("LETSENCRYPT_HOST"); has {
+			return "https://" + leHost + path
+		} else if vHost, has := os.LookupEnv("VIRTUAL_HOST"); has {
+			return "http://" + vHost + path
+		} else {
+			// Fallback to local
+			return "http://system.api.local.crust.tech" + path
+		}
+	})
+
+	setIfMissing("auth.external.session-store-secret", func() interface{} {
+		// Generate session store secret if missing
+		return string(rand.Bytes(64))
+	})
+
+	setIfMissing("auth.external.session-store-secure", func() interface{} {
+		// Try to determines if we need secure session store from redirect URL scheme
+		extRedirUrl, _ := setSvc.GetGlobalString("auth.external.redirect-url")
+		return strings.Index(extRedirUrl, "https://") > -1
+	})
+
+	if len(frontendUrl) > 0 {
+		setIfMissing("auth.frontend.url.password-reset", func() interface{} {
+			return frontendUrl + "/auth/reset-password?token="
+		})
+
+		setIfMissing("auth.frontend.url.email-confirmation", func() interface{} {
+			return frontendUrl + "/auth/email-confirmation?token="
+		})
+	}
+
+	if len(fromAddress) > 0 {
+		setIfMissing("auth.frontend.url.email-confirmation", func() interface{} {
+			return fromAddress
+		})
+	}
+
+	if len(fromName) > 0 {
+		setIfMissing("auth.frontend.url.email-confirmation", func() interface{} {
+			return fromName
+		})
+	}
+
+	// No external providers preconfigured, so disable
+	setIfMissing("auth.external.enabled", false)
+
+	// Enable internal by default
+	setIfMissing("auth.internal.enabled", true)
+
+	// Enable user creation
+	setIfMissing("auth.sign-up.enabled", true)
+
+	// No need to confirm email
+	setIfMissing("sign-up-email-confirmation-required.enabled", false)
+
+	// We need password reset
+	setIfMissing("auth.internal.password-reset.enabled", true)
 }
