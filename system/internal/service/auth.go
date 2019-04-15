@@ -107,12 +107,16 @@ func (svc *auth) With(ctx context.Context) AuthService {
 // 2.3. create credentials for that social login
 //
 func (svc *auth) External(profile goth.User) (u *types.User, err error) {
+	if !svc.settings.externalEnabled {
+		return nil, errors.New("external authentication disabled")
+	}
+
 	if err = svc.providerValidator(profile.Provider); err != nil {
 		return nil, err
 	}
 
 	if profile.Email == "" {
-		return nil, errors.New("Can not use profile data without an email")
+		return nil, errors.New("can not use profile data without an email")
 	}
 
 	return u, svc.db.Transaction(func() error {
@@ -193,7 +197,7 @@ func (svc *auth) External(profile goth.User) (u *types.User, err error) {
 			return err
 		} else if !u.Valid() {
 			return errors.Errorf(
-				"can not use invalid user (user ID: %v)",
+				"user not valid",
 				u.ID,
 			)
 		} else {
@@ -394,6 +398,12 @@ func (svc *auth) InternalLogin(email string, password string) (u *types.User, er
 	})
 
 	if err != nil {
+		return
+	}
+
+	if !u.Valid() {
+		u = nil
+		err = errors.New("user not valid")
 		return
 	}
 
