@@ -139,14 +139,8 @@ func (svc *auth) External(profile goth.User) (u *types.User, err error) {
 						}
 					}
 					return nil
-				} else if u.Valid() && u.Email != profile.Email {
-					return errors.Errorf(
-						"refusing to authenticate with non matching emails (profile: %v, db: %v) on credentials (ID: %v)",
-						profile.Email,
-						u.Email,
-						c.ID)
 				} else if u.Valid() {
-					// Valid user, matching emails. Bingo!
+					// Valid user, Bingo!
 					c.LastUsedAt = svc.now()
 					if c, err = svc.credentials.Update(c); err != nil {
 						return err
