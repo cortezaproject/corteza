@@ -19,17 +19,23 @@ var _ = errors.Wrap
 
 type (
 	Auth struct {
-		jwt auth.TokenEncoder
+		jwt          auth.TokenEncoder
+		authSettings authServiceSettingsProvider
+	}
+
+	authServiceSettingsProvider interface {
+		Format() map[string]interface{}
 	}
 
 	checkResponse struct {
-		JWT  string         `json:"jwt"`
 		User *outgoing.User `json:"user"`
 	}
 )
 
 func (Auth) New() *Auth {
-	return &Auth{}
+	return &Auth{
+		authSettings: service.DefaultAuthSettings,
+	}
 }
 
 func (ctrl *Auth) Check(ctx context.Context, r *request.AuthCheck) (interface{}, error) {
@@ -38,6 +44,10 @@ func (ctrl *Auth) Check(ctx context.Context, r *request.AuthCheck) (interface{},
 
 func (ctrl *Auth) Logout(ctx context.Context, r *request.AuthLogout) (interface{}, error) {
 	return nil, errors.New("Not implemented: Auth.logout")
+}
+
+func (ctrl *Auth) Settings(ctx context.Context, r *request.AuthSettings) (interface{}, error) {
+	return ctrl.authSettings.Format(), nil
 }
 
 // Handlers() func ignores "std" crust controllers
@@ -72,6 +82,10 @@ func (ctrl *Auth) Handlers(jwtEncoder auth.TokenEncoder) *handlers.Auth {
 
 	h.Logout = func(w http.ResponseWriter, r *http.Request) {
 		jwtEncoder.SetCookie(w, r, nil)
+	}
+
+	h.Settings = func(w http.ResponseWriter, r *http.Request) {
+		resputil.JSON(w, ctrl.authSvc.FormatSettings())
 	}
 
 	return h

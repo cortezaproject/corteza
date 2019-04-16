@@ -93,8 +93,22 @@
 
 | Method | Endpoint | Purpose |
 | ------ | -------- | ------- |
+| `GET` | `/auth/` | Returns auth settings |
 | `GET` | `/auth/check` | Check JWT token |
 | `GET` | `/auth/logout` | Logout |
+
+## Returns auth settings
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/auth/` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
 
 ## Check JWT token
 

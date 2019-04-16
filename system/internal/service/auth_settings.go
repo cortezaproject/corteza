@@ -1,5 +1,11 @@
 package service
 
+import (
+	"strings"
+
+	"github.com/markbates/goth"
+)
+
 type (
 	authSettings struct {
 		// Password reset path (<frontend password reset url> "?token=" + <token>)
@@ -51,5 +57,40 @@ func AuthSettings(kv authSettingsStore) authSettings {
 		internalSignUpEmailConfirmationRequired: kv.Bool("auth.internal.signup-email-confirmation-required"),
 
 		internalPasswordResetEnabled: kv.Bool("auth.internal.password-reset.enabled"),
+	}
+}
+
+func (s authSettings) Format() map[string]interface{} {
+	type (
+		externalProvider struct {
+			Label  string `json:"label"`
+			Handle string `json:"handle"`
+		}
+	)
+
+	var (
+		providers = []externalProvider{}
+	)
+
+	for p := range goth.GetProviders() {
+		label := p
+		if strings.Index(p, "openid-connect.") == 0 {
+			label = strings.SplitN(p, ".", 2)[1]
+		}
+
+		providers = append(providers, externalProvider{
+			Label:  label,
+			Handle: p,
+		})
+	}
+
+	return map[string]interface{}{
+		"internalEnabled":                         s.internalEnabled,
+		"internalPasswordResetEnabled":            s.internalPasswordResetEnabled,
+		"internalSignUpEmailConfirmationRequired": s.internalSignUpEmailConfirmationRequired,
+		"internalSignUpEnabled":                   s.internalSignUpEnabled,
+
+		"externalEnabled":   s.externalEnabled,
+		"externalProviders": providers,
 	}
 }
