@@ -6,6 +6,13 @@
     "authentication": [],
     "apis": [
       {
+        "name": "settings",
+        "method": "GET",
+        "title": "Returns auth settings",
+        "path": "/",
+        "parameters": {}
+      },
+      {
         "name": "check",
         "method": "GET",
         "title": "Check JWT token",
