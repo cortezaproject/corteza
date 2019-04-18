@@ -261,7 +261,7 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 
 				err = svc.checkPassword(password, cc)
 				if err != nil {
-					return err
+					return errors.Wrap(err, "user with this email already exists")
 				}
 
 				if !existing.EmailConfirmed {
@@ -554,7 +554,17 @@ func (svc auth) ValidateEmailConfirmationToken(token string) (user *types.User, 
 		return nil, errors.New("internal authentication disabled")
 	}
 
-	return svc.loadUserFromToken(token, credentialsTypeEmailAuthToken)
+	user, err = svc.loadUserFromToken(token, credentialsTypeEmailAuthToken)
+	if err != nil {
+		return nil, err
+	}
+
+	if !user.EmailConfirmed {
+		user.EmailConfirmed = true
+		svc.users.Update(user)
+	}
+
+	return
 }
 
 func (svc auth) ValidatePasswordResetToken(token string) (user *types.User, err error) {
@@ -566,7 +576,18 @@ func (svc auth) ValidatePasswordResetToken(token string) (user *types.User, err 
 		return nil, errors.New("password reset disabled")
 	}
 
-	return svc.loadUserFromToken(token, credentialsTypeResetPasswordTokenExchanged)
+	user, err = svc.loadUserFromToken(token, credentialsTypeResetPasswordTokenExchanged)
+	if err != nil {
+		return nil, err
+	}
+
+	if !user.EmailConfirmed {
+		// Confirm email while reseting password...
+		user.EmailConfirmed = true
+		svc.users.Update(user)
+	}
+
+	return
 }
 
 // ExchangePasswordResetToken exchanges reset password token for a new one and returns it with user info
