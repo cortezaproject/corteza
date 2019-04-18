@@ -57,35 +57,23 @@ func (ctrl *Auth) Handlers(jwtEncoder auth.TokenEncoder) *handlers.Auth {
 	h := handlers.NewAuth(ctrl)
 	// Check JWT if valid
 	h.Check = func(w http.ResponseWriter, r *http.Request) {
-		if c, err := r.Cookie("jwt"); err == nil {
-			ctx := r.Context()
+		ctx := r.Context()
 
-			if identity := auth.GetIdentityFromContext(ctx); identity != nil && identity.Valid() {
-				if user, err := service.DefaultUser.With(ctx).FindByID(identity.Identity()); err == nil {
-					jwtEncoder.SetCookie(w, r, user)
+		if identity := auth.GetIdentityFromContext(ctx); identity != nil && identity.Valid() {
+			if user, err := service.DefaultUser.With(ctx).FindByID(identity.Identity()); err == nil {
+				jwtEncoder.SetCookie(w, r, user)
 
-					resputil.JSON(w, checkResponse{
-						JWT:  c.Value,
-						User: payload.User(user),
-					})
+				resputil.JSON(w, checkResponse{
+					User: payload.User(user),
+				})
 
-					return
-				}
+				return
 			}
-
-			// Did not send response, assuming invalid cookie
-			jwtEncoder.SetCookie(w, r, nil)
-		} else {
-			resputil.JSON(w, err)
 		}
 	}
 
 	h.Logout = func(w http.ResponseWriter, r *http.Request) {
-		jwtEncoder.SetCookie(w, r, nil)
-	}
-
-	h.Settings = func(w http.ResponseWriter, r *http.Request) {
-		resputil.JSON(w, ctrl.authSvc.FormatSettings())
+		// nothing to do here...
 	}
 
 	return h
