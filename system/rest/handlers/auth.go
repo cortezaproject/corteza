@@ -30,14 +30,16 @@ import (
 type AuthAPI interface {
 	Settings(context.Context, *request.AuthSettings) (interface{}, error)
 	Check(context.Context, *request.AuthCheck) (interface{}, error)
+	ExchangeAuthToken(context.Context, *request.AuthExchangeAuthToken) (interface{}, error)
 	Logout(context.Context, *request.AuthLogout) (interface{}, error)
 }
 
 // HTTP API interface
 type Auth struct {
-	Settings func(http.ResponseWriter, *http.Request)
-	Check    func(http.ResponseWriter, *http.Request)
-	Logout   func(http.ResponseWriter, *http.Request)
+	Settings          func(http.ResponseWriter, *http.Request)
+	Check             func(http.ResponseWriter, *http.Request)
+	ExchangeAuthToken func(http.ResponseWriter, *http.Request)
+	Logout            func(http.ResponseWriter, *http.Request)
 }
 
 func NewAuth(ah AuthAPI) *Auth {
@@ -56,6 +58,13 @@ func NewAuth(ah AuthAPI) *Auth {
 				return ah.Check(r.Context(), params)
 			})
 		},
+		ExchangeAuthToken: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewAuthExchangeAuthToken()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return ah.ExchangeAuthToken(r.Context(), params)
+			})
+		},
 		Logout: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAuthLogout()
@@ -71,6 +80,7 @@ func (ah *Auth) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Use(middlewares...)
 		r.Get("/auth/", ah.Settings)
 		r.Get("/auth/check", ah.Check)
+		r.Post("/auth/exchange", ah.ExchangeAuthToken)
 		r.Get("/auth/logout", ah.Logout)
 	})
 }

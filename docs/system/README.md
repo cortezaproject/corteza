@@ -95,6 +95,7 @@
 | ------ | -------- | ------- |
 | `GET` | `/auth/` | Returns auth settings |
 | `GET` | `/auth/check` | Check JWT token |
+| `POST` | `/auth/exchange` | Exchange auth token for JWT |
 | `GET` | `/auth/logout` | Logout |
 
 ## Returns auth settings
@@ -122,6 +123,20 @@
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+
+## Exchange auth token for JWT
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/auth/exchange` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| token | string | POST | Token to be exchanged for JWT | N/A | YES |
 
 ## Logout
 

@@ -190,10 +190,14 @@ func settingsAutoConfigure(setSvc settings.Service, systemApiUrl, frontendUrl, f
 		setIfMissing("auth.frontend.url.email-confirmation", func() interface{} {
 			return frontendUrl + "/auth/confirm-email?token="
 		})
+
+		setIfMissing("auth.frontend.url.redirect", func() interface{} {
+			return frontendUrl + "/auth/"
+		})
 	}
 
 	// Auth email (password reset, email confirmation)
-	setIfMissing("auth.frontend.url.email-confirmation", func() interface{} {
+	setIfMissing("auth.mail.from-address", func() interface{} {
 		if len(fromAddress) > 0 {
 			return fromAddress
 		}

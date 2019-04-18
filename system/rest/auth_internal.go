@@ -124,5 +124,10 @@ func (ctrl *AuthInternal) ChangePassword(ctx context.Context, r *request.AuthInt
 		return nil, errors.New("invalid user (not authenticated)")
 	}
 
-	return nil, ctrl.authSvc.ChangePassword(identity.Identity(), r.OldPassword, r.NewPassword)
+	err := ctrl.authSvc.ChangePassword(identity.Identity(), r.OldPassword, r.NewPassword)
+	if err != nil {
+		return nil, err
+	} else {
+		return true, nil
+	}
 }

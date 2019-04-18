@@ -35,12 +35,15 @@ type (
 		With(ctx context.Context) AuthService
 
 		External(profile goth.User) (*types.User, error)
+		FrontendRedirectURL() string
 
 		InternalSignUp(input *types.User, password string) (*types.User, error)
 		InternalLogin(email string, password string) (*types.User, error)
 		SetPassword(userID uint64, newPassword string) error
 		ChangePassword(userID uint64, oldPassword, newPassword string) error
 
+		IssueAuthRequestToken(user *types.User) (token string, err error)
+		ValidateAuthRequestToken(token string) (user *types.User, err error)
 		ValidateEmailConfirmationToken(token string) (user *types.User, err error)
 		ExchangePasswordResetToken(token string) (user *types.User, exchangedToken string, err error)
 		ValidatePasswordResetToken(token string) (user *types.User, err error)
@@ -54,6 +57,7 @@ const (
 	credentialsTypeEmailAuthToken              = "email-authentication-token"
 	credentialsTypeResetPasswordToken          = "password-reset-token"
 	credentialsTypeResetPasswordTokenExchanged = "password-reset-token-exchanged"
+	credentialsTypeAuthToken                   = "auth-token"
 
 	credentialsTokenLength = 32
 )
@@ -225,6 +229,11 @@ func (svc *auth) External(profile goth.User) (u *types.User, err error) {
 		// Owner loaded, carry on.
 		return nil
 	})
+}
+
+// FrontendRedirectURL - a proxy to frontend redirect url setting
+func (svc auth) FrontendRedirectURL() string {
+	return svc.settings.frontendUrlRedirect
 }
 
 // InternalSignUp protocol
@@ -549,6 +558,14 @@ func (svc auth) changePassword(userID uint64, hash []byte) (err error) {
 	return errors.Wrap(err, "could not create new password")
 }
 
+func (svc auth) IssueAuthRequestToken(user *types.User) (token string, err error) {
+	return svc.createUserToken(user, credentialsTypeAuthToken)
+}
+
+func (svc auth) ValidateAuthRequestToken(token string) (user *types.User, err error) {
+	return svc.loadUserFromToken(token, credentialsTypeAuthToken)
+}
+
 func (svc auth) ValidateEmailConfirmationToken(token string) (user *types.User, err error) {
 	if !svc.settings.internalEnabled {
 		return nil, errors.New("internal authentication disabled")
@@ -764,10 +781,22 @@ func (svc auth) validateToken(token string) (ID uint64, credentials string, err 
 }
 
 func (svc auth) createUserToken(user *types.User, kind string) (token string, err error) {
+	var expiresAt time.Time
+
+	switch kind {
+	case credentialsTypeAuthToken:
+		// 15 sec expiration for all tokens that are part of redirction
+		expiresAt = svc.now().Add(time.Second * 15)
+	default:
+		// 1h expiration for all tokens send via email
+		expiresAt = svc.now().Add(time.Minute * 60)
+	}
+
 	c, err := svc.credentials.Create(&types.Credentials{
 		OwnerID:     user.ID,
 		Kind:        kind,
 		Credentials: string(rand.Bytes(credentialsTokenLength)),
+		ExpiresAt:   &expiresAt,
 	})
 
 	if err != nil {

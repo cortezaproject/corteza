@@ -14,6 +14,9 @@ type (
 		// EmailAddress confirmation path (<frontend  email confirmation url> "?token=" + <token>)
 		frontendUrlEmailConfirmation string
 
+		// Where to redirect user after external auth flow
+		frontendUrlRedirect string
+
 		mailFromAddress string
 		mailFromName    string
 
@@ -46,6 +49,7 @@ func AuthSettings(kv authSettingsStore) authSettings {
 	return authSettings{
 		frontendUrlPasswordReset:     kv.String("auth.frontend.url.password-reset"),
 		frontendUrlEmailConfirmation: kv.String("auth.frontend.url.email-confirmation"),
+		frontendUrlRedirect:          kv.String("auth.frontend.url.redirect"),
 
 		mailFromAddress: kv.String("auth.mail.from-address"),
 		mailFromName:    kv.String("auth.mail.from-name"),
@@ -76,6 +80,19 @@ func (s authSettings) Format() map[string]interface{} {
 		label := p
 		if strings.Index(p, "openid-connect.") == 0 {
 			label = strings.SplitN(p, ".", 2)[1]
+		}
+
+		switch label {
+		case "crust-iam":
+			label = "Crust IAM"
+		case "facebook":
+			label = "Facebook"
+		case "gplus":
+			label = "Google"
+		case "linkedin":
+			label = "LinkedIn"
+		case "github":
+			label = "GitHub"
 		}
 
 		providers = append(providers, externalProvider{
