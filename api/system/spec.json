@@ -20,6 +20,22 @@
         "parameters": {}
       },
       {
+        "name": "exchangeAuthToken",
+        "method": "POST",
+        "title": "Exchange auth token for JWT",
+        "path": "/exchange",
+        "parameters": {
+          "post": [
+            {
+              "name": "token",
+              "type": "string",
+              "required": true,
+              "title": "Token to be exchanged for JWT"
+            }
+          ]
+        }
+      },
+      {
         "name": "logout",
         "method": "GET",
         "title": "Logout",

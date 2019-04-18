@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -37,9 +38,9 @@ func NewSocial(jwtEncoder auth.TokenEncoder) *ExternalAuth {
 
 func (ctrl *ExternalAuth) MountRoutes(r chi.Router) {
 
-	// Make sure we're backwards compatible and redirect /oidc to /auth/external/openid-connect-didmos2
+	// Make sure we're backwards compatible and redirect /oidc to /auth/external/openid-connect.crust-iam
 	r.Get("/oidc", func(w http.ResponseWriter, req *http.Request) {
-		http.Redirect(w, req, externalAuthBaseUrl+"/openid-connect-didmos2", http.StatusMovedPermanently)
+		http.Redirect(w, req, externalAuthBaseUrl+"/openid-connect.crust-iam", http.StatusMovedPermanently)
 	})
 
 	// Copy provider from path (Chi URL param) to request context and return it
@@ -51,7 +52,8 @@ func (ctrl *ExternalAuth) MountRoutes(r chi.Router) {
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			r = copyProviderToContext(r)
 
-			// Always set redir cookie, even if not requested. If param is empty, cookie is removed
+			// Always set redir cookie, even if not requested.
+			// If param is empty, cookie will be removed
 			ctrl.setSessionCookie(w, r, "redir", r.URL.Query().Get("redir"))
 
 			// try to get the user without re-authenticating
@@ -102,22 +104,62 @@ func (ctrl *ExternalAuth) handleFailedCallback(w http.ResponseWriter, r *http.Re
 // Handles authentication via external auth providers of
 // unknown an user + appending authentication on external providers
 // to a current user
+//
+//
+// Redirection rules:
+// 1) use cookie (set from query-string param on first step
+// 2) use `auth.frontend.url.redirect` setting
+// 3) use current url
 func (ctrl *ExternalAuth) handleSuccessfulAuth(w http.ResponseWriter, r *http.Request, cred goth.User) {
 	log.Printf("Successful external login: %v", cred)
 
-	if u, err := ctrl.auth.With(r.Context()).External(cred); err != nil {
+	svc := ctrl.auth.With(r.Context())
+
+	if u, err := svc.External(cred); err != nil {
 		resputil.JSON(w, err)
 	} else {
-		ctrl.jwtEncoder.SetCookie(w, r, u)
+		var (
+			token    string
+			redirUrl *url.URL
+			c        *http.Cookie
+		)
 
-		if c, err := r.Cookie("redir"); c != nil && err == nil {
-			ctrl.setSessionCookie(w, r, "redir", "")
-			w.Header().Set("Location", c.Value)
-			w.WriteHeader(http.StatusSeeOther)
-
+		if c, err = r.Cookie("redir"); c != nil && err == nil {
+			if redirUrl, err = url.Parse(c.Value); err == nil {
+				// @todo validate origin/redir-domain
+				ctrl.setSessionCookie(w, r, "redir", "")
+			}
+		} else if fru := svc.FrontendRedirectURL(); fru != "" {
+			redirUrl, err = url.Parse(fru)
+		} else {
+			redirUrl = r.URL
 		}
 
-		resputil.JSON(w, u, err)
+		if err != nil {
+			resputil.JSON(w, err)
+			return
+		}
+
+		if redirUrl != nil {
+
+			q := redirUrl.Query()
+
+			if u != nil {
+				if token, err = svc.IssueAuthRequestToken(u); err == nil {
+					q.Set("token", token)
+				}
+			}
+
+			if err != nil {
+				q.Set("err", err.Error())
+			}
+
+			redirUrl.RawQuery = q.Encode()
+
+			w.Header().Set("Location", redirUrl.String())
+			w.WriteHeader(http.StatusSeeOther)
+		}
+
 	}
 }
 

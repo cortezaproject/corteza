@@ -21,10 +21,16 @@ type (
 	Auth struct {
 		jwt          auth.TokenEncoder
 		authSettings authServiceSettingsProvider
+		authSvc      service.AuthService
 	}
 
 	authServiceSettingsProvider interface {
 		Format() map[string]interface{}
+	}
+
+	exchangeResponse struct {
+		JWT  string         `json:"jwt"`
+		User *outgoing.User `json:"user"`
 	}
 
 	checkResponse struct {
@@ -32,9 +38,11 @@ type (
 	}
 )
 
-func (Auth) New() *Auth {
+func (Auth) New(tenc auth.TokenEncoder) *Auth {
 	return &Auth{
+		jwt:          tenc,
 		authSettings: service.DefaultAuthSettings,
+		authSvc:      service.DefaultAuth,
 	}
 }
 
@@ -43,17 +51,29 @@ func (ctrl *Auth) Check(ctx context.Context, r *request.AuthCheck) (interface{},
 }
 
 func (ctrl *Auth) Logout(ctx context.Context, r *request.AuthLogout) (interface{}, error) {
-	return nil, errors.New("Not implemented: Auth.logout")
+	return nil, nil
 }
 
 func (ctrl *Auth) Settings(ctx context.Context, r *request.AuthSettings) (interface{}, error) {
 	return ctrl.authSettings.Format(), nil
 }
 
+func (ctrl *Auth) ExchangeAuthToken(ctx context.Context, r *request.AuthExchangeAuthToken) (interface{}, error) {
+	user, err := ctrl.authSvc.ValidateAuthRequestToken(r.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	return exchangeResponse{
+		JWT:  ctrl.jwt.Encode(user),
+		User: payload.User(user),
+	}, nil
+}
+
 // Handlers() func ignores "std" crust controllers
 //
 // Crush handlers are too abstract for our auth needs so we need (direct access to htt.ResponseWriter)
-func (ctrl *Auth) Handlers(jwtEncoder auth.TokenEncoder) *handlers.Auth {
+func (ctrl *Auth) Handlers() *handlers.Auth {
 	h := handlers.NewAuth(ctrl)
 	// Check JWT if valid
 	h.Check = func(w http.ResponseWriter, r *http.Request) {
@@ -61,8 +81,6 @@ func (ctrl *Auth) Handlers(jwtEncoder auth.TokenEncoder) *handlers.Auth {
 
 		if identity := auth.GetIdentityFromContext(ctx); identity != nil && identity.Valid() {
 			if user, err := service.DefaultUser.With(ctx).FindByID(identity.Identity()); err == nil {
-				jwtEncoder.SetCookie(w, r, user)
-
 				resputil.JSON(w, checkResponse{
 					User: payload.User(user),
 				})
@@ -70,10 +88,6 @@ func (ctrl *Auth) Handlers(jwtEncoder auth.TokenEncoder) *handlers.Auth {
 				return
 			}
 		}
-	}
-
-	h.Logout = func(w http.ResponseWriter, r *http.Request) {
-		// nothing to do here...
 	}
 
 	return h
