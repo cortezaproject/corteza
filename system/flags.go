@@ -12,6 +12,7 @@ type (
 		http    *config.HTTP
 		monitor *config.Monitor
 		db      *config.Database
+		jwt     *config.JWT
 	}
 )
 
@@ -48,5 +49,6 @@ func Flags(prefix ...string) {
 		new(config.HTTP).Init(prefix...),
 		new(config.Monitor).Init(prefix...),
 		new(config.Database).Init(prefix...),
+		new(config.JWT).Init(),
 	}
 }

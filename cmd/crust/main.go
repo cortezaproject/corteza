@@ -3,10 +3,9 @@ package main
 import (
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"path"
-
-	"net/http"
 
 	context "github.com/SentimensRG/ctx"
 	"github.com/SentimensRG/ctx/sigctx"
@@ -15,10 +14,10 @@ import (
 	"github.com/namsral/flag"
 
 	crm "github.com/crusttech/crust/crm"
+	"github.com/crusttech/crust/internal/auth"
 	messaging "github.com/crusttech/crust/messaging"
 	system "github.com/crusttech/crust/system"
 
-	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/config"
 	"github.com/crusttech/crust/internal/metrics"
 	"github.com/crusttech/crust/internal/middleware"
@@ -60,7 +59,8 @@ func main() {
 	messaging.Flags("messaging")
 	system.Flags("system")
 
-	auth.Flags()
+	authJwtFlags := new(config.JWT).Init()
+
 	subscription.Flags()
 
 	flag.Parse()
@@ -103,15 +103,20 @@ func main() {
 		// logging, cors and such
 		middleware.Mount(ctx, r, flags.http)
 
+		jwtAuth, err := auth.JWT(authJwtFlags.Secret, authJwtFlags.Expiry)
+		if err != nil {
+			log.Fatalf("Error creating JWT Auth: %v", err)
+		}
+
 		r.Route("/api", func(r chi.Router) {
 			r.Route("/crm", func(r chi.Router) {
-				crm.MountRoutes(ctx, r)
+				crm.MountRoutes(ctx, r, jwtAuth)
 			})
 			r.Route("/messaging", func(r chi.Router) {
-				messaging.MountRoutes(ctx, r)
+				messaging.MountRoutes(ctx, r, jwtAuth)
 			})
 			r.Route("/system", func(r chi.Router) {
-				system.MountRoutes(ctx, r)
+				system.MountRoutes(ctx, r, jwtAuth)
 			})
 			middleware.MountSystemRoutes(ctx, r, flags.http)
 		})

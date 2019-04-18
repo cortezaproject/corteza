@@ -9,7 +9,6 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/namsral/flag"
 
-	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/subscription"
 	"github.com/crusttech/crust/internal/version"
 
@@ -28,7 +27,6 @@ func main() {
 	crm.Flags("crm")
 	system.Flags("system")
 
-	auth.Flags()
 	subscription.Flags()
 
 	flag.Parse()
