@@ -7,7 +7,6 @@ import (
 	context "github.com/SentimensRG/ctx"
 	"github.com/SentimensRG/ctx/sigctx"
 
-	"github.com/crusttech/crust/internal/auth"
 	system "github.com/crusttech/crust/system"
 	"github.com/crusttech/crust/system/cli"
 )
@@ -19,7 +18,7 @@ func main() {
 
 	ctx := context.AsContext(sigctx.New())
 
-	flags("system", system.Flags, auth.Flags)
+	flags("system", system.Flags)
 	if err := system.Init(ctx); err != nil {
 		log.Fatalf("Error initializing system: %+v", err)
 	}
