@@ -96,6 +96,9 @@ func (eap externalAuthProvider) MakeValueSet(name string) (vv intset.ValueSet, e
 	return vv, err
 }
 
+// ExternalAuthSettings maps from plain values to externalAuthSettings struct
+//
+// see settings.Initialize() func
 func ExternalAuthSettings(s intset.Service) (eas *externalAuthSettings, err error) {
 	// Read all settings and populate struct
 	settings, err := s.FindByPrefix(settingsKeyBase)

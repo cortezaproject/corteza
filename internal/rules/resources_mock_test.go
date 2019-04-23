@@ -99,3 +99,15 @@ func (m *MockResourcesInterface) Delete(roleID uint64) error {
 func (mr *MockResourcesInterfaceMockRecorder) Delete(roleID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockResourcesInterface)(nil).Delete), roleID)
 }
+
+// Reset mocks base method
+func (m *MockResourcesInterface) Reset(rules []Rule) error {
+	ret := m.ctrl.Call(m, "Reset", rules)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Reset indicates an expected call of Reset
+func (mr *MockResourcesInterfaceMockRecorder) Reset(rules interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reset", reflect.TypeOf((*MockResourcesInterface)(nil).Reset), rules)
+}

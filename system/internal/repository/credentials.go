@@ -23,6 +23,7 @@ type (
 		Create(c *types.Credentials) (*types.Credentials, error)
 		Update(c *types.Credentials) (*types.Credentials, error)
 		DeleteByID(id uint64) error
+		DeleteByKind(ownerID uint64, kind string) (err error)
 	}
 
 	credentials struct {
@@ -99,9 +100,16 @@ func (r *credentials) Create(c *types.Credentials) (*types.Credentials, error) {
 func (r *credentials) Update(c *types.Credentials) (*types.Credentials, error) {
 	updatedAt := time.Now()
 	c.UpdatedAt = &updatedAt
-	return c, r.db().Update(r.tblname, c)
+	return c, r.db().Replace(r.tblname, c)
 }
 
 func (r *credentials) DeleteByID(id uint64) error {
 	return r.updateColumnByID(r.tblname, "deleted_at", time.Now(), id)
+}
+
+func (r *credentials) DeleteByKind(ownerID uint64, kind string) (err error) {
+	return exec(r.db().Exec(
+		fmt.Sprintf("UPDATE %s SET deleted_at = NOW() WHERE rel_owner = ? AND kind = ?", r.tblname),
+		ownerID,
+		kind))
 }

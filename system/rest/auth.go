@@ -19,99 +19,76 @@ var _ = errors.Wrap
 
 type (
 	Auth struct {
-		jwt auth.TokenEncoder
+		jwt          auth.TokenEncoder
+		authSettings authServiceSettingsProvider
+		authSvc      service.AuthService
+	}
+
+	authServiceSettingsProvider interface {
+		Format() map[string]interface{}
+	}
+
+	exchangeResponse struct {
+		JWT  string         `json:"jwt"`
+		User *outgoing.User `json:"user"`
 	}
 
 	checkResponse struct {
-		JWT  string         `json:"jwt"`
 		User *outgoing.User `json:"user"`
 	}
 )
 
-func (Auth) New() *Auth {
-	return &Auth{}
+func (Auth) New(tenc auth.TokenEncoder) *Auth {
+	return &Auth{
+		jwt:          tenc,
+		authSettings: service.DefaultAuthSettings,
+		authSvc:      service.DefaultAuth,
+	}
 }
 
 func (ctrl *Auth) Check(ctx context.Context, r *request.AuthCheck) (interface{}, error) {
 	return nil, errors.New("Not implemented: Auth.check")
 }
 
-func (ctrl *Auth) Login(ctx context.Context, r *request.AuthLogin) (interface{}, error) {
-	return nil, errors.New("Not implemented: Auth.login")
+func (ctrl *Auth) Logout(ctx context.Context, r *request.AuthLogout) (interface{}, error) {
+	return nil, nil
 }
 
-func (ctrl *Auth) Logout(ctx context.Context, r *request.AuthLogout) (interface{}, error) {
-	return nil, errors.New("Not implemented: Auth.logout")
+func (ctrl *Auth) Settings(ctx context.Context, r *request.AuthSettings) (interface{}, error) {
+	return ctrl.authSettings.Format(), nil
+}
+
+func (ctrl *Auth) ExchangeAuthToken(ctx context.Context, r *request.AuthExchangeAuthToken) (interface{}, error) {
+	user, err := ctrl.authSvc.ValidateAuthRequestToken(r.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	return exchangeResponse{
+		JWT:  ctrl.jwt.Encode(user),
+		User: payload.User(user),
+	}, nil
 }
 
 // Handlers() func ignores "std" crust controllers
 //
 // Crush handlers are too abstract for our auth needs so we need (direct access to htt.ResponseWriter)
-func (ctrl *Auth) Handlers(jwtEncoder auth.TokenEncoder) *handlers.Auth {
+func (ctrl *Auth) Handlers() *handlers.Auth {
 	h := handlers.NewAuth(ctrl)
 	// Check JWT if valid
 	h.Check = func(w http.ResponseWriter, r *http.Request) {
-		if c, err := r.Cookie("jwt"); err == nil {
-			ctx := r.Context()
+		ctx := r.Context()
 
-			if identity := auth.GetIdentityFromContext(ctx); identity != nil && identity.Valid() {
-				if user, err := service.DefaultUser.With(ctx).FindByID(identity.Identity()); err == nil {
-					jwtEncoder.SetCookie(w, r, user)
+		if identity := auth.GetIdentityFromContext(ctx); identity != nil && identity.Valid() {
+			if user, err := service.DefaultUser.With(ctx).FindByID(identity.Identity()); err == nil {
+				resputil.JSON(w, checkResponse{
+					User: payload.User(user),
+				})
 
-					resputil.JSON(w, checkResponse{
-						JWT:  c.Value,
-						User: payload.User(user),
-					})
-
-					return
-				}
+				return
 			}
-
-			// Did not send response, assuming invalid cookie
-			jwtEncoder.SetCookie(w, r, nil)
-		} else {
-			resputil.JSON(w, err)
 		}
 	}
 
-	h.Logout = func(w http.ResponseWriter, r *http.Request) {
-		jwtEncoder.SetCookie(w, r, nil)
-	}
-	h.Login = func(w http.ResponseWriter, r *http.Request) {
-		params := request.NewAuthLogin()
-		// ctx := r.Context()
-
-		// parse request to fill parameters
-		err := params.Fill(r)
-		if err != nil {
-			resputil.JSON(w, err)
-			return
-		}
-
-		// userSvc := service.User(ctx)
-
-		// check email and username for login
-		// @todo disabled until we migrate to local users through credentials
-		// user, err := userSvc.FindByEmail(params.Username)
-		// if err != nil {
-		// 	user, err = userSvc.FindByUsername(params.Username)
-		// }
-		//
-		// // can't find user
-		// if err != nil {
-		// 	resputil.JSON(w, err)
-		// 	return
-		// }
-
-		// validate password
-		// @todo disabled until we migrate to local users through credentials
-		// if user.ValidatePassword(params.Password) {
-		// 	jwtEncoder.SetCookie(w, r, user)
-		// 	resputil.JSON(w, user, err)
-		// 	return
-		// }
-
-		resputil.JSON(w, errors.New("Password doesn't match"))
-	}
 	return h
 }

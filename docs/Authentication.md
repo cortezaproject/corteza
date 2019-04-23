@@ -31,10 +31,10 @@ auth.external.providers.github.secret	null
 auth.external.providers.linkedin.enabled	false
 auth.external.providers.linkedin.key	null
 auth.external.providers.linkedin.secret	null
-auth.external.providers.openid-connect.didmos2.enabled	true
-auth.external.providers.openid-connect.didmos2.key	"tXM2ouiovowzGabk"
-auth.external.providers.openid-connect.didmos2.issuer "https://satosa.didmos.latest.crust.tech"
-auth.external.providers.openid-connect.didmos2.secret	"e1d68bfd7718468ba8fd36131f5176b1"
+auth.external.providers.openid-connect.crust-iam.enabled	true
+auth.external.providers.openid-connect.crust-iam.key	"tXM2ouiovowzGabk"
+auth.external.providers.openid-connect.crust-iam.issuer "https://satosa.didmos.latest.crust.tech"
+auth.external.providers.openid-connect.crust-iam.secret	"e1d68bfd7718468ba8fd36131f5176b1"
 auth.external.redirect-url	"http://system.api.local.crust.tech:3002/auth/external/%s/callback"
 auth.external.session-store-secret	"fCVFSRWjVEcoYuhXSf3f6zVWO1p38XEWz2yS8WH7wKDbvpxFrZq7zlEuiUTvk4QF"
 ```
@@ -52,7 +52,7 @@ On startup, you should see log entries similar to these:
 initializing external authentication providers (3)
 external authentication provider "facebook" added
 external authentication provider "gplus" added
-external authentication provider "openid-connect.didmos2" added
+external authentication provider "openid-connect.crust-iam" added
 ```
 
 
@@ -64,7 +64,7 @@ system-cli external-auth auto-discovery name url
 ```
 
 ```bash
-system-cli external-auth auto-discovery didmos2 https://satosa.didmos.crust.example.tld
+system-cli external-auth auto-discovery crust-iam https://satosa.didmos.crust.example.tld
 ```
 
 This will autodiscover and autoconfigure new OIDC provider. 
@@ -74,5 +74,5 @@ Please note that this provider is disabled by default.
 
 To enable it, run:
 ```bash
-system-cli settings key auth.external.providers.openid-connect.didmos2.enabled true
+system-cli settings key auth.external.providers.openid-connect.crust-iam.enabled true
 ```

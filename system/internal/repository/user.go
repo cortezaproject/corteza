@@ -42,7 +42,7 @@ type (
 
 const (
 	sqlUserColumns = "id, email, username, name, handle, " +
-		"meta, rel_organisation, " +
+		"meta, rel_organisation, email_confirmed, " +
 		"created_at, updated_at, suspended_at, deleted_at"
 	sqlUserScope  = "suspended_at IS NULL AND deleted_at IS NULL"
 	sqlUserSelect = "SELECT " + sqlUserColumns + " FROM %s WHERE " + sqlUserScope

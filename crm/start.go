@@ -18,24 +18,10 @@ import (
 	"github.com/crusttech/crust/internal/metrics"
 )
 
-var (
-	jwtVerifier      func(http.Handler) http.Handler
-	jwtAuthenticator func(http.Handler) http.Handler
-	jwtEncoder       auth.TokenEncoder
-)
-
 func Init(ctx context.Context) error {
 	// validate configuration
 	if err := flags.Validate(); err != nil {
 		return err
-	}
-	// JWT Auth
-	if jwtAuth, err := auth.JWT(); err != nil {
-		return errors.Wrap(err, "Error creating JWT Auth object")
-	} else {
-		jwtEncoder = jwtAuth
-		jwtVerifier = jwtAuth.Verifier()
-		jwtAuthenticator = jwtAuth.Authenticator()
 	}
 
 	mail.SetupDialer(flags.smtp)
@@ -83,7 +69,12 @@ func StartRestAPI(ctx context.Context) error {
 		go metrics.NewMonitor(flags.monitor.Interval)
 	}
 
-	go http.Serve(listener, Routes(ctx))
+	jwtAuth, err := auth.JWT(flags.jwt.Secret, flags.jwt.Expiry)
+	if err != nil {
+		return errors.Wrap(err, "Error creating JWT Auth")
+	}
+
+	go http.Serve(listener, Routes(ctx, jwtAuth))
 	<-ctx.Done()
 
 	return nil

@@ -28,20 +28,29 @@ import (
 
 // Internal API interface
 type AuthAPI interface {
+	Settings(context.Context, *request.AuthSettings) (interface{}, error)
 	Check(context.Context, *request.AuthCheck) (interface{}, error)
-	Login(context.Context, *request.AuthLogin) (interface{}, error)
+	ExchangeAuthToken(context.Context, *request.AuthExchangeAuthToken) (interface{}, error)
 	Logout(context.Context, *request.AuthLogout) (interface{}, error)
 }
 
 // HTTP API interface
 type Auth struct {
-	Check  func(http.ResponseWriter, *http.Request)
-	Login  func(http.ResponseWriter, *http.Request)
-	Logout func(http.ResponseWriter, *http.Request)
+	Settings          func(http.ResponseWriter, *http.Request)
+	Check             func(http.ResponseWriter, *http.Request)
+	ExchangeAuthToken func(http.ResponseWriter, *http.Request)
+	Logout            func(http.ResponseWriter, *http.Request)
 }
 
 func NewAuth(ah AuthAPI) *Auth {
 	return &Auth{
+		Settings: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewAuthSettings()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return ah.Settings(r.Context(), params)
+			})
+		},
 		Check: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAuthCheck()
@@ -49,11 +58,11 @@ func NewAuth(ah AuthAPI) *Auth {
 				return ah.Check(r.Context(), params)
 			})
 		},
-		Login: func(w http.ResponseWriter, r *http.Request) {
+		ExchangeAuthToken: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewAuthLogin()
+			params := request.NewAuthExchangeAuthToken()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.Login(r.Context(), params)
+				return ah.ExchangeAuthToken(r.Context(), params)
 			})
 		},
 		Logout: func(w http.ResponseWriter, r *http.Request) {
@@ -69,8 +78,9 @@ func NewAuth(ah AuthAPI) *Auth {
 func (ah *Auth) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
+		r.Get("/auth/", ah.Settings)
 		r.Get("/auth/check", ah.Check)
-		r.Post("/auth/login", ah.Login)
+		r.Post("/auth/exchange", ah.ExchangeAuthToken)
 		r.Get("/auth/logout", ah.Logout)
 	})
 }
