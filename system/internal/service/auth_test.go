@@ -63,10 +63,11 @@ func TestAuth_External_Existing(t *testing.T) {
 	usrRpoMock.EXPECT().FindByID(u.ID).Times(1).Return(u, nil)
 
 	svc := makeMockAuthService(usrRpoMock, crdRpoMock)
+	svc.settings.externalEnabled = true
 
 	{
 		auser, err := svc.External(p)
-		test.NoError(t, err, "unexpected error from auth.External", err)
+		test.NoError(t, err, "unexpected error from auth.External: %v", err)
 		test.Assert(t, auser.ID == u.ID, "Did not receive expected user")
 	}
 }
@@ -102,44 +103,47 @@ func TestAuth_External_NonExisting(t *testing.T) {
 		Return(u, nil)
 
 	svc := makeMockAuthService(usrRpoMock, crdRpoMock)
+	svc.settings.externalEnabled = true
 
 	{
 		auser, err := svc.External(p)
-		test.NoError(t, err, "unexpected error from auth.External", err)
+		test.NoError(t, err, "unexpected error from auth.External: %v", err)
 		test.Assert(t, auser.ID == u.ID, "Did not receive expected user")
 	}
 }
 
-func Test_auth_validateLocalSignIn(t *testing.T) {
+func Test_auth_validateInternalLogin(t *testing.T) {
 	type args struct {
 		email    string
-		password []byte
+		password string
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
-		{name: "no email", args: args{"", []byte("")}, wantErr: true},
-		{name: "bad email", args: args{"test", []byte("")}, wantErr: true},
-		{name: "no pass", args: args{"test@domain.tld", []byte("")}, wantErr: true},
-		{name: "all good", args: args{"test@domain.tld", []byte("password")}, wantErr: false},
+		{name: "no email", args: args{"", ""}, wantErr: true},
+		{name: "bad email", args: args{"test", ""}, wantErr: true},
+		{name: "no pass", args: args{"test@domain.tld", ""}, wantErr: true},
+		{name: "all good", args: args{"test@domain.tld", "password"}, wantErr: false},
 	}
 	svc := auth{}
+	svc.settings.internalEnabled = true
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := svc.validateLocalSignIn(tt.args.email, tt.args.password); (err != nil) != tt.wantErr {
-				t.Errorf("auth.validateLocalSignIn() error = %v, wantErr %v", err, tt.wantErr)
+			if err := svc.validateInternalLogin(tt.args.email, tt.args.password); (err != nil) != tt.wantErr {
+				t.Errorf("auth.validateInternalLogin() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
 func Test_auth_checkPassword(t *testing.T) {
-	plainPassword := []byte(" ... plain password ... ")
-	hashedPassword, _ := bcrypt.GenerateFromPassword(plainPassword, bcrypt.DefaultCost)
+	plainPassword := " ... plain password ... "
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
 	type args struct {
-		password []byte
+		password string
 		cc       types.CredentialsSet
 	}
 	tests := []struct {
@@ -155,13 +159,13 @@ func Test_auth_checkPassword(t *testing.T) {
 			name:    "bad pwd",
 			wantErr: true,
 			args: args{
-				password: []byte(" foo "),
+				password: " foo ",
 				cc:       types.CredentialsSet{&types.Credentials{ID: 1, Credentials: string(hashedPassword)}}}},
 		{
 			name:    "invalid credentials",
 			wantErr: true,
 			args: args{
-				password: []byte(" foo "),
+				password: " foo ",
 				cc:       types.CredentialsSet{&types.Credentials{ID: 0, Credentials: string(hashedPassword)}}}},
 		{
 			name:    "ok",

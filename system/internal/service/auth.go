@@ -142,7 +142,7 @@ func (svc *auth) External(profile goth.User) (u *types.User, err error) {
 							goto findByEmail
 						}
 					}
-					return nil
+					return err
 				} else if u.Valid() {
 					// Valid user, Bingo!
 					c.LastUsedAt = svc.now()
@@ -194,10 +194,7 @@ func (svc *auth) External(profile goth.User) (u *types.User, err error) {
 		} else if err != nil {
 			return err
 		} else if !u.Valid() {
-			return errors.Errorf(
-				"user not valid",
-				u.ID,
-			)
+			return errors.Errorf("user not valid")
 		} else {
 			log.Printf(
 				"autheticated user (%v, %v) via %s, existing user",
