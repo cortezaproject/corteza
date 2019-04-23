@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+
+	internalSettings "github.com/crusttech/crust/internal/settings"
+	"github.com/crusttech/crust/system/internal/repository"
 )
 
 type (
@@ -11,7 +14,10 @@ type (
 )
 
 var (
-	DefaultSettings     SettingsService
+	DefaultSettings         SettingsService
+	DefaultAuthNotification AuthNotificationService
+	DefaultAuthSettings     authSettings
+
 	DefaultAuth         AuthService
 	DefaultUser         UserService
 	DefaultRole         RoleService
@@ -21,15 +27,27 @@ var (
 	DefaultPermissions  PermissionsService
 )
 
-func Init() error {
+func Init() (err error) {
 	ctx := context.Background()
-	DefaultSettings = Settings(ctx)
+
+	intSet := internalSettings.NewService(internalSettings.NewRepository(repository.DB(ctx), "sys_settings"))
+
+	DefaultSettings = Settings(ctx, intSet)
 	DefaultRules = Rules(ctx)
 	DefaultPermissions = Permissions(ctx)
-	DefaultAuth = Auth(ctx)
+
 	DefaultUser = User(ctx)
 	DefaultRole = Role(ctx)
 	DefaultOrganisation = Organisation(ctx)
 	DefaultApplication = Application(ctx)
-	return nil
+
+	// Authentication helpers & services
+	DefaultAuthSettings, err = DefaultSettings.LoadAuthSettings()
+	if err != nil {
+		return
+	}
+	DefaultAuthNotification = AuthNotification(ctx)
+	DefaultAuth = Auth(ctx)
+
+	return
 }

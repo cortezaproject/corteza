@@ -12,6 +12,11 @@ type (
 
 	TokenEncoder interface {
 		Encode(identity Identifiable) string
-		SetCookie(w http.ResponseWriter, r *http.Request, identity Identifiable)
+	}
+
+	TokenHandler interface {
+		Encode(identity Identifiable) string
+		Verifier() func(http.Handler) http.Handler
+		Authenticator() func(http.Handler) http.Handler
 	}
 )

@@ -14,6 +14,7 @@ type (
 		monitor    *config.Monitor
 		db         *config.Database
 		repository *repository.Flags
+		jwt        *config.JWT
 	}
 )
 
@@ -55,5 +56,6 @@ func Flags(prefix ...string) {
 		new(config.Monitor).Init(prefix...),
 		new(config.Database).Init(prefix...),
 		new(repository.Flags).Init(prefix...),
+		new(config.JWT).Init(),
 	}
 }

@@ -21,24 +21,10 @@ import (
 	"github.com/crusttech/crust/system/service"
 )
 
-var (
-	jwtVerifier      func(http.Handler) http.Handler
-	jwtAuthenticator func(http.Handler) http.Handler
-	jwtEncoder       auth.TokenEncoder
-)
-
 func Init(ctx context.Context) error {
 	// validate configuration
 	if err := flags.Validate(); err != nil {
 		return err
-	}
-	// JWT Auth
-	if jwtAuth, err := auth.JWT(); err != nil {
-		return errors.Wrap(err, "Error creating JWT Auth object")
-	} else {
-		jwtEncoder = jwtAuth
-		jwtVerifier = jwtAuth.Verifier()
-		jwtAuthenticator = jwtAuth.Authenticator()
 	}
 
 	mail.SetupDialer(flags.smtp)
@@ -46,10 +32,6 @@ func Init(ctx context.Context) error {
 	if err := InitDatabase(ctx); err != nil {
 		return err
 	}
-
-	// Load settings from the database,
-	// for now, only at start-up time.
-	settingService := settings.NewService(settings.NewRepository(repository.DB(ctx), "sys_settings"))
 
 	// configure resputil options
 	resputil.SetConfig(resputil.Options{
@@ -64,9 +46,6 @@ func Init(ctx context.Context) error {
 	if err := service.Init(); err != nil {
 		return err
 	}
-
-	// Setup goth/social authentication
-	external.Init(settingService.With(ctx))
 
 	return nil
 }
@@ -87,6 +66,13 @@ func InitDatabase(ctx context.Context) error {
 }
 
 func StartRestAPI(ctx context.Context) error {
+	// Load settings from the database,
+	// for now, only at start-up time.
+	settingService := settings.NewService(settings.NewRepository(repository.DB(ctx), "sys_settings")).With(ctx)
+
+	// Setup goth/external authentication
+	external.Init(settingService)
+
 	log.Println("Starting http server on address " + flags.http.Addr)
 	listener, err := net.Listen("tcp", flags.http.Addr)
 	if err != nil {
@@ -97,7 +83,12 @@ func StartRestAPI(ctx context.Context) error {
 		go metrics.NewMonitor(flags.monitor.Interval)
 	}
 
-	go http.Serve(listener, Routes(ctx))
+	jwtAuth, err := auth.JWT(flags.jwt.Secret, flags.jwt.Expiry)
+	if err != nil {
+		return errors.Wrap(err, "Error creating JWT Auth")
+	}
+
+	go http.Serve(listener, Routes(ctx, jwtAuth))
 	<-ctx.Done()
 
 	return nil

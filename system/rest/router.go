@@ -13,7 +13,9 @@ func MountRoutes(jwtEncoder auth.TokenEncoder) func(chi.Router) {
 		NewSocial(jwtEncoder).MountRoutes(r)
 
 		// Provide raw `/auth` handlers
-		Auth{}.New().Handlers(jwtEncoder).MountRoutes(r)
+		Auth{}.New(jwtEncoder).Handlers().MountRoutes(r)
+
+		handlers.NewAuthInternal((AuthInternal{}).New(jwtEncoder)).MountRoutes(r)
 
 		// Protect all _private_ routes
 		r.Group(func(r chi.Router) {

@@ -1,35 +1,35 @@
 package auth
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/jwtauth"
+	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 )
 
-type token struct {
-	expiry       int64
-	cookieDomain string
-	tokenAuth    *jwtauth.JWTAuth
-}
-
-func JWT() (*token, error) {
-	if err := flags.Validate(); err != nil {
-		return nil, err
+type (
+	token struct {
+		expiry    int64
+		tokenAuth *jwtauth.JWTAuth
 	}
 
-	jwt := &token{
-		expiry:       flags.jwt.Expiry,
-		cookieDomain: flags.jwt.CookieDomain,
-		tokenAuth:    jwtauth.New("HS256", []byte(flags.jwt.Secret), nil),
+	jwtSettingsGetter interface {
+		GetGlobalString(name string) (out string, err error)
+	}
+)
+
+func JWT(secret string, expiry int64) (jwt *token, err error) {
+	if len(secret) == 0 {
+		return nil, errors.New("JWT secret missing")
 	}
 
-	if flags.jwt.DebugToken {
-		log.Println("DEBUG JWT TOKEN:", jwt.Encode(NewIdentity(1)))
+	jwt = &token{
+		expiry:    expiry,
+		tokenAuth: jwtauth.New("HS256", []byte(secret), nil),
 	}
 
 	return jwt, nil
@@ -67,23 +67,4 @@ func (t *token) Authenticator() func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		})
 	}
-}
-
-// Extracts and authenticates JWT from context, validates claims
-func (t *token) SetCookie(w http.ResponseWriter, r *http.Request, identity Identifiable) {
-	cookie := &http.Cookie{
-		Name:    "jwt",
-		Expires: time.Now().Add(time.Duration(t.expiry) * time.Minute),
-		Secure:  r.URL.Scheme == "https",
-		Domain:  t.cookieDomain,
-		Path:    "/",
-	}
-
-	if identity == nil {
-		cookie.Expires = time.Unix(0, 0)
-	} else {
-		cookie.Value = t.Encode(identity)
-	}
-
-	http.SetCookie(w, cookie)
 }

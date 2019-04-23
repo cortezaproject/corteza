@@ -6,12 +6,51 @@
     "authentication": [],
     "apis": [
       {
+        "name": "settings",
+        "method": "GET",
+        "title": "Returns auth settings",
+        "path": "/",
+        "parameters": {}
+      },
+      {
         "name": "check",
         "method": "GET",
         "title": "Check JWT token",
         "path": "/check",
         "parameters": {}
       },
+      {
+        "name": "exchangeAuthToken",
+        "method": "POST",
+        "title": "Exchange auth token for JWT",
+        "path": "/exchange",
+        "parameters": {
+          "post": [
+            {
+              "name": "token",
+              "type": "string",
+              "required": true,
+              "title": "Token to be exchanged for JWT"
+            }
+          ]
+        }
+      },
+      {
+        "name": "logout",
+        "method": "GET",
+        "title": "Logout",
+        "path": "/logout",
+        "parameters": {}
+      }
+    ]
+  },
+  {
+  "title": "Internal authentication",
+  "path": "/auth/internal",
+  "entrypoint": "auth_internal",
+  "authentication": [],
+  "apis":
+  [
       {
         "name": "login",
         "method": "POST",
@@ -20,10 +59,10 @@
         "parameters": {
           "post": [
             {
-              "name": "username",
+              "name": "email",
               "type": "string",
               "required": true,
-              "title": "Username"
+              "title": "Email"
             },
             {
               "name": "password",
@@ -35,11 +74,136 @@
         }
       },
       {
-        "name": "logout",
-        "method": "GET",
-        "title": "Delete JWT token (Sign Out)",
-        "path": "/logout",
-        "parameters": {}
+        "name": "signup",
+        "method": "POST",
+        "title": "User signup/registration",
+        "path": "/signup",
+        "parameters": {
+          "post": [
+            {
+              "name": "email",
+              "type": "string",
+              "required": true,
+              "title": "Email"
+            },
+            {
+              "name": "username",
+              "type": "string",
+              "required": false,
+              "title": "Username"
+            },
+            {
+              "name": "password",
+              "type": "string",
+              "required": true,
+              "title": "Password"
+            },
+            {
+              "name": "handle",
+              "type": "string",
+              "required": false,
+              "title": "User handle"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "required": false,
+              "title": "Display name"
+            }
+          ]
+        }
+      },
+      {
+        "name": "requestPasswordReset",
+        "method": "POST",
+        "title": "Request password reset token (via email)",
+        "path": "/request-password-reset",
+        "parameters": {
+          "post": [
+            {
+              "name": "email",
+              "type": "string",
+              "required": true,
+              "title": "Email"
+            }
+          ]
+        }
+      },
+      {
+        "name": "exchangePasswordResetToken",
+        "method": "POST",
+        "title": "Exchange password reset token for new token and user info",
+        "path": "/exchange-password-reset-token",
+        "parameters": {
+          "post": [
+            {
+              "name": "token",
+              "type": "string",
+              "required": true,
+              "title": "Token"
+            }
+          ]
+        }
+      },
+      {
+        "name": "resetPassword",
+        "method": "POST",
+        "title": "Reset password with exchanged password reset token",
+        "path": "/reset-password",
+        "parameters": {
+          "post": [
+            {
+              "name": "token",
+              "type": "string",
+              "required": true,
+              "title": "Token"
+            },
+            {
+              "name": "password",
+              "type": "string",
+              "required": true,
+              "title": "Password"
+            }
+          ]
+        }
+      },
+      {
+        "name": "confirmEmail",
+        "method": "POST",
+        "title": "Confirm email with token",
+        "path": "/confirm-email",
+        "parameters": {
+          "post": [
+            {
+              "name": "token",
+              "type": "string",
+              "required": true,
+              "title": "Token"
+            }
+          ]
+        }
+      },
+      {
+        "name": "changePassword",
+        "method": "POST",
+        "title": "Changes password for current user, requires current password",
+        "path": "/change-password",
+        "parameters": {
+          "post": [
+            {
+              "name": "oldPassword",
+              "type": "string",
+              "required": true,
+              "title": "Old password"
+            },
+            {
+              "name": "newPassword",
+              "type": "string",
+              "required": true,
+              "title": "New password"
+            }
+          ]
+        }
       }
     ]
   },

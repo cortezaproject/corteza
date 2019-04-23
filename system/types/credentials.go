@@ -23,5 +23,5 @@ type (
 )
 
 func (u *Credentials) Valid() bool {
-	return u.ID > 0 && (u.ExpiresAt == nil || u.ExpiresAt.Before(time.Now())) && u.DeletedAt == nil
+	return u.ID > 0 && (u.ExpiresAt == nil || u.ExpiresAt.After(time.Now())) && u.DeletedAt == nil
 }

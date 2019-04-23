@@ -64,7 +64,7 @@ func (s service) GetGlobalString(name string) (out string, err error) {
 	const global = 0
 	var v *Value
 
-	if v, err = s.repository.Get(name, global); err == nil {
+	if v, err = s.repository.Get(name, global); err == nil && v != nil {
 		err = v.Value.Unmarshal(&out)
 	}
 
@@ -75,7 +75,7 @@ func (s service) GetGlobalBool(name string) (out bool, err error) {
 	const global = 0
 	var v *Value
 
-	if v, err = s.repository.Get(name, global); err == nil {
+	if v, err = s.repository.Get(name, global); err == nil && v != nil {
 		err = v.Value.Unmarshal(&out)
 	}
 

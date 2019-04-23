@@ -1,0 +1,165 @@
+{
+  "Title": "Internal authentication",
+  "Interface": "Auth_internal",
+  "Struct": null,
+  "Parameters": null,
+  "Protocol": "",
+  "Authentication": [],
+  "Path": "/auth/internal",
+  "APIs": [
+    {
+      "Name": "login",
+      "Method": "POST",
+      "Title": "Login user",
+      "Path": "/login",
+      "Parameters": {
+        "post": [
+          {
+            "name": "email",
+            "required": true,
+            "title": "Email",
+            "type": "string"
+          },
+          {
+            "name": "password",
+            "required": true,
+            "title": "Password",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "signup",
+      "Method": "POST",
+      "Title": "User signup/registration",
+      "Path": "/signup",
+      "Parameters": {
+        "post": [
+          {
+            "name": "email",
+            "required": true,
+            "title": "Email",
+            "type": "string"
+          },
+          {
+            "name": "username",
+            "required": false,
+            "title": "Username",
+            "type": "string"
+          },
+          {
+            "name": "password",
+            "required": true,
+            "title": "Password",
+            "type": "string"
+          },
+          {
+            "name": "handle",
+            "required": false,
+            "title": "User handle",
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "required": false,
+            "title": "Display name",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "requestPasswordReset",
+      "Method": "POST",
+      "Title": "Request password reset token (via email)",
+      "Path": "/request-password-reset",
+      "Parameters": {
+        "post": [
+          {
+            "name": "email",
+            "required": true,
+            "title": "Email",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "exchangePasswordResetToken",
+      "Method": "POST",
+      "Title": "Exchange password reset token for new token and user info",
+      "Path": "/exchange-password-reset-token",
+      "Parameters": {
+        "post": [
+          {
+            "name": "token",
+            "required": true,
+            "title": "Token",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "resetPassword",
+      "Method": "POST",
+      "Title": "Reset password with exchanged password reset token",
+      "Path": "/reset-password",
+      "Parameters": {
+        "post": [
+          {
+            "name": "token",
+            "required": true,
+            "title": "Token",
+            "type": "string"
+          },
+          {
+            "name": "password",
+            "required": true,
+            "title": "Password",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "confirmEmail",
+      "Method": "POST",
+      "Title": "Confirm email with token",
+      "Path": "/confirm-email",
+      "Parameters": {
+        "post": [
+          {
+            "name": "token",
+            "required": true,
+            "title": "Token",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "changePassword",
+      "Method": "POST",
+      "Title": "Changes password for current user, requires current password",
+      "Path": "/change-password",
+      "Parameters": {
+        "post": [
+          {
+            "name": "oldPassword",
+            "required": true,
+            "title": "Old password",
+            "type": "string"
+          },
+          {
+            "name": "newPassword",
+            "required": true,
+            "title": "New password",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}
