@@ -1,4 +1,4 @@
-// +build integration
+// +build integration-disabled
 
 package service
 
@@ -35,13 +35,13 @@ type (
 	}
 )
 
-func disabledTestUsers(t *testing.T) {
+func TestUsers(t *testing.T) {
 	ctx := context.Background()
 
 	// we need to set this due to using Init()
 	os.Setenv("SYSTEM_DB_DSN", "crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci")
 
-	mountFlags("system", Flags, auth.Flags)
+	mountFlags("system", Flags)
 
 	// log to stdout not stderr
 	log.SetOutput(os.Stdout)
@@ -51,7 +51,12 @@ func disabledTestUsers(t *testing.T) {
 	err := Init(ctx)
 	test.Assert(t, err == nil, "Error initializing: %+v", err)
 
-	routes := Routes(ctx)
+	jwtSecret := "test-secret"
+
+	jwtAuth, err := auth.JWT(jwtSecret, 600)
+	test.NoError(t, err, "Error initializing: %v")
+
+	routes := Routes(ctx, jwtAuth)
 
 	// Send check request with invalid JWT token.
 	{
@@ -62,7 +67,10 @@ func disabledTestUsers(t *testing.T) {
 			"id":  "zblj",
 			"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
 		})
-		tokenString, err := token.SignedString([]byte("secret"))
+
+		jwtAuth.Encode()
+
+		tokenString, err := token.SignedString([]byte(jwtSecret))
 		test.Assert(t, err == nil, "Error creating JWT token: %+v", err)
 
 		req.AddCookie(&http.Cookie{
