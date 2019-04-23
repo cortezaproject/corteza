@@ -407,7 +407,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2ebbbb9481b5021db546cd1759e656a87758280f12740d7098016249a8778595"
+  digest = "1:57de5e480eeacde4eb99778411c6a1361ca7d84587b0d6b4de77ae9ad1a6ecf9"
   name = "golang.org/x/crypto"
   packages = [
     "bcrypt",
@@ -415,6 +415,7 @@
     "ed25519",
     "ed25519/internal/edwards25519",
     "pbkdf2",
+    "ssh/terminal",
   ]
   pruneopts = "UT"
   revision = "b7391e95e576cacdcdd422573063bc057239113d"
@@ -452,6 +453,17 @@
   ]
   pruneopts = "UT"
   revision = "c85d3e98c914e3a33234ad863dcbff5dbc425bb8"
+
+[[projects]]
+  branch = "master"
+  digest = "1:0b1c39a5f01b898239cc5c6ee20c6535cb2621685206a371d4a489477d75511b"
+  name = "golang.org/x/sys"
+  packages = [
+    "unix",
+    "windows",
+  ]
+  pruneopts = "UT"
+  revision = "953cdadca894cdc07be76fc99f95b40c28f06623"
 
 [[projects]]
   digest = "1:8029e9743749d4be5bc9f7d42ea1659471767860f0cdc34d37c3111bd308a295"
@@ -546,7 +558,6 @@
     "github.com/goware/statik/fs",
     "github.com/jmoiron/sqlx",
     "github.com/jmoiron/sqlx/types",
-    "github.com/joho/godotenv",
     "github.com/joho/godotenv/autoload",
     "github.com/lann/builder",
     "github.com/markbates/goth",
@@ -564,7 +575,7 @@
     "github.com/titpetric/factory",
     "github.com/titpetric/factory/resputil",
     "golang.org/x/crypto/bcrypt",
-    "golang.org/x/oauth2",
+    "golang.org/x/crypto/ssh/terminal",
     "gopkg.in/Masterminds/squirrel.v1",
     "gopkg.in/mail.v2",
   ]
