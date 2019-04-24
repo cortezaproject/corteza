@@ -51,7 +51,7 @@ func (ctrl *Auth) Check(ctx context.Context, r *request.AuthCheck) (interface{},
 }
 
 func (ctrl *Auth) Logout(ctx context.Context, r *request.AuthLogout) (interface{}, error) {
-	return nil, nil
+	return true, nil
 }
 
 func (ctrl *Auth) Settings(ctx context.Context, r *request.AuthSettings) (interface{}, error) {
@@ -70,7 +70,7 @@ func (ctrl *Auth) ExchangeAuthToken(ctx context.Context, r *request.AuthExchange
 	}, nil
 }
 
-// Handlers() func ignores "std" crust controllers
+// Handlers func ignores standard crust controllers
 //
 // Crush handlers are too abstract for our auth needs so we need (direct access to htt.ResponseWriter)
 func (ctrl *Auth) Handlers() *handlers.Auth {
