@@ -16,7 +16,7 @@ Example settings (`system-cli settings list --prefix=auth.external`):
 
 
 ```
-auth.external.callback-endpoint	"http://system.api.local.crust.tech:3002/auth/external/%s/callback"
+auth.external.callback-endpoint	"https://your-crust-system-api-backend/auth/external/%s/callback"
 auth.external.enabled	true
 auth.external.providers.facebook.enabled	true
 auth.external.providers.facebook.key	"24226007270326"

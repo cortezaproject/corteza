@@ -37,7 +37,7 @@ func settingsCmd(ctx context.Context, setSvc settings.Service) *cobra.Command {
 	}
 
 	auto.Flags().String("system-api-url", "", "System API URL (http://sytem.api.example.tld)")
-	auto.Flags().String("auth-frontend-url", "", "http://example.tld/auth")
+	auto.Flags().String("auth-frontend-url", "", "http://example.tld")
 	auto.Flags().String("auth-from-address", "", "name@example.tld")
 	auto.Flags().String("auth-from-name", "", "Name Surname")
 
