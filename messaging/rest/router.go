@@ -11,7 +11,6 @@ func MountRoutes() func(chi.Router) {
 	// Initialize handlers & controllers.
 	return func(r chi.Router) {
 		r.Group(func(r chi.Router) {
-			r.Use(auth.MiddlewareValidOnly404)
 			handlers.NewAttachmentDownloadable(Attachment{}.New()).MountRoutes(r)
 		})
 

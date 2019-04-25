@@ -3,6 +3,20 @@
   "Interface": "Attachment",
   "Struct": null,
   "Parameters": {
+    "get": [
+      {
+        "name": "sign",
+        "required": true,
+        "title": "Signature",
+        "type": "string"
+      },
+      {
+        "name": "userID",
+        "required": true,
+        "title": "User ID",
+        "type": "uint64"
+      }
+    ],
     "path": [
       {
         "name": "attachmentID",

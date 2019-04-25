@@ -18,6 +18,8 @@
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | download | bool | GET | Force file download | N/A | NO |
+| sign | string | GET | Signature | N/A | YES |
+| userID | uint64 | GET | User ID | N/A | YES |
 | name | string | PATH | File name | N/A | YES |
 | attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
 
@@ -35,6 +37,8 @@
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | ext | string | PATH | Preview extension/format | N/A | YES |
 | attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
+| sign | string | GET | Signature | N/A | YES |
+| userID | uint64 | GET | User ID | N/A | YES |
 
 ---
 
