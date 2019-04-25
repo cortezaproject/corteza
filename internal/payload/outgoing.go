@@ -32,7 +32,7 @@ func Message(ctx context.Context, msg *messagingTypes.Message) *outgoing.Message
 		RepliesFrom: Uint64stoa(msg.RepliesFrom),
 
 		User:         User(msg.User),
-		Attachment:   Attachment(msg.Attachment),
+		Attachment:   Attachment(msg.Attachment, currentUserID),
 		Mentions:     messageMentionSet(msg.Mentions),
 		Reactions:    messageReactionSumSet(msg.Flags),
 		IsPinned:     msg.Flags.IsPinned(),
@@ -231,12 +231,15 @@ func Users(users []*systemTypes.User) *outgoing.UserSet {
 	return &retval
 }
 
-func Attachment(in *messagingTypes.Attachment) *outgoing.Attachment {
+func Attachment(in *messagingTypes.Attachment, userID uint64) *outgoing.Attachment {
 	if in == nil {
 		return nil
 	}
 
-	var preview string
+	var (
+		signParams = fmt.Sprintf("?sign=%s&userID=%d", auth.DefaultSigner.Sign(userID, in.ID), userID)
+		preview    string
+	)
 
 	if in.Meta.Preview != nil {
 		var ext = in.Meta.Preview.Extension
@@ -250,8 +253,8 @@ func Attachment(in *messagingTypes.Attachment) *outgoing.Attachment {
 	return &outgoing.Attachment{
 		ID:         Uint64toa(in.ID),
 		UserID:     Uint64toa(in.UserID),
-		Url:        fmt.Sprintf(attachmentURL, in.ID, url.PathEscape(in.Name)),
-		PreviewUrl: preview,
+		Url:        fmt.Sprintf(attachmentURL, in.ID, url.PathEscape(in.Name)) + signParams,
+		PreviewUrl: preview + signParams,
 		Meta:       in.Meta,
 		Name:       in.Name,
 		CreatedAt:  in.CreatedAt,

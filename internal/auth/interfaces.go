@@ -19,4 +19,9 @@ type (
 		Verifier() func(http.Handler) http.Handler
 		Authenticator() func(http.Handler) http.Handler
 	}
+
+	Signer interface {
+		Sign(userID uint64, pp ...interface{}) string
+		Verify(signature string, userID uint64, pp ...interface{}) bool
+	}
 )

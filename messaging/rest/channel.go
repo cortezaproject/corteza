@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 
+	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/internal/payload/outgoing"
 	"github.com/crusttech/crust/messaging/internal/service"
@@ -112,21 +113,19 @@ func (ctrl *Channel) Attach(ctx context.Context, r *request.ChannelAttach) (inte
 
 	defer file.Close()
 
-	return ctrl.wrapAttachment(ctrl.svc.att.With(ctx).Create(
+	att, err := ctrl.svc.att.With(ctx).Create(
 		r.Upload.Filename,
 		r.Upload.Size,
 		file,
 		r.ChannelID,
 		r.ReplyTo,
-	))
-}
+	)
 
-func (ctrl *Channel) wrapAttachment(attachment *types.Attachment, err error) (*outgoing.Attachment, error) {
 	if err != nil {
 		return nil, err
-	} else {
-		return payload.Attachment(attachment), nil
 	}
+
+	return payload.Attachment(att, auth.GetIdentityFromContext(ctx).Identity()), nil
 }
 
 func (ctrl *Channel) wrap(channel *types.Channel, err error) (*outgoing.Channel, error) {

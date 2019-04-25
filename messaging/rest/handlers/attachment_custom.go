@@ -54,7 +54,7 @@ func NewAttachmentDownloadable(ah AttachmentAPI) *Attachment {
 		Original: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAttachmentOriginal()
-			params.Fill(r)
+			_ = params.Fill(r)
 
 			f, err := ah.Original(r.Context(), params)
 			serve(f, err, w, r)
@@ -63,7 +63,7 @@ func NewAttachmentDownloadable(ah AttachmentAPI) *Attachment {
 		Preview: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAttachmentPreview()
-			params.Fill(r)
+			_ = params.Fill(r)
 
 			f, err := ah.Preview(r.Context(), params)
 			serve(f, err, w, r)

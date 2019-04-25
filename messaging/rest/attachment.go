@@ -2,22 +2,23 @@ package rest
 
 import (
 	"context"
+	"io"
+	"time"
+
+	"github.com/pkg/errors"
+
+	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/messaging/internal/service"
 	"github.com/crusttech/crust/messaging/rest/handlers"
 	"github.com/crusttech/crust/messaging/rest/request"
 	"github.com/crusttech/crust/messaging/types"
-	"github.com/pkg/errors"
-	"io"
-	"time"
 )
 
 var _ = errors.Wrap
 
 type (
 	Attachment struct {
-		svc struct {
-			att service.AttachmentService
-		}
+		att service.AttachmentService
 	}
 
 	file struct {
@@ -29,29 +30,53 @@ type (
 
 func (Attachment) New() *Attachment {
 	ctrl := &Attachment{}
-	ctrl.svc.att = service.DefaultAttachment
+	ctrl.att = service.DefaultAttachment
 	return ctrl
 }
 
 func (ctrl *Attachment) Original(ctx context.Context, r *request.AttachmentOriginal) (interface{}, error) {
-	return ctrl.get(r.AttachmentID, false, r.Download)
+	if err := ctrl.isAccessible(r.AttachmentID, r.UserID, r.Sign); err != nil {
+		return nil, err
+	}
+
+	return ctrl.get(ctx, r.AttachmentID, false, r.Download)
 }
 
 func (ctrl *Attachment) Preview(ctx context.Context, r *request.AttachmentPreview) (interface{}, error) {
-	return ctrl.get(r.AttachmentID, true, false)
+	if err := ctrl.isAccessible(r.AttachmentID, r.UserID, r.Sign); err != nil {
+		return nil, err
+	}
+
+	return ctrl.get(ctx, r.AttachmentID, true, false)
 }
 
-func (ctrl Attachment) get(ID uint64, preview, download bool) (handlers.Downloadable, error) {
+func (ctrl Attachment) isAccessible(attachmentID, userID uint64, signature string) error {
+	if userID == 0 {
+		return errors.New("missing or invalid user ID")
+	}
+
+	if attachmentID == 0 {
+		return errors.New("missing or invalid attachment ID")
+	}
+
+	if auth.DefaultSigner.Verify(signature, userID, attachmentID) {
+		return errors.New("missing or invalid signature")
+	}
+
+	return nil
+}
+
+func (ctrl Attachment) get(ctx context.Context, ID uint64, preview, download bool) (handlers.Downloadable, error) {
 	rval := &file{download: download}
 
-	if att, err := ctrl.svc.att.FindByID(ID); err != nil {
+	if att, err := ctrl.att.With(ctx).FindByID(ID); err != nil {
 		return nil, err
 	} else {
 		rval.Attachment = att
 		if preview {
-			rval.content, err = ctrl.svc.att.OpenPreview(att)
+			rval.content, err = ctrl.att.OpenPreview(att)
 		} else {
-			rval.content, err = ctrl.svc.att.OpenOriginal(att)
+			rval.content, err = ctrl.att.OpenOriginal(att)
 		}
 
 		if err != nil {

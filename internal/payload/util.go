@@ -26,7 +26,7 @@ func ParseUInt64(s string) uint64 {
 	return i
 }
 
-// ParseUInt64 parses a slice of strings into a slice of uint64s
+// ParseUInt64s parses a slice of strings into a slice of uint64s
 func ParseUInt64s(ss []string) []uint64 {
 	uu := make([]uint64, len(ss))
 	for i, s := range ss {
