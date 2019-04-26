@@ -11,7 +11,6 @@ import (
 	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/internal/payload/outgoing"
 	"github.com/crusttech/crust/system/internal/service"
-	"github.com/crusttech/crust/system/rest/handlers"
 	"github.com/crusttech/crust/system/rest/request"
 )
 
@@ -47,7 +46,17 @@ func (Auth) New(tenc auth.TokenEncoder) *Auth {
 }
 
 func (ctrl *Auth) Check(ctx context.Context, r *request.AuthCheck) (interface{}, error) {
-	return nil, errors.New("Not implemented: Auth.check")
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		if identity := auth.GetIdentityFromContext(ctx); identity != nil && identity.Valid() {
+			if user, err := service.DefaultUser.With(ctx).FindByID(identity.Identity()); err == nil {
+				resputil.JSON(w, checkResponse{
+					User: payload.User(user),
+				})
+				return
+			}
+		}
+	}, nil
 }
 
 func (ctrl *Auth) Logout(ctx context.Context, r *request.AuthLogout) (interface{}, error) {
@@ -68,27 +77,4 @@ func (ctrl *Auth) ExchangeAuthToken(ctx context.Context, r *request.AuthExchange
 		JWT:  ctrl.jwt.Encode(user),
 		User: payload.User(user),
 	}, nil
-}
-
-// Handlers func ignores standard crust controllers
-//
-// Crush handlers are too abstract for our auth needs so we need (direct access to htt.ResponseWriter)
-func (ctrl *Auth) Handlers() *handlers.Auth {
-	h := handlers.NewAuth(ctrl)
-	// Check JWT if valid
-	h.Check = func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-
-		if identity := auth.GetIdentityFromContext(ctx); identity != nil && identity.Valid() {
-			if user, err := service.DefaultUser.With(ctx).FindByID(identity.Identity()); err == nil {
-				resputil.JSON(w, checkResponse{
-					User: payload.User(user),
-				})
-
-				return
-			}
-		}
-	}
-
-	return h
 }
