@@ -25,9 +25,6 @@ type (
 		*ChannelMember    `json:"channelMember,omitempty"`
 		*ChannelMemberSet `json:"channelMembers,omitempty"`
 
-		*User    `json:"user,omitempty"`
-		*UserSet `json:"users,omitempty"`
-
 		*CommandSet `json:"commands,omitempty"`
 	}
 
