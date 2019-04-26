@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
+	"io"
 
-	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
 	internalAuth "github.com/crusttech/crust/internal/auth"
@@ -39,6 +39,9 @@ type (
 
 		Create(input *types.User) (*types.User, error)
 		Update(mod *types.User) (*types.User, error)
+
+		CreateWithAvatar(input *types.User, avatar io.Reader) (*types.User, error)
+		UpdateWithAvatar(mod *types.User, avatar io.Reader) (*types.User, error)
 
 		Delete(id uint64) error
 		Suspend(id uint64) error
@@ -84,85 +87,89 @@ func (svc *user) Find(filter *types.UserFilter) (types.UserSet, error) {
 }
 
 func (svc *user) Create(input *types.User) (out *types.User, err error) {
-	return out, svc.db.Transaction(func() error {
-		if !svc.prm.CanCreateUser() {
-			return errors.New("not allowed to create users")
-		}
+	if !svc.prm.CanCreateUser() {
+		return nil, ErrNoPermissions.new()
+	}
 
-		if out, err = svc.user.Create(input); err != nil {
-			return err
-		}
-
-		return nil
+	return out, svc.db.Transaction(func() (err error) {
+		out, err = svc.user.Create(input)
+		return
 	})
+}
+
+func (svc *user) CreateWithAvatar(input *types.User, avatar io.Reader) (out *types.User, err error) {
+	// @todo: avatar
+	return svc.Create(input)
 }
 
 func (svc *user) Update(mod *types.User) (u *types.User, err error) {
+	if u, err = svc.user.FindByID(mod.ID); err != nil {
+		return
+	}
+
+	if mod.ID != internalAuth.GetIdentityFromContext(svc.ctx).Identity() && !svc.prm.CanUpdateUser(u) {
+		return nil, ErrNoPermissions.new()
+	}
+
+	// Assign changed values
+	u.Email = mod.Email
+	u.Username = mod.Username
+	u.Name = mod.Name
+	u.Handle = mod.Handle
+	u.Kind = mod.Kind
+
 	return u, svc.db.Transaction(func() (err error) {
-		if u, err = svc.user.FindByID(mod.ID); err != nil {
-			return
-		}
-
-		if mod.ID != internalAuth.GetIdentityFromContext(svc.ctx).Identity() && !svc.prm.CanUpdateUser(u) {
-			return errors.New("not allowed to update this user")
-		}
-
-		// Assign changed values
-		u.Email = mod.Email
-		u.Username = mod.Username
-		u.Name = mod.Name
-		u.Handle = mod.Handle
-		u.Kind = mod.Kind
-
-		if u, err = svc.user.Update(u); err != nil {
-			return err
-		}
-
-		return nil
+		u, err = svc.user.Update(u)
+		return
 	})
 }
 
-func (svc *user) Delete(id uint64) error {
+func (svc *user) UpdateWithAvatar(mod *types.User, avatar io.Reader) (out *types.User, err error) {
+	// @todo: avatar
+	return svc.Create(mod)
+}
+
+func (svc *user) Delete(id uint64) (err error) {
+	var u *types.User
+	if u, err = svc.user.FindByID(id); err != nil {
+		return
+	}
+
+	if !svc.prm.CanDeleteUser(u) {
+		return ErrNoPermissions.new()
+	}
+
 	return svc.db.Transaction(func() (err error) {
-		var u *types.User
-		if u, err = svc.user.FindByID(id); err != nil {
-			return
-		}
-
-		if !svc.prm.CanDeleteUser(u) {
-			return errors.New("not allowed to update this user")
-		}
-
 		return svc.user.DeleteByID(id)
 	})
 }
 
-func (svc *user) Suspend(id uint64) error {
+func (svc *user) Suspend(id uint64) (err error) {
+	var u *types.User
+	if u, err = svc.user.FindByID(id); err != nil {
+		return
+	}
+
+	if !svc.prm.CanSuspendUser(u) {
+		return ErrNoPermissions.new()
+	}
+
 	return svc.db.Transaction(func() (err error) {
-		var u *types.User
-		if u, err = svc.user.FindByID(id); err != nil {
-			return
-		}
-
-		if !svc.prm.CanSuspendUser(u) {
-			return errors.New("not allowed to update this user")
-		}
-
 		return svc.user.SuspendByID(id)
 	})
 }
 
-func (svc *user) Unsuspend(id uint64) error {
+func (svc *user) Unsuspend(id uint64) (err error) {
+	var u *types.User
+	if u, err = svc.user.FindByID(id); err != nil {
+		return
+	}
+
+	if !svc.prm.CanUnsuspendUser(u) {
+		return ErrNoPermissions.new()
+	}
+
 	return svc.db.Transaction(func() (err error) {
-		var u *types.User
-		if u, err = svc.user.FindByID(id); err != nil {
-			return
-		}
-
-		if !svc.prm.CanUnsuspendUser(u) {
-			return errors.New("not allowed to update this user")
-		}
-
 		return svc.user.UnsuspendByID(id)
 	})
 }
