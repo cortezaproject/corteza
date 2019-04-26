@@ -17,8 +17,8 @@ var _ = errors.Wrap
 type (
 	Message struct {
 		svc struct {
-			msg   service.MessageService
-			event service.EventService
+			msg     service.MessageService
+			command service.CommandService
 		}
 	}
 )
@@ -26,6 +26,7 @@ type (
 func (Message) New() *Message {
 	ctrl := &Message{}
 	ctrl.svc.msg = service.DefaultMessage
+	ctrl.svc.command = service.DefaultCommand
 	return ctrl
 }
 
@@ -53,32 +54,7 @@ func (ctrl *Message) Edit(ctx context.Context, r *request.MessageEdit) (interfac
 }
 
 func (ctrl Message) ExecuteCommand(ctx context.Context, r *request.MessageExecuteCommand) (interface{}, error) {
-	switch r.Command {
-	case "me":
-		if r.Input != "" {
-			return ctrl.svc.msg.With(ctx).Create(&types.Message{
-				Type:      types.MessageTypeIlleism,
-				ChannelID: r.ChannelID,
-				Message:   r.Input,
-			})
-		}
-
-		return nil, nil
-
-	case "shrug":
-		msg := &types.Message{
-			ChannelID: r.ChannelID,
-			Message:   `¯\\_(ツ)_/¯`,
-		}
-
-		if r.Input != "" {
-			msg.Message = r.Input + " " + msg.Message
-		}
-
-		return ctrl.svc.msg.With(ctx).Create(msg)
-	}
-
-	return nil, errors.New("unknown command")
+	return ctrl.svc.command.With(ctx).Do(r.ChannelID, r.Command, r.Input)
 }
 
 func (ctrl *Message) Delete(ctx context.Context, r *request.MessageDelete) (interface{}, error) {

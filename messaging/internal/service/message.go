@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"io"
 	"regexp"
 	"strings"
 
@@ -37,8 +38,9 @@ type (
 		FindThreads(filter *types.MessageFilter) (types.MessageSet, error)
 
 		Create(messages *types.Message) (*types.Message, error)
-
 		Update(messages *types.Message) (*types.Message, error)
+
+		CreateWithAvatar(message *types.Message, avatar io.Reader) (*types.Message, error)
 
 		React(messageID uint64, reaction string) error
 		RemoveReaction(messageID uint64, reaction string) error
@@ -127,6 +129,11 @@ func (svc *message) FindThreads(filter *types.MessageFilter) (mm types.MessageSe
 	}
 
 	return mm, svc.preload(mm)
+}
+
+func (svc *message) CreateWithAvatar(in *types.Message, avatar io.Reader) (*types.Message, error) {
+	// @todo: avatar
+	return svc.Create(in)
 }
 
 func (svc message) channelAccessCheck(IDs ...uint64) error {
