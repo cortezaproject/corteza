@@ -11,10 +11,6 @@ type Payload struct {
 
 	*ChannelViewRecord `json:"recordChannelView"`
 
-	*ChannelActivity `json:"channelActivity"`
-
-	*MessageActivity `json:"messageActivity"`
-
 	// Message actions
 	*MessageCreate `json:"createMessage"`
 	*MessageUpdate `json:"updateMessage"`

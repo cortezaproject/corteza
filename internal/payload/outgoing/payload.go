@@ -10,18 +10,17 @@ type (
 		*Message    `json:"message,omitempty"`
 		*MessageSet `json:"messages,omitempty"`
 
+		*Activity `json:"activity,omitempty"`
+
 		*MessageReaction        `json:"messageReaction,omitempty"`
 		*MessageReactionRemoved `json:"messageReactionRemoved,omitempty"`
 		*MessagePin             `json:"messagePin,omitempty"`
 		*MessagePinRemoved      `json:"messagePinRemoved,omitempty"`
-		*MessageActivity        `json:"messageActivity,omitempty"`
 
 		*ChannelJoin `json:"channelJoin,omitempty"`
 		*ChannelPart `json:"channelPart,omitempty"`
 		*Channel     `json:"channel,omitempty"`
 		*ChannelSet  `json:"channels,omitempty"`
-
-		*ChannelActivity `json:"channelActivity,omitempty"`
 
 		*ChannelMember    `json:"channelMember,omitempty"`
 		*ChannelMemberSet `json:"channelMembers,omitempty"`

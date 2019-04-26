@@ -17,7 +17,8 @@ var _ = errors.Wrap
 type (
 	Message struct {
 		svc struct {
-			msg service.MessageService
+			msg   service.MessageService
+			event service.EventService
 		}
 	}
 )
@@ -111,6 +112,7 @@ func (ctrl *Message) ReactionCreate(ctx context.Context, r *request.MessageReact
 func (ctrl *Message) ReactionRemove(ctx context.Context, r *request.MessageReactionRemove) (interface{}, error) {
 	return nil, ctrl.svc.msg.With(ctx).RemoveReaction(r.MessageID, r.Reaction)
 }
+
 func (ctrl *Message) wrap(ctx context.Context) func(m *types.Message, err error) (*outgoing.Message, error) {
 	return func(m *types.Message, err error) (*outgoing.Message, error) {
 		if err != nil || m == nil {

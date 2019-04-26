@@ -89,6 +89,45 @@
         ]
     },
     {
+        "name": "activity",
+        "path": "/activity",
+        "entrypoint": "activity",
+        "title": "User activity",
+        "parameters": {},
+        "authentication": [],
+
+        "apis": [
+            {
+                "name": "send",
+                "method": "POST",
+                "title": "Sends user's activity to all subscribers; globally or per channel/message.",
+                "path": "/",
+                "parameters": {
+                    "post": [
+                        {
+                            "name": "channelID",
+                            "type": "uint64",
+                            "required": false,
+                            "title": "Channel ID, if set, activity will be send only to subscribed users"
+                        },
+                        {
+                            "name": "messageID",
+                            "type": "uint64",
+                            "required": false,
+                            "title": "Message ID, if set, channelID must be set as well"
+                        },
+                        {
+                            "name": "kind",
+                            "type": "string",
+                            "required": true,
+                            "title": "Arbitrary string"
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
         "title": "Channels",
         "description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or group.",
         "entrypoint": "channel",

@@ -18,6 +18,7 @@ type (
 
 	EventService interface {
 		With(ctx context.Context) EventService
+		Activity(a *types.Activity) error
 		Message(m *types.Message) error
 		MessageFlag(m *types.MessageFlag) error
 		Channel(m *types.Channel) error
@@ -41,6 +42,11 @@ func (svc *event) With(ctx context.Context) EventService {
 // Message sends message events to subscribers
 func (svc *event) Message(m *types.Message) error {
 	return svc.push(payload.Message(svc.ctx, m), types.EventQueueItemSubTypeChannel, m.ChannelID)
+}
+
+// Activity sends activity event to subscribers
+func (svc event) Activity(a *types.Activity) error {
+	return svc.push(payload.Activity(a), types.EventQueueItemSubTypeChannel, a.ChannelID)
 }
 
 // MessageFlag sends message flag events to subscribers

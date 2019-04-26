@@ -23,6 +23,7 @@ func MountRoutes() func(chi.Router) {
 			r.Use(auth.MiddlewareValidOnly)
 			r.Use(middlewareAllowedAccess)
 
+			handlers.NewActivity(Activity{}.New()).MountRoutes(r)
 			handlers.NewChannel(Channel{}.New()).MountRoutes(r)
 			handlers.NewMessage(Message{}.New()).MountRoutes(r)
 			handlers.NewSearch(Search{}.New()).MountRoutes(r)

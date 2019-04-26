@@ -108,22 +108,3 @@ func (s *Session) channelViewRecord(ctx context.Context, p *incoming.ChannelView
 
 	return s.svc.ch.With(ctx).RecordView(userID, p.ChannelID, p.LastMessageID)
 }
-
-// Echoes received channel activity back to all subscribers
-func (s *Session) channelActivity(ctx context.Context, p *incoming.ChannelActivity) error {
-	return s.sendToAllSubscribers(&outgoing.ChannelActivity{
-		ID:     p.ChannelID,
-		UserID: auth.GetIdentityFromContext(ctx).Identity(),
-		Kind:   p.Kind,
-	}, payload.Uint64toa(p.ChannelID))
-}
-
-// Echoes received channel activity back to all subscribers
-func (s *Session) messageActivity(ctx context.Context, p *incoming.MessageActivity) error {
-	return s.sendToAllSubscribers(&outgoing.MessageActivity{
-		ID:        p.MessageID,
-		ChannelID: p.ChannelID,
-		UserID:    auth.GetIdentityFromContext(ctx).Identity(),
-		Kind:      p.Kind,
-	}, payload.Uint64toa(p.ChannelID))
-}

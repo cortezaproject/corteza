@@ -29,10 +29,4 @@ type (
 		Topic *string `json:"topic"`
 		Type  *string `json:"type"`
 	}
-
-	// ChannelActivity is sent from the client when there is an activity on the channel...
-	ChannelActivity struct {
-		ChannelID uint64 `json:"ID,string"`
-		Kind      string `json:"kind,omitempty"`
-	}
 )
