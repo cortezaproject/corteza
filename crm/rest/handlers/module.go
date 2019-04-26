@@ -49,37 +49,102 @@ func NewModule(mh ModuleAPI) *Module {
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewModuleList()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.List(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.List(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewModuleCreate()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.Create(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.Create(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewModuleRead()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.Read(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.Read(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewModuleUpdate()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.Update(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.Update(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewModuleDelete()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.Delete(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.Delete(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 	}
 }

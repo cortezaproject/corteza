@@ -49,37 +49,102 @@ func NewApplication(ah ApplicationAPI) *Application {
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewApplicationList()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.List(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.List(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewApplicationCreate()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.Create(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.Create(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewApplicationUpdate()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.Update(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.Update(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewApplicationRead()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.Read(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.Read(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewApplicationDelete()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.Delete(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.Delete(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 	}
 }

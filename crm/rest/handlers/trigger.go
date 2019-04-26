@@ -49,37 +49,102 @@ func NewTrigger(th TriggerAPI) *Trigger {
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewTriggerList()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.List(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := th.List(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewTriggerCreate()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.Create(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := th.Create(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewTriggerRead()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.Read(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := th.Read(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewTriggerUpdate()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.Update(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := th.Update(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewTriggerDelete()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return th.Delete(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := th.Delete(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 	}
 }

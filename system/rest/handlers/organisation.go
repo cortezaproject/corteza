@@ -51,44 +51,122 @@ func NewOrganisation(oh OrganisationAPI) *Organisation {
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewOrganisationList()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return oh.List(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := oh.List(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewOrganisationCreate()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return oh.Create(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := oh.Create(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewOrganisationUpdate()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return oh.Update(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := oh.Update(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewOrganisationDelete()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return oh.Delete(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := oh.Delete(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewOrganisationRead()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return oh.Read(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := oh.Read(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Archive: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewOrganisationArchive()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return oh.Archive(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := oh.Archive(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 	}
 }

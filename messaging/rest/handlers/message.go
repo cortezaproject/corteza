@@ -63,86 +63,242 @@ func NewMessage(mh MessageAPI) *Message {
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewMessageCreate()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.Create(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.Create(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		ExecuteCommand: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewMessageExecuteCommand()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.ExecuteCommand(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.ExecuteCommand(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		MarkAsRead: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewMessageMarkAsRead()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.MarkAsRead(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.MarkAsRead(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Edit: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewMessageEdit()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.Edit(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.Edit(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewMessageDelete()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.Delete(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.Delete(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		ReplyCreate: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewMessageReplyCreate()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.ReplyCreate(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.ReplyCreate(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		PinCreate: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewMessagePinCreate()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.PinCreate(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.PinCreate(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		PinRemove: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewMessagePinRemove()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.PinRemove(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.PinRemove(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		BookmarkCreate: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewMessageBookmarkCreate()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.BookmarkCreate(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.BookmarkCreate(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		BookmarkRemove: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewMessageBookmarkRemove()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.BookmarkRemove(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.BookmarkRemove(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		ReactionCreate: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewMessageReactionCreate()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.ReactionCreate(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.ReactionCreate(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		ReactionRemove: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewMessageReactionRemove()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return mh.ReactionRemove(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := mh.ReactionRemove(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 	}
 }

@@ -53,51 +53,142 @@ func NewAuthInternal(ah AuthInternalAPI) *AuthInternal {
 		Login: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAuthInternalLogin()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.Login(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.Login(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Signup: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAuthInternalSignup()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.Signup(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.Signup(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		RequestPasswordReset: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAuthInternalRequestPasswordReset()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.RequestPasswordReset(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.RequestPasswordReset(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		ExchangePasswordResetToken: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAuthInternalExchangePasswordResetToken()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.ExchangePasswordResetToken(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.ExchangePasswordResetToken(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		ResetPassword: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAuthInternalResetPassword()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.ResetPassword(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.ResetPassword(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		ConfirmEmail: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAuthInternalConfirmEmail()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.ConfirmEmail(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.ConfirmEmail(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		ChangePassword: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAuthInternalChangePassword()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.ChangePassword(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.ChangePassword(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 	}
 }
