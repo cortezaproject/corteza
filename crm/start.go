@@ -69,6 +69,9 @@ func StartRestAPI(ctx context.Context) error {
 		go metrics.NewMonitor(flags.monitor.Interval)
 	}
 
+	// Use JWT secret for hmac signer for now
+	auth.DefaultSigner = auth.HmacSigner(flags.jwt.Secret)
+
 	jwtAuth, err := auth.JWT(flags.jwt.Secret, flags.jwt.Expiry)
 	if err != nil {
 		return errors.Wrap(err, "Error creating JWT Auth")

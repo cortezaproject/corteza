@@ -8,6 +8,7 @@ import (
 	"github.com/crusttech/crust/crm/internal/service"
 	"github.com/crusttech/crust/crm/rest/request"
 	"github.com/crusttech/crust/crm/types"
+	"github.com/crusttech/crust/internal/auth"
 
 	"github.com/pkg/errors"
 )
@@ -75,5 +76,5 @@ func (ctrl *Record) Upload(ctx context.Context, r *request.RecordUpload) (interf
 		return nil, err
 	}
 
-	return makeAttachmentPayload(a), nil
+	return makeAttachmentPayload(a, auth.GetIdentityFromContext(ctx).Identity()), nil
 }
