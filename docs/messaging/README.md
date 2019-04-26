@@ -301,11 +301,9 @@ The following event types may be sent with a message event:
 | ------ | -------- | ------- |
 | `POST` | `/channels/{channelID}/messages/` | Post new message to the channel |
 | `POST` | `/channels/{channelID}/messages/command/{command}/exec` | Execute command |
-| `GET` | `/channels/{channelID}/messages/` | All messages (channel history) |
 | `GET` | `/channels/{channelID}/messages/mark-as-read` | Manages read/unread messages in a channel or a thread |
 | `PUT` | `/channels/{channelID}/messages/{messageID}` | Edit existing message |
 | `DELETE` | `/channels/{channelID}/messages/{messageID}` | Delete existing message |
-| `GET` | `/channels/{channelID}/messages/{messageID}/replies` | Returns all replies to a message |
 | `POST` | `/channels/{channelID}/messages/{messageID}/replies` | Reply to a message |
 | `POST` | `/channels/{channelID}/messages/{messageID}/pin` | Pin message to channel (public bookmark) |
 | `DELETE` | `/channels/{channelID}/messages/{messageID}/pin` | Pin message to channel (public bookmark) |
@@ -346,25 +344,6 @@ The following event types may be sent with a message event:
 | input | string | POST | Arbitrary command input | N/A | NO |
 | params | []string | POST | Command parameters | N/A | NO |
 
-## All messages (channel history)
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/channels/{channelID}/messages/` | HTTP/S | GET | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| afterMessageID | uint64 | GET | ID of the first message in the list (exclusive) | N/A | NO |
-| beforeMessageID | uint64 | GET | ID of the last message in the list (exclusive) | N/A | NO |
-| fromMessageID | uint64 | GET | ID of the first message in the list (inclusive) | N/A | NO |
-| toMessageID | uint64 | GET | ID of the last message the list (inclusive) | N/A | NO |
-| limit | uint | GET | Number of messages to get | N/A | NO |
-| channelID | uint64 | PATH | Channel ID | N/A | YES |
-
 ## Manages read/unread messages in a channel or a thread
 
 #### Method
@@ -404,21 +383,6 @@ The following event types may be sent with a message event:
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
 | `/channels/{channelID}/messages/{messageID}` | HTTP/S | DELETE | Client ID, Session ID |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| messageID | uint64 | PATH | Message ID | N/A | YES |
-| channelID | uint64 | PATH | Channel ID | N/A | YES |
-
-## Returns all replies to a message
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/channels/{channelID}/messages/{messageID}/replies` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -583,10 +547,17 @@ The following event types may be sent with a message event:
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| inChannel | uint64 | GET | Search only in one channel | N/A | NO |
-| fromUser | uint64 | GET | Search only from one user | N/A | NO |
-| firstID | uint64 | GET | Paging; return newer messages only (higher id) | N/A | NO |
-| lastID | uint64 | GET | Paging; return older messages only (lower id) | N/A | NO |
+| channelID | []uint64 | GET | Filter by channels | N/A | NO |
+| afterMessageID | uint64 | GET | ID of the first message in the list (exclusive) | N/A | NO |
+| beforeMessageID | uint64 | GET | ID of the last message in the list (exclusive) | N/A | NO |
+| fromMessageID | uint64 | GET | ID of the first message in the list (inclusive) | N/A | NO |
+| toMessageID | uint64 | GET | ID of the last message the list (inclusive) | N/A | NO |
+| threadID | []uint64 | GET | Filter by thread message ID | N/A | NO |
+| userID | []uint64 | GET | Filter by one or more user | N/A | NO |
+| type | []string | GET | Filter by message type (text, inlineImage, attachment, ...) | N/A | NO |
+| pinnedOnly | bool | GET | Return only pinned messages | N/A | NO |
+| bookmarkedOnly | bool | GET | Only bookmarked messages | N/A | NO |
+| limit | uint | GET | Max number of messages | N/A | NO |
 | query | string | GET | Search query | N/A | NO |
 
 ---

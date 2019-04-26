@@ -55,7 +55,7 @@
                 "title": "List channels",
                 "path": "/",
                 "parameters": {
-                    "GET": [
+                    "get": [
                         {
                             "type": "string",
                             "name": "query",
@@ -403,46 +403,6 @@
                 }
             },
             {
-                "name": "history",
-                "path": "/",
-                "method": "GET",
-                "title": "All messages (channel history)",
-                "parameters": {
-                    "get": [
-                        {
-                            "name": "afterMessageID",
-                            "type": "uint64",
-                            "required": false,
-                            "title": "ID of the first message in the list (exclusive)"
-                        },
-                        {
-                            "name": "beforeMessageID",
-                            "type": "uint64",
-                            "required": false,
-                            "title": "ID of the last message in the list (exclusive)"
-                        },
-                        {
-                            "name": "fromMessageID",
-                            "type": "uint64",
-                            "required": false,
-                            "title": "ID of the first message in the list (inclusive)"
-                        },
-                        {
-                            "name": "toMessageID",
-                            "type": "uint64",
-                            "required": false,
-                            "title": "ID of the last message the list (inclusive)"
-                        },
-                        {
-                            "name": "limit",
-                            "type": "uint",
-                            "required": false,
-                            "title": "Number of messages to get"
-                        }
-                    ]
-                }
-            },
-            {
                 "name": "markAsRead",
                 "path": "/mark-as-read",
                 "method": "GET",
@@ -494,22 +454,6 @@
                 "path": "/{messageID}",
                 "method": "DELETE",
                 "title": "Delete existing message",
-                "parameters": {
-                    "path": [
-                        {
-                            "name": "messageID",
-                            "type": "uint64",
-                            "required": true,
-                            "title": "Message ID"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "replyGet",
-                "path": "/{messageID}/replies",
-                "method": "GET",
-                "title": "Returns all replies to a message",
                 "parameters": {
                     "path": [
                         {
@@ -757,30 +701,72 @@
                 "path": "/messages",
                 "title": "Search for messages",
                 "parameters": {
-                    "GET": [
+                    "get": [
                         {
-                            "name": "inChannel",
-                            "type": "uint64",
+                            "name": "channelID",
+                            "type": "[]uint64",
                             "required": false,
-                            "title": "Search only in one channel"
+                            "title": "Filter by channels"
                         },
                         {
-                            "name": "fromUser",
+                            "name": "afterMessageID",
                             "type": "uint64",
                             "required": false,
-                            "title": "Search only from one user"
+                            "title": "ID of the first message in the list (exclusive)"
                         },
                         {
-                            "name": "firstID",
+                            "name": "beforeMessageID",
                             "type": "uint64",
                             "required": false,
-                            "title": "Paging; return newer messages only (higher id)"
+                            "title": "ID of the last message in the list (exclusive)"
                         },
                         {
-                            "name": "lastID",
+                            "name": "fromMessageID",
                             "type": "uint64",
                             "required": false,
-                            "title": "Paging; return older messages only (lower id)"
+                            "title": "ID of the first message in the list (inclusive)"
+                        },
+                        {
+                            "name": "toMessageID",
+                            "type": "uint64",
+                            "required": false,
+                            "title": "ID of the last message the list (inclusive)"
+                        },
+                        {
+                            "name": "threadID",
+                            "type": "[]uint64",
+                            "required": false,
+                            "title": "Filter by thread message ID"
+                        },
+                        {
+                            "name": "userID",
+                            "type": "[]uint64",
+                            "required": false,
+                            "title": "Filter by one or more user"
+                        },
+                        {
+                            "name": "type",
+                            "type": "[]string",
+                            "required": false,
+                            "title": "Filter by message type (text, inlineImage, attachment, ...)"
+                        },
+                        {
+                            "name": "pinnedOnly",
+                            "type": "bool",
+                            "required": false,
+                            "title": "Return only pinned messages"
+                        },
+                        {
+                            "name": "bookmarkedOnly",
+                            "type": "bool",
+                            "required": false,
+                            "title": "Only bookmarked messages"
+                        },
+                        {
+                            "name": "limit",
+                            "type": "uint",
+                            "required": false,
+                            "title": "Max number of messages"
                         }
                     ]
                 }

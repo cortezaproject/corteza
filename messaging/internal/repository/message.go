@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -123,19 +124,34 @@ func (r *message) Find(filter *types.MessageFilter) (types.MessageSet, error) {
 		params = append(params, "%"+filter.Query+"%")
 	}
 
-	if filter.ChannelID > 0 {
-		sql += " AND rel_channel = ? "
-		params = append(params, filter.ChannelID)
+	if len(filter.ChannelID) > 0 {
+		sql += " AND rel_channel IN (" + strings.Repeat(",?", len(filter.ChannelID))[1:] + ")"
+		for _, id := range filter.ChannelID {
+			params = append(params, id)
+		}
 	}
 
-	if filter.UserID > 0 {
-		sql += " AND rel_user = ? "
-		params = append(params, filter.UserID)
+	if len(filter.UserID) > 0 {
+		sql += " AND rel_user IN (" + strings.Repeat(",?", len(filter.UserID))[1:] + ")"
+		for _, id := range filter.UserID {
+			params = append(params, id)
+		}
 	}
 
-	if filter.RepliesTo > 0 {
-		sql += " AND reply_to = ? "
-		params = append(params, filter.RepliesTo)
+	if len(filter.ThreadID) > 0 {
+		sql += " AND reply_to IN (" + strings.Repeat(",?", len(filter.ThreadID))[1:] + ")"
+		for _, id := range filter.ThreadID {
+			params = append(params, id)
+		}
+	} else {
+		sql += " AND reply_to = 0 "
+	}
+
+	if len(filter.Type) > 0 {
+		sql += " AND type IN (" + strings.Repeat(",?", len(filter.Type))[1:] + ")"
+		for _, id := range filter.Type {
+			params = append(params, id)
+		}
 	} else {
 		sql += " AND reply_to = 0 "
 	}
@@ -210,9 +226,12 @@ func (r *message) FindThreads(filter *types.MessageFilter) (types.MessageSet, er
 	params = append(params, filter.Limit)
 
 	sql := sqlMessagesThreads
-	if filter.ChannelID > 0 {
-		sql += " AND rel_channel = ? "
-		params = append(params, filter.ChannelID)
+
+	if len(filter.ChannelID) > 0 {
+		sql += " AND rel_channel IN (" + strings.Repeat(",?", len(filter.ChannelID))[1:] + ")"
+		for _, id := range filter.ChannelID {
+			params = append(params, id)
+		}
 	}
 
 	return rval, r.db().Select(&rval, sql, params...)

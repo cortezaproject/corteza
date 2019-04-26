@@ -43,24 +43,6 @@ func (ctrl *Message) ReplyCreate(ctx context.Context, r *request.MessageReplyCre
 	}))
 }
 
-func (ctrl *Message) ReplyGet(ctx context.Context, r *request.MessageReplyGet) (interface{}, error) {
-	return ctrl.wrapSet(ctx)(ctrl.svc.msg.With(ctx).Find(&types.MessageFilter{
-		ChannelID: r.ChannelID,
-		RepliesTo: r.MessageID,
-	}))
-}
-
-func (ctrl *Message) History(ctx context.Context, r *request.MessageHistory) (interface{}, error) {
-	return ctrl.wrapSet(ctx)(ctrl.svc.msg.With(ctx).Find(&types.MessageFilter{
-		ChannelID: r.ChannelID,
-		AfterID:   r.AfterMessageID,
-		BeforeID:  r.BeforeMessageID,
-		FromID:    r.FromMessageID,
-		ToID:      r.ToMessageID,
-		Limit:     r.Limit,
-	}))
-}
-
 func (ctrl *Message) Edit(ctx context.Context, r *request.MessageEdit) (interface{}, error) {
 	return ctrl.wrap(ctx)(ctrl.svc.msg.With(ctx).Update(&types.Message{
 		ID:        r.MessageID,

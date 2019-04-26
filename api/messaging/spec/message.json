@@ -66,46 +66,6 @@
       }
     },
     {
-      "Name": "history",
-      "Method": "GET",
-      "Title": "All messages (channel history)",
-      "Path": "/",
-      "Parameters": {
-        "get": [
-          {
-            "name": "afterMessageID",
-            "required": false,
-            "title": "ID of the first message in the list (exclusive)",
-            "type": "uint64"
-          },
-          {
-            "name": "beforeMessageID",
-            "required": false,
-            "title": "ID of the last message in the list (exclusive)",
-            "type": "uint64"
-          },
-          {
-            "name": "fromMessageID",
-            "required": false,
-            "title": "ID of the first message in the list (inclusive)",
-            "type": "uint64"
-          },
-          {
-            "name": "toMessageID",
-            "required": false,
-            "title": "ID of the last message the list (inclusive)",
-            "type": "uint64"
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "title": "Number of messages to get",
-            "type": "uint"
-          }
-        ]
-      }
-    },
-    {
       "Name": "markAsRead",
       "Method": "GET",
       "Title": "Manages read/unread messages in a channel or a thread",
@@ -157,22 +117,6 @@
       "Method": "DELETE",
       "Title": "Delete existing message",
       "Path": "/{messageID}",
-      "Parameters": {
-        "path": [
-          {
-            "name": "messageID",
-            "required": true,
-            "title": "Message ID",
-            "type": "uint64"
-          }
-        ]
-      }
-    },
-    {
-      "Name": "replyGet",
-      "Method": "GET",
-      "Title": "Returns all replies to a message",
-      "Path": "/{messageID}/replies",
       "Parameters": {
         "path": [
           {

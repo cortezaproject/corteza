@@ -94,17 +94,19 @@ func (svc *message) With(ctx context.Context) MessageService {
 func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err error) {
 	filter.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	if filter.ChannelID > 0 {
-		if ch, err := svc.findChannelByID(filter.ChannelID); err != nil {
-			return nil, err
-		} else if !svc.prm.CanReadChannel(ch) {
-			return nil, errors.WithStack(ErrNoPermissions)
-		}
+	if err = svc.channelAccessCheck(filter.ChannelID...); err != nil {
+		return
 	}
 
 	mm, err = svc.message.Find(filter)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(filter.ChannelID) == 0 {
+		// If no channel check was done prior message loading,
+		// we do it now, by inspecting the actual payload we got
+		mm = svc.filterMessagesByAccessibleChannels(mm)
 	}
 
 	return mm, svc.preload(mm)
@@ -113,12 +115,8 @@ func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err 
 func (svc *message) FindThreads(filter *types.MessageFilter) (mm types.MessageSet, err error) {
 	filter.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	if filter.ChannelID > 0 {
-		if ch, err := svc.findChannelByID(filter.ChannelID); err != nil {
-			return nil, err
-		} else if !svc.prm.CanReadChannel(ch) {
-			return nil, errors.WithStack(ErrNoPermissions)
-		}
+	if err = svc.channelAccessCheck(filter.ChannelID...); err != nil {
+		return
 	}
 
 	mm, err = svc.message.FindThreads(filter)
@@ -126,7 +124,47 @@ func (svc *message) FindThreads(filter *types.MessageFilter) (mm types.MessageSe
 		return nil, err
 	}
 
+	if len(filter.ChannelID) == 0 {
+		// If no channel check was done prior message loading,
+		// we do it now, by inspecting the actual payload we got
+		mm = svc.filterMessagesByAccessibleChannels(mm)
+	}
+
 	return mm, svc.preload(mm)
+}
+
+func (svc message) channelAccessCheck(IDs ...uint64) error {
+	for _, ID := range IDs {
+		if ID > 0 {
+			if ch, err := svc.findChannelByID(ID); err != nil {
+				return err
+			} else if !svc.prm.CanReadChannel(ch) {
+				return errors.WithStack(ErrNoPermissions)
+			}
+		}
+	}
+
+	return nil
+}
+
+// Filter message set by accessible channels
+func (svc message) filterMessagesByAccessibleChannels(mm types.MessageSet) types.MessageSet {
+	// Remember channels that were already checked.
+	chk := map[uint64]bool{}
+
+	mm, _ = mm.Filter(func(m *types.Message) (b bool, e error) {
+		if !chk[m.ChannelID] {
+			chk[m.ChannelID] = true
+
+			if ch, err := svc.findChannelByID(m.ChannelID); err != nil || !svc.prm.CanReadChannel(ch) {
+				return false, nil
+			}
+		}
+
+		return true, nil
+	})
+
+	return mm
 }
 
 func (svc *message) Create(in *types.Message) (message *types.Message, err error) {

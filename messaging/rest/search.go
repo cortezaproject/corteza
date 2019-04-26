@@ -29,11 +29,19 @@ func (Search) New() *Search {
 
 func (ctrl *Search) Messages(ctx context.Context, r *request.SearchMessages) (interface{}, error) {
 	return ctrl.wrapSet(ctx)(ctrl.svc.msg.With(ctx).Find(&types.MessageFilter{
-		Query:     r.Query,
-		ChannelID: r.InChannel,
-		UserID:    r.FromUser,
-		AfterID:   r.FirstID,
-		BeforeID:  r.LastID,
+		ChannelID:      r.ChannelID,
+		AfterID:        r.AfterMessageID,
+		BeforeID:       r.BeforeMessageID,
+		FromID:         r.FromMessageID,
+		ToID:           r.ToMessageID,
+		ThreadID:       r.ThreadID,
+		UserID:         r.UserID,
+		Type:           r.Type,
+		PinnedOnly:     r.PinnedOnly,
+		BookmarkedOnly: r.BookmarkedOnly,
+		Limit:          r.Limit,
+
+		Query: r.Query,
 	}))
 }
 
