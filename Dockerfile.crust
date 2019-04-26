@@ -1,15 +1,19 @@
 ## == builder image ==
 
-FROM crust-builder AS builder
+FROM crusttech/crust-builder AS builder
 
 WORKDIR /go/src/github.com/crusttech/crust
 
 COPY . .
 
 RUN mkdir /build; \
-    CGO_ENABLED=0 go build \
+    go build \
         -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime="`date +%FT%T%z`" -X github.com/crusttech/crust/internal/version.Version="`git describe --always --tags` \
-        -o /build/crust cmd/crust/*.go
+        -o /build/crust cmd/crust/*.go && \
+    go build \
+        -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime="`date +%FT%T%z`" -X github.com/crusttech/crust/internal/version.Version="`git describe --always --tags` \
+        -o /build/cli cmd/system-cli/*.go
+
 
 ## == webapp image ==
 
@@ -26,8 +30,8 @@ RUN apk add --no-cache ca-certificates
 COPY --from=builder /build /crust
 COPY --from=webapp /crust/webapp /crust/webapp
 
-EXPOSE 80
-
 WORKDIR /crust
+
+EXPOSE 80
 
 ENTRYPOINT /crust/crust
