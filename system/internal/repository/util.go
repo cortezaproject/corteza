@@ -3,6 +3,8 @@ package repository
 import (
 	"fmt"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 func (r repository) updateColumnByID(tableName, columnName string, value interface{}, id uint64) (err error) {
@@ -13,15 +15,15 @@ func (r repository) updateColumnByID(tableName, columnName string, value interfa
 }
 
 func exec(_ interface{}, err error) error {
-	return err
+	return errors.WithStack(err)
 }
 
 // Returns err if set otherwise it returns nerr if not valid
 func isFound(err error, valid bool, nerr error) error {
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	} else if !valid {
-		return nerr
+		return errors.WithStack(nerr)
 	}
 
 	return nil
