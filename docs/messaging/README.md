@@ -300,6 +300,7 @@ The following event types may be sent with a message event:
 | Method | Endpoint | Purpose |
 | ------ | -------- | ------- |
 | `POST` | `/channels/{channelID}/messages/` | Post new message to the channel |
+| `POST` | `/channels/{channelID}/messages/command/{command}/exec` | Execute command |
 | `GET` | `/channels/{channelID}/messages/` | All messages (channel history) |
 | `GET` | `/channels/{channelID}/messages/mark-as-read` | Manages read/unread messages in a channel or a thread |
 | `PUT` | `/channels/{channelID}/messages/{messageID}` | Edit existing message |
@@ -327,6 +328,23 @@ The following event types may be sent with a message event:
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | message | string | POST | Message contents (markdown) | N/A | YES |
 | channelID | uint64 | PATH | Channel ID | N/A | YES |
+
+## Execute command
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/channels/{channelID}/messages/command/{command}/exec` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| command | string | PATH | Command to be executed | N/A | YES |
+| channelID | uint64 | PATH | Channel ID | N/A | YES |
+| input | string | POST | Arbitrary command input | N/A | NO |
+| params | []string | POST | Command parameters | N/A | NO |
 
 ## All messages (channel history)
 

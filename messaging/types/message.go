@@ -82,6 +82,7 @@ const (
 	MessageTypeChannelEvent              = "channelEvent"
 	MessageTypeInlineImage               = "inlineImage"
 	MessageTypeAttachment                = "attachment"
+	MessageTypeIlleism                   = "illeism"
 )
 
 func (mtype MessageType) String() string {

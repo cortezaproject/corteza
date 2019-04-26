@@ -29,6 +29,7 @@ import (
 // Internal API interface
 type MessageAPI interface {
 	Create(context.Context, *request.MessageCreate) (interface{}, error)
+	ExecuteCommand(context.Context, *request.MessageExecuteCommand) (interface{}, error)
 	History(context.Context, *request.MessageHistory) (interface{}, error)
 	MarkAsRead(context.Context, *request.MessageMarkAsRead) (interface{}, error)
 	Edit(context.Context, *request.MessageEdit) (interface{}, error)
@@ -46,6 +47,7 @@ type MessageAPI interface {
 // HTTP API interface
 type Message struct {
 	Create         func(http.ResponseWriter, *http.Request)
+	ExecuteCommand func(http.ResponseWriter, *http.Request)
 	History        func(http.ResponseWriter, *http.Request)
 	MarkAsRead     func(http.ResponseWriter, *http.Request)
 	Edit           func(http.ResponseWriter, *http.Request)
@@ -67,6 +69,13 @@ func NewMessage(mh MessageAPI) *Message {
 			params := request.NewMessageCreate()
 			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
 				return mh.Create(r.Context(), params)
+			})
+		},
+		ExecuteCommand: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewMessageExecuteCommand()
+			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
+				return mh.ExecuteCommand(r.Context(), params)
 			})
 		},
 		History: func(w http.ResponseWriter, r *http.Request) {
@@ -160,6 +169,7 @@ func (mh *Message) MountRoutes(r chi.Router, middlewares ...func(http.Handler) h
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Post("/channels/{channelID}/messages/", mh.Create)
+		r.Post("/channels/{channelID}/messages/command/{command}/exec", mh.ExecuteCommand)
 		r.Get("/channels/{channelID}/messages/", mh.History)
 		r.Get("/channels/{channelID}/messages/mark-as-read", mh.MarkAsRead)
 		r.Put("/channels/{channelID}/messages/{messageID}", mh.Edit)
