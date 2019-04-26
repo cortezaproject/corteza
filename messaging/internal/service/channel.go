@@ -11,15 +11,12 @@ import (
 	"github.com/crusttech/crust/internal/organization"
 	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
-	systemService "github.com/crusttech/crust/system/service"
 )
 
 type (
 	channel struct {
 		db  db
 		ctx context.Context
-
-		user systemService.UserService
 
 		event EventService
 		perms PermissionsService
@@ -77,7 +74,6 @@ func (svc *channel) With(ctx context.Context) ChannelService {
 		db:  db,
 		ctx: ctx,
 
-		user:  systemService.User(ctx),
 		event: Event(ctx),
 		perms: Permissions(ctx),
 
@@ -187,14 +183,7 @@ func (svc *channel) FindMembers(channelID uint64) (out types.ChannelMemberSet, e
 			return err
 		}
 
-		if uu, err := svc.user.Find(nil); err != nil {
-			return err
-		} else {
-			return out.Walk(func(member *types.ChannelMember) error {
-				member.User = uu.FindByID(member.UserID)
-				return nil
-			})
-		}
+		return
 	})
 }
 
@@ -579,20 +568,9 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 			return
 		}
 
-		users, err := svc.user.Find(nil)
-		if err != nil {
-			return err
-		}
-
 		for _, memberID := range memberIDs {
-			user := users.FindByID(memberID)
-			if user == nil {
-				return errors.New("unexisting user")
-			}
-
 			if e := existing.FindByUserID(memberID); e != nil {
 				// Already a member/invited
-				e.User = user
 				out = append(out, e)
 				continue
 			}
@@ -638,22 +616,11 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 			return
 		}
 
-		users, err := svc.user.Find(nil)
-		if err != nil {
-			return err
-		}
-
 		for _, memberID := range memberIDs {
 			var exists bool
 
-			user := users.FindByID(memberID)
-			if user == nil {
-				return errors.New("unexisting user")
-			}
-
 			if e := existing.FindByUserID(memberID); e != nil {
 				if e.Type != types.ChannelMembershipTypeInvitee {
-					e.User = user
 					out = append(out, e)
 					continue
 				} else {
@@ -679,7 +646,6 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 				ChannelID: channelID,
 				UserID:    memberID,
 				Type:      types.ChannelMembershipTypeOwner,
-				User:      user,
 			}
 
 			if exists {

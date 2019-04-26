@@ -19,7 +19,6 @@ import (
 	"github.com/crusttech/crust/internal/store"
 	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
-	systemService "github.com/crusttech/crust/system/service"
 )
 
 const (
@@ -33,7 +32,6 @@ type (
 		ctx context.Context
 
 		store store.Store
-		user  systemService.UserService
 		event EventService
 
 		attachment repository.AttachmentRepository
@@ -63,7 +61,6 @@ func (svc *attachment) With(ctx context.Context) AttachmentService {
 		ctx: ctx,
 
 		store: svc.store,
-		user:  systemService.User(ctx),
 		event: Event(ctx),
 
 		attachment: repository.Attachment(ctx, db),
@@ -287,13 +284,6 @@ func (svc *attachment) processImage(original io.ReadSeeker, att *types.Attachmen
 //
 // It also preloads user
 func (svc *attachment) sendEvent(msg *types.Message) (err error) {
-	if msg.User == nil {
-		// @todo pull user from cache
-		if msg.User, err = svc.user.FindByID(msg.UserID); err != nil {
-			return
-		}
-	}
-
 	return svc.event.Message(msg)
 }
 

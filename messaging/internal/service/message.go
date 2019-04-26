@@ -11,8 +11,6 @@ import (
 	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
-	systemService "github.com/crusttech/crust/system/service"
-	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 type (
@@ -28,7 +26,6 @@ type (
 		mflag      repository.MessageFlagRepository
 		mentions   repository.MentionRepository
 
-		usr   systemService.UserService
 		event EventService
 		prm   PermissionsService
 	}
@@ -77,7 +74,6 @@ func (svc *message) With(ctx context.Context) MessageService {
 		db:  db,
 		ctx: ctx,
 
-		usr:   systemService.User(ctx),
 		event: Event(ctx),
 		prm:   Permissions(ctx),
 
@@ -536,10 +532,6 @@ func (svc *message) flag(messageID uint64, flag string, remove bool) error {
 }
 
 func (svc *message) preload(mm types.MessageSet) (err error) {
-	if err = svc.preloadUsers(mm); err != nil {
-		return
-	}
-
 	if err = svc.preloadAttachments(mm); err != nil {
 		return
 	}
@@ -554,28 +546,6 @@ func (svc *message) preload(mm types.MessageSet) (err error) {
 
 	if err = svc.message.PrefillThreadParticipants(mm); err != nil {
 		return
-	}
-
-	return
-}
-
-// Preload for all messages
-func (svc *message) preloadUsers(mm types.MessageSet) (err error) {
-	var uu systemTypes.UserSet
-
-	for _, msg := range mm {
-		if msg.User != nil || msg.UserID == 0 {
-			continue
-		}
-
-		if msg.User = uu.FindByID(msg.UserID); msg.User != nil {
-			continue
-		}
-
-		if msg.User, _ = svc.usr.FindByID(msg.UserID); msg.User != nil {
-			// @todo fix this handler errors (ignore user-not-found, return others)
-			uu = append(uu, msg.User)
-		}
 	}
 
 	return
@@ -650,11 +620,6 @@ func (svc *message) sendEvent(mm ...*types.Message) (err error) {
 	}
 
 	for _, msg := range mm {
-		if msg.User == nil {
-			// @todo fix this handler errors (ignore user-not-found, return others)
-			msg.User, _ = svc.usr.FindByID(msg.UserID)
-		}
-
 		if err = svc.event.Message(msg); err != nil {
 			return
 		}
