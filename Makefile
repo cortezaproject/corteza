@@ -49,17 +49,14 @@ docker-push.%: Dockerfile.%
 realize: $(REALIZE)
 	$(REALIZE) start
 
-dep.codegen:
-	go install github.com/goware/statik
-
 dep.update: $(DEP)
 	$(DEP) ensure -update -v
 
 dep: $(DEP)
 	$(DEP) ensure -v
 
-codegen: dep.codegen
-	@PATH=${PATH}:${GOPATH}/bin ./codegen.sh
+codegen:
+	./codegen.sh
 
 mailhog.up:
 	docker run --rm --publish 8025:8025 --publish 1025:1025 mailhog/mailhog
