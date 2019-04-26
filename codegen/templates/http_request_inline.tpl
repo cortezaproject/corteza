@@ -67,7 +67,16 @@ func ({self}Req *{name|expose}{call.name|capitalize}) Fill(r *http.Request) (err
 {if strtolower($method) === "path"}
 	{self}Req.{param.name|expose} = {if ($param.type !== "string")}{$parsers[$param.type]}({/if}chi.URLParam(r, "{param.name}"){if ($param.type !== "string")}){/if}
 {elseif (substr($param.type, 0, 2) === '[]' || substr($param.type, -3) === "Set") && isset($parsers[$param.type])}
-	{self}Req.{param.name|expose} = {$parsers[$param.type]}({if $method === "post"}r.Form["{param.name}"]{else}urlQuery["{param.name}"]{/if})
+	{if strtolower($method) === "post"}
+	{self}Req.{param.name|expose} = {$parsers[$param.type]}(r.Form["{param.name}"])
+	{elseif strtolower($method) === "get"}
+	if val, ok := urlQuery["{param.name}[]"]; ok {
+		{self}Req.{param.name|expose} = {$parsers[$param.type]}(val)
+	} else if val, ok = urlQuery["{param.name}"]; ok {
+		{self}Req.{param.name|expose} = {$parsers[$param.type]}(val)
+	}
+	{/if}
+
 {elseif $param.type === "*multipart.FileHeader"}
 	if _, {self}Req.{param.name|expose}, err = r.FormFile("{$param.name}"); err != nil {
 		return errors.Wrap(err, "error procesing uploaded file")
