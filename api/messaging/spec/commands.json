@@ -1,0 +1,18 @@
+{
+  "Title": "Commands",
+  "Interface": "Commands",
+  "Struct": null,
+  "Parameters": {},
+  "Protocol": "",
+  "Authentication": [],
+  "Path": "/commands",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List of available commands",
+      "Path": "/",
+      "Parameters": null
+    }
+  ]
+}

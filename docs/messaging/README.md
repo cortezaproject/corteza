@@ -251,6 +251,30 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 
 
+# Commands
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/commands/` | List of available commands |
+
+## List of available commands
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/commands/` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+
+---
+
+
+
+
 # Messages
 
 Messages represent individual messages in the chat system. Messages are typed, indicating the event which triggered the message.

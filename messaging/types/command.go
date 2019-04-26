@@ -7,18 +7,3 @@ type (
 		Description string          `db:"description" json:"description"`
 	}
 )
-
-var (
-	Preset CommandSet // @todo move this to someplace safe
-)
-
-func init() {
-	Preset = CommandSet{
-		&Command{
-			Name:        "echo",
-			Description: "It does exactly what it says on the tin"},
-		&Command{
-			Name:        "shrug",
-			Description: "It does exactly what it says on the tin"},
-	}
-}

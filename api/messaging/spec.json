@@ -25,6 +25,21 @@
         ]
     },
     {
+        "title": "Commands",
+        "parameters": {},
+        "entrypoint": "commands",
+        "path": "/commands",
+        "authentication": [],
+        "apis": [
+            {
+                "name": "list",
+                "path": "/",
+                "method": "GET",
+                "title": "List of available commands"
+            }
+        ]
+    },
+    {
         "title": "Channels",
         "description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or group.",
         "entrypoint": "channel",
