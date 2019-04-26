@@ -1,0 +1,32 @@
+workspace:
+  base: /factory
+
+kind: pipeline
+name: crust
+
+steps:
+- name: build
+  image: crusttech/crust-builder:latest
+  pull: always
+  environment:
+    CGO_ENABLED: 0
+    GOOS: linux
+    GOARCH: amd64
+    CI: travis
+  commands:
+  - go fmt ./...
+  - wait-for-it.sh -t 60 --strict factory-db:3306 -- echo "database service is up"
+  - make test
+
+services:
+- name: factory-db
+  pull: always
+  image: percona:8.0
+  command: [ "--innodb_lock_wait_timeout=2" ]
+  ports:
+    - 3306
+  environment:
+    MYSQL_ROOT_PASSWORD: bRxJ37sJ6Qu4
+    MYSQL_DATABASE: factory
+    MYSQL_USER: factory
+    MYSQL_PASSWORD: factory

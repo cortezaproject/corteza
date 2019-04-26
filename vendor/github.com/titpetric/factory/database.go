@@ -3,12 +3,14 @@ package factory
 import (
 	"context"
 	"fmt"
+	"log"
 	"reflect"
 	"strings"
+	"time"
 
 	"database/sql"
 
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 
 	"github.com/jmoiron/sqlx"
@@ -194,9 +196,13 @@ func (r *DB) Begin() (err error) {
 	}
 	if r.inTx == 0 {
 		if r.ctx == nil {
-			r.Tx, err = r.DB.Beginx()
+			r.Log(func() {
+				r.Tx, err = r.DB.Beginx()
+			}, "BEGIN;")
 		} else {
-			r.Tx, err = r.DB.BeginTxx(r.ctx, r.TxOpts)
+			r.Log(func() {
+				r.Tx, err = r.DB.BeginTxx(r.ctx, r.TxOpts)
+			}, "BEGIN; -- with context")
 		}
 	}
 	if err != nil {
@@ -208,51 +214,96 @@ func (r *DB) Begin() (err error) {
 }
 
 // Transaction will create a transaction and invoke a callback
-func (r *DB) Transaction(callback func() error) error {
-	if err := r.Begin(); err != nil {
-		return err
+func (r *DB) Transaction(callback func() error) (err error) {
+	var tries int
+
+	// Perform transaction statements
+	tries = 0
+	for {
+		// Start transaction
+		if err = r.Begin(); err != nil {
+			return
+		}
+
+		if err = callback(); err == nil {
+			break
+		}
+
+		tries++
+		if tries > 3 {
+			log.Printf("Retried transaction %d times, aborting", tries-1)
+			break
+		}
+
+		// Break out if the causer is not a MySQL error
+		cause, ok := (errors.Cause(err)).(*mysql.MySQLError)
+		if !ok {
+			log.Printf("Returned error cause is not a MySQLError, %#v", err)
+			break
+		}
+
+		// restart transaction:
+		//   - 1205: lock within transaction (unit tested),
+		//   - 1213: deadlock found
+		if cause.Number == 1205 || cause.Number == 1213 {
+			log.Printf("Restarting transaction (try=%d): %s", tries, cause)
+			r.Rollback()
+			time.Sleep(50 * time.Millisecond)
+			continue
+		}
+		log.Println("Can't handle transaction error")
+		break
 	}
-	if err := callback(); err != nil {
+
+	if err != nil {
 		r.Rollback()
 		return err
 	}
 	return r.Commit()
 }
 
-func (r *DB) Commit() error {
+func (r *DB) Commit() (err error) {
 	if r.Tx != nil {
-		if r.inTx > 0 {
-			r.inTx--
-		}
-		if r.inTx == 0 {
-			if err := r.Tx.Commit(); err != nil {
+		if r.inTx <= 1 {
+			r.Log(func() {
+				err = r.Tx.Commit()
+			}, "COMMIT;")
+			if err != nil {
 				return errors.WithStack(err)
 			}
 			r.Tx = nil
+			r.inTx = 0
 			return nil
 		}
-		_, err := r.Exec(fmt.Sprintf("RELEASE SAVEPOINT sp_%d", r.inTx))
-		return errors.WithStack(err)
+		if _, err = r.Exec(fmt.Sprintf("RELEASE SAVEPOINT sp_%d", r.inTx-1)); err != nil {
+			return errors.WithStack(err)
+		}
+		r.inTx--
+		return nil
 	}
-	return errors.New("No transaction active")
+	return errors.WithStack(sql.ErrTxDone)
 }
 
-func (r *DB) Rollback() error {
+func (r *DB) Rollback() (err error) {
 	if r.Tx != nil {
-		if r.inTx > 0 {
-			r.inTx--
-		}
-		if r.inTx == 0 {
-			if err := r.Tx.Rollback(); err != nil {
+		if r.inTx <= 1 {
+			r.Log(func() {
+				err = r.Tx.Rollback()
+			}, "ROLLBACK;")
+			if err != nil {
 				return errors.WithStack(err)
 			}
 			r.Tx = nil
+			r.inTx = 0
 			return nil
 		}
-		_, err := r.Exec(fmt.Sprintf("ROLLBACK SAVEPOINT sp_%d", r.inTx))
-		return errors.WithStack(err)
+		if _, err = r.Exec(fmt.Sprintf("ROLLBACK SAVEPOINT sp_%d", r.inTx-1)); err != nil {
+			return errors.WithStack(err)
+		}
+		r.inTx--
+		return nil
 	}
-	return errors.New("No transaction active")
+	return errors.WithStack(sql.ErrTxDone)
 }
 
 // SetFields will provide a string with SQL named bindings from a string slice
@@ -278,13 +329,10 @@ func (r *DB) NamedExec(query string, arg interface{}) (res sql.Result, err error
 		return r.DB.NamedExecContext(r.ctx, query, arg)
 	}
 
-	if r.Profiler != nil {
-		ctx := DatabaseProfilerContext{}.new(query, arg)
+	r.Log(func() {
 		res, err = exec()
-		r.Profiler.Post(ctx)
-	} else {
-		res, err = exec()
-	}
+	}, query, arg)
+
 	return res, errors.Wrap(err, "exec query failed")
 }
 
@@ -297,13 +345,10 @@ func (r *DB) Exec(query string, args ...interface{}) (res sql.Result, err error)
 		return r.DB.ExecContext(r.ctx, query, args...)
 	}
 
-	if r.Profiler != nil {
-		ctx := DatabaseProfilerContext{}.new(query, args...)
+	r.Log(func() {
 		res, err = exec()
-		r.Profiler.Post(ctx)
-	} else {
-		res, err = exec()
-	}
+	}, query, args...)
+
 	return res, errors.Wrap(err, "exec query failed")
 }
 
@@ -316,17 +361,16 @@ func (r *DB) Select(dest interface{}, query string, args ...interface{}) error {
 		}
 		return r.DB.SelectContext(r.ctx, dest, query, args...)
 	}
-	if r.Profiler != nil {
-		ctx := DatabaseProfilerContext{}.new(query, args...)
+
+	r.Log(func() {
 		err = exec()
-		r.Profiler.Post(ctx)
-	} else {
-		err = exec()
-	}
+	}, query, args...)
+
 	// clear no rows returned error
 	if err == sql.ErrNoRows {
 		return nil
 	}
+
 	return errors.Wrap(err, "select query failed")
 }
 
@@ -339,17 +383,16 @@ func (r *DB) Get(dest interface{}, query string, args ...interface{}) error {
 		}
 		return r.DB.GetContext(r.ctx, dest, query, args...)
 	}
-	if r.Profiler != nil {
-		ctx := DatabaseProfilerContext{}.new(query, args...)
+
+	r.Log(func() {
 		err = exec()
-		r.Profiler.Post(ctx)
-	} else {
-		err = exec()
-	}
+	}, query, args...)
+
 	// clear no rows returned error
 	if err == sql.ErrNoRows {
 		return nil
 	}
+
 	return errors.Wrap(err, "get query failed")
 }
 
@@ -504,4 +547,14 @@ func (r *DB) InsertIgnore(table string, args interface{}) error {
 	query := "insert ignore into " + table + " set " + r.set(args)
 	_, err = r.NamedExec(query, args)
 	return err
+}
+
+func (r *DB) Log(callback func(), query string, args ...interface{}) {
+	if r.Profiler != nil {
+		ctx := DatabaseProfilerContext{}.new(query, args...)
+		callback()
+		r.Profiler.Post(ctx)
+		return
+	}
+	callback()
 }
