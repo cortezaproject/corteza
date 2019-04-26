@@ -7,16 +7,16 @@ import (
 
 type (
 	Message struct {
-		ID        uint64 `json:"ID,string"`
+		ID        uint64 `json:"messageID,string"`
 		Type      string `json:"type"`
 		Message   string `json:"message"`
 		ChannelID string `json:"channelID"`
+		UserID    uint64 `json:"userID,string"`
 
 		ReplyTo     uint64   `json:"replyTo,omitempty,string"`
 		Replies     uint     `json:"replies,omitempty"`
 		RepliesFrom []string `json:"repliesFrom,omitempty"`
 
-		User         *User                 `json:"user"`
 		Attachment   *Attachment           `json:"att,omitempty"`
 		Mentions     MessageMentionSet     `json:"mentions,omitempty"`
 		Reactions    MessageReactionSumSet `json:"reactions,omitempty"`

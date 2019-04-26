@@ -32,9 +32,10 @@ func Message(ctx context.Context, msg *messagingTypes.Message) *outgoing.Message
 
 	return &outgoing.Message{
 		ID:        msg.ID,
+		Type:      string(msg.Type),
 		ChannelID: Uint64toa(msg.ChannelID),
 		Message:   msg.Message,
-		Type:      string(msg.Type),
+		UserID:    msg.UserID,
 
 		ReplyTo:     msg.ReplyTo,
 		Replies:     msg.Replies,
