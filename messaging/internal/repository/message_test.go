@@ -103,8 +103,8 @@ func TestReplies(t *testing.T) {
 
 		{
 			mm, err = msgRpo.Find(&types.MessageFilter{
-				RepliesTo: msg.ID,
-				ChannelID: ch.ID,
+				ThreadID:  []uint64{msg.ID},
+				ChannelID: []uint64{ch.ID},
 			})
 
 			test.Assert(t, err == nil, "FindMessages error: %+v", err)
@@ -114,7 +114,7 @@ func TestReplies(t *testing.T) {
 
 		{
 			mm, err = msgRpo.FindThreads(&types.MessageFilter{
-				ChannelID: ch.ID,
+				ChannelID: []uint64{ch.ID},
 			})
 
 			test.Assert(t, err == nil, "FindThreads error: %+v", err)
@@ -125,7 +125,7 @@ func TestReplies(t *testing.T) {
 
 		{
 			mm, err = msgRpo.Find(&types.MessageFilter{
-				ChannelID: ch.ID,
+				ChannelID: []uint64{ch.ID},
 			})
 
 			test.Assert(t, err == nil, "FindMessages error: %+v", err)

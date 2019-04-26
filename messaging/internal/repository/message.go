@@ -152,8 +152,6 @@ func (r *message) Find(filter *types.MessageFilter) (types.MessageSet, error) {
 		for _, id := range filter.Type {
 			params = append(params, id)
 		}
-	} else {
-		sql += " AND reply_to = 0 "
 	}
 
 	// first, exclusive
