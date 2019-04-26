@@ -561,3 +561,58 @@ The following event types may be sent with a message event:
 | query | string | GET | Search query | N/A | NO |
 
 ---
+
+
+
+
+# Status
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/status/` | See all current statuses |
+| `POST` | `/status/` | Set user's status |
+| `DELETE` | `/status/` | Clear status |
+
+## See all current statuses
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/status/` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+
+## Set user's status
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/status/` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| icon | string | POST | Status icon | N/A | NO |
+| message | string | POST | Status message | N/A | NO |
+| expires | string | POST | Clear status when it expires (eg: when-active, afternoon, tomorrow 1h, 30m, 1 PM, 2019-05-20) | N/A | NO |
+
+## Clear status
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/status/` | HTTP/S | DELETE |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+
+---

@@ -1,0 +1,53 @@
+{
+  "Title": "Status",
+  "Interface": "Status",
+  "Struct": null,
+  "Parameters": {},
+  "Protocol": "",
+  "Authentication": [],
+  "Path": "/status",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "See all current statuses",
+      "Path": "/",
+      "Parameters": null
+    },
+    {
+      "Name": "set",
+      "Method": "POST",
+      "Title": "Set user's status",
+      "Path": "/",
+      "Parameters": {
+        "post": [
+          {
+            "name": "icon",
+            "required": false,
+            "title": "Status icon",
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "required": false,
+            "title": "Status message",
+            "type": "string"
+          },
+          {
+            "name": "expires",
+            "required": false,
+            "title": "Clear status when it expires (eg: when-active, afternoon, tomorrow 1h, 30m, 1 PM, 2019-05-20)",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "delete",
+      "Method": "DELETE",
+      "Title": "Clear status",
+      "Path": "/",
+      "Parameters": null
+    }
+  ]
+}

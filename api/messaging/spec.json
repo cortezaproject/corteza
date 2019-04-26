@@ -40,6 +40,55 @@
         ]
     },
     {
+        "title": "Status",
+        "parameters": {},
+        "entrypoint": "status",
+        "path": "/status",
+        "authentication": [],
+        "apis": [
+            {
+                "name": "list",
+                "path": "/",
+                "method": "GET",
+                "title": "See all current statuses"
+            },
+            {
+                "name": "set",
+                "path": "/",
+                "method": "POST",
+                "title": "Set user's status",
+                "parameters": {
+                    "post": [
+                        {
+                            "type": "string",
+                            "name": "icon",
+                            "required": false,
+                            "title": "Status icon"
+                        },
+                        {
+                            "type": "string",
+                            "name": "message",
+                            "required": false,
+                            "title": "Status message"
+                        },
+                        {
+                            "type": "string",
+                            "name": "expires",
+                            "required": false,
+                            "title": "Clear status when it expires (eg: when-active, afternoon, tomorrow 1h, 30m, 1 PM, 2019-05-20)"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "delete",
+                "path": "/",
+                "method": "DELETE",
+                "title": "Clear status"
+            }
+        ]
+    },
+    {
         "title": "Channels",
         "description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or group.",
         "entrypoint": "channel",
