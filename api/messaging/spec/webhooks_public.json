@@ -1,0 +1,75 @@
+{
+  "Title": "Webhooks (Public)",
+  "Interface": "Webhooks_public",
+  "Struct": null,
+  "Parameters": {},
+  "Protocol": "",
+  "Authentication": [],
+  "Path": "/webhooks",
+  "APIs": [
+    {
+      "Name": "delete",
+      "Method": "DELETE",
+      "Title": "Delete webhook",
+      "Path": "/{webhookID}/{webhookToken}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "webhookID",
+            "required": true,
+            "title": "Webhook ID",
+            "type": "uint64"
+          },
+          {
+            "name": "webhookToken",
+            "required": true,
+            "title": "Authentication token",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "create",
+      "Method": "POST",
+      "Title": "Create a message from a webhook payload",
+      "Path": "/{webhookID}/{webhookToken}",
+      "Parameters": {
+        "get": [
+          {
+            "name": "username",
+            "required": false,
+            "title": "Custom username for webhook message",
+            "type": "string"
+          },
+          {
+            "name": "avatarURL",
+            "required": false,
+            "title": "Custom avatar picture for webhook message",
+            "type": "string"
+          },
+          {
+            "name": "content",
+            "required": true,
+            "title": "Message contents",
+            "type": "string"
+          }
+        ],
+        "path": [
+          {
+            "name": "webhookID",
+            "required": true,
+            "title": "Webhook ID",
+            "type": "uint64"
+          },
+          {
+            "name": "webhookToken",
+            "required": true,
+            "title": "Authentication token",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}

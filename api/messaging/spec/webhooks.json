@@ -1,0 +1,183 @@
+{
+  "Title": "Webhooks",
+  "Interface": "Webhooks",
+  "Struct": [
+    {
+      "imports": [
+        "github.com/crusttech/crust/messaging/types"
+      ]
+    }
+  ],
+  "Parameters": {},
+  "Protocol": "",
+  "Authentication": [],
+  "Path": "/webhooks",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List created webhooks",
+      "Path": "/",
+      "Parameters": {
+        "get": [
+          {
+            "name": "channelID",
+            "required": false,
+            "title": "Channel ID",
+            "type": "uint64"
+          },
+          {
+            "name": "userID",
+            "required": false,
+            "title": "Owner user ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "create",
+      "Method": "POST",
+      "Title": "Create webhook",
+      "Path": "/",
+      "Parameters": {
+        "post": [
+          {
+            "name": "channelID",
+            "required": true,
+            "title": "Channel ID",
+            "type": "uint64"
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "title": "Kind (incoming, outgoing)",
+            "type": "types.WebhookKind"
+          },
+          {
+            "name": "trigger",
+            "required": false,
+            "title": "Trigger word",
+            "type": "string"
+          },
+          {
+            "name": "url",
+            "required": false,
+            "title": "POST URL",
+            "type": "string"
+          },
+          {
+            "name": "username",
+            "required": false,
+            "title": "Default user name",
+            "type": "string"
+          },
+          {
+            "name": "avatar",
+            "required": false,
+            "title": "Default avatar",
+            "type": "*multipart.FileHeader"
+          },
+          {
+            "name": "avatarURL",
+            "required": false,
+            "title": "Default avatar (from URL)",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "update",
+      "Method": "POST",
+      "Title": "Attach file to channel",
+      "Path": "/{webhookID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "webhookID",
+            "required": true,
+            "title": "Webhook ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "channelID",
+            "required": true,
+            "title": "Channel ID",
+            "type": "uint64"
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "title": "Kind (incoming, outgoing)",
+            "type": "types.WebhookKind"
+          },
+          {
+            "name": "trigger",
+            "required": false,
+            "title": "Trigger word",
+            "type": "string"
+          },
+          {
+            "name": "url",
+            "required": false,
+            "title": "POST URL",
+            "type": "string"
+          },
+          {
+            "name": "username",
+            "required": false,
+            "title": "Default user name",
+            "type": "string"
+          },
+          {
+            "name": "avatar",
+            "required": false,
+            "title": "Default avatar",
+            "type": "*multipart.FileHeader"
+          },
+          {
+            "name": "avatarURL",
+            "required": false,
+            "title": "Default avatar (from URL)",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "get",
+      "Method": "GET",
+      "Title": "Get webhook details",
+      "Path": "/{webhookID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "webhookID",
+            "required": true,
+            "title": "Webhook ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "delete",
+      "Method": "DELETE",
+      "Title": "Delete webhook",
+      "Path": "/{webhookID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "webhookID",
+            "required": true,
+            "title": "Webhook ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    }
+  ]
+}

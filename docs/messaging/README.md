@@ -643,3 +643,147 @@ The following event types may be sent with a message event:
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 
 ---
+
+
+
+
+# Webhooks
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/webhooks/` | List created webhooks |
+| `POST` | `/webhooks/` | Create webhook |
+| `POST` | `/webhooks/{webhookID}` | Attach file to channel |
+| `GET` | `/webhooks/{webhookID}` | Get webhook details |
+| `DELETE` | `/webhooks/{webhookID}` | Delete webhook |
+
+## List created webhooks
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/webhooks/` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| channelID | uint64 | GET | Channel ID | N/A | NO |
+| userID | uint64 | GET | Owner user ID | N/A | NO |
+
+## Create webhook
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/webhooks/` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| channelID | uint64 | POST | Channel ID | N/A | YES |
+| kind | types.WebhookKind | POST | Kind (incoming, outgoing) | N/A | YES |
+| trigger | string | POST | Trigger word | N/A | NO |
+| url | string | POST | POST URL | N/A | NO |
+| username | string | POST | Default user name | N/A | NO |
+| avatar | *multipart.FileHeader | POST | Default avatar | N/A | NO |
+| avatarURL | string | POST | Default avatar (from URL) | N/A | NO |
+
+## Attach file to channel
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/webhooks/{webhookID}` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| webhookID | uint64 | PATH | Webhook ID | N/A | YES |
+| channelID | uint64 | POST | Channel ID | N/A | YES |
+| kind | types.WebhookKind | POST | Kind (incoming, outgoing) | N/A | YES |
+| trigger | string | POST | Trigger word | N/A | NO |
+| url | string | POST | POST URL | N/A | NO |
+| username | string | POST | Default user name | N/A | NO |
+| avatar | *multipart.FileHeader | POST | Default avatar | N/A | NO |
+| avatarURL | string | POST | Default avatar (from URL) | N/A | NO |
+
+## Get webhook details
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/webhooks/{webhookID}` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| webhookID | uint64 | PATH | Webhook ID | N/A | YES |
+
+## Delete webhook
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/webhooks/{webhookID}` | HTTP/S | DELETE |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| webhookID | uint64 | PATH | Webhook ID | N/A | YES |
+
+---
+
+
+
+
+# Webhooks (Public)
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `DELETE` | `/webhooks/{webhookID}/{webhookToken}` | Delete webhook |
+| `POST` | `/webhooks/{webhookID}/{webhookToken}` | Create a message from a webhook payload |
+
+## Delete webhook
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/webhooks/{webhookID}/{webhookToken}` | HTTP/S | DELETE |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| webhookID | uint64 | PATH | Webhook ID | N/A | YES |
+| webhookToken | string | PATH | Authentication token | N/A | YES |
+
+## Create a message from a webhook payload
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/webhooks/{webhookID}/{webhookToken}` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| username | string | GET | Custom username for webhook message | N/A | NO |
+| avatarURL | string | GET | Custom avatar picture for webhook message | N/A | NO |
+| content | string | GET | Message contents | N/A | YES |
+| webhookID | uint64 | PATH | Webhook ID | N/A | YES |
+| webhookToken | string | PATH | Authentication token | N/A | YES |
+
+---
