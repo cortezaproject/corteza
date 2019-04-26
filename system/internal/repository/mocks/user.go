@@ -39,6 +39,7 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 
 // With mocks base method
 func (m *MockUserRepository) With(ctx context.Context, db *factory.DB) repository.UserRepository {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "With", ctx, db)
 	ret0, _ := ret[0].(repository.UserRepository)
 	return ret0
@@ -46,11 +47,13 @@ func (m *MockUserRepository) With(ctx context.Context, db *factory.DB) repositor
 
 // With indicates an expected call of With
 func (mr *MockUserRepositoryMockRecorder) With(ctx, db interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "With", reflect.TypeOf((*MockUserRepository)(nil).With), ctx, db)
 }
 
 // FindByEmail mocks base method
 func (m *MockUserRepository) FindByEmail(email string) (*types.User, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByEmail", email)
 	ret0, _ := ret[0].(*types.User)
 	ret1, _ := ret[1].(error)
@@ -59,11 +62,13 @@ func (m *MockUserRepository) FindByEmail(email string) (*types.User, error) {
 
 // FindByEmail indicates an expected call of FindByEmail
 func (mr *MockUserRepositoryMockRecorder) FindByEmail(email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByEmail", reflect.TypeOf((*MockUserRepository)(nil).FindByEmail), email)
 }
 
 // FindByUsername mocks base method
 func (m *MockUserRepository) FindByUsername(username string) (*types.User, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByUsername", username)
 	ret0, _ := ret[0].(*types.User)
 	ret1, _ := ret[1].(error)
@@ -72,11 +77,13 @@ func (m *MockUserRepository) FindByUsername(username string) (*types.User, error
 
 // FindByUsername indicates an expected call of FindByUsername
 func (mr *MockUserRepositoryMockRecorder) FindByUsername(username interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByUsername", reflect.TypeOf((*MockUserRepository)(nil).FindByUsername), username)
 }
 
 // FindByID mocks base method
 func (m *MockUserRepository) FindByID(id uint64) (*types.User, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByID", id)
 	ret0, _ := ret[0].(*types.User)
 	ret1, _ := ret[1].(error)
@@ -85,11 +92,13 @@ func (m *MockUserRepository) FindByID(id uint64) (*types.User, error) {
 
 // FindByID indicates an expected call of FindByID
 func (mr *MockUserRepositoryMockRecorder) FindByID(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockUserRepository)(nil).FindByID), id)
 }
 
 // FindByIDs mocks base method
 func (m *MockUserRepository) FindByIDs(id ...uint64) (types.UserSet, error) {
+	m.ctrl.T.Helper()
 	varargs := []interface{}{}
 	for _, a := range id {
 		varargs = append(varargs, a)
@@ -102,11 +111,13 @@ func (m *MockUserRepository) FindByIDs(id ...uint64) (types.UserSet, error) {
 
 // FindByIDs indicates an expected call of FindByIDs
 func (mr *MockUserRepositoryMockRecorder) FindByIDs(id ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByIDs", reflect.TypeOf((*MockUserRepository)(nil).FindByIDs), id...)
 }
 
 // Find mocks base method
 func (m *MockUserRepository) Find(filter *types.UserFilter) ([]*types.User, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Find", filter)
 	ret0, _ := ret[0].([]*types.User)
 	ret1, _ := ret[1].(error)
@@ -115,11 +126,13 @@ func (m *MockUserRepository) Find(filter *types.UserFilter) ([]*types.User, erro
 
 // Find indicates an expected call of Find
 func (mr *MockUserRepositoryMockRecorder) Find(filter interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockUserRepository)(nil).Find), filter)
 }
 
 // Create mocks base method
 func (m *MockUserRepository) Create(mod *types.User) (*types.User, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", mod)
 	ret0, _ := ret[0].(*types.User)
 	ret1, _ := ret[1].(error)
@@ -128,11 +141,13 @@ func (m *MockUserRepository) Create(mod *types.User) (*types.User, error) {
 
 // Create indicates an expected call of Create
 func (mr *MockUserRepositoryMockRecorder) Create(mod interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserRepository)(nil).Create), mod)
 }
 
 // Update mocks base method
 func (m *MockUserRepository) Update(mod *types.User) (*types.User, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", mod)
 	ret0, _ := ret[0].(*types.User)
 	ret1, _ := ret[1].(error)
@@ -141,11 +156,13 @@ func (m *MockUserRepository) Update(mod *types.User) (*types.User, error) {
 
 // Update indicates an expected call of Update
 func (mr *MockUserRepositoryMockRecorder) Update(mod interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockUserRepository)(nil).Update), mod)
 }
 
 // BindAvatar mocks base method
 func (m *MockUserRepository) BindAvatar(user *types.User, avatar io.Reader) (*types.User, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BindAvatar", user, avatar)
 	ret0, _ := ret[0].(*types.User)
 	ret1, _ := ret[1].(error)
@@ -154,11 +171,13 @@ func (m *MockUserRepository) BindAvatar(user *types.User, avatar io.Reader) (*ty
 
 // BindAvatar indicates an expected call of BindAvatar
 func (mr *MockUserRepositoryMockRecorder) BindAvatar(user, avatar interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BindAvatar", reflect.TypeOf((*MockUserRepository)(nil).BindAvatar), user, avatar)
 }
 
 // SuspendByID mocks base method
 func (m *MockUserRepository) SuspendByID(id uint64) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SuspendByID", id)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -166,11 +185,13 @@ func (m *MockUserRepository) SuspendByID(id uint64) error {
 
 // SuspendByID indicates an expected call of SuspendByID
 func (mr *MockUserRepositoryMockRecorder) SuspendByID(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SuspendByID", reflect.TypeOf((*MockUserRepository)(nil).SuspendByID), id)
 }
 
 // UnsuspendByID mocks base method
 func (m *MockUserRepository) UnsuspendByID(id uint64) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UnsuspendByID", id)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -178,11 +199,13 @@ func (m *MockUserRepository) UnsuspendByID(id uint64) error {
 
 // UnsuspendByID indicates an expected call of UnsuspendByID
 func (mr *MockUserRepositoryMockRecorder) UnsuspendByID(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnsuspendByID", reflect.TypeOf((*MockUserRepository)(nil).UnsuspendByID), id)
 }
 
 // DeleteByID mocks base method
 func (m *MockUserRepository) DeleteByID(id uint64) error {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteByID", id)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -190,5 +213,6 @@ func (m *MockUserRepository) DeleteByID(id uint64) error {
 
 // DeleteByID indicates an expected call of DeleteByID
 func (mr *MockUserRepositoryMockRecorder) DeleteByID(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockUserRepository)(nil).DeleteByID), id)
 }

@@ -2,16 +2,13 @@ package types
 
 import (
 	"time"
-
-	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 type (
 	ChannelMember struct {
 		ChannelID uint64 `db:"rel_channel"`
 
-		UserID uint64            `db:"rel_user"`
-		User   *systemTypes.User `db:"-"`
+		UserID uint64 `db:"rel_user"`
 
 		Type ChannelMembershipType `db:"type"`
 		Flag ChannelMembershipFlag `db:"flag"`

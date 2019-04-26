@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/crusttech/crust/internal/rules"
-	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 type (
@@ -27,9 +26,8 @@ type (
 		UpdatedAt *time.Time   `json:"updatedAt,omitempty" db:"updated_at"`
 		DeletedAt *time.Time   `json:"deletedAt,omitempty" db:"deleted_at"`
 
-		Attachment *Attachment       `json:"attachment,omitempty"`
-		User       *systemTypes.User `json:"user,omitempty"`
-		Flags      MessageFlagSet    `json:"flags,omitempty"`
+		Attachment *Attachment    `json:"attachment,omitempty"`
+		Flags      MessageFlagSet `json:"flags,omitempty"`
 
 		Mentions    MentionSet
 		RepliesFrom []uint64

@@ -15,8 +15,6 @@ import (
 	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/internal/service"
 	"github.com/crusttech/crust/messaging/types"
-
-	systemService "github.com/crusttech/crust/system/service"
 )
 
 type (
@@ -39,9 +37,8 @@ type (
 		user auth.Identifiable
 
 		svc struct {
-			user systemService.UserService
-			ch   service.ChannelService
-			msg  service.MessageService
+			ch  service.ChannelService
+			msg service.MessageService
 		}
 	}
 )
@@ -56,7 +53,6 @@ func (Session) New(ctx context.Context, config *repository.Flags, conn *websocke
 		stop:   make(chan []byte, 1),
 	}
 
-	s.svc.user = systemService.DefaultUser
 	s.svc.ch = service.DefaultChannel
 	s.svc.msg = service.DefaultMessage
 

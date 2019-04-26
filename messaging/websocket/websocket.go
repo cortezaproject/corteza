@@ -10,14 +10,10 @@ import (
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/messaging/internal/repository"
-	systemService "github.com/crusttech/crust/system/service"
 )
 
 type (
 	Websocket struct {
-		svc struct {
-			user systemService.UserService
-		}
 		config *repository.Flags
 	}
 )
@@ -26,7 +22,7 @@ func (Websocket) New(config *repository.Flags) *Websocket {
 	ws := &Websocket{
 		config: config,
 	}
-	ws.svc.user = systemService.DefaultUser
+
 	return ws
 }
 
@@ -49,12 +45,6 @@ func (ws Websocket) Open(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := systemService.User(ctx).FindByID(identity.Identity())
-	if err != nil {
-		resputil.JSON(w, err)
-		return
-	}
-
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if _, ok := err.(websocket.HandshakeError); ok {
 		resputil.JSON(w, errors.Wrap(err, "ws: need a websocket handshake"))
@@ -65,7 +55,7 @@ func (ws Websocket) Open(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session := store.Save((&Session{}).New(ctx, ws.config, conn))
-	session.user = user
+	session.user = identity
 
 	if err := session.Handle(); err != nil {
 		log.Printf("Session handler returned an error: %v", err)
