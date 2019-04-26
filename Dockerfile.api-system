@@ -1,5 +1,5 @@
 ## builder image
-FROM golang:1.10-alpine AS builder
+FROM crusttech/crust-builder AS builder
 
 WORKDIR /go/src/github.com/crusttech/crust
 
@@ -7,7 +7,6 @@ ENV CGO_ENABLED=0
 
 COPY . .
 
-RUN apk update && apk upgrade && apk add --no-cache git
 RUN mkdir /build; \
     go build \
         -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime="`date +%FT%T%z`" -X github.com/crusttech/crust/internal/version.Version="`git describe --always --tags` \
@@ -19,7 +18,6 @@ RUN mkdir /build; \
 ## target image
 FROM alpine:3.7
 
-ENV PATH="/crust:{$PATH}"
 WORKDIR /crust
 
 COPY --from=builder /build/* /crust/
