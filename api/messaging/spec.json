@@ -860,5 +860,262 @@
                 }
             }
         ]
+    },
+    {
+        "entrypoint": "webhooks",
+        "authentication": [],
+        "path": "/webhooks",
+        "method": "GET",
+        "title": "Webhooks",
+        "struct": [
+            {
+                "imports": [
+                    "github.com/crusttech/crust/messaging/types"
+                ]
+            }
+        ],
+        "parameters": {},
+        "apis": [
+            {
+                "name": "list",
+                "path": "/",
+                "method": "GET",
+                "title": "List created webhooks",
+                "parameters": {
+                    "get": [
+                        {
+                            "name": "channelID",
+                            "type": "uint64",
+                            "required": false,
+                            "title": "Channel ID"
+                        },
+                        {
+                            "name": "userID",
+                            "type": "uint64",
+                            "required": false,
+                            "title": "Owner user ID"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "create",
+                "path": "/",
+                "method": "POST",
+                "title": "Create webhook",
+                "parameters": {
+                    "post": [
+                        {
+                            "name": "channelID",
+                            "type": "uint64",
+                            "required": true,
+                            "title": "Channel ID"
+                        },
+                        {
+                            "name": "kind",
+                            "type": "types.WebhookKind",
+                            "required": true,
+                            "title": "Kind (incoming, outgoing)"
+                        },
+                        {
+                            "name": "trigger",
+                            "type": "string",
+                            "required": false,
+                            "title": "Trigger word"
+                        },
+                        {
+                            "name": "url",
+                            "type": "string",
+                            "required": false,
+                            "title": "POST URL"
+                        },
+                        {
+                            "name": "username",
+                            "type": "string",
+                            "required": false,
+                            "title": "Default user name"
+                        },
+                        {
+                            "name": "avatar",
+                            "type": "*multipart.FileHeader",
+                            "required": false,
+                            "title": "Default avatar"
+                        },
+                        {
+                            "name": "avatarURL",
+                            "type": "string",
+                            "required": false,
+                            "title": "Default avatar (from URL)"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "update",
+                "path": "/{webhookID}",
+                "method": "POST",
+                "title": "Attach file to channel",
+                "parameters": {
+                    "path": [
+                        {
+                            "name": "webhookID",
+                            "type": "uint64",
+                            "required": true,
+                            "title": "Webhook ID"
+                        }
+                    ],
+                    "post": [
+                        {
+                            "name": "channelID",
+                            "type": "uint64",
+                            "required": true,
+                            "title": "Channel ID"
+                        },
+                        {
+                            "name": "kind",
+                            "type": "types.WebhookKind",
+                            "required": true,
+                            "title": "Kind (incoming, outgoing)"
+                        },
+                        {
+                            "name": "trigger",
+                            "type": "string",
+                            "required": false,
+                            "title": "Trigger word"
+                        },
+                        {
+                            "name": "url",
+                            "type": "string",
+                            "required": false,
+                            "title": "POST URL"
+                        },
+                        {
+                            "name": "username",
+                            "type": "string",
+                            "required": false,
+                            "title": "Default user name"
+                        },
+                        {
+                            "name": "avatar",
+                            "type": "*multipart.FileHeader",
+                            "required": false,
+                            "title": "Default avatar"
+                        },
+                        {
+                            "name": "avatarURL",
+                            "type": "string",
+                            "required": false,
+                            "title": "Default avatar (from URL)"
+                        }
+                    ]
+                }
+            },
+            {
+                "method": "GET",
+                "name": "get",
+                "path": "/{webhookID}",
+                "title": "Get webhook details",
+                "parameters": {
+                    "path": [
+                        {
+                            "name": "webhookID",
+                            "type": "uint64",
+                            "required": true,
+                            "title": "Webhook ID"
+                        }
+                    ]
+                }
+            },
+            {
+                "method": "DELETE",
+                "name": "delete",
+                "path": "/{webhookID}",
+                "title": "Delete webhook",
+                "parameters": {
+                    "path": [
+                        {
+                            "name": "webhookID",
+                            "type": "uint64",
+                            "required": true,
+                            "title": "Webhook ID"
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "entrypoint": "webhooks_public",
+        "authentication": [],
+        "path": "/webhooks",
+        "method": "GET",
+        "title": "Webhooks (Public)",
+        "parameters": {},
+        "apis": [
+            {
+                "method": "DELETE",
+                "name": "delete",
+                "path": "/{webhookID}/{webhookToken}",
+                "title": "Delete webhook",
+                "parameters": {
+                    "path": [
+                        {
+                            "name": "webhookID",
+                            "type": "uint64",
+                            "required": true,
+                            "title": "Webhook ID"
+                        },
+                        {
+                            "name": "webhookToken",
+                            "type": "string",
+                            "required": true,
+                            "title": "Authentication token"
+                        }
+                    ]
+                }
+            },
+            {
+                "method": "POST",
+                "name": "create",
+                "path": "/{webhookID}/{webhookToken}",
+                "title": "Create a message from a webhook payload",
+                "parameters": {
+                    "path": [
+                        {
+                            "name": "webhookID",
+                            "type": "uint64",
+                            "required": true,
+                            "title": "Webhook ID"
+                        },
+                        {
+                            "name": "webhookToken",
+                            "type": "string",
+                            "required": true,
+                            "title": "Authentication token"
+                        }
+                    ],
+                    "get": [
+                        {
+                            "name": "username",
+                            "type": "string",
+                            "required": false,
+                            "title": "Custom username for webhook message"
+                        },
+                        {
+                            "name": "avatarURL",
+                            "type": "string",
+                            "required": false,
+                            "title": "Custom avatar picture for webhook message"
+                        },
+                        {
+                            "name": "content",
+                            "type": "string",
+                            "required": true,
+                            "title": "Message contents"
+                        }
+                    ]
+                }
+            }
+        ]
     }
 ]
