@@ -76,10 +76,6 @@ func (sess *Session) connected() (err error) {
 	if cc, err = sess.svc.ch.With(sess.ctx).Find(&types.ChannelFilter{}); err != nil {
 		log.Printf("Error: %v", err)
 	} else {
-		if err = sess.sendReply(payload.Channels(cc)); err != nil {
-			return
-		}
-
 		log.Printf("Subscribing %d to %d channels", sess.user.Identity(), len(cc))
 
 		err = cc.Walk(func(c *types.Channel) error {
