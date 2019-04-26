@@ -29,12 +29,12 @@
   revision = "0bfd988c655d43237fae626efb200792d576142a"
 
 [[projects]]
-  branch = "master"
   digest = "1:d6afaeed1502aa28e80a4ed0981d570ad91b2579193404256ce672ed0a609e0d"
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
   pruneopts = "UT"
-  revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
+  revision = "4b2b341e8d7715fae06375aa633dbb6e91b3fb46"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "v2"
@@ -155,12 +155,12 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:ca59b1175189b3f0e9f1793d2c350114be36eaabbe5b9f554b35edee1de50aea"
+  digest = "1:d5f97fc268267ec1b61c3453058c738246fc3e746f14b1ae25161513b7367b0c"
   name = "github.com/gorilla/mux"
   packages = ["."]
   pruneopts = "UT"
-  revision = "a7962380ca08b5a188038c69871b8d3fbdf31e89"
-  version = "v1.7.0"
+  revision = "c5c6c98bc25355028a63748a498942a6398ccd22"
+  version = "v1.7.1"
 
 [[projects]]
   digest = "1:e72d1ebb8d395cf9f346fd9cbc652e5ae222dd85e0ac842dc57f175abed6d195"
@@ -242,18 +242,19 @@
   revision = "62de8c46ede02a7675c4c79c84883eb164cb71e3"
 
 [[projects]]
-  digest = "1:8ef506fc2bb9ced9b151dafa592d4046063d744c646c1bbe801982ce87e4bc24"
+  digest = "1:bc1c0be40c67b6b4aee09d7508d5a2a52c1c116b1fa43806dad2b0d6b4d4003b"
   name = "github.com/lib/pq"
   packages = [
     ".",
     "oid",
+    "scram",
   ]
   pruneopts = "UT"
-  revision = "4ded0e9383f75c197b3a2aaa6d590ac52df6fd79"
-  version = "v1.0.0"
+  revision = "51e2106eed1cea199c802d2a49e91e2491b02056"
+  version = "v1.1.0"
 
 [[projects]]
-  digest = "1:eb5f06b8a308f49f2205386975ab854606f01784546996964ade50fc41156875"
+  digest = "1:3b3bcae9151abbaa9b45cc566ddda6a63e34668bbb2664194648004af064fa29"
   name = "github.com/markbates/goth"
   packages = [
     ".",
@@ -265,8 +266,8 @@
     "providers/openidConnect",
   ]
   pruneopts = "UT"
-  revision = "157987f620ff2fc5e1f6a1427a3685219fbf6ff4"
-  version = "v1.49.0"
+  revision = "55fc853e522b8742c046c2aacce186cfad097871"
+  version = "v1.50.0"
 
 [[projects]]
   digest = "1:ff5ebae34cfbf047d505ee150de27e60570e8c394b3b8fdbb720ff6ac71985fc"
@@ -331,33 +332,27 @@
     "model",
   ]
   pruneopts = "UT"
-  revision = "cfeb6f9992ffa54aaa4f2170ade4067ee478b250"
-  version = "v0.2.0"
+  revision = "a82f4c12f983cc2649298185f296632953e50d3e"
+  version = "v0.3.0"
 
 [[projects]]
   branch = "master"
-  digest = "1:c31163bd62461e0c5f7ddc7363e39ef8d9e929693e77b5c11c709b05f9cb9219"
+  digest = "1:2ea45e71e0198d6b989ed6302cc4f72a83be1e7d6469d08a59e56a2c447aea55"
   name = "github.com/prometheus/procfs"
-  packages = [
-    ".",
-    "internal/util",
-    "iostats",
-    "nfs",
-    "xfs",
-  ]
+  packages = ["."]
   pruneopts = "UT"
-  revision = "40f3c57fb1983891f95378042bd0bfd590f52384"
+  revision = "87a4384529e0652f5035fb5cc8095faf73ea9b0b"
 
 [[projects]]
   branch = "go1"
-  digest = "1:da739d4a1d07b7bc909020a2de4fef276edb9731e1e114e6de233ff0fa3fc9d4"
+  digest = "1:a7bfbc6bed06c986eb38484a841d34718ab7528b383bed4ef487091df5d07464"
   name = "github.com/rwcarlsen/goexif"
   packages = [
     "exif",
     "tiff",
   ]
   pruneopts = "UT"
-  revision = "76e3344f7516fa8f63642386fd1d6a91daac87c5"
+  revision = "9e8deecbddbd4989a3e8d003684b783412b41e7a"
 
 [[projects]]
   branch = "master"
@@ -368,15 +363,15 @@
   revision = "6d5bd61810093eae37d7d605d0cbdd845969b5b2"
 
 [[projects]]
-  digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
+  digest = "1:bb495ec276ab82d3dd08504bbc0594a65de8c3b22c6f2aaa92d05b73fbf3a82e"
   name = "github.com/spf13/afero"
   packages = [
     ".",
     "mem",
   ]
   pruneopts = "UT"
-  revision = "f4711e4db9e9a1d3887343acb72b2bbfc2f686f5"
-  version = "v1.2.1"
+  revision = "588a75ec4f32903aa5e39a2619ba6a4631e28424"
+  version = "v1.2.2"
 
 [[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
@@ -396,18 +391,18 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8a90d635c58170aff3184be7da859c76ad941d7d11fa37edb28943a133cae186"
+  digest = "1:75b563e4052e994ae1ce1d5014f04ed51a00842c74a1687eb1791b11ae22cf82"
   name = "github.com/titpetric/factory"
   packages = [
     ".",
     "resputil",
   ]
   pruneopts = "UT"
-  revision = "c1dcb85af748151b6cabfac413d7e243d7214b13"
+  revision = "ce6800c0c52f2c1da3b166b4c26f174dc55c2d02"
 
 [[projects]]
   branch = "master"
-  digest = "1:57de5e480eeacde4eb99778411c6a1361ca7d84587b0d6b4de77ae9ad1a6ecf9"
+  digest = "1:15d41bf3d543ea587ff8625402b7d3e4a69e0246fed9e5bab5c4db88f0101269"
   name = "golang.org/x/crypto"
   packages = [
     "bcrypt",
@@ -418,7 +413,7 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "b7391e95e576cacdcdd422573063bc057239113d"
+  revision = "a29dc8fdc73485234dbef99ebedb95d2eced08de"
 
 [[projects]]
   branch = "master"
@@ -430,7 +425,7 @@
     "tiff/lzw",
   ]
   pruneopts = "UT"
-  revision = "3fc05d484e9f77dd51816890e05f2602e4ca4d65"
+  revision = "59b11bec70c7cc648cf3cc54683683b76d5b5e6b"
 
 [[projects]]
   branch = "master"
@@ -441,7 +436,7 @@
     "context/ctxhttp",
   ]
   pruneopts = "UT"
-  revision = "1272bf9dcd53ea65c09668fb4c76e65deb740072"
+  revision = "4829fb13d2c62012c17688fa7f629f371014946d"
 
 [[projects]]
   branch = "master"
@@ -452,21 +447,21 @@
     "internal",
   ]
   pruneopts = "UT"
-  revision = "c85d3e98c914e3a33234ad863dcbff5dbc425bb8"
+  revision = "9f3314589c9a9136388751d9adae6b0ed400978a"
 
 [[projects]]
   branch = "master"
-  digest = "1:0b1c39a5f01b898239cc5c6ee20c6535cb2621685206a371d4a489477d75511b"
+  digest = "1:656ce95b4cdf841c00825f4cb94f6e0e1422d7d6faaf3094e94cd18884a32251"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "953cdadca894cdc07be76fc99f95b40c28f06623"
+  revision = "a129542de9ae0895210abff9c95d67a1f33cb93d"
 
 [[projects]]
-  digest = "1:8029e9743749d4be5bc9f7d42ea1659471767860f0cdc34d37c3111bd308a295"
+  digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
   name = "golang.org/x/text"
   packages = [
     "internal/gen",
@@ -477,8 +472,8 @@
     "unicode/norm",
   ]
   pruneopts = "UT"
-  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
-  version = "v0.3.0"
+  revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
+  version = "v0.3.2"
 
 [[projects]]
   digest = "1:7e8b9c5ae49011b12ae8473834ac1a7bb8ac029ba201270c723e4c280c9e4855"
@@ -522,7 +517,7 @@
   version = "v2.3.1"
 
 [[projects]]
-  digest = "1:c0c30f47f9c16f227ba82f0bdfd14fa968453c30b7677a07903b3b4f34b98d49"
+  digest = "1:8c05919580be8a5be668709d7e5a69d5cd19b8ee9f23d62ce5b10d3457bf6a13"
   name = "gopkg.in/square/go-jose.v2"
   packages = [
     ".",
@@ -530,8 +525,8 @@
     "json",
   ]
   pruneopts = "UT"
-  revision = "628223f44a71f715d2881ea69afc795a1e9c01be"
-  version = "v2.3.0"
+  revision = "730df5f748271903322feb182be83b43ebbbe27d"
+  version = "v2.3.1"
 
 [solve-meta]
   analyzer-name = "dep"
