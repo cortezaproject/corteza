@@ -22,6 +22,8 @@ var (
 	DefaultPubSub      *pubSub
 	DefaultEvent       EventService
 	DefaultPermissions PermissionsService
+	DefaultCommand     CommandService
+	DefaultWebhook     WebhookService
 )
 
 func Init() error {
@@ -30,7 +32,7 @@ func Init() error {
 		return err
 	}
 
-	_, err = http.New(&config.HTTPClient{
+	client, err := http.New(&config.HTTPClient{
 		Timeout: 10,
 	})
 	if err != nil {
@@ -45,6 +47,8 @@ func Init() error {
 	DefaultMessage = Message(ctx)
 	DefaultChannel = Channel(ctx)
 	DefaultPubSub = PubSub()
+	DefaultCommand = Command(ctx)
+	DefaultWebhook = Webhook(ctx, client)
 
 	return nil
 }

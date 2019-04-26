@@ -1,9 +1,8 @@
 package types
 
 import (
+	"io"
 	"time"
-
-	"mime/multipart"
 
 	"github.com/crusttech/crust/internal/rules"
 )
@@ -12,8 +11,8 @@ type (
 	Webhook struct {
 		ID uint64 `json:"id" db:"id"`
 
-		Kind      WebhookKind `json:"kind" db:"webhook_kind"`
-		AuthToken string      `json:"-" db:"webhook_token"`
+		Kind      WebhookKind `json:"kind" db:"kind"`
+		AuthToken string      `json:"-" db:"token"`
 
 		OwnerUserID uint64 `json:"userId" db:"rel_owner"`
 
@@ -33,8 +32,7 @@ type (
 	WebhookRequest struct {
 		Username string
 
-		Avatar    *multipart.FileHeader
-		AvatarURL string
+		Avatar io.Reader
 
 		OutgoingTrigger string
 		OutgoingURL     string

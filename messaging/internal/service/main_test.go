@@ -30,11 +30,16 @@ func TestMain(m *testing.M) {
 	factory.Database.Add("messaging", dsn)
 	factory.Database.Add("system", dsn)
 
+	// @todo: add flags to configure the sql profiler in tests
+
 	db := factory.Database.MustGet()
 	db.Profiler = &factory.Database.ProfilerStdout
 
+	dbSystem := factory.Database.MustGet("system")
+	dbSystem.Profiler = &factory.Database.ProfilerStdout
+
 	// migrate database schema
-	if err := systemMigrate.Migrate(db); err != nil {
+	if err := systemMigrate.Migrate(dbSystem); err != nil {
 		log.Printf("Error running migrations: %+v\n", err)
 		return
 	}

@@ -27,5 +27,11 @@ func (ctrl *Commands) List(ctx context.Context, r *request.CommandsList) (interf
 		&types.Command{
 			Name:        "shrug",
 			Description: "It does exactly what it says on the tin"},
+		&types.Command{
+			Name:        "tableflip",
+			Description: "Flip a table in anger"},
+		&types.Command{
+			Name:        "unflip",
+			Description: "Put the table back from a flip"},
 	}, nil
 }
