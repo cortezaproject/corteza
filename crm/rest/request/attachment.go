@@ -38,6 +38,8 @@ type AttachmentList struct {
 	FieldName string
 	Page      uint
 	PerPage   uint
+	Sign      string
+	UserID    uint64 `json:",string"`
 	Kind      string
 }
 
@@ -96,6 +98,14 @@ func (aReq *AttachmentList) Fill(r *http.Request) (err error) {
 
 		aReq.PerPage = parseUint(val)
 	}
+	if val, ok := get["sign"]; ok {
+
+		aReq.Sign = val
+	}
+	if val, ok := get["userID"]; ok {
+
+		aReq.UserID = parseUInt64(val)
+	}
 	aReq.Kind = chi.URLParam(r, "kind")
 
 	return err
@@ -107,6 +117,8 @@ var _ RequestFiller = NewAttachmentList()
 type AttachmentDetails struct {
 	AttachmentID uint64 `json:",string"`
 	Kind         string
+	Sign         string
+	UserID       uint64 `json:",string"`
 }
 
 func NewAttachmentDetails() *AttachmentDetails {
@@ -142,6 +154,14 @@ func (aReq *AttachmentDetails) Fill(r *http.Request) (err error) {
 
 	aReq.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
 	aReq.Kind = chi.URLParam(r, "kind")
+	if val, ok := get["sign"]; ok {
+
+		aReq.Sign = val
+	}
+	if val, ok := get["userID"]; ok {
+
+		aReq.UserID = parseUInt64(val)
+	}
 
 	return err
 }
@@ -151,6 +171,8 @@ var _ RequestFiller = NewAttachmentDetails()
 // Attachment original request parameters
 type AttachmentOriginal struct {
 	Download     bool
+	Sign         string
+	UserID       uint64 `json:",string"`
 	AttachmentID uint64 `json:",string"`
 	Name         string
 	Kind         string
@@ -191,6 +213,14 @@ func (aReq *AttachmentOriginal) Fill(r *http.Request) (err error) {
 
 		aReq.Download = parseBool(val)
 	}
+	if val, ok := get["sign"]; ok {
+
+		aReq.Sign = val
+	}
+	if val, ok := get["userID"]; ok {
+
+		aReq.UserID = parseUInt64(val)
+	}
 	aReq.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
 	aReq.Name = chi.URLParam(r, "name")
 	aReq.Kind = chi.URLParam(r, "kind")
@@ -205,6 +235,8 @@ type AttachmentPreview struct {
 	AttachmentID uint64 `json:",string"`
 	Ext          string
 	Kind         string
+	Sign         string
+	UserID       uint64 `json:",string"`
 }
 
 func NewAttachmentPreview() *AttachmentPreview {
@@ -241,6 +273,14 @@ func (aReq *AttachmentPreview) Fill(r *http.Request) (err error) {
 	aReq.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
 	aReq.Ext = chi.URLParam(r, "ext")
 	aReq.Kind = chi.URLParam(r, "kind")
+	if val, ok := get["sign"]; ok {
+
+		aReq.Sign = val
+	}
+	if val, ok := get["userID"]; ok {
+
+		aReq.UserID = parseUInt64(val)
+	}
 
 	return err
 }

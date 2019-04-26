@@ -38,9 +38,9 @@ func MountRoutes() func(chi.Router) {
 			handlers.NewChart(chart).MountRoutes(r)
 			handlers.NewTrigger(trigger).MountRoutes(r)
 			handlers.NewNotification(notification).MountRoutes(r)
-
-			// Use alternative handlers that support file serving
-			handlers.NewAttachmentDownloadable(attachment).MountRoutes(r)
 		})
+
+		// Use alternative handlers that support file serving
+		handlers.NewAttachmentDownloadable(attachment).MountRoutes(r)
 	}
 }

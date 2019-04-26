@@ -8,6 +8,7 @@ import (
 	"github.com/crusttech/crust/crm/internal/service"
 	"github.com/crusttech/crust/crm/rest/request"
 	"github.com/crusttech/crust/crm/types"
+	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/payload"
 )
 
@@ -94,5 +95,5 @@ func (ctrl *Page) Upload(ctx context.Context, r *request.PageUpload) (interface{
 		return nil, err
 	}
 
-	return makeAttachmentPayload(a), nil
+	return makeAttachmentPayload(a, auth.GetIdentityFromContext(ctx).Identity()), nil
 }
