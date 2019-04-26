@@ -131,8 +131,12 @@ var _ RequestFiller = NewMessageExecuteCommand()
 
 // Message history request parameters
 type MessageHistory struct {
-	LastMessageID uint64 `json:",string"`
-	ChannelID     uint64 `json:",string"`
+	AfterMessageID  uint64 `json:",string"`
+	BeforeMessageID uint64 `json:",string"`
+	FromMessageID   uint64 `json:",string"`
+	ToMessageID     uint64 `json:",string"`
+	Limit           uint
+	ChannelID       uint64 `json:",string"`
 }
 
 func NewMessageHistory() *MessageHistory {
@@ -166,9 +170,25 @@ func (mReq *MessageHistory) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	if val, ok := get["lastMessageID"]; ok {
+	if val, ok := get["afterMessageID"]; ok {
 
-		mReq.LastMessageID = parseUInt64(val)
+		mReq.AfterMessageID = parseUInt64(val)
+	}
+	if val, ok := get["beforeMessageID"]; ok {
+
+		mReq.BeforeMessageID = parseUInt64(val)
+	}
+	if val, ok := get["fromMessageID"]; ok {
+
+		mReq.FromMessageID = parseUInt64(val)
+	}
+	if val, ok := get["toMessageID"]; ok {
+
+		mReq.ToMessageID = parseUInt64(val)
+	}
+	if val, ok := get["limit"]; ok {
+
+		mReq.Limit = parseUint(val)
 	}
 	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
 

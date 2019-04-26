@@ -141,9 +141,9 @@ func (r *message) Find(filter *types.MessageFilter) (types.MessageSet, error) {
 	}
 
 	// first, exclusive
-	if filter.FirstID > 0 {
+	if filter.AfterID > 0 {
 		sql += " AND id > ? "
-		params = append(params, filter.FirstID)
+		params = append(params, filter.AfterID)
 	}
 
 	// from, inclusive
@@ -153,9 +153,9 @@ func (r *message) Find(filter *types.MessageFilter) (types.MessageSet, error) {
 	}
 
 	// last, exclusive
-	if filter.LastID > 0 {
+	if filter.BeforeID > 0 {
 		sql += " AND id < ? "
-		params = append(params, filter.LastID)
+		params = append(params, filter.BeforeID)
 	}
 
 	// to, inclusive
@@ -172,6 +172,15 @@ func (r *message) Find(filter *types.MessageFilter) (types.MessageSet, error) {
 		} else {
 			params = append(params, types.MessageFlagPinnedToChannel)
 		}
+	}
+
+	if filter.AttachmentsOnly {
+		sql += " AND type IN (?, ?) "
+		params = append(
+			params,
+			types.MessageTypeAttachment,
+			types.MessageTypeInlineImage,
+		)
 	}
 
 	sql += " AND rel_channel IN " + sqlChannelAccess

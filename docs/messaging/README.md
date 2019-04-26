@@ -358,7 +358,11 @@ The following event types may be sent with a message event:
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| lastMessageID | uint64 | GET |  | N/A | NO |
+| afterMessageID | uint64 | GET | ID of the first message in the list (exclusive) | N/A | NO |
+| beforeMessageID | uint64 | GET | ID of the last message in the list (exclusive) | N/A | NO |
+| fromMessageID | uint64 | GET | ID of the first message in the list (inclusive) | N/A | NO |
+| toMessageID | uint64 | GET | ID of the last message the list (inclusive) | N/A | NO |
+| limit | uint | GET | Number of messages to get | N/A | NO |
 | channelID | uint64 | PATH | Channel ID | N/A | YES |
 
 ## Manages read/unread messages in a channel or a thread

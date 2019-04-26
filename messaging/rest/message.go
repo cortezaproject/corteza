@@ -53,7 +53,11 @@ func (ctrl *Message) ReplyGet(ctx context.Context, r *request.MessageReplyGet) (
 func (ctrl *Message) History(ctx context.Context, r *request.MessageHistory) (interface{}, error) {
 	return ctrl.wrapSet(ctx)(ctrl.svc.msg.With(ctx).Find(&types.MessageFilter{
 		ChannelID: r.ChannelID,
-		FirstID:   r.LastMessageID,
+		AfterID:   r.AfterMessageID,
+		BeforeID:  r.BeforeMessageID,
+		FromID:    r.FromMessageID,
+		ToID:      r.ToMessageID,
+		Limit:     r.Limit,
 	}))
 }
 

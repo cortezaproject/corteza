@@ -32,8 +32,8 @@ func (ctrl *Search) Messages(ctx context.Context, r *request.SearchMessages) (in
 		Query:     r.Query,
 		ChannelID: r.InChannel,
 		UserID:    r.FromUser,
-		FirstID:   r.FirstID,
-		LastID:    r.LastID,
+		AfterID:   r.FirstID,
+		BeforeID:  r.LastID,
 	}))
 }
 

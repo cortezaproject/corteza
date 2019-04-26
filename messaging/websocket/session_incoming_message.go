@@ -37,8 +37,8 @@ func (s *Session) messageHistory(ctx context.Context, p *incoming.Messages) erro
 			ChannelID: p.ChannelID,
 			FromID:    p.FromID,
 			ToID:      p.ToID,
-			FirstID:   p.FirstID,
-			LastID:    p.LastID,
+			AfterID:   p.FirstID,
+			BeforeID:  p.LastID,
 
 			RepliesTo: p.RepliesTo,
 
@@ -64,8 +64,8 @@ func (s *Session) messageThreads(ctx context.Context, p *incoming.MessageThreads
 	var (
 		filter = &types.MessageFilter{
 			ChannelID: p.ChannelID,
-			FirstID:   p.FirstID,
-			LastID:    p.LastID,
+			AfterID:   p.FirstID,
+			BeforeID:  p.LastID,
 
 			// Max no. of messages we will return
 			Limit: 50,
