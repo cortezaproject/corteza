@@ -22,8 +22,8 @@ func (Commands) New() *Commands {
 func (ctrl *Commands) List(ctx context.Context, r *request.CommandsList) (interface{}, error) {
 	return types.CommandSet{
 		&types.Command{
-			Name:        "echo",
-			Description: "It does exactly what it says on the tin"},
+			Name:        "me",
+			Description: "Illeism"},
 		&types.Command{
 			Name:        "shrug",
 			Description: "It does exactly what it says on the tin"},

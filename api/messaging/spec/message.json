@@ -36,6 +36,36 @@
       }
     },
     {
+      "Name": "executeCommand",
+      "Method": "POST",
+      "Title": "Execute command",
+      "Path": "/command/{command}/exec",
+      "Parameters": {
+        "path": [
+          {
+            "name": "command",
+            "required": true,
+            "title": "Command to be executed",
+            "type": "string"
+          }
+        ],
+        "post": [
+          {
+            "name": "input",
+            "required": false,
+            "title": "Arbitrary command input",
+            "type": "string"
+          },
+          {
+            "name": "params",
+            "required": false,
+            "title": "Command parameters",
+            "type": "[]string"
+          }
+        ]
+      }
+    },
+    {
       "Name": "history",
       "Method": "GET",
       "Title": "All messages (channel history)",

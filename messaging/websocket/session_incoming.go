@@ -49,9 +49,6 @@ func (s *Session) dispatch(raw []byte) error {
 
 	case p.Users != nil:
 		return s.userList(ctx, p.Users)
-
-	case p.ExecCommand != nil:
-		return s.execCommand(ctx, p.ExecCommand)
 	}
 
 	return nil

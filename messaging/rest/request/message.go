@@ -78,6 +78,57 @@ func (mReq *MessageCreate) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewMessageCreate()
 
+// Message executeCommand request parameters
+type MessageExecuteCommand struct {
+	Command   string
+	ChannelID uint64 `json:",string"`
+	Input     string
+	Params    []string
+}
+
+func NewMessageExecuteCommand() *MessageExecuteCommand {
+	return &MessageExecuteCommand{}
+}
+
+func (mReq *MessageExecuteCommand) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(mReq)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	mReq.Command = chi.URLParam(r, "command")
+	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	if val, ok := post["input"]; ok {
+
+		mReq.Input = val
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewMessageExecuteCommand()
+
 // Message history request parameters
 type MessageHistory struct {
 	LastMessageID uint64 `json:",string"`

@@ -25,6 +25,4 @@ type Payload struct {
 	*MessageDelete `json:"deleteMessage"`
 
 	*Users `json:"getUsers"`
-
-	*ExecCommand `json:"exec"`
 }

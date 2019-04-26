@@ -373,6 +373,36 @@
                 }
             },
             {
+                "name": "executeCommand",
+                "path": "/command/{command}/exec",
+                "method": "POST",
+                "title": "Execute command",
+                "parameters": {
+                    "path": [
+                        {
+                            "name": "command",
+                            "type": "string",
+                            "required": true,
+                            "title": "Command to be executed"
+                        }
+                    ],
+                    "post": [
+                        {
+                            "type": "string",
+                            "name": "input",
+                            "required": false,
+                            "title": "Arbitrary command input"
+                        },
+                        {
+                            "type": "[]string",
+                            "name": "params",
+                            "required": false,
+                            "title": "Command parameters"
+                        }
+                    ]
+                }
+            },
+            {
                 "name": "history",
                 "path": "/",
                 "method": "GET",
