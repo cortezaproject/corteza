@@ -113,10 +113,6 @@ func (sess *Session) connected() (err error) {
 		}
 	}
 
-	if err = sess.sendReply(payload.Commands(types.Preset)); err != nil {
-		return
-	}
-
 	// Tell everyone that user has connected
 	if err = sess.sendToAll(&outgoing.Connected{UserID: payload.Uint64toa(sess.user.Identity())}); err != nil {
 		return
