@@ -1,0 +1,39 @@
+{
+  "Title": "User activity",
+  "Interface": "Activity",
+  "Struct": null,
+  "Parameters": {},
+  "Protocol": "",
+  "Authentication": [],
+  "Path": "/activity",
+  "APIs": [
+    {
+      "Name": "send",
+      "Method": "POST",
+      "Title": "Sends user's activity to all subscribers; globally or per channel/message.",
+      "Path": "/",
+      "Parameters": {
+        "post": [
+          {
+            "name": "channelID",
+            "required": false,
+            "title": "Channel ID, if set, activity will be send only to subscribed users",
+            "type": "uint64"
+          },
+          {
+            "name": "messageID",
+            "required": false,
+            "title": "Message ID, if set, channelID must be set as well",
+            "type": "uint64"
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "title": "Arbitrary string",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}

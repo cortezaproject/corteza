@@ -16,6 +16,15 @@ const (
 	attachmentPreviewURL = "/attachment/%d/preview.%s"
 )
 
+func Activity(a *messagingTypes.Activity) *outgoing.Activity {
+	return &outgoing.Activity{
+		MessageID: a.MessageID,
+		ChannelID: a.ChannelID,
+		Kind:      a.Kind,
+		UserID:    a.UserID,
+	}
+}
+
 func Message(ctx context.Context, msg *messagingTypes.Message) *outgoing.Message {
 	var currentUserID = auth.GetIdentityFromContext(ctx).Identity()
 	var canEdit = msg.Type.IsEditable() && msg.UserID == currentUserID

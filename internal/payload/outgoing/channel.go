@@ -22,13 +22,6 @@ type (
 		UserID string `json:"userID"`
 	}
 
-	// ChannelActivity indicates where the activity is and who is active
-	ChannelActivity struct {
-		ID     uint64 `json:"channelID,string"`
-		UserID uint64 `json:"userID,string"`
-		Kind   string `json:"kind,omitempty"`
-	}
-
 	Channel struct {
 		// Channel to part (nil) for ALL channels
 		ID             string   `json:"ID"`
@@ -65,10 +58,6 @@ func (p *ChannelJoin) EncodeMessage() ([]byte, error) {
 
 func (p *ChannelPart) EncodeMessage() ([]byte, error) {
 	return json.Marshal(Payload{ChannelPart: p})
-}
-
-func (p *ChannelActivity) EncodeMessage() ([]byte, error) {
-	return json.Marshal(Payload{ChannelActivity: p})
 }
 
 func (p *Channel) EncodeMessage() ([]byte, error) {

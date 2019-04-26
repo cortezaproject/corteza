@@ -1,3 +1,30 @@
+# User activity
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `POST` | `/activity/` | Sends user's activity to all subscribers; globally or per channel/message. |
+
+## Sends user's activity to all subscribers; globally or per channel/message.
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/activity/` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| channelID | uint64 | POST | Channel ID, if set, activity will be send only to subscribed users | N/A | NO |
+| messageID | uint64 | POST | Message ID, if set, channelID must be set as well | N/A | NO |
+| kind | string | POST | Arbitrary string | N/A | YES |
+
+---
+
+
+
+
 # Attachments
 
 | Method | Endpoint | Purpose |
