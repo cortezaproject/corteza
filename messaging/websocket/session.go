@@ -17,7 +17,6 @@ import (
 	"github.com/crusttech/crust/messaging/types"
 
 	systemService "github.com/crusttech/crust/system/service"
-	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 type (
@@ -70,27 +69,8 @@ func (sess *Session) Context() context.Context {
 
 func (sess *Session) connected() (err error) {
 	var (
-		uu systemTypes.UserSet
 		cc types.ChannelSet
 	)
-
-	// Push user info about all users we know...
-	if uu, err = systemService.User(sess.ctx).Find(nil); err != nil {
-		log.Printf("Error: %v", err)
-	} else {
-		userPayload := payload.Users(uu)
-		store.Walk(func(session *Session) {
-			for _, u := range *userPayload {
-				if u.ID == session.user.Identity() {
-					u.Connections++
-				}
-			}
-		})
-
-		if err = sess.sendReply(userPayload); err != nil {
-			return
-		}
-	}
 
 	// Push user info about all channels he has access to...
 	if cc, err = sess.svc.ch.With(sess.ctx).Find(&types.ChannelFilter{}); err != nil {

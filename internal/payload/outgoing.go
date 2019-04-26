@@ -40,7 +40,6 @@ func Message(ctx context.Context, msg *messagingTypes.Message) *outgoing.Message
 		Replies:     msg.Replies,
 		RepliesFrom: Uint64stoa(msg.RepliesFrom),
 
-		User:         User(msg.User),
 		Attachment:   Attachment(msg.Attachment, currentUserID),
 		Mentions:     messageMentionSet(msg.Mentions),
 		Reactions:    messageReactionSumSet(msg.Flags),
@@ -174,7 +173,7 @@ func Channels(channels messagingTypes.ChannelSet) *outgoing.ChannelSet {
 
 func ChannelMember(m *messagingTypes.ChannelMember) *outgoing.ChannelMember {
 	return &outgoing.ChannelMember{
-		User:      User(m.User),
+		UserID:    m.UserID,
 		Type:      string(m.Type),
 		CreatedAt: m.CreatedAt,
 		UpdatedAt: m.UpdatedAt,
@@ -227,17 +226,6 @@ func User(user *systemTypes.User) *outgoing.User {
 		Username: user.Username,
 		Email:    user.Email,
 	}
-}
-
-func Users(users []*systemTypes.User) *outgoing.UserSet {
-	uu := make([]*outgoing.User, len(users))
-	for k, u := range users {
-		uu[k] = User(u)
-	}
-
-	retval := outgoing.UserSet(uu)
-
-	return &retval
 }
 
 func Attachment(in *messagingTypes.Attachment, userID uint64) *outgoing.Attachment {

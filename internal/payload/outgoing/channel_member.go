@@ -8,8 +8,8 @@ import (
 type (
 	ChannelMember struct {
 		// Channel to part (nil) for ALL channels
-		User      *User      `json:"user"`
-		Type      string     `json:"type""`
+		UserID    uint64     `json:"userID,string"`
+		Type      string     `json:"type"`
 		CreatedAt time.Time  `json:"createdAt"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 	}
