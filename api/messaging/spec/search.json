@@ -25,30 +25,72 @@
       "Title": "Search for messages",
       "Path": "/messages",
       "Parameters": {
-        "GET": [
+        "get": [
           {
-            "name": "inChannel",
+            "name": "channelID",
             "required": false,
-            "title": "Search only in one channel",
+            "title": "Filter by channels",
+            "type": "[]uint64"
+          },
+          {
+            "name": "afterMessageID",
+            "required": false,
+            "title": "ID of the first message in the list (exclusive)",
             "type": "uint64"
           },
           {
-            "name": "fromUser",
+            "name": "beforeMessageID",
             "required": false,
-            "title": "Search only from one user",
+            "title": "ID of the last message in the list (exclusive)",
             "type": "uint64"
           },
           {
-            "name": "firstID",
+            "name": "fromMessageID",
             "required": false,
-            "title": "Paging; return newer messages only (higher id)",
+            "title": "ID of the first message in the list (inclusive)",
             "type": "uint64"
           },
           {
-            "name": "lastID",
+            "name": "toMessageID",
             "required": false,
-            "title": "Paging; return older messages only (lower id)",
+            "title": "ID of the last message the list (inclusive)",
             "type": "uint64"
+          },
+          {
+            "name": "threadID",
+            "required": false,
+            "title": "Filter by thread message ID",
+            "type": "[]uint64"
+          },
+          {
+            "name": "userID",
+            "required": false,
+            "title": "Filter by one or more user",
+            "type": "[]uint64"
+          },
+          {
+            "name": "type",
+            "required": false,
+            "title": "Filter by message type (text, inlineImage, attachment, ...)",
+            "type": "[]string"
+          },
+          {
+            "name": "pinnedOnly",
+            "required": false,
+            "title": "Return only pinned messages",
+            "type": "bool"
+          },
+          {
+            "name": "bookmarkedOnly",
+            "required": false,
+            "title": "Only bookmarked messages",
+            "type": "bool"
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "title": "Max number of messages",
+            "type": "uint"
           }
         ]
       }

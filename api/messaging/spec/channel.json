@@ -17,7 +17,7 @@
       "Title": "List channels",
       "Path": "/",
       "Parameters": {
-        "GET": [
+        "get": [
           {
             "name": "query",
             "required": false,

@@ -32,11 +32,18 @@ var _ = multipart.FileHeader{}
 
 // Search messages request parameters
 type SearchMessages struct {
-	InChannel uint64 `json:",string"`
-	FromUser  uint64 `json:",string"`
-	FirstID   uint64 `json:",string"`
-	LastID    uint64 `json:",string"`
-	Query     string
+	ChannelID       []uint64 `json:",string"`
+	AfterMessageID  uint64   `json:",string"`
+	BeforeMessageID uint64   `json:",string"`
+	FromMessageID   uint64   `json:",string"`
+	ToMessageID     uint64   `json:",string"`
+	ThreadID        []uint64 `json:",string"`
+	UserID          []uint64 `json:",string"`
+	Type            []string
+	PinnedOnly      bool
+	BookmarkedOnly  bool
+	Limit           uint
+	Query           string
 }
 
 func NewSearchMessages() *SearchMessages {
@@ -70,21 +77,52 @@ func (sReq *SearchMessages) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	if val, ok := get["inChannel"]; ok {
-
-		sReq.InChannel = parseUInt64(val)
+	if val, ok := urlQuery["channelID[]"]; ok {
+		sReq.ChannelID = parseUInt64A(val)
+	} else if val, ok = urlQuery["channelID"]; ok {
+		sReq.ChannelID = parseUInt64A(val)
 	}
-	if val, ok := get["fromUser"]; ok {
 
-		sReq.FromUser = parseUInt64(val)
+	if val, ok := get["afterMessageID"]; ok {
+
+		sReq.AfterMessageID = parseUInt64(val)
 	}
-	if val, ok := get["firstID"]; ok {
+	if val, ok := get["beforeMessageID"]; ok {
 
-		sReq.FirstID = parseUInt64(val)
+		sReq.BeforeMessageID = parseUInt64(val)
 	}
-	if val, ok := get["lastID"]; ok {
+	if val, ok := get["fromMessageID"]; ok {
 
-		sReq.LastID = parseUInt64(val)
+		sReq.FromMessageID = parseUInt64(val)
+	}
+	if val, ok := get["toMessageID"]; ok {
+
+		sReq.ToMessageID = parseUInt64(val)
+	}
+
+	if val, ok := urlQuery["threadID[]"]; ok {
+		sReq.ThreadID = parseUInt64A(val)
+	} else if val, ok = urlQuery["threadID"]; ok {
+		sReq.ThreadID = parseUInt64A(val)
+	}
+
+	if val, ok := urlQuery["userID[]"]; ok {
+		sReq.UserID = parseUInt64A(val)
+	} else if val, ok = urlQuery["userID"]; ok {
+		sReq.UserID = parseUInt64A(val)
+	}
+
+	if val, ok := get["pinnedOnly"]; ok {
+
+		sReq.PinnedOnly = parseBool(val)
+	}
+	if val, ok := get["bookmarkedOnly"]; ok {
+
+		sReq.BookmarkedOnly = parseBool(val)
+	}
+	if val, ok := get["limit"]; ok {
+
+		sReq.Limit = parseUint(val)
 	}
 	if val, ok := get["query"]; ok {
 

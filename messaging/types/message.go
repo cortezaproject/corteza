@@ -48,13 +48,16 @@ type (
 		CurrentUserID uint64
 
 		// All messages that belong to a channel
-		ChannelID uint64
+		ChannelID []uint64
 
 		// Only messages that belong to a user
-		UserID uint64
+		UserID []uint64
 
-		// Return all replies to a single message
-		RepliesTo uint64
+		// Replies to a message
+		ThreadID []uint64
+
+		// Filter by type
+		Type []string
 
 		// (AfterID...BeforeID), for paging
 		//
@@ -68,8 +71,9 @@ type (
 		FromID uint64
 		ToID   uint64
 
-		PinnedOnly     bool
-		BookmarkedOnly bool
+		PinnedOnly      bool
+		BookmarkedOnly  bool
+		AttachmentsOnly bool
 
 		Limit uint
 	}

@@ -129,74 +129,6 @@ func (mReq *MessageExecuteCommand) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewMessageExecuteCommand()
 
-// Message history request parameters
-type MessageHistory struct {
-	AfterMessageID  uint64 `json:",string"`
-	BeforeMessageID uint64 `json:",string"`
-	FromMessageID   uint64 `json:",string"`
-	ToMessageID     uint64 `json:",string"`
-	Limit           uint
-	ChannelID       uint64 `json:",string"`
-}
-
-func NewMessageHistory() *MessageHistory {
-	return &MessageHistory{}
-}
-
-func (mReq *MessageHistory) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
-		}
-	}
-
-	if err = r.ParseForm(); err != nil {
-		return err
-	}
-
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := r.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := r.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	if val, ok := get["afterMessageID"]; ok {
-
-		mReq.AfterMessageID = parseUInt64(val)
-	}
-	if val, ok := get["beforeMessageID"]; ok {
-
-		mReq.BeforeMessageID = parseUInt64(val)
-	}
-	if val, ok := get["fromMessageID"]; ok {
-
-		mReq.FromMessageID = parseUInt64(val)
-	}
-	if val, ok := get["toMessageID"]; ok {
-
-		mReq.ToMessageID = parseUInt64(val)
-	}
-	if val, ok := get["limit"]; ok {
-
-		mReq.Limit = parseUint(val)
-	}
-	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
-
-	return err
-}
-
-var _ RequestFiller = NewMessageHistory()
-
 // Message markAsRead request parameters
 type MessageMarkAsRead struct {
 	ChannelID         uint64 `json:",string"`
@@ -344,51 +276,6 @@ func (mReq *MessageDelete) Fill(r *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewMessageDelete()
-
-// Message replyGet request parameters
-type MessageReplyGet struct {
-	MessageID uint64 `json:",string"`
-	ChannelID uint64 `json:",string"`
-}
-
-func NewMessageReplyGet() *MessageReplyGet {
-	return &MessageReplyGet{}
-}
-
-func (mReq *MessageReplyGet) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
-		}
-	}
-
-	if err = r.ParseForm(); err != nil {
-		return err
-	}
-
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := r.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := r.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
-
-	return err
-}
-
-var _ RequestFiller = NewMessageReplyGet()
 
 // Message replyCreate request parameters
 type MessageReplyCreate struct {
