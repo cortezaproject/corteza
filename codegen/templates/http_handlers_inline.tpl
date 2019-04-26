@@ -33,9 +33,22 @@ func New{name|expose}({self}h {name|expose}API) *{name|expose} {
 		{call.name|capitalize}: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.New{name|capitalize}{call.name|capitalize}()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return {self}h.{call.name|capitalize}(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := {self}h.{call.name|capitalize}(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+					case func(http.ResponseWriter, *http.Request):
+						fn(w, r)
+						return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 {/foreach}
 	{rdelim}
