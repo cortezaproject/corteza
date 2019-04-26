@@ -56,11 +56,11 @@ type (
 		// Return all replies to a single message
 		RepliesTo uint64
 
-		// (FirstID...LastID), for paging
+		// (AfterID...BeforeID), for paging
 		//
 		// Include all messages which IDs range from "first" to "last" (exclusive!)
-		FirstID uint64
-		LastID  uint64
+		AfterID  uint64
+		BeforeID uint64
 
 		// [FromID...ToID, for paging
 		//

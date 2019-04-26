@@ -410,10 +410,34 @@
                 "parameters": {
                     "get": [
                         {
-                            "name": "lastMessageID",
+                            "name": "afterMessageID",
                             "type": "uint64",
                             "required": false,
-                            "title": ""
+                            "title": "ID of the first message in the list (exclusive)"
+                        },
+                        {
+                            "name": "beforeMessageID",
+                            "type": "uint64",
+                            "required": false,
+                            "title": "ID of the last message in the list (exclusive)"
+                        },
+                        {
+                            "name": "fromMessageID",
+                            "type": "uint64",
+                            "required": false,
+                            "title": "ID of the first message in the list (inclusive)"
+                        },
+                        {
+                            "name": "toMessageID",
+                            "type": "uint64",
+                            "required": false,
+                            "title": "ID of the last message the list (inclusive)"
+                        },
+                        {
+                            "name": "limit",
+                            "type": "uint",
+                            "required": false,
+                            "title": "Number of messages to get"
                         }
                     ]
                 }

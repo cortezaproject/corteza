@@ -44,6 +44,15 @@ func parseUInt64(s string) uint64 {
 	return i
 }
 
+// parseUInt64 parses a string to uint64
+func parseUint(s string) uint {
+	if s == "" {
+		return 0
+	}
+	i, _ := strconv.ParseUint(s, 10, 32)
+	return uint(i)
+}
+
 func parseUInt64A(values []string) []uint64 {
 	var result []uint64
 	if values != nil && len(values) > 0 {
