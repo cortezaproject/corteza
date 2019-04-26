@@ -1,5 +1,7 @@
 FROM golang:1.12-alpine
 
+ENV CGO_ENABLED=0
+
 RUN	apk add --no-cache git make bash && \
 	echo "installing gomock" && go get -u github.com/golang/mock/gomock && \
 	echo "installing mockgen" && go get -u github.com/golang/mock/mockgen && \

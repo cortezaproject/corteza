@@ -55,16 +55,16 @@ steps:
       from_secret: docker_hub_password
 
 
-#- name: mono
-#  image: plugins/docker
-#  settings:
-#    repo: crusttech/crust
-#    auto_tag: true # generate tag names automatically based on git branch and git tag
-#    dockerfile: Dockerfile.crust
-#    username:
-#      from_secret: docker_hub_username
-#    password:
-#      from_secret: docker_hub_password
+- name: crust
+  image: plugins/docker
+  settings:
+    repo: crusttech/crust
+    auto_tag: true # generate tag names automatically based on git branch and git tag
+    dockerfile: Dockerfile.api
+    username:
+      from_secret: docker_hub_username
+    password:
+      from_secret: docker_hub_password
 
 trigger:
   branch:
