@@ -97,6 +97,9 @@ func Migrate(db *factory.DB) error {
 		return err
 	}
 
+	db.Exec("LOCK TABLE migrations WRITE;")
+	defer db.Exec("UNLOCK TABLES")
+
 	for _, filename := range files {
 		if err := migrate(filename, true); err != nil {
 			return err
