@@ -10,7 +10,7 @@ type (
 		ID        uint64 `json:"messageID,string"`
 		Type      string `json:"type"`
 		Message   string `json:"message"`
-		ChannelID string `json:"channelID"`
+		ChannelID uint64 `json:"channelID,string"`
 		UserID    uint64 `json:"userID,string"`
 
 		ReplyTo     uint64   `json:"replyTo,omitempty,string"`
