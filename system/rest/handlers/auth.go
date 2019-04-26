@@ -47,30 +47,82 @@ func NewAuth(ah AuthAPI) *Auth {
 		Settings: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAuthSettings()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.Settings(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.Settings(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Check: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAuthCheck()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.Check(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.Check(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		ExchangeAuthToken: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAuthExchangeAuthToken()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.ExchangeAuthToken(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.ExchangeAuthToken(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 		Logout: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAuthLogout()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return ah.Logout(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.Logout(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 	}
 }

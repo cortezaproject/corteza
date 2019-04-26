@@ -41,9 +41,22 @@ func NewNotification(nh NotificationAPI) *Notification {
 		EmailSend: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewNotificationEmailSend()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return nh.EmailSend(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := nh.EmailSend(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 	}
 }

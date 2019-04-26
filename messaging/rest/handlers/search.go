@@ -41,9 +41,22 @@ func NewSearch(sh SearchAPI) *Search {
 		Messages: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewSearchMessages()
-			resputil.JSON(w, params.Fill(r), func() (interface{}, error) {
-				return sh.Messages(r.Context(), params)
-			})
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := sh.Messages(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
 		},
 	}
 }
