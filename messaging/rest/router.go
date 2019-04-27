@@ -11,7 +11,7 @@ func MountRoutes() func(chi.Router) {
 	// Initialize handlers & controllers.
 	return func(r chi.Router) {
 		r.Group(func(r chi.Router) {
-			handlers.NewAttachmentDownloadable(Attachment{}.New()).MountRoutes(r)
+			handlers.NewAttachment(Attachment{}.New()).MountRoutes(r)
 		})
 
 		r.Group(func(r chi.Router) {
