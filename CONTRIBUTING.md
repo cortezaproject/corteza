@@ -33,25 +33,20 @@ Thanks for your contributions!
 
 ### Format of the Commit Message
 
-We follow a rough convention for commit messages that is designed to answer
-two questions: what kind of change it was, and what changed. The subject line
-should feature all of this information.
+See [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit/).
 
-We try to structure the commit messages as follows:
+Summary of the article and the seven rules of a great Git commit message
 
-```
-verb(location): description of change
-location: verb + rest of the description
-human readable sentence of changes
-```
+ 1. Separate subject from body with a blank line
+ 2. Limit the subject line to 50 characters
+ 3. Capitalize the subject line
+ 4. Do not end the subject line with a period
+ 5. Use the imperative mood in the subject line
+ 6. Wrap the body at 72 characters
+ 7. Use the body to explain what and why vs. how
 
 We are not terribly strict against a particular commit message format, but
 the general rule is to avoid non-descriptive single-word commit messages like "fix".
 
-The commit message body may feature a bullet list of multiple changes. This
-is usual when a larger scope change has been made, or when squashing commits.
-
-The first line is the subject and should be no longer than 70 characters, the
-second line is always blank, and other lines should be wrapped at 80 characters.
-This allows the message to be easier to read on GitHub as well as in various
-git tools.
+We might ask you to rewrite/rebase your commit messages if they land too far from the
+rules above.
