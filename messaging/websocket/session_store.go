@@ -1,8 +1,9 @@
 package websocket
 
 import (
-	"github.com/titpetric/factory"
 	"sync"
+
+	"github.com/titpetric/factory"
 )
 
 type (
@@ -37,6 +38,16 @@ func (s *Store) Walk(callback func(*Session)) {
 	for _, sess := range s.Sessions {
 		callback(sess)
 	}
+}
+
+func (s *Store) CountConnections(userID uint64) (count uint) {
+	s.Walk(func(session *Session) {
+		if session.user.Identity() == userID {
+			count++
+		}
+	})
+
+	return
 }
 
 func (s *Store) Get(id uint64) *Session {

@@ -23,7 +23,9 @@ type (
 		id   uint64
 		once sync.Once
 		conn *websocket.Conn
-		ctx  context.Context
+
+		ctx       context.Context
+		ctxCancel context.CancelFunc
 
 		subs *Subscriptions
 
@@ -44,14 +46,16 @@ type (
 )
 
 func (Session) New(ctx context.Context, config *repository.Flags, conn *websocket.Conn) *Session {
+
 	s := &Session{
 		conn:   conn,
-		ctx:    ctx,
 		config: config,
 		subs:   NewSubscriptions(),
 		send:   make(chan []byte, 512),
 		stop:   make(chan []byte, 1),
 	}
+
+	s.ctx, s.ctxCancel = context.WithCancel(ctx)
 
 	s.svc.ch = service.DefaultChannel
 	s.svc.msg = service.DefaultMessage
@@ -86,16 +90,53 @@ func (sess *Session) connected() (err error) {
 	}
 
 	// Tell everyone that user has connected
-	if err = sess.sendToAll(&outgoing.Connected{UserID: payload.Uint64toa(sess.user.Identity())}); err != nil {
+	if err = sess.sendPresence("connected"); err != nil {
 		return
 	}
+
+	// Create a heartbeat every minute for this user
+	go func() {
+		t := time.NewTicker(time.Second * 3)
+		for {
+			select {
+			case <-sess.ctx.Done():
+				return
+			case <-t.C:
+				sess.sendPresence("")
+			}
+		}
+	}()
 
 	return nil
 }
 
 func (sess *Session) disconnected() {
 	// Tell everyone that user has disconnected
-	_ = sess.sendToAll(&outgoing.Disconnected{UserID: payload.Uint64toa(sess.user.Identity())})
+	_ = sess.sendPresence("disconnected")
+
+	// Cancel context
+	sess.ctxCancel()
+
+	// Close connection
+	sess.conn.Close()
+	sess.conn = nil
+}
+
+// Sends user presence information to all subscribers
+//
+// It sends "connected", "disconnected" and "" activity kinds
+func (sess *Session) sendPresence(kind string) error {
+	connections := store.CountConnections(sess.user.Identity())
+	if kind == "disconnected" {
+		connections--
+	}
+
+	// Tell everyone that user has disconnected
+	return sess.sendToAll(&outgoing.Activity{
+		UserID:  sess.user.Identity(),
+		Kind:    kind,
+		Present: connections > 0,
+	})
 }
 
 func (sess *Session) Handle() (err error) {
@@ -111,8 +152,6 @@ func (sess *Session) Handle() (err error) {
 func (sess *Session) Close() {
 	sess.once.Do(func() {
 		sess.disconnected()
-		sess.conn.Close()
-		sess.conn = nil
 		store.Delete(sess.id)
 	})
 }
