@@ -41,6 +41,6 @@ func MountRoutes() func(chi.Router) {
 		})
 
 		// Use alternative handlers that support file serving
-		handlers.NewAttachmentDownloadable(attachment).MountRoutes(r)
+		handlers.NewAttachment(attachment).MountRoutes(r)
 	}
 }
