@@ -81,7 +81,7 @@ type ChannelCreate struct {
 	Name    string
 	Topic   string
 	Type    string
-	Members []string
+	Members []uint64 `json:",string"`
 }
 
 func NewChannelCreate() *ChannelCreate {
@@ -127,6 +127,8 @@ func (cReq *ChannelCreate) Fill(r *http.Request) (err error) {
 
 		cReq.Type = val
 	}
+
+	cReq.Members = parseUInt64A(r.Form["members"])
 
 	return err
 }
