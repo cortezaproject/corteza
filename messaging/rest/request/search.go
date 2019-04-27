@@ -133,3 +133,61 @@ func (sReq *SearchMessages) Fill(r *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewSearchMessages()
+
+// Search threads request parameters
+type SearchThreads struct {
+	ChannelID []uint64 `json:",string"`
+	Limit     uint
+	Query     string
+}
+
+func NewSearchThreads() *SearchThreads {
+	return &SearchThreads{}
+}
+
+func (sReq *SearchThreads) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(sReq)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	if val, ok := urlQuery["channelID[]"]; ok {
+		sReq.ChannelID = parseUInt64A(val)
+	} else if val, ok = urlQuery["channelID"]; ok {
+		sReq.ChannelID = parseUInt64A(val)
+	}
+
+	if val, ok := get["limit"]; ok {
+
+		sReq.Limit = parseUint(val)
+	}
+	if val, ok := get["query"]; ok {
+
+		sReq.Query = val
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewSearchThreads()
