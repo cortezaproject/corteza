@@ -21,16 +21,16 @@ import (
 	"github.com/crusttech/crust/system/service"
 )
 
-func Init(ctx context.Context) error {
+func Init(ctx context.Context) (err error) {
 	// validate configuration
-	if err := flags.Validate(); err != nil {
-		return err
+	if err = flags.Validate(); err != nil {
+		return
 	}
 
 	mail.SetupDialer(flags.smtp)
 
-	if err := InitDatabase(ctx); err != nil {
-		return err
+	if err = InitDatabase(ctx); err != nil {
+		return
 	}
 
 	// configure resputil options
@@ -42,9 +42,16 @@ func Init(ctx context.Context) error {
 		},
 	})
 
+	// Use JWT secret for hmac signer for now
+	auth.DefaultSigner = auth.HmacSigner(flags.jwt.Secret)
+	auth.DefaultJwtHandler, err = auth.JWT(flags.jwt.Secret, flags.jwt.Expiry)
+	if err != nil {
+		return
+	}
+
 	// Don't change this, it needs database connection
-	if err := service.Init(); err != nil {
-		return err
+	if err = service.Init(); err != nil {
+		return
 	}
 
 	return nil
@@ -83,12 +90,7 @@ func StartRestAPI(ctx context.Context) error {
 		go metrics.NewMonitor(flags.monitor.Interval)
 	}
 
-	jwtAuth, err := auth.JWT(flags.jwt.Secret, flags.jwt.Expiry)
-	if err != nil {
-		return errors.Wrap(err, "Error creating JWT Auth")
-	}
-
-	go http.Serve(listener, Routes(ctx, jwtAuth))
+	go http.Serve(listener, Routes(ctx))
 	<-ctx.Done()
 
 	return nil

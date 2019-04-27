@@ -22,6 +22,10 @@ type (
 	}
 )
 
+var (
+	DefaultJwtHandler TokenHandler
+)
+
 func JWT(secret string, expiry int64) (jwt *token, err error) {
 	if len(secret) == 0 {
 		return nil, errors.New("JWT secret missing")
