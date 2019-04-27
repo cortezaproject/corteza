@@ -561,6 +561,7 @@ The following event types may be sent with a message event:
 | Method | Endpoint | Purpose |
 | ------ | -------- | ------- |
 | `GET` | `/search/messages` | Search for messages |
+| `GET` | `/search/threads` | Search for threads |
 
 ## Search for messages
 
@@ -584,6 +585,22 @@ The following event types may be sent with a message event:
 | type | []string | GET | Filter by message type (text, inlineImage, attachment, ...) | N/A | NO |
 | pinnedOnly | bool | GET | Return only pinned messages | N/A | NO |
 | bookmarkedOnly | bool | GET | Only bookmarked messages | N/A | NO |
+| limit | uint | GET | Max number of messages | N/A | NO |
+| query | string | GET | Search query | N/A | NO |
+
+## Search for threads
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/search/threads` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| channelID | []uint64 | GET | Filter by channels | N/A | NO |
 | limit | uint | GET | Max number of messages | N/A | NO |
 | query | string | GET | Search query | N/A | NO |
 

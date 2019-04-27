@@ -45,6 +45,15 @@ func (ctrl *Search) Messages(ctx context.Context, r *request.SearchMessages) (in
 	}))
 }
 
+func (ctrl *Search) Threads(ctx context.Context, r *request.SearchThreads) (interface{}, error) {
+	return ctrl.wrapSet(ctx)(ctrl.svc.msg.With(ctx).FindThreads(&types.MessageFilter{
+		ChannelID: r.ChannelID,
+		Limit:     r.Limit,
+
+		Query: r.Query,
+	}))
+}
+
 func (ctrl *Search) wrapSet(ctx context.Context) func(mm types.MessageSet, err error) (*outgoing.MessageSet, error) {
 	return func(mm types.MessageSet, err error) (*outgoing.MessageSet, error) {
 		if err != nil {

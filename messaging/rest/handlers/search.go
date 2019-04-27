@@ -29,11 +29,13 @@ import (
 // Internal API interface
 type SearchAPI interface {
 	Messages(context.Context, *request.SearchMessages) (interface{}, error)
+	Threads(context.Context, *request.SearchThreads) (interface{}, error)
 }
 
 // HTTP API interface
 type Search struct {
 	Messages func(http.ResponseWriter, *http.Request)
+	Threads  func(http.ResponseWriter, *http.Request)
 }
 
 func NewSearch(sh SearchAPI) *Search {
@@ -58,6 +60,26 @@ func NewSearch(sh SearchAPI) *Search {
 				return
 			}
 		},
+		Threads: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewSearchThreads()
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := sh.Threads(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
+		},
 	}
 }
 
@@ -65,5 +87,6 @@ func (sh *Search) MountRoutes(r chi.Router, middlewares ...func(http.Handler) ht
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Get("/search/messages", sh.Messages)
+		r.Get("/search/threads", sh.Threads)
 	})
 }

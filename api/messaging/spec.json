@@ -858,6 +858,28 @@
                         }
                     ]
                 }
+            },
+            {
+                "method": "GET",
+                "name": "threads",
+                "path": "/threads",
+                "title": "Search for threads",
+                "parameters": {
+                    "get": [
+                        {
+                            "name": "channelID",
+                            "type": "[]uint64",
+                            "required": false,
+                            "title": "Filter by channels"
+                        },
+                        {
+                            "name": "limit",
+                            "type": "uint",
+                            "required": false,
+                            "title": "Max number of messages"
+                        }
+                    ]
+                }
             }
         ]
     },
