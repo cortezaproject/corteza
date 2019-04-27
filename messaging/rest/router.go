@@ -27,6 +27,7 @@ func MountRoutes() func(chi.Router) {
 			handlers.NewChannel(Channel{}.New()).MountRoutes(r)
 			handlers.NewMessage(Message{}.New()).MountRoutes(r)
 			handlers.NewSearch(Search{}.New()).MountRoutes(r)
+			handlers.NewStatus(Status{}.New()).MountRoutes(r)
 			handlers.NewCommands(Commands{}.New()).MountRoutes(r)
 		})
 	}
