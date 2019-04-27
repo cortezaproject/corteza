@@ -11,7 +11,7 @@ import (
 	"github.com/crusttech/crust/system/internal/repository"
 )
 
-func Run(ctx context.Context) {
+func StartCLI(ctx context.Context) {
 	var (
 		db              = repository.DB(ctx)
 		settingsService = settings.NewService(settings.NewRepository(db, "sys_settings"))

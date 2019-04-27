@@ -23,5 +23,5 @@ func main() {
 		log.Fatalf("Error initializing system: %+v", err)
 	}
 
-	cli.Run(ctx)
+	cli.StartCLI(ctx)
 }
