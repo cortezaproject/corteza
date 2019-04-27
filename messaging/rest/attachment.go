@@ -3,15 +3,15 @@ package rest
 import (
 	"context"
 	"io"
-	"time"
+	"net/http"
+	"net/url"
 
 	"github.com/pkg/errors"
 
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/internal/service"
-	"github.com/crusttech/crust/messaging/rest/handlers"
 	"github.com/crusttech/crust/messaging/rest/request"
-	"github.com/crusttech/crust/messaging/types"
 )
 
 var _ = errors.Wrap
@@ -19,12 +19,6 @@ var _ = errors.Wrap
 type (
 	Attachment struct {
 		att service.AttachmentService
-	}
-
-	file struct {
-		*types.Attachment
-		content  io.ReadSeeker
-		download bool
 	}
 )
 
@@ -34,12 +28,12 @@ func (Attachment) New() *Attachment {
 	return ctrl
 }
 
-func (ctrl *Attachment) Original(ctx context.Context, r *request.AttachmentOriginal) (interface{}, error) {
+func (ctrl Attachment) Original(ctx context.Context, r *request.AttachmentOriginal) (interface{}, error) {
 	if err := ctrl.isAccessible(r.AttachmentID, r.UserID, r.Sign); err != nil {
 		return nil, err
 	}
 
-	return ctrl.get(ctx, r.AttachmentID, false, r.Download)
+	return ctrl.serve(ctx, r.AttachmentID, false, r.Download)
 }
 
 func (ctrl *Attachment) Preview(ctx context.Context, r *request.AttachmentPreview) (interface{}, error) {
@@ -47,7 +41,7 @@ func (ctrl *Attachment) Preview(ctx context.Context, r *request.AttachmentPrevie
 		return nil, err
 	}
 
-	return ctrl.get(ctx, r.AttachmentID, true, false)
+	return ctrl.serve(ctx, r.AttachmentID, true, false)
 }
 
 func (ctrl Attachment) isAccessible(attachmentID, userID uint64, signature string) error {
@@ -66,43 +60,42 @@ func (ctrl Attachment) isAccessible(attachmentID, userID uint64, signature strin
 	return nil
 }
 
-func (ctrl Attachment) get(ctx context.Context, ID uint64, preview, download bool) (handlers.Downloadable, error) {
-	rval := &file{download: download}
+func (ctrl Attachment) serve(ctx context.Context, ID uint64, preview, download bool) (interface{}, error) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		att, err := ctrl.att.With(ctx).FindByID(ID)
 
-	if att, err := ctrl.att.With(ctx).FindByID(ID); err != nil {
-		return nil, err
-	} else {
-		rval.Attachment = att
+		if err != nil {
+			switch {
+			case err == repository.ErrAttachmentNotFound:
+				w.WriteHeader(http.StatusNotFound)
+			default:
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+
+			return
+		}
+
+		var fh io.ReadSeeker
+
 		if preview {
-			rval.content, err = ctrl.att.OpenPreview(att)
+			fh, err = ctrl.att.OpenPreview(att)
 		} else {
-			rval.content, err = ctrl.att.OpenOriginal(att)
+			fh, err = ctrl.att.OpenOriginal(att)
 		}
 
 		if err != nil {
-			return nil, err
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-	}
 
-	return rval, nil
-}
+		name := url.QueryEscape(att.Name)
 
-func (f *file) Download() bool {
-	return f.download
-}
+		if download {
+			w.Header().Add("Content-Disposition", "attachment; filename="+name)
+		} else {
+			w.Header().Add("Content-Disposition", "inline; filename="+name)
+		}
 
-func (f *file) Name() string {
-	return f.Attachment.Name
-}
-
-func (f *file) ModTime() time.Time {
-	return f.Attachment.CreatedAt
-}
-
-func (f *file) Content() io.ReadSeeker {
-	return f.content
-}
-
-func (f *file) Valid() bool {
-	return f.content != nil
+		http.ServeContent(w, req, name, att.CreatedAt, fh)
+	}, nil
 }
