@@ -22,15 +22,15 @@ function types {
 		CGO_ENABLED=0 go build -o ./build/gen-type-set codegen/v2/type-set.go 
 	fi
 
-	./build/gen-type-set --types Attachment --output crm/types/attachment.gen.go
-	./build/gen-type-set --types Module     --output crm/types/module.gen.go
-	./build/gen-type-set --types Page       --output crm/types/page.gen.go
-	./build/gen-type-set --types Chart      --output crm/types/chart.gen.go
-	./build/gen-type-set --types Trigger    --output crm/types/trigger.gen.go
-	./build/gen-type-set --types Record     --output crm/types/record.gen.go
+	./build/gen-type-set --types Attachment --output compose/types/attachment.gen.go
+	./build/gen-type-set --types Module     --output compose/types/module.gen.go
+	./build/gen-type-set --types Page       --output compose/types/page.gen.go
+	./build/gen-type-set --types Chart      --output compose/types/chart.gen.go
+	./build/gen-type-set --types Trigger    --output compose/types/trigger.gen.go
+	./build/gen-type-set --types Record     --output compose/types/record.gen.go
 
-	./build/gen-type-set --with-primary-key=false --types ModuleField --output crm/types/module_field.gen.go
-	./build/gen-type-set --with-primary-key=false --types RecordValue --output crm/types/record_value.gen.go
+	./build/gen-type-set --with-primary-key=false --types ModuleField --output compose/types/module_field.gen.go
+	./build/gen-type-set --with-primary-key=false --types RecordValue --output compose/types/record_value.gen.go
 
 	./build/gen-type-set --types MessageAttachment --output messaging/types/attachment.gen.go
 	./build/gen-type-set --types Mention           --output messaging/types/mention.gen.go

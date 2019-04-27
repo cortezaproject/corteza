@@ -1,0 +1,131 @@
+{
+  "Title": "Modules",
+  "Description": "Compose module definitions",
+  "Interface": "Module",
+  "Struct": [
+    {
+      "imports": [
+        "sqlxTypes github.com/jmoiron/sqlx/types",
+        "github.com/crusttech/crust/compose/types"
+      ]
+    }
+  ],
+  "Parameters": null,
+  "Protocol": "",
+  "Authentication": [],
+  "Path": "/module",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List modules",
+      "Path": "/",
+      "Parameters": {
+        "get": [
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search query",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "create",
+      "Method": "POST",
+      "Title": "Create module",
+      "Path": "/",
+      "Parameters": {
+        "post": [
+          {
+            "name": "name",
+            "required": true,
+            "title": "Module Name",
+            "type": "string"
+          },
+          {
+            "name": "fields",
+            "required": true,
+            "title": "Fields JSON",
+            "type": "types.ModuleFieldSet"
+          },
+          {
+            "name": "meta",
+            "required": true,
+            "title": "Module meta data",
+            "type": "sqlxTypes.JSONText"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "read",
+      "Method": "GET",
+      "Title": "Read module",
+      "Path": "/{moduleID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "moduleID",
+            "required": true,
+            "title": "Module ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "update",
+      "Method": "POST",
+      "Title": "Update module",
+      "Path": "/{moduleID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "moduleID",
+            "required": true,
+            "title": "Module ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "name",
+            "required": true,
+            "title": "Module Name",
+            "type": "string"
+          },
+          {
+            "name": "fields",
+            "required": true,
+            "title": "Fields JSON",
+            "type": "types.ModuleFieldSet"
+          },
+          {
+            "name": "meta",
+            "required": true,
+            "title": "Module meta data",
+            "type": "sqlxTypes.JSONText"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "delete",
+      "Method": "DELETE",
+      "Title": "Delete module",
+      "Path": "/{moduleID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "moduleID",
+            "required": true,
+            "title": "Module ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    }
+  ]
+}
