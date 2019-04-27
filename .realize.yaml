@@ -66,8 +66,8 @@ schema:
     - ../../.git
 
 # ######################################################################################################################
-- name: crm
-  path: cmd/crm
+- name: cmp
+  path: cmd/compose
   commands:
     vet:
       status: false
@@ -80,7 +80,7 @@ schema:
   watcher:
     paths:
       - .
-      - ../../crm
+      - ../../compose
       - ../../internal
     extensions:
     - go
