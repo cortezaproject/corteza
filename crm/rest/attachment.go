@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/crusttech/crust/crm/internal/service"
-	"github.com/crusttech/crust/crm/rest/handlers"
 	"github.com/crusttech/crust/crm/rest/request"
 	"github.com/crusttech/crust/crm/types"
 	"github.com/crusttech/crust/internal/auth"
@@ -84,15 +84,15 @@ func (ctrl Attachment) Original(ctx context.Context, r *request.AttachmentOrigin
 		return nil, err
 	}
 
-	return ctrl.get(ctx, r.AttachmentID, false, r.Download)
+	return ctrl.serve(ctx, r.AttachmentID, false, r.Download)
 }
 
-func (ctrl Attachment) Preview(ctx context.Context, r *request.AttachmentPreview) (interface{}, error) {
+func (ctrl *Attachment) Preview(ctx context.Context, r *request.AttachmentPreview) (interface{}, error) {
 	if err := ctrl.isAccessible(r.AttachmentID, r.UserID, r.Sign); err != nil {
 		return nil, err
 	}
 
-	return ctrl.get(ctx, r.AttachmentID, true, false)
+	return ctrl.serve(ctx, r.AttachmentID, true, false)
 }
 
 func (ctrl Attachment) isAccessible(attachmentID, userID uint64, signature string) error {
@@ -111,25 +111,38 @@ func (ctrl Attachment) isAccessible(attachmentID, userID uint64, signature strin
 	return nil
 }
 
-func (ctrl Attachment) get(ctx context.Context, ID uint64, preview, download bool) (handlers.Downloadable, error) {
-	rval := &file{download: download}
+func (ctrl Attachment) serve(ctx context.Context, ID uint64, preview, download bool) (interface{}, error) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		att, err := ctrl.attachment.With(ctx).FindByID(ID)
+		if err != nil {
+			// Simplify error handling for now
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
 
-	if att, err := ctrl.attachment.FindByID(ID); err != nil {
-		return nil, err
-	} else {
-		rval.Attachment = att
+		var fh io.ReadSeeker
+
 		if preview {
-			rval.content, err = ctrl.attachment.OpenPreview(att)
+			fh, err = ctrl.attachment.OpenPreview(att)
 		} else {
-			rval.content, err = ctrl.attachment.OpenOriginal(att)
+			fh, err = ctrl.attachment.OpenOriginal(att)
 		}
 
 		if err != nil {
-			return nil, err
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-	}
 
-	return rval, nil
+		name := url.QueryEscape(att.Name)
+
+		if download {
+			w.Header().Add("Content-Disposition", "attachment; filename="+name)
+		} else {
+			w.Header().Add("Content-Disposition", "inline; filename="+name)
+		}
+
+		http.ServeContent(w, req, name, att.CreatedAt, fh)
+	}, nil
 }
 
 func makeAttachmentPayload(a *types.Attachment, userID uint64) *attachmentPayload {
