@@ -96,7 +96,7 @@ func (sess *Session) connected() (err error) {
 
 	// Create a heartbeat every minute for this user
 	go func() {
-		t := time.NewTicker(time.Second * 3)
+		t := time.NewTicker(time.Second * 60)
 		for {
 			select {
 			case <-sess.ctx.Done():
