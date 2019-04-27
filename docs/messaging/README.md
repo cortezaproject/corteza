@@ -117,10 +117,10 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| name | string | POST | Name of Channel | N/A | YES |
+| name | string | POST | Name of Channel | N/A | NO |
 | topic | string | POST | Subject of Channel | N/A | NO |
 | type | string | POST | Channel type | N/A | NO |
-| members | []string | POST | Initial members of the channel | N/A | NO |
+| members | []uint64 | POST | Initial members of the channel | N/A | NO |
 
 ## Update channel details
 
