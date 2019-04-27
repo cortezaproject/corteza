@@ -61,3 +61,18 @@ func (s *Store) Delete(id uint64) {
 	defer s.Unlock()
 	delete(s.Sessions, id)
 }
+
+func GetConnectedUsers() []uint64 {
+	var chk = map[uint64]bool{}
+
+	store.Walk(func(session *Session) {
+		chk[session.user.Identity()] = true
+	})
+
+	var out = make([]uint64, 0)
+	for ID := range chk {
+		out = append(out, ID)
+	}
+
+	return out
+}

@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/crusttech/crust/messaging/rest/request"
+	"github.com/crusttech/crust/messaging/websocket"
 )
 
 var _ = errors.Wrap
@@ -19,7 +20,22 @@ func (Status) New() *Status {
 }
 
 func (ctrl *Status) List(ctx context.Context, r *request.StatusList) (interface{}, error) {
-	return nil, errors.New("Not implemented: Status.list")
+	type userStatus struct {
+		UserID  uint64 `json:"userID,string"`
+		Status  string `json:"present"`
+		Icon    string `json:"icon"`
+		Message string `json:"message"`
+	}
+
+	out := []userStatus{}
+	for _, userID := range websocket.GetConnectedUsers() {
+		out = append(out, userStatus{
+			UserID: userID,
+			Status: "online",
+		})
+	}
+
+	return out, nil
 }
 
 func (ctrl *Status) Set(ctx context.Context, r *request.StatusSet) (interface{}, error) {
