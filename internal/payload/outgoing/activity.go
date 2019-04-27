@@ -9,6 +9,7 @@ type (
 		Kind      string `json:"kind,omitempty"`
 		MessageID uint64 `json:"messageID,string,omitempty"`
 		ChannelID uint64 `json:"channelID,string,omitempty"`
+		Present   bool   `json:"present"`
 	}
 )
 

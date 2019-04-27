@@ -4,9 +4,6 @@ type (
 	Payload struct {
 		*Error `json:"error,omitempty"`
 
-		*Connected    `json:"clientConnected,omitempty"`
-		*Disconnected `json:"clientDisconnected,omitempty"`
-
 		*Message    `json:"message,omitempty"`
 		*MessageSet `json:"messages,omitempty"`
 

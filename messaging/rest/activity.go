@@ -29,6 +29,13 @@ func (ctrl *Activity) Send(ctx context.Context, r *request.ActivitySend) (interf
 		return nil, errors.New("can not send activity on message without channel ID")
 	}
 
+	switch r.Kind {
+	case "":
+		return nil, errors.New("missing value for activity kind")
+	case "connected", "disconnected":
+		return nil, errors.New("can not use reserved values for activity kind")
+	}
+
 	return true, ctrl.event.With(ctx).Activity(&types.Activity{
 		UserID:    auth.GetIdentityFromContext(ctx).Identity(),
 		ChannelID: r.ChannelID,
