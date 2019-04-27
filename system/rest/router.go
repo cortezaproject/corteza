@@ -7,15 +7,15 @@ import (
 	"github.com/crusttech/crust/system/rest/handlers"
 )
 
-func MountRoutes(jwtEncoder auth.TokenEncoder) func(chi.Router) {
+func MountRoutes() func(chi.Router) {
 	// Initialize handers & controllers.
 	return func(r chi.Router) {
-		NewSocial(jwtEncoder).MountRoutes(r)
+		NewSocial().MountRoutes(r)
 
 		// Provide raw `/auth` handlers
-		handlers.NewAuth((Auth{}).New(jwtEncoder)).MountRoutes(r)
+		handlers.NewAuth((Auth{}).New()).MountRoutes(r)
 
-		handlers.NewAuthInternal((AuthInternal{}).New(jwtEncoder)).MountRoutes(r)
+		handlers.NewAuthInternal((AuthInternal{}).New()).MountRoutes(r)
 
 		// Protect all _private_ routes
 		r.Group(func(r chi.Router) {

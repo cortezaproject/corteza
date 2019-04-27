@@ -56,7 +56,7 @@ func TestUsers(t *testing.T) {
 	jwtAuth, err := auth.JWT(jwtSecret, 600)
 	test.NoError(t, err, "Error initializing: %v")
 
-	routes := Routes(ctx, jwtAuth)
+	routes := Routes(ctx)
 
 	// Send check request with invalid JWT token.
 	{

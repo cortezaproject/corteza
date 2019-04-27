@@ -37,9 +37,9 @@ type (
 	}
 )
 
-func (Auth) New(tenc auth.TokenEncoder) *Auth {
+func (Auth) New() *Auth {
 	return &Auth{
-		jwt:          tenc,
+		jwt:          auth.DefaultJwtHandler,
 		authSettings: service.DefaultAuthSettings,
 		authSvc:      service.DefaultAuth,
 	}

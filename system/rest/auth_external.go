@@ -29,10 +29,10 @@ const (
 	externalAuthBaseUrl = "/auth/external"
 )
 
-func NewSocial(jwtEncoder auth.TokenEncoder) *ExternalAuth {
+func NewSocial() *ExternalAuth {
 	return &ExternalAuth{
 		auth:       service.DefaultAuth,
-		jwtEncoder: jwtEncoder,
+		jwtEncoder: auth.DefaultJwtHandler,
 	}
 }
 

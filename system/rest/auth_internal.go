@@ -30,9 +30,9 @@ type (
 	}
 )
 
-func (AuthInternal) New(te auth.TokenEncoder) *AuthInternal {
+func (AuthInternal) New() *AuthInternal {
 	return &AuthInternal{
-		tokenEncoder: te,
+		tokenEncoder: auth.DefaultJwtHandler,
 		authSvc:      service.DefaultAuth,
 	}
 }
