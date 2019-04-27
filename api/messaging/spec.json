@@ -179,7 +179,7 @@
                             "title": "Channel type"
                         },
                         {
-                            "type": "[]uint64",
+                            "type": "[]string",
                             "name": "members",
                             "required": false,
                             "title": "Initial members of the channel"
@@ -386,7 +386,7 @@
                     "post": [
                         {
                             "name": "userID",
-                            "type": "[]uint64",
+                            "type": "[]string",
                             "required": false,
                             "title": "User ID"
                         }

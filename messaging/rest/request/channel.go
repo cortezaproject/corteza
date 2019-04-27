@@ -81,7 +81,7 @@ type ChannelCreate struct {
 	Name    string
 	Topic   string
 	Type    string
-	Members []uint64 `json:",string"`
+	Members []string
 }
 
 func NewChannelCreate() *ChannelCreate {
@@ -127,8 +127,6 @@ func (cReq *ChannelCreate) Fill(r *http.Request) (err error) {
 
 		cReq.Type = val
 	}
-
-	cReq.Members = parseUInt64A(r.Form["members"])
 
 	return err
 }
@@ -515,8 +513,8 @@ var _ RequestFiller = NewChannelPart()
 
 // Channel invite request parameters
 type ChannelInvite struct {
-	ChannelID uint64   `json:",string"`
-	UserID    []uint64 `json:",string"`
+	ChannelID uint64 `json:",string"`
+	UserID    []string
 }
 
 func NewChannelInvite() *ChannelInvite {
@@ -551,8 +549,6 @@ func (cReq *ChannelInvite) Fill(r *http.Request) (err error) {
 	}
 
 	cReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
-
-	cReq.UserID = parseUInt64A(r.Form["userID"])
 
 	return err
 }

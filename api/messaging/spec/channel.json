@@ -56,7 +56,7 @@
             "name": "members",
             "required": false,
             "title": "Initial members of the channel",
-            "type": "[]uint64"
+            "type": "[]string"
           }
         ]
       }
@@ -262,7 +262,7 @@
             "name": "userID",
             "required": false,
             "title": "User ID",
-            "type": "[]uint64"
+            "type": "[]string"
           }
         ]
       }
