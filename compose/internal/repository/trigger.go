@@ -14,11 +14,11 @@ type (
 	TriggerRepository interface {
 		With(ctx context.Context, db *factory.DB) TriggerRepository
 
-		FindByID(namespaceID, attachmentID uint64) (*types.Trigger, error)
+		FindByID(namespaceID, triggerID uint64) (*types.Trigger, error)
 		Find(filter types.TriggerFilter) (set types.TriggerSet, f types.TriggerFilter, err error)
 		Create(mod *types.Trigger) (*types.Trigger, error)
 		Update(mod *types.Trigger) (*types.Trigger, error)
-		DeleteByID(namespaceID, attachmentID uint64) error
+		DeleteByID(namespaceID, triggerID uint64) error
 	}
 
 	trigger struct {
@@ -82,7 +82,7 @@ func (r trigger) Find(filter types.TriggerFilter) (set types.TriggerSet, f types
 	query := r.query()
 
 	if filter.NamespaceID > 0 {
-		query = query.Where("a.rel_namespace = ?", filter.NamespaceID)
+		query = query.Where("rel_namespace = ?", filter.NamespaceID)
 	}
 
 	if f.Query != "" {
@@ -114,11 +114,11 @@ func (r trigger) Update(mod *types.Trigger) (*types.Trigger, error) {
 	return mod, r.db().Replace(r.table(), mod)
 }
 
-func (r trigger) DeleteByID(namespaceID, attachmentID uint64) error {
+func (r trigger) DeleteByID(namespaceID, triggerID uint64) error {
 	_, err := r.db().Exec(
 		"UPDATE "+r.table()+" SET deleted_at = NOW() WHERE rel_namespace = ? AND id = ?",
 		namespaceID,
-		attachmentID,
+		triggerID,
 	)
 
 	return err

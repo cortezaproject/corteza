@@ -14,11 +14,11 @@ type (
 	ChartRepository interface {
 		With(ctx context.Context, db *factory.DB) ChartRepository
 
-		FindByID(namespaceID, attachmentID uint64) (*types.Chart, error)
+		FindByID(namespaceID, chartID uint64) (*types.Chart, error)
 		Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error)
 		Create(mod *types.Chart) (*types.Chart, error)
 		Update(mod *types.Chart) (*types.Chart, error)
-		DeleteByID(namespaceID, attachmentID uint64) error
+		DeleteByID(namespaceID, chartID uint64) error
 	}
 
 	chart struct {
@@ -81,7 +81,7 @@ func (r chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.Chart
 	query := r.query()
 
 	if filter.NamespaceID > 0 {
-		query = query.Where("a.rel_namespace = ?", filter.NamespaceID)
+		query = query.Where("rel_namespace = ?", filter.NamespaceID)
 	}
 
 	if f.Query != "" {
@@ -113,11 +113,11 @@ func (r chart) Update(mod *types.Chart) (*types.Chart, error) {
 	return mod, r.db().Replace(r.table(), mod)
 }
 
-func (r chart) DeleteByID(namespaceID, attachmentID uint64) error {
+func (r chart) DeleteByID(namespaceID, chartID uint64) error {
 	_, err := r.db().Exec(
 		"UPDATE "+r.table()+" SET deleted_at = NOW() WHERE rel_namespace = ? AND id = ?",
 		namespaceID,
-		attachmentID,
+		chartID,
 	)
 
 	return err

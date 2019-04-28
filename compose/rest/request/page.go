@@ -35,6 +35,9 @@ var _ = multipart.FileHeader{}
 // Page list request parameters
 type PageList struct {
 	SelfID      uint64 `json:",string"`
+	Query       string
+	Page        uint
+	PerPage     uint
 	NamespaceID uint64 `json:",string"`
 }
 
@@ -72,6 +75,18 @@ func (pReq *PageList) Fill(r *http.Request) (err error) {
 	if val, ok := get["selfID"]; ok {
 
 		pReq.SelfID = parseUInt64(val)
+	}
+	if val, ok := get["query"]; ok {
+
+		pReq.Query = val
+	}
+	if val, ok := get["page"]; ok {
+
+		pReq.Page = parseUint(val)
+	}
+	if val, ok := get["perPage"]; ok {
+
+		pReq.PerPage = parseUint(val)
 	}
 	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 

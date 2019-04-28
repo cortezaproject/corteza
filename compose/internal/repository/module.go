@@ -85,7 +85,7 @@ func (r module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.Mo
 	query := r.query()
 
 	if filter.NamespaceID > 0 {
-		query = query.Where("a.rel_namespace = ?", filter.NamespaceID)
+		query = query.Where("rel_namespace = ?", filter.NamespaceID)
 	}
 
 	if f.Query != "" {
@@ -143,11 +143,11 @@ func (r module) updateFields(moduleID uint64, ff types.ModuleFieldSet) error {
 	return nil
 }
 
-func (r module) DeleteByID(namespaceID, attachmentID uint64) error {
+func (r module) DeleteByID(namespaceID, moduleID uint64) error {
 	_, err := r.db().Exec(
 		"UPDATE "+r.table()+" SET deleted_at = NOW() WHERE rel_namespace = ? AND id = ?",
 		namespaceID,
-		attachmentID,
+		moduleID,
 	)
 
 	return err

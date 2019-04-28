@@ -54,7 +54,6 @@ func (ctrl *Record) Delete(ctx context.Context, r *request.RecordDelete) (interf
 }
 
 func (ctrl *Record) Upload(ctx context.Context, r *request.RecordUpload) (interface{}, error) {
-	// @todo [SECURITY] check if attachments can be added to this page
 	file, err := r.Upload.Open()
 	if err != nil {
 		return nil, err

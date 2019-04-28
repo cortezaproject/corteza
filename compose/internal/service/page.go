@@ -24,18 +24,17 @@ type (
 	PageService interface {
 		With(ctx context.Context) PageService
 
-		FindByID(pageID uint64) (*types.Page, error)
-		FindByModuleID(moduleID uint64) (*types.Page, error)
-		FindBySelfID(selfID uint64) (pages types.PageSet, err error)
-		Find() (pages types.PageSet, err error)
-		Tree() (pages types.PageSet, err error)
-		FindRecordPages() (pages types.PageSet, err error)
+		FindByID(namespaceID, pageID uint64) (*types.Page, error)
+		FindByModuleID(namespaceID, moduleID uint64) (*types.Page, error)
+		FindBySelfID(namespaceID, selfID uint64) (pages types.PageSet, f types.PageFilter, err error)
+		Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
+		Tree(namespaceID uint64) (pages types.PageSet, err error)
 
 		Create(page *types.Page) (*types.Page, error)
 		Update(page *types.Page) (*types.Page, error)
-		DeleteByID(pageID uint64) error
+		DeleteByID(namespaceID, pageID uint64) error
 
-		Reorder(selfID uint64, pageIDs []uint64) error
+		Reorder(namespaceID, selfID uint64, pageIDs []uint64) error
 	}
 )
 
@@ -58,12 +57,12 @@ func (svc *page) With(ctx context.Context) PageService {
 	}
 }
 
-func (svc *page) FindByID(id uint64) (p *types.Page, err error) {
-	return svc.checkPermissions(svc.pageRepo.FindByID(id))
+func (svc *page) FindByID(namespaceID, pageID uint64) (p *types.Page, err error) {
+	return svc.checkPermissions(svc.pageRepo.FindByID(namespaceID, pageID))
 }
 
-func (svc *page) FindByModuleID(moduleID uint64) (p *types.Page, err error) {
-	return svc.checkPermissions(svc.pageRepo.FindByModuleID(moduleID))
+func (svc *page) FindByModuleID(namespaceID, moduleID uint64) (p *types.Page, err error) {
+	return svc.checkPermissions(svc.pageRepo.FindByModuleID(namespaceID, moduleID))
 }
 
 func (svc *page) checkPermissions(p *types.Page, err error) (*types.Page, error) {
@@ -76,19 +75,27 @@ func (svc *page) checkPermissions(p *types.Page, err error) (*types.Page, error)
 	return p, err
 }
 
-func (svc *page) FindBySelfID(selfID uint64) (pp types.PageSet, err error) {
-	return svc.filterPageSet(svc.pageRepo.FindBySelfID(selfID))
+func (svc *page) FindBySelfID(namespaceID, parentID uint64) (pp types.PageSet, f types.PageFilter, err error) {
+	return svc.filterPageSetByPermission(svc.pageRepo.Find(types.PageFilter{
+		NamespaceID: namespaceID,
+		ParentID:    parentID,
+	}))
 }
 
-func (svc *page) Find() (pages types.PageSet, err error) {
-	return svc.filterPageSet(svc.pageRepo.Find())
+func (svc *page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
+	return svc.filterPageSetByPermission(svc.pageRepo.Find(filter))
 }
 
-func (svc *page) Tree() (pages types.PageSet, err error) {
-	var tree types.PageSet
+func (svc *page) Tree(namespaceID uint64) (pages types.PageSet, err error) {
+	var (
+		tree   types.PageSet
+		filter = types.PageFilter{
+			NamespaceID: namespaceID,
+		}
+	)
 
 	return tree, svc.db.Transaction(func() (err error) {
-		if pages, err = svc.filterPageSet(svc.pageRepo.Find()); err != nil {
+		if pages, _, err = svc.filterPageSetByPermission(svc.pageRepo.Find(filter)); err != nil {
 			return
 		}
 
@@ -116,22 +123,21 @@ func (svc *page) Tree() (pages types.PageSet, err error) {
 	})
 }
 
-func (svc *page) FindRecordPages() (pages types.PageSet, err error) {
-	return svc.pageRepo.FindRecordPages()
-}
-
-func (svc *page) filterPageSet(pp types.PageSet, err error) (types.PageSet, error) {
+func (svc *page) filterPageSetByPermission(pp types.PageSet, f types.PageFilter, err error) (types.PageSet, types.PageFilter, error) {
 	if err != nil {
-		return nil, err
+		return nil, f, err
 	}
 
-	return pp.Filter(func(m *types.Page) (bool, error) {
+	// @todo Filter-by-permission can/will mess up filter's count & paging...
+	pp, err = pp.Filter(func(m *types.Page) (bool, error) {
 		return svc.prmSvc.CanReadPage(m), nil
 	})
+
+	return pp, f, err
 }
 
-func (svc *page) Reorder(selfID uint64, pageIDs []uint64) error {
-	return svc.pageRepo.Reorder(selfID, pageIDs)
+func (svc *page) Reorder(namespaceID, selfID uint64, pageIDs []uint64) error {
+	return svc.pageRepo.Reorder(namespaceID, selfID, pageIDs)
 }
 
 func (svc *page) Create(page *types.Page) (p *types.Page, err error) {
@@ -141,7 +147,7 @@ func (svc *page) Create(page *types.Page) (p *types.Page, err error) {
 		}
 
 		if page.ModuleID > 0 {
-			if p, err = svc.pageRepo.FindByModuleID(page.ModuleID); err != nil {
+			if p, err = svc.pageRepo.FindByModuleID(page.NamespaceID, page.ModuleID); err != nil {
 				return err
 			} else if p.ID > 0 {
 				return errors.New("Page for module already exists")
@@ -162,7 +168,7 @@ func (svc *page) Update(page *types.Page) (p *types.Page, err error) {
 	validate := func() error {
 		if page.ID == 0 {
 			return errors.New("Error when saving page, invalid ID")
-		} else if p, err = svc.pageRepo.FindByID(page.ID); err != nil {
+		} else if p, err = svc.pageRepo.FindByID(page.NamespaceID, page.ID); err != nil {
 			return errors.Wrap(err, "Error while loading page for update")
 		} else {
 			if !svc.prmSvc.CanUpdatePage(p) {
@@ -171,7 +177,7 @@ func (svc *page) Update(page *types.Page) (p *types.Page, err error) {
 		}
 
 		if page.ModuleID > 0 {
-			if p, err = svc.pageRepo.FindByModuleID(page.ModuleID); err != nil {
+			if p, err = svc.pageRepo.FindByModuleID(page.NamespaceID, page.ModuleID); err != nil {
 				return err
 			} else if p.ID > 0 && page.ID != p.ID {
 				return errors.New("Page for module already exists")
@@ -188,12 +194,12 @@ func (svc *page) Update(page *types.Page) (p *types.Page, err error) {
 	})
 }
 
-func (svc *page) DeleteByID(ID uint64) error {
-	if p, err := svc.pageRepo.FindByID(ID); err != nil {
+func (svc *page) DeleteByID(namespaceID, pageID uint64) error {
+	if p, err := svc.pageRepo.FindByID(namespaceID, pageID); err != nil {
 		return errors.Wrap(err, "could not delete page")
 	} else if !svc.prmSvc.CanDeletePage(p) {
 		return errors.New("not allowed to delete this page")
 	}
 
-	return svc.pageRepo.DeleteByID(ID)
+	return svc.pageRepo.DeleteByID(namespaceID, pageID)
 }
