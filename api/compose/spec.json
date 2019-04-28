@@ -926,6 +926,13 @@
                 }
             ]
         },
+        "struct": [
+            {
+                "imports": [
+                    "time"
+                ]
+            }
+        ],
         "apis": [
             {
                 "name": "list",
@@ -939,6 +946,24 @@
                             "name": "moduleID",
                             "required": false,
                             "title": "Filter triggers by module"
+                        },
+                        {
+                            "type": "string",
+                            "name": "query",
+                            "required": false,
+                            "title": "Search query"
+                        },
+                        {
+                            "name": "page",
+                            "type": "uint",
+                            "required": false,
+                            "title": "Page number (0 based)"
+                        },
+                        {
+                            "name": "perPage",
+                            "type": "uint",
+                            "required": false,
+                            "title": "Returned items per page (default 50)"
                         }
                     ]
                 }
@@ -979,6 +1004,12 @@
                             "name": "source",
                             "required": false,
                             "title": "Trigger source code"
+                        },
+                        {
+                            "type": "*time.Time",
+                            "name": "updatedAt",
+                            "required": false,
+                            "title": "Last update (or creation) date"
                         }
                     ]
                 }

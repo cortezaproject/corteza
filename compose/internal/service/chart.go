@@ -37,7 +37,7 @@ func Chart() ChartService {
 	}).With(context.Background())
 }
 
-func (svc *chart) With(ctx context.Context) ChartService {
+func (svc chart) With(ctx context.Context) ChartService {
 	db := repository.DB(ctx)
 	return &chart{
 		db:  db,
@@ -49,7 +49,7 @@ func (svc *chart) With(ctx context.Context) ChartService {
 	}
 }
 
-func (svc *chart) FindByID(namespaceID, chartID uint64) (c *types.Chart, err error) {
+func (svc chart) FindByID(namespaceID, chartID uint64) (c *types.Chart, err error) {
 	if namespaceID == 0 {
 		return nil, ErrNamespaceRequired
 	}
@@ -63,7 +63,7 @@ func (svc *chart) FindByID(namespaceID, chartID uint64) (c *types.Chart, err err
 	return
 }
 
-func (svc *chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error) {
+func (svc chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error) {
 	set, f, err = svc.chartRepo.Find(filter)
 	if err != nil {
 		return
@@ -76,7 +76,7 @@ func (svc *chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.Ch
 	return
 }
 
-func (svc *chart) Create(mod *types.Chart) (c *types.Chart, err error) {
+func (svc chart) Create(mod *types.Chart) (c *types.Chart, err error) {
 	if !svc.prmSvc.CanCreateChart(crmNamespace()) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
@@ -84,7 +84,7 @@ func (svc *chart) Create(mod *types.Chart) (c *types.Chart, err error) {
 	return svc.chartRepo.Create(mod)
 }
 
-func (svc *chart) Update(mod *types.Chart) (c *types.Chart, err error) {
+func (svc chart) Update(mod *types.Chart) (c *types.Chart, err error) {
 	if mod.ID == 0 {
 		return nil, ErrInvalidID.withStack()
 	}
@@ -107,7 +107,7 @@ func (svc *chart) Update(mod *types.Chart) (c *types.Chart, err error) {
 	return svc.chartRepo.Update(c)
 }
 
-func (svc *chart) DeleteByID(namespaceID, chartID uint64) error {
+func (svc chart) DeleteByID(namespaceID, chartID uint64) error {
 	if namespaceID == 0 {
 		return ErrNamespaceRequired.withStack()
 	}

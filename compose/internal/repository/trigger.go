@@ -14,11 +14,11 @@ type (
 	TriggerRepository interface {
 		With(ctx context.Context, db *factory.DB) TriggerRepository
 
-		FindByID(id uint64) (*types.Trigger, error)
-		Find(filter types.TriggerFilter) (types.TriggerSet, error)
+		FindByID(namespaceID, attachmentID uint64) (*types.Trigger, error)
+		Find(filter types.TriggerFilter) (set types.TriggerSet, f types.TriggerFilter, err error)
 		Create(mod *types.Trigger) (*types.Trigger, error)
 		Update(mod *types.Trigger) (*types.Trigger, error)
-		DeleteByID(id uint64) error
+		DeleteByID(namespaceID, attachmentID uint64) error
 	}
 
 	trigger struct {
@@ -26,66 +26,100 @@ type (
 	}
 )
 
+const (
+	ErrTriggerNotFound = repositoryError("TriggerNotFound")
+)
+
 func Trigger(ctx context.Context, db *factory.DB) TriggerRepository {
 	return (&trigger{}).With(ctx, db)
 }
 
-func (r *trigger) With(ctx context.Context, db *factory.DB) TriggerRepository {
+func (r trigger) With(ctx context.Context, db *factory.DB) TriggerRepository {
 	return &trigger{
 		repository: r.repository.With(ctx, db),
 	}
 }
 
-func (r *trigger) FindByID(id uint64) (*types.Trigger, error) {
-	mod := &types.Trigger{}
-	query := r.query().Where("id = ?", id)
+func (r trigger) table() string {
+	return "compose_trigger"
+}
 
-	if sql, args, err := query.ToSql(); err != nil {
-		return nil, err
-	} else {
-		return mod, r.db().Get(mod, sql, args...)
+func (r trigger) columns() []string {
+	return []string{
+		"id", "rel_namespace", "name",
+		"actions", "enabled", "source", "rel_module",
+		"created_at", "updated_at", "deleted_at",
 	}
 }
 
-func (r *trigger) Find(filter types.TriggerFilter) (mod types.TriggerSet, err error) {
+func (r trigger) query() squirrel.SelectBuilder {
+	return squirrel.
+		Select().
+		From(r.table()).
+		Where("deleted_at IS NULL")
+}
+
+func (r trigger) FindByID(namespaceID, triggerID uint64) (*types.Trigger, error) {
+	var (
+		query = r.query().
+			Columns(r.columns()...).
+			Where("id = ?", triggerID)
+
+		c = &types.Trigger{}
+	)
+
+	if namespaceID > 0 {
+		query = query.Where("rel_namespace = ?", namespaceID)
+	}
+
+	return c, isFound(r.fetchOne(c, query), c.ID > 0, ErrTriggerNotFound)
+}
+
+func (r trigger) Find(filter types.TriggerFilter) (set types.TriggerSet, f types.TriggerFilter, err error) {
+	f = filter
+	f.PerPage = normalizePerPage(f.PerPage, 5, 100, 50)
+
 	query := r.query()
 
-	if filter.ModuleID > 0 {
-		query = query.Where("rel_module = ?", filter.ModuleID)
+	if filter.NamespaceID > 0 {
+		query = query.Where("a.rel_namespace = ?", filter.NamespaceID)
 	}
 
-	if sql, args, err := query.ToSql(); err != nil {
-		return nil, err
-	} else {
-		return mod, r.db().Select(&mod, sql, args...)
+	if f.Query != "" {
+		q := "%" + f.Query + "%"
+		query = query.Where("name like ?", q)
 	}
+
+	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
+		return
+	}
+
+	query = query.
+		Columns(r.columns()...).
+		OrderBy("id ASC")
+
+	return set, f, r.fetchPaged(&set, query, f.Page, f.PerPage)
 }
 
-func (r trigger) query() (query squirrel.SelectBuilder) {
-	query = squirrel.Select().
-		Columns(
-			"id", "name", "actions", "enabled", "source", "rel_module",
-			"created_at", "updated_at", "deleted_at").
-		From("compose_trigger").
-		OrderBy("id DESC")
-
-	return
-}
-
-func (r *trigger) Create(mod *types.Trigger) (*types.Trigger, error) {
+func (r trigger) Create(mod *types.Trigger) (*types.Trigger, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
-	return mod, r.db().Insert("compose_trigger", mod)
+	return mod, r.db().Insert(r.table(), mod)
 }
 
-func (r *trigger) Update(mod *types.Trigger) (*types.Trigger, error) {
+func (r trigger) Update(mod *types.Trigger) (*types.Trigger, error) {
 	now := time.Now()
 	mod.UpdatedAt = &now
-	return mod, r.db().Replace("compose_trigger", mod)
+	return mod, r.db().Replace(r.table(), mod)
 }
 
-func (r *trigger) DeleteByID(id uint64) error {
-	_, err := r.db().Exec("DELETE FROM compose_trigger WHERE id = ?", id)
+func (r trigger) DeleteByID(namespaceID, attachmentID uint64) error {
+	_, err := r.db().Exec(
+		"UPDATE "+r.table()+" SET deleted_at = NOW() WHERE rel_namespace = ? AND id = ?",
+		namespaceID,
+		attachmentID,
+	)
+
 	return err
 }

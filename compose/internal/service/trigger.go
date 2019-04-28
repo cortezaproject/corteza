@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/compose/internal/repository"
@@ -18,27 +17,27 @@ type (
 		prmSvc PermissionsService
 
 		triggerRepo repository.TriggerRepository
-		moduleRepo  repository.ModuleRepository
 	}
 
 	TriggerService interface {
 		With(ctx context.Context) TriggerService
 
-		FindByID(triggerID uint64) (*types.Trigger, error)
-		Find(filter types.TriggerFilter) (set types.TriggerSet, err error)
+		FindByID(namespaceID, triggerID uint64) (*types.Trigger, error)
+		Find(filter types.TriggerFilter) (set types.TriggerSet, f types.TriggerFilter, err error)
 
 		Create(trigger *types.Trigger) (*types.Trigger, error)
 		Update(trigger *types.Trigger) (*types.Trigger, error)
-		DeleteByID(triggerID uint64) error
+		DeleteByID(namespaceID, triggerID uint64) error
 	}
 )
 
 func Trigger() TriggerService {
 	return (&trigger{
-		prmSvc: DefaultPermissions}).With(context.Background())
+		prmSvc: DefaultPermissions,
+	}).With(context.Background())
 }
 
-func (svc *trigger) With(ctx context.Context) TriggerService {
+func (svc trigger) With(ctx context.Context) TriggerService {
 	db := repository.DB(ctx)
 	return &trigger{
 		db:  db,
@@ -47,74 +46,80 @@ func (svc *trigger) With(ctx context.Context) TriggerService {
 		prmSvc: svc.prmSvc.With(ctx),
 
 		triggerRepo: repository.Trigger(ctx, db),
-		moduleRepo:  repository.Module(ctx, db),
 	}
 }
 
-func (svc *trigger) FindByID(id uint64) (t *types.Trigger, err error) {
-	if t, err = svc.triggerRepo.FindByID(id); err != nil {
+func (svc trigger) FindByID(namespaceID, triggerID uint64) (c *types.Trigger, err error) {
+	if namespaceID == 0 {
+		return nil, ErrNamespaceRequired
+	}
+
+	if c, err = svc.triggerRepo.FindByID(namespaceID, triggerID); err != nil {
 		return
-	} else if !svc.prmSvc.CanReadTrigger(t) {
-		return nil, errors.New("not allowed to access this trigger")
+	} else if !svc.prmSvc.CanReadTrigger(c) {
+		return nil, ErrNoReadPermissions.withStack()
 	}
 
 	return
 }
 
-func (svc *trigger) Find(filter types.TriggerFilter) (tt types.TriggerSet, err error) {
-	if tt, err = svc.triggerRepo.Find(filter); err != nil {
-		return nil, err
-	} else {
-		return tt.Filter(func(m *types.Trigger) (bool, error) {
-			return svc.prmSvc.CanReadTrigger(m), nil
-		})
+func (svc trigger) Find(filter types.TriggerFilter) (set types.TriggerSet, f types.TriggerFilter, err error) {
+	set, f, err = svc.triggerRepo.Find(filter)
+	if err != nil {
+		return
 	}
+
+	set, _ = set.Filter(func(m *types.Trigger) (bool, error) {
+		return svc.prmSvc.CanReadTrigger(m), nil
+	})
+
+	return
 }
 
-func (svc *trigger) Create(trigger *types.Trigger) (p *types.Trigger, err error) {
+func (svc trigger) Create(mod *types.Trigger) (c *types.Trigger, err error) {
 	if !svc.prmSvc.CanCreateTrigger(crmNamespace()) {
-		return nil, errors.New("not allowed to create this trigger")
+		return nil, ErrNoCreatePermissions.withStack()
 	}
 
-	return p, svc.db.Transaction(func() (err error) {
-		p, err = svc.triggerRepo.Create(trigger)
-		return
-	})
+	return svc.triggerRepo.Create(mod)
 }
 
-func (svc *trigger) Update(trigger *types.Trigger) (t *types.Trigger, err error) {
-	validate := func() error {
-		if trigger.ID == 0 {
-			return errors.New("Error updating trigger: invalid ID")
-		} else if t, err = svc.triggerRepo.FindByID(trigger.ID); err != nil {
-			return errors.Wrap(err, "Error while loading trigger for update")
-		} else {
-			if !svc.prmSvc.CanUpdateModule(t) {
-				return errors.New("not allowed to update this trigger")
-			}
-
-			trigger.CreatedAt = t.CreatedAt
-		}
-
-		return nil
+func (svc trigger) Update(mod *types.Trigger) (c *types.Trigger, err error) {
+	if mod.ID == 0 {
+		return nil, ErrInvalidID.withStack()
 	}
 
-	if err := validate(); err != nil {
-		return nil, err
-	}
-
-	return t, svc.db.Transaction(func() (err error) {
-		t, err = svc.triggerRepo.Update(trigger)
+	if c, err = svc.triggerRepo.FindByID(mod.NamespaceID, mod.ID); err != nil {
 		return
-	})
+	}
+
+	if isStale(mod.UpdatedAt, c.UpdatedAt, c.CreatedAt) {
+		return nil, ErrStaleData.withStack()
+	}
+
+	if !svc.prmSvc.CanUpdateTrigger(c) {
+		return nil, ErrNoUpdatePermissions.withStack()
+	}
+
+	c.Name = mod.Name
+	c.ModuleID = mod.ModuleID
+	c.Source = mod.Source
+	c.Actions = mod.Actions
+	c.Enabled = mod.Enabled
+
+	return svc.triggerRepo.Update(c)
 }
 
-func (svc *trigger) DeleteByID(ID uint64) error {
-	if t, err := svc.triggerRepo.FindByID(ID); err != nil {
-		return errors.Wrap(err, "could not delete trigger")
-	} else if !svc.prmSvc.CanDeleteTrigger(t) {
-		return errors.New("not allowed to delete this trigger")
+func (svc trigger) DeleteByID(namespaceID, triggerID uint64) error {
+	if namespaceID == 0 {
+		return ErrNamespaceRequired.withStack()
 	}
 
-	return svc.triggerRepo.DeleteByID(ID)
+	if c, err := svc.triggerRepo.FindByID(namespaceID, triggerID); err != nil {
+		return err
+	} else if !svc.prmSvc.CanDeleteTrigger(c) {
+		return ErrNoDeletePermissions.withStack()
+	}
+
+	return svc.triggerRepo.DeleteByID(namespaceID, triggerID)
 }

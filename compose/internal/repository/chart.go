@@ -56,7 +56,6 @@ func (r chart) query() squirrel.SelectBuilder {
 		Select().
 		From(r.table()).
 		Where("deleted_at IS NULL")
-
 }
 
 func (r chart) FindByID(namespaceID, chartID uint64) (*types.Chart, error) {
