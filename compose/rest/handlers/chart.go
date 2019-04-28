@@ -152,10 +152,10 @@ func NewChart(ch ChartAPI) *Chart {
 func (ch *Chart) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/chart/", ch.List)
-		r.Post("/chart/", ch.Create)
-		r.Get("/chart/{chartID}", ch.Read)
-		r.Post("/chart/{chartID}", ch.Update)
-		r.Delete("/chart/{chartID}", ch.Delete)
+		r.Get("/namespace/{namespaceID}/chart/", ch.List)
+		r.Post("/namespace/{namespaceID}/chart/", ch.Create)
+		r.Get("/namespace/{namespaceID}/chart/{chartID}", ch.Read)
+		r.Post("/namespace/{namespaceID}/chart/{chartID}", ch.Update)
+		r.Delete("/namespace/{namespaceID}/chart/{chartID}", ch.Delete)
 	})
 }

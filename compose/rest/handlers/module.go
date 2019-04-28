@@ -152,10 +152,10 @@ func NewModule(mh ModuleAPI) *Module {
 func (mh *Module) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/module/", mh.List)
-		r.Post("/module/", mh.Create)
-		r.Get("/module/{moduleID}", mh.Read)
-		r.Post("/module/{moduleID}", mh.Update)
-		r.Delete("/module/{moduleID}", mh.Delete)
+		r.Get("/namespace/{namespaceID}/module/", mh.List)
+		r.Post("/namespace/{namespaceID}/module/", mh.Create)
+		r.Get("/namespace/{namespaceID}/module/{moduleID}", mh.Read)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}", mh.Update)
+		r.Delete("/namespace/{namespaceID}/module/{moduleID}", mh.Delete)
 	})
 }

@@ -8,10 +8,19 @@
       ]
     }
   ],
-  "Parameters": null,
+  "Parameters": {
+    "path": [
+      {
+        "name": "namespaceID",
+        "required": true,
+        "title": "Namespace ID",
+        "type": "uint64"
+      }
+    ]
+  },
   "Protocol": "",
   "Authentication": [],
-  "Path": "/chart",
+  "Path": "/namespace/{namespaceID}/chart",
   "APIs": [
     {
       "Name": "list",

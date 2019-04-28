@@ -196,12 +196,12 @@ func NewRecord(rh RecordAPI) *Record {
 func (rh *Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/module/{moduleID}/record/report", rh.Report)
-		r.Get("/module/{moduleID}/record/", rh.List)
-		r.Post("/module/{moduleID}/record/", rh.Create)
-		r.Get("/module/{moduleID}/record/{recordID}", rh.Read)
-		r.Post("/module/{moduleID}/record/{recordID}", rh.Update)
-		r.Delete("/module/{moduleID}/record/{recordID}", rh.Delete)
-		r.Post("/module/{moduleID}/record/{recordID}/{fieldName}/attachment", rh.Upload)
+		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/report", rh.Report)
+		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/", rh.List)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/", rh.Create)
+		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", rh.Read)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", rh.Update)
+		r.Delete("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", rh.Delete)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/{fieldName}/attachment", rh.Upload)
 	})
 }

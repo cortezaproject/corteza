@@ -130,9 +130,9 @@ func NewAttachment(ah AttachmentAPI) *Attachment {
 func (ah *Attachment) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/attachment/{kind}/", ah.List)
-		r.Get("/attachment/{kind}/{attachmentID}", ah.Details)
-		r.Get("/attachment/{kind}/{attachmentID}/original/{name}", ah.Original)
-		r.Get("/attachment/{kind}/{attachmentID}/preview.{ext}", ah.Preview)
+		r.Get("/namespace/{namespaceID}/attachment/{kind}/", ah.List)
+		r.Get("/namespace/{namespaceID}/attachment/{kind}/{attachmentID}", ah.Details)
+		r.Get("/namespace/{namespaceID}/attachment/{kind}/{attachmentID}/original/{name}", ah.Original)
+		r.Get("/namespace/{namespaceID}/attachment/{kind}/{attachmentID}/preview.{ext}", ah.Preview)
 	})
 }

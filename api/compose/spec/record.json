@@ -12,6 +12,12 @@
   "Parameters": {
     "path": [
       {
+        "name": "namespaceID",
+        "required": true,
+        "title": "Namespace ID",
+        "type": "uint64"
+      },
+      {
         "name": "moduleID",
         "required": true,
         "title": "Module ID",
@@ -21,7 +27,7 @@
   },
   "Protocol": "",
   "Authentication": [],
-  "Path": "/module/{moduleID}/record",
+  "Path": "/namespace/{namespaceID}/module/{moduleID}/record",
   "APIs": [
     {
       "Name": "report",

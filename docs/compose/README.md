@@ -2,10 +2,10 @@
 
 | Method | Endpoint | Purpose |
 | ------ | -------- | ------- |
-| `GET` | `/attachment/{kind}/` | List, filter all page attachments |
-| `GET` | `/attachment/{kind}/{attachmentID}` | Attachment details |
-| `GET` | `/attachment/{kind}/{attachmentID}/original/{name}` | Serves attached file |
-| `GET` | `/attachment/{kind}/{attachmentID}/preview.{ext}` | Serves preview of an attached file |
+| `GET` | `/namespace/{namespaceID}/attachment/{kind}/` | List, filter all page attachments |
+| `GET` | `/namespace/{namespaceID}/attachment/{kind}/{attachmentID}` | Attachment details |
+| `GET` | `/namespace/{namespaceID}/attachment/{kind}/{attachmentID}/original/{name}` | Serves attached file |
+| `GET` | `/namespace/{namespaceID}/attachment/{kind}/{attachmentID}/preview.{ext}` | Serves preview of an attached file |
 
 ## List, filter all page attachments
 
@@ -13,7 +13,7 @@
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/attachment/{kind}/` | HTTP/S | GET | Client ID, Session ID |
+| `/namespace/{namespaceID}/attachment/{kind}/` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -28,6 +28,7 @@
 | sign | string | GET | Signature | N/A | YES |
 | userID | uint64 | GET | User ID | N/A | YES |
 | kind | string | PATH | Attachment kind | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Attachment details
 
@@ -35,7 +36,7 @@
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/attachment/{kind}/{attachmentID}` | HTTP/S | GET | Client ID, Session ID |
+| `/namespace/{namespaceID}/attachment/{kind}/{attachmentID}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -43,6 +44,7 @@
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
 | kind | string | PATH | Attachment kind | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | sign | string | GET | Signature | N/A | YES |
 | userID | uint64 | GET | User ID | N/A | YES |
 
@@ -52,7 +54,7 @@
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/attachment/{kind}/{attachmentID}/original/{name}` | HTTP/S | GET | Client ID, Session ID |
+| `/namespace/{namespaceID}/attachment/{kind}/{attachmentID}/original/{name}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -64,6 +66,7 @@
 | attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
 | name | string | PATH | File name | N/A | YES |
 | kind | string | PATH | Attachment kind | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Serves preview of an attached file
 
@@ -71,7 +74,7 @@
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/attachment/{kind}/{attachmentID}/preview.{ext}` | HTTP/S | GET | Client ID, Session ID |
+| `/namespace/{namespaceID}/attachment/{kind}/{attachmentID}/preview.{ext}` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
@@ -80,6 +83,7 @@
 | attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
 | ext | string | PATH | Preview extension/format | N/A | YES |
 | kind | string | PATH | Attachment kind | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | sign | string | GET | Signature | N/A | YES |
 | userID | uint64 | GET | User ID | N/A | YES |
 
@@ -92,11 +96,11 @@
 
 | Method | Endpoint | Purpose |
 | ------ | -------- | ------- |
-| `GET` | `/chart/` | List/read charts from module section |
-| `POST` | `/chart/` | List/read charts from module section |
-| `GET` | `/chart/{chartID}` | Read charts by ID from module section |
-| `POST` | `/chart/{chartID}` | Add/update charts in module section |
-| `DELETE` | `/chart/{chartID}` | Delete chart |
+| `GET` | `/namespace/{namespaceID}/chart/` | List/read charts from module section |
+| `POST` | `/namespace/{namespaceID}/chart/` | List/read charts from module section |
+| `GET` | `/namespace/{namespaceID}/chart/{chartID}` | Read charts by ID from module section |
+| `POST` | `/namespace/{namespaceID}/chart/{chartID}` | Add/update charts in module section |
+| `DELETE` | `/namespace/{namespaceID}/chart/{chartID}` | Delete chart |
 
 ## List/read charts from module section
 
@@ -104,12 +108,13 @@
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/chart/` | HTTP/S | GET |  |
+| `/namespace/{namespaceID}/chart/` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## List/read charts from module section
 
@@ -117,7 +122,7 @@
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/chart/` | HTTP/S | POST |  |
+| `/namespace/{namespaceID}/chart/` | HTTP/S | POST |  |
 
 #### Request parameters
 
@@ -125,6 +130,7 @@
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | config | sqlxTypes.JSONText | POST | Chart JSON | N/A | YES |
 | name | string | POST | Chart name | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Read charts by ID from module section
 
@@ -132,13 +138,14 @@
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/chart/{chartID}` | HTTP/S | GET |  |
+| `/namespace/{namespaceID}/chart/{chartID}` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | chartID | uint64 | PATH | Chart ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Add/update charts in module section
 
@@ -146,13 +153,14 @@
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/chart/{chartID}` | HTTP/S | POST |  |
+| `/namespace/{namespaceID}/chart/{chartID}` | HTTP/S | POST |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | chartID | uint64 | PATH | Chart ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | config | sqlxTypes.JSONText | POST | Chart JSON | N/A | YES |
 | name | string | POST | Chart name | N/A | YES |
 
@@ -162,13 +170,14 @@
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/chart/{chartID}` | HTTP/S | DELETE |  |
+| `/namespace/{namespaceID}/chart/{chartID}` | HTTP/S | DELETE |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | chartID | uint64 | PATH | Chart ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ---
 
@@ -181,11 +190,11 @@ Compose module definitions
 
 | Method | Endpoint | Purpose |
 | ------ | -------- | ------- |
-| `GET` | `/module/` | List modules |
-| `POST` | `/module/` | Create module |
-| `GET` | `/module/{moduleID}` | Read module |
-| `POST` | `/module/{moduleID}` | Update module |
-| `DELETE` | `/module/{moduleID}` | Delete module |
+| `GET` | `/namespace/{namespaceID}/module/` | List modules |
+| `POST` | `/namespace/{namespaceID}/module/` | Create module |
+| `GET` | `/namespace/{namespaceID}/module/{moduleID}` | Read module |
+| `POST` | `/namespace/{namespaceID}/module/{moduleID}` | Update module |
+| `DELETE` | `/namespace/{namespaceID}/module/{moduleID}` | Delete module |
 
 ## List modules
 
@@ -193,13 +202,14 @@ Compose module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/` | HTTP/S | GET |  |
+| `/namespace/{namespaceID}/module/` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Create module
 
@@ -207,7 +217,7 @@ Compose module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/` | HTTP/S | POST |  |
+| `/namespace/{namespaceID}/module/` | HTTP/S | POST |  |
 
 #### Request parameters
 
@@ -216,6 +226,7 @@ Compose module definitions
 | name | string | POST | Module Name | N/A | YES |
 | fields | types.ModuleFieldSet | POST | Fields JSON | N/A | YES |
 | meta | sqlxTypes.JSONText | POST | Module meta data | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Read module
 
@@ -223,13 +234,14 @@ Compose module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}` | HTTP/S | GET |  |
+| `/namespace/{namespaceID}/module/{moduleID}` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Update module
 
@@ -237,13 +249,14 @@ Compose module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}` | HTTP/S | POST |  |
+| `/namespace/{namespaceID}/module/{moduleID}` | HTTP/S | POST |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | name | string | POST | Module Name | N/A | YES |
 | fields | types.ModuleFieldSet | POST | Fields JSON | N/A | YES |
 | meta | sqlxTypes.JSONText | POST | Module meta data | N/A | YES |
@@ -254,13 +267,14 @@ Compose module definitions
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}` | HTTP/S | DELETE |  |
+| `/namespace/{namespaceID}/module/{moduleID}` | HTTP/S | DELETE |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ---
 
@@ -399,14 +413,14 @@ Compose module pages
 
 | Method | Endpoint | Purpose |
 | ------ | -------- | ------- |
-| `GET` | `/page/` | List available pages |
-| `POST` | `/page/` | Create page |
-| `GET` | `/page/{pageID}` | Get page details |
-| `GET` | `/page/tree` | Get page all (non-record) pages, hierarchically |
-| `POST` | `/page/{pageID}` | Update page |
-| `POST` | `/page/{selfID}/reorder` | Reorder pages |
-| `Delete` | `/page/{pageID}` | Delete page |
-| `POST` | `/page/{pageID}/attachment` | Uploads attachment to page |
+| `GET` | `/namespace/{namespaceID}/page/` | List available pages |
+| `POST` | `/namespace/{namespaceID}/page/` | Create page |
+| `GET` | `/namespace/{namespaceID}/page/{pageID}` | Get page details |
+| `GET` | `/namespace/{namespaceID}/page/tree` | Get page all (non-record) pages, hierarchically |
+| `POST` | `/namespace/{namespaceID}/page/{pageID}` | Update page |
+| `POST` | `/namespace/{namespaceID}/page/{selfID}/reorder` | Reorder pages |
+| `Delete` | `/namespace/{namespaceID}/page/{pageID}` | Delete page |
+| `POST` | `/namespace/{namespaceID}/page/{pageID}/attachment` | Uploads attachment to page |
 
 ## List available pages
 
@@ -414,13 +428,14 @@ Compose module pages
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/page/` | HTTP/S | GET |  |
+| `/namespace/{namespaceID}/page/` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | selfID | uint64 | GET | Parent page ID | N/A | NO |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Create page
 
@@ -428,7 +443,7 @@ Compose module pages
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/page/` | HTTP/S | POST |  |
+| `/namespace/{namespaceID}/page/` | HTTP/S | POST |  |
 
 #### Request parameters
 
@@ -440,6 +455,7 @@ Compose module pages
 | description | string | POST | Description | N/A | NO |
 | visible | bool | POST | Visible in navigation | N/A | NO |
 | blocks | sqlxTypes.JSONText | POST | Blocks JSON | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Get page details
 
@@ -447,13 +463,14 @@ Compose module pages
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/page/{pageID}` | HTTP/S | GET |  |
+| `/namespace/{namespaceID}/page/{pageID}` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | pageID | uint64 | PATH | Page ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Get page all (non-record) pages, hierarchically
 
@@ -461,12 +478,13 @@ Compose module pages
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/page/tree` | HTTP/S | GET |  |
+| `/namespace/{namespaceID}/page/tree` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Update page
 
@@ -474,13 +492,14 @@ Compose module pages
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/page/{pageID}` | HTTP/S | POST |  |
+| `/namespace/{namespaceID}/page/{pageID}` | HTTP/S | POST |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | pageID | uint64 | PATH | Page ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | selfID | uint64 | POST | Parent Page ID | N/A | NO |
 | moduleID | uint64 | POST | Module ID (optional) | N/A | NO |
 | title | string | POST | Title | N/A | YES |
@@ -494,13 +513,14 @@ Compose module pages
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/page/{selfID}/reorder` | HTTP/S | POST |  |
+| `/namespace/{namespaceID}/page/{selfID}/reorder` | HTTP/S | POST |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | selfID | uint64 | PATH | Parent page ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | pageIDs | []string | POST | Page ID order | N/A | YES |
 
 ## Delete page
@@ -509,13 +529,14 @@ Compose module pages
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/page/{pageID}` | HTTP/S | Delete |  |
+| `/namespace/{namespaceID}/page/{pageID}` | HTTP/S | Delete |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | pageID | uint64 | PATH | Page ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Uploads attachment to page
 
@@ -523,13 +544,14 @@ Compose module pages
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/page/{pageID}/attachment` | HTTP/S | POST |  |
+| `/namespace/{namespaceID}/page/{pageID}/attachment` | HTTP/S | POST |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | pageID | uint64 | PATH | Page ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | upload | *multipart.FileHeader | POST | File to upload | N/A | YES |
 
 ---
@@ -568,13 +590,13 @@ Compose records
 
 | Method | Endpoint | Purpose |
 | ------ | -------- | ------- |
-| `GET` | `/module/{moduleID}/record/report` | Generates report from module records |
-| `GET` | `/module/{moduleID}/record/` | List/read records from module section |
-| `POST` | `/module/{moduleID}/record/` | Create record in module section |
-| `GET` | `/module/{moduleID}/record/{recordID}` | Read records by ID from module section |
-| `POST` | `/module/{moduleID}/record/{recordID}` | Update records in module section |
-| `DELETE` | `/module/{moduleID}/record/{recordID}` | Delete record row from module section |
-| `POST` | `/module/{moduleID}/record/{recordID}/{fieldName}/attachment` | Uploads attachment and validates it against record field requirements |
+| `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/report` | Generates report from module records |
+| `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/` | List/read records from module section |
+| `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/` | Create record in module section |
+| `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Read records by ID from module section |
+| `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Update records in module section |
+| `DELETE` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Delete record row from module section |
+| `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/{fieldName}/attachment` | Uploads attachment and validates it against record field requirements |
 
 ## Generates report from module records
 
@@ -582,7 +604,7 @@ Compose records
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/record/report` | HTTP/S | GET |  |
+| `/namespace/{namespaceID}/module/{moduleID}/record/report` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -591,6 +613,7 @@ Compose records
 | metrics | string | GET | Metrics (eg: 'SUM(money), MAX(calls)') | N/A | NO |
 | dimensions | string | GET | Dimensions (eg: 'DATE(foo), status') | N/A | YES |
 | filter | string | GET | Filter (eg: 'DATE(foo) > 2010') | N/A | NO |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
 ## List/read records from module section
@@ -599,7 +622,7 @@ Compose records
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/record/` | HTTP/S | GET |  |
+| `/namespace/{namespaceID}/module/{moduleID}/record/` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -609,6 +632,7 @@ Compose records
 | page | int | GET | Page number (0 based) | N/A | NO |
 | perPage | int | GET | Returned items per page (default 50) | N/A | NO |
 | sort | string | GET | Sort field (default id desc) | N/A | NO |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
 ## Create record in module section
@@ -617,13 +641,14 @@ Compose records
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/record/` | HTTP/S | POST |  |
+| `/namespace/{namespaceID}/module/{moduleID}/record/` | HTTP/S | POST |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | values | types.RecordValueSet | POST | Record values | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
 ## Read records by ID from module section
@@ -632,13 +657,14 @@ Compose records
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/record/{recordID}` | HTTP/S | GET |  |
+| `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | recordID | uint64 | PATH | Record ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
 ## Update records in module section
@@ -647,13 +673,14 @@ Compose records
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/record/{recordID}` | HTTP/S | POST |  |
+| `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | HTTP/S | POST |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | recordID | uint64 | PATH | Record ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 | values | types.RecordValueSet | POST | Record values | N/A | YES |
 
@@ -663,13 +690,14 @@ Compose records
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/record/{recordID}` | HTTP/S | DELETE |  |
+| `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | HTTP/S | DELETE |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | recordID | uint64 | PATH | Record ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
 ## Uploads attachment and validates it against record field requirements
@@ -678,7 +706,7 @@ Compose records
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/module/{moduleID}/record/{recordID}/{fieldName}/attachment` | HTTP/S | POST |  |
+| `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/{fieldName}/attachment` | HTTP/S | POST |  |
 
 #### Request parameters
 
@@ -686,6 +714,7 @@ Compose records
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | recordID | uint64 | PATH | Record ID | N/A | YES |
 | fieldName | string | PATH | Field name | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 | upload | *multipart.FileHeader | POST | File to upload | N/A | YES |
 
@@ -700,11 +729,11 @@ Compose Triggers
 
 | Method | Endpoint | Purpose |
 | ------ | -------- | ------- |
-| `GET` | `/trigger/` | List available triggers |
-| `POST` | `/trigger/` | Create trigger |
-| `GET` | `/trigger/{triggerID}` | Get trigger details |
-| `POST` | `/trigger/{triggerID}` | Update trigger |
-| `Delete` | `/trigger/{triggerID}` | Delete trigger |
+| `GET` | `/namespace/{namespaceID}/trigger/` | List available triggers |
+| `POST` | `/namespace/{namespaceID}/trigger/` | Create trigger |
+| `GET` | `/namespace/{namespaceID}/trigger/{triggerID}` | Get trigger details |
+| `POST` | `/namespace/{namespaceID}/trigger/{triggerID}` | Update trigger |
+| `Delete` | `/namespace/{namespaceID}/trigger/{triggerID}` | Delete trigger |
 
 ## List available triggers
 
@@ -712,13 +741,14 @@ Compose Triggers
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/trigger/` | HTTP/S | GET |  |
+| `/namespace/{namespaceID}/trigger/` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | GET | Filter triggers by module | N/A | NO |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Create trigger
 
@@ -726,7 +756,7 @@ Compose Triggers
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/trigger/` | HTTP/S | POST |  |
+| `/namespace/{namespaceID}/trigger/` | HTTP/S | POST |  |
 
 #### Request parameters
 
@@ -737,6 +767,7 @@ Compose Triggers
 | actions | []string | POST | Actions that trigger this trigger | N/A | NO |
 | enabled | bool | POST | Enabled | N/A | NO |
 | source | string | POST | Trigger source code | N/A | NO |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Get trigger details
 
@@ -744,13 +775,14 @@ Compose Triggers
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/trigger/{triggerID}` | HTTP/S | GET |  |
+| `/namespace/{namespaceID}/trigger/{triggerID}` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | triggerID | uint64 | PATH | Trigger ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Update trigger
 
@@ -758,13 +790,14 @@ Compose Triggers
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/trigger/{triggerID}` | HTTP/S | POST |  |
+| `/namespace/{namespaceID}/trigger/{triggerID}` | HTTP/S | POST |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | triggerID | uint64 | PATH | Trigger ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | POST | Module ID | N/A | NO |
 | name | string | POST | Name | N/A | YES |
 | actions | []string | POST | Actions that trigger this trigger | N/A | NO |
@@ -777,12 +810,13 @@ Compose Triggers
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/trigger/{triggerID}` | HTTP/S | Delete |  |
+| `/namespace/{namespaceID}/trigger/{triggerID}` | HTTP/S | Delete |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | triggerID | uint64 | PATH | Trigger ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ---

@@ -187,7 +187,7 @@
         "title": "Pages",
         "description": "Compose module pages",
         "entrypoint": "page",
-        "path": "/page",
+        "path": "/namespace/{namespaceID}/page",
         "authentication": [],
         "struct": [
             {
@@ -196,6 +196,16 @@
                 ]
             }
         ],
+        "parameters": {
+            "path": [
+                {
+                    "type": "uint64",
+                    "name": "namespaceID",
+                    "required": true,
+                    "title": "Namespace ID"
+                }
+            ]
+        },
         "apis": [
             {
                 "name": "list",
@@ -406,8 +416,18 @@
         "title": "Modules",
         "description": "Compose module definitions",
         "entrypoint": "module",
-        "path": "/module",
+        "path": "/namespace/{namespaceID}/module",
         "authentication": [],
+        "parameters": {
+            "path": [
+                {
+                    "type": "uint64",
+                    "name": "namespaceID",
+                    "required": true,
+                    "title": "Namespace ID"
+                }
+            ]
+        },
         "struct": [
             {
                 "imports": [
@@ -535,7 +555,7 @@
         "title": "Records",
         "description": "Compose records",
         "entrypoint": "record",
-        "path": "/module/{moduleID}/record",
+        "path": "/namespace/{namespaceID}/module/{moduleID}/record",
         "authentication": [],
         "struct": [
             {
@@ -546,6 +566,12 @@
         ],
         "parameters": {
             "path": [
+                {
+                    "type": "uint64",
+                    "name": "namespaceID",
+                    "required": true,
+                    "title": "Namespace ID"
+                },
                 {
                     "type": "uint64",
                     "name": "moduleID",
@@ -723,7 +749,7 @@
     },
     {
         "title": "Charts",
-        "path": "/chart",
+        "path": "/namespace/{namespaceID}/chart",
         "entrypoint": "chart",
         "authentication": [],
         "struct": [
@@ -733,6 +759,16 @@
                 ]
             }
         ],
+        "parameters": {
+            "path": [
+                {
+                    "type": "uint64",
+                    "name": "namespaceID",
+                    "required": true,
+                    "title": "Namespace ID"
+                }
+            ]
+        },
         "apis": [
             {
                 "name": "list",
@@ -830,8 +866,18 @@
         "title": "Triggers",
         "description": "Compose Triggers",
         "entrypoint": "trigger",
-        "path": "/trigger",
+        "path": "/namespace/{namespaceID}/trigger",
         "authentication": [],
+        "parameters": {
+            "path": [
+                {
+                    "type": "uint64",
+                    "name": "namespaceID",
+                    "required": true,
+                    "title": "Namespace ID"
+                }
+            ]
+        },
         "apis": [
             {
                 "name": "list",
@@ -1029,7 +1075,7 @@
     },
     {
         "title": "Attachments",
-        "path": "/attachment/{kind}",
+        "path": "/namespace/{namespaceID}/attachment/{kind}",
         "entrypoint": "attachment",
         "authentication": [
             "Client ID",
@@ -1042,6 +1088,12 @@
                     "type": "string",
                     "required": true,
                     "title": "Attachment kind"
+                },
+                {
+                    "type": "uint64",
+                    "name": "namespaceID",
+                    "required": true,
+                    "title": "Namespace ID"
                 }
             ],
             "get": [
