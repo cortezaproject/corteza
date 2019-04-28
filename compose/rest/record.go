@@ -14,28 +14,52 @@ import (
 
 var _ = errors.Wrap
 
-type Record struct {
-	record     service.RecordService
-	attachment service.AttachmentService
-}
+type (
+	recordPayload struct {
+		*types.Record
+
+		CanUpdateRecord bool `json:"canUpdateRecord"`
+		CanDeleteRecord bool `json:"canDeleteRecord"`
+	}
+
+	recordSetPayload struct {
+		Filter types.RecordFilter `json:"filter"`
+		Set    []*recordPayload   `json:"set"`
+	}
+
+	Record struct {
+		record      service.RecordService
+		attachment  service.AttachmentService
+		permissions service.PermissionsService
+	}
+)
 
 func (Record) New() *Record {
 	return &Record{
-		record:     service.DefaultRecord,
-		attachment: service.DefaultAttachment,
+		record:      service.DefaultRecord,
+		attachment:  service.DefaultAttachment,
+		permissions: service.DefaultPermissions,
 	}
 }
 
 func (ctrl *Record) Report(ctx context.Context, r *request.RecordReport) (interface{}, error) {
-	return ctrl.record.With(ctx).Report(r.ModuleID, r.Metrics, r.Dimensions, r.Filter)
+	return ctrl.record.With(ctx).Report(r.NamespaceID, r.ModuleID, r.Metrics, r.Dimensions, r.Filter)
 }
 
 func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{}, error) {
-	return ctrl.record.With(ctx).Find(r.ModuleID, r.Filter, r.Sort, r.Page, r.PerPage)
+	set, filter, err := ctrl.record.With(ctx).Find(types.RecordFilter{
+		NamespaceID: r.NamespaceID,
+		ModuleID:    r.ModuleID,
+		Filter:      r.Filter,
+		Sort:        r.Sort,
+		PerPage:     r.PerPage,
+		Page:        r.Page,
+	})
+	return ctrl.makeFilterPayload(ctx, set, filter, err)
 }
 
 func (ctrl *Record) Read(ctx context.Context, r *request.RecordRead) (interface{}, error) {
-	return ctrl.record.With(ctx).FindByID(r.RecordID)
+	return ctrl.record.With(ctx).FindByID(r.NamespaceID, r.RecordID)
 }
 
 func (ctrl *Record) Create(ctx context.Context, r *request.RecordCreate) (interface{}, error) {
@@ -50,7 +74,7 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 }
 
 func (ctrl *Record) Delete(ctx context.Context, r *request.RecordDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.record.With(ctx).DeleteByID(r.RecordID)
+	return resputil.OK(), ctrl.record.With(ctx).DeleteByID(r.NamespaceID, r.RecordID)
 }
 
 func (ctrl *Record) Upload(ctx context.Context, r *request.RecordUpload) (interface{}, error) {
@@ -72,4 +96,33 @@ func (ctrl *Record) Upload(ctx context.Context, r *request.RecordUpload) (interf
 	)
 
 	return makeAttachmentPayload(ctx, a, err)
+}
+
+func (ctrl Record) makePayload(ctx context.Context, c *types.Record, err error) (*recordPayload, error) {
+	if err != nil || c == nil {
+		return nil, err
+	}
+
+	perm := ctrl.permissions.With(ctx)
+
+	return &recordPayload{
+		Record: c,
+
+		CanUpdateRecord: perm.CanUpdateRecord(c),
+		CanDeleteRecord: perm.CanDeleteRecord(c),
+	}, nil
+}
+
+func (ctrl Record) makeFilterPayload(ctx context.Context, nn types.RecordSet, f types.RecordFilter, err error) (*recordSetPayload, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	modp := &recordSetPayload{Filter: f, Set: make([]*recordPayload, len(nn))}
+
+	for i := range nn {
+		modp.Set[i], _ = ctrl.makePayload(ctx, nn[i], nil)
+	}
+
+	return modp, nil
 }

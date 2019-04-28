@@ -14,7 +14,7 @@ type (
 
 		Values RecordValueSet `json:"values,omitempty" db:"-"`
 
-		NamespaceID uint64 `json:"namespaceID,string", db:"rel_namespace"`
+		NamespaceID uint64 `json:"namespaceID,string" db:"rel_namespace"`
 
 		OwnedBy   uint64     `db:"owned_by"   json:"ownedBy,string"`
 		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
@@ -23,6 +23,16 @@ type (
 		UpdatedBy uint64     `db:"updated_by" json:"updatedBy,string,omitempty" `
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
 		DeletedBy uint64     `db:"deleted_by" json:"deletedBy,string,omitempty" `
+	}
+
+	RecordFilter struct {
+		ModuleID    uint64 `json:"moduleID,string"`
+		NamespaceID uint64 `json:"namespaceID,string"`
+		Filter      string `json:"query"`
+		Page        uint   `json:"page"`
+		PerPage     uint   `json:"perPage"`
+		Sort        string `json:"sort"`
+		Count       uint   `json:"count"`
 	}
 )
 

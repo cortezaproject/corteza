@@ -95,8 +95,8 @@ var _ RequestFiller = NewRecordReport()
 // Record list request parameters
 type RecordList struct {
 	Filter      string
-	Page        int
-	PerPage     int
+	Page        uint
+	PerPage     uint
 	Sort        string
 	NamespaceID uint64 `json:",string"`
 	ModuleID    uint64 `json:",string"`
@@ -139,11 +139,11 @@ func (rReq *RecordList) Fill(r *http.Request) (err error) {
 	}
 	if val, ok := get["page"]; ok {
 
-		rReq.Page = parseInt(val)
+		rReq.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
 
-		rReq.PerPage = parseInt(val)
+		rReq.PerPage = parseUint(val)
 	}
 	if val, ok := get["sort"]; ok {
 

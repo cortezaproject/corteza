@@ -661,13 +661,13 @@
                         },
                         {
                             "name": "page",
-                            "type": "int",
+                            "type": "uint",
                             "required": false,
                             "title": "Page number (0 based)"
                         },
                         {
                             "name": "perPage",
-                            "type": "int",
+                            "type": "uint",
                             "required": false,
                             "title": "Returned items per page (default 50)"
                         },

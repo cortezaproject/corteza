@@ -23,6 +23,9 @@ func TestRecord(t *testing.T) {
 
 	ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(user.Identity()))
 
+	var err error
+	ns1, ns2 := createTestNamespaces(ctx, t)
+
 	{
 		userSvc := systemService.TestUser(t, ctx)
 		_, err := userSvc.Create(user)
@@ -31,8 +34,9 @@ func TestRecord(t *testing.T) {
 
 	svc := Record().With(ctx)
 
-	module := &types.Module{
-		Name: "Test",
+	module1 := &types.Module{
+		NamespaceID: ns1.ID,
+		Name:        "Test",
 		Fields: types.ModuleFieldSet{
 			&types.ModuleField{
 				Name: "name",
@@ -54,18 +58,27 @@ func TestRecord(t *testing.T) {
 		},
 	}
 
-	// set up a module
-	var err error
-	module, err = Module().With(ctx).Create(module)
-	test.Assert(t, err == nil, "Error when creating module: %+v", err)
-	test.Assert(t, module.ID > 0, "Expected auto generated ID")
+	// set up a module1
+	module1, err = Module().With(ctx).Create(module1)
+	test.Assert(t, err == nil, "Error when creating module1: %+v", err)
+	test.Assert(t, module1.ID > 0, "Expected auto generated ID")
+
+	module2 := &types.Module{
+		NamespaceID: ns2.ID,
+		Name:        "Test Dummy",
+		Fields:      module1.Fields,
+	}
+	module2, err = Module().With(ctx).Create(module2)
+	test.Assert(t, err == nil, "Error when creating module1 in another namespace: %+v", err)
 
 	record1 := &types.Record{
-		ModuleID: module.ID,
+		NamespaceID: ns1.ID,
+		ModuleID:    module1.ID,
 	}
 
 	record2 := &types.Record{
-		ModuleID: module.ID,
+		NamespaceID: ns1.ID,
+		ModuleID:    module1.ID,
 		Values: types.RecordValueSet{
 			&types.RecordValue{
 				Name:  "name",
@@ -98,9 +111,19 @@ func TestRecord(t *testing.T) {
 		},
 	}
 
+	{
+		// Let's put something to another namespace...
+		_, err := svc.Create(&types.Record{
+			NamespaceID: ns2.ID,
+			ModuleID:    module2.ID,
+		})
+		test.Assert(t, err == nil, "Error when creating record: %+v", err)
+	}
+
 	// now work with records
 	{
 		{
+			record1.UpdatedAt = nil
 			m, err := svc.Update(record1)
 			test.Assert(t, m == nil, "Expected empty return for invalid update, got %#v", m)
 			test.Assert(t, err != nil, "Expected error when updating invalid record")
@@ -118,7 +141,7 @@ func TestRecord(t *testing.T) {
 
 		// fetch created record
 		{
-			ms, err := svc.FindByID(m1.ID)
+			ms, err := svc.FindByID(m1.NamespaceID, m1.ID)
 			test.Assert(t, err == nil, "Error when retrieving record by id: %+v", err)
 			test.Assert(t, ms.ID == m1.ID, "Expected ID from database to match, %d != %d", m1.ID, ms.ID)
 			test.Assert(t, ms.ModuleID == m1.ModuleID, "Expected Module ID from database to match, %d != %d", m1.ModuleID, ms.ModuleID)
@@ -126,13 +149,14 @@ func TestRecord(t *testing.T) {
 
 		// update created record
 		{
+			m1.UpdatedAt = nil
 			_, err := svc.Update(m1)
 			test.Assert(t, err == nil, "Error when updating record, %+v", err)
 		}
 
 		// re-fetch record
 		{
-			ms, err := svc.FindByID(m1.ID)
+			ms, err := svc.FindByID(m1.NamespaceID, m1.ID)
 			test.Assert(t, err == nil, "Error when retrieving record by id: %+v", err)
 			test.Assert(t, ms.ID == m1.ID, "Expected ID from database to match, %d != %d", m1.ID, ms.ID)
 			test.Assert(t, ms.ModuleID == m1.ModuleID, "Expected ID from database to match, %d != %d", m1.ModuleID, ms.ModuleID)
@@ -140,39 +164,40 @@ func TestRecord(t *testing.T) {
 
 		// fetch all records
 		{
-			mr, err := svc.Find(module.ID, "", "id desc", 0, 20)
+			mr, f, err := svc.Find(types.RecordFilter{ModuleID: module1.ID, Sort: "id desc"})
 			test.Assert(t, err == nil, "Error when retrieving records: %+v", err)
-			test.Assert(t, len(mr.Records) == 2, "Expected two record, got %d", len(mr.Records))
-			test.Assert(t, mr.Meta.Count == 2, "Expected Meta.Count == 2, got %d", mr.Meta.Count)
-			test.Assert(t, mr.Meta.Sort == "id desc", "Expected Meta.Sort == id desc, got '%s'", mr.Meta.Sort)
-			test.Assert(t, mr.Records[0].ModuleID == m1.ModuleID, "Expected record module to match, %d != %d", m1.ModuleID, mr.Records[0].ModuleID)
-			test.Assert(t, mr.Records[0].ID > mr.Records[1].ID, "Expected order to be descending")
+			test.Assert(t, len(mr) == 2, "Expected two record, got %d", len(mr))
+			test.Assert(t, f.Count == 2, "Expected Meta.Count == 2, got %d", f.Count)
+			test.Assert(t, f.Sort == "id desc", "Expected Meta.Sort == id desc, got '%s'", f.Sort)
+			test.Assert(t, mr[0].ModuleID == m1.ModuleID, "Expected record module1 to match, %d != %d", m1.ModuleID, mr[0].ModuleID)
+			test.Assert(t, mr[0].ID > mr[1].ID, "Expected order to be descending")
 		}
 
 		// fetch all records
 		{
-			mr, err := svc.Find(module.ID, "", "name asc, email desc", 0, 20)
+
+			mr, f, err := svc.Find(types.RecordFilter{ModuleID: module1.ID, Sort: "name asc, email desc"})
 			test.Assert(t, err == nil, "Error when retrieving records: %+v", err)
-			test.Assert(t, len(mr.Records) == 2, "Expected two record, got %d", len(mr.Records))
-			test.Assert(t, mr.Meta.Count == 2, "Expected Meta.Count == 2, got %d", mr.Meta.Count)
-			test.Assert(t, mr.Meta.Sort == "name asc, email desc", "Expected Meta.Sort == 'name asc, email desc' '%s'", mr.Meta.Sort)
-			test.Assert(t, mr.Records[0].ModuleID == m1.ModuleID, "Expected record module to match, %d != %d", m1.ModuleID, mr.Records[0].ModuleID)
+			test.Assert(t, len(mr) == 2, "Expected two record, got %d", len(mr))
+			test.Assert(t, f.Count == 2, "Expected Meta.Count == 2, got %d", f.Count)
+			test.Assert(t, f.Sort == "name asc, email desc", "Expected Meta.Sort == 'name asc, email desc' '%s'", f.Sort)
+			test.Assert(t, mr[0].ModuleID == m1.ModuleID, "Expected record module1 to match, %d != %d", m1.ModuleID, mr[0].ModuleID)
 
 			// @todo sort is not stable
-			// test.Assert(t, mr.Records[0].ID > mr.Records[1].ID, "Expected order to be ascending")
+			// test.Assert(t, mr[0].ID > mr[1].ID, "Expected order to be ascending")
 		}
 
 		// fetch all records
 		{
-			mr, err := svc.Find(module.ID, "", "created_at desc", 0, 20)
+			mr, f, err := svc.Find(types.RecordFilter{ModuleID: module1.ID, Sort: "created_at desc"})
 			test.Assert(t, err == nil, "Error when retrieving records: %+v", err)
-			test.Assert(t, len(mr.Records) == 2, "Expected two record, got %d", len(mr.Records))
-			test.Assert(t, mr.Meta.Count == 2, "Expected Meta.Count == 2, got %d", mr.Meta.Count)
-			test.Assert(t, mr.Meta.Sort == "created_at desc", "Expected Meta.Sort == created_at desc, got '%s'", mr.Meta.Sort)
-			test.Assert(t, mr.Records[0].ModuleID == m1.ModuleID, "Expected record module to match, %d != %d", m1.ModuleID, mr.Records[0].ModuleID)
+			test.Assert(t, len(mr) == 2, "Expected two record, got %d", len(mr))
+			test.Assert(t, f.Count == 2, "Expected Meta.Count == 2, got %d", f.Count)
+			test.Assert(t, f.Sort == "created_at desc", "Expected Meta.Sort == created_at desc, got '%s'", f.Sort)
+			test.Assert(t, mr[0].ModuleID == m1.ModuleID, "Expected record module1 to match, %d != %d", m1.ModuleID, mr[0].ModuleID)
 
 			// @todo sort is not stable
-			// test.Assert(t, mr.Records[0].ID > mr.Records[1].ID, "Expected order to be ascending")
+			// test.Assert(t, mr[0].ID > mr[1].ID, "Expected order to be ascending")
 		}
 
 		// fetch all records by query
@@ -180,37 +205,37 @@ func TestRecord(t *testing.T) {
 			filter := "name='John Doe' AND email='john.doe@example.com'"
 			sort := "id desc"
 
-			mr, err := svc.Find(module.ID, filter, sort, 0, 20)
+			mr, f, err := svc.Find(types.RecordFilter{ModuleID: module1.ID, Sort: sort, Filter: filter})
 			test.Assert(t, err == nil, "Error when retrieving records: %+v", err)
-			test.Assert(t, len(mr.Records) == 1, "Expected one record, got %d", len(mr.Records))
-			test.Assert(t, mr.Meta.Count == 1, "Expected Meta.Count == 1, got %d", mr.Meta.Count)
-			test.Assert(t, mr.Meta.Page == 0, "Expected Meta.Page == 0, got %d", mr.Meta.Page)
-			test.Assert(t, mr.Meta.PerPage == 20, "Expected Meta.PerPage == 20, got %d", mr.Meta.PerPage)
-			test.Assert(t, mr.Meta.Filter == filter, "Expected Meta.Filter == %q, got %q", filter, mr.Meta.Filter)
-			test.Assert(t, mr.Meta.Sort == sort, "Expected Meta.Sort == %q, got %q", sort, mr.Meta.Sort)
+			test.Assert(t, len(mr) == 1, "Expected one record, got %d", len(mr))
+			test.Assert(t, f.Count == 1, "Expected Meta.Count == 1, got %d", f.Count)
+			test.Assert(t, f.Page == 0, "Expected Meta.Page == 0, got %d", f.Page)
+			test.Assert(t, f.PerPage == 50, "Expected Meta.PerPage == 50, got %d", f.PerPage)
+			test.Assert(t, f.Filter == filter, "Expected Meta.Filter == %q, got %q", filter, f.Filter)
+			test.Assert(t, f.Sort == sort, "Expected Meta.Sort == %q, got %q", sort, f.Sort)
 		}
 
 		// fetch all records by query
 		{
-			mr, err := svc.Find(module.ID, "name='niall'", "id asc", 0, 20)
+			mr, _, err := svc.Find(types.RecordFilter{ModuleID: module1.ID, Sort: "id asc", Filter: "name='niall'"})
 			test.Assert(t, err == nil, "Error when retrieving records: %+v", err)
-			test.Assert(t, len(mr.Records) == 0, "Expected no records, got %d", len(mr.Records))
+			test.Assert(t, len(mr) == 0, "Expected no records, got %d", len(mr))
 		}
 
 		// delete record
 		{
-			err := svc.DeleteByID(m1.ID)
+			err := svc.DeleteByID(m1.NamespaceID, m1.ID)
 			test.Assert(t, err == nil, "Error when retrieving record by id: %+v", err)
 
-			err = svc.DeleteByID(m2.ID)
+			err = svc.DeleteByID(m2.NamespaceID, m2.ID)
 			test.Assert(t, err == nil, "Error when retrieving record by id: %+v", err)
 		}
 
 		// fetch all records
 		{
-			mr, err := svc.Find(module.ID, "", "", 0, 20)
+			mr, _, err := svc.Find(types.RecordFilter{ModuleID: module1.ID})
 			test.Assert(t, err == nil, "Error when retrieving records: %+v", err)
-			test.Assert(t, len(mr.Records) == 0, "Expected no record, got %d", len(mr.Records))
+			test.Assert(t, len(mr) == 0, "Expected no record, got %d", len(mr))
 		}
 	}
 }

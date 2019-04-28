@@ -24,17 +24,12 @@ ALTER TABLE `compose_trigger`
         ADD `rel_namespace` BIGINT UNSIGNED NOT NULL AFTER `id`,
         ADD INDEX (`rel_namespace`);
 
-ALTER TABLE `compose_record_value`
-        ADD `rel_namespace` BIGINT UNSIGNED NOT NULL AFTER `record_id`,
-        ADD INDEX (`rel_namespace`);
-
 UPDATE `compose_attachment`   SET `rel_namespace` = 88714882739863655;
 UPDATE `compose_chart`        SET `rel_namespace` = 88714882739863655;
 UPDATE `compose_module`       SET `rel_namespace` = 88714882739863655;
 UPDATE `compose_page`         SET `rel_namespace` = 88714882739863655;
 UPDATE `compose_record`       SET `rel_namespace` = 88714882739863655;
 UPDATE `compose_trigger`      SET `rel_namespace` = 88714882739863655;
-UPDATE `compose_record_value` SET `rel_namespace` = 88714882739863655;
 
 
 ALTER TABLE `compose_attachment`
@@ -64,10 +59,5 @@ ALTER TABLE `compose_record`
 
 ALTER TABLE `compose_trigger`
         ADD CONSTRAINT `compose_trigger_namespace`
-            FOREIGN KEY (`rel_namespace`)
-            REFERENCES `compose_namespace` (`id`);
-
-ALTER TABLE `compose_record_value`
-        ADD CONSTRAINT `compose_record_value_namespace`
             FOREIGN KEY (`rel_namespace`)
             REFERENCES `compose_namespace` (`id`);

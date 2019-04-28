@@ -120,7 +120,7 @@ func (svc attachment) Find(filter types.AttachmentFilter) (types.AttachmentSet, 
 	}
 
 	if filter.RecordID > 0 {
-		if _, err := svc.recordSvc.FindByID(filter.RecordID); err != nil {
+		if _, err := svc.recordSvc.FindByID(filter.NamespaceID, filter.RecordID); err != nil {
 			return nil, filter, err
 		}
 	}
@@ -176,7 +176,7 @@ func (svc attachment) CreateRecordAttachment(namespaceID uint64, name string, si
 
 	if _, err := svc.moduleSvc.FindByID(namespaceID, moduleID); err != nil {
 		return nil, err
-	} else if r, err := svc.recordSvc.FindByID(recordID); err != nil {
+	} else if r, err := svc.recordSvc.FindByID(namespaceID, recordID); err != nil {
 		return nil, err
 	} else if !svc.prmSvc.CanUpdateRecord(r) {
 		return nil, errors.New("not allowed to add attachments to this record")
