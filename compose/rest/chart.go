@@ -53,14 +53,14 @@ func (ctrl Chart) List(ctx context.Context, r *request.ChartList) (interface{}, 
 
 func (ctrl Chart) Create(ctx context.Context, r *request.ChartCreate) (interface{}, error) {
 	var err error
-	ns := &types.Chart{
+	mod := &types.Chart{
 		NamespaceID: r.NamespaceID,
 		Name:        r.Name,
 		Config:      r.Config,
 	}
 
-	ns, err = ctrl.chart.With(ctx).Create(ns)
-	return ctrl.makePayload(ctx, ns, err)
+	mod, err = ctrl.chart.With(ctx).Create(mod)
+	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl Chart) Read(ctx context.Context, r *request.ChartRead) (interface{}, error) {
@@ -69,18 +69,18 @@ func (ctrl Chart) Read(ctx context.Context, r *request.ChartRead) (interface{}, 
 
 func (ctrl Chart) Update(ctx context.Context, r *request.ChartUpdate) (interface{}, error) {
 	var (
-		ns  = &types.Chart{}
+		mod = &types.Chart{}
 		err error
 	)
 
-	ns.ID = r.ChartID
-	ns.Name = r.Name
-	ns.Config = r.Config
-	ns.NamespaceID = r.NamespaceID
-	ns.UpdatedAt = r.UpdatedAt
+	mod.ID = r.ChartID
+	mod.Name = r.Name
+	mod.Config = r.Config
+	mod.NamespaceID = r.NamespaceID
+	mod.UpdatedAt = r.UpdatedAt
 
-	ns, err = ctrl.chart.With(ctx).Update(ns)
-	return ctrl.makePayload(ctx, ns, err)
+	mod, err = ctrl.chart.With(ctx).Update(mod)
+	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl Chart) Delete(ctx context.Context, r *request.ChartDelete) (interface{}, error) {
@@ -92,18 +92,18 @@ func (ctrl Chart) Delete(ctx context.Context, r *request.ChartDelete) (interface
 	return resputil.OK(), ctrl.chart.With(ctx).DeleteByID(r.NamespaceID, r.ChartID)
 }
 
-func (ctrl Chart) makePayload(ctx context.Context, t *types.Chart, err error) (*chartPayload, error) {
-	if err != nil || t == nil {
+func (ctrl Chart) makePayload(ctx context.Context, c *types.Chart, err error) (*chartPayload, error) {
+	if err != nil || c == nil {
 		return nil, err
 	}
 
 	perm := ctrl.permissions.With(ctx)
 
 	return &chartPayload{
-		Chart: t,
+		Chart: c,
 
-		CanUpdateChart: perm.CanUpdateChart(t),
-		CanDeleteChart: perm.CanDeleteChart(t),
+		CanUpdateChart: perm.CanUpdateChart(c),
+		CanDeleteChart: perm.CanDeleteChart(c),
 	}, nil
 }
 
@@ -112,11 +112,11 @@ func (ctrl Chart) makeFilterPayload(ctx context.Context, nn types.ChartSet, f ty
 		return nil, err
 	}
 
-	nsp := &chartSetPayload{Filter: f, Set: make([]*chartPayload, len(nn))}
+	modp := &chartSetPayload{Filter: f, Set: make([]*chartPayload, len(nn))}
 
 	for i := range nn {
-		nsp.Set[i], _ = ctrl.makePayload(ctx, nn[i], nil)
+		modp.Set[i], _ = ctrl.makePayload(ctx, nn[i], nil)
 	}
 
-	return nsp, nil
+	return modp, nil
 }

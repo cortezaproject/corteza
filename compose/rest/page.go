@@ -12,70 +12,100 @@ import (
 )
 
 type (
+	pagePayload struct {
+		*types.Page
+
+		CanUpdatePage bool `json:"canUpdatePage"`
+		CanDeletePage bool `json:"canDeletePage"`
+	}
+
+	pageSetPayload struct {
+		Filter types.PageFilter `json:"filter"`
+		Set    []*pagePayload   `json:"set"`
+	}
+
 	Page struct {
-		page       service.PageService
-		attachment service.AttachmentService
+		page        service.PageService
+		attachment  service.AttachmentService
+		permissions service.PermissionsService
 	}
 )
 
 func (Page) New() *Page {
 	return &Page{
-		page:       service.DefaultPage,
-		attachment: service.DefaultAttachment,
+		page:        service.DefaultPage,
+		attachment:  service.DefaultAttachment,
+		permissions: service.DefaultPermissions,
 	}
 }
 
 func (ctrl *Page) List(ctx context.Context, r *request.PageList) (interface{}, error) {
-	if r.SelfID > 0 {
-		return ctrl.page.With(ctx).FindBySelfID(r.SelfID)
-	} else {
-		return ctrl.page.With(ctx).Find()
+	f := types.PageFilter{
+		NamespaceID: r.NamespaceID,
+		ParentID:    r.SelfID,
+
+		Query:   r.Query,
+		PerPage: r.PerPage,
+		Page:    r.Page,
 	}
+
+	set, filter, err := ctrl.page.With(ctx).Find(f)
+	return ctrl.makeFilterPayload(ctx, set, filter, err)
 }
 
 func (ctrl *Page) Tree(ctx context.Context, r *request.PageTree) (interface{}, error) {
-	return ctrl.page.With(ctx).Tree()
+	return ctrl.page.With(ctx).Tree(r.NamespaceID)
 }
 
 func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{}, error) {
-	p := &types.Page{
-		SelfID:      r.SelfID,
-		ModuleID:    r.ModuleID,
-		Title:       r.Title,
-		Description: r.Description,
-		Blocks:      r.Blocks,
-		Visible:     r.Visible,
-	}
-	return ctrl.page.With(ctx).Create(p)
+	var (
+		err error
+		mod = &types.Page{
+			NamespaceID: r.NamespaceID,
+			SelfID:      r.SelfID,
+			ModuleID:    r.ModuleID,
+			Title:       r.Title,
+			Description: r.Description,
+			Blocks:      r.Blocks,
+			Visible:     r.Visible,
+		}
+	)
+
+	mod, err = ctrl.page.With(ctx).Create(mod)
+	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl *Page) Read(ctx context.Context, r *request.PageRead) (interface{}, error) {
-	return ctrl.page.With(ctx).FindByID(r.PageID)
+	return ctrl.page.With(ctx).FindByID(r.NamespaceID, r.PageID)
 }
 
 func (ctrl *Page) Reorder(ctx context.Context, r *request.PageReorder) (interface{}, error) {
-	return resputil.OK(), ctrl.page.With(ctx).Reorder(r.SelfID, payload.ParseUInt64s(r.PageIDs))
+	return resputil.OK(), ctrl.page.With(ctx).Reorder(r.NamespaceID, r.SelfID, payload.ParseUInt64s(r.PageIDs))
 }
 
 func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{}, error) {
-	p := &types.Page{
-		ID:          r.PageID,
-		SelfID:      r.SelfID,
-		ModuleID:    r.ModuleID,
-		Title:       r.Title,
-		Description: r.Description,
-		Blocks:      r.Blocks,
-		Visible:     r.Visible,
-	}
-	return ctrl.page.With(ctx).Update(p)
+	var (
+		err error
+		mod = &types.Page{
+			ID:          r.PageID,
+			SelfID:      r.SelfID,
+			ModuleID:    r.ModuleID,
+			Title:       r.Title,
+			Description: r.Description,
+			Blocks:      r.Blocks,
+			Visible:     r.Visible,
+		}
+	)
+
+	mod, err = ctrl.page.With(ctx).Update(mod)
+	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl *Page) Delete(ctx context.Context, r *request.PageDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.page.With(ctx).DeleteByID(r.PageID)
+	return resputil.OK(), ctrl.page.With(ctx).DeleteByID(r.NamespaceID, r.PageID)
 }
 
 func (ctrl *Page) Upload(ctx context.Context, r *request.PageUpload) (interface{}, error) {
-	// @todo [SECURITY] check if attachments can be added to this page
 	file, err := r.Upload.Open()
 	if err != nil {
 		return nil, err
@@ -92,4 +122,33 @@ func (ctrl *Page) Upload(ctx context.Context, r *request.PageUpload) (interface{
 	)
 
 	return makeAttachmentPayload(ctx, a, err)
+}
+
+func (ctrl Page) makePayload(ctx context.Context, c *types.Page, err error) (*pagePayload, error) {
+	if err != nil || c == nil {
+		return nil, err
+	}
+
+	perm := ctrl.permissions.With(ctx)
+
+	return &pagePayload{
+		Page: c,
+
+		CanUpdatePage: perm.CanUpdatePage(c),
+		CanDeletePage: perm.CanDeletePage(c),
+	}, nil
+}
+
+func (ctrl Page) makeFilterPayload(ctx context.Context, nn types.PageSet, f types.PageFilter, err error) (*pageSetPayload, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	modp := &pageSetPayload{Filter: f, Set: make([]*pagePayload, len(nn))}
+
+	for i := range nn {
+		modp.Set[i], _ = ctrl.makePayload(ctx, nn[i], nil)
+	}
+
+	return modp, nil
 }

@@ -461,6 +461,9 @@ Compose pages
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | selfID | uint64 | GET | Parent page ID | N/A | NO |
+| query | string | GET | Search query | N/A | NO |
+| page | uint | GET | Page number (0 based) | N/A | NO |
+| perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Create page

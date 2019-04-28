@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/titpetric/factory"
+	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/crusttech/crust/compose/types"
 )
@@ -12,17 +14,15 @@ type (
 	PageRepository interface {
 		With(ctx context.Context, db *factory.DB) PageRepository
 
-		FindByID(id uint64) (*types.Page, error)
-		FindByModuleID(id uint64) (*types.Page, error)
-		FindBySelfID(selfID uint64) (types.PageSet, error)
-		Find() (types.PageSet, error)
-		FindRecordPages() (types.PageSet, error)
+		FindByID(namespaceID, pageID uint64) (*types.Page, error)
+		FindByModuleID(namespaceID, pageID uint64) (*types.Page, error)
+		Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
 
 		Create(mod *types.Page) (*types.Page, error)
 		Update(mod *types.Page) (*types.Page, error)
-		DeleteByID(id uint64) error
+		DeleteByID(namespaceID, pageID uint64) error
 
-		Reorder(selfID uint64, pageIDs []uint64) error
+		Reorder(namespaceID, selfID uint64, pageIDs []uint64) error
 	}
 
 	page struct {
@@ -30,51 +30,108 @@ type (
 	}
 )
 
+const (
+	ErrPageNotFound = repositoryError("PageNotFound")
+)
+
 func Page(ctx context.Context, db *factory.DB) PageRepository {
 	return (&page{}).With(ctx, db)
 }
 
-func (r *page) With(ctx context.Context, db *factory.DB) PageRepository {
+func (r page) With(ctx context.Context, db *factory.DB) PageRepository {
 	return &page{
 		repository: r.repository.With(ctx, db),
 	}
 }
 
-func (r *page) FindByID(id uint64) (*types.Page, error) {
-	page := &types.Page{}
-	if err := r.db().Get(page, "SELECT * FROM compose_page WHERE id=?", id); err != nil {
-		return page, err
+func (r page) table() string {
+	return "compose_page"
+}
+
+func (r page) columns() []string {
+	return []string{
+		"id", "rel_namespace", "self_id", "rel_module", "title",
+		"blocks", "description", "visible", "weight",
+		"created_at", "updated_at", "deleted_at",
 	}
-	return page, nil
 }
 
-func (r *page) FindByModuleID(id uint64) (*types.Page, error) {
-	page := &types.Page{}
-	if err := r.db().Get(page, "SELECT * FROM compose_page WHERE module_id=?", id); err != nil {
-		return nil, err
+func (r page) query() squirrel.SelectBuilder {
+	return squirrel.
+		Select().
+		From(r.table()).
+		Where("deleted_at IS NULL")
+}
+
+func (r page) FindByID(namespaceID, pageID uint64) (*types.Page, error) {
+	var (
+		query = r.query().
+			Columns(r.columns()...).
+			Where("id = ?", pageID)
+
+		c = &types.Page{}
+	)
+
+	if namespaceID > 0 {
+		query = query.Where("rel_namespace = ?", namespaceID)
 	}
-	return page, nil
+
+	return c, isFound(r.fetchOne(c, query), c.ID > 0, ErrPageNotFound)
 }
 
-func (r *page) FindRecordPages() (set types.PageSet, err error) {
-	return set, r.db().Select(&set, "SELECT * FROM compose_page WHERE module_id > 0")
-}
+func (r page) FindByModuleID(namespaceID, moduleID uint64) (*types.Page, error) {
+	var (
+		query = r.query().
+			Columns(r.columns()...).
+			Where("rel_module = ?", moduleID)
 
-func (r *page) FindBySelfID(selfID uint64) (types.PageSet, error) {
-	pages := types.PageSet{}
-	if err := r.db().Select(&pages, "SELECT * FROM compose_page WHERE self_id = ? ORDER BY weight ASC", selfID); err != nil {
-		return pages, err
+		c = &types.Page{}
+	)
+
+	if namespaceID > 0 {
+		query = query.Where("rel_namespace = ?", namespaceID)
 	}
-	return pages, nil
+
+	return c, isFound(r.fetchOne(c, query), c.ID > 0, ErrPageNotFound)
 }
 
-func (r *page) Find() (set types.PageSet, err error) {
-	return set, r.db().Select(&set, "SELECT * FROM compose_page ORDER BY self_id, weight ASC")
+func (r page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
+	f = filter
+	f.PerPage = normalizePerPage(f.PerPage, 5, 100, 50)
+
+	query := r.query()
+
+	if filter.NamespaceID > 0 {
+		query = query.Where("rel_namespace = ?", filter.NamespaceID)
+	}
+
+	if filter.ParentID > 0 {
+		query = query.Where("self_id = ?", filter.ParentID)
+	}
+
+	if f.Query != "" {
+		q := "%" + f.Query + "%"
+		query = query.Where("title LIKE ? OR description LIKE ?", q, q)
+	}
+
+	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
+		return
+	}
+
+	query = query.
+		Columns(r.columns()...).
+		OrderBy("weight ASC")
+
+	return set, f, r.fetchPaged(&set, query, f.Page, f.PerPage)
 }
 
-func (r *page) Reorder(selfID uint64, pageIDs []uint64) error {
-	pageMap := map[uint64]bool{}
-	if pages, err := r.FindBySelfID(selfID); err != nil {
+func (r page) Reorder(namespaceID, parentID uint64, pageIDs []uint64) error {
+	var (
+		pageMap = map[uint64]bool{}
+		filter  = types.PageFilter{NamespaceID: namespaceID, ParentID: parentID}
+	)
+
+	if pages, _, err := r.Find(filter); err != nil {
 		return nil
 	} else {
 		for _, page := range pages {
@@ -87,7 +144,7 @@ func (r *page) Reorder(selfID uint64, pageIDs []uint64) error {
 	for _, pageID := range pageIDs {
 		if pageMap[pageID] {
 			pageMap[pageID] = false
-			if _, err := db.Exec("UPDATE compose_page set weight=? where id=? and self_id=?", weight, pageID, selfID); err != nil {
+			if _, err := db.Exec("UPDATE compose_page SET weight = ? WHERE id = ? AND self_id = ?", weight, pageID, parentID); err != nil {
 				return err
 			}
 			weight++
@@ -95,7 +152,7 @@ func (r *page) Reorder(selfID uint64, pageIDs []uint64) error {
 	}
 	for pageID, update := range pageMap {
 		if update {
-			if _, err := db.Exec("UPDATE compose_page set weight=? where id=? and self_id=?", weight, pageID, selfID); err != nil {
+			if _, err := db.Exec("UPDATE compose_page SET weight = ? WHERE id = ? AND self_id = ?", weight, pageID, parentID); err != nil {
 				return err
 			}
 			weight++
@@ -104,19 +161,25 @@ func (r *page) Reorder(selfID uint64, pageIDs []uint64) error {
 	return nil
 }
 
-func (r *page) Create(item *types.Page) (*types.Page, error) {
-	page := &types.Page{}
-	*page = *item
+func (r page) Create(mod *types.Page) (*types.Page, error) {
+	mod.ID = factory.Sonyflake.NextID()
+	mod.CreatedAt = time.Now()
 
-	page.ID = factory.Sonyflake.NextID()
-	return page, r.db().Insert("compose_page", page)
+	return mod, r.db().Insert(r.table(), mod)
 }
 
-func (r *page) Update(page *types.Page) (*types.Page, error) {
-	return page, r.db().Replace("compose_page", page)
+func (r page) Update(mod *types.Page) (*types.Page, error) {
+	now := time.Now()
+	mod.UpdatedAt = &now
+	return mod, r.db().Replace(r.table(), mod)
 }
 
-func (r *page) DeleteByID(id uint64) error {
-	_, err := r.db().Exec("DELETE FROM compose_page WHERE id=?", id)
+func (r page) DeleteByID(namespaceID, pageID uint64) error {
+	_, err := r.db().Exec(
+		"UPDATE "+r.table()+" SET deleted_at = NOW() WHERE rel_namespace = ? AND id = ?",
+		namespaceID,
+		pageID,
+	)
+
 	return err
 }

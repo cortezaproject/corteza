@@ -108,7 +108,7 @@ func (svc attachment) Find(filter types.AttachmentFilter) (types.AttachmentSet, 
 	}
 
 	if filter.PageID > 0 {
-		if _, err := svc.pageSvc.FindByID(filter.PageID); err != nil {
+		if _, err := svc.pageSvc.FindByID(filter.NamespaceID, filter.PageID); err != nil {
 			return nil, filter, err
 		}
 	}
@@ -151,7 +151,7 @@ func (svc attachment) CreatePageAttachment(namespaceID uint64, name string, size
 
 	var currentUserID uint64 = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	if p, err := svc.pageSvc.FindByID(pageID); err != nil {
+	if p, err := svc.pageSvc.FindByID(namespaceID, pageID); err != nil {
 		return nil, err
 	} else if !svc.prmSvc.CanUpdatePage(p) {
 		return nil, errors.New("not allowed to add attachments to this page")

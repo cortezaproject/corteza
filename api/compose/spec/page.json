@@ -35,6 +35,24 @@
             "required": false,
             "title": "Parent page ID",
             "type": "uint64"
+          },
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search query",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "required": false,
+            "title": "Page number (0 based)",
+            "type": "uint"
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "title": "Returned items per page (default 50)",
+            "type": "uint"
           }
         ]
       }
