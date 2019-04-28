@@ -6,10 +6,9 @@ import (
 	"strings"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/lann/builder"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
-	sq "gopkg.in/Masterminds/squirrel.v1"
+	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/crusttech/crust/compose/internal/repository/ql"
 
@@ -20,10 +19,10 @@ type (
 	RecordRepository interface {
 		With(ctx context.Context, db *factory.DB) RecordRepository
 
-		FindByID(id uint64) (*types.Record, error)
+		FindByID(namespaceID, recordID uint64) (*types.Record, error)
 
 		Report(module *types.Module, metrics, dimensions, filter string) (results interface{}, err error)
-		Find(module *types.Module, filter string, sort string, page int, perPage int) (*FindResponse, error)
+		Find(module *types.Module, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
 
 		Create(record *types.Record) (*types.Record, error)
 		Update(record *types.Record) (*types.Record, error)
@@ -32,25 +31,6 @@ type (
 		LoadValues(IDs ...uint64) (rvs types.RecordValueSet, err error)
 		DeleteValues(record *types.Record) error
 		UpdateValues(recordID uint64, rvs types.RecordValueSet) (err error)
-
-		CountAuthored(userID uint64) (c int, err error)
-		ChangeAuthor(userID, target uint64) error
-		CountReferenced(userID uint64) (c int, err error)
-		ChangeReferences(userID, target uint64) error
-	}
-
-	FindResponseMeta struct {
-		Filter string `json:"filter,omitempty"`
-		Sort   string `json:"sort,omitempty"`
-
-		Page    int `json:"page"`
-		PerPage int `json:"perPage"`
-		Count   int `json:"count"`
-	}
-
-	FindResponse struct {
-		Meta    FindResponseMeta `json:"meta"`
-		Records types.RecordSet  `json:"records"`
 	}
 
 	record struct {
@@ -59,30 +39,64 @@ type (
 )
 
 const (
-	sortWrap = `sort`
+	ErrRecordNotFound = repositoryError("RecordNotFound")
 )
 
 func Record(ctx context.Context, db *factory.DB) RecordRepository {
 	return (&record{}).With(ctx, db)
 }
 
-func (r *record) With(ctx context.Context, db *factory.DB) RecordRepository {
+func (r record) With(ctx context.Context, db *factory.DB) RecordRepository {
 	return &record{
 		repository: r.repository.With(ctx, db),
 	}
 }
 
-// @todo: update to accepted DeletedAt column semantics from Messaging
-
-func (r *record) FindByID(id uint64) (*types.Record, error) {
-	mod := &types.Record{}
-	if err := r.db().Get(mod, "SELECT * FROM compose_record WHERE id=? and deleted_at IS NULL", id); err != nil {
-		return nil, err
-	}
-	return mod, nil
+func (r record) table() string {
+	return "compose_record"
 }
 
-func (r *record) Report(module *types.Module, metrics, dimensions, filter string) (results interface{}, err error) {
+func (r record) columns() []string {
+	return []string{
+		"r.id",
+		"r.module_id",
+		"r.rel_namespace",
+		"r.owned_by",
+		"r.created_at",
+		"r.created_by",
+		"r.updated_at",
+		"r.updated_by",
+		"r.deleted_at",
+		"r.deleted_by",
+	}
+}
+
+func (r record) query() squirrel.SelectBuilder {
+	return squirrel.
+		Select().
+		From(r.table() + " AS r").
+		Where("r.deleted_at IS NULL")
+}
+
+// @todo: update to accepted DeletedAt column semantics from Messaging
+
+func (r record) FindByID(namespaceID, recordID uint64) (*types.Record, error) {
+	var (
+		query = r.query().
+			Columns(r.columns()...).
+			Where("id = ?", recordID)
+
+		c = &types.Record{}
+	)
+
+	if namespaceID > 0 {
+		query = query.Where("rel_namespace = ?", namespaceID)
+	}
+
+	return c, isFound(r.fetchOne(c, query), c.ID > 0, ErrRecordNotFound)
+}
+
+func (r record) Report(module *types.Module, metrics, dimensions, filter string) (results interface{}, err error) {
 	crb := NewRecordReportBuilder(module)
 
 	var result = make([]map[string]interface{}, 0)
@@ -100,76 +114,31 @@ func (r *record) Report(module *types.Module, metrics, dimensions, filter string
 	}
 }
 
-func (r *record) Find(module *types.Module, filter string, sort string, page int, perPage int) (*FindResponse, error) {
-	if page < 0 {
-		page = 0
-	}
-	if perPage <= 0 {
-		perPage = 50
-	}
-	if perPage > 100 {
-		perPage = 100
-	}
+func (r record) Find(module *types.Module, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
+	var query squirrel.SelectBuilder
+	f = filter
+	f.PerPage = normalizePerPage(f.PerPage, 5, 100, 50)
 
-	response := &FindResponse{
-		Meta: FindResponseMeta{
-			Filter:  filter,
-			Page:    page,
-			PerPage: perPage,
-			Sort:    sort,
-		},
-		Records: make([]*types.Record, 0),
-	}
-
-	var query, err = r.buildQuery(module, filter, sort)
+	query, err = r.buildQuery(module, filter)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	// Assemble SQL for counting (includes only where)
-	count := query.Column("COUNT(*)")
-	count = builder.Delete(count, "OrderBys").(sq.SelectBuilder)
-	sqlSelect, argsSelect, err := count.ToSql()
-	if err != nil {
-		return nil, err
-	}
-
-	// Execute count query.
-	if err := r.db().Get(&response.Meta.Count, sqlSelect, argsSelect...); err != nil {
-		return nil, err
-	}
-
-	// Return empty response if count of records is zero.
-	if response.Meta.Count == 0 {
-		return response, nil
+	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
+		return
 	}
 
 	// Assemble SQL for fetching record (where + sorting + paging)...
 	query = query.
-		Column("r.*").
-		Limit(uint64(perPage)).
-		Offset(uint64(page * perPage))
-
-	// Create actual fetch SQL sentences.
-	sqlSelect, argsSelect, err = query.ToSql()
-	if err != nil {
-		return nil, err
-	}
-
-	// append order args to select args and execute actual query.
-	if err := r.db().Select(&response.Records, sqlSelect, argsSelect...); err != nil {
-		return nil, err
-	}
-
-	return response, nil
+		Columns(r.columns()...)
+	return set, f, r.fetchPaged(&set, query, f.Page, f.PerPage)
 }
 
-func (r *record) buildQuery(module *types.Module, filter string, sort string) (query sq.SelectBuilder, err error) {
+func (r record) buildQuery(module *types.Module, f types.RecordFilter) (query squirrel.SelectBuilder, err error) {
 	// Create query for fetching and counting records.
-	query = sq.Select().
-		From("compose_record AS r").
-		Where(sq.Eq{"r.module_id": module.ID}).
-		Where(sq.Eq{"r.deleted_at": nil})
+	query = r.query().
+		Where("r.module_id = ?", module.ID).
+		Where("r.rel_namespace = ?", module.NamespaceID)
 
 	var joinedFields = []string{}
 	var alreadyJoined = func(f string) bool {
@@ -184,7 +153,7 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 	}
 
 	// Parse filters.
-	if filter != "" {
+	if f.Filter != "" {
 		var (
 			// Filter parser
 			fp = ql.NewParser()
@@ -217,7 +186,7 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 			return i, nil
 		}
 
-		if fn, err = fp.ParseExpression(filter); err != nil {
+		if fn, err = fp.ParseExpression(f.Filter); err != nil {
 			return
 		} else if filterSql, filterArgs, err := fn.ToSql(); err != nil {
 			return query, err
@@ -226,7 +195,7 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 		}
 	}
 
-	if sort != "" {
+	if f.Sort != "" {
 		var (
 			// Sort parser
 			sp = ql.NewParser()
@@ -259,7 +228,7 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 			return i, nil
 		}
 
-		if sc, err = sp.ParseColumns(sort); err != nil {
+		if sc, err = sp.ParseColumns(f.Sort); err != nil {
 			return
 
 		}
@@ -270,7 +239,7 @@ func (r *record) buildQuery(module *types.Module, filter string, sort string) (q
 	return
 }
 
-func (r *record) Create(record *types.Record) (*types.Record, error) {
+func (r record) Create(record *types.Record) (*types.Record, error) {
 	record.ID = factory.Sonyflake.NextID()
 
 	if err := r.db().Replace("compose_record", record); err != nil {
@@ -280,7 +249,7 @@ func (r *record) Create(record *types.Record) (*types.Record, error) {
 	return record, nil
 }
 
-func (r *record) Update(record *types.Record) (*types.Record, error) {
+func (r record) Update(record *types.Record) (*types.Record, error) {
 	if err := r.db().Replace("compose_record", record); err != nil {
 		return nil, errors.Wrap(err, "could not update record")
 	}
@@ -288,18 +257,19 @@ func (r *record) Update(record *types.Record) (*types.Record, error) {
 	return record, nil
 }
 
-func (r *record) Delete(record *types.Record) error {
+func (r record) Delete(record *types.Record) error {
 	_, err := r.db().Exec(
-		"UPDATE compose_record SET deleted_at = ?, deleted_by = ? WHERE id = ?",
+		"UPDATE compose_record SET deleted_at = ?, deleted_by = ? WHERE rel_namespace = ? AND id = ?",
 		record.DeletedAt,
 		record.DeletedBy,
+		record.NamespaceID,
 		record.ID,
 	)
 
 	return err
 }
 
-func (r *record) DeleteValues(record *types.Record) error {
+func (r record) DeleteValues(record *types.Record) error {
 	_, err := r.db().Exec(
 		"UPDATE compose_record_value SET deleted_at = ? WHERE record_id = ?",
 		record.DeletedAt,
@@ -308,7 +278,7 @@ func (r *record) DeleteValues(record *types.Record) error {
 	return err
 }
 
-func (r *record) UpdateValues(recordID uint64, rvs types.RecordValueSet) (err error) {
+func (r record) UpdateValues(recordID uint64, rvs types.RecordValueSet) (err error) {
 	// Remove all records and prepare to be updated
 	// @todo be more selective and delete only removed values
 	if _, err = r.db().Exec("DELETE FROM compose_record_value WHERE record_id = ?", recordID); err != nil {
@@ -324,12 +294,16 @@ func (r *record) UpdateValues(recordID uint64, rvs types.RecordValueSet) (err er
 
 }
 
-func (r *record) LoadValues(IDs ...uint64) (rvs types.RecordValueSet, err error) {
+func (r record) LoadValues(IDs ...uint64) (rvs types.RecordValueSet, err error) {
 	if len(IDs) == 0 {
 		return
 	}
 
-	var sql = "SELECT * FROM compose_record_value WHERE record_id IN (?) AND deleted_at IS NULL ORDER BY record_id, place"
+	var sql = "SELECT record_id, name, value, ref, place, deleted_at " +
+		"  FROM compose_record_value " +
+		" WHERE record_id IN (?) " +
+		"   AND deleted_at IS NULL " +
+		" ORDER BY record_id, place"
 
 	if sql, args, err := sqlx.In(sql, IDs); err != nil {
 		return nil, err
@@ -366,36 +340,4 @@ func isRealRecordCol(name string) (string, bool) {
 	}
 
 	return name, false
-}
-
-func (r *record) CountAuthored(userID uint64) (c int, err error) {
-	return c, r.db().Get(&c,
-		"SELECT COUNT(*) FROM compose_record WHERE created_by = ? OR updated_by = ? OR deleted_by = ?",
-		userID, userID, userID)
-}
-
-func (r *record) ChangeAuthor(userID, target uint64) error {
-	if _, err := r.db().Exec("UPDATE compose_record SET created_by = ? WHERE created_by = ?", target, userID); err != nil {
-		return err
-	}
-	if _, err := r.db().Exec("UPDATE compose_record SET updated_by = ? WHERE updated_by = ?", target, userID); err != nil {
-		return err
-	}
-	if _, err := r.db().Exec("UPDATE compose_record SET deleted_by = ? WHERE deleted_by = ?", target, userID); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *record) CountReferenced(userID uint64) (c int, err error) {
-	// @todo add field type (User) check
-	return c, r.db().Get(&c,
-		"SELECT COUNT(*) FROM compose_record_value WHERE ref = ?",
-		userID)
-}
-
-func (r *record) ChangeReferences(userID, target uint64) error {
-	_, err := r.db().Exec("UPDATE compose_record_value SET ref = ? WHERE ref = ?", target, userID)
-	return err
 }

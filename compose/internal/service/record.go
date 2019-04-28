@@ -23,22 +23,22 @@ type (
 		prmSvc  PermissionsService
 		userSvc systemService.UserService
 
-		repository repository.RecordRepository
+		recordRepo repository.RecordRepository
 		moduleRepo repository.ModuleRepository
 	}
 
 	RecordService interface {
 		With(ctx context.Context) RecordService
 
-		FindByID(recordID uint64) (*types.Record, error)
+		FindByID(namespaceID, recordID uint64) (*types.Record, error)
 
-		Report(moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
-		Find(moduleID uint64, filter string, sort string, page int, perPage int) (*repository.FindResponse, error)
+		Report(namespaceID, moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
+		Find(filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
 
 		Create(record *types.Record) (*types.Record, error)
 		Update(record *types.Record) (*types.Record, error)
 
-		DeleteByID(recordID uint64) error
+		DeleteByID(namespaceID, recordID uint64) error
 
 		// Fields(module *types.Module, record *types.Record) ([]*types.RecordValue, error)
 	}
@@ -60,17 +60,111 @@ func (svc *record) With(ctx context.Context) RecordService {
 		prmSvc:  svc.prmSvc.With(ctx),
 		userSvc: systemService.User(ctx),
 
-		repository: repository.Record(ctx, db),
+		recordRepo: repository.Record(ctx, db),
 		moduleRepo: repository.Module(ctx, db),
 	}
 }
 
-func (svc *record) FindByID(recordID uint64) (r *types.Record, err error) {
-	err = svc.db.Transaction(func() (err error) {
-		if r, err = svc.repository.FindByID(recordID); err != nil {
+func (svc *record) FindByID(namespaceID, recordID uint64) (r *types.Record, err error) {
+	if namespaceID == 0 {
+		return nil, ErrNamespaceRequired
+	}
+
+	if r, err = svc.recordRepo.FindByID(namespaceID, recordID); err != nil {
+		return
+	}
+
+	if !svc.prmSvc.CanReadRecord(r) {
+		return nil, ErrNoReadPermissions.withStack()
+	}
+
+	if err = svc.preloadValues(r); err != nil {
+		return
+	}
+
+	return
+}
+
+func (svc record) loadModule(namespaceID, moduleID uint64) (m *types.Module, err error) {
+	if m, err = svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
+		return
+	}
+
+	if m.Fields, err = svc.moduleRepo.FindFields(m.ID); err != nil {
+		return
+	}
+
+	if !svc.prmSvc.CanReadRecord(m) {
+		return nil, ErrNoReadPermissions.withStack()
+	}
+
+	return
+}
+
+func (svc *record) Report(namespaceID, moduleID uint64, metrics, dimensions, filter string) (out interface{}, err error) {
+	var m *types.Module
+	if m, err = svc.loadModule(namespaceID, moduleID); err != nil {
+		return
+	}
+
+	if !svc.prmSvc.CanReadRecord(m) {
+		return nil, ErrNoReadPermissions.withStack()
+	}
+
+	return svc.recordRepo.Report(m, metrics, dimensions, filter)
+}
+
+func (svc *record) Find(filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
+	var m *types.Module
+	if m, err = svc.loadModule(filter.NamespaceID, filter.ModuleID); err != nil {
+		return
+	}
+
+	if !svc.prmSvc.CanReadRecord(m) {
+		return nil, filter, ErrNoReadPermissions.withStack()
+	}
+
+	set, f, err = svc.recordRepo.Find(m, filter)
+	if err != nil {
+		return
+	}
+
+	if err = svc.preloadValues(set...); err != nil {
+		return
+	}
+
+	return
+}
+
+func (svc *record) Create(mod *types.Record) (r *types.Record, err error) {
+	if mod.NamespaceID == 0 {
+		return nil, ErrNamespaceRequired
+	}
+
+	var m *types.Module
+	if m, err = svc.loadModule(mod.NamespaceID, mod.ModuleID); err != nil {
+		return
+	}
+
+	if !svc.prmSvc.CanCreateRecord(m) {
+		return nil, ErrNoCreatePermissions.withStack()
+	}
+
+	if err = svc.sanitizeValues(m, mod.Values); err != nil {
+		return
+	}
+
+	mod.OwnedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
+	mod.CreatedBy = mod.OwnedBy
+	mod.CreatedAt = time.Now()
+
+	return r, svc.db.Transaction(func() (err error) {
+		if r, err = svc.recordRepo.Create(mod); err != nil {
 			return
-		} else if !svc.prmSvc.CanReadRecord(r) {
-			return errors.New("not allowed to access this record")
+		}
+
+		if err = svc.recordRepo.UpdateValues(r.ID, mod.Values); err != nil {
+			return
 		}
 
 		if err = svc.preloadValues(r); err != nil {
@@ -79,138 +173,60 @@ func (svc *record) FindByID(recordID uint64) (r *types.Record, err error) {
 
 		return
 	})
-
-	return r, errors.Wrap(err, "unable to find record")
 }
 
-func (svc *record) Report(moduleID uint64, metrics, dimensions, filter string) (out interface{}, err error) {
-	var module *types.Module
-	var namespaceID uint64 = 0
+func (svc *record) Update(mod *types.Record) (r *types.Record, err error) {
+	if mod.ID == 0 {
+		return nil, ErrInvalidID.withStack()
+	}
 
-	err = svc.db.Transaction(func() (err error) {
-		if module, err = svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
-			return
-		} else if !svc.prmSvc.CanReadRecord(module) {
-			return errors.New("not allowed to access this record")
-		}
+	if mod.NamespaceID == 0 {
+		return nil, ErrNamespaceRequired
+	}
 
-		out, err = svc.repository.Report(module, metrics, dimensions, filter)
+	var m *types.Module
+	if m, err = svc.loadModule(mod.NamespaceID, mod.ModuleID); err != nil {
 		return
-	})
+	}
 
-	return out, errors.Wrap(err, "unable to build a report")
-}
-
-func (svc *record) Find(moduleID uint64, filter, sort string, page, perPage int) (rsp *repository.FindResponse, err error) {
-	var module *types.Module
-	var namespaceID uint64 = 0
-
-	err = svc.db.Transaction(func() (err error) {
-		if module, err = svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
-			return
-		} else if !svc.prmSvc.CanReadRecord(module) {
-			return errors.New("not allowed to access this record")
-		}
-
-		if rsp, err = svc.repository.Find(module, filter, sort, page, perPage); err != nil {
-			return
-		}
-
-		if err = svc.preloadValues(rsp.Records...); err != nil {
-			return
-		}
-
+	if r, err = svc.recordRepo.FindByID(mod.NamespaceID, mod.ID); err != nil {
 		return
-	})
+	}
 
-	return rsp, errors.Wrap(err, "unable to find records")
+	if !svc.prmSvc.CanUpdateRecord(r) {
+		return nil, ErrNoUpdatePermissions.withStack()
+	}
 
-}
+	if isStale(mod.UpdatedAt, r.UpdatedAt, r.CreatedAt) {
+		return nil, ErrStaleData.withStack()
+	}
 
-func (svc *record) Create(in *types.Record) (record *types.Record, err error) {
-	var module *types.Module
+	if err = svc.sanitizeValues(m, mod.Values); err != nil {
+		return
+	}
 
-	err = svc.db.Transaction(func() (err error) {
-		if module, err = svc.moduleRepo.FindByID(in.NamespaceID, in.ModuleID); err != nil {
-			return
-		} else if !svc.prmSvc.CanCreateRecord(module) {
-			return errors.New("not allowed to create records for this module")
-		}
+	now := time.Now()
+	r.UpdatedAt = &now
+	r.UpdatedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-		if err = svc.sanitizeValues(module, in.Values); err != nil {
-			return
-		}
-
-		in.OwnedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
-		in.CreatedBy = in.OwnedBy
-		in.CreatedAt = time.Now()
-		if record, err = svc.repository.Create(in); err != nil {
+	return r, svc.db.Transaction(func() (err error) {
+		if r, err = svc.recordRepo.Update(r); err != nil {
 			return
 		}
 
-		if err = svc.repository.UpdateValues(record.ID, in.Values); err != nil {
-			return
-		}
-
-		if err = svc.preloadValues(record); err != nil {
+		if err = svc.recordRepo.UpdateValues(r.ID, mod.Values); err != nil {
 			return
 		}
 
 		return
 	})
-
-	return record, errors.Wrap(err, "unable to create record")
 }
 
-func (svc *record) Update(updated *types.Record) (record *types.Record, err error) {
-	var module *types.Module
-
-	err = svc.db.Transaction(func() (err error) {
-		if updated.ID == 0 {
-			return errors.New("invalid record ID")
-		}
-
-		if record, err = svc.repository.FindByID(updated.ID); err != nil {
-			return errors.Wrap(err, "nonexistent record")
-		} else if !svc.prmSvc.CanUpdateRecord(record) {
-			return errors.New("not allowed to update this record")
-		}
-
-		if module, err = svc.moduleRepo.FindByID(updated.NamespaceID, updated.ModuleID); err != nil {
-			return
-		}
-
-		if err = svc.sanitizeValues(module, updated.Values); err != nil {
-			return
-		}
-
-		now := time.Now()
-		record.UpdatedAt = &now
-		record.UpdatedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
-
-		if record, err = svc.repository.Update(record); err != nil {
-			return
-		}
-
-		if err = svc.repository.UpdateValues(record.ID, updated.Values); err != nil {
-			return
-		}
-
-		return
-	})
-
-	return record, errors.Wrap(err, "unable to update record")
-}
-
-// func (s *record) Fields(module *types.Module, record *types.Record) ([]*types.RecordValue, error) {
-// 	return s.repository.Fields(module, record)
-// }
-
-func (svc *record) DeleteByID(ID uint64) (err error) {
+func (svc *record) DeleteByID(namespaceID, recordID uint64) (err error) {
 	err = svc.db.Transaction(func() (err error) {
 		var record *types.Record
 
-		if record, err = svc.repository.FindByID(ID); err != nil {
+		if record, err = svc.recordRepo.FindByID(namespaceID, recordID); err != nil {
 			return errors.Wrap(err, "nonexistent record")
 		}
 
@@ -218,11 +234,11 @@ func (svc *record) DeleteByID(ID uint64) (err error) {
 		record.DeletedAt = &now
 		record.DeletedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-		if err = svc.repository.Delete(record); err != nil {
+		if err = svc.recordRepo.Delete(record); err != nil {
 			return
 		}
 
-		if err = svc.repository.DeleteValues(record); err != nil {
+		if err = svc.recordRepo.DeleteValues(record); err != nil {
 			return
 		}
 
@@ -247,7 +263,6 @@ func (svc *record) sanitizeValues(module *types.Module, values types.RecordValue
 	}
 
 	var places = map[string]uint{}
-	// var has bool
 
 	return values.Walk(func(value *types.RecordValue) (err error) {
 		var field = module.Fields.FindByName(value.Name)
@@ -269,7 +284,7 @@ func (svc *record) sanitizeValues(module *types.Module, values types.RecordValue
 }
 
 func (svc *record) preloadValues(rr ...*types.Record) error {
-	if rvs, err := svc.repository.LoadValues(types.RecordSet(rr).IDs()...); err != nil {
+	if rvs, err := svc.recordRepo.LoadValues(types.RecordSet(rr).IDs()...); err != nil {
 		return err
 	} else {
 		return types.RecordSet(rr).Walk(func(r *types.Record) error {
