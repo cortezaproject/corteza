@@ -35,7 +35,8 @@ var _ = multipart.FileHeader{}
 
 // Module list request parameters
 type ModuleList struct {
-	Query string
+	Query       string
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewModuleList() *ModuleList {
@@ -73,6 +74,7 @@ func (mReq *ModuleList) Fill(r *http.Request) (err error) {
 
 		mReq.Query = val
 	}
+	mReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }
@@ -81,9 +83,10 @@ var _ RequestFiller = NewModuleList()
 
 // Module create request parameters
 type ModuleCreate struct {
-	Name   string
-	Fields types.ModuleFieldSet
-	Meta   sqlxTypes.JSONText
+	Name        string
+	Fields      types.ModuleFieldSet
+	Meta        sqlxTypes.JSONText
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewModuleCreate() *ModuleCreate {
@@ -127,6 +130,7 @@ func (mReq *ModuleCreate) Fill(r *http.Request) (err error) {
 			return err
 		}
 	}
+	mReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }
@@ -135,7 +139,8 @@ var _ RequestFiller = NewModuleCreate()
 
 // Module read request parameters
 type ModuleRead struct {
-	ModuleID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewModuleRead() *ModuleRead {
@@ -170,6 +175,7 @@ func (mReq *ModuleRead) Fill(r *http.Request) (err error) {
 	}
 
 	mReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
+	mReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }
@@ -178,10 +184,11 @@ var _ RequestFiller = NewModuleRead()
 
 // Module update request parameters
 type ModuleUpdate struct {
-	ModuleID uint64 `json:",string"`
-	Name     string
-	Fields   types.ModuleFieldSet
-	Meta     sqlxTypes.JSONText
+	ModuleID    uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
+	Name        string
+	Fields      types.ModuleFieldSet
+	Meta        sqlxTypes.JSONText
 }
 
 func NewModuleUpdate() *ModuleUpdate {
@@ -216,6 +223,7 @@ func (mReq *ModuleUpdate) Fill(r *http.Request) (err error) {
 	}
 
 	mReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
+	mReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 	if val, ok := post["name"]; ok {
 
 		mReq.Name = val
@@ -234,7 +242,8 @@ var _ RequestFiller = NewModuleUpdate()
 
 // Module delete request parameters
 type ModuleDelete struct {
-	ModuleID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewModuleDelete() *ModuleDelete {
@@ -269,6 +278,7 @@ func (mReq *ModuleDelete) Fill(r *http.Request) (err error) {
 	}
 
 	mReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
+	mReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }

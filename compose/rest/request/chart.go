@@ -34,6 +34,7 @@ var _ = multipart.FileHeader{}
 
 // Chart list request parameters
 type ChartList struct {
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewChartList() *ChartList {
@@ -67,6 +68,8 @@ func (cReq *ChartList) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	cReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+
 	return err
 }
 
@@ -74,8 +77,9 @@ var _ RequestFiller = NewChartList()
 
 // Chart create request parameters
 type ChartCreate struct {
-	Config sqlxTypes.JSONText
-	Name   string
+	Config      sqlxTypes.JSONText
+	Name        string
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewChartCreate() *ChartCreate {
@@ -119,6 +123,7 @@ func (cReq *ChartCreate) Fill(r *http.Request) (err error) {
 
 		cReq.Name = val
 	}
+	cReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }
@@ -127,7 +132,8 @@ var _ RequestFiller = NewChartCreate()
 
 // Chart read request parameters
 type ChartRead struct {
-	ChartID uint64 `json:",string"`
+	ChartID     uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewChartRead() *ChartRead {
@@ -162,6 +168,7 @@ func (cReq *ChartRead) Fill(r *http.Request) (err error) {
 	}
 
 	cReq.ChartID = parseUInt64(chi.URLParam(r, "chartID"))
+	cReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }
@@ -170,9 +177,10 @@ var _ RequestFiller = NewChartRead()
 
 // Chart update request parameters
 type ChartUpdate struct {
-	ChartID uint64 `json:",string"`
-	Config  sqlxTypes.JSONText
-	Name    string
+	ChartID     uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
+	Config      sqlxTypes.JSONText
+	Name        string
 }
 
 func NewChartUpdate() *ChartUpdate {
@@ -207,6 +215,7 @@ func (cReq *ChartUpdate) Fill(r *http.Request) (err error) {
 	}
 
 	cReq.ChartID = parseUInt64(chi.URLParam(r, "chartID"))
+	cReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 	if val, ok := post["config"]; ok {
 
 		if cReq.Config, err = parseJSONTextWithErr(val); err != nil {
@@ -225,7 +234,8 @@ var _ RequestFiller = NewChartUpdate()
 
 // Chart delete request parameters
 type ChartDelete struct {
-	ChartID uint64 `json:",string"`
+	ChartID     uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewChartDelete() *ChartDelete {
@@ -260,6 +270,7 @@ func (cReq *ChartDelete) Fill(r *http.Request) (err error) {
 	}
 
 	cReq.ChartID = parseUInt64(chi.URLParam(r, "chartID"))
+	cReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }

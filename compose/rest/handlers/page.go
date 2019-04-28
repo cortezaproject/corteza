@@ -218,13 +218,13 @@ func NewPage(ph PageAPI) *Page {
 func (ph *Page) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/page/", ph.List)
-		r.Post("/page/", ph.Create)
-		r.Get("/page/{pageID}", ph.Read)
-		r.Get("/page/tree", ph.Tree)
-		r.Post("/page/{pageID}", ph.Update)
-		r.Post("/page/{selfID}/reorder", ph.Reorder)
-		r.Delete("/page/{pageID}", ph.Delete)
-		r.Post("/page/{pageID}/attachment", ph.Upload)
+		r.Get("/namespace/{namespaceID}/page/", ph.List)
+		r.Post("/namespace/{namespaceID}/page/", ph.Create)
+		r.Get("/namespace/{namespaceID}/page/{pageID}", ph.Read)
+		r.Get("/namespace/{namespaceID}/page/tree", ph.Tree)
+		r.Post("/namespace/{namespaceID}/page/{pageID}", ph.Update)
+		r.Post("/namespace/{namespaceID}/page/{selfID}/reorder", ph.Reorder)
+		r.Delete("/namespace/{namespaceID}/page/{pageID}", ph.Delete)
+		r.Post("/namespace/{namespaceID}/page/{pageID}/attachment", ph.Upload)
 	})
 }

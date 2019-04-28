@@ -23,6 +23,12 @@
         "required": true,
         "title": "Attachment kind",
         "type": "string"
+      },
+      {
+        "name": "namespaceID",
+        "required": true,
+        "title": "Namespace ID",
+        "type": "uint64"
       }
     ]
   },
@@ -31,7 +37,7 @@
     "Client ID",
     "Session ID"
   ],
-  "Path": "/attachment/{kind}",
+  "Path": "/namespace/{namespaceID}/attachment/{kind}",
   "APIs": [
     {
       "Name": "list",

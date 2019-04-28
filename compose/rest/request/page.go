@@ -34,7 +34,8 @@ var _ = multipart.FileHeader{}
 
 // Page list request parameters
 type PageList struct {
-	SelfID uint64 `json:",string"`
+	SelfID      uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewPageList() *PageList {
@@ -72,6 +73,7 @@ func (pReq *PageList) Fill(r *http.Request) (err error) {
 
 		pReq.SelfID = parseUInt64(val)
 	}
+	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }
@@ -86,6 +88,7 @@ type PageCreate struct {
 	Description string
 	Visible     bool
 	Blocks      sqlxTypes.JSONText
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewPageCreate() *PageCreate {
@@ -145,6 +148,7 @@ func (pReq *PageCreate) Fill(r *http.Request) (err error) {
 			return err
 		}
 	}
+	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }
@@ -153,7 +157,8 @@ var _ RequestFiller = NewPageCreate()
 
 // Page read request parameters
 type PageRead struct {
-	PageID uint64 `json:",string"`
+	PageID      uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewPageRead() *PageRead {
@@ -188,6 +193,7 @@ func (pReq *PageRead) Fill(r *http.Request) (err error) {
 	}
 
 	pReq.PageID = parseUInt64(chi.URLParam(r, "pageID"))
+	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }
@@ -196,6 +202,7 @@ var _ RequestFiller = NewPageRead()
 
 // Page tree request parameters
 type PageTree struct {
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewPageTree() *PageTree {
@@ -229,6 +236,8 @@ func (pReq *PageTree) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+
 	return err
 }
 
@@ -237,6 +246,7 @@ var _ RequestFiller = NewPageTree()
 // Page update request parameters
 type PageUpdate struct {
 	PageID      uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
 	SelfID      uint64 `json:",string"`
 	ModuleID    uint64 `json:",string"`
 	Title       string
@@ -277,6 +287,7 @@ func (pReq *PageUpdate) Fill(r *http.Request) (err error) {
 	}
 
 	pReq.PageID = parseUInt64(chi.URLParam(r, "pageID"))
+	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 	if val, ok := post["selfID"]; ok {
 
 		pReq.SelfID = parseUInt64(val)
@@ -311,8 +322,9 @@ var _ RequestFiller = NewPageUpdate()
 
 // Page reorder request parameters
 type PageReorder struct {
-	SelfID  uint64 `json:",string"`
-	PageIDs []string
+	SelfID      uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
+	PageIDs     []string
 }
 
 func NewPageReorder() *PageReorder {
@@ -347,6 +359,7 @@ func (pReq *PageReorder) Fill(r *http.Request) (err error) {
 	}
 
 	pReq.SelfID = parseUInt64(chi.URLParam(r, "selfID"))
+	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }
@@ -355,7 +368,8 @@ var _ RequestFiller = NewPageReorder()
 
 // Page delete request parameters
 type PageDelete struct {
-	PageID uint64 `json:",string"`
+	PageID      uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewPageDelete() *PageDelete {
@@ -390,6 +404,7 @@ func (pReq *PageDelete) Fill(r *http.Request) (err error) {
 	}
 
 	pReq.PageID = parseUInt64(chi.URLParam(r, "pageID"))
+	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }
@@ -398,8 +413,9 @@ var _ RequestFiller = NewPageDelete()
 
 // Page upload request parameters
 type PageUpload struct {
-	PageID uint64 `json:",string"`
-	Upload *multipart.FileHeader
+	PageID      uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
+	Upload      *multipart.FileHeader
 }
 
 func NewPageUpload() *PageUpload {
@@ -434,6 +450,7 @@ func (pReq *PageUpload) Fill(r *http.Request) (err error) {
 	}
 
 	pReq.PageID = parseUInt64(chi.URLParam(r, "pageID"))
+	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 	if _, pReq.Upload, err = r.FormFile("upload"); err != nil {
 		return errors.Wrap(err, "error procesing uploaded file")
 	}

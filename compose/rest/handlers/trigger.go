@@ -152,10 +152,10 @@ func NewTrigger(th TriggerAPI) *Trigger {
 func (th *Trigger) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/trigger/", th.List)
-		r.Post("/trigger/", th.Create)
-		r.Get("/trigger/{triggerID}", th.Read)
-		r.Post("/trigger/{triggerID}", th.Update)
-		r.Delete("/trigger/{triggerID}", th.Delete)
+		r.Get("/namespace/{namespaceID}/trigger/", th.List)
+		r.Post("/namespace/{namespaceID}/trigger/", th.Create)
+		r.Get("/namespace/{namespaceID}/trigger/{triggerID}", th.Read)
+		r.Post("/namespace/{namespaceID}/trigger/{triggerID}", th.Update)
+		r.Delete("/namespace/{namespaceID}/trigger/{triggerID}", th.Delete)
 	})
 }

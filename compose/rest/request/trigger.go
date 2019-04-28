@@ -32,7 +32,8 @@ var _ = multipart.FileHeader{}
 
 // Trigger list request parameters
 type TriggerList struct {
-	ModuleID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewTriggerList() *TriggerList {
@@ -70,6 +71,7 @@ func (tReq *TriggerList) Fill(r *http.Request) (err error) {
 
 		tReq.ModuleID = parseUInt64(val)
 	}
+	tReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }
@@ -78,11 +80,12 @@ var _ RequestFiller = NewTriggerList()
 
 // Trigger create request parameters
 type TriggerCreate struct {
-	ModuleID uint64 `json:",string"`
-	Name     string
-	Actions  []string
-	Enabled  bool
-	Source   string
+	ModuleID    uint64 `json:",string"`
+	Name        string
+	Actions     []string
+	Enabled     bool
+	Source      string
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewTriggerCreate() *TriggerCreate {
@@ -132,6 +135,7 @@ func (tReq *TriggerCreate) Fill(r *http.Request) (err error) {
 
 		tReq.Source = val
 	}
+	tReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }
@@ -140,7 +144,8 @@ var _ RequestFiller = NewTriggerCreate()
 
 // Trigger read request parameters
 type TriggerRead struct {
-	TriggerID uint64 `json:",string"`
+	TriggerID   uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewTriggerRead() *TriggerRead {
@@ -175,6 +180,7 @@ func (tReq *TriggerRead) Fill(r *http.Request) (err error) {
 	}
 
 	tReq.TriggerID = parseUInt64(chi.URLParam(r, "triggerID"))
+	tReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }
@@ -183,12 +189,13 @@ var _ RequestFiller = NewTriggerRead()
 
 // Trigger update request parameters
 type TriggerUpdate struct {
-	TriggerID uint64 `json:",string"`
-	ModuleID  uint64 `json:",string"`
-	Name      string
-	Actions   []string
-	Enabled   bool
-	Source    string
+	TriggerID   uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
+	Name        string
+	Actions     []string
+	Enabled     bool
+	Source      string
 }
 
 func NewTriggerUpdate() *TriggerUpdate {
@@ -223,6 +230,7 @@ func (tReq *TriggerUpdate) Fill(r *http.Request) (err error) {
 	}
 
 	tReq.TriggerID = parseUInt64(chi.URLParam(r, "triggerID"))
+	tReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 	if val, ok := post["moduleID"]; ok {
 
 		tReq.ModuleID = parseUInt64(val)
@@ -247,7 +255,8 @@ var _ RequestFiller = NewTriggerUpdate()
 
 // Trigger delete request parameters
 type TriggerDelete struct {
-	TriggerID uint64 `json:",string"`
+	TriggerID   uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewTriggerDelete() *TriggerDelete {
@@ -282,6 +291,7 @@ func (tReq *TriggerDelete) Fill(r *http.Request) (err error) {
 	}
 
 	tReq.TriggerID = parseUInt64(chi.URLParam(r, "triggerID"))
+	tReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }

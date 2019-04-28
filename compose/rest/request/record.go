@@ -34,10 +34,11 @@ var _ = multipart.FileHeader{}
 
 // Record report request parameters
 type RecordReport struct {
-	Metrics    string
-	Dimensions string
-	Filter     string
-	ModuleID   uint64 `json:",string"`
+	Metrics     string
+	Dimensions  string
+	Filter      string
+	NamespaceID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
 }
 
 func NewRecordReport() *RecordReport {
@@ -83,6 +84,7 @@ func (rReq *RecordReport) Fill(r *http.Request) (err error) {
 
 		rReq.Filter = val
 	}
+	rReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 	rReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 
 	return err
@@ -92,11 +94,12 @@ var _ RequestFiller = NewRecordReport()
 
 // Record list request parameters
 type RecordList struct {
-	Filter   string
-	Page     int
-	PerPage  int
-	Sort     string
-	ModuleID uint64 `json:",string"`
+	Filter      string
+	Page        int
+	PerPage     int
+	Sort        string
+	NamespaceID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
 }
 
 func NewRecordList() *RecordList {
@@ -146,6 +149,7 @@ func (rReq *RecordList) Fill(r *http.Request) (err error) {
 
 		rReq.Sort = val
 	}
+	rReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 	rReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 
 	return err
@@ -155,8 +159,9 @@ var _ RequestFiller = NewRecordList()
 
 // Record create request parameters
 type RecordCreate struct {
-	Values   types.RecordValueSet
-	ModuleID uint64 `json:",string"`
+	Values      types.RecordValueSet
+	NamespaceID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
 }
 
 func NewRecordCreate() *RecordCreate {
@@ -190,6 +195,7 @@ func (rReq *RecordCreate) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	rReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 	rReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 
 	return err
@@ -199,8 +205,9 @@ var _ RequestFiller = NewRecordCreate()
 
 // Record read request parameters
 type RecordRead struct {
-	RecordID uint64 `json:",string"`
-	ModuleID uint64 `json:",string"`
+	RecordID    uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
 }
 
 func NewRecordRead() *RecordRead {
@@ -235,6 +242,7 @@ func (rReq *RecordRead) Fill(r *http.Request) (err error) {
 	}
 
 	rReq.RecordID = parseUInt64(chi.URLParam(r, "recordID"))
+	rReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 	rReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 
 	return err
@@ -244,9 +252,10 @@ var _ RequestFiller = NewRecordRead()
 
 // Record update request parameters
 type RecordUpdate struct {
-	RecordID uint64 `json:",string"`
-	ModuleID uint64 `json:",string"`
-	Values   types.RecordValueSet
+	RecordID    uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
+	Values      types.RecordValueSet
 }
 
 func NewRecordUpdate() *RecordUpdate {
@@ -281,6 +290,7 @@ func (rReq *RecordUpdate) Fill(r *http.Request) (err error) {
 	}
 
 	rReq.RecordID = parseUInt64(chi.URLParam(r, "recordID"))
+	rReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 	rReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 
 	return err
@@ -290,8 +300,9 @@ var _ RequestFiller = NewRecordUpdate()
 
 // Record delete request parameters
 type RecordDelete struct {
-	RecordID uint64 `json:",string"`
-	ModuleID uint64 `json:",string"`
+	RecordID    uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
 }
 
 func NewRecordDelete() *RecordDelete {
@@ -326,6 +337,7 @@ func (rReq *RecordDelete) Fill(r *http.Request) (err error) {
 	}
 
 	rReq.RecordID = parseUInt64(chi.URLParam(r, "recordID"))
+	rReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 	rReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 
 	return err
@@ -335,10 +347,11 @@ var _ RequestFiller = NewRecordDelete()
 
 // Record upload request parameters
 type RecordUpload struct {
-	RecordID  uint64 `json:",string"`
-	FieldName string
-	ModuleID  uint64 `json:",string"`
-	Upload    *multipart.FileHeader
+	RecordID    uint64 `json:",string"`
+	FieldName   string
+	NamespaceID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
+	Upload      *multipart.FileHeader
 }
 
 func NewRecordUpload() *RecordUpload {
@@ -374,6 +387,7 @@ func (rReq *RecordUpload) Fill(r *http.Request) (err error) {
 
 	rReq.RecordID = parseUInt64(chi.URLParam(r, "recordID"))
 	rReq.FieldName = chi.URLParam(r, "fieldName")
+	rReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 	rReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
 	if _, rReq.Upload, err = r.FormFile("upload"); err != nil {
 		return errors.Wrap(err, "error procesing uploaded file")

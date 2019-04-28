@@ -9,10 +9,19 @@
       ]
     }
   ],
-  "Parameters": null,
+  "Parameters": {
+    "path": [
+      {
+        "name": "namespaceID",
+        "required": true,
+        "title": "Namespace ID",
+        "type": "uint64"
+      }
+    ]
+  },
   "Protocol": "",
   "Authentication": [],
-  "Path": "/page",
+  "Path": "/namespace/{namespaceID}/page",
   "APIs": [
     {
       "Name": "list",

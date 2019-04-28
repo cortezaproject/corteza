@@ -42,10 +42,11 @@ func (Attachment) New() *Attachment {
 // Attachments returns list of all files attached to records
 func (ctrl *Attachment) List(ctx context.Context, r *request.AttachmentList) (interface{}, error) {
 	f := types.AttachmentFilter{
-		Kind:      r.Kind,
-		ModuleID:  r.ModuleID,
-		RecordID:  r.RecordID,
-		FieldName: r.FieldName,
+		NamespaceID: r.NamespaceID,
+		Kind:        r.Kind,
+		ModuleID:    r.ModuleID,
+		RecordID:    r.RecordID,
+		FieldName:   r.FieldName,
 		// Filter:    r.Filter,
 		PerPage: r.PerPage,
 		Page:    r.Page,

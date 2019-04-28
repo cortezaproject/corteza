@@ -32,15 +32,16 @@ var _ = multipart.FileHeader{}
 
 // Attachment list request parameters
 type AttachmentList struct {
-	PageID    uint64 `json:",string"`
-	ModuleID  uint64 `json:",string"`
-	RecordID  uint64 `json:",string"`
-	FieldName string
-	Page      uint
-	PerPage   uint
-	Sign      string
-	UserID    uint64 `json:",string"`
-	Kind      string
+	PageID      uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
+	RecordID    uint64 `json:",string"`
+	FieldName   string
+	Page        uint
+	PerPage     uint
+	Sign        string
+	UserID      uint64 `json:",string"`
+	Kind        string
+	NamespaceID uint64 `json:",string"`
 }
 
 func NewAttachmentList() *AttachmentList {
@@ -107,6 +108,7 @@ func (aReq *AttachmentList) Fill(r *http.Request) (err error) {
 		aReq.UserID = parseUInt64(val)
 	}
 	aReq.Kind = chi.URLParam(r, "kind")
+	aReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }
@@ -117,6 +119,7 @@ var _ RequestFiller = NewAttachmentList()
 type AttachmentDetails struct {
 	AttachmentID uint64 `json:",string"`
 	Kind         string
+	NamespaceID  uint64 `json:",string"`
 	Sign         string
 	UserID       uint64 `json:",string"`
 }
@@ -154,6 +157,7 @@ func (aReq *AttachmentDetails) Fill(r *http.Request) (err error) {
 
 	aReq.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
 	aReq.Kind = chi.URLParam(r, "kind")
+	aReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 	if val, ok := get["sign"]; ok {
 
 		aReq.Sign = val
@@ -176,6 +180,7 @@ type AttachmentOriginal struct {
 	AttachmentID uint64 `json:",string"`
 	Name         string
 	Kind         string
+	NamespaceID  uint64 `json:",string"`
 }
 
 func NewAttachmentOriginal() *AttachmentOriginal {
@@ -224,6 +229,7 @@ func (aReq *AttachmentOriginal) Fill(r *http.Request) (err error) {
 	aReq.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
 	aReq.Name = chi.URLParam(r, "name")
 	aReq.Kind = chi.URLParam(r, "kind")
+	aReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
 }
@@ -235,6 +241,7 @@ type AttachmentPreview struct {
 	AttachmentID uint64 `json:",string"`
 	Ext          string
 	Kind         string
+	NamespaceID  uint64 `json:",string"`
 	Sign         string
 	UserID       uint64 `json:",string"`
 }
@@ -273,6 +280,7 @@ func (aReq *AttachmentPreview) Fill(r *http.Request) (err error) {
 	aReq.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
 	aReq.Ext = chi.URLParam(r, "ext")
 	aReq.Kind = chi.URLParam(r, "kind")
+	aReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 	if val, ok := get["sign"]; ok {
 
 		aReq.Sign = val
