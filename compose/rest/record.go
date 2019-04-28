@@ -5,12 +5,11 @@ import (
 
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/pkg/errors"
+
 	"github.com/crusttech/crust/compose/internal/service"
 	"github.com/crusttech/crust/compose/rest/request"
 	"github.com/crusttech/crust/compose/types"
-	"github.com/crusttech/crust/internal/auth"
-
-	"github.com/pkg/errors"
 )
 
 var _ = errors.Wrap
@@ -64,6 +63,7 @@ func (ctrl *Record) Upload(ctx context.Context, r *request.RecordUpload) (interf
 	defer file.Close()
 
 	a, err := ctrl.attachment.With(ctx).CreateRecordAttachment(
+		r.NamespaceID,
 		r.Upload.Filename,
 		r.Upload.Size,
 		file,
@@ -72,9 +72,5 @@ func (ctrl *Record) Upload(ctx context.Context, r *request.RecordUpload) (interf
 		r.FieldName,
 	)
 
-	if err != nil {
-		return nil, err
-	}
-
-	return makeAttachmentPayload(a, auth.GetIdentityFromContext(ctx).Identity()), nil
+	return makeAttachmentPayload(ctx, a, err)
 }

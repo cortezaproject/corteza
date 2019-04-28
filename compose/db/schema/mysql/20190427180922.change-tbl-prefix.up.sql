@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS crm_field;
 DROP TABLE IF EXISTS crm_fields;
+DROP TABLE IF EXISTS crm_content;
 DROP TABLE IF EXISTS crm_content_links;
 DROP TABLE IF EXISTS crm_content_column;
 DROP TABLE IF EXISTS crm_module_content;
@@ -9,9 +10,6 @@ ALTER TABLE crm_attachment
 
 ALTER TABLE crm_chart
   RENAME TO compose_chart;
-
-ALTER TABLE crm_content
-  RENAME TO compose_content;
 
 ALTER TABLE crm_module
   RENAME TO compose_module;

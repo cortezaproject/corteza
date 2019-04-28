@@ -8,7 +8,6 @@ import (
 	"github.com/crusttech/crust/compose/internal/service"
 	"github.com/crusttech/crust/compose/rest/request"
 	"github.com/crusttech/crust/compose/types"
-	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/payload"
 )
 
@@ -85,15 +84,12 @@ func (ctrl *Page) Upload(ctx context.Context, r *request.PageUpload) (interface{
 	defer file.Close()
 
 	a, err := ctrl.attachment.With(ctx).CreatePageAttachment(
+		r.NamespaceID,
 		r.Upload.Filename,
 		r.Upload.Size,
 		file,
 		r.PageID,
 	)
 
-	if err != nil {
-		return nil, err
-	}
-
-	return makeAttachmentPayload(a, auth.GetIdentityFromContext(ctx).Identity()), nil
+	return makeAttachmentPayload(ctx, a, err)
 }

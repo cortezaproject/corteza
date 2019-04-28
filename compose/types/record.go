@@ -14,6 +14,8 @@ type (
 
 		Values RecordValueSet `json:"values,omitempty" db:"-"`
 
+		NamespaceID uint64 `json:"namespaceID,string", db:"rel_namespace"`
+
 		OwnedBy   uint64     `db:"owned_by"   json:"ownedBy,string"`
 		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
 		CreatedBy uint64     `db:"created_by" json:"createdBy,string" `

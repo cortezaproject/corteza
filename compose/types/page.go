@@ -12,6 +12,8 @@ type (
 		ID     uint64 `json:"pageID,string" db:"id"`
 		SelfID uint64 `json:"selfID,string" db:"self_id"`
 
+		NamespaceID uint64 `json:"namespaceID,string" db:"rel_namespace"`
+
 		ModuleID uint64  `json:"moduleID,string" db:"module_id"`
 		Module   *Module `json:"module,omitempty" db:"-"`
 

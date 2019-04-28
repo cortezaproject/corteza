@@ -18,6 +18,8 @@ type (
 		Enabled  bool      `json:"enabled" db:"enabled"`
 		Source   string    `json:"source" db:"source"`
 
+		NamespaceID uint64 `json:"namespaceID,string" db:"rel_namespace"`
+
 		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`

@@ -4,6 +4,7 @@
 | ------ | -------- | ------- |
 | `GET` | `/namespace/{namespaceID}/attachment/{kind}/` | List, filter all page attachments |
 | `GET` | `/namespace/{namespaceID}/attachment/{kind}/{attachmentID}` | Attachment details |
+| `DELETE` | `/namespace/{namespaceID}/attachment/{kind}/{attachmentID}` | Delete attachment |
 | `GET` | `/namespace/{namespaceID}/attachment/{kind}/{attachmentID}/original/{name}` | Serves attached file |
 | `GET` | `/namespace/{namespaceID}/attachment/{kind}/{attachmentID}/preview.{ext}` | Serves preview of an attached file |
 
@@ -20,7 +21,7 @@
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | pageID | uint64 | GET | Filter attachments by page ID | N/A | NO |
-| moduleID | uint64 | GET | Filter attachments by mnodule ID | N/A | NO |
+| moduleID | uint64 | GET | Filter attachments by module ID | N/A | NO |
 | recordID | uint64 | GET | Filter attachments by record ID | N/A | NO |
 | fieldName | string | GET | Filter attachments by field name | N/A | NO |
 | page | uint | GET | Page number (0 based) | N/A | NO |
@@ -37,6 +38,24 @@
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
 | `/namespace/{namespaceID}/attachment/{kind}/{attachmentID}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
+| kind | string | PATH | Attachment kind | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| sign | string | GET | Signature | N/A | YES |
+| userID | uint64 | GET | User ID | N/A | YES |
+
+## Delete attachment
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/attachment/{kind}/{attachmentID}` | HTTP/S | DELETE | Client ID, Session ID |
 
 #### Request parameters
 

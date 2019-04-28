@@ -4,10 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
-	sq "gopkg.in/Masterminds/squirrel.v1"
+	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/crusttech/crust/compose/types"
 )
@@ -17,10 +16,9 @@ type (
 		With(ctx context.Context, db *factory.DB) AttachmentRepository
 
 		Find(filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error)
-		FindByID(id uint64) (*types.Attachment, error)
-		FindByIDs(IDs ...uint64) (types.AttachmentSet, error)
+		FindByID(namespaceID, attachmentID uint64) (*types.Attachment, error)
 		Create(mod *types.Attachment) (*types.Attachment, error)
-		DeleteByID(id uint64) error
+		DeleteByID(namespaceID, attachmentID uint64) error
 	}
 
 	attachment struct {
@@ -29,63 +27,67 @@ type (
 )
 
 const (
-	sqlAttachmentColumns = `
-		a.id, a.rel_owner, a.kind,
-		a.url, a.preview_url,
-		a.name,
-		a.meta,
-		a.created_at, a.updated_at,	a.deleted_at
-	`
-	sqlAttachmentScope = "deleted_at IS NULL"
-
-	sqlAttachmentByID = `SELECT ` + sqlAttachmentColumns +
-		` FROM compose_attachment AS a WHERE id = ? AND ` + sqlAttachmentScope
-
-	sqlAttachmentsByIDs = `SELECT ` + sqlAttachmentColumns +
-		` FROM compose_attachment AS a WHERE id IN (?) AND ` + sqlAttachmentScope
+	ErrAttachmentNotFound = repositoryError("AttachmentNotFound")
 )
 
 func Attachment(ctx context.Context, db *factory.DB) AttachmentRepository {
 	return (&attachment{}).With(ctx, db)
 }
 
-func (r *attachment) With(ctx context.Context, db *factory.DB) AttachmentRepository {
+func (r attachment) With(ctx context.Context, db *factory.DB) AttachmentRepository {
 	return &attachment{
 		repository: r.repository.With(ctx, db),
 	}
 }
 
-func (r *attachment) FindByID(id uint64) (*types.Attachment, error) {
-	mod := &types.Attachment{}
-
-	return mod, r.db().Get(mod, sqlAttachmentByID, id)
+func (r attachment) table() string {
+	return "compose_attachment"
 }
 
-func (r *attachment) FindByIDs(IDs ...uint64) (rval types.AttachmentSet, err error) {
-	rval = make([]*types.Attachment, 0)
-
-	if len(IDs) == 0 {
-		return
-	}
-
-	if sql, args, err := sqlx.In(sqlAttachmentsByIDs, IDs); err != nil {
-		return nil, err
-	} else {
-		return rval, r.db().Select(&rval, sql, args...)
+func (r attachment) columns() []string {
+	return []string{
+		"a.id", "a.rel_namespace", "a.rel_owner", "a.kind",
+		"a.url", "a.preview_url",
+		"a.name",
+		"a.meta",
+		"a.created_at", "a.updated_at", "a.deleted_at",
 	}
 }
 
-func (r *attachment) Find(filter types.AttachmentFilter) (set types.AttachmentSet, f types.AttachmentFilter, err error) {
+func (r attachment) query() squirrel.SelectBuilder {
+	return squirrel.
+		Select().
+		From(r.table() + " AS a").
+		Where("a.deleted_at IS NULL")
+
+}
+
+func (r attachment) FindByID(namespaceID, attachmentID uint64) (*types.Attachment, error) {
+	var (
+		query = r.query().
+			Columns(r.columns()...).
+			Where("a.id = ?", attachmentID)
+
+		a = &types.Attachment{}
+	)
+
+	if namespaceID > 0 {
+		query = query.Where("a.rel_namespace = ?", namespaceID)
+	}
+
+	return a, isFound(r.fetchOne(a, query), a.ID > 0, ErrAttachmentNotFound)
+}
+
+func (r attachment) Find(filter types.AttachmentFilter) (set types.AttachmentSet, f types.AttachmentFilter, err error) {
 	f = filter
-	if f.PerPage > 100 {
-		f.PerPage = 100
-	} else if f.PerPage == 0 {
-		f.PerPage = 50
+	f.PerPage = normalizePerPage(f.PerPage, 5, 100, 50)
+
+	query := r.query().
+		Where(squirrel.Eq{"a.kind": f.Kind})
+
+	if filter.NamespaceID > 0 {
+		query = query.Where("a.rel_namespace = ?", filter.NamespaceID)
 	}
-
-	set = types.AttachmentSet{}
-
-	query := sq.Select().From("compose_attachment AS a").Where(sq.Eq{"a.kind": f.Kind})
 
 	switch f.Kind {
 	case types.PageAttachment:
@@ -101,15 +103,15 @@ func (r *attachment) Find(filter types.AttachmentFilter) (set types.AttachmentSe
 		if f.ModuleID > 0 {
 			query = query.
 				Join("compose_record AS r ON (r.id = v.record_id)").
-				Where(sq.Eq{"r.module_id": f.ModuleID})
+				Where(squirrel.Eq{"r.module_id": f.ModuleID})
 		}
 
 		if f.RecordID > 0 {
-			query = query.Where(sq.Eq{"v.record_id": f.RecordID})
+			query = query.Where(squirrel.Eq{"v.record_id": f.RecordID})
 		}
 
 		if f.FieldName != "" {
-			query = query.Where(sq.Eq{"v.name": f.FieldName})
+			query = query.Where(squirrel.Eq{"v.name": f.FieldName})
 		}
 	default:
 		err = errors.New("unsupported kind value")
@@ -120,46 +122,33 @@ func (r *attachment) Find(filter types.AttachmentFilter) (set types.AttachmentSe
 		return
 	}
 
-	// Assemble SQL for counting (includes only where)
-	count := query.Column("COUNT(*)")
-	if sqlSelect, argsSelect, err := count.ToSql(); err != nil {
-		return set, f, err
-	} else {
-		// Execute count query.
-		if err := r.db().Get(&f.Count, sqlSelect, argsSelect...); err != nil {
-			return set, f, err
-		}
-
-		// Return empty response if count of records is zero.
-		if f.Count == 0 {
-			return set, f, nil
-		}
+	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
+		return
 	}
 
-	// Assemble SQL for fetching attachments (where + sorting + paging)...
 	query = query.
-		Column(sqlAttachmentColumns).
-		Limit(uint64(f.PerPage)).
-		Offset(uint64(f.Page * f.PerPage))
+		Columns(r.columns()...).
+		OrderBy("id ASC")
 
-	if sqlSelect, argsSelect, err := query.ToSql(); err != nil {
-		return set, f, err
-	} else {
-		return set, f, r.db().Select(&set, sqlSelect, argsSelect...)
-	}
+	return set, f, r.fetchPaged(&set, query, f.Page, f.PerPage)
 }
 
-func (r *attachment) Create(mod *types.Attachment) (*types.Attachment, error) {
+func (r attachment) Create(mod *types.Attachment) (*types.Attachment, error) {
 	if mod.ID == 0 {
 		mod.ID = factory.Sonyflake.NextID()
 	}
 
 	mod.CreatedAt = time.Now()
 
-	return mod, r.db().Insert("compose_attachment", mod)
+	return mod, r.db().Insert(r.table(), mod)
 }
 
-func (r *attachment) DeleteByID(id uint64) error {
-	_, err := r.db().Exec("UPDATE compose_attachment SET deleted_at = NOW() WHERE id = ?", id)
+func (r attachment) DeleteByID(namespaceID, attachmentID uint64) error {
+	_, err := r.db().Exec(
+		"UPDATE "+r.table()+" SET deleted_at = NOW() WHERE rel_namespace = ? AND id = ?",
+		namespaceID,
+		attachmentID,
+	)
+
 	return err
 }
