@@ -27,6 +27,7 @@ import (
 	"github.com/pkg/errors"
 
 	sqlxTypes "github.com/jmoiron/sqlx/types"
+	"time"
 )
 
 var _ = chi.URLParam
@@ -34,6 +35,9 @@ var _ = multipart.FileHeader{}
 
 // Chart list request parameters
 type ChartList struct {
+	Query       string
+	Page        uint
+	PerPage     uint
 	NamespaceID uint64 `json:",string"`
 }
 
@@ -68,6 +72,18 @@ func (cReq *ChartList) Fill(r *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	if val, ok := get["query"]; ok {
+
+		cReq.Query = val
+	}
+	if val, ok := get["page"]; ok {
+
+		cReq.Page = parseUint(val)
+	}
+	if val, ok := get["perPage"]; ok {
+
+		cReq.PerPage = parseUint(val)
+	}
 	cReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
@@ -181,6 +197,7 @@ type ChartUpdate struct {
 	NamespaceID uint64 `json:",string"`
 	Config      sqlxTypes.JSONText
 	Name        string
+	UpdatedAt   *time.Time
 }
 
 func NewChartUpdate() *ChartUpdate {
@@ -225,6 +242,12 @@ func (cReq *ChartUpdate) Fill(r *http.Request) (err error) {
 	if val, ok := post["name"]; ok {
 
 		cReq.Name = val
+	}
+	if val, ok := post["updatedAt"]; ok {
+
+		if cReq.UpdatedAt, err = parseISODatePtrWithErr(val); err != nil {
+			return err
+		}
 	}
 
 	return err

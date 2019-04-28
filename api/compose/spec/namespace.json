@@ -133,7 +133,7 @@
           },
           {
             "name": "updatedAt",
-            "required": true,
+            "required": false,
             "title": "Last update (or creation) date",
             "type": "*time.Time"
           }
