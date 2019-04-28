@@ -92,18 +92,18 @@ func (ctrl Chart) Delete(ctx context.Context, r *request.ChartDelete) (interface
 	return resputil.OK(), ctrl.chart.With(ctx).DeleteByID(r.NamespaceID, r.ChartID)
 }
 
-func (ctrl Chart) makePayload(ctx context.Context, ns *types.Chart, err error) (*chartPayload, error) {
-	if err != nil || ns == nil {
+func (ctrl Chart) makePayload(ctx context.Context, t *types.Chart, err error) (*chartPayload, error) {
+	if err != nil || t == nil {
 		return nil, err
 	}
 
 	perm := ctrl.permissions.With(ctx)
 
 	return &chartPayload{
-		Chart: ns,
+		Chart: t,
 
-		CanUpdateChart: perm.CanUpdateChart(ns),
-		CanDeleteChart: perm.CanDeleteChart(ns),
+		CanUpdateChart: perm.CanUpdateChart(t),
+		CanDeleteChart: perm.CanDeleteChart(t),
 	}, nil
 }
 

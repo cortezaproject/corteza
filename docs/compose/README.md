@@ -774,6 +774,9 @@ Compose Triggers
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | moduleID | uint64 | GET | Filter triggers by module | N/A | NO |
+| query | string | GET | Search query | N/A | NO |
+| page | uint | GET | Page number (0 based) | N/A | NO |
+| perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Create trigger
@@ -793,6 +796,7 @@ Compose Triggers
 | actions | []string | POST | Actions that trigger this trigger | N/A | NO |
 | enabled | bool | POST | Enabled | N/A | NO |
 | source | string | POST | Trigger source code | N/A | NO |
+| updatedAt | *time.Time | POST | Last update (or creation) date | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Get trigger details

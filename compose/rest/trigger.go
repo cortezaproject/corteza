@@ -8,67 +8,114 @@ import (
 	"github.com/crusttech/crust/compose/internal/service"
 	"github.com/crusttech/crust/compose/rest/request"
 	"github.com/crusttech/crust/compose/types"
-
-	"github.com/pkg/errors"
 )
 
-var _ = errors.Wrap
+type (
+	triggerPayload struct {
+		*types.Trigger
 
-type Trigger struct {
-	trigger service.TriggerService
-}
+		CanUpdateTrigger bool `json:"canUpdateTrigger"`
+		CanDeleteTrigger bool `json:"canDeleteTrigger"`
+	}
+
+	triggerSetPayload struct {
+		Filter types.TriggerFilter `json:"filter"`
+		Set    []*triggerPayload   `json:"set"`
+	}
+
+	Trigger struct {
+		trigger     service.TriggerService
+		permissions service.PermissionsService
+	}
+)
 
 func (Trigger) New() *Trigger {
 	return &Trigger{
-		trigger: service.DefaultTrigger,
+		trigger:     service.DefaultTrigger,
+		permissions: service.DefaultPermissions,
 	}
 }
 
-func (ctrl *Trigger) List(ctx context.Context, r *request.TriggerList) (interface{}, error) {
-	filter := types.TriggerFilter{}
-
-	if r.ModuleID > 0 {
-		filter.ModuleID = r.ModuleID
+func (ctrl Trigger) List(ctx context.Context, r *request.TriggerList) (interface{}, error) {
+	f := types.TriggerFilter{
+		Query:   r.Query,
+		PerPage: r.PerPage,
+		Page:    r.Page,
 	}
 
-	return ctrl.trigger.With(ctx).Find(filter)
+	set, filter, err := ctrl.trigger.With(ctx).Find(f)
+	return ctrl.makeFilterPayload(ctx, set, filter, err)
 }
 
-func (ctrl *Trigger) Create(ctx context.Context, r *request.TriggerCreate) (interface{}, error) {
-	trigger := &types.Trigger{
-		Name:    r.Name,
-		Actions: r.Actions,
-		Enabled: r.Enabled,
-		Source:  r.Source,
+func (ctrl Trigger) Create(ctx context.Context, r *request.TriggerCreate) (interface{}, error) {
+	var err error
+	ns := &types.Trigger{
+		NamespaceID: r.NamespaceID,
+		ModuleID:    r.ModuleID,
+		Name:        r.Name,
+		Actions:     r.Actions,
+		Enabled:     r.Enabled,
+		Source:      r.Source,
 	}
 
-	if r.ModuleID > 0 {
-		trigger.ModuleID = r.ModuleID
-	}
-
-	return ctrl.trigger.With(ctx).Create(trigger)
+	ns, err = ctrl.trigger.With(ctx).Create(ns)
+	return ctrl.makePayload(ctx, ns, err)
 }
 
-func (ctrl *Trigger) Read(ctx context.Context, r *request.TriggerRead) (interface{}, error) {
-	return ctrl.trigger.With(ctx).FindByID(r.TriggerID)
+func (ctrl Trigger) Read(ctx context.Context, r *request.TriggerRead) (interface{}, error) {
+	return ctrl.trigger.With(ctx).FindByID(r.NamespaceID, r.TriggerID)
 }
 
-func (ctrl *Trigger) Update(ctx context.Context, r *request.TriggerUpdate) (interface{}, error) {
-	svc := ctrl.trigger.With(ctx)
+func (ctrl Trigger) Update(ctx context.Context, r *request.TriggerUpdate) (interface{}, error) {
+	var (
+		mod = &types.Trigger{}
+		err error
+	)
 
-	if trigger, err := svc.FindByID(r.TriggerID); err != nil {
+	mod.ModuleID = r.ModuleID
+	mod.Name = r.Name
+	mod.Actions = r.Actions
+	mod.Enabled = r.Enabled
+	mod.Source = r.Source
+
+	mod, err = ctrl.trigger.With(ctx).Update(mod)
+	return ctrl.makePayload(ctx, mod, err)
+}
+
+func (ctrl Trigger) Delete(ctx context.Context, r *request.TriggerDelete) (interface{}, error) {
+	_, err := ctrl.trigger.With(ctx).FindByID(r.NamespaceID, r.TriggerID)
+	if err != nil {
 		return nil, err
-	} else {
-		trigger.Name = r.Name
-		trigger.Actions = r.Actions
-		trigger.Enabled = r.Enabled
-		trigger.Source = r.Source
-		trigger.ModuleID = r.ModuleID
-
-		return svc.Update(trigger)
 	}
+
+	return resputil.OK(), ctrl.trigger.With(ctx).DeleteByID(r.NamespaceID, r.TriggerID)
 }
 
-func (ctrl *Trigger) Delete(ctx context.Context, r *request.TriggerDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.trigger.With(ctx).DeleteByID(r.TriggerID)
+func (ctrl Trigger) makePayload(ctx context.Context, t *types.Trigger, err error) (*triggerPayload, error) {
+	if err != nil || t == nil {
+		return nil, err
+	}
+
+	perm := ctrl.permissions.With(ctx)
+
+	return &triggerPayload{
+		Trigger: t,
+
+		CanUpdateTrigger: perm.CanUpdateTrigger(t),
+		CanDeleteTrigger: perm.CanDeleteTrigger(t),
+	}, nil
+}
+
+func (ctrl Trigger) makeFilterPayload(ctx context.Context, nn types.TriggerSet, f types.TriggerFilter, err error) (*triggerSetPayload, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	nsp := &triggerSetPayload{Filter: f, Set: make([]*triggerPayload, len(nn))}
+
+	for i := range nn {
+		nsp.Set[i], _ = ctrl.makePayload(ctx, nn[i], nil)
+	}
+
+	return nsp, nil
 }

@@ -2,7 +2,13 @@
   "Title": "Triggers",
   "Description": "Compose Triggers",
   "Interface": "Trigger",
-  "Struct": null,
+  "Struct": [
+    {
+      "imports": [
+        "time"
+      ]
+    }
+  ],
   "Parameters": {
     "path": [
       {
@@ -29,6 +35,24 @@
             "required": false,
             "title": "Filter triggers by module",
             "type": "uint64"
+          },
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search query",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "required": false,
+            "title": "Page number (0 based)",
+            "type": "uint"
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "title": "Returned items per page (default 50)",
+            "type": "uint"
           }
         ]
       }
@@ -69,6 +93,12 @@
             "required": false,
             "title": "Trigger source code",
             "type": "string"
+          },
+          {
+            "name": "updatedAt",
+            "required": false,
+            "title": "Last update (or creation) date",
+            "type": "*time.Time"
           }
         ]
       }

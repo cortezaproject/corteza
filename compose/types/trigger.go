@@ -26,6 +26,12 @@ type (
 	}
 
 	TriggerFilter struct {
+		NamespaceID uint64 `json:"namespaceID,string"`
+		Query       string `json:"query"`
+		Page        uint   `json:"page"`
+		PerPage     uint   `json:"perPage"`
+		// Sort    string `json:"sort"`
+		Count    uint   `json:"count"`
 		ModuleID uint64 `json:"moduleID,string"`
 	}
 )

@@ -25,6 +25,8 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
+
+	"time"
 )
 
 var _ = chi.URLParam
@@ -33,6 +35,9 @@ var _ = multipart.FileHeader{}
 // Trigger list request parameters
 type TriggerList struct {
 	ModuleID    uint64 `json:",string"`
+	Query       string
+	Page        uint
+	PerPage     uint
 	NamespaceID uint64 `json:",string"`
 }
 
@@ -71,6 +76,18 @@ func (tReq *TriggerList) Fill(r *http.Request) (err error) {
 
 		tReq.ModuleID = parseUInt64(val)
 	}
+	if val, ok := get["query"]; ok {
+
+		tReq.Query = val
+	}
+	if val, ok := get["page"]; ok {
+
+		tReq.Page = parseUint(val)
+	}
+	if val, ok := get["perPage"]; ok {
+
+		tReq.PerPage = parseUint(val)
+	}
 	tReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
 	return err
@@ -85,6 +102,7 @@ type TriggerCreate struct {
 	Actions     []string
 	Enabled     bool
 	Source      string
+	UpdatedAt   *time.Time
 	NamespaceID uint64 `json:",string"`
 }
 
@@ -134,6 +152,12 @@ func (tReq *TriggerCreate) Fill(r *http.Request) (err error) {
 	if val, ok := post["source"]; ok {
 
 		tReq.Source = val
+	}
+	if val, ok := post["updatedAt"]; ok {
+
+		if tReq.UpdatedAt, err = parseISODatePtrWithErr(val); err != nil {
+			return err
+		}
 	}
 	tReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
