@@ -1,11 +1,14 @@
 package repository
 
+import (
+	"github.com/pkg/errors"
+)
+
 type (
 	repositoryError string
 )
 
 const (
-	ErrDatabaseError  = repositoryError("DatabaseError")
 	ErrNotImplemented = repositoryError("NotImplemented")
 )
 
@@ -14,5 +17,9 @@ func (e repositoryError) Error() string {
 }
 
 func (e repositoryError) String() string {
-	return "crust.system.repository." + string(e)
+	return "crust.compose.repository." + string(e)
+}
+
+func (e repositoryError) new() error {
+	return errors.WithStack(e)
 }

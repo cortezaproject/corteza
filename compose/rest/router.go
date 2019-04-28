@@ -9,6 +9,7 @@ import (
 
 func MountRoutes() func(chi.Router) {
 	var (
+		namespace    = Namespace{}.New()
 		module       = Module{}.New()
 		record       = Record{}.New()
 		page         = Page{}.New()
@@ -16,8 +17,6 @@ func MountRoutes() func(chi.Router) {
 		trigger      = Trigger{}.New()
 		notification = Notification{}.New()
 		attachment   = Attachment{}.New()
-		// pageAttachment   = PageAttachment{}.New()
-		// recordAttachment = RecordAttachment{}.New()
 	)
 
 	// Initialize handlers & controllers.
@@ -32,6 +31,7 @@ func MountRoutes() func(chi.Router) {
 			r.Use(auth.MiddlewareValidOnly)
 			r.Use(middlewareAllowedAccess)
 
+			handlers.NewNamespace(namespace).MountRoutes(r)
 			handlers.NewPage(page).MountRoutes(r)
 			handlers.NewModule(module).MountRoutes(r)
 			handlers.NewRecord(record).MountRoutes(r)

@@ -19,6 +19,7 @@ var (
 	DefaultNotification NotificationService
 	DefaultPermissions  PermissionsService
 	DefaultAttachment   AttachmentService
+	DefaultNamespace    NamespaceService
 )
 
 func Init() error {
@@ -35,6 +36,7 @@ func Init() error {
 	DefaultChart = Chart()
 	DefaultNotification = Notification()
 	DefaultAttachment = Attachment(fs)
+	DefaultNamespace = Namespace()
 
 	return nil
 }

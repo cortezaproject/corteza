@@ -22,6 +22,7 @@ function types {
 		CGO_ENABLED=0 go build -o ./build/gen-type-set codegen/v2/type-set.go 
 	fi
 
+	./build/gen-type-set --types Namespace  --output compose/types/namespace.gen.go
 	./build/gen-type-set --types Attachment --output compose/types/attachment.gen.go
 	./build/gen-type-set --types Module     --output compose/types/module.gen.go
 	./build/gen-type-set --types Page       --output compose/types/page.gen.go

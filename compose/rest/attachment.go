@@ -30,12 +30,6 @@ type (
 		UpdatedAt  *time.Time  `json:"updatedAt,omitempty"`
 	}
 
-	file struct {
-		*types.Attachment
-		content  io.ReadSeeker
-		download bool
-	}
-
 	Attachment struct {
 		attachment service.AttachmentService
 	}
@@ -175,24 +169,4 @@ func makeAttachmentPayload(a *types.Attachment, userID uint64) *attachmentPayloa
 		CreatedAt:  a.CreatedAt,
 		UpdatedAt:  a.UpdatedAt,
 	}
-}
-
-func (f *file) Download() bool {
-	return f.download
-}
-
-func (f *file) Name() string {
-	return f.Attachment.Name
-}
-
-func (f *file) ModTime() time.Time {
-	return f.Attachment.CreatedAt
-}
-
-func (f *file) Content() io.ReadSeeker {
-	return f.content
-}
-
-func (f *file) Valid() bool {
-	return f.content != nil
 }

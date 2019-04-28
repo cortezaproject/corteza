@@ -27,7 +27,10 @@ type (
 		Effective() (ee []effectivePermission, err error)
 
 		CanAccess() bool
-		CanCreateNamspace() bool
+		CanCreateNamespace() bool
+		CanReadNamespace(r permissionResource) bool
+		CanUpdateNamespace(r permissionResource) bool
+		CanDeleteNamespace(r permissionResource) bool
 		CanCreateModule(r permissionResource) bool
 		CanReadModule(r permissionResource) bool
 		CanUpdateModule(r permissionResource) bool
@@ -95,7 +98,7 @@ func (p *permissions) Effective() (ee []effectivePermission, err error) {
 
 	ee = append(ee, ep("compose", "access", p.CanAccess()))
 	ee = append(ee, ep("compose", "grant", p.CanGrant()))
-	ee = append(ee, ep("compose", "namespace.create", p.CanCreateNamspace()))
+	ee = append(ee, ep("compose", "namespace.create", p.CanCreateNamespace()))
 
 	ee = append(ee, ep("compose:namespace:crm", "module.create", p.CanCreateModule(crmNamespace())))
 	ee = append(ee, ep("compose:namespace:crm", "chart.create", p.CanCreateChart(crmNamespace())))
@@ -113,13 +116,24 @@ func (p *permissions) CanGrant() bool {
 	return p.checkAccess(types.PermissionResource, "grant")
 }
 
-func (p *permissions) CanCreateNamspace() bool {
+func (p *permissions) CanCreateNamespace() bool {
 	return p.checkAccess(types.PermissionResource, "namespace.create")
 }
 
-func (p *permissions) CanCreateModule(ns permissionResource) bool {
-	// @todo move to func args when namespaces are implemented
-	return p.checkAccess(ns, "module.create")
+func (p *permissions) CanReadNamespace(r permissionResource) bool {
+	return p.checkAccess(r, "read", p.allow())
+}
+
+func (p *permissions) CanUpdateNamespace(r permissionResource) bool {
+	return p.checkAccess(r, "update")
+}
+
+func (p *permissions) CanDeleteNamespace(r permissionResource) bool {
+	return p.checkAccess(r, "delete")
+}
+
+func (p *permissions) CanCreateModule(r permissionResource) bool {
+	return p.checkAccess(r, "module.create")
 }
 
 func (p *permissions) CanReadModule(r permissionResource) bool {
@@ -205,4 +219,10 @@ func (p *permissions) checkAccess(resource permissionResource, operation string,
 		return true
 	}
 	return false
+}
+
+func (p permissions) allow() func() internalRules.Access {
+	return func() internalRules.Access {
+		return internalRules.Allow
+	}
 }
