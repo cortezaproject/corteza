@@ -85,9 +85,10 @@ func (svc *record) FindByID(recordID uint64) (r *types.Record, err error) {
 
 func (svc *record) Report(moduleID uint64, metrics, dimensions, filter string) (out interface{}, err error) {
 	var module *types.Module
+	var namespaceID uint64 = 0
 
 	err = svc.db.Transaction(func() (err error) {
-		if module, err = svc.moduleRepo.FindByID(moduleID); err != nil {
+		if module, err = svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
 			return
 		} else if !svc.prmSvc.CanReadRecord(module) {
 			return errors.New("not allowed to access this record")
@@ -102,9 +103,10 @@ func (svc *record) Report(moduleID uint64, metrics, dimensions, filter string) (
 
 func (svc *record) Find(moduleID uint64, filter, sort string, page, perPage int) (rsp *repository.FindResponse, err error) {
 	var module *types.Module
+	var namespaceID uint64 = 0
 
 	err = svc.db.Transaction(func() (err error) {
-		if module, err = svc.moduleRepo.FindByID(moduleID); err != nil {
+		if module, err = svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
 			return
 		} else if !svc.prmSvc.CanReadRecord(module) {
 			return errors.New("not allowed to access this record")
@@ -129,7 +131,7 @@ func (svc *record) Create(in *types.Record) (record *types.Record, err error) {
 	var module *types.Module
 
 	err = svc.db.Transaction(func() (err error) {
-		if module, err = svc.moduleRepo.FindByID(in.ModuleID); err != nil {
+		if module, err = svc.moduleRepo.FindByID(in.NamespaceID, in.ModuleID); err != nil {
 			return
 		} else if !svc.prmSvc.CanCreateRecord(module) {
 			return errors.New("not allowed to create records for this module")
@@ -174,7 +176,7 @@ func (svc *record) Update(updated *types.Record) (record *types.Record, err erro
 			return errors.New("not allowed to update this record")
 		}
 
-		if module, err = svc.moduleRepo.FindByID(updated.ModuleID); err != nil {
+		if module, err = svc.moduleRepo.FindByID(updated.NamespaceID, updated.ModuleID); err != nil {
 			return
 		}
 

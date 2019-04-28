@@ -28,6 +28,7 @@ import (
 
 	"github.com/crusttech/crust/compose/types"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
+	"time"
 )
 
 var _ = chi.URLParam
@@ -36,6 +37,8 @@ var _ = multipart.FileHeader{}
 // Module list request parameters
 type ModuleList struct {
 	Query       string
+	Page        uint
+	PerPage     uint
 	NamespaceID uint64 `json:",string"`
 }
 
@@ -73,6 +76,14 @@ func (mReq *ModuleList) Fill(r *http.Request) (err error) {
 	if val, ok := get["query"]; ok {
 
 		mReq.Query = val
+	}
+	if val, ok := get["page"]; ok {
+
+		mReq.Page = parseUint(val)
+	}
+	if val, ok := get["perPage"]; ok {
+
+		mReq.PerPage = parseUint(val)
 	}
 	mReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
 
@@ -189,6 +200,7 @@ type ModuleUpdate struct {
 	Name        string
 	Fields      types.ModuleFieldSet
 	Meta        sqlxTypes.JSONText
+	UpdatedAt   *time.Time
 }
 
 func NewModuleUpdate() *ModuleUpdate {
@@ -231,6 +243,12 @@ func (mReq *ModuleUpdate) Fill(r *http.Request) (err error) {
 	if val, ok := post["meta"]; ok {
 
 		if mReq.Meta, err = parseJSONTextWithErr(val); err != nil {
+			return err
+		}
+	}
+	if val, ok := post["updatedAt"]; ok {
+
+		if mReq.UpdatedAt, err = parseISODatePtrWithErr(val); err != nil {
 			return err
 		}
 	}

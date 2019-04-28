@@ -232,6 +232,8 @@ Compose module definitions
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
+| page | uint | GET | Page number (0 based) | N/A | NO |
+| perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Create module
@@ -283,6 +285,7 @@ Compose module definitions
 | name | string | POST | Module Name | N/A | YES |
 | fields | types.ModuleFieldSet | POST | Fields JSON | N/A | YES |
 | meta | sqlxTypes.JSONText | POST | Module meta data | N/A | YES |
+| updatedAt | *time.Time | POST | Last update (or creation) date | N/A | NO |
 
 ## Delete module
 
@@ -432,7 +435,7 @@ Compose Notifications
 
 # Pages
 
-Compose module pages
+Compose pages
 
 | Method | Endpoint | Purpose |
 | ------ | -------- | ------- |

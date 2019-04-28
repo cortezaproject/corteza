@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/compose/internal/repository"
@@ -24,12 +23,12 @@ type (
 	ModuleService interface {
 		With(ctx context.Context) ModuleService
 
-		FindByID(moduleID uint64) (*types.Module, error)
-		Find() (types.ModuleSet, error)
+		FindByID(namespaceID, moduleID uint64) (*types.Module, error)
+		Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
 
 		Create(module *types.Module) (*types.Module, error)
 		Update(module *types.Module) (*types.Module, error)
-		DeleteByID(moduleID uint64) error
+		DeleteByID(namespaceID, moduleID uint64) error
 	}
 )
 
@@ -52,75 +51,96 @@ func (svc *module) With(ctx context.Context) ModuleService {
 	}
 }
 
-func (svc *module) FindByID(id uint64) (m *types.Module, err error) {
-	if m, err = svc.moduleRepo.FindByID(id); err != nil {
+func (svc *module) FindByID(namespaceID, moduleID uint64) (m *types.Module, err error) {
+	if namespaceID == 0 {
+		return nil, ErrNamespaceRequired
+	}
+
+	if m, err = svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
 		return
 	} else if !svc.prmSvc.CanReadModule(m) {
-		return nil, errors.New("not allowed to access this module")
+		return nil, ErrNoReadPermissions.withStack()
+	}
+
+	var ff types.ModuleFieldSet
+	if ff, err = svc.moduleRepo.FindFields(m.ID); err != nil {
+		return
+	} else {
+		_ = ff.Walk(func(f *types.ModuleField) error {
+			m.Fields = append(m.Fields, f)
+			return nil
+		})
 	}
 
 	return
 }
 
-func (svc *module) Find() (mm types.ModuleSet, err error) {
-	if mm, err = svc.moduleRepo.Find(); err != nil {
-		return nil, err
+func (svc *module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
+	set, f, err = svc.moduleRepo.Find(filter)
+	if err != nil {
+		return
+	}
+
+	set, _ = set.Filter(func(m *types.Module) (bool, error) {
+		return svc.prmSvc.CanReadModule(m), nil
+	})
+
+	// Preload all fields and update all modules
+	var ff types.ModuleFieldSet
+	if ff, err = svc.moduleRepo.FindFields(set.IDs()...); err != nil {
+		return
 	} else {
-		return mm.Filter(func(m *types.Module) (bool, error) {
-			return svc.prmSvc.CanReadModule(m), nil
+		_ = ff.Walk(func(f *types.ModuleField) error {
+			set.FindByID(f.ModuleID).Fields = append(set.FindByID(f.ModuleID).Fields, f)
+			return nil
 		})
 	}
+
+	return
 }
 
 func (svc *module) Create(mod *types.Module) (*types.Module, error) {
 	if !svc.prmSvc.CanCreateModule(crmNamespace()) {
-		return nil, errors.New("not allowed to create this module")
-	}
-
-	if len(mod.Fields) == 0 {
-		return nil, errors.New("Error creating module: no fields")
+		return nil, ErrNoCreatePermissions.withStack()
 	}
 
 	return svc.moduleRepo.Create(mod)
 }
 
-func (svc *module) Update(module *types.Module) (m *types.Module, err error) {
-	validate := func() error {
-		if module.ID == 0 {
-			return errors.New("Error updating module: invalid ID")
-		} else if m, err = svc.moduleRepo.FindByID(module.ID); err != nil {
-			return errors.Wrap(err, "Error while loading module for update")
-		} else {
-			if !svc.prmSvc.CanUpdateModule(m) {
-				return errors.New("not allowed to update this module")
-			}
-
-			module.CreatedAt = m.CreatedAt
-		}
-
-		if len(module.Fields) == 0 {
-			return errors.New("Error updating module: no fields")
-		}
-
-		return nil
+func (svc *module) Update(mod *types.Module) (m *types.Module, err error) {
+	if mod.ID == 0 {
+		return nil, ErrInvalidID.withStack()
 	}
 
-	if err = validate(); err != nil {
-		return nil, err
-	}
-
-	return m, svc.db.Transaction(func() (err error) {
-		m, err = svc.moduleRepo.Update(module)
+	if m, err = svc.moduleRepo.FindByID(mod.NamespaceID, mod.ID); err != nil {
 		return
-	})
+	}
+
+	if isStale(mod.UpdatedAt, m.UpdatedAt, m.CreatedAt) {
+		return nil, ErrStaleData.withStack()
+	}
+
+	if !svc.prmSvc.CanUpdateModule(m) {
+		return nil, ErrNoUpdatePermissions.withStack()
+	}
+
+	m.Name = mod.Name
+	m.Meta = mod.Meta
+	m.Fields = mod.Fields
+
+	return svc.moduleRepo.Update(m)
 }
 
-func (svc *module) DeleteByID(ID uint64) error {
-	if m, err := svc.moduleRepo.FindByID(ID); err != nil {
-		return errors.Wrap(err, "could not delete module")
-	} else if !svc.prmSvc.CanDeleteModule(m) {
-		return errors.New("not allowed to delete this module")
+func (svc *module) DeleteByID(namespaceID, moduleID uint64) error {
+	if namespaceID == 0 {
+		return ErrNamespaceRequired.withStack()
 	}
 
-	return svc.moduleRepo.DeleteByID(ID)
+	if c, err := svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
+		return err
+	} else if !svc.prmSvc.CanDeleteModule(c) {
+		return ErrNoDeletePermissions.withStack()
+	}
+
+	return svc.moduleRepo.DeleteByID(namespaceID, moduleID)
 }

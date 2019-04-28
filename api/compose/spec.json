@@ -185,7 +185,7 @@
     },
     {
         "title": "Pages",
-        "description": "Compose module pages",
+        "description": "Compose pages",
         "entrypoint": "page",
         "path": "/namespace/{namespaceID}/page",
         "authentication": [],
@@ -432,7 +432,8 @@
             {
                 "imports": [
                     "sqlxTypes github.com/jmoiron/sqlx/types",
-                    "github.com/crusttech/crust/compose/types"
+                    "github.com/crusttech/crust/compose/types",
+                    "time"
                 ]
             }
         ],
@@ -449,6 +450,18 @@
                             "name": "query",
                             "required": false,
                             "title": "Search query"
+                        },
+                        {
+                            "name": "page",
+                            "type": "uint",
+                            "required": false,
+                            "title": "Page number (0 based)"
+                        },
+                        {
+                            "name": "perPage",
+                            "type": "uint",
+                            "required": false,
+                            "title": "Returned items per page (default 50)"
                         }
                     ]
                 }
@@ -529,6 +542,12 @@
                             "name": "meta",
                             "required": true,
                             "title": "Module meta data"
+                        },
+                        {
+                            "type": "*time.Time",
+                            "name": "updatedAt",
+                            "required": false,
+                            "title": "Last update (or creation) date"
                         }
                     ]
                 }

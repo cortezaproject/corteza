@@ -1,6 +1,6 @@
 {
   "Title": "Pages",
-  "Description": "Compose module pages",
+  "Description": "Compose pages",
   "Interface": "Page",
   "Struct": [
     {
