@@ -22,6 +22,15 @@ type (
 		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
 	}
+
+	ModuleFilter struct {
+		NamespaceID uint64 `json:"namespaceID,string"`
+		Query       string `json:"query"`
+		Page        uint   `json:"page"`
+		PerPage     uint   `json:"perPage"`
+		// Sort    string `json:"sort"`
+		Count uint `json:"count"`
+	}
 )
 
 // Resource returns a system resource ID for this type

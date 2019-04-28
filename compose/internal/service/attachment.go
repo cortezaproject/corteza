@@ -114,7 +114,7 @@ func (svc attachment) Find(filter types.AttachmentFilter) (types.AttachmentSet, 
 	}
 
 	if filter.ModuleID > 0 {
-		if _, err := svc.moduleSvc.FindByID(filter.ModuleID); err != nil {
+		if _, err := svc.moduleSvc.FindByID(filter.NamespaceID, filter.ModuleID); err != nil {
 			return nil, filter, err
 		}
 	}
@@ -174,7 +174,7 @@ func (svc attachment) CreateRecordAttachment(namespaceID uint64, name string, si
 
 	var currentUserID uint64 = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	if _, err := svc.moduleSvc.FindByID(moduleID); err != nil {
+	if _, err := svc.moduleSvc.FindByID(namespaceID, moduleID); err != nil {
 		return nil, err
 	} else if r, err := svc.recordSvc.FindByID(recordID); err != nil {
 		return nil, err
