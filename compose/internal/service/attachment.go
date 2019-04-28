@@ -48,12 +48,13 @@ type (
 	AttachmentService interface {
 		With(ctx context.Context) AttachmentService
 
-		FindByID(id uint64) (*types.Attachment, error)
+		FindByID(namespaceID, attachmentID uint64) (*types.Attachment, error)
 		Find(filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error)
-		CreatePageAttachment(name string, size int64, fh io.ReadSeeker, pageID uint64) (*types.Attachment, error)
-		CreateRecordAttachment(name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64, fieldName string) (*types.Attachment, error)
+		CreatePageAttachment(namespaceID uint64, name string, size int64, fh io.ReadSeeker, pageID uint64) (*types.Attachment, error)
+		CreateRecordAttachment(namespaceID uint64, name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64, fieldName string) (*types.Attachment, error)
 		OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 		OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
+		DeleteByID(namespaceID, attachmentID uint64) error
 	}
 )
 
@@ -68,7 +69,7 @@ func Attachment(store store.Store) AttachmentService {
 	}).With(context.Background())
 }
 
-func (svc *attachment) With(ctx context.Context) AttachmentService {
+func (svc attachment) With(ctx context.Context) AttachmentService {
 	db := repository.DB(ctx)
 	return &attachment{
 		db:  db,
@@ -85,11 +86,27 @@ func (svc *attachment) With(ctx context.Context) AttachmentService {
 	}
 }
 
-func (svc *attachment) FindByID(id uint64) (*types.Attachment, error) {
-	return svc.attachment.FindByID(id)
+func (svc attachment) FindByID(namespaceID, attachmentID uint64) (*types.Attachment, error) {
+	if namespaceID == 0 {
+		return nil, ErrNamespaceRequired
+	}
+
+	return svc.attachment.FindByID(namespaceID, attachmentID)
 }
 
-func (svc *attachment) Find(filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error) {
+func (svc attachment) DeleteByID(namespaceID, attachmentID uint64) error {
+	if namespaceID == 0 {
+		return ErrNamespaceRequired
+	}
+
+	return svc.attachment.DeleteByID(namespaceID, attachmentID)
+}
+
+func (svc attachment) Find(filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error) {
+	if filter.NamespaceID == 0 {
+		return nil, filter, ErrNamespaceRequired
+	}
+
 	if filter.PageID > 0 {
 		if _, err := svc.pageSvc.FindByID(filter.PageID); err != nil {
 			return nil, filter, err
@@ -111,7 +128,7 @@ func (svc *attachment) Find(filter types.AttachmentFilter) (types.AttachmentSet,
 	return svc.attachment.Find(filter)
 }
 
-func (svc *attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
+func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
 	if len(att.Url) == 0 {
 		return nil, nil
 	}
@@ -119,7 +136,7 @@ func (svc *attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error
 	return svc.store.Open(att.Url)
 }
 
-func (svc *attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
+func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
 	if len(att.PreviewUrl) == 0 {
 		return nil, nil
 	}
@@ -127,7 +144,11 @@ func (svc *attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
 	return svc.store.Open(att.PreviewUrl)
 }
 
-func (svc *attachment) CreatePageAttachment(name string, size int64, fh io.ReadSeeker, pageID uint64) (*types.Attachment, error) {
+func (svc attachment) CreatePageAttachment(namespaceID uint64, name string, size int64, fh io.ReadSeeker, pageID uint64) (*types.Attachment, error) {
+	if namespaceID == 0 {
+		return nil, ErrNamespaceRequired
+	}
+
 	var currentUserID uint64 = auth.GetIdentityFromContext(svc.ctx).Identity()
 
 	if p, err := svc.pageSvc.FindByID(pageID); err != nil {
@@ -137,15 +158,20 @@ func (svc *attachment) CreatePageAttachment(name string, size int64, fh io.ReadS
 	}
 
 	att := &types.Attachment{
-		ID:      factory.Sonyflake.NextID(),
-		OwnerID: currentUserID,
-		Name:    strings.TrimSpace(name),
-		Kind:    types.PageAttachment,
+		ID:          factory.Sonyflake.NextID(),
+		NamespaceID: namespaceID,
+		OwnerID:     currentUserID,
+		Name:        strings.TrimSpace(name),
+		Kind:        types.PageAttachment,
 	}
 
 	return att, svc.create(name, size, fh, att)
 }
-func (svc *attachment) CreateRecordAttachment(name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64, fieldName string) (*types.Attachment, error) {
+func (svc attachment) CreateRecordAttachment(namespaceID uint64, name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64, fieldName string) (*types.Attachment, error) {
+	if namespaceID == 0 {
+		return nil, ErrNamespaceRequired
+	}
+
 	var currentUserID uint64 = auth.GetIdentityFromContext(svc.ctx).Identity()
 
 	if _, err := svc.moduleSvc.FindByID(moduleID); err != nil {
@@ -157,16 +183,17 @@ func (svc *attachment) CreateRecordAttachment(name string, size int64, fh io.Rea
 	}
 
 	att := &types.Attachment{
-		ID:      factory.Sonyflake.NextID(),
-		OwnerID: currentUserID,
-		Name:    strings.TrimSpace(name),
-		Kind:    types.RecordAttachment,
+		ID:          factory.Sonyflake.NextID(),
+		NamespaceID: namespaceID,
+		OwnerID:     currentUserID,
+		Name:        strings.TrimSpace(name),
+		Kind:        types.RecordAttachment,
 	}
 
 	return att, svc.create(name, size, fh, att)
 }
 
-func (svc *attachment) create(name string, size int64, fh io.ReadSeeker, att *types.Attachment) (err error) {
+func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *types.Attachment) (err error) {
 	if svc.store == nil {
 		return errors.New("Can not create attachment: store handler not set")
 	}
@@ -205,7 +232,7 @@ func (svc *attachment) create(name string, size int64, fh io.ReadSeeker, att *ty
 	})
 }
 
-func (svc *attachment) extractMimetype(file io.ReadSeeker) (mimetype string, err error) {
+func (svc attachment) extractMimetype(file io.ReadSeeker) (mimetype string, err error) {
 	if _, err = file.Seek(0, 0); err != nil {
 		return
 	}
@@ -222,7 +249,7 @@ func (svc *attachment) extractMimetype(file io.ReadSeeker) (mimetype string, err
 	return http.DetectContentType(buf), nil
 }
 
-func (svc *attachment) processImage(original io.ReadSeeker, att *types.Attachment) (err error) {
+func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment) (err error) {
 	if !strings.HasPrefix(att.Meta.Original.Mimetype, "image/") {
 		// Only supporting previews from images (for now)
 		return

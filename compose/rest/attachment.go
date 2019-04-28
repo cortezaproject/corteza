@@ -6,7 +6,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"time"
+
+	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/compose/internal/service"
 	"github.com/crusttech/crust/compose/rest/request"
@@ -20,14 +21,12 @@ var _ = errors.Wrap
 
 type (
 	attachmentPayload struct {
-		ID         uint64      `json:"attachmentID,string"`
-		OwnerID    uint64      `json:"ownerID,string"`
-		Url        string      `json:"url"`
-		PreviewUrl string      `json:"previewUrl,omitempty"`
-		Meta       interface{} `json:"meta"`
-		Name       string      `json:"name"`
-		CreatedAt  time.Time   `json:"createdAt,omitempty"`
-		UpdatedAt  *time.Time  `json:"updatedAt,omitempty"`
+		*types.Attachment
+	}
+
+	attachmentSetPayload struct {
+		Filter types.AttachmentFilter `json:"filter"`
+		Set    []*attachmentPayload   `json:"set"`
 	}
 
 	Attachment struct {
@@ -36,11 +35,13 @@ type (
 )
 
 func (Attachment) New() *Attachment {
-	return &Attachment{attachment: service.DefaultAttachment}
+	return &Attachment{
+		attachment: service.DefaultAttachment,
+	}
 }
 
 // Attachments returns list of all files attached to records
-func (ctrl *Attachment) List(ctx context.Context, r *request.AttachmentList) (interface{}, error) {
+func (ctrl Attachment) List(ctx context.Context, r *request.AttachmentList) (interface{}, error) {
 	f := types.AttachmentFilter{
 		NamespaceID: r.NamespaceID,
 		Kind:        r.Kind,
@@ -53,44 +54,41 @@ func (ctrl *Attachment) List(ctx context.Context, r *request.AttachmentList) (in
 		// Sort:      r.Sort,
 	}
 
-	aa, meta, err := ctrl.attachment.Find(f)
+	set, filter, err := ctrl.attachment.With(ctx).Find(f)
+	return ctrl.makeFilterPayload(ctx, set, filter, err)
+}
+
+func (ctrl Attachment) Read(ctx context.Context, r *request.AttachmentRead) (interface{}, error) {
+	a, err := ctrl.attachment.FindByID(r.NamespaceID, r.AttachmentID)
+	return makeAttachmentPayload(ctx, a, err)
+}
+
+func (ctrl Attachment) Delete(ctx context.Context, r *request.AttachmentDelete) (interface{}, error) {
+	_, err := ctrl.attachment.FindByID(r.NamespaceID, r.AttachmentID)
 	if err != nil {
 		return nil, err
 	}
 
-	pp := make([]*attachmentPayload, len(aa))
-	for i := range aa {
-		pp[i] = makeAttachmentPayload(aa[i], auth.GetIdentityFromContext(ctx).Identity())
-	}
-
-	return map[string]interface{}{"meta": meta, "attachments": pp}, nil
-}
-
-func (ctrl Attachment) Details(ctx context.Context, r *request.AttachmentDetails) (interface{}, error) {
-	if a, err := ctrl.attachment.FindByID(r.AttachmentID); err != nil {
-		return nil, err
-	} else {
-		return makeAttachmentPayload(a, auth.GetIdentityFromContext(ctx).Identity()), nil
-	}
+	return resputil.OK(), ctrl.attachment.With(ctx).DeleteByID(r.NamespaceID, r.AttachmentID)
 }
 
 func (ctrl Attachment) Original(ctx context.Context, r *request.AttachmentOriginal) (interface{}, error) {
-	if err := ctrl.isAccessible(r.AttachmentID, r.UserID, r.Sign); err != nil {
+	if err := ctrl.isAccessible(r.NamespaceID, r.AttachmentID, r.UserID, r.Sign); err != nil {
 		return nil, err
 	}
 
-	return ctrl.serve(ctx, r.AttachmentID, false, r.Download)
+	return ctrl.serve(ctx, r.NamespaceID, r.AttachmentID, false, r.Download)
 }
 
-func (ctrl *Attachment) Preview(ctx context.Context, r *request.AttachmentPreview) (interface{}, error) {
-	if err := ctrl.isAccessible(r.AttachmentID, r.UserID, r.Sign); err != nil {
+func (ctrl Attachment) Preview(ctx context.Context, r *request.AttachmentPreview) (interface{}, error) {
+	if err := ctrl.isAccessible(r.NamespaceID, r.AttachmentID, r.UserID, r.Sign); err != nil {
 		return nil, err
 	}
 
-	return ctrl.serve(ctx, r.AttachmentID, true, false)
+	return ctrl.serve(ctx, r.NamespaceID, r.AttachmentID, true, false)
 }
 
-func (ctrl Attachment) isAccessible(attachmentID, userID uint64, signature string) error {
+func (ctrl Attachment) isAccessible(namespaceID, attachmentID, userID uint64, signature string) error {
 	if userID == 0 {
 		return errors.New("missing or invalid user ID")
 	}
@@ -99,16 +97,16 @@ func (ctrl Attachment) isAccessible(attachmentID, userID uint64, signature strin
 		return errors.New("missing or invalid attachment ID")
 	}
 
-	if auth.DefaultSigner.Verify(signature, userID, attachmentID) {
+	if auth.DefaultSigner.Verify(signature, userID, namespaceID, attachmentID) {
 		return errors.New("missing or invalid signature")
 	}
 
 	return nil
 }
 
-func (ctrl Attachment) serve(ctx context.Context, ID uint64, preview, download bool) (interface{}, error) {
+func (ctrl Attachment) serve(ctx context.Context, namespaceID, attachmentID uint64, preview, download bool) (interface{}, error) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		att, err := ctrl.attachment.With(ctx).FindByID(ID)
+		att, err := ctrl.attachment.With(ctx).FindByID(namespaceID, attachmentID)
 		if err != nil {
 			// Simplify error handling for now
 			w.WriteHeader(http.StatusNotFound)
@@ -140,17 +138,33 @@ func (ctrl Attachment) serve(ctx context.Context, ID uint64, preview, download b
 	}, nil
 }
 
-func makeAttachmentPayload(a *types.Attachment, userID uint64) *attachmentPayload {
-	if a == nil {
-		return nil
+func (ctrl Attachment) makeFilterPayload(ctx context.Context, aa types.AttachmentSet, f types.AttachmentFilter, err error) (*attachmentSetPayload, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	asp := &attachmentSetPayload{Filter: f, Set: make([]*attachmentPayload, len(aa))}
+
+	for i := range aa {
+		asp.Set[i], _ = makeAttachmentPayload(ctx, aa[i], nil)
+	}
+
+	return asp, nil
+}
+
+func makeAttachmentPayload(ctx context.Context, a *types.Attachment, err error) (*attachmentPayload, error) {
+	if err != nil || a == nil {
+		return nil, err
 	}
 
 	var (
-		signParams = fmt.Sprintf("?sign=%s&userID=%d", auth.DefaultSigner.Sign(userID, a.ID), userID)
+		userID     = auth.GetIdentityFromContext(ctx).Identity()
+		signParams = fmt.Sprintf("?sign=%s&userID=%d", auth.DefaultSigner.Sign(userID, a.NamespaceID, a.ID), userID)
 
 		preview string
-		baseURL = fmt.Sprintf("/attachment/%s/%d/", a.Kind, a.ID)
+		baseURL = fmt.Sprintf("/namespace/%d/attachment/%s/%d/", a.NamespaceID, a.Kind, a.ID)
 	)
+
 	if a.Meta.Preview != nil {
 		var ext = a.Meta.Preview.Extension
 		if ext == "" {
@@ -160,14 +174,10 @@ func makeAttachmentPayload(a *types.Attachment, userID uint64) *attachmentPayloa
 		preview = baseURL + fmt.Sprintf("preview.%s", ext)
 	}
 
-	return &attachmentPayload{
-		ID:         a.ID,
-		OwnerID:    a.OwnerID,
-		Url:        baseURL + fmt.Sprintf("original/%s", url.PathEscape(a.Name)) + signParams,
-		PreviewUrl: preview + signParams,
-		Meta:       a.Meta,
-		Name:       a.Name,
-		CreatedAt:  a.CreatedAt,
-		UpdatedAt:  a.UpdatedAt,
-	}
+	ap := &attachmentPayload{a}
+
+	ap.Url = baseURL + fmt.Sprintf("original/%s", url.PathEscape(a.Name)) + signParams
+	ap.PreviewUrl = preview + signParams
+
+	return ap, nil
 }

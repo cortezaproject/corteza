@@ -1,6 +1,8 @@
 package service
 
 import (
+	"time"
+
 	"github.com/crusttech/crust/internal/store"
 )
 
@@ -39,4 +41,18 @@ func Init() error {
 	DefaultNamespace = Namespace()
 
 	return nil
+}
+
+// Data is stale when new date does not match updatedAt or createdAt (before first update)
+func isStale(new *time.Time, updatedAt *time.Time, createdAt time.Time) bool {
+	if new == nil {
+		// Change to true to require stale-data-check.
+		return true
+	}
+
+	if updatedAt != nil {
+		return !new.Equal(*updatedAt)
+	}
+
+	return new.Equal(createdAt)
 }

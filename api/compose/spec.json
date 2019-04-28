@@ -1129,7 +1129,7 @@
                             "type": "uint64",
                             "name": "moduleID",
                             "required": false,
-                            "title": "Filter attachments by mnodule ID"
+                            "title": "Filter attachments by module ID"
                         },
                         {
                             "name": "recordID",
@@ -1159,10 +1159,26 @@
                 }
             },
             {
-                "name": "details",
+                "name": "read",
                 "path": "/{attachmentID}",
                 "method": "GET",
                 "title": "Attachment details",
+                "parameters": {
+                    "path": [
+                        {
+                            "name": "attachmentID",
+                            "type": "uint64",
+                            "required": true,
+                            "title": "Attachment ID"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "delete",
+                "path": "/{attachmentID}",
+                "method": "DELETE",
+                "title": "Delete attachment",
                 "parameters": {
                     "path": [
                         {

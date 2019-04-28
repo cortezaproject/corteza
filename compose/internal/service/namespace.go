@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"time"
 
 	"github.com/titpetric/factory"
 
@@ -64,17 +63,17 @@ func (svc *namespace) FindByID(ID uint64) (n *types.Namespace, err error) {
 	return
 }
 
-func (svc *namespace) Find(filter types.NamespaceFilter) (types.NamespaceSet, types.NamespaceFilter, error) {
-	nn, f, err := svc.namespaceRepo.Find(filter)
+func (svc *namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
+	set, f, err = svc.namespaceRepo.Find(filter)
 	if err != nil {
-		return nil, f, err
+		return
 	}
 
-	nn, _ = nn.Filter(func(m *types.Namespace) (bool, error) {
+	set, _ = set.Filter(func(m *types.Namespace) (bool, error) {
 		return svc.prmSvc.CanReadNamespace(m), nil
 	})
 
-	return nn, f, nil
+	return
 }
 
 func (svc *namespace) Create(mod *types.Namespace) (*types.Namespace, error) {
@@ -85,24 +84,28 @@ func (svc *namespace) Create(mod *types.Namespace) (*types.Namespace, error) {
 	return svc.namespaceRepo.Create(mod)
 }
 
-func (svc *namespace) Update(updated *types.Namespace) (m *types.Namespace, err error) {
-	m, err = svc.FindByID(updated.ID)
+func (svc *namespace) Update(mod *types.Namespace) (m *types.Namespace, err error) {
+	if mod.ID == 0 {
+		return nil, ErrInvalidID.withStack()
+	}
+
+	m, err = svc.FindByID(mod.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if isStale(updated.UpdatedAt, m.UpdatedAt, m.CreatedAt) {
-		return nil, ErrStaleData
+	if isStale(mod.UpdatedAt, m.UpdatedAt, m.CreatedAt) {
+		return nil, ErrStaleData.withStack()
 	}
 
 	if !svc.prmSvc.CanUpdateNamespace(m) {
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
-	m.Name = updated.Name
-	m.Slug = updated.Slug
-	m.Meta = updated.Meta
-	m.Enabled = updated.Enabled
+	m.Name = mod.Name
+	m.Slug = mod.Slug
+	m.Meta = mod.Meta
+	m.Enabled = mod.Enabled
 
 	return svc.namespaceRepo.Update(m)
 }
@@ -115,18 +118,4 @@ func (svc *namespace) DeleteByID(ID uint64) error {
 	}
 
 	return svc.namespaceRepo.DeleteByID(ID)
-}
-
-// Data is stale when new date does not match updatedAt or createdAt (before first update)
-func isStale(new *time.Time, updatedAt *time.Time, createdAt time.Time) bool {
-
-	if new == nil {
-		return false
-	}
-
-	if updatedAt != nil {
-		return !new.Equal(*updatedAt)
-	}
-
-	return new.Equal(createdAt)
 }

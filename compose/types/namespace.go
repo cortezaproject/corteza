@@ -10,15 +10,15 @@ import (
 
 type (
 	Namespace struct {
-		ID      uint64         `json:"namespaceID,string" db:"id"`
-		Name    string         `json:"name"               db:"name"`
-		Slug    string         `json:"slug"               db:"slug"`
-		Enabled bool           `json:"enabled"            db:"enabled"`
-		Meta    types.JSONText `json:"meta"               db:"meta"`
+		ID      uint64         `db:"id"        json:"namespaceID,string"`
+		Name    string         `db:"name"      json:"name"`
+		Slug    string         `db:"slug"      json:"slug"`
+		Enabled bool           `db:"enabled"   json:"enabled"`
+		Meta    types.JSONText `db:"meta"      json:"meta"`
 
-		CreatedAt time.Time  `json:"createdAt,omitempty" db:"created_at"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty" db:"updated_at"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty" db:"deleted_at"`
+		CreatedAt time.Time  `db:"created_at"  json:"createdAt,omitempty"`
+		UpdatedAt *time.Time `db:"updated_at"  json:"updatedAt,omitempty"`
+		DeletedAt *time.Time `db:"deleted_at"  json:"deletedAt,omitempty"`
 	}
 
 	NamespaceFilter struct {
@@ -31,7 +31,7 @@ type (
 )
 
 const (
-	NamespaceCRM uint64 = 10000000
+	NamespaceCRM uint64 = 88714882739863655
 )
 
 // Resource returns a system resource ID for this type

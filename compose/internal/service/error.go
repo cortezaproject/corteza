@@ -15,6 +15,7 @@ const (
 	ErrNoReadPermissions   serviceError = "NoReadPermissions"
 	ErrNoUpdatePermissions serviceError = "NoUpdatePermissions"
 	ErrNoDeletePermissions serviceError = "NoDeletePermissions"
+	ErrNamespaceRequired   serviceError = "NamespaceRequired"
 	ErrNotImplemented      serviceError = "NotImplemented"
 )
 

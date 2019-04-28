@@ -47,8 +47,8 @@ func (ctrl Namespace) List(ctx context.Context, r *request.NamespaceList) (inter
 		Page:    r.Page,
 	}
 
-	nn, filter, err := ctrl.namespace.With(ctx).Find(f)
-	return ctrl.makeFilterPayload(ctx, nn, filter, err)
+	set, filter, err := ctrl.namespace.With(ctx).Find(f)
+	return ctrl.makeFilterPayload(ctx, set, filter, err)
 }
 
 func (ctrl Namespace) Create(ctx context.Context, r *request.NamespaceCreate) (interface{}, error) {
@@ -92,16 +92,11 @@ func (ctrl Namespace) Delete(ctx context.Context, r *request.NamespaceDelete) (i
 		return nil, err
 	}
 
-	err = ctrl.namespace.With(ctx).DeleteByID(r.NamespaceID)
-	if err != nil {
-		return nil, err
-	} else {
-		return resputil.Success("deleted"), nil
-	}
+	return resputil.OK(), ctrl.namespace.With(ctx).DeleteByID(r.NamespaceID)
 }
 
 func (ctrl Namespace) makePayload(ctx context.Context, ns *types.Namespace, err error) (*namespacePayload, error) {
-	if err != nil {
+	if err != nil || ns == nil {
 		return nil, err
 	}
 

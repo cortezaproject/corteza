@@ -51,101 +51,55 @@ func (r namespace) columns() []string {
 	}
 }
 
-func (r *namespace) With(ctx context.Context, db *factory.DB) NamespaceRepository {
-	return &namespace{
-		repository: r.repository.With(ctx, db),
-	}
-}
-
-func (r *namespace) FindByID(id uint64) (n *types.Namespace, err error) {
-	var (
-		sql  string
-		args []interface{}
-	)
-
-	n = &types.Namespace{}
-
-	qb := r.query().
-		Columns(r.columns()...).
-		Where("id = ?", id)
-
-	if sql, args, err = qb.ToSql(); err != nil {
-		return
-	}
-
-	if err = r.db().Get(n, sql, args...); err != nil {
-		return
-	}
-
-	if n == nil || n.ID == 0 {
-		return nil, ErrNamespaceNotFound
-	}
-
-	return
-}
-
-func (r *namespace) Find(filter types.NamespaceFilter) (nn types.NamespaceSet, f types.NamespaceFilter, err error) {
-	var (
-		sql  string
-		args []interface{}
-	)
-
-	f = filter
-
-	if f.PerPage > 100 {
-		f.PerPage = 100
-	} else if f.PerPage == 0 {
-		f.PerPage = 50
-	}
-
-	qb := r.query()
-	if f.Query != "" {
-		q := "%" + f.Query + "%"
-		qb = qb.Where("name like ? OR slug like ?", q, q)
-	}
-
-	{
-		cq := qb.Column(squirrel.Alias(squirrel.Expr("COUNT(*)"), "count"))
-		if sql, args, err = cq.ToSql(); err != nil {
-			return
-		}
-
-		if err = r.db().Get(&f.Count, sql, args...); err != nil {
-			return
-		}
-
-		if f.Count == 0 {
-			// No rows with this filter no need to continue
-			return
-		}
-	}
-
-	if f.Page > 0 {
-		qb = qb.Offset(uint64(f.PerPage * f.Page))
-	}
-
-	qb = qb.
-		Limit(uint64(f.PerPage)).
-		Columns(r.columns()...).
-		OrderBy("id ASC")
-
-	if sql, args, err = qb.ToSql(); err != nil {
-		return
-	}
-
-	if err = r.db().Select(&nn, sql, args...); err != nil {
-		return
-	}
-
-	return
-}
-
 func (r namespace) query() squirrel.SelectBuilder {
 	return squirrel.
 		Select().
 		From(r.table()).
 		Where("deleted_at IS NULL")
 
+}
+
+func (r *namespace) With(ctx context.Context, db *factory.DB) NamespaceRepository {
+	return &namespace{
+		repository: r.repository.With(ctx, db),
+	}
+}
+
+func (r *namespace) FindByID(namespaceID uint64) (*types.Namespace, error) {
+	var (
+		query = r.query().
+			Columns(r.columns()...).
+			Where("id = ?", namespaceID)
+
+		n = &types.Namespace{}
+	)
+
+	return n, isFound(r.fetchOne(n, query), n.ID > 0, ErrNamespaceNotFound)
+}
+
+func (r *namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
+	f = filter
+	f.PerPage = normalizePerPage(f.PerPage, 5, 100, 50)
+
+	query := r.query()
+	if f.Query != "" {
+		q := "%" + f.Query + "%"
+		query = query.Where("name like ? OR slug like ?", q, q)
+	}
+
+	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
+		return
+	}
+
+	if f.Page > 0 {
+		query = query.Offset(uint64(f.PerPage * f.Page))
+	}
+
+	query = query.
+		Columns(r.columns()...).
+		OrderBy("id ASC")
+
+	return set, f, r.fetchPaged(&set, query, f.Page, f.PerPage)
 }
 
 func (r *namespace) Create(mod *types.Namespace) (*types.Namespace, error) {
@@ -163,6 +117,6 @@ func (r *namespace) Update(mod *types.Namespace) (*types.Namespace, error) {
 }
 
 func (r *namespace) DeleteByID(id uint64) error {
-	_, err := r.db().Exec("DELETE FROM compose_namespace WHERE id=?", id)
+	_, err := r.db().Exec("DELETE FROM "+r.table()+" WHERE id=?", id)
 	return err
 }

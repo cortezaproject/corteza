@@ -29,7 +29,8 @@ import (
 // Internal API interface
 type AttachmentAPI interface {
 	List(context.Context, *request.AttachmentList) (interface{}, error)
-	Details(context.Context, *request.AttachmentDetails) (interface{}, error)
+	Read(context.Context, *request.AttachmentRead) (interface{}, error)
+	Delete(context.Context, *request.AttachmentDelete) (interface{}, error)
 	Original(context.Context, *request.AttachmentOriginal) (interface{}, error)
 	Preview(context.Context, *request.AttachmentPreview) (interface{}, error)
 }
@@ -37,7 +38,8 @@ type AttachmentAPI interface {
 // HTTP API interface
 type Attachment struct {
 	List     func(http.ResponseWriter, *http.Request)
-	Details  func(http.ResponseWriter, *http.Request)
+	Read     func(http.ResponseWriter, *http.Request)
+	Delete   func(http.ResponseWriter, *http.Request)
 	Original func(http.ResponseWriter, *http.Request)
 	Preview  func(http.ResponseWriter, *http.Request)
 }
@@ -64,14 +66,34 @@ func NewAttachment(ah AttachmentAPI) *Attachment {
 				return
 			}
 		},
-		Details: func(w http.ResponseWriter, r *http.Request) {
+		Read: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewAttachmentDetails()
+			params := request.NewAttachmentRead()
 			if err := params.Fill(r); err != nil {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.Details(r.Context(), params); err != nil {
+			if value, err := ah.Read(r.Context(), params); err != nil {
+				resputil.JSON(w, err)
+				return
+			} else {
+				switch fn := value.(type) {
+				case func(http.ResponseWriter, *http.Request):
+					fn(w, r)
+					return
+				}
+				resputil.JSON(w, value)
+				return
+			}
+		},
+		Delete: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewAttachmentDelete()
+			if err := params.Fill(r); err != nil {
+				resputil.JSON(w, err)
+				return
+			}
+			if value, err := ah.Delete(r.Context(), params); err != nil {
 				resputil.JSON(w, err)
 				return
 			} else {
@@ -131,7 +153,8 @@ func (ah *Attachment) MountRoutes(r chi.Router, middlewares ...func(http.Handler
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Get("/namespace/{namespaceID}/attachment/{kind}/", ah.List)
-		r.Get("/namespace/{namespaceID}/attachment/{kind}/{attachmentID}", ah.Details)
+		r.Get("/namespace/{namespaceID}/attachment/{kind}/{attachmentID}", ah.Read)
+		r.Delete("/namespace/{namespaceID}/attachment/{kind}/{attachmentID}", ah.Delete)
 		r.Get("/namespace/{namespaceID}/attachment/{kind}/{attachmentID}/original/{name}", ah.Original)
 		r.Get("/namespace/{namespaceID}/attachment/{kind}/{attachmentID}/preview.{ext}", ah.Preview)
 	})

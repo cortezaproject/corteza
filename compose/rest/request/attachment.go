@@ -115,8 +115,8 @@ func (aReq *AttachmentList) Fill(r *http.Request) (err error) {
 
 var _ RequestFiller = NewAttachmentList()
 
-// Attachment details request parameters
-type AttachmentDetails struct {
+// Attachment read request parameters
+type AttachmentRead struct {
 	AttachmentID uint64 `json:",string"`
 	Kind         string
 	NamespaceID  uint64 `json:",string"`
@@ -124,11 +124,11 @@ type AttachmentDetails struct {
 	UserID       uint64 `json:",string"`
 }
 
-func NewAttachmentDetails() *AttachmentDetails {
-	return &AttachmentDetails{}
+func NewAttachmentRead() *AttachmentRead {
+	return &AttachmentRead{}
 }
 
-func (aReq *AttachmentDetails) Fill(r *http.Request) (err error) {
+func (aReq *AttachmentRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(aReq)
 
@@ -170,7 +170,64 @@ func (aReq *AttachmentDetails) Fill(r *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewAttachmentDetails()
+var _ RequestFiller = NewAttachmentRead()
+
+// Attachment delete request parameters
+type AttachmentDelete struct {
+	AttachmentID uint64 `json:",string"`
+	Kind         string
+	NamespaceID  uint64 `json:",string"`
+	Sign         string
+	UserID       uint64 `json:",string"`
+}
+
+func NewAttachmentDelete() *AttachmentDelete {
+	return &AttachmentDelete{}
+}
+
+func (aReq *AttachmentDelete) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(aReq)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	aReq.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
+	aReq.Kind = chi.URLParam(r, "kind")
+	aReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	if val, ok := get["sign"]; ok {
+
+		aReq.Sign = val
+	}
+	if val, ok := get["userID"]; ok {
+
+		aReq.UserID = parseUInt64(val)
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewAttachmentDelete()
 
 // Attachment original request parameters
 type AttachmentOriginal struct {

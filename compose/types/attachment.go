@@ -10,30 +10,34 @@ import (
 
 type (
 	Attachment struct {
-		ID         uint64         `db:"id"         json:"attachmentID,omitempty"`
-		OwnerID    uint64         `db:"rel_owner"  json:"ownerID,omitempty"`
-		Kind       string         `db:"kind"       json:"-"`
-		Url        string         `db:"url"        json:"url,omitempty"`
-		PreviewUrl string         `db:"preview_url"json:"previewUrl,omitempty"`
-		Name       string         `db:"name"       json:"name,omitempty"`
-		Meta       attachmentMeta `db:"meta"       json:"meta"`
-		CreatedAt  time.Time      `db:"created_at" json:"createdAt,omitempty"`
-		UpdatedAt  *time.Time     `db:"updated_at" json:"updatedAt,omitempty"`
-		DeletedAt  *time.Time     `db:"deleted_at" json:"deletedAt,omitempty"`
+		ID         uint64         `db:"id"          json:"attachmentID,string"`
+		OwnerID    uint64         `db:"rel_owner"   json:"ownerID,string"`
+		Kind       string         `db:"kind"        json:"-"`
+		Url        string         `db:"url"         json:"url,omitempty"`
+		PreviewUrl string         `db:"preview_url" json:"previewUrl,omitempty"`
+		Name       string         `db:"name"        json:"name,omitempty"`
+		Meta       attachmentMeta `db:"meta"        json:"meta"`
+
+		NamespaceID uint64 `db:"rel_namespace" json:"namespaceID,string"`
+
+		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
+		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`
+		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
 	}
 
 	// AttachmentFilter is used for filtering and as a return value from Find
 	AttachmentFilter struct {
-		Kind      string `json:"kind,omitempty"`
-		PageID    uint64 `json:"pageID,string,omitempty"`
-		RecordID  uint64 `json:"recordID,string,omitempty"`
-		ModuleID  uint64 `json:"moduleID,string,omitempty"`
-		FieldName string `json:"fieldName,omitempty"`
-		Filter    string `json:"filter"`
-		Page      uint   `json:"page"`
-		PerPage   uint   `json:"perPage"`
-		Sort      string `json:"sort"`
-		Count     uint   `json:"count"`
+		NamespaceID uint64 `json:"namespaceID,string"`
+		Kind        string `json:"kind,omitempty"`
+		PageID      uint64 `json:"pageID,string,omitempty"`
+		RecordID    uint64 `json:"recordID,string,omitempty"`
+		ModuleID    uint64 `json:"moduleID,string,omitempty"`
+		FieldName   string `json:"fieldName,omitempty"`
+		Filter      string `json:"filter"`
+		Page        uint   `json:"page"`
+		PerPage     uint   `json:"perPage"`
+		Sort        string `json:"sort"`
+		Count       uint   `json:"count"`
 	}
 
 	attachmentImageMeta struct {
