@@ -159,7 +159,7 @@
                         {
                             "type": "*time.Time",
                             "name": "updatedAt",
-                            "required": true,
+                            "required": false,
                             "title": "Last update (or creation) date"
                         }
                     ]
@@ -755,7 +755,8 @@
         "struct": [
             {
                 "imports": [
-                    "sqlxTypes github.com/jmoiron/sqlx/types"
+                    "sqlxTypes github.com/jmoiron/sqlx/types",
+                    "time"
                 ]
             }
         ],
@@ -773,13 +774,35 @@
             {
                 "name": "list",
                 "method": "GET",
-                "title": "List/read charts from module section",
-                "path": "/"
+                "title": "List/read charts",
+                "path": "/",
+                "parameters": {
+                    "get": [
+                        {
+                            "name": "query",
+                            "required": false,
+                            "title": "Search query to match against charts",
+                            "type": "string"
+                        },
+                        {
+                            "name": "page",
+                            "type": "uint",
+                            "required": false,
+                            "title": "Page number (0 based)"
+                        },
+                        {
+                            "name": "perPage",
+                            "type": "uint",
+                            "required": false,
+                            "title": "Returned items per page (default 50)"
+                        }
+                    ]
+                }
             },
             {
                 "name": "create",
                 "method": "POST",
-                "title": "List/read charts from module section",
+                "title": "List/read charts ",
                 "path": "/",
                 "parameters": {
                     "post": [
@@ -801,7 +824,7 @@
             {
                 "name": "read",
                 "method": "GET",
-                "title": "Read charts by ID from module section",
+                "title": "Read charts by ID",
                 "path": "/{chartID}",
                 "parameters": {
                     "path": [
@@ -817,7 +840,7 @@
             {
                 "name": "update",
                 "method": "POST",
-                "title": "Add/update charts in module section",
+                "title": "Add/update charts",
                 "path": "/{chartID}",
                 "parameters": {
                     "path": [
@@ -840,6 +863,12 @@
                             "title": "Chart name",
                             "type": "string",
                             "required": true
+                        },
+                        {
+                            "type": "*time.Time",
+                            "name": "updatedAt",
+                            "required": false,
+                            "title": "Last update (or creation) date"
                         }
                     ]
                 }

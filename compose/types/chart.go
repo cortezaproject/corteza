@@ -22,11 +22,12 @@ type (
 	}
 
 	ChartFilter struct {
-		Query   string `json:"query"`
-		Page    uint   `json:"page"`
-		PerPage uint   `json:"perPage"`
-		Sort    string `json:"sort"`
-		Count   uint   `json:"count"`
+		NamespaceID uint64 `json:"namespaceID,string"`
+		Query       string `json:"query"`
+		Page        uint   `json:"page"`
+		PerPage     uint   `json:"perPage"`
+		// Sort    string `json:"sort"`
+		Count uint `json:"count"`
 	}
 )
 

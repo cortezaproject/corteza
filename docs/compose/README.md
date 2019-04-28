@@ -115,13 +115,13 @@
 
 | Method | Endpoint | Purpose |
 | ------ | -------- | ------- |
-| `GET` | `/namespace/{namespaceID}/chart/` | List/read charts from module section |
-| `POST` | `/namespace/{namespaceID}/chart/` | List/read charts from module section |
-| `GET` | `/namespace/{namespaceID}/chart/{chartID}` | Read charts by ID from module section |
-| `POST` | `/namespace/{namespaceID}/chart/{chartID}` | Add/update charts in module section |
+| `GET` | `/namespace/{namespaceID}/chart/` | List/read charts |
+| `POST` | `/namespace/{namespaceID}/chart/` | List/read charts  |
+| `GET` | `/namespace/{namespaceID}/chart/{chartID}` | Read charts by ID |
+| `POST` | `/namespace/{namespaceID}/chart/{chartID}` | Add/update charts |
 | `DELETE` | `/namespace/{namespaceID}/chart/{chartID}` | Delete chart |
 
-## List/read charts from module section
+## List/read charts
 
 #### Method
 
@@ -133,9 +133,12 @@
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+| query | string | GET | Search query to match against charts | N/A | NO |
+| page | uint | GET | Page number (0 based) | N/A | NO |
+| perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
-## List/read charts from module section
+## List/read charts
 
 #### Method
 
@@ -151,7 +154,7 @@
 | name | string | POST | Chart name | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
-## Read charts by ID from module section
+## Read charts by ID
 
 #### Method
 
@@ -166,7 +169,7 @@
 | chartID | uint64 | PATH | Chart ID | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
-## Add/update charts in module section
+## Add/update charts
 
 #### Method
 
@@ -182,6 +185,7 @@
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | config | sqlxTypes.JSONText | POST | Chart JSON | N/A | YES |
 | name | string | POST | Chart name | N/A | YES |
+| updatedAt | *time.Time | POST | Last update (or creation) date | N/A | NO |
 
 ## Delete chart
 
@@ -374,7 +378,7 @@ Compose module definitions
 | slug | string | POST | Slug (url path part) | N/A | YES |
 | enabled | bool | POST | Enabled | N/A | YES |
 | meta | sqlxTypes.JSONText | POST | Meta data | N/A | YES |
-| updatedAt | *time.Time | POST | Last update (or creation) date | N/A | YES |
+| updatedAt | *time.Time | POST | Last update (or creation) date | N/A | NO |
 
 ## Delete namespace
 

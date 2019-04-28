@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
 	"github.com/crusttech/crust/compose/internal/repository"
@@ -23,12 +22,12 @@ type (
 	ChartService interface {
 		With(ctx context.Context) ChartService
 
-		FindByID(chartID uint64) (*types.Chart, error)
-		Find() (types.ChartSet, error)
+		FindByID(namespaceID, chartID uint64) (*types.Chart, error)
+		Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error)
 
 		Create(chart *types.Chart) (*types.Chart, error)
 		Update(chart *types.Chart) (*types.Chart, error)
-		DeleteByID(chartID uint64) error
+		DeleteByID(namespaceID, chartID uint64) error
 	}
 )
 
@@ -50,73 +49,74 @@ func (svc *chart) With(ctx context.Context) ChartService {
 	}
 }
 
-func (svc *chart) FindByID(chartID uint64) (c *types.Chart, err error) {
-	if c, err = svc.chartRepo.FindByID(chartID); err != nil {
+func (svc *chart) FindByID(namespaceID, chartID uint64) (c *types.Chart, err error) {
+	if namespaceID == 0 {
+		return nil, ErrNamespaceRequired
+	}
+
+	if c, err = svc.chartRepo.FindByID(namespaceID, chartID); err != nil {
 		return
 	} else if !svc.prmSvc.CanReadChart(c) {
-		return nil, errors.New("not allowed to access this chart")
+		return nil, ErrNoReadPermissions.withStack()
 	}
 
 	return
 }
 
-func (svc *chart) Find() (cc types.ChartSet, err error) {
-	if cc, err = svc.chartRepo.Find(); err != nil {
-		return nil, err
-	} else {
-		return cc.Filter(func(m *types.Chart) (bool, error) {
-			return svc.prmSvc.CanReadChart(m), nil
-		})
+func (svc *chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error) {
+	set, f, err = svc.chartRepo.Find(filter)
+	if err != nil {
+		return
 	}
+
+	set, _ = set.Filter(func(m *types.Chart) (bool, error) {
+		return svc.prmSvc.CanReadChart(m), nil
+	})
+
+	return
 }
 
 func (svc *chart) Create(mod *types.Chart) (c *types.Chart, err error) {
 	if !svc.prmSvc.CanCreateChart(crmNamespace()) {
-		return nil, errors.New("not allowed to create this chart")
+		return nil, ErrNoCreatePermissions.withStack()
 	}
 
-	return c, svc.db.Transaction(func() error {
-		c, err = svc.chartRepo.Create(mod)
-		return err
-	})
+	return svc.chartRepo.Create(mod)
 }
 
 func (svc *chart) Update(mod *types.Chart) (c *types.Chart, err error) {
-	validate := func() error {
-		if mod.ID == 0 {
-			return errors.New("Error updating chart: invalid ID")
-		} else if c, err = svc.chartRepo.FindByID(mod.ID); err != nil {
-			return errors.Wrap(err, "Error while loading chart for update")
-		} else {
-			if !svc.prmSvc.CanUpdateChart(c) {
-				return errors.New("not allowed to update this chart")
-			}
-
-			mod.CreatedAt = c.CreatedAt
-		}
-
-		return nil
+	if mod.ID == 0 {
+		return nil, ErrInvalidID.withStack()
 	}
 
-	if err = validate(); err != nil {
-		return nil, err
+	if c, err = svc.chartRepo.FindByID(mod.NamespaceID, mod.ID); err != nil {
+		return
+	}
+
+	if isStale(mod.UpdatedAt, c.UpdatedAt, c.CreatedAt) {
+		return nil, ErrStaleData.withStack()
+	}
+
+	if !svc.prmSvc.CanUpdateChart(c) {
+		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
 	c.Config = mod.Config
 	c.Name = mod.Name
 
-	return c, svc.db.Transaction(func() error {
-		c, err = svc.chartRepo.Update(c)
-		return err
-	})
+	return svc.chartRepo.Update(c)
 }
 
-func (svc *chart) DeleteByID(ID uint64) error {
-	if c, err := svc.chartRepo.FindByID(ID); err != nil {
-		return errors.Wrap(err, "could not delete chart")
-	} else if !svc.prmSvc.CanDeleteChart(c) {
-		return errors.New("not allowed to delete this chart")
+func (svc *chart) DeleteByID(namespaceID, chartID uint64) error {
+	if namespaceID == 0 {
+		return ErrNamespaceRequired.withStack()
 	}
 
-	return svc.chartRepo.DeleteByID(ID)
+	if c, err := svc.chartRepo.FindByID(namespaceID, chartID); err != nil {
+		return err
+	} else if !svc.prmSvc.CanDeleteChart(c) {
+		return ErrNoDeletePermissions.withStack()
+	}
+
+	return svc.chartRepo.DeleteByID(namespaceID, chartID)
 }

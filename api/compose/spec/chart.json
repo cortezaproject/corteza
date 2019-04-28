@@ -4,7 +4,8 @@
   "Struct": [
     {
       "imports": [
-        "sqlxTypes github.com/jmoiron/sqlx/types"
+        "sqlxTypes github.com/jmoiron/sqlx/types",
+        "time"
       ]
     }
   ],
@@ -25,14 +26,35 @@
     {
       "Name": "list",
       "Method": "GET",
-      "Title": "List/read charts from module section",
+      "Title": "List/read charts",
       "Path": "/",
-      "Parameters": null
+      "Parameters": {
+        "get": [
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search query to match against charts",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "required": false,
+            "title": "Page number (0 based)",
+            "type": "uint"
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "title": "Returned items per page (default 50)",
+            "type": "uint"
+          }
+        ]
+      }
     },
     {
       "Name": "create",
       "Method": "POST",
-      "Title": "List/read charts from module section",
+      "Title": "List/read charts ",
       "Path": "/",
       "Parameters": {
         "post": [
@@ -54,7 +76,7 @@
     {
       "Name": "read",
       "Method": "GET",
-      "Title": "Read charts by ID from module section",
+      "Title": "Read charts by ID",
       "Path": "/{chartID}",
       "Parameters": {
         "path": [
@@ -70,7 +92,7 @@
     {
       "Name": "update",
       "Method": "POST",
-      "Title": "Add/update charts in module section",
+      "Title": "Add/update charts",
       "Path": "/{chartID}",
       "Parameters": {
         "path": [
@@ -93,6 +115,12 @@
             "required": true,
             "title": "Chart name",
             "type": "string"
+          },
+          {
+            "name": "updatedAt",
+            "required": false,
+            "title": "Last update (or creation) date",
+            "type": "*time.Time"
           }
         ]
       }
