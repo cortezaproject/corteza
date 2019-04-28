@@ -25,6 +25,165 @@
         ]
     },
     {
+        "title": "Namespaces",
+        "parameters": {},
+        "entrypoint": "namespace",
+        "path": "/namespace",
+        "authentication": [],
+        "struct": [
+            {
+                "imports": [
+                    "sqlxTypes github.com/jmoiron/sqlx/types",
+                    "time"
+                ]
+            }
+        ],
+        "apis": [
+            {
+                "name": "list",
+                "method": "GET",
+                "title": "List namespaces",
+                "path": "/",
+                "parameters": {
+                    "get": [
+                        {
+                            "type": "string",
+                            "name": "query",
+                            "required": false,
+                            "title": "Search query"
+                        },
+                        {
+                            "name": "page",
+                            "type": "uint",
+                            "required": false,
+                            "title": "Page number (0 based)"
+                        },
+                        {
+                            "name": "perPage",
+                            "type": "uint",
+                            "required": false,
+                            "title": "Returned items per page (default 50)"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "create",
+                "method": "POST",
+                "title": "Create namespace",
+                "path": "/",
+                "parameters": {
+                    "post": [
+                        {
+                            "type": "string",
+                            "name": "name",
+                            "required": true,
+                            "title": "Name"
+                        },
+                        {
+                            "type": "string",
+                            "name": "slug",
+                            "required": true,
+                            "title": "Slug (url path part)"
+                        },
+                        {
+                            "type": "bool",
+                            "name": "enabled",
+                            "required": true,
+                            "title": "Enabled"
+                        },
+                        {
+                            "type": "sqlxTypes.JSONText",
+                            "name": "meta",
+                            "required": true,
+                            "title": "Meta data"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "read",
+                "method": "GET",
+                "title": "Read namespace",
+                "path": "/{namespaceID}",
+                "parameters": {
+                    "path": [
+                        {
+                            "type": "uint64",
+                            "name": "namespaceID",
+                            "required": true,
+                            "title": "ID"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "update",
+                "method": "POST",
+                "title": "Update namespace",
+                "path": "/{namespaceID}",
+                "parameters": {
+                    "path": [
+                        {
+                            "type": "uint64",
+                            "name": "namespaceID",
+                            "required": true,
+                            "title": "ID"
+                        }
+                    ],
+                    "post": [
+                        {
+                            "type": "string",
+                            "name": "name",
+                            "required": true,
+                            "title": "Name"
+                        },
+                        {
+                            "type": "string",
+                            "name": "slug",
+                            "required": true,
+                            "title": "Slug (url path part)"
+                        },
+                        {
+                            "type": "bool",
+                            "name": "enabled",
+                            "required": true,
+                            "title": "Enabled"
+                        },
+                        {
+                            "type": "sqlxTypes.JSONText",
+                            "name": "meta",
+                            "required": true,
+                            "title": "Meta data"
+                        },
+                        {
+                            "type": "*time.Time",
+                            "name": "updatedAt",
+                            "required": true,
+                            "title": "Last update (or creation) date"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "delete",
+                "method": "DELETE",
+                "title": "Delete namespace",
+                "path": "/{namespaceID}",
+                "parameters": {
+                    "path": [
+                        {
+                            "type": "uint64",
+                            "name": "namespaceID",
+                            "required": true,
+                            "title": "ID"
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
         "title": "Pages",
         "description": "Compose module pages",
         "entrypoint": "page",
@@ -374,7 +533,7 @@
     },
     {
         "title": "Records",
-        "description": "Compose records ",
+        "description": "Compose records",
         "entrypoint": "record",
         "path": "/module/{moduleID}/record",
         "authentication": [],
