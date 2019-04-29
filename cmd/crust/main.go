@@ -103,20 +103,22 @@ func main() {
 		// logging, cors and such
 		middleware.Mount(ctx, r, flags.http)
 
-		jwtAuth, err := auth.JWT(authJwtFlags.Secret, authJwtFlags.Expiry)
+                // Use JWT secret for hmac signer for now
+                auth.DefaultSigner = auth.HmacSigner(authJwtFlags.Secret)
+                auth.DefaultJwtHandler, err = auth.JWT(authJwtFlags.Secret, authJwtFlags.Expiry)
 		if err != nil {
 			log.Fatalf("Error creating JWT Auth: %v", err)
 		}
 
 		r.Route("/api", func(r chi.Router) {
 			r.Route("/crm", func(r chi.Router) {
-				crm.MountRoutes(ctx, r, jwtAuth)
+				crm.MountRoutes(ctx, r)
 			})
 			r.Route("/messaging", func(r chi.Router) {
-				messaging.MountRoutes(ctx, r, jwtAuth)
+				messaging.MountRoutes(ctx, r)
 			})
 			r.Route("/system", func(r chi.Router) {
-				system.MountRoutes(ctx, r, jwtAuth)
+				system.MountRoutes(ctx, r)
 			})
 			middleware.MountSystemRoutes(ctx, r, flags.http)
 		})
