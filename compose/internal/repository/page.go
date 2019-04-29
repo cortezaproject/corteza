@@ -15,7 +15,7 @@ type (
 		With(ctx context.Context, db *factory.DB) PageRepository
 
 		FindByID(namespaceID, pageID uint64) (*types.Page, error)
-		FindByModuleID(namespaceID, pageID uint64) (*types.Page, error)
+		FindByModuleID(namespaceID, moduleID uint64) (*types.Page, error)
 		Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
 
 		Create(mod *types.Page) (*types.Page, error)
@@ -107,6 +107,8 @@ func (r page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilt
 
 	if filter.ParentID > 0 {
 		query = query.Where("self_id = ?", filter.ParentID)
+	} else if filter.Root {
+		query = query.Where("self_id = 0")
 	}
 
 	if f.Query != "" {
@@ -171,6 +173,7 @@ func (r page) Create(mod *types.Page) (*types.Page, error) {
 func (r page) Update(mod *types.Page) (*types.Page, error) {
 	now := time.Now()
 	mod.UpdatedAt = &now
+
 	return mod, r.db().Replace(r.table(), mod)
 }
 

@@ -116,7 +116,7 @@ func (r *namespace) Update(mod *types.Namespace) (*types.Namespace, error) {
 	return mod, r.db().Replace(r.table(), mod)
 }
 
-func (r *namespace) DeleteByID(id uint64) error {
-	_, err := r.db().Exec("DELETE FROM "+r.table()+" WHERE id=?", id)
+func (r *namespace) DeleteByID(namespaceID uint64) error {
+	_, err := r.db().Exec("UPDATE "+r.table()+" SET deleted_at = NOW() WHERE id = ?", namespaceID)
 	return err
 }

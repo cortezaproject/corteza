@@ -3,6 +3,7 @@
 package service
 
 import (
+	"context"
 	"log"
 	"os"
 	"testing"
@@ -11,6 +12,8 @@ import (
 	"github.com/titpetric/factory"
 
 	composeMigrate "github.com/crusttech/crust/compose/db"
+	"github.com/crusttech/crust/compose/types"
+	"github.com/crusttech/crust/internal/test"
 	systemMigrate "github.com/crusttech/crust/system/db"
 	systemService "github.com/crusttech/crust/system/service"
 )
@@ -55,4 +58,16 @@ func TestMain(m *testing.M) {
 	Init()
 
 	os.Exit(m.Run())
+}
+
+func createTestNamespaces(ctx context.Context, t *testing.T) (ns1 *types.Namespace, ns2 *types.Namespace) {
+	var err error
+
+	ns1, err = Namespace().With(ctx).Create(&types.Namespace{Enabled: true, Name: "TestNamespace"})
+	test.Assert(t, err == nil, "Error when creating namespace: %+v", err)
+
+	ns2, err = Namespace().With(ctx).Create(&types.Namespace{Enabled: true, Name: "TestNamespace"})
+	test.Assert(t, err == nil, "Error when creating namespace: %+v", err)
+
+	return ns1, ns2
 }

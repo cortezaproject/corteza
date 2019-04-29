@@ -100,6 +100,11 @@ func (svc *module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types
 }
 
 func (svc *module) Create(mod *types.Module) (*types.Module, error) {
+
+	if mod.NamespaceID == 0 {
+		return nil, ErrNamespaceRequired.withStack()
+	}
+
 	if !svc.prmSvc.CanCreateModule(crmNamespace()) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}

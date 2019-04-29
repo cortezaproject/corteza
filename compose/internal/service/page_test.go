@@ -27,12 +27,16 @@ func TestPage(t *testing.T) {
 	// Set Identity (required for permission checks).
 	ctx = auth.SetIdentityToContext(ctx, user)
 
-	repository := Page().With(ctx)
+	ns1, _ := createTestNamespaces(ctx, t)
+
+	svc := Page().With(ctx)
 
 	// the page object we're working with
+	var err error
 	page := &types.Page{
-		Title:    "Test",
-		ModuleID: 123,
+		NamespaceID: ns1.ID,
+		Title:       "Test",
+		ModuleID:    123,
 	}
 	(&page.Blocks).Scan([]byte("[]"))
 
@@ -40,104 +44,99 @@ func TestPage(t *testing.T) {
 
 	{
 		{
-			m, err := repository.Update(page)
+			m, err := svc.Update(page)
 			test.Assert(t, m == nil, "Expected empty return for invalid update, got %#v", m)
 			test.Assert(t, err != nil, "Expected error when updating invalid content")
 		}
 
 		// create page
-		m, err := repository.Create(page)
+		page, err = svc.Create(page)
 		test.Assert(t, err == nil, "Error when creating page: %+v", err)
-		test.Assert(t, m.ID > 0, "Expected auto generated ID")
+		test.Assert(t, page.ID > 0, "Expected auto generated ID")
 
-		page.SelfID = m.ID
+		var firstPageID = page.ID
+
+		page.SelfID = page.ID
 
 		{
-			_, err := repository.Create(page)
+			_, err = svc.Create(page)
 			test.Assert(t, err != nil, "%+v", errors.Errorf("Expected error when creating duplicate moduleID page"))
 		}
 
+		page.ModuleID = 0
+
 		{
-			page.ModuleID = 0
-			_, err := repository.Create(page)
+			_, err = svc.Create(page)
 			test.Assert(t, err == nil, "Unexpected error when creating page, %+v", err)
 		}
 		{
-			_, err := repository.Create(page)
+			_, err = svc.Create(page)
 			test.Assert(t, err == nil, "Unexpected error when creating page, %+v", err)
 		}
 
 		// fetch created page
 		{
-			ms, err := repository.FindByID(m.ID)
+			p, err := svc.FindByID(page.NamespaceID, page.ID)
 			test.Assert(t, err == nil, "Error when retrieving page by id: %+v", err)
-			test.Assert(t, ms.ID == m.ID, "Expected ID from database to match, %+v", errors.Errorf("%d != %d", m.ID, ms.ID))
-			test.Assert(t, ms.Title == m.Title, "Expected Title from database to match, %+v", errors.Errorf("%s != %s", m.Title, ms.Title))
+			test.Assert(t, p.ID == page.ID, "Expected ID from database to match, %+v", errors.Errorf("%d != %d", page.ID, p.ID))
+			test.Assert(t, p.Title == page.Title, "Expected Title from database to match, %+v", errors.Errorf("%s != %s", page.Title, p.Title))
 		}
 
 		// update created page
 		{
-			m.Title = "Updated test"
-			_, err := repository.Update(m)
+			page.Title = "Updated test"
+			page.UpdatedAt = nil
+			_, err := svc.Update(page)
 			test.Assert(t, err == nil, "Error when updating page, %+v", err)
 		}
 
 		// re-fetch page
 		{
-			ms, err := repository.FindByID(m.ID)
+			p, err := svc.FindByID(page.NamespaceID, page.ID)
 			test.Assert(t, err == nil, "Error when retrieving page by id: %+v", err)
-			test.Assert(t, ms.ID == m.ID, "re-fetch: Expected ID from database to match, %d != %d", m.ID, ms.ID)
-			test.Assert(t, ms.Title == m.Title, "Expected Title from database to match, %s != %s", m.Title, ms.Title)
-		}
-
-		// re-fetch page with moduleID
-		{
-			ms, err := repository.FindByModuleID(m.ModuleID)
-			test.Assert(t, err == nil, "Error when retrieving page by id: %+v", err)
-			test.Assert(t, ms.ID == m.ID, "fetch-module: Expected ID from database to match, %d != %d", m.ID, ms.ID)
-			test.Assert(t, ms.Title == m.Title, "Expected Title from database to match, %s != %s", m.Title, ms.Title)
+			test.Assert(t, p.ID == page.ID, "re-fetch: Expected ID from database to match, %d != %d", page.ID, p.ID)
+			test.Assert(t, p.Title == page.Title, "Expected Title from database to match, %s != %s", page.Title, p.Title)
 		}
 
 		// fetch all pages
 		{
-			ms, err := repository.FindBySelfID(0)
+			p, _, err := svc.FindBySelfID(page.NamespaceID, 0)
 			test.Assert(t, err == nil, "Error when retrieving pages: %+v", err)
-			test.Assert(t, len(ms) >= 1, "Expected at least one page, got %d", len(ms))
-			prevPageCount = len(ms)
+			test.Assert(t, len(p) >= 1, "Expected at least one page, got %d", len(p))
+			prevPageCount = len(p)
 		}
 
 		// fetch all pages
 		{
-			ms, err := repository.FindBySelfID(m.ID)
+			p, _, err := svc.FindBySelfID(page.NamespaceID, firstPageID)
 			test.Assert(t, err == nil, "Error when retrieving pages: %+v", err)
-			test.Assert(t, len(ms) == 2, "Expected two pages with selfID=%d, got %v", m.ID, spew.Sdump(ms))
-			prevPageCount = len(ms)
+			test.Assert(t, len(p) == 2, "Expected 2 pages with selfID=%d, got %v", page.ID, spew.Sdump(p))
+			prevPageCount = len(p)
 
-			parent := m.ID
-			ids := []uint64{ms[0].ID, ms[1].ID}
+			ids := []uint64{p[0].ID, p[1].ID}
 
 			{
-				err := repository.Reorder(parent, ids)
+				err := svc.Reorder(page.NamespaceID, firstPageID, ids)
 				test.Assert(t, err == nil, "Error when reordering pages: %+v", err)
 
-				ms, err = repository.FindBySelfID(m.ID)
+				p, _, err = svc.FindBySelfID(page.NamespaceID, firstPageID)
 				test.Assert(t, err == nil, "Error when retrieving pages: %+v", err)
-				test.Assert(t, len(ms) == 2, "Expected two pages with selfID=%d, got %v", m.ID, spew.Sdump(ms))
-				test.Assert(t, ms[0].Weight < ms[1].Weight, "Expected ascending order, %+v", errors.Errorf("%d < %d", ms[0].Weight, ms[1].Weight))
+				test.Assert(t, len(p) == 2, "Expected 2 pages with selfID=%d, got %v", page.ID, spew.Sdump(p))
+				test.Assert(t, p[0].Weight < p[1].Weight, "Expected ascending order, %+v", errors.Errorf("%d < %d", p[0].Weight, p[1].Weight))
 			}
 		}
 
 		// re-fetch page
 		{
-			err := repository.DeleteByID(m.ID)
+			err := svc.DeleteByID(page.NamespaceID, page.ID)
 			test.Assert(t, err == nil, "Error when deleting page by id: %+v", err)
 		}
 
 		// fetch all pages
 		{
-			ms, err := repository.FindBySelfID(0)
+			p, _, err := svc.FindBySelfID(page.NamespaceID, 0)
 			test.Assert(t, err == nil, "Error when retrieving pages: %+v", err)
-			test.Assert(t, len(ms) < prevPageCount, "Expected pages count to decrease after deletion, %d < %d", len(ms), prevPageCount)
+			test.Assert(t, len(p) < prevPageCount, "Expected pages count to decrease after deletion, %d < %d", len(p), prevPageCount)
 		}
 	}
 
