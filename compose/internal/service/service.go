@@ -46,8 +46,8 @@ func Init() error {
 // Data is stale when new date does not match updatedAt or createdAt (before first update)
 func isStale(new *time.Time, updatedAt *time.Time, createdAt time.Time) bool {
 	if new == nil {
-		// Change to true to require stale-data-check.
-		return true
+		// Change to true for stale-data-check
+		return false
 	}
 
 	if updatedAt != nil {

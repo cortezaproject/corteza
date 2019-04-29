@@ -38,6 +38,10 @@ type (
 	}
 )
 
+const (
+	ErrModulePageExists serviceError = "ModulePageExists"
+)
+
 func Page() PageService {
 	return (&page{
 		prmSvc: DefaultPermissions,
@@ -76,17 +80,32 @@ func (svc *page) checkPermissions(p *types.Page, err error) (*types.Page, error)
 }
 
 func (svc *page) FindBySelfID(namespaceID, parentID uint64) (pp types.PageSet, f types.PageFilter, err error) {
+	if namespaceID == 0 {
+		return nil, f, ErrNamespaceRequired.withStack()
+	}
+
 	return svc.filterPageSetByPermission(svc.pageRepo.Find(types.PageFilter{
 		NamespaceID: namespaceID,
 		ParentID:    parentID,
+
+		// This will enable parentID=0 query
+		Root: true,
 	}))
 }
 
 func (svc *page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
+	if filter.NamespaceID == 0 {
+		return nil, f, ErrNamespaceRequired.withStack()
+	}
+
 	return svc.filterPageSetByPermission(svc.pageRepo.Find(filter))
 }
 
 func (svc *page) Tree(namespaceID uint64) (pages types.PageSet, err error) {
+	if namespaceID == 0 {
+		return nil, ErrNamespaceRequired.withStack()
+	}
+
 	var (
 		tree   types.PageSet
 		filter = types.PageFilter{
@@ -140,58 +159,70 @@ func (svc *page) Reorder(namespaceID, selfID uint64, pageIDs []uint64) error {
 	return svc.pageRepo.Reorder(namespaceID, selfID, pageIDs)
 }
 
-func (svc *page) Create(page *types.Page) (p *types.Page, err error) {
-	validate := func() error {
-		if !svc.prmSvc.CanCreatePage(crmNamespace()) {
-			return errors.New("not allowed to create this page")
-		}
+func (svc *page) Create(mod *types.Page) (p *types.Page, err error) {
+	mod.ID = 0
 
-		if page.ModuleID > 0 {
-			if p, err = svc.pageRepo.FindByModuleID(page.NamespaceID, page.ModuleID); err != nil {
-				return err
-			} else if p.ID > 0 {
-				return errors.New("Page for module already exists")
-			}
-		}
-		return nil
+	if mod.NamespaceID == 0 {
+		return nil, ErrNamespaceRequired.withStack()
 	}
-	if err := validate(); err != nil {
-		return nil, err
+
+	if !svc.prmSvc.CanCreatePage(crmNamespace()) {
+		return nil, ErrNoCreatePermissions.withStack()
 	}
-	return p, svc.db.Transaction(func() (err error) {
-		p, err = svc.pageRepo.Create(page)
+
+	if err = svc.checkModulePage(mod); err != nil {
 		return
-	})
+	}
+
+	p, err = svc.pageRepo.Create(mod)
+	return
 }
 
-func (svc *page) Update(page *types.Page) (p *types.Page, err error) {
-	validate := func() error {
-		if page.ID == 0 {
-			return errors.New("Error when saving page, invalid ID")
-		} else if p, err = svc.pageRepo.FindByID(page.NamespaceID, page.ID); err != nil {
-			return errors.Wrap(err, "Error while loading page for update")
-		} else {
-			if !svc.prmSvc.CanUpdatePage(p) {
-				return errors.New("not allowed to update this page")
-			}
-		}
+func (svc *page) Update(mod *types.Page) (p *types.Page, err error) {
+	if mod.ID == 0 {
+		return nil, ErrInvalidID.withStack()
+	}
 
-		if page.ModuleID > 0 {
-			if p, err = svc.pageRepo.FindByModuleID(page.NamespaceID, page.ModuleID); err != nil {
-				return err
-			} else if p.ID > 0 && page.ID != p.ID {
-				return errors.New("Page for module already exists")
-			}
-		}
-		return nil
-	}
-	if err := validate(); err != nil {
-		return nil, err
-	}
-	return p, svc.db.Transaction(func() (err error) {
-		p, err = svc.pageRepo.Update(page)
+	if p, err = svc.pageRepo.FindByID(mod.NamespaceID, mod.ID); err != nil {
 		return
-	})
+	}
+
+	if isStale(mod.UpdatedAt, p.UpdatedAt, p.CreatedAt) {
+		return nil, ErrStaleData.withStack()
+	}
+
+	if !svc.prmSvc.CanUpdatePage(p) {
+		return nil, ErrNoUpdatePermissions.withStack()
+	}
+
+	if err = svc.checkModulePage(mod); err != nil {
+		return
+	}
+
+	p.ModuleID = mod.ModuleID
+	p.SelfID = mod.SelfID
+	p.Blocks = mod.Blocks
+	p.Title = mod.Title
+	p.Description = mod.Description
+	p.Visible = mod.Visible
+	p.Weight = mod.Weight
+
+	p, err = svc.pageRepo.Update(p)
+	return
+}
+
+func (svc page) checkModulePage(mod *types.Page) error {
+	if mod.ModuleID > 0 {
+		if p, err := svc.pageRepo.FindByModuleID(mod.NamespaceID, mod.ModuleID); err != nil {
+			if err.Error() != repository.ErrPageNotFound.Error() {
+				return err
+			}
+		} else if p.ID > 0 && mod.ID != p.ID {
+			return ErrModulePageExists
+		}
+	}
+
+	return nil
 }
 
 func (svc *page) DeleteByID(namespaceID, pageID uint64) error {

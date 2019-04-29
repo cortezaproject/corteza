@@ -77,6 +77,10 @@ func (svc trigger) Find(filter types.TriggerFilter) (set types.TriggerSet, f typ
 }
 
 func (svc trigger) Create(mod *types.Trigger) (c *types.Trigger, err error) {
+	if mod.NamespaceID == 0 {
+		return nil, ErrNamespaceRequired.withStack()
+	}
+
 	if !svc.prmSvc.CanCreateTrigger(crmNamespace()) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}

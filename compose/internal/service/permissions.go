@@ -27,6 +27,7 @@ type (
 		Effective() (ee []effectivePermission, err error)
 
 		CanAccess() bool
+		CanGrant() bool
 		CanCreateNamespace() bool
 		CanReadNamespace(r permissionResource) bool
 		CanUpdateNamespace(r permissionResource) bool
