@@ -38,9 +38,10 @@ func (Trigger) New() *Trigger {
 
 func (ctrl Trigger) List(ctx context.Context, r *request.TriggerList) (interface{}, error) {
 	f := types.TriggerFilter{
-		Query:   r.Query,
-		PerPage: r.PerPage,
-		Page:    r.Page,
+		NamespaceID: r.NamespaceID,
+		Query:       r.Query,
+		PerPage:     r.PerPage,
+		Page:        r.Page,
 	}
 
 	set, filter, err := ctrl.trigger.With(ctx).Find(f)
