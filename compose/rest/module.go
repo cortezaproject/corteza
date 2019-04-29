@@ -44,9 +44,10 @@ func (Module) New() *Module {
 
 func (ctrl *Module) List(ctx context.Context, r *request.ModuleList) (interface{}, error) {
 	f := types.ModuleFilter{
-		Query:   r.Query,
-		PerPage: r.PerPage,
-		Page:    r.Page,
+		NamespaceID: r.NamespaceID,
+		Query:       r.Query,
+		PerPage:     r.PerPage,
+		Page:        r.Page,
 	}
 
 	set, filter, err := ctrl.module.With(ctx).Find(f)

@@ -42,6 +42,8 @@ func (Chart) New() *Chart {
 
 func (ctrl Chart) List(ctx context.Context, r *request.ChartList) (interface{}, error) {
 	f := types.ChartFilter{
+		NamespaceID: r.NamespaceID,
+
 		Query:   r.Query,
 		PerPage: r.PerPage,
 		Page:    r.Page,
