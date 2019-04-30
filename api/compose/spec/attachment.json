@@ -6,13 +6,13 @@
     "get": [
       {
         "name": "sign",
-        "required": true,
+        "required": false,
         "title": "Signature",
         "type": "string"
       },
       {
         "name": "userID",
-        "required": true,
+        "required": false,
         "title": "User ID",
         "type": "uint64"
       }

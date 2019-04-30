@@ -1197,13 +1197,13 @@
                 {
                     "type": "string",
                     "name": "sign",
-                    "required": true,
+                    "required": false,
                     "title": "Signature"
                 },
                 {
                     "type": "uint64",
                     "name": "userID",
-                    "required": true,
+                    "required": false,
                     "title": "User ID"
                 }
             ]
