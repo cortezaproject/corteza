@@ -26,8 +26,8 @@
 | fieldName | string | GET | Filter attachments by field name | N/A | NO |
 | page | uint | GET | Page number (0 based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
-| sign | string | GET | Signature | N/A | YES |
-| userID | uint64 | GET | User ID | N/A | YES |
+| sign | string | GET | Signature | N/A | NO |
+| userID | uint64 | GET | User ID | N/A | NO |
 | kind | string | PATH | Attachment kind | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
@@ -46,8 +46,8 @@
 | attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
 | kind | string | PATH | Attachment kind | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
-| sign | string | GET | Signature | N/A | YES |
-| userID | uint64 | GET | User ID | N/A | YES |
+| sign | string | GET | Signature | N/A | NO |
+| userID | uint64 | GET | User ID | N/A | NO |
 
 ## Delete attachment
 
@@ -64,8 +64,8 @@
 | attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
 | kind | string | PATH | Attachment kind | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
-| sign | string | GET | Signature | N/A | YES |
-| userID | uint64 | GET | User ID | N/A | YES |
+| sign | string | GET | Signature | N/A | NO |
+| userID | uint64 | GET | User ID | N/A | NO |
 
 ## Serves attached file
 
@@ -80,8 +80,8 @@
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | download | bool | GET | Force file download | N/A | NO |
-| sign | string | GET | Signature | N/A | YES |
-| userID | uint64 | GET | User ID | N/A | YES |
+| sign | string | GET | Signature | N/A | NO |
+| userID | uint64 | GET | User ID | N/A | NO |
 | attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
 | name | string | PATH | File name | N/A | YES |
 | kind | string | PATH | Attachment kind | N/A | YES |
@@ -103,8 +103,8 @@
 | ext | string | PATH | Preview extension/format | N/A | YES |
 | kind | string | PATH | Attachment kind | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
-| sign | string | GET | Signature | N/A | YES |
-| userID | uint64 | GET | User ID | N/A | YES |
+| sign | string | GET | Signature | N/A | NO |
+| userID | uint64 | GET | User ID | N/A | NO |
 
 ---
 
