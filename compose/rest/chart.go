@@ -66,7 +66,9 @@ func (ctrl Chart) Create(ctx context.Context, r *request.ChartCreate) (interface
 }
 
 func (ctrl Chart) Read(ctx context.Context, r *request.ChartRead) (interface{}, error) {
-	return ctrl.chart.With(ctx).FindByID(r.NamespaceID, r.ChartID)
+	mod, err := ctrl.chart.With(ctx).FindByID(r.NamespaceID, r.ChartID)
+	return ctrl.makePayload(ctx, mod, err)
+
 }
 
 func (ctrl Chart) Update(ctx context.Context, r *request.ChartUpdate) (interface{}, error) {

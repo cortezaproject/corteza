@@ -55,16 +55,23 @@ func (ctrl *Module) List(ctx context.Context, r *request.ModuleList) (interface{
 }
 
 func (ctrl *Module) Read(ctx context.Context, r *request.ModuleRead) (interface{}, error) {
-	return ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID)
+	mod, err := ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID)
+	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl *Module) Create(ctx context.Context, r *request.ModuleCreate) (interface{}, error) {
-	item := &types.Module{
-		Name:   r.Name,
-		Fields: r.Fields,
-		Meta:   r.Meta,
-	}
-	return ctrl.module.With(ctx).Create(item)
+	var (
+		err error
+		mod = &types.Module{
+			NamespaceID: r.NamespaceID,
+			Name:        r.Name,
+			Fields:      r.Fields,
+			Meta:        r.Meta,
+		}
+	)
+
+	mod, err = ctrl.module.With(ctx).Create(mod)
+	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl *Module) Update(ctx context.Context, r *request.ModuleUpdate) (interface{}, error) {
