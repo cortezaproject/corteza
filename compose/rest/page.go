@@ -76,7 +76,9 @@ func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{
 }
 
 func (ctrl *Page) Read(ctx context.Context, r *request.PageRead) (interface{}, error) {
-	return ctrl.page.With(ctx).FindByID(r.NamespaceID, r.PageID)
+	mod, err := ctrl.page.With(ctx).FindByID(r.NamespaceID, r.PageID)
+	return ctrl.makePayload(ctx, mod, err)
+
 }
 
 func (ctrl *Page) Reorder(ctx context.Context, r *request.PageReorder) (interface{}, error) {

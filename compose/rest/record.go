@@ -59,18 +59,30 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 }
 
 func (ctrl *Record) Read(ctx context.Context, r *request.RecordRead) (interface{}, error) {
-	return ctrl.record.With(ctx).FindByID(r.NamespaceID, r.RecordID)
+	mod, err := ctrl.record.With(ctx).FindByID(r.NamespaceID, r.RecordID)
+
+	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl *Record) Create(ctx context.Context, r *request.RecordCreate) (interface{}, error) {
-	return ctrl.record.With(ctx).Create(&types.Record{ModuleID: r.ModuleID, Values: r.Values})
+	mod, err := ctrl.record.With(ctx).Create(&types.Record{
+		NamespaceID: r.NamespaceID,
+		ModuleID:    r.ModuleID,
+		Values:      r.Values,
+	})
+
+	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interface{}, error) {
-	return ctrl.record.With(ctx).Update(&types.Record{
-		ID:       r.RecordID,
-		ModuleID: r.ModuleID,
-		Values:   r.Values})
+	mod, err := ctrl.record.With(ctx).Update(&types.Record{
+		ID:          r.RecordID,
+		NamespaceID: r.NamespaceID,
+		ModuleID:    r.ModuleID,
+		Values:      r.Values,
+	})
+
+	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl *Record) Delete(ctx context.Context, r *request.RecordDelete) (interface{}, error) {

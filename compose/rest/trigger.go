@@ -49,22 +49,25 @@ func (ctrl Trigger) List(ctx context.Context, r *request.TriggerList) (interface
 }
 
 func (ctrl Trigger) Create(ctx context.Context, r *request.TriggerCreate) (interface{}, error) {
-	var err error
-	ns := &types.Trigger{
-		NamespaceID: r.NamespaceID,
-		ModuleID:    r.ModuleID,
-		Name:        r.Name,
-		Actions:     r.Actions,
-		Enabled:     r.Enabled,
-		Source:      r.Source,
-	}
+	var (
+		err error
+		ns  = &types.Trigger{
+			NamespaceID: r.NamespaceID,
+			ModuleID:    r.ModuleID,
+			Name:        r.Name,
+			Actions:     r.Actions,
+			Enabled:     r.Enabled,
+			Source:      r.Source,
+		}
+	)
 
 	ns, err = ctrl.trigger.With(ctx).Create(ns)
 	return ctrl.makePayload(ctx, ns, err)
 }
 
 func (ctrl Trigger) Read(ctx context.Context, r *request.TriggerRead) (interface{}, error) {
-	return ctrl.trigger.With(ctx).FindByID(r.NamespaceID, r.TriggerID)
+	mod, err := ctrl.trigger.With(ctx).FindByID(r.NamespaceID, r.TriggerID)
+	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl Trigger) Update(ctx context.Context, r *request.TriggerUpdate) (interface{}, error) {
