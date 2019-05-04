@@ -9,7 +9,7 @@ Crust brings your user ecosystem and essential applications together on one plat
 
 **Crust CRM** is the highly flexible, scalable and open source Salesforce alternative, that enables you to sell faster and interact with leads, clients and team members easier then ever before. Seamless integration with Crust Messaging and Crust Identity and Access Management make it the most complete and flexible self-hosted CRM platform on the market.
 
-**Crust Unify** manages user experience for Crust applications, such as CRM and Messaging, as well as providing an integrated interface for third party or other bespoke applications. 100% responsive and with an intuitive design, Crust Unify increases productivity and ease of access to all IT resources.
+**Crust Unify** manages user experience for Crust applications, such as Compose and Messaging, as well as providing an integrated interface for third party or other bespoke applications. 100% responsive and with an intuitive design, Crust Unify increases productivity and ease of access to all IT resources.
 
 ## Contributing
 
@@ -18,9 +18,7 @@ Crust brings your user ecosystem and essential applications together on one plat
 Copy `.env.example` to `.env` and make proper modifications for your local environment.
 
 An access to a (local) instance of MySQL must be available.
-Configure access to your database with `SAM_DB_DSN` and `CRM_DB_DSN`.
-
-Please check the options available with `./app -h`.
+Configure access to your database with `SYSTEM_DB_DSN`, `MESSAGING_DB_DSN` and `COMPOSE_DB_DSN`.
 
 The database will be populated with migrations at the start of each service. You don't need to pre-populate the database, just make sure that your permissions include CREATE and ALTER capabilities.
 

@@ -1,0 +1,145 @@
+{
+  "Title": "Charts",
+  "Interface": "Chart",
+  "Struct": [
+    {
+      "imports": [
+        "sqlxTypes github.com/jmoiron/sqlx/types",
+        "time"
+      ]
+    }
+  ],
+  "Parameters": {
+    "path": [
+      {
+        "name": "namespaceID",
+        "required": true,
+        "title": "Namespace ID",
+        "type": "uint64"
+      }
+    ]
+  },
+  "Protocol": "",
+  "Authentication": [],
+  "Path": "/namespace/{namespaceID}/chart",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List/read charts",
+      "Path": "/",
+      "Parameters": {
+        "get": [
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search query to match against charts",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "required": false,
+            "title": "Page number (0 based)",
+            "type": "uint"
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "title": "Returned items per page (default 50)",
+            "type": "uint"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "create",
+      "Method": "POST",
+      "Title": "List/read charts ",
+      "Path": "/",
+      "Parameters": {
+        "post": [
+          {
+            "name": "config",
+            "required": true,
+            "title": "Chart JSON",
+            "type": "sqlxTypes.JSONText"
+          },
+          {
+            "name": "name",
+            "required": true,
+            "title": "Chart name",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "read",
+      "Method": "GET",
+      "Title": "Read charts by ID",
+      "Path": "/{chartID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "chartID",
+            "required": true,
+            "title": "Chart ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "update",
+      "Method": "POST",
+      "Title": "Add/update charts",
+      "Path": "/{chartID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "chartID",
+            "required": true,
+            "title": "Chart ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "config",
+            "required": true,
+            "title": "Chart JSON",
+            "type": "sqlxTypes.JSONText"
+          },
+          {
+            "name": "name",
+            "required": true,
+            "title": "Chart name",
+            "type": "string"
+          },
+          {
+            "name": "updatedAt",
+            "required": false,
+            "title": "Last update (or creation) date",
+            "type": "*time.Time"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "delete",
+      "Method": "DELETE",
+      "Title": "Delete chart",
+      "Path": "/{chartID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "chartID",
+            "required": true,
+            "title": "Chart ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    }
+  ]
+}

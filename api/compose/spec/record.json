@@ -1,0 +1,197 @@
+{
+  "Title": "Records",
+  "Description": "Compose records",
+  "Interface": "Record",
+  "Struct": [
+    {
+      "imports": [
+        "github.com/crusttech/crust/compose/types"
+      ]
+    }
+  ],
+  "Parameters": {
+    "path": [
+      {
+        "name": "namespaceID",
+        "required": true,
+        "title": "Namespace ID",
+        "type": "uint64"
+      },
+      {
+        "name": "moduleID",
+        "required": true,
+        "title": "Module ID",
+        "type": "uint64"
+      }
+    ]
+  },
+  "Protocol": "",
+  "Authentication": [],
+  "Path": "/namespace/{namespaceID}/module/{moduleID}/record",
+  "APIs": [
+    {
+      "Name": "report",
+      "Method": "GET",
+      "Title": "Generates report from module records",
+      "Path": "/report",
+      "Parameters": {
+        "get": [
+          {
+            "name": "metrics",
+            "required": false,
+            "title": "Metrics (eg: 'SUM(money), MAX(calls)')",
+            "type": "string"
+          },
+          {
+            "name": "dimensions",
+            "required": true,
+            "title": "Dimensions (eg: 'DATE(foo), status')",
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "required": false,
+            "title": "Filter (eg: 'DATE(foo) \u003e 2010')",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List/read records from module section",
+      "Path": "/",
+      "Parameters": {
+        "get": [
+          {
+            "name": "filter",
+            "required": false,
+            "title": "Filtering condition",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "required": false,
+            "title": "Page number (0 based)",
+            "type": "uint"
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "title": "Returned items per page (default 50)",
+            "type": "uint"
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "title": "Sort field (default id desc)",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "create",
+      "Method": "POST",
+      "Title": "Create record in module section",
+      "Path": "/",
+      "Parameters": {
+        "post": [
+          {
+            "name": "values",
+            "required": true,
+            "title": "Record values",
+            "type": "types.RecordValueSet"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "read",
+      "Method": "GET",
+      "Title": "Read records by ID from module section",
+      "Path": "/{recordID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "recordID",
+            "required": true,
+            "title": "Record ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "update",
+      "Method": "POST",
+      "Title": "Update records in module section",
+      "Path": "/{recordID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "recordID",
+            "required": true,
+            "title": "Record ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "values",
+            "required": true,
+            "title": "Record values",
+            "type": "types.RecordValueSet"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "delete",
+      "Method": "DELETE",
+      "Title": "Delete record row from module section",
+      "Path": "/{recordID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "recordID",
+            "required": true,
+            "title": "Record ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "upload",
+      "Method": "POST",
+      "Title": "Uploads attachment and validates it against record field requirements",
+      "Path": "/{recordID}/{fieldName}/attachment",
+      "Parameters": {
+        "path": [
+          {
+            "name": "recordID",
+            "required": true,
+            "title": "Record ID",
+            "type": "uint64"
+          },
+          {
+            "name": "fieldName",
+            "required": true,
+            "title": "Field name",
+            "type": "string"
+          }
+        ],
+        "post": [
+          {
+            "name": "upload",
+            "required": true,
+            "title": "File to upload",
+            "type": "*multipart.FileHeader"
+          }
+        ]
+      }
+    }
+  ]
+}

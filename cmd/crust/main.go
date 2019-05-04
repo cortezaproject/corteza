@@ -13,7 +13,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/namsral/flag"
 
-	crm "github.com/crusttech/crust/crm"
+	compose "github.com/crusttech/crust/compose"
 	"github.com/crusttech/crust/internal/auth"
 	messaging "github.com/crusttech/crust/messaging"
 	system "github.com/crusttech/crust/system"
@@ -55,7 +55,7 @@ func main() {
 	flags.http = new(config.HTTP).Init()
 	flags.monitor = new(config.Monitor).Init()
 
-	crm.Flags("crm")
+	compose.Flags("compose")
 	messaging.Flags("messaging")
 	system.Flags("system")
 
@@ -78,8 +78,8 @@ func main() {
 		if err := system.Init(ctx); err != nil {
 			log.Fatalf("Error initializing system: %+v", err)
 		}
-		if err := crm.Init(ctx); err != nil {
-			log.Fatalf("Error initializing crm: %+v", err)
+		if err := compose.Init(ctx); err != nil {
+			log.Fatalf("Error initializing compose: %+v", err)
 		}
 		if err := messaging.Init(ctx); err != nil {
 			log.Fatalf("Error initializing messaging: %+v", err)
@@ -103,16 +103,16 @@ func main() {
 		// logging, cors and such
 		middleware.Mount(ctx, r, flags.http)
 
-                // Use JWT secret for hmac signer for now
-                auth.DefaultSigner = auth.HmacSigner(authJwtFlags.Secret)
-                auth.DefaultJwtHandler, err = auth.JWT(authJwtFlags.Secret, authJwtFlags.Expiry)
+		// Use JWT secret for hmac signer for now
+		auth.DefaultSigner = auth.HmacSigner(authJwtFlags.Secret)
+		auth.DefaultJwtHandler, err = auth.JWT(authJwtFlags.Secret, authJwtFlags.Expiry)
 		if err != nil {
 			log.Fatalf("Error creating JWT Auth: %v", err)
 		}
 
 		r.Route("/api", func(r chi.Router) {
-			r.Route("/crm", func(r chi.Router) {
-				crm.MountRoutes(ctx, r)
+			r.Route("/compose", func(r chi.Router) {
+				compose.MountRoutes(ctx, r)
 			})
 			r.Route("/messaging", func(r chi.Router) {
 				messaging.MountRoutes(ctx, r)
@@ -125,8 +125,8 @@ func main() {
 
 		fileserver := http.FileServer(http.Dir("webapp"))
 
-		for _, service := range []string{"admin", "system", "messaging", "crm"} {
-			r.HandleFunc("/"+service+"*", serveIndex("webapp", "crm/index.html", fileserver))
+		for _, service := range []string{"admin", "system", "messaging", "compose"} {
+			r.HandleFunc("/"+service+"*", serveIndex("webapp", "compose/index.html", fileserver))
 		}
 		r.HandleFunc("/*", serveIndex("webapp", "index.html", fileserver))
 

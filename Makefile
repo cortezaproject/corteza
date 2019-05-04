@@ -1,12 +1,12 @@
-.PHONY: help docker docker-push realize dep dep.update test test.messaging test.crm qa critic vet codegen integration
+.PHONY: help docker docker-push realize dep dep.update test test.messaging test.compose qa critic vet codegen integration
 
 PKG       = "github.com/$(shell cat .project)"
 
 GO        = go
 GOGET     = $(GO) get -u
 
-BASEPKGS = system crm messaging
-IMAGES   = system crm messaging
+BASEPKGS = system compose messaging
+IMAGES   = system compose messaging
 
 ########################################################################################################################
 # Tool bins
@@ -25,7 +25,7 @@ help:
 	@echo
 	@echo - vet - run go vet on all code
 	@echo - critic - run go critic on all code
-	@echo - test.crm - individual package unit tests
+	@echo - test.compose - individual package unit tests
 	@echo - test.messaging - individual package unit tests
 	@echo - test - run all available unit tests
 	@echo - qa - run vet, critic and test on code
@@ -86,13 +86,13 @@ test.events: $(GOTEST)
 	perl -pi -e 's/command-line-arguments/.\/messaging\/repository/g' .cover.out
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
-test.crm: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./crm/service/...
+test.compose: $(GOTEST)
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./compose/service/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
-test.crm.db: $(GOTEST)
-	cd crm/db && $(GO) generate && cd ../..
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./crm/db/...
+test.compose.db: $(GOTEST)
+	cd compose/db && $(GO) generate && cd ../..
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./compose/db/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.system: $(GOTEST)

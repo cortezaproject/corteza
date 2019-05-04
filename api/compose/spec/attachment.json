@@ -1,0 +1,173 @@
+{
+  "Title": "Attachments",
+  "Interface": "Attachment",
+  "Struct": null,
+  "Parameters": {
+    "get": [
+      {
+        "name": "sign",
+        "required": false,
+        "title": "Signature",
+        "type": "string"
+      },
+      {
+        "name": "userID",
+        "required": false,
+        "title": "User ID",
+        "type": "uint64"
+      }
+    ],
+    "path": [
+      {
+        "name": "kind",
+        "required": true,
+        "title": "Attachment kind",
+        "type": "string"
+      },
+      {
+        "name": "namespaceID",
+        "required": true,
+        "title": "Namespace ID",
+        "type": "uint64"
+      }
+    ]
+  },
+  "Protocol": "",
+  "Authentication": [
+    "Client ID",
+    "Session ID"
+  ],
+  "Path": "/namespace/{namespaceID}/attachment/{kind}",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List, filter all page attachments",
+      "Path": "/",
+      "Parameters": {
+        "get": [
+          {
+            "name": "pageID",
+            "required": false,
+            "title": "Filter attachments by page ID",
+            "type": "uint64"
+          },
+          {
+            "name": "moduleID",
+            "required": false,
+            "title": "Filter attachments by module ID",
+            "type": "uint64"
+          },
+          {
+            "name": "recordID",
+            "required": false,
+            "title": "Filter attachments by record ID",
+            "type": "uint64"
+          },
+          {
+            "name": "fieldName",
+            "required": false,
+            "title": "Filter attachments by field name",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "required": false,
+            "title": "Page number (0 based)",
+            "type": "uint"
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "title": "Returned items per page (default 50)",
+            "type": "uint"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "read",
+      "Method": "GET",
+      "Title": "Attachment details",
+      "Path": "/{attachmentID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "attachmentID",
+            "required": true,
+            "title": "Attachment ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "delete",
+      "Method": "DELETE",
+      "Title": "Delete attachment",
+      "Path": "/{attachmentID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "attachmentID",
+            "required": true,
+            "title": "Attachment ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "original",
+      "Method": "GET",
+      "Title": "Serves attached file",
+      "Path": "/{attachmentID}/original/{name}",
+      "Parameters": {
+        "get": [
+          {
+            "name": "download",
+            "required": false,
+            "title": "Force file download",
+            "type": "bool"
+          }
+        ],
+        "path": [
+          {
+            "name": "attachmentID",
+            "required": true,
+            "title": "Attachment ID",
+            "type": "uint64"
+          },
+          {
+            "name": "name",
+            "required": true,
+            "title": "File name",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "preview",
+      "Method": "GET",
+      "Title": "Serves preview of an attached file",
+      "Path": "/{attachmentID}/preview.{ext}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "attachmentID",
+            "required": true,
+            "title": "Attachment ID",
+            "type": "uint64"
+          },
+          {
+            "name": "ext",
+            "required": true,
+            "title": "Preview extension/format",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}

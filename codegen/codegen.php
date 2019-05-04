@@ -101,6 +101,8 @@ $parsers = array(
 	"int" => "parseInt",
 	"uint" => "parseUint",
 	"bool" => "parseBool",
+	"time.Time" => "parseISODateWithErr",
+	"*time.Time" => "parseISODatePtrWithErr",
 	"sqlxTypes.JSONText" => "parseJSONTextWithErr",
 );
 
