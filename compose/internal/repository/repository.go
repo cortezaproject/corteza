@@ -86,9 +86,13 @@ func (r repository) count(q squirrel.SelectBuilder) (uint, error) {
 
 // Fetches paged rows
 func (r repository) fetchPaged(set interface{}, q squirrel.SelectBuilder, page, perPage uint) error {
-	q = q.
-		Limit(uint64(perPage)).
-		Offset(uint64(page * perPage))
+	if perPage > 0 {
+		q = q.Limit(uint64(perPage))
+	}
+
+	if page > 0 {
+		q = q.Offset(uint64(page * perPage))
+	}
 
 	if sqlSelect, argsSelect, err := q.ToSql(); err != nil {
 		return err
@@ -102,11 +106,11 @@ func normalizePerPage(val, min, max, def uint) uint {
 		return def
 	}
 
-	if val > max {
+	if max > 0 && val > max {
 		return max
 	}
 
-	if val < min {
+	if min > 0 && val < min {
 		return min
 	}
 

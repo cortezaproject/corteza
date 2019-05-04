@@ -77,7 +77,6 @@ func (r trigger) FindByID(namespaceID, triggerID uint64) (*types.Trigger, error)
 
 func (r trigger) Find(filter types.TriggerFilter) (set types.TriggerSet, f types.TriggerFilter, err error) {
 	f = filter
-	f.PerPage = normalizePerPage(f.PerPage, 5, 100, 50)
 
 	query := r.query()
 

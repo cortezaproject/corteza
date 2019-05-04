@@ -79,7 +79,6 @@ func (r *namespace) FindByID(namespaceID uint64) (*types.Namespace, error) {
 
 func (r *namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
 	f = filter
-	f.PerPage = normalizePerPage(f.PerPage, 5, 100, 50)
 
 	query := r.query()
 	if f.Query != "" {

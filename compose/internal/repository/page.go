@@ -97,7 +97,6 @@ func (r page) FindByModuleID(namespaceID, moduleID uint64) (*types.Page, error) 
 
 func (r page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
 	f = filter
-	f.PerPage = normalizePerPage(f.PerPage, 5, 100, 50)
 
 	query := r.query()
 
