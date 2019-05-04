@@ -76,7 +76,6 @@ func (r chart) FindByID(namespaceID, chartID uint64) (*types.Chart, error) {
 
 func (r chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error) {
 	f = filter
-	f.PerPage = normalizePerPage(f.PerPage, 5, 100, 50)
 
 	query := r.query()
 

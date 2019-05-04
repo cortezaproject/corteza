@@ -80,7 +80,6 @@ func (r module) FindByID(namespaceID, moduleID uint64) (*types.Module, error) {
 
 func (r module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
 	f = filter
-	f.PerPage = normalizePerPage(f.PerPage, 5, 100, 50)
 
 	query := r.query()
 

@@ -80,7 +80,7 @@ func (r attachment) FindByID(namespaceID, attachmentID uint64) (*types.Attachmen
 
 func (r attachment) Find(filter types.AttachmentFilter) (set types.AttachmentSet, f types.AttachmentFilter, err error) {
 	f = filter
-	f.PerPage = normalizePerPage(f.PerPage, 5, 100, 50)
+	// f.PerPage = normalizePerPage(f.PerPage, 5, 100, 50)
 
 	query := r.query().
 		Where(squirrel.Eq{"a.kind": f.Kind})
