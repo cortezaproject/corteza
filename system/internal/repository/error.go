@@ -14,5 +14,5 @@ func (e repositoryError) Error() string {
 }
 
 func (e repositoryError) String() string {
-	return "crust.auth.repository." + string(e)
+	return "crust.system.repository." + string(e)
 }

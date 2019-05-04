@@ -1,0 +1,248 @@
+{
+  "Title": "Pages",
+  "Description": "Compose pages",
+  "Interface": "Page",
+  "Struct": [
+    {
+      "imports": [
+        "sqlxTypes github.com/jmoiron/sqlx/types"
+      ]
+    }
+  ],
+  "Parameters": {
+    "path": [
+      {
+        "name": "namespaceID",
+        "required": true,
+        "title": "Namespace ID",
+        "type": "uint64"
+      }
+    ]
+  },
+  "Protocol": "",
+  "Authentication": [],
+  "Path": "/namespace/{namespaceID}/page",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List available pages",
+      "Path": "/",
+      "Parameters": {
+        "get": [
+          {
+            "name": "selfID",
+            "required": false,
+            "title": "Parent page ID",
+            "type": "uint64"
+          },
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search query",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "required": false,
+            "title": "Page number (0 based)",
+            "type": "uint"
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "title": "Returned items per page (default 50)",
+            "type": "uint"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "create",
+      "Method": "POST",
+      "Title": "Create page",
+      "Path": "/",
+      "Parameters": {
+        "post": [
+          {
+            "name": "selfID",
+            "required": false,
+            "title": "Parent Page ID",
+            "type": "uint64"
+          },
+          {
+            "name": "moduleID",
+            "required": false,
+            "title": "Module ID",
+            "type": "uint64"
+          },
+          {
+            "name": "title",
+            "required": true,
+            "title": "Title",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "required": false,
+            "title": "Description",
+            "type": "string"
+          },
+          {
+            "name": "visible",
+            "required": false,
+            "title": "Visible in navigation",
+            "type": "bool"
+          },
+          {
+            "name": "blocks",
+            "required": true,
+            "title": "Blocks JSON",
+            "type": "sqlxTypes.JSONText"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "read",
+      "Method": "GET",
+      "Title": "Get page details",
+      "Path": "/{pageID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "pageID",
+            "required": true,
+            "title": "Page ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "tree",
+      "Method": "GET",
+      "Title": "Get page all (non-record) pages, hierarchically",
+      "Path": "/tree",
+      "Parameters": {}
+    },
+    {
+      "Name": "update",
+      "Method": "POST",
+      "Title": "Update page",
+      "Path": "/{pageID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "pageID",
+            "required": true,
+            "title": "Page ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "selfID",
+            "required": false,
+            "title": "Parent Page ID",
+            "type": "uint64"
+          },
+          {
+            "name": "moduleID",
+            "required": false,
+            "title": "Module ID (optional)",
+            "type": "uint64"
+          },
+          {
+            "name": "title",
+            "required": true,
+            "title": "Title",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "required": false,
+            "title": "Description",
+            "type": "string"
+          },
+          {
+            "name": "visible",
+            "required": false,
+            "title": "Visible in navigation",
+            "type": "bool"
+          },
+          {
+            "name": "blocks",
+            "required": true,
+            "title": "Blocks JSON",
+            "type": "sqlxTypes.JSONText"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "reorder",
+      "Method": "POST",
+      "Title": "Reorder pages",
+      "Path": "/{selfID}/reorder",
+      "Parameters": {
+        "path": [
+          {
+            "name": "selfID",
+            "required": true,
+            "title": "Parent page ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "pageIDs",
+            "required": true,
+            "title": "Page ID order",
+            "type": "[]string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "delete",
+      "Method": "Delete",
+      "Title": "Delete page",
+      "Path": "/{pageID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "pageID",
+            "required": true,
+            "title": "Page ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "upload",
+      "Method": "POST",
+      "Title": "Uploads attachment to page",
+      "Path": "/{pageID}/attachment",
+      "Parameters": {
+        "path": [
+          {
+            "name": "pageID",
+            "required": true,
+            "title": "Page ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "upload",
+            "required": true,
+            "title": "File to upload",
+            "type": "*multipart.FileHeader"
+          }
+        ]
+      }
+    }
+  ]
+}

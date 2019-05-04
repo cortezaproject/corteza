@@ -1,0 +1,187 @@
+{
+  "Title": "Triggers",
+  "Description": "Compose Triggers",
+  "Interface": "Trigger",
+  "Struct": [
+    {
+      "imports": [
+        "time"
+      ]
+    }
+  ],
+  "Parameters": {
+    "path": [
+      {
+        "name": "namespaceID",
+        "required": true,
+        "title": "Namespace ID",
+        "type": "uint64"
+      }
+    ]
+  },
+  "Protocol": "",
+  "Authentication": [],
+  "Path": "/namespace/{namespaceID}/trigger",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List available triggers",
+      "Path": "/",
+      "Parameters": {
+        "get": [
+          {
+            "name": "moduleID",
+            "required": false,
+            "title": "Filter triggers by module",
+            "type": "uint64"
+          },
+          {
+            "name": "query",
+            "required": false,
+            "title": "Search query",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "required": false,
+            "title": "Page number (0 based)",
+            "type": "uint"
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "title": "Returned items per page (default 50)",
+            "type": "uint"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "create",
+      "Method": "POST",
+      "Title": "Create trigger",
+      "Path": "/",
+      "Parameters": {
+        "post": [
+          {
+            "name": "moduleID",
+            "required": false,
+            "title": "Module ID",
+            "type": "uint64"
+          },
+          {
+            "name": "name",
+            "required": true,
+            "title": "Name",
+            "type": "string"
+          },
+          {
+            "name": "actions",
+            "required": false,
+            "title": "Actions that trigger this trigger",
+            "type": "[]string"
+          },
+          {
+            "name": "enabled",
+            "required": false,
+            "title": "Enabled",
+            "type": "bool"
+          },
+          {
+            "name": "source",
+            "required": false,
+            "title": "Trigger source code",
+            "type": "string"
+          },
+          {
+            "name": "updatedAt",
+            "required": false,
+            "title": "Last update (or creation) date",
+            "type": "*time.Time"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "read",
+      "Method": "GET",
+      "Title": "Get trigger details",
+      "Path": "/{triggerID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "triggerID",
+            "required": true,
+            "title": "Trigger ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "update",
+      "Method": "POST",
+      "Title": "Update trigger",
+      "Path": "/{triggerID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "triggerID",
+            "required": true,
+            "title": "Trigger ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "moduleID",
+            "required": false,
+            "title": "Module ID",
+            "type": "uint64"
+          },
+          {
+            "name": "name",
+            "required": true,
+            "title": "Name",
+            "type": "string"
+          },
+          {
+            "name": "actions",
+            "required": false,
+            "title": "Actions that trigger this trigger",
+            "type": "[]string"
+          },
+          {
+            "name": "enabled",
+            "required": false,
+            "title": "Enabled",
+            "type": "bool"
+          },
+          {
+            "name": "source",
+            "required": false,
+            "title": "Trigger source code",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "delete",
+      "Method": "Delete",
+      "Title": "Delete trigger",
+      "Path": "/{triggerID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "triggerID",
+            "required": true,
+            "title": "Trigger ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    }
+  ]
+}
