@@ -76,6 +76,8 @@ func (ctrl Trigger) Update(ctx context.Context, r *request.TriggerUpdate) (inter
 		err error
 	)
 
+	mod.ID = r.TriggerID
+	mod.NamespaceID = r.NamespaceID
 	mod.ModuleID = r.ModuleID
 	mod.Name = r.Name
 	mod.Actions = r.Actions

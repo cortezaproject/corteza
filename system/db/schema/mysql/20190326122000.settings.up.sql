@@ -1,6 +1,6 @@
-DROP TABLE `settings`;
+DROP TABLE IF EXISTS `settings`;
 
-CREATE TABLE `sys_settings` (
+CREATE TABLE IF NOT EXISTS `sys_settings` (
   rel_owner        BIGINT UNSIGNED NOT NULL DEFAULT 0     COMMENT 'Value owner, 0 for global settings',
   name             VARCHAR(200)    NOT NULL               COMMENT 'Unique set of setting keys',
   value            JSON                                   COMMENT 'Setting value',
