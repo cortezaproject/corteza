@@ -31,6 +31,6 @@ func (*JWT) Init(prefix ...string) *JWT {
 
 	jwt = new(JWT)
 	flag.StringVar(&jwt.Secret, "auth-jwt-secret", "", "JWT Secret")
-	flag.Int64Var(&jwt.Expiry, "auth-jwt-expiry", 3600, "JWT Expiration in minutes")
+	flag.Int64Var(&jwt.Expiry, "auth-jwt-expiry", 60*24*30, "JWT Expiration in minutes")
 	return jwt
 }
