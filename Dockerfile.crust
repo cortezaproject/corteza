@@ -30,8 +30,11 @@ RUN apk add --no-cache ca-certificates
 COPY --from=builder /build /crust
 COPY --from=webapp /crust/webapp /crust/webapp
 
+COPY --from=webapp /startup /startup
+COPY --from=webapp /start.sh /start.sh
+
 WORKDIR /crust
 
 EXPOSE 80
 
-ENTRYPOINT /crust/crust
+ENTRYPOINT ["/start.sh", "/crust/crust"]
