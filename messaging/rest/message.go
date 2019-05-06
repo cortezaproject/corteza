@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/internal/payload/outgoing"
@@ -58,7 +59,7 @@ func (ctrl Message) ExecuteCommand(ctx context.Context, r *request.MessageExecut
 }
 
 func (ctrl *Message) Delete(ctx context.Context, r *request.MessageDelete) (interface{}, error) {
-	return nil, ctrl.svc.msg.With(ctx).Delete(r.MessageID)
+	return resputil.OK(), ctrl.svc.msg.With(ctx).Delete(r.MessageID)
 }
 
 func (ctrl *Message) MarkAsRead(ctx context.Context, r *request.MessageMarkAsRead) (interface{}, error) {
@@ -66,27 +67,27 @@ func (ctrl *Message) MarkAsRead(ctx context.Context, r *request.MessageMarkAsRea
 }
 
 func (ctrl *Message) PinCreate(ctx context.Context, r *request.MessagePinCreate) (interface{}, error) {
-	return nil, ctrl.svc.msg.With(ctx).Pin(r.MessageID)
+	return resputil.OK(), ctrl.svc.msg.With(ctx).Pin(r.MessageID)
 }
 
 func (ctrl *Message) PinRemove(ctx context.Context, r *request.MessagePinRemove) (interface{}, error) {
-	return nil, ctrl.svc.msg.With(ctx).RemovePin(r.MessageID)
+	return resputil.OK(), ctrl.svc.msg.With(ctx).RemovePin(r.MessageID)
 }
 
 func (ctrl *Message) BookmarkCreate(ctx context.Context, r *request.MessageBookmarkCreate) (interface{}, error) {
-	return nil, ctrl.svc.msg.With(ctx).Bookmark(r.MessageID)
+	return resputil.OK(), ctrl.svc.msg.With(ctx).Bookmark(r.MessageID)
 }
 
 func (ctrl *Message) BookmarkRemove(ctx context.Context, r *request.MessageBookmarkRemove) (interface{}, error) {
-	return nil, ctrl.svc.msg.With(ctx).RemoveBookmark(r.MessageID)
+	return resputil.OK(), ctrl.svc.msg.With(ctx).RemoveBookmark(r.MessageID)
 }
 
 func (ctrl *Message) ReactionCreate(ctx context.Context, r *request.MessageReactionCreate) (interface{}, error) {
-	return nil, ctrl.svc.msg.With(ctx).React(r.MessageID, r.Reaction)
+	return resputil.OK(), ctrl.svc.msg.With(ctx).React(r.MessageID, r.Reaction)
 }
 
 func (ctrl *Message) ReactionRemove(ctx context.Context, r *request.MessageReactionRemove) (interface{}, error) {
-	return nil, ctrl.svc.msg.With(ctx).RemoveReaction(r.MessageID, r.Reaction)
+	return resputil.OK(), ctrl.svc.msg.With(ctx).RemoveReaction(r.MessageID, r.Reaction)
 }
 
 func (ctrl *Message) wrap(ctx context.Context) func(m *types.Message, err error) (*outgoing.Message, error) {
