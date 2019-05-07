@@ -23,7 +23,6 @@ import (
 	"github.com/crusttech/crust/internal/config"
 	"github.com/crusttech/crust/internal/metrics"
 	"github.com/crusttech/crust/internal/middleware"
-	"github.com/crusttech/crust/internal/routes"
 	"github.com/crusttech/crust/internal/subscription"
 )
 
@@ -135,8 +134,6 @@ func main() {
 			r.HandleFunc("/"+service+"*", serveIndex("webapp", "compose/index.html", fileserver))
 		}
 		r.HandleFunc("/*", serveIndex("webapp", "index.html", fileserver))
-
-		routes.Print(r)
 
 		go http.Serve(listener, r)
 		<-ctx.Done()
