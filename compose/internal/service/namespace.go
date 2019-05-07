@@ -4,15 +4,19 @@ import (
 	"context"
 
 	"github.com/titpetric/factory"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/crusttech/crust/compose/internal/repository"
 	"github.com/crusttech/crust/compose/types"
+	"github.com/crusttech/crust/internal/logger"
 )
 
 type (
 	namespace struct {
-		db  *factory.DB
-		ctx context.Context
+		db     *factory.DB
+		ctx    context.Context
+		logger *zap.Logger
 
 		prmSvc PermissionsService
 
@@ -33,15 +37,17 @@ type (
 
 func Namespace() NamespaceService {
 	return (&namespace{
+		logger: DefaultLogger.Named("namespace"),
 		prmSvc: DefaultPermissions,
 	}).With(context.Background())
 }
 
-func (svc *namespace) With(ctx context.Context) NamespaceService {
+func (svc namespace) With(ctx context.Context) NamespaceService {
 	db := repository.DB(ctx)
 	return &namespace{
-		db:  db,
-		ctx: ctx,
+		db:     db,
+		ctx:    ctx,
+		logger: svc.logger,
 
 		prmSvc: svc.prmSvc.With(ctx),
 
@@ -49,7 +55,12 @@ func (svc *namespace) With(ctx context.Context) NamespaceService {
 	}
 }
 
-func (svc *namespace) FindByID(ID uint64) (n *types.Namespace, err error) {
+// log() returns zap's logger with requestID from current context and fields.
+func (svc namespace) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+}
+
+func (svc namespace) FindByID(ID uint64) (n *types.Namespace, err error) {
 	if ID == 0 {
 		return nil, ErrInvalidID.withStack()
 	}
@@ -63,7 +74,7 @@ func (svc *namespace) FindByID(ID uint64) (n *types.Namespace, err error) {
 	return
 }
 
-func (svc *namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
+func (svc namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
 	set, f, err = svc.namespaceRepo.Find(filter)
 	if err != nil {
 		return
@@ -76,7 +87,7 @@ func (svc *namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet
 	return
 }
 
-func (svc *namespace) Create(mod *types.Namespace) (*types.Namespace, error) {
+func (svc namespace) Create(mod *types.Namespace) (*types.Namespace, error) {
 	if !svc.prmSvc.CanCreateNamespace() {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
@@ -84,7 +95,7 @@ func (svc *namespace) Create(mod *types.Namespace) (*types.Namespace, error) {
 	return svc.namespaceRepo.Create(mod)
 }
 
-func (svc *namespace) Update(mod *types.Namespace) (m *types.Namespace, err error) {
+func (svc namespace) Update(mod *types.Namespace) (m *types.Namespace, err error) {
 	if mod.ID == 0 {
 		return nil, ErrInvalidID.withStack()
 	}
@@ -110,7 +121,7 @@ func (svc *namespace) Update(mod *types.Namespace) (m *types.Namespace, err erro
 	return svc.namespaceRepo.Update(m)
 }
 
-func (svc *namespace) DeleteByID(ID uint64) error {
+func (svc namespace) DeleteByID(ID uint64) error {
 	if m, err := svc.namespaceRepo.FindByID(ID); err != nil {
 		return err
 	} else if !svc.prmSvc.CanDeleteNamespace(m) {

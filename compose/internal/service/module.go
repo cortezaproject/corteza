@@ -4,15 +4,19 @@ import (
 	"context"
 
 	"github.com/titpetric/factory"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/crusttech/crust/compose/internal/repository"
 	"github.com/crusttech/crust/compose/types"
+	"github.com/crusttech/crust/internal/logger"
 )
 
 type (
 	module struct {
-		db  *factory.DB
-		ctx context.Context
+		db     *factory.DB
+		ctx    context.Context
+		logger *zap.Logger
 
 		prmSvc PermissionsService
 
@@ -34,15 +38,17 @@ type (
 
 func Module() ModuleService {
 	return (&module{
+		logger: DefaultLogger.Named("module"),
 		prmSvc: DefaultPermissions,
 	}).With(context.Background())
 }
 
-func (svc *module) With(ctx context.Context) ModuleService {
+func (svc module) With(ctx context.Context) ModuleService {
 	db := repository.DB(ctx)
 	return &module{
-		db:  db,
-		ctx: ctx,
+		db:     db,
+		ctx:    ctx,
+		logger: svc.logger,
 
 		prmSvc: svc.prmSvc.With(ctx),
 
@@ -51,7 +57,12 @@ func (svc *module) With(ctx context.Context) ModuleService {
 	}
 }
 
-func (svc *module) FindByID(namespaceID, moduleID uint64) (m *types.Module, err error) {
+// log() returns zap's logger with requestID from current context and fields.
+func (svc module) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+}
+
+func (svc module) FindByID(namespaceID, moduleID uint64) (m *types.Module, err error) {
 	if namespaceID == 0 {
 		return nil, ErrNamespaceRequired
 	}
@@ -75,7 +86,7 @@ func (svc *module) FindByID(namespaceID, moduleID uint64) (m *types.Module, err 
 	return
 }
 
-func (svc *module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
+func (svc module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
 	set, f, err = svc.moduleRepo.Find(filter)
 	if err != nil {
 		return
@@ -99,7 +110,7 @@ func (svc *module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types
 	return
 }
 
-func (svc *module) Create(mod *types.Module) (*types.Module, error) {
+func (svc module) Create(mod *types.Module) (*types.Module, error) {
 
 	if mod.NamespaceID == 0 {
 		return nil, ErrNamespaceRequired.withStack()
@@ -112,7 +123,7 @@ func (svc *module) Create(mod *types.Module) (*types.Module, error) {
 	return svc.moduleRepo.Create(mod)
 }
 
-func (svc *module) Update(mod *types.Module) (m *types.Module, err error) {
+func (svc module) Update(mod *types.Module) (m *types.Module, err error) {
 	if mod.ID == 0 {
 		return nil, ErrInvalidID.withStack()
 	}
@@ -136,7 +147,7 @@ func (svc *module) Update(mod *types.Module) (m *types.Module, err error) {
 	return svc.moduleRepo.Update(m)
 }
 
-func (svc *module) DeleteByID(namespaceID, moduleID uint64) error {
+func (svc module) DeleteByID(namespaceID, moduleID uint64) error {
 	if namespaceID == 0 {
 		return ErrNamespaceRequired.withStack()
 	}

@@ -24,6 +24,7 @@ import (
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/compose/rest/request"
+	"github.com/crusttech/crust/internal/logger"
 )
 
 // Internal API interface
@@ -50,13 +51,16 @@ func NewChart(ch ChartAPI) *Chart {
 			defer r.Body.Close()
 			params := request.NewChartList()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Chart.List", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ch.List(r.Context(), params); err != nil {
+				logger.LogControllerError("Chart.List", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Chart.List", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -70,13 +74,16 @@ func NewChart(ch ChartAPI) *Chart {
 			defer r.Body.Close()
 			params := request.NewChartCreate()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Chart.Create", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ch.Create(r.Context(), params); err != nil {
+				logger.LogControllerError("Chart.Create", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Chart.Create", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -90,13 +97,16 @@ func NewChart(ch ChartAPI) *Chart {
 			defer r.Body.Close()
 			params := request.NewChartRead()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Chart.Read", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ch.Read(r.Context(), params); err != nil {
+				logger.LogControllerError("Chart.Read", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Chart.Read", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -110,13 +120,16 @@ func NewChart(ch ChartAPI) *Chart {
 			defer r.Body.Close()
 			params := request.NewChartUpdate()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Chart.Update", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ch.Update(r.Context(), params); err != nil {
+				logger.LogControllerError("Chart.Update", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Chart.Update", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -130,13 +143,16 @@ func NewChart(ch ChartAPI) *Chart {
 			defer r.Body.Close()
 			params := request.NewChartDelete()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Chart.Delete", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ch.Delete(r.Context(), params); err != nil {
+				logger.LogControllerError("Chart.Delete", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Chart.Delete", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

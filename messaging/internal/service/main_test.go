@@ -3,13 +3,15 @@
 package service
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"testing"
 
 	"github.com/namsral/flag"
 	"github.com/titpetric/factory"
+	"go.uber.org/zap/zapcore"
 
+	"github.com/crusttech/crust/internal/logger"
 	messagingMigrate "github.com/crusttech/crust/messaging/db"
 	"github.com/crusttech/crust/messaging/internal/repository"
 	systemMigrate "github.com/crusttech/crust/system/db"
@@ -21,6 +23,8 @@ type mockDB struct{}
 func (mockDB) Transaction(callback func() error) error { return callback() }
 
 func TestMain(m *testing.M) {
+	logger.Init(zapcore.DebugLevel)
+
 	dsn := ""
 	new(repository.Flags).Init("messaging")
 	flag.StringVar(&dsn, "db-dsn", "crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci", "DSN for database connection")
@@ -40,11 +44,11 @@ func TestMain(m *testing.M) {
 
 	// migrate database schema
 	if err := systemMigrate.Migrate(dbSystem); err != nil {
-		log.Printf("Error running migrations: %+v\n", err)
+		fmt.Printf("Error running migrations: %+v\n", err)
 		return
 	}
 	if err := messagingMigrate.Migrate(db); err != nil {
-		log.Printf("Error running migrations: %+v\n", err)
+		fmt.Printf("Error running migrations: %+v\n", err)
 		return
 	}
 

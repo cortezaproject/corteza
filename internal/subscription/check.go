@@ -2,12 +2,14 @@ package subscription
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 
 	"github.com/crusttech/permit/pkg/permit"
+
+	"github.com/crusttech/crust/internal/logger"
 )
 
 const (
@@ -68,7 +70,12 @@ func Check(ctx context.Context) (err error) {
 		}
 
 		if err != nil {
-			log.Printf("unable to check for subscription: %v, try %d/%d", err, try, checkMaxTries)
+			logger.Default().Warn(
+				"unable to check for subscription",
+				zap.Error(err),
+				zap.Int("try", try),
+				zap.Int("max", checkMaxTries),
+			)
 		}
 
 		if try >= checkMaxTries {

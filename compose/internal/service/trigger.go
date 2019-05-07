@@ -4,15 +4,19 @@ import (
 	"context"
 
 	"github.com/titpetric/factory"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/crusttech/crust/compose/internal/repository"
 	"github.com/crusttech/crust/compose/types"
+	"github.com/crusttech/crust/internal/logger"
 )
 
 type (
 	trigger struct {
-		db  *factory.DB
-		ctx context.Context
+		db     *factory.DB
+		ctx    context.Context
+		logger *zap.Logger
 
 		prmSvc PermissionsService
 
@@ -33,6 +37,7 @@ type (
 
 func Trigger() TriggerService {
 	return (&trigger{
+		logger: DefaultLogger.Named("trigger"),
 		prmSvc: DefaultPermissions,
 	}).With(context.Background())
 }
@@ -40,13 +45,19 @@ func Trigger() TriggerService {
 func (svc trigger) With(ctx context.Context) TriggerService {
 	db := repository.DB(ctx)
 	return &trigger{
-		db:  db,
-		ctx: ctx,
+		db:     db,
+		ctx:    ctx,
+		logger: svc.logger,
 
 		prmSvc: svc.prmSvc.With(ctx),
 
 		triggerRepo: repository.Trigger(ctx, db),
 	}
+}
+
+// log() returns zap's logger with requestID from current context and fields.
+func (svc trigger) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
 }
 
 func (svc trigger) FindByID(namespaceID, triggerID uint64) (c *types.Trigger, err error) {

@@ -401,6 +401,37 @@
   revision = "ce6800c0c52f2c1da3b166b4c26f174dc55c2d02"
 
 [[projects]]
+  digest = "1:a5158647b553c61877aa9ae74f4015000294e47981e6b8b07525edcbb0747c81"
+  name = "go.uber.org/atomic"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "df976f2515e274675050de7b3f42545de80594fd"
+  version = "v1.4.0"
+
+[[projects]]
+  digest = "1:60bf2a5e347af463c42ed31a493d817f8a72f102543060ed992754e689805d1a"
+  name = "go.uber.org/multierr"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3c4937480c32f4c13a875a1829af76c98ca3d40a"
+  version = "v1.1.0"
+
+[[projects]]
+  digest = "1:676160e6a4722b08e0e26b11521d575c2cb2b6f0c679e1ee6178c5d8dee51e5e"
+  name = "go.uber.org/zap"
+  packages = [
+    ".",
+    "buffer",
+    "internal/bufferpool",
+    "internal/color",
+    "internal/exit",
+    "zapcore",
+  ]
+  pruneopts = "UT"
+  revision = "27376062155ad36be76b0f12cf1572a221d3a48c"
+  version = "v1.10.0"
+
+[[projects]]
   branch = "master"
   digest = "1:15d41bf3d543ea587ff8625402b7d3e4a69e0246fed9e5bab5c4db88f0101269"
   name = "golang.org/x/crypto"
@@ -554,7 +585,6 @@
     "github.com/jmoiron/sqlx",
     "github.com/jmoiron/sqlx/types",
     "github.com/joho/godotenv/autoload",
-    "github.com/lann/builder",
     "github.com/markbates/goth",
     "github.com/markbates/goth/gothic",
     "github.com/markbates/goth/providers/facebook",
@@ -569,6 +599,8 @@
     "github.com/spf13/cobra",
     "github.com/titpetric/factory",
     "github.com/titpetric/factory/resputil",
+    "go.uber.org/zap",
+    "go.uber.org/zap/zapcore",
     "golang.org/x/crypto/bcrypt",
     "golang.org/x/crypto/ssh/terminal",
     "gopkg.in/Masterminds/squirrel.v1",

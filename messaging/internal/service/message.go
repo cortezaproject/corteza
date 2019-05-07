@@ -7,8 +7,11 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
@@ -16,8 +19,9 @@ import (
 
 type (
 	message struct {
-		db  db
-		ctx context.Context
+		db     db
+		ctx    context.Context
+		logger *zap.Logger
 
 		attachment repository.AttachmentRepository
 		channel    repository.ChannelRepository
@@ -67,14 +71,17 @@ var (
 )
 
 func Message(ctx context.Context) MessageService {
-	return (&message{}).With(ctx)
+	return (&message{
+		logger: DefaultLogger.Named("message"),
+	}).With(ctx)
 }
 
-func (svc *message) With(ctx context.Context) MessageService {
+func (svc message) With(ctx context.Context) MessageService {
 	db := repository.DB(ctx)
 	return &message{
-		db:  db,
-		ctx: ctx,
+		db:     db,
+		ctx:    ctx,
+		logger: svc.logger,
 
 		event: Event(ctx),
 		prm:   Permissions(ctx),
@@ -89,7 +96,12 @@ func (svc *message) With(ctx context.Context) MessageService {
 	}
 }
 
-func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err error) {
+// log() returns zap's logger with requestID from current context and fields.
+func (svc message) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+}
+
+func (svc message) Find(filter *types.MessageFilter) (mm types.MessageSet, err error) {
 	filter.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
 	if err = svc.channelAccessCheck(filter.ChannelID...); err != nil {
@@ -110,7 +122,7 @@ func (svc *message) Find(filter *types.MessageFilter) (mm types.MessageSet, err 
 	return mm, svc.preload(mm)
 }
 
-func (svc *message) FindThreads(filter *types.MessageFilter) (mm types.MessageSet, err error) {
+func (svc message) FindThreads(filter *types.MessageFilter) (mm types.MessageSet, err error) {
 	filter.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
 	if err = svc.channelAccessCheck(filter.ChannelID...); err != nil {
@@ -131,7 +143,7 @@ func (svc *message) FindThreads(filter *types.MessageFilter) (mm types.MessageSe
 	return mm, svc.preload(mm)
 }
 
-func (svc *message) CreateWithAvatar(in *types.Message, avatar io.Reader) (*types.Message, error) {
+func (svc message) CreateWithAvatar(in *types.Message, avatar io.Reader) (*types.Message, error) {
 	// @todo: avatar
 	return svc.Create(in)
 }
@@ -170,7 +182,7 @@ func (svc message) filterMessagesByAccessibleChannels(mm types.MessageSet) types
 	return mm
 }
 
-func (svc *message) Create(in *types.Message) (message *types.Message, err error) {
+func (svc message) Create(in *types.Message) (message *types.Message, err error) {
 	if in == nil {
 		in = &types.Message{}
 	}
@@ -257,7 +269,7 @@ func (svc *message) Create(in *types.Message) (message *types.Message, err error
 	})
 }
 
-func (svc *message) Update(in *types.Message) (message *types.Message, err error) {
+func (svc message) Update(in *types.Message) (message *types.Message, err error) {
 	if in == nil {
 		in = &types.Message{}
 	}
@@ -315,7 +327,7 @@ func (svc *message) Update(in *types.Message) (message *types.Message, err error
 	})
 }
 
-func (svc *message) Delete(messageID uint64) error {
+func (svc message) Delete(messageID uint64) error {
 	var currentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
 	_ = currentUserID
@@ -387,7 +399,7 @@ func (svc *message) Delete(messageID uint64) error {
 }
 
 // M
-func (svc *message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (count uint32, err error) {
+func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (count uint32, err error) {
 	var currentUserID uint64 = repository.Identity(svc.ctx)
 
 	err = svc.db.Transaction(func() (err error) {
@@ -434,37 +446,37 @@ func (svc *message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (c
 }
 
 // React on a message with an emoji
-func (svc *message) React(messageID uint64, reaction string) error {
+func (svc message) React(messageID uint64, reaction string) error {
 	return svc.flag(messageID, reaction, false)
 }
 
 // Remove reaction on a message
-func (svc *message) RemoveReaction(messageID uint64, reaction string) error {
+func (svc message) RemoveReaction(messageID uint64, reaction string) error {
 	return svc.flag(messageID, reaction, true)
 }
 
 // Pin message to the channel
-func (svc *message) Pin(messageID uint64) error {
+func (svc message) Pin(messageID uint64) error {
 	return svc.flag(messageID, types.MessageFlagPinnedToChannel, false)
 }
 
 // Remove pin from message
-func (svc *message) RemovePin(messageID uint64) error {
+func (svc message) RemovePin(messageID uint64) error {
 	return svc.flag(messageID, types.MessageFlagPinnedToChannel, true)
 }
 
 // Bookmark message (private)
-func (svc *message) Bookmark(messageID uint64) error {
+func (svc message) Bookmark(messageID uint64) error {
 	return svc.flag(messageID, types.MessageFlagBookmarkedMessage, false)
 }
 
 // Remove bookmark message (private)
-func (svc *message) RemoveBookmark(messageID uint64) error {
+func (svc message) RemoveBookmark(messageID uint64) error {
 	return svc.flag(messageID, types.MessageFlagBookmarkedMessage, true)
 }
 
 // React on a message with an emoji
-func (svc *message) flag(messageID uint64, flag string, remove bool) error {
+func (svc message) flag(messageID uint64, flag string, remove bool) error {
 	var currentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
 	_ = currentUserID
@@ -538,7 +550,7 @@ func (svc *message) flag(messageID uint64, flag string, remove bool) error {
 	return errors.Wrap(err, "can not flag/un-flag message")
 }
 
-func (svc *message) preload(mm types.MessageSet) (err error) {
+func (svc message) preload(mm types.MessageSet) (err error) {
 	if err = svc.preloadAttachments(mm); err != nil {
 		return
 	}
@@ -559,7 +571,7 @@ func (svc *message) preload(mm types.MessageSet) (err error) {
 }
 
 // Preload for all messages
-func (svc *message) preloadFlags(mm types.MessageSet) (err error) {
+func (svc message) preloadFlags(mm types.MessageSet) (err error) {
 	var ff types.MessageFlagSet
 
 	ff, err = svc.mflag.FindByMessageIDs(mm.IDs()...)
@@ -574,7 +586,7 @@ func (svc *message) preloadFlags(mm types.MessageSet) (err error) {
 }
 
 // Preload for all messages
-func (svc *message) preloadMentions(mm types.MessageSet) (err error) {
+func (svc message) preloadMentions(mm types.MessageSet) (err error) {
 	var mentions types.MentionSet
 
 	mentions, err = svc.mentions.FindByMessageIDs(mm.IDs()...)
@@ -588,7 +600,7 @@ func (svc *message) preloadMentions(mm types.MessageSet) (err error) {
 	})
 }
 
-func (svc *message) preloadAttachments(mm types.MessageSet) (err error) {
+func (svc message) preloadAttachments(mm types.MessageSet) (err error) {
 	var (
 		ids []uint64
 		aa  types.MessageAttachmentSet
@@ -621,7 +633,7 @@ func (svc *message) preloadAttachments(mm types.MessageSet) (err error) {
 }
 
 // Sends message to event loop
-func (svc *message) sendEvent(mm ...*types.Message) (err error) {
+func (svc message) sendEvent(mm ...*types.Message) (err error) {
 	if err = svc.preload(mm); err != nil {
 		return
 	}
@@ -636,7 +648,7 @@ func (svc *message) sendEvent(mm ...*types.Message) (err error) {
 }
 
 // Sends message to event loop
-func (svc *message) sendFlagEvent(ff ...*types.MessageFlag) (err error) {
+func (svc message) sendFlagEvent(ff ...*types.MessageFlag) (err error) {
 	for _, f := range ff {
 		if err = svc.event.MessageFlag(f); err != nil {
 			return
@@ -646,7 +658,7 @@ func (svc *message) sendFlagEvent(ff ...*types.MessageFlag) (err error) {
 	return
 }
 
-func (svc *message) extractMentions(m *types.Message) (mm types.MentionSet) {
+func (svc message) extractMentions(m *types.Message) (mm types.MentionSet) {
 	const reSubID = 2
 	mm = types.MentionSet{}
 
@@ -672,7 +684,7 @@ func (svc *message) extractMentions(m *types.Message) (mm types.MentionSet) {
 	return
 }
 
-func (svc *message) updateMentions(messageID uint64, mm types.MentionSet) error {
+func (svc message) updateMentions(messageID uint64, mm types.MentionSet) error {
 	if existing, err := svc.mentions.FindByMessageIDs(messageID); err != nil {
 		return errors.Wrap(err, "could not update mentions")
 	} else if len(mm) > 0 {

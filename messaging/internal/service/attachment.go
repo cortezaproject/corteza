@@ -6,7 +6,6 @@ import (
 	"image"
 	"image/gif"
 	"io"
-	"log"
 	"net/http"
 	"path"
 	"strings"
@@ -15,7 +14,10 @@ import (
 	"github.com/edwvee/exiffix"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/internal/store"
 	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
@@ -28,8 +30,9 @@ const (
 
 type (
 	attachment struct {
-		db  *factory.DB
-		ctx context.Context
+		db     *factory.DB
+		ctx    context.Context
+		logger *zap.Logger
 
 		store store.Store
 		event EventService
@@ -50,15 +53,18 @@ type (
 
 func Attachment(ctx context.Context, store store.Store) AttachmentService {
 	return (&attachment{
+		logger: DefaultLogger.Named("attachment"),
+
 		store: store,
 	}).With(ctx)
 }
 
-func (svc *attachment) With(ctx context.Context) AttachmentService {
+func (svc attachment) With(ctx context.Context) AttachmentService {
 	db := repository.DB(ctx)
 	return &attachment{
-		db:  db,
-		ctx: ctx,
+		db:     db,
+		ctx:    ctx,
+		logger: svc.logger,
 
 		store: svc.store,
 		event: Event(ctx),
@@ -68,11 +74,16 @@ func (svc *attachment) With(ctx context.Context) AttachmentService {
 	}
 }
 
-func (svc *attachment) FindByID(id uint64) (*types.Attachment, error) {
+// log() returns zap's logger with requestID from current context and fields.
+func (svc attachment) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+}
+
+func (svc attachment) FindByID(id uint64) (*types.Attachment, error) {
 	return svc.attachment.FindAttachmentByID(id)
 }
 
-func (svc *attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
+func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
 	if len(att.Url) == 0 {
 		return nil, nil
 	}
@@ -80,7 +91,7 @@ func (svc *attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error
 	return svc.store.Open(att.Url)
 }
 
-func (svc *attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
+func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
 	if len(att.PreviewUrl) == 0 {
 		return nil, nil
 	}
@@ -88,7 +99,7 @@ func (svc *attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
 	return svc.store.Open(att.PreviewUrl)
 }
 
-func (svc *attachment) Create(name string, size int64, fh io.ReadSeeker, channelId, replyTo uint64) (att *types.Attachment, err error) {
+func (svc attachment) Create(name string, size int64, fh io.ReadSeeker, channelId, replyTo uint64) (att *types.Attachment, err error) {
 	if svc.store == nil {
 		return nil, errors.New("Can not create attachment: store handler not set")
 	}
@@ -104,30 +115,31 @@ func (svc *attachment) Create(name string, size int64, fh io.ReadSeeker, channel
 		Name:   strings.TrimSpace(name),
 	}
 
+	log := svc.log(
+		zap.String("name", att.Name),
+		zap.Int64("size", att.Meta.Original.Size),
+	)
+
 	// Extract extension but make sure path.Ext is not confused by any leading/trailing dots
 	att.Meta.Original.Extension = strings.Trim(path.Ext(strings.Trim(name, ".")), ".")
 
 	att.Meta.Original.Size = size
 	if att.Meta.Original.Mimetype, err = svc.extractMimetype(fh); err != nil {
+		log.Error("could not extract mime-type", zap.Error(err))
 		return
 	}
 
-	log.Printf(
-		"Processing uploaded file (name: %s, size: %d, mimetype: %s)",
-		att.Name,
-		att.Meta.Original.Size,
-		att.Meta.Original.Mimetype)
-
 	att.Url = svc.store.Original(att.ID, att.Meta.Original.Extension)
 	if err = svc.store.Save(att.Url, fh); err != nil {
-		log.Print(err.Error())
+		log.Error("could not store file", zap.Error(err))
 		return
 	}
 
 	// Process image: extract width, height, make preview
-	log.Printf("Image processed, error: %v", svc.processImage(fh, att))
-
-	log.Printf("File %s stored as %s", att.Name, att.Url)
+	err = svc.processImage(fh, att)
+	if err != nil {
+		log.Error("could not process image", zap.Error(err))
+	}
 
 	return att, svc.db.Transaction(func() (err error) {
 		if att, err = svc.attachment.CreateAttachment(att); err != nil {
@@ -157,13 +169,11 @@ func (svc *attachment) Create(name string, size int64, fh io.ReadSeeker, channel
 			return
 		}
 
-		log.Printf("File %s (id: %d) attached to message (id: %d)", att.Name, att.ID, msg.ID)
-
 		return svc.sendEvent(msg)
 	})
 }
 
-func (svc *attachment) extractMimetype(file io.ReadSeeker) (mimetype string, err error) {
+func (svc attachment) extractMimetype(file io.ReadSeeker) (mimetype string, err error) {
 	if _, err = file.Seek(0, 0); err != nil {
 		return
 	}
@@ -180,7 +190,7 @@ func (svc *attachment) extractMimetype(file io.ReadSeeker) (mimetype string, err
 	return http.DetectContentType(buf), nil
 }
 
-func (svc *attachment) processImage(original io.ReadSeeker, att *types.Attachment) (err error) {
+func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment) (err error) {
 	if !strings.HasPrefix(att.Meta.Original.Mimetype, "image/") {
 		// Only supporting previews from images (for now)
 		return
@@ -262,8 +272,6 @@ func (svc *attachment) processImage(original io.ReadSeeker, att *types.Attachmen
 	// Get dimensions from the preview
 	width, height = preview.Bounds().Max.X, preview.Bounds().Max.Y
 
-	log.Printf("Generated preview %s (%dx%dpx)", previewFormat, width, height)
-
 	var buf = &bytes.Buffer{}
 	if err = imaging.Encode(buf, preview, previewFormat); err != nil {
 		return
@@ -283,7 +291,7 @@ func (svc *attachment) processImage(original io.ReadSeeker, att *types.Attachmen
 // Sends message to event loop
 //
 // It also preloads user
-func (svc *attachment) sendEvent(msg *types.Message) (err error) {
+func (svc attachment) sendEvent(msg *types.Message) (err error) {
 	return svc.event.Message(msg)
 }
 

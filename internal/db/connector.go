@@ -2,11 +2,13 @@ package db
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
+	"go.uber.org/zap"
+
+	"github.com/crusttech/crust/internal/logger"
 )
 
 const (
@@ -20,11 +22,12 @@ func TryToConnect(ctx context.Context, name, dsn, profiler string) (db *factory.
 
 	var (
 		connErrCh = make(chan error, 1)
+		log       = logger.Default().With(zap.String("name", name), zap.String("dsn", dsn))
 	)
 
 	defer close(connErrCh)
 
-	log.Printf("Connecting to the DB (%q, %q)", name, dsn)
+	log.Debug("connecting to the database")
 
 	go func() {
 		var (
@@ -41,12 +44,11 @@ func TryToConnect(ctx context.Context, name, dsn, profiler string) (db *factory.
 
 			db, err = factory.Database.Get(name)
 			if err != nil {
-				log.Printf(
-					"could not connect to %q, try %d, error: %v, retry in %.0fs",
-					name,
-					try,
-					err,
-					delay.Seconds(),
+				log.Warn(
+					"could not connect",
+					zap.Error(err),
+					zap.Int("try", try),
+					zap.Float64("delay", delay.Seconds()),
 				)
 
 				select {
@@ -81,8 +83,15 @@ func TryToConnect(ctx context.Context, name, dsn, profiler string) (db *factory.
 	switch profiler {
 	case "stdout":
 		db.Profiler = &factory.Database.ProfilerStdout
+	case "logger":
+		db.Profiler = ZapProfiler(logger.Default().
+			Named("database").
+			// Skip 3 levels in call stack to get to the actual function used
+			WithOptions(zap.AddCallerSkip(3)).
+			With(zap.String("connection", name)),
+		)
 	default:
-		log.Println("No database query profiler selected")
+		log.Info("no database query profiler selected")
 	}
 
 	if err != nil {

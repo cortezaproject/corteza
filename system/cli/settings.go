@@ -3,7 +3,6 @@ package cli
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"os"
 	"strings"
 
@@ -27,6 +26,7 @@ func settingsCmd(ctx context.Context, setSvc settings.Service) *cobra.Command {
 			systemService.DefaultSettings.LoadAuthSettings()
 
 			settingsAutoConfigure(
+				cmd,
 				setSvc,
 				cmd.Flags().Lookup("system-api-url").Value.String(),
 				cmd.Flags().Lookup("auth-frontend-url").Value.String(),
@@ -111,7 +111,7 @@ func settingsCmd(ctx context.Context, setSvc settings.Service) *cobra.Command {
 	return cmd
 }
 
-func settingsAutoConfigure(setSvc settings.Service, systemApiUrl, frontendUrl, fromAddress, fromName string) {
+func settingsAutoConfigure(cmd *cobra.Command, setSvc settings.Service, systemApiUrl, frontendUrl, fromAddress, fromName string) {
 	set := func(name string, value interface{}) {
 		var (
 			v   *settings.Value
@@ -132,14 +132,14 @@ func settingsAutoConfigure(setSvc settings.Service, systemApiUrl, frontendUrl, f
 		if v, ok = value.(*settings.Value); !ok {
 			v = &settings.Value{Name: name}
 			if v.Value, err = json.Marshal(value); err != nil {
-				log.Printf("could not marshal setting value: %v", err)
+				cmd.Printf("could not marshal setting value: %v", err)
 				return
 			}
 		}
 
 		err = setSvc.Set(v)
 		if err != nil {
-			log.Printf("could not store setting: %v", err)
+			cmd.Printf("could not store setting: %v", err)
 		}
 	}
 

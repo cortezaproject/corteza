@@ -6,7 +6,6 @@ import (
 	"image"
 	"image/gif"
 	"io"
-	"log"
 	"net/http"
 	"path"
 	"strings"
@@ -15,10 +14,13 @@ import (
 	"github.com/edwvee/exiffix"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/crusttech/crust/compose/internal/repository"
 	"github.com/crusttech/crust/compose/types"
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/internal/store"
 
 	systemService "github.com/crusttech/crust/system/service"
@@ -31,8 +33,9 @@ const (
 
 type (
 	attachment struct {
-		db  *factory.DB
-		ctx context.Context
+		db     *factory.DB
+		ctx    context.Context
+		logger *zap.Logger
 
 		store store.Store
 
@@ -60,6 +63,7 @@ type (
 
 func Attachment(store store.Store) AttachmentService {
 	return (&attachment{
+		logger:    DefaultLogger.Named("attachment"),
 		store:     store,
 		prmSvc:    DefaultPermissions,
 		pageSvc:   DefaultPage,
@@ -72,8 +76,9 @@ func Attachment(store store.Store) AttachmentService {
 func (svc attachment) With(ctx context.Context) AttachmentService {
 	db := repository.DB(ctx)
 	return &attachment{
-		db:  db,
-		ctx: ctx,
+		db:     db,
+		ctx:    ctx,
+		logger: svc.logger,
 
 		prmSvc:    svc.prmSvc.With(ctx),
 		pageSvc:   svc.pageSvc.With(ctx),
@@ -84,6 +89,11 @@ func (svc attachment) With(ctx context.Context) AttachmentService {
 
 		attachment: repository.Attachment(ctx, db),
 	}
+}
+
+// log() returns zap's logger with requestID from current context and fields.
+func (svc attachment) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
 }
 
 func (svc attachment) FindByID(namespaceID, attachmentID uint64) (*types.Attachment, error) {
@@ -198,30 +208,33 @@ func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *typ
 		return errors.New("Can not create attachment: store handler not set")
 	}
 
+	log := svc.log(
+		zap.String("name", att.Name),
+		zap.Int64("size", att.Meta.Original.Size),
+	)
+
 	// Extract extension but make sure path.Ext is not confused by any leading/trailing dots
 	att.Meta.Original.Extension = strings.Trim(path.Ext(strings.Trim(name, ".")), ".")
 
 	att.Meta.Original.Size = size
 	if att.Meta.Original.Mimetype, err = svc.extractMimetype(fh); err != nil {
+		log.Error("could not extract mime-type", zap.Error(err))
 		return
 	}
 
-	log.Printf(
-		"Processing uploaded file (name: %s, size: %d, mimetype: %s)",
-		att.Name,
-		att.Meta.Original.Size,
-		att.Meta.Original.Mimetype)
-
 	att.Url = svc.store.Original(att.ID, att.Meta.Original.Extension)
+	log = log.With(zap.String("url", att.Url))
+
 	if err = svc.store.Save(att.Url, fh); err != nil {
-		log.Print(err.Error())
+		log.Error("could not store file", zap.Error(err))
 		return
 	}
 
 	// Process image: extract width, height, make preview
-	log.Printf("Image processed, error: %v", svc.processImage(fh, att))
-
-	log.Printf("File %s stored as %s", att.Name, att.Url)
+	err = svc.processImage(fh, att)
+	if err != nil {
+		log.Error("could not process image", zap.Error(err))
+	}
 
 	return svc.db.Transaction(func() (err error) {
 		if att, err = svc.attachment.Create(att); err != nil {
@@ -330,8 +343,6 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 
 	// Get dimensions from the preview
 	width, height = preview.Bounds().Max.X, preview.Bounds().Max.Y
-
-	log.Printf("Generated preview %s (%dx%dpx)", previewFormat, width, height)
 
 	var buf = &bytes.Buffer{}
 	if err = imaging.Encode(buf, preview, previewFormat); err != nil {

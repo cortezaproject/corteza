@@ -2,20 +2,25 @@ package subscription
 
 import (
 	"context"
-	"log"
 	"os"
 	"time"
+
+	"go.uber.org/zap"
+
+	"github.com/crusttech/crust/internal/logger"
 )
 
 // Starts subscription checker
 func Monitor(ctx context.Context) context.Context {
+	log := logger.Default()
+
 	check := func(ctx context.Context) bool {
-		log.Println("Validating subscription")
+		log.Debug("validating subscription")
 		if err := Check(ctx); err != nil {
-			log.Printf("Subscription could not be validated, reason: %v", err)
+			log.Error("subscription could not be validated", zap.Error(err))
 			return false
 		} else {
-			log.Println("Subscription validated")
+			log.Info("subscription validated")
 		}
 
 		return true

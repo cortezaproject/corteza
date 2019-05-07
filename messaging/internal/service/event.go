@@ -3,6 +3,10 @@ package service
 import (
 	"context"
 
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/internal/payload/outgoing"
 	"github.com/crusttech/crust/messaging/internal/repository"
@@ -11,7 +15,8 @@ import (
 
 type (
 	event struct {
-		ctx context.Context
+		ctx    context.Context
+		logger *zap.Logger
 
 		events repository.EventsRepository
 	}
@@ -29,18 +34,27 @@ type (
 
 // Event sends sends events back to all (or specific) subscribers
 func Event(ctx context.Context) EventService {
-	return (&event{}).With(ctx)
+	return (&event{
+		logger: DefaultLogger.Named("event"),
+	}).With(ctx)
 }
 
-func (svc *event) With(ctx context.Context) EventService {
+func (svc event) With(ctx context.Context) EventService {
 	return &event{
 		ctx:    ctx,
+		logger: svc.logger,
+
 		events: repository.Events(),
 	}
 }
 
+// log() returns zap's logger with requestID from current context and fields.
+func (svc event) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+}
+
 // Message sends message events to subscribers
-func (svc *event) Message(m *types.Message) error {
+func (svc event) Message(m *types.Message) error {
 	return svc.push(payload.Message(svc.ctx, m), types.EventQueueItemSubTypeChannel, m.ChannelID)
 }
 
@@ -50,7 +64,7 @@ func (svc event) Activity(a *types.Activity) error {
 }
 
 // MessageFlag sends message flag events to subscribers
-func (svc *event) MessageFlag(f *types.MessageFlag) error {
+func (svc event) MessageFlag(f *types.MessageFlag) error {
 	var p outgoing.MessageEncoder
 
 	switch {
@@ -76,7 +90,7 @@ func (svc *event) MessageFlag(f *types.MessageFlag) error {
 // Channel notifies subscribers about channel change
 //
 // If this is a public channel we notify everyone
-func (svc *event) Channel(ch *types.Channel) error {
+func (svc event) Channel(ch *types.Channel) error {
 	var sub uint64 = 0
 
 	if ch.Type != types.ChannelTypePublic {
@@ -90,7 +104,7 @@ func (svc *event) Channel(ch *types.Channel) error {
 //
 // Subscription will match when session's user ID is the same as sub
 // We pack channel ID (the id to subscribe to) as payload
-func (svc *event) Join(userID, channelID uint64) (err error) {
+func (svc event) Join(userID, channelID uint64) (err error) {
 	join := payload.ChannelJoin(channelID, userID)
 
 	// Subscribe user to the channel
@@ -110,7 +124,7 @@ func (svc *event) Join(userID, channelID uint64) (err error) {
 //
 // Subscription will match when session's user ID is the same as sub
 // We pack channel ID (the id to subscribe to) as payload
-func (svc *event) Part(userID, channelID uint64) (err error) {
+func (svc event) Part(userID, channelID uint64) (err error) {
 	part := payload.ChannelPart(channelID, userID)
 
 	// Let subscribers know that this user has parted the channel
@@ -126,7 +140,7 @@ func (svc *event) Part(userID, channelID uint64) (err error) {
 	return
 }
 
-func (svc *event) push(m outgoing.MessageEncoder, subType types.EventQueueItemSubType, sub uint64) error {
+func (svc event) push(m outgoing.MessageEncoder, subType types.EventQueueItemSubType, sub uint64) error {
 	var enc, err = m.EncodeMessage()
 	if err != nil {
 		return err

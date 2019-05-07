@@ -1,14 +1,15 @@
 package websocket
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
+	"go.uber.org/zap"
 
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/messaging/internal/repository"
 )
 
@@ -58,7 +59,7 @@ func (ws Websocket) Open(w http.ResponseWriter, r *http.Request) {
 	session.user = identity
 
 	if err := session.Handle(); err != nil {
-		log.Printf("Session handler returned an error: %v", err)
+		logger.Default().Error("websocket session handler error", zap.Error(err))
 	}
 
 }

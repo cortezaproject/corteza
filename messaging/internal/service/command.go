@@ -3,12 +3,17 @@ package service
 import (
 	"context"
 
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/messaging/types"
 )
 
 type (
 	command struct {
-		ctx context.Context
+		ctx    context.Context
+		logger *zap.Logger
 	}
 
 	CommandService interface {
@@ -22,13 +27,19 @@ func Command(ctx context.Context) CommandService {
 	return (&command{}).With(ctx)
 }
 
-func (svc *command) With(ctx context.Context) CommandService {
+func (svc command) With(ctx context.Context) CommandService {
 	return &command{
-		ctx: ctx,
+		ctx:    ctx,
+		logger: DefaultLogger.Named("command"),
 	}
 }
 
-func (svc *command) Do(channelID uint64, command, input string) (*types.Message, error) {
+// log() returns zap's logger with requestID from current context and fields.
+func (svc command) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+}
+
+func (svc command) Do(channelID uint64, command, input string) (*types.Message, error) {
 	switch command {
 	case "me":
 		if input != "" {

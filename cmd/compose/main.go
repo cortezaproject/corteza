@@ -1,28 +1,32 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	context "github.com/SentimensRG/ctx"
 	"github.com/SentimensRG/ctx/sigctx"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/namsral/flag"
-
-	"github.com/crusttech/crust/internal/subscription"
-	"github.com/crusttech/crust/internal/version"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	compose "github.com/crusttech/crust/compose"
+	"github.com/crusttech/crust/internal/logger"
+	"github.com/crusttech/crust/internal/subscription"
 	system "github.com/crusttech/crust/system"
 )
 
 func main() {
-	// log to stdout not stderr
-	log.SetOutput(os.Stdout)
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	log.Printf("Starting "+os.Args[0]+", version: %v, built on: %v", version.Version, version.BuildTime)
+	// Initialize default logger
+	logger.Init(zapcore.DebugLevel)
+	log := logger.Default().Named("compose")
 
+	// New signal-bond context that we will use and
+	// will get terminated (Done()) on SIGINT or SIGTERM
 	ctx := context.AsContext(sigctx.New())
+
+	// Bind default logger to context
+	ctx = logger.ContextWithValue(ctx, log)
 
 	compose.Flags("compose")
 	system.Flags("system")
@@ -32,10 +36,10 @@ func main() {
 	flag.Parse()
 
 	if err := system.Init(ctx); err != nil {
-		log.Fatalf("Error initializing: %+v", err)
+		log.Fatal("failed to initialize system", zap.Error(err))
 	}
 	if err := compose.Init(ctx); err != nil {
-		log.Fatalf("Error initializing: %+v", err)
+		log.Fatal("failed to initialize compose", zap.Error(err))
 	}
 
 	var command string
@@ -52,7 +56,7 @@ func main() {
 		// ctx = subscription.Monitor(ctx)
 
 		if err := compose.StartRestAPI(ctx); err != nil {
-			log.Fatalf("Error starting/running: %+v", err)
+			log.Fatal("failed to start compose REST API", zap.Error(err))
 		}
 	}
 }

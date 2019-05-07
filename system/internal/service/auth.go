@@ -3,15 +3,17 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"strconv"
 	"time"
 
 	"github.com/markbates/goth"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/internal/rand"
 	"github.com/crusttech/crust/system/internal/repository"
 	"github.com/crusttech/crust/system/types"
@@ -19,8 +21,9 @@ import (
 
 type (
 	auth struct {
-		db  db
-		ctx context.Context
+		db     db
+		ctx    context.Context
+		logger *zap.Logger
 
 		credentials   repository.CredentialsRepository
 		users         repository.UserRepository
@@ -72,14 +75,17 @@ func defaultProviderValidator(provider string) error {
 }
 
 func Auth(ctx context.Context) AuthService {
-	return (&auth{}).With(ctx)
+	return (&auth{
+		logger: DefaultLogger.Named("auth"),
+	}).With(ctx)
 }
 
-func (svc *auth) With(ctx context.Context) AuthService {
+func (svc auth) With(ctx context.Context) AuthService {
 	db := repository.DB(ctx)
 	return &auth{
-		db:  db,
-		ctx: ctx,
+		db:     db,
+		ctx:    ctx,
+		logger: svc.logger,
 
 		credentials: repository.Credentials(ctx, db),
 		users:       repository.User(ctx, db),
@@ -93,6 +99,11 @@ func (svc *auth) With(ctx context.Context) AuthService {
 			return &now
 		},
 	}
+}
+
+// log() returns zap's logger with requestID from current context and fields.
+func (svc auth) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
 }
 
 // External func performs login/signup procedures
@@ -110,7 +121,7 @@ func (svc *auth) With(ctx context.Context) AuthService {
 // 2.2. create user on-the-fly if it does not exist
 // 2.3. create credentials for that social login
 //
-func (svc *auth) External(profile goth.User) (u *types.User, err error) {
+func (svc auth) External(profile goth.User) (u *types.User, err error) {
 	if !svc.settings.externalEnabled {
 		return nil, errors.New("external authentication disabled")
 	}
@@ -122,6 +133,8 @@ func (svc *auth) External(profile goth.User) (u *types.User, err error) {
 	if profile.Email == "" {
 		return nil, errors.New("can not use profile data without an email")
 	}
+
+	log := svc.log(zap.String("provider", profile.Provider))
 
 	return u, svc.db.Transaction(func() error {
 		var c *types.Credentials
@@ -150,12 +163,10 @@ func (svc *auth) External(profile goth.User) (u *types.User, err error) {
 						return err
 					}
 
-					log.Printf(
-						"updating credential entry (%v, %v) for exisintg user (%v, %v)",
-						c.ID,
-						profile.Provider,
-						u.ID,
-						u.Email,
+					log.Info("updating credentials entry for existing user",
+						zap.Uint64("credentialsID", c.ID),
+						zap.Uint64("userID", u.ID),
+						zap.String("email", u.Email),
 					)
 
 					return nil
@@ -190,17 +201,19 @@ func (svc *auth) External(profile goth.User) (u *types.User, err error) {
 				return errors.Wrap(err, "could not create user after successful external authentication")
 			}
 
-			log.Printf("created new user after successful social auth (%v, %v)", u.ID, u.Email)
+			log.Info("created new user after successful social auth",
+				zap.Uint64("userID", u.ID),
+				zap.String("email", u.Email),
+			)
+
 		} else if err != nil {
 			return err
 		} else if !u.Valid() {
 			return errors.Errorf("user not valid")
 		} else {
-			log.Printf(
-				"autheticated user (%v, %v) via %s, existing user",
-				u.ID,
-				u.Email,
-				profile.Provider,
+			log.Info("existing user authenticated",
+				zap.Uint64("userID", u.ID),
+				zap.String("email", u.Email),
 			)
 		}
 
@@ -215,12 +228,10 @@ func (svc *auth) External(profile goth.User) (u *types.User, err error) {
 			return err
 		}
 
-		log.Printf(
-			"creating new credential entry (%v, %v) for exisintg user (%v, %v)",
-			c.ID,
-			profile.Provider,
-			u.ID,
-			u.Email,
+		log.Info("new credentials created for existing user",
+			zap.Uint64("credentialsID", c.ID),
+			zap.Uint64("userID", u.ID),
+			zap.String("email", u.Email),
 		)
 
 		// Owner loaded, carry on.
@@ -360,7 +371,7 @@ func (svc auth) validateInternalSignUp(email string) (err error) {
 // InternalLogin verifies username/password combination in the internal credentials table
 //
 // Expects plain text password as an input
-func (svc *auth) InternalLogin(email string, password string) (u *types.User, err error) {
+func (svc auth) InternalLogin(email string, password string) (u *types.User, err error) {
 
 	if !svc.settings.internalEnabled {
 		return nil, errors.New("internal authentication disabled")
@@ -461,6 +472,8 @@ func (svc auth) checkPassword(password string, cc types.CredentialsSet) (err err
 
 // SetPassword sets new password for a user
 func (svc auth) SetPassword(userID uint64, newPassword string) (err error) {
+	log := svc.log(zap.Uint64("userID", userID))
+
 	if !svc.settings.internalEnabled {
 		return errors.New("internal authentication disabled")
 	}
@@ -480,13 +493,15 @@ func (svc auth) SetPassword(userID uint64, newPassword string) (err error) {
 			return err
 		}
 
-		log.Printf("password set for user ID %d", userID)
+		log.Info("password set")
 		return nil
 	})
 }
 
 // ChangePassword validates old password and changes it with new
 func (svc auth) ChangePassword(userID uint64, oldPassword, newPassword string) (err error) {
+	log := svc.log(zap.Uint64("userID", userID))
+
 	if !svc.settings.internalEnabled {
 		return errors.New("internal authentication disabled")
 	}
@@ -524,7 +539,7 @@ func (svc auth) ChangePassword(userID uint64, oldPassword, newPassword string) (
 			return err
 		}
 
-		log.Printf("password changed for user ID %d", userID)
+		log.Info("password changed")
 		return nil
 	})
 }
@@ -646,6 +661,8 @@ func (svc auth) SendEmailAddressConfirmationToken(email string) error {
 }
 
 func (svc auth) sendEmailAddressConfirmationToken(u *types.User) (err error) {
+	log := svc.log(zap.Uint64("userID", u.ID), zap.String("email", u.Email))
+
 	var (
 		notificationLang = "en"
 		token, url       string
@@ -656,8 +673,6 @@ func (svc auth) sendEmailAddressConfirmationToken(u *types.User) (err error) {
 		return
 	}
 
-	log.Printf("email address validation token generated: %q", token)
-
 	url = svc.settings.frontendUrlEmailConfirmation + token
 
 	err = svc.notifications.EmailConfirmation(notificationLang, u.Email, url)
@@ -665,7 +680,7 @@ func (svc auth) sendEmailAddressConfirmationToken(u *types.User) (err error) {
 		return errors.Wrap(err, "could not send email authentication notification")
 	}
 
-	log.Printf("send email addresss validation notification mail to %s", u.Email)
+	log.With(zap.String("token", token)).Info("email address validation token sent")
 
 	return nil
 }
@@ -689,6 +704,8 @@ func (svc auth) SendPasswordResetToken(email string) error {
 }
 
 func (svc auth) sendPasswordResetToken(u *types.User) (err error) {
+	log := svc.log(zap.Uint64("userID", u.ID), zap.String("email", u.Email))
+
 	var (
 		notificationLang = "en"
 		token, url       string
@@ -699,8 +716,6 @@ func (svc auth) sendPasswordResetToken(u *types.User) (err error) {
 		return
 	}
 
-	log.Printf("password reset token generated: %q", token)
-
 	url = svc.settings.frontendUrlPasswordReset + token
 
 	err = svc.notifications.PasswordReset(notificationLang, u.Email, url)
@@ -708,7 +723,7 @@ func (svc auth) sendPasswordResetToken(u *types.User) (err error) {
 		return errors.Wrap(err, "could not send password reset notification")
 	}
 
-	log.Printf("send password reset notification mail to %s", u.Email)
+	log.With(zap.String("token", token)).Info("password reset token sent")
 
 	return nil
 }

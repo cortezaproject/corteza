@@ -10,7 +10,7 @@ import (
 func MountRoutes() func(chi.Router) {
 	// Initialize handers & controllers.
 	return func(r chi.Router) {
-		NewSocial().MountRoutes(r)
+		NewExternalAuth().MountRoutes(r)
 
 		// Provide raw `/auth` handlers
 		handlers.NewAuth((Auth{}).New()).MountRoutes(r)

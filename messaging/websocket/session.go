@@ -2,14 +2,16 @@ package websocket
 
 import (
 	"context"
-	"log"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/internal/payload"
 	"github.com/crusttech/crust/internal/payload/outgoing"
 	"github.com/crusttech/crust/messaging/internal/repository"
@@ -26,6 +28,8 @@ type (
 
 		ctx       context.Context
 		ctxCancel context.CancelFunc
+
+		logger *zap.Logger
 
 		subs *Subscriptions
 
@@ -60,7 +64,13 @@ func (Session) New(ctx context.Context, config *repository.Flags, conn *websocke
 	s.svc.ch = service.DefaultChannel
 	s.svc.msg = service.DefaultMessage
 
+	s.logger = logger.AddRequestID(s.ctx, logger.Default().Named("websocket"))
+
 	return s
+}
+
+func (sess Session) log(fields ...zapcore.Field) *zap.Logger {
+	return sess.logger.With(fields...)
 }
 
 func (sess *Session) Context() context.Context {
@@ -73,10 +83,15 @@ func (sess *Session) connected() (err error) {
 	)
 
 	// Push user info about all channels he has access to...
+	// @todo filter out all muted/non-joined channels
 	if cc, err = sess.svc.ch.With(sess.ctx).Find(&types.ChannelFilter{}); err != nil {
-		log.Printf("Error: %v", err)
+		sess.log(zap.Error(err)).Error("Could not load subscribed channels")
 	} else {
-		log.Printf("Subscribing %d to %d channels", sess.user.Identity(), len(cc))
+		sess.log().Debug(
+			"websocket session connected",
+			zap.Uint64("userID", sess.user.Identity()),
+			zap.Int("subscriptions", len(cc)),
+		)
 
 		err = cc.Walk(func(c *types.Channel) error {
 			// Subscribe this user/session to all channels
@@ -178,9 +193,8 @@ func (sess *Session) readLoop() (err error) {
 		}
 
 		if err = sess.dispatch(raw); err != nil {
-			log.Printf("Error: %v", err)
-
-			sess.sendReply(outgoing.NewError(err))
+			sess.log(zap.Error(err)).Error("could not dispatch")
+			_ = sess.sendReply(outgoing.NewError(err))
 		}
 	}
 }

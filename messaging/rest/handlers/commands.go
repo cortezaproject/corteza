@@ -23,6 +23,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/messaging/rest/request"
 )
 
@@ -42,13 +43,16 @@ func NewCommands(ch CommandsAPI) *Commands {
 			defer r.Body.Close()
 			params := request.NewCommandsList()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Commands.List", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ch.List(r.Context(), params); err != nil {
+				logger.LogControllerError("Commands.List", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Commands.List", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

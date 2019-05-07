@@ -23,6 +23,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/system/rest/request"
 )
 
@@ -50,13 +51,16 @@ func NewApplication(ah ApplicationAPI) *Application {
 			defer r.Body.Close()
 			params := request.NewApplicationList()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Application.List", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.List(r.Context(), params); err != nil {
+				logger.LogControllerError("Application.List", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Application.List", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -70,13 +74,16 @@ func NewApplication(ah ApplicationAPI) *Application {
 			defer r.Body.Close()
 			params := request.NewApplicationCreate()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Application.Create", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Create(r.Context(), params); err != nil {
+				logger.LogControllerError("Application.Create", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Application.Create", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -90,13 +97,16 @@ func NewApplication(ah ApplicationAPI) *Application {
 			defer r.Body.Close()
 			params := request.NewApplicationUpdate()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Application.Update", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Update(r.Context(), params); err != nil {
+				logger.LogControllerError("Application.Update", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Application.Update", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -110,13 +120,16 @@ func NewApplication(ah ApplicationAPI) *Application {
 			defer r.Body.Close()
 			params := request.NewApplicationRead()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Application.Read", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Read(r.Context(), params); err != nil {
+				logger.LogControllerError("Application.Read", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Application.Read", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -130,13 +143,16 @@ func NewApplication(ah ApplicationAPI) *Application {
 			defer r.Body.Close()
 			params := request.NewApplicationDelete()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Application.Delete", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Delete(r.Context(), params); err != nil {
+				logger.LogControllerError("Application.Delete", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Application.Delete", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

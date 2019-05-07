@@ -4,15 +4,19 @@ import (
 	"context"
 
 	"github.com/titpetric/factory"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/crusttech/crust/compose/internal/repository"
 	"github.com/crusttech/crust/compose/types"
+	"github.com/crusttech/crust/internal/logger"
 )
 
 type (
 	chart struct {
-		db  *factory.DB
-		ctx context.Context
+		db     *factory.DB
+		ctx    context.Context
+		logger *zap.Logger
 
 		prmSvc PermissionsService
 
@@ -33,6 +37,7 @@ type (
 
 func Chart() ChartService {
 	return (&chart{
+		logger: DefaultLogger.Named("chart"),
 		prmSvc: DefaultPermissions,
 	}).With(context.Background())
 }
@@ -40,13 +45,19 @@ func Chart() ChartService {
 func (svc chart) With(ctx context.Context) ChartService {
 	db := repository.DB(ctx)
 	return &chart{
-		db:  db,
-		ctx: ctx,
+		db:     db,
+		ctx:    ctx,
+		logger: svc.logger,
 
 		prmSvc: svc.prmSvc.With(ctx),
 
 		chartRepo: repository.Chart(ctx, db),
 	}
+}
+
+// log() returns zap's logger with requestID from current context and fields.
+func (svc chart) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
 }
 
 func (svc chart) FindByID(namespaceID, chartID uint64) (c *types.Chart, err error) {

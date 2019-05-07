@@ -1,11 +1,12 @@
 package config
 
 import (
-	"log"
 	"time"
 
 	"github.com/namsral/flag"
 	"github.com/pkg/errors"
+
+	"github.com/crusttech/crust/internal/logger"
 )
 
 type (
@@ -26,7 +27,7 @@ func (c *PubSub) Validate() error {
 	switch c.Mode {
 	case "redis":
 		if c.Mode == "redis" && c.RedisAddr == "" {
-			log.Println("[pubsub] No Redis Address defined for mode=redis, falling back to polling")
+			logger.Default().Info("[pubsub] No Redis Address defined for mode=redis, falling back to polling")
 			c.Mode = "poll"
 		}
 	case "poll":
