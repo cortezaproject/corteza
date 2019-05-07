@@ -37,12 +37,17 @@ func ContextLogger(log *zap.Logger) func(next http.Handler) http.Handler {
 // It uses logger from context, see ContextLogger()
 func LogRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		var remote = req.RemoteAddr
+		if l := strings.LastIndex(remote, ":"); l > -1 {
+			remote = remote[:l]
+		}
+
 		logger.ContextValue(req.Context()).Info(
 			"HTTP request "+req.Method+" "+req.URL.Path,
 			zap.String("method", req.Method),
 			zap.String("path", req.URL.Path),
 			zap.Int64("size", req.ContentLength),
-			zap.String("remote", req.RemoteAddr[:strings.Index(req.RemoteAddr, ":")]),
+			zap.String("remote", remote),
 		)
 		next.ServeHTTP(w, req)
 	})
