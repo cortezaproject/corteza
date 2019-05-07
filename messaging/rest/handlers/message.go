@@ -23,6 +23,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/messaging/rest/request"
 )
 
@@ -64,13 +65,16 @@ func NewMessage(mh MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageCreate()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Message.Create", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.Create(r.Context(), params); err != nil {
+				logger.LogControllerError("Message.Create", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Message.Create", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -84,13 +88,16 @@ func NewMessage(mh MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageExecuteCommand()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Message.ExecuteCommand", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.ExecuteCommand(r.Context(), params); err != nil {
+				logger.LogControllerError("Message.ExecuteCommand", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Message.ExecuteCommand", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -104,13 +111,16 @@ func NewMessage(mh MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageMarkAsRead()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Message.MarkAsRead", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.MarkAsRead(r.Context(), params); err != nil {
+				logger.LogControllerError("Message.MarkAsRead", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Message.MarkAsRead", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -124,13 +134,16 @@ func NewMessage(mh MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageEdit()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Message.Edit", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.Edit(r.Context(), params); err != nil {
+				logger.LogControllerError("Message.Edit", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Message.Edit", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -144,13 +157,16 @@ func NewMessage(mh MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageDelete()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Message.Delete", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.Delete(r.Context(), params); err != nil {
+				logger.LogControllerError("Message.Delete", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Message.Delete", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -164,13 +180,16 @@ func NewMessage(mh MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageReplyCreate()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Message.ReplyCreate", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.ReplyCreate(r.Context(), params); err != nil {
+				logger.LogControllerError("Message.ReplyCreate", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Message.ReplyCreate", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -184,13 +203,16 @@ func NewMessage(mh MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessagePinCreate()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Message.PinCreate", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.PinCreate(r.Context(), params); err != nil {
+				logger.LogControllerError("Message.PinCreate", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Message.PinCreate", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -204,13 +226,16 @@ func NewMessage(mh MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessagePinRemove()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Message.PinRemove", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.PinRemove(r.Context(), params); err != nil {
+				logger.LogControllerError("Message.PinRemove", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Message.PinRemove", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -224,13 +249,16 @@ func NewMessage(mh MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageBookmarkCreate()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Message.BookmarkCreate", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.BookmarkCreate(r.Context(), params); err != nil {
+				logger.LogControllerError("Message.BookmarkCreate", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Message.BookmarkCreate", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -244,13 +272,16 @@ func NewMessage(mh MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageBookmarkRemove()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Message.BookmarkRemove", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.BookmarkRemove(r.Context(), params); err != nil {
+				logger.LogControllerError("Message.BookmarkRemove", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Message.BookmarkRemove", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -264,13 +295,16 @@ func NewMessage(mh MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageReactionCreate()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Message.ReactionCreate", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.ReactionCreate(r.Context(), params); err != nil {
+				logger.LogControllerError("Message.ReactionCreate", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Message.ReactionCreate", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -284,13 +318,16 @@ func NewMessage(mh MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageReactionRemove()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Message.ReactionRemove", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.ReactionRemove(r.Context(), params); err != nil {
+				logger.LogControllerError("Message.ReactionRemove", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Message.ReactionRemove", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

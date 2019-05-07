@@ -3,7 +3,7 @@
 package rules_test
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"testing"
 
@@ -25,8 +25,8 @@ func TestMain(m *testing.M) {
 
 	// migrate database schema
 	if err := systemMigrate.Migrate(db); err != nil {
-		log.Printf("Error running migrations: %+v\n", err)
-		return
+		fmt.Printf("Error running migrations: %+v\n", err)
+		os.Exit(1)
 	}
 
 	os.Exit(m.Run())

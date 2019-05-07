@@ -4,11 +4,11 @@ package service
 
 import (
 	"context"
-	"log"
 	"testing"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
+	"go.uber.org/zap"
 
 	internalAuth "github.com/crusttech/crust/internal/auth"
 	internalRules "github.com/crusttech/crust/internal/rules"
@@ -29,16 +29,14 @@ func TestRules(t *testing.T) {
 	// Write user to context.
 	ctx := internalAuth.SetIdentityToContext(context.Background(), user)
 
-	// Create rules service.
-	rulesSvc := Rules(ctx)
-	rulesObj := rulesSvc.(*rules)
-
 	// Connect do DB.
+	db := factory.Database.MustGet("default")
 
-	db := rulesObj.db.(*factory.DB) // factory.Database.MustGet()
-
-	// Create resources interface.
-	resources := internalRules.NewResources(ctx, db)
+	// Create rules service.
+	rulesSvc := &rules{
+		logger:    zap.NewNop(),
+		resources: internalRules.NewResources(ctx, db),
+	}
 
 	// Run tests in transaction to maintain DB state.
 	test.Error(t, db.Transaction(func() error {
@@ -49,7 +47,7 @@ func TestRules(t *testing.T) {
 
 		// delete all for test roleID = 123456
 		{
-			err := resources.Delete(role.ID)
+			err := rulesSvc.resources.Delete(role.ID)
 			test.NoError(t, err, "expected no error, got %+v", err)
 		}
 
@@ -69,7 +67,7 @@ func TestRules(t *testing.T) {
 				internalRules.Rule{Resource: "messaging", Operation: "grant", Value: internalRules.Allow},
 			}
 
-			err := resources.Grant(role.ID, list)
+			err := rulesSvc.resources.Grant(role.ID, list)
 			test.NoError(t, err, "expected no error, got %v+", err)
 		}
 
@@ -78,7 +76,7 @@ func TestRules(t *testing.T) {
 
 			count := []internalRules.Rule{}
 			db.Select(&count, "select * from sys_rules")
-			log.Println("count:", count)
+			t.Log("count:", count)
 
 			ret, err := rulesSvc.List()
 			test.NoError(t, err, "expected no error, got %+v", err)

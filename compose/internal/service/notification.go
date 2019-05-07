@@ -6,15 +6,19 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	gomail "gopkg.in/mail.v2"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/internal/mail"
 	systemService "github.com/crusttech/crust/system/service"
 )
 
 type (
 	notification struct {
-		ctx context.Context
+		ctx    context.Context
+		logger *zap.Logger
 
 		userSvc systemService.UserService
 	}
@@ -29,18 +33,27 @@ type (
 
 func Notification() NotificationService {
 	return (&notification{
+		logger: DefaultLogger.Named("notification"),
+
 		userSvc: systemService.DefaultUser,
 	}).With(context.Background())
 }
 
-func (s *notification) With(ctx context.Context) NotificationService {
+func (svc notification) With(ctx context.Context) NotificationService {
 	return &notification{
-		ctx:     ctx,
+		ctx:    ctx,
+		logger: svc.logger,
+
 		userSvc: systemService.User(ctx),
 	}
 }
 
-func (s *notification) SendEmail(message *gomail.Message) error {
+// log() returns zap's logger with requestID from current context and fields.
+func (svc notification) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+}
+
+func (svc notification) SendEmail(message *gomail.Message) error {
 	return mail.Send(message)
 }
 
@@ -51,7 +64,7 @@ func (s *notification) SendEmail(message *gomail.Message) error {
 //  - <valid email><space><name...>
 //  - <userID>
 // Last one is then translated into valid email + name (when/if possible)
-func (s *notification) AttachEmailRecipients(message *gomail.Message, field string, recipients ...string) (err error) {
+func (svc notification) AttachEmailRecipients(message *gomail.Message, field string, recipients ...string) (err error) {
 	var (
 		email string
 		name  string
@@ -61,7 +74,7 @@ func (s *notification) AttachEmailRecipients(message *gomail.Message, field stri
 		return
 	}
 
-	if recipients, err = s.expandUserRefs(recipients); err != nil {
+	if recipients, err = svc.expandUserRefs(recipients); err != nil {
 		return
 	}
 
@@ -91,11 +104,11 @@ func (s *notification) AttachEmailRecipients(message *gomail.Message, field stri
 // Expands references to users (strings as numeric uint64)
 //
 // This func is extracted to make testing/mocking mocking
-func (s *notification) expandUserRefs(recipients []string) ([]string, error) {
+func (svc notification) expandUserRefs(recipients []string) ([]string, error) {
 	for r, rcpt := range recipients {
 		// First, get userID off the table
 		if userID, _ := strconv.ParseUint(rcpt, 10, 64); userID > 0 {
-			if user, err := s.userSvc.FindByID(userID); err != nil {
+			if user, err := svc.userSvc.FindByID(userID); err != nil {
 				return nil, errors.Wrapf(err, "invalid recipient %d", userID)
 			} else {
 				recipients[r] = user.Email + " " + user.Name

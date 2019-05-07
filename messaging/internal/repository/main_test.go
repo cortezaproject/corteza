@@ -3,7 +3,7 @@
 package repository
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"testing"
 
@@ -29,11 +29,11 @@ func TestMain(m *testing.M) {
 
 	// migrate database schema
 	if err := systemMigrate.Migrate(db); err != nil {
-		log.Printf("Error running migrations: %+v\n", err)
+		fmt.Printf("Error running migrations: %+v\n", err)
 		return
 	}
 	if err := messagingMigrate.Migrate(db); err != nil {
-		log.Printf("Error running migrations: %+v\n", err)
+		fmt.Printf("Error running migrations: %+v\n", err)
 		return
 	}
 

@@ -3,15 +3,16 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
+	"go.uber.org/zap"
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/db"
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/internal/mail"
 	"github.com/crusttech/crust/internal/metrics"
 	migrate "github.com/crusttech/crust/messaging/db"
@@ -21,7 +22,7 @@ import (
 func Init(ctx context.Context) (err error) {
 	// validate configuration
 	if err = flags.Validate(); err != nil {
-		return err
+		return
 	}
 
 	mail.SetupDialer(flags.smtp)
@@ -68,7 +69,7 @@ func InitDatabase(ctx context.Context) error {
 }
 
 func StartRestAPI(ctx context.Context) error {
-	log.Println("Starting http server on address " + flags.http.Addr)
+	logger.Default().Info("Starting HTTP server", zap.String("address", flags.http.Addr))
 	listener, err := net.Listen("tcp", flags.http.Addr)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Can't listen on addr %s", flags.http.Addr))

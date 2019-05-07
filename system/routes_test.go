@@ -7,23 +7,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"net/http"
+	"net/http/httptest"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"net/http"
-	"net/http/httptest"
-	"net/http/httputil"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/namsral/flag"
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/test"
 	systemRepository "github.com/crusttech/crust/system/internal/repository"
 	systemTypes "github.com/crusttech/crust/system/types"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/namsral/flag"
 )
 
 type (
@@ -42,10 +41,6 @@ func TestUsers(t *testing.T) {
 	os.Setenv("SYSTEM_DB_DSN", "crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci")
 
 	mountFlags("system", Flags)
-
-	// log to stdout not stderr
-	log.SetOutput(os.Stdout)
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	// Initialize routes and exit on failure.
 	err := Init(ctx)

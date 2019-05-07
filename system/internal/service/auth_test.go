@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/markbates/goth"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/crusttech/crust/internal/test"
@@ -63,6 +64,7 @@ func TestAuth_External_Existing(t *testing.T) {
 	usrRpoMock.EXPECT().FindByID(u.ID).Times(1).Return(u, nil)
 
 	svc := makeMockAuthService(usrRpoMock, crdRpoMock)
+	svc.logger = zap.NewNop()
 	svc.settings.externalEnabled = true
 
 	{
@@ -103,6 +105,7 @@ func TestAuth_External_NonExisting(t *testing.T) {
 		Return(u, nil)
 
 	svc := makeMockAuthService(usrRpoMock, crdRpoMock)
+	svc.logger = zap.NewNop()
 	svc.settings.externalEnabled = true
 
 	{
@@ -128,6 +131,7 @@ func Test_auth_validateInternalLogin(t *testing.T) {
 		{name: "all good", args: args{"test@domain.tld", "password"}, wantErr: false},
 	}
 	svc := auth{}
+	svc.logger = zap.NewNop()
 	svc.settings.internalEnabled = true
 
 	for _, tt := range tests {
@@ -186,6 +190,7 @@ func Test_auth_checkPassword(t *testing.T) {
 				}}},
 	}
 	svc := auth{}
+	svc.logger = zap.NewNop()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := svc.checkPassword(tt.args.password, tt.args.cc); (err != nil) != tt.wantErr {
@@ -235,6 +240,7 @@ func Test_auth_validateToken(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := auth{}
+			svc.logger = zap.NewNop()
 			gotID, gotCredentials, err := svc.validateToken(tt.args.token)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("auth.validateToken() error = %v, wantErr %v", err, tt.wantErr)

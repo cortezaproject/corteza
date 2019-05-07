@@ -1,9 +1,9 @@
 package websocket
 
 import (
-	"log"
 	"time"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
 )
@@ -42,7 +42,7 @@ func (s *Session) sendBytes(p []byte) error {
 	select {
 	case s.send <- p:
 	case <-time.After(2 * time.Millisecond):
-		log.Println("websocket.sendBytes send timeout")
+		logger.Default().Warn("websocket.sendBytes send timeout")
 	}
 	return nil
 }

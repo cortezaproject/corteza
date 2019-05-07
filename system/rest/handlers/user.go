@@ -23,6 +23,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/system/rest/request"
 )
 
@@ -54,13 +55,16 @@ func NewUser(uh UserAPI) *User {
 			defer r.Body.Close()
 			params := request.NewUserList()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("User.List", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := uh.List(r.Context(), params); err != nil {
+				logger.LogControllerError("User.List", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("User.List", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -74,13 +78,16 @@ func NewUser(uh UserAPI) *User {
 			defer r.Body.Close()
 			params := request.NewUserCreate()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("User.Create", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := uh.Create(r.Context(), params); err != nil {
+				logger.LogControllerError("User.Create", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("User.Create", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -94,13 +101,16 @@ func NewUser(uh UserAPI) *User {
 			defer r.Body.Close()
 			params := request.NewUserUpdate()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("User.Update", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := uh.Update(r.Context(), params); err != nil {
+				logger.LogControllerError("User.Update", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("User.Update", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -114,13 +124,16 @@ func NewUser(uh UserAPI) *User {
 			defer r.Body.Close()
 			params := request.NewUserRead()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("User.Read", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := uh.Read(r.Context(), params); err != nil {
+				logger.LogControllerError("User.Read", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("User.Read", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -134,13 +147,16 @@ func NewUser(uh UserAPI) *User {
 			defer r.Body.Close()
 			params := request.NewUserDelete()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("User.Delete", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := uh.Delete(r.Context(), params); err != nil {
+				logger.LogControllerError("User.Delete", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("User.Delete", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -154,13 +170,16 @@ func NewUser(uh UserAPI) *User {
 			defer r.Body.Close()
 			params := request.NewUserSuspend()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("User.Suspend", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := uh.Suspend(r.Context(), params); err != nil {
+				logger.LogControllerError("User.Suspend", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("User.Suspend", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -174,13 +193,16 @@ func NewUser(uh UserAPI) *User {
 			defer r.Body.Close()
 			params := request.NewUserUnsuspend()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("User.Unsuspend", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := uh.Unsuspend(r.Context(), params); err != nil {
+				logger.LogControllerError("User.Unsuspend", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("User.Unsuspend", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

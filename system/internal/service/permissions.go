@@ -3,6 +3,10 @@ package service
 import (
 	"context"
 
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
+	"github.com/crusttech/crust/internal/logger"
 	internalRules "github.com/crusttech/crust/internal/rules"
 	"github.com/crusttech/crust/system/internal/repository"
 	"github.com/crusttech/crust/system/types"
@@ -10,8 +14,9 @@ import (
 
 type (
 	permissions struct {
-		db  db
-		ctx context.Context
+		db     db
+		ctx    context.Context
+		logger *zap.Logger
 
 		rules RulesService
 	}
@@ -56,20 +61,28 @@ type (
 )
 
 func Permissions(ctx context.Context) PermissionsService {
-	return (&permissions{}).With(ctx)
+	return (&permissions{
+		logger: DefaultLogger.Named("permissions"),
+	}).With(ctx)
 }
 
-func (p *permissions) With(ctx context.Context) PermissionsService {
+func (svc permissions) With(ctx context.Context) PermissionsService {
 	db := repository.DB(ctx)
 	return &permissions{
-		db:  db,
-		ctx: ctx,
+		db:     db,
+		ctx:    ctx,
+		logger: svc.logger,
 
 		rules: Rules(ctx),
 	}
 }
 
-func (p *permissions) Effective() (ee []effectivePermission, err error) {
+// log() returns zap's logger with requestID from current context and fields.
+func (svc permissions) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+}
+
+func (svc permissions) Effective() (ee []effectivePermission, err error) {
 	ep := func(res, op string, allow bool) effectivePermission {
 		return effectivePermission{
 			Resource:  res,
@@ -78,94 +91,94 @@ func (p *permissions) Effective() (ee []effectivePermission, err error) {
 		}
 	}
 
-	ee = append(ee, ep("system", "access", p.CanAccess()))
-	ee = append(ee, ep("system", "settings.read", p.CanReadSettings()))
-	ee = append(ee, ep("system", "settings.manage", p.CanManageSettings()))
-	ee = append(ee, ep("system", "application.create", p.CanCreateApplication()))
-	ee = append(ee, ep("system", "role.create", p.CanCreateRole()))
-	ee = append(ee, ep("system", "organisation.create", p.CanCreateOrganisation()))
-	ee = append(ee, ep("system", "grant", p.CanCreateRole()))
+	ee = append(ee, ep("system", "access", svc.CanAccess()))
+	ee = append(ee, ep("system", "settings.read", svc.CanReadSettings()))
+	ee = append(ee, ep("system", "settings.manage", svc.CanManageSettings()))
+	ee = append(ee, ep("system", "application.create", svc.CanCreateApplication()))
+	ee = append(ee, ep("system", "role.create", svc.CanCreateRole()))
+	ee = append(ee, ep("system", "organisation.create", svc.CanCreateOrganisation()))
+	ee = append(ee, ep("system", "grant", svc.CanCreateRole()))
 
 	return
 }
 
-func (p *permissions) CanAccess() bool {
-	return p.checkAccess(types.PermissionResource, "access")
+func (svc permissions) CanAccess() bool {
+	return svc.checkAccess(types.PermissionResource, "access")
 }
 
-func (p *permissions) CanReadSettings() bool {
-	return p.checkAccess(types.PermissionResource, "settings.read")
+func (svc permissions) CanReadSettings() bool {
+	return svc.checkAccess(types.PermissionResource, "settings.read")
 }
 
-func (p *permissions) CanManageSettings() bool {
-	return p.checkAccess(types.PermissionResource, "settings.manage")
+func (svc permissions) CanManageSettings() bool {
+	return svc.checkAccess(types.PermissionResource, "settings.manage")
 }
 
-func (p *permissions) CanCreateOrganisation() bool {
-	return p.checkAccess(types.PermissionResource, "organisation.create")
+func (svc permissions) CanCreateOrganisation() bool {
+	return svc.checkAccess(types.PermissionResource, "organisation.create")
 }
 
-func (p *permissions) CanCreateUser() bool {
-	return p.checkAccess(types.PermissionResource, "user.create", p.allow())
+func (svc permissions) CanCreateUser() bool {
+	return svc.checkAccess(types.PermissionResource, "user.create", svc.allow())
 }
 
-func (p *permissions) CanCreateRole() bool {
-	return p.checkAccess(types.PermissionResource, "role.create")
+func (svc permissions) CanCreateRole() bool {
+	return svc.checkAccess(types.PermissionResource, "role.create")
 }
 
-func (p *permissions) CanCreateApplication() bool {
-	return p.checkAccess(types.PermissionResource, "application.create")
+func (svc permissions) CanCreateApplication() bool {
+	return svc.checkAccess(types.PermissionResource, "application.create")
 }
 
-func (p *permissions) CanReadRole(rl *types.Role) bool {
-	return p.checkAccess(rl, "read", p.allow())
+func (svc permissions) CanReadRole(rl *types.Role) bool {
+	return svc.checkAccess(rl, "read", svc.allow())
 }
 
-func (p *permissions) CanUpdateRole(rl *types.Role) bool {
-	return p.checkAccess(rl, "update")
+func (svc permissions) CanUpdateRole(rl *types.Role) bool {
+	return svc.checkAccess(rl, "update")
 }
 
-func (p *permissions) CanDeleteRole(rl *types.Role) bool {
-	return p.checkAccess(rl, "delete")
+func (svc permissions) CanDeleteRole(rl *types.Role) bool {
+	return svc.checkAccess(rl, "delete")
 }
 
-func (p *permissions) CanManageRoleMembers(rl *types.Role) bool {
-	return p.checkAccess(rl, "members.manage")
+func (svc permissions) CanManageRoleMembers(rl *types.Role) bool {
+	return svc.checkAccess(rl, "members.manage")
 }
 
-func (p *permissions) CanReadApplication(app *types.Application) bool {
-	return p.checkAccess(app, "read", p.allow())
+func (svc permissions) CanReadApplication(app *types.Application) bool {
+	return svc.checkAccess(app, "read", svc.allow())
 }
 
-func (p *permissions) CanUpdateApplication(app *types.Application) bool {
-	return p.checkAccess(app, "update")
+func (svc permissions) CanUpdateApplication(app *types.Application) bool {
+	return svc.checkAccess(app, "update")
 }
 
-func (p *permissions) CanDeleteApplication(app *types.Application) bool {
-	return p.checkAccess(app, "delete")
+func (svc permissions) CanDeleteApplication(app *types.Application) bool {
+	return svc.checkAccess(app, "delete")
 }
 
-func (p *permissions) CanUpdateUser(u *types.User) bool {
-	return p.checkAccess(u, "update")
+func (svc permissions) CanUpdateUser(u *types.User) bool {
+	return svc.checkAccess(u, "update")
 }
 
-func (p *permissions) CanSuspendUser(u *types.User) bool {
-	return p.checkAccess(u, "suspend")
+func (svc permissions) CanSuspendUser(u *types.User) bool {
+	return svc.checkAccess(u, "suspend")
 }
 
-func (p *permissions) CanUnsuspendUser(u *types.User) bool {
-	return p.checkAccess(u, "unsuspend")
+func (svc permissions) CanUnsuspendUser(u *types.User) bool {
+	return svc.checkAccess(u, "unsuspend")
 }
 
-func (p *permissions) CanDeleteUser(u *types.User) bool {
-	return p.checkAccess(u, "delete")
+func (svc permissions) CanDeleteUser(u *types.User) bool {
+	return svc.checkAccess(u, "delete")
 }
 
-func (p *permissions) checkAccess(r resource, operation string, fallbacks ...internalRules.CheckAccessFunc) bool {
-	return p.rules.Check(r.PermissionResource(), operation, fallbacks...) == internalRules.Allow
+func (svc permissions) checkAccess(r resource, operation string, fallbacks ...internalRules.CheckAccessFunc) bool {
+	return svc.rules.Check(r.PermissionResource(), operation, fallbacks...) == internalRules.Allow
 }
 
-func (p permissions) allow() func() internalRules.Access {
+func (svc permissions) allow() func() internalRules.Access {
 	return func() internalRules.Access {
 		return internalRules.Allow
 	}

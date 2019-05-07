@@ -7,18 +7,22 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/crusttech/crust/compose/internal/repository"
 	"github.com/crusttech/crust/compose/types"
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/logger"
 
 	systemService "github.com/crusttech/crust/system/service"
 )
 
 type (
 	record struct {
-		db  *factory.DB
-		ctx context.Context
+		db     *factory.DB
+		ctx    context.Context
+		logger *zap.Logger
 
 		prmSvc  PermissionsService
 		userSvc systemService.UserService
@@ -46,16 +50,18 @@ type (
 
 func Record() RecordService {
 	return (&record{
+		logger:  DefaultLogger.Named("record"),
 		prmSvc:  DefaultPermissions,
 		userSvc: systemService.DefaultUser,
 	}).With(context.Background())
 }
 
-func (svc *record) With(ctx context.Context) RecordService {
+func (svc record) With(ctx context.Context) RecordService {
 	db := repository.DB(ctx)
 	return &record{
-		db:  db,
-		ctx: ctx,
+		db:     db,
+		ctx:    ctx,
+		logger: svc.logger,
 
 		prmSvc:  svc.prmSvc.With(ctx),
 		userSvc: systemService.User(ctx),
@@ -65,7 +71,12 @@ func (svc *record) With(ctx context.Context) RecordService {
 	}
 }
 
-func (svc *record) FindByID(namespaceID, recordID uint64) (r *types.Record, err error) {
+// log() returns zap's logger with requestID from current context and fields.
+func (svc record) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+}
+
+func (svc record) FindByID(namespaceID, recordID uint64) (r *types.Record, err error) {
 	if namespaceID == 0 {
 		return nil, ErrNamespaceRequired
 	}
@@ -101,7 +112,7 @@ func (svc record) loadModule(namespaceID, moduleID uint64) (m *types.Module, err
 	return
 }
 
-func (svc *record) Report(namespaceID, moduleID uint64, metrics, dimensions, filter string) (out interface{}, err error) {
+func (svc record) Report(namespaceID, moduleID uint64, metrics, dimensions, filter string) (out interface{}, err error) {
 	var m *types.Module
 	if m, err = svc.loadModule(namespaceID, moduleID); err != nil {
 		return
@@ -114,7 +125,7 @@ func (svc *record) Report(namespaceID, moduleID uint64, metrics, dimensions, fil
 	return svc.recordRepo.Report(m, metrics, dimensions, filter)
 }
 
-func (svc *record) Find(filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
+func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
 	var m *types.Module
 	if m, err = svc.loadModule(filter.NamespaceID, filter.ModuleID); err != nil {
 		return
@@ -136,7 +147,7 @@ func (svc *record) Find(filter types.RecordFilter) (set types.RecordSet, f types
 	return
 }
 
-func (svc *record) Create(mod *types.Record) (r *types.Record, err error) {
+func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
 	if mod.NamespaceID == 0 {
 		return nil, ErrNamespaceRequired
 	}
@@ -175,7 +186,7 @@ func (svc *record) Create(mod *types.Record) (r *types.Record, err error) {
 	})
 }
 
-func (svc *record) Update(mod *types.Record) (r *types.Record, err error) {
+func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 	if mod.ID == 0 {
 		return nil, ErrInvalidID.withStack()
 	}
@@ -222,7 +233,7 @@ func (svc *record) Update(mod *types.Record) (r *types.Record, err error) {
 	})
 }
 
-func (svc *record) DeleteByID(namespaceID, recordID uint64) (err error) {
+func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 	err = svc.db.Transaction(func() (err error) {
 		var record *types.Record
 
@@ -249,7 +260,7 @@ func (svc *record) DeleteByID(namespaceID, recordID uint64) (err error) {
 }
 
 // Validates and filters record values
-func (svc *record) sanitizeValues(module *types.Module, values types.RecordValueSet) (err error) {
+func (svc record) sanitizeValues(module *types.Module, values types.RecordValueSet) (err error) {
 	// Make sure there are no multi values in a non-multi value fields
 	err = module.Fields.Walk(func(field *types.ModuleField) error {
 		if !field.Multi && len(values.FilterByName(field.Name)) > 1 {
@@ -283,7 +294,7 @@ func (svc *record) sanitizeValues(module *types.Module, values types.RecordValue
 	})
 }
 
-func (svc *record) preloadValues(rr ...*types.Record) error {
+func (svc record) preloadValues(rr ...*types.Record) error {
 	if rvs, err := svc.recordRepo.LoadValues(types.RecordSet(rr).IDs()...); err != nil {
 		return err
 	} else {

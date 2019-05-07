@@ -4,14 +4,21 @@ import (
 	"context"
 	"errors"
 
+	"github.com/titpetric/factory"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
+	"github.com/crusttech/crust/internal/logger"
 	internalSettings "github.com/crusttech/crust/internal/settings"
+	"github.com/crusttech/crust/system/internal/repository"
 )
 
 type (
 	// Wrapper service for system around internal settings service
 	settings struct {
-		db  db
-		ctx context.Context
+		db     *factory.DB
+		ctx    context.Context
+		logger *zap.Logger
 
 		prm              PermissionsService
 		internalSettings internalSettings.Service
@@ -31,15 +38,26 @@ type (
 func Settings(ctx context.Context, intSet internalSettings.Service) SettingsService {
 	return (&settings{
 		internalSettings: intSet,
+		logger:           DefaultLogger.Named("settings"),
 	}).With(ctx)
 }
 
 func (svc settings) With(ctx context.Context) SettingsService {
+	db := repository.DB(ctx)
+
 	return &settings{
-		ctx:              ctx,
+		db:     db,
+		ctx:    ctx,
+		logger: svc.logger,
+
 		prm:              Permissions(ctx),
 		internalSettings: svc.internalSettings.With(ctx),
 	}
+}
+
+// log() returns zap's logger with requestID from current context and fields.
+func (svc settings) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
 }
 
 func (svc settings) FindByPrefix(prefix string) (vv internalSettings.ValueSet, err error) {

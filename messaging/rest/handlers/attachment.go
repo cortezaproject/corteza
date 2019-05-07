@@ -23,6 +23,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/messaging/rest/request"
 )
 
@@ -44,13 +45,16 @@ func NewAttachment(ah AttachmentAPI) *Attachment {
 			defer r.Body.Close()
 			params := request.NewAttachmentOriginal()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Attachment.Original", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Original(r.Context(), params); err != nil {
+				logger.LogControllerError("Attachment.Original", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Attachment.Original", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -64,13 +68,16 @@ func NewAttachment(ah AttachmentAPI) *Attachment {
 			defer r.Body.Close()
 			params := request.NewAttachmentPreview()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Attachment.Preview", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Preview(r.Context(), params); err != nil {
+				logger.LogControllerError("Attachment.Preview", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Attachment.Preview", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

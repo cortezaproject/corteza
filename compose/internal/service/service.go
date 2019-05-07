@@ -3,6 +3,9 @@ package service
 import (
 	"time"
 
+	"go.uber.org/zap"
+
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/internal/store"
 )
 
@@ -13,6 +16,8 @@ type (
 )
 
 var (
+	DefaultLogger *zap.Logger
+
 	DefaultRecord       RecordService
 	DefaultModule       ModuleService
 	DefaultTrigger      TriggerService
@@ -29,6 +34,8 @@ func Init() error {
 	if err != nil {
 		return err
 	}
+
+	DefaultLogger = logger.Default().Named("compose.service")
 
 	DefaultPermissions = Permissions()
 	DefaultRecord = Record()

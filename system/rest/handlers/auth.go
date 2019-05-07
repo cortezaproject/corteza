@@ -23,6 +23,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/system/rest/request"
 )
 
@@ -48,13 +49,16 @@ func NewAuth(ah AuthAPI) *Auth {
 			defer r.Body.Close()
 			params := request.NewAuthSettings()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Auth.Settings", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Settings(r.Context(), params); err != nil {
+				logger.LogControllerError("Auth.Settings", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Auth.Settings", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -68,13 +72,16 @@ func NewAuth(ah AuthAPI) *Auth {
 			defer r.Body.Close()
 			params := request.NewAuthCheck()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Auth.Check", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Check(r.Context(), params); err != nil {
+				logger.LogControllerError("Auth.Check", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Auth.Check", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -88,13 +95,16 @@ func NewAuth(ah AuthAPI) *Auth {
 			defer r.Body.Close()
 			params := request.NewAuthExchangeAuthToken()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Auth.ExchangeAuthToken", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.ExchangeAuthToken(r.Context(), params); err != nil {
+				logger.LogControllerError("Auth.ExchangeAuthToken", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Auth.ExchangeAuthToken", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -108,13 +118,16 @@ func NewAuth(ah AuthAPI) *Auth {
 			defer r.Body.Close()
 			params := request.NewAuthLogout()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Auth.Logout", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Logout(r.Context(), params); err != nil {
+				logger.LogControllerError("Auth.Logout", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Auth.Logout", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

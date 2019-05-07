@@ -4,8 +4,11 @@ import (
 	"context"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/crusttech/crust/internal/config"
 	"github.com/crusttech/crust/internal/http"
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/internal/store"
 )
 
@@ -16,6 +19,8 @@ type (
 )
 
 var (
+	DefaultLogger *zap.Logger
+
 	DefaultAttachment  AttachmentService
 	DefaultChannel     ChannelService
 	DefaultMessage     MessageService
@@ -38,6 +43,8 @@ func Init() error {
 	if err != nil {
 		return err
 	}
+
+	DefaultLogger = logger.Default().Named("messaging.service")
 
 	ctx := context.Background()
 

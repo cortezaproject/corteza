@@ -4,16 +4,19 @@ import (
 	"bytes"
 	"context"
 	"html/template"
-	"log"
 
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	gomail "gopkg.in/mail.v2"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/internal/mail"
 )
 
 type (
 	authNotification struct {
-		ctx context.Context
+		ctx    context.Context
+		logger *zap.Logger
 
 		settings authSettings
 	}
@@ -41,15 +44,22 @@ var emailTemplates = map[string]string{
 }
 
 func AuthNotification(ctx context.Context) AuthNotificationService {
-	return (&authNotification{}).With(ctx)
+	return (&authNotification{
+		logger: DefaultLogger.Named("auth-notification"),
+	}).With(ctx)
 }
 
 func (svc authNotification) With(ctx context.Context) AuthNotificationService {
 	return &authNotification{
-		ctx: ctx,
+		ctx:    ctx,
+		logger: svc.logger,
 
 		settings: DefaultAuthSettings,
 	}
+}
+
+func (svc authNotification) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
 }
 
 func (svc authNotification) EmailConfirmation(lang string, emailAddress string, url string) error {
@@ -79,7 +89,12 @@ func (svc authNotification) send(name, lang string, payload authNotificationPayl
 	ntf.SetHeader("Subject", svc.render(emailTemplates[name+"."+lang+".subject"], payload))
 	ntf.SetBody("text/html", svc.render(emailTemplates[name+"."+lang+".html"], payload))
 
-	log.Printf("sending auth notification (%s.%s) to %q", name, lang, payload.EmailAddress)
+	svc.log().Debug(
+		"sending auth notification (%s.%s) to %q",
+		zap.String("name", name),
+		zap.String("language", lang),
+		zap.String("email", payload.EmailAddress),
+	)
 
 	return mail.Send(ntf)
 }
@@ -93,13 +108,13 @@ func (svc authNotification) render(source string, payload interface{}) (out stri
 
 	tpl, err = template.New("").Parse(source)
 	if err != nil {
-		log.Printf("could not render template: %v", err)
+		svc.log(zap.Error(err)).Error("could not parse template")
 		return
 	}
 
 	err = tpl.Execute(&buf, payload)
 	if err != nil {
-		log.Printf("could not render template: %v", err)
+		svc.log(zap.Error(err)).Error("could not render template")
 		return
 	}
 

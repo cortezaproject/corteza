@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -12,9 +11,12 @@ import (
 	"github.com/go-chi/chi"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/namsral/flag"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	compose "github.com/crusttech/crust/compose"
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/logger"
 	messaging "github.com/crusttech/crust/messaging"
 	system "github.com/crusttech/crust/system"
 
@@ -23,7 +25,6 @@ import (
 	"github.com/crusttech/crust/internal/middleware"
 	"github.com/crusttech/crust/internal/routes"
 	"github.com/crusttech/crust/internal/subscription"
-	"github.com/crusttech/crust/internal/version"
 )
 
 // Serves index.html in case the requested file isn't found (or some other os.Stat error)
@@ -41,17 +42,22 @@ func serveIndex(assetPath string, indexPath string, serve http.Handler) http.Han
 }
 
 func main() {
-	// log to stdout not stderr
-	log.SetOutput(os.Stdout)
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	log.Printf("Starting "+os.Args[0]+", version: %v, built on: %v", version.Version, version.BuildTime)
+	// Initialize default logger
+	logger.Init(zapcore.DebugLevel)
+	log := logger.Default().Named("crust")
 
+	// New signal-bond context that we will use and
+	// will get terminated (Done()) on SIGINT or SIGTERM
 	ctx := context.AsContext(sigctx.New())
+
+	// Bind default logger to context
+	ctx = logger.ContextWithValue(ctx, log)
 
 	var flags struct {
 		http    *config.HTTP
 		monitor *config.Monitor
 	}
+
 	flags.http = new(config.HTTP).Init()
 	flags.monitor = new(config.Monitor).Init()
 
@@ -76,22 +82,22 @@ func main() {
 	default:
 		// Initialize configuration of our services
 		if err := system.Init(ctx); err != nil {
-			log.Fatalf("Error initializing system: %+v", err)
+			log.Fatal("failed to initialize system", zap.Error(err))
 		}
 		if err := compose.Init(ctx); err != nil {
-			log.Fatalf("Error initializing compose: %+v", err)
+			log.Fatal("failed to initialize compose", zap.Error(err))
 		}
 		if err := messaging.Init(ctx); err != nil {
-			log.Fatalf("Error initializing messaging: %+v", err)
+			log.Fatal("failed to initialize messaging", zap.Error(err))
 		}
 		// Checks subscription, will os.Exit(1) if there is an error
 		// Disabled for now, system service is the only one that validates subscription
 		// ctx = subscription.Monitor(ctx)
 
-		log.Println("Starting http server on address " + flags.http.Addr)
+		log.Info("Starting http server on address " + flags.http.Addr)
 		listener, err := net.Listen("tcp", flags.http.Addr)
 		if err != nil {
-			log.Fatalf("Can't listen on addr %s", flags.http.Addr)
+			log.Info("Can't listen on addr " + flags.http.Addr)
 		}
 
 		if flags.monitor.Interval > 0 {
@@ -107,7 +113,7 @@ func main() {
 		auth.DefaultSigner = auth.HmacSigner(authJwtFlags.Secret)
 		auth.DefaultJwtHandler, err = auth.JWT(authJwtFlags.Secret, authJwtFlags.Expiry)
 		if err != nil {
-			log.Fatalf("Error creating JWT Auth: %v", err)
+			log.Fatal("Error creating JWT Auth", zap.Error(err))
 		}
 
 		r.Route("/api", func(r chi.Router) {
@@ -125,7 +131,7 @@ func main() {
 
 		fileserver := http.FileServer(http.Dir("webapp"))
 
-		for _, service := range []string{"admin", "system", "messaging", "compose"} {
+		for _, service := range []string{"admin", "auth", "messaging", "compose"} {
 			r.HandleFunc("/"+service+"*", serveIndex("webapp", "compose/index.html", fileserver))
 		}
 		r.HandleFunc("/*", serveIndex("webapp", "index.html", fileserver))

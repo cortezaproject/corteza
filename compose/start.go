@@ -3,17 +3,18 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
+	"go.uber.org/zap"
 
 	migrate "github.com/crusttech/crust/compose/db"
 	"github.com/crusttech/crust/compose/internal/service"
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/db"
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/internal/mail"
 	"github.com/crusttech/crust/internal/metrics"
 )
@@ -34,9 +35,7 @@ func Init(ctx context.Context) (err error) {
 	resputil.SetConfig(resputil.Options{
 		Pretty: flags.http.Pretty,
 		Trace:  flags.http.Tracing,
-		Logger: func(err error) {
-			// @todo: error logging
-		},
+		Logger: func(err error) {},
 	})
 
 	// Use JWT secret for hmac signer for now
@@ -66,7 +65,7 @@ func InitDatabase(ctx context.Context) error {
 }
 
 func StartRestAPI(ctx context.Context) error {
-	log.Println("Starting http server on address " + flags.http.Addr)
+	logger.Default().Info("Starting HTTP server", zap.String("address", flags.http.Addr))
 	listener, err := net.Listen("tcp", flags.http.Addr)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Can't listen on addr %s", flags.http.Addr))

@@ -24,6 +24,7 @@ import (
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/compose/rest/request"
+	"github.com/crusttech/crust/internal/logger"
 )
 
 // Internal API interface
@@ -56,13 +57,16 @@ func NewPage(ph PageAPI) *Page {
 			defer r.Body.Close()
 			params := request.NewPageList()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Page.List", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ph.List(r.Context(), params); err != nil {
+				logger.LogControllerError("Page.List", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Page.List", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -76,13 +80,16 @@ func NewPage(ph PageAPI) *Page {
 			defer r.Body.Close()
 			params := request.NewPageCreate()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Page.Create", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ph.Create(r.Context(), params); err != nil {
+				logger.LogControllerError("Page.Create", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Page.Create", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -96,13 +103,16 @@ func NewPage(ph PageAPI) *Page {
 			defer r.Body.Close()
 			params := request.NewPageRead()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Page.Read", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ph.Read(r.Context(), params); err != nil {
+				logger.LogControllerError("Page.Read", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Page.Read", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -116,13 +126,16 @@ func NewPage(ph PageAPI) *Page {
 			defer r.Body.Close()
 			params := request.NewPageTree()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Page.Tree", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ph.Tree(r.Context(), params); err != nil {
+				logger.LogControllerError("Page.Tree", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Page.Tree", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -136,13 +149,16 @@ func NewPage(ph PageAPI) *Page {
 			defer r.Body.Close()
 			params := request.NewPageUpdate()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Page.Update", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ph.Update(r.Context(), params); err != nil {
+				logger.LogControllerError("Page.Update", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Page.Update", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -156,13 +172,16 @@ func NewPage(ph PageAPI) *Page {
 			defer r.Body.Close()
 			params := request.NewPageReorder()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Page.Reorder", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ph.Reorder(r.Context(), params); err != nil {
+				logger.LogControllerError("Page.Reorder", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Page.Reorder", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -176,13 +195,16 @@ func NewPage(ph PageAPI) *Page {
 			defer r.Body.Close()
 			params := request.NewPageDelete()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Page.Delete", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ph.Delete(r.Context(), params); err != nil {
+				logger.LogControllerError("Page.Delete", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Page.Delete", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -196,13 +218,16 @@ func NewPage(ph PageAPI) *Page {
 			defer r.Body.Close()
 			params := request.NewPageUpload()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Page.Upload", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ph.Upload(r.Context(), params); err != nil {
+				logger.LogControllerError("Page.Upload", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Page.Upload", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

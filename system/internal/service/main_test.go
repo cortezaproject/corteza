@@ -3,17 +3,21 @@
 package service
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"testing"
 
 	"github.com/namsral/flag"
 	"github.com/titpetric/factory"
+	"go.uber.org/zap/zapcore"
 
+	"github.com/crusttech/crust/internal/logger"
 	systemMigrate "github.com/crusttech/crust/system/db"
 )
 
 func TestMain(m *testing.M) {
+	logger.Init(zapcore.DebugLevel)
+
 	dsn := ""
 	flag.StringVar(&dsn, "db-dsn", "crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci", "DSN for database connection")
 	flag.Parse()
@@ -26,7 +30,7 @@ func TestMain(m *testing.M) {
 
 	// migrate database schema
 	if err := systemMigrate.Migrate(db); err != nil {
-		log.Printf("Error running migrations: %+v\n", err)
+		fmt.Printf("Error running migrations: %+v\n", err)
 		return
 	}
 

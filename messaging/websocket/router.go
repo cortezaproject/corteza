@@ -2,11 +2,12 @@ package websocket
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"go.uber.org/zap"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/internal/service"
 )
@@ -18,7 +19,7 @@ func MountRoutes(ctx context.Context, config *repository.Flags) func(chi.Router)
 		go func() {
 			for {
 				if err := eq.feedSessions(ctx, config, events, store); err != nil {
-					log.Printf("Error in sessions event feed: %+v", err)
+					logger.Default().Error("session event feed error", zap.Error(err))
 				}
 			}
 		}()

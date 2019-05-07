@@ -23,6 +23,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/messaging/rest/request"
 )
 
@@ -46,13 +47,16 @@ func NewStatus(sh StatusAPI) *Status {
 			defer r.Body.Close()
 			params := request.NewStatusList()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Status.List", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := sh.List(r.Context(), params); err != nil {
+				logger.LogControllerError("Status.List", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Status.List", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -66,13 +70,16 @@ func NewStatus(sh StatusAPI) *Status {
 			defer r.Body.Close()
 			params := request.NewStatusSet()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Status.Set", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := sh.Set(r.Context(), params); err != nil {
+				logger.LogControllerError("Status.Set", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Status.Set", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -86,13 +93,16 @@ func NewStatus(sh StatusAPI) *Status {
 			defer r.Body.Close()
 			params := request.NewStatusDelete()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Status.Delete", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := sh.Delete(r.Context(), params); err != nil {
+				logger.LogControllerError("Status.Delete", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Status.Delete", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

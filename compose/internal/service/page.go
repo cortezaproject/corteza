@@ -5,15 +5,19 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/crusttech/crust/compose/internal/repository"
 	"github.com/crusttech/crust/compose/types"
+	"github.com/crusttech/crust/internal/logger"
 )
 
 type (
 	page struct {
-		db  *factory.DB
-		ctx context.Context
+		db     *factory.DB
+		ctx    context.Context
+		logger *zap.Logger
 
 		prmSvc PermissionsService
 
@@ -44,15 +48,17 @@ const (
 
 func Page() PageService {
 	return (&page{
+		logger: DefaultLogger.Named("page"),
 		prmSvc: DefaultPermissions,
 	}).With(context.Background())
 }
 
-func (svc *page) With(ctx context.Context) PageService {
+func (svc page) With(ctx context.Context) PageService {
 	db := repository.DB(ctx)
 	return &page{
-		db:  db,
-		ctx: ctx,
+		db:     db,
+		ctx:    ctx,
+		logger: svc.logger,
 
 		prmSvc: svc.prmSvc.With(ctx),
 
@@ -61,15 +67,20 @@ func (svc *page) With(ctx context.Context) PageService {
 	}
 }
 
-func (svc *page) FindByID(namespaceID, pageID uint64) (p *types.Page, err error) {
+// log() returns zap's logger with requestID from current context and fields.
+func (svc page) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+}
+
+func (svc page) FindByID(namespaceID, pageID uint64) (p *types.Page, err error) {
 	return svc.checkPermissions(svc.pageRepo.FindByID(namespaceID, pageID))
 }
 
-func (svc *page) FindByModuleID(namespaceID, moduleID uint64) (p *types.Page, err error) {
+func (svc page) FindByModuleID(namespaceID, moduleID uint64) (p *types.Page, err error) {
 	return svc.checkPermissions(svc.pageRepo.FindByModuleID(namespaceID, moduleID))
 }
 
-func (svc *page) checkPermissions(p *types.Page, err error) (*types.Page, error) {
+func (svc page) checkPermissions(p *types.Page, err error) (*types.Page, error) {
 	if err != nil {
 		return nil, err
 	} else if !svc.prmSvc.CanReadPage(p) {
@@ -79,7 +90,7 @@ func (svc *page) checkPermissions(p *types.Page, err error) (*types.Page, error)
 	return p, err
 }
 
-func (svc *page) FindBySelfID(namespaceID, parentID uint64) (pp types.PageSet, f types.PageFilter, err error) {
+func (svc page) FindBySelfID(namespaceID, parentID uint64) (pp types.PageSet, f types.PageFilter, err error) {
 	if namespaceID == 0 {
 		return nil, f, ErrNamespaceRequired.withStack()
 	}
@@ -93,7 +104,7 @@ func (svc *page) FindBySelfID(namespaceID, parentID uint64) (pp types.PageSet, f
 	}))
 }
 
-func (svc *page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
+func (svc page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
 	if filter.NamespaceID == 0 {
 		return nil, f, ErrNamespaceRequired.withStack()
 	}
@@ -101,7 +112,7 @@ func (svc *page) Find(filter types.PageFilter) (set types.PageSet, f types.PageF
 	return svc.filterPageSetByPermission(svc.pageRepo.Find(filter))
 }
 
-func (svc *page) Tree(namespaceID uint64) (pages types.PageSet, err error) {
+func (svc page) Tree(namespaceID uint64) (pages types.PageSet, err error) {
 	if namespaceID == 0 {
 		return nil, ErrNamespaceRequired.withStack()
 	}
@@ -142,7 +153,7 @@ func (svc *page) Tree(namespaceID uint64) (pages types.PageSet, err error) {
 	})
 }
 
-func (svc *page) filterPageSetByPermission(pp types.PageSet, f types.PageFilter, err error) (types.PageSet, types.PageFilter, error) {
+func (svc page) filterPageSetByPermission(pp types.PageSet, f types.PageFilter, err error) (types.PageSet, types.PageFilter, error) {
 	if err != nil {
 		return nil, f, err
 	}
@@ -155,11 +166,11 @@ func (svc *page) filterPageSetByPermission(pp types.PageSet, f types.PageFilter,
 	return pp, f, err
 }
 
-func (svc *page) Reorder(namespaceID, selfID uint64, pageIDs []uint64) error {
+func (svc page) Reorder(namespaceID, selfID uint64, pageIDs []uint64) error {
 	return svc.pageRepo.Reorder(namespaceID, selfID, pageIDs)
 }
 
-func (svc *page) Create(mod *types.Page) (p *types.Page, err error) {
+func (svc page) Create(mod *types.Page) (p *types.Page, err error) {
 	mod.ID = 0
 
 	if mod.NamespaceID == 0 {
@@ -178,7 +189,7 @@ func (svc *page) Create(mod *types.Page) (p *types.Page, err error) {
 	return
 }
 
-func (svc *page) Update(mod *types.Page) (p *types.Page, err error) {
+func (svc page) Update(mod *types.Page) (p *types.Page, err error) {
 	if mod.ID == 0 {
 		return nil, ErrInvalidID.withStack()
 	}
@@ -225,7 +236,7 @@ func (svc page) checkModulePage(mod *types.Page) error {
 	return nil
 }
 
-func (svc *page) DeleteByID(namespaceID, pageID uint64) error {
+func (svc page) DeleteByID(namespaceID, pageID uint64) error {
 	if p, err := svc.pageRepo.FindByID(namespaceID, pageID); err != nil {
 		return errors.Wrap(err, "could not delete page")
 	} else if !svc.prmSvc.CanDeletePage(p) {

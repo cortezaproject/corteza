@@ -3,7 +3,11 @@ package service
 import (
 	"context"
 
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/logger"
 	internalRules "github.com/crusttech/crust/internal/rules"
 	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
@@ -12,8 +16,9 @@ import (
 
 type (
 	permissions struct {
-		db  db
-		ctx context.Context
+		db     db
+		ctx    context.Context
+		logger *zap.Logger
 
 		rules systemService.RulesService
 	}
@@ -67,20 +72,28 @@ type (
 )
 
 func Permissions(ctx context.Context) PermissionsService {
-	return (&permissions{}).With(ctx)
+	return (&permissions{
+		logger: DefaultLogger.Named("permissions"),
+	}).With(ctx)
 }
 
-func (p *permissions) With(ctx context.Context) PermissionsService {
+func (svc permissions) With(ctx context.Context) PermissionsService {
 	db := repository.DB(ctx)
 	return &permissions{
-		db:  db,
-		ctx: ctx,
+		db:     db,
+		ctx:    ctx,
+		logger: svc.logger,
 
 		rules: systemService.Rules(ctx),
 	}
 }
 
-func (p *permissions) Effective() (ee []effectivePermission, err error) {
+// log() returns zap's logger with requestID from current context and fields.
+func (svc permissions) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+}
+
+func (svc permissions) Effective() (ee []effectivePermission, err error) {
 	ep := func(res internalRules.Resource, op string, allow bool) effectivePermission {
 		return effectivePermission{
 			Resource:  res,
@@ -89,123 +102,123 @@ func (p *permissions) Effective() (ee []effectivePermission, err error) {
 		}
 	}
 
-	ee = append(ee, ep(types.PermissionResource, "access", p.CanAccess()))
-	ee = append(ee, ep(types.PermissionResource, "grant", p.CanGrant()))
-	ee = append(ee, ep(types.PermissionResource, "channel.public.create", p.CanCreatePublicChannel()))
-	ee = append(ee, ep(types.PermissionResource, "channel.private.create", p.CanCreatePrivateChannel()))
-	ee = append(ee, ep(types.PermissionResource, "channel.group.create", p.CanCreateGroupChannel()))
+	ee = append(ee, ep(types.PermissionResource, "access", svc.CanAccess()))
+	ee = append(ee, ep(types.PermissionResource, "grant", svc.CanGrant()))
+	ee = append(ee, ep(types.PermissionResource, "channel.public.create", svc.CanCreatePublicChannel()))
+	ee = append(ee, ep(types.PermissionResource, "channel.private.create", svc.CanCreatePrivateChannel()))
+	ee = append(ee, ep(types.PermissionResource, "channel.group.create", svc.CanCreateGroupChannel()))
 
 	return
 }
 
-func (p *permissions) CanAccess() bool {
-	return p.checkAccess(types.PermissionResource, "access")
+func (svc permissions) CanAccess() bool {
+	return svc.checkAccess(types.PermissionResource, "access")
 }
 
-func (p *permissions) CanGrant() bool {
-	return p.checkAccess(types.PermissionResource, "grant")
+func (svc permissions) CanGrant() bool {
+	return svc.checkAccess(types.PermissionResource, "grant")
 }
 
-func (p *permissions) CanCreatePublicChannel() bool {
-	return p.checkAccess(types.PermissionResource, "channel.public.create", p.allow())
+func (svc permissions) CanCreatePublicChannel() bool {
+	return svc.checkAccess(types.PermissionResource, "channel.public.create", svc.allow())
 }
 
-func (p *permissions) CanCreatePrivateChannel() bool {
-	return p.checkAccess(types.PermissionResource, "channel.private.create", p.allow())
+func (svc permissions) CanCreatePrivateChannel() bool {
+	return svc.checkAccess(types.PermissionResource, "channel.private.create", svc.allow())
 }
 
-func (p *permissions) CanCreateGroupChannel() bool {
-	return p.checkAccess(types.PermissionResource, "channel.group.create", p.allow())
+func (svc permissions) CanCreateGroupChannel() bool {
+	return svc.checkAccess(types.PermissionResource, "channel.group.create", svc.allow())
 }
 
-func (p *permissions) CanUpdateChannel(ch *types.Channel) bool {
-	return p.checkAccess(ch, "update", p.isChannelOwnerFallback(ch))
+func (svc permissions) CanUpdateChannel(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "update", svc.isChannelOwnerFallback(ch))
 }
 
-func (p *permissions) CanReadChannel(ch *types.Channel) bool {
-	return p.checkAccess(ch, "read", p.canReadFallback(ch))
+func (svc permissions) CanReadChannel(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "read", svc.canReadFallback(ch))
 }
 
-func (p *permissions) CanJoinChannel(ch *types.Channel) bool {
-	return p.checkAccess(ch, "join", p.canJoinFallback(ch))
+func (svc permissions) CanJoinChannel(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "join", svc.canJoinFallback(ch))
 }
 
-func (p *permissions) CanLeaveChannel(ch *types.Channel) bool {
-	return p.checkAccess(ch, "leave", p.allow())
+func (svc permissions) CanLeaveChannel(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "leave", svc.allow())
 }
 
-func (p *permissions) CanArchiveChannel(ch *types.Channel) bool {
-	return p.checkAccess(ch, "archive", p.isChannelOwnerFallback(ch))
+func (svc permissions) CanArchiveChannel(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "archive", svc.isChannelOwnerFallback(ch))
 }
 
-func (p *permissions) CanUnarchiveChannel(ch *types.Channel) bool {
-	return p.checkAccess(ch, "unarchive", p.isChannelOwnerFallback(ch))
+func (svc permissions) CanUnarchiveChannel(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "unarchive", svc.isChannelOwnerFallback(ch))
 }
 
-func (p *permissions) CanDeleteChannel(ch *types.Channel) bool {
-	return p.checkAccess(ch, "delete", p.isChannelOwnerFallback(ch))
+func (svc permissions) CanDeleteChannel(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "delete", svc.isChannelOwnerFallback(ch))
 }
 
-func (p *permissions) CanUndeleteChannel(ch *types.Channel) bool {
-	return p.checkAccess(ch, "undelete", p.isChannelOwnerFallback(ch))
+func (svc permissions) CanUndeleteChannel(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "undelete", svc.isChannelOwnerFallback(ch))
 }
 
-func (p *permissions) CanManageChannelMembers(ch *types.Channel) bool {
-	return p.checkAccess(ch, "members.manage", p.isChannelOwnerFallback(ch))
+func (svc permissions) CanManageChannelMembers(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "members.manage", svc.isChannelOwnerFallback(ch))
 }
 
-func (p *permissions) CanManageWebhooks(webhook *types.Webhook) bool {
-	return p.checkAccess(webhook, "webhook.manage.all")
+func (svc permissions) CanManageWebhooks(webhook *types.Webhook) bool {
+	return svc.checkAccess(webhook, "webhook.manage.all")
 }
 
-func (p *permissions) CanManageOwnWebhooks(webhook *types.Webhook) bool {
-	return p.checkAccess(webhook, "webhook.manage.own")
+func (svc permissions) CanManageOwnWebhooks(webhook *types.Webhook) bool {
+	return svc.checkAccess(webhook, "webhook.manage.own")
 }
 
-func (p *permissions) CanManageChannelAttachments(ch *types.Channel) bool {
-	return p.checkAccess(ch, "attachments.manage")
+func (svc permissions) CanManageChannelAttachments(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "attachments.manage")
 }
 
-func (p *permissions) CanSendMessage(ch *types.Channel) bool {
-	return p.checkAccess(ch, "message.send", p.canSendMessagesFallback(ch))
+func (svc permissions) CanSendMessage(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "message.send", svc.canSendMessagesFallback(ch))
 }
 
-func (p *permissions) CanReplyMessage(ch *types.Channel) bool {
-	return p.checkAccess(ch, "message.reply", p.allow())
+func (svc permissions) CanReplyMessage(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "message.reply", svc.allow())
 }
 
-func (p *permissions) CanEmbedMessage(ch *types.Channel) bool {
-	return p.checkAccess(ch, "message.embed", p.allow())
+func (svc permissions) CanEmbedMessage(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "message.embed", svc.allow())
 }
 
-func (p *permissions) CanAttachMessage(ch *types.Channel) bool {
-	return p.checkAccess(ch, "message.attach", p.allow())
+func (svc permissions) CanAttachMessage(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "message.attach", svc.allow())
 }
 
-func (p *permissions) CanUpdateOwnMessages(ch *types.Channel) bool {
-	return p.checkAccess(ch, "message.update.own", p.allow())
+func (svc permissions) CanUpdateOwnMessages(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "message.update.own", svc.allow())
 }
 
-func (p *permissions) CanUpdateMessages(ch *types.Channel) bool {
-	return p.checkAccess(ch, "message.update.all")
+func (svc permissions) CanUpdateMessages(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "message.update.all")
 }
 
-func (p *permissions) CanDeleteOwnMessages(ch *types.Channel) bool {
+func (svc permissions) CanDeleteOwnMessages(ch *types.Channel) bool {
 	// @todo implement
-	return p.checkAccess(ch, "message.delete.own", p.allow())
+	return svc.checkAccess(ch, "message.delete.own", svc.allow())
 }
 
-func (p *permissions) CanDeleteMessages(ch *types.Channel) bool {
-	return p.checkAccess(ch, "message.delete.all")
+func (svc permissions) CanDeleteMessages(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "message.delete.all")
 }
 
-func (p *permissions) CanReactMessage(ch *types.Channel) bool {
-	return p.checkAccess(ch, "message.react", p.allow())
+func (svc permissions) CanReactMessage(ch *types.Channel) bool {
+	return svc.checkAccess(ch, "message.react", svc.allow())
 }
 
-func (p permissions) canJoinFallback(ch *types.Channel) func() internalRules.Access {
+func (svc permissions) canJoinFallback(ch *types.Channel) func() internalRules.Access {
 	return func() internalRules.Access {
-		userID := auth.GetIdentityFromContext(p.ctx).Identity()
+		userID := auth.GetIdentityFromContext(svc.ctx).Identity()
 
 		isMember := ch.Member != nil
 		isCreator := ch.CreatorID == userID
@@ -219,7 +232,7 @@ func (p permissions) canJoinFallback(ch *types.Channel) func() internalRules.Acc
 	}
 }
 
-func (p permissions) canReadFallback(ch *types.Channel) func() internalRules.Access {
+func (svc permissions) canReadFallback(ch *types.Channel) func() internalRules.Access {
 	return func() internalRules.Access {
 		if ch.IsValid() && (ch.Type == types.ChannelTypePublic || ch.Member != nil) {
 			return internalRules.Allow
@@ -228,7 +241,7 @@ func (p permissions) canReadFallback(ch *types.Channel) func() internalRules.Acc
 	}
 }
 
-func (p permissions) canSendMessagesFallback(ch *types.Channel) func() internalRules.Access {
+func (svc permissions) canSendMessagesFallback(ch *types.Channel) func() internalRules.Access {
 	return func() internalRules.Access {
 		if ch.IsValid() && (ch.Type == types.ChannelTypePublic || ch.Member != nil) {
 			return internalRules.Allow
@@ -237,15 +250,15 @@ func (p permissions) canSendMessagesFallback(ch *types.Channel) func() internalR
 	}
 }
 
-func (p permissions) allow() func() internalRules.Access {
+func (svc permissions) allow() func() internalRules.Access {
 	return func() internalRules.Access {
 		return internalRules.Allow
 	}
 }
 
-func (p permissions) isChannelOwnerFallback(ch *types.Channel) func() internalRules.Access {
+func (svc permissions) isChannelOwnerFallback(ch *types.Channel) func() internalRules.Access {
 	return func() internalRules.Access {
-		userID := auth.GetIdentityFromContext(p.ctx).Identity()
+		userID := auth.GetIdentityFromContext(svc.ctx).Identity()
 
 		isMember := ch.Member != nil
 		isCreator := ch.CreatorID == userID
@@ -258,8 +271,8 @@ func (p permissions) isChannelOwnerFallback(ch *types.Channel) func() internalRu
 	}
 }
 
-func (p *permissions) checkAccess(res resource, operation string, fallbacks ...internalRules.CheckAccessFunc) bool {
-	access := p.rules.Check(res.PermissionResource(), operation, fallbacks...)
+func (svc permissions) checkAccess(res resource, operation string, fallbacks ...internalRules.CheckAccessFunc) bool {
+	access := svc.rules.Check(res.PermissionResource(), operation, fallbacks...)
 	if access == internalRules.Allow {
 		return true
 	}

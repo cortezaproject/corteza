@@ -23,6 +23,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/system/rest/request"
 )
 
@@ -48,13 +49,16 @@ func NewSettings(sh SettingsAPI) *Settings {
 			defer r.Body.Close()
 			params := request.NewSettingsList()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Settings.List", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := sh.List(r.Context(), params); err != nil {
+				logger.LogControllerError("Settings.List", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Settings.List", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -68,13 +72,16 @@ func NewSettings(sh SettingsAPI) *Settings {
 			defer r.Body.Close()
 			params := request.NewSettingsUpdate()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Settings.Update", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := sh.Update(r.Context(), params); err != nil {
+				logger.LogControllerError("Settings.Update", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Settings.Update", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -88,13 +95,16 @@ func NewSettings(sh SettingsAPI) *Settings {
 			defer r.Body.Close()
 			params := request.NewSettingsGet()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Settings.Get", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := sh.Get(r.Context(), params); err != nil {
+				logger.LogControllerError("Settings.Get", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Settings.Get", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -108,13 +118,16 @@ func NewSettings(sh SettingsAPI) *Settings {
 			defer r.Body.Close()
 			params := request.NewSettingsSet()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Settings.Set", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := sh.Set(r.Context(), params); err != nil {
+				logger.LogControllerError("Settings.Set", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Settings.Set", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

@@ -3,6 +3,9 @@ package service
 import (
 	"context"
 
+	"go.uber.org/zap"
+
+	"github.com/crusttech/crust/internal/logger"
 	internalSettings "github.com/crusttech/crust/internal/settings"
 	"github.com/crusttech/crust/system/internal/repository"
 )
@@ -14,6 +17,8 @@ type (
 )
 
 var (
+	DefaultLogger *zap.Logger
+
 	DefaultSettings         SettingsService
 	DefaultAuthNotification AuthNotificationService
 	DefaultAuthSettings     authSettings
@@ -31,6 +36,8 @@ func Init() (err error) {
 	ctx := context.Background()
 
 	intSet := internalSettings.NewService(internalSettings.NewRepository(repository.DB(ctx), "sys_settings"))
+
+	DefaultLogger = logger.Default().Named("system.service")
 
 	DefaultSettings = Settings(ctx, intSet)
 	DefaultRules = Rules(ctx)

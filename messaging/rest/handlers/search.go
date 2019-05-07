@@ -23,6 +23,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/messaging/rest/request"
 )
 
@@ -44,13 +45,16 @@ func NewSearch(sh SearchAPI) *Search {
 			defer r.Body.Close()
 			params := request.NewSearchMessages()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Search.Messages", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := sh.Messages(r.Context(), params); err != nil {
+				logger.LogControllerError("Search.Messages", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Search.Messages", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -64,13 +68,16 @@ func NewSearch(sh SearchAPI) *Search {
 			defer r.Body.Close()
 			params := request.NewSearchThreads()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Search.Threads", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := sh.Threads(r.Context(), params); err != nil {
+				logger.LogControllerError("Search.Threads", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Search.Threads", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

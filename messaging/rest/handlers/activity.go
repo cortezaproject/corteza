@@ -23,6 +23,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/messaging/rest/request"
 )
 
@@ -42,13 +43,16 @@ func NewActivity(ah ActivityAPI) *Activity {
 			defer r.Body.Close()
 			params := request.NewActivitySend()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Activity.Send", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Send(r.Context(), params); err != nil {
+				logger.LogControllerError("Activity.Send", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Activity.Send", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

@@ -9,9 +9,12 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/http"
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/internal/store"
 	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
@@ -23,6 +26,8 @@ type (
 	webhook struct {
 		db     db
 		ctx    context.Context
+		logger *zap.Logger
+
 		client *http.Client
 
 		users   systemService.UserService
@@ -51,15 +56,19 @@ type (
 
 func Webhook(ctx context.Context, client *http.Client) WebhookService {
 	return (&webhook{
+		logger: DefaultLogger.Named("webhook"),
+
 		client: client,
 	}).With(ctx)
 }
 
-func (svc *webhook) With(ctx context.Context) WebhookService {
+func (svc webhook) With(ctx context.Context) WebhookService {
 	db := repository.DB(ctx)
 	return &webhook{
 		db:     db,
 		ctx:    ctx,
+		logger: svc.logger,
+
 		client: svc.client,
 
 		users:   systemService.User(ctx),
@@ -68,7 +77,12 @@ func (svc *webhook) With(ctx context.Context) WebhookService {
 	}
 }
 
-func (svc *webhook) Create(kind types.WebhookKind, channelID uint64, params types.WebhookRequest) (*types.Webhook, error) {
+// log() returns zap's logger with requestID from current context and fields.
+func (svc webhook) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+}
+
+func (svc webhook) Create(kind types.WebhookKind, channelID uint64, params types.WebhookRequest) (*types.Webhook, error) {
 	var userID = repository.Identity(svc.ctx)
 
 	webhook := &types.Webhook{
@@ -106,7 +120,7 @@ func (svc *webhook) Create(kind types.WebhookKind, channelID uint64, params type
 	return wh, err
 }
 
-func (svc *webhook) Update(webhookID uint64, kind types.WebhookKind, channelID uint64, params types.WebhookRequest) (*types.Webhook, error) {
+func (svc webhook) Update(webhookID uint64, kind types.WebhookKind, channelID uint64, params types.WebhookRequest) (*types.Webhook, error) {
 	var userID = repository.Identity(svc.ctx)
 	webhook, err := svc.Get(webhookID)
 	if err != nil {
@@ -134,15 +148,15 @@ func (svc *webhook) Update(webhookID uint64, kind types.WebhookKind, channelID u
 	return svc.webhook.Update(webhook)
 }
 
-func (svc *webhook) Get(webhookID uint64) (*types.Webhook, error) {
+func (svc webhook) Get(webhookID uint64) (*types.Webhook, error) {
 	return svc.webhook.Get(webhookID)
 }
 
-func (svc *webhook) Find(filter *types.WebhookFilter) (types.WebhookSet, error) {
+func (svc webhook) Find(filter *types.WebhookFilter) (types.WebhookSet, error) {
 	return svc.webhook.Find(filter)
 }
 
-func (svc *webhook) Delete(webhookID uint64) error {
+func (svc webhook) Delete(webhookID uint64) error {
 	webhook, err := svc.Get(webhookID)
 	if err != nil {
 		return err
@@ -157,11 +171,11 @@ func (svc *webhook) Delete(webhookID uint64) error {
 	return errors.WithStack(ErrNoPermissions)
 }
 
-func (svc *webhook) DeleteByToken(webhookID uint64, webhookToken string) error {
+func (svc webhook) DeleteByToken(webhookID uint64, webhookToken string) error {
 	return svc.webhook.DeleteByToken(webhookID, webhookToken)
 }
 
-func (svc *webhook) Message(webhookID uint64, webhookToken string, username string, avatar io.Reader, message string) (interface{}, error) {
+func (svc webhook) Message(webhookID uint64, webhookToken string, username string, avatar io.Reader, message string) (interface{}, error) {
 	if webhook, err := svc.webhook.GetByToken(webhookID, webhookToken); err != nil {
 		return nil, err
 	} else {
@@ -176,7 +190,7 @@ func (svc *webhook) Message(webhookID uint64, webhookToken string, username stri
 }
 
 // Do executes an outgoing HTTP webhook request
-func (svc *webhook) Do(webhook *types.Webhook, message string) (*types.Message, error) {
+func (svc webhook) Do(webhook *types.Webhook, message string) (*types.Message, error) {
 	if webhook.Kind != types.OutgoingWebhook {
 		return nil, errors.Errorf("Unsupported webhook type: %s", webhook.Kind)
 	}
@@ -242,7 +256,7 @@ func (svc *webhook) Do(webhook *types.Webhook, message string) (*types.Message, 
 	return svc.sendMessage(webhook, msg, avatar)
 }
 
-func (svc *webhook) sendMessage(webhook *types.Webhook, msg *types.Message, avatar io.Reader) (*types.Message, error) {
+func (svc webhook) sendMessage(webhook *types.Webhook, msg *types.Message, avatar io.Reader) (*types.Message, error) {
 	// We need a webhook user context for message service
 	ctx := auth.SetIdentityToContext(svc.ctx, &systemTypes.User{ID: webhook.UserID})
 	messageSvc := Message(ctx)

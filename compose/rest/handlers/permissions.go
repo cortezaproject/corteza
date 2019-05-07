@@ -24,6 +24,7 @@ import (
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/crusttech/crust/compose/rest/request"
+	"github.com/crusttech/crust/internal/logger"
 )
 
 // Internal API interface
@@ -42,13 +43,16 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 			defer r.Body.Close()
 			params := request.NewPermissionsEffective()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Permissions.Effective", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ph.Effective(r.Context(), params); err != nil {
+				logger.LogControllerError("Permissions.Effective", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("Permissions.Effective", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

@@ -3,7 +3,6 @@ package rest
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -13,8 +12,11 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/titpetric/factory/resputil"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/system/internal/service"
 )
 
@@ -29,11 +31,15 @@ const (
 	externalAuthBaseUrl = "/auth/external"
 )
 
-func NewSocial() *ExternalAuth {
+func NewExternalAuth() *ExternalAuth {
 	return &ExternalAuth{
 		auth:       service.DefaultAuth,
 		jwtEncoder: auth.DefaultJwtHandler,
 	}
+}
+
+func (ctrl ExternalAuth) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+	return logger.ContextValue(ctx).Named("external-auth").With(fields...)
 }
 
 func (ctrl *ExternalAuth) MountRoutes(r chi.Router) {
@@ -69,7 +75,7 @@ func (ctrl *ExternalAuth) MountRoutes(r chi.Router) {
 			r = copyProviderToContext(r)
 
 			if user, err := gothic.CompleteUserAuth(w, r); err != nil {
-				log.Printf("Failed to complete user auth: %v", err)
+				ctrl.log(r.Context(), zap.Error(err)).Error("failed to complete user auth")
 				ctrl.handleFailedCallback(w, r, err)
 			} else {
 				ctrl.handleSuccessfulAuth(w, r, user)
@@ -78,7 +84,7 @@ func (ctrl *ExternalAuth) MountRoutes(r chi.Router) {
 
 		r.Get("/logout", func(w http.ResponseWriter, r *http.Request) {
 			if err := gothic.Logout(w, r); err != nil {
-				log.Printf("Failed to external logout: %v", err)
+				ctrl.log(r.Context(), zap.Error(err)).Error("failed to execute external logout")
 			}
 
 			w.Header().Set("Location", "/")
@@ -111,7 +117,7 @@ func (ctrl *ExternalAuth) handleFailedCallback(w http.ResponseWriter, r *http.Re
 // 2) use `auth.frontend.url.redirect` setting
 // 3) use current url
 func (ctrl *ExternalAuth) handleSuccessfulAuth(w http.ResponseWriter, r *http.Request, cred goth.User) {
-	log.Printf("Successful external login: %v", cred)
+	ctrl.log(r.Context(), zap.String("provider", cred.Provider)).Info("external login successful")
 
 	svc := ctrl.auth.With(r.Context())
 

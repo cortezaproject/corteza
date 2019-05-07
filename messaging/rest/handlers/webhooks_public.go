@@ -23,6 +23,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/messaging/rest/request"
 )
 
@@ -44,13 +45,16 @@ func NewWebhooksPublic(wh WebhooksPublicAPI) *WebhooksPublic {
 			defer r.Body.Close()
 			params := request.NewWebhooksPublicDelete()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("WebhooksPublic.Delete", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := wh.Delete(r.Context(), params); err != nil {
+				logger.LogControllerError("WebhooksPublic.Delete", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("WebhooksPublic.Delete", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -64,13 +68,16 @@ func NewWebhooksPublic(wh WebhooksPublicAPI) *WebhooksPublic {
 			defer r.Body.Close()
 			params := request.NewWebhooksPublicCreate()
 			if err := params.Fill(r); err != nil {
+				logger.LogParamError("WebhooksPublic.Create", r, err, params)
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := wh.Create(r.Context(), params); err != nil {
+				logger.LogControllerError("WebhooksPublic.Create", r, err, params)
 				resputil.JSON(w, err)
 				return
 			} else {
+				logger.LogControllerCall("WebhooksPublic.Create", r, params)
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

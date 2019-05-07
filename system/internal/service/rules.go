@@ -4,7 +4,10 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
+	"github.com/crusttech/crust/internal/logger"
 	internalRules "github.com/crusttech/crust/internal/rules"
 	"github.com/crusttech/crust/system/internal/repository"
 	"github.com/crusttech/crust/system/types"
@@ -16,8 +19,9 @@ const (
 
 type (
 	rules struct {
-		db  db
-		ctx context.Context
+		db     db
+		ctx    context.Context
+		logger *zap.Logger
 
 		resources internalRules.ResourcesInterface
 	}
@@ -43,20 +47,28 @@ type (
 )
 
 func Rules(ctx context.Context) RulesService {
-	return (&rules{}).With(ctx)
+	return (&rules{
+		logger: DefaultLogger.Named("rules"),
+	}).With(ctx)
 }
 
-func (p *rules) With(ctx context.Context) RulesService {
+func (svc rules) With(ctx context.Context) RulesService {
 	db := repository.DB(ctx)
 	return &rules{
-		db:  db,
-		ctx: ctx,
+		db:     db,
+		ctx:    ctx,
+		logger: svc.logger,
 
 		resources: internalRules.NewResources(ctx, db),
 	}
 }
 
-func (p *rules) List() (interface{}, error) {
+// log() returns zap's logger with requestID from current context and fields.
+func (svc rules) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+}
+
+func (svc rules) List() (interface{}, error) {
 	perms := []types.Permission{}
 	for resource, operations := range permissionList {
 		for ops := range operations {
@@ -66,10 +78,10 @@ func (p *rules) List() (interface{}, error) {
 	return perms, nil
 }
 
-func (p *rules) Effective(filter string) (eff []EffectiveRules, err error) {
+func (svc rules) Effective(filter string) (eff []EffectiveRules, err error) {
 	eff = []EffectiveRules{}
 	for resource, operations := range permissionList {
-		// err := p.checkServiceAccess(resource)
+		// err := svc.checkServiceAccess(resource)
 		if err == nil {
 			for ops := range operations {
 				eff = append(eff, EffectiveRules{
@@ -83,12 +95,12 @@ func (p *rules) Effective(filter string) (eff []EffectiveRules, err error) {
 	return
 }
 
-func (p *rules) Check(resource internalRules.Resource, operation string, fallbacks ...internalRules.CheckAccessFunc) internalRules.Access {
-	return p.resources.Check(resource, operation, fallbacks...)
+func (svc rules) Check(resource internalRules.Resource, operation string, fallbacks ...internalRules.CheckAccessFunc) internalRules.Access {
+	return svc.resources.Check(resource, operation, fallbacks...)
 }
 
-func (p *rules) Read(roleID uint64) (interface{}, error) {
-	ret, err := p.resources.Read(roleID)
+func (svc rules) Read(roleID uint64) (interface{}, error) {
+	ret, err := svc.resources.Read(roleID)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +108,7 @@ func (p *rules) Read(roleID uint64) (interface{}, error) {
 	// Only display rules under granted scopes.
 	rules := []internalRules.Rule{}
 	for _, rule := range ret {
-		err = p.checkServiceAccess(rule.Resource)
+		err = svc.checkServiceAccess(rule.Resource)
 		if err == nil {
 			rules = append(rules, rule)
 		}
@@ -104,31 +116,31 @@ func (p *rules) Read(roleID uint64) (interface{}, error) {
 	return rules, nil
 }
 
-func (p *rules) Update(roleID uint64, rules []internalRules.Rule) (interface{}, error) {
+func (svc rules) Update(roleID uint64, rules []internalRules.Rule) (interface{}, error) {
 	for _, rule := range rules {
 		err := validatePermission(rule.Resource, rule.Operation)
 		if err != nil {
 			return nil, err
 		}
-		err = p.checkServiceAccess(rule.Resource)
+		err = svc.checkServiceAccess(rule.Resource)
 		if err != nil {
 			return nil, err
 		}
 	}
-	err := p.resources.Grant(roleID, rules)
+	err := svc.resources.Grant(roleID, rules)
 	if err != nil {
 		return nil, err
 	}
-	return p.resources.Read(roleID)
+	return svc.resources.Read(roleID)
 }
 
-func (p *rules) Delete(roleID uint64) (interface{}, error) {
-	return nil, p.resources.Delete(roleID)
+func (svc rules) Delete(roleID uint64) (interface{}, error) {
+	return nil, svc.resources.Delete(roleID)
 }
 
-func (p *rules) checkServiceAccess(resource internalRules.Resource) error {
+func (svc rules) checkServiceAccess(resource internalRules.Resource) error {
 	// First, we trim off resource to get service - only service resource have grant operation
-	grant := p.resources.Check(resource.GetService(), "grant")
+	grant := svc.resources.Check(resource.GetService(), "grant")
 	if grant == internalRules.Allow {
 		return nil
 	}
