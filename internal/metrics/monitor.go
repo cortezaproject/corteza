@@ -1,11 +1,13 @@
 package metrics
 
 import (
-	"encoding/json"
 	"expvar"
-	"fmt"
 	"runtime"
 	"time"
+
+	"go.uber.org/zap"
+
+	"github.com/crusttech/crust/internal/logger"
 )
 
 type Monitor struct {
@@ -52,8 +54,18 @@ func NewMonitor(duration int) {
 		m.PauseTotalNs = rtm.PauseTotalNs
 		m.NumGC = rtm.NumGC
 
-		// Just encode to json and print
-		b, _ := json.Marshal(m)
-		fmt.Println(string(b))
+		logger.Default().
+			With(
+				zap.Uint64("alloc", m.Alloc),
+				zap.Uint64("totalAlloc", m.TotalAlloc),
+				zap.Uint64("sys", m.Sys),
+				zap.Uint64("mallocs", m.Mallocs),
+				zap.Uint64("frees", m.Frees),
+				zap.Uint64("liveObjects", m.LiveObjects),
+				zap.Uint64("pauseTotalNs", m.PauseTotalNs),
+				zap.Uint32("numGC", m.NumGC),
+				zap.Int("numGoRoutines", m.NumGoroutine),
+			).
+			Debug("monitor")
 	}
 }
