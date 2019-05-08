@@ -10,7 +10,7 @@ import (
 
 type (
 	Channel struct {
-		ID    uint64         `json:"id" db:"id"`
+		ID    uint64         `json:"channelID" db:"id"`
 		Name  string         `json:"name" db:"name"`
 		Topic string         `json:"topic" db:"topic"`
 		Type  ChannelType    `json:"type" db:"type"`

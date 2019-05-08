@@ -6,7 +6,7 @@ import (
 
 type (
 	Attachment struct {
-		ID         string      `json:"ID"`
+		ID         string      `json:"attachmentID"`
 		UserID     string      `json:"userID"`
 		Url        string      `json:"url"`
 		PreviewUrl string      `json:"previewUrl,omitempty"`
