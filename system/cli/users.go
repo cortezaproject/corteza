@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"syscall"
 
@@ -145,14 +146,16 @@ func usersCmd(ctx context.Context, db *factory.DB) *cobra.Command {
 				userStr = args[0]
 			)
 
-			if user, err = userRepo.FindByEmail(userStr); !repository.ErrUserNotFound.Eq(err) {
-				exit(cmd, err)
-			} else if user == nil || user.ID == 0 {
-				if ID, err = strconv.ParseUint(userStr, 10, 64); err != nil {
-					exit(cmd, err)
-				} else if user, err = userRepo.FindByID(ID); err != nil {
-					exit(cmd, err)
+			if user, err = userRepo.FindByEmail(userStr); repository.ErrUserNotFound.Eq(err) {
+				if regexp.MustCompile(`/^\d+$/`).MatchString(userStr) {
+					if ID, err = strconv.ParseUint(userStr, 10, 64); err == nil {
+						user, err = userRepo.FindByID(ID)
+					}
 				}
+			}
+
+			if err != nil {
+				exit(cmd, err)
 			}
 
 			cmd.Println(auth.DefaultJwtHandler.Encode(user))
