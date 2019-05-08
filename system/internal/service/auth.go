@@ -146,7 +146,7 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 				}
 
 				if u, err = svc.users.FindByID(c.OwnerID); err != nil {
-					if err == repository.ErrUserNotFound {
+					if repository.ErrUserNotFound.Eq(err) {
 						// Orphaned credentials (no owner)
 						// try to auto-fix this by removing credentials and recreating user
 						if err := svc.credentials.DeleteByID(c.ID); err != nil {
@@ -186,7 +186,7 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 
 	findByEmail:
 		// Find user via his email
-		if u, err = svc.users.FindByEmail(profile.Email); err == repository.ErrUserNotFound {
+		if u, err = svc.users.FindByEmail(profile.Email); repository.ErrUserNotFound.Eq(err) {
 			// @todo check if it is ok to auto-create a user here
 
 			// In case we do not have this email, create a new user
@@ -266,95 +266,84 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 		return
 	}
 
-	err = svc.db.Transaction(func() error {
-		existing, err := svc.users.FindByEmail(input.Email)
+	existing, err := svc.users.FindByEmail(input.Email)
 
-		if err == nil && existing.Valid() {
-			if len(password) > 0 {
-				cc, err := svc.credentials.FindByKind(existing.ID, credentialsTypePassword)
-				if err != nil {
-					return errors.Wrap(err, "could not find credentials")
-				}
-
-				err = svc.checkPassword(password, cc)
-				if err != nil {
-					return errors.Wrap(err, "user with this email already exists")
-				}
-
-				if !existing.EmailConfirmed {
-					err = svc.sendEmailAddressConfirmationToken(existing)
-					if err != nil {
-						return err
-					}
-				}
-
-				u = existing
-				return nil
-			}
-
-			return errors.Wrap(err, "user with this email already exists")
-
-			// if !svc.settings.internalSignUpSendEmailOnExisting {
-			// 	return errors.Wrap(err, "user with this email already exists")
-			// }
-
-			// User already exists, but we're nice and we'll send this user an
-			// email that will help him to login
-			// if !u.Valid() {
-			// 	return errors.New("could not validate the user")
-			// }
-			//
-			// return nil
-		}
-
-		if err != repository.ErrUserNotFound {
-			return errors.New("could not check existing emails")
-		}
-
-		// Whitelisted user data to copy
-		u, err = svc.users.Create(&types.User{
-			Email:    input.Email,
-			Name:     input.Name,
-			Username: input.Username,
-			Handle:   input.Handle,
-
-			// Do we need confirmed email?
-			EmailConfirmed: !svc.settings.internalSignUpEmailConfirmationRequired,
-		})
-
-		if err != nil {
-			return errors.Wrap(err, "could not create user")
-		}
-
+	if err == nil && existing.Valid() {
 		if len(password) > 0 {
-			var hash []byte
-			hash, err = svc.hashPassword(password)
+			cc, err := svc.credentials.FindByKind(existing.ID, credentialsTypePassword)
 			if err != nil {
-				return err
+				return nil, errors.Wrap(err, "could not find credentials")
 			}
 
-			err = svc.changePassword(u.ID, hash)
+			err = svc.checkPassword(password, cc)
 			if err != nil {
-				return err
+				return nil, errors.Wrap(err, "user with this email already exists")
 			}
+
+			if !existing.EmailConfirmed {
+				err = svc.sendEmailAddressConfirmationToken(existing)
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			return existing, nil
 		}
 
-		if !u.EmailConfirmed {
-			err = svc.sendEmailAddressConfirmationToken(u)
-			if err != nil {
-				return err
-			}
-		}
+		return nil, errors.Wrap(err, "user with this email already exists")
 
-		return nil
+		// if !svc.settings.internalSignUpSendEmailOnExisting {
+		// 	return nil,errors.Wrap(err, "user with this email already exists")
+		// }
+
+		// User already exists, but we're nice and we'll send this user an
+		// email that will help him to login
+		// if !u.Valid() {
+		// 	return nil,errors.New("could not validate the user")
+		// }
+		//
+		// return nil,nil
+	} else if !repository.ErrUserNotFound.Eq(err) {
+		return nil, errors.Wrap(err, "could not check existing emails")
+	}
+
+	// Whitelisted user data to copy
+	u, err = svc.users.Create(&types.User{
+		Email:    input.Email,
+		Name:     input.Name,
+		Username: input.Username,
+		Handle:   input.Handle,
+
+		// Do we need confirmed email?
+		EmailConfirmed: !svc.settings.internalSignUpEmailConfirmationRequired,
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "could not create user")
+	}
+
+	if len(password) > 0 {
+		var hash []byte
+		hash, err = svc.hashPassword(password)
+		if err != nil {
+			return nil, err
+		}
+
+		err = svc.changePassword(u.ID, hash)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if !u.EmailConfirmed {
-		return nil, errors.New("user email pending confirmation")
+		err = svc.sendEmailAddressConfirmationToken(u)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	return u, nil
@@ -387,7 +376,7 @@ func (svc auth) InternalLogin(email string, password string) (u *types.User, err
 		)
 
 		u, err = svc.users.FindByEmail(email)
-		if err == repository.ErrUserNotFound {
+		if repository.ErrUserNotFound.Eq(err) {
 			return errors.New("invalid username/password combination")
 		}
 
