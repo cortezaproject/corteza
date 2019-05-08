@@ -63,7 +63,8 @@ func (ctrl *AuthInternal) Signup(ctx context.Context, r *request.AuthInternalSig
 	}
 
 	if !u.EmailConfirmed {
-		return nil, errors.New("user email pending confirmation")
+		// When email is not confirmed, do not send back JWT
+		return authInternalValidUserResponse{User: u}, nil
 	}
 
 	return authInternalValidUserResponse{

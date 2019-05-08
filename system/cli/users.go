@@ -145,7 +145,7 @@ func usersCmd(ctx context.Context, db *factory.DB) *cobra.Command {
 				userStr = args[0]
 			)
 
-			if user, err = userRepo.FindByEmail(userStr); err != nil && err != repository.ErrUserNotFound {
+			if user, err = userRepo.FindByEmail(userStr); !repository.ErrUserNotFound.Eq(err) {
 				exit(cmd, err)
 			} else if user == nil || user.ID == 0 {
 				if ID, err = strconv.ParseUint(userStr, 10, 64); err != nil {
