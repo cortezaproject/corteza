@@ -90,7 +90,7 @@ func (svc authNotification) send(name, lang string, payload authNotificationPayl
 	ntf.SetBody("text/html", svc.render(emailTemplates[name+"."+lang+".html"], payload))
 
 	svc.log().Debug(
-		"sending auth notification (%s.%s) to %q",
+		"sending auth notification",
 		zap.String("name", name),
 		zap.String("language", lang),
 		zap.String("email", payload.EmailAddress),
