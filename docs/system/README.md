@@ -459,7 +459,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | roleID | uint64 | PATH | Role ID | N/A | YES |
-| permissions | []rules.Rule | POST | List of permissions to set | N/A | YES |
+| permissions | permissions.RuleSet | POST | List of permissions to set | N/A | YES |
 
 ---
 

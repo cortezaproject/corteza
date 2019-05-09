@@ -3,25 +3,27 @@ package rest
 import (
 	"context"
 
+	"github.com/crusttech/crust/internal/permissions"
 	"github.com/crusttech/crust/messaging/internal/service"
 	"github.com/crusttech/crust/messaging/rest/request"
-	"github.com/pkg/errors"
 )
 
-var _ = errors.Wrap
+type (
+	Permissions struct {
+		ac permissionsAccessController
+	}
 
-type Permissions struct {
-	svc struct {
-		perm service.PermissionsService
+	permissionsAccessController interface {
+		Effective(context.Context) permissions.EffectiveSet
+	}
+)
+
+func (Permissions) New() *Permissions {
+	return &Permissions{
+		ac: service.DefaultAccessControl,
 	}
 }
 
-func (Permissions) New() *Permissions {
-	ctrl := &Permissions{}
-	ctrl.svc.perm = service.DefaultPermissions
-	return ctrl
-}
-
 func (ctrl *Permissions) Effective(ctx context.Context, r *request.PermissionsEffective) (interface{}, error) {
-	return ctrl.svc.perm.With(ctx).Effective()
+	return ctrl.ac.Effective(ctx), nil
 }

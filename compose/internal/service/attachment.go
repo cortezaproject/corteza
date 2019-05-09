@@ -39,13 +39,19 @@ type (
 
 		store store.Store
 
-		prmSvc    PermissionsService
+		ac attachmentAccessController
+
 		pageSvc   PageService
 		moduleSvc ModuleService
 		recordSvc RecordService
 		usr       systemService.UserService
 
 		attachment repository.AttachmentRepository
+	}
+
+	attachmentAccessController interface {
+		CanUpdatePage(context.Context, *types.Page) bool
+		CanUpdateRecord(context.Context, *types.Module) bool
 	}
 
 	AttachmentService interface {
@@ -65,7 +71,7 @@ func Attachment(store store.Store) AttachmentService {
 	return (&attachment{
 		logger:    DefaultLogger.Named("attachment"),
 		store:     store,
-		prmSvc:    DefaultPermissions,
+		ac:        DefaultAccessControl,
 		pageSvc:   DefaultPage,
 		moduleSvc: DefaultModule,
 		recordSvc: DefaultRecord,
@@ -80,7 +86,7 @@ func (svc attachment) With(ctx context.Context) AttachmentService {
 		ctx:    ctx,
 		logger: svc.logger,
 
-		prmSvc:    svc.prmSvc.With(ctx),
+		ac:        svc.ac,
 		pageSvc:   svc.pageSvc.With(ctx),
 		moduleSvc: svc.moduleSvc.With(ctx),
 		recordSvc: svc.recordSvc.With(ctx),
@@ -163,7 +169,7 @@ func (svc attachment) CreatePageAttachment(namespaceID uint64, name string, size
 
 	if p, err := svc.pageSvc.FindByID(namespaceID, pageID); err != nil {
 		return nil, err
-	} else if !svc.prmSvc.CanUpdatePage(p) {
+	} else if !svc.ac.CanUpdatePage(svc.ctx, p) {
 		return nil, errors.New("not allowed to add attachments to this page")
 	}
 
@@ -184,11 +190,11 @@ func (svc attachment) CreateRecordAttachment(namespaceID uint64, name string, si
 
 	var currentUserID uint64 = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	if _, err := svc.moduleSvc.FindByID(namespaceID, moduleID); err != nil {
+	if m, err := svc.moduleSvc.FindByID(namespaceID, moduleID); err != nil {
 		return nil, err
-	} else if r, err := svc.recordSvc.FindByID(namespaceID, recordID); err != nil {
+	} else if _, err := svc.recordSvc.FindByID(namespaceID, recordID); err != nil {
 		return nil, err
-	} else if !svc.prmSvc.CanUpdateRecord(r) {
+	} else if !svc.ac.CanUpdateRecord(svc.ctx, m) {
 		return nil, errors.New("not allowed to add attachments to this record")
 	}
 

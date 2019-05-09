@@ -1,11 +1,14 @@
 package service
 
 import (
+	"context"
 	"time"
 
 	"go.uber.org/zap"
 
+	"github.com/crusttech/crust/compose/internal/repository"
 	"github.com/crusttech/crust/internal/logger"
+	"github.com/crusttech/crust/internal/permissions"
 	"github.com/crusttech/crust/internal/store"
 )
 
@@ -18,26 +21,31 @@ type (
 var (
 	DefaultLogger *zap.Logger
 
+	DefaultAccessControl *accessControl
+
 	DefaultRecord       RecordService
 	DefaultModule       ModuleService
 	DefaultTrigger      TriggerService
 	DefaultChart        ChartService
 	DefaultPage         PageService
 	DefaultNotification NotificationService
-	DefaultPermissions  PermissionsService
 	DefaultAttachment   AttachmentService
 	DefaultNamespace    NamespaceService
 )
 
 func Init() error {
+	ctx := context.Background()
+
+	DefaultLogger = logger.Default().Named("compose.service")
+
 	fs, err := store.New("var/store")
 	if err != nil {
 		return err
 	}
 
-	DefaultLogger = logger.Default().Named("compose.service")
+	pv := permissions.Service(permissions.Repository(repository.DB(ctx), "compose_permission_rules"))
+	DefaultAccessControl = AccessControl(pv)
 
-	DefaultPermissions = Permissions()
 	DefaultRecord = Record()
 	DefaultModule = Module()
 	DefaultTrigger = Trigger()

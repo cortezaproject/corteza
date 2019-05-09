@@ -20,8 +20,13 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		prm              PermissionsService
+		ac               settingsAccessController
 		internalSettings internalSettings.Service
+	}
+
+	settingsAccessController interface {
+		CanReadSettings(ctx context.Context) bool
+		CanManageSettings(ctx context.Context) bool
 	}
 
 	SettingsService interface {
@@ -38,6 +43,7 @@ type (
 func Settings(ctx context.Context, intSet internalSettings.Service) SettingsService {
 	return (&settings{
 		internalSettings: intSet,
+		ac:               DefaultAccessControl,
 		logger:           DefaultLogger.Named("settings"),
 	}).With(ctx)
 }
@@ -46,11 +52,11 @@ func (svc settings) With(ctx context.Context) SettingsService {
 	db := repository.DB(ctx)
 
 	return &settings{
-		db:     db,
 		ctx:    ctx,
+		db:     db,
+		ac:     svc.ac,
 		logger: svc.logger,
 
-		prm:              Permissions(ctx),
 		internalSettings: svc.internalSettings.With(ctx),
 	}
 }
@@ -61,7 +67,7 @@ func (svc settings) log(fields ...zapcore.Field) *zap.Logger {
 }
 
 func (svc settings) FindByPrefix(prefix string) (vv internalSettings.ValueSet, err error) {
-	if !svc.prm.CanReadSettings() {
+	if !svc.ac.CanReadSettings(svc.ctx) {
 		return nil, errors.New("not allowed to read settings")
 	}
 
@@ -69,7 +75,7 @@ func (svc settings) FindByPrefix(prefix string) (vv internalSettings.ValueSet, e
 }
 
 func (svc settings) Set(v *internalSettings.Value) (err error) {
-	if !svc.prm.CanManageSettings() {
+	if !svc.ac.CanManageSettings(svc.ctx) {
 		return errors.New("not allowed to manage settings")
 	}
 
@@ -77,7 +83,7 @@ func (svc settings) Set(v *internalSettings.Value) (err error) {
 }
 
 func (svc settings) BulkSet(vv internalSettings.ValueSet) (err error) {
-	if !svc.prm.CanManageSettings() {
+	if !svc.ac.CanManageSettings(svc.ctx) {
 		return errors.New("not allowed to manage settings")
 	}
 
@@ -85,7 +91,7 @@ func (svc settings) BulkSet(vv internalSettings.ValueSet) (err error) {
 }
 
 func (svc settings) Get(name string, ownedBy uint64) (out *internalSettings.Value, err error) {
-	if !svc.prm.CanReadSettings() {
+	if !svc.ac.CanReadSettings(svc.ctx) {
 		return nil, errors.New("not allowed to read settings")
 	}
 

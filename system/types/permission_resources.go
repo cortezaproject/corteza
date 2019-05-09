@@ -1,11 +1,11 @@
 package types
 
 import (
-	"github.com/crusttech/crust/internal/rules"
+	"github.com/crusttech/crust/internal/permissions"
 )
 
-const PermissionResource = rules.Resource("system")
-const ApplicationPermissionResource = rules.Resource("system:application:")
-const OrganisationPermissionResource = rules.Resource("system:organisation:")
-const UserPermissionResource = rules.Resource("system:user:")
-const RolePermissionResource = rules.Resource("system:role:")
+const SystemPermissionResource = permissions.Resource("system")
+const ApplicationPermissionResource = permissions.Resource("system:application:")
+const OrganisationPermissionResource = permissions.Resource("system:organisation:")
+const UserPermissionResource = permissions.Resource("system:user:")
+const RolePermissionResource = permissions.Resource("system:role:")

@@ -983,7 +983,7 @@
     "struct": [
       {
         "imports": [
-          "github.com/crusttech/crust/internal/rules"
+          "github.com/crusttech/crust/internal/permissions"
         ]
       }
     ],
@@ -1060,7 +1060,7 @@
           "post": [
             {
               "name": "permissions",
-              "type": "[]rules.Rule",
+              "type": "permissions.RuleSet",
               "required": true,
               "title": "List of permissions to set"
             }

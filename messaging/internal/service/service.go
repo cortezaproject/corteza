@@ -9,7 +9,9 @@ import (
 	"github.com/crusttech/crust/internal/config"
 	"github.com/crusttech/crust/internal/http"
 	"github.com/crusttech/crust/internal/logger"
+	"github.com/crusttech/crust/internal/permissions"
 	"github.com/crusttech/crust/internal/store"
+	"github.com/crusttech/crust/messaging/internal/repository"
 )
 
 type (
@@ -21,14 +23,15 @@ type (
 var (
 	DefaultLogger *zap.Logger
 
-	DefaultAttachment  AttachmentService
-	DefaultChannel     ChannelService
-	DefaultMessage     MessageService
-	DefaultPubSub      *pubSub
-	DefaultEvent       EventService
-	DefaultPermissions PermissionsService
-	DefaultCommand     CommandService
-	DefaultWebhook     WebhookService
+	DefaultAccessControl *accessControl
+
+	DefaultAttachment AttachmentService
+	DefaultChannel    ChannelService
+	DefaultMessage    MessageService
+	DefaultPubSub     *pubSub
+	DefaultEvent      EventService
+	DefaultCommand    CommandService
+	DefaultWebhook    WebhookService
 )
 
 func Init() error {
@@ -48,11 +51,13 @@ func Init() error {
 
 	ctx := context.Background()
 
-	DefaultPermissions = Permissions(ctx)
+	pv := permissions.Service(permissions.Repository(repository.DB(ctx), "compose_permission_rules"))
+	DefaultAccessControl = AccessControl(pv)
+
 	DefaultEvent = Event(ctx)
+	DefaultChannel = Channel(ctx)
 	DefaultAttachment = Attachment(ctx, fs)
 	DefaultMessage = Message(ctx)
-	DefaultChannel = Channel(ctx)
 	DefaultPubSub = PubSub()
 	DefaultCommand = Command(ctx)
 	DefaultWebhook = Webhook(ctx, client)

@@ -4,7 +4,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/crusttech/crust/internal/rules"
+	"github.com/crusttech/crust/internal/permissions"
 )
 
 type (
@@ -59,6 +59,6 @@ const (
 )
 
 // Resource returns a system resource ID for this type
-func (wh Webhook) PermissionResource() rules.Resource {
+func (wh Webhook) PermissionResource() permissions.Resource {
 	return WebhookPermissionResource.AppendID(wh.ID)
 }

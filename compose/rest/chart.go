@@ -28,15 +28,20 @@ type (
 	}
 
 	Chart struct {
-		chart       service.ChartService
-		permissions service.PermissionsService
+		chart service.ChartService
+		ac    chartAccessController
+	}
+
+	chartAccessController interface {
+		CanUpdateChart(context.Context, *types.Chart) bool
+		CanDeleteChart(context.Context, *types.Chart) bool
 	}
 )
 
 func (Chart) New() *Chart {
 	return &Chart{
-		chart:       service.DefaultChart,
-		permissions: service.DefaultPermissions,
+		chart: service.DefaultChart,
+		ac:    service.DefaultAccessControl,
 	}
 }
 
@@ -101,13 +106,11 @@ func (ctrl Chart) makePayload(ctx context.Context, c *types.Chart, err error) (*
 		return nil, err
 	}
 
-	perm := ctrl.permissions.With(ctx)
-
 	return &chartPayload{
 		Chart: c,
 
-		CanUpdateChart: perm.CanUpdateChart(c),
-		CanDeleteChart: perm.CanDeleteChart(c),
+		CanUpdateChart: ctrl.ac.CanUpdateChart(ctx, c),
+		CanDeleteChart: ctrl.ac.CanDeleteChart(ctx, c),
 	}, nil
 }
 

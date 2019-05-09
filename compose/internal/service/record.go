@@ -24,11 +24,19 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		prmSvc  PermissionsService
+		ac      recordAccessController
 		userSvc systemService.UserService
 
 		recordRepo repository.RecordRepository
 		moduleRepo repository.ModuleRepository
+	}
+
+	recordAccessController interface {
+		CanCreateRecord(context.Context, *types.Module) bool
+		CanReadModule(context.Context, *types.Module) bool
+		CanReadRecord(context.Context, *types.Module) bool
+		CanUpdateRecord(context.Context, *types.Module) bool
+		CanDeleteRecord(context.Context, *types.Module) bool
 	}
 
 	RecordService interface {
@@ -51,7 +59,7 @@ type (
 func Record() RecordService {
 	return (&record{
 		logger:  DefaultLogger.Named("record"),
-		prmSvc:  DefaultPermissions,
+		ac:      DefaultAccessControl,
 		userSvc: systemService.DefaultUser,
 	}).With(context.Background())
 }
@@ -63,7 +71,7 @@ func (svc record) With(ctx context.Context) RecordService {
 		ctx:    ctx,
 		logger: svc.logger,
 
-		prmSvc:  svc.prmSvc.With(ctx),
+		ac:      svc.ac,
 		userSvc: systemService.User(ctx),
 
 		recordRepo: repository.Record(ctx, db),
@@ -85,7 +93,12 @@ func (svc record) FindByID(namespaceID, recordID uint64) (r *types.Record, err e
 		return
 	}
 
-	if !svc.prmSvc.CanReadRecord(r) {
+	var m *types.Module
+	if m, err = svc.loadModule(namespaceID, r.ModuleID); err != nil {
+		return
+	}
+
+	if !svc.ac.CanReadRecord(svc.ctx, m) {
 		return nil, ErrNoReadPermissions.withStack()
 	}
 
@@ -105,7 +118,7 @@ func (svc record) loadModule(namespaceID, moduleID uint64) (m *types.Module, err
 		return
 	}
 
-	if !svc.prmSvc.CanReadRecord(m) {
+	if !svc.ac.CanReadModule(svc.ctx, m) {
 		return nil, ErrNoReadPermissions.withStack()
 	}
 
@@ -118,10 +131,6 @@ func (svc record) Report(namespaceID, moduleID uint64, metrics, dimensions, filt
 		return
 	}
 
-	if !svc.prmSvc.CanReadRecord(m) {
-		return nil, ErrNoReadPermissions.withStack()
-	}
-
 	return svc.recordRepo.Report(m, metrics, dimensions, filter)
 }
 
@@ -129,10 +138,6 @@ func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.
 	var m *types.Module
 	if m, err = svc.loadModule(filter.NamespaceID, filter.ModuleID); err != nil {
 		return
-	}
-
-	if !svc.prmSvc.CanReadRecord(m) {
-		return nil, filter, ErrNoReadPermissions.withStack()
 	}
 
 	set, f, err = svc.recordRepo.Find(m, filter)
@@ -157,7 +162,7 @@ func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
 		return
 	}
 
-	if !svc.prmSvc.CanCreateRecord(m) {
+	if !svc.ac.CanCreateRecord(svc.ctx, m) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
@@ -204,7 +209,7 @@ func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 		return
 	}
 
-	if !svc.prmSvc.CanUpdateRecord(r) {
+	if !svc.ac.CanUpdateRecord(svc.ctx, m) {
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 

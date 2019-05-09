@@ -1,11 +1,5 @@
 package service
 
-import (
-	"github.com/pkg/errors"
-
-	internalRules "github.com/crusttech/crust/internal/rules"
-)
-
 var (
 	permissionList = map[string]map[string]bool{
 		"system": map[string]bool{
@@ -101,18 +95,18 @@ var (
 	}
 )
 
-func validatePermission(resource internalRules.Resource, operation string) error {
-	if !resource.IsValid() {
-		return errors.Errorf("invalid resource format: %q", resource)
-	}
-
-	res := resource.TrimID().String()
-
-	if service, ok := permissionList[res]; ok {
-		if op := service[operation]; op {
-			return nil
-		}
-		return errors.Errorf("Unknown operation: '%s'", operation)
-	}
-	return errors.Errorf("Unknown resource name: '%s'", resource)
-}
+// func validatePermission(resource internalpermissions.Resource, operation string) error {
+// 	if !resource.IsValid() {
+// 		return errors.Errorf("invalid resource format: %q", resource)
+// 	}
+//
+// 	res := resource.TrimID().String()
+//
+// 	if service, ok := permissionList[res]; ok {
+// 		if op := service[operation]; op {
+// 			return nil
+// 		}
+// 		return errors.Errorf("Unknown operation: '%s'", operation)
+// 	}
+// 	return errors.Errorf("Unknown resource name: '%s'", resource)
+// }
