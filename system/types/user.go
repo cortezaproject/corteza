@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/crusttech/crust/internal/permissions"
 	"github.com/pkg/errors"
-
-	"github.com/crusttech/crust/internal/rules"
 )
 
 type (
@@ -63,7 +62,7 @@ func (u *User) Identity() uint64 {
 }
 
 // Resource returns a resource ID for this type
-func (u *User) PermissionResource() rules.Resource {
+func (u *User) PermissionResource() permissions.Resource {
 	return UserPermissionResource.AppendID(u.ID)
 }
 

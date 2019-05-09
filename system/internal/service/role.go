@@ -19,9 +19,17 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		prm PermissionsService
+		ac roleAccessController
 
 		role repository.RoleRepository
+	}
+
+	roleAccessController interface {
+		CanCreateRole(context.Context) bool
+		CanReadRole(context.Context, *types.Role) bool
+		CanUpdateRole(context.Context, *types.Role) bool
+		CanDeleteRole(context.Context, *types.Role) bool
+		CanManageRoleMembers(context.Context, *types.Role) bool
 	}
 
 	RoleService interface {
@@ -47,6 +55,7 @@ type (
 
 func Role(ctx context.Context) RoleService {
 	return (&role{
+		ac:     DefaultAccessControl,
 		logger: DefaultLogger.Named("role"),
 	}).With(ctx)
 }
@@ -57,8 +66,8 @@ func (svc role) With(ctx context.Context) RoleService {
 		db:     db,
 		ctx:    ctx,
 		logger: svc.logger,
+		ac:     svc.ac,
 
-		prm:  Permissions(ctx),
 		role: repository.Role(ctx, db),
 	}
 }
@@ -74,7 +83,7 @@ func (svc role) FindByID(id uint64) (*types.Role, error) {
 		return nil, err
 	}
 
-	if !svc.prm.CanReadRole(role) {
+	if !svc.ac.CanReadRole(svc.ctx, role) {
 		return nil, errors.New("Not allowed to read role")
 	}
 	return role, nil
@@ -88,7 +97,7 @@ func (svc role) Find(filter *types.RoleFilter) ([]*types.Role, error) {
 
 	ret := []*types.Role{}
 	for _, role := range roles {
-		if svc.prm.CanReadRole(role) {
+		if svc.ac.CanReadRole(svc.ctx, role) {
 			ret = append(ret, role)
 		}
 	}
@@ -96,14 +105,14 @@ func (svc role) Find(filter *types.RoleFilter) ([]*types.Role, error) {
 }
 
 func (svc role) Create(mod *types.Role) (*types.Role, error) {
-	if !svc.prm.CanCreateRole() {
+	if !svc.ac.CanCreateRole(svc.ctx) {
 		return nil, errors.New("Not allowed to create role")
 	}
 	return svc.role.Create(mod)
 }
 
 func (svc role) Update(mod *types.Role) (t *types.Role, err error) {
-	if !svc.prm.CanUpdateRole(mod) {
+	if !svc.ac.CanUpdateRole(svc.ctx, mod) {
 		return nil, errors.New("Not allowed to update role")
 	}
 
@@ -131,7 +140,7 @@ func (svc role) Delete(id uint64) error {
 	// @todo: notify users that role has been removed (remove from web UI)
 
 	rl := &types.Role{ID: id}
-	if !svc.prm.CanDeleteRole(rl) {
+	if !svc.ac.CanDeleteRole(svc.ctx, rl) {
 		return errors.New("Not allowed to delete role")
 	}
 	return svc.role.DeleteByID(id)
@@ -163,7 +172,7 @@ func (svc role) Move(id, targetOrganisationID uint64) error {
 
 func (svc role) MemberList(roleID uint64) ([]*types.RoleMember, error) {
 	rl := &types.Role{ID: roleID}
-	if !svc.prm.CanManageRoleMembers(rl) {
+	if !svc.ac.CanManageRoleMembers(svc.ctx, rl) {
 		return nil, errors.New("Not allowed to manage role members")
 	}
 	return svc.role.MemberFindByRoleID(roleID)
@@ -171,7 +180,7 @@ func (svc role) MemberList(roleID uint64) ([]*types.RoleMember, error) {
 
 func (svc role) MemberAdd(roleID, userID uint64) error {
 	rl := &types.Role{ID: roleID}
-	if !svc.prm.CanManageRoleMembers(rl) {
+	if !svc.ac.CanManageRoleMembers(svc.ctx, rl) {
 		return errors.New("Not allowed to manage role members")
 	}
 	return svc.role.MemberAddByID(roleID, userID)
@@ -179,7 +188,7 @@ func (svc role) MemberAdd(roleID, userID uint64) error {
 
 func (svc role) MemberRemove(roleID, userID uint64) error {
 	rl := &types.Role{ID: roleID}
-	if !svc.prm.CanManageRoleMembers(rl) {
+	if !svc.ac.CanManageRoleMembers(svc.ctx, rl) {
 		return errors.New("Not allowed to manage role members")
 	}
 	return svc.role.MemberRemoveByID(roleID, userID)

@@ -3,9 +3,8 @@ package types
 import (
 	"time"
 
+	"github.com/crusttech/crust/internal/permissions"
 	"github.com/jmoiron/sqlx/types"
-
-	"github.com/crusttech/crust/internal/rules"
 )
 
 type (
@@ -61,7 +60,7 @@ type (
 )
 
 // Resource returns a system resource ID for this type
-func (c Channel) PermissionResource() rules.Resource {
+func (c Channel) PermissionResource() permissions.Resource {
 	return ChannelPermissionResource.AppendID(c.ID)
 }
 

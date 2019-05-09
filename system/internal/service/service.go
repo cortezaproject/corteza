@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/crusttech/crust/internal/logger"
+	"github.com/crusttech/crust/internal/permissions"
 	internalSettings "github.com/crusttech/crust/internal/settings"
 	"github.com/crusttech/crust/system/internal/repository"
 )
@@ -19,6 +20,8 @@ type (
 var (
 	DefaultLogger *zap.Logger
 
+	DefaultAccessControl *accessControl
+
 	DefaultSettings         SettingsService
 	DefaultAuthNotification AuthNotificationService
 	DefaultAuthSettings     authSettings
@@ -26,10 +29,8 @@ var (
 	DefaultAuth         AuthService
 	DefaultUser         UserService
 	DefaultRole         RoleService
-	DefaultRules        RulesService
 	DefaultOrganisation OrganisationService
 	DefaultApplication  ApplicationService
-	DefaultPermissions  PermissionsService
 )
 
 func Init() (err error) {
@@ -39,9 +40,10 @@ func Init() (err error) {
 
 	DefaultLogger = logger.Default().Named("system.service")
 
+	pv := permissions.Service(permissions.Repository(repository.DB(ctx), "compose_permission_rules"))
+	DefaultAccessControl = AccessControl(pv)
+
 	DefaultSettings = Settings(ctx, intSet)
-	DefaultRules = Rules(ctx)
-	DefaultPermissions = Permissions(ctx)
 
 	DefaultUser = User(ctx)
 	DefaultRole = Role(ctx)

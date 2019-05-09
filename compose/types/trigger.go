@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/crusttech/crust/internal/rules"
+	"github.com/crusttech/crust/internal/permissions"
 )
 
 type (
@@ -55,6 +55,6 @@ func (set ActionSet) Value() (driver.Value, error) {
 }
 
 // Resource returns a system resource ID for this type
-func (t Trigger) PermissionResource() rules.Resource {
+func (t Trigger) PermissionResource() permissions.Resource {
 	return TriggerPermissionResource.AppendID(t.ID)
 }
