@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -83,9 +84,15 @@ func (svc service) Check(res Resource, op Operation, roles ...uint64) (v Access)
 // Grant appends and/or overwrites internal rules slice
 //
 // All rules with Inherit are removed
-func (svc *service) Grant(ctx context.Context, rules ...*Rule) (err error) {
+func (svc *service) Grant(ctx context.Context, wl Whitelist, rules ...*Rule) (err error) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
+
+	for _, r := range rules {
+		if !wl.Check(r) {
+			return errors.Errorf("invalid rule: '%s' on '%s'", r.Operation, r.Resource)
+		}
+	}
 
 	if svc.rules, err = svc.rules.merge(rules...); err != nil {
 		return

@@ -8,6 +8,8 @@ type (
 
 	// CheckAccessFunc function.
 	CheckAccessFunc func() Access
+
+	Whitelist map[Resource]map[Operation]bool
 )
 
 const (
@@ -51,4 +53,26 @@ func Allowed() Access {
 
 func Denied() Access {
 	return Deny
+}
+
+func (wl *Whitelist) Set(r Resource, oo ...Operation) {
+	(*wl)[r] = map[Operation]bool{}
+
+	for _, o := range oo {
+		(*wl)[r][o] = true
+	}
+}
+
+func (wl Whitelist) Check(rule *Rule) bool {
+	if rule == nil {
+		return false
+	}
+
+	res := rule.Resource.TrimID()
+
+	if _, ok := wl[res]; !ok {
+		return false
+	}
+
+	return wl[res][rule.Operation]
 }

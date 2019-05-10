@@ -14,7 +14,7 @@ type (
 
 	accessControlPermissionServicer interface {
 		Can(context.Context, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
-		Grant(context.Context, ...*permissions.Rule) error
+		Grant(context.Context, permissions.Whitelist, ...*permissions.Rule) error
 	}
 
 	permissionResource interface {
@@ -149,7 +149,7 @@ func (svc accessControl) can(ctx context.Context, res permissionResource, op per
 }
 
 func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {
-	return svc.permissions.Grant(ctx, rr...)
+	return svc.permissions.Grant(ctx, svc.Whitelist(), rr...)
 }
 
 // DefaultRules returns list of default rules for this compose service
@@ -200,4 +200,60 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		allowAdm(pages, "update"),
 		allowAdm(pages, "delete"),
 	}
+}
+
+func (svc accessControl) Whitelist() permissions.Whitelist {
+	var wl = permissions.Whitelist{}
+
+	wl.Set(
+		types.ComposePermissionResource,
+		"access",
+		"grant",
+		"namespace.create",
+	)
+
+	wl.Set(
+		types.NamespacePermissionResource,
+		"read",
+		"update",
+		"delete",
+		"module.create",
+		"chart.create",
+		"trigger.create",
+		"page.create",
+	)
+
+	wl.Set(
+		types.ModulePermissionResource,
+		"read",
+		"update",
+		"delete",
+		"record.create",
+		"record.read",
+		"record.update",
+		"record.delete",
+	)
+
+	wl.Set(
+		types.ChartPermissionResource,
+		"read",
+		"update",
+		"delete",
+	)
+
+	wl.Set(
+		types.TriggerPermissionResource,
+		"read",
+		"update",
+		"delete",
+	)
+
+	wl.Set(
+		types.PagePermissionResource,
+		"read",
+		"update",
+		"delete",
+	)
+
+	return wl
 }

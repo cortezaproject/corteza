@@ -14,7 +14,7 @@ type (
 
 	accessControlPermissionServicer interface {
 		Can(context.Context, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
-		Grant(context.Context, ...*permissions.Rule) error
+		Grant(context.Context, permissions.Whitelist, ...*permissions.Rule) error
 	}
 
 	permissionResource interface {
@@ -120,7 +120,7 @@ func (svc accessControl) can(ctx context.Context, res permissionResource, op per
 }
 
 func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {
-	return svc.permissions.Grant(ctx, rr...)
+	return svc.permissions.Grant(ctx, svc.Whitelist(), rr...)
 }
 
 // DefaultRules returns list of default rules for this compose service
@@ -166,4 +166,51 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		allowAdm(roles, "delete"),
 		allowAdm(roles, "members.manage"),
 	}
+}
+
+func (svc accessControl) Whitelist() permissions.Whitelist {
+	var wl = permissions.Whitelist{}
+
+	wl.Set(
+		types.SystemPermissionResource,
+		"access",
+		"grant",
+		"settings.read",
+		"settings.manage",
+		"organisation.create",
+		"role.create",
+		"user.create",
+		"application.create",
+	)
+
+	wl.Set(
+		types.OrganisationPermissionResource,
+		"access",
+	)
+
+	wl.Set(
+		types.ApplicationPermissionResource,
+		"read",
+		"update",
+		"delete",
+	)
+
+	wl.Set(
+		types.UserPermissionResource,
+		"read",
+		"update",
+		"delete",
+		"suspend",
+		"unsuspend",
+	)
+
+	wl.Set(
+		types.RolePermissionResource,
+		"read",
+		"update",
+		"delete",
+		"members.manage",
+	)
+
+	return wl
 }

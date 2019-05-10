@@ -15,7 +15,7 @@ type (
 
 	accessControlPermissionServicer interface {
 		Can(context.Context, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
-		Grant(context.Context, ...*permissions.Rule) error
+		Grant(context.Context, permissions.Whitelist, ...*permissions.Rule) error
 	}
 
 	permissionResource interface {
@@ -209,7 +209,7 @@ func (svc accessControl) can(ctx context.Context, res permissionResource, op per
 }
 
 func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {
-	return svc.permissions.Grant(ctx, rr...)
+	return svc.permissions.Grant(ctx, svc.Whitelist(), rr...)
 }
 
 // DefaultRules returns list of default rules for this compose service
@@ -260,4 +260,46 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		allowAdm(channels, "message.reply"),
 		allowAdm(channels, "message.react"),
 	}
+}
+
+func (svc accessControl) Whitelist() permissions.Whitelist {
+	var wl = permissions.Whitelist{}
+
+	wl.Set(
+		types.MessagingPermissionResource,
+		"access",
+		"grant",
+		"channel.public.create",
+		"channel.private.create",
+		"channel.group.create",
+		"webhook.create",
+		"webhook.manage.all",
+		"webhook.manage.own",
+	)
+
+	wl.Set(
+		types.ChannelPermissionResource,
+		"update",
+		"read",
+		"join",
+		"leave",
+		"delete",
+		"undelete",
+		"archive",
+		"unarchive",
+		"members.manage",
+		"webhooks.manage",
+		"attachments.manage",
+		"message.send",
+		"message.reply",
+		"message.embed",
+		"message.attach",
+		"message.update.own",
+		"message.update.all",
+		"message.delete.own",
+		"message.delete.all",
+		"message.react",
+	)
+
+	return wl
 }
