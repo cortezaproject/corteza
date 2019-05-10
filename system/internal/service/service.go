@@ -46,7 +46,7 @@ func Init(ctx context.Context) (err error) {
 	permSvc = permissions.Service(
 		ctx,
 		DefaultLogger,
-		permissions.Repository(repository.DB(ctx), "compose_permission_rules"))
+		permissions.Repository(repository.DB(ctx), "sys_permission_rules"))
 	DefaultAccessControl = AccessControl(permSvc)
 
 	DefaultSettings = Settings(ctx, intSet)

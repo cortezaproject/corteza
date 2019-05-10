@@ -2,20 +2,26 @@ package auth
 
 type (
 	Identity struct {
-		identity uint64
+		id       uint64
+		memberOf []uint64
 	}
 )
 
-func NewIdentity(id uint64) *Identity {
+func NewIdentity(id uint64, rr ...uint64) *Identity {
 	return &Identity{
-		identity: id,
+		id:       id,
+		memberOf: rr,
 	}
 }
 
 func (i Identity) Identity() uint64 {
-	return i.identity
+	return i.id
+}
+
+func (i Identity) Roles() []uint64 {
+	return i.memberOf
 }
 
 func (i Identity) Valid() bool {
-	return i.identity > 0
+	return i.id > 0
 }

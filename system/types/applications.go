@@ -34,17 +34,13 @@ type (
 	}
 )
 
-func (u *Application) Valid() bool {
-	return u.ID > 0 && u.DeletedAt == nil
-}
-
-func (u *Application) Identity() uint64 {
-	return u.ID
+func (a *Application) Valid() bool {
+	return a.ID > 0 && a.DeletedAt == nil
 }
 
 // Resource returns a resource ID for this type
-func (u Application) PermissionResource() permissions.Resource {
-	return ApplicationPermissionResource.AppendID(u.ID)
+func (a Application) PermissionResource() permissions.Resource {
+	return ApplicationPermissionResource.AppendID(a.ID)
 }
 
 func (au *ApplicationUnify) Scan(value interface{}) error {

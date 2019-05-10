@@ -7,6 +7,8 @@ import (
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+
+	"github.com/crusttech/crust/internal/auth"
 )
 
 type (
@@ -23,7 +25,7 @@ type (
 )
 
 const (
-	watchInterval = time.Second * 60
+	watchInterval = time.Hour
 )
 
 // Service initializes service{} struct
@@ -59,9 +61,7 @@ func (svc service) Can(ctx context.Context, res Resource, op Operation, ff ...Ch
 		}
 	}
 
-	// @todo extract from context
-	var roles = []uint64{}
-
+	var roles = auth.GetIdentityFromContext(ctx).Roles()
 	// Checking rules
 	var v = svc.Check(res, op, roles...)
 	if v != Inherit {
@@ -131,7 +131,7 @@ func (svc service) Watch(ctx context.Context) {
 	svc.logger.Debug("watcher initialized")
 }
 
-func (svc service) Reload(ctx context.Context) {
+func (svc *service) Reload(ctx context.Context) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 
@@ -143,7 +143,7 @@ func (svc service) Reload(ctx context.Context) {
 		zap.Int("after", len(rr)),
 	)
 
-	if err != nil {
+	if err == nil {
 		svc.rules = rr
 	}
 }

@@ -14,8 +14,8 @@ type (
 		With(ctx context.Context, db *factory.DB) RoleRepository
 
 		FindByID(id uint64) (*types.Role, error)
-		FindByMemberID(userID uint64) ([]*types.Role, error)
-		Find(filter *types.RoleFilter) ([]*types.Role, error)
+		FindByMemberID(userID uint64) (types.RoleSet, error)
+		Find(filter *types.RoleFilter) (types.RoleSet, error)
 
 		Create(mod *types.Role) (*types.Role, error)
 		Update(mod *types.Role) (*types.Role, error)
@@ -66,7 +66,7 @@ func (r *role) FindByID(id uint64) (*types.Role, error) {
 	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrRoleNotFound)
 }
 
-func (r *role) FindByMemberID(userID uint64) ([]*types.Role, error) {
+func (r *role) FindByMemberID(userID uint64) (types.RoleSet, error) {
 	sql := "SELECT * FROM " + r.roles + " where id in (select rel_role from " + r.members + " where rel_user=?) and " + sqlRoleScope
 	rval := make([]*types.Role, 0)
 	if err := r.db().Select(&rval, sql, userID); err != nil {
@@ -75,7 +75,7 @@ func (r *role) FindByMemberID(userID uint64) ([]*types.Role, error) {
 	return rval, nil
 }
 
-func (r *role) Find(filter *types.RoleFilter) ([]*types.Role, error) {
+func (r *role) Find(filter *types.RoleFilter) (types.RoleSet, error) {
 	rval := make([]*types.Role, 0)
 	params := make([]interface{}, 0)
 

@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/crusttech/crust/internal/permissions"
 	"github.com/pkg/errors"
+
+	"github.com/crusttech/crust/internal/permissions"
 )
 
 type (
@@ -31,7 +32,10 @@ type (
 		SuspendedAt *time.Time `json:"suspendedAt,omitempty" db:"suspended_at"`
 		DeletedAt   *time.Time `json:"deletedAt,omitempty" db:"deleted_at"`
 
-		Roles []*Role `json:"roles,omitempty" db:"-"`
+		// Hold list of roles this user is member of.
+		// we're using this for auth/identifier purposes, to support Roles() func
+		// that satisfies Identifiable interface
+		roles []uint64
 	}
 
 	UserMeta struct {
@@ -57,8 +61,16 @@ func (u *User) Valid() bool {
 	return u.ID > 0 && u.SuspendedAt == nil && u.DeletedAt == nil
 }
 
-func (u *User) Identity() uint64 {
+func (u User) Identity() uint64 {
 	return u.ID
+}
+
+func (u User) Roles() []uint64 {
+	return u.roles
+}
+
+func (u *User) SetRoles(rr []uint64) {
+	u.roles = rr
 }
 
 // Resource returns a resource ID for this type
