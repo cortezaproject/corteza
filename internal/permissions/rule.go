@@ -9,7 +9,7 @@ type (
 		RoleID    uint64    `json:"roleID,string" db:"rel_role"`
 		Resource  Resource  `json:"resource"      db:"resource"`
 		Operation Operation `json:"operation"     db:"operation"`
-		Access    Access    `json:"value,string"  db:"value"`
+		Access    Access    `json:"access,string" db:"access"`
 	}
 )
 
@@ -29,6 +29,10 @@ func (r Rule) String() string {
 }
 
 func (r Rule) Equals(cmp *Rule) bool {
+	if cmp == nil {
+		return false
+	}
+
 	return r.RoleID == cmp.RoleID &&
 		r.Resource == cmp.Resource &&
 		r.Operation == cmp.Operation

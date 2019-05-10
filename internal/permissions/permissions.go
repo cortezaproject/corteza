@@ -10,7 +10,13 @@ type (
 	CheckAccessFunc func() Access
 )
 
-const EveryoneRoleID = 1
+const (
+	// Hardcoded Role ID for everyone
+	EveryoneRoleID = 1
+
+	// Hardcoded ID for Admin role
+	AdminRoleID = 2
+)
 
 func (a Access) String() string {
 	switch a {
