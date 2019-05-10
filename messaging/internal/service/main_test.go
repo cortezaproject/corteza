@@ -3,11 +3,11 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
 
-	"github.com/SentimensRG/ctx"
 	"github.com/namsral/flag"
 	"github.com/titpetric/factory"
 	"go.uber.org/zap/zapcore"
@@ -63,8 +63,8 @@ func TestMain(m *testing.M) {
 		}
 	}
 
-	systemService.Init(ctx.Background())
-	Init(ctx.Background())
+	systemService.Init(context.Background())
+	Init(context.Background())
 
 	os.Exit(m.Run())
 }
