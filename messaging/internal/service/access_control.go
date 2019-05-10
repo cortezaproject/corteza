@@ -62,6 +62,22 @@ func (svc accessControl) CanCreateGroupChannel(ctx context.Context) bool {
 	return svc.can(ctx, types.MessagingPermissionResource, "channel.group.create", permissions.Allowed)
 }
 
+func (svc accessControl) CanCreateWebhook(ctx context.Context) bool {
+	return svc.can(ctx, types.MessagingPermissionResource, "webhook.create")
+}
+
+func (svc accessControl) CanManageWebhooks(ctx context.Context) bool {
+	return svc.can(ctx, types.MessagingPermissionResource, "webhook.manage.all")
+}
+
+func (svc accessControl) CanManageOwnWebhooks(ctx context.Context, wh *types.Webhook) bool {
+	if wh.UserID != auth.GetIdentityFromContext(ctx).Identity() {
+		return false
+	}
+
+	return svc.can(ctx, types.MessagingPermissionResource, "webhook.manage.own")
+}
+
 func (svc accessControl) CanUpdateChannel(ctx context.Context, ch *types.Channel) bool {
 	return svc.can(ctx, ch, "update", svc.isChannelOwnerFallback(ctx, ch))
 }
@@ -96,14 +112,6 @@ func (svc accessControl) CanUndeleteChannel(ctx context.Context, ch *types.Chann
 
 func (svc accessControl) CanManageChannelMembers(ctx context.Context, ch *types.Channel) bool {
 	return svc.can(ctx, ch, "members.manage", svc.isChannelOwnerFallback(ctx, ch))
-}
-
-func (svc accessControl) CanManageWebhooks(ctx context.Context, webhook *types.Webhook) bool {
-	return svc.can(ctx, webhook, "webhook.manage.all")
-}
-
-func (svc accessControl) CanManageOwnWebhooks(ctx context.Context, webhook *types.Webhook) bool {
-	return svc.can(ctx, webhook, "webhook.manage.own")
 }
 
 func (svc accessControl) CanManageChannelAttachments(ctx context.Context, ch *types.Channel) bool {
@@ -209,7 +217,6 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 	var (
 		messaging = types.MessagingPermissionResource
 		channels  = types.ChannelPermissionResource.AppendWildcard()
-		webhooks  = types.WebhookPermissionResource.AppendWildcard()
 
 		allowAdm = func(res permissions.Resource, op permissions.Operation) *permissions.Rule {
 			return &permissions.Rule{
@@ -228,6 +235,9 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		allowAdm(messaging, "channel.public.create"),
 		allowAdm(messaging, "channel.private.create"),
 		allowAdm(messaging, "channel.group.create"),
+		allowAdm(messaging, "webhook.create"),
+		allowAdm(messaging, "webhook.manage.all"),
+		allowAdm(messaging, "webhook.manage.own"),
 
 		allowAdm(channels, "update"),
 		allowAdm(channels, "leave"),
@@ -249,8 +259,5 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		allowAdm(channels, "message.send"),
 		allowAdm(channels, "message.reply"),
 		allowAdm(channels, "message.react"),
-
-		allowAdm(webhooks, "webhook.manage.all"),
-		allowAdm(webhooks, "webhook.manage.own"),
 	}
 }

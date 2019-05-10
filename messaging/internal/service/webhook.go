@@ -36,7 +36,8 @@ type (
 	}
 
 	webhookAccessController interface {
-		CanManageWebhooks(context.Context, *types.Webhook) bool
+		CanCreateWebhook(context.Context) bool
+		CanManageWebhooks(context.Context) bool
 		CanManageOwnWebhooks(context.Context, *types.Webhook) bool
 	}
 
@@ -98,7 +99,7 @@ func (svc webhook) Create(kind types.WebhookKind, channelID uint64, params types
 		OutgoingURL:     params.OutgoingURL,
 	}
 
-	if !svc.ac.CanManageWebhooks(svc.ctx, webhook) && !svc.ac.CanManageOwnWebhooks(svc.ctx, webhook) {
+	if !svc.ac.CanCreateWebhook(svc.ctx) {
 		return nil, errors.WithStack(ErrNoPermissions)
 	}
 
@@ -126,13 +127,12 @@ func (svc webhook) Create(kind types.WebhookKind, channelID uint64, params types
 }
 
 func (svc webhook) Update(webhookID uint64, kind types.WebhookKind, channelID uint64, params types.WebhookRequest) (*types.Webhook, error) {
-	var userID = repository.Identity(svc.ctx)
 	webhook, err := svc.Get(webhookID)
 	if err != nil {
 		return nil, err
 	}
 
-	if !svc.ac.CanManageWebhooks(svc.ctx, webhook) && !(webhook.OwnerUserID == userID && svc.ac.CanManageOwnWebhooks(svc.ctx, webhook)) {
+	if !svc.ac.CanManageOwnWebhooks(svc.ctx, webhook) || !svc.ac.CanManageWebhooks(svc.ctx) {
 		return nil, errors.WithStack(ErrNoPermissions)
 	}
 
@@ -166,7 +166,7 @@ func (svc webhook) Delete(webhookID uint64) error {
 	if err != nil {
 		return err
 	}
-	if svc.ac.CanManageWebhooks(svc.ctx, webhook) {
+	if !svc.ac.CanManageOwnWebhooks(svc.ctx, webhook) || !svc.ac.CanManageWebhooks(svc.ctx) {
 		return svc.webhook.Delete(webhookID)
 	}
 	var userID = repository.Identity(svc.ctx)
