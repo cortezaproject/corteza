@@ -50,6 +50,15 @@ func Service(ctx context.Context, logger *zap.Logger, repository *repository) (s
 //
 // When not explicitly allowed through rules or fallbacks, function will return FALSE.
 func (svc service) Can(ctx context.Context, res Resource, op Operation, ff ...CheckAccessFunc) bool {
+	{
+		// @todo remove this ASAP
+		//       for now, we need it because of complex init/setup relations under system
+		ctxTestingVal := ctx.Value("testing")
+		if t, ok := ctxTestingVal.(bool); ok && t {
+			return true
+		}
+	}
+
 	// @todo extract from context
 	var roles = []uint64{}
 
