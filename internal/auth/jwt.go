@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -45,27 +46,48 @@ func (t *token) Verifier() func(http.Handler) http.Handler {
 }
 
 func (t *token) Encode(identity Identifiable) string {
-	claims := jwt.StandardClaims{}
-	claims.Subject = strconv.FormatUint(identity.Identity(), 10)
-	claims.ExpiresAt = time.Now().Add(time.Duration(t.expiry) * time.Minute).Unix()
+	claims := jwt.MapClaims{
+		"userID": strconv.FormatUint(identity.Identity(), 10),
+		"exp":    time.Now().Add(time.Duration(t.expiry) * time.Minute).Unix(),
+	}
+
+	if rr := identity.Roles(); len(rr) > 0 {
+		var memberOf string
+		for _, r := range identity.Roles() {
+			memberOf = memberOf + " " + strconv.FormatUint(r, 10)
+		}
+
+		claims["memberOf"] = memberOf[1:] // trim leading space
+	}
 
 	_, jwt, _ := t.tokenAuth.Encode(claims)
 	return jwt
 }
 
-// Extracts and authenticates JWT from context, validates claims
+// Authenticator converts JWT claims into Identity and stores it into context
 func (t *token) Authenticator() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var ctx = r.Context()
-
-			if identityId, err := getIdentityClaimFromContext(ctx); err != nil {
+			// Get claims
+			_, claims, err := jwtauth.FromContext(r.Context())
+			if err != nil {
 				resputil.JSON(w, err)
-				return
-			} else {
-				// Request validated, identity confirmed
-				r = r.WithContext(SetIdentityToContext(ctx, NewIdentity(identityId)))
 			}
+
+			identity := &Identity{}
+			if userID, ok := claims["userID"].(string); ok && len(userID) >= 0 {
+				identity.id, _ = strconv.ParseUint(userID, 10, 64)
+			}
+
+			if memberOf, ok := claims["memberOf"].(string); ok && len(memberOf) >= 0 {
+				ss := strings.Split(memberOf, " ")
+				identity.memberOf = make([]uint64, len(ss))
+				for i, s := range ss {
+					identity.memberOf[i], _ = strconv.ParseUint(s, 10, 64)
+				}
+			}
+
+			r = r.WithContext(SetIdentityToContext(r.Context(), identity))
 
 			// Token is authenticated, pass it through
 			next.ServeHTTP(w, r)
