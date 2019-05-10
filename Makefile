@@ -142,4 +142,5 @@ clean:
 
 
 integration:
+	rm -f build/gen*
 	drone exec --pipeline integration
