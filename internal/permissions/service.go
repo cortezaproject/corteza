@@ -3,41 +3,42 @@ package permissions
 import (
 	"context"
 	"sync"
+	"time"
+
+	"go.uber.org/zap"
 )
 
 type (
 	service struct {
-		l sync.Locker
+		l      sync.Mutex
+		logger *zap.Logger
+
+		//  service will flush values on TRUE or just reload on FALSE
+		f chan bool
 
 		rules      RuleSet
 		repository *repository
 	}
+)
 
-	Verifier interface {
-		Can(ctx context.Context, res Resource, op Operation, ff ...CheckAccessFunc) bool
-	}
+const (
+	watchInterval = time.Second * 60
 )
 
 // Service initializes service{} struct
 //
 // service{} struct preloads, checks, grants and flushes privileges to and from repository
 // It acts as a caching layer
-func Service(repository *repository) *service {
-	return &service{
+func Service(ctx context.Context, logger *zap.Logger, repository *repository) (svc *service) {
+	svc = &service{
+		f: make(chan bool, 0),
+
+		logger:     logger.Named("permissions"),
 		repository: repository,
 	}
-}
 
-func (svc *service) Preload(ctx context.Context) (err error) {
-	svc.l.Lock()
-	defer svc.l.Unlock()
-
-	svc.rules, err = svc.repository.With(ctx).Load()
-	if err != nil {
-		return
-	}
-
-	return nil
+	svc.Reload(ctx)
+	return
 }
 
 // Can function performs permission check for roles in context
@@ -82,15 +83,67 @@ func (svc service) Check(res Resource, op Operation, roles ...uint64) (v Access)
 // Grant appends and/or overwrites internal rules slice
 //
 // All rules with Inherit are removed
-func (svc service) Grant(ctx context.Context, rules ...*Rule) error {
+func (svc *service) Grant(ctx context.Context, rules ...*Rule) (err error) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 
-	// @todo update svc.rules
+	if svc.rules, err = svc.rules.merge(rules...); err != nil {
+		return
+	}
 
-	return nil
+	return svc.flush(ctx)
 }
 
-func (svc service) watcher() {
-	// @todo will listen to chan and load new stuff every time it gets a ping
+// Watches for changes
+func (svc service) Watch(ctx context.Context) {
+	go func() {
+		var ticker = time.NewTicker(watchInterval)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				break
+			case <-ticker.C:
+				svc.Reload(ctx)
+			case <-svc.f:
+				svc.Reload(ctx)
+			}
+		}
+	}()
+
+	svc.logger.Debug("watcher initialized")
+}
+
+func (svc service) Reload(ctx context.Context) {
+	svc.l.Lock()
+	defer svc.l.Unlock()
+
+	rr, err := svc.repository.With(ctx).Load()
+	svc.logger.Info(
+		"reloading rules",
+		zap.Error(err),
+		zap.Int("before", len(svc.rules)),
+		zap.Int("after", len(rr)),
+	)
+
+	if err != nil {
+		svc.rules = rr
+	}
+}
+
+func (svc service) flush(ctx context.Context) (err error) {
+	d, u := svc.rules.split()
+	err = svc.repository.With(ctx).Store(d, u)
+
+	if err != nil {
+		return
+	}
+
+	svc.rules = u
+	svc.logger.Info("flushed rules",
+		zap.Int("updated", len(u)),
+		zap.Int("deleted", len(d)))
+
+	return
 }

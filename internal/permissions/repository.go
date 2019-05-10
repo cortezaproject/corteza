@@ -3,7 +3,9 @@ package permissions
 import (
 	"context"
 
+	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
+	"gopkg.in/Masterminds/squirrel.v1"
 )
 
 type (
@@ -32,7 +34,7 @@ func (r repository) columns() []string {
 		"rel_role",
 		"resource",
 		"operation",
-		"value",
+		"access",
 	}
 }
 
@@ -43,7 +45,40 @@ func (r *repository) With(ctx context.Context) *repository {
 	}
 }
 
-func (r *repository) Load() (rr RuleSet, err error) {
-	// @todo load and return
-	return nil, nil
+func (r *repository) Load() (RuleSet, error) {
+	rr := make([]*Rule, 0)
+
+	lookup := squirrel.
+		Select(r.columns()...).
+		From(r.dbTable)
+
+	if query, args, err := lookup.ToSql(); err != nil {
+		return nil, errors.Wrap(err, "could not build lookup query for permission rules")
+	} else if err = r.dbh.Select(&rr, query, args...); err != nil {
+		return nil, errors.Wrap(err, "could not get permission rules")
+	}
+
+	return rr, nil
+}
+
+func (r *repository) Store(deleteSet, updateSet RuleSet) (err error) {
+	return r.dbh.Transaction(func() error {
+		if len(deleteSet) > 0 {
+			err = r.dbh.Delete(r.dbTable, deleteSet, "rel_role", "resource", "operation")
+			if err != nil {
+				return err
+			}
+		}
+
+		if len(updateSet) > 0 {
+			err = updateSet.Walk(func(rule *Rule) error {
+				return r.dbh.Replace(r.dbTable, rule)
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
