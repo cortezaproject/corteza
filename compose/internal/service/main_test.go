@@ -20,7 +20,9 @@ import (
 	systemService "github.com/crusttech/crust/system/service"
 )
 
-type mockDB struct{}
+type (
+	mockDB struct{}
+)
 
 func (mockDB) Transaction(callback func() error) error { return callback() }
 
