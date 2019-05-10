@@ -9,7 +9,12 @@ import (
 
 type (
 	accessControl struct {
-		permissions permissions.Verifier
+		permissions accessControlPermissionServicer
+	}
+
+	accessControlPermissionServicer interface {
+		Can(context.Context, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
+		Grant(context.Context, ...*permissions.Rule) error
 	}
 
 	permissionResource interface {
@@ -17,9 +22,9 @@ type (
 	}
 )
 
-func AccessControl(pv permissions.Verifier) *accessControl {
+func AccessControl(perm accessControlPermissionServicer) *accessControl {
 	return &accessControl{
-		permissions: pv,
+		permissions: perm,
 	}
 }
 
@@ -141,4 +146,58 @@ func (svc accessControl) CanDeletePage(ctx context.Context, r *types.Page) bool 
 
 func (svc accessControl) can(ctx context.Context, res permissionResource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
 	return svc.permissions.Can(ctx, res.PermissionResource(), op, ff...)
+}
+
+func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {
+	return svc.permissions.Grant(ctx, rr...)
+}
+
+// DefaultRules returns list of default rules for this compose service
+func (svc accessControl) DefaultRules() permissions.RuleSet {
+	var (
+		compose    = types.ComposePermissionResource
+		namespaces = types.NamespacePermissionResource.AppendWildcard()
+		modules    = types.ModulePermissionResource.AppendWildcard()
+		charts     = types.ChartPermissionResource.AppendWildcard()
+		triggers   = types.TriggerPermissionResource.AppendWildcard()
+		pages      = types.PagePermissionResource.AppendWildcard()
+
+		allowAdm = func(res permissions.Resource, op permissions.Operation) *permissions.Rule {
+			return &permissions.Rule{
+				permissions.AdminRoleID,
+				res,
+				op,
+				permissions.Allow}
+		}
+	)
+
+	return permissions.RuleSet{
+		{permissions.EveryoneRoleID, compose, "access", permissions.Allow},
+		allowAdm(compose, "namespace.create"),
+		allowAdm(compose, "access"),
+		allowAdm(compose, "grant"),
+		allowAdm(namespaces, "read"),
+		allowAdm(namespaces, "update"),
+		allowAdm(namespaces, "delete"),
+		allowAdm(namespaces, "page.create"),
+		allowAdm(namespaces, "module.create"),
+		allowAdm(namespaces, "chart.create"),
+		allowAdm(namespaces, "trigger.create"),
+		allowAdm(modules, "read"),
+		allowAdm(modules, "update"),
+		allowAdm(modules, "delete"),
+		allowAdm(modules, "record.create"),
+		allowAdm(modules, "record.read"),
+		allowAdm(modules, "record.update"),
+		allowAdm(modules, "record.delete"),
+		allowAdm(charts, "read"),
+		allowAdm(charts, "update"),
+		allowAdm(charts, "delete"),
+		allowAdm(triggers, "read"),
+		allowAdm(triggers, "update"),
+		allowAdm(triggers, "delete"),
+		allowAdm(pages, "read"),
+		allowAdm(pages, "update"),
+		allowAdm(pages, "delete"),
+	}
 }

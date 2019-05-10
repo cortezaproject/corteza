@@ -46,7 +46,7 @@ func Init(ctx context.Context) (err error) {
 	}
 
 	// Don't change this to init(), it needs Database
-	return service.Init()
+	return service.Init(ctx)
 }
 
 func InitDatabase(ctx context.Context) error {
@@ -62,6 +62,10 @@ func InitDatabase(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func StartWatchers(ctx context.Context) {
+	service.Watchers(ctx)
 }
 
 func StartRestAPI(ctx context.Context) error {

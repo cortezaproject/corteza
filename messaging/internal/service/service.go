@@ -18,9 +18,16 @@ type (
 	db interface {
 		Transaction(callback func() error) error
 	}
+
+	permissionServicer interface {
+		accessControlPermissionServicer
+		Watch(ctx context.Context)
+	}
 )
 
 var (
+	permSvc permissionServicer
+
 	DefaultLogger *zap.Logger
 
 	DefaultAccessControl *accessControl
@@ -34,7 +41,7 @@ var (
 	DefaultWebhook    WebhookService
 )
 
-func Init() error {
+func Init(ctx context.Context) error {
 	fs, err := store.New("var/store")
 	if err != nil {
 		return err
@@ -49,10 +56,11 @@ func Init() error {
 
 	DefaultLogger = logger.Default().Named("messaging.service")
 
-	ctx := context.Background()
-
-	pv := permissions.Service(permissions.Repository(repository.DB(ctx), "compose_permission_rules"))
-	DefaultAccessControl = AccessControl(pv)
+	permSvc = permissions.Service(
+		ctx,
+		DefaultLogger,
+		permissions.Repository(repository.DB(ctx), "compose_permission_rules"))
+	DefaultAccessControl = AccessControl(permSvc)
 
 	DefaultEvent = Event(ctx)
 	DefaultChannel = Channel(ctx)
@@ -63,6 +71,10 @@ func Init() error {
 	DefaultWebhook = Webhook(ctx, client)
 
 	return nil
+}
+
+func Watchers(ctx context.Context) {
+	permSvc.Watch(ctx)
 }
 
 func timeNowPtr() *time.Time {
