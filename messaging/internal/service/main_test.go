@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/SentimensRG/ctx"
 	"github.com/namsral/flag"
 	"github.com/titpetric/factory"
 	"go.uber.org/zap/zapcore"
@@ -62,8 +63,8 @@ func TestMain(m *testing.M) {
 		}
 	}
 
-	systemService.Init()
-	Init()
+	systemService.Init(ctx.Background())
+	Init(ctx.Background())
 
 	os.Exit(m.Run())
 }

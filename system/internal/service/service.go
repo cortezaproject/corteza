@@ -15,9 +15,14 @@ type (
 	db interface {
 		Transaction(callback func() error) error
 	}
+	permissionServicer interface {
+		accessControlPermissionServicer
+		Watch(ctx context.Context)
+	}
 )
 
 var (
+	permSvc       permissionServicer
 	DefaultLogger *zap.Logger
 
 	DefaultAccessControl *accessControl
@@ -33,15 +38,16 @@ var (
 	DefaultApplication  ApplicationService
 )
 
-func Init() (err error) {
-	ctx := context.Background()
-
+func Init(ctx context.Context) (err error) {
 	intSet := internalSettings.NewService(internalSettings.NewRepository(repository.DB(ctx), "sys_settings"))
 
 	DefaultLogger = logger.Default().Named("system.service")
 
-	pv := permissions.Service(permissions.Repository(repository.DB(ctx), "compose_permission_rules"))
-	DefaultAccessControl = AccessControl(pv)
+	permSvc = permissions.Service(
+		ctx,
+		DefaultLogger,
+		permissions.Repository(repository.DB(ctx), "compose_permission_rules"))
+	DefaultAccessControl = AccessControl(permSvc)
 
 	DefaultSettings = Settings(ctx, intSet)
 
@@ -59,4 +65,8 @@ func Init() (err error) {
 	DefaultAuth = Auth(ctx)
 
 	return
+}
+
+func Watchers(ctx context.Context) {
+	permSvc.Watch(ctx)
 }

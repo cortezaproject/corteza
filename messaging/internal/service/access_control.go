@@ -10,7 +10,12 @@ import (
 
 type (
 	accessControl struct {
-		permissions permissions.Verifier
+		permissions accessControlPermissionServicer
+	}
+
+	accessControlPermissionServicer interface {
+		Can(context.Context, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
+		Grant(context.Context, ...*permissions.Rule) error
 	}
 
 	permissionResource interface {
@@ -18,9 +23,9 @@ type (
 	}
 )
 
-func AccessControl(pv permissions.Verifier) *accessControl {
+func AccessControl(perm accessControlPermissionServicer) *accessControl {
 	return &accessControl{
-		permissions: pv,
+		permissions: perm,
 	}
 }
 
@@ -193,4 +198,59 @@ func (svc accessControl) isChannelOwnerFallback(ctx context.Context, ch *types.C
 
 func (svc accessControl) can(ctx context.Context, res permissionResource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
 	return svc.permissions.Can(ctx, res.PermissionResource(), op, ff...)
+}
+
+func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {
+	return svc.permissions.Grant(ctx, rr...)
+}
+
+// DefaultRules returns list of default rules for this compose service
+func (svc accessControl) DefaultRules() permissions.RuleSet {
+	var (
+		messaging = types.MessagingPermissionResource
+		channels  = types.ChannelPermissionResource.AppendWildcard()
+		webhooks  = types.WebhookPermissionResource.AppendWildcard()
+
+		allowAdm = func(res permissions.Resource, op permissions.Operation) *permissions.Rule {
+			return &permissions.Rule{
+				permissions.AdminRoleID,
+				res,
+				op,
+				permissions.Allow}
+		}
+	)
+
+	return permissions.RuleSet{
+		{permissions.EveryoneRoleID, messaging, "access", permissions.Allow},
+
+		allowAdm(messaging, "access"),
+		allowAdm(messaging, "grant"),
+		allowAdm(messaging, "channel.public.create"),
+		allowAdm(messaging, "channel.private.create"),
+		allowAdm(messaging, "channel.group.create"),
+
+		allowAdm(channels, "update"),
+		allowAdm(channels, "leave"),
+		allowAdm(channels, "read"),
+		allowAdm(channels, "join"),
+		allowAdm(channels, "delete"),
+		allowAdm(channels, "undelete"),
+		allowAdm(channels, "archive"),
+		allowAdm(channels, "unarchive"),
+		allowAdm(channels, "members.manage"),
+		allowAdm(channels, "webhooks.manage"),
+		allowAdm(channels, "attachments.manage"),
+		allowAdm(channels, "message.attach"),
+		allowAdm(channels, "message.update.all"),
+		allowAdm(channels, "message.update.own"),
+		allowAdm(channels, "message.delete.all"),
+		allowAdm(channels, "message.delete.own"),
+		allowAdm(channels, "message.embed"),
+		allowAdm(channels, "message.send"),
+		allowAdm(channels, "message.reply"),
+		allowAdm(channels, "message.react"),
+
+		allowAdm(webhooks, "webhook.manage.all"),
+		allowAdm(webhooks, "webhook.manage.own"),
+	}
 }

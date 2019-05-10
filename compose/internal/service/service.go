@@ -16,9 +16,16 @@ type (
 	db interface {
 		Transaction(callback func() error) error
 	}
+
+	permissionServicer interface {
+		accessControlPermissionServicer
+		Watch(ctx context.Context)
+	}
 )
 
 var (
+	permSvc permissionServicer
+
 	DefaultLogger *zap.Logger
 
 	DefaultAccessControl *accessControl
@@ -33,9 +40,7 @@ var (
 	DefaultNamespace    NamespaceService
 )
 
-func Init() error {
-	ctx := context.Background()
-
+func Init(ctx context.Context) error {
 	DefaultLogger = logger.Default().Named("compose.service")
 
 	fs, err := store.New("var/store")
@@ -43,8 +48,12 @@ func Init() error {
 		return err
 	}
 
-	pv := permissions.Service(permissions.Repository(repository.DB(ctx), "compose_permission_rules"))
-	DefaultAccessControl = AccessControl(pv)
+	permSvc = permissions.Service(
+		ctx,
+		DefaultLogger,
+		permissions.Repository(repository.DB(ctx), "compose_permission_rules"))
+
+	DefaultAccessControl = AccessControl(permSvc)
 
 	DefaultRecord = Record()
 	DefaultModule = Module()
@@ -56,6 +65,10 @@ func Init() error {
 	DefaultNamespace = Namespace()
 
 	return nil
+}
+
+func Watchers(ctx context.Context) {
+	permSvc.Watch(ctx)
 }
 
 // Data is stale when new date does not match updatedAt or createdAt (before first update)

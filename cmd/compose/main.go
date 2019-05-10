@@ -50,10 +50,17 @@ func main() {
 	switch command {
 	case "help":
 		flag.PrintDefaults()
+	case "provision":
+		if err := compose.Provision(ctx); err != nil {
+			println("Failed to provision compose: ", err.Error())
+			os.Exit(1)
+		}
 	default:
 		// Checks subscription, will os.Exit(1) if there is an error
 		// Disabled for now, system service is the only one that validates subscription
 		// ctx = subscription.Monitor(ctx)
+
+		compose.StartWatchers(ctx)
 
 		if err := compose.StartRestAPI(ctx); err != nil {
 			log.Fatal("failed to start compose REST API", zap.Error(err))

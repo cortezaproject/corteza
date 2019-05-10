@@ -9,7 +9,12 @@ import (
 
 type (
 	accessControl struct {
-		permissions permissions.Verifier
+		permissions accessControlPermissionServicer
+	}
+
+	accessControlPermissionServicer interface {
+		Can(context.Context, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
+		Grant(context.Context, ...*permissions.Rule) error
 	}
 
 	permissionResource interface {
@@ -17,9 +22,9 @@ type (
 	}
 )
 
-func AccessControl(pv permissions.Verifier) *accessControl {
+func AccessControl(perm accessControlPermissionServicer) *accessControl {
 	return &accessControl{
-		permissions: pv,
+		permissions: perm,
 	}
 }
 
@@ -112,4 +117,53 @@ func (svc accessControl) CanDeleteUser(ctx context.Context, u *types.User) bool 
 
 func (svc accessControl) can(ctx context.Context, res permissionResource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
 	return svc.permissions.Can(ctx, res.PermissionResource(), op, ff...)
+}
+
+func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {
+	return svc.permissions.Grant(ctx, rr...)
+}
+
+// DefaultRules returns list of default rules for this compose service
+func (svc accessControl) DefaultRules() permissions.RuleSet {
+	var (
+		sys           = types.SystemPermissionResource
+		applications  = types.ApplicationPermissionResource.AppendWildcard()
+		organisations = types.OrganisationPermissionResource.AppendWildcard()
+		roles         = types.RolePermissionResource.AppendWildcard()
+		users         = types.UserPermissionResource.AppendWildcard()
+
+		allowAdm = func(res permissions.Resource, op permissions.Operation) *permissions.Rule {
+			return &permissions.Rule{
+				permissions.AdminRoleID,
+				res,
+				op,
+				permissions.Allow}
+		}
+	)
+
+	return permissions.RuleSet{
+		{permissions.EveryoneRoleID, sys, "user.create", permissions.Allow},
+
+		allowAdm(sys, "access"),
+		allowAdm(sys, "grant"),
+		allowAdm(sys, "settings.read"),
+		allowAdm(sys, "settings.manage"),
+		allowAdm(sys, "organisation.create"),
+		allowAdm(sys, "application.create"),
+		allowAdm(sys, "user.create"),
+		allowAdm(sys, "role.create"),
+		allowAdm(organisations, "access"),
+		allowAdm(applications, "read"),
+		allowAdm(applications, "update"),
+		allowAdm(applications, "delete"),
+		allowAdm(users, "read"),
+		allowAdm(users, "update"),
+		allowAdm(users, "suspend"),
+		allowAdm(users, "unsuspend"),
+		allowAdm(users, "delete"),
+		allowAdm(roles, "read"),
+		allowAdm(roles, "update"),
+		allowAdm(roles, "delete"),
+		allowAdm(roles, "members.manage"),
+	}
 }

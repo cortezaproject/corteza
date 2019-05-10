@@ -58,8 +58,10 @@ func TestMain(m *testing.M) {
 		}
 	}
 
-	systemService.Init()
-	Init()
+	ctx := context.Background()
+
+	systemService.Init(ctx)
+	Init(ctx)
 
 	os.Exit(m.Run())
 }
