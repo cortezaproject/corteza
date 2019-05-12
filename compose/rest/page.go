@@ -25,17 +25,22 @@ type (
 	}
 
 	Page struct {
-		page        service.PageService
-		attachment  service.AttachmentService
-		permissions service.PermissionsService
+		page       service.PageService
+		attachment service.AttachmentService
+		ac         pageAccessController
+	}
+
+	pageAccessController interface {
+		CanUpdatePage(context.Context, *types.Page) bool
+		CanDeletePage(context.Context, *types.Page) bool
 	}
 )
 
 func (Page) New() *Page {
 	return &Page{
-		page:        service.DefaultPage,
-		attachment:  service.DefaultAttachment,
-		permissions: service.DefaultPermissions,
+		page:       service.DefaultPage,
+		attachment: service.DefaultAttachment,
+		ac:         service.DefaultAccessControl,
 	}
 }
 
@@ -131,13 +136,11 @@ func (ctrl Page) makePayload(ctx context.Context, c *types.Page, err error) (*pa
 		return nil, err
 	}
 
-	perm := ctrl.permissions.With(ctx)
-
 	return &pagePayload{
 		Page: c,
 
-		CanUpdatePage: perm.CanUpdatePage(c),
-		CanDeletePage: perm.CanDeletePage(c),
+		CanUpdatePage: ctrl.ac.CanUpdatePage(ctx, c),
+		CanDeletePage: ctrl.ac.CanDeletePage(ctx, c),
 	}, nil
 }
 

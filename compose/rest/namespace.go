@@ -26,17 +26,26 @@ type (
 		Filter types.NamespaceFilter `json:"filter"`
 		Set    []*namespacePayload   `json:"set"`
 	}
-)
 
-type Namespace struct {
-	namespace   service.NamespaceService
-	permissions service.PermissionsService
-}
+	Namespace struct {
+		namespace service.NamespaceService
+		ac        namespaceAccessController
+	}
+
+	namespaceAccessController interface {
+		CanUpdateNamespace(context.Context, *types.Namespace) bool
+		CanDeleteNamespace(context.Context, *types.Namespace) bool
+		CanCreateModule(context.Context, *types.Namespace) bool
+		CanCreateChart(context.Context, *types.Namespace) bool
+		CanCreateTrigger(context.Context, *types.Namespace) bool
+		CanCreatePage(context.Context, *types.Namespace) bool
+	}
+)
 
 func (Namespace) New() *Namespace {
 	return &Namespace{
-		namespace:   service.DefaultNamespace,
-		permissions: service.DefaultPermissions,
+		namespace: service.DefaultNamespace,
+		ac:        service.DefaultAccessControl,
 	}
 }
 
@@ -100,17 +109,15 @@ func (ctrl Namespace) makePayload(ctx context.Context, ns *types.Namespace, err 
 		return nil, err
 	}
 
-	perm := ctrl.permissions.With(ctx)
-
 	return &namespacePayload{
 		Namespace: ns,
 
-		CanUpdateNamespace: perm.CanUpdateNamespace(ns),
-		CanDeleteNamespace: perm.CanDeleteNamespace(ns),
-		CanCreateModule:    perm.CanCreateModule(ns),
-		CanCreateChart:     perm.CanCreateChart(ns),
-		CanCreateTrigger:   perm.CanCreateTrigger(ns),
-		CanCreatePage:      perm.CanCreatePage(ns),
+		CanUpdateNamespace: ctrl.ac.CanUpdateNamespace(ctx, ns),
+		CanDeleteNamespace: ctrl.ac.CanDeleteNamespace(ctx, ns),
+		CanCreateModule:    ctrl.ac.CanCreateModule(ctx, ns),
+		CanCreateChart:     ctrl.ac.CanCreateChart(ctx, ns),
+		CanCreateTrigger:   ctrl.ac.CanCreateTrigger(ctx, ns),
+		CanCreatePage:      ctrl.ac.CanCreatePage(ctx, ns),
 	}, nil
 }
 

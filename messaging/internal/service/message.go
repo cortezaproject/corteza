@@ -22,6 +22,7 @@ type (
 		db     db
 		ctx    context.Context
 		logger *zap.Logger
+		ac     messageAccessController
 
 		attachment repository.AttachmentRepository
 		channel    repository.ChannelRepository
@@ -32,7 +33,15 @@ type (
 		mentions   repository.MentionRepository
 
 		event EventService
-		prm   PermissionsService
+	}
+
+	messageAccessController interface {
+		CanReadChannel(context.Context, *types.Channel) bool
+		CanReplyMessage(context.Context, *types.Channel) bool
+		CanSendMessage(context.Context, *types.Channel) bool
+		CanUpdateMessages(context.Context, *types.Channel) bool
+		CanUpdateOwnMessages(context.Context, *types.Channel) bool
+		CanReactMessage(context.Context, *types.Channel) bool
 	}
 
 	MessageService interface {
@@ -82,9 +91,9 @@ func (svc message) With(ctx context.Context) MessageService {
 		db:     db,
 		ctx:    ctx,
 		logger: svc.logger,
+		ac:     DefaultAccessControl,
 
 		event: Event(ctx),
-		prm:   Permissions(ctx),
 
 		attachment: repository.Attachment(ctx, db),
 		channel:    repository.Channel(ctx, db),
@@ -153,7 +162,7 @@ func (svc message) channelAccessCheck(IDs ...uint64) error {
 		if ID > 0 {
 			if ch, err := svc.findChannelByID(ID); err != nil {
 				return err
-			} else if !svc.prm.CanReadChannel(ch) {
+			} else if !svc.ac.CanReadChannel(svc.ctx, ch) {
 				return errors.WithStack(ErrNoPermissions)
 			}
 		}
@@ -171,7 +180,7 @@ func (svc message) filterMessagesByAccessibleChannels(mm types.MessageSet) types
 		if !chk[m.ChannelID] {
 			chk[m.ChannelID] = true
 
-			if ch, err := svc.findChannelByID(m.ChannelID); err != nil || !svc.prm.CanReadChannel(ch) {
+			if ch, err := svc.findChannelByID(m.ChannelID); err != nil || !svc.ac.CanReadChannel(svc.ctx, ch) {
 				return false, nil
 			}
 		}
@@ -246,10 +255,10 @@ func (svc message) Create(in *types.Message) (message *types.Message, err error)
 			return
 		}
 
-		if in.ReplyTo > 0 && !svc.prm.CanReplyMessage(ch) {
+		if in.ReplyTo > 0 && !svc.ac.CanReplyMessage(svc.ctx, ch) {
 			return errors.WithStack(ErrNoPermissions)
 		}
-		if !svc.prm.CanSendMessage(ch) {
+		if !svc.ac.CanSendMessage(svc.ctx, ch) {
 			return errors.WithStack(ErrNoPermissions)
 		}
 
@@ -291,7 +300,7 @@ func (svc message) Update(in *types.Message) (message *types.Message, err error)
 
 		if ch, err = svc.findChannelByID(in.ChannelID); err != nil {
 			return err
-		} else if !svc.prm.CanReadChannel(ch) {
+		} else if !svc.ac.CanReadChannel(svc.ctx, ch) {
 			return errors.WithStack(ErrNoPermissions)
 		}
 
@@ -306,9 +315,9 @@ func (svc message) Update(in *types.Message) (message *types.Message, err error)
 			return nil
 		}
 
-		if message.UserID == currentUserID && !svc.prm.CanUpdateOwnMessages(ch) {
+		if message.UserID == currentUserID && !svc.ac.CanUpdateOwnMessages(svc.ctx, ch) {
 			return errors.WithStack(ErrNoPermissions)
-		} else if message.UserID != currentUserID && !svc.prm.CanUpdateMessages(ch) {
+		} else if message.UserID != currentUserID && !svc.ac.CanUpdateMessages(svc.ctx, ch) {
 			return errors.WithStack(ErrNoPermissions)
 		}
 
@@ -345,7 +354,7 @@ func (svc message) Delete(messageID uint64) error {
 
 		if ch, err = svc.findChannelByID(deletedMsg.ChannelID); err != nil {
 			return err
-		} else if !svc.prm.CanReadChannel(ch) {
+		} else if !svc.ac.CanReadChannel(svc.ctx, ch) {
 			return errors.WithStack(ErrNoPermissions)
 		}
 
@@ -358,10 +367,10 @@ func (svc message) Delete(messageID uint64) error {
 			if ch, err = svc.channel.FindByID(original.ChannelID); err != nil {
 				return
 			}
-			if original.UserID == currentUserID && !svc.prm.CanUpdateOwnMessages(ch) {
+			if original.UserID == currentUserID && !svc.ac.CanUpdateOwnMessages(svc.ctx, ch) {
 				return errors.WithStack(ErrNoPermissions)
 			}
-			if !svc.prm.CanUpdateMessages(ch) {
+			if !svc.ac.CanUpdateMessages(svc.ctx, ch) {
 				return errors.WithStack(ErrNoPermissions)
 			}
 
@@ -409,7 +418,7 @@ func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (co
 
 		if ch, err = svc.findChannelByID(channelID); err != nil {
 			return err
-		} else if !svc.prm.CanReadChannel(ch) {
+		} else if !svc.ac.CanReadChannel(svc.ctx, ch) {
 			return errors.WithStack(ErrNoPermissions)
 		} else if !ch.IsValid() {
 			return errors.New("invalid channel")
@@ -518,10 +527,10 @@ func (svc message) flag(messageID uint64, flag string, remove bool) error {
 		} else if ch, err = svc.findChannelByID(msg.ChannelID); err != nil {
 			return
 		}
-		if !svc.prm.CanReadChannel(ch) {
+		if !svc.ac.CanReadChannel(svc.ctx, ch) {
 			return errors.WithStack(ErrNoPermissions)
 		}
-		if f.IsReaction() && !svc.prm.CanReactMessage(ch) {
+		if f.IsReaction() && !svc.ac.CanReactMessage(svc.ctx, ch) {
 			return errors.WithStack(ErrNoPermissions)
 		}
 

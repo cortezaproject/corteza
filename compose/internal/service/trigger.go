@@ -18,9 +18,18 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		prmSvc PermissionsService
+		ac triggerAccessController
 
 		triggerRepo repository.TriggerRepository
+		nsRepo      repository.NamespaceRepository
+	}
+
+	triggerAccessController interface {
+		CanReadNamespace(context.Context, *types.Namespace) bool
+		CanCreateTrigger(context.Context, *types.Namespace) bool
+		CanReadTrigger(context.Context, *types.Trigger) bool
+		CanUpdateTrigger(context.Context, *types.Trigger) bool
+		CanDeleteTrigger(context.Context, *types.Trigger) bool
 	}
 
 	TriggerService interface {
@@ -38,7 +47,7 @@ type (
 func Trigger() TriggerService {
 	return (&trigger{
 		logger: DefaultLogger.Named("trigger"),
-		prmSvc: DefaultPermissions,
+		ac:     DefaultAccessControl,
 	}).With(context.Background())
 }
 
@@ -49,9 +58,10 @@ func (svc trigger) With(ctx context.Context) TriggerService {
 		ctx:    ctx,
 		logger: svc.logger,
 
-		prmSvc: svc.prmSvc.With(ctx),
+		ac: svc.ac,
 
 		triggerRepo: repository.Trigger(ctx, db),
+		nsRepo:      repository.Namespace(ctx, db),
 	}
 }
 
@@ -60,14 +70,14 @@ func (svc trigger) log(fields ...zapcore.Field) *zap.Logger {
 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
 }
 
-func (svc trigger) FindByID(namespaceID, triggerID uint64) (c *types.Trigger, err error) {
+func (svc trigger) FindByID(namespaceID, triggerID uint64) (t *types.Trigger, err error) {
 	if namespaceID == 0 {
 		return nil, ErrNamespaceRequired
 	}
 
-	if c, err = svc.triggerRepo.FindByID(namespaceID, triggerID); err != nil {
+	if t, err = svc.triggerRepo.FindByID(namespaceID, triggerID); err != nil {
 		return
-	} else if !svc.prmSvc.CanReadTrigger(c) {
+	} else if !svc.ac.CanReadTrigger(svc.ctx, t) {
 		return nil, ErrNoReadPermissions.withStack()
 	}
 
@@ -81,18 +91,20 @@ func (svc trigger) Find(filter types.TriggerFilter) (set types.TriggerSet, f typ
 	}
 
 	set, _ = set.Filter(func(m *types.Trigger) (bool, error) {
-		return svc.prmSvc.CanReadTrigger(m), nil
+		return svc.ac.CanReadTrigger(svc.ctx, m), nil
 	})
 
 	return
 }
 
-func (svc trigger) Create(mod *types.Trigger) (c *types.Trigger, err error) {
+func (svc trigger) Create(mod *types.Trigger) (t *types.Trigger, err error) {
 	if mod.NamespaceID == 0 {
 		return nil, ErrNamespaceRequired.withStack()
 	}
 
-	if !svc.prmSvc.CanCreateTrigger(crmNamespace()) {
+	if ns, err := svc.loadNamespace(mod.NamespaceID); err != nil {
+		return nil, err
+	} else if !svc.ac.CanCreateTrigger(svc.ctx, ns) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
@@ -112,7 +124,7 @@ func (svc trigger) Update(mod *types.Trigger) (c *types.Trigger, err error) {
 		return nil, ErrStaleData.withStack()
 	}
 
-	if !svc.prmSvc.CanUpdateTrigger(c) {
+	if !svc.ac.CanUpdateTrigger(svc.ctx, c) {
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
@@ -132,9 +144,25 @@ func (svc trigger) DeleteByID(namespaceID, triggerID uint64) error {
 
 	if c, err := svc.triggerRepo.FindByID(namespaceID, triggerID); err != nil {
 		return err
-	} else if !svc.prmSvc.CanDeleteTrigger(c) {
+	} else if !svc.ac.CanDeleteTrigger(svc.ctx, c) {
 		return ErrNoDeletePermissions.withStack()
 	}
 
 	return svc.triggerRepo.DeleteByID(namespaceID, triggerID)
+}
+
+func (svc trigger) loadNamespace(namespaceID uint64) (ns *types.Namespace, err error) {
+	if namespaceID == 0 {
+		return nil, ErrNamespaceRequired.withStack()
+	}
+
+	if ns, err = svc.nsRepo.FindByID(namespaceID); err != nil {
+		return
+	}
+
+	if !svc.ac.CanReadNamespace(svc.ctx, ns) {
+		return nil, ErrNoReadPermissions.withStack()
+	}
+
+	return
 }

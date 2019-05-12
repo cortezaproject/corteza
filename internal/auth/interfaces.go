@@ -7,6 +7,7 @@ import (
 type (
 	Identifiable interface {
 		Identity() uint64
+		Roles() []uint64
 		Valid() bool
 	}
 

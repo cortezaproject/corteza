@@ -15,9 +15,16 @@ type (
 		db  *factory.DB
 		ctx context.Context
 
-		prm PermissionsService
+		ac applicationAccessController
 
 		application repository.ApplicationRepository
+	}
+
+	applicationAccessController interface {
+		CanCreateApplication(context.Context) bool
+		CanReadApplication(context.Context, *types.Application) bool
+		CanUpdateApplication(context.Context, *types.Application) bool
+		CanDeleteApplication(context.Context, *types.Application) bool
 	}
 
 	ApplicationService interface {
@@ -33,7 +40,10 @@ type (
 )
 
 func Application(ctx context.Context) ApplicationService {
-	return (&application{}).With(ctx)
+	return (&application{
+		ac: DefaultAccessControl,
+	}).With(ctx)
+
 }
 
 func (svc *application) With(ctx context.Context) ApplicationService {
@@ -41,7 +51,7 @@ func (svc *application) With(ctx context.Context) ApplicationService {
 	return &application{
 		db:          db,
 		ctx:         ctx,
-		prm:         Permissions(ctx),
+		ac:          svc.ac,
 		application: repository.Application(ctx, db),
 	}
 }
@@ -52,7 +62,7 @@ func (svc *application) FindByID(id uint64) (*types.Application, error) {
 		return nil, err
 	}
 
-	if !svc.prm.CanReadApplication(app) {
+	if !svc.ac.CanReadApplication(svc.ctx, app) {
 		return nil, errors.New("Not allowed to access application")
 	}
 
@@ -67,22 +77,22 @@ func (svc *application) Find() (types.ApplicationSet, error) {
 
 	ret := []*types.Application{}
 	for _, app := range apps {
-		if svc.prm.CanReadApplication(app) {
+		if svc.ac.CanReadApplication(svc.ctx, app) {
 			ret = append(ret, app)
-		}
+		} //
 	}
 	return ret, nil
 }
 
 func (svc *application) Create(mod *types.Application) (*types.Application, error) {
-	if !svc.prm.CanCreateApplication() {
+	if !svc.ac.CanCreateApplication(svc.ctx) {
 		return nil, errors.New("Not allowed to create application")
 	}
 	return svc.application.Create(mod)
 }
 
 func (svc *application) Update(mod *types.Application) (t *types.Application, err error) {
-	if !svc.prm.CanUpdateApplication(mod) {
+	if !svc.ac.CanUpdateApplication(svc.ctx, mod) {
 		return nil, errors.New("Not allowed to update application")
 	}
 
@@ -111,7 +121,7 @@ func (svc *application) DeleteByID(id uint64) error {
 	// @todo: notify users that application has been removed (remove from web UI)
 
 	app := &types.Application{ID: id}
-	if !svc.prm.CanDeleteApplication(app) {
+	if !svc.ac.CanDeleteApplication(svc.ctx, app) {
 		return errors.New("Not allowed to delete application")
 	}
 	return svc.application.DeleteByID(id)

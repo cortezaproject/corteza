@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	"github.com/crusttech/crust/internal/rules"
+	"github.com/crusttech/crust/internal/permissions"
 )
 
 type (
@@ -24,6 +24,6 @@ type (
 )
 
 // Resource returns a resource ID for this type
-func (o *Organisation) PermissionResource() rules.Resource {
+func (o *Organisation) PermissionResource() permissions.Resource {
 	return OrganisationPermissionResource.AppendID(o.ID)
 }

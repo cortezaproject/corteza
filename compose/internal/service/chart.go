@@ -18,9 +18,18 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		prmSvc PermissionsService
+		ac chartAccessController
 
 		chartRepo repository.ChartRepository
+		nsRepo    repository.NamespaceRepository
+	}
+
+	chartAccessController interface {
+		CanReadNamespace(context.Context, *types.Namespace) bool
+		CanCreateChart(context.Context, *types.Namespace) bool
+		CanReadChart(context.Context, *types.Chart) bool
+		CanUpdateChart(context.Context, *types.Chart) bool
+		CanDeleteChart(context.Context, *types.Chart) bool
 	}
 
 	ChartService interface {
@@ -38,7 +47,7 @@ type (
 func Chart() ChartService {
 	return (&chart{
 		logger: DefaultLogger.Named("chart"),
-		prmSvc: DefaultPermissions,
+		ac:     DefaultAccessControl,
 	}).With(context.Background())
 }
 
@@ -49,9 +58,10 @@ func (svc chart) With(ctx context.Context) ChartService {
 		ctx:    ctx,
 		logger: svc.logger,
 
-		prmSvc: svc.prmSvc.With(ctx),
+		ac: svc.ac,
 
 		chartRepo: repository.Chart(ctx, db),
+		nsRepo:    repository.Namespace(ctx, db),
 	}
 }
 
@@ -67,7 +77,7 @@ func (svc chart) FindByID(namespaceID, chartID uint64) (c *types.Chart, err erro
 
 	if c, err = svc.chartRepo.FindByID(namespaceID, chartID); err != nil {
 		return
-	} else if !svc.prmSvc.CanReadChart(c) {
+	} else if !svc.ac.CanReadChart(svc.ctx, c) {
 		return nil, ErrNoReadPermissions.withStack()
 	}
 
@@ -81,14 +91,16 @@ func (svc chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.Cha
 	}
 
 	set, _ = set.Filter(func(m *types.Chart) (bool, error) {
-		return svc.prmSvc.CanReadChart(m), nil
+		return svc.ac.CanReadChart(svc.ctx, m), nil
 	})
 
 	return
 }
 
 func (svc chart) Create(mod *types.Chart) (c *types.Chart, err error) {
-	if !svc.prmSvc.CanCreateChart(crmNamespace()) {
+	if ns, err := svc.loadNamespace(mod.NamespaceID); err != nil {
+		return nil, err
+	} else if !svc.ac.CanCreateChart(svc.ctx, ns) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
@@ -108,7 +120,7 @@ func (svc chart) Update(mod *types.Chart) (c *types.Chart, err error) {
 		return nil, ErrStaleData.withStack()
 	}
 
-	if !svc.prmSvc.CanUpdateChart(c) {
+	if !svc.ac.CanUpdateChart(svc.ctx, c) {
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
@@ -125,9 +137,25 @@ func (svc chart) DeleteByID(namespaceID, chartID uint64) error {
 
 	if c, err := svc.chartRepo.FindByID(namespaceID, chartID); err != nil {
 		return err
-	} else if !svc.prmSvc.CanDeleteChart(c) {
+	} else if !svc.ac.CanDeleteChart(svc.ctx, c) {
 		return ErrNoDeletePermissions.withStack()
 	}
 
 	return svc.chartRepo.DeleteByID(namespaceID, chartID)
+}
+
+func (svc chart) loadNamespace(namespaceID uint64) (ns *types.Namespace, err error) {
+	if namespaceID == 0 {
+		return nil, ErrNamespaceRequired.withStack()
+	}
+
+	if ns, err = svc.nsRepo.FindByID(namespaceID); err != nil {
+		return
+	}
+
+	if !svc.ac.CanReadNamespace(svc.ctx, ns) {
+		return nil, ErrNoReadPermissions.withStack()
+	}
+
+	return
 }

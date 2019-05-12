@@ -9,29 +9,39 @@ import (
 	"github.com/crusttech/crust/internal/config"
 	"github.com/crusttech/crust/internal/http"
 	"github.com/crusttech/crust/internal/logger"
+	"github.com/crusttech/crust/internal/permissions"
 	"github.com/crusttech/crust/internal/store"
+	"github.com/crusttech/crust/messaging/internal/repository"
 )
 
 type (
 	db interface {
 		Transaction(callback func() error) error
 	}
+
+	permissionServicer interface {
+		accessControlPermissionServicer
+		Watch(ctx context.Context)
+	}
 )
 
 var (
+	permSvc permissionServicer
+
 	DefaultLogger *zap.Logger
 
-	DefaultAttachment  AttachmentService
-	DefaultChannel     ChannelService
-	DefaultMessage     MessageService
-	DefaultPubSub      *pubSub
-	DefaultEvent       EventService
-	DefaultPermissions PermissionsService
-	DefaultCommand     CommandService
-	DefaultWebhook     WebhookService
+	DefaultAccessControl *accessControl
+
+	DefaultAttachment AttachmentService
+	DefaultChannel    ChannelService
+	DefaultMessage    MessageService
+	DefaultPubSub     *pubSub
+	DefaultEvent      EventService
+	DefaultCommand    CommandService
+	DefaultWebhook    WebhookService
 )
 
-func Init() error {
+func Init(ctx context.Context) error {
 	fs, err := store.New("var/store")
 	if err != nil {
 		return err
@@ -46,18 +56,25 @@ func Init() error {
 
 	DefaultLogger = logger.Default().Named("messaging.service")
 
-	ctx := context.Background()
+	permSvc = permissions.Service(
+		ctx,
+		DefaultLogger,
+		permissions.Repository(repository.DB(ctx), "messaging_permission_rules"))
+	DefaultAccessControl = AccessControl(permSvc)
 
-	DefaultPermissions = Permissions(ctx)
 	DefaultEvent = Event(ctx)
+	DefaultChannel = Channel(ctx)
 	DefaultAttachment = Attachment(ctx, fs)
 	DefaultMessage = Message(ctx)
-	DefaultChannel = Channel(ctx)
 	DefaultPubSub = PubSub()
 	DefaultCommand = Command(ctx)
 	DefaultWebhook = Webhook(ctx, client)
 
 	return nil
+}
+
+func Watchers(ctx context.Context) {
+	permSvc.Watch(ctx)
 }
 
 func timeNowPtr() *time.Time {

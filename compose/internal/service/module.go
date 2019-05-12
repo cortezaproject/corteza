@@ -18,10 +18,19 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		prmSvc PermissionsService
+		ac moduleAccessController
 
 		moduleRepo repository.ModuleRepository
 		pageRepo   repository.PageRepository
+		nsRepo     repository.NamespaceRepository
+	}
+
+	moduleAccessController interface {
+		CanReadNamespace(context.Context, *types.Namespace) bool
+		CanCreateModule(context.Context, *types.Namespace) bool
+		CanReadModule(context.Context, *types.Module) bool
+		CanUpdateModule(context.Context, *types.Module) bool
+		CanDeleteModule(context.Context, *types.Module) bool
 	}
 
 	ModuleService interface {
@@ -39,7 +48,7 @@ type (
 func Module() ModuleService {
 	return (&module{
 		logger: DefaultLogger.Named("module"),
-		prmSvc: DefaultPermissions,
+		ac:     DefaultAccessControl,
 	}).With(context.Background())
 }
 
@@ -50,10 +59,11 @@ func (svc module) With(ctx context.Context) ModuleService {
 		ctx:    ctx,
 		logger: svc.logger,
 
-		prmSvc: svc.prmSvc.With(ctx),
+		ac: svc.ac,
 
 		moduleRepo: repository.Module(ctx, db),
 		pageRepo:   repository.Page(ctx, db),
+		nsRepo:     repository.Namespace(ctx, db),
 	}
 }
 
@@ -69,7 +79,7 @@ func (svc module) FindByID(namespaceID, moduleID uint64) (m *types.Module, err e
 
 	if m, err = svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
 		return
-	} else if !svc.prmSvc.CanReadModule(m) {
+	} else if !svc.ac.CanReadModule(svc.ctx, m) {
 		return nil, ErrNoReadPermissions.withStack()
 	}
 
@@ -93,7 +103,7 @@ func (svc module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.
 	}
 
 	set, _ = set.Filter(func(m *types.Module) (bool, error) {
-		return svc.prmSvc.CanReadModule(m), nil
+		return svc.ac.CanReadModule(svc.ctx, m), nil
 	})
 
 	// Preload all fields and update all modules
@@ -116,7 +126,9 @@ func (svc module) Create(mod *types.Module) (*types.Module, error) {
 		return nil, ErrNamespaceRequired.withStack()
 	}
 
-	if !svc.prmSvc.CanCreateModule(crmNamespace()) {
+	if ns, err := svc.loadNamespace(mod.NamespaceID); err != nil {
+		return nil, err
+	} else if !svc.ac.CanCreateModule(svc.ctx, ns) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
@@ -136,7 +148,7 @@ func (svc module) Update(mod *types.Module) (m *types.Module, err error) {
 		return nil, ErrStaleData.withStack()
 	}
 
-	if !svc.prmSvc.CanUpdateModule(m) {
+	if !svc.ac.CanUpdateModule(svc.ctx, m) {
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
@@ -154,9 +166,25 @@ func (svc module) DeleteByID(namespaceID, moduleID uint64) error {
 
 	if c, err := svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
 		return err
-	} else if !svc.prmSvc.CanDeleteModule(c) {
+	} else if !svc.ac.CanDeleteModule(svc.ctx, c) {
 		return ErrNoDeletePermissions.withStack()
 	}
 
 	return svc.moduleRepo.DeleteByID(namespaceID, moduleID)
+}
+
+func (svc module) loadNamespace(namespaceID uint64) (ns *types.Namespace, err error) {
+	if namespaceID == 0 {
+		return nil, ErrNamespaceRequired.withStack()
+	}
+
+	if ns, err = svc.nsRepo.FindByID(namespaceID); err != nil {
+		return
+	}
+
+	if !svc.ac.CanReadNamespace(svc.ctx, ns) {
+		return nil, ErrNoReadPermissions.withStack()
+	}
+
+	return
 }

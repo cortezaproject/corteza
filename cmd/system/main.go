@@ -46,6 +46,11 @@ func main() {
 	switch command {
 	case "help":
 		flag.PrintDefaults()
+	case "provision":
+		if err := system.Provision(ctx); err != nil {
+			println("Failed to provision system: ", err.Error())
+			os.Exit(1)
+		}
 	default:
 		// Checks subscription, will os.Exit(1) if there is an error
 		ctx = subscription.Monitor(ctx)

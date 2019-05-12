@@ -1,6 +1,4 @@
-// +build unit
-
-package rules
+package permissions
 
 import (
 	"testing"

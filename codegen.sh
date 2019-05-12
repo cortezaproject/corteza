@@ -53,6 +53,9 @@ function types {
 
 	./build/gen-type-set --types Value --output internal/settings/types.gen.go --with-primary-key=false --package settings
 
+	./build/gen-type-set --types Rule      --output internal/permissions/rule.gen.go     --with-primary-key=false --package permissions
+	./build/gen-type-set --types Resource  --output internal/permissions/resource.gen.go --with-primary-key=false --package permissions
+
 	green "OK"
 }
 

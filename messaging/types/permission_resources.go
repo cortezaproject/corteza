@@ -1,9 +1,9 @@
 package types
 
 import (
-	"github.com/crusttech/crust/internal/rules"
+	"github.com/crusttech/crust/internal/permissions"
 )
 
-const PermissionResource = rules.Resource("messaging")
-const ChannelPermissionResource = rules.Resource("messaging:channel:")
-const WebhookPermissionResource = rules.Resource("messaging:webhook:")
+const MessagingPermissionResource = permissions.Resource("messaging")
+const ChannelPermissionResource = permissions.Resource("messaging:channel:")
+const WebhookPermissionResource = permissions.Resource("messaging:webhook:")

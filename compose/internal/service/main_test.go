@@ -20,7 +20,9 @@ import (
 	systemService "github.com/crusttech/crust/system/service"
 )
 
-type mockDB struct{}
+type (
+	mockDB struct{}
+)
 
 func (mockDB) Transaction(callback func() error) error { return callback() }
 
@@ -58,8 +60,10 @@ func TestMain(m *testing.M) {
 		}
 	}
 
-	systemService.Init()
-	Init()
+	ctx := context.Background()
+
+	systemService.Init(ctx)
+	Init(ctx)
 
 	os.Exit(m.Run())
 }

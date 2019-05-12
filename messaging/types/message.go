@@ -7,9 +7,8 @@ import (
 
 	"database/sql/driver"
 
+	"github.com/crusttech/crust/internal/permissions"
 	"github.com/pkg/errors"
-
-	"github.com/crusttech/crust/internal/rules"
 )
 
 type (
@@ -144,7 +143,7 @@ func (m *Message) IsValid() bool {
 	return m.DeletedAt == nil
 }
 
-func (m Message) PermissionResource() rules.Resource {
+func (m Message) PermissionResource() permissions.Resource {
 	return ChannelPermissionResource.AppendID(m.ChannelID)
 }
 
