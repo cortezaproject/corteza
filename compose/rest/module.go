@@ -28,17 +28,26 @@ type (
 	}
 
 	Module struct {
-		module      service.ModuleService
-		record      service.RecordService
-		permissions service.PermissionsService
+		module service.ModuleService
+		record service.RecordService
+		ac     moduleAccessController
+	}
+
+	moduleAccessController interface {
+		CanUpdateModule(context.Context, *types.Module) bool
+		CanDeleteModule(context.Context, *types.Module) bool
+		CanCreateRecord(context.Context, *types.Module) bool
+		CanReadRecord(context.Context, *types.Module) bool
+		CanUpdateRecord(context.Context, *types.Module) bool
+		CanDeleteRecord(context.Context, *types.Module) bool
 	}
 )
 
 func (Module) New() *Module {
 	return &Module{
-		module:      service.DefaultModule,
-		record:      service.DefaultRecord,
-		permissions: service.DefaultPermissions,
+		module: service.DefaultModule,
+		record: service.DefaultRecord,
+		ac:     service.DefaultAccessControl,
 	}
 }
 
@@ -104,17 +113,15 @@ func (ctrl Module) makePayload(ctx context.Context, m *types.Module, err error) 
 		return nil, err
 	}
 
-	perm := ctrl.permissions.With(ctx)
-
 	return &modulePayload{
 		Module: m,
 
-		CanUpdateModule: perm.CanUpdateModule(m),
-		CanDeleteModule: perm.CanDeleteModule(m),
-		CanCreateRecord: perm.CanCreateRecord(m),
-		CanReadRecord:   perm.CanReadRecord(m),
-		CanUpdateRecord: perm.CanUpdateRecord(m),
-		CanDeleteRecord: perm.CanDeleteRecord(m),
+		CanUpdateModule: ctrl.ac.CanUpdateModule(ctx, m),
+		CanDeleteModule: ctrl.ac.CanDeleteModule(ctx, m),
+		CanCreateRecord: ctrl.ac.CanCreateRecord(ctx, m),
+		CanReadRecord:   ctrl.ac.CanReadRecord(ctx, m),
+		CanUpdateRecord: ctrl.ac.CanUpdateRecord(ctx, m),
+		CanDeleteRecord: ctrl.ac.CanDeleteRecord(ctx, m),
 	}, nil
 }
 

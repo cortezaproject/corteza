@@ -82,11 +82,6 @@ func (r *user) FindByID(id uint64) (*types.User, error) {
 		return nil, err
 	}
 
-	err := r.prepare(mod, "roles")
-	if err != nil {
-		return nil, err
-	}
-
 	return mod, nil
 }
 
@@ -143,9 +138,6 @@ func (r *user) Find(filter *types.UserFilter) ([]*types.User, error) {
 	if err := r.db().Select(&rval, sql, params...); err != nil {
 		return nil, err
 	}
-	if err := r.prepareAll(rval, "roles"); err != nil {
-		return nil, err
-	}
 
 	return rval, nil
 }
@@ -180,31 +172,4 @@ func (r *user) UnsuspendByID(id uint64) error {
 
 func (r *user) DeleteByID(id uint64) error {
 	return r.updateColumnByID(r.users, "deleted_at", time.Now(), id)
-}
-
-func (r *user) prepareAll(users []*types.User, fields ...string) error {
-	for _, user := range users {
-		if err := r.prepare(user, fields...); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (r *user) prepare(user *types.User, fields ...string) (err error) {
-	api := Role(r.Context(), r.db())
-	for _, field := range fields {
-		switch field {
-		case "roles":
-			if user.ID > 0 {
-				roles, err := api.FindByMemberID(user.ID)
-				if err != nil {
-					return err
-				}
-				user.Roles = roles
-			}
-		default:
-		}
-	}
-	return
 }

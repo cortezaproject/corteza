@@ -18,7 +18,7 @@ var _ = errors.Wrap
 
 type (
 	Auth struct {
-		jwt          auth.TokenEncoder
+		tokenEncoder auth.TokenEncoder
 		authSettings authServiceSettingsProvider
 		authSvc      service.AuthService
 	}
@@ -33,13 +33,14 @@ type (
 	}
 
 	checkResponse struct {
+		JWT  string         `json:"jwt"`
 		User *outgoing.User `json:"user"`
 	}
 )
 
 func (Auth) New() *Auth {
 	return &Auth{
-		jwt:          auth.DefaultJwtHandler,
+		tokenEncoder: auth.DefaultJwtHandler,
 		authSettings: service.DefaultAuthSettings,
 		authSvc:      service.DefaultAuth,
 	}
@@ -47,15 +48,24 @@ func (Auth) New() *Auth {
 
 func (ctrl *Auth) Check(ctx context.Context, r *request.AuthCheck) (interface{}, error) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
 		if identity := auth.GetIdentityFromContext(ctx); identity != nil && identity.Valid() {
 			if user, err := service.DefaultUser.With(ctx).FindByID(identity.Identity()); err == nil {
-				resputil.JSON(w, checkResponse{
-					User: payload.User(user),
-				})
+				svc := ctrl.authSvc.With(ctx)
+
+				if err = svc.LoadRoleMemberships(user); err != nil {
+					resputil.JSON(w, err)
+				} else {
+					resputil.JSON(w, checkResponse{
+						JWT:  ctrl.tokenEncoder.Encode(user),
+						User: payload.User(user),
+					})
+				}
+
 				return
 			}
 		}
+
+		resputil.JSON(w, errors.New("invalid token"))
 	}, nil
 }
 
@@ -68,13 +78,19 @@ func (ctrl *Auth) Settings(ctx context.Context, r *request.AuthSettings) (interf
 }
 
 func (ctrl *Auth) ExchangeAuthToken(ctx context.Context, r *request.AuthExchangeAuthToken) (interface{}, error) {
-	user, err := ctrl.authSvc.ValidateAuthRequestToken(r.Token)
+	var svc = ctrl.authSvc.With(ctx)
+
+	user, err := svc.ValidateAuthRequestToken(r.Token)
 	if err != nil {
 		return nil, err
 	}
 
-	return exchangeResponse{
-		JWT:  ctrl.jwt.Encode(user),
+	if err = svc.LoadRoleMemberships(user); err != nil {
+		return nil, err
+	}
+
+	return &exchangeResponse{
+		JWT:  ctrl.tokenEncoder.Encode(user),
 		User: payload.User(user),
 	}, nil
 }

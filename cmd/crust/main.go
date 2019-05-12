@@ -78,6 +78,20 @@ func main() {
 	switch command {
 	case "help":
 		flag.PrintDefaults()
+
+	case "provision":
+		if err := system.Provision(ctx); err != nil {
+			println("Failed to provision system: ", err.Error())
+			os.Exit(1)
+		}
+		if err := compose.Provision(ctx); err != nil {
+			println("Failed to provision compose: ", err.Error())
+			os.Exit(1)
+		}
+		if err := messaging.Provision(ctx); err != nil {
+			println("Failed to provision messaging: ", err.Error())
+			os.Exit(1)
+		}
 	default:
 		// Initialize configuration of our services
 		if err := system.Init(ctx); err != nil {
@@ -102,6 +116,10 @@ func main() {
 		if flags.monitor.Interval > 0 {
 			go metrics.NewMonitor(flags.monitor.Interval)
 		}
+
+		system.StartWatchers(ctx)
+		compose.StartWatchers(ctx)
+		messaging.StartWatchers(ctx)
 
 		r := chi.NewRouter()
 

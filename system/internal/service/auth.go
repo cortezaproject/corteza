@@ -27,6 +27,7 @@ type (
 
 		credentials   repository.CredentialsRepository
 		users         repository.UserRepository
+		roles         repository.RoleRepository
 		settings      authSettings
 		notifications AuthNotificationService
 
@@ -52,6 +53,8 @@ type (
 		ValidatePasswordResetToken(token string) (user *types.User, err error)
 		SendEmailAddressConfirmationToken(email string) (err error)
 		SendPasswordResetToken(email string) (err error)
+
+		LoadRoleMemberships(*types.User) error
 	}
 )
 
@@ -89,6 +92,7 @@ func (svc auth) With(ctx context.Context) AuthService {
 
 		credentials: repository.Credentials(ctx, db),
 		users:       repository.User(ctx, db),
+		roles:       repository.Role(ctx, db),
 
 		settings:      DefaultAuthSettings,
 		notifications: DefaultAuthNotification,
@@ -806,6 +810,16 @@ func (svc auth) createUserToken(user *types.User, kind string) (token string, er
 
 	token = fmt.Sprintf("%s%d", c.Credentials, c.ID)
 	return
+}
+
+func (svc auth) LoadRoleMemberships(u *types.User) error {
+	rr, err := svc.roles.FindByMemberID(u.ID)
+	if err != nil {
+		return err
+	}
+
+	u.SetRoles(rr.IDs())
+	return nil
 }
 
 var _ AuthService = &auth{}

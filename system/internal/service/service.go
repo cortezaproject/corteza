@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/crusttech/crust/internal/logger"
+	"github.com/crusttech/crust/internal/permissions"
 	internalSettings "github.com/crusttech/crust/internal/settings"
 	"github.com/crusttech/crust/system/internal/repository"
 )
@@ -14,10 +15,17 @@ type (
 	db interface {
 		Transaction(callback func() error) error
 	}
+	permissionServicer interface {
+		accessControlPermissionServicer
+		Watch(ctx context.Context)
+	}
 )
 
 var (
+	permSvc       permissionServicer
 	DefaultLogger *zap.Logger
+
+	DefaultAccessControl *accessControl
 
 	DefaultSettings         SettingsService
 	DefaultAuthNotification AuthNotificationService
@@ -26,22 +34,22 @@ var (
 	DefaultAuth         AuthService
 	DefaultUser         UserService
 	DefaultRole         RoleService
-	DefaultRules        RulesService
 	DefaultOrganisation OrganisationService
 	DefaultApplication  ApplicationService
-	DefaultPermissions  PermissionsService
 )
 
-func Init() (err error) {
-	ctx := context.Background()
-
+func Init(ctx context.Context) (err error) {
 	intSet := internalSettings.NewService(internalSettings.NewRepository(repository.DB(ctx), "sys_settings"))
 
 	DefaultLogger = logger.Default().Named("system.service")
 
+	permSvc = permissions.Service(
+		ctx,
+		DefaultLogger,
+		permissions.Repository(repository.DB(ctx), "sys_permission_rules"))
+	DefaultAccessControl = AccessControl(permSvc)
+
 	DefaultSettings = Settings(ctx, intSet)
-	DefaultRules = Rules(ctx)
-	DefaultPermissions = Permissions(ctx)
 
 	DefaultUser = User(ctx)
 	DefaultRole = Role(ctx)
@@ -57,4 +65,8 @@ func Init() (err error) {
 	DefaultAuth = Auth(ctx)
 
 	return
+}
+
+func Watchers(ctx context.Context) {
+	permSvc.Watch(ctx)
 }

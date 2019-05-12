@@ -69,42 +69,25 @@ test.internal: $(GOTEST)
 	$(GO) tool cover -func=.cover.out
 
 test.messaging: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./messaging/repository/... ./messaging/service/...
-	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
-
-test.messaging.db: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./messaging/db/...
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./messaging/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.pubsub: $(GOTEST)
-	$(GOTEST) -run PubSubMemory -covermode count -coverprofile .cover.out -v ./messaging/repository/pubsub*.go ./messaging/repository/flags*.go ./messaging/repository/error*.go
-	perl -pi -e 's/command-line-arguments/.\/messaging\/repository/g' .cover.out
+	$(GOTEST) -run PubSubMemory -covermode count -coverprofile .cover.out -v ./messaging/internal/repository/pubsub*.go ./messaging/internal/repository/flags*.go ./messaging/internal/repository/error*.go
+	perl -pi -e 's/command-line-arguments/.\/messaging\/internal\/repository/g' .cover.out
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.events: $(GOTEST)
-	$(GOTEST) -run Events -covermode count -coverprofile .cover.out -v ./messaging/repository/events*.go ./messaging/repository/flags*.go ./messaging/repository/error*.go
-	perl -pi -e 's/command-line-arguments/.\/messaging\/repository/g' .cover.out
+	$(GOTEST) -run Events -covermode count -coverprofile .cover.out -v ./messaging/internal/repository/events*.go ./messaging/internal/repository/flags*.go ./messaging/internal/repository/error*.go
+	perl -pi -e 's/command-line-arguments/.\/messaging\/internal\/repository/g' .cover.out
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.compose: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./compose/service/...
-	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
-
-test.compose.db: $(GOTEST)
-	cd compose/db && $(GO) generate && cd ../..
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./compose/db/...
+	$(GOTEST) -covermode count -coverprofile .cover.out -v ./compose/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.system: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./system/internal/repository/... ./system/internal/service/...
-	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
-
-test.system.db: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./system/db/...
-	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
-
-test.rules: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/rules/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.mail: $(GOTEST)
@@ -132,7 +115,6 @@ mocks: $(GOMOCK)
 	$(MOCKGEN) -package repository -source system/internal/repository/credentials.go  -destination system/internal/repository/mocks/credentials.go
 
 	$(MOCKGEN) -package mail  -source internal/mail/mail.go                           -destination internal/mail/mail_mock_test.go
-	$(MOCKGEN) -package rules -source internal/rules/interfaces.go                    -destination internal/rules/resources_mock_test.go
 
 
 
@@ -160,4 +142,5 @@ clean:
 
 
 integration:
+	rm -f build/gen*
 	drone exec --pipeline integration

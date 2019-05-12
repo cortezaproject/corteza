@@ -34,11 +34,22 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		store store.Store
-		event EventService
+		ac attachmentAccessController
+
+		store   store.Store
+		event   EventService
+		channel ChannelService
 
 		attachment repository.AttachmentRepository
 		message    repository.MessageRepository
+	}
+
+	attachmentAccessController interface {
+		CanAttachMessage(context.Context, *types.Channel) bool
+	}
+
+	attachmentChannelFinder interface {
+		FindByID(ID uint64) (ch *types.Channel, err error)
 	}
 
 	AttachmentService interface {
@@ -53,21 +64,24 @@ type (
 
 func Attachment(ctx context.Context, store store.Store) AttachmentService {
 	return (&attachment{
-		logger: DefaultLogger.Named("attachment"),
-
-		store: store,
+		logger:  DefaultLogger.Named("attachment"),
+		ac:      DefaultAccessControl,
+		channel: DefaultChannel,
+		store:   store,
 	}).With(ctx)
 }
 
 func (svc attachment) With(ctx context.Context) AttachmentService {
 	db := repository.DB(ctx)
 	return &attachment{
-		db:     db,
 		ctx:    ctx,
+		db:     db,
+		ac:     svc.ac,
 		logger: svc.logger,
 
-		store: svc.store,
-		event: Event(ctx),
+		store:   svc.store,
+		event:   Event(ctx),
+		channel: svc.channel.With(ctx),
 
 		attachment: repository.Attachment(ctx, db),
 		message:    repository.Message(ctx, db),
@@ -106,8 +120,11 @@ func (svc attachment) Create(name string, size int64, fh io.ReadSeeker, channelI
 
 	var currentUserID uint64 = repository.Identity(svc.ctx)
 
-	// @todo verify if current user can access this channel
-	// @todo verify if current user can upload to this channel
+	if ch, err := svc.channel.FindByID(channelId); err != nil {
+		return nil, err
+	} else if svc.ac.CanAttachMessage(svc.ctx, ch) {
+		return nil, errors.WithStack(ErrNoPermissions)
+	}
 
 	att = &types.Attachment{
 		ID:     factory.Sonyflake.NextID(),
@@ -294,5 +311,3 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 func (svc attachment) sendEvent(msg *types.Message) (err error) {
 	return svc.event.Message(msg)
 }
-
-var _ AttachmentService = &attachment{}

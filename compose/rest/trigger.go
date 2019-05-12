@@ -24,15 +24,20 @@ type (
 	}
 
 	Trigger struct {
-		trigger     service.TriggerService
-		permissions service.PermissionsService
+		trigger service.TriggerService
+		ac      triggerAccessController
+	}
+
+	triggerAccessController interface {
+		CanUpdateTrigger(context.Context, *types.Trigger) bool
+		CanDeleteTrigger(context.Context, *types.Trigger) bool
 	}
 )
 
 func (Trigger) New() *Trigger {
 	return &Trigger{
-		trigger:     service.DefaultTrigger,
-		permissions: service.DefaultPermissions,
+		trigger: service.DefaultTrigger,
+		ac:      service.DefaultAccessControl,
 	}
 }
 
@@ -102,13 +107,11 @@ func (ctrl Trigger) makePayload(ctx context.Context, t *types.Trigger, err error
 		return nil, err
 	}
 
-	perm := ctrl.permissions.With(ctx)
-
 	return &triggerPayload{
 		Trigger: t,
 
-		CanUpdateTrigger: perm.CanUpdateTrigger(t),
-		CanDeleteTrigger: perm.CanDeleteTrigger(t),
+		CanUpdateTrigger: ctrl.ac.CanUpdateTrigger(ctx, t),
+		CanDeleteTrigger: ctrl.ac.CanDeleteTrigger(ctx, t),
 	}, nil
 }
 

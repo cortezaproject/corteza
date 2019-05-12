@@ -19,7 +19,7 @@ type (
 		ctx context.Context
 
 		event EventService
-		perms PermissionsService
+		ac    applicationAccessController
 
 		channel repository.ChannelRepository
 		cmember repository.ChannelMemberRepository
@@ -27,6 +27,26 @@ type (
 		message repository.MessageRepository
 
 		sysmsgs types.MessageSet
+	}
+
+	applicationAccessController interface {
+		CanCreatePublicChannel(context.Context) bool
+		CanCreatePrivateChannel(context.Context) bool
+		CanCreateGroupChannel(context.Context) bool
+		CanUpdateChannel(context.Context, *types.Channel) bool
+		CanReadChannel(context.Context, *types.Channel) bool
+		CanJoinChannel(context.Context, *types.Channel) bool
+		CanLeaveChannel(context.Context, *types.Channel) bool
+		CanDeleteChannel(context.Context, *types.Channel) bool
+		CanUndeleteChannel(context.Context, *types.Channel) bool
+		CanArchiveChannel(context.Context, *types.Channel) bool
+		CanUnarchiveChannel(context.Context, *types.Channel) bool
+		CanManageChannelMembers(context.Context, *types.Channel) bool
+		CanSendMessage(context.Context, *types.Channel) bool
+		CanUpdateOwnMessages(context.Context, *types.Channel) bool
+		CanUpdateMessages(context.Context, *types.Channel) bool
+		CanDeleteOwnMessages(context.Context, *types.Channel) bool
+		CanDeleteMessages(context.Context, *types.Channel) bool
 	}
 
 	ChannelService interface {
@@ -75,7 +95,7 @@ func (svc *channel) With(ctx context.Context) ChannelService {
 		ctx: ctx,
 
 		event: Event(ctx),
-		perms: Permissions(ctx),
+		ac:    DefaultAccessControl,
 
 		channel: repository.Channel(ctx, db),
 		cmember: repository.ChannelMember(ctx, db),
@@ -95,7 +115,7 @@ func (svc *channel) FindByID(ID uint64) (ch *types.Channel, err error) {
 		return
 	}
 
-	if !svc.perms.CanReadChannel(ch) {
+	if !svc.ac.CanReadChannel(svc.ctx, ch) {
 		return nil, errors.WithStack(ErrNoPermissions)
 	}
 
@@ -113,7 +133,7 @@ func (svc *channel) Find(filter *types.ChannelFilter) (cc types.ChannelSet, err 
 		}
 
 		cc, err = cc.Filter(func(c *types.Channel) (b bool, e error) {
-			return svc.perms.CanReadChannel(c), nil
+			return svc.ac.CanReadChannel(svc.ctx, c), nil
 		})
 
 		return
@@ -208,15 +228,15 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 			}
 		}
 
-		if in.Type == types.ChannelTypePublic && !svc.perms.CanCreatePublicChannel() {
+		if in.Type == types.ChannelTypePublic && !svc.ac.CanCreatePublicChannel(svc.ctx) {
 			return errors.WithStack(ErrNoPermissions)
 		}
 
-		if in.Type == types.ChannelTypePrivate && !svc.perms.CanCreatePrivateChannel() {
+		if in.Type == types.ChannelTypePrivate && !svc.ac.CanCreatePrivateChannel(svc.ctx) {
 			return errors.WithStack(ErrNoPermissions)
 		}
 
-		if in.Type == types.ChannelTypeGroup && !svc.perms.CanCreateGroupChannel() {
+		if in.Type == types.ChannelTypeGroup && !svc.ac.CanCreateGroupChannel(svc.ctx) {
 			return errors.WithStack(ErrNoPermissions)
 		}
 
@@ -327,20 +347,20 @@ func (svc *channel) Update(in *types.Channel) (ch *types.Channel, err error) {
 			return
 		}
 
-		if !svc.perms.CanUpdateChannel(ch) {
+		if !svc.ac.CanUpdateChannel(svc.ctx, ch) {
 			return errors.WithStack(ErrNoPermissions)
 		}
 
 		if in.Type.IsValid() && ch.Type != in.Type {
-			if in.Type == types.ChannelTypePublic && !svc.perms.CanCreatePublicChannel() {
+			if in.Type == types.ChannelTypePublic && !svc.ac.CanCreatePublicChannel(svc.ctx) {
 				return errors.WithStack(ErrNoPermissions)
 			}
 
-			if in.Type == types.ChannelTypePrivate && !svc.perms.CanCreatePrivateChannel() {
+			if in.Type == types.ChannelTypePrivate && !svc.ac.CanCreatePrivateChannel(svc.ctx) {
 				return errors.WithStack(ErrNoPermissions)
 			}
 
-			if in.Type == types.ChannelTypeGroup && !svc.perms.CanCreateGroupChannel() {
+			if in.Type == types.ChannelTypeGroup && !svc.ac.CanCreateGroupChannel(svc.ctx) {
 				return errors.WithStack(ErrNoPermissions)
 			}
 
@@ -397,7 +417,7 @@ func (svc *channel) Delete(ID uint64) (ch *types.Channel, err error) {
 			return
 		}
 
-		if !svc.perms.CanDeleteChannel(ch) {
+		if !svc.ac.CanDeleteChannel(svc.ctx, ch) {
 			return errors.WithStack(ErrNoPermissions)
 		}
 
@@ -431,7 +451,7 @@ func (svc *channel) Undelete(ID uint64) (ch *types.Channel, err error) {
 			return
 		}
 
-		if !svc.perms.CanUndeleteChannel(ch) {
+		if !svc.ac.CanUndeleteChannel(svc.ctx, ch) {
 			return errors.WithStack(ErrNoPermissions)
 		}
 
@@ -490,7 +510,7 @@ func (svc *channel) Archive(ID uint64) (ch *types.Channel, err error) {
 			return
 		}
 
-		if !svc.perms.CanArchiveChannel(ch) {
+		if !svc.ac.CanArchiveChannel(svc.ctx, ch) {
 			return errors.WithStack(ErrNoPermissions)
 		}
 
@@ -520,7 +540,7 @@ func (svc *channel) Unarchive(ID uint64) (ch *types.Channel, err error) {
 			return
 		}
 
-		if !svc.perms.CanUnarchiveChannel(ch) {
+		if !svc.ac.CanUnarchiveChannel(svc.ctx, ch) {
 			return errors.WithStack(ErrNoPermissions)
 		}
 
@@ -559,7 +579,7 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 		return nil, errors.New("adding members to a group is not currently supported")
 	}
 
-	if !svc.perms.CanManageChannelMembers(ch) {
+	if !svc.ac.CanManageChannelMembers(svc.ctx, ch) {
 		return nil, errors.WithStack(ErrNoPermissions)
 	}
 
@@ -628,9 +648,9 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 				}
 			}
 
-			if memberID == userID && !svc.perms.CanJoinChannel(ch) {
+			if memberID == userID && !svc.ac.CanJoinChannel(svc.ctx, ch) {
 				return errors.WithStack(ErrNoPermissions)
-			} else if memberID != userID && !svc.perms.CanManageChannelMembers(ch) {
+			} else if memberID != userID && !svc.ac.CanManageChannelMembers(svc.ctx, ch) {
 				return errors.WithStack(ErrNoPermissions)
 			}
 
@@ -698,10 +718,10 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 				continue
 			}
 
-			if memberID == userID && !svc.perms.CanJoinChannel(ch) {
+			if memberID == userID && !svc.ac.CanJoinChannel(svc.ctx, ch) {
 				return errors.WithStack(ErrNoPermissions)
 			}
-			if !svc.perms.CanManageChannelMembers(ch) {
+			if !svc.ac.CanManageChannelMembers(svc.ctx, ch) {
 				return errors.WithStack(ErrNoPermissions)
 			}
 
@@ -781,22 +801,22 @@ func (svc *channel) sendChannelEvent(ch *types.Channel) (err error) {
 }
 
 func (svc *channel) setPermissionFlags(ch *types.Channel) (err error) {
-	ch.CanJoin = svc.perms.CanJoinChannel(ch)
-	ch.CanPart = svc.perms.CanLeaveChannel(ch)
-	ch.CanObserve = svc.perms.CanReadChannel(ch)
-	ch.CanSendMessages = svc.perms.CanSendMessage(ch)
+	ch.CanJoin = svc.ac.CanJoinChannel(svc.ctx, ch)
+	ch.CanPart = svc.ac.CanLeaveChannel(svc.ctx, ch)
+	ch.CanObserve = svc.ac.CanReadChannel(svc.ctx, ch)
+	ch.CanSendMessages = svc.ac.CanSendMessage(svc.ctx, ch)
 
-	ch.CanDeleteMessages = svc.perms.CanDeleteMessages(ch)
-	ch.CanDeleteOwnMessages = svc.perms.CanDeleteOwnMessages(ch)
-	ch.CanUpdateMessages = svc.perms.CanUpdateMessages(ch)
-	ch.CanUpdateOwnMessages = svc.perms.CanUpdateOwnMessages(ch)
-	ch.CanChangeMembers = svc.perms.CanManageChannelMembers(ch)
+	ch.CanDeleteMessages = svc.ac.CanDeleteMessages(svc.ctx, ch)
+	ch.CanDeleteOwnMessages = svc.ac.CanDeleteOwnMessages(svc.ctx, ch)
+	ch.CanUpdateMessages = svc.ac.CanUpdateMessages(svc.ctx, ch)
+	ch.CanUpdateOwnMessages = svc.ac.CanUpdateOwnMessages(svc.ctx, ch)
+	ch.CanChangeMembers = svc.ac.CanManageChannelMembers(svc.ctx, ch)
 
-	ch.CanUpdate = svc.perms.CanUpdateChannel(ch)
-	ch.CanArchive = svc.perms.CanArchiveChannel(ch)
-	ch.CanUnarchive = svc.perms.CanUnarchiveChannel(ch)
-	ch.CanDelete = svc.perms.CanDeleteChannel(ch)
-	ch.CanUndelete = svc.perms.CanUndeleteChannel(ch)
+	ch.CanUpdate = svc.ac.CanUpdateChannel(svc.ctx, ch)
+	ch.CanArchive = svc.ac.CanArchiveChannel(svc.ctx, ch)
+	ch.CanUnarchive = svc.ac.CanUnarchiveChannel(svc.ctx, ch)
+	ch.CanDelete = svc.ac.CanDeleteChannel(svc.ctx, ch)
+	ch.CanUndelete = svc.ac.CanUndeleteChannel(svc.ctx, ch)
 
 	return nil
 }

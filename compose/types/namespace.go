@@ -3,9 +3,8 @@ package types
 import (
 	"time"
 
+	"github.com/crusttech/crust/internal/permissions"
 	"github.com/jmoiron/sqlx/types"
-
-	"github.com/crusttech/crust/internal/rules"
 )
 
 type (
@@ -35,6 +34,6 @@ const (
 )
 
 // Resource returns a system resource ID for this type
-func (n Namespace) PermissionResource() rules.Resource {
+func (n Namespace) PermissionResource() permissions.Resource {
 	return NamespacePermissionResource.AppendID(n.ID)
 }

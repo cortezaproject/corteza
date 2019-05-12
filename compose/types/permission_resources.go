@@ -1,12 +1,12 @@
 package types
 
 import (
-	"github.com/crusttech/crust/internal/rules"
+	"github.com/crusttech/crust/internal/permissions"
 )
 
-const PermissionResource = rules.Resource("compose")
-const NamespacePermissionResource = rules.Resource("compose:namespace:")
-const ChartPermissionResource = rules.Resource("compose:chart:")
-const ModulePermissionResource = rules.Resource("compose:module:")
-const PagePermissionResource = rules.Resource("compose:page:")
-const TriggerPermissionResource = rules.Resource("compose:trigger:")
+const ComposePermissionResource = permissions.Resource("compose")
+const NamespacePermissionResource = permissions.Resource("compose:namespace:")
+const ChartPermissionResource = permissions.Resource("compose:chart:")
+const ModulePermissionResource = permissions.Resource("compose:module:")
+const PagePermissionResource = permissions.Resource("compose:page:")
+const TriggerPermissionResource = permissions.Resource("compose:trigger:")

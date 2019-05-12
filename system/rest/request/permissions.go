@@ -26,7 +26,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
 
-	"github.com/crusttech/crust/internal/rules"
+	"github.com/crusttech/crust/internal/permissions"
 )
 
 var _ = chi.URLParam
@@ -207,7 +207,7 @@ var _ RequestFiller = NewPermissionsDelete()
 // Permissions update request parameters
 type PermissionsUpdate struct {
 	RoleID      uint64 `json:",string"`
-	Permissions []rules.Rule
+	Permissions permissions.RuleSet
 }
 
 func NewPermissionsUpdate() *PermissionsUpdate {

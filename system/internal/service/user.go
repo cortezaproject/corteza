@@ -27,8 +27,16 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		prm  PermissionsService
+		ac   userAccessController
 		user repository.UserRepository
+	}
+
+	userAccessController interface {
+		CanCreateUser(context.Context) bool
+		CanUpdateUser(context.Context, *types.User) bool
+		CanDeleteUser(context.Context, *types.User) bool
+		CanSuspendUser(context.Context, *types.User) bool
+		CanUnsuspendUser(context.Context, *types.User) bool
 	}
 
 	UserService interface {
@@ -57,6 +65,7 @@ type (
 func User(ctx context.Context) UserService {
 	return (&user{
 		logger: DefaultLogger.Named("user"),
+		ac:     DefaultAccessControl,
 	}).With(ctx)
 }
 
@@ -64,11 +73,11 @@ func (svc user) With(ctx context.Context) UserService {
 	db := repository.DB(ctx)
 
 	return &user{
-		db:     db,
 		ctx:    ctx,
+		db:     db,
+		ac:     svc.ac,
 		logger: svc.logger,
 
-		prm:  Permissions(ctx),
 		user: repository.User(ctx, db),
 	}
 }
@@ -99,7 +108,7 @@ func (svc user) Find(filter *types.UserFilter) (types.UserSet, error) {
 }
 
 func (svc user) Create(input *types.User) (out *types.User, err error) {
-	if !svc.prm.CanCreateUser() {
+	if !svc.ac.CanCreateUser(svc.ctx) {
 		return nil, ErrNoPermissions.new()
 	}
 
@@ -119,7 +128,7 @@ func (svc user) Update(mod *types.User) (u *types.User, err error) {
 		return
 	}
 
-	if mod.ID != internalAuth.GetIdentityFromContext(svc.ctx).Identity() && !svc.prm.CanUpdateUser(u) {
+	if mod.ID != internalAuth.GetIdentityFromContext(svc.ctx).Identity() && !svc.ac.CanUpdateUser(svc.ctx, u) {
 		return nil, ErrNoPermissions.new()
 	}
 
@@ -147,7 +156,7 @@ func (svc user) Delete(id uint64) (err error) {
 		return
 	}
 
-	if !svc.prm.CanDeleteUser(u) {
+	if !svc.ac.CanDeleteUser(svc.ctx, u) {
 		return ErrNoPermissions.new()
 	}
 
@@ -162,7 +171,7 @@ func (svc user) Suspend(id uint64) (err error) {
 		return
 	}
 
-	if !svc.prm.CanSuspendUser(u) {
+	if !svc.ac.CanSuspendUser(svc.ctx, u) {
 		return ErrNoPermissions.new()
 	}
 
@@ -177,7 +186,7 @@ func (svc user) Unsuspend(id uint64) (err error) {
 		return
 	}
 
-	if !svc.prm.CanUnsuspendUser(u) {
+	if !svc.ac.CanUnsuspendUser(svc.ctx, u) {
 		return ErrNoPermissions.new()
 	}
 

@@ -19,10 +19,19 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		prmSvc PermissionsService
+		ac pageAccessController
 
 		pageRepo   repository.PageRepository
 		moduleRepo repository.ModuleRepository
+		nsRepo     repository.NamespaceRepository
+	}
+
+	pageAccessController interface {
+		CanReadNamespace(context.Context, *types.Namespace) bool
+		CanCreatePage(context.Context, *types.Namespace) bool
+		CanReadPage(context.Context, *types.Page) bool
+		CanUpdatePage(context.Context, *types.Page) bool
+		CanDeletePage(context.Context, *types.Page) bool
 	}
 
 	PageService interface {
@@ -49,7 +58,7 @@ const (
 func Page() PageService {
 	return (&page{
 		logger: DefaultLogger.Named("page"),
-		prmSvc: DefaultPermissions,
+		ac:     DefaultAccessControl,
 	}).With(context.Background())
 }
 
@@ -60,10 +69,11 @@ func (svc page) With(ctx context.Context) PageService {
 		ctx:    ctx,
 		logger: svc.logger,
 
-		prmSvc: svc.prmSvc.With(ctx),
+		ac: svc.ac,
 
 		pageRepo:   repository.Page(ctx, db),
 		moduleRepo: repository.Module(ctx, db),
+		nsRepo:     repository.Namespace(ctx, db),
 	}
 }
 
@@ -83,7 +93,7 @@ func (svc page) FindByModuleID(namespaceID, moduleID uint64) (p *types.Page, err
 func (svc page) checkPermissions(p *types.Page, err error) (*types.Page, error) {
 	if err != nil {
 		return nil, err
-	} else if !svc.prmSvc.CanReadPage(p) {
+	} else if !svc.ac.CanReadPage(svc.ctx, p) {
 		return nil, errors.New("not allowed to access this page")
 	}
 
@@ -160,7 +170,7 @@ func (svc page) filterPageSetByPermission(pp types.PageSet, f types.PageFilter, 
 
 	// @todo Filter-by-permission can/will mess up filter's count & paging...
 	pp, err = pp.Filter(func(m *types.Page) (bool, error) {
-		return svc.prmSvc.CanReadPage(m), nil
+		return svc.ac.CanReadPage(svc.ctx, m), nil
 	})
 
 	return pp, f, err
@@ -173,11 +183,9 @@ func (svc page) Reorder(namespaceID, selfID uint64, pageIDs []uint64) error {
 func (svc page) Create(mod *types.Page) (p *types.Page, err error) {
 	mod.ID = 0
 
-	if mod.NamespaceID == 0 {
-		return nil, ErrNamespaceRequired.withStack()
-	}
-
-	if !svc.prmSvc.CanCreatePage(crmNamespace()) {
+	if ns, err := svc.loadNamespace(mod.NamespaceID); err != nil {
+		return nil, err
+	} else if !svc.ac.CanCreatePage(svc.ctx, ns) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
@@ -194,6 +202,10 @@ func (svc page) Update(mod *types.Page) (p *types.Page, err error) {
 		return nil, ErrInvalidID.withStack()
 	}
 
+	if _, err = svc.loadNamespace(mod.NamespaceID); err != nil {
+		return
+	}
+
 	if p, err = svc.pageRepo.FindByID(mod.NamespaceID, mod.ID); err != nil {
 		return
 	}
@@ -202,7 +214,7 @@ func (svc page) Update(mod *types.Page) (p *types.Page, err error) {
 		return nil, ErrStaleData.withStack()
 	}
 
-	if !svc.prmSvc.CanUpdatePage(p) {
+	if !svc.ac.CanUpdatePage(svc.ctx, p) {
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
@@ -237,11 +249,31 @@ func (svc page) checkModulePage(mod *types.Page) error {
 }
 
 func (svc page) DeleteByID(namespaceID, pageID uint64) error {
+	if _, err := svc.loadNamespace(namespaceID); err != nil {
+		return err
+	}
+
 	if p, err := svc.pageRepo.FindByID(namespaceID, pageID); err != nil {
 		return errors.Wrap(err, "could not delete page")
-	} else if !svc.prmSvc.CanDeletePage(p) {
+	} else if !svc.ac.CanDeletePage(svc.ctx, p) {
 		return errors.New("not allowed to delete this page")
 	}
 
 	return svc.pageRepo.DeleteByID(namespaceID, pageID)
+}
+
+func (svc page) loadNamespace(namespaceID uint64) (ns *types.Namespace, err error) {
+	if namespaceID == 0 {
+		return nil, ErrNamespaceRequired.withStack()
+	}
+
+	if ns, err = svc.nsRepo.FindByID(namespaceID); err != nil {
+		return
+	}
+
+	if !svc.ac.CanReadNamespace(svc.ctx, ns) {
+		return nil, ErrNoReadPermissions.withStack()
+	}
+
+	return
 }

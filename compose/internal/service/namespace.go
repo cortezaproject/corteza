@@ -18,9 +18,16 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		prmSvc PermissionsService
+		ac namespaceAccessController
 
 		namespaceRepo repository.NamespaceRepository
+	}
+
+	namespaceAccessController interface {
+		CanCreateNamespace(context.Context) bool
+		CanReadNamespace(context.Context, *types.Namespace) bool
+		CanUpdateNamespace(context.Context, *types.Namespace) bool
+		CanDeleteNamespace(context.Context, *types.Namespace) bool
 	}
 
 	NamespaceService interface {
@@ -38,7 +45,7 @@ type (
 func Namespace() NamespaceService {
 	return (&namespace{
 		logger: DefaultLogger.Named("namespace"),
-		prmSvc: DefaultPermissions,
+		ac:     DefaultAccessControl,
 	}).With(context.Background())
 }
 
@@ -49,7 +56,7 @@ func (svc namespace) With(ctx context.Context) NamespaceService {
 		ctx:    ctx,
 		logger: svc.logger,
 
-		prmSvc: svc.prmSvc.With(ctx),
+		ac: svc.ac,
 
 		namespaceRepo: repository.Namespace(ctx, db),
 	}
@@ -60,14 +67,14 @@ func (svc namespace) log(fields ...zapcore.Field) *zap.Logger {
 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
 }
 
-func (svc namespace) FindByID(ID uint64) (n *types.Namespace, err error) {
+func (svc namespace) FindByID(ID uint64) (ns *types.Namespace, err error) {
 	if ID == 0 {
 		return nil, ErrInvalidID.withStack()
 	}
 
-	if n, err = svc.namespaceRepo.FindByID(ID); err != nil {
+	if ns, err = svc.namespaceRepo.FindByID(ID); err != nil {
 		return
-	} else if !svc.prmSvc.CanReadNamespace(n) {
+	} else if !svc.ac.CanReadNamespace(svc.ctx, ns) {
 		return nil, ErrNoReadPermissions.withStack()
 	}
 
@@ -80,51 +87,51 @@ func (svc namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet,
 		return
 	}
 
-	set, _ = set.Filter(func(m *types.Namespace) (bool, error) {
-		return svc.prmSvc.CanReadNamespace(m), nil
+	set, _ = set.Filter(func(ns *types.Namespace) (bool, error) {
+		return svc.ac.CanReadNamespace(svc.ctx, ns), nil
 	})
 
 	return
 }
 
 func (svc namespace) Create(mod *types.Namespace) (*types.Namespace, error) {
-	if !svc.prmSvc.CanCreateNamespace() {
+	if !svc.ac.CanCreateNamespace(svc.ctx) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
 	return svc.namespaceRepo.Create(mod)
 }
 
-func (svc namespace) Update(mod *types.Namespace) (m *types.Namespace, err error) {
+func (svc namespace) Update(mod *types.Namespace) (ns *types.Namespace, err error) {
 	if mod.ID == 0 {
 		return nil, ErrInvalidID.withStack()
 	}
 
-	m, err = svc.FindByID(mod.ID)
+	ns, err = svc.FindByID(mod.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if isStale(mod.UpdatedAt, m.UpdatedAt, m.CreatedAt) {
+	if isStale(mod.UpdatedAt, ns.UpdatedAt, ns.CreatedAt) {
 		return nil, ErrStaleData.withStack()
 	}
 
-	if !svc.prmSvc.CanUpdateNamespace(m) {
+	if !svc.ac.CanUpdateNamespace(svc.ctx, ns) {
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
-	m.Name = mod.Name
-	m.Slug = mod.Slug
-	m.Meta = mod.Meta
-	m.Enabled = mod.Enabled
+	ns.Name = mod.Name
+	ns.Slug = mod.Slug
+	ns.Meta = mod.Meta
+	ns.Enabled = mod.Enabled
 
-	return svc.namespaceRepo.Update(m)
+	return svc.namespaceRepo.Update(ns)
 }
 
 func (svc namespace) DeleteByID(ID uint64) error {
-	if m, err := svc.namespaceRepo.FindByID(ID); err != nil {
+	if ns, err := svc.namespaceRepo.FindByID(ID); err != nil {
 		return err
-	} else if !svc.prmSvc.CanDeleteNamespace(m) {
+	} else if !svc.ac.CanDeleteNamespace(svc.ctx, ns) {
 		return ErrNoDeletePermissions.withStack()
 	}
 
