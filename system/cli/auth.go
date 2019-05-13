@@ -12,6 +12,7 @@ import (
 	"github.com/crusttech/crust/internal/settings"
 	"github.com/crusttech/crust/system/internal/auth/external"
 	"github.com/crusttech/crust/system/internal/repository"
+	"github.com/crusttech/crust/system/internal/service"
 	"github.com/crusttech/crust/system/types"
 )
 
@@ -81,7 +82,34 @@ func authCmd(ctx context.Context, db *factory.DB, settingsService settings.Servi
 		},
 	}
 
-	cmd.AddCommand(autoDiscoverCmd, jwtCmd)
+	testEmails := &cobra.Command{
+		Use:   "test-notifications [recipient]",
+		Short: "Sends samples of all authentication notification to receipient",
+		Args:  cobra.ExactArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			var (
+				err error
+				ntf = service.DefaultAuthNotification.With(ctx)
+			)
+
+			err = ntf.EmailConfirmation("en", args[0], "notification-testing-token")
+			if err != nil {
+				exit(cmd, err)
+			}
+
+			err = ntf.PasswordReset("en", args[0], "notification-testing-token")
+			if err != nil {
+				exit(cmd, err)
+			}
+
+		},
+	}
+
+	cmd.AddCommand(
+		autoDiscoverCmd,
+		testEmails,
+		jwtCmd,
+	)
 
 	return cmd
 }

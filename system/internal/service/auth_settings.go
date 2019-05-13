@@ -17,6 +17,9 @@ type (
 		// Where to redirect user after external auth flow
 		frontendUrlRedirect string
 
+		// Webapp Base URL
+		frontendUrlBase string
+
 		mailFromAddress string
 		mailFromName    string
 
@@ -50,6 +53,7 @@ func AuthSettings(kv authSettingsStore) authSettings {
 		frontendUrlPasswordReset:     kv.String("auth.frontend.url.password-reset"),
 		frontendUrlEmailConfirmation: kv.String("auth.frontend.url.email-confirmation"),
 		frontendUrlRedirect:          kv.String("auth.frontend.url.redirect"),
+		frontendUrlBase:              kv.String("auth.frontend.url.base"),
 
 		mailFromAddress: kv.String("auth.mail.from-address"),
 		mailFromName:    kv.String("auth.mail.from-name"),
