@@ -9,28 +9,15 @@ import (
 	"github.com/crusttech/crust/compose/types"
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/test"
-	systemService "github.com/crusttech/crust/system/service"
-	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 func TestRecord(t *testing.T) {
 	ctx := context.WithValue(context.Background(), "testing", true)
 
-	user := &systemTypes.User{
-		ID:       1337,
-		Username: "TestUser",
-	}
-
-	ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(user.Identity()))
+	ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(1337))
 
 	var err error
 	ns1, ns2 := createTestNamespaces(ctx, t)
-
-	{
-		userSvc := systemService.TestUser(t, ctx)
-		_, err := userSvc.Create(user)
-		test.NoError(t, err, "expected no error creating user, got %v", err)
-	}
 
 	svc := Record().With(ctx)
 

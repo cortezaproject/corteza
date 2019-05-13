@@ -9,20 +9,13 @@ import (
 	"github.com/crusttech/crust/compose/types"
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/test"
-	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 func TestModule(t *testing.T) {
 	ctx := context.WithValue(context.Background(), "testing", true)
 
-	user := &systemTypes.User{
-		ID:       1337,
-		Name:     "John Crm Doe",
-		Username: "johndoe",
-	}
-
 	// Set Identity (required for permission checks).
-	ctx = auth.SetIdentityToContext(ctx, user)
+	ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(1337))
 
 	ns1, _ := createTestNamespaces(ctx, t)
 
