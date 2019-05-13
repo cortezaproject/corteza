@@ -98,6 +98,12 @@ test.store: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/store/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
+test.cross-dep:
+	# Outputs cross-package imports that should not be there.
+	grep -rE "crust/(compose|messaging)/" system || exit 0
+	grep -rE "crust/(system|messaging)/" compose || exit 0
+	grep -rE "crust/(system|compose)/" messaging || exit 0
+
 vet:
 	$(GO) vet ./...
 
