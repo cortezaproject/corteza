@@ -91,20 +91,16 @@ var (
 		"email-confirmation.en.html": emailTemplateHeader +
 			`<h2 style="color: #1397CB;text-align: center;">Confirm your email address</h2>
 			  <p>Hello,</p>
-			  <p>Here's a copy of your account details:</p>
-			  <div style="margin-top:10px;padding: 20px;background: #F3F3F5">
-				<strong>Username:</strong> {{ .EmailAddress }}
-				<br>
-				<strong>Email confirmation link:</strong>
-				<a href="{{ .URL }}" style="color:#1397CB;">{{ .URL }}</a> 
-			  </div>` +
+			  <p>Follow <a href="{{ .URL }}" style="color:#1397CB;">this link</a> to confirm your email address.</p>
+			  <p>You will be logged-in after successful confirmation.</p>` +
 			emailTemplateFooter,
 
 		"password-reset.en.subject": `[Crust] Reset your password`,
 		"password-reset.en.html": emailTemplateHeader +
 			`<h2 style="color: #1397CB;text-align: center;">Reset your password</h2>
 			  <p>Hello,</p>
-			  <p>Follow <a href="{{ .URL }}" style="color:#1397CB;">this link</a> and reset your password.</p>` +
+			  <p>Follow <a href="{{ .URL }}" style="color:#1397CB;">this link</a> and reset your password.</p>
+			  <p>You will be logged-in after successful reset.</p>` +
 			emailTemplateFooter,
 	}
 )
