@@ -13,6 +13,8 @@ type (
 		Tracing bool
 		Metrics bool
 
+		ClientTSLInsecure bool
+
 		MetricsUsername, MetricsPassword string
 	}
 )
@@ -49,6 +51,8 @@ func (*HTTP) Init(prefix ...string) *HTTP {
 	flag.BoolVar(&http.Logging, p("http-log"), true, "Enable/disable HTTP request log")
 	flag.BoolVar(&http.Pretty, p("http-pretty-json"), false, "Prettify returned JSON output")
 	flag.BoolVar(&http.Tracing, p("http-error-tracing"), false, "Return error stack frame")
+
+	flag.BoolVar(&http.ClientTSLInsecure, p("http-client-tsl-insecure"), false, "Skip insecure TSL verification on outbound HTTP requests (allow invalid/self-signed certificates)")
 
 	flag.BoolVar(&http.Metrics, "metrics", false, "Provide metrics export for prometheus")
 	flag.StringVar(&http.MetricsUsername, "metrics-username", "metrics", "Provide metrics export for prometheus")
