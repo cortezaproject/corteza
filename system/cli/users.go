@@ -137,11 +137,13 @@ func usersCmd(ctx context.Context, db *factory.DB) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				userRepo = repository.User(ctx, db)
+				roleRepo = repository.Role(ctx, db)
 				// authSvc  = service.Auth(ctx)
 
 				user *types.User
 				err  error
 				ID   uint64
+				rr   types.RoleSet
 
 				userStr = args[0]
 			)
@@ -154,9 +156,15 @@ func usersCmd(ctx context.Context, db *factory.DB) *cobra.Command {
 				}
 			}
 
+			if err == nil {
+				rr, err = roleRepo.FindByMemberID(user.ID)
+			}
+
 			if err != nil {
 				exit(cmd, err)
 			}
+
+			user.SetRoles(rr.IDs())
 
 			cmd.Println(auth.DefaultJwtHandler.Encode(user))
 		},
