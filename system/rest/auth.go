@@ -54,6 +54,7 @@ func (ctrl *Auth) Check(ctx context.Context, r *request.AuthCheck) (interface{},
 
 				if err = svc.LoadRoleMemberships(user); err != nil {
 					resputil.JSON(w, err)
+					return
 				} else {
 					resputil.JSON(w, checkResponse{
 						JWT:  ctrl.tokenEncoder.Encode(user),
@@ -65,7 +66,7 @@ func (ctrl *Auth) Check(ctx context.Context, r *request.AuthCheck) (interface{},
 			}
 		}
 
-		resputil.JSON(w, errors.New("invalid token"))
+		resputil.JSON(w, errors.New("not authenticated"))
 	}, nil
 }
 
