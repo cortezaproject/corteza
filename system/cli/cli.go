@@ -21,7 +21,7 @@ func StartCLI(ctx context.Context) {
 
 	cmd.AddCommand(
 		settingsCmd(ctx, settingsService),
-		externalAuthCmd(ctx, settingsService),
+		authCmd(ctx, db, settingsService),
 		usersCmd(ctx, db),
 		rolesCmd(ctx, db),
 	)
