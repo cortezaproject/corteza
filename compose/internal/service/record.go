@@ -14,8 +14,6 @@ import (
 	"github.com/crusttech/crust/compose/types"
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/logger"
-
-	systemService "github.com/crusttech/crust/system/service"
 )
 
 type (
@@ -24,8 +22,7 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		ac      recordAccessController
-		userSvc systemService.UserService
+		ac recordAccessController
 
 		recordRepo repository.RecordRepository
 		moduleRepo repository.ModuleRepository
@@ -58,9 +55,8 @@ type (
 
 func Record() RecordService {
 	return (&record{
-		logger:  DefaultLogger.Named("record"),
-		ac:      DefaultAccessControl,
-		userSvc: systemService.DefaultUser,
+		logger: DefaultLogger.Named("record"),
+		ac:     DefaultAccessControl,
 	}).With(context.Background())
 }
 
@@ -71,8 +67,7 @@ func (svc record) With(ctx context.Context) RecordService {
 		ctx:    ctx,
 		logger: svc.logger,
 
-		ac:      svc.ac,
-		userSvc: systemService.User(ctx),
+		ac: svc.ac,
 
 		recordRepo: repository.Record(ctx, db),
 		moduleRepo: repository.Module(ctx, db),

@@ -8,8 +8,6 @@ import (
 
 func Init(ctx context.Context) error {
 	err := service.Init(ctx)
-	DefaultRole = service.DefaultRole
-	// DefaultRules = service.DefaultRules
 	DefaultUser = service.DefaultUser
 	return err
 }

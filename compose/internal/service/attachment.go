@@ -22,8 +22,6 @@ import (
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/logger"
 	"github.com/crusttech/crust/internal/store"
-
-	systemService "github.com/crusttech/crust/system/service"
 )
 
 const (
@@ -44,7 +42,6 @@ type (
 		pageSvc   PageService
 		moduleSvc ModuleService
 		recordSvc RecordService
-		usr       systemService.UserService
 
 		attachment repository.AttachmentRepository
 	}
@@ -75,7 +72,6 @@ func Attachment(store store.Store) AttachmentService {
 		pageSvc:   DefaultPage,
 		moduleSvc: DefaultModule,
 		recordSvc: DefaultRecord,
-		usr:       systemService.DefaultUser,
 	}).With(context.Background())
 }
 
@@ -90,7 +86,6 @@ func (svc attachment) With(ctx context.Context) AttachmentService {
 		pageSvc:   svc.pageSvc.With(ctx),
 		moduleSvc: svc.moduleSvc.With(ctx),
 		recordSvc: svc.recordSvc.With(ctx),
-		usr:       systemService.User(ctx),
 		store:     svc.store,
 
 		attachment: repository.Attachment(ctx, db),
