@@ -194,6 +194,10 @@ func settingsAutoConfigure(cmd *cobra.Command, setSvc settings.Service, systemAp
 		setIfMissing("auth.frontend.url.redirect", func() interface{} {
 			return frontendUrl + "/auth/"
 		})
+
+		setIfMissing("auth.frontend.url.base", func() interface{} {
+			return frontendUrl + "/"
+		})
 	}
 
 	// Auth email (password reset, email confirmation)
@@ -209,7 +213,7 @@ func settingsAutoConfigure(cmd *cobra.Command, setSvc settings.Service, systemAp
 			return fromName
 		}
 
-		return "Crust"
+		return "Crust Team"
 	})
 
 	// No external providers preconfigured, so disable

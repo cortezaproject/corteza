@@ -658,7 +658,7 @@ func (svc auth) sendEmailAddressConfirmationToken(u *types.User) (err error) {
 
 	var (
 		notificationLang = "en"
-		token, url       string
+		token            string
 	)
 
 	token, err = svc.createUserToken(u, credentialsTypeEmailAuthToken)
@@ -666,9 +666,7 @@ func (svc auth) sendEmailAddressConfirmationToken(u *types.User) (err error) {
 		return
 	}
 
-	url = svc.settings.frontendUrlEmailConfirmation + token
-
-	err = svc.notifications.EmailConfirmation(notificationLang, u.Email, url)
+	err = svc.notifications.EmailConfirmation(notificationLang, u.Email, token)
 	if err != nil {
 		return errors.Wrap(err, "could not send email authentication notification")
 	}
@@ -701,7 +699,7 @@ func (svc auth) sendPasswordResetToken(u *types.User) (err error) {
 
 	var (
 		notificationLang = "en"
-		token, url       string
+		token            string
 	)
 
 	token, err = svc.createUserToken(u, credentialsTypeResetPasswordToken)
@@ -709,9 +707,7 @@ func (svc auth) sendPasswordResetToken(u *types.User) (err error) {
 		return
 	}
 
-	url = svc.settings.frontendUrlPasswordReset + token
-
-	err = svc.notifications.PasswordReset(notificationLang, u.Email, url)
+	err = svc.notifications.PasswordReset(notificationLang, u.Email, token)
 	if err != nil {
 		return errors.Wrap(err, "could not send password reset notification")
 	}
