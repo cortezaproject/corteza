@@ -68,28 +68,32 @@ func (t *token) Encode(identity Identifiable) string {
 func (t *token) Authenticator() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Get claims
-			_, claims, err := jwtauth.FromContext(r.Context())
-			if err != nil {
-				resputil.JSON(w, err)
-			}
+			jwt, claims, err := jwtauth.FromContext(r.Context())
 
-			identity := &Identity{}
-			if userID, ok := claims["userID"].(string); ok && len(userID) >= 0 {
-				identity.id, _ = strconv.ParseUint(userID, 10, 64)
-			}
-
-			if memberOf, ok := claims["memberOf"].(string); ok && len(memberOf) >= 0 {
-				ss := strings.Split(memberOf, " ")
-				identity.memberOf = make([]uint64, len(ss))
-				for i, s := range ss {
-					identity.memberOf[i], _ = strconv.ParseUint(s, 10, 64)
+			// When token is present, expect no errors and valid claims!
+			if jwt != nil {
+				if err != nil {
+					// But if token is present, the shouldn't be an error
+					resputil.JSON(w, err)
+					return
 				}
+
+				identity := &Identity{}
+				if userID, ok := claims["userID"].(string); ok && len(userID) >= 0 {
+					identity.id, _ = strconv.ParseUint(userID, 10, 64)
+				}
+
+				if memberOf, ok := claims["memberOf"].(string); ok && len(memberOf) >= 0 {
+					ss := strings.Split(memberOf, " ")
+					identity.memberOf = make([]uint64, len(ss))
+					for i, s := range ss {
+						identity.memberOf[i], _ = strconv.ParseUint(s, 10, 64)
+					}
+				}
+
+				r = r.WithContext(SetIdentityToContext(r.Context(), identity))
 			}
 
-			r = r.WithContext(SetIdentityToContext(r.Context(), identity))
-
-			// Token is authenticated, pass it through
 			next.ServeHTTP(w, r)
 		})
 	}

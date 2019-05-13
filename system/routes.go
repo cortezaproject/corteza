@@ -20,7 +20,6 @@ func Routes(ctx context.Context) *chi.Mux {
 }
 
 func MountRoutes(ctx context.Context, r chi.Router) {
-	// Only protect application routes with JWT
 	r.Group(func(r chi.Router) {
 		r.Use(
 			auth.DefaultJwtHandler.Verifier(),
