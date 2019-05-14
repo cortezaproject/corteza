@@ -1,5 +1,3 @@
-// +build unit
-
 package service
 
 import (
@@ -17,13 +15,15 @@ func TestMessageLength(t *testing.T) {
 	ctx := context.Background()
 	ctx = auth.SetIdentityToContext(ctx, &systemTypes.User{})
 
-	svc := message{db: &mockDB{}, ctx: ctx}
+	svc := message{}
 	e := func(out *types.Message, err error) error { return err }
 
-	longText := strings.Repeat("X", settingsMessageBodyLength+1)
-
 	test.Assert(t, e(svc.Create(&types.Message{})) != nil, "Should not allow to create empty message")
-	test.Assert(t, e(svc.Create(&types.Message{Message: longText})) != nil, "Should not allow to create message with really long text")
+
+	if settingsMessageBodyLength > 0 {
+		longText := strings.Repeat("X", settingsMessageBodyLength+1)
+		test.Assert(t, e(svc.Create(&types.Message{Message: longText})) != nil, "Should not allow to create message with really long text")
+	}
 }
 
 func TestMentionsExtraction(t *testing.T) {

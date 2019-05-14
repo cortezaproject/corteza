@@ -197,11 +197,14 @@ func (svc message) Create(in *types.Message) (message *types.Message, err error)
 	}
 
 	in.Message = strings.TrimSpace(in.Message)
+
 	var mlen = len(in.Message)
 
 	if mlen == 0 {
 		return nil, errors.Errorf("refusing to create message without contents")
-	} else if settingsMessageBodyLength > 0 && mlen > settingsMessageBodyLength {
+	}
+
+	if settingsMessageBodyLength > 0 && mlen > settingsMessageBodyLength {
 		return nil, errors.Errorf("message length (%d characters) too long (max: %d)", mlen, settingsMessageBodyLength)
 	}
 
