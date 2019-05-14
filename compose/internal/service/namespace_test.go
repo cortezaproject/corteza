@@ -6,12 +6,16 @@ import (
 	"context"
 	"testing"
 
+	"github.com/titpetric/factory"
+
 	"github.com/crusttech/crust/compose/types"
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/test"
 )
 
 func TestNamespace(t *testing.T) {
+	factory.Database.MustGet("compose").Profiler = newTestLogProfiler(t)
+
 	ctx := context.WithValue(context.Background(), "testing", true)
 
 	// Set Identity (required for permission checks).

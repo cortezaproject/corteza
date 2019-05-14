@@ -6,12 +6,16 @@ import (
 	"context"
 	"testing"
 
+	"github.com/titpetric/factory"
+
 	"github.com/crusttech/crust/compose/types"
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/test"
 )
 
 func TestRecord(t *testing.T) {
+	factory.Database.MustGet("compose").Profiler = newTestLogProfiler(t)
+
 	ctx := context.WithValue(context.Background(), "testing", true)
 
 	ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(1337))
@@ -19,6 +23,7 @@ func TestRecord(t *testing.T) {
 	var err error
 	ns1, ns2 := createTestNamespaces(ctx, t)
 
+	moduleSvc := Module().With(ctx)
 	svc := Record().With(ctx)
 
 	module1 := &types.Module{
@@ -46,16 +51,34 @@ func TestRecord(t *testing.T) {
 	}
 
 	// set up a module1
-	module1, err = Module().With(ctx).Create(module1)
+	module1, err = moduleSvc.Create(module1)
 	test.Assert(t, err == nil, "Error when creating module1: %+v", err)
 	test.Assert(t, module1.ID > 0, "Expected auto generated ID")
 
 	module2 := &types.Module{
 		NamespaceID: ns2.ID,
 		Name:        "Test Dummy",
-		Fields:      module1.Fields,
+		Fields: types.ModuleFieldSet{
+			&types.ModuleField{
+				Name: "name",
+			},
+			&types.ModuleField{
+				Name: "email",
+			},
+			&types.ModuleField{
+				Name:  "options",
+				Multi: true,
+			},
+			&types.ModuleField{
+				Name: "description",
+			},
+			&types.ModuleField{
+				Name: "another_record",
+				Kind: "Record",
+			},
+		},
 	}
-	module2, err = Module().With(ctx).Create(module2)
+	module2, err = moduleSvc.Create(module2)
 	test.Assert(t, err == nil, "Error when creating module1 in another namespace: %+v", err)
 
 	record1 := &types.Record{
