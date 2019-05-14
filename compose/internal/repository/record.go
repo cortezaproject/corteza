@@ -28,7 +28,7 @@ type (
 		Update(record *types.Record) (*types.Record, error)
 		Delete(record *types.Record) error
 
-		LoadValues(IDs ...uint64) (rvs types.RecordValueSet, err error)
+		LoadValues(fieldNames []string, IDs []uint64) (rvs types.RecordValueSet, err error)
 		DeleteValues(record *types.Record) error
 		UpdateValues(recordID uint64, rvs types.RecordValueSet) (err error)
 	}
@@ -294,7 +294,7 @@ func (r record) UpdateValues(recordID uint64, rvs types.RecordValueSet) (err err
 
 }
 
-func (r record) LoadValues(IDs ...uint64) (rvs types.RecordValueSet, err error) {
+func (r record) LoadValues(fieldNames []string, IDs []uint64) (rvs types.RecordValueSet, err error) {
 	if len(IDs) == 0 {
 		return
 	}
@@ -302,10 +302,11 @@ func (r record) LoadValues(IDs ...uint64) (rvs types.RecordValueSet, err error) 
 	var sql = "SELECT record_id, name, value, ref, place, deleted_at " +
 		"  FROM compose_record_value " +
 		" WHERE record_id IN (?) " +
+		"   AND name IN (?) " +
 		"   AND deleted_at IS NULL " +
 		" ORDER BY record_id, place"
 
-	if sql, args, err := sqlx.In(sql, IDs); err != nil {
+	if sql, args, err := sqlx.In(sql, IDs, fieldNames); err != nil {
 		return nil, err
 	} else {
 		return rvs, r.db().Select(&rvs, sql, args...)
