@@ -14,12 +14,21 @@ type (
 	modulePayload struct {
 		*types.Module
 
+		Fields []*moduleFieldPayload `json:"fields"`
+
 		CanUpdateModule bool `json:"canUpdateModule"`
 		CanDeleteModule bool `json:"canDeleteModule"`
 		CanCreateRecord bool `json:"canCreateRecord"`
 		CanReadRecord   bool `json:"canReadRecord"`
 		CanUpdateRecord bool `json:"canUpdateRecord"`
 		CanDeleteRecord bool `json:"canDeleteRecord"`
+	}
+
+	moduleFieldPayload struct {
+		*types.ModuleField
+
+		CanReadRecordValue   bool `json:"canReadRecordValue"`
+		CanUpdateRecordValue bool `json:"canUpdateRecordValue"`
 	}
 
 	moduleSetPayload struct {
@@ -40,6 +49,9 @@ type (
 		CanReadRecord(context.Context, *types.Module) bool
 		CanUpdateRecord(context.Context, *types.Module) bool
 		CanDeleteRecord(context.Context, *types.Module) bool
+
+		CanReadRecordValue(context.Context, *types.ModuleField) bool
+		CanUpdateRecordValue(context.Context, *types.ModuleField) bool
 	}
 )
 
@@ -113,8 +125,15 @@ func (ctrl Module) makePayload(ctx context.Context, m *types.Module, err error) 
 		return nil, err
 	}
 
+	mfp, err := ctrl.makeFieldsPayload(ctx, m)
+	if err != nil {
+		return nil, err
+	}
+
 	return &modulePayload{
 		Module: m,
+
+		Fields: mfp,
 
 		CanUpdateModule: ctrl.ac.CanUpdateModule(ctx, m),
 		CanDeleteModule: ctrl.ac.CanDeleteModule(ctx, m),
@@ -123,6 +142,21 @@ func (ctrl Module) makePayload(ctx context.Context, m *types.Module, err error) 
 		CanUpdateRecord: ctrl.ac.CanUpdateRecord(ctx, m),
 		CanDeleteRecord: ctrl.ac.CanDeleteRecord(ctx, m),
 	}, nil
+}
+
+func (ctrl Module) makeFieldsPayload(ctx context.Context, m *types.Module) (out []*moduleFieldPayload, err error) {
+	out = make([]*moduleFieldPayload, len(m.Fields))
+
+	for i, f := range m.Fields {
+		out[i] = &moduleFieldPayload{
+			ModuleField: f,
+
+			CanReadRecordValue:   ctrl.ac.CanReadRecordValue(ctx, f),
+			CanUpdateRecordValue: ctrl.ac.CanUpdateRecordValue(ctx, f),
+		}
+	}
+
+	return
 }
 
 func (ctrl Module) makeFilterPayload(ctx context.Context, nn types.ModuleSet, f types.ModuleFilter, err error) (*moduleSetPayload, error) {

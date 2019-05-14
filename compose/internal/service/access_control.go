@@ -79,6 +79,14 @@ func (svc accessControl) CanDeleteModule(ctx context.Context, r *types.Module) b
 	return svc.can(ctx, r, "delete")
 }
 
+func (svc accessControl) CanReadRecordValue(ctx context.Context, r *types.ModuleField) bool {
+	return svc.can(ctx, r, "record.value.read", permissions.Allowed)
+}
+
+func (svc accessControl) CanUpdateRecordValue(ctx context.Context, r *types.ModuleField) bool {
+	return svc.can(ctx, r, "record.value.update", permissions.Allowed)
+}
+
 func (svc accessControl) CanCreateRecord(ctx context.Context, r *types.Module) bool {
 	return svc.can(ctx, r, "record.create")
 }
@@ -232,6 +240,12 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"record.read",
 		"record.update",
 		"record.delete",
+	)
+
+	wl.Set(
+		types.ModuleFieldPermissionResource,
+		"record.value.read",
+		"record.value.update",
 	)
 
 	wl.Set(

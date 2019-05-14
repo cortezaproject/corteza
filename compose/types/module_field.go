@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx/types"
+
+	"github.com/crusttech/crust/internal/permissions"
 )
 
 type (
@@ -31,6 +33,11 @@ type (
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
 	}
 )
+
+// Resource returns a system resource ID for this type
+func (m ModuleField) PermissionResource() permissions.Resource {
+	return ModuleFieldPermissionResource.AppendID(m.ID)
+}
 
 func (set *ModuleFieldSet) Scan(src interface{}) error {
 	if data, ok := src.([]byte); ok {
