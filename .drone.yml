@@ -22,6 +22,7 @@ steps:
 
 - name: api-system
   image: plugins/docker
+  depends_on: [ clone ]
   settings:
     repo: crusttech/api-system
     auto_tag: true # generate tag names automatically based on git branch and git tag
@@ -34,6 +35,7 @@ steps:
 
 - name: api-compose
   image: plugins/docker
+  depends_on: [ clone ]
   settings:
     repo: crusttech/api-compose
     auto_tag: true # generate tag names automatically based on git branch and git tag
@@ -44,6 +46,7 @@ steps:
       from_secret: docker_hub_password
 
 - name: api-messaging
+  depends_on: [ clone ]
   image: plugins/docker
   settings:
     repo: crusttech/api-messaging
@@ -57,6 +60,7 @@ steps:
 
 - name: crust
   image: plugins/docker
+  depends_on: [ clone ]
   settings:
     repo: crusttech/crust
     auto_tag: true # generate tag names automatically based on git branch and git tag
