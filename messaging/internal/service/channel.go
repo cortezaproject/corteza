@@ -208,6 +208,18 @@ func (svc *channel) FindMembers(channelID uint64) (out types.ChannelMemberSet, e
 }
 
 func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
+	if len(in.Name) == 0 && in.Type != types.ChannelTypeGroup {
+		return nil, errors.New("channel name not provided")
+	}
+
+	if settingsChannelNameLength > 0 && len(in.Name) > settingsChannelNameLength {
+		return nil, errors.Errorf("channel name (%d characters) too long (max: %d)", len(in.Name), settingsChannelNameLength)
+	}
+
+	if len(in.Topic) > 0 && settingsChannelTopicLength > 0 && len(in.Topic) > settingsChannelTopicLength {
+		return nil, errors.Errorf("channel topic (%d characters) too long (max: %d)", len(in.Topic), settingsChannelTopicLength)
+	}
+
 	return out, svc.db.Transaction(func() (err error) {
 		var msg *types.Message
 
@@ -238,18 +250,6 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 
 		if in.Type == types.ChannelTypeGroup && !svc.ac.CanCreateGroupChannel(svc.ctx) {
 			return errors.WithStack(ErrNoPermissions)
-		}
-
-		if len(in.Name) == 0 && in.Type != types.ChannelTypeGroup {
-			return errors.New("channel name not provided")
-		}
-
-		if settingsChannelNameLength > 0 && len(in.Name) > settingsChannelNameLength {
-			return errors.Errorf("channel name (%d characters) too long (max: %d)", len(in.Name), settingsChannelNameLength)
-		}
-
-		if len(in.Topic) > 0 && settingsChannelTopicLength > 0 && len(in.Topic) > settingsChannelTopicLength {
-			return errors.Errorf("channel topic (%d characters) too long (max: %d)", len(in.Topic), settingsChannelTopicLength)
 		}
 
 		// This is a fresh channel, just copy values
@@ -340,6 +340,18 @@ func (svc *channel) checkGroupExistance(mm types.ChannelMemberSet) (out *types.C
 }
 
 func (svc *channel) Update(in *types.Channel) (ch *types.Channel, err error) {
+	if len(in.Name) == 0 && in.Type != types.ChannelTypeGroup {
+		return nil, errors.New("channel name not provided")
+	}
+
+	if settingsChannelNameLength > 0 && len(in.Name) > settingsChannelNameLength {
+		return nil, errors.Errorf("channel name (%d characters) too long (max: %d)", len(in.Name), settingsChannelNameLength)
+	}
+
+	if len(in.Topic) > 0 && settingsChannelTopicLength > 0 && len(in.Topic) > settingsChannelTopicLength {
+		return nil, errors.Errorf("channel topic (%d characters) too long (max: %d)", len(in.Topic), settingsChannelTopicLength)
+	}
+
 	return ch, svc.db.Transaction(func() (err error) {
 		var changed bool
 

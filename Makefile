@@ -64,6 +64,10 @@ mailhog.up:
 ########################################################################################################################
 # QA
 
+test:
+	# Run basic unit tests
+	$(GO) test ./cmd/... ./internal/... ./compose/... ./messaging/... ./system/...
+
 test.internal: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/...
 	$(GO) tool cover -func=.cover.out
@@ -103,6 +107,12 @@ test.cross-dep:
 	grep -rE "crust/(compose|messaging)/" system || exit 0
 	grep -rE "crust/(system|messaging)/" compose || exit 0
 	grep -rE "crust/(system|compose)/" messaging || exit 0
+
+integration:
+	# Run drone's integration pipeline
+	rm -f build/gen*
+	drone exec --pipeline integration
+
 
 vet:
 	$(GO) vet ./...
@@ -145,8 +155,3 @@ $(MOCKGEN):
 
 clean:
 	rm -f $(REALIZE) $(GOCRITIC) $(GOTEST)
-
-
-integration:
-	rm -f build/gen*
-	drone exec --pipeline integration
