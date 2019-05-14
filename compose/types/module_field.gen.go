@@ -39,3 +39,29 @@ func (set ModuleFieldSet) Filter(f func(*ModuleField) (bool, error)) (out Module
 
 	return
 }
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set ModuleFieldSet) FindByID(ID uint64) *ModuleField {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set ModuleFieldSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}

@@ -13,7 +13,6 @@ type (
 		Name   string         `json:"name" db:"name"`
 		Meta   types.JSONText `json:"meta" db:"json"`
 		Fields ModuleFieldSet `json:"fields" db:"-"`
-		Page   *Page          `json:"page,omitempty"`
 
 		NamespaceID uint64 `json:"namespaceID,string" db:"rel_namespace"`
 
