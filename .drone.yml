@@ -83,7 +83,7 @@ kind: pipeline
 name: integration
 
 steps:
-- name: tests
+- name: test
   image: crusttech/crust-builder:latest
   pull: always
   environment:
@@ -98,14 +98,9 @@ steps:
     COMPOSE_DB_DSN: crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci
     MESSAGING_DB_DSN: crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci
   commands:
-  - make mocks
-  - make codegen
-  - go build -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime=`date +%FT%T%z` -X github.com/crusttech/crust/internal/version.Version=`git describe --always --tags`" -o build/crust-$GOOS-$GOARCH cmd/crust/*.go
-  - go build -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime=`date +%FT%T%z` -X github.com/crusttech/crust/internal/version.Version=`git describe --always --tags`" -o build/compose-$GOOS-$GOARCH cmd/compose/*.go
-  - go build -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime=`date +%FT%T%z` -X github.com/crusttech/crust/internal/version.Version=`git describe --always --tags`" -o build/messaging-$GOOS-$GOARCH cmd/messaging/*.go
-  - go build -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime=`date +%FT%T%z` -X github.com/crusttech/crust/internal/version.Version=`git describe --always --tags`" -o build/system-$GOOS-$GOARCH cmd/system/*.go
-  - go build -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime=`date +%FT%T%z` -X github.com/crusttech/crust/internal/version.Version=`git describe --always --tags`" -o build/system-cli-$GOOS-$GOARCH cmd/system-cli/*.go
-  # check all tests are able to build
+  # Run tests without any dependencies
+  - go test ./cmd/... ./internal/... ./compose/... ./messaging/... ./system/...
+  # Wait for the db before running other tests
   - wait-for-it.sh -t 60 --strict crust-db:3306 -- echo "Crust DB1 is up"
   - gotest -v --tags="migrations" ./system/db/...
   - gotest -v --tags="migrations" ./compose/db/...
@@ -119,6 +114,21 @@ steps:
     token: ac2e49d3-b29d-42c9-a2e1-9c8f286e4c24
     files:
      - coverage.txt
+
+- name: build
+  image: crusttech/crust-builder:latest
+  pull: always
+  environment:
+    CGO_ENABLED: 0
+    GOOS: linux
+    GOARCH: amd64
+  commands:
+  - go build -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime=`date +%FT%T%z` -X github.com/crusttech/crust/internal/version.Version=`git describe --always --tags`" -o build/crust-$GOOS-$GOARCH cmd/crust/*.go
+  - go build -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime=`date +%FT%T%z` -X github.com/crusttech/crust/internal/version.Version=`git describe --always --tags`" -o build/compose-$GOOS-$GOARCH cmd/compose/*.go
+  - go build -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime=`date +%FT%T%z` -X github.com/crusttech/crust/internal/version.Version=`git describe --always --tags`" -o build/messaging-$GOOS-$GOARCH cmd/messaging/*.go
+  - go build -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime=`date +%FT%T%z` -X github.com/crusttech/crust/internal/version.Version=`git describe --always --tags`" -o build/system-$GOOS-$GOARCH cmd/system/*.go
+  - go build -ldflags "-X github.com/crusttech/crust/internal/version.BuildTime=`date +%FT%T%z` -X github.com/crusttech/crust/internal/version.Version=`git describe --always --tags`" -o build/system-cli-$GOOS-$GOARCH cmd/system-cli/*.go
+
 
 services:
 - name: crust-db
