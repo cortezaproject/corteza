@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/namsral/flag"
 	"github.com/titpetric/factory"
@@ -28,14 +29,13 @@ func TestMain(m *testing.M) {
 	logger.Init(zapcore.DebugLevel)
 
 	dsn := ""
-	flag.StringVar(&dsn, "db-dsn", "crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci", "DSN for database connection")
+	flag.StringVar(&dsn, "compose-db-dsn", "", "")
 	flag.Parse()
 
-	factory.Database.Add("default", dsn)
 	factory.Database.Add("compose", dsn)
 
-	db := factory.Database.MustGet()
-	db.Profiler = &factory.Database.ProfilerStdout
+	db := factory.Database.MustGet("compose")
+	db.Profiler = &factory.DatabaseProfilerStdout{}
 
 	// migrate database schema
 	if err := composeMigrate.Migrate(db); err != nil {
@@ -45,8 +45,19 @@ func TestMain(m *testing.M) {
 
 	// clean up tables
 	{
-		for _, name := range []string{"compose_chart", "compose_trigger", "compose_module", "compose_module_form", "compose_record", "compose_record_value", "compose_page"} {
-			_, err := db.Exec("truncate " + name)
+		// @todo remove this asap, service should not access db at all.
+		for _, name := range []string{
+			"compose_chart",
+			"compose_trigger",
+			"compose_module_field",
+			"compose_module",
+			"compose_record_value",
+			"compose_record",
+			"compose_page",
+			"compose_attachment",
+			"compose_namespace",
+		} {
+			_, err := db.Exec("DELETE FROM " + name)
 			if err != nil {
 				panic("Error when clearing " + name + ": " + err.Error())
 			}
@@ -71,3 +82,33 @@ func createTestNamespaces(ctx context.Context, t *testing.T) (ns1 *types.Namespa
 
 	return ns1, ns2
 }
+
+// zapProfiler logs query statistics to zap.logger
+type (
+	testLogProfiler struct {
+		logger testProfilerLogger
+	}
+
+	testProfilerLogger interface {
+		Logf(format string, args ...interface{})
+	}
+)
+
+func newTestLogProfiler(logger testProfilerLogger) *testLogProfiler {
+	return &testLogProfiler{
+		logger: logger,
+	}
+}
+
+// Post prints the query statistics to stdout
+func (p testLogProfiler) Post(c *factory.DatabaseProfilerContext) {
+	p.logger.Logf(
+		"%s\nArgs: %v\nDuration: %fs",
+		c.Query,
+		c.Args,
+		time.Since(c.Time).Seconds(),
+	)
+}
+
+// Flush stdout (no-op for this profiler)
+func (testLogProfiler) Flush() {}
