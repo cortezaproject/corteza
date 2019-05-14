@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -45,6 +46,10 @@ func (r module) With(ctx context.Context, db *factory.DB) ModuleRepository {
 
 func (r module) table() string {
 	return "compose_module"
+}
+
+func (r module) tableFields() string {
+	return "compose_module_field"
 }
 
 func (r module) columns() []string {
@@ -104,14 +109,20 @@ func (r module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.Mo
 }
 
 func (r module) Create(mod *types.Module) (*types.Module, error) {
+	var err error
+
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
-	if err := r.updateFields(mod.ID, mod.Fields); err != nil {
+	if err = r.db().Insert(r.table(), mod); err != nil {
 		return nil, err
 	}
 
-	return mod, r.db().Insert(r.table(), mod)
+	if err = r.updateFields(mod.ID, mod.Fields); err != nil {
+		return nil, err
+	}
+
+	return mod, nil
 }
 
 func (r module) Update(mod *types.Module) (*types.Module, error) {
@@ -122,29 +133,62 @@ func (r module) Update(mod *types.Module) (*types.Module, error) {
 		return nil, err
 	}
 
-	return mod, r.db().Replace(r.table(), mod)
+	return mod, r.db().Update(r.table(), mod, "id")
 }
 
 func (r module) updateFields(moduleID uint64, ff types.ModuleFieldSet) error {
-	// @todo be more selective when deleting
-	if _, err := r.db().Exec("DELETE FROM compose_module_form WHERE module_id = ?", moduleID); err != nil {
-		return errors.Wrap(err, "Error updating module fields")
+	if existing, err := r.FindFields(moduleID); err != nil {
+		return err
+	} else {
+		// Remove fields that do not exist anymore
+		err = existing.Walk(func(e *types.ModuleField) error {
+			if ff.FindByID(e.ID) == nil {
+				return r.deleteFieldByID(moduleID, e.ID)
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			return err
+		}
 	}
 
-	for idx, v := range ff {
-		v.ModuleID = moduleID
-		v.Place = idx
-		if err := r.db().Replace("compose_module_form", v); err != nil {
+	now := time.Now()
+	for idx, f := range ff {
+		if f.ID == 0 {
+			f.ID = factory.Sonyflake.NextID()
+			f.CreatedAt = now
+
+		} else {
+			f.UpdatedAt = &now
+		}
+
+		f.ModuleID = moduleID
+		f.Place = idx
+
+		if err := r.db().Replace(r.tableFields(), f); err != nil {
 			return errors.Wrap(err, "Error updating module fields")
 		}
+
 	}
 
 	return nil
 }
 
+func (r module) deleteFieldByID(moduleID, fieldID uint64) error {
+	_, err := r.db().Exec(
+		fmt.Sprintf("DELETE FROM %s WHERE rel_module = ? AND id = ?", r.tableFields()),
+		moduleID,
+		fieldID,
+	)
+
+	return err
+}
+
 func (r module) DeleteByID(namespaceID, moduleID uint64) error {
 	_, err := r.db().Exec(
-		"UPDATE "+r.table()+" SET deleted_at = NOW() WHERE rel_namespace = ? AND id = ?",
+		fmt.Sprintf("UPDATE %s SET deleted_at = NOW() WHERE rel_namespace = ? AND id = ?", r.table()),
 		namespaceID,
 		moduleID,
 	)
@@ -157,7 +201,17 @@ func (r module) FindFields(moduleIDs ...uint64) (ff types.ModuleFieldSet, err er
 		return
 	}
 
-	if sql, args, err := sqlx.In("SELECT * FROM compose_module_form WHERE module_id IN (?) ORDER BY module_id AND place", moduleIDs); err != nil {
+	query := `SELECT id, rel_module, place, 
+                     kind, name, label, options, 
+                     is_private, is_required, is_visible, is_multi 
+                FROM %s 
+               WHERE rel_module IN (?) 
+                 AND deleted_at IS NULL
+               ORDER BY rel_module, place`
+
+	query = fmt.Sprintf(query, r.tableFields())
+
+	if sql, args, err := sqlx.In(query, moduleIDs); err != nil {
 		return nil, err
 	} else {
 		return ff, r.db().Select(&ff, sql, args...)
