@@ -34,6 +34,7 @@ type (
 		CanReadRecord(context.Context, *types.Module) bool
 		CanUpdateRecord(context.Context, *types.Module) bool
 		CanDeleteRecord(context.Context, *types.Module) bool
+		CanReadRecordValue(context.Context, *types.ModuleField) bool
 	}
 
 	RecordService interface {
@@ -97,7 +98,7 @@ func (svc record) FindByID(namespaceID, recordID uint64) (r *types.Record, err e
 		return nil, ErrNoReadPermissions.withStack()
 	}
 
-	if err = svc.preloadValues(r); err != nil {
+	if err = svc.preloadValues(m, r); err != nil {
 		return
 	}
 
@@ -140,7 +141,7 @@ func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.
 		return
 	}
 
-	if err = svc.preloadValues(set...); err != nil {
+	if err = svc.preloadValues(m, set...); err != nil {
 		return
 	}
 
@@ -178,7 +179,7 @@ func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
 			return
 		}
 
-		if err = svc.preloadValues(r); err != nil {
+		if err = svc.preloadValues(m, r); err != nil {
 			return
 		}
 
@@ -294,8 +295,8 @@ func (svc record) sanitizeValues(module *types.Module, values types.RecordValueS
 	})
 }
 
-func (svc record) preloadValues(rr ...*types.Record) error {
-	if rvs, err := svc.recordRepo.LoadValues(types.RecordSet(rr).IDs()...); err != nil {
+func (svc record) preloadValues(m *types.Module, rr ...*types.Record) error {
+	if rvs, err := svc.recordRepo.LoadValues(svc.readableFields(m), types.RecordSet(rr).IDs()); err != nil {
 		return err
 	} else {
 		return types.RecordSet(rr).Walk(func(r *types.Record) error {
@@ -303,4 +304,19 @@ func (svc record) preloadValues(rr ...*types.Record) error {
 			return nil
 		})
 	}
+}
+
+// readableFields creates a slice of module fields that current user has permission to read
+func (svc record) readableFields(m *types.Module) []string {
+	ff := make([]string, 0)
+
+	_ = m.Fields.Walk(func(f *types.ModuleField) error {
+		if svc.ac.CanReadRecordValue(svc.ctx, f) {
+			ff = append(ff, f.Name)
+		}
+
+		return nil
+	})
+
+	return ff
 }
