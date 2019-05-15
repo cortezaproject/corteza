@@ -63,7 +63,7 @@
           },
           {
             "name": "enabled",
-            "required": true,
+            "required": false,
             "title": "Enabled",
             "type": "bool"
           },
@@ -121,7 +121,7 @@
           },
           {
             "name": "enabled",
-            "required": true,
+            "required": false,
             "title": "Enabled",
             "type": "bool"
           },
