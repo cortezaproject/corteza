@@ -23,6 +23,7 @@
           {
             "name": "password",
             "required": true,
+            "sensitive": true,
             "title": "Password",
             "type": "string"
           }
@@ -51,6 +52,7 @@
           {
             "name": "password",
             "required": true,
+            "sensitive": true,
             "title": "Password",
             "type": "string"
           },
@@ -117,6 +119,7 @@
           {
             "name": "password",
             "required": true,
+            "sensitive": true,
             "title": "Password",
             "type": "string"
           }
@@ -149,12 +152,14 @@
           {
             "name": "oldPassword",
             "required": true,
+            "sensitive": true,
             "title": "Old password",
             "type": "string"
           },
           {
             "name": "newPassword",
             "required": true,
+            "sensitive": true,
             "title": "New password",
             "type": "string"
           }

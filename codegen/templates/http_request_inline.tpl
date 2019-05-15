@@ -34,6 +34,23 @@ func New{name|expose}{call.name|capitalize}() *{name|expose}{call.name|capitaliz
 	return &{name|expose}{call.name|capitalize}{}
 }
 
+func (r {name|expose}{call.name|capitalize}) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+	{foreach $call.parameters as $method => $params}{foreach $params as $param}
+	{if $param.sensitive}
+	out["{param.name}"] = "*masked*sensitive*data*"
+	{else}
+	{if $param.type === "*multipart.FileHeader"}
+	out["{param.name}.size"] = r.{param.name|expose}.Size
+	out["{param.name}.filename"] = r.{param.name|expose}.Filename
+	{else}
+	out["{param.name}"] = r.{param.name|expose}
+	{/if}
+	{/if}
+	{/foreach}{/foreach}{newline}
+	return out
+}
+
 func ({self}Req *{name|expose}{call.name|capitalize}) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode({self}Req)
