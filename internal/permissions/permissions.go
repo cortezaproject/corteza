@@ -9,7 +9,11 @@ type (
 	// CheckAccessFunc function.
 	CheckAccessFunc func() Access
 
-	Whitelist map[Resource]map[Operation]bool
+	Whitelist        map[Resource]map[Operation]bool
+	whitelistFlatten struct {
+		Resource  `json:"resource"`
+		Operation `json:"operation"`
+	}
 )
 
 const (
@@ -75,4 +79,18 @@ func (wl Whitelist) Check(rule *Rule) bool {
 	}
 
 	return wl[res][rule.Operation]
+}
+
+// Flatten casts list of operations for each resource from map to slice and creates more output friendly format
+func (wl Whitelist) Flatten() []whitelistFlatten {
+	var (
+		wlf = []whitelistFlatten{}
+	)
+	for r, oo := range wl {
+		for o := range oo {
+			wlf = append(wlf, whitelistFlatten{r, o})
+		}
+	}
+
+	return wlf
 }
