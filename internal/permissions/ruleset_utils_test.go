@@ -14,77 +14,75 @@ func TestRuleSet_merge(t *testing.T) {
 
 		sCases = []struct {
 			old RuleSet
-			in  RuleSet
-			exp RuleSet
+			new RuleSet
+			del RuleSet
+			upd RuleSet
 		}{
 			{
+				RuleSet{AllowRule(role1, resService1, opAccess)},
+				RuleSet{AllowRule(role1, resService1, opAccess)},
+				RuleSet{},
+				RuleSet{},
+			},
+			{
+				RuleSet{AllowRule(role1, resService1, opAccess)},
+				RuleSet{DenyRule(role1, resService1, opAccess)},
+				RuleSet{},
+				RuleSet{DenyRule(role1, resService1, opAccess)},
+			},
+			{
+				RuleSet{AllowRule(role1, resService1, opAccess)},
+				RuleSet{InheritRule(role1, resService1, opAccess)},
+				RuleSet{InheritRule(role1, resService1, opAccess)},
+				RuleSet{},
+			},
+			{
+				RuleSet{AllowRule(role1, resService1, opAccess)},
+				RuleSet{AllowRule(role1, resService1, opAccess)},
+				RuleSet{},
+				RuleSet{},
+			},
+			{
 				RuleSet{
-					&Rule{role1, resService1, opAccess, Allow},
-					&Rule{role2, resService1, opAccess, Deny},
-					&Rule{EveryoneRoleID, resService2, opAccess, Deny},
-					&Rule{role1, resService2, opAccess, Allow},
+					AllowRule(role1, resService1, opAccess),
+					DenyRule(role2, resService1, opAccess),
+					DenyRule(EveryoneRoleID, resService2, opAccess),
+					AllowRule(role1, resService2, opAccess),
+					AllowRule(role2, resThing42, opAccess),
 				},
 				RuleSet{
-					&Rule{EveryoneRoleID, resThingWc, opAccess, Deny},
-					&Rule{role1, resThing42, opAccess, Allow},
-					&Rule{role1, resThing42, opAccess, Inherit},
+					DenyRule(EveryoneRoleID, resThingWc, opAccess),
+					AllowRule(role1, resService2, opAccess),
+					AllowRule(role1, resThing42, opAccess),
+					InheritRule(role2, resThing42, opAccess),
 				},
 				RuleSet{
-					&Rule{role1, resService1, opAccess, Allow},
-					&Rule{role2, resService1, opAccess, Deny},
-					&Rule{EveryoneRoleID, resService2, opAccess, Deny},
-					&Rule{role1, resService2, opAccess, Allow},
-					&Rule{EveryoneRoleID, resThingWc, opAccess, Deny},
-					&Rule{role1, resThing42, opAccess, Allow},
-					&Rule{role1, resThing42, opAccess, Inherit},
+					InheritRule(role2, resThing42, opAccess),
+				},
+				RuleSet{
+					// AllowRule(role1, resService1, opAccess),
+					// DenyRule(role2, resService1, opAccess),
+					// DenyRule(EveryoneRoleID, resService2, opAccess),
+					// AllowRule(role1, resService2, opAccess),
+					DenyRule(EveryoneRoleID, resThingWc, opAccess),
+					AllowRule(role1, resThing42, opAccess),
 				},
 			},
 		}
 	)
 
 	for c, sc := range sCases {
-		out, _ := sc.old.merge(sc.in...)
+		// Apply changed and get update candidates
+		mrg := sc.old.merge(sc.new...)
+		del, upd := mrg.dirty()
 
-		assert(t, len(out) == len(sc.exp), "Check test #%d failed, expected length %d, got %d", c, len(out), len(sc.exp))
-		assert(t, reflect.DeepEqual(out, sc.exp), "Check test #%d failed, reflect.DeepEqual == false", c)
+		// Clear dirty flag so that we do not confuse DeepEqual
+		del.clear()
+		upd.clear()
 
-	}
-}
-
-// Test role inheritance
-func TestRuleSet_split(t *testing.T) {
-	var (
-		assert = test.Assert
-
-		sCases = []struct {
-			set RuleSet
-			i   RuleSet
-			r   RuleSet
-		}{
-			{
-				RuleSet{
-					&Rule{role1, resService1, opAccess, Allow},
-					&Rule{role2, resService1, opAccess, Deny},
-					&Rule{EveryoneRoleID, resService2, opAccess, Inherit},
-				},
-				RuleSet{
-					&Rule{EveryoneRoleID, resService2, opAccess, Inherit},
-				},
-				RuleSet{
-					&Rule{role1, resService1, opAccess, Allow},
-					&Rule{role2, resService1, opAccess, Deny},
-				},
-			},
-		}
-	)
-
-	for c, sc := range sCases {
-		i, r := sc.set.split()
-
-		assert(t, len(i) == len(sc.i), "Check test #%d failed, expected length %d, got %d", c, len(i), len(sc.i))
-		assert(t, len(r) == len(sc.r), "Check test #%d failed, expected length %d, got %d", c, len(r), len(sc.r))
-		assert(t, reflect.DeepEqual(i, sc.i), "Check test #%d failed, reflect.DeepEqual == false", c)
-		assert(t, reflect.DeepEqual(r, sc.r), "Check test #%d failed, reflect.DeepEqual == false", c)
-
+		assert(t, len(del) == len(sc.del), "Check test #%d failed, expected delete list length %d, got %d", c, len(sc.del), len(del))
+		assert(t, len(upd) == len(sc.upd), "Check test #%d failed, expected update list length %d, got %d", c, len(sc.upd), len(upd))
+		assert(t, reflect.DeepEqual(del, sc.del), "Check test #%d failed for delete list, reflect.DeepEqual == false", c)
+		assert(t, reflect.DeepEqual(upd, sc.upd), "Check test #%d failed for update list, reflect.DeepEqual == false", c)
 	}
 }

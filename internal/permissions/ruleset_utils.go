@@ -1,27 +1,25 @@
 package permissions
 
-func (set RuleSet) merge(rules ...*Rule) (out RuleSet, err error) {
+// merge applies new rules (changes) to existing set and mark  all changes as dirty
+func (set RuleSet) merge(rules ...*Rule) (out RuleSet) {
 	var (
 		o    int
 		olen = len(set)
-
-		skipInherited = func(r *Rule) (b bool, e error) {
-			return r != nil, nil
-		}
-
-		merged = set
 	)
 
 	if olen == 0 {
-		// Nothing exists yet, just assign
-		merged = rules
+		// Nothing exists yet
+		return rules
 	} else {
+		out = set
+
 	newRules:
 		for _, rule := range rules {
-			for ; o < olen; o++ {
-				// Never go beyond the last old rule
-				if merged[o].Equals(rule) {
-					merged[o].Access = rule.Access
+			// Never go beyond the last old rule (olen)
+			for o = 0; o < olen; o++ {
+				if out[o].Equals(rule) {
+					out[o].dirty = out[o].Access != rule.Access
+					out[o].Access = rule.Access
 
 					// only one rule can match so proceed with next new rule
 					continue newRules
@@ -29,26 +27,37 @@ func (set RuleSet) merge(rules ...*Rule) (out RuleSet, err error) {
 			}
 
 			// none of the old rules matched, append
-			merged = append(merged, rule)
+			var c = *rule
+			c.dirty = true
+
+			out = append(out, &c)
 		}
 
 	}
 
-	// Filter out all rules with access = inherit
-	return merged.Filter(skipInherited)
+	return
 }
 
-func (set RuleSet) split() (inherited, rest RuleSet) {
+// dirty returns list of changed (dirty==true) and deleted (Access==Inherit) rules
+func (set RuleSet) dirty() (inherited, rest RuleSet) {
 	inherited, rest = RuleSet{}, RuleSet{}
 
 	for _, r := range set {
+		var c = *r
 		if r.Access == Inherit {
-			inherited = append(inherited, r)
-		} else {
-			rest = append(rest, r)
-
+			inherited = append(inherited, &c)
+		} else if r.dirty {
+			rest = append(rest, &c)
 		}
 	}
 
 	return
+}
+
+// reset dirty flag
+func (set RuleSet) clear() {
+	_ = set.Walk(func(rule *Rule) error {
+		rule.dirty = false
+		return nil
+	})
 }

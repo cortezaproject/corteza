@@ -27,9 +27,9 @@ func TestRuleSet_check(t *testing.T) {
 		assert = test.Assert
 
 		rr = RuleSet{
-			&Rule{role1, resThing42, opRead, Allow},
-			&Rule{role1, resThing13, opWrite, Deny},
-			&Rule{role2, resThing13, opWrite, Allow},
+			AllowRule(role1, resThing42, opRead),
+			DenyRule(role1, resThing13, opWrite),
+			AllowRule(role2, resThing13, opWrite),
 		}
 
 		sCases = []struct {
@@ -80,7 +80,7 @@ func TestRuleSet_checkResource(t *testing.T) {
 		}{
 			{
 				RuleSet{
-					&Rule{role1, resService1, opAccess, Allow},
+					AllowRule(role1, resService1, opAccess),
 				},
 				[]uint64{role1},
 				resService1,
@@ -89,7 +89,7 @@ func TestRuleSet_checkResource(t *testing.T) {
 			},
 			{
 				RuleSet{
-					&Rule{role1, resThingWc, opAccess, Allow},
+					AllowRule(role1, resThingWc, opAccess),
 				},
 				[]uint64{role1},
 				resThing42,
@@ -98,8 +98,8 @@ func TestRuleSet_checkResource(t *testing.T) {
 			},
 			{ // deny wc and explictly allow 42
 				RuleSet{
-					&Rule{role1, resThingWc, opAccess, Deny},
-					&Rule{role1, resThing42, opAccess, Allow},
+					DenyRule(role1, resThingWc, opAccess),
+					AllowRule(role1, resThing42, opAccess),
 				},
 				[]uint64{role1},
 				resThing42,
@@ -108,8 +108,8 @@ func TestRuleSet_checkResource(t *testing.T) {
 			},
 			{ // deny wc and explictly allow 42
 				RuleSet{
-					&Rule{role1, resThingWc, opAccess, Deny},
-					&Rule{role1, resThing42, opAccess, Allow},
+					DenyRule(role1, resThingWc, opAccess),
+					AllowRule(role1, resThing42, opAccess),
 				},
 				[]uint64{role1},
 				resThing13,
@@ -130,14 +130,14 @@ func TestRuleSet_Check(t *testing.T) {
 	var (
 		rr = RuleSet{
 			// 1st level
-			&Rule{role1, resService1, opAccess, Allow},
-			&Rule{role2, resService1, opAccess, Deny},
+			AllowRule(role1, resService1, opAccess),
+			DenyRule(role2, resService1, opAccess),
 			// 2nd level
-			&Rule{EveryoneRoleID, resService2, opAccess, Deny},
-			&Rule{role1, resService2, opAccess, Allow},
+			DenyRule(EveryoneRoleID, resService2, opAccess),
+			AllowRule(role1, resService2, opAccess),
 			// 3rd level
-			&Rule{EveryoneRoleID, resThingWc, opAccess, Deny},
-			&Rule{role1, resThing42, opAccess, Allow},
+			DenyRule(EveryoneRoleID, resThingWc, opAccess),
+			AllowRule(role1, resThing42, opAccess),
 		}
 
 		assert = test.Assert
