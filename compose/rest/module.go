@@ -97,18 +97,19 @@ func (ctrl *Module) Create(ctx context.Context, r *request.ModuleCreate) (interf
 
 func (ctrl *Module) Update(ctx context.Context, r *request.ModuleUpdate) (interface{}, error) {
 	var (
-		m   = &types.Module{}
 		err error
+		mod = &types.Module{
+			ID:          r.ModuleID,
+			NamespaceID: r.NamespaceID,
+			Name:        r.Name,
+			Fields:      r.Fields,
+			Meta:        r.Meta,
+			UpdatedAt:   r.UpdatedAt,
+		}
 	)
 
-	m.ID = r.ModuleID
-	m.Name = r.Name
-	m.Meta = r.Meta
-	m.NamespaceID = r.NamespaceID
-	m.UpdatedAt = r.UpdatedAt
-
-	m, err = ctrl.module.With(ctx).Update(m)
-	return ctrl.makePayload(ctx, m, err)
+	mod, err = ctrl.module.With(ctx).Update(mod)
+	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl *Module) Delete(ctx context.Context, r *request.ModuleDelete) (interface{}, error) {

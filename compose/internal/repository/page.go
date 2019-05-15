@@ -164,13 +164,13 @@ func (r page) Reorder(namespaceID, parentID uint64, pageIDs []uint64) error {
 
 func (r page) Create(mod *types.Page) (*types.Page, error) {
 	mod.ID = factory.Sonyflake.NextID()
-	mod.CreatedAt = time.Now()
+	mod.CreatedAt = time.Now().Truncate(time.Second)
 
 	return mod, r.db().Insert(r.table(), mod)
 }
 
 func (r page) Update(mod *types.Page) (*types.Page, error) {
-	now := time.Now()
+	now := time.Now().Truncate(time.Second)
 	mod.UpdatedAt = &now
 
 	return mod, r.db().Replace(r.table(), mod)

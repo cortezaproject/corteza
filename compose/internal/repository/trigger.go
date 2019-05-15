@@ -102,13 +102,13 @@ func (r trigger) Find(filter types.TriggerFilter) (set types.TriggerSet, f types
 
 func (r trigger) Create(mod *types.Trigger) (*types.Trigger, error) {
 	mod.ID = factory.Sonyflake.NextID()
-	mod.CreatedAt = time.Now()
+	mod.CreatedAt = time.Now().Truncate(time.Second)
 
 	return mod, r.db().Insert(r.table(), mod)
 }
 
 func (r trigger) Update(mod *types.Trigger) (*types.Trigger, error) {
-	now := time.Now()
+	now := time.Now().Truncate(time.Second)
 	mod.UpdatedAt = &now
 	return mod, r.db().Replace(r.table(), mod)
 }
