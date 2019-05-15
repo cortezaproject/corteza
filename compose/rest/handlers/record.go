@@ -55,16 +55,16 @@ func NewRecord(rh RecordAPI) *Record {
 			defer r.Body.Close()
 			params := request.NewRecordReport()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Record.Report", r, err, params)
+				logger.LogParamError("Record.Report", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.Report(r.Context(), params); err != nil {
-				logger.LogControllerError("Record.Report", r, err, params)
+				logger.LogControllerError("Record.Report", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Record.Report", r, params)
+				logger.LogControllerCall("Record.Report", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -78,16 +78,16 @@ func NewRecord(rh RecordAPI) *Record {
 			defer r.Body.Close()
 			params := request.NewRecordList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Record.List", r, err, params)
+				logger.LogParamError("Record.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.List(r.Context(), params); err != nil {
-				logger.LogControllerError("Record.List", r, err, params)
+				logger.LogControllerError("Record.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Record.List", r, params)
+				logger.LogControllerCall("Record.List", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -101,16 +101,16 @@ func NewRecord(rh RecordAPI) *Record {
 			defer r.Body.Close()
 			params := request.NewRecordCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Record.Create", r, err, params)
+				logger.LogParamError("Record.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.Create(r.Context(), params); err != nil {
-				logger.LogControllerError("Record.Create", r, err, params)
+				logger.LogControllerError("Record.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Record.Create", r, params)
+				logger.LogControllerCall("Record.Create", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -124,16 +124,16 @@ func NewRecord(rh RecordAPI) *Record {
 			defer r.Body.Close()
 			params := request.NewRecordRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Record.Read", r, err, params)
+				logger.LogParamError("Record.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.Read(r.Context(), params); err != nil {
-				logger.LogControllerError("Record.Read", r, err, params)
+				logger.LogControllerError("Record.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Record.Read", r, params)
+				logger.LogControllerCall("Record.Read", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -147,16 +147,16 @@ func NewRecord(rh RecordAPI) *Record {
 			defer r.Body.Close()
 			params := request.NewRecordUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Record.Update", r, err, params)
+				logger.LogParamError("Record.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.Update(r.Context(), params); err != nil {
-				logger.LogControllerError("Record.Update", r, err, params)
+				logger.LogControllerError("Record.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Record.Update", r, params)
+				logger.LogControllerCall("Record.Update", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -170,16 +170,16 @@ func NewRecord(rh RecordAPI) *Record {
 			defer r.Body.Close()
 			params := request.NewRecordDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Record.Delete", r, err, params)
+				logger.LogParamError("Record.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.Delete(r.Context(), params); err != nil {
-				logger.LogControllerError("Record.Delete", r, err, params)
+				logger.LogControllerError("Record.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Record.Delete", r, params)
+				logger.LogControllerCall("Record.Delete", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -193,16 +193,16 @@ func NewRecord(rh RecordAPI) *Record {
 			defer r.Body.Close()
 			params := request.NewRecordUpload()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Record.Upload", r, err, params)
+				logger.LogParamError("Record.Upload", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.Upload(r.Context(), params); err != nil {
-				logger.LogControllerError("Record.Upload", r, err, params)
+				logger.LogControllerError("Record.Upload", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Record.Upload", r, params)
+				logger.LogControllerCall("Record.Upload", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

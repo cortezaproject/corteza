@@ -51,16 +51,16 @@ func NewWebhooks(wh WebhooksAPI) *Webhooks {
 			defer r.Body.Close()
 			params := request.NewWebhooksList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Webhooks.List", r, err, params)
+				logger.LogParamError("Webhooks.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := wh.List(r.Context(), params); err != nil {
-				logger.LogControllerError("Webhooks.List", r, err, params)
+				logger.LogControllerError("Webhooks.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Webhooks.List", r, params)
+				logger.LogControllerCall("Webhooks.List", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -74,16 +74,16 @@ func NewWebhooks(wh WebhooksAPI) *Webhooks {
 			defer r.Body.Close()
 			params := request.NewWebhooksCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Webhooks.Create", r, err, params)
+				logger.LogParamError("Webhooks.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := wh.Create(r.Context(), params); err != nil {
-				logger.LogControllerError("Webhooks.Create", r, err, params)
+				logger.LogControllerError("Webhooks.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Webhooks.Create", r, params)
+				logger.LogControllerCall("Webhooks.Create", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -97,16 +97,16 @@ func NewWebhooks(wh WebhooksAPI) *Webhooks {
 			defer r.Body.Close()
 			params := request.NewWebhooksUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Webhooks.Update", r, err, params)
+				logger.LogParamError("Webhooks.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := wh.Update(r.Context(), params); err != nil {
-				logger.LogControllerError("Webhooks.Update", r, err, params)
+				logger.LogControllerError("Webhooks.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Webhooks.Update", r, params)
+				logger.LogControllerCall("Webhooks.Update", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -120,16 +120,16 @@ func NewWebhooks(wh WebhooksAPI) *Webhooks {
 			defer r.Body.Close()
 			params := request.NewWebhooksGet()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Webhooks.Get", r, err, params)
+				logger.LogParamError("Webhooks.Get", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := wh.Get(r.Context(), params); err != nil {
-				logger.LogControllerError("Webhooks.Get", r, err, params)
+				logger.LogControllerError("Webhooks.Get", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Webhooks.Get", r, params)
+				logger.LogControllerCall("Webhooks.Get", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -143,16 +143,16 @@ func NewWebhooks(wh WebhooksAPI) *Webhooks {
 			defer r.Body.Close()
 			params := request.NewWebhooksDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Webhooks.Delete", r, err, params)
+				logger.LogParamError("Webhooks.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := wh.Delete(r.Context(), params); err != nil {
-				logger.LogControllerError("Webhooks.Delete", r, err, params)
+				logger.LogControllerError("Webhooks.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Webhooks.Delete", r, params)
+				logger.LogControllerCall("Webhooks.Delete", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

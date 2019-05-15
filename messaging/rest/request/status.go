@@ -38,6 +38,12 @@ func NewStatusList() *StatusList {
 	return &StatusList{}
 }
 
+func (r StatusList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	return out
+}
+
 func (sReq *StatusList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(sReq)
@@ -79,6 +85,18 @@ type StatusSet struct {
 
 func NewStatusSet() *StatusSet {
 	return &StatusSet{}
+}
+
+func (r StatusSet) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["icon"] = r.Icon
+
+	out["message"] = r.Message
+
+	out["expires"] = r.Expires
+
+	return out
 }
 
 func (sReq *StatusSet) Fill(r *http.Request) (err error) {
@@ -132,6 +150,12 @@ type StatusDelete struct {
 
 func NewStatusDelete() *StatusDelete {
 	return &StatusDelete{}
+}
+
+func (r StatusDelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	return out
 }
 
 func (sReq *StatusDelete) Fill(r *http.Request) (err error) {

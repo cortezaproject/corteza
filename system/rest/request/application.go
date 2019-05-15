@@ -40,6 +40,12 @@ func NewApplicationList() *ApplicationList {
 	return &ApplicationList{}
 }
 
+func (r ApplicationList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	return out
+}
+
 func (apReq *ApplicationList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(apReq)
@@ -82,6 +88,20 @@ type ApplicationCreate struct {
 
 func NewApplicationCreate() *ApplicationCreate {
 	return &ApplicationCreate{}
+}
+
+func (r ApplicationCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["name"] = r.Name
+
+	out["enabled"] = r.Enabled
+
+	out["unify"] = r.Unify
+
+	out["config"] = r.Config
+
+	return out
 }
 
 func (apReq *ApplicationCreate) Fill(r *http.Request) (err error) {
@@ -150,6 +170,22 @@ func NewApplicationUpdate() *ApplicationUpdate {
 	return &ApplicationUpdate{}
 }
 
+func (r ApplicationUpdate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["applicationID"] = r.ApplicationID
+
+	out["name"] = r.Name
+
+	out["enabled"] = r.Enabled
+
+	out["unify"] = r.Unify
+
+	out["config"] = r.Config
+
+	return out
+}
+
 func (apReq *ApplicationUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(apReq)
@@ -213,6 +249,14 @@ func NewApplicationRead() *ApplicationRead {
 	return &ApplicationRead{}
 }
 
+func (r ApplicationRead) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["applicationID"] = r.ApplicationID
+
+	return out
+}
+
 func (apReq *ApplicationRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(apReq)
@@ -254,6 +298,14 @@ type ApplicationDelete struct {
 
 func NewApplicationDelete() *ApplicationDelete {
 	return &ApplicationDelete{}
+}
+
+func (r ApplicationDelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["applicationID"] = r.ApplicationID
+
+	return out
 }
 
 func (apReq *ApplicationDelete) Fill(r *http.Request) (err error) {

@@ -51,16 +51,16 @@ func NewModule(mh ModuleAPI) *Module {
 			defer r.Body.Close()
 			params := request.NewModuleList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Module.List", r, err, params)
+				logger.LogParamError("Module.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.List(r.Context(), params); err != nil {
-				logger.LogControllerError("Module.List", r, err, params)
+				logger.LogControllerError("Module.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Module.List", r, params)
+				logger.LogControllerCall("Module.List", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -74,16 +74,16 @@ func NewModule(mh ModuleAPI) *Module {
 			defer r.Body.Close()
 			params := request.NewModuleCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Module.Create", r, err, params)
+				logger.LogParamError("Module.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.Create(r.Context(), params); err != nil {
-				logger.LogControllerError("Module.Create", r, err, params)
+				logger.LogControllerError("Module.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Module.Create", r, params)
+				logger.LogControllerCall("Module.Create", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -97,16 +97,16 @@ func NewModule(mh ModuleAPI) *Module {
 			defer r.Body.Close()
 			params := request.NewModuleRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Module.Read", r, err, params)
+				logger.LogParamError("Module.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.Read(r.Context(), params); err != nil {
-				logger.LogControllerError("Module.Read", r, err, params)
+				logger.LogControllerError("Module.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Module.Read", r, params)
+				logger.LogControllerCall("Module.Read", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -120,16 +120,16 @@ func NewModule(mh ModuleAPI) *Module {
 			defer r.Body.Close()
 			params := request.NewModuleUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Module.Update", r, err, params)
+				logger.LogParamError("Module.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.Update(r.Context(), params); err != nil {
-				logger.LogControllerError("Module.Update", r, err, params)
+				logger.LogControllerError("Module.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Module.Update", r, params)
+				logger.LogControllerCall("Module.Update", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -143,16 +143,16 @@ func NewModule(mh ModuleAPI) *Module {
 			defer r.Body.Close()
 			params := request.NewModuleDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Module.Delete", r, err, params)
+				logger.LogParamError("Module.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := mh.Delete(r.Context(), params); err != nil {
-				logger.LogControllerError("Module.Delete", r, err, params)
+				logger.LogControllerError("Module.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Module.Delete", r, params)
+				logger.LogControllerCall("Module.Delete", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

@@ -40,6 +40,16 @@ func NewAuthInternalLogin() *AuthInternalLogin {
 	return &AuthInternalLogin{}
 }
 
+func (r AuthInternalLogin) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["email"] = r.Email
+
+	out["password"] = "*masked*sensitive*data*"
+
+	return out
+}
+
 func (auReq *AuthInternalLogin) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(auReq)
@@ -92,6 +102,22 @@ type AuthInternalSignup struct {
 
 func NewAuthInternalSignup() *AuthInternalSignup {
 	return &AuthInternalSignup{}
+}
+
+func (r AuthInternalSignup) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["email"] = r.Email
+
+	out["username"] = r.Username
+
+	out["password"] = "*masked*sensitive*data*"
+
+	out["handle"] = r.Handle
+
+	out["name"] = r.Name
+
+	return out
 }
 
 func (auReq *AuthInternalSignup) Fill(r *http.Request) (err error) {
@@ -156,6 +182,14 @@ func NewAuthInternalRequestPasswordReset() *AuthInternalRequestPasswordReset {
 	return &AuthInternalRequestPasswordReset{}
 }
 
+func (r AuthInternalRequestPasswordReset) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["email"] = r.Email
+
+	return out
+}
+
 func (auReq *AuthInternalRequestPasswordReset) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(auReq)
@@ -200,6 +234,14 @@ type AuthInternalExchangePasswordResetToken struct {
 
 func NewAuthInternalExchangePasswordResetToken() *AuthInternalExchangePasswordResetToken {
 	return &AuthInternalExchangePasswordResetToken{}
+}
+
+func (r AuthInternalExchangePasswordResetToken) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["token"] = r.Token
+
+	return out
 }
 
 func (auReq *AuthInternalExchangePasswordResetToken) Fill(r *http.Request) (err error) {
@@ -247,6 +289,16 @@ type AuthInternalResetPassword struct {
 
 func NewAuthInternalResetPassword() *AuthInternalResetPassword {
 	return &AuthInternalResetPassword{}
+}
+
+func (r AuthInternalResetPassword) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["token"] = r.Token
+
+	out["password"] = "*masked*sensitive*data*"
+
+	return out
 }
 
 func (auReq *AuthInternalResetPassword) Fill(r *http.Request) (err error) {
@@ -299,6 +351,14 @@ func NewAuthInternalConfirmEmail() *AuthInternalConfirmEmail {
 	return &AuthInternalConfirmEmail{}
 }
 
+func (r AuthInternalConfirmEmail) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["token"] = r.Token
+
+	return out
+}
+
 func (auReq *AuthInternalConfirmEmail) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(auReq)
@@ -344,6 +404,16 @@ type AuthInternalChangePassword struct {
 
 func NewAuthInternalChangePassword() *AuthInternalChangePassword {
 	return &AuthInternalChangePassword{}
+}
+
+func (r AuthInternalChangePassword) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["oldPassword"] = "*masked*sensitive*data*"
+
+	out["newPassword"] = "*masked*sensitive*data*"
+
+	return out
 }
 
 func (auReq *AuthInternalChangePassword) Fill(r *http.Request) (err error) {

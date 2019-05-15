@@ -39,6 +39,14 @@ func NewChannelList() *ChannelList {
 	return &ChannelList{}
 }
 
+func (r ChannelList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["query"] = r.Query
+
+	return out
+}
+
 func (cReq *ChannelList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(cReq)
@@ -86,6 +94,20 @@ type ChannelCreate struct {
 
 func NewChannelCreate() *ChannelCreate {
 	return &ChannelCreate{}
+}
+
+func (r ChannelCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["name"] = r.Name
+
+	out["topic"] = r.Topic
+
+	out["type"] = r.Type
+
+	out["members"] = r.Members
+
+	return out
 }
 
 func (cReq *ChannelCreate) Fill(r *http.Request) (err error) {
@@ -144,6 +166,22 @@ type ChannelUpdate struct {
 
 func NewChannelUpdate() *ChannelUpdate {
 	return &ChannelUpdate{}
+}
+
+func (r ChannelUpdate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["channelID"] = r.ChannelID
+
+	out["name"] = r.Name
+
+	out["topic"] = r.Topic
+
+	out["type"] = r.Type
+
+	out["organisationID"] = r.OrganisationID
+
+	return out
 }
 
 func (cReq *ChannelUpdate) Fill(r *http.Request) (err error) {
@@ -206,6 +244,16 @@ func NewChannelState() *ChannelState {
 	return &ChannelState{}
 }
 
+func (r ChannelState) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["channelID"] = r.ChannelID
+
+	out["state"] = r.State
+
+	return out
+}
+
 func (cReq *ChannelState) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(cReq)
@@ -252,6 +300,16 @@ type ChannelSetFlag struct {
 
 func NewChannelSetFlag() *ChannelSetFlag {
 	return &ChannelSetFlag{}
+}
+
+func (r ChannelSetFlag) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["channelID"] = r.ChannelID
+
+	out["flag"] = r.Flag
+
+	return out
 }
 
 func (cReq *ChannelSetFlag) Fill(r *http.Request) (err error) {
@@ -301,6 +359,14 @@ func NewChannelRemoveFlag() *ChannelRemoveFlag {
 	return &ChannelRemoveFlag{}
 }
 
+func (r ChannelRemoveFlag) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["channelID"] = r.ChannelID
+
+	return out
+}
+
 func (cReq *ChannelRemoveFlag) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(cReq)
@@ -342,6 +408,14 @@ type ChannelRead struct {
 
 func NewChannelRead() *ChannelRead {
 	return &ChannelRead{}
+}
+
+func (r ChannelRead) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["channelID"] = r.ChannelID
+
+	return out
 }
 
 func (cReq *ChannelRead) Fill(r *http.Request) (err error) {
@@ -387,6 +461,14 @@ func NewChannelMembers() *ChannelMembers {
 	return &ChannelMembers{}
 }
 
+func (r ChannelMembers) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["channelID"] = r.ChannelID
+
+	return out
+}
+
 func (cReq *ChannelMembers) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(cReq)
@@ -429,6 +511,16 @@ type ChannelJoin struct {
 
 func NewChannelJoin() *ChannelJoin {
 	return &ChannelJoin{}
+}
+
+func (r ChannelJoin) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["channelID"] = r.ChannelID
+
+	out["userID"] = r.UserID
+
+	return out
 }
 
 func (cReq *ChannelJoin) Fill(r *http.Request) (err error) {
@@ -476,6 +568,16 @@ func NewChannelPart() *ChannelPart {
 	return &ChannelPart{}
 }
 
+func (r ChannelPart) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["channelID"] = r.ChannelID
+
+	out["userID"] = r.UserID
+
+	return out
+}
+
 func (cReq *ChannelPart) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(cReq)
@@ -521,6 +623,16 @@ func NewChannelInvite() *ChannelInvite {
 	return &ChannelInvite{}
 }
 
+func (r ChannelInvite) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["channelID"] = r.ChannelID
+
+	out["userID"] = r.UserID
+
+	return out
+}
+
 func (cReq *ChannelInvite) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(cReq)
@@ -564,6 +676,19 @@ type ChannelAttach struct {
 
 func NewChannelAttach() *ChannelAttach {
 	return &ChannelAttach{}
+}
+
+func (r ChannelAttach) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["channelID"] = r.ChannelID
+
+	out["replyTo"] = r.ReplyTo
+
+	out["upload.size"] = r.Upload.Size
+	out["upload.filename"] = r.Upload.Filename
+
+	return out
 }
 
 func (cReq *ChannelAttach) Fill(r *http.Request) (err error) {

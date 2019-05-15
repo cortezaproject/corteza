@@ -43,16 +43,16 @@ func NewNotification(nh NotificationAPI) *Notification {
 			defer r.Body.Close()
 			params := request.NewNotificationEmailSend()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Notification.EmailSend", r, err, params)
+				logger.LogParamError("Notification.EmailSend", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := nh.EmailSend(r.Context(), params); err != nil {
-				logger.LogControllerError("Notification.EmailSend", r, err, params)
+				logger.LogControllerError("Notification.EmailSend", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Notification.EmailSend", r, params)
+				logger.LogControllerCall("Notification.EmailSend", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

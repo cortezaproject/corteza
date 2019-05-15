@@ -42,6 +42,16 @@ func NewWebhooksList() *WebhooksList {
 	return &WebhooksList{}
 }
 
+func (r WebhooksList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["channelID"] = r.ChannelID
+
+	out["userID"] = r.UserID
+
+	return out
+}
+
 func (wReq *WebhooksList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(wReq)
@@ -96,6 +106,27 @@ type WebhooksCreate struct {
 
 func NewWebhooksCreate() *WebhooksCreate {
 	return &WebhooksCreate{}
+}
+
+func (r WebhooksCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["channelID"] = r.ChannelID
+
+	out["kind"] = r.Kind
+
+	out["trigger"] = r.Trigger
+
+	out["url"] = r.Url
+
+	out["username"] = r.Username
+
+	out["avatar.size"] = r.Avatar.Size
+	out["avatar.filename"] = r.Avatar.Filename
+
+	out["avatarURL"] = r.AvatarURL
+
+	return out
 }
 
 func (wReq *WebhooksCreate) Fill(r *http.Request) (err error) {
@@ -175,6 +206,29 @@ func NewWebhooksUpdate() *WebhooksUpdate {
 	return &WebhooksUpdate{}
 }
 
+func (r WebhooksUpdate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["webhookID"] = r.WebhookID
+
+	out["channelID"] = r.ChannelID
+
+	out["kind"] = r.Kind
+
+	out["trigger"] = r.Trigger
+
+	out["url"] = r.Url
+
+	out["username"] = r.Username
+
+	out["avatar.size"] = r.Avatar.Size
+	out["avatar.filename"] = r.Avatar.Filename
+
+	out["avatarURL"] = r.AvatarURL
+
+	return out
+}
+
 func (wReq *WebhooksUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(wReq)
@@ -246,6 +300,14 @@ func NewWebhooksGet() *WebhooksGet {
 	return &WebhooksGet{}
 }
 
+func (r WebhooksGet) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["webhookID"] = r.WebhookID
+
+	return out
+}
+
 func (wReq *WebhooksGet) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(wReq)
@@ -287,6 +349,14 @@ type WebhooksDelete struct {
 
 func NewWebhooksDelete() *WebhooksDelete {
 	return &WebhooksDelete{}
+}
+
+func (r WebhooksDelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["webhookID"] = r.WebhookID
+
+	return out
 }
 
 func (wReq *WebhooksDelete) Fill(r *http.Request) (err error) {

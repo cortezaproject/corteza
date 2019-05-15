@@ -45,6 +45,22 @@ func NewNotificationEmailSend() *NotificationEmailSend {
 	return &NotificationEmailSend{}
 }
 
+func (r NotificationEmailSend) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["to"] = r.To
+
+	out["cc"] = r.Cc
+
+	out["replyTo"] = r.ReplyTo
+
+	out["subject "] = r.Subject
+
+	out["content"] = r.Content
+
+	return out
+}
+
 func (nReq *NotificationEmailSend) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(nReq)

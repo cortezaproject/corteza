@@ -43,6 +43,18 @@ func NewUserList() *UserList {
 	return &UserList{}
 }
 
+func (r UserList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["query"] = r.Query
+
+	out["username"] = r.Username
+
+	out["email"] = r.Email
+
+	return out
+}
+
 func (usReq *UserList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(usReq)
@@ -98,6 +110,20 @@ type UserCreate struct {
 
 func NewUserCreate() *UserCreate {
 	return &UserCreate{}
+}
+
+func (r UserCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["email"] = r.Email
+
+	out["name"] = r.Name
+
+	out["handle"] = r.Handle
+
+	out["kind"] = r.Kind
+
+	return out
 }
 
 func (usReq *UserCreate) Fill(r *http.Request) (err error) {
@@ -162,6 +188,22 @@ func NewUserUpdate() *UserUpdate {
 	return &UserUpdate{}
 }
 
+func (r UserUpdate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["userID"] = r.UserID
+
+	out["email"] = r.Email
+
+	out["name"] = r.Name
+
+	out["handle"] = r.Handle
+
+	out["kind"] = r.Kind
+
+	return out
+}
+
 func (usReq *UserUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(usReq)
@@ -221,6 +263,14 @@ func NewUserRead() *UserRead {
 	return &UserRead{}
 }
 
+func (r UserRead) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["userID"] = r.UserID
+
+	return out
+}
+
 func (usReq *UserRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(usReq)
@@ -262,6 +312,14 @@ type UserDelete struct {
 
 func NewUserDelete() *UserDelete {
 	return &UserDelete{}
+}
+
+func (r UserDelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["userID"] = r.UserID
+
+	return out
 }
 
 func (usReq *UserDelete) Fill(r *http.Request) (err error) {
@@ -307,6 +365,14 @@ func NewUserSuspend() *UserSuspend {
 	return &UserSuspend{}
 }
 
+func (r UserSuspend) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["userID"] = r.UserID
+
+	return out
+}
+
 func (usReq *UserSuspend) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(usReq)
@@ -348,6 +414,14 @@ type UserUnsuspend struct {
 
 func NewUserUnsuspend() *UserUnsuspend {
 	return &UserUnsuspend{}
+}
+
+func (r UserUnsuspend) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["userID"] = r.UserID
+
+	return out
 }
 
 func (usReq *UserUnsuspend) Fill(r *http.Request) (err error) {

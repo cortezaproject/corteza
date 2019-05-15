@@ -45,16 +45,16 @@ func NewAttachment(ah AttachmentAPI) *Attachment {
 			defer r.Body.Close()
 			params := request.NewAttachmentOriginal()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Attachment.Original", r, err, params)
+				logger.LogParamError("Attachment.Original", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Original(r.Context(), params); err != nil {
-				logger.LogControllerError("Attachment.Original", r, err, params)
+				logger.LogControllerError("Attachment.Original", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Attachment.Original", r, params)
+				logger.LogControllerCall("Attachment.Original", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -68,16 +68,16 @@ func NewAttachment(ah AttachmentAPI) *Attachment {
 			defer r.Body.Close()
 			params := request.NewAttachmentPreview()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Attachment.Preview", r, err, params)
+				logger.LogParamError("Attachment.Preview", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Preview(r.Context(), params); err != nil {
-				logger.LogControllerError("Attachment.Preview", r, err, params)
+				logger.LogControllerError("Attachment.Preview", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Attachment.Preview", r, params)
+				logger.LogControllerCall("Attachment.Preview", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

@@ -46,6 +46,20 @@ func NewModuleList() *ModuleList {
 	return &ModuleList{}
 }
 
+func (r ModuleList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["query"] = r.Query
+
+	out["page"] = r.Page
+
+	out["perPage"] = r.PerPage
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
+}
+
 func (mReq *ModuleList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(mReq)
@@ -104,6 +118,20 @@ func NewModuleCreate() *ModuleCreate {
 	return &ModuleCreate{}
 }
 
+func (r ModuleCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["name"] = r.Name
+
+	out["fields"] = r.Fields
+
+	out["meta"] = r.Meta
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
+}
+
 func (mReq *ModuleCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(mReq)
@@ -158,6 +186,16 @@ func NewModuleRead() *ModuleRead {
 	return &ModuleRead{}
 }
 
+func (r ModuleRead) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["moduleID"] = r.ModuleID
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
+}
+
 func (mReq *ModuleRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(mReq)
@@ -205,6 +243,24 @@ type ModuleUpdate struct {
 
 func NewModuleUpdate() *ModuleUpdate {
 	return &ModuleUpdate{}
+}
+
+func (r ModuleUpdate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["moduleID"] = r.ModuleID
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["name"] = r.Name
+
+	out["fields"] = r.Fields
+
+	out["meta"] = r.Meta
+
+	out["updatedAt"] = r.UpdatedAt
+
+	return out
 }
 
 func (mReq *ModuleUpdate) Fill(r *http.Request) (err error) {
@@ -266,6 +322,16 @@ type ModuleDelete struct {
 
 func NewModuleDelete() *ModuleDelete {
 	return &ModuleDelete{}
+}
+
+func (r ModuleDelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["moduleID"] = r.ModuleID
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
 }
 
 func (mReq *ModuleDelete) Fill(r *http.Request) (err error) {

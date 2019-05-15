@@ -40,6 +40,16 @@ func NewMessageCreate() *MessageCreate {
 	return &MessageCreate{}
 }
 
+func (r MessageCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["message"] = r.Message
+
+	out["channelID"] = r.ChannelID
+
+	return out
+}
+
 func (mReq *MessageCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(mReq)
@@ -90,6 +100,20 @@ func NewMessageExecuteCommand() *MessageExecuteCommand {
 	return &MessageExecuteCommand{}
 }
 
+func (r MessageExecuteCommand) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["command"] = r.Command
+
+	out["channelID"] = r.ChannelID
+
+	out["input"] = r.Input
+
+	out["params"] = r.Params
+
+	return out
+}
+
 func (mReq *MessageExecuteCommand) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(mReq)
@@ -138,6 +162,18 @@ type MessageMarkAsRead struct {
 
 func NewMessageMarkAsRead() *MessageMarkAsRead {
 	return &MessageMarkAsRead{}
+}
+
+func (r MessageMarkAsRead) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["channelID"] = r.ChannelID
+
+	out["threadID"] = r.ThreadID
+
+	out["lastReadMessageID"] = r.LastReadMessageID
+
+	return out
 }
 
 func (mReq *MessageMarkAsRead) Fill(r *http.Request) (err error) {
@@ -193,6 +229,18 @@ func NewMessageEdit() *MessageEdit {
 	return &MessageEdit{}
 }
 
+func (r MessageEdit) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["messageID"] = r.MessageID
+
+	out["channelID"] = r.ChannelID
+
+	out["message"] = r.Message
+
+	return out
+}
+
 func (mReq *MessageEdit) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(mReq)
@@ -242,6 +290,16 @@ func NewMessageDelete() *MessageDelete {
 	return &MessageDelete{}
 }
 
+func (r MessageDelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["messageID"] = r.MessageID
+
+	out["channelID"] = r.ChannelID
+
+	return out
+}
+
 func (mReq *MessageDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(mReq)
@@ -286,6 +344,18 @@ type MessageReplyCreate struct {
 
 func NewMessageReplyCreate() *MessageReplyCreate {
 	return &MessageReplyCreate{}
+}
+
+func (r MessageReplyCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["messageID"] = r.MessageID
+
+	out["channelID"] = r.ChannelID
+
+	out["message"] = r.Message
+
+	return out
 }
 
 func (mReq *MessageReplyCreate) Fill(r *http.Request) (err error) {
@@ -337,6 +407,16 @@ func NewMessagePinCreate() *MessagePinCreate {
 	return &MessagePinCreate{}
 }
 
+func (r MessagePinCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["messageID"] = r.MessageID
+
+	out["channelID"] = r.ChannelID
+
+	return out
+}
+
 func (mReq *MessagePinCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(mReq)
@@ -380,6 +460,16 @@ type MessagePinRemove struct {
 
 func NewMessagePinRemove() *MessagePinRemove {
 	return &MessagePinRemove{}
+}
+
+func (r MessagePinRemove) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["messageID"] = r.MessageID
+
+	out["channelID"] = r.ChannelID
+
+	return out
 }
 
 func (mReq *MessagePinRemove) Fill(r *http.Request) (err error) {
@@ -427,6 +517,16 @@ func NewMessageBookmarkCreate() *MessageBookmarkCreate {
 	return &MessageBookmarkCreate{}
 }
 
+func (r MessageBookmarkCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["messageID"] = r.MessageID
+
+	out["channelID"] = r.ChannelID
+
+	return out
+}
+
 func (mReq *MessageBookmarkCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(mReq)
@@ -470,6 +570,16 @@ type MessageBookmarkRemove struct {
 
 func NewMessageBookmarkRemove() *MessageBookmarkRemove {
 	return &MessageBookmarkRemove{}
+}
+
+func (r MessageBookmarkRemove) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["messageID"] = r.MessageID
+
+	out["channelID"] = r.ChannelID
+
+	return out
 }
 
 func (mReq *MessageBookmarkRemove) Fill(r *http.Request) (err error) {
@@ -518,6 +628,18 @@ func NewMessageReactionCreate() *MessageReactionCreate {
 	return &MessageReactionCreate{}
 }
 
+func (r MessageReactionCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["messageID"] = r.MessageID
+
+	out["reaction"] = r.Reaction
+
+	out["channelID"] = r.ChannelID
+
+	return out
+}
+
 func (mReq *MessageReactionCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(mReq)
@@ -563,6 +685,18 @@ type MessageReactionRemove struct {
 
 func NewMessageReactionRemove() *MessageReactionRemove {
 	return &MessageReactionRemove{}
+}
+
+func (r MessageReactionRemove) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["messageID"] = r.MessageID
+
+	out["reaction"] = r.Reaction
+
+	out["channelID"] = r.ChannelID
+
+	return out
 }
 
 func (mReq *MessageReactionRemove) Fill(r *http.Request) (err error) {

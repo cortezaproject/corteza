@@ -39,6 +39,14 @@ func NewRoleList() *RoleList {
 	return &RoleList{}
 }
 
+func (r RoleList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["query"] = r.Query
+
+	return out
+}
+
 func (roReq *RoleList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(roReq)
@@ -84,6 +92,16 @@ type RoleCreate struct {
 
 func NewRoleCreate() *RoleCreate {
 	return &RoleCreate{}
+}
+
+func (r RoleCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["name"] = r.Name
+
+	out["members"] = r.Members
+
+	return out
 }
 
 func (roReq *RoleCreate) Fill(r *http.Request) (err error) {
@@ -134,6 +152,18 @@ func NewRoleUpdate() *RoleUpdate {
 	return &RoleUpdate{}
 }
 
+func (r RoleUpdate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["roleID"] = r.RoleID
+
+	out["name"] = r.Name
+
+	out["members"] = r.Members
+
+	return out
+}
+
 func (roReq *RoleUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(roReq)
@@ -181,6 +211,14 @@ func NewRoleRead() *RoleRead {
 	return &RoleRead{}
 }
 
+func (r RoleRead) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["roleID"] = r.RoleID
+
+	return out
+}
+
 func (roReq *RoleRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(roReq)
@@ -222,6 +260,14 @@ type RoleDelete struct {
 
 func NewRoleDelete() *RoleDelete {
 	return &RoleDelete{}
+}
+
+func (r RoleDelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["roleID"] = r.RoleID
+
+	return out
 }
 
 func (roReq *RoleDelete) Fill(r *http.Request) (err error) {
@@ -267,6 +313,14 @@ func NewRoleArchive() *RoleArchive {
 	return &RoleArchive{}
 }
 
+func (r RoleArchive) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["roleID"] = r.RoleID
+
+	return out
+}
+
 func (roReq *RoleArchive) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(roReq)
@@ -309,6 +363,16 @@ type RoleMove struct {
 
 func NewRoleMove() *RoleMove {
 	return &RoleMove{}
+}
+
+func (r RoleMove) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["roleID"] = r.RoleID
+
+	out["organisationID"] = r.OrganisationID
+
+	return out
 }
 
 func (roReq *RoleMove) Fill(r *http.Request) (err error) {
@@ -359,6 +423,16 @@ func NewRoleMerge() *RoleMerge {
 	return &RoleMerge{}
 }
 
+func (r RoleMerge) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["roleID"] = r.RoleID
+
+	out["destination"] = r.Destination
+
+	return out
+}
+
 func (roReq *RoleMerge) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(roReq)
@@ -406,6 +480,14 @@ func NewRoleMemberList() *RoleMemberList {
 	return &RoleMemberList{}
 }
 
+func (r RoleMemberList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["roleID"] = r.RoleID
+
+	return out
+}
+
 func (roReq *RoleMemberList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(roReq)
@@ -448,6 +530,16 @@ type RoleMemberAdd struct {
 
 func NewRoleMemberAdd() *RoleMemberAdd {
 	return &RoleMemberAdd{}
+}
+
+func (r RoleMemberAdd) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["roleID"] = r.RoleID
+
+	out["userID"] = r.UserID
+
+	return out
 }
 
 func (roReq *RoleMemberAdd) Fill(r *http.Request) (err error) {
@@ -493,6 +585,16 @@ type RoleMemberRemove struct {
 
 func NewRoleMemberRemove() *RoleMemberRemove {
 	return &RoleMemberRemove{}
+}
+
+func (r RoleMemberRemove) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["roleID"] = r.RoleID
+
+	out["userID"] = r.UserID
+
+	return out
 }
 
 func (roReq *RoleMemberRemove) Fill(r *http.Request) (err error) {

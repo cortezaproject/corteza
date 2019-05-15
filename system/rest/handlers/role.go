@@ -63,16 +63,16 @@ func NewRole(rh RoleAPI) *Role {
 			defer r.Body.Close()
 			params := request.NewRoleList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Role.List", r, err, params)
+				logger.LogParamError("Role.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.List(r.Context(), params); err != nil {
-				logger.LogControllerError("Role.List", r, err, params)
+				logger.LogControllerError("Role.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Role.List", r, params)
+				logger.LogControllerCall("Role.List", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -86,16 +86,16 @@ func NewRole(rh RoleAPI) *Role {
 			defer r.Body.Close()
 			params := request.NewRoleCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Role.Create", r, err, params)
+				logger.LogParamError("Role.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.Create(r.Context(), params); err != nil {
-				logger.LogControllerError("Role.Create", r, err, params)
+				logger.LogControllerError("Role.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Role.Create", r, params)
+				logger.LogControllerCall("Role.Create", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -109,16 +109,16 @@ func NewRole(rh RoleAPI) *Role {
 			defer r.Body.Close()
 			params := request.NewRoleUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Role.Update", r, err, params)
+				logger.LogParamError("Role.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.Update(r.Context(), params); err != nil {
-				logger.LogControllerError("Role.Update", r, err, params)
+				logger.LogControllerError("Role.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Role.Update", r, params)
+				logger.LogControllerCall("Role.Update", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -132,16 +132,16 @@ func NewRole(rh RoleAPI) *Role {
 			defer r.Body.Close()
 			params := request.NewRoleRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Role.Read", r, err, params)
+				logger.LogParamError("Role.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.Read(r.Context(), params); err != nil {
-				logger.LogControllerError("Role.Read", r, err, params)
+				logger.LogControllerError("Role.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Role.Read", r, params)
+				logger.LogControllerCall("Role.Read", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -155,16 +155,16 @@ func NewRole(rh RoleAPI) *Role {
 			defer r.Body.Close()
 			params := request.NewRoleDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Role.Delete", r, err, params)
+				logger.LogParamError("Role.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.Delete(r.Context(), params); err != nil {
-				logger.LogControllerError("Role.Delete", r, err, params)
+				logger.LogControllerError("Role.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Role.Delete", r, params)
+				logger.LogControllerCall("Role.Delete", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -178,16 +178,16 @@ func NewRole(rh RoleAPI) *Role {
 			defer r.Body.Close()
 			params := request.NewRoleArchive()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Role.Archive", r, err, params)
+				logger.LogParamError("Role.Archive", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.Archive(r.Context(), params); err != nil {
-				logger.LogControllerError("Role.Archive", r, err, params)
+				logger.LogControllerError("Role.Archive", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Role.Archive", r, params)
+				logger.LogControllerCall("Role.Archive", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -201,16 +201,16 @@ func NewRole(rh RoleAPI) *Role {
 			defer r.Body.Close()
 			params := request.NewRoleMove()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Role.Move", r, err, params)
+				logger.LogParamError("Role.Move", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.Move(r.Context(), params); err != nil {
-				logger.LogControllerError("Role.Move", r, err, params)
+				logger.LogControllerError("Role.Move", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Role.Move", r, params)
+				logger.LogControllerCall("Role.Move", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -224,16 +224,16 @@ func NewRole(rh RoleAPI) *Role {
 			defer r.Body.Close()
 			params := request.NewRoleMerge()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Role.Merge", r, err, params)
+				logger.LogParamError("Role.Merge", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.Merge(r.Context(), params); err != nil {
-				logger.LogControllerError("Role.Merge", r, err, params)
+				logger.LogControllerError("Role.Merge", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Role.Merge", r, params)
+				logger.LogControllerCall("Role.Merge", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -247,16 +247,16 @@ func NewRole(rh RoleAPI) *Role {
 			defer r.Body.Close()
 			params := request.NewRoleMemberList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Role.MemberList", r, err, params)
+				logger.LogParamError("Role.MemberList", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.MemberList(r.Context(), params); err != nil {
-				logger.LogControllerError("Role.MemberList", r, err, params)
+				logger.LogControllerError("Role.MemberList", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Role.MemberList", r, params)
+				logger.LogControllerCall("Role.MemberList", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -270,16 +270,16 @@ func NewRole(rh RoleAPI) *Role {
 			defer r.Body.Close()
 			params := request.NewRoleMemberAdd()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Role.MemberAdd", r, err, params)
+				logger.LogParamError("Role.MemberAdd", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.MemberAdd(r.Context(), params); err != nil {
-				logger.LogControllerError("Role.MemberAdd", r, err, params)
+				logger.LogControllerError("Role.MemberAdd", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Role.MemberAdd", r, params)
+				logger.LogControllerCall("Role.MemberAdd", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -293,16 +293,16 @@ func NewRole(rh RoleAPI) *Role {
 			defer r.Body.Close()
 			params := request.NewRoleMemberRemove()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Role.MemberRemove", r, err, params)
+				logger.LogParamError("Role.MemberRemove", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := rh.MemberRemove(r.Context(), params); err != nil {
-				logger.LogControllerError("Role.MemberRemove", r, err, params)
+				logger.LogControllerError("Role.MemberRemove", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Role.MemberRemove", r, params)
+				logger.LogControllerCall("Role.MemberRemove", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

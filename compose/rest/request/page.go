@@ -45,6 +45,22 @@ func NewPageList() *PageList {
 	return &PageList{}
 }
 
+func (r PageList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["selfID"] = r.SelfID
+
+	out["query"] = r.Query
+
+	out["page"] = r.Page
+
+	out["perPage"] = r.PerPage
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
+}
+
 func (pReq *PageList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(pReq)
@@ -108,6 +124,26 @@ type PageCreate struct {
 
 func NewPageCreate() *PageCreate {
 	return &PageCreate{}
+}
+
+func (r PageCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["selfID"] = r.SelfID
+
+	out["moduleID"] = r.ModuleID
+
+	out["title"] = r.Title
+
+	out["description"] = r.Description
+
+	out["visible"] = r.Visible
+
+	out["blocks"] = r.Blocks
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
 }
 
 func (pReq *PageCreate) Fill(r *http.Request) (err error) {
@@ -180,6 +216,16 @@ func NewPageRead() *PageRead {
 	return &PageRead{}
 }
 
+func (r PageRead) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["pageID"] = r.PageID
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
+}
+
 func (pReq *PageRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(pReq)
@@ -222,6 +268,14 @@ type PageTree struct {
 
 func NewPageTree() *PageTree {
 	return &PageTree{}
+}
+
+func (r PageTree) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
 }
 
 func (pReq *PageTree) Fill(r *http.Request) (err error) {
@@ -272,6 +326,28 @@ type PageUpdate struct {
 
 func NewPageUpdate() *PageUpdate {
 	return &PageUpdate{}
+}
+
+func (r PageUpdate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["pageID"] = r.PageID
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["selfID"] = r.SelfID
+
+	out["moduleID"] = r.ModuleID
+
+	out["title"] = r.Title
+
+	out["description"] = r.Description
+
+	out["visible"] = r.Visible
+
+	out["blocks"] = r.Blocks
+
+	return out
 }
 
 func (pReq *PageUpdate) Fill(r *http.Request) (err error) {
@@ -346,6 +422,18 @@ func NewPageReorder() *PageReorder {
 	return &PageReorder{}
 }
 
+func (r PageReorder) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["selfID"] = r.SelfID
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["pageIDs"] = r.PageIDs
+
+	return out
+}
+
 func (pReq *PageReorder) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(pReq)
@@ -389,6 +477,16 @@ type PageDelete struct {
 
 func NewPageDelete() *PageDelete {
 	return &PageDelete{}
+}
+
+func (r PageDelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["pageID"] = r.PageID
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
 }
 
 func (pReq *PageDelete) Fill(r *http.Request) (err error) {
@@ -435,6 +533,19 @@ type PageUpload struct {
 
 func NewPageUpload() *PageUpload {
 	return &PageUpload{}
+}
+
+func (r PageUpload) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["pageID"] = r.PageID
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["upload.size"] = r.Upload.Size
+	out["upload.filename"] = r.Upload.Filename
+
+	return out
 }
 
 func (pReq *PageUpload) Fill(r *http.Request) (err error) {

@@ -51,16 +51,16 @@ func NewApplication(ah ApplicationAPI) *Application {
 			defer r.Body.Close()
 			params := request.NewApplicationList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Application.List", r, err, params)
+				logger.LogParamError("Application.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.List(r.Context(), params); err != nil {
-				logger.LogControllerError("Application.List", r, err, params)
+				logger.LogControllerError("Application.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Application.List", r, params)
+				logger.LogControllerCall("Application.List", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -74,16 +74,16 @@ func NewApplication(ah ApplicationAPI) *Application {
 			defer r.Body.Close()
 			params := request.NewApplicationCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Application.Create", r, err, params)
+				logger.LogParamError("Application.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Create(r.Context(), params); err != nil {
-				logger.LogControllerError("Application.Create", r, err, params)
+				logger.LogControllerError("Application.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Application.Create", r, params)
+				logger.LogControllerCall("Application.Create", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -97,16 +97,16 @@ func NewApplication(ah ApplicationAPI) *Application {
 			defer r.Body.Close()
 			params := request.NewApplicationUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Application.Update", r, err, params)
+				logger.LogParamError("Application.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Update(r.Context(), params); err != nil {
-				logger.LogControllerError("Application.Update", r, err, params)
+				logger.LogControllerError("Application.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Application.Update", r, params)
+				logger.LogControllerCall("Application.Update", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -120,16 +120,16 @@ func NewApplication(ah ApplicationAPI) *Application {
 			defer r.Body.Close()
 			params := request.NewApplicationRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Application.Read", r, err, params)
+				logger.LogParamError("Application.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Read(r.Context(), params); err != nil {
-				logger.LogControllerError("Application.Read", r, err, params)
+				logger.LogControllerError("Application.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Application.Read", r, params)
+				logger.LogControllerCall("Application.Read", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -143,16 +143,16 @@ func NewApplication(ah ApplicationAPI) *Application {
 			defer r.Body.Close()
 			params := request.NewApplicationDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Application.Delete", r, err, params)
+				logger.LogParamError("Application.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Delete(r.Context(), params); err != nil {
-				logger.LogControllerError("Application.Delete", r, err, params)
+				logger.LogControllerError("Application.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Application.Delete", r, params)
+				logger.LogControllerCall("Application.Delete", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

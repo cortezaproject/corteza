@@ -43,6 +43,22 @@ func NewAttachmentOriginal() *AttachmentOriginal {
 	return &AttachmentOriginal{}
 }
 
+func (r AttachmentOriginal) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["download"] = r.Download
+
+	out["sign"] = r.Sign
+
+	out["userID"] = r.UserID
+
+	out["name"] = r.Name
+
+	out["attachmentID"] = r.AttachmentID
+
+	return out
+}
+
 func (aReq *AttachmentOriginal) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(aReq)
@@ -100,6 +116,20 @@ type AttachmentPreview struct {
 
 func NewAttachmentPreview() *AttachmentPreview {
 	return &AttachmentPreview{}
+}
+
+func (r AttachmentPreview) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["ext"] = r.Ext
+
+	out["attachmentID"] = r.AttachmentID
+
+	out["sign"] = r.Sign
+
+	out["userID"] = r.UserID
+
+	return out
 }
 
 func (aReq *AttachmentPreview) Fill(r *http.Request) (err error) {

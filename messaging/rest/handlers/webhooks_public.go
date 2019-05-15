@@ -45,16 +45,16 @@ func NewWebhooksPublic(wh WebhooksPublicAPI) *WebhooksPublic {
 			defer r.Body.Close()
 			params := request.NewWebhooksPublicDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("WebhooksPublic.Delete", r, err, params)
+				logger.LogParamError("WebhooksPublic.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := wh.Delete(r.Context(), params); err != nil {
-				logger.LogControllerError("WebhooksPublic.Delete", r, err, params)
+				logger.LogControllerError("WebhooksPublic.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("WebhooksPublic.Delete", r, params)
+				logger.LogControllerCall("WebhooksPublic.Delete", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -68,16 +68,16 @@ func NewWebhooksPublic(wh WebhooksPublicAPI) *WebhooksPublic {
 			defer r.Body.Close()
 			params := request.NewWebhooksPublicCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("WebhooksPublic.Create", r, err, params)
+				logger.LogParamError("WebhooksPublic.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := wh.Create(r.Context(), params); err != nil {
-				logger.LogControllerError("WebhooksPublic.Create", r, err, params)
+				logger.LogControllerError("WebhooksPublic.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("WebhooksPublic.Create", r, params)
+				logger.LogControllerCall("WebhooksPublic.Create", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

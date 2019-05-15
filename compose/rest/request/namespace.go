@@ -44,6 +44,18 @@ func NewNamespaceList() *NamespaceList {
 	return &NamespaceList{}
 }
 
+func (r NamespaceList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["query"] = r.Query
+
+	out["page"] = r.Page
+
+	out["perPage"] = r.PerPage
+
+	return out
+}
+
 func (nReq *NamespaceList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(nReq)
@@ -99,6 +111,20 @@ type NamespaceCreate struct {
 
 func NewNamespaceCreate() *NamespaceCreate {
 	return &NamespaceCreate{}
+}
+
+func (r NamespaceCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["name"] = r.Name
+
+	out["slug"] = r.Slug
+
+	out["enabled"] = r.Enabled
+
+	out["meta"] = r.Meta
+
+	return out
 }
 
 func (nReq *NamespaceCreate) Fill(r *http.Request) (err error) {
@@ -161,6 +187,14 @@ func NewNamespaceRead() *NamespaceRead {
 	return &NamespaceRead{}
 }
 
+func (r NamespaceRead) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
+}
+
 func (nReq *NamespaceRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(nReq)
@@ -207,6 +241,24 @@ type NamespaceUpdate struct {
 
 func NewNamespaceUpdate() *NamespaceUpdate {
 	return &NamespaceUpdate{}
+}
+
+func (r NamespaceUpdate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["name"] = r.Name
+
+	out["slug"] = r.Slug
+
+	out["enabled"] = r.Enabled
+
+	out["meta"] = r.Meta
+
+	out["updatedAt"] = r.UpdatedAt
+
+	return out
 }
 
 func (nReq *NamespaceUpdate) Fill(r *http.Request) (err error) {
@@ -274,6 +326,14 @@ type NamespaceDelete struct {
 
 func NewNamespaceDelete() *NamespaceDelete {
 	return &NamespaceDelete{}
+}
+
+func (r NamespaceDelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
 }
 
 func (nReq *NamespaceDelete) Fill(r *http.Request) (err error) {

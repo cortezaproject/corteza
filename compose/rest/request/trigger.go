@@ -45,6 +45,22 @@ func NewTriggerList() *TriggerList {
 	return &TriggerList{}
 }
 
+func (r TriggerList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["moduleID"] = r.ModuleID
+
+	out["query"] = r.Query
+
+	out["page"] = r.Page
+
+	out["perPage"] = r.PerPage
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
+}
+
 func (tReq *TriggerList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(tReq)
@@ -108,6 +124,26 @@ type TriggerCreate struct {
 
 func NewTriggerCreate() *TriggerCreate {
 	return &TriggerCreate{}
+}
+
+func (r TriggerCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["moduleID"] = r.ModuleID
+
+	out["name"] = r.Name
+
+	out["actions"] = r.Actions
+
+	out["enabled"] = r.Enabled
+
+	out["source"] = r.Source
+
+	out["updatedAt"] = r.UpdatedAt
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
 }
 
 func (tReq *TriggerCreate) Fill(r *http.Request) (err error) {
@@ -176,6 +212,16 @@ func NewTriggerRead() *TriggerRead {
 	return &TriggerRead{}
 }
 
+func (r TriggerRead) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["triggerID"] = r.TriggerID
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
+}
+
 func (tReq *TriggerRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(tReq)
@@ -224,6 +270,26 @@ type TriggerUpdate struct {
 
 func NewTriggerUpdate() *TriggerUpdate {
 	return &TriggerUpdate{}
+}
+
+func (r TriggerUpdate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["triggerID"] = r.TriggerID
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["moduleID"] = r.ModuleID
+
+	out["name"] = r.Name
+
+	out["actions"] = r.Actions
+
+	out["enabled"] = r.Enabled
+
+	out["source"] = r.Source
+
+	return out
 }
 
 func (tReq *TriggerUpdate) Fill(r *http.Request) (err error) {
@@ -285,6 +351,16 @@ type TriggerDelete struct {
 
 func NewTriggerDelete() *TriggerDelete {
 	return &TriggerDelete{}
+}
+
+func (r TriggerDelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["triggerID"] = r.TriggerID
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
 }
 
 func (tReq *TriggerDelete) Fill(r *http.Request) (err error) {
