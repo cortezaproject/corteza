@@ -40,6 +40,12 @@ func NewPermissionsList() *PermissionsList {
 	return &PermissionsList{}
 }
 
+func (r PermissionsList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	return out
+}
+
 func (peReq *PermissionsList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(peReq)
@@ -79,6 +85,14 @@ type PermissionsEffective struct {
 
 func NewPermissionsEffective() *PermissionsEffective {
 	return &PermissionsEffective{}
+}
+
+func (r PermissionsEffective) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["resource"] = r.Resource
+
+	return out
 }
 
 func (peReq *PermissionsEffective) Fill(r *http.Request) (err error) {
@@ -127,6 +141,14 @@ func NewPermissionsRead() *PermissionsRead {
 	return &PermissionsRead{}
 }
 
+func (r PermissionsRead) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["roleID"] = r.RoleID
+
+	return out
+}
+
 func (peReq *PermissionsRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(peReq)
@@ -168,6 +190,14 @@ type PermissionsDelete struct {
 
 func NewPermissionsDelete() *PermissionsDelete {
 	return &PermissionsDelete{}
+}
+
+func (r PermissionsDelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["roleID"] = r.RoleID
+
+	return out
 }
 
 func (peReq *PermissionsDelete) Fill(r *http.Request) (err error) {
@@ -212,6 +242,16 @@ type PermissionsUpdate struct {
 
 func NewPermissionsUpdate() *PermissionsUpdate {
 	return &PermissionsUpdate{}
+}
+
+func (r PermissionsUpdate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["roleID"] = r.RoleID
+
+	out["rules"] = r.Rules
+
+	return out
 }
 
 func (peReq *PermissionsUpdate) Fill(r *http.Request) (err error) {

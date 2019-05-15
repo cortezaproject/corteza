@@ -45,6 +45,20 @@ func NewChartList() *ChartList {
 	return &ChartList{}
 }
 
+func (r ChartList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["query"] = r.Query
+
+	out["page"] = r.Page
+
+	out["perPage"] = r.PerPage
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
+}
+
 func (cReq *ChartList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(cReq)
@@ -102,6 +116,18 @@ func NewChartCreate() *ChartCreate {
 	return &ChartCreate{}
 }
 
+func (r ChartCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["config"] = r.Config
+
+	out["name"] = r.Name
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
+}
+
 func (cReq *ChartCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(cReq)
@@ -156,6 +182,16 @@ func NewChartRead() *ChartRead {
 	return &ChartRead{}
 }
 
+func (r ChartRead) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["chartID"] = r.ChartID
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
+}
+
 func (cReq *ChartRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(cReq)
@@ -202,6 +238,22 @@ type ChartUpdate struct {
 
 func NewChartUpdate() *ChartUpdate {
 	return &ChartUpdate{}
+}
+
+func (r ChartUpdate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["chartID"] = r.ChartID
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["config"] = r.Config
+
+	out["name"] = r.Name
+
+	out["updatedAt"] = r.UpdatedAt
+
+	return out
 }
 
 func (cReq *ChartUpdate) Fill(r *http.Request) (err error) {
@@ -263,6 +315,16 @@ type ChartDelete struct {
 
 func NewChartDelete() *ChartDelete {
 	return &ChartDelete{}
+}
+
+func (r ChartDelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["chartID"] = r.ChartID
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
 }
 
 func (cReq *ChartDelete) Fill(r *http.Request) (err error) {

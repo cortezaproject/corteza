@@ -40,6 +40,16 @@ func NewWebhooksPublicDelete() *WebhooksPublicDelete {
 	return &WebhooksPublicDelete{}
 }
 
+func (r WebhooksPublicDelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["webhookID"] = r.WebhookID
+
+	out["webhookToken"] = r.WebhookToken
+
+	return out
+}
+
 func (wReq *WebhooksPublicDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(wReq)
@@ -86,6 +96,22 @@ type WebhooksPublicCreate struct {
 
 func NewWebhooksPublicCreate() *WebhooksPublicCreate {
 	return &WebhooksPublicCreate{}
+}
+
+func (r WebhooksPublicCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["username"] = r.Username
+
+	out["avatarURL"] = r.AvatarURL
+
+	out["content"] = r.Content
+
+	out["webhookID"] = r.WebhookID
+
+	out["webhookToken"] = r.WebhookToken
+
+	return out
 }
 
 func (wReq *WebhooksPublicCreate) Fill(r *http.Request) (err error) {

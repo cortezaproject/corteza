@@ -41,6 +41,18 @@ func NewActivitySend() *ActivitySend {
 	return &ActivitySend{}
 }
 
+func (r ActivitySend) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["channelID"] = r.ChannelID
+
+	out["messageID"] = r.MessageID
+
+	out["kind"] = r.Kind
+
+	return out
+}
+
 func (aReq *ActivitySend) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(aReq)

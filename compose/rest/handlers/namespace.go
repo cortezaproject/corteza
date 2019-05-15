@@ -51,16 +51,16 @@ func NewNamespace(nh NamespaceAPI) *Namespace {
 			defer r.Body.Close()
 			params := request.NewNamespaceList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Namespace.List", r, err, params)
+				logger.LogParamError("Namespace.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := nh.List(r.Context(), params); err != nil {
-				logger.LogControllerError("Namespace.List", r, err, params)
+				logger.LogControllerError("Namespace.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Namespace.List", r, params)
+				logger.LogControllerCall("Namespace.List", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -74,16 +74,16 @@ func NewNamespace(nh NamespaceAPI) *Namespace {
 			defer r.Body.Close()
 			params := request.NewNamespaceCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Namespace.Create", r, err, params)
+				logger.LogParamError("Namespace.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := nh.Create(r.Context(), params); err != nil {
-				logger.LogControllerError("Namespace.Create", r, err, params)
+				logger.LogControllerError("Namespace.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Namespace.Create", r, params)
+				logger.LogControllerCall("Namespace.Create", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -97,16 +97,16 @@ func NewNamespace(nh NamespaceAPI) *Namespace {
 			defer r.Body.Close()
 			params := request.NewNamespaceRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Namespace.Read", r, err, params)
+				logger.LogParamError("Namespace.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := nh.Read(r.Context(), params); err != nil {
-				logger.LogControllerError("Namespace.Read", r, err, params)
+				logger.LogControllerError("Namespace.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Namespace.Read", r, params)
+				logger.LogControllerCall("Namespace.Read", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -120,16 +120,16 @@ func NewNamespace(nh NamespaceAPI) *Namespace {
 			defer r.Body.Close()
 			params := request.NewNamespaceUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Namespace.Update", r, err, params)
+				logger.LogParamError("Namespace.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := nh.Update(r.Context(), params); err != nil {
-				logger.LogControllerError("Namespace.Update", r, err, params)
+				logger.LogControllerError("Namespace.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Namespace.Update", r, params)
+				logger.LogControllerCall("Namespace.Update", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -143,16 +143,16 @@ func NewNamespace(nh NamespaceAPI) *Namespace {
 			defer r.Body.Close()
 			params := request.NewNamespaceDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Namespace.Delete", r, err, params)
+				logger.LogParamError("Namespace.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := nh.Delete(r.Context(), params); err != nil {
-				logger.LogControllerError("Namespace.Delete", r, err, params)
+				logger.LogControllerError("Namespace.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Namespace.Delete", r, params)
+				logger.LogControllerCall("Namespace.Delete", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

@@ -38,6 +38,12 @@ func NewCommandsList() *CommandsList {
 	return &CommandsList{}
 }
 
+func (r CommandsList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	return out
+}
+
 func (cReq *CommandsList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(cReq)

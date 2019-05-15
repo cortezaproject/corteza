@@ -39,6 +39,14 @@ func NewOrganisationList() *OrganisationList {
 	return &OrganisationList{}
 }
 
+func (r OrganisationList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["query"] = r.Query
+
+	return out
+}
+
 func (orReq *OrganisationList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(orReq)
@@ -83,6 +91,14 @@ type OrganisationCreate struct {
 
 func NewOrganisationCreate() *OrganisationCreate {
 	return &OrganisationCreate{}
+}
+
+func (r OrganisationCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["name"] = r.Name
+
+	return out
 }
 
 func (orReq *OrganisationCreate) Fill(r *http.Request) (err error) {
@@ -132,6 +148,16 @@ func NewOrganisationUpdate() *OrganisationUpdate {
 	return &OrganisationUpdate{}
 }
 
+func (r OrganisationUpdate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["id"] = r.ID
+
+	out["name"] = r.Name
+
+	return out
+}
+
 func (orReq *OrganisationUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(orReq)
@@ -179,6 +205,14 @@ func NewOrganisationDelete() *OrganisationDelete {
 	return &OrganisationDelete{}
 }
 
+func (r OrganisationDelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["id"] = r.ID
+
+	return out
+}
+
 func (orReq *OrganisationDelete) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(orReq)
@@ -220,6 +254,14 @@ type OrganisationRead struct {
 
 func NewOrganisationRead() *OrganisationRead {
 	return &OrganisationRead{}
+}
+
+func (r OrganisationRead) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["id"] = r.ID
+
+	return out
 }
 
 func (orReq *OrganisationRead) Fill(r *http.Request) (err error) {
@@ -266,6 +308,14 @@ type OrganisationArchive struct {
 
 func NewOrganisationArchive() *OrganisationArchive {
 	return &OrganisationArchive{}
+}
+
+func (r OrganisationArchive) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["id"] = r.ID
+
+	return out
 }
 
 func (orReq *OrganisationArchive) Fill(r *http.Request) (err error) {

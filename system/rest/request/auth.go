@@ -38,6 +38,12 @@ func NewAuthSettings() *AuthSettings {
 	return &AuthSettings{}
 }
 
+func (r AuthSettings) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	return out
+}
+
 func (auReq *AuthSettings) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(auReq)
@@ -76,6 +82,12 @@ type AuthCheck struct {
 
 func NewAuthCheck() *AuthCheck {
 	return &AuthCheck{}
+}
+
+func (r AuthCheck) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	return out
 }
 
 func (auReq *AuthCheck) Fill(r *http.Request) (err error) {
@@ -117,6 +129,14 @@ type AuthExchangeAuthToken struct {
 
 func NewAuthExchangeAuthToken() *AuthExchangeAuthToken {
 	return &AuthExchangeAuthToken{}
+}
+
+func (r AuthExchangeAuthToken) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["token"] = r.Token
+
+	return out
 }
 
 func (auReq *AuthExchangeAuthToken) Fill(r *http.Request) (err error) {
@@ -162,6 +182,12 @@ type AuthLogout struct {
 
 func NewAuthLogout() *AuthLogout {
 	return &AuthLogout{}
+}
+
+func (r AuthLogout) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	return out
 }
 
 func (auReq *AuthLogout) Fill(r *http.Request) (err error) {

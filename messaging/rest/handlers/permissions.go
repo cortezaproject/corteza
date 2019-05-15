@@ -51,16 +51,16 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 			defer r.Body.Close()
 			params := request.NewPermissionsList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Permissions.List", r, err, params)
+				logger.LogParamError("Permissions.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ph.List(r.Context(), params); err != nil {
-				logger.LogControllerError("Permissions.List", r, err, params)
+				logger.LogControllerError("Permissions.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Permissions.List", r, params)
+				logger.LogControllerCall("Permissions.List", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -74,16 +74,16 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 			defer r.Body.Close()
 			params := request.NewPermissionsEffective()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Permissions.Effective", r, err, params)
+				logger.LogParamError("Permissions.Effective", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ph.Effective(r.Context(), params); err != nil {
-				logger.LogControllerError("Permissions.Effective", r, err, params)
+				logger.LogControllerError("Permissions.Effective", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Permissions.Effective", r, params)
+				logger.LogControllerCall("Permissions.Effective", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -97,16 +97,16 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 			defer r.Body.Close()
 			params := request.NewPermissionsRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Permissions.Read", r, err, params)
+				logger.LogParamError("Permissions.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ph.Read(r.Context(), params); err != nil {
-				logger.LogControllerError("Permissions.Read", r, err, params)
+				logger.LogControllerError("Permissions.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Permissions.Read", r, params)
+				logger.LogControllerCall("Permissions.Read", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -120,16 +120,16 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 			defer r.Body.Close()
 			params := request.NewPermissionsDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Permissions.Delete", r, err, params)
+				logger.LogParamError("Permissions.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ph.Delete(r.Context(), params); err != nil {
-				logger.LogControllerError("Permissions.Delete", r, err, params)
+				logger.LogControllerError("Permissions.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Permissions.Delete", r, params)
+				logger.LogControllerCall("Permissions.Delete", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -143,16 +143,16 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 			defer r.Body.Close()
 			params := request.NewPermissionsUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Permissions.Update", r, err, params)
+				logger.LogParamError("Permissions.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ph.Update(r.Context(), params); err != nil {
-				logger.LogControllerError("Permissions.Update", r, err, params)
+				logger.LogControllerError("Permissions.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Permissions.Update", r, params)
+				logger.LogControllerCall("Permissions.Update", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

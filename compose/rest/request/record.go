@@ -45,6 +45,22 @@ func NewRecordReport() *RecordReport {
 	return &RecordReport{}
 }
 
+func (r RecordReport) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["metrics"] = r.Metrics
+
+	out["dimensions"] = r.Dimensions
+
+	out["filter"] = r.Filter
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["moduleID"] = r.ModuleID
+
+	return out
+}
+
 func (rReq *RecordReport) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(rReq)
@@ -104,6 +120,24 @@ type RecordList struct {
 
 func NewRecordList() *RecordList {
 	return &RecordList{}
+}
+
+func (r RecordList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["filter"] = r.Filter
+
+	out["page"] = r.Page
+
+	out["perPage"] = r.PerPage
+
+	out["sort"] = r.Sort
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["moduleID"] = r.ModuleID
+
+	return out
 }
 
 func (rReq *RecordList) Fill(r *http.Request) (err error) {
@@ -168,6 +202,18 @@ func NewRecordCreate() *RecordCreate {
 	return &RecordCreate{}
 }
 
+func (r RecordCreate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["values"] = r.Values
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["moduleID"] = r.ModuleID
+
+	return out
+}
+
 func (rReq *RecordCreate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(rReq)
@@ -212,6 +258,18 @@ type RecordRead struct {
 
 func NewRecordRead() *RecordRead {
 	return &RecordRead{}
+}
+
+func (r RecordRead) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["recordID"] = r.RecordID
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["moduleID"] = r.ModuleID
+
+	return out
 }
 
 func (rReq *RecordRead) Fill(r *http.Request) (err error) {
@@ -262,6 +320,20 @@ func NewRecordUpdate() *RecordUpdate {
 	return &RecordUpdate{}
 }
 
+func (r RecordUpdate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["recordID"] = r.RecordID
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["moduleID"] = r.ModuleID
+
+	out["values"] = r.Values
+
+	return out
+}
+
 func (rReq *RecordUpdate) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(rReq)
@@ -307,6 +379,18 @@ type RecordDelete struct {
 
 func NewRecordDelete() *RecordDelete {
 	return &RecordDelete{}
+}
+
+func (r RecordDelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["recordID"] = r.RecordID
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["moduleID"] = r.ModuleID
+
+	return out
 }
 
 func (rReq *RecordDelete) Fill(r *http.Request) (err error) {
@@ -356,6 +440,23 @@ type RecordUpload struct {
 
 func NewRecordUpload() *RecordUpload {
 	return &RecordUpload{}
+}
+
+func (r RecordUpload) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["recordID"] = r.RecordID
+
+	out["fieldName"] = r.FieldName
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["moduleID"] = r.ModuleID
+
+	out["upload.size"] = r.Upload.Size
+	out["upload.filename"] = r.Upload.Filename
+
+	return out
 }
 
 func (rReq *RecordUpload) Fill(r *http.Request) (err error) {

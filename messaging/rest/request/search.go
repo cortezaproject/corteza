@@ -50,6 +50,36 @@ func NewSearchMessages() *SearchMessages {
 	return &SearchMessages{}
 }
 
+func (r SearchMessages) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["channelID"] = r.ChannelID
+
+	out["afterMessageID"] = r.AfterMessageID
+
+	out["beforeMessageID"] = r.BeforeMessageID
+
+	out["fromMessageID"] = r.FromMessageID
+
+	out["toMessageID"] = r.ToMessageID
+
+	out["threadID"] = r.ThreadID
+
+	out["userID"] = r.UserID
+
+	out["type"] = r.Type
+
+	out["pinnedOnly"] = r.PinnedOnly
+
+	out["bookmarkedOnly"] = r.BookmarkedOnly
+
+	out["limit"] = r.Limit
+
+	out["query"] = r.Query
+
+	return out
+}
+
 func (sReq *SearchMessages) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(sReq)
@@ -143,6 +173,18 @@ type SearchThreads struct {
 
 func NewSearchThreads() *SearchThreads {
 	return &SearchThreads{}
+}
+
+func (r SearchThreads) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["channelID"] = r.ChannelID
+
+	out["limit"] = r.Limit
+
+	out["query"] = r.Query
+
+	return out
 }
 
 func (sReq *SearchThreads) Fill(r *http.Request) (err error) {

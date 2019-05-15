@@ -53,16 +53,16 @@ func NewOrganisation(oh OrganisationAPI) *Organisation {
 			defer r.Body.Close()
 			params := request.NewOrganisationList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Organisation.List", r, err, params)
+				logger.LogParamError("Organisation.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := oh.List(r.Context(), params); err != nil {
-				logger.LogControllerError("Organisation.List", r, err, params)
+				logger.LogControllerError("Organisation.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Organisation.List", r, params)
+				logger.LogControllerCall("Organisation.List", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -76,16 +76,16 @@ func NewOrganisation(oh OrganisationAPI) *Organisation {
 			defer r.Body.Close()
 			params := request.NewOrganisationCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Organisation.Create", r, err, params)
+				logger.LogParamError("Organisation.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := oh.Create(r.Context(), params); err != nil {
-				logger.LogControllerError("Organisation.Create", r, err, params)
+				logger.LogControllerError("Organisation.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Organisation.Create", r, params)
+				logger.LogControllerCall("Organisation.Create", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -99,16 +99,16 @@ func NewOrganisation(oh OrganisationAPI) *Organisation {
 			defer r.Body.Close()
 			params := request.NewOrganisationUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Organisation.Update", r, err, params)
+				logger.LogParamError("Organisation.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := oh.Update(r.Context(), params); err != nil {
-				logger.LogControllerError("Organisation.Update", r, err, params)
+				logger.LogControllerError("Organisation.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Organisation.Update", r, params)
+				logger.LogControllerCall("Organisation.Update", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -122,16 +122,16 @@ func NewOrganisation(oh OrganisationAPI) *Organisation {
 			defer r.Body.Close()
 			params := request.NewOrganisationDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Organisation.Delete", r, err, params)
+				logger.LogParamError("Organisation.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := oh.Delete(r.Context(), params); err != nil {
-				logger.LogControllerError("Organisation.Delete", r, err, params)
+				logger.LogControllerError("Organisation.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Organisation.Delete", r, params)
+				logger.LogControllerCall("Organisation.Delete", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -145,16 +145,16 @@ func NewOrganisation(oh OrganisationAPI) *Organisation {
 			defer r.Body.Close()
 			params := request.NewOrganisationRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Organisation.Read", r, err, params)
+				logger.LogParamError("Organisation.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := oh.Read(r.Context(), params); err != nil {
-				logger.LogControllerError("Organisation.Read", r, err, params)
+				logger.LogControllerError("Organisation.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Organisation.Read", r, params)
+				logger.LogControllerCall("Organisation.Read", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -168,16 +168,16 @@ func NewOrganisation(oh OrganisationAPI) *Organisation {
 			defer r.Body.Close()
 			params := request.NewOrganisationArchive()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Organisation.Archive", r, err, params)
+				logger.LogParamError("Organisation.Archive", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := oh.Archive(r.Context(), params); err != nil {
-				logger.LogControllerError("Organisation.Archive", r, err, params)
+				logger.LogControllerError("Organisation.Archive", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Organisation.Archive", r, params)
+				logger.LogControllerCall("Organisation.Archive", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

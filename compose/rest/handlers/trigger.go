@@ -51,16 +51,16 @@ func NewTrigger(th TriggerAPI) *Trigger {
 			defer r.Body.Close()
 			params := request.NewTriggerList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Trigger.List", r, err, params)
+				logger.LogParamError("Trigger.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := th.List(r.Context(), params); err != nil {
-				logger.LogControllerError("Trigger.List", r, err, params)
+				logger.LogControllerError("Trigger.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Trigger.List", r, params)
+				logger.LogControllerCall("Trigger.List", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -74,16 +74,16 @@ func NewTrigger(th TriggerAPI) *Trigger {
 			defer r.Body.Close()
 			params := request.NewTriggerCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Trigger.Create", r, err, params)
+				logger.LogParamError("Trigger.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := th.Create(r.Context(), params); err != nil {
-				logger.LogControllerError("Trigger.Create", r, err, params)
+				logger.LogControllerError("Trigger.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Trigger.Create", r, params)
+				logger.LogControllerCall("Trigger.Create", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -97,16 +97,16 @@ func NewTrigger(th TriggerAPI) *Trigger {
 			defer r.Body.Close()
 			params := request.NewTriggerRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Trigger.Read", r, err, params)
+				logger.LogParamError("Trigger.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := th.Read(r.Context(), params); err != nil {
-				logger.LogControllerError("Trigger.Read", r, err, params)
+				logger.LogControllerError("Trigger.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Trigger.Read", r, params)
+				logger.LogControllerCall("Trigger.Read", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -120,16 +120,16 @@ func NewTrigger(th TriggerAPI) *Trigger {
 			defer r.Body.Close()
 			params := request.NewTriggerUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Trigger.Update", r, err, params)
+				logger.LogParamError("Trigger.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := th.Update(r.Context(), params); err != nil {
-				logger.LogControllerError("Trigger.Update", r, err, params)
+				logger.LogControllerError("Trigger.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Trigger.Update", r, params)
+				logger.LogControllerCall("Trigger.Update", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)
@@ -143,16 +143,16 @@ func NewTrigger(th TriggerAPI) *Trigger {
 			defer r.Body.Close()
 			params := request.NewTriggerDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Trigger.Delete", r, err, params)
+				logger.LogParamError("Trigger.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := th.Delete(r.Context(), params); err != nil {
-				logger.LogControllerError("Trigger.Delete", r, err, params)
+				logger.LogControllerError("Trigger.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Trigger.Delete", r, params)
+				logger.LogControllerCall("Trigger.Delete", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

@@ -43,16 +43,16 @@ func NewActivity(ah ActivityAPI) *Activity {
 			defer r.Body.Close()
 			params := request.NewActivitySend()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Activity.Send", r, err, params)
+				logger.LogParamError("Activity.Send", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := ah.Send(r.Context(), params); err != nil {
-				logger.LogControllerError("Activity.Send", r, err, params)
+				logger.LogControllerError("Activity.Send", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("Activity.Send", r, params)
+				logger.LogControllerCall("Activity.Send", r, params.Auditable())
 				switch fn := value.(type) {
 				case func(http.ResponseWriter, *http.Request):
 					fn(w, r)

@@ -48,6 +48,32 @@ func NewAttachmentList() *AttachmentList {
 	return &AttachmentList{}
 }
 
+func (r AttachmentList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["pageID"] = r.PageID
+
+	out["moduleID"] = r.ModuleID
+
+	out["recordID"] = r.RecordID
+
+	out["fieldName"] = r.FieldName
+
+	out["page"] = r.Page
+
+	out["perPage"] = r.PerPage
+
+	out["sign"] = r.Sign
+
+	out["userID"] = r.UserID
+
+	out["kind"] = r.Kind
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
+}
+
 func (aReq *AttachmentList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(aReq)
@@ -128,6 +154,22 @@ func NewAttachmentRead() *AttachmentRead {
 	return &AttachmentRead{}
 }
 
+func (r AttachmentRead) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["attachmentID"] = r.AttachmentID
+
+	out["kind"] = r.Kind
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["sign"] = r.Sign
+
+	out["userID"] = r.UserID
+
+	return out
+}
+
 func (aReq *AttachmentRead) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(aReq)
@@ -183,6 +225,22 @@ type AttachmentDelete struct {
 
 func NewAttachmentDelete() *AttachmentDelete {
 	return &AttachmentDelete{}
+}
+
+func (r AttachmentDelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["attachmentID"] = r.AttachmentID
+
+	out["kind"] = r.Kind
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["sign"] = r.Sign
+
+	out["userID"] = r.UserID
+
+	return out
 }
 
 func (aReq *AttachmentDelete) Fill(r *http.Request) (err error) {
@@ -242,6 +300,26 @@ type AttachmentOriginal struct {
 
 func NewAttachmentOriginal() *AttachmentOriginal {
 	return &AttachmentOriginal{}
+}
+
+func (r AttachmentOriginal) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["download"] = r.Download
+
+	out["sign"] = r.Sign
+
+	out["userID"] = r.UserID
+
+	out["attachmentID"] = r.AttachmentID
+
+	out["name"] = r.Name
+
+	out["kind"] = r.Kind
+
+	out["namespaceID"] = r.NamespaceID
+
+	return out
 }
 
 func (aReq *AttachmentOriginal) Fill(r *http.Request) (err error) {
@@ -305,6 +383,24 @@ type AttachmentPreview struct {
 
 func NewAttachmentPreview() *AttachmentPreview {
 	return &AttachmentPreview{}
+}
+
+func (r AttachmentPreview) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["attachmentID"] = r.AttachmentID
+
+	out["ext"] = r.Ext
+
+	out["kind"] = r.Kind
+
+	out["namespaceID"] = r.NamespaceID
+
+	out["sign"] = r.Sign
+
+	out["userID"] = r.UserID
+
+	return out
 }
 
 func (aReq *AttachmentPreview) Fill(r *http.Request) (err error) {

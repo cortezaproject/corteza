@@ -41,6 +41,14 @@ func NewSettingsList() *SettingsList {
 	return &SettingsList{}
 }
 
+func (r SettingsList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["prefix"] = r.Prefix
+
+	return out
+}
+
 func (seReq *SettingsList) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(seReq)
@@ -85,6 +93,14 @@ type SettingsUpdate struct {
 
 func NewSettingsUpdate() *SettingsUpdate {
 	return &SettingsUpdate{}
+}
+
+func (r SettingsUpdate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["values"] = r.Values
+
+	return out
 }
 
 func (seReq *SettingsUpdate) Fill(r *http.Request) (err error) {
@@ -136,6 +152,16 @@ func NewSettingsGet() *SettingsGet {
 	return &SettingsGet{}
 }
 
+func (r SettingsGet) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["ownerID"] = r.OwnerID
+
+	out["key"] = r.Key
+
+	return out
+}
+
 func (seReq *SettingsGet) Fill(r *http.Request) (err error) {
 	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(r.Body).Decode(seReq)
@@ -183,6 +209,18 @@ type SettingsSet struct {
 
 func NewSettingsSet() *SettingsSet {
 	return &SettingsSet{}
+}
+
+func (r SettingsSet) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["key"] = r.Key
+
+	out["ownerID"] = r.OwnerID
+
+	out["value"] = r.Value
+
+	return out
 }
 
 func (seReq *SettingsSet) Fill(r *http.Request) (err error) {
