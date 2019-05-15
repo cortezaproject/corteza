@@ -62,9 +62,16 @@ func (r *repository) Load() (RuleSet, error) {
 }
 
 func (r *repository) Store(deleteSet, updateSet RuleSet) (err error) {
+	if len(deleteSet) == 0 && len(updateSet) == 0 {
+		return
+	}
+
 	return r.dbh.Transaction(func() error {
 		if len(deleteSet) > 0 {
-			err = r.dbh.Delete(r.dbTable, deleteSet, "rel_role", "resource", "operation")
+			err = deleteSet.Walk(func(rule *Rule) error {
+				return r.dbh.Delete(r.dbTable, rule, "rel_role", "resource", "operation")
+			})
+
 			if err != nil {
 				return err
 			}

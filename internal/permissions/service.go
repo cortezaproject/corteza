@@ -103,9 +103,7 @@ func (svc *service) Grant(ctx context.Context, wl Whitelist, rules ...*Rule) (er
 		}
 	}
 
-	if svc.rules, err = svc.rules.merge(rules...); err != nil {
-		return
-	}
+	svc.rules = svc.rules.merge(rules...)
 
 	return svc.flush(ctx)
 }
@@ -131,6 +129,17 @@ func (svc service) Watch(ctx context.Context) {
 	svc.logger.Debug("watcher initialized")
 }
 
+func (svc service) FindRulesByRoleID(roleID uint64) (rr RuleSet) {
+	svc.l.Lock()
+	defer svc.l.Unlock()
+
+	rr, _ = svc.rules.Filter(func(rule *Rule) (b bool, e error) {
+		return rule.RoleID == roleID, nil
+	})
+
+	return
+}
+
 func (svc *service) Reload(ctx context.Context) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
@@ -149,13 +158,14 @@ func (svc *service) Reload(ctx context.Context) {
 }
 
 func (svc service) flush(ctx context.Context) (err error) {
-	d, u := svc.rules.split()
+	d, u := svc.rules.dirty()
 	err = svc.repository.With(ctx).Store(d, u)
 
 	if err != nil {
 		return
 	}
 
+	u.clear()
 	svc.rules = u
 	svc.logger.Info("flushed rules",
 		zap.Int("updated", len(u)),
