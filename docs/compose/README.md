@@ -347,7 +347,7 @@ Compose module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | name | string | POST | Name | N/A | YES |
 | slug | string | POST | Slug (url path part) | N/A | YES |
-| enabled | bool | POST | Enabled | N/A | YES |
+| enabled | bool | POST | Enabled | N/A | NO |
 | meta | sqlxTypes.JSONText | POST | Meta data | N/A | YES |
 
 ## Read namespace
@@ -379,7 +379,7 @@ Compose module definitions
 | namespaceID | uint64 | PATH | ID | N/A | YES |
 | name | string | POST | Name | N/A | YES |
 | slug | string | POST | Slug (url path part) | N/A | YES |
-| enabled | bool | POST | Enabled | N/A | YES |
+| enabled | bool | POST | Enabled | N/A | NO |
 | meta | sqlxTypes.JSONText | POST | Meta data | N/A | YES |
 | updatedAt | *time.Time | POST | Last update (or creation) date | N/A | NO |
 
