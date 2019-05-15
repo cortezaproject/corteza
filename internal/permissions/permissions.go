@@ -9,7 +9,14 @@ type (
 	// CheckAccessFunc function.
 	CheckAccessFunc func() Access
 
-	Whitelist        map[Resource]map[Operation]bool
+	Whitelist struct {
+		// Index is used for fast lookups
+		index map[Resource]map[Operation]bool
+
+		// we need this to maintain a stable order of res/ops
+		rules RuleSet
+	}
+
 	whitelistFlatten struct {
 		Resource  `json:"resource"`
 		Operation `json:"operation"`
@@ -60,10 +67,15 @@ func Denied() Access {
 }
 
 func (wl *Whitelist) Set(r Resource, oo ...Operation) {
-	(*wl)[r] = map[Operation]bool{}
+	if wl.index == nil {
+		wl.index = map[Resource]map[Operation]bool{}
+	}
+
+	wl.index[r] = map[Operation]bool{}
 
 	for _, o := range oo {
-		(*wl)[r][o] = true
+		wl.index[r][o] = true
+		wl.rules = append(wl.rules, &Rule{Resource: r, Operation: o})
 	}
 }
 
@@ -74,11 +86,11 @@ func (wl Whitelist) Check(rule *Rule) bool {
 
 	res := rule.Resource.TrimID()
 
-	if _, ok := wl[res]; !ok {
+	if _, ok := wl.index[res]; !ok {
 		return false
 	}
 
-	return wl[res][rule.Operation]
+	return wl.index[res][rule.Operation]
 }
 
 // Flatten casts list of operations for each resource from map to slice and creates more output friendly format
@@ -86,10 +98,8 @@ func (wl Whitelist) Flatten() []whitelistFlatten {
 	var (
 		wlf = []whitelistFlatten{}
 	)
-	for r, oo := range wl {
-		for o := range oo {
-			wlf = append(wlf, whitelistFlatten{r, o})
-		}
+	for _, r := range wl.rules {
+		wlf = append(wlf, whitelistFlatten{r.Resource, r.Operation})
 	}
 
 	return wlf
