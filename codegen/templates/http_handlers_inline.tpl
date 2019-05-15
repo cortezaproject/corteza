@@ -35,16 +35,16 @@ func New{name|expose}({self}h {name|expose}API) *{name|expose} {
 			defer r.Body.Close()
 			params := request.New{name|capitalize}{call.name|capitalize}()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("{name|expose}.{call.name|capitalize}", r, err, params)
+				logger.LogParamError("{name|expose}.{call.name|capitalize}", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
 			if value, err := {self}h.{call.name|capitalize}(r.Context(), params); err != nil {
-				logger.LogControllerError("{name|expose}.{call.name|capitalize}", r, err, params)
+				logger.LogControllerError("{name|expose}.{call.name|capitalize}", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			} else {
-				logger.LogControllerCall("{name|expose}.{call.name|capitalize}", r, params)
+				logger.LogControllerCall("{name|expose}.{call.name|capitalize}", r, params.Auditable())
 				switch fn := value.(type) {
 					case func(http.ResponseWriter, *http.Request):
 						fn(w, r)
