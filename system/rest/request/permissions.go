@@ -206,8 +206,8 @@ var _ RequestFiller = NewPermissionsDelete()
 
 // Permissions update request parameters
 type PermissionsUpdate struct {
-	RoleID      uint64 `json:",string"`
-	Permissions permissions.RuleSet
+	RoleID uint64 `json:",string"`
+	Rules  permissions.RuleSet
 }
 
 func NewPermissionsUpdate() *PermissionsUpdate {

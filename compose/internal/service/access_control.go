@@ -15,6 +15,7 @@ type (
 	accessControlPermissionServicer interface {
 		Can(context.Context, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
 		Grant(context.Context, permissions.Whitelist, ...*permissions.Rule) error
+		FindRulesByRoleID(roleID uint64) (rr permissions.RuleSet)
 	}
 
 	permissionResource interface {
@@ -160,6 +161,14 @@ func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) err
 	return svc.permissions.Grant(ctx, svc.Whitelist(), rr...)
 }
 
+func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (permissions.RuleSet, error) {
+	if !svc.CanGrant(ctx) {
+		return nil, ErrNoPermissions
+	}
+
+	return svc.permissions.FindRulesByRoleID(roleID), nil
+}
+
 // DefaultRules returns list of default rules for this compose service
 func (svc accessControl) DefaultRules() permissions.RuleSet {
 	var (
@@ -171,19 +180,17 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		pages      = types.PagePermissionResource.AppendWildcard()
 
 		allowAdm = func(res permissions.Resource, op permissions.Operation) *permissions.Rule {
-			return &permissions.Rule{
-				permissions.AdminRoleID,
-				res,
-				op,
-				permissions.Allow}
+			return permissions.AllowRule(permissions.AdminRoleID, res, op)
 		}
 	)
 
 	return permissions.RuleSet{
-		{permissions.EveryoneRoleID, compose, "access", permissions.Allow},
+		permissions.AllowRule(permissions.EveryoneRoleID, compose, "access"),
+
 		allowAdm(compose, "namespace.create"),
 		allowAdm(compose, "access"),
 		allowAdm(compose, "grant"),
+
 		allowAdm(namespaces, "read"),
 		allowAdm(namespaces, "update"),
 		allowAdm(namespaces, "delete"),
@@ -191,6 +198,7 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		allowAdm(namespaces, "module.create"),
 		allowAdm(namespaces, "chart.create"),
 		allowAdm(namespaces, "trigger.create"),
+
 		allowAdm(modules, "read"),
 		allowAdm(modules, "update"),
 		allowAdm(modules, "delete"),
@@ -198,12 +206,15 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		allowAdm(modules, "record.read"),
 		allowAdm(modules, "record.update"),
 		allowAdm(modules, "record.delete"),
+
 		allowAdm(charts, "read"),
 		allowAdm(charts, "update"),
 		allowAdm(charts, "delete"),
+
 		allowAdm(triggers, "read"),
 		allowAdm(triggers, "update"),
 		allowAdm(triggers, "delete"),
+
 		allowAdm(pages, "read"),
 		allowAdm(pages, "update"),
 		allowAdm(pages, "delete"),

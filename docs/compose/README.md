@@ -592,7 +592,24 @@ Compose pages
 
 | Method | Endpoint | Purpose |
 | ------ | -------- | ------- |
+| `GET` | `/permissions/` | Retrieve defined permissions |
 | `GET` | `/permissions/effective` | Effective rules for current user |
+| `GET` | `/permissions/{roleID}/rules` | Retrieve role permissions |
+| `DELETE` | `/permissions/{roleID}/rules` | Remove all defined role permissions |
+| `PATCH` | `/permissions/{roleID}/rules` | Update permission settings |
+
+## Retrieve defined permissions
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/permissions/` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
 
 ## Effective rules for current user
 
@@ -600,13 +617,56 @@ Compose pages
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/permissions/effective` | HTTP/S | GET |  |
+| `/permissions/effective` | HTTP/S | GET | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | resource | string | GET | Show only rules for a specific resource | N/A | NO |
+
+## Retrieve role permissions
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/permissions/{roleID}/rules` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| roleID | uint64 | PATH | Role ID | N/A | YES |
+
+## Remove all defined role permissions
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/permissions/{roleID}/rules` | HTTP/S | DELETE | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| roleID | uint64 | PATH | Role ID | N/A | YES |
+
+## Update permission settings
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/permissions/{roleID}/rules` | HTTP/S | PATCH | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| roleID | uint64 | PATH | Role ID | N/A | YES |
+| rules | permissions.RuleSet | POST | List of permission rules to set | N/A | YES |
 
 ---
 
