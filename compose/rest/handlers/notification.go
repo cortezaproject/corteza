@@ -37,7 +37,7 @@ type Notification struct {
 	EmailSend func(http.ResponseWriter, *http.Request)
 }
 
-func NewNotification(nh NotificationAPI) *Notification {
+func NewNotification(h NotificationAPI) *Notification {
 	return &Notification{
 		EmailSend: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -47,7 +47,7 @@ func NewNotification(nh NotificationAPI) *Notification {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := nh.EmailSend(r.Context(), params); err != nil {
+			if value, err := h.EmailSend(r.Context(), params); err != nil {
 				logger.LogControllerError("Notification.EmailSend", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -65,9 +65,9 @@ func NewNotification(nh NotificationAPI) *Notification {
 	}
 }
 
-func (nh *Notification) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Notification) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Post("/notification/email", nh.EmailSend)
+		r.Post("/notification/email", h.EmailSend)
 	})
 }

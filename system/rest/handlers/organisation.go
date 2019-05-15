@@ -47,7 +47,7 @@ type Organisation struct {
 	Archive func(http.ResponseWriter, *http.Request)
 }
 
-func NewOrganisation(oh OrganisationAPI) *Organisation {
+func NewOrganisation(h OrganisationAPI) *Organisation {
 	return &Organisation{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -57,7 +57,7 @@ func NewOrganisation(oh OrganisationAPI) *Organisation {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := oh.List(r.Context(), params); err != nil {
+			if value, err := h.List(r.Context(), params); err != nil {
 				logger.LogControllerError("Organisation.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -80,7 +80,7 @@ func NewOrganisation(oh OrganisationAPI) *Organisation {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := oh.Create(r.Context(), params); err != nil {
+			if value, err := h.Create(r.Context(), params); err != nil {
 				logger.LogControllerError("Organisation.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -103,7 +103,7 @@ func NewOrganisation(oh OrganisationAPI) *Organisation {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := oh.Update(r.Context(), params); err != nil {
+			if value, err := h.Update(r.Context(), params); err != nil {
 				logger.LogControllerError("Organisation.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -126,7 +126,7 @@ func NewOrganisation(oh OrganisationAPI) *Organisation {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := oh.Delete(r.Context(), params); err != nil {
+			if value, err := h.Delete(r.Context(), params); err != nil {
 				logger.LogControllerError("Organisation.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -149,7 +149,7 @@ func NewOrganisation(oh OrganisationAPI) *Organisation {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := oh.Read(r.Context(), params); err != nil {
+			if value, err := h.Read(r.Context(), params); err != nil {
 				logger.LogControllerError("Organisation.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -172,7 +172,7 @@ func NewOrganisation(oh OrganisationAPI) *Organisation {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := oh.Archive(r.Context(), params); err != nil {
+			if value, err := h.Archive(r.Context(), params); err != nil {
 				logger.LogControllerError("Organisation.Archive", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -190,14 +190,14 @@ func NewOrganisation(oh OrganisationAPI) *Organisation {
 	}
 }
 
-func (oh *Organisation) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Organisation) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/organisations/", oh.List)
-		r.Post("/organisations/", oh.Create)
-		r.Put("/organisations/{id}", oh.Update)
-		r.Delete("/organisations/{id}", oh.Delete)
-		r.Get("/organisations/{id}", oh.Read)
-		r.Post("/organisations/{id}/archive", oh.Archive)
+		r.Get("/organisations/", h.List)
+		r.Post("/organisations/", h.Create)
+		r.Put("/organisations/{id}", h.Update)
+		r.Delete("/organisations/{id}", h.Delete)
+		r.Get("/organisations/{id}", h.Read)
+		r.Post("/organisations/{id}/archive", h.Archive)
 	})
 }

@@ -45,7 +45,7 @@ type Application struct {
 	Delete func(http.ResponseWriter, *http.Request)
 }
 
-func NewApplication(ah ApplicationAPI) *Application {
+func NewApplication(h ApplicationAPI) *Application {
 	return &Application{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -55,7 +55,7 @@ func NewApplication(ah ApplicationAPI) *Application {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.List(r.Context(), params); err != nil {
+			if value, err := h.List(r.Context(), params); err != nil {
 				logger.LogControllerError("Application.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -78,7 +78,7 @@ func NewApplication(ah ApplicationAPI) *Application {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.Create(r.Context(), params); err != nil {
+			if value, err := h.Create(r.Context(), params); err != nil {
 				logger.LogControllerError("Application.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -101,7 +101,7 @@ func NewApplication(ah ApplicationAPI) *Application {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.Update(r.Context(), params); err != nil {
+			if value, err := h.Update(r.Context(), params); err != nil {
 				logger.LogControllerError("Application.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -124,7 +124,7 @@ func NewApplication(ah ApplicationAPI) *Application {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.Read(r.Context(), params); err != nil {
+			if value, err := h.Read(r.Context(), params); err != nil {
 				logger.LogControllerError("Application.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -147,7 +147,7 @@ func NewApplication(ah ApplicationAPI) *Application {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.Delete(r.Context(), params); err != nil {
+			if value, err := h.Delete(r.Context(), params); err != nil {
 				logger.LogControllerError("Application.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -165,13 +165,13 @@ func NewApplication(ah ApplicationAPI) *Application {
 	}
 }
 
-func (ah *Application) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Application) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/application/", ah.List)
-		r.Post("/application/", ah.Create)
-		r.Put("/application/{applicationID}", ah.Update)
-		r.Get("/application/{applicationID}", ah.Read)
-		r.Delete("/application/{applicationID}", ah.Delete)
+		r.Get("/application/", h.List)
+		r.Post("/application/", h.Create)
+		r.Put("/application/{applicationID}", h.Update)
+		r.Get("/application/{applicationID}", h.Read)
+		r.Delete("/application/{applicationID}", h.Delete)
 	})
 }

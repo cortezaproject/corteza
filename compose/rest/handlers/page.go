@@ -51,7 +51,7 @@ type Page struct {
 	Upload  func(http.ResponseWriter, *http.Request)
 }
 
-func NewPage(ph PageAPI) *Page {
+func NewPage(h PageAPI) *Page {
 	return &Page{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -61,7 +61,7 @@ func NewPage(ph PageAPI) *Page {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ph.List(r.Context(), params); err != nil {
+			if value, err := h.List(r.Context(), params); err != nil {
 				logger.LogControllerError("Page.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -84,7 +84,7 @@ func NewPage(ph PageAPI) *Page {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ph.Create(r.Context(), params); err != nil {
+			if value, err := h.Create(r.Context(), params); err != nil {
 				logger.LogControllerError("Page.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -107,7 +107,7 @@ func NewPage(ph PageAPI) *Page {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ph.Read(r.Context(), params); err != nil {
+			if value, err := h.Read(r.Context(), params); err != nil {
 				logger.LogControllerError("Page.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -130,7 +130,7 @@ func NewPage(ph PageAPI) *Page {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ph.Tree(r.Context(), params); err != nil {
+			if value, err := h.Tree(r.Context(), params); err != nil {
 				logger.LogControllerError("Page.Tree", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -153,7 +153,7 @@ func NewPage(ph PageAPI) *Page {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ph.Update(r.Context(), params); err != nil {
+			if value, err := h.Update(r.Context(), params); err != nil {
 				logger.LogControllerError("Page.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -176,7 +176,7 @@ func NewPage(ph PageAPI) *Page {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ph.Reorder(r.Context(), params); err != nil {
+			if value, err := h.Reorder(r.Context(), params); err != nil {
 				logger.LogControllerError("Page.Reorder", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -199,7 +199,7 @@ func NewPage(ph PageAPI) *Page {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ph.Delete(r.Context(), params); err != nil {
+			if value, err := h.Delete(r.Context(), params); err != nil {
 				logger.LogControllerError("Page.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -222,7 +222,7 @@ func NewPage(ph PageAPI) *Page {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ph.Upload(r.Context(), params); err != nil {
+			if value, err := h.Upload(r.Context(), params); err != nil {
 				logger.LogControllerError("Page.Upload", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -240,16 +240,16 @@ func NewPage(ph PageAPI) *Page {
 	}
 }
 
-func (ph *Page) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Page) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/namespace/{namespaceID}/page/", ph.List)
-		r.Post("/namespace/{namespaceID}/page/", ph.Create)
-		r.Get("/namespace/{namespaceID}/page/{pageID}", ph.Read)
-		r.Get("/namespace/{namespaceID}/page/tree", ph.Tree)
-		r.Post("/namespace/{namespaceID}/page/{pageID}", ph.Update)
-		r.Post("/namespace/{namespaceID}/page/{selfID}/reorder", ph.Reorder)
-		r.Delete("/namespace/{namespaceID}/page/{pageID}", ph.Delete)
-		r.Post("/namespace/{namespaceID}/page/{pageID}/attachment", ph.Upload)
+		r.Get("/namespace/{namespaceID}/page/", h.List)
+		r.Post("/namespace/{namespaceID}/page/", h.Create)
+		r.Get("/namespace/{namespaceID}/page/{pageID}", h.Read)
+		r.Get("/namespace/{namespaceID}/page/tree", h.Tree)
+		r.Post("/namespace/{namespaceID}/page/{pageID}", h.Update)
+		r.Post("/namespace/{namespaceID}/page/{selfID}/reorder", h.Reorder)
+		r.Delete("/namespace/{namespaceID}/page/{pageID}", h.Delete)
+		r.Post("/namespace/{namespaceID}/page/{pageID}/attachment", h.Upload)
 	})
 }

@@ -45,7 +45,7 @@ type Chart struct {
 	Delete func(http.ResponseWriter, *http.Request)
 }
 
-func NewChart(ch ChartAPI) *Chart {
+func NewChart(h ChartAPI) *Chart {
 	return &Chart{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -55,7 +55,7 @@ func NewChart(ch ChartAPI) *Chart {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.List(r.Context(), params); err != nil {
+			if value, err := h.List(r.Context(), params); err != nil {
 				logger.LogControllerError("Chart.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -78,7 +78,7 @@ func NewChart(ch ChartAPI) *Chart {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.Create(r.Context(), params); err != nil {
+			if value, err := h.Create(r.Context(), params); err != nil {
 				logger.LogControllerError("Chart.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -101,7 +101,7 @@ func NewChart(ch ChartAPI) *Chart {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.Read(r.Context(), params); err != nil {
+			if value, err := h.Read(r.Context(), params); err != nil {
 				logger.LogControllerError("Chart.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -124,7 +124,7 @@ func NewChart(ch ChartAPI) *Chart {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.Update(r.Context(), params); err != nil {
+			if value, err := h.Update(r.Context(), params); err != nil {
 				logger.LogControllerError("Chart.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -147,7 +147,7 @@ func NewChart(ch ChartAPI) *Chart {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.Delete(r.Context(), params); err != nil {
+			if value, err := h.Delete(r.Context(), params); err != nil {
 				logger.LogControllerError("Chart.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -165,13 +165,13 @@ func NewChart(ch ChartAPI) *Chart {
 	}
 }
 
-func (ch *Chart) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Chart) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/namespace/{namespaceID}/chart/", ch.List)
-		r.Post("/namespace/{namespaceID}/chart/", ch.Create)
-		r.Get("/namespace/{namespaceID}/chart/{chartID}", ch.Read)
-		r.Post("/namespace/{namespaceID}/chart/{chartID}", ch.Update)
-		r.Delete("/namespace/{namespaceID}/chart/{chartID}", ch.Delete)
+		r.Get("/namespace/{namespaceID}/chart/", h.List)
+		r.Post("/namespace/{namespaceID}/chart/", h.Create)
+		r.Get("/namespace/{namespaceID}/chart/{chartID}", h.Read)
+		r.Post("/namespace/{namespaceID}/chart/{chartID}", h.Update)
+		r.Delete("/namespace/{namespaceID}/chart/{chartID}", h.Delete)
 	})
 }

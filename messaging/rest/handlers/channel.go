@@ -59,7 +59,7 @@ type Channel struct {
 	Attach     func(http.ResponseWriter, *http.Request)
 }
 
-func NewChannel(ch ChannelAPI) *Channel {
+func NewChannel(h ChannelAPI) *Channel {
 	return &Channel{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -69,7 +69,7 @@ func NewChannel(ch ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.List(r.Context(), params); err != nil {
+			if value, err := h.List(r.Context(), params); err != nil {
 				logger.LogControllerError("Channel.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -92,7 +92,7 @@ func NewChannel(ch ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.Create(r.Context(), params); err != nil {
+			if value, err := h.Create(r.Context(), params); err != nil {
 				logger.LogControllerError("Channel.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -115,7 +115,7 @@ func NewChannel(ch ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.Update(r.Context(), params); err != nil {
+			if value, err := h.Update(r.Context(), params); err != nil {
 				logger.LogControllerError("Channel.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -138,7 +138,7 @@ func NewChannel(ch ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.State(r.Context(), params); err != nil {
+			if value, err := h.State(r.Context(), params); err != nil {
 				logger.LogControllerError("Channel.State", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -161,7 +161,7 @@ func NewChannel(ch ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.SetFlag(r.Context(), params); err != nil {
+			if value, err := h.SetFlag(r.Context(), params); err != nil {
 				logger.LogControllerError("Channel.SetFlag", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -184,7 +184,7 @@ func NewChannel(ch ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.RemoveFlag(r.Context(), params); err != nil {
+			if value, err := h.RemoveFlag(r.Context(), params); err != nil {
 				logger.LogControllerError("Channel.RemoveFlag", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -207,7 +207,7 @@ func NewChannel(ch ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.Read(r.Context(), params); err != nil {
+			if value, err := h.Read(r.Context(), params); err != nil {
 				logger.LogControllerError("Channel.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -230,7 +230,7 @@ func NewChannel(ch ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.Members(r.Context(), params); err != nil {
+			if value, err := h.Members(r.Context(), params); err != nil {
 				logger.LogControllerError("Channel.Members", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -253,7 +253,7 @@ func NewChannel(ch ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.Join(r.Context(), params); err != nil {
+			if value, err := h.Join(r.Context(), params); err != nil {
 				logger.LogControllerError("Channel.Join", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -276,7 +276,7 @@ func NewChannel(ch ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.Part(r.Context(), params); err != nil {
+			if value, err := h.Part(r.Context(), params); err != nil {
 				logger.LogControllerError("Channel.Part", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -299,7 +299,7 @@ func NewChannel(ch ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.Invite(r.Context(), params); err != nil {
+			if value, err := h.Invite(r.Context(), params); err != nil {
 				logger.LogControllerError("Channel.Invite", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -322,7 +322,7 @@ func NewChannel(ch ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.Attach(r.Context(), params); err != nil {
+			if value, err := h.Attach(r.Context(), params); err != nil {
 				logger.LogControllerError("Channel.Attach", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -340,20 +340,20 @@ func NewChannel(ch ChannelAPI) *Channel {
 	}
 }
 
-func (ch *Channel) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Channel) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/channels/", ch.List)
-		r.Post("/channels/", ch.Create)
-		r.Put("/channels/{channelID}", ch.Update)
-		r.Put("/channels/{channelID}/state", ch.State)
-		r.Put("/channels/{channelID}/flag", ch.SetFlag)
-		r.Delete("/channels/{channelID}/flag", ch.RemoveFlag)
-		r.Get("/channels/{channelID}", ch.Read)
-		r.Get("/channels/{channelID}/members", ch.Members)
-		r.Put("/channels/{channelID}/members/{userID}", ch.Join)
-		r.Delete("/channels/{channelID}/members/{userID}", ch.Part)
-		r.Post("/channels/{channelID}/invite", ch.Invite)
-		r.Post("/channels/{channelID}/attach", ch.Attach)
+		r.Get("/channels/", h.List)
+		r.Post("/channels/", h.Create)
+		r.Put("/channels/{channelID}", h.Update)
+		r.Put("/channels/{channelID}/state", h.State)
+		r.Put("/channels/{channelID}/flag", h.SetFlag)
+		r.Delete("/channels/{channelID}/flag", h.RemoveFlag)
+		r.Get("/channels/{channelID}", h.Read)
+		r.Get("/channels/{channelID}/members", h.Members)
+		r.Put("/channels/{channelID}/members/{userID}", h.Join)
+		r.Delete("/channels/{channelID}/members/{userID}", h.Part)
+		r.Post("/channels/{channelID}/invite", h.Invite)
+		r.Post("/channels/{channelID}/attach", h.Attach)
 	})
 }

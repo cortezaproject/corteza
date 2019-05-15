@@ -55,9 +55,9 @@ func (r UserList) Auditable() map[string]interface{} {
 	return out
 }
 
-func (usReq *UserList) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(usReq)
+func (r *UserList) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -67,32 +67,32 @@ func (usReq *UserList) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := get["query"]; ok {
 
-		usReq.Query = val
+		r.Query = val
 	}
 	if val, ok := get["username"]; ok {
 
-		usReq.Username = val
+		r.Username = val
 	}
 	if val, ok := get["email"]; ok {
 
-		usReq.Email = val
+		r.Email = val
 	}
 
 	return err
@@ -126,9 +126,9 @@ func (r UserCreate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (usReq *UserCreate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(usReq)
+func (r *UserCreate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -138,36 +138,36 @@ func (usReq *UserCreate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["email"]; ok {
 
-		usReq.Email = val
+		r.Email = val
 	}
 	if val, ok := post["name"]; ok {
 
-		usReq.Name = val
+		r.Name = val
 	}
 	if val, ok := post["handle"]; ok {
 
-		usReq.Handle = val
+		r.Handle = val
 	}
 	if val, ok := post["kind"]; ok {
 
-		usReq.Kind = types.UserKind(val)
+		r.Kind = types.UserKind(val)
 	}
 
 	return err
@@ -204,9 +204,9 @@ func (r UserUpdate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (usReq *UserUpdate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(usReq)
+func (r *UserUpdate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -216,37 +216,37 @@ func (usReq *UserUpdate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	usReq.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 	if val, ok := post["email"]; ok {
 
-		usReq.Email = val
+		r.Email = val
 	}
 	if val, ok := post["name"]; ok {
 
-		usReq.Name = val
+		r.Name = val
 	}
 	if val, ok := post["handle"]; ok {
 
-		usReq.Handle = val
+		r.Handle = val
 	}
 	if val, ok := post["kind"]; ok {
 
-		usReq.Kind = types.UserKind(val)
+		r.Kind = types.UserKind(val)
 	}
 
 	return err
@@ -271,9 +271,9 @@ func (r UserRead) Auditable() map[string]interface{} {
 	return out
 }
 
-func (usReq *UserRead) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(usReq)
+func (r *UserRead) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -283,22 +283,22 @@ func (usReq *UserRead) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	usReq.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 
 	return err
 }
@@ -322,9 +322,9 @@ func (r UserDelete) Auditable() map[string]interface{} {
 	return out
 }
 
-func (usReq *UserDelete) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(usReq)
+func (r *UserDelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -334,22 +334,22 @@ func (usReq *UserDelete) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	usReq.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 
 	return err
 }
@@ -373,9 +373,9 @@ func (r UserSuspend) Auditable() map[string]interface{} {
 	return out
 }
 
-func (usReq *UserSuspend) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(usReq)
+func (r *UserSuspend) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -385,22 +385,22 @@ func (usReq *UserSuspend) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	usReq.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 
 	return err
 }
@@ -424,9 +424,9 @@ func (r UserUnsuspend) Auditable() map[string]interface{} {
 	return out
 }
 
-func (usReq *UserUnsuspend) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(usReq)
+func (r *UserUnsuspend) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -436,22 +436,22 @@ func (usReq *UserUnsuspend) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	usReq.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 
 	return err
 }

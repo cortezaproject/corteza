@@ -61,9 +61,9 @@ func (r PageList) Auditable() map[string]interface{} {
 	return out
 }
 
-func (pReq *PageList) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(pReq)
+func (r *PageList) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -73,38 +73,38 @@ func (pReq *PageList) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := get["selfID"]; ok {
 
-		pReq.SelfID = parseUInt64(val)
+		r.SelfID = parseUInt64(val)
 	}
 	if val, ok := get["query"]; ok {
 
-		pReq.Query = val
+		r.Query = val
 	}
 	if val, ok := get["page"]; ok {
 
-		pReq.Page = parseUint(val)
+		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
 
-		pReq.PerPage = parseUint(val)
+		r.PerPage = parseUint(val)
 	}
-	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -146,9 +146,9 @@ func (r PageCreate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (pReq *PageCreate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(pReq)
+func (r *PageCreate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -158,48 +158,48 @@ func (pReq *PageCreate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["selfID"]; ok {
 
-		pReq.SelfID = parseUInt64(val)
+		r.SelfID = parseUInt64(val)
 	}
 	if val, ok := post["moduleID"]; ok {
 
-		pReq.ModuleID = parseUInt64(val)
+		r.ModuleID = parseUInt64(val)
 	}
 	if val, ok := post["title"]; ok {
 
-		pReq.Title = val
+		r.Title = val
 	}
 	if val, ok := post["description"]; ok {
 
-		pReq.Description = val
+		r.Description = val
 	}
 	if val, ok := post["visible"]; ok {
 
-		pReq.Visible = parseBool(val)
+		r.Visible = parseBool(val)
 	}
 	if val, ok := post["blocks"]; ok {
 
-		if pReq.Blocks, err = parseJSONTextWithErr(val); err != nil {
+		if r.Blocks, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
-	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -226,9 +226,9 @@ func (r PageRead) Auditable() map[string]interface{} {
 	return out
 }
 
-func (pReq *PageRead) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(pReq)
+func (r *PageRead) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -238,23 +238,23 @@ func (pReq *PageRead) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	pReq.PageID = parseUInt64(chi.URLParam(r, "pageID"))
-	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.PageID = parseUInt64(chi.URLParam(req, "pageID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -278,9 +278,9 @@ func (r PageTree) Auditable() map[string]interface{} {
 	return out
 }
 
-func (pReq *PageTree) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(pReq)
+func (r *PageTree) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -290,22 +290,22 @@ func (pReq *PageTree) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -350,9 +350,9 @@ func (r PageUpdate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (pReq *PageUpdate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(pReq)
+func (r *PageUpdate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -362,46 +362,46 @@ func (pReq *PageUpdate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	pReq.PageID = parseUInt64(chi.URLParam(r, "pageID"))
-	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.PageID = parseUInt64(chi.URLParam(req, "pageID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := post["selfID"]; ok {
 
-		pReq.SelfID = parseUInt64(val)
+		r.SelfID = parseUInt64(val)
 	}
 	if val, ok := post["moduleID"]; ok {
 
-		pReq.ModuleID = parseUInt64(val)
+		r.ModuleID = parseUInt64(val)
 	}
 	if val, ok := post["title"]; ok {
 
-		pReq.Title = val
+		r.Title = val
 	}
 	if val, ok := post["description"]; ok {
 
-		pReq.Description = val
+		r.Description = val
 	}
 	if val, ok := post["visible"]; ok {
 
-		pReq.Visible = parseBool(val)
+		r.Visible = parseBool(val)
 	}
 	if val, ok := post["blocks"]; ok {
 
-		if pReq.Blocks, err = parseJSONTextWithErr(val); err != nil {
+		if r.Blocks, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
@@ -434,9 +434,9 @@ func (r PageReorder) Auditable() map[string]interface{} {
 	return out
 }
 
-func (pReq *PageReorder) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(pReq)
+func (r *PageReorder) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -446,23 +446,23 @@ func (pReq *PageReorder) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	pReq.SelfID = parseUInt64(chi.URLParam(r, "selfID"))
-	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.SelfID = parseUInt64(chi.URLParam(req, "selfID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -489,9 +489,9 @@ func (r PageDelete) Auditable() map[string]interface{} {
 	return out
 }
 
-func (pReq *PageDelete) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(pReq)
+func (r *PageDelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -501,23 +501,23 @@ func (pReq *PageDelete) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	pReq.PageID = parseUInt64(chi.URLParam(r, "pageID"))
-	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.PageID = parseUInt64(chi.URLParam(req, "pageID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -548,9 +548,9 @@ func (r PageUpload) Auditable() map[string]interface{} {
 	return out
 }
 
-func (pReq *PageUpload) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(pReq)
+func (r *PageUpload) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -560,24 +560,24 @@ func (pReq *PageUpload) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseMultipartForm(32 << 20); err != nil {
+	if err = req.ParseMultipartForm(32 << 20); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	pReq.PageID = parseUInt64(chi.URLParam(r, "pageID"))
-	pReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
-	if _, pReq.Upload, err = r.FormFile("upload"); err != nil {
+	r.PageID = parseUInt64(chi.URLParam(req, "pageID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+	if _, r.Upload, err = req.FormFile("upload"); err != nil {
 		return errors.Wrap(err, "error procesing uploaded file")
 	}
 

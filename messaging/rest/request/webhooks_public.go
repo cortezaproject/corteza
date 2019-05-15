@@ -50,9 +50,9 @@ func (r WebhooksPublicDelete) Auditable() map[string]interface{} {
 	return out
 }
 
-func (wReq *WebhooksPublicDelete) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(wReq)
+func (r *WebhooksPublicDelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -62,23 +62,23 @@ func (wReq *WebhooksPublicDelete) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	wReq.WebhookID = parseUInt64(chi.URLParam(r, "webhookID"))
-	wReq.WebhookToken = chi.URLParam(r, "webhookToken")
+	r.WebhookID = parseUInt64(chi.URLParam(req, "webhookID"))
+	r.WebhookToken = chi.URLParam(req, "webhookToken")
 
 	return err
 }
@@ -114,9 +114,9 @@ func (r WebhooksPublicCreate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (wReq *WebhooksPublicCreate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(wReq)
+func (r *WebhooksPublicCreate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -126,35 +126,35 @@ func (wReq *WebhooksPublicCreate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := get["username"]; ok {
 
-		wReq.Username = val
+		r.Username = val
 	}
 	if val, ok := get["avatarURL"]; ok {
 
-		wReq.AvatarURL = val
+		r.AvatarURL = val
 	}
 	if val, ok := get["content"]; ok {
 
-		wReq.Content = val
+		r.Content = val
 	}
-	wReq.WebhookID = parseUInt64(chi.URLParam(r, "webhookID"))
-	wReq.WebhookToken = chi.URLParam(r, "webhookToken")
+	r.WebhookID = parseUInt64(chi.URLParam(req, "webhookID"))
+	r.WebhookToken = chi.URLParam(req, "webhookToken")
 
 	return err
 }

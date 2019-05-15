@@ -61,9 +61,9 @@ func (r TriggerList) Auditable() map[string]interface{} {
 	return out
 }
 
-func (tReq *TriggerList) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(tReq)
+func (r *TriggerList) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -73,38 +73,38 @@ func (tReq *TriggerList) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := get["moduleID"]; ok {
 
-		tReq.ModuleID = parseUInt64(val)
+		r.ModuleID = parseUInt64(val)
 	}
 	if val, ok := get["query"]; ok {
 
-		tReq.Query = val
+		r.Query = val
 	}
 	if val, ok := get["page"]; ok {
 
-		tReq.Page = parseUint(val)
+		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
 
-		tReq.PerPage = parseUint(val)
+		r.PerPage = parseUint(val)
 	}
-	tReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -146,9 +146,9 @@ func (r TriggerCreate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (tReq *TriggerCreate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(tReq)
+func (r *TriggerCreate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -158,44 +158,44 @@ func (tReq *TriggerCreate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["moduleID"]; ok {
 
-		tReq.ModuleID = parseUInt64(val)
+		r.ModuleID = parseUInt64(val)
 	}
 	if val, ok := post["name"]; ok {
 
-		tReq.Name = val
+		r.Name = val
 	}
 	if val, ok := post["enabled"]; ok {
 
-		tReq.Enabled = parseBool(val)
+		r.Enabled = parseBool(val)
 	}
 	if val, ok := post["source"]; ok {
 
-		tReq.Source = val
+		r.Source = val
 	}
 	if val, ok := post["updatedAt"]; ok {
 
-		if tReq.UpdatedAt, err = parseISODatePtrWithErr(val); err != nil {
+		if r.UpdatedAt, err = parseISODatePtrWithErr(val); err != nil {
 			return err
 		}
 	}
-	tReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -222,9 +222,9 @@ func (r TriggerRead) Auditable() map[string]interface{} {
 	return out
 }
 
-func (tReq *TriggerRead) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(tReq)
+func (r *TriggerRead) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -234,23 +234,23 @@ func (tReq *TriggerRead) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	tReq.TriggerID = parseUInt64(chi.URLParam(r, "triggerID"))
-	tReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.TriggerID = parseUInt64(chi.URLParam(req, "triggerID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -292,9 +292,9 @@ func (r TriggerUpdate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (tReq *TriggerUpdate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(tReq)
+func (r *TriggerUpdate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -304,38 +304,38 @@ func (tReq *TriggerUpdate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	tReq.TriggerID = parseUInt64(chi.URLParam(r, "triggerID"))
-	tReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.TriggerID = parseUInt64(chi.URLParam(req, "triggerID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := post["moduleID"]; ok {
 
-		tReq.ModuleID = parseUInt64(val)
+		r.ModuleID = parseUInt64(val)
 	}
 	if val, ok := post["name"]; ok {
 
-		tReq.Name = val
+		r.Name = val
 	}
 	if val, ok := post["enabled"]; ok {
 
-		tReq.Enabled = parseBool(val)
+		r.Enabled = parseBool(val)
 	}
 	if val, ok := post["source"]; ok {
 
-		tReq.Source = val
+		r.Source = val
 	}
 
 	return err
@@ -363,9 +363,9 @@ func (r TriggerDelete) Auditable() map[string]interface{} {
 	return out
 }
 
-func (tReq *TriggerDelete) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(tReq)
+func (r *TriggerDelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -375,23 +375,23 @@ func (tReq *TriggerDelete) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	tReq.TriggerID = parseUInt64(chi.URLParam(r, "triggerID"))
-	tReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.TriggerID = parseUInt64(chi.URLParam(req, "triggerID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }

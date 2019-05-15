@@ -61,9 +61,9 @@ func (r NotificationEmailSend) Auditable() map[string]interface{} {
 	return out
 }
 
-func (nReq *NotificationEmailSend) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(nReq)
+func (r *NotificationEmailSend) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -73,32 +73,32 @@ func (nReq *NotificationEmailSend) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["replyTo"]; ok {
 
-		nReq.ReplyTo = val
+		r.ReplyTo = val
 	}
 	if val, ok := post["subject "]; ok {
 
-		nReq.Subject = val
+		r.Subject = val
 	}
 	if val, ok := post["content"]; ok {
 
-		if nReq.Content, err = parseJSONTextWithErr(val); err != nil {
+		if r.Content, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}

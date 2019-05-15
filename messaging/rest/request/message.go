@@ -50,9 +50,9 @@ func (r MessageCreate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *MessageCreate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *MessageCreate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -62,26 +62,26 @@ func (mReq *MessageCreate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["message"]; ok {
 
-		mReq.Message = val
+		r.Message = val
 	}
-	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 
 	return err
 }
@@ -114,9 +114,9 @@ func (r MessageExecuteCommand) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *MessageExecuteCommand) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *MessageExecuteCommand) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -126,26 +126,26 @@ func (mReq *MessageExecuteCommand) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	mReq.Command = chi.URLParam(r, "command")
-	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	r.Command = chi.URLParam(req, "command")
+	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["input"]; ok {
 
-		mReq.Input = val
+		r.Input = val
 	}
 
 	return err
@@ -176,9 +176,9 @@ func (r MessageMarkAsRead) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *MessageMarkAsRead) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *MessageMarkAsRead) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -188,29 +188,29 @@ func (mReq *MessageMarkAsRead) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["threadID"]; ok {
 
-		mReq.ThreadID = parseUInt64(val)
+		r.ThreadID = parseUInt64(val)
 	}
 	if val, ok := post["lastReadMessageID"]; ok {
 
-		mReq.LastReadMessageID = parseUInt64(val)
+		r.LastReadMessageID = parseUInt64(val)
 	}
 
 	return err
@@ -241,9 +241,9 @@ func (r MessageEdit) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *MessageEdit) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *MessageEdit) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -253,26 +253,26 @@ func (mReq *MessageEdit) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	r.MessageID = parseUInt64(chi.URLParam(req, "messageID"))
+	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["message"]; ok {
 
-		mReq.Message = val
+		r.Message = val
 	}
 
 	return err
@@ -300,9 +300,9 @@ func (r MessageDelete) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *MessageDelete) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *MessageDelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -312,23 +312,23 @@ func (mReq *MessageDelete) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	r.MessageID = parseUInt64(chi.URLParam(req, "messageID"))
+	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 
 	return err
 }
@@ -358,9 +358,9 @@ func (r MessageReplyCreate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *MessageReplyCreate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *MessageReplyCreate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -370,26 +370,26 @@ func (mReq *MessageReplyCreate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	r.MessageID = parseUInt64(chi.URLParam(req, "messageID"))
+	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["message"]; ok {
 
-		mReq.Message = val
+		r.Message = val
 	}
 
 	return err
@@ -417,9 +417,9 @@ func (r MessagePinCreate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *MessagePinCreate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *MessagePinCreate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -429,23 +429,23 @@ func (mReq *MessagePinCreate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	r.MessageID = parseUInt64(chi.URLParam(req, "messageID"))
+	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 
 	return err
 }
@@ -472,9 +472,9 @@ func (r MessagePinRemove) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *MessagePinRemove) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *MessagePinRemove) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -484,23 +484,23 @@ func (mReq *MessagePinRemove) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	r.MessageID = parseUInt64(chi.URLParam(req, "messageID"))
+	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 
 	return err
 }
@@ -527,9 +527,9 @@ func (r MessageBookmarkCreate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *MessageBookmarkCreate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *MessageBookmarkCreate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -539,23 +539,23 @@ func (mReq *MessageBookmarkCreate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	r.MessageID = parseUInt64(chi.URLParam(req, "messageID"))
+	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 
 	return err
 }
@@ -582,9 +582,9 @@ func (r MessageBookmarkRemove) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *MessageBookmarkRemove) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *MessageBookmarkRemove) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -594,23 +594,23 @@ func (mReq *MessageBookmarkRemove) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	r.MessageID = parseUInt64(chi.URLParam(req, "messageID"))
+	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 
 	return err
 }
@@ -640,9 +640,9 @@ func (r MessageReactionCreate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *MessageReactionCreate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *MessageReactionCreate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -652,24 +652,24 @@ func (mReq *MessageReactionCreate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	mReq.Reaction = chi.URLParam(r, "reaction")
-	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	r.MessageID = parseUInt64(chi.URLParam(req, "messageID"))
+	r.Reaction = chi.URLParam(req, "reaction")
+	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 
 	return err
 }
@@ -699,9 +699,9 @@ func (r MessageReactionRemove) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *MessageReactionRemove) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *MessageReactionRemove) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -711,24 +711,24 @@ func (mReq *MessageReactionRemove) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	mReq.MessageID = parseUInt64(chi.URLParam(r, "messageID"))
-	mReq.Reaction = chi.URLParam(r, "reaction")
-	mReq.ChannelID = parseUInt64(chi.URLParam(r, "channelID"))
+	r.MessageID = parseUInt64(chi.URLParam(req, "messageID"))
+	r.Reaction = chi.URLParam(req, "reaction")
+	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 
 	return err
 }

@@ -37,7 +37,7 @@ type Activity struct {
 	Send func(http.ResponseWriter, *http.Request)
 }
 
-func NewActivity(ah ActivityAPI) *Activity {
+func NewActivity(h ActivityAPI) *Activity {
 	return &Activity{
 		Send: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -47,7 +47,7 @@ func NewActivity(ah ActivityAPI) *Activity {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.Send(r.Context(), params); err != nil {
+			if value, err := h.Send(r.Context(), params); err != nil {
 				logger.LogControllerError("Activity.Send", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -65,9 +65,9 @@ func NewActivity(ah ActivityAPI) *Activity {
 	}
 }
 
-func (ah *Activity) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Activity) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Post("/activity/", ah.Send)
+		r.Post("/activity/", h.Send)
 	})
 }

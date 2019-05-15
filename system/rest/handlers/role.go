@@ -57,7 +57,7 @@ type Role struct {
 	MemberRemove func(http.ResponseWriter, *http.Request)
 }
 
-func NewRole(rh RoleAPI) *Role {
+func NewRole(h RoleAPI) *Role {
 	return &Role{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -67,7 +67,7 @@ func NewRole(rh RoleAPI) *Role {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.List(r.Context(), params); err != nil {
+			if value, err := h.List(r.Context(), params); err != nil {
 				logger.LogControllerError("Role.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -90,7 +90,7 @@ func NewRole(rh RoleAPI) *Role {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.Create(r.Context(), params); err != nil {
+			if value, err := h.Create(r.Context(), params); err != nil {
 				logger.LogControllerError("Role.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -113,7 +113,7 @@ func NewRole(rh RoleAPI) *Role {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.Update(r.Context(), params); err != nil {
+			if value, err := h.Update(r.Context(), params); err != nil {
 				logger.LogControllerError("Role.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -136,7 +136,7 @@ func NewRole(rh RoleAPI) *Role {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.Read(r.Context(), params); err != nil {
+			if value, err := h.Read(r.Context(), params); err != nil {
 				logger.LogControllerError("Role.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -159,7 +159,7 @@ func NewRole(rh RoleAPI) *Role {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.Delete(r.Context(), params); err != nil {
+			if value, err := h.Delete(r.Context(), params); err != nil {
 				logger.LogControllerError("Role.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -182,7 +182,7 @@ func NewRole(rh RoleAPI) *Role {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.Archive(r.Context(), params); err != nil {
+			if value, err := h.Archive(r.Context(), params); err != nil {
 				logger.LogControllerError("Role.Archive", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -205,7 +205,7 @@ func NewRole(rh RoleAPI) *Role {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.Move(r.Context(), params); err != nil {
+			if value, err := h.Move(r.Context(), params); err != nil {
 				logger.LogControllerError("Role.Move", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -228,7 +228,7 @@ func NewRole(rh RoleAPI) *Role {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.Merge(r.Context(), params); err != nil {
+			if value, err := h.Merge(r.Context(), params); err != nil {
 				logger.LogControllerError("Role.Merge", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -251,7 +251,7 @@ func NewRole(rh RoleAPI) *Role {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.MemberList(r.Context(), params); err != nil {
+			if value, err := h.MemberList(r.Context(), params); err != nil {
 				logger.LogControllerError("Role.MemberList", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -274,7 +274,7 @@ func NewRole(rh RoleAPI) *Role {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.MemberAdd(r.Context(), params); err != nil {
+			if value, err := h.MemberAdd(r.Context(), params); err != nil {
 				logger.LogControllerError("Role.MemberAdd", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -297,7 +297,7 @@ func NewRole(rh RoleAPI) *Role {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.MemberRemove(r.Context(), params); err != nil {
+			if value, err := h.MemberRemove(r.Context(), params); err != nil {
 				logger.LogControllerError("Role.MemberRemove", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -315,19 +315,19 @@ func NewRole(rh RoleAPI) *Role {
 	}
 }
 
-func (rh *Role) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Role) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/roles/", rh.List)
-		r.Post("/roles/", rh.Create)
-		r.Put("/roles/{roleID}", rh.Update)
-		r.Get("/roles/{roleID}", rh.Read)
-		r.Delete("/roles/{roleID}", rh.Delete)
-		r.Post("/roles/{roleID}/archive", rh.Archive)
-		r.Post("/roles/{roleID}/move", rh.Move)
-		r.Post("/roles/{roleID}/merge", rh.Merge)
-		r.Get("/roles/{roleID}/members", rh.MemberList)
-		r.Post("/roles/{roleID}/member/{userID}", rh.MemberAdd)
-		r.Delete("/roles/{roleID}/member/{userID}", rh.MemberRemove)
+		r.Get("/roles/", h.List)
+		r.Post("/roles/", h.Create)
+		r.Put("/roles/{roleID}", h.Update)
+		r.Get("/roles/{roleID}", h.Read)
+		r.Delete("/roles/{roleID}", h.Delete)
+		r.Post("/roles/{roleID}/archive", h.Archive)
+		r.Post("/roles/{roleID}/move", h.Move)
+		r.Post("/roles/{roleID}/merge", h.Merge)
+		r.Get("/roles/{roleID}/members", h.MemberList)
+		r.Post("/roles/{roleID}/member/{userID}", h.MemberAdd)
+		r.Delete("/roles/{roleID}/member/{userID}", h.MemberRemove)
 	})
 }

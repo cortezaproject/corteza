@@ -49,9 +49,9 @@ func (r SettingsList) Auditable() map[string]interface{} {
 	return out
 }
 
-func (seReq *SettingsList) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(seReq)
+func (r *SettingsList) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -61,24 +61,24 @@ func (seReq *SettingsList) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := get["prefix"]; ok {
 
-		seReq.Prefix = val
+		r.Prefix = val
 	}
 
 	return err
@@ -103,9 +103,9 @@ func (r SettingsUpdate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (seReq *SettingsUpdate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(seReq)
+func (r *SettingsUpdate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -115,24 +115,24 @@ func (seReq *SettingsUpdate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["values"]; ok {
 
-		if seReq.Values, err = parseJSONTextWithErr(val); err != nil {
+		if r.Values, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
@@ -162,9 +162,9 @@ func (r SettingsGet) Auditable() map[string]interface{} {
 	return out
 }
 
-func (seReq *SettingsGet) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(seReq)
+func (r *SettingsGet) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -174,26 +174,26 @@ func (seReq *SettingsGet) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := get["ownerID"]; ok {
 
-		seReq.OwnerID = parseUInt64(val)
+		r.OwnerID = parseUInt64(val)
 	}
-	seReq.Key = chi.URLParam(r, "key")
+	r.Key = chi.URLParam(req, "key")
 
 	return err
 }
@@ -223,9 +223,9 @@ func (r SettingsSet) Auditable() map[string]interface{} {
 	return out
 }
 
-func (seReq *SettingsSet) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(seReq)
+func (r *SettingsSet) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -235,29 +235,29 @@ func (seReq *SettingsSet) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	seReq.Key = chi.URLParam(r, "key")
+	r.Key = chi.URLParam(req, "key")
 	if val, ok := post["ownerID"]; ok {
 
-		seReq.OwnerID = parseUInt64(val)
+		r.OwnerID = parseUInt64(val)
 	}
 	if val, ok := post["value"]; ok {
 
-		if seReq.Value, err = parseJSONTextWithErr(val); err != nil {
+		if r.Value, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}

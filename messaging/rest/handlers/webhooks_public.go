@@ -39,7 +39,7 @@ type WebhooksPublic struct {
 	Create func(http.ResponseWriter, *http.Request)
 }
 
-func NewWebhooksPublic(wh WebhooksPublicAPI) *WebhooksPublic {
+func NewWebhooksPublic(h WebhooksPublicAPI) *WebhooksPublic {
 	return &WebhooksPublic{
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -49,7 +49,7 @@ func NewWebhooksPublic(wh WebhooksPublicAPI) *WebhooksPublic {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := wh.Delete(r.Context(), params); err != nil {
+			if value, err := h.Delete(r.Context(), params); err != nil {
 				logger.LogControllerError("WebhooksPublic.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -72,7 +72,7 @@ func NewWebhooksPublic(wh WebhooksPublicAPI) *WebhooksPublic {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := wh.Create(r.Context(), params); err != nil {
+			if value, err := h.Create(r.Context(), params); err != nil {
 				logger.LogControllerError("WebhooksPublic.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -90,10 +90,10 @@ func NewWebhooksPublic(wh WebhooksPublicAPI) *WebhooksPublic {
 	}
 }
 
-func (wh *WebhooksPublic) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h WebhooksPublic) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Delete("/webhooks/{webhookID}/{webhookToken}", wh.Delete)
-		r.Post("/webhooks/{webhookID}/{webhookToken}", wh.Create)
+		r.Delete("/webhooks/{webhookID}/{webhookToken}", h.Delete)
+		r.Post("/webhooks/{webhookID}/{webhookToken}", h.Create)
 	})
 }

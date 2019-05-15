@@ -45,7 +45,7 @@ type Namespace struct {
 	Delete func(http.ResponseWriter, *http.Request)
 }
 
-func NewNamespace(nh NamespaceAPI) *Namespace {
+func NewNamespace(h NamespaceAPI) *Namespace {
 	return &Namespace{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -55,7 +55,7 @@ func NewNamespace(nh NamespaceAPI) *Namespace {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := nh.List(r.Context(), params); err != nil {
+			if value, err := h.List(r.Context(), params); err != nil {
 				logger.LogControllerError("Namespace.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -78,7 +78,7 @@ func NewNamespace(nh NamespaceAPI) *Namespace {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := nh.Create(r.Context(), params); err != nil {
+			if value, err := h.Create(r.Context(), params); err != nil {
 				logger.LogControllerError("Namespace.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -101,7 +101,7 @@ func NewNamespace(nh NamespaceAPI) *Namespace {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := nh.Read(r.Context(), params); err != nil {
+			if value, err := h.Read(r.Context(), params); err != nil {
 				logger.LogControllerError("Namespace.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -124,7 +124,7 @@ func NewNamespace(nh NamespaceAPI) *Namespace {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := nh.Update(r.Context(), params); err != nil {
+			if value, err := h.Update(r.Context(), params); err != nil {
 				logger.LogControllerError("Namespace.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -147,7 +147,7 @@ func NewNamespace(nh NamespaceAPI) *Namespace {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := nh.Delete(r.Context(), params); err != nil {
+			if value, err := h.Delete(r.Context(), params); err != nil {
 				logger.LogControllerError("Namespace.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -165,13 +165,13 @@ func NewNamespace(nh NamespaceAPI) *Namespace {
 	}
 }
 
-func (nh *Namespace) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Namespace) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/namespace/", nh.List)
-		r.Post("/namespace/", nh.Create)
-		r.Get("/namespace/{namespaceID}", nh.Read)
-		r.Post("/namespace/{namespaceID}", nh.Update)
-		r.Delete("/namespace/{namespaceID}", nh.Delete)
+		r.Get("/namespace/", h.List)
+		r.Post("/namespace/", h.Create)
+		r.Get("/namespace/{namespaceID}", h.Read)
+		r.Post("/namespace/{namespaceID}", h.Update)
+		r.Delete("/namespace/{namespaceID}", h.Delete)
 	})
 }

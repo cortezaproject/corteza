@@ -59,7 +59,7 @@ type Message struct {
 	ReactionRemove func(http.ResponseWriter, *http.Request)
 }
 
-func NewMessage(mh MessageAPI) *Message {
+func NewMessage(h MessageAPI) *Message {
 	return &Message{
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -69,7 +69,7 @@ func NewMessage(mh MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.Create(r.Context(), params); err != nil {
+			if value, err := h.Create(r.Context(), params); err != nil {
 				logger.LogControllerError("Message.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -92,7 +92,7 @@ func NewMessage(mh MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.ExecuteCommand(r.Context(), params); err != nil {
+			if value, err := h.ExecuteCommand(r.Context(), params); err != nil {
 				logger.LogControllerError("Message.ExecuteCommand", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -115,7 +115,7 @@ func NewMessage(mh MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.MarkAsRead(r.Context(), params); err != nil {
+			if value, err := h.MarkAsRead(r.Context(), params); err != nil {
 				logger.LogControllerError("Message.MarkAsRead", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -138,7 +138,7 @@ func NewMessage(mh MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.Edit(r.Context(), params); err != nil {
+			if value, err := h.Edit(r.Context(), params); err != nil {
 				logger.LogControllerError("Message.Edit", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -161,7 +161,7 @@ func NewMessage(mh MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.Delete(r.Context(), params); err != nil {
+			if value, err := h.Delete(r.Context(), params); err != nil {
 				logger.LogControllerError("Message.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -184,7 +184,7 @@ func NewMessage(mh MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.ReplyCreate(r.Context(), params); err != nil {
+			if value, err := h.ReplyCreate(r.Context(), params); err != nil {
 				logger.LogControllerError("Message.ReplyCreate", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -207,7 +207,7 @@ func NewMessage(mh MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.PinCreate(r.Context(), params); err != nil {
+			if value, err := h.PinCreate(r.Context(), params); err != nil {
 				logger.LogControllerError("Message.PinCreate", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -230,7 +230,7 @@ func NewMessage(mh MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.PinRemove(r.Context(), params); err != nil {
+			if value, err := h.PinRemove(r.Context(), params); err != nil {
 				logger.LogControllerError("Message.PinRemove", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -253,7 +253,7 @@ func NewMessage(mh MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.BookmarkCreate(r.Context(), params); err != nil {
+			if value, err := h.BookmarkCreate(r.Context(), params); err != nil {
 				logger.LogControllerError("Message.BookmarkCreate", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -276,7 +276,7 @@ func NewMessage(mh MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.BookmarkRemove(r.Context(), params); err != nil {
+			if value, err := h.BookmarkRemove(r.Context(), params); err != nil {
 				logger.LogControllerError("Message.BookmarkRemove", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -299,7 +299,7 @@ func NewMessage(mh MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.ReactionCreate(r.Context(), params); err != nil {
+			if value, err := h.ReactionCreate(r.Context(), params); err != nil {
 				logger.LogControllerError("Message.ReactionCreate", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -322,7 +322,7 @@ func NewMessage(mh MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.ReactionRemove(r.Context(), params); err != nil {
+			if value, err := h.ReactionRemove(r.Context(), params); err != nil {
 				logger.LogControllerError("Message.ReactionRemove", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -340,20 +340,20 @@ func NewMessage(mh MessageAPI) *Message {
 	}
 }
 
-func (mh *Message) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Message) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Post("/channels/{channelID}/messages/", mh.Create)
-		r.Post("/channels/{channelID}/messages/command/{command}/exec", mh.ExecuteCommand)
-		r.Get("/channels/{channelID}/messages/mark-as-read", mh.MarkAsRead)
-		r.Put("/channels/{channelID}/messages/{messageID}", mh.Edit)
-		r.Delete("/channels/{channelID}/messages/{messageID}", mh.Delete)
-		r.Post("/channels/{channelID}/messages/{messageID}/replies", mh.ReplyCreate)
-		r.Post("/channels/{channelID}/messages/{messageID}/pin", mh.PinCreate)
-		r.Delete("/channels/{channelID}/messages/{messageID}/pin", mh.PinRemove)
-		r.Post("/channels/{channelID}/messages/{messageID}/bookmark", mh.BookmarkCreate)
-		r.Delete("/channels/{channelID}/messages/{messageID}/bookmark", mh.BookmarkRemove)
-		r.Post("/channels/{channelID}/messages/{messageID}/reaction/{reaction}", mh.ReactionCreate)
-		r.Delete("/channels/{channelID}/messages/{messageID}/reaction/{reaction}", mh.ReactionRemove)
+		r.Post("/channels/{channelID}/messages/", h.Create)
+		r.Post("/channels/{channelID}/messages/command/{command}/exec", h.ExecuteCommand)
+		r.Get("/channels/{channelID}/messages/mark-as-read", h.MarkAsRead)
+		r.Put("/channels/{channelID}/messages/{messageID}", h.Edit)
+		r.Delete("/channels/{channelID}/messages/{messageID}", h.Delete)
+		r.Post("/channels/{channelID}/messages/{messageID}/replies", h.ReplyCreate)
+		r.Post("/channels/{channelID}/messages/{messageID}/pin", h.PinCreate)
+		r.Delete("/channels/{channelID}/messages/{messageID}/pin", h.PinRemove)
+		r.Post("/channels/{channelID}/messages/{messageID}/bookmark", h.BookmarkCreate)
+		r.Delete("/channels/{channelID}/messages/{messageID}/bookmark", h.BookmarkRemove)
+		r.Post("/channels/{channelID}/messages/{messageID}/reaction/{reaction}", h.ReactionCreate)
+		r.Delete("/channels/{channelID}/messages/{messageID}/reaction/{reaction}", h.ReactionRemove)
 	})
 }

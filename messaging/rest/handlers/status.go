@@ -41,7 +41,7 @@ type Status struct {
 	Delete func(http.ResponseWriter, *http.Request)
 }
 
-func NewStatus(sh StatusAPI) *Status {
+func NewStatus(h StatusAPI) *Status {
 	return &Status{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -51,7 +51,7 @@ func NewStatus(sh StatusAPI) *Status {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := sh.List(r.Context(), params); err != nil {
+			if value, err := h.List(r.Context(), params); err != nil {
 				logger.LogControllerError("Status.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -74,7 +74,7 @@ func NewStatus(sh StatusAPI) *Status {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := sh.Set(r.Context(), params); err != nil {
+			if value, err := h.Set(r.Context(), params); err != nil {
 				logger.LogControllerError("Status.Set", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -97,7 +97,7 @@ func NewStatus(sh StatusAPI) *Status {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := sh.Delete(r.Context(), params); err != nil {
+			if value, err := h.Delete(r.Context(), params); err != nil {
 				logger.LogControllerError("Status.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -115,11 +115,11 @@ func NewStatus(sh StatusAPI) *Status {
 	}
 }
 
-func (sh *Status) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Status) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/status/", sh.List)
-		r.Post("/status/", sh.Set)
-		r.Delete("/status/", sh.Delete)
+		r.Get("/status/", h.List)
+		r.Post("/status/", h.Set)
+		r.Delete("/status/", h.Delete)
 	})
 }
