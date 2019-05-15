@@ -45,7 +45,7 @@ type Webhooks struct {
 	Delete func(http.ResponseWriter, *http.Request)
 }
 
-func NewWebhooks(wh WebhooksAPI) *Webhooks {
+func NewWebhooks(h WebhooksAPI) *Webhooks {
 	return &Webhooks{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -55,7 +55,7 @@ func NewWebhooks(wh WebhooksAPI) *Webhooks {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := wh.List(r.Context(), params); err != nil {
+			if value, err := h.List(r.Context(), params); err != nil {
 				logger.LogControllerError("Webhooks.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -78,7 +78,7 @@ func NewWebhooks(wh WebhooksAPI) *Webhooks {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := wh.Create(r.Context(), params); err != nil {
+			if value, err := h.Create(r.Context(), params); err != nil {
 				logger.LogControllerError("Webhooks.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -101,7 +101,7 @@ func NewWebhooks(wh WebhooksAPI) *Webhooks {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := wh.Update(r.Context(), params); err != nil {
+			if value, err := h.Update(r.Context(), params); err != nil {
 				logger.LogControllerError("Webhooks.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -124,7 +124,7 @@ func NewWebhooks(wh WebhooksAPI) *Webhooks {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := wh.Get(r.Context(), params); err != nil {
+			if value, err := h.Get(r.Context(), params); err != nil {
 				logger.LogControllerError("Webhooks.Get", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -147,7 +147,7 @@ func NewWebhooks(wh WebhooksAPI) *Webhooks {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := wh.Delete(r.Context(), params); err != nil {
+			if value, err := h.Delete(r.Context(), params); err != nil {
 				logger.LogControllerError("Webhooks.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -165,13 +165,13 @@ func NewWebhooks(wh WebhooksAPI) *Webhooks {
 	}
 }
 
-func (wh *Webhooks) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Webhooks) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/webhooks/", wh.List)
-		r.Post("/webhooks/", wh.Create)
-		r.Post("/webhooks/{webhookID}", wh.Update)
-		r.Get("/webhooks/{webhookID}", wh.Get)
-		r.Delete("/webhooks/{webhookID}", wh.Delete)
+		r.Get("/webhooks/", h.List)
+		r.Post("/webhooks/", h.Create)
+		r.Post("/webhooks/{webhookID}", h.Update)
+		r.Get("/webhooks/{webhookID}", h.Get)
+		r.Delete("/webhooks/{webhookID}", h.Delete)
 	})
 }

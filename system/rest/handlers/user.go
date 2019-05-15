@@ -49,7 +49,7 @@ type User struct {
 	Unsuspend func(http.ResponseWriter, *http.Request)
 }
 
-func NewUser(uh UserAPI) *User {
+func NewUser(h UserAPI) *User {
 	return &User{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -59,7 +59,7 @@ func NewUser(uh UserAPI) *User {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := uh.List(r.Context(), params); err != nil {
+			if value, err := h.List(r.Context(), params); err != nil {
 				logger.LogControllerError("User.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -82,7 +82,7 @@ func NewUser(uh UserAPI) *User {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := uh.Create(r.Context(), params); err != nil {
+			if value, err := h.Create(r.Context(), params); err != nil {
 				logger.LogControllerError("User.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -105,7 +105,7 @@ func NewUser(uh UserAPI) *User {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := uh.Update(r.Context(), params); err != nil {
+			if value, err := h.Update(r.Context(), params); err != nil {
 				logger.LogControllerError("User.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -128,7 +128,7 @@ func NewUser(uh UserAPI) *User {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := uh.Read(r.Context(), params); err != nil {
+			if value, err := h.Read(r.Context(), params); err != nil {
 				logger.LogControllerError("User.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -151,7 +151,7 @@ func NewUser(uh UserAPI) *User {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := uh.Delete(r.Context(), params); err != nil {
+			if value, err := h.Delete(r.Context(), params); err != nil {
 				logger.LogControllerError("User.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -174,7 +174,7 @@ func NewUser(uh UserAPI) *User {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := uh.Suspend(r.Context(), params); err != nil {
+			if value, err := h.Suspend(r.Context(), params); err != nil {
 				logger.LogControllerError("User.Suspend", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -197,7 +197,7 @@ func NewUser(uh UserAPI) *User {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := uh.Unsuspend(r.Context(), params); err != nil {
+			if value, err := h.Unsuspend(r.Context(), params); err != nil {
 				logger.LogControllerError("User.Unsuspend", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -215,15 +215,15 @@ func NewUser(uh UserAPI) *User {
 	}
 }
 
-func (uh *User) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h User) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/users/", uh.List)
-		r.Post("/users/", uh.Create)
-		r.Put("/users/{userID}", uh.Update)
-		r.Get("/users/{userID}", uh.Read)
-		r.Delete("/users/{userID}", uh.Delete)
-		r.Post("/users/{userID}/suspend", uh.Suspend)
-		r.Post("/users/{userID}/unsuspend", uh.Unsuspend)
+		r.Get("/users/", h.List)
+		r.Post("/users/", h.Create)
+		r.Put("/users/{userID}", h.Update)
+		r.Get("/users/{userID}", h.Read)
+		r.Delete("/users/{userID}", h.Delete)
+		r.Post("/users/{userID}/suspend", h.Suspend)
+		r.Post("/users/{userID}/unsuspend", h.Unsuspend)
 	})
 }

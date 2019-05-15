@@ -74,9 +74,9 @@ func (r AttachmentList) Auditable() map[string]interface{} {
 	return out
 }
 
-func (aReq *AttachmentList) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(aReq)
+func (r *AttachmentList) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -86,55 +86,55 @@ func (aReq *AttachmentList) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := get["pageID"]; ok {
 
-		aReq.PageID = parseUInt64(val)
+		r.PageID = parseUInt64(val)
 	}
 	if val, ok := get["moduleID"]; ok {
 
-		aReq.ModuleID = parseUInt64(val)
+		r.ModuleID = parseUInt64(val)
 	}
 	if val, ok := get["recordID"]; ok {
 
-		aReq.RecordID = parseUInt64(val)
+		r.RecordID = parseUInt64(val)
 	}
 	if val, ok := get["fieldName"]; ok {
 
-		aReq.FieldName = val
+		r.FieldName = val
 	}
 	if val, ok := get["page"]; ok {
 
-		aReq.Page = parseUint(val)
+		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
 
-		aReq.PerPage = parseUint(val)
+		r.PerPage = parseUint(val)
 	}
 	if val, ok := get["sign"]; ok {
 
-		aReq.Sign = val
+		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
 
-		aReq.UserID = parseUInt64(val)
+		r.UserID = parseUInt64(val)
 	}
-	aReq.Kind = chi.URLParam(r, "kind")
-	aReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.Kind = chi.URLParam(req, "kind")
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -170,9 +170,9 @@ func (r AttachmentRead) Auditable() map[string]interface{} {
 	return out
 }
 
-func (aReq *AttachmentRead) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(aReq)
+func (r *AttachmentRead) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -182,31 +182,31 @@ func (aReq *AttachmentRead) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	aReq.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
-	aReq.Kind = chi.URLParam(r, "kind")
-	aReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.AttachmentID = parseUInt64(chi.URLParam(req, "attachmentID"))
+	r.Kind = chi.URLParam(req, "kind")
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := get["sign"]; ok {
 
-		aReq.Sign = val
+		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
 
-		aReq.UserID = parseUInt64(val)
+		r.UserID = parseUInt64(val)
 	}
 
 	return err
@@ -243,9 +243,9 @@ func (r AttachmentDelete) Auditable() map[string]interface{} {
 	return out
 }
 
-func (aReq *AttachmentDelete) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(aReq)
+func (r *AttachmentDelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -255,31 +255,31 @@ func (aReq *AttachmentDelete) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	aReq.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
-	aReq.Kind = chi.URLParam(r, "kind")
-	aReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.AttachmentID = parseUInt64(chi.URLParam(req, "attachmentID"))
+	r.Kind = chi.URLParam(req, "kind")
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := get["sign"]; ok {
 
-		aReq.Sign = val
+		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
 
-		aReq.UserID = parseUInt64(val)
+		r.UserID = parseUInt64(val)
 	}
 
 	return err
@@ -322,9 +322,9 @@ func (r AttachmentOriginal) Auditable() map[string]interface{} {
 	return out
 }
 
-func (aReq *AttachmentOriginal) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(aReq)
+func (r *AttachmentOriginal) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -334,37 +334,37 @@ func (aReq *AttachmentOriginal) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := get["download"]; ok {
 
-		aReq.Download = parseBool(val)
+		r.Download = parseBool(val)
 	}
 	if val, ok := get["sign"]; ok {
 
-		aReq.Sign = val
+		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
 
-		aReq.UserID = parseUInt64(val)
+		r.UserID = parseUInt64(val)
 	}
-	aReq.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
-	aReq.Name = chi.URLParam(r, "name")
-	aReq.Kind = chi.URLParam(r, "kind")
-	aReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.AttachmentID = parseUInt64(chi.URLParam(req, "attachmentID"))
+	r.Name = chi.URLParam(req, "name")
+	r.Kind = chi.URLParam(req, "kind")
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -403,9 +403,9 @@ func (r AttachmentPreview) Auditable() map[string]interface{} {
 	return out
 }
 
-func (aReq *AttachmentPreview) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(aReq)
+func (r *AttachmentPreview) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -415,32 +415,32 @@ func (aReq *AttachmentPreview) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	aReq.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
-	aReq.Ext = chi.URLParam(r, "ext")
-	aReq.Kind = chi.URLParam(r, "kind")
-	aReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.AttachmentID = parseUInt64(chi.URLParam(req, "attachmentID"))
+	r.Ext = chi.URLParam(req, "ext")
+	r.Kind = chi.URLParam(req, "kind")
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := get["sign"]; ok {
 
-		aReq.Sign = val
+		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
 
-		aReq.UserID = parseUInt64(val)
+		r.UserID = parseUInt64(val)
 	}
 
 	return err

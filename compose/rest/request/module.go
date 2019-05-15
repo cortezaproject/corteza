@@ -60,9 +60,9 @@ func (r ModuleList) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *ModuleList) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *ModuleList) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -72,34 +72,34 @@ func (mReq *ModuleList) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := get["query"]; ok {
 
-		mReq.Query = val
+		r.Query = val
 	}
 	if val, ok := get["page"]; ok {
 
-		mReq.Page = parseUint(val)
+		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
 
-		mReq.PerPage = parseUint(val)
+		r.PerPage = parseUint(val)
 	}
-	mReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -132,9 +132,9 @@ func (r ModuleCreate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *ModuleCreate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *ModuleCreate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -144,32 +144,32 @@ func (mReq *ModuleCreate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["name"]; ok {
 
-		mReq.Name = val
+		r.Name = val
 	}
 	if val, ok := post["meta"]; ok {
 
-		if mReq.Meta, err = parseJSONTextWithErr(val); err != nil {
+		if r.Meta, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
-	mReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -196,9 +196,9 @@ func (r ModuleRead) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *ModuleRead) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *ModuleRead) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -208,23 +208,23 @@ func (mReq *ModuleRead) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	mReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
-	mReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -263,9 +263,9 @@ func (r ModuleUpdate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *ModuleUpdate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -275,36 +275,36 @@ func (mReq *ModuleUpdate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	mReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
-	mReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := post["name"]; ok {
 
-		mReq.Name = val
+		r.Name = val
 	}
 	if val, ok := post["meta"]; ok {
 
-		if mReq.Meta, err = parseJSONTextWithErr(val); err != nil {
+		if r.Meta, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
 	if val, ok := post["updatedAt"]; ok {
 
-		if mReq.UpdatedAt, err = parseISODatePtrWithErr(val); err != nil {
+		if r.UpdatedAt, err = parseISODatePtrWithErr(val); err != nil {
 			return err
 		}
 	}
@@ -334,9 +334,9 @@ func (r ModuleDelete) Auditable() map[string]interface{} {
 	return out
 }
 
-func (mReq *ModuleDelete) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(mReq)
+func (r *ModuleDelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -346,23 +346,23 @@ func (mReq *ModuleDelete) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	mReq.ModuleID = parseUInt64(chi.URLParam(r, "moduleID"))
-	mReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }

@@ -37,7 +37,7 @@ type Commands struct {
 	List func(http.ResponseWriter, *http.Request)
 }
 
-func NewCommands(ch CommandsAPI) *Commands {
+func NewCommands(h CommandsAPI) *Commands {
 	return &Commands{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -47,7 +47,7 @@ func NewCommands(ch CommandsAPI) *Commands {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ch.List(r.Context(), params); err != nil {
+			if value, err := h.List(r.Context(), params); err != nil {
 				logger.LogControllerError("Commands.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -65,9 +65,9 @@ func NewCommands(ch CommandsAPI) *Commands {
 	}
 }
 
-func (ch *Commands) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Commands) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/commands/", ch.List)
+		r.Get("/commands/", h.List)
 	})
 }

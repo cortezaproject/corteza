@@ -46,9 +46,9 @@ func (r ApplicationList) Auditable() map[string]interface{} {
 	return out
 }
 
-func (apReq *ApplicationList) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(apReq)
+func (r *ApplicationList) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -58,17 +58,17 @@ func (apReq *ApplicationList) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
@@ -104,9 +104,9 @@ func (r ApplicationCreate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (apReq *ApplicationCreate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(apReq)
+func (r *ApplicationCreate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -116,38 +116,38 @@ func (apReq *ApplicationCreate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["name"]; ok {
 
-		apReq.Name = val
+		r.Name = val
 	}
 	if val, ok := post["enabled"]; ok {
 
-		apReq.Enabled = parseBool(val)
+		r.Enabled = parseBool(val)
 	}
 	if val, ok := post["unify"]; ok {
 
-		if apReq.Unify, err = parseJSONTextWithErr(val); err != nil {
+		if r.Unify, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
 	if val, ok := post["config"]; ok {
 
-		if apReq.Config, err = parseJSONTextWithErr(val); err != nil {
+		if r.Config, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
@@ -186,9 +186,9 @@ func (r ApplicationUpdate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (apReq *ApplicationUpdate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(apReq)
+func (r *ApplicationUpdate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -198,39 +198,39 @@ func (apReq *ApplicationUpdate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	apReq.ApplicationID = parseUInt64(chi.URLParam(r, "applicationID"))
+	r.ApplicationID = parseUInt64(chi.URLParam(req, "applicationID"))
 	if val, ok := post["name"]; ok {
 
-		apReq.Name = val
+		r.Name = val
 	}
 	if val, ok := post["enabled"]; ok {
 
-		apReq.Enabled = parseBool(val)
+		r.Enabled = parseBool(val)
 	}
 	if val, ok := post["unify"]; ok {
 
-		if apReq.Unify, err = parseJSONTextWithErr(val); err != nil {
+		if r.Unify, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
 	if val, ok := post["config"]; ok {
 
-		if apReq.Config, err = parseJSONTextWithErr(val); err != nil {
+		if r.Config, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
@@ -257,9 +257,9 @@ func (r ApplicationRead) Auditable() map[string]interface{} {
 	return out
 }
 
-func (apReq *ApplicationRead) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(apReq)
+func (r *ApplicationRead) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -269,22 +269,22 @@ func (apReq *ApplicationRead) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	apReq.ApplicationID = parseUInt64(chi.URLParam(r, "applicationID"))
+	r.ApplicationID = parseUInt64(chi.URLParam(req, "applicationID"))
 
 	return err
 }
@@ -308,9 +308,9 @@ func (r ApplicationDelete) Auditable() map[string]interface{} {
 	return out
 }
 
-func (apReq *ApplicationDelete) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(apReq)
+func (r *ApplicationDelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -320,22 +320,22 @@ func (apReq *ApplicationDelete) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	apReq.ApplicationID = parseUInt64(chi.URLParam(r, "applicationID"))
+	r.ApplicationID = parseUInt64(chi.URLParam(req, "applicationID"))
 
 	return err
 }

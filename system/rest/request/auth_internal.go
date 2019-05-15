@@ -50,9 +50,9 @@ func (r AuthInternalLogin) Auditable() map[string]interface{} {
 	return out
 }
 
-func (auReq *AuthInternalLogin) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(auReq)
+func (r *AuthInternalLogin) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -62,28 +62,28 @@ func (auReq *AuthInternalLogin) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["email"]; ok {
 
-		auReq.Email = val
+		r.Email = val
 	}
 	if val, ok := post["password"]; ok {
 
-		auReq.Password = val
+		r.Password = val
 	}
 
 	return err
@@ -120,9 +120,9 @@ func (r AuthInternalSignup) Auditable() map[string]interface{} {
 	return out
 }
 
-func (auReq *AuthInternalSignup) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(auReq)
+func (r *AuthInternalSignup) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -132,40 +132,40 @@ func (auReq *AuthInternalSignup) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["email"]; ok {
 
-		auReq.Email = val
+		r.Email = val
 	}
 	if val, ok := post["username"]; ok {
 
-		auReq.Username = val
+		r.Username = val
 	}
 	if val, ok := post["password"]; ok {
 
-		auReq.Password = val
+		r.Password = val
 	}
 	if val, ok := post["handle"]; ok {
 
-		auReq.Handle = val
+		r.Handle = val
 	}
 	if val, ok := post["name"]; ok {
 
-		auReq.Name = val
+		r.Name = val
 	}
 
 	return err
@@ -190,9 +190,9 @@ func (r AuthInternalRequestPasswordReset) Auditable() map[string]interface{} {
 	return out
 }
 
-func (auReq *AuthInternalRequestPasswordReset) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(auReq)
+func (r *AuthInternalRequestPasswordReset) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -202,24 +202,24 @@ func (auReq *AuthInternalRequestPasswordReset) Fill(r *http.Request) (err error)
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["email"]; ok {
 
-		auReq.Email = val
+		r.Email = val
 	}
 
 	return err
@@ -244,9 +244,9 @@ func (r AuthInternalExchangePasswordResetToken) Auditable() map[string]interface
 	return out
 }
 
-func (auReq *AuthInternalExchangePasswordResetToken) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(auReq)
+func (r *AuthInternalExchangePasswordResetToken) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -256,24 +256,24 @@ func (auReq *AuthInternalExchangePasswordResetToken) Fill(r *http.Request) (err 
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["token"]; ok {
 
-		auReq.Token = val
+		r.Token = val
 	}
 
 	return err
@@ -301,9 +301,9 @@ func (r AuthInternalResetPassword) Auditable() map[string]interface{} {
 	return out
 }
 
-func (auReq *AuthInternalResetPassword) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(auReq)
+func (r *AuthInternalResetPassword) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -313,28 +313,28 @@ func (auReq *AuthInternalResetPassword) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["token"]; ok {
 
-		auReq.Token = val
+		r.Token = val
 	}
 	if val, ok := post["password"]; ok {
 
-		auReq.Password = val
+		r.Password = val
 	}
 
 	return err
@@ -359,9 +359,9 @@ func (r AuthInternalConfirmEmail) Auditable() map[string]interface{} {
 	return out
 }
 
-func (auReq *AuthInternalConfirmEmail) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(auReq)
+func (r *AuthInternalConfirmEmail) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -371,24 +371,24 @@ func (auReq *AuthInternalConfirmEmail) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["token"]; ok {
 
-		auReq.Token = val
+		r.Token = val
 	}
 
 	return err
@@ -416,9 +416,9 @@ func (r AuthInternalChangePassword) Auditable() map[string]interface{} {
 	return out
 }
 
-func (auReq *AuthInternalChangePassword) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(auReq)
+func (r *AuthInternalChangePassword) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -428,28 +428,28 @@ func (auReq *AuthInternalChangePassword) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["oldPassword"]; ok {
 
-		auReq.OldPassword = val
+		r.OldPassword = val
 	}
 	if val, ok := post["newPassword"]; ok {
 
-		auReq.NewPassword = val
+		r.NewPassword = val
 	}
 
 	return err

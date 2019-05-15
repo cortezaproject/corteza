@@ -53,9 +53,9 @@ func (r ActivitySend) Auditable() map[string]interface{} {
 	return out
 }
 
-func (aReq *ActivitySend) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(aReq)
+func (r *ActivitySend) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -65,32 +65,32 @@ func (aReq *ActivitySend) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["channelID"]; ok {
 
-		aReq.ChannelID = parseUInt64(val)
+		r.ChannelID = parseUInt64(val)
 	}
 	if val, ok := post["messageID"]; ok {
 
-		aReq.MessageID = parseUInt64(val)
+		r.MessageID = parseUInt64(val)
 	}
 	if val, ok := post["kind"]; ok {
 
-		aReq.Kind = val
+		r.Kind = val
 	}
 
 	return err

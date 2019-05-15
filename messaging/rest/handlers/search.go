@@ -39,7 +39,7 @@ type Search struct {
 	Threads  func(http.ResponseWriter, *http.Request)
 }
 
-func NewSearch(sh SearchAPI) *Search {
+func NewSearch(h SearchAPI) *Search {
 	return &Search{
 		Messages: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -49,7 +49,7 @@ func NewSearch(sh SearchAPI) *Search {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := sh.Messages(r.Context(), params); err != nil {
+			if value, err := h.Messages(r.Context(), params); err != nil {
 				logger.LogControllerError("Search.Messages", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -72,7 +72,7 @@ func NewSearch(sh SearchAPI) *Search {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := sh.Threads(r.Context(), params); err != nil {
+			if value, err := h.Threads(r.Context(), params); err != nil {
 				logger.LogControllerError("Search.Threads", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -90,10 +90,10 @@ func NewSearch(sh SearchAPI) *Search {
 	}
 }
 
-func (sh *Search) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Search) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/search/messages", sh.Messages)
-		r.Get("/search/threads", sh.Threads)
+		r.Get("/search/messages", h.Messages)
+		r.Get("/search/threads", h.Threads)
 	})
 }

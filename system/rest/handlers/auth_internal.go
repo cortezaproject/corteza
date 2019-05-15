@@ -49,7 +49,7 @@ type AuthInternal struct {
 	ChangePassword             func(http.ResponseWriter, *http.Request)
 }
 
-func NewAuthInternal(ah AuthInternalAPI) *AuthInternal {
+func NewAuthInternal(h AuthInternalAPI) *AuthInternal {
 	return &AuthInternal{
 		Login: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -59,7 +59,7 @@ func NewAuthInternal(ah AuthInternalAPI) *AuthInternal {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.Login(r.Context(), params); err != nil {
+			if value, err := h.Login(r.Context(), params); err != nil {
 				logger.LogControllerError("AuthInternal.Login", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -82,7 +82,7 @@ func NewAuthInternal(ah AuthInternalAPI) *AuthInternal {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.Signup(r.Context(), params); err != nil {
+			if value, err := h.Signup(r.Context(), params); err != nil {
 				logger.LogControllerError("AuthInternal.Signup", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -105,7 +105,7 @@ func NewAuthInternal(ah AuthInternalAPI) *AuthInternal {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.RequestPasswordReset(r.Context(), params); err != nil {
+			if value, err := h.RequestPasswordReset(r.Context(), params); err != nil {
 				logger.LogControllerError("AuthInternal.RequestPasswordReset", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -128,7 +128,7 @@ func NewAuthInternal(ah AuthInternalAPI) *AuthInternal {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.ExchangePasswordResetToken(r.Context(), params); err != nil {
+			if value, err := h.ExchangePasswordResetToken(r.Context(), params); err != nil {
 				logger.LogControllerError("AuthInternal.ExchangePasswordResetToken", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -151,7 +151,7 @@ func NewAuthInternal(ah AuthInternalAPI) *AuthInternal {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.ResetPassword(r.Context(), params); err != nil {
+			if value, err := h.ResetPassword(r.Context(), params); err != nil {
 				logger.LogControllerError("AuthInternal.ResetPassword", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -174,7 +174,7 @@ func NewAuthInternal(ah AuthInternalAPI) *AuthInternal {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.ConfirmEmail(r.Context(), params); err != nil {
+			if value, err := h.ConfirmEmail(r.Context(), params); err != nil {
 				logger.LogControllerError("AuthInternal.ConfirmEmail", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -197,7 +197,7 @@ func NewAuthInternal(ah AuthInternalAPI) *AuthInternal {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.ChangePassword(r.Context(), params); err != nil {
+			if value, err := h.ChangePassword(r.Context(), params); err != nil {
 				logger.LogControllerError("AuthInternal.ChangePassword", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -215,15 +215,15 @@ func NewAuthInternal(ah AuthInternalAPI) *AuthInternal {
 	}
 }
 
-func (ah *AuthInternal) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h AuthInternal) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Post("/auth/internal/login", ah.Login)
-		r.Post("/auth/internal/signup", ah.Signup)
-		r.Post("/auth/internal/request-password-reset", ah.RequestPasswordReset)
-		r.Post("/auth/internal/exchange-password-reset-token", ah.ExchangePasswordResetToken)
-		r.Post("/auth/internal/reset-password", ah.ResetPassword)
-		r.Post("/auth/internal/confirm-email", ah.ConfirmEmail)
-		r.Post("/auth/internal/change-password", ah.ChangePassword)
+		r.Post("/auth/internal/login", h.Login)
+		r.Post("/auth/internal/signup", h.Signup)
+		r.Post("/auth/internal/request-password-reset", h.RequestPasswordReset)
+		r.Post("/auth/internal/exchange-password-reset-token", h.ExchangePasswordResetToken)
+		r.Post("/auth/internal/reset-password", h.ResetPassword)
+		r.Post("/auth/internal/confirm-email", h.ConfirmEmail)
+		r.Post("/auth/internal/change-password", h.ChangePassword)
 	})
 }

@@ -45,7 +45,7 @@ type Trigger struct {
 	Delete func(http.ResponseWriter, *http.Request)
 }
 
-func NewTrigger(th TriggerAPI) *Trigger {
+func NewTrigger(h TriggerAPI) *Trigger {
 	return &Trigger{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -55,7 +55,7 @@ func NewTrigger(th TriggerAPI) *Trigger {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := th.List(r.Context(), params); err != nil {
+			if value, err := h.List(r.Context(), params); err != nil {
 				logger.LogControllerError("Trigger.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -78,7 +78,7 @@ func NewTrigger(th TriggerAPI) *Trigger {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := th.Create(r.Context(), params); err != nil {
+			if value, err := h.Create(r.Context(), params); err != nil {
 				logger.LogControllerError("Trigger.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -101,7 +101,7 @@ func NewTrigger(th TriggerAPI) *Trigger {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := th.Read(r.Context(), params); err != nil {
+			if value, err := h.Read(r.Context(), params); err != nil {
 				logger.LogControllerError("Trigger.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -124,7 +124,7 @@ func NewTrigger(th TriggerAPI) *Trigger {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := th.Update(r.Context(), params); err != nil {
+			if value, err := h.Update(r.Context(), params); err != nil {
 				logger.LogControllerError("Trigger.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -147,7 +147,7 @@ func NewTrigger(th TriggerAPI) *Trigger {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := th.Delete(r.Context(), params); err != nil {
+			if value, err := h.Delete(r.Context(), params); err != nil {
 				logger.LogControllerError("Trigger.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -165,13 +165,13 @@ func NewTrigger(th TriggerAPI) *Trigger {
 	}
 }
 
-func (th *Trigger) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Trigger) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/namespace/{namespaceID}/trigger/", th.List)
-		r.Post("/namespace/{namespaceID}/trigger/", th.Create)
-		r.Get("/namespace/{namespaceID}/trigger/{triggerID}", th.Read)
-		r.Post("/namespace/{namespaceID}/trigger/{triggerID}", th.Update)
-		r.Delete("/namespace/{namespaceID}/trigger/{triggerID}", th.Delete)
+		r.Get("/namespace/{namespaceID}/trigger/", h.List)
+		r.Post("/namespace/{namespaceID}/trigger/", h.Create)
+		r.Get("/namespace/{namespaceID}/trigger/{triggerID}", h.Read)
+		r.Post("/namespace/{namespaceID}/trigger/{triggerID}", h.Update)
+		r.Delete("/namespace/{namespaceID}/trigger/{triggerID}", h.Delete)
 	})
 }

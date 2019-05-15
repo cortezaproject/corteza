@@ -45,7 +45,7 @@ type Permissions struct {
 	Update    func(http.ResponseWriter, *http.Request)
 }
 
-func NewPermissions(ph PermissionsAPI) *Permissions {
+func NewPermissions(h PermissionsAPI) *Permissions {
 	return &Permissions{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -55,7 +55,7 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ph.List(r.Context(), params); err != nil {
+			if value, err := h.List(r.Context(), params); err != nil {
 				logger.LogControllerError("Permissions.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -78,7 +78,7 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ph.Effective(r.Context(), params); err != nil {
+			if value, err := h.Effective(r.Context(), params); err != nil {
 				logger.LogControllerError("Permissions.Effective", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -101,7 +101,7 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ph.Read(r.Context(), params); err != nil {
+			if value, err := h.Read(r.Context(), params); err != nil {
 				logger.LogControllerError("Permissions.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -124,7 +124,7 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ph.Delete(r.Context(), params); err != nil {
+			if value, err := h.Delete(r.Context(), params); err != nil {
 				logger.LogControllerError("Permissions.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -147,7 +147,7 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ph.Update(r.Context(), params); err != nil {
+			if value, err := h.Update(r.Context(), params); err != nil {
 				logger.LogControllerError("Permissions.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -165,13 +165,13 @@ func NewPermissions(ph PermissionsAPI) *Permissions {
 	}
 }
 
-func (ph *Permissions) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Permissions) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/permissions/", ph.List)
-		r.Get("/permissions/effective", ph.Effective)
-		r.Get("/permissions/{roleID}/rules", ph.Read)
-		r.Delete("/permissions/{roleID}/rules", ph.Delete)
-		r.Patch("/permissions/{roleID}/rules", ph.Update)
+		r.Get("/permissions/", h.List)
+		r.Get("/permissions/effective", h.Effective)
+		r.Get("/permissions/{roleID}/rules", h.Read)
+		r.Delete("/permissions/{roleID}/rules", h.Delete)
+		r.Patch("/permissions/{roleID}/rules", h.Update)
 	})
 }

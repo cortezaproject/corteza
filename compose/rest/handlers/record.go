@@ -49,7 +49,7 @@ type Record struct {
 	Upload func(http.ResponseWriter, *http.Request)
 }
 
-func NewRecord(rh RecordAPI) *Record {
+func NewRecord(h RecordAPI) *Record {
 	return &Record{
 		Report: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -59,7 +59,7 @@ func NewRecord(rh RecordAPI) *Record {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.Report(r.Context(), params); err != nil {
+			if value, err := h.Report(r.Context(), params); err != nil {
 				logger.LogControllerError("Record.Report", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -82,7 +82,7 @@ func NewRecord(rh RecordAPI) *Record {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.List(r.Context(), params); err != nil {
+			if value, err := h.List(r.Context(), params); err != nil {
 				logger.LogControllerError("Record.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -105,7 +105,7 @@ func NewRecord(rh RecordAPI) *Record {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.Create(r.Context(), params); err != nil {
+			if value, err := h.Create(r.Context(), params); err != nil {
 				logger.LogControllerError("Record.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -128,7 +128,7 @@ func NewRecord(rh RecordAPI) *Record {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.Read(r.Context(), params); err != nil {
+			if value, err := h.Read(r.Context(), params); err != nil {
 				logger.LogControllerError("Record.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -151,7 +151,7 @@ func NewRecord(rh RecordAPI) *Record {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.Update(r.Context(), params); err != nil {
+			if value, err := h.Update(r.Context(), params); err != nil {
 				logger.LogControllerError("Record.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -174,7 +174,7 @@ func NewRecord(rh RecordAPI) *Record {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.Delete(r.Context(), params); err != nil {
+			if value, err := h.Delete(r.Context(), params); err != nil {
 				logger.LogControllerError("Record.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -197,7 +197,7 @@ func NewRecord(rh RecordAPI) *Record {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := rh.Upload(r.Context(), params); err != nil {
+			if value, err := h.Upload(r.Context(), params); err != nil {
 				logger.LogControllerError("Record.Upload", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -215,15 +215,15 @@ func NewRecord(rh RecordAPI) *Record {
 	}
 }
 
-func (rh *Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/report", rh.Report)
-		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/", rh.List)
-		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/", rh.Create)
-		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", rh.Read)
-		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", rh.Update)
-		r.Delete("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", rh.Delete)
-		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/{fieldName}/attachment", rh.Upload)
+		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/report", h.Report)
+		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/", h.List)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/", h.Create)
+		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Read)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Update)
+		r.Delete("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Delete)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/{fieldName}/attachment", h.Upload)
 	})
 }

@@ -39,7 +39,7 @@ type Attachment struct {
 	Preview  func(http.ResponseWriter, *http.Request)
 }
 
-func NewAttachment(ah AttachmentAPI) *Attachment {
+func NewAttachment(h AttachmentAPI) *Attachment {
 	return &Attachment{
 		Original: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -49,7 +49,7 @@ func NewAttachment(ah AttachmentAPI) *Attachment {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.Original(r.Context(), params); err != nil {
+			if value, err := h.Original(r.Context(), params); err != nil {
 				logger.LogControllerError("Attachment.Original", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -72,7 +72,7 @@ func NewAttachment(ah AttachmentAPI) *Attachment {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.Preview(r.Context(), params); err != nil {
+			if value, err := h.Preview(r.Context(), params); err != nil {
 				logger.LogControllerError("Attachment.Preview", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -90,10 +90,10 @@ func NewAttachment(ah AttachmentAPI) *Attachment {
 	}
 }
 
-func (ah *Attachment) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Attachment) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/attachment/{attachmentID}/original/{name}", ah.Original)
-		r.Get("/attachment/{attachmentID}/preview.{ext}", ah.Preview)
+		r.Get("/attachment/{attachmentID}/original/{name}", h.Original)
+		r.Get("/attachment/{attachmentID}/preview.{ext}", h.Preview)
 	})
 }

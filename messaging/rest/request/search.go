@@ -80,9 +80,9 @@ func (r SearchMessages) Auditable() map[string]interface{} {
 	return out
 }
 
-func (sReq *SearchMessages) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(sReq)
+func (r *SearchMessages) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -92,71 +92,71 @@ func (sReq *SearchMessages) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := urlQuery["channelID[]"]; ok {
-		sReq.ChannelID = parseUInt64A(val)
+		r.ChannelID = parseUInt64A(val)
 	} else if val, ok = urlQuery["channelID"]; ok {
-		sReq.ChannelID = parseUInt64A(val)
+		r.ChannelID = parseUInt64A(val)
 	}
 
 	if val, ok := get["afterMessageID"]; ok {
 
-		sReq.AfterMessageID = parseUInt64(val)
+		r.AfterMessageID = parseUInt64(val)
 	}
 	if val, ok := get["beforeMessageID"]; ok {
 
-		sReq.BeforeMessageID = parseUInt64(val)
+		r.BeforeMessageID = parseUInt64(val)
 	}
 	if val, ok := get["fromMessageID"]; ok {
 
-		sReq.FromMessageID = parseUInt64(val)
+		r.FromMessageID = parseUInt64(val)
 	}
 	if val, ok := get["toMessageID"]; ok {
 
-		sReq.ToMessageID = parseUInt64(val)
+		r.ToMessageID = parseUInt64(val)
 	}
 
 	if val, ok := urlQuery["threadID[]"]; ok {
-		sReq.ThreadID = parseUInt64A(val)
+		r.ThreadID = parseUInt64A(val)
 	} else if val, ok = urlQuery["threadID"]; ok {
-		sReq.ThreadID = parseUInt64A(val)
+		r.ThreadID = parseUInt64A(val)
 	}
 
 	if val, ok := urlQuery["userID[]"]; ok {
-		sReq.UserID = parseUInt64A(val)
+		r.UserID = parseUInt64A(val)
 	} else if val, ok = urlQuery["userID"]; ok {
-		sReq.UserID = parseUInt64A(val)
+		r.UserID = parseUInt64A(val)
 	}
 
 	if val, ok := get["pinnedOnly"]; ok {
 
-		sReq.PinnedOnly = parseBool(val)
+		r.PinnedOnly = parseBool(val)
 	}
 	if val, ok := get["bookmarkedOnly"]; ok {
 
-		sReq.BookmarkedOnly = parseBool(val)
+		r.BookmarkedOnly = parseBool(val)
 	}
 	if val, ok := get["limit"]; ok {
 
-		sReq.Limit = parseUint(val)
+		r.Limit = parseUint(val)
 	}
 	if val, ok := get["query"]; ok {
 
-		sReq.Query = val
+		r.Query = val
 	}
 
 	return err
@@ -187,9 +187,9 @@ func (r SearchThreads) Auditable() map[string]interface{} {
 	return out
 }
 
-func (sReq *SearchThreads) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(sReq)
+func (r *SearchThreads) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -199,34 +199,34 @@ func (sReq *SearchThreads) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := urlQuery["channelID[]"]; ok {
-		sReq.ChannelID = parseUInt64A(val)
+		r.ChannelID = parseUInt64A(val)
 	} else if val, ok = urlQuery["channelID"]; ok {
-		sReq.ChannelID = parseUInt64A(val)
+		r.ChannelID = parseUInt64A(val)
 	}
 
 	if val, ok := get["limit"]; ok {
 
-		sReq.Limit = parseUint(val)
+		r.Limit = parseUint(val)
 	}
 	if val, ok := get["query"]; ok {
 
-		sReq.Query = val
+		r.Query = val
 	}
 
 	return err

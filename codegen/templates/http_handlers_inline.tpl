@@ -28,7 +28,7 @@ type {name|expose} struct {
 {/foreach}
 }
 
-func New{name|expose}({self}h {name|expose}API) *{name|expose} {
+func New{name|expose}(h {name|expose}API) *{name|expose} {
 	return &{name|expose}{ldelim}{newline}
 {foreach $calls as $call}
 		{call.name|capitalize}: func(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +39,7 @@ func New{name|expose}({self}h {name|expose}API) *{name|expose} {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := {self}h.{call.name|capitalize}(r.Context(), params); err != nil {
+			if value, err := h.{call.name|capitalize}(r.Context(), params); err != nil {
 				logger.LogControllerError("{name|expose}.{call.name|capitalize}", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -58,11 +58,11 @@ func New{name|expose}({self}h {name|expose}API) *{name|expose} {
 	{rdelim}
 }
 
-func ({self}h *{name|expose})MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h {name|expose})MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func (r chi.Router) {
 		r.Use(middlewares...)
 {foreach $api.apis as $call}
-		r.{eval echo capitalize(strtolower($call.method))}("{api.path}{call.path}", {self}h.{call.name|capitalize})
+		r.{eval echo capitalize(strtolower($call.method))}("{api.path}{call.path}", h.{call.name|capitalize})
 {/foreach}
 	})
 }

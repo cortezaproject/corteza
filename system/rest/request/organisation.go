@@ -47,9 +47,9 @@ func (r OrganisationList) Auditable() map[string]interface{} {
 	return out
 }
 
-func (orReq *OrganisationList) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(orReq)
+func (r *OrganisationList) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -59,24 +59,24 @@ func (orReq *OrganisationList) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := get["query"]; ok {
 
-		orReq.Query = val
+		r.Query = val
 	}
 
 	return err
@@ -101,9 +101,9 @@ func (r OrganisationCreate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (orReq *OrganisationCreate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(orReq)
+func (r *OrganisationCreate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -113,24 +113,24 @@ func (orReq *OrganisationCreate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["name"]; ok {
 
-		orReq.Name = val
+		r.Name = val
 	}
 
 	return err
@@ -158,9 +158,9 @@ func (r OrganisationUpdate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (orReq *OrganisationUpdate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(orReq)
+func (r *OrganisationUpdate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -170,25 +170,25 @@ func (orReq *OrganisationUpdate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	orReq.ID = parseUInt64(chi.URLParam(r, "id"))
+	r.ID = parseUInt64(chi.URLParam(req, "id"))
 	if val, ok := post["name"]; ok {
 
-		orReq.Name = val
+		r.Name = val
 	}
 
 	return err
@@ -213,9 +213,9 @@ func (r OrganisationDelete) Auditable() map[string]interface{} {
 	return out
 }
 
-func (orReq *OrganisationDelete) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(orReq)
+func (r *OrganisationDelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -225,22 +225,22 @@ func (orReq *OrganisationDelete) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	orReq.ID = parseUInt64(chi.URLParam(r, "id"))
+	r.ID = parseUInt64(chi.URLParam(req, "id"))
 
 	return err
 }
@@ -264,9 +264,9 @@ func (r OrganisationRead) Auditable() map[string]interface{} {
 	return out
 }
 
-func (orReq *OrganisationRead) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(orReq)
+func (r *OrganisationRead) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -276,24 +276,24 @@ func (orReq *OrganisationRead) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := get["id"]; ok {
 
-		orReq.ID = parseUInt64(val)
+		r.ID = parseUInt64(val)
 	}
 
 	return err
@@ -318,9 +318,9 @@ func (r OrganisationArchive) Auditable() map[string]interface{} {
 	return out
 }
 
-func (orReq *OrganisationArchive) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(orReq)
+func (r *OrganisationArchive) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -330,22 +330,22 @@ func (orReq *OrganisationArchive) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	orReq.ID = parseUInt64(chi.URLParam(r, "id"))
+	r.ID = parseUInt64(chi.URLParam(req, "id"))
 
 	return err
 }

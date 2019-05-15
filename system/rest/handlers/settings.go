@@ -43,7 +43,7 @@ type Settings struct {
 	Set    func(http.ResponseWriter, *http.Request)
 }
 
-func NewSettings(sh SettingsAPI) *Settings {
+func NewSettings(h SettingsAPI) *Settings {
 	return &Settings{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -53,7 +53,7 @@ func NewSettings(sh SettingsAPI) *Settings {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := sh.List(r.Context(), params); err != nil {
+			if value, err := h.List(r.Context(), params); err != nil {
 				logger.LogControllerError("Settings.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -76,7 +76,7 @@ func NewSettings(sh SettingsAPI) *Settings {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := sh.Update(r.Context(), params); err != nil {
+			if value, err := h.Update(r.Context(), params); err != nil {
 				logger.LogControllerError("Settings.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -99,7 +99,7 @@ func NewSettings(sh SettingsAPI) *Settings {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := sh.Get(r.Context(), params); err != nil {
+			if value, err := h.Get(r.Context(), params); err != nil {
 				logger.LogControllerError("Settings.Get", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -122,7 +122,7 @@ func NewSettings(sh SettingsAPI) *Settings {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := sh.Set(r.Context(), params); err != nil {
+			if value, err := h.Set(r.Context(), params); err != nil {
 				logger.LogControllerError("Settings.Set", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -140,12 +140,12 @@ func NewSettings(sh SettingsAPI) *Settings {
 	}
 }
 
-func (sh *Settings) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Settings) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/settings/", sh.List)
-		r.Patch("/settings/", sh.Update)
-		r.Get("/settings/{key}", sh.Get)
-		r.Put("/settings/{key}", sh.Set)
+		r.Get("/settings/", h.List)
+		r.Patch("/settings/", h.Update)
+		r.Get("/settings/{key}", h.Get)
+		r.Put("/settings/{key}", h.Set)
 	})
 }

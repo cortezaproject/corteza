@@ -45,7 +45,7 @@ type Module struct {
 	Delete func(http.ResponseWriter, *http.Request)
 }
 
-func NewModule(mh ModuleAPI) *Module {
+func NewModule(h ModuleAPI) *Module {
 	return &Module{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -55,7 +55,7 @@ func NewModule(mh ModuleAPI) *Module {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.List(r.Context(), params); err != nil {
+			if value, err := h.List(r.Context(), params); err != nil {
 				logger.LogControllerError("Module.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -78,7 +78,7 @@ func NewModule(mh ModuleAPI) *Module {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.Create(r.Context(), params); err != nil {
+			if value, err := h.Create(r.Context(), params); err != nil {
 				logger.LogControllerError("Module.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -101,7 +101,7 @@ func NewModule(mh ModuleAPI) *Module {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.Read(r.Context(), params); err != nil {
+			if value, err := h.Read(r.Context(), params); err != nil {
 				logger.LogControllerError("Module.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -124,7 +124,7 @@ func NewModule(mh ModuleAPI) *Module {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.Update(r.Context(), params); err != nil {
+			if value, err := h.Update(r.Context(), params); err != nil {
 				logger.LogControllerError("Module.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -147,7 +147,7 @@ func NewModule(mh ModuleAPI) *Module {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := mh.Delete(r.Context(), params); err != nil {
+			if value, err := h.Delete(r.Context(), params); err != nil {
 				logger.LogControllerError("Module.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -165,13 +165,13 @@ func NewModule(mh ModuleAPI) *Module {
 	}
 }
 
-func (mh *Module) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Module) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/namespace/{namespaceID}/module/", mh.List)
-		r.Post("/namespace/{namespaceID}/module/", mh.Create)
-		r.Get("/namespace/{namespaceID}/module/{moduleID}", mh.Read)
-		r.Post("/namespace/{namespaceID}/module/{moduleID}", mh.Update)
-		r.Delete("/namespace/{namespaceID}/module/{moduleID}", mh.Delete)
+		r.Get("/namespace/{namespaceID}/module/", h.List)
+		r.Post("/namespace/{namespaceID}/module/", h.Create)
+		r.Get("/namespace/{namespaceID}/module/{moduleID}", h.Read)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}", h.Update)
+		r.Delete("/namespace/{namespaceID}/module/{moduleID}", h.Delete)
 	})
 }

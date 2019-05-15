@@ -52,9 +52,9 @@ func (r WebhooksList) Auditable() map[string]interface{} {
 	return out
 }
 
-func (wReq *WebhooksList) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(wReq)
+func (r *WebhooksList) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -64,28 +64,28 @@ func (wReq *WebhooksList) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := get["channelID"]; ok {
 
-		wReq.ChannelID = parseUInt64(val)
+		r.ChannelID = parseUInt64(val)
 	}
 	if val, ok := get["userID"]; ok {
 
-		wReq.UserID = parseUInt64(val)
+		r.UserID = parseUInt64(val)
 	}
 
 	return err
@@ -129,9 +129,9 @@ func (r WebhooksCreate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (wReq *WebhooksCreate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(wReq)
+func (r *WebhooksCreate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -141,48 +141,48 @@ func (wReq *WebhooksCreate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseMultipartForm(32 << 20); err != nil {
+	if err = req.ParseMultipartForm(32 << 20); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["channelID"]; ok {
 
-		wReq.ChannelID = parseUInt64(val)
+		r.ChannelID = parseUInt64(val)
 	}
 	if val, ok := post["kind"]; ok {
 
-		wReq.Kind = types.WebhookKind(val)
+		r.Kind = types.WebhookKind(val)
 	}
 	if val, ok := post["trigger"]; ok {
 
-		wReq.Trigger = val
+		r.Trigger = val
 	}
 	if val, ok := post["url"]; ok {
 
-		wReq.Url = val
+		r.Url = val
 	}
 	if val, ok := post["username"]; ok {
 
-		wReq.Username = val
+		r.Username = val
 	}
-	if _, wReq.Avatar, err = r.FormFile("avatar"); err != nil {
+	if _, r.Avatar, err = req.FormFile("avatar"); err != nil {
 		return errors.Wrap(err, "error procesing uploaded file")
 	}
 
 	if val, ok := post["avatarURL"]; ok {
 
-		wReq.AvatarURL = val
+		r.AvatarURL = val
 	}
 
 	return err
@@ -229,9 +229,9 @@ func (r WebhooksUpdate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (wReq *WebhooksUpdate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(wReq)
+func (r *WebhooksUpdate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -241,49 +241,49 @@ func (wReq *WebhooksUpdate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseMultipartForm(32 << 20); err != nil {
+	if err = req.ParseMultipartForm(32 << 20); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	wReq.WebhookID = parseUInt64(chi.URLParam(r, "webhookID"))
+	r.WebhookID = parseUInt64(chi.URLParam(req, "webhookID"))
 	if val, ok := post["channelID"]; ok {
 
-		wReq.ChannelID = parseUInt64(val)
+		r.ChannelID = parseUInt64(val)
 	}
 	if val, ok := post["kind"]; ok {
 
-		wReq.Kind = types.WebhookKind(val)
+		r.Kind = types.WebhookKind(val)
 	}
 	if val, ok := post["trigger"]; ok {
 
-		wReq.Trigger = val
+		r.Trigger = val
 	}
 	if val, ok := post["url"]; ok {
 
-		wReq.Url = val
+		r.Url = val
 	}
 	if val, ok := post["username"]; ok {
 
-		wReq.Username = val
+		r.Username = val
 	}
-	if _, wReq.Avatar, err = r.FormFile("avatar"); err != nil {
+	if _, r.Avatar, err = req.FormFile("avatar"); err != nil {
 		return errors.Wrap(err, "error procesing uploaded file")
 	}
 
 	if val, ok := post["avatarURL"]; ok {
 
-		wReq.AvatarURL = val
+		r.AvatarURL = val
 	}
 
 	return err
@@ -308,9 +308,9 @@ func (r WebhooksGet) Auditable() map[string]interface{} {
 	return out
 }
 
-func (wReq *WebhooksGet) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(wReq)
+func (r *WebhooksGet) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -320,22 +320,22 @@ func (wReq *WebhooksGet) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	wReq.WebhookID = parseUInt64(chi.URLParam(r, "webhookID"))
+	r.WebhookID = parseUInt64(chi.URLParam(req, "webhookID"))
 
 	return err
 }
@@ -359,9 +359,9 @@ func (r WebhooksDelete) Auditable() map[string]interface{} {
 	return out
 }
 
-func (wReq *WebhooksDelete) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(wReq)
+func (r *WebhooksDelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -371,22 +371,22 @@ func (wReq *WebhooksDelete) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	wReq.WebhookID = parseUInt64(chi.URLParam(r, "webhookID"))
+	r.WebhookID = parseUInt64(chi.URLParam(req, "webhookID"))
 
 	return err
 }

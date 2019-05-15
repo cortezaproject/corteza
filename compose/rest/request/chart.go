@@ -59,9 +59,9 @@ func (r ChartList) Auditable() map[string]interface{} {
 	return out
 }
 
-func (cReq *ChartList) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(cReq)
+func (r *ChartList) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -71,34 +71,34 @@ func (cReq *ChartList) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := get["query"]; ok {
 
-		cReq.Query = val
+		r.Query = val
 	}
 	if val, ok := get["page"]; ok {
 
-		cReq.Page = parseUint(val)
+		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
 
-		cReq.PerPage = parseUint(val)
+		r.PerPage = parseUint(val)
 	}
-	cReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -128,9 +128,9 @@ func (r ChartCreate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (cReq *ChartCreate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(cReq)
+func (r *ChartCreate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -140,32 +140,32 @@ func (cReq *ChartCreate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["config"]; ok {
 
-		if cReq.Config, err = parseJSONTextWithErr(val); err != nil {
+		if r.Config, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
 	if val, ok := post["name"]; ok {
 
-		cReq.Name = val
+		r.Name = val
 	}
-	cReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -192,9 +192,9 @@ func (r ChartRead) Auditable() map[string]interface{} {
 	return out
 }
 
-func (cReq *ChartRead) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(cReq)
+func (r *ChartRead) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -204,23 +204,23 @@ func (cReq *ChartRead) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	cReq.ChartID = parseUInt64(chi.URLParam(r, "chartID"))
-	cReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.ChartID = parseUInt64(chi.URLParam(req, "chartID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }
@@ -256,9 +256,9 @@ func (r ChartUpdate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (cReq *ChartUpdate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(cReq)
+func (r *ChartUpdate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -268,36 +268,36 @@ func (cReq *ChartUpdate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	cReq.ChartID = parseUInt64(chi.URLParam(r, "chartID"))
-	cReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.ChartID = parseUInt64(chi.URLParam(req, "chartID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := post["config"]; ok {
 
-		if cReq.Config, err = parseJSONTextWithErr(val); err != nil {
+		if r.Config, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
 	if val, ok := post["name"]; ok {
 
-		cReq.Name = val
+		r.Name = val
 	}
 	if val, ok := post["updatedAt"]; ok {
 
-		if cReq.UpdatedAt, err = parseISODatePtrWithErr(val); err != nil {
+		if r.UpdatedAt, err = parseISODatePtrWithErr(val); err != nil {
 			return err
 		}
 	}
@@ -327,9 +327,9 @@ func (r ChartDelete) Auditable() map[string]interface{} {
 	return out
 }
 
-func (cReq *ChartDelete) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(cReq)
+func (r *ChartDelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -339,23 +339,23 @@ func (cReq *ChartDelete) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	cReq.ChartID = parseUInt64(chi.URLParam(r, "chartID"))
-	cReq.NamespaceID = parseUInt64(chi.URLParam(r, "namespaceID"))
+	r.ChartID = parseUInt64(chi.URLParam(req, "chartID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
 }

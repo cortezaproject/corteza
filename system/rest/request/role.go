@@ -47,9 +47,9 @@ func (r RoleList) Auditable() map[string]interface{} {
 	return out
 }
 
-func (roReq *RoleList) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(roReq)
+func (r *RoleList) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -59,24 +59,24 @@ func (roReq *RoleList) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := get["query"]; ok {
 
-		roReq.Query = val
+		r.Query = val
 	}
 
 	return err
@@ -104,9 +104,9 @@ func (r RoleCreate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (roReq *RoleCreate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(roReq)
+func (r *RoleCreate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -116,24 +116,24 @@ func (roReq *RoleCreate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := post["name"]; ok {
 
-		roReq.Name = val
+		r.Name = val
 	}
 
 	return err
@@ -164,9 +164,9 @@ func (r RoleUpdate) Auditable() map[string]interface{} {
 	return out
 }
 
-func (roReq *RoleUpdate) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(roReq)
+func (r *RoleUpdate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -176,25 +176,25 @@ func (roReq *RoleUpdate) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 	if val, ok := post["name"]; ok {
 
-		roReq.Name = val
+		r.Name = val
 	}
 
 	return err
@@ -219,9 +219,9 @@ func (r RoleRead) Auditable() map[string]interface{} {
 	return out
 }
 
-func (roReq *RoleRead) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(roReq)
+func (r *RoleRead) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -231,22 +231,22 @@ func (roReq *RoleRead) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 
 	return err
 }
@@ -270,9 +270,9 @@ func (r RoleDelete) Auditable() map[string]interface{} {
 	return out
 }
 
-func (roReq *RoleDelete) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(roReq)
+func (r *RoleDelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -282,22 +282,22 @@ func (roReq *RoleDelete) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 
 	return err
 }
@@ -321,9 +321,9 @@ func (r RoleArchive) Auditable() map[string]interface{} {
 	return out
 }
 
-func (roReq *RoleArchive) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(roReq)
+func (r *RoleArchive) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -333,22 +333,22 @@ func (roReq *RoleArchive) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 
 	return err
 }
@@ -375,9 +375,9 @@ func (r RoleMove) Auditable() map[string]interface{} {
 	return out
 }
 
-func (roReq *RoleMove) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(roReq)
+func (r *RoleMove) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -387,25 +387,25 @@ func (roReq *RoleMove) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 	if val, ok := post["organisationID"]; ok {
 
-		roReq.OrganisationID = parseUInt64(val)
+		r.OrganisationID = parseUInt64(val)
 	}
 
 	return err
@@ -433,9 +433,9 @@ func (r RoleMerge) Auditable() map[string]interface{} {
 	return out
 }
 
-func (roReq *RoleMerge) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(roReq)
+func (r *RoleMerge) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -445,25 +445,25 @@ func (roReq *RoleMerge) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 	if val, ok := post["destination"]; ok {
 
-		roReq.Destination = parseUInt64(val)
+		r.Destination = parseUInt64(val)
 	}
 
 	return err
@@ -488,9 +488,9 @@ func (r RoleMemberList) Auditable() map[string]interface{} {
 	return out
 }
 
-func (roReq *RoleMemberList) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(roReq)
+func (r *RoleMemberList) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -500,22 +500,22 @@ func (roReq *RoleMemberList) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 
 	return err
 }
@@ -542,9 +542,9 @@ func (r RoleMemberAdd) Auditable() map[string]interface{} {
 	return out
 }
 
-func (roReq *RoleMemberAdd) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(roReq)
+func (r *RoleMemberAdd) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -554,23 +554,23 @@ func (roReq *RoleMemberAdd) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
-	roReq.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
+	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 
 	return err
 }
@@ -597,9 +597,9 @@ func (r RoleMemberRemove) Auditable() map[string]interface{} {
 	return out
 }
 
-func (roReq *RoleMemberRemove) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(roReq)
+func (r *RoleMemberRemove) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -609,23 +609,23 @@ func (roReq *RoleMemberRemove) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	roReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
-	roReq.UserID = parseUInt64(chi.URLParam(r, "userID"))
+	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
+	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 
 	return err
 }

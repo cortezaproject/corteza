@@ -59,9 +59,9 @@ func (r AttachmentOriginal) Auditable() map[string]interface{} {
 	return out
 }
 
-func (aReq *AttachmentOriginal) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(aReq)
+func (r *AttachmentOriginal) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -71,35 +71,35 @@ func (aReq *AttachmentOriginal) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
 	if val, ok := get["download"]; ok {
 
-		aReq.Download = parseBool(val)
+		r.Download = parseBool(val)
 	}
 	if val, ok := get["sign"]; ok {
 
-		aReq.Sign = val
+		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
 
-		aReq.UserID = parseUInt64(val)
+		r.UserID = parseUInt64(val)
 	}
-	aReq.Name = chi.URLParam(r, "name")
-	aReq.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
+	r.Name = chi.URLParam(req, "name")
+	r.AttachmentID = parseUInt64(chi.URLParam(req, "attachmentID"))
 
 	return err
 }
@@ -132,9 +132,9 @@ func (r AttachmentPreview) Auditable() map[string]interface{} {
 	return out
 }
 
-func (aReq *AttachmentPreview) Fill(r *http.Request) (err error) {
-	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(r.Body).Decode(aReq)
+func (r *AttachmentPreview) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
 
 		switch {
 		case err == io.EOF:
@@ -144,30 +144,30 @@ func (aReq *AttachmentPreview) Fill(r *http.Request) (err error) {
 		}
 	}
 
-	if err = r.ParseForm(); err != nil {
+	if err = req.ParseForm(); err != nil {
 		return err
 	}
 
 	get := map[string]string{}
 	post := map[string]string{}
-	urlQuery := r.URL.Query()
+	urlQuery := req.URL.Query()
 	for name, param := range urlQuery {
 		get[name] = string(param[0])
 	}
-	postVars := r.Form
+	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
 	}
 
-	aReq.Ext = chi.URLParam(r, "ext")
-	aReq.AttachmentID = parseUInt64(chi.URLParam(r, "attachmentID"))
+	r.Ext = chi.URLParam(req, "ext")
+	r.AttachmentID = parseUInt64(chi.URLParam(req, "attachmentID"))
 	if val, ok := get["sign"]; ok {
 
-		aReq.Sign = val
+		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
 
-		aReq.UserID = parseUInt64(val)
+		r.UserID = parseUInt64(val)
 	}
 
 	return err

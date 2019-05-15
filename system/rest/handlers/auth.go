@@ -43,7 +43,7 @@ type Auth struct {
 	Logout            func(http.ResponseWriter, *http.Request)
 }
 
-func NewAuth(ah AuthAPI) *Auth {
+func NewAuth(h AuthAPI) *Auth {
 	return &Auth{
 		Settings: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -53,7 +53,7 @@ func NewAuth(ah AuthAPI) *Auth {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.Settings(r.Context(), params); err != nil {
+			if value, err := h.Settings(r.Context(), params); err != nil {
 				logger.LogControllerError("Auth.Settings", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -76,7 +76,7 @@ func NewAuth(ah AuthAPI) *Auth {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.Check(r.Context(), params); err != nil {
+			if value, err := h.Check(r.Context(), params); err != nil {
 				logger.LogControllerError("Auth.Check", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -99,7 +99,7 @@ func NewAuth(ah AuthAPI) *Auth {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.ExchangeAuthToken(r.Context(), params); err != nil {
+			if value, err := h.ExchangeAuthToken(r.Context(), params); err != nil {
 				logger.LogControllerError("Auth.ExchangeAuthToken", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -122,7 +122,7 @@ func NewAuth(ah AuthAPI) *Auth {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := ah.Logout(r.Context(), params); err != nil {
+			if value, err := h.Logout(r.Context(), params); err != nil {
 				logger.LogControllerError("Auth.Logout", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
@@ -140,12 +140,12 @@ func NewAuth(ah AuthAPI) *Auth {
 	}
 }
 
-func (ah *Auth) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h Auth) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/auth/", ah.Settings)
-		r.Get("/auth/check", ah.Check)
-		r.Post("/auth/exchange", ah.ExchangeAuthToken)
-		r.Get("/auth/logout", ah.Logout)
+		r.Get("/auth/", h.Settings)
+		r.Get("/auth/check", h.Check)
+		r.Post("/auth/exchange", h.ExchangeAuthToken)
+		r.Get("/auth/logout", h.Logout)
 	})
 }
