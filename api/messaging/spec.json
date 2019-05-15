@@ -1,30 +1,5 @@
 [
     {
-        "title": "Permissions",
-        "parameters": {},
-        "entrypoint": "permissions",
-        "path": "/permissions",
-        "authentication": [],
-        "apis": [
-            {
-                "name": "effective",
-                "path": "/effective",
-                "method": "GET",
-                "title": "Effective rules for current user",
-                "parameters": {
-                    "get": [
-                        {
-                            "name": "resource",
-                            "type": "string",
-                            "required": false,
-                            "title": "Show only rules for a specific resource"
-                        }
-                    ]
-                }
-            }
-        ]
-    },
-    {
         "title": "Commands",
         "parameters": {},
         "entrypoint": "commands",
@@ -1134,6 +1109,104 @@
                             "type": "string",
                             "required": true,
                             "title": "Message contents"
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "title": "Permissions",
+        "parameters": {},
+        "entrypoint": "permissions",
+        "path": "/permissions",
+        "authentication": [
+            "Client ID",
+            "Session ID"
+        ],
+        "struct": [
+            {
+                "imports": [
+                    "github.com/crusttech/crust/internal/permissions"
+                ]
+            }
+        ],
+        "apis": [
+            {
+                "name": "list",
+                "path": "/",
+                "method": "GET",
+                "title": "Retrieve defined permissions",
+                "parameters": {}
+            },
+            {
+                "name": "effective",
+                "path": "/effective",
+                "method": "GET",
+                "title": "Effective rules for current user",
+                "parameters": {
+                    "get": [
+                        {
+                            "name": "resource",
+                            "type": "string",
+                            "required": false,
+                            "title": "Show only rules for a specific resource"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "read",
+                "path": "/{roleID}/rules",
+                "method": "GET",
+                "title": "Retrieve role permissions",
+                "parameters": {
+                    "path": [
+                        {
+                            "name": "roleID",
+                            "type": "uint64",
+                            "required": true,
+                            "title": "Role ID"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "delete",
+                "path": "/{roleID}/rules",
+                "method": "DELETE",
+                "title": "Remove all defined role permissions",
+                "parameters": {
+                    "path": [
+                        {
+                            "name": "roleID",
+                            "type": "uint64",
+                            "required": true,
+                            "title": "Role ID"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "update",
+                "path": "/{roleID}/rules",
+                "method": "PATCH",
+                "title": "Update permission settings",
+                "parameters": {
+                    "path": [
+                        {
+                            "name": "roleID",
+                            "type": "uint64",
+                            "required": true,
+                            "title": "Role ID"
+                        }
+                    ],
+                    "post": [
+                        {
+                            "name": "rules",
+                            "type": "permissions.RuleSet",
+                            "required": true,
+                            "title": "List of permission rules to set"
                         }
                     ]
                 }

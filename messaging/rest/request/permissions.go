@@ -25,10 +25,52 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
+
+	"github.com/crusttech/crust/internal/permissions"
 )
 
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
+
+// Permissions list request parameters
+type PermissionsList struct {
+}
+
+func NewPermissionsList() *PermissionsList {
+	return &PermissionsList{}
+}
+
+func (pReq *PermissionsList) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(pReq)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewPermissionsList()
 
 // Permissions effective request parameters
 type PermissionsEffective struct {
@@ -75,3 +117,133 @@ func (pReq *PermissionsEffective) Fill(r *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewPermissionsEffective()
+
+// Permissions read request parameters
+type PermissionsRead struct {
+	RoleID uint64 `json:",string"`
+}
+
+func NewPermissionsRead() *PermissionsRead {
+	return &PermissionsRead{}
+}
+
+func (pReq *PermissionsRead) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(pReq)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	pReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+
+	return err
+}
+
+var _ RequestFiller = NewPermissionsRead()
+
+// Permissions delete request parameters
+type PermissionsDelete struct {
+	RoleID uint64 `json:",string"`
+}
+
+func NewPermissionsDelete() *PermissionsDelete {
+	return &PermissionsDelete{}
+}
+
+func (pReq *PermissionsDelete) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(pReq)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	pReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+
+	return err
+}
+
+var _ RequestFiller = NewPermissionsDelete()
+
+// Permissions update request parameters
+type PermissionsUpdate struct {
+	RoleID uint64 `json:",string"`
+	Rules  permissions.RuleSet
+}
+
+func NewPermissionsUpdate() *PermissionsUpdate {
+	return &PermissionsUpdate{}
+}
+
+func (pReq *PermissionsUpdate) Fill(r *http.Request) (err error) {
+	if strings.ToLower(r.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(r.Body).Decode(pReq)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = r.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := r.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := r.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	pReq.RoleID = parseUInt64(chi.URLParam(r, "roleID"))
+
+	return err
+}
+
+var _ RequestFiller = NewPermissionsUpdate()

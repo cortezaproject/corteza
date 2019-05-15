@@ -17,6 +17,7 @@ const (
 	ErrNoDeletePermissions serviceError = "NoDeletePermissions"
 	ErrNamespaceRequired   serviceError = "NamespaceRequired"
 	ErrNotImplemented      serviceError = "NotImplemented"
+	ErrNoPermissions       serviceError = "NoPermissions"
 )
 
 func (e serviceError) Error() string {

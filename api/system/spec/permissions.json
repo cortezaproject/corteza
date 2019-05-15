@@ -87,9 +87,9 @@
         ],
         "post": [
           {
-            "name": "permissions",
+            "name": "rules",
             "required": true,
-            "title": "List of permissions to set",
+            "title": "List of permission rules to set",
             "type": "permissions.RuleSet"
           }
         ]

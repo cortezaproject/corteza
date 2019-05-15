@@ -15,6 +15,7 @@ type (
 	accessControlPermissionServicer interface {
 		Can(context.Context, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
 		Grant(context.Context, permissions.Whitelist, ...*permissions.Rule) error
+		FindRulesByRoleID(roleID uint64) (rr permissions.RuleSet)
 	}
 
 	permissionResource interface {
@@ -45,6 +46,10 @@ func (svc accessControl) Effective(ctx context.Context) (ee permissions.Effectiv
 
 func (svc accessControl) CanAccess(ctx context.Context) bool {
 	return svc.can(ctx, types.SystemPermissionResource, "access")
+}
+
+func (svc accessControl) CanGrant(ctx context.Context) bool {
+	return svc.can(ctx, types.SystemPermissionResource, "grant")
 }
 
 func (svc accessControl) CanReadSettings(ctx context.Context) bool {
@@ -120,7 +125,19 @@ func (svc accessControl) can(ctx context.Context, res permissionResource, op per
 }
 
 func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {
+	if !svc.CanGrant(ctx) {
+		return ErrNoPermissions
+	}
+
 	return svc.permissions.Grant(ctx, svc.Whitelist(), rr...)
+}
+
+func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (permissions.RuleSet, error) {
+	if !svc.CanGrant(ctx) {
+		return nil, ErrNoPermissions
+	}
+
+	return svc.permissions.FindRulesByRoleID(roleID), nil
 }
 
 // DefaultRules returns list of default rules for this compose service
@@ -133,16 +150,12 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		users         = types.UserPermissionResource.AppendWildcard()
 
 		allowAdm = func(res permissions.Resource, op permissions.Operation) *permissions.Rule {
-			return &permissions.Rule{
-				permissions.AdminRoleID,
-				res,
-				op,
-				permissions.Allow}
+			return permissions.AllowRule(permissions.AdminRoleID, res, op)
 		}
 	)
 
 	return permissions.RuleSet{
-		{permissions.EveryoneRoleID, sys, "user.create", permissions.Allow},
+		permissions.AllowRule(permissions.EveryoneRoleID, sys, "user.create"),
 
 		allowAdm(sys, "access"),
 		allowAdm(sys, "grant"),
@@ -152,15 +165,18 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		allowAdm(sys, "application.create"),
 		allowAdm(sys, "user.create"),
 		allowAdm(sys, "role.create"),
+
 		allowAdm(organisations, "access"),
 		allowAdm(applications, "read"),
 		allowAdm(applications, "update"),
 		allowAdm(applications, "delete"),
+
 		allowAdm(users, "read"),
 		allowAdm(users, "update"),
 		allowAdm(users, "suspend"),
 		allowAdm(users, "unsuspend"),
 		allowAdm(users, "delete"),
+
 		allowAdm(roles, "read"),
 		allowAdm(roles, "update"),
 		allowAdm(roles, "delete"),

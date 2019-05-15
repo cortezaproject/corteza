@@ -16,6 +16,7 @@ type (
 	accessControlPermissionServicer interface {
 		Can(context.Context, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
 		Grant(context.Context, permissions.Whitelist, ...*permissions.Rule) error
+		FindRulesByRoleID(roleID uint64) (rr permissions.RuleSet)
 	}
 
 	permissionResource interface {
@@ -212,6 +213,14 @@ func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) err
 	return svc.permissions.Grant(ctx, svc.Whitelist(), rr...)
 }
 
+func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (permissions.RuleSet, error) {
+	if !svc.CanGrant(ctx) {
+		return nil, ErrNoPermissions
+	}
+
+	return svc.permissions.FindRulesByRoleID(roleID), nil
+}
+
 // DefaultRules returns list of default rules for this compose service
 func (svc accessControl) DefaultRules() permissions.RuleSet {
 	var (
@@ -219,16 +228,12 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		channels  = types.ChannelPermissionResource.AppendWildcard()
 
 		allowAdm = func(res permissions.Resource, op permissions.Operation) *permissions.Rule {
-			return &permissions.Rule{
-				permissions.AdminRoleID,
-				res,
-				op,
-				permissions.Allow}
+			return permissions.AllowRule(permissions.AdminRoleID, res, op)
 		}
 	)
 
 	return permissions.RuleSet{
-		{permissions.EveryoneRoleID, messaging, "access", permissions.Allow},
+		permissions.AllowRule(permissions.EveryoneRoleID, messaging, "access"),
 
 		allowAdm(messaging, "access"),
 		allowAdm(messaging, "grant"),

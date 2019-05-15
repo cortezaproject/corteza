@@ -1059,10 +1059,10 @@
           ],
           "post": [
             {
-              "name": "permissions",
+              "name": "rules",
               "type": "permissions.RuleSet",
               "required": true,
-              "title": "List of permissions to set"
+              "title": "List of permission rules to set"
             }
           ]
         }
