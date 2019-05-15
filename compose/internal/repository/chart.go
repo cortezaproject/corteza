@@ -101,13 +101,13 @@ func (r chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.Chart
 
 func (r chart) Create(mod *types.Chart) (*types.Chart, error) {
 	mod.ID = factory.Sonyflake.NextID()
-	mod.CreatedAt = time.Now()
+	mod.CreatedAt = time.Now().Truncate(time.Second)
 
 	return mod, r.db().Insert(r.table(), mod)
 }
 
 func (r chart) Update(mod *types.Chart) (*types.Chart, error) {
-	now := time.Now()
+	now := time.Now().Truncate(time.Second)
 	mod.UpdatedAt = &now
 	return mod, r.db().Replace(r.table(), mod)
 }

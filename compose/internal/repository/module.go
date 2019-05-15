@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
@@ -112,7 +113,7 @@ func (r module) Create(mod *types.Module) (*types.Module, error) {
 	var err error
 
 	mod.ID = factory.Sonyflake.NextID()
-	mod.CreatedAt = time.Now()
+	mod.CreatedAt = time.Now().Truncate(time.Second)
 
 	if err = r.db().Insert(r.table(), mod); err != nil {
 		return nil, err
@@ -126,7 +127,7 @@ func (r module) Create(mod *types.Module) (*types.Module, error) {
 }
 
 func (r module) Update(mod *types.Module) (*types.Module, error) {
-	now := time.Now()
+	now := time.Now().Truncate(time.Second)
 	mod.UpdatedAt = &now
 
 	if err := r.updateFields(mod.ID, mod.Fields); err != nil {
@@ -152,25 +153,32 @@ func (r module) updateFields(moduleID uint64, ff types.ModuleFieldSet) error {
 		if err != nil {
 			return err
 		}
-	}
 
-	now := time.Now()
-	for idx, f := range ff {
-		if f.ID == 0 {
-			f.ID = factory.Sonyflake.NextID()
-			f.CreatedAt = now
+		now := time.Now().Truncate(time.Second)
+		for idx, f := range ff {
+			if e := existing.FindByID(f.ID); e != nil {
+				f.CreatedAt = e.CreatedAt
+				f.UpdatedAt = &now
+			} else {
+				f.ID = 0
+			}
 
-		} else {
-			f.UpdatedAt = &now
+			if f.ID == 0 {
+				f.ID = factory.Sonyflake.NextID()
+				f.CreatedAt = now
+				f.UpdatedAt = nil
+			}
+
+			f.ModuleID = moduleID
+			f.Place = idx
+			f.DeletedAt = nil
+			spew.Dump(f)
+
+			if err := r.db().Replace(r.tableFields(), f); err != nil {
+				return errors.Wrap(err, "Error updating module fields")
+			}
+
 		}
-
-		f.ModuleID = moduleID
-		f.Place = idx
-
-		if err := r.db().Replace(r.tableFields(), f); err != nil {
-			return errors.Wrap(err, "Error updating module fields")
-		}
-
 	}
 
 	return nil
@@ -203,7 +211,8 @@ func (r module) FindFields(moduleIDs ...uint64) (ff types.ModuleFieldSet, err er
 
 	query := `SELECT id, rel_module, place, 
                      kind, name, label, options, 
-                     is_private, is_required, is_visible, is_multi 
+                     is_private, is_required, is_visible, is_multi, 
+                     created_at, updated_at, deleted_at
                 FROM %s 
                WHERE rel_module IN (?) 
                  AND deleted_at IS NULL
