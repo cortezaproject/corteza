@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
@@ -159,6 +158,12 @@ func (r module) updateFields(moduleID uint64, ff types.ModuleFieldSet) error {
 			if e := existing.FindByID(f.ID); e != nil {
 				f.CreatedAt = e.CreatedAt
 				f.UpdatedAt = &now
+
+				// We do not have any other code in place that would handle changes of field name and kind, so we need
+				// to reset any changes made to the field.
+				// @todo remove when we are able to handle field rename & type change
+				f.Name = e.Name
+				f.Kind = e.Kind
 			} else {
 				f.ID = 0
 			}
@@ -172,7 +177,6 @@ func (r module) updateFields(moduleID uint64, ff types.ModuleFieldSet) error {
 			f.ModuleID = moduleID
 			f.Place = idx
 			f.DeletedAt = nil
-			spew.Dump(f)
 
 			if err := r.db().Replace(r.tableFields(), f); err != nil {
 				return errors.Wrap(err, "Error updating module fields")
