@@ -35,6 +35,7 @@ type (
 		CanUpdateRecord(context.Context, *types.Module) bool
 		CanDeleteRecord(context.Context, *types.Module) bool
 		CanReadRecordValue(context.Context, *types.ModuleField) bool
+		CanUpdateRecordValue(context.Context, *types.ModuleField) bool
 	}
 
 	RecordService interface {
@@ -268,6 +269,20 @@ func (svc record) sanitizeValues(module *types.Module, values types.RecordValueS
 			return errors.Errorf("more than one value for a single-value field %q", field.Name)
 		}
 		return nil
+	})
+
+	if err != nil {
+		return
+	}
+
+	// Remove all values on un-updatable fields
+	values, err = values.Filter(func(v *types.RecordValue) (bool, error) {
+		var field = module.Fields.FindByName(v.Name)
+		if field == nil {
+			return false, errors.Errorf("no such field %q", v.Name)
+		}
+
+		return svc.ac.CanUpdateRecordValue(svc.ctx, field), nil
 	})
 
 	if err != nil {
