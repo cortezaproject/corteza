@@ -10,6 +10,7 @@ import (
 
 	"github.com/crusttech/crust/compose/types"
 	"github.com/crusttech/crust/internal/auth"
+	"github.com/crusttech/crust/internal/permissions"
 	"github.com/crusttech/crust/internal/test"
 )
 
@@ -25,6 +26,7 @@ func TestRecord(t *testing.T) {
 
 	moduleSvc := Module().With(ctx)
 	svc := Record().With(ctx)
+	svc.(*record).ac = AccessControl(&permissions.ServiceAllowAll{})
 
 	module1 := &types.Module{
 		NamespaceID: ns1.ID,
@@ -252,7 +254,9 @@ func TestRecord(t *testing.T) {
 
 func TestValueSanitizer(t *testing.T) {
 	var (
-		svc    = record{}
+		svc = record{
+			ac: AccessControl(&permissions.ServiceAllowAll{}),
+		}
 		module = &types.Module{
 			Fields: types.ModuleFieldSet{
 				&types.ModuleField{Name: "single1"},
