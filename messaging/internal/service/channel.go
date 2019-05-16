@@ -74,11 +74,6 @@ type (
 	}
 )
 
-var (
-	ErrUnknownChannelType = errors.New("unknown ChannelType")
-	ErrNoPermission       = errors.New("no permissions")
-)
-
 const (
 	settingsChannelNameLength  = 40
 	settingsChannelTopicLength = 200
