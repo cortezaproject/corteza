@@ -128,12 +128,16 @@ func (svc namespace) Update(mod *types.Namespace) (ns *types.Namespace, err erro
 	return svc.namespaceRepo.Update(ns)
 }
 
-func (svc namespace) DeleteByID(ID uint64) error {
-	if ns, err := svc.namespaceRepo.FindByID(ID); err != nil {
+func (svc namespace) DeleteByID(namespaceID uint64) error {
+	if namespaceID == 0 {
+		return ErrInvalidID.withStack()
+	}
+
+	if ns, err := svc.namespaceRepo.FindByID(namespaceID); err != nil {
 		return err
 	} else if !svc.ac.CanDeleteNamespace(svc.ctx, ns) {
 		return ErrNoDeletePermissions.withStack()
 	}
 
-	return svc.namespaceRepo.DeleteByID(ID)
+	return svc.namespaceRepo.DeleteByID(namespaceID)
 }

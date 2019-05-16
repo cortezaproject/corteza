@@ -236,6 +236,14 @@ func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 }
 
 func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
+	if recordID == 0 {
+		return ErrInvalidID.withStack()
+	}
+
+	if namespaceID == 0 {
+		return ErrNamespaceRequired
+	}
+
 	err = svc.db.Transaction(func() (err error) {
 		var record *types.Record
 

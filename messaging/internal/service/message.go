@@ -163,7 +163,7 @@ func (svc message) channelAccessCheck(IDs ...uint64) error {
 			if ch, err := svc.findChannelByID(ID); err != nil {
 				return err
 			} else if !svc.ac.CanReadChannel(svc.ctx, ch) {
-				return errors.WithStack(ErrNoPermissions)
+				return ErrNoPermissions.withStack()
 			}
 		}
 	}
@@ -259,10 +259,10 @@ func (svc message) Create(in *types.Message) (message *types.Message, err error)
 		}
 
 		if in.ReplyTo > 0 && !svc.ac.CanReplyMessage(svc.ctx, ch) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		}
 		if !svc.ac.CanSendMessage(svc.ctx, ch) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		}
 
 		if message, err = svc.message.Create(in); err != nil {
@@ -282,6 +282,10 @@ func (svc message) Create(in *types.Message) (message *types.Message, err error)
 }
 
 func (svc message) Update(in *types.Message) (message *types.Message, err error) {
+	if in.ID == 0 {
+		return nil, ErrInvalidID.withStack()
+	}
+
 	if in == nil {
 		in = &types.Message{}
 	}
@@ -304,7 +308,7 @@ func (svc message) Update(in *types.Message) (message *types.Message, err error)
 		if ch, err = svc.findChannelByID(in.ChannelID); err != nil {
 			return err
 		} else if !svc.ac.CanReadChannel(svc.ctx, ch) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		}
 
 		message, err = svc.message.FindByID(in.ID)
@@ -319,9 +323,9 @@ func (svc message) Update(in *types.Message) (message *types.Message, err error)
 		}
 
 		if message.UserID == currentUserID && !svc.ac.CanUpdateOwnMessages(svc.ctx, ch) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		} else if message.UserID != currentUserID && !svc.ac.CanUpdateMessages(svc.ctx, ch) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		}
 
 		// Allow message content to be changed
@@ -358,7 +362,7 @@ func (svc message) Delete(messageID uint64) error {
 		if ch, err = svc.findChannelByID(deletedMsg.ChannelID); err != nil {
 			return err
 		} else if !svc.ac.CanReadChannel(svc.ctx, ch) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		}
 
 		if deletedMsg.ReplyTo > 0 {
@@ -371,10 +375,10 @@ func (svc message) Delete(messageID uint64) error {
 				return
 			}
 			if original.UserID == currentUserID && !svc.ac.CanUpdateOwnMessages(svc.ctx, ch) {
-				return errors.WithStack(ErrNoPermissions)
+				return ErrNoPermissions.withStack()
 			}
 			if !svc.ac.CanUpdateMessages(svc.ctx, ch) {
-				return errors.WithStack(ErrNoPermissions)
+				return ErrNoPermissions.withStack()
 			}
 
 			// This is a reply to another message, decrease reply counter on the original, on struct and in the
@@ -422,7 +426,7 @@ func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (co
 		if ch, err = svc.findChannelByID(channelID); err != nil {
 			return err
 		} else if !svc.ac.CanReadChannel(svc.ctx, ch) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		} else if !ch.IsValid() {
 			return errors.New("invalid channel")
 		}
@@ -531,10 +535,10 @@ func (svc message) flag(messageID uint64, flag string, remove bool) error {
 			return
 		}
 		if !svc.ac.CanReadChannel(svc.ctx, ch) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		}
 		if f.IsReaction() && !svc.ac.CanReactMessage(svc.ctx, ch) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		}
 
 		if remove {

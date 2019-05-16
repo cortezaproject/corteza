@@ -111,7 +111,7 @@ func (svc *channel) FindByID(ID uint64) (ch *types.Channel, err error) {
 	}
 
 	if !svc.ac.CanReadChannel(svc.ctx, ch) {
-		return nil, errors.WithStack(ErrNoPermissions)
+		return nil, ErrNoPermissions.withStack()
 	}
 
 	return
@@ -231,20 +231,20 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 				// Group already exists so let's just return it
 				return nil
 			} else if out != nil && !out.CanObserve {
-				return errors.WithStack(ErrNoPermissions)
+				return ErrNoPermissions.withStack()
 			}
 		}
 
 		if in.Type == types.ChannelTypePublic && !svc.ac.CanCreatePublicChannel(svc.ctx) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		}
 
 		if in.Type == types.ChannelTypePrivate && !svc.ac.CanCreatePrivateChannel(svc.ctx) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		}
 
 		if in.Type == types.ChannelTypeGroup && !svc.ac.CanCreateGroupChannel(svc.ctx) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		}
 
 		// This is a fresh channel, just copy values
@@ -335,6 +335,10 @@ func (svc *channel) checkGroupExistance(mm types.ChannelMemberSet) (out *types.C
 }
 
 func (svc *channel) Update(in *types.Channel) (ch *types.Channel, err error) {
+	if in.ID == 0 {
+		return nil, ErrInvalidID.withStack()
+	}
+
 	if len(in.Name) == 0 && in.Type != types.ChannelTypeGroup {
 		return nil, errors.New("channel name not provided")
 	}
@@ -355,20 +359,20 @@ func (svc *channel) Update(in *types.Channel) (ch *types.Channel, err error) {
 		}
 
 		if !svc.ac.CanUpdateChannel(svc.ctx, ch) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		}
 
 		if in.Type.IsValid() && ch.Type != in.Type {
 			if in.Type == types.ChannelTypePublic && !svc.ac.CanCreatePublicChannel(svc.ctx) {
-				return errors.WithStack(ErrNoPermissions)
+				return ErrNoPermissions.withStack()
 			}
 
 			if in.Type == types.ChannelTypePrivate && !svc.ac.CanCreatePrivateChannel(svc.ctx) {
-				return errors.WithStack(ErrNoPermissions)
+				return ErrNoPermissions.withStack()
 			}
 
 			if in.Type == types.ChannelTypeGroup && !svc.ac.CanCreateGroupChannel(svc.ctx) {
-				return errors.WithStack(ErrNoPermissions)
+				return ErrNoPermissions.withStack()
 			}
 
 			changed = true
@@ -417,6 +421,10 @@ func (svc *channel) Update(in *types.Channel) (ch *types.Channel, err error) {
 }
 
 func (svc *channel) Delete(ID uint64) (ch *types.Channel, err error) {
+	if ID == 0 {
+		return nil, ErrInvalidID.withStack()
+	}
+
 	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
 
@@ -425,7 +433,7 @@ func (svc *channel) Delete(ID uint64) (ch *types.Channel, err error) {
 		}
 
 		if !svc.ac.CanDeleteChannel(svc.ctx, ch) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		}
 
 		if ch.DeletedAt != nil {
@@ -451,6 +459,10 @@ func (svc *channel) Delete(ID uint64) (ch *types.Channel, err error) {
 }
 
 func (svc *channel) Undelete(ID uint64) (ch *types.Channel, err error) {
+	if ID == 0 {
+		return nil, ErrInvalidID.withStack()
+	}
+
 	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
 
@@ -459,7 +471,7 @@ func (svc *channel) Undelete(ID uint64) (ch *types.Channel, err error) {
 		}
 
 		if !svc.ac.CanUndeleteChannel(svc.ctx, ch) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		}
 
 		if ch.DeletedAt == nil {
@@ -481,6 +493,10 @@ func (svc *channel) Undelete(ID uint64) (ch *types.Channel, err error) {
 }
 
 func (svc *channel) SetFlag(ID uint64, flag types.ChannelMembershipFlag) (ch *types.Channel, err error) {
+	if ID == 0 {
+		return nil, ErrInvalidID.withStack()
+	}
+
 	return ch, svc.db.Transaction(func() (err error) {
 		var membership *types.ChannelMember
 		var userID = repository.Identity(svc.ctx)
@@ -510,6 +526,10 @@ func (svc *channel) SetFlag(ID uint64, flag types.ChannelMembershipFlag) (ch *ty
 }
 
 func (svc *channel) Archive(ID uint64) (ch *types.Channel, err error) {
+	if ID == 0 {
+		return nil, ErrInvalidID.withStack()
+	}
+
 	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
 
@@ -518,7 +538,7 @@ func (svc *channel) Archive(ID uint64) (ch *types.Channel, err error) {
 		}
 
 		if !svc.ac.CanArchiveChannel(svc.ctx, ch) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		}
 
 		if ch.ArchivedAt != nil {
@@ -540,6 +560,10 @@ func (svc *channel) Archive(ID uint64) (ch *types.Channel, err error) {
 }
 
 func (svc *channel) Unarchive(ID uint64) (ch *types.Channel, err error) {
+	if ID == 0 {
+		return nil, ErrInvalidID.withStack()
+	}
+
 	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
 
@@ -548,7 +572,7 @@ func (svc *channel) Unarchive(ID uint64) (ch *types.Channel, err error) {
 		}
 
 		if !svc.ac.CanUnarchiveChannel(svc.ctx, ch) {
-			return errors.WithStack(ErrNoPermissions)
+			return ErrNoPermissions.withStack()
 		}
 
 		if ch.ArchivedAt == nil {
@@ -570,6 +594,16 @@ func (svc *channel) Unarchive(ID uint64) (ch *types.Channel, err error) {
 }
 
 func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error) {
+	if channelID == 0 {
+		return nil, ErrInvalidID.withStack()
+	}
+
+	for _, memberID := range memberIDs {
+		if memberID == 0 {
+			return nil, ErrInvalidID.withStack()
+		}
+	}
+
 	var (
 		userID   = repository.Identity(svc.ctx)
 		ch       *types.Channel
@@ -587,7 +621,7 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 	}
 
 	if !svc.ac.CanManageChannelMembers(svc.ctx, ch) {
-		return nil, errors.WithStack(ErrNoPermissions)
+		return nil, ErrNoPermissions.withStack()
 	}
 
 	return out, svc.db.Transaction(func() (err error) {
@@ -622,6 +656,16 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 }
 
 func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error) {
+	if channelID == 0 {
+		return nil, ErrInvalidID.withStack()
+	}
+
+	for _, memberID := range memberIDs {
+		if memberID == 0 {
+			return nil, ErrInvalidID.withStack()
+		}
+	}
+
 	var (
 		userID   = repository.Identity(svc.ctx)
 		ch       *types.Channel
@@ -656,9 +700,9 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 			}
 
 			if memberID == userID && !svc.ac.CanJoinChannel(svc.ctx, ch) {
-				return errors.WithStack(ErrNoPermissions)
+				return ErrNoPermissions.withStack()
 			} else if memberID != userID && !svc.ac.CanManageChannelMembers(svc.ctx, ch) {
-				return errors.WithStack(ErrNoPermissions)
+				return ErrNoPermissions.withStack()
 			}
 
 			if !exists {
@@ -726,10 +770,10 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 			}
 
 			if memberID == userID && !svc.ac.CanJoinChannel(svc.ctx, ch) {
-				return errors.WithStack(ErrNoPermissions)
+				return ErrNoPermissions.withStack()
 			}
 			if !svc.ac.CanManageChannelMembers(svc.ctx, ch) {
-				return errors.WithStack(ErrNoPermissions)
+				return ErrNoPermissions.withStack()
 			}
 
 			if userID == memberID {
@@ -742,7 +786,7 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 				return err
 			}
 
-			svc.event.Part(memberID, channelID)
+			_ = svc.event.Part(memberID, channelID)
 		}
 
 		return svc.flushSystemMessages()

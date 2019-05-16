@@ -51,10 +51,6 @@ type (
 	}
 )
 
-const (
-	ErrModulePageExists serviceError = "ModulePageExists"
-)
-
 func Page() PageService {
 	return (&page{
 		logger: DefaultLogger.Named("page"),
@@ -249,14 +245,18 @@ func (svc page) checkModulePage(mod *types.Page) error {
 }
 
 func (svc page) DeleteByID(namespaceID, pageID uint64) error {
+	if pageID == 0 {
+		return ErrInvalidID.withStack()
+	}
+
 	if _, err := svc.loadNamespace(namespaceID); err != nil {
 		return err
 	}
 
 	if p, err := svc.pageRepo.FindByID(namespaceID, pageID); err != nil {
-		return errors.Wrap(err, "could not delete page")
+		return err
 	} else if !svc.ac.CanDeletePage(svc.ctx, p) {
-		return errors.New("not allowed to delete this page")
+		return ErrNoDeletePermissions.withStack()
 	}
 
 	return svc.pageRepo.DeleteByID(namespaceID, pageID)

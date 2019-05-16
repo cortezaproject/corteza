@@ -11,13 +11,14 @@ type (
 const (
 	ErrInvalidID           serviceError = "InvalidID"
 	ErrStaleData           serviceError = "StaleData"
+	ErrNoGrantPermissions  serviceError = "NoGrantPermissions"
 	ErrNoCreatePermissions serviceError = "NoCreatePermissions"
 	ErrNoReadPermissions   serviceError = "NoReadPermissions"
 	ErrNoUpdatePermissions serviceError = "NoUpdatePermissions"
 	ErrNoDeletePermissions serviceError = "NoDeletePermissions"
 	ErrNamespaceRequired   serviceError = "NamespaceRequired"
+	ErrModulePageExists    serviceError = "ModulePageExists"
 	ErrNotImplemented      serviceError = "NotImplemented"
-	ErrNoPermissions       serviceError = "NoPermissions"
 )
 
 func (e serviceError) Error() string {

@@ -138,6 +138,10 @@ func (svc trigger) Update(mod *types.Trigger) (c *types.Trigger, err error) {
 }
 
 func (svc trigger) DeleteByID(namespaceID, triggerID uint64) error {
+	if triggerID == 0 {
+		return ErrInvalidID.withStack()
+	}
+
 	if namespaceID == 0 {
 		return ErrNamespaceRequired.withStack()
 	}

@@ -80,5 +80,4 @@ func (svc command) Do(channelID uint64, command, input string) (*types.Message, 
 		}
 		return webhookSvc.Do(webhooks[0], input)
 	}
-	return nil, ErrUnknownCommand.new()
 }

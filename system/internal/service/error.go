@@ -5,23 +5,22 @@ import (
 )
 
 type (
-	serviceError  string
-	readableError string
+	serviceError string
+)
+
+const (
+	ErrInvalidID     serviceError = "InvalidID"
+	ErrNoPermissions serviceError = "NoPermissions"
 )
 
 func (e serviceError) Error() string {
-	return "crust.messaging.service." + string(e)
+	return e.String()
 }
 
-func (e readableError) Error() string {
-	return string(e)
+func (e serviceError) String() string {
+	return "crust.system.service." + string(e)
 }
 
-func (e readableError) new() error {
+func (e serviceError) withStack() error {
 	return errors.WithStack(e)
 }
-
-const (
-	ErrNoPermissions   readableError = "You don't have permissions for this operation"
-	ErrAvatarOnlyHTTPS readableError = "Avatar URL only supports HTTPS"
-)

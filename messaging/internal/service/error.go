@@ -5,18 +5,22 @@ import (
 )
 
 type (
-	readableError string
+	serviceError string
 )
-
-func (e readableError) Error() string {
-	return string(e)
-}
-
-func (e readableError) new() error {
-	return errors.WithStack(e)
-}
 
 const (
-	ErrNoPermissions  readableError = "You don't have permissions for this operation"
-	ErrUnknownCommand readableError = "Unknown command"
+	ErrInvalidID     serviceError = "InvalidID"
+	ErrNoPermissions serviceError = "NoPermissions"
 )
+
+func (e serviceError) Error() string {
+	return e.String()
+}
+
+func (e serviceError) String() string {
+	return "crust.messaging.service." + string(e)
+}
+
+func (e serviceError) withStack() error {
+	return errors.WithStack(e)
+}

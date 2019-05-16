@@ -165,7 +165,7 @@ func (svc attachment) CreatePageAttachment(namespaceID uint64, name string, size
 	if p, err := svc.pageSvc.FindByID(namespaceID, pageID); err != nil {
 		return nil, err
 	} else if !svc.ac.CanUpdatePage(svc.ctx, p) {
-		return nil, errors.New("not allowed to add attachments to this page")
+		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
 	att := &types.Attachment{
@@ -190,7 +190,7 @@ func (svc attachment) CreateRecordAttachment(namespaceID uint64, name string, si
 	} else if _, err := svc.recordSvc.FindByID(namespaceID, recordID); err != nil {
 		return nil, err
 	} else if !svc.ac.CanUpdateRecord(svc.ctx, m) {
-		return nil, errors.New("not allowed to add attachments to this record")
+		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
 	att := &types.Attachment{
