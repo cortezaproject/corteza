@@ -131,6 +131,10 @@ func (svc chart) Update(mod *types.Chart) (c *types.Chart, err error) {
 }
 
 func (svc chart) DeleteByID(namespaceID, chartID uint64) error {
+	if chartID == 0 {
+		return ErrInvalidID.withStack()
+	}
+
 	if namespaceID == 0 {
 		return ErrNamespaceRequired.withStack()
 	}

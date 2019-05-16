@@ -100,7 +100,7 @@ func (svc webhook) Create(kind types.WebhookKind, channelID uint64, params types
 	}
 
 	if !svc.ac.CanCreateWebhook(svc.ctx) {
-		return nil, errors.WithStack(ErrNoPermissions)
+		return nil, ErrNoPermissions.withStack()
 	}
 
 	botUser := &systemTypes.User{
@@ -127,13 +127,17 @@ func (svc webhook) Create(kind types.WebhookKind, channelID uint64, params types
 }
 
 func (svc webhook) Update(webhookID uint64, kind types.WebhookKind, channelID uint64, params types.WebhookRequest) (*types.Webhook, error) {
+	if webhookID == 0 {
+		return nil, ErrInvalidID.withStack()
+	}
+
 	webhook, err := svc.Get(webhookID)
 	if err != nil {
 		return nil, err
 	}
 
 	if !svc.ac.CanManageOwnWebhooks(svc.ctx, webhook) || !svc.ac.CanManageWebhooks(svc.ctx) {
-		return nil, errors.WithStack(ErrNoPermissions)
+		return nil, ErrNoPermissions.withStack()
 	}
 
 	botUser, err := svc.users.FindByID(webhook.UserID)
@@ -173,7 +177,7 @@ func (svc webhook) Delete(webhookID uint64) error {
 	if webhook.OwnerUserID == userID && svc.ac.CanManageOwnWebhooks(svc.ctx, webhook) {
 		return svc.webhook.Delete(webhookID)
 	}
-	return errors.WithStack(ErrNoPermissions)
+	return ErrNoPermissions.withStack()
 }
 
 func (svc webhook) DeleteByToken(webhookID uint64, webhookToken string) error {

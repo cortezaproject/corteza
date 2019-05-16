@@ -160,6 +160,10 @@ func (svc module) Update(mod *types.Module) (m *types.Module, err error) {
 }
 
 func (svc module) DeleteByID(namespaceID, moduleID uint64) error {
+	if moduleID == 0 {
+		return ErrInvalidID.withStack()
+	}
+
 	if namespaceID == 0 {
 		return ErrNamespaceRequired.withStack()
 	}

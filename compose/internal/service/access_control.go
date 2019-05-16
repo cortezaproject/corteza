@@ -163,7 +163,7 @@ func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) err
 
 func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (permissions.RuleSet, error) {
 	if !svc.CanGrant(ctx) {
-		return nil, ErrNoPermissions
+		return nil, ErrNoGrantPermissions
 	}
 
 	return svc.permissions.FindRulesByRoleID(roleID), nil
