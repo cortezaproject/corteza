@@ -4,6 +4,8 @@
 /.env*
 /.dev*
 /.cover*
+/overalls*
+profile.coverprofile
 /public_html
 /build
 /var
