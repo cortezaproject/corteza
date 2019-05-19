@@ -12,9 +12,7 @@ func MountRoutes() func(chi.Router) {
 	return func(r chi.Router) {
 		r.Group(func(r chi.Router) {
 			handlers.NewAttachment(Attachment{}.New()).MountRoutes(r)
-		})
-
-		r.Group(func(r chi.Router) {
+			handlers.NewWebhooksPublic(WebhooksPublic{}.New()).MountRoutes(r)
 			handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
 		})
 
@@ -29,6 +27,7 @@ func MountRoutes() func(chi.Router) {
 			handlers.NewSearch(Search{}.New()).MountRoutes(r)
 			handlers.NewStatus(Status{}.New()).MountRoutes(r)
 			handlers.NewCommands(Commands{}.New()).MountRoutes(r)
+			handlers.NewWebhooks(Webhooks{}.New()).MountRoutes(r)
 		})
 	}
 }

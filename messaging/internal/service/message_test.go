@@ -8,12 +8,11 @@ import (
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/test"
 	"github.com/crusttech/crust/messaging/types"
-	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 func TestMessageLength(t *testing.T) {
 	ctx := context.Background()
-	ctx = auth.SetIdentityToContext(ctx, &systemTypes.User{})
+	ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(1337))
 
 	svc := message{}
 	e := func(out *types.Message, err error) error { return err }

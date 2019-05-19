@@ -70,7 +70,6 @@
         "title": "User activity",
         "parameters": {},
         "authentication": [],
-
         "apis": [
             {
                 "name": "send",
@@ -915,6 +914,12 @@
                             "title": "Kind (incoming, outgoing)"
                         },
                         {
+                            "name": "userID",
+                            "type": "uint64",
+                            "required": true,
+                            "title": "Bot User ID"
+                        },
+                        {
                             "name": "trigger",
                             "type": "string",
                             "required": false,
@@ -973,6 +978,12 @@
                             "type": "types.WebhookKind",
                             "required": true,
                             "title": "Kind (incoming, outgoing)"
+                        },
+                        {
+                            "name": "userID",
+                            "type": "uint64",
+                            "required": true,
+                            "title": "Bot User ID"
                         },
                         {
                             "name": "trigger",

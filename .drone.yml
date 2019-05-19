@@ -15,6 +15,7 @@ steps:
     GOARCH: amd64
     CI: circleci
   commands:
+    - make codegen
     - make test
 
 - name: api-system
@@ -99,6 +100,8 @@ steps:
     COMPOSE_DB_DSN: crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci
     MESSAGING_DB_DSN: crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci
   commands:
+  - make codegen
+  - go build ./cmd/...
   - wait-for-it.sh -t 60 --strict crust-db:3306 -- echo "Crust DB1 is up"
   - gotest -v --tags="migrations" ./system/db/...
   - gotest -v --tags="migrations" ./compose/db/...

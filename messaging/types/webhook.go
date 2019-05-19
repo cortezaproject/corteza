@@ -29,6 +29,7 @@ type (
 
 	WebhookRequest struct {
 		Username string
+		UserID   uint64
 
 		Avatar io.Reader
 

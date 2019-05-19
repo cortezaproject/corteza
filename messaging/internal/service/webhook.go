@@ -18,8 +18,6 @@ import (
 	"github.com/crusttech/crust/internal/store"
 	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
-	systemService "github.com/crusttech/crust/system/service"
-	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 type (
@@ -30,7 +28,6 @@ type (
 
 		client *http.Client
 
-		users   systemService.UserService
 		webhook repository.WebhookRepository
 		ac      webhookAccessController
 	}
@@ -77,7 +74,6 @@ func (svc webhook) With(ctx context.Context) WebhookService {
 
 		client: svc.client,
 
-		users:   systemService.User(ctx),
 		webhook: repository.Webhook(ctx, db),
 		ac:      DefaultAccessControl,
 	}
@@ -91,8 +87,11 @@ func (svc webhook) log(fields ...zapcore.Field) *zap.Logger {
 func (svc webhook) Create(kind types.WebhookKind, channelID uint64, params types.WebhookRequest) (*types.Webhook, error) {
 	var userID = repository.Identity(svc.ctx)
 
+	// @todo: params.Avatar (io.Reader)
+
 	webhook := &types.Webhook{
 		Kind:            kind,
+		UserID:          params.UserID,
 		OwnerUserID:     userID,
 		ChannelID:       channelID,
 		OutgoingTrigger: params.OutgoingTrigger,
@@ -103,27 +102,7 @@ func (svc webhook) Create(kind types.WebhookKind, channelID uint64, params types
 		return nil, ErrNoPermissions.withStack()
 	}
 
-	botUser := &systemTypes.User{
-		Username:      params.Username,
-		Name:          params.Username,
-		Handle:        params.Username,
-		Kind:          systemTypes.BotUser,
-		RelatedUserID: userID,
-	}
-
-	user, err := svc.users.CreateWithAvatar(botUser, params.Avatar)
-	if err != nil {
-		return nil, err
-	}
-	webhook.UserID = user.ID
-
-	wh, err := svc.webhook.Create(webhook)
-	if err != nil {
-		// cross service rollback (delete user)
-		svc.users.Delete(user.ID)
-		return nil, err
-	}
-	return wh, err
+	return svc.webhook.Create(webhook)
 }
 
 func (svc webhook) Update(webhookID uint64, kind types.WebhookKind, channelID uint64, params types.WebhookRequest) (*types.Webhook, error) {
@@ -140,14 +119,7 @@ func (svc webhook) Update(webhookID uint64, kind types.WebhookKind, channelID ui
 		return nil, ErrNoPermissions.withStack()
 	}
 
-	botUser, err := svc.users.FindByID(webhook.UserID)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Error when looking for User ID %d", webhook.UserID)
-	}
-
-	if _, err := svc.users.UpdateWithAvatar(botUser, params.Avatar); err != nil {
-		return nil, err
-	}
+	// @todo: params.Avatar (io.Reader)
 
 	webhook.Kind = kind
 	webhook.ChannelID = channelID
@@ -267,7 +239,7 @@ func (svc webhook) Do(webhook *types.Webhook, message string) (*types.Message, e
 
 func (svc webhook) sendMessage(webhook *types.Webhook, msg *types.Message, avatar io.Reader) (*types.Message, error) {
 	// We need a webhook user context for message service
-	ctx := auth.SetIdentityToContext(svc.ctx, &systemTypes.User{ID: webhook.UserID})
+	ctx := auth.SetIdentityToContext(svc.ctx, auth.NewIdentity(webhook.UserID))
 	messageSvc := Message(ctx)
 
 	msg.ChannelID = webhook.ChannelID
