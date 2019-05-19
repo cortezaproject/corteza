@@ -13,23 +13,13 @@ import (
 	"github.com/crusttech/crust/internal/test"
 	"github.com/crusttech/crust/messaging/internal/repository"
 	"github.com/crusttech/crust/messaging/types"
-	systemService "github.com/crusttech/crust/system/service"
-	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 func TestOutgoingWebhook(t *testing.T) {
-	var user = &systemTypes.User{ID: 1}
 	var channel = &types.Channel{ID: 1}
 
 	ctx := context.WithValue(context.Background(), "testing", true)
-	ctx = auth.SetIdentityToContext(ctx, user)
-
-	// set up user
-	{
-		svc := systemService.User(ctx)
-		_, err := svc.Create(user)
-		test.Assert(t, err == nil, "Error when creating user: %+v", err)
-	}
+	ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(1337))
 
 	// set up channel
 	{

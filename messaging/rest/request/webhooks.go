@@ -97,6 +97,7 @@ var _ RequestFiller = NewWebhooksList()
 type WebhooksCreate struct {
 	ChannelID uint64 `json:",string"`
 	Kind      types.WebhookKind
+	UserID    uint64 `json:",string"`
 	Trigger   string
 	Url       string
 	Username  string
@@ -114,6 +115,8 @@ func (r WebhooksCreate) Auditable() map[string]interface{} {
 	out["channelID"] = r.ChannelID
 
 	out["kind"] = r.Kind
+
+	out["userID"] = r.UserID
 
 	out["trigger"] = r.Trigger
 
@@ -164,6 +167,10 @@ func (r *WebhooksCreate) Fill(req *http.Request) (err error) {
 
 		r.Kind = types.WebhookKind(val)
 	}
+	if val, ok := post["userID"]; ok {
+
+		r.UserID = parseUInt64(val)
+	}
 	if val, ok := post["trigger"]; ok {
 
 		r.Trigger = val
@@ -195,6 +202,7 @@ type WebhooksUpdate struct {
 	WebhookID uint64 `json:",string"`
 	ChannelID uint64 `json:",string"`
 	Kind      types.WebhookKind
+	UserID    uint64 `json:",string"`
 	Trigger   string
 	Url       string
 	Username  string
@@ -214,6 +222,8 @@ func (r WebhooksUpdate) Auditable() map[string]interface{} {
 	out["channelID"] = r.ChannelID
 
 	out["kind"] = r.Kind
+
+	out["userID"] = r.UserID
 
 	out["trigger"] = r.Trigger
 
@@ -264,6 +274,10 @@ func (r *WebhooksUpdate) Fill(req *http.Request) (err error) {
 	if val, ok := post["kind"]; ok {
 
 		r.Kind = types.WebhookKind(val)
+	}
+	if val, ok := post["userID"]; ok {
+
+		r.UserID = parseUInt64(val)
 	}
 	if val, ok := post["trigger"]; ok {
 

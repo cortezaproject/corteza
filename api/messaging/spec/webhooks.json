@@ -55,6 +55,12 @@
             "type": "types.WebhookKind"
           },
           {
+            "name": "userID",
+            "required": true,
+            "title": "Bot User ID",
+            "type": "uint64"
+          },
+          {
             "name": "trigger",
             "required": false,
             "title": "Trigger word",
@@ -113,6 +119,12 @@
             "required": true,
             "title": "Kind (incoming, outgoing)",
             "type": "types.WebhookKind"
+          },
+          {
+            "name": "userID",
+            "required": true,
+            "title": "Bot User ID",
+            "type": "uint64"
           },
           {
             "name": "trigger",

@@ -743,6 +743,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | channelID | uint64 | POST | Channel ID | N/A | YES |
 | kind | types.WebhookKind | POST | Kind (incoming, outgoing) | N/A | YES |
+| userID | uint64 | POST | Bot User ID | N/A | YES |
 | trigger | string | POST | Trigger word | N/A | NO |
 | url | string | POST | POST URL | N/A | NO |
 | username | string | POST | Default user name | N/A | NO |
@@ -764,6 +765,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | webhookID | uint64 | PATH | Webhook ID | N/A | YES |
 | channelID | uint64 | POST | Channel ID | N/A | YES |
 | kind | types.WebhookKind | POST | Kind (incoming, outgoing) | N/A | YES |
+| userID | uint64 | POST | Bot User ID | N/A | YES |
 | trigger | string | POST | Trigger word | N/A | NO |
 | url | string | POST | POST URL | N/A | NO |
 | username | string | POST | Default user name | N/A | NO |

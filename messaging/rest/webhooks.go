@@ -45,6 +45,7 @@ func (ctrl *Webhooks) Create(ctx context.Context, r *request.WebhooksCreate) (in
 	// Webhook request parameters
 	parameters := types.WebhookRequest{
 		r.Username,
+		r.UserID,
 		avatar,
 		r.Trigger,
 		r.Url,
@@ -61,6 +62,7 @@ func (ctrl *Webhooks) Update(ctx context.Context, r *request.WebhooksUpdate) (in
 	// Webhook request parameters
 	parameters := types.WebhookRequest{
 		r.Username,
+		r.UserID,
 		avatar,
 		r.Trigger,
 		r.Url,

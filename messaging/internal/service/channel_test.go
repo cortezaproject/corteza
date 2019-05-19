@@ -8,12 +8,11 @@ import (
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/test"
 	"github.com/crusttech/crust/messaging/types"
-	systemTypes "github.com/crusttech/crust/system/types"
 )
 
 func TestChannelNameTooShort(t *testing.T) {
 	ctx := context.Background()
-	ctx = auth.SetIdentityToContext(ctx, &systemTypes.User{})
+	ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(1337))
 
 	svc := channel{}
 	e := func(out *types.Channel, err error) error { return err }

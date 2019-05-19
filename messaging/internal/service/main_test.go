@@ -15,8 +15,6 @@ import (
 	"github.com/crusttech/crust/internal/logger"
 	messagingMigrate "github.com/crusttech/crust/messaging/db"
 	"github.com/crusttech/crust/messaging/internal/repository"
-	systemMigrate "github.com/crusttech/crust/system/db"
-	systemService "github.com/crusttech/crust/system/service"
 )
 
 type mockDB struct{}
@@ -33,21 +31,13 @@ func TestMain(m *testing.M) {
 
 	factory.Database.Add("default", dsn)
 	factory.Database.Add("messaging", dsn)
-	factory.Database.Add("system", dsn)
 
 	// @todo: add flags to configure the sql profiler in tests
 
 	db := factory.Database.MustGet()
 	db.Profiler = &factory.Database.ProfilerStdout
 
-	dbSystem := factory.Database.MustGet("system")
-	dbSystem.Profiler = &factory.Database.ProfilerStdout
-
 	// migrate database schema
-	if err := systemMigrate.Migrate(dbSystem); err != nil {
-		fmt.Printf("Error running migrations: %+v\n", err)
-		return
-	}
 	if err := messagingMigrate.Migrate(db); err != nil {
 		fmt.Printf("Error running migrations: %+v\n", err)
 		return
@@ -63,7 +53,6 @@ func TestMain(m *testing.M) {
 		}
 	}
 
-	systemService.Init(context.Background())
 	Init(context.Background())
 
 	os.Exit(m.Run())
