@@ -68,6 +68,10 @@ test:
 	# Run basic unit tests
 	$(GO) test ./cmd/... ./internal/... ./compose/... ./messaging/... ./system/...
 
+test-coverage:
+	overalls -project=github.com/crusttech/crust -covermode=count -debug -- -coverpkg=./... --tags=integration
+	mv overalls.coverprofile coverage.txt
+
 test.internal: $(GOTEST)
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/...
 	$(GO) tool cover -func=.cover.out
