@@ -1,4 +1,4 @@
-// +build integration,external
+// +build integration
 
 package service
 
@@ -6,6 +6,8 @@ import (
 	"context"
 	"strings"
 	"testing"
+
+	"net/http/httptest"
 
 	"github.com/crusttech/crust/internal/auth"
 	"github.com/crusttech/crust/internal/config"
@@ -16,6 +18,10 @@ import (
 )
 
 func TestOutgoingWebhook(t *testing.T) {
+	handler := &Fortune{}
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
 	var channel = &types.Channel{ID: 1}
 
 	ctx := context.WithValue(context.Background(), "testing", true)
@@ -39,8 +45,9 @@ func TestOutgoingWebhook(t *testing.T) {
 		/* create outgoing webhook */
 		webhook, err := svc.Create(types.OutgoingWebhook, channel.ID, types.WebhookRequest{
 			Username:        "test-webhook",
+			UserID:          1337,
 			OutgoingTrigger: "fortune",
-			OutgoingURL:     "https://api.scene-si.org/fortune.php",
+			OutgoingURL:     server.URL,
 		})
 		test.Assert(t, err == nil, "Error when creating webhook: %+v", err)
 
@@ -55,14 +62,15 @@ func TestOutgoingWebhook(t *testing.T) {
 		{
 			message, err := svc.Do(webhooks[0], "")
 			test.Assert(t, err == nil, "Error when triggering webhook: %+v", err)
-			test.Assert(t, strings.Contains(message.Message, "BOFH"), "Unexpected webhook output: %s", message.Message)
+			test.Assert(t, strings.Contains(message.Message, "Louis Pasteur"), "Unexpected webhook output: %s", message.Message)
 		}
 
 		// update webhook
 		wh, err := svc.Update(webhook.ID, types.OutgoingWebhook, channel.ID, types.WebhookRequest{
 			Username:        "test-webhook-json",
+			UserID:          1337,
 			OutgoingTrigger: "fortune-json",
-			OutgoingURL:     "https://api.scene-si.org/fortune.php?username=test",
+			OutgoingURL:     server.URL + "?username=test",
 		})
 		test.Assert(t, err == nil, "Error when updating webhook: %+v", err)
 
@@ -71,7 +79,7 @@ func TestOutgoingWebhook(t *testing.T) {
 			message, err := svc.Do(wh, "")
 			test.Assert(t, err == nil, "Error when triggering webhook: %+v", err)
 			test.Assert(t, message.Meta.Username == "test", "Expected message.meta.username = 'test', got: '%s'", message.Meta.Username)
-			test.Assert(t, strings.Contains(message.Message, "BOFH"), "Unexpected webhook output: %s", message.Message)
+			test.Assert(t, strings.Contains(message.Message, "Louis Pasteur"), "Unexpected webhook output: %s", message.Message)
 		}
 	}
 }
