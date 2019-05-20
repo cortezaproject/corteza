@@ -10,16 +10,15 @@ package permissions
 //  - can anyone perform an operation on this specific resource
 //  - can anyone perform an operation on any resource of the type (wildcard)
 func (set RuleSet) Check(res Resource, op Operation, roles ...uint64) (v Access) {
-	if len(roles) == 0 {
-		return Deny
-	}
 
 	if !res.IsValid() {
 		return Deny
 	}
 
-	if v = set.checkResource(res, op, roles...); v != Inherit {
-		return
+	if len(roles) > 0 {
+		if v = set.checkResource(res, op, roles...); v != Inherit {
+			return
+		}
 	}
 
 	if v = set.checkResource(res, op, EveryoneRoleID); v != Inherit {
@@ -72,7 +71,7 @@ func (set RuleSet) check(res Resource, op Operation, roles ...uint64) (v Access)
 				continue
 			}
 
-			v = set[i].Access
+			v = set[i].Access // set to Allow
 
 			// Return on first Deny
 			if v == Deny {
