@@ -134,6 +134,7 @@ func TestRuleSet_Check(t *testing.T) {
 			DenyRule(role2, resService1, opAccess),
 			// 2nd level
 			DenyRule(EveryoneRoleID, resService2, opAccess),
+			AllowRule(EveryoneRoleID, resThing13, opAccess),
 			AllowRule(role1, resService2, opAccess),
 			// 3rd level
 			DenyRule(EveryoneRoleID, resThingWc, opAccess),
@@ -154,6 +155,8 @@ func TestRuleSet_Check(t *testing.T) {
 			{[]uint64{role2}, resService2, opAccess, Deny},
 			{[]uint64{role1}, resThing42, opAccess, Allow},
 			{[]uint64{role2}, resThing42, opAccess, Deny},
+			{[]uint64{}, resThing42, opAccess, Deny},
+			{[]uint64{}, resThing13, opAccess, Allow},
 		}
 	)
 
