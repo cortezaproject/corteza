@@ -14,6 +14,7 @@ type (
 	triggerPayload struct {
 		*types.Trigger
 
+		CanGrant         bool `json:"canGrant"`
 		CanUpdateTrigger bool `json:"canUpdateTrigger"`
 		CanDeleteTrigger bool `json:"canDeleteTrigger"`
 	}
@@ -29,6 +30,8 @@ type (
 	}
 
 	triggerAccessController interface {
+		CanGrant(context.Context) bool
+
 		CanUpdateTrigger(context.Context, *types.Trigger) bool
 		CanDeleteTrigger(context.Context, *types.Trigger) bool
 	}
@@ -109,6 +112,8 @@ func (ctrl Trigger) makePayload(ctx context.Context, t *types.Trigger, err error
 
 	return &triggerPayload{
 		Trigger: t,
+
+		CanGrant: ctrl.ac.CanGrant(ctx),
 
 		CanUpdateTrigger: ctrl.ac.CanUpdateTrigger(ctx, t),
 		CanDeleteTrigger: ctrl.ac.CanDeleteTrigger(ctx, t),

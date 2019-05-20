@@ -18,6 +18,7 @@ type (
 	chartPayload struct {
 		*types.Chart
 
+		CanGrant       bool `json:"canGrant"`
 		CanUpdateChart bool `json:"canUpdateChart"`
 		CanDeleteChart bool `json:"canDeleteChart"`
 	}
@@ -33,6 +34,8 @@ type (
 	}
 
 	chartAccessController interface {
+		CanGrant(context.Context) bool
+
 		CanUpdateChart(context.Context, *types.Chart) bool
 		CanDeleteChart(context.Context, *types.Chart) bool
 	}
@@ -108,6 +111,8 @@ func (ctrl Chart) makePayload(ctx context.Context, c *types.Chart, err error) (*
 
 	return &chartPayload{
 		Chart: c,
+
+		CanGrant: ctrl.ac.CanGrant(ctx),
 
 		CanUpdateChart: ctrl.ac.CanUpdateChart(ctx, c),
 		CanDeleteChart: ctrl.ac.CanDeleteChart(ctx, c),
