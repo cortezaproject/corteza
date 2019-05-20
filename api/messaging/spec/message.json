@@ -29,6 +29,7 @@
           {
             "name": "message",
             "required": true,
+            "sensitive": true,
             "title": "Message contents (markdown)",
             "type": "string"
           }
@@ -106,6 +107,7 @@
           {
             "name": "message",
             "required": true,
+            "sensitive": true,
             "title": "Message contents (markdown)",
             "type": "string"
           }
@@ -146,6 +148,7 @@
           {
             "name": "message",
             "required": true,
+            "sensitive": true,
             "title": "Message contents (markdown)",
             "type": "string"
           }
