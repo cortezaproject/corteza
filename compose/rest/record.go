@@ -59,7 +59,7 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 		err error
 	)
 
-	if m, err = ctrl.module.FindByID(r.NamespaceID, r.ModuleID); err != nil {
+	if m, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
 	}
 
@@ -81,7 +81,7 @@ func (ctrl *Record) Read(ctx context.Context, r *request.RecordRead) (interface{
 		err error
 	)
 
-	if m, err = ctrl.module.FindByID(r.NamespaceID, r.ModuleID); err != nil {
+	if m, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
 	}
 
@@ -96,7 +96,7 @@ func (ctrl *Record) Create(ctx context.Context, r *request.RecordCreate) (interf
 		err error
 	)
 
-	if m, err = ctrl.module.FindByID(r.NamespaceID, r.ModuleID); err != nil {
+	if m, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 		err error
 	)
 
-	if m, err = ctrl.module.FindByID(r.NamespaceID, r.ModuleID); err != nil {
+	if m, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
 	}
 

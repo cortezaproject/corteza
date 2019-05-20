@@ -59,12 +59,12 @@ func (ctrl Attachment) List(ctx context.Context, r *request.AttachmentList) (int
 }
 
 func (ctrl Attachment) Read(ctx context.Context, r *request.AttachmentRead) (interface{}, error) {
-	a, err := ctrl.attachment.FindByID(r.NamespaceID, r.AttachmentID)
+	a, err := ctrl.attachment.With(ctx).FindByID(r.NamespaceID, r.AttachmentID)
 	return makeAttachmentPayload(ctx, a, err)
 }
 
 func (ctrl Attachment) Delete(ctx context.Context, r *request.AttachmentDelete) (interface{}, error) {
-	_, err := ctrl.attachment.FindByID(r.NamespaceID, r.AttachmentID)
+	_, err := ctrl.attachment.With(ctx).FindByID(r.NamespaceID, r.AttachmentID)
 	if err != nil {
 		return nil, err
 	}
