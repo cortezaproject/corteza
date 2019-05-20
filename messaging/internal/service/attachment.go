@@ -122,7 +122,7 @@ func (svc attachment) Create(name string, size int64, fh io.ReadSeeker, channelI
 
 	if ch, err := svc.channel.FindByID(channelId); err != nil {
 		return nil, err
-	} else if svc.ac.CanAttachMessage(svc.ctx, ch) {
+	} else if !svc.ac.CanAttachMessage(svc.ctx, ch) {
 		return nil, ErrNoPermissions.withStack()
 	}
 
