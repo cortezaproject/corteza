@@ -3,12 +3,11 @@ package permissions
 // Check verifies if role has access to perform an operation on a resource
 //
 // Overall flow:
-//  - no roles, no access
 //  - invalid resource, no access
-//  - can this specific role perform an operation on this specific resource
-//  - can this specific role perform an operation on any resource of the type (wildcard)
-//  - can anyone perform an operation on this specific resource
-//  - can anyone perform an operation on any resource of the type (wildcard)
+//  - can this combination of roles perform an operation on this specific resource
+//  - can this combination of roles perform an operation on any resource of the type (wildcard)
+//  - can anyone/everyone perform an operation on this specific resource
+//  - can anyone/everyone perform an operation on any resource of the type (wildcard)
 func (set RuleSet) Check(res Resource, op Operation, roles ...uint64) (v Access) {
 
 	if !res.IsValid() {
