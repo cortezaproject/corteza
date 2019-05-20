@@ -346,7 +346,7 @@ Compose module definitions
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | name | string | POST | Name | N/A | YES |
-| slug | string | POST | Slug (url path part) | N/A | YES |
+| slug | string | POST | Slug (url path part) | N/A | NO |
 | enabled | bool | POST | Enabled | N/A | NO |
 | meta | sqlxTypes.JSONText | POST | Meta data | N/A | YES |
 
@@ -378,7 +378,7 @@ Compose module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | namespaceID | uint64 | PATH | ID | N/A | YES |
 | name | string | POST | Name | N/A | YES |
-| slug | string | POST | Slug (url path part) | N/A | YES |
+| slug | string | POST | Slug (url path part) | N/A | NO |
 | enabled | bool | POST | Enabled | N/A | NO |
 | meta | sqlxTypes.JSONText | POST | Meta data | N/A | YES |
 | updatedAt | *time.Time | POST | Last update (or creation) date | N/A | NO |

@@ -58,7 +58,7 @@
                         {
                             "type": "string",
                             "name": "slug",
-                            "required": true,
+                            "required": false,
                             "title": "Slug (url path part)"
                         },
                         {
@@ -116,7 +116,7 @@
                         {
                             "type": "string",
                             "name": "slug",
-                            "required": true,
+                            "required": false,
                             "title": "Slug (url path part)"
                         },
                         {
