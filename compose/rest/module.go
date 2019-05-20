@@ -16,6 +16,7 @@ type (
 
 		Fields []*moduleFieldPayload `json:"fields"`
 
+		CanGrant        bool `json:"canGrant"`
 		CanUpdateModule bool `json:"canUpdateModule"`
 		CanDeleteModule bool `json:"canDeleteModule"`
 		CanCreateRecord bool `json:"canCreateRecord"`
@@ -43,6 +44,8 @@ type (
 	}
 
 	moduleAccessController interface {
+		CanGrant(context.Context) bool
+
 		CanUpdateModule(context.Context, *types.Module) bool
 		CanDeleteModule(context.Context, *types.Module) bool
 		CanCreateRecord(context.Context, *types.Module) bool
@@ -135,6 +138,8 @@ func (ctrl Module) makePayload(ctx context.Context, m *types.Module, err error) 
 		Module: m,
 
 		Fields: mfp,
+
+		CanGrant: ctrl.ac.CanGrant(ctx),
 
 		CanUpdateModule: ctrl.ac.CanUpdateModule(ctx, m),
 		CanDeleteModule: ctrl.ac.CanDeleteModule(ctx, m),

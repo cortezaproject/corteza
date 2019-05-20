@@ -14,6 +14,7 @@ type (
 	namespacePayload struct {
 		*types.Namespace
 
+		CanGrant           bool `json:"canGrant"`
 		CanUpdateNamespace bool `json:"canUpdateNamespace"`
 		CanDeleteNamespace bool `json:"canDeleteNamespace"`
 		CanCreateModule    bool `json:"canCreateModule"`
@@ -33,8 +34,11 @@ type (
 	}
 
 	namespaceAccessController interface {
+		CanGrant(context.Context) bool
+
 		CanUpdateNamespace(context.Context, *types.Namespace) bool
 		CanDeleteNamespace(context.Context, *types.Namespace) bool
+
 		CanCreateModule(context.Context, *types.Namespace) bool
 		CanCreateChart(context.Context, *types.Namespace) bool
 		CanCreateTrigger(context.Context, *types.Namespace) bool
@@ -112,12 +116,14 @@ func (ctrl Namespace) makePayload(ctx context.Context, ns *types.Namespace, err 
 	return &namespacePayload{
 		Namespace: ns,
 
+		CanGrant:           ctrl.ac.CanGrant(ctx),
 		CanUpdateNamespace: ctrl.ac.CanUpdateNamespace(ctx, ns),
 		CanDeleteNamespace: ctrl.ac.CanDeleteNamespace(ctx, ns),
-		CanCreateModule:    ctrl.ac.CanCreateModule(ctx, ns),
-		CanCreateChart:     ctrl.ac.CanCreateChart(ctx, ns),
-		CanCreateTrigger:   ctrl.ac.CanCreateTrigger(ctx, ns),
-		CanCreatePage:      ctrl.ac.CanCreatePage(ctx, ns),
+
+		CanCreateModule:  ctrl.ac.CanCreateModule(ctx, ns),
+		CanCreateChart:   ctrl.ac.CanCreateChart(ctx, ns),
+		CanCreateTrigger: ctrl.ac.CanCreateTrigger(ctx, ns),
+		CanCreatePage:    ctrl.ac.CanCreatePage(ctx, ns),
 	}, nil
 }
 
