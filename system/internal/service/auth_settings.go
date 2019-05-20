@@ -88,7 +88,7 @@ func (s authSettings) Format() map[string]interface{} {
 
 		switch label {
 		case "crust-iam":
-			label = "Crust IAM"
+			label = "Crust Unify"
 		case "facebook":
 			label = "Facebook"
 		case "gplus":
