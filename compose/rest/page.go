@@ -97,6 +97,7 @@ func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{
 	var (
 		err error
 		mod = &types.Page{
+			NamespaceID: r.NamespaceID,
 			ID:          r.PageID,
 			SelfID:      r.SelfID,
 			ModuleID:    r.ModuleID,
