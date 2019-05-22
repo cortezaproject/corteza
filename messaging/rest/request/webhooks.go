@@ -46,7 +46,6 @@ func (r WebhooksList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["channelID"] = r.ChannelID
-
 	out["userID"] = r.UserID
 
 	return out
@@ -80,11 +79,9 @@ func (r *WebhooksList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["channelID"]; ok {
-
 		r.ChannelID = parseUInt64(val)
 	}
 	if val, ok := get["userID"]; ok {
-
 		r.UserID = parseUInt64(val)
 	}
 
@@ -113,17 +110,11 @@ func (r WebhooksCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["channelID"] = r.ChannelID
-
 	out["kind"] = r.Kind
-
 	out["userID"] = r.UserID
-
 	out["trigger"] = r.Trigger
-
 	out["url"] = r.Url
-
 	out["username"] = r.Username
-
 	out["avatar.size"] = r.Avatar.Size
 	out["avatar.filename"] = r.Avatar.Filename
 
@@ -160,27 +151,21 @@ func (r *WebhooksCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["channelID"]; ok {
-
 		r.ChannelID = parseUInt64(val)
 	}
 	if val, ok := post["kind"]; ok {
-
 		r.Kind = types.WebhookKind(val)
 	}
 	if val, ok := post["userID"]; ok {
-
 		r.UserID = parseUInt64(val)
 	}
 	if val, ok := post["trigger"]; ok {
-
 		r.Trigger = val
 	}
 	if val, ok := post["url"]; ok {
-
 		r.Url = val
 	}
 	if val, ok := post["username"]; ok {
-
 		r.Username = val
 	}
 	if _, r.Avatar, err = req.FormFile("avatar"); err != nil {
@@ -188,7 +173,6 @@ func (r *WebhooksCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["avatarURL"]; ok {
-
 		r.AvatarURL = val
 	}
 
@@ -218,19 +202,12 @@ func (r WebhooksUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["webhookID"] = r.WebhookID
-
 	out["channelID"] = r.ChannelID
-
 	out["kind"] = r.Kind
-
 	out["userID"] = r.UserID
-
 	out["trigger"] = r.Trigger
-
 	out["url"] = r.Url
-
 	out["username"] = r.Username
-
 	out["avatar.size"] = r.Avatar.Size
 	out["avatar.filename"] = r.Avatar.Filename
 
@@ -268,27 +245,21 @@ func (r *WebhooksUpdate) Fill(req *http.Request) (err error) {
 
 	r.WebhookID = parseUInt64(chi.URLParam(req, "webhookID"))
 	if val, ok := post["channelID"]; ok {
-
 		r.ChannelID = parseUInt64(val)
 	}
 	if val, ok := post["kind"]; ok {
-
 		r.Kind = types.WebhookKind(val)
 	}
 	if val, ok := post["userID"]; ok {
-
 		r.UserID = parseUInt64(val)
 	}
 	if val, ok := post["trigger"]; ok {
-
 		r.Trigger = val
 	}
 	if val, ok := post["url"]; ok {
-
 		r.Url = val
 	}
 	if val, ok := post["username"]; ok {
-
 		r.Username = val
 	}
 	if _, r.Avatar, err = req.FormFile("avatar"); err != nil {
@@ -296,7 +267,6 @@ func (r *WebhooksUpdate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["avatarURL"]; ok {
-
 		r.AvatarURL = val
 	}
 

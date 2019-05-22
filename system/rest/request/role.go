@@ -75,7 +75,6 @@ func (r *RoleList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["query"]; ok {
-
 		r.Query = val
 	}
 
@@ -98,7 +97,6 @@ func (r RoleCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["name"] = r.Name
-
 	out["members"] = r.Members
 
 	return out
@@ -132,7 +130,6 @@ func (r *RoleCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 
@@ -156,9 +153,7 @@ func (r RoleUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["roleID"] = r.RoleID
-
 	out["name"] = r.Name
-
 	out["members"] = r.Members
 
 	return out
@@ -193,7 +188,6 @@ func (r *RoleUpdate) Fill(req *http.Request) (err error) {
 
 	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 
@@ -369,7 +363,6 @@ func (r RoleMove) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["roleID"] = r.RoleID
-
 	out["organisationID"] = r.OrganisationID
 
 	return out
@@ -404,7 +397,6 @@ func (r *RoleMove) Fill(req *http.Request) (err error) {
 
 	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 	if val, ok := post["organisationID"]; ok {
-
 		r.OrganisationID = parseUInt64(val)
 	}
 
@@ -427,7 +419,6 @@ func (r RoleMerge) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["roleID"] = r.RoleID
-
 	out["destination"] = r.Destination
 
 	return out
@@ -462,7 +453,6 @@ func (r *RoleMerge) Fill(req *http.Request) (err error) {
 
 	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 	if val, ok := post["destination"]; ok {
-
 		r.Destination = parseUInt64(val)
 	}
 
@@ -536,7 +526,6 @@ func (r RoleMemberAdd) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["roleID"] = r.RoleID
-
 	out["userID"] = r.UserID
 
 	return out
@@ -591,7 +580,6 @@ func (r RoleMemberRemove) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["roleID"] = r.RoleID
-
 	out["userID"] = r.UserID
 
 	return out

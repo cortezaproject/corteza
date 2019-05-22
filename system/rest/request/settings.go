@@ -77,7 +77,6 @@ func (r *SettingsList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["prefix"]; ok {
-
 		r.Prefix = val
 	}
 
@@ -156,7 +155,6 @@ func (r SettingsGet) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["ownerID"] = r.OwnerID
-
 	out["key"] = r.Key
 
 	return out
@@ -190,7 +188,6 @@ func (r *SettingsGet) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["ownerID"]; ok {
-
 		r.OwnerID = parseUInt64(val)
 	}
 	r.Key = chi.URLParam(req, "key")
@@ -215,9 +212,7 @@ func (r SettingsSet) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["key"] = r.Key
-
 	out["ownerID"] = r.OwnerID
-
 	out["value"] = r.Value
 
 	return out
@@ -252,7 +247,6 @@ func (r *SettingsSet) Fill(req *http.Request) (err error) {
 
 	r.Key = chi.URLParam(req, "key")
 	if val, ok := post["ownerID"]; ok {
-
 		r.OwnerID = parseUInt64(val)
 	}
 	if val, ok := post["value"]; ok {

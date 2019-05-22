@@ -45,9 +45,7 @@ func (r ActivitySend) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["channelID"] = r.ChannelID
-
 	out["messageID"] = r.MessageID
-
 	out["kind"] = r.Kind
 
 	return out
@@ -81,15 +79,12 @@ func (r *ActivitySend) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["channelID"]; ok {
-
 		r.ChannelID = parseUInt64(val)
 	}
 	if val, ok := post["messageID"]; ok {
-
 		r.MessageID = parseUInt64(val)
 	}
 	if val, ok := post["kind"]; ok {
-
 		r.Kind = val
 	}
 

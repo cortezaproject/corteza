@@ -39,19 +39,14 @@ func New{name|expose}(h {name|expose}API) *{name|expose} {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.{call.name|capitalize}(r.Context(), params); err != nil {
+			value, err := h.{call.name|capitalize}(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("{name|expose}.{call.name|capitalize}", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("{name|expose}.{call.name|capitalize}", r, params.Auditable())
-				switch fn := value.(type) {
-					case func(http.ResponseWriter, *http.Request):
-						fn(w, r)
-						return
-				}
+			}
+			logger.LogControllerCall("{name|expose}.{call.name|capitalize}", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 {/foreach}

@@ -44,7 +44,6 @@ func (r WebhooksPublicDelete) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["webhookID"] = r.WebhookID
-
 	out["webhookToken"] = r.WebhookToken
 
 	return out
@@ -102,13 +101,9 @@ func (r WebhooksPublicCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["username"] = r.Username
-
 	out["avatarURL"] = r.AvatarURL
-
 	out["content"] = r.Content
-
 	out["webhookID"] = r.WebhookID
-
 	out["webhookToken"] = r.WebhookToken
 
 	return out
@@ -142,15 +137,12 @@ func (r *WebhooksPublicCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["username"]; ok {
-
 		r.Username = val
 	}
 	if val, ok := get["avatarURL"]; ok {
-
 		r.AvatarURL = val
 	}
 	if val, ok := get["content"]; ok {
-
 		r.Content = val
 	}
 	r.WebhookID = parseUInt64(chi.URLParam(req, "webhookID"))

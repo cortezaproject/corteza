@@ -49,19 +49,14 @@ func NewSearch(h SearchAPI) *Search {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Messages(r.Context(), params); err != nil {
+			value, err := h.Messages(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Search.Messages", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Search.Messages", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Search.Messages", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Threads: func(w http.ResponseWriter, r *http.Request) {
@@ -72,19 +67,14 @@ func NewSearch(h SearchAPI) *Search {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Threads(r.Context(), params); err != nil {
+			value, err := h.Threads(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Search.Threads", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Search.Threads", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Search.Threads", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 	}

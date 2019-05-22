@@ -48,9 +48,7 @@ func (r NamespaceList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["query"] = r.Query
-
 	out["page"] = r.Page
-
 	out["perPage"] = r.PerPage
 
 	return out
@@ -84,15 +82,12 @@ func (r *NamespaceList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["query"]; ok {
-
 		r.Query = val
 	}
 	if val, ok := get["page"]; ok {
-
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
-
 		r.PerPage = parseUint(val)
 	}
 
@@ -117,11 +112,8 @@ func (r NamespaceCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["name"] = r.Name
-
 	out["slug"] = r.Slug
-
 	out["enabled"] = r.Enabled
-
 	out["meta"] = r.Meta
 
 	return out
@@ -155,15 +147,12 @@ func (r *NamespaceCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 	if val, ok := post["slug"]; ok {
-
 		r.Slug = val
 	}
 	if val, ok := post["enabled"]; ok {
-
 		r.Enabled = parseBool(val)
 	}
 	if val, ok := post["meta"]; ok {
@@ -247,15 +236,10 @@ func (r NamespaceUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["namespaceID"] = r.NamespaceID
-
 	out["name"] = r.Name
-
 	out["slug"] = r.Slug
-
 	out["enabled"] = r.Enabled
-
 	out["meta"] = r.Meta
-
 	out["updatedAt"] = r.UpdatedAt
 
 	return out
@@ -290,15 +274,12 @@ func (r *NamespaceUpdate) Fill(req *http.Request) (err error) {
 
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 	if val, ok := post["slug"]; ok {
-
 		r.Slug = val
 	}
 	if val, ok := post["enabled"]; ok {
-
 		r.Enabled = parseBool(val)
 	}
 	if val, ok := post["meta"]; ok {

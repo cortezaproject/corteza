@@ -75,7 +75,6 @@ func (r *OrganisationList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["query"]; ok {
-
 		r.Query = val
 	}
 
@@ -129,7 +128,6 @@ func (r *OrganisationCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 
@@ -152,7 +150,6 @@ func (r OrganisationUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["id"] = r.ID
-
 	out["name"] = r.Name
 
 	return out
@@ -187,7 +184,6 @@ func (r *OrganisationUpdate) Fill(req *http.Request) (err error) {
 
 	r.ID = parseUInt64(chi.URLParam(req, "id"))
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 
@@ -292,7 +288,6 @@ func (r *OrganisationRead) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["id"]; ok {
-
 		r.ID = parseUInt64(val)
 	}
 
