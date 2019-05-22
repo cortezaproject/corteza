@@ -47,19 +47,14 @@ func NewActivity(h ActivityAPI) *Activity {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Send(r.Context(), params); err != nil {
+			value, err := h.Send(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Activity.Send", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Activity.Send", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Activity.Send", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 	}

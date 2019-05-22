@@ -36,18 +36,14 @@ func New{name|expose}{call.name|capitalize}() *{name|expose}{call.name|capitaliz
 
 func (r {name|expose}{call.name|capitalize}) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
-	{foreach $call.parameters as $method => $params}{foreach $params as $param}
-	{if $param.sensitive}
+{foreach $call.parameters as $method => $params}{foreach $params as $param}{if $param.sensitive}
 	out["{param.name}"] = "*masked*sensitive*data*"
-	{else}
-	{if $param.type === "*multipart.FileHeader"}
+{elseif $param.type === "*multipart.FileHeader"}
 	out["{param.name}.size"] = r.{param.name|expose}.Size
 	out["{param.name}.filename"] = r.{param.name|expose}.Filename
-	{else}
+{else}
 	out["{param.name}"] = r.{param.name|expose}
-	{/if}
-	{/if}
-	{/foreach}{/foreach}{newline}
+{/if}{/foreach}{/foreach}{newline}
 	return out
 }
 
@@ -104,8 +100,7 @@ func (r *{name|expose}{call.name|capitalize}) Fill(req *http.Request) (err error
 		if r.{param.name|expose}, err = {$parsers[$param.type]}(val); err != nil {
 			return err
 		}
-{else}
-		r.{param.name|expose} = {if ($param.type !== "string")}{if isset($parsers[$param.type])}{$parsers[$param.type]}{else}{$param.type}{/if}(val){else}val{/if}{EOL}
+{else}		r.{param.name|expose} = {if ($param.type !== "string")}{if isset($parsers[$param.type])}{$parsers[$param.type]}{else}{$param.type}{/if}(val){else}val{/if}{EOL}
 {/if}
 	}{/if}
 {/foreach}

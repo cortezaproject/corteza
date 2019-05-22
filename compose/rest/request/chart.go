@@ -49,11 +49,8 @@ func (r ChartList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["query"] = r.Query
-
 	out["page"] = r.Page
-
 	out["perPage"] = r.PerPage
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -87,15 +84,12 @@ func (r *ChartList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["query"]; ok {
-
 		r.Query = val
 	}
 	if val, ok := get["page"]; ok {
-
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
-
 		r.PerPage = parseUint(val)
 	}
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
@@ -120,9 +114,7 @@ func (r ChartCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["config"] = r.Config
-
 	out["name"] = r.Name
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -162,7 +154,6 @@ func (r *ChartCreate) Fill(req *http.Request) (err error) {
 		}
 	}
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
@@ -186,7 +177,6 @@ func (r ChartRead) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["chartID"] = r.ChartID
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -244,13 +234,9 @@ func (r ChartUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["chartID"] = r.ChartID
-
 	out["namespaceID"] = r.NamespaceID
-
 	out["config"] = r.Config
-
 	out["name"] = r.Name
-
 	out["updatedAt"] = r.UpdatedAt
 
 	return out
@@ -292,7 +278,6 @@ func (r *ChartUpdate) Fill(req *http.Request) (err error) {
 		}
 	}
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 	if val, ok := post["updatedAt"]; ok {
@@ -321,7 +306,6 @@ func (r ChartDelete) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["chartID"] = r.ChartID
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out

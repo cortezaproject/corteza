@@ -44,7 +44,6 @@ func (r AuthInternalLogin) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["email"] = r.Email
-
 	out["password"] = "*masked*sensitive*data*"
 
 	return out
@@ -78,11 +77,9 @@ func (r *AuthInternalLogin) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["email"]; ok {
-
 		r.Email = val
 	}
 	if val, ok := post["password"]; ok {
-
 		r.Password = val
 	}
 
@@ -108,13 +105,10 @@ func (r AuthInternalSignup) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["email"] = r.Email
-
 	out["username"] = r.Username
-
 	out["password"] = "*masked*sensitive*data*"
 
 	out["handle"] = r.Handle
-
 	out["name"] = r.Name
 
 	return out
@@ -148,23 +142,18 @@ func (r *AuthInternalSignup) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["email"]; ok {
-
 		r.Email = val
 	}
 	if val, ok := post["username"]; ok {
-
 		r.Username = val
 	}
 	if val, ok := post["password"]; ok {
-
 		r.Password = val
 	}
 	if val, ok := post["handle"]; ok {
-
 		r.Handle = val
 	}
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 
@@ -218,7 +207,6 @@ func (r *AuthInternalRequestPasswordReset) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["email"]; ok {
-
 		r.Email = val
 	}
 
@@ -272,7 +260,6 @@ func (r *AuthInternalExchangePasswordResetToken) Fill(req *http.Request) (err er
 	}
 
 	if val, ok := post["token"]; ok {
-
 		r.Token = val
 	}
 
@@ -295,7 +282,6 @@ func (r AuthInternalResetPassword) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["token"] = r.Token
-
 	out["password"] = "*masked*sensitive*data*"
 
 	return out
@@ -329,11 +315,9 @@ func (r *AuthInternalResetPassword) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["token"]; ok {
-
 		r.Token = val
 	}
 	if val, ok := post["password"]; ok {
-
 		r.Password = val
 	}
 
@@ -387,7 +371,6 @@ func (r *AuthInternalConfirmEmail) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["token"]; ok {
-
 		r.Token = val
 	}
 
@@ -444,11 +427,9 @@ func (r *AuthInternalChangePassword) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["oldPassword"]; ok {
-
 		r.OldPassword = val
 	}
 	if val, ok := post["newPassword"]; ok {
-
 		r.NewPassword = val
 	}
 

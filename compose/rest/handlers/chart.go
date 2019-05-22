@@ -55,19 +55,14 @@ func NewChart(h ChartAPI) *Chart {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.List(r.Context(), params); err != nil {
+			value, err := h.List(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Chart.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Chart.List", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Chart.List", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
@@ -78,19 +73,14 @@ func NewChart(h ChartAPI) *Chart {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Create(r.Context(), params); err != nil {
+			value, err := h.Create(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Chart.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Chart.Create", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Chart.Create", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
@@ -101,19 +91,14 @@ func NewChart(h ChartAPI) *Chart {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Read(r.Context(), params); err != nil {
+			value, err := h.Read(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Chart.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Chart.Read", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Chart.Read", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
@@ -124,19 +109,14 @@ func NewChart(h ChartAPI) *Chart {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Update(r.Context(), params); err != nil {
+			value, err := h.Update(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Chart.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Chart.Update", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Chart.Update", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
@@ -147,19 +127,14 @@ func NewChart(h ChartAPI) *Chart {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Delete(r.Context(), params); err != nil {
+			value, err := h.Delete(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Chart.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Chart.Delete", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Chart.Delete", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 	}

@@ -47,19 +47,14 @@ func NewNotification(h NotificationAPI) *Notification {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.EmailSend(r.Context(), params); err != nil {
+			value, err := h.EmailSend(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Notification.EmailSend", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Notification.EmailSend", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Notification.EmailSend", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 	}

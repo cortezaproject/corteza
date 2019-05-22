@@ -49,13 +49,9 @@ func (r TriggerList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["moduleID"] = r.ModuleID
-
 	out["query"] = r.Query
-
 	out["page"] = r.Page
-
 	out["perPage"] = r.PerPage
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -89,19 +85,15 @@ func (r *TriggerList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["moduleID"]; ok {
-
 		r.ModuleID = parseUInt64(val)
 	}
 	if val, ok := get["query"]; ok {
-
 		r.Query = val
 	}
 	if val, ok := get["page"]; ok {
-
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
-
 		r.PerPage = parseUint(val)
 	}
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
@@ -130,17 +122,11 @@ func (r TriggerCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["moduleID"] = r.ModuleID
-
 	out["name"] = r.Name
-
 	out["actions"] = r.Actions
-
 	out["enabled"] = r.Enabled
-
 	out["source"] = r.Source
-
 	out["updatedAt"] = r.UpdatedAt
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -174,19 +160,15 @@ func (r *TriggerCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["moduleID"]; ok {
-
 		r.ModuleID = parseUInt64(val)
 	}
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 	if val, ok := post["enabled"]; ok {
-
 		r.Enabled = parseBool(val)
 	}
 	if val, ok := post["source"]; ok {
-
 		r.Source = val
 	}
 	if val, ok := post["updatedAt"]; ok {
@@ -216,7 +198,6 @@ func (r TriggerRead) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["triggerID"] = r.TriggerID
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -276,17 +257,11 @@ func (r TriggerUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["triggerID"] = r.TriggerID
-
 	out["namespaceID"] = r.NamespaceID
-
 	out["moduleID"] = r.ModuleID
-
 	out["name"] = r.Name
-
 	out["actions"] = r.Actions
-
 	out["enabled"] = r.Enabled
-
 	out["source"] = r.Source
 
 	return out
@@ -322,19 +297,15 @@ func (r *TriggerUpdate) Fill(req *http.Request) (err error) {
 	r.TriggerID = parseUInt64(chi.URLParam(req, "triggerID"))
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := post["moduleID"]; ok {
-
 		r.ModuleID = parseUInt64(val)
 	}
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 	if val, ok := post["enabled"]; ok {
-
 		r.Enabled = parseBool(val)
 	}
 	if val, ok := post["source"]; ok {
-
 		r.Source = val
 	}
 
@@ -357,7 +328,6 @@ func (r TriggerDelete) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["triggerID"] = r.TriggerID
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out

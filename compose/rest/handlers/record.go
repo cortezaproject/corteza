@@ -59,19 +59,14 @@ func NewRecord(h RecordAPI) *Record {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Report(r.Context(), params); err != nil {
+			value, err := h.Report(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Record.Report", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Record.Report", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Record.Report", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		List: func(w http.ResponseWriter, r *http.Request) {
@@ -82,19 +77,14 @@ func NewRecord(h RecordAPI) *Record {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.List(r.Context(), params); err != nil {
+			value, err := h.List(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Record.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Record.List", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Record.List", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
@@ -105,19 +95,14 @@ func NewRecord(h RecordAPI) *Record {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Create(r.Context(), params); err != nil {
+			value, err := h.Create(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Record.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Record.Create", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Record.Create", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
@@ -128,19 +113,14 @@ func NewRecord(h RecordAPI) *Record {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Read(r.Context(), params); err != nil {
+			value, err := h.Read(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Record.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Record.Read", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Record.Read", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
@@ -151,19 +131,14 @@ func NewRecord(h RecordAPI) *Record {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Update(r.Context(), params); err != nil {
+			value, err := h.Update(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Record.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Record.Update", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Record.Update", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
@@ -174,19 +149,14 @@ func NewRecord(h RecordAPI) *Record {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Delete(r.Context(), params); err != nil {
+			value, err := h.Delete(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Record.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Record.Delete", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Record.Delete", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Upload: func(w http.ResponseWriter, r *http.Request) {
@@ -197,19 +167,14 @@ func NewRecord(h RecordAPI) *Record {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Upload(r.Context(), params); err != nil {
+			value, err := h.Upload(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Record.Upload", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Record.Upload", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Record.Upload", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 	}

@@ -47,9 +47,7 @@ func (r UserList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["query"] = r.Query
-
 	out["username"] = r.Username
-
 	out["email"] = r.Email
 
 	return out
@@ -83,15 +81,12 @@ func (r *UserList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["query"]; ok {
-
 		r.Query = val
 	}
 	if val, ok := get["username"]; ok {
-
 		r.Username = val
 	}
 	if val, ok := get["email"]; ok {
-
 		r.Email = val
 	}
 
@@ -116,11 +111,8 @@ func (r UserCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["email"] = r.Email
-
 	out["name"] = r.Name
-
 	out["handle"] = r.Handle
-
 	out["kind"] = r.Kind
 
 	return out
@@ -154,19 +146,15 @@ func (r *UserCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["email"]; ok {
-
 		r.Email = val
 	}
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 	if val, ok := post["handle"]; ok {
-
 		r.Handle = val
 	}
 	if val, ok := post["kind"]; ok {
-
 		r.Kind = types.UserKind(val)
 	}
 
@@ -192,13 +180,9 @@ func (r UserUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["userID"] = r.UserID
-
 	out["email"] = r.Email
-
 	out["name"] = r.Name
-
 	out["handle"] = r.Handle
-
 	out["kind"] = r.Kind
 
 	return out
@@ -233,19 +217,15 @@ func (r *UserUpdate) Fill(req *http.Request) (err error) {
 
 	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 	if val, ok := post["email"]; ok {
-
 		r.Email = val
 	}
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 	if val, ok := post["handle"]; ok {
-
 		r.Handle = val
 	}
 	if val, ok := post["kind"]; ok {
-
 		r.Kind = types.UserKind(val)
 	}
 

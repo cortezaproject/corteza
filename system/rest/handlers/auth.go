@@ -53,19 +53,14 @@ func NewAuth(h AuthAPI) *Auth {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Settings(r.Context(), params); err != nil {
+			value, err := h.Settings(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Auth.Settings", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Auth.Settings", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Auth.Settings", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Check: func(w http.ResponseWriter, r *http.Request) {
@@ -76,19 +71,14 @@ func NewAuth(h AuthAPI) *Auth {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Check(r.Context(), params); err != nil {
+			value, err := h.Check(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Auth.Check", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Auth.Check", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Auth.Check", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		ExchangeAuthToken: func(w http.ResponseWriter, r *http.Request) {
@@ -99,19 +89,14 @@ func NewAuth(h AuthAPI) *Auth {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.ExchangeAuthToken(r.Context(), params); err != nil {
+			value, err := h.ExchangeAuthToken(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Auth.ExchangeAuthToken", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Auth.ExchangeAuthToken", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Auth.ExchangeAuthToken", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Logout: func(w http.ResponseWriter, r *http.Request) {
@@ -122,19 +107,14 @@ func NewAuth(h AuthAPI) *Auth {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Logout(r.Context(), params); err != nil {
+			value, err := h.Logout(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Auth.Logout", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Auth.Logout", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Auth.Logout", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 	}

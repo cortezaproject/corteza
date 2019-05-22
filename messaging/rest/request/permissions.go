@@ -123,7 +123,6 @@ func (r *PermissionsEffective) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["resource"]; ok {
-
 		r.Resource = val
 	}
 
@@ -248,7 +247,6 @@ func (r PermissionsUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["roleID"] = r.RoleID
-
 	out["rules"] = r.Rules
 
 	return out

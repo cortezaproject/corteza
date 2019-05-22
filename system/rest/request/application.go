@@ -94,11 +94,8 @@ func (r ApplicationCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["name"] = r.Name
-
 	out["enabled"] = r.Enabled
-
 	out["unify"] = r.Unify
-
 	out["config"] = r.Config
 
 	return out
@@ -132,11 +129,9 @@ func (r *ApplicationCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 	if val, ok := post["enabled"]; ok {
-
 		r.Enabled = parseBool(val)
 	}
 	if val, ok := post["unify"]; ok {
@@ -174,13 +169,9 @@ func (r ApplicationUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["applicationID"] = r.ApplicationID
-
 	out["name"] = r.Name
-
 	out["enabled"] = r.Enabled
-
 	out["unify"] = r.Unify
-
 	out["config"] = r.Config
 
 	return out
@@ -215,11 +206,9 @@ func (r *ApplicationUpdate) Fill(req *http.Request) (err error) {
 
 	r.ApplicationID = parseUInt64(chi.URLParam(req, "applicationID"))
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 	if val, ok := post["enabled"]; ok {
-
 		r.Enabled = parseBool(val)
 	}
 	if val, ok := post["unify"]; ok {

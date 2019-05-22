@@ -69,19 +69,14 @@ func NewMessage(h MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Create(r.Context(), params); err != nil {
+			value, err := h.Create(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Message.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Message.Create", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Message.Create", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		ExecuteCommand: func(w http.ResponseWriter, r *http.Request) {
@@ -92,19 +87,14 @@ func NewMessage(h MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.ExecuteCommand(r.Context(), params); err != nil {
+			value, err := h.ExecuteCommand(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Message.ExecuteCommand", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Message.ExecuteCommand", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Message.ExecuteCommand", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		MarkAsRead: func(w http.ResponseWriter, r *http.Request) {
@@ -115,19 +105,14 @@ func NewMessage(h MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.MarkAsRead(r.Context(), params); err != nil {
+			value, err := h.MarkAsRead(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Message.MarkAsRead", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Message.MarkAsRead", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Message.MarkAsRead", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Edit: func(w http.ResponseWriter, r *http.Request) {
@@ -138,19 +123,14 @@ func NewMessage(h MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Edit(r.Context(), params); err != nil {
+			value, err := h.Edit(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Message.Edit", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Message.Edit", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Message.Edit", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
@@ -161,19 +141,14 @@ func NewMessage(h MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Delete(r.Context(), params); err != nil {
+			value, err := h.Delete(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Message.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Message.Delete", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Message.Delete", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		ReplyCreate: func(w http.ResponseWriter, r *http.Request) {
@@ -184,19 +159,14 @@ func NewMessage(h MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.ReplyCreate(r.Context(), params); err != nil {
+			value, err := h.ReplyCreate(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Message.ReplyCreate", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Message.ReplyCreate", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Message.ReplyCreate", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		PinCreate: func(w http.ResponseWriter, r *http.Request) {
@@ -207,19 +177,14 @@ func NewMessage(h MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.PinCreate(r.Context(), params); err != nil {
+			value, err := h.PinCreate(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Message.PinCreate", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Message.PinCreate", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Message.PinCreate", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		PinRemove: func(w http.ResponseWriter, r *http.Request) {
@@ -230,19 +195,14 @@ func NewMessage(h MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.PinRemove(r.Context(), params); err != nil {
+			value, err := h.PinRemove(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Message.PinRemove", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Message.PinRemove", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Message.PinRemove", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		BookmarkCreate: func(w http.ResponseWriter, r *http.Request) {
@@ -253,19 +213,14 @@ func NewMessage(h MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.BookmarkCreate(r.Context(), params); err != nil {
+			value, err := h.BookmarkCreate(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Message.BookmarkCreate", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Message.BookmarkCreate", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Message.BookmarkCreate", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		BookmarkRemove: func(w http.ResponseWriter, r *http.Request) {
@@ -276,19 +231,14 @@ func NewMessage(h MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.BookmarkRemove(r.Context(), params); err != nil {
+			value, err := h.BookmarkRemove(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Message.BookmarkRemove", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Message.BookmarkRemove", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Message.BookmarkRemove", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		ReactionCreate: func(w http.ResponseWriter, r *http.Request) {
@@ -299,19 +249,14 @@ func NewMessage(h MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.ReactionCreate(r.Context(), params); err != nil {
+			value, err := h.ReactionCreate(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Message.ReactionCreate", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Message.ReactionCreate", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Message.ReactionCreate", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		ReactionRemove: func(w http.ResponseWriter, r *http.Request) {
@@ -322,19 +267,14 @@ func NewMessage(h MessageAPI) *Message {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.ReactionRemove(r.Context(), params); err != nil {
+			value, err := h.ReactionRemove(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Message.ReactionRemove", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Message.ReactionRemove", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Message.ReactionRemove", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 	}

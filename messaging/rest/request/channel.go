@@ -75,7 +75,6 @@ func (r *ChannelList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["query"]; ok {
-
 		r.Query = val
 	}
 
@@ -100,11 +99,8 @@ func (r ChannelCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["name"] = r.Name
-
 	out["topic"] = r.Topic
-
 	out["type"] = r.Type
-
 	out["members"] = r.Members
 
 	return out
@@ -138,15 +134,12 @@ func (r *ChannelCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 	if val, ok := post["topic"]; ok {
-
 		r.Topic = val
 	}
 	if val, ok := post["type"]; ok {
-
 		r.Type = val
 	}
 
@@ -172,13 +165,9 @@ func (r ChannelUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["channelID"] = r.ChannelID
-
 	out["name"] = r.Name
-
 	out["topic"] = r.Topic
-
 	out["type"] = r.Type
-
 	out["organisationID"] = r.OrganisationID
 
 	return out
@@ -213,19 +202,15 @@ func (r *ChannelUpdate) Fill(req *http.Request) (err error) {
 
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 	if val, ok := post["topic"]; ok {
-
 		r.Topic = val
 	}
 	if val, ok := post["type"]; ok {
-
 		r.Type = val
 	}
 	if val, ok := post["organisationID"]; ok {
-
 		r.OrganisationID = parseUInt64(val)
 	}
 
@@ -248,7 +233,6 @@ func (r ChannelState) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["channelID"] = r.ChannelID
-
 	out["state"] = r.State
 
 	return out
@@ -283,7 +267,6 @@ func (r *ChannelState) Fill(req *http.Request) (err error) {
 
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["state"]; ok {
-
 		r.State = val
 	}
 
@@ -306,7 +289,6 @@ func (r ChannelSetFlag) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["channelID"] = r.ChannelID
-
 	out["flag"] = r.Flag
 
 	return out
@@ -341,7 +323,6 @@ func (r *ChannelSetFlag) Fill(req *http.Request) (err error) {
 
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["flag"]; ok {
-
 		r.Flag = val
 	}
 
@@ -517,7 +498,6 @@ func (r ChannelJoin) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["channelID"] = r.ChannelID
-
 	out["userID"] = r.UserID
 
 	return out
@@ -572,7 +552,6 @@ func (r ChannelPart) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["channelID"] = r.ChannelID
-
 	out["userID"] = r.UserID
 
 	return out
@@ -627,7 +606,6 @@ func (r ChannelInvite) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["channelID"] = r.ChannelID
-
 	out["userID"] = r.UserID
 
 	return out
@@ -682,9 +660,7 @@ func (r ChannelAttach) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["channelID"] = r.ChannelID
-
 	out["replyTo"] = r.ReplyTo
-
 	out["upload.size"] = r.Upload.Size
 	out["upload.filename"] = r.Upload.Filename
 
@@ -720,7 +696,6 @@ func (r *ChannelAttach) Fill(req *http.Request) (err error) {
 
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["replyTo"]; ok {
-
 		r.ReplyTo = parseUInt64(val)
 	}
 	if _, r.Upload, err = req.FormFile("upload"); err != nil {

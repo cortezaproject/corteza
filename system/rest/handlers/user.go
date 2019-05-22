@@ -59,19 +59,14 @@ func NewUser(h UserAPI) *User {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.List(r.Context(), params); err != nil {
+			value, err := h.List(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("User.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("User.List", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("User.List", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
@@ -82,19 +77,14 @@ func NewUser(h UserAPI) *User {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Create(r.Context(), params); err != nil {
+			value, err := h.Create(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("User.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("User.Create", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("User.Create", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
@@ -105,19 +95,14 @@ func NewUser(h UserAPI) *User {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Update(r.Context(), params); err != nil {
+			value, err := h.Update(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("User.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("User.Update", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("User.Update", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
@@ -128,19 +113,14 @@ func NewUser(h UserAPI) *User {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Read(r.Context(), params); err != nil {
+			value, err := h.Read(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("User.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("User.Read", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("User.Read", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
@@ -151,19 +131,14 @@ func NewUser(h UserAPI) *User {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Delete(r.Context(), params); err != nil {
+			value, err := h.Delete(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("User.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("User.Delete", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("User.Delete", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Suspend: func(w http.ResponseWriter, r *http.Request) {
@@ -174,19 +149,14 @@ func NewUser(h UserAPI) *User {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Suspend(r.Context(), params); err != nil {
+			value, err := h.Suspend(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("User.Suspend", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("User.Suspend", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("User.Suspend", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Unsuspend: func(w http.ResponseWriter, r *http.Request) {
@@ -197,19 +167,14 @@ func NewUser(h UserAPI) *User {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Unsuspend(r.Context(), params); err != nil {
+			value, err := h.Unsuspend(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("User.Unsuspend", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("User.Unsuspend", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("User.Unsuspend", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 	}

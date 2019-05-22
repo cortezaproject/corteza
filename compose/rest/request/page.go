@@ -49,13 +49,9 @@ func (r PageList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["selfID"] = r.SelfID
-
 	out["query"] = r.Query
-
 	out["page"] = r.Page
-
 	out["perPage"] = r.PerPage
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -89,19 +85,15 @@ func (r *PageList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["selfID"]; ok {
-
 		r.SelfID = parseUInt64(val)
 	}
 	if val, ok := get["query"]; ok {
-
 		r.Query = val
 	}
 	if val, ok := get["page"]; ok {
-
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
-
 		r.PerPage = parseUint(val)
 	}
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
@@ -130,17 +122,11 @@ func (r PageCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["selfID"] = r.SelfID
-
 	out["moduleID"] = r.ModuleID
-
 	out["title"] = r.Title
-
 	out["description"] = r.Description
-
 	out["visible"] = r.Visible
-
 	out["blocks"] = r.Blocks
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -174,23 +160,18 @@ func (r *PageCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["selfID"]; ok {
-
 		r.SelfID = parseUInt64(val)
 	}
 	if val, ok := post["moduleID"]; ok {
-
 		r.ModuleID = parseUInt64(val)
 	}
 	if val, ok := post["title"]; ok {
-
 		r.Title = val
 	}
 	if val, ok := post["description"]; ok {
-
 		r.Description = val
 	}
 	if val, ok := post["visible"]; ok {
-
 		r.Visible = parseBool(val)
 	}
 	if val, ok := post["blocks"]; ok {
@@ -220,7 +201,6 @@ func (r PageRead) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["pageID"] = r.PageID
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -332,19 +312,12 @@ func (r PageUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["pageID"] = r.PageID
-
 	out["namespaceID"] = r.NamespaceID
-
 	out["selfID"] = r.SelfID
-
 	out["moduleID"] = r.ModuleID
-
 	out["title"] = r.Title
-
 	out["description"] = r.Description
-
 	out["visible"] = r.Visible
-
 	out["blocks"] = r.Blocks
 
 	return out
@@ -380,23 +353,18 @@ func (r *PageUpdate) Fill(req *http.Request) (err error) {
 	r.PageID = parseUInt64(chi.URLParam(req, "pageID"))
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := post["selfID"]; ok {
-
 		r.SelfID = parseUInt64(val)
 	}
 	if val, ok := post["moduleID"]; ok {
-
 		r.ModuleID = parseUInt64(val)
 	}
 	if val, ok := post["title"]; ok {
-
 		r.Title = val
 	}
 	if val, ok := post["description"]; ok {
-
 		r.Description = val
 	}
 	if val, ok := post["visible"]; ok {
-
 		r.Visible = parseBool(val)
 	}
 	if val, ok := post["blocks"]; ok {
@@ -426,9 +394,7 @@ func (r PageReorder) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["selfID"] = r.SelfID
-
 	out["namespaceID"] = r.NamespaceID
-
 	out["pageIDs"] = r.PageIDs
 
 	return out
@@ -483,7 +449,6 @@ func (r PageDelete) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["pageID"] = r.PageID
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -539,9 +504,7 @@ func (r PageUpload) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["pageID"] = r.PageID
-
 	out["namespaceID"] = r.NamespaceID
-
 	out["upload.size"] = r.Upload.Size
 	out["upload.filename"] = r.Upload.Filename
 

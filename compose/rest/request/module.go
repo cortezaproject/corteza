@@ -50,11 +50,8 @@ func (r ModuleList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["query"] = r.Query
-
 	out["page"] = r.Page
-
 	out["perPage"] = r.PerPage
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -88,15 +85,12 @@ func (r *ModuleList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["query"]; ok {
-
 		r.Query = val
 	}
 	if val, ok := get["page"]; ok {
-
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
-
 		r.PerPage = parseUint(val)
 	}
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
@@ -122,11 +116,8 @@ func (r ModuleCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["name"] = r.Name
-
 	out["fields"] = r.Fields
-
 	out["meta"] = r.Meta
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -160,7 +151,6 @@ func (r *ModuleCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 	if val, ok := post["meta"]; ok {
@@ -190,7 +180,6 @@ func (r ModuleRead) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["moduleID"] = r.ModuleID
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -249,15 +238,10 @@ func (r ModuleUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["moduleID"] = r.ModuleID
-
 	out["namespaceID"] = r.NamespaceID
-
 	out["name"] = r.Name
-
 	out["fields"] = r.Fields
-
 	out["meta"] = r.Meta
-
 	out["updatedAt"] = r.UpdatedAt
 
 	return out
@@ -293,7 +277,6 @@ func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := post["name"]; ok {
-
 		r.Name = val
 	}
 	if val, ok := post["meta"]; ok {
@@ -328,7 +311,6 @@ func (r ModuleDelete) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["moduleID"] = r.ModuleID
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out

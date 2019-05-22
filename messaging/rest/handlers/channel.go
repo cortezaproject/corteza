@@ -69,19 +69,14 @@ func NewChannel(h ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.List(r.Context(), params); err != nil {
+			value, err := h.List(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Channel.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Channel.List", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Channel.List", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
@@ -92,19 +87,14 @@ func NewChannel(h ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Create(r.Context(), params); err != nil {
+			value, err := h.Create(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Channel.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Channel.Create", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Channel.Create", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
@@ -115,19 +105,14 @@ func NewChannel(h ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Update(r.Context(), params); err != nil {
+			value, err := h.Update(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Channel.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Channel.Update", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Channel.Update", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		State: func(w http.ResponseWriter, r *http.Request) {
@@ -138,19 +123,14 @@ func NewChannel(h ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.State(r.Context(), params); err != nil {
+			value, err := h.State(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Channel.State", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Channel.State", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Channel.State", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		SetFlag: func(w http.ResponseWriter, r *http.Request) {
@@ -161,19 +141,14 @@ func NewChannel(h ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.SetFlag(r.Context(), params); err != nil {
+			value, err := h.SetFlag(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Channel.SetFlag", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Channel.SetFlag", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Channel.SetFlag", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		RemoveFlag: func(w http.ResponseWriter, r *http.Request) {
@@ -184,19 +159,14 @@ func NewChannel(h ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.RemoveFlag(r.Context(), params); err != nil {
+			value, err := h.RemoveFlag(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Channel.RemoveFlag", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Channel.RemoveFlag", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Channel.RemoveFlag", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
@@ -207,19 +177,14 @@ func NewChannel(h ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Read(r.Context(), params); err != nil {
+			value, err := h.Read(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Channel.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Channel.Read", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Channel.Read", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Members: func(w http.ResponseWriter, r *http.Request) {
@@ -230,19 +195,14 @@ func NewChannel(h ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Members(r.Context(), params); err != nil {
+			value, err := h.Members(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Channel.Members", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Channel.Members", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Channel.Members", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Join: func(w http.ResponseWriter, r *http.Request) {
@@ -253,19 +213,14 @@ func NewChannel(h ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Join(r.Context(), params); err != nil {
+			value, err := h.Join(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Channel.Join", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Channel.Join", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Channel.Join", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Part: func(w http.ResponseWriter, r *http.Request) {
@@ -276,19 +231,14 @@ func NewChannel(h ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Part(r.Context(), params); err != nil {
+			value, err := h.Part(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Channel.Part", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Channel.Part", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Channel.Part", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Invite: func(w http.ResponseWriter, r *http.Request) {
@@ -299,19 +249,14 @@ func NewChannel(h ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Invite(r.Context(), params); err != nil {
+			value, err := h.Invite(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Channel.Invite", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Channel.Invite", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Channel.Invite", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Attach: func(w http.ResponseWriter, r *http.Request) {
@@ -322,19 +267,14 @@ func NewChannel(h ChannelAPI) *Channel {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Attach(r.Context(), params); err != nil {
+			value, err := h.Attach(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Channel.Attach", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Channel.Attach", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Channel.Attach", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 	}

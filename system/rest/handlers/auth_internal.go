@@ -59,19 +59,14 @@ func NewAuthInternal(h AuthInternalAPI) *AuthInternal {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Login(r.Context(), params); err != nil {
+			value, err := h.Login(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("AuthInternal.Login", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("AuthInternal.Login", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("AuthInternal.Login", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Signup: func(w http.ResponseWriter, r *http.Request) {
@@ -82,19 +77,14 @@ func NewAuthInternal(h AuthInternalAPI) *AuthInternal {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Signup(r.Context(), params); err != nil {
+			value, err := h.Signup(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("AuthInternal.Signup", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("AuthInternal.Signup", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("AuthInternal.Signup", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		RequestPasswordReset: func(w http.ResponseWriter, r *http.Request) {
@@ -105,19 +95,14 @@ func NewAuthInternal(h AuthInternalAPI) *AuthInternal {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.RequestPasswordReset(r.Context(), params); err != nil {
+			value, err := h.RequestPasswordReset(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("AuthInternal.RequestPasswordReset", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("AuthInternal.RequestPasswordReset", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("AuthInternal.RequestPasswordReset", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		ExchangePasswordResetToken: func(w http.ResponseWriter, r *http.Request) {
@@ -128,19 +113,14 @@ func NewAuthInternal(h AuthInternalAPI) *AuthInternal {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.ExchangePasswordResetToken(r.Context(), params); err != nil {
+			value, err := h.ExchangePasswordResetToken(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("AuthInternal.ExchangePasswordResetToken", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("AuthInternal.ExchangePasswordResetToken", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("AuthInternal.ExchangePasswordResetToken", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		ResetPassword: func(w http.ResponseWriter, r *http.Request) {
@@ -151,19 +131,14 @@ func NewAuthInternal(h AuthInternalAPI) *AuthInternal {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.ResetPassword(r.Context(), params); err != nil {
+			value, err := h.ResetPassword(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("AuthInternal.ResetPassword", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("AuthInternal.ResetPassword", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("AuthInternal.ResetPassword", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		ConfirmEmail: func(w http.ResponseWriter, r *http.Request) {
@@ -174,19 +149,14 @@ func NewAuthInternal(h AuthInternalAPI) *AuthInternal {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.ConfirmEmail(r.Context(), params); err != nil {
+			value, err := h.ConfirmEmail(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("AuthInternal.ConfirmEmail", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("AuthInternal.ConfirmEmail", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("AuthInternal.ConfirmEmail", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		ChangePassword: func(w http.ResponseWriter, r *http.Request) {
@@ -197,19 +167,14 @@ func NewAuthInternal(h AuthInternalAPI) *AuthInternal {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.ChangePassword(r.Context(), params); err != nil {
+			value, err := h.ChangePassword(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("AuthInternal.ChangePassword", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("AuthInternal.ChangePassword", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("AuthInternal.ChangePassword", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 	}

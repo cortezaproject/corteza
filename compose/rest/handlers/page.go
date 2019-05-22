@@ -61,19 +61,14 @@ func NewPage(h PageAPI) *Page {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.List(r.Context(), params); err != nil {
+			value, err := h.List(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Page.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Page.List", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Page.List", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
@@ -84,19 +79,14 @@ func NewPage(h PageAPI) *Page {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Create(r.Context(), params); err != nil {
+			value, err := h.Create(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Page.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Page.Create", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Page.Create", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
@@ -107,19 +97,14 @@ func NewPage(h PageAPI) *Page {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Read(r.Context(), params); err != nil {
+			value, err := h.Read(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Page.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Page.Read", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Page.Read", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Tree: func(w http.ResponseWriter, r *http.Request) {
@@ -130,19 +115,14 @@ func NewPage(h PageAPI) *Page {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Tree(r.Context(), params); err != nil {
+			value, err := h.Tree(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Page.Tree", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Page.Tree", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Page.Tree", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
@@ -153,19 +133,14 @@ func NewPage(h PageAPI) *Page {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Update(r.Context(), params); err != nil {
+			value, err := h.Update(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Page.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Page.Update", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Page.Update", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Reorder: func(w http.ResponseWriter, r *http.Request) {
@@ -176,19 +151,14 @@ func NewPage(h PageAPI) *Page {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Reorder(r.Context(), params); err != nil {
+			value, err := h.Reorder(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Page.Reorder", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Page.Reorder", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Page.Reorder", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
@@ -199,19 +169,14 @@ func NewPage(h PageAPI) *Page {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Delete(r.Context(), params); err != nil {
+			value, err := h.Delete(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Page.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Page.Delete", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Page.Delete", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 		Upload: func(w http.ResponseWriter, r *http.Request) {
@@ -222,19 +187,14 @@ func NewPage(h PageAPI) *Page {
 				resputil.JSON(w, err)
 				return
 			}
-			if value, err := h.Upload(r.Context(), params); err != nil {
+			value, err := h.Upload(r.Context(), params)
+			if err != nil {
 				logger.LogControllerError("Page.Upload", r, err, params.Auditable())
 				resputil.JSON(w, err)
-				return
-			} else {
-				logger.LogControllerCall("Page.Upload", r, params.Auditable())
-				switch fn := value.(type) {
-				case func(http.ResponseWriter, *http.Request):
-					fn(w, r)
-					return
-				}
+			}
+			logger.LogControllerCall("Page.Upload", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
-				return
 			}
 		},
 	}

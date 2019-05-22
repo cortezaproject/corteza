@@ -49,13 +49,9 @@ func (r RecordReport) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["metrics"] = r.Metrics
-
 	out["dimensions"] = r.Dimensions
-
 	out["filter"] = r.Filter
-
 	out["namespaceID"] = r.NamespaceID
-
 	out["moduleID"] = r.ModuleID
 
 	return out
@@ -89,15 +85,12 @@ func (r *RecordReport) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["metrics"]; ok {
-
 		r.Metrics = val
 	}
 	if val, ok := get["dimensions"]; ok {
-
 		r.Dimensions = val
 	}
 	if val, ok := get["filter"]; ok {
-
 		r.Filter = val
 	}
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
@@ -126,15 +119,10 @@ func (r RecordList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["filter"] = r.Filter
-
 	out["page"] = r.Page
-
 	out["perPage"] = r.PerPage
-
 	out["sort"] = r.Sort
-
 	out["namespaceID"] = r.NamespaceID
-
 	out["moduleID"] = r.ModuleID
 
 	return out
@@ -168,19 +156,15 @@ func (r *RecordList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["filter"]; ok {
-
 		r.Filter = val
 	}
 	if val, ok := get["page"]; ok {
-
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
-
 		r.PerPage = parseUint(val)
 	}
 	if val, ok := get["sort"]; ok {
-
 		r.Sort = val
 	}
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
@@ -206,9 +190,7 @@ func (r RecordCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["values"] = r.Values
-
 	out["namespaceID"] = r.NamespaceID
-
 	out["moduleID"] = r.ModuleID
 
 	return out
@@ -264,9 +246,7 @@ func (r RecordRead) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["recordID"] = r.RecordID
-
 	out["namespaceID"] = r.NamespaceID
-
 	out["moduleID"] = r.ModuleID
 
 	return out
@@ -324,11 +304,8 @@ func (r RecordUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["recordID"] = r.RecordID
-
 	out["namespaceID"] = r.NamespaceID
-
 	out["moduleID"] = r.ModuleID
-
 	out["values"] = r.Values
 
 	return out
@@ -385,9 +362,7 @@ func (r RecordDelete) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["recordID"] = r.RecordID
-
 	out["namespaceID"] = r.NamespaceID
-
 	out["moduleID"] = r.ModuleID
 
 	return out
@@ -446,13 +421,9 @@ func (r RecordUpload) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["recordID"] = r.RecordID
-
 	out["fieldName"] = r.FieldName
-
 	out["namespaceID"] = r.NamespaceID
-
 	out["moduleID"] = r.ModuleID
-
 	out["upload.size"] = r.Upload.Size
 	out["upload.filename"] = r.Upload.Filename
 

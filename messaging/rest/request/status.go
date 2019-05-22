@@ -91,9 +91,7 @@ func (r StatusSet) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["icon"] = r.Icon
-
 	out["message"] = r.Message
-
 	out["expires"] = r.Expires
 
 	return out
@@ -127,15 +125,12 @@ func (r *StatusSet) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["icon"]; ok {
-
 		r.Icon = val
 	}
 	if val, ok := post["message"]; ok {
-
 		r.Message = val
 	}
 	if val, ok := post["expires"]; ok {
-
 		r.Expires = val
 	}
 

@@ -78,7 +78,6 @@ func (r *MessageCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["message"]; ok {
-
 		r.Message = val
 	}
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
@@ -104,11 +103,8 @@ func (r MessageExecuteCommand) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["command"] = r.Command
-
 	out["channelID"] = r.ChannelID
-
 	out["input"] = r.Input
-
 	out["params"] = r.Params
 
 	return out
@@ -144,7 +140,6 @@ func (r *MessageExecuteCommand) Fill(req *http.Request) (err error) {
 	r.Command = chi.URLParam(req, "command")
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["input"]; ok {
-
 		r.Input = val
 	}
 
@@ -168,9 +163,7 @@ func (r MessageMarkAsRead) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["channelID"] = r.ChannelID
-
 	out["threadID"] = r.ThreadID
-
 	out["lastReadMessageID"] = r.LastReadMessageID
 
 	return out
@@ -205,11 +198,9 @@ func (r *MessageMarkAsRead) Fill(req *http.Request) (err error) {
 
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["threadID"]; ok {
-
 		r.ThreadID = parseUInt64(val)
 	}
 	if val, ok := post["lastReadMessageID"]; ok {
-
 		r.LastReadMessageID = parseUInt64(val)
 	}
 
@@ -233,9 +224,7 @@ func (r MessageEdit) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["messageID"] = r.MessageID
-
 	out["channelID"] = r.ChannelID
-
 	out["message"] = "*masked*sensitive*data*"
 
 	return out
@@ -271,7 +260,6 @@ func (r *MessageEdit) Fill(req *http.Request) (err error) {
 	r.MessageID = parseUInt64(chi.URLParam(req, "messageID"))
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["message"]; ok {
-
 		r.Message = val
 	}
 
@@ -294,7 +282,6 @@ func (r MessageDelete) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["messageID"] = r.MessageID
-
 	out["channelID"] = r.ChannelID
 
 	return out
@@ -350,9 +337,7 @@ func (r MessageReplyCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["messageID"] = r.MessageID
-
 	out["channelID"] = r.ChannelID
-
 	out["message"] = "*masked*sensitive*data*"
 
 	return out
@@ -388,7 +373,6 @@ func (r *MessageReplyCreate) Fill(req *http.Request) (err error) {
 	r.MessageID = parseUInt64(chi.URLParam(req, "messageID"))
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["message"]; ok {
-
 		r.Message = val
 	}
 
@@ -411,7 +395,6 @@ func (r MessagePinCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["messageID"] = r.MessageID
-
 	out["channelID"] = r.ChannelID
 
 	return out
@@ -466,7 +449,6 @@ func (r MessagePinRemove) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["messageID"] = r.MessageID
-
 	out["channelID"] = r.ChannelID
 
 	return out
@@ -521,7 +503,6 @@ func (r MessageBookmarkCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["messageID"] = r.MessageID
-
 	out["channelID"] = r.ChannelID
 
 	return out
@@ -576,7 +557,6 @@ func (r MessageBookmarkRemove) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["messageID"] = r.MessageID
-
 	out["channelID"] = r.ChannelID
 
 	return out
@@ -632,9 +612,7 @@ func (r MessageReactionCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["messageID"] = r.MessageID
-
 	out["reaction"] = r.Reaction
-
 	out["channelID"] = r.ChannelID
 
 	return out
@@ -691,9 +669,7 @@ func (r MessageReactionRemove) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["messageID"] = r.MessageID
-
 	out["reaction"] = r.Reaction
-
 	out["channelID"] = r.ChannelID
 
 	return out

@@ -47,13 +47,9 @@ func (r AttachmentOriginal) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["download"] = r.Download
-
 	out["sign"] = r.Sign
-
 	out["userID"] = r.UserID
-
 	out["name"] = r.Name
-
 	out["attachmentID"] = r.AttachmentID
 
 	return out
@@ -87,15 +83,12 @@ func (r *AttachmentOriginal) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["download"]; ok {
-
 		r.Download = parseBool(val)
 	}
 	if val, ok := get["sign"]; ok {
-
 		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
-
 		r.UserID = parseUInt64(val)
 	}
 	r.Name = chi.URLParam(req, "name")
@@ -122,11 +115,8 @@ func (r AttachmentPreview) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["ext"] = r.Ext
-
 	out["attachmentID"] = r.AttachmentID
-
 	out["sign"] = r.Sign
-
 	out["userID"] = r.UserID
 
 	return out
@@ -162,11 +152,9 @@ func (r *AttachmentPreview) Fill(req *http.Request) (err error) {
 	r.Ext = chi.URLParam(req, "ext")
 	r.AttachmentID = parseUInt64(chi.URLParam(req, "attachmentID"))
 	if val, ok := get["sign"]; ok {
-
 		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
-
 		r.UserID = parseUInt64(val)
 	}
 

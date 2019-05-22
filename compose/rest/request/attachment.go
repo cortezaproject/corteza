@@ -52,23 +52,14 @@ func (r AttachmentList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["pageID"] = r.PageID
-
 	out["moduleID"] = r.ModuleID
-
 	out["recordID"] = r.RecordID
-
 	out["fieldName"] = r.FieldName
-
 	out["page"] = r.Page
-
 	out["perPage"] = r.PerPage
-
 	out["sign"] = r.Sign
-
 	out["userID"] = r.UserID
-
 	out["kind"] = r.Kind
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -102,35 +93,27 @@ func (r *AttachmentList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["pageID"]; ok {
-
 		r.PageID = parseUInt64(val)
 	}
 	if val, ok := get["moduleID"]; ok {
-
 		r.ModuleID = parseUInt64(val)
 	}
 	if val, ok := get["recordID"]; ok {
-
 		r.RecordID = parseUInt64(val)
 	}
 	if val, ok := get["fieldName"]; ok {
-
 		r.FieldName = val
 	}
 	if val, ok := get["page"]; ok {
-
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
-
 		r.PerPage = parseUint(val)
 	}
 	if val, ok := get["sign"]; ok {
-
 		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
-
 		r.UserID = parseUInt64(val)
 	}
 	r.Kind = chi.URLParam(req, "kind")
@@ -158,13 +141,9 @@ func (r AttachmentRead) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["attachmentID"] = r.AttachmentID
-
 	out["kind"] = r.Kind
-
 	out["namespaceID"] = r.NamespaceID
-
 	out["sign"] = r.Sign
-
 	out["userID"] = r.UserID
 
 	return out
@@ -201,11 +180,9 @@ func (r *AttachmentRead) Fill(req *http.Request) (err error) {
 	r.Kind = chi.URLParam(req, "kind")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := get["sign"]; ok {
-
 		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
-
 		r.UserID = parseUInt64(val)
 	}
 
@@ -231,13 +208,9 @@ func (r AttachmentDelete) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["attachmentID"] = r.AttachmentID
-
 	out["kind"] = r.Kind
-
 	out["namespaceID"] = r.NamespaceID
-
 	out["sign"] = r.Sign
-
 	out["userID"] = r.UserID
 
 	return out
@@ -274,11 +247,9 @@ func (r *AttachmentDelete) Fill(req *http.Request) (err error) {
 	r.Kind = chi.URLParam(req, "kind")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := get["sign"]; ok {
-
 		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
-
 		r.UserID = parseUInt64(val)
 	}
 
@@ -306,17 +277,11 @@ func (r AttachmentOriginal) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["download"] = r.Download
-
 	out["sign"] = r.Sign
-
 	out["userID"] = r.UserID
-
 	out["attachmentID"] = r.AttachmentID
-
 	out["name"] = r.Name
-
 	out["kind"] = r.Kind
-
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -350,15 +315,12 @@ func (r *AttachmentOriginal) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["download"]; ok {
-
 		r.Download = parseBool(val)
 	}
 	if val, ok := get["sign"]; ok {
-
 		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
-
 		r.UserID = parseUInt64(val)
 	}
 	r.AttachmentID = parseUInt64(chi.URLParam(req, "attachmentID"))
@@ -389,15 +351,10 @@ func (r AttachmentPreview) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["attachmentID"] = r.AttachmentID
-
 	out["ext"] = r.Ext
-
 	out["kind"] = r.Kind
-
 	out["namespaceID"] = r.NamespaceID
-
 	out["sign"] = r.Sign
-
 	out["userID"] = r.UserID
 
 	return out
@@ -435,11 +392,9 @@ func (r *AttachmentPreview) Fill(req *http.Request) (err error) {
 	r.Kind = chi.URLParam(req, "kind")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := get["sign"]; ok {
-
 		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
-
 		r.UserID = parseUInt64(val)
 	}
 

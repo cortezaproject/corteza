@@ -144,6 +144,7 @@ function specs {
 		if [ -d "codegen/$SRC" ]; then
 			yellow "> README $SRC"
 			codegen/codegen.php $SRC
+			rsync -a codegen/common/ $SRC/
 			green "OK"
 		fi
 	done

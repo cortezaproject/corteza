@@ -54,27 +54,16 @@ func (r SearchMessages) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["channelID"] = r.ChannelID
-
 	out["afterMessageID"] = r.AfterMessageID
-
 	out["beforeMessageID"] = r.BeforeMessageID
-
 	out["fromMessageID"] = r.FromMessageID
-
 	out["toMessageID"] = r.ToMessageID
-
 	out["threadID"] = r.ThreadID
-
 	out["userID"] = r.UserID
-
 	out["type"] = r.Type
-
 	out["pinnedOnly"] = r.PinnedOnly
-
 	out["bookmarkedOnly"] = r.BookmarkedOnly
-
 	out["limit"] = r.Limit
-
 	out["query"] = r.Query
 
 	return out
@@ -114,19 +103,15 @@ func (r *SearchMessages) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["afterMessageID"]; ok {
-
 		r.AfterMessageID = parseUInt64(val)
 	}
 	if val, ok := get["beforeMessageID"]; ok {
-
 		r.BeforeMessageID = parseUInt64(val)
 	}
 	if val, ok := get["fromMessageID"]; ok {
-
 		r.FromMessageID = parseUInt64(val)
 	}
 	if val, ok := get["toMessageID"]; ok {
-
 		r.ToMessageID = parseUInt64(val)
 	}
 
@@ -143,19 +128,15 @@ func (r *SearchMessages) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["pinnedOnly"]; ok {
-
 		r.PinnedOnly = parseBool(val)
 	}
 	if val, ok := get["bookmarkedOnly"]; ok {
-
 		r.BookmarkedOnly = parseBool(val)
 	}
 	if val, ok := get["limit"]; ok {
-
 		r.Limit = parseUint(val)
 	}
 	if val, ok := get["query"]; ok {
-
 		r.Query = val
 	}
 
@@ -179,9 +160,7 @@ func (r SearchThreads) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["channelID"] = r.ChannelID
-
 	out["limit"] = r.Limit
-
 	out["query"] = r.Query
 
 	return out
@@ -221,11 +200,9 @@ func (r *SearchThreads) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["limit"]; ok {
-
 		r.Limit = parseUint(val)
 	}
 	if val, ok := get["query"]; ok {
-
 		r.Query = val
 	}
 
