@@ -1,6 +1,6 @@
 # How to Contribute
 
-Crust projects are [Apache 2.0 licensed](LICENSE) and accept contributions via
+Corteza projects are [Apache 2.0 licensed](LICENSE) and accept contributions via
 GitHub pull requests.  This document outlines some of the conventions on
 development workflow, commit message formatting, contact points and other
 resources to make it easier to get your contribution accepted.
@@ -15,7 +15,7 @@ contribution. See the [DCO](DCO) file for details.
 # Getting Started
 
 - Fork the repository on GitHub
-- Read the [Wiki](https://github.com/crusttech/crust/wiki) for build and test instructions
+- Read the [Wiki](https://github.com/cortezaproject/corteza-server/wiki) for build and test instructions
 - Play with the project, submit bugs, submit patches!
 
 ## Contribution Flow

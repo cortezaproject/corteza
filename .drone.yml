@@ -1,13 +1,13 @@
 workspace:
   base: /go/src
-  path: github.com/crusttech/crust
+  path: github.com/cortezaproject/corteza-server
 
 kind: pipeline
 name: docker image build
 
 steps:
 - name: unit-tests
-  image: crusttech/crust-builder:latest
+  image: cortezaproject/corteza-server-builder:latest
   pull: always
   environment:
     CGO_ENABLED: 0
@@ -17,51 +17,51 @@ steps:
   commands:
     - make test
 
-- name: api-system
+- name: corteza-server-system
   image: plugins/docker
   depends_on: [ 'unit-tests' ]
   settings:
-    repo: crusttech/api-system
+    repo: cortezaproject/corteza-server-system
     auto_tag: true # generate tag names automatically based on git branch and git tag
-    dockerfile: Dockerfile.api-system
+    dockerfile: Dockerfile.corteza-server-system
     username:
       from_secret: docker_hub_username
     password:
       from_secret: docker_hub_password
 
 
-- name: api-compose
+- name: corteza-server-compose
   image: plugins/docker
   depends_on: [ 'unit-tests' ]
   settings:
-    repo: crusttech/api-compose
+    repo: cortezaproject/corteza-server-compose
     auto_tag: true # generate tag names automatically based on git branch and git tag
-    dockerfile: Dockerfile.api-compose
+    dockerfile: Dockerfile.corteza-server-compose
     username:
       from_secret: docker_hub_username
     password:
       from_secret: docker_hub_password
 
-- name: api-messaging
+- name: corteza-server-messaging
   depends_on: [ 'unit-tests' ]
   image: plugins/docker
   settings:
-    repo: crusttech/api-messaging
+    repo: cortezaproject/corteza-server-messaging
     auto_tag: true # generate tag names automatically based on git branch and git tag
-    dockerfile: Dockerfile.api-messaging
+    dockerfile: Dockerfile.corteza-server-messaging
     username:
       from_secret: docker_hub_username
     password:
       from_secret: docker_hub_password
 
 
-- name: crust
+- name: corteza-server
   image: plugins/docker
   depends_on: [ 'unit-tests' ]
   settings:
-    repo: crusttech/crust
+    repo: cortezaproject/corteza
     auto_tag: true # generate tag names automatically based on git branch and git tag
-    dockerfile: Dockerfile.crust
+    dockerfile: Dockerfile.corteza-server
     username:
       from_secret: docker_hub_username
     password:
@@ -78,14 +78,14 @@ trigger:
 ---
 workspace:
   base: /go/src
-  path: github.com/crusttech/crust
+  path: github.com/cortezaproject/corteza-server
 
 kind: pipeline
 name: integration
 
 steps:
 - name: test
-  image: crusttech/crust-builder:latest
+  image: cortezaproject/corteza-server-builder:latest
   pull: always
   environment:
     CGO_ENABLED: 0
@@ -93,14 +93,13 @@ steps:
     GOARCH: amd64
     CI: circleci
     AUTH_OIDC_ENABLED: 0
-    AUTH_JWT_SECRET: bRxJ37sJ6Qu4
-    DB_DSN: crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci
-    SYSTEM_DB_DSN: crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci
-    COMPOSE_DB_DSN: crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci
-    MESSAGING_DB_DSN: crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci
+    AUTH_JWT_SECRET: FBjddkvwQib0d4usifnEGVr1bncuVeD7
+    SYSTEM_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
+    COMPOSE_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
+    MESSAGING_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
   commands:
   - go build ./cmd/...
-  - wait-for-it.sh -t 60 --strict crust-db:3306 -- echo "Crust DB1 is up"
+  - wait-for-it.sh -t 60 --strict corteza-db:3306 -- echo "corteza-db is up"
   - gotest -v --tags="migrations" ./system/db/...
   - gotest -v --tags="migrations" ./compose/db/...
   - gotest -v --tags="migrations" ./messaging/db/...
@@ -115,15 +114,15 @@ steps:
      - coverage.txt
 
 services:
-- name: crust-db
+- name: corteza-db
   pull: always
   image: percona:8.0
   ports:
     - 3306
   environment:
     MYSQL_ROOT_PASSWORD: bRxJ37sJ6Qu4
-    MYSQL_DATABASE: crust
-    MYSQL_USER: crust
-    MYSQL_PASSWORD: crust
+    MYSQL_DATABASE: corteza
+    MYSQL_USER: corteza
+    MYSQL_PASSWORD: corteza-pwd
 
 trigger:

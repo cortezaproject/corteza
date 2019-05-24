@@ -6,22 +6,23 @@ GO        = go
 GOGET     = $(GO) get -u
 
 BASEPKGS = system compose messaging
-IMAGES   = system compose messaging
+IMAGES   = corteza-server-system corteza-server-compose corteza-server-messaging corteza-server
 
 ########################################################################################################################
 # Tool bins
-DEP      = $(GOPATH)/bin/dep
-REALIZE   = ${GOPATH}/bin/realize
-GOTEST    = ${GOPATH}/bin/gotest
-GOCRITIC  = ${GOPATH}/bin/gocritic
-MOCKGEN   = ${GOPATH}/bin/mockgen
+DEP         = $(GOPATH)/bin/dep
+REALIZE     = ${GOPATH}/bin/realize
+GOTEST      = ${GOPATH}/bin/gotest
+GOCRITIC    = ${GOPATH}/bin/gocritic
+MOCKGEN     = ${GOPATH}/bin/mockgen
+STATICCHECK = ${GOPATH}/bin/staticcheck
 
 help:
 	@echo
 	@echo Usage: make [target]
 	@echo
-	@echo - docker: builds docker images locally
-	@echo - docker-push: push built images
+	@echo - docker-images: builds docker images locally
+	@echo - docker-push:   push built images
 	@echo
 	@echo - vet - run go vet on all code
 	@echo - critic - run go critic on all code
@@ -32,15 +33,15 @@ help:
 	@echo
 
 
-docker: $(IMAGES:%=docker-image.%)
+docker-images: $(IMAGES:%=docker-image.%)
 
 docker-image.%: Dockerfile.%
-	@ docker build --no-cache --rm -f Dockerfile.$* -t crusttech/$*:latest .
+	@ docker build --no-cache --rm -f Dockerfile.$* -t cortezaproject/$*:latest .
 
 docker-push: $(IMAGES:%=docker-push.%)
 
 docker-push.%: Dockerfile.%
-	@ docker push crusttech/$*:latest
+	@ docker push cortezaproject/$*:latest
 
 
 ########################################################################################################################
@@ -66,10 +67,10 @@ mailhog.up:
 
 test:
 	# Run basic unit tests
-	$(GO) test ./cmd/... ./internal/... ./compose/... ./messaging/... ./system/...
+	$(GO) test ./opt/... ./internal/... ./compose/... ./messaging/... ./system/...
 
 test-coverage:
-	overalls -project=github.com/crusttech/crust -covermode=count -debug -- -coverpkg=./... --tags=integration
+	overalls -project=github.com/cortezaproject/corteza-server -covermode=count -debug -- -coverpkg=./... --tags=integration
 	mv overalls.coverprofile coverage.txt
 
 test.internal: $(GOTEST)
@@ -108,9 +109,9 @@ test.store: $(GOTEST)
 
 test.cross-dep:
 	# Outputs cross-package imports that should not be there.
-	grep -rE "crust/(compose|messaging)/" system || exit 0
-	grep -rE "crust/(system|messaging)/" compose || exit 0
-	grep -rE "crust/(system|compose)/" messaging || exit 0
+	grep -rE "corteza/(compose|messaging)/" system || exit 0
+	grep -rE "corteza/(system|messaging)/" compose || exit 0
+	grep -rE "corteza/(system|compose)/" messaging || exit 0
 
 integration:
 	# Run drone's integration pipeline
@@ -123,6 +124,9 @@ vet:
 
 critic: $(GOCRITIC)
 	$(GOCRITIC) check-project .
+
+staticcheck: $(STATICCHECK)
+	$(STATICCHECK) ./pkg/... ./internal/... ./system/... ./messaging/... ./compose/...
 
 qa: vet critic test
 
@@ -156,6 +160,9 @@ $(DEP):
 $(MOCKGEN):
 	$(GOGET) github.com/golang/mock/gomock
 	$(GOGET) github.com/golang/mock/mockgen
+
+$(STATICCHECK):
+	$(GOGET) honnef.co/go/tools/cmd/staticcheck
 
 clean:
 	rm -f $(REALIZE) $(GOCRITIC) $(GOTEST)
