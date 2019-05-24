@@ -7,7 +7,7 @@ import (
 
 	"github.com/jmoiron/sqlx/types"
 
-	"github.com/crusttech/crust/internal/permissions"
+	"github.com/cortezaproject/corteza-server/internal/permissions"
 )
 
 type (

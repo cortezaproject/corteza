@@ -8,9 +8,9 @@ import (
 
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/compose/types"
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/test"
+	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/test"
 )
 
 func TestNamespace(t *testing.T) {

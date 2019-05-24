@@ -1,9 +1,5 @@
 package repository
 
-import (
-	"github.com/pkg/errors"
-)
-
 type (
 	repositoryError string
 )
@@ -17,9 +13,5 @@ func (e repositoryError) Error() string {
 }
 
 func (e repositoryError) String() string {
-	return "crust.compose.repository." + string(e)
-}
-
-func (e repositoryError) new() error {
-	return errors.WithStack(e)
+	return "compose.repository." + string(e)
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/titpetric/factory"
 	"gopkg.in/Masterminds/squirrel.v1"
 
-	"github.com/crusttech/crust/compose/types"
+	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
 type (
@@ -115,6 +115,7 @@ func (r attachment) Find(filter types.AttachmentFilter) (set types.AttachmentSet
 		}
 	default:
 		err = errors.New("unsupported kind value")
+		return
 	}
 
 	if f.Filter != "" {

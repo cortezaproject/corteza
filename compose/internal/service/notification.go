@@ -6,11 +6,9 @@ import (
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	gomail "gopkg.in/mail.v2"
 
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/internal/mail"
+	"github.com/cortezaproject/corteza-server/internal/mail"
 )
 
 type (
@@ -41,9 +39,9 @@ func (svc notification) With(ctx context.Context) NotificationService {
 }
 
 // log() returns zap's logger with requestID from current context and fields.
-func (svc notification) log(fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-}
+// func (svc notification) log(fields ...zapcore.Field) *zap.Logger {
+// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+// }
 
 func (svc notification) SendEmail(message *gomail.Message) error {
 	return mail.Send(message)

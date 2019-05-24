@@ -6,17 +6,13 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/crusttech/crust/compose/internal/repository"
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/internal/permissions"
-	"github.com/crusttech/crust/internal/store"
+	"github.com/cortezaproject/corteza-server/compose/internal/repository"
+	"github.com/cortezaproject/corteza-server/internal/logger"
+	"github.com/cortezaproject/corteza-server/internal/permissions"
+	"github.com/cortezaproject/corteza-server/internal/store"
 )
 
 type (
-	db interface {
-		Transaction(callback func() error) error
-	}
-
 	permissionServicer interface {
 		accessControlPermissionServicer
 		Watch(ctx context.Context)
@@ -24,7 +20,7 @@ type (
 )
 
 var (
-	permSvc permissionServicer
+	DefaultPermissions permissionServicer
 
 	DefaultLogger *zap.Logger
 
@@ -48,12 +44,12 @@ func Init(ctx context.Context) error {
 		return err
 	}
 
-	permSvc = permissions.Service(
+	DefaultPermissions = permissions.Service(
 		ctx,
 		DefaultLogger,
 		permissions.Repository(repository.DB(ctx), "compose_permission_rules"))
 
-	DefaultAccessControl = AccessControl(permSvc)
+	DefaultAccessControl = AccessControl(DefaultPermissions)
 
 	DefaultRecord = Record()
 	DefaultModule = Module()
@@ -65,10 +61,6 @@ func Init(ctx context.Context) error {
 	DefaultNamespace = Namespace()
 
 	return nil
-}
-
-func Watchers(ctx context.Context) {
-	permSvc.Watch(ctx)
 }
 
 // Data is stale when new date does not match updatedAt or createdAt (before first update)

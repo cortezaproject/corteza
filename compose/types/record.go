@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	"github.com/crusttech/crust/internal/permissions"
+	"github.com/cortezaproject/corteza-server/internal/permissions"
 )
 
 type (
@@ -19,7 +19,7 @@ type (
 		OwnedBy   uint64     `db:"owned_by"   json:"ownedBy,string"`
 		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
 		CreatedBy uint64     `db:"created_by" json:"createdBy,string" `
-		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty,omitempty"`
+		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`
 		UpdatedBy uint64     `db:"updated_by" json:"updatedBy,string,omitempty" `
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
 		DeletedBy uint64     `db:"deleted_by" json:"deletedBy,string,omitempty" `

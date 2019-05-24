@@ -5,11 +5,9 @@ import (
 
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
-	"github.com/crusttech/crust/compose/internal/repository"
-	"github.com/crusttech/crust/compose/types"
-	"github.com/crusttech/crust/internal/logger"
+	"github.com/cortezaproject/corteza-server/compose/internal/repository"
+	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
 type (
@@ -66,9 +64,9 @@ func (svc trigger) With(ctx context.Context) TriggerService {
 }
 
 // log() returns zap's logger with requestID from current context and fields.
-func (svc trigger) log(fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-}
+// func (svc trigger) log(fields ...zapcore.Field) *zap.Logger {
+// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+// }
 
 func (svc trigger) FindByID(namespaceID, triggerID uint64) (t *types.Trigger, err error) {
 	if namespaceID == 0 {

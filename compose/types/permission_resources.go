@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/crusttech/crust/internal/permissions"
+	"github.com/cortezaproject/corteza-server/internal/permissions"
 )
 
 const ComposePermissionResource = permissions.Resource("compose")

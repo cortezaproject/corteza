@@ -3,7 +3,7 @@ package rest
 import (
 	"net/http"
 
-	"github.com/crusttech/crust/compose/internal/service"
+	"github.com/cortezaproject/corteza-server/compose/internal/service"
 )
 
 func middlewareAllowedAccess(next http.Handler) http.Handler {

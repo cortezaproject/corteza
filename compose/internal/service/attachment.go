@@ -17,11 +17,11 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/crusttech/crust/compose/internal/repository"
-	"github.com/crusttech/crust/compose/types"
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/internal/store"
+	"github.com/cortezaproject/corteza-server/compose/internal/repository"
+	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/logger"
+	"github.com/cortezaproject/corteza-server/internal/store"
 )
 
 const (
@@ -298,10 +298,10 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 
 	if imaging.JPEG == format {
 		// Rotate image if needed
-		if preview, _, err = exiffix.Decode(original); err != nil {
-			//return errors.Wrapf(err, "Could not decode EXIF from JPEG")
-		}
-
+		// if preview, _, err = exiffix.Decode(original); err != nil {
+		// 	return errors.Wrapf(err, "Could not decode EXIF from JPEG")
+		// }
+		preview, _, _ = exiffix.Decode(original)
 	}
 
 	if imaging.GIF == format {
@@ -346,7 +346,7 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 	width, height = preview.Bounds().Max.X, preview.Bounds().Max.Y
 
 	var buf = &bytes.Buffer{}
-	if err = imaging.Encode(buf, preview, previewFormat); err != nil {
+	if err = imaging.Encode(buf, preview, previewFormat, opts...); err != nil {
 		return
 	}
 
