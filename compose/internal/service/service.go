@@ -9,7 +9,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/internal/repository"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/internal/store"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 type (
@@ -36,8 +35,8 @@ var (
 	DefaultNamespace    NamespaceService
 )
 
-func Init(ctx context.Context) error {
-	DefaultLogger = logger.Default().Named("compose.service")
+func Init(ctx context.Context, log *zap.Logger) (err error) {
+	DefaultLogger = log.Named("service")
 
 	fs, err := store.New("var/store")
 	if err != nil {
@@ -61,6 +60,10 @@ func Init(ctx context.Context) error {
 	DefaultNamespace = Namespace()
 
 	return nil
+}
+
+func Watchers(ctx context.Context) {
+	DefaultPermissions.Watch(ctx)
 }
 
 // Data is stale when new date does not match updatedAt or createdAt (before first update)

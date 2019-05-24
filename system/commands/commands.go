@@ -6,6 +6,6 @@ import (
 )
 
 func exit(err error) {
-	fmt.Fprintln(os.Stderr, err.Error())
+	_, _ = fmt.Fprintln(os.Stderr, err.Error())
 	os.Exit(1)
 }

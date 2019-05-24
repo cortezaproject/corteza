@@ -7,7 +7,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	internalSettings "github.com/cortezaproject/corteza-server/internal/settings"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/system/internal/repository"
 )
 
@@ -40,10 +39,10 @@ var (
 	DefaultApplication  ApplicationService
 )
 
-func Init(ctx context.Context) (err error) {
-	DefaultIntSettings = internalSettings.NewService(internalSettings.NewRepository(repository.DB(ctx), "sys_settings"))
+func Init(ctx context.Context, log *zap.Logger) (err error) {
+	DefaultLogger = log.Named("service")
 
-	DefaultLogger = logger.Default().Named("system.service")
+	DefaultIntSettings = internalSettings.NewService(internalSettings.NewRepository(repository.DB(ctx), "sys_settings"))
 
 	DefaultPermissions = permissions.Service(
 		ctx,

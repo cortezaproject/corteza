@@ -30,27 +30,27 @@ func PubSub(cmd *cobra.Command, pfix string) (o *PubSubOpt) {
 		pingPeriod  = (pingTimeout * 9) / 10
 	)
 
-	bindString(cmd, &o.Mode,
+	BindString(cmd, &o.Mode,
 		pFlag(pfix, "pubsub-mode"), "poll",
 		"Pub/Sub mode (poll, redis")
 
-	bindDuration(cmd, &o.RedisPingTimeout,
+	BindDuration(cmd, &o.RedisPingTimeout,
 		pFlag(pfix, "pubsub-polling-interval"), timeout,
 		"Sub/Sub polling interval")
 
-	bindString(cmd, &o.RedisAddr,
+	BindString(cmd, &o.RedisAddr,
 		pFlag(pfix, "pubsub-redis-addr"), "redis:6379",
 		"Pub/Sub mode (poll, redis")
 
-	bindDuration(cmd, &o.RedisTimeout,
+	BindDuration(cmd, &o.RedisTimeout,
 		pFlag(pfix, "pubsub-redis-timeout"), timeout,
 		"Websocket connection timeout")
 
-	bindDuration(cmd, &o.RedisPingTimeout,
+	BindDuration(cmd, &o.RedisPingTimeout,
 		pFlag(pfix, "pubsub-redis-ping-timeout"), pingTimeout,
 		"Pub/Sub connection ping timeout")
 
-	bindDuration(cmd, &o.RedisPingPeriod,
+	BindDuration(cmd, &o.RedisPingPeriod,
 		pFlag(pfix, "pubsub-redis-ping-period"), pingPeriod,
 		"Pub/Sub connection ping period (should be lower than timeout)")
 

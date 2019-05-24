@@ -1,21 +1,23 @@
 package flags
 
 import (
+	"time"
+
 	"github.com/spf13/cobra"
 )
 
 type (
 	MonitorOpt struct {
-		Interval int
+		Interval time.Duration
 	}
 )
 
 func Monitor(cmd *cobra.Command, pfix string) (o *MonitorOpt) {
 	o = &MonitorOpt{}
 
-	bindInt(cmd, &o.Interval,
-		pFlag(pfix, "monitor-interval"), 300,
-		"Monitor interval (seconds, 0 = disable)")
+	BindDuration(cmd, &o.Interval,
+		pFlag(pfix, "monitor-interval"), 300*time.Second,
+		"Monitor interval (0 = disable)")
 
 	return
 }

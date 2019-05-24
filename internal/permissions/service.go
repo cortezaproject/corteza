@@ -145,7 +145,7 @@ func (svc *service) Reload(ctx context.Context) {
 	defer svc.l.Unlock()
 
 	rr, err := svc.repository.With(ctx).Load()
-	svc.logger.Info(
+	svc.logger.Debug(
 		"reloading rules",
 		zap.Error(err),
 		zap.Int("before", len(svc.rules)),
@@ -167,7 +167,7 @@ func (svc service) flush(ctx context.Context) (err error) {
 
 	u.clear()
 	svc.rules = u
-	svc.logger.Info("flushed rules",
+	svc.logger.Debug("flushed rules",
 		zap.Int("updated", len(u)),
 		zap.Int("deleted", len(d)))
 

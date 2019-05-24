@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -12,6 +11,7 @@ import (
 	"github.com/goware/statik/fs"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
+	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/messaging/db/mysql"
 )
@@ -23,10 +23,12 @@ func statements(contents []byte, err error) ([]string, error) {
 	return regexp.MustCompilePOSIX(";$").Split(string(contents), -1), nil
 }
 
-func Migrate(db *factory.DB) error {
+func Migrate(db *factory.DB, log *zap.Logger) error {
+	log = log.Named("database.migrations")
+
 	statikFS, err := fs.New(mysql.Asset)
 	if err != nil {
-		return errors.Wrap(err, "Error creating statik filesystem")
+		return errors.Wrap(err, "error creating statik filesystem")
 	}
 
 	var files []string
@@ -37,17 +39,18 @@ func Migrate(db *factory.DB) error {
 		if matched {
 			files = append(files, filename)
 		}
+
 		return err
 	}
 
 	if err := fs.Walk(statikFS, "/", fn); err != nil {
-		return errors.Wrap(err, "Error when listing files for migrations")
+		return errors.Wrap(err, "error when listing files for migrations")
 	}
 
 	sort.Strings(files)
 
 	if len(files) == 0 {
-		return errors.New("No files encoded for migration, need at least one SQL file")
+		return errors.New("no files encoded for migration, need at least one SQL file")
 	}
 
 	migrate := func(filename string, useLog bool) error {
@@ -67,19 +70,20 @@ func Migrate(db *factory.DB) error {
 		up := func() error {
 			stmts, err := statements(fs.ReadFile(statikFS, filename))
 			if err != nil {
-				return errors.Wrap(err, fmt.Sprintf("Error reading migration %s", filename))
+				return errors.Wrap(err, fmt.Sprintf("error reading migration %s", filename))
 			}
 
-			log.Println("Running migration for", filename)
+			log.Debug("Running migration", zap.String("filename", filename))
 			for idx, query := range stmts {
 				if strings.TrimSpace(query) != "" && idx >= status.StatementIndex {
 					status.StatementIndex = idx
 					if _, err := db.Exec(query); err != nil {
+						log.Debug("migration error ", zap.String("filename", filename), zap.Error(err))
 						return err
 					}
 				}
 			}
-			log.Println("Migration done OK")
+
 			status.Status = "ok"
 			return nil
 		}
@@ -90,7 +94,7 @@ func Migrate(db *factory.DB) error {
 		}
 		if useLog {
 			if err := db.Replace("migrations", status); err != nil {
-				log.Println("replace failed", err)
+				return errors.Wrap(err, "migration update failed")
 			}
 		}
 		return err

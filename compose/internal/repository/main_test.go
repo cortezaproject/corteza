@@ -8,13 +8,12 @@ import (
 	"time"
 
 	"github.com/titpetric/factory"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 func TestMain(m *testing.M) {
-	logger.Init(zapcore.DebugLevel)
+	logger.SetDefault(logger.MakeDebugLogger())
 
 	factory.Database.Add("compose", os.Getenv("COMPOSE_DB_DSN"))
 	db := factory.Database.MustGet("compose")

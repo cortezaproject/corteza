@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/titpetric/factory"
-	"go.uber.org/zap/zapcore"
 
 	composeMigrate "github.com/cortezaproject/corteza-server/compose/db"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -25,14 +24,14 @@ type (
 func (mockDB) Transaction(callback func() error) error { return callback() }
 
 func TestMain(m *testing.M) {
-	logger.Init(zapcore.DebugLevel)
+	logger.SetDefault(logger.MakeDebugLogger())
 
 	factory.Database.Add("compose", os.Getenv("COMPOSE_DB_DSN"))
 	db := factory.Database.MustGet("compose")
 	db.Profiler = &factory.DatabaseProfilerStdout{}
 
 	// migrate database schema
-	if err := composeMigrate.Migrate(db); err != nil {
+	if err := composeMigrate.Migrate(db, logger.Default()); err != nil {
 		fmt.Printf("Error running migrations: %+v\n", err)
 		return
 	}

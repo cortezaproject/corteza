@@ -16,11 +16,11 @@ type (
 func HttpClient(cmd *cobra.Command) (o *HttpClientOpt) {
 	o = &HttpClientOpt{}
 
-	bindBool(cmd, &o.ClientTSLInsecure,
+	BindBool(cmd, &o.ClientTSLInsecure,
 		"http-client-tsl-insecure", false,
 		"Skip insecure TSL verification on outbound HTTP requests (allow invalid/self-signed certificates")
 
-	bindDuration(cmd, &o.HttpClientTimeout,
+	BindDuration(cmd, &o.HttpClientTimeout,
 		"http-client-timeout", 30*time.Second,
 		"Default HTTP client timeout")
 

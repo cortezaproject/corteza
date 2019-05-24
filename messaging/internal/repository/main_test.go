@@ -10,6 +10,7 @@ import (
 	"github.com/titpetric/factory"
 
 	migrate "github.com/cortezaproject/corteza-server/messaging/db"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 func TestMain(m *testing.M) {
@@ -18,7 +19,7 @@ func TestMain(m *testing.M) {
 	db.Profiler = &factory.Database.ProfilerStdout
 
 	// migrate database schema
-	if err := migrate.Migrate(db); err != nil {
+	if err := migrate.Migrate(db, logger.Default()); err != nil {
 		fmt.Printf("Error running migrations: %+v\n", err)
 		return
 	}

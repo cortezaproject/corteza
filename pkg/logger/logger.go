@@ -1,35 +1,54 @@
 package logger
 
 import (
+	"os"
+	"strings"
+
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 var (
 	DefaultLevel  = zap.NewAtomicLevel()
-	defaultLogger *zap.Logger
+	defaultLogger = zap.NewNop()
 )
 
-func Init(level zapcore.Level) {
-	DefaultLevel.SetLevel(level)
+func MakeDebugLogger() *zap.Logger {
+	conf := zap.NewDevelopmentConfig()
+	conf.Level = DefaultLevel
 
+	logger, err := conf.Build()
+	if err != nil {
+		panic(err)
+	}
+
+	return logger
+}
+
+func Init() {
 	var (
-		err  error
-		conf = zap.Config{
-			Level:            DefaultLevel,
-			Development:      false,
-			Encoding:         "json",
-			EncoderConfig:    zap.NewProductionEncoderConfig(),
-			OutputPaths:      []string{"stderr"},
-			ErrorOutputPaths: []string{"stderr"},
-		}
+		err          error
+		isProduction bool
 	)
 
-	// Make logstash's life a bit easier
-	conf.EncoderConfig.LevelKey = "appLogLevel"
-	conf.EncoderConfig.MessageKey = "message"
-	conf.EncoderConfig.TimeKey = "@timestamp"
-	conf.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	if env := os.Getenv("ENVIRONMENT"); strings.Index(env, "prod") == 0 {
+		//  Try to guess if production logging from environment
+		isProduction = true
+	} else if vh := os.Getenv("VIRTUAL_HOST"); len(vh) > 0 {
+		// Try to guess if in production logging from the fact that VIRTUAL_HOST env is set
+		isProduction = true
+	}
+
+	if !isProduction {
+		defaultLogger = MakeDebugLogger()
+		return
+	}
+
+	conf := zap.NewProductionConfig()
+	conf.Level = DefaultLevel
+
+	// We do not want sampling
+	conf.Sampling = nil
+	conf.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
 
 	defaultLogger, err = conf.Build()
 	if err != nil {
@@ -38,9 +57,13 @@ func Init(level zapcore.Level) {
 }
 
 func Default() *zap.Logger {
-	if defaultLogger == nil {
-		panic("default logger not initialised")
+	return defaultLogger
+}
+
+func SetDefault(logger *zap.Logger) {
+	if logger == nil {
+		logger = zap.NewNop()
 	}
 
-	return defaultLogger
+	defaultLogger = logger
 }

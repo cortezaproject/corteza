@@ -17,23 +17,23 @@ type (
 func SMTP(cmd *cobra.Command) (o *SMTPOpt) {
 	o = &SMTPOpt{}
 
-	bindString(cmd, &o.Host,
+	BindString(cmd, &o.Host,
 		"smtp-host", "localhost:25",
 		"SMTP hostname")
 
-	bindString(cmd, &o.User,
+	BindString(cmd, &o.User,
 		"smtp-username", "",
 		"SMTP server username")
 
-	bindString(cmd, &o.Pass,
+	BindString(cmd, &o.Pass,
 		"smtp-pass", "",
 		"SMTP server password")
 
-	bindString(cmd, &o.From,
+	BindString(cmd, &o.From,
 		"smtp-from", "",
 		"Sender's email address")
 
-	bindInt(cmd, &o.Port,
+	BindInt(cmd, &o.Port,
 		"smtp-port", 25,
 		"SMTP port number")
 
