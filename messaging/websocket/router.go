@@ -29,6 +29,10 @@ func Init(ctx context.Context, config *Config) *Websocket {
 	go func() {
 		for {
 			if err := eq.feedSessions(ctx, events, store); err != nil {
+				if err == context.Canceled {
+					return
+				}
+
 				logger.Default().Error("session event feed error", zap.Error(err))
 			}
 		}

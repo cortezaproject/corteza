@@ -11,7 +11,7 @@ import (
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/cortezaproject/corteza-server/{project}/rest/request"
-	"github.com/cortezaproject/corteza-server/internal/logger"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 // Internal API interface

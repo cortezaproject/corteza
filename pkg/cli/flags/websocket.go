@@ -23,15 +23,15 @@ func Websocket(cmd *cobra.Command, pfix string) (o *WebsocketOpt) {
 		pingPeriod  = (pingTimeout * 9) / 10
 	)
 
-	bindDuration(cmd, &o.Timeout,
+	BindDuration(cmd, &o.Timeout,
 		pFlag(pfix, "websocket-timeout"), timeout,
 		"Websocket connection timeout")
 
-	bindDuration(cmd, &o.PingTimeout,
+	BindDuration(cmd, &o.PingTimeout,
 		pFlag(pfix, "websocket-ping-timeout"), pingTimeout,
 		"Websocket connection ping timeout")
 
-	bindDuration(cmd, &o.PingPeriod,
+	BindDuration(cmd, &o.PingPeriod,
 		pFlag(pfix, "websocket-ping-period"), pingPeriod,
 		"Websocket connection ping period (should be lower than timeout)")
 

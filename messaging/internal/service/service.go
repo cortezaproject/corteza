@@ -10,7 +10,6 @@ import (
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/internal/store"
 	"github.com/cortezaproject/corteza-server/messaging/internal/repository"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 type (
@@ -39,7 +38,9 @@ var (
 	DefaultWebhook    WebhookService
 )
 
-func Init(ctx context.Context) error {
+func Init(ctx context.Context, log *zap.Logger) (err error) {
+	DefaultLogger = log.Named("service")
+
 	fs, err := store.New("var/store")
 	if err != nil {
 		return err
@@ -51,8 +52,6 @@ func Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	DefaultLogger = logger.Default().Named("messaging.service")
 
 	DefaultPermissions = permissions.Service(
 		ctx,
@@ -68,6 +67,10 @@ func Init(ctx context.Context) error {
 	DefaultWebhook = Webhook(ctx, client)
 
 	return nil
+}
+
+func Watchers(ctx context.Context) {
+	DefaultPermissions.Watch(ctx)
 }
 
 func timeNowPtr() *time.Time {

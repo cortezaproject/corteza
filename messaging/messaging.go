@@ -5,173 +5,98 @@ import (
 
 	"github.com/go-chi/chi"
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/titpetric/factory"
-	"go.uber.org/zap"
 
-	"github.com/cortezaproject/corteza-server/internal/db"
 	migrate "github.com/cortezaproject/corteza-server/messaging/db"
 	"github.com/cortezaproject/corteza-server/messaging/internal/service"
 	"github.com/cortezaproject/corteza-server/messaging/rest"
 	"github.com/cortezaproject/corteza-server/messaging/websocket"
-	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/cli/flags"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 const (
 	messaging = "messaging"
 )
 
-type (
-	Messaging struct {
-		log *zap.Logger
-
-		// General
-		logOpt        *flags.LogOpt
-		smtpOpt       *flags.SMTPOpt
-		jwtOpt        *flags.JWTOpt
-		httpClientOpt *flags.HttpClientOpt
-
-		// Messaging specific
-		dbOpt        *flags.DBOpt
-		provisionOpt *flags.ProvisionOpt
+func Configure() *cli.Config {
+	var (
+		// Messaging API Server specific
 		websocketOpt *flags.WebsocketOpt
 
 		// Websocket handler
-		ws mounter
-	}
+		ws *websocket.Websocket
 
-	mounter interface {
-		ApiServerRoutes(r chi.Router)
-	}
-)
-
-func init() {
-	logger.Init(zap.DebugLevel)
-}
-
-func InitMessaging() *Messaging {
-	return &Messaging{
-		log: logger.Default().Named(messaging),
-	}
-}
-
-// Command produces cobra.Command
-func (m *Messaging) Command(ctx context.Context) (cmd *cobra.Command) {
-	cmd = &cobra.Command{
-		Use:              "corteza-server-messaging",
-		TraverseChildren: true,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
-			cli.InitGeneralServices(m.logOpt, m.smtpOpt, m.jwtOpt, m.httpClientOpt)
-
-			return m.StartServices(ctx)
-		},
-	}
-
-	m.BindGlobalFlags(cmd)
-
-	srv := api.NewServer(m.log)
-	serveApiCmd := srv.Command(ctx, messaging, m.ApiServerPreRun)
-
-	// Bind all flags we need for serving messaging
-	m.BindApiServerFlags(serveApiCmd)
-
-	srv.MountRoutes(m.ApiServerRoutes)
-
-	cmd.AddCommand(
-		serveApiCmd,
-		cli.SetupProvisionSubcommands(ctx, m),
+		accessControlSetup = func(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
+			// Calling grant directly on internal permissions service to avoid AC check for "grant"
+			var p = service.DefaultPermissions
+			var ac = service.DefaultAccessControl
+			return p.Grant(ctx, ac.Whitelist(), ac.DefaultRules()...)
+		}
 	)
 
-	m.AddCommands(cmd, ctx)
+	return &cli.Config{
+		ServiceName: messaging,
 
-	return
-}
+		RootCommandPreRun: cli.Runners{
+			func(ctx context.Context, cmd *cobra.Command, c *cli.Config) (err error) {
+				if c.ProvisionOpt.MigrateDatabase {
+					cli.HandleError(c.ProvisionMigrateDatabase.Run(ctx, cmd, c))
+				}
 
-// AddCommands - other commands that this subservice needs
-func (m *Messaging) AddCommands(cmd *cobra.Command, ctx context.Context) {}
+				cli.HandleError(service.Init(ctx, c.Log))
 
-// Binds all global flags
-func (m *Messaging) BindGlobalFlags(cmd *cobra.Command) {
-	m.logOpt = flags.Log(cmd)
-	m.smtpOpt = flags.SMTP(cmd)
-	m.jwtOpt = flags.JWT(cmd)
-	m.httpClientOpt = flags.HttpClient(cmd)
-}
+				ws = websocket.Init(ctx, &websocket.Config{
+					Timeout:     websocketOpt.Timeout,
+					PingTimeout: websocketOpt.PingTimeout,
+					PingPeriod:  websocketOpt.PingPeriod,
+				})
 
-// BindApiServerFlags sets & binds all API server flags
-func (m *Messaging) BindApiServerFlags(cmd *cobra.Command) {
-	m.dbOpt = flags.DB(cmd, messaging)
-	m.provisionOpt = flags.Provision(cmd, messaging)
-	m.websocketOpt = flags.Websocket(cmd, messaging)
+				if c.ProvisionOpt.AutoSetup {
+					cli.HandleError(accessControlSetup(ctx, cmd, c))
+				}
 
-}
+				return
+			},
+		},
 
-func (m *Messaging) StartServices(ctx context.Context) (err error) {
-	_, err = db.TryToConnect(ctx, m.log, messaging, m.dbOpt.DSN, m.dbOpt.Profiler)
-	if err != nil {
-		return errors.Wrap(err, "could not connect to database")
+		ApiServerAdtFlags: cli.FlagBinders{
+			func(cmd *cobra.Command, c *cli.Config) {
+				websocketOpt = flags.Websocket(cmd, messaging)
+			},
+		},
+
+		ApiServerPreRun: cli.Runners{
+			func(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
+				go service.Watchers(ctx)
+				return nil
+			},
+		},
+
+		ApiServerRoutes: cli.Mounters{
+			rest.MountRoutes,
+			// Wrap in func() to assure ws is set when mounted
+			func(r chi.Router) { ws.ApiServerRoutes(r) },
+		},
+
+		ProvisionMigrateDatabase: cli.Runners{
+			func(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
+				var db, err = factory.Database.Get(messaging)
+				if err != nil {
+					return err
+				}
+
+				db = db.With(ctx)
+				// Disable profiler for migrations
+				db.Profiler = nil
+
+				return migrate.Migrate(db, c.Log)
+			},
+		},
+
+		ProvisionAccessControl: cli.Runners{
+			accessControlSetup,
+		},
 	}
-
-	if m.provisionOpt.Database {
-		err = m.ProvisionMigrateDatabase(ctx)
-		if err != nil {
-			return
-		}
-	}
-
-	err = service.Init(ctx)
-	if err != nil {
-		return
-	}
-
-	m.ws = websocket.Init(ctx, &websocket.Config{
-		Timeout:     m.websocketOpt.Timeout,
-		PingTimeout: m.websocketOpt.PingTimeout,
-		PingPeriod:  m.websocketOpt.PingPeriod,
-	})
-
-	return
-}
-
-// ApiServerPreRun is executed before serve-api command runs REST API server
-//
-// Should initialize all that needs to run in the background
-func (m Messaging) ApiServerPreRun(ctx context.Context) error {
-	service.DefaultPermissions.Watch(ctx)
-	return nil
-}
-
-// ApiServerRoutes mounts api server routes
-func (m *Messaging) ApiServerRoutes(r chi.Router) {
-	rest.MountRoutes(r)
-	m.ws.ApiServerRoutes(r)
-}
-
-// ProvisionMigrateDatabase migrates database to new version
-//
-// This is ran by default on serve-api (when not explicitly disabled with --compose-provision-database=false)
-// or on demand with "provision migrate-database"
-func (m Messaging) ProvisionMigrateDatabase(ctx context.Context) error {
-	var db, err = factory.Database.Get(messaging)
-	if err != nil {
-		return err
-	}
-
-	db = db.With(ctx)
-	// Disable profiler for migrations
-	db.Profiler = nil
-
-	return migrate.Migrate(db)
-}
-
-// ProvisionAccessControl resets access-control rules for roles admin (2) and everyone (1)
-//
-// Run with emand with "provision access-control-rules"
-func (m Messaging) ProvisionAccessControl(ctx context.Context) error {
-	var ac = service.DefaultAccessControl
-	return ac.Grant(ctx, ac.DefaultRules()...)
 }

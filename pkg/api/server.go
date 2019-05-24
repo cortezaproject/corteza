@@ -2,12 +2,11 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/titpetric/factory/resputil"
 	"go.uber.org/zap"
@@ -37,23 +36,23 @@ func NewServer(log *zap.Logger) *Server {
 	}
 }
 
-func (s *Server) Command(ctx context.Context, prefix string, preRun func(context.Context) error) (cmd *cobra.Command) {
+func (s *Server) Command(ctx context.Context, cmdName, prefix string, preRun func(context.Context) error) (cmd *cobra.Command) {
 	cmd = &cobra.Command{
-		Use:   "serve-api",
+		Use:   cmdName,
 		Short: "Start HTTP Server with REST API",
 
 		// Connect all the wires, prepare services, run watchers, bind endpoints
-		PreRun: func(cmd *cobra.Command, args []string) {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if s.monitorOpt.Interval > 0 {
-				go NewMonitor(s.monitorOpt.Interval)
+				go NewMonitor(int(s.monitorOpt.Interval / time.Second))
 			}
 
-			preRun(ctx)
+			return preRun(ctx)
 		},
 
 		// Run the server
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return s.Serve(ctx)
+		Run: func(cmd *cobra.Command, args []string) {
+			s.Serve(ctx)
 		},
 	}
 
@@ -70,7 +69,7 @@ func (s *Server) MountRoutes(mm ...func(chi.Router)) {
 	s.endpoints = append(s.endpoints, mm...)
 }
 
-func (s Server) Serve(ctx context.Context) error {
+func (s Server) Serve(ctx context.Context) {
 	s.log.Info("Starting HTTP server with REST API", zap.String("address", s.httpOpt.Addr))
 
 	// configure resputil options
@@ -84,7 +83,8 @@ func (s Server) Serve(ctx context.Context) error {
 
 	listener, err := net.Listen("tcp", s.httpOpt.Addr)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Can't listen on addr %s", s.httpOpt.Addr))
+		s.log.Error("Can not start server", zap.Error(err))
+		return
 	}
 
 	router := chi.NewRouter()
@@ -122,8 +122,19 @@ func (s Server) Serve(ctx context.Context) error {
 		router.Get("/version", version.HttpHandler)
 	}
 
-	go http.Serve(listener, router)
+	go func() {
+		err = http.Serve(listener, router)
+	}()
 	<-ctx.Done()
 
-	return nil
+	if err == nil {
+		err = ctx.Err()
+		if err == context.Canceled {
+			err = nil
+		}
+	}
+
+	s.log.Info("HTTP server stopped", zap.Error(err))
+
+	return
 }

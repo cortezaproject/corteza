@@ -6,190 +6,117 @@ import (
 	"github.com/go-chi/chi"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/compose"
 	"github.com/cortezaproject/corteza-server/messaging"
-	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/cortezaproject/corteza-server/pkg/cli/flags"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/system"
 )
 
-type (
-	// Sets up compose messaging & system subservices and runs them as one.
-	Monolith struct {
-		log *zap.Logger
+func Configure() *cli.Config {
+	cmp := compose.Configure()
+	msg := messaging.Configure()
+	sys := system.Configure()
 
-		// General
-		logOpt        *flags.LogOpt
-		smtpOpt       *flags.SMTPOpt
-		jwtOpt        *flags.JWTOpt
-		httpClientOpt *flags.HttpClientOpt
+	cmp.Init()
+	msg.Init()
+	sys.Init()
 
-		compose   subservice
-		messaging subservice
-		system    subservice
-	}
+	cmp.RootCommandBaseFlags = nil
+	msg.RootCommandBaseFlags = nil
+	sys.RootCommandBaseFlags = nil
 
-	subservice interface {
-		AddCommands(cmd *cobra.Command, ctx context.Context)
-		BindApiServerFlags(cmd *cobra.Command)
-		StartServices(ctx context.Context) (err error)
-		ApiServerPreRun(ctx context.Context) error
-		ApiServerRoutes(r chi.Router)
-		ProvisionMigrateDatabase(ctx context.Context) error
-		ProvisionAccessControl(ctx context.Context) error
-	}
+	// Combines all three services/apps and makes them run as one monolith app
+	return &cli.Config{
+		ServiceName: "",
 
-	runner  func(context.Context) error
-	runners []runner
-)
+		RootCommandDBSetup: cli.Runners{
+			func(ctx context.Context, cmd *cobra.Command, c *cli.Config) (err error) {
+				cli.HandleError(cmp.RootCommandDBSetup.Run(ctx, cmd, cmp))
+				cli.HandleError(msg.RootCommandDBSetup.Run(ctx, cmd, msg))
+				cli.HandleError(sys.RootCommandDBSetup.Run(ctx, cmd, sys))
+				return
+			},
+		},
 
-func (rr runners) run(ctx context.Context) (err error) {
-	for i := range rr {
-		err = rr[i](ctx)
-		if err != nil {
-			return
-		}
-	}
+		RootCommandName: "corteza-server",
+		RootCommandPreRun: cli.Runners{
+			func(ctx context.Context, cmd *cobra.Command, c *cli.Config) (err error) {
+				cli.HandleError(cmp.RootCommandPreRun.Run(ctx, cmd, cmp))
+				cli.HandleError(msg.RootCommandPreRun.Run(ctx, cmd, msg))
+				cli.HandleError(sys.RootCommandPreRun.Run(ctx, cmd, sys))
+				return
+			},
+		},
 
-	return
-}
+		RootCommandPrefixedFlags: cli.FlagBinders{
+			func(cmd *cobra.Command, c *cli.Config) {
+				cmp.RootCommandPrefixedFlags.Bind(cmd, cmp)
+				msg.RootCommandPrefixedFlags.Bind(cmd, msg)
+				sys.RootCommandPrefixedFlags.Bind(cmd, sys)
+			},
+		},
 
-func init() {
-	logger.Init(zap.DebugLevel)
-}
+		ApiServerAdtFlags: cli.CombineFlagBinders(
+			cmp.ApiServerAdtFlags,
+			msg.ApiServerAdtFlags,
+			sys.ApiServerAdtFlags,
+		),
 
-func InitMonolith() *Monolith {
-	return &Monolith{
-		log:       logger.Default(),
-		compose:   compose.InitCompose(),
-		messaging: messaging.InitMessaging(),
-		system:    system.InitSystem(),
-	}
-}
+		ApiServerRoutes: cli.Mounters{
+			func(r chi.Router) {
+				r.Route("/compose", cmp.ApiServerRoutes.MountRoutes)
+				r.Route("/messaging", msg.ApiServerRoutes.MountRoutes)
+				r.Route("/system", sys.ApiServerRoutes.MountRoutes)
+			},
+		},
 
-// Command produces cobra.Command
-func (m *Monolith) Command(ctx context.Context) (cmd *cobra.Command) {
-	cmd = &cobra.Command{
-		Use:              "corteza-server-monolith",
-		TraverseChildren: true,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
-			cli.InitGeneralServices(m.logOpt, m.smtpOpt, m.jwtOpt, m.httpClientOpt)
+		AdtSubCommands: cli.CommandMakers{
+			func(ctx context.Context, c *cli.Config) *cobra.Command {
+				if cc := cmp.AdtSubCommands; len(cc) > 0 {
+					sub := &cobra.Command{Use: "compose", Short: "Commands from compose service"}
+					sub.AddCommand(cc.Make(ctx, c)...)
+					return sub
+				}
 
-			return m.StartServices(ctx)
+				return nil
+			},
+			func(ctx context.Context, c *cli.Config) *cobra.Command {
+				if cc := msg.AdtSubCommands; len(cc) > 0 {
+					sub := &cobra.Command{Use: "messaging", Short: "Commands from messaging service"}
+					sub.AddCommand(cc.Make(ctx, c)...)
+					return sub
+				}
+
+				return nil
+			},
+			func(ctx context.Context, c *cli.Config) *cobra.Command {
+				if cc := sys.AdtSubCommands; len(cc) > 0 {
+					sub := &cobra.Command{Use: "system", Short: "Commands from system service"}
+					sub.AddCommand(cc.Make(ctx, c)...)
+					return sub
+				}
+
+				return nil
+			},
+		},
+
+		ProvisionMigrateDatabase: cli.Runners{
+			func(ctx context.Context, cmd *cobra.Command, c *cli.Config) (err error) {
+				cli.HandleError(cmp.ProvisionMigrateDatabase.Run(ctx, cmd, cmp))
+				cli.HandleError(msg.ProvisionMigrateDatabase.Run(ctx, cmd, msg))
+				cli.HandleError(sys.ProvisionMigrateDatabase.Run(ctx, cmd, sys))
+				return
+			},
+		},
+
+		ProvisionAccessControl: cli.Runners{
+			func(ctx context.Context, cmd *cobra.Command, c *cli.Config) (err error) {
+				cli.HandleError(cmp.ProvisionAccessControl.Run(ctx, cmd, cmp))
+				cli.HandleError(msg.ProvisionAccessControl.Run(ctx, cmd, msg))
+				cli.HandleError(sys.ProvisionAccessControl.Run(ctx, cmd, sys))
+				return
+			},
 		},
 	}
-
-	m.BindGlobalFlags(cmd)
-
-	srv := api.NewServer(m.log)
-	serveApiCmd := srv.Command(ctx, "", m.ApiServerPreRun)
-
-	// Bind all flags we need for serving monolith
-	m.BindApiServerFlags(serveApiCmd)
-
-	srv.MountRoutes(m.ApiServerRoutes)
-
-	cmd.AddCommand(
-		serveApiCmd,
-		cli.SetupProvisionSubcommands(ctx, m),
-	)
-
-	m.AddCommands(cmd, ctx)
-
-	return
-}
-
-// AddCommands - other commands that this subservices need
-//
-// We wrap each seubservice's set into a subcommand so that we do not get naming collisions
-func (m *Monolith) AddCommands(cmd *cobra.Command, ctx context.Context) {
-	var (
-		composeCmd   = &cobra.Command{Use: "compose"}
-		messagingCmd = &cobra.Command{Use: "messaging"}
-		systemCmd    = &cobra.Command{Use: "system"}
-	)
-
-	m.compose.AddCommands(composeCmd, ctx)
-	if len(composeCmd.Commands()) > 0 {
-		cmd.AddCommand(composeCmd)
-	}
-
-	m.messaging.AddCommands(messagingCmd, ctx)
-	if len(messagingCmd.Commands()) > 0 {
-		cmd.AddCommand(messagingCmd)
-	}
-
-	m.system.AddCommands(systemCmd, ctx)
-	if len(systemCmd.Commands()) > 0 {
-		cmd.AddCommand(systemCmd)
-	}
-
-}
-
-// Binds all global flags
-func (m *Monolith) BindGlobalFlags(cmd *cobra.Command) {
-	m.logOpt = flags.Log(cmd)
-	m.smtpOpt = flags.SMTP(cmd)
-	m.jwtOpt = flags.JWT(cmd)
-	m.httpClientOpt = flags.HttpClient(cmd)
-}
-
-// BindApiServerFlags sets & binds all API server flags
-func (m *Monolith) BindApiServerFlags(cmd *cobra.Command) {
-	m.compose.BindApiServerFlags(cmd)
-	m.messaging.BindApiServerFlags(cmd)
-	m.system.BindApiServerFlags(cmd)
-}
-
-func (m *Monolith) StartServices(ctx context.Context) (err error) {
-	return (runners{
-		m.compose.StartServices,
-		m.messaging.StartServices,
-		m.system.StartServices,
-	}).run(ctx)
-}
-
-// ApiServerPreRun is executed before serve-api command runs REST API server
-//
-// Should initialize all that needs to run in the background
-func (m Monolith) ApiServerPreRun(ctx context.Context) error {
-	return (runners{
-		m.compose.ApiServerPreRun,
-		m.messaging.ApiServerPreRun,
-		m.system.ApiServerPreRun,
-	}).run(ctx)
-}
-
-// ApiServerRoutes mounts api server routes
-func (m *Monolith) ApiServerRoutes(r chi.Router) {
-	r.Route("/compose", m.compose.ApiServerRoutes)
-	r.Route("/messaging", m.messaging.ApiServerRoutes)
-	r.Route("/system", m.system.ApiServerRoutes)
-}
-
-// ProvisionMigrateDatabase migrates database to new version
-//
-// This is ran by default on serve-api (when not explicitly disabled with --compose-provision-database=false)
-// or on demand with "provision migrate-database"
-func (m Monolith) ProvisionMigrateDatabase(ctx context.Context) error {
-	return (runners{
-		m.compose.ProvisionMigrateDatabase,
-		m.messaging.ProvisionMigrateDatabase,
-		m.system.ProvisionMigrateDatabase,
-	}).run(ctx)
-}
-
-// ProvisionAccessControl resets access-control rules for roles admin (2) and everyone (1)
-//
-// Run with emand with "provision access-control-rules"
-func (m Monolith) ProvisionAccessControl(ctx context.Context) error {
-	return (runners{
-		m.compose.ProvisionAccessControl,
-		m.messaging.ProvisionAccessControl,
-		m.system.ProvisionAccessControl,
-	}).run(ctx)
 }

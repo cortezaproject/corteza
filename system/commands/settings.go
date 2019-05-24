@@ -29,7 +29,7 @@ func Settings(ctx context.Context) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			_, _ = service.DefaultSettings.LoadAuthSettings()
 
-			settingsAutoConfigure(
+			SettingsAutoConfigure(
 				cmd,
 				systemApiUrl,
 				authFrontendUrl,
@@ -137,7 +137,7 @@ func Settings(ctx context.Context) *cobra.Command {
 	return cmd
 }
 
-func settingsAutoConfigure(cmd *cobra.Command, systemApiUrl, frontendUrl, fromAddress, fromName string) {
+func SettingsAutoConfigure(cmd *cobra.Command, systemApiUrl, frontendUrl, fromAddress, fromName string) {
 	set := func(name string, value interface{}) {
 		var (
 			v   *settings.Value

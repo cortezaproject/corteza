@@ -26,10 +26,9 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
 
-	"time"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
+	"time"
 )
 
 var _ = chi.URLParam

@@ -6,16 +6,22 @@ import (
 
 type (
 	ProvisionOpt struct {
-		Database bool
+		MigrateDatabase bool
+
+		AutoSetup bool
 	}
 )
 
 func Provision(cmd *cobra.Command, pfix string) (o *ProvisionOpt) {
 	o = &ProvisionOpt{}
 
-	bindBool(cmd, &o.Database,
-		pFlag(pfix, "provision-database"), true,
-		"Run database migration scripts")
+	BindBool(cmd, &o.MigrateDatabase,
+		pFlag(pfix, "provision-migrate-database"), true,
+		"Run database migration")
+
+	BindBool(cmd, &o.AutoSetup,
+		pFlag(pfix, "provision-auto-setup"), true,
+		"Run auto-setup procedures on service")
 
 	return
 }
