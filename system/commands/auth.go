@@ -1,4 +1,4 @@
-package cli
+package commands
 
 import (
 	"context"
@@ -8,16 +8,15 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/settings"
-	"github.com/crusttech/crust/system/internal/auth/external"
-	"github.com/crusttech/crust/system/internal/repository"
-	"github.com/crusttech/crust/system/internal/service"
-	"github.com/crusttech/crust/system/types"
+	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/system/internal/auth/external"
+	"github.com/cortezaproject/corteza-server/system/internal/repository"
+	"github.com/cortezaproject/corteza-server/system/internal/service"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 // Will perform OpenID connect auto-configuration
-func authCmd(ctx context.Context, db *factory.DB, settingsService settings.Service) *cobra.Command {
+func Auth(ctx context.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "auth",
 		Short: "External authentication",
@@ -30,14 +29,14 @@ func authCmd(ctx context.Context, db *factory.DB, settingsService settings.Servi
 		Run: func(cmd *cobra.Command, args []string) {
 			var name, url = args[0], args[1]
 
-			if eas, err := external.ExternalAuthSettings(settingsService); err != nil {
-				exit(cmd, err)
+			if eas, err := external.ExternalAuthSettings(service.DefaultIntSettings); err != nil {
+				exit(err)
 			} else if eap, err := external.RegisterNewOpenIdClient(ctx, eas, name, url); err != nil {
-				exit(cmd, err)
+				exit(err)
 			} else if vv, err := eap.MakeValueSet("openid-connect." + name); err != nil {
-				exit(cmd, err)
-			} else if err := settingsService.BulkSet(vv); err != nil {
-				exit(cmd, err)
+				exit(err)
+			} else if err := service.DefaultIntSettings.BulkSet(vv); err != nil {
+				exit(err)
 			}
 		},
 	}
@@ -48,6 +47,8 @@ func authCmd(ctx context.Context, db *factory.DB, settingsService settings.Servi
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
+				db = factory.Database.MustGet("system")
+
 				userRepo = repository.User(ctx, db)
 				roleRepo = repository.Role(ctx, db)
 				// authSvc  = service.Auth(ctx)
@@ -73,7 +74,7 @@ func authCmd(ctx context.Context, db *factory.DB, settingsService settings.Servi
 			}
 
 			if err != nil {
-				exit(cmd, err)
+				exit(err)
 			}
 
 			user.SetRoles(rr.IDs())
@@ -94,12 +95,12 @@ func authCmd(ctx context.Context, db *factory.DB, settingsService settings.Servi
 
 			err = ntf.EmailConfirmation("en", args[0], "notification-testing-token")
 			if err != nil {
-				exit(cmd, err)
+				exit(err)
 			}
 
 			err = ntf.PasswordReset("en", args[0], "notification-testing-token")
 			if err != nil {
-				exit(cmd, err)
+				exit(err)
 			}
 
 		},

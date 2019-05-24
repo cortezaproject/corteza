@@ -7,7 +7,7 @@ import (
 
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/system/types"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (

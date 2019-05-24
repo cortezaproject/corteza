@@ -9,10 +9,10 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/crusttech/crust/internal/test"
-	"github.com/crusttech/crust/system/internal/repository"
-	repomock "github.com/crusttech/crust/system/internal/repository/mocks"
-	"github.com/crusttech/crust/system/types"
+	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/cortezaproject/corteza-server/system/internal/repository"
+	repomock "github.com/cortezaproject/corteza-server/system/internal/repository/mocks"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 // @todo this mockDB will be probably be used by other tests, move it to some common place

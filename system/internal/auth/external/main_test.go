@@ -6,7 +6,7 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
-	"github.com/crusttech/crust/internal/logger"
+	"github.com/cortezaproject/corteza-server/internal/logger"
 )
 
 func TestMain(m *testing.M) {

@@ -6,11 +6,12 @@ package repository
 
 import (
 	context "context"
-	repository "github.com/crusttech/crust/system/internal/repository"
-	types "github.com/crusttech/crust/system/types"
+	reflect "reflect"
+
+	repository "github.com/cortezaproject/corteza-server/system/internal/repository"
+	types "github.com/cortezaproject/corteza-server/system/types"
 	gomock "github.com/golang/mock/gomock"
 	factory "github.com/titpetric/factory"
-	reflect "reflect"
 )
 
 // MockCredentialsRepository is a mock of CredentialsRepository interface

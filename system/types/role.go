@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	"github.com/crusttech/crust/internal/permissions"
+	"github.com/cortezaproject/corteza-server/internal/permissions"
 )
 
 type (

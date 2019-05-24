@@ -7,7 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/crusttech/crust/internal/permissions"
+	"github.com/cortezaproject/corteza-server/internal/permissions"
 )
 
 type (
@@ -54,7 +54,7 @@ type (
 
 const (
 	NormalUser UserKind = ""
-	BotUser             = "bot"
+	BotUser    UserKind = "bot"
 )
 
 func (u *User) Valid() bool {
@@ -79,6 +79,7 @@ func (u *User) PermissionResource() permissions.Resource {
 }
 
 func (meta *UserMeta) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
 	switch value.(type) {
 	case nil:
 		*meta = UserMeta{}

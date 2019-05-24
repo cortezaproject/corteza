@@ -9,8 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/internal/test"
-	"github.com/crusttech/crust/system/types"
+	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 func TestCredentials(t *testing.T) {
@@ -19,7 +19,7 @@ func TestCredentials(t *testing.T) {
 		return
 	}
 
-	db := factory.Database.MustGet()
+	db := factory.Database.MustGet("system")
 
 	// Create credentials repository.
 	crepo := Credentials(context.Background(), db)

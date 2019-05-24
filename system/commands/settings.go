@@ -1,4 +1,4 @@
-package cli
+package commands
 
 import (
 	"context"
@@ -8,46 +8,72 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/crusttech/crust/internal/rand"
-	"github.com/crusttech/crust/internal/settings"
-	systemService "github.com/crusttech/crust/system/internal/service"
+	"github.com/cortezaproject/corteza-server/internal/rand"
+	"github.com/cortezaproject/corteza-server/internal/settings"
+	"github.com/cortezaproject/corteza-server/system/internal/service"
 )
 
-func settingsCmd(ctx context.Context, setSvc settings.Service) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "settings",
-		Short: "Settings management",
-	}
+func Settings(ctx context.Context) *cobra.Command {
+	var (
+		systemApiUrl, authFrontendUrl, authFromAddress, authFromName string
+
+		cmd = &cobra.Command{
+			Use:   "settings",
+			Short: "Settings management",
+		}
+	)
 
 	auto := &cobra.Command{
 		Use:   "auto-configure",
 		Short: "Run autoconfiguration",
 		Run: func(cmd *cobra.Command, args []string) {
-			systemService.DefaultSettings.LoadAuthSettings()
+			_, _ = service.DefaultSettings.LoadAuthSettings()
 
 			settingsAutoConfigure(
 				cmd,
-				setSvc,
-				cmd.Flags().Lookup("system-api-url").Value.String(),
-				cmd.Flags().Lookup("auth-frontend-url").Value.String(),
-				cmd.Flags().Lookup("auth-from-address").Value.String(),
-				cmd.Flags().Lookup("auth-from-address").Value.String(),
+				systemApiUrl,
+				authFrontendUrl,
+				authFromAddress,
+				authFromName,
 			)
 		},
 	}
 
-	auto.Flags().String("system-api-url", "", "System API URL (http://sytem.api.example.tld)")
-	auto.Flags().String("auth-frontend-url", "", "http://example.tld")
-	auto.Flags().String("auth-from-address", "", "name@example.tld")
-	auto.Flags().String("auth-from-name", "", "Name Surname")
+	auto.Flags().StringVar(
+		&systemApiUrl,
+		"system-api-url",
+		"",
+		"System API URL (http://sytem.api.example.tld)",
+	)
+
+	auto.Flags().StringVar(
+		&authFrontendUrl,
+		"auth-frontend-url",
+		"",
+		"http://example.tld",
+	)
+
+	auto.Flags().StringVar(
+		&authFromAddress,
+		"auth-from-address",
+		"",
+		"name@example.tld",
+	)
+
+	auto.Flags().StringVar(
+		&authFromName,
+		"auth-from-name",
+		"",
+		"Name Surname",
+	)
 
 	list := &cobra.Command{
 		Use:   "list",
 		Short: "List all",
 		Run: func(cmd *cobra.Command, args []string) {
 			prefix := cmd.Flags().Lookup("prefix").Value.String()
-			if kv, err := setSvc.FindByPrefix(prefix); err != nil {
-				exit(cmd, err)
+			if kv, err := service.DefaultIntSettings.FindByPrefix(prefix); err != nil {
+				exit(err)
 			} else {
 				for _, v := range kv {
 					cmd.Printf("%s\t%v\n", v.Name, v.Value)
@@ -64,12 +90,12 @@ func settingsCmd(ctx context.Context, setSvc settings.Service) *cobra.Command {
 		Short: "Get value (raw JSON) for a specific key",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			if v, err := setSvc.Get(args[0], 0); err != nil {
-				exit(cmd, err)
+			if v, err := service.DefaultIntSettings.Get(args[0], 0); err != nil {
+				exit(err)
 			} else if v != nil {
 				cmd.Printf("%v\n", v.Value)
 			}
-			exit(cmd, nil)
+			exit(nil)
 		},
 	}
 
@@ -84,10 +110,10 @@ func settingsCmd(ctx context.Context, setSvc settings.Service) *cobra.Command {
 			}
 
 			if err := v.SetValueAsString(value); err != nil {
-				exit(cmd, err)
+				exit(err)
 			}
 
-			exit(cmd, setSvc.Set(v))
+			exit(service.DefaultIntSettings.Set(v))
 		},
 	}
 
@@ -96,7 +122,7 @@ func settingsCmd(ctx context.Context, setSvc settings.Service) *cobra.Command {
 		Short: "Set value (raw JSON) for a specific key",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			exit(cmd, setSvc.Delete(args[0], 0))
+			exit(service.DefaultIntSettings.Delete(args[0], 0))
 		},
 	}
 
@@ -111,7 +137,7 @@ func settingsCmd(ctx context.Context, setSvc settings.Service) *cobra.Command {
 	return cmd
 }
 
-func settingsAutoConfigure(cmd *cobra.Command, setSvc settings.Service, systemApiUrl, frontendUrl, fromAddress, fromName string) {
+func settingsAutoConfigure(cmd *cobra.Command, systemApiUrl, frontendUrl, fromAddress, fromName string) {
 	set := func(name string, value interface{}) {
 		var (
 			v   *settings.Value
@@ -137,14 +163,14 @@ func settingsAutoConfigure(cmd *cobra.Command, setSvc settings.Service, systemAp
 			}
 		}
 
-		err = setSvc.Set(v)
+		err = service.DefaultIntSettings.Set(v)
 		if err != nil {
 			cmd.Printf("could not store setting: %v", err)
 		}
 	}
 
 	setIfMissing := func(name string, value interface{}) {
-		if existing, err := setSvc.Get(name, 0); err == nil && existing == nil {
+		if existing, err := service.DefaultIntSettings.Get(name, 0); err == nil && existing == nil {
 			set(name, value)
 		}
 	}
@@ -178,8 +204,8 @@ func settingsAutoConfigure(cmd *cobra.Command, setSvc settings.Service, systemAp
 
 	setIfMissing("auth.external.session-store-secure", func() interface{} {
 		// Try to determines if we need secure session store from redirect URL scheme
-		extRedirUrl, _ := setSvc.GetGlobalString("auth.external.redirect-url")
-		return strings.Index(extRedirUrl, "https://") > -1
+		extRedirUrl, _ := service.DefaultIntSettings.GetGlobalString("auth.external.redirect-url")
+		return strings.Contains(extRedirUrl, "https://")
 	})
 
 	if len(frontendUrl) > 0 {
@@ -205,7 +231,7 @@ func settingsAutoConfigure(cmd *cobra.Command, setSvc settings.Service, systemAp
 		if len(fromAddress) > 0 {
 			return fromAddress
 		}
-		return "change-me@local.crust.tech"
+		return "change-me@example.tld"
 	})
 
 	setIfMissing("auth.mail.from-name", func() interface{} {
@@ -213,7 +239,7 @@ func settingsAutoConfigure(cmd *cobra.Command, setSvc settings.Service, systemAp
 			return fromName
 		}
 
-		return "Crust Team"
+		return "Corteza Team"
 	})
 
 	// No external providers preconfigured, so disable

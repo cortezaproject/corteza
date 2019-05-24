@@ -8,8 +8,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/crusttech/crust/internal/rand"
-	intset "github.com/crusttech/crust/internal/settings"
+	"github.com/cortezaproject/corteza-server/internal/rand"
+	intset "github.com/cortezaproject/corteza-server/internal/settings"
 )
 
 const (
@@ -28,8 +28,6 @@ type (
 		sessionStoreSecret string
 		sessionStoreSecure bool
 		providers          map[string]externalAuthProvider
-
-		service intset.Service
 	}
 
 	externalAuthProvider struct {

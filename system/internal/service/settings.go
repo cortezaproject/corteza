@@ -6,11 +6,9 @@ import (
 
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
-	"github.com/crusttech/crust/internal/logger"
-	internalSettings "github.com/crusttech/crust/internal/settings"
-	"github.com/crusttech/crust/system/internal/repository"
+	internalSettings "github.com/cortezaproject/corteza-server/internal/settings"
+	"github.com/cortezaproject/corteza-server/system/internal/repository"
 )
 
 type (
@@ -62,9 +60,9 @@ func (svc settings) With(ctx context.Context) SettingsService {
 }
 
 // log() returns zap's logger with requestID from current context and fields.
-func (svc settings) log(fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-}
+// func (svc settings) log(fields ...zapcore.Field) *zap.Logger {
+// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+// }
 
 func (svc settings) FindByPrefix(prefix string) (vv internalSettings.ValueSet, err error) {
 	if !svc.ac.CanReadSettings(svc.ctx) {

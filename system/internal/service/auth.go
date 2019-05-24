@@ -13,10 +13,10 @@ import (
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/internal/rand"
-	"github.com/crusttech/crust/system/internal/repository"
-	"github.com/crusttech/crust/system/types"
+	"github.com/cortezaproject/corteza-server/internal/logger"
+	"github.com/cortezaproject/corteza-server/internal/rand"
+	"github.com/cortezaproject/corteza-server/system/internal/repository"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
