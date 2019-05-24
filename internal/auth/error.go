@@ -17,7 +17,7 @@ func (e authError) Error() string {
 }
 
 func (e authError) String() string {
-	return "crust.internal.auth." + string(e)
+	return "internal.auth." + string(e)
 }
 
 func (e authError) New() error {

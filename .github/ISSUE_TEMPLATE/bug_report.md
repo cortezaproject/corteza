@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-Thanks for helping us to improve Crust! We welcome all bug reports. Once we've verified and fixed your issue, we'll ping you in the comments to see if you can verify the fix.
+Thanks for helping us to improve Corteza! We welcome all bug reports. Once we've verified and fixed your issue, we'll ping you in the comments to see if you can verify the fix.
 We'll give you details on what version can be used to test the fix. Additionally, if you are interested in testing fixes that you ***didn't*** report, look for the issues with
 the `status/to-test` label. You can pick any of these up for verification. ***You can delete this message portion of the bug report.***
 

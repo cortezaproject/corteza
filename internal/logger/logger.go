@@ -6,14 +6,17 @@ import (
 )
 
 var (
+	DefaultLevel  = zap.NewAtomicLevel()
 	defaultLogger *zap.Logger
 )
 
 func Init(level zapcore.Level) {
+	DefaultLevel.SetLevel(level)
+
 	var (
 		err  error
 		conf = zap.Config{
-			Level:            zap.NewAtomicLevelAt(level),
+			Level:            DefaultLevel,
 			Development:      false,
 			Encoding:         "json",
 			EncoderConfig:    zap.NewProductionEncoderConfig(),

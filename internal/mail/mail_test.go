@@ -6,15 +6,14 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/crusttech/crust/internal/config"
-	"github.com/crusttech/crust/internal/test"
+	"github.com/cortezaproject/corteza-server/internal/test"
 )
 
 func TestDialerInvalidSetup(t *testing.T) {
 	defaultDialer = nil
 	defaultDialerError = nil
 
-	SetupDialer(nil)
+	SetupDialer("", 0, "", "", "")
 	test.Assert(t, defaultDialerError != nil, "'Missing SMTP configuration' error should be set, got: %v", defaultDialerError)
 	test.Assert(t, defaultDialer == nil, "defaultDialer should n be set, got: %v", defaultDialer)
 }
@@ -23,13 +22,7 @@ func TestDialerValidSetup(t *testing.T) {
 	defaultDialer = nil
 	defaultDialerError = nil
 
-	cfg := &config.SMTP{
-		Host: "localhost:321",
-		From: "some@email.tld",
-	}
-	cfg.Validate()
-
-	SetupDialer(cfg)
+	SetupDialer("localhost:321", 0, "", "", "some@email.tld")
 	test.Assert(t, defaultDialerError == nil, "defaultDialerError should be nil, got %v", defaultDialerError)
 	test.Assert(t, defaultDialer != nil, "defaultDialer should be set, got %v", defaultDialer)
 

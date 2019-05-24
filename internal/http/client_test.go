@@ -1,12 +1,10 @@
 package http
 
 import (
+	"net/http/httptest"
 	"testing"
 
-	"net/http/httptest"
-
-	"github.com/crusttech/crust/internal/config"
-	"github.com/crusttech/crust/internal/test"
+	"github.com/cortezaproject/corteza-server/internal/test"
 )
 
 func TestHTTPClient(t *testing.T) {
@@ -14,7 +12,7 @@ func TestHTTPClient(t *testing.T) {
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
-	client, err := New(&config.HTTPClient{
+	client, err := New(&Config{
 		Timeout: 10,
 	})
 	test.Assert(t, err == nil, "%+v", err)

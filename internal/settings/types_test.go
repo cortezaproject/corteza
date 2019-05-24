@@ -5,7 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx/types"
 
-	"github.com/crusttech/crust/internal/test"
+	"github.com/cortezaproject/corteza-server/internal/test"
 )
 
 func TestKV_Bool(t *testing.T) {

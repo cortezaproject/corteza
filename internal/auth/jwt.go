@@ -17,15 +17,18 @@ type (
 		expiry    int64
 		tokenAuth *jwtauth.JWTAuth
 	}
-
-	jwtSettingsGetter interface {
-		GetGlobalString(name string) (out string, err error)
-	}
 )
 
 var (
 	DefaultJwtHandler TokenHandler
 )
+
+func SetupDefault(secret string, expiry int) {
+	// Use JWT secret for hmac signer for now
+	DefaultSigner = HmacSigner(secret)
+	DefaultJwtHandler, _ = JWT(secret, int64(expiry))
+
+}
 
 func JWT(secret string, expiry int64) (jwt *token, err error) {
 	if len(secret) == 0 {
