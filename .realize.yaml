@@ -30,14 +30,15 @@ schema:
     run:
       status: true
   args:
-  - api
+    - serve-api
   watcher:
     paths:
       - .
-      - ../../system
+      - ../../messaging
+      - ../../pkg
       - ../../internal
     extensions:
-    - go
+      - go
     ignored_paths:
       - ../../vendor
       - ../../.git
@@ -53,17 +54,18 @@ schema:
     run:
       status: true
   args:
-  - api
+    - serve-api
   watcher:
     paths:
       - .
       - ../../messaging
+      - ../../pkg
       - ../../internal
     extensions:
-    - go
+      - go
     ignored_paths:
-    - ../../vendor
-    - ../../.git
+      - ../../vendor
+      - ../../.git
 
 # ######################################################################################################################
 - name: cmp
@@ -76,14 +78,15 @@ schema:
     run:
       status: true
   args:
-  - api
+    - serve-api
   watcher:
     paths:
       - .
       - ../../compose
+      - ../../pkg
       - ../../internal
     extensions:
-    - go
+      - go
     ignored_paths:
       - ../../vendor
       - ../../.git
