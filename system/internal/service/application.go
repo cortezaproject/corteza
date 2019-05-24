@@ -6,8 +6,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/system/internal/repository"
-	"github.com/crusttech/crust/system/types"
+	"github.com/cortezaproject/corteza-server/system/internal/repository"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (

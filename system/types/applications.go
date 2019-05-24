@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/crusttech/crust/internal/permissions"
+	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/pkg/errors"
 )
 
@@ -44,6 +44,7 @@ func (a Application) PermissionResource() permissions.Resource {
 }
 
 func (au *ApplicationUnify) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
 	switch value.(type) {
 	case nil:
 		au = nil

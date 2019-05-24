@@ -5,10 +5,10 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/internal/permissions"
-	internalSettings "github.com/crusttech/crust/internal/settings"
-	"github.com/crusttech/crust/system/internal/repository"
+	"github.com/cortezaproject/corteza-server/internal/logger"
+	"github.com/cortezaproject/corteza-server/internal/permissions"
+	internalSettings "github.com/cortezaproject/corteza-server/internal/settings"
+	"github.com/cortezaproject/corteza-server/system/internal/repository"
 )
 
 type (
@@ -22,7 +22,9 @@ type (
 )
 
 var (
-	permSvc       permissionServicer
+	DefaultPermissions permissionServicer
+	DefaultIntSettings internalSettings.Service
+
 	DefaultLogger *zap.Logger
 
 	DefaultAccessControl *accessControl
@@ -39,17 +41,17 @@ var (
 )
 
 func Init(ctx context.Context) (err error) {
-	intSet := internalSettings.NewService(internalSettings.NewRepository(repository.DB(ctx), "sys_settings"))
+	DefaultIntSettings = internalSettings.NewService(internalSettings.NewRepository(repository.DB(ctx), "sys_settings"))
 
 	DefaultLogger = logger.Default().Named("system.service")
 
-	permSvc = permissions.Service(
+	DefaultPermissions = permissions.Service(
 		ctx,
 		DefaultLogger,
 		permissions.Repository(repository.DB(ctx), "sys_permission_rules"))
-	DefaultAccessControl = AccessControl(permSvc)
+	DefaultAccessControl = AccessControl(DefaultPermissions)
 
-	DefaultSettings = Settings(ctx, intSet)
+	DefaultSettings = Settings(ctx, DefaultIntSettings)
 
 	DefaultUser = User(ctx)
 	DefaultRole = Role(ctx)
@@ -68,5 +70,5 @@ func Init(ctx context.Context) (err error) {
 }
 
 func Watchers(ctx context.Context) {
-	permSvc.Watch(ctx)
+	DefaultPermissions.Watch(ctx)
 }

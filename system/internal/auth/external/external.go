@@ -3,8 +3,8 @@ package external
 import (
 	"go.uber.org/zap"
 
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/internal/settings"
+	"github.com/cortezaproject/corteza-server/internal/logger"
+	"github.com/cortezaproject/corteza-server/internal/settings"
 )
 
 func Init(settingsService settings.Service) {

@@ -6,19 +6,15 @@ import (
 
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
-	internalAuth "github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/system/internal/repository"
-	"github.com/crusttech/crust/system/types"
+	internalAuth "github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/system/internal/repository"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 const (
 	ErrUserInvalidCredentials = serviceError("UserInvalidCredentials")
 	ErrUserLocked             = serviceError("UserLocked")
-
-	uuidLength = 36
 )
 
 type (
@@ -83,9 +79,9 @@ func (svc user) With(ctx context.Context) UserService {
 }
 
 // log() returns zap's logger with requestID from current context and fields.
-func (svc user) log(fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-}
+// func (svc user) log(fields ...zapcore.Field) *zap.Logger {
+// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+// }
 
 func (svc user) FindByID(ID uint64) (*types.User, error) {
 	if ID == 0 {

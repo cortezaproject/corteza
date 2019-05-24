@@ -23,8 +23,8 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/system/rest/request"
+	"github.com/cortezaproject/corteza-server/internal/logger"
+	"github.com/cortezaproject/corteza-server/system/rest/request"
 )
 
 // Internal API interface

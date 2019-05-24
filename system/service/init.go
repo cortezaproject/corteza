@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/crusttech/crust/system/internal/service"
+	"github.com/cortezaproject/corteza-server/system/internal/service"
 )
 
 func Init(ctx context.Context) error {

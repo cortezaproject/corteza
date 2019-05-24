@@ -6,7 +6,7 @@ import (
 
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/system/types"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -26,8 +26,7 @@ type (
 		*repository
 
 		// sql table reference
-		applications string
-		members      string
+		table string
 	}
 )
 
@@ -44,13 +43,13 @@ func Application(ctx context.Context, db *factory.DB) ApplicationRepository {
 
 func (r *application) With(ctx context.Context, db *factory.DB) ApplicationRepository {
 	return &application{
-		repository:   r.repository.With(ctx, db),
-		applications: "sys_application",
+		repository: r.repository.With(ctx, db),
+		table:      "sys_application",
 	}
 }
 
 func (r *application) FindByID(id uint64) (*types.Application, error) {
-	sql := "SELECT " + sqlApplicationColumns + " FROM " + r.applications + " WHERE id = ? AND " + sqlApplicationScope
+	sql := "SELECT " + sqlApplicationColumns + " FROM " + r.table + " WHERE id = ? AND " + sqlApplicationScope
 	mod := &types.Application{}
 
 	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrApplicationNotFound)
@@ -60,7 +59,7 @@ func (r *application) Find() (types.ApplicationSet, error) {
 	rval := make([]*types.Application, 0)
 	params := make([]interface{}, 0)
 
-	sql := "SELECT " + sqlApplicationColumns + " FROM " + r.applications + " WHERE " + sqlApplicationScope
+	sql := "SELECT " + sqlApplicationColumns + " FROM " + r.table + " WHERE " + sqlApplicationScope
 
 	sql += " ORDER BY id ASC"
 
@@ -71,15 +70,15 @@ func (r *application) Create(mod *types.Application) (*types.Application, error)
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
-	return mod, r.db().Insert(r.applications, mod)
+	return mod, r.db().Insert(r.table, mod)
 }
 
 func (r *application) Update(mod *types.Application) (*types.Application, error) {
 	mod.UpdatedAt = timeNowPtr()
 
-	return mod, r.db().Replace(r.applications, mod)
+	return mod, r.db().Replace(r.table, mod)
 }
 
 func (r *application) DeleteByID(id uint64) error {
-	return r.updateColumnByID(r.applications, "deleted_at", time.Now(), id)
+	return r.updateColumnByID(r.table, "deleted_at", time.Now(), id)
 }

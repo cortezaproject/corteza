@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	intset "github.com/crusttech/crust/internal/settings"
+	intset "github.com/cortezaproject/corteza-server/internal/settings"
 	"github.com/jmoiron/sqlx/types"
 )
 

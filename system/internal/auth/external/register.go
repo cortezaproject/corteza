@@ -7,6 +7,8 @@ import (
 	"github.com/crusttech/go-oidc"
 )
 
+// @todo remove dependency on github.com/crusttech/go-oidc (and github.com/coreos/go-oidc)
+//       and move client registration to corteza codebase
 func RegisterNewOpenIdClient(ctx context.Context, eas *externalAuthSettings, name, url string) (eap *externalAuthProvider, err error) {
 	var (
 		provider    *oidc.Provider
@@ -19,7 +21,7 @@ func RegisterNewOpenIdClient(ctx context.Context, eas *externalAuthSettings, nam
 	}
 
 	client, err = provider.RegisterClient(ctx, &oidc.ClientRegistration{
-		Name:          "Crust",
+		Name:          "Corteza",
 		RedirectURIs:  []string{redirectUrl},
 		ResponseTypes: []string{"token id_token", "code"},
 	})

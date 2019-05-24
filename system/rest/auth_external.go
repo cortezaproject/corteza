@@ -15,9 +15,9 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/system/internal/service"
+	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/logger"
+	"github.com/cortezaproject/corteza-server/system/internal/service"
 )
 
 type (
@@ -42,11 +42,11 @@ func (ctrl ExternalAuth) log(ctx context.Context, fields ...zapcore.Field) *zap.
 	return logger.ContextValue(ctx).Named("external-auth").With(fields...)
 }
 
-func (ctrl *ExternalAuth) MountRoutes(r chi.Router) {
+func (ctrl *ExternalAuth) ApiServerRoutes(r chi.Router) {
 
-	// Make sure we're backwards compatible and redirect /oidc to /auth/external/openid-connect.crust-iam
+	// Make sure we're backwards compatible and redirect /oidc to /auth/external/openid-connect.corteza-iam
 	r.Get("/oidc", func(w http.ResponseWriter, req *http.Request) {
-		http.Redirect(w, req, externalAuthBaseUrl+"/openid-connect.crust-iam", http.StatusMovedPermanently)
+		http.Redirect(w, req, externalAuthBaseUrl+"/openid-connect.corteza-iam", http.StatusMovedPermanently)
 	})
 
 	// Copy provider from path (Chi URL param) to request context and return it

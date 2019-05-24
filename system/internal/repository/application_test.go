@@ -9,8 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/internal/test"
-	"github.com/crusttech/crust/system/types"
+	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 func TestApplication(t *testing.T) {
@@ -19,7 +19,7 @@ func TestApplication(t *testing.T) {
 		return
 	}
 
-	db := factory.Database.MustGet()
+	db := factory.Database.MustGet("system")
 
 	// Create application repository.
 	crepo := Application(context.Background(), db)

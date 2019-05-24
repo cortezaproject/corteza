@@ -5,8 +5,8 @@ import (
 	"io"
 	"testing"
 
-	"github.com/crusttech/crust/system/internal/service"
-	"github.com/crusttech/crust/system/types"
+	"github.com/cortezaproject/corteza-server/system/internal/service"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (

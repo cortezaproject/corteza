@@ -1,4 +1,4 @@
-package cli
+package commands
 
 import (
 	"context"
@@ -9,12 +9,12 @@ import (
 	"github.com/titpetric/factory"
 	"golang.org/x/crypto/ssh/terminal"
 
-	"github.com/crusttech/crust/system/internal/repository"
-	"github.com/crusttech/crust/system/internal/service"
-	"github.com/crusttech/crust/system/types"
+	"github.com/cortezaproject/corteza-server/system/internal/repository"
+	"github.com/cortezaproject/corteza-server/system/internal/service"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
-func usersCmd(ctx context.Context, db *factory.DB) *cobra.Command {
+func Users(ctx context.Context) *cobra.Command {
 	// User management commands.
 	cmd := &cobra.Command{
 		Use:   "users",
@@ -26,6 +26,10 @@ func usersCmd(ctx context.Context, db *factory.DB) *cobra.Command {
 		Use:   "list",
 		Short: "List users",
 		Run: func(cmd *cobra.Command, args []string) {
+			var (
+				db = factory.Database.MustGet("system")
+			)
+
 			userRepo := repository.User(ctx, db)
 			uf := &types.UserFilter{
 				OrderBy: "updated_at",
@@ -33,7 +37,7 @@ func usersCmd(ctx context.Context, db *factory.DB) *cobra.Command {
 
 			users, err := userRepo.Find(uf)
 			if err != nil {
-				exit(cmd, err)
+				exit(err)
 			}
 
 			fmt.Println("                     Created    Updated    EmailAddress")
@@ -61,6 +65,8 @@ func usersCmd(ctx context.Context, db *factory.DB) *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
+				db = factory.Database.MustGet("system")
+
 				userRepo = repository.User(ctx, db)
 				authSvc  = service.Auth(ctx)
 
@@ -72,23 +78,23 @@ func usersCmd(ctx context.Context, db *factory.DB) *cobra.Command {
 			)
 
 			if user, err = userRepo.Create(user); err != nil {
-				exit(cmd, err)
+				exit(err)
 			}
 
 			cmd.Printf("User created [%d].\n", user.ID)
 
 			cmd.Print("Set password: ")
 			if password, err = terminal.ReadPassword(syscall.Stdin); err != nil {
-				exit(cmd, err)
+				exit(err)
 			}
 
 			if len(password) == 0 {
 				// Password not set, that's ok too.
-				exit(cmd, nil)
+				exit(nil)
 			}
 
 			if err = authSvc.SetPassword(user.ID, string(password)); err != nil {
-				exit(cmd, err)
+				exit(err)
 			}
 		},
 	}
@@ -99,6 +105,8 @@ func usersCmd(ctx context.Context, db *factory.DB) *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
+				db = factory.Database.MustGet("system")
+
 				userRepo = repository.User(ctx, db)
 				authSvc  = service.Auth(ctx)
 
@@ -108,21 +116,21 @@ func usersCmd(ctx context.Context, db *factory.DB) *cobra.Command {
 			)
 
 			if user, err = userRepo.FindByEmail(args[0]); err != nil {
-				exit(cmd, err)
+				exit(err)
 			}
 
 			cmd.Print("Set password: ")
 			if password, err = terminal.ReadPassword(syscall.Stdin); err != nil {
-				exit(cmd, err)
+				exit(err)
 			}
 
 			if len(password) == 0 {
 				// Password not set, that's ok too.
-				exit(cmd, nil)
+				exit(nil)
 			}
 
 			if err = authSvc.SetPassword(user.ID, string(password)); err != nil {
-				exit(cmd, err)
+				exit(err)
 			}
 		},
 	}

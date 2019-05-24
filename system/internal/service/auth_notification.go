@@ -9,8 +9,8 @@ import (
 	"go.uber.org/zap/zapcore"
 	gomail "gopkg.in/mail.v2"
 
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/internal/mail"
+	"github.com/cortezaproject/corteza-server/internal/logger"
+	"github.com/cortezaproject/corteza-server/internal/mail"
 )
 
 type (
@@ -68,7 +68,7 @@ var (
                       <tr>
                         <td style="padding:30px;border-top: 1px solid #F3F3F5">
                           <p>If you have any questions, please contact <a href="mailto:{{ .SignatureEmail }}" style="color:#1397CB;">{{ .SignatureEmail }}</a>.</p>
-                          <p>We hope you enjoy using Crust!</p>
+                          <p>We hope you enjoy using Corteza!</p>
                           <p>Best regards, <br>
                           {{ .SignatureName }}</p>
                         </td>
@@ -87,7 +87,7 @@ var (
 
 	// @todo Temporary email template storage
 	emailTemplates = map[string]string{
-		"email-confirmation.en.subject": `[Crust] Confirm your email address`,
+		"email-confirmation.en.subject": `[Corteza] Confirm your email address`,
 		"email-confirmation.en.html": emailTemplateHeader +
 			`<h2 style="color: #1397CB;text-align: center;">Confirm your email address</h2>
 			  <p>Hello,</p>
@@ -95,7 +95,7 @@ var (
 			  <p>You will be logged-in after successful confirmation.</p>` +
 			emailTemplateFooter,
 
-		"password-reset.en.subject": `[Crust] Reset your password`,
+		"password-reset.en.subject": `[Corteza] Reset your password`,
 		"password-reset.en.html": emailTemplateHeader +
 			`<h2 style="color: #1397CB;text-align: center;">Reset your password</h2>
 			  <p>Hello,</p>
