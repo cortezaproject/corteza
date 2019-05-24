@@ -1,15 +1,15 @@
-# What is Crust?
+# What is Corteza?
 
-[![Build Status](https://drone.crust.tech/api/badges/crusttech/crust/status.svg)](https://drone.crust.tech/crusttech/crust)
-[![Go Report Card](https://goreportcard.com/badge/github.com/crusttech/crust)](https://goreportcard.com/report/github.com/crusttech/crust)
+[![Build Status](https://drone.crust.tech/api/badges/cortezaproject/corteza/status.svg)](https://drone.crust.tech/cortezaproject/corteza)
+[![Go Report Card](https://goreportcard.com/badge/github.com/cortezaproject/corteza-server)](https://goreportcard.com/report/github.com/cortezaproject/corteza-server)
 
-Crust brings your user ecosystem and essential applications together on one platform, unifying them via CRM, Team Messaging and Advanced Identity and Access Management.
+Corteza brings your user ecosystem and essential applications together on one platform, unifying them via CRM, Team Messaging and Advanced Identity and Access Management.
 
-**Crust Messaging** is a secure, high performance, open source Slack alternative that allows your teams to collaborate more efficiently, as well as communicate safely with other organisations or customers.
+**Corteza Messaging** is a secure, high performance, open source Slack alternative that allows your teams to collaborate more efficiently, as well as communicate safely with other organisations or customers.
 
-**Crust CRM** is the highly flexible, scalable and open source Salesforce alternative, that enables you to sell faster and interact with leads, clients and team members easier then ever before. Seamless integration with Crust Messaging and Crust Identity and Access Management make it the most complete and flexible self-hosted CRM platform on the market.
+**Corteza Compose** is an open source Rapid Application Development (RAD) platform for custom web based business applications. Deliver the application you need more easily and faster then ever before with the drag and drop page builder, protect users with integrated Identity, Access and Privacy Management, and automate tasks with Compose’s advanced automation functionality. Corteza Compose is easy, fast and secure – your perfect ally to digitize your organisation’s business processes and customer engagement.
 
-**Crust Unify** manages user experience for Crust applications, such as Compose and Messaging, as well as providing an integrated interface for third party or other bespoke applications. 100% responsive and with an intuitive design, Crust Unify increases productivity and ease of access to all IT resources.
+**Corteza Unify** manages user experience for Corteza applications, such as Compose and Messaging, as well as providing an integrated interface for third party or other bespoke applications. 100% responsive and with an intuitive design, Corteza Unify increases productivity and ease of access to all IT resources.
 
 ## Contributing
 

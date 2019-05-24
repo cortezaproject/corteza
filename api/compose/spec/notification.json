@@ -24,19 +24,19 @@
           {
             "name": "to",
             "required": true,
-            "title": "Email addresses or Crust user IDs",
+            "title": "Email addresses",
             "type": "[]string"
           },
           {
             "name": "cc",
             "required": false,
-            "title": "Email addresses or Crust user IDs",
+            "title": "Email addresses",
             "type": "[]string"
           },
           {
             "name": "replyTo",
             "required": false,
-            "title": "Crust user ID or email address in reply-to field",
+            "title": "Email address in reply-to field",
             "type": "string"
           },
           {

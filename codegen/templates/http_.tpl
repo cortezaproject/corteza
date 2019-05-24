@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/crusttech/crust/{project}/rest/request"
+	"github.com/cortezaproject/corteza-server/{project}/rest/request"
 )
 
 var _ = errors.Wrap

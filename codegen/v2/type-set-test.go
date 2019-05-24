@@ -143,7 +143,7 @@ func main() {
 		"testing",
 		"errors",
 		"",
-		"github.com/crusttech/crust/internal/test",
+		"github.com/cortezaproject/corteza-server/internal/test",
 	}
 
 	flag.StringVar(&stdTypesStr, "types", "", "Comma separated list of types")
