@@ -7,20 +7,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/namsral/flag"
 	"github.com/titpetric/factory"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/crusttech/crust/internal/logger"
+	"github.com/cortezaproject/corteza-server/internal/logger"
 )
 
 func TestMain(m *testing.M) {
 	logger.Init(zapcore.DebugLevel)
 
-	dsn := ""
-	flag.StringVar(&dsn, "compose-db-dsn", "", "")
-	flag.Parse()
-	factory.Database.Add("compose", dsn)
+	factory.Database.Add("compose", os.Getenv("COMPOSE_DB_DSN"))
+	db := factory.Database.MustGet("compose")
+	db.Profiler = &factory.DatabaseProfilerStdout{}
 
 	os.Exit(m.Run())
 }

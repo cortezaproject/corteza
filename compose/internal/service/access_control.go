@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"github.com/crusttech/crust/compose/types"
-	"github.com/crusttech/crust/internal/permissions"
+	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/internal/permissions"
 )
 
 type (

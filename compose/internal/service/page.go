@@ -6,11 +6,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
-	"github.com/crusttech/crust/compose/internal/repository"
-	"github.com/crusttech/crust/compose/types"
-	"github.com/crusttech/crust/internal/logger"
+	"github.com/cortezaproject/corteza-server/compose/internal/repository"
+	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
 type (
@@ -74,9 +72,9 @@ func (svc page) With(ctx context.Context) PageService {
 }
 
 // log() returns zap's logger with requestID from current context and fields.
-func (svc page) log(fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-}
+// func (svc page) log(fields ...zapcore.Field) *zap.Logger {
+// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+// }
 
 func (svc page) FindByID(namespaceID, pageID uint64) (p *types.Page, err error) {
 	return svc.checkPermissions(svc.pageRepo.FindByID(namespaceID, pageID))

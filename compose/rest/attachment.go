@@ -9,10 +9,10 @@ import (
 
 	"github.com/titpetric/factory/resputil"
 
-	"github.com/crusttech/crust/compose/internal/service"
-	"github.com/crusttech/crust/compose/rest/request"
-	"github.com/crusttech/crust/compose/types"
-	"github.com/crusttech/crust/internal/auth"
+	"github.com/cortezaproject/corteza-server/compose/internal/service"
+	"github.com/cortezaproject/corteza-server/compose/rest/request"
+	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/internal/auth"
 
 	"github.com/pkg/errors"
 )

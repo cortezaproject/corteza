@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/compose/db/mysql"
+	"github.com/cortezaproject/corteza-server/compose/db/mysql"
 )
 
 func statements(contents []byte, err error) ([]string, error) {
@@ -31,13 +31,16 @@ func Migrate(db *factory.DB) error {
 
 	var files []string
 
-	if err := fs.Walk(statikFS, "/", func(filename string, info os.FileInfo, err error) error {
+	fn := func(filename string, info os.FileInfo, err error) error {
+		_ = err
 		matched, err := filepath.Match("/*.up.sql", filename)
 		if matched {
 			files = append(files, filename)
 		}
 		return err
-	}); err != nil {
+	}
+
+	if err = fs.Walk(statikFS, "/", fn); err != nil {
 		return errors.Wrap(err, "Error when listing files for migrations")
 	}
 

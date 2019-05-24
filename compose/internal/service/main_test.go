@@ -9,14 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/namsral/flag"
 	"github.com/titpetric/factory"
 	"go.uber.org/zap/zapcore"
 
-	composeMigrate "github.com/crusttech/crust/compose/db"
-	"github.com/crusttech/crust/compose/types"
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/internal/test"
+	composeMigrate "github.com/cortezaproject/corteza-server/compose/db"
+	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/internal/logger"
+	"github.com/cortezaproject/corteza-server/internal/test"
 )
 
 type (
@@ -28,12 +27,7 @@ func (mockDB) Transaction(callback func() error) error { return callback() }
 func TestMain(m *testing.M) {
 	logger.Init(zapcore.DebugLevel)
 
-	dsn := ""
-	flag.StringVar(&dsn, "compose-db-dsn", "", "")
-	flag.Parse()
-
-	factory.Database.Add("compose", dsn)
-
+	factory.Database.Add("compose", os.Getenv("COMPOSE_DB_DSN"))
 	db := factory.Database.MustGet("compose")
 	db.Profiler = &factory.DatabaseProfilerStdout{}
 

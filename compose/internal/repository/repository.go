@@ -7,7 +7,7 @@ import (
 	"github.com/titpetric/factory"
 	"gopkg.in/Masterminds/squirrel.v1"
 
-	"github.com/crusttech/crust/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/auth"
 )
 
 type (

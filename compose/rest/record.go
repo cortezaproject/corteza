@@ -7,9 +7,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/crusttech/crust/compose/internal/service"
-	"github.com/crusttech/crust/compose/rest/request"
-	"github.com/crusttech/crust/compose/types"
+	"github.com/cortezaproject/corteza-server/compose/internal/service"
+	"github.com/cortezaproject/corteza-server/compose/rest/request"
+	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
 var _ = errors.Wrap

@@ -1,5 +1,7 @@
 package request
 
+//lint:file-ignore U1000 Ignore unused code, part of request pkg toolset
+
 import (
 	"regexp"
 	"strconv"
@@ -10,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var truthy = regexp.MustCompile("^\\s*(t(rue)?|y(es)?|1)\\s*$")
+var truthy = regexp.MustCompile(`^\s*(t(rue)?|y(es)?|1)\s*$`)
 
 func parseJSONTextWithErr(s string) (types.JSONText, error) {
 	result := &types.JSONText{}
@@ -69,7 +71,7 @@ func parseUInt64(s string) uint64 {
 
 func parseUInt64A(values []string) []uint64 {
 	var result []uint64
-	if values != nil && len(values) > 0 {
+	if len(values) > 0 {
 		for _, val := range values {
 			result = append(result, parseUInt64(val))
 		}

@@ -3,8 +3,8 @@ package repository
 import (
 	"testing"
 
-	"github.com/crusttech/crust/compose/types"
-	"github.com/crusttech/crust/internal/test"
+	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/internal/test"
 )
 
 func TestRecordReportBuilder2(t *testing.T) {

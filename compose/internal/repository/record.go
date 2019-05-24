@@ -10,9 +10,9 @@ import (
 	"github.com/titpetric/factory"
 	"gopkg.in/Masterminds/squirrel.v1"
 
-	"github.com/crusttech/crust/compose/internal/repository/ql"
+	"github.com/cortezaproject/corteza-server/compose/internal/repository/ql"
 
-	"github.com/crusttech/crust/compose/types"
+	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
 type (

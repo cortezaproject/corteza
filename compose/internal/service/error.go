@@ -26,7 +26,7 @@ func (e serviceError) Error() string {
 }
 
 func (e serviceError) String() string {
-	return "crust.compose.service." + string(e)
+	return "compose.service." + string(e)
 }
 
 func (e serviceError) withStack() error {
