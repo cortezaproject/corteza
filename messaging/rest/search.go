@@ -3,11 +3,11 @@ package rest
 import (
 	"context"
 
-	"github.com/crusttech/crust/internal/payload"
-	"github.com/crusttech/crust/internal/payload/outgoing"
-	"github.com/crusttech/crust/messaging/internal/service"
-	"github.com/crusttech/crust/messaging/rest/request"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/payload"
+	"github.com/cortezaproject/corteza-server/internal/payload/outgoing"
+	"github.com/cortezaproject/corteza-server/messaging/internal/service"
+	"github.com/cortezaproject/corteza-server/messaging/rest/request"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 
 	"github.com/pkg/errors"
 )
@@ -29,13 +29,13 @@ func (Search) New() *Search {
 
 func (ctrl *Search) Messages(ctx context.Context, r *request.SearchMessages) (interface{}, error) {
 	return ctrl.wrapSet(ctx)(ctrl.svc.msg.With(ctx).Find(&types.MessageFilter{
-		ChannelID:      r.ChannelID,
+		ChannelID:      payload.ParseUInt64s(r.ChannelID),
 		AfterID:        r.AfterMessageID,
 		BeforeID:       r.BeforeMessageID,
 		FromID:         r.FromMessageID,
 		ToID:           r.ToMessageID,
-		ThreadID:       r.ThreadID,
-		UserID:         r.UserID,
+		ThreadID:       payload.ParseUInt64s(r.ThreadID),
+		UserID:         payload.ParseUInt64s(r.UserID),
 		Type:           r.Type,
 		PinnedOnly:     r.PinnedOnly,
 		BookmarkedOnly: r.BookmarkedOnly,
@@ -47,7 +47,7 @@ func (ctrl *Search) Messages(ctx context.Context, r *request.SearchMessages) (in
 
 func (ctrl *Search) Threads(ctx context.Context, r *request.SearchThreads) (interface{}, error) {
 	return ctrl.wrapSet(ctx)(ctrl.svc.msg.With(ctx).FindThreads(&types.MessageFilter{
-		ChannelID: r.ChannelID,
+		ChannelID: payload.ParseUInt64s(r.ChannelID),
 		Limit:     r.Limit,
 
 		Query: r.Query,

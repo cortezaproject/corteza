@@ -54,5 +54,5 @@ type (
 
 const (
 	IncomingWebhook WebhookKind = "incoming"
-	OutgoingWebhook             = "outgoing"
+	OutgoingWebhook WebhookKind = "outgoing"
 )

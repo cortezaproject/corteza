@@ -1,7 +1,7 @@
 package websocket
 
 import (
-	"github.com/crusttech/crust/internal/payload"
+	"github.com/cortezaproject/corteza-server/internal/payload"
 	"github.com/pkg/errors"
 )
 

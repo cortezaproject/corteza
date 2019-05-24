@@ -25,25 +25,27 @@ type (
 	}
 )
 
-var pubsub *PubSub
+// var pubsub *PubSub
 
 func (PubSub) New() *PubSub {
-	// return singleton client
-	if pubsub != nil {
-		return pubsub
-	}
+	panic("pending reimplementation")
+	// @todo should be configured much earlier, do not depend on flags here
+	// // return singleton client
+	// if pubsub != nil {
+	// 	return pubsub
+	// }
+	//
+	// // store the singleton instance
+	// save := func(client pubSubModule) *PubSub {
+	// 	pubsub = &PubSub{client}
+	// 	return pubsub
+	// }
 
-	// store the singleton instance
-	save := func(client pubSubModule) *PubSub {
-		pubsub = &PubSub{client}
-		return pubsub
-	}
-
-	// create isntances based on mode
-	if flags != nil && flags.PubSub.Mode == "redis" {
-		return save(PubSubRedis{}.New(flags.PubSub))
-	}
-	return save(PubSubMemory{}.New(flags.PubSub))
+	// // create isntances based on mode
+	// if flags != nil && flags.PubSub.Mode == "redis" {
+	// 	return save(PubSubRedis{}.New(flags.PubSub))
+	// }
+	// return save(PubSubMemory{}.New(flags.PubSub))
 }
 
 func (ps *PubSub) Subscribe(ctx context.Context, channel string, onStart func() error, onMessage func(channel string, message []byte) error) error {

@@ -8,8 +8,8 @@ import (
 
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/internal/test"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 func TestMessage(t *testing.T) {
@@ -20,8 +20,8 @@ func TestMessage(t *testing.T) {
 		return
 	}
 
-	msgRpo := Message(context.Background(), factory.Database.MustGet())
-	chRpo := Channel(context.Background(), factory.Database.MustGet())
+	msgRpo := Message(context.Background(), factory.Database.MustGet("messaging"))
+	chRpo := Channel(context.Background(), factory.Database.MustGet("messaging"))
 
 	var msg1, msg2 = "Test message v1", "Test message v2"
 
@@ -75,8 +75,8 @@ func TestReplies(t *testing.T) {
 		return
 	}
 
-	msgRpo := Message(context.Background(), factory.Database.MustGet())
-	chRpo := Channel(context.Background(), factory.Database.MustGet())
+	msgRpo := Message(context.Background(), factory.Database.MustGet("messaging"))
+	chRpo := Channel(context.Background(), factory.Database.MustGet("messaging"))
 
 	var mm types.MessageSet
 

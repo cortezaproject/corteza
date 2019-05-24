@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/permissions"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/permissions"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 type (

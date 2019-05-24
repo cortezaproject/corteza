@@ -8,18 +8,17 @@ import (
 	"github.com/titpetric/factory/resputil"
 	"go.uber.org/zap"
 
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/messaging/internal/repository"
+	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/logger"
 )
 
 type (
 	Websocket struct {
-		config *repository.Flags
+		config *Config
 	}
 )
 
-func (Websocket) New(config *repository.Flags) *Websocket {
+func (Websocket) New(config *Config) *Websocket {
 	ws := &Websocket{
 		config: config,
 	}

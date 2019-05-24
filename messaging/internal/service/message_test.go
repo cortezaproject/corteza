@@ -1,19 +1,14 @@
 package service
 
 import (
-	"context"
 	"strings"
 	"testing"
 
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/test"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 func TestMessageLength(t *testing.T) {
-	ctx := context.Background()
-	ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(1337))
-
 	svc := message{}
 	e := func(out *types.Message, err error) error { return err }
 

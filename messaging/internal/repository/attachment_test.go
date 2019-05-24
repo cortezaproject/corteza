@@ -8,8 +8,8 @@ import (
 
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/internal/test"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 func TestAttachment(t *testing.T) {
@@ -20,7 +20,7 @@ func TestAttachment(t *testing.T) {
 		return
 	}
 
-	rpo := Attachment(context.Background(), factory.Database.MustGet())
+	rpo := Attachment(context.Background(), factory.Database.MustGet("messaging"))
 	att := &types.Attachment{}
 
 	att.UserID = 1

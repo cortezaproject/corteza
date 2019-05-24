@@ -7,10 +7,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/organization"
-	"github.com/crusttech/crust/messaging/internal/repository"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/organization"
+	"github.com/cortezaproject/corteza-server/messaging/internal/repository"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 type (
@@ -218,7 +218,7 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 	return out, svc.db.Transaction(func() (err error) {
 		var msg *types.Message
 
-		var organisationID = organization.Crust().ID
+		var organisationID = organization.Corteza().ID
 
 		var chCreatorID = repository.Identity(svc.ctx)
 

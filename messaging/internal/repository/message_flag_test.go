@@ -8,8 +8,8 @@ import (
 
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/internal/test"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 func TestReaction(t *testing.T) {
@@ -20,7 +20,7 @@ func TestReaction(t *testing.T) {
 		return
 	}
 
-	rpo := MessageFlag(context.Background(), factory.Database.MustGet())
+	rpo := MessageFlag(context.Background(), factory.Database.MustGet("messaging"))
 
 	tx(t, func() error {
 		var chID = factory.Sonyflake.NextID()

@@ -10,13 +10,12 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/internal/payload"
-	"github.com/crusttech/crust/internal/payload/outgoing"
-	"github.com/crusttech/crust/messaging/internal/repository"
-	"github.com/crusttech/crust/messaging/internal/service"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/logger"
+	"github.com/cortezaproject/corteza-server/internal/payload"
+	"github.com/cortezaproject/corteza-server/internal/payload/outgoing"
+	"github.com/cortezaproject/corteza-server/messaging/internal/service"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 type (
@@ -38,7 +37,7 @@ type (
 
 		remoteAddr string
 
-		config *repository.Flags
+		config *Config
 
 		user auth.Identifiable
 
@@ -49,7 +48,7 @@ type (
 	}
 )
 
-func (Session) New(ctx context.Context, config *repository.Flags, conn *websocket.Conn) *Session {
+func (Session) New(ctx context.Context, config *Config, conn *websocket.Conn) *Session {
 
 	s := &Session{
 		conn:   conn,
@@ -176,12 +175,12 @@ func (sess *Session) readLoop() (err error) {
 		sess.Close()
 	}()
 
-	if err = sess.conn.SetReadDeadline(time.Now().Add(sess.config.Websocket.PingTimeout)); err != nil {
+	if err = sess.conn.SetReadDeadline(time.Now().Add(sess.config.PingTimeout)); err != nil {
 		return
 	}
 
 	sess.conn.SetPongHandler(func(string) error {
-		return sess.conn.SetReadDeadline(time.Now().Add(sess.config.Websocket.PingTimeout))
+		return sess.conn.SetReadDeadline(time.Now().Add(sess.config.PingTimeout))
 	})
 
 	sess.remoteAddr = sess.conn.RemoteAddr().String()
@@ -200,7 +199,7 @@ func (sess *Session) readLoop() (err error) {
 }
 
 func (sess *Session) writeLoop() error {
-	ticker := time.NewTicker(sess.config.Websocket.PingPeriod)
+	ticker := time.NewTicker(sess.config.PingPeriod)
 
 	defer func() {
 		ticker.Stop()
@@ -213,7 +212,7 @@ func (sess *Session) writeLoop() error {
 			return
 		}
 
-		if err = sess.conn.SetWriteDeadline(time.Now().Add(sess.config.Websocket.Timeout)); err != nil {
+		if err = sess.conn.SetWriteDeadline(time.Now().Add(sess.config.Timeout)); err != nil {
 			return
 		}
 
@@ -230,7 +229,7 @@ func (sess *Session) writeLoop() error {
 			return
 		}
 
-		if err = sess.conn.SetWriteDeadline(time.Now().Add(sess.config.Websocket.Timeout)); err != nil {
+		if err = sess.conn.SetWriteDeadline(time.Now().Add(sess.config.Timeout)); err != nil {
 			return
 		}
 

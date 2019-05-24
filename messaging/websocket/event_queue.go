@@ -6,10 +6,10 @@ import (
 
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/internal/payload"
-	"github.com/crusttech/crust/internal/payload/outgoing"
-	"github.com/crusttech/crust/messaging/internal/repository"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/payload"
+	"github.com/cortezaproject/corteza-server/internal/payload/outgoing"
+	"github.com/cortezaproject/corteza-server/messaging/internal/repository"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 type (
@@ -53,7 +53,7 @@ func (eq *eventQueue) store(ctx context.Context, qp repository.EventsRepository)
 	}()
 }
 
-func (eq *eventQueue) feedSessions(ctx context.Context, config *repository.Flags, qp repository.EventsRepository, store eventQueueWalker) error {
+func (eq *eventQueue) feedSessions(ctx context.Context, qp repository.EventsRepository, store eventQueueWalker) error {
 	for {
 		item, err := qp.Pull(ctx)
 		if err != nil {
@@ -110,11 +110,11 @@ func (eq *eventQueue) feedSessions(ctx context.Context, config *repository.Flags
 }
 
 // Adds origin to the event and puts it into queue.
-func (eq *eventQueue) push(ctx context.Context, eqi *types.EventQueueItem) {
-	eqi.Origin = eq.origin
-
-	select {
-	case <-ctx.Done():
-	case eq.queue <- eqi:
-	}
-}
+// func (eq *eventQueue) push(ctx context.Context, eqi *types.EventQueueItem) {
+// 	eqi.Origin = eq.origin
+//
+// 	select {
+// 	case <-ctx.Done():
+// 	case eq.queue <- eqi:
+// 	}
+// }

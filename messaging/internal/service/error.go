@@ -18,7 +18,7 @@ func (e serviceError) Error() string {
 }
 
 func (e serviceError) String() string {
-	return "crust.messaging.service." + string(e)
+	return "messaging.service." + string(e)
 }
 
 func (e serviceError) withStack() error {

@@ -10,14 +10,12 @@ import (
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/http"
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/internal/store"
-	"github.com/crusttech/crust/messaging/internal/repository"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/http"
+	"github.com/cortezaproject/corteza-server/internal/store"
+	"github.com/cortezaproject/corteza-server/messaging/internal/repository"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 type (
@@ -80,9 +78,9 @@ func (svc webhook) With(ctx context.Context) WebhookService {
 }
 
 // log() returns zap's logger with requestID from current context and fields.
-func (svc webhook) log(fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-}
+// func (svc webhook) log(fields ...zapcore.Field) *zap.Logger {
+// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+// }
 
 func (svc webhook) Create(kind types.WebhookKind, channelID uint64, params types.WebhookRequest) (*types.Webhook, error) {
 	var userID = repository.Identity(svc.ctx)

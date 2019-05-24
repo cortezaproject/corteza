@@ -56,6 +56,7 @@ func (set ChannelMemberSet) FindByChannelID(channelID uint64) (out ChannelMember
 }
 
 func (set *CommandParamSet) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
 	switch value.(type) {
 	case nil:
 		*set = CommandParamSet{}

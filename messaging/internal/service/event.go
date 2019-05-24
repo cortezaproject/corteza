@@ -4,13 +4,11 @@ import (
 	"context"
 
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/internal/payload"
-	"github.com/crusttech/crust/internal/payload/outgoing"
-	"github.com/crusttech/crust/messaging/internal/repository"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/payload"
+	"github.com/cortezaproject/corteza-server/internal/payload/outgoing"
+	"github.com/cortezaproject/corteza-server/messaging/internal/repository"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 type (
@@ -49,9 +47,9 @@ func (svc event) With(ctx context.Context) EventService {
 }
 
 // log() returns zap's logger with requestID from current context and fields.
-func (svc event) log(fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-}
+// func (svc event) log(fields ...zapcore.Field) *zap.Logger {
+// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+// }
 
 // Message sends message events to subscribers
 func (svc event) Message(m *types.Message) error {

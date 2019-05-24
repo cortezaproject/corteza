@@ -8,13 +8,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/namsral/flag"
 	"github.com/titpetric/factory"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/crusttech/crust/internal/logger"
-	messagingMigrate "github.com/crusttech/crust/messaging/db"
-	"github.com/crusttech/crust/messaging/internal/repository"
+	"github.com/cortezaproject/corteza-server/internal/logger"
+	messagingMigrate "github.com/cortezaproject/corteza-server/messaging/db"
 )
 
 type mockDB struct{}
@@ -24,33 +22,14 @@ func (mockDB) Transaction(callback func() error) error { return callback() }
 func TestMain(m *testing.M) {
 	logger.Init(zapcore.DebugLevel)
 
-	dsn := ""
-	new(repository.Flags).Init("messaging")
-	flag.StringVar(&dsn, "db-dsn", "crust:crust@tcp(crust-db:3306)/crust?collation=utf8mb4_general_ci", "DSN for database connection")
-	flag.Parse()
-
-	factory.Database.Add("default", dsn)
-	factory.Database.Add("messaging", dsn)
-
-	// @todo: add flags to configure the sql profiler in tests
-
-	db := factory.Database.MustGet()
+	factory.Database.Add("messaging", os.Getenv("MESSAGING_DB_DSN"))
+	db := factory.Database.MustGet("messaging")
 	db.Profiler = &factory.Database.ProfilerStdout
 
 	// migrate database schema
 	if err := messagingMigrate.Migrate(db); err != nil {
 		fmt.Printf("Error running migrations: %+v\n", err)
 		return
-	}
-
-	// clean up tables
-	{
-		for _, name := range []string{"sys_user", "sys_role", "sys_role_member", "sys_organisation"} {
-			_, err := db.Exec("truncate " + name)
-			if err != nil {
-				panic("Error when clearing " + name + ": " + err.Error())
-			}
-		}
 	}
 
 	Init(context.Background())

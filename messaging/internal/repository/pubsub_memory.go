@@ -5,17 +5,18 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-
-	"github.com/crusttech/crust/internal/config"
 )
 
 type PubSubMemory struct {
-	config *config.PubSub
-	input  chan *PubSubPayload
+	pollingInterval time.Duration
+	input           chan *PubSubPayload
 }
 
-func (PubSubMemory) New(config *config.PubSub) *PubSubMemory {
-	return &PubSubMemory{config, make(chan *PubSubPayload, 512)}
+func (PubSubMemory) New(pollingInterval time.Duration) *PubSubMemory {
+	return &PubSubMemory{
+		pollingInterval: pollingInterval,
+		input:           make(chan *PubSubPayload, 512),
+	}
 }
 
 func (ps *PubSubMemory) Subscribe(ctx context.Context, channel string, onStart func() error, onMessage func(channel string, payload []byte) error) error {
@@ -34,7 +35,7 @@ func (ps *PubSubMemory) Subscribe(ctx context.Context, channel string, onStart f
 					onMessage(msg.Channel, msg.Message)
 				}
 			// polling event
-			case <-time.After(ps.config.PollingInterval):
+			case <-time.After(ps.pollingInterval):
 				onMessage(channel, []byte("pubsub tick event"))
 			}
 		}

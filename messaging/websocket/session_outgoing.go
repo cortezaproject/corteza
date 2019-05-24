@@ -3,9 +3,9 @@ package websocket
 import (
 	"time"
 
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/messaging/internal/repository"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/logger"
+	"github.com/cortezaproject/corteza-server/messaging/internal/repository"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 // Sends message to subscribers
