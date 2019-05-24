@@ -20,7 +20,7 @@ func (e repositoryError) Error() string {
 }
 
 func (e repositoryError) String() string {
-	return "crust.messaging.repository." + string(e)
+	return "messaging.repository." + string(e)
 }
 
 func (e repositoryError) New() error {

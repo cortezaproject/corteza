@@ -3,12 +3,12 @@ package rest
 import (
 	"context"
 
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/payload"
-	"github.com/crusttech/crust/internal/payload/outgoing"
-	"github.com/crusttech/crust/messaging/internal/service"
-	"github.com/crusttech/crust/messaging/rest/request"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/payload"
+	"github.com/cortezaproject/corteza-server/internal/payload/outgoing"
+	"github.com/cortezaproject/corteza-server/messaging/internal/service"
+	"github.com/cortezaproject/corteza-server/messaging/rest/request"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 )
@@ -148,14 +148,6 @@ func (ctrl *Channel) wrapSet(cc types.ChannelSet, err error) (*outgoing.ChannelS
 		return nil, err
 	} else {
 		return payload.Channels(cc), nil
-	}
-}
-
-func (ctrl *Channel) wrapMember(m *types.ChannelMember, err error) (*outgoing.ChannelMember, error) {
-	if err != nil {
-		return nil, err
-	} else {
-		return payload.ChannelMember(m), nil
 	}
 }
 

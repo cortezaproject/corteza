@@ -6,11 +6,11 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 
-	"github.com/crusttech/crust/internal/payload"
-	"github.com/crusttech/crust/internal/payload/outgoing"
-	"github.com/crusttech/crust/messaging/internal/service"
-	"github.com/crusttech/crust/messaging/rest/request"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/payload"
+	"github.com/cortezaproject/corteza-server/internal/payload/outgoing"
+	"github.com/cortezaproject/corteza-server/messaging/internal/service"
+	"github.com/cortezaproject/corteza-server/messaging/rest/request"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 var _ = errors.Wrap
@@ -96,16 +96,6 @@ func (ctrl *Message) wrap(ctx context.Context) func(m *types.Message, err error)
 			return nil, err
 		} else {
 			return payload.Message(ctx, m), nil
-		}
-	}
-}
-
-func (ctrl *Message) wrapSet(ctx context.Context) func(mm types.MessageSet, err error) (*outgoing.MessageSet, error) {
-	return func(mm types.MessageSet, err error) (*outgoing.MessageSet, error) {
-		if err != nil {
-			return nil, err
-		} else {
-			return payload.Messages(ctx, mm), nil
 		}
 	}
 }

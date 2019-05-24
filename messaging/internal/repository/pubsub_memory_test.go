@@ -4,14 +4,10 @@ import (
 	"context"
 	"testing"
 	"time"
-
-	"github.com/crusttech/crust/internal/config"
 )
 
 func TestPubSubMemory(t *testing.T) {
-	p := PubSubMemory{}.New(&config.PubSub{
-		PollingInterval: time.Second,
-	})
+	p := PubSubMemory{}.New(time.Second)
 
 	calledOnConnect := false
 	calledOnMessage := 0
@@ -33,8 +29,8 @@ func TestPubSubMemory(t *testing.T) {
 		done <- p.Subscribe(ctx, "events", onConnect, onMessage)
 	}()
 
-	p.Publish(ctx, "events", "new message event")
-	p.Publish(ctx, "events", "new message event")
+	_ = p.Publish(ctx, "events", "new message event")
+	_ = p.Publish(ctx, "events", "new message event")
 
 	time.Sleep(2 * time.Millisecond)
 

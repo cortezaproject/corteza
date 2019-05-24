@@ -5,24 +5,31 @@ import (
 	"time"
 
 	"github.com/gomodule/redigo/redis"
-
-	"github.com/crusttech/crust/internal/config"
 )
 
 type PubSubRedis struct {
-	config *config.PubSub
+	addr string
+
+	timeout     time.Duration
+	pingTimeout time.Duration
+	pingPeriod  time.Duration
 }
 
-func (PubSubRedis) New(config *config.PubSub) *PubSubRedis {
-	return &PubSubRedis{config}
+func (PubSubRedis) New(addr string, to, pt, pp time.Duration) *PubSubRedis {
+	return &PubSubRedis{
+		addr:        addr,
+		timeout:     to,
+		pingTimeout: pt,
+		pingPeriod:  pp,
+	}
 }
 
 func (ps *PubSubRedis) dial() (redis.Conn, error) {
 	return redis.Dial(
 		"tcp",
-		ps.config.RedisAddr,
-		redis.DialReadTimeout(ps.config.PingTimeout+ps.config.Timeout),
-		redis.DialWriteTimeout(ps.config.Timeout),
+		ps.addr,
+		redis.DialReadTimeout(ps.pingTimeout+ps.timeout),
+		redis.DialWriteTimeout(ps.timeout),
 	)
 }
 
@@ -78,7 +85,7 @@ func (ps *PubSubRedis) Subscribe(ctx context.Context, channel string, onStart fu
 
 	for {
 		select {
-		case <-time.After(ps.config.PingPeriod):
+		case <-time.After(ps.pingPeriod):
 			if err := psc.Ping(""); err != nil {
 				return cleanup(err)
 			}

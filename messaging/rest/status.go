@@ -5,8 +5,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/crusttech/crust/messaging/rest/request"
-	"github.com/crusttech/crust/messaging/websocket"
+	"github.com/cortezaproject/corteza-server/messaging/rest/request"
+	"github.com/cortezaproject/corteza-server/messaging/websocket"
 )
 
 var _ = errors.Wrap

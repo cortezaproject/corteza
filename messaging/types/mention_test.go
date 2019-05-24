@@ -3,7 +3,7 @@ package types
 import (
 	"testing"
 
-	"github.com/crusttech/crust/internal/test"
+	"github.com/cortezaproject/corteza-server/internal/test"
 )
 
 func TestMentionSet_Diff(t *testing.T) {

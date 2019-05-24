@@ -5,10 +5,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/messaging/internal/service"
-	"github.com/crusttech/crust/messaging/rest/request"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/messaging/internal/service"
+	"github.com/cortezaproject/corteza-server/messaging/rest/request"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 var _ = errors.Wrap

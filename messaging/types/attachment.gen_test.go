@@ -5,7 +5,7 @@ import (
 
 	"errors"
 
-	"github.com/crusttech/crust/internal/test"
+	"github.com/cortezaproject/corteza-server/internal/test"
 )
 
 // 	Hello! This file is auto-generated.

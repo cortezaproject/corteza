@@ -6,7 +6,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/crusttech/crust/internal/test"
+	"github.com/cortezaproject/corteza-server/internal/test"
 )
 
 func TestRepository(t *testing.T) {

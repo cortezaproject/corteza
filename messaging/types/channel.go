@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	"github.com/crusttech/crust/internal/permissions"
+	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/jmoiron/sqlx/types"
 )
 
@@ -70,8 +70,8 @@ func (c *Channel) IsValid() bool {
 
 const (
 	ChannelTypePublic  ChannelType = "public"
-	ChannelTypePrivate             = "private"
-	ChannelTypeGroup               = "group"
+	ChannelTypePrivate ChannelType = "private"
+	ChannelTypeGroup   ChannelType = "group"
 )
 
 func (mtype ChannelType) String() string {

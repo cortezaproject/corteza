@@ -7,7 +7,7 @@ import (
 
 	"database/sql/driver"
 
-	"github.com/crusttech/crust/internal/permissions"
+	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/pkg/errors"
 )
 
@@ -80,10 +80,10 @@ type (
 
 const (
 	MessageTypeSimpleMessage MessageType = ""
-	MessageTypeChannelEvent              = "channelEvent"
-	MessageTypeInlineImage               = "inlineImage"
-	MessageTypeAttachment                = "attachment"
-	MessageTypeIlleism                   = "illeism"
+	MessageTypeChannelEvent  MessageType = "channelEvent"
+	MessageTypeInlineImage   MessageType = "inlineImage"
+	MessageTypeAttachment    MessageType = "attachment"
+	MessageTypeIlleism       MessageType = "illeism"
 )
 
 func (mtype MessageType) String() string {
@@ -148,6 +148,7 @@ func (m Message) PermissionResource() permissions.Resource {
 }
 
 func (meta *MessageMeta) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
 	switch value.(type) {
 	case nil:
 		*meta = MessageMeta{}

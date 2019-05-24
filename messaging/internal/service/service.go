@@ -6,12 +6,11 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/crusttech/crust/internal/config"
-	"github.com/crusttech/crust/internal/http"
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/internal/permissions"
-	"github.com/crusttech/crust/internal/store"
-	"github.com/crusttech/crust/messaging/internal/repository"
+	"github.com/cortezaproject/corteza-server/internal/http"
+	"github.com/cortezaproject/corteza-server/internal/logger"
+	"github.com/cortezaproject/corteza-server/internal/permissions"
+	"github.com/cortezaproject/corteza-server/internal/store"
+	"github.com/cortezaproject/corteza-server/messaging/internal/repository"
 )
 
 type (
@@ -26,7 +25,7 @@ type (
 )
 
 var (
-	permSvc permissionServicer
+	DefaultPermissions permissionServicer
 
 	DefaultLogger *zap.Logger
 
@@ -35,7 +34,6 @@ var (
 	DefaultAttachment AttachmentService
 	DefaultChannel    ChannelService
 	DefaultMessage    MessageService
-	DefaultPubSub     *pubSub
 	DefaultEvent      EventService
 	DefaultCommand    CommandService
 	DefaultWebhook    WebhookService
@@ -47,7 +45,7 @@ func Init(ctx context.Context) error {
 		return err
 	}
 
-	client, err := http.New(&config.HTTPClient{
+	client, err := http.New(&http.Config{
 		Timeout: 10,
 	})
 	if err != nil {
@@ -56,25 +54,20 @@ func Init(ctx context.Context) error {
 
 	DefaultLogger = logger.Default().Named("messaging.service")
 
-	permSvc = permissions.Service(
+	DefaultPermissions = permissions.Service(
 		ctx,
 		DefaultLogger,
 		permissions.Repository(repository.DB(ctx), "messaging_permission_rules"))
-	DefaultAccessControl = AccessControl(permSvc)
+	DefaultAccessControl = AccessControl(DefaultPermissions)
 
 	DefaultEvent = Event(ctx)
 	DefaultChannel = Channel(ctx)
 	DefaultAttachment = Attachment(ctx, fs)
 	DefaultMessage = Message(ctx)
-	DefaultPubSub = PubSub()
 	DefaultCommand = Command(ctx)
 	DefaultWebhook = Webhook(ctx, client)
 
 	return nil
-}
-
-func Watchers(ctx context.Context) {
-	permSvc.Watch(ctx)
 }
 
 func timeNowPtr() *time.Time {

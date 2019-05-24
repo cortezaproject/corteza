@@ -72,6 +72,7 @@ func (a *Attachment) imageMeta(in *attachmentFileMeta, width, height int, animat
 }
 
 func (meta *attachmentMeta) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
 	switch value.(type) {
 	case nil:
 		*meta = attachmentMeta{}

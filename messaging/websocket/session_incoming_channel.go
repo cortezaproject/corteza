@@ -3,11 +3,11 @@ package websocket
 import (
 	"context"
 
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/payload"
-	"github.com/crusttech/crust/internal/payload/incoming"
-	"github.com/crusttech/crust/internal/payload/outgoing"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/payload"
+	"github.com/cortezaproject/corteza-server/internal/payload/incoming"
+	"github.com/cortezaproject/corteza-server/internal/payload/outgoing"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 func (s *Session) channelJoin(ctx context.Context, p *incoming.ChannelJoin) error {
@@ -72,7 +72,7 @@ func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) 
 		ch.Type = types.ChannelType(*p.Type)
 	}
 
-	ch, err = s.svc.ch.With(ctx).Create(ch)
+	_, err = s.svc.ch.With(ctx).Create(ch)
 	if err != nil {
 		return err
 	}

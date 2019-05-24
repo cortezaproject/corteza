@@ -26,7 +26,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
 
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 var _ = chi.URLParam

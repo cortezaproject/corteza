@@ -32,13 +32,13 @@ var _ = multipart.FileHeader{}
 
 // Search messages request parameters
 type SearchMessages struct {
-	ChannelID       []uint64 `json:",string"`
-	AfterMessageID  uint64   `json:",string"`
-	BeforeMessageID uint64   `json:",string"`
-	FromMessageID   uint64   `json:",string"`
-	ToMessageID     uint64   `json:",string"`
-	ThreadID        []uint64 `json:",string"`
-	UserID          []uint64 `json:",string"`
+	ChannelID       []string
+	AfterMessageID  uint64 `json:",string"`
+	BeforeMessageID uint64 `json:",string"`
+	FromMessageID   uint64 `json:",string"`
+	ToMessageID     uint64 `json:",string"`
+	ThreadID        []string
+	UserID          []string
 	Type            []string
 	PinnedOnly      bool
 	BookmarkedOnly  bool
@@ -96,12 +96,6 @@ func (r *SearchMessages) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	if val, ok := urlQuery["channelID[]"]; ok {
-		r.ChannelID = parseUInt64A(val)
-	} else if val, ok = urlQuery["channelID"]; ok {
-		r.ChannelID = parseUInt64A(val)
-	}
-
 	if val, ok := get["afterMessageID"]; ok {
 		r.AfterMessageID = parseUInt64(val)
 	}
@@ -114,19 +108,6 @@ func (r *SearchMessages) Fill(req *http.Request) (err error) {
 	if val, ok := get["toMessageID"]; ok {
 		r.ToMessageID = parseUInt64(val)
 	}
-
-	if val, ok := urlQuery["threadID[]"]; ok {
-		r.ThreadID = parseUInt64A(val)
-	} else if val, ok = urlQuery["threadID"]; ok {
-		r.ThreadID = parseUInt64A(val)
-	}
-
-	if val, ok := urlQuery["userID[]"]; ok {
-		r.UserID = parseUInt64A(val)
-	} else if val, ok = urlQuery["userID"]; ok {
-		r.UserID = parseUInt64A(val)
-	}
-
 	if val, ok := get["pinnedOnly"]; ok {
 		r.PinnedOnly = parseBool(val)
 	}
@@ -147,7 +128,7 @@ var _ RequestFiller = NewSearchMessages()
 
 // Search threads request parameters
 type SearchThreads struct {
-	ChannelID []uint64 `json:",string"`
+	ChannelID []string
 	Limit     uint
 	Query     string
 }
@@ -191,12 +172,6 @@ func (r *SearchThreads) Fill(req *http.Request) (err error) {
 	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
-	}
-
-	if val, ok := urlQuery["channelID[]"]; ok {
-		r.ChannelID = parseUInt64A(val)
-	} else if val, ok = urlQuery["channelID"]; ok {
-		r.ChannelID = parseUInt64A(val)
 	}
 
 	if val, ok := get["limit"]; ok {

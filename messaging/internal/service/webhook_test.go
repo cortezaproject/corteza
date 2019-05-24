@@ -4,17 +4,15 @@ package service
 
 import (
 	"context"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"net/http/httptest"
-
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/config"
-	"github.com/crusttech/crust/internal/http"
-	"github.com/crusttech/crust/internal/test"
-	"github.com/crusttech/crust/messaging/internal/repository"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/http"
+	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/cortezaproject/corteza-server/messaging/internal/repository"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 func TestOutgoingWebhook(t *testing.T) {
@@ -34,7 +32,7 @@ func TestOutgoingWebhook(t *testing.T) {
 		test.Assert(t, err == nil, "Error when creating channel: %+v", err)
 	}
 
-	client, err := http.New(&config.HTTPClient{
+	client, err := http.New(&http.Config{
 		Timeout: 10,
 	})
 	test.Assert(t, err == nil, "Error creating HTTP client: %+v", err)

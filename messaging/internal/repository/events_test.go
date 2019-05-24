@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 func TestEvents(t *testing.T) {

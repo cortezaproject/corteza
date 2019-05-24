@@ -5,9 +5,9 @@ import (
 
 	"github.com/titpetric/factory/resputil"
 
-	"github.com/crusttech/crust/internal/permissions"
-	"github.com/crusttech/crust/messaging/internal/service"
-	"github.com/crusttech/crust/messaging/rest/request"
+	"github.com/cortezaproject/corteza-server/internal/permissions"
+	"github.com/cortezaproject/corteza-server/messaging/internal/service"
+	"github.com/cortezaproject/corteza-server/messaging/rest/request"
 )
 
 type (

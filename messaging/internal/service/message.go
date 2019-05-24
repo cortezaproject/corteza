@@ -8,13 +8,11 @@ import (
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/logger"
-	"github.com/crusttech/crust/internal/payload"
-	"github.com/crusttech/crust/messaging/internal/repository"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/payload"
+	"github.com/cortezaproject/corteza-server/messaging/internal/repository"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 type (
@@ -106,9 +104,9 @@ func (svc message) With(ctx context.Context) MessageService {
 }
 
 // log() returns zap's logger with requestID from current context and fields.
-func (svc message) log(fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-}
+// func (svc message) log(fields ...zapcore.Field) *zap.Logger {
+// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+// }
 
 func (svc message) Find(filter *types.MessageFilter) (mm types.MessageSet, err error) {
 	filter.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
@@ -707,7 +705,7 @@ func (svc message) updateMentions(messageID uint64, mm types.MentionSet) error {
 		add, _, del := existing.Diff(mm)
 
 		err = add.Walk(func(m *types.Mention) error {
-			m, err = svc.mentions.Create(m)
+			_, err = svc.mentions.Create(m)
 			return err
 		})
 

@@ -8,7 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 type (

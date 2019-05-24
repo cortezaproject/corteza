@@ -8,8 +8,8 @@ import (
 
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/internal/test"
-	"github.com/crusttech/crust/messaging/types"
+	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 func TestChannel(t *testing.T) {
@@ -20,7 +20,7 @@ func TestChannel(t *testing.T) {
 		return
 	}
 
-	rpo := Channel(context.Background(), factory.Database.MustGet())
+	rpo := Channel(context.Background(), factory.Database.MustGet("messaging"))
 	chn := &types.Channel{}
 
 	var name1, name2 = "Test channel v1", "Test channel v2"

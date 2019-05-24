@@ -5,7 +5,7 @@ import (
 
 	"github.com/titpetric/factory"
 
-	"github.com/crusttech/crust/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/auth"
 )
 
 type (
