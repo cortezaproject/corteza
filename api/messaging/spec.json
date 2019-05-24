@@ -769,7 +769,7 @@
                     "get": [
                         {
                             "name": "channelID",
-                            "type": "[]uint64",
+                            "type": "[]string",
                             "required": false,
                             "title": "Filter by channels"
                         },
@@ -799,13 +799,13 @@
                         },
                         {
                             "name": "threadID",
-                            "type": "[]uint64",
+                            "type": "[]string",
                             "required": false,
                             "title": "Filter by thread message ID"
                         },
                         {
                             "name": "userID",
-                            "type": "[]uint64",
+                            "type": "[]string",
                             "required": false,
                             "title": "Filter by one or more user"
                         },
@@ -845,7 +845,7 @@
                     "get": [
                         {
                             "name": "channelID",
-                            "type": "[]uint64",
+                            "type": "[]string",
                             "required": false,
                             "title": "Filter by channels"
                         },
@@ -869,7 +869,7 @@
         "struct": [
             {
                 "imports": [
-                    "github.com/crusttech/crust/messaging/types"
+                    "github.com/cortezaproject/corteza-server/messaging/types"
                 ]
             }
         ],
@@ -1141,7 +1141,7 @@
         "struct": [
             {
                 "imports": [
-                    "github.com/crusttech/crust/internal/permissions"
+                    "github.com/cortezaproject/corteza-server/internal/permissions"
                 ]
             }
         ],

@@ -6,7 +6,7 @@
     {
       "imports": [
         "sqlxTypes github.com/jmoiron/sqlx/types",
-        "github.com/crusttech/crust/compose/types",
+        "github.com/cortezaproject/corteza-server/compose/types",
         "time"
       ]
     }

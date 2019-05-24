@@ -615,13 +615,13 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| channelID | []uint64 | GET | Filter by channels | N/A | NO |
+| channelID | []string | GET | Filter by channels | N/A | NO |
 | afterMessageID | uint64 | GET | ID of the first message in the list (exclusive) | N/A | NO |
 | beforeMessageID | uint64 | GET | ID of the last message in the list (exclusive) | N/A | NO |
 | fromMessageID | uint64 | GET | ID of the first message in the list (inclusive) | N/A | NO |
 | toMessageID | uint64 | GET | ID of the last message the list (inclusive) | N/A | NO |
-| threadID | []uint64 | GET | Filter by thread message ID | N/A | NO |
-| userID | []uint64 | GET | Filter by one or more user | N/A | NO |
+| threadID | []string | GET | Filter by thread message ID | N/A | NO |
+| userID | []string | GET | Filter by one or more user | N/A | NO |
 | type | []string | GET | Filter by message type (text, inlineImage, attachment, ...) | N/A | NO |
 | pinnedOnly | bool | GET | Return only pinned messages | N/A | NO |
 | bookmarkedOnly | bool | GET | Only bookmarked messages | N/A | NO |
@@ -640,7 +640,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| channelID | []uint64 | GET | Filter by channels | N/A | NO |
+| channelID | []string | GET | Filter by channels | N/A | NO |
 | limit | uint | GET | Max number of messages | N/A | NO |
 | query | string | GET | Search query | N/A | NO |
 

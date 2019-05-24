@@ -422,9 +422,9 @@ Compose Notifications
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| to | []string | POST | Email addresses or Crust user IDs | N/A | YES |
-| cc | []string | POST | Email addresses or Crust user IDs | N/A | NO |
-| replyTo | string | POST | Crust user ID or email address in reply-to field | N/A | NO |
+| to | []string | POST | Email addresses | N/A | YES |
+| cc | []string | POST | Email addresses | N/A | NO |
+| replyTo | string | POST | Email address in reply-to field | N/A | NO |
 | subject  | string | POST | Email subject | N/A | NO |
 | content | sqlxTypes.JSONText | POST | Message content | N/A | YES |
 

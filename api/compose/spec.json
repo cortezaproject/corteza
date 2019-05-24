@@ -425,7 +425,7 @@
             {
                 "imports": [
                     "sqlxTypes github.com/jmoiron/sqlx/types",
-                    "github.com/crusttech/crust/compose/types",
+                    "github.com/cortezaproject/corteza-server/compose/types",
                     "time"
                 ]
             }
@@ -572,7 +572,7 @@
         "struct": [
             {
                 "imports": [
-                    "github.com/crusttech/crust/compose/types"
+                    "github.com/cortezaproject/corteza-server/compose/types"
                 ]
             }
         ],
@@ -1114,19 +1114,19 @@
                             "name": "to",
                             "type": "[]string",
                             "required": true,
-                            "title": "Email addresses or Crust user IDs"
+                            "title": "Email addresses"
                         },
                         {
                             "name": "cc",
                             "type": "[]string",
                             "required": false,
-                            "title": "Email addresses or Crust user IDs"
+                            "title": "Email addresses"
                         },
                         {
                             "name": "replyTo",
                             "type": "string",
                             "required": false,
-                            "title": "Crust user ID or email address in reply-to field"
+                            "title": "Email address in reply-to field"
                         },
                         {
                             "name": "subject ",
@@ -1328,7 +1328,7 @@
         "struct": [
             {
                 "imports": [
-                    "github.com/crusttech/crust/internal/permissions"
+                    "github.com/cortezaproject/corteza-server/internal/permissions"
                 ]
             }
         ],

@@ -672,7 +672,7 @@
     "struct": [
       {
         "imports": [
-          "github.com/crusttech/crust/system/types"
+          "github.com/cortezaproject/corteza-server/system/types"
         ]
       }
     ],
@@ -988,7 +988,7 @@
     "struct": [
       {
         "imports": [
-          "github.com/crusttech/crust/internal/permissions"
+          "github.com/cortezaproject/corteza-server/internal/permissions"
         ]
       }
     ],

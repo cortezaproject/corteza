@@ -1,7 +1,9 @@
 #!/bin/bash
 set -e
 
-find ./build -name gen-* -delete
+if [ -f ./build ]; then
+	find ./build -name gen-* -delete
+fi
 
 _PWD=$PWD
 

@@ -30,7 +30,7 @@
             "name": "channelID",
             "required": false,
             "title": "Filter by channels",
-            "type": "[]uint64"
+            "type": "[]string"
           },
           {
             "name": "afterMessageID",
@@ -60,13 +60,13 @@
             "name": "threadID",
             "required": false,
             "title": "Filter by thread message ID",
-            "type": "[]uint64"
+            "type": "[]string"
           },
           {
             "name": "userID",
             "required": false,
             "title": "Filter by one or more user",
-            "type": "[]uint64"
+            "type": "[]string"
           },
           {
             "name": "type",
@@ -106,7 +106,7 @@
             "name": "channelID",
             "required": false,
             "title": "Filter by channels",
-            "type": "[]uint64"
+            "type": "[]string"
           },
           {
             "name": "limit",
