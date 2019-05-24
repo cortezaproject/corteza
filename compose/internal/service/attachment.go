@@ -20,8 +20,8 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/internal/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/auth"
-	"github.com/cortezaproject/corteza-server/internal/logger"
 	"github.com/cortezaproject/corteza-server/internal/store"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 const (

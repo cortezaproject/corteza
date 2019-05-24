@@ -13,8 +13,8 @@ import (
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/cortezaproject/corteza-server/internal/logger"
 	"github.com/cortezaproject/corteza-server/internal/rand"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/system/internal/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )

@@ -11,7 +11,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/internal/db"
-	"github.com/cortezaproject/corteza-server/internal/logger"
 	migrate "github.com/cortezaproject/corteza-server/messaging/db"
 	"github.com/cortezaproject/corteza-server/messaging/internal/service"
 	"github.com/cortezaproject/corteza-server/messaging/rest"
@@ -19,6 +18,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/cli/flags"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 const (

@@ -8,9 +8,9 @@ import (
 
 	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/internal/http"
-	"github.com/cortezaproject/corteza-server/internal/logger"
 	"github.com/cortezaproject/corteza-server/internal/mail"
 	"github.com/cortezaproject/corteza-server/pkg/cli/flags"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 // SetupProvisionCommands sets-up standard provision commands

@@ -7,9 +7,9 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/compose/internal/repository"
-	"github.com/cortezaproject/corteza-server/internal/logger"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/internal/store"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 type (

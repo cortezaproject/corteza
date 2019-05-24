@@ -11,8 +11,8 @@ import (
 	"github.com/titpetric/factory"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/cortezaproject/corteza-server/internal/logger"
 	messagingMigrate "github.com/cortezaproject/corteza-server/messaging/db"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 type mockDB struct{}

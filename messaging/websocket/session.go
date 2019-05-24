@@ -11,11 +11,11 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/internal/auth"
-	"github.com/cortezaproject/corteza-server/internal/logger"
 	"github.com/cortezaproject/corteza-server/internal/payload"
 	"github.com/cortezaproject/corteza-server/internal/payload/outgoing"
 	"github.com/cortezaproject/corteza-server/messaging/internal/service"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 type (
