@@ -9,8 +9,8 @@ import (
 	"go.uber.org/zap/zapcore"
 	gomail "gopkg.in/mail.v2"
 
-	"github.com/cortezaproject/corteza-server/internal/logger"
 	"github.com/cortezaproject/corteza-server/internal/mail"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 type (

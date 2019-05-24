@@ -17,13 +17,12 @@ package handlers
 
 import (
 	"context"
-
 	"net/http"
 
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
-	"github.com/cortezaproject/corteza-server/internal/logger"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 )
 

@@ -11,10 +11,10 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/internal/db"
-	"github.com/cortezaproject/corteza-server/internal/logger"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/cli/flags"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/system/commands"
 	migrate "github.com/cortezaproject/corteza-server/system/db"
 	"github.com/cortezaproject/corteza-server/system/internal/service"

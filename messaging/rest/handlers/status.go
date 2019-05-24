@@ -17,14 +17,13 @@ package handlers
 
 import (
 	"context"
-
 	"net/http"
 
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
 
-	"github.com/cortezaproject/corteza-server/internal/logger"
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 // Internal API interface

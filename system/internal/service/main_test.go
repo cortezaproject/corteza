@@ -10,7 +10,7 @@ import (
 	"github.com/titpetric/factory"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/cortezaproject/corteza-server/internal/logger"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	systemMigrate "github.com/cortezaproject/corteza-server/system/db"
 )
 

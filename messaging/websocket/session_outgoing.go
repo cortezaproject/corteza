@@ -3,9 +3,9 @@ package websocket
 import (
 	"time"
 
-	"github.com/cortezaproject/corteza-server/internal/logger"
 	"github.com/cortezaproject/corteza-server/messaging/internal/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 // Sends message to subscribers
