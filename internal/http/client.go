@@ -12,17 +12,20 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-
-	"github.com/crusttech/crust/internal/config"
 )
 
 type (
+	Config struct {
+		BaseURL string
+		Timeout int
+	}
+
 	Client struct {
 		Transport *http.Transport
 		Client    *http.Client
 
 		debugLevel DebugLevel
-		config     *config.HTTPClient
+		config     *Config
 	}
 
 	Request http.Request
@@ -32,14 +35,10 @@ type (
 
 const (
 	INFO DebugLevel = "info"
-	FULL            = "full"
+	FULL DebugLevel = "full"
 )
 
-func New(flags *config.HTTPClient) (*Client, error) {
-	if err := flags.Validate(); err != nil {
-		return nil, errors.Wrap(err, "creating http client failed")
-	}
-
+func New(flags *Config) (*Client, error) {
 	timeout := time.Duration(flags.Timeout) * time.Second
 
 	transport := &http.Transport{
@@ -49,6 +48,7 @@ func New(flags *config.HTTPClient) (*Client, error) {
 		TLSHandshakeTimeout: timeout,
 	}
 
+	// @todo migrate to http.DefaultClient & http.DefaultTransport, see internal/http.SetupDefaults
 	client := &http.Client{
 		Timeout:   timeout,
 		Transport: transport,

@@ -2,11 +2,11 @@ package mail
 
 import (
 	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 	gomail "gopkg.in/mail.v2"
-
-	"github.com/crusttech/crust/internal/config"
 )
 
 type (
@@ -30,19 +30,40 @@ func init() {
 	addressCheck = regexp.MustCompile(addressCheckRE)
 }
 
-func SetupDialer(config *config.SMTP) {
-	defaultDialerError = config.RuntimeValidation()
+// SetupDialer setups SMTP dialer
+//
+// Host variable can contain "<host>:<port>" that will override port value
+func SetupDialer(host string, port int, user, pass, from string) {
+	if host == "" {
+		defaultDialerError = errors.New("No hostname provided for SMTP")
+		return
+	}
+
+	if strings.Contains(host, ":") {
+		parts := strings.SplitN(host, ":", 2)
+		port, _ = strconv.Atoi(parts[1])
+		host = parts[0]
+	}
+
+	if port == 0 {
+		defaultDialerError = errors.New("No port provided for SMTP")
+		return
+	}
+	if from == "" {
+		defaultDialerError = errors.New("Sender for SMTP is not set")
+		return
+	}
 
 	if defaultDialerError != nil {
 		return
 	}
 
-	defaultFrom = config.From
+	defaultFrom = from
 	defaultDialer = gomail.NewDialer(
-		config.Host,
-		config.Port,
-		config.User,
-		config.Pass,
+		host,
+		port,
+		user,
+		pass,
 	)
 }
 

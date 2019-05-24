@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/crusttech/crust/internal/auth"
-	"github.com/crusttech/crust/internal/payload/outgoing"
-	messagingTypes "github.com/crusttech/crust/messaging/types"
-	systemTypes "github.com/crusttech/crust/system/types"
+	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/payload/outgoing"
+	messagingTypes "github.com/cortezaproject/corteza-server/messaging/types"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 const (

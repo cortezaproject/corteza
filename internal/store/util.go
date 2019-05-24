@@ -2,14 +2,12 @@ package store
 
 import (
 	"io"
-
 	"mime/multipart"
 	"net/url"
 
 	"github.com/pkg/errors"
 
-	"github.com/crusttech/crust/internal/config"
-	"github.com/crusttech/crust/internal/http"
+	"github.com/cortezaproject/corteza-server/internal/http"
 )
 
 func FromURL(fileURL string) (io.ReadCloser, error) {
@@ -19,9 +17,10 @@ func FromURL(fileURL string) (io.ReadCloser, error) {
 		return nil, errors.New("Only HTTPS is supported for file uploads")
 	}
 
-	client, err := http.New(&config.HTTPClient{
+	client, err := http.New(&http.Config{
 		Timeout: 10,
 	})
+
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

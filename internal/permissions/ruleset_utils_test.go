@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/crusttech/crust/internal/test"
+	"github.com/cortezaproject/corteza-server/internal/test"
 )
 
 // Test role inheritance

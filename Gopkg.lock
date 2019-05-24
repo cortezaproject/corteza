@@ -45,14 +45,6 @@
   revision = "982855dad3e1cd68828d2106997539f36fcf6601"
 
 [[projects]]
-  branch = "master"
-  digest = "1:b2d8bf10f6279453f6771158d7afcbb2e047714f7d2e2204f2ea9d630d90d4f2"
-  name = "github.com/crusttech/permit"
-  packages = ["pkg/permit"]
-  pruneopts = "UT"
-  revision = "6c0c4bece8da7f75a52930f3c07d01a5406499bb"
-
-[[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -305,11 +297,12 @@
   revision = "1555304b9b35fdd2b425bccf1a5613677705e7d0"
 
 [[projects]]
-  digest = "1:75d51eeab0df85a3cea9e1297ccd3183b20a10cb4b48c753d8ec8d113cc14250"
+  digest = "1:93a746f1060a8acbcf69344862b2ceced80f854170e1caae089b2834c5fbf7f4"
   name = "github.com/prometheus/client_golang"
   packages = [
     "prometheus",
     "prometheus/internal",
+    "prometheus/promhttp",
   ]
   pruneopts = "UT"
   revision = "505eaef017263e299324067d40ca2c48f6a2cf50"
@@ -372,6 +365,14 @@
   pruneopts = "UT"
   revision = "588a75ec4f32903aa5e39a2619ba6a4631e28424"
   version = "v1.2.2"
+
+[[projects]]
+  digest = "1:08d65904057412fc0270fc4812a1c90c594186819243160dc779a402d4b6d0bc"
+  name = "github.com/spf13/cast"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "8c9545af88b134710ab1cd196795e7f2388358d7"
+  version = "v1.3.0"
 
 [[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
@@ -568,7 +569,6 @@
     "github.com/SentimensRG/ctx",
     "github.com/SentimensRG/ctx/sigctx",
     "github.com/crusttech/go-oidc",
-    "github.com/crusttech/permit/pkg/permit",
     "github.com/davecgh/go-spew/spew",
     "github.com/dgrijalva/jwt-go",
     "github.com/disintegration/imaging",
@@ -594,8 +594,9 @@
     "github.com/markbates/goth/providers/openidConnect",
     "github.com/namsral/flag",
     "github.com/pkg/errors",
-    "github.com/prometheus/client_golang/prometheus",
+    "github.com/prometheus/client_golang/prometheus/promhttp",
     "github.com/spf13/afero",
+    "github.com/spf13/cast",
     "github.com/spf13/cobra",
     "github.com/titpetric/factory",
     "github.com/titpetric/factory/resputil",

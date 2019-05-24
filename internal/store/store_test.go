@@ -5,7 +5,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/crusttech/crust/internal/test"
+	"github.com/cortezaproject/corteza-server/internal/test"
 )
 
 func TestStore(t *testing.T) {

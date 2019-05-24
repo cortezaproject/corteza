@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
-	"github.com/crusttech/crust/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/auth"
 )
 
 type (
@@ -34,7 +34,7 @@ const (
 // It acts as a caching layer
 func Service(ctx context.Context, logger *zap.Logger, repository *repository) (svc *service) {
 	svc = &service{
-		f: make(chan bool, 0),
+		f: make(chan bool),
 
 		logger:     logger.Named("permissions"),
 		repository: repository,
@@ -117,7 +117,7 @@ func (svc service) Watch(ctx context.Context) {
 		for {
 			select {
 			case <-ctx.Done():
-				break
+				return
 			case <-ticker.C:
 				svc.Reload(ctx)
 			case <-svc.f:
