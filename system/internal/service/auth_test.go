@@ -104,6 +104,11 @@ func TestAuth_External_NonExisting(t *testing.T) {
 		Times(1).
 		Return(u, nil)
 
+	usrRpoMock.EXPECT().
+		Total().
+		Times(1).
+		Return(uint(1))
+
 	svc := makeMockAuthService(usrRpoMock, crdRpoMock)
 	svc.logger = zap.NewNop()
 	svc.settings.externalEnabled = true
