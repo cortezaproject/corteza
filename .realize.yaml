@@ -34,7 +34,7 @@ schema:
   watcher:
     paths:
       - .
-      - ../../messaging
+      - ../../system
       - ../../pkg
       - ../../internal
     extensions:
