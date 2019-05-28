@@ -21,6 +21,7 @@ type (
 		FindByID(id uint64) (*types.User, error)
 		FindByIDs(id ...uint64) (types.UserSet, error)
 		Find(filter *types.UserFilter) ([]*types.User, error)
+		Total() uint
 
 		Create(mod *types.User) (*types.User, error)
 		Update(mod *types.User) (*types.User, error)
@@ -140,6 +141,12 @@ func (r *user) Find(filter *types.UserFilter) ([]*types.User, error) {
 	}
 
 	return rval, nil
+}
+
+func (r user) Total() (count uint) {
+	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s", r.users, sqlUserScope)
+	_ = r.db().Select(&count, query)
+	return
 }
 
 func (r *user) Create(mod *types.User) (*types.User, error) {

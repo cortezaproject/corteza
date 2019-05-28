@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/internal/rand"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/system/internal/repository"
@@ -210,6 +211,7 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 				zap.String("email", u.Email),
 			)
 
+			_ = svc.autoPromote(u)
 		} else if err != nil {
 			return err
 		} else if !u.Valid() {
@@ -325,6 +327,8 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create user")
 	}
+
+	_ = svc.autoPromote(u)
 
 	if len(password) > 0 {
 		var hash []byte
@@ -805,6 +809,21 @@ func (svc auth) createUserToken(user *types.User, kind string) (token string, er
 	}
 
 	token = fmt.Sprintf("%s%d", c.Credentials, c.ID)
+	return
+}
+
+// Automatically promotes user to administrator if it is the first user in the database
+func (svc auth) autoPromote(u *types.User) (err error) {
+	if svc.users.Total() == 0 && u.ID > 0 {
+		err = svc.roles.MemberAddByID(permissions.AdminRoleID, u.ID)
+	}
+
+	svc.log(
+		zap.String("email", u.Email),
+		zap.Uint64("userID", u.ID),
+		zap.Error(err),
+	).Info("auto-promoted user to administrator role")
+
 	return
 }
 
