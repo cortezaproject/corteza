@@ -51,14 +51,16 @@ func NewModule(h ModuleAPI) *Module {
 			defer r.Body.Close()
 			params := request.NewModuleList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Module.List", r, err, params.Auditable())
+				logger.LogParamError("Module.List", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.List(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Module.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Module.List", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -69,14 +71,16 @@ func NewModule(h ModuleAPI) *Module {
 			defer r.Body.Close()
 			params := request.NewModuleCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Module.Create", r, err, params.Auditable())
+				logger.LogParamError("Module.Create", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Create(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Module.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Module.Create", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -87,14 +91,16 @@ func NewModule(h ModuleAPI) *Module {
 			defer r.Body.Close()
 			params := request.NewModuleRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Module.Read", r, err, params.Auditable())
+				logger.LogParamError("Module.Read", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Read(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Module.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Module.Read", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -105,14 +111,16 @@ func NewModule(h ModuleAPI) *Module {
 			defer r.Body.Close()
 			params := request.NewModuleUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Module.Update", r, err, params.Auditable())
+				logger.LogParamError("Module.Update", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Update(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Module.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Module.Update", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -123,14 +131,16 @@ func NewModule(h ModuleAPI) *Module {
 			defer r.Body.Close()
 			params := request.NewModuleDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Module.Delete", r, err, params.Auditable())
+				logger.LogParamError("Module.Delete", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Delete(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Module.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Module.Delete", r, params.Auditable())
 			if !serveHTTP(value, w, r) {

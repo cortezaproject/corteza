@@ -47,14 +47,16 @@ func NewStatus(h StatusAPI) *Status {
 			defer r.Body.Close()
 			params := request.NewStatusList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Status.List", r, err, params.Auditable())
+				logger.LogParamError("Status.List", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.List(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Status.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Status.List", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -65,14 +67,16 @@ func NewStatus(h StatusAPI) *Status {
 			defer r.Body.Close()
 			params := request.NewStatusSet()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Status.Set", r, err, params.Auditable())
+				logger.LogParamError("Status.Set", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Set(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Status.Set", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Status.Set", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -83,14 +87,16 @@ func NewStatus(h StatusAPI) *Status {
 			defer r.Body.Close()
 			params := request.NewStatusDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Status.Delete", r, err, params.Auditable())
+				logger.LogParamError("Status.Delete", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Delete(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Status.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Status.Delete", r, params.Auditable())
 			if !serveHTTP(value, w, r) {

@@ -43,14 +43,16 @@ func NewNotification(h NotificationAPI) *Notification {
 			defer r.Body.Close()
 			params := request.NewNotificationEmailSend()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Notification.EmailSend", r, err, params.Auditable())
+				logger.LogParamError("Notification.EmailSend", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.EmailSend(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Notification.EmailSend", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Notification.EmailSend", r, params.Auditable())
 			if !serveHTTP(value, w, r) {

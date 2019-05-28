@@ -49,14 +49,16 @@ func NewSettings(h SettingsAPI) *Settings {
 			defer r.Body.Close()
 			params := request.NewSettingsList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Settings.List", r, err, params.Auditable())
+				logger.LogParamError("Settings.List", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.List(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Settings.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Settings.List", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -67,14 +69,16 @@ func NewSettings(h SettingsAPI) *Settings {
 			defer r.Body.Close()
 			params := request.NewSettingsUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Settings.Update", r, err, params.Auditable())
+				logger.LogParamError("Settings.Update", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Update(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Settings.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Settings.Update", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -85,14 +89,16 @@ func NewSettings(h SettingsAPI) *Settings {
 			defer r.Body.Close()
 			params := request.NewSettingsGet()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Settings.Get", r, err, params.Auditable())
+				logger.LogParamError("Settings.Get", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Get(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Settings.Get", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Settings.Get", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -103,14 +109,16 @@ func NewSettings(h SettingsAPI) *Settings {
 			defer r.Body.Close()
 			params := request.NewSettingsSet()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Settings.Set", r, err, params.Auditable())
+				logger.LogParamError("Settings.Set", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Set(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Settings.Set", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Settings.Set", r, params.Auditable())
 			if !serveHTTP(value, w, r) {

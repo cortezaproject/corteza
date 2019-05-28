@@ -51,14 +51,16 @@ func NewTrigger(h TriggerAPI) *Trigger {
 			defer r.Body.Close()
 			params := request.NewTriggerList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Trigger.List", r, err, params.Auditable())
+				logger.LogParamError("Trigger.List", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.List(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Trigger.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Trigger.List", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -69,14 +71,16 @@ func NewTrigger(h TriggerAPI) *Trigger {
 			defer r.Body.Close()
 			params := request.NewTriggerCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Trigger.Create", r, err, params.Auditable())
+				logger.LogParamError("Trigger.Create", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Create(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Trigger.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Trigger.Create", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -87,14 +91,16 @@ func NewTrigger(h TriggerAPI) *Trigger {
 			defer r.Body.Close()
 			params := request.NewTriggerRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Trigger.Read", r, err, params.Auditable())
+				logger.LogParamError("Trigger.Read", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Read(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Trigger.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Trigger.Read", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -105,14 +111,16 @@ func NewTrigger(h TriggerAPI) *Trigger {
 			defer r.Body.Close()
 			params := request.NewTriggerUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Trigger.Update", r, err, params.Auditable())
+				logger.LogParamError("Trigger.Update", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Update(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Trigger.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Trigger.Update", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -123,14 +131,16 @@ func NewTrigger(h TriggerAPI) *Trigger {
 			defer r.Body.Close()
 			params := request.NewTriggerDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Trigger.Delete", r, err, params.Auditable())
+				logger.LogParamError("Trigger.Delete", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Delete(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Trigger.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Trigger.Delete", r, params.Auditable())
 			if !serveHTTP(value, w, r) {

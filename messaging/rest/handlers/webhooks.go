@@ -51,14 +51,16 @@ func NewWebhooks(h WebhooksAPI) *Webhooks {
 			defer r.Body.Close()
 			params := request.NewWebhooksList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Webhooks.List", r, err, params.Auditable())
+				logger.LogParamError("Webhooks.List", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.List(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Webhooks.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Webhooks.List", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -69,14 +71,16 @@ func NewWebhooks(h WebhooksAPI) *Webhooks {
 			defer r.Body.Close()
 			params := request.NewWebhooksCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Webhooks.Create", r, err, params.Auditable())
+				logger.LogParamError("Webhooks.Create", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Create(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Webhooks.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Webhooks.Create", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -87,14 +91,16 @@ func NewWebhooks(h WebhooksAPI) *Webhooks {
 			defer r.Body.Close()
 			params := request.NewWebhooksUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Webhooks.Update", r, err, params.Auditable())
+				logger.LogParamError("Webhooks.Update", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Update(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Webhooks.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Webhooks.Update", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -105,14 +111,16 @@ func NewWebhooks(h WebhooksAPI) *Webhooks {
 			defer r.Body.Close()
 			params := request.NewWebhooksGet()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Webhooks.Get", r, err, params.Auditable())
+				logger.LogParamError("Webhooks.Get", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Get(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Webhooks.Get", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Webhooks.Get", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -123,14 +131,16 @@ func NewWebhooks(h WebhooksAPI) *Webhooks {
 			defer r.Body.Close()
 			params := request.NewWebhooksDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Webhooks.Delete", r, err, params.Auditable())
+				logger.LogParamError("Webhooks.Delete", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Delete(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Webhooks.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Webhooks.Delete", r, params.Auditable())
 			if !serveHTTP(value, w, r) {

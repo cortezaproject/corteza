@@ -55,14 +55,16 @@ func NewRecord(h RecordAPI) *Record {
 			defer r.Body.Close()
 			params := request.NewRecordReport()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Record.Report", r, err, params.Auditable())
+				logger.LogParamError("Record.Report", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Report(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Record.Report", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Record.Report", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -73,14 +75,16 @@ func NewRecord(h RecordAPI) *Record {
 			defer r.Body.Close()
 			params := request.NewRecordList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Record.List", r, err, params.Auditable())
+				logger.LogParamError("Record.List", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.List(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Record.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Record.List", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -91,14 +95,16 @@ func NewRecord(h RecordAPI) *Record {
 			defer r.Body.Close()
 			params := request.NewRecordCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Record.Create", r, err, params.Auditable())
+				logger.LogParamError("Record.Create", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Create(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Record.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Record.Create", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -109,14 +115,16 @@ func NewRecord(h RecordAPI) *Record {
 			defer r.Body.Close()
 			params := request.NewRecordRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Record.Read", r, err, params.Auditable())
+				logger.LogParamError("Record.Read", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Read(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Record.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Record.Read", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -127,14 +135,16 @@ func NewRecord(h RecordAPI) *Record {
 			defer r.Body.Close()
 			params := request.NewRecordUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Record.Update", r, err, params.Auditable())
+				logger.LogParamError("Record.Update", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Update(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Record.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Record.Update", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -145,14 +155,16 @@ func NewRecord(h RecordAPI) *Record {
 			defer r.Body.Close()
 			params := request.NewRecordDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Record.Delete", r, err, params.Auditable())
+				logger.LogParamError("Record.Delete", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Delete(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Record.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Record.Delete", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -163,14 +175,16 @@ func NewRecord(h RecordAPI) *Record {
 			defer r.Body.Close()
 			params := request.NewRecordUpload()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Record.Upload", r, err, params.Auditable())
+				logger.LogParamError("Record.Upload", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Upload(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Record.Upload", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Record.Upload", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
