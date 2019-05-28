@@ -4,11 +4,13 @@ import (
 	"context"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/titpetric/factory"
 
 	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/internal/settings"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/system/internal/auth/external"
 	"github.com/cortezaproject/corteza-server/system/internal/repository"
@@ -18,6 +20,10 @@ import (
 
 // Will perform OpenID connect auto-configuration
 func Auth(ctx context.Context) *cobra.Command {
+	var (
+		enableDiscoveredProvider bool
+	)
+
 	cmd := &cobra.Command{
 		Use:   "auth",
 		Short: "External authentication",
@@ -30,17 +36,44 @@ func Auth(ctx context.Context) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var name, url = args[0], args[1]
 
-			if eas, err := external.ExternalAuthSettings(service.DefaultIntSettings); err != nil {
-				cli.HandleError(err)
-			} else if eap, err := external.RegisterNewOpenIdClient(ctx, eas, name, url); err != nil {
-				cli.HandleError(err)
-			} else if vv, err := eap.MakeValueSet("openid-connect." + name); err != nil {
-				cli.HandleError(err)
-			} else if err := service.DefaultIntSettings.BulkSet(vv); err != nil {
-				cli.HandleError(err)
+			eas, err := external.ExternalAuthSettings(service.DefaultIntSettings)
+			cli.HandleError(err)
+
+			eap, err := external.RegisterNewOpenIdClient(ctx, eas, name, url)
+			cli.HandleError(err)
+
+			vv, err := eap.MakeValueSet("openid-connect." + name)
+			cli.HandleError(err)
+
+			if enableDiscoveredProvider {
+				cli.HandleError(vv.Walk(func(value *settings.Value) error {
+					if strings.HasSuffix(value.Name, ".enabled") {
+						return value.SetValue(true)
+					}
+
+					return nil
+				}))
+
+				v := &settings.Value{Name: "auth.external.enabled"}
+				cli.HandleError(v.SetValue(true))
+				vv = append(vv, v)
+			}
+
+			cli.HandleError(service.DefaultIntSettings.BulkSet(vv))
+
+			if enableDiscoveredProvider {
+				cmd.Printf("OIDC provider successfully added and enabled.")
+			} else {
+				cmd.Printf("OIDC provider successfully added (still disabled).")
 			}
 		},
 	}
+
+	autoDiscoverCmd.Flags().BoolVar(
+		&enableDiscoveredProvider,
+		"enable",
+		false,
+		"Enable this provider and external auth")
 
 	jwtCmd := &cobra.Command{
 		Use:   "jwt [email-or-id]",
