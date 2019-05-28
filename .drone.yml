@@ -59,7 +59,7 @@ steps:
   image: plugins/docker
   depends_on: [ 'unit-tests' ]
   settings:
-    repo: cortezaproject/corteza
+    repo: cortezaproject/corteza-server
     auto_tag: true # generate tag names automatically based on git branch and git tag
     dockerfile: Dockerfile.corteza-server
     username:
