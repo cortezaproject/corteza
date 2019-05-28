@@ -43,14 +43,16 @@ func NewCommands(h CommandsAPI) *Commands {
 			defer r.Body.Close()
 			params := request.NewCommandsList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Commands.List", r, err, params.Auditable())
+				logger.LogParamError("Commands.List", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.List(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Commands.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Commands.List", r, params.Auditable())
 			if !serveHTTP(value, w, r) {

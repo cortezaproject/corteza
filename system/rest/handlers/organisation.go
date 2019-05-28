@@ -53,14 +53,16 @@ func NewOrganisation(h OrganisationAPI) *Organisation {
 			defer r.Body.Close()
 			params := request.NewOrganisationList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Organisation.List", r, err, params.Auditable())
+				logger.LogParamError("Organisation.List", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.List(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Organisation.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Organisation.List", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -71,14 +73,16 @@ func NewOrganisation(h OrganisationAPI) *Organisation {
 			defer r.Body.Close()
 			params := request.NewOrganisationCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Organisation.Create", r, err, params.Auditable())
+				logger.LogParamError("Organisation.Create", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Create(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Organisation.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Organisation.Create", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -89,14 +93,16 @@ func NewOrganisation(h OrganisationAPI) *Organisation {
 			defer r.Body.Close()
 			params := request.NewOrganisationUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Organisation.Update", r, err, params.Auditable())
+				logger.LogParamError("Organisation.Update", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Update(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Organisation.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Organisation.Update", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -107,14 +113,16 @@ func NewOrganisation(h OrganisationAPI) *Organisation {
 			defer r.Body.Close()
 			params := request.NewOrganisationDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Organisation.Delete", r, err, params.Auditable())
+				logger.LogParamError("Organisation.Delete", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Delete(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Organisation.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Organisation.Delete", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -125,14 +133,16 @@ func NewOrganisation(h OrganisationAPI) *Organisation {
 			defer r.Body.Close()
 			params := request.NewOrganisationRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Organisation.Read", r, err, params.Auditable())
+				logger.LogParamError("Organisation.Read", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Read(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Organisation.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Organisation.Read", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -143,14 +153,16 @@ func NewOrganisation(h OrganisationAPI) *Organisation {
 			defer r.Body.Close()
 			params := request.NewOrganisationArchive()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Organisation.Archive", r, err, params.Auditable())
+				logger.LogParamError("Organisation.Archive", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Archive(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Organisation.Archive", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Organisation.Archive", r, params.Auditable())
 			if !serveHTTP(value, w, r) {

@@ -45,14 +45,16 @@ func NewSearch(h SearchAPI) *Search {
 			defer r.Body.Close()
 			params := request.NewSearchMessages()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Search.Messages", r, err, params.Auditable())
+				logger.LogParamError("Search.Messages", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Messages(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Search.Messages", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Search.Messages", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -63,14 +65,16 @@ func NewSearch(h SearchAPI) *Search {
 			defer r.Body.Close()
 			params := request.NewSearchThreads()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Search.Threads", r, err, params.Auditable())
+				logger.LogParamError("Search.Threads", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Threads(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Search.Threads", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Search.Threads", r, params.Auditable())
 			if !serveHTTP(value, w, r) {

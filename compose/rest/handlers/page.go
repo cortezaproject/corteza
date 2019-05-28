@@ -57,14 +57,16 @@ func NewPage(h PageAPI) *Page {
 			defer r.Body.Close()
 			params := request.NewPageList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Page.List", r, err, params.Auditable())
+				logger.LogParamError("Page.List", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.List(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Page.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Page.List", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -75,14 +77,16 @@ func NewPage(h PageAPI) *Page {
 			defer r.Body.Close()
 			params := request.NewPageCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Page.Create", r, err, params.Auditable())
+				logger.LogParamError("Page.Create", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Create(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Page.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Page.Create", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -93,14 +97,16 @@ func NewPage(h PageAPI) *Page {
 			defer r.Body.Close()
 			params := request.NewPageRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Page.Read", r, err, params.Auditable())
+				logger.LogParamError("Page.Read", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Read(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Page.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Page.Read", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -111,14 +117,16 @@ func NewPage(h PageAPI) *Page {
 			defer r.Body.Close()
 			params := request.NewPageTree()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Page.Tree", r, err, params.Auditable())
+				logger.LogParamError("Page.Tree", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Tree(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Page.Tree", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Page.Tree", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -129,14 +137,16 @@ func NewPage(h PageAPI) *Page {
 			defer r.Body.Close()
 			params := request.NewPageUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Page.Update", r, err, params.Auditable())
+				logger.LogParamError("Page.Update", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Update(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Page.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Page.Update", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -147,14 +157,16 @@ func NewPage(h PageAPI) *Page {
 			defer r.Body.Close()
 			params := request.NewPageReorder()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Page.Reorder", r, err, params.Auditable())
+				logger.LogParamError("Page.Reorder", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Reorder(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Page.Reorder", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Page.Reorder", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -165,14 +177,16 @@ func NewPage(h PageAPI) *Page {
 			defer r.Body.Close()
 			params := request.NewPageDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Page.Delete", r, err, params.Auditable())
+				logger.LogParamError("Page.Delete", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Delete(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Page.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Page.Delete", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -183,14 +197,16 @@ func NewPage(h PageAPI) *Page {
 			defer r.Body.Close()
 			params := request.NewPageUpload()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Page.Upload", r, err, params.Auditable())
+				logger.LogParamError("Page.Upload", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Upload(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Page.Upload", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Page.Upload", r, params.Auditable())
 			if !serveHTTP(value, w, r) {

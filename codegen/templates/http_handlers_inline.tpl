@@ -35,14 +35,16 @@ func New{name|expose}(h {name|expose}API) *{name|expose} {
 			defer r.Body.Close()
 			params := request.New{name|capitalize}{call.name|capitalize}()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("{name|expose}.{call.name|capitalize}", r, err, params.Auditable())
+				logger.LogParamError("{name|expose}.{call.name|capitalize}", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.{call.name|capitalize}(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("{name|expose}.{call.name|capitalize}", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("{name|expose}.{call.name|capitalize}", r, params.Auditable())
 			if !serveHTTP(value, w, r) {

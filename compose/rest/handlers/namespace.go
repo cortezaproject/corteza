@@ -51,14 +51,16 @@ func NewNamespace(h NamespaceAPI) *Namespace {
 			defer r.Body.Close()
 			params := request.NewNamespaceList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Namespace.List", r, err, params.Auditable())
+				logger.LogParamError("Namespace.List", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.List(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Namespace.List", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Namespace.List", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -69,14 +71,16 @@ func NewNamespace(h NamespaceAPI) *Namespace {
 			defer r.Body.Close()
 			params := request.NewNamespaceCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Namespace.Create", r, err, params.Auditable())
+				logger.LogParamError("Namespace.Create", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Create(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Namespace.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Namespace.Create", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -87,14 +91,16 @@ func NewNamespace(h NamespaceAPI) *Namespace {
 			defer r.Body.Close()
 			params := request.NewNamespaceRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Namespace.Read", r, err, params.Auditable())
+				logger.LogParamError("Namespace.Read", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Read(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Namespace.Read", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Namespace.Read", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -105,14 +111,16 @@ func NewNamespace(h NamespaceAPI) *Namespace {
 			defer r.Body.Close()
 			params := request.NewNamespaceUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Namespace.Update", r, err, params.Auditable())
+				logger.LogParamError("Namespace.Update", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Update(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Namespace.Update", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Namespace.Update", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -123,14 +131,16 @@ func NewNamespace(h NamespaceAPI) *Namespace {
 			defer r.Body.Close()
 			params := request.NewNamespaceDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Namespace.Delete", r, err, params.Auditable())
+				logger.LogParamError("Namespace.Delete", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Delete(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Namespace.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Namespace.Delete", r, params.Auditable())
 			if !serveHTTP(value, w, r) {

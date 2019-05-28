@@ -49,14 +49,16 @@ func NewAuth(h AuthAPI) *Auth {
 			defer r.Body.Close()
 			params := request.NewAuthSettings()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Auth.Settings", r, err, params.Auditable())
+				logger.LogParamError("Auth.Settings", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Settings(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Auth.Settings", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Auth.Settings", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -67,14 +69,16 @@ func NewAuth(h AuthAPI) *Auth {
 			defer r.Body.Close()
 			params := request.NewAuthCheck()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Auth.Check", r, err, params.Auditable())
+				logger.LogParamError("Auth.Check", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Check(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Auth.Check", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Auth.Check", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -85,14 +89,16 @@ func NewAuth(h AuthAPI) *Auth {
 			defer r.Body.Close()
 			params := request.NewAuthExchangeAuthToken()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Auth.ExchangeAuthToken", r, err, params.Auditable())
+				logger.LogParamError("Auth.ExchangeAuthToken", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.ExchangeAuthToken(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Auth.ExchangeAuthToken", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Auth.ExchangeAuthToken", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -103,14 +109,16 @@ func NewAuth(h AuthAPI) *Auth {
 			defer r.Body.Close()
 			params := request.NewAuthLogout()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Auth.Logout", r, err, params.Auditable())
+				logger.LogParamError("Auth.Logout", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Logout(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Auth.Logout", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Auth.Logout", r, params.Auditable())
 			if !serveHTTP(value, w, r) {

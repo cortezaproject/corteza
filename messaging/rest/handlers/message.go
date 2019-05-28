@@ -65,14 +65,16 @@ func NewMessage(h MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Message.Create", r, err, params.Auditable())
+				logger.LogParamError("Message.Create", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Create(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Message.Create", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Message.Create", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -83,14 +85,16 @@ func NewMessage(h MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageExecuteCommand()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Message.ExecuteCommand", r, err, params.Auditable())
+				logger.LogParamError("Message.ExecuteCommand", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.ExecuteCommand(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Message.ExecuteCommand", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Message.ExecuteCommand", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -101,14 +105,16 @@ func NewMessage(h MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageMarkAsRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Message.MarkAsRead", r, err, params.Auditable())
+				logger.LogParamError("Message.MarkAsRead", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.MarkAsRead(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Message.MarkAsRead", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Message.MarkAsRead", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -119,14 +125,16 @@ func NewMessage(h MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageEdit()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Message.Edit", r, err, params.Auditable())
+				logger.LogParamError("Message.Edit", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Edit(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Message.Edit", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Message.Edit", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -137,14 +145,16 @@ func NewMessage(h MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Message.Delete", r, err, params.Auditable())
+				logger.LogParamError("Message.Delete", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Delete(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Message.Delete", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Message.Delete", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -155,14 +165,16 @@ func NewMessage(h MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageReplyCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Message.ReplyCreate", r, err, params.Auditable())
+				logger.LogParamError("Message.ReplyCreate", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.ReplyCreate(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Message.ReplyCreate", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Message.ReplyCreate", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -173,14 +185,16 @@ func NewMessage(h MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessagePinCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Message.PinCreate", r, err, params.Auditable())
+				logger.LogParamError("Message.PinCreate", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.PinCreate(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Message.PinCreate", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Message.PinCreate", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -191,14 +205,16 @@ func NewMessage(h MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessagePinRemove()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Message.PinRemove", r, err, params.Auditable())
+				logger.LogParamError("Message.PinRemove", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.PinRemove(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Message.PinRemove", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Message.PinRemove", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -209,14 +225,16 @@ func NewMessage(h MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageBookmarkCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Message.BookmarkCreate", r, err, params.Auditable())
+				logger.LogParamError("Message.BookmarkCreate", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.BookmarkCreate(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Message.BookmarkCreate", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Message.BookmarkCreate", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -227,14 +245,16 @@ func NewMessage(h MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageBookmarkRemove()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Message.BookmarkRemove", r, err, params.Auditable())
+				logger.LogParamError("Message.BookmarkRemove", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.BookmarkRemove(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Message.BookmarkRemove", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Message.BookmarkRemove", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -245,14 +265,16 @@ func NewMessage(h MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageReactionCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Message.ReactionCreate", r, err, params.Auditable())
+				logger.LogParamError("Message.ReactionCreate", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.ReactionCreate(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Message.ReactionCreate", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Message.ReactionCreate", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -263,14 +285,16 @@ func NewMessage(h MessageAPI) *Message {
 			defer r.Body.Close()
 			params := request.NewMessageReactionRemove()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Message.ReactionRemove", r, err, params.Auditable())
+				logger.LogParamError("Message.ReactionRemove", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.ReactionRemove(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Message.ReactionRemove", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Message.ReactionRemove", r, params.Auditable())
 			if !serveHTTP(value, w, r) {

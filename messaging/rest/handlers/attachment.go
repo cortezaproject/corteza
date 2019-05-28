@@ -45,14 +45,16 @@ func NewAttachment(h AttachmentAPI) *Attachment {
 			defer r.Body.Close()
 			params := request.NewAttachmentOriginal()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Attachment.Original", r, err, params.Auditable())
+				logger.LogParamError("Attachment.Original", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Original(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Attachment.Original", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Attachment.Original", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
@@ -63,14 +65,16 @@ func NewAttachment(h AttachmentAPI) *Attachment {
 			defer r.Body.Close()
 			params := request.NewAttachmentPreview()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Attachment.Preview", r, err, params.Auditable())
+				logger.LogParamError("Attachment.Preview", r, err)
 				resputil.JSON(w, err)
 				return
 			}
+
 			value, err := h.Preview(r.Context(), params)
 			if err != nil {
 				logger.LogControllerError("Attachment.Preview", r, err, params.Auditable())
 				resputil.JSON(w, err)
+				return
 			}
 			logger.LogControllerCall("Attachment.Preview", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
