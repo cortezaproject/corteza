@@ -9,6 +9,7 @@ import (
 	"github.com/titpetric/factory"
 	"golang.org/x/crypto/ssh/terminal"
 
+	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/system/internal/repository"
 	"github.com/cortezaproject/corteza-server/system/internal/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -37,7 +38,7 @@ func Users(ctx context.Context) *cobra.Command {
 
 			users, err := userRepo.Find(uf)
 			if err != nil {
-				exit(err)
+				cli.HandleError(err)
 			}
 
 			fmt.Println("                     Created    Updated    EmailAddress")
@@ -78,23 +79,23 @@ func Users(ctx context.Context) *cobra.Command {
 			)
 
 			if user, err = userRepo.Create(user); err != nil {
-				exit(err)
+				cli.HandleError(err)
 			}
 
 			cmd.Printf("User created [%d].\n", user.ID)
 
 			cmd.Print("Set password: ")
 			if password, err = terminal.ReadPassword(syscall.Stdin); err != nil {
-				exit(err)
+				cli.HandleError(err)
 			}
 
 			if len(password) == 0 {
 				// Password not set, that's ok too.
-				exit(nil)
+				return
 			}
 
 			if err = authSvc.SetPassword(user.ID, string(password)); err != nil {
-				exit(err)
+				cli.HandleError(err)
 			}
 		},
 	}
@@ -116,21 +117,21 @@ func Users(ctx context.Context) *cobra.Command {
 			)
 
 			if user, err = userRepo.FindByEmail(args[0]); err != nil {
-				exit(err)
+				cli.HandleError(err)
 			}
 
 			cmd.Print("Set password: ")
 			if password, err = terminal.ReadPassword(syscall.Stdin); err != nil {
-				exit(err)
+				cli.HandleError(err)
 			}
 
 			if len(password) == 0 {
 				// Password not set, that's ok too.
-				exit(nil)
+				return
 			}
 
 			if err = authSvc.SetPassword(user.ID, string(password)); err != nil {
-				exit(err)
+				cli.HandleError(err)
 			}
 		},
 	}

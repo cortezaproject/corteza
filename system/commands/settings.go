@@ -7,9 +7,11 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/titpetric/factory"
 
 	"github.com/cortezaproject/corteza-server/internal/rand"
 	"github.com/cortezaproject/corteza-server/internal/settings"
+	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/system/internal/service"
 )
 
@@ -71,9 +73,11 @@ func Settings(ctx context.Context) *cobra.Command {
 		Use:   "list",
 		Short: "List all",
 		Run: func(cmd *cobra.Command, args []string) {
+			factory.Database.MustGet("system").Profiler = nil
+
 			prefix := cmd.Flags().Lookup("prefix").Value.String()
 			if kv, err := service.DefaultIntSettings.FindByPrefix(prefix); err != nil {
-				exit(err)
+				cli.HandleError(err)
 			} else {
 				for _, v := range kv {
 					cmd.Printf("%s\t%v\n", v.Name, v.Value)
@@ -91,16 +95,15 @@ func Settings(ctx context.Context) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if v, err := service.DefaultIntSettings.Get(args[0], 0); err != nil {
-				exit(err)
+				cli.HandleError(err)
 			} else if v != nil {
 				cmd.Printf("%v\n", v.Value)
 			}
-			exit(nil)
 		},
 	}
 
 	set := &cobra.Command{
-		Use:   "set [key to set] [value",
+		Use:   "set [key to set] [value]",
 		Short: "Set value (raw JSON) for a specific key",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -110,10 +113,10 @@ func Settings(ctx context.Context) *cobra.Command {
 			}
 
 			if err := v.SetValueAsString(value); err != nil {
-				exit(err)
+				cli.HandleError(err)
 			}
 
-			exit(service.DefaultIntSettings.Set(v))
+			cli.HandleError(service.DefaultIntSettings.Set(v))
 		},
 	}
 
@@ -122,7 +125,7 @@ func Settings(ctx context.Context) *cobra.Command {
 		Short: "Set value (raw JSON) for a specific key",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			exit(service.DefaultIntSettings.Delete(args[0], 0))
+			cli.HandleError(service.DefaultIntSettings.Delete(args[0], 0))
 		},
 	}
 

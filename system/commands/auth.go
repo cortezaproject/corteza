@@ -9,6 +9,7 @@ import (
 	"github.com/titpetric/factory"
 
 	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/system/internal/auth/external"
 	"github.com/cortezaproject/corteza-server/system/internal/repository"
 	"github.com/cortezaproject/corteza-server/system/internal/service"
@@ -30,13 +31,13 @@ func Auth(ctx context.Context) *cobra.Command {
 			var name, url = args[0], args[1]
 
 			if eas, err := external.ExternalAuthSettings(service.DefaultIntSettings); err != nil {
-				exit(err)
+				cli.HandleError(err)
 			} else if eap, err := external.RegisterNewOpenIdClient(ctx, eas, name, url); err != nil {
-				exit(err)
+				cli.HandleError(err)
 			} else if vv, err := eap.MakeValueSet("openid-connect." + name); err != nil {
-				exit(err)
+				cli.HandleError(err)
 			} else if err := service.DefaultIntSettings.BulkSet(vv); err != nil {
-				exit(err)
+				cli.HandleError(err)
 			}
 		},
 	}
@@ -74,7 +75,7 @@ func Auth(ctx context.Context) *cobra.Command {
 			}
 
 			if err != nil {
-				exit(err)
+				cli.HandleError(err)
 			}
 
 			user.SetRoles(rr.IDs())
@@ -94,14 +95,10 @@ func Auth(ctx context.Context) *cobra.Command {
 			)
 
 			err = ntf.EmailConfirmation("en", args[0], "notification-testing-token")
-			if err != nil {
-				exit(err)
-			}
+			cli.HandleError(err)
 
 			err = ntf.PasswordReset("en", args[0], "notification-testing-token")
-			if err != nil {
-				exit(err)
-			}
+			cli.HandleError(err)
 
 		},
 	}

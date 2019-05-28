@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/titpetric/factory"
 
+	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/system/internal/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -42,11 +43,11 @@ func Roles(ctx context.Context) *cobra.Command {
 
 			// Try to find role by name and by ID
 			if rr, err = roleRepo.Find(&types.RoleFilter{Query: roleStr}); err != nil {
-				exit(err)
+				cli.HandleError(err)
 			} else if len(rr) == 1 {
 				role = rr[0]
 			} else if len(rr) > 1 {
-				exit(errors.Errorf("too many roles found with name %q", roleStr))
+				cli.HandleError(errors.Errorf("too many roles found with name %q", roleStr))
 			} else if role == nil {
 				if ID, err = strconv.ParseUint(roleStr, 10, 64); err != nil {
 					// Could not parse ID out of role string
@@ -57,18 +58,18 @@ func Roles(ctx context.Context) *cobra.Command {
 			}
 
 			if user, err = userRepo.FindByEmail(userStr); repository.ErrUserNotFound.Eq(err) {
-				exit(err)
+				cli.HandleError(err)
 			} else if user == nil || user.ID == 0 {
 				if ID, err = strconv.ParseUint(userStr, 10, 64); err != nil {
-					exit(err)
+					cli.HandleError(err)
 				} else if user, err = userRepo.FindByID(ID); err != nil {
-					exit(err)
+					cli.HandleError(err)
 				}
 			}
 
 			// Add user to role.
 			if err = roleRepo.MemberAddByID(role.ID, user.ID); err != nil {
-				exit(err)
+				cli.HandleError(err)
 			}
 
 			cmd.Printf("Added user [%d] %q to [%d] %q role\n", user.ID, user.Email, role.ID, role.Name)
