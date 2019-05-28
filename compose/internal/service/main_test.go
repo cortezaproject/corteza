@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/titpetric/factory"
+	"go.uber.org/zap"
 
 	composeMigrate "github.com/cortezaproject/corteza-server/compose/db"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -59,7 +60,7 @@ func TestMain(m *testing.M) {
 
 	ctx := context.Background()
 
-	Init(ctx)
+	Init(ctx, zap.NewNop())
 
 	os.Exit(m.Run())
 }
