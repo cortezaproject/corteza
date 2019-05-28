@@ -27,7 +27,11 @@ func TryToConnect(ctx context.Context, log *zap.Logger, name, dsn, profiler stri
 
 	defer close(connErrCh)
 
-	log.Debug("connecting to the database", zap.String("dsn", dsn))
+	log.Debug("connecting to the database",
+		zap.String("dsn", dsn),
+		zap.Int("tries", maxTries),
+		zap.Duration("delay", delay),
+		zap.Duration("timeout", timeout))
 
 	go func() {
 		var (
@@ -45,7 +49,7 @@ func TryToConnect(ctx context.Context, log *zap.Logger, name, dsn, profiler stri
 			db, err = factory.Database.Get(name)
 			if err != nil {
 				log.Warn(
-					"could not connect",
+					"could not connect to the database",
 					zap.Error(err),
 					zap.Int("try", try),
 					zap.String("dsn", dsn),
@@ -61,6 +65,8 @@ func TryToConnect(ctx context.Context, log *zap.Logger, name, dsn, profiler stri
 					continue
 				}
 			}
+
+			log.Info("connected to the database", zap.String("dsn", dsn))
 
 			// Connected
 			break
@@ -80,7 +86,6 @@ func TryToConnect(ctx context.Context, log *zap.Logger, name, dsn, profiler stri
 		return nil, errors.Errorf("db connection for %q cancelled", name)
 	}
 
-	// @todo: profiling as an external service?
 	switch profiler {
 	case "stdout":
 		db.Profiler = &factory.Database.ProfilerStdout
@@ -89,8 +94,6 @@ func TryToConnect(ctx context.Context, log *zap.Logger, name, dsn, profiler stri
 		db.Profiler = ZapProfiler(log.
 			WithOptions(zap.AddCallerSkip(3)),
 		)
-	default:
-		log.Info("no database query profiler selected")
 	}
 
 	if err != nil {
