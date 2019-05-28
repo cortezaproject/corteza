@@ -35,7 +35,6 @@ func (m *MockDialer) EXPECT() *MockDialerMockRecorder {
 
 // DialAndSend mocks base method
 func (m *MockDialer) DialAndSend(arg0 ...*mail_v2.Message) error {
-	m.ctrl.T.Helper()
 	varargs := []interface{}{}
 	for _, a := range arg0 {
 		varargs = append(varargs, a)
@@ -47,6 +46,5 @@ func (m *MockDialer) DialAndSend(arg0 ...*mail_v2.Message) error {
 
 // DialAndSend indicates an expected call of DialAndSend
 func (mr *MockDialerMockRecorder) DialAndSend(arg0 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DialAndSend", reflect.TypeOf((*MockDialer)(nil).DialAndSend), arg0...)
 }
