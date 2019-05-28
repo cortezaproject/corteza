@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/titpetric/factory"
+	"go.uber.org/zap"
 
 	messagingMigrate "github.com/cortezaproject/corteza-server/messaging/db"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
@@ -31,7 +32,7 @@ func TestMain(m *testing.M) {
 		return
 	}
 
-	Init(context.Background())
+	Init(context.Background(), zap.NewNop())
 
 	os.Exit(m.Run())
 }
