@@ -10,6 +10,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/system/commands"
 	migrate "github.com/cortezaproject/corteza-server/system/db"
+	"github.com/cortezaproject/corteza-server/system/internal/auth/external"
 	"github.com/cortezaproject/corteza-server/system/internal/service"
 	"github.com/cortezaproject/corteza-server/system/rest"
 )
@@ -55,6 +56,8 @@ func Configure() *cli.Config {
 
 		ApiServerPreRun: cli.Runners{
 			func(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
+				external.Init(service.DefaultIntSettings)
+
 				go service.Watchers(ctx)
 				return nil
 			},
