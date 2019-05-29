@@ -102,7 +102,7 @@ func Users(ctx context.Context) *cobra.Command {
 
 	pwdCmd := &cobra.Command{
 		Use:   "password [email]",
-		Short: "Add new user",
+		Short: "Change password for user",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (

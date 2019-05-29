@@ -17,4 +17,6 @@ COPY --from=builder /tmp/corteza-server /bin
 
 EXPOSE 80
 ENTRYPOINT ["/bin/corteza-server"]
-CMD ["serve-api"]
+
+# Forcing exposed port
+CMD ["serve-api", "--http-addr=:80"]
