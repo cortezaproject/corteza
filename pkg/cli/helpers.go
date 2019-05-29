@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -19,7 +20,7 @@ func InitGeneralServices(logOpt *flags.LogOpt, smtpOpt *flags.SMTPOpt, jwtOpt *f
 	_ = logLevel.Set(logOpt.Level)
 	logger.DefaultLevel.SetLevel(logLevel)
 
-	auth.SetupDefault(jwtOpt.Secret, jwtOpt.Expiry)
+	auth.SetupDefault(jwtOpt.Secret, int(jwtOpt.Expiry/time.Minute))
 	mail.SetupDialer(smtpOpt.Host, smtpOpt.Port, smtpOpt.User, smtpOpt.Pass, smtpOpt.From)
 	http.SetupDefaults(
 		httpClientOpt.HttpClientTimeout,

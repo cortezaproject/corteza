@@ -1,6 +1,8 @@
 package flags
 
 import (
+	"time"
+
 	"github.com/spf13/cobra"
 
 	"github.com/cortezaproject/corteza-server/internal/rand"
@@ -9,7 +11,7 @@ import (
 type (
 	JWTOpt struct {
 		Secret string
-		Expiry int
+		Expiry time.Duration
 	}
 )
 
@@ -21,9 +23,9 @@ func JWT(cmd *cobra.Command) (o *JWTOpt) {
 		"auth-jwt-secret", string(rand.Bytes(32)),
 		"JWT Secret")
 
-	BindInt(cmd, &o.Expiry,
-		"auth-jwt-expiry", 60*24*30,
-		"JWT Expiration in minutes")
+	BindDuration(cmd, &o.Expiry,
+		"auth-jwt-expiry", time.Hour*24*30,
+		"JWT Expiration")
 
 	return
 }

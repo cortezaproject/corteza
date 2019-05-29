@@ -17,4 +17,7 @@ COPY --from=builder /tmp/corteza-server-compose /bin
 
 EXPOSE 80
 ENTRYPOINT ["/bin/corteza-server-compose"]
-CMD ["serve-api"]
+
+# Forcing exposed port
+CMD ["serve-api", "--compose-http-addr=:80"]
+

@@ -10,7 +10,6 @@ type (
 	HTTPOpt struct {
 		Addr    string
 		Logging bool
-		Pretty  bool
 		Tracing bool
 
 		EnableVersionRoute bool

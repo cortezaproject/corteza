@@ -74,8 +74,7 @@ func (s Server) Serve(ctx context.Context) {
 
 	// configure resputil options
 	resputil.SetConfig(resputil.Options{
-		Pretty: s.httpOpt.Pretty,
-		Trace:  s.httpOpt.Tracing,
+		Trace: s.httpOpt.Tracing,
 		Logger: func(err error) {
 			// @todo: error logging
 		},

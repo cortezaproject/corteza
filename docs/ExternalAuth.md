@@ -1,5 +1,7 @@
 # Authentication
 
+If you are not already familiar with it, please read documentation about [Corteza Command Line Interface](CLI.md).
+
 Corteza support a fixed set of standard OAuth 2 authentication providers 
 (facebook, gplus, github and linkedin) and a arbitrary number of custom
 issuers (over OpenID Connect).
@@ -12,9 +14,7 @@ Settings for external providers are stored under keys
 
 Prop is one of: `key`, `secret`, `enabled`. OIDC settings also have `issuer` prop.
 
-Example settings (`system settings list --prefix=auth.external`):
-
-
+Example settings (`settings list --prefix=auth.external`):
 ```
 auth.external.callback-endpoint	"https://your-corteza-system-api-backend/auth/external/%s/callback"
 auth.external.enabled	true
@@ -60,11 +60,11 @@ external authentication provider "openid-connect.corteza-iam" added
 
 Corteza CLI comes with auto-discovery tool:
 ```bash
-system external-auth auto-discovery name url
+external-auth auto-discovery name url
 ```
 
 ```bash
-system external-auth auto-discovery corteza-iam https://satosa.didmos.crust.example.tld
+external-auth auto-discovery corteza-iam https://satosa.didmos.crust.example.tld
 ```
 
 This will autodiscover and autoconfigure new OIDC provider. 
@@ -74,5 +74,7 @@ Please note that this provider is disabled by default.
 
 To enable it, run:
 ```bash
-system settings key auth.external.providers.openid-connect.corteza-iam.enabled true
+settings key auth.external.providers.openid-connect.corteza-iam.enabled true
 ```
+
+Changing values requires system service restart.
