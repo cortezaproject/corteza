@@ -173,11 +173,20 @@ func (c *Config) Init() {
 		c.DatabaseName = c.ServiceName
 	}
 
+	c.LogOpt = options.Log(c.EnvPrefix)
+	c.SmtpOpt = options.SMTP(c.EnvPrefix)
+	c.JwtOpt = options.JWT(c.EnvPrefix)
+	c.HttpClientOpt = options.HttpClient(c.EnvPrefix)
+	c.DbOpt = options.DB(c.ServiceName)
+	c.ProvisionOpt = options.Provision(c.ServiceName)
+
 	if c.RootCommandDBSetup == nil {
 		c.RootCommandDBSetup = Runners{func(ctx context.Context, cmd *cobra.Command, c *Config) (err error) {
-			_, err = db.TryToConnect(ctx, c.Log, c.DatabaseName, c.DbOpt.DSN, c.DbOpt.Profiler)
-			if err != nil {
-				return errors.Wrap(err, "could not connect to database")
+			if c.DbOpt != nil {
+				_, err = db.TryToConnect(ctx, c.Log, c.DatabaseName, c.DbOpt.DSN, c.DbOpt.Profiler)
+				if err != nil {
+					return errors.Wrap(err, "could not connect to database")
+				}
 			}
 
 			return
@@ -204,15 +213,7 @@ func (c *Config) MakeCLI(ctx context.Context) (cmd *cobra.Command) {
 		Use:              c.RootCommandName,
 		TraverseChildren: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
-			c.LogOpt = options.Log(c.EnvPrefix)
-			c.SmtpOpt = options.SMTP(c.EnvPrefix)
-			c.JwtOpt = options.JWT(c.EnvPrefix)
-			c.HttpClientOpt = options.HttpClient(c.EnvPrefix)
-
 			InitGeneralServices(c.LogOpt, c.SmtpOpt, c.JwtOpt, c.HttpClientOpt)
-
-			c.DbOpt = options.DB(c.ServiceName)
-			c.ProvisionOpt = options.Provision(c.ServiceName)
 
 			err = c.RootCommandDBSetup.Run(ctx, cmd, c)
 			if err != nil {

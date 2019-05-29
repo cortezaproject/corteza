@@ -60,7 +60,7 @@ func TestMain(m *testing.M) {
 
 	ctx := context.Background()
 
-	Init(ctx, zap.NewNop())
+	Init(ctx, zap.NewNop(), "/tmp/corteza-compose-store")
 
 	os.Exit(m.Run())
 }

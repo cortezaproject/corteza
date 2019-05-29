@@ -6,14 +6,15 @@ import (
 
 type (
 	MonitorOpt struct {
-		Interval time.Duration
+		Interval time.Duration `env:"MONITOR_INTERVAL"`
 	}
 )
 
 func Monitor(pfix string) (o *MonitorOpt) {
 	o = &MonitorOpt{
-		Interval: EnvDuration(pfix, "MONITOR_INTERVAL", 300*time.Second),
+		Interval: 300 * time.Second,
 	}
+	fill(o, pfix)
 
 	return
 }

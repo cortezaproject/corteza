@@ -6,9 +6,9 @@ import (
 
 type (
 	WebsocketOpt struct {
-		Timeout     time.Duration
-		PingTimeout time.Duration
-		PingPeriod  time.Duration
+		Timeout     time.Duration `env:"WEBSOCKET_TIMEOUT"`
+		PingTimeout time.Duration `env:"WEBSOCKET_PING_TIMEOUT"`
+		PingPeriod  time.Duration `env:"WEBSOCKET_PING_PERIOD"`
 	}
 )
 
@@ -20,10 +20,12 @@ func Websocket(pfix string) (o *WebsocketOpt) {
 	)
 
 	o = &WebsocketOpt{
-		Timeout:     EnvDuration(pfix, "WEBSOCKET_TIMEOUT", timeout),
-		PingTimeout: EnvDuration(pfix, "WEBSOCKET_PING_TIMEOUT", pingTimeout),
-		PingPeriod:  EnvDuration(pfix, "WEBSOCKET_PING_PERIOD", pingPeriod),
+		Timeout:     timeout,
+		PingTimeout: pingTimeout,
+		PingPeriod:  pingPeriod,
 	}
+
+	fill(o, pfix)
 
 	return
 }

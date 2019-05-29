@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/internal/service"
 	"github.com/cortezaproject/corteza-server/compose/rest"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 )
 
 const (
@@ -36,7 +37,9 @@ func Configure() *cli.Config {
 					cli.HandleError(c.ProvisionMigrateDatabase.Run(ctx, cmd, c))
 				}
 
-				cli.HandleError(service.Init(ctx, c.Log))
+				storagePath := options.EnvString("", "COMPOSE_STORAGE_PATH", "var/store")
+
+				cli.HandleError(service.Init(ctx, c.Log, storagePath))
 
 				if c.ProvisionOpt.AutoSetup {
 					cli.HandleError(accessControlSetup(ctx, cmd, c))

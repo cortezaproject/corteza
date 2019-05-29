@@ -32,7 +32,7 @@ func TestMain(m *testing.M) {
 		return
 	}
 
-	Init(context.Background(), zap.NewNop())
+	Init(context.Background(), zap.NewNop(), "/tmp/corteza-messaging-store")
 
 	os.Exit(m.Run())
 }

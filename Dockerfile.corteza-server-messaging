@@ -15,9 +15,12 @@ RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /tmp/corteza-server-messaging /bin
 
+ENV MESSAGING_STORAGE_PATH /data/messaging
+
+VOLUME /data
+
 EXPOSE 80
 ENTRYPOINT ["/bin/corteza-server-messaging"]
 
-# Forcing exposed port
 CMD ["serve-api"]
 

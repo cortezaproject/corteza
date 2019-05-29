@@ -2,22 +2,24 @@ package options
 
 type (
 	SMTPOpt struct {
-		Host string
-		Port int
-		User string
-		Pass string
-		From string
+		Host string `env:"SMTP_HOST"`
+		Port int    `env:"SMTP_PORT"`
+		User string `env:"SMTP_USERNAM"`
+		Pass string `env:"SMTP_PASS"`
+		From string `env:"SMTP_FROM"`
 	}
 )
 
 func SMTP(pfix string) (o *SMTPOpt) {
 	o = &SMTPOpt{
-		Host: EnvString(pfix, "SMTP_HOST", "localhost:25"),
-		Port: EnvInt(pfix, "SMTP_PORT", 25),
-		User: EnvString(pfix, "SMTP_USERNAME", ""),
-		Pass: EnvString(pfix, "SMTP_PASS", ""),
-		From: EnvString(pfix, "SMTP_FROM", ""),
+		Host: "localhost:25",
+		Port: 25,
+		User: "",
+		Pass: "",
+		From: "",
 	}
+
+	fill(o, pfix)
 
 	return
 }

@@ -42,7 +42,9 @@ func Configure() *cli.Config {
 					cli.HandleError(c.ProvisionMigrateDatabase.Run(ctx, cmd, c))
 				}
 
-				cli.HandleError(service.Init(ctx, c.Log))
+				storagePath := options.EnvString("", "MESSAGING_STORAGE_PATH", "var/store")
+
+				cli.HandleError(service.Init(ctx, c.Log, storagePath))
 
 				var websocketOpt = options.Websocket(messaging)
 
