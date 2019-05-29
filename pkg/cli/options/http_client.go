@@ -6,16 +6,18 @@ import (
 
 type (
 	HttpClientOpt struct {
-		ClientTSLInsecure bool
-		HttpClientTimeout time.Duration
+		ClientTSLInsecure bool          `env:"HTTP_CLIENT_TSL_INSECURE"`
+		HttpClientTimeout time.Duration `env:"HTTP_CLIENT_TIMEOUT"`
 	}
 )
 
 func HttpClient(pfix string) (o *HttpClientOpt) {
 	o = &HttpClientOpt{
-		ClientTSLInsecure: EnvBool(pfix, "HTTP_CLIENT_TSL_INSECURE", false),
-		HttpClientTimeout: EnvDuration(pfix, "HTTP_CLIENT_TIMEOUT", 30*time.Second),
+		ClientTSLInsecure: false,
+		HttpClientTimeout: 30 * time.Second,
 	}
+
+	fill(o, pfix)
 
 	return
 }

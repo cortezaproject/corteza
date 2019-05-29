@@ -6,16 +6,16 @@ import (
 
 type (
 	PubSubOpt struct {
-		Mode string
+		Mode string `env:"PUBSUB_MODE"`
 
 		// Mode
-		PollingInterval time.Duration
+		PollingInterval time.Duration `env:"PUBSUB_POLLING_INTERVAL"`
 
 		// Redis
-		RedisAddr        string
-		RedisTimeout     time.Duration
-		RedisPingTimeout time.Duration
-		RedisPingPeriod  time.Duration
+		RedisAddr        string        `env:"PUBSUB_REDIS_ADDR"`
+		RedisTimeout     time.Duration `env:"PUBSUB_REDIS_TIMEOUT"`
+		RedisPingTimeout time.Duration `env:"PUBSUB_REDIS_PING_TIMEOUT"`
+		RedisPingPeriod  time.Duration `env:"PUBSUB_REDIS_PING_PERIOD"`
 	}
 )
 
@@ -27,13 +27,15 @@ func PubSub(pfix string) (o *PubSubOpt) {
 	)
 
 	o = &PubSubOpt{
-		Mode:             EnvString(pfix, "PUBSUB_MODE", "poll"),
-		PollingInterval:  EnvDuration(pfix, "PUBSUB_POLLING_INTERVAL", timeout),
-		RedisAddr:        EnvString(pfix, "PUBSUB_REDIS_ADDR", "redis:6379"),
-		RedisTimeout:     EnvDuration(pfix, "PUBSUB_REDIS_TIMEOUT", timeout),
-		RedisPingTimeout: EnvDuration(pfix, "PUBSUB_REDIS_PING_TIMEOUT", pingTimeout),
-		RedisPingPeriod:  EnvDuration(pfix, "PUBSUB_REDIS_PING_PERIOD", pingPeriod),
+		Mode:             "poll",
+		PollingInterval:  timeout,
+		RedisAddr:        "redis:6379",
+		RedisTimeout:     timeout,
+		RedisPingTimeout: pingTimeout,
+		RedisPingPeriod:  pingPeriod,
 	}
+
+	fill(o, pfix)
 
 	return
 }

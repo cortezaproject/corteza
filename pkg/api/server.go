@@ -37,14 +37,15 @@ func NewServer(log *zap.Logger) *Server {
 }
 
 func (s *Server) Command(ctx context.Context, cmdName, prefix string, preRun func(context.Context) error) (cmd *cobra.Command) {
+	s.httpOpt = options.HTTP(prefix)
+	s.monitorOpt = options.Monitor(prefix)
+
 	cmd = &cobra.Command{
 		Use:   cmdName,
 		Short: "Start HTTP Server with REST API",
 
 		// Connect all the wires, prepare services, run watchers, bind endpoints
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			s.httpOpt = options.HTTP(prefix)
-			s.monitorOpt = options.Monitor(prefix)
 
 			if s.monitorOpt.Interval > 0 {
 				go NewMonitor(int(s.monitorOpt.Interval / time.Second))

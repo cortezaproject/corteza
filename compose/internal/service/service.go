@@ -35,10 +35,11 @@ var (
 	DefaultNamespace    NamespaceService
 )
 
-func Init(ctx context.Context, log *zap.Logger) (err error) {
+func Init(ctx context.Context, log *zap.Logger, storePath string) (err error) {
 	DefaultLogger = log.Named("service")
 
-	fs, err := store.New("var/store")
+	fs, err := store.New(storePath)
+	log.Info("initializing store", zap.String("path", storePath), zap.Error(err))
 	if err != nil {
 		return err
 	}

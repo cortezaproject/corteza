@@ -2,11 +2,59 @@ package options
 
 import (
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
 	"github.com/spf13/cast"
 )
+
+func fill(opt interface{}, pfix string) {
+	v := reflect.ValueOf(opt)
+	if v.Kind() != reflect.Ptr {
+		panic("expecting a pointer, not a value")
+	}
+
+	if v.IsNil() {
+		panic("nil pointer passed")
+	}
+
+	v = v.Elem()
+
+	length := v.NumField()
+	for i := 0; i < length; i++ {
+		f := v.Field(i)
+		t := v.Type().Field(i)
+		if tag := t.Tag.Get("env"); tag != "" {
+			if !f.CanSet() {
+				panic("unexpected pointer for field " + t.Name)
+			}
+
+			if f.Type() == reflect.TypeOf(time.Duration(1)) {
+				v.FieldByName(t.Name).SetInt(int64(EnvDuration(pfix, tag, time.Duration(f.Int()))))
+				continue
+			}
+
+			if f.Kind() == reflect.String {
+				v.FieldByName(t.Name).SetString(EnvString(pfix, tag, f.String()))
+				continue
+			}
+
+			if f.Kind() == reflect.Bool {
+				v.FieldByName(t.Name).SetBool(EnvBool(pfix, tag, f.Bool()))
+				continue
+			}
+
+			if f.Kind() == reflect.Int {
+				v.FieldByName(t.Name).SetInt(int64(EnvInt(pfix, tag, int(f.Int()))))
+				continue
+			}
+
+			panic("unsupported type/kind for field " + t.Name)
+
+		}
+	}
+}
 
 func makeEnvKeys(pfix, name string) []string {
 	return []string{

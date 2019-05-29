@@ -8,17 +8,20 @@ import (
 
 type (
 	JWTOpt struct {
-		Secret string
-		Expiry time.Duration
+		Secret string        `env:"AUTH_JWT_SECRET"`
+		Expiry time.Duration `env:"AUTH_JWT_EXPIRY"`
 	}
 )
 
 func JWT(pfix string) (o *JWTOpt) {
 	o = &JWTOpt{
-		Secret: EnvString(pfix, "AUTH_JWT_SECRET", string(rand.Bytes(32))),
 		// Setting JWT secret to random string to prevent security accidents...
-		Expiry: EnvDuration(pfix, "AUTH_JWT_EXPIRY", time.Hour*24*30),
+		Secret: string(rand.Bytes(32)),
+
+		Expiry: time.Hour * 24 * 30,
 	}
+
+	fill(o, pfix)
 
 	return
 }

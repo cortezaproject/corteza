@@ -15,9 +15,12 @@ RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /tmp/corteza-server-compose /bin
 
+ENV COMPOSE_STORAGE_PATH /data/compose
+
+VOLUME /data
+
 EXPOSE 80
 ENTRYPOINT ["/bin/corteza-server-compose"]
 
-# Forcing exposed port
 CMD ["serve-api"]
 

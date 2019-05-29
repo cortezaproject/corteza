@@ -6,34 +6,36 @@ import (
 
 type (
 	HTTPOpt struct {
-		Addr    string
-		Logging bool
-		Tracing bool
+		Addr    string `env:"HTTP_ADDR"`
+		Logging bool   `env:"HTTP_LOG_REQUESTS"`
+		Tracing bool   `env:"HTTP_ERROR_TRACING"`
 
-		EnableVersionRoute bool
-		EnableDebugRoute   bool
+		EnableVersionRoute bool `env:"HTTP_ENABLE_VERSION_ROUTE"`
+		EnableDebugRoute   bool `env:"HTTP_ENABLE_DEBUG_ROUTE"`
 
-		EnableMetrics       bool
-		MetricsServiceLabel string
-		MetricsUsername     string
-		MetricsPassword     string
+		EnableMetrics       bool   `env:"HTTP_METRICS"`
+		MetricsServiceLabel string `env:"HTTP_METRICS_NAME"`
+		MetricsUsername     string `env:"HTTP_METRICS_USERNAME"`
+		MetricsPassword     string `env:"HTTP_METRICS_PASSWORD"`
 	}
 )
 
 func HTTP(pfix string) (o *HTTPOpt) {
 	o = &HTTPOpt{
-		Addr:                EnvString(pfix, "HTTP_ADDR", ":80"),
-		Logging:             EnvBool(pfix, "HTTP_LOG_REQUESTS", true),
-		Tracing:             EnvBool(pfix, "HTTP_ERROR_TRACING", false),
-		EnableVersionRoute:  EnvBool(pfix, "HTTP_ENABLE_VERSION_ROUTE", true),
-		EnableDebugRoute:    EnvBool(pfix, "HTTP_ENABLE_DEBUG_ROUTE", false),
-		EnableMetrics:       EnvBool(pfix, "HTTP_METRICS", false),
-		MetricsServiceLabel: EnvString(pfix, "HTTP_METRICS_NAME", "corteza"),
-		MetricsUsername:     EnvString(pfix, "HTTP_METRICS_USERNAME", "metrics"),
+		Addr:                ":80",
+		Logging:             true,
+		Tracing:             false,
+		EnableVersionRoute:  true,
+		EnableDebugRoute:    false,
+		EnableMetrics:       false,
+		MetricsServiceLabel: "corteza",
+		MetricsUsername:     "metrics",
 
 		// Setting metrics password to random string to prevent security accidents...
-		MetricsPassword: EnvString(pfix, "HTTP_METRICS_PASSWORD", string(rand.Bytes(5))),
+		MetricsPassword: string(rand.Bytes(5)),
 	}
+
+	fill(o, pfix)
 
 	return
 }

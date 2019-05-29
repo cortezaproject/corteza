@@ -15,9 +15,13 @@ RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /tmp/corteza-server-system /bin
 
+ENV SYSTEM_STORAGE_PATH /data/system
+
+VOLUME /data
+
+
 EXPOSE 80
 ENTRYPOINT ["/bin/corteza-server-system"]
 
-# Forcing exposed port
 CMD ["serve-api"]
 
