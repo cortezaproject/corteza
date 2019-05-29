@@ -24,22 +24,15 @@ Crust Unify manages the user experience for Crust applications, such as CRM, Mes
 Copy `.env.example` to `.env` and make proper modifications for your local environment.
 
 An access to a (local) instance of MySQL must be available.
-Configure access to your database with `SYSTEM_DB_DSN`, `MESSAGING_DB_DSN` and `COMPOSE_DB_DSN`.
+Configure access to your database with `DB_DSN`.
 
 The database will be populated with migrations at the start of each service. You don't need to pre-populate the database, just make sure that your permissions include CREATE and ALTER capabilities.
 
 # Running in local environment for development
 
-Everything should be set and ready to run with `make realize`. This utilizes realize tool that monitors codebase for changes and restarts api http server for every file change. It is not 100% so it needs help (manual restart) in certain cases (new files added, changes in non .go files etc..)
+Everything should be set and ready to run with `make realize`. This utilizes realize 
+tool that monitors codebase for changes and restarts api http server for every file change. It is not 100% so it needs help (manual restart) in certain cases (new files added, changes in non .go files etc..)
 
-# Making changes
+# Documentation:
 
-Please refer to each project's style guidelines and guidelines for submitting patches and additions. In general, we follow the "fork-and-pull" Git workflow.
-
- 1. **Fork** the repo on GitHub
- 2. **Clone** the project to your own machine
- 3. **Commit** changes to your own branch
- 4. **Push** your work back up to your fork
- 5. Submit a **Pull request** so that we can review your changes
-
-NOTE: Be sure to merge the latest master from "upstream" before making a pull request!
+You can find more documentation about Corteza CLI, setup, authentication and API endpoints under `/docs`.

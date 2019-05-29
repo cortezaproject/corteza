@@ -19,5 +19,5 @@ EXPOSE 80
 ENTRYPOINT ["/bin/corteza-server-messaging"]
 
 # Forcing exposed port
-CMD ["serve-api", "--messaging-http-addr=:80"]
+CMD ["serve-api"]
 

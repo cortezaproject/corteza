@@ -13,7 +13,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/internal/version"
-	"github.com/cortezaproject/corteza-server/pkg/cli/flags"
+	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 )
 
 type (
@@ -22,8 +22,8 @@ type (
 
 		log *zap.Logger
 
-		httpOpt    *flags.HTTPOpt
-		monitorOpt *flags.MonitorOpt
+		httpOpt    *options.HTTPOpt
+		monitorOpt *options.MonitorOpt
 
 		endpoints []func(r chi.Router)
 	}
@@ -43,6 +43,9 @@ func (s *Server) Command(ctx context.Context, cmdName, prefix string, preRun fun
 
 		// Connect all the wires, prepare services, run watchers, bind endpoints
 		PreRunE: func(cmd *cobra.Command, args []string) error {
+			s.httpOpt = options.HTTP(prefix)
+			s.monitorOpt = options.Monitor(prefix)
+
 			if s.monitorOpt.Interval > 0 {
 				go NewMonitor(int(s.monitorOpt.Interval / time.Second))
 			}
@@ -56,13 +59,7 @@ func (s *Server) Command(ctx context.Context, cmdName, prefix string, preRun fun
 		},
 	}
 
-	s.BindApiServerFlags(cmd, prefix)
 	return
-}
-
-func (s *Server) BindApiServerFlags(cmd *cobra.Command, prefix string) {
-	s.httpOpt = flags.HTTP(cmd, prefix)
-	s.monitorOpt = flags.Monitor(cmd, prefix)
 }
 
 func (s *Server) MountRoutes(mm ...func(chi.Router)) {

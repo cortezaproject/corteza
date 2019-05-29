@@ -10,7 +10,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/internal/db"
 	"github.com/cortezaproject/corteza-server/pkg/api"
-	"github.com/cortezaproject/corteza-server/pkg/cli/flags"
+	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
@@ -34,34 +34,26 @@ type (
 		// See comments on other fields for how it is used.
 		ServiceName string
 
+		// Prefix for ENV variables
+		EnvPrefix string
+
 		// Logger name for internal services, defaults to ServiceName
 		LoggerName string
 		Log        *zap.Logger
 
-		// General options/flags
-		LogOpt        *flags.LogOpt
-		SmtpOpt       *flags.SMTPOpt
-		JwtOpt        *flags.JWTOpt
-		HttpClientOpt *flags.HttpClientOpt
-
-		// Per-service options/flags
-		DbOpt        *flags.DBOpt
-		ProvisionOpt *flags.ProvisionOpt
+		// General options
+		LogOpt        *options.LogOpt
+		SmtpOpt       *options.SMTPOpt
+		JwtOpt        *options.JWTOpt
+		HttpClientOpt *options.HttpClientOpt
+		DbOpt         *options.DBOpt
+		ProvisionOpt  *options.ProvisionOpt
 
 		// DB Connection name, defaults to ServiceName
 		DatabaseName string
 
 		// Root command name, , defaults to "corteza-server-<ServiceName>"
 		RootCommandName string
-
-		// Flags that are bond to root command, no (per-service) prefixed
-		RootCommandBaseFlags FlagBinders
-
-		// Prefix for flags for root command, defaults to ServiceName
-		RootCommandFlagsPrefix string
-
-		// Flags that are bond to root command, (per-service) prefixed
-		RootCommandPrefixedFlags FlagBinders
 
 		// Database setup/connection procedure
 		// Runner autobinds default runner that tries to connect using DbOpt.DSN
@@ -77,12 +69,6 @@ type (
 
 		// API Server command name
 		ApiServerCommandName string
-
-		// Prefix for "serve-api command flags", defaults to ServiceName
-		ApiServerFlagsPrefix string
-
-		// Additional command flags for API server
-		ApiServerAdtFlags FlagBinders
 
 		// Code that needs to be executed before HTTP server is started
 		ApiServerPreRun Runners
@@ -169,6 +155,10 @@ func (c *Config) Init() {
 		c.LoggerName = c.ServiceName
 	}
 
+	if c.EnvPrefix == "" {
+		c.EnvPrefix = c.ServiceName
+	}
+
 	c.Log = c.Log.Named(c.LoggerName)
 
 	if c.RootCommandName == "" {
@@ -177,10 +167,6 @@ func (c *Config) Init() {
 
 	if c.ApiServerCommandName == "" {
 		c.ApiServerCommandName = "serve-api"
-	}
-
-	if c.ApiServerFlagsPrefix == "" {
-		c.ApiServerFlagsPrefix = c.ServiceName
 	}
 
 	if c.DatabaseName == "" {
@@ -196,32 +182,6 @@ func (c *Config) Init() {
 
 			return
 		}}
-	}
-
-	// Flags, not prefixed with service name
-	if c.RootCommandBaseFlags == nil {
-		c.RootCommandBaseFlags = FlagBinders{
-			func(cmd *cobra.Command, c *Config) {
-				c.LogOpt = flags.Log(cmd)
-				c.SmtpOpt = flags.SMTP(cmd)
-				c.JwtOpt = flags.JWT(cmd)
-				c.HttpClientOpt = flags.HttpClient(cmd)
-			},
-		}
-	}
-
-	if c.RootCommandFlagsPrefix == "" {
-		c.RootCommandFlagsPrefix = c.ServiceName
-	}
-
-	// Flags, prefixed with service name
-	if c.RootCommandPrefixedFlags == nil {
-		c.RootCommandPrefixedFlags = FlagBinders{
-			func(cmd *cobra.Command, c *Config) {
-				c.DbOpt = flags.DB(cmd, c.ServiceName)
-				c.ProvisionOpt = flags.Provision(cmd, c.ServiceName)
-			},
-		}
 	}
 
 	if c.ApiServer == nil {
@@ -244,7 +204,15 @@ func (c *Config) MakeCLI(ctx context.Context) (cmd *cobra.Command) {
 		Use:              c.RootCommandName,
 		TraverseChildren: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
+			c.LogOpt = options.Log(c.EnvPrefix)
+			c.SmtpOpt = options.SMTP(c.EnvPrefix)
+			c.JwtOpt = options.JWT(c.EnvPrefix)
+			c.HttpClientOpt = options.HttpClient(c.EnvPrefix)
+
 			InitGeneralServices(c.LogOpt, c.SmtpOpt, c.JwtOpt, c.HttpClientOpt)
+
+			c.DbOpt = options.DB(c.ServiceName)
+			c.ProvisionOpt = options.Provision(c.ServiceName)
 
 			err = c.RootCommandDBSetup.Run(ctx, cmd, c)
 			if err != nil {
@@ -262,15 +230,9 @@ func (c *Config) MakeCLI(ctx context.Context) (cmd *cobra.Command) {
 		},
 	}
 
-	c.RootCommandBaseFlags.Bind(cmd, c)
-	c.RootCommandPrefixedFlags.Bind(cmd, c)
-
-	serveApiCmd := c.ApiServer.Command(ctx, c.ApiServerCommandName, c.ApiServerFlagsPrefix, func(ctx context.Context) (err error) {
+	serveApiCmd := c.ApiServer.Command(ctx, c.ApiServerCommandName, c.EnvPrefix, func(ctx context.Context) (err error) {
 		return c.ApiServerPreRun.Run(ctx, cmd, c)
 	})
-
-	// Bind all flags we need for serving the API
-	c.ApiServerAdtFlags.Bind(serveApiCmd, c)
 
 	cmd.AddCommand(serveApiCmd)
 

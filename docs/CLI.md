@@ -13,13 +13,14 @@ When system is build into a all-in-one binary or image,
 app-specific commands can be accessed under a sub-command with the 
 same name as the app.
 
-## Flags & environmental variables
-Command and application behaviour can be adjusted using flags and/or environmental
-variables. Flags have highest priority and override env. variables. Defaults that 
-are pre-set internally are optimized for production mode.
+## Config
+Command and application behaviour can be adjusted using environmental
+variables. Defaults that are pre-set internally are optimized for production mode.
+
+Make sure you read `/.env.example` for all the available options.
 
 Note that defaults shown under `--help` are overridden by value from the accompanying 
-environemntal variable.
+environmental variable.
 
 ## How to run:
 
