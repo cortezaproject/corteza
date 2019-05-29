@@ -19,5 +19,5 @@ EXPOSE 80
 ENTRYPOINT ["/bin/corteza-server-system"]
 
 # Forcing exposed port
-CMD ["serve-api", "--system-http-addr=:80"]
+CMD ["serve-api"]
 

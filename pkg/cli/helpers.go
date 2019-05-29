@@ -10,11 +10,11 @@ import (
 	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/internal/http"
 	"github.com/cortezaproject/corteza-server/internal/mail"
-	"github.com/cortezaproject/corteza-server/pkg/cli/flags"
+	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
-func InitGeneralServices(logOpt *flags.LogOpt, smtpOpt *flags.SMTPOpt, jwtOpt *flags.JWTOpt, httpClientOpt *flags.HttpClientOpt) {
+func InitGeneralServices(logOpt *options.LogOpt, smtpOpt *options.SMTPOpt, jwtOpt *options.JWTOpt, httpClientOpt *options.HttpClientOpt) {
 	// Reset logger's level to whatever we want
 	var logLevel = zap.InfoLevel
 	_ = logLevel.Set(logOpt.Level)

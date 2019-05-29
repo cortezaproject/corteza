@@ -22,10 +22,6 @@ func Configure() *cli.Config {
 	msg.Init()
 	sys.Init()
 
-	cmp.RootCommandBaseFlags = nil
-	msg.RootCommandBaseFlags = nil
-	sys.RootCommandBaseFlags = nil
-
 	// Combines all three services/apps and makes them run as one monolith app
 	return &cli.Config{
 		ServiceName: "",
@@ -48,20 +44,6 @@ func Configure() *cli.Config {
 				return
 			},
 		},
-
-		RootCommandPrefixedFlags: cli.FlagBinders{
-			func(cmd *cobra.Command, c *cli.Config) {
-				cmp.RootCommandPrefixedFlags.Bind(cmd, cmp)
-				msg.RootCommandPrefixedFlags.Bind(cmd, msg)
-				sys.RootCommandPrefixedFlags.Bind(cmd, sys)
-			},
-		},
-
-		ApiServerAdtFlags: cli.CombineFlagBinders(
-			cmp.ApiServerAdtFlags,
-			msg.ApiServerAdtFlags,
-			sys.ApiServerAdtFlags,
-		),
 
 		ApiServerRoutes: cli.Mounters{
 			func(r chi.Router) {
