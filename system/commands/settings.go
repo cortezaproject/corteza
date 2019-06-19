@@ -162,6 +162,37 @@ func Settings(ctx context.Context) *cobra.Command {
 		},
 	}
 
+	exp := &cobra.Command{
+		Use:   "export [file]",
+		Short: "Import settings as JSON to stdout or file",
+		Args:  cobra.MaximumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			var (
+				fh  *os.File
+				err error
+			)
+
+			if len(args) > 0 {
+				fh, err = os.Create(args[0])
+				cli.HandleError(err)
+			} else {
+				fh = os.Stdin
+			}
+
+			var (
+				encoder = json.NewEncoder(fh)
+			)
+
+			encoder.SetIndent("", "  ")
+
+			if vv, err := service.DefaultIntSettings.FindByPrefix(""); err != nil {
+				cli.HandleError(err)
+			} else {
+				cli.HandleError(encoder.Encode(vv.KV()))
+			}
+		},
+	}
+
 	del := &cobra.Command{
 		Use:   "delete [keys, ...]",
 		Short: "Set value (raw JSON) for a specific key",
@@ -180,6 +211,7 @@ func Settings(ctx context.Context) *cobra.Command {
 		set,
 		del,
 		imp,
+		exp,
 	)
 
 	return cmd
