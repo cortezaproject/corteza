@@ -816,13 +816,13 @@ func (svc auth) createUserToken(user *types.User, kind string) (token string, er
 func (svc auth) autoPromote(u *types.User) (err error) {
 	if svc.users.Total() == 0 && u.ID > 0 {
 		err = svc.roles.MemberAddByID(permissions.AdminRoleID, u.ID)
-	}
 
-	svc.log(
-		zap.String("email", u.Email),
-		zap.Uint64("userID", u.ID),
-		zap.Error(err),
-	).Info("auto-promoted user to administrator role")
+		svc.log(
+			zap.String("email", u.Email),
+			zap.Uint64("userID", u.ID),
+			zap.Error(err),
+		).Info("auto-promoted user to administrator role")
+	}
 
 	return
 }
