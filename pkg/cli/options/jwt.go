@@ -15,13 +15,15 @@ type (
 
 func JWT(pfix string) (o *JWTOpt) {
 	o = &JWTOpt{
-		// Setting JWT secret to random string to prevent security accidents...
-		Secret: string(rand.Bytes(32)),
-
 		Expiry: time.Hour * 24 * 30,
 	}
 
 	fill(o, pfix)
+
+	// Setting JWT secret to random string to prevent security accidents...
+	if o.Secret == "" {
+		o.Secret = string(rand.Bytes(32))
+	}
 
 	return
 }
