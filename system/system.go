@@ -33,6 +33,7 @@ func Configure() *cli.Config {
 
 				if c.ProvisionOpt.AutoSetup {
 					cli.HandleError(accessControlSetup(ctx, cmd, c))
+					cli.HandleError(makeDefaultApplications(ctx, cmd, c))
 
 					// Run auto configuration
 					commands.SettingsAutoConfigure(cmd, "", "", "", "")
