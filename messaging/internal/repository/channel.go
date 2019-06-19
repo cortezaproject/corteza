@@ -17,7 +17,7 @@ type (
 
 		FindByID(id uint64) (*types.Channel, error)
 		FindByMemberSet(memberID ...uint64) (*types.Channel, error)
-		Find(filter *types.ChannelFilter) ([]*types.Channel, error)
+		Find(filter *types.ChannelFilter) (types.ChannelSet, error)
 
 		Create(mod *types.Channel) (*types.Channel, error)
 		Update(mod *types.Channel) (*types.Channel, error)
@@ -112,11 +112,11 @@ func (r *channel) FindByMemberSet(memberIDs ...uint64) (*types.Channel, error) {
 	return mod, isFound(r.db().Get(mod, sqlChannelGroupByMemberSet, types.ChannelTypeGroup, len(memberIDs), membersConcat), mod.ID > 0, ErrChannelNotFound)
 }
 
-func (r *channel) Find(filter *types.ChannelFilter) ([]*types.Channel, error) {
+func (r *channel) Find(filter *types.ChannelFilter) (types.ChannelSet, error) {
 	// @todo: actual searching (filter.Query) not just a full select
 
 	params := make([]interface{}, 0)
-	rval := make([]*types.Channel, 0)
+	rval := types.ChannelSet{}
 
 	sql := sqlChannelSelect
 
