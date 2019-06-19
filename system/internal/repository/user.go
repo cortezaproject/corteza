@@ -145,7 +145,7 @@ func (r *user) Find(filter *types.UserFilter) ([]*types.User, error) {
 
 func (r user) Total() (count uint) {
 	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s", r.users, sqlUserScope)
-	_ = r.db().Select(&count, query)
+	_ = r.db().Get(&count, query)
 	return
 }
 
