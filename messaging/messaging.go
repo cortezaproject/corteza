@@ -49,6 +49,7 @@ func Configure() *cli.Config {
 
 				if c.ProvisionOpt.AutoSetup {
 					cli.HandleError(accessControlSetup(ctx, cmd, c))
+					cli.HandleError(makeDefaultChannels(ctx, cmd, c))
 				}
 
 				return
