@@ -19,15 +19,6 @@ const (
 )
 
 func Configure() *cli.Config {
-	var (
-		accessControlSetup = func(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
-			// Calling grant directly on internal permissions service to avoid AC check for "grant"
-			var p = service.DefaultPermissions
-			var ac = service.DefaultAccessControl
-			return p.Grant(ctx, ac.Whitelist(), ac.DefaultRules()...)
-		}
-	)
-
 	return &cli.Config{
 		ServiceName: compose,
 
