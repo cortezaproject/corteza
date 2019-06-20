@@ -143,6 +143,8 @@ func (r *MessageExecuteCommand) Fill(req *http.Request) (err error) {
 		r.Input = val
 	}
 
+	r.Params = parseStrings(req.Form["params"])
+
 	return err
 }
 

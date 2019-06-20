@@ -430,6 +430,8 @@ func (r *PageReorder) Fill(req *http.Request) (err error) {
 	r.SelfID = parseUInt64(chi.URLParam(req, "selfID"))
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
+	r.PageIDs = parseStrings(req.Form["pageIDs"])
+
 	return err
 }
 

@@ -79,6 +79,10 @@ func parseUInt64A(values []string) []uint64 {
 	return result
 }
 
+func parseStrings(values []string) []string {
+	return values
+}
+
 // parseUInt64 parses a string to uint64
 func parseBool(s string) bool {
 	return truthy.MatchString(strings.ToLower(s))
