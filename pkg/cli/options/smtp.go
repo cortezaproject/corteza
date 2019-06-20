@@ -4,7 +4,7 @@ type (
 	SMTPOpt struct {
 		Host string `env:"SMTP_HOST"`
 		Port int    `env:"SMTP_PORT"`
-		User string `env:"SMTP_USERNAM"`
+		User string `env:"SMTP_USER"`
 		Pass string `env:"SMTP_PASS"`
 		From string `env:"SMTP_FROM"`
 	}
