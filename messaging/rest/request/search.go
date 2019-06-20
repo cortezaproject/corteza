@@ -96,6 +96,12 @@ func (r *SearchMessages) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	if val, ok := urlQuery["channelID[]"]; ok {
+		r.ChannelID = parseStrings(val)
+	} else if val, ok = urlQuery["channelID"]; ok {
+		r.ChannelID = parseStrings(val)
+	}
+
 	if val, ok := get["afterMessageID"]; ok {
 		r.AfterMessageID = parseUInt64(val)
 	}
@@ -108,6 +114,25 @@ func (r *SearchMessages) Fill(req *http.Request) (err error) {
 	if val, ok := get["toMessageID"]; ok {
 		r.ToMessageID = parseUInt64(val)
 	}
+
+	if val, ok := urlQuery["threadID[]"]; ok {
+		r.ThreadID = parseStrings(val)
+	} else if val, ok = urlQuery["threadID"]; ok {
+		r.ThreadID = parseStrings(val)
+	}
+
+	if val, ok := urlQuery["userID[]"]; ok {
+		r.UserID = parseStrings(val)
+	} else if val, ok = urlQuery["userID"]; ok {
+		r.UserID = parseStrings(val)
+	}
+
+	if val, ok := urlQuery["type[]"]; ok {
+		r.Type = parseStrings(val)
+	} else if val, ok = urlQuery["type"]; ok {
+		r.Type = parseStrings(val)
+	}
+
 	if val, ok := get["pinnedOnly"]; ok {
 		r.PinnedOnly = parseBool(val)
 	}
@@ -172,6 +197,12 @@ func (r *SearchThreads) Fill(req *http.Request) (err error) {
 	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
+	}
+
+	if val, ok := urlQuery["channelID[]"]; ok {
+		r.ChannelID = parseStrings(val)
+	} else if val, ok = urlQuery["channelID"]; ok {
+		r.ChannelID = parseStrings(val)
 	}
 
 	if val, ok := get["limit"]; ok {

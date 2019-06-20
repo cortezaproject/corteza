@@ -133,6 +133,8 @@ func (r *RoleCreate) Fill(req *http.Request) (err error) {
 		r.Name = val
 	}
 
+	r.Members = parseStrings(req.Form["members"])
+
 	return err
 }
 
@@ -190,6 +192,8 @@ func (r *RoleUpdate) Fill(req *http.Request) (err error) {
 	if val, ok := post["name"]; ok {
 		r.Name = val
 	}
+
+	r.Members = parseStrings(req.Form["members"])
 
 	return err
 }

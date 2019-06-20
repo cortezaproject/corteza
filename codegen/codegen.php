@@ -98,6 +98,7 @@ usort($apis, function($a, $b) {
 $parsers = array(
 	"uint64" => "parseUInt64",
 	"[]uint64" => "parseUInt64A",
+	"[]string" => "parseStrings",
 	"int" => "parseInt",
 	"uint" => "parseUint",
 	"bool" => "parseBool",
