@@ -46,7 +46,7 @@ func makeDefaultApplications(ctx context.Context, cmd *cobra.Command, c *cli.Con
 				Listed: true,
 				Icon:   "/applications/crust_favicon.png",
 				Logo:   "/applications/crust.jpg",
-				Url:    "/compose/ns/crm",
+				Url:    "/compose/ns/crm/pages",
 			},
 		},
 	}
