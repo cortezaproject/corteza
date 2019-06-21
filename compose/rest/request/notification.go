@@ -84,9 +84,13 @@ func (r *NotificationEmailSend) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	r.To = parseStrings(req.Form["to"])
+	if val, ok := req.Form["to"]; ok {
+		r.To = parseStrings(val)
+	}
 
-	r.Cc = parseStrings(req.Form["cc"])
+	if val, ok := req.Form["cc"]; ok {
+		r.Cc = parseStrings(val)
+	}
 
 	if val, ok := post["replyTo"]; ok {
 		r.ReplyTo = val

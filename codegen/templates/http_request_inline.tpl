@@ -81,7 +81,9 @@ func (r *{name|expose}{call.name|capitalize}) Fill(req *http.Request) (err error
 	r.{param.name|expose} = {if ($param.type !== "string")}{$parsers[$param.type]}({/if}chi.URLParam(req, "{param.name}"){if ($param.type !== "string")}){/if}
 {elseif (substr($param.type, 0, 2) === '[]' || substr($param.type, -3) === "Set") && isset($parsers[$param.type])}
 	{if strtolower($method) === "post"}
-	r.{param.name|expose} = {$parsers[$param.type]}(req.Form["{param.name}"])
+	if val, ok := req.Form["{param.name}"]; ok {
+		r.{param.name|expose} = {$parsers[$param.type]}(val)
+	}
 	{elseif strtolower($method) === "get"}
 	if val, ok := urlQuery["{param.name}[]"]; ok {
 		r.{param.name|expose} = {$parsers[$param.type]}(val)

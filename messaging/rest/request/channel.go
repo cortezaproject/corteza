@@ -143,7 +143,9 @@ func (r *ChannelCreate) Fill(req *http.Request) (err error) {
 		r.Type = val
 	}
 
-	r.Members = parseStrings(req.Form["members"])
+	if val, ok := req.Form["members"]; ok {
+		r.Members = parseStrings(val)
+	}
 
 	return err
 }
@@ -642,7 +644,9 @@ func (r *ChannelInvite) Fill(req *http.Request) (err error) {
 
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 
-	r.UserID = parseStrings(req.Form["userID"])
+	if val, ok := req.Form["userID"]; ok {
+		r.UserID = parseStrings(val)
+	}
 
 	return err
 }
