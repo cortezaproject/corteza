@@ -520,8 +520,10 @@ func (svc *channel) SetFlag(ID uint64, flag types.ChannelMembershipFlag) (ch *ty
 			return
 		}
 
-		svc.flushSystemMessages()
-		return svc.sendChannelEvent(ch)
+		return svc.flushSystemMessages()
+
+		// Setting a flag on a channel is a private thing,
+		// no need to send channel event back to everyone
 	})
 }
 
