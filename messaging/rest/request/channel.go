@@ -142,8 +142,9 @@ func (r *ChannelCreate) Fill(req *http.Request) (err error) {
 	if val, ok := post["type"]; ok {
 		r.Type = val
 	}
-
-	r.Members = parseStrings(req.Form["members"])
+	if _, ok := post["members"]; ok {
+		r.Members = parseStrings(req.Form["members"])
+	}
 
 	return err
 }
