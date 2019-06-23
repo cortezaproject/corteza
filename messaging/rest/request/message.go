@@ -154,9 +154,9 @@ var _ RequestFiller = NewMessageExecuteCommand()
 
 // Message markAsRead request parameters
 type MessageMarkAsRead struct {
-	ChannelID         uint64 `json:",string"`
 	ThreadID          uint64 `json:",string"`
 	LastReadMessageID uint64 `json:",string"`
+	ChannelID         uint64 `json:",string"`
 }
 
 func NewMessageMarkAsRead() *MessageMarkAsRead {
@@ -166,9 +166,9 @@ func NewMessageMarkAsRead() *MessageMarkAsRead {
 func (r MessageMarkAsRead) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
-	out["channelID"] = r.ChannelID
 	out["threadID"] = r.ThreadID
 	out["lastReadMessageID"] = r.LastReadMessageID
+	out["channelID"] = r.ChannelID
 
 	return out
 }
@@ -200,13 +200,13 @@ func (r *MessageMarkAsRead) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
-	if val, ok := post["threadID"]; ok {
+	if val, ok := get["threadID"]; ok {
 		r.ThreadID = parseUInt64(val)
 	}
-	if val, ok := post["lastReadMessageID"]; ok {
+	if val, ok := get["lastReadMessageID"]; ok {
 		r.LastReadMessageID = parseUInt64(val)
 	}
+	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 
 	return err
 }

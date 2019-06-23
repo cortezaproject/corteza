@@ -40,6 +40,7 @@ func Message(ctx context.Context, msg *messagingTypes.Message) *outgoing.Message
 		ReplyTo:     msg.ReplyTo,
 		Replies:     msg.Replies,
 		RepliesFrom: Uint64stoa(msg.RepliesFrom),
+		Unread:      Unread(msg.Unread),
 
 		Attachment:   Attachment(msg.Attachment, currentUserID),
 		Mentions:     messageMentionSet(msg.Mentions),
@@ -198,6 +199,7 @@ func Unread(v *messagingTypes.Unread) *outgoing.Unread {
 	return &outgoing.Unread{
 		LastMessageID: v.LastMessageID,
 		Count:         v.Count,
+		InThreadCount: v.InThreadCount,
 	}
 }
 

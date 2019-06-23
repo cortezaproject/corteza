@@ -21,6 +21,7 @@ type (
 		Find(filter *types.MessageFilter) (types.MessageSet, error)
 		FindThreads(filter *types.MessageFilter) (types.MessageSet, error)
 		CountFromMessageID(channelID, threadID, messageID uint64) (uint32, error)
+		LastMessageID(channelID, threadID uint64) (uint64, error)
 		PrefillThreadParticipants(mm types.MessageSet) error
 
 		Create(mod *types.Message) (*types.Message, error)
@@ -87,6 +88,13 @@ const (
 		"AND reply_to = ? " +
 		"AND COALESCE(type, '') NOT IN (?) " +
 		"AND id > ? AND deleted_at IS NULL"
+
+	sqlLastMessageID = "SELECT COALESCE(MAX(id), 0) AS last " +
+		"FROM messaging_message " +
+		"WHERE rel_channel = ? " +
+		"AND reply_to = ? " +
+		"AND COALESCE(type, '') NOT IN (?) " +
+		"AND deleted_at IS NULL"
 
 	sqlMessageRepliesIncCount = `UPDATE messaging_message SET replies = replies + 1 WHERE id = ? AND reply_to = 0`
 	sqlMessageRepliesDecCount = `UPDATE messaging_message SET replies = replies - 1 WHERE id = ? AND reply_to = 0`
@@ -250,11 +258,26 @@ func (r *message) CountFromMessageID(channelID, threadID, lastReadMessageID uint
 	)
 }
 
+func (r *message) LastMessageID(channelID, threadID uint64) (uint64, error) {
+	rval := struct{ Last uint64 }{}
+	return rval.Last, r.db().Get(&rval,
+		sqlLastMessageID,
+		channelID,
+		threadID,
+		types.MessageTypeChannelEvent,
+	)
+}
+
 func (r *message) PrefillThreadParticipants(mm types.MessageSet) error {
 	var rval = []struct {
 		ReplyTo uint64 `db:"reply_to"`
 		UserID  uint64 `db:"rel_user"`
 	}{}
+
+	// Filter out only relevant messages -- ones with replies
+	mm, _ = mm.Filter(func(m *types.Message) (b bool, e error) {
+		return m.Replies > 0, nil
+	})
 
 	if len(mm) == 0 {
 		return nil

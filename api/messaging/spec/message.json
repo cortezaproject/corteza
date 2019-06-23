@@ -72,8 +72,7 @@
       "Title": "Manages read/unread messages in a channel or a thread",
       "Path": "/mark-as-read",
       "Parameters": {
-        "path": [],
-        "post": [
+        "get": [
           {
             "name": "threadID",
             "required": false,
@@ -86,7 +85,8 @@
             "title": "ID of the last read message",
             "type": "uint64"
           }
-        ]
+        ],
+        "path": []
       }
     },
     {

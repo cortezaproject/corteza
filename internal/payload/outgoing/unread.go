@@ -5,5 +5,6 @@ type (
 		// Channel to part (nil) for ALL channels
 		LastMessageID uint64 `json:"lastMessageID,string,omitempty"`
 		Count         uint32 `json:"count"`
+		InThreadCount uint32 `json:"tcount,omitempty"`
 	}
 )

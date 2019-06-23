@@ -28,6 +28,8 @@ type (
 		Attachment *Attachment    `json:"attachment,omitempty"`
 		Flags      MessageFlagSet `json:"flags,omitempty"`
 
+		Unread *Unread `json:"-" db:"-"`
+
 		Mentions    MentionSet
 		RepliesFrom []uint64
 	}

@@ -164,3 +164,13 @@ func (set UnreadSet) FindByChannelId(channelID uint64) *Unread {
 
 	return nil
 }
+
+func (set UnreadSet) FindByThreadId(threadID uint64) *Unread {
+	for i := range set {
+		if set[i].ReplyTo == threadID {
+			return set[i]
+		}
+	}
+
+	return nil
+}

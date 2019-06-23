@@ -472,7 +472,7 @@
                 "title": "Manages read/unread messages in a channel or a thread",
                 "parameters": {
                     "path": [],
-                    "post": [
+                    "get": [
                         {
                             "type": "uint64",
                             "name": "threadID",

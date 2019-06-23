@@ -7,10 +7,12 @@ type (
 		UserID        uint64 `db:"rel_user"`
 		LastMessageID uint64 `db:"rel_last_message"`
 
-		Count uint32 `db:"count"`
+		Count         uint32 `db:"count"`
+		InThreadCount uint32 `db:"-"`
 	}
 
 	UnreadFilter struct {
-		UserID uint64
+		UserID    uint64
+		ThreadIDs []uint64
 	}
 )

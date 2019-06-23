@@ -34,9 +34,6 @@ func (s *Session) dispatch(raw []byte) error {
 	case p.ChannelUpdate != nil:
 		return s.channelUpdate(ctx, p.ChannelUpdate)
 
-	// @deprecated
-	case p.ChannelViewRecord != nil:
-		return s.channelViewRecord(ctx, p.ChannelViewRecord)
 	}
 
 	return nil
