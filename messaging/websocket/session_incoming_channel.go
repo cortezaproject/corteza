@@ -101,10 +101,3 @@ func (s *Session) channelUpdate(ctx context.Context, p *incoming.ChannelUpdate) 
 	_, err = s.svc.ch.With(ctx).Update(ch)
 	return err
 }
-
-// @deprecated
-func (s *Session) channelViewRecord(ctx context.Context, p *incoming.ChannelViewRecord) error {
-	var userID = auth.GetIdentityFromContext(ctx).Identity()
-
-	return s.svc.ch.With(ctx).RecordView(userID, p.ChannelID, p.LastMessageID)
-}

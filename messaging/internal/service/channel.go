@@ -70,7 +70,6 @@ type (
 		Unarchive(ID uint64) (*types.Channel, error)
 		Delete(ID uint64) (*types.Channel, error)
 		Undelete(ID uint64) (*types.Channel, error)
-		RecordView(userID, channelID, lastMessageID uint64) error
 	}
 )
 
@@ -145,7 +144,7 @@ func (svc *channel) preloadExtras(cc types.ChannelSet) (err error) {
 		return err
 	}
 
-	if err = svc.preloadViews(cc); err != nil {
+	if err = svc.preloadUnreads(cc); err != nil {
 		return
 	}
 
@@ -171,19 +170,17 @@ func (svc *channel) preloadMembers(cc types.ChannelSet) (err error) {
 	return
 }
 
-func (svc *channel) preloadViews(cc types.ChannelSet) error {
+func (svc *channel) preloadUnreads(cc types.ChannelSet) error {
 	var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
 	if vv, err := svc.unread.Find(&types.UnreadFilter{UserID: userID}); err != nil {
 		return err
 	} else {
-		cc.Walk(func(ch *types.Channel) error {
+		return cc.Walk(func(ch *types.Channel) error {
 			ch.Unread = vv.FindByChannelId(ch.ID)
 			return nil
 		})
 	}
-
-	return nil
 }
 
 // FindMembers loads all members (and full users) for a specific channel
@@ -266,7 +263,7 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 			m.ChannelID = out.ID
 
 			// Create member
-			if m, err = svc.cmember.Create(m); err != nil {
+			if m, err = svc.createMember(m); err != nil {
 				return err
 			}
 
@@ -646,7 +643,7 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 				Type:      types.ChannelMembershipTypeInvitee,
 			}
 
-			if member, err = svc.cmember.Create(member); err != nil {
+			if member, err = svc.createMember(member); err != nil {
 				return err
 			}
 
@@ -724,7 +721,7 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 			if exists {
 				member, err = svc.cmember.Update(member)
 			} else {
-				member, err = svc.cmember.Create(member)
+				member, err = svc.createMember(member)
 			}
 
 			svc.event.Join(memberID, channelID)
@@ -743,6 +740,20 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 
 		return svc.flushSystemMessages()
 	})
+}
+
+// createMember orchestrates member creation
+func (svc channel) createMember(member *types.ChannelMember) (m *types.ChannelMember, err error) {
+	if m, err = svc.cmember.Create(member); err != nil {
+		return
+	}
+
+	// Create zero-count unread record
+	if err = svc.unread.Preset(m.ChannelID, 0, m.UserID); err != nil {
+		return
+	}
+
+	return
 }
 
 func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err error) {
@@ -792,14 +803,6 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 		}
 
 		return svc.flushSystemMessages()
-	})
-}
-
-// RecordView
-// @deprecated
-func (svc *channel) RecordView(userID, channelID, lastMessageID uint64) error {
-	return svc.db.Transaction(func() (err error) {
-		return svc.unread.Record(userID, channelID, 0, lastMessageID, 0)
 	})
 }
 

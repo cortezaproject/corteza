@@ -63,7 +63,12 @@ func (ctrl *Message) Delete(ctx context.Context, r *request.MessageDelete) (inte
 }
 
 func (ctrl *Message) MarkAsRead(ctx context.Context, r *request.MessageMarkAsRead) (interface{}, error) {
-	return ctrl.svc.msg.With(ctx).MarkAsRead(r.ChannelID, r.ThreadID, r.LastReadMessageID)
+	var messageID, count, err = ctrl.svc.msg.With(ctx).MarkAsRead(r.ChannelID, r.ThreadID, r.LastReadMessageID)
+
+	return outgoing.Unread{
+		LastMessageID: messageID,
+		Count:         count,
+	}, err
 }
 
 func (ctrl *Message) PinCreate(ctx context.Context, r *request.MessagePinCreate) (interface{}, error) {

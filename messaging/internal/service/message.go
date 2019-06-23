@@ -25,7 +25,7 @@ type (
 		attachment repository.AttachmentRepository
 		channel    repository.ChannelRepository
 		cmember    repository.ChannelMemberRepository
-		unreads    repository.UnreadRepository
+		unread     repository.UnreadRepository
 		message    repository.MessageRepository
 		mflag      repository.MessageFlagRepository
 		mentions   repository.MentionRepository
@@ -56,7 +56,7 @@ type (
 		React(messageID uint64, reaction string) error
 		RemoveReaction(messageID uint64, reaction string) error
 
-		MarkAsRead(channelID, threadID, lastReadMessageID uint64) (uint32, error)
+		MarkAsRead(channelID, threadID, lastReadMessageID uint64) (uint64, uint32, error)
 
 		Pin(messageID uint64) error
 		RemovePin(messageID uint64) error
@@ -96,7 +96,7 @@ func (svc message) With(ctx context.Context) MessageService {
 		attachment: repository.Attachment(ctx, db),
 		channel:    repository.Channel(ctx, db),
 		cmember:    repository.ChannelMember(ctx, db),
-		unreads:    repository.Unread(ctx, db),
+		unread:     repository.Unread(ctx, db),
 		message:    repository.Message(ctx, db),
 		mflag:      repository.MessageFlag(ctx, db),
 		mentions:   repository.Mention(ctx, db),
@@ -240,6 +240,22 @@ func (svc message) Create(in *types.Message) (message *types.Message, err error)
 
 			in.ChannelID = original.ChannelID
 
+			if original.Replies == 0 {
+				// First reply,
+				//
+				// reset unreads for all members
+				var mm types.ChannelMemberSet
+				mm, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: original.ChannelID})
+				if err != nil {
+					return err
+				}
+
+				err = svc.unread.Preset(original.ChannelID, original.ID, mm.AllMemberIDs()...)
+				if err != nil {
+					return err
+				}
+			}
+
 			// Increment counter, on struct and in repository.
 			original.Replies++
 			if err = svc.message.IncReplyCount(original.ID); err != nil {
@@ -271,7 +287,7 @@ func (svc message) Create(in *types.Message) (message *types.Message, err error)
 			return
 		}
 
-		if err = svc.unreads.Inc(message.ChannelID, message.ReplyTo, message.UserID); err != nil {
+		if err = svc.unread.Inc(message.ChannelID, message.ReplyTo, message.UserID); err != nil {
 			return
 		}
 
@@ -397,7 +413,7 @@ func (svc message) Delete(messageID uint64) error {
 			return
 		}
 
-		if err = svc.unreads.Dec(deletedMsg.ChannelID, deletedMsg.ReplyTo, deletedMsg.UserID); err != nil {
+		if err = svc.unread.Dec(deletedMsg.ChannelID, deletedMsg.ReplyTo, deletedMsg.UserID); err != nil {
 			return err
 		} else {
 			// Set deletedAt timestamp so that our clients can react properly...
@@ -412,9 +428,15 @@ func (svc message) Delete(messageID uint64) error {
 	})
 }
 
-// M
-func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (count uint32, err error) {
-	var currentUserID uint64 = repository.Identity(svc.ctx)
+// MarkAsRead marks channel/thread as read
+//
+// If lastReadMessageID is set, it uses that message as last read message
+func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (uint64, uint32, error) {
+	var (
+		currentUserID uint64 = repository.Identity(svc.ctx)
+		count         uint32
+		err           error
+	)
 
 	err = svc.db.Transaction(func() (err error) {
 		var ch *types.Channel
@@ -439,24 +461,37 @@ func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (co
 		}
 
 		if lastReadMessageID > 0 {
-			// Validate thread
+			// Validate messageID/threadID/channelID combo
 			if lastMessage, err = svc.message.FindByID(lastReadMessageID); err != nil {
 				return errors.Wrap(err, "unable to verify last message")
 			} else if !lastMessage.IsValid() {
 				return errors.New("invalid message")
+			} else if lastMessage.ChannelID != channelID {
+				return errors.New("last read message not in the same channel")
+			} else if threadID > 0 && lastMessage.ReplyTo != threadID {
+				return errors.New("last read message not in the same thread")
 			}
+
+			count, err = svc.message.CountFromMessageID(channelID, threadID, lastReadMessageID)
+			if err != nil {
+				return errors.Wrap(err, "unable to count unread messages")
+			}
+
+		} else {
+			// use last message ID
+			if lastReadMessageID, err = svc.message.LastMessageID(channelID, threadID); err != nil {
+				return errors.Wrap(err, "unable to find last message")
+			}
+
+			// no need to count
+			count = 0
 		}
 
-		count, err = svc.message.CountFromMessageID(channelID, threadID, lastReadMessageID)
-		if err != nil {
-			return errors.Wrap(err, "unable to count unread messages")
-		}
-
-		err = svc.unreads.Record(currentUserID, channelID, threadID, lastReadMessageID, count)
+		err = svc.unread.Record(currentUserID, channelID, threadID, lastReadMessageID, count)
 		return errors.Wrap(err, "unable to record unread messages")
 	})
 
-	return count, errors.Wrap(err, "unable to mark as read")
+	return lastReadMessageID, count, errors.Wrap(err, "unable to mark as read")
 }
 
 // React on a message with an emoji
@@ -577,6 +612,10 @@ func (svc message) preload(mm types.MessageSet) (err error) {
 		return
 	}
 
+	if err = svc.preloadUnreads(mm); err != nil {
+		return
+	}
+
 	if err = svc.message.PrefillThreadParticipants(mm); err != nil {
 		return
 	}
@@ -641,6 +680,28 @@ func (svc message) preloadAttachments(mm types.MessageSet) (err error) {
 				}
 			}
 
+			return nil
+		})
+	}
+}
+
+func (svc message) preloadUnreads(mm types.MessageSet) error {
+	var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
+
+	// Filter out only relevant messages -- ones with replies
+	mm, _ = mm.Filter(func(m *types.Message) (b bool, e error) {
+		return m.Replies > 0, nil
+	})
+
+	if len(mm) == 0 {
+		return nil
+	}
+
+	if vv, err := svc.unread.Find(&types.UnreadFilter{UserID: userID, ThreadIDs: mm.IDs()}); err != nil {
+		return err
+	} else {
+		return mm.Walk(func(m *types.Message) error {
+			m.Unread = vv.FindByThreadId(m.ID)
 			return nil
 		})
 	}

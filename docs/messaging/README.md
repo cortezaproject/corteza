@@ -363,9 +363,9 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+| threadID | uint64 | GET | ID of thread (messageID)  | N/A | NO |
+| lastReadMessageID | uint64 | GET | ID of the last read message | N/A | NO |
 | channelID | uint64 | PATH | Channel ID | N/A | YES |
-| threadID | uint64 | POST | ID of thread (messageID)  | N/A | NO |
-| lastReadMessageID | uint64 | POST | ID of the last read message | N/A | NO |
 
 ## Edit existing message
 

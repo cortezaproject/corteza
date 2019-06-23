@@ -16,6 +16,7 @@ type (
 		ReplyTo     uint64   `json:"replyTo,omitempty,string"`
 		Replies     uint     `json:"replies,omitempty"`
 		RepliesFrom []string `json:"repliesFrom,omitempty"`
+		Unread      *Unread  `json:"unread,omitempty"`
 
 		Attachment   *Attachment           `json:"att,omitempty"`
 		Mentions     MessageMentionSet     `json:"mentions,omitempty"`
