@@ -15,6 +15,8 @@ type (
 	pagePayload struct {
 		*types.Page
 
+		Children []*pagePayload `json:"children,omitempty"`
+
 		CanGrant      bool `json:"canGrant"`
 		CanUpdatePage bool `json:"canUpdatePage"`
 		CanDeletePage bool `json:"canDeletePage"`
@@ -62,7 +64,8 @@ func (ctrl *Page) List(ctx context.Context, r *request.PageList) (interface{}, e
 }
 
 func (ctrl *Page) Tree(ctx context.Context, r *request.PageTree) (interface{}, error) {
-	return ctrl.page.With(ctx).Tree(r.NamespaceID)
+	tree, err := ctrl.page.With(ctx).Tree(r.NamespaceID)
+	return ctrl.makeTreePayload(ctx, tree, err)
 }
 
 func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{}, error) {
@@ -148,6 +151,30 @@ func (ctrl Page) makePayload(ctx context.Context, c *types.Page, err error) (*pa
 		CanUpdatePage: ctrl.ac.CanUpdatePage(ctx, c),
 		CanDeletePage: ctrl.ac.CanDeletePage(ctx, c),
 	}, nil
+}
+
+func (ctrl Page) makeTreePayload(ctx context.Context, pp types.PageSet, err error) ([]*pagePayload, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	set := make([]*pagePayload, len(pp))
+
+	for i := range pp {
+		set[i], err = ctrl.makePayload(ctx, pp[i], nil)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(pp[i].Children) > 0 {
+			set[i].Children, err = ctrl.makeTreePayload(ctx, pp[i].Children, nil)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return set, nil
 }
 
 func (ctrl Page) makeFilterPayload(ctx context.Context, nn types.PageSet, f types.PageFilter, err error) (*pageSetPayload, error) {
