@@ -8,6 +8,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/internal/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/internal/permissions"
 )
 
 type (
@@ -26,6 +27,8 @@ type (
 		CanReadNamespace(context.Context, *types.Namespace) bool
 		CanUpdateNamespace(context.Context, *types.Namespace) bool
 		CanDeleteNamespace(context.Context, *types.Namespace) bool
+
+		Grant(ctx context.Context, rr ...*permissions.Rule) error
 	}
 
 	NamespaceService interface {
@@ -92,6 +95,7 @@ func (svc namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet,
 	return
 }
 
+// Create adds namespace and presets access rules for role everyone
 func (svc namespace) Create(mod *types.Namespace) (*types.Namespace, error) {
 	if !svc.ac.CanCreateNamespace(svc.ctx) {
 		return nil, ErrNoCreatePermissions.withStack()

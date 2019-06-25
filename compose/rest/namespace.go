@@ -17,6 +17,7 @@ type (
 		CanGrant           bool `json:"canGrant"`
 		CanUpdateNamespace bool `json:"canUpdateNamespace"`
 		CanDeleteNamespace bool `json:"canDeleteNamespace"`
+		CanManageNamespace bool `json:"canManageNamespace"`
 		CanCreateModule    bool `json:"canCreateModule"`
 		CanCreateChart     bool `json:"canCreateChart"`
 		CanCreateTrigger   bool `json:"canCreateTrigger"`
@@ -37,6 +38,7 @@ type (
 		CanGrant(context.Context) bool
 
 		CanUpdateNamespace(context.Context, *types.Namespace) bool
+		CanManageNamespace(context.Context, *types.Namespace) bool
 		CanDeleteNamespace(context.Context, *types.Namespace) bool
 
 		CanCreateModule(context.Context, *types.Namespace) bool
@@ -119,6 +121,7 @@ func (ctrl Namespace) makePayload(ctx context.Context, ns *types.Namespace, err 
 		CanGrant:           ctrl.ac.CanGrant(ctx),
 		CanUpdateNamespace: ctrl.ac.CanUpdateNamespace(ctx, ns),
 		CanDeleteNamespace: ctrl.ac.CanDeleteNamespace(ctx, ns),
+		CanManageNamespace: ctrl.ac.CanManageNamespace(ctx, ns),
 
 		CanCreateModule:  ctrl.ac.CanCreateModule(ctx, ns),
 		CanCreateChart:   ctrl.ac.CanCreateChart(ctx, ns),

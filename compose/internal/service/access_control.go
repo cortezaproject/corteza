@@ -64,6 +64,10 @@ func (svc accessControl) CanDeleteNamespace(ctx context.Context, r *types.Namesp
 	return svc.can(ctx, r, "delete")
 }
 
+func (svc accessControl) CanManageNamespace(ctx context.Context, r *types.Namespace) bool {
+	return svc.can(ctx, r, "manage")
+}
+
 func (svc accessControl) CanCreateModule(ctx context.Context, r *types.Namespace) bool {
 	return svc.can(ctx, r, "module.create")
 }
@@ -194,6 +198,7 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		allowAdm(namespaces, "read"),
 		allowAdm(namespaces, "update"),
 		allowAdm(namespaces, "delete"),
+		allowAdm(namespaces, "manage"),
 		allowAdm(namespaces, "page.create"),
 		allowAdm(namespaces, "module.create"),
 		allowAdm(namespaces, "chart.create"),
@@ -236,6 +241,7 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"read",
 		"update",
 		"delete",
+		"manage",
 		"module.create",
 		"chart.create",
 		"trigger.create",
