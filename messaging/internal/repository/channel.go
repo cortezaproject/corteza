@@ -130,6 +130,10 @@ func (r *channel) Find(filter *types.ChannelFilter) (types.ChannelSet, error) {
 			sql += " AND c.id IN " + sqlChannelAccess
 			params = append(params, filter.CurrentUserID, types.ChannelTypePublic)
 		}
+
+		if !filter.IncludeDeleted {
+			sql += " AND deleted_at IS NULL"
+		}
 	}
 
 	sql += " ORDER BY c.name ASC"
