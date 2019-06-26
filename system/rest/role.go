@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+	"github.com/titpetric/factory/resputil"
 
 	"github.com/cortezaproject/corteza-server/internal/payload"
 	"github.com/cortezaproject/corteza-server/system/internal/service"
@@ -88,19 +89,19 @@ func (ctrl *Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{
 }
 
 func (ctrl *Role) Delete(ctx context.Context, r *request.RoleDelete) (interface{}, error) {
-	return nil, ctrl.svc.role.With(ctx).Delete(r.RoleID)
+	return resputil.OK(), ctrl.svc.role.With(ctx).Delete(r.RoleID)
 }
 
 func (ctrl *Role) Archive(ctx context.Context, r *request.RoleArchive) (interface{}, error) {
-	return nil, ctrl.svc.role.With(ctx).Archive(r.RoleID)
+	return resputil.OK(), ctrl.svc.role.With(ctx).Archive(r.RoleID)
 }
 
 func (ctrl *Role) Merge(ctx context.Context, r *request.RoleMerge) (interface{}, error) {
-	return nil, ctrl.svc.role.With(ctx).Merge(r.RoleID, r.Destination)
+	return resputil.OK(), ctrl.svc.role.With(ctx).Merge(r.RoleID, r.Destination)
 }
 
 func (ctrl *Role) Move(ctx context.Context, r *request.RoleMove) (interface{}, error) {
-	return nil, ctrl.svc.role.With(ctx).Move(r.RoleID, r.OrganisationID)
+	return resputil.OK(), ctrl.svc.role.With(ctx).Move(r.RoleID, r.OrganisationID)
 }
 
 func (ctrl *Role) MemberList(ctx context.Context, r *request.RoleMemberList) (interface{}, error) {
@@ -116,9 +117,9 @@ func (ctrl *Role) MemberList(ctx context.Context, r *request.RoleMemberList) (in
 }
 
 func (ctrl *Role) MemberAdd(ctx context.Context, r *request.RoleMemberAdd) (interface{}, error) {
-	return nil, ctrl.svc.role.With(ctx).MemberAdd(r.RoleID, r.UserID)
+	return resputil.OK(), ctrl.svc.role.With(ctx).MemberAdd(r.RoleID, r.UserID)
 }
 
 func (ctrl *Role) MemberRemove(ctx context.Context, r *request.RoleMemberRemove) (interface{}, error) {
-	return nil, ctrl.svc.role.With(ctx).MemberRemove(r.RoleID, r.UserID)
+	return resputil.OK(), ctrl.svc.role.With(ctx).MemberRemove(r.RoleID, r.UserID)
 }

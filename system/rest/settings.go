@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+	"github.com/titpetric/factory/resputil"
 
 	"github.com/cortezaproject/corteza-server/internal/settings"
 	"github.com/cortezaproject/corteza-server/system/internal/service"
@@ -56,5 +57,5 @@ func (ctrl *Settings) Get(ctx context.Context, r *request.SettingsGet) (interfac
 }
 
 func (ctrl *Settings) Set(ctx context.Context, r *request.SettingsSet) (interface{}, error) {
-	return nil, errors.New("Not implemented: Settings.set")
+	return resputil.OK(), errors.New("Not implemented: Settings.set")
 }

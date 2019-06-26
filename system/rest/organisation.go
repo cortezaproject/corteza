@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+	"github.com/titpetric/factory/resputil"
 
 	"github.com/cortezaproject/corteza-server/system/internal/service"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
@@ -52,9 +53,9 @@ func (ctrl *Organisation) Update(ctx context.Context, r *request.OrganisationUpd
 }
 
 func (ctrl *Organisation) Delete(ctx context.Context, r *request.OrganisationDelete) (interface{}, error) {
-	return nil, ctrl.svc.org.With(ctx).Delete(r.ID)
+	return resputil.OK(), ctrl.svc.org.With(ctx).Delete(r.ID)
 }
 
 func (ctrl *Organisation) Archive(ctx context.Context, r *request.OrganisationArchive) (interface{}, error) {
-	return nil, ctrl.svc.org.With(ctx).Archive(r.ID)
+	return resputil.OK(), ctrl.svc.org.With(ctx).Archive(r.ID)
 }

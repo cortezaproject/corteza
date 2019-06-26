@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+	"github.com/titpetric/factory/resputil"
 
 	"github.com/cortezaproject/corteza-server/system/internal/service"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
@@ -61,13 +62,13 @@ func (ctrl *User) Read(ctx context.Context, r *request.UserRead) (interface{}, e
 }
 
 func (ctrl *User) Delete(ctx context.Context, r *request.UserDelete) (interface{}, error) {
-	return nil, ctrl.user.With(ctx).Delete(r.UserID)
+	return resputil.OK(), ctrl.user.With(ctx).Delete(r.UserID)
 }
 
 func (ctrl *User) Suspend(ctx context.Context, r *request.UserSuspend) (interface{}, error) {
-	return nil, ctrl.user.With(ctx).Suspend(r.UserID)
+	return resputil.OK(), ctrl.user.With(ctx).Suspend(r.UserID)
 }
 
 func (ctrl *User) Unsuspend(ctx context.Context, r *request.UserUnsuspend) (interface{}, error) {
-	return nil, ctrl.user.With(ctx).Unsuspend(r.UserID)
+	return resputil.OK(), ctrl.user.With(ctx).Unsuspend(r.UserID)
 }
