@@ -36,17 +36,19 @@ type UserAPI interface {
 	Delete(context.Context, *request.UserDelete) (interface{}, error)
 	Suspend(context.Context, *request.UserSuspend) (interface{}, error)
 	Unsuspend(context.Context, *request.UserUnsuspend) (interface{}, error)
+	SetPassword(context.Context, *request.UserSetPassword) (interface{}, error)
 }
 
 // HTTP API interface
 type User struct {
-	List      func(http.ResponseWriter, *http.Request)
-	Create    func(http.ResponseWriter, *http.Request)
-	Update    func(http.ResponseWriter, *http.Request)
-	Read      func(http.ResponseWriter, *http.Request)
-	Delete    func(http.ResponseWriter, *http.Request)
-	Suspend   func(http.ResponseWriter, *http.Request)
-	Unsuspend func(http.ResponseWriter, *http.Request)
+	List        func(http.ResponseWriter, *http.Request)
+	Create      func(http.ResponseWriter, *http.Request)
+	Update      func(http.ResponseWriter, *http.Request)
+	Read        func(http.ResponseWriter, *http.Request)
+	Delete      func(http.ResponseWriter, *http.Request)
+	Suspend     func(http.ResponseWriter, *http.Request)
+	Unsuspend   func(http.ResponseWriter, *http.Request)
+	SetPassword func(http.ResponseWriter, *http.Request)
 }
 
 func NewUser(h UserAPI) *User {
@@ -191,6 +193,26 @@ func NewUser(h UserAPI) *User {
 				resputil.JSON(w, value)
 			}
 		},
+		SetPassword: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewUserSetPassword()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("User.SetPassword", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.SetPassword(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("User.SetPassword", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("User.SetPassword", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
 	}
 }
 
@@ -204,5 +226,6 @@ func (h User) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.H
 		r.Delete("/users/{userID}", h.Delete)
 		r.Post("/users/{userID}/suspend", h.Suspend)
 		r.Post("/users/{userID}/unsuspend", h.Unsuspend)
+		r.Post("/users/{userID}/password", h.SetPassword)
 	})
 }
