@@ -3,6 +3,8 @@ package rest
 import (
 	"context"
 
+	"github.com/titpetric/factory/resputil"
+
 	"github.com/cortezaproject/corteza-server/system/internal/service"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -67,5 +69,5 @@ func (ctrl *Application) Read(ctx context.Context, r *request.ApplicationRead) (
 }
 
 func (ctrl *Application) Delete(ctx context.Context, r *request.ApplicationDelete) (interface{}, error) {
-	return nil, ctrl.svc.application.With(ctx).DeleteByID(r.ApplicationID)
+	return resputil.OK(), ctrl.svc.application.With(ctx).DeleteByID(r.ApplicationID)
 }
