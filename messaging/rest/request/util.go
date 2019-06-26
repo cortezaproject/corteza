@@ -46,7 +46,7 @@ func parseUInt64(s string) uint64 {
 	return i
 }
 
-// parseUInt64 parses a string to uint64
+// parseUInt parses a string to uint64
 func parseUint(s string) uint {
 	if s == "" {
 		return 0

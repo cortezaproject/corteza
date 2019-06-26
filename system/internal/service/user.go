@@ -28,6 +28,7 @@ type (
 	}
 
 	userAccessController interface {
+		CanAccess(context.Context) bool
 		CanCreateUser(context.Context) bool
 		CanUpdateUser(context.Context, *types.User) bool
 		CanDeleteUser(context.Context, *types.User) bool
@@ -42,7 +43,7 @@ type (
 		FindByEmail(email string) (*types.User, error)
 		FindByID(id uint64) (*types.User, error)
 		FindByIDs(id ...uint64) (types.UserSet, error)
-		Find(filter *types.UserFilter) (types.UserSet, error)
+		Find(types.UserFilter) (types.UserSet, types.UserFilter, error)
 
 		Create(input *types.User) (*types.User, error)
 		Update(mod *types.User) (*types.User, error)
@@ -103,8 +104,14 @@ func (svc user) FindByUsername(username string) (*types.User, error) {
 	return svc.user.FindByUsername(username)
 }
 
-func (svc user) Find(filter *types.UserFilter) (types.UserSet, error) {
-	return svc.user.Find(filter)
+func (svc user) Find(f types.UserFilter) (types.UserSet, types.UserFilter, error) {
+	if f.IncDeleted || f.IncSuspended {
+		if !svc.ac.CanAccess(svc.ctx) {
+			return nil, f, ErrNoPermissions.withStack()
+		}
+	}
+
+	return svc.user.Find(f)
 }
 
 func (svc user) Create(input *types.User) (out *types.User, err error) {

@@ -40,6 +40,42 @@
             "required": false,
             "title": "Search email to match against users",
             "type": "string"
+          },
+          {
+            "name": "kind",
+            "required": false,
+            "title": "Kind (normal, bot)",
+            "type": "types.UserKind"
+          },
+          {
+            "name": "incDeleted",
+            "required": false,
+            "title": "Include deleted users (requires 'access' permission)",
+            "type": "bool"
+          },
+          {
+            "name": "incSuspended",
+            "required": false,
+            "title": "Include suspended users (requires 'access' permission)",
+            "type": "bool"
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "title": "Sort by (createdAt, updatedAt, deletedAt, suspendedAt, email, username, userID)",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "required": false,
+            "title": "Page number (0 based)",
+            "type": "uint"
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "title": "Returned items per page",
+            "type": "uint"
           }
         ]
       }

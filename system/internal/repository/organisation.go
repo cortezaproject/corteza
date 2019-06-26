@@ -36,6 +36,7 @@ const (
 	ErrOrganisationNotFound = repositoryError("OrganisationNotFound")
 )
 
+// @todo migrate to same pattern as we have for users
 func Organisation(ctx context.Context, db *factory.DB) OrganisationRepository {
 	return (&organisation{}).With(ctx, db)
 }

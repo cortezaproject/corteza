@@ -43,10 +43,17 @@ type (
 	}
 
 	UserFilter struct {
-		Query    string
-		Email    string
-		Username string
-		OrderBy  string
+		Query        string   `json:"query"`
+		Email        string   `json:"email"`
+		Username     string   `json:"username"`
+		Kind         UserKind `json:"kind"`
+		IncDeleted   bool     `json:"incDeleted"`
+		IncSuspended bool     `json:"incSuspended"`
+
+		Page    uint   `json:"page"`
+		PerPage uint   `json:"perPage"`
+		Sort    string `json:"sort"`
+		Count   uint   `json:"count"`
 	}
 
 	UserKind string
