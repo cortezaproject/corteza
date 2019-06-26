@@ -49,7 +49,7 @@ func (nn ASTSet) ToSql() (out string, args []interface{}, err error) {
 	return out, args, err
 }
 
-// ToSql returns column alias expression or outpit of underlaying expression's ToSql()
+// ToSql returns column alias expression or output of underlying expression's ToSql()
 func (n Column) ToSql() (string, []interface{}, error) {
 	if n.Alias != "" {
 		return squirrel.Alias(n.Expr, n.Alias).ToSql()

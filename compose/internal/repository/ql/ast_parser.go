@@ -64,7 +64,7 @@ func (p *Parser) ParseSet(s string) (ASTNode, error) {
 	if set, err := p.parseSet(); err != nil {
 		return nil, err
 	} else {
-		return set, nil
+		return set, set.Validate()
 	}
 }
 
@@ -74,10 +74,11 @@ func (p *Parser) ParseExpression(s string) (ASTNode, error) {
 	if set, err := p.parseExpr(p.nextToken()); err != nil {
 		return nil, err
 	} else if len(set) == 1 {
-		return set[0], nil
+		return set[0], set[0].Validate()
 	} else {
-		return set, nil
+		return set, set.Validate()
 	}
+
 }
 
 func (p *Parser) ParseColumns(s string) (columns Columns, err error) {
@@ -104,6 +105,7 @@ next:
 		goto next
 	}
 
+	err = columns.Validate()
 	return
 }
 
