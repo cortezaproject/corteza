@@ -11,6 +11,8 @@ type (
 	ASTNode interface {
 		fmt.Stringer
 		squirrel.Sqlizer
+
+		Validate() error
 	}
 
 	ASTSet   []ASTNode // Stream of comma delimited nodes
@@ -55,24 +57,55 @@ type (
 	}
 )
 
-func (n String) String() string { return fmt.Sprintf("%q", n.Value) }
+func (n String) Validate() (err error) { return }
+func (n String) String() string        { return fmt.Sprintf("%q", n.Value) }
 
-func (n Number) String() string { return n.Value }
+func (n Number) Validate() (err error) { return }
+func (n Number) String() string        { return n.Value }
 
-func (n Operator) String() string { return n.Kind }
+func (n Operator) Validate() (err error) { return }
+func (n Operator) String() string        { return n.Kind }
 
-func (n Keyword) String() string { return n.Keyword }
+func (n Keyword) Validate() (err error) { return }
+func (n Keyword) String() string        { return n.Keyword }
 
-func (n Interval) String() string { return fmt.Sprintf("INTERVAL %s %s", n.Value, n.Unit) }
+func (n Interval) Validate() (err error) { return }
+func (n Interval) String() string        { return fmt.Sprintf("INTERVAL %s %s", n.Value, n.Unit) }
 
-func (n Function) String() string { return fmt.Sprintf("%s(%s)", n.Name, n.Arguments) }
+func (n Function) Validate() (err error) { return }
+func (n Function) String() string        { return fmt.Sprintf("%s(%s)", n.Name, n.Arguments) }
 
-func (n Ident) String() string { return n.Value }
+func (n Ident) Validate() (err error) { return }
+func (n Ident) String() string        { return n.Value }
 
+func (n Column) Validate() (err error) { return }
 func (n Column) String() (out string) {
 	out = n.Expr.String()
 	if n.Alias != "" {
 		out = out + " AS " + n.Alias
+	}
+
+	return
+}
+
+func (nn ASTNodes) Validate() (err error) {
+	if err = validate(nn); err != nil {
+		return
+	}
+
+	l := len(nn)
+	if l == 0 {
+		return fmt.Errorf("empty set")
+	}
+
+	if op, ok := nn[0].(Operator); ok {
+		return fmt.Errorf("malformed expression, unexpected operator '%s' at first node", op)
+	}
+
+	if l > 1 {
+		if op, ok := nn[l-1].(Operator); ok {
+			return fmt.Errorf("malformed expression, unexpected operator '%s' at last node", op)
+		}
 	}
 
 	return
@@ -86,6 +119,10 @@ func (nn ASTNodes) String() (out string) {
 	return
 }
 
+func (nn ASTSet) Validate() (err error) {
+	return validate(nn)
+}
+
 func (nn ASTSet) String() (out string) {
 	for i, n := range nn {
 		if i > 0 {
@@ -97,6 +134,7 @@ func (nn ASTSet) String() (out string) {
 	return
 }
 
+func (nn Columns) Validate() (err error) { return }
 func (nn Columns) String() (out string) {
 	for i, n := range nn {
 		if i > 0 {
@@ -112,6 +150,20 @@ func (nn Columns) Strings() (out []string) {
 	out = make([]string, len(nn))
 	for i, n := range nn {
 		out[i] = n.String()
+	}
+
+	return
+}
+
+func validate(nn []ASTNode) (err error) {
+	if len(nn) == 0 {
+		return fmt.Errorf("empty node set")
+	}
+
+	for _, n := range nn {
+		if err = n.Validate(); err != nil {
+			return
+		}
 	}
 
 	return
