@@ -106,11 +106,12 @@ func (mr *MockUserRepositoryMockRecorder) FindByIDs(id ...interface{}) *gomock.C
 }
 
 // Find mocks base method
-func (m *MockUserRepository) Find(filter *types.UserFilter) ([]*types.User, error) {
+func (m *MockUserRepository) Find(filter types.UserFilter) (types.UserSet, types.UserFilter, error) {
 	ret := m.ctrl.Call(m, "Find", filter)
-	ret0, _ := ret[0].([]*types.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(types.UserSet)
+	ret1, _ := ret[1].(types.UserFilter)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // Find indicates an expected call of Find

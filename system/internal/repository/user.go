@@ -2,12 +2,11 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/titpetric/factory"
+	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -20,7 +19,7 @@ type (
 		FindByUsername(username string) (*types.User, error)
 		FindByID(id uint64) (*types.User, error)
 		FindByIDs(id ...uint64) (types.UserSet, error)
-		Find(filter *types.UserFilter) ([]*types.User, error)
+		Find(filter types.UserFilter) (set types.UserSet, f types.UserFilter, err error)
 		Total() uint
 
 		Create(mod *types.User) (*types.User, error)
@@ -35,19 +34,10 @@ type (
 
 	user struct {
 		*repository
-
-		// sql table reference
-		users string
 	}
 )
 
 const (
-	sqlUserColumns = "id, email, username, name, handle, " +
-		"meta, rel_organisation, email_confirmed, " +
-		"created_at, updated_at, suspended_at, deleted_at"
-	sqlUserScope  = "suspended_at IS NULL AND deleted_at IS NULL"
-	sqlUserSelect = "SELECT " + sqlUserColumns + " FROM %s WHERE " + sqlUserScope
-
 	ErrUserNotFound = repositoryError("UserNotFound")
 )
 
@@ -55,109 +45,149 @@ func User(ctx context.Context, db *factory.DB) UserRepository {
 	return (&user{}).With(ctx, db)
 }
 
+func (r user) table() string {
+	return "sys_user"
+}
+
+func (r user) columns() []string {
+	return []string{
+		"u.id",
+		"u.email",
+		"u.username",
+		"u.name",
+		"u.handle",
+		"u.meta",
+		"u.kind",
+		"u.rel_organisation",
+		"u.email_confirmed",
+		"u.created_at",
+		"u.updated_at",
+		"u.suspended_at",
+		"u.deleted_at",
+	}
+}
+
+func (r user) query() squirrel.SelectBuilder {
+	return r.queryNoFilter().Where("u.deleted_at IS NULL AND u.suspended_at IS NULL")
+}
+
+func (r user) queryNoFilter() squirrel.SelectBuilder {
+	return squirrel.
+		Select().
+		From(r.table() + " AS u").
+		Columns(r.columns()...)
+}
+
 func (r *user) With(ctx context.Context, db *factory.DB) UserRepository {
 	return &user{
 		repository: r.repository.With(ctx, db),
-		users:      "sys_user",
 	}
 }
 
-func (r *user) FindByUsername(username string) (*types.User, error) {
-	sql := fmt.Sprintf(sqlUserSelect, r.users) + " AND username = ?"
-	mod := &types.User{}
+func (r user) findBy(field string, value interface{}) (*types.User, error) {
+	var (
+		query = r.query().Where("u."+field+" = ?", value)
+		u     = &types.User{}
+	)
 
-	return mod, isFound(r.db().Get(mod, sql, username), mod.ID > 0, ErrUserNotFound)
+	return u, isFound(r.fetchOne(u, query), u.ID > 0, ErrUserNotFound)
 }
 
-func (r *user) FindByEmail(email string) (*types.User, error) {
-	sql := fmt.Sprintf(sqlUserSelect, r.users) + " AND email = ?"
-	mod := &types.User{}
-
-	return mod, isFound(r.db().Get(mod, sql, email), mod.ID > 0, ErrUserNotFound)
+func (r user) FindByUsername(username string) (*types.User, error) {
+	return r.findBy("username", username)
 }
 
-func (r *user) FindByID(id uint64) (*types.User, error) {
-	sql := fmt.Sprintf(sqlUserSelect, r.users) + " AND id = ?"
-	mod := &types.User{}
-	if err := isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrUserNotFound); err != nil {
-		return nil, err
-	}
-
-	return mod, nil
+func (r user) FindByEmail(email string) (*types.User, error) {
+	return r.findBy("email", email)
 }
 
-func (r *user) FindByIDs(IDs ...uint64) (uu types.UserSet, err error) {
+func (r user) FindByID(id uint64) (*types.User, error) {
+	return r.findBy("id", id)
+}
+
+func (r user) FindByIDs(IDs ...uint64) (types.UserSet, error) {
 	if len(IDs) == 0 {
-		return
+		return nil, nil
 	}
 
-	sql := fmt.Sprintf(sqlUserSelect, r.users) + " AND id IN (?)"
+	var (
+		query = r.query().Where("u.id IN (?)", IDs)
+		uu    = types.UserSet{}
+	)
 
-	if sql, args, err := sqlx.In(sql, IDs); err != nil {
-		return nil, err
-	} else {
-		return uu, r.db().Select(&uu, sql, args...)
-	}
-
+	return uu, r.fetchSet(&uu, query)
 }
 
-func (r *user) Find(filter *types.UserFilter) ([]*types.User, error) {
-	if filter == nil {
-		filter = &types.UserFilter{}
+func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilter, err error) {
+	f = filter
+	q := r.queryNoFilter()
+
+	if !f.IncDeleted {
+		q = q.Where("u.deleted_at IS NULL")
 	}
 
-	rval := make([]*types.User, 0)
-	params := make([]interface{}, 0)
-	sql := fmt.Sprintf(sqlUserSelect, r.users)
-
-	if filter.Query != "" {
-		sql += " AND (username LIKE ?"
-		params = append(params, filter.Query+"%")
-		sql += " OR email LIKE ?"
-		params = append(params, filter.Query+"%")
-		sql += " OR name LIKE ?)"
-		params = append(params, filter.Query+"%")
+	if !f.IncSuspended {
+		q = q.Where("u.suspended_at IS NULL")
 	}
 
-	if filter.Email != "" {
-		sql += " AND (email = ?)"
-		params = append(params, filter.Email)
+	if f.Query != "" {
+		qs := f.Query + "%"
+		q = q.Where("u.username LIKE ? OR u.email LIKE ? OR u.name LIKE ?", qs, qs, qs)
 	}
 
-	if filter.Username != "" {
-		sql += " AND (username = ?)"
-		params = append(params, filter.Username)
+	if f.Email != "" {
+		q = q.Where("u.email = ?", f.Email)
 	}
 
-	switch filter.OrderBy {
-	case "updated_at", "createdAt":
-		sql += " ORDER BY updated_at DESC"
+	if f.Username != "" {
+		q = q.Where("u.username = ?", f.Username)
+	}
+
+	if f.Kind != "" {
+		q = q.Where("u.kind = ?", f.Kind)
+	}
+
+	if f.Email != "" {
+		q = q.Where("u.email = ?", f.Email)
+	}
+
+	// @todo add support for more sophisticated sorting through ql
+	//       refactor github.com/cortezaproject/corteza-server/compose/internal/repository/ql
+	//       for common use (out of compose pkg)
+	switch f.Sort {
+	case "createdAt":
+		q = q.OrderBy("created_at")
+	case "updatedAt":
+		q = q.OrderBy("updated_at")
+	case "deletedAt":
+		q = q.OrderBy("deleted_at")
+	case "suspendedAt":
+		q = q.OrderBy("suspended_at")
+	case "email", "username":
+		q = q.OrderBy(f.Sort)
+	case "userID":
+		q = q.OrderBy("id")
 	default:
-		sql += " ORDER BY username ASC"
+		q = q.OrderBy("id")
 	}
 
-	if err := r.db().Select(&rval, sql, params...); err != nil {
-		return nil, err
-	}
-
-	return rval, nil
+	return set, f, r.fetchPaged(&set, q, f.Page, f.PerPage)
 }
 
 func (r user) Total() (count uint) {
-	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s", r.users, sqlUserScope)
-	_ = r.db().Get(&count, query)
+	count, _ = r.count(r.query())
 	return
 }
 
 func (r *user) Create(mod *types.User) (*types.User, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
-	return mod, r.db().Insert(r.users, mod)
+	return mod, r.db().Insert(r.table(), mod)
 }
 
 func (r *user) Update(mod *types.User) (*types.User, error) {
 	mod.UpdatedAt = timeNowPtr()
-	return mod, r.db().Replace(r.users, mod)
+	return mod, r.db().Replace(r.table(), mod)
 }
 
 func (r *user) BindAvatar(user *types.User, avatar io.Reader) (*types.User, error) {
@@ -170,13 +200,13 @@ func (r *user) BindAvatar(user *types.User, avatar io.Reader) (*types.User, erro
 }
 
 func (r *user) SuspendByID(id uint64) error {
-	return r.updateColumnByID(r.users, "suspend_at", time.Now(), id)
+	return r.updateColumnByID(r.table(), "suspend_at", time.Now(), id)
 }
 
 func (r *user) UnsuspendByID(id uint64) error {
-	return r.updateColumnByID(r.users, "suspend_at", nil, id)
+	return r.updateColumnByID(r.table(), "suspend_at", nil, id)
 }
 
 func (r *user) DeleteByID(id uint64) error {
-	return r.updateColumnByID(r.users, "deleted_at", time.Now(), id)
+	return r.updateColumnByID(r.table(), "deleted_at", time.Now(), id)
 }

@@ -47,6 +47,7 @@ const (
 	ErrRoleNotFound = repositoryError("RoleNotFound")
 )
 
+// @todo migrate to same pattern as we have for uselang/en.jsonrs
 func Role(ctx context.Context, db *factory.DB) RoleRepository {
 	return (&role{}).With(ctx, db)
 }

@@ -37,6 +37,7 @@ const (
 	ErrApplicationNotFound = repositoryError("ApplicationNotFound")
 )
 
+// @todo migrate to same pattern as we have for users
 func Application(ctx context.Context, db *factory.DB) ApplicationRepository {
 	return (&application{}).With(ctx, db)
 }

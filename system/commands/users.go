@@ -32,11 +32,11 @@ func Users(ctx context.Context) *cobra.Command {
 			)
 
 			userRepo := repository.User(ctx, db)
-			uf := &types.UserFilter{
-				OrderBy: "updated_at",
+			uf := types.UserFilter{
+				Sort: "updatedAt",
 			}
 
-			users, err := userRepo.Find(uf)
+			users, _, err := userRepo.Find(uf)
 			if err != nil {
 				cli.HandleError(err)
 			}
