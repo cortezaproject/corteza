@@ -1,8 +1,7 @@
 package repository
 
-/*
-
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -10,17 +9,11 @@ import (
 	"github.com/cortezaproject/corteza-server/internal/test"
 )
 
-*/
-
-// This test is a moving target, it doesn't do any good to
-// test the generated sql query, as you'd need an integration
-// test to verify that it works correctly.
-
-/*
 func TestRecordFinder(t *testing.T) {
 	r := record{}
 	m := &types.Module{
-		ID: 123,
+		ID:          123,
+		NamespaceID: 456,
 		Fields: types.ModuleFieldSet{
 			&types.ModuleField{Name: "foo"},
 			&types.ModuleField{Name: "bar"},
@@ -28,30 +21,40 @@ func TestRecordFinder(t *testing.T) {
 	}
 
 	ttc := []struct {
-		filter string
-		sort   string
-		match  []string
-		args   []interface{}
+		f     types.RecordFilter
+		match []string
+		args  []interface{}
+		err   error
 	}{
 		{
-			match: []string{"SELECT * FROM crm_record AS r WHERE r.module_id = ? AND r.deleted_at IS NULL"},
-			args:  []interface{}{123}},
+			match: []string{"SELECT * FROM compose_record AS r WHERE r.deleted_at IS NULL AND r.module_id = ?"},
+		},
 		{
-			filter: "id = 5 AND foo = 7",
+			f: types.RecordFilter{Filter: "id = 5 AND foo = 7"},
 			match: []string{
-				" AND id = 5",
-				" AND (SELECT value FROM crm_record_value WHERE name = ? AND record_id = crm_record.id AND deleted_at IS NULL) = 7"},
-			args: []interface{}{123}},
+				"id = 5",
+				"rv_foo.value = 7"},
+			args: []interface{}{"foo"},
+		},
 		{
-			sort: "id ASC, foo DESC",
+			f: types.RecordFilter{Sort: "id ASC, bar DESC"},
 			match: []string{
-				" id ASC, (SELECT value FROM crm_record_value WHERE name = 'foo' AND record_id = crm_record.id AND deleted_at IS NULL) DESC"},
-			args: []interface{}{123}},
+				" id ASC",
+				" rv_bar.value DESC",
+			},
+			args: []interface{}{"bar"},
+		},
 	}
 
 	for _, tc := range ttc {
-		sb, err := r.buildQuery(m, tc.filter, tc.sort)
-		test.Assert(t, err == nil, "buildQuery(%q, %q) returned an error: %v", tc.filter, tc.sort, err)
+		sb, err := r.buildQuery(m, tc.f)
+
+		if tc.err != nil {
+			test.Assert(t, tc.err.Error() == fmt.Sprintf("%v", err), "buildQuery(%+v) did not return an expected error %q but %q", tc.f, tc.err, err)
+		} else {
+			test.Assert(t, err == nil, "buildQuery(%+v) returned an unexpected error: %v", tc.f, err)
+		}
+
 		sb = sb.Column("*")
 		sql, args, err := sb.ToSql()
 
@@ -61,10 +64,9 @@ func TestRecordFinder(t *testing.T) {
 					"             did not contain  %q", sql, m)
 		}
 
-		_ = args
-		// test.Assert(t, reflect.DeepEqual(args, tc.args),
-		// 	"assertion failed; args %v \n  "+
-		// 		"     do not match expected %v", args, tc.args)
+		tc.args = append(tc.args, m.ID, m.NamespaceID)
+		test.Assert(t, fmt.Sprintf("%+v", args) == fmt.Sprintf("%+v", tc.args),
+			"assertion failed; args %+v \n  "+
+				"     do not match expected %+v", args, tc.args)
 	}
 }
-*/
