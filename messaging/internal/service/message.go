@@ -56,7 +56,7 @@ type (
 		React(messageID uint64, reaction string) error
 		RemoveReaction(messageID uint64, reaction string) error
 
-		MarkAsRead(channelID, threadID, lastReadMessageID uint64) (uint64, uint32, error)
+		MarkAsRead(channelID, threadID, lastReadMessageID uint64) (uint64, uint32, uint32, error)
 
 		Pin(messageID uint64) error
 		RemovePin(messageID uint64) error
@@ -431,10 +431,11 @@ func (svc message) Delete(messageID uint64) error {
 // MarkAsRead marks channel/thread as read
 //
 // If lastReadMessageID is set, it uses that message as last read message
-func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (uint64, uint32, error) {
+func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (uint64, uint32, uint32, error) {
 	var (
 		currentUserID uint64 = repository.Identity(svc.ctx)
 		count         uint32
+		tcount        uint32
 		err           error
 	)
 
@@ -457,6 +458,14 @@ func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (ui
 				return errors.Wrap(err, "unable to verify thread")
 			} else if !thread.IsValid() {
 				return errors.New("invalid thread")
+			}
+		} else {
+			// This is request for channel,
+			// count all thread unreads
+			var uu types.UnreadSet
+			uu, err = svc.unread.Find(&types.UnreadFilter{UserID: currentUserID, ChannelID: channelID})
+			if u := uu.FindByChannelId(channelID); u != nil {
+				tcount = u.InThreadCount
 			}
 		}
 
@@ -491,7 +500,7 @@ func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (ui
 		return errors.Wrap(err, "unable to record unread messages")
 	})
 
-	return lastReadMessageID, count, errors.Wrap(err, "unable to mark as read")
+	return lastReadMessageID, count, tcount, errors.Wrap(err, "unable to mark as read")
 }
 
 // React on a message with an emoji

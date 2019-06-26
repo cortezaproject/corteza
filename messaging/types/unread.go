@@ -13,6 +13,7 @@ type (
 
 	UnreadFilter struct {
 		UserID    uint64
+		ChannelID uint64
 		ThreadIDs []uint64
 	}
 )
