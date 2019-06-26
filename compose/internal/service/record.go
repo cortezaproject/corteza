@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -161,7 +162,7 @@ func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
-	if err = svc.sanitizeValues(m, mod.Values); err != nil {
+	if mod.Values, err = svc.sanitizeValues(m, mod.Values); err != nil {
 		return
 	}
 
@@ -212,7 +213,7 @@ func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 		return nil, ErrStaleData.withStack()
 	}
 
-	if err = svc.sanitizeValues(m, mod.Values); err != nil {
+	if mod.Values, err = svc.sanitizeValues(m, mod.Values); err != nil {
 		return
 	}
 
@@ -268,7 +269,7 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 }
 
 // Validates and filters record values
-func (svc record) sanitizeValues(module *types.Module, values types.RecordValueSet) (err error) {
+func (svc record) sanitizeValues(module *types.Module, values types.RecordValueSet) (out types.RecordValueSet, err error) {
 	// Make sure there are no multi values in a non-multi value fields
 	err = module.Fields.Walk(func(field *types.ModuleField) error {
 		if !field.Multi && len(values.FilterByName(field.Name)) > 1 {
@@ -282,10 +283,15 @@ func (svc record) sanitizeValues(module *types.Module, values types.RecordValueS
 	}
 
 	// Remove all values on un-updatable fields
-	values, err = values.Filter(func(v *types.RecordValue) (bool, error) {
+	out, err = values.Filter(func(v *types.RecordValue) (bool, error) {
 		var field = module.Fields.FindByName(v.Name)
 		if field == nil {
 			return false, errors.Errorf("no such field %q", v.Name)
+		}
+
+		if field.IsRef() && v.Value == "" {
+			// Skip empty values on ref fields
+			return false, nil
 		}
 
 		return svc.ac.CanUpdateRecordValue(svc.ctx, field), nil
@@ -295,15 +301,22 @@ func (svc record) sanitizeValues(module *types.Module, values types.RecordValueS
 		return
 	}
 
-	var places = map[string]uint{}
+	var (
+		places  = map[string]uint{}
+		numeric = regexp.MustCompile(`^(\d+)$`)
+	)
 
-	return values.Walk(func(value *types.RecordValue) (err error) {
+	return out, out.Walk(func(value *types.RecordValue) (err error) {
 		var field = module.Fields.FindByName(value.Name)
 		if field == nil {
 			return errors.Errorf("no such field %q", value.Name)
 		}
 
 		if field.IsRef() {
+			if !numeric.MatchString(value.Value) {
+				return errors.Errorf("invalid reference format")
+			}
+
 			if value.Ref, err = strconv.ParseUint(value.Value, 10, 64); err != nil {
 				return err
 			}
