@@ -85,6 +85,10 @@ func (ctrl User) Unsuspend(ctx context.Context, r *request.UserUnsuspend) (inter
 	return resputil.OK(), ctrl.user.With(ctx).Unsuspend(r.UserID)
 }
 
+func (ctrl User) SetPassword(ctx context.Context, r *request.UserSetPassword) (interface{}, error) {
+	return resputil.OK(), ctrl.user.With(ctx).SetPassword(r.UserID, r.Password)
+}
+
 func (ctrl User) makeFilterPayload(ctx context.Context, uu types.UserSet, f types.UserFilter, err error) (*userSetPayload, error) {
 	if err != nil {
 		return nil, err

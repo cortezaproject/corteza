@@ -734,6 +734,7 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | `DELETE` | `/users/{userID}` | Remove user |
 | `POST` | `/users/{userID}/suspend` | Suspend user |
 | `POST` | `/users/{userID}/unsuspend` | Unsuspend user |
+| `POST` | `/users/{userID}/password` | Set's or changes user's password |
 
 ## Search users (Directory)
 
@@ -847,5 +848,20 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | userID | uint64 | PATH | User ID | N/A | YES |
+
+## Set's or changes user's password
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/users/{userID}/password` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| userID | uint64 | PATH | User ID | N/A | YES |
+| password | string | POST | New password | N/A | YES |
 
 ---

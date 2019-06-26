@@ -4,10 +4,13 @@ import (
 	"context"
 	"io"
 
+	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	internalAuth "github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/system/internal/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -23,8 +26,18 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		ac   userAccessController
-		user repository.UserRepository
+		settings authSettings
+
+		auth userAuth
+
+		ac          userAccessController
+		user        repository.UserRepository
+		credentials repository.CredentialsRepository
+	}
+
+	userAuth interface {
+		checkPasswordStrength(string) error
+		changePassword(uint64, string) error
 	}
 
 	userAccessController interface {
@@ -55,15 +68,19 @@ type (
 		Suspend(id uint64) error
 		Unsuspend(id uint64) error
 
-		// ValidateCredentials(username, password string) (*types.User, error)
+		SetPassword(userID uint64, password string) error
 	}
 )
 
 func User(ctx context.Context) UserService {
 	return (&user{
 		logger: DefaultLogger.Named("user"),
-		ac:     DefaultAccessControl,
 	}).With(ctx)
+}
+
+// log() returns zap's logger with requestID from current context and fields.
+func (svc user) log(fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
 }
 
 func (svc user) With(ctx context.Context) UserService {
@@ -72,10 +89,14 @@ func (svc user) With(ctx context.Context) UserService {
 	return &user{
 		ctx:    ctx,
 		db:     db,
-		ac:     svc.ac,
 		logger: svc.logger,
 
-		user: repository.User(ctx, db),
+		ac:       DefaultAccessControl,
+		settings: DefaultAuthSettings,
+		auth:     DefaultAuth,
+
+		user:        repository.User(ctx, db),
+		credentials: repository.Credentials(ctx, db),
 	}
 }
 
@@ -215,5 +236,39 @@ func (svc user) Unsuspend(ID uint64) (err error) {
 
 	return svc.db.Transaction(func() (err error) {
 		return svc.user.UnsuspendByID(ID)
+	})
+}
+
+// SetPassword sets new password for a user
+//
+// Expecting setter to have permissions to update modify users and internal authentication enabled
+func (svc user) SetPassword(userID uint64, newPassword string) (err error) {
+	log := svc.log(zap.Uint64("userID", userID))
+
+	if !svc.settings.internalEnabled {
+		return errors.New("internal authentication disabled")
+	}
+
+	var u *types.User
+	if u, err = svc.user.FindByID(userID); err != nil {
+		return
+	}
+
+	if !svc.ac.CanUpdateUser(svc.ctx, u) {
+		return ErrNoPermissions.withStack()
+	}
+
+	if err = svc.auth.checkPasswordStrength(newPassword); err != nil {
+		return
+	}
+
+	return svc.db.Transaction(func() error {
+		if err := svc.auth.changePassword(userID, newPassword); err != nil {
+			return err
+		}
+
+		log.Info("password changed")
+
+		return nil
 	})
 }

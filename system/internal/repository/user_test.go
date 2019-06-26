@@ -58,7 +58,7 @@ func TestUser(t *testing.T) {
 		}
 
 		{
-			users, err := userRepo.Find(&types.UserFilter{Query: "John User Doe"})
+			users, _, err := userRepo.Find(types.UserFilter{Query: "John User Doe"})
 			test.Assert(t, err == nil, "Owner.Find error: %+v", err)
 			test.Assert(t, len(users) == 1, "Owner.Find: expected 1 user, got %d", len(users))
 		}

@@ -219,6 +219,31 @@
           }
         ]
       }
+    },
+    {
+      "Name": "setPassword",
+      "Method": "POST",
+      "Title": "Set's or changes user's password",
+      "Path": "/{userID}/password",
+      "Parameters": {
+        "path": [
+          {
+            "name": "userID",
+            "required": true,
+            "title": "User ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "password",
+            "required": true,
+            "sensitive": true,
+            "title": "New password",
+            "type": "string"
+          }
+        ]
+      }
     }
   ]
 }
