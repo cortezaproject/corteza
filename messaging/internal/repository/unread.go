@@ -33,7 +33,7 @@ const (
 	// Fetching channel members of all channels a specific user has access to
 	sqlUnreadSelect = `SELECT rel_channel, rel_reply_to, rel_user, count, rel_last_message 
                          FROM messaging_unread
-                        WHERE true `
+                        WHERE count > 0 `
 
 	// Fetching channel members of all channels a specific user has access to
 	sqlThreadUnreadSelect = `SELECT rel_channel, sum(count) as count 
@@ -84,6 +84,8 @@ func (r *unread) Find(filter *types.UnreadFilter) (uu types.UnreadSet, err error
 		if len(filter.ThreadIDs) > 0 {
 			sql += ` AND rel_reply_to IN (?)`
 			params = append(params, filter.ThreadIDs)
+		} else {
+			sql += ` AND rel_reply_to = 0`
 		}
 	}
 
