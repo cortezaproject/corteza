@@ -173,6 +173,11 @@ func (svc page) filterPageSetByPermission(pp types.PageSet, f types.PageFilter, 
 func (svc page) Reorder(namespaceID, selfID uint64, pageIDs []uint64) error {
 	if ns, err := svc.loadNamespace(namespaceID); err != nil {
 		return err
+	} else if selfID == 0 {
+		// Reordering on root mode
+		if !svc.ac.CanCreatePage(svc.ctx, ns) {
+			return ErrNoUpdatePermissions.withStack()
+		}
 	} else if p, err := svc.checkPermissions(svc.pageRepo.FindByID(ns.ID, selfID)); err != nil {
 		return err
 	} else if !svc.ac.CanUpdatePage(svc.ctx, p) {
