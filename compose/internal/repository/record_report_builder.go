@@ -141,13 +141,15 @@ func (b *recordReportBuilder) Build(metrics, dimensions, filters string) (sql st
 	// Use a different handler for filter functions for this
 	b.parser.OnFunction = stdFilterFuncHandler
 
-	var filter ql.ASTNode
-	if filter, err = b.parser.ParseExpression(filters); err != nil {
-		err = errors.Wrapf(err, "could not parse filters %q", filters)
-		return
-	}
+	if len(filters) > 0 {
+		var filter ql.ASTNode
+		if filter, err = b.parser.ParseExpression(filters); err != nil {
+			err = errors.Wrapf(err, "could not parse filters %q", filters)
+			return
+		}
 
-	b.report = b.report.Where(filter)
+		b.report = b.report.Where(filter)
+	}
 
 	return b.report.ToSql()
 }
