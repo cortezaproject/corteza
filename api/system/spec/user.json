@@ -159,7 +159,7 @@
     {
       "Name": "read",
       "Method": "GET",
-      "Title": "Read user details and memberships",
+      "Title": "Read user details",
       "Path": "/{userID}",
       "Parameters": {
         "path": [
@@ -241,6 +241,66 @@
             "sensitive": true,
             "title": "New password",
             "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "membershipList",
+      "Method": "GET",
+      "Title": "Add member to a role",
+      "Path": "/{userID}/membership",
+      "Parameters": {
+        "path": [
+          {
+            "name": "userID",
+            "required": true,
+            "title": "User ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "membershipAdd",
+      "Method": "POST",
+      "Title": "Add role to a user",
+      "Path": "/{userID}/membership/{roleID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "roleID",
+            "required": true,
+            "title": "Role ID",
+            "type": "uint64"
+          },
+          {
+            "name": "userID",
+            "required": true,
+            "title": "User ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "membershipRemove",
+      "Method": "DELETE",
+      "Title": "Remove role from a user",
+      "Path": "/{userID}/membership/{roleID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "roleID",
+            "required": true,
+            "title": "Role ID",
+            "type": "uint64"
+          },
+          {
+            "name": "userID",
+            "required": true,
+            "title": "User ID",
+            "type": "uint64"
           }
         ]
       }

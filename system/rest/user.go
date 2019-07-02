@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/cortezaproject/corteza-server/internal/payload"
 	"github.com/cortezaproject/corteza-server/system/internal/service"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -16,6 +17,7 @@ var _ = errors.Wrap
 type (
 	User struct {
 		user service.UserService
+		role service.RoleService
 	}
 
 	userSetPayload struct {
@@ -27,6 +29,7 @@ type (
 func (User) New() *User {
 	ctrl := &User{}
 	ctrl.user = service.DefaultUser
+	ctrl.role = service.DefaultRole
 	return ctrl
 }
 
@@ -87,6 +90,26 @@ func (ctrl User) Unsuspend(ctx context.Context, r *request.UserUnsuspend) (inter
 
 func (ctrl User) SetPassword(ctx context.Context, r *request.UserSetPassword) (interface{}, error) {
 	return resputil.OK(), ctrl.user.With(ctx).SetPassword(r.UserID, r.Password)
+}
+
+func (ctrl User) MembershipList(ctx context.Context, r *request.UserMembershipList) (interface{}, error) {
+	if mm, err := ctrl.role.With(ctx).Membership(r.UserID); err != nil {
+		return nil, err
+	} else {
+		rval := make([]string, len(mm))
+		for i := range mm {
+			rval[i] = payload.Uint64toa(mm[i].RoleID)
+		}
+		return rval, nil
+	}
+}
+
+func (ctrl User) MembershipAdd(ctx context.Context, r *request.UserMembershipAdd) (interface{}, error) {
+	return resputil.OK(), ctrl.role.With(ctx).MemberAdd(r.RoleID, r.UserID)
+}
+
+func (ctrl User) MembershipRemove(ctx context.Context, r *request.UserMembershipRemove) (interface{}, error) {
+	return resputil.OK(), ctrl.role.With(ctx).MemberRemove(r.RoleID, r.UserID)
 }
 
 func (ctrl User) makeFilterPayload(ctx context.Context, uu types.UserSet, f types.UserFilter, err error) (*userSetPayload, error) {
