@@ -45,6 +45,7 @@ type (
 		Unarchive(ID uint64) error
 		Delete(ID uint64) error
 
+		Membership(userID uint64) ([]*types.RoleMember, error)
 		MemberList(roleID uint64) ([]*types.RoleMember, error)
 		MemberAdd(roleID, userID uint64) error
 		MemberRemove(roleID, userID uint64) error
@@ -223,6 +224,10 @@ func (svc role) Move(roleID, targetOrganisationID uint64) error {
 	}
 
 	return svc.role.MoveByID(roleID, targetOrganisationID)
+}
+
+func (svc role) Membership(userID uint64) ([]*types.RoleMember, error) {
+	return svc.role.MembershipsFindByUserID(userID)
 }
 
 func (svc role) MemberList(roleID uint64) ([]*types.RoleMember, error) {

@@ -730,11 +730,14 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | `GET` | `/users/` | Search users (Directory) |
 | `POST` | `/users/` | Create user |
 | `PUT` | `/users/{userID}` | Update user details |
-| `GET` | `/users/{userID}` | Read user details and memberships |
+| `GET` | `/users/{userID}` | Read user details |
 | `DELETE` | `/users/{userID}` | Remove user |
 | `POST` | `/users/{userID}/suspend` | Suspend user |
 | `POST` | `/users/{userID}/unsuspend` | Unsuspend user |
 | `POST` | `/users/{userID}/password` | Set's or changes user's password |
+| `GET` | `/users/{userID}/membership` | Add member to a role |
+| `POST` | `/users/{userID}/membership/{roleID}` | Add role to a user |
+| `DELETE` | `/users/{userID}/membership/{roleID}` | Remove role from a user |
 
 ## Search users (Directory)
 
@@ -793,7 +796,7 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | handle | string | POST | Handle | N/A | NO |
 | kind | types.UserKind | POST | Kind (normal, bot) | N/A | NO |
 
-## Read user details and memberships
+## Read user details
 
 #### Method
 
@@ -863,5 +866,49 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | userID | uint64 | PATH | User ID | N/A | YES |
 | password | string | POST | New password | N/A | YES |
+
+## Add member to a role
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/users/{userID}/membership` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| userID | uint64 | PATH | User ID | N/A | YES |
+
+## Add role to a user
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/users/{userID}/membership/{roleID}` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| roleID | uint64 | PATH | Role ID | N/A | YES |
+| userID | uint64 | PATH | User ID | N/A | YES |
+
+## Remove role from a user
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/users/{userID}/membership/{roleID}` | HTTP/S | DELETE | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| roleID | uint64 | PATH | Role ID | N/A | YES |
+| userID | uint64 | PATH | User ID | N/A | YES |
 
 ---
