@@ -127,7 +127,8 @@ func (svc record) Report(namespaceID, moduleID uint64, metrics, dimensions, filt
 		return
 	}
 
-	return svc.recordRepo.Report(m, metrics, dimensions, filter)
+	return svc.recordRepo.
+		Report(m, metrics, dimensions, filter)
 }
 
 func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
