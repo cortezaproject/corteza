@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/lann/builder"
 	"github.com/titpetric/factory"
 	squirrel "gopkg.in/Masterminds/squirrel.v1"
 
@@ -103,7 +104,7 @@ func (r repository) fetchPaged(set interface{}, q squirrel.SelectBuilder, page, 
 func (r repository) count(q squirrel.SelectBuilder) (uint, error) {
 	var (
 		count uint
-		cq    = q.Column("COUNT(*)")
+		cq    = builder.Delete(q, "Columns").(squirrel.SelectBuilder).Column("COUNT(*)")
 	)
 
 	if sqlSelect, argsSelect, err := cq.ToSql(); err != nil {
