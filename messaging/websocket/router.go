@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	sentry "github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
 
@@ -27,6 +28,8 @@ func Init(ctx context.Context, config *Config) *Websocket {
 	events := repository.Events()
 
 	go func() {
+		defer sentry.Recover()
+
 		for {
 			if err := eq.feedSessions(ctx, events, store); err != nil {
 				if err == context.Canceled {

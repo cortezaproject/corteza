@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	sentry "github.com/getsentry/sentry-go"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -111,9 +112,10 @@ func (svc *service) Grant(ctx context.Context, wl Whitelist, rules ...*Rule) (er
 // Watches for changes
 func (svc service) Watch(ctx context.Context) {
 	go func() {
+		defer sentry.Recover()
+
 		var ticker = time.NewTicker(watchInterval)
 		defer ticker.Stop()
-
 		for {
 			select {
 			case <-ctx.Done():

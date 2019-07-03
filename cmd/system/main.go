@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
+
 	cfg := system.Configure()
 	cmd := cfg.MakeCLI(cli.Context())
 	cli.HandleError(cmd.Execute())

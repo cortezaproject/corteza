@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -48,6 +49,7 @@ type (
 		HttpClientOpt *options.HttpClientOpt
 		DbOpt         *options.DBOpt
 		ProvisionOpt  *options.ProvisionOpt
+		SentryOpt     *options.SentryOpt
 
 		// DB Connection name, defaults to ServiceName
 		DatabaseName string
@@ -179,6 +181,7 @@ func (c *Config) Init() {
 	c.HttpClientOpt = options.HttpClient(c.EnvPrefix)
 	c.DbOpt = options.DB(c.ServiceName)
 	c.ProvisionOpt = options.Provision(c.ServiceName)
+	c.SentryOpt = options.Sentry(c.EnvPrefix)
 
 	if c.RootCommandDBSetup == nil {
 		c.RootCommandDBSetup = Runners{func(ctx context.Context, cmd *cobra.Command, c *Config) (err error) {
@@ -213,6 +216,11 @@ func (c *Config) MakeCLI(ctx context.Context) (cmd *cobra.Command) {
 		Use:              c.RootCommandName,
 		TraverseChildren: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
+			if err = InitSentry(c.SentryOpt); err != nil {
+				c.Log.Error("could not initialize Sentry", zap.Error(err))
+			}
+
+			defer sentry.Recover()
 			InitGeneralServices(c.LogOpt, c.SmtpOpt, c.JwtOpt, c.HttpClientOpt)
 
 			err = c.RootCommandDBSetup.Run(ctx, cmd, c)
@@ -232,6 +240,7 @@ func (c *Config) MakeCLI(ctx context.Context) (cmd *cobra.Command) {
 	}
 
 	serveApiCmd := c.ApiServer.Command(ctx, c.ApiServerCommandName, c.EnvPrefix, func(ctx context.Context) (err error) {
+		defer sentry.Recover()
 		return c.ApiServerPreRun.Run(ctx, cmd, c)
 	})
 

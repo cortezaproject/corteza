@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	sentry "github.com/getsentry/sentry-go"
 	"github.com/titpetric/factory"
 
 	"github.com/cortezaproject/corteza-server/internal/payload"
@@ -43,6 +44,8 @@ func EventQueue(origin uint64) *eventQueue {
 // @todo: retire this function, use Events().Push(ctx, item) directly.
 func (eq *eventQueue) store(ctx context.Context, qp repository.EventsRepository) {
 	go func() {
+		defer sentry.Recover()
+
 		for {
 			select {
 			case <-ctx.Done():

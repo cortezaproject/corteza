@@ -49,7 +49,6 @@ func Configure() *cli.Config {
 		ApiServerPreRun: cli.Runners{
 			func(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
 				external.Init(service.DefaultIntSettings)
-
 				go service.Watchers(ctx)
 				return nil
 			},
