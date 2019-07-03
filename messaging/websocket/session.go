@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	sentry "github.com/getsentry/sentry-go"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -110,6 +111,8 @@ func (sess *Session) connected() (err error) {
 
 	// Create a heartbeat every minute for this user
 	go func() {
+		defer sentry.Recover()
+
 		t := time.NewTicker(time.Second * 60)
 		for {
 			select {

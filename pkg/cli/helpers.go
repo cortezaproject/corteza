@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/getsentry/sentry-go"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/internal/auth"
@@ -26,6 +27,29 @@ func InitGeneralServices(logOpt *options.LogOpt, smtpOpt *options.SMTPOpt, jwtOp
 		httpClientOpt.HttpClientTimeout,
 		httpClientOpt.ClientTSLInsecure,
 	)
+}
+
+func InitSentry(sentryOpt *options.SentryOpt) error {
+	if sentryOpt.DSN == "" {
+		return nil
+	}
+
+	return sentry.Init(sentry.ClientOptions{
+		Dsn:              sentryOpt.DSN,
+		Debug:            sentryOpt.Debug,
+		AttachStacktrace: sentryOpt.AttachStacktrace,
+		SampleRate:       sentryOpt.SampleRate,
+		MaxBreadcrumbs:   sentryOpt.MaxBreadcrumbs,
+		IgnoreErrors:     nil,
+		BeforeSend:       nil,
+		BeforeBreadcrumb: nil,
+		Integrations:     nil,
+		Transport:        nil,
+		ServerName:       sentryOpt.ServerName,
+		Release:          sentryOpt.Release,
+		Dist:             sentryOpt.Dist,
+		Environment:      sentryOpt.Environment,
+	})
 }
 
 func HandleError(err error) {

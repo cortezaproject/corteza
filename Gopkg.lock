@@ -77,6 +77,17 @@
   revision = "b57537c92a6b4155c5219ce0d7d2a9c0cc74b1c4"
 
 [[projects]]
+  digest = "1:f59f34bb582fbc13885cd0338570bc0f21738fc711065527c36928213de62c1b"
+  name = "github.com/getsentry/sentry-go"
+  packages = [
+    ".",
+    "http",
+  ]
+  pruneopts = "UT"
+  revision = "79cad3fec863752ea61059d4565f85b23da2d9d1"
+  version = "v0.1.1"
+
+[[projects]]
   digest = "1:cb53653e4e410ef91f3a83568464ef966e1732ad9a00b2719571f90eae9a15a7"
   name = "github.com/go-chi/chi"
   packages = [
@@ -565,6 +576,8 @@
     "github.com/dgrijalva/jwt-go",
     "github.com/disintegration/imaging",
     "github.com/edwvee/exiffix",
+    "github.com/getsentry/sentry-go",
+    "github.com/getsentry/sentry-go/http",
     "github.com/go-chi/chi",
     "github.com/go-chi/chi/middleware",
     "github.com/go-chi/cors",

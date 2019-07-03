@@ -73,7 +73,6 @@ func LogResponse(next http.Handler) http.Handler {
 		}()
 
 		next.ServeHTTP(wrapped, req)
-
 	})
 
 }

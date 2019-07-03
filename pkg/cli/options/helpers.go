@@ -50,6 +50,11 @@ func fill(opt interface{}, pfix string) {
 				continue
 			}
 
+			if f.Kind() == reflect.Float32 {
+				v.FieldByName(t.Name).SetFloat(float64(EnvFloat32(pfix, tag, float32(f.Float()))))
+				continue
+			}
+
 			panic("unsupported type/kind for field " + t.Name)
 
 		}
@@ -87,6 +92,17 @@ func EnvInt(pfix, key string, def int) int {
 	for _, key = range makeEnvKeys(pfix, key) {
 		if val, has := os.LookupEnv(key); has {
 			if i, err := cast.ToIntE(val); err == nil {
+				return i
+			}
+		}
+	}
+	return def
+}
+
+func EnvFloat32(pfix, key string, def float32) float32 {
+	for _, key = range makeEnvKeys(pfix, key) {
+		if val, has := os.LookupEnv(key); has {
+			if i, err := cast.ToFloat32E(val); err == nil {
 				return i
 			}
 		}

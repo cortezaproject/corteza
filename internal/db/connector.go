@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	sentry "github.com/getsentry/sentry-go"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
@@ -34,6 +35,8 @@ func TryToConnect(ctx context.Context, log *zap.Logger, name, dsn, profiler stri
 		zap.Duration("timeout", timeout))
 
 	go func() {
+		defer sentry.Recover()
+
 		var (
 			try = 0
 		)

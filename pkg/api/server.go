@@ -86,12 +86,28 @@ func (s Server) Serve(ctx context.Context) {
 
 	router := chi.NewRouter()
 
-	router.Use(Base()...)
+	// Base middleware, CORS, RealIP, RequestID, context-logger
+	router.Use(Base(s.log)...)
 
-	if s.httpOpt.Logging {
-		router.Use(Logging(s.log)...)
+	// Logging request if enabled
+	if s.httpOpt.LogRequest {
+		router.Use(LogRequest)
 	}
 
+	// Logging response if enabled
+	if s.httpOpt.LogResponse {
+		router.Use(LogResponse)
+	}
+
+	// Handle panic (sets 500 Server error headers)
+	router.Use(HandlePanic)
+
+	// Reports error to Sentry if enabled
+	if s.httpOpt.EnablePanicReporting {
+		router.Use(Sentry())
+	}
+
+	// Metrics tracking middleware
 	if s.httpOpt.EnableMetrics {
 		router.Use(Middleware(s.httpOpt.MetricsServiceLabel))
 	}
