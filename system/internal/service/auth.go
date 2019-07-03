@@ -278,28 +278,28 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 	existing, err := svc.users.FindByEmail(input.Email)
 
 	if err == nil && existing.Valid() {
-		if len(password) > 0 {
-			cc, err := svc.credentials.FindByKind(existing.ID, credentialsTypePassword)
-			if err != nil {
-				return nil, errors.Wrap(err, "could not find credentials")
-			}
-
-			err = svc.checkPassword(password, cc)
-			if err != nil {
-				return nil, errors.Wrap(err, "user with this email already exists")
-			}
-
-			if !existing.EmailConfirmed {
-				err = svc.sendEmailAddressConfirmationToken(existing)
-				if err != nil {
-					return nil, err
-				}
-			}
-
-			return existing, nil
+		if len(password) == 0 {
+			return nil, errors.New("invalid username/password combination")
 		}
 
-		return nil, errors.Wrap(err, "user with this email already exists")
+		cc, err := svc.credentials.FindByKind(existing.ID, credentialsTypePassword)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not find credentials")
+		}
+
+		err = svc.checkPassword(password, cc)
+		if err != nil {
+			return nil, errors.Wrap(err, "user with this email already exists")
+		}
+
+		if !existing.EmailConfirmed {
+			err = svc.sendEmailAddressConfirmationToken(existing)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return existing, nil
 
 		// if !svc.settings.internalSignUpSendEmailOnExisting {
 		// 	return nil,errors.Wrap(err, "user with this email already exists")
