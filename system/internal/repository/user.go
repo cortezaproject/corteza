@@ -175,6 +175,7 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 }
 
 func (r user) Total() (count uint) {
+
 	count, _ = r.count(r.query())
 	return
 }
