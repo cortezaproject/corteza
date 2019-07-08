@@ -408,9 +408,9 @@ var _ RequestFiller = NewRecordDelete()
 type RecordUpload struct {
 	RecordID    uint64 `json:",string"`
 	FieldName   string
+	Upload      *multipart.FileHeader
 	NamespaceID uint64 `json:",string"`
 	ModuleID    uint64 `json:",string"`
-	Upload      *multipart.FileHeader
 }
 
 func NewRecordUpload() *RecordUpload {
@@ -422,10 +422,11 @@ func (r RecordUpload) Auditable() map[string]interface{} {
 
 	out["recordID"] = r.RecordID
 	out["fieldName"] = r.FieldName
-	out["namespaceID"] = r.NamespaceID
-	out["moduleID"] = r.ModuleID
 	out["upload.size"] = r.Upload.Size
 	out["upload.filename"] = r.Upload.Filename
+
+	out["namespaceID"] = r.NamespaceID
+	out["moduleID"] = r.ModuleID
 
 	return out
 }
@@ -457,13 +458,18 @@ func (r *RecordUpload) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	r.RecordID = parseUInt64(chi.URLParam(req, "recordID"))
-	r.FieldName = chi.URLParam(req, "fieldName")
-	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
-	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
+	if val, ok := post["recordID"]; ok {
+		r.RecordID = parseUInt64(val)
+	}
+	if val, ok := post["fieldName"]; ok {
+		r.FieldName = val
+	}
 	if _, r.Upload, err = req.FormFile("upload"); err != nil {
 		return errors.Wrap(err, "error procesing uploaded file")
 	}
+
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
 
 	return err
 }

@@ -685,7 +685,7 @@ Compose records
 | `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Read records by ID from module section |
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Update records in module section |
 | `DELETE` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Delete record row from module section |
-| `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/{fieldName}/attachment` | Uploads attachment and validates it against record field requirements |
+| `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/attachment` | Uploads attachment and validates it against record field requirements |
 
 ## Generates report from module records
 
@@ -795,17 +795,17 @@ Compose records
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/{fieldName}/attachment` | HTTP/S | POST |  |
+| `/namespace/{namespaceID}/module/{moduleID}/record/attachment` | HTTP/S | POST |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| recordID | uint64 | PATH | Record ID | N/A | YES |
-| fieldName | string | PATH | Field name | N/A | YES |
+| recordID | uint64 | POST | Record ID | N/A | NO |
+| fieldName | string | POST | Field name | N/A | YES |
+| upload | *multipart.FileHeader | POST | File to upload | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
-| upload | *multipart.FileHeader | POST | File to upload | N/A | YES |
 
 ---
 

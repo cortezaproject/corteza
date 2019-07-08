@@ -203,6 +203,6 @@ func (h Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Read)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Update)
 		r.Delete("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Delete)
-		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/{fieldName}/attachment", h.Upload)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/attachment", h.Upload)
 	})
 }
