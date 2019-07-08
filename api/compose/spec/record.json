@@ -167,12 +167,12 @@
       "Name": "upload",
       "Method": "POST",
       "Title": "Uploads attachment and validates it against record field requirements",
-      "Path": "/{recordID}/{fieldName}/attachment",
+      "Path": "/attachment",
       "Parameters": {
-        "path": [
+        "post": [
           {
             "name": "recordID",
-            "required": true,
+            "required": false,
             "title": "Record ID",
             "type": "uint64"
           },
@@ -181,9 +181,7 @@
             "required": true,
             "title": "Field name",
             "type": "string"
-          }
-        ],
-        "post": [
+          },
           {
             "name": "upload",
             "required": true,

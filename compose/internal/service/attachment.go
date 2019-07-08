@@ -49,6 +49,7 @@ type (
 	attachmentAccessController interface {
 		CanUpdatePage(context.Context, *types.Page) bool
 		CanUpdateRecord(context.Context, *types.Module) bool
+		CanCreateRecord(context.Context, *types.Module) bool
 	}
 
 	AttachmentService interface {
@@ -187,10 +188,24 @@ func (svc attachment) CreateRecordAttachment(namespaceID uint64, name string, si
 
 	if m, err := svc.moduleSvc.FindByID(namespaceID, moduleID); err != nil {
 		return nil, err
-	} else if _, err := svc.recordSvc.FindByID(namespaceID, recordID); err != nil {
-		return nil, err
-	} else if !svc.ac.CanUpdateRecord(svc.ctx, m) {
-		return nil, ErrNoUpdatePermissions.withStack()
+	} else if recordID > 0 {
+		// Uploading to existing record
+		//
+		// To allow upload (attachment creation) user must have permissions to
+		// alter that record
+		if _, err := svc.recordSvc.FindByID(namespaceID, recordID); err != nil {
+			return nil, err
+		} else if !svc.ac.CanUpdateRecord(svc.ctx, m) {
+			return nil, ErrNoUpdatePermissions.withStack()
+		}
+	} else {
+		// Uploading to non-existing record
+		//
+		// To allow upload (attachment creation) user must have permissions to
+		// create records
+		if !svc.ac.CanCreateRecord(svc.ctx, m) {
+			return nil, ErrNoCreatePermissions.withStack()
+		}
 	}
 
 	att := &types.Attachment{

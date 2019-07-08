@@ -729,15 +729,15 @@
             },
             {
                 "name": "upload",
-                "path": "/{recordID}/{fieldName}/attachment",
+                "path": "/attachment",
                 "method": "POST",
                 "title": "Uploads attachment and validates it against record field requirements",
                 "parameters": {
-                    "path": [
+                    "post": [
                         {
                             "name": "recordID",
                             "type": "uint64",
-                            "required": true,
+                            "required": false,
                             "title": "Record ID"
                         },
                         {
@@ -745,9 +745,7 @@
                             "type": "string",
                             "required": true,
                             "title": "Field name"
-                        }
-                    ],
-                    "post": [
+                        },
                         {
                             "name": "upload",
                             "type": "*multipart.FileHeader",
