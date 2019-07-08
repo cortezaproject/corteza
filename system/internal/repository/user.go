@@ -201,11 +201,11 @@ func (r *user) BindAvatar(user *types.User, avatar io.Reader) (*types.User, erro
 }
 
 func (r *user) SuspendByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "suspend_at", time.Now(), id)
+	return r.updateColumnByID(r.table(), "suspended_at", time.Now(), id)
 }
 
 func (r *user) UnsuspendByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "suspend_at", nil, id)
+	return r.updateColumnByID(r.table(), "suspended_at", nil, id)
 }
 
 func (r *user) DeleteByID(id uint64) error {
