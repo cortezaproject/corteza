@@ -2,9 +2,14 @@ package logger
 
 import (
 	"os"
-	"strings"
+
+	// Make sure we read the ENV from .env
+	_ "github.com/joho/godotenv/autoload"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
+	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 )
 
 var (
@@ -26,19 +31,27 @@ func MakeDebugLogger() *zap.Logger {
 
 func Init() {
 	var (
-		err          error
-		isProduction bool
+		err error
+
+		// Set INFO as defaut log level
+		logLevel = zapcore.InfoLevel
+
+		// Do we want to enable debug logger
+		// with a bit more dev-friendly output
+		debuggingLogger = options.EnvBool("", "LOG_DEBUG", false)
 	)
 
-	if env := os.Getenv("ENVIRONMENT"); strings.Index(env, "prod") == 0 {
-		//  Try to guess if production logging from environment
-		isProduction = true
-	} else if vh := os.Getenv("VIRTUAL_HOST"); len(vh) > 0 {
-		// Try to guess if in production logging from the fact that VIRTUAL_HOST env is set
-		isProduction = true
+	if debuggingLogger {
+		logLevel = zapcore.DebugLevel
 	}
 
-	if !isProduction {
+	if ll, has := os.LookupEnv("LOG_LEVEL"); has {
+		_ = logLevel.Set(ll)
+	}
+
+	DefaultLevel.SetLevel(logLevel)
+
+	if debuggingLogger {
 		defaultLogger = MakeDebugLogger()
 		return
 	}
@@ -48,7 +61,6 @@ func Init() {
 
 	// We do not want sampling
 	conf.Sampling = nil
-	conf.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
 
 	defaultLogger, err = conf.Build()
 	if err != nil {

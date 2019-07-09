@@ -43,7 +43,6 @@ type (
 		Log        *zap.Logger
 
 		// General options
-		LogOpt        *options.LogOpt
 		SmtpOpt       *options.SMTPOpt
 		JwtOpt        *options.JWTOpt
 		HttpClientOpt *options.HttpClientOpt
@@ -175,7 +174,6 @@ func (c *Config) Init() {
 		c.DatabaseName = c.ServiceName
 	}
 
-	c.LogOpt = options.Log(c.EnvPrefix)
 	c.SmtpOpt = options.SMTP(c.EnvPrefix)
 	c.JwtOpt = options.JWT(c.EnvPrefix)
 	c.HttpClientOpt = options.HttpClient(c.EnvPrefix)
@@ -221,7 +219,7 @@ func (c *Config) MakeCLI(ctx context.Context) (cmd *cobra.Command) {
 			}
 
 			defer sentry.Recover()
-			InitGeneralServices(c.LogOpt, c.SmtpOpt, c.JwtOpt, c.HttpClientOpt)
+			InitGeneralServices(c.SmtpOpt, c.JwtOpt, c.HttpClientOpt)
 
 			err = c.RootCommandDBSetup.Run(ctx, cmd, c)
 			if err != nil {
