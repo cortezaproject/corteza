@@ -815,7 +815,7 @@ func (svc auth) createUserToken(user *types.User, kind string) (token string, er
 
 // Automatically promotes user to administrator if it is the first user in the database
 func (svc auth) autoPromote(u *types.User) (err error) {
-	if svc.users.Total() == 0 && u.ID > 0 {
+	if svc.users.Total() == 1 && u.ID > 0 {
 		err = svc.roles.MemberAddByID(permissions.AdminRoleID, u.ID)
 
 		svc.log(
