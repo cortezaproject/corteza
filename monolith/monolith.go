@@ -45,6 +45,15 @@ func Configure() *cli.Config {
 			},
 		},
 
+		ApiServerPreRun: cli.Runners{
+			func(ctx context.Context, cmd *cobra.Command, c *cli.Config) (err error) {
+				cli.HandleError(cmp.ApiServerPreRun.Run(ctx, cmd, cmp))
+				cli.HandleError(msg.ApiServerPreRun.Run(ctx, cmd, msg))
+				cli.HandleError(sys.ApiServerPreRun.Run(ctx, cmd, sys))
+				return
+			},
+		},
+
 		ApiServerRoutes: cli.Mounters{
 			func(r chi.Router) {
 				r.Route("/compose", cmp.ApiServerRoutes.MountRoutes)
