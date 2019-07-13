@@ -18,6 +18,7 @@ import (
 	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/system/internal/service"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -29,6 +30,7 @@ type (
 
 const (
 	externalAuthBaseUrl = "/auth/external"
+	redirCookieName     = "redir"
 )
 
 func NewExternalAuth() *ExternalAuth {
@@ -43,12 +45,6 @@ func (ctrl ExternalAuth) log(ctx context.Context, fields ...zapcore.Field) *zap.
 }
 
 func (ctrl *ExternalAuth) ApiServerRoutes(r chi.Router) {
-
-	// Make sure we're backwards compatible and redirect /oidc to /auth/external/openid-connect.corteza-iam
-	r.Get("/oidc", func(w http.ResponseWriter, req *http.Request) {
-		http.Redirect(w, req, externalAuthBaseUrl+"/openid-connect.corteza-iam", http.StatusMovedPermanently)
-	})
-
 	// Copy provider from path (Chi URL param) to request context and return it
 	copyProviderToContext := func(r *http.Request) *http.Request {
 		return r.WithContext(context.WithValue(r.Context(), "provider", chi.URLParam(r, "provider")))
@@ -60,7 +56,7 @@ func (ctrl *ExternalAuth) ApiServerRoutes(r chi.Router) {
 
 			// Always set redir cookie, even if not requested.
 			// If param is empty, cookie will be removed
-			ctrl.setSessionCookie(w, r, "redir", r.URL.Query().Get("redir"))
+			ctrl.setSessionCookie(w, r, redirCookieName, r.URL.Query().Get("redir"))
 
 			// try to get the user without re-authenticating
 			if user, err := gothic.CompleteUserAuth(w, r); err != nil {
@@ -121,51 +117,80 @@ func (ctrl *ExternalAuth) handleSuccessfulAuth(w http.ResponseWriter, r *http.Re
 
 	svc := ctrl.auth.With(r.Context())
 
-	if u, err := svc.External(cred); err != nil {
-		resputil.JSON(w, err)
-	} else {
-		var (
-			token    string
-			redirUrl *url.URL
-			c        *http.Cookie
-		)
+	var (
+		u   *types.User
+		err error
+	)
 
-		if c, err = r.Cookie("redir"); c != nil && err == nil {
-			if redirUrl, err = url.Parse(c.Value); err == nil {
-				// @todo validate origin/redir-domain
-				ctrl.setSessionCookie(w, r, "redir", "")
-			}
-		} else if fru := svc.FrontendRedirectURL(); fru != "" {
+	// Try to login/sign-up external user
+	if u, err = svc.External(cred); err != nil {
+		resputil.JSON(w, err)
+		return
+	}
+
+	var (
+		ctx      = r.Context()
+		token    string
+		redirUrl *url.URL
+		c        *http.Cookie
+	)
+
+	if c, err = r.Cookie(redirCookieName); err != nil && err != http.ErrNoCookie {
+		ctrl.log(ctx, zap.Error(err)).Warn("error reading cookies")
+	}
+
+	if c != nil {
+		// Remove cookie
+		ctrl.setSessionCookie(w, r, redirCookieName, "")
+		redirUrl, err = url.Parse(c.Value)
+
+		if redirUrl == nil {
+			ctrl.log(ctx, zap.Error(err)).Warn("failed to parse URL from redir cookie")
+		}
+	}
+
+	if redirUrl == nil {
+		// Try with frontend redirect URL
+		if fru := svc.FrontendRedirectURL(); fru != "" {
 			redirUrl, err = url.Parse(fru)
+
+			if redirUrl == nil {
+				ctrl.log(ctx, zap.Error(err)).Warn("failed to parse URL from 'auth.frontend.url.redirect' settings")
+			}
 		} else {
+			// No info about where should we be redirected.
+			// Let's go directly to /auth and append the token
 			redirUrl = r.URL
+			redirUrl.RawQuery = ""
+			search := "/auth/"
+			p := strings.Index(redirUrl.Path, search)
+			if p > -1 {
+				redirUrl.Path = redirUrl.Path[0 : p+len(search)]
+			} else {
+				redirUrl.Path = "/"
+			}
+		}
+	}
+
+	if redirUrl != nil {
+		q := redirUrl.Query()
+
+		if u != nil {
+			// Append auth request token to the URL
+			// This token is used by the client and exchanged for JWT
+			if token, err = svc.IssueAuthRequestToken(u); err == nil {
+				q.Set("token", token)
+			}
 		}
 
 		if err != nil {
-			resputil.JSON(w, err)
-			return
+			q.Set("err", err.Error())
 		}
 
-		if redirUrl != nil {
+		redirUrl.RawQuery = q.Encode()
 
-			q := redirUrl.Query()
-
-			if u != nil {
-				if token, err = svc.IssueAuthRequestToken(u); err == nil {
-					q.Set("token", token)
-				}
-			}
-
-			if err != nil {
-				q.Set("err", err.Error())
-			}
-
-			redirUrl.RawQuery = q.Encode()
-
-			w.Header().Set("Location", redirUrl.String())
-			w.WriteHeader(http.StatusSeeOther)
-		}
-
+		w.Header().Set("Location", redirUrl.String())
+		w.WriteHeader(http.StatusSeeOther)
 	}
 }
 

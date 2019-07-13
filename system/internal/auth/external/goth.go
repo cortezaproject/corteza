@@ -28,10 +28,16 @@ func setupGoth(eas *externalAuthSettings) {
 
 	store := sessions.NewCookieStore([]byte(eas.sessionStoreSecret))
 	store.MaxAge(gothMaxSessionStoreAge)
-	store.Options.Path = "/auth/external"
 	store.Options.HttpOnly = true
 	store.Options.Secure = eas.sessionStoreSecure
 	gothic.Store = store
+
+	log().Debug("registering cookie session store")
+
+	if store.Options.Secure {
+		log().Debug("cookie session store has 'secure' flag ON, make sure this URL is accessed via HTTPS")
+
+	}
 
 	setupGothProviders(eas)
 
