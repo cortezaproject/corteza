@@ -3,6 +3,9 @@ package external
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -58,6 +61,61 @@ func ExternalAuthProvider(kv intset.KV) (eap externalAuthProvider, err error) {
 	}
 
 	return
+}
+
+func (eas externalAuthSettings) Enabled() bool {
+	return eas.enabled
+}
+
+func (eas externalAuthSettings) ValidateStatic() error {
+	if eas.redirectUrl == "" {
+		return errors.New("redirect URL is empty")
+	}
+
+	const (
+		tpt = "test-provider-test"
+	)
+	p, err := url.Parse(fmt.Sprintf(eas.redirectUrl, tpt))
+	if err != nil {
+		return errors.Wrap(err, "invalid redirect URL")
+	}
+
+	if !strings.Contains(p.Path, tpt+"/callback") {
+		return errors.Wrap(err, "could find injected provider in the URL, make sure you use '%s' as a placeholder")
+	}
+
+	if eas.sessionStoreSecret == "" {
+		return errors.New("session store secret is empty")
+	}
+
+	if eas.sessionStoreSecure && p.Scheme != "https" {
+		return errors.New("session store is secure, redirect URL should have HTTPS")
+	}
+
+	return nil
+}
+
+func (eas externalAuthSettings) ValidateRedirectURL() error {
+	const tpt = "test-provider-test"
+	const cb = "/callback"
+
+	// Replace placeholders & remove /callback
+	var url = fmt.Sprintf(eas.redirectUrl, tpt)
+	url = url[0 : len(url)-len(cb)]
+
+	rsp, err := http.DefaultClient.Get(url)
+	if err != nil {
+		return errors.Wrap(err, "could not get response from redirect URL")
+	}
+
+	defer rsp.Body.Close()
+	body, err := ioutil.ReadAll(rsp.Body)
+
+	if strings.Contains(string(body), tpt) {
+		return nil
+	}
+
+	return errors.New("could not validate external auth redirection URL")
 }
 
 func (eap externalAuthProvider) MakeValueSet(name string) (vv intset.ValueSet, err error) {

@@ -9,6 +9,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose"
 	"github.com/cortezaproject/corteza-server/messaging"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/system"
 )
@@ -21,6 +22,9 @@ func Configure() *cli.Config {
 	cmp.Init()
 	msg.Init()
 	sys.Init()
+
+	// Set API as a monolith build
+	api.Monolith = true
 
 	// Combines all three services/apps and makes them run as one monolith app
 	return &cli.Config{

@@ -13,7 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
-func Roles(ctx context.Context) *cobra.Command {
+func Roles(ctx context.Context, c *cli.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "roles",
 		Short: "Role management",
@@ -40,6 +40,8 @@ func Roles(ctx context.Context) *cobra.Command {
 
 				err error
 			)
+
+			c.InitServices(ctx, c)
 
 			// Try to find role by name and by ID
 			if rr, err = roleRepo.Find(&types.RoleFilter{Query: roleStr}); err != nil {

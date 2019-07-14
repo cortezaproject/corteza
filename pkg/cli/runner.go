@@ -88,6 +88,12 @@ type (
 		// Access control initial setup
 		// Reapplies default access control rules for roles "everyone" [1] and "admin" [2]
 		ProvisionAccessControl Runners
+
+		// ******************************************************************
+
+		// This callback behaves a bit differently and should be called manually
+		// from wherever we need service initialized
+		InitServices func(ctx context.Context, c *Config)
 	}
 )
 

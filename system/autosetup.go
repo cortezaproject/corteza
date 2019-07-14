@@ -14,6 +14,8 @@ import (
 )
 
 func accessControlSetup(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
+	c.InitServices(ctx, c)
+
 	// Calling grant directly on internal permissions service to avoid AC check for "grant"
 	var p = service.DefaultPermissions
 	var ac = service.DefaultAccessControl
