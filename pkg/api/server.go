@@ -29,6 +29,11 @@ type (
 	}
 )
 
+var (
+	Monolith = false
+	BaseURL  = "/"
+)
+
 func NewServer(log *zap.Logger) *Server {
 	return &Server{
 		endpoints: make([]func(r chi.Router), 0),

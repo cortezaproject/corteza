@@ -3,12 +3,10 @@ package external
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/pkg/errors"
 
-	"github.com/cortezaproject/corteza-server/internal/rand"
 	intset "github.com/cortezaproject/corteza-server/internal/settings"
 )
 
@@ -112,40 +110,9 @@ func ExternalAuthSettings(s intset.Service) (eas *externalAuthSettings, err erro
 		sessionStoreSecret: kv.String(settingsKeySessionStoreSecret),
 	}
 
-	storeGenerated := func(name string, value interface{}) (err error) {
-		v := &intset.Value{Name: name}
-		if v.Value, err = json.Marshal(value); err != nil {
-			return
-		}
-
-		return s.Set(v)
-	}
-
-	if eas.redirectUrl == "" {
-		path := "/auth/external/%s/callback"
-		if leHost, has := os.LookupEnv("LETSENCRYPT_HOST"); has {
-			eas.redirectUrl = "https://" + leHost + path
-		} else if vHost, has := os.LookupEnv("VIRTUAL_HOST"); has {
-			eas.redirectUrl = "http://" + vHost + path
-		} else {
-			// Fallback to local
-			eas.redirectUrl = "http://system.api.local.crust.tech" + path
-		}
-
-		if err = storeGenerated(settingsKeyRedirectUrl, eas.redirectUrl); err != nil {
-			return
-		}
-	}
-
-	if eas.sessionStoreSecret == "" {
-		eas.sessionStoreSecret = string(rand.Bytes(64))
-		if err = storeGenerated(settingsKeySessionStoreSecret, eas.sessionStoreSecret); err != nil {
-			return
-		}
-	}
-
 	if !kv.Has(settingsKeySessionStoreSecure) {
-		// Assume we want to use secure store if we are accessed via HTTPS
+		// If auth.external.session-store-secure is not explicitly set;
+		// check if redirectUrl uses HTTPS schema and assume we want secure session store
 		eas.sessionStoreSecure = strings.Index(eas.redirectUrl, "https://") == 0
 	} else {
 		eas.sessionStoreSecure = kv.Bool(settingsKeySessionStoreSecure)

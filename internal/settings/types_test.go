@@ -53,10 +53,45 @@ func TestKV_Bool(t *testing.T) {
 }
 
 func TestSettingValueAsString(t *testing.T) {
-	test.NoError(t, (&Value{}).SetValueAsString(`"string"`), "unable to set value as string")
-	test.NoError(t, (&Value{}).SetValueAsString(`false`), "unable to set value as string")
-	test.NoError(t, (&Value{}).SetValueAsString(`null`), "unable to set value as string")
-	test.NoError(t, (&Value{}).SetValueAsString(`42`), "unable to set value as string")
-	test.NoError(t, (&Value{}).SetValueAsString(`3.14`), "unable to set value as string")
-	test.Error(t, (&Value{}).SetValueAsString(`error`), "expecting error when not setting JSON")
+	test.NoError(t, (&Value{}).SetRawValue(`"string"`), "unable to set value as string")
+	test.NoError(t, (&Value{}).SetRawValue(`false`), "unable to set value as string")
+	test.NoError(t, (&Value{}).SetRawValue(`null`), "unable to set value as string")
+	test.NoError(t, (&Value{}).SetRawValue(`42`), "unable to set value as string")
+	test.NoError(t, (&Value{}).SetRawValue(`3.14`), "unable to set value as string")
+	test.Error(t, (&Value{}).SetRawValue(`error`), "expecting error when not setting JSON")
+}
+
+func TestValueSet_Upsert(t *testing.T) {
+	var vv = ValueSet{}
+
+	test.Assert(t, len(vv) == 0, "expecting length to be 0")
+	vv.Replace(&Value{Name: "name"})
+	test.Assert(t, len(vv) == 1, "expecting length to be 1")
+	vv.Replace(&Value{Name: "name", Value: []byte("42")})
+	test.Assert(t, len(vv) == 1, "expecting length to be 1")
+	test.Assert(t, string(vv[0].Value) == "42", "expecting value to be 42")
+}
+
+func TestValueSet_Changed(t *testing.T) {
+	var (
+		// make string value
+		msv = func(n, v string) *Value {
+			o := &Value{Name: n}
+			_ = o.SetValue(v)
+			return o
+		}
+
+		org = ValueSet{msv("a", "a1"), msv("b", "b1"), msv("d", "d1")}
+		inp = ValueSet{msv("a", "a2"), msv("c", "c1"), msv("d", "d1")}
+
+		out ValueSet
+	)
+
+	out = org.Changed(inp)
+
+	test.Assert(t, len(out) == 2, "expecting length to be 2, got %d", len(out))
+	test.Assert(t, out.First("a").String() == "a2", "expecting 'a' to have 'a2' value")
+	test.Assert(t, out.First("b").String() == "", "expecting 'b' to be missing")
+	test.Assert(t, out.First("c").String() == "c1", "expecting 'c' to have 'c1' value")
+	test.Assert(t, out.First("d").String() == "", "expecting 'd' to be missing")
 }
