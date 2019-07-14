@@ -30,6 +30,12 @@ func Configure() *cli.Config {
 	return &cli.Config{
 		ServiceName: "",
 
+		InitServices: func(ctx context.Context, c *cli.Config) {
+			cmp.InitServices(ctx, cmp)
+			msg.InitServices(ctx, cmp)
+			sys.InitServices(ctx, cmp)
+		},
+
 		RootCommandDBSetup: cli.Runners{
 			func(ctx context.Context, cmd *cobra.Command, c *cli.Config) (err error) {
 				cli.HandleError(cmp.RootCommandDBSetup.Run(ctx, cmd, cmp))
