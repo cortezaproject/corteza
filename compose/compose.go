@@ -24,6 +24,12 @@ func Configure() *cli.Config {
 
 		RootCommandPreRun: cli.Runners{
 			func(ctx context.Context, cmd *cobra.Command, c *cli.Config) (err error) {
+				return
+			},
+		},
+
+		ApiServerPreRun: cli.Runners{
+			func(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
 				if c.ProvisionOpt.MigrateDatabase {
 					cli.HandleError(c.ProvisionMigrateDatabase.Run(ctx, cmd, c))
 				}
@@ -36,12 +42,6 @@ func Configure() *cli.Config {
 					cli.HandleError(accessControlSetup(ctx, cmd, c))
 				}
 
-				return
-			},
-		},
-
-		ApiServerPreRun: cli.Runners{
-			func(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
 				go service.Watchers(ctx)
 				return nil
 			},
