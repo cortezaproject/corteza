@@ -13,7 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/system/internal/service"
 )
 
-func Settings(ctx context.Context) *cobra.Command {
+func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 	var (
 		cmd = &cobra.Command{
 			Use:   "settings",
@@ -25,6 +25,8 @@ func Settings(ctx context.Context) *cobra.Command {
 		Use:   "list",
 		Short: "List all",
 		Run: func(cmd *cobra.Command, args []string) {
+			c.InitServices(ctx, c)
+
 			prefix := cmd.Flags().Lookup("prefix").Value.String()
 			if kv, err := service.DefaultIntSettings.FindByPrefix(prefix); err != nil {
 				cli.HandleError(err)
@@ -51,6 +53,8 @@ func Settings(ctx context.Context) *cobra.Command {
 		Short: "Get value (raw JSON) for a specific key",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			c.InitServices(ctx, c)
+
 			if v, err := service.DefaultIntSettings.Get(args[0], 0); err != nil {
 				cli.HandleError(err)
 			} else if v != nil {
@@ -64,6 +68,8 @@ func Settings(ctx context.Context) *cobra.Command {
 		Short: "Set value (raw JSON) for a specific key",
 		Args:  cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
+			c.InitServices(ctx, c)
+
 			value := args[1]
 			v := &settings.Value{
 				Name: args[0],
@@ -82,6 +88,8 @@ func Settings(ctx context.Context) *cobra.Command {
 		Short: "Import settings as JSON from stdin or file",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			c.InitServices(ctx, c)
+
 			var (
 				fh  *os.File
 				err error
@@ -120,6 +128,8 @@ func Settings(ctx context.Context) *cobra.Command {
 		Short: "Import settings as JSON to stdout or file",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			c.InitServices(ctx, c)
+
 			var (
 				fh  *os.File
 				err error
@@ -151,6 +161,8 @@ func Settings(ctx context.Context) *cobra.Command {
 		Short: "Set value (raw JSON) for a specific key",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			c.InitServices(ctx, c)
+
 			for a := 0; a < len(args); a++ {
 				cli.HandleError(service.DefaultIntSettings.Delete(args[a], 0))
 			}

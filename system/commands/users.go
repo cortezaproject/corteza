@@ -15,7 +15,7 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
-func Users(ctx context.Context) *cobra.Command {
+func Users(ctx context.Context, c *cli.Config) *cobra.Command {
 	// User management commands.
 	cmd := &cobra.Command{
 		Use:   "users",
@@ -27,6 +27,8 @@ func Users(ctx context.Context) *cobra.Command {
 		Use:   "list",
 		Short: "List users",
 		Run: func(cmd *cobra.Command, args []string) {
+			c.InitServices(ctx, c)
+
 			var (
 				db = factory.Database.MustGet("system")
 			)
@@ -65,6 +67,8 @@ func Users(ctx context.Context) *cobra.Command {
 		Short: "Add new user",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			c.InitServices(ctx, c)
+
 			var (
 				db = factory.Database.MustGet("system")
 
@@ -105,6 +109,8 @@ func Users(ctx context.Context) *cobra.Command {
 		Short: "Change password for user",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			c.InitServices(ctx, c)
+
 			var (
 				db = factory.Database.MustGet("system")
 
