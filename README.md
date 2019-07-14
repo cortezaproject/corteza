@@ -19,20 +19,6 @@ Corteza Low Code is the flexible and easy to use open source Low Code Developmen
 **Corteza One**
 Corteza One manages the user experience for Corteza applications, such as CRM, Messaging and Low Code, as well as providing an integrated interface for third party or other bespoke applications. 100% responsive and with an intuitive design, Corteza One increases productivity and ease of access to all IT resources.
 
-# Setup
-
-Copy `.env.example` to `.env` and make proper modifications for your local environment.
-
-An access to a (local) instance of MySQL must be available.
-Configure access to your database with `DB_DSN`.
-
-The database will be populated with migrations at the start of each service. You don't need to pre-populate the database, just make sure that your permissions include CREATE and ALTER capabilities.
-
-# Running in local environment for development
-
-Everything should be set and ready to run with `make realize`. This utilizes realize 
-tool that monitors codebase for changes and restarts api http server for every file change. It is not 100% so it needs help (manual restart) in certain cases (new files added, changes in non .go files etc..)
-
-# Documentation:
-
-You can find more documentation about Corteza CLI, setup, authentication and API endpoints under `/docs`.
+# Documentation
+You can find more documentation about Corteza CLI, setup, deployment, authentication 
+in [corteza-docs](https://github.com/cortezaproject/corteza-docs) GitHub repository.
