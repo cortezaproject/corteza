@@ -75,5 +75,5 @@ func makeDefaultApplications(ctx context.Context, cmd *cobra.Command, c *cli.Con
 }
 
 func discoverSettings(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
-	return service.DefaultSettings.With(ctx).Discover()
+	return service.DefaultSettings.With(ctx).AutoDiscovery()
 }
