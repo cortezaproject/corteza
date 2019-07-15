@@ -304,6 +304,12 @@ func authSettingsAutoDiscovery(log *zap.Logger, current internalSettings.ValueSe
 			wrapString("Corteza Team (to-be-configured)")},
 
 		// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+		// Enable internal login
+		{
+			"auth.internal.enabled",
+			"PROVISION_SETTINGS_AUTH_INTERNAL_ENABLED",
+			wrapBool(true)},
+
 		// Enable internal signup
 		{
 			"auth.internal.signup.enabled",
