@@ -18,7 +18,7 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		settings authSettings
+		settings AuthSettings
 	}
 
 	AuthNotificationService interface {
@@ -127,20 +127,20 @@ func (svc authNotification) log(fields ...zapcore.Field) *zap.Logger {
 func (svc authNotification) EmailConfirmation(lang string, emailAddress string, token string) error {
 	return svc.send("email-confirmation", lang, authNotificationPayload{
 		EmailAddress: emailAddress,
-		URL:          svc.settings.frontendUrlEmailConfirmation + token,
+		URL:          svc.settings.FrontendUrlEmailConfirmation + token,
 	})
 }
 
 func (svc authNotification) PasswordReset(lang string, emailAddress string, token string) error {
 	return svc.send("password-reset", lang, authNotificationPayload{
 		EmailAddress: emailAddress,
-		URL:          svc.settings.frontendUrlPasswordReset + token,
+		URL:          svc.settings.FrontendUrlPasswordReset + token,
 	})
 }
 
 func (svc authNotification) newMail() *gomail.Message {
 	m := gomail.NewMessage()
-	m.SetAddressHeader("From", svc.settings.mailFromAddress, svc.settings.mailFromName)
+	m.SetAddressHeader("From", svc.settings.MailFromAddress, svc.settings.MailFromName)
 	return m
 }
 
@@ -148,9 +148,9 @@ func (svc authNotification) send(name, lang string, payload authNotificationPayl
 	ntf := svc.newMail()
 
 	payload.Logo = template.URL(defaultLogo)
-	payload.BaseURL = svc.settings.frontendUrlBase
-	payload.SignatureName = svc.settings.mailFromName
-	payload.SignatureEmail = svc.settings.mailFromAddress
+	payload.BaseURL = svc.settings.FrontendUrlBase
+	payload.SignatureName = svc.settings.MailFromName
+	payload.SignatureEmail = svc.settings.MailFromAddress
 
 	ntf.SetAddressHeader("To", payload.EmailAddress, "")
 	ntf.SetHeader("Subject", svc.render(emailTemplates[name+"."+lang+".subject"], payload))

@@ -65,7 +65,7 @@ func TestAuth_External_Existing(t *testing.T) {
 
 	svc := makeMockAuthService(usrRpoMock, crdRpoMock)
 	svc.logger = zap.NewNop()
-	svc.settings.externalEnabled = true
+	svc.settings.ExternalEnabled = true
 
 	{
 		auser, err := svc.External(p)
@@ -111,7 +111,7 @@ func TestAuth_External_NonExisting(t *testing.T) {
 
 	svc := makeMockAuthService(usrRpoMock, crdRpoMock)
 	svc.logger = zap.NewNop()
-	svc.settings.externalEnabled = true
+	svc.settings.ExternalEnabled = true
 
 	{
 		auser, err := svc.External(p)
@@ -137,7 +137,7 @@ func Test_auth_validateInternalLogin(t *testing.T) {
 	}
 	svc := auth{}
 	svc.logger = zap.NewNop()
-	svc.settings.internalEnabled = true
+	svc.settings.InternalEnabled = true
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

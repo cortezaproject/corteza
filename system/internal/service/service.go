@@ -30,7 +30,7 @@ var (
 
 	DefaultSettings         SettingsService
 	DefaultAuthNotification AuthNotificationService
-	DefaultAuthSettings     authSettings
+	DefaultAuthSettings     AuthSettings
 
 	DefaultAuth         AuthService
 	DefaultUser         UserService

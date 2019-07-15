@@ -35,7 +35,7 @@ type (
 		BulkSet(vv internalSettings.ValueSet) (err error)
 		Get(name string, ownedBy uint64) (out *internalSettings.Value, err error)
 
-		LoadAuthSettings() (authSettings, error)
+		LoadAuthSettings() (AuthSettings, error)
 		AutoDiscovery() error
 	}
 )
@@ -99,12 +99,12 @@ func (svc settings) Get(name string, ownedBy uint64) (out *internalSettings.Valu
 }
 
 // Loads auth.% settings, initializes & fills auth settings struct
-func (svc settings) LoadAuthSettings() (authSettings, error) {
+func (svc settings) LoadAuthSettings() (AuthSettings, error) {
 	vv, err := svc.internalSettings.FindByPrefix("auth.")
 	if err != nil {
-		return authSettings{}, err
+		return AuthSettings{}, err
 	}
-	return AuthSettings(vv.KV()), nil
+	return ParseAuthSettings(vv.KV())
 }
 
 // AutoDiscovery orchestrates settings auto discovery

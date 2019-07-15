@@ -22,7 +22,8 @@ import (
 // Will perform OpenID connect auto-configuration
 func Auth(ctx context.Context, c *cli.Config) *cobra.Command {
 	var (
-		enableDiscoveredProvider bool
+		enableDiscoveredProvider               bool
+		skipValidationOnAutoDiscoveredProvider bool
 	)
 
 	cmd := &cobra.Command{
@@ -39,22 +40,22 @@ func Auth(ctx context.Context, c *cli.Config) *cobra.Command {
 
 			var (
 				name, providerUrl = args[0], args[1]
+				es                = service.DefaultAuthSettings
 			)
 
-			eas, err := external.ExternalAuthSettings(service.DefaultIntSettings)
-			cli.HandleError(err)
+			if !skipValidationOnAutoDiscoveredProvider {
+				// Do basic validation of external auth settings
+				// will fail if secret or url are not set
+				cli.HandleError(es.StaticValidateExternal())
 
-			// Do basic validation of external auth settings
-			// will fail if secret or url are not set
-			cli.HandleError(eas.ValidateStatic())
-
-			// Do full rediredct-URL check
-			cli.HandleError(eas.ValidateRedirectURL())
+				// Do full rediredct-URL check
+				cli.HandleError(es.ValidateExternalRedirectURL())
+			}
 
 			p, err := parseExternalProviderUrl(providerUrl)
 			cli.HandleError(err)
 
-			eap, err := external.RegisterNewOpenIdClient(ctx, eas, name, p.String())
+			eap, err := external.RegisterNewOpenIdClient(ctx, es, name, p.String())
 			cli.HandleError(err)
 
 			vv, err := eap.MakeValueSet("openid-connect." + name)
@@ -89,6 +90,12 @@ func Auth(ctx context.Context, c *cli.Config) *cobra.Command {
 		"enable",
 		false,
 		"Enable this provider and external auth")
+
+	autoDiscoverCmd.Flags().BoolVar(
+		&skipValidationOnAutoDiscoveredProvider,
+		"skip-validation",
+		false,
+		"Skip validation")
 
 	jwtCmd := &cobra.Command{
 		Use:   "jwt [email-or-id]",

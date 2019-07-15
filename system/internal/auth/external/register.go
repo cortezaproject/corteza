@@ -5,15 +5,17 @@ import (
 	"fmt"
 
 	"github.com/crusttech/go-oidc"
+
+	"github.com/cortezaproject/corteza-server/system/internal/service"
 )
 
 // @todo remove dependency on github.com/crusttech/go-oidc (and github.com/coreos/go-oidc)
 //       and move client registration to corteza codebase
-func RegisterNewOpenIdClient(ctx context.Context, eas *externalAuthSettings, name, url string) (eap *externalAuthProvider, err error) {
+func RegisterNewOpenIdClient(ctx context.Context, eas service.AuthSettings, name, url string) (eap *service.AuthSettingsExternalAuthProvider, err error) {
 	var (
 		provider    *oidc.Provider
 		client      *oidc.Client
-		redirectUrl = fmt.Sprintf(eas.redirectUrl, "openid-connect."+name)
+		redirectUrl = fmt.Sprintf(eas.ExternalRedirectUrl, "openid-connect."+name)
 	)
 
 	if provider, err = oidc.NewProvider(ctx, url); err != nil {
@@ -30,11 +32,11 @@ func RegisterNewOpenIdClient(ctx context.Context, eas *externalAuthSettings, nam
 		return
 	}
 
-	eap = &externalAuthProvider{
-		redirectUrl: redirectUrl,
-		key:         client.ID,
-		secret:      client.Secret,
-		issuerUrl:   url,
+	eap = &service.AuthSettingsExternalAuthProvider{
+		RedirectUrl: redirectUrl,
+		Key:         client.ID,
+		Secret:      client.Secret,
+		IssuerUrl:   url,
 	}
 
 	return
