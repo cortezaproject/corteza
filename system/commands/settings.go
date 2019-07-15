@@ -158,16 +158,33 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 
 	del := &cobra.Command{
 		Use:   "delete [keys, ...]",
-		Short: "Set value (raw JSON) for a specific key",
-		Args:  cobra.MinimumNArgs(1),
+		Short: "Set value (raw JSON) for a specific key (or by prefix)",
+		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			c.InitServices(ctx, c)
 
-			for a := 0; a < len(args); a++ {
-				cli.HandleError(service.DefaultIntSettings.Delete(args[a], 0))
+			var names = []string{}
+
+			if prefix := cmd.Flags().Lookup("prefix").Value.String(); len(prefix) > 0 {
+				if vv, err := service.DefaultIntSettings.FindByPrefix(""); err != nil {
+					cli.HandleError(err)
+				} else {
+					_ = vv.Walk(func(v *settings.Value) error {
+						names = append(names, v.Name)
+						return nil
+					})
+				}
+			} else if len(args) > 0 {
+				names = args
+			}
+
+			for a := 0; a < len(names); a++ {
+				cli.HandleError(service.DefaultIntSettings.Delete(names[a], 0))
 			}
 		},
 	}
+
+	del.Flags().String("prefix", "", "Filter settings by prefix")
 
 	cmd.AddCommand(
 		list,
