@@ -81,14 +81,17 @@ func (s authSettings) Format() map[string]interface{} {
 	)
 
 	for p := range goth.GetProviders() {
+
 		label := p
 		if strings.Index(p, "openid-connect.") == 0 {
 			label = strings.SplitN(p, ".", 2)[1]
 		}
 
 		switch label {
-		case "corteza-iam":
-			label = "Corteza Unify"
+		case "corteza-iam", "corteza", "corteza-one":
+			label = "Corteza One"
+		case "crust-iam", "crust", "crust-unify":
+			label = "Crust Unify"
 		case "facebook":
 			label = "Facebook"
 		case "gplus":
