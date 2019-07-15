@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"os"
 	"strings"
@@ -215,18 +216,32 @@ func (svc settings) discover(current internalSettings.ValueSet) (internalSetting
 		// of the function to the very last point
 
 		frontendUrl = func(path string) stringWrapper {
+			const (
+				feBase   = "auth.frontend.url.base"
+				extRedir = "auth.external.redirect-url"
+			)
+
 			return func() (base string) {
-				base = new.First("auth.frontend.url.base").String()
+				base = new.First(feBase).String()
 
 				if len(base) == 0 {
+
 					// Not found, try to get it from the external redirect URL
-					base = new.First("auth.external.redirect-url").String()
-					if len(base) == 0 {
+					redirURL := new.First(extRedir).String()
+					if len(redirURL) == 0 {
 						return
 					}
 
-					p, err := url.Parse(base)
+					log.Info(
+						"discovering frontend url from '"+extRedir+"'",
+						zap.String(extRedir, redirURL))
+
+					// Removing placeholder
+					redirURL = fmt.Sprintf(redirURL, "")
+
+					p, err := url.Parse(redirURL)
 					if err != nil {
+						log.Error("could not parse '"+extRedir+"'", zap.Error(err))
 						return
 					}
 
