@@ -64,7 +64,8 @@ func Configure() *cli.Config {
 					service.DefaultAuthSettings, _ = service.DefaultSettings.LoadAuthSettings()
 				}
 
-				external.Init(service.DefaultIntSettings)
+				// Initialize external authentication (from default settings)
+				external.Init()
 				go service.Watchers(ctx)
 				return nil
 			},

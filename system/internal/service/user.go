@@ -26,7 +26,7 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		settings authSettings
+		settings AuthSettings
 
 		auth userAuth
 
@@ -245,7 +245,7 @@ func (svc user) Unsuspend(ID uint64) (err error) {
 func (svc user) SetPassword(userID uint64, newPassword string) (err error) {
 	log := svc.log(zap.Uint64("userID", userID))
 
-	if !svc.settings.internalEnabled {
+	if !svc.settings.InternalEnabled {
 		return errors.New("internal authentication disabled")
 	}
 
