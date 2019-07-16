@@ -219,7 +219,7 @@ func (sess *Session) writeLoop() error {
 			return
 		}
 
-		if msg != nil {
+		if msg != nil && sess.conn != nil {
 			return sess.conn.WriteMessage(websocket.TextMessage, msg)
 		}
 
@@ -236,7 +236,11 @@ func (sess *Session) writeLoop() error {
 			return
 		}
 
-		return sess.conn.WriteMessage(websocket.PingMessage, nil)
+		if sess.conn != nil {
+			return sess.conn.WriteMessage(websocket.PingMessage, nil)
+		}
+
+		return
 	}
 
 	for {
