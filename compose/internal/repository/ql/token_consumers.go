@@ -85,7 +85,9 @@ func (TokenConsumerIdent) Consume(s RuneReader) Token {
 	lit := strings.ToUpper(buf.String())
 
 	switch lit {
-	case "LIKE", "NOT", "AND", "OR", "XOR":
+	case "NULL":
+		return Token{code: NULL}
+	case "IS", "LIKE", "NOT", "AND", "OR", "XOR":
 		return Token{code: OPERATOR, literal: lit}
 	case "DESC", "ASC", "INTERVAL":
 		return Token{code: KEYWORD, literal: lit}

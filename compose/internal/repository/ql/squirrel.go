@@ -62,6 +62,10 @@ func (n Ident) ToSql() (string, []interface{}, error) {
 	return n.Value, n.Args, nil
 }
 
+func (n Null) ToSql() (string, []interface{}, error) {
+	return "NULL", nil, nil
+}
+
 func (n Function) ToSql() (string, []interface{}, error) {
 	if paramsSql, args, err := n.Arguments.ToSql(); err != nil {
 		return "", nil, err

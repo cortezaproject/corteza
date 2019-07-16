@@ -166,6 +166,8 @@ checkToken:
 			list = append(list, ident)
 			goto next
 		}
+	case NULL:
+		list = append(list, Null{})
 	case OPERATOR:
 		if len(list) > 0 {
 			// Merge with previous operator node
