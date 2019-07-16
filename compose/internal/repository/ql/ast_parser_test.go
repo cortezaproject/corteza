@@ -156,6 +156,33 @@ func TestAstParser_Parser(t *testing.T) {
 				String{Value: "bar%"},
 			},
 		},
+		{
+			parser: NewParser().ParseExpression,
+			in:     `foo = NULL`,
+			tree: ASTNodes{
+				Ident{Value: "foo"},
+				Operator{Kind: "="},
+				Null{},
+			},
+		},
+		{
+			parser: NewParser().ParseExpression,
+			in:     `foo IS NOT NULL`,
+			tree: ASTNodes{
+				Ident{Value: "foo"},
+				Operator{Kind: "IS NOT"},
+				Null{},
+			},
+		},
+		{
+			parser: NewParser().ParseExpression,
+			in:     `foo IS NULL`,
+			tree: ASTNodes{
+				Ident{Value: "foo"},
+				Operator{Kind: "IS"},
+				Null{},
+			},
+		},
 	}
 
 	for i, test := range tests {

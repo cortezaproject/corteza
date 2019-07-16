@@ -20,6 +20,8 @@ type (
 
 	Columns []Column
 
+	Null struct{}
+
 	String struct {
 		Value string
 		Args  []interface{}
@@ -51,11 +53,15 @@ type (
 		Expr  ASTNodes
 		Alias string
 	}
+
 	Function struct {
 		Name      string
 		Arguments ASTSet
 	}
 )
+
+func (n Null) Validate() (err error) { return }
+func (n Null) String() string        { return "NULL" }
 
 func (n String) Validate() (err error) { return }
 func (n String) String() string        { return fmt.Sprintf("%q", n.Value) }
