@@ -56,6 +56,7 @@ func Configure() *cli.Config {
 					cli.HandleError(accessControlSetup(ctx, cmd, c))
 					cli.HandleError(makeDefaultApplications(ctx, cmd, c))
 					cli.HandleError(discoverSettings(ctx, cmd, c))
+					cli.HandleError(oidcAutoDiscovery(ctx, cmd, c))
 
 					// Run auto configuration
 					commands.SettingsAutoConfigure(cmd)

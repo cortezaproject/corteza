@@ -1,11 +1,9 @@
-package commands
+package external
 
 import (
 	"net/url"
 	"reflect"
 	"testing"
-
-	"github.com/cortezaproject/corteza-server/system/internal/auth/external"
 )
 
 func Test_parseExternalProviderUrl(t *testing.T) {
@@ -48,7 +46,7 @@ func Test_parseExternalProviderUrl(t *testing.T) {
 		},
 		{
 			"add schema and remove well-known",
-			args{"cortezaproject.org/some-subdir/" + external.WellKnown},
+			args{"cortezaproject.org/some-subdir/" + WellKnown},
 			mustParseURL("https://cortezaproject.org/some-subdir/"),
 			false,
 		},

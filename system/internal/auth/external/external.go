@@ -7,6 +7,10 @@ import (
 	"github.com/cortezaproject/corteza-server/system/internal/service"
 )
 
+const (
+	OIDC_PROVIDER_PREFIX = "openid-connect."
+)
+
 func Init() {
 	setupGoth(service.DefaultAuthSettings)
 }
