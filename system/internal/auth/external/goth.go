@@ -77,7 +77,7 @@ func setupGothProviders(as service.AuthSettings) {
 			continue
 		}
 
-		if strings.Index(name, "openid-connect.") == 0 {
+		if strings.Index(name, OIDC_PROVIDER_PREFIX) == 0 {
 			if pc.IssuerUrl == "" {
 				log.Error("failed to discover OIDC provider, URL empty")
 				continue
