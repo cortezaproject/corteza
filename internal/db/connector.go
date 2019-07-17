@@ -2,26 +2,30 @@ package db
 
 import (
 	"context"
+	"regexp"
 	"time"
 
-	sentry "github.com/getsentry/sentry-go"
+	"github.com/getsentry/sentry-go"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
+
+	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 )
 
-const (
-	maxTries = 100
-	delay    = 5 * time.Second
-	timeout  = 1 * time.Minute
+var (
+	dsnMasker = regexp.MustCompile("(.)(?:.*)(.):(.)(?:.*)(.)@")
 )
 
-func TryToConnect(ctx context.Context, log *zap.Logger, name, dsn, profiler string) (db *factory.DB, err error) {
-	factory.Database.Add(name, dsn)
+func TryToConnect(ctx context.Context, log *zap.Logger, name string, opt options.DBOpt) (db *factory.DB, err error) {
+	factory.Database.Add(name, opt.DSN)
 
 	var (
 		connErrCh = make(chan error, 1)
 	)
+
+	// We'll not add this to the general log because we do not want to carry it with us for every query.
+	dsnField := zap.String("dsn", dsnMasker.ReplaceAllString(opt.DSN, "$1****$2:$3****$4@"))
 
 	// This logger is also used inside profiler
 	log = log.Named("database").With(zap.String("name", name))
@@ -29,10 +33,10 @@ func TryToConnect(ctx context.Context, log *zap.Logger, name, dsn, profiler stri
 	defer close(connErrCh)
 
 	log.Debug("connecting to the database",
-		zap.String("dsn", dsn),
-		zap.Int("tries", maxTries),
-		zap.Duration("delay", delay),
-		zap.Duration("timeout", timeout))
+		dsnField,
+		zap.Int("tries", opt.MaxTries),
+		zap.Duration("delay", opt.Delay),
+		zap.Duration("timeout", opt.Timeout))
 
 	go func() {
 		defer sentry.Recover()
@@ -44,7 +48,7 @@ func TryToConnect(ctx context.Context, log *zap.Logger, name, dsn, profiler stri
 		for {
 			try++
 
-			if maxTries <= try {
+			if opt.MaxTries <= try {
 				err = errors.Errorf("could not connect to %q, in %d tries", name, try)
 				return
 			}
@@ -55,21 +59,21 @@ func TryToConnect(ctx context.Context, log *zap.Logger, name, dsn, profiler stri
 					"could not connect to the database",
 					zap.Error(err),
 					zap.Int("try", try),
-					zap.String("dsn", dsn),
-					zap.Float64("delay", delay.Seconds()),
+					dsnField,
+					zap.Float64("delay", opt.Delay.Seconds()),
 				)
 
 				select {
 				case <-ctx.Done():
 					// Forced break
 					break
-				case <-time.After(delay):
+				case <-time.After(opt.Delay):
 					// Wait before next try
 					continue
 				}
 			}
 
-			log.Info("connected to the database", zap.String("dsn", dsn))
+			log.Info("connected to the database", dsnField)
 
 			// Connected
 			break
@@ -82,14 +86,14 @@ func TryToConnect(ctx context.Context, log *zap.Logger, name, dsn, profiler stri
 	select {
 	case err = <-connErrCh:
 		break
-	case <-time.After(timeout):
+	case <-time.After(opt.Timeout):
 		// Wait before next try
 		return nil, errors.Errorf("db init for %q timedout", name)
 	case <-ctx.Done():
 		return nil, errors.Errorf("db connection for %q cancelled", name)
 	}
 
-	switch profiler {
+	switch opt.Profiler {
 	case "stdout":
 		db.Profiler = &factory.Database.ProfilerStdout
 	case "logger":

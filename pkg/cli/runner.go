@@ -190,7 +190,7 @@ func (c *Config) Init() {
 	if c.RootCommandDBSetup == nil {
 		c.RootCommandDBSetup = Runners{func(ctx context.Context, cmd *cobra.Command, c *Config) (err error) {
 			if c.DbOpt != nil {
-				_, err = db.TryToConnect(ctx, c.Log, c.DatabaseName, c.DbOpt.DSN, c.DbOpt.Profiler)
+				_, err = db.TryToConnect(ctx, c.Log, c.DatabaseName, *c.DbOpt)
 				if err != nil {
 					return errors.Wrap(err, "could not connect to database")
 				}
