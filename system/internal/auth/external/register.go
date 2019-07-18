@@ -2,15 +2,51 @@ package external
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
 
 	"github.com/crusttech/go-oidc"
+	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/internal/settings"
 	"github.com/cortezaproject/corteza-server/system/internal/service"
 )
+
+func AddProvider(name string, eap *service.AuthSettingsExternalAuthProvider, force bool) error {
+	var (
+		as  = service.DefaultAuthSettings
+		log = log().With(
+			zap.Bool("force", force),
+			zap.String("name", name),
+			zap.String("key", eap.Key),
+		)
+	)
+
+	if eap.IssuerUrl != "" {
+		log = log.With(zap.String("issuer-url", eap.IssuerUrl))
+	}
+
+	log.Info("adding external auth provider")
+
+	if !force {
+		if e, exists := as.ExternalProviders[name]; exists && e.Key == eap.Key && e.Secret == eap.Secret {
+			return nil
+		}
+	}
+
+	if vv, err := eap.MakeValueSet(name); err != nil {
+		log.Error("could not prepare settings", zap.Error(err))
+		return err
+	} else if err = service.DefaultIntSettings.BulkSet(vv); err != nil {
+		log.Error("could not store settings", zap.Error(err))
+		return err
+	}
+
+	log.Info("external provider added")
+	return nil
+}
 
 // @todo remove dependency on github.com/crusttech/go-oidc (and github.com/coreos/go-oidc)
 //       and move client registration to corteza codebase
@@ -19,6 +55,12 @@ func DiscoverOidcProvider(ctx context.Context, eas service.AuthSettings, name, u
 		provider    *oidc.Provider
 		client      *oidc.Client
 		redirectUrl = fmt.Sprintf(eas.ExternalRedirectUrl, OIDC_PROVIDER_PREFIX+name)
+
+		log = log().With(
+			zap.String("redirect-url", redirectUrl),
+			zap.String("name", name),
+			zap.String("url", url),
+		)
 	)
 
 	if provider, err = oidc.NewProvider(ctx, url); err != nil {
@@ -32,6 +74,7 @@ func DiscoverOidcProvider(ctx context.Context, eas service.AuthSettings, name, u
 	})
 
 	if err != nil {
+		log.Error("could not register oidc provider", zap.Error(err))
 		return
 	}
 
@@ -41,6 +84,8 @@ func DiscoverOidcProvider(ctx context.Context, eas service.AuthSettings, name, u
 		Secret:      client.Secret,
 		IssuerUrl:   url,
 	}
+
+	log.Info("oidc provider registered", zap.String("key", client.ID))
 
 	return
 }

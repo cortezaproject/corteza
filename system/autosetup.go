@@ -135,3 +135,51 @@ func oidcAutoDiscovery(ctx context.Context, cmd *cobra.Command, c *cli.Config) (
 
 	return
 }
+
+func authAddExternals(ctx context.Context, cmd *cobra.Command, c *cli.Config) (err error) {
+	var (
+		kinds = []string{
+			"github",
+			"facebook",
+			"gplus",
+			"linkedin",
+			"oidc",
+		}
+
+		env, p, name string
+
+		pp []string
+
+		eap service.AuthSettingsExternalAuthProvider
+	)
+
+	for _, kind := range kinds {
+		env = "PROVISION_SETTINGS_AUTH_EXTERNAL_" + strings.ToUpper(kind)
+
+		p = strings.TrimSpace(options.EnvString("", env, ""))
+		if len(p) == 0 {
+			continue
+		}
+
+		eap = service.AuthSettingsExternalAuthProvider{Enabled: true}
+
+		if kind == "oidc" {
+			pp = strings.SplitN(p, " ", 4)
+
+			// Spread name, issuer-url, key and secret from provision string for OIDC provider
+			name, eap.IssuerUrl, eap.Key, eap.Secret = pp[0], pp[1], pp[2], pp[3]
+
+			name = external.OIDC_PROVIDER_PREFIX + name
+		} else {
+			pp = strings.SplitN(p, " ", 2)
+
+			// Spread key and secret from provision string
+			eap.Key, eap.Secret = pp[0], pp[1]
+			name = kind
+		}
+
+		_ = external.AddProvider(name, &eap, false)
+	}
+
+	return
+}
