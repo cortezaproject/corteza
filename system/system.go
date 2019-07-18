@@ -58,9 +58,6 @@ func Configure() *cli.Config {
 					cli.HandleError(discoverSettings(ctx, cmd, c))
 					cli.HandleError(oidcAutoDiscovery(ctx, cmd, c))
 
-					// Run auto configuration
-					commands.SettingsAutoConfigure(cmd)
-
 					// Reload auto-configured settings
 					service.DefaultAuthSettings, _ = service.DefaultSettings.LoadAuthSettings()
 				}

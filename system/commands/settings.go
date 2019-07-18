@@ -197,9 +197,3 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 
 	return cmd
 }
-
-func SettingsAutoConfigure(cmd *cobra.Command) {
-	// @todo load
-	// autoDiscoverAuthSettings()
-	// @todo store
-}
