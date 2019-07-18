@@ -105,7 +105,15 @@ func oidcAutoDiscovery(ctx context.Context, cmd *cobra.Command, c *cli.Config) (
 	for p := 0; p < plen; p = p + 2 {
 		name, purl = providers[p], providers[p+1]
 
-		eap, err = external.RegisterOidcProvider(ctx, name, purl, false, true, true)
+		// force:    false
+		// because we do not want to override the provider every time the system restarts
+		//
+		// validate: false
+		// because at the initial (empty db) start, we can not actually validate (server is not yet up)
+		//
+		// enable:   true
+		// we want provider & the entire external auth to be validated
+		eap, err = external.RegisterOidcProvider(ctx, name, purl, false, false, true)
 
 		if err != nil {
 			c.Log.Error(

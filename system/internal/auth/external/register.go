@@ -69,6 +69,10 @@ func RegisterOidcProvider(ctx context.Context, name, providerUrl string, force, 
 		}
 	}
 
+	if as.ExternalRedirectUrl == "" {
+		return nil, errors.New("refusing to register oidc privider withoit redirect url")
+	}
+
 	p, err := parseExternalProviderUrl(providerUrl)
 	if err != nil {
 		return
