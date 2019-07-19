@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/lann/builder"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"gopkg.in/Masterminds/squirrel.v1"
@@ -72,6 +73,9 @@ func (r repository) count(q squirrel.SelectBuilder) (uint, error) {
 		count uint
 		cq    = q.Column("COUNT(*)")
 	)
+
+	// Remove order-bys for counting
+	cq = builder.Delete(cq, "OrderBys").(squirrel.SelectBuilder)
 
 	if sqlSelect, argsSelect, err := cq.ToSql(); err != nil {
 		return 0, err
