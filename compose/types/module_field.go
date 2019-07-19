@@ -94,3 +94,11 @@ func (set ModuleFieldSet) FilterByModule(moduleID uint64) (ff ModuleFieldSet) {
 func (f ModuleField) IsRef() bool {
 	return f.Kind == "Record" || f.Kind == "Owner" || f.Kind == "File"
 }
+
+func (f ModuleField) IsNumeric() bool {
+	return f.Kind == "Number"
+}
+
+func (f ModuleField) IsDateTime() bool {
+	return f.Kind == "DateTime"
+}
