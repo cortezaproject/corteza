@@ -21,6 +21,7 @@ type (
 		Record(userID, channelID, threadID, lastReadMessageID uint64, count uint32) error
 		Inc(channelID, replyTo, userID uint64) error
 		Dec(channelID, replyTo, userID uint64) error
+		ClearThreads(channelID, userID uint64) (err error)
 
 		CountOwned(userID uint64) (c int, err error)
 		ChangeOwner(userID, target uint64) error
@@ -32,6 +33,10 @@ type (
 )
 
 const (
+	sqlResetThreads = `UPDATE messaging_unread
+                          SET count = 0
+                        WHERE rel_reply_to > 0 AND rel_channel = ? AND rel_user = ?`
+
 	sqlUnreadIncCount = `UPDATE messaging_unread 
                                   SET count = count + 1
                                 WHERE rel_channel = ? AND rel_reply_to = ? AND rel_user <> ?`
@@ -148,6 +153,11 @@ func (r unread) CountThreads(userID, channelID uint64) (types.UnreadSet, error) 
 	}
 
 	return uu, nil
+}
+
+func (r unread) ClearThreads(channelID, userID uint64) (err error) {
+	_, err = r.db().Exec(sqlResetThreads, channelID, userID)
+	return
 }
 
 // Preset channel unread records for all users (and threads in that channel)

@@ -506,6 +506,14 @@ func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (ui
 			return errors.Wrap(err, "unable to record unread messages")
 		}
 
+		// Remove unread counts from all threads when doing mark-channel-as-read
+		if threadID == 0 {
+			err = svc.unread.ClearThreads(channelID, currentUserID)
+			if err != nil {
+				return errors.Wrap(err, "unable to clear channel threads")
+			}
+		}
+
 		// Re-count unreads and send updates to this user
 		svc.countUnreads(ch, nil, currentUserID)
 
