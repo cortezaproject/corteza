@@ -208,14 +208,7 @@ func (r *message) Find(filter *types.MessageFilter) (types.MessageSet, error) {
 	sql += " AND rel_channel IN " + sqlChannelAccess
 	params = append(params, filter.CurrentUserID, types.ChannelTypePublic)
 
-	if filter.AfterID > 0 || filter.FromID > 0 || filter.BeforeID > 0 || filter.ToID > 0 {
-		// When filtering by after/before & from/to we're relying order of messages
-		// so let's make sure that they are sorted properly
-		sql += " ORDER BY id ASC"
-	} else {
-		// By default, we just take last N messages.
-		sql += " ORDER BY id DESC"
-	}
+	sql += " ORDER BY id DESC"
 
 	sql += " LIMIT ? "
 	params = append(params, filter.Limit)
