@@ -17,9 +17,21 @@ steps:
   commands:
     - make test
 
-- name: corteza-server-system
+- name: corteza-server
   image: plugins/docker
   depends_on: [ 'unit-tests' ]
+  settings:
+    repo: cortezaproject/corteza-server
+    auto_tag: true # generate tag names automatically based on git branch and git tag
+    dockerfile: Dockerfile.corteza-server
+    username:
+      from_secret: docker_hub_username
+    password:
+      from_secret: docker_hub_password
+
+- name: corteza-server-system
+  image: plugins/docker
+  depends_on: [ 'corteza-server' ]
   settings:
     repo: cortezaproject/corteza-server-system
     auto_tag: true # generate tag names automatically based on git branch and git tag
@@ -32,7 +44,7 @@ steps:
 
 - name: corteza-server-compose
   image: plugins/docker
-  depends_on: [ 'unit-tests' ]
+  depends_on: [ 'corteza-server' ]
   settings:
     repo: cortezaproject/corteza-server-compose
     auto_tag: true # generate tag names automatically based on git branch and git tag
@@ -43,7 +55,7 @@ steps:
       from_secret: docker_hub_password
 
 - name: corteza-server-messaging
-  depends_on: [ 'unit-tests' ]
+  depends_on: [ 'corteza-server' ]
   image: plugins/docker
   settings:
     repo: cortezaproject/corteza-server-messaging
@@ -54,18 +66,6 @@ steps:
     password:
       from_secret: docker_hub_password
 
-
-- name: corteza-server
-  image: plugins/docker
-  depends_on: [ 'unit-tests' ]
-  settings:
-    repo: cortezaproject/corteza-server
-    auto_tag: true # generate tag names automatically based on git branch and git tag
-    dockerfile: Dockerfile.corteza-server
-    username:
-      from_secret: docker_hub_username
-    password:
-      from_secret: docker_hub_password
 
 trigger:
   branch:
