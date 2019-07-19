@@ -170,17 +170,41 @@ func (svc *channel) preloadMembers(cc types.ChannelSet) (err error) {
 	return
 }
 
+// preload channel unread info for a single user
 func (svc *channel) preloadUnreads(cc types.ChannelSet) error {
 	var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	if vv, err := svc.unread.Find(&types.UnreadFilter{UserID: userID}); err != nil {
+	if uu, err := svc.unread.Count(userID, 0); err != nil {
 		return err
 	} else {
-		return cc.Walk(func(ch *types.Channel) error {
-			ch.Unread = vv.FindByChannelId(ch.ID)
+		_ = cc.Walk(func(ch *types.Channel) error {
+			ch.Unread = uu.FindByChannelId(ch.ID)
 			return nil
 		})
 	}
+
+	if uu, err := svc.unread.CountThreads(userID, 0); err != nil {
+		return err
+	} else {
+		_ = cc.Walk(func(ch *types.Channel) error {
+			var u = uu.FindByChannelId(ch.ID)
+
+			if u == nil {
+				return nil
+			}
+
+			if ch.Unread == nil {
+				ch.Unread = &types.Unread{}
+			}
+
+			ch.Unread.ThreadCount = u.ThreadCount
+			ch.Unread.ThreadTotal = u.ThreadTotal
+
+			return nil
+		})
+	}
+
+	return nil
 }
 
 // FindMembers loads all members (and full users) for a specific channel

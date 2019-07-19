@@ -3,6 +3,7 @@ package websocket
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	sentry "github.com/getsentry/sentry-go"
 	"github.com/titpetric/factory"
@@ -57,6 +58,10 @@ func (eq *eventQueue) store(ctx context.Context, qp repository.EventsRepository)
 }
 
 func (eq *eventQueue) feedSessions(ctx context.Context, qp repository.EventsRepository, store eventQueueWalker) error {
+	var (
+		userID uint64
+	)
+
 	for {
 		item, err := qp.Pull(ctx)
 		if err != nil {
@@ -64,6 +69,11 @@ func (eq *eventQueue) feedSessions(ctx context.Context, qp repository.EventsRepo
 		}
 
 		if item.SubType == types.EventQueueItemSubTypeUser {
+			userID = payload.ParseUInt64(item.Subscriber)
+			if userID == 0 {
+				return errors.New("subscriber could not be parsed as uint64")
+			}
+
 			p := &outgoing.Payload{}
 
 			if err := json.Unmarshal(item.Payload, p); err != nil {
@@ -76,7 +86,7 @@ func (eq *eventQueue) feedSessions(ctx context.Context, qp repository.EventsRepo
 				// This store.Walk handler does not send to subscribed sessions but
 				// subscribes all sessions that belong to the same user
 				store.Walk(func(s *Session) {
-					if payload.Uint64toa(s.user.Identity()) == p.ChannelJoin.UserID {
+					if s.user.Identity() == userID {
 						s.subs.Add(p.ChannelJoin.ID)
 					}
 				})
@@ -86,25 +96,28 @@ func (eq *eventQueue) feedSessions(ctx context.Context, qp repository.EventsRepo
 				// This store.Walk handler does not send to subscribed sessions but
 				// subscribes all sessions that belong to the same user
 				store.Walk(func(s *Session) {
-					if payload.Uint64toa(s.user.Identity()) == p.ChannelPart.UserID {
+					if s.user.Identity() == userID {
 						s.subs.Delete(p.ChannelPart.ID)
 					}
 				})
 			} else {
-				// No other payload types we can handle at the moment.
-				return nil
+				store.Walk(func(s *Session) {
+					if s.user.Identity() == userID {
+						_ = s.sendBytes(item.Payload)
+					}
+				})
 			}
 
 		} else if item.Subscriber == "" {
 			// Distribute payload to all connected sessions
 			store.Walk(func(s *Session) {
-				s.sendBytes(item.Payload)
+				_ = s.sendBytes(item.Payload)
 			})
 		} else {
 			// Distribute payload to specific subscribers
 			store.Walk(func(s *Session) {
 				if s.subs.Get(item.Subscriber) != nil {
-					s.sendBytes(item.Payload)
+					_ = s.sendBytes(item.Payload)
 				}
 			})
 		}

@@ -40,7 +40,7 @@ func Message(ctx context.Context, msg *messagingTypes.Message) *outgoing.Message
 		ReplyTo:     msg.ReplyTo,
 		Replies:     msg.Replies,
 		RepliesFrom: Uint64stoa(msg.RepliesFrom),
-		Unread:      Unread(msg.Unread),
+		Unread:      MessageUnread(msg.Unread),
 
 		Attachment:   Attachment(msg.Attachment, currentUserID),
 		Mentions:     messageMentionSet(msg.Mentions),
@@ -145,7 +145,7 @@ func Channel(ch *messagingTypes.Channel) *outgoing.Channel {
 		Type:           string(ch.Type),
 		MembershipFlag: string(flag),
 		Members:        Uint64stoa(ch.Members),
-		Unread:         Unread(ch.Unread),
+		Unread:         ChannelUnread(ch.Unread),
 
 		CanJoin:           ch.CanJoin,
 		CanPart:           ch.CanPart,
@@ -197,9 +197,36 @@ func Unread(v *messagingTypes.Unread) *outgoing.Unread {
 	}
 
 	return &outgoing.Unread{
+		ChannelID:     v.ChannelID,
+		ThreadID:      v.ReplyTo,
 		LastMessageID: v.LastMessageID,
 		Count:         v.Count,
-		InThreadCount: v.InThreadCount,
+		ThreadCount:   v.ThreadCount,
+		ThreadTotal:   v.ThreadTotal,
+	}
+}
+
+func ChannelUnread(v *messagingTypes.Unread) *outgoing.Unread {
+	if v == nil || (v.Count == 0 && v.ThreadCount == 0) {
+		return nil
+	}
+
+	return &outgoing.Unread{
+		LastMessageID: v.LastMessageID,
+		Count:         v.Count,
+		ThreadCount:   v.ThreadCount,
+		ThreadTotal:   v.ThreadTotal,
+	}
+}
+
+func MessageUnread(v *messagingTypes.Unread) *outgoing.Unread {
+	if v == nil || v.Count == 0 {
+		return nil
+	}
+
+	return &outgoing.Unread{
+		LastMessageID: v.LastMessageID,
+		Count:         v.Count,
 	}
 }
 

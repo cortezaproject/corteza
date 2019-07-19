@@ -24,6 +24,7 @@ type (
 		Activity(a *types.Activity) error
 		Message(m *types.Message) error
 		MessageFlag(m *types.MessageFlag) error
+		UnreadCounters(uu types.UnreadSet) error
 		Channel(m *types.Channel) error
 		Join(userID, channelID uint64) error
 		Part(userID, channelID uint64) error
@@ -85,6 +86,12 @@ func (svc event) MessageFlag(f *types.MessageFlag) error {
 	return nil
 }
 
+func (svc event) UnreadCounters(uu types.UnreadSet) error {
+	return uu.Walk(func(u *types.Unread) error {
+		return svc.push(payload.Unread(u), types.EventQueueItemSubTypeUser, u.UserID)
+	})
+}
+
 // Channel notifies subscribers about channel change
 //
 // If this is a public channel we notify everyone
@@ -106,7 +113,7 @@ func (svc event) Join(userID, channelID uint64) (err error) {
 	join := payload.ChannelJoin(channelID, userID)
 
 	// Subscribe user to the channel
-	if err = svc.push(join, types.EventQueueItemSubTypeUser, 0); err != nil {
+	if err = svc.push(join, types.EventQueueItemSubTypeUser, userID); err != nil {
 		return
 	}
 
@@ -131,7 +138,7 @@ func (svc event) Part(userID, channelID uint64) (err error) {
 	}
 
 	// Subscribe user to the channel
-	if err = svc.push(part, types.EventQueueItemSubTypeUser, 0); err != nil {
+	if err = svc.push(part, types.EventQueueItemSubTypeUser, userID); err != nil {
 		return
 	}
 

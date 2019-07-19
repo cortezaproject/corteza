@@ -189,7 +189,7 @@ func (svc message) filterMessagesByAccessibleChannels(mm types.MessageSet) types
 	return mm
 }
 
-func (svc message) Create(in *types.Message) (message *types.Message, err error) {
+func (svc message) Create(in *types.Message) (m *types.Message, err error) {
 	if in == nil {
 		in = &types.Message{}
 	}
@@ -211,7 +211,7 @@ func (svc message) Create(in *types.Message) (message *types.Message, err error)
 		in.UserID = auth.GetIdentityFromContext(svc.ctx).Identity()
 	}
 
-	return message, svc.db.Transaction(func() (err error) {
+	return m, svc.db.Transaction(func() (err error) {
 		// Broadcast queue
 		var bq = types.MessageSet{}
 		var ch *types.Channel
@@ -279,19 +279,21 @@ func (svc message) Create(in *types.Message) (message *types.Message, err error)
 			return ErrNoPermissions.withStack()
 		}
 
-		if message, err = svc.message.Create(in); err != nil {
+		if m, err = svc.message.Create(in); err != nil {
 			return
 		}
 
-		if err = svc.updateMentions(message.ID, svc.extractMentions(message)); err != nil {
+		mentions := svc.extractMentions(m)
+		if err = svc.updateMentions(m.ID, mentions); err != nil {
 			return
 		}
 
-		if err = svc.unread.Inc(message.ChannelID, message.ReplyTo, message.UserID); err != nil {
-			return
-		}
+		svc.sendNotifications(m, mentions)
 
-		return svc.sendEvent(append(bq, message)...)
+		// Count unreads in the background and send updates to all users
+		svc.countUnreads(ch, m, 0)
+
+		return svc.sendEvent(append(bq, m)...)
 	})
 }
 
@@ -413,16 +415,15 @@ func (svc message) Delete(messageID uint64) error {
 			return
 		}
 
-		if err = svc.unread.Dec(deletedMsg.ChannelID, deletedMsg.ReplyTo, deletedMsg.UserID); err != nil {
-			return err
-		} else {
-			// Set deletedAt timestamp so that our clients can react properly...
-			deletedMsg.DeletedAt = timeNowPtr()
-		}
+		// Set deletedAt timestamp so that our clients can react properly...
+		deletedMsg.DeletedAt = timeNowPtr()
 
 		if err = svc.updateMentions(messageID, nil); err != nil {
 			return
 		}
+
+		// Count unreads in the background and send updates to all users
+		svc.countUnreads(ch, deletedMsg, 0)
 
 		return svc.sendEvent(append(bq, deletedMsg)...)
 	})
@@ -435,7 +436,7 @@ func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (ui
 	var (
 		currentUserID uint64 = repository.Identity(svc.ctx)
 		count         uint32
-		tcount        uint32
+		threadCount   uint32
 		err           error
 	)
 
@@ -463,9 +464,13 @@ func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (ui
 			// This is request for channel,
 			// count all thread unreads
 			var uu types.UnreadSet
-			uu, err = svc.unread.Find(&types.UnreadFilter{UserID: currentUserID, ChannelID: channelID})
+			uu, err = svc.unread.CountThreads(currentUserID, channelID)
+			if err != nil {
+				return err
+			}
+
 			if u := uu.FindByChannelId(channelID); u != nil {
-				tcount = u.InThreadCount
+				threadCount = u.ThreadCount
 			}
 		}
 
@@ -497,10 +502,17 @@ func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (ui
 		}
 
 		err = svc.unread.Record(currentUserID, channelID, threadID, lastReadMessageID, count)
-		return errors.Wrap(err, "unable to record unread messages")
+		if err != nil {
+			return errors.Wrap(err, "unable to record unread messages")
+		}
+
+		// Re-count unreads and send updates to this user
+		svc.countUnreads(ch, nil, currentUserID)
+
+		return nil
 	})
 
-	return lastReadMessageID, count, tcount, errors.Wrap(err, "unable to mark as read")
+	return lastReadMessageID, count, threadCount, errors.Wrap(err, "unable to mark as read")
 }
 
 // React on a message with an emoji
@@ -599,9 +611,7 @@ func (svc message) flag(messageID uint64, flag string, remove bool) error {
 			return
 		}
 
-		// @todo: log possible error
-		svc.sendFlagEvent(f)
-
+		_ = svc.sendFlagEvent(f)
 		return
 	})
 
@@ -706,7 +716,7 @@ func (svc message) preloadUnreads(mm types.MessageSet) error {
 		return nil
 	}
 
-	if vv, err := svc.unread.Find(&types.UnreadFilter{UserID: userID, ThreadIDs: mm.IDs()}); err != nil {
+	if vv, err := svc.unread.Count(userID, 0, mm.IDs()...); err != nil {
 		return err
 	} else {
 		return mm.Walk(func(m *types.Message) error {
@@ -729,6 +739,90 @@ func (svc message) sendEvent(mm ...*types.Message) (err error) {
 	}
 
 	return
+}
+
+// Generates and sends notifications from the new message
+//
+//
+func (svc message) sendNotifications(message *types.Message, mentions types.MentionSet) {
+	// @todo implementation
+}
+
+// countUnreads orchestrates unread-related operations (inc/dec, (re)counting & sending events)
+//
+// 1. increases/decreases unread counters for channel or thread
+// 2. collects all counters for channel or thread
+// 3. sends unread events to subscribers
+func (svc message) countUnreads(ch *types.Channel, m *types.Message, userID uint64) {
+	var (
+		err                           error
+		uuBase, uuThreads, uuChannels types.UnreadSet
+		// mm  types.ChannelMemberSet
+		threadIDs []uint64
+	)
+
+	if m != nil {
+		if m.DeletedAt != nil {
+			// When deleting message, all existing counters are decreased!
+			if err = svc.unread.Dec(m.ChannelID, m.ReplyTo, m.UserID); err != nil {
+				svc.logger.With(zap.Error(err)).Info("could not decrement unread counter")
+				return
+			}
+		} else if m.UpdatedAt == nil {
+			// Reset user's counter and set current message ID as last read.
+			err = svc.unread.Record(
+				m.UserID,
+				m.ChannelID,
+				m.ReplyTo,
+				m.ID,
+				0,
+			)
+
+			// When new message is created, update all existing counters
+			if err = svc.unread.Inc(m.ChannelID, m.ReplyTo, m.UserID); err != nil {
+				svc.logger.With(zap.Error(err)).Info("could not increment unread counter")
+				return
+			}
+		}
+
+		if m.ReplyTo > 0 {
+			threadIDs = []uint64{m.ReplyTo}
+		}
+	}
+
+	uuBase, err = svc.unread.Count(userID, ch.ID, threadIDs...)
+	if err != nil {
+		svc.logger.With(zap.Error(err)).Info("could not count unread messages")
+		return
+	}
+
+	if len(threadIDs) > 0 {
+		// If base count was done for a thread,
+		// Do another count for channel
+		uuChannels, err = svc.unread.Count(userID, ch.ID)
+		if err != nil {
+			svc.logger.With(zap.Error(err)).Info("could not count unread messages")
+			return
+		}
+
+		uuBase = uuBase.Merge(uuChannels)
+
+		// Now recount all threads for this channel
+		uuThreads, err = svc.unread.CountThreads(userID, ch.ID)
+		if err != nil {
+			svc.logger.With(zap.Error(err)).Info("could not count unread messages")
+			return
+		}
+
+		uuBase = uuBase.Merge(uuThreads)
+	}
+
+	// This is a reply, make sure we fetch the new stats about unread replies and push them to users
+	err = svc.event.UnreadCounters(uuBase)
+	if err != nil {
+		svc.logger.With(zap.Error(err)).Info("could not send unread count event")
+		return
+	}
 }
 
 // Sends message to event loop
