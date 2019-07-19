@@ -215,6 +215,8 @@ func (r record) buildQuery(module *types.Module, f types.RecordFilter) (query sq
 				return i, errors.Errorf("unknown field %q", i.Value)
 			}
 
+			field := module.Fields.FindByName(i.Value)
+
 			if !alreadyJoined(i.Value) {
 				query = query.LeftJoin(fmt.Sprintf(
 					"compose_record_value AS rv_%s ON (rv_%s.record_id = r.id AND rv_%s.name = ? AND rv_%s.deleted_at IS NULL)",
@@ -222,8 +224,16 @@ func (r record) buildQuery(module *types.Module, f types.RecordFilter) (query sq
 				), i.Value)
 			}
 
-			// @todo switch value for ref when doing Record/Owner lookup
-			i.Value = fmt.Sprintf("rv_%s.value ", i.Value)
+			switch true {
+			case field.IsRef():
+				i.Value = fmt.Sprintf("rv_%s.ref ", i.Value)
+			case field.IsNumeric():
+				i.Value = fmt.Sprintf("CAST(rv_%s.value AS SIGNED)", i.Value)
+			case field.IsDateTime():
+				i.Value = fmt.Sprintf("CAST(rv_%s.value AS DATETIME)", i.Value)
+			default:
+				i.Value = fmt.Sprintf("rv_%s.value ", i.Value)
+			}
 
 			return i, nil
 		}
