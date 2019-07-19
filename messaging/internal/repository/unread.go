@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/titpetric/factory"
+	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/cortezaproject/corteza-server/messaging/types"
 )
@@ -14,7 +14,9 @@ type (
 	UnreadRepository interface {
 		With(ctx context.Context, db *factory.DB) UnreadRepository
 
-		Find(filter *types.UnreadFilter) (types.UnreadSet, error)
+		Count(userID, channelID uint64, threadIDs ...uint64) (types.UnreadSet, error)
+		CountThreads(userID, channelID uint64) (types.UnreadSet, error)
+
 		Preset(channelID, threadID uint64, userIDs ...uint64) (err error)
 		Record(userID, channelID, threadID, lastReadMessageID uint64, count uint32) error
 		Inc(channelID, replyTo, userID uint64) error
@@ -30,17 +32,6 @@ type (
 )
 
 const (
-	// Fetching channel members of all channels a specific user has access to
-	sqlUnreadSelect = `SELECT rel_channel, rel_reply_to, rel_user, count, rel_last_message 
-                         FROM messaging_unread
-                        WHERE count > 0 && rel_last_message > 0 `
-
-	// Fetching channel members of all channels a specific user has access to
-	sqlThreadUnreadSelect = `SELECT rel_channel, sum(count) as count 
-                               FROM messaging_unread
-                              WHERE rel_user = ? AND rel_reply_to > 0
-                           GROUP BY rel_channel`
-
 	sqlUnreadIncCount = `UPDATE messaging_unread 
                                   SET count = count + 1
                                 WHERE rel_channel = ? AND rel_reply_to = ? AND rel_user <> ?`
@@ -48,6 +39,8 @@ const (
 	sqlUnreadDecCount = `UPDATE messaging_unread 
                                   SET count = count - 1
                                 WHERE rel_channel = ? AND rel_reply_to = ? AND count > 0`
+
+	sqlResetCount = `REPLACE INTO messaging_unread (rel_channel, rel_reply_to, rel_user, count) VALUES (?, ?, ?, 0)`
 
 	sqlUnreadPresetChannel = `INSERT IGNORE INTO messaging_unread (rel_channel, rel_reply_to, rel_user) VALUES (?, ?, ?)`
 	sqlUnreadPresetThreads = `INSERT IGNORE INTO messaging_unread (rel_channel, rel_reply_to, rel_user) 
@@ -62,6 +55,10 @@ func Unread(ctx context.Context, db *factory.DB) UnreadRepository {
 	return (&unread{}).With(ctx, db)
 }
 
+func (r unread) table() string {
+	return "messaging_unread"
+}
+
 // With context...
 func (r *unread) With(ctx context.Context, db *factory.DB) UnreadRepository {
 	return &unread{
@@ -69,55 +66,84 @@ func (r *unread) With(ctx context.Context, db *factory.DB) UnreadRepository {
 	}
 }
 
-// Find unread info
-func (r *unread) Find(filter *types.UnreadFilter) (uu types.UnreadSet, err error) {
-	params := make([]interface{}, 0)
-	sql := sqlUnreadSelect
+// Count returns counts unread channel info
+func (r *unread) Count(userID, channelID uint64, threadIDs ...uint64) (types.UnreadSet, error) {
+	var (
+		uu = types.UnreadSet{}
+		q  = squirrel.
+			Select().
+			From(r.table()).
+			Columns(
+				"rel_channel",
+				"rel_last_message",
+				"rel_user",
+				"rel_reply_to",
+				"count")
+	)
 
-	if filter != nil {
-		if filter.UserID > 0 {
-			// scope: only channel we have access to
-			sql += ` AND rel_user = ?`
-			params = append(params, filter.UserID)
-		}
-
-		if filter.ChannelID > 0 {
-			// scope: only channel we have access to
-			sql += ` AND rel_channel = ?`
-			params = append(params, filter.ChannelID)
-		}
-
-		if len(filter.ThreadIDs) > 0 {
-			sql += ` AND rel_reply_to IN (?)`
-			params = append(params, filter.ThreadIDs)
-		} else {
-			sql += ` AND rel_reply_to = 0`
-		}
+	if userID > 0 {
+		q = q.Where("rel_user = ?", userID)
 	}
 
-	if sql, params, err = sqlx.In(sql, params...); err != nil {
+	if channelID > 0 {
+		q = q.Where("rel_channel = ?", channelID)
+	}
+
+	if len(threadIDs) == 0 {
+		q = q.Where("rel_reply_to = 0")
+	} else {
+		q = q.Where(squirrel.Eq{"rel_reply_to": threadIDs})
+	}
+
+	return uu, r.fetchSet(&uu, q)
+}
+
+// CountReplies counts unread thread info
+func (r unread) CountThreads(userID, channelID uint64) (types.UnreadSet, error) {
+	type (
+		u struct {
+			Rel_channel, Rel_user uint64
+			Total, Count          uint32
+		}
+	)
+	var (
+		err error
+
+		uu = types.UnreadSet{}
+
+		temp = []*u{}
+
+		q = squirrel.
+			Select().
+			From(r.table()).
+			Columns(
+				"rel_channel",
+				"rel_user",
+				"sum(count) AS count",
+				"sum(CASE WHEN count > 0 THEN 1 ELSE 0 END) AS total").
+			Where("rel_reply_to > 0 AND count > 0").
+			GroupBy("rel_channel", "rel_user")
+	)
+
+	if userID > 0 {
+		q = q.Where("rel_user = ?", userID)
+	}
+
+	if channelID > 0 {
+		q = q.Where("rel_channel = ?", channelID)
+	}
+
+	err = r.fetchSet(&temp, q)
+	if err != nil {
 		return nil, err
-	} else if err = r.db().Select(&uu, sql, params...); err != nil {
-		return nil, err
-	} else if len(filter.ThreadIDs) == 0 && filter.UserID > 0 {
-		// Check for unread thread messages
+	}
 
-		// We'll abuse Unread/UnreadSet
-		tt := types.UnreadSet{}
-
-		err = r.db().Select(&tt, sqlThreadUnreadSelect, filter.UserID)
-
-		_ = tt.Walk(func(t *types.Unread) error {
-			c := uu.FindByChannelId(t.ChannelID)
-			if c != nil {
-				c.InThreadCount = t.Count
-			} else {
-				// No un-reads in channel but we have them in threads (of that channel)
-				// swap values and append
-				t.InThreadCount, t.Count = t.Count, 0
-				uu = append(uu, t)
-			}
-			return nil
+	for _, t := range temp {
+		uu = append(uu, &types.Unread{
+			ChannelID:   t.Rel_channel,
+			UserID:      t.Rel_user,
+			ThreadCount: t.Count,
+			ThreadTotal: t.Total,
 		})
 	}
 
@@ -171,15 +197,27 @@ func (r *unread) Record(userID, channelID, threadID, lastReadMessageID uint64, c
 }
 
 // Inc increments unread message count on a channel/thread for all but one user
-func (r *unread) Inc(channelID, threadID, userID uint64) error {
-	_, err := r.db().Exec(sqlUnreadIncCount, channelID, threadID, userID)
-	return err
+func (r *unread) Inc(channelID, threadID, userID uint64) (err error) {
+	_, err = r.db().Exec(sqlUnreadIncCount, channelID, threadID, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Dec decrements unread message count on a channel/thread for all but one user
-func (r *unread) Dec(channelID, threadID, userID uint64) error {
-	_, err := r.db().Exec(sqlUnreadDecCount, channelID, threadID)
-	return err
+func (r *unread) Dec(channelID, threadID, userID uint64) (err error) {
+	_, err = r.db().Exec(sqlUnreadDecCount, channelID, threadID)
+	if err != nil {
+		return err
+	}
+	_, err = r.db().Exec(sqlResetCount, channelID, threadID, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *unread) CountOwned(userID uint64) (c int, err error) {

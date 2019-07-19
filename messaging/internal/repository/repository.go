@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/titpetric/factory"
+	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/cortezaproject/corteza-server/internal/auth"
 )
@@ -44,4 +45,22 @@ func (r *repository) db() *factory.DB {
 		return r.dbh
 	}
 	return DB(r.ctx)
+}
+
+// Fetches single row from table
+func (r repository) fetchSet(set interface{}, q squirrel.SelectBuilder) (err error) {
+	var (
+		sql  string
+		args []interface{}
+	)
+
+	if sql, args, err = q.ToSql(); err != nil {
+		return
+	}
+
+	if err = r.db().Select(set, sql, args...); err != nil {
+		return
+	}
+
+	return
 }

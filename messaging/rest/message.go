@@ -68,7 +68,7 @@ func (ctrl *Message) MarkAsRead(ctx context.Context, r *request.MessageMarkAsRea
 	return outgoing.Unread{
 		LastMessageID: messageID,
 		Count:         count,
-		InThreadCount: tcount,
+		ThreadCount:   tcount,
 	}, err
 }
 
