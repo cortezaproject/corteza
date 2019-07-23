@@ -109,7 +109,7 @@ func (r chart) Create(mod *types.Chart) (*types.Chart, error) {
 func (r chart) Update(mod *types.Chart) (*types.Chart, error) {
 	now := time.Now().Truncate(time.Second)
 	mod.UpdatedAt = &now
-	return mod, r.db().Replace(r.table(), mod)
+	return mod, r.db().Update(r.table(), mod, "id")
 }
 
 func (r chart) DeleteByID(namespaceID, chartID uint64) error {

@@ -110,7 +110,7 @@ func (r trigger) Create(mod *types.Trigger) (*types.Trigger, error) {
 func (r trigger) Update(mod *types.Trigger) (*types.Trigger, error) {
 	now := time.Now().Truncate(time.Second)
 	mod.UpdatedAt = &now
-	return mod, r.db().Replace(r.table(), mod)
+	return mod, r.db().Update(r.table(), mod, "id")
 }
 
 func (r trigger) DeleteByID(namespaceID, triggerID uint64) error {

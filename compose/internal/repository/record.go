@@ -260,7 +260,7 @@ func (r record) Create(record *types.Record) (*types.Record, error) {
 }
 
 func (r record) Update(record *types.Record) (*types.Record, error) {
-	if err := r.db().Replace("compose_record", record); err != nil {
+	if err := r.db().Update("compose_record", record, "id"); err != nil {
 		return nil, errors.Wrap(err, "could not update record")
 	}
 

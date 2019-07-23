@@ -173,7 +173,7 @@ func (r page) Update(mod *types.Page) (*types.Page, error) {
 	now := time.Now().Truncate(time.Second)
 	mod.UpdatedAt = &now
 
-	return mod, r.db().Replace(r.table(), mod)
+	return mod, r.db().Update(r.table(), mod, "id")
 }
 
 func (r page) DeleteByID(namespaceID, pageID uint64) error {

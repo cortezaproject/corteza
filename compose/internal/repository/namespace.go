@@ -112,7 +112,7 @@ func (r *namespace) Update(mod *types.Namespace) (*types.Namespace, error) {
 	now := time.Now()
 	mod.UpdatedAt = &now
 
-	return mod, r.db().Replace(r.table(), mod)
+	return mod, r.db().Update(r.table(), mod, "id")
 }
 
 func (r *namespace) DeleteByID(namespaceID uint64) error {
