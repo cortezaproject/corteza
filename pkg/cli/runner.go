@@ -3,7 +3,6 @@ package cli
 import (
 	"context"
 
-	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -13,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/sentry"
 )
 
 type (
@@ -220,11 +220,12 @@ func (c *Config) MakeCLI(ctx context.Context) (cmd *cobra.Command) {
 		Use:              c.RootCommandName,
 		TraverseChildren: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
-			if err = InitSentry(c.SentryOpt); err != nil {
+			if err = sentry.Init(c.SentryOpt); err != nil {
 				c.Log.Error("could not initialize Sentry", zap.Error(err))
 			}
 
 			defer sentry.Recover()
+
 			InitGeneralServices(c.SmtpOpt, c.JwtOpt, c.HttpClientOpt)
 
 			err = c.RootCommandDBSetup.Run(ctx, cmd, c)

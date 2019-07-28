@@ -5,13 +5,13 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/getsentry/sentry-go"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"github.com/titpetric/factory/logger"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
+	"github.com/cortezaproject/corteza-server/pkg/sentry"
 )
 
 var (

@@ -4,13 +4,13 @@ import (
 	"context"
 	"net/http"
 
-	sentry "github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/messaging/internal/repository"
 	"github.com/cortezaproject/corteza-server/messaging/internal/service"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/sentry"
 )
 
 func middlewareAllowedAccess(next http.Handler) http.Handler {

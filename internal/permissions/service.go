@@ -5,11 +5,11 @@ import (
 	"sync"
 	"time"
 
-	sentry "github.com/getsentry/sentry-go"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/pkg/sentry"
 )
 
 type (
