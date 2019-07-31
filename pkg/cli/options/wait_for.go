@@ -20,7 +20,7 @@ func WaitFor(pfix string) (o *WaitForOpt) {
 	o = &WaitForOpt{
 		Delay:                 0,
 		StatusPage:            true,
-		Services:              "satosa.iam.crust.tech:443 https://satosa.iam.crust.tech/.well-known/openid-configuration",
+		Services:              "",
 		ServicesTimeout:       time.Minute,
 		ServicesProbeTimeout:  time.Second * 30,
 		ServicesProbeInterval: time.Second * 5,
