@@ -22,7 +22,7 @@ type (
 		logger *zap.Logger
 
 		ac recordAccessController
-		sr *scriptRunner
+		sr RecordScriptRunner
 
 		recordRepo repository.RecordRepository
 		moduleRepo repository.ModuleRepository
@@ -39,6 +39,10 @@ type (
 		CanDeleteRecord(context.Context, *types.Module) bool
 		CanReadRecordValue(context.Context, *types.ModuleField) bool
 		CanUpdateRecordValue(context.Context, *types.ModuleField) bool
+	}
+
+	RecordScriptRunner interface {
+		Record(context.Context, Runnable, *types.Namespace, *types.Module, *types.Record) (*types.Record, error)
 	}
 
 	RecordService interface {

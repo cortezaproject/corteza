@@ -19,7 +19,8 @@ type (
 	}
 
 	Config struct {
-		Storage options.StorageOpt
+		Storage      options.StorageOpt
+		ScriptRunner options.ScriptRunnerOpt
 	}
 )
 
@@ -39,7 +40,7 @@ var (
 	DefaultAttachment   AttachmentService
 	DefaultNamespace    NamespaceService
 
-	DefaultScriptRunner *scriptRunner // @todo interface
+	DefaultScriptRunner ScriptRunnerService
 )
 
 func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
@@ -58,8 +59,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 
 	DefaultAccessControl = AccessControl(DefaultPermissions)
 
-	DefaultScriptRunner = ScriptRunner("localhost:50051")
-	err = DefaultScriptRunner.Connect()
+	DefaultScriptRunner, err = ScriptRunner(c.ScriptRunner)
 	if err != nil {
 		return
 	}

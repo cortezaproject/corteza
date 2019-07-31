@@ -13,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/proto"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 )
 
 // Script runner provides an interface to corteza-corredor (Spanish for runner) service
@@ -25,7 +26,7 @@ import (
 
 type (
 	scriptRunner struct {
-		addr       string
+		c          options.ScriptRunnerOpt
 		logger     *zap.Logger
 		conn       *grpc.ClientConn
 		client     proto.ScriptRunnerClient
@@ -38,27 +39,40 @@ type (
 		IsCritical() bool
 		GetRunnerID() uint64
 	}
+
+	ScriptRunnerService interface {
+		Close() error
+		Namespace(context.Context, Runnable, *types.Namespace) (*types.Namespace, error)
+		Module(context.Context, Runnable, *types.Namespace, *types.Module) (*types.Module, error)
+		Record(context.Context, Runnable, *types.Namespace, *types.Module, *types.Record) (*types.Record, error)
+	}
 )
 
-func ScriptRunner(addr string) *scriptRunner {
-	return &scriptRunner{
-		addr:       addr,
+// @todo move to opt so all services can use it
+func ScriptRunner(c options.ScriptRunnerOpt) (*scriptRunner, error) {
+	var svc = &scriptRunner{
+		c:          c,
 		logger:     DefaultLogger.Named("script-runner"),
 		jwtEncoder: auth.DefaultJwtHandler,
 	}
+
+	return svc, svc.connect()
 }
 
-func (svc *scriptRunner) Connect() (err error) {
-	if svc.conn != nil {
-		return nil
-	}
-
+func (svc *scriptRunner) connect() (err error) {
+	// @todo wire grpc logger with zap logger
 	grpclog.SetLoggerV2(grpclog.NewLoggerV2WithVerbosity(os.Stdout, os.Stdout, os.Stdout, 0))
 
-	svc.conn, err = grpc.Dial(
-		svc.addr,
+	var dopts = []grpc.DialOption{
+		// @todo insecure?
 		grpc.WithInsecure(),
-		grpc.WithBackoffMaxDelay(time.Second))
+	}
+
+	if svc.c.MaxBackoffDelay > 0 {
+		dopts = append(dopts, grpc.WithBackoffMaxDelay(svc.c.MaxBackoffDelay))
+	}
+
+	svc.conn, err = grpc.Dial(svc.c.Addr, dopts...)
 
 	if err != nil {
 		return
