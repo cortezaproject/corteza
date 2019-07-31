@@ -11,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/internal/service"
 	"github.com/cortezaproject/corteza-server/compose/rest"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 )
 
 const (
@@ -36,8 +35,9 @@ func Configure() *cli.Config {
 			}
 			servicesInitialized = true
 
-			storagePath := options.EnvString("", "COMPOSE_STORAGE_PATH", "var/store")
-			cli.HandleError(service.Init(ctx, c.Log, storagePath))
+			cli.HandleError(service.Init(ctx, c.Log, service.Config{
+				Storage: *c.StorageOpt,
+			}))
 		},
 
 		ApiServerPreRun: cli.Runners{
