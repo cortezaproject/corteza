@@ -84,6 +84,10 @@ func (r trigger) Find(filter types.TriggerFilter) (set types.TriggerSet, f types
 		query = query.Where("rel_namespace = ?", filter.NamespaceID)
 	}
 
+	if filter.ModuleID > 0 {
+		query = query.Where("rel_module = ?", filter.ModuleID)
+	}
+
 	if f.Query != "" {
 		q := "%" + f.Query + "%"
 		query = query.Where("name like ?", q)

@@ -22,13 +22,17 @@ type (
 		logger *zap.Logger
 
 		ac recordAccessController
+		sr *scriptRunner
 
 		recordRepo repository.RecordRepository
 		moduleRepo repository.ModuleRepository
+		nsRepo     repository.NamespaceRepository
+		tRepo      repository.TriggerRepository
 	}
 
 	recordAccessController interface {
 		CanCreateRecord(context.Context, *types.Module) bool
+		CanReadNamespace(context.Context, *types.Namespace) bool
 		CanReadModule(context.Context, *types.Module) bool
 		CanReadRecord(context.Context, *types.Module) bool
 		CanUpdateRecord(context.Context, *types.Module) bool
@@ -63,20 +67,25 @@ func Record() RecordService {
 	return (&record{
 		logger: DefaultLogger.Named("record"),
 		ac:     DefaultAccessControl,
+		sr:     DefaultScriptRunner,
 	}).With(context.Background())
 }
 
 func (svc record) With(ctx context.Context) RecordService {
 	db := repository.DB(ctx)
+
 	return &record{
 		db:     db,
 		ctx:    ctx,
 		logger: svc.logger,
 
 		ac: svc.ac,
+		sr: svc.sr,
 
 		recordRepo: repository.Record(ctx, db),
 		moduleRepo: repository.Module(ctx, db),
+		nsRepo:     repository.Namespace(ctx, db),
+		tRepo:      repository.Trigger(ctx, db),
 	}
 }
 
@@ -120,6 +129,22 @@ func (svc record) loadModule(namespaceID, moduleID uint64) (m *types.Module, err
 	}
 
 	if !svc.ac.CanReadModule(svc.ctx, m) {
+		return nil, ErrNoReadPermissions.withStack()
+	}
+
+	return
+}
+
+func (svc record) loadNamespace(namespaceID uint64) (ns *types.Namespace, err error) {
+	if namespaceID == 0 {
+		return nil, ErrNamespaceRequired.withStack()
+	}
+
+	if ns, err = svc.nsRepo.FindByID(namespaceID); err != nil {
+		return
+	}
+
+	if !svc.ac.CanReadNamespace(svc.ctx, ns) {
 		return nil, ErrNoReadPermissions.withStack()
 	}
 
@@ -176,12 +201,8 @@ func (svc record) Export(filter types.RecordFilter, enc Encoder) error {
 }
 
 func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
-	if mod.NamespaceID == 0 {
-		return nil, ErrNamespaceRequired
-	}
-
-	var m *types.Module
-	if m, err = svc.loadModule(mod.NamespaceID, mod.ModuleID); err != nil {
+	ns, m, r, tt, err := svc.loadCombo(mod.NamespaceID, mod.ModuleID, 0)
+	if err != nil {
 		return
 	}
 
@@ -189,24 +210,37 @@ func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
-	if mod.Values, err = svc.sanitizeValues(m, mod.Values); err != nil {
+	creatorID := auth.GetIdentityFromContext(svc.ctx).Identity()
+	r = &types.Record{
+		ModuleID:    mod.ModuleID,
+		NamespaceID: mod.NamespaceID,
+
+		CreatedBy: creatorID,
+		OwnedBy:   creatorID,
+
+		CreatedAt: time.Now(),
+	}
+
+	if err = svc.copyChanges(m, mod, r); err != nil {
 		return
 	}
 
-	mod.OwnedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
-	mod.CreatedBy = mod.OwnedBy
-	mod.CreatedAt = time.Now()
+	mod = nil // make sure we do not use it anymore
+
+	if err = tt.WalkByAction("beforeCreate", svc.runTrigger(svc.ctx, ns, m, r)); err != nil {
+		return
+	}
+
+	defer func() {
+		_ = tt.WalkByAction("afterCreate", svc.runTrigger(svc.ctx, ns, m, r))
+	}()
 
 	return r, svc.db.Transaction(func() (err error) {
-		if r, err = svc.recordRepo.Create(mod); err != nil {
+		if r, err = svc.recordRepo.Create(r); err != nil {
 			return
 		}
 
-		if err = svc.recordRepo.UpdateValues(r.ID, mod.Values); err != nil {
-			return
-		}
-
-		if err = svc.preloadValues(m, r); err != nil {
+		if err = svc.recordRepo.UpdateValues(r.ID, r.Values); err != nil {
 			return
 		}
 
@@ -219,16 +253,8 @@ func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 		return nil, ErrInvalidID.withStack()
 	}
 
-	if mod.NamespaceID == 0 {
-		return nil, ErrNamespaceRequired
-	}
-
-	var m *types.Module
-	if m, err = svc.loadModule(mod.NamespaceID, mod.ModuleID); err != nil {
-		return
-	}
-
-	if r, err = svc.recordRepo.FindByID(mod.NamespaceID, mod.ID); err != nil {
+	ns, m, r, tt, err := svc.loadCombo(mod.NamespaceID, mod.ModuleID, mod.ID)
+	if err != nil {
 		return
 	}
 
@@ -236,24 +262,35 @@ func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
+	// Test if stale (update has an older copy)
 	if isStale(mod.UpdatedAt, r.UpdatedAt, r.CreatedAt) {
 		return nil, ErrStaleData.withStack()
-	}
-
-	if mod.Values, err = svc.sanitizeValues(m, mod.Values); err != nil {
-		return
 	}
 
 	now := time.Now()
 	r.UpdatedAt = &now
 	r.UpdatedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
 
+	if err = svc.copyChanges(m, mod, r); err != nil {
+		return
+	}
+
+	mod = nil // make sure we do not use it anymore
+
+	if err = tt.WalkByAction("beforeUpdate", svc.runTrigger(svc.ctx, ns, m, r)); err != nil {
+		return
+	}
+
+	defer func() {
+		_ = tt.WalkByAction("afterUpdate", svc.runTrigger(svc.ctx, ns, m, r))
+	}()
+
 	return r, svc.db.Transaction(func() (err error) {
 		if r, err = svc.recordRepo.Update(r); err != nil {
 			return
 		}
 
-		if err = svc.recordRepo.UpdateValues(r.ID, mod.Values); err != nil {
+		if err = svc.recordRepo.UpdateValues(r.ID, r.Values); err != nil {
 			return
 		}
 
@@ -266,26 +303,29 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 		return ErrInvalidID.withStack()
 	}
 
-	if namespaceID == 0 {
-		return ErrNamespaceRequired
+	ns, m, r, tt, err := svc.loadCombo(namespaceID, 0, recordID)
+	if err != nil {
+		return
 	}
 
+	if err = tt.WalkByAction("beforeDelete", svc.runTrigger(svc.ctx, ns, m, r)); err != nil {
+		return
+	}
+
+	defer func() {
+		_ = tt.WalkByAction("afterDelete", svc.runTrigger(svc.ctx, ns, m, r))
+	}()
+
 	err = svc.db.Transaction(func() (err error) {
-		var record *types.Record
-
-		if record, err = svc.recordRepo.FindByID(namespaceID, recordID); err != nil {
-			return errors.Wrap(err, "nonexistent record")
-		}
-
 		now := time.Now()
-		record.DeletedAt = &now
-		record.DeletedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
+		r.DeletedAt = &now
+		r.DeletedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-		if err = svc.recordRepo.Delete(record); err != nil {
+		if err = svc.recordRepo.Delete(r); err != nil {
 			return
 		}
 
-		if err = svc.recordRepo.DeleteValues(record); err != nil {
+		if err = svc.recordRepo.DeleteValues(r); err != nil {
 			return
 		}
 
@@ -293,6 +333,73 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 	})
 
 	return errors.Wrap(err, "unable to delete record")
+}
+
+func (svc record) loadCombo(namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, tt types.TriggerSet, err error) {
+	if namespaceID == 0 {
+		err = ErrNamespaceRequired
+		return
+	}
+	if ns, err = svc.loadNamespace(namespaceID); err != nil {
+		return
+	}
+
+	if recordID > 0 {
+		if r, err = svc.recordRepo.FindByID(namespaceID, recordID); err != nil {
+			return
+		}
+
+		moduleID = r.ModuleID
+	}
+
+	if m, err = svc.loadModule(ns.ID, moduleID); err != nil {
+		return
+	}
+
+	tt, _, err = svc.tRepo.Find(types.TriggerFilter{
+		NamespaceID: ns.ID,
+		ModuleID:    m.ID,
+	})
+
+	return
+}
+
+func (svc record) runTrigger(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) func(t *types.Trigger) error {
+	svc.logger.Debug("initializing trigger runner")
+	return func(t *types.Trigger) error {
+		svc.logger.Debug("running trigger", zap.Uint64("triggerID", t.ID))
+		if svc.sr == nil {
+			// No script runner set
+			svc.logger.Debug("script runner not set")
+			return nil
+		}
+
+		// pr == processed record
+		pr, err := svc.sr.Record(svc.ctx, t, ns, m, r)
+		if err != nil {
+			svc.logger.Debug("failed to run record script", zap.Error(err))
+			return err
+		}
+
+		if pr == nil {
+			// Did not get any processed record,
+			// consider canceled
+			return errors.New("aborted by automation")
+		}
+
+		return svc.copyChanges(m, pr, r)
+	}
+}
+
+// Copies changes from mod to r(ecord)
+func (svc record) copyChanges(m *types.Module, mod, r *types.Record) (err error) {
+	// Automation scripts are allowed to modify record owner & values.
+	if mod.OwnedBy > 0 {
+		r.OwnedBy = mod.OwnedBy
+	}
+
+	r.Values, err = svc.sanitizeValues(m, mod.Values)
+	return err
 }
 
 // Validates and filters record values

@@ -5,6 +5,10 @@ if [ -f ./build ]; then
 	find ./build -name gen-* -delete
 fi
 
+if [ -f ./.env ]; then
+  source .env
+fi;
+
 _PWD=$PWD
 
 function yellow {
@@ -23,10 +27,10 @@ function gofmt {
 function types {
 	yellow "> types"
 	if [ ! -f "build/gen-type-set" ]; then
-		CGO_ENABLED=0 go build -o ./build/gen-type-set codegen/v2/type-set.go 
+		CGO_ENABLED=0 go build -o ./build/gen-type-set codegen/v2/type-set.go
 	fi
 	if [ ! -f "build/gen-type-set-test" ]; then
-		CGO_ENABLED=0 go build -o ./build/gen-type-set-test codegen/v2/type-set-test.go 
+		CGO_ENABLED=0 go build -o ./build/gen-type-set-test codegen/v2/type-set-test.go
 	fi
 
 	./build/gen-type-set --types Namespace   --output compose/types/namespace.gen.go
@@ -131,7 +135,7 @@ files
 function specs {
 	yellow "> specs"
 	if [ ! -f "build/gen-spec" ]; then
-		CGO_ENABLED=0 go build -o ./build/gen-spec codegen/v2/spec.go 
+		CGO_ENABLED=0 go build -o ./build/gen-spec codegen/v2/spec.go
 	fi
 	_PWD=$PWD
 	SPECS=$(find $PWD -name 'spec.json' | xargs -n1 dirname)
@@ -153,5 +157,22 @@ function specs {
 }
 
 specs
+
+function proto {
+	yellow "> proto"
+	CORTEZA_PROTOBUF_PATH=${CORTEZA_PROTOBUF_PATH:-"vendor/github.com/cortezaproject/corteza-protobuf"}
+
+	yellow "  ${CORTEZA_PROTOBUF_PATH} >> compose/proto"
+	PATH=$PATH:$GOPATH/bin protoc \
+		--proto_path ${CORTEZA_PROTOBUF_PATH}/compose \
+		--go_out=plugins=grpc:compose/proto \
+		namespace.proto \
+		module.proto \
+		record.proto \
+		script_runner.proto
+  green "OK"
+}
+
+proto
 
 gofmt
