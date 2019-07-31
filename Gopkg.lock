@@ -45,6 +45,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:576295579f90f43321d0ffc39a5f28cb1688d7114b12229ce0f98270a57a6bae"
+  name = "github.com/cortezaproject/corteza-protobuf"
+  packages = ["."]
+  pruneopts = "T"
+  revision = "40822fb4c9e28d028213089aff21b8b681d4527c"
+
+[[projects]]
   branch = "v2"
   digest = "1:c3f1a545cbca90c0991418e820cece89549dec4134394c0fde8db345ac1707f2"
   name = "github.com/crusttech/go-oidc"
@@ -139,9 +147,15 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:318f1c959a8a740366fce4b1e1eb2fd914036b4af58fbd0a003349b305f118ad"
+  digest = "1:239c4c7fd2159585454003d9be7207167970194216193a8a210b8d29576f19c9"
   name = "github.com/golang/protobuf"
-  packages = ["proto"]
+  packages = [
+    "proto",
+    "ptypes",
+    "ptypes/any",
+    "ptypes/duration",
+    "ptypes/timestamp",
+  ]
   pruneopts = "UT"
   revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
   version = "v1.3.1"
@@ -481,11 +495,17 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f8b491a7c25030a895a0e579742d07136e6958e77ef2d46e769db8eec4e58fcd"
+  digest = "1:f04f91f699638081f3d9659950764321bc0602076fc5fd8177c18b185ad3fdd8"
   name = "golang.org/x/net"
   packages = [
     "context",
     "context/ctxhttp",
+    "http/httpguts",
+    "http2",
+    "http2/hpack",
+    "idna",
+    "internal/timeseries",
+    "trace",
   ]
   pruneopts = "UT"
   revision = "4829fb13d2c62012c17688fa7f629f371014946d"
@@ -513,15 +533,25 @@
   revision = "a129542de9ae0895210abff9c95d67a1f33cb93d"
 
 [[projects]]
-  digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
+  digest = "1:8d8faad6b12a3a4c819a3f9618cb6ee1fa1cfc33253abeeea8b55336721e3405"
   name = "golang.org/x/text"
   packages = [
+    "collate",
+    "collate/build",
+    "internal/colltab",
     "internal/gen",
+    "internal/language",
+    "internal/language/compact",
+    "internal/tag",
     "internal/triegen",
     "internal/ucd",
+    "language",
+    "secure/bidirule",
     "transform",
+    "unicode/bidi",
     "unicode/cldr",
     "unicode/norm",
+    "unicode/rangetable",
   ]
   pruneopts = "UT"
   revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
@@ -543,6 +573,56 @@
   pruneopts = "UT"
   revision = "54a98f90d1c46b7731eb8fb305d2a321c30ef610"
   version = "v1.5.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:583a0c80f5e3a9343d33aea4aead1e1afcc0043db66fdf961ddd1fe8cd3a4faf"
+  name = "google.golang.org/genproto"
+  packages = ["googleapis/rpc/status"]
+  pruneopts = "UT"
+  revision = "c506a9f9061087022822e8da603a52fc387115a8"
+
+[[projects]]
+  digest = "1:581c9b0fe9354faf730ff231cf3682089e0b703073cf10e3976219609d27a9ea"
+  name = "google.golang.org/grpc"
+  packages = [
+    ".",
+    "balancer",
+    "balancer/base",
+    "balancer/roundrobin",
+    "binarylog/grpc_binarylog_v1",
+    "codes",
+    "connectivity",
+    "credentials",
+    "credentials/internal",
+    "encoding",
+    "encoding/proto",
+    "grpclog",
+    "internal",
+    "internal/backoff",
+    "internal/balancerload",
+    "internal/binarylog",
+    "internal/channelz",
+    "internal/envconfig",
+    "internal/grpcrand",
+    "internal/grpcsync",
+    "internal/syscall",
+    "internal/transport",
+    "keepalive",
+    "metadata",
+    "naming",
+    "peer",
+    "resolver",
+    "resolver/dns",
+    "resolver/passthrough",
+    "serviceconfig",
+    "stats",
+    "status",
+    "tap",
+  ]
+  pruneopts = "UT"
+  revision = "045159ad57f3781d409358e3ade910a018c16b30"
+  version = "v1.22.1"
 
 [[projects]]
   digest = "1:14a90eb1290bd0aa42848afa9ee2c9ce247abdb63c2cf614331670119760962f"
@@ -589,6 +669,7 @@
     "github.com/99designs/basicauth-go",
     "github.com/SentimensRG/ctx",
     "github.com/SentimensRG/ctx/sigctx",
+    "github.com/cortezaproject/corteza-protobuf",
     "github.com/crusttech/go-oidc",
     "github.com/davecgh/go-spew/spew",
     "github.com/dgrijalva/jwt-go",
@@ -601,6 +682,8 @@
     "github.com/go-chi/cors",
     "github.com/go-chi/jwtauth",
     "github.com/golang/mock/gomock",
+    "github.com/golang/protobuf/proto",
+    "github.com/golang/protobuf/ptypes/timestamp",
     "github.com/gomodule/redigo/redis",
     "github.com/gorilla/sessions",
     "github.com/gorilla/websocket",
@@ -628,6 +711,10 @@
     "go.uber.org/zap/zapcore",
     "golang.org/x/crypto/bcrypt",
     "golang.org/x/crypto/ssh/terminal",
+    "google.golang.org/grpc",
+    "google.golang.org/grpc/codes",
+    "google.golang.org/grpc/grpclog",
+    "google.golang.org/grpc/status",
     "gopkg.in/Masterminds/squirrel.v1",
     "gopkg.in/mail.v2",
   ]

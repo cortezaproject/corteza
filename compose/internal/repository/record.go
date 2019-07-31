@@ -269,7 +269,7 @@ func (r record) buildQuery(module *types.Module, f types.RecordFilter) (query sq
 func (r record) Create(record *types.Record) (*types.Record, error) {
 	record.ID = factory.Sonyflake.NextID()
 
-	if err := r.db().Replace("compose_record", record); err != nil {
+	if err := r.db().Insert("compose_record", record); err != nil {
 		return nil, errors.Wrap(err, "could not update record")
 	}
 

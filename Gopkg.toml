@@ -1,3 +1,7 @@
+required = [
+	"github.com/cortezaproject/corteza-protobuf"
+]
+
 [[constraint]]
   name = "github.com/go-chi/chi"
   version = "3.3.2"
@@ -21,3 +25,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+  [[prune.project]]
+    name = "github.com/cortezaproject/corteza-protobuf"
+    unused-packages = false

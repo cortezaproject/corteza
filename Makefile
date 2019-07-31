@@ -16,6 +16,7 @@ GOTEST      = ${GOPATH}/bin/gotest
 GOCRITIC    = ${GOPATH}/bin/gocritic
 MOCKGEN     = ${GOPATH}/bin/mockgen
 STATICCHECK = ${GOPATH}/bin/staticcheck
+PROTOGEN    = ${GOPATH}/bin/protoc-gen-go
 
 help:
 	@echo
@@ -56,7 +57,7 @@ dep.update: $(DEP)
 dep: $(DEP)
 	$(DEP) ensure -v
 
-codegen:
+codegen: $(PROTOGEN)
 	./codegen.sh
 
 mailhog.up:
@@ -163,6 +164,9 @@ $(MOCKGEN):
 
 $(STATICCHECK):
 	$(GOGET) honnef.co/go/tools/cmd/staticcheck
+
+$(PROTOGEN):
+	$(GOGET) github.com/golang/protobuf/protoc-gen-go
 
 clean:
 	rm -f $(REALIZE) $(GOCRITIC) $(GOTEST)

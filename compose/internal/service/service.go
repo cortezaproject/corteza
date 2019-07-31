@@ -38,6 +38,8 @@ var (
 	DefaultNotification NotificationService
 	DefaultAttachment   AttachmentService
 	DefaultNamespace    NamespaceService
+
+	DefaultScriptRunner *scriptRunner // @todo interface
 )
 
 func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
@@ -55,6 +57,12 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 		permissions.Repository(repository.DB(ctx), "compose_permission_rules"))
 
 	DefaultAccessControl = AccessControl(DefaultPermissions)
+
+	DefaultScriptRunner = ScriptRunner("localhost:50051")
+	err = DefaultScriptRunner.Connect()
+	if err != nil {
+		return
+	}
 
 	DefaultRecord = Record()
 	DefaultModule = Module()
