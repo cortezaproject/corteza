@@ -3,10 +3,10 @@ package service
 import (
 	"context"
 	"errors"
-	"os"
 	"time"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
 
@@ -60,8 +60,12 @@ func ScriptRunner(c options.ScriptRunnerOpt) (*scriptRunner, error) {
 }
 
 func (svc *scriptRunner) connect() (err error) {
-	// @todo wire grpc logger with zap logger
-	grpclog.SetLoggerV2(grpclog.NewLoggerV2WithVerbosity(os.Stdout, os.Stdout, os.Stdout, 0))
+	if svc.c.Log {
+		// Send logs to zap
+		//
+		// waiting for https://github.com/uber-go/zap/pull/538
+		grpclog.SetLogger(zapgrpc.NewLogger(svc.logger.Named("grpc")))
+	}
 
 	var dopts = []grpc.DialOption{
 		// @todo insecure?
