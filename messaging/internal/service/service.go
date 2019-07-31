@@ -10,6 +10,7 @@ import (
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/internal/store"
 	"github.com/cortezaproject/corteza-server/messaging/internal/repository"
+	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 )
 
 type (
@@ -20,6 +21,10 @@ type (
 	permissionServicer interface {
 		accessControlPermissionServicer
 		Watch(ctx context.Context)
+	}
+
+	Config struct {
+		Storage options.StorageOpt
 	}
 )
 
@@ -38,11 +43,11 @@ var (
 	DefaultWebhook    WebhookService
 )
 
-func Init(ctx context.Context, log *zap.Logger, storePath string) (err error) {
+func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultLogger = log.Named("service")
 
-	fs, err := store.New(storePath)
-	log.Info("initializing store", zap.String("path", storePath), zap.Error(err))
+	fs, err := store.New(c.Storage.Path)
+	log.Info("initializing store", zap.String("path", c.Storage.Path), zap.Error(err))
 	if err != nil {
 		return err
 	}

@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 
 	messagingMigrate "github.com/cortezaproject/corteza-server/messaging/db"
+	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	dbLogger "github.com/titpetric/factory/logger"
 )
@@ -33,7 +34,11 @@ func TestMain(m *testing.M) {
 		return
 	}
 
-	Init(context.Background(), zap.NewNop(), "/tmp/corteza-messaging-store")
+	Init(context.Background(), zap.NewNop(), Config{
+		Storage: options.StorageOpt{
+			Path: "/tmp/corteza-messaging-store",
+		},
+	})
 
 	os.Exit(m.Run())
 }

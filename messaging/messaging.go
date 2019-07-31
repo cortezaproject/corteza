@@ -43,8 +43,9 @@ func Configure() *cli.Config {
 			}
 			servicesInitialized = true
 
-			storagePath := options.EnvString("", "MESSAGING_STORAGE_PATH", "var/store")
-			cli.HandleError(service.Init(ctx, c.Log, storagePath))
+			cli.HandleError(service.Init(ctx, c.Log, service.Config{
+				Storage: *c.StorageOpt,
+			}))
 		},
 
 		ApiServerPreRun: cli.Runners{

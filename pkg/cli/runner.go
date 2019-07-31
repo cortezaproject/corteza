@@ -49,6 +49,7 @@ type (
 		DbOpt         *options.DBOpt
 		ProvisionOpt  *options.ProvisionOpt
 		SentryOpt     *options.SentryOpt
+		StorageOpt    *options.StorageOpt
 
 		// DB Connection name, defaults to ServiceName
 		DatabaseName string
@@ -186,6 +187,7 @@ func (c *Config) Init() {
 	c.DbOpt = options.DB(c.ServiceName)
 	c.ProvisionOpt = options.Provision(c.ServiceName)
 	c.SentryOpt = options.Sentry(c.EnvPrefix)
+	c.StorageOpt = options.Storage(c.EnvPrefix)
 
 	if c.RootCommandDBSetup == nil {
 		c.RootCommandDBSetup = Runners{func(ctx context.Context, cmd *cobra.Command, c *Config) (err error) {
