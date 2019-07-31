@@ -452,7 +452,7 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:676160e6a4722b08e0e26b11521d575c2cb2b6f0c679e1ee6178c5d8dee51e5e"
+  digest = "1:ecd62b854fc2a3c6583720380e8518730a4f45ffe878a0f9628f0e2454faacf6"
   name = "go.uber.org/zap"
   packages = [
     ".",
@@ -461,6 +461,7 @@
     "internal/color",
     "internal/exit",
     "zapcore",
+    "zapgrpc",
   ]
   pruneopts = "UT"
   revision = "27376062155ad36be76b0f12cf1572a221d3a48c"
@@ -709,6 +710,7 @@
     "github.com/titpetric/factory/resputil",
     "go.uber.org/zap",
     "go.uber.org/zap/zapcore",
+    "go.uber.org/zap/zapgrpc",
     "golang.org/x/crypto/bcrypt",
     "golang.org/x/crypto/ssh/terminal",
     "google.golang.org/grpc",
