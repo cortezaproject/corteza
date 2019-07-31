@@ -102,7 +102,6 @@ function types {
 	green "OK"
 }
 
-types
 
 function database {
 	yellow "> database"
@@ -116,7 +115,6 @@ function database {
 	green "OK"
 }
 
-database
 
 function files {
 	yellow "> files"
@@ -130,7 +128,6 @@ function files {
 	green "OK"
 }
 
-files
 
 function specs {
 	yellow "> specs"
@@ -156,7 +153,6 @@ function specs {
 	done
 }
 
-specs
 
 function proto {
 	yellow "> proto"
@@ -173,6 +169,29 @@ function proto {
   green "OK"
 }
 
-proto
+case ${1:-"all"} in
+  types)
+    types
+    ;;
+  database)
+    database
+    ;;
+  files)
+    files
+    ;;
+  specs)
+    specs
+    ;;
+  proto)
+    proto
+    ;;
+  all)
+    types
+    database
+    files
+    specs
+    proto
+esac
 
+# Always finish with fmt
 gofmt
