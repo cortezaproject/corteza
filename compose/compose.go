@@ -36,7 +36,8 @@ func Configure() *cli.Config {
 			servicesInitialized = true
 
 			cli.HandleError(service.Init(ctx, c.Log, service.Config{
-				Storage: *c.StorageOpt,
+				Storage:      *c.StorageOpt,
+				ScriptRunner: *c.ScriptRunner,
 			}))
 		},
 

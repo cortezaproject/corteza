@@ -1,14 +1,20 @@
 package options
 
+import (
+	"time"
+)
+
 type (
-	StorageOpt struct {
-		Path string `env:"STORAGE_PATH"`
+	ScriptRunnerOpt struct {
+		Addr            string        `env:"SCRIPT_RUNNER_ADDR"`
+		MaxBackoffDelay time.Duration `env:"SCRIPT_RUNNER_MAX_BACKOFF_DELAY"`
 	}
 )
 
-func Storage(pfix string) (o *StorageOpt) {
-	o = &StorageOpt{
-		Path: "var/store",
+func ScriptRunner(pfix string) (o *ScriptRunnerOpt) {
+	o = &ScriptRunnerOpt{
+		Addr:            "corredor:80",
+		MaxBackoffDelay: time.Minute,
 	}
 
 	fill(o, pfix)
