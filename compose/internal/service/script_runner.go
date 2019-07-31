@@ -49,11 +49,16 @@ type (
 )
 
 // @todo move to opt so all services can use it
-func ScriptRunner(c options.ScriptRunnerOpt) (*scriptRunner, error) {
-	var svc = &scriptRunner{
+func ScriptRunner(c options.ScriptRunnerOpt) (svc *scriptRunner, err error) {
+	svc = &scriptRunner{
 		c:          c,
 		logger:     DefaultLogger.Named("script-runner"),
 		jwtEncoder: auth.DefaultJwtHandler,
+	}
+
+	if !c.Enabled {
+		// Do not connect when script runner is not enabled
+		return
 	}
 
 	return svc, svc.connect()
@@ -126,6 +131,20 @@ func (svc scriptRunner) Record(ctx context.Context, s Runnable, ns *types.Namesp
 
 	if m == nil {
 		return nil, errors.New("module not provided")
+	}
+
+	if !svc.c.Enabled {
+		if s.IsCritical() {
+			// Oh dear, we are in quite a pickle:
+			// Script runner is disabled but we have critical script to run
+			return nil, errors.New("script runner disabled")
+		}
+
+		// Log this
+		svc.logger.Debug("executing script", zap.Any("record", r))
+
+		// and pretend like nothing happened
+		return r, nil
 	}
 
 	svc.logger.Debug("executing script", zap.Any("record", r))
