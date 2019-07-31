@@ -93,6 +93,10 @@ func (r trigger) Find(filter types.TriggerFilter) (set types.TriggerSet, f types
 		query = query.Where("name like ?", q)
 	}
 
+	if f.EnabledOnly {
+		query = query.Where("enabled")
+	}
+
 	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
 		return
 	}
