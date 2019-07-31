@@ -339,6 +339,9 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 	return errors.Wrap(err, "unable to delete record")
 }
 
+// loadCombo Loads everything we need for record manipulation
+//
+// Loads namespace, module, record and set of triggers.
 func (svc record) loadCombo(namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, tt types.TriggerSet, err error) {
 	if namespaceID == 0 {
 		err = ErrNamespaceRequired
@@ -361,8 +364,14 @@ func (svc record) loadCombo(namespaceID, moduleID, recordID uint64) (ns *types.N
 	}
 
 	tt, _, err = svc.tRepo.Find(types.TriggerFilter{
+		// Make sure we stay in the same namespace
 		NamespaceID: ns.ID,
-		ModuleID:    m.ID,
+
+		// Triggered scripts are always module-bound
+		ModuleID: m.ID,
+
+		// We are only interested in enabled scripts
+		EnabledOnly: true,
 	})
 
 	return
