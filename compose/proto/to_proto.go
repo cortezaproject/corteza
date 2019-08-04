@@ -6,6 +6,7 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/automation"
 )
 
 type (
@@ -90,16 +91,12 @@ func FromNamespace(i *types.Namespace) *Namespace {
 	return p
 }
 
-func ScriptFromRunnable(s Runnable) *Script {
-	if s == nil {
-		return nil
-	}
-
+func FromAutomationScript(s *automation.Script) *Script {
 	return &Script{
-		Source:  s.GetSource(),
-		Name:    s.GetName(),
-		Timeout: s.GetTimeout(),
-		Async:   s.IsAsync(),
+		Source:  s.Source,
+		Name:    s.Name,
+		Timeout: uint32(s.Timeout),
+		Async:   s.Async,
 	}
 }
 

@@ -11,28 +11,41 @@ import (
 
 type (
 	ActionSet []string
-	Trigger   struct {
+
+	Trigger struct {
 		ID          uint64    `json:"triggerID,string" db:"id"`
 		NamespaceID uint64    `json:"namespaceID,string" db:"rel_namespace"`
 		ModuleID    uint64    `json:"moduleID,string,omitempty" db:"rel_module"`
 		Name        string    `json:"name" db:"name"`
 		Actions     ActionSet `json:"actions" db:"actions"`
-		Enabled     bool      `json:"enabled" db:"enabled"`
-		Source      string    `json:"source" db:"source"`
-		// Weight      int       `json:"weight" db:"weight"`
+
+		Enabled bool `json:"enabled" db:"enabled"`
+
+		// What is running this? browser? corredor?
+		Engine string `json:"engine" db:"engine"`
+
+		Source string `json:"source" db:"source"`
+
+		// Is execution of this script critical?
+		Critical bool `json:"critical" db:"critical"`
+
+		// No need to wait for script to return the value
+		Async bool `json:"async" db:"async"`
+
+		// Order in which script(s) will be executed
+		Weight int `json:"weight" db:"weight"`
+
+		// Who is running this script?
+		// Leave it at 0 for the current user
+		RunAs uint64 `json:"runAs", db:"rel_runner"`
+
+		// Are you doing something that can take more time?
+		// specify timeout (in secods)
+		Timeout uint32 `json:"timeout" db:"timeout"`
 
 		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
-	}
-
-	Script struct {
-		Source   string `json:"source"`
-		Language string `json:"language"`
-		Critical bool   `json:"critical"`
-		Async    bool   `json:"async"`
-		Timeout  uint32 `json:"timeout"`
-		RunAs    uint64 `json:"runAs,string"`
 	}
 
 	TriggerFilter struct {
@@ -48,19 +61,19 @@ type (
 )
 
 func (t Trigger) IsCritical() bool {
-	return true
+	return t.Critical
 }
 
 func (t Trigger) IsAsync() bool {
-	return false
+	return t.Async
 }
 
 func (t Trigger) GetRunnerID() uint64 {
-	return 0
+	return t.RunAs
 }
 
 func (t Trigger) GetTimeout() uint32 {
-	return 0
+	return t.Timeout
 }
 
 func (t Trigger) GetName() string {

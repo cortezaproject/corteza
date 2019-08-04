@@ -764,6 +764,28 @@
                 }
             },
             {
+                "name": "runScript",
+                "method": "POST",
+                "title": "Trigger a specific script on record",
+                "path": "/run-script",
+                "parameters": {
+                    "post": [
+                        {
+                            "type": "uint64",
+                            "name": "recordID",
+                            "required": false,
+                            "title": "Record ID"
+                        },
+                        {
+                            "type": "uint64",
+                            "name": "scriptID",
+                            "required": true,
+                            "title": "Script ID"
+                        }
+                    ]
+                }
+            },
+            {
                 "name": "upload",
                 "path": "/attachment",
                 "method": "POST",
@@ -931,192 +953,6 @@
                             "name": "chartID",
                             "required": true,
                             "title": "Chart ID"
-                        }
-                    ]
-                }
-            }
-        ]
-    },
-    {
-        "title": "Triggers",
-        "description": "Compose Triggers",
-        "entrypoint": "trigger",
-        "path": "/namespace/{namespaceID}/trigger",
-        "authentication": [],
-        "parameters": {
-            "path": [
-                {
-                    "type": "uint64",
-                    "name": "namespaceID",
-                    "required": true,
-                    "title": "Namespace ID"
-                }
-            ]
-        },
-        "struct": [
-            {
-                "imports": [
-                    "time"
-                ]
-            }
-        ],
-        "apis": [
-            {
-                "name": "list",
-                "method": "GET",
-                "path": "/",
-                "title": "List available triggers",
-                "parameters": {
-                    "get": [
-                        {
-                            "type": "uint64",
-                            "name": "moduleID",
-                            "required": false,
-                            "title": "Filter triggers by module"
-                        },
-                        {
-                            "type": "string",
-                            "name": "query",
-                            "required": false,
-                            "title": "Search query"
-                        },
-                        {
-                            "name": "page",
-                            "type": "uint",
-                            "required": false,
-                            "title": "Page number (0 based)"
-                        },
-                        {
-                            "name": "perPage",
-                            "type": "uint",
-                            "required": false,
-                            "title": "Returned items per page (default 50)"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "create",
-                "method": "POST",
-                "title": "Create trigger",
-                "path": "/",
-                "parameters": {
-                    "post": [
-                        {
-                            "type": "uint64",
-                            "name": "moduleID",
-                            "required": false,
-                            "title": "Module ID"
-                        },
-                        {
-                            "type": "string",
-                            "name": "name",
-                            "required": true,
-                            "title": "Name"
-                        },
-                        {
-                            "type": "[]string",
-                            "name": "actions",
-                            "required": false,
-                            "title": "Actions that trigger this trigger"
-                        },
-                        {
-                            "type": "bool",
-                            "name": "enabled",
-                            "required": false,
-                            "title": "Enabled"
-                        },
-                        {
-                            "type": "string",
-                            "name": "source",
-                            "required": false,
-                            "title": "Trigger source code"
-                        },
-                        {
-                            "type": "*time.Time",
-                            "name": "updatedAt",
-                            "required": false,
-                            "title": "Last update (or creation) date"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "read",
-                "path": "/{triggerID}",
-                "method": "GET",
-                "title": "Get trigger details",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "triggerID",
-                            "required": true,
-                            "title": "Trigger ID"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "update",
-                "method": "POST",
-                "title": "Update trigger",
-                "path": "/{triggerID}",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "triggerID",
-                            "required": true,
-                            "title": "Trigger ID"
-                        }
-                    ],
-                    "post": [
-                        {
-                            "type": "uint64",
-                            "name": "moduleID",
-                            "required": false,
-                            "title": "Module ID"
-                        },
-                        {
-                            "type": "string",
-                            "name": "name",
-                            "required": true,
-                            "title": "Name"
-                        },
-                        {
-                            "type": "[]string",
-                            "name": "actions",
-                            "required": false,
-                            "title": "Actions that trigger this trigger"
-                        },
-                        {
-                            "type": "bool",
-                            "name": "enabled",
-                            "required": false,
-                            "title": "Enabled"
-                        },
-                        {
-                            "type": "string",
-                            "name": "source",
-                            "required": false,
-                            "title": "Trigger source code"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "delete",
-                "path": "/{triggerID}",
-                "method": "Delete",
-                "title": "Delete trigger",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "triggerID",
-                            "required": true,
-                            "title": "Trigger ID"
                         }
                     ]
                 }
@@ -1442,6 +1278,386 @@
                             "type": "permissions.RuleSet",
                             "required": true,
                             "title": "List of permission rules to set"
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "title": "Automation scripts",
+        "entrypoint": "automation_script",
+        "path": "/namespace/{namespaceID}/automation/script",
+        "authentication": [
+            "Client ID",
+            "Session ID"
+        ],
+        "parameters": {
+            "path": [
+                {
+                    "type": "uint64",
+                    "name": "namespaceID",
+                    "required": true,
+                    "title": "Namespace ID"
+                }
+            ]
+        },
+        "apis": [
+            {
+                "name": "list",
+                "method": "GET",
+                "title": "List/read automation script",
+                "path": "/",
+                "parameters": {
+                    "get": [
+                        {
+                            "name": "query",
+                            "required": false,
+                            "title": "Search query to match against automation script",
+                            "type": "string"
+                        },
+                        {
+                            "name": "resource",
+                            "required": false,
+                            "title": "Limit by resource (via trigger)",
+                            "type": "string"
+                        },
+                        {
+                            "name": "incDeleted",
+                            "required": false,
+                            "title": "Include deleted scripts",
+                            "type": "bool"
+                        },
+                        {
+                            "name": "page",
+                            "type": "uint",
+                            "required": false,
+                            "title": "Page number (0 based)"
+                        },
+                        {
+                            "name": "perPage",
+                            "type": "uint",
+                            "required": false,
+                            "title": "Returned items per page (default 50)"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "create",
+                "method": "POST",
+                "title": "Add new automation script ",
+                "path": "/",
+                "parameters": {
+                    "post": [
+                        {
+                            "name": "name",
+                            "title": "automation name",
+                            "type": "string",
+                            "required": true
+                        },
+                        {
+                            "name": "sourceRef",
+                            "title": "Source URL",
+                            "type": "string"
+                        },
+                        {
+                            "name": "source",
+                            "title": "Source code",
+                            "type": "string"
+                        },
+                        {
+                            "name": "runAs",
+                            "title": "Run as specific user",
+                            "type": "uint64"
+                        },
+                        {
+                            "name": "runInUA",
+                            "title": "Run script in user-agent (browser)",
+                            "type": "bool"
+                        },
+                        {
+                            "name": "timeout",
+                            "title": "Script timeout (in milliseconds)",
+                            "type": "uint"
+                        },
+                        {
+                            "name": "critical",
+                            "title": "Is it critical to run this script successfully",
+                            "type": "bool"
+                        },
+                        {
+                            "name": "async",
+                            "title": "Will this script be ran asynchronously",
+                            "type": "bool"
+                        },
+                        {
+                            "name": "enabled",
+                            "type": "bool"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "read",
+                "method": "GET",
+                "title": "Read automation script by ID",
+                "path": "/{scriptID}",
+                "parameters": {
+                    "path": [
+                        {
+                            "type": "uint64",
+                            "name": "scriptID",
+                            "required": true,
+                            "title": "automation script ID"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "update",
+                "method": "POST",
+                "title": "Update automation script",
+                "path": "/{scriptID}",
+                "parameters": {
+                    "path": [
+                        {
+                            "type": "uint64",
+                            "name": "scriptID",
+                            "required": true,
+                            "title": "Automation script ID"
+                        }
+                    ],
+                    "post": [
+                        {
+                            "name": "name",
+                            "title": "Script name",
+                            "type": "string",
+                            "required": true
+                        },
+                        {
+                            "name": "sourceRef",
+                            "title": "Source URL",
+                            "type": "string"
+                        },
+                        {
+                            "name": "source",
+                            "title": "Source code",
+                            "type": "string"
+                        },
+                        {
+                            "name": "runAs",
+                            "title": "Run script as specific user",
+                            "type": "uint64"
+                        },
+                        {
+                            "name": "runInUA",
+                            "title": "Run script in user-agent (browser)",
+                            "type": "bool"
+                        },
+                        {
+                            "name": "timeout",
+                            "title": "Run script in user-agent (browser)",
+                            "type": "uint"
+                        },
+                        {
+                            "name": "critical",
+                            "title": "Is it critical to run this script successfully",
+                            "type": "bool"
+                        },
+                        {
+                            "name": "async",
+                            "title": "Will this script be ran asynchronously",
+                            "type": "bool"
+                        },
+                        {
+                            "name": "enabled",
+                            "type": "bool"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "delete",
+                "method": "DELETE",
+                "title": "Delete script",
+                "path": "/{scriptID}",
+                "parameters": {
+                    "path": [
+                        {
+                            "type": "uint64",
+                            "name": "scriptID",
+                            "required": true,
+                            "title": "automation ID"
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "title": "Automation script triggers",
+        "entrypoint": "automation_trigger",
+        "path": "/namespace/{namespaceID}/automation/script/{scriptID}/trigger",
+        "authentication": [
+            "Client ID",
+            "Session ID"
+        ],
+        "parameters": {
+            "path": [
+                {
+                    "type": "uint64",
+                    "name": "namespaceID",
+                    "required": true,
+                    "title": "Namespace ID"
+                },
+                {
+                    "type": "uint64",
+                    "name": "scriptID",
+                    "required": true,
+                    "title": "Script ID"
+                }
+            ]
+        },
+        "apis": [
+            {
+                "name": "list",
+                "method": "GET",
+                "title": "List/read automation script triggers",
+                "path": "/",
+                "parameters": {
+                    "get": [
+                        {
+                            "name": "resource",
+                            "required": false,
+                            "title": "Only triggers of a specific resource",
+                            "type": "string"
+                        },
+                        {
+                            "name": "event",
+                            "required": false,
+                            "title": "Only triggers of a specific event",
+                            "type": "string"
+                        },
+                        {
+                            "name": "incDeleted",
+                            "required": false,
+                            "title": "Include deleted scripts",
+                            "type": "bool"
+                        },
+                        {
+                            "name": "page",
+                            "type": "uint",
+                            "required": false,
+                            "title": "Page number (0 based)"
+                        },
+                        {
+                            "name": "perPage",
+                            "type": "uint",
+                            "required": false,
+                            "title": "Returned items per page (default 50)"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "create",
+                "method": "POST",
+                "title": "Add new automation script trigger",
+                "path": "/",
+                "parameters": {
+                    "post": [
+                        {
+                            "name": "resource",
+                            "title": "Resource",
+                            "type": "string",
+                            "required": true
+                        },
+                        {
+                            "name": "event",
+                            "title": "Event",
+                            "type": "string",
+                            "required": true
+                        },
+                        {
+                            "name": "condition",
+                            "title": "Event",
+                            "type": "string"
+                        },
+                        {
+                            "name": "enabled",
+                            "type": "bool"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "read",
+                "method": "GET",
+                "title": "Read automation script trigger by ID",
+                "path": "/{triggerID}",
+                "parameters": {
+                    "path": [
+                        {
+                            "type": "uint64",
+                            "name": "triggerID",
+                            "required": true,
+                            "title": "Automation script trigger ID"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "update",
+                "method": "POST",
+                "title": "Update automation script trigger",
+                "path": "/{triggerID}",
+                "parameters": {
+                    "path": [
+                        {
+                            "type": "uint64",
+                            "name": "triggerID",
+                            "required": true,
+                            "title": "Automation script trigger ID"
+                        }
+                    ],
+                    "post": [
+                        {
+                            "name": "resource",
+                            "title": "Resource",
+                            "type": "string",
+                            "required": true
+                        },
+                        {
+                            "name": "event",
+                            "title": "Event",
+                            "type": "string",
+                            "required": true
+                        },
+                        {
+                            "name": "condition",
+                            "title": "Event",
+                            "type": "string"
+                        },
+                        {
+                            "name": "enabled",
+                            "type": "bool"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "delete",
+                "method": "DELETE",
+                "title": "Delete script",
+                "path": "/{triggerID}",
+                "parameters": {
+                    "path": [
+                        {
+                            "type": "uint64",
+                            "name": "triggerID",
+                            "required": true,
+                            "title": "automation script trigger ID"
                         }
                     ]
                 }

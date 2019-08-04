@@ -1,14 +1,7 @@
 {
-  "Title": "Triggers",
-  "Description": "Compose Triggers",
-  "Interface": "Trigger",
-  "Struct": [
-    {
-      "imports": [
-        "time"
-      ]
-    }
-  ],
+  "Title": "Automation script triggers",
+  "Interface": "Automation_trigger",
+  "Struct": null,
   "Parameters": {
     "path": [
       {
@@ -16,31 +9,46 @@
         "required": true,
         "title": "Namespace ID",
         "type": "uint64"
+      },
+      {
+        "name": "scriptID",
+        "required": true,
+        "title": "Script ID",
+        "type": "uint64"
       }
     ]
   },
   "Protocol": "",
-  "Authentication": [],
-  "Path": "/namespace/{namespaceID}/trigger",
+  "Authentication": [
+    "Client ID",
+    "Session ID"
+  ],
+  "Path": "/namespace/{namespaceID}/automation/script/{scriptID}/trigger",
   "APIs": [
     {
       "Name": "list",
       "Method": "GET",
-      "Title": "List available triggers",
+      "Title": "List/read automation script triggers",
       "Path": "/",
       "Parameters": {
         "get": [
           {
-            "name": "moduleID",
+            "name": "resource",
             "required": false,
-            "title": "Filter triggers by module",
-            "type": "uint64"
+            "title": "Only triggers of a specific resource",
+            "type": "string"
           },
           {
-            "name": "query",
+            "name": "event",
             "required": false,
-            "title": "Search query",
+            "title": "Only triggers of a specific event",
             "type": "string"
+          },
+          {
+            "name": "incDeleted",
+            "required": false,
+            "title": "Include deleted scripts",
+            "type": "bool"
           },
           {
             "name": "page",
@@ -60,45 +68,34 @@
     {
       "Name": "create",
       "Method": "POST",
-      "Title": "Create trigger",
+      "Title": "Add new automation script trigger",
       "Path": "/",
       "Parameters": {
         "post": [
           {
-            "name": "moduleID",
-            "required": false,
-            "title": "Module ID",
-            "type": "uint64"
-          },
-          {
             "name": "name",
             "required": true,
-            "title": "Name",
+            "title": "automation name",
             "type": "string"
           },
           {
-            "name": "actions",
-            "required": false,
-            "title": "Actions that trigger this trigger",
-            "type": "[]string"
+            "name": "resource",
+            "title": "Resource",
+            "type": "string"
+          },
+          {
+            "name": "event",
+            "title": "Event",
+            "type": "string"
+          },
+          {
+            "name": "condition",
+            "title": "Event",
+            "type": "string"
           },
           {
             "name": "enabled",
-            "required": false,
-            "title": "Enabled",
             "type": "bool"
-          },
-          {
-            "name": "source",
-            "required": false,
-            "title": "Trigger source code",
-            "type": "string"
-          },
-          {
-            "name": "updatedAt",
-            "required": false,
-            "title": "Last update (or creation) date",
-            "type": "*time.Time"
           }
         ]
       }
@@ -106,14 +103,14 @@
     {
       "Name": "read",
       "Method": "GET",
-      "Title": "Get trigger details",
+      "Title": "Read automation script trigger by ID",
       "Path": "/{triggerID}",
       "Parameters": {
         "path": [
           {
             "name": "triggerID",
             "required": true,
-            "title": "Trigger ID",
+            "title": "Automation script trigger ID",
             "type": "uint64"
           }
         ]
@@ -122,62 +119,57 @@
     {
       "Name": "update",
       "Method": "POST",
-      "Title": "Update trigger",
+      "Title": "Update automation script trigger",
       "Path": "/{triggerID}",
       "Parameters": {
         "path": [
           {
             "name": "triggerID",
             "required": true,
-            "title": "Trigger ID",
+            "title": "Automation script trigger ID",
             "type": "uint64"
           }
         ],
         "post": [
           {
-            "name": "moduleID",
-            "required": false,
-            "title": "Module ID",
-            "type": "uint64"
-          },
-          {
             "name": "name",
             "required": true,
-            "title": "Name",
+            "title": "automation name",
             "type": "string"
           },
           {
-            "name": "actions",
-            "required": false,
-            "title": "Actions that trigger this trigger",
-            "type": "[]string"
+            "name": "resource",
+            "title": "Resource",
+            "type": "string"
+          },
+          {
+            "name": "event",
+            "title": "Event",
+            "type": "string"
+          },
+          {
+            "name": "condition",
+            "title": "Event",
+            "type": "string"
           },
           {
             "name": "enabled",
-            "required": false,
-            "title": "Enabled",
             "type": "bool"
-          },
-          {
-            "name": "source",
-            "required": false,
-            "title": "Trigger source code",
-            "type": "string"
           }
         ]
       }
     },
     {
       "Name": "delete",
-      "Method": "Delete",
-      "Title": "Delete trigger",
+      "Method": "DELETE",
+      "Title": "Delete script",
       "Path": "/{triggerID}",
       "Parameters": {
         "path": [
           {
             "name": "triggerID",
             "required": true,
-            "title": "Trigger ID",
+            "title": "automation script trigger ID",
             "type": "uint64"
           }
         ]

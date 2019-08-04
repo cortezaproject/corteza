@@ -14,9 +14,11 @@ func MountRoutes(r chi.Router) {
 		record       = Record{}.New()
 		page         = Page{}.New()
 		chart        = Chart{}.New()
-		trigger      = Trigger{}.New()
 		notification = Notification{}.New()
 		attachment   = Attachment{}.New()
+
+		automationScript = AutomationScript{}.New()
+		automationTrgger = AutomationTrigger{}.New()
 	)
 
 	// Initialize handlers & controllers.
@@ -34,8 +36,10 @@ func MountRoutes(r chi.Router) {
 		handlers.NewModule(module).MountRoutes(r)
 		handlers.NewRecord(record).MountRoutes(r)
 		handlers.NewChart(chart).MountRoutes(r)
-		handlers.NewTrigger(trigger).MountRoutes(r)
 		handlers.NewNotification(notification).MountRoutes(r)
+
+		handlers.NewAutomationScript(automationScript).MountRoutes(r)
+		handlers.NewAutomationTrigger(automationTrgger).MountRoutes(r)
 	})
 
 	// Use alternative handlers that support file serving
