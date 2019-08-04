@@ -11,8 +11,8 @@ import (
 	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/cortezaproject/corteza-server/compose/internal/repository/ql"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -117,7 +117,7 @@ func (r record) Report(module *types.Module, metrics, dimensions, filter string)
 func (r record) Find(module *types.Module, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
 	var query squirrel.SelectBuilder
 	f = filter
-	f.PerPage = normalizePerPage(f.PerPage, 5, 100, 50)
+	f.PerPage = rh.NormalizePerPage(f.PerPage, 5, 100, 50)
 
 	query, err = r.buildQuery(module, filter)
 	if err != nil {
