@@ -10,8 +10,8 @@ package request
 	1. run [spec](https://github.com/titpetric/spec) in the same folder,
 	2. run `./_gen.php` in this folder.
 
-	You may edit `trigger.go`, `trigger.util.go` or `trigger_test.go` to
-	implement your API calls, helper functions and tests. The file `trigger.go`
+	You may edit `automation_trigger.go`, `automation_trigger.util.go` or `automation_trigger_test.go` to
+	implement your API calls, helper functions and tests. The file `automation_trigger.go`
 	is only generated the first time, and will not be overwritten if it exists.
 */
 
@@ -25,39 +25,41 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
-
-	"time"
 )
 
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
 
-// Trigger list request parameters
-type TriggerList struct {
-	ModuleID    uint64 `json:",string"`
-	Query       string
+// AutomationTrigger list request parameters
+type AutomationTriggerList struct {
+	Resource    string
+	Event       string
+	IncDeleted  bool
 	Page        uint
 	PerPage     uint
 	NamespaceID uint64 `json:",string"`
+	ScriptID    uint64 `json:",string"`
 }
 
-func NewTriggerList() *TriggerList {
-	return &TriggerList{}
+func NewAutomationTriggerList() *AutomationTriggerList {
+	return &AutomationTriggerList{}
 }
 
-func (r TriggerList) Auditable() map[string]interface{} {
+func (r AutomationTriggerList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
-	out["moduleID"] = r.ModuleID
-	out["query"] = r.Query
+	out["resource"] = r.Resource
+	out["event"] = r.Event
+	out["incDeleted"] = r.IncDeleted
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
 	out["namespaceID"] = r.NamespaceID
+	out["scriptID"] = r.ScriptID
 
 	return out
 }
 
-func (r *TriggerList) Fill(req *http.Request) (err error) {
+func (r *AutomationTriggerList) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -84,11 +86,14 @@ func (r *TriggerList) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	if val, ok := get["moduleID"]; ok {
-		r.ModuleID = parseUInt64(val)
+	if val, ok := get["resource"]; ok {
+		r.Resource = val
 	}
-	if val, ok := get["query"]; ok {
-		r.Query = val
+	if val, ok := get["event"]; ok {
+		r.Event = val
+	}
+	if val, ok := get["incDeleted"]; ok {
+		r.IncDeleted = parseBool(val)
 	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)
@@ -97,42 +102,43 @@ func (r *TriggerList) Fill(req *http.Request) (err error) {
 		r.PerPage = parseUint(val)
 	}
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+	r.ScriptID = parseUInt64(chi.URLParam(req, "scriptID"))
 
 	return err
 }
 
-var _ RequestFiller = NewTriggerList()
+var _ RequestFiller = NewAutomationTriggerList()
 
-// Trigger create request parameters
-type TriggerCreate struct {
-	ModuleID    uint64 `json:",string"`
+// AutomationTrigger create request parameters
+type AutomationTriggerCreate struct {
 	Name        string
-	Actions     []string
+	Resource    string
+	Event       string
+	Condition   string
 	Enabled     bool
-	Source      string
-	UpdatedAt   *time.Time
 	NamespaceID uint64 `json:",string"`
+	ScriptID    uint64 `json:",string"`
 }
 
-func NewTriggerCreate() *TriggerCreate {
-	return &TriggerCreate{}
+func NewAutomationTriggerCreate() *AutomationTriggerCreate {
+	return &AutomationTriggerCreate{}
 }
 
-func (r TriggerCreate) Auditable() map[string]interface{} {
+func (r AutomationTriggerCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
-	out["moduleID"] = r.ModuleID
 	out["name"] = r.Name
-	out["actions"] = r.Actions
+	out["resource"] = r.Resource
+	out["event"] = r.Event
+	out["condition"] = r.Condition
 	out["enabled"] = r.Enabled
-	out["source"] = r.Source
-	out["updatedAt"] = r.UpdatedAt
 	out["namespaceID"] = r.NamespaceID
+	out["scriptID"] = r.ScriptID
 
 	return out
 }
 
-func (r *TriggerCreate) Fill(req *http.Request) (err error) {
+func (r *AutomationTriggerCreate) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -159,56 +165,51 @@ func (r *TriggerCreate) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	if val, ok := post["moduleID"]; ok {
-		r.ModuleID = parseUInt64(val)
-	}
 	if val, ok := post["name"]; ok {
 		r.Name = val
 	}
-
-	if val, ok := req.Form["actions"]; ok {
-		r.Actions = parseStrings(val)
+	if val, ok := post["resource"]; ok {
+		r.Resource = val
 	}
-
+	if val, ok := post["event"]; ok {
+		r.Event = val
+	}
+	if val, ok := post["condition"]; ok {
+		r.Condition = val
+	}
 	if val, ok := post["enabled"]; ok {
 		r.Enabled = parseBool(val)
 	}
-	if val, ok := post["source"]; ok {
-		r.Source = val
-	}
-	if val, ok := post["updatedAt"]; ok {
-
-		if r.UpdatedAt, err = parseISODatePtrWithErr(val); err != nil {
-			return err
-		}
-	}
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+	r.ScriptID = parseUInt64(chi.URLParam(req, "scriptID"))
 
 	return err
 }
 
-var _ RequestFiller = NewTriggerCreate()
+var _ RequestFiller = NewAutomationTriggerCreate()
 
-// Trigger read request parameters
-type TriggerRead struct {
+// AutomationTrigger read request parameters
+type AutomationTriggerRead struct {
 	TriggerID   uint64 `json:",string"`
 	NamespaceID uint64 `json:",string"`
+	ScriptID    uint64 `json:",string"`
 }
 
-func NewTriggerRead() *TriggerRead {
-	return &TriggerRead{}
+func NewAutomationTriggerRead() *AutomationTriggerRead {
+	return &AutomationTriggerRead{}
 }
 
-func (r TriggerRead) Auditable() map[string]interface{} {
+func (r AutomationTriggerRead) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["triggerID"] = r.TriggerID
 	out["namespaceID"] = r.NamespaceID
+	out["scriptID"] = r.ScriptID
 
 	return out
 }
 
-func (r *TriggerRead) Fill(req *http.Request) (err error) {
+func (r *AutomationTriggerRead) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -237,42 +238,45 @@ func (r *TriggerRead) Fill(req *http.Request) (err error) {
 
 	r.TriggerID = parseUInt64(chi.URLParam(req, "triggerID"))
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+	r.ScriptID = parseUInt64(chi.URLParam(req, "scriptID"))
 
 	return err
 }
 
-var _ RequestFiller = NewTriggerRead()
+var _ RequestFiller = NewAutomationTriggerRead()
 
-// Trigger update request parameters
-type TriggerUpdate struct {
+// AutomationTrigger update request parameters
+type AutomationTriggerUpdate struct {
 	TriggerID   uint64 `json:",string"`
 	NamespaceID uint64 `json:",string"`
-	ModuleID    uint64 `json:",string"`
+	ScriptID    uint64 `json:",string"`
 	Name        string
-	Actions     []string
+	Resource    string
+	Event       string
+	Condition   string
 	Enabled     bool
-	Source      string
 }
 
-func NewTriggerUpdate() *TriggerUpdate {
-	return &TriggerUpdate{}
+func NewAutomationTriggerUpdate() *AutomationTriggerUpdate {
+	return &AutomationTriggerUpdate{}
 }
 
-func (r TriggerUpdate) Auditable() map[string]interface{} {
+func (r AutomationTriggerUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["triggerID"] = r.TriggerID
 	out["namespaceID"] = r.NamespaceID
-	out["moduleID"] = r.ModuleID
+	out["scriptID"] = r.ScriptID
 	out["name"] = r.Name
-	out["actions"] = r.Actions
+	out["resource"] = r.Resource
+	out["event"] = r.Event
+	out["condition"] = r.Condition
 	out["enabled"] = r.Enabled
-	out["source"] = r.Source
 
 	return out
 }
 
-func (r *TriggerUpdate) Fill(req *http.Request) (err error) {
+func (r *AutomationTriggerUpdate) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -301,49 +305,50 @@ func (r *TriggerUpdate) Fill(req *http.Request) (err error) {
 
 	r.TriggerID = parseUInt64(chi.URLParam(req, "triggerID"))
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
-	if val, ok := post["moduleID"]; ok {
-		r.ModuleID = parseUInt64(val)
-	}
+	r.ScriptID = parseUInt64(chi.URLParam(req, "scriptID"))
 	if val, ok := post["name"]; ok {
 		r.Name = val
 	}
-
-	if val, ok := req.Form["actions"]; ok {
-		r.Actions = parseStrings(val)
+	if val, ok := post["resource"]; ok {
+		r.Resource = val
 	}
-
+	if val, ok := post["event"]; ok {
+		r.Event = val
+	}
+	if val, ok := post["condition"]; ok {
+		r.Condition = val
+	}
 	if val, ok := post["enabled"]; ok {
 		r.Enabled = parseBool(val)
-	}
-	if val, ok := post["source"]; ok {
-		r.Source = val
 	}
 
 	return err
 }
 
-var _ RequestFiller = NewTriggerUpdate()
+var _ RequestFiller = NewAutomationTriggerUpdate()
 
-// Trigger delete request parameters
-type TriggerDelete struct {
+// AutomationTrigger delete request parameters
+type AutomationTriggerDelete struct {
 	TriggerID   uint64 `json:",string"`
 	NamespaceID uint64 `json:",string"`
+	ScriptID    uint64 `json:",string"`
 }
 
-func NewTriggerDelete() *TriggerDelete {
-	return &TriggerDelete{}
+func NewAutomationTriggerDelete() *AutomationTriggerDelete {
+	return &AutomationTriggerDelete{}
 }
 
-func (r TriggerDelete) Auditable() map[string]interface{} {
+func (r AutomationTriggerDelete) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["triggerID"] = r.TriggerID
 	out["namespaceID"] = r.NamespaceID
+	out["scriptID"] = r.ScriptID
 
 	return out
 }
 
-func (r *TriggerDelete) Fill(req *http.Request) (err error) {
+func (r *AutomationTriggerDelete) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -372,8 +377,9 @@ func (r *TriggerDelete) Fill(req *http.Request) (err error) {
 
 	r.TriggerID = parseUInt64(chi.URLParam(req, "triggerID"))
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+	r.ScriptID = parseUInt64(chi.URLParam(req, "scriptID"))
 
 	return err
 }
 
-var _ RequestFiller = NewTriggerDelete()
+var _ RequestFiller = NewAutomationTriggerDelete()

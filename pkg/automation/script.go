@@ -1,0 +1,122 @@
+package automation
+
+import (
+	"time"
+
+	"github.com/pkg/errors"
+
+	"github.com/cortezaproject/corteza-server/pkg/rh"
+)
+
+type (
+	Script struct {
+		ID uint64 `json:"scriptID,string" db:"id"`
+
+		Name string `json:"name" db:"name"`
+
+		// (URL) Where did we get the source from?
+		SourceRef string `json:"sourceRef" db:"source_ref"`
+
+		// Code
+		Source string `json:"source" db:"source"`
+
+		// No need to wait for script to return the value
+		Async bool `json:"async" db:"async"`
+
+		// Who is running this script?
+		// Leave it at 0 for the current user (security invoker) or
+		// set ID of specific user (security definer)
+		RunAs uint64 `json:"runAs,string" db:"rel_runner"`
+
+		// Where can we run this script? user-agent? corredor service?
+		RunInUA bool `json:"runInUA" db:"run_in_ua"`
+
+		// Are you doing something that can take more time?
+		// specify timeout (in milliseconds)
+		Timeout uint `json:"timeout" db:"timeout"`
+
+		// Is it critical to run this script successfully?
+		Critical bool `json:"critical" db:"critical"`
+
+		Enabled bool `json:"enabled" db:"enabled"`
+
+		CreatedAt time.Time  `db:"created_at" json:"createdAt"`
+		CreatedBy uint64     `db:"created_by" json:"createdBy,string" `
+		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`
+		UpdatedBy uint64     `db:"updated_by" json:"updatedBy,string,omitempty" `
+		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
+		DeletedBy uint64     `db:"deleted_by" json:"deletedBy,string,omitempty" `
+
+		triggers TriggerSet
+	}
+
+	ScriptFilter struct {
+		Query      string
+		Resource   string
+		IncDeleted bool `json:"incDeleted"`
+
+		// Standard paging fields & helpers
+		rh.PageFilter
+	}
+)
+
+// IsValid - enabled, deleted?
+func (s *Script) IsValid() bool {
+	return s != nil && s.Enabled && s.DeletedAt == nil
+}
+
+// Verify - sanity check of script's properties
+func (s Script) Verify() error {
+	if s.RunAsDefined() && s.RunInUA {
+		return errors.New("user-agent engine does not support run-as-defined scripts")
+	}
+
+	if s.Critical && s.RunInUA {
+		return errors.New("user-agent engine scripts can not be critical")
+	}
+
+	return nil
+}
+
+// IsCompatible verifies if trigger can be added to a script
+func (s *Script) CheckCompatibility(t *Trigger) error {
+	if s == nil {
+		return errors.New("not compatible with nil script")
+	}
+	if s == nil || t == nil {
+		return errors.New("not compatible with nil trigger")
+	}
+
+	if t.IsDeferred() {
+		if s.RunInUA {
+			return errors.New("deferred triggers are not compatible with user-agent scripts")
+		}
+
+		if s.RunAsInvoker() {
+			return errors.New("deferred triggers are not compatible with run-as-invoker scripts")
+		}
+	}
+
+	return nil
+}
+
+// FilterByEvent
+//
+// we will use the Trigger struct as a holder for conditions
+func (set ScriptSet) FilterByEvent(event, resource string, cc ...TriggerConditionChecker) (out ScriptSet) {
+	out, _ = set.Filter(func(s *Script) (bool, error) {
+		return s.triggers.HasMatch(Trigger{Event: event, Resource: resource}, cc...), nil
+	})
+
+	return
+}
+
+// RunAsDefined - script should be run with pre-defined privileges (user)
+func (s Script) RunAsDefined() bool {
+	return s.RunAs > 0
+}
+
+// RunAsInvoker - this script should run with invoker's privileges (user)
+func (s Script) RunAsInvoker() bool {
+	return s.RunAs == 0
+}

@@ -38,7 +38,6 @@ function types {
 	./build/gen-type-set --types Module      --output compose/types/module.gen.go
 	./build/gen-type-set --types Page        --output compose/types/page.gen.go
 	./build/gen-type-set --types Chart       --output compose/types/chart.gen.go
-	./build/gen-type-set --types Trigger     --output compose/types/trigger.gen.go
 	./build/gen-type-set --types Record      --output compose/types/record.gen.go
 	./build/gen-type-set --types ModuleField --output compose/types/module_field.gen.go
 
@@ -47,7 +46,6 @@ function types {
 	./build/gen-type-set-test --types Module      --output compose/types/module.gen_test.go
 	./build/gen-type-set-test --types Page        --output compose/types/page.gen_test.go
 	./build/gen-type-set-test --types Chart       --output compose/types/chart.gen_test.go
-	./build/gen-type-set-test --types Trigger     --output compose/types/trigger.gen_test.go
 	./build/gen-type-set-test --types Record      --output compose/types/record.gen_test.go
 	./build/gen-type-set-test --types ModuleField --output compose/types/module_field.gen_test.go
 
@@ -98,6 +96,12 @@ function types {
 
 	./build/gen-type-set-test --types Rule      --output internal/permissions/rule.gen_test.go     --with-primary-key=false --package permissions
 	./build/gen-type-set-test --types Resource  --output internal/permissions/resource.gen_test.go --with-primary-key=false --package permissions
+
+	./build/gen-type-set      --types Script   --output pkg/automation/script.gen.go       --package automation
+	./build/gen-type-set-test --types Script   --output pkg/automation/script.gen_test.go  --package automation
+	./build/gen-type-set      --types Trigger  --output pkg/automation/trigger.gen.go      --package automation
+	./build/gen-type-set-test --types Trigger  --output pkg/automation/trigger.gen_test.go --package automation
+
 
 	green "OK"
 }

@@ -22,7 +22,7 @@ type (
 		logger *zap.Logger
 
 		ac recordAccessController
-		sr RecordScriptRunner
+		sr RecordScriptsRunner
 
 		recordRepo repository.RecordRepository
 		moduleRepo repository.ModuleRepository
@@ -41,8 +41,14 @@ type (
 		CanUpdateRecordValue(context.Context, *types.ModuleField) bool
 	}
 
-	RecordScriptRunner interface {
-		Record(context.Context, Runnable, *types.Namespace, *types.Module, *types.Record) (*types.Record, error)
+	RecordScriptsRunner interface {
+		ManualRecordRun(ctx context.Context, scriptID uint64, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
+		BeforeRecordCreate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
+		AfterRecordCreate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
+		BeforeRecordUpdate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
+		AfterRecordUpdate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
+		BeforeRecordDelete(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
+		AfterRecordDelete(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
 	}
 
 	RecordService interface {
@@ -59,7 +65,7 @@ type (
 
 		DeleteByID(namespaceID, recordID uint64) error
 
-		// Fields(module *types.Module, record *types.Record) ([]*types.RecordValue, error)
+		RunScript(namespaceID, moduleID, recordID, scriptID uint64) error
 	}
 
 	Encoder interface {
@@ -71,7 +77,7 @@ func Record() RecordService {
 	return (&record{
 		logger: DefaultLogger.Named("record"),
 		ac:     DefaultAccessControl,
-		sr:     DefaultScriptRunner,
+		sr:     DefaultAutomationRunner,
 	}).With(context.Background())
 }
 
@@ -188,6 +194,7 @@ func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.
 // @todo better value handling
 func (svc record) Export(filter types.RecordFilter, enc Encoder) error {
 	m, err := svc.loadModule(filter.NamespaceID, filter.ModuleID)
+
 	if err != nil {
 		return err
 	}
@@ -205,7 +212,7 @@ func (svc record) Export(filter types.RecordFilter, enc Encoder) error {
 }
 
 func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
-	ns, m, r, tt, err := svc.loadCombo(mod.NamespaceID, mod.ModuleID, 0)
+	ns, m, r, err := svc.loadCombo(mod.NamespaceID, mod.ModuleID, 0)
 	if err != nil {
 		return
 	}
@@ -231,12 +238,14 @@ func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
 
 	mod = nil // make sure we do not use it anymore
 
-	if err = tt.WalkByAction("beforeCreate", svc.runTrigger(svc.ctx, ns, m, r)); err != nil {
+	if err = svc.sr.BeforeRecordCreate(svc.ctx, ns, m, r); err != nil {
+		// Calling
 		return
 	}
 
 	defer func() {
-		_ = tt.WalkByAction("afterCreate", svc.runTrigger(svc.ctx, ns, m, r))
+		// Run this at the end and discard the error
+		_ = svc.sr.AfterRecordCreate(svc.ctx, ns, m, r)
 	}()
 
 	return r, svc.db.Transaction(func() (err error) {
@@ -257,7 +266,7 @@ func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 		return nil, ErrInvalidID.withStack()
 	}
 
-	ns, m, r, tt, err := svc.loadCombo(mod.NamespaceID, mod.ModuleID, mod.ID)
+	ns, m, r, err := svc.loadCombo(mod.NamespaceID, mod.ModuleID, mod.ID)
 	if err != nil {
 		return
 	}
@@ -281,12 +290,14 @@ func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 
 	mod = nil // make sure we do not use it anymore
 
-	if err = tt.WalkByAction("beforeUpdate", svc.runTrigger(svc.ctx, ns, m, r)); err != nil {
+	if err = svc.sr.BeforeRecordUpdate(svc.ctx, ns, m, r); err != nil {
+		// Calling
 		return
 	}
 
 	defer func() {
-		_ = tt.WalkByAction("afterUpdate", svc.runTrigger(svc.ctx, ns, m, r))
+		// Run this at the end and discard the error
+		_ = svc.sr.AfterRecordUpdate(svc.ctx, ns, m, r)
 	}()
 
 	return r, svc.db.Transaction(func() (err error) {
@@ -307,17 +318,19 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 		return ErrInvalidID.withStack()
 	}
 
-	ns, m, r, tt, err := svc.loadCombo(namespaceID, 0, recordID)
+	ns, m, r, err := svc.loadCombo(namespaceID, 0, recordID)
 	if err != nil {
 		return
 	}
 
-	if err = tt.WalkByAction("beforeDelete", svc.runTrigger(svc.ctx, ns, m, r)); err != nil {
+	if err = svc.sr.BeforeRecordCreate(svc.ctx, ns, m, r); err != nil {
+		// Calling
 		return
 	}
 
 	defer func() {
-		_ = tt.WalkByAction("afterDelete", svc.runTrigger(svc.ctx, ns, m, r))
+		// Run this at the end and discard the error
+		_ = svc.sr.AfterRecordDelete(svc.ctx, ns, m, r)
 	}()
 
 	err = svc.db.Transaction(func() (err error) {
@@ -342,7 +355,7 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 // loadCombo Loads everything we need for record manipulation
 //
 // Loads namespace, module, record and set of triggers.
-func (svc record) loadCombo(namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, tt types.TriggerSet, err error) {
+func (svc record) loadCombo(namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
 	if namespaceID == 0 {
 		err = ErrNamespaceRequired
 		return
@@ -363,54 +376,12 @@ func (svc record) loadCombo(namespaceID, moduleID, recordID uint64) (ns *types.N
 		return
 	}
 
-	tt, _, err = svc.tRepo.Find(types.TriggerFilter{
-		// Make sure we stay in the same namespace
-		NamespaceID: ns.ID,
-
-		// Triggered scripts are always module-bound
-		ModuleID: m.ID,
-
-		// We are only interested in enabled scripts
-		EnabledOnly: true,
-	})
-
 	return
-}
-
-func (svc record) runTrigger(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) func(t *types.Trigger) error {
-	svc.logger.Debug("initializing trigger runner")
-	return func(t *types.Trigger) error {
-		svc.logger.Debug("running trigger", zap.Uint64("triggerID", t.ID))
-		if svc.sr == nil {
-			// No script runner set
-			svc.logger.Debug("script runner not set")
-			return nil
-		}
-
-		// pr == processed record
-		pr, err := svc.sr.Record(svc.ctx, t, ns, m, r)
-		if err != nil {
-			svc.logger.Debug("failed to run record script", zap.Error(err))
-			return err
-		}
-
-		if pr == nil {
-			// Did not get any processed record,
-			// consider canceled
-			return errors.New("aborted by automation")
-		}
-
-		return svc.copyChanges(m, pr, r)
-	}
 }
 
 // Copies changes from mod to r(ecord)
 func (svc record) copyChanges(m *types.Module, mod, r *types.Record) (err error) {
-	// Automation scripts are allowed to modify record owner & values.
-	if mod.OwnedBy > 0 {
-		r.OwnedBy = mod.OwnedBy
-	}
-
+	r.OwnedBy = mod.OwnedBy
 	r.Values, err = svc.sanitizeValues(m, mod.Values)
 	return err
 }

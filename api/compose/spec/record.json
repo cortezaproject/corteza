@@ -200,6 +200,28 @@
       }
     },
     {
+      "Name": "runScript",
+      "Method": "POST",
+      "Title": "Trigger a specific script on record",
+      "Path": "/run-script",
+      "Parameters": {
+        "post": [
+          {
+            "name": "recordID",
+            "required": false,
+            "title": "Record ID",
+            "type": "uint64"
+          },
+          {
+            "name": "scriptID",
+            "required": true,
+            "title": "Script ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
       "Name": "upload",
       "Method": "POST",
       "Title": "Uploads attachment and validates it against record field requirements",
