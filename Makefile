@@ -68,7 +68,7 @@ mailhog.up:
 
 test:
 	# Run basic unit tests
-	$(GO) test ./opt/... ./internal/... ./compose/... ./messaging/... ./system/...
+	$(GO) test ./pkg/... ./internal/... ./compose/... ./messaging/... ./system/...
 
 test-coverage:
 	overalls -project=github.com/cortezaproject/corteza-server -covermode=count -debug -- -coverpkg=./... --tags=integration
@@ -110,9 +110,11 @@ test.store: $(GOTEST)
 
 test.cross-dep:
 	# Outputs cross-package imports that should not be there.
-	grep -rE "corteza/(compose|messaging)/" system || exit 0
-	grep -rE "corteza/(system|messaging)/" compose || exit 0
-	grep -rE "corteza/(system|compose)/" messaging || exit 0
+	grep -rE "github.com/cortezaproject/corteza-server/(compose|messaging)/" system || exit 0
+	grep -rE "github.com/cortezaproject/corteza-server/(system|messaging)/" compose || exit 0
+	grep -rE "github.com/cortezaproject/corteza-server/(system|compose)/" messaging || exit 0
+	grep -rE "github.com/cortezaproject/corteza-server/(system|compose|messaging)/" pkg || exit 0
+	grep -rE "github.com/cortezaproject/corteza-server/(system|compose|messaging)/" internal || exit 0
 
 integration:
 	# Run drone's integration pipeline
