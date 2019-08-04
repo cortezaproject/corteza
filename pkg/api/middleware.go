@@ -9,6 +9,8 @@ import (
 	"go.uber.org/zap"
 
 	sentryhttp "github.com/getsentry/sentry-go/http"
+
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 func Base(log *zap.Logger) []func(http.Handler) http.Handler {
@@ -31,6 +33,15 @@ func HandlePanic(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
+				log := logger.Default()
+				if err, ok := err.(error); ok {
+					log = log.With(zap.Error(err))
+				} else {
+					log = log.With(zap.Any("recover-value", err))
+				}
+
+				log.Debug("crashed on http request", zap.ByteString("stack", debug.Stack()))
+
 				w.WriteHeader(500)
 
 				if _, has := os.LookupEnv("DEBUG_DUMP_STACK_IN_RESPONSE"); has {
