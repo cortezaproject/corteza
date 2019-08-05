@@ -27,7 +27,6 @@ type (
 		recordRepo repository.RecordRepository
 		moduleRepo repository.ModuleRepository
 		nsRepo     repository.NamespaceRepository
-		tRepo      repository.TriggerRepository
 	}
 
 	recordAccessController interface {
@@ -95,7 +94,6 @@ func (svc record) With(ctx context.Context) RecordService {
 		recordRepo: repository.Record(ctx, db),
 		moduleRepo: repository.Module(ctx, db),
 		nsRepo:     repository.Namespace(ctx, db),
-		tRepo:      repository.Trigger(ctx, db),
 	}
 }
 

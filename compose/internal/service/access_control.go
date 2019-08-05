@@ -180,7 +180,6 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		namespaces = types.NamespacePermissionResource.AppendWildcard()
 		modules    = types.ModulePermissionResource.AppendWildcard()
 		charts     = types.ChartPermissionResource.AppendWildcard()
-		triggers   = types.TriggerPermissionResource.AppendWildcard()
 		pages      = types.PagePermissionResource.AppendWildcard()
 
 		allowAdm = func(res permissions.Resource, op permissions.Operation) *permissions.Rule {
@@ -216,10 +215,6 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		allowAdm(charts, "update"),
 		allowAdm(charts, "delete"),
 
-		allowAdm(triggers, "read"),
-		allowAdm(triggers, "update"),
-		allowAdm(triggers, "delete"),
-
 		allowAdm(pages, "read"),
 		allowAdm(pages, "update"),
 		allowAdm(pages, "delete"),
@@ -244,7 +239,6 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"manage",
 		"module.create",
 		"chart.create",
-		"trigger.create",
 		"page.create",
 	)
 
