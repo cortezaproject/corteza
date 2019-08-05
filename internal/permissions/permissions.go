@@ -42,6 +42,17 @@ func (a Access) String() string {
 	}
 }
 
+// Bool convers boolean true to Allow and false to Deny
+func BoolToCheckFunc(isTrue bool) CheckAccessFunc {
+	return func() Access {
+		if isTrue {
+			return Allow
+		}
+
+		return Deny
+	}
+}
+
 func (a *Access) UnmarshalJSON(data []byte) error {
 	switch string(data) {
 	case "allow":
