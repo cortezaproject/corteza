@@ -116,6 +116,26 @@ func TestRuleSet_checkResource(t *testing.T) {
 				opAccess,
 				Deny,
 			},
+			{ // deny wc and and check if wc is denied
+				RuleSet{
+					DenyRule(role1, resThingWc, opAccess),
+					AllowRule(role1, resThing42, opAccess),
+				},
+				[]uint64{role1},
+				resThingWc,
+				opAccess,
+				Deny,
+			},
+			{ // allow wc and and check if wc is allowed
+				RuleSet{
+					AllowRule(role1, resThingWc, opAccess),
+					DenyRule(role1, resThing42, opAccess),
+				},
+				[]uint64{role1},
+				resThingWc,
+				opAccess,
+				Allow,
+			},
 		}
 	)
 
