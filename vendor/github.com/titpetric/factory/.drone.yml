@@ -12,6 +12,7 @@ steps:
     CGO_ENABLED: 0
     GOOS: linux
     GOARCH: amd64
+    GOPROXY: https://proxy.golang.org
     CI: travis
   commands:
   - go fmt ./...

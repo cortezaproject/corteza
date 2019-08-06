@@ -395,14 +395,15 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:75b563e4052e994ae1ce1d5014f04ed51a00842c74a1687eb1791b11ae22cf82"
+  digest = "1:6f9b3f65b090dd2c458eed073ce9a861836060077009f92148e9ccf5d0e42fe8"
   name = "github.com/titpetric/factory"
   packages = [
     ".",
+    "logger",
     "resputil",
   ]
   pruneopts = "UT"
-  revision = "ce6800c0c52f2c1da3b166b4c26f174dc55c2d02"
+  revision = "ae4b02b9e03450360b3bf34ef3182eef2f42e2b3"
 
 [[projects]]
   digest = "1:a5158647b553c61877aa9ae74f4015000294e47981e6b8b07525edcbb0747c81"
@@ -590,6 +591,7 @@
     "github.com/jmoiron/sqlx",
     "github.com/jmoiron/sqlx/types",
     "github.com/joho/godotenv/autoload",
+    "github.com/lann/builder",
     "github.com/markbates/goth",
     "github.com/markbates/goth/gothic",
     "github.com/markbates/goth/providers/facebook",
@@ -603,6 +605,7 @@
     "github.com/spf13/cast",
     "github.com/spf13/cobra",
     "github.com/titpetric/factory",
+    "github.com/titpetric/factory/logger",
     "github.com/titpetric/factory/resputil",
     "go.uber.org/zap",
     "go.uber.org/zap/zapcore",
