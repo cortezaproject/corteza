@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
@@ -16,6 +15,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/test"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	dbLogger "github.com/titpetric/factory/logger"
 )
 
 type (
@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 
 	factory.Database.Add("compose", os.Getenv("COMPOSE_DB_DSN"))
 	db := factory.Database.MustGet("compose")
-	db.Profiler = &factory.DatabaseProfilerStdout{}
+	db.SetLogger(dbLogger.Default{})
 
 	// migrate database schema
 	if err := composeMigrate.Migrate(db, logger.Default()); err != nil {
@@ -76,33 +76,3 @@ func createTestNamespaces(ctx context.Context, t *testing.T) (ns1 *types.Namespa
 
 	return ns1, ns2
 }
-
-// zapProfiler logs query statistics to zap.logger
-type (
-	testLogProfiler struct {
-		logger testProfilerLogger
-	}
-
-	testProfilerLogger interface {
-		Logf(format string, args ...interface{})
-	}
-)
-
-func newTestLogProfiler(logger testProfilerLogger) *testLogProfiler {
-	return &testLogProfiler{
-		logger: logger,
-	}
-}
-
-// Post prints the query statistics to stdout
-func (p testLogProfiler) Post(c *factory.DatabaseProfilerContext) {
-	p.logger.Logf(
-		"%s\nArgs: %v\nDuration: %fs",
-		c.Query,
-		c.Args,
-		time.Since(c.Time).Seconds(),
-	)
-}
-
-// Flush stdout (no-op for this profiler)
-func (testLogProfiler) Flush() {}

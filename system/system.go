@@ -106,9 +106,7 @@ func Configure() *cli.Config {
 					return err
 				}
 
-				db = db.With(ctx)
-				// Disable profiler for migrations
-				db.Profiler = nil
+				db = db.With(ctx).Quiet()
 
 				return migrate.Migrate(db, c.Log)
 			},

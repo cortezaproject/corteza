@@ -24,6 +24,6 @@ func tx(t *testing.T, f func() error) {
 	err = f()
 	test.Assert(t, err == nil, "Test transaction resulted in an error: %+v", err)
 
-	err = db.Rollback()
+	err = db.Quiet().Rollback()
 	test.Assert(t, err == nil, "Could not rollback transaction: %+v", err)
 }
