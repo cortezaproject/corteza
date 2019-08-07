@@ -70,41 +70,41 @@ test:
 	$(GO) test ./opt/... ./internal/... ./compose/... ./messaging/... ./system/...
 
 test-coverage:
-	overalls -project=github.com/cortezaproject/corteza-server -covermode=count -- -coverpkg=./... --tags=integration
+	overalls -project=github.com/cortezaproject/corteza-server -covermode=count -- -coverpkg=./... --tags=integration -v
 	mv overalls.coverprofile coverage.txt
 
-test.internal: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/...
+test.internal:
+	go test -covermode count -coverprofile .cover.out -v ./internal/...
 	$(GO) tool cover -func=.cover.out
 
-test.messaging: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./messaging/...
+test.messaging:
+	go test -covermode count -coverprofile .cover.out -v ./messaging/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
-test.pubsub: $(GOTEST)
-	$(GOTEST) -run PubSubMemory -covermode count -coverprofile .cover.out -v ./messaging/internal/repository/pubsub*.go ./messaging/internal/repository/flags*.go ./messaging/internal/repository/error*.go
+test.pubsub:
+	go test -run PubSubMemory -covermode count -coverprofile .cover.out -v ./messaging/internal/repository/pubsub*.go ./messaging/internal/repository/flags*.go ./messaging/internal/repository/error*.go
 	perl -pi -e 's/command-line-arguments/.\/messaging\/internal\/repository/g' .cover.out
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
-test.events: $(GOTEST)
-	$(GOTEST) -run Events -covermode count -coverprofile .cover.out -v ./messaging/internal/repository/events*.go ./messaging/internal/repository/flags*.go ./messaging/internal/repository/error*.go
+test.events:
+	go test -run Events -covermode count -coverprofile .cover.out -v ./messaging/internal/repository/events*.go ./messaging/internal/repository/flags*.go ./messaging/internal/repository/error*.go
 	perl -pi -e 's/command-line-arguments/.\/messaging\/internal\/repository/g' .cover.out
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
-test.compose: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./compose/...
+test.compose:
+	go test -covermode count -coverprofile .cover.out -v ./compose/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
-test.system: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./system/internal/repository/... ./system/internal/service/...
+test.system:
+	go test -covermode count -coverprofile .cover.out -v ./system/internal/repository/... ./system/internal/service/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
-test.mail: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/mail/...
+test.mail:
+	go test -covermode count -coverprofile .cover.out -v ./internal/mail/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
-test.store: $(GOTEST)
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/store/...
+test.store:
+	go test -covermode count -coverprofile .cover.out -v ./internal/store/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
 test.cross-dep:
@@ -145,9 +145,6 @@ mocks: $(GOMOCK)
 ########################################################################################################################
 # Toolset
 
-$(GOTEST):
-	$(GOGET) github.com/rakyll/gotest
-
 $(REALIZE):
 	$(GOGET) github.com/tockins/realize
 
@@ -165,4 +162,4 @@ $(STATICCHECK):
 	$(GOGET) honnef.co/go/tools/cmd/staticcheck
 
 clean:
-	rm -f $(REALIZE) $(GOCRITIC) $(GOTEST)
+	rm -f $(REALIZE) $(GOCRITIC)
