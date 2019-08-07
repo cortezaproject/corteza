@@ -3,7 +3,6 @@ package factory
 import (
 	"context"
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 	"time"
@@ -15,6 +14,8 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+
+	"github.com/titpetric/factory/logger"
 )
 
 // DatabaseCredential is a configuration struct for a database connection
@@ -26,9 +27,6 @@ type DatabaseCredential struct {
 type DatabaseFactory struct {
 	credentials map[string]*DatabaseCredential
 	instances   map[string]*DB
-
-	ProfilerStdout DatabaseProfilerStdout
-	ProfilerMemory DatabaseProfilerMemory
 }
 
 // The default database factory
@@ -135,7 +133,7 @@ func (r *DatabaseFactory) Get(dbName ...string) (*DB, error) {
 				&sql.TxOptions{
 					ReadOnly: false,
 				},
-				nil,
+				logger.Silent{},
 			}
 			return r.instances[name], nil
 		}
@@ -162,10 +160,10 @@ type DB struct {
 	Tx     *sqlx.Tx
 	TxOpts *sql.TxOptions
 
-	Profiler DatabaseProfiler
+	logger logger.Logger
 }
 
-// Quiet will return a DB handle without a profiler (throw-away)
+// Quiet will return a DB handle without a logger
 func (r *DB) Quiet() *DB {
 	return &DB{
 		r.DB,
@@ -173,7 +171,7 @@ func (r *DB) Quiet() *DB {
 		r.inTx,
 		r.Tx,
 		r.TxOpts,
-		nil,
+		logger.Silent{},
 	}
 }
 
@@ -185,8 +183,13 @@ func (r *DB) With(ctx context.Context) *DB {
 		r.inTx,
 		r.Tx,
 		r.TxOpts,
-		r.Profiler,
+		r.logger,
 	}
+}
+
+// Set a custom logger
+func (r *DB) SetLogger(logger logger.Logger) {
+	r.logger = logger
 }
 
 // Begin will create a transaction in the DB with a context
@@ -215,10 +218,10 @@ func (r *DB) Begin() (err error) {
 
 // Transaction will create a transaction and invoke a callback
 func (r *DB) Transaction(callback func() error) (err error) {
-	var tries int
+	var try int
 
 	// Perform transaction statements
-	tries = 0
+	try = 0
 	for {
 		// Start transaction
 		if err = r.Begin(); err != nil {
@@ -229,16 +232,16 @@ func (r *DB) Transaction(callback func() error) (err error) {
 			break
 		}
 
-		tries++
-		if tries > 3 {
-			log.Printf("Retried transaction %d times, aborting", tries-1)
+		try++
+		if try > 3 {
+			r.logger.Log(r.ctx, fmt.Sprintf("Retried transaction %d times, aborting", try-1))
 			break
 		}
 
 		// Break out if the causer is not a MySQL error
 		cause, ok := (errors.Cause(err)).(*mysql.MySQLError)
 		if !ok {
-			log.Printf("Returned error cause is not a MySQLError, %#v", err)
+			r.logger.Log(r.ctx, "Returned error cause is not a MySQLError", logger.NewField("err", err))
 			break
 		}
 
@@ -246,12 +249,13 @@ func (r *DB) Transaction(callback func() error) (err error) {
 		//   - 1205: lock within transaction (unit tested),
 		//   - 1213: deadlock found
 		if cause.Number == 1205 || cause.Number == 1213 {
-			log.Printf("Restarting transaction (try=%d): %s", tries, cause)
+			r.logger.Log(r.ctx, "Retrying transaction", logger.NewField("try", try), logger.NewField("cause", cause))
 			r.Rollback()
 			time.Sleep(50 * time.Millisecond)
 			continue
 		}
-		log.Println("Can't handle transaction error")
+
+		r.logger.Log(r.ctx, "Can't handle transaction error, aborting")
 		break
 	}
 
@@ -550,11 +554,8 @@ func (r *DB) InsertIgnore(table string, args interface{}) error {
 }
 
 func (r *DB) Log(callback func(), query string, args ...interface{}) {
-	if r.Profiler != nil {
-		ctx := DatabaseProfilerContext{}.new(query, args...)
-		callback()
-		r.Profiler.Post(ctx)
-		return
-	}
+	start := time.Now()
 	callback()
+	duration := time.Since(start).Seconds()
+	r.logger.Log(r.ctx, query, logger.NewField("duration", duration), logger.NewField("args", args))
 }

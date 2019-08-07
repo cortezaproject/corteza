@@ -6,16 +6,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/titpetric/factory"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/internal/test"
 )
 
 func TestNamespace(t *testing.T) {
-	factory.Database.MustGet("compose").Profiler = newTestLogProfiler(t)
-
 	ctx := context.WithValue(context.Background(), "testing", true)
 
 	// Set Identity (required for permission checks).

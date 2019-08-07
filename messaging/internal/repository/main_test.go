@@ -11,12 +11,13 @@ import (
 
 	migrate "github.com/cortezaproject/corteza-server/messaging/db"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	dbLogger "github.com/titpetric/factory/logger"
 )
 
 func TestMain(m *testing.M) {
 	factory.Database.Add("messaging", os.Getenv("MESSAGING_DB_DSN"))
 	db := factory.Database.MustGet("messaging")
-	db.Profiler = &factory.Database.ProfilerStdout
+	db.SetLogger(dbLogger.Default{})
 
 	// migrate database schema
 	if err := migrate.Migrate(db, logger.Default()); err != nil {
