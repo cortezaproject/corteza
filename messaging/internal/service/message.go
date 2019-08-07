@@ -277,11 +277,11 @@ func (svc message) Create(in *types.Message) (m *types.Message, err error) {
 	if !svc.ac.CanSendMessage(svc.ctx, ch) {
 		return nil, ErrNoPermissions.withStack()
 	}
-	if m, err = svc.message.Create(in); err != nil {
-		return nil, err
-	}
-
 	return m, svc.db.Transaction(func() (err error) {
+		if m, err = svc.message.Create(in); err != nil {
+			return err
+		}
+
 		mentions := svc.extractMentions(m)
 		if err = svc.updateMentions(m.ID, mentions); err != nil {
 			return
