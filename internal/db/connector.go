@@ -8,6 +8,7 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
+	"github.com/titpetric/factory/logger"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
@@ -93,14 +94,15 @@ func TryToConnect(ctx context.Context, log *zap.Logger, name string, opt options
 		return nil, errors.Errorf("db connection for %q cancelled", name)
 	}
 
-	switch opt.Profiler {
-	case "stdout":
-		db.Profiler = &factory.Database.ProfilerStdout
-	case "logger":
-		// Skip 3 levels in call stack to get to the actual function used
-		db.Profiler = ZapProfiler(log.
-			WithOptions(zap.AddCallerSkip(3)),
+	if opt.Logger {
+		db.SetLogger(
+			NewZapLogger(
+				// Skip 3 levels in call stack to get to the actual function used
+				log.WithOptions(zap.AddCallerSkip(3)),
+			),
 		)
+	} else {
+		db.SetLogger(logger.Silent{})
 	}
 
 	if err != nil {
