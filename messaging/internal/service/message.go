@@ -211,78 +211,77 @@ func (svc message) Create(in *types.Message) (m *types.Message, err error) {
 		in.UserID = auth.GetIdentityFromContext(svc.ctx).Identity()
 	}
 
+	// Broadcast queue
+	var bq = types.MessageSet{}
+	var ch *types.Channel
+
+	if in.ReplyTo > 0 {
+		var original *types.Message
+		var replyTo = in.ReplyTo
+
+		for replyTo > 0 {
+			// Find original message
+			original, err = svc.message.FindByID(in.ReplyTo)
+			if err != nil {
+				return nil, err
+			}
+
+			replyTo = original.ReplyTo
+		}
+
+		if !original.Type.IsRepliable() {
+			return nil, errors.Errorf("unable to reply on this message (type = %s)", original.Type)
+		}
+
+		// We do not want to have multi-level threads
+		// Take original's reply-to and use it
+		in.ReplyTo = original.ID
+
+		in.ChannelID = original.ChannelID
+
+		if original.Replies == 0 {
+			// First reply,
+			//
+			// reset unreads for all members
+			var mm types.ChannelMemberSet
+			mm, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: original.ChannelID})
+			if err != nil {
+				return nil, err
+			}
+
+			err = svc.unread.Preset(original.ChannelID, original.ID, mm.AllMemberIDs()...)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		// Increment counter, on struct and in repository.
+		original.Replies++
+		if err = svc.message.IncReplyCount(original.ID); err != nil {
+			return nil, err
+		}
+
+		// Broadcast updated original
+		bq = append(bq, original)
+	}
+
+	if in.ChannelID == 0 {
+		return nil, errors.New("channelID missing")
+	}
+	if ch, err = svc.findChannelByID(in.ChannelID); err != nil {
+		return nil, err
+	}
+	if in.ReplyTo > 0 && !svc.ac.CanReplyMessage(svc.ctx, ch) {
+		return nil, ErrNoPermissions.withStack()
+	}
+	if !svc.ac.CanSendMessage(svc.ctx, ch) {
+		return nil, ErrNoPermissions.withStack()
+	}
+	if m, err = svc.message.Create(in); err != nil {
+		return nil, err
+	}
+
 	return m, svc.db.Transaction(func() (err error) {
-		// Broadcast queue
-		var bq = types.MessageSet{}
-		var ch *types.Channel
-
-		if in.ReplyTo > 0 {
-			var original *types.Message
-			var replyTo = in.ReplyTo
-
-			for replyTo > 0 {
-				// Find original message
-				original, err = svc.message.FindByID(in.ReplyTo)
-				if err != nil {
-					return
-				}
-
-				replyTo = original.ReplyTo
-			}
-
-			if !original.Type.IsRepliable() {
-				return errors.Errorf("unable to reply on this message (type = %s)", original.Type)
-			}
-
-			// We do not want to have multi-level threads
-			// Take original's reply-to and use it
-			in.ReplyTo = original.ID
-
-			in.ChannelID = original.ChannelID
-
-			if original.Replies == 0 {
-				// First reply,
-				//
-				// reset unreads for all members
-				var mm types.ChannelMemberSet
-				mm, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: original.ChannelID})
-				if err != nil {
-					return err
-				}
-
-				err = svc.unread.Preset(original.ChannelID, original.ID, mm.AllMemberIDs()...)
-				if err != nil {
-					return err
-				}
-			}
-
-			// Increment counter, on struct and in repository.
-			original.Replies++
-			if err = svc.message.IncReplyCount(original.ID); err != nil {
-				return
-			}
-
-			// Broadcast updated original
-			bq = append(bq, original)
-		}
-
-		if in.ChannelID == 0 {
-			return errors.New("channelID missing")
-		} else if ch, err = svc.findChannelByID(in.ChannelID); err != nil {
-			return
-		}
-
-		if in.ReplyTo > 0 && !svc.ac.CanReplyMessage(svc.ctx, ch) {
-			return ErrNoPermissions.withStack()
-		}
-		if !svc.ac.CanSendMessage(svc.ctx, ch) {
-			return ErrNoPermissions.withStack()
-		}
-
-		if m, err = svc.message.Create(in); err != nil {
-			return
-		}
-
 		mentions := svc.extractMentions(m)
 		if err = svc.updateMentions(m.ID, mentions); err != nil {
 			return
