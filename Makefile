@@ -70,7 +70,7 @@ test:
 	$(GO) test ./opt/... ./internal/... ./compose/... ./messaging/... ./system/...
 
 test-coverage:
-	overalls -project=github.com/cortezaproject/corteza-server -covermode=count -debug -- -coverpkg=./... --tags=integration
+	overalls -project=github.com/cortezaproject/corteza-server -covermode=count -- -coverpkg=./... --tags=integration
 	mv overalls.coverprofile coverage.txt
 
 test.internal: $(GOTEST)
@@ -116,7 +116,7 @@ test.cross-dep:
 integration:
 	# Run drone's integration pipeline
 	rm -f build/gen*
-	drone exec --pipeline integration
+	drone exec --pipeline integration --include test --include corteza-db
 
 
 vet:
