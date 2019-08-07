@@ -70,7 +70,7 @@ test:
 	$(GO) test ./opt/... ./internal/... ./compose/... ./messaging/... ./system/...
 
 test-coverage:
-	overalls -project=github.com/cortezaproject/corteza-server -covermode=count -- -coverpkg=./... --tags=integration -v
+	overalls -project=github.com/cortezaproject/corteza-server -covermode=count -- -coverpkg=./... --tags=integration -v -p 1
 	mv overalls.coverprofile coverage.txt
 
 test.internal:
