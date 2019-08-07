@@ -4,9 +4,12 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"testing"
 
 	"github.com/titpetric/factory"
+	dbLogger "github.com/titpetric/factory/logger"
 
 	"github.com/cortezaproject/corteza-server/internal/test"
 	"github.com/cortezaproject/corteza-server/messaging/types"
@@ -62,6 +65,73 @@ func TestMessage(t *testing.T) {
 			err = msgRpo.DeleteByID(msg.ID)
 			test.Assert(t, err == nil, "DeleteMessageByID error: %+v", err)
 		}
+
+		return nil
+	})
+}
+
+func TestBeforeMessageID(t *testing.T) {
+	var err error
+
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+		return
+	}
+
+	db := factory.Database.MustGet("messaging")
+	msgRpo := Message(context.Background(), db)
+	chRpo := Channel(context.Background(), db)
+
+	tx(t, func() error {
+		// insert 1 channel
+		ch := &types.Channel{}
+		ch, err = chRpo.Create(ch)
+		ch.Type = types.ChannelTypePublic
+
+		// insert 100 messages
+		db.SetLogger(dbLogger.Silent{})
+		messages := make([]*types.Message, 100)
+		for k, _ := range messages {
+			messages[k], err = msgRpo.Create(&types.Message{
+				ChannelID: ch.ID,
+				Message:   fmt.Sprintf("#%d: Lorem ipsum dolor sit amet", k),
+			})
+			log.Println("Created message with ID", messages[k].ID, "seq", k)
+			test.Assert(t, err == nil, "CreateMessage error: %+v", err)
+		}
+		db.SetLogger(dbLogger.Default{})
+
+		// request last 10 messages from channel
+		lastPageRequest := &types.MessageFilter{
+			ChannelID: []uint64{ch.ID},
+			Limit:     10,
+		}
+
+		var lastPage types.MessageSet
+		lastPage, err = msgRpo.Find(lastPageRequest)
+
+		test.Assert(t, err == nil, "lastPageRequest error: %+v", err)
+		test.Assert(t, len(lastPage) > 0, "No results found (last page)")
+
+		// print message ids (@todo: remove)
+		for _, v := range lastPage {
+			log.Println("ID:", v.ID)
+		}
+
+		// request previous 10 messages from channel
+		prevPageRequest := &types.MessageFilter{
+			ChannelID: []uint64{ch.ID},
+			Limit:     10,
+			BeforeID:  lastPage[9].ID,
+		}
+
+		var prevPage types.MessageSet
+		prevPage, err = msgRpo.Find(prevPageRequest)
+
+		test.Assert(t, err == nil, "prevPageRequest error: %+v", err)
+		test.Assert(t, prevPage[0].ID != messages[0].ID, "We have 100 IDs, second page shouldn't start with first ID")
+		test.Assert(t, prevPage[0].ID == messages[89].ID, "ID should match index 89 (max index - 10), but %d != %d", prevPage[0].ID, messages[89].ID)
+		test.Assert(t, len(prevPage) > 0, "No results found (previous page)")
 
 		return nil
 	})
