@@ -115,6 +115,11 @@ func (svc accessControl) CanManageChannelMembers(ctx context.Context, ch *types.
 	return svc.can(ctx, ch, "members.manage", svc.isChannelOwnerFallback(ctx, ch))
 }
 
+func (svc accessControl) CanChangeChannelMembershipPolicy(ctx context.Context, ch *types.Channel) bool {
+	// @todo introduce dedicated channel op. for this.
+	return svc.can(ctx, types.MessagingPermissionResource, "grant")
+}
+
 func (svc accessControl) CanManageChannelAttachments(ctx context.Context, ch *types.Channel) bool {
 	return svc.can(ctx, ch, "attachments.manage")
 }

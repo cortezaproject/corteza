@@ -25,6 +25,8 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
+
+	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 var _ = chi.URLParam
@@ -85,10 +87,11 @@ var _ RequestFiller = NewChannelList()
 
 // Channel create request parameters
 type ChannelCreate struct {
-	Name    string
-	Topic   string
-	Type    string
-	Members []string
+	Name             string
+	Topic            string
+	Type             string
+	MembershipPolicy types.ChannelMembershipPolicy
+	Members          []string
 }
 
 func NewChannelCreate() *ChannelCreate {
@@ -101,6 +104,7 @@ func (r ChannelCreate) Auditable() map[string]interface{} {
 	out["name"] = r.Name
 	out["topic"] = r.Topic
 	out["type"] = r.Type
+	out["membershipPolicy"] = r.MembershipPolicy
 	out["members"] = r.Members
 
 	return out
@@ -142,6 +146,9 @@ func (r *ChannelCreate) Fill(req *http.Request) (err error) {
 	if val, ok := post["type"]; ok {
 		r.Type = val
 	}
+	if val, ok := post["membershipPolicy"]; ok {
+		r.MembershipPolicy = types.ChannelMembershipPolicy(val)
+	}
 
 	if val, ok := req.Form["members"]; ok {
 		r.Members = parseStrings(val)
@@ -154,11 +161,12 @@ var _ RequestFiller = NewChannelCreate()
 
 // Channel update request parameters
 type ChannelUpdate struct {
-	ChannelID      uint64 `json:",string"`
-	Name           string
-	Topic          string
-	Type           string
-	OrganisationID uint64 `json:",string"`
+	ChannelID        uint64 `json:",string"`
+	Name             string
+	Topic            string
+	MembershipPolicy types.ChannelMembershipPolicy
+	Type             string
+	OrganisationID   uint64 `json:",string"`
 }
 
 func NewChannelUpdate() *ChannelUpdate {
@@ -171,6 +179,7 @@ func (r ChannelUpdate) Auditable() map[string]interface{} {
 	out["channelID"] = r.ChannelID
 	out["name"] = r.Name
 	out["topic"] = r.Topic
+	out["membershipPolicy"] = r.MembershipPolicy
 	out["type"] = r.Type
 	out["organisationID"] = r.OrganisationID
 
@@ -210,6 +219,9 @@ func (r *ChannelUpdate) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := post["topic"]; ok {
 		r.Topic = val
+	}
+	if val, ok := post["membershipPolicy"]; ok {
+		r.MembershipPolicy = types.ChannelMembershipPolicy(val)
 	}
 	if val, ok := post["type"]; ok {
 		r.Type = val
