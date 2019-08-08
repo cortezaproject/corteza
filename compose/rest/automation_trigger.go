@@ -17,6 +17,8 @@ var _ = errors.Wrap
 type (
 	automationTriggerPayload struct {
 		*automation.Trigger
+
+		CanRun bool `json:"canRun"`
 	}
 
 	automationTriggerSetPayload struct {
@@ -27,6 +29,8 @@ type (
 	AutomationTrigger struct {
 		triggers automationTriggerService
 		scripts  automationScriptFinderService
+
+		ac automationTriggerAccessController
 	}
 
 	automationTriggerService interface {
@@ -38,7 +42,13 @@ type (
 	}
 
 	automationScriptFinderService interface {
-		FindByID(context.Context, uint64) (*automation.Script, error)
+		FindByID(context.Context, uint64, uint64) (*automation.Script, error)
+	}
+
+	automationTriggerAccessController interface {
+		CanGrant(context.Context) bool
+
+		CanRunAutomationTrigger(context.Context, *automation.Trigger) bool
 	}
 )
 
@@ -46,6 +56,7 @@ func (AutomationTrigger) New() *AutomationTrigger {
 	return &AutomationTrigger{
 		scripts:  service.DefaultAutomationScriptManager,
 		triggers: service.DefaultAutomationTriggerManager,
+		ac:       service.DefaultAccessControl,
 	}
 }
 
@@ -67,7 +78,7 @@ func (ctrl AutomationTrigger) List(ctx context.Context, r *request.AutomationTri
 }
 
 func (ctrl AutomationTrigger) Create(ctx context.Context, r *request.AutomationTriggerCreate) (interface{}, error) {
-	s, _, err := ctrl.loadCombo(ctx, r.ScriptID, 0)
+	s, _, err := ctrl.loadCombo(ctx, r.NamespaceID, r.ScriptID, 0)
 	if err != nil {
 		return nil, errors.Wrap(err, "can not create trigger")
 	}
@@ -86,7 +97,7 @@ func (ctrl AutomationTrigger) Create(ctx context.Context, r *request.AutomationT
 }
 
 func (ctrl AutomationTrigger) Read(ctx context.Context, r *request.AutomationTriggerRead) (interface{}, error) {
-	_, t, err := ctrl.loadCombo(ctx, r.ScriptID, 0)
+	_, t, err := ctrl.loadCombo(ctx, r.NamespaceID, r.ScriptID, 0)
 	if err != nil {
 		return nil, errors.Wrap(err, "can not read trigger")
 	}
@@ -95,7 +106,7 @@ func (ctrl AutomationTrigger) Read(ctx context.Context, r *request.AutomationTri
 }
 
 func (ctrl AutomationTrigger) Update(ctx context.Context, r *request.AutomationTriggerUpdate) (interface{}, error) {
-	s, t, err := ctrl.loadCombo(ctx, r.ScriptID, r.TriggerID)
+	s, t, err := ctrl.loadCombo(ctx, r.NamespaceID, r.ScriptID, r.TriggerID)
 	if err != nil {
 		return nil, errors.Wrap(err, "can not update trigger")
 	}
@@ -118,34 +129,29 @@ func (ctrl AutomationTrigger) Delete(ctx context.Context, r *request.AutomationT
 	return resputil.OK(), ctrl.triggers.Delete(ctx, trigger)
 }
 
-func (ctrl AutomationTrigger) loadCombo(ctx context.Context, scriptID, triggerID uint64) (s *automation.Script, t *automation.Trigger, err error) {
+func (ctrl AutomationTrigger) loadCombo(ctx context.Context, namespaceID, scriptID, triggerID uint64) (s *automation.Script, t *automation.Trigger, err error) {
 	if triggerID > 0 {
 		t, err = ctrl.triggers.FindByID(ctx, triggerID)
 		return
 	}
 
 	if scriptID > 0 {
-		s, err = ctrl.scripts.FindByID(ctx, scriptID)
+		s, err = ctrl.scripts.FindByID(ctx, namespaceID, scriptID)
 		return
 	}
 
 	return
 }
 
-func (ctrl AutomationTrigger) makePayload(ctx context.Context, s *automation.Trigger, err error) (*automationTriggerPayload, error) {
-	if err != nil || s == nil {
+func (ctrl AutomationTrigger) makePayload(ctx context.Context, t *automation.Trigger, err error) (*automationTriggerPayload, error) {
+	if err != nil || t == nil {
 		return nil, err
 	}
 
 	return &automationTriggerPayload{
-		Trigger: s,
+		Trigger: t,
 
-		// CanUpdateModule: ctrl.ac.CanUpdateModule(ctx, s),
-		// CanDeleteModule: ctrl.ac.CanDeleteModule(ctx, s),
-		// CanCreateRecord: ctrl.ac.CanCreateRecord(ctx, s),
-		// CanReadRecord:   ctrl.ac.CanReadRecord(ctx, s),
-		// CanUpdateRecord: ctrl.ac.CanUpdateRecord(ctx, s),
-		// CanDeleteRecord: ctrl.ac.CanDeleteRecord(ctx, s),
+		CanRun: ctrl.ac.CanRunAutomationTrigger(ctx, t),
 	}, nil
 }
 

@@ -39,6 +39,10 @@ func (ac *AccessCheck) SetPrimaryKeyName(col string) *AccessCheck {
 	return ac
 }
 
+func (ac AccessCheck) HasOperation() bool {
+	return ac.operation != ""
+}
+
 // ToSql converts access check to SQL (with args) that will help with filtering
 //
 // Satisfies squirrel.Sqlizer interface

@@ -28,6 +28,8 @@ type (
 
 		srepo *scriptRepository
 		trepo *triggerRepository
+
+		db *factory.DB
 	}
 
 	ScriptsProvider interface {
@@ -39,6 +41,7 @@ type (
 	}
 
 	AutomationServiceConfig struct {
+		Logger        *zap.Logger
 		DB            *factory.DB
 		DbTablePrefix string
 	}
@@ -53,28 +56,29 @@ const (
 // service{} struct handles scripts & triggers. It acts as a caching layer and
 // proxy to repository where it verifies and enriches payloads
 //
-func Service(ctx context.Context, logger *zap.Logger, c AutomationServiceConfig) (svc *service) {
+func Service(c AutomationServiceConfig) (svc *service) {
 	svc = &service{
-		logger: logger.Named("automation"),
+		logger: c.Logger.Named("automation"),
 
 		c: c,
 
-		f: make(chan bool),
+		srepo: ScriptRepository(c.DbTablePrefix),
+		trepo: TriggerRepository(c.DbTablePrefix),
+
+		db: c.DB,
 	}
 
-	if c.DB != nil {
-		svc.srepo = ScriptRepository(c.DB, c.DbTablePrefix)
-		svc.trepo = TriggerRepository(c.DB, c.DbTablePrefix)
-	}
-
-	svc.Reload(ctx)
+	// Reload ASAP
+	svc.Reload()
 	return
 }
 
-// Watch() Watches for changes
+// Watch watches for changes
 func (svc service) Watch(ctx context.Context) {
+	svc.f = make(chan bool)
 	go func() {
 		defer sentry.Recover()
+		defer close(svc.f)
 
 		var ticker = time.NewTicker(watchInterval)
 		defer ticker.Stop()
@@ -83,9 +87,13 @@ func (svc service) Watch(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				svc.Reload(ctx)
+				svc.reload(ctx)
 			case <-svc.f:
-				svc.Reload(ctx)
+				for len(svc.f) > 0 {
+					// Drain just before we reload
+					<-svc.f
+				}
+				svc.reload(ctx)
 			}
 		}
 	}()
@@ -93,7 +101,16 @@ func (svc service) Watch(ctx context.Context) {
 	svc.logger.Debug("watcher initialized")
 }
 
-func (svc *service) Reload(ctx context.Context) {
+func (svc *service) Reload() {
+	select {
+	case svc.f <- true:
+		return
+	default:
+		// that's ok too..
+	}
+}
+
+func (svc *service) reload(ctx context.Context) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 
@@ -107,7 +124,7 @@ func (svc *service) Reload(ctx context.Context) {
 		tt  TriggerSet
 	)
 
-	ss, err = svc.srepo.With(ctx).FindAllRunnable()
+	ss, err = svc.srepo.findRunnable(svc.db)
 	svc.logger.Info("scripts loaded", zap.Error(err), zap.Int("count", len(tt)))
 	if err != nil {
 		return
@@ -118,7 +135,7 @@ func (svc *service) Reload(ctx context.Context) {
 		return s.IsValid(), nil
 	})
 
-	tt, err = svc.trepo.With(ctx).FindAllRunnable()
+	tt, err = svc.trepo.findRunnable(svc.db)
 	svc.logger.Info("triggers loaded", zap.Error(err), zap.Int("count", len(tt)))
 	if err != nil {
 		return
@@ -126,7 +143,7 @@ func (svc *service) Reload(ctx context.Context) {
 
 	_ = tt.Walk(func(t *Trigger) error {
 		s := ss.FindByID(t.ScriptID)
-		if t.IsValid() && s.CheckCompatibility(t) != nil {
+		if s != nil && t.IsValid() && s.CheckCompatibility(t) != nil {
 			// Add only compatible triggers
 			s.triggers = append(s.triggers, t)
 		}
@@ -140,106 +157,74 @@ func (svc service) FindRunnableScripts(event, origin string, cc ...TriggerCondit
 	return svc.runnables.FilterByEvent(event, origin, cc...)
 }
 
-// updateRunnableScripts - updates script set (internal runnable scripts list)
-func (svc service) updateRunnableScripts(n *Script) {
-	svc.l.Lock()
-	defer svc.l.Unlock()
-
-	ss := svc.runnables
-
-	for i := range svc.runnables {
-		if ss[i].ID != n.ID {
-			continue
-		}
-
-		if n.IsValid() {
-			// Valid, replace
-			ss[i] = n
-		}
-
-		// Invalid, remove
-		ss = append(ss[:i], ss[i+1:]...)
-		return
-	}
-
-	if n.IsValid() {
-		ss = append(ss, n)
-	}
-
-	return
-}
-
-// updateScriptsWithTrigger - finds the referenced script and updates its trigger set
-func (svc service) updateScriptWithTrigger(n *Trigger) {
-	svc.l.Lock()
-	defer svc.l.Unlock()
-
-	ss := svc.runnables
-
-	for i := range ss {
-		if ss[i].ID != n.ScriptID {
-			continue
-		}
-
-		tt := ss[i].triggers
-
-		for i = range tt {
-			if n.IsValid() {
-				// Valid, replace
-				tt[i] = n
-			}
-
-			// Invalid, remove
-			tt = append(tt[:i], tt[i+i:]...)
-			return
-		}
-
-		if n.IsValid() {
-			tt = append(tt, n)
-		}
-
-		return
-	}
-}
-
 func (svc service) FindScriptByID(ctx context.Context, scriptID uint64) (*Script, error) {
-	return svc.srepo.FindByID(ctx, scriptID)
+	return svc.srepo.findByID(svc.db, scriptID)
 }
 
 func (svc service) FindScripts(ctx context.Context, f ScriptFilter) (ScriptSet, ScriptFilter, error) {
-	return svc.srepo.Find(ctx, f)
+	return svc.srepo.find(svc.db, f)
 }
 
 // CreateScript - modifies script's props, pushes to repo & updates scripts cache
-func (svc service) CreateScript(ctx context.Context, s *Script) (err error) {
+func (svc service) CreateScript(ctx context.Context, s *Script) error {
 	s.ID = factory.Sonyflake.NextID()
 	s.CreatedAt = time.Now()
 	s.CreatedBy = auth.GetIdentityFromContext(ctx).Identity()
 
-	if err = svc.srepo.Create(s); err != nil {
-		return err
-	}
+	return svc.db.Transaction(func() (err error) {
+		if err = svc.srepo.create(svc.db, s); err != nil {
+			return
+		}
 
-	svc.updateRunnableScripts(s)
-	return
+		err = s.triggers.Walk(func(t *Trigger) error {
+			return svc.setNewTriggerInfo(ctx, s, t)
+		})
+
+		if err != nil {
+			return
+		}
+
+		// Force no-pre-check
+		if err = svc.trepo.mergeSet(svc.db, STMS_FRESH, s.ID, s.triggers); err != nil {
+			return
+		}
+
+		svc.Reload()
+		return
+	})
 }
 
 // UpdateScript - modifies script's props, pushes to repo & updates scripts cache
-func (svc service) UpdateScript(ctx context.Context, s *Script) (err error) {
-	s.UpdatedAt = &time.Time{}
-	*s.UpdatedAt = time.Now()
-	s.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
-
+func (svc service) UpdateScript(ctx context.Context, s *Script) error {
 	// Ensure sanity
-	s.UpdatedAt, s.UpdatedBy = nil, 0
+	s.UpdatedAt, s.UpdatedBy = &time.Time{}, auth.GetIdentityFromContext(ctx).Identity()
+	*s.UpdatedAt = time.Now()
 	s.DeletedAt, s.DeletedBy = nil, 0
 
-	if err = svc.srepo.Update(s); err != nil {
-		return err
-	}
+	return svc.db.Transaction(func() (err error) {
+		if err = svc.srepo.update(svc.db, s); err != nil {
+			return
+		}
 
-	svc.updateRunnableScripts(s)
-	return
+		err = s.triggers.Walk(func(t *Trigger) error {
+			if t.ID == 0 {
+				return svc.setNewTriggerInfo(ctx, s, t)
+			} else {
+				return svc.setUpdatedTriggerInfo(ctx, s, t)
+			}
+		})
+
+		if err != nil {
+			return
+		}
+
+		if err = svc.trepo.mergeSet(svc.db, s.tms, s.ID, s.triggers); err != nil {
+			return
+		}
+
+		svc.Reload()
+		return
+	})
 }
 
 // DeleteScript - modifies script's props, pushes to repo & updates scripts cache
@@ -249,24 +234,41 @@ func (svc service) DeleteScript(ctx context.Context, s *Script) (err error) {
 	s.DeletedBy = auth.GetIdentityFromContext(ctx).Identity()
 
 	// We're doing soft delete in the repo
-	if err = svc.srepo.Update(s); err != nil {
+	if err = svc.srepo.update(svc.db, s); err != nil {
 		return err
 	}
 
-	svc.updateRunnableScripts(s)
+	if err = svc.trepo.deleteByScriptID(svc.db, s.ID); err != nil {
+		return err
+	}
+
+	svc.Reload()
 	return
 }
 
 func (svc service) FindTriggerByID(ctx context.Context, scriptID uint64) (*Trigger, error) {
-	return svc.trepo.FindByID(ctx, scriptID)
+	return svc.trepo.findByID(svc.db, scriptID)
 }
 
 func (svc service) FindTriggers(ctx context.Context, f TriggerFilter) (TriggerSet, TriggerFilter, error) {
-	return svc.trepo.Find(ctx, f)
+	return svc.trepo.find(svc.db, f)
 }
 
-// CreateScript - modifies script's props, pushes to repo & updates scripts cache
+// CreateTrigger - modifies script's props, pushes to repo & updates scripts cache
 func (svc service) CreateTrigger(ctx context.Context, s *Script, t *Trigger) (err error) {
+	if err = svc.setNewTriggerInfo(ctx, s, t); err != nil {
+		return err
+	}
+
+	if err = svc.trepo.replace(svc.db, t); err != nil {
+		return err
+	}
+
+	svc.Reload()
+	return
+}
+
+func (svc service) setNewTriggerInfo(ctx context.Context, s *Script, t *Trigger) (err error) {
 	if err = s.CheckCompatibility(t); err != nil {
 		return err
 	}
@@ -275,17 +277,24 @@ func (svc service) CreateTrigger(ctx context.Context, s *Script, t *Trigger) (er
 	t.CreatedAt = time.Now()
 	t.CreatedBy = auth.GetIdentityFromContext(ctx).Identity()
 	t.ScriptID = s.ID
-
-	if err = svc.trepo.Create(t); err != nil {
-		return err
-	}
-
-	svc.updateScriptWithTrigger(t)
-	return
+	return nil
 }
 
 // UpdateTrigger - modifies script's props, pushes to repo & updates scripts cache
 func (svc service) UpdateTrigger(ctx context.Context, s *Script, t *Trigger) (err error) {
+	if err = svc.setUpdatedTriggerInfo(ctx, s, t); err != nil {
+		return err
+	}
+
+	if err = svc.trepo.replace(svc.db, t); err != nil {
+		return err
+	}
+
+	svc.Reload()
+	return
+}
+
+func (svc service) setUpdatedTriggerInfo(ctx context.Context, s *Script, t *Trigger) (err error) {
 	if s.ID != t.ScriptID {
 		return errors.New("invalid script-trigger reference")
 	}
@@ -297,13 +306,7 @@ func (svc service) UpdateTrigger(ctx context.Context, s *Script, t *Trigger) (er
 	t.UpdatedAt = &time.Time{}
 	*t.UpdatedAt = time.Now()
 	t.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
-
-	if err = svc.trepo.Update(t); err != nil {
-		return err
-	}
-
-	svc.updateScriptWithTrigger(t)
-	return
+	return nil
 }
 
 // DeleteTrigger - modifies script's props, pushes to repo & updates scripts cache
@@ -313,10 +316,10 @@ func (svc service) DeleteTrigger(ctx context.Context, t *Trigger) (err error) {
 	t.DeletedBy = auth.GetIdentityFromContext(ctx).Identity()
 
 	// We're doing soft delete in the repo
-	if err = svc.trepo.Update(t); err != nil {
+	if err = svc.trepo.replace(svc.db, t); err != nil {
 		return err
 	}
 
-	svc.updateScriptWithTrigger(t)
+	svc.Reload()
 	return
 }

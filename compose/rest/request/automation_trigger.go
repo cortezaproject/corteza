@@ -111,7 +111,6 @@ var _ RequestFiller = NewAutomationTriggerList()
 
 // AutomationTrigger create request parameters
 type AutomationTriggerCreate struct {
-	Name        string
 	Resource    string
 	Event       string
 	Condition   string
@@ -127,7 +126,6 @@ func NewAutomationTriggerCreate() *AutomationTriggerCreate {
 func (r AutomationTriggerCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
-	out["name"] = r.Name
 	out["resource"] = r.Resource
 	out["event"] = r.Event
 	out["condition"] = r.Condition
@@ -165,9 +163,6 @@ func (r *AutomationTriggerCreate) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	if val, ok := post["name"]; ok {
-		r.Name = val
-	}
 	if val, ok := post["resource"]; ok {
 		r.Resource = val
 	}
@@ -250,7 +245,6 @@ type AutomationTriggerUpdate struct {
 	TriggerID   uint64 `json:",string"`
 	NamespaceID uint64 `json:",string"`
 	ScriptID    uint64 `json:",string"`
-	Name        string
 	Resource    string
 	Event       string
 	Condition   string
@@ -267,7 +261,6 @@ func (r AutomationTriggerUpdate) Auditable() map[string]interface{} {
 	out["triggerID"] = r.TriggerID
 	out["namespaceID"] = r.NamespaceID
 	out["scriptID"] = r.ScriptID
-	out["name"] = r.Name
 	out["resource"] = r.Resource
 	out["event"] = r.Event
 	out["condition"] = r.Condition
@@ -306,9 +299,6 @@ func (r *AutomationTriggerUpdate) Fill(req *http.Request) (err error) {
 	r.TriggerID = parseUInt64(chi.URLParam(req, "triggerID"))
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	r.ScriptID = parseUInt64(chi.URLParam(req, "scriptID"))
-	if val, ok := post["name"]; ok {
-		r.Name = val
-	}
 	if val, ok := post["resource"]; ok {
 		r.Resource = val
 	}

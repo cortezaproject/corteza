@@ -73,18 +73,14 @@
       "Parameters": {
         "post": [
           {
-            "name": "name",
-            "required": true,
-            "title": "automation name",
-            "type": "string"
-          },
-          {
             "name": "resource",
+            "required": true,
             "title": "Resource",
             "type": "string"
           },
           {
             "name": "event",
+            "required": true,
             "title": "Event",
             "type": "string"
           },
@@ -132,18 +128,14 @@
         ],
         "post": [
           {
-            "name": "name",
-            "required": true,
-            "title": "automation name",
-            "type": "string"
-          },
-          {
             "name": "resource",
+            "required": true,
             "title": "Resource",
             "type": "string"
           },
           {
             "name": "event",
+            "required": true,
             "title": "Event",
             "type": "string"
           },

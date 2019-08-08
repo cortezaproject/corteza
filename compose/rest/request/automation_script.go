@@ -25,6 +25,8 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
+
+	"github.com/cortezaproject/corteza-server/pkg/automation"
 )
 
 var _ = chi.URLParam
@@ -117,6 +119,7 @@ type AutomationScriptCreate struct {
 	Critical    bool
 	Async       bool
 	Enabled     bool
+	Triggers    automation.TriggerSet
 	NamespaceID uint64 `json:",string"`
 }
 
@@ -136,6 +139,7 @@ func (r AutomationScriptCreate) Auditable() map[string]interface{} {
 	out["critical"] = r.Critical
 	out["async"] = r.Async
 	out["enabled"] = r.Enabled
+	out["triggers"] = r.Triggers
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -269,6 +273,7 @@ type AutomationScriptUpdate struct {
 	Critical    bool
 	Async       bool
 	Enabled     bool
+	Triggers    automation.TriggerSet
 }
 
 func NewAutomationScriptUpdate() *AutomationScriptUpdate {
@@ -289,6 +294,7 @@ func (r AutomationScriptUpdate) Auditable() map[string]interface{} {
 	out["critical"] = r.Critical
 	out["async"] = r.Async
 	out["enabled"] = r.Enabled
+	out["triggers"] = r.Triggers
 
 	return out
 }

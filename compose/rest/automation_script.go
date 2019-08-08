@@ -17,6 +17,13 @@ var _ = errors.Wrap
 type (
 	automationScriptPayload struct {
 		*automation.Script
+
+		CanGrant         bool `json:"canGrant"`
+		CanUpdate        bool `json:"canUpdate"`
+		CanDelete        bool `json:"canDelete"`
+		CanSetRunner     bool `json:"canSetRunner"`
+		CanSetAsAsync    bool `json:"canSetAsAsync"`
+		CanSetAsCritical bool `json:"canAsCritical"`
 	}
 
 	automationScriptSetPayload struct {
@@ -26,25 +33,34 @@ type (
 
 	AutomationScript struct {
 		scripts automationScriptService
+		ac      automationScriptAccessController
 	}
 
 	automationScriptService interface {
-		FindByID(context.Context, uint64) (*automation.Script, error)
-		Find(context.Context, automation.ScriptFilter) (automation.ScriptSet, automation.ScriptFilter, error)
-		Create(context.Context, *automation.Script) error
-		Update(context.Context, *automation.Script) error
-		Delete(context.Context, *automation.Script) error
+		FindByID(context.Context, uint64, uint64) (*automation.Script, error)
+		Find(context.Context, uint64, automation.ScriptFilter) (automation.ScriptSet, automation.ScriptFilter, error)
+		Create(context.Context, uint64, *automation.Script) error
+		Update(context.Context, uint64, *automation.Script) error
+		Delete(context.Context, uint64, *automation.Script) error
+	}
+
+	automationScriptAccessController interface {
+		CanGrant(context.Context) bool
+
+		CanUpdateAutomationScript(context.Context, *automation.Script) bool
+		CanDeleteAutomationScript(context.Context, *automation.Script) bool
 	}
 )
 
 func (AutomationScript) New() *AutomationScript {
 	return &AutomationScript{
 		scripts: service.DefaultAutomationScriptManager,
+		ac:      service.DefaultAccessControl,
 	}
 }
 
 func (ctrl AutomationScript) List(ctx context.Context, r *request.AutomationScriptList) (interface{}, error) {
-	set, filter, err := ctrl.scripts.Find(ctx, automation.ScriptFilter{
+	set, filter, err := ctrl.scripts.Find(ctx, r.NamespaceID, automation.ScriptFilter{
 		// @todo namespace filtering
 		//   Might be a bit tricky as scripts themselves not know about namespaces
 		//   Namespace: r.NamespaceID
@@ -74,16 +90,18 @@ func (ctrl AutomationScript) Create(ctx context.Context, r *request.AutomationSc
 		}
 	)
 
-	return ctrl.makePayload(ctx, script, ctrl.scripts.Create(ctx, script))
+	script.AddTrigger(automation.STMS_FRESH, r.Triggers...)
+
+	return ctrl.makePayload(ctx, script, ctrl.scripts.Create(ctx, r.NamespaceID, script))
 }
 
 func (ctrl AutomationScript) Read(ctx context.Context, r *request.AutomationScriptRead) (interface{}, error) {
-	script, err := ctrl.scripts.FindByID(ctx, r.ScriptID)
+	script, err := ctrl.scripts.FindByID(ctx, r.NamespaceID, r.ScriptID)
 	return ctrl.makePayload(ctx, script, err)
 }
 
 func (ctrl AutomationScript) Update(ctx context.Context, r *request.AutomationScriptUpdate) (interface{}, error) {
-	script, err := ctrl.scripts.FindByID(ctx, r.ScriptID)
+	script, err := ctrl.scripts.FindByID(ctx, r.NamespaceID, r.ScriptID)
 	if err != nil {
 		return nil, errors.Wrap(err, "can not update script")
 	}
@@ -98,16 +116,18 @@ func (ctrl AutomationScript) Update(ctx context.Context, r *request.AutomationSc
 	script.Critical = r.Critical
 	script.Enabled = r.Enabled
 
-	return ctrl.makePayload(ctx, script, ctrl.scripts.Update(ctx, script))
+	script.AddTrigger(automation.STMS_UPDATE, r.Triggers...)
+
+	return ctrl.makePayload(ctx, script, ctrl.scripts.Update(ctx, r.NamespaceID, script))
 }
 
 func (ctrl AutomationScript) Delete(ctx context.Context, r *request.AutomationScriptDelete) (interface{}, error) {
-	script, err := ctrl.scripts.FindByID(ctx, r.ScriptID)
+	script, err := ctrl.scripts.FindByID(ctx, r.NamespaceID, r.ScriptID)
 	if err != nil {
 		return nil, errors.Wrap(err, "can not delete script")
 	}
 
-	return resputil.OK(), ctrl.scripts.Delete(ctx, script)
+	return resputil.OK(), ctrl.scripts.Delete(ctx, r.NamespaceID, script)
 }
 
 func (ctrl AutomationScript) makePayload(ctx context.Context, s *automation.Script, err error) (*automationScriptPayload, error) {
@@ -118,12 +138,9 @@ func (ctrl AutomationScript) makePayload(ctx context.Context, s *automation.Scri
 	return &automationScriptPayload{
 		Script: s,
 
-		// CanUpdateModule: ctrl.ac.CanUpdateModule(ctx, s),
-		// CanDeleteModule: ctrl.ac.CanDeleteModule(ctx, s),
-		// CanCreateRecord: ctrl.ac.CanCreateRecord(ctx, s),
-		// CanReadRecord:   ctrl.ac.CanReadRecord(ctx, s),
-		// CanUpdateRecord: ctrl.ac.CanUpdateRecord(ctx, s),
-		// CanDeleteRecord: ctrl.ac.CanDeleteRecord(ctx, s),
+		CanGrant:  ctrl.ac.CanGrant(ctx),
+		CanUpdate: ctrl.ac.CanUpdateAutomationScript(ctx, s),
+		CanDelete: ctrl.ac.CanDeleteAutomationScript(ctx, s),
 	}, nil
 }
 

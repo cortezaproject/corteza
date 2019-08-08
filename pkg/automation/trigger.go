@@ -19,21 +19,24 @@ type (
 		Resource string `json:"resource" db:"resource"`
 
 		// Event name, arbitrary string
+		//  - "manual"
+		//  - "interval"
+		//  - "deferred"
 		//  - "before"
 		//  - "after"
-		//  - "on"
-		//  - "at"
 		Event string `json:"event" db:"event"`
 
 		// Arbitrary data for trigger condition
 		//
 		// It is caller's responsibility to encode, decode and verify conditions
-		Condition string `json:"condition" db:"condition"`
+		Condition string `json:"condition" db:"event_condition"`
 
 		ScriptID uint64 `json:"scriptID,string" db:"rel_script"`
 
 		// Is trigger enabled or disabled?
 		Enabled bool `json:"enabled" db:"enabled"`
+
+		Weight int `json:"weight" db:"weight"`
 
 		CreatedAt time.Time  `db:"created_at" json:"createdAt"`
 		CreatedBy uint64     `db:"created_by" json:"createdBy,string" `
@@ -44,11 +47,12 @@ type (
 	}
 
 	TriggerFilter struct {
-		Resource string
-		Event    string
-		ScriptID uint64
+		Resource  string `json:"resource"`
+		Event     string `json:"event"`
+		Condition string `json:"condition"`
+		ScriptID  uint64 `json:"scriptID"`
 
-		IncDeleted bool
+		IncDeleted bool `json:"incDeleted"`
 
 		// Standard paging fields & helpers
 		rh.PageFilter
@@ -58,8 +62,8 @@ type (
 )
 
 const (
-	EVENT_TYPE_INTERVAL  = "interval"
-	EVENT_TYPE_TIMESTAMP = "at"
+	EVENT_TYPE_INTERVAL = "interval"
+	EVENT_TYPE_DEFERRED = "deferred"
 )
 
 // IsValid checks if trigger is enabled and not deleted
@@ -68,8 +72,13 @@ func (t *Trigger) IsValid() bool {
 }
 
 // IsDeferred - not called as consequence of a user's action (create, delete, update)
+func (t Trigger) IsInterval() bool {
+	return t.Event == EVENT_TYPE_INTERVAL
+}
+
+// IsDeferred - not called as consequence of a user's action (create, delete, update)
 func (t Trigger) IsDeferred() bool {
-	return t.Event == EVENT_TYPE_INTERVAL || t.Event == EVENT_TYPE_TIMESTAMP
+	return t.Event == EVENT_TYPE_DEFERRED
 }
 
 // HasMatch checks if any og the triggers in a set matches the given parameters

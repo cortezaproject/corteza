@@ -152,7 +152,7 @@
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| name | string | POST | automation name | N/A | YES |
+| name | string | POST | automation name | N/A | NO |
 | sourceRef | string | POST | Source URL | N/A | NO |
 | source | string | POST | Source code | N/A | NO |
 | runAs | uint64 | POST | Run as specific user | N/A | NO |
@@ -161,6 +161,7 @@
 | critical | bool | POST | Is it critical to run this script successfully | N/A | NO |
 | async | bool | POST | Will this script be ran asynchronously | N/A | NO |
 | enabled | bool | POST |  | N/A | NO |
+| triggers | automation.TriggerSet | POST |  | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Read automation script by ID
@@ -192,7 +193,7 @@
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | scriptID | uint64 | PATH | Automation script ID | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
-| name | string | POST | Script name | N/A | YES |
+| name | string | POST | Script name | N/A | NO |
 | sourceRef | string | POST | Source URL | N/A | NO |
 | source | string | POST | Source code | N/A | NO |
 | runAs | uint64 | POST | Run script as specific user | N/A | NO |
@@ -201,6 +202,7 @@
 | critical | bool | POST | Is it critical to run this script successfully | N/A | NO |
 | async | bool | POST | Will this script be ran asynchronously | N/A | NO |
 | enabled | bool | POST |  | N/A | NO |
+| triggers | automation.TriggerSet | POST |  | N/A | NO |
 
 ## Delete script
 
@@ -264,9 +266,8 @@
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| name | string | POST | automation name | N/A | YES |
-| resource | string | POST | Resource | N/A | NO |
-| event | string | POST | Event | N/A | NO |
+| resource | string | POST | Resource | N/A | YES |
+| event | string | POST | Event | N/A | YES |
 | condition | string | POST | Event | N/A | NO |
 | enabled | bool | POST |  | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
@@ -303,9 +304,8 @@
 | triggerID | uint64 | PATH | Automation script trigger ID | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | scriptID | uint64 | PATH | Script ID | N/A | YES |
-| name | string | POST | automation name | N/A | YES |
-| resource | string | POST | Resource | N/A | NO |
-| event | string | POST | Event | N/A | NO |
+| resource | string | POST | Resource | N/A | YES |
+| event | string | POST | Event | N/A | YES |
 | condition | string | POST | Event | N/A | NO |
 | enabled | bool | POST |  | N/A | NO |
 

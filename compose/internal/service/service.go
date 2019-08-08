@@ -82,7 +82,11 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 
 	// ias Internal Automatinon Service
 	// handles script & trigger management & keeping runnables cripts in internal cache
-	ias := automation.Service(ctx, DefaultLogger, automation.AutomationServiceConfig{DB: db, DbTablePrefix: "compose"})
+	ias := automation.Service(automation.AutomationServiceConfig{
+		Logger:        DefaultLogger,
+		DbTablePrefix: "compose",
+		DB:            db,
+	})
 
 	// Pass automation manager to
 	DefaultAutomationScriptManager = AutomationScript(ias)
