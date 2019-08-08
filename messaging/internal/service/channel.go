@@ -42,6 +42,7 @@ type (
 		CanArchiveChannel(context.Context, *types.Channel) bool
 		CanUnarchiveChannel(context.Context, *types.Channel) bool
 		CanManageChannelMembers(context.Context, *types.Channel) bool
+		CanChangeChannelMembershipPolicy(context.Context, *types.Channel) bool
 		CanSendMessage(context.Context, *types.Channel) bool
 		CanUpdateOwnMessages(context.Context, *types.Channel) bool
 		CanUpdateMessages(context.Context, *types.Channel) bool
@@ -268,13 +269,23 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 			return ErrNoPermissions.withStack()
 		}
 
+		if !in.MembershipPolicy.IsValid() {
+			// Reset invalid membership flag to default
+			in.MembershipPolicy = types.ChannelMembershipPolicyDefault
+		}
+
+		if in.MembershipPolicy != types.ChannelMembershipPolicyDefault && !svc.ac.CanChangeChannelMembershipPolicy(svc.ctx, in) {
+			return ErrNoPermissions.withStack()
+		}
+
 		// This is a fresh channel, just copy values
 		out = &types.Channel{
-			Name:           in.Name,
-			Topic:          in.Topic,
-			Type:           in.Type,
-			OrganisationID: organisationID,
-			CreatorID:      chCreatorID,
+			Name:             in.Name,
+			Topic:            in.Topic,
+			Type:             in.Type,
+			MembershipPolicy: in.MembershipPolicy,
+			OrganisationID:   organisationID,
+			CreatorID:        chCreatorID,
 		}
 
 		// Save the channel
@@ -424,6 +435,13 @@ func (svc *channel) Update(in *types.Channel) (ch *types.Channel, err error) {
 			}
 
 			ch.Topic = in.Topic
+			changed = true
+		}
+
+		if ch.MembershipPolicy != in.MembershipPolicy && !svc.ac.CanChangeChannelMembershipPolicy(svc.ctx, ch) {
+			return ErrNoPermissions.withStack()
+		} else {
+			ch.MembershipPolicy = in.MembershipPolicy
 			changed = true
 		}
 
@@ -891,6 +909,8 @@ func (svc *channel) setPermissionFlags(ch *types.Channel) (err error) {
 	ch.CanUpdateMessages = svc.ac.CanUpdateMessages(svc.ctx, ch)
 	ch.CanUpdateOwnMessages = svc.ac.CanUpdateOwnMessages(svc.ctx, ch)
 	ch.CanChangeMembers = svc.ac.CanManageChannelMembers(svc.ctx, ch)
+	// @todo migrate to proper change-membership-policy action check
+	ch.CanChangeMembershipPolicy = svc.ac.CanChangeChannelMembershipPolicy(svc.ctx, ch)
 
 	ch.CanUpdate = svc.ac.CanUpdateChannel(svc.ctx, ch)
 	ch.CanArchive = svc.ac.CanArchiveChannel(svc.ctx, ch)

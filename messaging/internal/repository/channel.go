@@ -40,6 +40,7 @@ const (
 	sqlChannelColumns = " id," +
 		"name, " +
 		"meta, " +
+		"membership_policy, " +
 		"created_at, " +
 		"updated_at, " +
 		"archived_at, " +
@@ -159,7 +160,7 @@ func (r *channel) Update(mod *types.Channel) (*types.Channel, error) {
 		mod.Type = types.ChannelTypePublic
 	}
 
-	whitelist := []string{"id", "name", "type", "topic", "meta", "updated_at"}
+	whitelist := []string{"id", "name", "type", "membership_policy", "topic", "meta", "updated_at"}
 
 	return mod, r.db().UpdatePartial("messaging_channel", mod, whitelist, "id")
 }

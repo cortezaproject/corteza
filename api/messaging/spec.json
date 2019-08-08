@@ -110,6 +110,13 @@
             "Client ID",
             "Session ID"
         ],
+        "struct": [
+            {
+                "imports": [
+                    "github.com/cortezaproject/corteza-server/messaging/types"
+                ]
+            }
+        ],
         "apis": [
             {
                 "name": "list",
@@ -153,6 +160,12 @@
                             "title": "Channel type"
                         },
                         {
+                            "type": "types.ChannelMembershipPolicy",
+                            "name": "membershipPolicy",
+                            "required": false,
+                            "title": "Membership policy (eg: featured, forced)?"
+                        },
+                        {
                             "type": "[]string",
                             "name": "members",
                             "required": false,
@@ -187,6 +200,12 @@
                             "name": "topic",
                             "required": false,
                             "title": "Subject of Channel"
+                        },
+                        {
+                            "type": "types.ChannelMembershipPolicy",
+                            "name": "membershipPolicy",
+                            "required": false,
+                            "title": "Membership policy (eg: featured, forced)?"
                         },
                         {
                             "type": "string",

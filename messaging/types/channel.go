@@ -15,6 +15,8 @@ type (
 		Type  ChannelType    `json:"type" db:"type"`
 		Meta  types.JSONText `json:"-" db:"meta"`
 
+		MembershipPolicy ChannelMembershipPolicy `json:"membershipPolicy" db:"membership_policy""`
+
 		CreatorID      uint64 `json:"creatorId" db:"rel_creator"`
 		OrganisationID uint64 `json:"organisationId" db:"rel_organisation"`
 
@@ -26,20 +28,21 @@ type (
 
 		LastMessageID uint64 `json:",omitempty" db:"rel_last_message"`
 
-		CanJoin              bool `json:"-" db:"-"`
-		CanPart              bool `json:"-" db:"-"`
-		CanObserve           bool `json:"-" db:"-"`
-		CanSendMessages      bool `json:"-" db:"-"`
-		CanDeleteMessages    bool `json:"-" db:"-"`
-		CanDeleteOwnMessages bool `json:"-" db:"-"`
-		CanUpdateMessages    bool `json:"-" db:"-"`
-		CanUpdateOwnMessages bool `json:"-" db:"-"`
-		CanChangeMembers     bool `json:"-" db:"-"`
-		CanUpdate            bool `json:"-" db:"-"`
-		CanArchive           bool `json:"-" db:"-"`
-		CanUnarchive         bool `json:"-" db:"-"`
-		CanDelete            bool `json:"-" db:"-"`
-		CanUndelete          bool `json:"-" db:"-"`
+		CanJoin                   bool `json:"-" db:"-"`
+		CanPart                   bool `json:"-" db:"-"`
+		CanObserve                bool `json:"-" db:"-"`
+		CanSendMessages           bool `json:"-" db:"-"`
+		CanDeleteMessages         bool `json:"-" db:"-"`
+		CanDeleteOwnMessages      bool `json:"-" db:"-"`
+		CanUpdateMessages         bool `json:"-" db:"-"`
+		CanUpdateOwnMessages      bool `json:"-" db:"-"`
+		CanChangeMembers          bool `json:"-" db:"-"`
+		CanChangeMembershipPolicy bool `json:"-" db:"-"`
+		CanUpdate                 bool `json:"-" db:"-"`
+		CanArchive                bool `json:"-" db:"-"`
+		CanUnarchive              bool `json:"-" db:"-"`
+		CanDelete                 bool `json:"-" db:"-"`
+		CanUndelete               bool `json:"-" db:"-"`
 
 		Member  *ChannelMember `json:"-" db:"-"`
 		Members []uint64       `json:"-" db:"-"`
@@ -56,7 +59,8 @@ type (
 		IncludeDeleted bool
 	}
 
-	ChannelType string
+	ChannelMembershipPolicy string
+	ChannelType             string
 )
 
 // Resource returns a system resource ID for this type
@@ -72,6 +76,10 @@ const (
 	ChannelTypePublic  ChannelType = "public"
 	ChannelTypePrivate ChannelType = "private"
 	ChannelTypeGroup   ChannelType = "group"
+
+	ChannelMembershipPolicyFeatured ChannelMembershipPolicy = "featured"
+	ChannelMembershipPolicyForced   ChannelMembershipPolicy = "forced"
+	ChannelMembershipPolicyDefault  ChannelMembershipPolicy = ""
 )
 
 func (mtype ChannelType) String() string {
@@ -83,6 +91,21 @@ func (mtype ChannelType) IsValid() bool {
 	case ChannelTypePublic,
 		ChannelTypePrivate,
 		ChannelTypeGroup:
+		return true
+	}
+
+	return false
+}
+
+func (cm ChannelMembershipPolicy) String() string {
+	return string(cm)
+}
+
+func (cm ChannelMembershipPolicy) IsValid() bool {
+	switch cm {
+	case ChannelMembershipPolicyFeatured,
+		ChannelMembershipPolicyForced,
+		ChannelMembershipPolicyDefault:
 		return true
 	}
 

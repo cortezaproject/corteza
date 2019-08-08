@@ -2,7 +2,13 @@
   "Title": "Channels",
   "Description": "A channel is a representation of a sequence of messages. It has meta data like channel subject. Channels may be public, private or group.",
   "Interface": "Channel",
-  "Struct": null,
+  "Struct": [
+    {
+      "imports": [
+        "github.com/cortezaproject/corteza-server/messaging/types"
+      ]
+    }
+  ],
   "Parameters": null,
   "Protocol": "",
   "Authentication": [
@@ -53,6 +59,12 @@
             "type": "string"
           },
           {
+            "name": "membershipPolicy",
+            "required": false,
+            "title": "Membership policy (eg: featured, forced)?",
+            "type": "types.ChannelMembershipPolicy"
+          },
+          {
             "name": "members",
             "required": false,
             "title": "Initial members of the channel",
@@ -87,6 +99,12 @@
             "required": false,
             "title": "Subject of Channel",
             "type": "string"
+          },
+          {
+            "name": "membershipPolicy",
+            "required": false,
+            "title": "Membership policy (eg: featured, forced)?",
+            "type": "types.ChannelMembershipPolicy"
           },
           {
             "name": "type",

@@ -41,6 +41,8 @@ func (ctrl *Channel) Create(ctx context.Context, r *request.ChannelCreate) (inte
 		// string input for members (for now)
 		// https://github.com/golang/go/issues/15624
 		Members: payload.ParseUInt64s(r.Members),
+
+		MembershipPolicy: r.MembershipPolicy,
 	}
 
 	return ctrl.wrap(ctrl.svc.ch.With(ctx).Create(channel))
@@ -52,6 +54,8 @@ func (ctrl *Channel) Update(ctx context.Context, r *request.ChannelUpdate) (inte
 		Name:  r.Name,
 		Topic: r.Topic,
 		Type:  types.ChannelType(r.Type),
+
+		MembershipPolicy: r.MembershipPolicy,
 	}
 
 	return ctrl.wrap(ctrl.svc.ch.With(ctx).Update(channel))

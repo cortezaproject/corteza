@@ -24,24 +24,26 @@ type (
 
 	Channel struct {
 		// Channel to part (nil) for ALL channels
-		ID             string   `json:"channelID"`
-		Name           string   `json:"name"`
-		Topic          string   `json:"topic"`
-		Type           string   `json:"type"`
-		LastMessageID  string   `json:"lastMessageID"`
-		Unread         *Unread  `json:"unread,omitempty"`
-		Members        []string `json:"members,omitempty"`
-		MembershipFlag string   `json:"membershipFlag"`
+		ID               string   `json:"channelID"`
+		Name             string   `json:"name"`
+		Topic            string   `json:"topic"`
+		Type             string   `json:"type"`
+		MembershipPolicy string   `json:"membershipPolicy"`
+		LastMessageID    string   `json:"lastMessageID"`
+		Unread           *Unread  `json:"unread,omitempty"`
+		Members          []string `json:"members,omitempty"`
+		MembershipFlag   string   `json:"membershipFlag"`
 
-		CanJoin           bool `json:"canJoin"`
-		CanPart           bool `json:"canPart"`
-		CanObserve        bool `json:"canObserve"`
-		CanSendMessages   bool `json:"canSendMessages"`
-		CanDeleteMessages bool `json:"canDeleteMessages"`
-		CanChangeMembers  bool `json:"canChangeMembers"`
-		CanUpdate         bool `json:"canUpdate"`
-		CanArchive        bool `json:"canArchive"`
-		CanDelete         bool `json:"canDelete"`
+		CanJoin                   bool `json:"canJoin"`
+		CanPart                   bool `json:"canPart"`
+		CanObserve                bool `json:"canObserve"`
+		CanSendMessages           bool `json:"canSendMessages"`
+		CanDeleteMessages         bool `json:"canDeleteMessages"`
+		CanChangeMembers          bool `json:"canChangeMembers"`
+		CanChangeMembershipPolicy bool `json:"canChangeMembershipPolicy"`
+		CanUpdate                 bool `json:"canUpdate"`
+		CanArchive                bool `json:"canArchive"`
+		CanDelete                 bool `json:"canDelete"`
 
 		CreatedAt  time.Time  `json:"createdAt"`
 		UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
