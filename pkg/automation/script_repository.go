@@ -1,42 +1,28 @@
 package automation
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"gopkg.in/Masterminds/squirrel.v1"
 
+	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
 	// repository servs as a db storage layer for permission rules
 	scriptRepository struct {
-		dbh *factory.DB
-
 		// sql table reference
 		dbTablePrefix string
 	}
 )
 
-func ScriptRepository(db *factory.DB, dbTablePrefix string) *scriptRepository {
+func ScriptRepository(dbTablePrefix string) *scriptRepository {
 	return &scriptRepository{
 		dbTablePrefix: dbTablePrefix,
-		dbh:           db,
 	}
-}
-
-func (r *scriptRepository) With(ctx context.Context) *scriptRepository {
-	return &scriptRepository{
-		dbTablePrefix: r.dbTablePrefix,
-		dbh:           r.db().With(ctx),
-	}
-}
-
-func (r *scriptRepository) db() *factory.DB {
-	return r.dbh
 }
 
 func (r scriptRepository) table() string {
@@ -71,20 +57,19 @@ func (r *scriptRepository) query() squirrel.SelectBuilder {
 }
 
 // FindByID finds specific script
-func (r *scriptRepository) FindByID(ctx context.Context, scriptID uint64) (*Script, error) {
+func (r *scriptRepository) findByID(db *factory.DB, scriptID uint64) (*Script, error) {
 	var (
 		rval = &Script{}
 
 		query = r.query().
-			Columns(r.columns()...).
 			Where("id = ?", scriptID)
 	)
 
-	return rval, rh.IsFound(rh.FetchOne(r.db(), query, rval), rval.ID > 0, errors.New("script not found"))
+	return rval, rh.IsFound(rh.FetchOne(db, query, rval), rval.ID > 0, errors.New("script not found"))
 }
 
 // Find - finds scripts using given filter
-func (r *scriptRepository) Find(ctx context.Context, filter ScriptFilter) (set ScriptSet, f ScriptFilter, err error) {
+func (r *scriptRepository) find(db *factory.DB, filter ScriptFilter) (set ScriptSet, f ScriptFilter, err error) {
 	f = filter
 
 	query := r.query()
@@ -100,41 +85,44 @@ func (r *scriptRepository) Find(ctx context.Context, filter ScriptFilter) (set S
 
 	if f.Resource != "" {
 		// Making partial trigger repo struct on the fly to help us calculate the name of the triggers table
-		ttable := (triggerRepository{dbTablePrefix: r.dbTablePrefix}).table()
 		query = query.Where(
-			fmt.Sprintf("id IN (SELECT rel_script FROM `%s` WHERE resource = ?", ttable),
+			fmt.Sprintf("id IN (SELECT rel_script FROM `%s` WHERE resource = ?", r.table()),
 			f.Resource,
 		)
 	}
 
-	if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
+	// Limit by access
+	if f.AccessCheck.HasOperation() {
+		query = query.Where(f.AccessCheck.BindToEnv(
+			types.AutomationScriptPermissionResource,
+			r.dbTablePrefix,
+		))
+	}
+
+	if f.Count, err = rh.Count(db, query); err != nil || f.Count == 0 {
 		return
 	}
 
 	query = query.OrderBy("id ASC")
 
-	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
+	return set, f, rh.FetchPaged(db, query, f.Page, f.PerPage, &set)
 }
 
 // FindAllRunnable - loads and returns all runnable scripts
-func (r *scriptRepository) FindAllRunnable() (ScriptSet, error) {
+func (r *scriptRepository) findRunnable(db *factory.DB) (ScriptSet, error) {
 	rr := make([]*Script, 0)
 
 	return rr, errors.Wrap(rh.FetchAll(
-		r.db(),
+		db,
 		r.query().Where("enabled AND deleted_at IS NULL"),
 		&rr,
 	), "could not load runnable scripts")
 }
 
-func (r *scriptRepository) Create(s *Script) (err error) {
-	return r.dbh.Transaction(func() error {
-		return r.dbh.Insert(r.table(), s)
-	})
+func (r *scriptRepository) create(db *factory.DB, s *Script) (err error) {
+	return db.Insert(r.table(), s)
 }
 
-func (r *scriptRepository) Update(s *Script) (err error) {
-	return r.dbh.Transaction(func() error {
-		return r.dbh.Update(r.table(), s, "id")
-	})
+func (r *scriptRepository) update(db *factory.DB, s *Script) (err error) {
+	return db.Update(r.table(), s, "id")
 }

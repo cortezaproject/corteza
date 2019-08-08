@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
@@ -47,7 +48,15 @@ type (
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
 		DeletedBy uint64     `db:"deleted_by" json:"deletedBy,string,omitempty" `
 
+		// Serves as container for valid triggers for runnable scripts internal cache
+		// and for as a transport on create/update operations
+		//
+		// Node: on c/u op., we currently just merge current state with the given list,
+		// w/o updating the rest of the script's triggers
 		triggers TriggerSet
+
+		// How are we merging?
+		tms triggersMergeStrategy
 	}
 
 	ScriptFilter struct {
@@ -55,9 +64,27 @@ type (
 		Resource   string
 		IncDeleted bool `json:"incDeleted"`
 
+		permissions.AccessCheck `json:"-"`
+
 		// Standard paging fields & helpers
 		rh.PageFilter
 	}
+
+	triggersMergeStrategy int
+)
+
+const (
+	// Ignore the given triggers
+	STMS_IGNORE triggersMergeStrategy = iota
+
+	// Create triggers, no pre-checks
+	STMS_FRESH
+
+	// Update existing with new
+	STMS_UPDATE
+
+	// Replace existing with new
+	STMS_REPLACE
 )
 
 // IsValid - enabled, deleted?
@@ -87,7 +114,7 @@ func (s *Script) CheckCompatibility(t *Trigger) error {
 		return errors.New("not compatible with nil trigger")
 	}
 
-	if t.IsDeferred() {
+	if t.IsDeferred() || t.IsInterval() {
 		if s.RunInUA {
 			return errors.New("deferred triggers are not compatible with user-agent scripts")
 		}
@@ -119,4 +146,27 @@ func (s Script) RunAsDefined() bool {
 // RunAsInvoker - this script should run with invoker's privileges (user)
 func (s Script) RunAsInvoker() bool {
 	return s.RunAs == 0
+}
+
+// AddTrigger appends one or more triggers to internal list of triggers on script struct
+//
+// We do not do any compatibility check (See Script.CheckCompatibility());
+// this is only an utility func that helps us pass data along
+func (s *Script) AddTrigger(strategy triggersMergeStrategy, tt ...*Trigger) {
+	s.tms = strategy
+
+	if s.tms == STMS_IGNORE {
+		return
+	}
+
+	if s.tms == STMS_REPLACE {
+		s.triggers = TriggerSet{}
+	}
+
+	// Make sure all your trigger belong to us (ref same script or no ref):
+	for _, t := range tt {
+		if t.ScriptID == 0 || t.ScriptID == s.ID {
+			s.triggers = append(s.triggers, t)
+		}
+	}
 }

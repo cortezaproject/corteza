@@ -30,9 +30,11 @@ CREATE TABLE IF NOT EXISTS compose_automation_trigger (
 
     `resource`   VARCHAR(128)         NOT NULL              COMMENT 'Resource triggering the event',
     `event`      VARCHAR(128)         NOT NULL              COMMENT 'Event triggered',
-    `condition`  TEXT                 NOT NULL              COMMENT 'Trigger condition',
+    `event_condition`
+                 TEXT                 NOT NULL              COMMENT 'Trigger condition',
+    `enabled`    BOOLEAN              NOT NULL DEFAULT TRUE COMMENT 'Trigger enabled?',
 
-    `enabled`    BOOLEAN             NOT NULL DEFAULT TRUE COMMENT 'Trigger enabled?',
+    `weight`     INT                  NOT NULL DEFAULT 0,
 
     `created_by` BIGINT(20)  UNSIGNED NOT NULL DEFAULT 0,
     `created_at` DATETIME             NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -49,11 +51,12 @@ CREATE TABLE IF NOT EXISTS compose_automation_trigger (
 
 
 
-# Insert all into
+# Migrate old triggers into scripts
 INSERT INTO compose_automation_script (id, name, source, source_ref, run_in_ua, critical, enabled, created_at, updated_at, deleted_at)
 SELECT id, name, source, '', true, false, enabled, created_at, updated_at, deleted_at from compose_trigger;
 
-INSERT INTO compose_automation_trigger (id, event, resource, `condition`, rel_script, enabled, created_at, updated_at, deleted_at)
+# Migrate old triggers into new triggers
+INSERT INTO compose_automation_trigger (id, event, resource, event_condition, rel_script, enabled, created_at, updated_at, deleted_at)
 SELECT id+seq, events.event, 'compose:record', rel_module, id, enabled, created_at, updated_at, deleted_at from compose_trigger AS t INNER JOIN
               (      SELECT 0 as seq, ''             AS event
                UNION SELECT 1 as seq, 'manual'       AS event
@@ -64,5 +67,8 @@ SELECT id+seq, events.event, 'compose:record', rel_module, id, enabled, created_
                UNION SELECT 6 as seq, 'beforeDelete' AS event
                UNION SELECT 7 as seq, 'afterDelete'  AS event) AS events ON ((event  = '' AND t.actions = '')
                                                                           OR (event <> '' AND t.actions LIKE concat('%',event,'%') ));
+# Normalize and cleanup
+UPDATE compose_automation_trigger SET event = 'manual' WHERE event = '';
+DELETE FROM compose_automation_trigger WHERE event_condition IN ('', '0') AND event <> 'manual';
 
 -- DROP TABLE IF EXISTS compose_trigger;

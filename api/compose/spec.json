@@ -1292,6 +1292,14 @@
             "Client ID",
             "Session ID"
         ],
+
+        "struct": [
+            {
+                "imports": [
+                    "github.com/cortezaproject/corteza-server/pkg/automation"
+                ]
+            }
+        ],
         "parameters": {
             "path": [
                 {
@@ -1353,8 +1361,7 @@
                         {
                             "name": "name",
                             "title": "automation name",
-                            "type": "string",
-                            "required": true
+                            "type": "string"
                         },
                         {
                             "name": "sourceRef",
@@ -1394,6 +1401,10 @@
                         {
                             "name": "enabled",
                             "type": "bool"
+                        },
+                        {
+                            "name": "triggers",
+                            "type": "automation.TriggerSet"
                         }
                     ]
                 }
@@ -1432,8 +1443,7 @@
                         {
                             "name": "name",
                             "title": "Script name",
-                            "type": "string",
-                            "required": true
+                            "type": "string"
                         },
                         {
                             "name": "sourceRef",
@@ -1473,6 +1483,10 @@
                         {
                             "name": "enabled",
                             "type": "bool"
+                        },
+                        {
+                            "name": "triggers",
+                            "type": "automation.TriggerSet"
                         }
                     ]
                 }

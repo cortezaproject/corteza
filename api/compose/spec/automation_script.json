@@ -1,7 +1,13 @@
 {
   "Title": "Automation scripts",
   "Interface": "Automation_script",
-  "Struct": null,
+  "Struct": [
+    {
+      "imports": [
+        "github.com/cortezaproject/corteza-server/pkg/automation"
+      ]
+    }
+  ],
   "Parameters": {
     "path": [
       {
@@ -68,7 +74,6 @@
         "post": [
           {
             "name": "name",
-            "required": true,
             "title": "automation name",
             "type": "string"
           },
@@ -110,6 +115,10 @@
           {
             "name": "enabled",
             "type": "bool"
+          },
+          {
+            "name": "triggers",
+            "type": "automation.TriggerSet"
           }
         ]
       }
@@ -147,7 +156,6 @@
         "post": [
           {
             "name": "name",
-            "required": true,
             "title": "Script name",
             "type": "string"
           },
@@ -189,6 +197,10 @@
           {
             "name": "enabled",
             "type": "bool"
+          },
+          {
+            "name": "triggers",
+            "type": "automation.TriggerSet"
           }
         ]
       }
