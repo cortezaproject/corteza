@@ -11,6 +11,11 @@ import (
 )
 
 type (
+	moduleSetPayload struct {
+		Filter types.ModuleFilter `json:"filter"`
+		Set    []*modulePayload   `json:"set"`
+	}
+
 	modulePayload struct {
 		*types.Module
 
@@ -34,14 +39,8 @@ type (
 		CanUpdateRecordValue bool `json:"canUpdateRecordValue"`
 	}
 
-	moduleSetPayload struct {
-		Filter types.ModuleFilter `json:"filter"`
-		Set    []*modulePayload   `json:"set"`
-	}
-
 	Module struct {
 		module service.ModuleService
-		record service.RecordService
 		ac     moduleAccessController
 	}
 
@@ -65,7 +64,6 @@ type (
 func (Module) New() *Module {
 	return &Module{
 		module: service.DefaultModule,
-		record: service.DefaultRecord,
 		ac:     service.DefaultAccessControl,
 	}
 }

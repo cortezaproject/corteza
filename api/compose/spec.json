@@ -764,28 +764,6 @@
                 }
             },
             {
-                "name": "runScript",
-                "method": "POST",
-                "title": "Trigger a specific script on record",
-                "path": "/run-script",
-                "parameters": {
-                    "post": [
-                        {
-                            "type": "uint64",
-                            "name": "recordID",
-                            "required": false,
-                            "title": "Record ID"
-                        },
-                        {
-                            "type": "uint64",
-                            "name": "scriptID",
-                            "required": true,
-                            "title": "Script ID"
-                        }
-                    ]
-                }
-            },
-            {
                 "name": "upload",
                 "path": "/attachment",
                 "method": "POST",
@@ -1502,8 +1480,36 @@
                             "type": "uint64",
                             "name": "scriptID",
                             "required": true,
-                            "title": "automation ID"
+                            "title": "Script ID"
                         }
+                    ]
+                }
+            },
+            {
+                "name": "runnable",
+                "method": "GET",
+                "title": "List of runnable (event=manual) scripts (executable on the backend or from user-agent/browser)",
+                "path": "/runnable",
+                "parameters": {
+                    "get": [
+                        {"name": "resource", "type": "string", "title": "Resource"},
+                        {"name": "condition", "type": "string", "title": "Trigger condition"}
+                    ]
+                }
+            },
+            {
+                "name": "run",
+                "method": "POST",
+                "title": "Run a specific script or code at the backend. For testing and manual execution",
+                "path": "/run",
+                "parameters": {
+                    "post": [
+                        {"name": "scriptID", "type": "uint64", "title": "Script ID (scripts with manual triggers)"},
+                        {"name": "source", "type": "string", "title": "Script's source code (overrides scriptID parameter)"},
+                        {"name": "moduleID", "type": "uint64", "title": "Preload module and pass it to the automation script"},
+                        {"name": "recordID", "type": "uint64", "title": "Preload record and pass it to the automation script"},
+                        {"name": "module", "type": "interface{}", "title": "Module to pass to the automation script"},
+                        {"name": "record", "type": "interface{}", "title": "Record to pass to the automation script"}
                     ]
                 }
             }

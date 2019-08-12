@@ -36,21 +36,19 @@ type RecordAPI interface {
 	Read(context.Context, *request.RecordRead) (interface{}, error)
 	Update(context.Context, *request.RecordUpdate) (interface{}, error)
 	Delete(context.Context, *request.RecordDelete) (interface{}, error)
-	RunScript(context.Context, *request.RecordRunScript) (interface{}, error)
 	Upload(context.Context, *request.RecordUpload) (interface{}, error)
 }
 
 // HTTP API interface
 type Record struct {
-	Report    func(http.ResponseWriter, *http.Request)
-	List      func(http.ResponseWriter, *http.Request)
-	Export    func(http.ResponseWriter, *http.Request)
-	Create    func(http.ResponseWriter, *http.Request)
-	Read      func(http.ResponseWriter, *http.Request)
-	Update    func(http.ResponseWriter, *http.Request)
-	Delete    func(http.ResponseWriter, *http.Request)
-	RunScript func(http.ResponseWriter, *http.Request)
-	Upload    func(http.ResponseWriter, *http.Request)
+	Report func(http.ResponseWriter, *http.Request)
+	List   func(http.ResponseWriter, *http.Request)
+	Export func(http.ResponseWriter, *http.Request)
+	Create func(http.ResponseWriter, *http.Request)
+	Read   func(http.ResponseWriter, *http.Request)
+	Update func(http.ResponseWriter, *http.Request)
+	Delete func(http.ResponseWriter, *http.Request)
+	Upload func(http.ResponseWriter, *http.Request)
 }
 
 func NewRecord(h RecordAPI) *Record {
@@ -195,26 +193,6 @@ func NewRecord(h RecordAPI) *Record {
 				resputil.JSON(w, value)
 			}
 		},
-		RunScript: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewRecordRunScript()
-			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Record.RunScript", r, err)
-				resputil.JSON(w, err)
-				return
-			}
-
-			value, err := h.RunScript(r.Context(), params)
-			if err != nil {
-				logger.LogControllerError("Record.RunScript", r, err, params.Auditable())
-				resputil.JSON(w, err)
-				return
-			}
-			logger.LogControllerCall("Record.RunScript", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
-		},
 		Upload: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewRecordUpload()
@@ -248,7 +226,6 @@ func (h Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Read)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Update)
 		r.Delete("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Delete)
-		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/run-script", h.RunScript)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/attachment", h.Upload)
 	})
 }

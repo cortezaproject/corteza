@@ -95,12 +95,12 @@ withTriggers:
 			continue withTriggers
 		}
 
-		if m.Resource != t.Resource {
+		if m.Resource != "" && m.Resource != t.Resource {
 			// event should match
 			continue withTriggers
 		}
 
-		if m.Event != t.Event {
+		if m.Event != "" && m.Event != t.Event {
 			// event should match
 			continue withTriggers
 		}

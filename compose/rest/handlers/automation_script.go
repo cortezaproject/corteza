@@ -34,15 +34,19 @@ type AutomationScriptAPI interface {
 	Read(context.Context, *request.AutomationScriptRead) (interface{}, error)
 	Update(context.Context, *request.AutomationScriptUpdate) (interface{}, error)
 	Delete(context.Context, *request.AutomationScriptDelete) (interface{}, error)
+	Runnable(context.Context, *request.AutomationScriptRunnable) (interface{}, error)
+	Run(context.Context, *request.AutomationScriptRun) (interface{}, error)
 }
 
 // HTTP API interface
 type AutomationScript struct {
-	List   func(http.ResponseWriter, *http.Request)
-	Create func(http.ResponseWriter, *http.Request)
-	Read   func(http.ResponseWriter, *http.Request)
-	Update func(http.ResponseWriter, *http.Request)
-	Delete func(http.ResponseWriter, *http.Request)
+	List     func(http.ResponseWriter, *http.Request)
+	Create   func(http.ResponseWriter, *http.Request)
+	Read     func(http.ResponseWriter, *http.Request)
+	Update   func(http.ResponseWriter, *http.Request)
+	Delete   func(http.ResponseWriter, *http.Request)
+	Runnable func(http.ResponseWriter, *http.Request)
+	Run      func(http.ResponseWriter, *http.Request)
 }
 
 func NewAutomationScript(h AutomationScriptAPI) *AutomationScript {
@@ -147,6 +151,46 @@ func NewAutomationScript(h AutomationScriptAPI) *AutomationScript {
 				resputil.JSON(w, value)
 			}
 		},
+		Runnable: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewAutomationScriptRunnable()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("AutomationScript.Runnable", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.Runnable(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("AutomationScript.Runnable", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("AutomationScript.Runnable", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
+		Run: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewAutomationScriptRun()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("AutomationScript.Run", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.Run(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("AutomationScript.Run", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("AutomationScript.Run", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
 	}
 }
 
@@ -158,5 +202,7 @@ func (h AutomationScript) MountRoutes(r chi.Router, middlewares ...func(http.Han
 		r.Get("/namespace/{namespaceID}/automation/script/{scriptID}", h.Read)
 		r.Post("/namespace/{namespaceID}/automation/script/{scriptID}", h.Update)
 		r.Delete("/namespace/{namespaceID}/automation/script/{scriptID}", h.Delete)
+		r.Get("/namespace/{namespaceID}/automation/script/runnable", h.Runnable)
+		r.Post("/namespace/{namespaceID}/automation/script/run", h.Run)
 	})
 }
