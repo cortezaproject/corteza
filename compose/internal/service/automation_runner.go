@@ -7,6 +7,8 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/cortezaproject/corteza-server/compose/proto"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -226,11 +228,28 @@ func (svc automationRunner) makeRecordScriptRunner(ctx context.Context, ns *type
 
 		rsp, err := svc.runner.Record(ctx, req, grpc.WaitForReady(script.Critical))
 
-		svc.logger.Debug("call sent")
-
 		if err != nil {
-			// @todo aborted?
-			svc.logger.Debug("script executed, did not return record", zap.Error(err))
+			s, ok := status.FromError(err)
+			if !ok {
+				svc.logger.Error("unexpected error type", zap.Error(err))
+				return err
+			}
+
+			switch s.Code() {
+			case codes.FailedPrecondition:
+				// Sent on syntax errors:
+				err = errors.New(s.Message())
+			case codes.Aborted:
+				err = errors.New(s.Message())
+			case codes.InvalidArgument:
+				err = errors.New("invalid argument")
+			case codes.Internal:
+				err = errors.New("internal corredor error")
+			default:
+			}
+
+			svc.logger.Info("script executed with errors", zap.Error(err))
+
 			if !script.Critical {
 				// This was not a critical call and we do not care about
 				// errors from script running service.
@@ -245,18 +264,14 @@ func (svc automationRunner) makeRecordScriptRunner(ctx context.Context, ns *type
 			//
 			// Backend is still returning, so we do not
 			// need to handle multiple gRPC endpoints
-			svc.logger.Debug("script executed / async")
 			return nil
 		}
 
 		if rsp.Record == nil {
 			// Script did not return any results
 			// This means we should stop with the execution
-			// @todo aborted
-			return nil
+			return errors.New("aborted")
 		}
-
-		svc.logger.Debug("script executed", zap.Any("record", rsp.Record))
 
 		// Convert from proto and copy record owner & values from the result
 		result := proto.ToRecord(rsp.Record)
