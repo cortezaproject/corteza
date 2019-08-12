@@ -482,8 +482,8 @@ type AutomationScriptRun struct {
 	Source      string
 	ModuleID    uint64 `json:",string"`
 	RecordID    uint64 `json:",string"`
-	Module      interface{}
-	Record      interface{}
+	Module      json.RawMessage
+	Record      json.RawMessage
 	NamespaceID uint64 `json:",string"`
 }
 
@@ -545,10 +545,10 @@ func (r *AutomationScriptRun) Fill(req *http.Request) (err error) {
 		r.RecordID = parseUInt64(val)
 	}
 	if val, ok := post["module"]; ok {
-		r.Module = interface{}(val)
+		r.Module = json.RawMessage(val)
 	}
 	if val, ok := post["record"]; ok {
-		r.Record = interface{}(val)
+		r.Record = json.RawMessage(val)
 	}
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
