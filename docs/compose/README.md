@@ -253,8 +253,8 @@
 | source | string | POST | Script's source code (overrides scriptID parameter) | N/A | NO |
 | moduleID | uint64 | POST | Preload module and pass it to the automation script | N/A | NO |
 | recordID | uint64 | POST | Preload record and pass it to the automation script | N/A | NO |
-| module | interface{} | POST | Module to pass to the automation script | N/A | NO |
-| record | interface{} | POST | Record to pass to the automation script | N/A | NO |
+| module | json.RawMessage | POST | Module to pass to the automation script | N/A | NO |
+| record | json.RawMessage | POST | Record to pass to the automation script | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ---

@@ -1508,8 +1508,8 @@
                         {"name": "source", "type": "string", "title": "Script's source code (overrides scriptID parameter)"},
                         {"name": "moduleID", "type": "uint64", "title": "Preload module and pass it to the automation script"},
                         {"name": "recordID", "type": "uint64", "title": "Preload record and pass it to the automation script"},
-                        {"name": "module", "type": "interface{}", "title": "Module to pass to the automation script"},
-                        {"name": "record", "type": "interface{}", "title": "Record to pass to the automation script"}
+                        {"name": "module", "type": "json.RawMessage", "title": "Module to pass to the automation script"},
+                        {"name": "record", "type": "json.RawMessage", "title": "Record to pass to the automation script"}
                     ]
                 }
             }

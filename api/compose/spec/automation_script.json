@@ -271,12 +271,12 @@
           {
             "name": "module",
             "title": "Module to pass to the automation script",
-            "type": "interface{}"
+            "type": "json.RawMessage"
           },
           {
             "name": "record",
             "title": "Record to pass to the automation script",
-            "type": "interface{}"
+            "type": "json.RawMessage"
           }
         ]
       }

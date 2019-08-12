@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
@@ -218,21 +219,33 @@ func (ctrl AutomationScript) Runnable(ctx context.Context, r *request.Automation
 
 func (ctrl AutomationScript) Run(ctx context.Context, r *request.AutomationScriptRun) (interface{}, error) {
 	var (
-		err    error
-		ns     *types.Namespace
-		module *types.Module
-		record *types.Record
+		err error
+		ns  *types.Namespace
+
+		module = &types.Module{}
+		record = &types.Record{}
 	)
 
+	// Load requested namespace
 	if ns, err = ctrl.namespace.FindByID(r.NamespaceID); err != nil {
 		return nil, err
 	}
 
-	if module, err = ctrl.module.FindByID(ns.ID, r.ModuleID); err != nil {
+	// Unmarshal given module or find existing one from ID
+	if r.Module != nil {
+		if err = json.Unmarshal(r.Module, &module); err != nil {
+			return nil, err
+		}
+	} else if module, err = ctrl.module.FindByID(ns.ID, r.ModuleID); err != nil {
 		return nil, err
 	}
 
-	if record, err = ctrl.record.FindByID(ns.ID, r.RecordID); err != nil {
+	// Unmarshal given record or find existing one from ID
+	if r.Record != nil {
+		if err = json.Unmarshal(r.Record, &record); err != nil {
+			return nil, err
+		}
+	} else if record, err = ctrl.record.FindByID(ns.ID, r.RecordID); err != nil {
 		return nil, err
 	}
 
