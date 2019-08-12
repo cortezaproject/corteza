@@ -229,15 +229,6 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 	}, nil
 }
 
-func (ctrl *Record) RunScript(ctx context.Context, r *request.RecordRunScript) (interface{}, error) {
-	return resputil.OK(), ctrl.record.RunScript(
-		r.NamespaceID,
-		r.ModuleID,
-		r.RecordID,
-		r.ScriptID,
-	)
-}
-
 func (ctrl Record) makePayload(ctx context.Context, m *types.Module, r *types.Record, err error) (*recordPayload, error) {
 	if err != nil || r == nil {
 		return nil, err

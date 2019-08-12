@@ -414,3 +414,145 @@ func (r *AutomationScriptDelete) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewAutomationScriptDelete()
+
+// AutomationScript runnable request parameters
+type AutomationScriptRunnable struct {
+	Resource    string
+	Condition   string
+	NamespaceID uint64 `json:",string"`
+}
+
+func NewAutomationScriptRunnable() *AutomationScriptRunnable {
+	return &AutomationScriptRunnable{}
+}
+
+func (r AutomationScriptRunnable) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["resource"] = r.Resource
+	out["condition"] = r.Condition
+	out["namespaceID"] = r.NamespaceID
+
+	return out
+}
+
+func (r *AutomationScriptRunnable) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	if val, ok := get["resource"]; ok {
+		r.Resource = val
+	}
+	if val, ok := get["condition"]; ok {
+		r.Condition = val
+	}
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+
+	return err
+}
+
+var _ RequestFiller = NewAutomationScriptRunnable()
+
+// AutomationScript run request parameters
+type AutomationScriptRun struct {
+	ScriptID    uint64 `json:",string"`
+	Source      string
+	ModuleID    uint64 `json:",string"`
+	RecordID    uint64 `json:",string"`
+	Module      interface{}
+	Record      interface{}
+	NamespaceID uint64 `json:",string"`
+}
+
+func NewAutomationScriptRun() *AutomationScriptRun {
+	return &AutomationScriptRun{}
+}
+
+func (r AutomationScriptRun) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["scriptID"] = r.ScriptID
+	out["source"] = r.Source
+	out["moduleID"] = r.ModuleID
+	out["recordID"] = r.RecordID
+	out["module"] = r.Module
+	out["record"] = r.Record
+	out["namespaceID"] = r.NamespaceID
+
+	return out
+}
+
+func (r *AutomationScriptRun) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	if val, ok := post["scriptID"]; ok {
+		r.ScriptID = parseUInt64(val)
+	}
+	if val, ok := post["source"]; ok {
+		r.Source = val
+	}
+	if val, ok := post["moduleID"]; ok {
+		r.ModuleID = parseUInt64(val)
+	}
+	if val, ok := post["recordID"]; ok {
+		r.RecordID = parseUInt64(val)
+	}
+	if val, ok := post["module"]; ok {
+		r.Module = interface{}(val)
+	}
+	if val, ok := post["record"]; ok {
+		r.Record = interface{}(val)
+	}
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+
+	return err
+}
+
+var _ RequestFiller = NewAutomationScriptRun()

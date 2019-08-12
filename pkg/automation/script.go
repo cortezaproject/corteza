@@ -1,6 +1,7 @@
 package automation
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -127,12 +128,12 @@ func (s *Script) CheckCompatibility(t *Trigger) error {
 	return nil
 }
 
-// FilterByEvent
+// FilterByTrigger
 //
-// we will use the Trigger struct as a holder for conditions
-func (set ScriptSet) FilterByEvent(event, resource string, cc ...TriggerConditionChecker) (out ScriptSet) {
+// Filters non-UA scripts that match event and resource + all extra conditions
+func (set ScriptSet) FilterByTrigger(event, resource string, cc ...TriggerConditionChecker) (out ScriptSet) {
 	out, _ = set.Filter(func(s *Script) (bool, error) {
-		return s.triggers.HasMatch(Trigger{Event: event, Resource: resource}, cc...), nil
+		return s.IsValid() && s.triggers.HasMatch(Trigger{Event: event, Resource: resource}, cc...), nil
 	})
 
 	return
@@ -168,5 +169,22 @@ func (s *Script) AddTrigger(strategy triggersMergeStrategy, tt ...*Trigger) {
 		if t.ScriptID == 0 || t.ScriptID == s.ID {
 			s.triggers = append(s.triggers, t)
 		}
+	}
+}
+
+func (s *Script) Triggers() TriggerSet {
+	return s.triggers
+}
+
+func (s Script) HasEvent(event string) bool {
+	return s.triggers.HasMatch(Trigger{Event: event})
+}
+
+func MakeMatcherIDCondition(id uint64) TriggerConditionChecker {
+	// We'll be comparing strings, not uint64!
+	var s = strconv.FormatUint(id, 10)
+
+	return func(c string) bool {
+		return s == c
 	}
 }

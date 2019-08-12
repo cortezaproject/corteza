@@ -120,6 +120,8 @@
 | `GET` | `/namespace/{namespaceID}/automation/script/{scriptID}` | Read automation script by ID |
 | `POST` | `/namespace/{namespaceID}/automation/script/{scriptID}` | Update automation script |
 | `DELETE` | `/namespace/{namespaceID}/automation/script/{scriptID}` | Delete script |
+| `GET` | `/namespace/{namespaceID}/automation/script/runnable` | List of runnable (event=manual) scripts (executable on the backend or from user-agent/browser) |
+| `POST` | `/namespace/{namespaceID}/automation/script/run` | Run a specific script or code at the backend. For testing and manual execution |
 
 ## List/read automation script
 
@@ -216,7 +218,43 @@
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| scriptID | uint64 | PATH | automation ID | N/A | YES |
+| scriptID | uint64 | PATH | Script ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+
+## List of runnable (event=manual) scripts (executable on the backend or from user-agent/browser)
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/automation/script/runnable` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| resource | string | GET | Resource | N/A | NO |
+| condition | string | GET | Trigger condition | N/A | NO |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+
+## Run a specific script or code at the backend. For testing and manual execution
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/automation/script/run` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| scriptID | uint64 | POST | Script ID (scripts with manual triggers) | N/A | NO |
+| source | string | POST | Script's source code (overrides scriptID parameter) | N/A | NO |
+| moduleID | uint64 | POST | Preload module and pass it to the automation script | N/A | NO |
+| recordID | uint64 | POST | Preload record and pass it to the automation script | N/A | NO |
+| module | interface{} | POST | Module to pass to the automation script | N/A | NO |
+| record | interface{} | POST | Record to pass to the automation script | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ---
@@ -905,7 +943,6 @@ Compose records
 | `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Read records by ID from module section |
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Update records in module section |
 | `DELETE` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Delete record row from module section |
-| `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/run-script` | Trigger a specific script on record |
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/attachment` | Uploads attachment and validates it against record field requirements |
 
 ## Generates report from module records
@@ -1026,23 +1063,6 @@ Compose records
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | recordID | uint64 | PATH | Record ID | N/A | YES |
-| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
-| moduleID | uint64 | PATH | Module ID | N/A | YES |
-
-## Trigger a specific script on record
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/namespace/{namespaceID}/module/{moduleID}/record/run-script` | HTTP/S | POST |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| recordID | uint64 | POST | Record ID | N/A | NO |
-| scriptID | uint64 | POST | Script ID | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 

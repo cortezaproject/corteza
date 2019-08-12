@@ -8,6 +8,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/internal/service"
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
+	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
@@ -31,9 +32,27 @@ type (
 		Set    []*automationScriptPayload `json:"set"`
 	}
 
+	automationScriptRunnablePayload struct {
+		Set []*automationScriptRunnable `json:"set"`
+	}
+
+	automationScriptRunnable struct {
+		ScriptID uint64              `json:"scriptID,string"`
+		Name     string              `json:"name"`
+		Events   map[string][]string `json:"events"`
+		Source   string              `json:"source,omitempty"`
+		Async    bool                `json:"async"`
+		RunInUA  bool                `json:"runInUA"`
+	}
+
 	AutomationScript struct {
 		scripts automationScriptService
+		runner  automationScriptRunner
 		ac      automationScriptAccessController
+
+		namespace automationScriptNamespaceLoader
+		module    automationScriptModuleLoader
+		record    automationScriptRecordLoader
 	}
 
 	automationScriptService interface {
@@ -44,18 +63,40 @@ type (
 		Delete(context.Context, uint64, *automation.Script) error
 	}
 
+	automationScriptRunner interface {
+		UserScripts(context.Context) automation.ScriptSet
+		RecordManual(context.Context, uint64, *types.Namespace, *types.Module, *types.Record) (err error)
+	}
+
 	automationScriptAccessController interface {
 		CanGrant(context.Context) bool
 
 		CanUpdateAutomationScript(context.Context, *automation.Script) bool
 		CanDeleteAutomationScript(context.Context, *automation.Script) bool
 	}
+
+	automationScriptNamespaceLoader interface {
+		FindByID(uint64) (*types.Namespace, error)
+	}
+
+	automationScriptModuleLoader interface {
+		FindByID(uint64, uint64) (*types.Module, error)
+	}
+
+	automationScriptRecordLoader interface {
+		FindByID(uint64, uint64) (*types.Record, error)
+	}
 )
 
 func (AutomationScript) New() *AutomationScript {
 	return &AutomationScript{
 		scripts: service.DefaultAutomationScriptManager,
+		runner:  service.DefaultAutomationRunner,
 		ac:      service.DefaultAccessControl,
+
+		namespace: service.DefaultNamespace,
+		module:    service.DefaultModule,
+		record:    service.DefaultRecord,
 	}
 }
 
@@ -128,6 +169,87 @@ func (ctrl AutomationScript) Delete(ctx context.Context, r *request.AutomationSc
 	}
 
 	return resputil.OK(), ctrl.scripts.Delete(ctx, r.NamespaceID, script)
+}
+
+func (ctrl AutomationScript) Runnable(ctx context.Context, r *request.AutomationScriptRunnable) (interface{}, error) {
+	var (
+		rval = &automationScriptRunnablePayload{
+			Set: make([]*automationScriptRunnable, 0),
+		}
+	)
+
+	return rval, ctrl.runner.UserScripts(ctx).Walk(func(script *automation.Script) error {
+		// @todo filter out all modules (by t.Condition) we do not have access to
+		out := &automationScriptRunnable{
+			ScriptID: script.ID,
+			Name:     script.Name,
+			Events:   map[string][]string{},
+			Async:    script.Async,
+			RunInUA:  script.RunInUA,
+		}
+
+		if script.RunInUA {
+			out.Source = script.Source
+		}
+
+		_ = script.Triggers().Walk(func(t *automation.Trigger) error {
+			if r.Condition != "" && r.Condition != t.Condition {
+				// When not requesting explicit module and condition does not match (module id or 0)
+				// ignore
+				return nil
+			}
+
+			if _, ok := out.Events[t.Event]; ok {
+				out.Events[t.Event] = append(out.Events[t.Event], t.Condition)
+			} else {
+				out.Events[t.Event] = []string{t.Condition}
+			}
+
+			return nil
+		})
+
+		if len(out.Events) == 0 {
+			return nil
+		}
+		rval.Set = append(rval.Set, out)
+		return nil
+	})
+}
+
+func (ctrl AutomationScript) Run(ctx context.Context, r *request.AutomationScriptRun) (interface{}, error) {
+	var (
+		err    error
+		ns     *types.Namespace
+		module *types.Module
+		record *types.Record
+	)
+
+	if ns, err = ctrl.namespace.FindByID(r.NamespaceID); err != nil {
+		return nil, err
+	}
+
+	if module, err = ctrl.module.FindByID(ns.ID, r.ModuleID); err != nil {
+		return nil, err
+	}
+
+	if record, err = ctrl.record.FindByID(ns.ID, r.RecordID); err != nil {
+		return nil, err
+	}
+
+	if err = ctrl.runner.RecordManual(ctx, r.ScriptID, ns, module, record); err != nil {
+		return nil, err
+	}
+
+	// When record was passed return it.
+	if record != nil {
+		// (ab)user payload maker from record controller
+		// @todo find a way how to solve this more elegantly.
+		return (Record{
+			ac: service.DefaultAccessControl,
+		}).makePayload(ctx, module, record, nil)
+	}
+
+	return resputil.OK(), nil
 }
 
 func (ctrl AutomationScript) makePayload(ctx context.Context, s *automation.Script, err error) (*automationScriptPayload, error) {

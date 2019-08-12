@@ -137,9 +137,12 @@ mocks: $(GOMOCK)
 	# Cleanup all pre-generated
 	find . -name '*_mock_test.go' -delete
 	rm -rf system/internal/repository/mocks && mkdir -p system/internal/repository/mocks
+	rm -rf compose/internal/service/mocks && mkdir -p compose/internal/service/mocks
 
 	$(MOCKGEN) -package repository -source system/internal/repository/user.go         -destination system/internal/repository/mocks/user.go
 	$(MOCKGEN) -package repository -source system/internal/repository/credentials.go  -destination system/internal/repository/mocks/credentials.go
+
+	$(MOCKGEN) -package service_mocks -source compose/internal/service/automation_runner.go -destination compose/internal/service/mocks/automation_runner.go
 
 	$(MOCKGEN) -package mail  -source internal/mail/mail.go                           -destination internal/mail/mail_mock_test.go
 

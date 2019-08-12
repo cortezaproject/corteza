@@ -22,7 +22,7 @@ func TestTriggerSet_HasMatch(t *testing.T) {
 		}, {
 			name: "simple miss",
 			set:  TriggerSet{nil, &Trigger{}, &Trigger{Event: "e", Enabled: true}, nil, &Trigger{}},
-			args: args{m: Trigger{}},
+			args: args{m: Trigger{Event: "E"}},
 			want: false,
 		}, {
 			name: "specific",

@@ -92,13 +92,22 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultAutomationScriptManager = AutomationScript(ias)
 	DefaultAutomationTriggerManager = AutomationTrigger(ias)
 
-	corredor, err := automation.Corredor(ctx, c.ScriptRunner, DefaultLogger)
-	log.Info("initializing corredor connection", zap.String("addr", c.ScriptRunner.Addr), zap.Error(err))
-	if err != nil {
-		return err
-	}
+	{
+		var scriptRunnerClient proto.ScriptRunnerClient
 
-	DefaultAutomationRunner = AutomationRunner(ias, proto.NewScriptRunnerClient(corredor))
+		if c.ScriptRunner.Enabled {
+			corredor, err := automation.Corredor(ctx, c.ScriptRunner, DefaultLogger)
+
+			log.Info("initializing corredor connection", zap.String("addr", c.ScriptRunner.Addr), zap.Error(err))
+			if err != nil {
+				return err
+			}
+
+			scriptRunnerClient = proto.NewScriptRunnerClient(corredor)
+		}
+
+		DefaultAutomationRunner = AutomationRunner(ias, scriptRunnerClient)
+	}
 
 	// Compose internals:
 	DefaultNamespace = Namespace()

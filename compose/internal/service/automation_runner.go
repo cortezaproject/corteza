@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"strconv"
 	"time"
 
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
@@ -17,6 +17,7 @@ import (
 
 type (
 	automationRunner struct {
+		ac           automationRunnerAccessControler
 		logger       *zap.Logger
 		runner       proto.ScriptRunnerClient
 		scriptFinder automationScriptsFinder
@@ -25,12 +26,22 @@ type (
 
 	automationScriptsFinder interface {
 		Watch(ctx context.Context)
-		FindRunnableScripts(event, resource string, cc ...automation.TriggerConditionChecker) automation.ScriptSet
+		FindRunnableScripts(resource, event string, cc ...automation.TriggerConditionChecker) automation.ScriptSet
 	}
+
+	automationRunnerAccessControler interface {
+		CanRunAutomationTrigger(ctx context.Context, r *automation.Trigger) bool
+	}
+)
+
+const (
+	AutomationResourceRecord = "compose:record"
 )
 
 func AutomationRunner(f automationScriptsFinder, r proto.ScriptRunnerClient) automationRunner {
 	var svc = automationRunner{
+		ac: DefaultAccessControl,
+
 		scriptFinder: f,
 		runner:       r,
 
@@ -41,40 +52,8 @@ func AutomationRunner(f automationScriptsFinder, r proto.ScriptRunnerClient) aut
 	return svc
 }
 
-func (svc automationRunner) findRecordScripts(event string, moduleID uint64) (ss automation.ScriptSet) {
-	const resource = "compose:record"
-
-	// We'll be comparing strings, not uint64!
-	var moduleIDs = strconv.FormatUint(moduleID, 10)
-
-	return svc.scriptFinder.FindRunnableScripts(event, resource,
-		// ModuleID MUST match
-		func(cModuleID string) bool {
-			return moduleIDs == cModuleID
-		},
-	)
-}
-
 func (svc automationRunner) Watch(ctx context.Context) {
 	svc.scriptFinder.Watch(ctx)
-}
-
-// ManualRecordRun - Manual trigger run
-//
-// This is explicitly called, extra security  check is needed
-func (svc automationRunner) ManualRecordRun(ctx context.Context, scriptID uint64, ns *types.Namespace, m *types.Module, r *types.Record) (err error) {
-	// @todo security check (can user run this script (scriptID) manually)
-
-	runner := svc.makeRecordScriptRunner(ctx, ns, m, r, true)
-
-	return svc.findRecordScripts("manual", m.ID).Walk(func(script *automation.Script) error {
-		// Interested in a specific script, so skip everything else
-		if script.ID != scriptID {
-			return nil
-		}
-
-		return runner(script)
-	})
 }
 
 // BeforeRecordCreate - run scripts before record is created
@@ -131,6 +110,79 @@ func (svc automationRunner) AfterRecordDelete(ctx context.Context, ns *types.Nam
 	)
 }
 
+// Finds all scripts that are implicitly triggered by backend actions before/after
+func (svc automationRunner) findRecordScripts(event string, moduleID uint64) automation.ScriptSet {
+	ss, _ := svc.scriptFinder.FindRunnableScripts(AutomationResourceRecord, event, automation.MakeMatcherIDCondition(moduleID)).
+		Filter(func(script *automation.Script) (bool, error) {
+			// Filter out user-agent scripts
+			return !script.RunInUA, nil
+		})
+
+	return ss
+}
+
+// UserScripts - collect all scripts runnable by users, appends compatible triggers
+//
+// So, either in their browser (RunInUA) or by running backend scripts explicitly (event:manual)
+// All triggers are permission-checked for "run" operation.
+//
+func (svc automationRunner) UserScripts(ctx context.Context) automation.ScriptSet {
+	var ss = automation.ScriptSet{}
+
+	_ = svc.scriptFinder.FindRunnableScripts("", "").Walk(func(script *automation.Script) error {
+		var tt = []*automation.Trigger{}
+
+		for _, t := range script.Triggers() {
+			if (script.RunInUA || t.Event == "manual") && svc.ac.CanRunAutomationTrigger(ctx, t) {
+				// Making a copy so that we do not corrupt the
+				tt = append(tt, &(*t))
+			}
+		}
+
+		// Have any triggers left?
+		if len(tt) > 0 {
+			var sc = &automation.Script{}
+
+			*sc = *script
+
+			// Replace triggers with a new set
+			sc.AddTrigger(automation.STMS_REPLACE, tt...)
+
+			// andd append t
+			ss = append(ss, sc)
+		}
+
+		return nil
+	})
+
+	return ss
+}
+
+// ManualRecordRun - Manual trigger run
+//
+// This is explicitly called, extra security  check is needed
+func (svc automationRunner) RecordManual(ctx context.Context, scriptID uint64, ns *types.Namespace, m *types.Module, r *types.Record) (err error) {
+	// This scripts are all prechecked & filtered
+	script := svc.UserScripts(ctx).FindByID(scriptID)
+
+	if script == nil {
+		return errors.New("can not find compatible script")
+	}
+
+	// Do not execute UA scripts
+	if script.RunInUA {
+		return errors.New("can not execute user-agent scripts")
+	}
+
+	// Make record script runner and
+	runner := svc.makeRecordScriptRunner(ctx, ns, m, r, false)
+
+	// Run it with a script
+	//
+	// Successfully executed record scripts can have an effect on given record value (r)
+	return runner(script)
+}
+
 // Runs record script
 //
 // We set-up script-running environment: security (definer / invoker), async, critical
@@ -147,6 +199,18 @@ func (svc automationRunner) makeRecordScriptRunner(ctx context.Context, ns *type
 	svc.logger.Debug("executing script", zap.Any("record", r))
 
 	return func(script *automation.Script) error {
+		if !script.IsValid() {
+			return errors.New("refusing to run invalid script")
+		}
+
+		if script.RunInUA {
+			return errors.New("refusing to run user-agent script")
+		}
+
+		if svc.runner == nil {
+			return errors.New("can not run corredor script: not connected")
+		}
+
 		// This could be executed in a goroutine (by *after triggers,
 		// so we need ot rewire the sentry panic recoverty
 		defer sentry.Recover()

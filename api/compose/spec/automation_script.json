@@ -215,8 +215,68 @@
           {
             "name": "scriptID",
             "required": true,
-            "title": "automation ID",
+            "title": "Script ID",
             "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "runnable",
+      "Method": "GET",
+      "Title": "List of runnable (event=manual) scripts (executable on the backend or from user-agent/browser)",
+      "Path": "/runnable",
+      "Parameters": {
+        "get": [
+          {
+            "name": "resource",
+            "title": "Resource",
+            "type": "string"
+          },
+          {
+            "name": "condition",
+            "title": "Trigger condition",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "run",
+      "Method": "POST",
+      "Title": "Run a specific script or code at the backend. For testing and manual execution",
+      "Path": "/run",
+      "Parameters": {
+        "post": [
+          {
+            "name": "scriptID",
+            "title": "Script ID (scripts with manual triggers)",
+            "type": "uint64"
+          },
+          {
+            "name": "source",
+            "title": "Script's source code (overrides scriptID parameter)",
+            "type": "string"
+          },
+          {
+            "name": "moduleID",
+            "title": "Preload module and pass it to the automation script",
+            "type": "uint64"
+          },
+          {
+            "name": "recordID",
+            "title": "Preload record and pass it to the automation script",
+            "type": "uint64"
+          },
+          {
+            "name": "module",
+            "title": "Module to pass to the automation script",
+            "type": "interface{}"
+          },
+          {
+            "name": "record",
+            "title": "Record to pass to the automation script",
+            "type": "interface{}"
           }
         ]
       }

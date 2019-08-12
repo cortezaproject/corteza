@@ -41,7 +41,6 @@ type (
 	}
 
 	RecordScriptsRunner interface {
-		ManualRecordRun(ctx context.Context, scriptID uint64, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
 		BeforeRecordCreate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
 		AfterRecordCreate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
 		BeforeRecordUpdate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
@@ -63,8 +62,6 @@ type (
 		Update(record *types.Record) (*types.Record, error)
 
 		DeleteByID(namespaceID, recordID uint64) error
-
-		RunScript(namespaceID, moduleID, recordID, scriptID uint64) error
 	}
 
 	Encoder interface {
