@@ -1500,15 +1500,28 @@
             {
                 "name": "run",
                 "method": "POST",
-                "title": "Run a specific script or code at the backend. For testing and manual execution",
-                "path": "/run",
+                "title": "Run a specific script or code at the backend. Used for running script manually",
+                "path": "/{scriptID}/run",
+                "parameters": {
+                    "path": [
+                        {"type": "uint64", "name": "scriptID", "required": true}
+                    ],
+                    "post": [
+                        {"name": "moduleID", "type": "uint64", "title": "ModuleID to be used"},
+                        {"name": "recordID", "type": "uint64", "title": "RecordID to be used (instead of record payload)"},
+                        {"name": "record", "type": "json.RawMessage", "title": "Record payload to be used (instead of specific record when using recordID)"}
+                    ]
+                }
+            },
+            {
+                "name": "test",
+                "method": "POST",
+                "title": "Run source code in corredor. Used for testing",
+                "path": "/test",
                 "parameters": {
                     "post": [
-                        {"name": "scriptID", "type": "uint64", "title": "Script ID (scripts with manual triggers)"},
-                        {"name": "source", "type": "string", "title": "Script's source code (overrides scriptID parameter)"},
+                        {"name": "source", "type": "string", "title": "Script's source code"},
                         {"name": "moduleID", "type": "uint64", "title": "Preload module and pass it to the automation script"},
-                        {"name": "recordID", "type": "uint64", "title": "Preload record and pass it to the automation script"},
-                        {"name": "module", "type": "json.RawMessage", "title": "Module to pass to the automation script"},
                         {"name": "record", "type": "json.RawMessage", "title": "Record to pass to the automation script"}
                     ]
                 }

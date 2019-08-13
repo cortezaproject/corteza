@@ -185,6 +185,24 @@ func (svc automationRunner) RecordManual(ctx context.Context, scriptID uint64, n
 	return runner(script)
 }
 
+func (svc automationRunner) RecordScriptTester(ctx context.Context, source string, ns *types.Namespace, m *types.Module, r *types.Record) (err error) {
+	// Make record script runner and
+	runner := svc.makeRecordScriptRunner(ctx, ns, m, r, false)
+
+	return runner(&automation.Script{
+		ID:        0,
+		Name:      "test",
+		SourceRef: "test",
+		Source:    source,
+		Async:     false,
+		RunAs:     0,
+		RunInUA:   false,
+		Timeout:   0,
+		Critical:  true,
+		Enabled:   false,
+	})
+}
+
 // Runs record script
 //
 // We set-up script-running environment: security (definer / invoker), async, critical
@@ -201,14 +219,6 @@ func (svc automationRunner) makeRecordScriptRunner(ctx context.Context, ns *type
 	svc.logger.Debug("executing script", zap.Any("record", r))
 
 	return func(script *automation.Script) error {
-		if !script.IsValid() {
-			return errors.New("refusing to run invalid script")
-		}
-
-		if script.RunInUA {
-			return errors.New("refusing to run user-agent script")
-		}
-
 		if svc.runner == nil {
 			return errors.New("can not run corredor script: not connected")
 		}
@@ -276,6 +286,31 @@ func (svc automationRunner) makeRecordScriptRunner(ctx context.Context, ns *type
 		// Convert from proto and copy record owner & values from the result
 		result := proto.ToRecord(rsp.Record)
 		r.OwnedBy, r.Values = result.OwnedBy, result.Values
+
+		// Let's copy module, namespace and other values if they are missing
+		if m != nil {
+			if r.ModuleID == 0 {
+				r.ModuleID = m.ID
+				r.NamespaceID = m.NamespaceID
+			}
+		}
+
+		var currentUserID = auth.GetIdentityFromContext(ctx).Identity()
+		if script.RunAs > 0 {
+			currentUserID = script.RunAs
+		}
+
+		if r.OwnedBy == 0 {
+			r.OwnedBy = currentUserID
+		}
+
+		if r.CreatedAt.IsZero() {
+			r.CreatedAt = time.Now()
+		}
+
+		if r.CreatedBy == 0 {
+			r.CreatedBy = currentUserID
+		}
 
 		return nil
 	}

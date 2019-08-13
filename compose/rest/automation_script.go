@@ -46,6 +46,10 @@ type (
 		RunInUA  bool                `json:"runInUA"`
 	}
 
+	automationScriptRun struct {
+		Record *types.Record `json:"record,omitempty"`
+	}
+
 	AutomationScript struct {
 		scripts automationScriptService
 		runner  automationScriptRunner
@@ -66,7 +70,8 @@ type (
 
 	automationScriptRunner interface {
 		UserScripts(context.Context) automation.ScriptSet
-		RecordManual(context.Context, uint64, *types.Namespace, *types.Module, *types.Record) (err error)
+		RecordManual(context.Context, uint64, *types.Namespace, *types.Module, *types.Record) error
+		RecordScriptTester(context.Context, string, *types.Namespace, *types.Module, *types.Record) error
 	}
 
 	automationScriptAccessController interface {
@@ -219,50 +224,82 @@ func (ctrl AutomationScript) Runnable(ctx context.Context, r *request.Automation
 
 func (ctrl AutomationScript) Run(ctx context.Context, r *request.AutomationScriptRun) (interface{}, error) {
 	var (
-		err error
-		ns  *types.Namespace
-
-		module = &types.Module{}
-		record = &types.Record{}
+		rval               automationScriptRun
+		ns, m, record, err = ctrl.loadRecordScriptRunningCombo(r.NamespaceID, r.ModuleID, r.RecordID, r.Record)
 	)
 
-	// Load requested namespace
-	if ns, err = ctrl.namespace.FindByID(r.NamespaceID); err != nil {
+	if err != nil {
 		return nil, err
 	}
 
-	// Unmarshal given module or find existing one from ID
-	if r.Module != nil {
-		if err = json.Unmarshal(r.Module, &module); err != nil {
-			return nil, err
-		}
-	} else if module, err = ctrl.module.FindByID(ns.ID, r.ModuleID); err != nil {
-		return nil, err
-	}
-
-	// Unmarshal given record or find existing one from ID
-	if r.Record != nil {
-		if err = json.Unmarshal(r.Record, &record); err != nil {
-			return nil, err
-		}
-	} else if record, err = ctrl.record.FindByID(ns.ID, r.RecordID); err != nil {
-		return nil, err
-	}
-
-	if err = ctrl.runner.RecordManual(ctx, r.ScriptID, ns, module, record); err != nil {
+	if err = ctrl.runner.RecordManual(ctx, r.ScriptID, ns, m, record); err != nil {
 		return nil, err
 	}
 
 	// When record was passed return it.
 	if record != nil {
-		// (ab)user payload maker from record controller
-		// @todo find a way how to solve this more elegantly.
-		return (Record{
-			ac: service.DefaultAccessControl,
-		}).makePayload(ctx, module, record, nil)
+		rval.Record = record
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return resputil.OK(), nil
+	return rval, err
+}
+
+func (ctrl AutomationScript) Test(ctx context.Context, r *request.AutomationScriptTest) (interface{}, error) {
+	var (
+		rval               automationScriptRun
+		ns, m, record, err = ctrl.loadRecordScriptRunningCombo(r.NamespaceID, r.ModuleID, 0, r.Record)
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err = ctrl.runner.RecordScriptTester(ctx, r.Source, ns, m, record); err != nil {
+		return nil, err
+	}
+
+	// When record was passed return it.
+	if record != nil {
+		rval.Record = record
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return rval, err
+}
+
+func (ctrl AutomationScript) loadRecordScriptRunningCombo(namespaceID, moduleID, recordID uint64, record json.RawMessage) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
+	r = &types.Record{}
+
+	// Load requested namespace
+	if ns, err = ctrl.namespace.FindByID(namespaceID); err != nil {
+		return
+	}
+
+	if moduleID > 0 {
+		// Unmarshal given module or find existing one from ID
+		if m, err = ctrl.module.FindByID(ns.ID, moduleID); err != nil {
+			return
+		}
+	}
+
+	// Unmarshal given record or find existing one from ID
+	if record != nil {
+		if err = json.Unmarshal(record, &r); err != nil {
+			err = errors.New("Could not parse record payload")
+			return
+		}
+	} else if r, err = ctrl.record.FindByID(ns.ID, recordID); err != nil {
+		return
+	}
+
+	return
 }
 
 func (ctrl AutomationScript) makePayload(ctx context.Context, s *automation.Script, err error) (*automationScriptPayload, error) {
