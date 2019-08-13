@@ -121,7 +121,8 @@
 | `POST` | `/namespace/{namespaceID}/automation/script/{scriptID}` | Update automation script |
 | `DELETE` | `/namespace/{namespaceID}/automation/script/{scriptID}` | Delete script |
 | `GET` | `/namespace/{namespaceID}/automation/script/runnable` | List of runnable (event=manual) scripts (executable on the backend or from user-agent/browser) |
-| `POST` | `/namespace/{namespaceID}/automation/script/run` | Run a specific script or code at the backend. For testing and manual execution |
+| `POST` | `/namespace/{namespaceID}/automation/script/{scriptID}/run` | Run a specific script or code at the backend. Used for running script manually |
+| `POST` | `/namespace/{namespaceID}/automation/script/test` | Run source code in corredor. Used for testing |
 
 ## List/read automation script
 
@@ -237,23 +238,38 @@
 | condition | string | GET | Trigger condition | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
-## Run a specific script or code at the backend. For testing and manual execution
+## Run a specific script or code at the backend. Used for running script manually
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/namespace/{namespaceID}/automation/script/run` | HTTP/S | POST | Client ID, Session ID |
+| `/namespace/{namespaceID}/automation/script/{scriptID}/run` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| scriptID | uint64 | POST | Script ID (scripts with manual triggers) | N/A | NO |
-| source | string | POST | Script's source code (overrides scriptID parameter) | N/A | NO |
+| scriptID | uint64 | PATH |  | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| moduleID | uint64 | POST | ModuleID to be used | N/A | NO |
+| recordID | uint64 | POST | RecordID to be used | N/A | NO |
+| record | json.RawMessage | POST | Record payload to be used (instead of specific record when using recordID) | N/A | NO |
+
+## Run source code in corredor. Used for testing
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/automation/script/test` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| source | string | POST | Script's source code | N/A | NO |
 | moduleID | uint64 | POST | Preload module and pass it to the automation script | N/A | NO |
-| recordID | uint64 | POST | Preload record and pass it to the automation script | N/A | NO |
-| module | json.RawMessage | POST | Module to pass to the automation script | N/A | NO |
 | record | json.RawMessage | POST | Record to pass to the automation script | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 

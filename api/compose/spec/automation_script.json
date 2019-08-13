@@ -244,34 +244,51 @@
     {
       "Name": "run",
       "Method": "POST",
-      "Title": "Run a specific script or code at the backend. For testing and manual execution",
-      "Path": "/run",
+      "Title": "Run a specific script or code at the backend. Used for running script manually",
+      "Path": "/{scriptID}/run",
       "Parameters": {
-        "post": [
+        "path": [
           {
             "name": "scriptID",
-            "title": "Script ID (scripts with manual triggers)",
+            "required": true,
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "moduleID",
+            "title": "ModuleID to be used",
             "type": "uint64"
           },
           {
+            "name": "recordID",
+            "title": "RecordID to be used",
+            "type": "uint64"
+          },
+          {
+            "name": "record",
+            "title": "Record payload to be used (instead of specific record when using recordID)",
+            "type": "json.RawMessage"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "test",
+      "Method": "POST",
+      "Title": "Run source code in corredor. Used for testing",
+      "Path": "/test",
+      "Parameters": {
+        "post": [
+          {
             "name": "source",
-            "title": "Script's source code (overrides scriptID parameter)",
+            "title": "Script's source code",
             "type": "string"
           },
           {
             "name": "moduleID",
             "title": "Preload module and pass it to the automation script",
             "type": "uint64"
-          },
-          {
-            "name": "recordID",
-            "title": "Preload record and pass it to the automation script",
-            "type": "uint64"
-          },
-          {
-            "name": "module",
-            "title": "Module to pass to the automation script",
-            "type": "json.RawMessage"
           },
           {
             "name": "record",

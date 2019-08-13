@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/compose/encoder"
+	"github.com/cortezaproject/corteza-server/compose/internal/repository"
 	"github.com/cortezaproject/corteza-server/compose/internal/service"
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -93,6 +94,11 @@ func (ctrl *Record) Read(ctx context.Context, r *request.RecordRead) (interface{
 	}
 
 	record, err := ctrl.record.With(ctx).FindByID(r.NamespaceID, r.RecordID)
+
+	// Temp workaround until we do proper by-module filtering for record findByID
+	if record != nil && record.ModuleID != r.ModuleID {
+		return nil, repository.ErrRecordNotFound
+	}
 
 	return ctrl.makePayload(ctx, m, record, err)
 }
