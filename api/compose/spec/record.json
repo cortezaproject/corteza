@@ -92,6 +92,48 @@
       }
     },
     {
+      "Name": "export",
+      "Method": "GET",
+      "Title": "Exports records that match ",
+      "Path": "/export{filename}.{ext}",
+      "Parameters": {
+        "get": [
+          {
+            "name": "filter",
+            "required": false,
+            "title": "Filtering condition",
+            "type": "string"
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "title": "Sort field (default id desc)",
+            "type": "string"
+          },
+          {
+            "name": "download",
+            "required": false,
+            "title": "Send headers to browser to trigger download/save-as",
+            "type": "bool"
+          }
+        ],
+        "path": [
+          {
+            "name": "filename",
+            "required": false,
+            "title": "Filename to use",
+            "type": "string"
+          },
+          {
+            "name": "ext",
+            "required": true,
+            "title": "Export format",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "Name": "create",
       "Method": "POST",
       "Title": "Create record in module section",

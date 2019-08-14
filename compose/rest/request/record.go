@@ -175,6 +175,81 @@ func (r *RecordList) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewRecordList()
 
+// Record export request parameters
+type RecordExport struct {
+	Filter      string
+	Sort        string
+	Download    bool
+	Filename    string
+	Ext         string
+	NamespaceID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
+}
+
+func NewRecordExport() *RecordExport {
+	return &RecordExport{}
+}
+
+func (r RecordExport) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["filter"] = r.Filter
+	out["sort"] = r.Sort
+	out["download"] = r.Download
+	out["filename"] = r.Filename
+	out["ext"] = r.Ext
+	out["namespaceID"] = r.NamespaceID
+	out["moduleID"] = r.ModuleID
+
+	return out
+}
+
+func (r *RecordExport) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	if val, ok := get["filter"]; ok {
+		r.Filter = val
+	}
+	if val, ok := get["sort"]; ok {
+		r.Sort = val
+	}
+	if val, ok := get["download"]; ok {
+		r.Download = parseBool(val)
+	}
+	r.Filename = chi.URLParam(req, "filename")
+	r.Ext = chi.URLParam(req, "ext")
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
+
+	return err
+}
+
+var _ RequestFiller = NewRecordExport()
+
 // Record create request parameters
 type RecordCreate struct {
 	Values      types.RecordValueSet
