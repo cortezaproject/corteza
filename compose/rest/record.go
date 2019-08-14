@@ -2,6 +2,9 @@ package rest
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
 
 	"github.com/titpetric/factory/resputil"
 
@@ -152,6 +155,45 @@ func (ctrl *Record) Upload(ctx context.Context, r *request.RecordUpload) (interf
 	)
 
 	return makeAttachmentPayload(ctx, a, err)
+}
+
+func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interface{}, error) {
+	var (
+		m   *types.Module
+		err error
+	)
+
+	if m, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+		return nil, err
+	}
+
+	_ = m
+
+	// will probably have to rewrite exporting into something more optimal:
+	// maybe pass encoding function/callback directly
+	rr, _, err := ctrl.record.With(ctx).Find(types.RecordFilter{
+		NamespaceID: r.NamespaceID,
+		ModuleID:    r.ModuleID,
+		Filter:      r.Filter,
+		Sort:        r.Sort,
+	})
+
+	return func(w http.ResponseWriter, req *http.Request) {
+		var (
+			enc      = json.NewEncoder(w)
+			filename = fmt.Sprintf("; filename=%s.%s", r.Filename, r.Ext)
+		)
+
+		if r.Download {
+			w.Header().Add("Content-Disposition", "attachment"+filename)
+		} else {
+			w.Header().Add("Content-Disposition", "inline"+filename)
+		}
+
+		_ = rr.Walk(func(record *types.Record) error {
+			return enc.Encode(record)
+		})
+	}, nil
 }
 
 func (ctrl Record) makePayload(ctx context.Context, m *types.Module, r *types.Record, err error) (*recordPayload, error) {

@@ -681,6 +681,7 @@ Compose records
 | ------ | -------- | ------- |
 | `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/report` | Generates report from module records |
 | `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/` | List/read records from module section |
+| `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/export{filename}.{ext}` | Exports records that match  |
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/` | Create record in module section |
 | `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Read records by ID from module section |
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Update records in module section |
@@ -721,6 +722,26 @@ Compose records
 | page | uint | GET | Page number (0 based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | sort | string | GET | Sort field (default id desc) | N/A | NO |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
+
+## Exports records that match
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/module/{moduleID}/record/export{filename}.{ext}` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| filter | string | GET | Filtering condition | N/A | NO |
+| sort | string | GET | Sort field (default id desc) | N/A | NO |
+| download | bool | GET | Send headers to browser to trigger download/save-as | N/A | NO |
+| filename | string | PATH | Filename to use | N/A | NO |
+| ext | string | PATH | Export format | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 

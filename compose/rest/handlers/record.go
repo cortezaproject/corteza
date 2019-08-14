@@ -31,6 +31,7 @@ import (
 type RecordAPI interface {
 	Report(context.Context, *request.RecordReport) (interface{}, error)
 	List(context.Context, *request.RecordList) (interface{}, error)
+	Export(context.Context, *request.RecordExport) (interface{}, error)
 	Create(context.Context, *request.RecordCreate) (interface{}, error)
 	Read(context.Context, *request.RecordRead) (interface{}, error)
 	Update(context.Context, *request.RecordUpdate) (interface{}, error)
@@ -42,6 +43,7 @@ type RecordAPI interface {
 type Record struct {
 	Report func(http.ResponseWriter, *http.Request)
 	List   func(http.ResponseWriter, *http.Request)
+	Export func(http.ResponseWriter, *http.Request)
 	Create func(http.ResponseWriter, *http.Request)
 	Read   func(http.ResponseWriter, *http.Request)
 	Update func(http.ResponseWriter, *http.Request)
@@ -87,6 +89,26 @@ func NewRecord(h RecordAPI) *Record {
 				return
 			}
 			logger.LogControllerCall("Record.List", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
+		Export: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRecordExport()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Record.Export", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.Export(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("Record.Export", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("Record.Export", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
@@ -199,6 +221,7 @@ func (h Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Use(middlewares...)
 		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/report", h.Report)
 		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/", h.List)
+		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/export{filename}.{ext}", h.Export)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/", h.Create)
 		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Read)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Update)
