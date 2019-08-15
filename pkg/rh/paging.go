@@ -15,6 +15,10 @@ type (
 )
 
 func Paging(page, perPage uint) PageFilter {
+	if page == 0 {
+		page = 1
+	}
+
 	return PageFilter{
 		Page:    page,
 		PerPage: perPage,
