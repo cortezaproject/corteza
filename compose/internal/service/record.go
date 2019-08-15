@@ -44,6 +44,7 @@ type (
 
 		Report(namespaceID, moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
 		Find(filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
+		Export(types.RecordFilter, Encoder) error
 
 		Create(record *types.Record) (*types.Record, error)
 		Update(record *types.Record) (*types.Record, error)
@@ -51,6 +52,10 @@ type (
 		DeleteByID(namespaceID, recordID uint64) error
 
 		// Fields(module *types.Module, record *types.Record) ([]*types.RecordValue, error)
+	}
+
+	Encoder interface {
+		Record(*types.Record) error
 	}
 )
 
@@ -147,6 +152,27 @@ func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.
 	}
 
 	return
+}
+
+// Export returns all records
+//
+// @todo better value handling
+func (svc record) Export(filter types.RecordFilter, enc Encoder) error {
+	m, err := svc.loadModule(filter.NamespaceID, filter.ModuleID)
+	if err != nil {
+		return err
+	}
+
+	set, err := svc.recordRepo.Export(m, filter)
+	if err != nil {
+		return err
+	}
+
+	if err = svc.preloadValues(m, set...); err != nil {
+		return err
+	}
+
+	return set.Walk(enc.Record)
 }
 
 func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
