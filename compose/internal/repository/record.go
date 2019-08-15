@@ -23,6 +23,7 @@ type (
 
 		Report(module *types.Module, metrics, dimensions, filter string) (results interface{}, err error)
 		Find(module *types.Module, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
+		Export(module *types.Module, filter types.RecordFilter) (set types.RecordSet, err error)
 
 		Create(record *types.Record) (*types.Record, error)
 		Update(record *types.Record) (*types.Record, error)
@@ -117,7 +118,7 @@ func (r record) Report(module *types.Module, metrics, dimensions, filter string)
 func (r record) Find(module *types.Module, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
 	var query squirrel.SelectBuilder
 	f = filter
-	f.PerPage = rh.NormalizePerPage(f.PerPage, 5, 100, 50)
+	f.PageFilter.NormalizePerPageWithDefaults()
 
 	query, err = r.buildQuery(module, filter)
 	if err != nil {
@@ -128,10 +129,26 @@ func (r record) Find(module *types.Module, filter types.RecordFilter) (set types
 		return
 	}
 
+	return set, f, rh.FetchPaged(r.db(), query.Columns(r.columns()...), f.Page, f.PerPage, &set)
+}
+
+// Export ignores paging and does not return filter
+//
+// @todo optimize and include value loading
+func (r record) Export(module *types.Module, filter types.RecordFilter) (set types.RecordSet, err error) {
+	filter.PerPage = 0
+	filter.Page = 0
+
+	query, err := r.buildQuery(module, filter)
+	if err != nil {
+		return
+	}
+
 	// Assemble SQL for fetching record (where + sorting + paging)...
 	query = query.
 		Columns(r.columns()...)
-	return set, f, r.fetchPaged(&set, query, f.Page, f.PerPage)
+
+	return set, rh.FetchAll(r.db(), query, &set)
 }
 
 func (r record) buildQuery(module *types.Module, f types.RecordFilter) (query squirrel.SelectBuilder, err error) {

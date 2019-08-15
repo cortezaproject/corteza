@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/internal/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -29,10 +30,10 @@ type (
 		ModuleID    uint64 `json:"moduleID,string"`
 		NamespaceID uint64 `json:"namespaceID,string"`
 		Filter      string `json:"query"`
-		Page        uint   `json:"page"`
-		PerPage     uint   `json:"perPage"`
 		Sort        string `json:"sort"`
-		Count       uint   `json:"count"`
+
+		// Standard paging fields & helpers
+		rh.PageFilter
 	}
 )
 
