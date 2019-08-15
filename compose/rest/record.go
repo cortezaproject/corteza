@@ -2,17 +2,21 @@ package rest
 
 import (
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/pkg/errors"
 
+	"github.com/cortezaproject/corteza-server/compose/encoder"
 	"github.com/cortezaproject/corteza-server/compose/internal/service"
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 var _ = errors.Wrap
@@ -71,8 +75,8 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 		ModuleID:    r.ModuleID,
 		Filter:      r.Filter,
 		Sort:        r.Sort,
-		PerPage:     r.PerPage,
-		Page:        r.Page,
+
+		PageFilter: rh.Paging(r.Page, r.PerPage),
 	})
 
 	return ctrl.makeFilterPayload(ctx, m, rr, filter, err)
@@ -158,41 +162,64 @@ func (ctrl *Record) Upload(ctx context.Context, r *request.RecordUpload) (interf
 }
 
 func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interface{}, error) {
-	var (
-		m   *types.Module
-		err error
+	type (
+		// ad-hoc interface for our encoder
+		Encoder interface {
+			service.Encoder
+			Flush()
+		}
 	)
 
-	if m, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+	var (
+		err error
+
+		// Record encoder
+		recordEncoder Encoder
+
+		filename = fmt.Sprintf("; filename=%s.%s", r.Filename, r.Ext)
+
+		f = types.RecordFilter{
+			NamespaceID: r.NamespaceID,
+			ModuleID:    r.ModuleID,
+			Filter:      r.Filter,
+		}
+
+		contentType string
+	)
+
+	// Access control.
+	if _, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
 	}
 
-	_ = m
-
-	// will probably have to rewrite exporting into something more optimal:
-	// maybe pass encoding function/callback directly
-	rr, _, err := ctrl.record.With(ctx).Find(types.RecordFilter{
-		NamespaceID: r.NamespaceID,
-		ModuleID:    r.ModuleID,
-		Filter:      r.Filter,
-		Sort:        r.Sort,
-	})
+	if len(r.Fields) == 1 {
+		r.Fields = strings.Split(r.Fields[0], ",")
+	}
 
 	return func(w http.ResponseWriter, req *http.Request) {
-		var (
-			enc      = json.NewEncoder(w)
-			filename = fmt.Sprintf("; filename=%s.%s", r.Filename, r.Ext)
-		)
+		ff := encoder.MakeFields(r.Fields...)
 
-		if r.Download {
-			w.Header().Add("Content-Disposition", "attachment"+filename)
-		} else {
-			w.Header().Add("Content-Disposition", "inline"+filename)
+		switch strings.ToLower(r.Ext) {
+		case "json", "jsonl", "ldjson", "ndjson":
+			contentType = "application/jsonl"
+			recordEncoder = encoder.NewStructuredEncoder(json.NewEncoder(w), ff...)
+
+		case "csv":
+			encoder = encoder2.NewFlatWriter(csv.NewWriter(w), true, encoder2.MakeFields(r.Fields...)...)
+		default:
+			http.Error(w, "unsupported format ("+r.Ext+")", http.StatusBadRequest)
+			return
 		}
 
-		_ = rr.Walk(func(record *types.Record) error {
-			return enc.Encode(record)
-		})
+		w.Header().Add("Content-Type", contentType)
+		w.Header().Add("Content-Disposition", "attachment"+filename)
+
+		if err = ctrl.record.With(ctx).Export(f, recordEncoder); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		recordEncoder.Flush()
 	}, nil
 }
 

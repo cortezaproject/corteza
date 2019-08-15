@@ -105,16 +105,10 @@
             "type": "string"
           },
           {
-            "name": "sort",
-            "required": false,
-            "title": "Sort field (default id desc)",
-            "type": "string"
-          },
-          {
-            "name": "download",
-            "required": false,
-            "title": "Send headers to browser to trigger download/save-as",
-            "type": "bool"
+            "name": "fields",
+            "required": true,
+            "title": "Fields to export",
+            "type": "[]string"
           }
         ],
         "path": [
