@@ -178,8 +178,7 @@ var _ RequestFiller = NewRecordList()
 // Record export request parameters
 type RecordExport struct {
 	Filter      string
-	Sort        string
-	Download    bool
+	Fields      []string
 	Filename    string
 	Ext         string
 	NamespaceID uint64 `json:",string"`
@@ -194,8 +193,7 @@ func (r RecordExport) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["filter"] = r.Filter
-	out["sort"] = r.Sort
-	out["download"] = r.Download
+	out["fields"] = r.Fields
 	out["filename"] = r.Filename
 	out["ext"] = r.Ext
 	out["namespaceID"] = r.NamespaceID
@@ -234,12 +232,13 @@ func (r *RecordExport) Fill(req *http.Request) (err error) {
 	if val, ok := get["filter"]; ok {
 		r.Filter = val
 	}
-	if val, ok := get["sort"]; ok {
-		r.Sort = val
+
+	if val, ok := urlQuery["fields[]"]; ok {
+		r.Fields = parseStrings(val)
+	} else if val, ok = urlQuery["fields"]; ok {
+		r.Fields = parseStrings(val)
 	}
-	if val, ok := get["download"]; ok {
-		r.Download = parseBool(val)
-	}
+
 	r.Filename = chi.URLParam(req, "filename")
 	r.Ext = chi.URLParam(req, "ext")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))

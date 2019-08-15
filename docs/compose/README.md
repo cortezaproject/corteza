@@ -738,8 +738,7 @@ Compose records
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | filter | string | GET | Filtering condition | N/A | NO |
-| sort | string | GET | Sort field (default id desc) | N/A | NO |
-| download | bool | GET | Send headers to browser to trigger download/save-as | N/A | NO |
+| fields | []string | GET | Fields to export | N/A | YES |
 | filename | string | PATH | Filename to use | N/A | NO |
 | ext | string | PATH | Export format | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |

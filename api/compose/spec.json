@@ -683,16 +683,10 @@
                             "title": "Filtering condition"
                         },
                         {
-                            "name": "sort",
-                            "type": "string",
-                            "required": false,
-                            "title": "Sort field (default id desc)"
-                        },
-                        {
-                            "name": "download",
-                            "type": "bool",
-                            "required": false,
-                            "title": "Send headers to browser to trigger download/save-as"
+                            "name": "fields",
+                            "type": "[]string",
+                            "required": true,
+                            "title": "Fields to export"
                         }
                     ]
                 }
