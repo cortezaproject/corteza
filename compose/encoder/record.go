@@ -126,3 +126,40 @@ func (enc structuredEncoder) Record(r *types.Record) error {
 
 	return enc.w.Encode(out)
 }
+
+func (enc *excelizeEncoder) Record(r *types.Record) error {
+	enc.row++
+
+	for p, f := range enc.ff {
+		p++
+		switch f.name {
+		case "recordID", "ID":
+			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtUint64(r.ID))
+		case "moduleID":
+			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtUint64(r.ModuleID))
+		case "namespaceID":
+			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtUint64(r.NamespaceID))
+		case "ownedBy":
+			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtUint64(r.OwnedBy))
+		case "createdBy":
+			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtUint64(r.CreatedBy))
+		case "createdAt":
+			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtTime(&r.CreatedAt))
+		case "updatedBy":
+			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtUint64(r.UpdatedBy))
+		case "updatedAt":
+			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtTime(r.UpdatedAt))
+		case "deletedBy":
+			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtUint64(r.DeletedBy))
+		case "deletedAt":
+			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtTime(r.DeletedAt))
+		default:
+			vv := r.Values.FilterByName(f.name)
+			if len(vv) > 0 {
+				_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), vv[0].Value)
+			}
+		}
+	}
+
+	return nil
+}
