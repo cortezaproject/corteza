@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:b4c5ba677fe2b1b97bdabc04a3bca517b73cec262d5a0a58fd45faa1c892ee17"
+  name = "github.com/360EntSecGroup-Skylar/excelize"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "dc8210d4a7d18f6425f6f18dc383b26778883715"
+  version = "v2.0.1"
+
+[[projects]]
   branch = "master"
   digest = "1:75db4b9fc5d032088f273028c5355efa3a4dfb05b3a590cbe05d13828351decd"
   name = "github.com/766b/chi-prometheus"
@@ -279,6 +287,14 @@
   pruneopts = "UT"
   revision = "c12348ce28de40eed0136aa2b644d0ee0650e56c"
   version = "v1.0.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:84bd7f8a2e0bcd53ddc33c3b47c34c1fe340c8632cbe928f7f8ae10ec6ecdd62"
+  name = "github.com/mohae/deepcopy"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c48cc78d482608239f6c4c92a4abd87eb8761c90"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -568,6 +584,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/360EntSecGroup-Skylar/excelize",
     "github.com/766b/chi-prometheus",
     "github.com/99designs/basicauth-go",
     "github.com/SentimensRG/ctx",

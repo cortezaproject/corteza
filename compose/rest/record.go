@@ -205,7 +205,13 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			recordEncoder = encoder.NewStructuredEncoder(json.NewEncoder(w), ff...)
 
 		case "csv":
-			encoder = encoder2.NewFlatWriter(csv.NewWriter(w), true, encoder2.MakeFields(r.Fields...)...)
+			contentType = "text/csv"
+			recordEncoder = encoder.NewFlatWriter(csv.NewWriter(w), true, ff...)
+
+		case "xlsx":
+			contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+			recordEncoder = encoder.NewExcelizeEncoder(w, true, ff...)
+
 		default:
 			http.Error(w, "unsupported format ("+r.Ext+")", http.StatusBadRequest)
 			return
