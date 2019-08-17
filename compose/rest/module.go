@@ -72,6 +72,7 @@ func (ctrl *Module) List(ctx context.Context, r *request.ModuleList) (interface{
 	f := types.ModuleFilter{
 		NamespaceID: r.NamespaceID,
 		Query:       r.Query,
+		Name:        r.Name,
 		PerPage:     r.PerPage,
 		Page:        r.Page,
 	}

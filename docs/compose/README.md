@@ -505,6 +505,7 @@ Compose module definitions
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
+| name | string | GET | Search by name | N/A | NO |
 | page | uint | GET | Page number (0 based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
