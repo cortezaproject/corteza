@@ -253,7 +253,7 @@
 | scriptID | uint64 | PATH |  | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | POST | ModuleID to be used | N/A | NO |
-| recordID | uint64 | POST | RecordID to be used | N/A | NO |
+| recordID | uint64 | POST | RecordID to be used (instead of record payload) | N/A | NO |
 | record | json.RawMessage | POST | Record payload to be used (instead of specific record when using recordID) | N/A | NO |
 
 ## Run source code in corredor. Used for testing
