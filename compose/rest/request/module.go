@@ -37,6 +37,7 @@ var _ = multipart.FileHeader{}
 // Module list request parameters
 type ModuleList struct {
 	Query       string
+	Name        string
 	Page        uint
 	PerPage     uint
 	NamespaceID uint64 `json:",string"`
@@ -50,6 +51,7 @@ func (r ModuleList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["query"] = r.Query
+	out["name"] = r.Name
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
 	out["namespaceID"] = r.NamespaceID
@@ -86,6 +88,9 @@ func (r *ModuleList) Fill(req *http.Request) (err error) {
 
 	if val, ok := get["query"]; ok {
 		r.Query = val
+	}
+	if val, ok := get["name"]; ok {
+		r.Name = val
 	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)

@@ -445,6 +445,12 @@
                             "title": "Search query"
                         },
                         {
+                            "type": "string",
+                            "name": "name",
+                            "required": false,
+                            "title": "Search by name"
+                        },
+                        {
                             "name": "page",
                             "type": "uint",
                             "required": false,
