@@ -262,7 +262,7 @@
           },
           {
             "name": "recordID",
-            "title": "RecordID to be used",
+            "title": "RecordID to be used (instead of record payload)",
             "type": "uint64"
           },
           {
