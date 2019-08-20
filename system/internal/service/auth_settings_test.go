@@ -26,7 +26,7 @@ func Test_extractProviders(t *testing.T) {
 			wantProviders: map[string]AuthSettingsExternalAuthProvider{
 				"github":   AuthSettingsExternalAuthProvider{},
 				"linkedin": AuthSettingsExternalAuthProvider{},
-				"gplus":    AuthSettingsExternalAuthProvider{},
+				"google":   AuthSettingsExternalAuthProvider{},
 				"facebook": AuthSettingsExternalAuthProvider{},
 			},
 		},
@@ -69,7 +69,7 @@ func Test_extractProviders(t *testing.T) {
 				"openid-connect.baz": AuthSettingsExternalAuthProvider{},
 				"github":             AuthSettingsExternalAuthProvider{},
 				"linkedin":           AuthSettingsExternalAuthProvider{},
-				"gplus":              AuthSettingsExternalAuthProvider{},
+				"google":             AuthSettingsExternalAuthProvider{},
 				"facebook": AuthSettingsExternalAuthProvider{
 					Enabled:     true,
 					Secret:      "fb-secret",

@@ -47,11 +47,11 @@ func TestAuth_External_Existing(t *testing.T) {
 	var c = &types.Credentials{ID: 200000, OwnerID: u.ID}
 
 	// Profile to be used. make sure email matches
-	var p = goth.User{UserID: "some-profile-id", Provider: "gplus", Email: u.Email}
+	var p = goth.User{UserID: "some-profile-id", Provider: "google", Email: u.Email}
 
 	crdRpoMock := repomock.NewMockCredentialsRepository(mockCtrl)
 	crdRpoMock.EXPECT().
-		FindByCredentials("gplus", p.UserID).
+		FindByCredentials("google", p.UserID).
 		Times(1).
 		Return(types.CredentialsSet{c}, nil)
 
@@ -80,16 +80,16 @@ func TestAuth_External_NonExisting(t *testing.T) {
 
 	var u = &types.User{ID: 300000, Email: "foo@example.tld"}
 	var c = &types.Credentials{ID: 200000, OwnerID: u.ID}
-	var p = goth.User{UserID: "some-profile-id", Provider: "gplus", Email: u.Email}
+	var p = goth.User{UserID: "some-profile-id", Provider: "google", Email: u.Email}
 
 	crdRpoMock := repomock.NewMockCredentialsRepository(mockCtrl)
 	crdRpoMock.EXPECT().
-		FindByCredentials("gplus", p.UserID).
+		FindByCredentials("google", p.UserID).
 		Times(1).
 		Return(types.CredentialsSet{}, nil)
 
 	crdRpoMock.EXPECT().
-		Create(&types.Credentials{Kind: "gplus", OwnerID: u.ID, Credentials: p.UserID}).
+		Create(&types.Credentials{Kind: "google", OwnerID: u.ID, Credentials: p.UserID}).
 		Times(1).
 		Return(c, nil)
 

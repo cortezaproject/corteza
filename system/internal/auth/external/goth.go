@@ -8,7 +8,7 @@ import (
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/facebook"
 	"github.com/markbates/goth/providers/github"
-	"github.com/markbates/goth/providers/gplus"
+	"github.com/markbates/goth/providers/google"
 	"github.com/markbates/goth/providers/linkedin"
 	"github.com/markbates/goth/providers/openidConnect"
 	"go.uber.org/zap"
@@ -97,8 +97,8 @@ func setupGothProviders(as service.AuthSettings) {
 				provider = github.New(pc.Key, pc.Secret, pc.RedirectUrl, scopes...)
 			case "facebook":
 				provider = facebook.New(pc.Key, pc.Secret, pc.RedirectUrl, scopes...)
-			case "gplus":
-				provider = gplus.New(pc.Key, pc.Secret, pc.RedirectUrl, scopes...)
+			case "google":
+				provider = google.New(pc.Key, pc.Secret, pc.RedirectUrl, scopes...)
 			case "linkedin":
 				provider = linkedin.New(pc.Key, pc.Secret, pc.RedirectUrl, scopes...)
 			}
