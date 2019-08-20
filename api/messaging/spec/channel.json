@@ -308,9 +308,21 @@
           },
           {
             "name": "upload",
-            "required": true,
+            "required": false,
             "title": "File to upload",
             "type": "*multipart.FileHeader"
+          },
+          {
+            "name": "download",
+            "required": false,
+            "title": "File to download",
+            "type": "string"
+          },
+          {
+            "name": "preview",
+            "required": false,
+            "title": "File preview variant",
+            "type": "string"
           }
         ]
       }

@@ -670,6 +670,8 @@ type ChannelAttach struct {
 	ChannelID uint64 `json:",string"`
 	ReplyTo   uint64 `json:",string"`
 	Upload    *multipart.FileHeader
+	Download  string
+	Preview   string
 }
 
 func NewChannelAttach() *ChannelAttach {
@@ -683,6 +685,9 @@ func (r ChannelAttach) Auditable() map[string]interface{} {
 	out["replyTo"] = r.ReplyTo
 	out["upload.size"] = r.Upload.Size
 	out["upload.filename"] = r.Upload.Filename
+
+	out["download"] = r.Download
+	out["preview"] = r.Preview
 
 	return out
 }
@@ -718,8 +723,14 @@ func (r *ChannelAttach) Fill(req *http.Request) (err error) {
 	if val, ok := post["replyTo"]; ok {
 		r.ReplyTo = parseUInt64(val)
 	}
-	if _, r.Upload, err = req.FormFile("upload"); err != nil {
-		return errors.Wrap(err, "error procesing uploaded file")
+	if _, val, err := req.FormFile("upload"); err == nil {
+		r.Upload = val
+	}
+	if val, ok := post["download"]; ok {
+		r.Download = val
+	}
+	if val, ok := post["preview"]; ok {
+		r.Preview = val
 	}
 
 	return err
