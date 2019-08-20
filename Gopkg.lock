@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:80004fcc5cf64e591486b3e11b406f1e0d17bf85d475d64203c8494f5da4fcd1"
+  name = "cloud.google.com/go"
+  packages = ["compute/metadata"]
+  pruneopts = "UT"
+  revision = "ceeb313ad77b789a7fa5287b36a1d127b69b7093"
+  version = "v0.44.3"
+
+[[projects]]
   digest = "1:b4c5ba677fe2b1b97bdabc04a3bca517b73cec262d5a0a58fd45faa1c892ee17"
   name = "github.com/360EntSecGroup-Skylar/excelize"
   packages = ["."]
@@ -279,14 +287,14 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:3b3bcae9151abbaa9b45cc566ddda6a63e34668bbb2664194648004af064fa29"
+  digest = "1:b4bd224626a7ba189a03b85951e2e8d7427c13fd3c387521b8154b9dcb2d9919"
   name = "github.com/markbates/goth"
   packages = [
     ".",
     "gothic",
     "providers/facebook",
     "providers/github",
-    "providers/gplus",
+    "providers/google",
     "providers/linkedin",
     "providers/openidConnect",
   ]
@@ -513,11 +521,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9927d6aceb89d188e21485f42a7a254e67e6fdcf4260aba375fe18e3c300dfb4"
+  digest = "1:645cb780e4f3177111b40588f0a7f5950efcfb473e7ff41d8d81b2ba5eaa6ed5"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
+    "google",
     "internal",
+    "jws",
+    "jwt",
   ]
   pruneopts = "UT"
   revision = "9f3314589c9a9136388751d9adae6b0ed400978a"
@@ -559,14 +570,17 @@
   version = "v0.3.2"
 
 [[projects]]
-  digest = "1:7e8b9c5ae49011b12ae8473834ac1a7bb8ac029ba201270c723e4c280c9e4855"
+  digest = "1:b08971e2f39ffd6a0b627e7ef1918f178bfcf1ca00d70fc35fb8f4812682afb6"
   name = "google.golang.org/appengine"
   packages = [
+    ".",
     "cloudsql",
     "internal",
+    "internal/app_identity",
     "internal/base",
     "internal/datastore",
     "internal/log",
+    "internal/modules",
     "internal/remote_api",
     "internal/urlfetch",
     "urlfetch",
@@ -697,7 +711,7 @@
     "github.com/markbates/goth/gothic",
     "github.com/markbates/goth/providers/facebook",
     "github.com/markbates/goth/providers/github",
-    "github.com/markbates/goth/providers/gplus",
+    "github.com/markbates/goth/providers/google",
     "github.com/markbates/goth/providers/linkedin",
     "github.com/markbates/goth/providers/openidConnect",
     "github.com/pkg/errors",
