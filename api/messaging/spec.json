@@ -418,7 +418,7 @@
             }
         ]
     },
-    {
+    {i
         "title": "Messages",
         "path": "/channels/{channelID}/messages",
         "parameters": {
