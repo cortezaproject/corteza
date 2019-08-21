@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -31,7 +32,8 @@ type (
 )
 
 const (
-	ErrModuleNotFound = repositoryError("ModuleNotFound")
+	ErrModuleNotFound      = repositoryError("ModuleNotFound")
+	ErrModuleNameNotUnique = repositoryError("ModuleNameNotUnique")
 )
 
 func Module(ctx context.Context, db *factory.DB) ModuleRepository {
@@ -116,6 +118,10 @@ func (r module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.Mo
 func (r module) Create(mod *types.Module) (*types.Module, error) {
 	var err error
 
+	if err = r.checkName(mod.NamespaceID, 0, mod.Name); err != nil {
+		return nil, err
+	}
+
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now().Truncate(time.Second)
 
@@ -131,6 +137,10 @@ func (r module) Create(mod *types.Module) (*types.Module, error) {
 }
 
 func (r module) Update(mod *types.Module) (*types.Module, error) {
+	if err := r.checkName(mod.NamespaceID, 0, mod.Name); err != nil {
+		return nil, err
+	}
+
 	now := time.Now().Truncate(time.Second)
 	mod.UpdatedAt = &now
 
@@ -234,4 +244,23 @@ func (r module) FindFields(moduleIDs ...uint64) (ff types.ModuleFieldSet, err er
 	} else {
 		return ff, r.db().Select(&ff, sql, args...)
 	}
+}
+
+// Checks if there is another module in the namespace with the same name
+func (r module) checkName(namespaceID, moduleID uint64, name string) error {
+	mm, f, err := r.Find(types.ModuleFilter{
+		NamespaceID: namespaceID,
+		Name:        name,
+		PerPage:     1,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if f.Count == 0 || mm.FindByID(moduleID) == nil {
+		return nil
+	}
+
+	return ErrModuleNameNotUnique
 }
