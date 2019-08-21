@@ -544,7 +544,9 @@ func (r *PageUpload) Fill(req *http.Request) (err error) {
 
 	r.PageID = parseUInt64(chi.URLParam(req, "pageID"))
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
-	if _, r.Upload, err = req.FormFile("upload"); err != nil {
+	if _, val, err := req.FormFile("upload"); err == nil {
+		r.Upload = val
+	} else {
 		return errors.Wrap(err, "error procesing uploaded file")
 	}
 

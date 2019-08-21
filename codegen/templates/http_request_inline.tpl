@@ -93,9 +93,12 @@ func (r *{name|expose}{call.name|capitalize}) Fill(req *http.Request) (err error
 	{/if}
 
 {elseif $param.type === "*multipart.FileHeader"}
-	if _, r.{param.name|expose}, err = req.FormFile("{$param.name}"); err != nil {
+	if _, val, err := req.FormFile("{$param.name}"); err == nil {
+		r.{param.name|expose} = val
+	}{if $param.required === true} else {
 		return errors.Wrap(err, "error procesing uploaded file")
 	}
+	{/if}
 {elseif substr($param.type, 0, 2) !== '[]' && substr($param.type, -3) !== 'Set'}
 	if val, ok := {method|strtolower}["{param.name}"]; ok {
 {if substr($parsers[$param.type], -7) === 'WithErr'}

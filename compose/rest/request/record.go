@@ -464,7 +464,9 @@ func (r *RecordUpload) Fill(req *http.Request) (err error) {
 	if val, ok := post["fieldName"]; ok {
 		r.FieldName = val
 	}
-	if _, r.Upload, err = req.FormFile("upload"); err != nil {
+	if _, val, err := req.FormFile("upload"); err == nil {
+		r.Upload = val
+	} else {
 		return errors.Wrap(err, "error procesing uploaded file")
 	}
 

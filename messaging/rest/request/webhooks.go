@@ -168,10 +168,9 @@ func (r *WebhooksCreate) Fill(req *http.Request) (err error) {
 	if val, ok := post["username"]; ok {
 		r.Username = val
 	}
-	if _, r.Avatar, err = req.FormFile("avatar"); err != nil {
-		return errors.Wrap(err, "error procesing uploaded file")
+	if _, val, err := req.FormFile("avatar"); err == nil {
+		r.Avatar = val
 	}
-
 	if val, ok := post["avatarURL"]; ok {
 		r.AvatarURL = val
 	}
@@ -262,10 +261,9 @@ func (r *WebhooksUpdate) Fill(req *http.Request) (err error) {
 	if val, ok := post["username"]; ok {
 		r.Username = val
 	}
-	if _, r.Avatar, err = req.FormFile("avatar"); err != nil {
-		return errors.Wrap(err, "error procesing uploaded file")
+	if _, val, err := req.FormFile("avatar"); err == nil {
+		r.Avatar = val
 	}
-
 	if val, ok := post["avatarURL"]; ok {
 		r.AvatarURL = val
 	}
