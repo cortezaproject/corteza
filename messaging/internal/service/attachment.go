@@ -7,7 +7,6 @@ import (
 	"image/gif"
 	"io"
 	"net/http"
-	"path"
 	"strings"
 
 	"github.com/disintegration/imaging"
@@ -20,12 +19,25 @@ import (
 	"github.com/cortezaproject/corteza-server/internal/store"
 	"github.com/cortezaproject/corteza-server/messaging/internal/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	files "github.com/cortezaproject/corteza-server/pkg"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 const (
 	attachmentPreviewMaxWidth  = 320
 	attachmentPreviewMaxHeight = 180
+)
+
+var (
+	f2m = map[imaging.Format]string{
+		imaging.JPEG: "image/jpeg",
+		imaging.GIF:  "image/gif",
+	}
+
+	f2e = map[imaging.Format]string{
+		imaging.JPEG: "jpg",
+		imaging.GIF:  "gif",
+	}
 )
 
 type (
@@ -52,7 +64,7 @@ type (
 		With(ctx context.Context) AttachmentService
 
 		FindByID(id uint64) (*types.Attachment, error)
-		Create(name string, size int64, fh io.ReadSeeker, channelId, replyTo uint64) (*types.Attachment, error)
+		Create(channelId, replyTo uint64, name string, fh *bytes.Reader, size int64, pname string, pfh *bytes.Reader, psize int64) (*types.Attachment, error)
 		OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 		OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
 	}
@@ -109,12 +121,16 @@ func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) 
 	return svc.store.Open(att.PreviewUrl)
 }
 
-func (svc attachment) Create(name string, size int64, fh io.ReadSeeker, channelId, replyTo uint64) (att *types.Attachment, err error) {
+func isAnimated(g *gif.GIF) bool {
+	return g != nil && (g.LoopCount > 0 || len(g.Delay) > 1)
+}
+
+func (svc attachment) Create(channelId, replyTo uint64, name string, fh *bytes.Reader, size int64, pname string, pfh *bytes.Reader, psize int64) (att *types.Attachment, err error) {
 	if svc.store == nil {
 		return nil, errors.New("Can not create attachment: store handler not set")
 	}
 
-	var currentUserID uint64 = repository.Identity(svc.ctx)
+	currentUserID := repository.Identity(svc.ctx)
 
 	if ch, err := svc.channel.FindByID(channelId); err != nil {
 		return nil, err
@@ -133,13 +149,29 @@ func (svc attachment) Create(name string, size int64, fh io.ReadSeeker, channelI
 		zap.Int64("size", att.Meta.Original.Size),
 	)
 
-	// Extract extension but make sure path.Ext is not confused by any leading/trailing dots
-	att.Meta.Original.Extension = strings.Trim(path.Ext(strings.Trim(name, ".")), ".")
-
+	att.Meta.Original.Extension, _ = files.ExtractExtFromURL(name)
 	att.Meta.Original.Size = size
 	if att.Meta.Original.Mimetype, err = svc.extractMimetype(fh); err != nil {
 		log.Error("could not extract mime-type", zap.Error(err))
 		return
+	}
+
+	if att.Meta.Preview == nil {
+		// initial set in case preview meta is not defined yet
+		att.SetPreviewImageMeta(0, 0, false)
+	}
+
+	if pfh != nil {
+		att.Meta.Preview.Extension, _ = files.ExtractExtFromURL(pname)
+		att.Meta.Preview.Size = psize
+		if att.Meta.Preview.Mimetype, err = svc.extractMimetype(pfh); err != nil {
+			log.Error("could not extract mime-type", zap.Error(err))
+			return
+		}
+	} else {
+		att.Meta.Preview.Extension = att.Meta.Original.Extension
+		att.Meta.Preview.Size = att.Meta.Original.Size
+		att.Meta.Preview.Mimetype = att.Meta.Original.Mimetype
 	}
 
 	att.Url = svc.store.Original(att.ID, att.Meta.Original.Extension)
@@ -148,10 +180,46 @@ func (svc attachment) Create(name string, size int64, fh io.ReadSeeker, channelI
 		return
 	}
 
-	// Process image: extract width, height, make preview
-	err = svc.processImage(fh, att)
-	if err != nil {
-		log.Error("could not process image", zap.Error(err))
+	// Only support processing for images
+	if strings.HasPrefix(att.Meta.Original.Mimetype, "image/") {
+		// Original
+		format, err := imaging.FormatFromExtension(att.Meta.Original.Extension)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Could not get format from extension '%s'", att.Meta.Original.Extension)
+		}
+		img, g, err := svc.loadMedia(fh, format)
+		if err != nil {
+			return nil, err
+		}
+		animated := isAnimated(g)
+		att.Meta.Original.SetImageMeta(img.Bounds().Max.X, img.Bounds().Max.Y, animated)
+
+		// Preview
+		format, err = imaging.FormatFromExtension(att.Meta.Preview.Extension)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Could not get format from extension '%s'", att.Meta.Preview.Extension)
+		}
+		if pfh != nil {
+			img, g, err := svc.loadMedia(pfh, format)
+			if err != nil {
+				return nil, err
+			}
+			animated := isAnimated(g)
+			att.Meta.Preview.SetImageMeta(img.Bounds().Max.X, img.Bounds().Max.Y, animated)
+			att.PreviewUrl = svc.store.Preview(att.ID, att.Meta.Preview.Extension)
+			svc.store.Save(att.PreviewUrl, pfh)
+		} else {
+			bb, width, height, size, t, ext, err := svc.makePreview(img, g, format)
+			if err != nil {
+				return nil, err
+			}
+			att.Meta.Preview.Size = size
+			att.Meta.Preview.Mimetype = t
+			att.Meta.Preview.Extension = ext
+			att.Meta.Preview.SetImageMeta(width, height, false)
+			att.PreviewUrl = svc.store.Preview(att.ID, ext)
+			svc.store.Save(att.PreviewUrl, bb)
+		}
 	}
 
 	return att, svc.db.Transaction(func() (err error) {
@@ -203,102 +271,65 @@ func (svc attachment) extractMimetype(file io.ReadSeeker) (mimetype string, err 
 	return http.DetectContentType(buf), nil
 }
 
-func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment) (err error) {
-	if !strings.HasPrefix(att.Meta.Original.Mimetype, "image/") {
-		// Only supporting previews from images (for now)
+func (svc attachment) loadMedia(fh io.ReadSeeker, format imaging.Format) (img image.Image, g *gif.GIF, err error) {
+	defer fh.Seek(0, 0)
+	if _, err = fh.Seek(0, 0); err != nil {
 		return
 	}
-
-	var (
-		preview       image.Image
-		opts          []imaging.EncodeOption
-		format        imaging.Format
-		previewFormat imaging.Format
-		animated      bool
-		f2m           = map[imaging.Format]string{
-			imaging.JPEG: "image/jpeg",
-			imaging.GIF:  "image/gif",
-		}
-
-		f2e = map[imaging.Format]string{
-			imaging.JPEG: "jpg",
-			imaging.GIF:  "gif",
-		}
-	)
-
-	if _, err = original.Seek(0, 0); err != nil {
-		return
-	}
-
-	if format, err = imaging.FormatFromExtension(att.Meta.Original.Extension); err != nil {
-		return errors.Wrapf(err, "Could not get format from extension '%s'", att.Meta.Original.Extension)
-	}
-
-	previewFormat = format
 
 	if imaging.JPEG == format {
-		// Rotate image if needed
-		// if preview, _, err = exiffix.Decode(original); err != nil {
-		// 	//return errors.Wrapf(err, "Could not decode EXIF from JPEG")
-		// }
-		preview, _, _ = exiffix.Decode(original)
+		if img, _, err = exiffix.Decode(fh); err != nil {
+			return
+		}
 	}
 
 	if imaging.GIF == format {
 		// Decode all and check loops & delay to determine if GIF is animated or not
-		if cfg, err := gif.DecodeAll(original); err == nil {
-			animated = cfg.LoopCount > 0 || len(cfg.Delay) > 1
-
-			// Use first image for the preview
-			preview = cfg.Image[0]
+		if g, err = gif.DecodeAll(fh); err == nil {
+			img = g.Image[0]
 		} else {
-			return errors.Wrapf(err, "Could not decode gif config")
+			return
 		}
+	}
 
-	} else {
-		// Use GIF preview for GIFs and JPEG for everything else!
-		previewFormat = imaging.JPEG
+	if img == nil {
+		if img, _, err = exiffix.Decode(fh); err != nil {
+			return
+		}
+	}
 
-		// Store with a bit lower quality
+	return
+}
+
+func (svc attachment) makePreview(img image.Image, g *gif.GIF, format imaging.Format) (buf *bytes.Buffer, width, height int, size int64, mimetype, extension string, err error) {
+	var (
+		processedFormat imaging.Format
+		opts            []imaging.EncodeOption
+	)
+
+	processedFormat = format
+	if format != imaging.GIF {
+		processedFormat = imaging.JPEG
 		opts = append(opts, imaging.JPEGQuality(85))
 	}
 
-	// In case of JPEG we decode the image and rotate it beforehand
-	// other cases are handled here
-	if preview == nil {
-		if preview, err = imaging.Decode(original); err != nil {
-			return errors.Wrapf(err, "Could not decode original image")
-		}
-	}
-
-	var width, height = preview.Bounds().Max.X, preview.Bounds().Max.Y
-	att.SetOriginalImageMeta(width, height, animated)
-
+	width, height = img.Bounds().Max.X, img.Bounds().Max.Y
 	if width > attachmentPreviewMaxWidth && width > height {
 		// Landscape does not fit
-		preview = imaging.Resize(preview, attachmentPreviewMaxWidth, 0, imaging.Lanczos)
+		img = imaging.Resize(img, attachmentPreviewMaxWidth, 0, imaging.Lanczos)
 	} else if height > attachmentPreviewMaxHeight {
 		// Height does not fit
-		preview = imaging.Resize(preview, 0, attachmentPreviewMaxHeight, imaging.Lanczos)
+		img = imaging.Resize(img, 0, attachmentPreviewMaxHeight, imaging.Lanczos)
 	}
-
-	// Get dimensions from the preview
-	width, height = preview.Bounds().Max.X, preview.Bounds().Max.Y
-
-	var buf = &bytes.Buffer{}
-	if err = imaging.Encode(buf, preview, previewFormat, opts...); err != nil {
+	width, height = img.Bounds().Max.X, img.Bounds().Max.Y
+	buf = &bytes.Buffer{}
+	if err = imaging.Encode(buf, img, processedFormat, opts...); err != nil {
 		return
 	}
-
-	meta := att.SetPreviewImageMeta(width, height, false)
-	meta.Size = int64(buf.Len())
-	meta.Mimetype = f2m[previewFormat]
-	meta.Extension = f2e[previewFormat]
-
-	// Can and how we make a preview of this attachment?
-	att.PreviewUrl = svc.store.Preview(att.ID, meta.Extension)
-
-	return svc.store.Save(att.PreviewUrl, buf)
+	size = int64(buf.Len())
+	mimetype = f2m[processedFormat]
+	extension = f2e[processedFormat]
+	return
 }
 
 // Sends message to event loop

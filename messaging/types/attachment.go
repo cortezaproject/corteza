@@ -45,6 +45,17 @@ type (
 	}
 )
 
+func (a *attachmentFileMeta) SetImageMeta(width, height int, animated bool) *attachmentImageMeta {
+	if a.Image == nil {
+		a.Image = &attachmentImageMeta{}
+	}
+	a.Image.Animated = animated
+	a.Image.Height = height
+	a.Image.Width = width
+
+	return a.Image
+}
+
 func (a *Attachment) SetOriginalImageMeta(width, height int, animated bool) *attachmentFileMeta {
 	a.imageMeta(&a.Meta.Original, width, height, animated)
 	return &a.Meta.Original

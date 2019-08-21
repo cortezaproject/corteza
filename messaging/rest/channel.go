@@ -1,7 +1,11 @@
 package rest
 
 import (
+	"bytes"
 	"context"
+	"io/ioutil"
+
+	"github.com/cortezaproject/corteza-server/internal/store"
 
 	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/internal/payload"
@@ -9,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/messaging/internal/service"
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	files "github.com/cortezaproject/corteza-server/pkg"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 )
@@ -117,19 +122,71 @@ func (ctrl *Channel) Part(ctx context.Context, r *request.ChannelPart) (interfac
 }
 
 func (ctrl *Channel) Attach(ctx context.Context, r *request.ChannelAttach) (interface{}, error) {
-	file, err := r.Upload.Open()
+	var (
+		file     *bytes.Reader
+		fname    string
+		fsize    int64
+		fpreview *bytes.Reader
+		fpname   string
+		fpsize   int64
+		err      error
+	)
+
+	if r.Download == "" && r.Upload == nil {
+		return nil, errors.New("Can not create attachment: no attachment was provided")
+	}
+
+	f, err := store.FromAny(r.Upload, r.Download)
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
-	defer file.Close()
+	bb, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
+	file = bytes.NewReader(bb)
+
+	if r.Upload != nil {
+		fname = r.Upload.Filename
+		fsize = r.Upload.Size
+	} else {
+		fname, err = files.ExtractNameFromURL(r.Download)
+		if err != nil {
+			return nil, err
+		}
+		fsize = file.Size()
+	}
+
+	if r.Preview != "" {
+		f, err := store.FromAny(nil, r.Preview)
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+		bb, err := ioutil.ReadAll(f)
+		if err != nil {
+			return nil, err
+		}
+		fpreview = bytes.NewReader(bb)
+
+		fpname, err = files.ExtractNameFromURL(r.Preview)
+		if err != nil {
+			return nil, err
+		}
+		fpsize = fpreview.Size()
+	}
 
 	att, err := ctrl.svc.att.With(ctx).Create(
-		r.Upload.Filename,
-		r.Upload.Size,
-		file,
 		r.ChannelID,
 		r.ReplyTo,
+		fname,
+		file,
+		fsize,
+		fpname,
+		fpreview,
+		fpsize,
 	)
 
 	if err != nil {
