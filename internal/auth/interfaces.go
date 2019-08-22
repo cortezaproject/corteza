@@ -15,10 +15,16 @@ type (
 		Encode(identity Identifiable) string
 	}
 
+	TokenDecoder interface {
+		Decode(token string) (Identifiable, error)
+	}
+
 	TokenHandler interface {
-		Encode(identity Identifiable) string
-		Verifier() func(http.Handler) http.Handler
-		Authenticator() func(http.Handler) http.Handler
+		TokenEncoder
+		TokenDecoder
+
+		HttpVerifier() func(http.Handler) http.Handler
+		HttpAuthenticator() func(http.Handler) http.Handler
 	}
 
 	Signer interface {

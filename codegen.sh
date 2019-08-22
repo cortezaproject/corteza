@@ -170,6 +170,12 @@ function proto {
 		module.proto \
 		record.proto \
 		script_runner.proto
+
+	yellow "  ${CORTEZA_PROTOBUF_PATH} >> system/proto"
+	PATH=$PATH:$GOPATH/bin protoc \
+		--proto_path ${CORTEZA_PROTOBUF_PATH}/system \
+		--go_out=plugins=grpc:system/proto \
+		user.proto
   green "OK"
 }
 

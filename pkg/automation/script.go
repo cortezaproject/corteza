@@ -58,6 +58,12 @@ type (
 
 		// How are we merging?
 		tms triggersMergeStrategy
+
+		// Script running credentials
+		//
+		// We'll store credentials for security-defined scripts
+		// here when (runnable) scripts are loaded
+		credentials string
 	}
 
 	ScriptFilter struct {
@@ -178,6 +184,10 @@ func (s *Script) Triggers() TriggerSet {
 
 func (s Script) HasEvent(event string) bool {
 	return s.triggers.HasMatch(Trigger{Event: event})
+}
+
+func (s Script) Credentials() string {
+	return s.credentials
 }
 
 func MakeMatcherIDCondition(id uint64) TriggerConditionChecker {

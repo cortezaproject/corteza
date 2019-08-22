@@ -7,6 +7,10 @@ type (
 	}
 )
 
+const (
+	superUserID uint64 = 10000000000000000
+)
+
 func NewIdentity(id uint64, rr ...uint64) *Identity {
 	return &Identity{
 		id:       id,
@@ -24,4 +28,12 @@ func (i Identity) Roles() []uint64 {
 
 func (i Identity) Valid() bool {
 	return i.id > 0
+}
+
+func NewSuperUserIdentity() *Identity {
+	return NewIdentity(superUserID)
+}
+
+func IsSuperUser(i Identifiable) bool {
+	return superUserID == i.Identity()
 }
