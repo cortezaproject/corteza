@@ -343,7 +343,9 @@ func (r record) LoadValues(fieldNames []string, IDs []uint64) (rvs types.RecordV
 // Checks if field name is "real column", reformats it and returns
 func isRealRecordCol(name string) (string, bool) {
 	switch name {
-	case "recordID":
+	case
+		"recordID",
+		"id":
 		return "id", true
 	case
 		"module_id",
