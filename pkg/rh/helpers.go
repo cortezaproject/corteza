@@ -51,7 +51,7 @@ func FetchPaged(db *factory.DB, q squirrel.SelectBuilder, page, perPage uint, se
 	}
 
 	if page > 0 {
-		q = q.Offset(uint64(page * perPage))
+		q = q.Offset(uint64((page - 1) * perPage))
 	}
 
 	if sqlSelect, argsSelect, err := q.ToSql(); err != nil {

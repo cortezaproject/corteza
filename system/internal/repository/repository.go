@@ -90,7 +90,7 @@ func (r repository) fetchPaged(set interface{}, q squirrel.SelectBuilder, page, 
 	}
 
 	if page > 0 {
-		q = q.Offset(uint64(page * perPage))
+		q = q.Offset(uint64((page - 1) * perPage))
 	}
 
 	if sqlSelect, argsSelect, err := q.ToSql(); err != nil {
