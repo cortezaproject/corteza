@@ -65,7 +65,7 @@ type (
 		Find(context.Context, uint64, automation.ScriptFilter) (automation.ScriptSet, automation.ScriptFilter, error)
 		Create(context.Context, uint64, *automation.Script) error
 		Update(context.Context, uint64, *automation.Script) error
-		Delete(context.Context, uint64, *automation.Script) error
+		Delete(context.Context, uint64, uint64) error
 	}
 
 	automationScriptRunner interface {
@@ -148,33 +148,26 @@ func (ctrl AutomationScript) Read(ctx context.Context, r *request.AutomationScri
 }
 
 func (ctrl AutomationScript) Update(ctx context.Context, r *request.AutomationScriptUpdate) (interface{}, error) {
-	script, err := ctrl.scripts.FindByID(ctx, r.NamespaceID, r.ScriptID)
-	if err != nil {
-		return nil, errors.Wrap(err, "can not update script")
+	mod := &automation.Script{
+		ID:        r.ScriptID,
+		Name:      r.Name,
+		SourceRef: r.SourceRef,
+		Source:    r.Source,
+		Async:     r.Async,
+		RunAs:     r.RunAs,
+		RunInUA:   r.RunInUA,
+		Timeout:   r.Timeout,
+		Critical:  r.Critical,
+		Enabled:   r.Enabled,
 	}
 
-	script.Name = r.Name
-	script.SourceRef = r.SourceRef
-	script.Source = r.Source
-	script.Async = r.Async
-	script.RunAs = r.RunAs
-	script.RunInUA = r.RunInUA
-	script.Timeout = r.Timeout
-	script.Critical = r.Critical
-	script.Enabled = r.Enabled
+	mod.AddTrigger(automation.STMS_UPDATE, r.Triggers...)
 
-	script.AddTrigger(automation.STMS_UPDATE, r.Triggers...)
-
-	return ctrl.makePayload(ctx, script, ctrl.scripts.Update(ctx, r.NamespaceID, script))
+	return ctrl.makePayload(ctx, mod, ctrl.scripts.Update(ctx, r.NamespaceID, mod))
 }
 
 func (ctrl AutomationScript) Delete(ctx context.Context, r *request.AutomationScriptDelete) (interface{}, error) {
-	script, err := ctrl.scripts.FindByID(ctx, r.NamespaceID, r.ScriptID)
-	if err != nil {
-		return nil, errors.Wrap(err, "can not delete script")
-	}
-
-	return resputil.OK(), ctrl.scripts.Delete(ctx, r.NamespaceID, script)
+	return resputil.OK(), ctrl.scripts.Delete(ctx, r.NamespaceID, r.ScriptID)
 }
 
 func (ctrl AutomationScript) Runnable(ctx context.Context, r *request.AutomationScriptRunnable) (interface{}, error) {
@@ -239,10 +232,6 @@ func (ctrl AutomationScript) Run(ctx context.Context, r *request.AutomationScrip
 	// When record was passed return it.
 	if record != nil {
 		rval.Record = record
-
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return rval, err
@@ -265,10 +254,6 @@ func (ctrl AutomationScript) Test(ctx context.Context, r *request.AutomationScri
 	// When record was passed return it.
 	if record != nil {
 		rval.Record = record
-
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return rval, err
