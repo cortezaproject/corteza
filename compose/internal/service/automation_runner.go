@@ -231,7 +231,7 @@ func (svc automationRunner) makeRecordScriptRunner(ctx context.Context, ns *type
 		defer cancelFn()
 
 		// Add invoker's or defined credentials/jwt
-		req.JWT = svc.getJWT(ctx, script.RunAs)
+		req.JWT = svc.getJWT(ctx, script)
 
 		// Add script info
 		req.Script = proto.FromAutomationScript(script)
@@ -295,10 +295,9 @@ func (svc automationRunner) makeRecordScriptRunner(ctx context.Context, ns *type
 			}
 		}
 
+		// Who modified/created/owns the Record
 		var currentUserID = auth.GetIdentityFromContext(ctx).Identity()
-		if script.RunAs > 0 {
-			currentUserID = script.RunAs
-		}
+		currentUserID = script.RunAs
 
 		if r.OwnedBy == 0 {
 			r.OwnedBy = currentUserID
@@ -317,11 +316,12 @@ func (svc automationRunner) makeRecordScriptRunner(ctx context.Context, ns *type
 }
 
 // Creates a new JWT for
-func (svc automationRunner) getJWT(ctx context.Context, userID uint64) string {
-	if userID > 0 {
+func (svc automationRunner) getJWT(ctx context.Context, script *automation.Script) string {
+	if script.RunAsDefined() {
 		// @todo implement this
 		//       at the moment we do not he the ability fetch user info from non-system service
 		//       extend/implement this feature when our services will know how to communicate with each-other
+		return script.Credentials()
 	}
 
 	return svc.jwtEncoder.Encode(auth.GetIdentityFromContext(ctx))

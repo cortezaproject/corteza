@@ -313,6 +313,10 @@ func (ctrl AutomationScript) makePayload(ctx context.Context, s *automation.Scri
 		CanGrant:  ctrl.ac.CanGrant(ctx),
 		CanUpdate: ctrl.ac.CanUpdateAutomationScript(ctx, s),
 		CanDelete: ctrl.ac.CanDeleteAutomationScript(ctx, s),
+
+		CanSetRunner:     ctrl.ac.CanGrant(ctx),
+		CanSetAsCritical: true,
+		CanSetAsAsync:    true,
 	}, nil
 }
 

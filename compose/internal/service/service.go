@@ -8,10 +8,12 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/internal/repository"
 	"github.com/cortezaproject/corteza-server/compose/proto"
+	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/internal/store"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
+	proto2 "github.com/cortezaproject/corteza-server/system/proto"
 )
 
 type (
@@ -20,16 +22,10 @@ type (
 		Watch(ctx context.Context)
 	}
 
-	// automationManager interface {
-	// 	automationScriptsFinder
-	// 	automationScriptManager
-	// 	automationTriggerManager
-	// 	Watch(ctx context.Context)
-	// }
-
 	Config struct {
-		Storage      options.StorageOpt
-		ScriptRunner options.ScriptRunnerOpt
+		Storage          options.StorageOpt
+		ScriptRunner     options.ScriptRunnerOpt
+		GRPCClientSystem options.GRPCServerOpt
 	}
 )
 
@@ -59,6 +55,8 @@ var (
 
 	DefaultAttachment   AttachmentService
 	DefaultNotification NotificationService
+
+	DefaultSystemUser *systemUser
 )
 
 func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
@@ -80,12 +78,25 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 
 	DefaultAccessControl = AccessControl(DefaultPermissions)
 
-	// ias Internal Automatinon Service
+	{
+		systemClientConn, err := NewSystemGRPCClient(ctx, c.GRPCClientSystem, DefaultLogger)
+		if err != nil {
+			return err
+		}
+
+		DefaultSystemUser = SystemUser(proto2.NewUsersClient(systemClientConn))
+	}
+
+	// ias: Internal Automatinon Service
 	// handles script & trigger management & keeping runnables cripts in internal cache
 	ias := automation.Service(automation.AutomationServiceConfig{
 		Logger:        DefaultLogger,
 		DbTablePrefix: "compose",
 		DB:            db,
+		TokenMaker: func(ctx context.Context, userID uint64) (s string, e error) {
+			ctx = auth.SetSuperUserContext(ctx)
+			return DefaultSystemUser.MakeJWT(ctx, userID)
+		},
 	})
 
 	// Pass automation manager to

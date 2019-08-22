@@ -36,8 +36,9 @@ func Configure() *cli.Config {
 			servicesInitialized = true
 
 			cli.HandleError(service.Init(ctx, c.Log, service.Config{
-				Storage:      *c.StorageOpt,
-				ScriptRunner: *c.ScriptRunner,
+				Storage:          *c.StorageOpt,
+				ScriptRunner:     *c.ScriptRunner,
+				GRPCClientSystem: *c.GRPCServerSystem,
 			}))
 		},
 

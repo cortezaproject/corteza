@@ -26,6 +26,9 @@ type (
 		// internal list of runnable scripts (and their accompanying triggers)
 		runnables ScriptSet
 
+		// turns user-id (rel_runner / runAs) into valid credentials (JWT)
+		makeToken TokenMaker
+
 		srepo *scriptRepository
 		trepo *triggerRepository
 
@@ -36,6 +39,8 @@ type (
 		FilterByTrigger(event, resource string, cc ...TriggerConditionChecker) ScriptSet
 	}
 
+	TokenMaker func(context.Context, uint64) (string, error)
+
 	WatcherService interface {
 		Watch(ctx context.Context)
 	}
@@ -43,6 +48,7 @@ type (
 	AutomationServiceConfig struct {
 		Logger        *zap.Logger
 		DB            *factory.DB
+		TokenMaker    TokenMaker
 		DbTablePrefix string
 	}
 )
@@ -61,6 +67,8 @@ func Service(c AutomationServiceConfig) (svc *service) {
 		logger: c.Logger.Named("automation"),
 
 		c: c,
+
+		makeToken: c.TokenMaker,
 
 		srepo: ScriptRepository(c.DbTablePrefix),
 		trepo: TriggerRepository(c.DbTablePrefix),
@@ -140,6 +148,24 @@ func (svc *service) reload(ctx context.Context) {
 		if err != nil {
 			return
 		}
+
+		_ = svc.runnables.Walk(func(script *Script) (err error) {
+			if script.RunAsDefined() {
+				script.credentials, err = svc.makeToken(ctx, script.RunAs)
+
+				if err != nil {
+					script.Enabled = false
+
+					svc.logger.Info(
+						"could not make token, disabling script",
+						zap.Uint64("runAs", script.RunAs),
+						zap.Error(err),
+					)
+				}
+			}
+
+			return nil
+		})
 
 		return tt.Walk(func(t *Trigger) error {
 			s := svc.runnables.FindByID(t.ScriptID)
