@@ -28,6 +28,8 @@ type (
 	}
 
 	automationScriptAccessController interface {
+		CanGrant(context.Context) bool
+
 		CanReadNamespace(context.Context, *types.Namespace) bool
 
 		CanCreateAutomationScript(context.Context, *types.Namespace) bool
@@ -54,21 +56,15 @@ func AutomationScript(sm automationScriptManager) automationScript {
 }
 
 func (svc automationScript) FindByID(ctx context.Context, namespaceID, scriptID uint64) (*automation.Script, error) {
-	if _, err := svc.loadNamespace(ctx, namespaceID); err != nil {
+	if _, s, err := svc.loadCombo(ctx, namespaceID, scriptID); err != nil {
 		return nil, err
-	}
-
-	if script, err := svc.scriptManager.FindScriptByID(ctx, scriptID); err != nil {
-		return nil, err
-	} else if !svc.ac.CanReadAutomationScript(ctx, script) {
-		return nil, ErrNoCreatePermissions.withStack()
 	} else {
-		return script, nil
+		return s, nil
 	}
 }
 
 func (svc automationScript) Find(ctx context.Context, namespaceID uint64, f automation.ScriptFilter) (automation.ScriptSet, automation.ScriptFilter, error) {
-	if _, err := svc.loadNamespace(ctx, namespaceID); err != nil {
+	if _, _, err := svc.loadCombo(ctx, namespaceID, 0); err != nil {
 		return nil, f, err
 	}
 
@@ -81,47 +77,80 @@ func (svc automationScript) Find(ctx context.Context, namespaceID uint64, f auto
 	return svc.scriptManager.FindScripts(ctx, f)
 }
 
-func (svc automationScript) Create(ctx context.Context, namespaceID uint64, s *automation.Script) (err error) {
-	if ns, err := svc.loadNamespace(ctx, namespaceID); err != nil {
+func (svc automationScript) Create(ctx context.Context, namespaceID uint64, mod *automation.Script) (err error) {
+	if ns, _, err := svc.loadCombo(ctx, namespaceID, 0); err != nil {
 		return err
 	} else if !svc.ac.CanCreateAutomationScript(ctx, ns) {
 		return ErrNoCreatePermissions.withStack()
 	}
 
-	return svc.scriptManager.CreateScript(ctx, s)
+	if mod.RunAs > 0 {
+		if !svc.ac.CanGrant(ctx) {
+			return ErrNoGrantPermissions
+		}
+	}
+
+	return svc.scriptManager.CreateScript(ctx, mod)
 }
 
-func (svc automationScript) Update(ctx context.Context, namespaceID uint64, s *automation.Script) (err error) {
-	if _, err := svc.loadNamespace(ctx, namespaceID); err != nil {
+func (svc automationScript) Update(ctx context.Context, namespaceID uint64, mod *automation.Script) (err error) {
+	if _, s, err := svc.loadCombo(ctx, namespaceID, mod.ID); err != nil {
 		return err
 	} else if !svc.ac.CanUpdateAutomationScript(ctx, s) {
 		return ErrNoCreatePermissions.withStack()
-	}
+	} else {
+		// Users need to have grant privileges to
+		// set script runner
+		if mod.RunAs != s.RunAs {
+			if !svc.ac.CanGrant(ctx) {
+				return ErrNoGrantPermissions
+			}
+		}
 
-	return svc.scriptManager.UpdateScript(ctx, s)
+		s.Name = mod.Name
+		s.SourceRef = mod.SourceRef
+		s.Source = mod.Source
+		s.Async = mod.Async
+		s.RunAs = mod.RunAs
+		s.RunInUA = mod.RunInUA
+		s.Timeout = mod.Timeout
+		s.Critical = mod.Critical
+		s.Enabled = mod.Enabled
+
+		return svc.scriptManager.UpdateScript(ctx, s)
+	}
 }
 
-func (svc automationScript) Delete(ctx context.Context, namespaceID uint64, s *automation.Script) (err error) {
-	if _, err := svc.loadNamespace(ctx, namespaceID); err != nil {
+func (svc automationScript) Delete(ctx context.Context, namespaceID, scriptID uint64) (err error) {
+	if _, s, err := svc.loadCombo(ctx, namespaceID, scriptID); err != nil {
 		return err
 	} else if !svc.ac.CanDeleteAutomationScript(ctx, s) {
 		return ErrNoCreatePermissions.withStack()
+	} else {
+		return svc.scriptManager.DeleteScript(ctx, s)
 	}
-
-	return svc.scriptManager.DeleteScript(ctx, s)
 }
 
-func (svc automationScript) loadNamespace(ctx context.Context, namespaceID uint64) (ns *types.Namespace, err error) {
+func (svc automationScript) loadCombo(ctx context.Context, namespaceID, scriptID uint64) (ns *types.Namespace, s *automation.Script, err error) {
 	if namespaceID == 0 {
-		return nil, ErrNamespaceRequired.withStack()
+		err = ErrNamespaceRequired.withStack()
+		return
 	}
 
 	if ns, err = svc.ns.With(ctx).FindByID(namespaceID); err != nil {
 		return
+	} else if !svc.ac.CanReadNamespace(ctx, ns) {
+		err = ErrNoReadPermissions.withStack()
+		return
 	}
 
-	if !svc.ac.CanReadNamespace(ctx, ns) {
-		return nil, ErrNoReadPermissions.withStack()
+	if scriptID > 0 {
+		if s, err = svc.scriptManager.FindScriptByID(ctx, scriptID); err != nil {
+			return
+		} else if !svc.ac.CanReadAutomationScript(ctx, s) {
+			err = ErrNoCreatePermissions.withStack()
+			return
+		}
 	}
 
 	return
