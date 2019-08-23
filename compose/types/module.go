@@ -24,6 +24,7 @@ type (
 	ModuleFilter struct {
 		NamespaceID uint64 `json:"namespaceID,string"`
 		Query       string `json:"query"`
+		Name        string `json:"name"`
 		Page        uint   `json:"page"`
 		PerPage     uint   `json:"perPage"`
 		// Sort    string `json:"sort"`

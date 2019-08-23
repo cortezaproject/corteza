@@ -5,6 +5,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/automation"
 )
 
 type (
@@ -72,6 +73,10 @@ func (svc accessControl) CanCreateModule(ctx context.Context, r *types.Namespace
 	return svc.can(ctx, r, "module.create")
 }
 
+func (svc accessControl) CanCreateAutomationScript(ctx context.Context, r *types.Namespace) bool {
+	return svc.can(ctx, r, "automation-script.create")
+}
+
 func (svc accessControl) CanReadModule(ctx context.Context, r *types.Module) bool {
 	return svc.can(ctx, r, "read")
 }
@@ -108,6 +113,10 @@ func (svc accessControl) CanDeleteRecord(ctx context.Context, r *types.Module) b
 	return svc.can(ctx, r, "record.delete")
 }
 
+func (svc accessControl) CanManageAutomationTriggersOnModule(ctx context.Context, r *types.Module) bool {
+	return svc.can(ctx, r, "automation-trigger.manage", permissions.Allowed)
+}
+
 func (svc accessControl) CanCreateChart(ctx context.Context, r *types.Namespace) bool {
 	return svc.can(ctx, r, "chart.create")
 }
@@ -121,22 +130,6 @@ func (svc accessControl) CanUpdateChart(ctx context.Context, r *types.Chart) boo
 }
 
 func (svc accessControl) CanDeleteChart(ctx context.Context, r *types.Chart) bool {
-	return svc.can(ctx, r, "delete")
-}
-
-func (svc accessControl) CanCreateTrigger(ctx context.Context, r *types.Namespace) bool {
-	return svc.can(ctx, r, "trigger.create")
-}
-
-func (svc accessControl) CanReadTrigger(ctx context.Context, r *types.Trigger) bool {
-	return svc.can(ctx, r, "read")
-}
-
-func (svc accessControl) CanUpdateTrigger(ctx context.Context, r *types.Trigger) bool {
-	return svc.can(ctx, r, "update")
-}
-
-func (svc accessControl) CanDeleteTrigger(ctx context.Context, r *types.Trigger) bool {
 	return svc.can(ctx, r, "delete")
 }
 
@@ -155,6 +148,26 @@ func (svc accessControl) CanUpdatePage(ctx context.Context, r *types.Page) bool 
 
 func (svc accessControl) CanDeletePage(ctx context.Context, r *types.Page) bool {
 	return svc.can(ctx, r, "delete")
+}
+
+func (svc accessControl) CanReadAnyAutomationScript(ctx context.Context) bool {
+	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendWildcard(), "read")
+}
+
+func (svc accessControl) CanReadAutomationScript(ctx context.Context, r *automation.Script) bool {
+	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "read")
+}
+
+func (svc accessControl) CanUpdateAutomationScript(ctx context.Context, r *automation.Script) bool {
+	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "update")
+}
+
+func (svc accessControl) CanDeleteAutomationScript(ctx context.Context, r *automation.Script) bool {
+	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "delete")
+}
+
+func (svc accessControl) CanRunAutomationTrigger(ctx context.Context, r *automation.Trigger) bool {
+	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "run", permissions.Allowed)
 }
 
 func (svc accessControl) can(ctx context.Context, res permissionResource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
@@ -180,8 +193,8 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		namespaces = types.NamespacePermissionResource.AppendWildcard()
 		modules    = types.ModulePermissionResource.AppendWildcard()
 		charts     = types.ChartPermissionResource.AppendWildcard()
-		triggers   = types.TriggerPermissionResource.AppendWildcard()
 		pages      = types.PagePermissionResource.AppendWildcard()
+		ascripts   = types.AutomationScriptPermissionResource.AppendWildcard()
 
 		allowAdm = func(res permissions.Resource, op permissions.Operation) *permissions.Rule {
 			return permissions.AllowRule(permissions.AdminRoleID, res, op)
@@ -202,7 +215,7 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		allowAdm(namespaces, "page.create"),
 		allowAdm(namespaces, "module.create"),
 		allowAdm(namespaces, "chart.create"),
-		allowAdm(namespaces, "trigger.create"),
+		allowAdm(namespaces, "automation-script.create"),
 
 		allowAdm(modules, "read"),
 		allowAdm(modules, "update"),
@@ -211,18 +224,19 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		allowAdm(modules, "record.read"),
 		allowAdm(modules, "record.update"),
 		allowAdm(modules, "record.delete"),
+		allowAdm(modules, "automation-trigger.manage"),
 
 		allowAdm(charts, "read"),
 		allowAdm(charts, "update"),
 		allowAdm(charts, "delete"),
 
-		allowAdm(triggers, "read"),
-		allowAdm(triggers, "update"),
-		allowAdm(triggers, "delete"),
-
 		allowAdm(pages, "read"),
 		allowAdm(pages, "update"),
 		allowAdm(pages, "delete"),
+
+		allowAdm(ascripts, "read"),
+		allowAdm(ascripts, "update"),
+		allowAdm(ascripts, "delete"),
 	}
 }
 
@@ -244,8 +258,8 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"manage",
 		"module.create",
 		"chart.create",
-		"trigger.create",
 		"page.create",
+		"automation-script.create",
 	)
 
 	wl.Set(
@@ -257,6 +271,7 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"record.read",
 		"record.update",
 		"record.delete",
+		"automation-trigger.manage",
 	)
 
 	wl.Set(
@@ -273,17 +288,22 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 	)
 
 	wl.Set(
-		types.TriggerPermissionResource,
+		types.PagePermissionResource,
 		"read",
 		"update",
 		"delete",
 	)
 
 	wl.Set(
-		types.PagePermissionResource,
+		types.AutomationScriptPermissionResource,
 		"read",
 		"update",
 		"delete",
+	)
+
+	wl.Set(
+		types.AutomationTriggerPermissionResource,
+		"run",
 	)
 
 	return wl

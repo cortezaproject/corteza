@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package compose;
+option go_package = "proto";
+
+import "google/protobuf/timestamp.proto";
+
+message Module {
+	uint64 moduleID    = 1;
+	uint64 namespaceID = 2;
+	string name        = 3;
+
+	google.protobuf.Timestamp createdAt = 8;
+	google.protobuf.Timestamp updatedAt = 9;
+	google.protobuf.Timestamp deletedAt = 10;
+
+	repeated ModuleField fields = 15;
+}
+
+message ModuleField {
+	uint64 fieldID = 1;
+	string name    = 2;
+	string kind    = 3;
+}

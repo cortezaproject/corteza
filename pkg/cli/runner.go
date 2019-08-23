@@ -50,6 +50,13 @@ type (
 		ProvisionOpt  *options.ProvisionOpt
 		SentryOpt     *options.SentryOpt
 		StorageOpt    *options.StorageOpt
+		ScriptRunner  *options.ScriptRunnerOpt
+
+		// Services will be calling each other so we need
+		// to keep the config opts spearated
+		GRPCServerSystem *options.GRPCServerOpt
+		// GRPCServerMessaging    *options.GRPCServerOpt
+		// GRPCServerCompose    *options.GRPCServerOpt
 
 		// DB Connection name, defaults to ServiceName
 		DatabaseName string
@@ -188,6 +195,10 @@ func (c *Config) Init() {
 	c.ProvisionOpt = options.Provision(c.ServiceName)
 	c.SentryOpt = options.Sentry(c.EnvPrefix)
 	c.StorageOpt = options.Storage(c.EnvPrefix)
+	c.ScriptRunner = options.ScriptRunner(c.EnvPrefix)
+	c.GRPCServerSystem = options.GRPCServer("system")
+	// c.GRPCServerCompose = options.GRPCServer("compose")
+	// c.GRPCServerMessagign = options.GRPCServer("messaging")
 
 	if c.RootCommandDBSetup == nil {
 		c.RootCommandDBSetup = Runners{func(ctx context.Context, cmd *cobra.Command, c *Config) (err error) {

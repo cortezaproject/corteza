@@ -111,6 +111,279 @@
 
 
 
+# Automation scripts
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/namespace/{namespaceID}/automation/script/` | List/read automation script |
+| `POST` | `/namespace/{namespaceID}/automation/script/` | Add new automation script  |
+| `GET` | `/namespace/{namespaceID}/automation/script/{scriptID}` | Read automation script by ID |
+| `POST` | `/namespace/{namespaceID}/automation/script/{scriptID}` | Update automation script |
+| `DELETE` | `/namespace/{namespaceID}/automation/script/{scriptID}` | Delete script |
+| `GET` | `/namespace/{namespaceID}/automation/script/runnable` | List of runnable (event=manual) scripts (executable on the backend or from user-agent/browser) |
+| `POST` | `/namespace/{namespaceID}/automation/script/{scriptID}/run` | Run a specific script or code at the backend. Used for running script manually |
+| `POST` | `/namespace/{namespaceID}/automation/script/test` | Run source code in corredor. Used for testing |
+
+## List/read automation script
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/automation/script/` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| query | string | GET | Search query to match against automation script | N/A | NO |
+| resource | string | GET | Limit by resource (via trigger) | N/A | NO |
+| incDeleted | bool | GET | Include deleted scripts | N/A | NO |
+| page | uint | GET | Page number (0 based) | N/A | NO |
+| perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+
+## Add new automation script
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/automation/script/` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| name | string | POST | automation name | N/A | NO |
+| sourceRef | string | POST | Source URL | N/A | NO |
+| source | string | POST | Source code | N/A | NO |
+| runAs | uint64 | POST | Run as specific user | N/A | NO |
+| runInUA | bool | POST | Run script in user-agent (browser) | N/A | NO |
+| timeout | uint | POST | Script timeout (in milliseconds) | N/A | NO |
+| critical | bool | POST | Is it critical to run this script successfully | N/A | NO |
+| async | bool | POST | Will this script be ran asynchronously | N/A | NO |
+| enabled | bool | POST |  | N/A | NO |
+| triggers | automation.TriggerSet | POST |  | N/A | NO |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+
+## Read automation script by ID
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/automation/script/{scriptID}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| scriptID | uint64 | PATH | automation script ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+
+## Update automation script
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/automation/script/{scriptID}` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| scriptID | uint64 | PATH | Automation script ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| name | string | POST | Script name | N/A | NO |
+| sourceRef | string | POST | Source URL | N/A | NO |
+| source | string | POST | Source code | N/A | NO |
+| runAs | uint64 | POST | Run script as specific user | N/A | NO |
+| runInUA | bool | POST | Run script in user-agent (browser) | N/A | NO |
+| timeout | uint | POST | Run script in user-agent (browser) | N/A | NO |
+| critical | bool | POST | Is it critical to run this script successfully | N/A | NO |
+| async | bool | POST | Will this script be ran asynchronously | N/A | NO |
+| enabled | bool | POST |  | N/A | NO |
+| triggers | automation.TriggerSet | POST |  | N/A | NO |
+
+## Delete script
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/automation/script/{scriptID}` | HTTP/S | DELETE | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| scriptID | uint64 | PATH | Script ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+
+## List of runnable (event=manual) scripts (executable on the backend or from user-agent/browser)
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/automation/script/runnable` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| resource | string | GET | Resource | N/A | NO |
+| condition | string | GET | Trigger condition | N/A | NO |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+
+## Run a specific script or code at the backend. Used for running script manually
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/automation/script/{scriptID}/run` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| scriptID | uint64 | PATH |  | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| moduleID | uint64 | POST | ModuleID to be used | N/A | NO |
+| recordID | uint64 | POST | RecordID to be used (instead of record payload) | N/A | NO |
+| record | json.RawMessage | POST | Record payload to be used (instead of specific record when using recordID) | N/A | NO |
+
+## Run source code in corredor. Used for testing
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/automation/script/test` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| source | string | POST | Script's source code | N/A | NO |
+| moduleID | uint64 | POST | Preload module and pass it to the automation script | N/A | NO |
+| record | json.RawMessage | POST | Record to pass to the automation script | N/A | NO |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+
+---
+
+
+
+
+# Automation script triggers
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/namespace/{namespaceID}/automation/script/{scriptID}/trigger/` | List/read automation script triggers |
+| `POST` | `/namespace/{namespaceID}/automation/script/{scriptID}/trigger/` | Add new automation script trigger |
+| `GET` | `/namespace/{namespaceID}/automation/script/{scriptID}/trigger/{triggerID}` | Read automation script trigger by ID |
+| `POST` | `/namespace/{namespaceID}/automation/script/{scriptID}/trigger/{triggerID}` | Update automation script trigger |
+| `DELETE` | `/namespace/{namespaceID}/automation/script/{scriptID}/trigger/{triggerID}` | Delete script |
+
+## List/read automation script triggers
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/automation/script/{scriptID}/trigger/` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| resource | string | GET | Only triggers of a specific resource | N/A | NO |
+| event | string | GET | Only triggers of a specific event | N/A | NO |
+| incDeleted | bool | GET | Include deleted scripts | N/A | NO |
+| page | uint | GET | Page number (0 based) | N/A | NO |
+| perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| scriptID | uint64 | PATH | Script ID | N/A | YES |
+
+## Add new automation script trigger
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/automation/script/{scriptID}/trigger/` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| resource | string | POST | Resource | N/A | YES |
+| event | string | POST | Event | N/A | YES |
+| condition | string | POST | Event | N/A | NO |
+| enabled | bool | POST |  | N/A | NO |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| scriptID | uint64 | PATH | Script ID | N/A | YES |
+
+## Read automation script trigger by ID
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/automation/script/{scriptID}/trigger/{triggerID}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| triggerID | uint64 | PATH | Automation script trigger ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| scriptID | uint64 | PATH | Script ID | N/A | YES |
+
+## Update automation script trigger
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/automation/script/{scriptID}/trigger/{triggerID}` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| triggerID | uint64 | PATH | Automation script trigger ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| scriptID | uint64 | PATH | Script ID | N/A | YES |
+| resource | string | POST | Resource | N/A | YES |
+| event | string | POST | Event | N/A | YES |
+| condition | string | POST | Event | N/A | NO |
+| enabled | bool | POST |  | N/A | NO |
+
+## Delete script
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/automation/script/{scriptID}/trigger/{triggerID}` | HTTP/S | DELETE | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| triggerID | uint64 | PATH | automation script trigger ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| scriptID | uint64 | PATH | Script ID | N/A | YES |
+
+---
+
+
+
+
 # Charts
 
 | Method | Endpoint | Purpose |
@@ -232,6 +505,7 @@ Compose module definitions
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
+| name | string | GET | Search by name | N/A | NO |
 | page | uint | GET | Page number (0 based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
@@ -826,110 +1100,5 @@ Compose records
 | upload | *multipart.FileHeader | POST | File to upload | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
-
----
-
-
-
-
-# Triggers
-
-Compose Triggers
-
-| Method | Endpoint | Purpose |
-| ------ | -------- | ------- |
-| `GET` | `/namespace/{namespaceID}/trigger/` | List available triggers |
-| `POST` | `/namespace/{namespaceID}/trigger/` | Create trigger |
-| `GET` | `/namespace/{namespaceID}/trigger/{triggerID}` | Get trigger details |
-| `POST` | `/namespace/{namespaceID}/trigger/{triggerID}` | Update trigger |
-| `Delete` | `/namespace/{namespaceID}/trigger/{triggerID}` | Delete trigger |
-
-## List available triggers
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/namespace/{namespaceID}/trigger/` | HTTP/S | GET |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| moduleID | uint64 | GET | Filter triggers by module | N/A | NO |
-| query | string | GET | Search query | N/A | NO |
-| page | uint | GET | Page number (0 based) | N/A | NO |
-| perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
-| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
-
-## Create trigger
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/namespace/{namespaceID}/trigger/` | HTTP/S | POST |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| moduleID | uint64 | POST | Module ID | N/A | NO |
-| name | string | POST | Name | N/A | YES |
-| actions | []string | POST | Actions that trigger this trigger | N/A | NO |
-| enabled | bool | POST | Enabled | N/A | NO |
-| source | string | POST | Trigger source code | N/A | NO |
-| updatedAt | *time.Time | POST | Last update (or creation) date | N/A | NO |
-| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
-
-## Get trigger details
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/namespace/{namespaceID}/trigger/{triggerID}` | HTTP/S | GET |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| triggerID | uint64 | PATH | Trigger ID | N/A | YES |
-| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
-
-## Update trigger
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/namespace/{namespaceID}/trigger/{triggerID}` | HTTP/S | POST |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| triggerID | uint64 | PATH | Trigger ID | N/A | YES |
-| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
-| moduleID | uint64 | POST | Module ID | N/A | NO |
-| name | string | POST | Name | N/A | YES |
-| actions | []string | POST | Actions that trigger this trigger | N/A | NO |
-| enabled | bool | POST | Enabled | N/A | NO |
-| source | string | POST | Trigger source code | N/A | NO |
-
-## Delete trigger
-
-#### Method
-
-| URI | Protocol | Method | Authentication |
-| --- | -------- | ------ | -------------- |
-| `/namespace/{namespaceID}/trigger/{triggerID}` | HTTP/S | Delete |  |
-
-#### Request parameters
-
-| Parameter | Type | Method | Description | Default | Required? |
-| --------- | ---- | ------ | ----------- | ------- | --------- |
-| triggerID | uint64 | PATH | Trigger ID | N/A | YES |
-| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ---

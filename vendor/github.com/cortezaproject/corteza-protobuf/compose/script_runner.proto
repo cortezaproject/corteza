@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package compose;
+option go_package = "proto";
+
+import "namespace.proto";
+import "module.proto";
+import "record.proto";
+
+service ScriptRunner {
+    rpc Test(RunTestRequest) returns (RunTestResponse);
+	rpc Namespace (RunNamespaceRequest) returns (RunNamespaceResponse);
+	rpc Module (RunModuleRequest) returns (RunModuleResponse);
+	rpc Record (RunRecordRequest) returns (RunRecordResponse);
+}
+
+message RunTestRequest {
+	string source = 1;
+	string name   = 2;
+}
+
+message RunNamespaceRequest {
+	string    JWT       = 1;
+	Script    script    = 2;
+	Namespace namespace = 3;
+}
+
+message RunModuleRequest {
+	string    JWT       = 1;
+	Script    script    = 2;
+	Namespace namespace = 3;
+	Module    module    = 4;
+}
+
+message RunRecordRequest {
+	string    JWT       = 1;
+	Script    script    = 2;
+	Namespace namespace = 3;
+	Module    module    = 4;
+	Record    record    = 5;
+}
+
+message RunTestResponse {}
+
+message RunNamespaceResponse {
+	Namespace namespace  = 1;
+}
+
+message RunModuleResponse {
+	Module module = 1;
+}
+
+message RunRecordResponse {
+	Record record = 1;
+}
+
+message Script {
+    string  source  = 1;
+    string  name    = 2;
+    uint32  timeout = 3; // milliseconds
+    bool    async   = 4;
+}
+
