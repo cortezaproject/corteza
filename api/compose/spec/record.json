@@ -92,6 +92,68 @@
       }
     },
     {
+      "Name": "importInit",
+      "Method": "POST",
+      "Title": "Initiate record import session",
+      "Path": "/import",
+      "Parameters": {
+        "post": [
+          {
+            "name": "upload",
+            "required": true,
+            "title": "File import",
+            "type": "*multipart.FileHeader"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "importRun",
+      "Method": "PATCH",
+      "Title": "Run record import",
+      "Path": "/import/{sessionID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "sessionID",
+            "required": true,
+            "title": "Import session",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "fields",
+            "required": true,
+            "title": "Fields defined by import file",
+            "type": "json.RawMessage"
+          },
+          {
+            "name": "onError",
+            "required": true,
+            "title": "What happens if record fails to import",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "importProgress",
+      "Method": "GET",
+      "Title": "Get import progress",
+      "Path": "/import/{sessionID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "sessionID",
+            "required": true,
+            "title": "Import session",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
       "Name": "export",
       "Method": "GET",
       "Title": "Exports records that match ",
