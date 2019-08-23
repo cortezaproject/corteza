@@ -71,4 +71,4 @@ SELECT id+seq, events.event, 'compose:record', rel_module, id, enabled, created_
 UPDATE compose_automation_trigger SET event = 'manual' WHERE event = '';
 DELETE FROM compose_automation_trigger WHERE event_condition IN ('', '0') AND event <> 'manual';
 
--- DROP TABLE IF EXISTS compose_trigger;
+DROP TABLE IF EXISTS compose_trigger;
