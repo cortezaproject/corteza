@@ -29,11 +29,13 @@ steps:
     password:
       from_secret: docker_hub_password
   when:
-    ref:
-      - refs/heads/master
-      - refs/heads/beta
-      - refs/heads/feature-*
-      - refs/tags/20??.*.*
+#    this does not work as expected:
+#    time="2019-08-23T11:50:35Z" level=info msg="skipping automated docker build for refs/heads/feature-automation"
+#    ref:
+#      - refs/heads/master
+#      - refs/heads/beta
+#      - refs/heads/feature-*
+#      - refs/tags/20??.*.*
     events: [ tag, push ]
 
 - name: corteza-server-system
