@@ -28,6 +28,13 @@ steps:
       from_secret: docker_hub_username
     password:
       from_secret: docker_hub_password
+  when:
+    ref:
+      - refs/heads/master
+      - refs/heads/beta
+      - refs/heads/feature-*
+      - refs/tags/20??.*.*
+    events: [ tag, push ]
 
 - name: corteza-server-system
   image: plugins/docker
@@ -68,12 +75,6 @@ steps:
 
 
 trigger:
-  branch:
-    - master
-  refs:
-    - refs/tags/v20??.*
-  event:
-    - push
 
 ---
 workspace:
@@ -126,3 +127,4 @@ services:
     MYSQL_PASSWORD: corteza-pwd
 
 trigger:
+  event: [ push, pull_request ]
