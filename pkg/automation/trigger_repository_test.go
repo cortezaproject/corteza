@@ -42,7 +42,7 @@ func TestTriggerRepository_findByID(t *testing.T) {
 
 	//  runnable trigger
 	trigger = &Trigger{ID: triggerID, Resource: "test", Event: "test", CreatedAt: time.Now(), Enabled: true, ScriptID: scriptID}
-	err = trepo.create(db, trigger)
+	err = trepo.replace(db, trigger)
 	test.NoError(t, err, "unexpected error: %v")
 
 	// find this trigger now
@@ -67,9 +67,6 @@ func TestTriggerRepository_findByID(t *testing.T) {
 
 	err = trepo.replace(db, trigger)
 	test.NoError(t, err, "unexpected error when replacing the trigger: %v")
-
-	err = trepo.update(db, trigger)
-	test.NoError(t, err, "unexpected error when updating the trigger: %v")
 
 	err = trepo.deleteByScriptID(db, scriptID)
 	test.NoError(t, err, "unexpected error when updating the trigger: %v")
