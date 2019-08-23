@@ -14,14 +14,14 @@ type (
 	namespacePayload struct {
 		*types.Namespace
 
-		CanGrant           bool `json:"canGrant"`
-		CanUpdateNamespace bool `json:"canUpdateNamespace"`
-		CanDeleteNamespace bool `json:"canDeleteNamespace"`
-		CanManageNamespace bool `json:"canManageNamespace"`
-		CanCreateModule    bool `json:"canCreateModule"`
-		CanCreateChart     bool `json:"canCreateChart"`
-		CanCreateTrigger   bool `json:"canCreateTrigger"`
-		CanCreatePage      bool `json:"canCreatePage"`
+		CanGrant                  bool `json:"canGrant"`
+		CanUpdateNamespace        bool `json:"canUpdateNamespace"`
+		CanDeleteNamespace        bool `json:"canDeleteNamespace"`
+		CanManageNamespace        bool `json:"canManageNamespace"`
+		CanCreateModule           bool `json:"canCreateModule"`
+		CanCreateChart            bool `json:"canCreateChart"`
+		CanCreateAutomationScript bool `json:"canCreateAutomationScript"`
+		CanCreatePage             bool `json:"canCreatePage"`
 	}
 
 	namespaceSetPayload struct {
@@ -43,7 +43,7 @@ type (
 
 		CanCreateModule(context.Context, *types.Namespace) bool
 		CanCreateChart(context.Context, *types.Namespace) bool
-		CanCreateTrigger(context.Context, *types.Namespace) bool
+		CanCreateAutomationScript(context.Context, *types.Namespace) bool
 		CanCreatePage(context.Context, *types.Namespace) bool
 	}
 )
@@ -123,10 +123,10 @@ func (ctrl Namespace) makePayload(ctx context.Context, ns *types.Namespace, err 
 		CanDeleteNamespace: ctrl.ac.CanDeleteNamespace(ctx, ns),
 		CanManageNamespace: ctrl.ac.CanManageNamespace(ctx, ns),
 
-		CanCreateModule:  ctrl.ac.CanCreateModule(ctx, ns),
-		CanCreateChart:   ctrl.ac.CanCreateChart(ctx, ns),
-		CanCreateTrigger: ctrl.ac.CanCreateTrigger(ctx, ns),
-		CanCreatePage:    ctrl.ac.CanCreatePage(ctx, ns),
+		CanCreateModule:           ctrl.ac.CanCreateModule(ctx, ns),
+		CanCreateChart:            ctrl.ac.CanCreateChart(ctx, ns),
+		CanCreateAutomationScript: ctrl.ac.CanCreateAutomationScript(ctx, ns),
+		CanCreatePage:             ctrl.ac.CanCreatePage(ctx, ns),
 	}, nil
 }
 

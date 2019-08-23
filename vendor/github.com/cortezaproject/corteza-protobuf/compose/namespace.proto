@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package compose;
+option go_package = "proto";
+
+import "google/protobuf/timestamp.proto";
+
+message Namespace {
+	uint64  namespaceID = 1;
+	string  name = 2;
+	string  slug = 3;
+	bool    enabled = 4;
+
+    google.protobuf.Timestamp createdAt = 8;
+    google.protobuf.Timestamp updatedAt = 9;
+    google.protobuf.Timestamp deletedAt = 10;
+}

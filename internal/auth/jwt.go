@@ -44,8 +44,43 @@ func JWT(secret string, expiry int64) (jwt *token, err error) {
 }
 
 // Verifies JWT and stores it into context
-func (t *token) Verifier() func(http.Handler) http.Handler {
+func (t *token) HttpVerifier() func(http.Handler) http.Handler {
 	return jwtauth.Verifier(t.tokenAuth)
+}
+
+func (t *token) Decode(ts string) (Identifiable, error) {
+	var (
+		decoded, err = t.tokenAuth.Decode(ts)
+
+		rr     []uint64
+		userID uint64
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = decoded.Claims.Valid(); err != nil {
+		return nil, err
+	}
+
+	if c, ok := decoded.Claims.(jwt.MapClaims); ok {
+		userID, _ = strconv.ParseUint(c["userID"].(string), 10, 64)
+
+		if memberOf, ok := c["memberOf"].(string); ok {
+			for _, str := range strings.Split(memberOf, " ") {
+				if id, _ := strconv.ParseUint(str, 10, 64); id > 0 {
+					rr = append(rr, id)
+				}
+			}
+		}
+	}
+
+	if userID > 0 {
+		return NewIdentity(userID, rr...), nil
+	}
+
+	return nil, errors.New("invalid claims")
+
 }
 
 func (t *token) Encode(identity Identifiable) string {
@@ -67,8 +102,8 @@ func (t *token) Encode(identity Identifiable) string {
 	return jwt
 }
 
-// Authenticator converts JWT claims into Identity and stores it into context
-func (t *token) Authenticator() func(http.Handler) http.Handler {
+// HttpAuthenticator converts JWT claims into Identity and stores it into context
+func (t *token) HttpAuthenticator() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			jwt, claims, err := jwtauth.FromContext(r.Context())
@@ -94,7 +129,7 @@ func (t *token) Authenticator() func(http.Handler) http.Handler {
 					}
 				}
 
-				r = r.WithContext(SetIdentityToContext(r.Context(), identity))
+				r = r.WithContext(SetJwtToContext(SetIdentityToContext(r.Context(), identity), jwt.Raw))
 			}
 
 			next.ServeHTTP(w, r)

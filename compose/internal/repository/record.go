@@ -269,7 +269,7 @@ func (r record) buildQuery(module *types.Module, f types.RecordFilter) (query sq
 func (r record) Create(record *types.Record) (*types.Record, error) {
 	record.ID = factory.Sonyflake.NextID()
 
-	if err := r.db().Replace("compose_record", record); err != nil {
+	if err := r.db().Insert("compose_record", record); err != nil {
 		return nil, errors.Wrap(err, "could not update record")
 	}
 
@@ -344,7 +344,10 @@ func (r record) LoadValues(fieldNames []string, IDs []uint64) (rvs types.RecordV
 func isRealRecordCol(name string) (string, bool) {
 	switch name {
 	case
-		"id",
+		"recordID",
+		"id":
+		return "id", true
+	case
 		"module_id",
 		"owned_by",
 		"created_by",

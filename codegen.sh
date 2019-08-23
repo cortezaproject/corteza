@@ -5,6 +5,10 @@ if [ -f ./build ]; then
 	find ./build -name gen-* -delete
 fi
 
+if [ -f ./.env ]; then
+  source .env
+fi;
+
 _PWD=$PWD
 
 function yellow {
@@ -23,10 +27,10 @@ function gofmt {
 function types {
 	yellow "> types"
 	if [ ! -f "build/gen-type-set" ]; then
-		CGO_ENABLED=0 go build -o ./build/gen-type-set codegen/v2/type-set.go 
+		CGO_ENABLED=0 go build -o ./build/gen-type-set codegen/v2/type-set.go
 	fi
 	if [ ! -f "build/gen-type-set-test" ]; then
-		CGO_ENABLED=0 go build -o ./build/gen-type-set-test codegen/v2/type-set-test.go 
+		CGO_ENABLED=0 go build -o ./build/gen-type-set-test codegen/v2/type-set-test.go
 	fi
 
 	./build/gen-type-set --types Namespace   --output compose/types/namespace.gen.go
@@ -34,7 +38,6 @@ function types {
 	./build/gen-type-set --types Module      --output compose/types/module.gen.go
 	./build/gen-type-set --types Page        --output compose/types/page.gen.go
 	./build/gen-type-set --types Chart       --output compose/types/chart.gen.go
-	./build/gen-type-set --types Trigger     --output compose/types/trigger.gen.go
 	./build/gen-type-set --types Record      --output compose/types/record.gen.go
 	./build/gen-type-set --types ModuleField --output compose/types/module_field.gen.go
 
@@ -43,7 +46,6 @@ function types {
 	./build/gen-type-set-test --types Module      --output compose/types/module.gen_test.go
 	./build/gen-type-set-test --types Page        --output compose/types/page.gen_test.go
 	./build/gen-type-set-test --types Chart       --output compose/types/chart.gen_test.go
-	./build/gen-type-set-test --types Trigger     --output compose/types/trigger.gen_test.go
 	./build/gen-type-set-test --types Record      --output compose/types/record.gen_test.go
 	./build/gen-type-set-test --types ModuleField --output compose/types/module_field.gen_test.go
 
@@ -95,10 +97,15 @@ function types {
 	./build/gen-type-set-test --types Rule      --output internal/permissions/rule.gen_test.go     --with-primary-key=false --package permissions
 	./build/gen-type-set-test --types Resource  --output internal/permissions/resource.gen_test.go --with-primary-key=false --package permissions
 
+	./build/gen-type-set      --types Script   --output pkg/automation/script.gen.go       --package automation
+	./build/gen-type-set-test --types Script   --output pkg/automation/script.gen_test.go  --package automation
+	./build/gen-type-set      --types Trigger  --output pkg/automation/trigger.gen.go      --package automation
+	./build/gen-type-set-test --types Trigger  --output pkg/automation/trigger.gen_test.go --package automation
+
+
 	green "OK"
 }
 
-types
 
 function database {
 	yellow "> database"
@@ -112,7 +119,6 @@ function database {
 	green "OK"
 }
 
-database
 
 function files {
 	yellow "> files"
@@ -126,12 +132,11 @@ function files {
 	green "OK"
 }
 
-files
 
 function specs {
 	yellow "> specs"
 	if [ ! -f "build/gen-spec" ]; then
-		CGO_ENABLED=0 go build -o ./build/gen-spec codegen/v2/spec.go 
+		CGO_ENABLED=0 go build -o ./build/gen-spec codegen/v2/spec.go
 	fi
 	_PWD=$PWD
 	SPECS=$(find $PWD -name 'spec.json' | xargs -n1 dirname)
@@ -152,6 +157,51 @@ function specs {
 	done
 }
 
-specs
 
+function proto {
+	yellow "> proto"
+	CORTEZA_PROTOBUF_PATH=${CORTEZA_PROTOBUF_PATH:-"vendor/github.com/cortezaproject/corteza-protobuf"}
+
+	yellow "  ${CORTEZA_PROTOBUF_PATH} >> compose/proto"
+	PATH=$PATH:$GOPATH/bin protoc \
+		--proto_path ${CORTEZA_PROTOBUF_PATH}/compose \
+		--go_out=plugins=grpc:compose/proto \
+		namespace.proto \
+		module.proto \
+		record.proto \
+		script_runner.proto
+
+	yellow "  ${CORTEZA_PROTOBUF_PATH} >> system/proto"
+	PATH=$PATH:$GOPATH/bin protoc \
+		--proto_path ${CORTEZA_PROTOBUF_PATH}/system \
+		--go_out=plugins=grpc:system/proto \
+		user.proto
+  green "OK"
+}
+
+case ${1:-"all"} in
+  types)
+    types
+    ;;
+  database)
+    database
+    ;;
+  files)
+    files
+    ;;
+  specs)
+    specs
+    ;;
+  proto)
+    proto
+    ;;
+  all)
+    types
+    database
+    files
+    specs
+    proto
+esac
+
+# Always finish with fmt
 gofmt

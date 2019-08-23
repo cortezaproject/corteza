@@ -39,6 +39,12 @@
             "type": "string"
           },
           {
+            "name": "name",
+            "required": false,
+            "title": "Search by name",
+            "type": "string"
+          },
+          {
             "name": "page",
             "required": false,
             "title": "Page number (0 based)",

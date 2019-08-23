@@ -7,9 +7,13 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/compose/internal/repository"
+	"github.com/cortezaproject/corteza-server/compose/proto"
+	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/internal/store"
+	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
+	proto2 "github.com/cortezaproject/corteza-server/system/proto"
 )
 
 type (
@@ -19,28 +23,45 @@ type (
 	}
 
 	Config struct {
-		Storage options.StorageOpt
+		Storage          options.StorageOpt
+		ScriptRunner     options.ScriptRunnerOpt
+		GRPCClientSystem options.GRPCServerOpt
 	}
 )
 
 var (
-	DefaultPermissions permissionServicer
-
 	DefaultLogger *zap.Logger
 
+	// DefaultPermissions Retrives & stores permissions
+	DefaultPermissions permissionServicer
+
+	// DefaultAccessControl Access control checking
 	DefaultAccessControl *accessControl
 
-	DefaultRecord       RecordService
-	DefaultModule       ModuleService
-	DefaultTrigger      TriggerService
-	DefaultChart        ChartService
-	DefaultPage         PageService
-	DefaultNotification NotificationService
+	// DefaultAutomationScriptManager manages scripts
+	DefaultAutomationScriptManager automationScript
+
+	// DefaultAutomationTriggerManager manages triggerManager
+	DefaultAutomationTriggerManager automationTrigger
+
+	// DefaultAutomationRunner runs automation scripts by listening to triggerManager and invoking Corredor service
+	DefaultAutomationRunner automationRunner
+
+	DefaultNamespace NamespaceService
+	DefaultRecord    RecordService
+	DefaultModule    ModuleService
+	DefaultChart     ChartService
+	DefaultPage      PageService
+
 	DefaultAttachment   AttachmentService
-	DefaultNamespace    NamespaceService
+	DefaultNotification NotificationService
+
+	DefaultSystemUser *systemUser
 )
 
 func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
+	var db = repository.DB(ctx)
+
 	DefaultLogger = log.Named("service")
 
 	fs, err := store.New(c.Storage.Path)
@@ -49,26 +70,73 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 		return err
 	}
 
+	// Permissions, access control
 	DefaultPermissions = permissions.Service(
 		ctx,
 		DefaultLogger,
-		permissions.Repository(repository.DB(ctx), "compose_permission_rules"))
+		permissions.Repository(db, "compose_permission_rules"))
 
 	DefaultAccessControl = AccessControl(DefaultPermissions)
 
+	{
+		systemClientConn, err := NewSystemGRPCClient(ctx, c.GRPCClientSystem, DefaultLogger)
+		if err != nil {
+			return err
+		}
+
+		DefaultSystemUser = SystemUser(proto2.NewUsersClient(systemClientConn))
+	}
+
+	// ias: Internal Automatinon Service
+	// handles script & trigger management & keeping runnables cripts in internal cache
+	ias := automation.Service(automation.AutomationServiceConfig{
+		Logger:        DefaultLogger,
+		DbTablePrefix: "compose",
+		DB:            db,
+		TokenMaker: func(ctx context.Context, userID uint64) (s string, e error) {
+			ctx = auth.SetSuperUserContext(ctx)
+			return DefaultSystemUser.MakeJWT(ctx, userID)
+		},
+	})
+
+	// Pass automation manager to
+	DefaultAutomationScriptManager = AutomationScript(ias)
+	DefaultAutomationTriggerManager = AutomationTrigger(ias)
+
+	{
+		var scriptRunnerClient proto.ScriptRunnerClient
+
+		if c.ScriptRunner.Enabled {
+			corredor, err := automation.Corredor(ctx, c.ScriptRunner, DefaultLogger)
+
+			log.Info("initializing corredor connection", zap.String("addr", c.ScriptRunner.Addr), zap.Error(err))
+			if err != nil {
+				return err
+			}
+
+			scriptRunnerClient = proto.NewScriptRunnerClient(corredor)
+		}
+
+		DefaultAutomationRunner = AutomationRunner(ias, scriptRunnerClient)
+	}
+
+	// Compose internals:
+	DefaultNamespace = Namespace()
 	DefaultRecord = Record()
 	DefaultModule = Module()
-	DefaultTrigger = Trigger()
 	DefaultPage = Page()
 	DefaultChart = Chart()
 	DefaultNotification = Notification()
 	DefaultAttachment = Attachment(fs)
-	DefaultNamespace = Namespace()
 
 	return nil
 }
 
 func Watchers(ctx context.Context) {
+	// Reloading automation scripts on change
+	DefaultAutomationRunner.Watch(ctx)
+
+	// Reloading permissions on change
 	DefaultPermissions.Watch(ctx)
 }
 

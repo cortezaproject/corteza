@@ -22,19 +22,31 @@ type (
 		logger *zap.Logger
 
 		ac recordAccessController
+		sr RecordScriptsRunner
 
 		recordRepo repository.RecordRepository
 		moduleRepo repository.ModuleRepository
+		nsRepo     repository.NamespaceRepository
 	}
 
 	recordAccessController interface {
 		CanCreateRecord(context.Context, *types.Module) bool
+		CanReadNamespace(context.Context, *types.Namespace) bool
 		CanReadModule(context.Context, *types.Module) bool
 		CanReadRecord(context.Context, *types.Module) bool
 		CanUpdateRecord(context.Context, *types.Module) bool
 		CanDeleteRecord(context.Context, *types.Module) bool
 		CanReadRecordValue(context.Context, *types.ModuleField) bool
 		CanUpdateRecordValue(context.Context, *types.ModuleField) bool
+	}
+
+	RecordScriptsRunner interface {
+		BeforeRecordCreate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
+		AfterRecordCreate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
+		BeforeRecordUpdate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
+		AfterRecordUpdate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
+		BeforeRecordDelete(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
+		AfterRecordDelete(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
 	}
 
 	RecordService interface {
@@ -50,8 +62,6 @@ type (
 		Update(record *types.Record) (*types.Record, error)
 
 		DeleteByID(namespaceID, recordID uint64) error
-
-		// Fields(module *types.Module, record *types.Record) ([]*types.RecordValue, error)
 	}
 
 	Encoder interface {
@@ -63,20 +73,24 @@ func Record() RecordService {
 	return (&record{
 		logger: DefaultLogger.Named("record"),
 		ac:     DefaultAccessControl,
+		sr:     DefaultAutomationRunner,
 	}).With(context.Background())
 }
 
 func (svc record) With(ctx context.Context) RecordService {
 	db := repository.DB(ctx)
+
 	return &record{
 		db:     db,
 		ctx:    ctx,
 		logger: svc.logger,
 
 		ac: svc.ac,
+		sr: svc.sr,
 
 		recordRepo: repository.Record(ctx, db),
 		moduleRepo: repository.Module(ctx, db),
+		nsRepo:     repository.Namespace(ctx, db),
 	}
 }
 
@@ -126,6 +140,22 @@ func (svc record) loadModule(namespaceID, moduleID uint64) (m *types.Module, err
 	return
 }
 
+func (svc record) loadNamespace(namespaceID uint64) (ns *types.Namespace, err error) {
+	if namespaceID == 0 {
+		return nil, ErrNamespaceRequired.withStack()
+	}
+
+	if ns, err = svc.nsRepo.FindByID(namespaceID); err != nil {
+		return
+	}
+
+	if !svc.ac.CanReadNamespace(svc.ctx, ns) {
+		return nil, ErrNoReadPermissions.withStack()
+	}
+
+	return
+}
+
 func (svc record) Report(namespaceID, moduleID uint64, metrics, dimensions, filter string) (out interface{}, err error) {
 	var m *types.Module
 	if m, err = svc.loadModule(namespaceID, moduleID); err != nil {
@@ -159,6 +189,7 @@ func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.
 // @todo better value handling
 func (svc record) Export(filter types.RecordFilter, enc Encoder) error {
 	m, err := svc.loadModule(filter.NamespaceID, filter.ModuleID)
+
 	if err != nil {
 		return err
 	}
@@ -176,12 +207,8 @@ func (svc record) Export(filter types.RecordFilter, enc Encoder) error {
 }
 
 func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
-	if mod.NamespaceID == 0 {
-		return nil, ErrNamespaceRequired
-	}
-
-	var m *types.Module
-	if m, err = svc.loadModule(mod.NamespaceID, mod.ModuleID); err != nil {
+	ns, m, r, err := svc.loadCombo(mod.NamespaceID, mod.ModuleID, 0)
+	if err != nil {
 		return
 	}
 
@@ -189,24 +216,39 @@ func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
-	if mod.Values, err = svc.sanitizeValues(m, mod.Values); err != nil {
+	creatorID := auth.GetIdentityFromContext(svc.ctx).Identity()
+	r = &types.Record{
+		ModuleID:    mod.ModuleID,
+		NamespaceID: mod.NamespaceID,
+
+		CreatedBy: creatorID,
+		OwnedBy:   creatorID,
+
+		CreatedAt: time.Now(),
+	}
+
+	if err = svc.copyChanges(m, mod, r); err != nil {
 		return
 	}
 
-	mod.OwnedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
-	mod.CreatedBy = mod.OwnedBy
-	mod.CreatedAt = time.Now()
+	mod = nil // make sure we do not use it anymore
+
+	if err = svc.sr.BeforeRecordCreate(svc.ctx, ns, m, r); err != nil {
+		// Calling
+		return
+	}
+
+	defer func() {
+		// Run this at the end and discard the error
+		_ = svc.sr.AfterRecordCreate(svc.ctx, ns, m, r)
+	}()
 
 	return r, svc.db.Transaction(func() (err error) {
-		if r, err = svc.recordRepo.Create(mod); err != nil {
+		if r, err = svc.recordRepo.Create(r); err != nil {
 			return
 		}
 
-		if err = svc.recordRepo.UpdateValues(r.ID, mod.Values); err != nil {
-			return
-		}
-
-		if err = svc.preloadValues(m, r); err != nil {
+		if err = svc.recordRepo.UpdateValues(r.ID, r.Values); err != nil {
 			return
 		}
 
@@ -219,16 +261,8 @@ func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 		return nil, ErrInvalidID.withStack()
 	}
 
-	if mod.NamespaceID == 0 {
-		return nil, ErrNamespaceRequired
-	}
-
-	var m *types.Module
-	if m, err = svc.loadModule(mod.NamespaceID, mod.ModuleID); err != nil {
-		return
-	}
-
-	if r, err = svc.recordRepo.FindByID(mod.NamespaceID, mod.ID); err != nil {
+	ns, m, r, err := svc.loadCombo(mod.NamespaceID, mod.ModuleID, mod.ID)
+	if err != nil {
 		return
 	}
 
@@ -236,24 +270,37 @@ func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
+	// Test if stale (update has an older copy)
 	if isStale(mod.UpdatedAt, r.UpdatedAt, r.CreatedAt) {
 		return nil, ErrStaleData.withStack()
-	}
-
-	if mod.Values, err = svc.sanitizeValues(m, mod.Values); err != nil {
-		return
 	}
 
 	now := time.Now()
 	r.UpdatedAt = &now
 	r.UpdatedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
 
+	if err = svc.copyChanges(m, mod, r); err != nil {
+		return
+	}
+
+	mod = nil // make sure we do not use it anymore
+
+	if err = svc.sr.BeforeRecordUpdate(svc.ctx, ns, m, r); err != nil {
+		// Calling
+		return
+	}
+
+	defer func() {
+		// Run this at the end and discard the error
+		_ = svc.sr.AfterRecordUpdate(svc.ctx, ns, m, r)
+	}()
+
 	return r, svc.db.Transaction(func() (err error) {
 		if r, err = svc.recordRepo.Update(r); err != nil {
 			return
 		}
 
-		if err = svc.recordRepo.UpdateValues(r.ID, mod.Values); err != nil {
+		if err = svc.recordRepo.UpdateValues(r.ID, r.Values); err != nil {
 			return
 		}
 
@@ -266,26 +313,31 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 		return ErrInvalidID.withStack()
 	}
 
-	if namespaceID == 0 {
-		return ErrNamespaceRequired
+	ns, m, r, err := svc.loadCombo(namespaceID, 0, recordID)
+	if err != nil {
+		return
 	}
 
+	if err = svc.sr.BeforeRecordCreate(svc.ctx, ns, m, r); err != nil {
+		// Calling
+		return
+	}
+
+	defer func() {
+		// Run this at the end and discard the error
+		_ = svc.sr.AfterRecordDelete(svc.ctx, ns, m, r)
+	}()
+
 	err = svc.db.Transaction(func() (err error) {
-		var record *types.Record
-
-		if record, err = svc.recordRepo.FindByID(namespaceID, recordID); err != nil {
-			return errors.Wrap(err, "nonexistent record")
-		}
-
 		now := time.Now()
-		record.DeletedAt = &now
-		record.DeletedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
+		r.DeletedAt = &now
+		r.DeletedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-		if err = svc.recordRepo.Delete(record); err != nil {
+		if err = svc.recordRepo.Delete(r); err != nil {
 			return
 		}
 
-		if err = svc.recordRepo.DeleteValues(record); err != nil {
+		if err = svc.recordRepo.DeleteValues(r); err != nil {
 			return
 		}
 
@@ -293,6 +345,40 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 	})
 
 	return errors.Wrap(err, "unable to delete record")
+}
+
+// loadCombo Loads everything we need for record manipulation
+//
+// Loads namespace, module, record and set of triggers.
+func (svc record) loadCombo(namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
+	if namespaceID == 0 {
+		err = ErrNamespaceRequired
+		return
+	}
+	if ns, err = svc.loadNamespace(namespaceID); err != nil {
+		return
+	}
+
+	if recordID > 0 {
+		if r, err = svc.recordRepo.FindByID(namespaceID, recordID); err != nil {
+			return
+		}
+
+		moduleID = r.ModuleID
+	}
+
+	if m, err = svc.loadModule(ns.ID, moduleID); err != nil {
+		return
+	}
+
+	return
+}
+
+// Copies changes from mod to r(ecord)
+func (svc record) copyChanges(m *types.Module, mod, r *types.Record) (err error) {
+	r.OwnedBy = mod.OwnedBy
+	r.Values, err = svc.sanitizeValues(m, mod.Values)
+	return err
 }
 
 // Validates and filters record values

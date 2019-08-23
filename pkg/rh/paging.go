@@ -32,3 +32,7 @@ func (pf *PageFilter) NormalizePerPage(min, max, def uint) {
 func (pf *PageFilter) NormalizePerPageWithDefaults() {
 	pf.PerPage = NormalizePerPage(pf.PerPage, PER_PAGE_MIN, PER_PAGE_MAX, PER_PAGE_DEFAULT)
 }
+
+func (pf *PageFilter) NormalizePerPageNoMax() {
+	pf.PerPage = NormalizePerPage(pf.PerPage, PER_PAGE_MIN, 0, PER_PAGE_DEFAULT)
+}

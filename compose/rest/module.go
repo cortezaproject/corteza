@@ -11,6 +11,11 @@ import (
 )
 
 type (
+	moduleSetPayload struct {
+		Filter types.ModuleFilter `json:"filter"`
+		Set    []*modulePayload   `json:"set"`
+	}
+
 	modulePayload struct {
 		*types.Module
 
@@ -23,6 +28,8 @@ type (
 		CanReadRecord   bool `json:"canReadRecord"`
 		CanUpdateRecord bool `json:"canUpdateRecord"`
 		CanDeleteRecord bool `json:"canDeleteRecord"`
+
+		CanManageAutomationTriggers bool `json:"canManageAutomationTriggers"`
 	}
 
 	moduleFieldPayload struct {
@@ -32,14 +39,8 @@ type (
 		CanUpdateRecordValue bool `json:"canUpdateRecordValue"`
 	}
 
-	moduleSetPayload struct {
-		Filter types.ModuleFilter `json:"filter"`
-		Set    []*modulePayload   `json:"set"`
-	}
-
 	Module struct {
 		module service.ModuleService
-		record service.RecordService
 		ac     moduleAccessController
 	}
 
@@ -55,13 +56,14 @@ type (
 
 		CanReadRecordValue(context.Context, *types.ModuleField) bool
 		CanUpdateRecordValue(context.Context, *types.ModuleField) bool
+
+		CanManageAutomationTriggersOnModule(context.Context, *types.Module) bool
 	}
 )
 
 func (Module) New() *Module {
 	return &Module{
 		module: service.DefaultModule,
-		record: service.DefaultRecord,
 		ac:     service.DefaultAccessControl,
 	}
 }
@@ -70,6 +72,7 @@ func (ctrl *Module) List(ctx context.Context, r *request.ModuleList) (interface{
 	f := types.ModuleFilter{
 		NamespaceID: r.NamespaceID,
 		Query:       r.Query,
+		Name:        r.Name,
 		PerPage:     r.PerPage,
 		Page:        r.Page,
 	}
@@ -147,6 +150,8 @@ func (ctrl Module) makePayload(ctx context.Context, m *types.Module, err error) 
 		CanReadRecord:   ctrl.ac.CanReadRecord(ctx, m),
 		CanUpdateRecord: ctrl.ac.CanUpdateRecord(ctx, m),
 		CanDeleteRecord: ctrl.ac.CanDeleteRecord(ctx, m),
+
+		CanManageAutomationTriggers: ctrl.ac.CanManageAutomationTriggersOnModule(ctx, m),
 	}, nil
 }
 

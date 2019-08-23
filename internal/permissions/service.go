@@ -51,6 +51,8 @@ func Service(ctx context.Context, logger *zap.Logger, repository *repository) (s
 // use Check() to test against permission rules and
 // iterate over all fallback functions
 //
+// System user is always allowed to do everything
+//
 // When not explicitly allowed through rules or fallbacks, function will return FALSE.
 func (svc service) Can(ctx context.Context, res Resource, op Operation, ff ...CheckAccessFunc) bool {
 	{
@@ -62,7 +64,13 @@ func (svc service) Can(ctx context.Context, res Resource, op Operation, ff ...Ch
 		}
 	}
 
-	var roles = auth.GetIdentityFromContext(ctx).Roles()
+	u := auth.GetIdentityFromContext(ctx)
+
+	if auth.IsSuperUser(u) {
+		return true
+	}
+
+	var roles = u.Roles()
 	// Checking rules
 	var v = svc.Check(res, op, roles...)
 	if v != Inherit {
