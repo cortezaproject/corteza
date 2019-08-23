@@ -26,6 +26,9 @@ type (
 		// internal list of runnable scripts (and their accompanying triggers)
 		runnables ScriptSet
 
+		// internal list of scheduled scripts
+		scheduled scheduledSet
+
 		// turns user-id (rel_runner / runAs) into valid credentials (JWT)
 		makeToken TokenMaker
 
@@ -107,7 +110,31 @@ func (svc *service) Watch(ctx context.Context) {
 		}
 	}()
 
+	// @todo enable when deferred scripts can be execured
+	// go svc.runScheduled(ctx)
+
 	svc.logger.Debug("watcher initialized")
+}
+
+// Runs scheduled scripts every minute
+func (svc *service) runScheduled(ctx context.Context) {
+	var ticker = time.NewTicker(time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			for _, scriptID := range svc.scheduled.pick() {
+				// @todo finish implementation, we need to inform someone
+				//       about the scheduled script and that it should be executed
+				svc.logger.Debug(
+					"Running scheduled script",
+					zap.Uint64("scriptID", scriptID),
+				)
+			}
+		}
+	}
 }
 
 func (svc *service) Reload() {
@@ -167,7 +194,7 @@ func (svc *service) reload(ctx context.Context) {
 			return nil
 		})
 
-		return tt.Walk(func(t *Trigger) error {
+		_ = tt.Walk(func(t *Trigger) error {
 			s := svc.runnables.FindByID(t.ScriptID)
 			if s != nil && t.IsValid() && s.CheckCompatibility(t) == nil {
 				// Add only compatible triggers
@@ -176,6 +203,13 @@ func (svc *service) reload(ctx context.Context) {
 
 			return nil
 		})
+
+		// update scheduled list
+		// @todo enable when deferred scripts can be execured
+		// svc.scheduled = buildScheduleList(svc.runnables)
+		// svc.logger.Info("deferred scripts scheduled", zap.Int("count", len(svc.scheduled)))
+
+		return
 	})
 }
 
