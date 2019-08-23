@@ -14,6 +14,7 @@ import (
 	composeMigrate "github.com/cortezaproject/corteza-server/compose/db"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	dbLogger "github.com/titpetric/factory/logger"
 )
@@ -60,7 +61,15 @@ func TestMain(m *testing.M) {
 
 	ctx := context.Background()
 
-	Init(ctx, zap.NewNop(), "/tmp/corteza-compose-store")
+	err := Init(ctx, zap.NewNop(), Config{
+		Storage: options.StorageOpt{
+			Path: "/tmp/corteza-compose-store",
+		},
+	})
+	if err != nil {
+		fmt.Printf("Error running migrations: %+v\n", err)
+		return
+	}
 
 	os.Exit(m.Run())
 }
