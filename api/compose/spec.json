@@ -668,6 +668,68 @@
                 }
             },
             {
+                "name": "importInit",
+                "path": "/import",
+                "method": "POST",
+                "title": "Initiate record import session",
+                "parameters": {
+                    "post": [
+                        {
+                            "name": "upload",
+                            "type": "*multipart.FileHeader",
+                            "required": true,
+                            "title": "File import"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "importRun",
+                "path": "/import/{sessionID}",
+                "method": "PATCH",
+                "title": "Run record import",
+                "parameters": {
+                    "path": [
+                        {
+                            "name": "sessionID",
+                            "type": "uint64",
+                            "required": true,
+                            "title": "Import session"
+                        }
+                    ],
+                    "post": [
+                        {
+                            "name": "fields",
+                            "type": "json.RawMessage",
+                            "required": true,
+                            "title": "Fields defined by import file"
+                        },
+                        {
+                            "name": "onError",
+                            "type": "string",
+                            "required": true,
+                            "title": "What happens if record fails to import"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "importProgress",
+                "path": "/import/{sessionID}",
+                "method": "GET",
+                "title": "Get import progress",
+                "parameters": {
+                    "path": [
+                        {
+                            "name": "sessionID",
+                            "type": "uint64",
+                            "required": true,
+                            "title": "Import session"
+                        }
+                    ]
+                }
+            },
+            {
                 "name": "export",
                 "path": "/export{filename}.{ext}",
                 "method": "GET",

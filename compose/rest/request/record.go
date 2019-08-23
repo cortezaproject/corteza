@@ -175,6 +175,192 @@ func (r *RecordList) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewRecordList()
 
+// Record importInit request parameters
+type RecordImportInit struct {
+	Upload      *multipart.FileHeader
+	NamespaceID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
+}
+
+func NewRecordImportInit() *RecordImportInit {
+	return &RecordImportInit{}
+}
+
+func (r RecordImportInit) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["upload.size"] = r.Upload.Size
+	out["upload.filename"] = r.Upload.Filename
+
+	out["namespaceID"] = r.NamespaceID
+	out["moduleID"] = r.ModuleID
+
+	return out
+}
+
+func (r *RecordImportInit) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseMultipartForm(32 << 20); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	if _, r.Upload, err = req.FormFile("upload"); err != nil {
+		return errors.Wrap(err, "error procesing uploaded file")
+	}
+
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
+
+	return err
+}
+
+var _ RequestFiller = NewRecordImportInit()
+
+// Record importRun request parameters
+type RecordImportRun struct {
+	SessionID   uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
+	Fields      json.RawMessage
+	OnError     string
+}
+
+func NewRecordImportRun() *RecordImportRun {
+	return &RecordImportRun{}
+}
+
+func (r RecordImportRun) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["sessionID"] = r.SessionID
+	out["namespaceID"] = r.NamespaceID
+	out["moduleID"] = r.ModuleID
+	out["fields"] = r.Fields
+	out["onError"] = r.OnError
+
+	return out
+}
+
+func (r *RecordImportRun) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	r.SessionID = parseUInt64(chi.URLParam(req, "sessionID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
+	if val, ok := post["fields"]; ok {
+		r.Fields = json.RawMessage(val)
+	}
+	if val, ok := post["onError"]; ok {
+		r.OnError = val
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewRecordImportRun()
+
+// Record importProgress request parameters
+type RecordImportProgress struct {
+	SessionID   uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
+}
+
+func NewRecordImportProgress() *RecordImportProgress {
+	return &RecordImportProgress{}
+}
+
+func (r RecordImportProgress) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["sessionID"] = r.SessionID
+	out["namespaceID"] = r.NamespaceID
+	out["moduleID"] = r.ModuleID
+
+	return out
+}
+
+func (r *RecordImportProgress) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	r.SessionID = parseUInt64(chi.URLParam(req, "sessionID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
+
+	return err
+}
+
+var _ RequestFiller = NewRecordImportProgress()
+
 // Record export request parameters
 type RecordExport struct {
 	Filter      string
