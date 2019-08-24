@@ -55,9 +55,9 @@ type (
 		runner  automationScriptRunner
 		ac      automationScriptAccessController
 
-		namespace automationScriptNamespaceLoader
-		module    automationScriptModuleLoader
-		record    automationScriptRecordLoader
+		namespace service.NamespaceService
+		module    service.ModuleService
+		record    service.RecordService
 	}
 
 	automationScriptService interface {
@@ -79,18 +79,6 @@ type (
 
 		CanUpdateAutomationScript(context.Context, *automation.Script) bool
 		CanDeleteAutomationScript(context.Context, *automation.Script) bool
-	}
-
-	automationScriptNamespaceLoader interface {
-		FindByID(uint64) (*types.Namespace, error)
-	}
-
-	automationScriptModuleLoader interface {
-		FindByID(uint64, uint64) (*types.Module, error)
-	}
-
-	automationScriptRecordLoader interface {
-		FindByID(uint64, uint64) (*types.Record, error)
 	}
 )
 
@@ -218,7 +206,7 @@ func (ctrl AutomationScript) Runnable(ctx context.Context, r *request.Automation
 func (ctrl AutomationScript) Run(ctx context.Context, r *request.AutomationScriptRun) (interface{}, error) {
 	var (
 		rval               automationScriptRun
-		ns, m, record, err = ctrl.loadRecordScriptRunningCombo(r.NamespaceID, r.ModuleID, r.RecordID, r.Record)
+		ns, m, record, err = ctrl.loadRecordScriptRunningCombo(ctx, r.NamespaceID, r.ModuleID, r.RecordID, r.Record)
 	)
 
 	if err != nil {
@@ -240,7 +228,7 @@ func (ctrl AutomationScript) Run(ctx context.Context, r *request.AutomationScrip
 func (ctrl AutomationScript) Test(ctx context.Context, r *request.AutomationScriptTest) (interface{}, error) {
 	var (
 		rval               automationScriptRun
-		ns, m, record, err = ctrl.loadRecordScriptRunningCombo(r.NamespaceID, r.ModuleID, 0, r.Record)
+		ns, m, record, err = ctrl.loadRecordScriptRunningCombo(ctx, r.NamespaceID, r.ModuleID, 0, r.Record)
 	)
 
 	if err != nil {
@@ -259,17 +247,17 @@ func (ctrl AutomationScript) Test(ctx context.Context, r *request.AutomationScri
 	return rval, err
 }
 
-func (ctrl AutomationScript) loadRecordScriptRunningCombo(namespaceID, moduleID, recordID uint64, record json.RawMessage) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
+func (ctrl AutomationScript) loadRecordScriptRunningCombo(ctx context.Context, namespaceID, moduleID, recordID uint64, record json.RawMessage) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
 	r = &types.Record{}
 
 	// Load requested namespace
-	if ns, err = ctrl.namespace.FindByID(namespaceID); err != nil {
+	if ns, err = ctrl.namespace.With(ctx).FindByID(namespaceID); err != nil {
 		return
 	}
 
 	if moduleID > 0 {
 		// Unmarshal given module or find existing one from ID
-		if m, err = ctrl.module.FindByID(ns.ID, moduleID); err != nil {
+		if m, err = ctrl.module.With(ctx).FindByID(ns.ID, moduleID); err != nil {
 			return
 		}
 	}
@@ -280,7 +268,7 @@ func (ctrl AutomationScript) loadRecordScriptRunningCombo(namespaceID, moduleID,
 			err = errors.New("Could not parse record payload")
 			return
 		}
-	} else if r, err = ctrl.record.FindByID(ns.ID, recordID); err != nil {
+	} else if r, err = ctrl.record.With(ctx).FindByID(ns.ID, recordID); err != nil {
 		return
 	}
 
