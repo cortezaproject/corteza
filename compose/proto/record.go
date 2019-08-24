@@ -49,3 +49,32 @@ func toTimePtr(ts *timestamp.Timestamp) *time.Time {
 	var t = toTime(ts)
 	return &t
 }
+
+func FromRecord(i *types.Record) *Record {
+	if i == nil {
+		return nil
+	}
+
+	var p = &Record{
+		RecordID:    i.ID,
+		ModuleID:    i.ModuleID,
+		NamespaceID: i.NamespaceID,
+		OwnedBy:     i.OwnedBy,
+		CreatedBy:   i.CreatedBy,
+		UpdatedBy:   i.UpdatedBy,
+		DeletedBy:   i.DeletedBy,
+		CreatedAt:   fromTime(i.CreatedAt),
+		UpdatedAt:   fromTime(i.UpdatedAt),
+		DeletedAt:   fromTime(i.DeletedAt),
+		Values:      make([]*RecordValue, len(i.Values)),
+	}
+
+	for v := range i.Values {
+		p.Values[v] = &RecordValue{
+			Value: i.Values[v].Value,
+			Name:  i.Values[v].Name,
+		}
+	}
+
+	return p
+}
