@@ -12,7 +12,7 @@ import (
 )
 
 // Corredor standard connector to Corredor service via gRPC
-func Corredor(ctx context.Context, opt options.ScriptRunnerOpt, logger *zap.Logger) (c *grpc.ClientConn, err error) {
+func Corredor(ctx context.Context, opt options.CorredorOpt, logger *zap.Logger) (c *grpc.ClientConn, err error) {
 	if !opt.Enabled {
 		// Do not connect when script runner is not enabled
 		return

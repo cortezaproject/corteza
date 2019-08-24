@@ -50,7 +50,7 @@ type (
 		ProvisionOpt  *options.ProvisionOpt
 		SentryOpt     *options.SentryOpt
 		StorageOpt    *options.StorageOpt
-		ScriptRunner  *options.ScriptRunnerOpt
+		ScriptRunner  *options.CorredorOpt
 
 		// Services will be calling each other so we need
 		// to keep the config opts spearated
@@ -195,7 +195,7 @@ func (c *Config) Init() {
 	c.ProvisionOpt = options.Provision(c.ServiceName)
 	c.SentryOpt = options.Sentry(c.EnvPrefix)
 	c.StorageOpt = options.Storage(c.EnvPrefix)
-	c.ScriptRunner = options.ScriptRunner(c.EnvPrefix)
+	c.ScriptRunner = options.Corredor(c.EnvPrefix)
 	c.GRPCServerSystem = options.GRPCServer("system")
 	// c.GRPCServerCompose = options.GRPCServer("compose")
 	// c.GRPCServerMessagign = options.GRPCServer("messaging")

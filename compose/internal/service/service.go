@@ -24,7 +24,7 @@ type (
 
 	Config struct {
 		Storage          options.StorageOpt
-		ScriptRunner     options.ScriptRunnerOpt
+		Corredor         options.CorredorOpt
 		GRPCClientSystem options.GRPCServerOpt
 	}
 )
@@ -106,10 +106,10 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	{
 		var scriptRunnerClient proto.ScriptRunnerClient
 
-		if c.ScriptRunner.Enabled {
-			corredor, err := automation.Corredor(ctx, c.ScriptRunner, DefaultLogger)
+		if c.Corredor.Enabled {
+			corredor, err := automation.Corredor(ctx, c.Corredor, DefaultLogger)
 
-			log.Info("initializing corredor connection", zap.String("addr", c.ScriptRunner.Addr), zap.Error(err))
+			log.Info("initializing corredor connection", zap.String("addr", c.Corredor.Addr), zap.Error(err))
 			if err != nil {
 				return err
 			}

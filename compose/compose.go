@@ -37,7 +37,7 @@ func Configure() *cli.Config {
 
 			cli.HandleError(service.Init(ctx, c.Log, service.Config{
 				Storage:          *c.StorageOpt,
-				ScriptRunner:     *c.ScriptRunner,
+				Corredor:         *c.ScriptRunner,
 				GRPCClientSystem: *c.GRPCServerSystem,
 			}))
 		},
