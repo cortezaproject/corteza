@@ -160,16 +160,29 @@ function specs {
 
 function proto {
 	yellow "> proto"
+
+
 	CORTEZA_PROTOBUF_PATH=${CORTEZA_PROTOBUF_PATH:-"vendor/github.com/cortezaproject/corteza-protobuf"}
+
+	# Compose Proto Path
+	CPC="github.com/cortezaproject/corteza-server/compose/proto"
 
 	yellow "  ${CORTEZA_PROTOBUF_PATH} >> compose/proto"
 	PATH=$PATH:$GOPATH/bin protoc \
 		--proto_path ${CORTEZA_PROTOBUF_PATH}/compose \
-		--go_out=plugins=grpc:compose/proto \
-		namespace.proto \
-		module.proto \
-		record.proto \
-		script_runner.proto
+		--go_out=./compose/proto \
+		record.proto namespace.proto module.proto
+
+
+  assoc="${assoc},Mcompose/record.proto=${CPC}"
+  assoc="${assoc},Mcompose/module.proto=${CPC}"
+  assoc="${assoc},Mcompose/namespace.proto=${CPC}"
+
+	yellow "  ${CORTEZA_PROTOBUF_PATH} >> pkg/automation/corredor"
+	PATH=$PATH:$GOPATH/bin protoc \
+		--proto_path ${CORTEZA_PROTOBUF_PATH} \
+		--go_out="plugins=grpc${assoc}:./pkg/automation/corredor" \
+		service-corredor.proto
 
 	yellow "  ${CORTEZA_PROTOBUF_PATH} >> system/proto"
 	PATH=$PATH:$GOPATH/bin protoc \

@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
+	"github.com/cortezaproject/corteza-server/pkg/automation/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 )
 
@@ -22,7 +23,7 @@ type (
 		opt          AutomationRunnerOpt
 		ac           automationRunnerAccessControler
 		logger       *zap.Logger
-		runner       proto.ScriptRunnerClient
+		runner       corredor.ScriptRunnerClient
 		scriptFinder automationScriptsFinder
 		jwtEncoder   auth.TokenEncoder
 	}
@@ -47,7 +48,7 @@ const (
 	AutomationResourceRecord = "compose:record"
 )
 
-func AutomationRunner(opt AutomationRunnerOpt, f automationScriptsFinder, r proto.ScriptRunnerClient) automationRunner {
+func AutomationRunner(opt AutomationRunnerOpt, f automationScriptsFinder, r corredor.ScriptRunnerClient) automationRunner {
 	var svc = automationRunner{
 		opt: opt,
 
@@ -219,7 +220,7 @@ func (svc automationRunner) RecordScriptTester(ctx context.Context, source strin
 //
 func (svc automationRunner) makeRecordScriptRunner(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record, discard bool) func(script *automation.Script) error {
 	// Static request params (record gets updated
-	var req = &proto.RunRecordRequest{
+	var req = &corredor.RunRecordRequest{
 		Namespace: proto.FromNamespace(ns),
 		Module:    proto.FromModule(m),
 		Record:    proto.FromRecord(r),
@@ -250,7 +251,7 @@ func (svc automationRunner) makeRecordScriptRunner(ctx context.Context, ns *type
 		}
 
 		// Add script info
-		req.Script = proto.FromAutomationScript(script)
+		req.Script = corredor.FromScript(script)
 
 		rsp, err := svc.runner.Record(ctx, req, grpc.WaitForReady(script.Critical))
 

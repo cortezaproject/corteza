@@ -79,6 +79,7 @@ func Configure() *cli.Config {
 					)
 
 					// Temporary gRPC server initialization location
+					// @todo move out of system Configure
 					grpcServer := grpc.NewServer()
 
 					ln, err := net.Listen(c.GRPCServerSystem.Network, c.GRPCServerSystem.Addr)

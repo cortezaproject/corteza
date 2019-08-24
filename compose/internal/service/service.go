@@ -7,13 +7,13 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/compose/internal/repository"
-	"github.com/cortezaproject/corteza-server/compose/proto"
 	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/internal/store"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
+	"github.com/cortezaproject/corteza-server/pkg/automation/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
-	proto2 "github.com/cortezaproject/corteza-server/system/proto"
+	systemProto "github.com/cortezaproject/corteza-server/system/proto"
 )
 
 type (
@@ -84,7 +84,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 			return err
 		}
 
-		DefaultSystemUser = SystemUser(proto2.NewUsersClient(systemClientConn))
+		DefaultSystemUser = SystemUser(systemProto.NewUsersClient(systemClientConn))
 	}
 
 	// ias: Internal Automatinon Service
@@ -104,17 +104,17 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultAutomationTriggerManager = AutomationTrigger(ias)
 
 	{
-		var scriptRunnerClient proto.ScriptRunnerClient
+		var scriptRunnerClient corredor.ScriptRunnerClient
 
 		if c.Corredor.Enabled {
-			corredor, err := automation.Corredor(ctx, c.Corredor, DefaultLogger)
+			conn, err := corredor.NewConnection(ctx, c.Corredor, DefaultLogger)
 
 			log.Info("initializing corredor connection", zap.String("addr", c.Corredor.Addr), zap.Error(err))
 			if err != nil {
 				return err
 			}
 
-			scriptRunnerClient = proto.NewScriptRunnerClient(corredor)
+			scriptRunnerClient = corredor.NewScriptRunnerClient(conn)
 		}
 
 		DefaultAutomationRunner = AutomationRunner(
