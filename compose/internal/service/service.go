@@ -117,7 +117,15 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 			scriptRunnerClient = proto.NewScriptRunnerClient(corredor)
 		}
 
-		DefaultAutomationRunner = AutomationRunner(ias, scriptRunnerClient)
+		DefaultAutomationRunner = AutomationRunner(
+			AutomationRunnerOpt{
+				ApiBaseURLSystem:    c.Corredor.ApiBaseURLSystem,
+				ApiBaseURLMessaging: c.Corredor.ApiBaseURLMessaging,
+				ApiBaseURLCompose:   c.Corredor.ApiBaseURLCompose,
+			},
+			ias,
+			scriptRunnerClient,
+		)
 	}
 
 	// Compose internals:

@@ -19,6 +19,7 @@ import (
 
 type (
 	automationRunner struct {
+		opt          AutomationRunnerOpt
 		ac           automationRunnerAccessControler
 		logger       *zap.Logger
 		runner       proto.ScriptRunnerClient
@@ -34,14 +35,22 @@ type (
 	automationRunnerAccessControler interface {
 		CanRunAutomationTrigger(ctx context.Context, r *automation.Trigger) bool
 	}
+
+	AutomationRunnerOpt struct {
+		ApiBaseURLSystem    string
+		ApiBaseURLMessaging string
+		ApiBaseURLCompose   string
+	}
 )
 
 const (
 	AutomationResourceRecord = "compose:record"
 )
 
-func AutomationRunner(f automationScriptsFinder, r proto.ScriptRunnerClient) automationRunner {
+func AutomationRunner(opt AutomationRunnerOpt, f automationScriptsFinder, r proto.ScriptRunnerClient) automationRunner {
 	var svc = automationRunner{
+		opt: opt,
+
 		ac: DefaultAccessControl,
 
 		scriptFinder: f,
@@ -224,14 +233,21 @@ func (svc automationRunner) makeRecordScriptRunner(ctx context.Context, ns *type
 		}
 
 		// This could be executed in a goroutine (by *after triggers,
-		// so we need ot rewire the sentry panic recoverty
+		// so we need to rewire the sentry panic recovery
 		defer sentry.Recover()
 
 		ctx, cancelFn := context.WithTimeout(ctx, time.Second*5)
 		defer cancelFn()
 
 		// Add invoker's or defined credentials/jwt
-		req.JWT = svc.getJWT(ctx, script)
+		req.Config = map[string]string{
+			"api.jwt": svc.getJWT(ctx, script),
+
+			// Let the script know where the API is
+			"api.baseURL.system":    svc.opt.ApiBaseURLSystem,
+			"api.baseURL.compose":   svc.opt.ApiBaseURLCompose,
+			"api.baseURL.messaging": svc.opt.ApiBaseURLMessaging,
+		}
 
 		// Add script info
 		req.Script = proto.FromAutomationScript(script)
