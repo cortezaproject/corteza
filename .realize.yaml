@@ -1,92 +1,31 @@
 settings:
-  files:
-    outputs:
-      status: false
-      path: ""
-      name: .r.outputs.log
-    logs:
-      status: false
-      path: ""
-      name: .r.logs.log
-    errors:
-      status: false
-      path: ""
-      name: .r.errors.log
-  legacy:
-    force: false
-    interval: 0s
-server:
-  status: false
+  flimit: 1000
+
 schema:
-
 # ######################################################################################################################
-- name: sys
-  path: cmd/system
-  commands:
-    vet:
-      status: false
-    test:
-      status: false
-    run:
-      status: true
-  args:
-    - serve-api
+- name: "sys"
+  path: "./cmd/system"
+  commands: { run: { status: true } }
+  args: [ "serve-api" ]
   watcher:
-    paths:
-      - .
-      - ../../system
-      - ../../pkg
-      - ../../internal
-    extensions:
-      - go
-    ignored_paths:
-      - ../../vendor
-      - ../../.git
+    paths: [ "." , "../../system" , "../../pkg" , "../../internal" ]
+    extensions: [ "go" ]
+    ignored_paths: [ "../../vendor", "../../.git" ]
 
-# ######################################################################################################################
-- name: msg
-  path: cmd/messaging
-  commands:
-    vet:
-      status: false
-    test:
-      status: false
-    run:
-      status: true
-  args:
-    - serve-api
+- name: "msg"
+  path: "./cmd/messaging"
+  commands: { run: { status: true } }
+  args: [ "serve-api" ]
   watcher:
-    paths:
-      - .
-      - ../../messaging
-      - ../../pkg
-      - ../../internal
-    extensions:
-      - go
-    ignored_paths:
-      - ../../vendor
-      - ../../.git
+    paths: [ "." , "../../messaging" , "../../pkg" , "../../internal" ]
+    extensions: [ "go" ]
+    ignored_paths: [ "../../vendor", "../../.git" ]
 
-# ######################################################################################################################
-- name: cmp
-  path: cmd/compose
-  commands:
-    vet:
-      status: false
-    test:
-      status: false
-    run:
-      status: true
-  args:
-    - serve-api
+- name: "cmp"
+  path: "./cmd/compose"
+  commands: { run: { status: true } }
+  args: [ "serve-api" ]
   watcher:
-    paths:
-      - .
-      - ../../compose
-      - ../../pkg
-      - ../../internal
-    extensions:
-      - go
-    ignored_paths:
-      - ../../vendor
-      - ../../.git
+    paths: [ "." , "../../compose" , "../../pkg" , "../../internal" ]
+    extensions: [ "go" ]
+    ignored_paths: [ "../../vendor", "../../.git" ]
