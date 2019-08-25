@@ -16,6 +16,7 @@ type (
 		logger        *zap.Logger
 		scriptManager automationScriptManager
 		ns            NamespaceService
+		mod           ModuleService
 		ac            automationScriptAccessController
 	}
 
@@ -37,6 +38,8 @@ type (
 		CanReadAutomationScript(context.Context, *automation.Script) bool
 		CanUpdateAutomationScript(context.Context, *automation.Script) bool
 		CanDeleteAutomationScript(context.Context, *automation.Script) bool
+
+		CanManageAutomationTriggersOnModule(context.Context, *types.Module) bool
 	}
 
 	automationScriptNamespaceFinder interface {
@@ -49,7 +52,8 @@ func AutomationScript(sm automationScriptManager) automationScript {
 		scriptManager: sm,
 		logger:        DefaultLogger.Named("automation-script"),
 		ac:            DefaultAccessControl,
-		ns:            Namespace(),
+		mod:           DefaultModule,
+		ns:            DefaultNamespace,
 	}
 
 	return svc
@@ -78,9 +82,13 @@ func (svc automationScript) Find(ctx context.Context, namespaceID uint64, f auto
 }
 
 func (svc automationScript) Create(ctx context.Context, namespaceID uint64, mod *automation.Script) (err error) {
-	if ns, _, err := svc.loadCombo(ctx, namespaceID, 0); err != nil {
+	var ns *types.Namespace
+
+	if ns, _, err = svc.loadCombo(ctx, namespaceID, 0); err != nil {
 		return err
-	} else if !svc.ac.CanCreateAutomationScript(ctx, ns) {
+	}
+
+	if !svc.ac.CanCreateAutomationScript(ctx, ns) {
 		return ErrNoCreatePermissions.withStack()
 	}
 
@@ -90,35 +98,57 @@ func (svc automationScript) Create(ctx context.Context, namespaceID uint64, mod 
 		}
 	}
 
+	err = mod.Triggers().Walk(func(t *automation.Trigger) error {
+		return svc.isValidTrigger(ctx, t, namespaceID)
+	})
+
+	if err != nil {
+		return
+	}
+
 	return svc.scriptManager.CreateScript(ctx, mod)
 }
 
 func (svc automationScript) Update(ctx context.Context, namespaceID uint64, mod *automation.Script) (err error) {
-	if _, s, err := svc.loadCombo(ctx, namespaceID, mod.ID); err != nil {
+	var s *automation.Script
+
+	if _, s, err = svc.loadCombo(ctx, namespaceID, mod.ID); err != nil {
 		return err
-	} else if !svc.ac.CanUpdateAutomationScript(ctx, s) {
-		return ErrNoCreatePermissions.withStack()
-	} else {
-		// Users need to have grant privileges to
-		// set script runner
-		if mod.RunAs != s.RunAs {
-			if !svc.ac.CanGrant(ctx) {
-				return ErrNoGrantPermissions
-			}
-		}
-
-		s.Name = mod.Name
-		s.SourceRef = mod.SourceRef
-		s.Source = mod.Source
-		s.Async = mod.Async
-		s.RunAs = mod.RunAs
-		s.RunInUA = mod.RunInUA
-		s.Timeout = mod.Timeout
-		s.Critical = mod.Critical
-		s.Enabled = mod.Enabled
-
-		return svc.scriptManager.UpdateScript(ctx, s)
 	}
+
+	if !svc.ac.CanUpdateAutomationScript(ctx, s) {
+		return ErrNoCreatePermissions.withStack()
+	}
+
+	// Users need to have grant privileges to
+	// set script runner
+	if mod.RunAs != s.RunAs {
+		if !svc.ac.CanGrant(ctx) {
+			return ErrNoGrantPermissions
+		}
+	}
+
+	s.Name = mod.Name
+	s.SourceRef = mod.SourceRef
+	s.Source = mod.Source
+	s.Async = mod.Async
+	s.RunAs = mod.RunAs
+	s.RunInUA = mod.RunInUA
+	s.Timeout = mod.Timeout
+	s.Critical = mod.Critical
+	s.Enabled = mod.Enabled
+
+	err = mod.Triggers().Walk(func(t *automation.Trigger) error {
+		return svc.isValidTrigger(ctx, t, namespaceID)
+	})
+
+	if err != nil {
+		return
+	}
+
+	s.AddTrigger(automation.STMS_UPDATE, mod.Triggers()...)
+
+	return svc.scriptManager.UpdateScript(ctx, s)
 }
 
 func (svc automationScript) Delete(ctx context.Context, namespaceID, scriptID uint64) (err error) {
@@ -154,4 +184,37 @@ func (svc automationScript) loadCombo(ctx context.Context, namespaceID, scriptID
 	}
 
 	return
+}
+
+func (svc automationScript) isValidTrigger(ctx context.Context, t *automation.Trigger, namespaceID uint64) error {
+	if t.Resource != "compose:record" {
+		// Accepting only compose:record resources
+		return automation.ErrAutomationTriggerInvalidResource
+	}
+
+	if t.IsDeferred() {
+		// @todo validate condition for deferred triggers
+		return nil
+	}
+
+	switch t.Event {
+	case "manual",
+		"beforeCreate", "beforeUpdate", "beforeDelete",
+		"afterCreate", "afterUpdate", "afterDelete":
+		var moduleID = t.Uint64Condition()
+
+		if t.Event != "manual" && moduleID == 0 {
+			return automation.ErrAutomationTriggerInvalidCondition
+		}
+
+		if m, err := svc.mod.With(ctx).FindByID(namespaceID, moduleID); err != nil {
+			return err
+		} else if !svc.ac.CanManageAutomationTriggersOnModule(ctx, m) {
+			return ErrNoTriggerManagementPermissions
+		}
+	default:
+		return automation.ErrAutomationTriggerInvalidEvent
+	}
+
+	return nil
 }

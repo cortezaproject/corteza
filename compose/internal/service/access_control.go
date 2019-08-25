@@ -114,7 +114,7 @@ func (svc accessControl) CanDeleteRecord(ctx context.Context, r *types.Module) b
 }
 
 func (svc accessControl) CanManageAutomationTriggersOnModule(ctx context.Context, r *types.Module) bool {
-	return svc.can(ctx, r, "automation-trigger.manage", permissions.Allowed)
+	return svc.can(ctx, r, "automation-trigger.manage")
 }
 
 func (svc accessControl) CanCreateChart(ctx context.Context, r *types.Namespace) bool {

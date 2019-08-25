@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
-	"github.com/titpetric/factory/resputil"
 
 	"github.com/cortezaproject/corteza-server/compose/internal/service"
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
@@ -78,22 +77,25 @@ func (ctrl AutomationTrigger) List(ctx context.Context, r *request.AutomationTri
 }
 
 func (ctrl AutomationTrigger) Create(ctx context.Context, r *request.AutomationTriggerCreate) (interface{}, error) {
-	s, _, err := ctrl.loadCombo(ctx, r.NamespaceID, r.ScriptID, 0)
-	if err != nil {
-		return nil, errors.Wrap(err, "can not create trigger")
-	}
+	// @todo trigger management is currently done through automation-script endpoints
+	return nil, errors.New("direct trigger management disabled")
 
-	var (
-		t = &automation.Trigger{
-			Event:     r.Event,
-			Resource:  r.Resource,
-			Condition: r.Condition,
-			ScriptID:  s.ID,
-			Enabled:   r.Enabled,
-		}
-	)
-
-	return ctrl.makePayload(ctx, t, ctrl.triggers.Create(ctx, s, t))
+	// s, _, err := ctrl.loadCombo(ctx, r.NamespaceID, r.ScriptID, 0)
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, "can not create trigger")
+	// }
+	//
+	// var (
+	// 	t = &automation.Trigger{
+	// 		Event:     r.Event,
+	// 		Resource:  r.Resource,
+	// 		Condition: r.Condition,
+	// 		ScriptID:  s.ID,
+	// 		Enabled:   r.Enabled,
+	// 	}
+	// )
+	//
+	// return ctrl.makePayload(ctx, t, ctrl.triggers.Create(ctx, s, t))
 }
 
 func (ctrl AutomationTrigger) Read(ctx context.Context, r *request.AutomationTriggerRead) (interface{}, error) {
@@ -106,27 +108,33 @@ func (ctrl AutomationTrigger) Read(ctx context.Context, r *request.AutomationTri
 }
 
 func (ctrl AutomationTrigger) Update(ctx context.Context, r *request.AutomationTriggerUpdate) (interface{}, error) {
-	s, t, err := ctrl.loadCombo(ctx, r.NamespaceID, r.ScriptID, r.TriggerID)
-	if err != nil {
-		return nil, errors.Wrap(err, "can not update trigger")
-	}
+	// @todo trigger management is currently done through automation-script endpoints
+	return nil, errors.New("direct trigger management disabled")
 
-	t.Event = r.Event
-	t.Resource = r.Resource
-	t.Condition = r.Condition
-	t.ScriptID = r.ScriptID
-	t.Enabled = r.Enabled
-
-	return ctrl.makePayload(ctx, t, ctrl.triggers.Update(ctx, s, t))
+	// s, t, err := ctrl.loadCombo(ctx, r.NamespaceID, r.ScriptID, r.TriggerID)
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, "can not update trigger")
+	// }
+	//
+	// t.Event = r.Event
+	// t.Resource = r.Resource
+	// t.Condition = r.Condition
+	// t.ScriptID = r.ScriptID
+	// t.Enabled = r.Enabled
+	//
+	// return ctrl.makePayload(ctx, t, ctrl.triggers.Update(ctx, s, t))
 }
 
 func (ctrl AutomationTrigger) Delete(ctx context.Context, r *request.AutomationTriggerDelete) (interface{}, error) {
-	trigger, err := ctrl.triggers.FindByID(ctx, r.TriggerID)
-	if err != nil {
-		return nil, errors.Wrap(err, "can not delete trigger")
-	}
+	// @todo trigger management is currently done through automation-script endpoints
+	return nil, errors.New("direct trigger management disabled")
 
-	return resputil.OK(), ctrl.triggers.Delete(ctx, trigger)
+	// trigger, err := ctrl.triggers.FindByID(ctx, r.TriggerID)
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, "can not delete trigger")
+	// }
+	//
+	// return resputil.OK(), ctrl.triggers.Delete(ctx, trigger)
 }
 
 func (ctrl AutomationTrigger) loadCombo(ctx context.Context, namespaceID, scriptID, triggerID uint64) (s *automation.Script, t *automation.Trigger, err error) {

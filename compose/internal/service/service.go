@@ -77,6 +77,8 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 		permissions.Repository(db, "compose_permission_rules"))
 
 	DefaultAccessControl = AccessControl(DefaultPermissions)
+	DefaultNamespace = Namespace()
+	DefaultModule = Module()
 
 	{
 		systemClientConn, err := NewSystemGRPCClient(ctx, c.GRPCClientSystem, DefaultLogger)
@@ -128,10 +130,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 		)
 	}
 
-	// Compose internals:
-	DefaultNamespace = Namespace()
 	DefaultRecord = Record()
-	DefaultModule = Module()
 	DefaultPage = Page()
 	DefaultChart = Chart()
 	DefaultNotification = Notification()
