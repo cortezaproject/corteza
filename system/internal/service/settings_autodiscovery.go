@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/internal/rand"
 	internalSettings "github.com/cortezaproject/corteza-server/internal/settings"
 	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 // Discovers "auth.%" settings from the environment
@@ -39,7 +40,7 @@ func authSettingsAutoDiscovery(log *zap.Logger, current internalSettings.ValueSe
 		//
 		// We are extremely verbose here - we want to show all the info available and
 		// how settings were discovered and set
-		set = func(name string, env string, def interface{}) {
+		set = func(name string, env string, def interface{}, maskSensitive bool) {
 			var (
 				log = log.With(
 					zap.String("name", name),
@@ -51,7 +52,7 @@ func authSettingsAutoDiscovery(log *zap.Logger, current internalSettings.ValueSe
 
 			if v != nil {
 				// Nothing to discover, already set
-				log.Info("already set", zap.Any("value", v.String()))
+				log.Info("already set", logger.MaskIf("value", v, maskSensitive))
 				return
 			}
 
@@ -64,7 +65,7 @@ func authSettingsAutoDiscovery(log *zap.Logger, current internalSettings.ValueSe
 				log = log.With(zap.String("type", "string"))
 				// already a string, no need to do any magic
 				if envExists {
-					log = log.With(zap.String("env", env), zap.Any("value", value))
+					log = log.With(zap.String("env", env), logger.MaskIf("value", value, maskSensitive))
 				} else {
 					value = dfn()
 					log = log.With(zap.Any("default", value))
@@ -240,6 +241,9 @@ func authSettingsAutoDiscovery(log *zap.Logger, current internalSettings.ValueSe
 		// expects one of the *wrapper() functions
 		// this also determinate the value type of the setting and casting rules for the env value
 		def interface{}
+
+		// mask value if sensitive
+		mask bool
 	}{
 		// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 		// External auth
@@ -248,23 +252,27 @@ func authSettingsAutoDiscovery(log *zap.Logger, current internalSettings.ValueSe
 		{
 			"auth.external.enabled",
 			"PROVISION_SETTINGS_AUTH_EXTERNAL_ENABLED",
-			wrapBool(true)},
+			wrapBool(true),
+			false},
 
 		{
 			"auth.external.redirect-url",
 			"PROVISION_SETTINGS_AUTH_EXTERNAL_REDIRECT_URL",
-			externalAuthRedirectUrl()},
+			externalAuthRedirectUrl(),
+			false},
 
 		{
 			"auth.external.session-store-secret",
 			"PROVISION_SETTINGS_AUTH_EXTERNAL_SESSION_STORE_SECRET",
-			rand},
+			rand,
+			true},
 
 		// Disable external auth
 		{
 			"auth.external.session-store-secure",
 			"PROVISION_SETTINGS_AUTH_EXTERNAL_SESSION_STORE_SECURE",
-			isSecure()},
+			isSecure(),
+			false},
 
 		// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 		// Auth frontend
@@ -272,65 +280,75 @@ func authSettingsAutoDiscovery(log *zap.Logger, current internalSettings.ValueSe
 		{
 			"auth.frontend.url.base",
 			"PROVISION_SETTINGS_AUTH_FRONTEND_URL_BASE",
-			frontendUrl("/")},
+			frontendUrl("/"),
+			false},
 
 		// @todo w/o token=
 		{
 			"auth.frontend.url.password-reset",
 			"PROVISION_SETTINGS_AUTH_FRONTEND_URL_PASSWORD_RESET",
-			frontendUrl("/auth/reset-password?token=")},
+			frontendUrl("/auth/reset-password?token="),
+			false},
 
 		// @todo w/o token=
 		{
 			"auth.frontend.url.email-confirmation",
 			"PROVISION_SETTINGS_AUTH_FRONTEND_URL_EMAIL_CONFIRMATION",
-			frontendUrl("/auth/confirm-email?token=")},
+			frontendUrl("/auth/confirm-email?token="),
+			false},
 
 		// @todo check if this is correct?!
 		{
 			"auth.frontend.url.redirect",
 			"PROVISION_SETTINGS_AUTH_FRONTEND_URL_REDIRECT",
-			frontendUrl("/auth")},
+			frontendUrl("/auth"),
+			false},
 
 		// Auth email
 		{
 			"auth.mail.from-address",
 			"PROVISION_SETTINGS_AUTH_EMAIL_FROM_ADDRESS",
-			wrapString("to-be-configured@example.tld")},
+			wrapString("to-be-configured@example.tld"),
+			false},
 
 		{
 			"auth.mail.from-name",
 			"PROVISION_SETTINGS_AUTH_EMAIL_FROM_NAME",
-			wrapString("Corteza Team (to-be-configured)")},
+			wrapString("Corteza Team (to-be-configured)"),
+			false},
 
 		// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 		// Enable internal login
 		{
 			"auth.internal.enabled",
 			"PROVISION_SETTINGS_AUTH_INTERNAL_ENABLED",
-			wrapBool(true)},
+			wrapBool(true),
+			false},
 
 		// Enable internal signup
 		{
 			"auth.internal.signup.enabled",
 			"PROVISION_SETTINGS_AUTH_INTERNAL_SIGNUP_ENABLED",
-			wrapBool(true)},
+			wrapBool(true),
+			false},
 
 		// Enable email confirmation if we have email capabilities
 		{
 			"auth.internal.signup-email-confirmation-required",
 			"PROVISION_SETTINGS_AUTH_INTERNAL_SIGNUP_EMAIL_CONFIRMATION_REQUIRED",
-			emailCapabilities()},
+			emailCapabilities(),
+			false},
 
 		// Enable password reset if we have email capabilities
 		{
 			"auth.internal.password-reset.enabled",
 			"PROVISION_SETTINGS_AUTH_INTERNAL_PASSWORD_RESET_ENABLED",
-			emailCapabilities()},
+			emailCapabilities(),
+			false},
 	}
 
 	for _, item := range list {
-		set(item.nme, item.env, item.def)
+		set(item.nme, item.env, item.def, item.mask)
 	}
 
 	// return new, nil
