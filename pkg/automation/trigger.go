@@ -1,6 +1,8 @@
 package automation
 
 import (
+	"errors"
+	"strconv"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/rh"
@@ -66,6 +68,12 @@ const (
 	EVENT_TYPE_DEFERRED = "deferred"
 )
 
+var (
+	ErrAutomationTriggerInvalidResource  = errors.New("AutomationTriggerInvalidResource")
+	ErrAutomationTriggerInvalidCondition = errors.New("AutomationTriggerInvalidCondition")
+	ErrAutomationTriggerInvalidEvent     = errors.New("AutomationTriggerInvalidEvent")
+)
+
 // IsValid checks if trigger is enabled and not deleted
 func (t *Trigger) IsValid() bool {
 	return t != nil && t.Enabled && t.DeletedAt == nil
@@ -79,6 +87,14 @@ func (t Trigger) IsInterval() bool {
 // IsDeferred - not called as consequence of a user's action (create, delete, update)
 func (t Trigger) IsDeferred() bool {
 	return t.Event == EVENT_TYPE_DEFERRED
+}
+
+// Uint64Condition converts condition to uint64
+//
+// Errors are ignored
+func (t Trigger) Uint64Condition() (o uint64) {
+	o, _ = strconv.ParseUint(t.Condition, 10, 64)
+	return
 }
 
 // HasMatch checks if any og the triggers in a set matches the given parameters
