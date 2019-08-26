@@ -86,6 +86,10 @@ func (r *namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet, 
 		query = query.Where("name like ? OR slug like ?", q, q)
 	}
 
+	if f.Slug != "" {
+		query = query.Where("LOWER(slug) = LOWER(?)", f.Slug)
+	}
+
 	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
 		return
 	}

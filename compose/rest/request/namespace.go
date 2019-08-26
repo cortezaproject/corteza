@@ -36,6 +36,7 @@ var _ = multipart.FileHeader{}
 // Namespace list request parameters
 type NamespaceList struct {
 	Query   string
+	Slug    string
 	Page    uint
 	PerPage uint
 }
@@ -48,6 +49,7 @@ func (r NamespaceList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["query"] = r.Query
+	out["slug"] = r.Slug
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
 
@@ -83,6 +85,9 @@ func (r *NamespaceList) Fill(req *http.Request) (err error) {
 
 	if val, ok := get["query"]; ok {
 		r.Query = val
+	}
+	if val, ok := get["slug"]; ok {
+		r.Slug = val
 	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)

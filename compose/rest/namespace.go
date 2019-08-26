@@ -58,6 +58,7 @@ func (Namespace) New() *Namespace {
 func (ctrl Namespace) List(ctx context.Context, r *request.NamespaceList) (interface{}, error) {
 	f := types.NamespaceFilter{
 		Query:   r.Query,
+		Slug:    r.Slug,
 		PerPage: r.PerPage,
 		Page:    r.Page,
 	}

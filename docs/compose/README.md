@@ -604,6 +604,7 @@ Compose module definitions
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
+| slug | string | GET | Search by namespace slug | N/A | NO |
 | page | uint | GET | Page number (0 based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 
