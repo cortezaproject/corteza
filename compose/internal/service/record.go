@@ -10,9 +10,15 @@ import (
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
 
+	"github.com/cortezaproject/corteza-server/compose/decoder"
 	"github.com/cortezaproject/corteza-server/compose/internal/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/auth"
+)
+
+const (
+	IMPORT_ON_ERROR_SKIP = "SKIP"
+	IMPORT_ON_ERROR_FAIL = "FAIL"
 )
 
 type (
@@ -57,6 +63,7 @@ type (
 		Report(namespaceID, moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
 		Find(filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
 		Export(types.RecordFilter, Encoder) error
+		Import(*RecordImportSession, ImportSessionService) error
 
 		Create(record *types.Record) (*types.Record, error)
 		Update(record *types.Record) (*types.Record, error)
@@ -66,6 +73,32 @@ type (
 
 	Encoder interface {
 		Record(*types.Record) error
+	}
+
+	Decoder interface {
+		Header() []string
+		Records(fields map[string]string, Create decoder.RecordCreator) error
+	}
+
+	RecordImportSession struct {
+		Decoder     Decoder              `json:"-"`
+		CreatedAt   time.Time            `json:"createdAt"`
+		UpdatedAt   time.Time            `json:"updatedAt"`
+		OnError     string               `json:"onError"`
+		SessionID   uint64               `json:"sessionID,string"`
+		UserID      uint64               `json:"userID,string"`
+		NamespaceID uint64               `json:"namespaceID,string"`
+		ModuleID    uint64               `json:"moduleID,string"`
+		Fields      map[string]string    `json:"fields"`
+		Progress    RecordImportProgress `json:"progress"`
+	}
+
+	RecordImportProgress struct {
+		StartedAt  *time.Time `json:"startedAt"`
+		FinishedAt *time.Time `json:"finishedAt"`
+		Completed  uint64     `json:"completed"`
+		Failed     uint64     `json:"failed"`
+		FailReason error      `json:"failReason"`
 	}
 )
 
@@ -182,6 +215,49 @@ func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.
 	}
 
 	return
+}
+
+func (svc record) Import(ses *RecordImportSession, ssvc ImportSessionService) error {
+	if ses.Decoder == nil {
+		return nil
+	}
+
+	if ses.Progress.StartedAt != nil {
+		return errors.New("Unable to start import: Import session already active")
+	}
+
+	sa := time.Now()
+	ses.Progress.StartedAt = &sa
+	ssvc.SetRecordByID(svc.ctx, ses.SessionID, 0, 0, nil, &ses.Progress, nil)
+
+	return svc.db.Transaction(func() (err error) {
+		err = ses.Decoder.Records(ses.Fields, func(mod *types.Record) error {
+			mod.NamespaceID = ses.NamespaceID
+			mod.ModuleID = ses.ModuleID
+			mod.OwnedBy = ses.UserID
+
+			_, err := svc.Create(mod)
+			if err != nil {
+				ses.Progress.Failed++
+				ses.Progress.FailReason = err
+
+				if ses.OnError == IMPORT_ON_ERROR_FAIL {
+					fa := time.Now()
+					ses.Progress.FinishedAt = &fa
+					ssvc.SetRecordByID(svc.ctx, ses.SessionID, 0, 0, nil, &ses.Progress, nil)
+					return err
+				}
+			} else {
+				ses.Progress.Completed++
+			}
+			return nil
+		})
+
+		fa := time.Now()
+		ses.Progress.FinishedAt = &fa
+		ssvc.SetRecordByID(svc.ctx, ses.SessionID, 0, 0, nil, &ses.Progress, nil)
+		return
+	})
 }
 
 // Export returns all records
