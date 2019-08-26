@@ -28,6 +28,12 @@
                             "title": "Search query"
                         },
                         {
+                            "type": "string",
+                            "name": "slug",
+                            "required": false,
+                            "title": "Search by namespace slug"
+                        },
+                        {
                             "name": "page",
                             "type": "uint",
                             "required": false,

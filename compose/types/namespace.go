@@ -22,6 +22,7 @@ type (
 
 	NamespaceFilter struct {
 		Query   string `json:"query"`
+		Slug    string `json:"slug"`
 		Page    uint   `json:"page"`
 		PerPage uint   `json:"perPage"`
 		Sort    string `json:"sort"`

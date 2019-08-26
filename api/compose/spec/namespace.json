@@ -28,6 +28,12 @@
             "type": "string"
           },
           {
+            "name": "slug",
+            "required": false,
+            "title": "Search by namespace slug",
+            "type": "string"
+          },
+          {
             "name": "page",
             "required": false,
             "title": "Page number (0 based)",
