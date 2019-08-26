@@ -96,9 +96,7 @@ func (AutomationScript) New() *AutomationScript {
 
 func (ctrl AutomationScript) List(ctx context.Context, r *request.AutomationScriptList) (interface{}, error) {
 	set, filter, err := ctrl.scripts.Find(ctx, r.NamespaceID, automation.ScriptFilter{
-		// @todo namespace filtering
-		//   Might be a bit tricky as scripts themselves not know about namespaces
-		//   Namespace: r.NamespaceID
+		NamespaceID: r.NamespaceID,
 
 		Query:    r.Query,
 		Resource: r.Resource,
@@ -113,15 +111,16 @@ func (ctrl AutomationScript) List(ctx context.Context, r *request.AutomationScri
 func (ctrl AutomationScript) Create(ctx context.Context, r *request.AutomationScriptCreate) (interface{}, error) {
 	var (
 		script = &automation.Script{
-			Name:      r.Name,
-			SourceRef: r.SourceRef,
-			Source:    r.Source,
-			Async:     r.Async,
-			RunAs:     r.RunAs,
-			RunInUA:   r.RunInUA,
-			Timeout:   r.Timeout,
-			Critical:  r.Critical,
-			Enabled:   r.Enabled,
+			NamespaceID: r.NamespaceID,
+			Name:        r.Name,
+			SourceRef:   r.SourceRef,
+			Source:      r.Source,
+			Async:       r.Async,
+			RunAs:       r.RunAs,
+			RunInUA:     r.RunInUA,
+			Timeout:     r.Timeout,
+			Critical:    r.Critical,
+			Enabled:     r.Enabled,
 		}
 	)
 
@@ -137,16 +136,17 @@ func (ctrl AutomationScript) Read(ctx context.Context, r *request.AutomationScri
 
 func (ctrl AutomationScript) Update(ctx context.Context, r *request.AutomationScriptUpdate) (interface{}, error) {
 	mod := &automation.Script{
-		ID:        r.ScriptID,
-		Name:      r.Name,
-		SourceRef: r.SourceRef,
-		Source:    r.Source,
-		Async:     r.Async,
-		RunAs:     r.RunAs,
-		RunInUA:   r.RunInUA,
-		Timeout:   r.Timeout,
-		Critical:  r.Critical,
-		Enabled:   r.Enabled,
+		ID:          r.ScriptID,
+		NamespaceID: r.NamespaceID,
+		Name:        r.Name,
+		SourceRef:   r.SourceRef,
+		Source:      r.Source,
+		Async:       r.Async,
+		RunAs:       r.RunAs,
+		RunInUA:     r.RunInUA,
+		Timeout:     r.Timeout,
+		Critical:    r.Critical,
+		Enabled:     r.Enabled,
 	}
 
 	mod.AddTrigger(automation.STMS_UPDATE, r.Triggers...)
@@ -166,6 +166,10 @@ func (ctrl AutomationScript) Runnable(ctx context.Context, r *request.Automation
 	)
 
 	return rval, ctrl.runner.UserScripts(ctx).Walk(func(script *automation.Script) error {
+		if script.NamespaceID != r.NamespaceID {
+			return nil
+		}
+
 		// @todo filter out all modules (by t.Condition) we do not have access to
 		out := &automationScriptRunnable{
 			ScriptID: script.ID,

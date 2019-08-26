@@ -32,6 +32,7 @@ func (r scriptRepository) table() string {
 func (r scriptRepository) columns() []string {
 	return []string{
 		"id",
+		"rel_namespace",
 		"name",
 		"source_ref",
 		"source",
@@ -74,8 +75,12 @@ func (r *scriptRepository) find(db *factory.DB, filter ScriptFilter) (set Script
 
 	query := r.query()
 
-	if !filter.IncDeleted {
+	if !f.IncDeleted {
 		query = query.Where("deleted_at IS NULL")
+	}
+
+	if f.NamespaceID > 0 {
+		query = query.Where("rel_namespace = ?", f.NamespaceID)
 	}
 
 	if f.Query != "" {
