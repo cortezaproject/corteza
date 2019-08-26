@@ -18,6 +18,7 @@ type (
 		ns            NamespaceService
 		mod           ModuleService
 		ac            automationScriptAccessController
+		trg           automationTrigger
 	}
 
 	automationScriptManager interface {
@@ -38,12 +39,6 @@ type (
 		CanReadAutomationScript(context.Context, *automation.Script) bool
 		CanUpdateAutomationScript(context.Context, *automation.Script) bool
 		CanDeleteAutomationScript(context.Context, *automation.Script) bool
-
-		CanManageAutomationTriggersOnModule(context.Context, *types.Module) bool
-	}
-
-	automationScriptNamespaceFinder interface {
-		FindByID(uint64) (*types.Namespace, error)
 	}
 )
 
@@ -54,6 +49,7 @@ func AutomationScript(sm automationScriptManager) automationScript {
 		ac:            DefaultAccessControl,
 		mod:           DefaultModule,
 		ns:            DefaultNamespace,
+		trg:           DefaultAutomationTriggerManager,
 	}
 
 	return svc
@@ -72,6 +68,7 @@ func (svc automationScript) Find(ctx context.Context, namespaceID uint64, f auto
 		return nil, f, err
 	}
 
+	f.NamespaceID = namespaceID
 	f.AccessCheck = permissions.InitAccessCheckFilter(
 		"read",
 		auth.GetIdentityFromContext(ctx).Roles(),
@@ -99,7 +96,7 @@ func (svc automationScript) Create(ctx context.Context, namespaceID uint64, mod 
 	}
 
 	err = mod.Triggers().Walk(func(t *automation.Trigger) error {
-		return svc.isValidTrigger(ctx, t, namespaceID)
+		return svc.trg.isValid(ctx, mod, t)
 	})
 
 	if err != nil {
@@ -139,7 +136,7 @@ func (svc automationScript) Update(ctx context.Context, namespaceID uint64, mod 
 	s.Enabled = mod.Enabled
 
 	err = mod.Triggers().Walk(func(t *automation.Trigger) error {
-		return svc.isValidTrigger(ctx, t, namespaceID)
+		return svc.trg.isValid(ctx, mod, t)
 	})
 
 	if err != nil {
@@ -184,37 +181,4 @@ func (svc automationScript) loadCombo(ctx context.Context, namespaceID, scriptID
 	}
 
 	return
-}
-
-func (svc automationScript) isValidTrigger(ctx context.Context, t *automation.Trigger, namespaceID uint64) error {
-	if t.Resource != "compose:record" {
-		// Accepting only compose:record resources
-		return automation.ErrAutomationTriggerInvalidResource
-	}
-
-	if t.IsDeferred() {
-		// @todo validate condition for deferred triggers
-		return nil
-	}
-
-	switch t.Event {
-	case "manual",
-		"beforeCreate", "beforeUpdate", "beforeDelete",
-		"afterCreate", "afterUpdate", "afterDelete":
-		var moduleID = t.Uint64Condition()
-
-		if t.Event != "manual" && moduleID == 0 {
-			return automation.ErrAutomationTriggerInvalidCondition
-		}
-
-		if m, err := svc.mod.With(ctx).FindByID(namespaceID, moduleID); err != nil {
-			return err
-		} else if !svc.ac.CanManageAutomationTriggersOnModule(ctx, m) {
-			return ErrNoTriggerManagementPermissions
-		}
-	default:
-		return automation.ErrAutomationTriggerInvalidEvent
-	}
-
-	return nil
 }

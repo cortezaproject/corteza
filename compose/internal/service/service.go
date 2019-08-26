@@ -102,8 +102,8 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	})
 
 	// Pass automation manager to
-	DefaultAutomationScriptManager = AutomationScript(ias)
 	DefaultAutomationTriggerManager = AutomationTrigger(ias)
+	DefaultAutomationScriptManager = AutomationScript(ias)
 
 	{
 		var scriptRunnerClient corredor.ScriptRunnerClient

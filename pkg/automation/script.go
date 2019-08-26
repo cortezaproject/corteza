@@ -14,6 +14,8 @@ type (
 	Script struct {
 		ID uint64 `json:"scriptID,string" db:"id"`
 
+		NamespaceID uint64 `json:"namespaceID,string" db:"rel_namespace"`
+
 		Name string `json:"name" db:"name"`
 
 		// (URL) Where did we get the source from?
@@ -67,6 +69,8 @@ type (
 	}
 
 	ScriptFilter struct {
+		NamespaceID uint64 `json:"namespaceID,string"`
+
 		Query      string
 		Resource   string
 		IncDeleted bool `json:"incDeleted"`
