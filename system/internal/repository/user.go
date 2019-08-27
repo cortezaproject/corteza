@@ -148,6 +148,10 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 		q = q.Where("u.username = ?", f.Username)
 	}
 
+	if f.Handle != "" {
+		q = q.Where("u.handle = ?", f.Handle)
+	}
+
 	if f.Kind != "" {
 		q = q.Where("u.kind = ?", f.Kind)
 	}

@@ -38,6 +38,7 @@ func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, er
 		Query:        r.Query,
 		Email:        r.Email,
 		Username:     r.Username,
+		Handle:       r.Handle,
 		Kind:         r.Kind,
 		IncSuspended: r.IncSuspended,
 		IncDeleted:   r.IncDeleted,

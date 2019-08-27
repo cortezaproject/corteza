@@ -309,7 +309,8 @@
         }
       }
     ]
-  },{
+  },
+  {
   "title": "Organisations",
   "description": "Organisations represent a top-level grouping entity. There may be many organisations defined in a single deployment.",
   "path": "/organisations",
@@ -701,6 +702,12 @@
               "name": "email",
               "required": false,
               "title": "Search email to match against users"
+            },
+            {
+              "type": "string",
+              "name": "handle",
+              "required": false,
+              "title": "Search handle to match against users"
             },
             {
               "name": "kind",
@@ -1096,8 +1103,7 @@
         }
       }
     ]
-  },
-  {
+  }, {
     "title": "Permissions",
     "parameters": {},
     "entrypoint": "permissions",

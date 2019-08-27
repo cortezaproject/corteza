@@ -46,6 +46,7 @@ type (
 		Query        string   `json:"query"`
 		Email        string   `json:"email"`
 		Username     string   `json:"username"`
+		Handle       string   `json:"handle"`
 		Kind         UserKind `json:"kind"`
 		IncDeleted   bool     `json:"incDeleted"`
 		IncSuspended bool     `json:"incSuspended"`
