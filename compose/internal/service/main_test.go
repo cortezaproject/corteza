@@ -43,13 +43,14 @@ func TestMain(m *testing.M) {
 		// @todo remove this asap, service should not access db at all.
 		for _, name := range []string{
 			"compose_chart",
-			"compose_trigger",
 			"compose_module_field",
 			"compose_module",
 			"compose_record_value",
 			"compose_record",
 			"compose_page",
 			"compose_attachment",
+			"compose_automation_trigger",
+			"compose_automation_script",
 			"compose_namespace",
 		} {
 			_, err := db.Exec("DELETE FROM " + name)
