@@ -75,6 +75,19 @@ func (mr *MockUserRepositoryMockRecorder) FindByUsername(username interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByUsername", reflect.TypeOf((*MockUserRepository)(nil).FindByUsername), username)
 }
 
+// FindByHandle mocks base method
+func (m *MockUserRepository) FindByHandle(handle string) (*types.User, error) {
+	ret := m.ctrl.Call(m, "FindByHandle", handle)
+	ret0, _ := ret[0].(*types.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByHandle indicates an expected call of FindByHandle
+func (mr *MockUserRepositoryMockRecorder) FindByHandle(handle interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByHandle", reflect.TypeOf((*MockUserRepository)(nil).FindByHandle), handle)
+}
+
 // FindByID mocks base method
 func (m *MockUserRepository) FindByID(id uint64) (*types.User, error) {
 	ret := m.ctrl.Call(m, "FindByID", id)

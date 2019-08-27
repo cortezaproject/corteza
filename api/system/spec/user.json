@@ -42,6 +42,12 @@
             "type": "string"
           },
           {
+            "name": "handle",
+            "required": false,
+            "title": "Search handle to match against users",
+            "type": "string"
+          },
+          {
             "name": "kind",
             "required": false,
             "title": "Kind (normal, bot)",

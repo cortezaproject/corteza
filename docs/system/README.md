@@ -754,6 +754,7 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | query | string | GET | Search query to match against users | N/A | NO |
 | username | string | GET | Search username to match against users | N/A | NO |
 | email | string | GET | Search email to match against users | N/A | NO |
+| handle | string | GET | Search handle to match against users | N/A | NO |
 | kind | types.UserKind | GET | Kind (normal, bot) | N/A | NO |
 | incDeleted | bool | GET | Include deleted users (requires 'access' permission) | N/A | NO |
 | incSuspended | bool | GET | Include suspended users (requires 'access' permission) | N/A | NO |

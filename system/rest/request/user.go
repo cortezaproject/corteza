@@ -37,6 +37,7 @@ type UserList struct {
 	Query        string
 	Username     string
 	Email        string
+	Handle       string
 	Kind         types.UserKind
 	IncDeleted   bool
 	IncSuspended bool
@@ -55,6 +56,7 @@ func (r UserList) Auditable() map[string]interface{} {
 	out["query"] = r.Query
 	out["username"] = r.Username
 	out["email"] = r.Email
+	out["handle"] = r.Handle
 	out["kind"] = r.Kind
 	out["incDeleted"] = r.IncDeleted
 	out["incSuspended"] = r.IncSuspended
@@ -100,6 +102,9 @@ func (r *UserList) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := get["email"]; ok {
 		r.Email = val
+	}
+	if val, ok := get["handle"]; ok {
+		r.Handle = val
 	}
 	if val, ok := get["kind"]; ok {
 		r.Kind = types.UserKind(val)
