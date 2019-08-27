@@ -17,6 +17,7 @@ type (
 
 		FindByEmail(email string) (*types.User, error)
 		FindByUsername(username string) (*types.User, error)
+		FindByHandle(handle string) (*types.User, error)
 		FindByID(id uint64) (*types.User, error)
 		FindByIDs(id ...uint64) (types.UserSet, error)
 		Find(filter types.UserFilter) (set types.UserSet, f types.UserFilter, err error)
@@ -95,6 +96,10 @@ func (r user) findBy(field string, value interface{}) (*types.User, error) {
 
 func (r user) FindByUsername(username string) (*types.User, error) {
 	return r.findBy("username", username)
+}
+
+func (r user) FindByHandle(handle string) (*types.User, error) {
+	return r.findBy("handle", handle)
 }
 
 func (r user) FindByEmail(email string) (*types.User, error) {

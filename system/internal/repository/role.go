@@ -14,6 +14,8 @@ type (
 		With(ctx context.Context, db *factory.DB) RoleRepository
 
 		FindByID(id uint64) (*types.Role, error)
+		FindByName(name string) (*types.Role, error)
+		FindByHandle(handle string) (*types.Role, error)
 		FindByMemberID(userID uint64) (types.RoleSet, error)
 		Find(filter *types.RoleFilter) (types.RoleSet, error)
 
@@ -66,6 +68,20 @@ func (r *role) FindByID(id uint64) (*types.Role, error) {
 	mod := &types.Role{}
 
 	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrRoleNotFound)
+}
+
+func (r role) FindByHandle(handle string) (*types.Role, error) {
+	sql := "SELECT * FROM " + r.roles + " WHERE handle = ? AND " + sqlRoleScope
+	mod := &types.Role{}
+
+	return mod, isFound(r.db().Get(mod, sql, handle), mod.ID > 0, ErrRoleNotFound)
+}
+
+func (r role) FindByName(name string) (*types.Role, error) {
+	sql := "SELECT * FROM " + r.roles + " WHERE name = ? AND " + sqlRoleScope
+	mod := &types.Role{}
+
+	return mod, isFound(r.db().Get(mod, sql, name), mod.ID > 0, ErrRoleNotFound)
 }
 
 func (r *role) FindByMemberID(userID uint64) (types.RoleSet, error) {
