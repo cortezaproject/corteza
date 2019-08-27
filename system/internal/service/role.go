@@ -34,6 +34,8 @@ type (
 		With(ctx context.Context) RoleService
 
 		FindByID(roleID uint64) (*types.Role, error)
+		FindByName(name string) (*types.Role, error)
+		FindByHandle(handle string) (*types.Role, error)
 		Find(filter *types.RoleFilter) ([]*types.Role, error)
 
 		Create(role *types.Role) (*types.Role, error)
@@ -111,11 +113,27 @@ func (svc role) Find(filter *types.RoleFilter) ([]*types.Role, error) {
 	return ret, nil
 }
 
-func (svc role) Create(mod *types.Role) (*types.Role, error) {
+func (svc role) FindByName(rolename string) (*types.Role, error) {
+	return svc.role.FindByName(rolename)
+}
+
+func (svc role) FindByHandle(handle string) (*types.Role, error) {
+	return svc.role.FindByHandle(handle)
+}
+
+func (svc role) Create(mod *types.Role) (t *types.Role, err error) {
 	if !svc.ac.CanCreateRole(svc.ctx) {
 		return nil, ErrNoPermissions.withStack()
 	}
-	return svc.role.Create(mod)
+
+	return t, svc.db.Transaction(func() (err error) {
+		if err = svc.UniqueCheck(mod); err != nil {
+			return
+		}
+
+		t, err = svc.role.Create(mod)
+		return
+	})
 }
 
 func (svc role) Update(mod *types.Role) (t *types.Role, err error) {
@@ -134,6 +152,10 @@ func (svc role) Update(mod *types.Role) (t *types.Role, err error) {
 			return
 		}
 
+		if err = svc.UniqueCheck(mod); err != nil {
+			return
+		}
+
 		// Assign changed values
 		t.Name = mod.Name
 		t.Handle = mod.Handle
@@ -144,6 +166,24 @@ func (svc role) Update(mod *types.Role) (t *types.Role, err error) {
 
 		return nil
 	})
+}
+
+func (svc role) UniqueCheck(r *types.Role) (err error) {
+	var (
+		e *types.Role
+	)
+
+	if e, _ = svc.FindByName(r.Name); e != nil && e.ID != r.ID {
+		return ErrUserUsernameNotUnque
+	}
+
+	if r.Handle != "" {
+		if e, _ = svc.FindByHandle(r.Handle); e != nil && e.ID != r.ID {
+			err = ErrUserHandleNotUnique
+		}
+	}
+
+	return
 }
 
 func (svc role) Delete(roleID uint64) error {

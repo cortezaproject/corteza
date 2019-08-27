@@ -17,6 +17,9 @@ import (
 
 const (
 	ErrUserInvalidCredentials = serviceError("UserInvalidCredentials")
+	ErrUserHandleNotUnique    = serviceError("HandleNotUnique")
+	ErrUserUsernameNotUnque   = serviceError("UsernameNotUnque")
+	ErrUserEmailNotUnique     = serviceError("EmailNotUnique")
 	ErrUserLocked             = serviceError("UserLocked")
 )
 
@@ -54,6 +57,7 @@ type (
 
 		FindByUsername(username string) (*types.User, error)
 		FindByEmail(email string) (*types.User, error)
+		FindByHandle(handle string) (*types.User, error)
 		FindByID(id uint64) (*types.User, error)
 		FindByIDs(id ...uint64) (types.UserSet, error)
 		Find(types.UserFilter) (types.UserSet, types.UserFilter, error)
@@ -125,6 +129,10 @@ func (svc user) FindByUsername(username string) (*types.User, error) {
 	return svc.user.FindByUsername(username)
 }
 
+func (svc user) FindByHandle(handle string) (*types.User, error) {
+	return svc.user.FindByHandle(handle)
+}
+
 func (svc user) Find(f types.UserFilter) (types.UserSet, types.UserFilter, error) {
 	if f.IncDeleted || f.IncSuspended {
 		if !svc.ac.CanAccess(svc.ctx) {
@@ -141,6 +149,10 @@ func (svc user) Create(input *types.User) (out *types.User, err error) {
 	}
 
 	return out, svc.db.Transaction(func() (err error) {
+		if err = svc.UniqueCheck(input); err != nil {
+			return
+		}
+
 		out, err = svc.user.Create(input)
 		return
 	})
@@ -172,9 +184,37 @@ func (svc user) Update(mod *types.User) (u *types.User, err error) {
 	u.Kind = mod.Kind
 
 	return u, svc.db.Transaction(func() (err error) {
+		if err = svc.UniqueCheck(u); err != nil {
+			return
+		}
+
 		u, err = svc.user.Update(u)
 		return
 	})
+}
+
+func (svc user) UniqueCheck(u *types.User) (err error) {
+	var (
+		e *types.User
+	)
+
+	if e, _ = svc.FindByEmail(u.Email); e != nil && e.ID != u.ID {
+		err = ErrUserEmailNotUnique
+	}
+
+	if u.Username != "" {
+		if e, _ = svc.FindByUsername(u.Username); e != nil && e.ID != u.ID {
+			return ErrUserUsernameNotUnque
+		}
+	}
+
+	if u.Handle != "" {
+		if e, _ = svc.FindByHandle(u.Handle); e != nil && e.ID != u.ID {
+			err = ErrUserHandleNotUnique
+		}
+	}
+
+	return
 }
 
 func (svc user) UpdateWithAvatar(mod *types.User, avatar io.Reader) (out *types.User, err error) {
