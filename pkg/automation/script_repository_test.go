@@ -16,6 +16,7 @@ func TestScriptRepository_findByID(t *testing.T) {
 	factory.Database.Add("compose", os.Getenv("COMPOSE_DB_DSN"))
 
 	var (
+		nsID     = factory.Sonyflake.NextID()
 		scriptID = factory.Sonyflake.NextID()
 
 		err    error
@@ -29,11 +30,14 @@ func TestScriptRepository_findByID(t *testing.T) {
 	db.Begin()
 	defer db.Rollback()
 
+	_, err = db.Exec("insert into compose_namespace (id, name, slug, meta, enabled) values (?, 'test ns', 'test slug', '{}', true)", nsID)
+	test.NoError(t, err, "unexpected error")
+
 	_, err = srepo.findByID(db, scriptID)
 	test.Error(t, err, "expecting error")
 
 	//  runnable script
-	script = &Script{ID: scriptID, CreatedAt: time.Now(), Enabled: true}
+	script = &Script{ID: scriptID, CreatedAt: time.Now(), Enabled: true, NamespaceID: nsID}
 	err = srepo.create(db, script)
 	test.NoError(t, err, "unexpected error: %v")
 
@@ -43,7 +47,7 @@ func TestScriptRepository_findByID(t *testing.T) {
 	test.Assert(t, script != nil && script.ID == scriptID, "script not found (in runnable scripts)")
 
 	// find the script through find func
-	ss, _, err = srepo.find(db, ScriptFilter{})
+	ss, _, err = srepo.find(db, ScriptFilter{NamespaceID: nsID})
 	test.NoError(t, err, "unexpected error: %v")
 	test.Assert(t, len(ss) > 0, "could not find the script")
 	test.Assert(t, ss.FindByID(scriptID) != nil, "could not find the script")
