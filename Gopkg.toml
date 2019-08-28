@@ -29,3 +29,7 @@ required = [
   [[prune.project]]
     name = "github.com/cortezaproject/corteza-protobuf"
     unused-packages = false
+
+[[constraint]]
+  name = "github.com/gabriel-vasile/mimetype"
+  version = "0.3.17"

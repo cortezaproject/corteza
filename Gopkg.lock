@@ -101,6 +101,18 @@
   revision = "b57537c92a6b4155c5219ce0d7d2a9c0cc74b1c4"
 
 [[projects]]
+  digest = "1:04904b7a6f24221e7999b554094e347885b4837beeba9933efadc93f4f5421ff"
+  name = "github.com/gabriel-vasile/mimetype"
+  packages = [
+    ".",
+    "internal/json",
+    "internal/matchers",
+  ]
+  pruneopts = "UT"
+  revision = "b9686d36d26efccccd34eff91a19f42a61bcdc95"
+  version = "v0.3.17"
+
+[[projects]]
   digest = "1:f59f34bb582fbc13885cd0338570bc0f21738fc711065527c36928213de62c1b"
   name = "github.com/getsentry/sentry-go"
   packages = [
@@ -690,6 +702,7 @@
     "github.com/dgrijalva/jwt-go",
     "github.com/disintegration/imaging",
     "github.com/edwvee/exiffix",
+    "github.com/gabriel-vasile/mimetype",
     "github.com/getsentry/sentry-go",
     "github.com/getsentry/sentry-go/http",
     "github.com/go-chi/chi",
