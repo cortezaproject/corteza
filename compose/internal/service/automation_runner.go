@@ -73,7 +73,7 @@ func (svc automationRunner) Watch(ctx context.Context) {
 // This is implicitly called, no extra security check is needed
 func (svc automationRunner) BeforeRecordCreate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error) {
 	return svc.findRecordScripts("beforeCreate", m.ID).Walk(
-		svc.makeRecordScriptRunner(ctx, ns, m, r, true),
+		svc.makeRecordScriptRunner(ctx, ns, m, r, false),
 	)
 }
 
@@ -91,7 +91,7 @@ func (svc automationRunner) AfterRecordCreate(ctx context.Context, ns *types.Nam
 // This is implicitly called, no extra security check is needed
 func (svc automationRunner) BeforeRecordUpdate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error) {
 	return svc.findRecordScripts("beforeUpdate", m.ID).Walk(
-		svc.makeRecordScriptRunner(ctx, ns, m, r, true),
+		svc.makeRecordScriptRunner(ctx, ns, m, r, false),
 	)
 }
 
@@ -109,7 +109,7 @@ func (svc automationRunner) AfterRecordUpdate(ctx context.Context, ns *types.Nam
 // This is implicitly called, no extra security check is needed
 func (svc automationRunner) BeforeRecordDelete(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error) {
 	return svc.findRecordScripts("beforeDelete", m.ID).Walk(
-		svc.makeRecordScriptRunner(ctx, ns, m, r, true),
+		svc.makeRecordScriptRunner(ctx, ns, m, r, false),
 	)
 }
 
