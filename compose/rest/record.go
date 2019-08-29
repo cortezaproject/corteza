@@ -12,11 +12,13 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/cortezaproject/corteza-server/compose/decoder"
 	"github.com/cortezaproject/corteza-server/compose/encoder"
 	"github.com/cortezaproject/corteza-server/compose/internal/repository"
 	"github.com/cortezaproject/corteza-server/compose/internal/service"
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/mime"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
@@ -36,10 +38,11 @@ type (
 	}
 
 	Record struct {
-		record     service.RecordService
-		module     service.ModuleService
-		attachment service.AttachmentService
-		ac         recordAccessController
+		importSession service.ImportSessionService
+		record        service.RecordService
+		module        service.ModuleService
+		attachment    service.AttachmentService
+		ac            recordAccessController
 	}
 
 	recordAccessController interface {
@@ -50,10 +53,11 @@ type (
 
 func (Record) New() *Record {
 	return &Record{
-		record:     service.DefaultRecord,
-		module:     service.DefaultModule,
-		attachment: service.DefaultAttachment,
-		ac:         service.DefaultAccessControl,
+		importSession: service.DefaultImportSession,
+		record:        service.DefaultRecord,
+		module:        service.DefaultModule,
+		attachment:    service.DefaultAttachment,
+		ac:            service.DefaultAccessControl,
 	}
 }
 
@@ -165,6 +169,114 @@ func (ctrl *Record) Upload(ctx context.Context, r *request.RecordUpload) (interf
 	)
 
 	return makeAttachmentPayload(ctx, a, err)
+}
+
+func (ctrl *Record) ImportInit(ctx context.Context, r *request.RecordImportInit) (interface{}, error) {
+	var (
+		err           error
+		recordDecoder service.Decoder
+		entryCount    uint64
+	)
+
+	// Access control.
+	if _, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+		return nil, err
+	}
+
+	f, err := r.Upload.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	_, ext, err := mime.Type(f)
+	if err != nil {
+		return nil, err
+	}
+
+	if ext == "txt" {
+		if is, err := mime.JsonL(f); err != nil {
+			return nil, err
+		} else if is {
+			ext = "jsonl"
+		}
+	}
+
+	// determine decoder
+	switch strings.ToLower(ext) {
+	case "json", "jsonl", "ldjson", "ndjson":
+		recordDecoder = decoder.NewStructuredDecoder(json.NewDecoder(f), f)
+
+	case "csv":
+		recordDecoder = decoder.NewFlatReader(csv.NewReader(f), f)
+
+	default:
+		return nil, errors.New(fmt.Sprintf("unsupported format (\"%s\")", ext))
+
+	}
+	entryCount, err = recordDecoder.EntryCount()
+	if err != nil {
+		return nil, err
+	}
+
+	header := recordDecoder.Header()
+	hh := make(map[string]string)
+	for _, h := range header {
+		hh[h] = ""
+	}
+
+	return ctrl.importSession.SetRecordByID(
+		ctx,
+		0,
+		r.NamespaceID,
+		r.ModuleID,
+		hh,
+		&service.RecordImportProgress{EntryCount: entryCount},
+		recordDecoder)
+}
+
+func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (interface{}, error) {
+	var (
+		err error
+	)
+
+	// Access control.
+	if _, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+		return nil, err
+	}
+
+	// Check if session ok
+	ses, err := ctrl.importSession.FindRecordByID(ctx, r.SessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	if ses.Progress.StartedAt != nil {
+		return nil, errors.New("Unable to start import: Import session already active")
+	}
+
+	ses.Fields = make(map[string]string)
+	err = json.Unmarshal(r.Fields, &ses.Fields)
+	if err != nil {
+		return nil, err
+	}
+
+	ses.OnError = r.OnError
+
+	// @todo routine
+	ctrl.record.With(ctx).Import(ses, ctrl.importSession)
+
+	return ses, nil
+}
+
+func (ctrl *Record) ImportProgress(ctx context.Context, r *request.RecordImportProgress) (interface{}, error) {
+	// Get session
+	ses, err := ctrl.importSession.FindRecordByID(ctx, r.SessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	return ses, nil
 }
 
 func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interface{}, error) {

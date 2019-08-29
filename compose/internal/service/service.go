@@ -47,14 +47,14 @@ var (
 	// DefaultAutomationRunner runs automation scripts by listening to triggerManager and invoking Corredor service
 	DefaultAutomationRunner automationRunner
 
-	DefaultNamespace NamespaceService
-	DefaultRecord    RecordService
-	DefaultModule    ModuleService
-	DefaultChart     ChartService
-	DefaultPage      PageService
-
-	DefaultAttachment   AttachmentService
-	DefaultNotification NotificationService
+	DefaultNamespace     NamespaceService
+	DefaultImportSession ImportSessionService
+	DefaultRecord        RecordService
+	DefaultModule        ModuleService
+	DefaultChart         ChartService
+	DefaultPage          PageService
+	DefaultAttachment    AttachmentService
+	DefaultNotification  NotificationService
 
 	DefaultSystemUser *systemUser
 )
@@ -130,6 +130,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 		)
 	}
 
+	DefaultImportSession = ImportSession()
 	DefaultRecord = Record()
 	DefaultPage = Page()
 	DefaultChart = Chart()

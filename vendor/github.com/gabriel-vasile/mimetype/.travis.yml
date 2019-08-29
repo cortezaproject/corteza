@@ -1,0 +1,14 @@
+language: go
+go:
+  - "1.9"
+  - "1.10"
+before_install:
+  - go get github.com/mattn/goveralls
+  - go get github.com/client9/misspell/cmd/misspell
+before_script:
+  - go tool vet .
+script:
+  - diff -u <(echo -n) <(gofmt -d ./)
+  - go test -v
+  - $GOPATH/bin/goveralls -service=travis-ci
+  - misspell -locale US -error *.md *.go
