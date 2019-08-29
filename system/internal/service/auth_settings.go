@@ -106,7 +106,7 @@ func (as *AuthSettings) parseExternalProviders(kv intset.KV) (map[string]AuthSet
 		ep = map[string]AuthSettingsExternalAuthProvider{
 			"github":   {},
 			"facebook": {},
-			"gplus":    {},
+			"google":   {},
 			"linkedin": {},
 		}
 
@@ -202,7 +202,7 @@ func (as AuthSettings) Format() map[string]interface{} {
 			label = "Crust Unify"
 		case "facebook":
 			label = "Facebook"
-		case "gplus":
+		case "google":
 			label = "Google"
 		case "linkedin":
 			label = "LinkedIn"

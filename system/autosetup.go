@@ -141,7 +141,7 @@ func authAddExternals(ctx context.Context, cmd *cobra.Command, c *cli.Config) (e
 		kinds = []string{
 			"github",
 			"facebook",
-			"gplus",
+			"google",
 			"linkedin",
 			"oidc",
 		}
