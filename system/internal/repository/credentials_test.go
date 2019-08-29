@@ -30,7 +30,7 @@ func TestCredentials(t *testing.T) {
 
 		cc := types.CredentialsSet{
 			&types.Credentials{OwnerID: 10000, Kind: "li", Credentials: "linkedin-profile-id"},
-			&types.Credentials{OwnerID: 10000, Kind: "g+", Credentials: "gplus-profile-id"},
+			&types.Credentials{OwnerID: 10000, Kind: "google", Credentials: "google-profile-id"},
 			&types.Credentials{OwnerID: 20000, Kind: "fb", Credentials: "facebook-profile-id"},
 		}
 
