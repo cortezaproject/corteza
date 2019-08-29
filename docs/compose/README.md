@@ -956,6 +956,9 @@ Compose records
 | ------ | -------- | ------- |
 | `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/report` | Generates report from module records |
 | `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/` | List/read records from module section |
+| `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/import` | Initiate record import session |
+| `PATCH` | `/namespace/{namespaceID}/module/{moduleID}/record/import/{sessionID}` | Run record import |
+| `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/import/{sessionID}` | Get import progress |
 | `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/export{filename}.{ext}` | Exports records that match  |
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/` | Create record in module section |
 | `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Read records by ID from module section |
@@ -997,6 +1000,56 @@ Compose records
 | page | uint | GET | Page number (0 based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | sort | string | GET | Sort field (default id desc) | N/A | NO |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
+
+## Initiate record import session
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/module/{moduleID}/record/import` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| upload | *multipart.FileHeader | POST | File import | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
+
+## Run record import
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/module/{moduleID}/record/import/{sessionID}` | HTTP/S | PATCH |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| sessionID | uint64 | PATH | Import session | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
+| fields | json.RawMessage | POST | Fields defined by import file | N/A | YES |
+| onError | string | POST | What happens if record fails to import | N/A | YES |
+
+## Get import progress
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/module/{moduleID}/record/import/{sessionID}` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| sessionID | uint64 | PATH | Import session | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
