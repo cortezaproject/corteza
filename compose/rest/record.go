@@ -175,6 +175,7 @@ func (ctrl *Record) ImportInit(ctx context.Context, r *request.RecordImportInit)
 	var (
 		err           error
 		recordDecoder service.Decoder
+		entryCount    uint64
 	)
 
 	// Access control.
@@ -204,14 +205,18 @@ func (ctrl *Record) ImportInit(ctx context.Context, r *request.RecordImportInit)
 	// determine decoder
 	switch strings.ToLower(ext) {
 	case "json", "jsonl", "ldjson", "ndjson":
-		recordDecoder = decoder.NewStructuredDecoder(json.NewDecoder(f))
+		recordDecoder = decoder.NewStructuredDecoder(json.NewDecoder(f), f)
 
 	case "csv":
-		recordDecoder = decoder.NewFlatReader(csv.NewReader(f))
+		recordDecoder = decoder.NewFlatReader(csv.NewReader(f), f)
 
 	default:
 		return nil, errors.New(fmt.Sprintf("unsupported format (\"%s\")", ext))
 
+	}
+	entryCount, err = recordDecoder.EntryCount()
+	if err != nil {
+		return nil, err
 	}
 
 	header := recordDecoder.Header()
@@ -220,7 +225,14 @@ func (ctrl *Record) ImportInit(ctx context.Context, r *request.RecordImportInit)
 		hh[h] = ""
 	}
 
-	return ctrl.importSession.SetRecordByID(ctx, 0, r.NamespaceID, r.ModuleID, hh, nil, recordDecoder)
+	return ctrl.importSession.SetRecordByID(
+		ctx,
+		0,
+		r.NamespaceID,
+		r.ModuleID,
+		hh,
+		&service.RecordImportProgress{EntryCount: entryCount},
+		recordDecoder)
 }
 
 func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (interface{}, error) {
