@@ -100,7 +100,7 @@ type (
 		EntryCount uint64     `json:"entryCount"`
 		Completed  uint64     `json:"completed"`
 		Failed     uint64     `json:"failed"`
-		FailReason error      `json:"failReason"`
+		FailReason string     `json:"failReason,omitempty"`
 	}
 )
 
@@ -241,7 +241,7 @@ func (svc record) Import(ses *RecordImportSession, ssvc ImportSessionService) er
 			_, err := svc.Create(mod)
 			if err != nil {
 				ses.Progress.Failed++
-				ses.Progress.FailReason = err
+				ses.Progress.FailReason = err.Error()
 
 				if ses.OnError == IMPORT_ON_ERROR_FAIL {
 					fa := time.Now()
