@@ -77,6 +77,7 @@ type (
 
 	Decoder interface {
 		Header() []string
+		EntryCount() (uint64, error)
 		Records(fields map[string]string, Create decoder.RecordCreator) error
 	}
 
@@ -96,6 +97,7 @@ type (
 	RecordImportProgress struct {
 		StartedAt  *time.Time `json:"startedAt"`
 		FinishedAt *time.Time `json:"finishedAt"`
+		EntryCount uint64     `json:"entryCount"`
 		Completed  uint64     `json:"completed"`
 		Failed     uint64     `json:"failed"`
 		FailReason error      `json:"failReason"`

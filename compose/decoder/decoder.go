@@ -2,6 +2,8 @@ package decoder
 
 import (
 	"io"
+
+	"github.com/cortezaproject/corteza-server/pkg/count"
 )
 
 type (
@@ -17,12 +19,14 @@ type (
 	}
 
 	flatReader struct {
+		f      io.ReadSeeker
 		r      FlatReader
 		header []string
 		more   bool
 	}
 
 	structuredDecoder struct {
+		f      io.ReadSeeker
 		header []string
 		d      StructuredDecoder
 		buf    []map[string]interface{}
@@ -34,11 +38,25 @@ type (
 )
 
 // flat reader
-func NewFlatReader(r FlatReader) *flatReader {
+func NewFlatReader(r FlatReader, f io.ReadSeeker) *flatReader {
 	return &flatReader{
+		f:    f,
 		r:    r,
 		more: true,
 	}
+}
+
+func (dec *flatReader) EntryCount() (uint64, error) {
+	defer dec.f.Seek(0, 0)
+
+	c, err := count.Lines(dec.f)
+	if err != nil {
+		return 0, err
+	}
+	if c <= 0 {
+		return 0, nil
+	}
+	return c - 1, nil
 }
 
 func (dec *flatReader) get(fnc fdCallback) error {
@@ -76,10 +94,16 @@ func (dec *flatReader) Header() []string {
 }
 
 // structured decoder
-func NewStructuredDecoder(d StructuredDecoder) *structuredDecoder {
+func NewStructuredDecoder(d StructuredDecoder, f io.ReadSeeker) *structuredDecoder {
 	return &structuredDecoder{
+		f: f,
 		d: d,
 	}
+}
+
+func (dec *structuredDecoder) EntryCount() (uint64, error) {
+	defer dec.f.Seek(0, 0)
+	return count.Lines(dec.f)
 }
 
 func (dec *structuredDecoder) get(fnc sdCallback) error {
