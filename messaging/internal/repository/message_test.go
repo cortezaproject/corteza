@@ -5,7 +5,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"log"
 	"testing"
 
 	"github.com/titpetric/factory"
@@ -96,7 +95,7 @@ func TestBeforeMessageID(t *testing.T) {
 				ChannelID: ch.ID,
 				Message:   fmt.Sprintf("#%d: Lorem ipsum dolor sit amet", k),
 			})
-			log.Println("Created message with ID", messages[k].ID, "seq", k)
+
 			test.Assert(t, err == nil, "CreateMessage error: %+v", err)
 		}
 		db.SetLogger(dbLogger.Default{})
@@ -112,11 +111,6 @@ func TestBeforeMessageID(t *testing.T) {
 
 		test.Assert(t, err == nil, "lastPageRequest error: %+v", err)
 		test.Assert(t, len(lastPage) > 0, "No results found (last page)")
-
-		// print message ids (@todo: remove)
-		for _, v := range lastPage {
-			log.Println("ID:", v.ID)
-		}
 
 		// request previous 10 messages from channel
 		prevPageRequest := &types.MessageFilter{
