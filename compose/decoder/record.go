@@ -24,7 +24,11 @@ func fmtTimePtr(tp string) (*time.Time, error) {
 	return &t, nil
 }
 
-func mapify(header []string, values []string) map[string]string {
+func mapify(header, values []string) map[string]string {
+	if len(header) != len(values) {
+		return nil
+	}
+
 	rtr := make(map[string]string)
 	for i, v := range values {
 		rtr[header[i]] = v

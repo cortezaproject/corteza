@@ -29,7 +29,7 @@ type (
 	}
 )
 
-func ImportSession() ImportSessionService {
+func ImportSession() *importSession {
 	return &importSession{
 		logger:  DefaultLogger.Named("importSession"),
 		records: recordSet{},
