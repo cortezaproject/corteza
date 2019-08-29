@@ -4,6 +4,7 @@ PKG       = "github.com/$(shell cat .project)"
 
 GO        = go
 GOGET     = $(GO) get -u
+GOTEST    = go test
 
 BASEPKGS = system compose messaging
 IMAGES   = corteza-server-system corteza-server-compose corteza-server-messaging corteza-server
@@ -12,7 +13,6 @@ IMAGES   = corteza-server-system corteza-server-compose corteza-server-messaging
 # Tool bins
 DEP         = $(GOPATH)/bin/dep
 REALIZE     = ${GOPATH}/bin/realize
-GOTEST      = ${GOPATH}/bin/gotest
 GOCRITIC    = ${GOPATH}/bin/gocritic
 MOCKGEN     = ${GOPATH}/bin/mockgen
 STATICCHECK = ${GOPATH}/bin/staticcheck
@@ -74,37 +74,37 @@ test-coverage:
 	overalls -project=github.com/cortezaproject/corteza-server -covermode=count -- -coverpkg=./... --tags=integration -p 1
 	mv overalls.coverprofile coverage.txt
 
-test.internal: $(GOTEST)
+test.internal:
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/...
 	$(GO) tool cover -func=.cover.out
 
-test.messaging: $(GOTEST)
+test.messaging:
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./messaging/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
-test.pubsub: $(GOTEST)
+test.pubsub:
 	$(GOTEST) -run PubSubMemory -covermode count -coverprofile .cover.out -v ./messaging/internal/repository/pubsub*.go ./messaging/internal/repository/flags*.go ./messaging/internal/repository/error*.go
 	perl -pi -e 's/command-line-arguments/.\/messaging\/internal\/repository/g' .cover.out
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
-test.events: $(GOTEST)
+test.events:
 	$(GOTEST) -run Events -covermode count -coverprofile .cover.out -v ./messaging/internal/repository/events*.go ./messaging/internal/repository/flags*.go ./messaging/internal/repository/error*.go
 	perl -pi -e 's/command-line-arguments/.\/messaging\/internal\/repository/g' .cover.out
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
-test.compose: $(GOTEST)
+test.compose:
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./compose/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
-test.system: $(GOTEST)
+test.system:
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./system/internal/repository/... ./system/internal/service/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
-test.mail: $(GOTEST)
+test.mail:
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/mail/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
-test.store: $(GOTEST)
+test.store:
 	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/store/...
 	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
 
@@ -174,4 +174,4 @@ $(PROTOGEN):
 	$(GOGET) github.com/golang/protobuf/protoc-gen-go
 
 clean:
-	rm -f $(REALIZE) $(GOCRITIC) $(GOTEST)
+	rm -f $(REALIZE) $(GOCRITIC)
