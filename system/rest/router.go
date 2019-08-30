@@ -10,10 +10,10 @@ import (
 func MountRoutes(r chi.Router) {
 	NewExternalAuth().ApiServerRoutes(r)
 
-	// Provide raw `/auth` handlers
-	handlers.NewAuth((Auth{}).New()).MountRoutes(r)
-
-	handlers.NewAuthInternal((AuthInternal{}).New()).MountRoutes(r)
+	r.Group(func(r chi.Router) {
+		handlers.NewAuth((Auth{}).New()).MountRoutes(r)
+		handlers.NewAuthInternal((AuthInternal{}).New()).MountRoutes(r)
+	})
 
 	// Protect all _private_ routes
 	r.Group(func(r chi.Router) {

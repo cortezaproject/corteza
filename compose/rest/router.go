@@ -23,7 +23,8 @@ func MountRoutes(r chi.Router) {
 
 	// Initialize handlers & controllers.
 	r.Group(func(r chi.Router) {
-		handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
+		// Use alternative handlers that support file serving
+		handlers.NewAttachment(attachment).MountRoutes(r)
 	})
 
 	// Protect all _private_ routes
@@ -37,11 +38,9 @@ func MountRoutes(r chi.Router) {
 		handlers.NewRecord(record).MountRoutes(r)
 		handlers.NewChart(chart).MountRoutes(r)
 		handlers.NewNotification(notification).MountRoutes(r)
+		handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
 
 		handlers.NewAutomationScript(automationScript).MountRoutes(r)
 		handlers.NewAutomationTrigger(automationTrgger).MountRoutes(r)
 	})
-
-	// Use alternative handlers that support file serving
-	handlers.NewAttachment(attachment).MountRoutes(r)
 }
