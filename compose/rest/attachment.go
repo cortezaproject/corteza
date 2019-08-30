@@ -42,6 +42,10 @@ func (Attachment) New() *Attachment {
 
 // Attachments returns list of all files attached to records
 func (ctrl Attachment) List(ctx context.Context, r *request.AttachmentList) (interface{}, error) {
+	if !auth.GetIdentityFromContext(ctx).Valid() {
+		return nil, errors.New("Unauthorized")
+	}
+
 	f := types.AttachmentFilter{
 		NamespaceID: r.NamespaceID,
 		Kind:        r.Kind,
@@ -59,11 +63,19 @@ func (ctrl Attachment) List(ctx context.Context, r *request.AttachmentList) (int
 }
 
 func (ctrl Attachment) Read(ctx context.Context, r *request.AttachmentRead) (interface{}, error) {
+	if !auth.GetIdentityFromContext(ctx).Valid() {
+		return nil, errors.New("Unauthorized")
+	}
+
 	a, err := ctrl.attachment.With(ctx).FindByID(r.NamespaceID, r.AttachmentID)
 	return makeAttachmentPayload(ctx, a, err)
 }
 
 func (ctrl Attachment) Delete(ctx context.Context, r *request.AttachmentDelete) (interface{}, error) {
+	if !auth.GetIdentityFromContext(ctx).Valid() {
+		return nil, errors.New("Unauthorized")
+	}
+
 	_, err := ctrl.attachment.With(ctx).FindByID(r.NamespaceID, r.AttachmentID)
 	if err != nil {
 		return nil, err
@@ -89,6 +101,10 @@ func (ctrl Attachment) Preview(ctx context.Context, r *request.AttachmentPreview
 }
 
 func (ctrl Attachment) isAccessible(namespaceID, attachmentID, userID uint64, signature string) error {
+	if signature == "" {
+		return errors.New("Unauthorized")
+	}
+
 	if userID == 0 {
 		return errors.New("missing or invalid user ID")
 	}
