@@ -45,6 +45,10 @@ func (ctrl *Attachment) Preview(ctx context.Context, r *request.AttachmentPrevie
 }
 
 func (ctrl Attachment) isAccessible(attachmentID, userID uint64, signature string) error {
+	if signature == "" {
+		return errors.New("Unauthorized")
+	}
+
 	if userID == 0 {
 		return errors.New("missing or invalid user ID")
 	}
