@@ -43,7 +43,9 @@ func Configure() *cli.Config {
 			servicesInitialized = true
 
 			// storagePath := options.EnvString("", "SYSTEM_STORAGE_PATH", "var/store")
-			cli.HandleError(service.Init(ctx, c.Log))
+			cli.HandleError(service.Init(ctx, c.Log, service.Config{
+				Corredor: *c.ScriptRunner,
+			}))
 
 		},
 

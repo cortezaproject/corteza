@@ -9,8 +9,13 @@ type (
 )
 
 const (
-	ErrInvalidID     serviceError = "InvalidID"
-	ErrNoPermissions serviceError = "NoPermissions"
+	ErrInvalidID                          serviceError = "InvalidID"
+	ErrNoPermissions                      serviceError = "NoPermissions"
+	ErrNoGrantPermissions                 serviceError = "NoGrantPermissions"
+	ErrNoCreatePermissions                serviceError = "NoCreatePermissions"
+	ErrNoReadPermissions                  serviceError = "NoReadPermissions"
+	ErrNoTriggerManagementPermissions     serviceError = "NoTriggerManagementPermissions"
+	ErrNoMailGatewayManagementPermissions serviceError = "NoMailGatewayManagementPermissions"
 )
 
 func (e serviceError) Error() string {

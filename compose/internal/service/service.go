@@ -32,7 +32,7 @@ type (
 var (
 	DefaultLogger *zap.Logger
 
-	// DefaultPermissions Retrives & stores permissions
+	// DefaultPermissions Retrieves & stores permissions
 	DefaultPermissions permissionServicer
 
 	// DefaultAccessControl Access control checking
