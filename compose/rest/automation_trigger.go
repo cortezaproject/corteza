@@ -63,10 +63,6 @@ func (AutomationTrigger) New() *AutomationTrigger {
 
 func (ctrl AutomationTrigger) List(ctx context.Context, r *request.AutomationTriggerList) (interface{}, error) {
 	set, filter, err := ctrl.triggers.Find(ctx, automation.TriggerFilter{
-		// @todo namespace filtering
-		//   Might be a bit tricky as triggers themselves not know about namespaces
-		//   Namespace: r.NamespaceID
-
 		Resource: r.Resource,
 		Event:    r.Event,
 		ScriptID: r.ScriptID,
