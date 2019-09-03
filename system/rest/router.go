@@ -14,17 +14,18 @@ func MountRoutes(r chi.Router) {
 	r.Group(func(r chi.Router) {
 		handlers.NewAuth((Auth{}).New()).MountRoutes(r)
 		handlers.NewAuthInternal((AuthInternal{}).New()).MountRoutes(r)
+
+		// A special case that, we do not add this through standard request, handlers & controllers
+		// combo but directly -- we need access to r.Body
+		r.Handle("/sink", &Sink{
+			svc:  service.DefaultSink,
+			sign: auth.DefaultSigner,
+		})
 	})
 
 	// Protect all _private_ routes
 	r.Group(func(r chi.Router) {
 		r.Use(auth.MiddlewareValidOnly)
-
-		// A special case that, we do not add this through standard request, handlers & controllers
-		// combo but directly -- we need access to r.Body
-		r.Handle("/sink", &Sink{
-			svc: service.DefaultSink,
-		})
 
 		handlers.NewUser(User{}.New()).MountRoutes(r)
 		handlers.NewRole(Role{}.New()).MountRoutes(r)

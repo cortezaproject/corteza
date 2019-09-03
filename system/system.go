@@ -129,6 +129,9 @@ func Configure() *cli.Config {
 			func(ctx context.Context, c *cli.Config) *cobra.Command {
 				return commands.Roles(ctx, c)
 			},
+			func(ctx context.Context, c *cli.Config) *cobra.Command {
+				return commands.Sink(ctx, c)
+			},
 		},
 
 		ProvisionMigrateDatabase: cli.Runners{

@@ -80,8 +80,8 @@ func (svc automationRunner) findMailScripts(headers types.MailMessageHeader) aut
 
 	ss, _ := svc.scriptFinder.FindRunnableScripts("system:mail", "onReceive", mailTrigger.MakeChecker(headers, uev)).
 		Filter(func(script *automation.Script) (bool, error) {
-			// Filter out user-agent scripts
-			return !script.RunInUA, nil
+			// Filter out user-agent scripts && scripts w/o defined runner.
+			return !script.RunInUA && script.RunAsDefined(), nil
 		})
 
 	return ss
