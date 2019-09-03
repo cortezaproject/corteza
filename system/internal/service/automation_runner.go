@@ -118,7 +118,7 @@ func (svc automationRunner) makeMailScriptRunner(ctx context.Context, mail *type
 		MailMessage: proto.NewMailMessage(mail),
 	}
 
-	svc.logger.Debug("executing script", zap.Any("mail", mail))
+	svc.logger.Debug("preparing mail script runner", zap.Any("mail", mail))
 
 	return func(script *automation.Script) error {
 		if svc.runner == nil {

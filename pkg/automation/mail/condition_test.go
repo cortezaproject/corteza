@@ -44,6 +44,30 @@ func Test_makeMailHeaderChecker(t *testing.T) {
 			expecting: true,
 		},
 		{
+			name:      "check address (brackets)",
+			mh:        types.MailMessageHeader{Raw: map[string][]string{"From": []string{"<some@mail.tld>"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameFrom, Match: "some@mail.tld"}}},
+			expecting: true,
+		},
+		{
+			name:      "check address (bare)",
+			mh:        types.MailMessageHeader{Raw: map[string][]string{"From": []string{"some@mail.tld"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameFrom, Match: "some@mail.tld"}}},
+			expecting: true,
+		},
+		{
+			name:      "check address (full, quoted)",
+			mh:        types.MailMessageHeader{Raw: map[string][]string{"From": []string{`"John Doe" <some@mail.tld>`}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameFrom, Match: "some@mail.tld"}}},
+			expecting: true,
+		},
+		{
+			name:      "check address (full)",
+			mh:        types.MailMessageHeader{Raw: map[string][]string{"From": []string{`John Doe <some@mail.tld>`}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameFrom, Match: "some@mail.tld"}}},
+			expecting: true,
+		},
+		{
 			name: "two matchers, one matches",
 			mh:   types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"SIMPLE"}}},
 			tc: Condition{
