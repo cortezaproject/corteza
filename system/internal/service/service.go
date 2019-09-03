@@ -92,7 +92,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	// handles script & trigger management & keeping runnables cripts in internal cache
 	ias := automation.Service(automation.AutomationServiceConfig{
 		Logger:        DefaultLogger,
-		DbTablePrefix: "system",
+		DbTablePrefix: "sys",
 		DB:            repository.DB(ctx),
 		TokenMaker: func(ctx context.Context, userID uint64) (jwt string, err error) {
 			var u *types.User

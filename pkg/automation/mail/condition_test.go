@@ -1,4 +1,4 @@
-package service
+package mail
 
 import (
 	"encoding/json"
@@ -11,45 +11,45 @@ func Test_makeMailHeaderChecker(t *testing.T) {
 	tests := []struct {
 		name      string
 		mh        types.MailMessageHeader
-		tc        TriggerCondition
+		tc        Condition
 		expecting bool
 	}{
 		{
 			name: "empty should not match",
 			mh:   types.MailMessageHeader{},
-			tc:   TriggerCondition{},
+			tc:   Condition{},
 		},
 		{
 			name:      "simple check",
 			mh:        types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"SIMPLE"}}},
-			tc:        TriggerCondition{Headers: []TriggerConditionHeaderMatcher{{Name: "Subject", Match: "SIMPLE"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameSubject, Match: "SIMPLE"}}},
 			expecting: true,
 		},
 		{
 			name:      "simple check - no match",
 			mh:        types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"SIMPLE"}}},
-			tc:        TriggerCondition{Headers: []TriggerConditionHeaderMatcher{{Name: "Subject", Match: "complex"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameSubject, Match: "complex"}}},
 			expecting: false,
 		},
 		{
 			name:      "simple check - no match",
 			mh:        types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"SIMPLE"}}},
-			tc:        TriggerCondition{Headers: []TriggerConditionHeaderMatcher{{Name: "From", Match: "SIMPLE"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameFrom, Match: "SIMPLE"}}},
 			expecting: false,
 		},
 		{
 			name:      "simple check - name-case",
 			mh:        types.MailMessageHeader{Raw: map[string][]string{"SUBJECT": []string{"SIMPLE"}}},
-			tc:        TriggerCondition{Headers: []TriggerConditionHeaderMatcher{{Name: "subject", Match: "SIMPLE"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameSubject, Match: "SIMPLE"}}},
 			expecting: true,
 		},
 		{
 			name: "two matchers, one matches",
 			mh:   types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"SIMPLE"}}},
-			tc: TriggerCondition{
-				Headers: []TriggerConditionHeaderMatcher{
-					{Name: "Subject", Match: "SIMPLE"},
-					{Name: "Subject", Match: "complex"},
+			tc: Condition{
+				Headers: []HeaderMatcher{
+					{Name: HeaderMatchNameSubject, Match: "SIMPLE"},
+					{Name: HeaderMatchNameSubject, Match: "complex"},
 				},
 			},
 			expecting: true,
@@ -57,11 +57,11 @@ func Test_makeMailHeaderChecker(t *testing.T) {
 		{
 			name: "two matchers, one matches, match-all=true",
 			mh:   types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"SIMPLE"}}},
-			tc: TriggerCondition{
+			tc: Condition{
 				MatchAll: true,
-				Headers: []TriggerConditionHeaderMatcher{
-					{Name: "Subject", Match: "SIMPLE"},
-					{Name: "Subject", Match: "complex"},
+				Headers: []HeaderMatcher{
+					{Name: HeaderMatchNameSubject, Match: "SIMPLE"},
+					{Name: HeaderMatchNameSubject, Match: "complex"},
 				},
 			},
 			expecting: false,
@@ -69,19 +69,23 @@ func Test_makeMailHeaderChecker(t *testing.T) {
 		{
 			name:      "regex check",
 			mh:        types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"SIMPLE"}}},
-			tc:        TriggerCondition{Headers: []TriggerConditionHeaderMatcher{{Name: "Subject", Match: "^S.+$", Op: "regex"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameSubject, Match: "^S.+$", Op: HMOpRegex}}},
 			expecting: true,
 		},
 		{
 			name:      "case-insensitive check",
 			mh:        types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"SIMPLE"}}},
-			tc:        TriggerCondition{Headers: []TriggerConditionHeaderMatcher{{Name: "Subject", Match: "simple", Op: "ci"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameSubject, Match: "simple", Op: HMOpEqualCi}}},
 			expecting: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			checker := (automationRunner{}).makeMailHeaderChecker(tt.mh)
+			if err := tt.tc.Prepare(); err != nil {
+				t.Errorf("unable to prepare header matcher: %v", err)
+			}
+
+			checker := MakeChecker(tt.mh, nil)
 
 			j, _ := json.Marshal(tt.tc)
 			if checker(string(j)) != tt.expecting {
