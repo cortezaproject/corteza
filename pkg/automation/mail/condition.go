@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/mail"
+	"net/textproto"
 	"regexp"
 	"strings"
 
@@ -155,15 +156,11 @@ func (c *Condition) CheckHeader(header mail.Header, uev userExistanceVerifier) (
 	// Pre-process & simplify header values: parse all addresses,
 	// extract emails and toss away names, we do not need them
 	for name := range header {
-		for i, v := range header[name] {
-			switch name {
-			case "from",
-				"to",
-				"cc",
-				"bcc",
-				"reply-to":
+		switch textproto.CanonicalMIMEHeaderKey(name) {
+		case "From", "To", "Cc", "Bcc", "Reply-To":
+			for i, v := range header[name] {
 				addr, _ := mail.ParseAddress(v)
-				header[name][i] = addr.Address
+				header[name][i] = strings.Trim(addr.Address, "><")
 			}
 		}
 	}

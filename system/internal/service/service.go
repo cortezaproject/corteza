@@ -143,5 +143,9 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 }
 
 func Watchers(ctx context.Context) {
+	// Reloading automation scripts on change
+	DefaultAutomationRunner.Watch(ctx)
+
+	// Reloading permissions on change
 	DefaultPermissions.Watch(ctx)
 }
