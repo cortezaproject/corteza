@@ -30,10 +30,10 @@ const (
 
 func Sink() *sink {
 	return &sink{
+		logger: DefaultLogger,
 		proc: map[string]sinkContentProc{
 			SinkContentTypeMail: Mailproc(),
 		},
-		logger: DefaultLogger,
 	}
 }
 
