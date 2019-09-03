@@ -19,12 +19,13 @@ type (
 	}
 
 	mailprocScriptsRunner interface {
-		OnMailMessage(ctx context.Context, message *types.MailMessage) (err error)
+		OnReceiveMailMessage(ctx context.Context, message *types.MailMessage) (err error)
 	}
 )
 
 func Mailproc() *mailproc {
 	return &mailproc{
+		sr:     DefaultAutomationRunner,
 		logger: DefaultLogger.Named("mailproc"),
 	}
 }
@@ -34,10 +35,10 @@ func Mailproc() *mailproc {
 // 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
 // }
 
-func (svc mailproc) RawMessage(ctx context.Context, m io.Reader) error {
+func (svc mailproc) ContentProcessor(ctx context.Context, m io.Reader) error {
 	if m, err := mailProcMessage(m); err != nil {
 		return err
-	} else if err = svc.sr.OnMailMessage(ctx, m); err != nil {
+	} else if err = svc.sr.OnReceiveMailMessage(ctx, m); err != nil {
 		return err
 	}
 

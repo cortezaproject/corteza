@@ -115,7 +115,7 @@ func (svc automationRunner) RecordScriptTester(ctx context.Context, source strin
 func (svc automationRunner) makeMailScriptRunner(ctx context.Context, mail *types.MailMessage) func(script *automation.Script) error {
 	// Static request params (record gets updated
 	var req = &corredor.RunMailMessageRequest{
-		MailMessage: proto.FromMailMessage(mail),
+		MailMessage: proto.NewMailMessage(mail),
 	}
 
 	svc.logger.Debug("executing script", zap.Any("mail", mail))
