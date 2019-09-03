@@ -55,6 +55,8 @@ var (
 	DefaultAuthNotification AuthNotificationService
 	DefaultAuthSettings     AuthSettings
 
+	DefaultSink *sink
+
 	DefaultAuth         AuthService
 	DefaultUser         UserService
 	DefaultRole         RoleService
@@ -134,6 +136,8 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 			scriptRunnerClient,
 		)
 	}
+
+	DefaultSink = Sink()
 
 	return
 }
