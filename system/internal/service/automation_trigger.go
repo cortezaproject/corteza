@@ -105,7 +105,7 @@ func (svc automationTrigger) isValid(ctx context.Context, s *automation.Script, 
 		}
 
 		switch t.Event {
-		case "onReceived":
+		case "onReceive":
 			// @todo validate
 
 		default:

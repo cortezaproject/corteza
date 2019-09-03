@@ -25,5 +25,8 @@ func MountRoutes(r chi.Router) {
 		handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
 		handlers.NewApplication(Application{}.New()).MountRoutes(r)
 		handlers.NewSettings(Settings{}.New()).MountRoutes(r)
+
+		handlers.NewAutomationScript(AutomationScript{}.New()).MountRoutes(r)
+		handlers.NewAutomationTrigger(AutomationTrigger{}.New()).MountRoutes(r)
 	})
 }

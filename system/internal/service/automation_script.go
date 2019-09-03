@@ -50,7 +50,7 @@ func AutomationScript(sm automationScriptManager) automationScript {
 	return svc
 }
 
-func (svc automationScript) FindByID(ctx context.Context, namespaceID, scriptID uint64) (*automation.Script, error) {
+func (svc automationScript) FindByID(ctx context.Context, scriptID uint64) (*automation.Script, error) {
 	if s, err := svc.loadCombo(ctx, scriptID); err != nil {
 		return nil, err
 	} else {
@@ -133,7 +133,7 @@ func (svc automationScript) Update(ctx context.Context, mod *automation.Script) 
 	return svc.scriptManager.UpdateScript(ctx, s)
 }
 
-func (svc automationScript) Delete(ctx context.Context, namespaceID, scriptID uint64) (err error) {
+func (svc automationScript) Delete(ctx context.Context, scriptID uint64) (err error) {
 	if s, err := svc.loadCombo(ctx, scriptID); err != nil {
 		return err
 	} else if !svc.ac.CanDeleteAutomationScript(ctx, s) {

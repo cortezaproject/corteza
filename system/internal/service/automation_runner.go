@@ -2,10 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
-	"net/mail"
-	"regexp"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -17,7 +13,9 @@ import (
 	intAuth "github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/automation/corredor"
+	mailTrigger "github.com/cortezaproject/corteza-server/pkg/automation/mail"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
+	"github.com/cortezaproject/corteza-server/system/internal/repository"
 	"github.com/cortezaproject/corteza-server/system/proto"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -27,8 +25,13 @@ type (
 		opt          AutomationRunnerOpt
 		logger       *zap.Logger
 		runner       corredor.ScriptRunnerClient
+		userFinder   automationRunnerUserFinder
 		scriptFinder automationScriptsFinder
 		jwtEncoder   intAuth.TokenEncoder
+	}
+
+	automationRunnerUserFinder interface {
+		FindByEmail(string) (*types.User, error)
 	}
 
 	automationScriptsFinder interface {
@@ -41,27 +44,13 @@ type (
 		ApiBaseURLMessaging string
 		ApiBaseURLCompose   string
 	}
-
-	TriggerCondition struct {
-		MatchAll bool                            `json:"matchAll"`
-		Headers  []TriggerConditionHeaderMatcher `json:"headers"`
-	}
-
-	TriggerConditionHeaderMatcher struct {
-		Name  string `json:"name"`
-		Match string `json:"match"`
-		Op    string `json:"op"`
-	}
-)
-
-const (
-	AutomationResourceRecord = "compose:record"
 )
 
 func AutomationRunner(opt AutomationRunnerOpt, f automationScriptsFinder, r corredor.ScriptRunnerClient) automationRunner {
 	var svc = automationRunner{
 		opt: opt,
 
+		userFinder:   DefaultUser,
 		scriptFinder: f,
 		runner:       r,
 
@@ -76,7 +65,7 @@ func (svc automationRunner) Watch(ctx context.Context) {
 	svc.scriptFinder.Watch(ctx)
 }
 
-func (svc automationRunner) OnReceivedMailMessage(ctx context.Context, mail *types.MailMessage) error {
+func (svc automationRunner) OnReceiveMailMessage(ctx context.Context, mail *types.MailMessage) error {
 	return svc.findMailScripts(mail.Header).Walk(
 		svc.makeMailScriptRunner(ctx, mail),
 	)
@@ -84,7 +73,12 @@ func (svc automationRunner) OnReceivedMailMessage(ctx context.Context, mail *typ
 
 // Finds all scripts that can process email
 func (svc automationRunner) findMailScripts(headers types.MailMessageHeader) automation.ScriptSet {
-	ss, _ := svc.scriptFinder.FindRunnableScripts("system:mail", "onReceived", svc.makeMailHeaderChecker(headers)).
+	uev := func(email string) bool {
+		u, err := svc.userFinder.FindByEmail(email)
+		return u != nil && err == nil
+	}
+
+	ss, _ := svc.scriptFinder.FindRunnableScripts("system:mail", "onReceive", mailTrigger.MakeChecker(headers, uev)).
 		Filter(func(script *automation.Script) (bool, error) {
 			// Filter out user-agent scripts
 			return !script.RunInUA, nil
@@ -93,22 +87,24 @@ func (svc automationRunner) findMailScripts(headers types.MailMessageHeader) aut
 	return ss
 }
 
-func (svc automationRunner) RecordScriptTester(ctx context.Context, source string, mail *types.MailMessage) (err error) {
-	// Make record script runner and
-	runner := svc.makeMailScriptRunner(ctx, mail)
-
-	return runner(&automation.Script{
-		ID:        0,
-		Name:      "test",
-		SourceRef: "test",
-		Source:    source,
-		Async:     false,
-		RunAs:     0,
-		RunInUA:   false,
-		Timeout:   0,
-		Critical:  true,
-		Enabled:   false,
-	})
+func (svc automationRunner) RecordScriptTester(ctx context.Context, source string, payload interface{}) (err error) {
+	// Make record script runner
+	// @todo figure out how to convert payload to *types.MailMessage
+	// runner := svc.makeMailScriptRunner(ctx, payload)
+	//
+	// return runner(&automation.Script{
+	// 	ID:        0,
+	// 	Name:      "test",
+	// 	SourceRef: "test",
+	// 	Source:    source,
+	// 	Async:     false,
+	// 	RunAs:     0,
+	// 	RunInUA:   false,
+	// 	Timeout:   0,
+	// 	Critical:  true,
+	// 	Enabled:   false,
+	// })
+	return repository.ErrNotImplemented
 }
 
 // Runs record script
@@ -193,65 +189,4 @@ func (svc automationRunner) getJWT(ctx context.Context, script *automation.Scrip
 	}
 
 	return svc.jwtEncoder.Encode(intAuth.GetIdentityFromContext(ctx))
-}
-
-func (svc automationRunner) makeMailHeaderChecker(headers types.MailMessageHeader) automation.TriggerConditionChecker {
-	return func(c string) bool {
-		var (
-			err   error
-			tc    = TriggerCondition{}
-			re    *regexp.Regexp
-			match bool
-		)
-
-		if err := json.Unmarshal([]byte(c), &tc); err != nil {
-			panic(err) // @todo replace with log
-			return false
-		}
-
-		for _, m := range tc.Headers {
-			if m.Op == "regex" {
-				if re, err = regexp.Compile(m.Match); err != nil {
-					// Invalid re
-					continue
-				}
-			}
-
-			for name, vv := range headers.Raw {
-				name = strings.ToLower(name)
-				if strings.ToLower(m.Name) != name {
-					continue
-				}
-
-				for _, v := range vv {
-					switch name {
-					case "from",
-						"to",
-						"cc",
-						"bcc",
-						"reply-to":
-						a, _ := mail.ParseAddress(v)
-						v = a.Address
-					}
-
-					switch m.Op {
-					case "regex":
-						match = re.MatchString(v)
-					case "ci":
-						match = strings.ToLower(v) == strings.ToLower(m.Match)
-					default:
-						match = v == m.Match
-					}
-
-					if tc.MatchAll && !match {
-						return false
-					} else if !tc.MatchAll && match {
-						return true
-					}
-				}
-			}
-		}
-
-		return match
-	}
 }
