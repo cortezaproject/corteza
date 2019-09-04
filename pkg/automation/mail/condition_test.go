@@ -91,6 +91,30 @@ func Test_makeMailHeaderChecker(t *testing.T) {
 			expecting: false,
 		},
 		{
+			name:      "match by prefix",
+			mh:        types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"abcd"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameSubject, Op: HMOpPrefixCi, Match: "ab"}}},
+			expecting: true,
+		},
+		{
+			name:      "match by prefix",
+			mh:        types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"abcd"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameSubject, Op: HMOpPrefixCi, Match: "cd"}}},
+			expecting: false,
+		},
+		{
+			name:      "match by suffix",
+			mh:        types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"abcd"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameSubject, Op: HMOpSuffixCi, Match: "cd"}}},
+			expecting: true,
+		},
+		{
+			name:      "match by suffix",
+			mh:        types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"abcd"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameSubject, Op: HMOpSuffixCi, Match: "ab"}}},
+			expecting: false,
+		},
+		{
 			name:      "regex check",
 			mh:        types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"SIMPLE"}}},
 			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameSubject, Match: "^S.+$", Op: HMOpRegex}}},
