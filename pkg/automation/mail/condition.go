@@ -44,7 +44,9 @@ const (
 	HeaderMatchNameReplyTo        = "reply-to"
 	HeaderMatchNameSubject        = "subject"
 
-	HMOpEqualCi  HMOp = ""
+	// Keeping -ci suffix in case we get
+	// feature request to separete ci & cs operators
+	HMOpEqualCi  HMOp = "equal-ci"
 	HMOpSuffixCi      = "suffix-ci"
 	HMOpPrefixCi      = "prefix-ci"
 	HMOpRegex         = "regex"
@@ -124,7 +126,6 @@ func (m *HeaderMatcher) isMatch(header mail.Header, exists userExistanceVerifier
 			switch m.Op {
 			case HMOpEqualCi:
 				match = m.Match == lcHeader
-				// spew.Dump("doing simple string match", match, m, v)
 			case HMOpSuffixCi:
 				match = strings.HasSuffix(lcHeader, m.Match)
 			case HMOpPrefixCi:

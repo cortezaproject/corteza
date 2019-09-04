@@ -115,10 +115,12 @@ func (svc automationScript) Update(ctx context.Context, mod *automation.Script) 
 	s.Source = mod.Source
 	s.Async = mod.Async
 	s.RunAs = mod.RunAs
-	s.RunInUA = mod.RunInUA
 	s.Timeout = mod.Timeout
 	s.Critical = mod.Critical
 	s.Enabled = mod.Enabled
+
+	// Never run in a UA
+	s.RunInUA = false
 
 	err = mod.Triggers().Walk(func(t *automation.Trigger) error {
 		return svc.trg.isValid(ctx, mod, t)
