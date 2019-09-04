@@ -102,6 +102,8 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 			ctx = intAuth.SetSuperUserContext(ctx)
 			if u, err = DefaultUser.FindByID(userID); err != nil {
 				return
+			} else if err = DefaultAuth.LoadRoleMemberships(u); err != nil {
+				return
 			}
 
 			return intAuth.DefaultJwtHandler.Encode(u), nil
