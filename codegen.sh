@@ -164,8 +164,8 @@ function proto {
 
 	CORTEZA_PROTOBUF_PATH=${CORTEZA_PROTOBUF_PATH:-"vendor/github.com/cortezaproject/corteza-protobuf"}
 
-	# Compose Proto Path
-	CPC="github.com/cortezaproject/corteza-server/compose/proto"
+	ComposeProtoPath="github.com/cortezaproject/corteza-server/compose/proto"
+	SystemProtoPath="github.com/cortezaproject/corteza-server/system/proto"
 
 	yellow "  ${CORTEZA_PROTOBUF_PATH} >> compose/proto"
 	PATH=$PATH:$GOPATH/bin protoc \
@@ -174,9 +174,10 @@ function proto {
 		record.proto namespace.proto module.proto
 
 
-  assoc="${assoc},Mcompose/record.proto=${CPC}"
-  assoc="${assoc},Mcompose/module.proto=${CPC}"
-  assoc="${assoc},Mcompose/namespace.proto=${CPC}"
+  assoc="${assoc},Mcompose/record.proto=${ComposeProtoPath}"
+  assoc="${assoc},Mcompose/module.proto=${ComposeProtoPath}"
+  assoc="${assoc},Mcompose/namespace.proto=${ComposeProtoPath}"
+  assoc="${assoc},Msystem/mail_message.proto=${SystemProtoPath}"
 
 	yellow "  ${CORTEZA_PROTOBUF_PATH} >> pkg/automation/corredor"
 	PATH=$PATH:$GOPATH/bin protoc \
@@ -188,7 +189,7 @@ function proto {
 	PATH=$PATH:$GOPATH/bin protoc \
 		--proto_path ${CORTEZA_PROTOBUF_PATH}/system \
 		--go_out=plugins=grpc:system/proto \
-		user.proto
+		user.proto mail_message.proto
   green "OK"
 }
 

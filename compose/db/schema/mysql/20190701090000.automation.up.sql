@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS compose_automation_script (
 
 CREATE TABLE IF NOT EXISTS compose_automation_trigger (
     `id`         BIGINT(20)  UNSIGNED NOT NULL,
-    `rel_script` BIGINT(20)  UNSIGNED NOT NULL              COMMENT 'Script that is trigger',
+    `rel_script` BIGINT(20)  UNSIGNED NOT NULL              COMMENT 'Script that is triggered',
 
     `resource`   VARCHAR(128)         NOT NULL              COMMENT 'Resource triggering the event',
     `event`      VARCHAR(128)         NOT NULL              COMMENT 'Event triggered',

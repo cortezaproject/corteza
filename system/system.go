@@ -43,7 +43,9 @@ func Configure() *cli.Config {
 			servicesInitialized = true
 
 			// storagePath := options.EnvString("", "SYSTEM_STORAGE_PATH", "var/store")
-			cli.HandleError(service.Init(ctx, c.Log))
+			cli.HandleError(service.Init(ctx, c.Log, service.Config{
+				Corredor: *c.ScriptRunner,
+			}))
 
 		},
 
@@ -126,6 +128,9 @@ func Configure() *cli.Config {
 			},
 			func(ctx context.Context, c *cli.Config) *cobra.Command {
 				return commands.Roles(ctx, c)
+			},
+			func(ctx context.Context, c *cli.Config) *cobra.Command {
+				return commands.Sink(ctx, c)
 			},
 		},
 
