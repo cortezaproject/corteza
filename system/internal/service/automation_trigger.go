@@ -26,8 +26,8 @@ type (
 	}
 
 	automationTriggerAccessController interface {
+		CanCreateAutomationScript(context.Context) bool
 		CanUpdateAutomationScript(context.Context, *automation.Script) bool
-		CanManageMailGatewayAutomation(context.Context) bool
 	}
 )
 
@@ -95,8 +95,8 @@ func (svc automationTrigger) isValid(ctx context.Context, s *automation.Script, 
 	}
 
 	if t.Resource == "system:mail" {
-		if !svc.ac.CanManageMailGatewayAutomation(ctx) {
-			return ErrNoMailGatewayManagementPermissions
+		if !svc.ac.CanCreateAutomationScript(ctx) {
+			return ErrNoScriptCreatePermissions
 		}
 
 		if t.IsDeferred() {

@@ -29,8 +29,6 @@ type (
 	automationScriptAccessController interface {
 		CanGrant(context.Context) bool
 
-		CanManageMailGatewayAutomation(context.Context) bool
-
 		CanCreateAutomationScript(context.Context) bool
 		CanReadAnyAutomationScript(context.Context) bool
 		CanReadAutomationScript(context.Context, *automation.Script) bool
