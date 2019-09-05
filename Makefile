@@ -1,13 +1,19 @@
 .PHONY: help docker docker-push realize dep dep.update test test.messaging test.compose qa critic vet codegen integration
 
-PKG       = "github.com/$(shell cat .project)"
-
 GO        = go
 GOGET     = $(GO) get -u
 GOTEST    = go test
 
 BASEPKGS = system compose messaging
 IMAGES   = corteza-server-system corteza-server-compose corteza-server-messaging corteza-server
+
+# Run watcher with a different event-trigger delay, eg:
+# $> WATCH_DELAY=5s make watch.test.integration
+WATCH_DELAY ?= 1s
+
+# Run go test cmd with flags, eg:
+# $> TEST_FLAGS=-v make test.integration
+TEST_FLAGS  ?=
 
 ########################################################################################################################
 # Tool bins
@@ -17,6 +23,11 @@ GOCRITIC    = ${GOPATH}/bin/gocritic
 MOCKGEN     = ${GOPATH}/bin/mockgen
 STATICCHECK = ${GOPATH}/bin/staticcheck
 PROTOGEN    = ${GOPATH}/bin/protoc-gen-go
+
+# Using nodemon in development environment for "watch.*" tasks
+# https://nodemon.io
+NODEMON      = /usr/local/bin/nodemon
+WATCHER      = $(NODEMON) --delay ${WATCH_DELAY} -e go -w . --exec
 
 help:
 	@echo
@@ -63,8 +74,28 @@ codegen: $(PROTOGEN)
 mailhog.up:
 	docker run --rm --publish 8025:8025 --publish 1025:1025 mailhog/mailhog
 
+watch.test.integration: $(NODEMON)
+	# Development helper - watches for file
+	# changes & reruns integration tests
+	$(WATCHER) "make test.integration"
+
+watch.test.integration.coverage: $(NODEMON)
+	# Development helper - watches for file
+	# changes & reruns integration tests
+	$(WATCHER) "make test.integration.coverage"
+
 ########################################################################################################################
 # QA
+
+## refactored
+
+test.integration:
+	$(GO) test $(TEST_FLAGS) ./tests/...
+
+test.integration.coverage:
+	$(GO) test $(TEST_FLAGS) -covermode=count -coverprofile=.integration.cover.out -coverpkg=./... ./tests/...
+
+## old:
 
 test:
 	# Run basic unit tests
@@ -169,6 +200,9 @@ $(STATICCHECK):
 
 $(PROTOGEN):
 	$(GOGET) github.com/golang/protobuf/protoc-gen-go
+
+$(NODEMON):
+	npm install -g nodemon
 
 clean:
 	rm -f $(REALIZE) $(GOCRITIC)
