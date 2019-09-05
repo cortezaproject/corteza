@@ -22,49 +22,49 @@ func Test_makeMailHeaderChecker(t *testing.T) {
 		{
 			name:      "simple check",
 			mh:        types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"SIMPLE"}}},
-			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameSubject, Match: "SIMPLE"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameSubject, Op: HMOpEqualCi, Match: "SIMPLE"}}},
 			expecting: true,
 		},
 		{
 			name:      "simple check - no match",
 			mh:        types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"SIMPLE"}}},
-			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameSubject, Match: "complex"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameSubject, Op: HMOpEqualCi, Match: "complex"}}},
 			expecting: false,
 		},
 		{
 			name:      "simple check - no match",
 			mh:        types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"SIMPLE"}}},
-			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameFrom, Match: "SIMPLE"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameFrom, Op: HMOpEqualCi, Match: "SIMPLE"}}},
 			expecting: false,
 		},
 		{
 			name:      "simple check - name-case",
 			mh:        types.MailMessageHeader{Raw: map[string][]string{"SUBJECT": []string{"SIMPLE"}}},
-			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameSubject, Match: "SIMPLE"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameSubject, Op: HMOpEqualCi, Match: "SIMPLE"}}},
 			expecting: true,
 		},
 		{
 			name:      "check address (brackets)",
 			mh:        types.MailMessageHeader{Raw: map[string][]string{"From": []string{"<some@mail.tld>"}}},
-			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameFrom, Match: "some@mail.tld"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameFrom, Op: HMOpEqualCi, Match: "some@mail.tld"}}},
 			expecting: true,
 		},
 		{
 			name:      "check address (bare)",
 			mh:        types.MailMessageHeader{Raw: map[string][]string{"From": []string{"some@mail.tld"}}},
-			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameFrom, Match: "some@mail.tld"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameFrom, Op: HMOpEqualCi, Match: "some@mail.tld"}}},
 			expecting: true,
 		},
 		{
 			name:      "check address (full, quoted)",
 			mh:        types.MailMessageHeader{Raw: map[string][]string{"From": []string{`"John Doe" <some@mail.tld>`}}},
-			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameFrom, Match: "some@mail.tld"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameFrom, Op: HMOpEqualCi, Match: "some@mail.tld"}}},
 			expecting: true,
 		},
 		{
 			name:      "check address (full)",
 			mh:        types.MailMessageHeader{Raw: map[string][]string{"From": []string{`John Doe <some@mail.tld>`}}},
-			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameFrom, Match: "some@mail.tld"}}},
+			tc:        Condition{Headers: []HeaderMatcher{{Name: HeaderMatchNameFrom, Op: HMOpEqualCi, Match: "some@mail.tld"}}},
 			expecting: true,
 		},
 		{
@@ -72,8 +72,8 @@ func Test_makeMailHeaderChecker(t *testing.T) {
 			mh:   types.MailMessageHeader{Raw: map[string][]string{"Subject": []string{"SIMPLE"}}},
 			tc: Condition{
 				Headers: []HeaderMatcher{
-					{Name: HeaderMatchNameSubject, Match: "SIMPLE"},
-					{Name: HeaderMatchNameSubject, Match: "complex"},
+					{Name: HeaderMatchNameSubject, Op: HMOpEqualCi, Match: "SIMPLE"},
+					{Name: HeaderMatchNameSubject, Op: HMOpEqualCi, Match: "complex"},
 				},
 			},
 			expecting: true,
@@ -84,8 +84,8 @@ func Test_makeMailHeaderChecker(t *testing.T) {
 			tc: Condition{
 				MatchAll: true,
 				Headers: []HeaderMatcher{
-					{Name: HeaderMatchNameSubject, Match: "SIMPLE"},
-					{Name: HeaderMatchNameSubject, Match: "complex"},
+					{Name: HeaderMatchNameSubject, Op: HMOpEqualCi, Match: "SIMPLE"},
+					{Name: HeaderMatchNameSubject, Op: HMOpEqualCi, Match: "complex"},
 				},
 			},
 			expecting: false,
