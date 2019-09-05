@@ -151,9 +151,6 @@ mocks: $(GOMOCK)
 ########################################################################################################################
 # Toolset
 
-$(GOTEST):
-	$(GOGET) github.com/rakyll/gotest
-
 $(REALIZE):
 	$(GOGET) github.com/tockins/realize
 

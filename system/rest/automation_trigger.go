@@ -6,11 +6,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 
-	"github.com/cortezaproject/corteza-server/compose/internal/repository"
-	"github.com/cortezaproject/corteza-server/compose/internal/service"
-	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/system/internal/service"
+	"github.com/cortezaproject/corteza-server/system/rest/request"
 )
 
 var _ = errors.Wrap
@@ -43,7 +42,7 @@ type (
 	}
 
 	automationScriptFinderService interface {
-		FindByID(context.Context, uint64, uint64) (*automation.Script, error)
+		FindByID(context.Context, uint64) (*automation.Script, error)
 	}
 
 	automationTriggerAccessController interface {
@@ -75,7 +74,7 @@ func (ctrl AutomationTrigger) List(ctx context.Context, r *request.AutomationTri
 }
 
 func (ctrl AutomationTrigger) Create(ctx context.Context, r *request.AutomationTriggerCreate) (interface{}, error) {
-	s, _, err := ctrl.loadCombo(ctx, r.NamespaceID, r.ScriptID, 0)
+	s, _, err := ctrl.loadCombo(ctx, r.ScriptID, 0)
 	if err != nil {
 		return nil, errors.Wrap(err, "can not create trigger")
 	}
@@ -94,7 +93,7 @@ func (ctrl AutomationTrigger) Create(ctx context.Context, r *request.AutomationT
 }
 
 func (ctrl AutomationTrigger) Read(ctx context.Context, r *request.AutomationTriggerRead) (interface{}, error) {
-	_, t, err := ctrl.loadCombo(ctx, r.NamespaceID, r.ScriptID, 0)
+	_, t, err := ctrl.loadCombo(ctx, r.ScriptID, 0)
 	if err != nil {
 		return nil, errors.Wrap(err, "can not read trigger")
 	}
@@ -103,7 +102,7 @@ func (ctrl AutomationTrigger) Read(ctx context.Context, r *request.AutomationTri
 }
 
 func (ctrl AutomationTrigger) Update(ctx context.Context, r *request.AutomationTriggerUpdate) (interface{}, error) {
-	s, t, err := ctrl.loadCombo(ctx, r.NamespaceID, r.ScriptID, r.TriggerID)
+	s, t, err := ctrl.loadCombo(ctx, r.ScriptID, r.TriggerID)
 	if err != nil {
 		return nil, errors.Wrap(err, "can not update trigger")
 	}
@@ -118,7 +117,7 @@ func (ctrl AutomationTrigger) Update(ctx context.Context, r *request.AutomationT
 }
 
 func (ctrl AutomationTrigger) Delete(ctx context.Context, r *request.AutomationTriggerDelete) (interface{}, error) {
-	s, t, err := ctrl.loadCombo(ctx, r.NamespaceID, r.ScriptID, r.TriggerID)
+	s, t, err := ctrl.loadCombo(ctx, r.ScriptID, r.TriggerID)
 	if err != nil {
 		return nil, errors.Wrap(err, "can not update trigger")
 	}
@@ -126,18 +125,14 @@ func (ctrl AutomationTrigger) Delete(ctx context.Context, r *request.AutomationT
 	return resputil.OK(), ctrl.triggers.Delete(ctx, s, t)
 }
 
-func (ctrl AutomationTrigger) loadCombo(ctx context.Context, namespaceID, scriptID, triggerID uint64) (s *automation.Script, t *automation.Trigger, err error) {
+func (ctrl AutomationTrigger) loadCombo(ctx context.Context, scriptID, triggerID uint64) (s *automation.Script, t *automation.Trigger, err error) {
 	if triggerID > 0 {
 		t, err = ctrl.triggers.FindByID(ctx, triggerID)
 		return
 	}
 
 	if scriptID > 0 {
-		s, err = ctrl.scripts.FindByID(ctx, namespaceID, scriptID)
-		if err != nil && s.NamespaceID != namespaceID {
-			err = repository.ErrNamespaceNotFound
-		}
-
+		s, err = ctrl.scripts.FindByID(ctx, scriptID)
 		return
 	}
 

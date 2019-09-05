@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/cortezaproject/corteza-server/internal/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -76,6 +77,10 @@ func (svc accessControl) CanCreateApplication(ctx context.Context) bool {
 	return svc.can(ctx, types.SystemPermissionResource, "application.create")
 }
 
+func (svc accessControl) CanCreateAutomationScript(ctx context.Context) bool {
+	return svc.can(ctx, types.SystemPermissionResource, "automation-script.create")
+}
+
 func (svc accessControl) CanReadRole(ctx context.Context, rl *types.Role) bool {
 	return svc.can(ctx, rl, "read", permissions.Allowed)
 }
@@ -120,6 +125,26 @@ func (svc accessControl) CanDeleteUser(ctx context.Context, u *types.User) bool 
 	return svc.can(ctx, u, "delete")
 }
 
+func (svc accessControl) CanReadAnyAutomationScript(ctx context.Context) bool {
+	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendWildcard(), "read")
+}
+
+func (svc accessControl) CanReadAutomationScript(ctx context.Context, r *automation.Script) bool {
+	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "read")
+}
+
+func (svc accessControl) CanUpdateAutomationScript(ctx context.Context, r *automation.Script) bool {
+	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "update")
+}
+
+func (svc accessControl) CanDeleteAutomationScript(ctx context.Context, r *automation.Script) bool {
+	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "delete")
+}
+
+func (svc accessControl) CanRunAutomationTrigger(ctx context.Context, r *automation.Trigger) bool {
+	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "run", permissions.Allowed)
+}
+
 func (svc accessControl) can(ctx context.Context, res permissionResource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
 	return svc.permissions.Can(ctx, res.PermissionResource(), op, ff...)
 }
@@ -148,6 +173,7 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		organisations = types.OrganisationPermissionResource.AppendWildcard()
 		roles         = types.RolePermissionResource.AppendWildcard()
 		users         = types.UserPermissionResource.AppendWildcard()
+		ascripts      = types.AutomationScriptPermissionResource.AppendWildcard()
 
 		allowAdm = func(res permissions.Resource, op permissions.Operation) *permissions.Rule {
 			return permissions.AllowRule(permissions.AdminRoleID, res, op)
@@ -165,6 +191,7 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		allowAdm(sys, "application.create"),
 		allowAdm(sys, "user.create"),
 		allowAdm(sys, "role.create"),
+		allowAdm(sys, "automation-script.create"),
 
 		allowAdm(organisations, "access"),
 		allowAdm(applications, "read"),
@@ -181,6 +208,10 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		allowAdm(roles, "update"),
 		allowAdm(roles, "delete"),
 		allowAdm(roles, "members.manage"),
+
+		allowAdm(ascripts, "read"),
+		allowAdm(ascripts, "update"),
+		allowAdm(ascripts, "delete"),
 	}
 }
 
@@ -197,6 +228,7 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"role.create",
 		"user.create",
 		"application.create",
+		"automation-script.create",
 	)
 
 	wl.Set(
@@ -226,6 +258,18 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"update",
 		"delete",
 		"members.manage",
+	)
+
+	wl.Set(
+		types.AutomationScriptPermissionResource,
+		"read",
+		"update",
+		"delete",
+	)
+
+	wl.Set(
+		types.AutomationTriggerPermissionResource,
+		"run",
 	)
 
 	return wl
