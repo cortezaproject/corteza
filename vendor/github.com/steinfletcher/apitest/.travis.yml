@@ -1,0 +1,46 @@
+language: go
+
+go:
+  - "1.12"
+  - "stable"
+
+before_install:
+  - go get -u -v github.com/axw/gocov/gocov
+  - go get -u -v github.com/mattn/goveralls
+
+branches:
+  only:
+    - master
+
+install:
+  - wget https://github.com/gohugoio/hugo/releases/download/v0.51/hugo_0.51_Linux-64bit.tar.gz
+  - tar -xzvf hugo_0.51_Linux-64bit.tar.gz
+  - chmod +x hugo
+  - export PATH=$PATH:$PWD
+  - hugo version
+
+script:
+  - make test-all
+
+before_deploy: cd docs && hugo && cd ..
+
+deploy:
+  provider: s3
+  access_key_id: $AWS_ACCESS_KEY_ID
+  secret_access_key: $AWS_SECRET_ACCESS_KEY
+  bucket: $S3_BUCKET
+  skip_cleanup: true
+  local_dir: docs/public
+  region: eu-west-2
+
+after_deploy:
+  - pip install --user awscli
+  - ~/.local/bin/aws configure set preview.cloudfront true
+  - ~/.local/bin/aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
+
+after_success:
+  - goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
+  - ./bin/up url
+
+env:
+  - GO111MODULE=on
