@@ -81,10 +81,6 @@ func (svc accessControl) CanCreateAutomationScript(ctx context.Context) bool {
 	return svc.can(ctx, types.SystemPermissionResource, "automation-script.create")
 }
 
-func (svc accessControl) CanManageMailGatewayAutomation(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemPermissionResource, "mail-gw-automation.manage")
-}
-
 func (svc accessControl) CanReadRole(ctx context.Context, rl *types.Role) bool {
 	return svc.can(ctx, rl, "read", permissions.Allowed)
 }
@@ -196,7 +192,6 @@ func (svc accessControl) DefaultRules() permissions.RuleSet {
 		allowAdm(sys, "user.create"),
 		allowAdm(sys, "role.create"),
 		allowAdm(sys, "automation-script.create"),
-		allowAdm(sys, "mail-gw-automation.manage"),
 
 		allowAdm(organisations, "access"),
 		allowAdm(applications, "read"),
@@ -234,7 +229,6 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"user.create",
 		"application.create",
 		"automation-script.create",
-		"mail-gw-automation.manage",
 	)
 
 	wl.Set(
