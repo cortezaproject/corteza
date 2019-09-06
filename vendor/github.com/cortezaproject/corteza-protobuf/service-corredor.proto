@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package corredor;
+
+import "compose/namespace.proto";
+import "compose/module.proto";
+import "compose/record.proto";
+import "system/mail_message.proto";
+
+// Reasoning for having JWT in the *Request message (instead of meta-data):
+// We're not using JWT as authentication token but as parameter that is passed
+// to script runner and used there for setting up the API clients
+//
+// Script runner does not authenticate requests and blindly trusts all clients
+service ScriptRunner {
+    rpc Test(RunTestRequest) returns (RunTestResponse);
+	rpc Namespace (RunNamespaceRequest) returns (RunNamespaceResponse);
+	rpc Module (RunModuleRequest) returns (RunModuleResponse);
+	rpc Record (RunRecordRequest) returns (RunRecordResponse);
+
+	rpc MailMessage (RunMailMessageRequest) returns (RunMailMessageResponse);
+}
+
+message RunTestRequest {
+	string source = 1;
+	string name   = 2;
+}
+
+message RunNamespaceRequest {
+	map<string, string> config = 1;
+
+	Script    script    = 2;
+
+	compose.Namespace namespace = 3;
+}
+
+message RunModuleRequest {
+	map<string, string> config = 1;
+
+	Script    script    = 2;
+
+	compose.Namespace namespace = 3;
+	compose.Module    module    = 4;
+
+}
+
+message RunRecordRequest {
+	map<string, string> config = 1;
+
+	Script    script    = 2;
+
+	compose.Namespace namespace = 3;
+	compose.Module    module    = 4;
+	compose.Record    record    = 5;
+}
+
+message RunMailMessageRequest {
+	map<string, string> config = 1;
+
+	Script    script    = 2;
+
+	system.MailMessage mailMessage = 3;
+}
+
+message RunTestResponse {}
+
+message RunNamespaceResponse {
+	compose.Namespace namespace  = 1;
+}
+
+message RunModuleResponse {
+	compose.Module module = 1;
+}
+
+message RunRecordResponse {
+	compose.Record record = 1;
+}
+
+message RunMailMessageResponse {}
+
+message Script {
+    string  source  = 1;
+    string  name    = 2;
+    uint32  timeout = 3; // milliseconds
+    bool    async   = 4;
+}
+
