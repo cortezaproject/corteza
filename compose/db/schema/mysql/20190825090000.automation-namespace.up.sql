@@ -8,4 +8,3 @@ ALTER TABLE `compose_automation_script`
     ADD CONSTRAINT `compose_automation_script_namespace`
     FOREIGN KEY (`rel_namespace`)
     REFERENCES `compose_namespace` (`id`);
-

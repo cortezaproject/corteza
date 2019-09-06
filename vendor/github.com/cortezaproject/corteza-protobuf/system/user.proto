@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package system;
+option go_package = "proto";
+
+service Users {
+    rpc MakeJWT(MakeJWTRequest) returns (MakeJWTResponse);
+    rpc FindByID(FindByIDRequest) returns (FindByIDResponse);
+}
+
+message MakeJWTRequest {
+	uint64    userID    = 1;
+}
+
+message MakeJWTResponse {
+	string    JWT       = 1;
+}
+
+message FindByIDRequest {
+	uint64    userID    = 1;
+}
+
+message FindByIDResponse {
+	User      user      = 1;
+}
+
+message User {
+    uint64  ID          = 1;
+    string  email       = 2;
+    string  handle      = 3;
+    string  name        = 4;
+    string  kind        = 5;
+}
+

@@ -54,11 +54,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:576295579f90f43321d0ffc39a5f28cb1688d7114b12229ce0f98270a57a6bae"
+  digest = "1:40232678b99723a6dc6bcff25ddf64958d249a96ce48fcd3fcf8cea26feab699"
   name = "github.com/cortezaproject/corteza-protobuf"
   packages = ["."]
   pruneopts = "T"
-  revision = "40822fb4c9e28d028213089aff21b8b681d4527c"
+  revision = "814df3fd218934adc8285086dc13050bf7acf8cb"
 
 [[projects]]
   branch = "v2"
