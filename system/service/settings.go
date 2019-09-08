@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 
 	internalSettings "github.com/cortezaproject/corteza-server/internal/settings"
-	"github.com/cortezaproject/corteza-server/system/internal/repository"
+	"github.com/cortezaproject/corteza-server/system/repository"
 )
 
 type (

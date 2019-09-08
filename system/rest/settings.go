@@ -7,8 +7,8 @@ import (
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/cortezaproject/corteza-server/internal/settings"
-	"github.com/cortezaproject/corteza-server/system/internal/service"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
+	"github.com/cortezaproject/corteza-server/system/service"
 )
 
 var _ = errors.Wrap

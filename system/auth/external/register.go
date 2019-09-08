@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/internal/settings"
-	"github.com/cortezaproject/corteza-server/system/internal/service"
+	"github.com/cortezaproject/corteza-server/system/service"
 )
 
 func AddProvider(name string, eap *service.AuthSettingsExternalAuthProvider, force bool) error {

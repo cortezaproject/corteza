@@ -8,8 +8,8 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
-	"github.com/cortezaproject/corteza-server/system/internal/service"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
+	"github.com/cortezaproject/corteza-server/system/service"
 )
 
 var _ = errors.Wrap

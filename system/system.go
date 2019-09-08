@@ -10,12 +10,12 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/cortezaproject/corteza-server/system/auth/external"
 	"github.com/cortezaproject/corteza-server/system/commands"
 	migrate "github.com/cortezaproject/corteza-server/system/db"
 	"github.com/cortezaproject/corteza-server/system/grpc"
-	"github.com/cortezaproject/corteza-server/system/internal/auth/external"
-	"github.com/cortezaproject/corteza-server/system/internal/service"
 	"github.com/cortezaproject/corteza-server/system/rest"
+	"github.com/cortezaproject/corteza-server/system/service"
 )
 
 const (

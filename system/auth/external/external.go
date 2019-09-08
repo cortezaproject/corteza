@@ -4,7 +4,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"github.com/cortezaproject/corteza-server/system/internal/service"
+	"github.com/cortezaproject/corteza-server/system/service"
 )
 
 const (

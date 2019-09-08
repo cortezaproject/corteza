@@ -15,8 +15,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/automation/corredor"
 	mailTrigger "github.com/cortezaproject/corteza-server/pkg/automation/mail"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
-	"github.com/cortezaproject/corteza-server/system/internal/repository"
 	"github.com/cortezaproject/corteza-server/system/proto"
+	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
