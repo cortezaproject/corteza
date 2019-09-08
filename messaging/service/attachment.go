@@ -18,7 +18,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/internal/store"
-	"github.com/cortezaproject/corteza-server/messaging/internal/repository"
+	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 )

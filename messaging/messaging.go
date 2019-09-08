@@ -9,8 +9,8 @@ import (
 	"github.com/titpetric/factory"
 
 	migrate "github.com/cortezaproject/corteza-server/messaging/db"
-	"github.com/cortezaproject/corteza-server/messaging/internal/service"
 	"github.com/cortezaproject/corteza-server/messaging/rest"
+	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/messaging/websocket"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
