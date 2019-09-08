@@ -3,8 +3,8 @@ package rest
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/compose/internal/service"
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
+	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/internal/mail"
 
 	"github.com/pkg/errors"

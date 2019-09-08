@@ -10,7 +10,7 @@ import (
 	"github.com/titpetric/factory"
 	"gopkg.in/Masterminds/squirrel.v1"
 
-	"github.com/cortezaproject/corteza-server/compose/internal/repository/ql"
+	"github.com/cortezaproject/corteza-server/compose/repository/ql"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 )

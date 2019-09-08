@@ -8,8 +8,8 @@ import (
 	"github.com/titpetric/factory"
 
 	migrate "github.com/cortezaproject/corteza-server/compose/db"
-	"github.com/cortezaproject/corteza-server/compose/internal/service"
 	"github.com/cortezaproject/corteza-server/compose/rest"
+	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 )
 
