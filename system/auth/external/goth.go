@@ -13,7 +13,7 @@ import (
 	"github.com/markbates/goth/providers/openidConnect"
 	"go.uber.org/zap"
 
-	"github.com/cortezaproject/corteza-server/system/internal/service"
+	"github.com/cortezaproject/corteza-server/system/service"
 )
 
 // We're expecting that our users will be able to complete

@@ -10,8 +10,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/cortezaproject/corteza-server/internal/test"
-	"github.com/cortezaproject/corteza-server/system/internal/repository"
-	repomock "github.com/cortezaproject/corteza-server/system/internal/repository/mocks"
+	"github.com/cortezaproject/corteza-server/system/repository"
+	repomock "github.com/cortezaproject/corteza-server/system/repository/mocks"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 

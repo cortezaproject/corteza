@@ -10,8 +10,8 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/cortezaproject/corteza-server/system/internal/repository"
-	"github.com/cortezaproject/corteza-server/system/internal/service"
+	"github.com/cortezaproject/corteza-server/system/repository"
+	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 

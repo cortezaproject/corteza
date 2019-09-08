@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
-	"github.com/cortezaproject/corteza-server/system/internal/repository"
+	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 

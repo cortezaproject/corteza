@@ -6,7 +6,7 @@ import (
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
 
-	"github.com/cortezaproject/corteza-server/system/internal/repository"
+	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
