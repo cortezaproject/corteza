@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/compose/decoder"
-	"github.com/cortezaproject/corteza-server/compose/internal/repository"
+	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/auth"
 )

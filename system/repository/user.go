@@ -161,7 +161,7 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 	}
 
 	// @todo add support for more sophisticated sorting through ql
-	//       refactor github.com/cortezaproject/corteza-server/compose/internal/repository/ql
+	//       refactor github.com/cortezaproject/corteza-server/compose/repository/ql
 	//       for common use (out of compose pkg)
 	switch f.Sort {
 	case "createdAt":

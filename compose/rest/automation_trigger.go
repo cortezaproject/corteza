@@ -6,9 +6,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 
-	"github.com/cortezaproject/corteza-server/compose/internal/repository"
-	"github.com/cortezaproject/corteza-server/compose/internal/service"
+	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
+	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 )

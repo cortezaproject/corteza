@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	service_mocks "github.com/cortezaproject/corteza-server/compose/internal/service/mocks"
+	service_mocks "github.com/cortezaproject/corteza-server/compose/service/mocks"
 	"github.com/cortezaproject/corteza-server/internal/test"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 )
