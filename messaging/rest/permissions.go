@@ -6,8 +6,8 @@ import (
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/cortezaproject/corteza-server/internal/permissions"
-	"github.com/cortezaproject/corteza-server/messaging/internal/service"
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
+	"github.com/cortezaproject/corteza-server/messaging/service"
 )
 
 type (

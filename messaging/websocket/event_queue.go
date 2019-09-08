@@ -9,7 +9,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/internal/payload"
 	"github.com/cortezaproject/corteza-server/internal/payload/outgoing"
-	"github.com/cortezaproject/corteza-server/messaging/internal/repository"
+	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 )
