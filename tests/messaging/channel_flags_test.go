@@ -14,8 +14,8 @@ import (
 func TestChannelSetFlag(t *testing.T) {
 	h := newHelper(t)
 
-	ch := h.makePublicCh()
-	h.makeMember(ch, h.cUser)
+	ch := h.repoMakePublicCh()
+	h.repoMakeMember(ch, h.cUser)
 
 	flagCheck := func(ID uint64, flag string) {
 		mm, err := h.repoChMember().Find(&types.ChannelMemberFilter{ChannelID: ID, MemberID: h.cUser.ID})
@@ -25,7 +25,7 @@ func TestChannelSetFlag(t *testing.T) {
 	}
 
 	flagChannel := func(ID uint64, flag string) *apitest.Response {
-		return h.testAPI().
+		return h.apiInit().
 			Put(fmt.Sprintf("/channels/%d/flag", ID)).
 			FormData("flag", flag).
 			Expect(t).
@@ -41,7 +41,7 @@ func TestChannelSetFlag(t *testing.T) {
 	}
 
 	unflagChannel := func(ID uint64) {
-		h.testAPI().
+		h.apiInit().
 			Delete(fmt.Sprintf("/channels/%d/flag", ID)).
 			Expect(t).
 			Status(http.StatusOK).

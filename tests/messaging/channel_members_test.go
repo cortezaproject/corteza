@@ -15,9 +15,9 @@ import (
 func TestChannelMemberList(t *testing.T) {
 	h := newHelper(t)
 
-	ch := h.makePublicCh()
+	ch := h.repoMakePublicCh()
 
-	h.testAPI().
+	h.apiInit().
 		Get(fmt.Sprintf("/channels/%d/members", ch.ID)).
 		Expect(t).
 		Status(http.StatusOK).
@@ -28,49 +28,49 @@ func TestChannelMemberList(t *testing.T) {
 func TestChannelMemberJoinSelf(t *testing.T) {
 	h := newHelper(t)
 
-	ch := h.makePublicCh()
+	ch := h.repoMakePublicCh()
 
-	h.testAPI().
+	h.apiInit().
 		Put(fmt.Sprintf("/channels/%d/members/%d", ch.ID, h.cUser.ID)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	h.chAssertMember(ch, h.cUser, types.ChannelMembershipTypeMember)
+	h.repoChAssertMember(ch, h.cUser, types.ChannelMembershipTypeMember)
 }
 
 func TestChannelMemberLeaveSelf(t *testing.T) {
 	h := newHelper(t)
 
-	ch := h.makePublicCh()
-	h.makeMember(ch, h.cUser)
+	ch := h.repoMakePublicCh()
+	h.repoMakeMember(ch, h.cUser)
 
-	h.testAPI().
+	h.apiInit().
 		Delete(fmt.Sprintf("/channels/%d/members/%d", ch.ID, h.cUser.ID)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	h.chAssertNotMember(ch, h.cUser)
+	h.repoChAssertNotMember(ch, h.cUser)
 }
 
 func TestChannelMemberInvite(t *testing.T) {
 	t.SkipNow()
 
 	h := newHelper(t)
-	ch := h.makePublicCh()
+	ch := h.repoMakePublicCh()
 	h.allow(ch.PermissionResource(), "members.manage")
 
 	invitee := &sysType.User{ID: factory.Sonyflake.NextID()}
 
-	h.testAPI().
+	h.apiInit().
 		Put(fmt.Sprintf("/channels/%d/members/%d", ch.ID, invitee.ID)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	h.chAssertMember(ch, invitee, types.ChannelMembershipTypeInvitee)
+	h.repoChAssertMember(ch, invitee, types.ChannelMembershipTypeInvitee)
 }
