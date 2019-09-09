@@ -137,7 +137,7 @@ func (svc accessControl) CanEmbedMessage(ctx context.Context, ch *types.Channel)
 }
 
 func (svc accessControl) CanAttachMessage(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "message.attach", permissions.Allowed)
+	return svc.can(ctx, ch, "message.attach", svc.canSendMessagesFallback(ch))
 }
 
 func (svc accessControl) CanUpdateOwnMessages(ctx context.Context, ch *types.Channel) bool {
