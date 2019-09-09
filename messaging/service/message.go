@@ -390,10 +390,10 @@ func (svc message) Delete(messageID uint64) error {
 			if ch, err = svc.channel.FindByID(original.ChannelID); err != nil {
 				return
 			}
+
 			if original.UserID == currentUserID && !svc.ac.CanUpdateOwnMessages(svc.ctx, ch) {
 				return ErrNoPermissions.withStack()
-			}
-			if !svc.ac.CanUpdateMessages(svc.ctx, ch) {
+			} else if original.UserID != currentUserID && !svc.ac.CanUpdateMessages(svc.ctx, ch) {
 				return ErrNoPermissions.withStack()
 			}
 
