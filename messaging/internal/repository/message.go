@@ -190,9 +190,9 @@ func (r *message) Find(filter *types.MessageFilter) (types.MessageSet, error) {
 		sql += " AND id IN (SELECT rel_message FROM messaging_message_flag WHERE flag = ?) "
 
 		if filter.PinnedOnly {
-			params = append(params, types.MessageFlagBookmarkedMessage)
-		} else {
 			params = append(params, types.MessageFlagPinnedToChannel)
+		} else {
+			params = append(params, types.MessageFlagBookmarkedMessage)
 		}
 	}
 
