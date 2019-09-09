@@ -47,10 +47,31 @@ To run integration tests once:
 make test.integration
 ```
 
-For development, you can watch file-system changes (with `nodemon` utility) and rerun-tests everytime:
+For development, you can watch file-system changes (with `nodemon` utility) and 
+rerun-tests everytime:
 ```shell script
 make watch.test.integration
 ```
+
+This can be combined with any of the testing suits and flavours described below.
+
+## Testing suites:
+
+ - `all`: shared + services + integration
+ - `integration` integration tests (from API to the DB)
+ - `pkg`, `internal`: shared packages (ran as one)
+ - `messaging`, `system`, `compose`: services
+
+See `Makefile` internals for details.
+ 
+
+## Testing flavours
+
+ - `test.<suite>` runs simple tests on a specific suite
+ - `test.cover.<suite>` run tests with -cover and -covermode=$COVER_MODE
+ - `test.coverprofile.<suite>` run cover tests with -coverprofile=$COVER_PROFILE
+ 
+See `Makefile` internals for details.
 
 ## Environmental variables you can sue:
 
@@ -62,7 +83,7 @@ If you want some colors in your CLI, you can use [rakyll/gotest](https://github.
 GOTEST=$GOPATH/bin/gotest make watch.test.integration
 ```
 
-### Finetune test execution with `TEST_FLAGS`
+### Fine-tune test execution with `TEST_FLAGS`
 Examples:
  - `TEST_FLAGS="-v" make ....`
  - `TEST_FLAGS="-v -run testName" make ....`
