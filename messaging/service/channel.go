@@ -233,6 +233,10 @@ func (svc *channel) FindMembers(channelID uint64) (out types.ChannelMemberSet, e
 }
 
 func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
+	if !in.Type.IsValid() {
+		return nil, errors.Errorf("invalid channel type")
+	}
+
 	if len(in.Name) == 0 && in.Type != types.ChannelTypeGroup {
 		return nil, errors.New("channel name not provided")
 	}
