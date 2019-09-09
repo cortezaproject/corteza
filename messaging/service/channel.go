@@ -103,15 +103,23 @@ func (svc *channel) With(ctx context.Context) ChannelService {
 }
 
 func (svc *channel) FindByID(ID uint64) (ch *types.Channel, err error) {
-	ch, err = svc.channel.FindByID(ID)
-	if err != nil {
-		return
-	} else if err = svc.preloadExtras(types.ChannelSet{ch}); err != nil {
+	if ch, err = svc.findByID(ID); err != nil {
 		return
 	}
 
 	if !svc.ac.CanReadChannel(svc.ctx, ch) {
 		return nil, ErrNoPermissions.withStack()
+	}
+
+	return
+}
+
+func (svc *channel) findByID(ID uint64) (ch *types.Channel, err error) {
+	ch, err = svc.channel.FindByID(ID)
+	if err != nil {
+		return
+	} else if err = svc.preloadExtras(types.ChannelSet{ch}); err != nil {
+		return
 	}
 
 	return
@@ -467,7 +475,7 @@ func (svc *channel) Delete(ID uint64) (ch *types.Channel, err error) {
 	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
 
-		if ch, err = svc.FindByID(ID); err != nil {
+		if ch, err = svc.findByID(ID); err != nil {
 			return
 		}
 
@@ -505,7 +513,7 @@ func (svc *channel) Undelete(ID uint64) (ch *types.Channel, err error) {
 	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
 
-		if ch, err = svc.FindByID(ID); err != nil {
+		if ch, err = svc.findByID(ID); err != nil {
 			return
 		}
 
@@ -574,7 +582,7 @@ func (svc *channel) Archive(ID uint64) (ch *types.Channel, err error) {
 	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
 
-		if ch, err = svc.FindByID(ID); err != nil {
+		if ch, err = svc.findByID(ID); err != nil {
 			return
 		}
 
@@ -608,7 +616,7 @@ func (svc *channel) Unarchive(ID uint64) (ch *types.Channel, err error) {
 	return ch, svc.db.Transaction(func() (err error) {
 		var userID = repository.Identity(svc.ctx)
 
-		if ch, err = svc.FindByID(ID); err != nil {
+		if ch, err = svc.findByID(ID); err != nil {
 			return
 		}
 
