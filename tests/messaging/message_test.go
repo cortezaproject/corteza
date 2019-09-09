@@ -18,6 +18,14 @@ func (h helper) repoMessage() repository.MessageRepository {
 
 	return repository.Message(ctx, db)
 }
+func (h helper) repoMessageFlag() repository.MessageFlagRepository {
+	var (
+		ctx = context.Background()
+		db  = factory.Database.MustGet("messaging").With(ctx)
+	)
+
+	return repository.MessageFlag(ctx, db)
+}
 
 func (h helper) repoMakeMessage(msg string, ch *types.Channel, u *sysTypes.User) *types.Message {
 	m, err := h.repoMessage().Create(&types.Message{
@@ -35,4 +43,11 @@ func (h helper) repoMsgExistingLoad(ID uint64) *types.Message {
 	h.a.NoError(err)
 	h.a.NotNil(m)
 	return m
+}
+
+func (h helper) repoMsgFlagLoad(ID uint64) types.MessageFlagSet {
+	ff, err := h.repoMessageFlag().FindByMessageIDs(ID)
+	h.a.NoError(err)
+	h.a.NotNil(ff)
+	return ff
 }
