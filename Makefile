@@ -2,7 +2,7 @@
 
 GO        = go
 GOGET     = $(GO) get -u
-GOTEST    = go test
+GOTEST    ?= go test
 
 BASEPKGS = system compose messaging
 IMAGES   = corteza-server-system corteza-server-compose corteza-server-messaging corteza-server
@@ -12,8 +12,11 @@ IMAGES   = corteza-server-system corteza-server-compose corteza-server-messaging
 WATCH_DELAY ?= 1s
 
 # Run go test cmd with flags, eg:
-# $> TEST_FLAGS=-v make test.integration
-TEST_FLAGS  ?=
+# $> TEST_FLAGS="-v" make test.integration
+# $> TEST_FLAGS="-v -run SpecialTest" make test.integration
+TEST_FLAGS ?=
+
+TEST_INTEGRATION_COVER_PROFILE_OUT ?= .integration.cover.out
 
 ########################################################################################################################
 # Tool bins
@@ -77,12 +80,12 @@ mailhog.up:
 watch.test.integration: $(NODEMON)
 	# Development helper - watches for file
 	# changes & reruns integration tests
-	$(WATCHER) "make test.integration"
+	$(WATCHER) "make test.integration || exit 0"
 
 watch.test.integration.coverage: $(NODEMON)
 	# Development helper - watches for file
 	# changes & reruns integration tests
-	$(WATCHER) "make test.integration.coverage"
+	$(WATCHER) "make test.integration.coverage || exit 0"
 
 ########################################################################################################################
 # QA
@@ -90,16 +93,16 @@ watch.test.integration.coverage: $(NODEMON)
 ## refactored
 
 test.integration:
-	$(GO) test $(TEST_FLAGS) ./tests/...
+	$(GOTEST) $(TEST_FLAGS) ./tests/...
 
 test.integration.coverage:
-	$(GO) test $(TEST_FLAGS) -covermode=count -coverprofile=.integration.cover.out -coverpkg=./... ./tests/...
+	$(GOTEST) $(TEST_FLAGS) -covermode=count -coverprofile=$(TEST_INTEGRATION_COVER_PROFILE_OUT) -coverpkg=./... ./tests/...
 
 ## old:
 
 test:
 	# Run basic unit tests
-	$(GO) test ./pkg/... ./internal/... ./compose/... ./messaging/... ./system/...
+	$(GOTEST) ./pkg/... ./internal/... ./compose/... ./messaging/... ./system/...
 
 test-coverage:
 	overalls -project=github.com/cortezaproject/corteza-server -covermode=count -- -coverpkg=./... --tags=integration -p 1
