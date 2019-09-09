@@ -63,7 +63,6 @@ func (h helper) chAssertNotMember(ch *types.Channel, u *sysTypes.User) {
 	h.a.NoError(err)
 	h.a.NotNil(mm)
 	h.a.NotContains(mm.AllMemberIDs(), u.ID, "not expecting to find a member")
-
 }
 
 func (h helper) chAssertMember(ch *types.Channel, u *sysTypes.User, typ types.ChannelMembershipType) {
@@ -73,5 +72,4 @@ func (h helper) chAssertMember(ch *types.Channel, u *sysTypes.User, typ types.Ch
 	h.a.NotNil(mm)
 	h.a.NotNil(mm.FindByUserID(u.ID), "expecting to find a member")
 	h.a.Equal(typ, mm.FindByUserID(u.ID).Type, "expecting to find a member")
-
 }
