@@ -836,10 +836,9 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 				continue
 			}
 
-			if memberID == userID && !svc.ac.CanJoinChannel(svc.ctx, ch) {
+			if memberID == userID && !svc.ac.CanLeaveChannel(svc.ctx, ch) {
 				return ErrNoPermissions.withStack()
-			}
-			if !svc.ac.CanManageChannelMembers(svc.ctx, ch) {
+			} else if memberID != userID && !svc.ac.CanManageChannelMembers(svc.ctx, ch) {
 				return ErrNoPermissions.withStack()
 			}
 
