@@ -8,7 +8,7 @@ import (
 )
 
 type (
-	Assert func(*http.Response, *http.Request) error
+	assertFn func(*http.Response, *http.Request) error
 
 	StdErrorResponse struct{ Error struct{ Message string } }
 )
@@ -44,8 +44,28 @@ func firstErr(ee ...interface{}) error {
 	return nil
 }
 
-// Ensures there are no errors in the response
-func NoErrors(rsp *http.Response, _ *http.Request) (err error) {
+// AssertNoErrors ensures there are no errors in the response
+func AssertNoErrors(rsp *http.Response, _ *http.Request) (err error) {
 	tmp := StdErrorResponse{}
 	return firstErr(decodeBody(rsp, &tmp), tmp)
+}
+
+// AssertError ensures there are no errors in the response
+func AssertError(expectedError string) assertFn {
+	return func(rsp *http.Response, _ *http.Request) (err error) {
+		tmp := StdErrorResponse{}
+		if err = decodeBody(rsp, &tmp); err != nil {
+			return errors.Errorf("Could not decode body: %v", err)
+		}
+
+		if tmp.Error.Message == "" {
+			return errors.Errorf("No error, expecting: %v", expectedError)
+		}
+
+		if expectedError != tmp.Error.Message {
+			return errors.Errorf("Expecting error %v, got: %v", expectedError, tmp.Error.Message)
+		}
+
+		return nil
+	}
 }
