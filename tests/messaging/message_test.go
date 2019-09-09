@@ -1,0 +1,38 @@
+package messaging
+
+import (
+	"context"
+
+	"github.com/titpetric/factory"
+
+	"github.com/cortezaproject/corteza-server/messaging/repository"
+	"github.com/cortezaproject/corteza-server/messaging/types"
+	sysTypes "github.com/cortezaproject/corteza-server/system/types"
+)
+
+func (h helper) repoMessage() repository.MessageRepository {
+	var (
+		ctx = context.Background()
+		db  = factory.Database.MustGet("messaging").With(ctx)
+	)
+
+	return repository.Message(ctx, db)
+}
+
+func (h helper) makeMessage(msg string, ch *types.Channel, u *sysTypes.User) *types.Message {
+	m, err := h.repoMessage().Create(&types.Message{
+		Message:   msg,
+		ChannelID: ch.ID,
+		UserID:    u.ID,
+	})
+
+	h.a.NoError(err)
+	return m
+}
+
+func (h helper) msgExistingLoad(ID uint64) *types.Message {
+	m, err := h.repoMessage().FindByID(ID)
+	h.a.NoError(err)
+	h.a.NotNil(m)
+	return m
+}
