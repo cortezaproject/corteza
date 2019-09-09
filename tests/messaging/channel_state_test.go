@@ -12,7 +12,7 @@ import (
 
 func TestChannelAlterState(t *testing.T) {
 	h := newHelper(t)
-	ch := h.makePublicCh()
+	ch := h.repoMakePublicCh()
 
 	stateUrl := fmt.Sprintf("/channels/%d/state", ch.ID)
 
@@ -21,7 +21,7 @@ func TestChannelAlterState(t *testing.T) {
 		h.mockPermissionsWithAccess()
 		h.allow(types.ChannelPermissionResource.AppendWildcard(), permissions.Operation(state))
 
-		h.testAPI().
+		h.apiInit().
 			Put(stateUrl).
 			FormData("state", state).
 			Expect(t).

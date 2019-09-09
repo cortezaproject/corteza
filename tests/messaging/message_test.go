@@ -19,7 +19,7 @@ func (h helper) repoMessage() repository.MessageRepository {
 	return repository.Message(ctx, db)
 }
 
-func (h helper) makeMessage(msg string, ch *types.Channel, u *sysTypes.User) *types.Message {
+func (h helper) repoMakeMessage(msg string, ch *types.Channel, u *sysTypes.User) *types.Message {
 	m, err := h.repoMessage().Create(&types.Message{
 		Message:   msg,
 		ChannelID: ch.ID,
@@ -30,7 +30,7 @@ func (h helper) makeMessage(msg string, ch *types.Channel, u *sysTypes.User) *ty
 	return m
 }
 
-func (h helper) msgExistingLoad(ID uint64) *types.Message {
+func (h helper) repoMsgExistingLoad(ID uint64) *types.Message {
 	m, err := h.repoMessage().FindByID(ID)
 	h.a.NoError(err)
 	h.a.NotNil(m)

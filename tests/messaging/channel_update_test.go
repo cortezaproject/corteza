@@ -20,7 +20,7 @@ func (h helper) chUpdate(ch *request.ChannelUpdate) *apitest.Response {
 	payload, err := json.Marshal(ch)
 	h.a.NoError(err)
 
-	return h.testAPI().
+	return h.apiInit().
 		Put(fmt.Sprintf("/channels/%v", ch.ChannelID)).
 		JSON(string(payload)).
 		Expect(h.t).
@@ -55,7 +55,7 @@ func TestChannelUpdateNonexistent(t *testing.T) {
 
 func TestChannelUpdateDenied(t *testing.T) {
 	h := newHelper(t)
-	ch := h.makePublicCh()
+	ch := h.repoMakePublicCh()
 
 	h.deny(ch.PermissionResource(), "update")
 
@@ -69,7 +69,7 @@ func TestChannelUpdateDenied(t *testing.T) {
 
 func TestChannelUpdate(t *testing.T) {
 	h := newHelper(t)
-	ch := h.makePublicCh()
+	ch := h.repoMakePublicCh()
 
 	h.allow(ch.PermissionResource(), "update")
 

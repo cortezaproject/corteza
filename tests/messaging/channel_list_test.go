@@ -10,7 +10,7 @@ import (
 func TestChannelList(t *testing.T) {
 	h := newHelper(t)
 
-	h.testAPI().
+	h.apiInit().
 		Get("/channels/").
 		Expect(t).
 		Status(http.StatusOK).

@@ -119,7 +119,7 @@ func newHelper(t *testing.T) helper {
 }
 
 // apitest basics, initialize, set handler, add auth
-func (h helper) testAPI() *apitest.APITest {
+func (h helper) apiInit() *apitest.APITest {
 	InitApp()
 
 	return apitest.

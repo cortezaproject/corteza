@@ -12,7 +12,7 @@ import (
 
 func TestMessagesCreate(t *testing.T) {
 	h := newHelper(t)
-	ch := h.makePublicCh()
+	ch := h.repoMakePublicCh()
 
 	rval := struct {
 		Response struct {
@@ -20,7 +20,7 @@ func TestMessagesCreate(t *testing.T) {
 		}
 	}{}
 
-	h.testAPI().
+	h.apiInit().
 		Post(fmt.Sprintf("/channels/%d/messages/", ch.ID)).
 		JSON(`{"message":"new message"}`).
 		Expect(t).
@@ -31,7 +31,7 @@ func TestMessagesCreate(t *testing.T) {
 		End().
 		JSON(&rval)
 
-	m := h.msgExistingLoad(rval.Response.ID)
+	m := h.repoMsgExistingLoad(rval.Response.ID)
 	h.a.Equal(`new message`, m.Message)
 
 }

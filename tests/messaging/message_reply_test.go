@@ -12,7 +12,7 @@ import (
 
 func TestMessagesReply(t *testing.T) {
 	h := newHelper(t)
-	msg := h.makeMessage("old", h.makePublicCh(), h.cUser)
+	msg := h.repoMakeMessage("old", h.repoMakePublicCh(), h.cUser)
 
 	rval := struct {
 		Response struct {
@@ -20,8 +20,7 @@ func TestMessagesReply(t *testing.T) {
 		}
 	}{}
 
-	h.testAPI().
-		Debug().
+	h.apiInit().
 		Post(fmt.Sprintf("/channels/%d/messages/%d/replies", msg.ChannelID, msg.ID)).
 		JSON(`{"message":"new reply"}`).
 		Expect(t).
@@ -33,7 +32,7 @@ func TestMessagesReply(t *testing.T) {
 		End().
 		JSON(&rval)
 
-	m := h.msgExistingLoad(rval.Response.ID)
+	m := h.repoMsgExistingLoad(rval.Response.ID)
 	h.a.Equal(`new reply`, m.Message)
 	h.a.Equal(msg.ID, m.ReplyTo)
 

@@ -10,11 +10,10 @@ import (
 
 func TestMessagesDelete(t *testing.T) {
 	h := newHelper(t)
-	msg := h.makeMessage("old", h.makePublicCh(), h.cUser)
+	msg := h.repoMakeMessage("old", h.repoMakePublicCh(), h.cUser)
 
-	h.testAPI().
+	h.apiInit().
 		Delete(fmt.Sprintf("/channels/%d/messages/%d", msg.ChannelID, msg.ID)).
-		JSON(`{"message":"new"}`).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
