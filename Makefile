@@ -1,4 +1,4 @@
-.PHONY: help docker docker-push realize dep dep.update test test.messaging test.compose qa critic vet codegen integration
+.PHONY: help docker docker-push realize dep dep.update qa critic vet codegen integration
 
 GO        = go
 GOGET     = $(GO) get -u
@@ -6,6 +6,7 @@ GOTEST    ?= go test
 
 BASEPKGS = system compose messaging
 IMAGES   = corteza-server-system corteza-server-compose corteza-server-messaging corteza-server
+TESTABLE = messaging system compose pkg internal
 
 # Run watcher with a different event-trigger delay, eg:
 # $> WATCH_DELAY=5s make watch.test.integration
@@ -16,7 +17,24 @@ WATCH_DELAY ?= 1s
 # $> TEST_FLAGS="-v -run SpecialTest" make test.integration
 TEST_FLAGS ?=
 
-TEST_INTEGRATION_COVER_PROFILE_OUT ?= .integration.cover.out
+COVER_MODE    ?= count
+COVER_PROFILE ?= .cover.out
+COVER_FLAGS   ?= -covermode=$(COVER_MODE)  -coverprofile=$(COVER_PROFILE)
+
+# Cover package maps for tests tasks
+COVER_PKGS_messaging   = ./messaging/...
+COVER_PKGS_system      = ./system/...
+COVER_PKGS_compose     = ./compose/...
+COVER_PKGS_pkg         = ./pkg/...,./internal/...
+COVER_PKGS_all         = $(COVER_PKGS_pkg),$(COVER_PKGS_messaging),$(COVER_PKGS_system),$(COVER_PKGS_compose)
+COVER_PKGS_integration = $(COVER_PKGS_all)
+
+TEST_SUITE_pkg         = ./pkg/... ./internal/...
+TEST_SUITE_services    = ./compose/... ./messaging/... ./system/...
+TEST_SUITE_unit        = $(TEST_SUITE_pkg) $(TEST_SUITE_services)
+TEST_SUITE_integration = ./tests/...
+TEST_SUITE_all         = $(TEST_SUITE_unit) $(TEST_SUITE_integration)
+
 
 ########################################################################################################################
 # Tool bins
@@ -77,81 +95,60 @@ codegen: $(PROTOGEN)
 mailhog.up:
 	docker run --rm --publish 8025:8025 --publish 1025:1025 mailhog/mailhog
 
-watch.test.integration: $(NODEMON)
+watch.test.%: $(NODEMON)
 	# Development helper - watches for file
-	# changes & reruns integration tests
-	$(WATCHER) "make test.integration || exit 0"
-
-watch.test.integration.coverage: $(NODEMON)
-	# Development helper - watches for file
-	# changes & reruns integration tests
-	$(WATCHER) "make test.integration.coverage || exit 0"
+	# changes & reruns  tests
+	$(WATCHER) "make test.$* || exit 0"
 
 ########################################################################################################################
-# QA
+# Quality Assurance
 
-## refactored
+# Adds -coverprofile flag to test flags
+# and executes test.cover... task
+test.coverprofile.%:
+	@ TEST_FLAGS="$(TEST_FLAGS) -coverprofile=$(COVER_PROFILE)" make test.cover.$*
 
+# Adds -coverpkg flag
+test.cover.%:
+	@ TEST_FLAGS="$(TEST_FLAGS) -coverpkg=$(COVER_PKGS_$*)" make test.$*
+
+# Runs integration tests
 test.integration:
-	$(GOTEST) $(TEST_FLAGS) ./tests/...
+	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_integration)
 
-test.integration.coverage:
-	$(GOTEST) $(TEST_FLAGS) -covermode=count -coverprofile=$(TEST_INTEGRATION_COVER_PROFILE_OUT) -coverpkg=./... ./tests/...
+# Runs ALL tests
+test.all:
+	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_all)
 
-## old:
+# Runs ALL tests
+test.unit:
+	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_unit)
 
-test:
-	# Run basic unit tests
-	$(GOTEST) ./pkg/... ./internal/... ./compose/... ./messaging/... ./system/...
+# Testing pkg & internal as one
+# (we have plans to merge internal into pkg)
+test.pkg:
+	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_pkg)
 
-test-coverage:
-	overalls -project=github.com/cortezaproject/corteza-server -covermode=count -- -coverpkg=./... --tags=integration -p 1
-	mv overalls.coverprofile coverage.txt
+# Fallback untill we move internal to pkg (see test.pkg task)
+test.internal: test.pkg
 
-test.internal:
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/...
-	$(GO) tool cover -func=.cover.out
+# Testing messaging, system, compose
+test.%:
+	$(GOTEST) $(TEST_FLAGS) ./$*/...
 
-test.messaging:
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./messaging/...
-	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
+test: test.unit
 
-test.pubsub:
-	$(GOTEST) -run PubSubMemory -covermode count -coverprofile .cover.out -v ./messaging/repository/pubsub*.go ./messaging/repository/flags*.go ./messaging/repository/error*.go
-	perl -pi -e 's/command-line-arguments/.\/messaging\/internal\/repository/g' .cover.out
-	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
-
-test.events:
-	$(GOTEST) -run Events -covermode count -coverprofile .cover.out -v ./messaging/repository/events*.go ./messaging/repository/flags*.go ./messaging/repository/error*.go
-	perl -pi -e 's/command-line-arguments/.\/messaging\/internal\/repository/g' .cover.out
-	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
-
-test.compose:
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./compose/...
-	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
-
-test.system:
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./system/repository/... ./system/service/...
-	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
-
-test.mail:
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/mail/...
-	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
-
-test.store:
-	$(GOTEST) -covermode count -coverprofile .cover.out -v ./internal/store/...
-	$(GO) tool cover -func=.cover.out | grep --color "^\|[^0-9]0.0%"
-
+# Outputs cross-package imports that should not be there.
 test.cross-dep:
-	# Outputs cross-package imports that should not be there.
-	grep -rE "github.com/cortezaproject/corteza-server/(compose|messaging)/" system || exit 0
-	grep -rE "github.com/cortezaproject/corteza-server/(system|messaging)/" compose || exit 0
-	grep -rE "github.com/cortezaproject/corteza-server/(system|compose)/" messaging || exit 0
-	grep -rE "github.com/cortezaproject/corteza-server/(system|compose|messaging)/" pkg || exit 0
-	grep -rE "github.com/cortezaproject/corteza-server/(system|compose|messaging)/" internal || exit 0
+	@ grep -rE "github.com/cortezaproject/corteza-server/(compose|messaging)/" system || exit 0
+	@ grep -rE "github.com/cortezaproject/corteza-server/(system|messaging)/" compose || exit 0
+	@ grep -rE "github.com/cortezaproject/corteza-server/(system|compose)/" messaging || exit 0
+	@ grep -rE "github.com/cortezaproject/corteza-server/(system|compose|messaging)/" pkg || exit 0
+	@ grep -rE "github.com/cortezaproject/corteza-server/(system|compose|messaging)/" internal || exit 0
 
-integration:
-	# Run drone's integration pipeline
+# Drone tasks
+# Run drone's integration pipeline
+drone.integration:
 	rm -f build/gen*
 	drone exec --pipeline integration
 
