@@ -484,9 +484,12 @@
   version = "v1.3.0"
 
 [[projects]]
-  digest = "1:8548c309c65a85933a625be5e7d52b6ac927ca30c56869fae58123b8a77a75e1"
+  digest = "1:99d32780e5238c2621fff621123997c3e3cca96db8be13179013aea77dfab551"
   name = "github.com/stretchr/testify"
-  packages = ["assert"]
+  packages = [
+    "assert",
+    "require",
+  ]
   pruneopts = "UT"
   revision = "221dbe5ed46703ee255b1da0dec05086f5035f62"
   version = "v1.4.0"
@@ -774,6 +777,7 @@
     "github.com/goware/statik/fs",
     "github.com/jmoiron/sqlx",
     "github.com/jmoiron/sqlx/types",
+    "github.com/joho/godotenv",
     "github.com/joho/godotenv/autoload",
     "github.com/lann/builder",
     "github.com/markbates/goth",
@@ -790,6 +794,8 @@
     "github.com/spf13/cobra",
     "github.com/steinfletcher/apitest",
     "github.com/steinfletcher/apitest-jsonpath",
+    "github.com/stretchr/testify/assert",
+    "github.com/stretchr/testify/require",
     "github.com/titpetric/factory",
     "github.com/titpetric/factory/logger",
     "github.com/titpetric/factory/resputil",
