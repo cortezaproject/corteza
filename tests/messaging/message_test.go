@@ -3,28 +3,16 @@ package messaging
 import (
 	"context"
 
-	"github.com/titpetric/factory"
-
 	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 func (h helper) repoMessage() repository.MessageRepository {
-	var (
-		ctx = context.Background()
-		db  = factory.Database.MustGet("messaging").With(ctx)
-	)
-
-	return repository.Message(ctx, db)
+	return repository.Message(context.Background(), db())
 }
 func (h helper) repoMessageFlag() repository.MessageFlagRepository {
-	var (
-		ctx = context.Background()
-		db  = factory.Database.MustGet("messaging").With(ctx)
-	)
-
-	return repository.MessageFlag(ctx, db)
+	return repository.MessageFlag(context.Background(), db())
 }
 
 func (h helper) repoMakeMessage(msg string, ch *types.Channel, u *sysTypes.User) *types.Message {
