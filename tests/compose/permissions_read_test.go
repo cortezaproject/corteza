@@ -1,19 +1,19 @@
-package messaging
+package compose
 
 import (
 	"fmt"
 	"net/http"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 )
 
 func TestPermissionsRead(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.MessagingPermissionResource, "access")
-	h.allow(types.MessagingPermissionResource, "grant")
-	h.deny(types.MessagingPermissionResource, "channel.group.create")
+	h.allow(types.ComposePermissionResource, "access")
+	h.allow(types.ComposePermissionResource, "grant")
+	h.deny(types.ComposePermissionResource, "namespace.create")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/permissions/%d/rules", h.roleID)).

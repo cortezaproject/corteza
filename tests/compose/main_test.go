@@ -1,4 +1,4 @@
-package messaging
+package compose
 
 import (
 	"context"
@@ -14,15 +14,15 @@ import (
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
 
+	"github.com/cortezaproject/corteza-server/compose"
+	migrate "github.com/cortezaproject/corteza-server/compose/db"
+	"github.com/cortezaproject/corteza-server/compose/rest"
+	"github.com/cortezaproject/corteza-server/compose/service"
+	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/internal/rand"
 	"github.com/cortezaproject/corteza-server/internal/store"
-	"github.com/cortezaproject/corteza-server/messaging"
-	migrate "github.com/cortezaproject/corteza-server/messaging/db"
-	"github.com/cortezaproject/corteza-server/messaging/rest"
-	"github.com/cortezaproject/corteza-server/messaging/service"
-	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
@@ -58,7 +58,7 @@ func InitConfig() {
 	ctx := context.Background()
 	log, _ := zap.NewDevelopment()
 
-	cfg = messaging.Configure()
+	cfg = compose.Configure()
 	cfg.Log = log
 
 	cfg.Init()
@@ -67,15 +67,16 @@ func InitConfig() {
 
 	if err = cfg.RootCommandDBSetup.Run(ctx, nil, cfg); err != nil {
 		panic(err)
+	} else if err := migrate.Migrate(factory.Database.MustGet("compose"), log); err != nil {
+		panic(err)
 	}
 
 	logger.SetDefault(log)
 	service.DefaultPermissions = p
 	if service.DefaultStore, err = store.NewWithAfero(afero.NewMemMapFs(), "test"); err != nil {
 		panic(err)
-	} else if err := migrate.Migrate(factory.Database.MustGet("messaging"), log); err != nil {
-		panic(err)
 	}
+
 	cfg.InitServices(ctx, cfg)
 }
 
@@ -136,11 +137,11 @@ func (h helper) mockPermissions(rules ...*permissions.Rule) {
 	))
 }
 
-// Prepends allow access rule for messaging service for everyone
+// Prepends allow access rule for compose service for everyone
 func (h helper) mockPermissionsWithAccess(rules ...*permissions.Rule) {
 	rules = append(
 		rules,
-		permissions.AllowRule(permissions.EveryoneRoleID, types.MessagingPermissionResource, "access"),
+		permissions.AllowRule(permissions.EveryoneRoleID, types.ComposePermissionResource, "access"),
 	)
 
 	h.mockPermissions(rules...)
