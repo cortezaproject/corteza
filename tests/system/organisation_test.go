@@ -121,7 +121,7 @@ func TestOrganisationUpdate(t *testing.T) {
 	a, err := h.repoOrganisation().FindByID(a.ID)
 	h.a.NoError(err)
 	h.a.NotNil(a)
-	h.a.Equal(a.Name, "changed-name")
+	h.a.Equal("changed-name", a.Name)
 }
 
 func TestOrganisationDeleteForbidden(t *testing.T) {

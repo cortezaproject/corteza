@@ -109,7 +109,7 @@ func TestApplicationUpdate(t *testing.T) {
 	a, err := h.repoApplication().FindByID(a.ID)
 	h.a.NoError(err)
 	h.a.NotNil(a)
-	h.a.Equal(a.Name, "changed-name")
+	h.a.Equal("changed-name", a.Name)
 }
 
 func TestApplicationDeleteForbidden(t *testing.T) {
