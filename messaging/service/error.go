@@ -9,8 +9,9 @@ type (
 )
 
 const (
-	ErrInvalidID     serviceError = "InvalidID"
-	ErrNoPermissions serviceError = "NoPermissions"
+	ErrInvalidID          serviceError = "InvalidID"
+	ErrNoPermissions      serviceError = "NoPermissions"
+	ErrNoGrantPermissions serviceError = "NoGrantPermissions"
 )
 
 func (e serviceError) Error() string {

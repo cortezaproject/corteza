@@ -11,6 +11,7 @@ type (
 const (
 	ErrInvalidID                      serviceError = "InvalidID"
 	ErrStaleData                      serviceError = "StaleData"
+	ErrNoPermissions                  serviceError = "NoPermissions"
 	ErrNoGrantPermissions             serviceError = "NoGrantPermissions"
 	ErrNoCreatePermissions            serviceError = "NoCreatePermissions"
 	ErrNoReadPermissions              serviceError = "NoReadPermissions"

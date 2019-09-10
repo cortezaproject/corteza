@@ -1,4 +1,4 @@
-package messaging
+package system
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/internal/permissions"
-	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 )
 
@@ -14,7 +14,7 @@ func TestPermissionsDelete(t *testing.T) {
 	h := newHelper(t)
 
 	// Make sure our user can grant
-	h.allow(types.MessagingPermissionResource, "grant")
+	h.allow(types.SystemPermissionResource, "grant")
 
 	// New role.
 	permDelRole := h.roleID + 1
@@ -23,9 +23,9 @@ func TestPermissionsDelete(t *testing.T) {
 
 	// Setup a few fake rules for new roke
 	h.mockPermissions(
-		permissions.AllowRule(permDelRole, types.MessagingPermissionResource, "access"),
-		permissions.DenyRule(permDelRole, types.MessagingPermissionResource, "channel.group.create"),
-		permissions.DenyRule(permDelRole, types.MessagingPermissionResource, "channel.private.create"),
+		permissions.AllowRule(permDelRole, types.SystemPermissionResource, "access"),
+		permissions.DenyRule(permDelRole, types.SystemPermissionResource, "application.create"),
+		permissions.DenyRule(permDelRole, types.SystemPermissionResource, "user.create"),
 	)
 
 	h.a.Len(p.FindRulesByRoleID(permDelRole), 3)
