@@ -46,6 +46,10 @@ var (
 	p   = permissions.NewTestService()
 )
 
+func db() *factory.DB {
+	return factory.Database.MustGet("messaging").With(context.Background())
+}
+
 func InitConfig() {
 	var err error
 

@@ -4,29 +4,17 @@ import (
 	"context"
 	"time"
 
-	"github.com/titpetric/factory"
-
 	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 func (h helper) repoChannel() repository.ChannelRepository {
-	var (
-		ctx = context.Background()
-		db  = factory.Database.MustGet("messaging").With(ctx)
-	)
-
-	return repository.Channel(ctx, db)
+	return repository.Channel(context.Background(), db())
 }
 
 func (h helper) repoChMember() repository.ChannelMemberRepository {
-	var (
-		ctx = context.Background()
-		db  = factory.Database.MustGet("messaging").With(ctx)
-	)
-
-	return repository.ChannelMember(ctx, db)
+	return repository.ChannelMember(context.Background(), db())
 }
 
 func (h helper) repoMakePublicCh() *types.Channel {
