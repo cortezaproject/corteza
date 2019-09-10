@@ -35,12 +35,12 @@ func (svc accessControl) Effective(ctx context.Context) (ee permissions.Effectiv
 	ee = permissions.EffectiveSet{}
 
 	ee.Push(types.SystemPermissionResource, "access", svc.CanAccess(ctx))
+	ee.Push(types.SystemPermissionResource, "grant", svc.CanGrant(ctx))
 	ee.Push(types.SystemPermissionResource, "settings.read", svc.CanReadSettings(ctx))
 	ee.Push(types.SystemPermissionResource, "settings.manage", svc.CanManageSettings(ctx))
 	ee.Push(types.SystemPermissionResource, "application.create", svc.CanCreateApplication(ctx))
 	ee.Push(types.SystemPermissionResource, "role.create", svc.CanCreateRole(ctx))
 	ee.Push(types.SystemPermissionResource, "organisation.create", svc.CanCreateOrganisation(ctx))
-	ee.Push(types.SystemPermissionResource, "grant", svc.CanCreateRole(ctx))
 
 	return
 }
@@ -151,7 +151,7 @@ func (svc accessControl) can(ctx context.Context, res permissionResource, op per
 
 func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {
 	if !svc.CanGrant(ctx) {
-		return ErrNoPermissions
+		return ErrNoGrantPermissions
 	}
 
 	return svc.permissions.Grant(ctx, svc.Whitelist(), rr...)

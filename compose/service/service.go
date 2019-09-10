@@ -30,6 +30,8 @@ type (
 )
 
 var (
+	DefaultStore store.Store
+
 	DefaultLogger *zap.Logger
 
 	// DefaultPermissions Retrieves & stores permissions
@@ -64,19 +66,23 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 
 	DefaultLogger = log.Named("service")
 
-	fs, err := store.New(c.Storage.Path)
-	log.Info("initializing store", zap.String("path", c.Storage.Path), zap.Error(err))
-	if err != nil {
-		return err
+	if DefaultStore == nil {
+		DefaultStore, err = store.New(c.Storage.Path)
+		log.Info("initializing store", zap.String("path", c.Storage.Path), zap.Error(err))
+		if err != nil {
+			return err
+		}
 	}
 
 	// Permissions, access control
-	DefaultPermissions = permissions.Service(
-		ctx,
-		DefaultLogger,
-		permissions.Repository(db, "compose_permission_rules"))
-
+	if DefaultPermissions == nil {
+		DefaultPermissions = permissions.Service(
+			ctx,
+			DefaultLogger,
+			permissions.Repository(db, "compose_permission_rules"))
+	}
 	DefaultAccessControl = AccessControl(DefaultPermissions)
+
 	DefaultNamespace = Namespace()
 	DefaultModule = Module()
 

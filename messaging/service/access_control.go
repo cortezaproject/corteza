@@ -215,6 +215,10 @@ func (svc accessControl) can(ctx context.Context, res permissionResource, op per
 }
 
 func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {
+	if !svc.CanGrant(ctx) {
+		return ErrNoGrantPermissions
+	}
+
 	return svc.permissions.Grant(ctx, svc.Whitelist(), rr...)
 }
 
