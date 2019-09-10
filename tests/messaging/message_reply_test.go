@@ -48,7 +48,6 @@ func TestMessagesReply(t *testing.T) {
 	h.a.Equal(msg.Replies, uint(3))
 
 	h.apiInit().
-		Debug().
 		Get("/search/threads").
 		Query("channelID", fmt.Sprintf("%d", msg.ChannelID)).
 		Expect(t).
