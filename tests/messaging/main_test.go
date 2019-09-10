@@ -71,15 +71,16 @@ func InitConfig() {
 
 	if err = cfg.RootCommandDBSetup.Run(ctx, nil, cfg); err != nil {
 		panic(err)
+	} else if err := migrate.Migrate(factory.Database.MustGet("messaging"), log); err != nil {
+		panic(err)
 	}
 
 	logger.SetDefault(log)
 	service.DefaultPermissions = p
 	if service.DefaultStore, err = store.NewWithAfero(afero.NewMemMapFs(), "test"); err != nil {
 		panic(err)
-	} else if err := migrate.Migrate(factory.Database.MustGet("messaging"), log); err != nil {
-		panic(err)
 	}
+
 	cfg.InitServices(ctx, cfg)
 }
 
