@@ -11,6 +11,11 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
+const (
+	ErrRoleNameNotUnique   = serviceError("RoleNameNotUnique")
+	ErrRoleHandleNotUnique = serviceError("RoleHandleNotUnique")
+)
+
 type (
 	role struct {
 		db     *factory.DB
@@ -123,7 +128,7 @@ func (svc role) FindByHandle(handle string) (*types.Role, error) {
 
 func (svc role) Create(mod *types.Role) (t *types.Role, err error) {
 	if !svc.ac.CanCreateRole(svc.ctx) {
-		return nil, ErrNoPermissions.withStack()
+		return nil, ErrNoCreatePermissions.withStack()
 	}
 
 	return t, svc.db.Transaction(func() (err error) {
@@ -142,7 +147,7 @@ func (svc role) Update(mod *types.Role) (t *types.Role, err error) {
 	}
 
 	if !svc.ac.CanUpdateRole(svc.ctx, mod) {
-		return nil, ErrNoPermissions.withStack()
+		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
 	// @todo: make sure archived & deleted entries can not be edited
@@ -171,19 +176,38 @@ func (svc role) Update(mod *types.Role) (t *types.Role, err error) {
 func (svc role) UniqueCheck(r *types.Role) (err error) {
 	var (
 		e *types.Role
+
+		checks = []struct {
+			query string
+			find  func(string) (*types.Role, error)
+			err   error
+		}{
+			// Checking scenario:
+			// if email/username/handle is found on another user, error is thrown
+			{r.Name, svc.FindByName, ErrRoleNameNotUnique},
+			{r.Handle, svc.FindByHandle, ErrRoleHandleNotUnique},
+		}
 	)
 
-	if e, _ = svc.FindByName(r.Name); e != nil && e.ID != r.ID {
-		return ErrUserUsernameNotUnque
-	}
+	for _, c := range checks {
+		if c.query == "" {
+			// Skip empty values
+			continue
+		}
 
-	if r.Handle != "" {
-		if e, _ = svc.FindByHandle(r.Handle); e != nil && e.ID != r.ID {
-			err = ErrUserHandleNotUnique
+		e, err = c.find(c.query)
+		if err == repository.ErrRoleNotFound {
+			// User not found, proceed to next check
+			continue
+		}
+
+		if e.ID > 0 && e.ID != r.ID {
+			// User found, throw configured error
+			return c.err
 		}
 	}
 
-	return
+	return nil
 }
 
 func (svc role) Delete(roleID uint64) error {

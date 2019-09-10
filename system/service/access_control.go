@@ -66,7 +66,7 @@ func (svc accessControl) CanCreateOrganisation(ctx context.Context) bool {
 }
 
 func (svc accessControl) CanCreateUser(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemPermissionResource, "user.create", permissions.Allowed)
+	return svc.can(ctx, types.SystemPermissionResource, "user.create")
 }
 
 func (svc accessControl) CanCreateRole(ctx context.Context) bool {
