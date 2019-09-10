@@ -58,48 +58,48 @@ func (svc organisation) With(ctx context.Context) OrganisationService {
 
 func (svc organisation) FindByID(id uint64) (*types.Organisation, error) {
 	// @todo: permission check if current user can read organisation
-	return svc.rpo.FindOrganisationByID(id)
+	return svc.rpo.FindByID(id)
 }
 
 func (svc organisation) Find(filter *types.OrganisationFilter) ([]*types.Organisation, error) {
 	// @todo: permission check to return only organisations that organisation has access to
 	// @todo: actual searching not just a full select
-	return svc.rpo.FindOrganisations(filter)
+	return svc.rpo.Find(filter)
 }
 
 func (svc organisation) Create(mod *types.Organisation) (*types.Organisation, error) {
 	// @todo: permission check if current user can add/edit organisation
 	// @todo: make sure archived & deleted entries can not be edited
 
-	return svc.rpo.CreateOrganisation(mod)
+	return svc.rpo.Create(mod)
 }
 
 func (svc organisation) Update(mod *types.Organisation) (*types.Organisation, error) {
 	// @todo: permission check if current user can add/edit organisation
 	// @todo: make sure archived & deleted entries can not be edited
 
-	return svc.rpo.UpdateOrganisation(mod)
+	return svc.rpo.Update(mod)
 }
 
 func (svc organisation) Delete(id uint64) error {
 	// @todo: permissions check if current user can remove organisation
 	// @todo: make history unavailable
 	// @todo: notify users that organisation has been removed (remove from web UI)
-	return svc.rpo.DeleteOrganisationByID(id)
+	return svc.rpo.DeleteByID(id)
 }
 
 func (svc organisation) Archive(id uint64) error {
 	// @todo: make history unavailable
 	// @todo: notify users that organisation has been removed (remove from web UI)
 	// @todo: permissions check if current user can archive organisation
-	return svc.rpo.ArchiveOrganisationByID(id)
+	return svc.rpo.ArchiveByID(id)
 }
 
 func (svc organisation) Unarchive(id uint64) error {
 	// @todo: make history unavailable
 	// @todo: notify users that organisation has been removed (remove from web UI)
 	// @todo: permissions check if current user can unarchive organisation
-	return svc.rpo.UnarchiveOrganisationByID(id)
+	return svc.rpo.UnarchiveByID(id)
 }
 
 var _ OrganisationService = &organisation{}

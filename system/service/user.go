@@ -17,9 +17,9 @@ import (
 
 const (
 	ErrUserInvalidCredentials = serviceError("UserInvalidCredentials")
-	ErrUserHandleNotUnique    = serviceError("HandleNotUnique")
-	ErrUserUsernameNotUnque   = serviceError("UsernameNotUnque")
-	ErrUserEmailNotUnique     = serviceError("EmailNotUnique")
+	ErrUserHandleNotUnique    = serviceError("UserHandleNotUnique")
+	ErrUserUsernameNotUnique  = serviceError("UserUsernameNotUnique")
+	ErrUserEmailNotUnique     = serviceError("UserEmailNotUnique")
 	ErrUserLocked             = serviceError("UserLocked")
 )
 
@@ -145,7 +145,7 @@ func (svc user) Find(f types.UserFilter) (types.UserSet, types.UserFilter, error
 
 func (svc user) Create(input *types.User) (out *types.User, err error) {
 	if !svc.ac.CanCreateUser(svc.ctx) {
-		return nil, ErrNoPermissions.withStack()
+		return nil, ErrNoCreatePermissions.withStack()
 	}
 
 	return out, svc.db.Transaction(func() (err error) {
@@ -172,8 +172,10 @@ func (svc user) Update(mod *types.User) (u *types.User, err error) {
 		return
 	}
 
-	if mod.ID != internalAuth.GetIdentityFromContext(svc.ctx).Identity() && !svc.ac.CanUpdateUser(svc.ctx, u) {
-		return nil, ErrNoPermissions.withStack()
+	if mod.ID != internalAuth.GetIdentityFromContext(svc.ctx).Identity() {
+		if !svc.ac.CanUpdateUser(svc.ctx, u) {
+			return nil, ErrNoUpdatePermissions.withStack()
+		}
 	}
 
 	// Assign changed values
@@ -196,25 +198,39 @@ func (svc user) Update(mod *types.User) (u *types.User, err error) {
 func (svc user) UniqueCheck(u *types.User) (err error) {
 	var (
 		e *types.User
+
+		checks = []struct {
+			query string
+			find  func(string) (*types.User, error)
+			err   error
+		}{
+			// Checking scenario:
+			// if email/username/handle is found on another user, error is thrown
+			{u.Email, svc.FindByEmail, ErrUserEmailNotUnique},
+			{u.Username, svc.FindByUsername, ErrUserUsernameNotUnique},
+			{u.Handle, svc.FindByHandle, ErrUserHandleNotUnique},
+		}
 	)
 
-	if e, _ = svc.FindByEmail(u.Email); e != nil && e.ID != u.ID {
-		err = ErrUserEmailNotUnique
-	}
+	for _, c := range checks {
+		if c.query == "" {
+			// Skip empty values
+			continue
+		}
 
-	if u.Username != "" {
-		if e, _ = svc.FindByUsername(u.Username); e != nil && e.ID != u.ID {
-			return ErrUserUsernameNotUnque
+		e, err = c.find(c.query)
+		if err == repository.ErrUserNotFound {
+			// User not found, proceed to next check
+			continue
+		}
+
+		if e.ID > 0 && e.ID != u.ID {
+			// User found, throw configured error
+			return c.err
 		}
 	}
 
-	if u.Handle != "" {
-		if e, _ = svc.FindByHandle(u.Handle); e != nil && e.ID != u.ID {
-			err = ErrUserHandleNotUnique
-		}
-	}
-
-	return
+	return nil
 }
 
 func (svc user) UpdateWithAvatar(mod *types.User, avatar io.Reader) (out *types.User, err error) {

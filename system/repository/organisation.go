@@ -13,13 +13,13 @@ type (
 	OrganisationRepository interface {
 		With(ctx context.Context, db *factory.DB) OrganisationRepository
 
-		FindOrganisationByID(id uint64) (*types.Organisation, error)
-		FindOrganisations(filter *types.OrganisationFilter) ([]*types.Organisation, error)
-		CreateOrganisation(mod *types.Organisation) (*types.Organisation, error)
-		UpdateOrganisation(mod *types.Organisation) (*types.Organisation, error)
-		ArchiveOrganisationByID(id uint64) error
-		UnarchiveOrganisationByID(id uint64) error
-		DeleteOrganisationByID(id uint64) error
+		FindByID(id uint64) (*types.Organisation, error)
+		Find(filter *types.OrganisationFilter) ([]*types.Organisation, error)
+		Create(mod *types.Organisation) (*types.Organisation, error)
+		Update(mod *types.Organisation) (*types.Organisation, error)
+		ArchiveByID(id uint64) error
+		UnarchiveByID(id uint64) error
+		DeleteByID(id uint64) error
 	}
 
 	organisation struct {
@@ -48,14 +48,14 @@ func (r *organisation) With(ctx context.Context, db *factory.DB) OrganisationRep
 	}
 }
 
-func (r *organisation) FindOrganisationByID(id uint64) (*types.Organisation, error) {
+func (r *organisation) FindByID(id uint64) (*types.Organisation, error) {
 	sql := "SELECT * FROM " + r.organisations + " WHERE id = ? AND " + sqlOrganisationScope
 	mod := &types.Organisation{}
 
 	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrOrganisationNotFound)
 }
 
-func (r *organisation) FindOrganisations(filter *types.OrganisationFilter) ([]*types.Organisation, error) {
+func (r *organisation) Find(filter *types.OrganisationFilter) ([]*types.Organisation, error) {
 	rval := make([]*types.Organisation, 0)
 	params := make([]interface{}, 0)
 	sql := "SELECT * FROM " + r.organisations + " WHERE " + sqlOrganisationScope
@@ -72,27 +72,27 @@ func (r *organisation) FindOrganisations(filter *types.OrganisationFilter) ([]*t
 	return rval, r.db().Select(&rval, sql, params...)
 }
 
-func (r *organisation) CreateOrganisation(mod *types.Organisation) (*types.Organisation, error) {
+func (r *organisation) Create(mod *types.Organisation) (*types.Organisation, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
 	return mod, r.db().Insert(r.organisations, mod)
 }
 
-func (r *organisation) UpdateOrganisation(mod *types.Organisation) (*types.Organisation, error) {
+func (r *organisation) Update(mod *types.Organisation) (*types.Organisation, error) {
 	mod.UpdatedAt = timeNowPtr()
 
 	return mod, r.db().Replace(r.organisations, mod)
 }
 
-func (r *organisation) ArchiveOrganisationByID(id uint64) error {
+func (r *organisation) ArchiveByID(id uint64) error {
 	return r.updateColumnByID(r.organisations, "archived_at", time.Now(), id)
 }
 
-func (r *organisation) UnarchiveOrganisationByID(id uint64) error {
+func (r *organisation) UnarchiveByID(id uint64) error {
 	return r.updateColumnByID(r.organisations, "archived_at", nil, id)
 }
 
-func (r *organisation) DeleteOrganisationByID(id uint64) error {
+func (r *organisation) DeleteByID(id uint64) error {
 	return r.updateColumnByID(r.organisations, "deleted_at", time.Now(), id)
 }
