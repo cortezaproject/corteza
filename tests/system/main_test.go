@@ -20,6 +20,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/system"
+	migrate "github.com/cortezaproject/corteza-server/system/db"
 	"github.com/cortezaproject/corteza-server/system/rest"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -42,6 +43,10 @@ var (
 	p   = permissions.NewTestService()
 )
 
+func db() *factory.DB {
+	return factory.Database.MustGet("system").With(context.Background())
+}
+
 func InitConfig() {
 	var err error
 
@@ -62,6 +67,8 @@ func InitConfig() {
 	auth.SetupDefault(string(rand.Bytes(32)), 10)
 
 	if err = cfg.RootCommandDBSetup.Run(ctx, nil, cfg); err != nil {
+		panic(err)
+	} else if err := migrate.Migrate(factory.Database.MustGet("system"), log); err != nil {
 		panic(err)
 	}
 
@@ -106,11 +113,7 @@ func newHelper(t *testing.T) helper {
 	h.cUser.SetRoles([]uint64{h.roleID})
 
 	p.ClearGrants()
-
-	// Setup permissions with allowed access to system
-	h.mockPermissions(
-		permissions.AllowRule(permissions.EveryoneRoleID, types.SystemPermissionResource, "access"),
-	)
+	h.mockPermissionsWithAccess()
 
 	return h
 }
@@ -133,6 +136,16 @@ func (h helper) mockPermissions(rules ...*permissions.Rule) {
 		service.DefaultAccessControl.Whitelist(),
 		rules...,
 	))
+}
+
+// Prepends allow access rule for messaging service for everyone
+func (h helper) mockPermissionsWithAccess(rules ...*permissions.Rule) {
+	rules = append(
+		rules,
+		permissions.AllowRule(permissions.EveryoneRoleID, types.SystemPermissionResource, "access"),
+	)
+
+	h.mockPermissions(rules...)
 }
 
 // Set allow permision for test role

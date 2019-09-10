@@ -141,7 +141,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultPage = Page()
 	DefaultChart = Chart()
 	DefaultNotification = Notification()
-	DefaultAttachment = Attachment(fs)
+	DefaultAttachment = Attachment(DefaultStore)
 
 	return nil
 }
