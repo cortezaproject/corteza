@@ -98,7 +98,6 @@ func TestChartUpdateForbidden(t *testing.T) {
 	m := h.repoMakeChart(ns, "some-chart")
 
 	h.apiInit().
-		Debug().
 		Post(fmt.Sprintf("/namespace/%d/chart/%d", ns.ID, m.ID)).
 		FormData("name", "changed-name").
 		Expect(t).

@@ -98,7 +98,6 @@ func TestModuleUpdateForbidden(t *testing.T) {
 	m := h.repoMakeModule(ns, "some-module")
 
 	h.apiInit().
-		Debug().
 		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
 		FormData("name", "changed-name").
 		Expect(t).

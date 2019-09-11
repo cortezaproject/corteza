@@ -102,7 +102,6 @@ func TestRoleUpdate(t *testing.T) {
 	newName := "updated-" + string(rand.Bytes(10))
 
 	h.apiInit().
-		Debug().
 		Put(fmt.Sprintf("/roles/%d", u.ID)).
 		FormData("name", newName).
 		Expect(t).

@@ -106,7 +106,6 @@ func TestUserUpdate(t *testing.T) {
 	newEmail := "updated-" + u.Email
 
 	h.apiInit().
-		Debug().
 		Put(fmt.Sprintf("/users/%d", u.ID)).
 		FormData("email", newEmail).
 		Expect(t).
