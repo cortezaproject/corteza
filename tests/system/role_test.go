@@ -75,6 +75,7 @@ func TestRoleCreate(t *testing.T) {
 	h.apiInit().
 		Post("/roles/").
 		FormData("name", string(rand.Bytes(10))).
+		FormData("handle", string(rand.Bytes(10))).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -100,10 +101,12 @@ func TestRoleUpdate(t *testing.T) {
 	h.allow(types.RolePermissionResource.AppendWildcard(), "update")
 
 	newName := "updated-" + string(rand.Bytes(10))
+	newHandle := "updated-" + string(rand.Bytes(10))
 
 	h.apiInit().
 		Put(fmt.Sprintf("/roles/%d", u.ID)).
 		FormData("name", newName).
+		FormData("handle", newHandle).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -113,6 +116,7 @@ func TestRoleUpdate(t *testing.T) {
 	h.a.NoError(err)
 	h.a.NotNil(u)
 	h.a.Equal(newName, u.Name)
+	h.a.Equal(newHandle, u.Handle)
 }
 
 func TestRoleDeleteForbidden(t *testing.T) {

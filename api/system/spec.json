@@ -466,6 +466,12 @@
               "title": "Name of Role"
             },
             {
+              "type": "string",
+              "name": "handle",
+              "required": true,
+              "title": "Handle for Role"
+            },
+            {
               "type": "[]string",
               "name": "members",
               "required": false,
@@ -494,6 +500,12 @@
               "name": "name",
               "required": false,
               "title": "Name of Role"
+            },
+            {
+              "type": "string",
+              "name": "handle",
+              "required": false,
+              "title": "Handle for Role"
             },
             {
               "type": "[]string",
