@@ -396,6 +396,10 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 		return
 	}
 
+	if !svc.ac.CanDeleteRecord(svc.ctx, m) {
+		return ErrNoDeletePermissions.withStack()
+	}
+
 	if err = svc.sr.BeforeRecordCreate(svc.ctx, ns, m, r); err != nil {
 		// Calling
 		return
