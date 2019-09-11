@@ -734,6 +734,7 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | name | string | POST | Name of Role | N/A | YES |
+| handle | string | POST | Handle for Role | N/A | YES |
 | members | []string | POST | Role member IDs | N/A | NO |
 
 ## Update role details
@@ -750,6 +751,7 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | roleID | uint64 | PATH | Role ID | N/A | YES |
 | name | string | POST | Name of Role | N/A | NO |
+| handle | string | POST | Handle for Role | N/A | NO |
 | members | []string | POST | Role member IDs | N/A | NO |
 
 ## Read role details and memberships

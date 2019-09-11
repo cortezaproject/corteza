@@ -86,6 +86,7 @@ var _ RequestFiller = NewRoleList()
 // Role create request parameters
 type RoleCreate struct {
 	Name    string
+	Handle  string
 	Members []string
 }
 
@@ -97,6 +98,7 @@ func (r RoleCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["name"] = r.Name
+	out["handle"] = r.Handle
 	out["members"] = r.Members
 
 	return out
@@ -132,6 +134,9 @@ func (r *RoleCreate) Fill(req *http.Request) (err error) {
 	if val, ok := post["name"]; ok {
 		r.Name = val
 	}
+	if val, ok := post["handle"]; ok {
+		r.Handle = val
+	}
 
 	if val, ok := req.Form["members"]; ok {
 		r.Members = parseStrings(val)
@@ -146,6 +151,7 @@ var _ RequestFiller = NewRoleCreate()
 type RoleUpdate struct {
 	RoleID  uint64 `json:",string"`
 	Name    string
+	Handle  string
 	Members []string
 }
 
@@ -158,6 +164,7 @@ func (r RoleUpdate) Auditable() map[string]interface{} {
 
 	out["roleID"] = r.RoleID
 	out["name"] = r.Name
+	out["handle"] = r.Handle
 	out["members"] = r.Members
 
 	return out
@@ -193,6 +200,9 @@ func (r *RoleUpdate) Fill(req *http.Request) (err error) {
 	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 	if val, ok := post["name"]; ok {
 		r.Name = val
+	}
+	if val, ok := post["handle"]; ok {
+		r.Handle = val
 	}
 
 	if val, ok := req.Form["members"]; ok {

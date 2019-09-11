@@ -38,7 +38,8 @@ func (ctrl *Role) List(ctx context.Context, r *request.RoleList) (interface{}, e
 
 func (ctrl *Role) Create(ctx context.Context, r *request.RoleCreate) (interface{}, error) {
 	role := &types.Role{
-		Name: r.Name,
+		Name:   r.Name,
+		Handle: r.Handle,
 	}
 
 	role, err := ctrl.svc.role.With(ctx).Create(role)
@@ -57,8 +58,9 @@ func (ctrl *Role) Create(ctx context.Context, r *request.RoleCreate) (interface{
 
 func (ctrl *Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{}, error) {
 	role := &types.Role{
-		ID:   r.RoleID,
-		Name: r.Name,
+		ID:     r.RoleID,
+		Name:   r.Name,
+		Handle: r.Handle,
 	}
 
 	role, err := ctrl.svc.role.With(ctx).Update(role)
