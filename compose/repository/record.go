@@ -322,7 +322,7 @@ func (r record) UpdateValues(recordID uint64, rvs types.RecordValueSet) (err err
 }
 
 func (r record) LoadValues(fieldNames []string, IDs []uint64) (rvs types.RecordValueSet, err error) {
-	if len(IDs) == 0 {
+	if len(fieldNames) == 0 || len(IDs) == 0 {
 		return
 	}
 
