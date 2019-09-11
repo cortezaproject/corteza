@@ -14,6 +14,7 @@ import (
 
 type (
 	token struct {
+		// Expiration time in minutes
 		expiry    int64
 		tokenAuth *jwtauth.JWTAuth
 	}

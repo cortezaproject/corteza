@@ -106,15 +106,27 @@ func (svc *service) Grant(ctx context.Context, wl Whitelist, rules ...*Rule) (er
 	svc.l.Lock()
 	defer svc.l.Unlock()
 
+	if err = svc.checkRules(wl, rules...); err != nil {
+		return err
+	}
+
+	svc.grant(rules...)
+
+	return svc.flush(ctx)
+}
+
+func (svc service) checkRules(wl Whitelist, rules ...*Rule) error {
 	for _, r := range rules {
 		if !wl.Check(r) {
 			return errors.Errorf("invalid rule: '%s' on '%s'", r.Operation, r.Resource)
 		}
 	}
 
-	svc.rules = svc.rules.merge(rules...)
+	return nil
+}
 
-	return svc.flush(ctx)
+func (svc *service) grant(rules ...*Rule) {
+	svc.rules = svc.rules.merge(rules...)
 }
 
 // Watches for changes

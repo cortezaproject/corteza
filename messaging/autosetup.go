@@ -6,8 +6,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/titpetric/factory"
 
-	"github.com/cortezaproject/corteza-server/messaging/internal/repository"
-	"github.com/cortezaproject/corteza-server/messaging/internal/service"
+	"github.com/cortezaproject/corteza-server/messaging/repository"
+	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 )

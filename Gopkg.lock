@@ -34,6 +34,22 @@
   revision = "2a93ba0f464da2a77748a1dc2e9e5bea8bbdd4b9"
 
 [[projects]]
+  digest = "1:e3983013d82da8c49fb6776c6317d0da4b9cb926f1bb11af37f8c975889db042"
+  name = "github.com/PaesslerAG/gval"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "0ce847fc5e6163ee05ae770a441ba497fc77dcaa"
+  version = "v1.0.1"
+
+[[projects]]
+  digest = "1:07379bf741135a43b7010cc5b52885900ce8dabf7ab1eb774ee9f331c386199d"
+  name = "github.com/PaesslerAG/jsonpath"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c18d0f043db32b5d4295e14c6518fa9160e45d15"
+  version = "0.1.1"
+
+[[projects]]
   branch = "master"
   digest = "1:8029ebc737ffdac4a8df494853595eb086e93b24be9b5e439087f2c8a8f24698"
   name = "github.com/SentimensRG/ctx"
@@ -339,6 +355,14 @@
   version = "v0.8.1"
 
 [[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  pruneopts = "UT"
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   digest = "1:bd9efe4e0b0f768302a1e2f0c22458149278de533e521206e5ddc71848c269a0"
   name = "github.com/pquerna/cachecontrol"
@@ -442,6 +466,33 @@
   pruneopts = "UT"
   revision = "298182f68c66c05229eb03ac171abe6e309ee79a"
   version = "v1.0.3"
+
+[[projects]]
+  digest = "1:f23c558574deb8daa162da8defc384a310813761b60ddb7299077b96a03560d2"
+  name = "github.com/steinfletcher/apitest"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9819a0ef6ff226a0728903954acb81bf89f51caa"
+  version = "v1.3.8"
+
+[[projects]]
+  digest = "1:f82068df13b0f00eb8c616d4c29c5a064d4fe3c9271a435911b02f5ea137676a"
+  name = "github.com/steinfletcher/apitest-jsonpath"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "732f9b76bd271130a9a7fc87466de104ff033c85"
+  version = "v1.3.0"
+
+[[projects]]
+  digest = "1:99d32780e5238c2621fff621123997c3e3cca96db8be13179013aea77dfab551"
+  name = "github.com/stretchr/testify"
+  packages = [
+    "assert",
+    "require",
+  ]
+  pruneopts = "UT"
+  revision = "221dbe5ed46703ee255b1da0dec05086f5035f62"
+  version = "v1.4.0"
 
 [[projects]]
   branch = "master"
@@ -687,6 +738,14 @@
   revision = "730df5f748271903322feb182be83b43ebbbe27d"
   version = "v2.3.1"
 
+[[projects]]
+  digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
+  version = "v2.2.2"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
@@ -718,6 +777,7 @@
     "github.com/goware/statik/fs",
     "github.com/jmoiron/sqlx",
     "github.com/jmoiron/sqlx/types",
+    "github.com/joho/godotenv",
     "github.com/joho/godotenv/autoload",
     "github.com/lann/builder",
     "github.com/markbates/goth",
@@ -732,6 +792,10 @@
     "github.com/spf13/afero",
     "github.com/spf13/cast",
     "github.com/spf13/cobra",
+    "github.com/steinfletcher/apitest",
+    "github.com/steinfletcher/apitest-jsonpath",
+    "github.com/stretchr/testify/assert",
+    "github.com/stretchr/testify/require",
     "github.com/titpetric/factory",
     "github.com/titpetric/factory/logger",
     "github.com/titpetric/factory/resputil",

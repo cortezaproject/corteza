@@ -9,8 +9,8 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/cortezaproject/corteza-server/internal/auth"
-	"github.com/cortezaproject/corteza-server/system/internal/service"
 	"github.com/cortezaproject/corteza-server/system/proto"
+	"github.com/cortezaproject/corteza-server/system/service"
 )
 
 // @todo when we extend gRPC-server capabilities to compose & messaging

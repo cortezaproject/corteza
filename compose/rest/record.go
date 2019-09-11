@@ -14,9 +14,9 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/decoder"
 	"github.com/cortezaproject/corteza-server/compose/encoder"
-	"github.com/cortezaproject/corteza-server/compose/internal/repository"
-	"github.com/cortezaproject/corteza-server/compose/internal/service"
+	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
+	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/mime"
 	"github.com/cortezaproject/corteza-server/pkg/rh"

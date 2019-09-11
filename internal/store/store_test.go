@@ -5,6 +5,8 @@ import (
 	"io"
 	"testing"
 
+	"github.com/spf13/afero"
+
 	"github.com/cortezaproject/corteza-server/internal/test"
 )
 
@@ -15,7 +17,8 @@ func TestStore(t *testing.T) {
 		return b.String()
 	}
 
-	store, err := New("test")
+	store, err := NewWithAfero(afero.NewMemMapFs(), "test")
+
 	test.Assert(t, err == nil, "Unexpected error when creating store: %+v", err)
 	test.Assert(t, store != nil, "Expected non-nil return for new store")
 	test.Assert(t, store.Namespace() == "test", "Unexpected store namespace: test != %s", store.Namespace())

@@ -3,7 +3,7 @@
 /*.iml
 /.env*
 /.dev*
-/.cover*
+/.*cover.out*
 /overalls*
 profile.coverprofile
 /public_html

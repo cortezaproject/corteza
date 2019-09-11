@@ -11,6 +11,8 @@ import (
 
 type (
 	store struct {
+		fs afero.Fs
+
 		namespace string
 
 		originalFn func(id uint64, ext string) string
@@ -29,15 +31,27 @@ type (
 	}
 )
 
-func New(namespace string) (Store, error) {
+var (
+	defPreviewFn = func(id uint64, ext string) string {
+		return fmt.Sprintf("%d_preview.%s", id, ext)
+	}
+
+	defOriginalFn = func(id uint64, ext string) string {
+		return fmt.Sprintf("%d.%s", id, ext)
+	}
+)
+
+func New(namespace string) (*store, error) {
+	return NewWithAfero(afero.NewOsFs(), namespace)
+}
+
+func NewWithAfero(fs afero.Fs, namespace string) (*store, error) {
 	return &store{
+		fs:        fs,
 		namespace: namespace,
-		originalFn: func(id uint64, ext string) string {
-			return fmt.Sprintf("%d.%s", id, ext)
-		},
-		previewFn: func(id uint64, ext string) string {
-			return fmt.Sprintf("%d_preview.%s", id, ext)
-		},
+
+		originalFn: defOriginalFn,
+		previewFn:  defPreviewFn,
 	}, nil
 }
 
@@ -65,18 +79,19 @@ func (s *store) Preview(id uint64, ext string) string {
 	return path.Join(s.namespace, s.previewFn(id, ext))
 }
 
-func (s *store) Save(filename string, contents io.Reader) error {
+func (s *store) Save(filename string, contents io.Reader) (err error) {
 	// check filename for validity
-	if err := s.check(filename); err != nil {
-		return err
+	if err = s.check(filename); err != nil {
+		return
 	}
 
 	folder := path.Dir(filename)
 
-	fs := afero.NewOsFs()
-	fs.MkdirAll(folder, 0755)
+	if err = s.fs.MkdirAll(folder, 0755); err != nil {
+		return
+	}
 
-	return afero.WriteReader(fs, filename, contents)
+	return afero.WriteReader(s.fs, filename, contents)
 }
 
 func (s *store) Remove(filename string) error {
@@ -85,8 +100,7 @@ func (s *store) Remove(filename string) error {
 		return err
 	}
 
-	fs := afero.NewOsFs()
-	return fs.Remove(filename)
+	return s.fs.Remove(filename)
 }
 
 func (s *store) Open(filename string) (afero.File, error) {
@@ -95,6 +109,5 @@ func (s *store) Open(filename string) (afero.File, error) {
 		return nil, err
 	}
 
-	fs := afero.NewOsFs()
-	return fs.Open(filename)
+	return s.fs.Open(filename)
 }
