@@ -98,6 +98,10 @@ const (
 	STMS_REPLACE
 )
 
+var (
+	ErrAutomationScriptInvalid = errors.New("AutomationScriptInvalid")
+)
+
 // IsValid - enabled, deleted?
 func (s *Script) IsValid() bool {
 	return s != nil && s.Enabled && s.DeletedAt == nil

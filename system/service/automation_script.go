@@ -97,7 +97,7 @@ func (svc automationScript) Update(ctx context.Context, mod *automation.Script) 
 	}
 
 	if !svc.ac.CanUpdateAutomationScript(ctx, s) {
-		return ErrNoCreatePermissions.withStack()
+		return ErrNoUpdatePermissions.withStack()
 	}
 
 	// Users need to have grant privileges to
@@ -137,7 +137,7 @@ func (svc automationScript) Delete(ctx context.Context, scriptID uint64) (err er
 	if s, err := svc.loadCombo(ctx, scriptID); err != nil {
 		return err
 	} else if !svc.ac.CanDeleteAutomationScript(ctx, s) {
-		return ErrNoCreatePermissions.withStack()
+		return ErrNoDeletePermissions.withStack()
 	} else {
 		return svc.scriptManager.DeleteScript(ctx, s)
 	}
@@ -149,7 +149,7 @@ func (svc automationScript) loadCombo(ctx context.Context, scriptID uint64) (s *
 		if s, err = svc.scriptManager.FindScriptByID(ctx, scriptID); err != nil {
 			return
 		} else if !svc.ac.CanReadAutomationScript(ctx, s) {
-			err = ErrNoCreatePermissions.withStack()
+			err = ErrNoReadPermissions.withStack()
 			return
 		}
 	}

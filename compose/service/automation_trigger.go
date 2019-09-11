@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -93,13 +94,17 @@ func (svc automationTrigger) Delete(ctx context.Context, s *automation.Script, t
 
 // Validates trigger (in compose context)
 func (svc automationTrigger) isValid(ctx context.Context, s *automation.Script, t *automation.Trigger) error {
+	if s == nil {
+		return errors.WithStack(automation.ErrAutomationScriptInvalid)
+	}
+
 	if !t.Enabled {
 		return nil
 	}
 
 	if t.Resource != "compose:record" {
 		// Accepting only compose:record resources
-		return automation.ErrAutomationTriggerInvalidResource
+		return errors.WithStack(automation.ErrAutomationTriggerInvalidResource)
 	}
 
 	if t.IsDeferred() {
@@ -114,18 +119,18 @@ func (svc automationTrigger) isValid(ctx context.Context, s *automation.Script, 
 		var moduleID = t.Uint64Condition()
 
 		if t.Event != "manual" && moduleID == 0 {
-			return automation.ErrAutomationTriggerInvalidCondition
+			return errors.WithStack(automation.ErrAutomationTriggerInvalidCondition)
 		}
 
 		if moduleID > 0 {
 			if m, err := svc.mod.With(ctx).FindByID(s.NamespaceID, moduleID); err != nil {
 				return err
 			} else if !svc.ac.CanManageAutomationTriggersOnModule(ctx, m) {
-				return ErrNoTriggerManagementPermissions
+				return errors.WithStack(ErrNoTriggerManagementPermissions)
 			}
 		}
 	default:
-		return automation.ErrAutomationTriggerInvalidEvent
+		return errors.WithStack(automation.ErrAutomationTriggerInvalidEvent)
 	}
 
 	return nil
