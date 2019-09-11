@@ -98,7 +98,6 @@ func TestPageUpdateForbidden(t *testing.T) {
 	m := h.repoMakePage(ns, "some-page")
 
 	h.apiInit().
-		Debug().
 		Post(fmt.Sprintf("/namespace/%d/page/%d", ns.ID, m.ID)).
 		FormData("title", "changed-name").
 		Expect(t).

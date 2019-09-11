@@ -85,7 +85,6 @@ func TestNamespaceUpdateForbidden(t *testing.T) {
 	ns := h.repoMakeNamespace("some-namespace")
 
 	h.apiInit().
-		Debug().
 		Post(fmt.Sprintf("/namespace/%d", ns.ID)).
 		FormData("name", "changed-name").
 		Expect(t).
