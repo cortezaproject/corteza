@@ -76,7 +76,7 @@ func (ctrl AutomationTrigger) List(ctx context.Context, r *request.AutomationTri
 func (ctrl AutomationTrigger) Create(ctx context.Context, r *request.AutomationTriggerCreate) (interface{}, error) {
 	s, _, err := ctrl.loadCombo(ctx, r.ScriptID, 0)
 	if err != nil {
-		return nil, errors.Wrap(err, "can not create trigger")
+		return nil, err
 	}
 
 	var (
@@ -93,9 +93,9 @@ func (ctrl AutomationTrigger) Create(ctx context.Context, r *request.AutomationT
 }
 
 func (ctrl AutomationTrigger) Read(ctx context.Context, r *request.AutomationTriggerRead) (interface{}, error) {
-	_, t, err := ctrl.loadCombo(ctx, r.ScriptID, 0)
+	_, t, err := ctrl.loadCombo(ctx, r.ScriptID, r.TriggerID)
 	if err != nil {
-		return nil, errors.Wrap(err, "can not read trigger")
+		return nil, err
 	}
 
 	return ctrl.makePayload(ctx, t, err)
@@ -104,7 +104,7 @@ func (ctrl AutomationTrigger) Read(ctx context.Context, r *request.AutomationTri
 func (ctrl AutomationTrigger) Update(ctx context.Context, r *request.AutomationTriggerUpdate) (interface{}, error) {
 	s, t, err := ctrl.loadCombo(ctx, r.ScriptID, r.TriggerID)
 	if err != nil {
-		return nil, errors.Wrap(err, "can not update trigger")
+		return nil, err
 	}
 
 	t.Event = r.Event
@@ -119,7 +119,7 @@ func (ctrl AutomationTrigger) Update(ctx context.Context, r *request.AutomationT
 func (ctrl AutomationTrigger) Delete(ctx context.Context, r *request.AutomationTriggerDelete) (interface{}, error) {
 	s, t, err := ctrl.loadCombo(ctx, r.ScriptID, r.TriggerID)
 	if err != nil {
-		return nil, errors.Wrap(err, "can not update trigger")
+		return nil, err
 	}
 
 	return resputil.OK(), ctrl.triggers.Delete(ctx, s, t)
@@ -127,8 +127,9 @@ func (ctrl AutomationTrigger) Delete(ctx context.Context, r *request.AutomationT
 
 func (ctrl AutomationTrigger) loadCombo(ctx context.Context, scriptID, triggerID uint64) (s *automation.Script, t *automation.Trigger, err error) {
 	if triggerID > 0 {
-		t, err = ctrl.triggers.FindByID(ctx, triggerID)
-		return
+		if t, err = ctrl.triggers.FindByID(ctx, triggerID); err != nil {
+			return
+		}
 	}
 
 	if scriptID > 0 {

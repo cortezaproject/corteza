@@ -19,9 +19,16 @@ type (
 	db interface {
 		Transaction(callback func() error) error
 	}
+
 	permissionServicer interface {
 		accessControlPermissionServicer
 		Watch(ctx context.Context)
+	}
+
+	automationManager interface {
+		automationScriptManager
+		automationTriggerManager
+		automationScriptsFinder
 	}
 
 	Config struct {
@@ -42,6 +49,9 @@ var (
 
 	// DefaultAccessControl Access control checking
 	DefaultAccessControl *accessControl
+
+	// DefaultInternalAutomationManager manages automation scripts, triggers, runnable scripts
+	DefaultInternalAutomationManager automationManager
 
 	// DefaultAutomationScriptManager manages scripts
 	DefaultAutomationScriptManager automationScript
@@ -91,31 +101,32 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultAuthNotification = AuthNotification(ctx)
 	DefaultAuth = Auth(ctx)
 
-	// ias: Internal Automatinon Service
-	// handles script & trigger management & keeping runnables cripts in internal cache
-	ias := automation.Service(automation.AutomationServiceConfig{
-		Logger:        DefaultLogger,
-		DbTablePrefix: "sys",
-		DB:            repository.DB(ctx),
-		TokenMaker: func(ctx context.Context, userID uint64) (jwt string, err error) {
-			var u *types.User
-
-			ctx = intAuth.SetSuperUserContext(ctx)
-			if u, err = DefaultUser.FindByID(userID); err != nil {
-				return
-			} else if err = DefaultAuth.LoadRoleMemberships(u); err != nil {
-				return
-			}
-
-			return intAuth.DefaultJwtHandler.Encode(u), nil
-		},
-	})
-
-	// Pass automation manager to
-	DefaultAutomationTriggerManager = AutomationTrigger(ias)
-	DefaultAutomationScriptManager = AutomationScript(ias)
-
 	{
+		if DefaultInternalAutomationManager == nil {
+			// handles script & trigger management & keeping runnables cripts in internal cache
+			DefaultInternalAutomationManager = automation.Service(automation.AutomationServiceConfig{
+				Logger:        DefaultLogger,
+				DbTablePrefix: "sys",
+				DB:            repository.DB(ctx),
+				TokenMaker: func(ctx context.Context, userID uint64) (jwt string, err error) {
+					var u *types.User
+
+					ctx = intAuth.SetSuperUserContext(ctx)
+					if u, err = DefaultUser.FindByID(userID); err != nil {
+						return
+					} else if err = DefaultAuth.LoadRoleMemberships(u); err != nil {
+						return
+					}
+
+					return intAuth.DefaultJwtHandler.Encode(u), nil
+				},
+			})
+		}
+
+		// Pass automation manager to
+		DefaultAutomationTriggerManager = AutomationTrigger(DefaultInternalAutomationManager)
+		DefaultAutomationScriptManager = AutomationScript(DefaultInternalAutomationManager)
+
 		var scriptRunnerClient corredor.ScriptRunnerClient
 
 		if c.Corredor.Enabled {
@@ -135,7 +146,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 				ApiBaseURLMessaging: c.Corredor.ApiBaseURLMessaging,
 				ApiBaseURLCompose:   c.Corredor.ApiBaseURLCompose,
 			},
-			ias,
+			DefaultInternalAutomationManager,
 			scriptRunnerClient,
 		)
 	}

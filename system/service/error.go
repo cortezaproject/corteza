@@ -14,6 +14,7 @@ const (
 	ErrNoGrantPermissions             serviceError = "NoGrantPermissions"
 	ErrNoCreatePermissions            serviceError = "NoCreatePermissions"
 	ErrNoUpdatePermissions            serviceError = "NoUpdatePermissions"
+	ErrNoDeletePermissions            serviceError = "NoDeletePermissions"
 	ErrNoReadPermissions              serviceError = "NoReadPermissions"
 	ErrNoTriggerManagementPermissions serviceError = "NoTriggerManagementPermissions"
 	ErrNoScriptCreatePermissions      serviceError = "NoScriptCreatePermissions"
