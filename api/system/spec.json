@@ -1005,7 +1005,7 @@
               "name": "name",
               "type": "string",
               "required": true,
-              "title": "Email"
+              "title": "Application name"
             },
             {
               "name": "enabled",

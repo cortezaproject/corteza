@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/internal/auth"
-	"github.com/cortezaproject/corteza-server/system/internal/service"
+	"github.com/cortezaproject/corteza-server/system/service"
 )
 
 var _ = errors.Wrap

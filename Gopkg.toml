@@ -33,3 +33,7 @@ required = [
 [[constraint]]
   name = "github.com/gabriel-vasile/mimetype"
   version = "0.3.17"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.4.0"

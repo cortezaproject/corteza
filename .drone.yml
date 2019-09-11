@@ -15,7 +15,7 @@ steps:
     GOARCH: amd64
     CI: circleci
   commands:
-    - make test
+    - make test.unit
 
 - name: corteza-server
   image: plugins/docker
@@ -101,20 +101,15 @@ steps:
     COMPOSE_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
     MESSAGING_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
   commands:
-  - go build ./cmd/...
   - wait-for-it.sh -t 60 --strict corteza-db:3306 -- echo "corteza-db is up"
-  - go test -v --tags="migrations" ./system/db/...
-  - go test -v --tags="migrations" ./compose/db/...
-  - go test -v --tags="migrations" ./messaging/db/...
-  - go test -run=^$ --tags="integration" ./cmd/... ./internal/... ./compose/... ./messaging/... ./system/...
-  - make test-coverage
+  - make test.coverprofile.all
 
 - name: coverage
   image: plugins/codecov
   settings:
-    token: ac2e49d3-b29d-42c9-a2e1-9c8f286e4c24
+    token: 628a7104-4ec8-46ef-a3a8-50b0c2507082
     files:
-     - coverage.txt
+     - .cover.out
 
 services:
 - name: corteza-db
