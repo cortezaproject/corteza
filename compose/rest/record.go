@@ -347,6 +347,28 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 	}, nil
 }
 
+func (ctrl Record) Exec(ctx context.Context, r *request.RecordExec) (interface{}, error) {
+	aa := request.ProcedureArgs(r.Arguments)
+
+	switch r.Procedure {
+	case "organize":
+		return resputil.OK(), ctrl.record.With(ctx).Organize(
+			r.NamespaceID,
+			r.ModuleID,
+			aa.GetUint64("recordID"),
+			aa.Get("sortingField"),
+			aa.Get("sortingValue"),
+			aa.Get("sortingFilter"),
+			aa.Get("valueField"),
+			aa.Get("value"),
+		)
+	default:
+		return nil, errors.New("unknown procedure")
+	}
+
+	return nil, nil
+}
+
 func (ctrl Record) makePayload(ctx context.Context, m *types.Module, r *types.Record, err error) (*recordPayload, error) {
 	if err != nil || r == nil {
 		return nil, err

@@ -35,3 +35,37 @@ func (set RecordValueSet) FilterByRecordID(recordID uint64) (vv RecordValueSet) 
 
 	return
 }
+
+// Has value set?
+func (set RecordValueSet) Has(name string, place uint) bool {
+	for i := range set {
+		if set[i].Name != name {
+			continue
+		}
+		if set[i].Place != place {
+			continue
+		}
+
+		return true
+	}
+
+	return false
+}
+
+// Set updates existing value or creates a new one
+func (set RecordValueSet) Set(v *RecordValue) RecordValueSet {
+	for i := range set {
+		if set[i].Name != v.Name {
+			continue
+		}
+		if set[i].Place != v.Place {
+			continue
+		}
+
+		//  Update existing entry
+		return append(append(set[:i], v), set[i+1:]...)
+	}
+
+	// Append new value
+	return append(set, v)
+}

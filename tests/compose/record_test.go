@@ -18,45 +18,40 @@ func (h helper) repoRecord() repository.RecordRepository {
 	return repository.Record(context.Background(), db())
 }
 
-func (h helper) repoMakeRecordModuleWithFields(name string) *types.Module {
+func (h helper) repoMakeRecordModuleWithFields(name string, ff ...*types.ModuleField) *types.Module {
 	namespace := h.repoMakeNamespace("record testing namespace")
 
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "read")
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.read")
 
-	m, err := h.
-		repoModule().
-		Create(&types.Module{
-			Name:        name,
-			NamespaceID: namespace.ID,
-			Fields: types.ModuleFieldSet{
-				&types.ModuleField{
-					Name: "name",
-				},
-				&types.ModuleField{
-					Name: "email",
-				},
-				&types.ModuleField{
-					Name:  "options",
-					Multi: true,
-				},
-				&types.ModuleField{
-					Name: "description",
-				},
-				&types.ModuleField{
-					Name: "another_record",
-					Kind: "Record",
-				},
+	if len(ff) == 0 {
+		// Default fields
+		ff = types.ModuleFieldSet{
+			&types.ModuleField{
+				Name: "name",
 			},
-		})
+			&types.ModuleField{
+				Name: "email",
+			},
+			&types.ModuleField{
+				Name:  "options",
+				Multi: true,
+			},
+			&types.ModuleField{
+				Name: "description",
+			},
+			&types.ModuleField{
+				Name: "another_record",
+				Kind: "Record",
+			},
+		}
+	}
 
-	h.a.NoError(err)
-
-	return m
+	return h.repoMakeModule(namespace, name, ff...)
 }
 
-func (h helper) repoMakeRecord(module *types.Module, name string) *types.Record {
+func (h helper) repoMakeRecord(module *types.Module, rvs ...*types.RecordValue) *types.Record {
 	record, err := h.
 		repoRecord().
 		Create(&types.Record{
@@ -68,6 +63,9 @@ func (h helper) repoMakeRecord(module *types.Module, name string) *types.Record 
 		})
 	h.a.NoError(err)
 
+	err = h.repoRecord().UpdateValues(record.ID, rvs)
+	h.a.NoError(err)
+
 	return record
 }
 
@@ -75,7 +73,7 @@ func TestRecordRead(t *testing.T) {
 	h := newHelper(t)
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
-	record := h.repoMakeRecord(module, "some-record")
+	record := h.repoMakeRecord(module)
 
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
@@ -91,8 +89,8 @@ func TestRecordList(t *testing.T) {
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
 
-	h.repoMakeRecord(module, "app")
-	h.repoMakeRecord(module, "app")
+	h.repoMakeRecord(module)
+	h.repoMakeRecord(module)
 
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
@@ -109,7 +107,7 @@ func TestRecordCreateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
-		FormData("name", "some-record").
+		FormData("name").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("compose.service.NoCreatePermissions")).
@@ -124,7 +122,7 @@ func TestRecordCreate(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
-		FormData("name", "some-record").
+		FormData("name").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -135,7 +133,7 @@ func TestRecordUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
-	record := h.repoMakeRecord(module, "some-record")
+	record := h.repoMakeRecord(module)
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
@@ -150,7 +148,7 @@ func TestRecordUpdate(t *testing.T) {
 	h := newHelper(t)
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
-	record := h.repoMakeRecord(module, "some-record")
+	record := h.repoMakeRecord(module)
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.update")
 
 	h.apiInit().
@@ -171,7 +169,7 @@ func TestRecordDeleteForbidden(t *testing.T) {
 	h := newHelper(t)
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
-	record := h.repoMakeRecord(module, "some-record")
+	record := h.repoMakeRecord(module)
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
@@ -185,7 +183,7 @@ func TestRecordDelete(t *testing.T) {
 	h := newHelper(t)
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
-	record := h.repoMakeRecord(module, "some-record")
+	record := h.repoMakeRecord(module)
 
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.delete")
 

@@ -17,10 +17,10 @@ func (h helper) repoModule() repository.ModuleRepository {
 	return repository.Module(context.Background(), db())
 }
 
-func (h helper) repoMakeModule(ns *types.Namespace, name string) *types.Module {
+func (h helper) repoMakeModule(ns *types.Namespace, name string, ff ...*types.ModuleField) *types.Module {
 	m, err := h.
 		repoModule().
-		Create(&types.Module{Name: name, NamespaceID: ns.ID})
+		Create(&types.Module{Name: name, NamespaceID: ns.ID, Fields: ff})
 	h.a.NoError(err)
 
 	return m

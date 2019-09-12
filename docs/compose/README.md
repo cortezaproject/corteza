@@ -960,6 +960,7 @@ Compose records
 | `PATCH` | `/namespace/{namespaceID}/module/{moduleID}/record/import/{sessionID}` | Run record import |
 | `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/import/{sessionID}` | Get import progress |
 | `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/export{filename}.{ext}` | Exports records that match  |
+| `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/exec/{procedure}` | Executes server-side procedure over one or more module records |
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/` | Create record in module section |
 | `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Read records by ID from module section |
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Update records in module section |
@@ -1071,6 +1072,23 @@ Compose records
 | ext | string | PATH | Export format | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
+
+## Executes server-side procedure over one or more module records
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/module/{moduleID}/record/exec/{procedure}` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| procedure | string | PATH | Name of procedure to execute | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
+| arguments | []ProcedureArg | POST | Procedure arguments | N/A | NO |
 
 ## Create record in module section
 
