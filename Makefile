@@ -116,6 +116,10 @@ test.cover.%:
 test.integration:
 	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_integration)
 
+# Runs one suite from integration tests
+test.integration.%:
+	$(GOTEST) $(TEST_FLAGS) ./tests/$*/...
+
 # Runs ALL tests
 test.all:
 	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_all)
