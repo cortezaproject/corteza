@@ -30,7 +30,7 @@
           {
             "name": "name",
             "required": true,
-            "title": "Email",
+            "title": "Application name",
             "type": "string"
           },
           {
