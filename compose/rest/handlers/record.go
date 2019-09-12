@@ -35,6 +35,7 @@ type RecordAPI interface {
 	ImportRun(context.Context, *request.RecordImportRun) (interface{}, error)
 	ImportProgress(context.Context, *request.RecordImportProgress) (interface{}, error)
 	Export(context.Context, *request.RecordExport) (interface{}, error)
+	Exec(context.Context, *request.RecordExec) (interface{}, error)
 	Create(context.Context, *request.RecordCreate) (interface{}, error)
 	Read(context.Context, *request.RecordRead) (interface{}, error)
 	Update(context.Context, *request.RecordUpdate) (interface{}, error)
@@ -50,6 +51,7 @@ type Record struct {
 	ImportRun      func(http.ResponseWriter, *http.Request)
 	ImportProgress func(http.ResponseWriter, *http.Request)
 	Export         func(http.ResponseWriter, *http.Request)
+	Exec           func(http.ResponseWriter, *http.Request)
 	Create         func(http.ResponseWriter, *http.Request)
 	Read           func(http.ResponseWriter, *http.Request)
 	Update         func(http.ResponseWriter, *http.Request)
@@ -179,6 +181,26 @@ func NewRecord(h RecordAPI) *Record {
 				resputil.JSON(w, value)
 			}
 		},
+		Exec: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRecordExec()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Record.Exec", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.Exec(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("Record.Exec", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("Record.Exec", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewRecordCreate()
@@ -291,6 +313,7 @@ func (h Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Patch("/namespace/{namespaceID}/module/{moduleID}/record/import/{sessionID}", h.ImportRun)
 		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/import/{sessionID}", h.ImportProgress)
 		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/export{filename}.{ext}", h.Export)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/exec/{procedure}", h.Exec)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/", h.Create)
 		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Read)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Update)
