@@ -33,7 +33,7 @@
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| name | string | POST | Email | N/A | YES |
+| name | string | POST | Application name | N/A | YES |
 | enabled | bool | POST | Enabled | N/A | NO |
 | unify | sqlxTypes.JSONText | POST | Unify properties | N/A | NO |
 | config | sqlxTypes.JSONText | POST | Arbitrary JSON holding application configuration | N/A | NO |
