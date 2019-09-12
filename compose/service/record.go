@@ -305,6 +305,10 @@ func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
 		CreatedAt: time.Now(),
 	}
 
+	if err = svc.setDefaultValues(m, mod); err != nil {
+		return
+	}
+
 	if err = svc.copyChanges(m, mod, r); err != nil {
 		return
 	}
@@ -460,6 +464,26 @@ func (svc record) loadCombo(namespaceID, moduleID, recordID uint64) (ns *types.N
 func (svc record) copyChanges(m *types.Module, mod, r *types.Record) (err error) {
 	r.OwnedBy = mod.OwnedBy
 	r.Values, err = svc.sanitizeValues(m, mod.Values)
+	return err
+}
+
+func (svc record) setDefaultValues(module *types.Module, mod *types.Record) (err error) {
+	err = module.Fields.Walk(func(field *types.ModuleField) error {
+		if field.DefaultValue == nil {
+			return nil
+		}
+		return field.DefaultValue.Walk(func(value *types.RecordValue) error {
+			if !mod.Values.Has(value.Name, value.Place) {
+				mod.Values = mod.Values.Set(value)
+			}
+
+			return nil
+		})
+
+		return nil
+	})
+
+	mod.Values, err = svc.sanitizeValues(module, mod.Values)
 	return err
 }
 

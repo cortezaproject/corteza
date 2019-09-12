@@ -1,7 +1,11 @@
 package types
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 type (
@@ -34,4 +38,56 @@ func (set RecordValueSet) FilterByRecordID(recordID uint64) (vv RecordValueSet) 
 	}
 
 	return
+}
+
+// Set updates existing value or creates a new one
+func (set RecordValueSet) Set(v *RecordValue) RecordValueSet {
+	for i := range set {
+		if set[i].Name != v.Name {
+			continue
+		}
+		if set[i].Place != v.Place {
+			continue
+		}
+
+		//  Update existing entry
+		return append(append(set[:i], v), set[i+1:]...)
+	}
+
+	// Append new value
+	return append(set, v)
+}
+
+// Has value set?
+func (set RecordValueSet) Has(name string, place uint) bool {
+	for i := range set {
+		if set[i].Name != name {
+			continue
+		}
+		if set[i].Place != place {
+			continue
+		}
+
+		return true
+	}
+
+	return false
+}
+
+func (meta *RecordValueSet) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
+	switch value.(type) {
+	case nil:
+		*meta = RecordValueSet{}
+	case []uint8:
+		if err := json.Unmarshal(value.([]byte), meta); err != nil {
+			return errors.Wrapf(err, "Can not scan '%v' into RecordValueSet", value)
+		}
+	}
+
+	return nil
+}
+
+func (meta RecordValueSet) Value() (driver.Value, error) {
+	return json.Marshal(meta)
 }

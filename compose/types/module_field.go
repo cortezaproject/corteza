@@ -17,16 +17,17 @@ type (
 		ModuleID uint64 `json:"moduleID,string" db:"rel_module"`
 		Place    int    `json:"-" db:"place"`
 
-		Kind  string `json:"kind" db:"kind"`
-		Name  string `json:"name" db:"name"`
+		Kind  string `json:"kind"  db:"kind"`
+		Name  string `json:"name"  db:"name"`
 		Label string `json:"label" db:"label"`
 
 		Options types.JSONText `json:"options" db:"options"`
 
-		Private  bool `json:"isPrivate" db:"is_private"`
-		Required bool `json:"isRequired" db:"is_required"`
-		Visible  bool `json:"isVisible" db:"is_visible"`
-		Multi    bool `json:"isMulti" db:"is_multi"`
+		Private      bool           `json:"isPrivate" db:"is_private"`
+		Required     bool           `json:"isRequired" db:"is_required"`
+		Visible      bool           `json:"isVisible" db:"is_visible"`
+		Multi        bool           `json:"isMulti" db:"is_multi"`
+		DefaultValue RecordValueSet `json:"defaultValue" db:"default_value"`
 
 		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`
