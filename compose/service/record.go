@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"time"
@@ -69,6 +70,8 @@ type (
 		Update(record *types.Record) (*types.Record, error)
 
 		DeleteByID(namespaceID, recordID uint64) error
+
+		Organize(namespaceID, moduleID, recordID uint64, sortingField, sortingValue, sortingFilter, valueField, value string) error
 	}
 
 	Encoder interface {
@@ -164,12 +167,12 @@ func (svc record) loadModule(namespaceID, moduleID uint64) (m *types.Module, err
 		return
 	}
 
-	if m.Fields, err = svc.moduleRepo.FindFields(m.ID); err != nil {
-		return
-	}
-
 	if !svc.ac.CanReadModule(svc.ctx, m) {
 		return nil, ErrNoReadPermissions.withStack()
+	}
+
+	if m.Fields, err = svc.moduleRepo.FindFields(m.ID); err != nil {
+		return
 	}
 
 	return
@@ -202,6 +205,8 @@ func (svc record) Report(namespaceID, moduleID uint64, metrics, dimensions, filt
 }
 
 func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
+	filter.PageFilter.NormalizePerPageWithDefaults()
+
 	var m *types.Module
 	if m, err = svc.loadModule(filter.NamespaceID, filter.ModuleID); err != nil {
 		return
@@ -357,9 +362,7 @@ func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 		return nil, ErrStaleData.withStack()
 	}
 
-	now := time.Now()
-	r.UpdatedAt = &now
-	r.UpdatedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
+	svc.recordInfoUpdate(r)
 
 	if err = svc.copyChanges(m, mod, r); err != nil {
 		return
@@ -388,6 +391,12 @@ func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 
 		return
 	})
+}
+
+func (svc record) recordInfoUpdate(r *types.Record) {
+	now := time.Now()
+	r.UpdatedAt = &now
+	r.UpdatedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
 }
 
 func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
@@ -431,6 +440,141 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 	})
 
 	return errors.Wrap(err, "unable to delete record")
+}
+
+// Organize - Record organizer
+//
+// Reorders records & sets field value
+func (svc record) Organize(namespaceID, moduleID, recordID uint64, sField, sValue, sFilter, vField, vValue string) error {
+	var (
+		_, module, record, err = svc.loadCombo(namespaceID, moduleID, recordID)
+
+		recordValues = types.RecordValueSet{}
+
+		reorderingRecords bool
+	)
+	if err != nil {
+		return err
+	}
+
+	if !svc.ac.CanUpdateRecord(svc.ctx, module) {
+		return ErrNoUpdatePermissions.withStack()
+	}
+
+	if sField != "" {
+		reorderingRecords = true
+
+		if !regexp.MustCompile(`^[0-9]+$`).MatchString(sValue) {
+			return errors.Errorf("expecting number for sorting position %q", sField)
+		}
+
+		// Check field existence and permissions
+		// check if numeric -- we can not reorder on any other field type
+
+		sf := module.Fields.FindByName(sField)
+		if sf == nil {
+			return errors.Errorf("no such field %q", sField)
+		}
+
+		if !sf.IsNumeric() {
+			return errors.Errorf("can not reorder on non numeric field %q", sField)
+		}
+
+		if sf.Multi {
+			return errors.Errorf("can not reorder on multi-value field %q", sField)
+		}
+
+		if !svc.ac.CanUpdateRecordValue(svc.ctx, sf) {
+			return ErrNoUpdatePermissions.withStack()
+		}
+
+		// Set new position
+		recordValues = recordValues.Set(&types.RecordValue{
+			RecordID: recordID,
+			Name:     sField,
+			Value:    sValue,
+		})
+	}
+
+	if vField != "" {
+		// Check field existence and permissions
+
+		vf := module.Fields.FindByName(vField)
+		if vf == nil {
+			return errors.Errorf("no such field %q", vField)
+		}
+
+		if vf.Multi {
+			return errors.Errorf("can not update multi-value field %q", sField)
+		}
+
+		if !svc.ac.CanUpdateRecordValue(svc.ctx, vf) {
+			return ErrNoUpdatePermissions.withStack()
+		}
+
+		// Set new value
+		recordValues = recordValues.Set(&types.RecordValue{
+			RecordID: recordID,
+			Name:     vField,
+			Value:    vValue,
+		})
+	}
+
+	return svc.db.Transaction(func() (err error) {
+		if len(recordValues) > 0 {
+			svc.recordInfoUpdate(record)
+			if _, err = svc.recordRepo.Update(record); err != nil {
+				return
+			}
+
+			if err = svc.recordRepo.PartialUpdateValues(recordValues...); err != nil {
+				return
+			}
+		}
+
+		if reorderingRecords {
+			var (
+				set              types.RecordSet
+				recordOrderPlace uint64
+			)
+
+			// If we already have filter, wrap it in parenthesis
+			if sFilter != "" {
+				sFilter = fmt.Sprintf("(%s) AND ", sFilter)
+			}
+
+			if recordOrderPlace, err = strconv.ParseUint(sValue, 0, 64); err != nil {
+				return
+			}
+
+			// Assemble record filter:
+			// We are interested only in records that have value of a sorting field greater than
+			// the place we're moving our record to.
+			// and sort the set with sorting field
+			set, _, err = svc.recordRepo.Find(module, types.RecordFilter{
+				Filter: fmt.Sprintf("%s(%s >= %d)", sFilter, sField, recordOrderPlace),
+				Sort:   sField,
+			})
+
+			if err != nil {
+				return
+			}
+
+			// Update value on each record
+			return set.Walk(func(r *types.Record) error {
+				recordOrderPlace++
+
+				// Update each and every set
+				return svc.recordRepo.PartialUpdateValues(&types.RecordValue{
+					RecordID: r.ID,
+					Name:     sField,
+					Value:    strconv.FormatUint(recordOrderPlace, 10),
+				})
+			})
+		}
+
+		return
+	})
 }
 
 // loadCombo Loads everything we need for record manipulation

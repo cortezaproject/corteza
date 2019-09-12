@@ -190,6 +190,30 @@
       }
     },
     {
+      "Name": "exec",
+      "Method": "POST",
+      "Title": "Executes server-side procedure over one or more module records",
+      "Path": "/exec/{procedure}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "procedure",
+            "required": true,
+            "title": "Name of procedure to execute",
+            "type": "string"
+          }
+        ],
+        "post": [
+          {
+            "name": "args",
+            "required": false,
+            "title": "Procedure arguments",
+            "type": "[]ProcedureArg"
+          }
+        ]
+      }
+    },
+    {
       "Name": "create",
       "Method": "POST",
       "Title": "Create record in module section",

@@ -74,13 +74,13 @@ func (set RecordValueSet) Has(name string, place uint) bool {
 	return false
 }
 
-func (meta *RecordValueSet) Scan(value interface{}) error {
+func (set *RecordValueSet) Scan(value interface{}) error {
 	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
 	switch value.(type) {
 	case nil:
-		*meta = RecordValueSet{}
+		*set = RecordValueSet{}
 	case []uint8:
-		if err := json.Unmarshal(value.([]byte), meta); err != nil {
+		if err := json.Unmarshal(value.([]byte), set); err != nil {
 			return errors.Wrapf(err, "Can not scan '%v' into RecordValueSet", value)
 		}
 	}
@@ -88,6 +88,6 @@ func (meta *RecordValueSet) Scan(value interface{}) error {
 	return nil
 }
 
-func (meta RecordValueSet) Value() (driver.Value, error) {
-	return json.Marshal(meta)
+func (set RecordValueSet) Value() (driver.Value, error) {
+	return json.Marshal(set)
 }

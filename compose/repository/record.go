@@ -32,6 +32,7 @@ type (
 		LoadValues(fieldNames []string, IDs []uint64) (rvs types.RecordValueSet, err error)
 		DeleteValues(record *types.Record) error
 		UpdateValues(recordID uint64, rvs types.RecordValueSet) (err error)
+		PartialUpdateValues(rvs ...*types.RecordValue) (err error)
 	}
 
 	record struct {
@@ -118,7 +119,6 @@ func (r record) Report(module *types.Module, metrics, dimensions, filter string)
 func (r record) Find(module *types.Module, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
 	var query squirrel.SelectBuilder
 	f = filter
-	f.PageFilter.NormalizePerPageWithDefaults()
 
 	query, err = r.buildQuery(module, filter)
 	if err != nil {
@@ -314,6 +314,15 @@ func (r record) UpdateValues(recordID uint64, rvs types.RecordValueSet) (err err
 
 	err = rvs.Walk(func(value *types.RecordValue) error {
 		value.RecordID = recordID
+		return r.db().Insert("compose_record_value", value)
+	})
+
+	return errors.Wrap(err, "could not insert record values")
+
+}
+
+func (r record) PartialUpdateValues(rvs ...*types.RecordValue) (err error) {
+	err = types.RecordValueSet(rvs).Walk(func(value *types.RecordValue) error {
 		return r.db().Replace("compose_record_value", value)
 	})
 

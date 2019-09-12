@@ -12,6 +12,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+type (
+	ProcedureArgs []ProcedureArg
+
+	ProcedureArg struct {
+		Name  string `json:"name"`
+		Value string `json:"value"`
+	}
+)
+
 var truthy = regexp.MustCompile(`^\s*(t(rue)?|y(es)?|1)\s*$`)
 
 func parseJSONTextWithErr(s string) (types.JSONText, error) {
@@ -96,4 +105,20 @@ func is(s string, matches ...string) bool {
 		}
 	}
 	return false
+}
+
+func (args ProcedureArgs) GetUint64(name string) uint64 {
+	u, _ := strconv.ParseUint(args.Get(name), 10, 64)
+	return u
+}
+
+func (args ProcedureArgs) Get(name string) string {
+	name = strings.ToLower(name)
+	for _, arg := range args {
+		if strings.ToLower(arg.Name) == name {
+			return arg.Value
+		}
+	}
+
+	return ""
 }
