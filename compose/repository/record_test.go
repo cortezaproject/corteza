@@ -32,14 +32,14 @@ func TestRecordFinder(t *testing.T) {
 		{
 			f: types.RecordFilter{Filter: "id = 5 AND foo = 7"},
 			match: []string{
-				"id = 5",
+				"r.id = 5",
 				"rv_foo.value = 7"},
 			args: []interface{}{"foo"},
 		},
 		{
 			f: types.RecordFilter{Sort: "id ASC, bar DESC"},
 			match: []string{
-				" id ASC",
+				" r.id ASC",
 				" rv_bar.value DESC",
 			},
 			args: []interface{}{"bar"},

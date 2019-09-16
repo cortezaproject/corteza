@@ -355,7 +355,7 @@ func isRealRecordCol(name string) (string, bool) {
 	case
 		"recordID",
 		"id":
-		return "id", true
+		return "r.id", true
 	case
 		"module_id",
 		"owned_by",
@@ -365,7 +365,7 @@ func isRealRecordCol(name string) (string, bool) {
 		"updated_at",
 		"deleted_by",
 		"deleted_at":
-		return name, true
+		return "r." + name, true
 
 	case
 		"moduleID",
@@ -376,7 +376,7 @@ func isRealRecordCol(name string) (string, bool) {
 		"updatedAt",
 		"deletedBy",
 		"deletedAt":
-		return name[0:len(name)-2] + "_" + strings.ToLower(name[len(name)-2:]), true
+		return "r." + name[0:len(name)-2] + "_" + strings.ToLower(name[len(name)-2:]), true
 	}
 
 	return name, false
