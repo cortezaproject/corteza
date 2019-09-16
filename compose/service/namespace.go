@@ -82,6 +82,16 @@ func (svc namespace) FindByID(ID uint64) (ns *types.Namespace, err error) {
 	return
 }
 
+func (svc namespace) FindBySlug(slug string) (ns *types.Namespace, err error) {
+	if ns, err = svc.namespaceRepo.FindBySlug(slug); err != nil {
+		return
+	} else if !svc.ac.CanReadNamespace(svc.ctx, ns) {
+		return nil, ErrNoReadPermissions.withStack()
+	}
+
+	return
+}
+
 func (svc namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
 	set, f, err = svc.namespaceRepo.Find(filter)
 	if err != nil {

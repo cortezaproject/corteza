@@ -38,3 +38,14 @@ const (
 func (n Namespace) PermissionResource() permissions.Resource {
 	return NamespacePermissionResource.AppendID(n.ID)
 }
+
+// FindByHandle finds namespace by it's handle/slug
+func (set NamespaceSet) FindByHandle(handle string) *Namespace {
+	for i := range set {
+		if set[i].Slug == handle {
+			return set[i]
+		}
+	}
+
+	return nil
+}
