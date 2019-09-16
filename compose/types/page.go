@@ -17,6 +17,7 @@ type (
 
 		ModuleID uint64 `json:"moduleID,string" db:"rel_module"`
 
+		Handle      string `json:"handle" db:"handle"`
 		Title       string `json:"title" db:"title"`
 		Description string `json:"description" db:"description"`
 
@@ -58,4 +59,15 @@ type (
 // Resource returns a system resource ID for this type
 func (p Page) PermissionResource() permissions.Resource {
 	return PagePermissionResource.AppendID(p.ID)
+}
+
+// FindByHandle finds page by it's handle
+func (set PageSet) FindByHandle(handle string) *Page {
+	for i := range set {
+		if set[i].Handle == handle {
+			return set[i]
+		}
+	}
+
+	return nil
 }
