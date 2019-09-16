@@ -3,6 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"sort"
 	"time"
 
 	"github.com/jmoiron/sqlx/types"
@@ -33,6 +34,10 @@ type (
 		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
 	}
+)
+
+var (
+	_ sort.Interface = &ModuleFieldSet{}
 )
 
 // Resource returns a system resource ID for this type
@@ -89,6 +94,18 @@ func (set ModuleFieldSet) FilterByModule(moduleID uint64) (ff ModuleFieldSet) {
 	}
 
 	return
+}
+
+func (set ModuleFieldSet) Len() int {
+	return len(set)
+}
+
+func (set ModuleFieldSet) Less(i, j int) bool {
+	return set[i].Place < set[j].Place
+}
+
+func (set ModuleFieldSet) Swap(i, j int) {
+	set[i], set[j] = set[j], set[i]
 }
 
 // IsRef tells us if value of this field be a reference to something (another record, user)?

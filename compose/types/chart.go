@@ -10,6 +10,7 @@ import (
 type (
 	Chart struct {
 		ID     uint64         `json:"chartID,string" db:"id"`
+		Handle string         `json:"handle" db:"handle"`
 		Name   string         `json:"name" db:"name"`
 		Config types.JSONText `json:"config" db:"config"`
 
@@ -33,4 +34,15 @@ type (
 // Resource returns a system resource ID for this type
 func (c Chart) PermissionResource() permissions.Resource {
 	return ChartPermissionResource.AppendID(c.ID)
+}
+
+// FindByHandle finds chart by it's handle
+func (set ChartSet) FindByHandle(handle string) *Chart {
+	for i := range set {
+		if set[i].Handle == handle {
+			return set[i]
+		}
+	}
+
+	return nil
 }

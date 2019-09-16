@@ -10,6 +10,7 @@ import (
 type (
 	Module struct {
 		ID     uint64         `json:"moduleID,string" db:"id"`
+		Handle string         `json:"handle" db:"handle"`
 		Name   string         `json:"name" db:"name"`
 		Meta   types.JSONText `json:"meta" db:"json"`
 		Fields ModuleFieldSet `json:"fields" db:"-"`
@@ -35,4 +36,15 @@ type (
 // Resource returns a system resource ID for this type
 func (m Module) PermissionResource() permissions.Resource {
 	return ModulePermissionResource.AppendID(m.ID)
+}
+
+// FindByHandle finds module by it's handle
+func (set ModuleSet) FindByHandle(handle string) *Module {
+	for i := range set {
+		if set[i].Handle == handle {
+			return set[i]
+		}
+	}
+
+	return nil
 }
