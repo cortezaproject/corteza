@@ -111,14 +111,14 @@ func (svc *service) Watch(ctx context.Context) {
 		}
 	}()
 
-	// @todo enable when deferred scripts can be execured
-	// go svc.runScheduled(ctx)
+	go svc.runScheduled(ctx)
 
 	svc.logger.Debug("watcher initialized")
 }
 
 // Runs scheduled scripts every minute
 func (svc *service) runScheduled(ctx context.Context) {
+	// @todo make time.Minute
 	var ticker = time.NewTicker(time.Second)
 	defer ticker.Stop()
 	for {
@@ -207,8 +207,9 @@ func (svc *service) reload(ctx context.Context) {
 
 		// update scheduled list
 		// @todo enable when deferred scripts can be execured
-		// svc.scheduled = buildScheduleList(svc.runnables)
-		// svc.logger.Info("deferred scripts scheduled", zap.Int("count", len(svc.scheduled)))
+
+		svc.scheduled = buildScheduleList(svc.runnables)
+		svc.logger.Info("deferred scripts scheduled", zap.Int("count", len(svc.scheduled)))
 
 		return
 	})
