@@ -34,6 +34,14 @@
   revision = "2a93ba0f464da2a77748a1dc2e9e5bea8bbdd4b9"
 
 [[projects]]
+  digest = "1:e3f17aa0eb8c151426d23cb767ae50f5b42c46533db3424761ee639b56ab9041"
+  name = "github.com/DestinyWang/cronexpr"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "a557574d6c024ed6e36acc8b610f5f211c91568a"
+  version = "1.0.0"
+
+[[projects]]
   digest = "1:e3983013d82da8c49fb6776c6317d0da4b9cb926f1bb11af37f8c975889db042"
   name = "github.com/PaesslerAG/gval"
   packages = ["."]
@@ -753,6 +761,7 @@
     "github.com/360EntSecGroup-Skylar/excelize",
     "github.com/766b/chi-prometheus",
     "github.com/99designs/basicauth-go",
+    "github.com/DestinyWang/cronexpr",
     "github.com/SentimensRG/ctx",
     "github.com/SentimensRG/ctx/sigctx",
     "github.com/cortezaproject/corteza-protobuf",
