@@ -2,6 +2,8 @@ package automation
 
 import (
 	"time"
+
+	"github.com/DestinyWang/cronexpr"
 )
 
 type (
@@ -12,7 +14,7 @@ type (
 	schedule struct {
 		scriptID   uint64
 		timestamps []time.Time
-		// intervals []interface{}
+		intervals  []cronexpr.Expression
 	}
 )
 
@@ -20,9 +22,14 @@ var (
 	now = func() time.Time { return time.Now() }
 )
 
+const (
+	pickInterval = time.Minute
+)
+
 // scans runnables and builds a set of scheduled scripts
 func buildScheduleList(runables ScriptSet) scheduledSet {
 	set := scheduledSet{}
+	n := now()
 
 	_ = runables.Walk(func(s *Script) error {
 		sch := schedule{scriptID: s.ID}
@@ -38,7 +45,7 @@ func buildScheduleList(runables ScriptSet) scheduledSet {
 
 			if ts, err := time.Parse(time.RFC3339, t.Condition); err == nil {
 				ts = ts.Truncate(time.Minute)
-				if ts.Before(now()) {
+				if ts.Before(n) {
 					// in the past...
 					continue
 				}
@@ -46,13 +53,26 @@ func buildScheduleList(runables ScriptSet) scheduledSet {
 				sch.timestamps = append(sch.timestamps, ts)
 				continue
 			}
+		}
 
-			// @todo parse cron format and fill intervals
+		for _, t := range s.triggers {
+			if !t.IsInterval() {
+				// only interested in interval scripts
+				continue
+			}
+
+			if t.Condition == "" {
+				continue
+			}
+
+			if itv, err := cronexpr.Parse(t.Condition); err == nil {
+				sch.intervals = append(sch.intervals, *itv)
+			}
 		}
 
 		// If there is anything useful in the schedule,
 		// add it to the list
-		if len(sch.timestamps) > 0 {
+		if len(sch.timestamps)+len(sch.intervals) > 0 {
 			set = append(set, sch)
 		}
 
@@ -69,16 +89,25 @@ func buildScheduleList(runables ScriptSet) scheduledSet {
 // is scheduled multiple times,
 func (set scheduledSet) pick() []uint64 {
 	uu := []uint64{}
-	thisMinute := now().Truncate(time.Minute)
+	n := now()
+	thisMinute := n.Truncate(pickInterval)
 	for _, s := range set {
 		for _, t := range s.timestamps {
-			if thisMinute.Equal(t) {
+			if thisMinute.Equal(t.Truncate(pickInterval)) {
 				uu = append(uu, s.scriptID)
 				break
 			}
 		}
 
-		// @todo pick from intervals
+		for _, i := range s.intervals {
+			// go back 1 interval step to check if script is ran in the next step;
+			// since cronexpr can't assert if given time is in the interval.
+			nn := thisMinute.Add(-pickInterval)
+			if thisMinute.Equal(i.Next(nn).Truncate(pickInterval)) {
+				uu = append(uu, s.scriptID)
+				break
+			}
+		}
 	}
 
 	return uu
