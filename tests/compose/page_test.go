@@ -9,6 +9,7 @@ import (
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
+	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 )
@@ -42,6 +43,22 @@ func TestPageRead(t *testing.T) {
 		Assert(jsonpath.Equal(`$.response.title`, m.Title)).
 		Assert(jsonpath.Equal(`$.response.pageID`, fmt.Sprintf("%d", m.ID))).
 		End()
+}
+
+func TestPageReadByHandle(t *testing.T) {
+	h := newHelper(t)
+
+	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.PagePermissionResource.AppendWildcard(), "read")
+	ns := h.repoMakeNamespace("some-namespace")
+	c := h.repoMakePage(ns, "some-page")
+
+	cbh, err := service.DefaultPage.With(h.secCtx()).FindByHandle(ns.ID, c.Handle)
+
+	h.a.NoError(err)
+	h.a.NotNil(cbh)
+	h.a.Equal(cbh.ID, c.ID)
+	h.a.Equal(cbh.Handle, c.Handle)
 }
 
 func TestPageList(t *testing.T) {

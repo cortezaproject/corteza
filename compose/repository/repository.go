@@ -48,6 +48,21 @@ func (r *repository) db() *factory.DB {
 	return DB(r.ctx)
 }
 
+func (r repository) findOneInNamespaceBy(namespaceID uint64, q squirrel.SelectBuilder, eq squirrel.Eq, row interface{}) error {
+	q = q.Where(eq)
+
+	if namespaceID > 0 {
+		q = q.Where("rel_namespace = ?", namespaceID)
+	}
+
+	if err := r.fetchOne(row, q); err != nil {
+		row = nil
+		return err
+	}
+
+	return nil
+}
+
 // Fetches single row from table
 func (r repository) fetchOne(one interface{}, q squirrel.SelectBuilder) (err error) {
 	return rh.FetchOne(r.db(), q, one)

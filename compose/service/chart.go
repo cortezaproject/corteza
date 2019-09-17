@@ -8,6 +8,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/handle"
 )
 
 type (
@@ -34,6 +35,7 @@ type (
 		With(ctx context.Context) ChartService
 
 		FindByID(namespaceID, chartID uint64) (*types.Chart, error)
+		FindByHandle(namespaceID uint64, handle string) (*types.Chart, error)
 		Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error)
 
 		Create(chart *types.Chart) (*types.Chart, error)
@@ -69,17 +71,29 @@ func (svc chart) With(ctx context.Context) ChartService {
 // }
 
 func (svc chart) FindByID(namespaceID, chartID uint64) (c *types.Chart, err error) {
-	if namespaceID == 0 {
-		return nil, ErrNamespaceRequired
-	}
-
-	if c, err = svc.chartRepo.FindByID(namespaceID, chartID); err != nil {
+	if _, err = svc.loadNamespace(namespaceID); err != nil {
 		return
+	} else {
+		return svc.checkPermissions(svc.chartRepo.FindByID(namespaceID, chartID))
+	}
+}
+
+func (svc chart) FindByHandle(namespaceID uint64, handle string) (c *types.Chart, err error) {
+	if _, err = svc.loadNamespace(namespaceID); err != nil {
+		return
+	} else {
+		return svc.checkPermissions(svc.chartRepo.FindByHandle(namespaceID, handle))
+	}
+}
+
+func (svc chart) checkPermissions(c *types.Chart, err error) (*types.Chart, error) {
+	if err != nil {
+		return nil, err
 	} else if !svc.ac.CanReadChart(svc.ctx, c) {
 		return nil, ErrNoReadPermissions.withStack()
 	}
 
-	return
+	return c, err
 }
 
 func (svc chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error) {
@@ -96,16 +110,28 @@ func (svc chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.Cha
 }
 
 func (svc chart) Create(mod *types.Chart) (c *types.Chart, err error) {
+	if !handle.IsValid(mod.Handle) {
+		return nil, ErrInvalidHandle
+	}
+
 	if ns, err := svc.loadNamespace(mod.NamespaceID); err != nil {
 		return nil, err
 	} else if !svc.ac.CanCreateChart(svc.ctx, ns) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
+	if err = svc.UniqueCheck(mod); err != nil {
+		return
+	}
+
 	return svc.chartRepo.Create(mod)
 }
 
 func (svc chart) Update(mod *types.Chart) (c *types.Chart, err error) {
+	if !handle.IsValid(mod.Handle) {
+		return nil, ErrInvalidHandle
+	}
+
 	if mod.ID == 0 {
 		return nil, ErrInvalidID.withStack()
 	}
@@ -116,6 +142,10 @@ func (svc chart) Update(mod *types.Chart) (c *types.Chart, err error) {
 
 	if isStale(mod.UpdatedAt, c.UpdatedAt, c.CreatedAt) {
 		return nil, ErrStaleData.withStack()
+	}
+
+	if err = svc.UniqueCheck(mod); err != nil {
+		return
 	}
 
 	if !svc.ac.CanUpdateChart(svc.ctx, c) {
@@ -144,6 +174,16 @@ func (svc chart) DeleteByID(namespaceID, chartID uint64) error {
 	}
 
 	return svc.chartRepo.DeleteByID(namespaceID, chartID)
+}
+
+func (svc chart) UniqueCheck(c *types.Chart) (err error) {
+	if c.Handle != "" {
+		if e, _ := svc.chartRepo.FindByHandle(c.NamespaceID, c.Handle); e != nil && e.ID != c.ID {
+			return repository.ErrChartHandleNotUnique
+		}
+	}
+
+	return nil
 }
 
 func (svc chart) loadNamespace(namespaceID uint64) (ns *types.Namespace, err error) {

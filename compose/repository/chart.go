@@ -15,6 +15,7 @@ type (
 		With(ctx context.Context, db *factory.DB) ChartRepository
 
 		FindByID(namespaceID, chartID uint64) (*types.Chart, error)
+		FindByHandle(namespaceID uint64, handle string) (c *types.Chart, err error)
 		Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error)
 		Create(mod *types.Chart) (*types.Chart, error)
 		Update(mod *types.Chart) (*types.Chart, error)
@@ -27,7 +28,8 @@ type (
 )
 
 const (
-	ErrChartNotFound = repositoryError("ChartNotFound")
+	ErrChartNotFound        = repositoryError("ChartNotFound")
+	ErrChartHandleNotUnique = repositoryError("ChartHandleNotUnique")
 )
 
 func Chart(ctx context.Context, db *factory.DB) ChartRepository {
@@ -46,7 +48,7 @@ func (r chart) table() string {
 
 func (r chart) columns() []string {
 	return []string{
-		"id", "rel_namespace", "name", "config",
+		"id", "rel_namespace", "handle", "name", "config",
 		"created_at", "updated_at", "deleted_at",
 	}
 }
@@ -63,6 +65,22 @@ func (r chart) FindByID(namespaceID, chartID uint64) (*types.Chart, error) {
 		query = r.query().
 			Columns(r.columns()...).
 			Where("id = ?", chartID)
+
+		c = &types.Chart{}
+	)
+
+	if namespaceID > 0 {
+		query = query.Where("rel_namespace = ?", namespaceID)
+	}
+
+	return c, isFound(r.fetchOne(c, query), c.ID > 0, ErrChartNotFound)
+}
+
+func (r chart) FindByHandle(namespaceID uint64, handle string) (*types.Chart, error) {
+	var (
+		query = r.query().
+			Columns(r.columns()...).
+			Where("handle = ?", handle)
 
 		c = &types.Chart{}
 	)

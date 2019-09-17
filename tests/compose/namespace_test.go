@@ -9,7 +9,9 @@ import (
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
+	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/internal/rand"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 )
 
@@ -20,7 +22,7 @@ func (h helper) repoNamespace() repository.NamespaceRepository {
 func (h helper) repoMakeNamespace(name string) *types.Namespace {
 	ns, err := h.
 		repoNamespace().
-		Create(&types.Namespace{Name: name})
+		Create(&types.Namespace{Name: name, Slug: name})
 	h.a.NoError(err)
 
 	return ns
@@ -39,6 +41,21 @@ func TestNamespaceRead(t *testing.T) {
 		Assert(jsonpath.Equal(`$.response.name`, ns.Name)).
 		Assert(jsonpath.Equal(`$.response.namespaceID`, fmt.Sprintf("%d", ns.ID))).
 		End()
+}
+
+func TestNamespaceReadByHandle(t *testing.T) {
+	h := newHelper(t)
+
+	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	ns := h.repoMakeNamespace("some-namespace-" + string(rand.Bytes(20)))
+
+	nsbh, err := service.DefaultNamespace.With(h.secCtx()).FindByHandle(ns.Slug)
+
+	h.a.NoError(err)
+	h.a.NotNil(nsbh)
+	h.a.Equal(nsbh.ID, ns.ID)
+	h.a.Equal(nsbh.Slug, ns.Slug)
 }
 
 func TestNamespaceList(t *testing.T) {

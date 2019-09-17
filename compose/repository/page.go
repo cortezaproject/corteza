@@ -15,6 +15,7 @@ type (
 		With(ctx context.Context, db *factory.DB) PageRepository
 
 		FindByID(namespaceID, pageID uint64) (*types.Page, error)
+		FindByHandle(namespaceID uint64, handle string) (*types.Page, error)
 		FindByModuleID(namespaceID, moduleID uint64) (*types.Page, error)
 		Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
 
@@ -31,7 +32,8 @@ type (
 )
 
 const (
-	ErrPageNotFound = repositoryError("PageNotFound")
+	ErrPageNotFound        = repositoryError("PageNotFound")
+	ErrPageHandleNotUnique = repositoryError("PageHandleNotUnique")
 )
 
 func Page(ctx context.Context, db *factory.DB) PageRepository {
@@ -50,7 +52,8 @@ func (r page) table() string {
 
 func (r page) columns() []string {
 	return []string{
-		"id", "rel_namespace", "self_id", "rel_module", "title",
+		"id", "rel_namespace", "self_id", "rel_module",
+		"handle", "title",
 		"blocks", "description", "visible", "weight",
 		"created_at", "updated_at", "deleted_at",
 	}
@@ -68,6 +71,22 @@ func (r page) FindByID(namespaceID, pageID uint64) (*types.Page, error) {
 		query = r.query().
 			Columns(r.columns()...).
 			Where("id = ?", pageID)
+
+		c = &types.Page{}
+	)
+
+	if namespaceID > 0 {
+		query = query.Where("rel_namespace = ?", namespaceID)
+	}
+
+	return c, isFound(r.fetchOne(c, query), c.ID > 0, ErrPageNotFound)
+}
+
+func (r page) FindByHandle(namespaceID uint64, handle string) (*types.Page, error) {
+	var (
+		query = r.query().
+			Columns(r.columns()...).
+			Where("handle = ?", handle)
 
 		c = &types.Page{}
 	)
