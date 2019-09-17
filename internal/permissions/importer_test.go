@@ -40,7 +40,7 @@ func TestPermissionRulesImport_CastResourcesSet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			imp := &PermissionRulesImport{}
+			imp := &Importer{}
 
 			aux, err := importer.ParseYAML([]byte(tt.yaml))
 			require.NoError(t, err)
