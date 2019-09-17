@@ -28,7 +28,9 @@ type (
 )
 
 const (
-	ErrNamespaceNotFound = repositoryError("NamespaceNotFound")
+	ErrNamespaceNotFound          = repositoryError("NamespaceNotFound")
+	ErrNamespaceSlugNotUnique     = repositoryError("NamespaceSlugNotUnique")
+	ErrNamespaceInvalidSlugFormat = repositoryError("NamespaceInvalidSlugFormat")
 )
 
 func Namespace(ctx context.Context, db *factory.DB) NamespaceRepository {

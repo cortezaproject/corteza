@@ -3,12 +3,12 @@ package service
 import (
 	"context"
 
-	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/handle"
 )
 
 type (
@@ -36,6 +36,7 @@ type (
 		With(ctx context.Context) PageService
 
 		FindByID(namespaceID, pageID uint64) (*types.Page, error)
+		FindByHandle(namespaceID uint64, handle string) (*types.Page, error)
 		FindByModuleID(namespaceID, moduleID uint64) (*types.Page, error)
 		FindBySelfID(namespaceID, selfID uint64) (pages types.PageSet, f types.PageFilter, err error)
 		Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
@@ -77,18 +78,34 @@ func (svc page) With(ctx context.Context) PageService {
 // }
 
 func (svc page) FindByID(namespaceID, pageID uint64) (p *types.Page, err error) {
-	return svc.checkPermissions(svc.pageRepo.FindByID(namespaceID, pageID))
+	if _, err = svc.loadNamespace(namespaceID); err != nil {
+		return
+	} else {
+		return svc.checkPermissions(svc.pageRepo.FindByID(namespaceID, pageID))
+	}
+}
+
+func (svc page) FindByHandle(namespaceID uint64, handle string) (c *types.Page, err error) {
+	if _, err = svc.loadNamespace(namespaceID); err != nil {
+		return
+	} else {
+		return svc.checkPermissions(svc.pageRepo.FindByHandle(namespaceID, handle))
+	}
 }
 
 func (svc page) FindByModuleID(namespaceID, moduleID uint64) (p *types.Page, err error) {
-	return svc.checkPermissions(svc.pageRepo.FindByModuleID(namespaceID, moduleID))
+	if _, err = svc.loadNamespace(namespaceID); err != nil {
+		return
+	} else {
+		return svc.checkPermissions(svc.pageRepo.FindByModuleID(namespaceID, moduleID))
+	}
 }
 
 func (svc page) checkPermissions(p *types.Page, err error) (*types.Page, error) {
 	if err != nil {
 		return nil, err
 	} else if !svc.ac.CanReadPage(svc.ctx, p) {
-		return nil, errors.New("not allowed to access this page")
+		return nil, ErrNoReadPermissions.withStack()
 	}
 
 	return p, err
@@ -190,13 +207,17 @@ func (svc page) Reorder(namespaceID, selfID uint64, pageIDs []uint64) error {
 func (svc page) Create(mod *types.Page) (p *types.Page, err error) {
 	mod.ID = 0
 
+	if !handle.IsValid(mod.Handle) {
+		return nil, ErrInvalidHandle
+	}
+
 	if ns, err := svc.loadNamespace(mod.NamespaceID); err != nil {
 		return nil, err
 	} else if !svc.ac.CanCreatePage(svc.ctx, ns) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
-	if err = svc.checkModulePage(mod); err != nil {
+	if err = svc.UniqueCheck(mod); err != nil {
 		return
 	}
 
@@ -207,6 +228,10 @@ func (svc page) Create(mod *types.Page) (p *types.Page, err error) {
 func (svc page) Update(mod *types.Page) (p *types.Page, err error) {
 	if mod.ID == 0 {
 		return nil, ErrInvalidID.withStack()
+	}
+
+	if !handle.IsValid(mod.Handle) {
+		return nil, ErrInvalidHandle
 	}
 
 	if _, err = svc.loadNamespace(mod.NamespaceID); err != nil {
@@ -225,7 +250,7 @@ func (svc page) Update(mod *types.Page) (p *types.Page, err error) {
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
-	if err = svc.checkModulePage(mod); err != nil {
+	if err = svc.UniqueCheck(mod); err != nil {
 		return
 	}
 
@@ -241,13 +266,15 @@ func (svc page) Update(mod *types.Page) (p *types.Page, err error) {
 	return
 }
 
-func (svc page) checkModulePage(mod *types.Page) error {
-	if mod.ModuleID > 0 {
-		if p, err := svc.pageRepo.FindByModuleID(mod.NamespaceID, mod.ModuleID); err != nil {
-			if err.Error() != repository.ErrPageNotFound.Error() {
-				return err
-			}
-		} else if p.ID > 0 && mod.ID != p.ID {
+func (svc page) UniqueCheck(p *types.Page) (err error) {
+	if p.Handle != "" {
+		if e, _ := svc.pageRepo.FindByHandle(p.NamespaceID, p.Handle); e != nil && e.ID != p.ID {
+			return repository.ErrPageHandleNotUnique
+		}
+	}
+
+	if p.ModuleID > 0 {
+		if p, _ := svc.pageRepo.FindByModuleID(p.NamespaceID, p.ModuleID); p.ID > 0 && p.ID != p.ID {
 			return ErrModulePageExists
 		}
 	}

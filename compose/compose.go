@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/titpetric/factory"
 
+	"github.com/cortezaproject/corteza-server/compose/commands"
 	migrate "github.com/cortezaproject/corteza-server/compose/db"
 	"github.com/cortezaproject/corteza-server/compose/rest"
 	"github.com/cortezaproject/corteza-server/compose/service"
@@ -61,6 +62,15 @@ func Configure() *cli.Config {
 
 		ApiServerRoutes: cli.Mounters{
 			rest.MountRoutes,
+		},
+
+		AdtSubCommands: cli.CommandMakers{
+			func(ctx context.Context, c *cli.Config) *cobra.Command {
+				return commands.Importer(ctx, c)
+			},
+			func(ctx context.Context, c *cli.Config) *cobra.Command {
+				return commands.Exporter(ctx, c)
+			},
 		},
 
 		ProvisionMigrateDatabase: cli.Runners{

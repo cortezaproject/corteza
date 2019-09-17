@@ -196,37 +196,21 @@ func (svc user) Update(mod *types.User) (u *types.User, err error) {
 }
 
 func (svc user) UniqueCheck(u *types.User) (err error) {
-	var (
-		e *types.User
-
-		checks = []struct {
-			query string
-			find  func(string) (*types.User, error)
-			err   error
-		}{
-			// Checking scenario:
-			// if email/username/handle is found on another user, error is thrown
-			{u.Email, svc.FindByEmail, ErrUserEmailNotUnique},
-			{u.Username, svc.FindByUsername, ErrUserUsernameNotUnique},
-			{u.Handle, svc.FindByHandle, ErrUserHandleNotUnique},
+	if u.Email != "" {
+		if ex, _ := svc.user.FindByEmail(u.Email); ex.ID > 0 && ex.ID != u.ID {
+			return ErrUserEmailNotUnique
 		}
-	)
+	}
 
-	for _, c := range checks {
-		if c.query == "" {
-			// Skip empty values
-			continue
+	if u.Username != "" {
+		if ex, _ := svc.user.FindByUsername(u.Username); ex.ID > 0 && ex.ID != u.ID {
+			return ErrUserUsernameNotUnique
 		}
+	}
 
-		e, err = c.find(c.query)
-		if err == repository.ErrUserNotFound {
-			// User not found, proceed to next check
-			continue
-		}
-
-		if e.ID > 0 && e.ID != u.ID {
-			// User found, throw configured error
-			return c.err
+	if u.Handle != "" {
+		if ex, _ := svc.user.FindByHandle(u.Handle); ex.ID > 0 && ex.ID != u.ID {
+			return ErrUserHandleNotUnique
 		}
 	}
 

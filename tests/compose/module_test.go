@@ -9,6 +9,7 @@ import (
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
+	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 )
@@ -42,6 +43,22 @@ func TestModuleRead(t *testing.T) {
 		Assert(jsonpath.Equal(`$.response.name`, m.Name)).
 		Assert(jsonpath.Equal(`$.response.moduleID`, fmt.Sprintf("%d", m.ID))).
 		End()
+}
+
+func TestModuleReadByHandle(t *testing.T) {
+	h := newHelper(t)
+
+	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.ModulePermissionResource.AppendWildcard(), "read")
+	ns := h.repoMakeNamespace("some-namespace")
+	c := h.repoMakeModule(ns, "some-module")
+
+	cbh, err := service.DefaultModule.With(h.secCtx()).FindByHandle(ns.ID, c.Handle)
+
+	h.a.NoError(err)
+	h.a.NotNil(cbh)
+	h.a.Equal(cbh.ID, c.ID)
+	h.a.Equal(cbh.Handle, c.Handle)
 }
 
 func TestModuleList(t *testing.T) {

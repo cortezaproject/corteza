@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 
-	"github.com/cortezaproject/corteza-server/internal/rand"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
@@ -18,19 +18,32 @@ func (h helper) repoRole() repository.RoleRepository {
 	return repository.Role(context.Background(), db())
 }
 
-func (h helper) repoMakeRole(name string) *types.Role {
-	u, err := h.
+func (h helper) repoMakeRole(ss ...string) *types.Role {
+	var r = &types.Role{}
+	if len(ss) > 1 {
+		r.Handle = ss[1]
+	} else {
+		r.Handle = rs()
+
+	}
+	if len(ss) > 0 {
+		r.Name = ss[0]
+	} else {
+		r.Name = rs()
+	}
+
+	r, err := h.
 		repoRole().
-		Create(&types.Role{Name: name})
+		Create(r)
 	h.a.NoError(err)
 
-	return u
+	return r
 }
 
 func TestRoleRead(t *testing.T) {
 	h := newHelper(t)
 
-	u := h.repoMakeRole(string(rand.Bytes(10)))
+	u := h.repoMakeRole()
 
 	h.apiInit().
 		Get(fmt.Sprintf("/roles/%d", u.ID)).
@@ -61,11 +74,37 @@ func TestRoleCreateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post("/roles/").
-		FormData("name", string(rand.Bytes(10))).
+		FormData("name", rs()).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("system.service.NoCreatePermissions")).
 		End()
+}
+
+func TestRoleCreateNotUnique(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.SystemPermissionResource, "role.create")
+
+	role := h.repoMakeRole()
+	spew.Dump(role)
+	h.apiInit().
+		Post("/roles/").
+		FormData("name", rs()).
+		FormData("handle", role.Handle).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("system.service.RoleHandleNotUnique")).
+		End()
+
+	h.apiInit().
+		Post("/roles/").
+		FormData("name", role.Name).
+		FormData("handle", rs()).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("system.service.RoleNameNotUnique")).
+		End()
+
 }
 
 func TestRoleCreate(t *testing.T) {
@@ -74,8 +113,8 @@ func TestRoleCreate(t *testing.T) {
 
 	h.apiInit().
 		Post("/roles/").
-		FormData("name", string(rand.Bytes(10))).
-		FormData("handle", string(rand.Bytes(10))).
+		FormData("name", rs()).
+		FormData("handle", rs()).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -84,7 +123,7 @@ func TestRoleCreate(t *testing.T) {
 
 func TestRoleUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
-	u := h.repoMakeRole(string(rand.Bytes(10)))
+	u := h.repoMakeRole()
 
 	h.apiInit().
 		Put(fmt.Sprintf("/roles/%d", u.ID)).
@@ -97,11 +136,11 @@ func TestRoleUpdateForbidden(t *testing.T) {
 
 func TestRoleUpdate(t *testing.T) {
 	h := newHelper(t)
-	u := h.repoMakeRole(string(rand.Bytes(10)))
+	u := h.repoMakeRole()
 	h.allow(types.RolePermissionResource.AppendWildcard(), "update")
 
-	newName := "updated-" + string(rand.Bytes(10))
-	newHandle := "updated-" + string(rand.Bytes(10))
+	newName := "updated-" + rs()
+	newHandle := "updated-" + rs()
 
 	h.apiInit().
 		Put(fmt.Sprintf("/roles/%d", u.ID)).
@@ -121,7 +160,7 @@ func TestRoleUpdate(t *testing.T) {
 
 func TestRoleDeleteForbidden(t *testing.T) {
 	h := newHelper(t)
-	u := h.repoMakeRole(string(rand.Bytes(10)))
+	u := h.repoMakeRole()
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/roles/%d", u.ID)).
@@ -135,7 +174,7 @@ func TestRoleDelete(t *testing.T) {
 	h := newHelper(t)
 	h.allow(types.RolePermissionResource.AppendWildcard(), "delete")
 
-	u := h.repoMakeRole(string(rand.Bytes(10)))
+	u := h.repoMakeRole()
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/roles/%d", u.ID)).
