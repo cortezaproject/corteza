@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
-	"github.com/titpetric/factory"
 
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -15,7 +14,7 @@ import (
 )
 
 func (h helper) randEmail() string {
-	return fmt.Sprintf("%d@test.tld", factory.Sonyflake.NextID())
+	return fmt.Sprintf("%s@test.tld", rs())
 }
 
 func (h helper) repoUser() repository.UserRepository {

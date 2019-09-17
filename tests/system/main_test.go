@@ -43,6 +43,16 @@ var (
 	p   = permissions.NewTestService()
 )
 
+// random string, 10 chars long by default
+func rs(a ...int) string {
+	var l = 10
+	if len(a) > 0 {
+		l = a[0]
+	}
+
+	return string(rand.Bytes(l))
+}
+
 func db() *factory.DB {
 	return factory.Database.MustGet("system").With(context.Background())
 }

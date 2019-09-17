@@ -3,12 +3,14 @@ package service
 import (
 	"context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/handle"
 )
 
 type (
@@ -35,6 +37,7 @@ type (
 		With(ctx context.Context) NamespaceService
 
 		FindByID(namespaceID uint64) (*types.Namespace, error)
+		FindByHandle(handle string) (*types.Namespace, error)
 		Find(types.NamespaceFilter) (types.NamespaceSet, types.NamespaceFilter, error)
 
 		Create(namespace *types.Namespace) (*types.Namespace, error)
@@ -69,27 +72,25 @@ func (svc namespace) With(ctx context.Context) NamespaceService {
 // }
 
 func (svc namespace) FindByID(ID uint64) (ns *types.Namespace, err error) {
-	if ID == 0 {
-		return nil, ErrInvalidID.withStack()
-	}
+	return svc.checkPermissions(svc.namespaceRepo.FindByID(ID))
+}
 
-	if ns, err = svc.namespaceRepo.FindByID(ID); err != nil {
-		return
-	} else if !svc.ac.CanReadNamespace(svc.ctx, ns) {
-		return nil, ErrNoReadPermissions.withStack()
-	}
-
-	return
+func (svc namespace) FindByHandle(handle string) (ns *types.Namespace, err error) {
+	return svc.checkPermissions(svc.namespaceRepo.FindBySlug(handle))
 }
 
 func (svc namespace) FindBySlug(slug string) (ns *types.Namespace, err error) {
-	if ns, err = svc.namespaceRepo.FindBySlug(slug); err != nil {
-		return
-	} else if !svc.ac.CanReadNamespace(svc.ctx, ns) {
+	return svc.checkPermissions(svc.namespaceRepo.FindBySlug(slug))
+}
+
+func (svc namespace) checkPermissions(p *types.Namespace, err error) (*types.Namespace, error) {
+	if err != nil {
+		return nil, err
+	} else if !svc.ac.CanReadNamespace(svc.ctx, p) {
 		return nil, ErrNoReadPermissions.withStack()
 	}
 
-	return
+	return p, err
 }
 
 func (svc namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
@@ -107,6 +108,11 @@ func (svc namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet,
 
 // Create adds namespace and presets access rules for role everyone
 func (svc namespace) Create(mod *types.Namespace) (*types.Namespace, error) {
+	if !handle.IsValid(mod.Slug) {
+		spew.Dump(mod.Slug)
+		return nil, ErrInvalidHandle
+	}
+
 	if !svc.ac.CanCreateNamespace(svc.ctx) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
@@ -117,6 +123,11 @@ func (svc namespace) Create(mod *types.Namespace) (*types.Namespace, error) {
 func (svc namespace) Update(mod *types.Namespace) (ns *types.Namespace, err error) {
 	if mod.ID == 0 {
 		return nil, ErrInvalidID.withStack()
+	}
+
+	if !handle.IsValid(mod.Slug) {
+		spew.Dump(mod.Slug)
+		return nil, ErrInvalidHandle
 	}
 
 	ns, err = svc.FindByID(mod.ID)
@@ -152,4 +163,14 @@ func (svc namespace) DeleteByID(namespaceID uint64) error {
 	}
 
 	return svc.namespaceRepo.DeleteByID(namespaceID)
+}
+
+func (svc namespace) UniqueCheck(ns *types.Namespace) (err error) {
+	if ns.Slug != "" {
+		if e, _ := svc.namespaceRepo.FindBySlug(ns.Slug); e != nil && e.ID != ns.ID {
+			return repository.ErrNamespaceSlugNotUnique
+		}
+	}
+
+	return nil
 }
