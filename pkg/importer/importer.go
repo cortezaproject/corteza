@@ -1,5 +1,11 @@
 package importer
 
+import (
+	"context"
+
+	"github.com/cortezaproject/corteza-server/internal/permissions"
+)
+
 type (
 	Interface interface {
 		CastSet(set interface{}) error
@@ -9,6 +15,9 @@ type (
 	PermissionImporter interface {
 		CastSet(string, string, interface{}) error
 		CastResourcesSet(string, interface{}) error
+		UpdateResources(base string, handle string, ID uint64)
+		UpdateRoles(handle string, ID uint64)
+		Store(context.Context, permissions.ImportKeeper) error
 	}
 )
 
