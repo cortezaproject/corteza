@@ -1,27 +1,42 @@
 package permissions
 
 import (
+	"context"
 	"sort"
+	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 )
 
 type (
-	PermissionRulesImport struct {
-		whitelist interface {
-			Check(rule *Rule) bool
-		}
+	Importer struct {
+		whitelist whitelistChecker
 
 		// Rules per role
 		rules map[string]RuleSet
 	}
+
+	whitelistChecker interface {
+		Check(*Rule) bool
+	}
+
+	ImportKeeper interface {
+		Grant(ctx context.Context, rr ...*Rule) error
+	}
 )
+
+func NewImporter(wl whitelistChecker) *Importer {
+	return &Importer{
+		whitelist: wl,
+	}
+}
 
 // CastSet - resolves permission rules for specific resource:
 //   <role>: [<operation>, ...]
-func (imp *PermissionRulesImport) CastSet(resource, accessStr string, roles interface{}) (err error) {
+func (imp *Importer) CastSet(resource, accessStr string, roles interface{}) (err error) {
 	if !deinterfacer.IsMap(roles) {
 		return errors.New("expecting map of roles")
 	}
@@ -32,7 +47,7 @@ func (imp *PermissionRulesImport) CastSet(resource, accessStr string, roles inte
 
 // CastResourcesSet - resolves permission rules:
 //   <role> { <resource>: [<operation>, ...] }
-func (imp *PermissionRulesImport) CastResourcesSet(accessStr string, roles interface{}) (err error) {
+func (imp *Importer) CastResourcesSet(accessStr string, roles interface{}) (err error) {
 	// if !IsIterable(roles) {
 	// 	return errors.New("expecting map of roles")
 	// }
@@ -44,12 +59,20 @@ func (imp *PermissionRulesImport) CastResourcesSet(accessStr string, roles inter
 
 		// Each resource
 		return deinterfacer.Each(perResource, func(_ int, resource string, oo interface{}) error {
+			// We want to make life of the person that's preparing the import data easy, so
+			// let's do a little guessing instead of him:
+			if strings.Contains(resource, ":") {
+				// This is not service-level resource, trim * and : from the end
+				resource = strings.TrimRight(resource, ":*")
+				resource = Resource(resource + string(resourceDelimiter)).AppendWildcard().String()
+			}
+
 			return imp.appendPermissionRule(roleHandle, accessStr, resource, oo)
 		})
 	})
 }
 
-func (imp *PermissionRulesImport) appendPermissionRule(roleHandle, accessStr, res string, oo interface{}) (err error) {
+func (imp *Importer) appendPermissionRule(roleHandle, accessStr, res string, oo interface{}) (err error) {
 	var access Access
 
 	if err = access.UnmarshalJSON([]byte(accessStr)); err != nil {
@@ -89,12 +112,40 @@ func (imp *PermissionRulesImport) appendPermissionRule(roleHandle, accessStr, re
 }
 
 // UpdateResources iterates over all rules and replaces resource (foo:bar => foo:42)
-func (imp *PermissionRulesImport) UpdateResources(rwHandle, rwID Resource) {
+func (imp *Importer) UpdateResources(base, handle string, ID uint64) {
+	var (
+		from = Resource(base).append(handle)
+		to   = Resource(base).AppendID(ID)
+	)
 	for _, rules := range imp.rules {
 		for _, rule := range rules {
-			if rule.Resource == rwHandle {
-				rule.Resource = rwID
+			if rule.Resource == from {
+				rule.Resource = to
 			}
 		}
 	}
+}
+
+func (imp *Importer) UpdateRoles(handle string, ID uint64) {
+	spew.Dump("UpdateRoles(handle string, ID uint64)", handle, ID)
+	if imp.rules[handle] != nil {
+		for _, rule := range imp.rules[handle] {
+			rule.RoleID = ID
+		}
+	}
+}
+
+func (imp *Importer) Store(ctx context.Context, k ImportKeeper) (err error) {
+	for _, rr := range imp.rules {
+		// Make sure all rules have valid role
+		rr, _ = rr.Filter(func(rule *Rule) (b bool, e error) {
+			return rule.RoleID > 0, nil
+		})
+
+		if err = k.Grant(ctx, rr...); err != nil {
+			return
+		}
+	}
+
+	return
 }
