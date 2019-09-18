@@ -36,6 +36,7 @@ var _ = multipart.FileHeader{}
 // Chart list request parameters
 type ChartList struct {
 	Query       string
+	Handle      string
 	Page        uint
 	PerPage     uint
 	NamespaceID uint64 `json:",string"`
@@ -49,6 +50,7 @@ func (r ChartList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["query"] = r.Query
+	out["handle"] = r.Handle
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
 	out["namespaceID"] = r.NamespaceID
@@ -86,6 +88,9 @@ func (r *ChartList) Fill(req *http.Request) (err error) {
 	if val, ok := get["query"]; ok {
 		r.Query = val
 	}
+	if val, ok := get["handle"]; ok {
+		r.Handle = val
+	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)
 	}
@@ -103,6 +108,7 @@ var _ RequestFiller = NewChartList()
 type ChartCreate struct {
 	Config      sqlxTypes.JSONText
 	Name        string
+	Handle      string
 	NamespaceID uint64 `json:",string"`
 }
 
@@ -115,6 +121,7 @@ func (r ChartCreate) Auditable() map[string]interface{} {
 
 	out["config"] = r.Config
 	out["name"] = r.Name
+	out["handle"] = r.Handle
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -155,6 +162,9 @@ func (r *ChartCreate) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := post["name"]; ok {
 		r.Name = val
+	}
+	if val, ok := post["handle"]; ok {
+		r.Handle = val
 	}
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
@@ -223,6 +233,7 @@ type ChartUpdate struct {
 	NamespaceID uint64 `json:",string"`
 	Config      sqlxTypes.JSONText
 	Name        string
+	Handle      string
 	UpdatedAt   *time.Time
 }
 
@@ -237,6 +248,7 @@ func (r ChartUpdate) Auditable() map[string]interface{} {
 	out["namespaceID"] = r.NamespaceID
 	out["config"] = r.Config
 	out["name"] = r.Name
+	out["handle"] = r.Handle
 	out["updatedAt"] = r.UpdatedAt
 
 	return out
@@ -279,6 +291,9 @@ func (r *ChartUpdate) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := post["name"]; ok {
 		r.Name = val
+	}
+	if val, ok := post["handle"]; ok {
+		r.Handle = val
 	}
 	if val, ok := post["updatedAt"]; ok {
 

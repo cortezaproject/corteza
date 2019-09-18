@@ -58,6 +58,7 @@ type (
 		NamespaceID uint64 `json:"namespaceID,string"`
 		ParentID    uint64 `json:"parentID,string,omitempty"`
 		Root        bool   `json:"root,omitempty"`
+		Handle      string `json:"handle"`
 		Query       string `json:"query"`
 		Page        uint   `json:"page"`
 		PerPage     uint   `json:"perPage"`

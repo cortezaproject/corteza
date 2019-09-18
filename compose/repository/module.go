@@ -117,7 +117,10 @@ func (r module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.Mo
 
 	if f.Name != "" {
 		query = query.Where("LOWER(name) = ?", strings.ToLower(f.Name))
+	}
 
+	if f.Handle != "" {
+		query = query.Where("LOWER(handle) = ?", strings.ToLower(f.Handle))
 	}
 
 	if f.Count, err = r.count(query); err != nil || f.Count == 0 {

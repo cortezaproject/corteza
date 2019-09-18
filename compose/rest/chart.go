@@ -52,6 +52,7 @@ func (ctrl Chart) List(ctx context.Context, r *request.ChartList) (interface{}, 
 	f := types.ChartFilter{
 		NamespaceID: r.NamespaceID,
 
+		Handle:  r.Handle,
 		Query:   r.Query,
 		PerPage: r.PerPage,
 		Page:    r.Page,
@@ -66,6 +67,7 @@ func (ctrl Chart) Create(ctx context.Context, r *request.ChartCreate) (interface
 	mod := &types.Chart{
 		NamespaceID: r.NamespaceID,
 		Name:        r.Name,
+		Handle:      r.Handle,
 	}
 
 	if err = r.Config.Unmarshal(&mod.Config); err != nil {
@@ -88,6 +90,7 @@ func (ctrl Chart) Update(ctx context.Context, r *request.ChartUpdate) (interface
 		mod = &types.Chart{
 			ID:          r.ChartID,
 			Name:        r.Name,
+			Handle:      r.Handle,
 			NamespaceID: r.NamespaceID,
 			UpdatedAt:   r.UpdatedAt,
 		}

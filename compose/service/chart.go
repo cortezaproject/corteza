@@ -154,6 +154,7 @@ func (svc chart) Update(mod *types.Chart) (c *types.Chart, err error) {
 
 	c.Config = mod.Config
 	c.Name = mod.Name
+	c.Handle = mod.Handle
 
 	return svc.chartRepo.Update(c)
 }

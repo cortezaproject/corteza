@@ -37,6 +37,12 @@
             "type": "string"
           },
           {
+            "name": "handle",
+            "required": false,
+            "title": "Search charts by handle",
+            "type": "string"
+          },
+          {
             "name": "page",
             "required": false,
             "title": "Page number (0 based)",
@@ -68,6 +74,12 @@
             "name": "name",
             "required": true,
             "title": "Chart name",
+            "type": "string"
+          },
+          {
+            "name": "handle",
+            "required": false,
+            "title": "Chart handle",
             "type": "string"
           }
         ]
@@ -114,6 +126,12 @@
             "name": "name",
             "required": true,
             "title": "Chart name",
+            "type": "string"
+          },
+          {
+            "name": "handle",
+            "required": false,
+            "title": "Chart handle",
             "type": "string"
           },
           {

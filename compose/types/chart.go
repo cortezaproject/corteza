@@ -41,6 +41,7 @@ type (
 
 	ChartFilter struct {
 		NamespaceID uint64 `json:"namespaceID,string"`
+		Handle      string `json:"handle"`
 		Query       string `json:"query"`
 		Page        uint   `json:"page"`
 		PerPage     uint   `json:"perPage"`
