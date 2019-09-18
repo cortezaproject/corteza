@@ -1,10 +1,13 @@
 package types
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/cortezaproject/corteza-server/internal/permissions"
-	"github.com/jmoiron/sqlx/types"
 )
 
 type (
@@ -21,7 +24,7 @@ type (
 		Title       string `json:"title" db:"title"`
 		Description string `json:"description" db:"description"`
 
-		Blocks types.JSONText `json:"blocks" db:"blocks"`
+		Blocks PageBlocks `json:"blocks" db:"blocks"`
 
 		Children PageSet `json:"children,omitempty" db:"-"`
 
@@ -33,16 +36,22 @@ type (
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
 	}
 
-	// Block - value of Page.Blocks ([]Block)
-	Block struct {
-		Title       string         `json:"title"`
-		Description string         `json:"description"`
-		Options     types.JSONText `json:"options"`
-		Kind        string         `json:"kind"`
-		X           int            `json:"x"`
-		Y           int            `json:"y"`
-		Width       int            `json:"width"`
-		Height      int            `json:"height"`
+	PageBlocks []PageBlock
+
+	PageBlock struct {
+		Title       string                 `json:"title,omitempty"        yaml:",omitempty"`
+		Description string                 `json:"description,omitempty"  yaml:",omitempty"`
+		Options     map[string]interface{} `json:"options,omitempty"      yaml:",omitempty"`
+		Style       PageBlockStyle         `json:"style,omitempty"        yaml:",omitempty"`
+		Kind        string                 `json:"kind"`
+		X           int                    `json:"x"`
+		Y           int                    `json:"y"`
+		Width       int                    `json:"width"`
+		Height      int                    `json:"height"`
+	}
+
+	PageBlockStyle struct {
+		Variants map[string]string `json:"variants,omitempty" yaml:",omitempty,flow"`
 	}
 
 	PageFilter struct {
@@ -70,4 +79,34 @@ func (set PageSet) FindByHandle(handle string) *Page {
 	}
 
 	return nil
+}
+
+func (bb *PageBlocks) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
+	switch value.(type) {
+	case nil:
+		*bb = PageBlocks{}
+	case []uint8:
+		b := value.([]byte)
+		if err := json.Unmarshal(b, bb); err != nil {
+			return errors.Wrapf(err, "Can not scan '%v' into PageBlocks", string(b))
+		}
+	}
+
+	return nil
+}
+
+func (bb PageBlocks) Value() (driver.Value, error) {
+	return json.Marshal(bb)
+}
+
+func (set PageSet) FindByParent(parentID uint64) (out PageSet) {
+	out = PageSet{}
+	for i := range set {
+		if set[i].SelfID == parentID {
+			out = append(out, set[i])
+		}
+	}
+
+	return
 }
