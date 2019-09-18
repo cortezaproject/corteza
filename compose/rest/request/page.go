@@ -36,6 +36,7 @@ var _ = multipart.FileHeader{}
 type PageList struct {
 	SelfID      uint64 `json:",string"`
 	Query       string
+	Handle      string
 	Page        uint
 	PerPage     uint
 	NamespaceID uint64 `json:",string"`
@@ -50,6 +51,7 @@ func (r PageList) Auditable() map[string]interface{} {
 
 	out["selfID"] = r.SelfID
 	out["query"] = r.Query
+	out["handle"] = r.Handle
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
 	out["namespaceID"] = r.NamespaceID
@@ -90,6 +92,9 @@ func (r *PageList) Fill(req *http.Request) (err error) {
 	if val, ok := get["query"]; ok {
 		r.Query = val
 	}
+	if val, ok := get["handle"]; ok {
+		r.Handle = val
+	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)
 	}
@@ -108,6 +113,7 @@ type PageCreate struct {
 	SelfID      uint64 `json:",string"`
 	ModuleID    uint64 `json:",string"`
 	Title       string
+	Handle      string
 	Description string
 	Visible     bool
 	Blocks      sqlxTypes.JSONText
@@ -124,6 +130,7 @@ func (r PageCreate) Auditable() map[string]interface{} {
 	out["selfID"] = r.SelfID
 	out["moduleID"] = r.ModuleID
 	out["title"] = r.Title
+	out["handle"] = r.Handle
 	out["description"] = r.Description
 	out["visible"] = r.Visible
 	out["blocks"] = r.Blocks
@@ -167,6 +174,9 @@ func (r *PageCreate) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := post["title"]; ok {
 		r.Title = val
+	}
+	if val, ok := post["handle"]; ok {
+		r.Handle = val
 	}
 	if val, ok := post["description"]; ok {
 		r.Description = val
@@ -299,6 +309,7 @@ type PageUpdate struct {
 	SelfID      uint64 `json:",string"`
 	ModuleID    uint64 `json:",string"`
 	Title       string
+	Handle      string
 	Description string
 	Visible     bool
 	Blocks      sqlxTypes.JSONText
@@ -316,6 +327,7 @@ func (r PageUpdate) Auditable() map[string]interface{} {
 	out["selfID"] = r.SelfID
 	out["moduleID"] = r.ModuleID
 	out["title"] = r.Title
+	out["handle"] = r.Handle
 	out["description"] = r.Description
 	out["visible"] = r.Visible
 	out["blocks"] = r.Blocks
@@ -360,6 +372,9 @@ func (r *PageUpdate) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := post["title"]; ok {
 		r.Title = val
+	}
+	if val, ok := post["handle"]; ok {
+		r.Handle = val
 	}
 	if val, ok := post["description"]; ok {
 		r.Description = val

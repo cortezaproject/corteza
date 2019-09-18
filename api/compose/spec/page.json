@@ -43,6 +43,12 @@
             "type": "string"
           },
           {
+            "name": "handle",
+            "required": false,
+            "title": "Search by handle",
+            "type": "string"
+          },
+          {
             "name": "page",
             "required": false,
             "title": "Page number (0 based)",
@@ -80,6 +86,12 @@
             "name": "title",
             "required": true,
             "title": "Title",
+            "type": "string"
+          },
+          {
+            "name": "handle",
+            "required": false,
+            "title": "Handle",
             "type": "string"
           },
           {
@@ -157,6 +169,12 @@
             "name": "title",
             "required": true,
             "title": "Title",
+            "type": "string"
+          },
+          {
+            "name": "handle",
+            "required": false,
+            "title": "Handle",
             "type": "string"
           },
           {
