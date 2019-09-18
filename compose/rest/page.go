@@ -77,10 +77,13 @@ func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{
 			ModuleID:    r.ModuleID,
 			Title:       r.Title,
 			Description: r.Description,
-			Blocks:      r.Blocks,
 			Visible:     r.Visible,
 		}
 	)
+
+	if err = r.Blocks.Unmarshal(&mod.Blocks); err != nil {
+		return nil, err
+	}
 
 	mod, err = ctrl.page.With(ctx).Create(mod)
 	return ctrl.makePayload(ctx, mod, err)
@@ -106,10 +109,13 @@ func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{
 			ModuleID:    r.ModuleID,
 			Title:       r.Title,
 			Description: r.Description,
-			Blocks:      r.Blocks,
 			Visible:     r.Visible,
 		}
 	)
+
+	if err = r.Blocks.Unmarshal(&mod.Blocks); err != nil {
+		return nil, err
+	}
 
 	mod, err = ctrl.page.With(ctx).Update(mod)
 	return ctrl.makePayload(ctx, mod, err)
