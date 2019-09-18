@@ -188,6 +188,7 @@ func (svc module) Update(mod *types.Module) (m *types.Module, err error) {
 	}
 
 	m.Name = mod.Name
+	m.Handle = mod.Handle
 	m.Meta = mod.Meta
 	m.Fields = mod.Fields
 

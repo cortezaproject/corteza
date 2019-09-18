@@ -208,6 +208,12 @@
                             "title": "Search query"
                         },
                         {
+                            "type": "string",
+                            "name": "handle",
+                            "required": false,
+                            "title": "Search by handle"
+                        },
+                        {
                             "name": "page",
                             "type": "uint",
                             "required": false,
@@ -246,6 +252,12 @@
                             "name": "title",
                             "required": true,
                             "title": "Title"
+                        },
+                        {
+                            "type": "string",
+                            "name": "handle",
+                            "required": false,
+                            "title": "Handle"
                         },
                         {
                             "type": "string",
@@ -323,6 +335,12 @@
                             "name": "title",
                             "required": true,
                             "title": "Title"
+                        },
+                        {
+                            "type": "string",
+                            "name": "handle",
+                            "required": false,
+                            "title": "Handle"
                         },
                         {
                             "type": "string",
@@ -457,6 +475,12 @@
                             "title": "Search by name"
                         },
                         {
+                            "type": "string",
+                            "name": "handle",
+                            "required": false,
+                            "title": "Search by handle"
+                        },
+                        {
                             "name": "page",
                             "type": "uint",
                             "required": false,
@@ -483,6 +507,12 @@
                             "name": "name",
                             "required": true,
                             "title": "Module Name"
+                        },
+                        {
+                            "type": "string",
+                            "name": "handle",
+                            "required": false,
+                            "title": "Module handle"
                         },
                         {
                             "type": "types.ModuleFieldSet",
@@ -535,6 +565,12 @@
                             "name": "name",
                             "required": true,
                             "title": "Module Name"
+                        },
+                        {
+                            "type": "string",
+                            "name": "handle",
+                            "required": false,
+                            "title": "Module Handle"
                         },
                         {
                             "type": "types.ModuleFieldSet",
@@ -929,6 +965,12 @@
                             "type": "string"
                         },
                         {
+                            "name": "handle",
+                            "required": false,
+                            "title": "Search charts by handle",
+                            "type": "string"
+                        },
+                        {
                             "name": "page",
                             "type": "uint",
                             "required": false,
@@ -961,6 +1003,12 @@
                             "title": "Chart name",
                             "type": "string",
                             "required": true
+                        },
+                        {
+                            "name": "handle",
+                            "title": "Chart handle",
+                            "type": "string",
+                            "required": false
                         }
                     ]
                 }
@@ -1007,6 +1055,12 @@
                             "title": "Chart name",
                             "type": "string",
                             "required": true
+                        },
+                        {
+                            "name": "handle",
+                            "title": "Chart handle",
+                            "type": "string",
+                            "required": false
                         },
                         {
                             "type": "*time.Time",

@@ -73,6 +73,7 @@ func (ctrl *Module) List(ctx context.Context, r *request.ModuleList) (interface{
 		NamespaceID: r.NamespaceID,
 		Query:       r.Query,
 		Name:        r.Name,
+		Handle:      r.Handle,
 		PerPage:     r.PerPage,
 		Page:        r.Page,
 	}
@@ -92,6 +93,7 @@ func (ctrl *Module) Create(ctx context.Context, r *request.ModuleCreate) (interf
 		mod = &types.Module{
 			NamespaceID: r.NamespaceID,
 			Name:        r.Name,
+			Handle:      r.Handle,
 			Fields:      r.Fields,
 			Meta:        r.Meta,
 		}
@@ -108,6 +110,7 @@ func (ctrl *Module) Update(ctx context.Context, r *request.ModuleUpdate) (interf
 			ID:          r.ModuleID,
 			NamespaceID: r.NamespaceID,
 			Name:        r.Name,
+			Handle:      r.Handle,
 			Fields:      r.Fields,
 			Meta:        r.Meta,
 			UpdatedAt:   r.UpdatedAt,
