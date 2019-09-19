@@ -46,6 +46,18 @@ func (mr *MockautomationScriptsFinderMockRecorder) Watch(ctx interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockautomationScriptsFinder)(nil).Watch), ctx)
 }
 
+// WatchScheduled mocks base method
+func (m *MockautomationScriptsFinder) WatchScheduled(ctx context.Context, runner automation.DeferredAutomationRunner) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "WatchScheduled", ctx, runner)
+}
+
+// WatchScheduled indicates an expected call of WatchScheduled
+func (mr *MockautomationScriptsFinderMockRecorder) WatchScheduled(ctx, runner interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WatchScheduled", reflect.TypeOf((*MockautomationScriptsFinder)(nil).WatchScheduled), ctx, runner)
+}
+
 // FindRunnableScripts mocks base method
 func (m *MockautomationScriptsFinder) FindRunnableScripts(resource, event string, cc ...automation.TriggerConditionChecker) automation.ScriptSet {
 	m.ctrl.T.Helper()
