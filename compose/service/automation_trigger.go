@@ -129,6 +129,13 @@ func (svc automationTrigger) isValid(ctx context.Context, s *automation.Script, 
 				return errors.WithStack(ErrNoTriggerManagementPermissions)
 			}
 		}
+
+	case "interval",
+		"deferred":
+		if s.RunAs == 0 {
+			return errors.WithStack(automation.ErrAutomationScriptMissingUser)
+		}
+
 	default:
 		return errors.WithStack(automation.ErrAutomationTriggerInvalidEvent)
 	}
