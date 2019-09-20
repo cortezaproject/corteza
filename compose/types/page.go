@@ -44,10 +44,7 @@ type (
 		Options     map[string]interface{} `json:"options,omitempty"      yaml:",omitempty"`
 		Style       PageBlockStyle         `json:"style,omitempty"        yaml:",omitempty"`
 		Kind        string                 `json:"kind"`
-		X           int                    `json:"x"`
-		Y           int                    `json:"y"`
-		Width       int                    `json:"width"`
-		Height      int                    `json:"height"`
+		XYWH        [4]int                 `json:"xywh"                    yaml:"xywh,flow"` // x,y,w,h
 	}
 
 	PageBlockStyle struct {
@@ -99,6 +96,34 @@ func (bb *PageBlocks) Scan(value interface{}) error {
 
 func (bb PageBlocks) Value() (driver.Value, error) {
 	return json.Marshal(bb)
+}
+
+// Helper to extract old encoding to new one
+func (b *PageBlock) UnmarshalJSON(data []byte) (err error) {
+	type internalPageBlock PageBlock
+	i := struct {
+		internalPageBlock
+		X      int `json:"x,omitempty"            yaml:"-"`
+		Y      int `json:"y,omitempty"            yaml:"-"`
+		Width  int `json:"width,omitempty"        yaml:"-"`
+		Height int `json:"height,omitempty"       yaml:"-"`
+	}{}
+
+	if err = json.Unmarshal(data, &i); err != nil {
+		return
+	}
+
+	*b = PageBlock(i.internalPageBlock)
+	if i.XYWH[0]+i.XYWH[1]+i.XYWH[2]+i.XYWH[3] > 0 {
+		return nil
+	}
+
+	if i.X+i.Y+i.Width+i.Height > 0 {
+		// Cast old x,y,w,h structure to this:
+		b.XYWH = [4]int{i.X, i.Y, i.Width, i.Height}
+	}
+
+	return nil
 }
 
 func (set PageSet) FindByParent(parentID uint64) (out PageSet) {

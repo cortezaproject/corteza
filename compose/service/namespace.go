@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
 
@@ -109,7 +108,6 @@ func (svc namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet,
 // Create adds namespace and presets access rules for role everyone
 func (svc namespace) Create(mod *types.Namespace) (*types.Namespace, error) {
 	if !handle.IsValid(mod.Slug) {
-		spew.Dump(mod.Slug)
 		return nil, ErrInvalidHandle
 	}
 
@@ -126,7 +124,6 @@ func (svc namespace) Update(mod *types.Namespace) (ns *types.Namespace, err erro
 	}
 
 	if !handle.IsValid(mod.Slug) {
-		spew.Dump(mod.Slug)
 		return nil, ErrInvalidHandle
 	}
 

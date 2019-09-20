@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/internal/permissions"
@@ -73,7 +72,6 @@ func (cc *ChartConfig) Scan(value interface{}) error {
 		*cc = ChartConfig{}
 	case []uint8:
 		b := value.([]byte)
-		spew.Dump(string(b))
 		if err := json.Unmarshal(b, cc); err != nil {
 			return errors.Wrapf(err, "Can not scan '%v' into ChartConfig", string(b))
 		}
