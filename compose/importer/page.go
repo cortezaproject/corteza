@@ -165,9 +165,12 @@ func (pImp *Page) castBlocks(page *types.Page, def interface{}) error {
 				block.Kind = deinterfacer.ToString(val)
 
 			case "options":
-				if block.Options, err = pImp.castBlockOptions(val); err != nil {
-					return err
-				}
+				block.Options, err = pImp.castBlockOptions(val)
+				return err
+
+			case "style":
+				block.Style, err = pImp.castBlockStyle(page, b, val)
+				return
 
 			case "XYWH", "xywh", "dim", "dimension":
 				xywh := deinterfacer.ToInts(val)
@@ -200,6 +203,24 @@ func (pImp *Page) castBlockOptions(def interface{}) (opt map[string]interface{},
 	return opt, deinterfacer.Each(def, func(_ int, key string, val interface{}) (err error) {
 		opt[key] = deinterfacer.Simplify(val)
 		return nil
+	})
+}
+
+func (pImp *Page) castBlockStyle(page *types.Page, n int, def interface{}) (s types.PageBlockStyle, err error) {
+	s = types.PageBlockStyle{}
+
+	return s, deinterfacer.Each(def, func(_ int, key string, val interface{}) (err error) {
+		switch key {
+		case "variants":
+			s.Variants = map[string]string{}
+			return deinterfacer.Each(val, func(_ int, key string, val interface{}) (err error) {
+				s.Variants[key] = deinterfacer.ToString(val)
+				return
+			})
+		default:
+			return fmt.Errorf("unexpected key %q for block #%d on page %q", key, n+1, page.Handle)
+
+		}
 	})
 }
 
