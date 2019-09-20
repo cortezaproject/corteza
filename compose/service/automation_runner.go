@@ -30,6 +30,7 @@ type (
 
 	automationScriptsFinder interface {
 		Watch(ctx context.Context)
+		WatchScheduled(ctx context.Context, runner automation.DeferredAutomationRunner)
 		FindRunnableScripts(resource, event string, cc ...automation.TriggerConditionChecker) automation.ScriptSet
 	}
 
@@ -66,6 +67,7 @@ func AutomationRunner(opt AutomationRunnerOpt, f automationScriptsFinder, r corr
 
 func (svc automationRunner) Watch(ctx context.Context) {
 	svc.scriptFinder.Watch(ctx)
+	svc.scriptFinder.WatchScheduled(ctx, svc)
 }
 
 // BeforeRecordCreate - run scripts before record is created
@@ -188,6 +190,31 @@ func (svc automationRunner) RecordManual(ctx context.Context, scriptID uint64, n
 
 	// Make record script runner and
 	runner := svc.makeRecordScriptRunner(ctx, ns, m, r, false)
+
+	// Run it with a script
+	//
+	// Successfully executed record scripts can have an effect on given record value (r)
+	return runner(script)
+}
+
+// RecordDeferred - Deferred trigger run
+func (svc automationRunner) RecordDeferred(ctx context.Context, script *automation.Script, ns *types.Namespace, m *types.Module, r *types.Record) (err error) {
+	if script == nil {
+		return errors.New("can not find compatible script")
+	}
+
+	// Do not execute scripts without a user
+	if script.RunAs <= 0 {
+		return errors.New("can not execute deferred scripts without a bound user")
+	}
+
+	// Do not execute UA scripts
+	if script.RunInUA {
+		return errors.New("can not execute user-agent scripts")
+	}
+
+	// Make record script runner and
+	runner := svc.makeRecordScriptRunner(ctx, ns, m, r, true)
 
 	// Run it with a script
 	//

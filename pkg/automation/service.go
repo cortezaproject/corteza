@@ -9,6 +9,7 @@ import (
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
 
+	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 )
@@ -40,6 +41,10 @@ type (
 
 	ScriptsProvider interface {
 		FilterByTrigger(event, resource string, cc ...TriggerConditionChecker) ScriptSet
+	}
+
+	DeferredAutomationRunner interface {
+		RecordDeferred(ctx context.Context, script *Script, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
 	}
 
 	TokenMaker func(context.Context, uint64) (string, error)
@@ -111,31 +116,44 @@ func (svc *service) Watch(ctx context.Context) {
 		}
 	}()
 
-	// @todo enable when deferred scripts can be execured
-	// go svc.runScheduled(ctx)
-
 	svc.logger.Debug("watcher initialized")
 }
 
-// Runs scheduled scripts every minute
-func (svc *service) runScheduled(ctx context.Context) {
-	var ticker = time.NewTicker(time.Second)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			for _, scriptID := range svc.scheduled.pick() {
-				// @todo finish implementation, we need to inform someone
-				//       about the scheduled script and that it should be executed
-				svc.logger.Debug(
-					"Running scheduled script",
-					zap.Uint64("scriptID", scriptID),
-				)
+// RunScheduled runs scheduled scripts periodically
+func (svc *service) WatchScheduled(ctx context.Context, r DeferredAutomationRunner) {
+	go func() {
+		var ticker = time.NewTicker(time.Minute)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				for _, scriptID := range svc.scheduled.pick() {
+					// @todo parallelize this
+					svc.logger.Debug(
+						"Running scheduled script",
+						zap.Uint64("scriptID", scriptID),
+					)
+					err := r.RecordDeferred(ctx, svc.runnables.FindByID(scriptID), nil, nil, nil)
+					if err != nil {
+						svc.logger.Error(
+							"Script failed to run",
+							zap.Uint64("scriptID", scriptID),
+							zap.Error(err),
+						)
+					} else {
+						svc.logger.Debug(
+							"Ran scheduled script",
+							zap.Uint64("scriptID", scriptID),
+						)
+					}
+				}
 			}
 		}
-	}
+	}()
+
+	svc.logger.Debug("scheduled runner initialized")
 }
 
 func (svc *service) Reload() {
@@ -207,8 +225,9 @@ func (svc *service) reload(ctx context.Context) {
 
 		// update scheduled list
 		// @todo enable when deferred scripts can be execured
-		// svc.scheduled = buildScheduleList(svc.runnables)
-		// svc.logger.Info("deferred scripts scheduled", zap.Int("count", len(svc.scheduled)))
+
+		svc.scheduled = buildScheduleList(svc.runnables)
+		svc.logger.Info("deferred scripts scheduled", zap.Int("count", len(svc.scheduled)))
 
 		return
 	})

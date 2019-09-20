@@ -99,7 +99,8 @@ const (
 )
 
 var (
-	ErrAutomationScriptInvalid = errors.New("AutomationScriptInvalid")
+	ErrAutomationScriptInvalid     = errors.New("AutomationScriptInvalid")
+	ErrAutomationScriptMissingUser = errors.New("AutomationScriptMissingUser")
 )
 
 // IsValid - enabled, deleted?
