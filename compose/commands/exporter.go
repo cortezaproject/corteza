@@ -87,6 +87,9 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 	return cmd
 }
 
+// This is PoC for exporting compose resources
+//
+
 type (
 	Compose struct {
 		Modules map[string]Module `yaml:",omitempty"`
@@ -140,10 +143,18 @@ type (
 	Chart struct {
 		Name string `yaml:",omitempty"`
 
-		Config types.ChartConfig `yaml:",omitempty"`
+		Config ChartConfig `yaml:",omitempty"`
 
 		Allow map[string][]string `yaml:",omitempty"`
 		Deny  map[string][]string `yaml:",omitempty"`
+	}
+
+	ChartConfig struct {
+		Reports []*ChartConfigReport
+	}
+	ChartConfigReport struct {
+		types.ChartConfigReport
+		Module string `json:"module"`
 	}
 )
 
@@ -322,11 +333,26 @@ func expCharts(charts types.ChartSet, modules types.ModuleSet) (o map[string]Cha
 	for _, c := range charts {
 		chart := Chart{
 			Name:   c.Name,
-			Config: c.Config,
+			Config: ChartConfig{Reports: make([]*ChartConfigReport, len(c.Config.Reports))},
 
 			Allow: expResourcePermissions(permissions.Allow, types.ChartPermissionResource),
 			Deny:  expResourcePermissions(permissions.Deny, types.ChartPermissionResource),
 		}
+
+		for i, r := range c.Config.Reports {
+			chart.Config.Reports[i] = &ChartConfigReport{
+				ChartConfigReport: *r,
+			}
+
+			if r.ModuleID > 0 {
+				module := modules.FindByID(r.ModuleID)
+				chart.Config.Reports[i].ModuleID = 0
+				chart.Config.Reports[i].Module =
+					makeHandleFromName(module.Name, module.Handle, "module-%d", module.ID)
+			}
+
+		}
+
 		// @todo moduleID => module Handle (CONFIG)
 
 		handle := makeHandleFromName(c.Name, c.Handle, "chart-%d", c.ID)
