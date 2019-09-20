@@ -3,6 +3,7 @@ package importer
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/pkg/errors"
 
@@ -12,21 +13,17 @@ import (
 )
 
 type (
-	PageImport struct {
+	Page struct {
+		imp *Importer
+
 		namespace *types.Namespace
 		set       types.PageSet
 
-		// page => module maps (module/record-pages)
+		// page => module handle
 		modules map[string]string
 
 		// child => parent handle
-		parents map[string]string
-
-		pages importer.Interface
-
-		permissions importer.PermissionImporter
-
-		finder pageFinder
+		tree map[string][]string
 	}
 
 	pageFinder interface {
@@ -34,47 +31,61 @@ type (
 	}
 )
 
-func NewPageImporter(ns *types.Namespace, finder pageFinder, permissions importer.PermissionImporter) *PageImport {
-	return &PageImport{
+func NewPageImporter(imp *Importer, ns *types.Namespace) *Page {
+	return &Page{
+		imp: imp,
+
 		namespace: ns,
 
 		set: types.PageSet{},
 
 		modules: map[string]string{},
-		parents: map[string]string{},
+		tree:    map[string][]string{},
+	}
+}
 
-		permissions: permissions,
+func (pImp *Page) getModule(handle string) (*types.Module, error) {
+	if g, ok := pImp.imp.namespaces.modules[pImp.namespace.Slug]; !ok {
+		return nil, errors.Errorf("could not get modules %q from non existing namespace %q", handle, pImp.namespace.Slug)
+	} else {
+		return g.Get(handle)
+	}
+}
 
-		finder: finder,
+func (pImp *Page) getChart(handle string) (*types.Chart, error) {
+	if g, ok := pImp.imp.namespaces.charts[pImp.namespace.Slug]; !ok {
+		return nil, errors.Errorf("could not get chart %q from non existing namespace %q", handle, pImp.namespace.Slug)
+	} else {
+		return g.Get(handle)
 	}
 }
 
 // CastSet Resolves permission rules:
 // { <page-handle>: { page } } or [ { page }, ... ]
-func (imp *PageImport) CastSet(set interface{}) error {
-	return imp.castSet("", set)
+func (pImp *Page) CastSet(set interface{}) error {
+	return pImp.castSet("", set)
 }
 
 // CastSet Resolves permission rules:
 // { <page-handle>: { page } } or [ { page }, ... ]
-func (imp *PageImport) castSet(parent string, set interface{}) error {
+func (pImp *Page) castSet(parent string, set interface{}) error {
 	return deinterfacer.Each(set, func(index int, handle string, def interface{}) error {
 		if index > -1 {
 			// Pages defined as collection
 			deinterfacer.KVsetString(&handle, "handle", def)
 		}
 
-		return imp.cast(parent, handle, def)
+		return pImp.cast(parent, handle, def)
 	})
 }
 
-func (imp *PageImport) Cast(handle string, def interface{}) (err error) {
-	return imp.cast("", handle, def)
+func (pImp *Page) Cast(handle string, def interface{}) (err error) {
+	return pImp.cast("", handle, def)
 }
 
 // Cast Resolves permission rules:
 // { <page-handle>: { page } } or [ { page }, ... ]
-func (imp *PageImport) cast(parent, handle string, def interface{}) (err error) {
+func (pImp *Page) cast(parent, handle string, def interface{}) (err error) {
 	var page *types.Page
 
 	if !importer.IsValidHandle(handle) {
@@ -82,13 +93,11 @@ func (imp *PageImport) cast(parent, handle string, def interface{}) (err error) 
 	}
 
 	handle = importer.NormalizeHandle(handle)
-	if page, err = imp.Get(handle); err != nil {
+	if page, err = pImp.GetOrMake(handle); err != nil {
 		return err
 	}
 
-	if parent != "" {
-		imp.parents[handle] = parent
-	}
+	pImp.tree[parent] = append(pImp.tree[parent], handle)
 
 	if title, ok := def.(string); ok && title != "" {
 		page.Title = title
@@ -99,8 +108,8 @@ func (imp *PageImport) cast(parent, handle string, def interface{}) (err error) 
 		switch key {
 		case "namespace":
 			// namespace value sanity check
-			if deinterfacer.ToString(val, imp.namespace.Slug) != imp.namespace.Slug {
-				return fmt.Errorf("explicitly set namespace on page %q shadows inherited namespace", imp.namespace.Slug)
+			if deinterfacer.ToString(val, pImp.namespace.Slug) != pImp.namespace.Slug {
+				return fmt.Errorf("explicitly set namespace on page %q shadows inherited namespace", pImp.namespace.Slug)
 			}
 
 		case "handle":
@@ -110,25 +119,25 @@ func (imp *PageImport) cast(parent, handle string, def interface{}) (err error) 
 			}
 
 		case "module":
-			imp.modules[handle] = deinterfacer.ToString(val)
+			pImp.modules[handle] = deinterfacer.ToString(val)
 
 		case "visible":
 			page.Visible = deinterfacer.ToBool(val)
 
-		case "title":
+		case "title", "name", "label":
 			page.Title = deinterfacer.ToString(val)
 
 		case "description":
 			page.Description = deinterfacer.ToString(val)
 
 		case "blocks":
-			// @todo Page.Blocks
+			return pImp.castBlocks(page, val)
 
 		case "pages":
-			return imp.castSet(handle, val)
+			return pImp.castSet(handle, val)
 
 		case "allow", "deny":
-			return imp.permissions.CastSet(types.PagePermissionResource.String()+handle, key, val)
+			return pImp.imp.permissions.CastSet(types.PagePermissionResource.String()+handle, key, val)
 
 		default:
 			return fmt.Errorf("unexpected key %q for page %q", key, handle)
@@ -138,7 +147,63 @@ func (imp *PageImport) cast(parent, handle string, def interface{}) (err error) 
 	})
 }
 
-func (imp *PageImport) Exists(handle string) bool {
+func (pImp *Page) castBlocks(page *types.Page, def interface{}) error {
+	page.Blocks = types.PageBlocks{}
+
+	return deinterfacer.Each(def, func(b int, _ string, blockDef interface{}) (err error) {
+		block := types.PageBlock{}
+
+		err = deinterfacer.Each(blockDef, func(_ int, key string, val interface{}) (err error) {
+			switch key {
+			case "title", "name", "label":
+				block.Title = deinterfacer.ToString(val)
+
+			case "description":
+				block.Description = deinterfacer.ToString(val)
+
+			case "kind":
+				block.Kind = deinterfacer.ToString(val)
+
+			case "options":
+				if block.Options, err = pImp.castBlockOptions(val); err != nil {
+					return err
+				}
+
+			case "XYWH", "xywh", "dim", "dimension":
+				xywh := deinterfacer.ToInts(val)
+				if len(xywh) != 4 {
+					return errors.New("invalid dimension (xywh) value, expecting slice with 4 integers")
+				}
+
+				block.XYWH = [4]int{xywh[0], xywh[1], xywh[2], xywh[3]}
+
+			default:
+				return fmt.Errorf("unexpected key %q for block on page %q", key, page.Handle)
+
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			return err
+		}
+
+		page.Blocks = append(page.Blocks, block)
+		return
+	})
+}
+
+func (pImp *Page) castBlockOptions(def interface{}) (opt map[string]interface{}, err error) {
+	opt = make(map[string]interface{})
+
+	return opt, deinterfacer.Each(def, func(_ int, key string, val interface{}) (err error) {
+		opt[key] = deinterfacer.Simplify(val)
+		return nil
+	})
+}
+
+func (pImp *Page) Exists(handle string) bool {
 	handle = importer.NormalizeHandle(handle)
 
 	var (
@@ -146,20 +211,20 @@ func (imp *PageImport) Exists(handle string) bool {
 		err  error
 	)
 
-	page = imp.set.FindByHandle(handle)
+	page = pImp.set.FindByHandle(handle)
 	if page != nil {
 		return true
 	}
 
-	if imp.namespace.ID == 0 {
+	if pImp.namespace.ID == 0 {
 		// Assuming new namespace, nothing exists yet..
 		return false
 	}
 
-	if imp.finder != nil {
-		page, err = imp.finder.FindByHandle(imp.namespace.ID, handle)
+	if pImp.imp.pageFinder != nil {
+		page, err = pImp.imp.pageFinder.FindByHandle(pImp.namespace.ID, handle)
 		if err == nil && page != nil {
-			imp.set = append(imp.set, page)
+			pImp.set = append(pImp.set, page)
 			return true
 		}
 	}
@@ -168,43 +233,127 @@ func (imp *PageImport) Exists(handle string) bool {
 }
 
 // Get finds or makes a new page
-func (imp *PageImport) Get(handle string) (*types.Page, error) {
-	handle = importer.NormalizeHandle(handle)
+func (pImp *Page) GetOrMake(handle string) (page *types.Page, err error) {
+	if page, err = pImp.Get(handle); err != nil {
+		return nil, err
+	} else if page == nil {
+		page = &types.Page{
+			Handle:  handle,
+			Title:   handle,
+			Visible: true,
+		}
 
+		pImp.set = append(pImp.set, page)
+	}
+
+	return page, nil
+}
+
+// Get existing pages
+func (pImp *Page) Get(handle string) (*types.Page, error) {
+	handle = importer.NormalizeHandle(handle)
 	if !importer.IsValidHandle(handle) {
 		return nil, errors.New("invalid page handle")
 	}
 
-	if !imp.Exists(handle) {
-		imp.set = append(imp.set, &types.Page{
-			Handle: handle,
-			Title:  handle,
-		})
+	if pImp.Exists(handle) {
+		return pImp.set.FindByHandle(handle), nil
+	} else {
+		return nil, nil
 	}
-
-	return imp.set.FindByHandle(handle), nil
+}
+func (pImp *Page) Store(ctx context.Context, k pageKeeper) error {
+	return pImp.storeChildren(ctx, "", k)
 }
 
-func (imp *PageImport) Store(ctx context.Context, k pageKeeper) error {
-	return imp.set.Walk(func(page *types.Page) (err error) {
-		var handle = page.Handle
+func (pImp *Page) storeChildren(ctx context.Context, parent string, k pageKeeper) (err error) {
+	children, ok := pImp.tree[parent]
+	if !ok {
+		// No children...
+		return nil
+	}
+
+	var page *types.Page
+
+	for _, child := range children {
+		if page, err = pImp.Get(child); err != nil {
+			return
+		}
+
+		if err = pImp.resolveRefs(page); err != nil {
+			return
+		}
 
 		if page.ID == 0 {
-			page.NamespaceID = imp.namespace.ID
+			page.NamespaceID = pImp.namespace.ID
 			page, err = k.Create(page)
 		} else {
 			page, err = k.Update(page)
 		}
 
-		// @todo where do we check if page with module ref already exists?
-		// @todo store pages & resolve page's parent ref!
-
 		if err != nil {
 			return
 		}
 
-		imp.permissions.UpdateResources(types.PagePermissionResource.String(), handle, page.ID)
+		if page.Handle == "" {
+			continue
+		}
 
-		return
-	})
+		pImp.imp.permissions.UpdateResources(types.PagePermissionResource.String(), page.Handle, page.ID)
+
+		if err = pImp.storeChildren(ctx, page.Handle, k); err != nil {
+			return err
+		}
+	}
+
+	return
+}
+
+// Resolve all refs for this page (page module, inside block)
+func (pImp *Page) resolveRefs(page *types.Page) error {
+	if moduleHandle, ok := pImp.modules[page.Handle]; ok {
+		if module, err := pImp.getModule(moduleHandle); err != nil {
+			return err
+		} else {
+			page.ModuleID = module.ID
+		}
+	}
+
+	for i, b := range page.Blocks {
+		if b.Options == nil {
+			continue
+		}
+
+		if h, ok := b.Options["module"]; ok {
+			if refm, err := pImp.getModule(deinterfacer.ToString(h)); err != nil || refm == nil {
+				return errors.Wrapf(err, "could not load module %q for page %q block #%d",
+					h, page.Handle, i+1)
+			} else {
+				b.Options["moduleID"] = strconv.FormatUint(refm.ID, 10)
+				delete(b.Options, "module")
+			}
+		}
+
+		if h, ok := b.Options["page"]; ok {
+			if refp, err := pImp.Get(deinterfacer.ToString(h)); err != nil || refp == nil {
+				return errors.Wrapf(err, "could not load page %q for page %q block #%d",
+					h, page.Handle, i+1)
+			} else {
+				b.Options["pageID"] = strconv.FormatUint(refp.ID, 10)
+				delete(b.Options, "page")
+			}
+		}
+
+		if h, ok := b.Options["chart"]; ok {
+			if refc, err := pImp.getChart(deinterfacer.ToString(h)); err != nil || refc == nil {
+				return errors.Wrapf(err, "could not load chart %q for page %q block #%d",
+					h, page.Handle, i+1)
+			} else {
+				b.Options["chartID"] = strconv.FormatUint(refc.ID, 10)
+				delete(b.Options, "chart")
+			}
+		}
+	}
+
+	return nil
 }
