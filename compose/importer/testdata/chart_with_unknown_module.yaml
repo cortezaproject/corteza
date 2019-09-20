@@ -1,0 +1,6 @@
+charts:
+  chart1:
+    name: chart 1
+    config:
+      reports:
+        - module: un_kno_wn
