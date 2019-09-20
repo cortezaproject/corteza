@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
 
@@ -260,7 +259,6 @@ func (svc page) Update(mod *types.Page) (p *types.Page, err error) {
 	p.Visible = mod.Visible
 	p.Weight = mod.Weight
 
-	spew.Dump(p.Handle)
 	if err = svc.UniqueCheck(p); err != nil {
 		return
 	}
@@ -272,18 +270,12 @@ func (svc page) Update(mod *types.Page) (p *types.Page, err error) {
 func (svc page) UniqueCheck(p *types.Page) (err error) {
 	if p.Handle != "" {
 		if e, _ := svc.pageRepo.FindByHandle(p.NamespaceID, p.Handle); e != nil && e.ID != p.ID {
-			spew.Dump(
-				e.ID,
-				e.Handle,
-				p.ID,
-				p.Handle,
-			)
 			return repository.ErrPageHandleNotUnique
 		}
 	}
 
 	if p.ModuleID > 0 {
-		if p, _ := svc.pageRepo.FindByModuleID(p.NamespaceID, p.ModuleID); p.ID > 0 && p.ID != p.ID {
+		if e, _ := svc.pageRepo.FindByModuleID(p.NamespaceID, p.ModuleID); e != nil && e.ID != e.ID {
 			return ErrModulePageExists
 		}
 	}
