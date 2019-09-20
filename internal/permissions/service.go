@@ -14,7 +14,7 @@ import (
 
 type (
 	service struct {
-		l      sync.Mutex
+		l      *sync.Mutex
 		logger *zap.Logger
 
 		//  service will flush values on TRUE or just reload on FALSE
@@ -35,6 +35,7 @@ const (
 // It acts as a caching layer
 func Service(ctx context.Context, logger *zap.Logger, repository *repository) (svc *service) {
 	svc = &service{
+		l: &sync.Mutex{},
 		f: make(chan bool),
 
 		logger:     logger.Named("permissions"),

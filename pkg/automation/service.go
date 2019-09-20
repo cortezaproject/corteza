@@ -15,7 +15,7 @@ import (
 
 type (
 	service struct {
-		l      sync.Mutex
+		l      *sync.Mutex
 		logger *zap.Logger
 
 		c AutomationServiceConfig
@@ -70,6 +70,7 @@ func Service(c AutomationServiceConfig) (svc *service) {
 		logger: c.Logger.Named("automation"),
 
 		c: c,
+		l: &sync.Mutex{},
 
 		makeToken: c.TokenMaker,
 
