@@ -5,7 +5,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
@@ -127,7 +126,6 @@ func (imp *Importer) UpdateResources(base, handle string, ID uint64) {
 }
 
 func (imp *Importer) UpdateRoles(handle string, ID uint64) {
-	spew.Dump("UpdateRoles(handle string, ID uint64)", handle, ID)
 	if imp.rules[handle] != nil {
 		for _, rule := range imp.rules[handle] {
 			rule.RoleID = ID

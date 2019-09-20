@@ -3,10 +3,8 @@ package importer
 import (
 	"context"
 	"fmt"
-	"io"
 
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
@@ -16,8 +14,7 @@ import (
 
 type (
 	Importer struct {
-		baseNamespace string
-		namespaces    *NamespaceImport
+		namespaces *Namespace
 
 		namespaceFinder namespaceFinder
 		moduleFinder    moduleFinder
@@ -44,7 +41,7 @@ type (
 )
 
 func NewImporter(nsf namespaceFinder, mf moduleFinder, cf chartFinder, pf pageFinder, p importer.PermissionImporter) *Importer {
-	return &Importer{
+	imp := &Importer{
 		namespaceFinder: nsf,
 		moduleFinder:    mf,
 		chartFinder:     cf,
@@ -52,50 +49,23 @@ func NewImporter(nsf namespaceFinder, mf moduleFinder, cf chartFinder, pf pageFi
 
 		permissions: p,
 	}
+
+	imp.namespaces = NewNamespaceImporter(imp)
+	return imp
 }
 
-func (imp *Importer) YAML(r io.Reader) (err error) {
-	var aux interface{}
-
-	if err = yaml.NewDecoder(r).Decode(&aux); err != nil {
-		return
-	}
-
-	return imp.Cast(aux)
+func (imp *Importer) GetNamespaceImporter() *Namespace {
+	return imp.namespaces
 }
 
 func (imp *Importer) Cast(in interface{}) (err error) {
-	if imp.namespaces == nil {
-		imp.namespaces = NewNamespaceImporter(
-			imp.namespaceFinder,
-			imp.moduleFinder,
-			imp.chartFinder,
-			imp.pageFinder,
-			imp.permissions,
-		)
-	}
-
 	return deinterfacer.Each(in, func(index int, key string, val interface{}) (err error) {
 		switch key {
 		case "namespaces":
 			return imp.namespaces.CastSet(val)
+
 		case "namespace":
 			return imp.namespaces.CastSet([]interface{}{val})
-
-		case "modules":
-			return imp.namespaces.castModules(imp.baseNamespace, val)
-		case "module":
-			return imp.namespaces.castModules(imp.baseNamespace, []interface{}{val})
-
-		case "charts":
-			return imp.namespaces.castCharts(imp.baseNamespace, val)
-		case "chart":
-			return imp.namespaces.castCharts(imp.baseNamespace, []interface{}{val})
-
-		case "pages":
-			return imp.namespaces.castPages(imp.baseNamespace, val)
-		case "page":
-			return imp.namespaces.castPages(imp.baseNamespace, []interface{}{val})
 
 		case "allow", "deny":
 			return imp.permissions.CastResourcesSet(key, val)
