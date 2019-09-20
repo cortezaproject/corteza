@@ -214,7 +214,7 @@ func (svc automationRunner) RecordDeferred(ctx context.Context, script *automati
 	}
 
 	// Make record script runner and
-	runner := svc.makeRecordScriptRunner(ctx, ns, m, r, false)
+	runner := svc.makeRecordScriptRunner(ctx, ns, m, r, true)
 
 	// Run it with a script
 	//
