@@ -1,82 +1,59 @@
 package importer
 
 import (
-	"fmt"
-	"os"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/internal/permissions"
 )
-
-type (
-	namespaceMock struct{ set types.NamespaceSet }
-	moduleMock    struct{ set types.ModuleSet }
-	chartMock     struct{ set types.ChartSet }
-	pageMock      struct{ set types.PageSet }
-)
-
-func (mock *namespaceMock) FindByHandle(handle string) (o *types.Namespace, err error) {
-	return
-}
-
-func (mock *moduleMock) FindByHandle(namespaceID uint64, handle string) (o *types.Module, err error) {
-	return
-}
-
-func (mock *chartMock) FindByHandle(namespaceID uint64, handle string) (o *types.Chart, err error) {
-	return
-}
-
-func (mock *pageMock) FindByHandle(namespaceID uint64, handle string) (o *types.Page, err error) {
-	return
-}
 
 func TestChartImport_CastSet(t *testing.T) {
-	var (
-		namespace = &namespaceMock{}
-		module    = &moduleMock{}
-		chart     = &chartMock{}
-		page      = &pageMock{}
 
-		pi = permissions.NewImporter(nil)
-
-		imp = NewImporter(namespace, module, chart, page, pi)
-
-		ns = &types.Namespace{
-			ID:      1000000,
-			Name:    "Test",
-			Slug:    "Test",
-			Enabled: true,
-		}
-
-		impFixTester = func(t *testing.T, name string, fn func(*testing.T, *Chart)) {
-			t.Run(name, func(t *testing.T) {
-				var aux interface{}
-				req := require.New(t)
-				f, err := os.Open(fmt.Sprintf("testdata/%s.yaml", name))
-				req.NoError(err)
-				req.NoError(yaml.NewDecoder(f).Decode(&aux))
-				req.NotNil(aux)
-				ci := NewChartImporter(imp, ns)
-				req.NoError(ci.CastSet(aux))
-				fn(t, ci)
-			})
-		}
-	)
-
-	impFixTester(t, "chart_full_slice", func(t *testing.T, chart *Chart) {
+	impFixTester(t, "chart_full_slice", func(t *testing.T, imp *Importer) {
 		req := require.New(t)
-		req.Len(chart.set, 2)
+		req.Len(imp.GetChartImporter("test").set, 2)
 	})
+
+	impFixTester(t,
+		"chart_with_unknown_module",
+		errors.New(`unknown module "un_kno_wn" referenced from chart "chart1" report config`))
+
+	// Pre fill with module that imported chart is referring to
+	// imp.namespaces.modules[ns.Slug] = &Module{set: []*types.Module{{Handle: "foo"}}}
+	modules.set = []*types.Module{{NamespaceID: ns.ID, Handle: "foo"}}
 
 	impFixTester(t, "chart_full", func(t *testing.T, chart *Chart) {
 		req := require.New(t)
+
 		req.Len(chart.set, 2)
-		req.Equal(chart.set[0].Handle, "chart1")
-		req.Equal(chart.set[0].Name, "chart 1")
+
+		req.NotNil(chart.set.FindByHandle("chart1"))
+		req.NotNil(chart.set.FindByHandle("chart2"))
+
+		tc := chart.set.FindByHandle("chart1")
+		req.Equal(tc.Name, "chart 1")
+		req.Equal(tc.Config, types.ChartConfig{Reports: []*types.ChartConfigReport{
+			{
+				Filter:   "a=b",
+				ModuleID: 0,
+				Metrics: []map[string]interface{}{
+					{
+						"backgroundColor": "#e5a83b",
+						"beginAtZero":     true,
+						"field":           "count",
+						"fixTooltips":     true,
+						"label":           "Number of leads",
+						"type":            "bar",
+					},
+				},
+				Dimensions: []map[string]interface{}{
+					{
+						"field": "created_at",
+					},
+				},
+			},
+		}})
 	})
 }

@@ -58,6 +58,18 @@ func (imp *Importer) GetNamespaceImporter() *Namespace {
 	return imp.namespaces
 }
 
+func (imp *Importer) GetModuleImporter(handle string) *Module {
+	return imp.namespaces.modules[handle]
+}
+
+func (imp *Importer) GetPageImporter(handle string) *Page {
+	return imp.namespaces.pages[handle]
+}
+
+func (imp *Importer) GetChartImporter(handle string) *Chart {
+	return imp.namespaces.charts[handle]
+}
+
 func (imp *Importer) Cast(in interface{}) (err error) {
 	return deinterfacer.Each(in, func(index int, key string, val interface{}) (err error) {
 		switch key {

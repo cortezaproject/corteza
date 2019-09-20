@@ -204,6 +204,7 @@ func (mImp *Module) castFields(module *types.Module, def interface{}) (err error
 }
 
 func (mImp *Module) castFieldOptions(field *types.ModuleField, def interface{}) (err error) {
+	field.Options = map[string]interface{}{}
 	return deinterfacer.Each(def, func(_ int, key string, val interface{}) (err error) {
 		field.Options[key] = deinterfacer.Simplify(val)
 		return
