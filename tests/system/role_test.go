@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 
 	"github.com/cortezaproject/corteza-server/system/repository"
@@ -86,7 +85,6 @@ func TestRoleCreateNotUnique(t *testing.T) {
 	h.allow(types.SystemPermissionResource, "role.create")
 
 	role := h.repoMakeRole()
-	spew.Dump(role)
 	h.apiInit().
 		Post("/roles/").
 		FormData("name", rs()).

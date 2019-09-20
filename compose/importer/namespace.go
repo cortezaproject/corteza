@@ -12,19 +12,19 @@ import (
 )
 
 type (
-	NamespaceImport struct {
+	Namespace struct {
+		imp *Importer
+
 		set types.NamespaceSet
 
-		modules map[string]*ModuleImport
-		charts  map[string]*ChartImport
-		pages   map[string]*PageImport
+		// modules per namespace
+		modules map[string]*Module
 
-		permissions importer.PermissionImporter
+		// charts per namespace
+		charts map[string]*Chart
 
-		namespaceFinder namespaceFinder
-		moduleFinder    moduleFinder
-		chartFinder     chartFinder
-		pageFinder      pageFinder
+		// pages per namespace
+		pages map[string]*Page
 	}
 
 	namespaceFinder interface {
@@ -37,39 +37,35 @@ type (
 	}
 )
 
-func NewNamespaceImporter(nsf namespaceFinder, mf moduleFinder, cf chartFinder, pf pageFinder, p importer.PermissionImporter) *NamespaceImport {
-	return &NamespaceImport{
+func NewNamespaceImporter(imp *Importer) *Namespace {
+	return &Namespace{
+		imp: imp,
+
 		set: types.NamespaceSet{},
 
-		modules: map[string]*ModuleImport{},
-		charts:  map[string]*ChartImport{},
-		pages:   map[string]*PageImport{},
-
-		namespaceFinder: nsf,
-		moduleFinder:    mf,
-		chartFinder:     cf,
-		pageFinder:      pf,
-
-		permissions: p,
+		modules: map[string]*Module{},
+		charts:  map[string]*Chart{},
+		pages:   map[string]*Page{},
 	}
 }
 
 // CastSet resolves permission rules:
 // { <namespace-handle>: { namespace } } or [ { namespace }, ... ]
-func (imp *NamespaceImport) CastSet(set interface{}) error {
+func (nsImp *Namespace) CastSet(set interface{}) error {
 	return deinterfacer.Each(set, func(index int, handle string, def interface{}) error {
 		if index > -1 {
 			// Namespaces defined as collection
-			deinterfacer.KVsetString(&handle, "handle", def)
+			deinterfacer.KVsetString(&handle, "slug", def)
+			deinterfacer.KVsetString(&handle, "handle", handle)
 		}
 
-		return imp.Cast(handle, def)
+		return nsImp.Cast(handle, def)
 	})
 }
 
 // Cast resolves permission rules:
 // { <namespace-handle>: { namespace } } or [ { namespace }, ... ]
-func (imp *NamespaceImport) Cast(handle string, def interface{}) (err error) {
+func (nsImp *Namespace) Cast(handle string, def interface{}) (err error) {
 	if !deinterfacer.IsMap(def) {
 		return errors.New("expecting map of values for namespace")
 	}
@@ -81,32 +77,36 @@ func (imp *NamespaceImport) Cast(handle string, def interface{}) (err error) {
 	}
 
 	handle = importer.NormalizeHandle(handle)
-	if namespace, err = imp.Get(handle); err != nil {
+	if namespace, err = nsImp.Get(handle); err != nil {
 		return err
 	}
 
 	return deinterfacer.Each(def, func(_ int, key string, val interface{}) (err error) {
 		switch key {
-		case "handle":
-			// already handled
-		case "name":
+		case "handle", "slug":
+		// already handled
+
+		case "name", "title", "label":
 			namespace.Name = deinterfacer.ToString(val)
+
 		case "enabled":
 			namespace.Enabled = deinterfacer.ToBool(val)
+
 		case "meta":
-			// @todo Namespace.Meta
+			namespace.Meta, err = nsImp.castMeta(namespace, val)
+			return
 
 		case "modules":
-			return imp.castModules(handle, val)
+			return nsImp.castModules(handle, val)
 
 		case "charts":
-			return imp.castCharts(handle, val)
+			return nsImp.castCharts(handle, val)
 
 		case "pages":
-			return imp.castPages(handle, val)
+			return nsImp.castPages(handle, val)
 
 		case "allow", "deny":
-			return imp.permissions.CastSet(types.NamespacePermissionResource.String()+namespace.Slug, key, val)
+			return nsImp.imp.permissions.CastSet(types.NamespacePermissionResource.String()+namespace.Slug, key, val)
 
 		default:
 			return fmt.Errorf("unexpected key %q for namespace %q", key, namespace.Slug)
@@ -116,19 +116,53 @@ func (imp *NamespaceImport) Cast(handle string, def interface{}) (err error) {
 	})
 }
 
-func (imp *NamespaceImport) castModules(namespace string, def interface{}) error {
-	return imp.modules[namespace].CastSet(def)
+func (cImp *Namespace) castMeta(ns *types.Namespace, def interface{}) (types.NamespaceMeta, error) {
+	var meta = types.NamespaceMeta{}
+
+	return meta, deinterfacer.Each(def, func(_ int, key string, val interface{}) (err error) {
+		switch key {
+		case "subtitle":
+			meta.Subtitle = deinterfacer.ToString(val)
+
+		case "description":
+			meta.Description = deinterfacer.ToString(val)
+
+		default:
+			return fmt.Errorf("unexpected key %q for namespace %q meta", key, ns.Slug)
+
+		}
+		return
+	})
 }
 
-func (imp *NamespaceImport) castCharts(namespace string, def interface{}) error {
-	return imp.charts[namespace].CastSet(def)
+func (nsImp *Namespace) castModules(handle string, def interface{}) error {
+	if nsImp.modules[handle] == nil {
+		return fmt.Errorf("unknown namespace %q", handle)
+
+	}
+
+	return nsImp.modules[handle].CastSet(def)
 }
 
-func (imp *NamespaceImport) castPages(namespace string, def interface{}) error {
-	return imp.pages[namespace].CastSet(def)
+func (nsImp *Namespace) castCharts(handle string, def interface{}) error {
+	if nsImp.charts[handle] == nil {
+		return fmt.Errorf("unknown namespace %q", handle)
+
+	}
+
+	return nsImp.charts[handle].CastSet(def)
 }
 
-func (imp *NamespaceImport) Exists(handle string) bool {
+func (nsImp *Namespace) castPages(handle string, def interface{}) error {
+	if nsImp.pages[handle] == nil {
+		return fmt.Errorf("unknown namespace %q", handle)
+
+	}
+
+	return nsImp.pages[handle].CastSet(def)
+}
+
+func (nsImp *Namespace) Exists(handle string) bool {
 	handle = importer.NormalizeHandle(handle)
 
 	var (
@@ -136,15 +170,15 @@ func (imp *NamespaceImport) Exists(handle string) bool {
 		err       error
 	)
 
-	namespace = imp.set.FindByHandle(handle)
+	namespace = nsImp.set.FindByHandle(handle)
 	if namespace != nil {
 		return true
 	}
 
-	if imp.namespaceFinder != nil {
-		namespace, err = imp.namespaceFinder.FindByHandle(handle)
+	if nsImp.imp.namespaceFinder != nil {
+		namespace, err = nsImp.imp.namespaceFinder.FindByHandle(handle)
 		if err == nil && namespace != nil {
-			imp.set = append(imp.set, namespace)
+			nsImp.set = append(nsImp.set, namespace)
 			return true
 		}
 	}
@@ -153,31 +187,32 @@ func (imp *NamespaceImport) Exists(handle string) bool {
 }
 
 // Get finds or creates a new namespace
-func (imp *NamespaceImport) Get(handle string) (*types.Namespace, error) {
+func (nsImp *Namespace) Get(handle string) (*types.Namespace, error) {
 	handle = importer.NormalizeHandle(handle)
 
 	if !importer.IsValidHandle(handle) {
 		return nil, errors.New("invalid namespace handle")
 	}
 
-	if !imp.Exists(handle) {
-		imp.set = append(imp.set, &types.Namespace{
-			Slug: handle,
-			Name: handle,
+	if !nsImp.Exists(handle) {
+		nsImp.set = append(nsImp.set, &types.Namespace{
+			Slug:    handle,
+			Name:    handle,
+			Enabled: true,
 		})
 	}
 
-	ns := imp.set.FindByHandle(handle)
+	namespace := nsImp.set.FindByHandle(handle)
 
-	imp.pages[handle] = NewPageImporter(ns, imp.pageFinder, imp.permissions)
-	imp.modules[handle] = NewModuleImporter(ns, imp.moduleFinder, imp.pages[handle], imp.permissions)
-	imp.charts[handle] = NewChartImporter(ns, imp.chartFinder, imp.permissions)
+	nsImp.pages[handle] = NewPageImporter(nsImp.imp, namespace)
+	nsImp.modules[handle] = NewModuleImporter(nsImp.imp, namespace)
+	nsImp.charts[handle] = NewChartImporter(nsImp.imp, namespace)
 
-	return ns, nil
+	return namespace, nil
 }
 
-func (imp *NamespaceImport) Store(ctx context.Context, nsk namespaceKeeper, mk moduleKeeper, ck chartKeeper, pk pageKeeper) error {
-	return imp.set.Walk(func(namespace *types.Namespace) (err error) {
+func (nsImp *Namespace) Store(ctx context.Context, nsk namespaceKeeper, mk moduleKeeper, ck chartKeeper, pk pageKeeper) error {
+	return nsImp.set.Walk(func(namespace *types.Namespace) (err error) {
 		var handle = namespace.Slug
 
 		if namespace.ID == 0 {
@@ -190,21 +225,21 @@ func (imp *NamespaceImport) Store(ctx context.Context, nsk namespaceKeeper, mk m
 			return
 		}
 
-		imp.permissions.UpdateResources(types.NamespacePermissionResource.String(), handle, namespace.ID)
+		nsImp.imp.permissions.UpdateResources(types.NamespacePermissionResource.String(), handle, namespace.ID)
 
-		if _, ok := imp.modules[handle]; ok {
-			imp.modules[handle].namespace = namespace
-			if err = imp.modules[handle].Store(ctx, mk); err != nil {
+		if _, ok := nsImp.modules[handle]; ok {
+			nsImp.modules[handle].namespace = namespace
+			if err = nsImp.modules[handle].Store(ctx, mk); err != nil {
 				return errors.Wrap(err, "could not import modules")
 			}
 
 		}
 
-		if err = imp.charts[handle].Store(ctx, ck); err != nil {
+		if err = nsImp.charts[handle].Store(ctx, ck); err != nil {
 			return errors.Wrap(err, "could not import charts")
 		}
 
-		if err = imp.pages[handle].Store(ctx, pk); err != nil {
+		if err = nsImp.pages[handle].Store(ctx, pk); err != nil {
 			return errors.Wrap(err, "could not import pages")
 		}
 

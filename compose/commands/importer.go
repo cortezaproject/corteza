@@ -4,11 +4,15 @@ import (
 	"context"
 	"io"
 	"os"
+	"strconv"
 
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 
 	"github.com/cortezaproject/corteza-server/compose/importer"
+	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/service"
+	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
@@ -24,9 +28,23 @@ func Importer(ctx context.Context, c *cli.Config) *cobra.Command {
 			c.InitServices(ctx, c)
 
 			var (
-				ff  []io.Reader
-				err error
+				aux    interface{}
+				ff     []io.Reader
+				nsFlag = cmd.Flags().Lookup("namespace").Value.String()
+				ns     *types.Namespace
+				err    error
 			)
+
+			if namespaceID, _ := strconv.ParseUint(nsFlag, 10, 64); namespaceID > 0 {
+				ns, err = service.DefaultNamespace.FindByID(namespaceID)
+				if err != repository.ErrNamespaceNotFound {
+					cli.HandleError(err)
+				}
+			} else if ns, err = service.DefaultNamespace.FindByHandle(nsFlag); err != nil {
+				if err != repository.ErrNamespaceNotFound {
+					cli.HandleError(err)
+				}
+			}
 
 			ctx = auth.SetSuperUserContext(ctx)
 
@@ -41,29 +59,45 @@ func Importer(ctx context.Context, c *cli.Config) *cobra.Command {
 				ff = []io.Reader{os.Stdin}
 			}
 
+			// Initialize importer
+			imp := importer.NewImporter(
+				service.DefaultNamespace.With(ctx),
+				service.DefaultModule.With(ctx),
+				service.DefaultChart.With(ctx),
+				service.DefaultPage.With(ctx),
+				permissions.NewImporter(service.DefaultAccessControl.Whitelist()),
+			)
+
 			for i, f := range ff {
 				cmd.Printf("Importing from %s\n", args[i])
 
-				imp := importer.NewImporter(
-					service.DefaultNamespace.With(ctx),
-					service.DefaultModule.With(ctx),
-					service.DefaultChart.With(ctx),
-					service.DefaultPage.With(ctx),
-					permissions.NewImporter(service.DefaultAccessControl.Whitelist()),
-				)
+				if err = yaml.NewDecoder(f).Decode(&aux); err != nil {
+					return
+				}
 
-				cli.HandleError(imp.YAML(f))
-				cli.HandleError(imp.Store(
-					ctx,
-					service.DefaultNamespace.With(ctx),
-					service.DefaultModule.With(ctx),
-					service.DefaultChart.With(ctx),
-					service.DefaultPage.With(ctx),
-					service.DefaultAccessControl,
-				))
+				if ns != nil {
+					// If we're importing with --namespace switch,
+					// we're going to import all into one NS
+					cli.HandleError(imp.GetNamespaceImporter().Cast(ns.Slug, aux))
+				} else {
+					// importing one or more namespaces
+					cli.HandleError(imp.Cast(aux))
+				}
 			}
+
+			// Store all imported
+			cli.HandleError(imp.Store(
+				ctx,
+				service.DefaultNamespace.With(ctx),
+				service.DefaultModule.With(ctx),
+				service.DefaultChart.With(ctx),
+				service.DefaultPage.With(ctx),
+				service.DefaultAccessControl,
+			))
 		},
 	}
+
+	cmd.Flags().String("namespace", "crm", "Import into namespace (by ID or string)")
 
 	return cmd
 }
