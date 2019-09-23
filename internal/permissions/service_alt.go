@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 )
 
 type (
@@ -68,6 +69,8 @@ func (svc *TestService) String() (out string) {
 
 func NewTestService() *TestService {
 	return &TestService{
-		service: service{},
+		service: service{
+			l: &sync.Mutex{},
+		},
 	}
 }
