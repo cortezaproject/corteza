@@ -19,6 +19,7 @@ import (
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
@@ -27,7 +28,6 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 		Short: "Export",
 		Long:  `Specify one ("modules", "pages", "charts", "permissions") or more resources to export`,
 
-		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 
 			c.InitServices(ctx, c)
@@ -38,6 +38,11 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 				nsFlag = cmd.Flags().Lookup("namespace").Value.String()
 				ns     *types.Namespace
 				err    error
+
+				out = Compose{
+					Namespaces: map[string]Namespace{},
+				}
+				nsOut = Namespace{}
 			)
 
 			if namespaceID, _ := strconv.ParseUint(nsFlag, 10, 64); namespaceID > 0 {
@@ -51,6 +56,9 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 				}
 			}
 
+			roles, err = service.DefaultSystemRole.Find(ctx)
+			cli.HandleError(err)
+
 			modules, _, err := service.DefaultModule.Find(types.ModuleFilter{NamespaceID: ns.ID})
 			cli.HandleError(err)
 
@@ -61,21 +69,30 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 			cli.HandleError(err)
 
 			y := yaml.NewEncoder(cmd.OutOrStdout())
-			out := Compose{}
+
+			nsOut.Name = ns.Name
+			nsOut.Handle = ns.Slug
+			nsOut.Enabled = ns.Enabled
+			nsOut.Meta = ns.Meta
+
+			nsOut.Allow = expResourcePermissions(permissions.Allow, ns.PermissionResource())
+			nsOut.Deny = expResourcePermissions(permissions.Deny, ns.PermissionResource())
 
 			for _, arg := range args {
 				switch arg {
 				case "module", "modules":
-					out.Modules = expModules(modules)
+					nsOut.Modules = expModules(modules)
 				case "chart", "charts":
-					out.Charts = expCharts(charts, modules)
+					nsOut.Charts = expCharts(charts, modules)
 				case "page", "pages":
-					out.Pages = expPages(0, pages, modules, charts)
+					nsOut.Pages = expPages(0, pages, modules, charts)
 				case "allow", "deny", "permission", "permissions":
 					out.Allow = expServicePermissions(permissions.Allow)
 					out.Deny = expServicePermissions(permissions.Deny)
 				}
 			}
+
+			out.Namespaces[ns.Slug] = nsOut
 
 			_, _ = y, out
 			cli.HandleError(y.Encode(out))
@@ -92,12 +109,24 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 
 type (
 	Compose struct {
+		Namespaces map[string]Namespace
+
+		Allow map[string]map[string][]string `yaml:",omitempty"`
+		Deny  map[string]map[string][]string `yaml:",omitempty"`
+	}
+
+	Namespace struct {
+		Name    string              `yaml:",omitempty"`
+		Handle  string              `yaml:",omitempty"`
+		Enabled bool                `yaml:",omitempty"`
+		Meta    types.NamespaceMeta `yaml:",omitempty"`
+
 		Modules map[string]Module `yaml:",omitempty"`
 		Pages   map[string]Page   `yaml:",omitempty"`
 		Charts  map[string]Chart  `yaml:",omitempty"`
 
-		Allow map[string]map[string][]string `yaml:",omitempty"`
-		Deny  map[string]map[string][]string `yaml:",omitempty"`
+		Allow map[string][]string `yaml:",omitempty"`
+		Deny  map[string][]string `yaml:",omitempty"`
 	}
 
 	Module struct {
@@ -158,6 +187,10 @@ type (
 	}
 )
 
+var (
+	roles sysTypes.RoleSet
+)
+
 func expModules(mm types.ModuleSet) (o map[string]Module) {
 	o = map[string]Module{}
 
@@ -174,7 +207,7 @@ func expModules(mm types.ModuleSet) (o map[string]Module) {
 			module.Meta = meta
 		}
 
-		handle := makeHandleFromName(m.Name, m.Handle, "module-id", m.ID)
+		handle := makeHandleFromName(m.Name, m.Handle, "module-%d", m.ID)
 		o[handle] = module
 	}
 
@@ -364,21 +397,71 @@ func expCharts(charts types.ChartSet, modules types.ModuleSet) (o map[string]Cha
 }
 
 func expServicePermissions(access permissions.Access) map[string]map[string][]string {
-	// @todo fetch all known roles
-	// @todo iterate over roles
-	// @todo iterate over service.DefaultPermissions.FindRulesByRoleID()
-	// @todo filter out all matching types.ComposePermissionResource
-	// @todo fill return value
-	return nil
+	var (
+		has   bool
+		res   string
+		rules permissions.RuleSet
+		sp    = make(map[string]map[string][]string)
+	)
+
+	for _, r := range roles {
+		rules = service.DefaultPermissions.FindRulesByRoleID(r.ID)
+
+		if len(rules) == 0 {
+			continue
+		}
+
+		for _, rule := range rules {
+			if rule.Resource.GetService() != rule.Resource && !rule.Resource.HasWildcard() {
+				continue
+			}
+
+			res = strings.TrimRight(rule.Resource.String(), ":*")
+
+			if _, has = sp[r.Handle]; !has {
+				sp[r.Handle] = map[string][]string{}
+			}
+
+			if _, has = sp[r.Handle][res]; !has {
+				sp[r.Handle][res] = make([]string, 0)
+			}
+
+			sp[r.Handle][res] = append(sp[r.Handle][res], rule.Operation.String())
+		}
+	}
+
+	return sp
 }
 
 func expResourcePermissions(access permissions.Access, resource permissions.Resource) map[string][]string {
-	// @todo fetch all known roles
-	// @todo iterate over roles
-	// @todo iterate over service.DefaultPermissions.FindRulesByRoleID()
-	// @todo filter out all matching resource param
-	// @todo fill return value
-	return nil
+	var (
+		has   bool
+		rules permissions.RuleSet
+		sp    = make(map[string][]string)
+	)
+
+	for _, r := range roles {
+		rules = service.DefaultPermissions.FindRulesByRoleID(r.ID)
+
+		if len(rules) == 0 {
+			continue
+		}
+
+		for _, rule := range rules {
+			if rule.Resource != resource {
+				continue
+			}
+
+			if _, has = sp[r.Handle]; !has {
+				sp[r.Handle] = make([]string, 0)
+
+			}
+
+			sp[r.Handle] = append(sp[r.Handle], rule.Operation.String())
+		}
+	}
+
+	return sp
 }
 
 func makeHandleFromName(name, currentHandle, def string, id uint64) string {
