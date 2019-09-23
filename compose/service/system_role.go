@@ -3,6 +3,9 @@ package service
 import (
 	"context"
 
+	"google.golang.org/grpc/metadata"
+
+	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/system/proto"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -21,7 +24,11 @@ func SystemRole(c proto.RolesClient) *systemRole {
 	}
 }
 
-func (svc systemRole) Find(ctx context.Context, ID uint64) (rr types.RoleSet, err error) {
+func (svc systemRole) Find(ctx context.Context) (rr types.RoleSet, err error) {
+	ctx = metadata.NewOutgoingContext(ctx, metadata.MD{
+		"jwt": []string{auth.GetJwtFromContext(ctx)},
+	})
+
 	rsp, err := svc.client.Find(ctx, &proto.FindRoleRequest{})
 	if err != nil {
 		return nil, err
