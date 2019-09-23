@@ -22,6 +22,7 @@ func NewServer() *grpc.Server {
 
 	proto.RegisterUsersServer(s, NewUserService(
 		service.DefaultUser,
+		service.DefaultAuth,
 		auth.DefaultJwtHandler,
 		service.DefaultAccessControl,
 	))

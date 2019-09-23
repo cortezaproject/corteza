@@ -14,9 +14,10 @@ import (
 
 type (
 	userService struct {
-		ac  userServiceAccessControl
-		svc service.UserService
-		jwt auth.TokenEncoder
+		ac    userServiceAccessControl
+		users service.UserService
+		auth  service.AuthService
+		jwt   auth.TokenEncoder
 	}
 
 	userServiceAccessControl interface {
@@ -24,11 +25,12 @@ type (
 	}
 )
 
-func NewUserService(svc service.UserService, jwt auth.TokenEncoder, ac userServiceAccessControl) *userService {
+func NewUserService(users service.UserService, auth service.AuthService, jwt auth.TokenEncoder, ac userServiceAccessControl) *userService {
 	return &userService{
-		ac:  ac,
-		svc: svc,
-		jwt: jwt,
+		ac:    ac,
+		users: users,
+		auth:  auth,
+		jwt:   jwt,
 	}
 }
 
@@ -41,7 +43,11 @@ func (gs userService) MakeJWT(ctx context.Context, req *proto.MakeJWTRequest) (r
 		return nil, status.Error(codes.PermissionDenied, "no permissions to issue jwt for other users")
 	}
 
-	if u, err = gs.svc.FindByID(req.UserID); err != nil {
+	if u, err = gs.users.FindByID(req.UserID); err != nil {
+		return
+	}
+
+	if err = gs.auth.LoadRoleMemberships(u); err != nil {
 		return
 	}
 
@@ -57,7 +63,7 @@ func (gs userService) FindByID(ctx context.Context, req *proto.FindByIDRequest) 
 		u *types.User
 	)
 
-	if u, err = gs.svc.FindByID(req.UserID); err != nil {
+	if u, err = gs.users.FindByID(req.UserID); err != nil {
 		return
 	}
 
