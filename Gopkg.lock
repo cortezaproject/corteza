@@ -820,6 +820,7 @@
     "google.golang.org/grpc/status",
     "gopkg.in/Masterminds/squirrel.v1",
     "gopkg.in/mail.v2",
+    "gopkg.in/yaml.v2",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
