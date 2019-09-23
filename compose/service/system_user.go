@@ -30,7 +30,7 @@ func (svc systemUser) MakeJWT(ctx context.Context, ID uint64) (string, error) {
 		"jwt": []string{auth.GetJwtFromContext(ctx)},
 	})
 
-	rsp, err := svc.client.MakeJWT(ctx, &proto.MakeJWTRequest{UserID: ID}, grpc.WaitForReady(true))
+	rsp, err := svc.client.MakeJWT(ctx, &proto.MakeJWTUserRequest{UserID: ID}, grpc.WaitForReady(true))
 	if err != nil {
 		return "", err
 	}
@@ -39,7 +39,7 @@ func (svc systemUser) MakeJWT(ctx context.Context, ID uint64) (string, error) {
 }
 
 func (svc systemUser) FindByID(ctx context.Context, ID uint64) (*types.User, error) {
-	rsp, err := svc.client.FindByID(ctx, &proto.FindByIDRequest{UserID: ID})
+	rsp, err := svc.client.FindByID(ctx, &proto.FindByIDUserRequest{UserID: ID})
 	if err != nil {
 		return nil, err
 	}
