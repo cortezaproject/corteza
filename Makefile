@@ -59,10 +59,11 @@ help:
 	@echo
 	@echo - vet - run go vet on all code
 	@echo - critic - run go critic on all code
-	@echo - test.compose - individual package unit tests
-	@echo - test.messaging - individual package unit tests
-	@echo - test - run all available unit tests
-	@echo - qa - run vet, critic and test on code
+	@echo - test.all - run all tests
+	@echo - test.unit - run all unit tests
+	@echo - test.integration - run all integration tests
+	@echo
+	@echo See tests/README.md for more info
 	@echo
 
 
