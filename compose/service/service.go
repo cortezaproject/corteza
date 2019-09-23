@@ -68,6 +68,7 @@ var (
 	DefaultNotification  NotificationService
 
 	DefaultSystemUser *systemUser
+	DefaultSystemRole *systemRole
 )
 
 func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
@@ -102,6 +103,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 		}
 
 		DefaultSystemUser = SystemUser(systemProto.NewUsersClient(systemClientConn))
+		DefaultSystemRole = SystemRole(systemProto.NewRolesClient(systemClientConn))
 	}
 
 	{
