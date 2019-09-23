@@ -18,7 +18,8 @@ message Module {
 }
 
 message ModuleField {
-	uint64 fieldID = 1;
-	string name    = 2;
-	string kind    = 3;
+	uint64  fieldID = 1;
+	string  name    = 2;
+	string  kind    = 3;
+	boolean isMulti = 4;
 }
