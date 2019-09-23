@@ -24,6 +24,14 @@ func FromModule(i *types.Module) *Module {
 			FieldID: i.Fields[f].ID,
 			Name:    i.Fields[f].Name,
 			Kind:    i.Fields[f].Kind,
+
+			IsMulti:    i.Fields[f].Multi,
+			IsPrivate:  i.Fields[f].Private,
+			IsVisible:  i.Fields[f].Visible,
+			IsRequired: i.Fields[f].Required,
+
+			// @todo add default value
+			// @todo add options
 		}
 	}
 
