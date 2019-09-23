@@ -189,7 +189,7 @@ function proto {
 	PATH=$PATH:$GOPATH/bin protoc \
 		--proto_path ${CORTEZA_PROTOBUF_PATH}/system \
 		--go_out=plugins=grpc:system/proto \
-		user.proto mail_message.proto
+		user.proto role.proto mail_message.proto
   green "OK"
 }
 
