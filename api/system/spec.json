@@ -1631,6 +1631,18 @@
               "type": "uint64"
             },
             {
+              "name": "scheduledFrom",
+              "required": false,
+              "title": "Only reminders from this time (included)",
+              "type": "*time.Time"
+            },
+            {
+              "name": "scheduledBefore",
+              "required": false,
+              "title": "Only reminders up to this time (excluded)",
+              "type": "*time.Time"
+            },
+            {
               "name": "page",
               "type": "uint",
               "required": false,

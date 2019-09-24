@@ -36,10 +36,12 @@ var _ = multipart.FileHeader{}
 
 // Reminder list request parameters
 type ReminderList struct {
-	Resource   string
-	AssignedTo uint64 `json:",string"`
-	Page       uint
-	PerPage    uint
+	Resource        string
+	AssignedTo      uint64 `json:",string"`
+	ScheduledFrom   *time.Time
+	ScheduledBefore *time.Time
+	Page            uint
+	PerPage         uint
 }
 
 func NewReminderList() *ReminderList {
@@ -51,6 +53,8 @@ func (r ReminderList) Auditable() map[string]interface{} {
 
 	out["resource"] = r.Resource
 	out["assignedTo"] = r.AssignedTo
+	out["scheduledFrom"] = r.ScheduledFrom
+	out["scheduledBefore"] = r.ScheduledBefore
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
 
@@ -89,6 +93,18 @@ func (r *ReminderList) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := get["assignedTo"]; ok {
 		r.AssignedTo = parseUInt64(val)
+	}
+	if val, ok := get["scheduledFrom"]; ok {
+
+		if r.ScheduledFrom, err = parseISODatePtrWithErr(val); err != nil {
+			return err
+		}
+	}
+	if val, ok := get["scheduledBefore"]; ok {
+
+		if r.ScheduledBefore, err = parseISODatePtrWithErr(val); err != nil {
+			return err
+		}
 	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)

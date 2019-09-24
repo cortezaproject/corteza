@@ -88,6 +88,13 @@ func (r reminder) Find(filter types.ReminderFilter) (set types.ReminderSet, f ty
 		q = q.Where("r.resource LIKE ?", f.Resource+"%")
 	}
 
+	if f.ScheduledFrom != nil {
+		q = q.Where("r.remind_at >= ?", f.ScheduledFrom.Format(time.RFC3339))
+	}
+	if f.ScheduledBefore != nil {
+		q = q.Where("r.remind_at < ?", f.ScheduledBefore.Format(time.RFC3339))
+	}
+
 	if f.AccessCheck.HasOperation() {
 		q = q.Where(f.AccessCheck.BindToEnv(
 			types.ReminderPermissionResource,
