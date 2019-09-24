@@ -145,6 +145,24 @@ func (svc accessControl) CanRunAutomationTrigger(ctx context.Context, r *automat
 	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "run", permissions.Allowed)
 }
 
+func (svc accessControl) CanReadAnyReminder(ctx context.Context) bool {
+	return svc.can(ctx, types.ReminderPermissionResource.AppendWildcard(), "read")
+}
+func (svc accessControl) CanCreateReminder(ctx context.Context) bool {
+	return svc.can(ctx, types.SystemPermissionResource, "reminder.create")
+}
+func (svc accessControl) CanReadReminder(ctx context.Context, rm *types.Reminder) bool {
+	// @todo if user is assignee, then they should be able to perform these operations
+	return svc.can(ctx, types.ReminderPermissionResource.AppendID(rm.ID), "read")
+}
+func (svc accessControl) CanUpdateReminder(ctx context.Context, rm *types.Reminder) bool {
+	// @todo if user is assignee, then they should be able to perform these operations
+	return svc.can(ctx, types.ReminderPermissionResource.AppendID(rm.ID), "update")
+}
+func (svc accessControl) CanDeleteReminder(ctx context.Context, rm *types.Reminder) bool {
+	return svc.can(ctx, types.ReminderPermissionResource.AppendID(rm.ID), "delete")
+}
+
 func (svc accessControl) can(ctx context.Context, res permissionResource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
 	return svc.permissions.Can(ctx, res.PermissionResource(), op, ff...)
 }
