@@ -240,7 +240,7 @@ func expModuleFields(ff types.ModuleFieldSet, modules types.ModuleSet) (o map[st
 		o[f.Name] = Field{
 			Label:    f.Label,
 			Kind:     f.Kind,
-			Options:  expModuleFieldOptions(f.Options, modules),
+			Options:  expModuleFieldOptions(f, modules),
 			Private:  f.Private,
 			Required: f.Required,
 			Visible:  f.Visible,
@@ -254,8 +254,8 @@ func expModuleFields(ff types.ModuleFieldSet, modules types.ModuleSet) (o map[st
 	return
 }
 
-func expModuleFieldOptions(opt types.ModuleFieldOptions, modules types.ModuleSet) types.ModuleFieldOptions {
-	out := opt
+func expModuleFieldOptions(f *types.ModuleField, modules types.ModuleSet) types.ModuleFieldOptions {
+	out := f.Options
 
 	if moduleIDstr, has := out["moduleID"].(string); has {
 		delete(out, "moduleID")
@@ -265,6 +265,46 @@ func expModuleFieldOptions(opt types.ModuleFieldOptions, modules types.ModuleSet
 				out["module"] = makeHandleFromName(module.Name, module.Handle, "module-%d", module.ID)
 			}
 		}
+	}
+
+	// Remove extra options to keep the output tidy
+
+	rmDefault := func(k string, def interface{}) {
+		if v, ok := out[k]; ok && v == def {
+			delete(out, k)
+		}
+	}
+
+	rmFalse := func(f string) {
+		rmDefault(f, false)
+	}
+
+	rmDefault("multiDelimiter", "\n")
+
+	switch f.Kind {
+	case "Number":
+		rmDefault("format", 0)
+		rmDefault("precision", 0)
+		rmDefault("prefix", "")
+		rmDefault("suffix", "")
+	case "DateTime":
+		rmFalse("onlyDate")
+		rmFalse("onlyFutureValues")
+		rmFalse("onlyPastValues")
+		rmFalse("onlyTime")
+		rmFalse("outputRelative")
+		rmDefault("format", "")
+	case "Url":
+		rmFalse("onlySecure")
+		rmFalse("outputPlain")
+		rmFalse("trimFragment")
+		rmFalse("trimPath")
+		rmFalse("trimQuery")
+	case "Email":
+		rmFalse("outputPlain")
+	case "String":
+		rmFalse("multiLine")
+		rmFalse("useRichTextEditor")
 	}
 
 	return out
@@ -314,6 +354,18 @@ func expPages(parentID uint64, pages types.PageSet, modules types.ModuleSet, cha
 func expPageBlocks(in types.PageBlocks, pages types.PageSet, modules types.ModuleSet, charts types.ChartSet) types.PageBlocks {
 	out := types.PageBlocks(in)
 
+	// Remove extra options to keep the output tidy
+
+	rmDefault := func(kv map[string]interface{}, k string, def interface{}) {
+		if v, ok := kv[k]; ok && v == def {
+			delete(kv, k)
+		}
+	}
+
+	rmFalse := func(kv map[string]interface{}, f string) {
+		rmDefault(kv, f, false)
+	}
+
 	for i := range out {
 		if ff, has := out[i].Options["fields"].([]interface{}); has {
 			// Trim out obsolete field info
@@ -355,6 +407,13 @@ func expPageBlocks(in types.PageBlocks, pages types.PageSet, modules types.Modul
 				}
 			}
 		}
+
+		rmFalse(out[i].Options, "hideAddButton")
+		rmFalse(out[i].Options, "hideHeader")
+		rmFalse(out[i].Options, "hidePaging")
+		rmFalse(out[i].Options, "hideSearch")
+		rmFalse(out[i].Options, "hideSorting")
+		rmFalse(out[i].Options, "allowExport")
 	}
 
 	return out
@@ -385,8 +444,6 @@ func expCharts(charts types.ChartSet, modules types.ModuleSet) (o map[string]Cha
 			}
 
 		}
-
-		// @todo moduleID => module Handle (CONFIG)
 
 		handle := makeHandleFromName(c.Name, c.Handle, "chart-%d", c.ID)
 
