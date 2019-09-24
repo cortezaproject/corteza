@@ -3,12 +3,14 @@ package types
 import (
 	"time"
 
+	"github.com/cortezaproject/corteza-server/internal/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/jmoiron/sqlx/types"
 )
 
 type (
 	Reminder struct {
-		ID          uint64         `json:"notificationID,string" db:"id"`
+		ID          uint64         `json:"reminderID,string" db:"id"`
 		Resource    string         `json:"resource" db:"resource"`
 		Payload     types.JSONText `json:"payload" db:"payload"`
 		SnoozeCount uint           `json:"snoozeCount" db:"snooze_count"`
@@ -32,5 +34,11 @@ type (
 		AssignedTo uint64 `json:"assignedTo,uint64"`
 		Page       uint   `json:"page,uint"`
 		PerPage    uint   `json:"perPage,uint"`
+
+		// Standard paging fields & helpers
+		rh.PageFilter
+
+		// Access controll
+		permissions.AccessCheck `json:"-"`
 	}
 )

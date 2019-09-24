@@ -1634,7 +1634,7 @@
               "name": "page",
               "type": "uint",
               "required": false,
-              "title": "Page number (1 based)"
+              "title": "Page number (0 based)"
             },
             {
               "name": "perPage",

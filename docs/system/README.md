@@ -715,7 +715,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | resource | string | GET | Only reminders of a specific resource | N/A | NO |
 | assignedTo | uint64 | GET | Only reminders for a given user | N/A | NO |
-| page | uint | GET | Page number (1 based) | N/A | NO |
+| page | uint | GET | Page number (0 based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 
 ## Add new reminder

@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/system/repository"
 
 	intAuth "github.com/cortezaproject/corteza-server/internal/auth"
@@ -53,19 +54,20 @@ func Reminder(ctx context.Context) ReminderService {
 }
 
 func (svc reminder) Find(ctx context.Context, f types.ReminderFilter) (types.ReminderSet, types.ReminderFilter, error) {
-	rr, err := svc.reminder.Find(f)
+	f.PageFilter.NormalizePerPageNoMax()
+
+	f.AccessCheck = permissions.InitAccessCheckFilter(
+		"read",
+		intAuth.GetIdentityFromContext(ctx).Roles(),
+		svc.ac.CanReadAnyReminder(ctx),
+	)
+
+	rr, f, err := svc.reminder.Find(f)
 	if err != nil {
 		return nil, f, err
 	}
 
-	ret := types.ReminderSet{}
-	for _, rm := range rr {
-		if svc.ac.CanReadReminder(ctx, rm) {
-			ret = append(ret, rm)
-		}
-	}
-
-	return ret, f, nil
+	return rr, f, nil
 }
 
 func (svc reminder) FindByID(ctx context.Context, ID uint64) (*types.Reminder, error) {

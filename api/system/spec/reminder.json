@@ -39,7 +39,7 @@
           {
             "name": "page",
             "required": false,
-            "title": "Page number (1 based)",
+            "title": "Page number (0 based)",
             "type": "uint"
           },
           {
