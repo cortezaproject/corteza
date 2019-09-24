@@ -1593,5 +1593,206 @@
         }
       }
     ]
+  },
+  {
+    "title": "Reminders",
+    "entrypoint": "reminder",
+    "path": "/reminder",
+    "authentication": [
+      "Client ID",
+      "Session ID"
+    ],
+    "struct": [
+      {
+        "imports": [
+          "sqlxTypes github.com/jmoiron/sqlx/types",
+          "time"
+        ]
+      }
+    ],
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "title": "List/read reminders",
+        "path": "/",
+        "parameters": {
+          "get": [
+            {
+              "name": "resource",
+              "required": false,
+              "title": "Only reminders of a specific resource",
+              "type": "string"
+            },
+            {
+              "name": "assignedTo",
+              "required": false,
+              "title": "Only reminders for a given user",
+              "type": "uint64"
+            },
+            {
+              "name": "page",
+              "type": "uint",
+              "required": false,
+              "title": "Page number (1 based)"
+            },
+            {
+              "name": "perPage",
+              "type": "uint",
+              "required": false,
+              "title": "Returned items per page (default 50)"
+            }
+          ]
+        }
+      },
+      {
+        "name": "create",
+        "method": "POST",
+        "title": "Add new reminder",
+        "path": "/",
+        "parameters": {
+          "post": [
+            {
+              "name": "resource",
+              "title": "Resource",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "assignedTo",
+              "title": "Assigned To",
+              "type": "uint64",
+              "required": true
+            },
+            {
+              "name": "payload",
+              "title": "Payload",
+              "type": "sqlxTypes.JSONText",
+              "required": true
+            },
+            {
+              "name": "remindAt",
+              "title": "Remind At",
+              "type": "time.Time",
+              "required": true
+            }
+          ]
+        }
+      },
+      {
+        "name": "update",
+        "method": "PUT",
+        "title": "Update reminder",
+        "path": "/{reminderID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "reminderID",
+              "required": true,
+              "title": "Reminder ID"
+            }
+          ],
+          "post": [
+            {
+              "name": "resource",
+              "title": "Resource",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "assignedTo",
+              "title": "Assigned To",
+              "type": "uint64",
+              "required": true
+            },
+            {
+              "name": "payload",
+              "title": "Payload",
+              "type": "sqlxTypes.JSONText",
+              "required": true
+            },
+            {
+              "name": "remindAt",
+              "title": "Remind At",
+              "type": "time.Time",
+              "required": true
+            }
+          ]
+        }
+      },
+      {
+        "name": "read",
+        "method": "GET",
+        "title": "Read reminder by ID",
+        "path": "/{reminderID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "reminderID",
+              "required": true,
+              "title": "Reminder ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "method": "DELETE",
+        "title": "Delete reminder",
+        "path": "/{reminderID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "reminderID",
+              "required": true,
+              "title": "Reminder ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "dismiss",
+        "method": "PATCH",
+        "title": "Dismiss reminder",
+        "path": "/{reminderID}/dismiss",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "reminderID",
+              "required": true,
+              "title": "reminder ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "snooze",
+        "method": "PATCH",
+        "title": "Snooze reminder",
+        "path": "/{reminderID}/snooze",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "reminderID",
+              "required": true,
+              "title": "reminder ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "time.Time",
+              "name": "remindAt",
+              "required": true,
+              "title": "New Remind At Time"
+            }
+          ]
+        }
+      }
+    ]
   }
 ]
