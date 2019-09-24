@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	intAuth "github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -152,12 +153,20 @@ func (svc accessControl) CanCreateReminder(ctx context.Context) bool {
 	return svc.can(ctx, types.SystemPermissionResource, "reminder.create")
 }
 func (svc accessControl) CanReadReminder(ctx context.Context, rm *types.Reminder) bool {
-	// @todo if user is assignee, then they should be able to perform these operations
-	return svc.can(ctx, types.ReminderPermissionResource.AppendID(rm.ID), "read")
+	return svc.can(ctx, types.ReminderPermissionResource.AppendID(rm.ID), "read", func() permissions.Access {
+		if rm.AssignedTo == intAuth.GetIdentityFromContext(ctx).Identity() {
+			return permissions.Allow
+		}
+		return permissions.Deny
+	})
 }
 func (svc accessControl) CanUpdateReminder(ctx context.Context, rm *types.Reminder) bool {
-	// @todo if user is assignee, then they should be able to perform these operations
-	return svc.can(ctx, types.ReminderPermissionResource.AppendID(rm.ID), "update")
+	return svc.can(ctx, types.ReminderPermissionResource.AppendID(rm.ID), "update", func() permissions.Access {
+		if rm.AssignedTo == intAuth.GetIdentityFromContext(ctx).Identity() {
+			return permissions.Allow
+		}
+		return permissions.Deny
+	})
 }
 func (svc accessControl) CanDeleteReminder(ctx context.Context, rm *types.Reminder) bool {
 	return svc.can(ctx, types.ReminderPermissionResource.AppendID(rm.ID), "delete")
@@ -238,6 +247,13 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 	wl.Set(
 		types.AutomationTriggerPermissionResource,
 		"run",
+	)
+
+	wl.Set(
+		types.ReminderPermissionResource,
+		"read",
+		"update",
+		"delete",
 	)
 
 	return wl
