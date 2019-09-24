@@ -88,6 +88,8 @@ func (r reminder) Find(filter types.ReminderFilter) (set types.ReminderSet, err 
 }
 
 func (r reminder) FindByID(ID uint64) (rm *types.Reminder, err error) {
+	rm = &types.Reminder{}
+
 	q := r.query().
 		Where("r.id = ?", ID)
 
