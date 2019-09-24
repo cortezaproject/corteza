@@ -72,6 +72,7 @@ var (
 	DefaultRole         RoleService
 	DefaultOrganisation OrganisationService
 	DefaultApplication  ApplicationService
+	DefaultReminder     ReminderService
 )
 
 func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
@@ -92,6 +93,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultRole = Role(ctx)
 	DefaultOrganisation = Organisation(ctx)
 	DefaultApplication = Application(ctx)
+	DefaultReminder = Reminder(ctx)
 
 	// Authentication helpers & services
 	DefaultAuthSettings, err = DefaultSettings.LoadAuthSettings()
