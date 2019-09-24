@@ -17,8 +17,8 @@ type (
 		AssignedBy uint64    `json:"assignedBy,string" db:"assigned_by"`
 		AssignedAt time.Time `json:"assignedAt" db:"assigned_at"`
 
-		DismissedBy uint64    `json:"dismissedBy,string" db:"dismissed_by"`
-		DismissedAt time.Time `json:"dismissedAt" db:"dismissed_at"`
+		DismissedBy uint64     `json:"dismissedBy,string" db:"dismissed_by"`
+		DismissedAt *time.Time `json:"dismissedAt" db:"dismissed_at"`
 
 		RemindAt time.Time `json:"remindAt" db:"remind_at"`
 
