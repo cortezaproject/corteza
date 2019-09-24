@@ -81,12 +81,14 @@ function types {
 	./build/gen-type-set --types Role         --output system/types/role.gen.go
 	./build/gen-type-set --types Organisation --output system/types/organisation.gen.go
 	./build/gen-type-set --types Credentials  --output system/types/credentials.gen.go
+	./build/gen-type-set --types Reminder  --output system/types/reminder.gen.go
 
 	./build/gen-type-set-test --types User         --output system/types/user.gen_test.go
 	./build/gen-type-set-test --types Application  --output system/types/application.gen_test.go
 	./build/gen-type-set-test --types Role         --output system/types/role.gen_test.go
 	./build/gen-type-set-test --types Organisation --output system/types/organisation.gen_test.go
 	./build/gen-type-set-test --types Credentials  --output system/types/credentials.gen_test.go
+	./build/gen-type-set-test --types Reminder  --output system/types/reminder.gen_test.go
 
 	./build/gen-type-set --types Value --output internal/settings/types.gen.go --with-primary-key=false --package settings
 	./build/gen-type-set-test --types Value --output internal/settings/types.gen_test.go --with-primary-key=false --package settings
