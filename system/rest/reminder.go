@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/pkg/rh"
+
 	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/titpetric/factory/resputil"
 
@@ -38,8 +40,8 @@ func (ctrl *Reminder) List(ctx context.Context, r *request.ReminderList) (interf
 	f := types.ReminderFilter{
 		AssignedTo: r.AssignedTo,
 		Resource:   r.Resource,
-		Page:       r.Page,
-		PerPage:    r.PerPage,
+
+		PageFilter: rh.Paging(r.Page, r.PerPage),
 	}
 
 	set, filter, err := ctrl.reminder.Find(ctx, f)
