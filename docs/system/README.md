@@ -689,6 +689,132 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 
 
+# Reminders
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/reminder/` | List/read reminders |
+| `POST` | `/reminder/` | Add new reminder |
+| `PUT` | `/reminder/{reminderID}` | Update reminder |
+| `GET` | `/reminder/{reminderID}` | Read reminder by ID |
+| `DELETE` | `/reminder/{reminderID}` | Delete reminder |
+| `PATCH` | `/reminder/{reminderID}/dismiss` | Dismiss reminder |
+| `PATCH` | `/reminder/{reminderID}/snooze` | Snooze reminder |
+
+## List/read reminders
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/reminder/` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| resource | string | GET | Only reminders of a specific resource | N/A | NO |
+| assignedTo | uint64 | GET | Only reminders for a given user | N/A | NO |
+| page | uint | GET | Page number (1 based) | N/A | NO |
+| perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
+
+## Add new reminder
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/reminder/` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| resource | string | POST | Resource | N/A | YES |
+| assignedTo | uint64 | POST | Assigned To | N/A | YES |
+| payload | sqlxTypes.JSONText | POST | Payload | N/A | YES |
+| remindAt | time.Time | POST | Remind At | N/A | YES |
+
+## Update reminder
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/reminder/{reminderID}` | HTTP/S | PUT | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| reminderID | uint64 | PATH | Reminder ID | N/A | YES |
+| resource | string | POST | Resource | N/A | YES |
+| assignedTo | uint64 | POST | Assigned To | N/A | YES |
+| payload | sqlxTypes.JSONText | POST | Payload | N/A | YES |
+| remindAt | time.Time | POST | Remind At | N/A | YES |
+
+## Read reminder by ID
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/reminder/{reminderID}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| reminderID | uint64 | PATH | Reminder ID | N/A | YES |
+
+## Delete reminder
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/reminder/{reminderID}` | HTTP/S | DELETE | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| reminderID | uint64 | PATH | Reminder ID | N/A | YES |
+
+## Dismiss reminder
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/reminder/{reminderID}/dismiss` | HTTP/S | PATCH | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| reminderID | uint64 | PATH | reminder ID | N/A | YES |
+
+## Snooze reminder
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/reminder/{reminderID}/snooze` | HTTP/S | PATCH | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| reminderID | uint64 | PATH | reminder ID | N/A | YES |
+| remindAt | time.Time | POST | New Remind At Time | N/A | YES |
+
+---
+
+
+
+
 # Roles
 
 An organisation may have many roles. Roles may have many channels available. Access to channels may be shared between roles.
