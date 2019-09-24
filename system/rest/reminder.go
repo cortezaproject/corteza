@@ -38,8 +38,10 @@ func (Reminder) New() *Reminder {
 
 func (ctrl *Reminder) List(ctx context.Context, r *request.ReminderList) (interface{}, error) {
 	f := types.ReminderFilter{
-		AssignedTo: r.AssignedTo,
-		Resource:   r.Resource,
+		AssignedTo:      r.AssignedTo,
+		Resource:        r.Resource,
+		ScheduledFrom:   r.ScheduledFrom,
+		ScheduledBefore: r.ScheduledBefore,
 
 		PageFilter: rh.Paging(r.Page, r.PerPage),
 	}
