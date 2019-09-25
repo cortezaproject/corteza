@@ -3,9 +3,6 @@ package importer
 import (
 	"context"
 	"fmt"
-	"io"
-
-	"gopkg.in/yaml.v2"
 
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
@@ -14,30 +11,16 @@ import (
 
 type (
 	Importer struct {
-		roleFinder roleFinder
-
-		roles *RoleImport
-
+		roles       *Role
 		permissions importer.PermissionImporter
 	}
 )
 
-func NewImporter(rf roleFinder, p importer.PermissionImporter) *Importer {
+func NewImporter(p importer.PermissionImporter, ri *Role) *Importer {
 	return &Importer{
-		roleFinder:  rf,
-		roles:       NewRoleImporter(rf, p),
+		roles:       ri,
 		permissions: p,
 	}
-}
-
-func (imp *Importer) YAML(r io.Reader) (err error) {
-	var aux interface{}
-
-	if err = yaml.NewDecoder(r).Decode(&aux); err != nil {
-		return
-	}
-
-	return imp.Cast(aux)
 }
 
 func (imp *Importer) Cast(in interface{}) (err error) {
