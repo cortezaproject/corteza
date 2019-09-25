@@ -58,8 +58,16 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 				}
 			}
 
-			roles, err = service.DefaultSystemRole.Find(ctx)
-			cli.HandleError(err)
+			// roles, err = service.DefaultSystemRole.Find(ctx)
+			// cli.HandleError(err)
+			// At the moment, we can not load roles from system service
+			// so we'll just use static set of known roles
+			//
+			// Roles are use for resolving access control
+			roles = sysTypes.RoleSet{
+				&sysTypes.Role{ID: 1, Handle: "everyone"},
+				&sysTypes.Role{ID: 2, Handle: "admins"},
+			}
 
 			modules, _, err := service.DefaultModule.Find(types.ModuleFilter{NamespaceID: ns.ID})
 			cli.HandleError(err)
@@ -473,6 +481,29 @@ func expPageBlocks(in types.PageBlocks, pages types.PageSet, modules types.Modul
 			})
 
 			out[i].Options["buttons"] = bb
+		} else if out[i].Kind == "Calendar" {
+			ff := make([]interface{}, 0)
+			_ = deinterfacer.Each(out[i].Options["feeds"], func(_ int, _ string, def interface{}) error {
+				feed := map[string]interface{}{}
+
+				_ = deinterfacer.Each(def, func(_ int, k string, v interface{}) error {
+					switch k {
+					case "moduleID":
+						if module := modules.FindByID(deinterfacer.ToUint64(v)); module != nil {
+							feed["module"] = makeHandleFromName(module.Name, module.Handle, "module-%d", module.ID)
+						}
+					default:
+						feed[k] = v
+					}
+
+					return nil
+				})
+
+				ff = append(ff, feed)
+				return nil
+			})
+
+			out[i].Options["feeds"] = ff
 		}
 	}
 
