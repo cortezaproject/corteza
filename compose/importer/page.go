@@ -399,6 +399,40 @@ func (pImp *Page) resolveRefs(page *types.Page) error {
 			if err != nil {
 				return err
 			}
+		} else if b.Kind == "Calendar" {
+			ff := make([]interface{}, 0)
+			err := deinterfacer.Each(b.Options["feeds"], func(_ int, _ string, def interface{}) (err error) {
+				feed := map[string]interface{}{}
+
+				err = deinterfacer.Each(def, func(_ int, k string, v interface{}) error {
+					switch k {
+					case "module":
+						if m, err := pImp.getModule(deinterfacer.ToString(v)); err != nil || m == nil {
+							return errors.Errorf("could not load module %q for page %q block #%d (%v)",
+								v, page.Handle, i+1, err)
+						} else {
+							feed["moduleID"] = m.ID
+						}
+					default:
+						feed[k] = v
+					}
+
+					return nil
+				})
+
+				if err != nil {
+					return err
+				}
+
+				ff = append(ff, feed)
+				return nil
+			})
+
+			b.Options["feeds"] = ff
+
+			if err != nil {
+				return err
+			}
 		}
 	}
 
