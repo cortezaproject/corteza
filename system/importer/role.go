@@ -12,17 +12,10 @@ import (
 )
 
 type (
-	RoleImport struct {
-		set   types.RoleSet
-		dirty map[string]bool
-
+	Role struct {
+		set         types.RoleSet
+		dirty       map[uint64]bool
 		permissions importer.PermissionImporter
-
-		finder roleFinder
-	}
-
-	roleFinder interface {
-		FindByHandle(string) (*types.Role, error)
 	}
 
 	roleKeeper interface {
@@ -31,31 +24,32 @@ type (
 	}
 )
 
-func NewRoleImporter(finder roleFinder, permissions importer.PermissionImporter) *RoleImport {
-	return &RoleImport{
-		set:         types.RoleSet{},
-		dirty:       map[string]bool{},
-		permissions: permissions,
-		finder:      finder,
+func NewRoleImport(permissions importer.PermissionImporter, set types.RoleSet) *Role {
+	if set == nil {
+		set = types.RoleSet{}
 	}
+
+	out := &Role{
+		set:         set,
+		dirty:       make(map[uint64]bool),
+		permissions: permissions,
+	}
+
+	return out
 }
 
-// Resolves permission rules:
-// { <role-handle>: { role } } or [ { role }, ... ]
-func (imp *RoleImport) CastSet(set interface{}) error {
+func (rImp *Role) CastSet(set interface{}) error {
 	return deinterfacer.Each(set, func(index int, handle string, def interface{}) error {
 		if index > -1 {
 			// Roles defined as collection
 			deinterfacer.KVsetString(&handle, "handle", def)
 		}
 
-		return imp.Cast(handle, def)
+		return rImp.Cast(handle, def)
 	})
 }
 
-// Resolves permission rules:
-// { <role-handle>: { role } } or [ { role }, ... ]
-func (imp *RoleImport) Cast(handle string, def interface{}) (err error) {
+func (rImp *Role) Cast(handle string, def interface{}) (err error) {
 	var role *types.Role
 
 	if !importer.IsValidHandle(handle) {
@@ -63,12 +57,21 @@ func (imp *RoleImport) Cast(handle string, def interface{}) (err error) {
 	}
 
 	handle = importer.NormalizeHandle(handle)
-	if role, err = imp.Get(handle); err != nil {
+	if role, err = rImp.Get(handle); err != nil {
 		return err
+	} else if role == nil {
+		role = &types.Role{
+			Handle: handle,
+		}
+
+		rImp.set = append(rImp.set, role)
+	} else if role.ID == 0 {
+		return errors.Errorf("role handle %q already defined in this import session", role.Handle)
+	} else {
+		rImp.dirty[role.ID] = true
 	}
 
 	if name, ok := def.(string); ok && name != "" {
-		imp.dirty[handle] = role.Name != name
 		role.Name = name
 		return nil
 	}
@@ -79,11 +82,10 @@ func (imp *RoleImport) Cast(handle string, def interface{}) (err error) {
 			// already handled
 		case "name":
 			name := deinterfacer.ToString(val)
-			imp.dirty[handle] = role.Name != name
 			role.Name = name
 
 		case "allow", "deny":
-			return imp.permissions.CastSet(types.RolePermissionResource.String()+role.Handle, key, val)
+			return rImp.permissions.CastSet(types.RolePermissionResource.String()+role.Handle, key, val)
 
 		default:
 			return fmt.Errorf("unexpected key %q for role %q", key, role.Handle)
@@ -93,62 +95,32 @@ func (imp *RoleImport) Cast(handle string, def interface{}) (err error) {
 	})
 }
 
-// Exists returns true if role exists in the buffer or
-// can be loaded from the storage
-func (imp *RoleImport) Exists(handle string) bool {
-	handle = importer.NormalizeHandle(handle)
-	role := imp.set.FindByHandle(handle)
-	if role != nil {
-		return true
-	}
-
-	if imp.finder != nil {
-		role, err := imp.finder.FindByHandle(handle)
-		if err == nil && role != nil {
-			imp.set = append(imp.set, role)
-			return true
-		}
-	}
-
-	return false
-}
-
-// finds or makes new role
-func (imp *RoleImport) Get(handle string) (*types.Role, error) {
+func (rImp *Role) Get(handle string) (*types.Role, error) {
 	handle = importer.NormalizeHandle(handle)
 
 	if !importer.IsValidHandle(handle) {
 		return nil, errors.New("invalid role handle")
 	}
 
-	if !imp.Exists(handle) {
-		imp.set = append(imp.set, &types.Role{
-			Handle: handle,
-			Name:   handle,
-		})
-	}
-
-	return imp.set.FindByHandle(handle), nil
+	return rImp.set.FindByHandle(handle), nil
 }
 
-func (imp *RoleImport) Store(ctx context.Context, k roleKeeper) error {
-	return imp.set.Walk(func(role *types.Role) (err error) {
+func (rImp *Role) Store(ctx context.Context, k roleKeeper) error {
+	return rImp.set.Walk(func(role *types.Role) (err error) {
 		var handle = role.Handle
 
 		if role.ID == 0 {
 			role, err = k.Create(role)
-		} else {
-			if imp.dirty[handle] {
-				role, err = k.Update(role)
-			}
+		} else if rImp.dirty[role.ID] {
+			role, err = k.Update(role)
 		}
 
 		if err != nil {
 			return
 		}
 
-		imp.permissions.UpdateResources(types.RolePermissionResource.String(), handle, role.ID)
-		imp.permissions.UpdateRoles(role.Handle, role.ID)
+		rImp.permissions.UpdateResources(types.RolePermissionResource.String(), handle, role.ID)
+		rImp.permissions.UpdateRoles(role.Handle, role.ID)
 
 		return
 	})

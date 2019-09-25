@@ -6,12 +6,14 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 
 	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/system/importer"
 	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 func Importer(ctx context.Context, c *cli.Config) *cobra.Command {
@@ -24,6 +26,7 @@ func Importer(ctx context.Context, c *cli.Config) *cobra.Command {
 			c.InitServices(ctx, c)
 
 			var (
+				aux interface{}
 				ff  []io.Reader
 				err error
 			)
@@ -41,18 +44,25 @@ func Importer(ctx context.Context, c *cli.Config) *cobra.Command {
 				ff = []io.Reader{os.Stdin}
 			}
 
-			roles := service.DefaultRole.With(ctx)
+			roles, err := service.DefaultRole.With(ctx).Find(&types.RoleFilter{})
+			cli.HandleError(err)
 
 			for i, f := range ff {
 				cmd.Printf("Importing from %s\n", args[i])
 
-				imp := importer.NewImporter(
-					roles,
-					permissions.NewImporter(service.DefaultAccessControl.Whitelist()),
+				cli.HandleError(yaml.NewDecoder(f).Decode(&aux))
+
+				perm := permissions.NewImporter(service.DefaultAccessControl.Whitelist())
+
+				imp := importer.NewImporter(perm,
+					importer.NewRoleImport(perm, roles),
 				)
 
-				cli.HandleError(imp.YAML(f))
-				cli.HandleError(imp.Store(ctx, roles, service.DefaultAccessControl))
+				cli.HandleError(imp.Store(
+					ctx,
+					service.DefaultRole.With(ctx),
+					service.DefaultAccessControl,
+				))
 			}
 		},
 	}
