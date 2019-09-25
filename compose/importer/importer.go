@@ -6,7 +6,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
@@ -46,6 +45,10 @@ type (
 	automationScriptKeeper interface {
 		UpdateScript(context.Context, *automation.Script) error
 		CreateScript(context.Context, *automation.Script) error
+	}
+
+	roleFinder interface {
+		Find(context.Context) (sysTypes.RoleSet, error)
 	}
 )
 
@@ -100,21 +103,26 @@ func (imp *Importer) Cast(in interface{}) (err error) {
 	})
 }
 
-func (imp *Importer) Store(ctx context.Context, nsStore namespaceKeeper, mStore moduleKeeper, cStore chartKeeper, pStore pageKeeper, asStore automationScriptKeeper, pk permissions.ImportKeeper) (err error) {
+func (imp *Importer) Store(
+	ctx context.Context,
+	nsStore namespaceKeeper,
+	mStore moduleKeeper,
+	cStore chartKeeper,
+	pStore pageKeeper,
+	asStore automationScriptKeeper,
+	pk permissions.ImportKeeper,
+	roles sysTypes.RoleSet,
+) (err error) {
 	err = imp.namespaces.Store(ctx, nsStore, mStore, cStore, pStore, asStore)
 	if err != nil {
 		return errors.Wrap(err, "could not import namespaces")
 	}
 
 	// Make sure we properly replace role handles with IDs
-	if roles, err := service.DefaultSystemRole.Find(ctx); err != nil {
-		return err
-	} else {
-		roles.Walk(func(role *sysTypes.Role) error {
-			imp.permissions.UpdateRoles(role.Handle, role.ID)
-			return nil
-		})
-	}
+	_ = roles.Walk(func(role *sysTypes.Role) error {
+		imp.permissions.UpdateRoles(role.Handle, role.ID)
+		return nil
+	})
 
 	err = imp.permissions.Store(ctx, pk)
 	if err != nil {

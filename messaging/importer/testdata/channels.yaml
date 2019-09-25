@@ -1,0 +1,8 @@
+channels:
+  - name: General
+    topic: Talk about anything
+    type: public
+  - name: Random
+    type: public
+  - name: Secret
+    type: private

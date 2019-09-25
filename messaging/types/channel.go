@@ -111,3 +111,14 @@ func (cm ChannelMembershipPolicy) IsValid() bool {
 
 	return false
 }
+
+// FindByName finds items from slice by its name
+func (set ChannelSet) FindByName(name string) *Channel {
+	for i := range set {
+		if set[i].Name == name {
+			return set[i]
+		}
+	}
+
+	return nil
+}

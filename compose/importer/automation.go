@@ -191,7 +191,6 @@ func (asImp *AutomationScript) Get(handle string) (*automation.Script, error) {
 		return nil, errors.New("invalid automation script handle")
 	}
 
-	fmt.Printf(" => %s (?%v)\n", handle, asImp.set.FindByName(handle, asImp.namespace.ID) != nil)
 	return asImp.set.FindByName(handle, asImp.namespace.ID), nil
 }
 
