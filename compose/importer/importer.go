@@ -6,20 +6,24 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
+	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
 	Importer struct {
 		namespaces *Namespace
 
-		namespaceFinder namespaceFinder
-		moduleFinder    moduleFinder
-		chartFinder     chartFinder
-		pageFinder      pageFinder
+		namespaceFinder  namespaceFinder
+		moduleFinder     moduleFinder
+		chartFinder      chartFinder
+		pageFinder       pageFinder
+		automationFinder automationFinder
 
 		permissions importer.PermissionImporter
 	}
@@ -38,14 +42,20 @@ type (
 		Update(*types.Page) (*types.Page, error)
 		Create(*types.Page) (*types.Page, error)
 	}
+
+	automationScriptKeeper interface {
+		UpdateScript(context.Context, *automation.Script) error
+		CreateScript(context.Context, *automation.Script) error
+	}
 )
 
-func NewImporter(nsf namespaceFinder, mf moduleFinder, cf chartFinder, pf pageFinder, p importer.PermissionImporter) *Importer {
+func NewImporter(nsf namespaceFinder, mf moduleFinder, cf chartFinder, pf pageFinder, af automationFinder, p importer.PermissionImporter) *Importer {
 	imp := &Importer{
-		namespaceFinder: nsf,
-		moduleFinder:    mf,
-		chartFinder:     cf,
-		pageFinder:      pf,
+		namespaceFinder:  nsf,
+		moduleFinder:     mf,
+		chartFinder:      cf,
+		pageFinder:       pf,
+		automationFinder: af,
 
 		permissions: p,
 	}
@@ -90,10 +100,20 @@ func (imp *Importer) Cast(in interface{}) (err error) {
 	})
 }
 
-func (imp *Importer) Store(ctx context.Context, nsStore namespaceKeeper, mStore moduleKeeper, cStore chartKeeper, pStore pageKeeper, pk permissions.ImportKeeper) (err error) {
-	err = imp.namespaces.Store(ctx, nsStore, mStore, cStore, pStore)
+func (imp *Importer) Store(ctx context.Context, nsStore namespaceKeeper, mStore moduleKeeper, cStore chartKeeper, pStore pageKeeper, asStore automationScriptKeeper, pk permissions.ImportKeeper) (err error) {
+	err = imp.namespaces.Store(ctx, nsStore, mStore, cStore, pStore, asStore)
 	if err != nil {
 		return errors.Wrap(err, "could not import namespaces")
+	}
+
+	// Make sure we properly replace role handles with IDs
+	if roles, err := service.DefaultSystemRole.Find(ctx); err != nil {
+		return err
+	} else {
+		roles.Walk(func(role *sysTypes.Role) error {
+			imp.permissions.UpdateRoles(role.Handle, role.ID)
+			return nil
+		})
 	}
 
 	err = imp.permissions.Store(ctx, pk)

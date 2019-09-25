@@ -13,7 +13,8 @@ func TestChartImport_CastSet(t *testing.T) {
 
 	impFixTester(t, "chart_full_slice", func(t *testing.T, imp *Importer) {
 		req := require.New(t)
-		req.Len(imp.GetChartImporter("test").set, 2)
+		req.NotNil(imp.GetChartImporter(ns.Slug))
+		req.Len(imp.GetChartImporter(ns.Slug).set, 2)
 	})
 
 	impFixTester(t,
@@ -21,8 +22,8 @@ func TestChartImport_CastSet(t *testing.T) {
 		errors.New(`unknown module "un_kno_wn" referenced from chart "chart1" report config`))
 
 	// Pre fill with module that imported chart is referring to
-	// imp.namespaces.modules[ns.Slug] = &Module{set: []*types.Module{{Handle: "foo"}}}
-	modules.set = []*types.Module{{NamespaceID: ns.ID, Handle: "foo"}}
+	imp.namespaces.Setup(ns)
+	imp.GetModuleImporter(ns.Slug).set = types.ModuleSet{{NamespaceID: ns.ID, Handle: "foo"}}
 
 	impFixTester(t, "chart_full", func(t *testing.T, chart *Chart) {
 		req := require.New(t)

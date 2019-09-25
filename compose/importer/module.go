@@ -19,19 +19,28 @@ type (
 		imp       *Importer
 		namespace *types.Namespace
 		set       types.ModuleSet
+		dirty     map[uint64]bool
 	}
 
+	// @todo remove finder strategy, directly provide set of items
 	moduleFinder interface {
-		FindByHandle(uint64, string) (*types.Module, error)
+		Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
 	}
 )
 
 func NewModuleImporter(imp *Importer, ns *types.Namespace) *Module {
-	return &Module{
+	out := &Module{
 		imp:       imp,
 		namespace: ns,
 		set:       types.ModuleSet{},
+		dirty:     make(map[uint64]bool),
 	}
+
+	if imp.moduleFinder != nil && ns.ID > 0 {
+		out.set, _, _ = imp.moduleFinder.Find(types.ModuleFilter{NamespaceID: ns.ID})
+	}
+
+	return out
 }
 
 func (pImp *Module) getPageImporter() (*Page, error) {
@@ -69,9 +78,20 @@ func (mImp *Module) Cast(handle string, def interface{}) (err error) {
 	}
 
 	handle = importer.NormalizeHandle(handle)
-	if module, err = mImp.GetOrMake(handle); err != nil {
+	if module, err = mImp.Get(handle); err != nil {
 		return err
+	} else if module == nil {
+		module = &types.Module{
+			Handle: handle,
+			Name:   handle,
+		}
+
+		mImp.set = append(mImp.set, module)
+	} else if module.ID == 0 {
+		return errors.Errorf("module handle %q already defined in this import session", module.Handle)
 	}
+
+	mImp.dirty[module.ID] = true
 
 	return deinterfacer.Each(def, func(_ int, key string, val interface{}) (err error) {
 		switch key {
@@ -211,51 +231,6 @@ func (mImp *Module) castFieldOptions(field *types.ModuleField, def interface{}) 
 	})
 }
 
-func (mImp *Module) Exists(handle string) bool {
-	handle = importer.NormalizeHandle(handle)
-
-	var (
-		module *types.Module
-		err    error
-	)
-
-	module = mImp.set.FindByHandle(handle)
-	if module != nil {
-		return true
-	}
-
-	if mImp.namespace.ID == 0 {
-		// Assuming new namespace, nothing exists yet..
-		return false
-	}
-
-	if mImp.imp.moduleFinder != nil {
-		module, err = mImp.imp.moduleFinder.FindByHandle(mImp.namespace.ID, handle)
-		if err == nil && module != nil {
-			mImp.set = append(mImp.set, module)
-			return true
-		}
-	}
-
-	return false
-}
-
-// Get finds or makes a new module
-func (mImp *Module) GetOrMake(handle string) (module *types.Module, err error) {
-	if module, err = mImp.Get(handle); err != nil {
-		return nil, err
-	} else if module == nil {
-		module = &types.Module{
-			Handle: handle,
-			Name:   handle,
-		}
-
-		mImp.set = append(mImp.set, module)
-	}
-
-	return module, nil
-}
-
 // Get existing modules
 func (mImp *Module) Get(handle string) (*types.Module, error) {
 	handle = importer.NormalizeHandle(handle)
@@ -263,11 +238,7 @@ func (mImp *Module) Get(handle string) (*types.Module, error) {
 		return nil, errors.New("invalid module handle")
 	}
 
-	if mImp.Exists(handle) {
-		return mImp.set.FindByHandle(handle), nil
-	} else {
-		return nil, nil
-	}
+	return mImp.set.FindByHandle(handle), nil
 }
 
 func (mImp *Module) Store(ctx context.Context, k moduleKeeper) error {
@@ -281,7 +252,7 @@ func (mImp *Module) Store(ctx context.Context, k moduleKeeper) error {
 		if module.ID == 0 {
 			module.NamespaceID = mImp.namespace.ID
 			module, err = k.Create(module)
-		} else {
+		} else if mImp.dirty[module.ID] {
 			module, err = k.Update(module)
 		}
 
@@ -289,6 +260,7 @@ func (mImp *Module) Store(ctx context.Context, k moduleKeeper) error {
 			return
 		}
 
+		mImp.dirty[module.ID] = false
 		mImp.imp.permissions.UpdateResources(types.ModulePermissionResource.String(), handle, module.ID)
 
 		err = module.Fields.Walk(func(f *types.ModuleField) error {
