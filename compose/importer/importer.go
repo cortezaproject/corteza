@@ -83,8 +83,17 @@ func (imp *Importer) GetChartImporter(handle string) *Chart {
 	return imp.namespaces.charts[handle]
 }
 
-func (imp *Importer) Cast(in interface{}) (err error) {
-	return deinterfacer.Each(in, func(index int, key string, val interface{}) (err error) {
+func (imp *Importer) Cast(def interface{}) (err error) {
+	var nsHandle string
+	// Solving a special case where namespace is defined as string
+	// and we're treating value as namespace's handle
+	deinterfacer.KVsetString(&nsHandle, "namespace", def)
+	if nsHandle != "" {
+		delete(def.(map[interface{}]interface{}), "namespace")
+		return imp.namespaces.Cast(nsHandle, def)
+	}
+
+	return deinterfacer.Each(def, func(index int, key string, val interface{}) (err error) {
 		switch key {
 		case "namespaces":
 			return imp.namespaces.CastSet(val)

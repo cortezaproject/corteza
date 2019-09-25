@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
+	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 // Import performs standard import procedure with default services
@@ -23,6 +24,15 @@ func Import(ctx context.Context, ns *types.Namespace, ff ...io.Reader) (err erro
 			service.DefaultInternalAutomationManager,
 			permissions.NewImporter(service.DefaultAccessControl.Whitelist()),
 		)
+
+		// At the moment, we can not load roles from system service
+		// so we'll just use static set of known roles
+		//
+		// Roles are use for resolving access control
+		roles = sysTypes.RoleSet{
+			&sysTypes.Role{ID: 1, Handle: "everyone"},
+			&sysTypes.Role{ID: 2, Handle: "admins"},
+		}
 	)
 
 	for _, f := range ff {
@@ -46,10 +56,10 @@ func Import(ctx context.Context, ns *types.Namespace, ff ...io.Reader) (err erro
 	}
 
 	// Get roles across the system
-	roles, err := service.DefaultSystemRole.Find(ctx)
-	if err != nil {
-		return
-	}
+	// roles, err := service.DefaultSystemRole.Find(ctx)
+	// if err != nil {
+	// 	return
+	// }
 
 	// Store all imported
 	return imp.Store(

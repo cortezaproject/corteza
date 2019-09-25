@@ -56,7 +56,11 @@ func impFixTester(t *testing.T, name string, tester interface{}) {
 		if reqError, ok := tester.(error); ok {
 			req.EqualError(imp.GetNamespaceImporter().Cast(ns.Slug, aux), reqError.Error())
 			return
+		} else if _, ok := tester.(func(*testing.T, *Importer)); ok {
+			// Cast with compose root importer
+			req.NoError(imp.Cast(aux))
 		} else {
+			// Cast with namespace importer
 			req.NoError(imp.GetNamespaceImporter().Cast(ns.Slug, aux))
 		}
 
