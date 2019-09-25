@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/system/repository"
 
 	intAuth "github.com/cortezaproject/corteza-server/internal/auth"
@@ -21,11 +20,7 @@ type (
 	}
 
 	reminderAccessController interface {
-		CanReadAnyReminder(ctx context.Context) bool
-		CanCreateReminder(ctx context.Context) bool
-		CanReadReminder(ctx context.Context, rm *types.Reminder) bool
-		CanUpdateReminder(ctx context.Context, rm *types.Reminder) bool
-		CanDeleteReminder(ctx context.Context, rm *types.Reminder) bool
+		CanAssignReminder(ctx context.Context) bool
 	}
 
 	ReminderService interface {
@@ -56,12 +51,6 @@ func Reminder(ctx context.Context) ReminderService {
 func (svc reminder) Find(ctx context.Context, f types.ReminderFilter) (types.ReminderSet, types.ReminderFilter, error) {
 	f.PageFilter.NormalizePerPageNoMax()
 
-	f.AccessCheck = permissions.InitAccessCheckFilter(
-		"read",
-		intAuth.GetIdentityFromContext(ctx).Roles(),
-		svc.ac.CanReadAnyReminder(ctx),
-	)
-
 	rr, f, err := svc.reminder.Find(f)
 	if err != nil {
 		return nil, f, err
@@ -76,10 +65,6 @@ func (svc reminder) FindByID(ctx context.Context, ID uint64) (*types.Reminder, e
 		return nil, err
 	}
 
-	if !svc.ac.CanReadReminder(ctx, rm) {
-		return nil, ErrNoReadPermissions
-	}
-
 	return rm, nil
 }
 
@@ -89,38 +74,47 @@ func (svc reminder) FindByIDs(ctx context.Context, IDs ...uint64) (types.Reminde
 		return nil, err
 	}
 
-	ret := types.ReminderSet{}
-	for _, rm := range rr {
-		if svc.ac.CanReadReminder(ctx, rm) {
-			ret = append(ret, rm)
+	return rr, nil
+}
+
+func (svc reminder) checkAssignee(ctx context.Context, rm *types.Reminder) error {
+	// Check if I am assigning to someone else
+	me := svc.meFromCtx(ctx)
+	if rm.AssignedTo != me {
+		if !svc.ac.CanAssignReminder(ctx) {
+			return ErrNoReminderAssignPermissions
 		}
 	}
 
-	return ret, nil
+	return nil
+}
+
+func (svc reminder) meFromCtx(ctx context.Context) uint64 {
+	return intAuth.GetIdentityFromContext(ctx).Identity()
 }
 
 func (svc reminder) Create(ctx context.Context, rm *types.Reminder) (*types.Reminder, error) {
-	if !svc.ac.CanCreateReminder(ctx) {
-		return nil, ErrNoCreatePermissions
+	if err := svc.checkAssignee(ctx, rm); err != nil {
+		return nil, err
 	}
 
 	return svc.reminder.Create(rm)
 }
 
 func (svc reminder) Update(ctx context.Context, rm *types.Reminder) (t *types.Reminder, err error) {
-	if !svc.ac.CanUpdateReminder(ctx, rm) {
-		return nil, ErrNoUpdatePermissions
-	}
-
 	return rm, svc.db.Transaction(func() (err error) {
 		if t, err = svc.reminder.FindByID(rm.ID); err != nil {
 			return
 		}
 
+		if err := svc.checkAssignee(ctx, rm); err != nil {
+			return err
+		}
+
 		// Assign changed values
 		if rm.AssignedTo != t.AssignedTo {
 			t.AssignedTo = rm.AssignedTo
-			t.AssignedBy = intAuth.GetIdentityFromContext(ctx).Identity()
+			t.AssignedBy = svc.meFromCtx(ctx)
 			t.AssignedAt = time.Now()
 		}
 		t.Payload = rm.Payload
@@ -142,14 +136,10 @@ func (svc reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
 			return err
 		}
 
-		if !svc.ac.CanUpdateReminder(ctx, t) {
-			return ErrNoUpdatePermissions
-		}
-
 		// Assign changed values
 		n := time.Now()
 		t.DismissedAt = &n
-		t.DismissedBy = intAuth.GetIdentityFromContext(ctx).Identity()
+		t.DismissedBy = svc.meFromCtx(ctx)
 
 		if t, err = svc.reminder.Update(t); err != nil {
 			return err
@@ -166,10 +156,6 @@ func (svc reminder) Snooze(ctx context.Context, ID uint64, remindAt time.Time) (
 			return err
 		}
 
-		if !svc.ac.CanUpdateReminder(ctx, t) {
-			return ErrNoUpdatePermissions
-		}
-
 		// Assign changed values
 		t.SnoozeCount++
 		t.RemindAt = remindAt
@@ -183,13 +169,9 @@ func (svc reminder) Snooze(ctx context.Context, ID uint64, remindAt time.Time) (
 }
 
 func (svc reminder) Delete(ctx context.Context, ID uint64) error {
-	rm, err := svc.FindByID(ctx, ID)
+	_, err := svc.FindByID(ctx, ID)
 	if err != nil {
 		return err
-	}
-
-	if !svc.ac.CanDeleteReminder(ctx, rm) {
-		return ErrNoDeletePermissions
 	}
 
 	return svc.reminder.Delete(ID)

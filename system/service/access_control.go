@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	intAuth "github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -82,6 +81,10 @@ func (svc accessControl) CanCreateAutomationScript(ctx context.Context) bool {
 	return svc.can(ctx, types.SystemPermissionResource, "automation-script.create")
 }
 
+func (svc accessControl) CanAssignReminder(ctx context.Context) bool {
+	return svc.can(ctx, types.SystemPermissionResource, "reminder.assign")
+}
+
 func (svc accessControl) CanReadRole(ctx context.Context, rl *types.Role) bool {
 	return svc.can(ctx, rl, "read", permissions.Allowed)
 }
@@ -146,32 +149,6 @@ func (svc accessControl) CanRunAutomationTrigger(ctx context.Context, r *automat
 	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "run", permissions.Allowed)
 }
 
-func (svc accessControl) CanReadAnyReminder(ctx context.Context) bool {
-	return svc.can(ctx, types.ReminderPermissionResource.AppendWildcard(), "read")
-}
-func (svc accessControl) CanCreateReminder(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemPermissionResource, "reminder.create")
-}
-func (svc accessControl) CanReadReminder(ctx context.Context, rm *types.Reminder) bool {
-	return svc.can(ctx, types.ReminderPermissionResource.AppendID(rm.ID), "read", func() permissions.Access {
-		if rm.AssignedTo == intAuth.GetIdentityFromContext(ctx).Identity() {
-			return permissions.Allow
-		}
-		return permissions.Deny
-	})
-}
-func (svc accessControl) CanUpdateReminder(ctx context.Context, rm *types.Reminder) bool {
-	return svc.can(ctx, types.ReminderPermissionResource.AppendID(rm.ID), "update", func() permissions.Access {
-		if rm.AssignedTo == intAuth.GetIdentityFromContext(ctx).Identity() {
-			return permissions.Allow
-		}
-		return permissions.Deny
-	})
-}
-func (svc accessControl) CanDeleteReminder(ctx context.Context, rm *types.Reminder) bool {
-	return svc.can(ctx, types.ReminderPermissionResource.AppendID(rm.ID), "delete")
-}
-
 func (svc accessControl) can(ctx context.Context, res permissionResource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
 	return svc.permissions.Can(ctx, res.PermissionResource(), op, ff...)
 }
@@ -206,6 +183,7 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"user.create",
 		"application.create",
 		"automation-script.create",
+		"reminder.assign",
 	)
 
 	wl.Set(
@@ -251,9 +229,6 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 
 	wl.Set(
 		types.ReminderPermissionResource,
-		"read",
-		"update",
-		"delete",
 	)
 
 	return wl
