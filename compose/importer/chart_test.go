@@ -11,10 +11,10 @@ import (
 
 func TestChartImport_CastSet(t *testing.T) {
 
-	impFixTester(t, "chart_full_slice", func(t *testing.T, imp *Importer) {
+	impFixTester(t, "chart_full_slice", func(t *testing.T, chart *Chart) {
 		req := require.New(t)
-		req.NotNil(imp.GetChartImporter(ns.Slug))
-		req.Len(imp.GetChartImporter(ns.Slug).set, 2)
+		req.NotNil(chart)
+		req.Len(chart.set, 2)
 	})
 
 	impFixTester(t,

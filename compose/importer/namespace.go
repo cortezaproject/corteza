@@ -69,7 +69,7 @@ func (nsImp *Namespace) CastSet(set interface{}) error {
 		if index > -1 {
 			// Namespaces defined as collection
 			deinterfacer.KVsetString(&handle, "slug", def)
-			deinterfacer.KVsetString(&handle, "handle", handle)
+			deinterfacer.KVsetString(&handle, "handle", def, handle)
 		}
 
 		return nsImp.Cast(handle, def)
@@ -100,7 +100,9 @@ func (nsImp *Namespace) Cast(handle string, def interface{}) (err error) {
 			Enabled: true,
 		}
 	} else if namespace.ID == 0 {
-		return errors.Errorf("namespace handle %q already defined in this import session", namespace.Slug)
+		// We will ignore that namespace has already been defined because
+		// we want to support multiple calls to Cast() fn, ie when namespace
+		// config is split into multiple files
 	} else {
 		nsImp.dirty[namespace.ID] = true
 	}
