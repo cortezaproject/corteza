@@ -3,11 +3,13 @@ package importer
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strconv"
 
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
 )
@@ -18,6 +20,7 @@ type (
 
 		namespace *types.Namespace
 		set       types.PageSet
+		dirty     map[uint64]bool
 
 		// page => module handle
 		modules map[string]string
@@ -26,22 +29,30 @@ type (
 		tree map[string][]string
 	}
 
+	// @todo remove finder strategy, directly provide set of items
 	pageFinder interface {
-		FindByHandle(uint64, string) (*types.Page, error)
+		Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
 	}
 )
 
 func NewPageImporter(imp *Importer, ns *types.Namespace) *Page {
-	return &Page{
+	out := &Page{
 		imp: imp,
 
 		namespace: ns,
 
-		set: types.PageSet{},
+		set:   types.PageSet{},
+		dirty: make(map[uint64]bool),
 
 		modules: map[string]string{},
 		tree:    map[string][]string{},
 	}
+
+	if imp.pageFinder != nil && ns.ID > 0 {
+		out.set, _, _ = imp.pageFinder.Find(types.PageFilter{NamespaceID: ns.ID})
+	}
+
+	return out
 }
 
 func (pImp *Page) getModule(handle string) (*types.Module, error) {
@@ -49,6 +60,14 @@ func (pImp *Page) getModule(handle string) (*types.Module, error) {
 		return nil, errors.Errorf("could not get modules %q from non existing namespace %q", handle, pImp.namespace.Slug)
 	} else {
 		return g.Get(handle)
+	}
+}
+
+func (pImp *Page) getScript(name string) (*automation.Script, error) {
+	if g, ok := pImp.imp.namespaces.scripts[pImp.namespace.Slug]; !ok {
+		return nil, errors.Errorf("could not get scripts %q from non existing namespace %q", name, pImp.namespace.Slug)
+	} else {
+		return g.Get(name)
 	}
 }
 
@@ -93,11 +112,27 @@ func (pImp *Page) cast(parent, handle string, def interface{}) (err error) {
 	}
 
 	handle = importer.NormalizeHandle(handle)
-	if page, err = pImp.GetOrMake(handle); err != nil {
+
+	if page, err = pImp.Get(handle); err != nil {
 		return err
+	} else if page == nil {
+		page = &types.Page{
+			Handle:  handle,
+			Title:   handle,
+			Visible: true,
+		}
+
+		pImp.set = append(pImp.set, page)
+	} else if page.ID == 0 {
+		return errors.Errorf("page handle %q already defined in this import session", page.Handle)
+	} else {
+		pImp.dirty[page.ID] = true
 	}
 
 	pImp.tree[parent] = append(pImp.tree[parent], handle)
+
+	// Make pages are always sorted
+	sort.Strings(pImp.tree[parent])
 
 	if title, ok := def.(string); ok && title != "" {
 		page.Title = title
@@ -224,52 +259,6 @@ func (pImp *Page) castBlockStyle(page *types.Page, n int, def interface{}) (s ty
 	})
 }
 
-func (pImp *Page) Exists(handle string) bool {
-	handle = importer.NormalizeHandle(handle)
-
-	var (
-		page *types.Page
-		err  error
-	)
-
-	page = pImp.set.FindByHandle(handle)
-	if page != nil {
-		return true
-	}
-
-	if pImp.namespace.ID == 0 {
-		// Assuming new namespace, nothing exists yet..
-		return false
-	}
-
-	if pImp.imp.pageFinder != nil {
-		page, err = pImp.imp.pageFinder.FindByHandle(pImp.namespace.ID, handle)
-		if err == nil && page != nil {
-			pImp.set = append(pImp.set, page)
-			return true
-		}
-	}
-
-	return false
-}
-
-// Get finds or makes a new page
-func (pImp *Page) GetOrMake(handle string) (page *types.Page, err error) {
-	if page, err = pImp.Get(handle); err != nil {
-		return nil, err
-	} else if page == nil {
-		page = &types.Page{
-			Handle:  handle,
-			Title:   handle,
-			Visible: true,
-		}
-
-		pImp.set = append(pImp.set, page)
-	}
-
-	return page, nil
-}
-
 // Get existing pages
 func (pImp *Page) Get(handle string) (*types.Page, error) {
 	handle = importer.NormalizeHandle(handle)
@@ -277,12 +266,9 @@ func (pImp *Page) Get(handle string) (*types.Page, error) {
 		return nil, errors.New("invalid page handle")
 	}
 
-	if pImp.Exists(handle) {
-		return pImp.set.FindByHandle(handle), nil
-	} else {
-		return nil, nil
-	}
+	return pImp.set.FindByHandle(handle), nil
 }
+
 func (pImp *Page) Store(ctx context.Context, k pageKeeper) error {
 	return pImp.storeChildren(ctx, "", k)
 }
@@ -308,7 +294,7 @@ func (pImp *Page) storeChildren(ctx context.Context, parent string, k pageKeeper
 		if page.ID == 0 {
 			page.NamespaceID = pImp.namespace.ID
 			page, err = k.Create(page)
-		} else {
+		} else if pImp.dirty[page.ID] {
 			page, err = k.Update(page)
 		}
 
@@ -316,6 +302,7 @@ func (pImp *Page) storeChildren(ctx context.Context, parent string, k pageKeeper
 			return
 		}
 
+		pImp.dirty[page.ID] = false
 		if page.Handle == "" {
 			continue
 		}
@@ -335,6 +322,9 @@ func (pImp *Page) resolveRefs(page *types.Page) error {
 	if moduleHandle, ok := pImp.modules[page.Handle]; ok {
 		if module, err := pImp.getModule(moduleHandle); err != nil {
 			return err
+		} else if module == nil {
+			return errors.Wrapf(err, "could not load module %q for page %q",
+				moduleHandle, page.Handle)
 		} else {
 			page.ModuleID = module.ID
 		}
@@ -347,8 +337,8 @@ func (pImp *Page) resolveRefs(page *types.Page) error {
 
 		if h, ok := b.Options["module"]; ok {
 			if refm, err := pImp.getModule(deinterfacer.ToString(h)); err != nil || refm == nil {
-				return errors.Wrapf(err, "could not load module %q for page %q block #%d",
-					h, page.Handle, i+1)
+				return errors.Errorf("could not load module %q for page %q block #%d (%v)",
+					h, page.Handle, i+1, err)
 			} else {
 				b.Options["moduleID"] = strconv.FormatUint(refm.ID, 10)
 				delete(b.Options, "module")
@@ -357,8 +347,8 @@ func (pImp *Page) resolveRefs(page *types.Page) error {
 
 		if h, ok := b.Options["page"]; ok {
 			if refp, err := pImp.Get(deinterfacer.ToString(h)); err != nil || refp == nil {
-				return errors.Wrapf(err, "could not load page %q for page %q block #%d",
-					h, page.Handle, i+1)
+				return errors.Errorf("could not load page %q for page %q block #%d (%v)",
+					h, page.Handle, i+1, err)
 			} else {
 				b.Options["pageID"] = strconv.FormatUint(refp.ID, 10)
 				delete(b.Options, "page")
@@ -367,11 +357,47 @@ func (pImp *Page) resolveRefs(page *types.Page) error {
 
 		if h, ok := b.Options["chart"]; ok {
 			if refc, err := pImp.getChart(deinterfacer.ToString(h)); err != nil || refc == nil {
-				return errors.Wrapf(err, "could not load chart %q for page %q block #%d",
-					h, page.Handle, i+1)
+				return errors.Errorf("could not load chart %q for page %q block #%d (%v)",
+					h, page.Handle, i+1, err)
 			} else {
 				b.Options["chartID"] = strconv.FormatUint(refc.ID, 10)
 				delete(b.Options, "chart")
+			}
+		}
+
+		if b.Kind == "Automation" {
+			bb := make([]interface{}, 0)
+			err := deinterfacer.Each(b.Options["buttons"], func(_ int, _ string, btn interface{}) (err error) {
+				button := map[string]interface{}{}
+
+				err = deinterfacer.Each(btn, func(_ int, k string, v interface{}) error {
+					switch k {
+					case "script":
+						if s, err := pImp.getScript(deinterfacer.ToString(v)); err != nil || s == nil {
+							return errors.Errorf("could not load script %q for page %q block #%d (%v)",
+								v, page.Handle, i+1, err)
+						} else {
+							button["scriptID"] = s.ID
+						}
+					default:
+						button[k] = v
+					}
+
+					return nil
+				})
+
+				if err != nil {
+					return err
+				}
+
+				bb = append(bb, button)
+				return nil
+			})
+
+			b.Options["buttons"] = bb
+
+			if err != nil {
+				return err
 			}
 		}
 	}

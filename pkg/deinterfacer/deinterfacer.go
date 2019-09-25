@@ -1,6 +1,8 @@
 package deinterfacer
 
 import (
+	"strconv"
+
 	"github.com/pkg/errors"
 )
 
@@ -14,6 +16,14 @@ func Each(i interface{}, fn func(int, string, interface{}) error) (err error) {
 			} else {
 				err = fn(-1, key, v)
 			}
+
+			if err != nil {
+				return
+			}
+		}
+	} else if kv, ok := i.(map[string]interface{}); ok {
+		for k, v := range kv {
+			err = fn(-1, k, v)
 
 			if err != nil {
 				return
@@ -78,6 +88,22 @@ func ToInt(val interface{}, def ...int) int {
 	if i, ok := val.(int); ok {
 		return i
 	} else if len(def) > 0 {
+		return def[0]
+	}
+	return 0
+}
+
+// ToInt assigns value (if exists and of type int) from src to destination
+func ToUint64(val interface{}, def ...uint64) uint64 {
+	if i, ok := val.(uint64); ok {
+		return i
+	} else if s, ok := val.(string); ok {
+		if i, _ := strconv.ParseUint(s, 10, 64); i > 0 {
+			return i
+		}
+	}
+
+	if len(def) > 0 {
 		return def[0]
 	}
 	return 0

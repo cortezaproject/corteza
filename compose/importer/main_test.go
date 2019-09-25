@@ -8,93 +8,44 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
-	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
-)
-
-type (
-	namespaceMock struct{ set types.NamespaceSet }
-	moduleMock    struct{ set types.ModuleSet }
-	chartMock     struct{ set types.ChartSet }
-	pageMock      struct{ set types.PageSet }
 )
 
 var (
 	ns = &types.Namespace{
 		ID:      1000000,
 		Name:    "Test",
-		Slug:    "test",
+		Slug:    "testing",
 		Enabled: true,
 	}
 
 	// Add namespace to the stack, make sure importer can find it
-	namespaces = &namespaceMock{set: types.NamespaceSet{ns}}
-	modules    = &moduleMock{}
-	charts     = &chartMock{}
-	pages      = &pageMock{}
+	pi *permissions.Importer
 
-	// whitelist = nil, anything can be added
-	pi = permissions.NewImporter(service.AccessControl(nil).Whitelist())
-
-	imp = NewImporter(namespaces, modules, charts, pages, pi)
+	imp *Importer
 )
 
 func TestMain(m *testing.M) {
+	resetMocks()
 	os.Exit(m.Run())
 }
 
-func (mock *namespaceMock) FindByHandle(slug string) (o *types.Namespace, err error) {
-	oo, err := mock.set.Filter(func(o *types.Namespace) (b bool, e error) {
-		return o.Slug == slug, nil
-	})
+func resetMocks() {
+	// whitelist = nil, anything can be added
+	pi = permissions.NewImporter(service.AccessControl(nil).Whitelist())
 
-	if len(oo) > 0 {
-		return oo[0], nil
-	} else {
-		return nil, repository.ErrNamespaceNotFound
-	}
-}
+	imp = NewImporter(nil, nil, nil, nil, nil, pi)
 
-func (mock *moduleMock) FindByHandle(namespaceID uint64, handle string) (o *types.Module, err error) {
-	oo, err := mock.set.Filter(func(o *types.Module) (b bool, e error) {
-		return o.Handle == handle && o.NamespaceID == namespaceID, nil
-	})
-
-	if len(oo) > 0 {
-		return oo[0], nil
-	} else {
-		return nil, repository.ErrModuleNotFound
-	}
-}
-
-func (mock *chartMock) FindByHandle(namespaceID uint64, handle string) (o *types.Chart, err error) {
-	oo, err := mock.set.Filter(func(o *types.Chart) (b bool, e error) {
-		return o.Handle == handle && o.NamespaceID == namespaceID, nil
-	})
-
-	if len(oo) > 0 {
-		return oo[0], nil
-	} else {
-		return nil, repository.ErrChartNotFound
-	}
-}
-
-func (mock *pageMock) FindByHandle(namespaceID uint64, handle string) (o *types.Page, err error) {
-	oo, err := mock.set.Filter(func(o *types.Page) (b bool, e error) {
-		return o.Handle == handle && o.NamespaceID == namespaceID, nil
-	})
-
-	if len(oo) > 0 {
-		return oo[0], nil
-	} else {
-		return nil, repository.ErrPageNotFound
-	}
 }
 
 func impFixTester(t *testing.T, name string, tester interface{}) {
 	t.Run(name, func(t *testing.T) {
+		// We're not calling reset mocks BEFORE calling tester()
+		// because we want to have an option to set it up as we want
+		defer resetMocks()
+
 		var aux interface{}
 		req := require.New(t)
 		f, err := os.Open(fmt.Sprintf("testdata/%s.yaml", name))

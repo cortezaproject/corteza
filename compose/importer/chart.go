@@ -16,8 +16,8 @@ type (
 		imp       *Importer
 		namespace *types.Namespace
 		set       types.ChartSet
-
-		modRefs []chartModuleRef
+		dirty     map[uint64]bool
+		modRefs   []chartModuleRef
 	}
 
 	chartModuleRef struct {
@@ -27,17 +27,25 @@ type (
 		mh string
 	}
 
+	// @todo remove finder strategy, directly provide set of items
 	chartFinder interface {
-		FindByHandle(uint64, string) (*types.Chart, error)
+		Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error)
 	}
 )
 
 func NewChartImporter(imp *Importer, ns *types.Namespace) *Chart {
-	return &Chart{
+	out := &Chart{
 		imp:       imp,
 		namespace: ns,
 		set:       types.ChartSet{},
+		dirty:     make(map[uint64]bool),
 	}
+
+	if imp.chartFinder != nil && ns.ID > 0 {
+		out.set, _, _ = imp.chartFinder.Find(types.ChartFilter{NamespaceID: ns.ID})
+	}
+
+	return out
 }
 
 func (pImp *Chart) getModule(handle string) (*types.Module, error) {
@@ -75,18 +83,23 @@ func (cImp *Chart) Cast(handle string, def interface{}) (err error) {
 	}
 
 	handle = importer.NormalizeHandle(handle)
-	if chart, err = cImp.GetOrMake(handle); err != nil {
+	if chart, err = cImp.Get(handle); err != nil {
 		return err
+	} else if chart == nil {
+		chart = &types.Chart{
+			Handle: handle,
+			Name:   handle,
+		}
+
+		cImp.set = append(cImp.set, chart)
+	} else if chart.ID == 0 {
+		return errors.Errorf("chart handle %q already defined in this import session", chart.Handle)
+	} else {
+		cImp.dirty[chart.ID] = true
 	}
 
 	return deinterfacer.Each(def, func(_ int, key string, val interface{}) (err error) {
 		switch key {
-		case "namespace":
-			// namespace value sanity check
-			if deinterfacer.ToString(val, cImp.namespace.Slug) != cImp.namespace.Slug {
-				return fmt.Errorf("explicitly set namespace on chart %q shadows inherited namespace", cImp.namespace.Slug)
-			}
-
 		case "handle":
 			// handle value sanity check
 			if deinterfacer.ToString(val, handle) != handle {
@@ -162,51 +175,6 @@ func (cImp *Chart) castConfigReports(chart *types.Chart, def interface{}) ([]*ty
 	})
 }
 
-func (cImp *Chart) Exists(handle string) bool {
-	handle = importer.NormalizeHandle(handle)
-
-	var (
-		chart *types.Chart
-		err   error
-	)
-
-	chart = cImp.set.FindByHandle(handle)
-	if chart != nil {
-		return true
-	}
-
-	if cImp.namespace.ID == 0 {
-		// Assuming new namespace, nothing exists yet..
-		return false
-	}
-
-	if cImp.imp.chartFinder != nil {
-		chart, err = cImp.imp.chartFinder.FindByHandle(cImp.namespace.ID, handle)
-		if err == nil && chart != nil {
-			cImp.set = append(cImp.set, chart)
-			return true
-		}
-	}
-
-	return false
-}
-
-// Get finds or makes a new chart
-func (cImp *Chart) GetOrMake(handle string) (chart *types.Chart, err error) {
-	if chart, err = cImp.Get(handle); err != nil {
-		return nil, err
-	} else if chart == nil {
-		chart = &types.Chart{
-			Handle: handle,
-			Name:   handle,
-		}
-
-		cImp.set = append(cImp.set, chart)
-	}
-
-	return chart, nil
-}
-
 // Get existing charts
 func (cImp *Chart) Get(handle string) (*types.Chart, error) {
 	handle = importer.NormalizeHandle(handle)
@@ -214,11 +182,7 @@ func (cImp *Chart) Get(handle string) (*types.Chart, error) {
 		return nil, errors.New("invalid chart handle")
 	}
 
-	if cImp.Exists(handle) {
-		return cImp.set.FindByHandle(handle), nil
-	} else {
-		return nil, nil
-	}
+	return cImp.set.FindByHandle(handle), nil
 }
 
 func (cImp *Chart) Store(ctx context.Context, k chartKeeper) (err error) {
@@ -232,15 +196,15 @@ func (cImp *Chart) Store(ctx context.Context, k chartKeeper) (err error) {
 		if chart.ID == 0 {
 			chart.NamespaceID = cImp.namespace.ID
 			chart, err = k.Create(chart)
-		} else {
+		} else if cImp.dirty[chart.ID] {
 			chart, err = k.Update(chart)
 		}
 
 		if err != nil {
 			return
 		}
-		// @todo update module ref for charts
 
+		cImp.dirty[chart.ID] = false
 		cImp.imp.permissions.UpdateResources(types.ChartPermissionResource.String(), handle, chart.ID)
 
 		return
