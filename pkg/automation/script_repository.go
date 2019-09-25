@@ -58,15 +58,19 @@ func (r *scriptRepository) query() squirrel.SelectBuilder {
 }
 
 // FindByID finds specific script
-func (r *scriptRepository) findByID(db *factory.DB, scriptID uint64) (*Script, error) {
+func (r *scriptRepository) findByID(db *factory.DB, scriptID uint64) (rval *Script, err error) {
 	var (
-		rval = &Script{}
-
 		query = r.query().
 			Where("id = ?", scriptID)
 	)
 
-	return rval, rh.IsFound(rh.FetchOne(db, query, rval), rval.ID > 0, errors.New("script not found"))
+	rval = &Script{}
+
+	if err = rh.IsFound(rh.FetchOne(db, query, rval), rval.ID > 0, errors.New("script not found")); err != nil {
+		return nil, err
+	}
+
+	return rval, nil
 }
 
 // Find - finds scripts using given filter
@@ -81,6 +85,10 @@ func (r *scriptRepository) find(db *factory.DB, filter ScriptFilter) (set Script
 
 	if f.NamespaceID > 0 {
 		query = query.Where("rel_namespace = ?", f.NamespaceID)
+	}
+
+	if f.Name != "" {
+		query = query.Where(squirrel.Eq{"name": f.Name})
 	}
 
 	if f.Query != "" {
@@ -125,6 +133,7 @@ func (r *scriptRepository) findRunnable(db *factory.DB) (ScriptSet, error) {
 }
 
 func (r *scriptRepository) create(db *factory.DB, s *Script) (err error) {
+	s.ID = factory.Sonyflake.NextID()
 	return db.Insert(r.table(), s)
 }
 

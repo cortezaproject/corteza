@@ -35,14 +35,16 @@ func Importer(ctx context.Context, c *cli.Config) *cobra.Command {
 				err    error
 			)
 
-			if namespaceID, _ := strconv.ParseUint(nsFlag, 10, 64); namespaceID > 0 {
-				ns, err = service.DefaultNamespace.FindByID(namespaceID)
-				if err != repository.ErrNamespaceNotFound {
-					cli.HandleError(err)
-				}
-			} else if ns, err = service.DefaultNamespace.FindByHandle(nsFlag); err != nil {
-				if err != repository.ErrNamespaceNotFound {
-					cli.HandleError(err)
+			if nsFlag != "" {
+				if namespaceID, _ := strconv.ParseUint(nsFlag, 10, 64); namespaceID > 0 {
+					ns, err = service.DefaultNamespace.FindByID(namespaceID)
+					if err != repository.ErrNamespaceNotFound {
+						cli.HandleError(err)
+					}
+				} else if ns, err = service.DefaultNamespace.FindByHandle(nsFlag); err != nil {
+					if err != repository.ErrNamespaceNotFound {
+						cli.HandleError(err)
+					}
 				}
 			}
 
@@ -65,19 +67,19 @@ func Importer(ctx context.Context, c *cli.Config) *cobra.Command {
 				service.DefaultModule.With(ctx),
 				service.DefaultChart.With(ctx),
 				service.DefaultPage.With(ctx),
+				service.DefaultInternalAutomationManager,
 				permissions.NewImporter(service.DefaultAccessControl.Whitelist()),
 			)
 
 			for i, f := range ff {
 				cmd.Printf("Importing from %s\n", args[i])
 
-				if err = yaml.NewDecoder(f).Decode(&aux); err != nil {
-					return
-				}
+				cli.HandleError(yaml.NewDecoder(f).Decode(&aux))
 
 				if ns != nil {
 					// If we're importing with --namespace switch,
 					// we're going to import all into one NS
+
 					cli.HandleError(imp.GetNamespaceImporter().Cast(ns.Slug, aux))
 				} else {
 					// importing one or more namespaces
@@ -92,12 +94,13 @@ func Importer(ctx context.Context, c *cli.Config) *cobra.Command {
 				service.DefaultModule.With(ctx),
 				service.DefaultChart.With(ctx),
 				service.DefaultPage.With(ctx),
+				service.DefaultInternalAutomationManager,
 				service.DefaultAccessControl,
 			))
 		},
 	}
 
-	cmd.Flags().String("namespace", "crm", "Import into namespace (by ID or string)")
+	cmd.Flags().String("namespace", "", "Import into namespace (by ID or string)")
 
 	return cmd
 }

@@ -71,6 +71,7 @@ type (
 	ScriptFilter struct {
 		NamespaceID uint64 `json:"namespaceID,string"`
 
+		Name       string
 		Query      string
 		Resource   string
 		IncDeleted bool `json:"incDeleted"`
@@ -152,6 +153,22 @@ func (set ScriptSet) FilterByTrigger(event, resource string, cc ...TriggerCondit
 	})
 
 	return
+}
+
+// FindByName finds undeleted script in a cetain namespace
+func (set ScriptSet) FindByName(name string, ids ...uint64) *Script {
+	var namespaceID uint64
+	if len(ids) > 0 {
+		namespaceID = ids[0]
+	}
+
+	for i := range set {
+		if set[i].NamespaceID == namespaceID && set[i].Name == name && set[i].DeletedAt == nil {
+			return set[i]
+		}
+	}
+
+	return nil
 }
 
 // RunAsDefined - script should be run with pre-defined privileges (user)
