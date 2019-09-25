@@ -7,14 +7,12 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 
 	"github.com/cortezaproject/corteza-server/compose/importer"
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/auth"
-	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 )
 
@@ -28,7 +26,6 @@ func Importer(ctx context.Context, c *cli.Config) *cobra.Command {
 			c.InitServices(ctx, c)
 
 			var (
-				aux    interface{}
 				ff     []io.Reader
 				nsFlag = cmd.Flags().Lookup("namespace").Value.String()
 				ns     *types.Namespace
@@ -56,47 +53,10 @@ func Importer(ctx context.Context, c *cli.Config) *cobra.Command {
 					ff[a], err = os.Open(arg)
 					cli.HandleError(err)
 				}
+				cli.HandleError(importer.Import(ctx, ns, ff...))
 			} else {
-				args = []string{"STDIN"}
-				ff = []io.Reader{os.Stdin}
+				cli.HandleError(importer.Import(ctx, ns, os.Stdin))
 			}
-
-			// Initialize importer
-			imp := importer.NewImporter(
-				service.DefaultNamespace.With(ctx),
-				service.DefaultModule.With(ctx),
-				service.DefaultChart.With(ctx),
-				service.DefaultPage.With(ctx),
-				service.DefaultInternalAutomationManager,
-				permissions.NewImporter(service.DefaultAccessControl.Whitelist()),
-			)
-
-			for i, f := range ff {
-				cmd.Printf("Importing from %s\n", args[i])
-
-				cli.HandleError(yaml.NewDecoder(f).Decode(&aux))
-
-				if ns != nil {
-					// If we're importing with --namespace switch,
-					// we're going to import all into one NS
-
-					cli.HandleError(imp.GetNamespaceImporter().Cast(ns.Slug, aux))
-				} else {
-					// importing one or more namespaces
-					cli.HandleError(imp.Cast(aux))
-				}
-			}
-
-			// Store all imported
-			cli.HandleError(imp.Store(
-				ctx,
-				service.DefaultNamespace.With(ctx),
-				service.DefaultModule.With(ctx),
-				service.DefaultChart.With(ctx),
-				service.DefaultPage.With(ctx),
-				service.DefaultInternalAutomationManager,
-				service.DefaultAccessControl,
-			))
 		},
 	}
 

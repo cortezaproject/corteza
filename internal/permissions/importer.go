@@ -101,7 +101,7 @@ func (imp *Importer) appendPermissionRule(roleHandle, accessStr, res string, oo 
 		}
 
 		if imp.whitelist != nil && !imp.whitelist.Check(rule) {
-			return errors.Errorf("invalid rule: %q on %q", res, op)
+			return errors.Errorf("invalid rule: operation %q on resource %q", op, res)
 		}
 
 		imp.rules[roleHandle] = append(imp.rules[roleHandle], rule)

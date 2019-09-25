@@ -128,6 +128,11 @@ func newHelper(t *testing.T) helper {
 	return h
 }
 
+// Returns context w/ security details
+func (h helper) secCtx() context.Context {
+	return auth.SetIdentityToContext(context.Background(), h.cUser)
+}
+
 // apitest basics, initialize, set handler, add auth
 func (h helper) apiInit() *apitest.APITest {
 	InitApp()

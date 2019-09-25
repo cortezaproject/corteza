@@ -47,23 +47,25 @@ func Importer(ctx context.Context, c *cli.Config) *cobra.Command {
 			roles, err := service.DefaultRole.With(ctx).Find(&types.RoleFilter{})
 			cli.HandleError(err)
 
+			perm := permissions.NewImporter(service.DefaultAccessControl.Whitelist())
+
+			imp := importer.NewImporter(perm,
+				importer.NewRoleImport(perm, roles),
+			)
+
 			for i, f := range ff {
 				cmd.Printf("Importing from %s\n", args[i])
-
 				cli.HandleError(yaml.NewDecoder(f).Decode(&aux))
 
-				perm := permissions.NewImporter(service.DefaultAccessControl.Whitelist())
-
-				imp := importer.NewImporter(perm,
-					importer.NewRoleImport(perm, roles),
-				)
-
-				cli.HandleError(imp.Store(
-					ctx,
-					service.DefaultRole.With(ctx),
-					service.DefaultAccessControl,
-				))
+				cli.HandleError(imp.Cast(aux))
 			}
+
+			cli.HandleError(imp.Store(
+				ctx,
+				service.DefaultRole.With(ctx),
+				service.DefaultAccessControl,
+				roles,
+			))
 		},
 	}
 
