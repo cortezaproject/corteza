@@ -51,8 +51,8 @@ func Configure() *cli.Config {
 
 				c.InitServices(ctx, c)
 
-				if c.ProvisionOpt.AutoSetup {
-					cli.HandleError(accessControlSetup(ctx, cmd, c))
+				if c.ProvisionOpt.Configuration {
+					cli.HandleError(provisionConfig(ctx, cmd, c))
 				}
 
 				go service.Watchers(ctx)
@@ -86,8 +86,8 @@ func Configure() *cli.Config {
 			},
 		},
 
-		ProvisionAccessControl: cli.Runners{
-			accessControlSetup,
+		ProvisionConfig: cli.Runners{
+			provisionConfig,
 		},
 	}
 }

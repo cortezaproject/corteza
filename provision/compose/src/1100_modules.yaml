@@ -1,0 +1,6164 @@
+namespace: crm
+modules:
+  Account:
+    name: Account
+    fields:
+      AccountName:
+        label: Account Name
+        kind: String
+        required: true
+      AccountSource:
+        label: Account Source
+        kind: Select
+        options:
+          options:
+          - Customer Referral
+          - Direct
+          - Employee Referral
+          - Event
+          - Existing Customer
+          - Inbound Call
+          - Outbound List
+          - Partner Referral
+          - Seminar
+          - Social Media
+          - Webinar
+          - Website (Organic)
+          - Website (PPC)
+          - Word of Mouth
+          - Other
+          selectType: default
+      AnnualRevenue:
+        label: Annual Revenue
+        kind: Select
+        options:
+          options:
+          - Less Than 500,000
+          - 500,000 To 1 Million
+          - 1 To 2.5 Million
+          - 2.5 To 5 Million
+          - 5 To 10 Million
+          - 10 To 20 Million
+          - 20 To 50 Million
+          - 50 To 100 Million
+          - 100 To 500 Million
+          selectType: default
+      BillingCity:
+        label: Billing City
+        kind: String
+      BillingCountry:
+        label: Billing Country
+        kind: Select
+        options:
+          options:
+          - Afghanistan
+          - Åland Islands
+          - Albania
+          - Algeria
+          - American Samoa
+          - Andorra
+          - Angola
+          - Anguilla
+          - Antarctica
+          - Antigua And Barbuda
+          - Argentina
+          - Armenia
+          - Aruba
+          - Australia
+          - Austria
+          - Azerbaijan
+          - Bahamas
+          - Bahrain
+          - Bangladesh
+          - Barbados
+          - Belarus
+          - Belgium
+          - Belize
+          - Benin
+          - Bermuda
+          - Bhutan
+          - Bolivia
+          - Bosnia And Herzegovina
+          - Botswana
+          - Bouvet Island
+          - Brazil
+          - British Indian Ocean Territory
+          - Brunei Darussalam
+          - Bulgaria
+          - Burkina Faso
+          - Burundi
+          - Cambodia
+          - Cameroon
+          - Canada
+          - Cape Verde
+          - Cayman Islands
+          - Central African Republic
+          - Chad
+          - Chile
+          - China
+          - Christmas Island
+          - Cocos (Keeling) Islands
+          - Colombia
+          - Comoros
+          - Congo
+          - Congo; The Democratic Republic Of The
+          - Cook Islands
+          - Costa Rica
+          - Cote D'ivoire
+          - Croatia
+          - Cuba
+          - Cyprus
+          - Czechia
+          - Denmark
+          - Djibouti
+          - Dominica
+          - Dominican Republic
+          - Ecuador
+          - Egypt
+          - El Salvador
+          - Equatorial Guinea
+          - Eritrea
+          - Estonia
+          - Ethiopia
+          - Falkland Islands (Malvinas)
+          - Faroe Islands
+          - Fiji
+          - Finland
+          - France
+          - French Guiana
+          - French Polynesia
+          - French Southern Territories
+          - Gabon
+          - Gambia
+          - Georgia
+          - Germany
+          - Ghana
+          - Gibraltar
+          - Greece
+          - Greenland
+          - Grenada
+          - Guadeloupe
+          - Guam
+          - Guatemala
+          - Guernsey
+          - Guinea
+          - Guinea-bissau
+          - Guyana
+          - Haiti
+          - Heard Island And Mcdonald Islands
+          - Holy See (Vatican City State)
+          - Honduras
+          - Hong Kong
+          - Hungary
+          - Iceland
+          - India
+          - Indonesia
+          - Iran; Islamic Republic Of
+          - Iraq
+          - Ireland
+          - Isle Of Man
+          - Israel
+          - Italy
+          - Jamaica
+          - Japan
+          - Jersey
+          - Jordan
+          - Kazakhstan
+          - Kenya
+          - Kiribati
+          - Korea; Democratic People's Republic Of
+          - Korea; Republic Of
+          - Kuwait
+          - Kyrgyzstan
+          - Lao People's Democratic Republic
+          - Latvia
+          - Lebanon
+          - Lesotho
+          - Liberia
+          - Libyan Arab Jamahiriya
+          - Liechtenstein
+          - Lithuania
+          - Luxembourg
+          - Macao
+          - Macedonia; The Former Yugoslav Republic Of
+          - Madagascar
+          - Malawi
+          - Malaysia
+          - Maldives
+          - Mali
+          - Malta
+          - Marshall Islands
+          - Martinique
+          - Mauritania
+          - Mauritius
+          - Mayotte
+          - Mexico
+          - Micronesia; Federated States Of
+          - Moldova; Republic Of
+          - Monaco
+          - Mongolia
+          - Montenegro
+          - Montserrat
+          - Morocco
+          - Mozambique
+          - Myanmar
+          - Namibia
+          - Nauru
+          - Nepal
+          - Netherlands
+          - Netherlands Antilles
+          - New Caledonia
+          - New Zealand
+          - Nicaragua
+          - Niger
+          - Nigeria
+          - Niue
+          - Norfolk Island
+          - Northern Mariana Islands
+          - Norway
+          - Oman
+          - Pakistan
+          - Palau
+          - Palestinian Territory; Occupied
+          - Panama
+          - Papua New Guinea
+          - Paraguay
+          - Peru
+          - Philippines
+          - Pitcairn
+          - Poland
+          - Portugal
+          - Puerto Rico
+          - Qatar
+          - Reunion
+          - Romania
+          - Russian Federation
+          - Rwanda
+          - Saint Helena
+          - Saint Kitts And Nevis
+          - Saint Lucia
+          - Saint Pierre And Miquelon
+          - Saint Vincent And The Grenadines
+          - Samoa
+          - San Marino
+          - Sao Tome And Principe
+          - Saudi Arabia
+          - Senegal
+          - Serbia
+          - Seychelles
+          - Sierra Leone
+          - Singapore
+          - Slovakia
+          - Slovenia
+          - Solomon Islands
+          - Somalia
+          - South Africa
+          - South Georgia And The South Sandwich Islands
+          - Spain
+          - Sri Lanka
+          - Sudan
+          - Suriname
+          - Svalbard And Jan Mayen
+          - Swaziland
+          - Sweden
+          - Switzerland
+          - Syrian Arab Republic
+          - Taiwan; Province Of China
+          - Tajikistan
+          - Tanzania; United Republic Of
+          - Thailand
+          - Timor-leste
+          - Togo
+          - Tokelau
+          - Tonga
+          - Trinidad And Tobago
+          - Tunisia
+          - Turkey
+          - Turkmenistan
+          - Turks And Caicos Islands
+          - Tuvalu
+          - Uganda
+          - Ukraine
+          - United Arab Emirates
+          - United Kingdom
+          - United States
+          - United States Minor Outlying Islands
+          - Uruguay
+          - Uzbekistan
+          - Vanuatu
+          - Venezuela
+          - Viet Nam
+          - Virgin Islands; British
+          - Virgin Islands; U.S.
+          - Wallis And Futuna
+          - Western Sahara
+          - Yemen
+          - Zambia
+          - Zimbabwe
+          selectType: default
+      BillingPostalCode:
+        label: Billing Postal Code
+        kind: String
+      BillingState:
+        label: Billing State
+        kind: String
+      BillingStreet:
+        label: Billing Street
+        kind: String
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      Facebook:
+        label: Facebook
+        kind: String
+      Fax:
+        label: Fax
+        kind: String
+      Industry:
+        label: Industry
+        kind: Select
+        options:
+          options:
+          - ""
+          - Agriculture
+          - Apparel
+          - Banking
+          - Biotechnology
+          - Chemicals
+          - Communications
+          - Construction
+          - Consulting
+          - Education
+          - Electronics
+          - Energy
+          - Engineering
+          - Entertainment
+          - Environmental
+          - Finance
+          - Food & Beverage
+          - Government
+          - Healthcare
+          - Hospitality
+          - Insurance
+          - Machinery
+          - Manufacturing
+          - Media
+          - Not For Profit
+          - Other
+          - Recreation
+          - Retail
+          - Shipping
+          - Technology
+          - Telecommunications
+          - Transportation
+          - Utilities
+          selectType: default
+      LastViewedDate:
+        label: Last Viewed Date
+        kind: DateTime
+      LinkedIn:
+        label: LinkedIn
+        kind: String
+      NumberOfEmployees:
+        label: Employees
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      OwnerId:
+        label: Account Owner
+        kind: User
+        options:
+          presetWithAuthenticated: false
+          selectType: default
+      Ownership:
+        label: Ownership
+        kind: Select
+        options:
+          options:
+          - Public
+          - Private
+          selectType: default
+      ParentId:
+        label: Parent Account
+        kind: Record
+        options:
+          labelField: AccountName
+          module: Account
+          queryFields:
+          - AccountName
+          selectType: default
+      Phone:
+        label: Phone
+        kind: String
+      Rating:
+        label: Rating
+        kind: Select
+        options:
+          options:
+          - ☆☆☆☆☆
+          - ★☆☆☆☆
+          - ★★☆☆☆
+          - ★★★☆☆
+          - ★★★★☆
+          - ★★★★★
+          selectType: default
+      ShippingCity:
+        label: Shipping City
+        kind: String
+      ShippingCountry:
+        label: Shipping Country
+        kind: Select
+        options:
+          options:
+          - Afghanistan
+          - Åland Islands
+          - Albania
+          - Algeria
+          - American Samoa
+          - Andorra
+          - Angola
+          - Anguilla
+          - Antarctica
+          - Antigua And Barbuda
+          - Argentina
+          - Armenia
+          - Aruba
+          - Australia
+          - Austria
+          - Azerbaijan
+          - Bahamas
+          - Bahrain
+          - Bangladesh
+          - Barbados
+          - Belarus
+          - Belgium
+          - Belize
+          - Benin
+          - Bermuda
+          - Bhutan
+          - Bolivia
+          - Bosnia And Herzegovina
+          - Botswana
+          - Bouvet Island
+          - Brazil
+          - British Indian Ocean Territory
+          - Brunei Darussalam
+          - Bulgaria
+          - Burkina Faso
+          - Burundi
+          - Cambodia
+          - Cameroon
+          - Canada
+          - Cape Verde
+          - Cayman Islands
+          - Central African Republic
+          - Chad
+          - Chile
+          - China
+          - Christmas Island
+          - Cocos (Keeling) Islands
+          - Colombia
+          - Comoros
+          - Congo
+          - Congo; The Democratic Republic Of The
+          - Cook Islands
+          - Costa Rica
+          - Cote D'ivoire
+          - Croatia
+          - Cuba
+          - Cyprus
+          - Czechia
+          - Denmark
+          - Djibouti
+          - Dominica
+          - Dominican Republic
+          - Ecuador
+          - Egypt
+          - El Salvador
+          - Equatorial Guinea
+          - Eritrea
+          - Estonia
+          - Ethiopia
+          - Falkland Islands (Malvinas)
+          - Faroe Islands
+          - Fiji
+          - Finland
+          - France
+          - French Guiana
+          - French Polynesia
+          - French Southern Territories
+          - Gabon
+          - Gambia
+          - Georgia
+          - Germany
+          - Ghana
+          - Gibraltar
+          - Greece
+          - Greenland
+          - Grenada
+          - Guadeloupe
+          - Guam
+          - Guatemala
+          - Guernsey
+          - Guinea
+          - Guinea-bissau
+          - Guyana
+          - Haiti
+          - Heard Island And Mcdonald Islands
+          - Holy See (Vatican City State)
+          - Honduras
+          - Hong Kong
+          - Hungary
+          - Iceland
+          - India
+          - Indonesia
+          - Iran; Islamic Republic Of
+          - Iraq
+          - Ireland
+          - Isle Of Man
+          - Israel
+          - Italy
+          - Jamaica
+          - Japan
+          - Jersey
+          - Jordan
+          - Kazakhstan
+          - Kenya
+          - Kiribati
+          - Korea; Democratic People's Republic Of
+          - Korea; Republic Of
+          - Kuwait
+          - Kyrgyzstan
+          - Lao People's Democratic Republic
+          - Latvia
+          - Lebanon
+          - Lesotho
+          - Liberia
+          - Libyan Arab Jamahiriya
+          - Liechtenstein
+          - Lithuania
+          - Luxembourg
+          - Macao
+          - Macedonia; The Former Yugoslav Republic Of
+          - Madagascar
+          - Malawi
+          - Malaysia
+          - Maldives
+          - Mali
+          - Malta
+          - Marshall Islands
+          - Martinique
+          - Mauritania
+          - Mauritius
+          - Mayotte
+          - Mexico
+          - Micronesia; Federated States Of
+          - Moldova; Republic Of
+          - Monaco
+          - Mongolia
+          - Montenegro
+          - Montserrat
+          - Morocco
+          - Mozambique
+          - Myanmar
+          - Namibia
+          - Nauru
+          - Nepal
+          - Netherlands
+          - Netherlands Antilles
+          - New Caledonia
+          - New Zealand
+          - Nicaragua
+          - Niger
+          - Nigeria
+          - Niue
+          - Norfolk Island
+          - Northern Mariana Islands
+          - Norway
+          - Oman
+          - Pakistan
+          - Palau
+          - Palestinian Territory; Occupied
+          - Panama
+          - Papua New Guinea
+          - Paraguay
+          - Peru
+          - Philippines
+          - Pitcairn
+          - Poland
+          - Portugal
+          - Puerto Rico
+          - Qatar
+          - Reunion
+          - Romania
+          - Russian Federation
+          - Rwanda
+          - Saint Helena
+          - Saint Kitts And Nevis
+          - Saint Lucia
+          - Saint Pierre And Miquelon
+          - Saint Vincent And The Grenadines
+          - Samoa
+          - San Marino
+          - Sao Tome And Principe
+          - Saudi Arabia
+          - Senegal
+          - Serbia
+          - Seychelles
+          - Sierra Leone
+          - Singapore
+          - Slovakia
+          - Slovenia
+          - Solomon Islands
+          - Somalia
+          - South Africa
+          - South Georgia And The South Sandwich Islands
+          - Spain
+          - Sri Lanka
+          - Sudan
+          - Suriname
+          - Svalbard And Jan Mayen
+          - Swaziland
+          - Sweden
+          - Switzerland
+          - Syrian Arab Republic
+          - Taiwan; Province Of China
+          - Tajikistan
+          - Tanzania; United Republic Of
+          - Thailand
+          - Timor-leste
+          - Togo
+          - Tokelau
+          - Tonga
+          - Trinidad And Tobago
+          - Tunisia
+          - Turkey
+          - Turkmenistan
+          - Turks And Caicos Islands
+          - Tuvalu
+          - Uganda
+          - Ukraine
+          - United Arab Emirates
+          - United Kingdom
+          - United States
+          - United States Minor Outlying Islands
+          - Uruguay
+          - Uzbekistan
+          - Vanuatu
+          - Venezuela
+          - Viet Nam
+          - Virgin Islands; British
+          - Virgin Islands; U.S.
+          - Wallis And Futuna
+          - Western Sahara
+          - Yemen
+          - Zambia
+          - Zimbabwe
+          selectType: default
+      ShippingPostalCode:
+        label: Shipping Postal Code
+        kind: String
+      ShippingState:
+        label: Shipping State
+        kind: String
+      ShippingStreet:
+        label: Shipping Street
+        kind: String
+      Sic:
+        label: SIC Code
+        kind: String
+      SicDesc:
+        label: SIC Description
+        kind: String
+      Twitter:
+        label: Twitter
+        kind: String
+      Type:
+        label: Type
+        kind: Select
+        options:
+          options:
+          - Channel Partner / Reseller
+          - Customer - Channel
+          - Customer - Direct
+          - Installation Partner
+          - Pending
+          - Prospect
+          - Technology Partner
+          - Other
+          selectType: default
+      Website:
+        label: Website
+        kind: String
+  AccountContactRole:
+    name: AccountContactRole
+    fields:
+      AccountId:
+        label: Account
+        kind: Record
+        options:
+          labelField: AccountName
+          module: Account
+          queryFields:
+          - AccountName
+      ContactId:
+        label: Contact
+        kind: Record
+        options:
+          labelField: MasterRecordId
+          module: Contact
+          queryFields:
+          - AccountId
+          - MasterRecordId
+      IsPrimary:
+        label: Primary
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      Role:
+        label: Role
+        kind: Select
+        options:
+          options:
+          - Business User
+          - Decision Maker
+          - Economic Buyer
+          - Economic Decision Maker
+          - Evaluator
+          - Executive Sponsor
+          - Gatekeeper
+          - Influencer
+          - Project Manager
+          - Technical Buyer
+          - Other
+  CampaignMember:
+    name: CampaignMember
+    fields:
+      CampaignId:
+        label: Campaign
+        kind: Record
+        options:
+          labelField: Name
+          module: Campaigns
+          queryFields:
+          - Name
+      ContactId:
+        label: Contact
+        kind: Record
+        options:
+          labelField: Email
+          module: Contact
+          queryFields:
+          - AccountId
+          - Email
+          - FirstName
+          - LastName
+      FirstRespondedDate:
+        label: First Responded Date
+        kind: DateTime
+      HasResponded:
+        label: Responded
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      LeadId:
+        label: Lead
+        kind: Record
+        options:
+          labelField: Email
+          module: Lead
+          queryFields:
+          - Email
+          - FirstName
+          - LastName
+      Status:
+        label: Status
+        kind: Select
+        options:
+          options:
+          - Attended
+          - Registered
+          - Responded
+          - Viewed a Demo
+          - Visited Booth
+          - Viewed a Webinar
+  Campaigns:
+    name: Campaigns
+    fields:
+      ActualCost:
+        label: Actual Cost
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      AmountAllOpportunities:
+        label: Value Opportunities in Campaign
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      AmountWonOpportunities:
+        label: Value Won Opportunities in Campaign
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      BudgetedCost:
+        label: Budgeted Cost
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      EndDate:
+        label: End Date
+        kind: DateTime
+        options:
+          onlyDate: true
+      ExpectedResponse:
+        label: Expected Response (%)
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      ExpectedRevenue:
+        label: Expected Revenue
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      IsActive:
+        label: Active
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      LastActivityDate:
+        label: Last Activity
+        kind: DateTime
+      LastModifiedById:
+        label: Last Modified By
+        kind: User
+        options:
+          presetWithAuthenticated: false
+      LastModifiedDate:
+        label: Last Modified Date
+        kind: DateTime
+      LastViewedDate:
+        label: Last Viewed Date
+        kind: DateTime
+      Name:
+        label: Campaign Name
+        kind: String
+      NumberOfContacts:
+        label: Contacts in Campaign
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      NumberOfConvertedLeads:
+        label: Converted Leads in Campaign
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      NumberOfLeads:
+        label: Leads in Campaign
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      NumberOfOpportunities:
+        label: Opportunities in Campaign
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      NumberOfResponses:
+        label: Responses in Campaign
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      NumberOfWonOpportunities:
+        label: Won Opportunities in Campaign
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      NumberSent:
+        label: Num Sent
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      OwnerId:
+        label: Campaign Owner
+        kind: User
+        options:
+          presetWithAuthenticated: false
+      ParentId:
+        label: Parent Campaign
+        kind: Record
+        options:
+          module: Campaigns
+          queryFields:
+          - Name
+      StartDate:
+        label: Start Date
+        kind: DateTime
+        options:
+          onlyDate: true
+      Status:
+        label: Status
+        kind: Select
+        options:
+          options:
+          - Aborted
+          - Completed
+          - In Progress
+          - Planned
+          - Tentative
+      Type:
+        label: Type
+        kind: Select
+        options:
+          options:
+          - Lead Generation - Direct Mail
+          - Lead Generation - Conference
+          - Lead Generation - Email Blast
+          - Lead Generation - PPC
+          - Lead Generation - Seminar
+          - Lead Generation - Trade Show
+          - Lead Generation - Webinar
+          - Lead Generation - Website
+          - Brand Building - Print advertisement
+          - Brand Building - Radio advertisement
+          - Brand Building - TV advertisement
+          - Brand Building - Sponsoring
+          - Brand Building - Social Media
+          - Lead Generation - Contacting personal network
+  Case:
+    name: Case
+    fields:
+      AccountId:
+        label: Account Name
+        kind: Record
+        options:
+          labelField: AccountName
+          module: Account
+          queryFields:
+          - AccountName
+      CaseNumber:
+        label: Case Number
+        kind: Number
+        options:
+          format: "0000000"
+          precision: 0
+      ClosedDate:
+        label: Date/Time Closed
+        kind: DateTime
+      ContactId:
+        label: Contact Name
+        kind: Record
+        options:
+          labelField: RecordLabel
+          module: Contact
+          queryFields:
+          - RecordLabel
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      File:
+        label: File
+        kind: File
+        options:
+          allowDocuments: false
+          allowImages: false
+          mode: list
+      IsClosed:
+        label: Closed
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      IsClosedOnCreate:
+        label: Closed When Created
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      IsEscalated:
+        label: Escalated
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      Origin:
+        label: Case Origin
+        kind: Select
+        options:
+          options:
+          - Email
+          - Messaging
+          - Phone
+          - Web
+          - Other
+      OwnerId:
+        label: Case Owner
+        kind: User
+        options:
+          presetWithAuthenticated: false
+      ParentId:
+        label: Parent Case
+        kind: Record
+        options:
+          labelField: Subject
+          module: Case
+          queryFields:
+          - AccountId
+          - CaseNumber
+          - Subject
+      Priority:
+        label: Priority
+        kind: Select
+        options:
+          options:
+          - Low
+          - Medium
+          - High
+      ProductId:
+        label: Product
+        kind: Record
+        options:
+          labelField: Name
+          module: Product
+          queryFields:
+          - ProductCode
+          - Name
+      Reason:
+        label: Case Reason
+        kind: Select
+        options:
+          options:
+          - Documentation unclear
+          - Software bug
+          - User didn't attend training
+          - Other
+      SolutionFile:
+        label: Solution File
+        kind: File
+        options:
+          allowDocuments: false
+          allowImages: false
+          mode: list
+      SolutionId:
+        label: Solution Record
+        kind: Record
+        options:
+          labelField: SolutionName
+          module: Solution
+          queryFields:
+          - SolutionNote
+          - SolutionNumber
+          - SolutionName
+      SolutionName:
+        label: Solution Title
+        kind: String
+      SolutionNote:
+        label: Solution Details
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      Status:
+        label: Status
+        kind: Select
+        options:
+          options:
+          - New
+          - Working
+          - Escalated
+          - Closed
+      Subject:
+        label: Subject
+        kind: String
+      SubmitAsSolution:
+        label: Submit as Solution Record when Case is Closed
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      SuppliedCompany:
+        label: Supplied Company
+        kind: String
+      SuppliedEmail:
+        label: Supplied Email
+        kind: String
+      SuppliedName:
+        label: Supplied Name
+        kind: String
+      SuppliedPhone:
+        label: Supplied Phone
+        kind: String
+      Type:
+        label: Type
+        kind: Select
+        options:
+          options:
+          - Bug
+          - Feature Request
+          - Question
+          - Other
+  CaseContactRole:
+    name: CaseContactRole
+    fields:
+      CaseId:
+        label: Case
+        kind: Record
+        options:
+          labelField: Subject
+          module: Case
+          queryFields:
+          - CaseNumber
+          - Subject
+      ContactId:
+        label: Contact
+        kind: Record
+        options:
+          labelField: RecordLabel
+          module: Contact
+          queryFields:
+          - RecordLabel
+      IsPrimary:
+        label: Primary
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      Role:
+        label: Role
+        kind: Select
+        options:
+          options:
+          - Business User
+          - Decision Maker
+          - Economic Buyer
+          - Economic Decision Maker
+          - Evaluator
+          - Executive Sponsor
+          - Gatekeeper
+          - Influencer
+          - Project Manager
+          - Technical Buyer
+          - Other
+  CaseMilestone:
+    name: CaseMilestone
+    fields:
+      CaseId:
+        label: Case
+        kind: Record
+        options:
+          labelField: Subject
+          module: Case
+          queryFields:
+          - AccountId
+          - CaseNumber
+          - Subject
+      CompletionDate:
+        label: Completion Date
+        kind: DateTime
+      IsCompleted:
+        label: Completed
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      IsViolated:
+        label: Violation
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      MilestoneTypeId:
+        label: Milestone Type
+        kind: Record
+        options:
+          labelField: Name
+          module: MilestoneType
+          queryFields:
+          - Name
+      StartDate:
+        label: Start Date
+        kind: DateTime
+      TargetDate:
+        label: Target Date
+        kind: DateTime
+      TargetResponseInDays:
+        label: Target Response (Days)
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      TargetResponseInHrs:
+        label: Target Response (Hours)
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      TargetResponseInMins:
+        label: Target Response (Mins)
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+  CaseUpdate:
+    name: CaseUpdate
+    fields:
+      CaseId:
+        label: Case
+        kind: Record
+        options:
+          labelField: Subject
+          module: Case
+          queryFields:
+          - AccountId
+          - CaseNumber
+          - Subject
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      File:
+        label: File
+        kind: File
+        options:
+          allowDocuments: false
+          allowImages: false
+          mode: list
+      IsSolution:
+        label: Marked as solution
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      Type:
+        label: Type
+        kind: Select
+        options:
+          options:
+          - Email
+          - Call
+          - Fax
+          - Letter
+          - Visit
+  Contact:
+    name: Contact
+    fields:
+      AccountId:
+        label: Account Name
+        kind: Record
+        options:
+          labelField: AccountName
+          module: Account
+          queryFields: []
+      AssistantName:
+        label: Assistant
+        kind: String
+      AssistantPhone:
+        label: Asst. Phone
+        kind: String
+      Birthdate:
+        label: Birthdate
+        kind: DateTime
+        private: true
+      Department:
+        label: Department
+        kind: String
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      DoNotCall:
+        label: Do Not Call
+        kind: Bool
+        options:
+          falseLabel: "False"
+          trueLabel: Do Not Call
+      Email:
+        label: Email
+        kind: Email
+        private: true
+      Facebook:
+        label: Facebook
+        kind: Url
+        private: true
+      Fax:
+        label: Fax
+        kind: String
+        private: true
+      FirstName:
+        label: First Name
+        kind: String
+        private: true
+      HasOptedOutOfEmail:
+        label: Email Opt Out
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      HasOptedOutOfFax:
+        label: Fax Opt Out
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      HomePhone:
+        label: Home Phone
+        kind: String
+        private: true
+      IsDeleted:
+        label: Deleted
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      IsPrimary:
+        label: Primary contact for account
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      LastName:
+        label: Last Name
+        kind: String
+        private: true
+      LastViewedDate:
+        label: Last Viewed Date
+        kind: DateTime
+      LeadSource:
+        label: Lead Source
+        kind: Select
+        options:
+          options:
+          - Customer Referral
+          - Direct
+          - Employee Referral
+          - Event
+          - Existing Customer
+          - Inbound Call
+          - Outbound List
+          - Partner Referral
+          - Seminar
+          - Social Media
+          - Webinar
+          - Website (Organic)
+          - Website (PPC)
+          - Word of Mouth
+          - Other
+      LinkedIn:
+        label: LinkedIn
+        kind: Url
+        private: true
+      MailingCity:
+        label: Mailing City
+        kind: String
+        private: true
+      MailingCountry:
+        label: Mailing Country
+        kind: Select
+        options:
+          options:
+          - Afghanistan
+          - Åland Islands
+          - Albania
+          - Algeria
+          - American Samoa
+          - Andorra
+          - Angola
+          - Anguilla
+          - Antarctica
+          - Antigua And Barbuda
+          - Argentina
+          - Armenia
+          - Aruba
+          - Australia
+          - Austria
+          - Azerbaijan
+          - Bahamas
+          - Bahrain
+          - Bangladesh
+          - Barbados
+          - Belarus
+          - Belgium
+          - Belize
+          - Benin
+          - Bermuda
+          - Bhutan
+          - Bolivia
+          - Bosnia And Herzegovina
+          - Botswana
+          - Bouvet Island
+          - Brazil
+          - British Indian Ocean Territory
+          - Brunei Darussalam
+          - Bulgaria
+          - Burkina Faso
+          - Burundi
+          - Cambodia
+          - Cameroon
+          - Canada
+          - Cape Verde
+          - Cayman Islands
+          - Central African Republic
+          - Chad
+          - Chile
+          - China
+          - Christmas Island
+          - Cocos (Keeling) Islands
+          - Colombia
+          - Comoros
+          - Congo
+          - Congo; The Democratic Republic Of The
+          - Cook Islands
+          - Costa Rica
+          - Cote D'ivoire
+          - Croatia
+          - Cuba
+          - Cyprus
+          - Czechia
+          - Denmark
+          - Djibouti
+          - Dominica
+          - Dominican Republic
+          - Ecuador
+          - Egypt
+          - El Salvador
+          - Equatorial Guinea
+          - Eritrea
+          - Estonia
+          - Ethiopia
+          - Falkland Islands (Malvinas)
+          - Faroe Islands
+          - Fiji
+          - Finland
+          - France
+          - French Guiana
+          - French Polynesia
+          - French Southern Territories
+          - Gabon
+          - Gambia
+          - Georgia
+          - Germany
+          - Ghana
+          - Gibraltar
+          - Greece
+          - Greenland
+          - Grenada
+          - Guadeloupe
+          - Guam
+          - Guatemala
+          - Guernsey
+          - Guinea
+          - Guinea-bissau
+          - Guyana
+          - Haiti
+          - Heard Island And Mcdonald Islands
+          - Holy See (Vatican City State)
+          - Honduras
+          - Hong Kong
+          - Hungary
+          - Iceland
+          - India
+          - Indonesia
+          - Iran; Islamic Republic Of
+          - Iraq
+          - Ireland
+          - Isle Of Man
+          - Israel
+          - Italy
+          - Jamaica
+          - Japan
+          - Jersey
+          - Jordan
+          - Kazakhstan
+          - Kenya
+          - Kiribati
+          - Korea; Democratic People's Republic Of
+          - Korea; Republic Of
+          - Kuwait
+          - Kyrgyzstan
+          - Lao People's Democratic Republic
+          - Latvia
+          - Lebanon
+          - Lesotho
+          - Liberia
+          - Libyan Arab Jamahiriya
+          - Liechtenstein
+          - Lithuania
+          - Luxembourg
+          - Macao
+          - Macedonia; The Former Yugoslav Republic Of
+          - Madagascar
+          - Malawi
+          - Malaysia
+          - Maldives
+          - Mali
+          - Malta
+          - Marshall Islands
+          - Martinique
+          - Mauritania
+          - Mauritius
+          - Mayotte
+          - Mexico
+          - Micronesia; Federated States Of
+          - Moldova; Republic Of
+          - Monaco
+          - Mongolia
+          - Montenegro
+          - Montserrat
+          - Morocco
+          - Mozambique
+          - Myanmar
+          - Namibia
+          - Nauru
+          - Nepal
+          - Netherlands
+          - Netherlands Antilles
+          - New Caledonia
+          - New Zealand
+          - Nicaragua
+          - Niger
+          - Nigeria
+          - Niue
+          - Norfolk Island
+          - Northern Mariana Islands
+          - Norway
+          - Oman
+          - Pakistan
+          - Palau
+          - Palestinian Territory; Occupied
+          - Panama
+          - Papua New Guinea
+          - Paraguay
+          - Peru
+          - Philippines
+          - Pitcairn
+          - Poland
+          - Portugal
+          - Puerto Rico
+          - Qatar
+          - Reunion
+          - Romania
+          - Russian Federation
+          - Rwanda
+          - Saint Helena
+          - Saint Kitts And Nevis
+          - Saint Lucia
+          - Saint Pierre And Miquelon
+          - Saint Vincent And The Grenadines
+          - Samoa
+          - San Marino
+          - Sao Tome And Principe
+          - Saudi Arabia
+          - Senegal
+          - Serbia
+          - Seychelles
+          - Sierra Leone
+          - Singapore
+          - Slovakia
+          - Slovenia
+          - Solomon Islands
+          - Somalia
+          - South Africa
+          - South Georgia And The South Sandwich Islands
+          - Spain
+          - Sri Lanka
+          - Sudan
+          - Suriname
+          - Svalbard And Jan Mayen
+          - Swaziland
+          - Sweden
+          - Switzerland
+          - Syrian Arab Republic
+          - Taiwan; Province Of China
+          - Tajikistan
+          - Tanzania; United Republic Of
+          - Thailand
+          - Timor-leste
+          - Togo
+          - Tokelau
+          - Tonga
+          - Trinidad And Tobago
+          - Tunisia
+          - Turkey
+          - Turkmenistan
+          - Turks And Caicos Islands
+          - Tuvalu
+          - Uganda
+          - Ukraine
+          - United Arab Emirates
+          - United Kingdom
+          - United States
+          - United States Minor Outlying Islands
+          - Uruguay
+          - Uzbekistan
+          - Vanuatu
+          - Venezuela
+          - Viet Nam
+          - Virgin Islands; British
+          - Virgin Islands; U.S.
+          - Wallis And Futuna
+          - Western Sahara
+          - Yemen
+          - Zambia
+          - Zimbabwe
+        private: true
+      MailingPostalCode:
+        label: Mailing Postal Code
+        kind: String
+        private: true
+      MailingState:
+        label: Mailing State
+        kind: String
+        private: true
+      MailingStreet:
+        label: Mailing Street
+        kind: String
+        private: true
+      MasterRecordId:
+        label: Contact
+        kind: Record
+        options:
+          labelField: Email
+          module: Contact
+          queryFields: []
+      MobilePhone:
+        label: Mobile
+        kind: String
+        private: true
+      OtherCity:
+        label: Other City
+        kind: String
+        private: true
+      OtherCountry:
+        label: Other Country
+        kind: Select
+        options:
+          options:
+          - Afghanistan
+          - Åland Islands
+          - Albania
+          - Algeria
+          - American Samoa
+          - Andorra
+          - Angola
+          - Anguilla
+          - Antarctica
+          - Antigua And Barbuda
+          - Argentina
+          - Armenia
+          - Aruba
+          - Australia
+          - Austria
+          - Azerbaijan
+          - Bahamas
+          - Bahrain
+          - Bangladesh
+          - Barbados
+          - Belarus
+          - Belgium
+          - Belize
+          - Benin
+          - Bermuda
+          - Bhutan
+          - Bolivia
+          - Bosnia And Herzegovina
+          - Botswana
+          - Bouvet Island
+          - Brazil
+          - British Indian Ocean Territory
+          - Brunei Darussalam
+          - Bulgaria
+          - Burkina Faso
+          - Burundi
+          - Cambodia
+          - Cameroon
+          - Canada
+          - Cape Verde
+          - Cayman Islands
+          - Central African Republic
+          - Chad
+          - Chile
+          - China
+          - Christmas Island
+          - Cocos (Keeling) Islands
+          - Colombia
+          - Comoros
+          - Congo
+          - Congo; The Democratic Republic Of The
+          - Cook Islands
+          - Costa Rica
+          - Cote D'ivoire
+          - Croatia
+          - Cuba
+          - Cyprus
+          - Czechia
+          - Denmark
+          - Djibouti
+          - Dominica
+          - Dominican Republic
+          - Ecuador
+          - Egypt
+          - El Salvador
+          - Equatorial Guinea
+          - Eritrea
+          - Estonia
+          - Ethiopia
+          - Falkland Islands (Malvinas)
+          - Faroe Islands
+          - Fiji
+          - Finland
+          - France
+          - French Guiana
+          - French Polynesia
+          - French Southern Territories
+          - Gabon
+          - Gambia
+          - Georgia
+          - Germany
+          - Ghana
+          - Gibraltar
+          - Greece
+          - Greenland
+          - Grenada
+          - Guadeloupe
+          - Guam
+          - Guatemala
+          - Guernsey
+          - Guinea
+          - Guinea-bissau
+          - Guyana
+          - Haiti
+          - Heard Island And Mcdonald Islands
+          - Holy See (Vatican City State)
+          - Honduras
+          - Hong Kong
+          - Hungary
+          - Iceland
+          - India
+          - Indonesia
+          - Iran; Islamic Republic Of
+          - Iraq
+          - Ireland
+          - Isle Of Man
+          - Israel
+          - Italy
+          - Jamaica
+          - Japan
+          - Jersey
+          - Jordan
+          - Kazakhstan
+          - Kenya
+          - Kiribati
+          - Korea; Democratic People's Republic Of
+          - Korea; Republic Of
+          - Kuwait
+          - Kyrgyzstan
+          - Lao People's Democratic Republic
+          - Latvia
+          - Lebanon
+          - Lesotho
+          - Liberia
+          - Libyan Arab Jamahiriya
+          - Liechtenstein
+          - Lithuania
+          - Luxembourg
+          - Macao
+          - Macedonia; The Former Yugoslav Republic Of
+          - Madagascar
+          - Malawi
+          - Malaysia
+          - Maldives
+          - Mali
+          - Malta
+          - Marshall Islands
+          - Martinique
+          - Mauritania
+          - Mauritius
+          - Mayotte
+          - Mexico
+          - Micronesia; Federated States Of
+          - Moldova; Republic Of
+          - Monaco
+          - Mongolia
+          - Montenegro
+          - Montserrat
+          - Morocco
+          - Mozambique
+          - Myanmar
+          - Namibia
+          - Nauru
+          - Nepal
+          - Netherlands
+          - Netherlands Antilles
+          - New Caledonia
+          - New Zealand
+          - Nicaragua
+          - Niger
+          - Nigeria
+          - Niue
+          - Norfolk Island
+          - Northern Mariana Islands
+          - Norway
+          - Oman
+          - Pakistan
+          - Palau
+          - Palestinian Territory; Occupied
+          - Panama
+          - Papua New Guinea
+          - Paraguay
+          - Peru
+          - Philippines
+          - Pitcairn
+          - Poland
+          - Portugal
+          - Puerto Rico
+          - Qatar
+          - Reunion
+          - Romania
+          - Russian Federation
+          - Rwanda
+          - Saint Helena
+          - Saint Kitts And Nevis
+          - Saint Lucia
+          - Saint Pierre And Miquelon
+          - Saint Vincent And The Grenadines
+          - Samoa
+          - San Marino
+          - Sao Tome And Principe
+          - Saudi Arabia
+          - Senegal
+          - Serbia
+          - Seychelles
+          - Sierra Leone
+          - Singapore
+          - Slovakia
+          - Slovenia
+          - Solomon Islands
+          - Somalia
+          - South Africa
+          - South Georgia And The South Sandwich Islands
+          - Spain
+          - Sri Lanka
+          - Sudan
+          - Suriname
+          - Svalbard And Jan Mayen
+          - Swaziland
+          - Sweden
+          - Switzerland
+          - Syrian Arab Republic
+          - Taiwan; Province Of China
+          - Tajikistan
+          - Tanzania; United Republic Of
+          - Thailand
+          - Timor-leste
+          - Togo
+          - Tokelau
+          - Tonga
+          - Trinidad And Tobago
+          - Tunisia
+          - Turkey
+          - Turkmenistan
+          - Turks And Caicos Islands
+          - Tuvalu
+          - Uganda
+          - Ukraine
+          - United Arab Emirates
+          - United Kingdom
+          - United States
+          - United States Minor Outlying Islands
+          - Uruguay
+          - Uzbekistan
+          - Vanuatu
+          - Venezuela
+          - Viet Nam
+          - Virgin Islands; British
+          - Virgin Islands; U.S.
+          - Wallis And Futuna
+          - Western Sahara
+          - Yemen
+          - Zambia
+          - Zimbabwe
+        private: true
+      OtherPhone:
+        label: Other Phone
+        kind: String
+        private: true
+      OtherPostalCode:
+        label: Other Postal Code
+        kind: String
+        private: true
+      OtherState:
+        label: Other State
+        kind: String
+        private: true
+      OtherStreet:
+        label: Other Street
+        kind: String
+        private: true
+      OwnerId:
+        label: Contact Owner
+        kind: User
+        options:
+          presetWithAuthenticated: false
+      Phone:
+        label: Phone
+        kind: String
+        private: true
+      PhotoUrl:
+        label: Photo URL
+        kind: Url
+        private: true
+      RecordLabel:
+        label: Record Label
+        kind: String
+        private: true
+      ReportsToId:
+        label: Reports To
+        kind: Record
+        options:
+          labelField: Email
+          module: Contact
+          queryFields:
+          - AccountId
+          - Email
+          - FirstName
+          - LastName
+      Salutation:
+        label: Salutation
+        kind: String
+        private: true
+      Title:
+        label: Title
+        kind: String
+        private: true
+      Twitter:
+        label: Twitter
+        kind: Url
+        private: true
+  Contract:
+    name: Contract
+    fields:
+      AccountId:
+        label: Account Name
+        kind: Record
+        options:
+          labelField: AccountName
+          module: Account
+          queryFields:
+          - AccountName
+      ActivatedById:
+        label: Activated By
+        kind: Record
+        options:
+          labelField: Email
+          module: Contact
+          queryFields:
+          - AccountId
+          - Email
+          - FirstName
+          - LastName
+      ActivatedDate:
+        label: Activated Date
+        kind: DateTime
+      BillingCity:
+        label: Billing City
+        kind: String
+        private: true
+      BillingCountry:
+        label: Billing Country
+        kind: Select
+        options:
+          options:
+          - Afghanistan
+          - Åland Islands
+          - Albania
+          - Algeria
+          - American Samoa
+          - Andorra
+          - Angola
+          - Anguilla
+          - Antarctica
+          - Antigua And Barbuda
+          - Argentina
+          - Armenia
+          - Aruba
+          - Australia
+          - Austria
+          - Azerbaijan
+          - Bahamas
+          - Bahrain
+          - Bangladesh
+          - Barbados
+          - Belarus
+          - Belgium
+          - Belize
+          - Benin
+          - Bermuda
+          - Bhutan
+          - Bolivia
+          - Bosnia And Herzegovina
+          - Botswana
+          - Bouvet Island
+          - Brazil
+          - British Indian Ocean Territory
+          - Brunei Darussalam
+          - Bulgaria
+          - Burkina Faso
+          - Burundi
+          - Cambodia
+          - Cameroon
+          - Canada
+          - Cape Verde
+          - Cayman Islands
+          - Central African Republic
+          - Chad
+          - Chile
+          - China
+          - Christmas Island
+          - Cocos (Keeling) Islands
+          - Colombia
+          - Comoros
+          - Congo
+          - Congo; The Democratic Republic Of The
+          - Cook Islands
+          - Costa Rica
+          - Cote D'ivoire
+          - Croatia
+          - Cuba
+          - Cyprus
+          - Czechia
+          - Denmark
+          - Djibouti
+          - Dominica
+          - Dominican Republic
+          - Ecuador
+          - Egypt
+          - El Salvador
+          - Equatorial Guinea
+          - Eritrea
+          - Estonia
+          - Ethiopia
+          - Falkland Islands (Malvinas)
+          - Faroe Islands
+          - Fiji
+          - Finland
+          - France
+          - French Guiana
+          - French Polynesia
+          - French Southern Territories
+          - Gabon
+          - Gambia
+          - Georgia
+          - Germany
+          - Ghana
+          - Gibraltar
+          - Greece
+          - Greenland
+          - Grenada
+          - Guadeloupe
+          - Guam
+          - Guatemala
+          - Guernsey
+          - Guinea
+          - Guinea-bissau
+          - Guyana
+          - Haiti
+          - Heard Island And Mcdonald Islands
+          - Holy See (Vatican City State)
+          - Honduras
+          - Hong Kong
+          - Hungary
+          - Iceland
+          - India
+          - Indonesia
+          - Iran; Islamic Republic Of
+          - Iraq
+          - Ireland
+          - Isle Of Man
+          - Israel
+          - Italy
+          - Jamaica
+          - Japan
+          - Jersey
+          - Jordan
+          - Kazakhstan
+          - Kenya
+          - Kiribati
+          - Korea; Democratic People's Republic Of
+          - Korea; Republic Of
+          - Kuwait
+          - Kyrgyzstan
+          - Lao People's Democratic Republic
+          - Latvia
+          - Lebanon
+          - Lesotho
+          - Liberia
+          - Libyan Arab Jamahiriya
+          - Liechtenstein
+          - Lithuania
+          - Luxembourg
+          - Macao
+          - Macedonia; The Former Yugoslav Republic Of
+          - Madagascar
+          - Malawi
+          - Malaysia
+          - Maldives
+          - Mali
+          - Malta
+          - Marshall Islands
+          - Martinique
+          - Mauritania
+          - Mauritius
+          - Mayotte
+          - Mexico
+          - Micronesia; Federated States Of
+          - Moldova; Republic Of
+          - Monaco
+          - Mongolia
+          - Montenegro
+          - Montserrat
+          - Morocco
+          - Mozambique
+          - Myanmar
+          - Namibia
+          - Nauru
+          - Nepal
+          - Netherlands
+          - Netherlands Antilles
+          - New Caledonia
+          - New Zealand
+          - Nicaragua
+          - Niger
+          - Nigeria
+          - Niue
+          - Norfolk Island
+          - Northern Mariana Islands
+          - Norway
+          - Oman
+          - Pakistan
+          - Palau
+          - Palestinian Territory; Occupied
+          - Panama
+          - Papua New Guinea
+          - Paraguay
+          - Peru
+          - Philippines
+          - Pitcairn
+          - Poland
+          - Portugal
+          - Puerto Rico
+          - Qatar
+          - Reunion
+          - Romania
+          - Russian Federation
+          - Rwanda
+          - Saint Helena
+          - Saint Kitts And Nevis
+          - Saint Lucia
+          - Saint Pierre And Miquelon
+          - Saint Vincent And The Grenadines
+          - Samoa
+          - San Marino
+          - Sao Tome And Principe
+          - Saudi Arabia
+          - Senegal
+          - Serbia
+          - Seychelles
+          - Sierra Leone
+          - Singapore
+          - Slovakia
+          - Slovenia
+          - Solomon Islands
+          - Somalia
+          - South Africa
+          - South Georgia And The South Sandwich Islands
+          - Spain
+          - Sri Lanka
+          - Sudan
+          - Suriname
+          - Svalbard And Jan Mayen
+          - Swaziland
+          - Sweden
+          - Switzerland
+          - Syrian Arab Republic
+          - Taiwan; Province Of China
+          - Tajikistan
+          - Tanzania; United Republic Of
+          - Thailand
+          - Timor-leste
+          - Togo
+          - Tokelau
+          - Tonga
+          - Trinidad And Tobago
+          - Tunisia
+          - Turkey
+          - Turkmenistan
+          - Turks And Caicos Islands
+          - Tuvalu
+          - Uganda
+          - Ukraine
+          - United Arab Emirates
+          - United Kingdom
+          - United States
+          - United States Minor Outlying Islands
+          - Uruguay
+          - Uzbekistan
+          - Vanuatu
+          - Venezuela
+          - Viet Nam
+          - Virgin Islands; British
+          - Virgin Islands; U.S.
+          - Wallis And Futuna
+          - Western Sahara
+          - Yemen
+          - Zambia
+          - Zimbabwe
+        private: true
+      BillingPostalCode:
+        label: Billing Postal Code
+        kind: String
+        private: true
+      BillingState:
+        label: Billing State
+        kind: String
+        private: true
+      BillingStreet:
+        label: Billing Street
+        kind: String
+        private: true
+      CompanySignedDate:
+        label: Company Signed Date
+        kind: DateTime
+      CompanySignedId:
+        label: Company Signed By
+        kind: Record
+        options:
+          labelField: Email
+          module: Contact
+          queryFields:
+          - AccountId
+          - Email
+          - FirstName
+          - LastName
+      ContractNumber:
+        label: Contract Number
+        kind: Number
+        options:
+          format: "0000000"
+          precision: 0
+      ContractTerm:
+        label: Term (months)
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      CustomerSignedDate:
+        label: Customer Signed Date
+        kind: DateTime
+      CustomerSignedId:
+        label: Customer Signed By
+        kind: Record
+        options:
+          labelField: RecordLabel
+          module: Contact
+          queryFields:
+          - RecordLabel
+      CustomerSignedTitle:
+        label: Customer Signed Title
+        kind: String
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      EndDate:
+        label: End Date
+        kind: DateTime
+        options:
+          onlyDate: true
+      File1:
+        label: File 1
+        kind: File
+        options:
+          allowDocuments: false
+          allowImages: false
+          mode: list
+      File2:
+        label: File 2
+        kind: File
+        options:
+          allowDocuments: false
+          allowImages: false
+          mode: list
+      File3:
+        label: File 3
+        kind: File
+        options:
+          allowDocuments: false
+          allowImages: false
+          mode: list
+      File4:
+        label: File 4
+        kind: File
+        options:
+          allowDocuments: false
+          allowImages: false
+          mode: list
+      LastActivityDate:
+        label: Last Activity
+        kind: DateTime
+      LastApprovedDate:
+        label: Last Approved Date
+        kind: DateTime
+      Name:
+        label: Contract Name
+        kind: String
+      OwnerExpirationNotice:
+        label: Owner Expiration Notice
+        kind: Select
+        options:
+          options:
+          - 3 Days
+          - 5 Days
+          - 7 Days
+          - 14 Days
+          - 30 Days
+          - 45 Days
+          - 60 Days
+          - 75 Days
+          - 90 Days
+          - 120 Days
+          - 180 Days
+          - 240 Days
+          - 300 Days
+          - 365 Days
+      OwnerId:
+        label: Contract Owner
+        kind: User
+        options:
+          presetWithAuthenticated: false
+      RecordLabel:
+        label: Record Label
+        kind: String
+      ShippingCity:
+        label: Shipping City
+        kind: String
+        private: true
+      ShippingCountry:
+        label: Shipping Country
+        kind: Select
+        options:
+          options:
+          - Afghanistan
+          - Åland Islands
+          - Albania
+          - Algeria
+          - American Samoa
+          - Andorra
+          - Angola
+          - Anguilla
+          - Antarctica
+          - Antigua And Barbuda
+          - Argentina
+          - Armenia
+          - Aruba
+          - Australia
+          - Austria
+          - Azerbaijan
+          - Bahamas
+          - Bahrain
+          - Bangladesh
+          - Barbados
+          - Belarus
+          - Belgium
+          - Belize
+          - Benin
+          - Bermuda
+          - Bhutan
+          - Bolivia
+          - Bosnia And Herzegovina
+          - Botswana
+          - Bouvet Island
+          - Brazil
+          - British Indian Ocean Territory
+          - Brunei Darussalam
+          - Bulgaria
+          - Burkina Faso
+          - Burundi
+          - Cambodia
+          - Cameroon
+          - Canada
+          - Cape Verde
+          - Cayman Islands
+          - Central African Republic
+          - Chad
+          - Chile
+          - China
+          - Christmas Island
+          - Cocos (Keeling) Islands
+          - Colombia
+          - Comoros
+          - Congo
+          - Congo; The Democratic Republic Of The
+          - Cook Islands
+          - Costa Rica
+          - Cote D'ivoire
+          - Croatia
+          - Cuba
+          - Cyprus
+          - Czechia
+          - Denmark
+          - Djibouti
+          - Dominica
+          - Dominican Republic
+          - Ecuador
+          - Egypt
+          - El Salvador
+          - Equatorial Guinea
+          - Eritrea
+          - Estonia
+          - Ethiopia
+          - Falkland Islands (Malvinas)
+          - Faroe Islands
+          - Fiji
+          - Finland
+          - France
+          - French Guiana
+          - French Polynesia
+          - French Southern Territories
+          - Gabon
+          - Gambia
+          - Georgia
+          - Germany
+          - Ghana
+          - Gibraltar
+          - Greece
+          - Greenland
+          - Grenada
+          - Guadeloupe
+          - Guam
+          - Guatemala
+          - Guernsey
+          - Guinea
+          - Guinea-bissau
+          - Guyana
+          - Haiti
+          - Heard Island And Mcdonald Islands
+          - Holy See (Vatican City State)
+          - Honduras
+          - Hong Kong
+          - Hungary
+          - Iceland
+          - India
+          - Indonesia
+          - Iran; Islamic Republic Of
+          - Iraq
+          - Ireland
+          - Isle Of Man
+          - Israel
+          - Italy
+          - Jamaica
+          - Japan
+          - Jersey
+          - Jordan
+          - Kazakhstan
+          - Kenya
+          - Kiribati
+          - Korea; Democratic People's Republic Of
+          - Korea; Republic Of
+          - Kuwait
+          - Kyrgyzstan
+          - Lao People's Democratic Republic
+          - Latvia
+          - Lebanon
+          - Lesotho
+          - Liberia
+          - Libyan Arab Jamahiriya
+          - Liechtenstein
+          - Lithuania
+          - Luxembourg
+          - Macao
+          - Macedonia; The Former Yugoslav Republic Of
+          - Madagascar
+          - Malawi
+          - Malaysia
+          - Maldives
+          - Mali
+          - Malta
+          - Marshall Islands
+          - Martinique
+          - Mauritania
+          - Mauritius
+          - Mayotte
+          - Mexico
+          - Micronesia; Federated States Of
+          - Moldova; Republic Of
+          - Monaco
+          - Mongolia
+          - Montenegro
+          - Montserrat
+          - Morocco
+          - Mozambique
+          - Myanmar
+          - Namibia
+          - Nauru
+          - Nepal
+          - Netherlands
+          - Netherlands Antilles
+          - New Caledonia
+          - New Zealand
+          - Nicaragua
+          - Niger
+          - Nigeria
+          - Niue
+          - Norfolk Island
+          - Northern Mariana Islands
+          - Norway
+          - Oman
+          - Pakistan
+          - Palau
+          - Palestinian Territory; Occupied
+          - Panama
+          - Papua New Guinea
+          - Paraguay
+          - Peru
+          - Philippines
+          - Pitcairn
+          - Poland
+          - Portugal
+          - Puerto Rico
+          - Qatar
+          - Reunion
+          - Romania
+          - Russian Federation
+          - Rwanda
+          - Saint Helena
+          - Saint Kitts And Nevis
+          - Saint Lucia
+          - Saint Pierre And Miquelon
+          - Saint Vincent And The Grenadines
+          - Samoa
+          - San Marino
+          - Sao Tome And Principe
+          - Saudi Arabia
+          - Senegal
+          - Serbia
+          - Seychelles
+          - Sierra Leone
+          - Singapore
+          - Slovakia
+          - Slovenia
+          - Solomon Islands
+          - Somalia
+          - South Africa
+          - South Georgia And The South Sandwich Islands
+          - Spain
+          - Sri Lanka
+          - Sudan
+          - Suriname
+          - Svalbard And Jan Mayen
+          - Swaziland
+          - Sweden
+          - Switzerland
+          - Syrian Arab Republic
+          - Taiwan; Province Of China
+          - Tajikistan
+          - Tanzania; United Republic Of
+          - Thailand
+          - Timor-leste
+          - Togo
+          - Tokelau
+          - Tonga
+          - Trinidad And Tobago
+          - Tunisia
+          - Turkey
+          - Turkmenistan
+          - Turks And Caicos Islands
+          - Tuvalu
+          - Uganda
+          - Ukraine
+          - United Arab Emirates
+          - United Kingdom
+          - United States
+          - United States Minor Outlying Islands
+          - Uruguay
+          - Uzbekistan
+          - Vanuatu
+          - Venezuela
+          - Viet Nam
+          - Virgin Islands; British
+          - Virgin Islands; U.S.
+          - Wallis And Futuna
+          - Western Sahara
+          - Yemen
+          - Zambia
+          - Zimbabwe
+        private: true
+      ShippingPostalCode:
+        label: Shipping Postal Code
+        kind: String
+        private: true
+      ShippingState:
+        label: Shipping State
+        kind: String
+        private: true
+      ShippingStreet:
+        label: Shipping Street
+        kind: String
+        private: true
+      SpecialTerms:
+        label: Special Terms
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      StartDate:
+        label: Start Date
+        kind: DateTime
+        options:
+          onlyDate: true
+      Status:
+        label: Status
+        kind: Select
+        options:
+          options:
+          - Draft
+          - Activated
+          - In Approval Process
+          - Inactive (Expired)
+          - Inactive (Deactivated)
+  ContractContactRole:
+    name: ContractContactRole
+    fields:
+      ContactId:
+        label: Contact
+        kind: Record
+        options:
+          labelField: Email
+          module: Contact
+          queryFields:
+          - AccountId
+          - Email
+          - FirstName
+          - LastName
+      ContractId:
+        label: Contract
+        kind: Record
+        options:
+          labelField: Name
+          module: Contract
+          queryFields:
+          - AccountId
+          - Name
+          - ContractNumber
+      IsPrimary:
+        label: Primary
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      Role:
+        label: Role
+        kind: Select
+        options:
+          options:
+          - Business User
+          - Decision Maker
+          - Economic Buyer
+          - Economic Decision Maker
+          - Evaluator
+          - Executive Sponsor
+          - Gatekeeper
+          - Influencer
+          - Project Manager
+          - Technical Buyer
+          - Other
+  ContractLineItem:
+    name: ContractLineItem
+    fields:
+      ContractId:
+        label: 'Contract '
+        kind: Record
+        options:
+          labelField: Name
+          module: Contract
+          queryFields:
+          - AccountId
+          - Name
+          - ContractNumber
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+      Discount:
+        label: Discount
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      EndDate:
+        label: End Date
+        kind: DateTime
+        options:
+          onlyDate: true
+      LineItemNumber:
+        label: Line Item Number
+        kind: String
+      ListPrice:
+        label: List Price
+        kind: Number
+        options:
+          format: 0
+          precision: "2"
+          suffix: €
+      PricebookEntryId:
+        label: Price Book Entry
+        kind: Record
+        options:
+          labelField: Name
+          module: PricebookEntry
+          queryFields:
+          - ProductCode
+          - Name
+      Quantity:
+        label: Quantity
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      StartDate:
+        label: Start Date
+        kind: DateTime
+        options:
+          onlyDate: true
+      Status:
+        label: Status
+        kind: Select
+        options:
+          options:
+          - Active
+          - Expired
+          - Inactive
+      Subtotal:
+        label: 'Subtotal '
+        kind: Number
+        options:
+          format: 0
+          precision: "2"
+          suffix: €
+      TotalPrice:
+        label: Total Price
+        kind: Number
+        options:
+          format: 0
+          precision: "2"
+          suffix: €
+      UnitPrice:
+        label: Sales Price
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: €
+  DefaultSettings:
+    name: DefaultSettings
+    fields:
+      CaseNextNumber:
+        label: Next number for a case (updates after saving a new case)
+        kind: Number
+        options:
+          format: "0000000"
+          precision: 0
+      ContractDefaultTime:
+        label: Default time for a contract (in months)
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      ContractNextNumber:
+        label: Next number for a contract (updates after saving a new contract)
+        kind: Number
+        options:
+          format: "0000000"
+          precision: 0
+      OpportunityCloseDateDays:
+        label: Days for an opportunity to close
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      OpportunityForecaseCategory:
+        label: Forecast Category
+        kind: String
+      OpportunityProbability:
+        label: Probability
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+          suffix: '%'
+      OpportunityStagename:
+        label: Stage
+        kind: String
+      QuoteExpirationDays:
+        label: Days for a quote to expire
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      QuoteNextNumber:
+        label: Next number for a quote (updates after saving a new quote)
+        kind: Number
+        options:
+          format: "0000000"
+          precision: 0
+      SolutionNextNumber:
+        label: Next number for a solution (updates after saving a new solution)
+        kind: Number
+        options:
+          format: "0000000"
+          precision: 0
+  EmailTemplate:
+    name: EmailTemplate
+    fields:
+      Body:
+        label: Body
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+      DeveloperName:
+        label: Template Unique Name
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      IsActive:
+        label: Available For Use
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      LastUsedDate:
+        label: Last Used Date
+        kind: DateTime
+      Markup:
+        label: Markup
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      Name:
+        label: Email Template Name
+        kind: String
+      Subject:
+        label: Subject
+        kind: String
+      TemplateStyle:
+        label: Style
+        kind: Select
+        options:
+          options:
+          - ""
+      TemplateType:
+        label: Template Type
+        kind: Select
+        options:
+          options:
+          - ""
+  Entitlement:
+    name: Entitlement
+    fields:
+      AccountId:
+        label: Account Name
+        kind: Record
+        options:
+          labelField: AccountName
+          module: Account
+          queryFields:
+          - AccountName
+      CasesPerEntitlement:
+        label: Cases Per Entitlement
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      ContractLineItemId:
+        label: Contract Line Item
+        kind: Record
+        options:
+          labelField: ContractId
+          module: ContractLineItem
+          queryFields:
+          - Description
+          - LineItemNumber
+          - ContractId
+      EndDate:
+        label: End Date
+        kind: DateTime
+      EntitlementProcess:
+        label: Entitlement Process
+        kind: String
+      IsPerIncident:
+        label: Per Incident
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      LastModifiedById:
+        label: Last Modified By
+        kind: User
+        options:
+          presetWithAuthenticated: false
+      LastModifiedDate:
+        label: Last Modified Date
+        kind: DateTime
+      LastViewedDate:
+        label: Last Viewed Date
+        kind: DateTime
+      Name:
+        label: Entitlement Name
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      RemainingCases:
+        label: Remaining Cases
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      StartDate:
+        label: Start Date
+        kind: DateTime
+      Status:
+        label: Status
+        kind: Select
+        options:
+          options:
+          - Active
+          - Expired
+          - Inactive
+      Type:
+        label: Type
+        kind: Select
+        options:
+          options:
+          - Web Support
+          - Phone Support
+          - Email Support
+          - Dedicated Support
+  EntitlementContact:
+    name: EntitlementContact
+    fields:
+      CaseMilestoneTypeId:
+        label: Casemilestone Type
+        kind: Record
+        options:
+          labelField: Name
+          module: MilestoneType
+          queryFields:
+          - Name
+      ContactId:
+        label: Contact Name
+        kind: Record
+        options:
+          labelField: Email
+          module: Contact
+          queryFields:
+          - AccountId
+          - Email
+          - FirstName
+          - LastName
+      EntitlementId:
+        label: Entitlement Name
+        kind: Record
+        options:
+          labelField: Name
+          module: Entitlement
+          queryFields:
+          - AccountId
+          - Name
+      Name:
+        label: Entitlement Contact
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+  EntitlementTemplate:
+    name: EntitlementTemplate
+    fields:
+      BusinessHours:
+        label: Business Hours
+        kind: String
+      CasesPerEntitlement:
+        label: Cases Per Entitlement
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      IsPerIncident:
+        label: Per Incident
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      Name:
+        label: Entitlement Template Name
+        kind: String
+      Term:
+        label: Term (Days)
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      Type:
+        label: Type
+        kind: Select
+        options:
+          options:
+          - Email
+          - Messaging
+          - Phone
+          - Web
+  Event:
+    name: Event
+    fields:
+      AccountId:
+        label: Account
+        kind: Record
+        options:
+          labelField: AccountName
+          module: Account
+          queryFields:
+          - AccountName
+      ActivityDate:
+        label: Start
+        kind: DateTime
+      CaseId:
+        label: Case
+        kind: Record
+        options:
+          labelField: Subject
+          module: Case
+          queryFields:
+          - AccountId
+          - CaseNumber
+          - Subject
+      ContactId:
+        label: Contact
+        kind: Record
+        options:
+          labelField: RecordLabel
+          module: Contact
+          queryFields:
+          - RecordLabel
+      ContractId:
+        label: Contract
+        kind: Record
+        options:
+          labelField: Name
+          module: Contract
+          queryFields:
+          - AccountId
+          - Name
+          - ContractNumber
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      DurationInMinutes:
+        label: Duration
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      EndDateTime:
+        label: End
+        kind: DateTime
+      IsAllDayEvent:
+        label: All-Day Event
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      IsArchived:
+        label: Archived
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      IsPrivate:
+        label: Private
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      IsReminderSet:
+        label: Reminder Set
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      LeadId:
+        label: Lead
+        kind: Record
+        options:
+          labelField: RecordLabel
+          module: Lead
+          queryFields:
+          - RecordLabel
+      Location:
+        label: Location
+        kind: String
+      OpportunityId:
+        label: Opportunity
+        kind: Record
+        options:
+          labelField: RecordLabel
+          module: Opportunity
+          queryFields:
+          - AccountId
+          - Name
+      OwnerId:
+        label: Assigned To
+        kind: User
+        options:
+          presetWithAuthenticated: false
+      QuoteId:
+        label: Quote
+        kind: Record
+        options:
+          labelField: Name
+          module: Quote
+          queryFields:
+          - AccountId
+          - Name
+          - QuoteNumber
+      ReminderDateTime:
+        label: Reminder Date/Time
+        kind: DateTime
+      Subject:
+        label: Subject
+        kind: String
+      Type:
+        label: Type
+        kind: Select
+        options:
+          options:
+          - Call
+          - Email
+          - Meeting
+          - Send Letter / Quote
+          - Other
+  Idea:
+    name: Idea
+    fields:
+      Body:
+        label: Idea Body
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      Categories:
+        label: Categories
+        kind: Select
+        options:
+          options:
+          - Ecosystem
+          - Human Resources
+          - Marketing
+          - Product
+          - Sales
+          - Services
+          - Support
+      CreatorName:
+        label: Name of Creator
+        kind: String
+      ParentIdeaId:
+        label: Parent Idea
+        kind: Record
+        options:
+          labelField: Title
+          module: Idea
+          queryFields:
+          - Title
+      Status:
+        label: Status
+        kind: Select
+        options:
+          options:
+          - New
+          - Under Consideration
+          - Accepted
+          - Implemented
+          - Duplicate
+      Title:
+        label: Title
+        kind: String
+      VoteScore:
+        label: Vote Score
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      VoteTotal:
+        label: Vote Total
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+  Lead:
+    name: Lead
+    fields:
+      AnnualRevenue:
+        label: Annual Revenue
+        kind: Select
+        options:
+          options:
+          - Less Than 500,000
+          - 500,000 To 1 Million
+          - 1 To 2.5 Million
+          - 2.5 To 5 Million
+          - 5 To 10 Million
+          - 10 To 20 Million
+          - 20 To 50 Million
+          - 50 To 100 Million
+          - 100 To 500 Million
+          selectType: default
+      City:
+        label: Address City
+        kind: String
+        private: true
+      Company:
+        label: Company
+        kind: String
+        required: true
+      ConvertedAccountId:
+        label: Converted Account
+        kind: Record
+        options:
+          labelField: AccountName
+          module: Account
+          queryFields:
+          - AccountName
+          selectType: default
+      ConvertedContactId:
+        label: Converted Contact
+        kind: Record
+        options:
+          labelField: RecordLabel
+          module: Contact
+          queryFields:
+          - RecordLabel
+          selectType: default
+      ConvertedDate:
+        label: Converted Date
+        kind: DateTime
+      ConvertedOpportunityId:
+        label: Converted Opportunity
+        kind: Record
+        options:
+          labelField: Name
+          module: Opportunity
+          queryFields:
+          - AccountId
+          - Name
+          selectType: default
+      Country:
+        label: Address Country
+        kind: Select
+        options:
+          options:
+          - Afghanistan
+          - Åland Islands
+          - Albania
+          - Algeria
+          - American Samoa
+          - Andorra
+          - Angola
+          - Anguilla
+          - Antarctica
+          - Antigua And Barbuda
+          - Argentina
+          - Armenia
+          - Aruba
+          - Australia
+          - Austria
+          - Azerbaijan
+          - Bahamas
+          - Bahrain
+          - Bangladesh
+          - Barbados
+          - Belarus
+          - Belgium
+          - Belize
+          - Benin
+          - Bermuda
+          - Bhutan
+          - Bolivia
+          - Bosnia And Herzegovina
+          - Botswana
+          - Bouvet Island
+          - Brazil
+          - British Indian Ocean Territory
+          - Brunei Darussalam
+          - Bulgaria
+          - Burkina Faso
+          - Burundi
+          - Cambodia
+          - Cameroon
+          - Canada
+          - Cape Verde
+          - Cayman Islands
+          - Central African Republic
+          - Chad
+          - Chile
+          - China
+          - Christmas Island
+          - Cocos (Keeling) Islands
+          - Colombia
+          - Comoros
+          - Congo
+          - Congo; The Democratic Republic Of The
+          - Cook Islands
+          - Costa Rica
+          - Cote D'ivoire
+          - Croatia
+          - Cuba
+          - Cyprus
+          - Czechia
+          - Denmark
+          - Djibouti
+          - Dominica
+          - Dominican Republic
+          - Ecuador
+          - Egypt
+          - El Salvador
+          - Equatorial Guinea
+          - Eritrea
+          - Estonia
+          - Ethiopia
+          - Falkland Islands (Malvinas)
+          - Faroe Islands
+          - Fiji
+          - Finland
+          - France
+          - French Guiana
+          - French Polynesia
+          - French Southern Territories
+          - Gabon
+          - Gambia
+          - Georgia
+          - Germany
+          - Ghana
+          - Gibraltar
+          - Greece
+          - Greenland
+          - Grenada
+          - Guadeloupe
+          - Guam
+          - Guatemala
+          - Guernsey
+          - Guinea
+          - Guinea-bissau
+          - Guyana
+          - Haiti
+          - Heard Island And Mcdonald Islands
+          - Holy See (Vatican City State)
+          - Honduras
+          - Hong Kong
+          - Hungary
+          - Iceland
+          - India
+          - Indonesia
+          - Iran; Islamic Republic Of
+          - Iraq
+          - Ireland
+          - Isle Of Man
+          - Israel
+          - Italy
+          - Jamaica
+          - Japan
+          - Jersey
+          - Jordan
+          - Kazakhstan
+          - Kenya
+          - Kiribati
+          - Korea; Democratic People's Republic Of
+          - Korea; Republic Of
+          - Kuwait
+          - Kyrgyzstan
+          - Lao People's Democratic Republic
+          - Latvia
+          - Lebanon
+          - Lesotho
+          - Liberia
+          - Libyan Arab Jamahiriya
+          - Liechtenstein
+          - Lithuania
+          - Luxembourg
+          - Macao
+          - Macedonia; The Former Yugoslav Republic Of
+          - Madagascar
+          - Malawi
+          - Malaysia
+          - Maldives
+          - Mali
+          - Malta
+          - Marshall Islands
+          - Martinique
+          - Mauritania
+          - Mauritius
+          - Mayotte
+          - Mexico
+          - Micronesia; Federated States Of
+          - Moldova; Republic Of
+          - Monaco
+          - Mongolia
+          - Montenegro
+          - Montserrat
+          - Morocco
+          - Mozambique
+          - Myanmar
+          - Namibia
+          - Nauru
+          - Nepal
+          - Netherlands
+          - Netherlands Antilles
+          - New Caledonia
+          - New Zealand
+          - Nicaragua
+          - Niger
+          - Nigeria
+          - Niue
+          - Norfolk Island
+          - Northern Mariana Islands
+          - Norway
+          - Oman
+          - Pakistan
+          - Palau
+          - Palestinian Territory; Occupied
+          - Panama
+          - Papua New Guinea
+          - Paraguay
+          - Peru
+          - Philippines
+          - Pitcairn
+          - Poland
+          - Portugal
+          - Puerto Rico
+          - Qatar
+          - Reunion
+          - Romania
+          - Russian Federation
+          - Rwanda
+          - Saint Helena
+          - Saint Kitts And Nevis
+          - Saint Lucia
+          - Saint Pierre And Miquelon
+          - Saint Vincent And The Grenadines
+          - Samoa
+          - San Marino
+          - Sao Tome And Principe
+          - Saudi Arabia
+          - Senegal
+          - Serbia
+          - Seychelles
+          - Sierra Leone
+          - Singapore
+          - Slovakia
+          - Slovenia
+          - Solomon Islands
+          - Somalia
+          - South Africa
+          - South Georgia And The South Sandwich Islands
+          - Spain
+          - Sri Lanka
+          - Sudan
+          - Suriname
+          - Svalbard And Jan Mayen
+          - Swaziland
+          - Sweden
+          - Switzerland
+          - Syrian Arab Republic
+          - Taiwan; Province Of China
+          - Tajikistan
+          - Tanzania; United Republic Of
+          - Thailand
+          - Timor-leste
+          - Togo
+          - Tokelau
+          - Tonga
+          - Trinidad And Tobago
+          - Tunisia
+          - Turkey
+          - Turkmenistan
+          - Turks And Caicos Islands
+          - Tuvalu
+          - Uganda
+          - Ukraine
+          - United Arab Emirates
+          - United Kingdom
+          - United States
+          - United States Minor Outlying Islands
+          - Uruguay
+          - Uzbekistan
+          - Vanuatu
+          - Venezuela
+          - Viet Nam
+          - Virgin Islands; British
+          - Virgin Islands; U.S.
+          - Wallis And Futuna
+          - Western Sahara
+          - Yemen
+          - Zambia
+          - Zimbabwe
+          selectType: default
+        private: true
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      DoNotCall:
+        label: Do Not Call
+        kind: Bool
+        options:
+          falseLabel: "False"
+          trueLabel: Do Not Call
+      Email:
+        label: Email
+        kind: String
+        private: true
+      Facebook:
+        label: Facebook
+        kind: Url
+        private: true
+      Fax:
+        label: Fax
+        kind: String
+        private: true
+      FirstName:
+        label: First Name
+        kind: String
+        private: true
+      HasOptedOutOfEmail:
+        label: Email Opt Out
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      HasOptedOutOfFax:
+        label: Fax Opt Out
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      Industry:
+        label: Industry
+        kind: Select
+        options:
+          options:
+          - ""
+          - Agriculture
+          - Apparel
+          - Banking
+          - Biotechnology
+          - Chemicals
+          - Communications
+          - Construction
+          - Consulting
+          - Education
+          - Electronics
+          - Energy
+          - Engineering
+          - Entertainment
+          - Environmental
+          - Finance
+          - Food & Beverage
+          - Government
+          - Healthcare
+          - Hospitality
+          - Insurance
+          - Machinery
+          - Manufacturing
+          - Media
+          - Not For Profit
+          - Other
+          - Recreation
+          - Retail
+          - Shipping
+          - Technology
+          - Telecommunications
+          - Transportation
+          - Utilities
+          selectType: default
+      IsConverted:
+        label: Converted
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      IsDeleted:
+        label: Deleted
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      IsUnreadByOwner:
+        label: Unread By Owner
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      LastName:
+        label: Last Name
+        kind: String
+        private: true
+        required: true
+      LastTransferDate:
+        label: Last Transfer Date
+        kind: DateTime
+      LastViewedDate:
+        label: Last Viewed Date
+        kind: DateTime
+      LeadSource:
+        label: Lead Source
+        kind: Select
+        options:
+          options:
+          - Customer Referral
+          - Direct
+          - Employee Referral
+          - Event
+          - Existing Customer
+          - Inbound Call
+          - Outbound List
+          - Partner Referral
+          - Seminar
+          - Social Media
+          - Webinar
+          - Website (Organic)
+          - Website (PPC)
+          - Word of Mouth
+          - Other
+          selectType: default
+      LinkedIn:
+        label: LinkedIn
+        kind: Url
+        private: true
+      MasterRecordId:
+        label: Lead
+        kind: Record
+        options:
+          labelField: Email
+          module: Lead
+          queryFields: []
+          selectType: default
+      MobilePhone:
+        label: Mobile
+        kind: String
+      NumberOfEmployees:
+        label: No. of Employees (exact)
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      NumberOfEmployeesRange:
+        label: No. of Employees (range)
+        kind: Select
+        options:
+          options:
+          - 1 - 9
+          - 10 - 24
+          - 25 - 49
+          - 50 - 99
+          - 100 - 249
+          - 250 - 499
+          - 500 - 999
+          - 1000 - 2499
+          - 2500 - 4999
+          - 5000 - 9999
+          - Over 10000
+          selectType: default
+      OwnerId:
+        label: Lead Owner
+        kind: User
+        options:
+          presetWithAuthenticated: false
+          selectType: default
+      Phone:
+        label: Phone
+        kind: String
+        private: true
+      PostalCode:
+        label: Address Postal Code
+        kind: String
+        private: true
+      Rating:
+        label: Rating
+        kind: Select
+        options:
+          options:
+          - ☆☆☆☆☆
+          - ★☆☆☆☆
+          - ★★☆☆☆
+          - ★★★☆☆
+          - ★★★★☆
+          - ★★★★★
+          selectType: default
+      RecordLabel:
+        label: Record Label
+        kind: String
+        private: true
+      SICCode:
+        label: SIC Code
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      Salutation:
+        label: Salutation
+        kind: String
+      State:
+        label: Address State
+        kind: String
+        private: true
+      Status:
+        label: Lead Status
+        kind: Select
+        options:
+          options:
+          - New
+          - Assigned
+          - In Progress
+          - Converted
+          - Recycled
+          - Dead
+          selectType: default
+      Street:
+        label: Address Street
+        kind: String
+        private: true
+      Title:
+        label: Title
+        kind: String
+      Twitter:
+        label: Twitter
+        kind: Url
+        private: true
+      Website:
+        label: Website
+        kind: Url
+  MilestoneType:
+    name: MilestoneType
+    fields:
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+      Name:
+        label: Name
+        kind: String
+      RecurrenceType:
+        label: Recurrence Type
+        kind: Select
+        options:
+          options:
+          - No Recurrence
+          - Independent
+          - Sequential
+  Note:
+    name: Note
+    fields:
+      AccountContactRoleId:
+        label: Account Contact Role
+        kind: Record
+        options:
+          labelField: Role
+          module: AccountContactRole
+          queryFields:
+          - AccountId
+          - ContactId
+          - Role
+      AccountId:
+        label: Account
+        kind: Record
+        options:
+          labelField: AccountName
+          module: Account
+          queryFields:
+          - AccountName
+      Body:
+        label: Body
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      CampaignId:
+        label: Campaign
+        kind: Record
+        options:
+          labelField: Name
+          module: Campaigns
+          queryFields:
+          - Name
+      CampaignMemberId:
+        label: Campaign Member
+        kind: Record
+        options:
+          labelField: CampaignId
+          module: CampaignMember
+          queryFields:
+          - CampaignId
+          - ContactId
+          - LeadId
+      CaseContactRoleId:
+        label: Case Contact Role
+        kind: Record
+        options:
+          labelField: Role
+          module: CaseContactRole
+          queryFields:
+          - CaseId
+          - Role
+      CaseId:
+        label: Case
+        kind: Record
+        options:
+          labelField: Subject
+          module: Case
+          queryFields:
+          - AccountId
+          - CaseNumber
+          - Subject
+      CaseMilestoneId:
+        label: Case Milestone
+        kind: Record
+        options:
+          labelField: CaseId
+          module: CaseMilestone
+          queryFields:
+          - CaseId
+          - MilestoneTypeId
+      ContactId:
+        label: Contact
+        kind: Record
+        options:
+          labelField: RecordLabel
+          module: Contact
+          queryFields:
+          - RecordLabel
+      ContractContactRoleId:
+        label: Contract Contact Role
+        kind: Record
+        options:
+          labelField: ContactId
+          module: ContractContactRole
+          queryFields:
+          - ContactId
+          - ContractId
+      ContractId:
+        label: Contract
+        kind: Record
+        options:
+          labelField: Name
+          module: Contract
+          queryFields:
+          - AccountId
+          - Name
+          - ContractNumber
+      ContractLineItemId:
+        label: Contract Line Item
+        kind: Record
+        options:
+          labelField: PricebookEntryId
+          module: ContractLineItem
+          queryFields:
+          - PricebookEntryId
+      EmailMessageId:
+        label: Email Message
+        kind: Record
+        options:
+          labelField: Subject
+          module: 'Error: module with ID 69055788596920337 does not exist'
+          queryFields:
+          - Subject
+      EmailTemplateId:
+        label: Email Template
+        kind: Record
+        options:
+          labelField: Subject
+          module: EmailTemplate
+          queryFields:
+          - Subject
+      EntitlementContactId:
+        label: Entitlement Contact
+        kind: Record
+        options:
+          labelField: EntitlementId
+          module: EntitlementContact
+          queryFields:
+          - EntitlementId
+      EntitlementId:
+        label: Entitlement
+        kind: Record
+        options:
+          labelField: Name
+          module: Entitlement
+          queryFields:
+          - Name
+      EntitlementTemplateId:
+        label: Entitlement Template
+        kind: Record
+        options:
+          labelField: Name
+          module: EntitlementTemplate
+          queryFields:
+          - Name
+      EventId:
+        label: Event
+        kind: Record
+        options:
+          labelField: Subject
+          module: Event
+          queryFields:
+          - Subject
+      FileAdd1:
+        label: File 1
+        kind: File
+        options:
+          allowDocuments: false
+          allowImages: false
+          mode: grid
+      FileAdd2:
+        label: File 2
+        kind: File
+        options:
+          allowDocuments: false
+          allowImages: false
+          mode: grid
+      FileAdd3:
+        label: File 3
+        kind: File
+        options:
+          allowDocuments: false
+          allowImages: false
+          mode: grid
+      FileAdd4:
+        label: File 4
+        kind: File
+        options:
+          allowDocuments: false
+          allowImages: false
+          mode: grid
+      IsPrivate:
+        label: Private
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      LeadId:
+        label: Lead
+        kind: Record
+        options:
+          labelField: RecordLabel
+          module: Lead
+          queryFields:
+          - RecordLabel
+      OpportunityCompetitorId:
+        label: Opportunity Competitor
+        kind: Record
+        options:
+          labelField: CompetitorName
+          module: OpportunityCompetitor
+          queryFields:
+          - CompetitorName
+      OpportunityContactRoleId:
+        label: Opportunity Contact Role
+        kind: Record
+        options:
+          labelField: ContactId
+          module: OpportunityContactRole
+          queryFields:
+          - ContactId
+          - Role
+      OpportunityId:
+        label: Opportunity
+        kind: Record
+        options:
+          labelField: Name
+          module: Opportunity
+          queryFields:
+          - AccountId
+          - Name
+      OpportunityLineItemId:
+        label: Opportunity Line Item
+        kind: Record
+        options:
+          labelField: ProductId
+          module: OpportunityLineItem
+          queryFields:
+          - Description
+          - Name
+          - ProductId
+      PricebookEntryId:
+        label: Pricebook Entry
+        kind: Record
+        options:
+          labelField: Name
+          module: PricebookEntry
+          queryFields:
+          - ProductCode
+          - Name
+      PricebookId:
+        label: Pricebook
+        kind: Record
+        options:
+          labelField: Name
+          module: Pricebook
+          queryFields:
+          - Name
+      ProductId:
+        label: Product
+        kind: Record
+        options:
+          labelField: Name
+          module: Product
+          queryFields:
+          - ProductCode
+          - Name
+      QuoteId:
+        label: Quote
+        kind: Record
+        options:
+          labelField: Name
+          module: Quote
+          queryFields:
+          - AccountId
+          - Name
+          - QuoteNumber
+      TaskId:
+        label: Task
+        kind: Record
+        options:
+          labelField: Subject
+          module: Task
+          queryFields:
+          - Subject
+      Title:
+        label: Title
+        kind: String
+  Opportunity:
+    name: Opportunity
+    fields:
+      AccountId:
+        label: Account Name
+        kind: Record
+        options:
+          labelField: AccountName
+          module: Account
+          queryFields:
+          - AccountName
+          selectType: default
+      Amount:
+        label: Amount
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: €
+      Authority:
+        label: Authority
+        kind: String
+        options:
+          multiLine: true
+      Budget:
+        label: Budget
+        kind: String
+        options:
+          multiLine: true
+      CampaignId:
+        label: Primary Campaign Source
+        kind: Record
+        options:
+          labelField: Name
+          module: Campaigns
+          queryFields:
+          - Name
+          selectType: default
+      CloseDate:
+        label: Close Date
+        kind: DateTime
+      Competition:
+        label: Competition
+        kind: String
+        options:
+          multiLine: true
+      ContractId:
+        label: Contract
+        kind: Record
+        options:
+          labelField: Name
+          module: Contract
+          queryFields:
+          - AccountId
+          - Name
+          - ContractNumber
+          selectType: default
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      ExpectedRevenue:
+        label: Expected Revenue
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: €
+      FiscalQuarter:
+        label: Fiscal Period
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      FiscalYear:
+        label: Fiscal Period
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      ForecastCategory:
+        label: Forecast Category
+        kind: Select
+        options:
+          options:
+          - Pipeline
+          - Best Case
+          - Commit
+          selectType: default
+      HasOpportunityLineItem:
+        label: Has Line Item
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      IsClosed:
+        label: Closed
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      IsPrivate:
+        label: Private
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      IsWon:
+        label: Won
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      LeadSource:
+        label: Lead Source
+        kind: Select
+        options:
+          options:
+          - Customer Referral
+          - Direct
+          - Employee Referral
+          - Event
+          - Existing Customer
+          - Inbound Call
+          - Outbound List
+          - Partner Referral
+          - Seminar
+          - Social Media
+          - Webinar
+          - Website (Organic)
+          - Website (PPC)
+          - Word of Mouth
+          - Other
+          selectType: default
+      Name:
+        label: Opportunity Name
+        kind: String
+      Need:
+        label: Need
+        kind: String
+        options:
+          multiLine: true
+      NextStep:
+        label: Next Step
+        kind: String
+      OwnerId:
+        label: Opportunity Owner
+        kind: User
+        options:
+          presetWithAuthenticated: false
+          selectType: default
+      PricebookId:
+        label: Price Book
+        kind: Record
+        options:
+          labelField: Name
+          module: Pricebook
+          queryFields:
+          - Name
+          selectType: default
+      Probability:
+        label: Probability (%)
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+          suffix: '%'
+      RecordLabel:
+        label: Record Label
+        kind: String
+      StageName:
+        label: Stage
+        kind: Select
+        options:
+          options:
+          - Qualification
+          - Need Analysis
+          - Proposal
+          - Negotiation
+          - Closed Won
+          - Closed Lost
+          selectType: default
+      Timeline:
+        label: Timeline
+        kind: String
+        options:
+          multiLine: true
+      TotalOpportunityQuantity:
+        label: Quantity
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      Type:
+        label: Type
+        kind: Select
+        options:
+          options:
+          - Exisiting Business
+          - New Business
+          selectType: default
+  OpportunityCompetitor:
+    name: OpportunityCompetitor
+    fields:
+      CompetitorName:
+        label: Competitor Name
+        kind: String
+      OpportunityId:
+        label: Opportunity
+        kind: Record
+        options:
+          labelField: Name
+          module: Opportunity
+          queryFields:
+          - AccountId
+          - Name
+      Strengths:
+        label: Strengths
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      Weaknesses:
+        label: Weaknesses
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+  OpportunityContactRole:
+    name: OpportunityContactRole
+    fields:
+      ContactId:
+        label: Contact
+        kind: Record
+        options:
+          labelField: RecordLabel
+          module: Contact
+          queryFields:
+          - RecordLabel
+      IsPrimary:
+        label: Primary
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      OpportunityId:
+        label: Opportunity
+        kind: Record
+        options:
+          labelField: Name
+          module: Opportunity
+          queryFields: []
+      Role:
+        label: Role
+        kind: Select
+        options:
+          options:
+          - Business User
+          - Decision Maker
+          - Economic Buyer
+          - Economic Decision Maker
+          - Evaluator
+          - Executive Sponsor
+          - Gatekeeper
+          - Influencer
+          - Project Manager
+          - Technical Buyer
+          - Other
+  OpportunityLineItem:
+    name: OpportunityLineItem
+    fields:
+      Description:
+        label: Line Description
+        kind: String
+      Discount:
+        label: Discount
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: €
+      ListPrice:
+        label: List Price
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: €
+      Name:
+        label: Opportunity Product Name
+        kind: String
+      OpportunityId:
+        label: Opportunity
+        kind: Record
+        options:
+          labelField: Name
+          module: Opportunity
+          queryFields:
+          - AccountId
+          - Name
+      PricebookEntryId:
+        label: Price Book Entry
+        kind: Record
+        options:
+          labelField: Name
+          module: PricebookEntry
+          queryFields:
+          - ProductCode
+          - Name
+      ProductCode:
+        label: Product Code
+        kind: String
+      ProductId:
+        label: Product
+        kind: Record
+        options:
+          labelField: Name
+          module: Product
+          queryFields: []
+      Quantity:
+        label: Quantity
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      ServiceDate:
+        label: Date
+        kind: DateTime
+      SortOrder:
+        label: Sort Order
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      Subtotal:
+        label: Subtotal
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: €
+      TotalPrice:
+        label: Total Price
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: €
+      UnitPrice:
+        label: Sales Price
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: €
+  Pricebook:
+    name: Pricebook
+    fields:
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+      IsActive:
+        label: Active
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      IsStandard:
+        label: Is Standard Price Book
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      Name:
+        label: Price Book Name
+        kind: String
+  PricebookEntry:
+    name: PricebookEntry
+    fields:
+      IsActive:
+        label: Active
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      Name:
+        label: Product Name
+        kind: String
+      PricebookId:
+        label: Price Book
+        kind: Record
+        options:
+          labelField: Name
+          module: Pricebook
+          queryFields:
+          - Name
+      ProductCode:
+        label: Product Code
+        kind: String
+      ProductId:
+        label: Product
+        kind: Record
+        options:
+          labelField: Name
+          module: Product
+          queryFields:
+          - ProductCode
+          - Name
+      UnitPrice:
+        label: List Price
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: €
+      UseStandardPrice:
+        label: Use Standard Price
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+  Product:
+    name: Product
+    fields:
+      Description:
+        label: Product Description
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      Family:
+        label: Product Family
+        kind: Select
+        options:
+          options:
+          - Crust Core
+          - Crust Add-On
+      IsActive:
+        label: Active
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      Name:
+        label: Product Name
+        kind: String
+      ProductCode:
+        label: Product Code
+        kind: String
+  Question:
+    name: Question
+    fields:
+      BestReplyId:
+        label: Best Reply
+        kind: Record
+        options:
+          labelField: Name
+          module: Reply
+          queryFields:
+          - Name
+      Body:
+        label: Question Body
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      NumReplies:
+        label: Number of Replies
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      Title:
+        label: Question Title
+        kind: String
+      UpVotes:
+        label: Up Votes
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      VoteScore:
+        label: Vote Score
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+  Quote:
+    name: Quote
+    fields:
+      AccountId:
+        label: Account Name
+        kind: Record
+        options:
+          labelField: AccountName
+          module: Account
+          queryFields:
+          - AccountName
+      AdditionalCity:
+        label: Additional To City
+        kind: String
+      AdditionalCountry:
+        label: Additional To Country
+        kind: Select
+        options:
+          options:
+          - Afghanistan
+          - Åland Islands
+          - Albania
+          - Algeria
+          - American Samoa
+          - Andorra
+          - Angola
+          - Anguilla
+          - Antarctica
+          - Antigua And Barbuda
+          - Argentina
+          - Armenia
+          - Aruba
+          - Australia
+          - Austria
+          - Azerbaijan
+          - Bahamas
+          - Bahrain
+          - Bangladesh
+          - Barbados
+          - Belarus
+          - Belgium
+          - Belize
+          - Benin
+          - Bermuda
+          - Bhutan
+          - Bolivia
+          - Bosnia And Herzegovina
+          - Botswana
+          - Bouvet Island
+          - Brazil
+          - British Indian Ocean Territory
+          - Brunei Darussalam
+          - Bulgaria
+          - Burkina Faso
+          - Burundi
+          - Cambodia
+          - Cameroon
+          - Canada
+          - Cape Verde
+          - Cayman Islands
+          - Central African Republic
+          - Chad
+          - Chile
+          - China
+          - Christmas Island
+          - Cocos (Keeling) Islands
+          - Colombia
+          - Comoros
+          - Congo
+          - Congo; The Democratic Republic Of The
+          - Cook Islands
+          - Costa Rica
+          - Cote D'ivoire
+          - Croatia
+          - Cuba
+          - Cyprus
+          - Czechia
+          - Denmark
+          - Djibouti
+          - Dominica
+          - Dominican Republic
+          - Ecuador
+          - Egypt
+          - El Salvador
+          - Equatorial Guinea
+          - Eritrea
+          - Estonia
+          - Ethiopia
+          - Falkland Islands (Malvinas)
+          - Faroe Islands
+          - Fiji
+          - Finland
+          - France
+          - French Guiana
+          - French Polynesia
+          - French Southern Territories
+          - Gabon
+          - Gambia
+          - Georgia
+          - Germany
+          - Ghana
+          - Gibraltar
+          - Greece
+          - Greenland
+          - Grenada
+          - Guadeloupe
+          - Guam
+          - Guatemala
+          - Guernsey
+          - Guinea
+          - Guinea-bissau
+          - Guyana
+          - Haiti
+          - Heard Island And Mcdonald Islands
+          - Holy See (Vatican City State)
+          - Honduras
+          - Hong Kong
+          - Hungary
+          - Iceland
+          - India
+          - Indonesia
+          - Iran; Islamic Republic Of
+          - Iraq
+          - Ireland
+          - Isle Of Man
+          - Israel
+          - Italy
+          - Jamaica
+          - Japan
+          - Jersey
+          - Jordan
+          - Kazakhstan
+          - Kenya
+          - Kiribati
+          - Korea; Democratic People's Republic Of
+          - Korea; Republic Of
+          - Kuwait
+          - Kyrgyzstan
+          - Lao People's Democratic Republic
+          - Latvia
+          - Lebanon
+          - Lesotho
+          - Liberia
+          - Libyan Arab Jamahiriya
+          - Liechtenstein
+          - Lithuania
+          - Luxembourg
+          - Macao
+          - Macedonia; The Former Yugoslav Republic Of
+          - Madagascar
+          - Malawi
+          - Malaysia
+          - Maldives
+          - Mali
+          - Malta
+          - Marshall Islands
+          - Martinique
+          - Mauritania
+          - Mauritius
+          - Mayotte
+          - Mexico
+          - Micronesia; Federated States Of
+          - Moldova; Republic Of
+          - Monaco
+          - Mongolia
+          - Montenegro
+          - Montserrat
+          - Morocco
+          - Mozambique
+          - Myanmar
+          - Namibia
+          - Nauru
+          - Nepal
+          - Netherlands
+          - Netherlands Antilles
+          - New Caledonia
+          - New Zealand
+          - Nicaragua
+          - Niger
+          - Nigeria
+          - Niue
+          - Norfolk Island
+          - Northern Mariana Islands
+          - Norway
+          - Oman
+          - Pakistan
+          - Palau
+          - Palestinian Territory; Occupied
+          - Panama
+          - Papua New Guinea
+          - Paraguay
+          - Peru
+          - Philippines
+          - Pitcairn
+          - Poland
+          - Portugal
+          - Puerto Rico
+          - Qatar
+          - Reunion
+          - Romania
+          - Russian Federation
+          - Rwanda
+          - Saint Helena
+          - Saint Kitts And Nevis
+          - Saint Lucia
+          - Saint Pierre And Miquelon
+          - Saint Vincent And The Grenadines
+          - Samoa
+          - San Marino
+          - Sao Tome And Principe
+          - Saudi Arabia
+          - Senegal
+          - Serbia
+          - Seychelles
+          - Sierra Leone
+          - Singapore
+          - Slovakia
+          - Slovenia
+          - Solomon Islands
+          - Somalia
+          - South Africa
+          - South Georgia And The South Sandwich Islands
+          - Spain
+          - Sri Lanka
+          - Sudan
+          - Suriname
+          - Svalbard And Jan Mayen
+          - Swaziland
+          - Sweden
+          - Switzerland
+          - Syrian Arab Republic
+          - Taiwan; Province Of China
+          - Tajikistan
+          - Tanzania; United Republic Of
+          - Thailand
+          - Timor-leste
+          - Togo
+          - Tokelau
+          - Tonga
+          - Trinidad And Tobago
+          - Tunisia
+          - Turkey
+          - Turkmenistan
+          - Turks And Caicos Islands
+          - Tuvalu
+          - Uganda
+          - Ukraine
+          - United Arab Emirates
+          - United Kingdom
+          - United States
+          - United States Minor Outlying Islands
+          - Uruguay
+          - Uzbekistan
+          - Vanuatu
+          - Venezuela
+          - Viet Nam
+          - Virgin Islands; British
+          - Virgin Islands; U.S.
+          - Wallis And Futuna
+          - Western Sahara
+          - Yemen
+          - Zambia
+          - Zimbabwe
+      AdditionalName:
+        label: Additional To Name
+        kind: String
+      AdditionalPostalCode:
+        label: Additional To Postal Code
+        kind: String
+      AdditionalState:
+        label: Additional To State
+        kind: String
+      AdditionalStreet:
+        label: Additional To Street
+        kind: String
+      BillingCity:
+        label: Bill To City
+        kind: String
+      BillingCountry:
+        label: Bill To Country
+        kind: Select
+        options:
+          options:
+          - Afghanistan
+          - Åland Islands
+          - Albania
+          - Algeria
+          - American Samoa
+          - Andorra
+          - Angola
+          - Anguilla
+          - Antarctica
+          - Antigua And Barbuda
+          - Argentina
+          - Armenia
+          - Aruba
+          - Australia
+          - Austria
+          - Azerbaijan
+          - Bahamas
+          - Bahrain
+          - Bangladesh
+          - Barbados
+          - Belarus
+          - Belgium
+          - Belize
+          - Benin
+          - Bermuda
+          - Bhutan
+          - Bolivia
+          - Bosnia And Herzegovina
+          - Botswana
+          - Bouvet Island
+          - Brazil
+          - British Indian Ocean Territory
+          - Brunei Darussalam
+          - Bulgaria
+          - Burkina Faso
+          - Burundi
+          - Cambodia
+          - Cameroon
+          - Canada
+          - Cape Verde
+          - Cayman Islands
+          - Central African Republic
+          - Chad
+          - Chile
+          - China
+          - Christmas Island
+          - Cocos (Keeling) Islands
+          - Colombia
+          - Comoros
+          - Congo
+          - Congo; The Democratic Republic Of The
+          - Cook Islands
+          - Costa Rica
+          - Cote D'ivoire
+          - Croatia
+          - Cuba
+          - Cyprus
+          - Czechia
+          - Denmark
+          - Djibouti
+          - Dominica
+          - Dominican Republic
+          - Ecuador
+          - Egypt
+          - El Salvador
+          - Equatorial Guinea
+          - Eritrea
+          - Estonia
+          - Ethiopia
+          - Falkland Islands (Malvinas)
+          - Faroe Islands
+          - Fiji
+          - Finland
+          - France
+          - French Guiana
+          - French Polynesia
+          - French Southern Territories
+          - Gabon
+          - Gambia
+          - Georgia
+          - Germany
+          - Ghana
+          - Gibraltar
+          - Greece
+          - Greenland
+          - Grenada
+          - Guadeloupe
+          - Guam
+          - Guatemala
+          - Guernsey
+          - Guinea
+          - Guinea-bissau
+          - Guyana
+          - Haiti
+          - Heard Island And Mcdonald Islands
+          - Holy See (Vatican City State)
+          - Honduras
+          - Hong Kong
+          - Hungary
+          - Iceland
+          - India
+          - Indonesia
+          - Iran; Islamic Republic Of
+          - Iraq
+          - Ireland
+          - Isle Of Man
+          - Israel
+          - Italy
+          - Jamaica
+          - Japan
+          - Jersey
+          - Jordan
+          - Kazakhstan
+          - Kenya
+          - Kiribati
+          - Korea; Democratic People's Republic Of
+          - Korea; Republic Of
+          - Kuwait
+          - Kyrgyzstan
+          - Lao People's Democratic Republic
+          - Latvia
+          - Lebanon
+          - Lesotho
+          - Liberia
+          - Libyan Arab Jamahiriya
+          - Liechtenstein
+          - Lithuania
+          - Luxembourg
+          - Macao
+          - Macedonia; The Former Yugoslav Republic Of
+          - Madagascar
+          - Malawi
+          - Malaysia
+          - Maldives
+          - Mali
+          - Malta
+          - Marshall Islands
+          - Martinique
+          - Mauritania
+          - Mauritius
+          - Mayotte
+          - Mexico
+          - Micronesia; Federated States Of
+          - Moldova; Republic Of
+          - Monaco
+          - Mongolia
+          - Montenegro
+          - Montserrat
+          - Morocco
+          - Mozambique
+          - Myanmar
+          - Namibia
+          - Nauru
+          - Nepal
+          - Netherlands
+          - Netherlands Antilles
+          - New Caledonia
+          - New Zealand
+          - Nicaragua
+          - Niger
+          - Nigeria
+          - Niue
+          - Norfolk Island
+          - Northern Mariana Islands
+          - Norway
+          - Oman
+          - Pakistan
+          - Palau
+          - Palestinian Territory; Occupied
+          - Panama
+          - Papua New Guinea
+          - Paraguay
+          - Peru
+          - Philippines
+          - Pitcairn
+          - Poland
+          - Portugal
+          - Puerto Rico
+          - Qatar
+          - Reunion
+          - Romania
+          - Russian Federation
+          - Rwanda
+          - Saint Helena
+          - Saint Kitts And Nevis
+          - Saint Lucia
+          - Saint Pierre And Miquelon
+          - Saint Vincent And The Grenadines
+          - Samoa
+          - San Marino
+          - Sao Tome And Principe
+          - Saudi Arabia
+          - Senegal
+          - Serbia
+          - Seychelles
+          - Sierra Leone
+          - Singapore
+          - Slovakia
+          - Slovenia
+          - Solomon Islands
+          - Somalia
+          - South Africa
+          - South Georgia And The South Sandwich Islands
+          - Spain
+          - Sri Lanka
+          - Sudan
+          - Suriname
+          - Svalbard And Jan Mayen
+          - Swaziland
+          - Sweden
+          - Switzerland
+          - Syrian Arab Republic
+          - Taiwan; Province Of China
+          - Tajikistan
+          - Tanzania; United Republic Of
+          - Thailand
+          - Timor-leste
+          - Togo
+          - Tokelau
+          - Tonga
+          - Trinidad And Tobago
+          - Tunisia
+          - Turkey
+          - Turkmenistan
+          - Turks And Caicos Islands
+          - Tuvalu
+          - Uganda
+          - Ukraine
+          - United Arab Emirates
+          - United Kingdom
+          - United States
+          - United States Minor Outlying Islands
+          - Uruguay
+          - Uzbekistan
+          - Vanuatu
+          - Venezuela
+          - Viet Nam
+          - Virgin Islands; British
+          - Virgin Islands; U.S.
+          - Wallis And Futuna
+          - Western Sahara
+          - Yemen
+          - Zambia
+          - Zimbabwe
+      BillingName:
+        label: Bill To Name
+        kind: String
+      BillingPostalCode:
+        label: Bill To Postal Code
+        kind: String
+      BillingState:
+        label: Bill To State
+        kind: String
+      BillingStreet:
+        label: Bill To Street
+        kind: String
+      ContactId:
+        label: Contact Name
+        kind: Record
+        options:
+          labelField: RecordLabel
+          module: Contact
+          queryFields:
+          - RecordLabel
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+      Discount:
+        label: Additional Discount
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: €
+      Email:
+        label: Email
+        kind: Email
+      ExpirationDate:
+        label: Expiration Date
+        kind: DateTime
+      Fax:
+        label: Fax
+        kind: String
+      GrandTotal:
+        label: Grand Total (calculated)
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: €
+      LineItemCount:
+        label: Line Items
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      Name:
+        label: Quote Name
+        kind: String
+      OpportunityId:
+        label: Opportunity Name
+        kind: Record
+        options:
+          labelField: Name
+          module: Opportunity
+          queryFields:
+          - AccountId
+          - Name
+      Phone:
+        label: Phone
+        kind: String
+      PricebookId:
+        label: Pricebook
+        kind: Record
+        options:
+          labelField: Name
+          module: Pricebook
+          queryFields:
+          - Name
+      QuoteNumber:
+        label: Quote Number
+        kind: Number
+        options:
+          format: "0000000"
+          precision: 0
+      QuoteToCity:
+        label: Quote To City
+        kind: String
+      QuoteToCountry:
+        label: Quote To Country
+        kind: Select
+        options:
+          options:
+          - Afghanistan
+          - Åland Islands
+          - Albania
+          - Algeria
+          - American Samoa
+          - Andorra
+          - Angola
+          - Anguilla
+          - Antarctica
+          - Antigua And Barbuda
+          - Argentina
+          - Armenia
+          - Aruba
+          - Australia
+          - Austria
+          - Azerbaijan
+          - Bahamas
+          - Bahrain
+          - Bangladesh
+          - Barbados
+          - Belarus
+          - Belgium
+          - Belize
+          - Benin
+          - Bermuda
+          - Bhutan
+          - Bolivia
+          - Bosnia And Herzegovina
+          - Botswana
+          - Bouvet Island
+          - Brazil
+          - British Indian Ocean Territory
+          - Brunei Darussalam
+          - Bulgaria
+          - Burkina Faso
+          - Burundi
+          - Cambodia
+          - Cameroon
+          - Canada
+          - Cape Verde
+          - Cayman Islands
+          - Central African Republic
+          - Chad
+          - Chile
+          - China
+          - Christmas Island
+          - Cocos (Keeling) Islands
+          - Colombia
+          - Comoros
+          - Congo
+          - Congo; The Democratic Republic Of The
+          - Cook Islands
+          - Costa Rica
+          - Cote D'ivoire
+          - Croatia
+          - Cuba
+          - Cyprus
+          - Czechia
+          - Denmark
+          - Djibouti
+          - Dominica
+          - Dominican Republic
+          - Ecuador
+          - Egypt
+          - El Salvador
+          - Equatorial Guinea
+          - Eritrea
+          - Estonia
+          - Ethiopia
+          - Falkland Islands (Malvinas)
+          - Faroe Islands
+          - Fiji
+          - Finland
+          - France
+          - French Guiana
+          - French Polynesia
+          - French Southern Territories
+          - Gabon
+          - Gambia
+          - Georgia
+          - Germany
+          - Ghana
+          - Gibraltar
+          - Greece
+          - Greenland
+          - Grenada
+          - Guadeloupe
+          - Guam
+          - Guatemala
+          - Guernsey
+          - Guinea
+          - Guinea-bissau
+          - Guyana
+          - Haiti
+          - Heard Island And Mcdonald Islands
+          - Holy See (Vatican City State)
+          - Honduras
+          - Hong Kong
+          - Hungary
+          - Iceland
+          - India
+          - Indonesia
+          - Iran; Islamic Republic Of
+          - Iraq
+          - Ireland
+          - Isle Of Man
+          - Israel
+          - Italy
+          - Jamaica
+          - Japan
+          - Jersey
+          - Jordan
+          - Kazakhstan
+          - Kenya
+          - Kiribati
+          - Korea; Democratic People's Republic Of
+          - Korea; Republic Of
+          - Kuwait
+          - Kyrgyzstan
+          - Lao People's Democratic Republic
+          - Latvia
+          - Lebanon
+          - Lesotho
+          - Liberia
+          - Libyan Arab Jamahiriya
+          - Liechtenstein
+          - Lithuania
+          - Luxembourg
+          - Macao
+          - Macedonia; The Former Yugoslav Republic Of
+          - Madagascar
+          - Malawi
+          - Malaysia
+          - Maldives
+          - Mali
+          - Malta
+          - Marshall Islands
+          - Martinique
+          - Mauritania
+          - Mauritius
+          - Mayotte
+          - Mexico
+          - Micronesia; Federated States Of
+          - Moldova; Republic Of
+          - Monaco
+          - Mongolia
+          - Montenegro
+          - Montserrat
+          - Morocco
+          - Mozambique
+          - Myanmar
+          - Namibia
+          - Nauru
+          - Nepal
+          - Netherlands
+          - Netherlands Antilles
+          - New Caledonia
+          - New Zealand
+          - Nicaragua
+          - Niger
+          - Nigeria
+          - Niue
+          - Norfolk Island
+          - Northern Mariana Islands
+          - Norway
+          - Oman
+          - Pakistan
+          - Palau
+          - Palestinian Territory; Occupied
+          - Panama
+          - Papua New Guinea
+          - Paraguay
+          - Peru
+          - Philippines
+          - Pitcairn
+          - Poland
+          - Portugal
+          - Puerto Rico
+          - Qatar
+          - Reunion
+          - Romania
+          - Russian Federation
+          - Rwanda
+          - Saint Helena
+          - Saint Kitts And Nevis
+          - Saint Lucia
+          - Saint Pierre And Miquelon
+          - Saint Vincent And The Grenadines
+          - Samoa
+          - San Marino
+          - Sao Tome And Principe
+          - Saudi Arabia
+          - Senegal
+          - Serbia
+          - Seychelles
+          - Sierra Leone
+          - Singapore
+          - Slovakia
+          - Slovenia
+          - Solomon Islands
+          - Somalia
+          - South Africa
+          - South Georgia And The South Sandwich Islands
+          - Spain
+          - Sri Lanka
+          - Sudan
+          - Suriname
+          - Svalbard And Jan Mayen
+          - Swaziland
+          - Sweden
+          - Switzerland
+          - Syrian Arab Republic
+          - Taiwan; Province Of China
+          - Tajikistan
+          - Tanzania; United Republic Of
+          - Thailand
+          - Timor-leste
+          - Togo
+          - Tokelau
+          - Tonga
+          - Trinidad And Tobago
+          - Tunisia
+          - Turkey
+          - Turkmenistan
+          - Turks And Caicos Islands
+          - Tuvalu
+          - Uganda
+          - Ukraine
+          - United Arab Emirates
+          - United Kingdom
+          - United States
+          - United States Minor Outlying Islands
+          - Uruguay
+          - Uzbekistan
+          - Vanuatu
+          - Venezuela
+          - Viet Nam
+          - Virgin Islands; British
+          - Virgin Islands; U.S.
+          - Wallis And Futuna
+          - Western Sahara
+          - Yemen
+          - Zambia
+          - Zimbabwe
+      QuoteToName:
+        label: Quote To Name
+        kind: String
+      QuoteToPostalCode:
+        label: Quote To Postal Code
+        kind: String
+      QuoteToState:
+        label: Quote To State
+        kind: String
+      QuoteToStreet:
+        label: Quote To Street
+        kind: String
+      RecordLabel:
+        label: Record Label
+        kind: String
+      ShippingCity:
+        label: Ship To City
+        kind: String
+      ShippingCountry:
+        label: Ship To Country
+        kind: Select
+        options:
+          options:
+          - Afghanistan
+          - Åland Islands
+          - Albania
+          - Algeria
+          - American Samoa
+          - Andorra
+          - Angola
+          - Anguilla
+          - Antarctica
+          - Antigua And Barbuda
+          - Argentina
+          - Armenia
+          - Aruba
+          - Australia
+          - Austria
+          - Azerbaijan
+          - Bahamas
+          - Bahrain
+          - Bangladesh
+          - Barbados
+          - Belarus
+          - Belgium
+          - Belize
+          - Benin
+          - Bermuda
+          - Bhutan
+          - Bolivia
+          - Bosnia And Herzegovina
+          - Botswana
+          - Bouvet Island
+          - Brazil
+          - British Indian Ocean Territory
+          - Brunei Darussalam
+          - Bulgaria
+          - Burkina Faso
+          - Burundi
+          - Cambodia
+          - Cameroon
+          - Canada
+          - Cape Verde
+          - Cayman Islands
+          - Central African Republic
+          - Chad
+          - Chile
+          - China
+          - Christmas Island
+          - Cocos (Keeling) Islands
+          - Colombia
+          - Comoros
+          - Congo
+          - Congo; The Democratic Republic Of The
+          - Cook Islands
+          - Costa Rica
+          - Cote D'ivoire
+          - Croatia
+          - Cuba
+          - Cyprus
+          - Czechia
+          - Denmark
+          - Djibouti
+          - Dominica
+          - Dominican Republic
+          - Ecuador
+          - Egypt
+          - El Salvador
+          - Equatorial Guinea
+          - Eritrea
+          - Estonia
+          - Ethiopia
+          - Falkland Islands (Malvinas)
+          - Faroe Islands
+          - Fiji
+          - Finland
+          - France
+          - French Guiana
+          - French Polynesia
+          - French Southern Territories
+          - Gabon
+          - Gambia
+          - Georgia
+          - Germany
+          - Ghana
+          - Gibraltar
+          - Greece
+          - Greenland
+          - Grenada
+          - Guadeloupe
+          - Guam
+          - Guatemala
+          - Guernsey
+          - Guinea
+          - Guinea-bissau
+          - Guyana
+          - Haiti
+          - Heard Island And Mcdonald Islands
+          - Holy See (Vatican City State)
+          - Honduras
+          - Hong Kong
+          - Hungary
+          - Iceland
+          - India
+          - Indonesia
+          - Iran; Islamic Republic Of
+          - Iraq
+          - Ireland
+          - Isle Of Man
+          - Israel
+          - Italy
+          - Jamaica
+          - Japan
+          - Jersey
+          - Jordan
+          - Kazakhstan
+          - Kenya
+          - Kiribati
+          - Korea; Democratic People's Republic Of
+          - Korea; Republic Of
+          - Kuwait
+          - Kyrgyzstan
+          - Lao People's Democratic Republic
+          - Latvia
+          - Lebanon
+          - Lesotho
+          - Liberia
+          - Libyan Arab Jamahiriya
+          - Liechtenstein
+          - Lithuania
+          - Luxembourg
+          - Macao
+          - Macedonia; The Former Yugoslav Republic Of
+          - Madagascar
+          - Malawi
+          - Malaysia
+          - Maldives
+          - Mali
+          - Malta
+          - Marshall Islands
+          - Martinique
+          - Mauritania
+          - Mauritius
+          - Mayotte
+          - Mexico
+          - Micronesia; Federated States Of
+          - Moldova; Republic Of
+          - Monaco
+          - Mongolia
+          - Montenegro
+          - Montserrat
+          - Morocco
+          - Mozambique
+          - Myanmar
+          - Namibia
+          - Nauru
+          - Nepal
+          - Netherlands
+          - Netherlands Antilles
+          - New Caledonia
+          - New Zealand
+          - Nicaragua
+          - Niger
+          - Nigeria
+          - Niue
+          - Norfolk Island
+          - Northern Mariana Islands
+          - Norway
+          - Oman
+          - Pakistan
+          - Palau
+          - Palestinian Territory; Occupied
+          - Panama
+          - Papua New Guinea
+          - Paraguay
+          - Peru
+          - Philippines
+          - Pitcairn
+          - Poland
+          - Portugal
+          - Puerto Rico
+          - Qatar
+          - Reunion
+          - Romania
+          - Russian Federation
+          - Rwanda
+          - Saint Helena
+          - Saint Kitts And Nevis
+          - Saint Lucia
+          - Saint Pierre And Miquelon
+          - Saint Vincent And The Grenadines
+          - Samoa
+          - San Marino
+          - Sao Tome And Principe
+          - Saudi Arabia
+          - Senegal
+          - Serbia
+          - Seychelles
+          - Sierra Leone
+          - Singapore
+          - Slovakia
+          - Slovenia
+          - Solomon Islands
+          - Somalia
+          - South Africa
+          - South Georgia And The South Sandwich Islands
+          - Spain
+          - Sri Lanka
+          - Sudan
+          - Suriname
+          - Svalbard And Jan Mayen
+          - Swaziland
+          - Sweden
+          - Switzerland
+          - Syrian Arab Republic
+          - Taiwan; Province Of China
+          - Tajikistan
+          - Tanzania; United Republic Of
+          - Thailand
+          - Timor-leste
+          - Togo
+          - Tokelau
+          - Tonga
+          - Trinidad And Tobago
+          - Tunisia
+          - Turkey
+          - Turkmenistan
+          - Turks And Caicos Islands
+          - Tuvalu
+          - Uganda
+          - Ukraine
+          - United Arab Emirates
+          - United Kingdom
+          - United States
+          - United States Minor Outlying Islands
+          - Uruguay
+          - Uzbekistan
+          - Vanuatu
+          - Venezuela
+          - Viet Nam
+          - Virgin Islands; British
+          - Virgin Islands; U.S.
+          - Wallis And Futuna
+          - Western Sahara
+          - Yemen
+          - Zambia
+          - Zimbabwe
+      ShippingHandling:
+        label: Shipping and Handling
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: €
+      ShippingName:
+        label: Ship To Name
+        kind: String
+      ShippingPostalCode:
+        label: Ship To Postal Code
+        kind: String
+      ShippingState:
+        label: Ship To State
+        kind: String
+      ShippingStreet:
+        label: Ship To Street
+        kind: String
+      Status:
+        label: Status
+        kind: Select
+        options:
+          options:
+          - Draft
+          - Needs Review
+          - In Review
+          - Approved
+          - Rejected
+          - Presented
+          - Accepted
+          - Denied
+      Subtotal:
+        label: Subtotal (calculated)
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: €
+      Tax:
+        label: Tax
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+          suffix: '%'
+      TotalPrice:
+        label: Total Price (calculated)
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: €
+  QuoteLineItem:
+    name: QuoteLineItem
+    fields:
+      Description:
+        label: Line Description
+        kind: String
+      Discount:
+        label: Discount
+        kind: Number
+        options:
+          format: 0
+          precision: "2"
+          suffix: €
+      LineItemDescription:
+        label: Line Item Description
+        kind: String
+        options:
+          multiLine: true
+      LineItemNumber:
+        label: Line Item Number
+        kind: String
+      ListPrice:
+        label: List Price
+        kind: Number
+        options:
+          format: 0
+          precision: "2"
+          suffix: €
+      PricebookEntryId:
+        label: Price Book Entry
+        kind: Record
+        options:
+          labelField: Name
+          module: PricebookEntry
+          queryFields:
+          - ProductCode
+          - Name
+      ProductCode:
+        label: Product Code
+        kind: String
+      ProductId:
+        label: Product
+        kind: Record
+        options:
+          labelField: Name
+          module: Product
+          queryFields:
+          - ProductCode
+          - Name
+      Quantity:
+        label: Quantity
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      QuoteId:
+        label: Quote
+        kind: Record
+        options:
+          labelField: Name
+          module: Quote
+          queryFields:
+          - AccountId
+          - Name
+          - QuoteNumber
+      ServiceDate:
+        label: Date
+        kind: DateTime
+      SortOrder:
+        label: Sort Order
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      Subtotal:
+        label: Subtotal
+        kind: Number
+        options:
+          format: 0
+          precision: "2"
+          suffix: €
+      TotalPrice:
+        label: Total Price
+        kind: Number
+        options:
+          format: 0
+          precision: "2"
+          suffix: €
+      UnitPrice:
+        label: Sales Price
+        kind: Number
+        options:
+          format: 0
+          precision: 2
+          suffix: €
+  Reply:
+    name: Reply
+    fields:
+      Body:
+        label: Reply Body
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      DownVotes:
+        label: Down Votes
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      IdeaId:
+        label: Idea
+        kind: Record
+        options:
+          labelField: Title
+          module: Idea
+          queryFields:
+          - Title
+      Name:
+        label: Name
+        kind: String
+      QuestionId:
+        label: Question
+        kind: Record
+        options:
+          labelField: Title
+          module: Question
+          queryFields:
+          - Title
+      UpVotes:
+        label: Up Votes
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      VoteTotal:
+        label: Vote Total
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+  Solution:
+    name: Solution
+    fields:
+      CaseId:
+        label: Case
+        kind: Record
+        options:
+          labelField: Subject
+          module: Case
+          queryFields:
+          - AccountId
+          - CaseNumber
+          - Subject
+      File:
+        label: File
+        kind: File
+        options:
+          allowDocuments: false
+          allowImages: false
+          mode: list
+      IsPublished:
+        label: Public
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      IsReviewed:
+        label: Reviewed
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      ProductId:
+        label: Product
+        kind: Record
+        options:
+          labelField: Name
+          module: Product
+          queryFields:
+          - ProductCode
+          - Name
+      SolutionName:
+        label: Solution Title
+        kind: String
+      SolutionNote:
+        label: Solution Details
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      SolutionNumber:
+        label: Solution Number
+        kind: Number
+        options:
+          format: "0000000"
+          precision: 0
+      Status:
+        label: Status
+        kind: Select
+        options:
+          options:
+          - New
+          - Pending review
+          - Accepted
+          - Obsolete
+          - Duplicate
+  Task:
+    name: Task
+    fields:
+      AccountId:
+        label: Account
+        kind: Record
+        options:
+          labelField: AccountName
+          module: Account
+          queryFields:
+          - AccountName
+          selectType: default
+      ActivityDate:
+        label: Due Date
+        kind: DateTime
+        required: true
+        multi: true
+      CallDisposition:
+        label: Call Result
+        kind: String
+      CallDurationInSeconds:
+        label: Call Duration
+        kind: Number
+        options:
+          format: 0
+          precision: 0
+      CallObject:
+        label: Call Object Identifier
+        kind: String
+      CallType:
+        label: Call Type
+        kind: Select
+        options:
+          options:
+          - Internal
+          - Inbound
+          - Outbound
+          selectType: default
+      CaseId:
+        label: Case
+        kind: Record
+        options:
+          labelField: Subject
+          module: Case
+          queryFields:
+          - AccountId
+          - CaseNumber
+          - Subject
+          selectType: default
+      ContactId:
+        label: Contact
+        kind: Record
+        options:
+          labelField: RecordLabel
+          module: Contact
+          queryFields:
+          - RecordLabel
+          selectType: default
+      ContractId:
+        label: Contract
+        kind: Record
+        options:
+          labelField: Name
+          module: Contract
+          queryFields:
+          - AccountId
+          - Name
+          - ContractNumber
+          selectType: default
+      Description:
+        label: Comments
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      IsClosed:
+        label: Closed
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      IsReminderSet:
+        label: Reminder Set
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      LeadId:
+        label: Lead
+        kind: Record
+        options:
+          labelField: RecordLabel
+          module: Lead
+          queryFields:
+          - RecordLabel
+          selectType: default
+      OpportunityId:
+        label: Opportunity
+        kind: Record
+        options:
+          labelField: Name
+          module: Opportunity
+          queryFields:
+          - AccountId
+          - Name
+          selectType: default
+      OwnerId:
+        label: Assigned To
+        kind: User
+        options:
+          presetWithAuthenticated: false
+          selectType: default
+      Priority:
+        label: Priority
+        kind: Select
+        options:
+          options:
+          - High
+          - Normal
+          - Low
+          selectType: default
+      QuoteId:
+        label: Quote
+        kind: Record
+        options:
+          labelField: Name
+          module: Quote
+          queryFields:
+          - AccountId
+          - Name
+          - QuoteNumber
+          selectType: default
+      ReminderDateTime:
+        label: Reminder Date/Time
+        kind: DateTime
+      Status:
+        label: Status
+        kind: Select
+        options:
+          options:
+          - Open
+          - Completed
+          selectType: default
+      Subject:
+        label: Subject
+        kind: String
+      Type:
+        label: Type
+        kind: Select
+        options:
+          options:
+          - Call
+          - Email
+          - Send letter
+          - Send Quote
+          - Send Message
+          - Other
+          selectType: default
+  Vote:
+    name: Vote
+    fields:
+      IdeaId:
+        label: Idea
+        kind: Record
+        options:
+          labelField: Title
+          module: Idea
+          queryFields:
+          - Title
+      QuestionId:
+        label: Question
+        kind: Record
+        options:
+          labelField: Title
+          module: Question
+          queryFields:
+          - Title
+      ReplyId:
+        label: Reply
+        kind: Record
+        options:
+          labelField: Name
+          module: Reply
+          queryFields:
+          - Name
+      Score:
+        label: Score
+        kind: Number
+        options:
+          format: 0
+          precision: 0

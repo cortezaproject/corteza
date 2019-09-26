@@ -20,8 +20,8 @@ func TestProvisioning(t *testing.T) {
 		aux interface{}
 
 		roles = sysTypes.RoleSet{
-			&sysTypes.Role{ID: 1, Handle: "everyone"},
-			&sysTypes.Role{ID: 2, Handle: "admins"},
+			&sysTypes.Role{ID: permissions.EveryoneRoleID, Handle: "everyone"},
+			&sysTypes.Role{ID: permissions.AdminRoleID, Handle: "admins"},
 		}
 
 		ctx = h.secCtx()

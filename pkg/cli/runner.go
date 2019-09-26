@@ -95,7 +95,7 @@ type (
 
 		// Access control initial setup
 		// Reapplies default access control rules for roles "everyone" [1] and "admin" [2]
-		ProvisionAccessControl Runners
+		ProvisionConfig Runners
 
 		// ******************************************************************
 
@@ -264,7 +264,7 @@ func (c *Config) MakeCLI(ctx context.Context) (cmd *cobra.Command) {
 
 	cmd.AddCommand(serveApiCmd)
 
-	if len(c.ProvisionMigrateDatabase) > 0 || len(c.ProvisionAccessControl) > 0 {
+	if len(c.ProvisionMigrateDatabase) > 0 || len(c.ProvisionConfig) > 0 {
 		var (
 			provisionCmd = &cobra.Command{
 				Use:   "provision",
@@ -275,17 +275,17 @@ func (c *Config) MakeCLI(ctx context.Context) (cmd *cobra.Command) {
 		// Add only commands with defined callbacks
 		if len(c.ProvisionMigrateDatabase) > 0 {
 			provisionCmd.AddCommand(&cobra.Command{
-				Use:   "access-control-rules",
-				Short: "Reset access control rules & roles",
+				Use:   "configuration",
+				Short: "Create permissions & resources",
 
 				RunE: func(cmd *cobra.Command, args []string) error {
-					return c.ProvisionAccessControl.Run(ctx, nil, c)
+					return c.ProvisionConfig.Run(ctx, nil, c)
 				},
 			})
 		}
 
 		// Add only commands with defined callbacks
-		if len(c.ProvisionAccessControl) > 0 {
+		if len(c.ProvisionConfig) > 0 {
 			provisionCmd.AddCommand(&cobra.Command{
 				Use:   "migrate-database",
 				Short: "Run database migration scripts",
