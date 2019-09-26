@@ -33,7 +33,7 @@ type (
 		Update(context.Context, *types.Reminder) (*types.Reminder, error)
 
 		Dismiss(context.Context, uint64) error
-		Snooze(context.Context, uint64, time.Time) error
+		Snooze(context.Context, uint64, *time.Time) error
 
 		Delete(context.Context, uint64) error
 	}
@@ -149,7 +149,7 @@ func (svc reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
 	})
 }
 
-func (svc reminder) Snooze(ctx context.Context, ID uint64, remindAt time.Time) (err error) {
+func (svc reminder) Snooze(ctx context.Context, ID uint64, remindAt *time.Time) (err error) {
 	return svc.db.Transaction(func() (err error) {
 		var t *types.Reminder
 		if t, err = svc.reminder.FindByID(ID); err != nil {

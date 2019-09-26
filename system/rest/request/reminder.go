@@ -123,7 +123,7 @@ type ReminderCreate struct {
 	Resource   string
 	AssignedTo uint64 `json:",string"`
 	Payload    sqlxTypes.JSONText
-	RemindAt   time.Time
+	RemindAt   *time.Time
 }
 
 func NewReminderCreate() *ReminderCreate {
@@ -182,7 +182,7 @@ func (r *ReminderCreate) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := post["remindAt"]; ok {
 
-		if r.RemindAt, err = parseISODateWithErr(val); err != nil {
+		if r.RemindAt, err = parseISODatePtrWithErr(val); err != nil {
 			return err
 		}
 	}
@@ -198,7 +198,7 @@ type ReminderUpdate struct {
 	Resource   string
 	AssignedTo uint64 `json:",string"`
 	Payload    sqlxTypes.JSONText
-	RemindAt   time.Time
+	RemindAt   *time.Time
 }
 
 func NewReminderUpdate() *ReminderUpdate {
@@ -259,7 +259,7 @@ func (r *ReminderUpdate) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := post["remindAt"]; ok {
 
-		if r.RemindAt, err = parseISODateWithErr(val); err != nil {
+		if r.RemindAt, err = parseISODatePtrWithErr(val); err != nil {
 			return err
 		}
 	}
@@ -425,7 +425,7 @@ var _ RequestFiller = NewReminderDismiss()
 // Reminder snooze request parameters
 type ReminderSnooze struct {
 	ReminderID uint64 `json:",string"`
-	RemindAt   time.Time
+	RemindAt   *time.Time
 }
 
 func NewReminderSnooze() *ReminderSnooze {
@@ -471,7 +471,7 @@ func (r *ReminderSnooze) Fill(req *http.Request) (err error) {
 	r.ReminderID = parseUInt64(chi.URLParam(req, "reminderID"))
 	if val, ok := post["remindAt"]; ok {
 
-		if r.RemindAt, err = parseISODateWithErr(val); err != nil {
+		if r.RemindAt, err = parseISODatePtrWithErr(val); err != nil {
 			return err
 		}
 	}

@@ -22,7 +22,7 @@ type (
 		DismissedBy uint64     `json:"dismissedBy,string" db:"dismissed_by"`
 		DismissedAt *time.Time `json:"dismissedAt" db:"dismissed_at"`
 
-		RemindAt time.Time `json:"remindAt" db:"remind_at"`
+		RemindAt *time.Time `json:"remindAt" db:"remind_at"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty" db:"created_at"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty" db:"updated_at"`
