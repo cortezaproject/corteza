@@ -43,10 +43,22 @@
             "type": "*time.Time"
           },
           {
-            "name": "scheduledBefore",
+            "name": "scheduledUntil",
             "required": false,
-            "title": "Only reminders up to this time (excluded)",
+            "title": "Only reminders up to this time (included)",
             "type": "*time.Time"
+          },
+          {
+            "name": "scheduledOnly",
+            "required": false,
+            "title": "Only scheduled reminders",
+            "type": "bool"
+          },
+          {
+            "name": "excludeDismissed",
+            "required": false,
+            "title": "Filter out dismissed reminders",
+            "type": "bool"
           },
           {
             "name": "page",

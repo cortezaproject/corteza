@@ -36,12 +36,14 @@ var _ = multipart.FileHeader{}
 
 // Reminder list request parameters
 type ReminderList struct {
-	Resource        string
-	AssignedTo      uint64 `json:",string"`
-	ScheduledFrom   *time.Time
-	ScheduledBefore *time.Time
-	Page            uint
-	PerPage         uint
+	Resource         string
+	AssignedTo       uint64 `json:",string"`
+	ScheduledFrom    *time.Time
+	ScheduledUntil   *time.Time
+	ScheduledOnly    bool
+	ExcludeDismissed bool
+	Page             uint
+	PerPage          uint
 }
 
 func NewReminderList() *ReminderList {
@@ -54,7 +56,9 @@ func (r ReminderList) Auditable() map[string]interface{} {
 	out["resource"] = r.Resource
 	out["assignedTo"] = r.AssignedTo
 	out["scheduledFrom"] = r.ScheduledFrom
-	out["scheduledBefore"] = r.ScheduledBefore
+	out["scheduledUntil"] = r.ScheduledUntil
+	out["scheduledOnly"] = r.ScheduledOnly
+	out["excludeDismissed"] = r.ExcludeDismissed
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
 
@@ -100,11 +104,17 @@ func (r *ReminderList) Fill(req *http.Request) (err error) {
 			return err
 		}
 	}
-	if val, ok := get["scheduledBefore"]; ok {
+	if val, ok := get["scheduledUntil"]; ok {
 
-		if r.ScheduledBefore, err = parseISODatePtrWithErr(val); err != nil {
+		if r.ScheduledUntil, err = parseISODatePtrWithErr(val); err != nil {
 			return err
 		}
+	}
+	if val, ok := get["scheduledOnly"]; ok {
+		r.ScheduledOnly = parseBool(val)
+	}
+	if val, ok := get["excludeDismissed"]; ok {
+		r.ExcludeDismissed = parseBool(val)
 	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)
