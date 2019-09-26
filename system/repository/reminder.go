@@ -80,6 +80,14 @@ func (r reminder) Find(filter types.ReminderFilter) (set types.ReminderSet, f ty
 	f = filter
 	q := r.query()
 
+	if f.ExcludeDismissed {
+		q = q.Where("dismissed_at IS NULL")
+	}
+
+	if f.ScheduledOnly {
+		q = q.Where("remind_at IS NOT NULL")
+	}
+
 	if f.AssignedTo != 0 {
 		q = q.Where("r.assigned_to = ?", f.AssignedTo)
 	}
@@ -91,8 +99,8 @@ func (r reminder) Find(filter types.ReminderFilter) (set types.ReminderSet, f ty
 	if f.ScheduledFrom != nil {
 		q = q.Where("r.remind_at >= ?", f.ScheduledFrom.Format(time.RFC3339))
 	}
-	if f.ScheduledBefore != nil {
-		q = q.Where("r.remind_at < ?", f.ScheduledBefore.Format(time.RFC3339))
+	if f.ScheduledUntil != nil {
+		q = q.Where("r.remind_at <= ?", f.ScheduledUntil.Format(time.RFC3339))
 	}
 
 	if f.AccessCheck.HasOperation() {

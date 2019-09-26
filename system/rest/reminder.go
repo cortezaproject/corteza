@@ -26,7 +26,7 @@ type (
 
 	reminderSetPayload struct {
 		Filter types.ReminderFilter `json:"filter"`
-		Set    types.ReminderSet    `json:"set"`
+		Set    types.ReminderSet    `json:"set,omitempty"`
 	}
 )
 
@@ -38,10 +38,12 @@ func (Reminder) New() *Reminder {
 
 func (ctrl *Reminder) List(ctx context.Context, r *request.ReminderList) (interface{}, error) {
 	f := types.ReminderFilter{
-		AssignedTo:      r.AssignedTo,
-		Resource:        r.Resource,
-		ScheduledFrom:   r.ScheduledFrom,
-		ScheduledBefore: r.ScheduledBefore,
+		AssignedTo:       r.AssignedTo,
+		Resource:         r.Resource,
+		ScheduledFrom:    r.ScheduledFrom,
+		ScheduledUntil:   r.ScheduledUntil,
+		ExcludeDismissed: r.ExcludeDismissed,
+		ScheduledOnly:    r.ScheduledOnly,
 
 		PageFilter: rh.Paging(r.Page, r.PerPage),
 	}

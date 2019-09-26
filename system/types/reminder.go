@@ -30,12 +30,14 @@ type (
 	}
 
 	ReminderFilter struct {
-		Resource        string     `json:"resource"`
-		AssignedTo      uint64     `json:"assignedTo,uint64"`
-		ScheduledFrom   *time.Time `json:"scheduledFrom"`
-		ScheduledBefore *time.Time `json:"scheduledBefore"`
-		Page            uint       `json:"page,uint"`
-		PerPage         uint       `json:"perPage,uint"`
+		Resource         string     `json:"resource"`
+		AssignedTo       uint64     `json:"assignedTo,uint64"`
+		ScheduledFrom    *time.Time `json:"scheduledFrom"`
+		ScheduledUntil   *time.Time `json:"scheduledUntil"`
+		ExcludeDismissed bool       `json:"excludeDismissed"`
+		ScheduledOnly    bool       `json:"scheduledOnly"`
+		Page             uint       `json:"page,uint"`
+		PerPage          uint       `json:"perPage,uint"`
 
 		// Standard paging fields & helpers
 		rh.PageFilter
