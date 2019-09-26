@@ -31,11 +31,3 @@ REPLACE INTO `sys_application` (`id`, `name`, `enabled`, `rel_owner`, `unify`) V
   '{"logo": "/applications/google_maps.png", "icon": "/applications/google_maps_icon.png", "url": "/bridge/google-maps/", "listed": true}'
 );
 
--- Allow admin access to applications
-INSERT INTO `sys_rules` (`rel_role`, `resource`, `operation`, `value`) VALUES
-  (1, 'system:application:*', 'read', 2),
-  (2, 'system', 'application.create', 2),
-  (2, 'system:application:*', 'read', 2),
-  (2, 'system:application:*', 'update', 2),
-  (2, 'system:application:*', 'delete', 2)
-;

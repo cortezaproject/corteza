@@ -1,6 +1,3 @@
-INSERT IGNORE INTO compose_namespace (id, name, slug, enabled, meta)
-            VALUES (88714882739863655, 'Crust CRM', 'crm', true, '{}');
-
 ALTER TABLE `compose_attachment`
         ADD `rel_namespace` BIGINT UNSIGNED NOT NULL AFTER `id`,
         ADD INDEX (`rel_namespace`);
