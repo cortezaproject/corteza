@@ -247,14 +247,18 @@ func (nsImp *Namespace) Store(ctx context.Context, nsk namespaceKeeper, mk modul
 			if err = nsImp.modules[handle].Store(ctx, mk); err != nil {
 				return errors.Wrap(err, "could not import modules")
 			}
+
+			nsImp.scripts[handle].namespace = namespace
 			if err = nsImp.scripts[handle].Store(ctx, sk); err != nil {
 				return errors.Wrap(err, "could not import automation scripts")
 			}
 
+			nsImp.charts[handle].namespace = namespace
 			if err = nsImp.charts[handle].Store(ctx, ck); err != nil {
 				return errors.Wrap(err, "could not import charts")
 			}
 
+			nsImp.pages[handle].namespace = namespace
 			if err = nsImp.pages[handle].Store(ctx, pk); err != nil {
 				return errors.Wrap(err, "could not import pages")
 			}

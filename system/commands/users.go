@@ -16,6 +16,10 @@ import (
 )
 
 func Users(ctx context.Context, c *cli.Config) *cobra.Command {
+	var (
+		flagNoPassword bool
+	)
+
 	// User management commands.
 	cmd := &cobra.Command{
 		Use:   "users",
@@ -82,27 +86,40 @@ func Users(ctx context.Context, c *cli.Config) *cobra.Command {
 				password []byte
 			)
 
+			if existing, _ := userRepo.FindByEmail(user.Email); existing != nil && existing.ID > 0 {
+				cmd.Printf("User already exists [%d].\n", existing.ID)
+				return
+			}
+
 			if user, err = userRepo.Create(user); err != nil {
 				cli.HandleError(err)
 			}
 
 			cmd.Printf("User created [%d].\n", user.ID)
 
-			cmd.Print("Set password: ")
-			if password, err = terminal.ReadPassword(syscall.Stdin); err != nil {
-				cli.HandleError(err)
-			}
+			if !flagNoPassword {
+				cmd.Print("Set password: ")
+				if password, err = terminal.ReadPassword(syscall.Stdin); err != nil {
+					cli.HandleError(err)
+				}
 
-			if len(password) == 0 {
-				// Password not set, that's ok too.
-				return
-			}
+				if len(password) == 0 {
+					// Password not set, that's ok too.
+					return
+				}
 
-			if err = authSvc.SetPassword(user.ID, string(password)); err != nil {
-				cli.HandleError(err)
+				if err = authSvc.SetPassword(user.ID, string(password)); err != nil {
+					cli.HandleError(err)
+				}
 			}
 		},
 	}
+
+	addCmd.Flags().BoolVar(
+		&flagNoPassword,
+		"no-password",
+		false,
+		"Create user without password")
 
 	pwdCmd := &cobra.Command{
 		Use:   "password [email]",

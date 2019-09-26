@@ -147,27 +147,7 @@ func (mImp *Module) Cast(handle string, def interface{}) (err error) {
 
 func (mImp *Module) castFields(module *types.Module, def interface{}) (err error) {
 	return deinterfacer.Each(def, func(_ int, fieldName string, val interface{}) (err error) {
-		if fieldKind, ok := val.(string); ok && fieldName != "" {
-			// Not much more to do here
-			field := module.Fields.FindByName(fieldName)
-			if field == nil {
-				module.Fields = append(module.Fields, &types.ModuleField{
-					Kind:  fieldKind,
-					Name:  fieldName,
-					Label: fieldName,
-				})
-			} else {
-				field.Kind = fieldKind
-			}
-
-			return
-		}
-
-		if !deinterfacer.IsMap(def) {
-			return errors.New("expecting map of values for module field")
-		}
-
-		deinterfacer.KVsetString(&fieldName, "name", def)
+		deinterfacer.KVsetString(&fieldName, "name", val)
 		field := module.Fields.FindByName(fieldName)
 
 		if field == nil {
@@ -182,21 +162,27 @@ func (mImp *Module) castFields(module *types.Module, def interface{}) (err error
 
 		return deinterfacer.Each(val, func(_ int, key string, val interface{}) (err error) {
 			switch key {
+			case "name":
+				// already handled
+
 			case "label":
 				field.Label = deinterfacer.ToString(val)
+
 			case "kind", "type":
 				field.Kind = deinterfacer.ToString(val)
 
 			case "options":
-				// @todo ModuleField.Options
 				return mImp.castFieldOptions(field, val)
 
 			case "private":
 				field.Private = deinterfacer.ToBool(val)
+
 			case "required":
 				field.Required = deinterfacer.ToBool(val)
+
 			case "visible":
 				field.Visible = deinterfacer.ToBool(val)
+
 			case "multi":
 				field.Multi = deinterfacer.ToBool(val)
 

@@ -1,0 +1,10 @@
+namespaces:
+  crm:
+    name: CRM
+    allow:
+      everyone:
+      - module.create
+      - read
+    deny:
+      everyone:
+      - delete

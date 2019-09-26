@@ -3,14 +3,14 @@ package options
 type (
 	ProvisionOpt struct {
 		MigrateDatabase bool `env:"PROVISION_MIGRATE_DATABASE"`
-		AutoSetup       bool `env:"PROVISION_AUTO_SETUP"`
+		Configuration   bool `env:"PROVISION_CONFIGURATION"`
 	}
 )
 
 func Provision(pfix string) (o *ProvisionOpt) {
 	o = &ProvisionOpt{
 		MigrateDatabase: true,
-		AutoSetup:       true,
+		Configuration:   true,
 	}
 
 	fill(o, pfix)

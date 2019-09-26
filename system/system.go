@@ -57,11 +57,11 @@ func Configure() *cli.Config {
 
 				c.InitServices(ctx, c)
 
-				if c.ProvisionOpt.AutoSetup {
-					cli.HandleError(accessControlSetup(ctx, cmd, c))
+				if c.ProvisionOpt.Configuration {
+					cli.HandleError(provisionConfig(ctx, cmd, c))
 					cli.HandleError(makeDefaultApplications(ctx, cmd, c))
 
-					cli.HandleError(discoverSettings(ctx, cmd, c))
+					cli.HandleError(settingsAutoDiscovery(ctx, cmd, c))
 
 					// Reload auto-configured settings
 					// adding externals and oidc auto discovery depends on redirect-url setting
@@ -154,8 +154,8 @@ func Configure() *cli.Config {
 			},
 		},
 
-		ProvisionAccessControl: cli.Runners{
-			accessControlSetup,
+		ProvisionConfig: cli.Runners{
+			provisionConfig,
 		},
 	}
 }

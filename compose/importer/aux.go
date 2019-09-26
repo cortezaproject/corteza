@@ -30,8 +30,8 @@ func Import(ctx context.Context, ns *types.Namespace, ff ...io.Reader) (err erro
 		//
 		// Roles are use for resolving access control
 		roles = sysTypes.RoleSet{
-			&sysTypes.Role{ID: 1, Handle: "everyone"},
-			&sysTypes.Role{ID: 2, Handle: "admins"},
+			&sysTypes.Role{ID: permissions.EveryoneRoleID, Handle: "everyone"},
+			&sysTypes.Role{ID: permissions.AdminRoleID, Handle: "admins"},
 		}
 	)
 

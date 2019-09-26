@@ -3,7 +3,6 @@ package importer
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -130,9 +129,6 @@ func (pImp *Page) cast(parent, handle string, def interface{}) (err error) {
 	}
 
 	pImp.tree[parent] = append(pImp.tree[parent], handle)
-
-	// Make pages are always sorted
-	sort.Strings(pImp.tree[parent])
 
 	if title, ok := def.(string); ok && title != "" {
 		page.Title = title
@@ -280,16 +276,28 @@ func (pImp *Page) storeChildren(ctx context.Context, parent string, k pageKeeper
 		return nil
 	}
 
+	var parentPage *types.Page
+	if parent != "" {
+		parentPage, err = pImp.Get(parent)
+		if err != nil {
+			return
+		} else if parentPage == nil {
+			return errors.Errorf("could not load parent %q", parent)
+		}
+	}
+
 	var page *types.Page
 
-	for _, child := range children {
+	for w, child := range children {
 		if page, err = pImp.Get(child); err != nil {
 			return
 		}
 
-		if err = pImp.resolveRefs(page); err != nil {
-			return
+		if parentPage != nil {
+			page.SelfID = parentPage.ID
 		}
+
+		page.Weight = w
 
 		if page.ID == 0 {
 			page.NamespaceID = pImp.namespace.ID
@@ -314,127 +322,160 @@ func (pImp *Page) storeChildren(ctx context.Context, parent string, k pageKeeper
 		}
 	}
 
+	// We do that at the end - and save all pages with resolved references
+	//
+	// Many because internal page referencing from page blocks
+	var refs uint
+	for _, child := range children {
+		if page, err = pImp.Get(child); err != nil {
+			return
+		}
+
+		if refs, err = pImp.resolveRefs(page); err != nil {
+			return
+		} else if refs > 0 {
+			// make sure we do not get stale-data error
+			page.UpdatedAt = nil
+			if _, err = k.Update(page); err != nil {
+				return errors.Wrap(err, "could not update resolved refs")
+			}
+		}
+	}
+
 	return
 }
 
 // Resolve all refs for this page (page module, inside block)
-func (pImp *Page) resolveRefs(page *types.Page) error {
-	if moduleHandle, ok := pImp.modules[page.Handle]; ok {
-		if module, err := pImp.getModule(moduleHandle); err != nil {
-			return err
-		} else if module == nil {
-			return errors.Wrapf(err, "could not load module %q for page %q",
-				moduleHandle, page.Handle)
-		} else {
-			page.ModuleID = module.ID
-		}
-	}
+//
+// It counts number of resolved refs so that caller can know
+// if there is anything to save
+func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
+	var refs uint
 
-	for i, b := range page.Blocks {
-		if b.Options == nil {
-			continue
-		}
-
-		if h, ok := b.Options["module"]; ok {
-			if refm, err := pImp.getModule(deinterfacer.ToString(h)); err != nil || refm == nil {
-				return errors.Errorf("could not load module %q for page %q block #%d (%v)",
-					h, page.Handle, i+1, err)
+	return refs, func() error {
+		if moduleHandle, ok := pImp.modules[page.Handle]; ok {
+			if module, err := pImp.getModule(moduleHandle); err != nil {
+				return err
+			} else if module == nil {
+				return errors.Wrapf(err, "could not load module %q for page %q",
+					moduleHandle, page.Handle)
 			} else {
-				b.Options["moduleID"] = strconv.FormatUint(refm.ID, 10)
-				delete(b.Options, "module")
+				page.ModuleID = module.ID
+				refs++
 			}
 		}
 
-		if h, ok := b.Options["page"]; ok {
-			if refp, err := pImp.Get(deinterfacer.ToString(h)); err != nil || refp == nil {
-				return errors.Errorf("could not load page %q for page %q block #%d (%v)",
-					h, page.Handle, i+1, err)
-			} else {
-				b.Options["pageID"] = strconv.FormatUint(refp.ID, 10)
-				delete(b.Options, "page")
+		for i, b := range page.Blocks {
+			if b.Options == nil {
+				continue
 			}
-		}
 
-		if h, ok := b.Options["chart"]; ok {
-			if refc, err := pImp.getChart(deinterfacer.ToString(h)); err != nil || refc == nil {
-				return errors.Errorf("could not load chart %q for page %q block #%d (%v)",
-					h, page.Handle, i+1, err)
-			} else {
-				b.Options["chartID"] = strconv.FormatUint(refc.ID, 10)
-				delete(b.Options, "chart")
+			if h, ok := b.Options["module"]; ok {
+				if refm, err := pImp.getModule(deinterfacer.ToString(h)); err != nil || refm == nil {
+					return errors.Errorf("could not load module %q for page %q block #%d (%v)",
+						h, page.Handle, i+1, err)
+				} else {
+					b.Options["moduleID"] = strconv.FormatUint(refm.ID, 10)
+					delete(b.Options, "module")
+					refs++
+				}
 			}
-		}
 
-		if b.Kind == "Automation" {
-			bb := make([]interface{}, 0)
-			err := deinterfacer.Each(b.Options["buttons"], func(_ int, _ string, btn interface{}) (err error) {
-				button := map[string]interface{}{}
+			if h, ok := b.Options["page"]; ok {
+				if refp, err := pImp.Get(deinterfacer.ToString(h)); err != nil || refp == nil {
+					return errors.Errorf("could not load page %q for page %q block #%d (%v)",
+						h, page.Handle, i+1, err)
+				} else {
+					b.Options["pageID"] = strconv.FormatUint(refp.ID, 10)
+					delete(b.Options, "page")
+					refs++
+				}
+			}
 
-				err = deinterfacer.Each(btn, func(_ int, k string, v interface{}) error {
-					switch k {
-					case "script":
-						if s, err := pImp.getScript(deinterfacer.ToString(v)); err != nil || s == nil {
-							return errors.Errorf("could not load script %q for page %q block #%d (%v)",
-								v, page.Handle, i+1, err)
-						} else {
-							button["scriptID"] = s.ID
+			if h, ok := b.Options["chart"]; ok {
+				if refc, err := pImp.getChart(deinterfacer.ToString(h)); err != nil || refc == nil {
+					return errors.Errorf("could not load chart %q for page %q block #%d (%v)",
+						h, page.Handle, i+1, err)
+				} else {
+					b.Options["chartID"] = strconv.FormatUint(refc.ID, 10)
+					delete(b.Options, "chart")
+					refs++
+				}
+			}
+
+			if b.Kind == "Automation" {
+				bb := make([]interface{}, 0)
+				err := deinterfacer.Each(b.Options["buttons"], func(_ int, _ string, btn interface{}) (err error) {
+					button := map[string]interface{}{}
+
+					err = deinterfacer.Each(btn, func(_ int, k string, v interface{}) error {
+						switch k {
+						case "script":
+							if s, err := pImp.getScript(deinterfacer.ToString(v)); err != nil || s == nil {
+								return errors.Errorf("could not load script %q for page %q block #%d (%v)",
+									v, page.Handle, i+1, err)
+							} else {
+								button["scriptID"] = s.ID
+								refs++
+							}
+						default:
+							button[k] = v
 						}
-					default:
-						button[k] = v
+
+						return nil
+					})
+
+					if err != nil {
+						return err
 					}
 
+					bb = append(bb, button)
 					return nil
 				})
+
+				b.Options["buttons"] = bb
 
 				if err != nil {
 					return err
 				}
+			} else if b.Kind == "Calendar" {
+				ff := make([]interface{}, 0)
+				err := deinterfacer.Each(b.Options["feeds"], func(_ int, _ string, def interface{}) (err error) {
+					feed := map[string]interface{}{}
 
-				bb = append(bb, button)
-				return nil
-			})
-
-			b.Options["buttons"] = bb
-
-			if err != nil {
-				return err
-			}
-		} else if b.Kind == "Calendar" {
-			ff := make([]interface{}, 0)
-			err := deinterfacer.Each(b.Options["feeds"], func(_ int, _ string, def interface{}) (err error) {
-				feed := map[string]interface{}{}
-
-				err = deinterfacer.Each(def, func(_ int, k string, v interface{}) error {
-					switch k {
-					case "module":
-						if m, err := pImp.getModule(deinterfacer.ToString(v)); err != nil || m == nil {
-							return errors.Errorf("could not load module %q for page %q block #%d (%v)",
-								v, page.Handle, i+1, err)
-						} else {
-							feed["moduleID"] = m.ID
+					err = deinterfacer.Each(def, func(_ int, k string, v interface{}) error {
+						switch k {
+						case "module":
+							if m, err := pImp.getModule(deinterfacer.ToString(v)); err != nil || m == nil {
+								return errors.Errorf("could not load module %q for page %q block #%d (%v)",
+									v, page.Handle, i+1, err)
+							} else {
+								feed["moduleID"] = m.ID
+								refs++
+							}
+						default:
+							feed[k] = v
 						}
-					default:
-						feed[k] = v
+
+						return nil
+					})
+
+					if err != nil {
+						return err
 					}
 
+					ff = append(ff, feed)
 					return nil
 				})
+
+				b.Options["feeds"] = ff
 
 				if err != nil {
 					return err
 				}
-
-				ff = append(ff, feed)
-				return nil
-			})
-
-			b.Options["feeds"] = ff
-
-			if err != nil {
-				return err
 			}
 		}
-	}
 
-	return nil
+		return nil
+	}()
 }

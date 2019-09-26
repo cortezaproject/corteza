@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 function download {
   SRC="https://raw.githubusercontent.com/cortezaproject/corteza-configs/master/${1}"
@@ -13,26 +14,9 @@ function getCrmConfig {
   NAMES="1000_namespace 1100_modules 1200_charts 1300_scripts 1400_pages"
 
   for NAME in $NAMES; do
-    download "crm/${NAME}.yaml" "./compose/${NAME}.yaml"
+    download "crm/${NAME}.yaml" "./compose/src/${NAME}.yaml"
   done
 }
 
-function get {
-  getCrmConfig
-}
+getCrmConfig
 
-function gen {
-  echo "generating..."
-}
-
-case ${1:-"all"} in
-  gen)
-    gen
-    ;;
-  get)
-    get
-    ;;
-  all)
-    get
-    gen
-esac
