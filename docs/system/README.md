@@ -735,7 +735,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | resource | string | POST | Resource | N/A | YES |
 | assignedTo | uint64 | POST | Assigned To | N/A | YES |
 | payload | sqlxTypes.JSONText | POST | Payload | N/A | YES |
-| remindAt | time.Time | POST | Remind At | N/A | YES |
+| remindAt | *time.Time | POST | Remind At | N/A | NO |
 
 ## Update reminder
 
@@ -753,7 +753,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | resource | string | POST | Resource | N/A | YES |
 | assignedTo | uint64 | POST | Assigned To | N/A | YES |
 | payload | sqlxTypes.JSONText | POST | Payload | N/A | YES |
-| remindAt | time.Time | POST | Remind At | N/A | YES |
+| remindAt | *time.Time | POST | Remind At | N/A | NO |
 
 ## Read reminder by ID
 
@@ -810,7 +810,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | reminderID | uint64 | PATH | reminder ID | N/A | YES |
-| remindAt | time.Time | POST | New Remind At Time | N/A | YES |
+| remindAt | *time.Time | POST | New Remind At Time | N/A | YES |
 
 ---
 

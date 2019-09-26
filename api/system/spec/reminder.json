@@ -90,9 +90,9 @@
           },
           {
             "name": "remindAt",
-            "required": true,
+            "required": false,
             "title": "Remind At",
-            "type": "time.Time"
+            "type": "*time.Time"
           }
         ]
       }
@@ -132,9 +132,9 @@
           },
           {
             "name": "remindAt",
-            "required": true,
+            "required": false,
             "title": "Remind At",
-            "type": "time.Time"
+            "type": "*time.Time"
           }
         ]
       }
@@ -206,7 +206,7 @@
             "name": "remindAt",
             "required": true,
             "title": "New Remind At Time",
-            "type": "time.Time"
+            "type": "*time.Time"
           }
         ]
       }

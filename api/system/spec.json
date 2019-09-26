@@ -1685,8 +1685,8 @@
             {
               "name": "remindAt",
               "title": "Remind At",
-              "type": "time.Time",
-              "required": true
+              "type": "*time.Time",
+              "required": false
             }
           ]
         }
@@ -1727,8 +1727,8 @@
             {
               "name": "remindAt",
               "title": "Remind At",
-              "type": "time.Time",
-              "required": true
+              "type": "*time.Time",
+              "required": false
             }
           ]
         }
@@ -1797,7 +1797,7 @@
           ],
           "post": [
             {
-              "type": "time.Time",
+              "type": "*time.Time",
               "name": "remindAt",
               "required": true,
               "title": "New Remind At Time"
