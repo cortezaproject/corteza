@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	sqlTypes "github.com/jmoiron/sqlx/types"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 
@@ -47,6 +48,10 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 				nsOut = Namespace{}
 			)
 
+			if nsFlag == "" {
+				cli.HandleError(errors.New("Specify namespace to export from"))
+			}
+
 			if namespaceID, _ := strconv.ParseUint(nsFlag, 10, 64); namespaceID > 0 {
 				ns, err = service.DefaultNamespace.FindByID(namespaceID)
 				if err != repository.ErrNamespaceNotFound {
@@ -65,8 +70,8 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 			//
 			// Roles are use for resolving access control
 			roles = sysTypes.RoleSet{
-				&sysTypes.Role{ID: 1, Handle: "everyone"},
-				&sysTypes.Role{ID: 2, Handle: "admins"},
+				&sysTypes.Role{ID: permissions.EveryoneRoleID, Handle: "everyone"},
+				&sysTypes.Role{ID: permissions.AdminRoleID, Handle: "admins"},
 			}
 
 			modules, _, err := service.DefaultModule.Find(types.ModuleFilter{NamespaceID: ns.ID})
@@ -90,13 +95,13 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 
 			y := yaml.NewEncoder(cmd.OutOrStdout())
 
-			nsOut.Name = ns.Name
-			nsOut.Handle = ns.Slug
-			nsOut.Enabled = ns.Enabled
-			nsOut.Meta = ns.Meta
-
-			nsOut.Allow = expResourcePermissions(permissions.Allow, ns.PermissionResource())
-			nsOut.Deny = expResourcePermissions(permissions.Deny, ns.PermissionResource())
+			// nsOut.Name = ns.Name
+			// nsOut.Handle = ns.Slug
+			// nsOut.Enabled = ns.Enabled
+			// nsOut.Meta = ns.Meta
+			//
+			// nsOut.Allow = expResourcePermissions(permissions.Allow, ns.PermissionResource())
+			// nsOut.Deny = expResourcePermissions(permissions.Deny, ns.PermissionResource())
 
 			for _, arg := range args {
 				switch arg {
@@ -114,14 +119,15 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 				}
 			}
 
-			out.Namespaces[ns.Slug] = nsOut
+			// out.Namespaces[ns.Slug] = nsOut
+			nsOut.Namespace = ns.Slug
 
 			_, _ = y, out
-			cli.HandleError(y.Encode(out))
+			cli.HandleError(y.Encode(nsOut))
 		},
 	}
 
-	cmd.Flags().String("namespace", "crm", "Export namespace resources (by ID or string)")
+	cmd.Flags().String("namespace", "", "Export namespace resources (by ID or string)")
 
 	return cmd
 }
@@ -138,13 +144,16 @@ type (
 	}
 
 	Namespace struct {
+		// This is used when exporting one single namespace
+		Namespace string `yaml:",omitempty"`
+
 		Name    string              `yaml:",omitempty"`
 		Handle  string              `yaml:",omitempty"`
 		Enabled bool                `yaml:",omitempty"`
 		Meta    types.NamespaceMeta `yaml:",omitempty"`
 
 		Modules map[string]Module `yaml:",omitempty"`
-		Pages   map[string]Page   `yaml:",omitempty"`
+		Pages   yaml.MapSlice     `yaml:",omitempty"`
 		Charts  map[string]Chart  `yaml:",omitempty"`
 		Scripts map[string]Script `yaml:",omitempty"`
 
@@ -155,7 +164,7 @@ type (
 	Module struct {
 		Name   string
 		Meta   string `yaml:"meta,omitempty"`
-		Fields map[string]Field
+		Fields yaml.MapSlice
 
 		Allow map[string][]string `yaml:",omitempty"`
 		Deny  map[string][]string `yaml:",omitempty"`
@@ -184,7 +193,7 @@ type (
 
 		Blocks types.PageBlocks `yaml:",omitempty"`
 
-		Pages map[string]Page `yaml:",omitempty"`
+		Pages yaml.MapSlice `yaml:",omitempty"`
 
 		Visible bool
 
@@ -275,21 +284,24 @@ func expModuleMetaCleanup(meta sqlTypes.JSONText) string {
 	return meta.String()
 }
 
-func expModuleFields(ff types.ModuleFieldSet, modules types.ModuleSet) (o map[string]Field) {
-	o = make(map[string]Field)
+func expModuleFields(ff types.ModuleFieldSet, modules types.ModuleSet) (o yaml.MapSlice) {
+	o = make(yaml.MapSlice, len(ff))
 
-	for _, f := range ff {
-		o[f.Name] = Field{
-			Label:    f.Label,
-			Kind:     f.Kind,
-			Options:  expModuleFieldOptions(f, modules),
-			Private:  f.Private,
-			Required: f.Required,
-			Visible:  f.Visible,
-			Multi:    f.Multi,
+	for i, f := range ff {
+		o[i] = yaml.MapItem{
+			Key: f.Name,
+			Value: Field{
+				Label:    f.Label,
+				Kind:     f.Kind,
+				Options:  expModuleFieldOptions(f, modules),
+				Private:  f.Private,
+				Required: f.Required,
+				Visible:  f.Visible,
+				Multi:    f.Multi,
 
-			Allow: expResourcePermissions(permissions.Allow, types.ModuleFieldPermissionResource),
-			Deny:  expResourcePermissions(permissions.Deny, types.ModuleFieldPermissionResource),
+				Allow: expResourcePermissions(permissions.Allow, types.ModuleFieldPermissionResource),
+				Deny:  expResourcePermissions(permissions.Deny, types.ModuleFieldPermissionResource),
+			},
 		}
 	}
 
@@ -352,12 +364,12 @@ func expModuleFieldOptions(f *types.ModuleField, modules types.ModuleSet) types.
 	return out
 }
 
-func expPages(parentID uint64, pages types.PageSet, modules types.ModuleSet, charts types.ChartSet, scripts automation.ScriptSet) (o map[string]Page) {
+func expPages(parentID uint64, pages types.PageSet, modules types.ModuleSet, charts types.ChartSet, scripts automation.ScriptSet) (o yaml.MapSlice) {
 	var (
 		children = pages.FindByParent(parentID)
 		handle   string
 	)
-	o = map[string]Page{}
+	o = yaml.MapSlice{}
 
 	for _, child := range children {
 		page := Page{
@@ -388,7 +400,10 @@ func expPages(parentID uint64, pages types.PageSet, modules types.ModuleSet, cha
 
 		pagesHandles[handle] = true
 
-		o[handle] = page
+		o = append(o, yaml.MapItem{
+			Key:   handle,
+			Value: page,
+		})
 	}
 
 	return
@@ -698,7 +713,7 @@ func makeHandleFromName(name, currentHandle, def string, id uint64) string {
 		return currentHandle
 	}
 
-	newHandle := strings.ReplaceAll(name, " ", "_")
+	newHandle := strings.ReplaceAll(strings.Title(name), " ", "")
 	newHandle = regexp.MustCompile(`[^0-9A-Za-z_\-.]+`).ReplaceAllString(newHandle, "")
 	if handle.IsValid(newHandle) {
 		return newHandle

@@ -225,6 +225,11 @@ func (asImp *AutomationScript) resolveRefs() error {
 	for _, ref := range asImp.modRefs {
 		s := asImp.set.FindByName(ref.as, asImp.namespace.ID)
 		if s == nil {
+			// try to find it in no-mans land
+			s = asImp.set.FindByName(ref.as, 0)
+		}
+
+		if s == nil {
 			return errors.Errorf("invalid reference, unknown automation script (%v)", ref)
 		}
 		if _, has := asImp.triggers[ref.as]; !has {

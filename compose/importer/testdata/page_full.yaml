@@ -1,8 +1,8 @@
 pages:
-  root:
+  - handle: root
     title: Root page
     pages:
-      sub1:
+      - handle: sub1
         title: Sub page 1
         blocks:
           - title: B1
@@ -12,8 +12,8 @@ pages:
           - title: B2
             xywh: [ 11, 12, 13, 14 ]
             kind: TheTestingKind
-      sub2:
+      - handle: sub2
         title: Sub page 2
         pages:
-          sub21:
+          - handle: sub21
             title: Sub-sub page 2.1
