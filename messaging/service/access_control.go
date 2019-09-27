@@ -230,52 +230,6 @@ func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (
 	return svc.permissions.FindRulesByRoleID(roleID), nil
 }
 
-// DefaultRules returns list of default rules for this compose service
-func (svc accessControl) DefaultRules() permissions.RuleSet {
-	var (
-		messaging = types.MessagingPermissionResource
-		channels  = types.ChannelPermissionResource.AppendWildcard()
-
-		allowAdm = func(res permissions.Resource, op permissions.Operation) *permissions.Rule {
-			return permissions.AllowRule(permissions.AdminRoleID, res, op)
-		}
-	)
-
-	return permissions.RuleSet{
-		permissions.AllowRule(permissions.EveryoneRoleID, messaging, "access"),
-
-		allowAdm(messaging, "access"),
-		allowAdm(messaging, "grant"),
-		allowAdm(messaging, "channel.public.create"),
-		allowAdm(messaging, "channel.private.create"),
-		allowAdm(messaging, "channel.group.create"),
-		allowAdm(messaging, "webhook.create"),
-		allowAdm(messaging, "webhook.manage.all"),
-		allowAdm(messaging, "webhook.manage.own"),
-
-		allowAdm(channels, "update"),
-		allowAdm(channels, "leave"),
-		allowAdm(channels, "read"),
-		allowAdm(channels, "join"),
-		allowAdm(channels, "delete"),
-		allowAdm(channels, "undelete"),
-		allowAdm(channels, "archive"),
-		allowAdm(channels, "unarchive"),
-		allowAdm(channels, "members.manage"),
-		allowAdm(channels, "webhooks.manage"),
-		allowAdm(channels, "attachments.manage"),
-		allowAdm(channels, "message.attach"),
-		allowAdm(channels, "message.update.all"),
-		allowAdm(channels, "message.update.own"),
-		allowAdm(channels, "message.delete.all"),
-		allowAdm(channels, "message.delete.own"),
-		allowAdm(channels, "message.embed"),
-		allowAdm(channels, "message.send"),
-		allowAdm(channels, "message.reply"),
-		allowAdm(channels, "message.react"),
-	}
-}
-
 func (svc accessControl) Whitelist() permissions.Whitelist {
 	var wl = permissions.Whitelist{}
 

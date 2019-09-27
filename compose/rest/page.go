@@ -83,10 +83,11 @@ func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{
 		}
 	)
 
-	if err = r.Blocks.Unmarshal(&mod.Blocks); err != nil {
-		return nil, err
+	if len(r.Blocks) > 2 {
+		if err = r.Blocks.Unmarshal(&mod.Blocks); err != nil {
+			return nil, err
+		}
 	}
-
 	mod, err = ctrl.page.With(ctx).Create(mod)
 	return ctrl.makePayload(ctx, mod, err)
 }
@@ -116,8 +117,10 @@ func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{
 		}
 	)
 
-	if err = r.Blocks.Unmarshal(&mod.Blocks); err != nil {
-		return nil, err
+	if len(r.Blocks) > 2 {
+		if err = r.Blocks.Unmarshal(&mod.Blocks); err != nil {
+			return nil, err
+		}
 	}
 
 	mod, err = ctrl.page.With(ctx).Update(mod)

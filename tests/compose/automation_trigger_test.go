@@ -112,9 +112,9 @@ func TestAutomationTriggerUpdateForbidden(t *testing.T) {
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 
-	ns := h.repoMakeNamespace("some-namespace")
-	script := h.svcMakeAutomationScript(ns, "dummy")
-	trigger := h.svcMakeAutomationTrigger(script, "my little automation trigger")
+	ns := h.repoMakeNamespace("some-namespace" + rs())
+	script := h.svcMakeAutomationScript(ns, "dummy"+rs())
+	trigger := h.svcMakeAutomationTrigger(script, "manual")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/automation/script/%d/trigger/%d", ns.ID, script.ID, trigger.ID)).
@@ -132,9 +132,9 @@ func TestAutomationTriggerUpdate(t *testing.T) {
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "update")
 
-	ns := h.repoMakeNamespace("some-namespace")
-	script := h.svcMakeAutomationScript(ns, "dummy")
-	trigger := h.svcMakeAutomationTrigger(script, "my little automation trigger")
+	ns := h.repoMakeNamespace("some-namespace" + rs())
+	script := h.svcMakeAutomationScript(ns, "dummy"+rs())
+	trigger := h.svcMakeAutomationTrigger(script, "manual")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/automation/script/%d/trigger/%d", ns.ID, script.ID, trigger.ID)).
@@ -154,9 +154,9 @@ func TestAutomationTriggerDeleteForbidden(t *testing.T) {
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 
-	ns := h.repoMakeNamespace("some-namespace")
-	script := h.svcMakeAutomationScript(ns, "dummy")
-	trigger := h.svcMakeAutomationTrigger(script, "my little automation trigger")
+	ns := h.repoMakeNamespace("some-namespace" + rs())
+	script := h.svcMakeAutomationScript(ns, "dummy"+rs())
+	trigger := h.svcMakeAutomationTrigger(script, "manual")
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/namespace/%d/automation/script/%d/trigger/%d", ns.ID, script.ID, trigger.ID)).
@@ -173,9 +173,9 @@ func TestAutomationTriggerDelete(t *testing.T) {
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "update")
 
-	ns := h.repoMakeNamespace("some-namespace")
-	script := h.svcMakeAutomationScript(ns, "dummy")
-	trigger := h.svcMakeAutomationTrigger(script, "my little automation trigger")
+	ns := h.repoMakeNamespace("some-namespace" + rs())
+	script := h.svcMakeAutomationScript(ns, "dummy"+rs())
+	trigger := h.svcMakeAutomationTrigger(script, "manual")
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/namespace/%d/automation/script/%d/trigger/%d", ns.ID, script.ID, trigger.ID)).
