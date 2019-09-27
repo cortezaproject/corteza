@@ -33,7 +33,7 @@ func TestAutomationScriptRead(t *testing.T) {
 
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 
-	script := h.svcMakeAutomationScript("my little automation script")
+	script := h.svcMakeAutomationScript("myLittleAutomationScript" + rs())
 
 	h.apiInit().
 		Get(fmt.Sprintf("/automation/script/%d", script.ID)).
@@ -48,8 +48,8 @@ func TestAutomationScriptRead(t *testing.T) {
 func TestAutomationScriptList(t *testing.T) {
 	h := newHelper(t)
 
-	h.svcMakeAutomationScript("app")
-	h.svcMakeAutomationScript("app")
+	h.svcMakeAutomationScript("myLittleAutomationScript" + rs())
+	h.svcMakeAutomationScript("myLittleAutomationScript" + rs())
 
 	h.apiInit().
 		Get(fmt.Sprintf("/automation/script/")).
@@ -66,7 +66,7 @@ func TestAutomationScriptCreateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/automation/script/")).
-		FormData("name", "my little automation script").
+		FormData("name", "myLittleAutomationScript"+rs()).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("system.service.NoCreatePermissions")).
@@ -80,7 +80,7 @@ func TestAutomationScriptCreate(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/automation/script/")).
-		FormData("name", "my little automation script").
+		FormData("name", "myLittleAutomationScript"+rs()).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -92,11 +92,11 @@ func TestAutomationScriptUpdateForbidden(t *testing.T) {
 
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 
-	script := h.svcMakeAutomationScript("my little automation script")
+	script := h.svcMakeAutomationScript("myLittleAutomationScript" + rs())
 
 	h.apiInit().
 		Post(fmt.Sprintf("/automation/script/%d", script.ID)).
-		FormData("name", "changed-name").
+		FormData("name", "changed-name"+rs()).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("system.service.NoUpdatePermissions")).
@@ -109,11 +109,11 @@ func TestAutomationScriptUpdate(t *testing.T) {
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "update")
 
-	script := h.svcMakeAutomationScript("my little automation script")
-
+	script := h.svcMakeAutomationScript("myLittleAutomationScript" + rs())
+	newName := "changed-name" + rs()
 	h.apiInit().
 		Post(fmt.Sprintf("/automation/script/%d", script.ID)).
-		FormData("name", "changed-name").
+		FormData("name", newName).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -122,7 +122,7 @@ func TestAutomationScriptUpdate(t *testing.T) {
 	script, err := service.DefaultInternalAutomationManager.FindScriptByID(context.Background(), script.ID)
 	h.a.NoError(err)
 	h.a.NotNil(script)
-	h.a.Equal("changed-name", script.Name)
+	h.a.Equal(newName, script.Name)
 }
 
 func TestAutomationScriptDeleteForbidden(t *testing.T) {
@@ -130,7 +130,7 @@ func TestAutomationScriptDeleteForbidden(t *testing.T) {
 
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 
-	script := h.svcMakeAutomationScript("my little automation script")
+	script := h.svcMakeAutomationScript("myLittleAutomationScript" + rs())
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/automation/script/%d", script.ID)).
@@ -146,7 +146,7 @@ func TestAutomationScriptDelete(t *testing.T) {
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "delete")
 
-	script := h.svcMakeAutomationScript("my little automation script")
+	script := h.svcMakeAutomationScript("myLittleAutomationScript" + rs())
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/automation/script/%d", script.ID)).
