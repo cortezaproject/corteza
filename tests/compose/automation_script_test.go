@@ -36,7 +36,7 @@ func TestAutomationScriptRead(t *testing.T) {
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 
 	ns := h.repoMakeNamespace("some-namespace")
-	script := h.svcMakeAutomationScript(ns, "my little automation script")
+	script := h.svcMakeAutomationScript(ns, "myLittleAutomationScript"+rs())
 
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/automation/script/%d", ns.ID, script.ID)).
@@ -55,8 +55,8 @@ func TestAutomationScriptList(t *testing.T) {
 
 	ns := h.repoMakeNamespace("some-namespace")
 
-	h.svcMakeAutomationScript(ns, "app")
-	h.svcMakeAutomationScript(ns, "app")
+	h.svcMakeAutomationScript(ns, "myLittleAutomationScript"+rs())
+	h.svcMakeAutomationScript(ns, "myLittleAutomationScript"+rs())
 
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/automation/script/", ns.ID)).
@@ -73,7 +73,7 @@ func TestAutomationScriptCreateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/automation/script/", ns.ID)).
-		FormData("name", "my little automation script").
+		FormData("name", "myLittleAutomationScript"+rs()).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("compose.service.NoCreatePermissions")).
@@ -90,7 +90,7 @@ func TestAutomationScriptCreate(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/automation/script/", ns.ID)).
-		FormData("name", "my little automation script").
+		FormData("name", "myLittleAutomationScript"+rs()).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -103,7 +103,7 @@ func TestAutomationScriptUpdateForbidden(t *testing.T) {
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
 
 	ns := h.repoMakeNamespace("some-namespace")
-	script := h.svcMakeAutomationScript(ns, "my little automation script")
+	script := h.svcMakeAutomationScript(ns, "myLittleAutomationScript"+rs())
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/automation/script/%d", ns.ID, script.ID)).
@@ -121,7 +121,7 @@ func TestAutomationScriptUpdate(t *testing.T) {
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "update")
 
 	ns := h.repoMakeNamespace("some-namespace")
-	script := h.svcMakeAutomationScript(ns, "my little automation script")
+	script := h.svcMakeAutomationScript(ns, "myLittleAutomationScript"+rs())
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/automation/script/%d", ns.ID, script.ID)).
@@ -143,7 +143,7 @@ func TestAutomationScriptDeleteForbidden(t *testing.T) {
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
 
 	ns := h.repoMakeNamespace("some-namespace")
-	script := h.svcMakeAutomationScript(ns, "my little automation script")
+	script := h.svcMakeAutomationScript(ns, "myLittleAutomationScript"+rs())
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/namespace/%d/automation/script/%d", ns.ID, script.ID)).
@@ -160,7 +160,7 @@ func TestAutomationScriptDelete(t *testing.T) {
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "delete")
 
 	ns := h.repoMakeNamespace("some-namespace")
-	script := h.svcMakeAutomationScript(ns, "my little automation script")
+	script := h.svcMakeAutomationScript(ns, "myLittleAutomationScript"+rs())
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/namespace/%d/automation/script/%d", ns.ID, script.ID)).

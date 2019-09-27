@@ -97,7 +97,7 @@ func TestRoleCreateNotUnique(t *testing.T) {
 	h.apiInit().
 		Post("/roles/").
 		FormData("name", role.Name).
-		FormData("handle", rs()).
+		FormData("handle", "handle_"+rs()).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("system.service.RoleNameNotUnique")).
@@ -112,7 +112,7 @@ func TestRoleCreate(t *testing.T) {
 	h.apiInit().
 		Post("/roles/").
 		FormData("name", rs()).
-		FormData("handle", rs()).
+		FormData("handle", "handle_"+rs()).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).

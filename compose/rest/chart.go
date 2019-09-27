@@ -70,10 +70,11 @@ func (ctrl Chart) Create(ctx context.Context, r *request.ChartCreate) (interface
 		Handle:      r.Handle,
 	}
 
-	if err = r.Config.Unmarshal(&mod.Config); err != nil {
-		return nil, err
+	if len(r.Config) > 2 {
+		if err = r.Config.Unmarshal(&mod.Config); err != nil {
+			return nil, err
+		}
 	}
-
 	mod, err = ctrl.chart.With(ctx).Create(mod)
 	return ctrl.makePayload(ctx, mod, err)
 }
@@ -96,10 +97,11 @@ func (ctrl Chart) Update(ctx context.Context, r *request.ChartUpdate) (interface
 		}
 	)
 
-	if err = r.Config.Unmarshal(&mod.Config); err != nil {
-		return nil, err
+	if len(r.Config) > 2 {
+		if err = r.Config.Unmarshal(&mod.Config); err != nil {
+			return nil, err
+		}
 	}
-
 	mod, err = ctrl.chart.With(ctx).Update(mod)
 	return ctrl.makePayload(ctx, mod, err)
 }

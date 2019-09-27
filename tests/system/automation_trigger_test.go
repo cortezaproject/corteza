@@ -35,7 +35,7 @@ func TestAutomationTriggerRead(t *testing.T) {
 
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 
-	script := h.svcMakeAutomationScript("dummy")
+	script := h.svcMakeAutomationScript("dummy" + rs())
 	trigger := h.svcMakeAutomationTrigger(script, "manual")
 
 	h.apiInit().
@@ -51,7 +51,7 @@ func TestAutomationTriggerRead(t *testing.T) {
 func TestAutomationTriggerList(t *testing.T) {
 	h := newHelper(t)
 
-	script := h.svcMakeAutomationScript("dummy")
+	script := h.svcMakeAutomationScript("dummy" + rs())
 
 	h.svcMakeAutomationTrigger(script, "app")
 	h.svcMakeAutomationTrigger(script, "app")
@@ -69,7 +69,7 @@ func TestAutomationTriggerCreateForbidden(t *testing.T) {
 
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 
-	script := h.svcMakeAutomationScript("dummy")
+	script := h.svcMakeAutomationScript("dummy" + rs())
 
 	h.apiInit().
 		Post(fmt.Sprintf("/automation/script/%d/trigger/", script.ID)).
@@ -86,7 +86,7 @@ func TestAutomationTriggerCreate(t *testing.T) {
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "update")
 
-	script := h.svcMakeAutomationScript("dummy")
+	script := h.svcMakeAutomationScript("dummy" + rs())
 
 	h.apiInit().
 		Post(fmt.Sprintf("/automation/script/%d/trigger/", script.ID)).
@@ -102,8 +102,8 @@ func TestAutomationTriggerUpdateForbidden(t *testing.T) {
 
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 
-	script := h.svcMakeAutomationScript("dummy")
-	trigger := h.svcMakeAutomationTrigger(script, "my little automation trigger")
+	script := h.svcMakeAutomationScript("dummy" + rs())
+	trigger := h.svcMakeAutomationTrigger(script, "manual")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/automation/script/%d/trigger/%d", script.ID, trigger.ID)).
@@ -120,8 +120,8 @@ func TestAutomationTriggerUpdate(t *testing.T) {
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "update")
 
-	script := h.svcMakeAutomationScript("dummy")
-	trigger := h.svcMakeAutomationTrigger(script, "my little automation trigger")
+	script := h.svcMakeAutomationScript("dummy" + rs())
+	trigger := h.svcMakeAutomationTrigger(script, "manual")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/automation/script/%d/trigger/%d", script.ID, trigger.ID)).
@@ -140,8 +140,8 @@ func TestAutomationTriggerDeleteForbidden(t *testing.T) {
 
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 
-	script := h.svcMakeAutomationScript("dummy")
-	trigger := h.svcMakeAutomationTrigger(script, "my little automation trigger")
+	script := h.svcMakeAutomationScript("dummy" + rs())
+	trigger := h.svcMakeAutomationTrigger(script, "manual")
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/automation/script/%d/trigger/%d", script.ID, trigger.ID)).
@@ -157,8 +157,8 @@ func TestAutomationTriggerDelete(t *testing.T) {
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 	h.allow(types.AutomationScriptPermissionResource.AppendWildcard(), "update")
 
-	script := h.svcMakeAutomationScript("dummy")
-	trigger := h.svcMakeAutomationTrigger(script, "my little automation trigger")
+	script := h.svcMakeAutomationScript("dummy" + rs())
+	trigger := h.svcMakeAutomationTrigger(script, "manual")
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/automation/script/%d/trigger/%d", script.ID, trigger.ID)).
