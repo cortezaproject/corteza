@@ -1,6 +1,7 @@
 package importer
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -63,5 +64,41 @@ func TestModuleImport_CastSet(t *testing.T) {
 
 	impFixTester(t, "module_fields_as_map", func(t *testing.T, module *Module) {
 		stdFieldsAsTest(t, module, false)
+	})
+
+	impFixTester(t, "module_ref_fields", func(t *testing.T, module *Module) {
+		req := require.New(t)
+
+		req.Len(module.set, 3)
+
+		var (
+			modA = module.set.FindByHandle("modA")
+			modB = module.set.FindByHandle("modB")
+			modC = module.set.FindByHandle("modC")
+		)
+
+		// Fake saving so we can test references
+		modA.ID = 1000
+		modB.ID = 1001
+		modC.ID = 1002
+
+		req.NoError(module.set.Walk(module.resolveRefs))
+
+		req.Equal(
+			strconv.FormatUint(modB.ID, 10),
+			modA.Fields.FindByName("refB").Options["moduleID"].(string))
+
+		req.Equal(
+			strconv.FormatUint(modC.ID, 10),
+			modA.Fields.FindByName("refC").Options["moduleID"].(string))
+
+	})
+
+	impFixTester(t, "module_broken_ref_fields", func(t *testing.T, module *Module) {
+		req := require.New(t)
+		req.EqualError(
+			module.set.Walk(module.resolveRefs),
+			`could not load module "modFoo" for page "modA" block #1 (err: <nil>)`)
+
 	})
 }

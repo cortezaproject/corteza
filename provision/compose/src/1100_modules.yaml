@@ -3918,14 +3918,6 @@ modules:
           module: ContractLineItem
           queryFields:
           - PricebookEntryId
-      EmailMessageId:
-        label: Email Message
-        kind: Record
-        options:
-          labelField: Subject
-          module: 'Error: module with ID 69055788596920337 does not exist'
-          queryFields:
-          - Subject
       EmailTemplateId:
         label: Email Template
         kind: Record

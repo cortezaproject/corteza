@@ -1893,7 +1893,6 @@ pages:
               xywh: [0, 0, 5, 13]
             pages:
               - handle: RecordPageForModuleCampaignMemberStatus
-                module: 'Error: module with ID 69055788664029201 does not exist'
                 title: Record page for module "CampaignMemberStatus"
                 visible: false
             visible: false

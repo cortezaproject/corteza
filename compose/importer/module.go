@@ -11,6 +11,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
+	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
 )
 
@@ -227,13 +228,10 @@ func (mImp *Module) Get(handle string) (*types.Module, error) {
 	return mImp.set.FindByHandle(handle), nil
 }
 
-func (mImp *Module) Store(ctx context.Context, k moduleKeeper) error {
-	return mImp.set.Walk(func(module *types.Module) (err error) {
+func (mImp *Module) Store(ctx context.Context, k moduleKeeper) (err error) {
+	// Save everything
+	for _, module := range mImp.set {
 		var handle = module.Handle
-
-		if err = mImp.resolveRefs(module); err != nil {
-			return
-		}
 
 		if module.ID == 0 {
 			module.NamespaceID = mImp.namespace.ID
@@ -253,28 +251,61 @@ func (mImp *Module) Store(ctx context.Context, k moduleKeeper) error {
 			mImp.imp.permissions.UpdateResources(types.ModuleFieldPermissionResource.String(), f.Name, f.ID)
 			return nil
 		})
+	}
 
-		return
-	})
-}
+	// Now, resolve the refs & save resolved options again
+	var refs uint
 
-// Resolve all refs for this page (page module, inside block)
-func (mImp *Module) resolveRefs(module *types.Module) error {
-	for i, field := range module.Fields {
-		if field.Options == nil {
-			continue
-		}
-
-		if h, ok := field.Options["module"]; ok {
-			if refmod, err := mImp.Get(deinterfacer.ToString(h)); err != nil || refmod == nil {
-				return errors.Wrapf(err, "could not load module %q for page %q block #%d",
-					h, module.Handle, i+1)
-			} else {
-				field.Options["moduleID"] = strconv.FormatUint(refmod.ID, 10)
-				delete(field.Options, "module")
+	for _, module := range mImp.set {
+		if refs, err = mImp.resolveRefs(module); err != nil {
+			return errors.Wrap(err, "could not resolve refs")
+		} else if refs >= 0 {
+			module.UpdatedAt = nil
+			if _, err = k.Update(module); err != nil {
+				return errors.Wrap(err, "could not update resolved refs")
 			}
+
 		}
 	}
 
-	return nil
+	return
+}
+
+// Resolve all refs for this module
+func (mImp *Module) resolveRefs(module *types.Module) (uint, error) {
+	var refs uint
+
+	return refs, func() error {
+		for _, field := range module.Fields {
+			if field.Options == nil {
+				continue
+			}
+
+			if h, ok := field.Options["module"]; ok {
+				refHandle := deinterfacer.ToString(h)
+
+				if refHandle == "" {
+					return errors.Errorf("empty module reference handle on module %q, field %q options",
+						module.Handle, field.Name)
+
+				}
+
+				if !handle.IsValid(refHandle) {
+					return errors.Errorf("invalid module handle %q used for reference on module %q, field %q options",
+						refHandle, module.Handle, field.Name)
+				}
+
+				if refmod, err := mImp.Get(refHandle); err != nil || refmod == nil {
+					return errors.Errorf("could not load module %q on module %q, field %q options, err: %v)",
+						refHandle, module.Handle, field.Name, err)
+				} else {
+					refs++
+					field.Options["moduleID"] = strconv.FormatUint(refmod.ID, 10)
+					delete(field.Options, "module")
+				}
+			}
+		}
+
+		return nil
+	}()
 }
