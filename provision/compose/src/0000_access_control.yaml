@@ -26,6 +26,7 @@ allow:
       - record.read
       - record.update
       - record.delete
+      - automation-trigger.manage
 
     compose:chart:
       - read
