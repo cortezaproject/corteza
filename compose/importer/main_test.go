@@ -73,6 +73,8 @@ func impFixTester(t *testing.T, name string, tester interface{}) {
 			tester(t, imp.GetChartImporter(ns.Slug))
 		case func(*testing.T, *Page):
 			tester(t, imp.GetPageImporter(ns.Slug))
+		case func(*testing.T, *AutomationScript):
+			tester(t, imp.GetAutomationScriptImporter(ns.Slug))
 		case func(*testing.T, *Importer):
 			tester(t, imp)
 		default:

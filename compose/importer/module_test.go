@@ -82,7 +82,10 @@ func TestModuleImport_CastSet(t *testing.T) {
 		modB.ID = 1001
 		modC.ID = 1002
 
-		req.NoError(module.set.Walk(module.resolveRefs))
+		req.NoError(module.set.Walk(func(m *types.Module) (err error) {
+			_, err = module.resolveRefs(m)
+			return err
+		}))
 
 		req.Equal(
 			strconv.FormatUint(modB.ID, 10),
@@ -97,7 +100,10 @@ func TestModuleImport_CastSet(t *testing.T) {
 	impFixTester(t, "module_broken_ref_fields", func(t *testing.T, module *Module) {
 		req := require.New(t)
 		req.EqualError(
-			module.set.Walk(module.resolveRefs),
+			module.set.Walk(func(m *types.Module) (err error) {
+				_, err = module.resolveRefs(m)
+				return err
+			}),
 			`could not load module "modFoo" for page "modA" block #1 (err: <nil>)`)
 
 	})

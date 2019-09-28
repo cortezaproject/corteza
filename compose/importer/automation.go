@@ -150,22 +150,22 @@ func (asImp *AutomationScript) castTriggers(handle string, script *automation.Sc
 	)
 
 	return tt, deinterfacer.Each(def, func(n int, _ string, def interface{}) (err error) {
-		t = &automation.Trigger{}
+		t = &automation.Trigger{
+			Enabled: true,
+		}
+
 		err = deinterfacer.Each(def, func(_ int, key string, val interface{}) (err error) {
 			switch key {
 			case "enabled":
 				t.Enabled = deinterfacer.ToBool(val, true)
 			case "event":
-				t.Condition = deinterfacer.ToString(val)
+				t.Event = deinterfacer.ToString(val)
 			case "resource":
 				t.Resource = deinterfacer.ToString(val)
 			case "condition":
 				t.Condition = deinterfacer.ToString(val)
 			case "module":
 				module := deinterfacer.ToString(val)
-				if m, err := asImp.getModule(module); err != nil || m == nil {
-					return fmt.Errorf("unknown module %q referenced from automation script's %q trigger", module, handle)
-				}
 				asImp.modRefs = append(asImp.modRefs, automationTriggerModuleRef{handle, len(tt), module})
 			default:
 				return fmt.Errorf("unexpected key %q for automation script's %q trigger", key, handle)
@@ -179,7 +179,6 @@ func (asImp *AutomationScript) castTriggers(handle string, script *automation.Sc
 		}
 
 		tt = append(tt, t)
-
 		return
 	})
 }
@@ -199,8 +198,13 @@ func (asImp *AutomationScript) Store(ctx context.Context, k automationScriptKeep
 		return
 	}
 
-	return asImp.set.Walk(func(s *automation.Script) (err error) {
+	//return asImp.set.Walk(func(s *automation.Script) (err error)
+	for _, s := range asImp.set {
 		var name = s.Name
+
+		if tt, has := asImp.triggers[name]; has {
+			s.AddTrigger(automation.STMS_UPDATE, tt...)
+		}
 
 		if s.ID == 0 {
 			s.NamespaceID = asImp.namespace.ID
@@ -216,11 +220,12 @@ func (asImp *AutomationScript) Store(ctx context.Context, k automationScriptKeep
 		asImp.dirty[s.ID] = false
 		asImp.imp.permissions.UpdateResources(types.AutomationScriptPermissionResource.String(), name, s.ID)
 
-		return
-	})
+	}
+
+	return
 }
 
-// Resolve all refs for this page (page module, inside block)
+// Resolve refs for all scripts
 func (asImp *AutomationScript) resolveRefs() error {
 	for _, ref := range asImp.modRefs {
 		s := asImp.set.FindByName(ref.as, asImp.namespace.ID)

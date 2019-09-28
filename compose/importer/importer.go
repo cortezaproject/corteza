@@ -71,6 +71,10 @@ func (imp *Importer) GetNamespaceImporter() *Namespace {
 	return imp.namespaces
 }
 
+func (imp *Importer) GetAutomationScriptImporter(handle string) *AutomationScript {
+	return imp.namespaces.scripts[handle]
+}
+
 func (imp *Importer) GetModuleImporter(handle string) *Module {
 	return imp.namespaces.modules[handle]
 }
