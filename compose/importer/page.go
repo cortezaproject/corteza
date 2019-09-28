@@ -354,13 +354,11 @@ func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
 
 	return refs, func() error {
 		if moduleHandle, ok := pImp.modules[page.Handle]; ok {
-			if module, err := pImp.getModule(moduleHandle); err != nil {
-				return err
-			} else if module == nil {
-				return errors.Wrapf(err, "could not load module %q for page %q",
-					moduleHandle, page.Handle)
+			if refm, err := pImp.getModule(moduleHandle); err != nil || refm == nil {
+				return errors.Errorf("could not load module %q for page %q (err: %v)",
+					moduleHandle, page.Handle, err)
 			} else {
-				page.ModuleID = module.ID
+				page.ModuleID = refm.ID
 				refs++
 			}
 		}
@@ -372,7 +370,7 @@ func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
 
 			if h, ok := b.Options["module"]; ok {
 				if refm, err := pImp.getModule(deinterfacer.ToString(h)); err != nil || refm == nil {
-					return errors.Errorf("could not load module %q for page %q block #%d (%v)",
+					return errors.Errorf("could not load module %q for page %q block #%d (err: %v)",
 						h, page.Handle, i+1, err)
 				} else {
 					b.Options["moduleID"] = strconv.FormatUint(refm.ID, 10)
@@ -383,7 +381,7 @@ func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
 
 			if h, ok := b.Options["page"]; ok {
 				if refp, err := pImp.Get(deinterfacer.ToString(h)); err != nil || refp == nil {
-					return errors.Errorf("could not load page %q for page %q block #%d (%v)",
+					return errors.Errorf("could not load page %q for page %q block #%d (err: %v)",
 						h, page.Handle, i+1, err)
 				} else {
 					b.Options["pageID"] = strconv.FormatUint(refp.ID, 10)
@@ -394,7 +392,7 @@ func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
 
 			if h, ok := b.Options["chart"]; ok {
 				if refc, err := pImp.getChart(deinterfacer.ToString(h)); err != nil || refc == nil {
-					return errors.Errorf("could not load chart %q for page %q block #%d (%v)",
+					return errors.Errorf("could not load chart %q for page %q block #%d (err: %v)",
 						h, page.Handle, i+1, err)
 				} else {
 					b.Options["chartID"] = strconv.FormatUint(refc.ID, 10)
@@ -412,7 +410,7 @@ func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
 						switch k {
 						case "script":
 							if s, err := pImp.getScript(deinterfacer.ToString(v)); err != nil || s == nil {
-								return errors.Errorf("could not load script %q for page %q block #%d (%v)",
+								return errors.Errorf("could not load script %q for page %q block #%d (err: %v)",
 									v, page.Handle, i+1, err)
 							} else {
 								button["scriptID"] = s.ID
@@ -447,7 +445,7 @@ func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
 						switch k {
 						case "module":
 							if m, err := pImp.getModule(deinterfacer.ToString(v)); err != nil || m == nil {
-								return errors.Errorf("could not load module %q for page %q block #%d (%v)",
+								return errors.Errorf("could not load module %q for page %q block #%d (err: %v)",
 									v, page.Handle, i+1, err)
 							} else {
 								feed["moduleID"] = m.ID
