@@ -1,12 +1,17 @@
 package service
 
 import (
+	"context"
+	"net/http"
+	"path"
 	"strings"
+	"sync"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	gomail "gopkg.in/mail.v2"
 
+	httpClient "github.com/cortezaproject/corteza-server/internal/http"
 	"github.com/cortezaproject/corteza-server/internal/mail"
 )
 
@@ -69,4 +74,62 @@ func (svc notification) AttachEmailRecipients(message *gomail.Message, field str
 
 	message.SetHeader(field, recipients...)
 	return
+}
+
+func (svc notification) AttachRemoteFiles(ctx context.Context, message *gomail.Message, rr ...string) error {
+	var (
+		wg = &sync.WaitGroup{}
+		l  = &sync.Mutex{}
+
+		client, err = httpClient.New(&httpClient.Config{
+			Timeout: 10,
+		})
+
+		log = svc.logger
+	)
+
+	log.Debug("attaching files to mail notification", zap.Strings("urls", rr))
+
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	get := func(log *zap.Logger, req *http.Request) {
+		defer wg.Done()
+
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Error("could not send request to download remote attachment", zap.Error(err))
+			return
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			log.Error("could not download remote attachment", zap.String("status", resp.Status))
+			return
+		}
+
+		log.Info("download successful",
+			zap.Int64("content-length", resp.ContentLength),
+			zap.String("content-type", resp.Header.Get("Content-Type")),
+		)
+
+		l.Lock()
+		defer l.Unlock()
+		message.AttachReader(path.Base(req.URL.Path), resp.Body)
+	}
+
+	for _, url := range rr {
+		log := log.With(zap.String("remote-file", url))
+
+		req, err := client.Get(url)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		wg.Add(1)
+		go get(log, req)
+	}
+
+	wg.Wait()
+	return nil
 }

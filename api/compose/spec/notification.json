@@ -50,6 +50,12 @@
             "required": true,
             "title": "Message content",
             "type": "sqlxTypes.JSONText"
+          },
+          {
+            "name": "remoteAttachments",
+            "required": false,
+            "title": "Remote files to attach to the email",
+            "type": "[]string"
           }
         ]
       }
