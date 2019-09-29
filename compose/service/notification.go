@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -13,28 +12,13 @@ import (
 
 type (
 	notification struct {
-		ctx    context.Context
 		logger *zap.Logger
-	}
-
-	NotificationService interface {
-		With(ctx context.Context) NotificationService
-
-		SendEmail(message *gomail.Message) error
-		AttachEmailRecipients(message *gomail.Message, field string, recipients ...string) error
 	}
 )
 
-func Notification() NotificationService {
-	return (&notification{
-		logger: DefaultLogger.Named("notification"),
-	}).With(context.Background())
-}
-
-func (svc notification) With(ctx context.Context) NotificationService {
+func Notification() *notification {
 	return &notification{
-		ctx:    ctx,
-		logger: svc.logger,
+		logger: DefaultLogger.Named("notification"),
 	}
 }
 
@@ -47,7 +31,7 @@ func (svc notification) SendEmail(message *gomail.Message) error {
 	return mail.Send(message)
 }
 
-// AttachEmailRecipients validates, resolves, formats andd attaches set of recipients to message
+// AttachEmailRecipients validates, resolves, formats and attaches set of recipients to message
 //
 // Supports 3 input formats:
 //  - <valid email>

@@ -65,7 +65,7 @@ var (
 	DefaultChart         ChartService
 	DefaultPage          PageService
 	DefaultAttachment    AttachmentService
-	DefaultNotification  NotificationService
+	DefaultNotification  *notification
 
 	DefaultSystemUser *systemUser
 )
