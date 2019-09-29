@@ -138,10 +138,6 @@ scripts:
     enabled: true
     timeout: 0
     triggers:
-    - enabled: false
-      event: afterCreate
-      module: Case
-      resource: compose:record
     - event: beforeCreate
       module: Case
       resource: compose:record
@@ -237,14 +233,6 @@ scripts:
     enabled: true
     timeout: 0
     triggers:
-    - enabled: false
-      event: afterCreate
-      module: Contact
-      resource: compose:record
-    - enabled: false
-      event: afterUpdate
-      module: Contact
-      resource: compose:record
     - event: beforeUpdate
       module: Contact
       resource: compose:record
@@ -301,14 +289,6 @@ scripts:
     enabled: true
     timeout: 0
     triggers:
-    - enabled: false
-      event: afterCreate
-      module: Lead
-      resource: compose:record
-    - enabled: false
-      event: afterUpdate
-      module: Lead
-      resource: compose:record
     - event: beforeUpdate
       module: Lead
       resource: compose:record
@@ -390,10 +370,6 @@ scripts:
     enabled: true
     timeout: 0
     triggers:
-    - enabled: false
-      event: afterCreate
-      module: Solution
-      resource: compose:record
     - event: beforeCreate
       module: Solution
       resource: compose:record

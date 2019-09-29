@@ -1891,10 +1891,6 @@ pages:
                 - name: Status
               kind: Record
               xywh: [0, 0, 5, 13]
-            pages:
-              - handle: RecordPageForModuleCampaignMemberStatus
-                title: Record page for module "CampaignMemberStatus"
-                visible: false
             visible: false
         visible: false
     visible: true
