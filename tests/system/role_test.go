@@ -22,13 +22,13 @@ func (h helper) repoMakeRole(ss ...string) *types.Role {
 	if len(ss) > 1 {
 		r.Handle = ss[1]
 	} else {
-		r.Handle = rs()
+		r.Handle = "h_" + rs()
 
 	}
 	if len(ss) > 0 {
 		r.Name = ss[0]
 	} else {
-		r.Name = rs()
+		r.Name = "n_" + rs()
 	}
 
 	r, err := h.
