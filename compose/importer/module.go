@@ -296,7 +296,7 @@ func (mImp *Module) resolveRefs(module *types.Module) (uint, error) {
 				}
 
 				if refmod, err := mImp.Get(refHandle); err != nil || refmod == nil {
-					return errors.Errorf("could not load module %q on module %q, field %q options, err: %v)",
+					return errors.Errorf("could not load module %q on module %q, field %q options (err: %v)",
 						refHandle, module.Handle, field.Name, err)
 				} else {
 					refs++
