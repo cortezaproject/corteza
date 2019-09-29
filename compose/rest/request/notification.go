@@ -34,11 +34,12 @@ var _ = multipart.FileHeader{}
 
 // Notification email/send request parameters
 type NotificationEmailSend struct {
-	To      []string
-	Cc      []string
-	ReplyTo string
-	Subject string
-	Content sqlxTypes.JSONText
+	To                []string
+	Cc                []string
+	ReplyTo           string
+	Subject           string
+	Content           sqlxTypes.JSONText
+	RemoteAttachments []string
 }
 
 func NewNotificationEmailSend() *NotificationEmailSend {
@@ -53,6 +54,7 @@ func (r NotificationEmailSend) Auditable() map[string]interface{} {
 	out["replyTo"] = r.ReplyTo
 	out["subject "] = r.Subject
 	out["content"] = r.Content
+	out["remoteAttachments"] = r.RemoteAttachments
 
 	return out
 }
@@ -103,6 +105,10 @@ func (r *NotificationEmailSend) Fill(req *http.Request) (err error) {
 		if r.Content, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
+	}
+
+	if val, ok := req.Form["remoteAttachments"]; ok {
+		r.RemoteAttachments = parseStrings(val)
 	}
 
 	return err

@@ -702,6 +702,7 @@ Compose Notifications
 | replyTo | string | POST | Email address in reply-to field | N/A | NO |
 | subject  | string | POST | Email subject | N/A | NO |
 | content | sqlxTypes.JSONText | POST | Message content | N/A | YES |
+| remoteAttachments | []string | POST | Remote files to attach to the email | N/A | NO |
 
 ---
 

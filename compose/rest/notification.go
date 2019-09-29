@@ -26,6 +26,7 @@ type (
 	notificationService interface {
 		SendEmail(*gomail.Message) error
 		AttachEmailRecipients(*gomail.Message, string, ...string) error
+		AttachRemoteFiles(context.Context, *gomail.Message, ...string) error
 	}
 )
 
@@ -63,6 +64,13 @@ func (ctrl *Notification) EmailSend(ctx context.Context, r *request.Notification
 	}
 
 	msg.SetHeader("Subject", r.Subject)
+
+	if len(r.RemoteAttachments) > 0 {
+		err := ntf.AttachRemoteFiles(ctx, msg, r.RemoteAttachments...)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	if err := ntf.SendEmail(msg); err != nil {
 		return false, err
