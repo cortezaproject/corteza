@@ -109,23 +109,31 @@ func (svc user) FindByID(ID uint64) (*types.User, error) {
 		return nil, ErrInvalidID
 	}
 
-	return svc.user.FindByID(ID)
-}
-
-func (svc user) FindByIDs(userIDs ...uint64) (types.UserSet, error) {
-	return svc.user.FindByIDs(userIDs...)
+	return svc.proc(svc.user.FindByID(ID))
 }
 
 func (svc user) FindByEmail(email string) (*types.User, error) {
-	return svc.user.FindByEmail(email)
+	return svc.proc(svc.user.FindByEmail(email))
 }
 
 func (svc user) FindByUsername(username string) (*types.User, error) {
-	return svc.user.FindByUsername(username)
+	return svc.proc(svc.user.FindByUsername(username))
 }
 
 func (svc user) FindByHandle(handle string) (*types.User, error) {
-	return svc.user.FindByHandle(handle)
+	return svc.proc(svc.user.FindByHandle(handle))
+}
+
+func (svc user) proc(u *types.User, err error) (*types.User, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	return u, nil
+}
+
+func (svc user) FindByIDs(userIDs ...uint64) (types.UserSet, error) {
+	return svc.procSet(svc.user.FindByIDs(userIDs...))
 }
 
 func (svc user) Find(f types.UserFilter) (types.UserSet, types.UserFilter, error) {
@@ -136,6 +144,14 @@ func (svc user) Find(f types.UserFilter) (types.UserSet, types.UserFilter, error
 	}
 
 	return svc.user.Find(f)
+}
+
+func (svc user) procSet(u types.UserSet, err error) (types.UserSet, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	return u, nil
 }
 
 func (svc user) Create(input *types.User) (out *types.User, err error) {

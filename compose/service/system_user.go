@@ -39,6 +39,10 @@ func (svc systemUser) MakeJWT(ctx context.Context, ID uint64) (string, error) {
 }
 
 func (svc systemUser) FindByID(ctx context.Context, ID uint64) (*types.User, error) {
+	ctx = metadata.NewOutgoingContext(ctx, metadata.MD{
+		"jwt": []string{auth.GetJwtFromContext(ctx)},
+	})
+
 	rsp, err := svc.client.FindByID(ctx, &proto.FindByIDUserRequest{UserID: ID})
 	if err != nil {
 		return nil, err
