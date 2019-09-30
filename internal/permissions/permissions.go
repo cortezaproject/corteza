@@ -28,7 +28,7 @@ const (
 	EveryoneRoleID = 1
 
 	// Hardcoded ID for Admin role
-	AdminRoleID = 2
+	AdminsRoleID = 2
 )
 
 func (op Operation) String() string {
