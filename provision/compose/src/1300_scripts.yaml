@@ -3,7 +3,7 @@ scripts:
   AccountCreateNewOpportunity:
     source: |-
       //Get the default settings
-      return Compose.findRecordByID('96976273003249666', 'DefaultSettings').then(defaultSettings => {
+      return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
 
         let opportunityCloseDays = defaultSettings.values.OpportunityCloseDateDays
         let opportunityProbability = defaultSettings.values.OpportunityProbability
@@ -108,7 +108,7 @@ scripts:
   CaseInsertCaseNumber:
     source: |-
       //Get the default settings
-      return Compose.findRecordByID('96976273003249666', 'DefaultSettings').then(defaultSettings => {
+      return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
         
         // Map the case number
         let nextCaseNumber = defaultSettings.values.CaseNextNumber
@@ -343,7 +343,7 @@ scripts:
   SolutionInsertSolutionNumber:
     source: |-
       //Get the default settings
-      return Compose.findRecordByID('96976273003249666', 'DefaultSettings').then(defaultSettings => {
+      return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
         
         // Map the case number
         let nextSolutionNumber = defaultSettings.values.SolutionNextNumber
@@ -379,7 +379,7 @@ scripts:
   AccountCreateNewContract:
     source: |-
       //Get the default settings
-      return Compose.findRecordByID('96976273003249666', 'DefaultSettings').then(defaultSettings => {
+      return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
         
         // Map the case number
         let ContractDefaultTime = defaultSettings.values.ContractDefaultTime
@@ -546,7 +546,7 @@ scripts:
                 if ($record.values.SubmitAsSolution) {
 
                   //Get the default settings
-                  return Compose.findRecordByID('96976273003249666', 'DefaultSettings').then(defaultSettings => {
+                  return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
 
                     // Map the solution number
                     let nextSolutionNumber = defaultSettings.values.SolutionNextNumber
@@ -621,7 +621,7 @@ scripts:
   AccountCreateNewCase:
     source: |-
       //Get the default settings
-      return Compose.findRecordByID('96976273003249666', 'DefaultSettings').then(defaultSettings => {
+      return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
         
         // Map the case number
         let nextCaseNumber = defaultSettings.values.CaseNextNumber
@@ -713,7 +713,7 @@ scripts:
   ContactCreateNewCase:
     source: |-
       //Get the default settings
-      return Compose.findRecordByID('96976273003249666', 'DefaultSettings').then(defaultSettings => {
+      return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
         
         // Map the case number
         let nextCaseNumber = defaultSettings.values.CaseNextNumber
@@ -969,7 +969,7 @@ scripts:
             
             // First get the default values
             //Get the default settings
-            return Compose.findRecordByID('96976273003249666', 'DefaultSettings').then(defaultSettings => {
+            return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
               
               let opportunityCloseDays = defaultSettings.values.OpportunityCloseDateDays
               let opportunityProbability = defaultSettings.values.OpportunityProbability
@@ -1484,7 +1484,7 @@ scripts:
         }).then(mySavedQuote => {
 
           // Get the default settings
-          return Compose.findRecordByID('96976273003249666', 'DefaultSettings').then(defaultSettings => {
+          return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
 
             // Get the expiration date
             let quoteExpirationDays = defaultSettings.values.QuoteExpirationDays
