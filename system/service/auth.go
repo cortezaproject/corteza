@@ -92,7 +92,7 @@ func (svc auth) With(ctx context.Context) AuthService {
 	return &auth{
 		db:     db,
 		ctx:    ctx,
-		logger: svc.logger,
+		logger: logger.AddRequestID(ctx, svc.logger),
 
 		credentials: repository.Credentials(ctx, db),
 		users:       repository.User(ctx, db),
@@ -110,8 +110,8 @@ func (svc auth) With(ctx context.Context) AuthService {
 }
 
 // log() returns zap's logger with requestID from current context and fields.
-func (svc auth) log(fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+func (svc auth) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(ctx, svc.logger).With(fields...)
 }
 
 // External func performs login/signup procedures
@@ -142,7 +142,7 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 		return nil, errors.New("can not use profile data without an email")
 	}
 
-	log := svc.log(zap.String("provider", profile.Provider))
+	log := svc.log(svc.ctx, zap.String("provider", profile.Provider))
 
 	return u, svc.db.Transaction(func() error {
 		var c *types.Credentials
@@ -466,7 +466,7 @@ func (svc auth) checkPassword(password string, cc types.CredentialsSet) (err err
 
 // SetPassword sets new password for a user
 func (svc auth) SetPassword(userID uint64, newPassword string) (err error) {
-	log := svc.log(zap.Uint64("userID", userID))
+	log := svc.log(svc.ctx, zap.Uint64("userID", userID))
 
 	if !svc.settings.InternalEnabled {
 		return errors.New("internal authentication disabled")
@@ -488,7 +488,7 @@ func (svc auth) SetPassword(userID uint64, newPassword string) (err error) {
 
 // ChangePassword validates old password and changes it with new
 func (svc auth) ChangePassword(userID uint64, oldPassword, newPassword string) (err error) {
-	log := svc.log(zap.Uint64("userID", userID))
+	log := svc.log(svc.ctx, zap.Uint64("userID", userID))
 
 	if !svc.settings.InternalEnabled {
 		return errors.New("internal authentication disabled")
@@ -659,7 +659,7 @@ func (svc auth) SendEmailAddressConfirmationToken(email string) error {
 }
 
 func (svc auth) sendEmailAddressConfirmationToken(u *types.User) (err error) {
-	log := svc.log(zap.Uint64("userID", u.ID), zap.String("email", u.Email))
+	log := svc.log(svc.ctx, zap.Uint64("userID", u.ID), zap.String("email", u.Email))
 
 	var (
 		notificationLang = "en"
@@ -700,7 +700,7 @@ func (svc auth) SendPasswordResetToken(email string) error {
 }
 
 func (svc auth) sendPasswordResetToken(u *types.User) (err error) {
-	log := svc.log(zap.Uint64("userID", u.ID), zap.String("email", u.Email))
+	log := svc.log(svc.ctx, zap.Uint64("userID", u.ID), zap.String("email", u.Email))
 
 	var (
 		notificationLang = "en"
@@ -819,6 +819,7 @@ func (svc auth) autoPromote(u *types.User) (err error) {
 		err = svc.roles.MemberAddByID(permissions.AdminRoleID, u.ID)
 
 		svc.log(
+			svc.ctx,
 			zap.String("email", u.Email),
 			zap.Uint64("userID", u.ID),
 			zap.Error(err),

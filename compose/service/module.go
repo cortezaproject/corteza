@@ -5,10 +5,12 @@ import (
 
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 type (
@@ -69,9 +71,9 @@ func (svc module) With(ctx context.Context) ModuleService {
 }
 
 // log() returns zap's logger with requestID from current context and fields.
-// func (svc module) log(fields ...zapcore.Field) *zap.Logger {
-// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-// }
+func (svc module) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(ctx, svc.logger).With(fields...)
+}
 
 func (svc module) FindByID(namespaceID, moduleID uint64) (m *types.Module, err error) {
 	if _, err = svc.loadNamespace(namespaceID); err != nil {

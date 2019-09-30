@@ -4,8 +4,10 @@ import (
 	"context"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 type (
@@ -33,9 +35,9 @@ func (svc command) With(ctx context.Context) CommandService {
 }
 
 // log() returns zap's logger with requestID from current context and fields.
-// func (svc command) log(fields ...zapcore.Field) *zap.Logger {
-// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-// }
+func (svc command) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(ctx, svc.logger).With(fields...)
+}
 
 func (svc command) Do(channelID uint64, command, input string) (*types.Message, error) {
 	switch command {

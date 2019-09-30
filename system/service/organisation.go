@@ -5,7 +5,9 @@ import (
 
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -51,11 +53,9 @@ func (svc organisation) With(ctx context.Context) OrganisationService {
 	}
 }
 
-// log() returns zap's logger with requestID from current context and fields.
-// func (svc organisation) log(fields ...zapcore.Field) *zap.Logger {
-// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-// }
-
+func (svc organisation) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(ctx, svc.logger).With(fields...)
+}
 func (svc organisation) FindByID(id uint64) (*types.Organisation, error) {
 	// @todo: permission check if current user can read organisation
 	return svc.rpo.FindByID(id)

@@ -83,8 +83,8 @@ func User(ctx context.Context) UserService {
 }
 
 // log() returns zap's logger with requestID from current context and fields.
-func (svc user) log(fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+func (svc user) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(ctx, svc.logger).With(fields...)
 }
 
 func (svc user) With(ctx context.Context) UserService {
@@ -103,11 +103,6 @@ func (svc user) With(ctx context.Context) UserService {
 		credentials: repository.Credentials(ctx, db),
 	}
 }
-
-// log() returns zap's logger with requestID from current context and fields.
-// func (svc user) log(fields ...zapcore.Field) *zap.Logger {
-// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-// }
 
 func (svc user) FindByID(ID uint64) (*types.User, error) {
 	if ID == 0 {
@@ -283,7 +278,7 @@ func (svc user) Unsuspend(ID uint64) (err error) {
 //
 // Expecting setter to have permissions to update modify users and internal authentication enabled
 func (svc user) SetPassword(userID uint64, newPassword string) (err error) {
-	log := svc.log(zap.Uint64("userID", userID))
+	log := svc.log(svc.ctx, zap.Uint64("userID", userID))
 
 	if !svc.settings.InternalEnabled {
 		return errors.New("internal authentication disabled")

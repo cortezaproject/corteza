@@ -5,10 +5,12 @@ import (
 
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 type (
@@ -66,9 +68,9 @@ func (svc chart) With(ctx context.Context) ChartService {
 }
 
 // log() returns zap's logger with requestID from current context and fields.
-// func (svc chart) log(fields ...zapcore.Field) *zap.Logger {
-// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-// }
+func (svc chart) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(ctx, svc.logger).With(fields...)
+}
 
 func (svc chart) FindByID(namespaceID, chartID uint64) (c *types.Chart, err error) {
 	if _, err = svc.loadNamespace(namespaceID); err != nil {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -14,6 +15,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/automation/corredor"
 	mailTrigger "github.com/cortezaproject/corteza-server/pkg/automation/mail"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/system/proto"
 	"github.com/cortezaproject/corteza-server/system/repository"
@@ -59,6 +61,10 @@ func AutomationRunner(opt AutomationRunnerOpt, f automationScriptsFinder, r corr
 	}
 
 	return svc
+}
+
+func (svc automationRunner) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(ctx, svc.logger).With(fields...)
 }
 
 func (svc automationRunner) Watch(ctx context.Context) {
@@ -119,7 +125,7 @@ func (svc automationRunner) makeMailScriptRunner(ctx context.Context, mail *type
 		MailMessage: proto.NewMailMessage(mail),
 	}
 
-	svc.logger.Debug("preparing mail script runner", zap.Any("mail", mail))
+	svc.log(ctx).Debug("preparing mail script runner", zap.Any("mail", mail))
 
 	return func(script *automation.Script) error {
 		if svc.runner == nil {
@@ -151,7 +157,7 @@ func (svc automationRunner) makeMailScriptRunner(ctx context.Context, mail *type
 		if err != nil {
 			s, ok := status.FromError(err)
 			if !ok {
-				svc.logger.Error("unexpected error type", zap.Error(err))
+				svc.log(ctx).Error("unexpected error type", zap.Error(err))
 				return err
 			}
 
@@ -168,7 +174,7 @@ func (svc automationRunner) makeMailScriptRunner(ctx context.Context, mail *type
 			default:
 			}
 
-			svc.logger.Info("script executed with errors", zap.Error(err))
+			svc.log(ctx).Info("script executed with errors", zap.Error(err))
 
 			if !script.Critical {
 				// This was not a critical call and we do not care about
