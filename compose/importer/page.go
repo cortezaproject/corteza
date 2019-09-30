@@ -413,7 +413,7 @@ func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
 								return errors.Errorf("could not load script %q for page %q block #%d (err: %v)",
 									v, page.Handle, i+1, err)
 							} else {
-								button["scriptID"] = s.ID
+								button["scriptID"] = strconv.FormatUint(s.ID, 10)
 								refs++
 							}
 						default:
@@ -448,7 +448,7 @@ func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
 								return errors.Errorf("could not load module %q for page %q block #%d (err: %v)",
 									v, page.Handle, i+1, err)
 							} else {
-								feed["moduleID"] = m.ID
+								feed["moduleID"] = strconv.FormatUint(m.ID, 10)
 								refs++
 							}
 						default:
