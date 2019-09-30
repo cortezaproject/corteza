@@ -304,7 +304,6 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 
 		contentType string
 	)
-
 	// Access control.
 	if _, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
@@ -316,6 +315,10 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 
 	return func(w http.ResponseWriter, req *http.Request) {
 		ff := encoder.MakeFields(r.Fields...)
+
+		if len(ff) == 0 {
+			http.Error(w, "no record value fields provided", http.StatusBadRequest)
+		}
 
 		switch strings.ToLower(r.Ext) {
 		case "json", "jsonl", "ldjson", "ndjson":
