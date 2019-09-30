@@ -10,11 +10,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/compose/decoder"
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 const (
@@ -133,9 +135,9 @@ func (svc record) With(ctx context.Context) RecordService {
 }
 
 // log() returns zap's logger with requestID from current context and fields.
-// func (svc record) log(fields ...zapcore.Field) *zap.Logger {
-// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-// }
+func (svc record) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(ctx, svc.logger).With(fields...)
+}
 
 func (svc record) FindByID(namespaceID, recordID uint64) (r *types.Record, err error) {
 	if namespaceID == 0 {

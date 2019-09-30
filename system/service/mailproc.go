@@ -7,7 +7,9 @@ import (
 	"net/mail"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -31,9 +33,9 @@ func Mailproc() *mailproc {
 }
 
 // log() returns zap's logger with requestID from current context and fields.
-// func (svc mailproc) log(fields ...zapcore.Field) *zap.Logger {
-// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-// }
+func (svc mailproc) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(ctx, svc.logger).With(fields...)
+}
 
 func (svc mailproc) ContentProcessor(ctx context.Context, m io.Reader) error {
 	if m, err := mailProcMessage(m); err != nil {

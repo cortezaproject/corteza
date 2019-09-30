@@ -7,8 +7,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	internalSettings "github.com/cortezaproject/corteza-server/internal/settings"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/system/repository"
 )
 
@@ -62,10 +64,9 @@ func (svc settings) With(ctx context.Context) SettingsService {
 	}
 }
 
-// log() returns zap's logger with requestID from current context and fields.
-// func (svc settings) log(fields ...zapcore.Field) *zap.Logger {
-// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-// }
+func (svc settings) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(ctx, svc.logger).With(fields...)
+}
 
 func (svc settings) FindByPrefix(prefix string) (vv internalSettings.ValueSet, err error) {
 	if !svc.ac.CanReadSettings(svc.ctx) {

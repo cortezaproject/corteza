@@ -5,11 +5,13 @@ import (
 
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 type (
@@ -66,9 +68,9 @@ func (svc namespace) With(ctx context.Context) NamespaceService {
 }
 
 // log() returns zap's logger with requestID from current context and fields.
-// func (svc namespace) log(fields ...zapcore.Field) *zap.Logger {
-// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-// }
+func (svc namespace) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(ctx, svc.logger).With(fields...)
+}
 
 func (svc namespace) FindByID(ID uint64) (ns *types.Namespace, err error) {
 	return svc.checkPermissions(svc.namespaceRepo.FindByID(ID))

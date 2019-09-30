@@ -6,6 +6,9 @@ import (
 	"strings"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 type (
@@ -50,4 +53,8 @@ func (svc *sink) Process(ctx context.Context, contentType string, r io.Reader) (
 	}
 
 	return
+}
+
+func (svc sink) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(ctx, svc.logger).With(fields...)
 }

@@ -4,10 +4,12 @@ import (
 	"context"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	intAuth "github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 type (
@@ -46,6 +48,10 @@ func AutomationScript(sm automationScriptManager) automationScript {
 	}
 
 	return svc
+}
+
+func (svc automationScript) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(ctx, svc.logger).With(fields...)
 }
 
 func (svc automationScript) FindByID(ctx context.Context, scriptID uint64) (*automation.Script, error) {

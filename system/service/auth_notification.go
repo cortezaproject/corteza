@@ -115,13 +115,13 @@ func AuthNotification(ctx context.Context) AuthNotificationService {
 func (svc authNotification) With(ctx context.Context) AuthNotificationService {
 	return &authNotification{
 		ctx:      ctx,
-		logger:   svc.logger,
+		logger:   logger.AddRequestID(ctx, svc.logger),
 		settings: svc.settings,
 	}
 }
 
-func (svc authNotification) log(fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
+func (svc authNotification) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(ctx, svc.logger).With(fields...)
 }
 
 func (svc authNotification) EmailConfirmation(lang string, emailAddress string, token string) error {
@@ -156,7 +156,7 @@ func (svc authNotification) send(name, lang string, payload authNotificationPayl
 	ntf.SetHeader("Subject", svc.render(emailTemplates[name+"."+lang+".subject"], payload))
 	ntf.SetBody("text/html", svc.render(emailTemplates[name+"."+lang+".html"], payload))
 
-	svc.log().Debug(
+	svc.log(svc.ctx).Debug(
 		"sending auth notification",
 		zap.String("name", name),
 		zap.String("language", lang),
@@ -175,13 +175,13 @@ func (svc authNotification) render(source string, payload interface{}) (out stri
 
 	tpl, err = template.New("").Parse(source)
 	if err != nil {
-		svc.log(zap.Error(err)).Error("could not parse template")
+		svc.log(svc.ctx, zap.Error(err)).Error("could not parse template")
 		return
 	}
 
 	err = tpl.Execute(&buf, payload)
 	if err != nil {
-		svc.log(zap.Error(err)).Error("could not render template")
+		svc.log(svc.ctx, zap.Error(err)).Error("could not render template")
 		return
 	}
 

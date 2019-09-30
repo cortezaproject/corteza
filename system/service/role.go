@@ -6,8 +6,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -79,10 +81,9 @@ func (svc role) With(ctx context.Context) RoleService {
 	}
 }
 
-// log() returns zap's logger with requestID from current context and fields.
-// func (svc role) log(fields ...zapcore.Field) *zap.Logger {
-// 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
-// }
+func (svc role) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+	return logger.AddRequestID(ctx, svc.logger).With(fields...)
+}
 
 func (svc role) FindByID(roleID uint64) (*types.Role, error) {
 	return svc.findByID(roleID)
