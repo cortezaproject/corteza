@@ -3,6 +3,7 @@ package compose
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"testing"
 	"time"
@@ -196,4 +197,26 @@ func TestRecordDelete(t *testing.T) {
 
 	_, err := h.repoRecord().FindByID(module.NamespaceID, record.ID)
 	h.a.Error(err, "compose.repository.RecordNotFound")
+}
+
+func TestRecordExport(t *testing.T) {
+	h := newHelper(t)
+
+	module := h.repoMakeRecordModuleWithFields("record export module")
+	for i := 0; i < 10; i++ {
+		h.repoMakeRecord(module, &types.RecordValue{Name: "name", Value: fmt.Sprintf("d%d", i)})
+	}
+
+	// we'll not use standard asserts (AssertNoErrors) here,
+	// because we're not returning JSON errors.
+	r := h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/module/%d/record/export.csv", module.NamespaceID, module.ID)).
+		Query("fields", "name").
+		Expect(t).
+		Status(http.StatusOK).
+		End()
+
+	b, err := ioutil.ReadAll(r.Response.Body)
+	h.a.NoError(err)
+	h.a.Equal("name\nd0\nd1\nd2\nd3\nd4\nd5\nd6\nd7\nd8\nd9\n", string(b))
 }
