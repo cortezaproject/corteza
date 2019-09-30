@@ -29,7 +29,7 @@ type (
 		credentials   repository.CredentialsRepository
 		users         repository.UserRepository
 		roles         repository.RoleRepository
-		settings      AuthSettings
+		settings      *AuthSettings
 		notifications AuthNotificationService
 
 		providerValidator func(string) error

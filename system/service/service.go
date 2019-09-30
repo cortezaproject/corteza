@@ -63,7 +63,7 @@ var (
 	DefaultAutomationRunner automationRunner
 
 	DefaultAuthNotification AuthNotificationService
-	DefaultAuthSettings     AuthSettings
+	DefaultAuthSettings     *AuthSettings
 
 	DefaultSink *sink
 
@@ -98,6 +98,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	if err != nil {
 		return
 	}
+
 	DefaultAuthNotification = AuthNotification(ctx)
 	DefaultAuth = Auth(ctx)
 

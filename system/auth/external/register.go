@@ -50,7 +50,7 @@ func AddProvider(name string, eap *service.AuthSettingsExternalAuthProvider, for
 
 // @todo remove dependency on github.com/crusttech/go-oidc (and github.com/coreos/go-oidc)
 //       and move client registration to corteza codebase
-func DiscoverOidcProvider(ctx context.Context, eas service.AuthSettings, name, url string) (eap *service.AuthSettingsExternalAuthProvider, err error) {
+func DiscoverOidcProvider(ctx context.Context, eas *service.AuthSettings, name, url string) (eap *service.AuthSettingsExternalAuthProvider, err error) {
 	var (
 		provider    *oidc.Provider
 		client      *oidc.Client

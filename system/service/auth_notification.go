@@ -18,7 +18,7 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		settings AuthSettings
+		settings *AuthSettings
 	}
 
 	AuthNotificationService interface {
@@ -107,16 +107,16 @@ var (
 
 func AuthNotification(ctx context.Context) AuthNotificationService {
 	return (&authNotification{
-		logger: DefaultLogger.Named("auth-notification"),
+		logger:   DefaultLogger.Named("auth-notification"),
+		settings: DefaultAuthSettings,
 	}).With(ctx)
 }
 
 func (svc authNotification) With(ctx context.Context) AuthNotificationService {
 	return &authNotification{
-		ctx:    ctx,
-		logger: svc.logger,
-
-		settings: DefaultAuthSettings,
+		ctx:      ctx,
+		logger:   svc.logger,
+		settings: svc.settings,
 	}
 }
 

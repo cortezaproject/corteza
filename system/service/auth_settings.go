@@ -71,29 +71,33 @@ type (
 // ParseAuthSettings maps from plain values to AuthSettings struct
 //
 // see settings.Initialize() func
-func ParseAuthSettings(kv intset.KV) (as AuthSettings, err error) {
-	as = AuthSettings{
-		FrontendUrlPasswordReset:     kv.String("auth.frontend.url.password-reset"),
-		FrontendUrlEmailConfirmation: kv.String("auth.frontend.url.email-confirmation"),
-		FrontendUrlRedirect:          kv.String("auth.frontend.url.redirect"),
-		FrontendUrlBase:              kv.String("auth.frontend.url.base"),
+func ParseAuthSettings(kv intset.KV) (as *AuthSettings, err error) {
+	as = &AuthSettings{}
+	as.ReadKV(kv)
+	return
+}
 
-		MailFromAddress: kv.String("auth.mail.from-address"),
-		MailFromName:    kv.String("auth.mail.from-name"),
+func (as *AuthSettings) ReadKV(kv intset.KV) (err error) {
+	as.FrontendUrlPasswordReset = kv.String("auth.frontend.url.password-reset")
+	as.FrontendUrlEmailConfirmation = kv.String("auth.frontend.url.email-confirmation")
+	as.FrontendUrlRedirect = kv.String("auth.frontend.url.redirect")
+	as.FrontendUrlBase = kv.String("auth.frontend.url.base")
 
-		InternalEnabled: kv.Bool("auth.internal.enabled"),
+	as.MailFromAddress = kv.String("auth.mail.from-address")
+	as.MailFromName = kv.String("auth.mail.from-name")
 
-		InternalSignUpEnabled:                   kv.Bool("auth.internal.signup.enabled"),
-		InternalSignUpEmailConfirmationRequired: kv.Bool("auth.internal.signup-email-confirmation-required"),
+	as.InternalEnabled = kv.Bool("auth.internal.enabled")
 
-		InternalPasswordResetEnabled: kv.Bool("auth.internal.password-reset.enabled"),
+	as.InternalSignUpEnabled = kv.Bool("auth.internal.signup.enabled")
+	as.InternalSignUpEmailConfirmationRequired = kv.Bool("auth.internal.signup-email-confirmation-required")
 
-		ExternalEnabled: kv.Bool("auth.external.enabled"),
+	as.InternalPasswordResetEnabled = kv.Bool("auth.internal.password-reset.enabled")
 
-		ExternalRedirectUrl:        kv.String("auth.external.redirect-url"),
-		ExternalSessionStoreSecret: kv.String("auth.external.session-store-secret"),
-		ExternalSessionStoreSecure: kv.Bool("auth.external.session-store-secure"),
-	}
+	as.ExternalEnabled = kv.Bool("auth.external.enabled")
+
+	as.ExternalRedirectUrl = kv.String("auth.external.redirect-url")
+	as.ExternalSessionStoreSecret = kv.String("auth.external.session-store-secret")
+	as.ExternalSessionStoreSecure = kv.Bool("auth.external.session-store-secure")
 
 	as.ExternalProviders, err = as.parseExternalProviders(kv)
 
