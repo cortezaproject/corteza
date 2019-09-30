@@ -3,29 +3,11 @@ settings:
 
 schema:
 # ######################################################################################################################
-- name: "sys"
-  path: "./cmd/system"
+- name: "COR"
+  path: "./cmd/monolith"
   commands: { run: { status: true } }
   args: [ "serve-api" ]
   watcher:
-    paths: [ "." , "../../system" , "../../pkg" , "../../internal" ]
-    extensions: [ "go" ]
-    ignored_paths: [ "../../vendor", "../../.git" ]
-
-- name: "msg"
-  path: "./cmd/messaging"
-  commands: { run: { status: true } }
-  args: [ "serve-api" ]
-  watcher:
-    paths: [ "." , "../../messaging" , "../../pkg" , "../../internal" ]
-    extensions: [ "go" ]
-    ignored_paths: [ "../../vendor", "../../.git" ]
-
-- name: "cmp"
-  path: "./cmd/compose"
-  commands: { run: { status: true } }
-  args: [ "serve-api" ]
-  watcher:
-    paths: [ "." , "../../compose" , "../../pkg" , "../../internal" ]
+    paths: [ "." , "../../system" , "../../messaging" , "../../compose" , "../../pkg" , "../../internal" ]
     extensions: [ "go" ]
     ignored_paths: [ "../../vendor", "../../.git" ]
