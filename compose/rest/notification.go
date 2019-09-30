@@ -24,8 +24,8 @@ type (
 	}
 
 	notificationService interface {
-		SendEmail(*gomail.Message) error
-		AttachEmailRecipients(*gomail.Message, string, ...string) error
+		SendEmail(context.Context, *gomail.Message) error
+		AttachEmailRecipients(context.Context, *gomail.Message, string, ...string) error
 		AttachRemoteFiles(context.Context, *gomail.Message, ...string) error
 	}
 )
@@ -41,11 +41,11 @@ func (ctrl *Notification) EmailSend(ctx context.Context, r *request.Notification
 	ntf := ctrl.notification
 
 	msg := mail.New()
-	if err := ntf.AttachEmailRecipients(msg, "To", r.To...); err != nil {
+	if err := ntf.AttachEmailRecipients(ctx, msg, "To", r.To...); err != nil {
 		return false, err
 	}
 
-	if err := ntf.AttachEmailRecipients(msg, "Cc", r.Cc...); err != nil {
+	if err := ntf.AttachEmailRecipients(ctx, msg, "Cc", r.Cc...); err != nil {
 		return false, err
 	}
 
@@ -72,7 +72,7 @@ func (ctrl *Notification) EmailSend(ctx context.Context, r *request.Notification
 		}
 	}
 
-	if err := ntf.SendEmail(msg); err != nil {
+	if err := ntf.SendEmail(ctx, msg); err != nil {
 		return false, err
 	} else {
 		return true, nil

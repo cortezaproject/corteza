@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"path"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -15,17 +16,24 @@ import (
 	httpClient "github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/mail"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
 	notification struct {
 		logger *zap.Logger
+		users  notificationUserFinder
+	}
+
+	notificationUserFinder interface {
+		FindByID(context.Context, uint64) (*types.User, error)
 	}
 )
 
 func Notification() *notification {
 	return &notification{
 		logger: DefaultLogger.Named("notification"),
+		users:  DefaultSystemUser,
 	}
 }
 
@@ -34,7 +42,7 @@ func (svc notification) log(ctx context.Context, fields ...zapcore.Field) *zap.L
 	return logger.AddRequestID(ctx, svc.logger).With(fields...)
 }
 
-func (svc notification) SendEmail(message *gomail.Message) error {
+func (svc notification) SendEmail(ctx context.Context, message *gomail.Message) error {
 	return mail.Send(message)
 }
 
@@ -45,7 +53,7 @@ func (svc notification) SendEmail(message *gomail.Message) error {
 //  - <valid email><space><name...>
 //  - <userID>
 // Last one is then translated into valid email + name (when/if possible)
-func (svc notification) AttachEmailRecipients(message *gomail.Message, field string, recipients ...string) (err error) {
+func (svc notification) AttachEmailRecipients(ctx context.Context, message *gomail.Message, field string, recipients ...string) (err error) {
 	var (
 		email string
 		name  string
@@ -59,10 +67,20 @@ func (svc notification) AttachEmailRecipients(message *gomail.Message, field str
 		name, email = "", ""
 		rcpt = strings.TrimSpace(rcpt)
 
-		// First, get userID off the table
-		if spaceAt := strings.Index(rcpt, " "); spaceAt > -1 {
+		if userID, err := strconv.ParseUint(rcpt, 10, 64); err == nil && userID > 0 {
+			// handle user ID
+			if user, err := svc.users.FindByID(ctx, userID); err != nil {
+				return errors.Wrap(err, "could not get notification address")
+			} else {
+				email = user.Email
+				name = user.Name
+			}
+
+		} else if spaceAt := strings.Index(rcpt, " "); spaceAt > -1 {
+			// handle: <email> <name> ("foo@bar.baz foo baz")
 			email, name = rcpt[:spaceAt], strings.TrimSpace(rcpt[spaceAt+1:])
 		} else {
+			// handle: <email>
 			email = rcpt
 		}
 
