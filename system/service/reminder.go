@@ -41,11 +41,11 @@ type (
 
 func Reminder(ctx context.Context) ReminderService {
 	db := repository.DB(ctx)
-	return (&reminder{
+	return &reminder{
 		db:       db,
 		ac:       DefaultAccessControl,
 		reminder: repository.Reminder(ctx, db),
-	})
+	}
 }
 
 func (svc reminder) Find(ctx context.Context, f types.ReminderFilter) (types.ReminderSet, types.ReminderFilter, error) {
@@ -78,9 +78,8 @@ func (svc reminder) FindByIDs(ctx context.Context, IDs ...uint64) (types.Reminde
 }
 
 func (svc reminder) checkAssignee(ctx context.Context, rm *types.Reminder) error {
-	// Check if I am assigning to someone else
-	me := svc.meFromCtx(ctx)
-	if rm.AssignedTo != me {
+	// Check if user is assigning to someone else
+	if rm.AssignedTo != svc.currentUser(ctx) {
 		if !svc.ac.CanAssignReminder(ctx) {
 			return ErrNoReminderAssignPermissions
 		}
@@ -89,7 +88,7 @@ func (svc reminder) checkAssignee(ctx context.Context, rm *types.Reminder) error
 	return nil
 }
 
-func (svc reminder) meFromCtx(ctx context.Context) uint64 {
+func (svc reminder) currentUser(ctx context.Context) uint64 {
 	return intAuth.GetIdentityFromContext(ctx).Identity()
 }
 
@@ -102,7 +101,7 @@ func (svc reminder) Create(ctx context.Context, rm *types.Reminder) (*types.Remi
 }
 
 func (svc reminder) Update(ctx context.Context, rm *types.Reminder) (t *types.Reminder, err error) {
-	return rm, svc.db.Transaction(func() (err error) {
+	return rm, svc.db.With(ctx).Transaction(func() (err error) {
 		if t, err = svc.reminder.FindByID(rm.ID); err != nil {
 			return
 		}
@@ -114,7 +113,7 @@ func (svc reminder) Update(ctx context.Context, rm *types.Reminder) (t *types.Re
 		// Assign changed values
 		if rm.AssignedTo != t.AssignedTo {
 			t.AssignedTo = rm.AssignedTo
-			t.AssignedBy = svc.meFromCtx(ctx)
+			t.AssignedBy = svc.currentUser(ctx)
 			t.AssignedAt = time.Now()
 		}
 		t.Payload = rm.Payload
@@ -130,7 +129,7 @@ func (svc reminder) Update(ctx context.Context, rm *types.Reminder) (t *types.Re
 }
 
 func (svc reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
-	return svc.db.Transaction(func() (err error) {
+	return svc.db.With(ctx).Transaction(func() (err error) {
 		var t *types.Reminder
 		if t, err = svc.reminder.FindByID(ID); err != nil {
 			return err
@@ -139,7 +138,7 @@ func (svc reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
 		// Assign changed values
 		n := time.Now()
 		t.DismissedAt = &n
-		t.DismissedBy = svc.meFromCtx(ctx)
+		t.DismissedBy = svc.currentUser(ctx)
 
 		if t, err = svc.reminder.Update(t); err != nil {
 			return err
@@ -150,7 +149,7 @@ func (svc reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
 }
 
 func (svc reminder) Snooze(ctx context.Context, ID uint64, remindAt *time.Time) (err error) {
-	return svc.db.Transaction(func() (err error) {
+	return svc.db.With(ctx).Transaction(func() (err error) {
 		var t *types.Reminder
 		if t, err = svc.reminder.FindByID(ID); err != nil {
 			return err
