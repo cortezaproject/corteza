@@ -1,0 +1,15 @@
+modules:
+  mod1:
+    name: Module with fields
+    fields:
+      f1:
+        kind: Number
+      f2:
+        kind: String
+        label: F2
+        required: true
+        options:
+          multiLine: true
+          multiDelimiter: |2+
+
+          useRichTextEditor: true

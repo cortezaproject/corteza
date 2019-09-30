@@ -190,60 +190,6 @@ func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (
 	return svc.permissions.FindRulesByRoleID(roleID), nil
 }
 
-// DefaultRules returns list of default rules for this compose service
-func (svc accessControl) DefaultRules() permissions.RuleSet {
-	var (
-		compose    = types.ComposePermissionResource
-		namespaces = types.NamespacePermissionResource.AppendWildcard()
-		modules    = types.ModulePermissionResource.AppendWildcard()
-		charts     = types.ChartPermissionResource.AppendWildcard()
-		pages      = types.PagePermissionResource.AppendWildcard()
-		ascripts   = types.AutomationScriptPermissionResource.AppendWildcard()
-
-		allowAdm = func(res permissions.Resource, op permissions.Operation) *permissions.Rule {
-			return permissions.AllowRule(permissions.AdminRoleID, res, op)
-		}
-	)
-
-	return permissions.RuleSet{
-		permissions.AllowRule(permissions.EveryoneRoleID, compose, "access"),
-
-		allowAdm(compose, "namespace.create"),
-		allowAdm(compose, "access"),
-		allowAdm(compose, "grant"),
-
-		allowAdm(namespaces, "read"),
-		allowAdm(namespaces, "update"),
-		allowAdm(namespaces, "delete"),
-		allowAdm(namespaces, "manage"),
-		allowAdm(namespaces, "page.create"),
-		allowAdm(namespaces, "module.create"),
-		allowAdm(namespaces, "chart.create"),
-		allowAdm(namespaces, "automation-script.create"),
-
-		allowAdm(modules, "read"),
-		allowAdm(modules, "update"),
-		allowAdm(modules, "delete"),
-		allowAdm(modules, "record.create"),
-		allowAdm(modules, "record.read"),
-		allowAdm(modules, "record.update"),
-		allowAdm(modules, "record.delete"),
-		allowAdm(modules, "automation-trigger.manage"),
-
-		allowAdm(charts, "read"),
-		allowAdm(charts, "update"),
-		allowAdm(charts, "delete"),
-
-		allowAdm(pages, "read"),
-		allowAdm(pages, "update"),
-		allowAdm(pages, "delete"),
-
-		allowAdm(ascripts, "read"),
-		allowAdm(ascripts, "update"),
-		allowAdm(ascripts, "delete"),
-	}
-}
-
 func (svc accessControl) Whitelist() permissions.Whitelist {
 	var wl = permissions.Whitelist{}
 

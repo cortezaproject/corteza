@@ -8,6 +8,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/handle"
 )
 
 type (
@@ -35,6 +36,8 @@ type (
 		With(ctx context.Context) ModuleService
 
 		FindByID(namespaceID, moduleID uint64) (*types.Module, error)
+		FindByName(namespaceID uint64, name string) (*types.Module, error)
+		FindByHandle(namespaceID uint64, handle string) (*types.Module, error)
 		Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
 
 		Create(module *types.Module) (*types.Module, error)
@@ -71,19 +74,39 @@ func (svc module) With(ctx context.Context) ModuleService {
 // }
 
 func (svc module) FindByID(namespaceID, moduleID uint64) (m *types.Module, err error) {
-	if namespaceID == 0 {
-		return nil, ErrNamespaceRequired
-	}
-
-	if m, err = svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
+	if _, err = svc.loadNamespace(namespaceID); err != nil {
 		return
+	} else {
+		return svc.loader(svc.moduleRepo.FindByID(namespaceID, moduleID))
+	}
+}
+
+func (svc module) FindByName(namespaceID uint64, name string) (m *types.Module, err error) {
+	if _, err = svc.loadNamespace(namespaceID); err != nil {
+		return
+	} else {
+		return svc.loader(svc.moduleRepo.FindByName(namespaceID, name))
+	}
+}
+
+func (svc module) FindByHandle(namespaceID uint64, handle string) (m *types.Module, err error) {
+	if _, err = svc.loadNamespace(namespaceID); err != nil {
+		return
+	} else {
+		return svc.loader(svc.moduleRepo.FindByHandle(namespaceID, handle))
+	}
+}
+
+func (svc module) loader(m *types.Module, err error) (*types.Module, error) {
+	if err != nil {
+		return nil, err
 	} else if !svc.ac.CanReadModule(svc.ctx, m) {
 		return nil, ErrNoReadPermissions.withStack()
 	}
 
 	var ff types.ModuleFieldSet
 	if ff, err = svc.moduleRepo.FindFields(m.ID); err != nil {
-		return
+		return nil, err
 	} else {
 		_ = ff.Walk(func(f *types.ModuleField) error {
 			m.Fields = append(m.Fields, f)
@@ -91,7 +114,7 @@ func (svc module) FindByID(namespaceID, moduleID uint64) (m *types.Module, err e
 		})
 	}
 
-	return
+	return m, err
 }
 
 func (svc module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
@@ -119,9 +142,15 @@ func (svc module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.
 }
 
 func (svc module) Create(mod *types.Module) (*types.Module, error) {
-
+	if !handle.IsValid(mod.Handle) {
+		return nil, ErrInvalidHandle
+	}
 	if mod.NamespaceID == 0 {
 		return nil, ErrNamespaceRequired.withStack()
+	}
+
+	if err := svc.UniqueCheck(mod); err != nil {
+		return nil, err
 	}
 
 	if ns, err := svc.loadNamespace(mod.NamespaceID); err != nil {
@@ -138,7 +167,15 @@ func (svc module) Update(mod *types.Module) (m *types.Module, err error) {
 		return nil, ErrInvalidID.withStack()
 	}
 
+	if !handle.IsValid(mod.Handle) {
+		return nil, ErrInvalidHandle
+	}
+
 	if m, err = svc.moduleRepo.FindByID(mod.NamespaceID, mod.ID); err != nil {
+		return
+	}
+
+	if err = svc.UniqueCheck(mod); err != nil {
 		return
 	}
 
@@ -151,6 +188,7 @@ func (svc module) Update(mod *types.Module) (m *types.Module, err error) {
 	}
 
 	m.Name = mod.Name
+	m.Handle = mod.Handle
 	m.Meta = mod.Meta
 	m.Fields = mod.Fields
 
@@ -173,6 +211,22 @@ func (svc module) DeleteByID(namespaceID, moduleID uint64) error {
 	}
 
 	return svc.moduleRepo.DeleteByID(namespaceID, moduleID)
+}
+
+func (svc module) UniqueCheck(m *types.Module) (err error) {
+	if m.Handle != "" {
+		if e, _ := svc.moduleRepo.FindByHandle(m.NamespaceID, m.Handle); e != nil && e.ID > 0 && e.ID != m.ID {
+			return repository.ErrModuleHandleNotUnique
+		}
+	}
+
+	if m.Name != "" {
+		if e, _ := svc.moduleRepo.FindByName(m.NamespaceID, m.Name); e != nil && e.ID > 0 && e.ID != m.ID {
+			return repository.ErrModuleNameNotUnique
+		}
+	}
+
+	return nil
 }
 
 func (svc module) loadNamespace(namespaceID uint64) (ns *types.Namespace, err error) {

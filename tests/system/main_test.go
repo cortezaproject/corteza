@@ -43,6 +43,16 @@ var (
 	p   = permissions.NewTestService()
 )
 
+// random string, 10 chars long by default
+func rs(a ...int) string {
+	var l = 10
+	if len(a) > 0 {
+		l = a[0]
+	}
+
+	return string(rand.Bytes(l))
+}
+
 func db() *factory.DB {
 	return factory.Database.MustGet("system").With(context.Background())
 }
@@ -116,6 +126,11 @@ func newHelper(t *testing.T) helper {
 	h.mockPermissionsWithAccess()
 
 	return h
+}
+
+// Returns context w/ security details
+func (h helper) secCtx() context.Context {
+	return auth.SetIdentityToContext(context.Background(), h.cUser)
 }
 
 // apitest basics, initialize, set handler, add auth

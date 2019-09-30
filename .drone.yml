@@ -24,18 +24,9 @@ steps:
     repo: cortezaproject/corteza-server
     auto_tag: true # generate tag names automatically based on git branch and git tag
     dockerfile: Dockerfile.corteza-server
-    username:
-      from_secret: docker_hub_username
-    password:
-      from_secret: docker_hub_password
+    username: { from_secret: docker_hub_username }
+    password: { from_secret: docker_hub_password }
   when:
-#    this does not work as expected:
-#    time="2019-08-23T11:50:35Z" level=info msg="skipping automated docker build for refs/heads/feature-automation"
-#    ref:
-#      - refs/heads/master
-#      - refs/heads/beta
-#      - refs/heads/feature-*
-#      - refs/tags/20??.*.*
     events: [ tag, push ]
 
 - name: corteza-server-system
@@ -45,10 +36,8 @@ steps:
     repo: cortezaproject/corteza-server-system
     auto_tag: true # generate tag names automatically based on git branch and git tag
     dockerfile: Dockerfile.corteza-server-system
-    username:
-      from_secret: docker_hub_username
-    password:
-      from_secret: docker_hub_password
+    username: { from_secret: docker_hub_username }
+    password: { from_secret: docker_hub_password }
 
 
 - name: corteza-server-compose
@@ -58,10 +47,8 @@ steps:
     repo: cortezaproject/corteza-server-compose
     auto_tag: true # generate tag names automatically based on git branch and git tag
     dockerfile: Dockerfile.corteza-server-compose
-    username:
-      from_secret: docker_hub_username
-    password:
-      from_secret: docker_hub_password
+    username: { from_secret: docker_hub_username }
+    password: { from_secret: docker_hub_password }
 
 - name: corteza-server-messaging
   depends_on: [ 'corteza-server' ]
@@ -70,13 +57,22 @@ steps:
     repo: cortezaproject/corteza-server-messaging
     auto_tag: true # generate tag names automatically based on git branch and git tag
     dockerfile: Dockerfile.corteza-server-messaging
-    username:
-      from_secret: docker_hub_username
-    password:
-      from_secret: docker_hub_password
+    username: { from_secret: docker_hub_username }
+    password: { from_secret: docker_hub_password }
 
+- name: corteza-server:dev-branch-build
+  image: plugins/docker
+  depends_on: [ 'unit-tests' ]
+  settings:
+    repo: cortezaproject/corteza-server
+    tags: [ "${DRONE_TAG=${DRONE_BRANCH}}" ]
+    dockerfile: Dockerfile.corteza-server
+    username: { from_secret: docker_hub_username }
+    password: { from_secret: docker_hub_password }
+  when:
+    ref: [ "refs/heads/beta", "refs/heads/feature-*" ]
+    events: [ tag, push ]
 
-trigger:
 
 ---
 workspace:

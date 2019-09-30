@@ -68,12 +68,17 @@ func (ctrl Namespace) List(ctx context.Context, r *request.NamespaceList) (inter
 }
 
 func (ctrl Namespace) Create(ctx context.Context, r *request.NamespaceCreate) (interface{}, error) {
-	var err error
-	ns := &types.Namespace{
-		Name:    r.Name,
-		Slug:    r.Slug,
-		Meta:    r.Meta,
-		Enabled: r.Enabled,
+	var (
+		err error
+		ns  = &types.Namespace{
+			Name:    r.Name,
+			Slug:    r.Slug,
+			Enabled: r.Enabled,
+		}
+	)
+
+	if err = r.Meta.Unmarshal(&ns.Meta); err != nil {
+		return nil, err
 	}
 
 	ns, err = ctrl.namespace.With(ctx).Create(ns)
@@ -87,16 +92,19 @@ func (ctrl Namespace) Read(ctx context.Context, r *request.NamespaceRead) (inter
 
 func (ctrl Namespace) Update(ctx context.Context, r *request.NamespaceUpdate) (interface{}, error) {
 	var (
-		ns  = &types.Namespace{}
 		err error
+		ns  = &types.Namespace{
+			ID:        r.NamespaceID,
+			Name:      r.Name,
+			Slug:      r.Slug,
+			Enabled:   r.Enabled,
+			UpdatedAt: r.UpdatedAt,
+		}
 	)
 
-	ns.ID = r.NamespaceID
-	ns.Name = r.Name
-	ns.Slug = r.Slug
-	ns.Meta = r.Meta
-	ns.Enabled = r.Enabled
-	ns.UpdatedAt = r.UpdatedAt
+	if err = r.Meta.Unmarshal(&ns.Meta); err != nil {
+		return nil, err
+	}
 
 	ns, err = ctrl.namespace.With(ctx).Update(ns)
 	return ctrl.makePayload(ctx, ns, err)

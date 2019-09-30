@@ -34,7 +34,7 @@ func NewUserService(users service.UserService, auth service.AuthService, jwt aut
 	}
 }
 
-func (gs userService) MakeJWT(ctx context.Context, req *proto.MakeJWTRequest) (rsp *proto.MakeJWTResponse, err error) {
+func (gs userService) MakeJWT(ctx context.Context, req *proto.MakeJWTUserRequest) (rsp *proto.MakeJWTUserResponse, err error) {
 	var (
 		u *types.User
 	)
@@ -51,14 +51,14 @@ func (gs userService) MakeJWT(ctx context.Context, req *proto.MakeJWTRequest) (r
 		return
 	}
 
-	rsp = &proto.MakeJWTResponse{
+	rsp = &proto.MakeJWTUserResponse{
 		JWT: gs.jwt.Encode(u),
 	}
 
 	return
 }
 
-func (gs userService) FindByID(ctx context.Context, req *proto.FindByIDRequest) (rsp *proto.FindByIDResponse, err error) {
+func (gs userService) FindByID(ctx context.Context, req *proto.FindByIDUserRequest) (rsp *proto.FindByIDUserResponse, err error) {
 	var (
 		u *types.User
 	)
@@ -67,7 +67,7 @@ func (gs userService) FindByID(ctx context.Context, req *proto.FindByIDRequest) 
 		return
 	}
 
-	rsp = &proto.FindByIDResponse{
+	rsp = &proto.FindByIDUserResponse{
 		User: &proto.User{
 			ID:     u.ID,
 			Email:  u.Email,

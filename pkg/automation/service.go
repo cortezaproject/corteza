@@ -11,6 +11,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 )
 
@@ -258,7 +259,10 @@ func (svc service) FindScripts(ctx context.Context, f ScriptFilter) (ScriptSet, 
 
 // CreateScript - modifies script's props, pushes to repo & updates scripts cache
 func (svc service) CreateScript(ctx context.Context, s *Script) error {
-	s.ID = factory.Sonyflake.NextID()
+	if !handle.IsValid(s.Name) {
+		return errors.New("invalid script name")
+	}
+
 	s.CreatedAt = time.Now()
 	s.CreatedBy = auth.GetIdentityFromContext(ctx).Identity()
 
@@ -268,6 +272,10 @@ func (svc service) CreateScript(ctx context.Context, s *Script) error {
 	defer svc.Reload()
 
 	return db.Transaction(func() (err error) {
+		if err := svc.UniqueCheck(db, s); err != nil {
+			return err
+		}
+
 		if err = svc.srepo.create(db, s); err != nil {
 			return
 		}
@@ -291,6 +299,10 @@ func (svc service) CreateScript(ctx context.Context, s *Script) error {
 
 // UpdateScript - modifies script's props, pushes to repo & updates scripts cache
 func (svc service) UpdateScript(ctx context.Context, s *Script) error {
+	if !handle.IsValid(s.Name) {
+		return errors.New("invalid script name")
+	}
+
 	// Ensure sanity
 	s.UpdatedAt, s.UpdatedBy = &time.Time{}, auth.GetIdentityFromContext(ctx).Identity()
 	*s.UpdatedAt = time.Now()
@@ -302,6 +314,10 @@ func (svc service) UpdateScript(ctx context.Context, s *Script) error {
 	defer svc.Reload()
 
 	return db.Transaction(func() (err error) {
+		if err := svc.UniqueCheck(db, s); err != nil {
+			return err
+		}
+
 		if err = svc.srepo.update(db, s); err != nil {
 			return
 		}
@@ -349,6 +365,27 @@ func (svc service) DeleteScript(ctx context.Context, s *Script) (err error) {
 
 		return nil
 	})
+}
+
+func (svc service) UniqueCheck(db *factory.DB, s *Script) (err error) {
+	if s.Name != "" {
+		f := ScriptFilter{
+			NamespaceID: s.NamespaceID,
+			Name:        s.Name,
+			IncDeleted:  false,
+		}
+
+		ss, _, err := svc.srepo.find(db, f)
+		if err != nil || len(ss) == 0 {
+			return err
+		}
+
+		if len(ss) > 1 || ss.FindByID(s.ID) == nil {
+			return errors.New("script name not unique")
+		}
+	}
+
+	return nil
 }
 
 func (svc service) FindTriggerByID(ctx context.Context, scriptID uint64) (*Trigger, error) {

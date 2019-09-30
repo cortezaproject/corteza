@@ -7,6 +7,7 @@ import (
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
 
+	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -127,6 +128,11 @@ func (svc role) FindByHandle(handle string) (*types.Role, error) {
 }
 
 func (svc role) Create(mod *types.Role) (t *types.Role, err error) {
+
+	if !handle.IsValid(mod.Handle) {
+		return nil, ErrInvalidHandle
+	}
+
 	if !svc.ac.CanCreateRole(svc.ctx) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
@@ -144,6 +150,10 @@ func (svc role) Create(mod *types.Role) (t *types.Role, err error) {
 func (svc role) Update(mod *types.Role) (t *types.Role, err error) {
 	if mod.ID == 0 {
 		return nil, ErrInvalidID
+	}
+
+	if !handle.IsValid(mod.Handle) {
+		return nil, ErrInvalidHandle
 	}
 
 	if !svc.ac.CanUpdateRole(svc.ctx, mod) {
@@ -174,36 +184,15 @@ func (svc role) Update(mod *types.Role) (t *types.Role, err error) {
 }
 
 func (svc role) UniqueCheck(r *types.Role) (err error) {
-	var (
-		e *types.Role
-
-		checks = []struct {
-			query string
-			find  func(string) (*types.Role, error)
-			err   error
-		}{
-			// Checking scenario:
-			// if email/username/handle is found on another user, error is thrown
-			{r.Name, svc.FindByName, ErrRoleNameNotUnique},
-			{r.Handle, svc.FindByHandle, ErrRoleHandleNotUnique},
+	if r.Handle != "" {
+		if ex, _ := svc.role.FindByHandle(r.Handle); ex.ID > 0 && ex.ID != r.ID {
+			return ErrRoleHandleNotUnique
 		}
-	)
+	}
 
-	for _, c := range checks {
-		if c.query == "" {
-			// Skip empty values
-			continue
-		}
-
-		e, err = c.find(c.query)
-		if err == repository.ErrRoleNotFound {
-			// User not found, proceed to next check
-			continue
-		}
-
-		if e.ID > 0 && e.ID != r.ID {
-			// User found, throw configured error
-			return c.err
+	if r.Name != "" {
+		if ex, _ := svc.role.FindByName(r.Name); ex.ID > 0 && ex.ID != r.ID {
+			return ErrRoleNameNotUnique
 		}
 	}
 

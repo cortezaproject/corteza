@@ -27,3 +27,14 @@ type (
 func (r *Role) PermissionResource() permissions.Resource {
 	return RolePermissionResource.AppendID(r.ID)
 }
+
+// FindByHandle finds role by it's handle
+func (set RoleSet) FindByHandle(handle string) *Role {
+	for i := range set {
+		if set[i].Handle == handle {
+			return set[i]
+		}
+	}
+
+	return nil
+}

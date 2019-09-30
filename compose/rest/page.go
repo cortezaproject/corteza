@@ -54,6 +54,7 @@ func (ctrl *Page) List(ctx context.Context, r *request.PageList) (interface{}, e
 		NamespaceID: r.NamespaceID,
 		ParentID:    r.SelfID,
 
+		Handle:  r.Handle,
 		Query:   r.Query,
 		PerPage: r.PerPage,
 		Page:    r.Page,
@@ -76,12 +77,17 @@ func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{
 			SelfID:      r.SelfID,
 			ModuleID:    r.ModuleID,
 			Title:       r.Title,
+			Handle:      r.Handle,
 			Description: r.Description,
-			Blocks:      r.Blocks,
 			Visible:     r.Visible,
 		}
 	)
 
+	if len(r.Blocks) > 2 {
+		if err = r.Blocks.Unmarshal(&mod.Blocks); err != nil {
+			return nil, err
+		}
+	}
 	mod, err = ctrl.page.With(ctx).Create(mod)
 	return ctrl.makePayload(ctx, mod, err)
 }
@@ -105,11 +111,17 @@ func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{
 			SelfID:      r.SelfID,
 			ModuleID:    r.ModuleID,
 			Title:       r.Title,
+			Handle:      r.Handle,
 			Description: r.Description,
-			Blocks:      r.Blocks,
 			Visible:     r.Visible,
 		}
 	)
+
+	if len(r.Blocks) > 2 {
+		if err = r.Blocks.Unmarshal(&mod.Blocks); err != nil {
+			return nil, err
+		}
+	}
 
 	mod, err = ctrl.page.With(ctx).Update(mod)
 	return ctrl.makePayload(ctx, mod, err)

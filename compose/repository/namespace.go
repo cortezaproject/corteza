@@ -15,6 +15,7 @@ type (
 		With(ctx context.Context, db *factory.DB) NamespaceRepository
 
 		FindByID(id uint64) (*types.Namespace, error)
+		FindBySlug(slug string) (*types.Namespace, error)
 		Find(filter types.NamespaceFilter) (types.NamespaceSet, types.NamespaceFilter, error)
 		Create(mod *types.Namespace) (*types.Namespace, error)
 		Update(mod *types.Namespace) (*types.Namespace, error)
@@ -27,7 +28,9 @@ type (
 )
 
 const (
-	ErrNamespaceNotFound = repositoryError("NamespaceNotFound")
+	ErrNamespaceNotFound          = repositoryError("NamespaceNotFound")
+	ErrNamespaceSlugNotUnique     = repositoryError("NamespaceSlugNotUnique")
+	ErrNamespaceInvalidSlugFormat = repositoryError("NamespaceInvalidSlugFormat")
 )
 
 func Namespace(ctx context.Context, db *factory.DB) NamespaceRepository {
@@ -70,6 +73,18 @@ func (r *namespace) FindByID(namespaceID uint64) (*types.Namespace, error) {
 		query = r.query().
 			Columns(r.columns()...).
 			Where("id = ?", namespaceID)
+
+		n = &types.Namespace{}
+	)
+
+	return n, isFound(r.fetchOne(n, query), n.ID > 0, ErrNamespaceNotFound)
+}
+
+func (r *namespace) FindBySlug(slug string) (*types.Namespace, error) {
+	var (
+		query = r.query().
+			Columns(r.columns()...).
+			Where("slug = ?", slug)
 
 		n = &types.Namespace{}
 	)

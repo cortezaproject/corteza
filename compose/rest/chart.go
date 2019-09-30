@@ -52,6 +52,7 @@ func (ctrl Chart) List(ctx context.Context, r *request.ChartList) (interface{}, 
 	f := types.ChartFilter{
 		NamespaceID: r.NamespaceID,
 
+		Handle:  r.Handle,
 		Query:   r.Query,
 		PerPage: r.PerPage,
 		Page:    r.Page,
@@ -66,9 +67,14 @@ func (ctrl Chart) Create(ctx context.Context, r *request.ChartCreate) (interface
 	mod := &types.Chart{
 		NamespaceID: r.NamespaceID,
 		Name:        r.Name,
-		Config:      r.Config,
+		Handle:      r.Handle,
 	}
 
+	if len(r.Config) > 2 {
+		if err = r.Config.Unmarshal(&mod.Config); err != nil {
+			return nil, err
+		}
+	}
 	mod, err = ctrl.chart.With(ctx).Create(mod)
 	return ctrl.makePayload(ctx, mod, err)
 }
@@ -81,16 +87,21 @@ func (ctrl Chart) Read(ctx context.Context, r *request.ChartRead) (interface{}, 
 
 func (ctrl Chart) Update(ctx context.Context, r *request.ChartUpdate) (interface{}, error) {
 	var (
-		mod = &types.Chart{}
 		err error
+		mod = &types.Chart{
+			ID:          r.ChartID,
+			Name:        r.Name,
+			Handle:      r.Handle,
+			NamespaceID: r.NamespaceID,
+			UpdatedAt:   r.UpdatedAt,
+		}
 	)
 
-	mod.ID = r.ChartID
-	mod.Name = r.Name
-	mod.Config = r.Config
-	mod.NamespaceID = r.NamespaceID
-	mod.UpdatedAt = r.UpdatedAt
-
+	if len(r.Config) > 2 {
+		if err = r.Config.Unmarshal(&mod.Config); err != nil {
+			return nil, err
+		}
+	}
 	mod, err = ctrl.chart.With(ctx).Update(mod)
 	return ctrl.makePayload(ctx, mod, err)
 }

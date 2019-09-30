@@ -54,6 +54,10 @@ func Configure() *cli.Config {
 					cli.HandleError(c.ProvisionMigrateDatabase.Run(ctx, cmd, c))
 				}
 
+				if c.ProvisionOpt.Configuration {
+					cli.HandleError(provisionConfig(ctx, cmd, c))
+				}
+
 				c.InitServices(ctx, c)
 
 				var websocketOpt = options.Websocket(messaging)
@@ -63,11 +67,6 @@ func Configure() *cli.Config {
 					PingTimeout: websocketOpt.PingTimeout,
 					PingPeriod:  websocketOpt.PingPeriod,
 				})
-
-				if c.ProvisionOpt.AutoSetup {
-					cli.HandleError(accessControlSetup(ctx, cmd, c))
-					cli.HandleError(makeDefaultChannels(ctx, cmd, c))
-				}
 
 				go service.Watchers(ctx)
 				return nil
@@ -93,8 +92,8 @@ func Configure() *cli.Config {
 			},
 		},
 
-		ProvisionAccessControl: cli.Runners{
-			accessControlSetup,
+		ProvisionConfig: cli.Runners{
+			provisionConfig,
 		},
 	}
 }
