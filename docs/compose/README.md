@@ -407,6 +407,7 @@
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query to match against charts | N/A | NO |
+| handle | string | GET | Search charts by handle | N/A | NO |
 | page | uint | GET | Page number (0 based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
@@ -425,6 +426,7 @@
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | config | sqlxTypes.JSONText | POST | Chart JSON | N/A | YES |
 | name | string | POST | Chart name | N/A | YES |
+| handle | string | POST | Chart handle | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Read charts by ID
@@ -458,6 +460,7 @@
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | config | sqlxTypes.JSONText | POST | Chart JSON | N/A | YES |
 | name | string | POST | Chart name | N/A | YES |
+| handle | string | POST | Chart handle | N/A | NO |
 | updatedAt | *time.Time | POST | Last update (or creation) date | N/A | NO |
 
 ## Delete chart
@@ -506,6 +509,7 @@ Compose module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
 | name | string | GET | Search by name | N/A | NO |
+| handle | string | GET | Search by handle | N/A | NO |
 | page | uint | GET | Page number (0 based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
@@ -523,6 +527,7 @@ Compose module definitions
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | name | string | POST | Module Name | N/A | YES |
+| handle | string | POST | Module handle | N/A | NO |
 | fields | types.ModuleFieldSet | POST | Fields JSON | N/A | YES |
 | meta | sqlxTypes.JSONText | POST | Module meta data | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
@@ -557,6 +562,7 @@ Compose module definitions
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | name | string | POST | Module Name | N/A | YES |
+| handle | string | POST | Module Handle | N/A | NO |
 | fields | types.ModuleFieldSet | POST | Fields JSON | N/A | YES |
 | meta | sqlxTypes.JSONText | POST | Module meta data | N/A | YES |
 | updatedAt | *time.Time | POST | Last update (or creation) date | N/A | NO |
@@ -738,6 +744,7 @@ Compose pages
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | selfID | uint64 | GET | Parent page ID | N/A | NO |
 | query | string | GET | Search query | N/A | NO |
+| handle | string | GET | Search by handle | N/A | NO |
 | page | uint | GET | Page number (0 based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
@@ -757,6 +764,7 @@ Compose pages
 | selfID | uint64 | POST | Parent Page ID | N/A | NO |
 | moduleID | uint64 | POST | Module ID | N/A | NO |
 | title | string | POST | Title | N/A | YES |
+| handle | string | POST | Handle | N/A | NO |
 | description | string | POST | Description | N/A | NO |
 | visible | bool | POST | Visible in navigation | N/A | NO |
 | blocks | sqlxTypes.JSONText | POST | Blocks JSON | N/A | YES |
@@ -808,6 +816,7 @@ Compose pages
 | selfID | uint64 | POST | Parent Page ID | N/A | NO |
 | moduleID | uint64 | POST | Module ID (optional) | N/A | NO |
 | title | string | POST | Title | N/A | YES |
+| handle | string | POST | Handle | N/A | NO |
 | description | string | POST | Description | N/A | NO |
 | visible | bool | POST | Visible in navigation | N/A | NO |
 | blocks | sqlxTypes.JSONText | POST | Blocks JSON | N/A | YES |

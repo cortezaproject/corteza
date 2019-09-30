@@ -120,14 +120,10 @@ function database {
 }
 
 
-function files {
-	yellow "> files"
-	FOLDERS=$(find . -type d -wholename '*/data')
-	for FOLDER in $FOLDERS; do
-		FOLDER=$(dirname $FOLDER)
-		FOLDER=${FOLDER:2}
-		echo $FOLDER
-		cd $FOLDER && $GOPATH/bin/statik -p files -m -Z -f -src=data && cd $_PWD
+function provision {
+	yellow "> provision files"
+	for FOLDER in system compose messaging; do
+   	$GOPATH/bin/statik -p $FOLDER -m -Z -f -src="./provision/$FOLDER/src" -dest "./provision"
 	done
 	green "OK"
 }
@@ -189,7 +185,7 @@ function proto {
 	PATH=$PATH:$GOPATH/bin protoc \
 		--proto_path ${CORTEZA_PROTOBUF_PATH}/system \
 		--go_out=plugins=grpc:system/proto \
-		user.proto mail_message.proto
+		user.proto role.proto mail_message.proto
   green "OK"
 }
 
@@ -200,8 +196,8 @@ case ${1:-"all"} in
   database)
     database
     ;;
-  files)
-    files
+  provision)
+    provision
     ;;
   specs)
     specs
@@ -212,7 +208,7 @@ case ${1:-"all"} in
   all)
     types
     database
-    files
+    provision
     specs
     proto
 esac

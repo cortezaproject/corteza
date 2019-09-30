@@ -50,6 +50,16 @@ func db() *factory.DB {
 	return factory.Database.MustGet("compose").With(context.Background())
 }
 
+// random string, 10 chars long by default
+func rs(a ...int) string {
+	var l = 10
+	if len(a) > 0 {
+		l = a[0]
+	}
+
+	return string(rand.Bytes(l))
+}
+
 func InitConfig() {
 	var err error
 

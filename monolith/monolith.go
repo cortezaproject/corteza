@@ -104,18 +104,18 @@ func Configure() *cli.Config {
 
 		ProvisionMigrateDatabase: cli.Runners{
 			func(ctx context.Context, cmd *cobra.Command, c *cli.Config) (err error) {
+				cli.HandleError(sys.ProvisionMigrateDatabase.Run(ctx, cmd, sys))
 				cli.HandleError(cmp.ProvisionMigrateDatabase.Run(ctx, cmd, cmp))
 				cli.HandleError(msg.ProvisionMigrateDatabase.Run(ctx, cmd, msg))
-				cli.HandleError(sys.ProvisionMigrateDatabase.Run(ctx, cmd, sys))
 				return
 			},
 		},
 
-		ProvisionAccessControl: cli.Runners{
+		ProvisionConfig: cli.Runners{
 			func(ctx context.Context, cmd *cobra.Command, c *cli.Config) (err error) {
-				cli.HandleError(cmp.ProvisionAccessControl.Run(ctx, cmd, cmp))
-				cli.HandleError(msg.ProvisionAccessControl.Run(ctx, cmd, msg))
-				cli.HandleError(sys.ProvisionAccessControl.Run(ctx, cmd, sys))
+				cli.HandleError(sys.ProvisionConfig.Run(ctx, cmd, sys))
+				cli.HandleError(cmp.ProvisionConfig.Run(ctx, cmd, cmp))
+				cli.HandleError(msg.ProvisionConfig.Run(ctx, cmd, msg))
 				return
 			},
 		},

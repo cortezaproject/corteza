@@ -165,56 +165,6 @@ func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (
 	return svc.permissions.FindRulesByRoleID(roleID), nil
 }
 
-// DefaultRules returns list of default rules for this compose service
-func (svc accessControl) DefaultRules() permissions.RuleSet {
-	var (
-		sys           = types.SystemPermissionResource
-		applications  = types.ApplicationPermissionResource.AppendWildcard()
-		organisations = types.OrganisationPermissionResource.AppendWildcard()
-		roles         = types.RolePermissionResource.AppendWildcard()
-		users         = types.UserPermissionResource.AppendWildcard()
-		ascripts      = types.AutomationScriptPermissionResource.AppendWildcard()
-
-		allowAdm = func(res permissions.Resource, op permissions.Operation) *permissions.Rule {
-			return permissions.AllowRule(permissions.AdminRoleID, res, op)
-		}
-	)
-
-	return permissions.RuleSet{
-		permissions.AllowRule(permissions.EveryoneRoleID, sys, "user.create"),
-
-		allowAdm(sys, "access"),
-		allowAdm(sys, "grant"),
-		allowAdm(sys, "settings.read"),
-		allowAdm(sys, "settings.manage"),
-		allowAdm(sys, "organisation.create"),
-		allowAdm(sys, "application.create"),
-		allowAdm(sys, "user.create"),
-		allowAdm(sys, "role.create"),
-		allowAdm(sys, "automation-script.create"),
-
-		allowAdm(organisations, "access"),
-		allowAdm(applications, "read"),
-		allowAdm(applications, "update"),
-		allowAdm(applications, "delete"),
-
-		allowAdm(users, "read"),
-		allowAdm(users, "update"),
-		allowAdm(users, "suspend"),
-		allowAdm(users, "unsuspend"),
-		allowAdm(users, "delete"),
-
-		allowAdm(roles, "read"),
-		allowAdm(roles, "update"),
-		allowAdm(roles, "delete"),
-		allowAdm(roles, "members.manage"),
-
-		allowAdm(ascripts, "read"),
-		allowAdm(ascripts, "update"),
-		allowAdm(ascripts, "delete"),
-	}
-}
-
 func (svc accessControl) Whitelist() permissions.Whitelist {
 	var wl = permissions.Whitelist{}
 

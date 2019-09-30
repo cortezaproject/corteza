@@ -1,0 +1,5 @@
+channels:
+  - name: General
+    type: public
+  - name: Random
+    type: public

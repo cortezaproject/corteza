@@ -1,0 +1,19 @@
+pages:
+  - handle: root
+    title: Root page
+    pages:
+      - handle: sub1
+        title: Sub page 1
+        blocks:
+          - title: B1
+            xywh: [ 1, 2, 3, 4 ]
+            kind: TheTestingKind
+            style: { variants: { v1: "V1" } }
+          - title: B2
+            xywh: [ 11, 12, 13, 14 ]
+            kind: TheTestingKind
+      - handle: sub2
+        title: Sub page 2
+        pages:
+          - handle: sub21
+            title: Sub-sub page 2.1

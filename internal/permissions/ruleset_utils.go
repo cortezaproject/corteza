@@ -1,6 +1,6 @@
 package permissions
 
-// merge applies new rules (changes) to existing set and mark  all changes as dirty
+// merge applies new rules (changes) to existing set and mark all changes as dirty
 func (set RuleSet) merge(rules ...*Rule) (out RuleSet) {
 	var (
 		o    int
@@ -8,7 +8,11 @@ func (set RuleSet) merge(rules ...*Rule) (out RuleSet) {
 	)
 
 	if olen == 0 {
-		// Nothing exists yet
+		// Nothing exists yet, mark all as dirty
+		for r := range rules {
+			rules[r].dirty = true
+		}
+
 		return rules
 	} else {
 		out = set

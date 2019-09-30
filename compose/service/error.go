@@ -10,6 +10,7 @@ type (
 
 const (
 	ErrInvalidID                      serviceError = "InvalidID"
+	ErrInvalidHandle                  serviceError = "InvalidHandle"
 	ErrStaleData                      serviceError = "StaleData"
 	ErrNoPermissions                  serviceError = "NoPermissions"
 	ErrNoGrantPermissions             serviceError = "NoGrantPermissions"

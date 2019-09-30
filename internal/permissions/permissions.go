@@ -31,6 +31,10 @@ const (
 	AdminRoleID = 2
 )
 
+func (op Operation) String() string {
+	return string(op)
+}
+
 func (a Access) String() string {
 	switch a {
 	case Allow:

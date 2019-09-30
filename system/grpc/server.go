@@ -27,6 +27,10 @@ func NewServer() *grpc.Server {
 		service.DefaultAccessControl,
 	))
 
+	proto.RegisterRolesServer(s, NewRoleService(
+		service.DefaultRole,
+	))
+
 	return s
 }
 

@@ -1,0 +1,18 @@
+charts:
+  chart1:
+    name: chart 1
+    config:
+      reports:
+        - filter: a=b
+          module: foo
+          metrics:
+            - backgroundColor: '#e5a83b'
+              beginAtZero: true
+              field: count
+              fixTooltips: true
+              label: Number of leads
+              type: bar
+          dimensions:
+            - field: created_at
+  chart2:
+    name: chart 2

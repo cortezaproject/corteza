@@ -19,6 +19,8 @@ type (
 		With(ctx context.Context, db *factory.DB) ModuleRepository
 
 		FindByID(namespaceID, moduleID uint64) (*types.Module, error)
+		FindByName(namespaceID uint64, name string) (*types.Module, error)
+		FindByHandle(namespaceID uint64, handle string) (*types.Module, error)
 		Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
 		FindFields(moduleIDs ...uint64) (ff types.ModuleFieldSet, err error)
 		Create(mod *types.Module) (*types.Module, error)
@@ -32,8 +34,9 @@ type (
 )
 
 const (
-	ErrModuleNotFound      = repositoryError("ModuleNotFound")
-	ErrModuleNameNotUnique = repositoryError("ModuleNameNotUnique")
+	ErrModuleNotFound        = repositoryError("ModuleNotFound")
+	ErrModuleNameNotUnique   = repositoryError("ModuleNameNotUnique")
+	ErrModuleHandleNotUnique = repositoryError("ModuleHandleNotUnique")
 )
 
 func Module(ctx context.Context, db *factory.DB) ModuleRepository {
@@ -56,7 +59,7 @@ func (r module) tableFields() string {
 
 func (r module) columns() []string {
 	return []string{
-		"id", "rel_namespace", "name", "json",
+		"id", "rel_namespace", "handle", "name", "json",
 		"created_at", "updated_at", "deleted_at",
 	}
 }
@@ -70,19 +73,32 @@ func (r module) query() squirrel.SelectBuilder {
 }
 
 func (r module) FindByID(namespaceID, moduleID uint64) (*types.Module, error) {
-	var (
-		query = r.query().
-			Columns(r.columns()...).
-			Where("id = ?", moduleID)
+	return r.findOneBy(namespaceID, "id", moduleID)
+}
 
-		c = &types.Module{}
+func (r module) FindByHandle(namespaceID uint64, handle string) (*types.Module, error) {
+	return r.findOneBy(namespaceID, "LOWER(handle)", strings.ToLower(strings.TrimSpace(handle)))
+}
+
+func (r module) FindByName(namespaceID uint64, name string) (*types.Module, error) {
+	return r.findOneBy(namespaceID, "LOWER(name)", strings.ToLower(strings.TrimSpace(name)))
+}
+
+func (r module) findOneBy(namespaceID uint64, field string, value interface{}) (*types.Module, error) {
+	var m = &types.Module{}
+
+	err := r.findOneInNamespaceBy(
+		namespaceID,
+		r.query().Columns(r.columns()...),
+		squirrel.Eq{field: value},
+		m,
 	)
 
-	if namespaceID > 0 {
-		query = query.Where("rel_namespace = ?", namespaceID)
+	if err == nil && m.ID == 0 {
+		return nil, ErrModuleNotFound
 	}
 
-	return c, isFound(r.fetchOne(c, query), c.ID > 0, ErrModuleNotFound)
+	return m, nil
 }
 
 func (r module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
@@ -101,7 +117,10 @@ func (r module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.Mo
 
 	if f.Name != "" {
 		query = query.Where("LOWER(name) = ?", strings.ToLower(f.Name))
+	}
 
+	if f.Handle != "" {
+		query = query.Where("LOWER(handle) = ?", strings.ToLower(f.Handle))
 	}
 
 	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
@@ -118,10 +137,6 @@ func (r module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.Mo
 func (r module) Create(mod *types.Module) (*types.Module, error) {
 	var err error
 
-	if err = r.checkName(mod.NamespaceID, 0, mod.Name); err != nil {
-		return nil, err
-	}
-
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now().Truncate(time.Second)
 
@@ -137,10 +152,6 @@ func (r module) Create(mod *types.Module) (*types.Module, error) {
 }
 
 func (r module) Update(mod *types.Module) (*types.Module, error) {
-	if err := r.checkName(mod.NamespaceID, 0, mod.Name); err != nil {
-		return nil, err
-	}
-
 	now := time.Now().Truncate(time.Second)
 	mod.UpdatedAt = &now
 
@@ -244,23 +255,4 @@ func (r module) FindFields(moduleIDs ...uint64) (ff types.ModuleFieldSet, err er
 	} else {
 		return ff, r.db().Select(&ff, sql, args...)
 	}
-}
-
-// Checks if there is another module in the namespace with the same name
-func (r module) checkName(namespaceID, moduleID uint64, name string) error {
-	mm, f, err := r.Find(types.ModuleFilter{
-		NamespaceID: namespaceID,
-		Name:        name,
-		PerPage:     1,
-	})
-
-	if err != nil {
-		return err
-	}
-
-	if f.Count == 0 || mm.FindByID(moduleID) == nil {
-		return nil
-	}
-
-	return ErrModuleNameNotUnique
 }

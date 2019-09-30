@@ -1,7 +1,3 @@
-DROP TABLE IF EXISTS sys_permission_rules;
-DROP TABLE IF EXISTS messaging_permission_rules;
-DROP TABLE IF EXISTS compose_permission_rules;
-
 CREATE TABLE IF NOT EXISTS sys_permission_rules (
   rel_role   BIGINT UNSIGNED NOT NULL,
   resource   VARCHAR(128)    NOT NULL,

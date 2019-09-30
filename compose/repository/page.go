@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/titpetric/factory"
@@ -15,6 +16,7 @@ type (
 		With(ctx context.Context, db *factory.DB) PageRepository
 
 		FindByID(namespaceID, pageID uint64) (*types.Page, error)
+		FindByHandle(namespaceID uint64, handle string) (*types.Page, error)
 		FindByModuleID(namespaceID, moduleID uint64) (*types.Page, error)
 		Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
 
@@ -31,7 +33,8 @@ type (
 )
 
 const (
-	ErrPageNotFound = repositoryError("PageNotFound")
+	ErrPageNotFound        = repositoryError("PageNotFound")
+	ErrPageHandleNotUnique = repositoryError("PageHandleNotUnique")
 )
 
 func Page(ctx context.Context, db *factory.DB) PageRepository {
@@ -50,7 +53,8 @@ func (r page) table() string {
 
 func (r page) columns() []string {
 	return []string{
-		"id", "rel_namespace", "self_id", "rel_module", "title",
+		"id", "rel_namespace", "self_id", "rel_module",
+		"handle", "title",
 		"blocks", "description", "visible", "weight",
 		"created_at", "updated_at", "deleted_at",
 	}
@@ -64,35 +68,32 @@ func (r page) query() squirrel.SelectBuilder {
 }
 
 func (r page) FindByID(namespaceID, pageID uint64) (*types.Page, error) {
-	var (
-		query = r.query().
-			Columns(r.columns()...).
-			Where("id = ?", pageID)
+	return r.findOneBy(namespaceID, "id", pageID)
+}
 
-		c = &types.Page{}
-	)
-
-	if namespaceID > 0 {
-		query = query.Where("rel_namespace = ?", namespaceID)
-	}
-
-	return c, isFound(r.fetchOne(c, query), c.ID > 0, ErrPageNotFound)
+func (r page) FindByHandle(namespaceID uint64, handle string) (*types.Page, error) {
+	return r.findOneBy(namespaceID, "handle", handle)
 }
 
 func (r page) FindByModuleID(namespaceID, moduleID uint64) (*types.Page, error) {
-	var (
-		query = r.query().
-			Columns(r.columns()...).
-			Where("rel_module = ?", moduleID)
+	return r.findOneBy(namespaceID, "rel_module", moduleID)
+}
 
-		c = &types.Page{}
+func (r page) findOneBy(namespaceID uint64, field string, value interface{}) (*types.Page, error) {
+	var p = &types.Page{}
+
+	err := r.findOneInNamespaceBy(
+		namespaceID,
+		r.query().Columns(r.columns()...),
+		squirrel.Eq{field: value},
+		p,
 	)
 
-	if namespaceID > 0 {
-		query = query.Where("rel_namespace = ?", namespaceID)
+	if err == nil && p.ID == 0 {
+		return nil, ErrPageNotFound
 	}
 
-	return c, isFound(r.fetchOne(c, query), c.ID > 0, ErrPageNotFound)
+	return p, nil
 }
 
 func (r page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
@@ -108,6 +109,10 @@ func (r page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilt
 		query = query.Where("self_id = ?", filter.ParentID)
 	} else if filter.Root {
 		query = query.Where("self_id = 0")
+	}
+
+	if f.Handle != "" {
+		query = query.Where("LOWER(handle) = ?", strings.ToLower(f.Handle))
 	}
 
 	if f.Query != "" {

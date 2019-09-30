@@ -1,0 +1,35 @@
+allow:
+  admins:
+    system:
+      - access
+      - grant
+      - settings.read
+      - settings.manage
+      - organisation.create
+      - application.create
+      - user.create
+      - role.create
+      - automation-script.create
+
+    system:application:
+      - read
+      - update
+      - delete
+
+    system:user:
+      - read
+      - update
+      - suspend
+      - unsuspend
+      - delete
+
+    system:role:
+      - read
+      - update
+      - delete
+      - members.manage
+
+    system:automation-script:
+      - read
+      - update
+      - delete

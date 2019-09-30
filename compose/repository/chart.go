@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/titpetric/factory"
@@ -15,6 +16,7 @@ type (
 		With(ctx context.Context, db *factory.DB) ChartRepository
 
 		FindByID(namespaceID, chartID uint64) (*types.Chart, error)
+		FindByHandle(namespaceID uint64, handle string) (c *types.Chart, err error)
 		Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error)
 		Create(mod *types.Chart) (*types.Chart, error)
 		Update(mod *types.Chart) (*types.Chart, error)
@@ -27,7 +29,8 @@ type (
 )
 
 const (
-	ErrChartNotFound = repositoryError("ChartNotFound")
+	ErrChartNotFound        = repositoryError("ChartNotFound")
+	ErrChartHandleNotUnique = repositoryError("ChartHandleNotUnique")
 )
 
 func Chart(ctx context.Context, db *factory.DB) ChartRepository {
@@ -46,7 +49,7 @@ func (r chart) table() string {
 
 func (r chart) columns() []string {
 	return []string{
-		"id", "rel_namespace", "name", "config",
+		"id", "rel_namespace", "handle", "name", "config",
 		"created_at", "updated_at", "deleted_at",
 	}
 }
@@ -59,19 +62,28 @@ func (r chart) query() squirrel.SelectBuilder {
 }
 
 func (r chart) FindByID(namespaceID, chartID uint64) (*types.Chart, error) {
-	var (
-		query = r.query().
-			Columns(r.columns()...).
-			Where("id = ?", chartID)
+	return r.findOneBy(namespaceID, "id", chartID)
+}
 
-		c = &types.Chart{}
+func (r chart) FindByHandle(namespaceID uint64, handle string) (*types.Chart, error) {
+	return r.findOneBy(namespaceID, "LOWER(handle)", strings.ToLower(strings.TrimSpace(handle)))
+}
+
+func (r chart) findOneBy(namespaceID uint64, field string, value interface{}) (*types.Chart, error) {
+	var c = &types.Chart{}
+
+	err := r.findOneInNamespaceBy(
+		namespaceID,
+		r.query().Columns(r.columns()...),
+		squirrel.Eq{field: value},
+		c,
 	)
 
-	if namespaceID > 0 {
-		query = query.Where("rel_namespace = ?", namespaceID)
+	if err == nil && c.ID == 0 {
+		return nil, ErrChartNotFound
 	}
 
-	return c, isFound(r.fetchOne(c, query), c.ID > 0, ErrChartNotFound)
+	return c, nil
 }
 
 func (r chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error) {
@@ -86,6 +98,10 @@ func (r chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.Chart
 	if f.Query != "" {
 		q := "%" + f.Query + "%"
 		query = query.Where("name like ?", q)
+	}
+
+	if f.Handle != "" {
+		query = query.Where("LOWER(handle) = ?", strings.ToLower(f.Handle))
 	}
 
 	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
