@@ -47,7 +47,7 @@ func provisionConfig(ctx context.Context, cmd *cobra.Command, c *cli.Config) err
 // Provision ONLY when there are no rules for role admins / everyone
 func isProvisioned(ctx context.Context) (bool, error) {
 	return len(service.DefaultPermissions.FindRulesByRoleID(permissions.EveryoneRoleID)) > 0 &&
-		len(service.DefaultPermissions.FindRulesByRoleID(permissions.AdminRoleID)) > 0, nil
+		len(service.DefaultPermissions.FindRulesByRoleID(permissions.AdminsRoleID)) > 0, nil
 }
 
 func makeDefaultApplications(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {

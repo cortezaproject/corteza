@@ -71,7 +71,7 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 			// Roles are use for resolving access control
 			roles = sysTypes.RoleSet{
 				&sysTypes.Role{ID: permissions.EveryoneRoleID, Handle: "everyone"},
-				&sysTypes.Role{ID: permissions.AdminRoleID, Handle: "admins"},
+				&sysTypes.Role{ID: permissions.AdminsRoleID, Handle: "admins"},
 			}
 
 			modules, _, err := service.DefaultModule.Find(types.ModuleFilter{NamespaceID: ns.ID})
