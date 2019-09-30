@@ -265,8 +265,28 @@ func (pImp *Page) Get(handle string) (*types.Page, error) {
 	return pImp.set.FindByHandle(handle), nil
 }
 
-func (pImp *Page) Store(ctx context.Context, k pageKeeper) error {
-	return pImp.storeChildren(ctx, "", k)
+func (pImp *Page) Store(ctx context.Context, k pageKeeper) (err error) {
+	if err = pImp.storeChildren(ctx, "", k); err != nil {
+		return
+	}
+
+	// We do that at the end - and save all pages with resolved references
+	//
+	// Many because internal page referencing from page blocks
+	var refs uint
+	for _, page := range pImp.set {
+		if refs, err = pImp.resolveRefs(page); err != nil {
+			return
+		} else if refs > 0 {
+			// make sure we do not get stale-data error
+			page.UpdatedAt = nil
+			if _, err = k.Update(page); err != nil {
+				return errors.Wrap(err, "could not update resolved refs")
+			}
+		}
+	}
+
+	return
 }
 
 func (pImp *Page) storeChildren(ctx context.Context, parent string, k pageKeeper) (err error) {
@@ -319,26 +339,6 @@ func (pImp *Page) storeChildren(ctx context.Context, parent string, k pageKeeper
 
 		if err = pImp.storeChildren(ctx, page.Handle, k); err != nil {
 			return err
-		}
-	}
-
-	// We do that at the end - and save all pages with resolved references
-	//
-	// Many because internal page referencing from page blocks
-	var refs uint
-	for _, child := range children {
-		if page, err = pImp.Get(child); err != nil {
-			return
-		}
-
-		if refs, err = pImp.resolveRefs(page); err != nil {
-			return
-		} else if refs > 0 {
-			// make sure we do not get stale-data error
-			page.UpdatedAt = nil
-			if _, err = k.Update(page); err != nil {
-				return errors.Wrap(err, "could not update resolved refs")
-			}
 		}
 	}
 
