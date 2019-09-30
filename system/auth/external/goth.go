@@ -24,7 +24,7 @@ const (
 	WellKnown = "/.well-known/openid-configuration"
 )
 
-func setupGoth(as service.AuthSettings) {
+func setupGoth(as *service.AuthSettings) {
 	if !as.ExternalEnabled {
 		log().Info("external authentication disabled")
 		return
@@ -47,7 +47,7 @@ func setupGoth(as service.AuthSettings) {
 
 }
 
-func setupGothProviders(as service.AuthSettings) {
+func setupGothProviders(as *service.AuthSettings) {
 	var (
 		err    error
 		scopes = []string{"email"}

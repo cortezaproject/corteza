@@ -29,7 +29,7 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		settings AuthSettings
+		settings *AuthSettings
 
 		auth userAuth
 
