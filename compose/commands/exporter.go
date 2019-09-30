@@ -603,7 +603,8 @@ func expAutomation(ss automation.ScriptSet, tt automation.TriggerSet, mm types.M
 
 			switch t.Event {
 			case "beforeCreate", "beforeUpdate", "beforeDelete",
-				"afterCreate", "afterUpdate", "afterDelete":
+				"afterCreate", "afterUpdate", "afterDelete",
+				"manual":
 				moduleID := t.Uint64Condition()
 
 				if moduleID == 0 {

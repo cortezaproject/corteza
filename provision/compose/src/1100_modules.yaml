@@ -5978,8 +5978,6 @@ modules:
       ActivityDate:
         label: Due Date
         kind: DateTime
-        required: true
-        multi: true
       CallDisposition:
         label: Call Result
         kind: String

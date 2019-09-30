@@ -151,7 +151,8 @@ func (asImp *AutomationScript) castTriggers(handle string, script *automation.Sc
 
 	return tt, deinterfacer.Each(def, func(n int, _ string, def interface{}) (err error) {
 		t = &automation.Trigger{
-			Enabled: true,
+			Enabled:   true,
+			Condition: "0",
 		}
 
 		err = deinterfacer.Each(def, func(_ int, key string, val interface{}) (err error) {
@@ -198,7 +199,6 @@ func (asImp *AutomationScript) Store(ctx context.Context, k automationScriptKeep
 		return
 	}
 
-	//return asImp.set.Walk(func(s *automation.Script) (err error)
 	for _, s := range asImp.set {
 		var name = s.Name
 

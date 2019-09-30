@@ -103,6 +103,7 @@ scripts:
     timeout: 0
     triggers:
     - event: manual
+      module: Account
       resource: compose:record
   CaseInsertCaseNumber:
     source: |-
@@ -177,6 +178,7 @@ scripts:
     timeout: 0
     triggers:
     - event: manual
+      module: Case
       resource: compose:record
   ContactSetRecordLabel:
     source: |-
@@ -336,6 +338,7 @@ scripts:
     timeout: 0
     triggers:
     - event: manual
+      module: Quote
       resource: compose:record
   SolutionInsertSolutionNumber:
     source: |-
@@ -446,6 +449,7 @@ scripts:
     timeout: 0
     triggers:
     - event: manual
+      module: Account
       resource: compose:record
   CaseSetStatusToWorking:
     source: |-
@@ -477,6 +481,7 @@ scripts:
     timeout: 0
     triggers:
     - event: manual
+      module: Case
       resource: compose:record
   CaseSetStatusToClosed:
     source: |-
@@ -611,6 +616,7 @@ scripts:
     timeout: 0
     triggers:
     - event: manual
+      module: Case
       resource: compose:record
   AccountCreateNewCase:
     source: |-
@@ -702,6 +708,7 @@ scripts:
     timeout: 0
     triggers:
     - event: manual
+      module: Account
       resource: compose:record
   ContactCreateNewCase:
     source: |-
@@ -769,6 +776,7 @@ scripts:
     timeout: 0
     triggers:
     - event: manual
+      module: Contact
       resource: compose:record
   LeadConvertLeadIntoAccount:
     source: |-
@@ -891,6 +899,7 @@ scripts:
     timeout: 0
     triggers:
     - event: manual
+      module: Lead
       resource: compose:record
   LeadConvertLeadToAccountAndOpportunity:
     source: |-
@@ -1076,6 +1085,7 @@ scripts:
     timeout: 0
     triggers:
     - event: manual
+      module: Lead
       resource: compose:record
   QuoteSendQuoteToCustomEmail:
     source: |-
@@ -1194,6 +1204,7 @@ scripts:
     timeout: 0
     triggers:
     - event: manual
+      module: Quote
       resource: compose:record
   QuoteSendQuoteToPrimaryContact:
     source: |-
@@ -1312,6 +1323,7 @@ scripts:
     timeout: 0
     triggers:
     - event: manual
+      module: Quote
       resource: compose:record
   QuoteSubmitQuoteForApproval:
     source: |-
@@ -1354,6 +1366,7 @@ scripts:
     timeout: 0
     triggers:
     - event: manual
+      module: Quote
       resource: compose:record
   OpportunityGenerateNewQuote:
     source: |-
@@ -1618,6 +1631,7 @@ scripts:
     timeout: 0
     triggers:
     - event: manual
+      module: Opportunity
       resource: compose:record
   QuoteUpdateTotalPrice:
     source: |-
@@ -1664,7 +1678,7 @@ scripts:
     enabled: true
     timeout: 0
     triggers:
-    - event: afterUpdate
+    - event: beforeUpdate
       module: Quote
       resource: compose:record
   OpportunityApplyPriceBook:
@@ -1820,4 +1834,5 @@ scripts:
     timeout: 0
     triggers:
     - event: manual
+      module: Opportunity
       resource: compose:record
