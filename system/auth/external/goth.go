@@ -49,8 +49,7 @@ func setupGoth(as *service.AuthSettings) {
 
 func setupGothProviders(as *service.AuthSettings) {
 	var (
-		err    error
-		scopes = []string{"email"}
+		err error
 	)
 
 	// Purge all previously configured providers
@@ -85,7 +84,7 @@ func setupGothProviders(as *service.AuthSettings) {
 
 			wellKnown := strings.TrimSuffix(pc.IssuerUrl, "/") + WellKnown
 
-			if provider, err = openidConnect.New(pc.Key, pc.Secret, pc.RedirectUrl, wellKnown, scopes...); err != nil {
+			if provider, err = openidConnect.New(pc.Key, pc.Secret, pc.RedirectUrl, wellKnown, "email"); err != nil {
 				log.Error("failed to discover OIDC provider", zap.Error(err), zap.String("well-known", wellKnown))
 				continue
 			} else {
@@ -94,13 +93,13 @@ func setupGothProviders(as *service.AuthSettings) {
 		} else {
 			switch name {
 			case "github":
-				provider = github.New(pc.Key, pc.Secret, pc.RedirectUrl, scopes...)
+				provider = github.New(pc.Key, pc.Secret, pc.RedirectUrl, "user:email")
 			case "facebook":
-				provider = facebook.New(pc.Key, pc.Secret, pc.RedirectUrl, scopes...)
+				provider = facebook.New(pc.Key, pc.Secret, pc.RedirectUrl, "email")
 			case "google":
-				provider = google.New(pc.Key, pc.Secret, pc.RedirectUrl, scopes...)
+				provider = google.New(pc.Key, pc.Secret, pc.RedirectUrl, "email")
 			case "linkedin":
-				provider = linkedin.New(pc.Key, pc.Secret, pc.RedirectUrl, scopes...)
+				provider = linkedin.New(pc.Key, pc.Secret, pc.RedirectUrl, "email")
 			}
 		}
 
