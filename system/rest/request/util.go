@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jmoiron/sqlx/types"
 	"github.com/pkg/errors"
@@ -17,6 +18,19 @@ func parseJSONTextWithErr(s string) (types.JSONText, error) {
 	result := &types.JSONText{}
 	err := errors.Wrap(result.Scan(s), "error when parsing JSONText")
 	return *result, err
+}
+
+func parseISODateWithErr(s string) (time.Time, error) {
+	return time.Parse(time.RFC3339, s)
+}
+
+func parseISODatePtrWithErr(s string) (*time.Time, error) {
+	t, err := parseISODateWithErr(s)
+	if err != nil {
+		return nil, err
+	}
+
+	return &t, nil
 }
 
 // parseInt parses a string to int

@@ -19,6 +19,7 @@ const (
 	ErrNoReadPermissions              serviceError = "NoReadPermissions"
 	ErrNoTriggerManagementPermissions serviceError = "NoTriggerManagementPermissions"
 	ErrNoScriptCreatePermissions      serviceError = "NoScriptCreatePermissions"
+	ErrNoReminderAssignPermissions    serviceError = "NoReminderAssignPermissions"
 )
 
 func (e serviceError) Error() string {
