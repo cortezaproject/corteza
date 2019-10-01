@@ -7,10 +7,10 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/internal/permissions"
-	"github.com/cortezaproject/corteza-server/internal/store"
 	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 	"github.com/cortezaproject/corteza-server/pkg/http"
+	"github.com/cortezaproject/corteza-server/pkg/store"
 )
 
 type (
