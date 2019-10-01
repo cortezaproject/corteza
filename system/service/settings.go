@@ -9,8 +9,8 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	internalSettings "github.com/cortezaproject/corteza-server/internal/settings"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	internalSettings "github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/repository"
 )
 
