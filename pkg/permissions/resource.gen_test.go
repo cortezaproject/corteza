@@ -1,43 +1,42 @@
 package permissions
 
 import (
-	"testing"
-
 	"errors"
+	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
 // 	Hello! This file is auto-generated.
 
-func TestRuleSetWalk(t *testing.T) {
+func TestResourceSetWalk(t *testing.T) {
 	var (
-		value = make(RuleSet, 3)
+		value = make(ResourceSet, 3)
 		req   = require.New(t)
 	)
 
 	// check walk with no errors
 	{
-		err := value.Walk(func(*Rule) error {
+		err := value.Walk(func(*Resource) error {
 			return nil
 		})
 		req.NoError(err)
 	}
 
 	// check walk with error
-	req.Error(value.Walk(func(*Rule) error { return errors.New("walk error") }))
+	req.Error(value.Walk(func(*Resource) error { return errors.New("walk error") }))
 
 }
 
-func TestRuleSetFilter(t *testing.T) {
+func TestResourceSetFilter(t *testing.T) {
 	var (
-		value = make(RuleSet, 3)
+		value = make(ResourceSet, 3)
 		req   = require.New(t)
 	)
 
 	// filter nothing
 	{
-		set, err := value.Filter(func(*Rule) (bool, error) {
+		set, err := value.Filter(func(*Resource) (bool, error) {
 			return true, nil
 		})
 		req.NoError(err)
@@ -47,7 +46,7 @@ func TestRuleSetFilter(t *testing.T) {
 	// filter one item
 	{
 		found := false
-		set, err := value.Filter(func(*Rule) (bool, error) {
+		set, err := value.Filter(func(*Resource) (bool, error) {
 			if !found {
 				found = true
 				return found, nil
@@ -60,7 +59,7 @@ func TestRuleSetFilter(t *testing.T) {
 
 	// filter error
 	{
-		_, err := value.Filter(func(*Rule) (bool, error) {
+		_, err := value.Filter(func(*Resource) (bool, error) {
 			return false, errors.New("filter error")
 		})
 		req.Error(err)

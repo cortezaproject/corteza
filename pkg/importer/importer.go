@@ -3,7 +3,7 @@ package importer
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/internal/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 )
 
 type (

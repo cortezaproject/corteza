@@ -8,10 +8,10 @@ import (
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
 
-	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	impAux "github.com/cortezaproject/corteza-server/pkg/importer"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	provision "github.com/cortezaproject/corteza-server/provision/system"
 	"github.com/cortezaproject/corteza-server/system/importer"
 	"github.com/cortezaproject/corteza-server/system/repository"
