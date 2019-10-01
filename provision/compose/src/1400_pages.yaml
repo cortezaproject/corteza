@@ -85,6 +85,205 @@ pages:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
       xywh: [9, 7, 3, 7]
+    visible: 
+  - handle: Leads
+    title: Leads
+    blocks:
+    - title: List of leads
+      options:
+        fields:
+        - name: FirstName
+        - name: LastName
+        - name: Email
+        - name: Rating
+        - name: Company
+        - name: Country
+        - name: Status
+        - name: OwnerId
+        module: Lead
+        page: RecordPageForModuleLead
+        perPage: 20
+        prefilter: ""
+        presort: createdAt DESC
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: RecordList
+      xywh: [0, 0, 9, 21]
+    - title: Leads by type
+      options:
+        chart: LeadsByType
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 7]
+    - title: Leads by country
+      options:
+        chart: LeadsByCountry
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 7, 3, 7]
+    - title: Leads by source
+      options:
+        chart: LeadsBySource
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 14, 3, 7]
+    pages:
+      - handle: RecordPageForModuleLead
+        module: Lead
+        title: Record page for module "Lead"
+        blocks:
+        - title: Personal Data
+          options:
+            fields:
+            - name: FirstName
+            - name: LastName
+            - name: Salutation
+            - name: Title
+            - name: Phone
+            - name: MobilePhone
+            - name: Email
+            - name: Website
+            - name: Twitter
+            - name: LinkedIn
+            - name: Facebook
+          kind: Record
+          xywh: [0, 0, 3, 15]
+        - title: Twitter feed
+          options:
+            fields: []
+            profileSourceField: Twitter
+          kind: SocialFeed
+          xywh: [9, 0, 3, 31]
+        - title: Company Data
+          options:
+            fields:
+            - name: Company
+            - name: Industry
+            - name: AnnualRevenue
+            - name: NumberOfEmployees
+            - name: NumberOfEmployeesRange
+            - name: Country
+            - name: City
+            - name: Street
+            - name: State
+            - name: PostalCode
+          kind: Record
+          xywh: [3, 0, 3, 15]
+        - title: Other Information
+          options:
+            fields:
+            - name: Rating
+            - name: Status
+            - name: LeadSource
+            - name: OwnerId
+            - name: Description
+            - name: ConvertedAccountId
+            - name: ConvertedContactId
+            - name: ConvertedOpportunityId
+            - name: ConvertedDate
+          kind: Record
+          xywh: [6, 0, 3, 15]
+        - title: Notes
+          options:
+            fields:
+            - name: Title
+            - name: Body
+            - name: createdAt
+            module: Note
+            page: RecordPageForModuleNote
+            perPage: 5
+            prefilter: LeadId = ${recordID}
+            presort: createdAt DESC
+          kind: RecordList
+          xywh: [0, 15, 6, 8]
+        - title: Events
+          options:
+            fields:
+            - name: Type
+            - name: Subject
+            - name: ActivityDate
+            module: Event
+            page: RecordPageForModuleEvent
+            perPage: 5
+            prefilter: LeadId = ${recordID}
+            presort: ActivityDate DESC
+          kind: RecordList
+          xywh: [0, 23, 4, 8]
+        - title: Tasks
+          options:
+            fields:
+            - name: Type
+            - name: Subject
+            - name: Status
+            - name: ActivityDate
+            module: Task
+            page: RecordPageForModuleTask
+            perPage: 5
+            prefilter: LeadId = ${recordID}
+            presort: ActivityDate DESC
+          kind: RecordList
+          xywh: [4, 23, 5, 8]
+        - title: Lead Actions
+          options:
+            buttons:
+            - label: Convert this Lead in to an Account
+              script: LeadConvertLeadIntoAccount
+              variant: primary
+            - label: 'Lead: Convert a lead into an account and opportunity'
+              script: LeadConvertLeadToAccountAndOpportunity
+              variant: primary
+          kind: Automation
+          xywh: [6, 15, 3, 8]
+        visible: true
+      - handle: AllNewLeads
+        title: All New Leads
+        blocks:
+        - title: New Leads
+          options:
+            fields:
+            - name: FirstName
+            - name: LastName
+            - name: Email
+            - name: Rating
+            - name: Company
+            - name: Country
+            - name: LeadSource
+            - name: Status
+            - name: OwnerId
+            module: Lead
+            page: RecordPageForModuleLead
+            perPage: 20
+            prefilter: Status = 'New' OR Status = 'Assigned'
+            presort: createdAt DESC
+          kind: RecordList
+          xywh: [0, 0, 12, 20]
+        visible: true
+      - handle: MyLeads
+        title: My Leads
+        blocks:
+        - title: My Leads
+          options:
+            fields:
+            - name: FirstName
+            - name: LastName
+            - name: Email
+            - name: Rating
+            - name: Company
+            - name: Country
+            - name: LeadSource
+            - name: Status
+            - name: OwnerId
+            module: Lead
+            page: RecordPageForModuleLead
+            perPage: 20
+            prefilter: OwnerId = ${userID}
+            presort: createdAt DESC
+          kind: RecordList
+          xywh: [0, 0, 12, 21]
+        visible: true
     visible: true
   - handle: Accounts
     title: Accounts
@@ -304,200 +503,19 @@ pages:
         visible: true
       - handle: MyAccounts
         title: My Accounts
-        visible: true
-    visible: true
-  - handle: Leads
-    title: Leads
-    blocks:
-    - title: List of leads
-      options:
-        fields:
-        - name: FirstName
-        - name: LastName
-        - name: Email
-        - name: Rating
-        - name: Company
-        - name: Country
-        - name: Status
-        - name: OwnerId
-        module: Lead
-        page: RecordPageForModuleLead
-        perPage: 20
-        prefilter: ""
-        presort: createdAt DESC
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: RecordList
-      xywh: [0, 0, 9, 21]
-    - title: Leads by type
-      options:
-        chart: LeadsByType
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [9, 0, 3, 7]
-    - title: Leads by country
-      options:
-        chart: LeadsByCountry
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [9, 7, 3, 7]
-    - title: Leads by source
-      options:
-        chart: LeadsBySource
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [9, 14, 3, 7]
-    pages:
-      - handle: RecordPageForModuleLead
-        module: Lead
-        title: Record page for module "Lead"
         blocks:
-        - title: Personal Data
-          options:
+        - title: My Accounts
+          options:        
             fields:
-            - name: FirstName
-            - name: LastName
-            - name: Salutation
-            - name: Title
-            - name: Phone
-            - name: MobilePhone
-            - name: Email
-            - name: Website
-            - name: Twitter
-            - name: LinkedIn
-            - name: Facebook
-          kind: Record
-          xywh: [0, 0, 3, 15]
-        - title: Twitter feed
-          options:
-            fields: []
-            profileSourceField: Twitter
-          kind: SocialFeed
-          xywh: [9, 0, 3, 31]
-        - title: Company Data
-          options:
-            fields:
-            - name: Company
+            - name: AccountName
+            - name: Type
+            - name: Rating
             - name: Industry
-            - name: AnnualRevenue
-            - name: NumberOfEmployees
-            - name: NumberOfEmployeesRange
-            - name: Country
-            - name: City
-            - name: Street
-            - name: State
-            - name: PostalCode
-          kind: Record
-          xywh: [3, 0, 3, 15]
-        - title: Other Information
-          options:
-            fields:
-            - name: Rating
-            - name: Status
-            - name: LeadSource
+            - name: AccountSource
             - name: OwnerId
-            - name: Description
-            - name: ConvertedAccountId
-            - name: ConvertedContactId
-            - name: ConvertedOpportunityId
-            - name: ConvertedDate
-          kind: Record
-          xywh: [6, 0, 3, 15]
-        - title: Notes
-          options:
-            fields:
-            - name: Title
-            - name: Body
             - name: createdAt
-            module: Note
-            page: RecordPageForModuleNote
-            perPage: 5
-            prefilter: LeadId = ${recordID}
-            presort: createdAt DESC
-          kind: RecordList
-          xywh: [0, 15, 6, 8]
-        - title: Events
-          options:
-            fields:
-            - name: Type
-            - name: Subject
-            - name: ActivityDate
-            module: Event
-            page: RecordPageForModuleEvent
-            perPage: 5
-            prefilter: LeadId = ${recordID}
-            presort: ActivityDate DESC
-          kind: RecordList
-          xywh: [0, 23, 4, 8]
-        - title: Tasks
-          options:
-            fields:
-            - name: Type
-            - name: Subject
-            - name: Status
-            - name: ActivityDate
-            module: Task
-            page: RecordPageForModuleTask
-            perPage: 5
-            prefilter: LeadId = ${recordID}
-            presort: ActivityDate DESC
-          kind: RecordList
-          xywh: [4, 23, 5, 8]
-        - title: Lead Actions
-          options:
-            buttons:
-            - label: Convert this Lead in to an Account
-              script: LeadConvertLeadIntoAccount
-              variant: primary
-            - label: 'Lead: Convert a lead into an account and opportunity'
-              script: LeadConvertLeadToAccountAndOpportunity
-              variant: primary
-          kind: Automation
-          xywh: [6, 15, 3, 8]
-        visible: true
-      - handle: AllNewLeads
-        title: All New Leads
-        blocks:
-        - title: New Leads
-          options:
-            fields:
-            - name: FirstName
-            - name: LastName
-            - name: Email
-            - name: Rating
-            - name: Company
-            - name: Country
-            - name: LeadSource
-            - name: Status
-            - name: OwnerId
-            module: Lead
-            page: RecordPageForModuleLead
-            perPage: 20
-            prefilter: Status = 'New' OR Status = 'Assigned'
-            presort: createdAt DESC
-          kind: RecordList
-          xywh: [0, 0, 12, 20]
-        visible: true
-      - handle: MyLeads
-        title: My Leads
-        blocks:
-        - title: My Leads
-          options:
-            fields:
-            - name: FirstName
-            - name: LastName
-            - name: Email
-            - name: Rating
-            - name: Company
-            - name: Country
-            - name: LeadSource
-            - name: Status
-            - name: OwnerId
-            module: Lead
-            page: RecordPageForModuleLead
+            module: Account
+            page: RecordPageForModuleAccount
             perPage: 20
             prefilter: OwnerId = ${userID}
             presort: createdAt DESC

@@ -443,7 +443,7 @@ scripts:
       console.error(err)
       })
     async: false
-    runInUA: false
+    runInUA: true
     critical: true
     enabled: true
     timeout: 0
@@ -702,7 +702,7 @@ scripts:
       console.error(err)
       })
     async: false
-    runInUA: false
+    runInUA: true
     critical: true
     enabled: true
     timeout: 0
@@ -893,7 +893,7 @@ scripts:
       console.error(err)
       })
     async: false
-    runInUA: false
+    runInUA: true
     critical: true
     enabled: true
     timeout: 0
@@ -1079,7 +1079,7 @@ scripts:
       })
 
     async: false
-    runInUA: false
+    runInUA: true
     critical: true
     enabled: true
     timeout: 0
