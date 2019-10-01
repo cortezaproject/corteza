@@ -3,7 +3,7 @@ package system
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	impAux "github.com/cortezaproject/corteza-server/pkg/importer"
 	provision "github.com/cortezaproject/corteza-server/provision/system"
 	"github.com/cortezaproject/corteza-server/system/importer"
