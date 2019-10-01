@@ -359,11 +359,11 @@ func (ctrl Record) Exec(ctx context.Context, r *request.RecordExec) (interface{}
 			r.NamespaceID,
 			r.ModuleID,
 			aa.GetUint64("recordID"),
-			aa.Get("sortingField"),
-			aa.Get("sortingValue"),
-			aa.Get("sortingFilter"),
-			aa.Get("valueField"),
-			aa.Get("value"),
+			aa.Get("positionField"),
+			aa.Get("position"),
+			aa.Get("filter"),
+			aa.Get("groupField"),
+			aa.Get("group"),
 		)
 	default:
 		return nil, errors.New("unknown procedure")
