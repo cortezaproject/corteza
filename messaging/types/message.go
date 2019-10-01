@@ -1,14 +1,13 @@
 package types
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"time"
 
-	"encoding/json"
-
-	"database/sql/driver"
-
-	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/pkg/errors"
+
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 )
 
 type (

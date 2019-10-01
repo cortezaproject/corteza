@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 )
 

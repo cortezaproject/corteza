@@ -13,11 +13,11 @@ import (
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
 
-	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/system"
 	migrate "github.com/cortezaproject/corteza-server/system/db"

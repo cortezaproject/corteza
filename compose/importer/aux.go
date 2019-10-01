@@ -8,7 +8,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/internal/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 

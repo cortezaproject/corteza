@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/internal/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 )
 
