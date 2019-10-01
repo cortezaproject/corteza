@@ -1,8 +1,9 @@
 package websocket
 
 import (
-	"github.com/cortezaproject/corteza-server/internal/payload"
 	"github.com/pkg/errors"
+
+	"github.com/cortezaproject/corteza-server/pkg/payload"
 )
 
 func (s *Session) dispatch(raw []byte) error {
