@@ -2792,8 +2792,8 @@ modules:
           format: 0
           precision: 2
           suffix: €
-  DefaultSettings:
-    name: DefaultSettings
+  Settings:
+    name: Settings
     fields:
       CaseNextNumber:
         label: Next number for a case (updates after saving a new case)

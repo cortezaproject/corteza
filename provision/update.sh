@@ -11,7 +11,7 @@ function download {
 }
 
 function getCrmConfig {
-  NAMES="1000_namespace 1100_modules 1200_charts 1300_scripts 1400_pages"
+  NAMES="1000_namespace 1100_modules 1200_charts 1300_scripts 1400_pages 1500_record_settings"
 
   for NAME in $NAMES; do
     download "crm/${NAME}.yaml" "./compose/src/${NAME}.yaml"

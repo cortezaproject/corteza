@@ -2087,26 +2087,26 @@ pages:
       kind: Chart
       xywh: [5, 0, 3, 16]
     pages:
-      - handle: DefaultSettings
-        title: Default Settings
-        description: A list of defaults values which are called upon in automation
+      - handle: Settings
+        title: Settings
+        description: A list of default values which are called upon in automation
           processes.
         blocks:
-        - title: Default settings
+        - title: Settings
           options:
             fields:
             - name: createdAt
             - name: updatedAt
             hidePaging: true
-            module: DefaultSettings
-            page: RecordPageForModuleDefaultSettings
+            module: Settings
+            page: RecordPageForModuleSettings
             perPage: 1
           kind: RecordList
           xywh: [0, 0, 12, 7]
         pages:
-          - handle: RecordPageForModuleDefaultSettings
-            module: DefaultSettings
-            title: Record page for module "DefaultSettings"
+          - handle: RecordPageForModuleSettings
+            module: Settings
+            title: Record page for module "Settings"
             blocks:
             - title: Quote Settings
               options:
