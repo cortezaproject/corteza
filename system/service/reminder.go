@@ -6,9 +6,10 @@ import (
 
 	"github.com/cortezaproject/corteza-server/system/repository"
 
-	intAuth "github.com/cortezaproject/corteza-server/internal/auth"
-	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/titpetric/factory"
+
+	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (

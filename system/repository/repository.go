@@ -5,9 +5,9 @@ import (
 
 	"github.com/lann/builder"
 	"github.com/titpetric/factory"
-	squirrel "gopkg.in/Masterminds/squirrel.v1"
+	"gopkg.in/Masterminds/squirrel.v1"
 
-	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 )
 
 type (

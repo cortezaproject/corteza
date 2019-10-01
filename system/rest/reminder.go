@@ -6,8 +6,9 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 
-	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/titpetric/factory/resputil"
+
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"

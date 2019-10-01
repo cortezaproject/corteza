@@ -3,14 +3,15 @@ package rest
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/pkg/errors"
+	"github.com/titpetric/factory/resputil"
+
 	"github.com/cortezaproject/corteza-server/internal/payload"
 	"github.com/cortezaproject/corteza-server/internal/payload/outgoing"
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/messaging/types"
-	"github.com/pkg/errors"
-	"github.com/titpetric/factory/resputil"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 )
 
 var _ = errors.Wrap

@@ -9,7 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/importer"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	impAux "github.com/cortezaproject/corteza-server/pkg/importer"
 	provision "github.com/cortezaproject/corteza-server/provision/compose"

@@ -8,11 +8,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/stretchr/testify/require"
+
 	"github.com/cortezaproject/corteza-server/internal/http"
 	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
-	"github.com/stretchr/testify/require"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 )
 
 func TestOutgoingWebhook(t *testing.T) {

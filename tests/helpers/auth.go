@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/steinfletcher/apitest"
 
-	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
