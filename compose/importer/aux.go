@@ -68,6 +68,7 @@ func Import(ctx context.Context, ns *types.Namespace, ff ...io.Reader) (err erro
 		service.DefaultModule.With(ctx),
 		service.DefaultChart.With(ctx),
 		service.DefaultPage.With(ctx),
+		service.DefaultRecord.With(ctx),
 		service.DefaultInternalAutomationManager,
 		service.DefaultAccessControl,
 		roles,

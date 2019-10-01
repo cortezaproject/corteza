@@ -42,13 +42,14 @@ type (
 		Create(*types.Page) (*types.Page, error)
 	}
 
+	recordKeeper interface {
+		Update(*types.Record) (*types.Record, error)
+		Create(*types.Record) (*types.Record, error)
+	}
+
 	automationScriptKeeper interface {
 		UpdateScript(context.Context, *automation.Script) error
 		CreateScript(context.Context, *automation.Script) error
-	}
-
-	roleFinder interface {
-		Find(context.Context) (sysTypes.RoleSet, error)
 	}
 )
 
@@ -81,6 +82,10 @@ func (imp *Importer) GetModuleImporter(handle string) *Module {
 
 func (imp *Importer) GetPageImporter(handle string) *Page {
 	return imp.namespaces.pages[handle]
+}
+
+func (imp *Importer) GetRecordImporter(handle string) *Record {
+	return imp.namespaces.records[handle]
 }
 
 func (imp *Importer) GetChartImporter(handle string) *Chart {
@@ -122,11 +127,12 @@ func (imp *Importer) Store(
 	mStore moduleKeeper,
 	cStore chartKeeper,
 	pStore pageKeeper,
+	rStore recordKeeper,
 	asStore automationScriptKeeper,
 	pk permissions.ImportKeeper,
 	roles sysTypes.RoleSet,
 ) (err error) {
-	err = imp.namespaces.Store(ctx, nsStore, mStore, cStore, pStore, asStore)
+	err = imp.namespaces.Store(ctx, nsStore, mStore, cStore, pStore, rStore, asStore)
 	if err != nil {
 		return errors.Wrap(err, "could not import namespaces")
 	}

@@ -27,7 +27,10 @@ type (
 		// pages per namespace
 		pages map[string]*Page
 
-		// pages per namespace
+		// records per namespace
+		records map[string]*Record
+
+		// a.scripts per namespace
 		scripts map[string]*AutomationScript
 	}
 
@@ -52,6 +55,7 @@ func NewNamespaceImporter(imp *Importer) *Namespace {
 		modules: map[string]*Module{},
 		charts:  map[string]*Chart{},
 		pages:   map[string]*Page{},
+		records: map[string]*Record{},
 		scripts: map[string]*AutomationScript{},
 	}
 
@@ -134,6 +138,9 @@ func (nsImp *Namespace) Cast(handle string, def interface{}) (err error) {
 		case "pages":
 			return nsImp.castPages(handle, val)
 
+		case "records":
+			return nsImp.castRecords(handle, val)
+
 		case "scripts":
 			return nsImp.castScripts(handle, val)
 
@@ -148,7 +155,7 @@ func (nsImp *Namespace) Cast(handle string, def interface{}) (err error) {
 	})
 }
 
-func (cImp *Namespace) castMeta(ns *types.Namespace, def interface{}) (types.NamespaceMeta, error) {
+func (nsImp *Namespace) castMeta(ns *types.Namespace, def interface{}) (types.NamespaceMeta, error) {
 	var meta = types.NamespaceMeta{}
 
 	return meta, deinterfacer.Each(def, func(_ int, key string, val interface{}) (err error) {
@@ -194,6 +201,15 @@ func (nsImp *Namespace) castPages(handle string, def interface{}) error {
 	return nsImp.pages[handle].CastSet(def)
 }
 
+func (nsImp *Namespace) castRecords(handle string, def interface{}) error {
+	if nsImp.records[handle] == nil {
+		return fmt.Errorf("unknown namespace %q", handle)
+
+	}
+
+	return nsImp.records[handle].CastSet(def)
+}
+
 func (nsImp *Namespace) castScripts(handle string, def interface{}) error {
 	if nsImp.scripts[handle] == nil {
 		return fmt.Errorf("unknown namespace %q", handle)
@@ -215,17 +231,20 @@ func (nsImp *Namespace) Get(handle string) (*types.Namespace, error) {
 }
 
 func (nsImp *Namespace) Setup(namespace *types.Namespace) {
-	nsImp.set = append(nsImp.set, namespace)
+	if nsImp.set.FindByHandle(namespace.Slug) == nil {
+		nsImp.set = append(nsImp.set, namespace)
+	}
 
 	if _, has := nsImp.modules[namespace.Slug]; !has {
 		nsImp.modules[namespace.Slug] = NewModuleImporter(nsImp.imp, namespace)
 		nsImp.pages[namespace.Slug] = NewPageImporter(nsImp.imp, namespace)
 		nsImp.charts[namespace.Slug] = NewChartImporter(nsImp.imp, namespace)
 		nsImp.scripts[namespace.Slug] = NewAutomationImporter(nsImp.imp, namespace)
+		nsImp.records[namespace.Slug] = NewRecordImporter(nsImp.imp, namespace)
 	}
 }
 
-func (nsImp *Namespace) Store(ctx context.Context, nsk namespaceKeeper, mk moduleKeeper, ck chartKeeper, pk pageKeeper, sk automationScriptKeeper) error {
+func (nsImp *Namespace) Store(ctx context.Context, nsk namespaceKeeper, mk moduleKeeper, ck chartKeeper, pk pageKeeper, rk recordKeeper, sk automationScriptKeeper) error {
 	return nsImp.set.Walk(func(namespace *types.Namespace) (err error) {
 		var handle = namespace.Slug
 
@@ -261,6 +280,11 @@ func (nsImp *Namespace) Store(ctx context.Context, nsk namespaceKeeper, mk modul
 			nsImp.pages[handle].namespace = namespace
 			if err = nsImp.pages[handle].Store(ctx, pk); err != nil {
 				return errors.Wrap(err, "could not import pages")
+			}
+
+			nsImp.records[handle].namespace = namespace
+			if err = nsImp.records[handle].Store(ctx, rk); err != nil {
+				return errors.Wrap(err, "could not import records")
 			}
 		}
 
