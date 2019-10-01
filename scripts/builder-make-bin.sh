@@ -11,7 +11,7 @@ APP=${1}
 DST=${2:-"/bin/corteza-server-${APP}"}
 
 LDFLAGS=""
-LDFLAGS="${LDFLAGS} -X github.com/cortezaproject/corteza-server/internal/version.BuildTime=${BUILD_TIME}"
-LDFLAGS="${LDFLAGS} -X github.com/cortezaproject/corteza-server/internal/version.Version=${GIT_TAG}"
+LDFLAGS="${LDFLAGS} -X github.com/cortezaproject/corteza-server/pkg/version.BuildTime=${BUILD_TIME}"
+LDFLAGS="${LDFLAGS} -X github.com/cortezaproject/corteza-server/pkg/version.Version=${GIT_TAG}"
 
 go build -ldflags "${LDFLAGS}" -o $DST ./cmd/$APP/*.go
