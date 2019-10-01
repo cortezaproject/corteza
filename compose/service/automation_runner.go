@@ -253,8 +253,6 @@ func (svc automationRunner) makeRecordScriptRunner(ctx context.Context, ns *type
 		Record:    proto.FromRecord(r),
 	}
 
-	svc.logger.Debug("executing script", zap.Any("record", r))
-
 	return func(script *automation.Script) error {
 		if svc.runner == nil {
 			return errors.New("can not run corredor script: not connected")
