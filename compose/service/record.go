@@ -447,14 +447,25 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 // Organize - Record organizer
 //
 // Reorders records & sets field value
-func (svc record) Organize(namespaceID, moduleID, recordID uint64, sField, sValue, sFilter, vField, vValue string) error {
+func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, position, filter, grpField, group string) error {
 	var (
 		_, module, record, err = svc.loadCombo(namespaceID, moduleID, recordID)
 
 		recordValues = types.RecordValueSet{}
 
 		reorderingRecords bool
+
+		log = svc.log(svc.ctx,
+			zap.String("position-field", posField),
+			zap.String("position", position),
+			zap.String("filter", filter),
+			zap.String("group-field", grpField),
+			zap.String("group", group),
+		)
 	)
+
+	log.Debug("record organizer")
+
 	if err != nil {
 		return err
 	}
@@ -463,27 +474,27 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, sField, sValu
 		return ErrNoUpdatePermissions.withStack()
 	}
 
-	if sField != "" {
+	if posField != "" {
 		reorderingRecords = true
 
-		if !regexp.MustCompile(`^[0-9]+$`).MatchString(sValue) {
-			return errors.Errorf("expecting number for sorting position %q", sField)
+		if !regexp.MustCompile(`^[0-9]+$`).MatchString(position) {
+			return errors.Errorf("expecting number for sorting position %q", posField)
 		}
 
 		// Check field existence and permissions
 		// check if numeric -- we can not reorder on any other field type
 
-		sf := module.Fields.FindByName(sField)
+		sf := module.Fields.FindByName(posField)
 		if sf == nil {
-			return errors.Errorf("no such field %q", sField)
+			return errors.Errorf("no such field %q", posField)
 		}
 
 		if !sf.IsNumeric() {
-			return errors.Errorf("can not reorder on non numeric field %q", sField)
+			return errors.Errorf("can not reorder on non numeric field %q", posField)
 		}
 
 		if sf.Multi {
-			return errors.Errorf("can not reorder on multi-value field %q", sField)
+			return errors.Errorf("can not reorder on multi-value field %q", posField)
 		}
 
 		if !svc.ac.CanUpdateRecordValue(svc.ctx, sf) {
@@ -493,21 +504,21 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, sField, sValu
 		// Set new position
 		recordValues = recordValues.Set(&types.RecordValue{
 			RecordID: recordID,
-			Name:     sField,
-			Value:    sValue,
+			Name:     posField,
+			Value:    position,
 		})
 	}
 
-	if vField != "" {
+	if grpField != "" {
 		// Check field existence and permissions
 
-		vf := module.Fields.FindByName(vField)
+		vf := module.Fields.FindByName(grpField)
 		if vf == nil {
-			return errors.Errorf("no such field %q", vField)
+			return errors.Errorf("no such field %q", grpField)
 		}
 
 		if vf.Multi {
-			return errors.Errorf("can not update multi-value field %q", sField)
+			return errors.Errorf("can not update multi-value field %q", posField)
 		}
 
 		if !svc.ac.CanUpdateRecordValue(svc.ctx, vf) {
@@ -517,8 +528,8 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, sField, sValu
 		// Set new value
 		recordValues = recordValues.Set(&types.RecordValue{
 			RecordID: recordID,
-			Name:     vField,
-			Value:    vValue,
+			Name:     grpField,
+			Value:    group,
 		})
 	}
 
@@ -532,6 +543,8 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, sField, sValu
 			if err = svc.recordRepo.PartialUpdateValues(recordValues...); err != nil {
 				return
 			}
+
+			log.Info("record moved")
 		}
 
 		if reorderingRecords {
@@ -541,11 +554,11 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, sField, sValu
 			)
 
 			// If we already have filter, wrap it in parenthesis
-			if sFilter != "" {
-				sFilter = fmt.Sprintf("(%s) AND ", sFilter)
+			if filter != "" {
+				filter = fmt.Sprintf("(%s) AND ", filter)
 			}
 
-			if recordOrderPlace, err = strconv.ParseUint(sValue, 0, 64); err != nil {
+			if recordOrderPlace, err = strconv.ParseUint(position, 0, 64); err != nil {
 				return
 			}
 
@@ -554,9 +567,11 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, sField, sValu
 			// the place we're moving our record to.
 			// and sort the set with sorting field
 			set, _, err = svc.recordRepo.Find(module, types.RecordFilter{
-				Filter: fmt.Sprintf("%s(%s >= %d)", sFilter, sField, recordOrderPlace),
-				Sort:   sField,
+				Filter: fmt.Sprintf("%s(%s >= %d)", filter, posField, recordOrderPlace),
+				Sort:   posField,
 			})
+
+			log.Info("reordering other records", zap.Int("count", len(set)))
 
 			if err != nil {
 				return
@@ -569,7 +584,7 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, sField, sValu
 				// Update each and every set
 				return svc.recordRepo.PartialUpdateValues(&types.RecordValue{
 					RecordID: r.ID,
-					Name:     sField,
+					Name:     posField,
 					Value:    strconv.FormatUint(recordOrderPlace, 10),
 				})
 			})
