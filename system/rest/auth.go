@@ -7,9 +7,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 
-	"github.com/cortezaproject/corteza-server/internal/payload"
-	"github.com/cortezaproject/corteza-server/internal/payload/outgoing"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/pkg/payload/outgoing"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 )

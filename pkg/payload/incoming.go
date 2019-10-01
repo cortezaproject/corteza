@@ -3,7 +3,7 @@ package payload
 import (
 	"encoding/json"
 
-	"github.com/cortezaproject/corteza-server/internal/payload/incoming"
+	"github.com/cortezaproject/corteza-server/pkg/payload/incoming"
 )
 
 func Unmarshal(raw []byte) (*incoming.Payload, error) {

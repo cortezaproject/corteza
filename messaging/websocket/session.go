@@ -10,12 +10,12 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/cortezaproject/corteza-server/internal/payload"
-	"github.com/cortezaproject/corteza-server/internal/payload/outgoing"
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/pkg/payload/outgoing"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 )
 
