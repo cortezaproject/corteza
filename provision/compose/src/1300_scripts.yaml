@@ -3,12 +3,12 @@ scripts:
   AccountCreateNewOpportunity:
     source: |-
       //Get the default settings
-      return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
+      return Compose.findLastRecord('Settings').then(settings => {
 
-        let opportunityCloseDays = defaultSettings.values.OpportunityCloseDateDays
-        let opportunityProbability = defaultSettings.values.OpportunityProbability
-        let opportunityForecaseCategory = defaultSettings.values.OpportunityForecaseCategory
-        let opportunityStagename = defaultSettings.values.OpportunityStagename
+        let opportunityCloseDays = settings.values.OpportunityCloseDateDays
+        let opportunityProbability = settings.values.OpportunityProbability
+        let opportunityForecaseCategory = settings.values.OpportunityForecaseCategory
+        let opportunityStagename = settings.values.OpportunityStagename
 
         //Calculate the expiration date
         let m = new Date()
@@ -108,22 +108,22 @@ scripts:
   CaseInsertCaseNumber:
     source: |-
       //Get the default settings
-      return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
-        
+      return Compose.findLastRecord('Settings').then(settings => {
+
         // Map the case number
-        let nextCaseNumber = defaultSettings.values.CaseNextNumber
+        let nextCaseNumber = settings.values.CaseNextNumber
         if (typeof nextCaseNumber == "undefined" || nextCaseNumber === '' || isNaN(nextCaseNumber)) {
           nextCaseNumber = 0
         }
-        
+
         $record.values.CaseNumber = nextCaseNumber
         let nextCaseNumberUpdated = parseInt(nextCaseNumber,10) + 1
-          
+
         // Update the config
-        defaultSettings.values.CaseNextNumber = nextCaseNumberUpdated
-        return Compose.saveRecord(defaultSettings).then(mySavedDefaultSettings => {
-          
-          console.log('Record saved, new ID', mySavedDefaultSettings.recordID)
+        settings.values.CaseNextNumber = nextCaseNumberUpdated
+        return Compose.saveRecord(settings).then(mySavedSettings => {
+
+          console.log('Record saved, new ID', mySavedSettings.recordID)
 
         }).catch(err => {
         // solve the problem
@@ -216,8 +216,8 @@ scripts:
       let accountId = $record.values.AccountId
       if (accountId) {
           return Compose.findRecordByID(accountId, 'Account').then(accountRecord => {
-          
-            // Add to the record label 
+
+            // Add to the record label
             recordLabel = recordLabel + ' (' + accountRecord.values.AccountName + ')'
             $record.values.RecordLabel = recordLabel
 
@@ -227,7 +227,7 @@ scripts:
 
             console.error(err)
           })
-        
+
       }
     async: false
     runInUA: false
@@ -343,26 +343,26 @@ scripts:
   SolutionInsertSolutionNumber:
     source: |-
       //Get the default settings
-      return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
-        
+      return Compose.findLastRecord('Settings').then(settings => {
+
         // Map the case number
-        let nextSolutionNumber = defaultSettings.values.SolutionNextNumber
+        let nextSolutionNumber = settings.values.SolutionNextNumber
         if (typeof nextSolutionNumber == "undefined" || nextSolutionNumber === '' || isNaN(nextSolutionNumber)) {
           nextSolutionNumber = 0
         }
         $record.values.SolutionNumber = nextSolutionNumber
         let nextSolutionNumberUpdated = parseInt(nextSolutionNumber,10) + 1
-        
+
         // Update the config
-        defaultSettings.values.SolutionNextNumber = nextSolutionNumberUpdated
-        
-        return Compose.saveRecord(defaultSettings).then(mySavedDefaultSettings => {
-          console.log('Record saved, new ID', mySavedDefaultSettings.recordID)
+        settings.values.SolutionNextNumber = nextSolutionNumberUpdated
+
+        return Compose.saveRecord(settings).then(mySavedSettings => {
+          console.log('Record saved, new ID', mySavedSettings.recordID)
         }).catch(err => {
         // solve the problem
         console.error(err)
         })
-        
+
       }).catch(err => {
         // solve the problem
         console.error(err)
@@ -379,17 +379,17 @@ scripts:
   AccountCreateNewContract:
     source: |-
       //Get the default settings
-      return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
-        
+      return Compose.findLastRecord('Settings').then(settings => {
+
         // Map the case number
-        let ContractDefaultTime = defaultSettings.values.ContractDefaultTime
+        let ContractDefaultTime = settings.values.ContractDefaultTime
 
         // Get the contract number
-        let nextContractNumber = defaultSettings.values.ContractNextNumber
+        let nextContractNumber = settings.values.ContractNextNumber
         if (typeof nextContractNumber == "undefined" || nextContractNumber === '' || isNaN(nextContractNumber)) {
           nextContractNumber = 0
         }
-        
+
         return Compose.makeRecord({
           'OwnerId' : $record.values.OwnerId,
           'AccountId' : $record.recordID,
@@ -407,29 +407,29 @@ scripts:
           'ContractTerm' : ContractDefaultTime,
           'ContractNumber' : nextContractNumber
         }, 'Contract').then(myContract => {
-          
+
           // return was missing here. Set tjhe mySavedCase below
           return Compose.saveRecord(myContract)
-          
+
         }).then(mySavedContract => {
           let nextContractNumberUpdated = parseInt(nextContractNumber,10) + 1
-        
+
           // Update the config
-          defaultSettings.values.ContractNextNumber = nextContractNumberUpdated
-          return Compose.saveRecord(defaultSettings).then(mySavedDefaultSettings => {
-            
-            console.log('Record saved, new ID', mySavedDefaultSettings.recordID)
+          settings.values.ContractNextNumber = nextContractNumberUpdated
+          return Compose.saveRecord(settings).then(mySavedSettings => {
+
+            console.log('Record saved, new ID', mySavedSettings.recordID)
 
           }).then(() => {
 
             // Notify current user
             ComposeUI.success(`The new contract record has been created.`)
-            
+
           }).then(() => {
 
             // Go to the record
             ComposeUI.gotoRecordEditor(mySavedContract)
-            
+
           }).catch(err => {
           // solve the problem
           console.error(err)
@@ -465,7 +465,7 @@ scripts:
       }, 'CaseUpdate').then(myCaseUpdate => {
 
         return Compose.saveRecord(myCaseUpdate)
-        
+
       }).then(myCaseUpdate => {
 
         return Compose.saveRecord(caseRecord)
@@ -546,10 +546,10 @@ scripts:
                 if ($record.values.SubmitAsSolution) {
 
                   //Get the default settings
-                  return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
+                  return Compose.findLastRecord('Settings').then(settings => {
 
                     // Map the solution number
-                    let nextSolutionNumber = defaultSettings.values.SolutionNextNumber
+                    let nextSolutionNumber = settings.values.SolutionNextNumber
                     if (typeof nextSolutionNumber == "undefined" || nextSolutionNumber === '' || isNaN(nextSolutionNumber)) {
                       nextSolutionNumber = 0
                     }
@@ -581,10 +581,10 @@ scripts:
                         let nextSolutionNumberUpdated = parseInt(nextSolutionNumber, 10) + 1
 
                         // Update the config
-                        defaultSettings.values.SolutionNextNumber = nextSolutionNumberUpdated
-                        return Compose.saveRecord(defaultSettings).then(mySavedDefaultSettings => {
+                        settings.values.SolutionNextNumber = nextSolutionNumberUpdated
+                        return Compose.saveRecord(settings).then(mySavedSettings => {
 
-                          console.log('Record saved, ID', mySavedDefaultSettings.recordID)
+                          console.log('Record saved, ID', mySavedSettings.recordID)
 
 
                         }).catch(err => {
@@ -621,27 +621,27 @@ scripts:
   AccountCreateNewCase:
     source: |-
       //Get the default settings
-      return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
-        
+      return Compose.findLastRecord('Settings').then(settings => {
+
         // Map the case number
-        let nextCaseNumber = defaultSettings.values.CaseNextNumber
+        let nextCaseNumber = settings.values.CaseNextNumber
         if (typeof nextCaseNumber == "undefined" || nextCaseNumber === '' || isNaN(nextCaseNumber)) {
           nextCaseNumber = 0
         }
-        
+
         // Find the contact we want to link the new case to (by default, the primary contact)
         return Compose.findRecords(`AccountId = ${$record.recordID}`, 'Contact').then(({ set, filter }) => {
-        
+
           let ContactId, SuppliedName, SuppliedEmail, SuppliedPhone
 
           // Loop through the contacts of the account, to save the primary contact
           set.forEach(r => {
-            
+
             //Check if it's the primary contact
             let contactIsPrimary = r.values.IsPrimary
             console.log(contactIsPrimary)
             if (contactIsPrimary === '1') {
-              
+
               //Add the contact
               ContactId = r.recordID
               SuppliedName = r.values.FirstName + ' ' + r.values.LastName
@@ -649,7 +649,7 @@ scripts:
               SuppliedPhone = r.values.Phone
             }
           })
-          
+
           return Compose.makeRecord({
             'OwnerId' : $record.values.OwnerId,
             'Subject' : '(no subject)',
@@ -662,29 +662,29 @@ scripts:
             'SuppliedPhone' : SuppliedPhone,
             'CaseNumber' : nextCaseNumber
           }, 'Case').then(myCase => {
-            
+
             Compose.saveRecord(myCase)
-            
+
           }).then(mySavedCase => {
             let nextCaseNumberUpdated = parseInt(nextCaseNumber,10) + 1
-            
+
             // Update the config
-            defaultSettings.values.CaseNextNumber = nextCaseNumberUpdated
-            return Compose.saveRecord(defaultSettings).then(mySavedDefaultSettings => {
-              
-              console.log('Record saved, new ID', mySavedDefaultSettings.recordID)
-        
+            settings.values.CaseNextNumber = nextCaseNumberUpdated
+            return Compose.saveRecord(settings).then(mySavedSettings => {
+
+              console.log('Record saved, new ID', mySavedSettings.recordID)
+
             }).then(({ mySavedCase }) => {
-        
+
               // Notify current user
               ComposeUI.success(`The new case has been created.`)
-            
-              
+
+
             }).then(({ mySavedCase }) => {
-        
+
               // Go to the record
               ComposeUI.gotoRecordEditor(mySavedCase)
-              
+
             }).catch(err => {
             // solve the problem
             console.error(err)
@@ -713,14 +713,14 @@ scripts:
   ContactCreateNewCase:
     source: |-
       //Get the default settings
-      return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
-        
+      return Compose.findLastRecord('Settings').then(settings => {
+
         // Map the case number
-        let nextCaseNumber = defaultSettings.values.CaseNextNumber
+        let nextCaseNumber = settings.values.CaseNextNumber
         if (typeof nextCaseNumber == "undefined" || nextCaseNumber === '' || isNaN(nextCaseNumber)) {
           nextCaseNumber = 0
         }
-        
+
         return Compose.makeRecord({
           'OwnerId' : $record.values.OwnerId,
           'Subject' : '(no subject)',
@@ -733,30 +733,30 @@ scripts:
           'SuppliedPhone' : $record.values.Phone,
           'CaseNumber' : nextCaseNumber
         }, 'Case').then(myCase => {
-          
+
           // return was missing here. Set tjhe mySavedCase below
           return Compose.saveRecord(myCase)
-          
+
         }).then(mySavedCase => {
           let nextCaseNumberUpdated = parseInt(nextCaseNumber, 10) + 1
-          
+
           // Update the config
-          defaultSettings.values.CaseNextNumber = nextCaseNumberUpdated
-          return Compose.saveRecord(defaultSettings).then(mySavedDefaultSettings => {
-            
-            console.log('Record saved, new ID', mySavedDefaultSettings.recordID)
+          settings.values.CaseNextNumber = nextCaseNumberUpdated
+          return Compose.saveRecord(settings).then(mySavedSettings => {
+
+            console.log('Record saved, new ID', mySavedSettings.recordID)
             // then(({ mySavedCase }) wasn't needed, since it is already defined
             // for the entire block, starting at line 27
           }).then(() => {
 
             // Notify current user
             ComposeUI.success(`The new case has been created.`)
-            
+
           }).then(() => {
 
             // Go to the record
             ComposeUI.gotoRecordEditor(mySavedCase)
-            
+
           }).catch(err => {
           // solve the problem
           console.error(err)
@@ -808,9 +808,9 @@ scripts:
         'Facebook' : $record.values.Facebook,
         'LinkedIn' : $record.values.LinkedIn
       }, 'Account').then(myAccount => {
-        
+
         return Compose.saveRecord(myAccount)
-        
+
       }).then(mySavedAccount => {
 
         // Create the related contact
@@ -841,24 +841,24 @@ scripts:
           'IsPrimary' : '1',
           'AccountId' : mySavedAccount.recordID
         }, 'Contact').then(myContact => {
-          
+
           return Compose.saveRecord(myContact)
-          
+
         }).then(updatedAccount => {
-          
+
           //Update the lead record
           $record.values.Status = 'Converted'
           $record.values.IsConverted = 'Yes'
           $record.values.ConvertedAccountId = mySavedAccount.recordID
           $record.values.ConvertedContactId = mySavedAccount.recordID
           $record.values.ConvertedDate = mySavedAccount.createdAt
-        
+
           return Compose.saveRecord($record)
-          
+
         }).then(leadUser => {
-          
+
           return System.findUserByID($record.values.OwnerId).then(user => {
-            
+
             // Notifies the owner that a new account was created and assigned to him
             Compose.sendRecordToMail(
               user.email,
@@ -874,16 +874,16 @@ scripts:
           })
 
         }).then(({ mySavedAccount }) => {
-        
+
           // Notify current user
           ComposeUI.success(`The lead has been converted.`)
-        
-          
+
+
         }).then(({ mySavedAccount }) => {
-        
+
           // Go to the record
           ComposeUI.gotoRecordEditor(mySavedAccount)
-          
+
         }).catch(err => {
         // solve the problem
         console.error(err)
@@ -931,9 +931,9 @@ scripts:
         'Facebook' : $record.values.Facebook,
         'LinkedIn' : $record.values.LinkedIn
       }, 'Account').then(myAccount => {
-        
+
         return Compose.saveRecord(myAccount)
-        
+
       }).then(mySavedAccount => {
 
         // Create the related contact
@@ -964,23 +964,23 @@ scripts:
           'IsPrimary' : '1',
           'AccountId' : mySavedAccount.recordID
         }, 'Contact').then(mySavedContact => {
-          
+
           return Compose.saveRecord(mySavedContact).then(mySavedContact => {
-            
+
             // First get the default values
             //Get the default settings
-            return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
-              
-              let opportunityCloseDays = defaultSettings.values.OpportunityCloseDateDays
-              let opportunityProbability = defaultSettings.values.OpportunityProbability
-              let opportunityForecaseCategory = defaultSettings.values.OpportunityForecaseCategory
-              let opportunityStagename = defaultSettings.values.OpportunityStagename
-              
+            return Compose.findLastRecord('Settings').then(settings => {
+
+              let opportunityCloseDays = settings.values.OpportunityCloseDateDays
+              let opportunityProbability = settings.values.OpportunityProbability
+              let opportunityForecaseCategory = settings.values.OpportunityForecaseCategory
+              let opportunityStagename = settings.values.OpportunityStagename
+
               //Calculate the expiration date
               let m = new Date()
               m.setDate(m.getDate() + parseInt(opportunityCloseDays,10))
               let closeDate = m.getUTCFullYear() +"/"+ (m.getUTCMonth()+1) +"/"+ m.getUTCDate() + " " + m.getUTCHours() + ":" + m.getUTCMinutes() + ":" + m.getUTCSeconds()
-        
+
               // Create the related opportunity
               return Compose.makeRecord({
                 'Description' : $record.values.Description,
@@ -996,9 +996,9 @@ scripts:
                 'StageName' : opportunityStagename
               }, 'Opportunity').then(myOpportunity => {
                 return Compose.saveRecord(myOpportunity)
-                
+
               }).then(mySavedOpportunity => {
-              
+
                 //Create a new contact linked to the opportunity
                 return Compose.makeRecord({
                   'ContactId' : mySavedContact.recordID,
@@ -1006,43 +1006,43 @@ scripts:
                   'IsPrimary' : '1'
                 }, 'OpportunityContactRole').then(myOpportunityContactRole => {
                   return Compose.saveRecord(myOpportunityContactRole)
-                  
+
                 }).catch(err => {
                 // solve the problem
                 console.error(err)
                 })
-                
+
               }).catch(err => {
               // solve the problem
               console.error(err)
               })
-              
+
             }).catch(err => {
             // solve the problem
             console.error(err)
             })
-        
+
           }).catch(err => {
           // solve the problem
           console.error(err)
           })
-        
-        
+
+
         }).then(updatedAccount => {
-          
+
           //Update the lead record
           $record.values.Status = 'Converted'
           $record.values.IsConverted = 'Yes'
           $record.values.ConvertedAccountId = mySavedAccount.recordID
           $record.values.ConvertedContactId = mySavedAccount.recordID
           $record.values.ConvertedDate = mySavedAccount.createdAt
-        
+
           return Compose.saveRecord($record)
-          
+
         }).then(leadUser => {
-          
+
           return System.findUserByID($record.values.OwnerId).then(user => {
-            
+
             // Notifies the owner that a new account was created and assigned to him
             Compose.sendRecordToMail(
               user.email,
@@ -1058,16 +1058,16 @@ scripts:
           })
 
         }).then(({ mySavedAccount }) => {
-        
+
           // Notify current user
           ComposeUI.success(`The lead has been converted.`)
-        
-          
+
+
         }).then(({ mySavedAccount }) => {
-        
+
           // Go to the record
           ComposeUI.gotoRecordEditor(mySavedAccount)
-          
+
         }).catch(err => {
         // solve the problem
         console.error(err)
@@ -1108,7 +1108,7 @@ scripts:
             lineitems = lineitems + "Subtotal:</strong> " + lineitem.values.Subtotal + "<br>"
             lineitems = lineitems + "Discount:</strong> " + lineitem.values.Discount + "<br>"
             lineitems = lineitems + "Total Price:</strong> " + lineitem.values.TotalPrice + "<br>"
-            lineitems = lineitems + "-------------------------<br>"      
+            lineitems = lineitems + "-------------------------<br>"
           })
           return lineitems
         }).then(lineitems => {
@@ -1227,7 +1227,7 @@ scripts:
             lineitems = lineitems + "Subtotal:</strong> " + lineitem.values.Subtotal + "<br>"
             lineitems = lineitems + "Discount:</strong> " + lineitem.values.Discount + "<br>"
             lineitems = lineitems + "Total Price:</strong> " + lineitem.values.TotalPrice + "<br>"
-            lineitems = lineitems + "-------------------------<br>"      
+            lineitems = lineitems + "-------------------------<br>"
           })
           return lineitems
         }).then(lineitems => {
@@ -1484,10 +1484,10 @@ scripts:
         }).then(mySavedQuote => {
 
           // Get the default settings
-          return Compose.findLastRecord('DefaultSettings').then(defaultSettings => {
+          return Compose.findLastRecord('Settings').then(settings => {
 
             // Get the expiration date
-            let quoteExpirationDays = defaultSettings.values.QuoteExpirationDays
+            let quoteExpirationDays = settings.values.QuoteExpirationDays
 
             // Calculate the expiration date
             let m = new Date()
@@ -1498,7 +1498,7 @@ scripts:
             quoteExpirationDate = expirationDate
 
             // Map the quote number
-            let nextQuoteNumber = defaultSettings.values.QuoteNextNumber
+            let nextQuoteNumber = settings.values.QuoteNextNumber
             if (typeof nextQuoteNumber == "undefined" || nextQuoteNumber === '' || isNaN(nextQuoteNumber)) {
               nextQuoteNumber = 0
             }
@@ -1506,10 +1506,10 @@ scripts:
             let nextQuoteNumberUpdated = parseInt(nextQuoteNumber, 10) + 1
 
             // Update the config
-            defaultSettings.values.QuoteNextNumber = nextQuoteNumberUpdated
-            return Compose.saveRecord(defaultSettings).then(mySavedDefaultSettings => {
+            settings.values.QuoteNextNumber = nextQuoteNumberUpdated
+            return Compose.saveRecord(settings).then(mySavedSettings => {
 
-              console.log('Record saved, ID', mySavedDefaultSettings.recordID)
+              console.log('Record saved, ID', mySavedSettings.recordID)
 
             }).catch(err => {
               // solve the problem

@@ -1,0 +1,14 @@
+namespace: crm
+records:
+  Settings:
+  - values:
+      QuoteExpirationDays: "30"
+      QuoteNextNumber: "1"
+      OpportunityCloseDateDays: "30"
+      OpportunityProbability: "10"
+      OpportunityForecaseCategory: "Pipeline"
+      OpportunityStagename: "Qualification"
+      ContractNextNumber: "1"
+      ContractDefaultTime: "12"
+      CaseNextNumber: "1"
+      SolutionNextNumber: "1"
