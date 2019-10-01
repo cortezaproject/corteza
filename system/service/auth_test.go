@@ -6,10 +6,10 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/markbates/goth"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/cortezaproject/corteza-server/internal/test"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	repomock "github.com/cortezaproject/corteza-server/system/repository/mocks"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -72,8 +72,8 @@ func TestAuth_External_Existing(t *testing.T) {
 
 	{
 		auser, err := svc.External(p)
-		test.NoError(t, err, "unexpected error from auth.External: %v", err)
-		test.Assert(t, auser.ID == u.ID, "Did not receive expected user")
+		require.NoError(t, err)
+		require.True(t, auser.ID == u.ID, "Did not receive expected user")
 	}
 }
 
@@ -117,8 +117,8 @@ func TestAuth_External_NonExisting(t *testing.T) {
 
 	{
 		auser, err := svc.External(p)
-		test.NoError(t, err, "unexpected error from auth.External: %v", err)
-		test.Assert(t, auser.ID == u.ID, "Did not receive expected user")
+		require.NoError(t, err)
+		require.True(t, auser.ID == u.ID, "Did not receive expected user")
 	}
 }
 

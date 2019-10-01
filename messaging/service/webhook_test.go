@@ -10,9 +10,9 @@ import (
 
 	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/internal/http"
-	"github.com/cortezaproject/corteza-server/internal/test"
 	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestOutgoingWebhook(t *testing.T) {
@@ -29,13 +29,13 @@ func TestOutgoingWebhook(t *testing.T) {
 	{
 		rpo := repository.Channel(ctx, repository.DB(ctx))
 		_, err := rpo.Create(channel)
-		test.Assert(t, err == nil, "Error when creating channel: %+v", err)
+		require.True(t, err == nil, "Error when creating channel: %+v", err)
 	}
 
 	client, err := http.New(&http.Config{
 		Timeout: 10,
 	})
-	test.Assert(t, err == nil, "Error creating HTTP client: %+v", err)
+	require.True(t, err == nil, "Error creating HTTP client: %+v", err)
 
 	svc := Webhook(ctx, client)
 
@@ -47,20 +47,20 @@ func TestOutgoingWebhook(t *testing.T) {
 			OutgoingTrigger: "fortune",
 			OutgoingURL:     server.URL,
 		})
-		test.Assert(t, err == nil, "Error when creating webhook: %+v", err)
+		require.True(t, err == nil, "Error when creating webhook: %+v", err)
 
 		/* find outgoing webhook */
 		webhooks, err := svc.Find(&types.WebhookFilter{
 			OutgoingTrigger: webhook.OutgoingTrigger,
 		})
-		test.Assert(t, err == nil, "Error when finding webhook: %+v", err)
-		test.Assert(t, len(webhooks) == 1, "Expected to find 1 webhook, got %d", len(webhooks))
+		require.True(t, err == nil, "Error when finding webhook: %+v", err)
+		require.True(t, len(webhooks) == 1, "Expected to find 1 webhook, got %d", len(webhooks))
 
 		/* trigger outgoing webhook */
 		{
 			message, err := svc.Do(webhooks[0], "")
-			test.Assert(t, err == nil, "Error when triggering webhook: %+v", err)
-			test.Assert(t, strings.Contains(message.Message, "Louis Pasteur"), "Unexpected webhook output: %s", message.Message)
+			require.True(t, err == nil, "Error when triggering webhook: %+v", err)
+			require.True(t, strings.Contains(message.Message, "Louis Pasteur"), "Unexpected webhook output: %s", message.Message)
 		}
 
 		// update webhook
@@ -70,14 +70,14 @@ func TestOutgoingWebhook(t *testing.T) {
 			OutgoingTrigger: "fortune-json",
 			OutgoingURL:     server.URL + "?username=test",
 		})
-		test.Assert(t, err == nil, "Error when updating webhook: %+v", err)
+		require.True(t, err == nil, "Error when updating webhook: %+v", err)
 
 		/* trigger outgoing webhook */
 		{
 			message, err := svc.Do(wh, "")
-			test.Assert(t, err == nil, "Error when triggering webhook: %+v", err)
-			test.Assert(t, message.Meta.Username == "test", "Expected message.meta.username = 'test', got: '%s'", message.Meta.Username)
-			test.Assert(t, strings.Contains(message.Message, "Louis Pasteur"), "Unexpected webhook output: %s", message.Message)
+			require.True(t, err == nil, "Error when triggering webhook: %+v", err)
+			require.True(t, message.Meta.Username == "test", "Expected message.meta.username = 'test', got: '%s'", message.Meta.Username)
+			require.True(t, strings.Contains(message.Message, "Louis Pasteur"), "Unexpected webhook output: %s", message.Message)
 		}
 	}
 }

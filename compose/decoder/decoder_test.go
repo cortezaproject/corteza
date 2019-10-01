@@ -9,7 +9,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/stretchr/testify/require"
 )
 
 func makeReadSeeker(c string) io.ReadSeeker {
@@ -28,12 +28,12 @@ func TestEntryCount(t *testing.T) {
 		fr := NewFlatReader(csv.NewReader(rs), rs)
 
 		c, err := fr.EntryCount()
-		test.Assert(t,
+		require.True(t,
 			c == 1,
 			fmt.Sprintf("Invalid number of entries determines; found %d, expected %d", c, 1),
 		)
 
-		test.Assert(t,
+		require.True(t,
 			err == nil,
 			"Returned with error",
 		)
@@ -44,12 +44,12 @@ func TestEntryCount(t *testing.T) {
 		sd := NewStructuredDecoder(json.NewDecoder(rs), rs)
 
 		c, err := sd.EntryCount()
-		test.Assert(t,
+		require.True(t,
 			c == 1,
 			fmt.Sprintf("Invalid number of entries determines; found %d, expected %d", c, 1),
 		)
 
-		test.Assert(t,
+		require.True(t,
 			err == nil,
 			"Returned with error",
 		)
@@ -66,7 +66,7 @@ func TestGet(t *testing.T) {
 		err := fr.get(func(f []string) error {
 			return errors.New("called")
 		})
-		test.Assert(t,
+		require.True(t,
 			err != nil,
 			"Error should be returned to indicate that get did read",
 		)
@@ -74,7 +74,7 @@ func TestGet(t *testing.T) {
 		err = fr.get(func(f []string) error {
 			return errors.New("called")
 		})
-		test.Assert(t,
+		require.True(t,
 			err == nil,
 			"Error should NOT be returned to indicate that get didn't read",
 		)
@@ -87,7 +87,7 @@ func TestGet(t *testing.T) {
 		err := sd.get(func(f map[string]interface{}) error {
 			return errors.New("called")
 		})
-		test.Assert(t,
+		require.True(t,
 			err != nil,
 			"Error should be returned to indicate that get did read",
 		)
@@ -95,7 +95,7 @@ func TestGet(t *testing.T) {
 		err = sd.get(func(f map[string]interface{}) error {
 			return errors.New("called")
 		})
-		test.Assert(t,
+		require.True(t,
 			err == nil,
 			"Error should NOT be returned to indicate that get didn't read",
 		)
@@ -113,12 +113,12 @@ func TestWalk(t *testing.T) {
 			return nil
 		})
 
-		test.Assert(t,
+		require.True(t,
 			i == 2,
 			"Invalid number of reads",
 		)
 
-		test.Assert(t,
+		require.True(t,
 			err == nil,
 			"Returned with error",
 		)
@@ -134,12 +134,12 @@ func TestWalk(t *testing.T) {
 			return nil
 		})
 
-		test.Assert(t,
+		require.True(t,
 			i == 1,
 			"Invalid number of reads",
 		)
 
-		test.Assert(t,
+		require.True(t,
 			err == nil,
 			"Returned with error",
 		)
@@ -152,14 +152,14 @@ func TestHeader(t *testing.T) {
 		fr := NewFlatReader(csv.NewReader(rs), rs)
 
 		h := fr.Header()
-		test.Assert(t,
+		require.True(t,
 			len(h) == 3,
 			"Invalid number of header fields",
 		)
 
 		expect := [...]string{"f1", "f2", "ID"}
 		for i, h := range h {
-			test.Assert(t,
+			require.True(t,
 				h == expect[i],
 				"Invalid header value",
 			)
@@ -171,7 +171,7 @@ func TestHeader(t *testing.T) {
 		sd := NewStructuredDecoder(json.NewDecoder(rs), rs)
 
 		h := sd.Header()
-		test.Assert(t,
+		require.True(t,
 			len(h) == 3,
 			"Invalid number of header fields",
 		)

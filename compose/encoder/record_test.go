@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_RecordEncoding(t *testing.T) {
@@ -75,7 +75,7 @@ func Test_RecordEncoding(t *testing.T) {
 			}
 
 			csvWriter.Flush()
-			test.Assert(t,
+			require.True(t,
 				buf.String() == tt.flatResult,
 				"Unexpected result: \n%s\n%s",
 				buf.String(),
@@ -93,7 +93,7 @@ func Test_RecordEncoding(t *testing.T) {
 				}
 			}
 
-			test.Assert(t,
+			require.True(t,
 				buf.String() == tt.structResult,
 				"Unexpected result: \n%s\n%s",
 				buf.String(),
