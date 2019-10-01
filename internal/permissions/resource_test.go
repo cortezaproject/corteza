@@ -3,12 +3,12 @@ package permissions
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/stretchr/testify/require"
 )
 
 func TestResource(t *testing.T) {
 	var (
-		assert = test.Assert
+		req = require.New(t)
 
 		sCases = []struct {
 			r Resource
@@ -36,28 +36,28 @@ func TestResource(t *testing.T) {
 	)
 
 	for _, sc := range sCases {
-		assert(t, sc.r.String() == sc.s, "Resource check failed (%s != %s)", sc.r, sc.s)
+		req.Equal(sc.s, sc.r.String())
 	}
 
 	var r string
 	r = "a:"
-	assert(t, Resource(r).IsAppendable(), "Expecting resource %q to be appendable", r)
+	req.True(Resource(r).IsAppendable(), "Expecting resource %q to be appendable", r)
 	r = "a:1"
-	assert(t, Resource(r).IsAppendable(), "Expecting resource %q to be appendable", r)
+	req.True(Resource(r).IsAppendable(), "Expecting resource %q to be appendable", r)
 	r = "a:*"
-	assert(t, Resource(r).IsAppendable(), "Expecting resource %q to be appendable", r)
+	req.True(Resource(r).IsAppendable(), "Expecting resource %q to be appendable", r)
 
 	r = "a"
-	assert(t, Resource(r).IsValid(), "Expecting resource %q to be valid", r)
+	req.True(Resource(r).IsValid(), "Expecting resource %q to be valid", r)
 	r = "a:"
-	assert(t, !Resource(r).IsValid(), "Expecting resource %q not to be valid", r)
+	req.False(Resource(r).IsValid(), "Expecting resource %q not to be valid", r)
 	r = "a:1"
-	assert(t, Resource(r).IsValid(), "Expecting resource %q to be valid", r)
+	req.True(Resource(r).IsValid(), "Expecting resource %q to be valid", r)
 	r = "a:*"
-	assert(t, Resource(r).IsValid(), "Expecting resource %q to be valid", r)
+	req.True(Resource(r).IsValid(), "Expecting resource %q to be valid", r)
 
 	r = "a:1"
-	assert(t, !Resource(r).HasWildcard(), "Expecting resource %q to not have wildcard", r)
+	req.False(Resource(r).HasWildcard(), "Expecting resource %q to not have wildcard", r)
 	r = "a:*"
-	assert(t, Resource(r).HasWildcard(), "Expecting resource %q to have wildcard", r)
+	req.True(Resource(r).HasWildcard(), "Expecting resource %q to have wildcard", r)
 }

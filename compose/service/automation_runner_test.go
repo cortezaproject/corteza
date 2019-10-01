@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 
 	service_mocks "github.com/cortezaproject/corteza-server/compose/service/mocks"
-	"github.com/cortezaproject/corteza-server/internal/test"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 )
 
@@ -48,10 +48,10 @@ func Test_automationRunner_findImplicitScripts(t *testing.T) {
 
 	ss := runner.findRecordScripts("beforeCreate", 5555)
 
-	test.Assert(t, len(ss) == 2, "Received user scripts do not match")
+	require.True(t, len(ss) == 2, "Received user scripts do not match")
 
-	test.Assert(t, len(runnables) == 3, "Expected runnable scriptSet to be intact")
-	test.Assert(t, len(runnables.FindByID(1000).Triggers()) == 3, "Expected runnable scriptSet (triggers from first script) to be intact")
+	require.True(t, len(runnables) == 3, "Expected runnable scriptSet to be intact")
+	require.True(t, len(runnables.FindByID(1000).Triggers()) == 3, "Expected runnable scriptSet (triggers from first script) to be intact")
 }
 
 func Test_automationRunner_UserScripts(t *testing.T) {
@@ -99,10 +99,10 @@ func Test_automationRunner_UserScripts(t *testing.T) {
 
 	ss := runner.UserScripts(context.Background())
 
-	test.Assert(t, len(ss) == 2, "Received user scripts do not match")
-	test.Assert(t, len(ss.FindByID(1000).Triggers()) == 1, "Received user script triggers do not match")
-	test.Assert(t, len(ss.FindByID(2000).Triggers()) == 3, "Received user script triggers do not match")
+	require.True(t, len(ss) == 2, "Received user scripts do not match")
+	require.True(t, len(ss.FindByID(1000).Triggers()) == 1, "Received user script triggers do not match")
+	require.True(t, len(ss.FindByID(2000).Triggers()) == 3, "Received user script triggers do not match")
 
-	test.Assert(t, len(runnables) == 3, "Expected runnable scriptSet to be intact")
-	test.Assert(t, len(runnables.FindByID(1000).Triggers()) == 3, "Expected runnable scriptSet (triggers from first script) to be intact")
+	require.True(t, len(runnables) == 3, "Expected runnable scriptSet to be intact")
+	require.True(t, len(runnables.FindByID(1000).Triggers()) == 3, "Expected runnable scriptSet (triggers from first script) to be intact")
 }

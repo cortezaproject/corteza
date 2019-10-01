@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRecordFinder(t *testing.T) {
@@ -50,22 +50,22 @@ func TestRecordFinder(t *testing.T) {
 		sb, err := r.buildQuery(m, tc.f)
 
 		if tc.err != nil {
-			test.Assert(t, tc.err.Error() == fmt.Sprintf("%v", err), "buildQuery(%+v) did not return an expected error %q but %q", tc.f, tc.err, err)
+			require.True(t, tc.err.Error() == fmt.Sprintf("%v", err), "buildQuery(%+v) did not return an expected error %q but %q", tc.f, tc.err, err)
 		} else {
-			test.Assert(t, err == nil, "buildQuery(%+v) returned an unexpected error: %v", tc.f, err)
+			require.True(t, err == nil, "buildQuery(%+v) returned an unexpected error: %v", tc.f, err)
 		}
 
 		sb = sb.Column("*")
 		sql, args, err := sb.ToSql()
 
 		for _, m := range tc.match {
-			test.Assert(t, strings.Contains(sql, m),
+			require.True(t, strings.Contains(sql, m),
 				"assertion failed; query %q \n  "+
 					"             did not contain  %q", sql, m)
 		}
 
 		tc.args = append(tc.args, m.ID, m.NamespaceID)
-		test.Assert(t, fmt.Sprintf("%+v", args) == fmt.Sprintf("%+v", tc.args),
+		require.True(t, fmt.Sprintf("%+v", args) == fmt.Sprintf("%+v", tc.args),
 			"assertion failed; args %+v \n  "+
 				"     do not match expected %+v", args, tc.args)
 	}

@@ -3,8 +3,9 @@ package repository
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/internal/test"
 )
 
 func TestRecordReportBuilder2(t *testing.T) {
@@ -28,6 +29,6 @@ func TestRecordReportBuilder2(t *testing.T) {
 		"ORDER BY dimension_0"
 
 	sql, _, err := builder.Build("max(single1)", "QUARTER(ref1)", "ref1 = 2")
-	test.NoError(t, err, "report builder returned an error: %v")
-	test.Assert(t, expected == sql, "did not get expected sql for report, got: %s", sql)
+	require.NoError(t, err)
+	require.Equal(t, expected, sql)
 }

@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMapify(t *testing.T) {
@@ -19,12 +19,12 @@ func TestMapify(t *testing.T) {
 		var v []string
 		v = append(v, "v1")
 
-		test.Assert(t,
+		require.True(t,
 			mapify(h, v) == nil,
 			"Value should be nil",
 		)
 
-		test.Assert(t,
+		require.True(t,
 			mapify(v, h) == nil,
 			"Value should be nil",
 		)
@@ -38,12 +38,12 @@ func TestMapify(t *testing.T) {
 		v = append(v, "v1", "v2")
 
 		mpd := mapify(h, v)
-		test.Assert(t,
+		require.True(t,
 			len(mpd) == 2,
 			fmt.Sprintf("Invalid length %d; should be %d", len(mpd), 2),
 		)
 
-		test.Assert(t,
+		require.True(t,
 			mpd["h1"] == "v1" && mpd["h2"] == "v2",
 			"Invalid values",
 		)
@@ -56,17 +56,17 @@ func TestSetSystemField(t *testing.T) {
 		name := "recordID"
 		value := "123"
 		is, err := setSystemField(r, name, value)
-		test.Assert(t,
+		require.True(t,
 			err == nil,
 			"Returned with error",
 		)
 
-		test.Assert(t,
+		require.True(t,
 			is,
 			"Couldn't determine it's a system field",
 		)
 
-		test.Assert(t,
+		require.True(t,
 			r.ID == 123,
 			fmt.Sprintf("Determined value (%d) not valid; should be %s", r.ID, value),
 		)
@@ -77,12 +77,12 @@ func TestSetSystemField(t *testing.T) {
 		name := "customField"
 		value := "123"
 		is, err := setSystemField(r, name, value)
-		test.Assert(t,
+		require.True(t,
 			err == nil,
 			"Returned with error",
 		)
 
-		test.Assert(t,
+		require.True(t,
 			!is,
 			"Couldn't determine it's not a system field",
 		)
@@ -100,12 +100,12 @@ func TestRecords(t *testing.T) {
 		row := 0
 		fr.Records(testFields, func(mod *types.Record) error {
 			row++
-			test.Assert(t,
+			require.True(t,
 				len(mod.Values) == 2,
 				"Not enough values",
 			)
 
-			test.Assert(t,
+			require.True(t,
 				mod.ID == uint64(row),
 				"Not enough values",
 			)
@@ -119,12 +119,12 @@ func TestRecords(t *testing.T) {
 		row := 0
 		sd.Records(testFields, func(mod *types.Record) error {
 			row++
-			test.Assert(t,
+			require.True(t,
 				len(mod.Values) == 2,
 				"Not enough values",
 			)
 
-			test.Assert(t,
+			require.True(t,
 				mod.ID == uint64(row),
 				"Not enough values",
 			)

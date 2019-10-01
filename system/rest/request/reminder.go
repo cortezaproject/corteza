@@ -26,9 +26,8 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
 
-	"time"
-
 	sqlxTypes "github.com/jmoiron/sqlx/types"
+	"time"
 )
 
 var _ = chi.URLParam
