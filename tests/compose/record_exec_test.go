@@ -114,8 +114,8 @@ func TestRecordExec(t *testing.T) {
 
 	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
 		{"recordID", rr["a"]},
-		{"sortingField", "position"},
-		{"sortingValue", "5"}}).
+		{"positionField", "position"},
+		{"position", "5"}}).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
@@ -124,8 +124,8 @@ func TestRecordExec(t *testing.T) {
 
 	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
 		{"recordID", rr["i"]},
-		{"sortingField", "position"},
-		{"sortingValue", "0"}}).
+		{"positionField", "position"},
+		{"position", "0"}}).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
@@ -134,9 +134,9 @@ func TestRecordExec(t *testing.T) {
 
 	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
 		{"recordID", rr["b"]},
-		{"sortingFilter", "category = 'CAT1'"},
-		{"sortingField", "position"},
-		{"sortingValue", "5"}}).
+		{"filter", "category = 'CAT1'"},
+		{"positionField", "position"},
+		{"position", "5"}}).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
@@ -145,9 +145,9 @@ func TestRecordExec(t *testing.T) {
 
 	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
 		{"recordID", rr["b"]},
-		{"valueField", "category"},
-		{"value", "CAT2"},
-		{"sortingValue", "5"}}).
+		{"groupField", "category"},
+		{"group", "CAT2"},
+		{"position", "5"}}).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
