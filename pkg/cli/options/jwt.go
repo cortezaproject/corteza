@@ -3,7 +3,7 @@ package options
 import (
 	"time"
 
-	"github.com/cortezaproject/corteza-server/internal/rand"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
 )
 
 type (

@@ -3,7 +3,7 @@ package permissions
 import (
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -24,7 +24,7 @@ const (
 
 func TestRuleSet_check(t *testing.T) {
 	var (
-		assert = test.Assert
+		req = require.New(t)
 
 		rr = RuleSet{
 			AllowRule(role1, resThing42, opRead),
@@ -49,7 +49,7 @@ func TestRuleSet_check(t *testing.T) {
 
 	for c, sc := range sCases {
 		v := rr.check(sc.res, sc.op, sc.roles...)
-		assert(t, v == sc.expected, "Check test #%d failed, expected %s, got %s", c, sc.expected, v)
+		req.Equalf(sc.expected, v, "Check test #%d failed, expected %s, got %s", c, sc.expected, v)
 	}
 }
 
@@ -69,7 +69,7 @@ func TestRuleSet_checkResource(t *testing.T) {
 	)
 
 	var (
-		assert = test.Assert
+		r = require.New(t)
 
 		sCases = []struct {
 			rr       RuleSet
@@ -141,7 +141,7 @@ func TestRuleSet_checkResource(t *testing.T) {
 
 	for c, sc := range sCases {
 		v := sc.rr.checkResource(sc.res, sc.op, sc.roles...)
-		assert(t, v == sc.expected, "Check test #%d failed, expected %s, got %s", c, sc.expected, v)
+		r.Equalf(sc.expected, v, "Check test #%d failed, expected %s, got %s", c, sc.expected, v)
 	}
 }
 
@@ -161,7 +161,7 @@ func TestRuleSet_Check(t *testing.T) {
 			AllowRule(role1, resThing42, opAccess),
 		}
 
-		assert = test.Assert
+		r = require.New(t)
 
 		sCases = []struct {
 			roles    []uint64
@@ -182,6 +182,6 @@ func TestRuleSet_Check(t *testing.T) {
 
 	for c, sc := range sCases {
 		v := rr.Check(sc.res, sc.op, sc.roles...)
-		assert(t, v == sc.expected, "Check test #%d failed, expected %s, got %s", c, sc.expected, v)
+		r.Equalf(sc.expected, v, "Check test #%d failed, expected %s, got %s", c, sc.expected, v)
 	}
 }

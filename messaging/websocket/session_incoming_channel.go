@@ -3,11 +3,11 @@ package websocket
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/internal/auth"
-	"github.com/cortezaproject/corteza-server/internal/payload"
-	"github.com/cortezaproject/corteza-server/internal/payload/incoming"
-	"github.com/cortezaproject/corteza-server/internal/payload/outgoing"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/pkg/payload/incoming"
+	"github.com/cortezaproject/corteza-server/pkg/payload/outgoing"
 )
 
 func (s *Session) channelJoin(ctx context.Context, p *incoming.ChannelJoin) error {

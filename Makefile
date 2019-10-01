@@ -25,11 +25,11 @@ COVER_FLAGS   ?= -covermode=$(COVER_MODE)  -coverprofile=$(COVER_PROFILE)
 COVER_PKGS_messaging   = ./messaging/...
 COVER_PKGS_system      = ./system/...
 COVER_PKGS_compose     = ./compose/...
-COVER_PKGS_pkg         = ./pkg/...,./internal/...
+COVER_PKGS_pkg         = ./pkg/...
 COVER_PKGS_all         = $(COVER_PKGS_pkg),$(COVER_PKGS_messaging),$(COVER_PKGS_system),$(COVER_PKGS_compose)
 COVER_PKGS_integration = $(COVER_PKGS_all)
 
-TEST_SUITE_pkg         = ./pkg/... ./internal/...
+TEST_SUITE_pkg         = ./pkg/...
 TEST_SUITE_services    = ./compose/... ./messaging/... ./system/...
 TEST_SUITE_unit        = $(TEST_SUITE_pkg) $(TEST_SUITE_services)
 TEST_SUITE_integration = ./tests/...
@@ -129,13 +129,10 @@ test.all:
 test.unit:
 	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_unit)
 
-# Testing pkg & internal as one
-# (we have plans to merge internal into pkg)
+# Testing pkg
 test.pkg:
 	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_pkg)
 
-# Fallback untill we move internal to pkg (see test.pkg task)
-test.internal: test.pkg
 
 # Testing messaging, system, compose
 test.%:
@@ -149,7 +146,6 @@ test.cross-dep:
 	@ grep -rE "github.com/cortezaproject/corteza-server/(system|messaging)/" compose || exit 0
 	@ grep -rE "github.com/cortezaproject/corteza-server/(system|compose)/" messaging || exit 0
 	@ grep -rE "github.com/cortezaproject/corteza-server/(system|compose|messaging)/" pkg || exit 0
-	@ grep -rE "github.com/cortezaproject/corteza-server/(system|compose|messaging)/" internal || exit 0
 
 # Drone tasks
 # Run drone's integration pipeline
@@ -165,7 +161,7 @@ critic: $(GOCRITIC)
 	$(GOCRITIC) check-project .
 
 staticcheck: $(STATICCHECK)
-	$(STATICCHECK) ./pkg/... ./internal/... ./system/... ./messaging/... ./compose/...
+	$(STATICCHECK) ./pkg/... ./system/... ./messaging/... ./compose/...
 
 qa: vet critic test
 
@@ -181,7 +177,7 @@ mocks: $(GOMOCK)
 
 	$(MOCKGEN) -package service_mocks -source compose/service/automation_runner.go -destination compose/service/mocks/automation_runner.go
 
-	$(MOCKGEN) -package mail  -source internal/mail/mail.go                           -destination internal/mail/mail_mock_test.go
+	$(MOCKGEN) -package mail  -source pkg/mail/mail.go                           -destination pkg/mail/mail_mock_test.go
 
 
 

@@ -1,7 +1,7 @@
 package options
 
 import (
-	"github.com/cortezaproject/corteza-server/internal/rand"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
 )
 
 type (

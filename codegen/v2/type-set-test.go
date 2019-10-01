@@ -32,30 +32,37 @@ import (
 {{ range $i, $set := .Sets }}
 
 func Test{{ $set }}SetWalk(t *testing.T) {
-	value := make({{ $set }}Set, 3)
+	var (
+		value = make({{ $set }}Set, 3)
+		req   = require.New(t)
+	)
 
 	// check walk with no errors
 	{
 		err := value.Walk(func(*{{ $set }}) error {
 			return nil
 		})
-		test.NoError(t, err, "Expected no returned error from Walk, got %+v", err)
+		req.NoError(err)
 	}
 
 	// check walk with error
-	test.Error(t, value.Walk(func(*{{ $set }}) error { return errors.New("Walk error") }), "Expected error from walk, got nil")
+	req.Error(value.Walk(func(*{{ $set }}) error { return errors.New("walk error") }))
+
 }
 
 func Test{{ $set }}SetFilter(t *testing.T) {
-	value := make({{ $set }}Set, 3)
+	var (
+		value = make({{ $set }}Set, 3)
+		req   = require.New(t)
+	)
 
 	// filter nothing
 	{
 		set, err := value.Filter(func(*{{ $set }}) (bool, error) {
 			return true, nil
 		})
-		test.NoError(t, err, "Didn't expect error when filtering set: %+v", err)
-		test.Assert(t, len(set) == len(value), "Expected equal length filter: %d != %d", len(value), len(set))
+		req.NoError(err)
+		req.Equal(len(set), len(value))
 	}
 
 	// filter one item
@@ -68,22 +75,26 @@ func Test{{ $set }}SetFilter(t *testing.T) {
 			}
 			return false, nil
 		})
-		test.NoError(t, err, "Didn't expect error when filtering set: %+v", err)
-		test.Assert(t, len(set) == 1, "Expected single item, got %d", len(value))
+		req.NoError(err)
+		req.Len(set, 1)
 	}
 
 	// filter error
 	{
 		_, err := value.Filter(func(*{{ $set }}) (bool, error) {
-			return false, errors.New("Filter error")
+			return false, errors.New("filter error")
 		})
-		test.Error(t, err, "Expected error, got %#v", err)
+		req.Error(err)
 	}
 }
 
 {{ if $.WithPrimaryKey }}
 func Test{{ $set }}SetIDs(t *testing.T) {
-	value := make({{ $set }}Set, 3)
+	var (
+		value = make({{ $set }}Set, 3)
+		req   = require.New(t)
+	)
+
 	// construct objects
 	value[0] = new({{ $set }})
 	value[1] = new({{ $set }})
@@ -96,19 +107,19 @@ func Test{{ $set }}SetIDs(t *testing.T) {
 	// Find existing
 	{
 		val := value.FindByID(2)
-		test.Assert(t, val.ID == 2, "Expected ID 2, got %d", val.ID)
+		req.Equal(uint64(2), val.ID)
 	}
 
 	// Find non-existing
 	{
 		val := value.FindByID(4)
-		test.Assert(t, val == nil, "Expected no value, got %#v", val)
+		req.Nil(val)
 	}
 
 	// List IDs from set
 	{
 		val := value.IDs()
-		test.Assert(t, len(val) == len(value), "Expected ID count mismatch, %d != %d", len(val), len(value))
+		req.Equal(len(val), len(value))
 	}
 }
 {{ end }}
@@ -142,8 +153,7 @@ func main() {
 	payload.Imports = []string{
 		"testing",
 		"errors",
-		"",
-		"github.com/cortezaproject/corteza-server/internal/test",
+		"github.com/stretchr/testify/require",
 	}
 
 	flag.StringVar(&stdTypesStr, "types", "", "Comma separated list of types")

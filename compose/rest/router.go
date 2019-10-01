@@ -4,7 +4,7 @@ import (
 	"github.com/go-chi/chi"
 
 	"github.com/cortezaproject/corteza-server/compose/rest/handlers"
-	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 )
 
 func MountRoutes(r chi.Router) {

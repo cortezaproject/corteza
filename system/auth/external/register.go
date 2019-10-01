@@ -10,7 +10,7 @@ import (
 	"github.com/crusttech/go-oidc"
 	"go.uber.org/zap"
 
-	"github.com/cortezaproject/corteza-server/internal/settings"
+	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/service"
 )
 

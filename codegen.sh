@@ -90,14 +90,14 @@ function types {
 	./build/gen-type-set-test --types Credentials  --output system/types/credentials.gen_test.go
 	./build/gen-type-set-test --types Reminder     --output system/types/reminder.gen_test.go
 
-	./build/gen-type-set --types Value --output internal/settings/types.gen.go --with-primary-key=false --package settings
-	./build/gen-type-set-test --types Value --output internal/settings/types.gen_test.go --with-primary-key=false --package settings
+	./build/gen-type-set --types Value --output pkg/settings/types.gen.go --with-primary-key=false --package settings
+	./build/gen-type-set-test --types Value --output pkg/settings/types.gen_test.go --with-primary-key=false --package settings
 
-	./build/gen-type-set --types Rule      --output internal/permissions/rule.gen.go     --with-primary-key=false --package permissions
-	./build/gen-type-set --types Resource  --output internal/permissions/resource.gen.go --with-primary-key=false --package permissions
+	./build/gen-type-set --types Rule      --output pkg/permissions/rule.gen.go     --with-primary-key=false --package permissions
+	./build/gen-type-set --types Resource  --output pkg/permissions/resource.gen.go --with-primary-key=false --package permissions
 
-	./build/gen-type-set-test --types Rule      --output internal/permissions/rule.gen_test.go     --with-primary-key=false --package permissions
-	./build/gen-type-set-test --types Resource  --output internal/permissions/resource.gen_test.go --with-primary-key=false --package permissions
+	./build/gen-type-set-test --types Rule      --output pkg/permissions/rule.gen_test.go     --with-primary-key=false --package permissions
+	./build/gen-type-set-test --types Resource  --output pkg/permissions/resource.gen_test.go --with-primary-key=false --package permissions
 
 	./build/gen-type-set      --types Script   --output pkg/automation/script.gen.go       --package automation
 	./build/gen-type-set-test --types Script   --output pkg/automation/script.gen_test.go  --package automation

@@ -5,36 +5,43 @@ import (
 
 	"errors"
 
-	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/stretchr/testify/require"
 )
 
 // 	Hello! This file is auto-generated.
 
 func TestCommandParamSetWalk(t *testing.T) {
-	value := make(CommandParamSet, 3)
+	var (
+		value = make(CommandParamSet, 3)
+		req   = require.New(t)
+	)
 
 	// check walk with no errors
 	{
 		err := value.Walk(func(*CommandParam) error {
 			return nil
 		})
-		test.NoError(t, err, "Expected no returned error from Walk, got %+v", err)
+		req.NoError(err)
 	}
 
 	// check walk with error
-	test.Error(t, value.Walk(func(*CommandParam) error { return errors.New("Walk error") }), "Expected error from walk, got nil")
+	req.Error(value.Walk(func(*CommandParam) error { return errors.New("walk error") }))
+
 }
 
 func TestCommandParamSetFilter(t *testing.T) {
-	value := make(CommandParamSet, 3)
+	var (
+		value = make(CommandParamSet, 3)
+		req   = require.New(t)
+	)
 
 	// filter nothing
 	{
 		set, err := value.Filter(func(*CommandParam) (bool, error) {
 			return true, nil
 		})
-		test.NoError(t, err, "Didn't expect error when filtering set: %+v", err)
-		test.Assert(t, len(set) == len(value), "Expected equal length filter: %d != %d", len(value), len(set))
+		req.NoError(err)
+		req.Equal(len(set), len(value))
 	}
 
 	// filter one item
@@ -47,15 +54,15 @@ func TestCommandParamSetFilter(t *testing.T) {
 			}
 			return false, nil
 		})
-		test.NoError(t, err, "Didn't expect error when filtering set: %+v", err)
-		test.Assert(t, len(set) == 1, "Expected single item, got %d", len(value))
+		req.NoError(err)
+		req.Len(set, 1)
 	}
 
 	// filter error
 	{
 		_, err := value.Filter(func(*CommandParam) (bool, error) {
-			return false, errors.New("Filter error")
+			return false, errors.New("filter error")
 		})
-		test.Error(t, err, "Expected error, got %#v", err)
+		req.Error(err)
 	}
 }

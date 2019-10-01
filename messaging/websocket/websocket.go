@@ -8,7 +8,7 @@ import (
 	"github.com/titpetric/factory/resputil"
 	"go.uber.org/zap"
 
-	"github.com/cortezaproject/corteza-server/internal/auth"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 

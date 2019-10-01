@@ -7,10 +7,10 @@ import (
 
 	"github.com/titpetric/factory"
 
-	"github.com/cortezaproject/corteza-server/internal/payload"
-	"github.com/cortezaproject/corteza-server/internal/payload/outgoing"
 	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/pkg/payload/outgoing"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 )
 

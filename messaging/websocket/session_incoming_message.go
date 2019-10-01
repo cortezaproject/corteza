@@ -3,9 +3,9 @@ package websocket
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/internal/payload"
-	"github.com/cortezaproject/corteza-server/internal/payload/incoming"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/pkg/payload/incoming"
 )
 
 func (s *Session) messageCreate(ctx context.Context, p *incoming.MessageCreate) error {
