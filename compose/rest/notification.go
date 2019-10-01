@@ -5,7 +5,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
-	"github.com/cortezaproject/corteza-server/internal/mail"
+	"github.com/cortezaproject/corteza-server/pkg/mail"
 
 	"github.com/pkg/errors"
 	gomail "gopkg.in/mail.v2"
