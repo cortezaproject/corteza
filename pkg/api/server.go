@@ -17,8 +17,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/internal/auth"
-	"github.com/cortezaproject/corteza-server/internal/version"
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
+	"github.com/cortezaproject/corteza-server/pkg/version"
 )
 
 type (

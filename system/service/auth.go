@@ -14,8 +14,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/cortezaproject/corteza-server/internal/permissions"
-	"github.com/cortezaproject/corteza-server/internal/rand"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
