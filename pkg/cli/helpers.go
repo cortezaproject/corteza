@@ -5,10 +5,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/internal/http"
 	"github.com/cortezaproject/corteza-server/internal/mail"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
+	"github.com/cortezaproject/corteza-server/pkg/http"
 )
 
 func InitGeneralServices(smtpOpt *options.SMTPOpt, jwtOpt *options.JWTOpt, httpClientOpt *options.HttpClientOpt) {

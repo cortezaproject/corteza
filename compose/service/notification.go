@@ -12,8 +12,8 @@ import (
 	"go.uber.org/zap/zapcore"
 	gomail "gopkg.in/mail.v2"
 
-	httpClient "github.com/cortezaproject/corteza-server/internal/http"
 	"github.com/cortezaproject/corteza-server/internal/mail"
+	httpClient "github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
