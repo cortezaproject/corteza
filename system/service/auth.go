@@ -13,9 +13,9 @@ import (
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/cortezaproject/corteza-server/internal/permissions"
-	"github.com/cortezaproject/corteza-server/internal/rand"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -116,7 +116,7 @@ func (svc auth) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
 
 // External func performs login/signup procedures
 //
-// We fully trust external auth sources (see system/internal/auth/external) to provide a valid & validates
+// We fully trust external auth sources (see system/auth/external) to provide a valid & validates
 // profile (goth.User) that we use for user discovery and/or creation
 //
 // Flow

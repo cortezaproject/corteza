@@ -1,16 +1,15 @@
 package permissions
 
 import (
-	"reflect"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/stretchr/testify/require"
 )
 
 // Test role inheritance
 func TestRuleSet_merge(t *testing.T) {
 	var (
-		assert = test.Assert
+		req = require.New(t)
 
 		sCases = []struct {
 			old RuleSet
@@ -71,7 +70,7 @@ func TestRuleSet_merge(t *testing.T) {
 		}
 	)
 
-	for c, sc := range sCases {
+	for _, sc := range sCases {
 		// Apply changed and get update candidates
 		mrg := sc.old.merge(sc.new...)
 		del, upd := mrg.dirty()
@@ -80,9 +79,9 @@ func TestRuleSet_merge(t *testing.T) {
 		del.clear()
 		upd.clear()
 
-		assert(t, len(del) == len(sc.del), "Check test #%d failed, expected delete list length %d, got %d", c, len(sc.del), len(del))
-		assert(t, len(upd) == len(sc.upd), "Check test #%d failed, expected update list length %d, got %d", c, len(sc.upd), len(upd))
-		assert(t, reflect.DeepEqual(del, sc.del), "Check test #%d failed for delete list, reflect.DeepEqual == false", c)
-		assert(t, reflect.DeepEqual(upd, sc.upd), "Check test #%d failed for update list, reflect.DeepEqual == false", c)
+		req.Equal(len(sc.del), len(del))
+		req.Equal(len(sc.upd), len(upd))
+		req.Equal(sc.del, del)
+		req.Equal(sc.upd, upd)
 	}
 }

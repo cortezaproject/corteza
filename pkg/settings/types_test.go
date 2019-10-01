@@ -4,8 +4,7 @@ import (
 	"testing"
 
 	"github.com/jmoiron/sqlx/types"
-
-	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/stretchr/testify/require"
 )
 
 func TestKV_Bool(t *testing.T) {
@@ -53,27 +52,36 @@ func TestKV_Bool(t *testing.T) {
 }
 
 func TestSettingValueAsString(t *testing.T) {
-	test.NoError(t, (&Value{}).SetRawValue(`"string"`), "unable to set value as string")
-	test.NoError(t, (&Value{}).SetRawValue(`false`), "unable to set value as string")
-	test.NoError(t, (&Value{}).SetRawValue(`null`), "unable to set value as string")
-	test.NoError(t, (&Value{}).SetRawValue(`42`), "unable to set value as string")
-	test.NoError(t, (&Value{}).SetRawValue(`3.14`), "unable to set value as string")
-	test.Error(t, (&Value{}).SetRawValue(`error`), "expecting error when not setting JSON")
+	var req = require.New(t)
+
+	req.NoError((&Value{}).SetRawValue(`"string"`), "unable to set value as string")
+	req.NoError((&Value{}).SetRawValue(`false`), "unable to set value as string")
+	req.NoError((&Value{}).SetRawValue(`null`), "unable to set value as string")
+	req.NoError((&Value{}).SetRawValue(`42`), "unable to set value as string")
+	req.NoError((&Value{}).SetRawValue(`3.14`), "unable to set value as string")
+	req.Error((&Value{}).SetRawValue(`error`), "expecting error when not setting JSON")
 }
 
 func TestValueSet_Upsert(t *testing.T) {
-	var vv = ValueSet{}
+	var (
+		req = require.New(t)
+		vv  = ValueSet{}
+	)
 
-	test.Assert(t, len(vv) == 0, "expecting length to be 0")
+	req.Len(vv, 0)
+
 	vv.Replace(&Value{Name: "name"})
-	test.Assert(t, len(vv) == 1, "expecting length to be 1")
+	req.Len(vv, 1)
+
 	vv.Replace(&Value{Name: "name", Value: []byte("42")})
-	test.Assert(t, len(vv) == 1, "expecting length to be 1")
-	test.Assert(t, string(vv[0].Value) == "42", "expecting value to be 42")
+	req.Len(vv, 1)
+	req.Equal("42", string(vv[0].Value))
 }
 
 func TestValueSet_Changed(t *testing.T) {
 	var (
+		req = require.New(t)
+
 		// make string value
 		msv = func(n, v string) *Value {
 			o := &Value{Name: n}
@@ -89,9 +97,9 @@ func TestValueSet_Changed(t *testing.T) {
 
 	out = org.Changed(inp)
 
-	test.Assert(t, len(out) == 2, "expecting length to be 2, got %d", len(out))
-	test.Assert(t, out.First("a").String() == "a2", "expecting 'a' to have 'a2' value")
-	test.Assert(t, out.First("b").String() == "", "expecting 'b' to be missing")
-	test.Assert(t, out.First("c").String() == "c1", "expecting 'c' to have 'c1' value")
-	test.Assert(t, out.First("d").String() == "", "expecting 'd' to be missing")
+	req.Len(out, 2)
+	req.Equal("a2", out.First("a").String())
+	req.Equal("", out.First("b").String())
+	req.Equal("c1", out.First("c").String())
+	req.Equal("", out.First("d").String())
 }

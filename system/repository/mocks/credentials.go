@@ -38,7 +38,6 @@ func (m *MockCredentialsRepository) EXPECT() *MockCredentialsRepositoryMockRecor
 
 // With mocks base method
 func (m *MockCredentialsRepository) With(ctx context.Context, db *factory.DB) repository.CredentialsRepository {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "With", ctx, db)
 	ret0, _ := ret[0].(repository.CredentialsRepository)
 	return ret0
@@ -46,13 +45,11 @@ func (m *MockCredentialsRepository) With(ctx context.Context, db *factory.DB) re
 
 // With indicates an expected call of With
 func (mr *MockCredentialsRepositoryMockRecorder) With(ctx, db interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "With", reflect.TypeOf((*MockCredentialsRepository)(nil).With), ctx, db)
 }
 
 // FindByID mocks base method
 func (m *MockCredentialsRepository) FindByID(ID uint64) (*types.Credentials, error) {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByID", ID)
 	ret0, _ := ret[0].(*types.Credentials)
 	ret1, _ := ret[1].(error)
@@ -61,13 +58,11 @@ func (m *MockCredentialsRepository) FindByID(ID uint64) (*types.Credentials, err
 
 // FindByID indicates an expected call of FindByID
 func (mr *MockCredentialsRepositoryMockRecorder) FindByID(ID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockCredentialsRepository)(nil).FindByID), ID)
 }
 
 // FindByCredentials mocks base method
 func (m *MockCredentialsRepository) FindByCredentials(kind, credentials string) (types.CredentialsSet, error) {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByCredentials", kind, credentials)
 	ret0, _ := ret[0].(types.CredentialsSet)
 	ret1, _ := ret[1].(error)
@@ -76,13 +71,11 @@ func (m *MockCredentialsRepository) FindByCredentials(kind, credentials string) 
 
 // FindByCredentials indicates an expected call of FindByCredentials
 func (mr *MockCredentialsRepositoryMockRecorder) FindByCredentials(kind, credentials interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByCredentials", reflect.TypeOf((*MockCredentialsRepository)(nil).FindByCredentials), kind, credentials)
 }
 
 // FindByKind mocks base method
 func (m *MockCredentialsRepository) FindByKind(ownerID uint64, kind string) (types.CredentialsSet, error) {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByKind", ownerID, kind)
 	ret0, _ := ret[0].(types.CredentialsSet)
 	ret1, _ := ret[1].(error)
@@ -91,13 +84,11 @@ func (m *MockCredentialsRepository) FindByKind(ownerID uint64, kind string) (typ
 
 // FindByKind indicates an expected call of FindByKind
 func (mr *MockCredentialsRepositoryMockRecorder) FindByKind(ownerID, kind interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByKind", reflect.TypeOf((*MockCredentialsRepository)(nil).FindByKind), ownerID, kind)
 }
 
 // FindByOwnerID mocks base method
 func (m *MockCredentialsRepository) FindByOwnerID(ownerID uint64) (types.CredentialsSet, error) {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByOwnerID", ownerID)
 	ret0, _ := ret[0].(types.CredentialsSet)
 	ret1, _ := ret[1].(error)
@@ -106,13 +97,11 @@ func (m *MockCredentialsRepository) FindByOwnerID(ownerID uint64) (types.Credent
 
 // FindByOwnerID indicates an expected call of FindByOwnerID
 func (mr *MockCredentialsRepositoryMockRecorder) FindByOwnerID(ownerID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByOwnerID", reflect.TypeOf((*MockCredentialsRepository)(nil).FindByOwnerID), ownerID)
 }
 
 // Find mocks base method
 func (m *MockCredentialsRepository) Find() (types.CredentialsSet, error) {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Find")
 	ret0, _ := ret[0].(types.CredentialsSet)
 	ret1, _ := ret[1].(error)
@@ -121,13 +110,11 @@ func (m *MockCredentialsRepository) Find() (types.CredentialsSet, error) {
 
 // Find indicates an expected call of Find
 func (mr *MockCredentialsRepositoryMockRecorder) Find() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockCredentialsRepository)(nil).Find))
 }
 
 // Create mocks base method
 func (m *MockCredentialsRepository) Create(c *types.Credentials) (*types.Credentials, error) {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", c)
 	ret0, _ := ret[0].(*types.Credentials)
 	ret1, _ := ret[1].(error)
@@ -136,13 +123,11 @@ func (m *MockCredentialsRepository) Create(c *types.Credentials) (*types.Credent
 
 // Create indicates an expected call of Create
 func (mr *MockCredentialsRepositoryMockRecorder) Create(c interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockCredentialsRepository)(nil).Create), c)
 }
 
 // Update mocks base method
 func (m *MockCredentialsRepository) Update(c *types.Credentials) (*types.Credentials, error) {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", c)
 	ret0, _ := ret[0].(*types.Credentials)
 	ret1, _ := ret[1].(error)
@@ -151,13 +136,11 @@ func (m *MockCredentialsRepository) Update(c *types.Credentials) (*types.Credent
 
 // Update indicates an expected call of Update
 func (mr *MockCredentialsRepositoryMockRecorder) Update(c interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockCredentialsRepository)(nil).Update), c)
 }
 
 // DeleteByID mocks base method
 func (m *MockCredentialsRepository) DeleteByID(id uint64) error {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteByID", id)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -165,13 +148,11 @@ func (m *MockCredentialsRepository) DeleteByID(id uint64) error {
 
 // DeleteByID indicates an expected call of DeleteByID
 func (mr *MockCredentialsRepositoryMockRecorder) DeleteByID(id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockCredentialsRepository)(nil).DeleteByID), id)
 }
 
 // DeleteByKind mocks base method
 func (m *MockCredentialsRepository) DeleteByKind(ownerID uint64, kind string) error {
-	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteByKind", ownerID, kind)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -179,6 +160,5 @@ func (m *MockCredentialsRepository) DeleteByKind(ownerID uint64, kind string) er
 
 // DeleteByKind indicates an expected call of DeleteByKind
 func (mr *MockCredentialsRepositoryMockRecorder) DeleteByKind(ownerID, kind interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByKind", reflect.TypeOf((*MockCredentialsRepository)(nil).DeleteByKind), ownerID, kind)
 }

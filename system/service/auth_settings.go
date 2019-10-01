@@ -11,7 +11,7 @@ import (
 	"github.com/markbates/goth"
 	"github.com/pkg/errors"
 
-	intset "github.com/cortezaproject/corteza-server/internal/settings"
+	intset "github.com/cortezaproject/corteza-server/pkg/settings"
 )
 
 type (

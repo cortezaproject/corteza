@@ -7,10 +7,10 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/internal/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 

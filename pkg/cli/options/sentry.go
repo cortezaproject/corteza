@@ -1,7 +1,7 @@
 package options
 
 import (
-	"github.com/cortezaproject/corteza-server/internal/version"
+	"github.com/cortezaproject/corteza-server/pkg/version"
 )
 
 type (

@@ -5,8 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/titpetric/factory"
+
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"

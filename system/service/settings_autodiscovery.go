@@ -9,10 +9,10 @@ import (
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
 
-	"github.com/cortezaproject/corteza-server/internal/rand"
-	internalSettings "github.com/cortezaproject/corteza-server/internal/settings"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
+	internalSettings "github.com/cortezaproject/corteza-server/pkg/settings"
 )
 
 // Discovers "auth.%" settings from the environment

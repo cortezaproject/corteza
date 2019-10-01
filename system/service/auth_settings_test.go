@@ -6,7 +6,7 @@ import (
 
 	"github.com/jmoiron/sqlx/types"
 
-	intset "github.com/cortezaproject/corteza-server/internal/settings"
+	intset "github.com/cortezaproject/corteza-server/pkg/settings"
 )
 
 func Test_extractProviders(t *testing.T) {

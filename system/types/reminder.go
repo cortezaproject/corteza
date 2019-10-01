@@ -3,9 +3,10 @@ package types
 import (
 	"time"
 
-	"github.com/cortezaproject/corteza-server/internal/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/jmoiron/sqlx/types"
+
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (

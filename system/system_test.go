@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/internal/test"
+	"github.com/stretchr/testify/require"
 )
 
 func TestConfigure(t *testing.T) {
 	var config = Configure()
-	test.Assert(t, config != nil, "Configure valid")
-	test.Assert(t, func() bool { config.Init(); return true }(), "Initialization ok")
-	test.Assert(t, config.MakeCLI(context.Background()) != nil, "CLI created")
+	require.True(t, config != nil, "Configure valid")
+	require.True(t, func() bool { config.Init(); return true }(), "Initialization ok")
+	require.True(t, config.MakeCLI(context.Background()) != nil, "CLI created")
 }

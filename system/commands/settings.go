@@ -8,8 +8,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/cortezaproject/corteza-server/internal/settings"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/service"
 )
 

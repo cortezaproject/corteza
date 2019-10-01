@@ -3,11 +3,11 @@ package rest
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/internal/payload"
-	"github.com/cortezaproject/corteza-server/internal/payload/outgoing"
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/pkg/payload/outgoing"
 
 	"github.com/pkg/errors"
 )

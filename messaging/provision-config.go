@@ -6,10 +6,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/cortezaproject/corteza-server/internal/auth"
 	"github.com/cortezaproject/corteza-server/messaging/importer"
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	impAux "github.com/cortezaproject/corteza-server/pkg/importer"
 	provision "github.com/cortezaproject/corteza-server/provision/messaging"

@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/cortezaproject/corteza-server/internal/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 )
 
 const MessagingPermissionResource = permissions.Resource("messaging")
