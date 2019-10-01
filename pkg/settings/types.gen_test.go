@@ -1,9 +1,8 @@
 package settings
 
 import (
-	"testing"
-
 	"errors"
+	"testing"
 
 	"github.com/stretchr/testify/require"
 )
