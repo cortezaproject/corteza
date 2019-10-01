@@ -15,7 +15,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/internal/permissions"
-	"github.com/cortezaproject/corteza-server/internal/store"
 	"github.com/cortezaproject/corteza-server/messaging"
 	migrate "github.com/cortezaproject/corteza-server/messaging/db"
 	"github.com/cortezaproject/corteza-server/messaging/rest"
@@ -26,6 +25,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
+	"github.com/cortezaproject/corteza-server/pkg/store"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 )

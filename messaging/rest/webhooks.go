@@ -5,10 +5,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/cortezaproject/corteza-server/internal/store"
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/store"
 )
 
 var _ = errors.Wrap
