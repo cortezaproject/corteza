@@ -51,6 +51,14 @@ func (svc accessControl) CanGrant(ctx context.Context) bool {
 	return svc.can(ctx, types.MessagingPermissionResource, "grant")
 }
 
+func (svc accessControl) CanReadSettings(ctx context.Context) bool {
+	return svc.can(ctx, types.MessagingPermissionResource, "settings.read")
+}
+
+func (svc accessControl) CanManageSettings(ctx context.Context) bool {
+	return svc.can(ctx, types.MessagingPermissionResource, "settings.manage")
+}
+
 func (svc accessControl) CanCreatePublicChannel(ctx context.Context) bool {
 	return svc.can(ctx, types.MessagingPermissionResource, "channel.public.create", permissions.Allowed)
 }
