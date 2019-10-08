@@ -1184,3 +1184,76 @@ Compose records
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
 ---
+
+
+
+
+# Settings
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/settings/` | List settings |
+| `PATCH` | `/settings/` | Update settings |
+| `GET` | `/settings/{key}` | Get a value for a key |
+| `PUT` | `/settings/{key}` | Set a value for a key |
+
+## List settings
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/settings/` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| prefix | string | GET | Key prefix | N/A | NO |
+
+## Update settings
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/settings/` | HTTP/S | PATCH |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| values | sqlxTypes.JSONText | POST | Array of new settings: `[{ name: ..., value: ... }]`. Omit value to remove setting | N/A | YES |
+
+## Get a value for a key
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/settings/{key}` | HTTP/S | GET |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| ownerID | uint64 | GET | Owner ID | N/A | NO |
+| key | string | PATH | Setting key | N/A | YES |
+
+## Set a value for a key
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/settings/{key}` | HTTP/S | PUT |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| key | string | PATH | Setting key | N/A | YES |
+| ownerID | uint64 | POST | Owner | N/A | NO |
+| value | sqlxTypes.JSONText | POST | Setting value | N/A | YES |
+
+---

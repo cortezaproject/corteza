@@ -49,6 +49,14 @@ func (svc accessControl) CanGrant(ctx context.Context) bool {
 	return svc.can(ctx, types.ComposePermissionResource, "grant")
 }
 
+func (svc accessControl) CanReadSettings(ctx context.Context) bool {
+	return svc.can(ctx, types.ComposePermissionResource, "settings.read")
+}
+
+func (svc accessControl) CanManageSettings(ctx context.Context) bool {
+	return svc.can(ctx, types.ComposePermissionResource, "settings.manage")
+}
+
 func (svc accessControl) CanCreateNamespace(ctx context.Context) bool {
 	return svc.can(ctx, types.ComposePermissionResource, "namespace.create")
 }
