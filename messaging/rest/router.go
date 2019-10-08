@@ -27,5 +27,6 @@ func MountRoutes(r chi.Router) {
 		handlers.NewCommands(Commands{}.New()).MountRoutes(r)
 		handlers.NewWebhooks(Webhooks{}.New()).MountRoutes(r)
 		handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
+		handlers.NewSettings(Settings{}.New()).MountRoutes(r)
 	})
 }
