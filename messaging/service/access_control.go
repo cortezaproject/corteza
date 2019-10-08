@@ -36,6 +36,8 @@ func (svc accessControl) Effective(ctx context.Context) (ee permissions.Effectiv
 
 	ee.Push(types.MessagingPermissionResource, "access", svc.CanAccess(ctx))
 	ee.Push(types.MessagingPermissionResource, "grant", svc.CanGrant(ctx))
+	ee.Push(types.MessagingPermissionResource, "settings.read", svc.CanReadSettings(ctx))
+	ee.Push(types.MessagingPermissionResource, "settings.manage", svc.CanManageSettings(ctx))
 	ee.Push(types.MessagingPermissionResource, "channel.public.create", svc.CanCreatePublicChannel(ctx))
 	ee.Push(types.MessagingPermissionResource, "channel.private.create", svc.CanCreatePrivateChannel(ctx))
 	ee.Push(types.MessagingPermissionResource, "channel.group.create", svc.CanCreateGroupChannel(ctx))
@@ -245,6 +247,8 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		types.MessagingPermissionResource,
 		"access",
 		"grant",
+		"settings.read",
+		"settings.manage",
 		"channel.public.create",
 		"channel.private.create",
 		"channel.group.create",
