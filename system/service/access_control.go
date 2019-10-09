@@ -129,6 +129,14 @@ func (svc accessControl) CanDeleteUser(ctx context.Context, u *types.User) bool 
 	return svc.can(ctx, u, "delete")
 }
 
+func (svc accessControl) CanUnmaskEmail(ctx context.Context, u *types.User) bool {
+	return svc.can(ctx, u, "unmask.email")
+}
+
+func (svc accessControl) CanUnmaskName(ctx context.Context, u *types.User) bool {
+	return svc.can(ctx, u, "unmask.name")
+}
+
 func (svc accessControl) CanReadAnyAutomationScript(ctx context.Context) bool {
 	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendWildcard(), "read")
 }

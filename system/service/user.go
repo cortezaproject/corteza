@@ -21,6 +21,9 @@ const (
 	ErrUserUsernameNotUnique  = serviceError("UserUsernameNotUnique")
 	ErrUserEmailNotUnique     = serviceError("UserEmailNotUnique")
 	ErrUserLocked             = serviceError("UserLocked")
+
+	maskPrivateDataEmail = "####.#######@######.###"
+	maskPrivateDataName  = "##### ##########"
 )
 
 type (
@@ -36,6 +39,11 @@ type (
 		ac          userAccessController
 		user        repository.UserRepository
 		credentials repository.CredentialsRepository
+
+		// @todo wire this with settings (privacy.mask.email)
+		privacyMaskEmail bool
+		// @todo wire this with settings (privacy.mask.name)
+		privacyMaskName bool
 	}
 
 	userAuth interface {
@@ -50,6 +58,8 @@ type (
 		CanDeleteUser(context.Context, *types.User) bool
 		CanSuspendUser(context.Context, *types.User) bool
 		CanUnsuspendUser(context.Context, *types.User) bool
+		CanUnmaskEmail(context.Context, *types.User) bool
+		CanUnmaskName(context.Context, *types.User) bool
 	}
 
 	UserService interface {
@@ -101,6 +111,12 @@ func (svc user) With(ctx context.Context) UserService {
 
 		user:        repository.User(ctx, db),
 		credentials: repository.Credentials(ctx, db),
+
+		// @todo wire this with settings (privacy.mask.email)
+		privacyMaskEmail: true,
+
+		// @todo wire this with settings (privacy.mask.name)
+		privacyMaskName: true,
 	}
 }
 
@@ -129,11 +145,15 @@ func (svc user) proc(u *types.User, err error) (*types.User, error) {
 		return nil, err
 	}
 
+	svc.handlePrivateData(u)
+
 	return u, nil
 }
 
 func (svc user) FindByIDs(userIDs ...uint64) (types.UserSet, error) {
-	return svc.procSet(svc.user.FindByIDs(userIDs...))
+	uu, err := svc.user.FindByIDs(userIDs...)
+	uu, _, err = svc.procSet(uu, types.UserFilter{}, err)
+	return uu, err
 }
 
 func (svc user) Find(f types.UserFilter) (types.UserSet, types.UserFilter, error) {
@@ -143,15 +163,20 @@ func (svc user) Find(f types.UserFilter) (types.UserSet, types.UserFilter, error
 		}
 	}
 
-	return svc.user.Find(f)
+	return svc.procSet(svc.user.Find(f))
 }
 
-func (svc user) procSet(u types.UserSet, err error) (types.UserSet, error) {
+func (svc user) procSet(u types.UserSet, f types.UserFilter, err error) (types.UserSet, types.UserFilter, error) {
 	if err != nil {
-		return nil, err
+		return nil, f, err
 	}
 
-	return u, nil
+	_ = u.Walk(func(u *types.User) error {
+		svc.handlePrivateData(u)
+		return nil
+	})
+
+	return u, f, nil
 }
 
 func (svc user) Create(input *types.User) (out *types.User, err error) {
@@ -322,4 +347,15 @@ func (svc user) SetPassword(userID uint64, newPassword string) (err error) {
 
 		return nil
 	})
+}
+
+// Masks (or leaves as-is) private data on user
+func (svc user) handlePrivateData(u *types.User) {
+	if svc.privacyMaskEmail && !svc.ac.CanUnmaskEmail(svc.ctx, u) {
+		u.Email = maskPrivateDataEmail
+	}
+
+	if svc.privacyMaskName && !svc.ac.CanUnmaskEmail(svc.ctx, u) {
+		u.Name = maskPrivateDataName
+	}
 }
