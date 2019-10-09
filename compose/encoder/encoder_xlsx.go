@@ -3,7 +3,7 @@ package encoder
 import (
 	"io"
 
-	"github.com/360EntSecGroup-Skylar/excelize"
+	"github.com/360EntSecGroup-Skylar/excelize/v2"
 )
 
 type (
