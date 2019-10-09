@@ -147,13 +147,6 @@ test.cross-dep:
 	@ grep -rE "github.com/cortezaproject/corteza-server/(system|compose)/" messaging || exit 0
 	@ grep -rE "github.com/cortezaproject/corteza-server/(system|compose|messaging)/" pkg || exit 0
 
-# Drone tasks
-# Run drone's integration pipeline
-drone.integration:
-	rm -f build/gen*
-	drone exec --pipeline integration
-
-
 vet:
 	$(GO) vet ./...
 
