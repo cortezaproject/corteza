@@ -1,7 +1,7 @@
 ## builder image
 FROM cortezaproject/corteza-server-builder:latest AS builder
 
-WORKDIR /go/src/github.com/cortezaproject/corteza-server
+WORKDIR /corteza/src
 
 COPY . .
 
