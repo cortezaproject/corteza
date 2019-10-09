@@ -1,4 +1,4 @@
-.PHONY: help docker docker-push realize dep dep.update qa critic vet codegen integration
+.PHONY: help docker docker-push realize qa critic vet codegen integration
 
 GO        = go
 GOGET     = $(GO) get -u
@@ -38,7 +38,6 @@ TEST_SUITE_all         = $(TEST_SUITE_unit) $(TEST_SUITE_integration)
 
 ########################################################################################################################
 # Tool bins
-DEP         = $(GOPATH)/bin/dep
 REALIZE     = ${GOPATH}/bin/realize
 GOCRITIC    = ${GOPATH}/bin/gocritic
 MOCKGEN     = ${GOPATH}/bin/mockgen
@@ -84,12 +83,6 @@ docker-push.%: Dockerfile.%
 realize: $(REALIZE)
 	$(REALIZE) start
 
-dep.update: $(DEP)
-	$(DEP) ensure -update -v
-
-dep: $(DEP)
-	$(DEP) ensure -v
-
 codegen: $(PROTOGEN)
 	./codegen.sh
 
@@ -125,6 +118,10 @@ test.integration.%:
 test.all:
 	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_all)
 
+# Unit testing testing messaging, system or compose
+test.unit.%:
+	$(GOTEST) $(TEST_FLAGS) ./$*/...
+
 # Runs ALL tests
 test.unit:
 	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_unit)
@@ -132,11 +129,6 @@ test.unit:
 # Testing pkg
 test.pkg:
 	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_pkg)
-
-
-# Testing messaging, system, compose
-test.%:
-	$(GOTEST) $(TEST_FLAGS) ./$*/...
 
 test: test.unit
 
@@ -182,9 +174,6 @@ $(REALIZE):
 
 $(GOCRITIC):
 	$(GOGET) github.com/go-critic/go-critic/...
-
-$(DEP):
-	$(GOGET) github.com/tools/godep
 
 $(MOCKGEN):
 	$(GOGET) github.com/golang/mock/gomock
