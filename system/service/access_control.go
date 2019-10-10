@@ -113,6 +113,18 @@ func (svc accessControl) CanDeleteApplication(ctx context.Context, app *types.Ap
 	return svc.can(ctx, app, "delete")
 }
 
+func (svc accessControl) CanReadAnyUser(ctx context.Context) bool {
+	return svc.can(ctx, types.UserPermissionResource.AppendWildcard(), "read")
+}
+
+func (svc accessControl) CanUnmaskEmailOnAnyUser(ctx context.Context) bool {
+	return svc.can(ctx, types.UserPermissionResource.AppendWildcard(), "unmask.email")
+}
+
+func (svc accessControl) CanUnmaskNameOnAnyUser(ctx context.Context) bool {
+	return svc.can(ctx, types.UserPermissionResource.AppendWildcard(), "unmask.name")
+}
+
 func (svc accessControl) CanUpdateUser(ctx context.Context, u *types.User) bool {
 	return svc.can(ctx, u, "update")
 }
@@ -127,6 +139,14 @@ func (svc accessControl) CanUnsuspendUser(ctx context.Context, u *types.User) bo
 
 func (svc accessControl) CanDeleteUser(ctx context.Context, u *types.User) bool {
 	return svc.can(ctx, u, "delete")
+}
+
+func (svc accessControl) CanUnmaskEmail(ctx context.Context, u *types.User) bool {
+	return svc.can(ctx, u, "unmask.email")
+}
+
+func (svc accessControl) CanUnmaskName(ctx context.Context, u *types.User) bool {
+	return svc.can(ctx, u, "unmask.name")
 }
 
 func (svc accessControl) CanReadAnyAutomationScript(ctx context.Context) bool {
