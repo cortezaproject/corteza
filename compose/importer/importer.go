@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/settings"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -25,6 +26,7 @@ type (
 		automationFinder automationFinder
 
 		permissions importer.PermissionImporter
+		settings    importer.SettingImporter
 	}
 
 	moduleKeeper interface {
@@ -53,7 +55,7 @@ type (
 	}
 )
 
-func NewImporter(nsf namespaceFinder, mf moduleFinder, cf chartFinder, pf pageFinder, af automationFinder, p importer.PermissionImporter) *Importer {
+func NewImporter(nsf namespaceFinder, mf moduleFinder, cf chartFinder, pf pageFinder, af automationFinder, p importer.PermissionImporter, s importer.SettingImporter) *Importer {
 	imp := &Importer{
 		namespaceFinder:  nsf,
 		moduleFinder:     mf,
@@ -62,6 +64,7 @@ func NewImporter(nsf namespaceFinder, mf moduleFinder, cf chartFinder, pf pageFi
 		automationFinder: af,
 
 		permissions: p,
+		settings:    s,
 	}
 
 	imp.namespaces = NewNamespaceImporter(imp)
@@ -110,6 +113,9 @@ func (imp *Importer) Cast(def interface{}) (err error) {
 		case "namespace":
 			return imp.namespaces.CastSet([]interface{}{val})
 
+		case "settings":
+			return imp.settings.CastSet(val)
+
 		case "allow", "deny":
 			return imp.permissions.CastResourcesSet(key, val)
 
@@ -130,6 +136,7 @@ func (imp *Importer) Store(
 	rStore recordKeeper,
 	asStore automationScriptKeeper,
 	pk permissions.ImportKeeper,
+	sk settings.ImportKeeper,
 	roles sysTypes.RoleSet,
 ) (err error) {
 	err = imp.namespaces.Store(ctx, nsStore, mStore, cStore, pStore, rStore, asStore)
@@ -146,6 +153,11 @@ func (imp *Importer) Store(
 	err = imp.permissions.Store(ctx, pk)
 	if err != nil {
 		return errors.Wrap(err, "could not import permissions")
+	}
+
+	err = imp.settings.Store(ctx, sk)
+	if err != nil {
+		return errors.Wrap(err, "could not import settings")
 	}
 
 	return nil

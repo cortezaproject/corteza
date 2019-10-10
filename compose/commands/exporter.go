@@ -22,6 +22,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/settings"
+	intSettings "github.com/cortezaproject/corteza-server/pkg/settings"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -39,97 +41,135 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 
 			var (
 				nsFlag = cmd.Flags().Lookup("namespace").Value.String()
-				ns     *types.Namespace
-				err    error
+				sFlag  = cmd.Flags().Lookup("settings").Changed
+				pFlag  = cmd.Flags().Lookup("permissions").Changed
 
-				out = Compose{
+				out = &Compose{
 					Namespaces: map[string]Namespace{},
+					Settings:   yaml.MapSlice{},
 				}
-				nsOut = Namespace{}
 			)
-
-			if nsFlag == "" {
-				cli.HandleError(errors.New("Specify namespace to export from"))
+			if nsFlag == "" && !sFlag && !pFlag {
+				cli.HandleError(errors.New("Specify namespace or setting or permissions flag"))
 			}
 
-			if namespaceID, _ := strconv.ParseUint(nsFlag, 10, 64); namespaceID > 0 {
-				ns, err = service.DefaultNamespace.FindByID(namespaceID)
-				if err != repository.ErrNamespaceNotFound {
-					cli.HandleError(err)
-				}
-			} else if ns, err = service.DefaultNamespace.FindByHandle(nsFlag); err != nil {
-				if err != repository.ErrNamespaceNotFound {
-					cli.HandleError(err)
-				}
+			if nsFlag != "" {
+				nsExporter(ctx, out, nsFlag, args)
 			}
 
-			// roles, err = service.DefaultSystemRole.Find(ctx)
-			// cli.HandleError(err)
-			// At the moment, we can not load roles from system service
-			// so we'll just use static set of known roles
-			//
-			// Roles are use for resolving access control
-			roles = sysTypes.RoleSet{
-				&sysTypes.Role{ID: permissions.EveryoneRoleID, Handle: "everyone"},
-				&sysTypes.Role{ID: permissions.AdminsRoleID, Handle: "admins"},
+			if sFlag {
+				settingExporter(ctx, out)
 			}
 
-			modules, _, err := service.DefaultModule.Find(types.ModuleFilter{NamespaceID: ns.ID})
-			cli.HandleError(err)
-
-			pages, _, err := service.DefaultPage.Find(types.PageFilter{NamespaceID: ns.ID})
-			cli.HandleError(err)
-
-			charts, _, err := service.DefaultChart.Find(types.ChartFilter{NamespaceID: ns.ID})
-			cli.HandleError(err)
-
-			scripts, _, err := service.DefaultInternalAutomationManager.FindScripts(ctx, automation.ScriptFilter{})
-			cli.HandleError(err)
-
-			triggers, _, err := service.DefaultInternalAutomationManager.FindTriggers(ctx, automation.TriggerFilter{})
-			cli.HandleError(err)
-
-			scripts, _ = scripts.Filter(func(script *automation.Script) (b bool, e error) {
-				return script.NamespaceID == ns.ID, nil
-			})
+			if pFlag {
+				permissionExporter(ctx, out)
+			}
 
 			y := yaml.NewEncoder(cmd.OutOrStdout())
-
-			// nsOut.Name = ns.Name
-			// nsOut.Handle = ns.Slug
-			// nsOut.Enabled = ns.Enabled
-			// nsOut.Meta = ns.Meta
-			//
-			// nsOut.Allow = expResourcePermissions(permissions.Allow, ns.PermissionResource())
-			// nsOut.Deny = expResourcePermissions(permissions.Deny, ns.PermissionResource())
-
-			for _, arg := range args {
-				switch arg {
-				case "module", "modules":
-					nsOut.Modules = expModules(modules)
-				case "chart", "charts":
-					nsOut.Charts = expCharts(charts, modules)
-				case "page", "pages":
-					nsOut.Pages = expPages(0, pages, modules, charts, scripts)
-				case "scripts", "triggers", "automation":
-					nsOut.Scripts = expAutomation(scripts, triggers, modules)
-				case "allow", "deny", "permission", "permissions":
-					out.Allow = expServicePermissions(permissions.Allow)
-					out.Deny = expServicePermissions(permissions.Deny)
-				}
-			}
-
-			// out.Namespaces[ns.Slug] = nsOut
-			nsOut.Namespace = ns.Slug
-
-			_, _ = y, out
-			cli.HandleError(y.Encode(nsOut))
+			cli.HandleError(y.Encode(out))
 		},
 	}
 
 	cmd.Flags().String("namespace", "", "Export namespace resources (by ID or string)")
+	cmd.Flags().BoolP("settings", "s", false, "Export settings")
+	cmd.Flags().BoolP("permissions", "p", false, "Export permissions")
 
 	return cmd
+}
+
+func nsExporter(ctx context.Context, out *Compose, nsFlag string, args []string) {
+	var (
+		ns  *types.Namespace
+		err error
+
+		nsOut = Namespace{}
+	)
+
+	if namespaceID, _ := strconv.ParseUint(nsFlag, 10, 64); namespaceID > 0 {
+		ns, err = service.DefaultNamespace.FindByID(namespaceID)
+		if err != repository.ErrNamespaceNotFound {
+			cli.HandleError(err)
+		}
+	} else if ns, err = service.DefaultNamespace.FindByHandle(nsFlag); err != nil {
+		if err != repository.ErrNamespaceNotFound {
+			cli.HandleError(err)
+		}
+	}
+
+	// roles, err = service.DefaultSystemRole.Find(ctx)
+	// cli.HandleError(err)
+	// At the moment, we can not load roles from system service
+	// so we'll just use static set of known roles
+	//
+	// Roles are use for resolving access control
+	roles = sysTypes.RoleSet{
+		&sysTypes.Role{ID: permissions.EveryoneRoleID, Handle: "everyone"},
+		&sysTypes.Role{ID: permissions.AdminsRoleID, Handle: "admins"},
+	}
+
+	modules, _, err := service.DefaultModule.Find(types.ModuleFilter{NamespaceID: ns.ID})
+	cli.HandleError(err)
+
+	pages, _, err := service.DefaultPage.Find(types.PageFilter{NamespaceID: ns.ID})
+	cli.HandleError(err)
+
+	charts, _, err := service.DefaultChart.Find(types.ChartFilter{NamespaceID: ns.ID})
+	cli.HandleError(err)
+
+	scripts, _, err := service.DefaultInternalAutomationManager.FindScripts(ctx, automation.ScriptFilter{})
+	cli.HandleError(err)
+
+	triggers, _, err := service.DefaultInternalAutomationManager.FindTriggers(ctx, automation.TriggerFilter{})
+	cli.HandleError(err)
+
+	scripts, _ = scripts.Filter(func(script *automation.Script) (b bool, e error) {
+		return script.NamespaceID == ns.ID, nil
+	})
+
+	// nsOut.Name = ns.Name
+	// nsOut.Handle = ns.Slug
+	// nsOut.Enabled = ns.Enabled
+	// nsOut.Meta = ns.Meta
+	//
+	// nsOut.Allow = expResourcePermissions(permissions.Allow, ns.PermissionResource())
+	// nsOut.Deny = expResourcePermissions(permissions.Deny, ns.PermissionResource())
+
+	for _, arg := range args {
+		switch arg {
+		case "module", "modules":
+			nsOut.Modules = expModules(modules)
+		case "chart", "charts":
+			nsOut.Charts = expCharts(charts, modules)
+		case "page", "pages":
+			nsOut.Pages = expPages(0, pages, modules, charts, scripts)
+		case "scripts", "triggers", "automation":
+			nsOut.Scripts = expAutomation(scripts, triggers, modules)
+		}
+	}
+
+	nsOut.Namespace = ns.Slug
+	out.Namespaces[ns.Slug] = nsOut
+}
+
+func settingExporter(ctx context.Context, out *Compose) {
+	var (
+		err error
+	)
+
+	ss, err := service.DefaultSettings.FindByPrefix("")
+	cli.HandleError(err)
+
+	out.Settings = settings.Export(ss)
+}
+
+func permissionExporter(ctx context.Context, out *Compose) {
+	roles := sysTypes.RoleSet{
+		&sysTypes.Role{ID: permissions.EveryoneRoleID, Handle: "everyone"},
+		&sysTypes.Role{ID: permissions.AdminsRoleID, Handle: "admins"},
+	}
+
+	out.Allow = expServicePermissions(permissions.Allow)
+	out.Deny = expServicePermissions(permissions.Deny)
 }
 
 // This is PoC for exporting compose resources
@@ -137,7 +177,8 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 
 type (
 	Compose struct {
-		Namespaces map[string]Namespace
+		Namespaces map[string]Namespace `yaml:",omitempty"`
+		Settings   yaml.MapSlice        `yaml:",omitempty"`
 
 		Allow map[string]map[string][]string `yaml:",omitempty"`
 		Deny  map[string]map[string][]string `yaml:",omitempty"`
@@ -241,6 +282,19 @@ var (
 	// non-autogenerated handles should not have this problem
 	pagesHandles = make(map[string]bool)
 )
+
+func expSettings(ss intSettings.ValueSet) (o yaml.MapSlice) {
+	o = yaml.MapSlice{}
+	for _, s := range ss {
+		setting := yaml.MapItem{
+			Key:   s.Name,
+			Value: s.Value.String(),
+		}
+		o = append(o, setting)
+	}
+
+	return o
+}
 
 func expModules(mm types.ModuleSet) (o map[string]Module) {
 	o = map[string]Module{}
