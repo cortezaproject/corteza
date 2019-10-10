@@ -698,6 +698,18 @@
         "parameters": {
           "get": [
             {
+              "name": "userID",
+              "type": "[]string",
+              "required": false,
+              "title": "Filter by user ID"
+            },
+            {
+              "name": "roleID",
+              "type": "[]string",
+              "required": false,
+              "title": "Filter by role membership"
+            },
+            {
               "type": "string",
               "name": "query",
               "required": false,

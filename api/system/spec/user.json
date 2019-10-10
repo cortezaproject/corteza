@@ -24,6 +24,18 @@
       "Parameters": {
         "get": [
           {
+            "name": "userID",
+            "required": false,
+            "title": "Filter by user ID",
+            "type": "[]string"
+          },
+          {
+            "name": "roleID",
+            "required": false,
+            "title": "Filter by role membership",
+            "type": "[]string"
+          },
+          {
             "name": "query",
             "required": false,
             "title": "Search query to match against users",

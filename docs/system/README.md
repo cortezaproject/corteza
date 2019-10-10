@@ -1106,6 +1106,8 @@ An organisation may have many roles. Roles may have many channels available. Acc
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+| userID | []string | GET | Filter by user ID | N/A | NO |
+| roleID | []string | GET | Filter by role membership | N/A | NO |
 | query | string | GET | Search query to match against users | N/A | NO |
 | username | string | GET | Search username to match against users | N/A | NO |
 | email | string | GET | Search email to match against users | N/A | NO |
