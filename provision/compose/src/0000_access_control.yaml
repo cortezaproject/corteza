@@ -17,6 +17,7 @@ allow:
       - page.create
       - module.create
       - chart.create
+      - automation-script.create
 
     compose:module:
       - read
