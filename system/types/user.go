@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -51,10 +52,19 @@ type (
 		IncDeleted   bool     `json:"incDeleted"`
 		IncSuspended bool     `json:"incSuspended"`
 
-		Page    uint   `json:"page"`
-		PerPage uint   `json:"perPage"`
-		Sort    string `json:"sort"`
-		Count   uint   `json:"count"`
+		Sort string `json:"sort"`
+
+		// Can we use email for searching or is it supposed to be masked for the current user?
+		AccessCheckEmail permissions.AccessCheck `json:"-"`
+
+		// Can we use name for searching or is it supposed to be masked for the current user?
+		AccessCheckName permissions.AccessCheck `json:"-"`
+
+		// Access check for user
+		permissions.AccessCheck `json:"-"`
+
+		// Standard paging fields & helpers
+		rh.PageFilter
 	}
 
 	UserKind string

@@ -43,6 +43,10 @@ func (ac AccessCheck) HasOperation() bool {
 	return ac.operation != ""
 }
 
+func (ac AccessCheck) HasResource() bool {
+	return ac.resource != ""
+}
+
 // ToSql converts access check to SQL (with args) that will help with filtering
 //
 // Satisfies squirrel.Sqlizer interface

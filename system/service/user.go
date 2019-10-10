@@ -11,6 +11,7 @@ import (
 
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -21,6 +22,9 @@ const (
 	ErrUserUsernameNotUnique  = serviceError("UserUsernameNotUnique")
 	ErrUserEmailNotUnique     = serviceError("UserEmailNotUnique")
 	ErrUserLocked             = serviceError("UserLocked")
+
+	maskPrivateDataEmail = "####.#######@######.###"
+	maskPrivateDataName  = "##### ##########"
 )
 
 type (
@@ -36,6 +40,11 @@ type (
 		ac          userAccessController
 		user        repository.UserRepository
 		credentials repository.CredentialsRepository
+
+		// @todo wire this with settings (privacy.mask.email)
+		privacyMaskEmail bool
+		// @todo wire this with settings (privacy.mask.name)
+		privacyMaskName bool
 	}
 
 	userAuth interface {
@@ -45,11 +54,16 @@ type (
 
 	userAccessController interface {
 		CanAccess(context.Context) bool
+		CanReadAnyUser(context.Context) bool
+		CanUnmaskEmailOnAnyUser(context.Context) bool
+		CanUnmaskNameOnAnyUser(context.Context) bool
 		CanCreateUser(context.Context) bool
 		CanUpdateUser(context.Context, *types.User) bool
 		CanDeleteUser(context.Context, *types.User) bool
 		CanSuspendUser(context.Context, *types.User) bool
 		CanUnsuspendUser(context.Context, *types.User) bool
+		CanUnmaskEmail(context.Context, *types.User) bool
+		CanUnmaskName(context.Context, *types.User) bool
 	}
 
 	UserService interface {
@@ -101,6 +115,14 @@ func (svc user) With(ctx context.Context) UserService {
 
 		user:        repository.User(ctx, db),
 		credentials: repository.Credentials(ctx, db),
+
+		// @todo wire this with settings (privacy.mask.email)
+		//       new default value will be true!
+		privacyMaskEmail: false,
+
+		// @todo wire this with settings (privacy.mask.name)
+		//       new default value will be true!
+		privacyMaskName: false,
 	}
 }
 
@@ -129,29 +151,64 @@ func (svc user) proc(u *types.User, err error) (*types.User, error) {
 		return nil, err
 	}
 
+	svc.handlePrivateData(u)
+
 	return u, nil
 }
 
 func (svc user) FindByIDs(userIDs ...uint64) (types.UserSet, error) {
-	return svc.procSet(svc.user.FindByIDs(userIDs...))
+	uu, err := svc.user.FindByIDs(userIDs...)
+	uu, _, err = svc.procSet(uu, types.UserFilter{}, err)
+	return uu, err
 }
 
 func (svc user) Find(f types.UserFilter) (types.UserSet, types.UserFilter, error) {
 	if f.IncDeleted || f.IncSuspended {
+		// If list with deleted or suspended users is requested
+		// user must have access permissions to system (ie: is admin)
 		if !svc.ac.CanAccess(svc.ctx) {
 			return nil, f, ErrNoPermissions.withStack()
 		}
 	}
 
-	return svc.user.Find(f)
-}
-
-func (svc user) procSet(u types.UserSet, err error) (types.UserSet, error) {
-	if err != nil {
-		return nil, err
+	if svc.privacyMaskEmail {
+		// Prepare filter for email unmasking check
+		f.AccessCheckEmail = permissions.InitAccessCheckFilter(
+			"unmask.email",
+			internalAuth.GetIdentityFromContext(svc.ctx).Roles(),
+			svc.ac.CanUnmaskEmailOnAnyUser(svc.ctx),
+		)
 	}
 
-	return u, nil
+	if svc.privacyMaskName {
+		// Prepare filter for name unmasking check
+		f.AccessCheckName = permissions.InitAccessCheckFilter(
+			"unmask.name",
+			internalAuth.GetIdentityFromContext(svc.ctx).Roles(),
+			svc.ac.CanUnmaskNameOnAnyUser(svc.ctx),
+		)
+	}
+
+	f.AccessCheck = permissions.InitAccessCheckFilter(
+		"read",
+		internalAuth.GetIdentityFromContext(svc.ctx).Roles(),
+		svc.ac.CanReadAnyUser(svc.ctx),
+	)
+
+	return svc.procSet(svc.user.Find(f))
+}
+
+func (svc user) procSet(u types.UserSet, f types.UserFilter, err error) (types.UserSet, types.UserFilter, error) {
+	if err != nil {
+		return nil, f, err
+	}
+
+	_ = u.Walk(func(u *types.User) error {
+		svc.handlePrivateData(u)
+		return nil
+	})
+
+	return u, f, nil
 }
 
 func (svc user) Create(input *types.User) (out *types.User, err error) {
@@ -322,4 +379,15 @@ func (svc user) SetPassword(userID uint64, newPassword string) (err error) {
 
 		return nil
 	})
+}
+
+// Masks (or leaves as-is) private data on user
+func (svc user) handlePrivateData(u *types.User) {
+	if svc.privacyMaskEmail && !svc.ac.CanUnmaskEmail(svc.ctx, u) {
+		u.Email = maskPrivateDataEmail
+	}
+
+	if svc.privacyMaskName && !svc.ac.CanUnmaskEmail(svc.ctx, u) {
+		u.Name = maskPrivateDataName
+	}
 }
