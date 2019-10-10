@@ -11,6 +11,7 @@ import (
 
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -53,6 +54,9 @@ type (
 
 	userAccessController interface {
 		CanAccess(context.Context) bool
+		CanReadAnyUser(context.Context) bool
+		CanUnmaskEmailOnAnyUser(context.Context) bool
+		CanUnmaskNameOnAnyUser(context.Context) bool
 		CanCreateUser(context.Context) bool
 		CanUpdateUser(context.Context, *types.User) bool
 		CanDeleteUser(context.Context, *types.User) bool
@@ -113,10 +117,12 @@ func (svc user) With(ctx context.Context) UserService {
 		credentials: repository.Credentials(ctx, db),
 
 		// @todo wire this with settings (privacy.mask.email)
-		privacyMaskEmail: true,
+		//       new default value will be true!
+		privacyMaskEmail: false,
 
 		// @todo wire this with settings (privacy.mask.name)
-		privacyMaskName: true,
+		//       new default value will be true!
+		privacyMaskName: false,
 	}
 }
 
@@ -158,10 +164,36 @@ func (svc user) FindByIDs(userIDs ...uint64) (types.UserSet, error) {
 
 func (svc user) Find(f types.UserFilter) (types.UserSet, types.UserFilter, error) {
 	if f.IncDeleted || f.IncSuspended {
+		// If list with deleted or suspended users is requested
+		// user must have access permissions to system (ie: is admin)
 		if !svc.ac.CanAccess(svc.ctx) {
 			return nil, f, ErrNoPermissions.withStack()
 		}
 	}
+
+	if svc.privacyMaskEmail {
+		// Prepare filter for email unmasking check
+		f.AccessCheckEmail = permissions.InitAccessCheckFilter(
+			"unmask.email",
+			internalAuth.GetIdentityFromContext(svc.ctx).Roles(),
+			svc.ac.CanUnmaskEmailOnAnyUser(svc.ctx),
+		)
+	}
+
+	if svc.privacyMaskName {
+		// Prepare filter for name unmasking check
+		f.AccessCheckName = permissions.InitAccessCheckFilter(
+			"unmask.name",
+			internalAuth.GetIdentityFromContext(svc.ctx).Roles(),
+			svc.ac.CanUnmaskNameOnAnyUser(svc.ctx),
+		)
+	}
+
+	f.AccessCheck = permissions.InitAccessCheckFilter(
+		"read",
+		internalAuth.GetIdentityFromContext(svc.ctx).Roles(),
+		svc.ac.CanReadAnyUser(svc.ctx),
+	)
 
 	return svc.procSet(svc.user.Find(f))
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/titpetric/factory"
 	"gopkg.in/Masterminds/squirrel.v1"
 
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -127,37 +128,46 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 	f = filter
 	q := r.queryNoFilter()
 
+	f.AccessCheckEmail.BindToEnv(types.UserPermissionResource, "sys")
+	f.AccessCheckName.BindToEnv(types.UserPermissionResource, "sys")
+
 	if !f.IncDeleted {
-		q = q.Where("u.deleted_at IS NULL")
+		q = q.Where(squirrel.Eq{"u.deleted_at": nil})
 	}
 
 	if !f.IncSuspended {
-		q = q.Where("u.suspended_at IS NULL")
+		q = q.Where(squirrel.Eq{"u.suspended_at": nil})
 	}
 
 	if f.Query != "" {
 		qs := f.Query + "%"
-		q = q.Where("u.username LIKE ? OR u.email LIKE ? OR u.name LIKE ?", qs, qs, qs)
+		q = q.Where(squirrel.Or{
+			squirrel.Like{"u.username": qs},
+			squirrel.Like{"u.handle": qs},
+			rh.ExpAccessCheck(f.AccessCheckEmail, squirrel.Like{"u.email": qs}),
+			rh.ExpAccessCheck(f.AccessCheckName, squirrel.Like{"u.name": qs}),
+		})
 	}
 
 	if f.Email != "" {
-		q = q.Where("u.email = ?", f.Email)
+		q = q.Where(rh.ExpAccessCheck(f.AccessCheckEmail, squirrel.Eq{"u.email": f.Email}))
 	}
 
 	if f.Username != "" {
-		q = q.Where("u.username = ?", f.Username)
+		q = q.Where(squirrel.Eq{"u.username": f.Username})
 	}
 
 	if f.Handle != "" {
-		q = q.Where("u.handle = ?", f.Handle)
+		q = q.Where(squirrel.Eq{"u.handle": f.Handle})
 	}
 
 	if f.Kind != "" {
-		q = q.Where("u.kind = ?", f.Kind)
+		q = q.Where(squirrel.Eq{"u.kind": f.Kind})
 	}
 
-	if f.Email != "" {
-		q = q.Where("u.email = ?", f.Email)
+	if f.AccessCheck.HasOperation() {
+		// Filter users based on what current user can read
+		q = q.Where(f.AccessCheck.BindToEnv(types.UserPermissionResource, "sys"))
 	}
 
 	// @todo add support for more sophisticated sorting through ql
@@ -180,7 +190,13 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 		q = q.OrderBy("id")
 	}
 
-	return set, f, r.fetchPaged(&set, q, f.Page, f.PerPage)
+	db := r.db()
+
+	if f.Count, err = rh.Count(db, q); err != nil {
+		return
+	}
+
+	return set, f, rh.FetchPaged(db, q, f.Page, f.PerPage, &set)
 }
 
 func (r user) Total() (count uint) {
