@@ -7,6 +7,7 @@ import (
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -42,8 +43,8 @@ func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, er
 		Kind:         r.Kind,
 		IncSuspended: r.IncSuspended,
 		IncDeleted:   r.IncDeleted,
-		Page:         r.Page,
-		PerPage:      r.PerPage,
+
+		PageFilter: rh.Paging(r.Page, r.PerPage),
 	}
 
 	set, filter, err := ctrl.user.With(ctx).Find(f)
