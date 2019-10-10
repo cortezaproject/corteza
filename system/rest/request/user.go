@@ -34,6 +34,8 @@ var _ = multipart.FileHeader{}
 
 // User list request parameters
 type UserList struct {
+	UserID       []string
+	RoleID       []string
 	Query        string
 	Username     string
 	Email        string
@@ -53,6 +55,8 @@ func NewUserList() *UserList {
 func (r UserList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
+	out["userID"] = r.UserID
+	out["roleID"] = r.RoleID
 	out["query"] = r.Query
 	out["username"] = r.Username
 	out["email"] = r.Email
@@ -92,6 +96,18 @@ func (r *UserList) Fill(req *http.Request) (err error) {
 	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
+	}
+
+	if val, ok := urlQuery["userID[]"]; ok {
+		r.UserID = parseStrings(val)
+	} else if val, ok = urlQuery["userID"]; ok {
+		r.UserID = parseStrings(val)
+	}
+
+	if val, ok := urlQuery["roleID[]"]; ok {
+		r.RoleID = parseStrings(val)
+	} else if val, ok = urlQuery["roleID"]; ok {
+		r.RoleID = parseStrings(val)
 	}
 
 	if val, ok := get["query"]; ok {

@@ -73,7 +73,6 @@ type (
 		FindByEmail(email string) (*types.User, error)
 		FindByHandle(handle string) (*types.User, error)
 		FindByID(id uint64) (*types.User, error)
-		FindByIDs(id ...uint64) (types.UserSet, error)
 		Find(types.UserFilter) (types.UserSet, types.UserFilter, error)
 
 		Create(input *types.User) (*types.User, error)
@@ -154,12 +153,6 @@ func (svc user) proc(u *types.User, err error) (*types.User, error) {
 	svc.handlePrivateData(u)
 
 	return u, nil
-}
-
-func (svc user) FindByIDs(userIDs ...uint64) (types.UserSet, error) {
-	uu, err := svc.user.FindByIDs(userIDs...)
-	uu, _, err = svc.procSet(uu, types.UserFilter{}, err)
-	return uu, err
 }
 
 func (svc user) Find(f types.UserFilter) (types.UserSet, types.UserFilter, error) {

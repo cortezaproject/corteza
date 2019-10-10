@@ -44,6 +44,8 @@ type (
 	}
 
 	UserFilter struct {
+		UserID       []uint64 `json:"userID"`
+		RoleID       []uint64 `json:"roleID"`
 		Query        string   `json:"query"`
 		Email        string   `json:"email"`
 		Username     string   `json:"username"`

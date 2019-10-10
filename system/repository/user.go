@@ -20,7 +20,6 @@ type (
 		FindByUsername(username string) (*types.User, error)
 		FindByHandle(handle string) (*types.User, error)
 		FindByID(id uint64) (*types.User, error)
-		FindByIDs(id ...uint64) (types.UserSet, error)
 		Find(filter types.UserFilter) (set types.UserSet, f types.UserFilter, err error)
 		Total() uint
 
@@ -111,19 +110,6 @@ func (r user) FindByID(id uint64) (*types.User, error) {
 	return r.findBy("id", id)
 }
 
-func (r user) FindByIDs(IDs ...uint64) (types.UserSet, error) {
-	if len(IDs) == 0 {
-		return nil, nil
-	}
-
-	var (
-		query = r.query().Where("u.id IN (?)", IDs)
-		uu    = types.UserSet{}
-	)
-
-	return uu, r.fetchSet(&uu, query)
-}
-
 func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilter, err error) {
 	f = filter
 	q := r.queryNoFilter()
@@ -137,6 +123,21 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 
 	if !f.IncSuspended {
 		q = q.Where(squirrel.Eq{"u.suspended_at": nil})
+	}
+
+	if len(f.UserID) > 0 {
+		q = q.Where(squirrel.Eq{"u.ID": f.UserID})
+	}
+
+	if len(f.RoleID) > 0 {
+		or := squirrel.Or{}
+		// Due to lack of support for more exotic expressions (slice of values inside subquery)
+		// we'll use set of OR expressions as a workaround
+		for _, roleID := range f.RoleID {
+			or = append(or, squirrel.Expr("u.ID IN (SELECT rel_user FROM sys_role_member WHERE rel_role IN (?))", roleID))
+		}
+
+		q = q.Where(or)
 	}
 
 	if f.Query != "" {
