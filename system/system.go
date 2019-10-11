@@ -127,6 +127,9 @@ func Configure() *cli.Config {
 				return commands.Importer(ctx, c)
 			},
 			func(ctx context.Context, c *cli.Config) *cobra.Command {
+				return commands.Exporter(ctx, c)
+			},
+			func(ctx context.Context, c *cli.Config) *cobra.Command {
 				return commands.Users(ctx, c)
 			},
 			func(ctx context.Context, c *cli.Config) *cobra.Command {

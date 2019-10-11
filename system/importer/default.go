@@ -7,6 +7,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -26,6 +27,7 @@ func Import(ctx context.Context, ff ...io.Reader) (err error) {
 	pi := permissions.NewImporter(service.DefaultAccessControl.Whitelist())
 	imp := NewImporter(
 		pi,
+		settings.NewImporter(),
 		NewRoleImport(pi, roles),
 	)
 
@@ -51,6 +53,7 @@ func Import(ctx context.Context, ff ...io.Reader) (err error) {
 		ctx,
 		service.DefaultRole.With(ctx),
 		service.DefaultAccessControl,
+		service.DefaultSettings,
 		roles,
 	)
 }
