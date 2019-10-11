@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -13,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
+	sysExporter "github.com/cortezaproject/corteza-server/system/exporter"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -60,13 +60,13 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 }
 
 func permissionExporter(ctx context.Context, out *Messaging) {
-	roles = sysTypes.RoleSet{
+	roles := sysTypes.RoleSet{
 		&sysTypes.Role{ID: permissions.EveryoneRoleID, Handle: "everyone"},
 		&sysTypes.Role{ID: permissions.AdminsRoleID, Handle: "admins"},
 	}
 
-	out.Allow = expServicePermissions(permissions.Allow)
-	out.Deny = expServicePermissions(permissions.Deny)
+	out.Allow = sysExporter.ExportableServicePermissions(roles, service.DefaultPermissions, permissions.Allow)
+	out.Deny = sysExporter.ExportableServicePermissions(roles, service.DefaultPermissions, permissions.Deny)
 }
 
 func settingExporter(ctx context.Context, out *Messaging) {
@@ -91,45 +91,3 @@ type (
 		Deny  map[string]map[string][]string `yaml:",omitempty"`
 	}
 )
-
-var (
-	roles sysTypes.RoleSet
-)
-
-// @todo move to pkg/permissions
-func expServicePermissions(access permissions.Access) map[string]map[string][]string {
-	var (
-		has   bool
-		res   string
-		rules permissions.RuleSet
-		sp    = make(map[string]map[string][]string)
-	)
-
-	for _, r := range roles {
-		rules = service.DefaultPermissions.FindRulesByRoleID(r.ID)
-
-		if len(rules) == 0 {
-			continue
-		}
-
-		for _, rule := range rules {
-			if rule.Resource.GetService() != rule.Resource && !rule.Resource.HasWildcard() {
-				continue
-			}
-
-			res = strings.TrimRight(rule.Resource.String(), ":*")
-
-			if _, has = sp[r.Handle]; !has {
-				sp[r.Handle] = map[string][]string{}
-			}
-
-			if _, has = sp[r.Handle][res]; !has {
-				sp[r.Handle][res] = make([]string, 0)
-			}
-
-			sp[r.Handle][res] = append(sp[r.Handle][res], rule.Operation.String())
-		}
-	}
-
-	return sp
-}

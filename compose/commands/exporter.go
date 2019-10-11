@@ -24,6 +24,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	intSettings "github.com/cortezaproject/corteza-server/pkg/settings"
+	sysExporter "github.com/cortezaproject/corteza-server/system/exporter"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -131,8 +132,8 @@ func nsExporter(ctx context.Context, out *Compose, nsFlag string, args []string)
 	// nsOut.Enabled = ns.Enabled
 	// nsOut.Meta = ns.Meta
 	//
-	// nsOut.Allow = expResourcePermissions(permissions.Allow, ns.PermissionResource())
-	// nsOut.Deny = expResourcePermissions(permissions.Deny, ns.PermissionResource())
+	// nsOut.Allow = sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Allow, ns.PermissionResource())
+	// nsOut.Deny = sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Deny, ns.PermissionResource())
 
 	for _, arg := range args {
 		switch arg {
@@ -168,8 +169,8 @@ func permissionExporter(ctx context.Context, out *Compose) {
 		&sysTypes.Role{ID: permissions.AdminsRoleID, Handle: "admins"},
 	}
 
-	out.Allow = expServicePermissions(permissions.Allow)
-	out.Deny = expServicePermissions(permissions.Deny)
+	out.Allow = sysExporter.ExportableServicePermissions(roles, service.DefaultPermissions, permissions.Allow)
+	out.Deny = sysExporter.ExportableServicePermissions(roles, service.DefaultPermissions, permissions.Deny)
 }
 
 // This is PoC for exporting compose resources
@@ -304,8 +305,8 @@ func expModules(mm types.ModuleSet) (o map[string]Module) {
 			Name:   m.Name,
 			Fields: expModuleFields(m.Fields, mm),
 
-			Allow: expResourcePermissions(permissions.Allow, types.ModulePermissionResource),
-			Deny:  expResourcePermissions(permissions.Deny, types.ModulePermissionResource),
+			Allow: sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Allow, types.ModulePermissionResource),
+			Deny:  sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Deny, types.ModulePermissionResource),
 		}
 
 		if meta := expModuleMetaCleanup(m.Meta); len(meta) > 0 {
@@ -353,8 +354,8 @@ func expModuleFields(ff types.ModuleFieldSet, modules types.ModuleSet) (o yaml.M
 				Visible:  f.Visible,
 				Multi:    f.Multi,
 
-				Allow: expResourcePermissions(permissions.Allow, types.ModuleFieldPermissionResource),
-				Deny:  expResourcePermissions(permissions.Deny, types.ModuleFieldPermissionResource),
+				Allow: sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Allow, types.ModuleFieldPermissionResource),
+				Deny:  sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Deny, types.ModuleFieldPermissionResource),
 			},
 		}
 	}
@@ -433,8 +434,8 @@ func expPages(parentID uint64, pages types.PageSet, modules types.ModuleSet, cha
 			Pages:       expPages(child.ID, pages, modules, charts, scripts),
 			Visible:     child.Visible,
 
-			Allow: expResourcePermissions(permissions.Allow, types.PagePermissionResource),
-			Deny:  expResourcePermissions(permissions.Deny, types.PagePermissionResource),
+			Allow: sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Allow, types.PagePermissionResource),
+			Deny:  sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Deny, types.PagePermissionResource),
 		}
 
 		if child.ModuleID > 0 {
@@ -587,8 +588,8 @@ func expCharts(charts types.ChartSet, modules types.ModuleSet) (o map[string]Cha
 			Name:   c.Name,
 			Config: ChartConfig{Reports: make([]map[string]interface{}, len(c.Config.Reports))},
 
-			Allow: expResourcePermissions(permissions.Allow, types.ChartPermissionResource),
-			Deny:  expResourcePermissions(permissions.Deny, types.ChartPermissionResource),
+			Allow: sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Allow, types.ChartPermissionResource),
+			Deny:  sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Deny, types.ChartPermissionResource),
 		}
 
 		for i, r := range c.Config.Reports {
@@ -639,8 +640,8 @@ func expAutomation(ss automation.ScriptSet, tt automation.TriggerSet, mm types.M
 
 			Triggers: []map[string]interface{}{},
 
-			Allow: expResourcePermissions(permissions.Allow, types.AutomationScriptPermissionResource),
-			Deny:  expResourcePermissions(permissions.Deny, types.AutomationScriptPermissionResource),
+			Allow: sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Allow, types.AutomationScriptPermissionResource),
+			Deny:  sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Deny, types.AutomationScriptPermissionResource),
 		}
 
 		handle := makeHandleFromName(s.Name, "", "automation-script-%d", s.ID)
@@ -690,77 +691,6 @@ func expAutomation(ss automation.ScriptSet, tt automation.TriggerSet, mm types.M
 	})
 
 	return out
-}
-
-func expServicePermissions(access permissions.Access) map[string]map[string][]string {
-	var (
-		has   bool
-		res   string
-		rules permissions.RuleSet
-		sp    = make(map[string]map[string][]string)
-	)
-
-	for _, r := range roles {
-		rules = service.DefaultPermissions.FindRulesByRoleID(r.ID)
-
-		if len(rules) == 0 {
-			continue
-		}
-
-		for _, rule := range rules {
-			if rule.Resource.GetService() != rule.Resource && !rule.Resource.HasWildcard() {
-				continue
-			}
-
-			res = strings.TrimRight(rule.Resource.String(), ":*")
-
-			if _, has = sp[r.Handle]; !has {
-				sp[r.Handle] = map[string][]string{}
-			}
-
-			if _, has = sp[r.Handle][res]; !has {
-				sp[r.Handle][res] = make([]string, 0)
-			}
-
-			sp[r.Handle][res] = append(sp[r.Handle][res], rule.Operation.String())
-		}
-	}
-
-	return sp
-}
-
-func expResourcePermissions(access permissions.Access, resource permissions.Resource) map[string][]string {
-	var (
-		has   bool
-		rules permissions.RuleSet
-		sp    = make(map[string][]string)
-	)
-
-	for _, r := range roles {
-		rules = service.DefaultPermissions.FindRulesByRoleID(r.ID)
-
-		if len(rules) == 0 {
-			continue
-		}
-
-		for _, rule := range rules {
-			if rule.Resource != resource {
-				continue
-			}
-
-			if rule.Access != access {
-				continue
-			}
-
-			if _, has = sp[r.Handle]; !has {
-				sp[r.Handle] = make([]string, 0)
-			}
-
-			sp[r.Handle] = append(sp[r.Handle], rule.Operation.String())
-		}
-	}
-
-	return sp
 }
 
 func makeHandleFromName(name, currentHandle, def string, id uint64) string {
