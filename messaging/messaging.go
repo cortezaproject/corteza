@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/titpetric/factory"
 
+	"github.com/cortezaproject/corteza-server/messaging/commands"
 	migrate "github.com/cortezaproject/corteza-server/messaging/db"
 	"github.com/cortezaproject/corteza-server/messaging/rest"
 	"github.com/cortezaproject/corteza-server/messaging/service"
@@ -77,6 +78,15 @@ func Configure() *cli.Config {
 			rest.MountRoutes,
 			// Wrap in func() to assure ws is set when mounted
 			func(r chi.Router) { ws.ApiServerRoutes(r) },
+		},
+
+		AdtSubCommands: cli.CommandMakers{
+			func(ctx context.Context, c *cli.Config) *cobra.Command {
+				return commands.Importer(ctx, c)
+			},
+			func(ctx context.Context, c *cli.Config) *cobra.Command {
+				return commands.Exporter(ctx, c)
+			},
 		},
 
 		ProvisionMigrateDatabase: cli.Runners{
