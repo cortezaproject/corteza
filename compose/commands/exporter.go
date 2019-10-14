@@ -73,7 +73,7 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 
 	cmd.Flags().String("namespace", "", "Export namespace resources (by ID or string)")
 	cmd.Flags().BoolP("settings", "s", false, "Export settings")
-	cmd.Flags().BoolP("permissions", "p", false, "Export permissions")
+	cmd.Flags().BoolP("permissions", "p", false, "Export system permissions")
 
 	return cmd
 }
