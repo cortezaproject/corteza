@@ -58,7 +58,7 @@ func Import(ctx context.Context, ff ...io.Reader) (err error) {
 		ctx,
 		service.DefaultChannel.With(ctx),
 		service.DefaultAccessControl,
-		service.DefaultSettings,
+		service.DefaultSettings.With(ctx),
 		roles,
 	)
 }
