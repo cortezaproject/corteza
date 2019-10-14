@@ -2,11 +2,11 @@ package settings
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
-	"github.com/jmoiron/sqlx/types"
 )
 
 type (
@@ -36,14 +36,15 @@ func (imp *Importer) CastSet(settings interface{}) (err error) {
 }
 
 func (imp *Importer) addSetting(name string, value interface{}) (err error) {
-	v, ok := value.(string)
-	if !ok {
-		return errors.New("value must be string")
+	// Convert to interface{}, since json.Marshal cant handle map[interface{}]interface{}
+	v, err := json.Marshal(deinterfacer.Simplify(value))
+	if err != nil {
+		return err
 	}
 
 	setting := &Value{
 		Name:  name,
-		Value: types.JSONText(v),
+		Value: v,
 	}
 
 	imp.settings = append(imp.settings, setting)
