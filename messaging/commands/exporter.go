@@ -54,7 +54,7 @@ func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
 	}
 
 	cmd.Flags().BoolP("settings", "s", false, "Export settings")
-	cmd.Flags().BoolP("permissions", "p", false, "Export permission")
+	cmd.Flags().BoolP("permissions", "p", false, "Export system permissions")
 
 	return cmd
 }
