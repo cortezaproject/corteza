@@ -1,0 +1,10 @@
+array:
+- v1
+- v2
+object:
+  k1: v1
+  k2: v2
+plain_b: true
+plain_double: 12.34
+plain_double_2: 12
+plain_s: string
