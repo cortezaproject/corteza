@@ -102,9 +102,6 @@ func (s store) Preview(id uint64, ext string) string {
 func (s store) Save(name string, f io.Reader) (err error) {
 	_, err = s.mc.PutObject(s.bucket, name, f, -1, minio.PutObjectOptions{
 		ServerSideEncryption: s.sse,
-		UserMetadata: map[string]string{
-			"some": "User",
-		},
 	})
 
 	return err

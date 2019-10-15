@@ -21,7 +21,7 @@ func Storage(pfix string) (o *StorageOpt) {
 		MinioSecure: true,
 
 		// Run in struct mode:
-		//  - do not create unexisting buckets
+		//  - do not create un-existing buckets
 		MinioStrict: false,
 	}
 
