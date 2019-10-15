@@ -25,7 +25,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
-	"github.com/cortezaproject/corteza-server/pkg/store"
+	"github.com/cortezaproject/corteza-server/pkg/store/plain"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 )
@@ -87,7 +87,7 @@ func InitConfig() {
 
 	logger.SetDefault(log)
 	service.DefaultPermissions = p
-	if service.DefaultStore, err = store.NewWithAfero(afero.NewMemMapFs(), "test"); err != nil {
+	if service.DefaultStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test"); err != nil {
 		panic(err)
 	}
 

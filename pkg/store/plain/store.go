@@ -1,4 +1,4 @@
-package store
+package plain
 
 import (
 	"fmt"
@@ -17,17 +17,6 @@ type (
 
 		originalFn func(id uint64, ext string) string
 		previewFn  func(id uint64, ext string) string
-	}
-
-	Store interface {
-		Namespace() string
-
-		Original(id uint64, ext string) string
-		Preview(id uint64, ext string) string
-
-		Save(filename string, contents io.Reader) error
-		Remove(filename string) error
-		Open(filename string) (afero.File, error)
 	}
 )
 
@@ -53,10 +42,6 @@ func NewWithAfero(fs afero.Fs, namespace string) (*store, error) {
 		originalFn: defOriginalFn,
 		previewFn:  defPreviewFn,
 	}, nil
-}
-
-func (s *store) Namespace() string {
-	return s.namespace
 }
 
 func (s *store) check(filename string) error {
@@ -103,7 +88,7 @@ func (s *store) Remove(filename string) error {
 	return s.fs.Remove(filename)
 }
 
-func (s *store) Open(filename string) (afero.File, error) {
+func (s *store) Open(filename string) (io.ReadSeeker, error) {
 	// check filename for validity
 	if err := s.check(filename); err != nil {
 		return nil, err
