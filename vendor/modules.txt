@@ -93,6 +93,17 @@ github.com/markbates/goth/providers/linkedin
 github.com/markbates/goth/providers/openidConnect
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
 github.com/matttproud/golang_protobuf_extensions/pbutil
+# github.com/minio/minio-go/v6 v6.0.39
+github.com/minio/minio-go/v6
+github.com/minio/minio-go/v6/pkg/encrypt
+github.com/minio/minio-go/v6/pkg/s3utils
+github.com/minio/minio-go/v6/pkg/credentials
+github.com/minio/minio-go/v6/pkg/s3signer
+github.com/minio/minio-go/v6/pkg/set
+# github.com/minio/sha256-simd v0.1.1
+github.com/minio/sha256-simd
+# github.com/mitchellh/go-homedir v1.1.0
+github.com/mitchellh/go-homedir
 # github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 github.com/mohae/deepcopy
 # github.com/pkg/errors v0.8.1
@@ -154,7 +165,9 @@ go.uber.org/zap/internal/exit
 # golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 golang.org/x/crypto/ssh/terminal
 golang.org/x/crypto/bcrypt
+golang.org/x/crypto/argon2
 golang.org/x/crypto/blowfish
+golang.org/x/crypto/blake2b
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/ed25519/internal/edwards25519
@@ -165,10 +178,11 @@ golang.org/x/image/ccitt
 golang.org/x/image/tiff/lzw
 # golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 golang.org/x/net/trace
-golang.org/x/net/internal/timeseries
-golang.org/x/net/http2
-golang.org/x/net/http2/hpack
 golang.org/x/net/http/httpguts
+golang.org/x/net/http2
+golang.org/x/net/publicsuffix
+golang.org/x/net/internal/timeseries
+golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/context
@@ -181,6 +195,7 @@ golang.org/x/oauth2/jwt
 # golang.org/x/sys v0.0.0-20190624142023-c5567b49c5d0
 golang.org/x/sys/unix
 golang.org/x/sys/windows
+golang.org/x/sys/cpu
 # golang.org/x/text v0.3.2
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
@@ -238,6 +253,8 @@ google.golang.org/grpc/internal/syscall
 gopkg.in/Masterminds/squirrel.v1
 # gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc
 gopkg.in/alexcesaro/quotedprintable.v3
+# gopkg.in/ini.v1 v1.42.0
+gopkg.in/ini.v1
 # gopkg.in/mail.v2 v2.3.1
 gopkg.in/mail.v2
 # gopkg.in/square/go-jose.v2 v2.3.1
