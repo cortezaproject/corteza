@@ -168,7 +168,7 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 
 	if f.AccessCheck.HasOperation() {
 		// Filter users based on what current user can read
-		q = q.Where(f.AccessCheck.BindToEnv(types.UserPermissionResource, "sys"))
+		// q = q.Where(f.AccessCheck.BindToEnv(types.UserPermissionResource, "sys"))
 	}
 
 	// @todo add support for more sophisticated sorting through ql
