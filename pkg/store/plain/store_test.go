@@ -1,4 +1,4 @@
-package store
+package plain
 
 import (
 	"bytes"
@@ -20,7 +20,6 @@ func TestStore(t *testing.T) {
 
 	require.True(t, err == nil, "Unexpected error when creating store: %+v", err)
 	require.True(t, store != nil, "Expected non-nil return for new store")
-	require.True(t, store.Namespace() == "test", "Unexpected store namespace: test != %s", store.Namespace())
 
 	{
 		fn := store.Original(123, "jpg")

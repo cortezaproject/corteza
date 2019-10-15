@@ -13,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/store"
+	"github.com/cortezaproject/corteza-server/pkg/store/plain"
 	systemProto "github.com/cortezaproject/corteza-server/system/proto"
 )
 
@@ -77,7 +78,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultLogger = log.Named("service")
 
 	if DefaultStore == nil {
-		DefaultStore, err = store.New(c.Storage.Path)
+		DefaultStore, err = plain.New(c.Storage.Path)
 		log.Info("initializing store", zap.String("path", c.Storage.Path), zap.Error(err))
 		if err != nil {
 			return err
