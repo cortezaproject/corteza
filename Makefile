@@ -35,6 +35,8 @@ TEST_SUITE_unit        = $(TEST_SUITE_pkg) $(TEST_SUITE_services)
 TEST_SUITE_integration = ./tests/...
 TEST_SUITE_all         = $(TEST_SUITE_unit) $(TEST_SUITE_integration)
 
+DEV_MINIO_PORT ?= 9000
+
 
 ########################################################################################################################
 # Tool bins
@@ -88,6 +90,11 @@ codegen: $(PROTOGEN)
 
 mailhog.up:
 	docker run --rm --publish 8025:8025 --publish 1025:1025 mailhog/mailhog
+
+minio.up:
+	# Runs temp minio server
+	# No volume because we do not want the data to persist
+	docker run --rm --publish 9000:$(DEV_MINIO_PORT) --env-file .env minio/minio server /data
 
 watch.test.%: $(NODEMON)
 	# Development helper - watches for file
