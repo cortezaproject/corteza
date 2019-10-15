@@ -75,6 +75,9 @@ func New(bucket string, opt Options) (s *store, err error) {
 
 	if len(opt.ServerSideEncryptKey) > 0 {
 		s.sse, err = encrypt.NewSSEC(opt.ServerSideEncryptKey)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return
