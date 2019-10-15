@@ -8,6 +8,7 @@ type (
 		MinioSecure    bool   `env:"MINIO_SECURE"`
 		MinioAccessKey string `env:"MINIO_ACCESS_KEY"`
 		MinioSecretKey string `env:"MINIO_SECRET_KEY"`
+		MinioSSECKey   string `env:"MINIO_SSEC_KEY"`
 		MinioBucket    string `env:"MINIO_BUCKET"`
 		MinioStrict    bool   `env:"MINIO_STRICT"`
 	}

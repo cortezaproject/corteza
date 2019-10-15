@@ -61,6 +61,8 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 				Strict:          c.Storage.MinioStrict,
 				AccessKeyID:     c.Storage.MinioAccessKey,
 				SecretAccessKey: c.Storage.MinioSecretKey,
+
+				ServerSideEncryptKey: []byte(c.Storage.MinioSSECKey),
 			})
 
 			log.Info("initializing minio",

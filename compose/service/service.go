@@ -13,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/store"
+	"github.com/cortezaproject/corteza-server/pkg/store/minio"
 	"github.com/cortezaproject/corteza-server/pkg/store/plain"
 	systemProto "github.com/cortezaproject/corteza-server/system/proto"
 )
@@ -78,11 +79,35 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultLogger = log.Named("service")
 
 	if DefaultStore == nil {
-		DefaultStore, err = plain.New(c.Storage.Path)
-		log.Info("initializing store", zap.String("path", c.Storage.Path), zap.Error(err))
-		if err != nil {
-			return err
+		if c.Storage.MinioEndpoint != "" {
+			if c.Storage.MinioBucket == "" {
+				c.Storage.MinioBucket = "compose"
+			}
+
+			DefaultStore, err = minio.New(c.Storage.MinioBucket, minio.Options{
+				Endpoint:        c.Storage.MinioEndpoint,
+				Secure:          c.Storage.MinioSecure,
+				Strict:          c.Storage.MinioStrict,
+				AccessKeyID:     c.Storage.MinioAccessKey,
+				SecretAccessKey: c.Storage.MinioSecretKey,
+
+				ServerSideEncryptKey: []byte(c.Storage.MinioSSECKey),
+			})
+
+			log.Info("initializing minio",
+				zap.String("bucket", c.Storage.MinioBucket),
+				zap.String("endpoint", c.Storage.MinioEndpoint),
+				zap.Error(err))
+		} else {
+			DefaultStore, err = plain.New(c.Storage.Path)
+			log.Info("initializing store",
+				zap.String("path", c.Storage.Path),
+				zap.Error(err))
 		}
+
+			if err != nil {
+				return err
+			}
 	}
 
 	// Permissions, access control
