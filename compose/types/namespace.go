@@ -30,6 +30,9 @@ type (
 		PerPage uint   `json:"perPage"`
 		Sort    string `json:"sort"`
 		Count   uint   `json:"count"`
+
+		// Resource permission check filter
+		IsReadable *permissions.ResourceFilter `json:"-"`
 	}
 
 	NamespaceMeta struct {

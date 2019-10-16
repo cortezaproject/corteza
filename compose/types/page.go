@@ -60,6 +60,9 @@ type (
 		Page        uint   `json:"page"`
 		PerPage     uint   `json:"perPage"`
 		Count       uint   `json:"count"`
+
+		// Resource permission check filter
+		IsReadable *permissions.ResourceFilter `json:"-"`
 	}
 )
 

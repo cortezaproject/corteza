@@ -123,6 +123,10 @@ func (r module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.Mo
 		query = query.Where("LOWER(handle) = ?", strings.ToLower(f.Handle))
 	}
 
+	if f.IsReadable != nil {
+		query = query.Where(f.IsReadable)
+	}
+
 	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
 		return
 	}

@@ -120,6 +120,10 @@ func (r page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilt
 		query = query.Where("title LIKE ? OR description LIKE ?", q, q)
 	}
 
+	if f.IsReadable != nil {
+		query = query.Where(f.IsReadable)
+	}
+
 	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
 		return
 	}
