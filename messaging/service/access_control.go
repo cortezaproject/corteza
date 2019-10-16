@@ -17,6 +17,7 @@ type (
 		Can(context.Context, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
 		Grant(context.Context, permissions.Whitelist, ...*permissions.Rule) error
 		FindRulesByRoleID(roleID uint64) (rr permissions.RuleSet)
+		ResourceFilter(context.Context, permissions.Resource, permissions.Operation, permissions.Access) *permissions.ResourceFilter
 	}
 
 	permissionResource interface {

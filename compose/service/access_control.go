@@ -17,6 +17,7 @@ type (
 		Can(context.Context, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
 		Grant(context.Context, permissions.Whitelist, ...*permissions.Rule) error
 		FindRulesByRoleID(roleID uint64) (rr permissions.RuleSet)
+		ResourceFilter(context.Context, permissions.Resource, permissions.Operation, permissions.Access) *permissions.ResourceFilter
 	}
 
 	permissionResource interface {
@@ -160,12 +161,12 @@ func (svc accessControl) CanDeletePage(ctx context.Context, r *types.Page) bool 
 	return svc.can(ctx, r, "delete")
 }
 
-func (svc accessControl) CanReadAnyAutomationScript(ctx context.Context) bool {
-	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendWildcard(), "read")
-}
-
 func (svc accessControl) CanReadAutomationScript(ctx context.Context, r *automation.Script) bool {
 	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "read")
+}
+
+func (svc accessControl) FilterReadableScripts(ctx context.Context) *permissions.ResourceFilter {
+	return svc.permissions.ResourceFilter(ctx, types.AutomationScriptPermissionResource, "read", permissions.Deny)
 }
 
 func (svc accessControl) CanUpdateAutomationScript(ctx context.Context, r *automation.Script) bool {

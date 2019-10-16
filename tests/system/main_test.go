@@ -40,7 +40,7 @@ type (
 var (
 	cfg *cli.Config
 	r   chi.Router
-	p   = permissions.NewTestService()
+	p   = &permissions.TestService{}
 )
 
 // random string, 10 chars long by default
@@ -81,6 +81,8 @@ func InitConfig() {
 	} else if err := migrate.Migrate(factory.Database.MustGet("system"), log); err != nil {
 		panic(err)
 	}
+
+	p = permissions.NewTestService(ctx, cfg.Log, db(), "sys_permission_rules")
 
 	logger.SetDefault(log)
 	service.DefaultPermissions = p

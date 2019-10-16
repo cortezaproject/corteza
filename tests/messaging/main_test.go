@@ -43,7 +43,7 @@ type (
 var (
 	cfg *cli.Config
 	r   chi.Router
-	p   = permissions.NewTestService()
+	p   = &permissions.TestService{}
 )
 
 func db() *factory.DB {
@@ -74,6 +74,8 @@ func InitConfig() {
 	} else if err := migrate.Migrate(factory.Database.MustGet("messaging"), log); err != nil {
 		panic(err)
 	}
+
+	p = permissions.NewTestService(ctx, cfg.Log, db(), "messaging_permission_rules")
 
 	logger.SetDefault(log)
 	service.DefaultPermissions = p

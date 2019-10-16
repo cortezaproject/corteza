@@ -48,15 +48,66 @@ func TestUserRead(t *testing.T) {
 func TestUserList(t *testing.T) {
 	h := newHelper(t)
 
-	h.repoMakeUser(h.randEmail())
-	h.repoMakeUser(h.randEmail())
+	h.secCtx()
+
+	seedCount := 5
+	for i := 0; i < seedCount; i++ {
+		h.repoMakeUser(h.randEmail())
+	}
+
+	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
+
+	aux := struct {
+		Response *struct {
+			Filter *types.UserFilter
+		}
+	}{}
 
 	h.apiInit().
 		Get("/users/").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
-		End()
+		End().
+		JSON(&aux)
+
+	h.a.NotNil(aux.Response)
+	h.a.NotNil(aux.Response.Filter)
+
+	// we need to test with >= because we're not running this inside a transaction.
+	h.a.GreaterOrEqual(int(aux.Response.Filter.Count), seedCount)
+}
+
+func TestUserListWithOneAllowed(t *testing.T) {
+	h := newHelper(t)
+
+	h.secCtx()
+
+	newUserWeCanAccess := h.repoMakeUser(h.randEmail())
+	h.allow(newUserWeCanAccess.PermissionResource(), "read")
+
+	// And one we can not access
+	h.repoMakeUser(h.randEmail())
+
+	aux := struct {
+		Response *struct {
+			Filter *types.UserFilter
+		}
+	}{}
+
+	h.apiInit().
+		Get("/users/").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End().
+		JSON(&aux)
+
+	h.a.NotNil(aux.Response)
+	h.a.NotNil(aux.Response.Filter)
+
+	// we need to test with >= because we're not running this inside a transaction.
+	h.a.Equal(1, int(aux.Response.Filter.Count))
 }
 
 func TestUserCreateForbidden(t *testing.T) {
@@ -82,6 +133,7 @@ func TestUserCreate(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
+
 }
 
 func TestUserUpdateForbidden(t *testing.T) {

@@ -57,13 +57,13 @@ type (
 		Sort string `json:"sort"`
 
 		// Can we use email for searching or is it supposed to be masked for the current user?
-		AccessCheckEmail permissions.AccessCheck `json:"-"`
+		IsEmailUnmaskable *permissions.ResourceFilter `json:"-"`
 
 		// Can we use name for searching or is it supposed to be masked for the current user?
-		AccessCheckName permissions.AccessCheck `json:"-"`
+		IsNameUnmaskable *permissions.ResourceFilter `json:"-"`
 
-		// Access check for user
-		permissions.AccessCheck `json:"-"`
+		// Resource permission check filter
+		IsReadable *permissions.ResourceFilter `json:"-"`
 
 		// Standard paging fields & helpers
 		rh.PageFilter

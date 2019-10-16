@@ -114,8 +114,14 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 	f = filter
 	q := r.queryNoFilter()
 
-	f.AccessCheckEmail.BindToEnv(types.UserPermissionResource, "sys")
-	f.AccessCheckName.BindToEnv(types.UserPermissionResource, "sys")
+	// Returns user filter (flt) wrapped in IF() function with cnd as condition (when cnd != nil)
+	whereMasked := func(cnd squirrel.Sqlizer, flt squirrel.Sqlizer) squirrel.Sqlizer {
+		if cnd != nil {
+			return rh.SquirrelFunction("IF", cnd, flt, squirrel.Expr("false"))
+		} else {
+			return flt
+		}
+	}
 
 	if !f.IncDeleted {
 		q = q.Where(squirrel.Eq{"u.deleted_at": nil})
@@ -145,13 +151,13 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 		q = q.Where(squirrel.Or{
 			squirrel.Like{"u.username": qs},
 			squirrel.Like{"u.handle": qs},
-			rh.ExpAccessCheck(f.AccessCheckEmail, squirrel.Like{"u.email": qs}),
-			rh.ExpAccessCheck(f.AccessCheckName, squirrel.Like{"u.name": qs}),
+			whereMasked(f.IsEmailUnmaskable, squirrel.Like{"u.email": qs}),
+			whereMasked(f.IsNameUnmaskable, squirrel.Like{"u.name": qs}),
 		})
 	}
 
 	if f.Email != "" {
-		q = q.Where(rh.ExpAccessCheck(f.AccessCheckEmail, squirrel.Eq{"u.email": f.Email}))
+		q = q.Where(whereMasked(f.IsNameUnmaskable, squirrel.Eq{"u.name": f.Email}))
 	}
 
 	if f.Username != "" {
@@ -166,9 +172,8 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 		q = q.Where(squirrel.Eq{"u.kind": f.Kind})
 	}
 
-	if f.AccessCheck.HasOperation() {
-		// Filter users based on what current user can read
-		// q = q.Where(f.AccessCheck.BindToEnv(types.UserPermissionResource, "sys"))
+	if f.IsReadable != nil {
+		q = q.Where(f.IsReadable)
 	}
 
 	// @todo add support for more sophisticated sorting through ql
@@ -193,7 +198,7 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 
 	db := r.db()
 
-	if f.Count, err = rh.Count(db, q); err != nil {
+	if f.Count, err = rh.Count(db, q); err != nil || f.Count == 0 {
 		return
 	}
 

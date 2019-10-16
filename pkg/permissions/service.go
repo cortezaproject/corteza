@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/titpetric/factory"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -20,8 +21,10 @@ type (
 		//  service will flush values on TRUE or just reload on FALSE
 		f chan bool
 
-		rules      RuleSet
+		rules RuleSet
+
 		repository *repository
+		dbTable    string
 	}
 )
 
@@ -33,13 +36,14 @@ const (
 //
 // service{} struct preloads, checks, grants and flushes privileges to and from repository
 // It acts as a caching layer
-func Service(ctx context.Context, logger *zap.Logger, repository *repository) (svc *service) {
+func Service(ctx context.Context, logger *zap.Logger, db *factory.DB, tbl string) (svc *service) {
 	svc = &service{
 		l: &sync.Mutex{},
 		f: make(chan bool),
 
 		logger:     logger.Named("permissions"),
-		repository: repository,
+		repository: Repository(db, tbl),
+		dbTable:    tbl,
 	}
 
 	svc.Reload(ctx)
@@ -177,6 +181,27 @@ func (svc *service) Reload(ctx context.Context) {
 
 	if err == nil {
 		svc.rules = rr
+	}
+}
+
+// ResourceFilter is repository helper that we use to filter resources directly in the database
+//
+// See ResourceFilter struct documentation for details
+func (svc *service) ResourceFilter(ctx context.Context, r Resource, op Operation, fallback Access) *ResourceFilter {
+	u := auth.GetIdentityFromContext(ctx)
+
+	if auth.IsSuperUser(u) {
+		return &ResourceFilter{superuser: true}
+	}
+
+	return &ResourceFilter{
+		roles:     u.Roles(),
+		resource:  r,
+		operation: op,
+		dbTable:   svc.dbTable,
+		chk:       svc,
+		fallback:  fallback,
+		pkColName: "id",
 	}
 }
 

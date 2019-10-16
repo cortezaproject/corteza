@@ -118,10 +118,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 
 	// Permissions, access control
 	if DefaultPermissions == nil {
-		DefaultPermissions = permissions.Service(
-			ctx,
-			DefaultLogger,
-			permissions.Repository(db, "compose_permission_rules"))
+		DefaultPermissions = permissions.Service(ctx, DefaultLogger, db, "compose_permission_rules")
 	}
 	DefaultAccessControl = AccessControl(DefaultPermissions)
 

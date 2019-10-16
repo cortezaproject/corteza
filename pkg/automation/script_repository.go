@@ -7,7 +7,6 @@ import (
 	"github.com/titpetric/factory"
 	"gopkg.in/Masterminds/squirrel.v1"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
@@ -104,12 +103,8 @@ func (r *scriptRepository) find(db *factory.DB, filter ScriptFilter) (set Script
 		)
 	}
 
-	// Limit by access
-	if f.AccessCheck.HasOperation() {
-		query = query.Where(f.AccessCheck.BindToEnv(
-			types.AutomationScriptPermissionResource,
-			r.dbTablePrefix,
-		))
+	if f.IsReadable != nil {
+		query = query.Where(f.IsReadable)
 	}
 
 	if f.Count, err = rh.Count(db, query); err != nil || f.Count == 0 {
