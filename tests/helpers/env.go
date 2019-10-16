@@ -10,7 +10,6 @@ import (
 func RecursiveDotEnvLoad() {
 	for _, loc := range []string{".env", "../.env", "../../.env"} {
 		if _, err := os.Stat(loc); err == nil {
-			print("LOADING ENV", loc)
 			godotenv.Load(loc)
 		}
 	}
