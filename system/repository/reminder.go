@@ -103,13 +103,6 @@ func (r reminder) Find(filter types.ReminderFilter) (set types.ReminderSet, f ty
 		q = q.Where("r.remind_at <= ?", f.ScheduledUntil.Format(time.RFC3339))
 	}
 
-	if f.AccessCheck.HasOperation() {
-		q = q.Where(f.AccessCheck.BindToEnv(
-			types.ReminderPermissionResource,
-			"sys",
-		))
-	}
-
 	if f.Count, err = r.count(q); err != nil || f.Count == 0 {
 		return
 	}

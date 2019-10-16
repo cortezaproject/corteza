@@ -247,9 +247,5 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"run",
 	)
 
-	wl.Set(
-		types.ReminderPermissionResource,
-	)
-
 	return wl
 }
