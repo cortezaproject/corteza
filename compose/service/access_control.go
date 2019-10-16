@@ -68,6 +68,10 @@ func (svc accessControl) CanReadNamespace(ctx context.Context, r *types.Namespac
 	return svc.can(ctx, r, "read", permissions.Allowed)
 }
 
+func (svc accessControl) FilterReadableNamespaces(ctx context.Context) *permissions.ResourceFilter {
+	return svc.permissions.ResourceFilter(ctx, types.NamespacePermissionResource, "read", permissions.Deny)
+}
+
 func (svc accessControl) CanUpdateNamespace(ctx context.Context, r *types.Namespace) bool {
 	return svc.can(ctx, r, "update")
 }
@@ -90,6 +94,10 @@ func (svc accessControl) CanCreateAutomationScript(ctx context.Context, r *types
 
 func (svc accessControl) CanReadModule(ctx context.Context, r *types.Module) bool {
 	return svc.can(ctx, r, "read")
+}
+
+func (svc accessControl) FilterReadableModules(ctx context.Context) *permissions.ResourceFilter {
+	return svc.permissions.ResourceFilter(ctx, types.ModulePermissionResource, "read", permissions.Deny)
 }
 
 func (svc accessControl) CanUpdateModule(ctx context.Context, r *types.Module) bool {
@@ -136,6 +144,10 @@ func (svc accessControl) CanReadChart(ctx context.Context, r *types.Chart) bool 
 	return svc.can(ctx, r, "read")
 }
 
+func (svc accessControl) FilterReadableCharts(ctx context.Context) *permissions.ResourceFilter {
+	return svc.permissions.ResourceFilter(ctx, types.ChartPermissionResource, "read", permissions.Deny)
+}
+
 func (svc accessControl) CanUpdateChart(ctx context.Context, r *types.Chart) bool {
 	return svc.can(ctx, r, "update")
 }
@@ -151,6 +163,10 @@ func (svc accessControl) CanCreatePage(ctx context.Context, r *types.Namespace) 
 
 func (svc accessControl) CanReadPage(ctx context.Context, r *types.Page) bool {
 	return svc.can(ctx, r, "read")
+}
+
+func (svc accessControl) FilterReadablePages(ctx context.Context) *permissions.ResourceFilter {
+	return svc.permissions.ResourceFilter(ctx, types.PagePermissionResource, "read", permissions.Deny)
 }
 
 func (svc accessControl) CanUpdatePage(ctx context.Context, r *types.Page) bool {

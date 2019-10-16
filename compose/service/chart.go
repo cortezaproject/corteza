@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 )
 
 type (
@@ -31,6 +32,8 @@ type (
 		CanReadChart(context.Context, *types.Chart) bool
 		CanUpdateChart(context.Context, *types.Chart) bool
 		CanDeleteChart(context.Context, *types.Chart) bool
+
+		FilterReadableCharts(ctx context.Context) *permissions.ResourceFilter
 	}
 
 	ChartService interface {
@@ -99,14 +102,12 @@ func (svc chart) checkPermissions(c *types.Chart, err error) (*types.Chart, erro
 }
 
 func (svc chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error) {
+	f.IsReadable = svc.ac.FilterReadableCharts(svc.ctx)
+
 	set, f, err = svc.chartRepo.Find(filter)
 	if err != nil {
 		return
 	}
-
-	set, _ = set.Filter(func(m *types.Chart) (bool, error) {
-		return svc.ac.CanReadChart(svc.ctx, m), nil
-	})
 
 	return
 }

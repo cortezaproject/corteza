@@ -32,6 +32,8 @@ type (
 		CanDeleteNamespace(context.Context, *types.Namespace) bool
 
 		Grant(ctx context.Context, rr ...*permissions.Rule) error
+
+		FilterReadableNamespaces(ctx context.Context) *permissions.ResourceFilter
 	}
 
 	NamespaceService interface {
@@ -95,14 +97,12 @@ func (svc namespace) checkPermissions(p *types.Namespace, err error) (*types.Nam
 }
 
 func (svc namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
+	f.IsReadable = svc.ac.FilterReadableNamespaces(svc.ctx)
+
 	set, f, err = svc.namespaceRepo.Find(filter)
 	if err != nil {
 		return
 	}
-
-	set, _ = set.Filter(func(ns *types.Namespace) (bool, error) {
-		return svc.ac.CanReadNamespace(svc.ctx, ns), nil
-	})
 
 	return
 }

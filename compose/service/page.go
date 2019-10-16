@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 )
 
 type (
@@ -32,6 +33,8 @@ type (
 		CanReadPage(context.Context, *types.Page) bool
 		CanUpdatePage(context.Context, *types.Page) bool
 		CanDeletePage(context.Context, *types.Page) bool
+
+		FilterReadablePages(ctx context.Context) *permissions.ResourceFilter
 	}
 
 	PageService interface {
@@ -118,21 +121,25 @@ func (svc page) FindBySelfID(namespaceID, parentID uint64) (pp types.PageSet, f 
 		return nil, f, ErrNamespaceRequired.withStack()
 	}
 
-	return svc.filterPageSetByPermission(svc.pageRepo.Find(types.PageFilter{
+	return svc.pageRepo.Find(types.PageFilter{
 		NamespaceID: namespaceID,
 		ParentID:    parentID,
 
 		// This will enable parentID=0 query
 		Root: true,
-	}))
+
+		IsReadable: svc.ac.FilterReadablePages(svc.ctx),
+	})
 }
 
 func (svc page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
+	f.IsReadable = svc.ac.FilterReadablePages(svc.ctx)
+
 	if filter.NamespaceID == 0 {
 		return nil, f, ErrNamespaceRequired.withStack()
 	}
 
-	return svc.filterPageSetByPermission(svc.pageRepo.Find(filter))
+	return svc.pageRepo.Find(filter)
 }
 
 func (svc page) Tree(namespaceID uint64) (pages types.PageSet, err error) {
@@ -144,11 +151,12 @@ func (svc page) Tree(namespaceID uint64) (pages types.PageSet, err error) {
 		tree   types.PageSet
 		filter = types.PageFilter{
 			NamespaceID: namespaceID,
+			IsReadable:  svc.ac.FilterReadablePages(svc.ctx),
 		}
 	)
 
 	return tree, svc.db.Transaction(func() (err error) {
-		if pages, _, err = svc.filterPageSetByPermission(svc.pageRepo.Find(filter)); err != nil {
+		if pages, _, err = svc.pageRepo.Find(filter); err != nil {
 			return
 		}
 
@@ -174,19 +182,6 @@ func (svc page) Tree(namespaceID uint64) (pages types.PageSet, err error) {
 
 		return nil
 	})
-}
-
-func (svc page) filterPageSetByPermission(pp types.PageSet, f types.PageFilter, err error) (types.PageSet, types.PageFilter, error) {
-	if err != nil {
-		return nil, f, err
-	}
-
-	// @todo Filter-by-permission can/will mess up filter's count & paging...
-	pp, err = pp.Filter(func(m *types.Page) (bool, error) {
-		return svc.ac.CanReadPage(svc.ctx, m), nil
-	})
-
-	return pp, f, err
 }
 
 func (svc page) Reorder(namespaceID, selfID uint64, pageIDs []uint64) error {

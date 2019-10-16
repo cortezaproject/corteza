@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 )
 
 type (
@@ -32,6 +33,8 @@ type (
 		CanReadModule(context.Context, *types.Module) bool
 		CanUpdateModule(context.Context, *types.Module) bool
 		CanDeleteModule(context.Context, *types.Module) bool
+
+		FilterReadableModules(ctx context.Context) *permissions.ResourceFilter
 	}
 
 	ModuleService interface {
@@ -120,6 +123,8 @@ func (svc module) loader(m *types.Module, err error) (*types.Module, error) {
 }
 
 func (svc module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
+	f.IsReadable = svc.ac.FilterReadableModules(svc.ctx)
+
 	set, f, err = svc.moduleRepo.Find(filter)
 	if err != nil {
 		return
