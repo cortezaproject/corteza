@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/settings"
 )
 
 type (
@@ -18,6 +19,11 @@ type (
 		UpdateResources(base string, handle string, ID uint64)
 		UpdateRoles(handle string, ID uint64)
 		Store(context.Context, permissions.ImportKeeper) error
+	}
+
+	SettingImporter interface {
+		CastSet(interface{}) error
+		Store(context.Context, settings.ImportKeeper) error
 	}
 )
 

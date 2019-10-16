@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/settings"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -22,7 +23,9 @@ func Import(ctx context.Context, ns *types.Namespace, ff ...io.Reader) (err erro
 			service.DefaultChart.With(ctx),
 			service.DefaultPage.With(ctx),
 			service.DefaultInternalAutomationManager,
+
 			permissions.NewImporter(service.DefaultAccessControl.Whitelist()),
+			settings.NewImporter(),
 		)
 
 		// At the moment, we can not load roles from system service
@@ -41,12 +44,12 @@ func Import(ctx context.Context, ns *types.Namespace, ff ...io.Reader) (err erro
 		}
 
 		if ns != nil {
-			// If we're importing with --namespace switch,
-			// we're going to import all into one NS
-
-			err = imp.GetNamespaceImporter().Cast(ns.Slug, aux)
+			if mp, ok := aux.(map[interface{}]interface{}); ok && mp["namespaces"] != nil {
+				err = imp.GetNamespaceImporter().Cast(ns.Slug, mp["namespaces"])
+			} else {
+				err = imp.GetNamespaceImporter().Cast(ns.Slug, aux)
+			}
 		} else {
-			// importing one or more namespaces
 			err = imp.Cast(aux)
 		}
 
@@ -71,6 +74,7 @@ func Import(ctx context.Context, ns *types.Namespace, ff ...io.Reader) (err erro
 		service.DefaultRecord.With(ctx),
 		service.DefaultInternalAutomationManager,
 		service.DefaultAccessControl,
+		service.DefaultSettings.With(ctx),
 		roles,
 	)
 }

@@ -21,4 +21,10 @@ func TestImporter_Cast(t *testing.T) {
 		req.Equal("Module1", i.namespaces.modules["foo"].set.FindByHandle("m1").Name)
 
 	})
+
+	impFixTester(t, "importer_with_settings", func(t *testing.T, i *Importer) {
+		req := require.New(t)
+
+		req.NotNil(i)
+	})
 }

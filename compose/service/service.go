@@ -111,9 +111,9 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 				zap.Error(err))
 		}
 
-			if err != nil {
-				return err
-			}
+		if err != nil {
+			return err
+		}
 	}
 
 	// Permissions, access control
