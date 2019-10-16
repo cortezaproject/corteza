@@ -37,6 +37,8 @@ func (svc accessControl) Effective(ctx context.Context) (ee permissions.Effectiv
 	ee.Push(types.ComposePermissionResource, "access", svc.CanAccess(ctx))
 	ee.Push(types.ComposePermissionResource, "grant", svc.CanGrant(ctx))
 	ee.Push(types.ComposePermissionResource, "namespace.create", svc.CanCreateNamespace(ctx))
+	ee.Push(types.ComposePermissionResource, "settings.read", svc.CanReadSettings(ctx))
+	ee.Push(types.ComposePermissionResource, "settings.manage", svc.CanManageSettings(ctx))
 
 	return
 }
@@ -47,6 +49,14 @@ func (svc accessControl) CanAccess(ctx context.Context) bool {
 
 func (svc accessControl) CanGrant(ctx context.Context) bool {
 	return svc.can(ctx, types.ComposePermissionResource, "grant")
+}
+
+func (svc accessControl) CanReadSettings(ctx context.Context) bool {
+	return svc.can(ctx, types.ComposePermissionResource, "settings.read")
+}
+
+func (svc accessControl) CanManageSettings(ctx context.Context) bool {
+	return svc.can(ctx, types.ComposePermissionResource, "settings.manage")
 }
 
 func (svc accessControl) CanCreateNamespace(ctx context.Context) bool {
@@ -198,6 +208,8 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"access",
 		"grant",
 		"namespace.create",
+		"settings.read",
+		"settings.manage",
 	)
 
 	wl.Set(

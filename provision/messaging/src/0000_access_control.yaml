@@ -7,6 +7,8 @@ allow:
     messaging:
       - access
       - grant
+      - settings.read
+      - settings.manage
       - channel.public.create
       - channel.private.create
       - channel.group.create
