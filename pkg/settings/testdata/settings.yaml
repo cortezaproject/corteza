@@ -1,10 +1,17 @@
-array:
-- v1
-- v2
-object:
-  k1: v1
-  k2: v2
-plain_b: true
-plain_double: 12.34
-plain_double_2: 12
-plain_s: string
+v_string: string
+v_float: 12.34
+v_int-as-float: 123
+v_bool_true: true
+v_bool_false: false
+v_slice:
+- 1
+- 1.23
+- string
+- true
+- false
+v_map:
+  k1: string
+  k2: 1
+  k3: 1.23
+  k4: true
+  k5: false
