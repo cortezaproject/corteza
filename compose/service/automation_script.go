@@ -6,7 +6,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 )
@@ -35,10 +34,11 @@ type (
 		CanReadNamespace(context.Context, *types.Namespace) bool
 
 		CanCreateAutomationScript(context.Context, *types.Namespace) bool
-		CanReadAnyAutomationScript(context.Context) bool
 		CanReadAutomationScript(context.Context, *automation.Script) bool
 		CanUpdateAutomationScript(context.Context, *automation.Script) bool
 		CanDeleteAutomationScript(context.Context, *automation.Script) bool
+
+		FilterReadableScripts(ctx context.Context) *permissions.ResourceFilter
 	}
 )
 
@@ -71,12 +71,7 @@ func (svc automationScript) Find(ctx context.Context, namespaceID uint64, f auto
 	}
 
 	f.NamespaceID = namespaceID
-	f.AccessCheck = permissions.InitAccessCheckFilter(
-		"read",
-		auth.GetIdentityFromContext(ctx).Roles(),
-		svc.ac.CanReadAnyAutomationScript(ctx),
-	)
-
+	f.IsReadable = svc.ac.FilterReadableScripts(ctx)
 	return svc.scriptManager.FindScripts(ctx, f)
 }
 

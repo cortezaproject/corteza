@@ -76,7 +76,7 @@ type (
 		Resource   string
 		IncDeleted bool `json:"incDeleted"`
 
-		permissions.AccessCheck `json:"-"`
+		IsReadable *permissions.ResourceFilter `json:"-"`
 
 		// Standard paging fields & helpers
 		rh.PageFilter

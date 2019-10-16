@@ -2,95 +2,124 @@ package permissions
 
 import (
 	"fmt"
-	"strings"
+
+	"gopkg.in/Masterminds/squirrel.v1"
+
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
-	AccessCheck struct {
-		prefix    string
+	// ResourceFilter is Helper for *Filter structs
+	//
+	// It is used to provide filtering on DB level and meant to be used
+	// mainly for checking for read operations.
+	//
+	// It creates a complex SQL syntax for permission checking depending on the
+	// permissions of the user:
+	//
+	//  - if user is superuser no extra checks are made, simple TRUE sql is returned
+	//  - if user is member of one or more roles a query is assembled that checks
+	//    for allow & deny permissions for each resource
+	//  - if one of the roles has wildcard ALLOW / DENY rule this is then the final check
+	//  - we check everyone role rules for each resource
+	//  - if everyone role has wildcard ALLOW / DENY rule this is then the final check
+	//  - fallback access check is added at the end
+	//
+	// Resulting SQL check SHOULD reflect rules check ("overall flow" in the header of
+	// ruleset_checks.go file)
+	//
+	ResourceFilter struct {
+		dbTable   string
 		pkColName string
 
-		resource          Resource
-		operation         Operation
-		roles             []uint64
-		checkExplicitDeny bool
+		resource  Resource
+		operation Operation
+
+		chk interface {
+			Check(res Resource, op Operation, roles ...uint64) (v Access)
+		}
+
+		fallback Access
+
+		superuser bool
+		roles     []uint64
 	}
 )
 
-func InitAccessCheckFilter(operation Operation, roles []uint64, checkExplicitDeny bool) AccessCheck {
-	var ac = AccessCheck{
-		operation:         operation,
-		roles:             roles,
-		checkExplicitDeny: checkExplicitDeny,
-		pkColName:         "id",
+func (rf *ResourceFilter) Build(pkColName string) *ResourceFilter {
+	rf.pkColName = pkColName
+	return rf
+}
+
+func (rf ResourceFilter) ToSql() (sql string, args []interface{}, err error) {
+	if rf.superuser {
+		return "TRUE", nil, nil
 	}
 
-	return ac
-}
+	// selects first rule for res+op+role
+	// rules are ordered by access - denies first
+	// end query will return 1 row with 1 column - FALSE if user has at least one DENY rule
+	// and TRUE if there is at least one ALLOW
+	//
+	// Final query is then wrapped in simple CASE statement that casts NULL (no rules)
+	// to TRUE. So: no rule == inherit
+	base := squirrel.
+		Select(fmt.Sprintf("access = %d", Allow)).
+		From(rf.dbTable).
+		Where(squirrel.Eq{"operation": rf.operation}).
+		Where(squirrel.Expr(fmt.Sprintf("resource = CONCAT(?, %s)", rf.pkColName), rf.resource)).
+		OrderBy("access").
+		Limit(1)
 
-func (ac *AccessCheck) BindToEnv(resource Resource, prefix string) *AccessCheck {
-	ac.resource = resource
-	ac.prefix = prefix
-	return ac
-}
+	var (
+		checks = []squirrel.Sqlizer{}
 
-func (ac *AccessCheck) SetPrimaryKeyName(col string) *AccessCheck {
-	ac.pkColName = col
-	return ac
-}
+		expTRUE  = squirrel.Expr("TRUE")
+		expFALSE = squirrel.Expr("FALSE")
 
-func (ac AccessCheck) HasOperation() bool {
-	return ac.operation != ""
-}
+		check = func(rr ...uint64) squirrel.Sqlizer {
+			return squirrel.And{base.Where(squirrel.Eq{"rel_role": rr})}
+		}
 
-func (ac AccessCheck) HasResource() bool {
-	return ac.resource != ""
-}
-
-// ToSql converts access check to SQL (with args) that will help with filtering
-//
-// Satisfies squirrel.Sqlizer interface
-func (ac AccessCheck) ToSql() (sql string, args []interface{}, err error) {
-	if len(ac.roles) == 0 {
-		sql = "false"
-		return
-	}
-
-	sql = fmt.Sprintf(
-		`EXISTS (SELECT 1
-                            FROM %s_permission_rules
-                           WHERE resource = CONCAT(?, %s)
-                             AND operation = ?
-                             AND access = ?
-                             AND rel_role IN (%s))`,
-
-		ac.prefix,
-		ac.pkColName,
-
-		// Generate placeholder for every role we have
-		strings.Repeat(",?", len(ac.roles))[1:],
+		build = func(ss ...squirrel.Sqlizer) (sql string, args []interface{}, err error) {
+			return rh.SquirrelFunction("COALESCE", append(checks, ss...)...).ToSql()
+		}
 	)
 
-	args = []interface{}{
-		ac.resource,
-		ac.operation,
+	if len(rf.roles) > 0 {
+		// Add per-resource check for all roles
+		checks = append(checks, check(rf.roles...))
+
+		if rf.chk != nil {
+			switch rf.chk.Check(rf.resource.AppendWildcard(), rf.operation, rf.roles...) {
+			// Explicit deny/allow on wildcard:
+			// Add false/true to check-list and return it immediately
+			case Deny:
+				return build(expFALSE)
+			case Allow:
+				return build(expTRUE)
+			}
+		}
 	}
 
-	if ac.checkExplicitDeny {
-		// User has permissions to read on wildcard (*) resource
-		// so we need to check if there is any explicit denies
-		args = append(args, Deny)
-		sql = fmt.Sprintf("NOT %s", sql)
+	// Add per-resource check for Everyone
+	checks = append(checks, check(EveryoneRoleID))
+
+	if rf.chk != nil {
+		switch rf.chk.Check(rf.resource.AppendWildcard(), rf.operation, rf.roles...) {
+		// Explicit deny/allow on wildcard:
+		// Add false/true to check-list and return it immediately
+		case Deny:
+			return build(expFALSE)
+		case Allow:
+			return build(expTRUE)
+		}
+	}
+
+	// Fallback access
+	if rf.fallback == Deny {
+		return build(expFALSE)
 	} else {
-		// User is explicitly denied to read on wildcard (*) resource
-		// check for all that have explicit allow
-		args = append(args, Allow)
-
+		return build(expTRUE)
 	}
-
-	for _, roleID := range ac.roles {
-		args = append(args, roleID)
-	}
-
-	return sql, args, nil
 }

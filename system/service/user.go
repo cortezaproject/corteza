@@ -54,9 +54,6 @@ type (
 
 	userAccessController interface {
 		CanAccess(context.Context) bool
-		CanReadAnyUser(context.Context) bool
-		CanUnmaskEmailOnAnyUser(context.Context) bool
-		CanUnmaskNameOnAnyUser(context.Context) bool
 		CanCreateUser(context.Context) bool
 		CanUpdateUser(context.Context, *types.User) bool
 		CanDeleteUser(context.Context, *types.User) bool
@@ -64,6 +61,10 @@ type (
 		CanUnsuspendUser(context.Context, *types.User) bool
 		CanUnmaskEmail(context.Context, *types.User) bool
 		CanUnmaskName(context.Context, *types.User) bool
+
+		FilterReadableUsers(ctx context.Context) *permissions.ResourceFilter
+		FilterUsersWithUnmaskableEmail(ctx context.Context) *permissions.ResourceFilter
+		FilterUsersWithUnmaskableName(ctx context.Context) *permissions.ResourceFilter
 	}
 
 	UserService interface {
@@ -166,27 +167,16 @@ func (svc user) Find(f types.UserFilter) (types.UserSet, types.UserFilter, error
 
 	if svc.privacyMaskEmail {
 		// Prepare filter for email unmasking check
-		f.AccessCheckEmail = permissions.InitAccessCheckFilter(
-			"unmask.email",
-			internalAuth.GetIdentityFromContext(svc.ctx).Roles(),
-			svc.ac.CanUnmaskEmailOnAnyUser(svc.ctx),
-		)
+		f.IsEmailUnmaskable = svc.ac.FilterUsersWithUnmaskableEmail(svc.ctx)
+
 	}
 
 	if svc.privacyMaskName {
 		// Prepare filter for name unmasking check
-		f.AccessCheckName = permissions.InitAccessCheckFilter(
-			"unmask.name",
-			internalAuth.GetIdentityFromContext(svc.ctx).Roles(),
-			svc.ac.CanUnmaskNameOnAnyUser(svc.ctx),
-		)
+		f.IsNameUnmaskable = svc.ac.FilterUsersWithUnmaskableName(svc.ctx)
 	}
 
-	f.AccessCheck = permissions.InitAccessCheckFilter(
-		"read",
-		internalAuth.GetIdentityFromContext(svc.ctx).Roles(),
-		svc.ac.CanReadAnyUser(svc.ctx),
-	)
+	f.IsReadable = svc.ac.FilterReadableUsers(svc.ctx)
 
 	return svc.procSet(svc.user.Find(f))
 }

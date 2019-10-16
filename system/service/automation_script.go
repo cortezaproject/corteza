@@ -6,7 +6,6 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
@@ -32,10 +31,11 @@ type (
 		CanGrant(context.Context) bool
 
 		CanCreateAutomationScript(context.Context) bool
-		CanReadAnyAutomationScript(context.Context) bool
 		CanReadAutomationScript(context.Context, *automation.Script) bool
 		CanUpdateAutomationScript(context.Context, *automation.Script) bool
 		CanDeleteAutomationScript(context.Context, *automation.Script) bool
+
+		FilterReadableScripts(ctx context.Context) *permissions.ResourceFilter
 	}
 )
 
@@ -63,13 +63,7 @@ func (svc automationScript) FindByID(ctx context.Context, scriptID uint64) (*aut
 }
 
 func (svc automationScript) Find(ctx context.Context, f automation.ScriptFilter) (automation.ScriptSet, automation.ScriptFilter, error) {
-
-	f.AccessCheck = permissions.InitAccessCheckFilter(
-		"read",
-		intAuth.GetIdentityFromContext(ctx).Roles(),
-		svc.ac.CanReadAnyAutomationScript(ctx),
-	)
-
+	f.IsReadable = svc.ac.FilterReadableScripts(ctx)
 	return svc.scriptManager.FindScripts(ctx, f)
 }
 

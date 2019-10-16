@@ -61,6 +61,10 @@ func (r *repository) Load() (RuleSet, error) {
 	return rr, nil
 }
 
+func (r *repository) Purge() error {
+	return r.db().Delete(r.dbTable, nil)
+}
+
 func (r *repository) Store(deleteSet, updateSet RuleSet) (err error) {
 	if len(deleteSet) == 0 && len(updateSet) == 0 {
 		return

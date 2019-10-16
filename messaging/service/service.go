@@ -97,8 +97,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	if DefaultPermissions == nil {
 		// Do not override permissions service stored under DefaultPermissions
 		// to allow integration tests to inject own permission service
-		pRepo := permissions.Repository(repository.DB(ctx), "messaging_permission_rules")
-		DefaultPermissions = permissions.Service(ctx, DefaultLogger, pRepo)
+		DefaultPermissions = permissions.Service(ctx, DefaultLogger, repository.DB(ctx), "messaging_permission_rules")
 	}
 	DefaultAccessControl = AccessControl(DefaultPermissions)
 

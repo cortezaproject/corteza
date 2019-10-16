@@ -5,7 +5,6 @@ import (
 
 	"github.com/jmoiron/sqlx/types"
 
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
@@ -42,8 +41,5 @@ type (
 
 		// Standard paging fields & helpers
 		rh.PageFilter
-
-		// Access controll
-		permissions.AccessCheck `json:"-"`
 	}
 )

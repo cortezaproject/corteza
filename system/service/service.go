@@ -81,8 +81,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultIntSettings = internalSettings.NewService(internalSettings.NewRepository(repository.DB(ctx), "sys_settings"))
 
 	if DefaultPermissions == nil {
-		pRepo := permissions.Repository(repository.DB(ctx), "sys_permission_rules")
-		DefaultPermissions = permissions.Service(ctx, DefaultLogger, pRepo)
+		DefaultPermissions = permissions.Service(ctx, DefaultLogger, repository.DB(ctx), "sys_permission_rules")
 	}
 
 	DefaultAccessControl = AccessControl(DefaultPermissions)
