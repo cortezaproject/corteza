@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/cortezaproject/corteza-server/pkg/settings"
+
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
@@ -15,6 +17,7 @@ type (
 	Importer struct {
 		channels    *Channel
 		permissions importer.PermissionImporter
+		settings    importer.SettingImporter
 	}
 
 	channelFinder interface {
@@ -22,10 +25,11 @@ type (
 	}
 )
 
-func NewImporter(p importer.PermissionImporter, ci *Channel) *Importer {
+func NewImporter(p importer.PermissionImporter, s importer.SettingImporter, ci *Channel) *Importer {
 	return &Importer{
 		channels:    ci,
 		permissions: p,
+		settings:    s,
 	}
 }
 
@@ -36,6 +40,9 @@ func (imp *Importer) Cast(in interface{}) (err error) {
 			return imp.channels.CastSet(val)
 		case "channel":
 			return imp.channels.CastSet([]interface{}{val})
+
+		case "settings":
+			return imp.settings.CastSet(val)
 
 		case "allow", "deny":
 			return imp.permissions.CastResourcesSet(key, val)
@@ -48,7 +55,7 @@ func (imp *Importer) Cast(in interface{}) (err error) {
 	})
 }
 
-func (imp *Importer) Store(ctx context.Context, rk channelKeeper, pk permissions.ImportKeeper, roles sysTypes.RoleSet) (err error) {
+func (imp *Importer) Store(ctx context.Context, rk channelKeeper, pk permissions.ImportKeeper, sk settings.ImportKeeper, roles sysTypes.RoleSet) (err error) {
 	err = imp.channels.Store(ctx, rk)
 	if err != nil {
 		return
@@ -61,6 +68,11 @@ func (imp *Importer) Store(ctx context.Context, rk channelKeeper, pk permissions
 	})
 
 	err = imp.permissions.Store(ctx, pk)
+	if err != nil {
+		return
+	}
+
+	err = imp.settings.Store(ctx, sk)
 	if err != nil {
 		return
 	}

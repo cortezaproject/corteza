@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/settings"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -28,6 +29,7 @@ func Import(ctx context.Context, ff ...io.Reader) (err error) {
 		p   = permissions.NewImporter(service.DefaultAccessControl.Whitelist())
 		imp = NewImporter(
 			p,
+			settings.NewImporter(),
 			NewChannelImport(p, cc),
 		)
 
@@ -56,6 +58,7 @@ func Import(ctx context.Context, ff ...io.Reader) (err error) {
 		ctx,
 		service.DefaultChannel.With(ctx),
 		service.DefaultAccessControl,
+		service.DefaultSettings.With(ctx),
 		roles,
 	)
 }
