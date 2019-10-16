@@ -6,6 +6,7 @@ cloud.google.com/go v0.44.1/go.mod h1:iSa0KzasP4Uvy3f1mN/7PiObzGgflwredwwASm/v6A
 cloud.google.com/go v0.44.3 h1:0sMegbmn/8uTwpNkB0q9cLEpZ2W5a6kl+wtBQgPWBJQ=
 cloud.google.com/go v0.44.3/go.mod h1:60680Gw3Yr4ikxnPRS/oxxkBccT6SA1yMk63TGekxKY=
 cloud.google.com/go/datastore v1.0.0/go.mod h1:LXYbyblFSglQ5pkeyhO+Qmw7ukd3C+pD7TKLgZqpHYE=
+github.com/360EntSecGroup-Skylar/excelize/v2 v2.0.2 h1:StMrA6UQ5Cm6206DxXGuV/NMqSIOIDoMXMYt8JPe1lE=
 github.com/360EntSecGroup-Skylar/excelize/v2 v2.0.2/go.mod h1:EfRHD2k+Kd7ijnqlwOrH1IifwgWB9yYJ0pdXtBZmlpU=
 github.com/766b/chi-prometheus v0.0.0-20180509160047-46ac2b31aa30 h1:bNHbCMKiQxpRNe4Pk2W09N1aXXc4ICOawQFKIDEicqc=
 github.com/766b/chi-prometheus v0.0.0-20180509160047-46ac2b31aa30/go.mod h1:X/LhbmoBoRu8TxoGIOIraVNhfz3hhikJoaelrOuhdPY=
