@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/automation/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	internalSettings "github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/pkg/store"
 	"github.com/cortezaproject/corteza-server/pkg/store/minio"
 	"github.com/cortezaproject/corteza-server/pkg/store/plain"
@@ -41,6 +42,9 @@ var (
 	DefaultStore store.Store
 
 	DefaultLogger *zap.Logger
+
+	DefaultInternalSettings internalSettings.Service
+	DefaultSettings         SettingsService
 
 	// DefaultPermissions Retrieves & stores permissions
 	DefaultPermissions permissionServicer
@@ -77,6 +81,8 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	var db = repository.DB(ctx)
 
 	DefaultLogger = log.Named("service")
+
+	DefaultInternalSettings = internalSettings.NewService(internalSettings.NewRepository(repository.DB(ctx), "compose_settings"))
 
 	if DefaultStore == nil {
 		if c.Storage.MinioEndpoint != "" {
@@ -118,6 +124,8 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 			permissions.Repository(db, "compose_permission_rules"))
 	}
 	DefaultAccessControl = AccessControl(DefaultPermissions)
+
+	DefaultSettings = Settings(ctx, DefaultInternalSettings)
 
 	DefaultNamespace = Namespace()
 	DefaultModule = Module()
