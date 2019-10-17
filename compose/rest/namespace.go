@@ -61,6 +61,7 @@ func (ctrl Namespace) List(ctx context.Context, r *request.NamespaceList) (inter
 		Slug:    r.Slug,
 		PerPage: r.PerPage,
 		Page:    r.Page,
+		Sort:    r.Sort,
 	}
 
 	set, filter, err := ctrl.namespace.With(ctx).Find(f)

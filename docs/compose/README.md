@@ -613,6 +613,7 @@ Compose module definitions
 | slug | string | GET | Search by namespace slug | N/A | NO |
 | page | uint | GET | Page number (0 based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
+| sort | string | GET | Sort namespaces | N/A | NO |
 
 ## Create namespace
 
