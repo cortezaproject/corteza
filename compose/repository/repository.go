@@ -78,10 +78,6 @@ func (r repository) fetchPaged(set interface{}, q squirrel.SelectBuilder, page, 
 	return rh.FetchPaged(r.db(), q, page, perPage, set)
 }
 
-func normalizePerPage(val, min, max, def uint) uint {
-	return rh.NormalizePerPage(val, min, max, def)
-}
-
 func isFound(err error, valid bool, nerr error) error {
 	return rh.IsFound(err, valid, nerr)
 }
