@@ -230,6 +230,12 @@
                             "type": "uint",
                             "required": false,
                             "title": "Returned items per page (default 50)"
+                        },
+                        {
+                            "type": "string",
+                            "name": "sort",
+                            "required": false,
+                            "title": "Sort"
                         }
                     ]
                 }
