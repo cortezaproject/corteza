@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
@@ -102,8 +101,6 @@ func (r module) findOneBy(namespaceID uint64, field string, value interface{}) (
 
 		err = rh.FetchOne(r.db(), q, m)
 	)
-
-	spew.Dump(m, err)
 
 	if m.ID == 0 {
 		return nil, ErrModuleNotFound
@@ -271,11 +268,7 @@ func (r module) FindFields(moduleIDs ...uint64) (ff types.ModuleFieldSet, err er
                ORDER BY rel_module, place`
 
 	query = fmt.Sprintf(query, r.tableFields())
-	if moduleIDs[0] == 0 {
-		spew.Dump(moduleIDs)
-		panic("foo")
 
-	}
 	if sql, args, err := sqlx.In(query, moduleIDs); err != nil {
 		return nil, err
 	} else {

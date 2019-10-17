@@ -750,6 +750,7 @@ Compose pages
 | handle | string | GET | Search by handle | N/A | NO |
 | page | uint | GET | Page number (0 based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
+| sort | string | GET | Sort | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Create page
