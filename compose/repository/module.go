@@ -102,10 +102,10 @@ func (r module) findOneBy(namespaceID uint64, field string, value interface{}) (
 		err = rh.FetchOne(r.db(), q, m)
 	)
 
-	if m.ID == 0 {
-		return nil, ErrModuleNotFound
-	} else if err != nil {
+	if err != nil {
 		return nil, err
+	} else if m.ID == 0 {
+		return nil, ErrModuleNotFound
 	}
 
 	return m, nil

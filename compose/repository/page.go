@@ -72,7 +72,7 @@ func (r page) columns() []string {
 
 func (r page) query() squirrel.SelectBuilder {
 	return squirrel.
-		Select().
+		Select(r.columns()...).
 		From(r.table()).
 		Where("deleted_at IS NULL")
 }
@@ -99,7 +99,9 @@ func (r page) findOneBy(namespaceID uint64, field string, value interface{}) (*t
 		err = rh.FetchOne(r.db(), q, p)
 	)
 
-	if err == nil && p.ID == 0 {
+	if err != nil {
+		return nil, err
+	} else if p.ID == 0 {
 		return nil, ErrPageNotFound
 	}
 

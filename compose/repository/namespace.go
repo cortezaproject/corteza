@@ -88,7 +88,9 @@ func (r *namespace) findOneBy(field string, value interface{}) (*types.Namespace
 		err = rh.FetchOne(r.db(), q, ns)
 	)
 
-	if err == nil && ns.ID == 0 {
+	if err != nil {
+		return nil, err
+	} else if ns.ID == 0 {
 		return nil, ErrNamespaceNotFound
 	}
 
