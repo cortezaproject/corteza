@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx/types"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -28,10 +29,11 @@ type (
 		Query       string `json:"query"`
 		Handle      string `json:"handle"`
 		Name        string `json:"name"`
-		Page        uint   `json:"page"`
-		PerPage     uint   `json:"perPage"`
-		// Sort    string `json:"sort"`
-		Count uint `json:"count"`
+
+		Sort string `json:"sort"`
+
+		// Standard paging fields & helpers
+		rh.PageFilter
 
 		// Resource permission check filter
 		IsReadable *permissions.ResourceFilter `json:"-"`

@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -74,8 +75,9 @@ func (ctrl *Module) List(ctx context.Context, r *request.ModuleList) (interface{
 		Query:       r.Query,
 		Name:        r.Name,
 		Handle:      r.Handle,
-		PerPage:     r.PerPage,
-		Page:        r.Page,
+		Sort:        r.Sort,
+
+		PageFilter: rh.Paging(r.Page, r.PerPage),
 	}
 
 	set, filter, err := ctrl.module.With(ctx).Find(f)
