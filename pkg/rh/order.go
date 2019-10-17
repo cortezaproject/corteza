@@ -21,7 +21,7 @@ func ParseOrder(order string, valid ...string) (out []string, err error) {
 
 	for _, col := range valid {
 		if i := strings.Index(col, "."); i > -1 {
-			whitelist[col[i:]] = true
+			whitelist[col[i+1:]] = true
 		}
 
 		whitelist[col] = true
