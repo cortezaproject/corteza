@@ -20,6 +20,11 @@
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+| name | string | GET | Application name | N/A | NO |
+| query | string | GET | Filter applications | N/A | NO |
+| page | uint | GET | Page number | N/A | NO |
+| perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
+| sort | string | GET | Sort | N/A | NO |
 
 ## Create application
 
@@ -713,6 +718,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+| reminderID | []string | GET | Filter by reminder ID | N/A | NO |
 | resource | string | GET | Only reminders of a specific resource | N/A | NO |
 | assignedTo | uint64 | GET | Only reminders for a given user | N/A | NO |
 | scheduledFrom | *time.Time | GET | Only reminders from this time (included) | N/A | NO |
@@ -721,6 +727,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | excludeDismissed | bool | GET | Filter out dismissed reminders | N/A | NO |
 | page | uint | GET | Page number (0 based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
+| sort | string | GET | Sort | N/A | NO |
 
 ## Add new reminder
 

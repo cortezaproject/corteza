@@ -1030,7 +1030,41 @@
         "name": "list",
         "method": "GET",
         "title": "List applications",
-        "path": "/"
+        "path": "/",
+        "parameters": {
+          "get": [
+            {
+              "name": "name",
+              "required": false,
+              "title": "Application name",
+              "type": "string"
+            },
+            {
+              "name": "query",
+              "required": false,
+              "title": "Filter applications",
+              "type": "string"
+            },
+            {
+              "name": "page",
+              "type": "uint",
+              "required": false,
+              "title": "Page number"
+            },
+            {
+              "name": "perPage",
+              "type": "uint",
+              "required": false,
+              "title": "Returned items per page (default 50)"
+            },
+            {
+              "name": "sort",
+              "required": false,
+              "title": "Sort",
+              "type": "string"
+            }
+          ]
+        }
       },
       {
         "name": "create",

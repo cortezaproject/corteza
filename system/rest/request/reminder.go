@@ -35,6 +35,7 @@ var _ = multipart.FileHeader{}
 
 // Reminder list request parameters
 type ReminderList struct {
+	ReminderID       []string
 	Resource         string
 	AssignedTo       uint64 `json:",string"`
 	ScheduledFrom    *time.Time
@@ -43,6 +44,7 @@ type ReminderList struct {
 	ExcludeDismissed bool
 	Page             uint
 	PerPage          uint
+	Sort             string
 }
 
 func NewReminderList() *ReminderList {
@@ -52,6 +54,7 @@ func NewReminderList() *ReminderList {
 func (r ReminderList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
+	out["reminderID"] = r.ReminderID
 	out["resource"] = r.Resource
 	out["assignedTo"] = r.AssignedTo
 	out["scheduledFrom"] = r.ScheduledFrom
@@ -60,6 +63,7 @@ func (r ReminderList) Auditable() map[string]interface{} {
 	out["excludeDismissed"] = r.ExcludeDismissed
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
+	out["sort"] = r.Sort
 
 	return out
 }
@@ -91,6 +95,12 @@ func (r *ReminderList) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	if val, ok := urlQuery["reminderID[]"]; ok {
+		r.ReminderID = parseStrings(val)
+	} else if val, ok = urlQuery["reminderID"]; ok {
+		r.ReminderID = parseStrings(val)
+	}
+
 	if val, ok := get["resource"]; ok {
 		r.Resource = val
 	}
@@ -120,6 +130,9 @@ func (r *ReminderList) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := get["perPage"]; ok {
 		r.PerPage = parseUint(val)
+	}
+	if val, ok := get["sort"]; ok {
+		r.Sort = val
 	}
 
 	return err
