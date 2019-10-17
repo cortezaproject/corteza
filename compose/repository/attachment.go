@@ -83,7 +83,9 @@ func (r attachment) findOneBy(namespaceID uint64, field string, value interface{
 		err = rh.FetchOne(r.db(), q, p)
 	)
 
-	if err == nil && p.ID == 0 {
+	if err != nil {
+		return nil, err
+	} else if p.ID == 0 {
 		return nil, ErrAttachmentNotFound
 	}
 

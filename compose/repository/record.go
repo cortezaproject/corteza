@@ -96,7 +96,9 @@ func (r record) findOneBy(namespaceID uint64, field string, value interface{}) (
 		err = rh.FetchOne(r.db(), q, rec)
 	)
 
-	if err == nil && rec.ID == 0 {
+	if err != nil {
+		return nil, err
+	} else if rec.ID == 0 {
 		return nil, ErrRecordNotFound
 	}
 
