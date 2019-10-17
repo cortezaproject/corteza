@@ -63,7 +63,7 @@ func TestApplicationCreateForbidden(t *testing.T) {
 		FormData("name", "my-app").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("Not allowed to create application")).
+		Assert(helpers.AssertError("system.service.NoPermissions")).
 		End()
 }
 
@@ -89,7 +89,7 @@ func TestApplicationUpdateForbidden(t *testing.T) {
 		FormData("name", "changed-name").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("Not allowed to update application")).
+		Assert(helpers.AssertError("system.service.NoPermissions")).
 		End()
 }
 
@@ -120,7 +120,7 @@ func TestApplicationDeleteForbidden(t *testing.T) {
 		Delete(fmt.Sprintf("/application/%d", a.ID)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("Not allowed to delete application")).
+		Assert(helpers.AssertError("system.service.NoPermissions")).
 		End()
 }
 

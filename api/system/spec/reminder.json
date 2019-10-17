@@ -25,6 +25,12 @@
       "Parameters": {
         "get": [
           {
+            "name": "reminderID",
+            "required": false,
+            "title": "Filter by reminder ID",
+            "type": "[]string"
+          },
+          {
             "name": "resource",
             "required": false,
             "title": "Only reminders of a specific resource",
@@ -71,6 +77,12 @@
             "required": false,
             "title": "Returned items per page (default 50)",
             "type": "uint"
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "title": "Sort",
+            "type": "string"
           }
         ]
       }

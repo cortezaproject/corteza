@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"github.com/titpetric/factory"
+	"gopkg.in/Masterminds/squirrel.v1"
 
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -14,7 +16,7 @@ type (
 		With(ctx context.Context, db *factory.DB) ApplicationRepository
 
 		FindByID(id uint64) (*types.Application, error)
-		Find() (types.ApplicationSet, error)
+		Find(types.ApplicationFilter) (types.ApplicationSet, types.ApplicationFilter, error)
 
 		Create(mod *types.Application) (*types.Application, error)
 		Update(mod *types.Application) (*types.Application, error)
@@ -24,16 +26,10 @@ type (
 
 	application struct {
 		*repository
-
-		// sql table reference
-		table string
 	}
 )
 
 const (
-	sqlApplicationColumns = "id, rel_owner, name, enabled, unify, created_at, updated_at, deleted_at"
-	sqlApplicationScope   = "deleted_at IS NULL"
-
 	ErrApplicationNotFound = repositoryError("ApplicationNotFound")
 )
 
@@ -45,41 +41,92 @@ func Application(ctx context.Context, db *factory.DB) ApplicationRepository {
 func (r *application) With(ctx context.Context, db *factory.DB) ApplicationRepository {
 	return &application{
 		repository: r.repository.With(ctx, db),
-		table:      "sys_application",
 	}
 }
 
-func (r *application) FindByID(id uint64) (*types.Application, error) {
-	sql := "SELECT " + sqlApplicationColumns + " FROM " + r.table + " WHERE id = ? AND " + sqlApplicationScope
-	mod := &types.Application{}
-
-	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrApplicationNotFound)
+func (r application) table() string {
+	return "sys_application"
 }
 
-func (r *application) Find() (types.ApplicationSet, error) {
-	rval := make([]*types.Application, 0)
-	params := make([]interface{}, 0)
+func (r application) columns() []string {
+	return []string{
+		"id",
+		"rel_owner",
+		"name",
+		"enabled",
+		"unify",
+		"created_at",
+		"updated_at",
+		"deleted_at",
+	}
+}
 
-	sql := "SELECT " + sqlApplicationColumns + " FROM " + r.table + " WHERE " + sqlApplicationScope
+func (r application) query() squirrel.SelectBuilder {
+	return squirrel.
+		Select(r.columns()...).
+		From(r.table()).
+		Where("deleted_at IS NULL")
+}
 
-	sql += " ORDER BY id ASC"
+func (r *application) FindByID(id uint64) (*types.Application, error) {
+	return r.findOneBy("id", id)
+}
 
-	return rval, r.db().Select(&rval, sql, params...)
+func (r application) findOneBy(field string, value interface{}) (*types.Application, error) {
+	var (
+		app = &types.Application{}
+
+		q = r.query().
+			Where(squirrel.Eq{field: value})
+
+		err = rh.FetchOne(r.db(), q, app)
+	)
+
+	if err != nil {
+		return nil, err
+	} else if app.ID == 0 {
+		return nil, ErrApplicationNotFound
+	}
+
+	return app, nil
+}
+
+func (r *application) Find(filter types.ApplicationFilter) (set types.ApplicationSet, f types.ApplicationFilter, err error) {
+	f = filter
+
+	if f.Sort == "" {
+		f.Sort = "id"
+	}
+
+	query := r.query()
+
+	var orderBy []string
+	if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
+		return
+	} else {
+		query = query.OrderBy(orderBy...)
+	}
+
+	if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
+		return
+	}
+
+	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
 }
 
 func (r *application) Create(mod *types.Application) (*types.Application, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
-	return mod, r.db().Insert(r.table, mod)
+	return mod, r.db().Insert(r.table(), mod)
 }
 
 func (r *application) Update(mod *types.Application) (*types.Application, error) {
 	mod.UpdatedAt = timeNowPtr()
 
-	return mod, r.db().Replace(r.table, mod)
+	return mod, r.db().Replace(r.table(), mod)
 }
 
 func (r *application) DeleteByID(id uint64) error {
-	return r.updateColumnByID(r.table, "deleted_at", time.Now(), id)
+	return r.updateColumnByID(r.table(), "deleted_at", time.Now(), id)
 }

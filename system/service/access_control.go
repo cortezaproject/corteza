@@ -106,6 +106,10 @@ func (svc accessControl) CanReadApplication(ctx context.Context, app *types.Appl
 	return svc.can(ctx, app, "read", permissions.Allowed)
 }
 
+func (svc accessControl) FilterReadableApplications(ctx context.Context) *permissions.ResourceFilter {
+	return svc.permissions.ResourceFilter(ctx, types.ApplicationPermissionResource, "read", permissions.Deny)
+}
+
 func (svc accessControl) CanUpdateApplication(ctx context.Context, app *types.Application) bool {
 	return svc.can(ctx, app, "update")
 }

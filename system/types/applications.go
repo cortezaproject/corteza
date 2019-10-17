@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -32,6 +33,19 @@ type (
 		Url    string `json:"url"`
 		Config string `json:"config"`
 		Order  uint   `json:"order"`
+	}
+
+	ApplicationFilter struct {
+		Name  string `json:"name"`
+		Query string `json:"query"`
+
+		Sort string `json:"sort"`
+
+		// Standard paging fields & helpers
+		rh.PageFilter
+
+		// Resource permission check filter
+		IsReadable *permissions.ResourceFilter `json:"-"`
 	}
 )
 

@@ -34,6 +34,11 @@ var _ = multipart.FileHeader{}
 
 // Application list request parameters
 type ApplicationList struct {
+	Name    string
+	Query   string
+	Page    uint
+	PerPage uint
+	Sort    string
 }
 
 func NewApplicationList() *ApplicationList {
@@ -42,6 +47,12 @@ func NewApplicationList() *ApplicationList {
 
 func (r ApplicationList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
+
+	out["name"] = r.Name
+	out["query"] = r.Query
+	out["page"] = r.Page
+	out["perPage"] = r.PerPage
+	out["sort"] = r.Sort
 
 	return out
 }
@@ -71,6 +82,22 @@ func (r *ApplicationList) Fill(req *http.Request) (err error) {
 	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
+	}
+
+	if val, ok := get["name"]; ok {
+		r.Name = val
+	}
+	if val, ok := get["query"]; ok {
+		r.Query = val
+	}
+	if val, ok := get["page"]; ok {
+		r.Page = parseUint(val)
+	}
+	if val, ok := get["perPage"]; ok {
+		r.PerPage = parseUint(val)
+	}
+	if val, ok := get["sort"]; ok {
+		r.Sort = val
 	}
 
 	return err
