@@ -1,0 +1,4 @@
+settings:
+  panel.namespace-switcher: false
+  file.max-size: 100
+  file.type.whitelist: []
