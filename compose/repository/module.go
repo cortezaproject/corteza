@@ -25,6 +25,7 @@ type (
 		FindFields(moduleIDs ...uint64) (ff types.ModuleFieldSet, err error)
 		Create(mod *types.Module) (*types.Module, error)
 		Update(mod *types.Module) (*types.Module, error)
+		UpdateFields(moduleID uint64, ff types.ModuleFieldSet, hasRecords bool) (err error)
 		DeleteByID(namespaceID, moduleID uint64) error
 	}
 
@@ -148,10 +149,6 @@ func (r module) Create(mod *types.Module) (*types.Module, error) {
 		return nil, err
 	}
 
-	if err = r.updateFields(mod.ID, mod.Fields); err != nil {
-		return nil, err
-	}
-
 	return mod, nil
 }
 
@@ -159,14 +156,10 @@ func (r module) Update(mod *types.Module) (*types.Module, error) {
 	now := time.Now().Truncate(time.Second)
 	mod.UpdatedAt = &now
 
-	if err := r.updateFields(mod.ID, mod.Fields); err != nil {
-		return nil, err
-	}
-
 	return mod, r.db().Update(r.table(), mod, "id")
 }
 
-func (r module) updateFields(moduleID uint64, ff types.ModuleFieldSet) error {
+func (r module) UpdateFields(moduleID uint64, ff types.ModuleFieldSet, hasRecords bool) error {
 	if existing, err := r.FindFields(moduleID); err != nil {
 		return err
 	} else {
@@ -187,13 +180,16 @@ func (r module) updateFields(moduleID uint64, ff types.ModuleFieldSet) error {
 		for idx, f := range ff {
 			if e := existing.FindByID(f.ID); e != nil {
 				f.CreatedAt = e.CreatedAt
-				f.UpdatedAt = &now
 
 				// We do not have any other code in place that would handle changes of field name and kind, so we need
 				// to reset any changes made to the field.
 				// @todo remove when we are able to handle field rename & type change
-				f.Name = e.Name
-				f.Kind = e.Kind
+				if hasRecords {
+					f.Name = e.Name
+					f.Kind = e.Kind
+				} else {
+					f.UpdatedAt = &now
+				}
 			} else {
 				f.ID = 0
 			}

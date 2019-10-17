@@ -24,6 +24,9 @@ func (h helper) repoMakeModule(ns *types.Namespace, name string, ff ...*types.Mo
 		Create(&types.Module{Name: name, NamespaceID: ns.ID, Fields: ff})
 	h.a.NoError(err)
 
+	err = h.repoModule().UpdateFields(m.ID, m.Fields, false)
+	h.a.NoError(err)
+
 	return m
 }
 
@@ -142,6 +145,67 @@ func TestModuleUpdate(t *testing.T) {
 	h.a.NoError(err)
 	h.a.NotNil(m)
 	h.a.Equal("changed-name", m.Name)
+}
+
+func TestModuleFieldsUpdate(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	ns := h.repoMakeNamespace("some-namespace")
+	m := h.repoMakeModule(ns, "some-module", &types.ModuleField{Kind: "String", Name: "existing"})
+	h.allow(types.ModulePermissionResource.AppendWildcard(), "update")
+
+	f := m.Fields[0]
+	fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "existing_edited", "kind": "Number" }, { "name": "new", "kind": "DateTime" }] }`, m.Name, f.ID)
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+		JSON(fjs).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	ff, err := h.repoModule().FindFields(m.ID)
+	h.a.NoError(err)
+	h.a.NotNil(ff)
+	h.a.Len(ff, 2)
+
+	h.a.NotNil(ff[0].UpdatedAt)
+	h.a.Equal(ff[0].Name, "existing_edited")
+	h.a.Equal(ff[0].Kind, "Number")
+	h.a.Nil(ff[1].UpdatedAt)
+	h.a.Equal(ff[1].Name, "new")
+	h.a.Equal(ff[1].Kind, "DateTime")
+}
+
+func TestModuleFieldsPreventUpdate_ifRecordExists(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	ns := h.repoMakeNamespace("some-namespace")
+	m := h.repoMakeModule(ns, "some-module", &types.ModuleField{Kind: "String", Name: "existing"})
+	h.repoMakeRecord(m, &types.RecordValue{Name: "existing", Value: "value"})
+	h.allow(types.ModulePermissionResource.AppendWildcard(), "update")
+
+	f := m.Fields[0]
+	fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "existing_edited", "kind": "Number" }, { "name": "new", "kind": "DateTime" }] }`, m.Name, f.ID)
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+		JSON(fjs).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	ff, err := h.repoModule().FindFields(m.ID)
+	h.a.NoError(err)
+	h.a.NotNil(ff)
+	h.a.Len(ff, 2)
+
+	h.a.Nil(ff[0].UpdatedAt)
+	h.a.Equal(ff[0].Name, "existing")
+	h.a.Equal(ff[0].Kind, "String")
+	h.a.Nil(ff[1].UpdatedAt)
+	h.a.Equal(ff[1].Name, "new")
+	h.a.Equal(ff[1].Kind, "DateTime")
 }
 
 func TestModuleDeleteForbidden(t *testing.T) {

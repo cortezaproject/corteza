@@ -23,6 +23,7 @@ type (
 		ac moduleAccessController
 
 		moduleRepo repository.ModuleRepository
+		recordRepo repository.RecordRepository
 		pageRepo   repository.PageRepository
 		nsRepo     repository.NamespaceRepository
 	}
@@ -68,6 +69,7 @@ func (svc module) With(ctx context.Context) ModuleService {
 		ac: svc.ac,
 
 		moduleRepo: repository.Module(ctx, db),
+		recordRepo: repository.Record(ctx, db),
 		pageRepo:   repository.Page(ctx, db),
 		nsRepo:     repository.Namespace(ctx, db),
 	}
@@ -166,7 +168,17 @@ func (svc module) Create(mod *types.Module) (*types.Module, error) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
-	return svc.moduleRepo.Create(mod)
+	mod, err := svc.moduleRepo.Create(mod)
+	if err != nil {
+		return nil, err
+	}
+
+	err = svc.moduleRepo.UpdateFields(mod.ID, mod.Fields, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return mod, nil
 }
 
 func (svc module) Update(mod *types.Module) (m *types.Module, err error) {
@@ -199,7 +211,21 @@ func (svc module) Update(mod *types.Module) (m *types.Module, err error) {
 	m.Meta = mod.Meta
 	m.Fields = mod.Fields
 
-	return svc.moduleRepo.Update(m)
+	m, err = svc.moduleRepo.Update(m)
+	if err != nil {
+		return nil, err
+	}
+
+	_, ff, err := svc.recordRepo.Find(m, types.RecordFilter{})
+	if err != nil {
+		return nil, err
+	}
+	err = svc.moduleRepo.UpdateFields(m.ID, m.Fields, ff.Count > 0)
+	if err != nil {
+		return nil, err
+	}
+
+	return mod, err
 }
 
 func (svc module) DeleteByID(namespaceID, moduleID uint64) error {
