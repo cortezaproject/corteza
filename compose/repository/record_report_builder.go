@@ -9,8 +9,8 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/Masterminds/squirrel.v1"
 
-	"github.com/cortezaproject/corteza-server/compose/repository/ql"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 )
 
 type (
