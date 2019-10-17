@@ -53,6 +53,12 @@
             "required": false,
             "title": "Returned items per page (default 50)",
             "type": "uint"
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "title": "Sort charts",
+            "type": "string"
           }
         ]
       }
