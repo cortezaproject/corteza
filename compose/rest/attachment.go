@@ -13,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 
 	"github.com/pkg/errors"
 )
@@ -52,10 +53,8 @@ func (ctrl Attachment) List(ctx context.Context, r *request.AttachmentList) (int
 		ModuleID:    r.ModuleID,
 		RecordID:    r.RecordID,
 		FieldName:   r.FieldName,
-		// Filter:    r.Filter,
-		PerPage: r.PerPage,
-		Page:    r.Page,
-		// Sort:      r.Sort,
+
+		PageFilter: rh.Paging(r.Page, r.PerPage),
 	}
 
 	set, filter, err := ctrl.attachment.With(ctx).Find(f)
