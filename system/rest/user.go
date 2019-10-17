@@ -46,6 +46,8 @@ func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, er
 		IncSuspended: r.IncSuspended,
 		IncDeleted:   r.IncDeleted,
 
+		Sort: r.Sort,
+
 		PageFilter: rh.Paging(r.Page, r.PerPage),
 	}
 
