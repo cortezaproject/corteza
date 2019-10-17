@@ -11,6 +11,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -115,7 +116,7 @@ func (b *recordReportBuilder) Build(metrics, dimensions, filters string) (sql st
 		}
 
 		// Wrap to cast func to ensure numeric output
-		col := squirrel.Alias(SqlConcatExpr("CAST(", m.Expr, " AS DECIMAL(14,2))"), m.Alias)
+		col := squirrel.Alias(rh.SquirrelConcatExpr("CAST(", m.Expr, " AS DECIMAL(14,2))"), m.Alias)
 		b.report = b.report.Column(col)
 
 		b.numerics = append(b.numerics, m.Alias)
