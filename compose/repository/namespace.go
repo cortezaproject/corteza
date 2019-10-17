@@ -112,7 +112,7 @@ func (r *namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet, 
 	}
 
 	if f.Slug != "" {
-		query = query.Where("LOWER(slug) = LOWER(?)", f.Slug)
+		query = query.Where(squirrel.Eq{"LOWER(slug)": strings.ToLower(f.Slug)})
 	}
 
 	if f.IsReadable != nil {
