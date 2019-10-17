@@ -1,0 +1,10 @@
+settings:
+  emoji.enabled: true
+  message.attachment.enabled: true
+  message.attachment.source.gallery.enabled: true
+  message.attachment.source.camera.enabled: true
+  message.attachment.max-size: 10
+  message.attachment.type.whitelist: []
+  notification.enabled: true
+  notification.header.template: ${user} in ${channel} | Corteza
+  notification.message.max-length: 200
