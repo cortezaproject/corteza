@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -42,10 +43,11 @@ type (
 		NamespaceID uint64 `json:"namespaceID,string"`
 		Handle      string `json:"handle"`
 		Query       string `json:"query"`
-		Page        uint   `json:"page"`
-		PerPage     uint   `json:"perPage"`
-		// Sort    string `json:"sort"`
-		Count uint `json:"count"`
+
+		Sort string `json:"sort"`
+
+		// Standard paging fields & helpers
+		rh.PageFilter
 
 		// Resource permission check filter
 		IsReadable *permissions.ResourceFilter `json:"-"`
