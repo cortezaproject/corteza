@@ -20,6 +20,8 @@ const (
 	ErrNoTriggerManagementPermissions serviceError = "NoTriggerManagementPermissions"
 	ErrNoScriptCreatePermissions      serviceError = "NoScriptCreatePermissions"
 	ErrNoReminderAssignPermissions    serviceError = "NoReminderAssignPermissions"
+
+	ErrNoEmailTemplateForGivenOperation serviceError = "NoEmailTemplateForGivenOperation"
 )
 
 func (e serviceError) Error() string {
