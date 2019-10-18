@@ -25,7 +25,7 @@ func (gs roleService) Find(ctx context.Context, req *proto.FindRoleRequest) (rsp
 		rr types.RoleSet
 	)
 
-	if rr, err = gs.roles.Find(&types.RoleFilter{}); err != nil {
+	if rr, _, err = gs.roles.Find(types.RoleFilter{}); err != nil {
 		return
 	}
 

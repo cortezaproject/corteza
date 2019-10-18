@@ -16,98 +16,127 @@ var _ = errors.Wrap
 
 type (
 	Role struct {
-		svc struct {
-			role service.RoleService
-		}
+		role service.RoleService
+		ac   roleAccessController
+	}
+
+	roleAccessController interface {
+		CanGrant(context.Context) bool
+
+		CanUpdateRole(context.Context, *types.Role) bool
+		CanDeleteRole(context.Context, *types.Role) bool
+	}
+
+	rolePayload struct {
+		*types.Role
+
+		CanGrant      bool `json:"canGrant"`
+		CanUpdateRole bool `json:"canUpdateRole"`
+		CanDeleteRole bool `json:"canDeleteRole"`
+	}
+
+	roleSetPayload struct {
+		Filter types.RoleFilter `json:"filter"`
+		Set    []*rolePayload   `json:"set"`
 	}
 )
 
 func (Role) New() *Role {
-	ctrl := &Role{}
-	ctrl.svc.role = service.DefaultRole
-	return ctrl
-}
-
-func (ctrl *Role) Read(ctx context.Context, r *request.RoleRead) (interface{}, error) {
-	return ctrl.svc.role.With(ctx).FindByID(r.RoleID)
-}
-
-func (ctrl *Role) List(ctx context.Context, r *request.RoleList) (interface{}, error) {
-	return ctrl.svc.role.With(ctx).Find(&types.RoleFilter{Query: r.Query})
-}
-
-func (ctrl *Role) Create(ctx context.Context, r *request.RoleCreate) (interface{}, error) {
-	role := &types.Role{
-		Name:   r.Name,
-		Handle: r.Handle,
+	return &Role{
+		role: service.DefaultRole,
+		ac:   service.DefaultAccessControl,
 	}
+}
 
-	role, err := ctrl.svc.role.With(ctx).Create(role)
+func (ctrl Role) Read(ctx context.Context, r *request.RoleRead) (interface{}, error) {
+	role, err := ctrl.role.With(ctx).FindByID(r.RoleID)
+	return ctrl.makePayload(ctx, role, err)
+}
+
+func (ctrl Role) List(ctx context.Context, r *request.RoleList) (interface{}, error) {
+	set, filter, err := ctrl.role.With(ctx).Find(types.RoleFilter{Query: r.Query})
+	return ctrl.makeFilterPayload(ctx, set, filter, err)
+}
+
+func (ctrl Role) Create(ctx context.Context, r *request.RoleCreate) (interface{}, error) {
+	var (
+		err  error
+		role = &types.Role{
+			Name:   r.Name,
+			Handle: r.Handle,
+		}
+	)
+
+	role, err = ctrl.role.With(ctx).Create(role)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, userID := range payload.ParseUInt64s(r.Members) {
-		err := ctrl.svc.role.With(ctx).MemberAdd(role.ID, userID)
+		err := ctrl.role.With(ctx).MemberAdd(role.ID, userID)
 		if err != nil {
 			return nil, err
 		}
 	}
-	return role, nil
+	return ctrl.makePayload(ctx, role, err)
 }
 
-func (ctrl *Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{}, error) {
-	role := &types.Role{
-		ID:     r.RoleID,
-		Name:   r.Name,
-		Handle: r.Handle,
-	}
+func (ctrl Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{}, error) {
+	var (
+		err  error
+		role = &types.Role{
+			ID:     r.RoleID,
+			Name:   r.Name,
+			Handle: r.Handle,
+		}
+	)
 
-	role, err := ctrl.svc.role.With(ctx).Update(role)
+	role, err = ctrl.role.With(ctx).Update(role)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(r.Members) > 0 {
-		members, err := ctrl.svc.role.With(ctx).MemberList(r.RoleID)
+		members, err := ctrl.role.With(ctx).MemberList(r.RoleID)
 		if err != nil {
 			return nil, err
 		}
 		for _, member := range members {
-			err := ctrl.svc.role.With(ctx).MemberRemove(role.ID, member.UserID)
+			err := ctrl.role.With(ctx).MemberRemove(role.ID, member.UserID)
 			if err != nil {
 				return nil, err
 			}
 		}
 
 		for _, userID := range payload.ParseUInt64s(r.Members) {
-			err := ctrl.svc.role.With(ctx).MemberAdd(role.ID, userID)
+			err := ctrl.role.With(ctx).MemberAdd(role.ID, userID)
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
-	return role, nil
+
+	return ctrl.makePayload(ctx, role, err)
 }
 
-func (ctrl *Role) Delete(ctx context.Context, r *request.RoleDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.svc.role.With(ctx).Delete(r.RoleID)
+func (ctrl Role) Delete(ctx context.Context, r *request.RoleDelete) (interface{}, error) {
+	return resputil.OK(), ctrl.role.With(ctx).Delete(r.RoleID)
 }
 
-func (ctrl *Role) Archive(ctx context.Context, r *request.RoleArchive) (interface{}, error) {
-	return resputil.OK(), ctrl.svc.role.With(ctx).Archive(r.RoleID)
+func (ctrl Role) Archive(ctx context.Context, r *request.RoleArchive) (interface{}, error) {
+	return resputil.OK(), ctrl.role.With(ctx).Archive(r.RoleID)
 }
 
-func (ctrl *Role) Merge(ctx context.Context, r *request.RoleMerge) (interface{}, error) {
-	return resputil.OK(), ctrl.svc.role.With(ctx).Merge(r.RoleID, r.Destination)
+func (ctrl Role) Merge(ctx context.Context, r *request.RoleMerge) (interface{}, error) {
+	return resputil.OK(), ctrl.role.With(ctx).Merge(r.RoleID, r.Destination)
 }
 
-func (ctrl *Role) Move(ctx context.Context, r *request.RoleMove) (interface{}, error) {
-	return resputil.OK(), ctrl.svc.role.With(ctx).Move(r.RoleID, r.OrganisationID)
+func (ctrl Role) Move(ctx context.Context, r *request.RoleMove) (interface{}, error) {
+	return resputil.OK(), ctrl.role.With(ctx).Move(r.RoleID, r.OrganisationID)
 }
 
-func (ctrl *Role) MemberList(ctx context.Context, r *request.RoleMemberList) (interface{}, error) {
-	if mm, err := ctrl.svc.role.With(ctx).MemberList(r.RoleID); err != nil {
+func (ctrl Role) MemberList(ctx context.Context, r *request.RoleMemberList) (interface{}, error) {
+	if mm, err := ctrl.role.With(ctx).MemberList(r.RoleID); err != nil {
 		return nil, err
 	} else {
 		rval := make([]string, len(mm))
@@ -118,10 +147,39 @@ func (ctrl *Role) MemberList(ctx context.Context, r *request.RoleMemberList) (in
 	}
 }
 
-func (ctrl *Role) MemberAdd(ctx context.Context, r *request.RoleMemberAdd) (interface{}, error) {
-	return resputil.OK(), ctrl.svc.role.With(ctx).MemberAdd(r.RoleID, r.UserID)
+func (ctrl Role) MemberAdd(ctx context.Context, r *request.RoleMemberAdd) (interface{}, error) {
+	return resputil.OK(), ctrl.role.With(ctx).MemberAdd(r.RoleID, r.UserID)
 }
 
-func (ctrl *Role) MemberRemove(ctx context.Context, r *request.RoleMemberRemove) (interface{}, error) {
-	return resputil.OK(), ctrl.svc.role.With(ctx).MemberRemove(r.RoleID, r.UserID)
+func (ctrl Role) MemberRemove(ctx context.Context, r *request.RoleMemberRemove) (interface{}, error) {
+	return resputil.OK(), ctrl.role.With(ctx).MemberRemove(r.RoleID, r.UserID)
+}
+
+func (ctrl Role) makePayload(ctx context.Context, m *types.Role, err error) (*rolePayload, error) {
+	if err != nil || m == nil {
+		return nil, err
+	}
+
+	return &rolePayload{
+		Role: m,
+
+		CanGrant: ctrl.ac.CanGrant(ctx),
+
+		CanUpdateRole: ctrl.ac.CanUpdateRole(ctx, m),
+		CanDeleteRole: ctrl.ac.CanDeleteRole(ctx, m),
+	}, nil
+}
+
+func (ctrl Role) makeFilterPayload(ctx context.Context, nn types.RoleSet, f types.RoleFilter, err error) (*roleSetPayload, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	msp := &roleSetPayload{Filter: f, Set: make([]*rolePayload, len(nn))}
+
+	for i := range nn {
+		msp.Set[i], _ = ctrl.makePayload(ctx, nn[i], nil)
+	}
+
+	return msp, nil
 }
