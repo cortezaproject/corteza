@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"strings"
-	"time"
 
 	"github.com/titpetric/factory"
 	"gopkg.in/Masterminds/squirrel.v1"
@@ -139,14 +138,15 @@ func (r chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.Chart
 
 func (r chart) Create(mod *types.Chart) (*types.Chart, error) {
 	mod.ID = factory.Sonyflake.NextID()
-	mod.CreatedAt = time.Now().Truncate(time.Second)
+	rh.SetCurrentTimeRounded(&mod.CreatedAt)
+	mod.UpdatedAt = nil
 
 	return mod, r.db().Insert(r.table(), mod)
 }
 
 func (r chart) Update(mod *types.Chart) (*types.Chart, error) {
-	now := time.Now().Truncate(time.Second)
-	mod.UpdatedAt = &now
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
+
 	return mod, r.db().Update(r.table(), mod, "id")
 }
 

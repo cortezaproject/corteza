@@ -217,7 +217,7 @@ func (r *user) Create(mod *types.User) (*types.User, error) {
 }
 
 func (r *user) Update(mod *types.User) (*types.User, error) {
-	mod.UpdatedAt = timeNowPtr()
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 	return mod, r.db().Replace(r.table(), mod)
 }
 

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"time"
 )
 
 func (r repository) updateColumnByID(tableName, columnName string, value interface{}, id uint64) (err error) {
@@ -25,9 +24,4 @@ func isFound(err error, valid bool, nerr error) error {
 	}
 
 	return nil
-}
-
-func timeNowPtr() *time.Time {
-	n := time.Now()
-	return &n
 }

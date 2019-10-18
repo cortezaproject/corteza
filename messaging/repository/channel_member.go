@@ -2,11 +2,11 @@ package repository
 
 import (
 	"context"
-	"time"
 
 	"github.com/titpetric/factory"
 
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -86,7 +86,7 @@ func (r *channelMember) Find(filter *types.ChannelMemberFilter) (types.ChannelMe
 
 // Create adds channel membership record
 func (r *channelMember) Create(mod *types.ChannelMember) (*types.ChannelMember, error) {
-	mod.CreatedAt = time.Now()
+	rh.SetCurrentTimeRounded(&mod.CreatedAt)
 	mod.UpdatedAt = nil
 
 	return mod, r.db().Insert("messaging_channel_member", mod)
@@ -94,7 +94,7 @@ func (r *channelMember) Create(mod *types.ChannelMember) (*types.ChannelMember, 
 
 // Update modifies existing channel membership record
 func (r *channelMember) Update(mod *types.ChannelMember) (*types.ChannelMember, error) {
-	mod.UpdatedAt = timeNowPtr()
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 
 	whitelist := []string{"type", "flag", "updated_at", "rel_channel", "rel_user"}
 

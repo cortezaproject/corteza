@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"strings"
-	"time"
 
 	"github.com/titpetric/factory"
 	"gopkg.in/Masterminds/squirrel.v1"
@@ -195,14 +194,14 @@ func (r page) Reorder(namespaceID, parentID uint64, pageIDs []uint64) error {
 
 func (r page) Create(mod *types.Page) (*types.Page, error) {
 	mod.ID = factory.Sonyflake.NextID()
-	mod.CreatedAt = time.Now().Truncate(time.Second)
+	rh.SetCurrentTimeRounded(&mod.CreatedAt)
+	mod.UpdatedAt = nil
 
 	return mod, r.db().Insert(r.table(), mod)
 }
 
 func (r page) Update(mod *types.Page) (*types.Page, error) {
-	now := time.Now().Truncate(time.Second)
-	mod.UpdatedAt = &now
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 
 	return mod, r.db().Update(r.table(), mod, "id")
 }

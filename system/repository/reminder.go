@@ -158,7 +158,7 @@ func (r reminder) Create(mod *types.Reminder) (rm *types.Reminder, err error) {
 }
 
 func (r reminder) Update(mod *types.Reminder) (*types.Reminder, error) {
-	mod.UpdatedAt = timeNowPtr()
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 	return mod, r.db().Replace(r.table(), mod)
 }
 

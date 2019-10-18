@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"strings"
-	"time"
 
 	"github.com/titpetric/factory"
 	"gopkg.in/Masterminds/squirrel.v1"
@@ -137,14 +136,14 @@ func (r *namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet, 
 
 func (r *namespace) Create(mod *types.Namespace) (*types.Namespace, error) {
 	mod.ID = factory.Sonyflake.NextID()
-	mod.CreatedAt = time.Now()
+	rh.SetCurrentTimeRounded(&mod.CreatedAt)
+	mod.UpdatedAt = nil
 
 	return mod, r.db().Insert(r.table(), mod)
 }
 
 func (r *namespace) Update(mod *types.Namespace) (*types.Namespace, error) {
-	now := time.Now()
-	mod.UpdatedAt = &now
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 
 	return mod, r.db().Update(r.table(), mod, "id")
 }

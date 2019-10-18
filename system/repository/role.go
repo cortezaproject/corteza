@@ -188,7 +188,7 @@ func (r *role) Create(mod *types.Role) (*types.Role, error) {
 }
 
 func (r *role) Update(mod *types.Role) (*types.Role, error) {
-	mod.UpdatedAt = timeNowPtr()
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 
 	return mod, r.db().Replace(r.table(), mod)
 }

@@ -81,7 +81,7 @@ func (r *organisation) Create(mod *types.Organisation) (*types.Organisation, err
 }
 
 func (r *organisation) Update(mod *types.Organisation) (*types.Organisation, error) {
-	mod.UpdatedAt = timeNowPtr()
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 
 	return mod, r.db().Replace(r.organisations, mod)
 }
