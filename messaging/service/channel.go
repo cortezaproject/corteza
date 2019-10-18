@@ -54,7 +54,7 @@ type (
 		With(ctx context.Context) ChannelService
 
 		FindByID(channelID uint64) (*types.Channel, error)
-		Find(filter *types.ChannelFilter) (types.ChannelSet, error)
+		Find(types.ChannelFilter) (types.ChannelSet, types.ChannelFilter, error)
 
 		Create(channel *types.Channel) (*types.Channel, error)
 		Update(channel *types.Channel) (*types.Channel, error)
@@ -125,22 +125,15 @@ func (svc *channel) findByID(ID uint64) (ch *types.Channel, err error) {
 	return
 }
 
-func (svc *channel) Find(filter *types.ChannelFilter) (cc types.ChannelSet, err error) {
+func (svc *channel) Find(filter types.ChannelFilter) (set types.ChannelSet, f types.ChannelFilter, err error) {
 	filter.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	return cc, svc.db.Transaction(func() (err error) {
-		if cc, err = svc.channel.Find(filter); err != nil {
-			return
-		} else if err = svc.preloadExtras(cc); err != nil {
-			return
-		}
+	set, f, err = svc.channel.Find(filter)
+	if err == nil {
+		err = svc.preloadExtras(set)
+	}
 
-		cc, err = cc.Filter(func(c *types.Channel) (b bool, e error) {
-			return svc.ac.CanReadChannel(svc.ctx, c), nil
-		})
-
-		return
-	})
+	return
 }
 
 // preloadExtras pre-loads channel's members, views

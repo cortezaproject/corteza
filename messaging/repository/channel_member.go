@@ -30,8 +30,18 @@ type (
 )
 
 const (
-	// Copy definitions to make it more obvious that we're reusing channel-scope sql
-	sqlChannelMemberChannelAccess = sqlChannelAccess
+	// subquery that filters out all channels that current user has access to as a member
+	// or via channel type (public channels)
+	sqlChannelAccess = ` (
+				SELECT id
+                  FROM messaging_channel c
+                       LEFT OUTER JOIN messaging_channel_member AS m ON (c.id = m.rel_channel)
+                 WHERE rel_user = ?
+              UNION
+                SELECT id
+                  FROM messaging_channel c
+                 WHERE c.type = ?
+			)`
 
 	// Fetching channel members of all channels a specific user has access to
 	sqlChannelMemberSelect = `SELECT m.*
@@ -66,7 +76,7 @@ func (r *channelMember) Find(filter *types.ChannelMemberFilter) (types.ChannelMe
 	if filter != nil {
 		if filter.ComembersOf > 0 {
 			// scope: only channel we have access to
-			sql += " AND m.rel_channel IN " + sqlChannelMemberChannelAccess
+			sql += " AND m.rel_channel IN " + sqlChannelAccess
 			params = append(params, filter.ComembersOf, types.ChannelTypePublic)
 		}
 
