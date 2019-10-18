@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx/types"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -58,6 +59,11 @@ type (
 
 		// Do not filter out deleted channels
 		IncludeDeleted bool
+
+		Sort string `json:"sort"`
+
+		// Standard paging fields & helpers
+		rh.PageFilter
 	}
 
 	ChannelMembershipPolicy string

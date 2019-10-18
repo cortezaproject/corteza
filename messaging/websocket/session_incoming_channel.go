@@ -45,7 +45,7 @@ func (s *Session) channelPart(ctx context.Context, p *incoming.ChannelPart) erro
 }
 
 func (s *Session) channelList(ctx context.Context, p *incoming.Channels) error {
-	channels, err := s.svc.ch.With(ctx).Find(&types.ChannelFilter{})
+	channels, _, err := s.svc.ch.With(ctx).Find(types.ChannelFilter{})
 	if err != nil {
 		return err
 	}

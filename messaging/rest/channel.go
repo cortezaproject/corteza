@@ -95,7 +95,7 @@ func (ctrl *Channel) Read(ctx context.Context, r *request.ChannelRead) (interfac
 }
 
 func (ctrl *Channel) List(ctx context.Context, r *request.ChannelList) (interface{}, error) {
-	return ctrl.wrapSet(ctrl.svc.ch.With(ctx).Find(&types.ChannelFilter{Query: r.Query}))
+	return ctrl.wrapSet(ctrl.svc.ch.With(ctx).Find(types.ChannelFilter{Query: r.Query}))
 }
 
 func (ctrl *Channel) Members(ctx context.Context, r *request.ChannelMembers) (interface{}, error) {
@@ -148,7 +148,7 @@ func (ctrl *Channel) wrap(channel *types.Channel, err error) (*outgoing.Channel,
 	}
 }
 
-func (ctrl *Channel) wrapSet(cc types.ChannelSet, err error) (*outgoing.ChannelSet, error) {
+func (ctrl *Channel) wrapSet(cc types.ChannelSet, f types.ChannelFilter, err error) (*outgoing.ChannelSet, error) {
 	if err != nil {
 		return nil, err
 	} else {
