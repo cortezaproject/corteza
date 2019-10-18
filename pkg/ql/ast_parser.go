@@ -217,7 +217,18 @@ func (p *Parser) parseIdent(t Token) (list ASTNode, err error) {
 		}
 	}
 
-	return p.OnIdent(Ident{Value: t.literal})
+	i := Ident{Value: t.literal}
+
+	if p.peekToken(1).Is(DOT) {
+		p.nextToken()
+		i.Value += "."
+		l2 := p.nextToken()
+		if l2.Is(IDENT) {
+			i.Value += l2.literal
+		}
+	}
+
+	return p.OnIdent(i)
 }
 
 func (p *Parser) parseSet() (list ASTSet, err error) {
