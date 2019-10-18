@@ -44,12 +44,12 @@ func Roles(ctx context.Context, c *cli.Config) *cobra.Command {
 			c.InitServices(ctx, c)
 
 			// Try to find role by name and by ID
-			if rr, err = roleRepo.Find(&types.RoleFilter{Query: roleStr}); err != nil {
+			if rr, _, err = roleRepo.Find(types.RoleFilter{Query: roleStr}); err != nil {
 				cli.HandleError(err)
 			} else if len(rr) == 1 {
 				role = rr[0]
 			} else if len(rr) > 1 {
-				cli.HandleError(errors.Errorf("too many roles found with name %q", roleStr))
+				cli.HandleError(errors.Errorf("too many roles found with name/handle %q", roleStr))
 			} else if role == nil {
 				if ID, err = strconv.ParseUint(roleStr, 10, 64); err != nil {
 					// Could not parse ID out of role string

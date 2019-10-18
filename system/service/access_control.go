@@ -90,6 +90,10 @@ func (svc accessControl) CanReadRole(ctx context.Context, rl *types.Role) bool {
 	return svc.can(ctx, rl, "read", permissions.Allowed)
 }
 
+func (svc accessControl) FilterReadableRoles(ctx context.Context) *permissions.ResourceFilter {
+	return svc.permissions.ResourceFilter(ctx, types.RolePermissionResource, "read", permissions.Allow)
+}
+
 func (svc accessControl) CanUpdateRole(ctx context.Context, rl *types.Role) bool {
 	return svc.can(ctx, rl, "update")
 }

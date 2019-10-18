@@ -70,13 +70,13 @@ func (r user) columns() []string {
 }
 
 func (r user) query() squirrel.SelectBuilder {
-	return r.queryNoFilter().Where("u.deleted_at IS NULL AND u.suspended_at IS NULL")
-}
-
-func (r user) queryNoFilter() squirrel.SelectBuilder {
 	return squirrel.
 		Select(r.columns()...).
-		From(r.table() + " AS u")
+		From(r.table() + " AS u").
+		Where(squirrel.And{
+			squirrel.Eq{"deleted_at": nil},
+			squirrel.Eq{"suspended_at": nil},
+		})
 }
 
 func (r *user) With(ctx context.Context, db *factory.DB) UserRepository {
@@ -127,7 +127,7 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 		f.Sort = "id"
 	}
 
-	query := r.queryNoFilter()
+	query := r.query()
 
 	// Returns user filter (flt) wrapped in IF() function with cnd as condition (when cnd != nil)
 	whereMasked := func(cnd *permissions.ResourceFilter, flt squirrel.Sqlizer) squirrel.Sqlizer {
@@ -155,7 +155,7 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 		// Due to lack of support for more exotic expressions (slice of values inside subquery)
 		// we'll use set of OR expressions as a workaround
 		for _, roleID := range f.RoleID {
-			or = append(or, squirrel.Expr("u.ID IN (SELECT rel_user FROM sys_role_member WHERE rel_role IN (?))", roleID))
+			or = append(or, squirrel.Expr("u.ID IN (SELECT rel_user FROM sys_role_member WHERE rel_role = ?)", roleID))
 		}
 
 		query = query.Where(or)
@@ -206,8 +206,7 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 }
 
 func (r user) Total() (count uint) {
-
-	count, _ = r.count(r.query())
+	count, _ = rh.Count(r.db(), squirrel.Select().From(r.table()))
 	return
 }
 
