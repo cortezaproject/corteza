@@ -31,6 +31,12 @@ type (
 		MailFromAddress string
 		MailFromName    string
 
+		MailEmailConfirmationSubject string
+		MailEmailConfirmationBody    string
+
+		MailPasswordResetSubject string
+		MailPasswordResetBody    string
+
 		// Is internal authentication (username + password) enabled
 		InternalEnabled bool
 
@@ -85,6 +91,13 @@ func (as *AuthSettings) ReadKV(kv intset.KV) (err error) {
 
 	as.MailFromAddress = kv.String("auth.mail.from-address")
 	as.MailFromName = kv.String("auth.mail.from-name")
+
+	// @todo translations
+	as.MailEmailConfirmationSubject = kv.String("auth.mail.email-confirmation.subject.en")
+	as.MailEmailConfirmationBody = kv.String("auth.mail.email-confirmation.body.en")
+
+	as.MailPasswordResetSubject = kv.String("auth.mail.password-reset.subject.en")
+	as.MailPasswordResetBody = kv.String("auth.mail.password-reset.body.en")
 
 	as.InternalEnabled = kv.Bool("auth.internal.enabled")
 
