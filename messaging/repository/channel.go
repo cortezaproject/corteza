@@ -9,6 +9,7 @@ import (
 	"github.com/titpetric/factory"
 
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -144,7 +145,8 @@ func (r *channel) Find(filter *types.ChannelFilter) (types.ChannelSet, error) {
 
 func (r *channel) Create(mod *types.Channel) (*types.Channel, error) {
 	mod.ID = factory.Sonyflake.NextID()
-	mod.CreatedAt = time.Now()
+
+	rh.SetCurrentTimeRounded(&mod.CreatedAt)
 	mod.UpdatedAt = nil
 
 	if mod.Type == "" {
@@ -155,7 +157,8 @@ func (r *channel) Create(mod *types.Channel) (*types.Channel, error) {
 }
 
 func (r *channel) Update(mod *types.Channel) (*types.Channel, error) {
-	mod.UpdatedAt = timeNowPtr()
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
+
 	if mod.Type == "" {
 		mod.Type = types.ChannelTypePublic
 	}

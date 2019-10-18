@@ -8,6 +8,7 @@ import (
 	"github.com/titpetric/factory"
 
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -52,7 +53,7 @@ func (r *webhook) Create(webhook *types.Webhook) (*types.Webhook, error) {
 }
 
 func (r *webhook) Update(webhook *types.Webhook) (*types.Webhook, error) {
-	webhook.UpdatedAt = timeNowPtr()
+	rh.SetCurrentTimeRounded(&webhook.UpdatedAt)
 
 	return webhook, errors.WithStack(r.db().Replace(r.webhook, webhook))
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -162,7 +161,8 @@ func (r module) Create(mod *types.Module) (*types.Module, error) {
 	var err error
 
 	mod.ID = factory.Sonyflake.NextID()
-	mod.CreatedAt = time.Now().Truncate(time.Second)
+	rh.SetCurrentTimeRounded(&mod.CreatedAt)
+	mod.UpdatedAt = nil
 
 	if err = r.db().Insert(r.table(), mod); err != nil {
 		return nil, err
@@ -172,8 +172,7 @@ func (r module) Create(mod *types.Module) (*types.Module, error) {
 }
 
 func (r module) Update(mod *types.Module) (*types.Module, error) {
-	now := time.Now().Truncate(time.Second)
-	mod.UpdatedAt = &now
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 
 	return mod, r.db().Update(r.table(), mod, "id")
 }
@@ -195,7 +194,6 @@ func (r module) UpdateFields(moduleID uint64, ff types.ModuleFieldSet, hasRecord
 			return err
 		}
 
-		now := time.Now().Truncate(time.Second)
 		for idx, f := range ff {
 			if e := existing.FindByID(f.ID); e != nil {
 				f.CreatedAt = e.CreatedAt
@@ -207,7 +205,7 @@ func (r module) UpdateFields(moduleID uint64, ff types.ModuleFieldSet, hasRecord
 					f.Name = e.Name
 					f.Kind = e.Kind
 				} else {
-					f.UpdatedAt = &now
+					rh.SetCurrentTimeRounded(&f.UpdatedAt)
 				}
 			} else {
 				f.ID = 0
@@ -215,8 +213,7 @@ func (r module) UpdateFields(moduleID uint64, ff types.ModuleFieldSet, hasRecord
 
 			if f.ID == 0 {
 				f.ID = factory.Sonyflake.NextID()
-				f.CreatedAt = now
-				f.UpdatedAt = nil
+				rh.SetCurrentTimeRounded(&f.CreatedAt)
 			}
 
 			f.ModuleID = moduleID

@@ -122,7 +122,7 @@ func (r *application) Create(mod *types.Application) (*types.Application, error)
 }
 
 func (r *application) Update(mod *types.Application) (*types.Application, error) {
-	mod.UpdatedAt = timeNowPtr()
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 
 	return mod, r.db().Replace(r.table(), mod)
 }

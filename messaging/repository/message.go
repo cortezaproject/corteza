@@ -11,6 +11,7 @@ import (
 	"github.com/titpetric/factory"
 
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -308,13 +309,13 @@ func (r *message) sanitizeFilter(filter *types.MessageFilter) {
 
 func (r *message) Create(mod *types.Message) (*types.Message, error) {
 	mod.ID = factory.Sonyflake.NextID()
-	mod.CreatedAt = time.Now()
+	rh.SetCurrentTimeRounded(&mod.CreatedAt)
 
 	return mod, r.db().Insert("messaging_message", mod)
 }
 
 func (r *message) Update(mod *types.Message) (*types.Message, error) {
-	mod.UpdatedAt = timeNowPtr()
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 
 	return mod, r.db().Replace("messaging_message", mod)
 }
