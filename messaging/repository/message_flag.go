@@ -19,9 +19,6 @@ type (
 		FindByFlag(messageID, userID uint64, flag string) (*types.MessageFlag, error)
 		Create(mod *types.MessageFlag) (*types.MessageFlag, error)
 		DeleteByID(ID uint64) error
-
-		CountOwned(userID uint64) (c int, err error)
-		ChangeOwner(userID, target uint64) error
 	}
 
 	messageFlag struct {
@@ -87,15 +84,4 @@ func (r *messageFlag) Create(mod *types.MessageFlag) (*types.MessageFlag, error)
 
 func (r *messageFlag) DeleteByID(ID uint64) error {
 	return exec(r.db().Exec("DELETE FROM messaging_message_flag WHERE id = ?", ID))
-}
-
-func (r *messageFlag) CountOwned(userID uint64) (c int, err error) {
-	return c, r.db().Get(&c,
-		"SELECT COUNT(*) FROM message_flag WHERE rel_user = ?",
-		userID)
-}
-
-func (r *messageFlag) ChangeOwner(userID, target uint64) error {
-	_, err := r.db().Exec("UPDATE message_flag SET rel_user = ? WHERE rel_user = ?", target, userID)
-	return err
 }
