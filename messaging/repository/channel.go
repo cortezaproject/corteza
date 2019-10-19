@@ -2,8 +2,6 @@ package repository
 
 import (
 	"context"
-	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -57,10 +55,6 @@ func (r channel) table() string {
 	return "messaging_channel"
 }
 
-func (r channel) tableMember() string {
-	return "messaging_channel_member"
-}
-
 func (r channel) columns() []string {
 	return []string{
 		"c.id",
@@ -91,29 +85,10 @@ func (r channel) FindByID(ID uint64) (*types.Channel, error) {
 
 // FindByMemberSet searches for channel (group!) with exactly the same membership structure
 func (r channel) FindByMemberSet(memberIDs ...uint64) (*types.Channel, error) {
-	// Make sure members are sorted
-	sort.Slice(memberIDs, func(i, j int) bool {
-		return memberIDs[i] < memberIDs[j]
-	})
-
-	// Concatentating members fore
-	membersConcat := ""
-	for i := range memberIDs {
-		// Don't panic, we're adding , in the SQL as well
-		membersConcat += strconv.FormatUint(memberIDs[i], 10) + ","
-	}
-
 	return r.findOneBy(
 		squirrel.And{
 			squirrel.Eq{"type": types.ChannelTypeGroup},
-			squirrel.
-				Select("rel_channel").
-				From(r.tableMember()).
-				GroupBy("rel_channel").
-				Having(squirrel.Eq{
-					"COUNT(*)": len(memberIDs),
-					"CONCAT(GROUP_CONCAT(rel_user ORDER BY 1 ASC SEPARATOR ','),',')": membersConcat,
-				}),
+			squirrel.ConcatExpr("c.id IN (", (channelMember{}).queryExactMembers(memberIDs...), ")"),
 		})
 }
 
@@ -145,6 +120,8 @@ func (r channel) Find(filter types.ChannelFilter) (set types.ChannelSet, f types
 
 	query := r.query()
 
+	query = query.Where(squirrel.Eq{"c.archived_at": nil})
+
 	if !f.IncludeDeleted {
 		query = query.Where(squirrel.Eq{"c.deleted_at": nil})
 	}
@@ -157,10 +134,7 @@ func (r channel) Find(filter types.ChannelFilter) (set types.ChannelSet, f types
 	if f.CurrentUserID > 0 {
 		query = query.Where(squirrel.Or{
 			squirrel.Eq{"c.type": types.ChannelTypePublic},
-			squirrel.ConcatExpr("c.id IN (", squirrel.
-				Select("rel_channel").
-				From(r.tableMember()).
-				Where(squirrel.Eq{"rel_user": f.CurrentUserID}), ")"),
+			squirrel.ConcatExpr("c.id IN (", (channelMember{}).queryAnyMember(f.CurrentUserID), ")"),
 		})
 	}
 

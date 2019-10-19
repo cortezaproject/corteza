@@ -159,7 +159,8 @@ func (svc *channel) preloadMembers(cc types.ChannelSet) (err error) {
 		mm     types.ChannelMemberSet
 	)
 
-	if mm, err = svc.cmember.Find(&types.ChannelMemberFilter{ComembersOf: userID}); err != nil {
+	// Load membership info of all channels
+	if mm, err = svc.cmember.Find(types.ChannelMemberFilterChannels(cc.IDs()...)); err != nil {
 		return
 	} else {
 		err = cc.Walk(func(ch *types.Channel) error {
@@ -216,7 +217,7 @@ func (svc *channel) FindMembers(channelID uint64) (out types.ChannelMemberSet, e
 			return
 		}
 
-		out, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: channelID})
+		out, err = svc.cmember.Find(types.ChannelMemberFilterChannels(channelID))
 		if err != nil {
 			return err
 		}
@@ -549,7 +550,7 @@ func (svc *channel) SetFlag(ID uint64, flag types.ChannelMembershipFlag) (ch *ty
 			return
 		}
 
-		if members, err := svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: ch.ID, MemberID: userID}); err != nil {
+		if members, err := svc.cmember.Find(types.ChannelMemberFilter{ChannelID: []uint64{ch.ID}, MemberID: []uint64{userID}}); err != nil {
 			return err
 		} else if len(members) == 1 {
 			membership = members[0]
@@ -671,7 +672,7 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 	}
 
 	return out, svc.db.Transaction(func() (err error) {
-		if existing, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: channelID}); err != nil {
+		if existing, err = svc.cmember.Find(types.ChannelMemberFilterChannels(channelID)); err != nil {
 			return
 		}
 
@@ -729,7 +730,7 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 	}
 
 	return out, svc.db.Transaction(func() (err error) {
-		if existing, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: channelID}); err != nil {
+		if existing, err = svc.cmember.Find(types.ChannelMemberFilterChannels(channelID)); err != nil {
 			return
 		}
 
@@ -819,7 +820,7 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 	}
 
 	return svc.db.Transaction(func() (err error) {
-		if existing, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: channelID}); err != nil {
+		if existing, err = svc.cmember.Find(types.ChannelMemberFilterChannels(channelID)); err != nil {
 			return
 		}
 
@@ -882,7 +883,7 @@ func (svc *channel) sendChannelEvent(ch *types.Channel) (err error) {
 
 		// Preload members, if needed
 		if len(ch.Members) == 0 || ch.Member == nil {
-			if mm, err := svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: ch.ID}); err != nil {
+			if mm, err := svc.cmember.Find(types.ChannelMemberFilterChannels(ch.ID)); err != nil {
 				return err
 			} else {
 				ch.Members = mm.AllMemberIDs()

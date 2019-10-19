@@ -18,9 +18,8 @@ type (
 	}
 
 	ChannelMemberFilter struct {
-		ComembersOf uint64
-		ChannelID   uint64
-		MemberID    uint64
+		ChannelID []uint64
+		MemberID  []uint64
 	}
 
 	ChannelMembershipType string
@@ -37,3 +36,8 @@ const (
 	ChannelMembershipFlagIgnored ChannelMembershipFlag = "ignored"
 	ChannelMembershipFlagNone    ChannelMembershipFlag = ""
 )
+
+// ChannelMemberFilterChannels helper func for building channel member filter with list of channels
+func ChannelMemberFilterChannels(ID ...uint64) ChannelMemberFilter {
+	return ChannelMemberFilter{ChannelID: ID}
+}
