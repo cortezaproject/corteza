@@ -3,8 +3,8 @@ package permissions
 import (
 	"testing"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/Masterminds/squirrel.v1"
 )
 
 func TestResourceFilter_Build(t *testing.T) {

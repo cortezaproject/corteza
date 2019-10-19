@@ -1,10 +1,10 @@
 package rh
 
 import (
+	"github.com/Masterminds/squirrel"
 	"github.com/lann/builder"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
-	"gopkg.in/Masterminds/squirrel.v1"
 )
 
 // FetchOne fetches single row from table

@@ -4,9 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
+	"github.com/Masterminds/squirrel"
 	"github.com/titpetric/factory"
-	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
@@ -108,7 +107,7 @@ func (r attachment) FindAttachmentByMessageID(IDs ...uint64) (rval types.Message
 		Columns("ma.rel_message").
 		Join(r.tableMessage() + " AS ma ON (a.id = ma.rel_attachment)").
 		Where(squirrel.Eq{"rel_message": IDs})
-	spew.Dump(query.ToSql())
+
 	return rval, rh.FetchAll(r.db(), query, &rval)
 }
 

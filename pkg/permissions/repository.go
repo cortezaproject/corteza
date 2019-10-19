@@ -3,9 +3,9 @@ package permissions
 import (
 	"context"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
-	"gopkg.in/Masterminds/squirrel.v1"
 )
 
 type (

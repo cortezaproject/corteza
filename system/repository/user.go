@@ -5,8 +5,8 @@ import (
 	"io"
 	"time"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/titpetric/factory"
-	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
