@@ -22,9 +22,6 @@ type (
 		Inc(channelID, replyTo, userID uint64) error
 		Dec(channelID, replyTo, userID uint64) error
 		ClearThreads(channelID, userID uint64) (err error)
-
-		CountOwned(userID uint64) (c int, err error)
-		ChangeOwner(userID, target uint64) error
 	}
 
 	unread struct {
@@ -228,31 +225,4 @@ func (r *unread) Dec(channelID, threadID, userID uint64) (err error) {
 	}
 
 	return nil
-}
-
-func (r *unread) CountOwned(userID uint64) (c int, err error) {
-	return c, r.db().Get(&c,
-		"SELECT COUNT(*) FROM messaging_unread WHERE rel_user = ?",
-		userID)
-}
-
-func (r *unread) ChangeOwner(userID, target uint64) (err error) {
-	// Remove dups
-	// with an ugly mysql workaround
-	_, err = r.db().Exec(
-		"DELETE FROM messaging_unread WHERE rel_user = ? "+
-			"AND rel_channel IN (SELECT rel_channel FROM (SELECT * FROM messaging_unread) AS workaround WHERE rel_user = ?)",
-		userID,
-		target)
-
-	if err != nil {
-		return err
-	}
-
-	_, err = r.db().Exec(
-		"UPDATE messaging_unread SET rel_user = ? WHERE rel_user = ?",
-		target,
-		userID)
-
-	return err
 }
