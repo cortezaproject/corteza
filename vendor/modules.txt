@@ -8,6 +8,8 @@ github.com/766b/chi-prometheus
 github.com/99designs/basicauth-go
 # github.com/DestinyWang/cronexpr v0.0.0-20140423231348-a557574d6c02
 github.com/DestinyWang/cronexpr
+# github.com/Masterminds/squirrel v1.1.1-0.20191017225151-12f2162c8d8d
+github.com/Masterminds/squirrel
 # github.com/PaesslerAG/gval v1.0.1
 github.com/PaesslerAG/gval
 # github.com/PaesslerAG/jsonpath v0.1.1
@@ -249,8 +251,6 @@ google.golang.org/grpc/balancer/base
 google.golang.org/grpc/credentials/internal
 google.golang.org/grpc/binarylog/grpc_binarylog_v1
 google.golang.org/grpc/internal/syscall
-# gopkg.in/Masterminds/squirrel.v1 v1.1.0 => github.com/Masterminds/squirrel v1.1.0
-gopkg.in/Masterminds/squirrel.v1
 # gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc
 gopkg.in/alexcesaro/quotedprintable.v3
 # gopkg.in/ini.v1 v1.42.0
