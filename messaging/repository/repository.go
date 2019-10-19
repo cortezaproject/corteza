@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 
-	"github.com/Masterminds/squirrel"
 	"github.com/titpetric/factory"
 
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -45,22 +44,4 @@ func (r *repository) db() *factory.DB {
 		return r.dbh
 	}
 	return DB(r.ctx)
-}
-
-// Fetches single row from table
-func (r repository) fetchSet(set interface{}, q squirrel.SelectBuilder) (err error) {
-	var (
-		sql  string
-		args []interface{}
-	)
-
-	if sql, args, err = q.ToSql(); err != nil {
-		return
-	}
-
-	if err = r.db().Select(set, sql, args...); err != nil {
-		return
-	}
-
-	return
 }
