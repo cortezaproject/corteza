@@ -47,14 +47,13 @@ func (h helper) repoMakeMember(ch *types.Channel, u *sysTypes.User) *types.Chann
 }
 
 func (h helper) repoChAssertNotMember(ch *types.Channel, u *sysTypes.User) {
-	mm, err := h.repoChMember().Find(&types.ChannelMemberFilter{ChannelID: ch.ID, MemberID: h.cUser.ID})
+	mm, err := h.repoChMember().Find(types.ChannelMemberFilter{ChannelID: []uint64{ch.ID}, MemberID: []uint64{h.cUser.ID}})
 	h.a.NoError(err)
-	h.a.NotNil(mm)
 	h.a.NotContains(mm.AllMemberIDs(), u.ID, "not expecting to find a member")
 }
 
 func (h helper) repoChAssertMember(ch *types.Channel, u *sysTypes.User, typ types.ChannelMembershipType) {
-	mm, err := h.repoChMember().Find(&types.ChannelMemberFilter{ChannelID: ch.ID, MemberID: h.cUser.ID})
+	mm, err := h.repoChMember().Find(types.ChannelMemberFilter{ChannelID: []uint64{ch.ID}, MemberID: []uint64{h.cUser.ID}})
 
 	h.a.NoError(err)
 	h.a.NotNil(mm)

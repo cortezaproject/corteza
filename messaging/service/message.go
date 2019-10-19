@@ -247,7 +247,7 @@ func (svc message) Create(in *types.Message) (m *types.Message, err error) {
 				//
 				// reset unreads for all members
 				var mm types.ChannelMemberSet
-				mm, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: original.ChannelID})
+				mm, err = svc.cmember.Find(types.ChannelMemberFilterChannels(original.ChannelID))
 				if err != nil {
 					return err
 				}
@@ -910,7 +910,7 @@ func (svc message) findChannelByID(channelID uint64) (ch *types.Channel, err err
 
 	if ch, err = svc.channel.FindByID(channelID); err != nil {
 		return nil, err
-	} else if mm, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: ch.ID}); err != nil {
+	} else if mm, err = svc.cmember.Find(types.ChannelMemberFilterChannels(ch.ID)); err != nil {
 		return nil, err
 	} else {
 		ch.Members = mm.AllMemberIDs()

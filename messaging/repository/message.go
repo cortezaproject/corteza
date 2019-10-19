@@ -42,6 +42,19 @@ type (
 const (
 	MESSAGES_MAX_LIMIT = 100
 
+	// subquery that filters out all channels that current user has access to as a member
+	// or via channel type (public channels)
+	sqlChannelAccess = ` (
+				SELECT id
+                  FROM messaging_channel c
+                       LEFT OUTER JOIN messaging_channel_member AS m ON (c.id = m.rel_channel)
+                 WHERE rel_user = ?
+              UNION
+                SELECT id
+                  FROM messaging_channel c
+                 WHERE c.type = ?
+			)`
+
 	sqlMessageColumns = "id, " +
 		"COALESCE(type,'') AS type, " +
 		"message, " +
