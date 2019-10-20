@@ -580,14 +580,16 @@ func (svc message) flag(messageID uint64, flag string, remove bool) error {
 		}
 
 		f, err = svc.mflag.FindByFlag(messageID, flagOwnerId, flag)
-		if f.ID == 0 && remove {
+		if f == nil && remove {
 			// Skip removing, flag does not exists
 			return nil
 		}
-		if f.ID > 0 && !remove {
+
+		if f != nil && f.ID > 0 && !remove {
 			// Skip adding, flag already exists
 			return nil
 		}
+
 		if err != nil && err != repository.ErrMessageFlagNotFound {
 			// Other errors, exit
 			return
@@ -595,13 +597,17 @@ func (svc message) flag(messageID uint64, flag string, remove bool) error {
 
 		if msg, err = svc.message.FindByID(messageID); err != nil {
 			return
-		} else if ch, err = svc.findChannelByID(msg.ChannelID); err != nil {
+		}
+
+		if ch, err = svc.findChannelByID(msg.ChannelID); err != nil {
 			return
 		}
+
 		if !svc.ac.CanReadChannel(svc.ctx, ch) {
 			return ErrNoPermissions.withStack()
 		}
-		if f.IsReaction() && !svc.ac.CanReactMessage(svc.ctx, ch) {
+
+		if f != nil && f.IsReaction() && !svc.ac.CanReactMessage(svc.ctx, ch) {
 			return ErrNoPermissions.withStack()
 		}
 
