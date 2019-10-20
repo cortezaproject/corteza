@@ -137,6 +137,8 @@ func (r *channelMember) Update(mod *types.ChannelMember) (*types.ChannelMember, 
 
 // Delete removes existing channel membership record
 func (r *channelMember) Delete(channelID, userID uint64) error {
-	sql := `DELETE FROM messaging_channel_member WHERE rel_channel = ? AND rel_user = ?`
-	return exec(r.db().Exec(sql, channelID, userID))
+	return rh.Delete(r.db(), r.table(), squirrel.Eq{
+		"rel_channel": channelID,
+		"rel_user":    userID,
+	})
 }

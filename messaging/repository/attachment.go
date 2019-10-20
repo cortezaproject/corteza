@@ -121,8 +121,8 @@ func (r attachment) CreateAttachment(mod *types.Attachment) (*types.Attachment, 
 	return mod, r.db().Insert(r.table(), mod)
 }
 
-func (r attachment) DeleteAttachmentByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "deleted_at", nil, id)
+func (r attachment) DeleteAttachmentByID(ID uint64) error {
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"deleted_at": time.Now()}, squirrel.Eq{"id": ID})
 }
 
 func (r attachment) BindAttachment(attachmentId, messageId uint64) error {

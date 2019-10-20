@@ -231,13 +231,13 @@ func (r *user) BindAvatar(user *types.User, avatar io.Reader) (*types.User, erro
 }
 
 func (r *user) SuspendByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "suspended_at", time.Now(), id)
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"suspended_at": time.Now()}, squirrel.Eq{"id": id})
 }
 
 func (r *user) UnsuspendByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "suspended_at", nil, id)
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"suspended_at": nil}, squirrel.Eq{"id": id})
 }
 
 func (r *user) DeleteByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "deleted_at", time.Now(), id)
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"deleted_at": time.Now()}, squirrel.Eq{"id": id})
 }
