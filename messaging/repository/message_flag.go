@@ -56,17 +56,17 @@ func (r messageFlag) query() squirrel.SelectBuilder {
 		From(r.table() + " AS mf")
 }
 
-func (r *messageFlag) With(ctx context.Context, db *factory.DB) MessageFlagRepository {
+func (r messageFlag) With(ctx context.Context, db *factory.DB) MessageFlagRepository {
 	return &messageFlag{
 		repository: r.repository.With(ctx, db),
 	}
 }
 
-func (r *messageFlag) FindByID(ID uint64) (*types.MessageFlag, error) {
+func (r messageFlag) FindByID(ID uint64) (*types.MessageFlag, error) {
 	return r.findOneBy(squirrel.Eq{"id": ID})
 }
 
-func (r *messageFlag) FindByFlag(messageID, userID uint64, flag string) (*types.MessageFlag, error) {
+func (r messageFlag) FindByFlag(messageID, userID uint64, flag string) (*types.MessageFlag, error) {
 	cnd := squirrel.Eq{
 		"rel_message": messageID,
 		"flag":        flag,
@@ -99,7 +99,7 @@ func (r messageFlag) findOneBy(cnd squirrel.Sqlizer) (*types.MessageFlag, error)
 }
 
 // FindByMessageIDs returns all flags by message id range
-func (r *messageFlag) FindByMessageIDs(IDs ...uint64) (set types.MessageFlagSet, err error) {
+func (r messageFlag) FindByMessageIDs(IDs ...uint64) (set types.MessageFlagSet, err error) {
 	if len(IDs) == 0 {
 		return
 	}
@@ -107,12 +107,12 @@ func (r *messageFlag) FindByMessageIDs(IDs ...uint64) (set types.MessageFlagSet,
 	return set, rh.FetchAll(r.db(), r.query().Where(squirrel.Eq{"rel_message": IDs}), &set)
 }
 
-func (r *messageFlag) Create(mod *types.MessageFlag) (*types.MessageFlag, error) {
+func (r messageFlag) Create(mod *types.MessageFlag) (*types.MessageFlag, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 	return mod, r.db().Insert(r.table(), mod)
 }
 
-func (r *messageFlag) DeleteByID(ID uint64) error {
+func (r messageFlag) DeleteByID(ID uint64) error {
 	return rh.Delete(r.db(), r.table(), squirrel.Eq{"id": ID})
 }
