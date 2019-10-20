@@ -436,7 +436,7 @@ func (svc message) Delete(messageID uint64) error {
 // If lastReadMessageID is set, it uses that message as last read message
 func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (uint64, uint32, uint32, error) {
 	var (
-		currentUserID uint64 = repository.Identity(svc.ctx)
+		currentUserID uint64 = auth.GetIdentityFromContext(svc.ctx).Identity()
 		count         uint32
 		threadCount   uint32
 		err           error

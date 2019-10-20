@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/titpetric/factory"
-
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 )
 
 type (
@@ -18,11 +16,6 @@ type (
 // DB produces a contextual DB handle
 func DB(ctx context.Context) *factory.DB {
 	return factory.Database.MustGet("messaging").With(ctx)
-}
-
-// Identity returns the User ID from context
-func Identity(ctx context.Context) uint64 {
-	return auth.GetIdentityFromContext(ctx).Identity()
 }
 
 // With updates repository and database contexts

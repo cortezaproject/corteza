@@ -27,9 +27,6 @@ type (
 		UnarchiveByID(id uint64) error
 		DeleteByID(id uint64) error
 		UndeleteByID(id uint64) error
-
-		CountCreated(userID uint64) (c int, err error)
-		ChangeCreator(userID, target uint64) error
 	}
 
 	channel struct {
@@ -94,21 +91,21 @@ func (r channel) FindByMemberSet(memberIDs ...uint64) (*types.Channel, error) {
 
 func (r channel) findOneBy(cnd squirrel.Sqlizer) (*types.Channel, error) {
 	var (
-		app = &types.Channel{}
+		ch = &types.Channel{}
 
 		q = r.query().
 			Where(cnd)
 
-		err = rh.FetchOne(r.db(), q, app)
+		err = rh.FetchOne(r.db(), q, ch)
 	)
 
 	if err != nil {
 		return nil, err
-	} else if app.ID == 0 {
+	} else if ch.ID == 0 {
 		return nil, ErrChannelNotFound
 	}
 
-	return app, nil
+	return ch, nil
 }
 
 func (r channel) Find(filter types.ChannelFilter) (set types.ChannelSet, f types.ChannelFilter, err error) {
@@ -178,27 +175,18 @@ func (r channel) Update(mod *types.Channel) (*types.Channel, error) {
 	return mod, r.db().UpdatePartial("messaging_channel", mod, whitelist, "id")
 }
 
-func (r channel) ArchiveByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "archived_at", time.Now(), id)
+func (r channel) ArchiveByID(ID uint64) error {
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"archived_at": time.Now()}, squirrel.Eq{"id": ID})
 }
 
-func (r channel) UnarchiveByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "archived_at", nil, id)
+func (r channel) UnarchiveByID(ID uint64) error {
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"archived_at": nil}, squirrel.Eq{"id": ID})
 }
 
-func (r channel) DeleteByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "deleted_at", time.Now(), id)
+func (r channel) DeleteByID(ID uint64) error {
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"deleted_at": time.Now()}, squirrel.Eq{"id": ID})
 }
 
-func (r channel) UndeleteByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "deleted_at", nil, id)
-}
-
-func (r channel) CountCreated(userID uint64) (c int, err error) {
-	return c, r.db().Get(&c, "SELECT COUNT(*) FROM "+r.table()+" WHERE rel_creator = ?", userID)
-}
-
-func (r channel) ChangeCreator(userID, target uint64) error {
-	_, err := r.db().Exec("UPDATE "+r.table()+" SET rel_creator = ? WHERE rel_creator = ?", target, userID)
-	return err
+func (r channel) UndeleteByID(ID uint64) error {
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"deleted_at": nil}, squirrel.Eq{"id": ID})
 }

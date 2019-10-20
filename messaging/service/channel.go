@@ -248,7 +248,7 @@ func (svc *channel) Create(in *types.Channel) (out *types.Channel, err error) {
 
 		var organisationID = organization.Corteza().ID
 
-		var chCreatorID = repository.Identity(svc.ctx)
+		var chCreatorID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
 		mm := svc.buildMemberSet(chCreatorID, in.Members...)
 
@@ -416,7 +416,7 @@ func (svc *channel) Update(in *types.Channel) (ch *types.Channel, err error) {
 			changed = true
 		}
 
-		var chUpdatorId = repository.Identity(svc.ctx)
+		var chUpdatorId = auth.GetIdentityFromContext(svc.ctx).Identity()
 
 		if len(in.Name) > 0 && ch.Name != in.Name {
 			if settingsChannelNameLength > 0 && len(in.Name) > settingsChannelNameLength {
@@ -471,7 +471,7 @@ func (svc *channel) Delete(ID uint64) (ch *types.Channel, err error) {
 	}
 
 	return ch, svc.db.Transaction(func() (err error) {
-		var userID = repository.Identity(svc.ctx)
+		var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
 		if ch, err = svc.findByID(ID); err != nil {
 			return
@@ -509,7 +509,7 @@ func (svc *channel) Undelete(ID uint64) (ch *types.Channel, err error) {
 	}
 
 	return ch, svc.db.Transaction(func() (err error) {
-		var userID = repository.Identity(svc.ctx)
+		var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
 		if ch, err = svc.findByID(ID); err != nil {
 			return
@@ -544,7 +544,7 @@ func (svc *channel) SetFlag(ID uint64, flag types.ChannelMembershipFlag) (ch *ty
 
 	return ch, svc.db.Transaction(func() (err error) {
 		var membership *types.ChannelMember
-		var userID = repository.Identity(svc.ctx)
+		var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
 		if ch, err = svc.FindByID(ID); err != nil {
 			return
@@ -578,7 +578,7 @@ func (svc *channel) Archive(ID uint64) (ch *types.Channel, err error) {
 	}
 
 	return ch, svc.db.Transaction(func() (err error) {
-		var userID = repository.Identity(svc.ctx)
+		var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
 		if ch, err = svc.findByID(ID); err != nil {
 			return
@@ -612,7 +612,7 @@ func (svc *channel) Unarchive(ID uint64) (ch *types.Channel, err error) {
 	}
 
 	return ch, svc.db.Transaction(func() (err error) {
-		var userID = repository.Identity(svc.ctx)
+		var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
 		if ch, err = svc.findByID(ID); err != nil {
 			return
@@ -652,7 +652,7 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 	}
 
 	var (
-		userID   = repository.Identity(svc.ctx)
+		userID   = auth.GetIdentityFromContext(svc.ctx).Identity()
 		ch       *types.Channel
 		existing types.ChannelMemberSet
 	)
@@ -714,7 +714,7 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 	}
 
 	var (
-		userID   = repository.Identity(svc.ctx)
+		userID   = auth.GetIdentityFromContext(svc.ctx).Identity()
 		ch       *types.Channel
 		existing types.ChannelMemberSet
 	)
@@ -806,7 +806,7 @@ func (svc channel) createMember(member *types.ChannelMember) (m *types.ChannelMe
 
 func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err error) {
 	var (
-		userID   = repository.Identity(svc.ctx)
+		userID   = auth.GetIdentityFromContext(svc.ctx).Identity()
 		ch       *types.Channel
 		existing types.ChannelMemberSet
 	)
@@ -887,7 +887,7 @@ func (svc *channel) sendChannelEvent(ch *types.Channel) (err error) {
 				return err
 			} else {
 				ch.Members = mm.AllMemberIDs()
-				ch.Member = mm.FindByUserID(repository.Identity(svc.ctx))
+				ch.Member = mm.FindByUserID(auth.GetIdentityFromContext(svc.ctx).Identity())
 			}
 		}
 	}

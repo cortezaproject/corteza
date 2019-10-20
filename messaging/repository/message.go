@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/titpetric/factory"
 
@@ -120,11 +121,15 @@ func (r *message) With(ctx context.Context, db *factory.DB) MessageRepository {
 	}
 }
 
+func (r message) table() string {
+	return "messaging_message"
+}
+
 func (r *message) FindByID(id uint64) (*types.Message, error) {
 	mod := &types.Message{}
 	sql := sqlMessagesSelect + " AND id = ?"
 
-	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrMessageNotFound)
+	return mod, rh.IsFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrMessageNotFound)
 }
 
 func (r *message) Find(filter *types.MessageFilter) (types.MessageSet, error) {
@@ -334,7 +339,7 @@ func (svc *message) BindAvatar(in *types.Message, avatar io.Reader) (*types.Mess
 }
 
 func (r *message) DeleteByID(ID uint64) error {
-	return r.updateColumnByID("messaging_message", "deleted_at", time.Now(), ID)
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"deleted_at": time.Now()}, squirrel.Eq{"id": ID})
 }
 
 func (r *message) IncReplyCount(ID uint64) error {

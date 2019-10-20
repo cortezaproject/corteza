@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/titpetric/factory"
 
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -20,9 +22,6 @@ type (
 		Create(m *types.Mention) (*types.Mention, error)
 		DeleteByMessageID(ID uint64) error
 		DeleteByID(ID uint64) error
-
-		CountMentions(userID uint64) (c int, err error)
-		ChangeMention(userID, target uint64) error
 	}
 
 	mention struct {
@@ -44,6 +43,10 @@ func (r *mention) With(ctx context.Context, db *factory.DB) MentionRepository {
 	}
 }
 
+func (r mention) table() string {
+	return "messaging_mention"
+}
+
 func (r *mention) FindByUserIDs(IDs ...uint64) (types.MentionSet, error) {
 	return r.findByIDs("rel_user", IDs...)
 }
@@ -59,7 +62,7 @@ func (r *mention) findByIDs(col string, IDs ...uint64) (mm types.MentionSet, err
 		return
 	}
 
-	sql := fmt.Sprintf(`SELECT * FROM messaging_mention WHERE %s IN (?)`, col)
+	sql := fmt.Sprintf(`SELECT * FROM %s WHERE %s IN (?)`, r.table(), col)
 
 	if sql, args, err := sqlx.In(sql, IDs); err != nil {
 		return nil, err
@@ -71,24 +74,13 @@ func (r *mention) findByIDs(col string, IDs ...uint64) (mm types.MentionSet, err
 func (r *mention) Create(m *types.Mention) (*types.Mention, error) {
 	m.ID = factory.Sonyflake.NextID()
 	m.CreatedAt = time.Now()
-	return m, r.db().Insert("messaging_mention", m)
+	return m, r.db().Insert(r.table(), m)
 }
 
 func (r *mention) DeleteByMessageID(ID uint64) error {
-	return exec(r.db().Exec("DELETE FROM messaging_mention WHERE rel_message = ?", ID))
+	return rh.Delete(r.db(), r.table(), squirrel.Eq{"rel_message": ID})
 }
 
 func (r *mention) DeleteByID(ID uint64) error {
-	return exec(r.db().Exec("DELETE FROM messaging_mention WHERE id = ?", ID))
-}
-
-func (r *mention) CountMentions(userID uint64) (c int, err error) {
-	return c, r.db().Get(&c,
-		"SELECT COUNT(*) FROM messaging_mention WHERE rel_user = ?",
-		userID)
-}
-
-func (r *mention) ChangeMention(userID, target uint64) error {
-	_, err := r.db().Exec("UPDATE messaging_mention SET rel_user = ? WHERE rel_user = ?", target, userID)
-	return err
+	return rh.Delete(r.db(), r.table(), squirrel.Eq{"id": ID})
 }
