@@ -6,7 +6,6 @@ import (
 	"github.com/jmoiron/sqlx/types"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -54,6 +53,8 @@ type (
 	ChannelFilter struct {
 		Query string
 
+		ChannelID []uint64
+
 		// Only return channels accessible by this user
 		CurrentUserID uint64
 
@@ -61,9 +62,6 @@ type (
 		IncludeDeleted bool
 
 		Sort string `json:"sort"`
-
-		// Standard paging fields & helpers
-		rh.PageFilter
 	}
 
 	ChannelMembershipPolicy string
