@@ -661,34 +661,33 @@ scripts:
             'SuppliedEmail' : SuppliedEmail,
             'SuppliedPhone' : SuppliedPhone,
             'CaseNumber' : nextCaseNumber
-          }, 'Case').then(myCase => {
+          }, 'Case')
+            .then(myCase => Compose.saveRecord(myCase))
+            .then(mySavedCase => {
 
-            Compose.saveRecord(myCase)
+              let nextCaseNumberUpdated = parseInt(nextCaseNumber,10) + 1
 
-          }).then(mySavedCase => {
-            let nextCaseNumberUpdated = parseInt(nextCaseNumber,10) + 1
+              // Update the config
+              settings.values.CaseNextNumber = nextCaseNumberUpdated
+              return Compose.saveRecord(settings).then(mySavedSettings => {
 
-            // Update the config
-            settings.values.CaseNextNumber = nextCaseNumberUpdated
-            return Compose.saveRecord(settings).then(mySavedSettings => {
+                console.log('Record saved, new ID', mySavedSettings.recordID)
 
-              console.log('Record saved, new ID', mySavedSettings.recordID)
+              }).then(() => {
 
-            }).then(({ mySavedCase }) => {
-
-              // Notify current user
-              ComposeUI.success(`The new case has been created.`)
+                // Notify current user
+                ComposeUI.success(`The new case has been created.`)
 
 
-            }).then(({ mySavedCase }) => {
+              }).then(() => {
 
-              // Go to the record
-              ComposeUI.gotoRecordEditor(mySavedCase)
+                // Go to the record
+                ComposeUI.gotoRecordEditor(mySavedCase)
 
-            }).catch(err => {
-            // solve the problem
-            console.error(err)
-            })
+              }).catch(err => {
+              // solve the problem
+              console.error(err)
+              })
           }).catch(err => {
           // solve the problem
           console.error(err)
