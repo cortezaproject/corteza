@@ -309,7 +309,7 @@
 | query | string | GET | Search query to match against automation script | N/A | NO |
 | resource | string | GET | Limit by resource (via trigger) | N/A | NO |
 | incDeleted | bool | GET | Include deleted scripts | N/A | NO |
-| page | uint | GET | Page number (0 based) | N/A | NO |
+| page | uint | GET | Page number | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 
 ## Add new automation script
@@ -430,7 +430,7 @@
 | resource | string | GET | Only triggers of a specific resource | N/A | NO |
 | event | string | GET | Only triggers of a specific event | N/A | NO |
 | incDeleted | bool | GET | Include deleted scripts | N/A | NO |
-| page | uint | GET | Page number (0 based) | N/A | NO |
+| page | uint | GET | Page number | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | scriptID | uint64 | PATH | Script ID | N/A | YES |
 
@@ -725,7 +725,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | scheduledUntil | *time.Time | GET | Only reminders up to this time (included) | N/A | NO |
 | scheduledOnly | bool | GET | Only scheduled reminders | N/A | NO |
 | excludeDismissed | bool | GET | Filter out dismissed reminders | N/A | NO |
-| page | uint | GET | Page number (0 based) | N/A | NO |
+| page | uint | GET | Page number | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | sort | string | GET | Sort | N/A | NO |
 
@@ -1149,7 +1149,7 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.cru
 | incDeleted | bool | GET | Include deleted users (requires 'access' permission) | N/A | NO |
 | incSuspended | bool | GET | Include suspended users (requires 'access' permission) | N/A | NO |
 | sort | string | GET | Sort by (createdAt, updatedAt, deletedAt, suspendedAt, email, username, userID) | N/A | NO |
-| page | uint | GET | Page number (0 based) | N/A | NO |
+| page | uint | GET | Page number | N/A | NO |
 | perPage | uint | GET | Returned items per page | N/A | NO |
 
 ## Create user

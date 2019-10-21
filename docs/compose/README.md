@@ -24,7 +24,7 @@
 | moduleID | uint64 | GET | Filter attachments by module ID | N/A | NO |
 | recordID | uint64 | GET | Filter attachments by record ID | N/A | NO |
 | fieldName | string | GET | Filter attachments by field name | N/A | NO |
-| page | uint | GET | Page number (0 based) | N/A | NO |
+| page | uint | GET | Page number | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | sign | string | GET | Signature | N/A | NO |
 | userID | uint64 | GET | User ID | N/A | NO |
@@ -139,7 +139,7 @@
 | query | string | GET | Search query to match against automation script | N/A | NO |
 | resource | string | GET | Limit by resource (via trigger) | N/A | NO |
 | incDeleted | bool | GET | Include deleted scripts | N/A | NO |
-| page | uint | GET | Page number (0 based) | N/A | NO |
+| page | uint | GET | Page number | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
@@ -303,7 +303,7 @@
 | resource | string | GET | Only triggers of a specific resource | N/A | NO |
 | event | string | GET | Only triggers of a specific event | N/A | NO |
 | incDeleted | bool | GET | Include deleted scripts | N/A | NO |
-| page | uint | GET | Page number (0 based) | N/A | NO |
+| page | uint | GET | Page number | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | scriptID | uint64 | PATH | Script ID | N/A | YES |
@@ -408,7 +408,7 @@
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query to match against charts | N/A | NO |
 | handle | string | GET | Search charts by handle | N/A | NO |
-| page | uint | GET | Page number (0 based) | N/A | NO |
+| page | uint | GET | Page number | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | sort | string | GET | Sort charts | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
@@ -511,7 +511,7 @@ Compose module definitions
 | query | string | GET | Search query | N/A | NO |
 | name | string | GET | Search by name | N/A | NO |
 | handle | string | GET | Search by handle | N/A | NO |
-| page | uint | GET | Page number (0 based) | N/A | NO |
+| page | uint | GET | Page number | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | sort | string | GET | Sort | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
@@ -613,7 +613,7 @@ Compose module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
 | slug | string | GET | Search by namespace slug | N/A | NO |
-| page | uint | GET | Page number (0 based) | N/A | NO |
+| page | uint | GET | Page number | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | sort | string | GET | Sort namespaces | N/A | NO |
 
@@ -748,7 +748,7 @@ Compose pages
 | selfID | uint64 | GET | Parent page ID | N/A | NO |
 | query | string | GET | Search query | N/A | NO |
 | handle | string | GET | Search by handle | N/A | NO |
-| page | uint | GET | Page number (0 based) | N/A | NO |
+| page | uint | GET | Page number | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | sort | string | GET | Sort | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
@@ -1012,7 +1012,7 @@ Compose records
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | filter | string | GET | Filtering condition | N/A | NO |
-| page | uint | GET | Page number (0 based) | N/A | NO |
+| page | uint | GET | Page number | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | sort | string | GET | Sort field (default id desc) | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
