@@ -133,6 +133,10 @@ func (svc *channel) Find(filter types.ChannelFilter) (set types.ChannelSet, f ty
 		err = svc.preloadExtras(set)
 	}
 
+	set, err = set.Filter(func(c *types.Channel) (b bool, e error) {
+		return svc.ac.CanReadChannel(svc.ctx, c), nil
+	})
+
 	return
 }
 

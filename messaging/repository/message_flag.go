@@ -56,6 +56,13 @@ func (r messageFlag) query() squirrel.SelectBuilder {
 		From(r.table() + " AS mf")
 }
 
+func (r messageFlag) queryMessagesWithFlags(flags ...string) squirrel.SelectBuilder {
+	return squirrel.
+		Select("mf.rel_message").
+		From(r.table() + " AS mf").
+		Where(squirrel.Eq{"flag": flags})
+}
+
 func (r messageFlag) With(ctx context.Context, db *factory.DB) MessageFlagRepository {
 	return &messageFlag{
 		repository: r.repository.With(ctx, db),

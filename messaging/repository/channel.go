@@ -123,6 +123,10 @@ func (r channel) Find(filter types.ChannelFilter) (set types.ChannelSet, f types
 		query = query.Where(squirrel.Eq{"c.deleted_at": nil})
 	}
 
+	if len(f.ChannelID) > 0 {
+		query = query.Where(squirrel.Eq{"c.id": f.ChannelID})
+	}
+
 	if f.Query != "" {
 		q := "%" + strings.ToLower(f.Query) + "%"
 		query = query.Where(squirrel.Like{"LOWER(name)": q})
@@ -143,11 +147,7 @@ func (r channel) Find(filter types.ChannelFilter) (set types.ChannelSet, f types
 		query = query.OrderBy(orderBy...)
 	}
 
-	if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
-		return
-	}
-
-	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
+	return set, f, rh.FetchAll(r.db(), query, &set)
 }
 
 func (r channel) Create(mod *types.Channel) (*types.Channel, error) {
