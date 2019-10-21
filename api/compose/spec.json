@@ -37,7 +37,7 @@
                             "name": "page",
                             "type": "uint",
                             "required": false,
-                            "title": "Page number (0 based)"
+                            "title": "Page number"
                         },
                         {
                             "name": "perPage",
@@ -223,7 +223,7 @@
                             "name": "page",
                             "type": "uint",
                             "required": false,
-                            "title": "Page number (0 based)"
+                            "title": "Page number"
                         },
                         {
                             "name": "perPage",
@@ -496,7 +496,7 @@
                             "name": "page",
                             "type": "uint",
                             "required": false,
-                            "title": "Page number (0 based)"
+                            "title": "Page number"
                         },
                         {
                             "name": "perPage",
@@ -704,7 +704,7 @@
                             "name": "page",
                             "type": "uint",
                             "required": false,
-                            "title": "Page number (0 based)"
+                            "title": "Page number"
                         },
                         {
                             "name": "perPage",
@@ -992,7 +992,7 @@
                             "name": "page",
                             "type": "uint",
                             "required": false,
-                            "title": "Page number (0 based)"
+                            "title": "Page number"
                         },
                         {
                             "name": "perPage",
@@ -1249,7 +1249,7 @@
                             "name": "page",
                             "type": "uint",
                             "required": false,
-                            "title": "Page number (0 based)"
+                            "title": "Page number"
                         },
                         {
                             "name": "perPage",
@@ -1500,7 +1500,7 @@
                             "name": "page",
                             "type": "uint",
                             "required": false,
-                            "title": "Page number (0 based)"
+                            "title": "Page number"
                         },
                         {
                             "name": "perPage",
@@ -1764,7 +1764,7 @@
                             "name": "page",
                             "type": "uint",
                             "required": false,
-                            "title": "Page number (0 based)"
+                            "title": "Page number"
                         },
                         {
                             "name": "perPage",
