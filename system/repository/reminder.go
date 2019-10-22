@@ -47,23 +47,23 @@ func (r reminder) table() string {
 
 func (r reminder) columns() []string {
 	return []string{
-		"id",
-		"resource",
-		"payload",
-		"snooze_count",
+		"r.id",
+		"r.resource",
+		"r.payload",
+		"r.snooze_count",
 
-		"assigned_to",
-		"assigned_by",
-		"assigned_at",
+		"r.assigned_to",
+		"r.assigned_by",
+		"r.assigned_at",
 
-		"dismissed_by",
-		"dismissed_at",
+		"r.dismissed_by",
+		"r.dismissed_at",
 
-		"remind_at",
+		"r.remind_at",
 
-		"created_at",
-		"updated_at",
-		"deleted_at",
+		"r.created_at",
+		"r.updated_at",
+		"r.deleted_at",
 	}
 }
 
