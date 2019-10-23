@@ -18,8 +18,8 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		settings    *AuthSettings
-		sysSettings SettingsService
+		settings       *AuthSettings
+		systemSettings *SystemSettings
 	}
 
 	AuthNotificationService interface {
@@ -43,18 +43,18 @@ type (
 
 func AuthNotification(ctx context.Context) AuthNotificationService {
 	return (&authNotification{
-		logger:      DefaultLogger.Named("auth-notification"),
-		settings:    DefaultAuthSettings,
-		sysSettings: DefaultSettings,
+		logger:         DefaultLogger.Named("auth-notification"),
+		settings:       DefaultAuthSettings,
+		systemSettings: DefaultSystemSettings,
 	}).With(ctx)
 }
 
 func (svc authNotification) With(ctx context.Context) AuthNotificationService {
 	return &authNotification{
-		ctx:         ctx,
-		logger:      logger.AddRequestID(ctx, svc.logger),
-		settings:    svc.settings,
-		sysSettings: svc.sysSettings,
+		ctx:            ctx,
+		logger:         logger.AddRequestID(ctx, svc.logger),
+		settings:       svc.settings,
+		systemSettings: svc.systemSettings,
 	}
 }
 
@@ -85,30 +85,14 @@ func (svc authNotification) newMail() *gomail.Message {
 func (svc authNotification) send(name, lang string, payload authNotificationPayload) error {
 	ntf := svc.newMail()
 
-	dl, err := svc.sysSettings.Get("defaultLogo", 0)
-	if err != nil {
-		return err
-	}
-	defaultLogo := ""
-	err = dl.Value.Unmarshal(&defaultLogo)
-	if err != nil {
-		return err
-	}
-
-	payload.Logo = template.URL(defaultLogo)
+	payload.Logo = template.URL(svc.systemSettings.DefaultLogo)
 	payload.BaseURL = svc.settings.FrontendUrlBase
 	payload.SignatureName = svc.settings.MailFromName
 	payload.SignatureEmail = svc.settings.MailFromAddress
 
-	ms, err := svc.sysSettings.FindByPrefix("mail.")
-	if err != nil {
-		return err
-	}
-
-	msKV := ms.KV()
 	// @todo translations
-	payload.EmailHeaderEn = template.HTML(svc.render(msKV.String("mail.header.en"), payload))
-	payload.EmailFooterEn = template.HTML(svc.render(msKV.String("mail.footer.en"), payload))
+	payload.EmailHeaderEn = template.HTML(svc.render(svc.systemSettings.MailHeader, payload))
+	payload.EmailFooterEn = template.HTML(svc.render(svc.systemSettings.MailFooter, payload))
 
 	ntf.SetAddressHeader("To", payload.EmailAddress, "")
 	// @todo translations
