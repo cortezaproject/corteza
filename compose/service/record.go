@@ -427,7 +427,7 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 		return ErrNoDeletePermissions.withStack()
 	}
 
-	if err = svc.sr.BeforeRecordCreate(svc.ctx, ns, m, r); err != nil {
+	if err = svc.sr.BeforeRecordDelete(svc.ctx, ns, m, r); err != nil {
 		// Calling
 		return
 	}
