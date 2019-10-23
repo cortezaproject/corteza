@@ -105,7 +105,7 @@ func TestReminderListAssignee(t *testing.T) {
 func TestReminderListDateRange(t *testing.T) {
 	h := newHelper(t)
 
-	nn := time.Now()
+	nn := time.Now().Round(time.Millisecond).Round(time.Second)
 
 	// Out of range
 	h.repoMakeReminder("test_lrn_ol_namespace:*", nil, 0, h.tPtr(nn.Add(time.Hour*-2)))
