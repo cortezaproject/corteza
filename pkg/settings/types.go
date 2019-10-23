@@ -121,6 +121,23 @@ func (kv KV) Filter(prefix string) KV {
 	return out
 }
 
+// CutPrefix returns values with matching prefix and removes the prefix from keys
+func (kv KV) CutPrefix(prefix string) KV {
+	var out = KV{}
+	for k, v := range kv {
+		if strings.Index(k, prefix) == 0 {
+			out[k[len(prefix):]] = v
+		}
+	}
+
+	return out
+}
+
+// Decode is a helper function on KV that calls Decode() and passes on the dst
+func (kv KV) Decode(dst interface{}) error {
+	return Decode(kv, dst)
+}
+
 // Replace finds and updates existing or appends new value
 func (set *ValueSet) Replace(n *Value) {
 	for _, v := range *set {
