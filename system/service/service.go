@@ -64,7 +64,7 @@ var (
 
 	DefaultAuthNotification AuthNotificationService
 	DefaultAuthSettings     *AuthSettings
-	DefaultSystemSettings   *SystemSettings
+	DefaultSystemSettings   *types.Settings
 
 	DefaultSink *sink
 

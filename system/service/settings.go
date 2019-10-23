@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	internalSettings "github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/repository"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -38,9 +39,9 @@ type (
 		Get(name string, ownedBy uint64) (out *internalSettings.Value, err error)
 
 		LoadAuthSettings() (*AuthSettings, error)
-		LoadSystemSettings() (*SystemSettings, error)
+		LoadSystemSettings() (*types.Settings, error)
 		UpdateAuthSettings(*AuthSettings) error
-		UpdateSystemSettings(*SystemSettings) error
+		UpdateSystemSettings(*types.Settings) error
 		AutoDiscovery() error
 	}
 )
@@ -109,18 +110,18 @@ func (svc settings) LoadAuthSettings() (*AuthSettings, error) {
 }
 
 // Loads system.% settings, initializes & fills system settings struct
-func (svc settings) LoadSystemSettings() (*SystemSettings, error) {
-	ss := &SystemSettings{}
-	return ss, svc.UpdateSystemSettings(ss)
+func (svc settings) LoadSystemSettings() (*types.Settings, error) {
+	s := &types.Settings{}
+	return s, svc.UpdateSystemSettings(s)
 }
 
-func (svc settings) UpdateSystemSettings(ss *SystemSettings) error {
-	vv, err := svc.internalSettings.FindByPrefix("system.")
+func (svc settings) UpdateSystemSettings(s *types.Settings) error {
+	vv, err := svc.internalSettings.FindByPrefix("")
 	if err != nil {
 		return err
 	}
 
-	return ss.ReadKV(vv.KV())
+	return vv.KV().Decode(s)
 }
 
 func (svc settings) UpdateAuthSettings(as *AuthSettings) error {
