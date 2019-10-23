@@ -64,6 +64,7 @@ var (
 
 	DefaultAuthNotification AuthNotificationService
 	DefaultAuthSettings     *AuthSettings
+	DefaultSystemSettings   *SystemSettings
 
 	DefaultSink *sink
 
@@ -96,6 +97,11 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 
 	// Authentication helpers & services
 	DefaultAuthSettings, err = DefaultSettings.LoadAuthSettings()
+	if err != nil {
+		return
+	}
+
+	DefaultSystemSettings, err = DefaultSettings.LoadSystemSettings()
 	if err != nil {
 		return
 	}

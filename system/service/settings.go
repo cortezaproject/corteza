@@ -38,7 +38,9 @@ type (
 		Get(name string, ownedBy uint64) (out *internalSettings.Value, err error)
 
 		LoadAuthSettings() (*AuthSettings, error)
+		LoadSystemSettings() (*SystemSettings, error)
 		UpdateAuthSettings(*AuthSettings) error
+		UpdateSystemSettings(*SystemSettings) error
 		AutoDiscovery() error
 	}
 )
@@ -104,6 +106,21 @@ func (svc settings) Get(name string, ownedBy uint64) (out *internalSettings.Valu
 func (svc settings) LoadAuthSettings() (*AuthSettings, error) {
 	as := &AuthSettings{}
 	return as, svc.UpdateAuthSettings(as)
+}
+
+// Loads system.% settings, initializes & fills system settings struct
+func (svc settings) LoadSystemSettings() (*SystemSettings, error) {
+	ss := &SystemSettings{}
+	return ss, svc.UpdateSystemSettings(ss)
+}
+
+func (svc settings) UpdateSystemSettings(ss *SystemSettings) error {
+	vv, err := svc.internalSettings.FindByPrefix("system.")
+	if err != nil {
+		return err
+	}
+
+	return ss.ReadKV(vv.KV())
 }
 
 func (svc settings) UpdateAuthSettings(as *AuthSettings) error {
