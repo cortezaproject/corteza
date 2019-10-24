@@ -1,0 +1,361 @@
+namespace: service-cloud
+charts:
+  ActiveEntitlements:
+    name: Number of active entitlements
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Status
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - backgroundColor: '#11ff57'
+          field: count
+          fixTooltips: true
+          type: pie
+        module: Entitlement
+  AverageTimeSpentPerCase:
+    name: Average time spent per case
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: created_at
+          modifier: MONTH
+        filter: ""
+        metrics:
+        - aggregate: AVG
+          backgroundColor: '#ff9937'
+          beginAtZero: true
+          field: TotalTime
+          fixTooltips: false
+          label: Average case time (in hours)
+          type: bar
+        module: Case
+  CaseUpdatesPerType:
+    name: Case updates per type
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Type
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - backgroundColor: '#b51392'
+          field: count
+          fixTooltips: true
+          relativeValue: true
+          type: doughnut
+        module: Update
+  CasesByCategory:
+    name: Cases by category
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Category
+          modifier: (no grouping / buckets)
+          skipMissing: true
+        filter: ""
+        metrics:
+        - backgroundColor: '#ff0074'
+          field: count
+          fixTooltips: true
+          label: Category
+          relativePrecision: "2"
+          relativeValue: true
+          type: doughnut
+        module: Case
+  CasesByPriority:
+    name: Cases by priority
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Priority
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - backgroundColor: '#f50d23'
+          field: count
+          fixTooltips: true
+          label: Priority
+          relativeValue: true
+          type: doughnut
+        module: Case
+  CasesByStatus:
+    name: Cases by status
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Status
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - backgroundColor: '#13b1dc'
+          field: count
+          fixTooltips: true
+          label: Cases by status
+          relativeValue: true
+          type: doughnut
+        module: Case
+  ClosedCasesPerMonth:
+    name: Closed cases per month
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: CloseDate
+          modifier: MONTH
+          skipMissing: true
+        filter: ""
+        metrics:
+        - backgroundColor: '#4ec811'
+          beginAtZero: true
+          field: count
+          fill: true
+          fixTooltips: false
+          label: Closed cases
+          type: line
+        module: Case
+  CostPerCategory:
+    name: Total costs per category
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Category
+          modifier: (no grouping / buckets)
+          skipMissing: false
+        filter: ""
+        metrics:
+        - aggregate: SUM
+          axisType: null
+          backgroundColor: '#ffac45'
+          field: TotalCost
+          fixTooltips: true
+          label: Cost per category (in $)
+          relativeValue: false
+          type: bar
+        module: Case
+  CostPerProductFamily:
+    name: Total costs per product family
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Family
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - aggregate: SUM
+          axisType: null
+          backgroundColor: '#03ad3b'
+          beginAtZero: true
+          field: TotalCost
+          fixTooltips: true
+          label: Total (in $)
+          relativeValue: false
+          type: bar
+        module: Product
+  CostsPerAccount:
+    name: Total costs per account
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: AccountSelect
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - aggregate: SUM
+          backgroundColor: '#6dc6fb'
+          field: TotalCost
+          fixTooltips: true
+          label: Total cost ($)
+          type: bar
+        module: Account
+  KnowledgeBaseArticlesPerType:
+    name: Knowledge Base articles per type
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Category
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - backgroundColor: '#ffc623'
+          field: count
+          fixTooltips: true
+          label: Knowledge Base articles per type
+          relativeValue: false
+          type: pie
+        module: KnowledgeBase
+  KnowledgeBaseItemsCreatedPerDay:
+    name: Knowledge Base items created per day
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: created_at
+          modifier: DATE
+        filter: ""
+        metrics:
+        - backgroundColor: '#ffc623'
+          beginAtZero: true
+          field: count
+          fill: false
+          label: Total (per day)
+          type: line
+        module: KnowledgeBase
+  NewCasesByMonth:
+    name: New cases per month
+    config:
+      reports:
+      - dimensions:
+        - autoSkip: true
+          conditions: {}
+          field: created_at
+          modifier: MONTH
+          skipMissing: true
+        filter: ""
+        metrics:
+        - backgroundColor: '#3baef0'
+          beginAtZero: true
+          field: count
+          fill: true
+          fixTooltips: false
+          label: New cases
+          type: line
+        module: Case
+  TimePerAccount:
+    name: Total time spent per account
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: AccountSelect
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - aggregate: SUM
+          backgroundColor: '#41aeee'
+          field: TotalTime
+          fixTooltips: true
+          label: Hours
+          type: pie
+        module: Account
+  TimeSpentPerProductFamily:
+    name: Total time Spent per product family
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Family
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - aggregate: SUM
+          axisType: null
+          backgroundColor: '#03ad3b'
+          beginAtZero: true
+          field: TotalTime
+          fixTooltips: true
+          label: Time spent (in hours)
+          relativeValue: false
+          type: pie
+        module: Product
+  TotalCostPerDepartment:
+    name: Total costs per department
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: DepartmentSelect
+          modifier: (no grouping / buckets)
+          skipMissing: true
+        filter: ""
+        metrics:
+        - aggregate: SUM
+          backgroundColor: '#bf94ff'
+          beginAtZero: true
+          field: TotalCost
+          fixTooltips: true
+          label: Total (in $)
+          type: bar
+        module: Department
+  TotalCostPerMonth:
+    name: Total costs per month
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: created_at
+          modifier: MONTH
+        filter: ""
+        metrics:
+        - aggregate: SUM
+          backgroundColor: '#189d00'
+          beginAtZero: true
+          field: Cost
+          label: Total cost per month (in $)
+          type: bar
+        module: Update
+  TotalTimeSpentPerCategory:
+    name: Total time spent per category
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Category
+          modifier: (no grouping / buckets)
+          skipMissing: true
+        filter: ""
+        metrics:
+        - aggregate: SUM
+          backgroundColor: '#ffac45'
+          field: TotalTime
+          fixTooltips: true
+          label: Total time spent per category (in hours)
+          type: pie
+        module: Case
+  TotalTimeSpentPerDepartment:
+    name: Total time spent per department
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: DepartmentSelect
+          modifier: (no grouping / buckets)
+          skipMissing: true
+        filter: ""
+        metrics:
+        - aggregate: SUM
+          backgroundColor: '#bf94ff'
+          field: TotalTime
+          fixTooltips: true
+          label: Total
+          type: pie
+        module: Department
+  TotalTimeSpentPerMonth:
+    name: Total time spent per month
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: created_at
+          modifier: MONTH
+        filter: ""
+        metrics:
+        - aggregate: SUM
+          backgroundColor: '#0d83e4'
+          beginAtZero: true
+          field: TimeSpend
+          fixTooltips: false
+          label: Total time spent (in hours)
+          type: bar
+        module: Update
