@@ -9,19 +9,22 @@ type (
 )
 
 const (
-	ErrInvalidID                      serviceError = "InvalidID"
-	ErrInvalidHandle                  serviceError = "InvalidHandle"
-	ErrStaleData                      serviceError = "StaleData"
-	ErrNoPermissions                  serviceError = "NoPermissions"
-	ErrNoGrantPermissions             serviceError = "NoGrantPermissions"
-	ErrNoCreatePermissions            serviceError = "NoCreatePermissions"
-	ErrNoReadPermissions              serviceError = "NoReadPermissions"
-	ErrNoUpdatePermissions            serviceError = "NoUpdatePermissions"
-	ErrNoDeletePermissions            serviceError = "NoDeletePermissions"
-	ErrNoTriggerManagementPermissions serviceError = "NoTriggerManagementPermissions"
-	ErrNamespaceRequired              serviceError = "NamespaceRequired"
-	ErrModulePageExists               serviceError = "ModulePageExists"
-	ErrNotImplemented                 serviceError = "NotImplemented"
+	ErrInvalidID                         serviceError = "InvalidID"
+	ErrInvalidHandle                     serviceError = "InvalidHandle"
+	ErrStaleData                         serviceError = "StaleData"
+	ErrNoPermissions                     serviceError = "NoPermissions"
+	ErrNoGrantPermissions                serviceError = "NoGrantPermissions"
+	ErrNoCreatePermissions               serviceError = "NoCreatePermissions"
+	ErrNoReadPermissions                 serviceError = "NoReadPermissions"
+	ErrNoUpdatePermissions               serviceError = "NoUpdatePermissions"
+	ErrNoDeletePermissions               serviceError = "NoDeletePermissions"
+	ErrNoTriggerManagementPermissions    serviceError = "NoTriggerManagementPermissions"
+	ErrNamespaceRequired                 serviceError = "NamespaceRequired"
+	ErrModulePageExists                  serviceError = "ModulePageExists"
+	ErrNotImplemented                    serviceError = "NotImplemented"
+	ErrRecordImportSessionNotFound       serviceError = "RecordImportSessionNotFound"
+	ErrRecordImportSessionAlreadyStarted serviceError = "RecordImportSessionAlreadyStarted"
+	ErrRecordImportFormatNotSupported    serviceError = "RecordImportFormatNotSupported"
 )
 
 func (e serviceError) Error() string {
