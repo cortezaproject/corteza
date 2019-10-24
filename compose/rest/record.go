@@ -211,7 +211,7 @@ func (ctrl *Record) ImportInit(ctx context.Context, r *request.RecordImportInit)
 		recordDecoder = decoder.NewFlatReader(csv.NewReader(f), f)
 
 	default:
-		return nil, errors.New(fmt.Sprintf("unsupported format (\"%s\")", ext))
+		return nil, service.ErrRecordImportFormatNotSupported
 
 	}
 	entryCount, err = recordDecoder.EntryCount()
@@ -252,7 +252,7 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 	}
 
 	if ses.Progress.StartedAt != nil {
-		return nil, errors.New("Unable to start import: Import session already active")
+		return nil, service.ErrRecordImportSessionAlreadyStarted
 	}
 
 	ses.Fields = make(map[string]string)
