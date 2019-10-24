@@ -9,7 +9,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -56,7 +55,7 @@ func (svc *importSession) FindRecordByID(ctx context.Context, sessionID uint64) 
 	if i >= 0 {
 		return svc.records[i], nil
 	}
-	return nil, errors.New("Can't access session: session not found")
+	return nil, ErrRecordImportSessionNotFound
 }
 
 func (svc *importSession) SetRecordByID(ctx context.Context, sessionID, namespaceID, moduleID uint64, fields map[string]string, progress *RecordImportProgress, decoder Decoder) (*RecordImportSession, error) {

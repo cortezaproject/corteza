@@ -1,18 +1,29 @@
 package compose
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"testing"
 	"time"
 
+	"github.com/steinfletcher/apitest"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
+)
+
+type (
+	rImportSession struct {
+		Response struct {
+			SessionID string `json:"sessionID"`
+		} `json:"response"`
+	}
 )
 
 func (h helper) repoRecord() repository.RecordRepository {
@@ -219,4 +230,159 @@ func TestRecordExport(t *testing.T) {
 	b, err := ioutil.ReadAll(r.Response.Body)
 	h.a.NoError(err)
 	h.a.Equal("name\nd0\nd1\nd2\nd3\nd4\nd5\nd6\nd7\nd8\nd9\n", string(b))
+}
+
+func (h helper) apiInitRecordImport(api *apitest.APITest, url, f string, file []byte) *apitest.Response {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("upload", f)
+	h.a.NoError(err)
+
+	_, err = part.Write(file)
+	h.a.NoError(err)
+	h.a.NoError(writer.Close())
+
+	return api.
+		Post(url).
+		Body(body.String()).
+		ContentType(writer.FormDataContentType()).
+		Expect(h.t).
+		Status(http.StatusOK)
+}
+
+func (h helper) apiRunRecordImport(api *apitest.APITest, url, b string) *apitest.Response {
+	return api.
+		Patch(url).
+		JSON(b).
+		Expect(h.t).
+		Status(http.StatusOK)
+}
+
+func TestRecordImportInit(t *testing.T) {
+	h := newHelper(t)
+
+	module := h.repoMakeRecordModuleWithFields("record import init module")
+	tests := []struct {
+		Name    string
+		Content string
+	}{
+		{
+			Name:    "f1.csv",
+			Content: "name,email\nv1,v2\n",
+		},
+		{
+			Name:    "f1.json",
+			Content: `{"name":"v1","email":"v2"}` + "\n",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(t.Name(), func(t *testing.T) {
+			url := fmt.Sprintf("/namespace/%d/module/%d/record/import", module.NamespaceID, module.ID)
+			h.apiInitRecordImport(h.apiInit(), url, test.Name, []byte(test.Content)).
+				Assert(jsonpath.Present("$.response.sessionID")).
+				Assert(jsonpath.Present(`$.response.fields.name==""`)).
+				Assert(jsonpath.Present(`$.response.fields.email==""`)).
+				Assert(jsonpath.Present("$.response.progress")).
+				Assert(jsonpath.Present("$.response.progress.entryCount==1")).
+				End()
+		})
+	}
+}
+
+func TestRecordImportInit_invalidFileFormat(t *testing.T) {
+	h := newHelper(t)
+
+	module := h.repoMakeRecordModuleWithFields("record import init module")
+	url := fmt.Sprintf("/namespace/%d/module/%d/record/import", module.NamespaceID, module.ID)
+	h.apiInitRecordImport(h.apiInit(), url, "invalid", []byte("nope")).
+		Assert(helpers.AssertError("compose.service.RecordImportFormatNotSupported")).
+		End()
+}
+
+func TestRecordImportRun(t *testing.T) {
+	h := newHelper(t)
+
+	module := h.repoMakeRecordModuleWithFields("record import run module")
+	tests := []struct {
+		Name    string
+		Content string
+	}{
+		{
+			Name:    "f1.csv",
+			Content: "fname,femail\nv1,v2\n",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(t.Name(), func(t *testing.T) {
+			url := fmt.Sprintf("/namespace/%d/module/%d/record/import", module.NamespaceID, module.ID)
+			rsp := &rImportSession{}
+			api := h.apiInit()
+
+			r := h.apiInitRecordImport(api, url, test.Name, []byte(test.Content)).End()
+			r.JSON(rsp)
+
+			h.apiRunRecordImport(api, fmt.Sprintf("%s/%s", url, rsp.Response.SessionID), `{"fields":{"fname":"name","femail":"email"},"onError":"fail"}`).
+				Assert(helpers.AssertNoErrors).
+				Assert(jsonpath.Present("$.response.progress")).
+				Assert(jsonpath.Present(`$.response.fields.fname=="name"`)).
+				Assert(jsonpath.Present(`$.response.fields.femail=="email"`)).
+				End()
+		})
+	}
+}
+
+func TestRecordImportRun_sessionNotFound(t *testing.T) {
+	h := newHelper(t)
+
+	module := h.repoMakeRecordModuleWithFields("record import run module")
+	h.apiRunRecordImport(h.apiInit(), fmt.Sprintf("/namespace/%d/module/%d/record/import/123", module.NamespaceID, module.ID), `{"fields":{"fname":"name","femail":"email"},"onError":"fail"}`).
+		Assert(helpers.AssertError("compose.service.RecordImportSessionNotFound")).
+		End()
+}
+
+func TestRecordImportImportProgress(t *testing.T) {
+	h := newHelper(t)
+
+	module := h.repoMakeRecordModuleWithFields("record import session module")
+	tests := []struct {
+		Name    string
+		Content string
+	}{
+		{
+			Name:    "f1.csv",
+			Content: "fname,femail\nv1,v2\n",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(t.Name(), func(t *testing.T) {
+			url := fmt.Sprintf("/namespace/%d/module/%d/record/import", module.NamespaceID, module.ID)
+			rsp := &rImportSession{}
+			api := h.apiInit()
+
+			r := h.apiInitRecordImport(api, url, test.Name, []byte(test.Content)).End()
+			r.JSON(rsp)
+
+			api.Get(fmt.Sprintf("%s/%s", url, rsp.Response.SessionID)).
+				Expect(h.t).
+				Status(http.StatusOK).
+				Assert(helpers.AssertNoErrors).
+				Assert(jsonpath.Present("$.response.progress")).
+				End()
+		})
+	}
+}
+
+func TestRecordImportImportProgress_sessionNotFound(t *testing.T) {
+	h := newHelper(t)
+
+	module := h.repoMakeRecordModuleWithFields("record import module")
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/module/%d/record/import/123", module.NamespaceID, module.ID)).
+		Expect(h.t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("compose.service.RecordImportSessionNotFound")).
+		End()
 }
