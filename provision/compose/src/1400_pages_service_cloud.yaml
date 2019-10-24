@@ -1,0 +1,1310 @@
+namespace: service-cloud
+pages:
+  Home:
+    title: Home
+    blocks:
+    - title: My Cases
+      options:
+        fields:
+        - name: Number
+        - name: Subject
+        - name: Status
+        - name: Priority
+        module: Case
+        page: RecordPageForModuleCase
+        perPage: 20
+        prefilter: CaseOwner = ${userID}
+        presort: createdAt DESC
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: RecordList
+      xywh: [0, 0, 6, 16]
+    - title: New cases per month
+      options:
+        chart: NewCasesByMonth
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [6, 0, 3, 6]
+    - title: Cases by priority
+      options:
+        chart: CasesByPriority
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [6, 6, 3, 5]
+    - title: Cases by category
+      options:
+        chart: CasesByCategory
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [6, 11, 3, 5]
+    - title: Closed cases per month
+      options:
+        chart: ClosedCasesPerMonth
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 6]
+    - title: Cases by status
+      options:
+        chart: CasesByStatus
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 6, 3, 5]
+    - title: Total cost per case category (in $)
+      options:
+        chart: CostPerCategory
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 11, 3, 5]
+    visible: true
+  Cases:
+    title: Cases
+    blocks:
+    - title: All cases
+      options:
+        allowExport: true
+        fields:
+        - name: Number
+        - name: Subject
+        - name: ProductId
+        - name: Category
+        - name: Status
+        - name: Priority
+        - name: CaseOwner
+        - name: createdAt
+        module: Case
+        page: RecordPageForModuleCase
+        perPage: 20
+        presort: createdAt DESC
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: RecordList
+      xywh: [0, 0, 9, 16]
+    - title: Cases by priority
+      options:
+        chart: CasesByPriority
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: Cases by category
+      options:
+        chart: CasesByCategory
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
+    pages:
+      RecordPageForModuleCase:
+        module: Case
+        title: Record page for module "Case"
+        blocks:
+        - title: Case Description
+          options:
+            fields:
+            - name: Number
+            - name: Status
+            - name: Category
+            - name: Description
+            - name: Priority
+            - name: ProductId
+            - name: Solution
+            - name: CloseDate
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [0, 0, 3, 11]
+        - title: Case Details
+          options:
+            fields:
+            - name: CaseOwner
+            - name: Escalated
+            - name: AccountId
+            - name: ContactId
+            - name: MailingList
+            - name: TotalTime
+            - name: TotalCost
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [9, 0, 3, 11]
+        - title: Case Subject
+          options:
+            fields:
+            - name: Subject
+          style:
+            variants: {bodyBg: white, border: success, headerBg: white, headerText: success}
+          kind: Record
+          xywh: [3, 0, 6, 3]
+        - title: Updates
+          options:
+            fields:
+            - name: Type
+            - name: Subject
+            - name: Content
+            - name: From
+            - name: createdAt
+            hideAddButton: true
+            module: Update
+            page: RecordPageForModuleUpdate
+            perPage: 20
+            prefilter: CaseId = ${recordID}
+            presort: createdAt DESC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [3, 5, 6, 13]
+        - title: Related Attachments
+          options:
+            fields:
+            - name: File
+            module: Attachement
+            page: RecordPageForModuleAttachement
+            perPage: 20
+            prefilter: CaseId = ${recordID}
+            presort: ""
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 11, 3, 7]
+        - title: Search the Knowledge Base
+          options:
+            fields:
+            - name: Number
+            - name: Title
+            hideAddButton: true
+            module: KnowledgeBase
+            page: RecordPageForModuleKnowledgeBase
+            perPage: 20
+            prefilter: ""
+            presort: Number ASC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [9, 11, 3, 7]
+        - options:
+            buttons:
+            - label: Add Update to this Case
+              script: CaseAddUpdate
+              variant: primary
+            - label: Send Email to Case Contact
+              script: CaseSendEmail
+              variant: primary
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Automation
+          xywh: [3, 3, 6, 2]
+        pages:
+          RecordPageForModuleAttachement:
+            module: Attachement
+            title: Record page for module "Attachement"
+            blocks:
+            - title: Attachment Details
+              options:
+                fields:
+                - name: Name
+                - name: CaseId
+                - name: File
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [0, 0, 5, 18]
+            visible: false
+          RecordPageForModuleUpdate:
+            module: Update
+            title: Record page for module "Update"
+            blocks:
+            - title: Content
+              options:
+                fields:
+                - name: CaseId
+                - name: Subject
+                - name: Content
+                - name: Type
+                - name: From
+                - name: To
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [0, 0, 8, 18]
+            - title: Notifications
+              options:
+                fields:
+                - name: ContactId
+                - name: NotificationCaseCreator
+                - name: NotificationCaseOwner
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [8, 0, 4, 7]
+            - title: Other Information
+              options:
+                fields:
+                - name: AccountId
+                - name: Department
+                - name: TimeSpend
+                - name: Cost
+                - name: createdAt
+                - name: createdBy
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [8, 7, 4, 11]
+            visible: false
+        visible: false
+      AllMyCases:
+        title: All my cases
+        blocks:
+        - title: All my cases
+          options:
+            allowExport: true
+            fields:
+            - name: Number
+            - name: Subject
+            - name: Status
+            - name: Priority
+            - name: CaseOwner
+            - name: createdAt
+            module: Case
+            page: RecordPageForModuleCase
+            perPage: 20
+            prefilter: ${userID} = CaseOwner
+            presort: createdAt DESC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 0, 12, 16]
+        visible: true
+      MyNewCases:
+        title: My new cases
+        blocks:
+        - title: My new cases
+          options:
+            allowExport: true
+            fields:
+            - name: Number
+            - name: Subject
+            - name: Status
+            - name: Priority
+            - name: CaseOwner
+            - name: createdAt
+            module: Case
+            page: RecordPageForModuleCase
+            perPage: 20
+            prefilter: ${userID} = CaseOwner AND Status = 'New'
+            presort: createdAt DESC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 0, 12, 16]
+        visible: true
+    visible: true
+  Accounts:
+    title: Accounts
+    blocks:
+    - title: Accounts
+      options:
+        allowExport: true
+        fields:
+        - name: AccountName
+        - name: BillingCountry
+        - name: OwnerId
+        - name: Rating
+        module: Account
+        page: RecordPageForModuleAccount
+        perPage: 20
+        presort: AccountName ASC
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: RecordList
+      xywh: [0, 0, 9, 16]
+    - title: Total time spent on cases per account (in hours)
+      options:
+        chart: TimePerAccount
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: Total costs of cases per account (in $)
+      options:
+        chart: CostsPerAccount
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
+    pages:
+      RecordPageForModuleAccount:
+        module: Account
+        title: Record page for module "Account"
+        blocks:
+        - title: Account Detail
+          options:
+            fields:
+            - name: AccountName
+            - name: Type
+            - name: Industry
+            - name: NumberOfEmployees
+            - name: AnnualRevenue
+            - name: Twitter
+            - name: LinkedIn
+            - name: Facebook
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [0, 0, 3, 12]
+        - title: Account Address
+          options:
+            fields:
+            - name: BillingStreet
+            - name: BillingCity
+            - name: BillingState
+            - name: BillingPostalCode
+            - name: BillingCountry
+            - name: Phone
+            - name: Website
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [3, 0, 3, 12]
+        - title: Other Information
+          options:
+            fields:
+            - name: TotalTime
+            - name: TotalCost
+            - name: Rating
+            - name: ParentId
+            - name: AccountSource
+            - name: OwnerId
+            - name: Description
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [6, 0, 3, 12]
+        - title: Twitter Feed
+          options:
+            fields: []
+            profileSourceField: Twitter
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: SocialFeed
+          xywh: [9, 0, 3, 30]
+        - title: Cases
+          options:
+            allowExport: true
+            fields:
+            - name: Number
+            - name: Subject
+            - name: Category
+            - name: Priority
+            - name: Status
+            - name: TotalTime
+            - name: TotalCost
+            - name: createdAt
+            module: Case
+            page: RecordPageForModuleCase
+            perPage: 20
+            prefilter: ${recordID} = AccountId
+            presort: createdAt DESC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 12, 9, 9]
+        - title: Contacts
+          options:
+            allowExport: true
+            fields:
+            - name: RecordLabel
+            module: Contact
+            page: RecordPageForModuleContact
+            perPage: 20
+            prefilter: ${recordID} = AccountId
+            presort: RecordLabel ASC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [6, 21, 3, 9]
+        - title: Entitlements
+          options:
+            allowExport: true
+            fields:
+            - name: ProductId
+            - name: Name
+            - name: StartDate
+            - name: EndDate
+            - name: Status
+            - name: Type
+            module: Entitlement
+            page: RecordPageForModuleEntitlement
+            perPage: 20
+            prefilter: AccountId = ${recordID}
+            presort: EndDate ASC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 21, 6, 9]
+        visible: false
+      Contacts:
+        title: Contacts
+        blocks:
+        - title: Contacts
+          options:
+            allowExport: true
+            fields:
+            - name: FirstName
+            - name: LastName
+            - name: Email
+            - name: Phone
+            - name: AccountId
+            - name: OwnerId
+            - name: createdAt
+            module: Contact
+            page: RecordPageForModuleContact
+            perPage: 20
+            prefilter: ""
+            presort: RecordLabel ASC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 0, 12, 16]
+        pages:
+          RecordPageForModuleContact:
+            module: Contact
+            title: Record page for module "Contact"
+            blocks:
+            - title: Personal Data
+              options:
+                fields:
+                - name: FirstName
+                - name: LastName
+                - name: Title
+                - name: Phone
+                - name: Email
+                - name: Twitter
+                - name: Facebook
+                - name: LinkedIn
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [0, 0, 3, 11]
+            - title: Contact Address
+              options:
+                fields:
+                - name: AccountId
+                - name: IsPrimary
+                - name: MailingStreet
+                - name: MailingCity
+                - name: MailingState
+                - name: MailingPostalCode
+                - name: MailingCountry
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [3, 0, 3, 11]
+            - title: Other Information
+              options:
+                fields:
+                - name: OwnerId
+                - name: DoNotCall
+                - name: HasOptedOutOfEmail
+                - name: Description
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [6, 0, 3, 11]
+            - title: Contact Twitter Feed
+              options:
+                fields: []
+                profileSourceField: Twitter
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: SocialFeed
+              xywh: [9, 0, 3, 30]
+            - title: Cases related to this Contact
+              options:
+                allowExport: true
+                fields:
+                - name: Number
+                - name: Status
+                - name: Priority
+                - name: Subject
+                - name: TotalTime
+                - name: TotalCost
+                - name: createdAt
+                module: Case
+                page: RecordPageForModuleCase
+                perPage: 20
+                prefilter: ContactId = ${recordID}
+                presort: createdAt DESC
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: RecordList
+              xywh: [0, 11, 9, 9]
+            - title: Emails
+              options:
+                allowExport: true
+                fields:
+                - name: ToAddress
+                - name: Subject
+                - name: HtmlBody
+                - name: EmailTemplateId
+                - name: Status
+                - name: MessageDate
+                - name: createdAt
+                module: EmailMessage
+                page: RecordPageForModuleEmailMessage
+                perPage: 20
+                prefilter: ContactId = ${recordID}
+                presort: createdAt DESC
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: RecordList
+              xywh: [0, 20, 9, 9]
+            pages:
+              RecordPageForModuleEmailMessage:
+                module: EmailMessage
+                title: Record page for module "Email Message"
+                blocks:
+                - title: Message
+                  options:
+                    fields:
+                    - name: Subject
+                    - name: HtmlBody
+                  style:
+                    variants: {bodyBg: white, border: primary, headerBg: white,
+                      headerText: primary}
+                  kind: Record
+                  xywh: [0, 0, 6, 16]
+                - title: To
+                  options:
+                    fields:
+                    - name: ContactId
+                    - name: CaseId
+                  style:
+                    variants: {bodyBg: white, border: primary, headerBg: white,
+                      headerText: primary}
+                  kind: Record
+                  xywh: [6, 0, 3, 8]
+                - title: Template
+                  options:
+                    fields:
+                    - name: EmailTemplateId
+                  style:
+                    variants: {bodyBg: white, border: primary, headerBg: white,
+                      headerText: primary}
+                  kind: Record
+                  xywh: [6, 8, 3, 8]
+                - title: Status
+                  options:
+                    fields:
+                    - name: Status
+                    - name: MessageDate
+                    - name: createdBy
+                    - name: createdAt
+                  style:
+                    variants: {bodyBg: white, border: primary, headerBg: white,
+                      headerText: primary}
+                  kind: Record
+                  xywh: [9, 0, 3, 8]
+                - title: Actions
+                  options:
+                    buttons:
+                    - label: Load selected tempate in to email message
+                      script: EmailTemplateLoad
+                      variant: primary
+                    - label: Send email to the contact
+                      script: EmailSend
+                      variant: success
+                  style:
+                    variants: {bodyBg: white, border: primary, headerBg: white,
+                      headerText: primary}
+                  kind: Automation
+                  xywh: [9, 8, 3, 8]
+                visible: false
+            visible: false
+        visible: true
+      Entitlements:
+        title: Entitlements
+        blocks:
+        - title: Entitlements
+          options:
+            allowExport: true
+            fields:
+            - name: AccountId
+            - name: ProductId
+            - name: Name
+            - name: Type
+            - name: StartDate
+            - name: EndDate
+            - name: Status
+            module: Entitlement
+            page: RecordPageForModuleEntitlement
+            perPage: 20
+            presort: EndDate DESC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 0, 12, 16]
+        pages:
+          RecordPageForModuleEntitlement:
+            module: Entitlement
+            title: Record page for module "Entitlement"
+            blocks:
+            - title: Product Entitlement
+              options:
+                fields:
+                - name: AccountId
+                - name: ProductId
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [0, 0, 4, 15]
+            - title: Entitlement Status
+              options:
+                fields:
+                - name: Status
+                - name: StartDate
+                - name: EndDate
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [8, 0, 4, 15]
+            - title: Entitlement Data
+              options:
+                fields:
+                - name: Name
+                - name: Type
+                - name: Term
+                - name: TermType
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [4, 0, 4, 15]
+            visible: false
+        visible: true
+    visible: true
+  Products:
+    title: Products
+    blocks:
+    - title: Products
+      options:
+        allowExport: true
+        fields:
+        - name: ProductCode
+        - name: Name
+        - name: Family
+        - name: Photo
+        - name: IsActive
+        - name: EntitlementTemplateId
+        module: Product
+        page: RecordPageForModuleProduct
+        perPage: 20
+        presort: ProductCode ASC
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: RecordList
+      xywh: [0, 0, 9, 16]
+    - title: Time spent per product family (in hours)
+      options:
+        chart: TimeSpentPerProductFamily
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: Cost per product family (in $)
+      options:
+        chart: CostPerProductFamily
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
+    pages:
+      RecordPageForModuleProduct:
+        module: Product
+        title: Record page for module "Product"
+        blocks:
+        - title: Product Description
+          options:
+            fields:
+            - name: ProductCode
+            - name: Name
+            - name: Family
+            - name: EntitlementTemplateId
+            - name: Description
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [0, 0, 3, 10]
+        - title: Other Information
+          options:
+            fields:
+            - name: IsActive
+            - name: createdAt
+            - name: createdBy
+            - name: updatedAt
+            - name: updatedBy
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [9, 0, 3, 10]
+        - title: Entitlements for this product
+          options:
+            allowExport: true
+            fields:
+            - name: AccountId
+            - name: ProductId
+            - name: Name
+            - name: Type
+            - name: StartDate
+            - name: EndDate
+            - name: Status
+            module: Entitlement
+            page: RecordPageForModuleEntitlement
+            perPage: 20
+            prefilter: ProductId = ${recordID}
+            presort: EndDate ASC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 10, 12, 8]
+        - title: Cases related to this product
+          options:
+            fields:
+            - name: Number
+            - name: Subject
+            - name: Status
+            - name: Priority
+            module: Case
+            page: RecordPageForModuleCase
+            perPage: 20
+            prefilter: ProductId = ${recordID}
+            presort: createdAt DESC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 18, 6, 7]
+        - title: Knowledge Base items related to this product
+          options:
+            fields:
+            - name: Number
+            - name: Title
+            - name: IsPublished
+            module: KnowledgeBase
+            page: RecordPageForModuleKnowledgeBase
+            perPage: 20
+            prefilter: ProductId = ${recordID}
+            presort: Title ASC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [6, 18, 6, 7]
+        - title: Files
+          options:
+            fields:
+            - name: Photo
+            - name: Manual
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [6, 0, 3, 10]
+        - title: Cases totals
+          options:
+            fields:
+            - name: TotalTime
+            - name: TotalCost
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [3, 0, 3, 10]
+        visible: false
+      EntitlementTemplates:
+        title: Entitlement Templates
+        blocks:
+        - title: Entitlement Templates
+          options:
+            fields:
+            - name: Name
+            - name: Type
+            - name: Term
+            - name: TermType
+            module: EntitlementTemplate
+            page: RecordPageForModuleEntitlementTemplate
+            perPage: 20
+            presort: Name ASC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 0, 12, 16]
+        pages:
+          RecordPageForModuleEntitlementTemplate:
+            module: EntitlementTemplate
+            title: Record page for module "EntitlementTemplate"
+            blocks:
+            - title: Entitlement Template
+              options:
+                fields:
+                - name: Name
+                - name: Term
+                - name: TermType
+                - name: Type
+                - name: createdAt
+                - name: createdBy
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [0, 0, 6, 16]
+            - title: Products that use this entitlements template
+              options:
+                allowExport: true
+                fields:
+                - name: ProductCode
+                - name: Name
+                - name: Family
+                - name: Photo
+                - name: IsActive
+                module: Product
+                page: RecordPageForModuleProduct
+                perPage: 20
+                prefilter: EntitlementTemplateId = ${recordID}
+                presort: ProductCode ASC
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: RecordList
+              xywh: [6, 0, 6, 16]
+            visible: false
+        visible: true
+    visible: true
+  KnowledgeBase:
+    title: Knowledge Base
+    blocks:
+    - title: Knowledge Base
+      options:
+        allowExport: true
+        fields:
+        - name: Number
+        - name: Title
+        - name: IsPublished
+        - name: IsReviewed
+        - name: Status
+        module: KnowledgeBase
+        page: RecordPageForModuleKnowledgeBase
+        perPage: 20
+        prefilter: ""
+        presort: Number ASC
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: RecordList
+      xywh: [0, 0, 9, 16]
+    - title: KB articles per type
+      options:
+        chart: KnowledgeBaseArticlesPerType
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: KB articles created per day
+      options:
+        chart: KnowledgeBaseItemsCreatedPerDay
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
+    pages:
+      RecordPageForModuleKnowledgeBase:
+        module: KnowledgeBase
+        title: Record page for module "Knowledge Base"
+        blocks:
+        - title: Details
+          options:
+            fields:
+            - name: Content
+            - name: File
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [3, 5, 6, 15]
+        - title: Cases with this KB Item as Solution
+          options:
+            fields:
+            - name: Number
+            - name: Subject
+            - name: createdAt
+            module: Case
+            page: RecordPageForModuleCase
+            perPage: 20
+            prefilter: Solution = ${recordID}
+            presort: createdAt DESC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [9, 0, 3, 20]
+        - title: Title
+          options:
+            fields:
+            - name: Title
+            - name: Number
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: success}
+          kind: Record
+          xywh: [3, 0, 6, 5]
+        - title: Details
+          options:
+            fields:
+            - name: Type
+            - name: Category
+            - name: ProductId
+            - name: Status
+            - name: IsReviewed
+            - name: IsPublished
+            - name: createdAt
+            - name: createdBy
+            - name: updatedAt
+            - name: updatedBy
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [0, 0, 3, 20]
+        visible: false
+    visible: true
+  Departments:
+    title: Departments
+    blocks:
+    - title: Departments
+      options:
+        allowExport: true
+        fields:
+        - name: Name
+        - name: Employees
+        - name: HourCost
+        - name: TotalTime
+        - name: TotalCost
+        module: Department
+        page: RecordPageForModuleDepartment
+        perPage: 20
+        presort: Name ASC
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: RecordList
+      xywh: [0, 0, 9, 16]
+    - title: Total time spent per department (in hours)
+      options:
+        chart: TotalTimeSpentPerDepartment
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: Total case costs per department (in $)
+      options:
+        chart: TotalCostPerDepartment
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
+    pages:
+      RecordPageForModuleDepartment:
+        module: Department
+        title: Record page for module "Department"
+        blocks:
+        - title: Department details
+          options:
+            fields:
+            - name: Name
+            - name: Employees
+            - name: HourCost
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [0, 0, 6, 6]
+        - title: Total time and cost of department related to work on cases
+          options:
+            fields:
+            - name: TotalTime
+            - name: TotalCost
+            - name: DepartmentSelect
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [6, 0, 6, 6]
+        - title: Case updates related to the department
+          options:
+            allowExport: true
+            fields:
+            - name: CaseId
+            - name: AccountId
+            - name: ContactId
+            - name: Type
+            - name: Subject
+            - name: TimeSpend
+            - name: Cost
+            - name: createdAt
+            module: Update
+            page: RecordPageForModuleUpdate
+            perPage: 20
+            prefilter: Department = ${recordID}
+            presort: createdAt DESC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 6, 12, 10]
+        visible: false
+    visible: true
+  Settings:
+    title: Settings
+    blocks:
+    - title: Settings
+      options:
+        fields:
+        - name: KBNextNumber
+        - name: DefaultCostPerHour
+        - name: DefaultDepartment
+        - name: DefaultTimeUpdate
+        - name: DefaultSupportChannel
+        - name: DefaultCaseRecordLink
+        - name: DefaultCaseEmailTemplate
+        hideAddButton: true
+        hidePaging: true
+        hideSearch: true
+        hideSorting: true
+        module: Settings
+        page: RecordPageForModuleSettings
+        perPage: 20
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: RecordList
+      xywh: [0, 0, 12, 5]
+    pages:
+      RecordPageForModuleSettings:
+        module: Settings
+        title: Record page for module "Settings"
+        blocks:
+        - title: Settings
+          options:
+            fields:
+            - name: KBNextNumber
+            - name: DefaultCostPerHour
+            - name: DefaultDepartment
+            - name: DefaultTimeUpdate
+            - name: DefaultSupportChannel
+            - name: DefaultCaseRecordLink
+            - name: DefaultCaseEmailTemplate
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [0, 0, 6, 17]
+        visible: false
+      EmailTemplates:
+        title: Email Templates
+        blocks:
+        - title: Email Templates
+          options:
+            allowExport: true
+            fields:
+            - name: Name
+            - name: Subject
+            - name: Description
+            - name: createdAt
+            module: EmailTemplate
+            page: RecordPageForModuleEmailTemplate
+            perPage: 20
+            presort: Name ASC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 0, 12, 16]
+        pages:
+          RecordPageForModuleEmailTemplate:
+            module: EmailTemplate
+            title: Record page for module "Email Template"
+            blocks:
+            - title: Template
+              options:
+                fields:
+                - name: Name
+                - name: Description
+                - name: Subject
+                - name: Body
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [0, 0, 8, 12]
+            - title: Other Information
+              options:
+                fields:
+                - name: createdBy
+                - name: createdAt
+                - name: updatedBy
+                - name: updatedAt
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [8, 0, 4, 12]
+            - title: Template is used in following emails
+              options:
+                allowExport: true
+                fields:
+                - name: Subject
+                - name: CaseId
+                - name: ContactId
+                - name: ToAddress
+                - name: Status
+                - name: MessageDate
+                module: EmailMessage
+                page: RecordPageForModuleEmailMessage
+                perPage: 20
+                prefilter: EmailTemplateId = ${recordID}
+                presort: createdAt DESC
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: RecordList
+              xywh: [0, 12, 12, 10]
+            visible: false
+        visible: true
+    visible: true
+  Dashboard:
+    title: Dashboard
+    blocks:
+    - title: Cases by category
+      options:
+        chart: CasesByCategory
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [3, 18, 3, 6]
+    - title: Cases by priority
+      options:
+        chart: CasesByPriority
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [0, 18, 3, 6]
+    - title: New cases per month
+      options:
+        chart: NewCasesByMonth
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [0, 0, 3, 6]
+    - title: Number of active entitlements
+      options:
+        chart: ActiveEntitlements
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 18, 3, 6]
+    - title: Knowledge base articles per type
+      options:
+        chart: KnowledgeBaseArticlesPerType
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [6, 24, 3, 6]
+    - title: Closed cases per month
+      options:
+        chart: ClosedCasesPerMonth
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [3, 0, 3, 6]
+    - title: Average time spent per case (in hours)
+      options:
+        chart: AverageTimeSpentPerCase
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [6, 18, 3, 6]
+    - title: Total time spent per month  (in hours)
+      options:
+        chart: TotalTimeSpentPerMonth
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [6, 0, 3, 6]
+    - title: Total cost per case category (in $)
+      options:
+        chart: CostPerCategory
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 6, 3, 6]
+    - title: Total cost per month (in $)
+      options:
+        chart: TotalCostPerMonth
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 6]
+    - title: Case updates per type
+      options:
+        chart: CaseUpdatesPerType
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [3, 24, 3, 6]
+    - title: Total time spent per category (in hours)
+      options:
+        chart: TotalTimeSpentPerCategory
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [6, 6, 3, 6]
+    - title: Cases by status
+      options:
+        chart: CasesByStatus
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [0, 24, 3, 6]
+    - title: Total time spent per account (in hours)
+      options:
+        chart: TimePerAccount
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [6, 12, 3, 6]
+    - title: Total costs per account (in $)
+      options:
+        chart: CostsPerAccount
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 12, 3, 6]
+    - title: Time spent per product family (in hours)
+      options:
+        chart: TimeSpentPerProductFamily
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [0, 12, 3, 6]
+    - title: Total costs per product family (in $)
+      options:
+        chart: CostPerProductFamily
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [3, 12, 3, 6]
+    - title: Total time spent per department (in hours)
+      options:
+        chart: TotalTimeSpentPerDepartment
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [0, 6, 3, 6]
+    - title: Total cost per department (in $)
+      options:
+        chart: TotalCostPerDepartment
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [3, 6, 3, 6]
+    - title: KB articles created per day
+      options:
+        chart: KnowledgeBaseItemsCreatedPerDay
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 24, 3, 6]
+    visible: true
