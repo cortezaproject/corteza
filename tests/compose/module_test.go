@@ -139,6 +139,7 @@ func TestModuleUpdate(t *testing.T) {
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Present("$.response.updatedAt")).
 		End()
 
 	m, err := h.repoModule().FindByID(ns.ID, m.ID)
