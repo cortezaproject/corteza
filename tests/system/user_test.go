@@ -45,7 +45,7 @@ func TestUserRead(t *testing.T) {
 		End()
 }
 
-func TestUserList(t *testing.T) {
+func TestUserListAll(t *testing.T) {
 	h := newHelper(t)
 
 	h.secCtx()
@@ -58,9 +58,7 @@ func TestUserList(t *testing.T) {
 	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
 
 	aux := struct {
-		Response *struct {
-			Filter *types.UserFilter
-		}
+		Response *struct{ Filter *types.UserFilter }
 	}{}
 
 	h.apiInit().
@@ -76,6 +74,36 @@ func TestUserList(t *testing.T) {
 
 	// we need to test with >= because we're not running this inside a transaction.
 	h.a.GreaterOrEqual(int(aux.Response.Filter.Count), seedCount)
+}
+
+func TestUserListQuery(t *testing.T) {
+	h := newHelper(t)
+
+	h.secCtx()
+
+	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
+
+	aux := struct {
+		Response *struct{ Filter *types.UserFilter }
+	}{}
+
+	h.apiInit().
+		Debug().
+		Get("/users/").
+		Query("query", h.randEmail()).
+		Query("email", h.randEmail()).
+		Query("name", "John Doe").
+		Query("handle", "jdoe").
+		Query("username", "jdoe").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End().
+		JSON(&aux)
+
+	h.a.NotNil(aux.Response)
+	h.a.NotNil(aux.Response.Filter)
+	h.a.GreaterOrEqual(int(aux.Response.Filter.Count), 0)
 }
 
 func TestUserListWithOneAllowed(t *testing.T) {
