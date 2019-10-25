@@ -8,6 +8,7 @@ import (
 	"github.com/titpetric/factory"
 	"gopkg.in/Masterminds/squirrel.v1"
 
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -115,7 +116,7 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 	q := r.queryNoFilter()
 
 	// Returns user filter (flt) wrapped in IF() function with cnd as condition (when cnd != nil)
-	whereMasked := func(cnd squirrel.Sqlizer, flt squirrel.Sqlizer) squirrel.Sqlizer {
+	whereMasked := func(cnd *permissions.ResourceFilter, flt squirrel.Sqlizer) squirrel.Sqlizer {
 		if cnd != nil {
 			return rh.SquirrelFunction("IF", cnd, flt, squirrel.Expr("false"))
 		} else {
