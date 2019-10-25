@@ -5,8 +5,8 @@ type (
 		General struct {
 			Mail struct {
 				Logo   string
-				Header string `kv:"footer.en"`
-				Footer string `kv:"header.en"`
+				Header string `kv:"header.en"`
+				Footer string `kv:"footer.en"`
 			}
 		}
 	}
