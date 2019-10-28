@@ -27,6 +27,7 @@ func MountRoutes(r chi.Router) {
 	r.Group(func(r chi.Router) {
 		r.Use(auth.MiddlewareValidOnly)
 
+		handlers.NewSubscription(Subscription{}.New()).MountRoutes(r)
 		handlers.NewUser(User{}.New()).MountRoutes(r)
 		handlers.NewRole(Role{}.New()).MountRoutes(r)
 		handlers.NewOrganisation(Organisation{}.New()).MountRoutes(r)

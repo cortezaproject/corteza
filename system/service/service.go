@@ -36,10 +36,27 @@ type (
 		Corredor         options.CorredorOpt
 		GRPCClientSystem options.GRPCServerOpt
 	}
+
+	permitChecker interface {
+		Validate(string, bool) error
+		CanCreateUser(uint) error
+		CanRegister(uint) error
+	}
 )
 
 var (
 	DefaultLogger *zap.Logger
+
+	// CurrentSubscription holds current subscription info,
+	// and functions for domain validation, user limit checks and
+	// warning texts
+	//
+	// By default, Corteza (community edition) has this set to nil
+	// and with that all checks & validations are skipped
+	//
+	// Other flavours or distributions can set this to
+	// something that suits their needs.
+	CurrentSubscription permitChecker
 
 	// DefaultPermissions Retrieves & stores permissions
 	DefaultPermissions permissionServicer
@@ -80,7 +97,6 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultLogger = log.Named("service")
 
 	DefaultIntSettings = internalSettings.NewService(internalSettings.NewRepository(repository.DB(ctx), "sys_settings"))
-
 	if DefaultPermissions == nil {
 		DefaultPermissions = permissions.Service(ctx, DefaultLogger, repository.DB(ctx), "sys_permission_rules")
 	}

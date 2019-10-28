@@ -1078,6 +1078,32 @@ An organisation may have many roles. Roles may have many channels available. Acc
 
 
 
+# Subscription
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/subscription/` | Returns current subscription status |
+
+## Returns current subscription status
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/subscription/` | HTTP/S | GET |
+Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
+ |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+
+---
+
+
+
+
 # Users
 
 | Method | Endpoint | Purpose |

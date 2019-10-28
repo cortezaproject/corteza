@@ -35,7 +35,8 @@ type (
 
 		settings *AuthSettings
 
-		auth userAuth
+		auth         userAuth
+		subscription userSubscriptionChecker
 
 		ac          userAccessController
 		user        repository.UserRepository
@@ -50,6 +51,10 @@ type (
 	userAuth interface {
 		checkPasswordStrength(string) error
 		changePassword(uint64, string) error
+	}
+
+	userSubscriptionChecker interface {
+		CanCreateUser(uint) error
 	}
 
 	userAccessController interface {
@@ -112,6 +117,8 @@ func (svc user) With(ctx context.Context) UserService {
 		ac:       DefaultAccessControl,
 		settings: DefaultAuthSettings,
 		auth:     DefaultAuth,
+
+		subscription: CurrentSubscription,
 
 		user:        repository.User(ctx, db),
 		credentials: repository.Credentials(ctx, db),
@@ -197,6 +204,16 @@ func (svc user) procSet(u types.UserSet, f types.UserFilter, err error) (types.U
 func (svc user) Create(input *types.User) (out *types.User, err error) {
 	if !svc.ac.CanCreateUser(svc.ctx) {
 		return nil, ErrNoCreatePermissions.withStack()
+	}
+
+	if svc.subscription != nil {
+		// When we have an active subscription, we need to check
+		// if users can be creare or did this deployment hit
+		// it's user-limit
+		err = svc.subscription.CanCreateUser(svc.user.Total())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return out, svc.db.Transaction(func() (err error) {
