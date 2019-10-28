@@ -1,0 +1,18 @@
+{
+  "Title": "Subscription",
+  "Interface": "Subscription",
+  "Struct": null,
+  "Parameters": null,
+  "Protocol": "",
+  "Authentication": null,
+  "Path": "/subscription",
+  "APIs": [
+    {
+      "Name": "current",
+      "Method": "GET",
+      "Title": "Returns current subscription status",
+      "Path": "/",
+      "Parameters": {}
+    }
+  ]
+}

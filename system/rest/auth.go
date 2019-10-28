@@ -75,7 +75,14 @@ func (ctrl *Auth) Logout(ctx context.Context, r *request.AuthLogout) (interface{
 }
 
 func (ctrl *Auth) Settings(ctx context.Context, r *request.AuthSettings) (interface{}, error) {
-	return ctrl.authSettings.Format(), nil
+	f := ctrl.authSettings.Format()
+
+	if err := ctrl.authSvc.With(ctx).CanRegister(); err != nil {
+		// f["internalSignUpEnabled"] = false
+		f["signUpDisabled"] = err.Error()
+	}
+
+	return f, nil
 }
 
 func (ctrl *Auth) ExchangeAuthToken(ctx context.Context, r *request.AuthExchangeAuthToken) (interface{}, error) {

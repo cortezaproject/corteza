@@ -26,6 +26,7 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
+		subscription  authSubscriptionChecker
 		credentials   repository.CredentialsRepository
 		users         repository.UserRepository
 		roles         repository.RoleRepository
@@ -55,10 +56,16 @@ type (
 		SendEmailAddressConfirmationToken(email string) (err error)
 		SendPasswordResetToken(email string) (err error)
 
+		CanRegister() error
+
 		LoadRoleMemberships(*types.User) error
 
 		checkPasswordStrength(string) error
 		changePassword(uint64, string) error
+	}
+
+	authSubscriptionChecker interface {
+		CanRegister(uint) error
 	}
 )
 
@@ -98,6 +105,7 @@ func (svc auth) With(ctx context.Context) AuthService {
 		users:       repository.User(ctx, db),
 		roles:       repository.Role(ctx, db),
 
+		subscription:  CurrentSubscription,
 		settings:      DefaultAuthSettings,
 		notifications: DefaultAuthNotification,
 
@@ -203,6 +211,10 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 				Name:     profile.Name,
 				Username: profile.NickName,
 				Handle:   profile.NickName,
+			}
+
+			if err = svc.CanRegister(); err != nil {
+				return err
 			}
 
 			if u, err = svc.users.Create(u); err != nil {
@@ -314,6 +326,10 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 		// return nil,nil
 	} else if !repository.ErrUserNotFound.Eq(err) {
 		return nil, errors.Wrap(err, "could not check existing emails")
+	}
+
+	if err = svc.CanRegister(); err != nil {
+		return nil, err
 	}
 
 	// Whitelisted user data to copy
@@ -697,6 +713,18 @@ func (svc auth) SendPasswordResetToken(email string) error {
 	}
 
 	return svc.sendPasswordResetToken(u)
+}
+
+func (svc auth) CanRegister() error {
+
+	if svc.subscription != nil {
+		// When we have an active subscription, we need to check
+		// if users can register or did this deployment hit
+		// it's user-limit
+		return svc.subscription.CanRegister(svc.users.Total())
+	}
+
+	return nil
 }
 
 func (svc auth) sendPasswordResetToken(u *types.User) (err error) {
