@@ -19,6 +19,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/store"
 )
@@ -114,7 +115,7 @@ func (svc attachment) Create(name string, size int64, fh io.ReadSeeker, channelI
 		return nil, errors.New("Can not create attachment: store handler not set")
 	}
 
-	var currentUserID uint64 = repository.Identity(svc.ctx)
+	var currentUserID uint64 = auth.GetIdentityFromContext(svc.ctx).Identity()
 
 	if ch, err := svc.channel.FindByID(channelId); err != nil {
 		return nil, err

@@ -6,16 +6,15 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 
+	squirrel "github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/titpetric/factory"
-	squirrel "gopkg.in/Masterminds/squirrel.v1"
 )
 
 type (
 	ReminderRepository interface {
 		Find(types.ReminderFilter) (set types.ReminderSet, f types.ReminderFilter, err error)
 		FindByID(ID uint64) (*types.Reminder, error)
-		FindByIDs(ID []uint64) (types.ReminderSet, error)
 
 		Create(mod *types.Reminder) (*types.Reminder, error)
 		Update(mod *types.Reminder) (*types.Reminder, error)
@@ -33,10 +32,13 @@ const (
 )
 
 func Reminder(ctx context.Context, db *factory.DB) ReminderRepository {
-	rpo := &repository{}
-	return (&reminder{
-		repository: rpo.With(ctx, db),
-	})
+	return (&reminder{}).With(ctx, db)
+}
+
+func (r reminder) With(ctx context.Context, db *factory.DB) ReminderRepository {
+	return &reminder{
+		repository: r.repository.With(ctx, db),
+	}
 }
 
 func (r reminder) table() string {
@@ -45,23 +47,23 @@ func (r reminder) table() string {
 
 func (r reminder) columns() []string {
 	return []string{
-		"id",
-		"resource",
-		"payload",
-		"snooze_count",
+		"r.id",
+		"r.resource",
+		"r.payload",
+		"r.snooze_count",
 
-		"assigned_to",
-		"assigned_by",
-		"assigned_at",
+		"r.assigned_to",
+		"r.assigned_by",
+		"r.assigned_at",
 
-		"dismissed_by",
-		"dismissed_at",
+		"r.dismissed_by",
+		"r.dismissed_at",
 
-		"remind_at",
+		"r.remind_at",
 
-		"created_at",
-		"updated_at",
-		"deleted_at",
+		"r.created_at",
+		"r.updated_at",
+		"r.deleted_at",
 	}
 }
 
@@ -71,75 +73,81 @@ func (r reminder) query() squirrel.SelectBuilder {
 
 func (r reminder) queryNoFilter() squirrel.SelectBuilder {
 	return squirrel.
-		Select().
-		From(r.table() + " AS r").
-		Columns(r.columns()...)
+		Select(r.columns()...).
+		From(r.table() + " AS r")
+}
+
+func (r reminder) FindByID(ID uint64) (rm *types.Reminder, err error) {
+	return r.findOneBy("id", ID)
+}
+
+func (r reminder) findOneBy(field string, value interface{}) (*types.Reminder, error) {
+	var (
+		p = &types.Reminder{}
+
+		q = r.query().
+			Where(squirrel.Eq{field: value})
+
+		err = rh.FetchOne(r.db(), q, p)
+	)
+
+	if err != nil {
+		return nil, err
+	} else if p.ID == 0 {
+		return nil, ErrReminderNotFound
+	}
+
+	return p, nil
 }
 
 func (r reminder) Find(filter types.ReminderFilter) (set types.ReminderSet, f types.ReminderFilter, err error) {
 	f = filter
-	q := r.query()
+
+	if f.Sort == "" {
+		f.Sort = "r.remind_at"
+	}
+
+	query := r.query()
+
+	if len(f.ReminderID) > 0 {
+		query = query.Where(squirrel.Eq{"r.ID": f.ReminderID})
+	}
 
 	if f.ExcludeDismissed {
-		q = q.Where("dismissed_at IS NULL")
+		query = query.Where("r.dismissed_at IS NULL")
 	}
 
 	if f.ScheduledOnly {
-		q = q.Where("remind_at IS NOT NULL")
+		query = query.Where("r.remind_at IS NOT NULL")
 	}
 
 	if f.AssignedTo != 0 {
-		q = q.Where("r.assigned_to = ?", f.AssignedTo)
+		query = query.Where("r.assigned_to = ?", f.AssignedTo)
 	}
 
 	if f.Resource != "" {
-		q = q.Where("r.resource LIKE ?", f.Resource+"%")
+		query = query.Where("r.resource LIKE ?", f.Resource+"%")
 	}
 
 	if f.ScheduledFrom != nil {
-		q = q.Where("r.remind_at >= ?", f.ScheduledFrom.Format(time.RFC3339))
+		query = query.Where("r.remind_at >= ?", f.ScheduledFrom.Format(time.RFC3339))
 	}
 	if f.ScheduledUntil != nil {
-		q = q.Where("r.remind_at <= ?", f.ScheduledUntil.Format(time.RFC3339))
+		query = query.Where("r.remind_at <= ?", f.ScheduledUntil.Format(time.RFC3339))
 	}
 
-	if f.Count, err = r.count(q); err != nil || f.Count == 0 {
+	var orderBy []string
+	if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
+		return
+	} else {
+		query = query.OrderBy(orderBy...)
+	}
+
+	if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
 		return
 	}
 
-	// @todo allow sorting at some point
-	q = q.OrderBy("r.remind_at")
-
-	return set, f, rh.FetchPaged(r.db(), q, f.Page, f.PerPage, &set)
-}
-
-func (r reminder) FindByID(ID uint64) (rm *types.Reminder, err error) {
-	rm = &types.Reminder{}
-
-	q := r.query().
-		Where("r.id = ?", ID)
-
-	err = r.fetchOne(rm, q)
-	if err != nil {
-		return nil, err
-	} else if rm.ID <= 0 {
-		return nil, ErrReminderNotFound
-	}
-
-	return rm, nil
-}
-
-func (r reminder) FindByIDs(IDs []uint64) (rr types.ReminderSet, err error) {
-	if len(IDs) == 0 {
-		return nil, nil
-	}
-
-	var (
-		q = r.query().
-			Where("r.id IN (?)", IDs)
-	)
-
-	return rr, r.fetchSet(&rr, q)
+	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
 }
 
 func (r reminder) Create(mod *types.Reminder) (rm *types.Reminder, err error) {
@@ -150,7 +158,7 @@ func (r reminder) Create(mod *types.Reminder) (rm *types.Reminder, err error) {
 }
 
 func (r reminder) Update(mod *types.Reminder) (*types.Reminder, error) {
-	mod.UpdatedAt = timeNowPtr()
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 	return mod, r.db().Replace(r.table(), mod)
 }
 

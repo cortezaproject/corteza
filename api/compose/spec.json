@@ -37,13 +37,19 @@
                             "name": "page",
                             "type": "uint",
                             "required": false,
-                            "title": "Page number (0 based)"
+                            "title": "Page number"
                         },
                         {
                             "name": "perPage",
                             "type": "uint",
                             "required": false,
                             "title": "Returned items per page (default 50)"
+                        },
+                        {
+                            "name": "sort",
+                            "type": "string",
+                            "required": false,
+                            "title": "Sort namespaces"
                         }
                     ]
                 }
@@ -217,13 +223,19 @@
                             "name": "page",
                             "type": "uint",
                             "required": false,
-                            "title": "Page number (0 based)"
+                            "title": "Page number"
                         },
                         {
                             "name": "perPage",
                             "type": "uint",
                             "required": false,
                             "title": "Returned items per page (default 50)"
+                        },
+                        {
+                            "type": "string",
+                            "name": "sort",
+                            "required": false,
+                            "title": "Sort"
                         }
                     ]
                 }
@@ -484,13 +496,19 @@
                             "name": "page",
                             "type": "uint",
                             "required": false,
-                            "title": "Page number (0 based)"
+                            "title": "Page number"
                         },
                         {
                             "name": "perPage",
                             "type": "uint",
                             "required": false,
                             "title": "Returned items per page (default 50)"
+                        },
+                        {
+                            "type": "string",
+                            "name": "sort",
+                            "required": false,
+                            "title": "Sort"
                         }
                     ]
                 }
@@ -686,7 +704,7 @@
                             "name": "page",
                             "type": "uint",
                             "required": false,
-                            "title": "Page number (0 based)"
+                            "title": "Page number"
                         },
                         {
                             "name": "perPage",
@@ -974,13 +992,19 @@
                             "name": "page",
                             "type": "uint",
                             "required": false,
-                            "title": "Page number (0 based)"
+                            "title": "Page number"
                         },
                         {
                             "name": "perPage",
                             "type": "uint",
                             "required": false,
                             "title": "Returned items per page (default 50)"
+                        },
+                        {
+                            "name": "sort",
+                            "required": false,
+                            "title": "Sort charts",
+                            "type": "string"
                         }
                     ]
                 }
@@ -1225,7 +1249,7 @@
                             "name": "page",
                             "type": "uint",
                             "required": false,
-                            "title": "Page number (0 based)"
+                            "title": "Page number"
                         },
                         {
                             "name": "perPage",
@@ -1476,7 +1500,7 @@
                             "name": "page",
                             "type": "uint",
                             "required": false,
-                            "title": "Page number (0 based)"
+                            "title": "Page number"
                         },
                         {
                             "name": "perPage",
@@ -1740,7 +1764,7 @@
                             "name": "page",
                             "type": "uint",
                             "required": false,
-                            "title": "Page number (0 based)"
+                            "title": "Page number"
                         },
                         {
                             "name": "perPage",

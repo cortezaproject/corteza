@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -57,9 +58,11 @@ type (
 		Root        bool   `json:"root,omitempty"`
 		Handle      string `json:"handle"`
 		Query       string `json:"query"`
-		Page        uint   `json:"page"`
-		PerPage     uint   `json:"perPage"`
-		Count       uint   `json:"count"`
+
+		Sort string `json:"sort"`
+
+		// Standard paging fields & helpers
+		rh.PageFilter
 
 		// Resource permission check filter
 		IsReadable *permissions.ResourceFilter `json:"-"`

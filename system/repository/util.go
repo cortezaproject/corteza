@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -16,20 +15,4 @@ func (r repository) updateColumnByID(tableName, columnName string, value interfa
 
 func exec(_ interface{}, err error) error {
 	return errors.WithStack(err)
-}
-
-// Returns err if set otherwise it returns nerr if not valid
-func isFound(err error, valid bool, nerr error) error {
-	if err != nil {
-		return errors.WithStack(err)
-	} else if !valid {
-		return errors.WithStack(nerr)
-	}
-
-	return nil
-}
-
-func timeNowPtr() *time.Time {
-	n := time.Now()
-	return &n
 }

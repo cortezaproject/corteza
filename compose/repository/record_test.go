@@ -5,8 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
 func TestRecordFinder(t *testing.T) {
@@ -27,7 +28,7 @@ func TestRecordFinder(t *testing.T) {
 		err   error
 	}{
 		{
-			match: []string{"SELECT * FROM compose_record AS r WHERE r.deleted_at IS NULL AND r.module_id = ?"},
+			match: []string{"SELECT r.id, r.module_id, r.rel_namespace, r.owned_by, r.created_at, r.created_by, r.updated_at, r.updated_by, r.deleted_at, r.deleted_by FROM compose_record AS r WHERE r.deleted_at IS NULL AND r.module_id = ? AND r.rel_namespace = ?"},
 		},
 		{
 			f: types.RecordFilter{Filter: "id = 5 AND foo = 7"},
@@ -55,7 +56,6 @@ func TestRecordFinder(t *testing.T) {
 			require.True(t, err == nil, "buildQuery(%+v) returned an unexpected error: %v", tc.f, err)
 		}
 
-		sb = sb.Column("*")
 		sql, args, err := sb.ToSql()
 
 		for _, m := range tc.match {

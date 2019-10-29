@@ -4,8 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/titpetric/factory"
 
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -16,8 +18,7 @@ type (
 		FindByID(id uint64) (*types.Role, error)
 		FindByName(name string) (*types.Role, error)
 		FindByHandle(handle string) (*types.Role, error)
-		FindByMemberID(userID uint64) (types.RoleSet, error)
-		Find(filter *types.RoleFilter) (types.RoleSet, error)
+		Find(filter types.RoleFilter) (types.RoleSet, types.RoleFilter, error)
 
 		Create(mod *types.Role) (*types.Role, error)
 		Update(mod *types.Role) (*types.Role, error)
@@ -45,8 +46,6 @@ type (
 )
 
 const (
-	sqlRoleScope = "deleted_at IS NULL AND archived_at IS NULL"
-
 	ErrRoleNotFound = repositoryError("RoleNotFound")
 )
 
@@ -58,82 +57,152 @@ func Role(ctx context.Context, db *factory.DB) RoleRepository {
 func (r *role) With(ctx context.Context, db *factory.DB) RoleRepository {
 	return &role{
 		repository: r.repository.With(ctx, db),
-		roles:      "sys_role",
-		members:    "sys_role_member",
 	}
 }
 
-func (r *role) FindByID(id uint64) (*types.Role, error) {
-	sql := "SELECT * FROM " + r.roles + " WHERE id = ? AND " + sqlRoleScope
-	mod := &types.Role{}
+func (r role) table() string {
+	return "sys_role"
+}
 
-	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrRoleNotFound)
+func (r role) tableMember() string {
+	return "sys_role_member"
+}
+
+func (r role) columns() []string {
+	return []string{
+		"id",
+		"name",
+		"handle",
+		"created_at",
+		"updated_at",
+		"archived_at",
+		"deleted_at",
+	}
+}
+
+func (r role) query() squirrel.SelectBuilder {
+	return squirrel.
+		Select(r.columns()...).
+		From(r.table() + " AS r").
+		Where(squirrel.And{
+			squirrel.Eq{"deleted_at": nil},
+			squirrel.Eq{"archived_at": nil},
+		})
+
+}
+
+func (r role) FindByID(id uint64) (*types.Role, error) {
+	return r.findOneBy("id", id)
 }
 
 func (r role) FindByHandle(handle string) (*types.Role, error) {
-	sql := "SELECT * FROM " + r.roles + " WHERE handle = ? AND " + sqlRoleScope
-	mod := &types.Role{}
-
-	return mod, isFound(r.db().Get(mod, sql, handle), mod.ID > 0, ErrRoleNotFound)
+	return r.findOneBy("handle", handle)
 }
 
 func (r role) FindByName(name string) (*types.Role, error) {
-	sql := "SELECT * FROM " + r.roles + " WHERE name = ? AND " + sqlRoleScope
-	mod := &types.Role{}
-
-	return mod, isFound(r.db().Get(mod, sql, name), mod.ID > 0, ErrRoleNotFound)
+	return r.findOneBy("name", name)
 }
 
-func (r *role) FindByMemberID(userID uint64) (types.RoleSet, error) {
-	sql := "SELECT * FROM " + r.roles + " where id in (select rel_role from " + r.members + " where rel_user=?) and " + sqlRoleScope
-	rval := make([]*types.Role, 0)
-	if err := r.db().Select(&rval, sql, userID); err != nil {
+func (r role) findOneBy(field string, value interface{}) (*types.Role, error) {
+	var (
+		ro = &types.Role{}
+		q  = r.query().
+			Where(squirrel.Eq{field: value})
+
+		err = rh.FetchOne(r.db(), q, ro)
+	)
+
+	if err != nil {
 		return nil, err
+	} else if ro.ID == 0 {
+		return nil, ErrRoleNotFound
 	}
-	return rval, nil
+
+	return ro, nil
 }
 
-func (r *role) Find(filter *types.RoleFilter) (types.RoleSet, error) {
-	rval := make([]*types.Role, 0)
-	params := make([]interface{}, 0)
+func (r *role) Find(filter types.RoleFilter) (set types.RoleSet, f types.RoleFilter, err error) {
+	f = filter
 
-	sql := "SELECT * FROM " + r.roles + " WHERE " + sqlRoleScope
-
-	if filter != nil {
-		if filter.Query != "" {
-			sql += " AND name LIKE ?"
-			params = append(params, filter.Query+"%")
-		}
+	if f.Sort == "" {
+		f.Sort = "id"
 	}
 
-	sql += " ORDER BY name ASC"
+	query := r.query()
 
-	return rval, r.db().Select(&rval, sql, params...)
+	if !f.IncDeleted {
+		query = query.Where(squirrel.Eq{"r.deleted_at": nil})
+	}
+
+	if !f.IncArchived {
+		query = query.Where(squirrel.Eq{"r.archived_at": nil})
+	}
+
+	if len(f.RoleID) > 0 {
+		query = query.Where(squirrel.Eq{"r.ID": f.RoleID})
+	}
+
+	if f.MemberID > 0 {
+		query = query.Where(squirrel.Expr("r.ID IN (SELECT rel_role FROM sys_role_member AS m WHERE m.rel_user = ?)", f.MemberID))
+	}
+
+	if f.Query != "" {
+		qs := f.Query + "%"
+		query = query.Where(squirrel.Or{
+			squirrel.Like{"r.name": qs},
+			squirrel.Like{"r.handle": qs},
+		})
+	}
+
+	if f.Name != "" {
+		query = query.Where(squirrel.Eq{"r.name": f.Name})
+	}
+
+	if f.Handle != "" {
+		query = query.Where(squirrel.Eq{"r.handle": f.Handle})
+	}
+
+	if f.IsReadable != nil {
+		query = query.Where(f.IsReadable)
+	}
+
+	var orderBy []string
+	if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
+		return
+	} else {
+		query = query.OrderBy(orderBy...)
+	}
+
+	if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
+		return
+	}
+
+	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
 }
 
 func (r *role) Create(mod *types.Role) (*types.Role, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
 
-	return mod, r.db().Insert(r.roles, mod)
+	return mod, r.db().Insert(r.table(), mod)
 }
 
 func (r *role) Update(mod *types.Role) (*types.Role, error) {
-	mod.UpdatedAt = timeNowPtr()
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 
-	return mod, r.db().Replace(r.roles, mod)
+	return mod, r.db().Replace(r.table(), mod)
 }
 
 func (r *role) ArchiveByID(id uint64) error {
-	return r.updateColumnByID(r.roles, "archived_at", time.Now(), id)
+	return r.updateColumnByID(r.table(), "archived_at", time.Now(), id)
 }
 
 func (r *role) UnarchiveByID(id uint64) error {
-	return r.updateColumnByID(r.roles, "archived_at", nil, id)
+	return r.updateColumnByID(r.table(), "archived_at", nil, id)
 }
 
 func (r *role) DeleteByID(id uint64) error {
-	return r.updateColumnByID(r.roles, "deleted_at", time.Now(), id)
+	return r.updateColumnByID(r.table(), "deleted_at", time.Now(), id)
 }
 
 func (r *role) MergeByID(id, targetRoleID uint64) error {
@@ -146,13 +215,13 @@ func (r *role) MoveByID(id, targetOrganisationID uint64) error {
 
 func (r *role) MembershipsFindByUserID(roleID uint64) (mm []*types.RoleMember, err error) {
 	rval := make([]*types.RoleMember, 0)
-	sql := "SELECT * FROM " + r.members + " WHERE rel_user = ?"
+	sql := "SELECT * FROM " + r.tableMember() + " WHERE rel_user = ?"
 	return rval, r.db().Select(&rval, sql, roleID)
 }
 
 func (r *role) MemberFindByRoleID(roleID uint64) (mm []*types.RoleMember, err error) {
 	rval := make([]*types.RoleMember, 0)
-	sql := "SELECT * FROM " + r.members + " WHERE rel_role = ?"
+	sql := "SELECT * FROM " + r.tableMember() + " WHERE rel_role = ?"
 	return rval, r.db().Select(&rval, sql, roleID)
 }
 
@@ -161,7 +230,7 @@ func (r *role) MemberAddByID(roleID, userID uint64) error {
 		RoleID: roleID,
 		UserID: userID,
 	}
-	return r.db().Replace(r.members, mod)
+	return r.db().Replace(r.tableMember(), mod)
 }
 
 func (r *role) MemberRemoveByID(roleID, userID uint64) error {
@@ -169,5 +238,5 @@ func (r *role) MemberRemoveByID(roleID, userID uint64) error {
 		RoleID: roleID,
 		UserID: userID,
 	}
-	return r.db().Delete(r.members, mod, "rel_role", "rel_user")
+	return r.db().Delete(r.tableMember(), mod, "rel_role", "rel_user")
 }

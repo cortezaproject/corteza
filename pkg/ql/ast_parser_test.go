@@ -270,6 +270,14 @@ func TestAstParser_ColumnParser(t *testing.T) {
 			},
 		},
 		{
+			in: `a.b`,
+			cols: Columns{
+				Column{
+					Expr: ASTNodes{Ident{Value: "a.b"}},
+				},
+			},
+		},
+		{
 			in: `DATE_FORMAT(some_date, '%Y-%m-01')`,
 			cols: Columns{
 				Column{

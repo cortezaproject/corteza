@@ -858,7 +858,7 @@ func (svc auth) autoPromote(u *types.User) (err error) {
 }
 
 func (svc auth) LoadRoleMemberships(u *types.User) error {
-	rr, err := svc.roles.FindByMemberID(u.ID)
+	rr, _, err := svc.roles.Find(types.RoleFilter{MemberID: u.ID})
 	if err != nil {
 		return err
 	}

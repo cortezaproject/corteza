@@ -85,7 +85,7 @@ func (svc webhook) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger
 }
 
 func (svc webhook) Create(kind types.WebhookKind, channelID uint64, params types.WebhookRequest) (*types.Webhook, error) {
-	var userID = repository.Identity(svc.ctx)
+	var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
 	// @todo: params.Avatar (io.Reader)
 
@@ -145,7 +145,7 @@ func (svc webhook) Delete(webhookID uint64) error {
 	if !svc.ac.CanManageOwnWebhooks(svc.ctx, webhook) || !svc.ac.CanManageWebhooks(svc.ctx) {
 		return svc.webhook.Delete(webhookID)
 	}
-	var userID = repository.Identity(svc.ctx)
+	var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
 	if webhook.OwnerUserID == userID && svc.ac.CanManageOwnWebhooks(svc.ctx, webhook) {
 		return svc.webhook.Delete(webhookID)
 	}

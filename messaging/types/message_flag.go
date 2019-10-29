@@ -23,14 +23,14 @@ const (
 	MessageFlagBookmarkedMessage string = "bookmark"
 )
 
-func (f *MessageFlag) IsReaction() bool {
+func (f MessageFlag) IsReaction() bool {
 	return f.Flag != MessageFlagPinnedToChannel && f.Flag != MessageFlagBookmarkedMessage
 }
 
-func (f *MessageFlag) IsPin() bool {
+func (f MessageFlag) IsPin() bool {
 	return f.Flag == MessageFlagPinnedToChannel
 }
 
-func (f *MessageFlag) IsBookmark() bool {
+func (f MessageFlag) IsBookmark() bool {
 	return f.Flag == MessageFlagBookmarkedMessage
 }

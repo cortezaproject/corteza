@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -34,10 +36,11 @@ type (
 		ModuleID    uint64 `json:"moduleID,string,omitempty"`
 		FieldName   string `json:"fieldName,omitempty"`
 		Filter      string `json:"filter"`
-		Page        uint   `json:"page"`
-		PerPage     uint   `json:"perPage"`
-		Sort        string `json:"sort"`
-		Count       uint   `json:"count"`
+
+		Sort string `json:"sort"`
+
+		// Standard paging fields & helpers
+		rh.PageFilter
 	}
 
 	attachmentImageMeta struct {

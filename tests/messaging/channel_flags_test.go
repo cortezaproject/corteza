@@ -18,7 +18,10 @@ func TestChannelSetFlag(t *testing.T) {
 	h.repoMakeMember(ch, h.cUser)
 
 	flagCheck := func(ID uint64, flag string) {
-		mm, err := h.repoChMember().Find(&types.ChannelMemberFilter{ChannelID: ID, MemberID: h.cUser.ID})
+		mm, err := h.repoChMember().Find(types.ChannelMemberFilter{
+			ChannelID: []uint64{ID},
+			MemberID:  []uint64{h.cUser.ID},
+		})
 		h.a.NoError(err)
 		h.a.Len(mm, 1, "expecting 1 member")
 		h.a.Equal(flag, string(mm[0].Flag), "expecting flags to match")

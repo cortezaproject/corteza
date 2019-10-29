@@ -3,12 +3,12 @@ package repository
 import (
 	"context"
 	"strings"
-	"time"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/titpetric/factory"
-	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -49,14 +49,20 @@ func (r chart) table() string {
 
 func (r chart) columns() []string {
 	return []string{
-		"id", "rel_namespace", "handle", "name", "config",
-		"created_at", "updated_at", "deleted_at",
+		"id",
+		"rel_namespace",
+		"handle",
+		"name",
+		"config",
+		"created_at",
+		"updated_at",
+		"deleted_at",
 	}
 }
 
 func (r chart) query() squirrel.SelectBuilder {
 	return squirrel.
-		Select().
+		Select(r.columns()...).
 		From(r.table()).
 		Where("deleted_at IS NULL")
 }
@@ -70,16 +76,18 @@ func (r chart) FindByHandle(namespaceID uint64, handle string) (*types.Chart, er
 }
 
 func (r chart) findOneBy(namespaceID uint64, field string, value interface{}) (*types.Chart, error) {
-	var c = &types.Chart{}
+	var (
+		c = &types.Chart{}
 
-	err := r.findOneInNamespaceBy(
-		namespaceID,
-		r.query().Columns(r.columns()...),
-		squirrel.Eq{field: value},
-		c,
+		q = r.query().
+			Where(squirrel.Eq{field: value, "rel_namespace": namespaceID})
+
+		err = rh.FetchOne(r.db(), q, c)
 	)
 
-	if err == nil && c.ID == 0 {
+	if err != nil {
+		return nil, err
+	} else if c.ID == 0 {
 		return nil, ErrChartNotFound
 	}
 
@@ -89,46 +97,56 @@ func (r chart) findOneBy(namespaceID uint64, field string, value interface{}) (*
 func (r chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error) {
 	f = filter
 
+	if f.Sort == "" {
+		f.Sort = "id ASC"
+	}
+
 	query := r.query()
 
 	if filter.NamespaceID > 0 {
-		query = query.Where("rel_namespace = ?", filter.NamespaceID)
+		query = query.Where(squirrel.Eq{"rel_namespace": filter.NamespaceID})
 	}
 
 	if f.Query != "" {
-		q := "%" + f.Query + "%"
-		query = query.Where("name like ?", q)
+		q := "%" + strings.ToLower(f.Query) + "%"
+		query = query.Where(squirrel.Or{
+			squirrel.Like{"LOWER(name)": q},
+		})
 	}
 
 	if f.Handle != "" {
-		query = query.Where("LOWER(handle) = ?", strings.ToLower(f.Handle))
+		query = query.Where("LOWER(handle) = LOWER(?)", f.Handle)
 	}
 
 	if f.IsReadable != nil {
 		query = query.Where(f.IsReadable)
 	}
 
-	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
+	var orderBy []string
+	if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
+		return
+	} else {
+		query = query.OrderBy(orderBy...)
+	}
+
+	if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
 		return
 	}
 
-	query = query.
-		Columns(r.columns()...).
-		OrderBy("id ASC")
-
-	return set, f, r.fetchPaged(&set, query, f.Page, f.PerPage)
+	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
 }
 
 func (r chart) Create(mod *types.Chart) (*types.Chart, error) {
 	mod.ID = factory.Sonyflake.NextID()
-	mod.CreatedAt = time.Now().Truncate(time.Second)
+	rh.SetCurrentTimeRounded(&mod.CreatedAt)
+	mod.UpdatedAt = nil
 
 	return mod, r.db().Insert(r.table(), mod)
 }
 
 func (r chart) Update(mod *types.Chart) (*types.Chart, error) {
-	now := time.Now().Truncate(time.Second)
-	mod.UpdatedAt = &now
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
+
 	return mod, r.db().Update(r.table(), mod, "id")
 }
 

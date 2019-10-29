@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -57,10 +58,12 @@ func (Namespace) New() *Namespace {
 
 func (ctrl Namespace) List(ctx context.Context, r *request.NamespaceList) (interface{}, error) {
 	f := types.NamespaceFilter{
-		Query:   r.Query,
-		Slug:    r.Slug,
-		PerPage: r.PerPage,
-		Page:    r.Page,
+		Query: r.Query,
+		Slug:  r.Slug,
+
+		Sort: r.Sort,
+
+		PageFilter: rh.Paging(r.Page, r.PerPage),
 	}
 
 	set, filter, err := ctrl.namespace.With(ctx).Find(f)

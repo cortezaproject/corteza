@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
-	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -60,14 +60,20 @@ func (r module) tableFields() string {
 
 func (r module) columns() []string {
 	return []string{
-		"id", "rel_namespace", "handle", "name", "json",
-		"created_at", "updated_at", "deleted_at",
+		"id",
+		"rel_namespace",
+		"handle",
+		"name",
+		"json",
+		"created_at",
+		"updated_at",
+		"deleted_at",
 	}
 }
 
 func (r module) query() squirrel.SelectBuilder {
 	return squirrel.
-		Select().
+		Select(r.columns()...).
 		From(r.table()).
 		Where("deleted_at IS NULL")
 
@@ -86,16 +92,18 @@ func (r module) FindByName(namespaceID uint64, name string) (*types.Module, erro
 }
 
 func (r module) findOneBy(namespaceID uint64, field string, value interface{}) (*types.Module, error) {
-	var m = &types.Module{}
+	var (
+		m = &types.Module{}
 
-	err := r.findOneInNamespaceBy(
-		namespaceID,
-		r.query().Columns(r.columns()...),
-		squirrel.Eq{field: value},
-		m,
+		q = r.query().
+			Where(squirrel.Eq{field: value, "rel_namespace": namespaceID})
+
+		err = rh.FetchOne(r.db(), q, m)
 	)
 
-	if err == nil && m.ID == 0 {
+	if err != nil {
+		return nil, err
+	} else if m.ID == 0 {
 		return nil, ErrModuleNotFound
 	}
 
@@ -105,6 +113,10 @@ func (r module) findOneBy(namespaceID uint64, field string, value interface{}) (
 func (r module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
 	f = filter
 
+	if f.Sort == "" {
+		f.Sort = "id ASC"
+	}
+
 	query := r.query()
 
 	if filter.NamespaceID > 0 {
@@ -112,38 +124,45 @@ func (r module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.Mo
 	}
 
 	if f.Query != "" {
-		q := "%" + f.Query + "%"
-		query = query.Where("name like ?", q)
+		q := "%" + strings.ToLower(f.Query) + "%"
+		query = query.Where(squirrel.Or{
+			squirrel.Like{"LOWER(name)": q},
+			squirrel.Like{"LOWER(slug)": q},
+		})
 	}
 
 	if f.Name != "" {
-		query = query.Where("LOWER(name) = ?", strings.ToLower(f.Name))
+		query = query.Where(squirrel.Eq{"LOWER(name)": strings.ToLower(f.Name)})
 	}
 
 	if f.Handle != "" {
-		query = query.Where("LOWER(handle) = ?", strings.ToLower(f.Handle))
+		query = query.Where(squirrel.Eq{"LOWER(handle)": strings.ToLower(f.Handle)})
 	}
 
 	if f.IsReadable != nil {
 		query = query.Where(f.IsReadable)
 	}
 
-	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
+	var orderBy []string
+	if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
+		return
+	} else {
+		query = query.OrderBy(orderBy...)
+	}
+
+	if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
 		return
 	}
 
-	query = query.
-		Columns(r.columns()...).
-		OrderBy("id ASC")
-
-	return set, f, r.fetchPaged(&set, query, f.Page, f.PerPage)
+	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
 }
 
 func (r module) Create(mod *types.Module) (*types.Module, error) {
 	var err error
 
 	mod.ID = factory.Sonyflake.NextID()
-	mod.CreatedAt = time.Now().Truncate(time.Second)
+	rh.SetCurrentTimeRounded(&mod.CreatedAt)
+	mod.UpdatedAt = nil
 
 	if err = r.db().Insert(r.table(), mod); err != nil {
 		return nil, err
@@ -153,8 +172,7 @@ func (r module) Create(mod *types.Module) (*types.Module, error) {
 }
 
 func (r module) Update(mod *types.Module) (*types.Module, error) {
-	now := time.Now().Truncate(time.Second)
-	mod.UpdatedAt = &now
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 
 	return mod, r.db().Update(r.table(), mod, "id")
 }
@@ -176,7 +194,6 @@ func (r module) UpdateFields(moduleID uint64, ff types.ModuleFieldSet, hasRecord
 			return err
 		}
 
-		now := time.Now().Truncate(time.Second)
 		for idx, f := range ff {
 			if e := existing.FindByID(f.ID); e != nil {
 				f.CreatedAt = e.CreatedAt
@@ -188,7 +205,7 @@ func (r module) UpdateFields(moduleID uint64, ff types.ModuleFieldSet, hasRecord
 					f.Name = e.Name
 					f.Kind = e.Kind
 				} else {
-					f.UpdatedAt = &now
+					rh.SetCurrentTimeRounded(&f.UpdatedAt)
 				}
 			} else {
 				f.ID = 0
@@ -196,8 +213,7 @@ func (r module) UpdateFields(moduleID uint64, ff types.ModuleFieldSet, hasRecord
 
 			if f.ID == 0 {
 				f.ID = factory.Sonyflake.NextID()
-				f.CreatedAt = now
-				f.UpdatedAt = nil
+				rh.SetCurrentTimeRounded(&f.CreatedAt)
 			}
 
 			f.ModuleID = moduleID

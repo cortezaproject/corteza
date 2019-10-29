@@ -53,11 +53,15 @@ type (
 	ChannelFilter struct {
 		Query string
 
+		ChannelID []uint64
+
 		// Only return channels accessible by this user
 		CurrentUserID uint64
 
 		// Do not filter out deleted channels
 		IncludeDeleted bool
+
+		Sort string `json:"sort"`
 	}
 
 	ChannelMembershipPolicy string

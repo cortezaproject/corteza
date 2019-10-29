@@ -36,6 +36,5 @@ func (h helper) repoMsgExistingLoad(ID uint64) *types.Message {
 func (h helper) repoMsgFlagLoad(ID uint64) types.MessageFlagSet {
 	ff, err := h.repoMessageFlag().FindByMessageIDs(ID)
 	h.a.NoError(err)
-	h.a.NotNil(ff)
 	return ff
 }

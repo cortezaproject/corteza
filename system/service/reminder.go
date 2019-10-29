@@ -27,7 +27,6 @@ type (
 	ReminderService interface {
 		Find(context.Context, types.ReminderFilter) (types.ReminderSet, types.ReminderFilter, error)
 		FindByID(context.Context, uint64) (*types.Reminder, error)
-		FindByIDs(context.Context, ...uint64) (types.ReminderSet, error)
 
 		Create(context.Context, *types.Reminder) (*types.Reminder, error)
 
@@ -70,7 +69,11 @@ func (svc reminder) FindByID(ctx context.Context, ID uint64) (*types.Reminder, e
 }
 
 func (svc reminder) FindByIDs(ctx context.Context, IDs ...uint64) (types.ReminderSet, error) {
-	rr, err := svc.reminder.FindByIDs(IDs)
+	if len(IDs) == 0 {
+		return nil, nil
+	}
+
+	rr, _, err := svc.reminder.Find(types.ReminderFilter{ReminderID: IDs})
 	if err != nil {
 		return nil, err
 	}

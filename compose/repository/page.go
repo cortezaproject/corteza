@@ -3,12 +3,12 @@ package repository
 import (
 	"context"
 	"strings"
-	"time"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/titpetric/factory"
-	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -53,16 +53,25 @@ func (r page) table() string {
 
 func (r page) columns() []string {
 	return []string{
-		"id", "rel_namespace", "self_id", "rel_module",
-		"handle", "title",
-		"blocks", "description", "visible", "weight",
-		"created_at", "updated_at", "deleted_at",
+		"id",
+		"rel_namespace",
+		"self_id",
+		"rel_module",
+		"handle",
+		"title",
+		"blocks",
+		"description",
+		"visible",
+		"weight",
+		"created_at",
+		"updated_at",
+		"deleted_at",
 	}
 }
 
 func (r page) query() squirrel.SelectBuilder {
 	return squirrel.
-		Select().
+		Select(r.columns()...).
 		From(r.table()).
 		Where("deleted_at IS NULL")
 }
@@ -80,16 +89,18 @@ func (r page) FindByModuleID(namespaceID, moduleID uint64) (*types.Page, error) 
 }
 
 func (r page) findOneBy(namespaceID uint64, field string, value interface{}) (*types.Page, error) {
-	var p = &types.Page{}
+	var (
+		p = &types.Page{}
 
-	err := r.findOneInNamespaceBy(
-		namespaceID,
-		r.query().Columns(r.columns()...),
-		squirrel.Eq{field: value},
-		p,
+		q = r.query().
+			Where(squirrel.Eq{field: value, "rel_namespace": namespaceID})
+
+		err = rh.FetchOne(r.db(), q, p)
 	)
 
-	if err == nil && p.ID == 0 {
+	if err != nil {
+		return nil, err
+	} else if p.ID == 0 {
 		return nil, ErrPageNotFound
 	}
 
@@ -98,6 +109,10 @@ func (r page) findOneBy(namespaceID uint64, field string, value interface{}) (*t
 
 func (r page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
 	f = filter
+
+	if f.Sort == "" {
+		f.Sort = "id ASC"
+	}
 
 	query := r.query()
 
@@ -116,23 +131,29 @@ func (r page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilt
 	}
 
 	if f.Query != "" {
-		q := "%" + f.Query + "%"
-		query = query.Where("title LIKE ? OR description LIKE ?", q, q)
+		q := "%" + strings.ToLower(f.Query) + "%"
+		query = query.Where(squirrel.Or{
+			squirrel.Like{"LOWER(title)": q},
+			squirrel.Like{"LOWER(description)": q},
+		})
 	}
 
 	if f.IsReadable != nil {
 		query = query.Where(f.IsReadable)
 	}
 
-	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
+	var orderBy []string
+	if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
+		return
+	} else {
+		query = query.OrderBy(orderBy...)
+	}
+
+	if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
 		return
 	}
 
-	query = query.
-		Columns(r.columns()...).
-		OrderBy("weight ASC")
-
-	return set, f, r.fetchPaged(&set, query, f.Page, f.PerPage)
+	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
 }
 
 func (r page) Reorder(namespaceID, parentID uint64, pageIDs []uint64) error {
@@ -173,14 +194,14 @@ func (r page) Reorder(namespaceID, parentID uint64, pageIDs []uint64) error {
 
 func (r page) Create(mod *types.Page) (*types.Page, error) {
 	mod.ID = factory.Sonyflake.NextID()
-	mod.CreatedAt = time.Now().Truncate(time.Second)
+	rh.SetCurrentTimeRounded(&mod.CreatedAt)
+	mod.UpdatedAt = nil
 
 	return mod, r.db().Insert(r.table(), mod)
 }
 
 func (r page) Update(mod *types.Page) (*types.Page, error) {
-	now := time.Now().Truncate(time.Second)
-	mod.UpdatedAt = &now
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 
 	return mod, r.db().Update(r.table(), mod, "id")
 }

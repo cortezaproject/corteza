@@ -6,6 +6,7 @@ import (
 
 	"github.com/titpetric/factory"
 
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -52,7 +53,7 @@ func (r *organisation) FindByID(id uint64) (*types.Organisation, error) {
 	sql := "SELECT * FROM " + r.organisations + " WHERE id = ? AND " + sqlOrganisationScope
 	mod := &types.Organisation{}
 
-	return mod, isFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrOrganisationNotFound)
+	return mod, rh.IsFound(r.db().Get(mod, sql, id), mod.ID > 0, ErrOrganisationNotFound)
 }
 
 func (r *organisation) Find(filter *types.OrganisationFilter) ([]*types.Organisation, error) {
@@ -80,7 +81,7 @@ func (r *organisation) Create(mod *types.Organisation) (*types.Organisation, err
 }
 
 func (r *organisation) Update(mod *types.Organisation) (*types.Organisation, error) {
-	mod.UpdatedAt = timeNowPtr()
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 
 	return mod, r.db().Replace(r.organisations, mod)
 }

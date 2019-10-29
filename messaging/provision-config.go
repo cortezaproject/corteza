@@ -42,6 +42,6 @@ func provisionConfig(ctx context.Context, cmd *cobra.Command, c *cli.Config) err
 
 // Provision ONLY when there are no channels (even if we find delete channels we abort provisioning
 func isProvisioned(ctx context.Context) (bool, error) {
-	cc, err := service.DefaultChannel.With(ctx).Find(&types.ChannelFilter{IncludeDeleted: true})
+	cc, _, err := service.DefaultChannel.With(ctx).Find(types.ChannelFilter{IncludeDeleted: true})
 	return len(cc) > 0, err
 }

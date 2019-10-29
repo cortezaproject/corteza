@@ -18,7 +18,40 @@
       "Method": "GET",
       "Title": "List applications",
       "Path": "/",
-      "Parameters": null
+      "Parameters": {
+        "get": [
+          {
+            "name": "name",
+            "required": false,
+            "title": "Application name",
+            "type": "string"
+          },
+          {
+            "name": "query",
+            "required": false,
+            "title": "Filter applications",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "required": false,
+            "title": "Page number",
+            "type": "uint"
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "title": "Returned items per page (default 50)",
+            "type": "uint"
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "title": "Sort",
+            "type": "string"
+          }
+        ]
+      }
     },
     {
       "Name": "create",

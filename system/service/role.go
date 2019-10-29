@@ -10,6 +10,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -36,6 +37,8 @@ type (
 		CanUpdateRole(context.Context, *types.Role) bool
 		CanDeleteRole(context.Context, *types.Role) bool
 		CanManageRoleMembers(context.Context, *types.Role) bool
+
+		FilterReadableRoles(ctx context.Context) *permissions.ResourceFilter
 	}
 
 	RoleService interface {
@@ -44,7 +47,7 @@ type (
 		FindByID(roleID uint64) (*types.Role, error)
 		FindByName(name string) (*types.Role, error)
 		FindByHandle(handle string) (*types.Role, error)
-		Find(filter *types.RoleFilter) ([]*types.Role, error)
+		Find(types.RoleFilter) (types.RoleSet, types.RoleFilter, error)
 
 		Create(role *types.Role) (*types.Role, error)
 		Update(role *types.Role) (*types.Role, error)
@@ -105,19 +108,9 @@ func (svc role) findByID(roleID uint64) (*types.Role, error) {
 	return role, nil
 }
 
-func (svc role) Find(filter *types.RoleFilter) ([]*types.Role, error) {
-	roles, err := svc.role.Find(filter)
-	if err != nil {
-		return nil, err
-	}
-
-	ret := []*types.Role{}
-	for _, role := range roles {
-		if svc.ac.CanReadRole(svc.ctx, role) {
-			ret = append(ret, role)
-		}
-	}
-	return ret, nil
+func (svc role) Find(f types.RoleFilter) (types.RoleSet, types.RoleFilter, error) {
+	f.IsReadable = svc.ac.FilterReadableRoles(svc.ctx)
+	return svc.role.Find(f)
 }
 
 func (svc role) FindByName(rolename string) (*types.Role, error) {
@@ -186,13 +179,13 @@ func (svc role) Update(mod *types.Role) (t *types.Role, err error) {
 
 func (svc role) UniqueCheck(r *types.Role) (err error) {
 	if r.Handle != "" {
-		if ex, _ := svc.role.FindByHandle(r.Handle); ex.ID > 0 && ex.ID != r.ID {
+		if ex, _ := svc.role.FindByHandle(r.Handle); ex != nil && ex.ID > 0 && ex.ID != r.ID {
 			return ErrRoleHandleNotUnique
 		}
 	}
 
 	if r.Name != "" {
-		if ex, _ := svc.role.FindByName(r.Name); ex.ID > 0 && ex.ID != r.ID {
+		if ex, _ := svc.role.FindByName(r.Name); ex != nil && ex.ID > 0 && ex.ID != r.ID {
 			return ErrRoleNameNotUnique
 		}
 	}
