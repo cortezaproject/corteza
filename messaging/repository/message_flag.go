@@ -4,10 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/Masterminds/squirrel"
 	"github.com/titpetric/factory"
 
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -15,13 +16,10 @@ type (
 		With(ctx context.Context, db *factory.DB) MessageFlagRepository
 
 		FindByID(ID uint64) (*types.MessageFlag, error)
-		FindByMessageIDs(IDs ...uint64) ([]*types.MessageFlag, error)
+		FindByMessageIDs(IDs ...uint64) (types.MessageFlagSet, error)
 		FindByFlag(messageID, userID uint64, flag string) (*types.MessageFlag, error)
 		Create(mod *types.MessageFlag) (*types.MessageFlag, error)
 		DeleteByID(ID uint64) error
-
-		CountOwned(userID uint64) (c int, err error)
-		ChangeOwner(userID, target uint64) error
 	}
 
 	messageFlag struct {
@@ -37,65 +35,91 @@ func MessageFlag(ctx context.Context, db *factory.DB) MessageFlagRepository {
 	return (&messageFlag{}).With(ctx, db)
 }
 
-func (r *messageFlag) With(ctx context.Context, db *factory.DB) MessageFlagRepository {
+func (r messageFlag) columns() []string {
+	return []string{
+		"mf.id",
+		"mf.rel_user",
+		"mf.rel_message",
+		"mf.rel_channel",
+		"mf.flag",
+		"mf.created_at",
+	}
+}
+
+func (r messageFlag) table() string {
+	return "messaging_message_flag"
+}
+
+func (r messageFlag) query() squirrel.SelectBuilder {
+	return squirrel.
+		Select(r.columns()...).
+		From(r.table() + " AS mf")
+}
+
+func (r messageFlag) queryMessagesWithFlags(flags ...string) squirrel.SelectBuilder {
+	return squirrel.
+		Select("mf.rel_message").
+		From(r.table() + " AS mf").
+		Where(squirrel.Eq{"flag": flags})
+}
+
+func (r messageFlag) With(ctx context.Context, db *factory.DB) MessageFlagRepository {
 	return &messageFlag{
 		repository: r.repository.With(ctx, db),
 	}
 }
 
-func (r *messageFlag) FindByID(ID uint64) (*types.MessageFlag, error) {
-	sql := "SELECT * FROM messaging_message_flag WHERE id = ?"
-	mod := &types.MessageFlag{}
-	return mod, isFound(r.db().Get(mod, sql, ID), mod.ID > 0, ErrMessageFlagNotFound)
+func (r messageFlag) FindByID(ID uint64) (*types.MessageFlag, error) {
+	return r.findOneBy(squirrel.Eq{"id": ID})
 }
 
-func (r *messageFlag) FindByFlag(messageID, userID uint64, flag string) (*types.MessageFlag, error) {
-	args := []interface{}{messageID, flag}
-	sql := "SELECT * FROM messaging_message_flag WHERE rel_message = ? AND flag = ? "
+func (r messageFlag) FindByFlag(messageID, userID uint64, flag string) (*types.MessageFlag, error) {
+	cnd := squirrel.Eq{
+		"rel_message": messageID,
+		"flag":        flag,
+	}
 
 	if userID > 0 {
-		sql += "AND rel_user = ? "
-		args = append(args, userID)
+		cnd["rel_user"] = userID
 	}
 
-	mod := &types.MessageFlag{}
-	return mod, isFound(r.db().Get(mod, sql, args...), mod.ID > 0, ErrMessageFlagNotFound)
+	return r.findOneBy(cnd)
 }
 
-// FindByMessageRange returns all flags by message id range
-func (r *messageFlag) FindByMessageIDs(IDs ...uint64) ([]*types.MessageFlag, error) {
-	rval := make([]*types.MessageFlag, 0)
+func (r messageFlag) findOneBy(cnd squirrel.Sqlizer) (*types.MessageFlag, error) {
+	var (
+		mf = &types.MessageFlag{}
 
-	if len(IDs) == 0 {
-		return rval, nil
-	}
+		q = r.query().
+			Where(cnd)
 
-	sql := `SELECT * FROM messaging_message_flag WHERE rel_message IN (?)`
+		err = rh.FetchOne(r.db(), q, mf)
+	)
 
-	if sql, args, err := sqlx.In(sql, IDs); err != nil {
+	if err != nil {
 		return nil, err
-	} else {
-		return rval, r.db().Select(&rval, sql, args...)
+	} else if mf.ID == 0 {
+		return nil, ErrMessageFlagNotFound
 	}
+
+	return mf, nil
 }
 
-func (r *messageFlag) Create(mod *types.MessageFlag) (*types.MessageFlag, error) {
+// FindByMessageIDs returns all flags by message id range
+func (r messageFlag) FindByMessageIDs(IDs ...uint64) (set types.MessageFlagSet, err error) {
+	if len(IDs) == 0 {
+		return
+	}
+
+	return set, rh.FetchAll(r.db(), r.query().Where(squirrel.Eq{"rel_message": IDs}), &set)
+}
+
+func (r messageFlag) Create(mod *types.MessageFlag) (*types.MessageFlag, error) {
 	mod.ID = factory.Sonyflake.NextID()
 	mod.CreatedAt = time.Now()
-	return mod, r.db().Insert("messaging_message_flag", mod)
+	return mod, r.db().Insert(r.table(), mod)
 }
 
-func (r *messageFlag) DeleteByID(ID uint64) error {
-	return exec(r.db().Exec("DELETE FROM messaging_message_flag WHERE id = ?", ID))
-}
-
-func (r *messageFlag) CountOwned(userID uint64) (c int, err error) {
-	return c, r.db().Get(&c,
-		"SELECT COUNT(*) FROM message_flag WHERE rel_user = ?",
-		userID)
-}
-
-func (r *messageFlag) ChangeOwner(userID, target uint64) error {
-	_, err := r.db().Exec("UPDATE message_flag SET rel_user = ? WHERE rel_user = ?", target, userID)
-	return err
+func (r messageFlag) DeleteByID(ID uint64) error {
+	return rh.Delete(r.db(), r.table(), squirrel.Eq{"id": ID})
 }

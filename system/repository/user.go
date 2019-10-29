@@ -5,8 +5,8 @@ import (
 	"io"
 	"time"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/titpetric/factory"
-	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
@@ -70,14 +70,13 @@ func (r user) columns() []string {
 }
 
 func (r user) query() squirrel.SelectBuilder {
-	return r.queryNoFilter().Where("u.deleted_at IS NULL AND u.suspended_at IS NULL")
-}
-
-func (r user) queryNoFilter() squirrel.SelectBuilder {
 	return squirrel.
-		Select().
+		Select(r.columns()...).
 		From(r.table() + " AS u").
-		Columns(r.columns()...)
+		Where(squirrel.And{
+			squirrel.Eq{"deleted_at": nil},
+			squirrel.Eq{"suspended_at": nil},
+		})
 }
 
 func (r *user) With(ctx context.Context, db *factory.DB) UserRepository {
@@ -86,34 +85,49 @@ func (r *user) With(ctx context.Context, db *factory.DB) UserRepository {
 	}
 }
 
-func (r user) findBy(field string, value interface{}) (*types.User, error) {
-	var (
-		query = r.query().Where("u."+field+" = ?", value)
-		u     = &types.User{}
-	)
-
-	return u, isFound(r.fetchOne(u, query), u.ID > 0, ErrUserNotFound)
-}
-
 func (r user) FindByUsername(username string) (*types.User, error) {
-	return r.findBy("username", username)
+	return r.findOneBy("username", username)
 }
 
 func (r user) FindByHandle(handle string) (*types.User, error) {
-	return r.findBy("handle", handle)
+	return r.findOneBy("handle", handle)
 }
 
 func (r user) FindByEmail(email string) (*types.User, error) {
-	return r.findBy("email", email)
+	return r.findOneBy("email", email)
 }
 
 func (r user) FindByID(id uint64) (*types.User, error) {
-	return r.findBy("id", id)
+	return r.findOneBy("id", id)
+}
+
+func (r user) findOneBy(field string, value interface{}) (*types.User, error) {
+	var (
+		u = &types.User{}
+
+		q = r.query().
+			Where(squirrel.Eq{field: value})
+
+		err = rh.FetchOne(r.db(), q, u)
+	)
+
+	if err != nil {
+		return nil, err
+	} else if u.ID == 0 {
+		return nil, ErrUserNotFound
+	}
+
+	return u, nil
 }
 
 func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilter, err error) {
 	f = filter
-	q := r.queryNoFilter()
+
+	if f.Sort == "" {
+		f.Sort = "id"
+	}
+
+	query := r.query()
 
 	// Returns user filter (flt) wrapped in IF() function with cnd as condition (when cnd != nil)
 	whereMasked := func(cnd *permissions.ResourceFilter, flt squirrel.Sqlizer) squirrel.Sqlizer {
@@ -125,15 +139,15 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 	}
 
 	if !f.IncDeleted {
-		q = q.Where(squirrel.Eq{"u.deleted_at": nil})
+		query = query.Where(squirrel.Eq{"u.deleted_at": nil})
 	}
 
 	if !f.IncSuspended {
-		q = q.Where(squirrel.Eq{"u.suspended_at": nil})
+		query = query.Where(squirrel.Eq{"u.suspended_at": nil})
 	}
 
 	if len(f.UserID) > 0 {
-		q = q.Where(squirrel.Eq{"u.ID": f.UserID})
+		query = query.Where(squirrel.Eq{"u.ID": f.UserID})
 	}
 
 	if len(f.RoleID) > 0 {
@@ -141,15 +155,15 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 		// Due to lack of support for more exotic expressions (slice of values inside subquery)
 		// we'll use set of OR expressions as a workaround
 		for _, roleID := range f.RoleID {
-			or = append(or, squirrel.Expr("u.ID IN (SELECT rel_user FROM sys_role_member WHERE rel_role IN (?))", roleID))
+			or = append(or, squirrel.Expr("u.ID IN (SELECT rel_user FROM sys_role_member WHERE rel_role = ?)", roleID))
 		}
 
-		q = q.Where(or)
+		query = query.Where(or)
 	}
 
 	if f.Query != "" {
 		qs := f.Query + "%"
-		q = q.Where(squirrel.Or{
+		query = query.Where(squirrel.Or{
 			squirrel.Like{"u.username": qs},
 			squirrel.Like{"u.handle": qs},
 			whereMasked(f.IsEmailUnmaskable, squirrel.Like{"u.email": qs}),
@@ -158,57 +172,41 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 	}
 
 	if f.Email != "" {
-		q = q.Where(whereMasked(f.IsNameUnmaskable, squirrel.Eq{"u.name": f.Email}))
+		query = query.Where(whereMasked(f.IsNameUnmaskable, squirrel.Eq{"u.name": f.Email}))
 	}
 
 	if f.Username != "" {
-		q = q.Where(squirrel.Eq{"u.username": f.Username})
+		query = query.Where(squirrel.Eq{"u.username": f.Username})
 	}
 
 	if f.Handle != "" {
-		q = q.Where(squirrel.Eq{"u.handle": f.Handle})
+		query = query.Where(squirrel.Eq{"u.handle": f.Handle})
 	}
 
 	if f.Kind != "" {
-		q = q.Where(squirrel.Eq{"u.kind": f.Kind})
+		query = query.Where(squirrel.Eq{"u.kind": f.Kind})
 	}
 
 	if f.IsReadable != nil {
-		q = q.Where(f.IsReadable)
+		query = query.Where(f.IsReadable)
 	}
 
-	// @todo add support for more sophisticated sorting through ql
-	//       refactor github.com/cortezaproject/corteza-server/compose/repository/ql
-	//       for common use (out of compose pkg)
-	switch f.Sort {
-	case "createdAt":
-		q = q.OrderBy("created_at")
-	case "updatedAt":
-		q = q.OrderBy("updated_at")
-	case "deletedAt":
-		q = q.OrderBy("deleted_at")
-	case "suspendedAt":
-		q = q.OrderBy("suspended_at")
-	case "email", "username":
-		q = q.OrderBy(f.Sort)
-	case "userID":
-		q = q.OrderBy("id")
-	default:
-		q = q.OrderBy("id")
+	var orderBy []string
+	if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
+		return
+	} else {
+		query = query.OrderBy(orderBy...)
 	}
 
-	db := r.db()
-
-	if f.Count, err = rh.Count(db, q); err != nil || f.Count == 0 {
+	if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
 		return
 	}
 
-	return set, f, rh.FetchPaged(db, q, f.Page, f.PerPage, &set)
+	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
 }
 
 func (r user) Total() (count uint) {
-
-	count, _ = r.count(r.query())
+	count, _ = rh.Count(r.db(), squirrel.Select().From(r.table()))
 	return
 }
 
@@ -219,7 +217,7 @@ func (r *user) Create(mod *types.User) (*types.User, error) {
 }
 
 func (r *user) Update(mod *types.User) (*types.User, error) {
-	mod.UpdatedAt = timeNowPtr()
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 	return mod, r.db().Replace(r.table(), mod)
 }
 
@@ -233,13 +231,13 @@ func (r *user) BindAvatar(user *types.User, avatar io.Reader) (*types.User, erro
 }
 
 func (r *user) SuspendByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "suspended_at", time.Now(), id)
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"suspended_at": time.Now()}, squirrel.Eq{"id": id})
 }
 
 func (r *user) UnsuspendByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "suspended_at", nil, id)
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"suspended_at": nil}, squirrel.Eq{"id": id})
 }
 
 func (r *user) DeleteByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "deleted_at", time.Now(), id)
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"deleted_at": time.Now()}, squirrel.Eq{"id": id})
 }

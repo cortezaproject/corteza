@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -24,12 +25,13 @@ type (
 	}
 
 	NamespaceFilter struct {
-		Query   string `json:"query"`
-		Slug    string `json:"slug"`
-		Page    uint   `json:"page"`
-		PerPage uint   `json:"perPage"`
-		Sort    string `json:"sort"`
-		Count   uint   `json:"count"`
+		Query string `json:"query"`
+		Slug  string `json:"slug"`
+
+		Sort string `json:"sort"`
+
+		// Standard paging fields & helpers
+		rh.PageFilter
 
 		// Resource permission check filter
 		IsReadable *permissions.ResourceFilter `json:"-"`

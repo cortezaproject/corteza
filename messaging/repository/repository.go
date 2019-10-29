@@ -4,9 +4,6 @@ import (
 	"context"
 
 	"github.com/titpetric/factory"
-	"gopkg.in/Masterminds/squirrel.v1"
-
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 )
 
 type (
@@ -19,11 +16,6 @@ type (
 // DB produces a contextual DB handle
 func DB(ctx context.Context) *factory.DB {
 	return factory.Database.MustGet("messaging").With(ctx)
-}
-
-// Identity returns the User ID from context
-func Identity(ctx context.Context) uint64 {
-	return auth.GetIdentityFromContext(ctx).Identity()
 }
 
 // With updates repository and database contexts
@@ -45,22 +37,4 @@ func (r *repository) db() *factory.DB {
 		return r.dbh
 	}
 	return DB(r.ctx)
-}
-
-// Fetches single row from table
-func (r repository) fetchSet(set interface{}, q squirrel.SelectBuilder) (err error) {
-	var (
-		sql  string
-		args []interface{}
-	)
-
-	if sql, args, err = q.ToSql(); err != nil {
-		return
-	}
-
-	if err = r.db().Select(set, sql, args...); err != nil {
-		return
-	}
-
-	return
 }

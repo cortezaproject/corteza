@@ -19,6 +19,7 @@ const (
 	NUMBER // 4
 	STRING
 	COMMA    // ,
+	DOT      // .
 	OPERATOR // + - / *
 	PARENTHESIS_OPEN
 	PARENTHESIS_CLOSE

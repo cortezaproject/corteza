@@ -39,6 +39,7 @@ type PageList struct {
 	Handle      string
 	Page        uint
 	PerPage     uint
+	Sort        string
 	NamespaceID uint64 `json:",string"`
 }
 
@@ -54,6 +55,7 @@ func (r PageList) Auditable() map[string]interface{} {
 	out["handle"] = r.Handle
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
+	out["sort"] = r.Sort
 	out["namespaceID"] = r.NamespaceID
 
 	return out
@@ -100,6 +102,9 @@ func (r *PageList) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := get["perPage"]; ok {
 		r.PerPage = parseUint(val)
+	}
+	if val, ok := get["sort"]; ok {
+		r.Sort = val
 	}
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 

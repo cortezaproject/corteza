@@ -7,6 +7,7 @@ import (
 
 	"github.com/titpetric/factory"
 
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -58,7 +59,7 @@ func (r *credentials) FindByID(ID uint64) (*types.Credentials, error) {
 	sql := fmt.Sprintf(sqlCredentialsSelect, r.tblname) + " AND id = ?"
 	mod := &types.Credentials{}
 
-	return mod, isFound(r.db().Get(mod, sql, ID), mod.ID > 0, ErrCredentialsNotFound)
+	return mod, rh.IsFound(r.db().Get(mod, sql, ID), mod.ID > 0, ErrCredentialsNotFound)
 }
 
 func (r *credentials) FindByCredentials(kind, credentials string) (cc types.CredentialsSet, err error) {

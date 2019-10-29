@@ -39,6 +39,7 @@ type NamespaceList struct {
 	Slug    string
 	Page    uint
 	PerPage uint
+	Sort    string
 }
 
 func NewNamespaceList() *NamespaceList {
@@ -52,6 +53,7 @@ func (r NamespaceList) Auditable() map[string]interface{} {
 	out["slug"] = r.Slug
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
+	out["sort"] = r.Sort
 
 	return out
 }
@@ -94,6 +96,9 @@ func (r *NamespaceList) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := get["perPage"]; ok {
 		r.PerPage = parseUint(val)
+	}
+	if val, ok := get["sort"]; ok {
+		r.Sort = val
 	}
 
 	return err

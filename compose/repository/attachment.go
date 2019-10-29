@@ -4,11 +4,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
-	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -46,41 +47,57 @@ func (r attachment) table() string {
 
 func (r attachment) columns() []string {
 	return []string{
-		"a.id", "a.rel_namespace", "a.rel_owner", "a.kind",
-		"a.url", "a.preview_url",
+		"a.id",
+		"a.rel_namespace",
+		"a.rel_owner",
+		"a.kind",
+		"a.url",
+		"a.preview_url",
 		"a.name",
 		"a.meta",
-		"a.created_at", "a.updated_at", "a.deleted_at",
+		"a.created_at",
+		"a.updated_at",
+		"a.deleted_at",
 	}
 }
 
 func (r attachment) query() squirrel.SelectBuilder {
 	return squirrel.
-		Select().
+		Select(r.columns()...).
 		From(r.table() + " AS a").
 		Where("a.deleted_at IS NULL")
 
 }
 
 func (r attachment) FindByID(namespaceID, attachmentID uint64) (*types.Attachment, error) {
-	var (
-		query = r.query().
-			Columns(r.columns()...).
-			Where("a.id = ?", attachmentID)
+	return r.findOneBy(namespaceID, "id", attachmentID)
+}
 
-		a = &types.Attachment{}
+func (r attachment) findOneBy(namespaceID uint64, field string, value interface{}) (*types.Attachment, error) {
+	var (
+		p = &types.Attachment{}
+
+		q = r.query().
+			Where(squirrel.Eq{field: value, "rel_namespace": namespaceID})
+
+		err = rh.FetchOne(r.db(), q, p)
 	)
 
-	if namespaceID > 0 {
-		query = query.Where("a.rel_namespace = ?", namespaceID)
+	if err != nil {
+		return nil, err
+	} else if p.ID == 0 {
+		return nil, ErrAttachmentNotFound
 	}
 
-	return a, isFound(r.fetchOne(a, query), a.ID > 0, ErrAttachmentNotFound)
+	return p, nil
 }
 
 func (r attachment) Find(filter types.AttachmentFilter) (set types.AttachmentSet, f types.AttachmentFilter, err error) {
 	f = filter
-	// f.PerPage = normalizePerPage(f.PerPage, 5, 100, 50)
+
+	if f.Sort == "" {
+		f.Sort = "id ASC"
+	}
 
 	query := r.query().
 		Where(squirrel.Eq{"a.kind": f.Kind})
@@ -96,6 +113,7 @@ func (r attachment) Find(filter types.AttachmentFilter) (set types.AttachmentSet
 			err = errors.New("filtering by pageID not implemented")
 			return
 		}
+
 	case types.RecordAttachment:
 		query = query.
 			Join("compose_record_value AS v ON (v.ref = a.id)")
@@ -113,6 +131,7 @@ func (r attachment) Find(filter types.AttachmentFilter) (set types.AttachmentSet
 		if f.FieldName != "" {
 			query = query.Where(squirrel.Eq{"v.name": f.FieldName})
 		}
+
 	default:
 		err = errors.New("unsupported kind value")
 		return
@@ -123,15 +142,18 @@ func (r attachment) Find(filter types.AttachmentFilter) (set types.AttachmentSet
 		return
 	}
 
-	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
+	var orderBy []string
+	if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
+		return
+	} else {
+		query = query.OrderBy(orderBy...)
+	}
+
+	if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
 		return
 	}
 
-	query = query.
-		Columns(r.columns()...).
-		OrderBy("id ASC")
-
-	return set, f, r.fetchPaged(&set, query, f.Page, f.PerPage)
+	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
 }
 
 func (r attachment) Create(mod *types.Attachment) (*types.Attachment, error) {

@@ -53,7 +53,7 @@
           {
             "name": "page",
             "required": false,
-            "title": "Page number (0 based)",
+            "title": "Page number",
             "type": "uint"
           },
           {
@@ -61,6 +61,12 @@
             "required": false,
             "title": "Returned items per page (default 50)",
             "type": "uint"
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "title": "Sort",
+            "type": "string"
           }
         ]
       }

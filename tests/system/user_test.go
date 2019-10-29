@@ -182,7 +182,7 @@ func TestUserUpdate(t *testing.T) {
 	u := h.repoMakeUser(h.randEmail())
 	h.allow(types.UserPermissionResource.AppendWildcard(), "update")
 
-	newEmail := "updated-" + u.Email
+	newEmail := h.randEmail()
 
 	h.apiInit().
 		Put(fmt.Sprintf("/users/%d", u.ID)).

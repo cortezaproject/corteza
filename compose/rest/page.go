@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -54,10 +55,12 @@ func (ctrl *Page) List(ctx context.Context, r *request.PageList) (interface{}, e
 		NamespaceID: r.NamespaceID,
 		ParentID:    r.SelfID,
 
-		Handle:  r.Handle,
-		Query:   r.Query,
-		PerPage: r.PerPage,
-		Page:    r.Page,
+		Handle: r.Handle,
+		Query:  r.Query,
+
+		Sort: r.Sort,
+
+		PageFilter: rh.Paging(r.Page, r.PerPage),
 	}
 
 	set, filter, err := ctrl.page.With(ctx).Find(f)

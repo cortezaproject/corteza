@@ -8,6 +8,7 @@ require (
 	github.com/766b/chi-prometheus v0.0.0-20180509160047-46ac2b31aa30
 	github.com/99designs/basicauth-go v0.0.0-20160802081356-2a93ba0f464d
 	github.com/DestinyWang/cronexpr v0.0.0-20140423231348-a557574d6c02
+	github.com/Masterminds/squirrel v1.1.1-0.20191017225151-12f2162c8d8d
 	github.com/PaesslerAG/gval v1.0.1 // indirect
 	github.com/PaesslerAG/jsonpath v0.1.1 // indirect
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
@@ -57,11 +58,8 @@ require (
 	go.uber.org/zap v1.10.0
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 	google.golang.org/grpc v1.22.1
-	gopkg.in/Masterminds/squirrel.v1 v1.1.0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/square/go-jose.v2 v2.3.1 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 )
-
-replace gopkg.in/Masterminds/squirrel.v1 => github.com/Masterminds/squirrel v1.1.0

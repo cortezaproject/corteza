@@ -28,7 +28,7 @@ func (Search) New() *Search {
 }
 
 func (ctrl *Search) Messages(ctx context.Context, r *request.SearchMessages) (interface{}, error) {
-	return ctrl.wrapSet(ctx)(ctrl.svc.msg.With(ctx).Find(&types.MessageFilter{
+	mm, _, err := ctrl.svc.msg.With(ctx).Find(types.MessageFilter{
 		ChannelID:      payload.ParseUInt64s(r.ChannelID),
 		AfterID:        r.AfterMessageID,
 		BeforeID:       r.BeforeMessageID,
@@ -42,24 +42,27 @@ func (ctrl *Search) Messages(ctx context.Context, r *request.SearchMessages) (in
 		Limit:          r.Limit,
 
 		Query: r.Query,
-	}))
+	})
+
+	return ctrl.wrapSet(ctx, mm, err)
 }
 
 func (ctrl *Search) Threads(ctx context.Context, r *request.SearchThreads) (interface{}, error) {
-	return ctrl.wrapSet(ctx)(ctrl.svc.msg.With(ctx).FindThreads(&types.MessageFilter{
+	mm, _, err := ctrl.svc.msg.With(ctx).FindThreads(types.MessageFilter{
 		ChannelID: payload.ParseUInt64s(r.ChannelID),
 		Limit:     r.Limit,
 
 		Query: r.Query,
-	}))
+	})
+
+	return ctrl.wrapSet(ctx, mm, err)
+
 }
 
-func (ctrl *Search) wrapSet(ctx context.Context) func(mm types.MessageSet, err error) (*outgoing.MessageSet, error) {
-	return func(mm types.MessageSet, err error) (*outgoing.MessageSet, error) {
-		if err != nil {
-			return nil, err
-		} else {
-			return payload.Messages(ctx, mm), nil
-		}
+func (ctrl *Search) wrapSet(ctx context.Context, mm types.MessageSet, err error) (*outgoing.MessageSet, error) {
+	if err != nil {
+		return nil, err
+	} else {
+		return payload.Messages(ctx, mm), nil
 	}
 }

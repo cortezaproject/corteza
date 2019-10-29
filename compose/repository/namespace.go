@@ -2,12 +2,13 @@ package repository
 
 import (
 	"context"
-	"time"
+	"strings"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/titpetric/factory"
-	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -56,7 +57,7 @@ func (r namespace) columns() []string {
 
 func (r namespace) query() squirrel.SelectBuilder {
 	return squirrel.
-		Select().
+		Select(r.columns()...).
 		From(r.table()).
 		Where("deleted_at IS NULL")
 
@@ -69,71 +70,80 @@ func (r *namespace) With(ctx context.Context, db *factory.DB) NamespaceRepositor
 }
 
 func (r *namespace) FindByID(namespaceID uint64) (*types.Namespace, error) {
-	var (
-		query = r.query().
-			Columns(r.columns()...).
-			Where("id = ?", namespaceID)
-
-		n = &types.Namespace{}
-	)
-
-	return n, isFound(r.fetchOne(n, query), n.ID > 0, ErrNamespaceNotFound)
+	return r.findOneBy("id", namespaceID)
 }
 
 func (r *namespace) FindBySlug(slug string) (*types.Namespace, error) {
-	var (
-		query = r.query().
-			Columns(r.columns()...).
-			Where("slug = ?", slug)
+	return r.findOneBy("slug", slug)
+}
 
-		n = &types.Namespace{}
+func (r *namespace) findOneBy(field string, value interface{}) (*types.Namespace, error) {
+	var (
+		ns = &types.Namespace{}
+
+		q = r.query().
+			Where(squirrel.Eq{field: value})
+
+		err = rh.FetchOne(r.db(), q, ns)
 	)
 
-	return n, isFound(r.fetchOne(n, query), n.ID > 0, ErrNamespaceNotFound)
+	if err != nil {
+		return nil, err
+	} else if ns.ID == 0 {
+		return nil, ErrNamespaceNotFound
+	}
+
+	return ns, nil
 }
 
 func (r *namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
 	f = filter
 
+	if f.Sort == "" {
+		f.Sort = "id ASC"
+	}
+
 	query := r.query()
 	if f.Query != "" {
-		q := "%" + f.Query + "%"
-		query = query.Where("name like ? OR slug like ?", q, q)
+		q := "%" + strings.ToLower(f.Query) + "%"
+		query = query.Where(squirrel.Or{
+			squirrel.Like{"LOWER(name)": q},
+			squirrel.Like{"LOWER(slug)": q},
+		})
 	}
 
 	if f.Slug != "" {
-		query = query.Where("LOWER(slug) = LOWER(?)", f.Slug)
+		query = query.Where(squirrel.Eq{"LOWER(slug)": strings.ToLower(f.Slug)})
 	}
 
 	if f.IsReadable != nil {
 		query = query.Where(f.IsReadable)
 	}
 
-	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
+	var orderBy []string
+	if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
+		return
+	} else {
+		query = query.OrderBy(orderBy...)
+	}
+
+	if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
 		return
 	}
 
-	if f.Page > 0 {
-		query = query.Offset(uint64(f.PerPage * f.Page))
-	}
-
-	query = query.
-		Columns(r.columns()...).
-		OrderBy("id ASC")
-
-	return set, f, r.fetchPaged(&set, query, f.Page, f.PerPage)
+	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
 }
 
 func (r *namespace) Create(mod *types.Namespace) (*types.Namespace, error) {
 	mod.ID = factory.Sonyflake.NextID()
-	mod.CreatedAt = time.Now()
+	rh.SetCurrentTimeRounded(&mod.CreatedAt)
+	mod.UpdatedAt = nil
 
 	return mod, r.db().Insert(r.table(), mod)
 }
 
 func (r *namespace) Update(mod *types.Namespace) (*types.Namespace, error) {
-	now := time.Now()
-	mod.UpdatedAt = &now
+	rh.SetCurrentTimeRounded(&mod.UpdatedAt)
 
 	return mod, r.db().Update(r.table(), mod, "id")
 }

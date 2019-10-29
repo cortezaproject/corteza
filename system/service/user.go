@@ -265,19 +265,19 @@ func (svc user) Update(mod *types.User) (u *types.User, err error) {
 
 func (svc user) UniqueCheck(u *types.User) (err error) {
 	if u.Email != "" {
-		if ex, _ := svc.user.FindByEmail(u.Email); ex.ID > 0 && ex.ID != u.ID {
+		if ex, _ := svc.user.FindByEmail(u.Email); ex != nil && ex.ID > 0 && ex.ID != u.ID {
 			return ErrUserEmailNotUnique
 		}
 	}
 
 	if u.Username != "" {
-		if ex, _ := svc.user.FindByUsername(u.Username); ex.ID > 0 && ex.ID != u.ID {
+		if ex, _ := svc.user.FindByUsername(u.Username); ex != nil && ex.ID > 0 && ex.ID != u.ID {
 			return ErrUserUsernameNotUnique
 		}
 	}
 
 	if u.Handle != "" {
-		if ex, _ := svc.user.FindByHandle(u.Handle); ex.ID > 0 && ex.ID != u.ID {
+		if ex, _ := svc.user.FindByHandle(u.Handle); ex != nil && ex.ID > 0 && ex.ID != u.ID {
 			return ErrUserHandleNotUnique
 		}
 	}

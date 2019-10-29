@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
-	"gopkg.in/Masterminds/squirrel.v1"
 
-	"github.com/cortezaproject/corteza-server/compose/repository/ql"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
@@ -75,7 +75,7 @@ func (r record) columns() []string {
 
 func (r record) query() squirrel.SelectBuilder {
 	return squirrel.
-		Select().
+		Select(r.columns()...).
 		From(r.table() + " AS r").
 		Where("r.deleted_at IS NULL")
 }
@@ -83,19 +83,26 @@ func (r record) query() squirrel.SelectBuilder {
 // @todo: update to accepted DeletedAt column semantics from Messaging
 
 func (r record) FindByID(namespaceID, recordID uint64) (*types.Record, error) {
-	var (
-		query = r.query().
-			Columns(r.columns()...).
-			Where("id = ?", recordID)
+	return r.findOneBy(namespaceID, "id", recordID)
+}
 
-		c = &types.Record{}
+func (r record) findOneBy(namespaceID uint64, field string, value interface{}) (*types.Record, error) {
+	var (
+		rec = &types.Record{}
+
+		q = r.query().
+			Where(squirrel.Eq{field: value, "rel_namespace": namespaceID})
+
+		err = rh.FetchOne(r.db(), q, rec)
 	)
 
-	if namespaceID > 0 {
-		query = query.Where("rel_namespace = ?", namespaceID)
+	if err != nil {
+		return nil, err
+	} else if rec.ID == 0 {
+		return nil, ErrRecordNotFound
 	}
 
-	return c, isFound(r.fetchOne(c, query), c.ID > 0, ErrRecordNotFound)
+	return rec, nil
 }
 
 func (r record) Report(module *types.Module, metrics, dimensions, filter string) (results interface{}, err error) {
@@ -125,11 +132,11 @@ func (r record) Find(module *types.Module, filter types.RecordFilter) (set types
 		return
 	}
 
-	if f.Count, err = r.count(query); err != nil || f.Count == 0 {
+	if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
 		return
 	}
 
-	return set, f, rh.FetchPaged(r.db(), query.Columns(r.columns()...), f.Page, f.PerPage, &set)
+	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
 }
 
 // Export ignores paging and does not return filter
@@ -143,10 +150,6 @@ func (r record) Export(module *types.Module, filter types.RecordFilter) (set typ
 	if err != nil {
 		return
 	}
-
-	// Assemble SQL for fetching record (where + sorting + paging)...
-	query = query.
-		Columns(r.columns()...)
 
 	return set, rh.FetchAll(r.db(), query, &set)
 }

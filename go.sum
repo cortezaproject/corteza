@@ -16,8 +16,8 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/DestinyWang/cronexpr v0.0.0-20140423231348-a557574d6c02 h1:RYr0de1Y6gmGRVOMXjukGEipri3BYGFJXns5L8waV2A=
 github.com/DestinyWang/cronexpr v0.0.0-20140423231348-a557574d6c02/go.mod h1:MgxEIF6QMQcVlF8dU9fH1qlPpJmtNFs8aLzRgj6fs+w=
-github.com/Masterminds/squirrel v1.1.0 h1:baP1qLdoQCeTw3ifCdOq2dkYc6vGcmRdaociKLbEJXs=
-github.com/Masterminds/squirrel v1.1.0/go.mod h1:yaPeOnPG5ZRwL9oKdTsO/prlkPbXWZlRVMQ/gGlzIuA=
+github.com/Masterminds/squirrel v1.1.1-0.20191017225151-12f2162c8d8d h1:5ocAvSd8xUzrwz0ZTZrSWFLhYTwdnXBxlIJeVIkO5y8=
+github.com/Masterminds/squirrel v1.1.1-0.20191017225151-12f2162c8d8d/go.mod h1:yaPeOnPG5ZRwL9oKdTsO/prlkPbXWZlRVMQ/gGlzIuA=
 github.com/PaesslerAG/gval v0.1.1/go.mod h1:y/nm5yEyTeX6av0OfKJNp9rBNj2XrGhAf5+v24IBN1I=
 github.com/PaesslerAG/gval v1.0.0/go.mod h1:y/nm5yEyTeX6av0OfKJNp9rBNj2XrGhAf5+v24IBN1I=
 github.com/PaesslerAG/gval v1.0.1 h1:QnCvok0w0Y3uZNxmNmC6GZ0cuBl+jH0tu/rBMT8pso4=

@@ -24,8 +24,9 @@ type (
 		logger *zap.Logger
 		ac     messageAccessController
 
+		channel ChannelService
+
 		attachment repository.AttachmentRepository
-		channel    repository.ChannelRepository
 		cmember    repository.ChannelMemberRepository
 		unread     repository.UnreadRepository
 		message    repository.MessageRepository
@@ -47,8 +48,8 @@ type (
 	MessageService interface {
 		With(ctx context.Context) MessageService
 
-		Find(filter *types.MessageFilter) (types.MessageSet, error)
-		FindThreads(filter *types.MessageFilter) (types.MessageSet, error)
+		Find(types.MessageFilter) (types.MessageSet, types.MessageFilter, error)
+		FindThreads(types.MessageFilter) (types.MessageSet, types.MessageFilter, error)
 
 		Create(messages *types.Message) (*types.Message, error)
 		Update(messages *types.Message) (*types.Message, error)
@@ -82,6 +83,9 @@ var (
 func Message(ctx context.Context) MessageService {
 	return (&message{
 		logger: DefaultLogger.Named("message"),
+
+		ac:      DefaultAccessControl,
+		channel: DefaultChannel,
 	}).With(ctx)
 }
 
@@ -91,12 +95,13 @@ func (svc message) With(ctx context.Context) MessageService {
 		db:     db,
 		ctx:    ctx,
 		logger: svc.logger,
-		ac:     DefaultAccessControl,
+
+		ac:      svc.ac,
+		channel: svc.channel,
 
 		event: Event(ctx),
 
 		attachment: repository.Attachment(ctx, db),
-		channel:    repository.Channel(ctx, db),
 		cmember:    repository.ChannelMember(ctx, db),
 		unread:     repository.Unread(ctx, db),
 		message:    repository.Message(ctx, db),
@@ -110,46 +115,34 @@ func (svc message) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger
 	return logger.AddRequestID(ctx, svc.logger).With(fields...)
 }
 
-func (svc message) Find(filter *types.MessageFilter) (mm types.MessageSet, err error) {
-	filter.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
-
-	if err = svc.channelAccessCheck(filter.ChannelID...); err != nil {
+func (svc message) Find(filter types.MessageFilter) (mm types.MessageSet, f types.MessageFilter, err error) {
+	f = filter
+	f.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
+	if f.ChannelID, err = svc.readableChannels(f); err != nil {
 		return
 	}
 
-	mm, err = svc.message.Find(filter)
+	mm, f, err = svc.message.Find(f)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	if len(filter.ChannelID) == 0 {
-		// If no channel check was done prior message loading,
-		// we do it now, by inspecting the actual payload we got
-		mm = svc.filterMessagesByAccessibleChannels(mm)
-	}
-
-	return mm, svc.preload(mm)
+	return mm, f, svc.preload(mm)
 }
 
-func (svc message) FindThreads(filter *types.MessageFilter) (mm types.MessageSet, err error) {
-	filter.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
-
-	if err = svc.channelAccessCheck(filter.ChannelID...); err != nil {
+func (svc message) FindThreads(filter types.MessageFilter) (mm types.MessageSet, f types.MessageFilter, err error) {
+	f = filter
+	f.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
+	if f.ChannelID, err = svc.readableChannels(f); err != nil {
 		return
 	}
 
-	mm, err = svc.message.FindThreads(filter)
+	mm, f, err = svc.message.FindThreads(f)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	if len(filter.ChannelID) == 0 {
-		// If no channel check was done prior message loading,
-		// we do it now, by inspecting the actual payload we got
-		mm = svc.filterMessagesByAccessibleChannels(mm)
-	}
-
-	return mm, svc.preload(mm)
+	return mm, f, svc.preload(mm)
 }
 
 func (svc message) CreateWithAvatar(in *types.Message, avatar io.Reader) (*types.Message, error) {
@@ -157,38 +150,26 @@ func (svc message) CreateWithAvatar(in *types.Message, avatar io.Reader) (*types
 	return svc.Create(in)
 }
 
-func (svc message) channelAccessCheck(IDs ...uint64) error {
-	for _, ID := range IDs {
-		if ID > 0 {
-			if ch, err := svc.findChannelByID(ID); err != nil {
-				return err
-			} else if !svc.ac.CanReadChannel(svc.ctx, ch) {
-				return ErrNoPermissions.withStack()
-			}
-		}
-	}
-
-	return nil
-}
-
-// Filter message set by accessible channels
-func (svc message) filterMessagesByAccessibleChannels(mm types.MessageSet) types.MessageSet {
-	// Remember channels that were already checked.
-	chk := map[uint64]bool{}
-
-	mm, _ = mm.Filter(func(m *types.Message) (b bool, e error) {
-		if !chk[m.ChannelID] {
-			chk[m.ChannelID] = true
-
-			if ch, err := svc.findChannelByID(m.ChannelID); err != nil || !svc.ac.CanReadChannel(svc.ctx, ch) {
-				return false, nil
-			}
-		}
-
-		return true, nil
+// Returns list of readable channels
+//
+// Either all (when len(f.ChannelID) == 0) or subset of channel IDs (from f.ChannelID)
+func (svc message) readableChannels(f types.MessageFilter) ([]uint64, error) {
+	cc, _, err := svc.channel.With(svc.ctx).Find(types.ChannelFilter{
+		CurrentUserID:  f.CurrentUserID,
+		ChannelID:      f.ChannelID,
+		IncludeDeleted: true,
 	})
 
-	return mm
+	if err != nil {
+		return nil, err
+	}
+
+	if len(cc) == 0 {
+		// None of the channels requested were returned as accessible
+		return nil, ErrNoPermissions.withStack()
+	}
+
+	return cc.IDs(), nil
 }
 
 func (svc message) Create(in *types.Message) (m *types.Message, err error) {
@@ -247,7 +228,7 @@ func (svc message) Create(in *types.Message) (m *types.Message, err error) {
 				//
 				// reset unreads for all members
 				var mm types.ChannelMemberSet
-				mm, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: original.ChannelID})
+				mm, err = svc.cmember.Find(types.ChannelMemberFilterChannels(original.ChannelID))
 				if err != nil {
 					return err
 				}
@@ -436,7 +417,7 @@ func (svc message) Delete(messageID uint64) error {
 // If lastReadMessageID is set, it uses that message as last read message
 func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (uint64, uint32, uint32, error) {
 	var (
-		currentUserID uint64 = repository.Identity(svc.ctx)
+		currentUserID uint64 = auth.GetIdentityFromContext(svc.ctx).Identity()
 		count         uint32
 		threadCount   uint32
 		err           error
@@ -580,14 +561,16 @@ func (svc message) flag(messageID uint64, flag string, remove bool) error {
 		}
 
 		f, err = svc.mflag.FindByFlag(messageID, flagOwnerId, flag)
-		if f.ID == 0 && remove {
+		if f == nil && remove {
 			// Skip removing, flag does not exists
 			return nil
 		}
-		if f.ID > 0 && !remove {
+
+		if f != nil && f.ID > 0 && !remove {
 			// Skip adding, flag already exists
 			return nil
 		}
+
 		if err != nil && err != repository.ErrMessageFlagNotFound {
 			// Other errors, exit
 			return
@@ -595,13 +578,17 @@ func (svc message) flag(messageID uint64, flag string, remove bool) error {
 
 		if msg, err = svc.message.FindByID(messageID); err != nil {
 			return
-		} else if ch, err = svc.findChannelByID(msg.ChannelID); err != nil {
+		}
+
+		if ch, err = svc.findChannelByID(msg.ChannelID); err != nil {
 			return
 		}
+
 		if !svc.ac.CanReadChannel(svc.ctx, ch) {
 			return ErrNoPermissions.withStack()
 		}
-		if f.IsReaction() && !svc.ac.CanReactMessage(svc.ctx, ch) {
+
+		if f != nil && f.IsReaction() && !svc.ac.CanReactMessage(svc.ctx, ch) {
 			return ErrNoPermissions.withStack()
 		}
 
@@ -910,7 +897,7 @@ func (svc message) findChannelByID(channelID uint64) (ch *types.Channel, err err
 
 	if ch, err = svc.channel.FindByID(channelID); err != nil {
 		return nil, err
-	} else if mm, err = svc.cmember.Find(&types.ChannelMemberFilter{ChannelID: ch.ID}); err != nil {
+	} else if mm, err = svc.cmember.Find(types.ChannelMemberFilterChannels(ch.ID)); err != nil {
 		return nil, err
 	} else {
 		ch.Members = mm.AllMemberIDs()

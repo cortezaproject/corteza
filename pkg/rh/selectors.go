@@ -1,10 +1,10 @@
 package rh
 
 import (
+	"github.com/Masterminds/squirrel"
 	"github.com/lann/builder"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
-	"gopkg.in/Masterminds/squirrel.v1"
 )
 
 // FetchOne fetches single row from table
@@ -59,15 +59,11 @@ func FetchPaged(db *factory.DB, q squirrel.SelectBuilder, page, perPage uint, se
 		q = q.Offset(offset)
 	}
 
-	if sqlSelect, argsSelect, err := q.ToSql(); err != nil {
-		return err
-	} else {
-		return db.Select(set, sqlSelect, argsSelect...)
-	}
+	return FetchAll(db, q, set)
 }
 
 // FetchPaged fetches paged rows
-func FetchAll(db *factory.DB, q squirrel.SelectBuilder, set interface{}) error {
+func FetchAll(db *factory.DB, q squirrel.Sqlizer, set interface{}) error {
 	if sqlSelect, argsSelect, err := q.ToSql(); err != nil {
 		return err
 	} else {

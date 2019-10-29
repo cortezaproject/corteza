@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
-	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -25,13 +25,15 @@ type (
 		CanReadApplication(context.Context, *types.Application) bool
 		CanUpdateApplication(context.Context, *types.Application) bool
 		CanDeleteApplication(context.Context, *types.Application) bool
+
+		FilterReadableApplications(ctx context.Context) *permissions.ResourceFilter
 	}
 
 	ApplicationService interface {
 		With(ctx context.Context) ApplicationService
 
 		FindByID(applicationID uint64) (*types.Application, error)
-		Find() (types.ApplicationSet, error)
+		Find(types.ApplicationFilter) (types.ApplicationSet, types.ApplicationFilter, error)
 
 		Create(application *types.Application) (*types.Application, error)
 		Update(application *types.Application) (*types.Application, error)
@@ -56,47 +58,38 @@ func (svc *application) With(ctx context.Context) ApplicationService {
 	}
 }
 
-func (svc *application) FindByID(id uint64) (*types.Application, error) {
-	app, err := svc.application.FindByID(id)
-	if err != nil {
+func (svc *application) FindByID(ID uint64) (app *types.Application, err error) {
+	if ID == 0 {
+		return nil, ErrInvalidID
+	}
+
+	if app, err = svc.application.FindByID(ID); err != nil {
 		return nil, err
 	}
 
 	if !svc.ac.CanReadApplication(svc.ctx, app) {
-		return nil, errors.New("Not allowed to access application")
+		return nil, ErrNoPermissions.withStack()
 	}
 
 	return app, nil
 }
 
-func (svc *application) Find() (types.ApplicationSet, error) {
-	apps, err := svc.application.Find()
-	if err != nil {
-		return nil, err
-	}
-
-	ret := []*types.Application{}
-	for _, app := range apps {
-		if svc.ac.CanReadApplication(svc.ctx, app) {
-			ret = append(ret, app)
-		} //
-	}
-	return ret, nil
+func (svc *application) Find(f types.ApplicationFilter) (types.ApplicationSet, types.ApplicationFilter, error) {
+	f.IsReadable = svc.ac.FilterReadableApplications(svc.ctx)
+	return svc.application.Find(f)
 }
 
 func (svc *application) Create(mod *types.Application) (*types.Application, error) {
 	if !svc.ac.CanCreateApplication(svc.ctx) {
-		return nil, errors.New("Not allowed to create application")
+		return nil, ErrNoPermissions.withStack()
 	}
 	return svc.application.Create(mod)
 }
 
 func (svc *application) Update(mod *types.Application) (t *types.Application, err error) {
 	if !svc.ac.CanUpdateApplication(svc.ctx, mod) {
-		return nil, errors.New("Not allowed to update application")
+		return nil, ErrNoPermissions.withStack()
 	}
-
-	// @todo: make sure archived & deleted entries can not be edited
 
 	return t, svc.db.Transaction(func() (err error) {
 		if t, err = svc.application.FindByID(mod.ID); err != nil {
@@ -117,12 +110,9 @@ func (svc *application) Update(mod *types.Application) (t *types.Application, er
 }
 
 func (svc *application) DeleteByID(id uint64) error {
-	// @todo: make history unavailable
-	// @todo: notify users that application has been removed (remove from web UI)
-
 	app := &types.Application{ID: id}
 	if !svc.ac.CanDeleteApplication(svc.ctx, app) {
-		return errors.New("Not allowed to delete application")
+		return ErrNoPermissions.withStack()
 	}
 	return svc.application.DeleteByID(id)
 }

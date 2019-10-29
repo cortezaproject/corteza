@@ -57,7 +57,7 @@ func makeDefaultApplications(ctx context.Context, cmd *cobra.Command, c *cli.Con
 
 	repo := repository.Application(ctx, db)
 
-	aa, err := repo.Find()
+	aa, _, err := repo.Find(types.ApplicationFilter{})
 	if err != nil {
 		return err
 	}

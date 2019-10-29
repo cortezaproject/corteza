@@ -3,10 +3,11 @@ package repository
 import (
 	"context"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/titpetric/factory"
-	"gopkg.in/Masterminds/squirrel.v1"
 
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -22,9 +23,6 @@ type (
 		Inc(channelID, replyTo, userID uint64) error
 		Dec(channelID, replyTo, userID uint64) error
 		ClearThreads(channelID, userID uint64) (err error)
-
-		CountOwned(userID uint64) (c int, err error)
-		ChangeOwner(userID, target uint64) error
 	}
 
 	unread struct {
@@ -76,14 +74,14 @@ func (r *unread) Count(userID, channelID uint64, threadIDs ...uint64) (types.Unr
 	var (
 		uu = types.UnreadSet{}
 		q  = squirrel.
-			Select().
-			From(r.table()).
-			Columns(
+			Select(
 				"rel_channel",
 				"rel_last_message",
 				"rel_user",
 				"rel_reply_to",
-				"count")
+				"count",
+			).
+			From(r.table())
 	)
 
 	if userID > 0 {
@@ -100,7 +98,7 @@ func (r *unread) Count(userID, channelID uint64, threadIDs ...uint64) (types.Unr
 		q = q.Where(squirrel.Eq{"rel_reply_to": threadIDs})
 	}
 
-	return uu, r.fetchSet(&uu, q)
+	return uu, rh.FetchAll(r.db(), q, &uu)
 }
 
 // CountReplies counts unread thread info
@@ -119,13 +117,13 @@ func (r unread) CountThreads(userID, channelID uint64) (types.UnreadSet, error) 
 		temp = []*u{}
 
 		q = squirrel.
-			Select().
-			From(r.table()).
-			Columns(
+			Select(
 				"rel_channel",
 				"rel_user",
 				"sum(count) AS count",
-				"sum(CASE WHEN count > 0 THEN 1 ELSE 0 END) AS total").
+				"sum(CASE WHEN count > 0 THEN 1 ELSE 0 END) AS total",
+			).
+			From(r.table()).
 			Where("rel_reply_to > 0 AND count > 0").
 			GroupBy("rel_channel", "rel_user")
 	)
@@ -138,7 +136,7 @@ func (r unread) CountThreads(userID, channelID uint64) (types.UnreadSet, error) 
 		q = q.Where("rel_channel = ?", channelID)
 	}
 
-	err = r.fetchSet(&temp, q)
+	err = rh.FetchAll(r.db(), q, &temp)
 	if err != nil {
 		return nil, err
 	}
@@ -228,31 +226,4 @@ func (r *unread) Dec(channelID, threadID, userID uint64) (err error) {
 	}
 
 	return nil
-}
-
-func (r *unread) CountOwned(userID uint64) (c int, err error) {
-	return c, r.db().Get(&c,
-		"SELECT COUNT(*) FROM messaging_unread WHERE rel_user = ?",
-		userID)
-}
-
-func (r *unread) ChangeOwner(userID, target uint64) (err error) {
-	// Remove dups
-	// with an ugly mysql workaround
-	_, err = r.db().Exec(
-		"DELETE FROM messaging_unread WHERE rel_user = ? "+
-			"AND rel_channel IN (SELECT rel_channel FROM (SELECT * FROM messaging_unread) AS workaround WHERE rel_user = ?)",
-		userID,
-		target)
-
-	if err != nil {
-		return err
-	}
-
-	_, err = r.db().Exec(
-		"UPDATE messaging_unread SET rel_user = ? WHERE rel_user = ?",
-		target,
-		userID)
-
-	return err
 }

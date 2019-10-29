@@ -98,7 +98,7 @@ func Auth(ctx context.Context, c *cli.Config) *cobra.Command {
 			}
 
 			if err == nil {
-				rr, err = roleRepo.FindByMemberID(user.ID)
+				rr, _, err = roleRepo.Find(types.RoleFilter{MemberID: user.ID})
 			}
 
 			if err != nil {
