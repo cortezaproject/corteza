@@ -32,19 +32,32 @@ func NewImporter(p importer.PermissionImporter, s importer.SettingImporter, ri *
 	}
 }
 
+// Cast reads & translates input data into internal structures
+//
+// Handles base level for system resources (roles, permissions, settings)
+//
+// It skips all nil importers (see NewImporter() fn.)
 func (imp *Importer) Cast(in interface{}) (err error) {
 	return deinterfacer.Each(in, func(index int, key string, val interface{}) (err error) {
 		switch key {
 		case "roles":
-			return imp.roles.CastSet(val)
+			if imp.roles != nil {
+				return imp.roles.CastSet(val)
+			}
 		case "role":
-			return imp.roles.CastSet([]interface{}{val})
+			if imp.roles != nil {
+				return imp.roles.CastSet([]interface{}{val})
+			}
 
 		case "allow", "deny":
-			return imp.permissions.CastResourcesSet(key, val)
+			if imp.permissions != nil {
+				return imp.permissions.CastResourcesSet(key, val)
+			}
 
 		case "settings":
-			return imp.settings.CastSet(val)
+			if imp.settings != nil {
+				return imp.settings.CastSet(val)
+			}
 
 		default:
 			err = fmt.Errorf("unexpected key %q", key)
@@ -54,6 +67,9 @@ func (imp *Importer) Cast(in interface{}) (err error) {
 	})
 }
 
+// Store uses system services to store imported & casted data into storage
+//
+// It skips all nil importers (see NewImporter() fn.)
 func (imp *Importer) Store(
 	ctx context.Context,
 	rk roleKeeper,
@@ -66,20 +82,26 @@ func (imp *Importer) Store(
 		return
 	}
 
-	// Make sure we properly replace role handles with IDs
-	roles.Walk(func(role *types.Role) error {
-		imp.permissions.UpdateRoles(role.Handle, role.ID)
-		return nil
-	})
-
-	err = imp.permissions.Store(ctx, pk)
-	if err != nil {
-		return
+	if imp.permissions != nil {
+		// Make sure we properly replace role handles with IDs
+		roles.Walk(func(role *types.Role) error {
+			imp.permissions.UpdateRoles(role.Handle, role.ID)
+			return nil
+		})
 	}
 
-	err = imp.settings.Store(ctx, sk)
-	if err != nil {
-		return errors.Wrap(err, "could not import settings")
+	if imp.permissions != nil {
+		err = imp.permissions.Store(ctx, pk)
+		if err != nil {
+			return
+		}
+	}
+
+	if imp.settings != nil {
+		err = imp.settings.Store(ctx, sk)
+		if err != nil {
+			return errors.Wrap(err, "could not import settings")
+		}
 	}
 
 	return nil

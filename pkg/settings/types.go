@@ -185,8 +185,21 @@ input:
 			break
 		}
 
-		// Hande changed or missing value
+		// Handle changed or missing value
 		out = append(out, i)
+	}
+
+	return
+}
+
+// New returns all new values (that do not exist in the original set)
+func (set ValueSet) New(in ValueSet) (out ValueSet) {
+	org := set.KV()
+
+	for _, v := range in {
+		if !org.Has(v.Name) {
+			out = append(out, v)
+		}
 	}
 
 	return
