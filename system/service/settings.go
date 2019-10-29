@@ -145,7 +145,11 @@ func (svc settings) AutoDiscovery() (err error) {
 	}
 
 	discovered, err = authSettingsAutoDiscovery(svc.logger, current)
-	if err != nil || len(discovered) == 0 {
+	if err != nil {
+		return
+	}
+
+	if len(discovered) == 0 {
 		return
 	}
 
