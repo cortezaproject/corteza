@@ -11,6 +11,16 @@ import (
 type (
 	// Settings structured representation of current system settings
 	Settings struct {
+		Privacy struct {
+			Mask struct {
+				// Enable masking of user's email (value replaced with ######)
+				Email bool
+
+				// Enable masking of user's name (value replaced with ######)
+				Name bool
+			}
+		}
+
 		General struct {
 			Mail struct {
 				Logo   string
