@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/messaging/repository"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 	"github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
@@ -40,6 +41,9 @@ var (
 	DefaultInternalSettings internalSettings.Service
 	DefaultSettings         SettingsService
 	DefaultAccessControl    *accessControl
+
+	// CurrentSettings represents current messaging settings
+	CurrentSettings = &types.Settings{}
 
 	DefaultAttachment AttachmentService
 	DefaultChannel    ChannelService
@@ -101,7 +105,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	}
 	DefaultAccessControl = AccessControl(DefaultPermissions)
 
-	DefaultSettings = Settings(ctx, DefaultInternalSettings)
+	DefaultSettings = Settings(ctx, DefaultInternalSettings, CurrentSettings)
 
 	DefaultEvent = Event(ctx)
 	DefaultChannel = Channel(ctx)
