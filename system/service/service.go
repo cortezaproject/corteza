@@ -80,8 +80,9 @@ var (
 	DefaultAutomationRunner automationRunner
 
 	DefaultAuthNotification AuthNotificationService
-	DefaultAuthSettings     *AuthSettings
-	DefaultSystemSettings   *types.Settings
+
+	// CurrentSettings represents current system settings
+	CurrentSettings = &types.Settings{}
 
 	DefaultSink *sink
 
@@ -103,24 +104,18 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 
 	DefaultAccessControl = AccessControl(DefaultPermissions)
 
-	DefaultSettings = Settings(ctx, DefaultIntSettings)
+	DefaultSettings = Settings(ctx, DefaultIntSettings, CurrentSettings)
+
+	err = DefaultSettings.UpdateCurrent()
+	if err != nil {
+		return
+	}
 
 	DefaultUser = User(ctx)
 	DefaultRole = Role(ctx)
 	DefaultOrganisation = Organisation(ctx)
 	DefaultApplication = Application(ctx)
 	DefaultReminder = Reminder(ctx)
-
-	// Authentication helpers & services
-	DefaultAuthSettings, err = DefaultSettings.LoadAuthSettings()
-	if err != nil {
-		return
-	}
-
-	DefaultSystemSettings, err = DefaultSettings.LoadSystemSettings()
-	if err != nil {
-		return
-	}
 
 	DefaultAuthNotification = AuthNotification(ctx)
 	DefaultAuth = Auth(ctx)

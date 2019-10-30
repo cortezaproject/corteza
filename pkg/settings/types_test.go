@@ -89,17 +89,25 @@ func TestValueSet_Changed(t *testing.T) {
 			return o
 		}
 
-		org = ValueSet{msv("a", "a1"), msv("b", "b1"), msv("d", "d1")}
-		inp = ValueSet{msv("a", "a2"), msv("c", "c1"), msv("d", "d1")}
+		// make bool value
+		mbv = func(n string, v bool) *Value {
+			o := &Value{Name: n}
+			_ = o.SetValue(v)
+			return o
+		}
+
+		org = ValueSet{msv("a", "a1"), msv("b", "b1"), msv("d", "d1"), mbv("bool", true)}
+		inp = ValueSet{msv("a", "a2"), msv("c", "c1"), msv("d", "d1"), mbv("bool", false)}
 
 		out ValueSet
 	)
 
 	out = org.Changed(inp)
 
-	req.Len(out, 2)
+	req.Len(out, 3)
 	req.Equal("a2", out.First("a").String())
 	req.Equal("", out.First("b").String())
 	req.Equal("c1", out.First("c").String())
 	req.Equal("", out.First("d").String())
+	req.Equal(false, out.First("bool").Bool())
 }

@@ -20,8 +20,7 @@ type (
 		logger *zap.Logger
 
 		// @todo merge auth & system settings
-		authSettings *AuthSettings
-		settings     *types.Settings
+		settings *types.Settings
 	}
 
 	AuthNotificationService interface {
@@ -45,18 +44,16 @@ type (
 
 func AuthNotification(ctx context.Context) AuthNotificationService {
 	return (&authNotification{
-		logger:       DefaultLogger.Named("auth-notification"),
-		authSettings: DefaultAuthSettings,
-		settings:     DefaultSystemSettings,
+		logger:   DefaultLogger.Named("auth-notification"),
+		settings: CurrentSettings,
 	}).With(ctx)
 }
 
 func (svc authNotification) With(ctx context.Context) AuthNotificationService {
 	return &authNotification{
-		ctx:          ctx,
-		logger:       logger.AddRequestID(ctx, svc.logger),
-		authSettings: svc.authSettings,
-		settings:     svc.settings,
+		ctx:      ctx,
+		logger:   logger.AddRequestID(ctx, svc.logger),
+		settings: svc.settings,
 	}
 }
 
@@ -67,20 +64,20 @@ func (svc authNotification) log(ctx context.Context, fields ...zapcore.Field) *z
 func (svc authNotification) EmailConfirmation(lang string, emailAddress string, token string) error {
 	return svc.send("email-confirmation", lang, authNotificationPayload{
 		EmailAddress: emailAddress,
-		URL:          svc.authSettings.FrontendUrlEmailConfirmation + token,
+		URL:          svc.settings.Auth.Frontend.Url.EmailConfirmation + token,
 	})
 }
 
 func (svc authNotification) PasswordReset(lang string, emailAddress string, token string) error {
 	return svc.send("password-reset", lang, authNotificationPayload{
 		EmailAddress: emailAddress,
-		URL:          svc.authSettings.FrontendUrlPasswordReset + token,
+		URL:          svc.settings.Auth.Frontend.Url.PasswordReset + token,
 	})
 }
 
 func (svc authNotification) newMail() *gomail.Message {
 	m := gomail.NewMessage()
-	m.SetAddressHeader("From", svc.authSettings.MailFromAddress, svc.authSettings.MailFromName)
+	m.SetAddressHeader("From", svc.settings.Auth.Mail.FromAddress, svc.settings.Auth.Mail.FromName)
 	return m
 }
 
@@ -88,9 +85,9 @@ func (svc authNotification) send(name, lang string, payload authNotificationPayl
 	ntf := svc.newMail()
 
 	payload.Logo = template.URL(svc.settings.General.Mail.Logo)
-	payload.BaseURL = svc.authSettings.FrontendUrlBase
-	payload.SignatureName = svc.authSettings.MailFromName
-	payload.SignatureEmail = svc.authSettings.MailFromAddress
+	payload.BaseURL = svc.settings.Auth.Frontend.Url.Base
+	payload.SignatureName = svc.settings.Auth.Mail.FromName
+	payload.SignatureEmail = svc.settings.Auth.Mail.FromAddress
 
 	// @todo translations
 	payload.EmailHeaderEn = template.HTML(svc.render(svc.settings.General.Mail.Header, payload))
@@ -100,12 +97,12 @@ func (svc authNotification) send(name, lang string, payload authNotificationPayl
 	// @todo translations
 	switch name {
 	case "email-confirmation":
-		ntf.SetHeader("Subject", svc.render(svc.authSettings.MailEmailConfirmationSubject, payload))
-		ntf.SetBody("text/html", svc.render(svc.authSettings.MailEmailConfirmationBody, payload))
+		ntf.SetHeader("Subject", svc.render(svc.settings.Auth.Mail.EmailConfirmation.Subject, payload))
+		ntf.SetBody("text/html", svc.render(svc.settings.Auth.Mail.EmailConfirmation.Body, payload))
 
 	case "password-reset":
-		ntf.SetHeader("Subject", svc.render(svc.authSettings.MailPasswordResetSubject, payload))
-		ntf.SetBody("text/html", svc.render(svc.authSettings.MailPasswordResetBody, payload))
+		ntf.SetHeader("Subject", svc.render(svc.settings.Auth.Mail.PasswordReset.Subject, payload))
+		ntf.SetBody("text/html", svc.render(svc.settings.Auth.Mail.PasswordReset.Body, payload))
 
 	default:
 		return ErrNoEmailTemplateForGivenOperation

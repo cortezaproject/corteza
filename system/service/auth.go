@@ -30,7 +30,7 @@ type (
 		credentials   repository.CredentialsRepository
 		users         repository.UserRepository
 		roles         repository.RoleRepository
-		settings      *AuthSettings
+		settings      *types.Settings
 		notifications AuthNotificationService
 
 		providerValidator func(string) error
@@ -106,7 +106,7 @@ func (svc auth) With(ctx context.Context) AuthService {
 		roles:       repository.Role(ctx, db),
 
 		subscription:  CurrentSubscription,
-		settings:      DefaultAuthSettings,
+		settings:      CurrentSettings,
 		notifications: DefaultAuthNotification,
 
 		providerValidator: defaultProviderValidator,
@@ -138,7 +138,7 @@ func (svc auth) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
 // 2.3. create credentials for that social login
 //
 func (svc auth) External(profile goth.User) (u *types.User, err error) {
-	if !svc.settings.ExternalEnabled {
+	if !svc.settings.Auth.External.Enabled {
 		return nil, errors.New("external authentication disabled")
 	}
 
@@ -262,7 +262,7 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 
 // FrontendRedirectURL - a proxy to frontend redirect url setting
 func (svc auth) FrontendRedirectURL() string {
-	return svc.settings.FrontendUrlRedirect
+	return svc.settings.Auth.Frontend.Url.Redirect
 }
 
 // InternalSignUp protocol
@@ -271,11 +271,11 @@ func (svc auth) FrontendRedirectURL() string {
 //
 // We're accepting the whole user object here and copy all we need to the new user
 func (svc auth) InternalSignUp(input *types.User, password string) (u *types.User, err error) {
-	if !svc.settings.InternalEnabled {
+	if !svc.settings.Auth.Internal.Enabled {
 		return nil, errors.New("internal authentication disabled")
 	}
 
-	if !svc.settings.InternalSignUpEnabled {
+	if !svc.settings.Auth.Internal.Signup.Enabled {
 		return nil, errors.New("internal signup disabled")
 	}
 
@@ -340,7 +340,7 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 		Handle:   input.Handle,
 
 		// Do we need confirmed email?
-		EmailConfirmed: !svc.settings.InternalSignUpEmailConfirmationRequired,
+		EmailConfirmed: !svc.settings.Auth.Internal.Signup.EmailConfirmationRequired,
 	})
 
 	if err != nil {
@@ -383,7 +383,7 @@ func (svc auth) validateInternalSignUp(email string) (err error) {
 // Expects plain text password as an input
 func (svc auth) InternalLogin(email string, password string) (u *types.User, err error) {
 
-	if !svc.settings.InternalEnabled {
+	if !svc.settings.Auth.Internal.Enabled {
 		return nil, errors.New("internal authentication disabled")
 	}
 
@@ -484,7 +484,7 @@ func (svc auth) checkPassword(password string, cc types.CredentialsSet) (err err
 func (svc auth) SetPassword(userID uint64, newPassword string) (err error) {
 	log := svc.log(svc.ctx, zap.Uint64("userID", userID))
 
-	if !svc.settings.InternalEnabled {
+	if !svc.settings.Auth.Internal.Enabled {
 		return errors.New("internal authentication disabled")
 	}
 
@@ -506,7 +506,7 @@ func (svc auth) SetPassword(userID uint64, newPassword string) (err error) {
 func (svc auth) ChangePassword(userID uint64, oldPassword, newPassword string) (err error) {
 	log := svc.log(svc.ctx, zap.Uint64("userID", userID))
 
-	if !svc.settings.InternalEnabled {
+	if !svc.settings.Auth.Internal.Enabled {
 		return errors.New("internal authentication disabled")
 	}
 
@@ -593,7 +593,7 @@ func (svc auth) ValidateAuthRequestToken(token string) (user *types.User, err er
 }
 
 func (svc auth) ValidateEmailConfirmationToken(token string) (user *types.User, err error) {
-	if !svc.settings.InternalEnabled {
+	if !svc.settings.Auth.Internal.Enabled {
 		return nil, errors.New("internal authentication disabled")
 	}
 
@@ -611,11 +611,11 @@ func (svc auth) ValidateEmailConfirmationToken(token string) (user *types.User, 
 }
 
 func (svc auth) ValidatePasswordResetToken(token string) (user *types.User, err error) {
-	if !svc.settings.InternalEnabled {
+	if !svc.settings.Auth.Internal.Enabled {
 		return nil, errors.New("internal authentication disabled")
 	}
 
-	if !svc.settings.InternalPasswordResetEnabled {
+	if !svc.settings.Auth.Internal.PasswordReset.Enabled {
 		return nil, errors.New("password reset disabled")
 	}
 
@@ -635,12 +635,12 @@ func (svc auth) ValidatePasswordResetToken(token string) (user *types.User, err 
 
 // ExchangePasswordResetToken exchanges reset password token for a new one and returns it with user info
 func (svc auth) ExchangePasswordResetToken(token string) (user *types.User, exchangedToken string, err error) {
-	if !svc.settings.InternalEnabled {
+	if !svc.settings.Auth.Internal.Enabled {
 		err = errors.New("internal authentication disabled")
 		return
 	}
 
-	if !svc.settings.InternalPasswordResetEnabled {
+	if !svc.settings.Auth.Internal.PasswordReset.Enabled {
 		err = errors.New("password reset disabled")
 		return
 	}
@@ -662,7 +662,7 @@ func (svc auth) ExchangePasswordResetToken(token string) (user *types.User, exch
 }
 
 func (svc auth) SendEmailAddressConfirmationToken(email string) error {
-	if !svc.settings.InternalEnabled {
+	if !svc.settings.Auth.Internal.Enabled {
 		return errors.New("internal authentication disabled")
 	}
 
@@ -699,11 +699,11 @@ func (svc auth) sendEmailAddressConfirmationToken(u *types.User) (err error) {
 
 func (svc auth) SendPasswordResetToken(email string) error {
 
-	if !svc.settings.InternalEnabled {
+	if !svc.settings.Auth.Internal.Enabled {
 		return errors.New("internal authentication disabled")
 	}
 
-	if !svc.settings.InternalPasswordResetEnabled {
+	if !svc.settings.Auth.Internal.PasswordReset.Enabled {
 		return errors.New("password reset disabled")
 	}
 

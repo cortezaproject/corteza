@@ -24,6 +24,8 @@ type (
 
 		ac               settingsAccessController
 		internalSettings internalSettings.Service
+
+		current *types.Settings
 	}
 
 	settingsAccessController interface {
@@ -32,29 +34,27 @@ type (
 	}
 
 	SettingsService interface {
-		With(ctx context.Context) SettingsService
+		With(ctx context.Context) *settings
 		FindByPrefix(prefix string) (vv internalSettings.ValueSet, err error)
 		Set(v *internalSettings.Value) (err error)
 		BulkSet(vv internalSettings.ValueSet) (err error)
 		Get(name string, ownedBy uint64) (out *internalSettings.Value, err error)
 
-		LoadAuthSettings() (*AuthSettings, error)
-		LoadSystemSettings() (*types.Settings, error)
-		UpdateAuthSettings(*AuthSettings) error
-		UpdateSystemSettings(*types.Settings) error
+		UpdateCurrent() error
 		AutoDiscovery() error
 	}
 )
 
-func Settings(ctx context.Context, intSet internalSettings.Service) SettingsService {
+func Settings(ctx context.Context, intSet internalSettings.Service, current *types.Settings) *settings {
 	return (&settings{
 		internalSettings: intSet,
 		ac:               DefaultAccessControl,
 		logger:           DefaultLogger.Named("settings"),
+		current:          current,
 	}).With(ctx)
 }
 
-func (svc settings) With(ctx context.Context) SettingsService {
+func (svc settings) With(ctx context.Context) *settings {
 	db := repository.DB(ctx)
 
 	return &settings{
@@ -64,6 +64,8 @@ func (svc settings) With(ctx context.Context) SettingsService {
 		logger: svc.logger,
 
 		internalSettings: svc.internalSettings.With(ctx),
+
+		current: svc.current,
 	}
 }
 
@@ -79,12 +81,28 @@ func (svc settings) FindByPrefix(prefix string) (vv internalSettings.ValueSet, e
 	return svc.internalSettings.FindByPrefix(prefix)
 }
 
+// UpdateCurrent loads settings values from storage and updates current settings variable
+//
+// It accesses internal settings directly because
+// we do not want any security checks for this
+func (svc settings) UpdateCurrent() error {
+	if vv, err := svc.internalSettings.FindByPrefix(""); err != nil {
+		return err
+	} else {
+		return svc.updateCurrent(vv.KV())
+	}
+}
+
 func (svc settings) Set(v *internalSettings.Value) (err error) {
 	if !svc.ac.CanManageSettings(svc.ctx) {
 		return errors.New("not allowed to manage settings")
 	}
 
-	return svc.internalSettings.Set(v)
+	if err = svc.internalSettings.Set(v); err != nil {
+		return
+	}
+
+	return svc.updateCurrent(internalSettings.KV{v.Name: v.Value})
 }
 
 func (svc settings) BulkSet(vv internalSettings.ValueSet) (err error) {
@@ -92,7 +110,34 @@ func (svc settings) BulkSet(vv internalSettings.ValueSet) (err error) {
 		return errors.New("not allowed to manage settings")
 	}
 
-	return svc.internalSettings.BulkSet(vv)
+	var old internalSettings.ValueSet
+	if old, err = svc.internalSettings.FindByPrefix(""); err != nil {
+		return
+	} else {
+		vv = old.Changed(vv)
+	}
+
+	if err = svc.internalSettings.BulkSet(vv); err != nil {
+		return
+	}
+
+	for _, v := range vv {
+		svc.log(svc.ctx,
+			zap.String("name", v.Name),
+			zap.Stringer("value", v.Value)).Info("settings changed")
+	}
+
+	return svc.updateCurrent(vv.KV())
+}
+
+func (svc settings) updateCurrent(kv internalSettings.KV) (err error) {
+	// update current settings with new values
+	if err = kv.Decode(svc.current); err != nil {
+		return
+	}
+
+	svc.log(svc.ctx).Info("current settings updated")
+	return
 }
 
 func (svc settings) Get(name string, ownedBy uint64) (out *internalSettings.Value, err error) {
@@ -101,36 +146,6 @@ func (svc settings) Get(name string, ownedBy uint64) (out *internalSettings.Valu
 	}
 
 	return svc.internalSettings.Get(name, ownedBy)
-}
-
-// Loads auth.% settings, initializes & fills auth settings struct
-func (svc settings) LoadAuthSettings() (*AuthSettings, error) {
-	as := &AuthSettings{}
-	return as, svc.UpdateAuthSettings(as)
-}
-
-// Loads system.% settings, initializes & fills system settings struct
-func (svc settings) LoadSystemSettings() (*types.Settings, error) {
-	s := &types.Settings{}
-	return s, svc.UpdateSystemSettings(s)
-}
-
-func (svc settings) UpdateSystemSettings(s *types.Settings) error {
-	vv, err := svc.internalSettings.FindByPrefix("")
-	if err != nil {
-		return err
-	}
-
-	return vv.KV().Decode(s)
-}
-
-func (svc settings) UpdateAuthSettings(as *AuthSettings) error {
-	vv, err := svc.internalSettings.FindByPrefix("auth.")
-	if err != nil {
-		return err
-	}
-
-	return as.ReadKV(vv.KV())
 }
 
 // AutoDiscovery orchestrates settings auto discovery
@@ -153,5 +168,10 @@ func (svc settings) AutoDiscovery() (err error) {
 		return
 	}
 
-	return svc.internalSettings.BulkSet(discovered)
+	err = svc.internalSettings.BulkSet(discovered)
+	if err != nil {
+		return
+	}
+
+	return svc.updateCurrent(discovered.KV())
 }
