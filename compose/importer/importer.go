@@ -67,7 +67,9 @@ func NewImporter(nsf namespaceFinder, mf moduleFinder, cf chartFinder, pf pageFi
 		settings:    s,
 	}
 
-	imp.namespaces = NewNamespaceImporter(imp)
+	if nsf != nil {
+		imp.namespaces = NewNamespaceImporter(imp)
+	}
 	return imp
 }
 
@@ -102,22 +104,34 @@ func (imp *Importer) Cast(def interface{}) (err error) {
 	deinterfacer.KVsetString(&nsHandle, "namespace", def)
 	if nsHandle != "" {
 		delete(def.(map[interface{}]interface{}), "namespace")
-		return imp.namespaces.Cast(nsHandle, def)
+		if imp.namespaces != nil {
+			return imp.namespaces.Cast(nsHandle, def)
+		} else {
+			return nil
+		}
 	}
 
 	return deinterfacer.Each(def, func(index int, key string, val interface{}) (err error) {
 		switch key {
 		case "namespaces":
-			return imp.namespaces.CastSet(val)
+			if imp.namespaces != nil {
+				return imp.namespaces.CastSet(val)
+			}
 
 		case "namespace":
-			return imp.namespaces.CastSet([]interface{}{val})
+			if imp.namespaces != nil {
+				return imp.namespaces.CastSet([]interface{}{val})
+			}
 
 		case "settings":
-			return imp.settings.CastSet(val)
+			if imp.settings != nil {
+				return imp.settings.CastSet(val)
+			}
 
 		case "allow", "deny":
-			return imp.permissions.CastResourcesSet(key, val)
+			if imp.permissions != nil {
+				return imp.permissions.CastResourcesSet(key, val)
+			}
 
 		default:
 			err = fmt.Errorf("unexpected key %q", key)
@@ -139,25 +153,32 @@ func (imp *Importer) Store(
 	sk settings.ImportKeeper,
 	roles sysTypes.RoleSet,
 ) (err error) {
-	err = imp.namespaces.Store(ctx, nsStore, mStore, cStore, pStore, rStore, asStore)
-	if err != nil {
-		return errors.Wrap(err, "could not import namespaces")
+	if imp.namespaces != nil {
+		err = imp.namespaces.Store(ctx, nsStore, mStore, cStore, pStore, rStore, asStore)
+		if err != nil {
+			return errors.Wrap(err, "could not import namespaces")
+		}
+
 	}
 
 	// Make sure we properly replace role handles with IDs
-	_ = roles.Walk(func(role *sysTypes.Role) error {
-		imp.permissions.UpdateRoles(role.Handle, role.ID)
-		return nil
-	})
+	if imp.permissions != nil {
+		_ = roles.Walk(func(role *sysTypes.Role) error {
+			imp.permissions.UpdateRoles(role.Handle, role.ID)
+			return nil
+		})
 
-	err = imp.permissions.Store(ctx, pk)
-	if err != nil {
-		return errors.Wrap(err, "could not import permissions")
+		err = imp.permissions.Store(ctx, pk)
+		if err != nil {
+			return errors.Wrap(err, "could not import permissions")
+		}
 	}
 
-	err = imp.settings.Store(ctx, sk)
-	if err != nil {
-		return errors.Wrap(err, "could not import settings")
+	if imp.settings != nil {
+		err = imp.settings.Store(ctx, sk)
+		if err != nil {
+			return errors.Wrap(err, "could not import settings")
+		}
 	}
 
 	return nil

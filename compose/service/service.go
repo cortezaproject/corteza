@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
+	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/automation/corredor"
@@ -63,6 +64,9 @@ var (
 
 	// DefaultAutomationRunner runs automation scripts by listening to triggerManager and invoking Corredor service
 	DefaultAutomationRunner automationRunner
+
+	// CurrentSettings represents current compose settings
+	CurrentSettings = &types.Settings{}
 
 	DefaultNamespace     NamespaceService
 	DefaultImportSession ImportSessionService
@@ -122,7 +126,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	}
 	DefaultAccessControl = AccessControl(DefaultPermissions)
 
-	DefaultSettings = Settings(ctx, DefaultInternalSettings)
+	DefaultSettings = Settings(ctx, DefaultInternalSettings, CurrentSettings)
 
 	DefaultNamespace = Namespace()
 	DefaultModule = Module()
