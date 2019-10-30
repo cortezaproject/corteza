@@ -1,4 +1,8 @@
 settings:
-  panel.namespace-switcher: false
-  file.max-size: 100
-  file.type.whitelist: []
+  ui.namespace-switcher.enabled: false
+
+  record.attachments.max-size: 10
+  record.attachments.mimetypes: []
+
+  page.attachments.max-size: 10
+  page.attachments.mimetypes: []
