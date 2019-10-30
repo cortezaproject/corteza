@@ -4,11 +4,9 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
-	"github.com/titpetric/factory/resputil"
 
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
 	"github.com/cortezaproject/corteza-server/messaging/service"
-	"github.com/cortezaproject/corteza-server/pkg/settings"
 )
 
 var _ = errors.Wrap
@@ -37,11 +35,7 @@ func (ctrl *Settings) List(ctx context.Context, r *request.SettingsList) (interf
 }
 
 func (ctrl *Settings) Update(ctx context.Context, r *request.SettingsUpdate) (interface{}, error) {
-	values := settings.ValueSet{}
-
-	if err := r.Values.Unmarshal(&values); err != nil {
-		return nil, err
-	} else if err := ctrl.svc.settings.With(ctx).BulkSet(values); err != nil {
+	if err := ctrl.svc.settings.With(ctx).BulkSet(r.Values); err != nil {
 		return nil, err
 	} else {
 		return true, nil
@@ -56,6 +50,6 @@ func (ctrl *Settings) Get(ctx context.Context, r *request.SettingsGet) (interfac
 	}
 }
 
-func (ctrl *Settings) Set(ctx context.Context, r *request.SettingsSet) (interface{}, error) {
-	return resputil.OK(), errors.New("Not implemented: Settings.set")
+func (ctrl *Settings) Current(ctx context.Context, r *request.SettingsCurrent) (interface{}, error) {
+	return service.CurrentSettings, nil
 }

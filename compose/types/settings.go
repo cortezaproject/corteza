@@ -1,6 +1,11 @@
 package types
 
 type (
+	// Settings type is structured representation of current compose settings
+	//
+	// Raw settings keys are hypen (kebab) case, separated with a dot (.) that indicates sub-level
+	// JSON properties for settings are NOT converted (lower-cased, etc...)
+	// Use `json:"-"` tag to hide settings on REST endpoint
 	Settings struct {
 		// UI related settings
 		UI struct {
