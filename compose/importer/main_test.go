@@ -41,6 +41,10 @@ func resetMocks() {
 
 	imp = NewImporter(nil, nil, nil, nil, nil, pi, st)
 
+	// namespaces does not get initialized in the standard flow
+	// if namespace finder is not present
+	imp.namespaces = NewNamespaceImporter(imp)
+
 }
 
 func impFixTester(t *testing.T, name string, tester interface{}) {
