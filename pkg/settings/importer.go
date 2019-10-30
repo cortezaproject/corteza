@@ -15,7 +15,7 @@ type (
 	}
 
 	ImportKeeper interface {
-		BulkSet(vv ValueSet) (err error)
+		BulkSet(ctx context.Context, vv ValueSet) (err error)
 	}
 )
 
@@ -52,7 +52,7 @@ func (imp *Importer) addSetting(name string, value interface{}) (err error) {
 }
 
 func (imp *Importer) Store(ctx context.Context, k ImportKeeper) (err error) {
-	return k.BulkSet(imp.settings)
+	return k.BulkSet(ctx, imp.settings)
 }
 
 func (imp *Importer) GetValues() ValueSet {

@@ -38,7 +38,6 @@ type (
 			// warning for from subscription
 			SignupWarning string `json:",omitempty", kv:"-"`
 
-
 			Internal struct {
 				// Is internal authentication (username + password) enabled
 				Enabled bool

@@ -10,7 +10,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/automation/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	internalSettings "github.com/cortezaproject/corteza-server/pkg/settings"
+	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -61,8 +61,8 @@ var (
 	// DefaultPermissions Retrieves & stores permissions
 	DefaultPermissions permissionServicer
 
-	DefaultIntSettings internalSettings.Service
-	DefaultSettings    SettingsService
+	// DefaultSettings controls system's settings
+	DefaultSettings settings.Service
 
 	// DefaultAccessControl Access control checking
 	DefaultAccessControl *accessControl
@@ -97,16 +97,23 @@ var (
 func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultLogger = log.Named("service")
 
-	DefaultIntSettings = internalSettings.NewService(internalSettings.NewRepository(repository.DB(ctx), "sys_settings"))
 	if DefaultPermissions == nil {
+		// Do not override permissions service stored under DefaultPermissions
+		// to allow integration tests to inject own permission service
 		DefaultPermissions = permissions.Service(ctx, DefaultLogger, repository.DB(ctx), "sys_permission_rules")
 	}
 
 	DefaultAccessControl = AccessControl(DefaultPermissions)
 
-	DefaultSettings = Settings(ctx, DefaultIntSettings, CurrentSettings)
+	DefaultSettings = settings.NewService(
+		settings.NewRepository(repository.DB(ctx), "sys_settings"),
+		DefaultLogger,
+		DefaultAccessControl,
+		CurrentSettings,
+	)
 
-	err = DefaultSettings.UpdateCurrent()
+	// Run initial update of current settings with super-user credentials
+	err = DefaultSettings.UpdateCurrent(intAuth.SetSuperUserContext(ctx))
 	if err != nil {
 		return
 	}

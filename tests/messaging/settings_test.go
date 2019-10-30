@@ -17,7 +17,7 @@ func TestSettingsList(t *testing.T) {
 	h.allow(tt.MessagingPermissionResource, "settings.read")
 	h.allow(tt.MessagingPermissionResource, "settings.manage")
 
-	err := service.DefaultSettings.With(h.secCtx()).BulkSet(settings.ValueSet{
+	err := service.DefaultSettings.BulkSet(h.secCtx(), settings.ValueSet{
 		&settings.Value{Name: "t_msg_k1.s1", Value: types.JSONText(`"t_msg_v1"`)},
 		&settings.Value{Name: "t_msg_k1.s2", Value: types.JSONText(`"t_msg_v2"`)},
 	})
@@ -52,7 +52,7 @@ func TestSettingsUpdate(t *testing.T) {
 	h.allow(tt.MessagingPermissionResource, "settings.manage")
 	h.allow(tt.MessagingPermissionResource, "settings.read")
 
-	err := service.DefaultSettings.With(h.secCtx()).BulkSet(settings.ValueSet{
+	err := service.DefaultSettings.BulkSet(h.secCtx(), settings.ValueSet{
 		&settings.Value{Name: "t_msg_k1.s1", Value: types.JSONText(`"t_msg_v1"`)},
 	})
 	h.a.NoError(err)
@@ -65,11 +65,11 @@ func TestSettingsUpdate(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	s, err := service.DefaultSettings.With(h.secCtx()).Get("t_msg_k1.s1", 0)
+	s, err := service.DefaultSettings.Get(h.secCtx(), "t_msg_k1.s1", 0)
 	h.a.NoError(err)
 	h.a.Equal(`"t_msg_v1_edited"`, s.Value.String(), "existing key should be updated")
 
-	s, err = service.DefaultSettings.With(h.secCtx()).Get("t_msg_k2.s1", 0)
+	s, err = service.DefaultSettings.Get(h.secCtx(), "t_msg_k2.s1", 0)
 	h.a.NoError(err)
 	h.a.Equal(`"t_msg_v2_new"`, s.Value.String(), "new key should be added")
 }
@@ -92,7 +92,7 @@ func TestSettingsGet(t *testing.T) {
 	h.allow(tt.MessagingPermissionResource, "settings.read")
 	h.allow(tt.MessagingPermissionResource, "settings.manage")
 
-	err := service.DefaultSettings.With(h.secCtx()).BulkSet(settings.ValueSet{
+	err := service.DefaultSettings.BulkSet(h.secCtx(), settings.ValueSet{
 		&settings.Value{Name: "t_msg_k1.s1", Value: types.JSONText(`"t_msg_v1"`)},
 	})
 	h.a.NoError(err)

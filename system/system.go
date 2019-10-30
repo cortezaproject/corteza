@@ -9,6 +9,7 @@ import (
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
 
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/system/auth/external"
 	"github.com/cortezaproject/corteza-server/system/commands"
@@ -58,12 +59,24 @@ func Configure() *cli.Config {
 				c.InitServices(ctx, c)
 
 				if c.ProvisionOpt.Configuration {
+					ctx = auth.SetSuperUserContext(ctx)
+
 					// read system's config files (YAML)
 					cli.HandleError(provisionConfig(ctx, cmd, c))
 
+					// creates default applications that will appear in Unify/One
+					// @todo migrate this to provisioning/YAML
 					cli.HandleError(makeDefaultApplications(ctx, cmd, c))
-					cli.HandleError(settingsAutoDiscovery(ctx, cmd, c))
+
+					// auto-discovery auth.* settings
+					cli.HandleError(authSettingsAutoDiscovery(ctx, c.Log, service.DefaultSettings))
+
+					// external provider auto configuration
+					// creates: auth.external.providers.(google|linkedin|github|facebook).*
 					cli.HandleError(authAddExternals(ctx, cmd, c))
+
+					// OIDC provider auto configuration
+					// creates: auth.external.providers.openid-connect.*
 					cli.HandleError(oidcAutoDiscovery(ctx, cmd, c))
 				}
 

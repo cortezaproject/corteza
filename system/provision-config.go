@@ -112,7 +112,7 @@ func makeDefaultApplications(ctx context.Context, cmd *cobra.Command, c *cli.Con
 }
 
 // Partial import of settings from provision files
-func partialImportSettings(ctx context.Context, ss service.SettingsService, ff ...io.Reader) (err error) {
+func partialImportSettings(ctx context.Context, ss settings.Service, ff ...io.Reader) (err error) {
 	var (
 		// decoded content from YAML files
 		aux interface{}
@@ -141,10 +141,8 @@ func partialImportSettings(ctx context.Context, ss service.SettingsService, ff .
 		}
 	}
 
-	ss = ss.With(ctx)
-
 	// Get all "current" settings storage
-	current, err = ss.FindByPrefix("")
+	current, err = ss.FindByPrefix(ctx)
 	if err != nil {
 		return
 	}
@@ -152,7 +150,7 @@ func partialImportSettings(ctx context.Context, ss service.SettingsService, ff .
 	// Compare current settings with imported, get all that do not exist yet
 	if unex = si.GetValues(); len(unex) > 0 {
 		// Store non existing
-		err = ss.BulkSet(current.New(unex))
+		err = ss.BulkSet(ctx, current.New(unex))
 		if err != nil {
 			return
 		}

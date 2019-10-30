@@ -8,10 +8,11 @@ import (
 
 	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 	"github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	internalSettings "github.com/cortezaproject/corteza-server/pkg/settings"
+	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/pkg/store"
 	"github.com/cortezaproject/corteza-server/pkg/store/minio"
 	"github.com/cortezaproject/corteza-server/pkg/store/plain"
@@ -38,9 +39,8 @@ var (
 
 	DefaultLogger *zap.Logger
 
-	DefaultInternalSettings internalSettings.Service
-	DefaultSettings         SettingsService
-	DefaultAccessControl    *accessControl
+	DefaultSettings      settings.Service
+	DefaultAccessControl *accessControl
 
 	// CurrentSettings represents current messaging settings
 	CurrentSettings = &types.Settings{}
@@ -56,7 +56,26 @@ var (
 func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultLogger = log.Named("service")
 
-	DefaultInternalSettings = internalSettings.NewService(internalSettings.NewRepository(repository.DB(ctx), "messaging_settings"))
+	if DefaultPermissions == nil {
+		// Do not override permissions service stored under DefaultPermissions
+		// to allow integration tests to inject own permission service
+		DefaultPermissions = permissions.Service(ctx, DefaultLogger, repository.DB(ctx), "messaging_permission_rules")
+	}
+
+	DefaultAccessControl = AccessControl(DefaultPermissions)
+
+	DefaultSettings = settings.NewService(
+		settings.NewRepository(repository.DB(ctx), "messaging_settings"),
+		DefaultLogger,
+		DefaultAccessControl,
+		CurrentSettings,
+	)
+
+	// Run initial update of current settings with super-user credentials
+	err = DefaultSettings.UpdateCurrent(intAuth.SetSuperUserContext(ctx))
+	if err != nil {
+		return
+	}
 
 	if DefaultStore == nil {
 		if c.Storage.MinioEndpoint != "" {
@@ -97,15 +116,6 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	if err != nil {
 		return err
 	}
-
-	if DefaultPermissions == nil {
-		// Do not override permissions service stored under DefaultPermissions
-		// to allow integration tests to inject own permission service
-		DefaultPermissions = permissions.Service(ctx, DefaultLogger, repository.DB(ctx), "messaging_permission_rules")
-	}
-	DefaultAccessControl = AccessControl(DefaultPermissions)
-
-	DefaultSettings = Settings(ctx, DefaultInternalSettings, CurrentSettings)
 
 	DefaultEvent = Event(ctx)
 	DefaultChannel = Channel(ctx)

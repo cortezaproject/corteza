@@ -28,7 +28,7 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 			c.InitServices(ctx, c)
 
 			prefix := cmd.Flags().Lookup("prefix").Value.String()
-			if kv, err := service.DefaultIntSettings.FindByPrefix(prefix); err != nil {
+			if kv, err := service.DefaultSettings.FindByPrefix(ctx, prefix); err != nil {
 				cli.HandleError(err)
 			} else {
 				var maxlen int
@@ -55,7 +55,7 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			c.InitServices(ctx, c)
 
-			if v, err := service.DefaultIntSettings.Get(args[0], 0); err != nil {
+			if v, err := service.DefaultSettings.Get(ctx, args[0], 0); err != nil {
 				cli.HandleError(err)
 			} else if v != nil {
 				cmd.Printf("%v\n", v.Value)
@@ -79,7 +79,7 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 				cli.HandleError(err)
 			}
 
-			cli.HandleError(service.DefaultIntSettings.Set(v))
+			cli.HandleError(service.DefaultSettings.Set(ctx, v))
 		},
 	}
 
@@ -118,7 +118,7 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 			}
 
 			if len(vv) > 0 {
-				cli.HandleError(service.DefaultIntSettings.BulkSet(vv))
+				cli.HandleError(service.DefaultSettings.BulkSet(ctx, vv))
 			}
 		},
 	}
@@ -148,7 +148,7 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 
 			encoder.SetIndent("", "  ")
 
-			if vv, err := service.DefaultIntSettings.FindByPrefix(""); err != nil {
+			if vv, err := service.DefaultSettings.FindByPrefix(ctx); err != nil {
 				cli.HandleError(err)
 			} else {
 				cli.HandleError(encoder.Encode(vv.KV()))
@@ -166,7 +166,7 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 			var names = []string{}
 
 			if prefix := cmd.Flags().Lookup("prefix").Value.String(); len(prefix) > 0 {
-				if vv, err := service.DefaultIntSettings.FindByPrefix(""); err != nil {
+				if vv, err := service.DefaultSettings.FindByPrefix(ctx); err != nil {
 					cli.HandleError(err)
 				} else {
 					_ = vv.Walk(func(v *settings.Value) error {
@@ -179,7 +179,7 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 			}
 
 			for a := 0; a < len(names); a++ {
-				cli.HandleError(service.DefaultIntSettings.Delete(names[a], 0))
+				cli.HandleError(service.DefaultSettings.Delete(ctx, names[a], 0))
 			}
 		},
 	}

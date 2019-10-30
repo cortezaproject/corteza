@@ -17,7 +17,7 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
-func AddProvider(eap *types.ExternalAuthProvider, force bool) error {
+func AddProvider(ctx context.Context, eap *types.ExternalAuthProvider, force bool) error {
 	var (
 		s   = service.CurrentSettings
 		log = log().With(
@@ -42,7 +42,7 @@ func AddProvider(eap *types.ExternalAuthProvider, force bool) error {
 	if vv, err := eap.EncodeKV(); err != nil {
 		log.Error("could not prepare settings", zap.Error(err))
 		return err
-	} else if err = service.DefaultIntSettings.BulkSet(vv); err != nil {
+	} else if err = service.DefaultSettings.BulkSet(ctx, vv); err != nil {
 		log.Error("could not store settings", zap.Error(err))
 		return err
 	}
@@ -158,7 +158,7 @@ func RegisterOidcProvider(ctx context.Context, name, providerUrl string, force, 
 		vv = append(vv, v)
 	}
 
-	err = service.DefaultIntSettings.BulkSet(vv)
+	err = service.DefaultSettings.BulkSet(ctx, vv)
 	if err != nil {
 		return
 	}
