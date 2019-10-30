@@ -9,7 +9,11 @@ import (
 )
 
 type (
-	// Settings structured representation of current system settings
+	// Settings type is structured representation of current system settings
+	//
+	// Raw settings keys are hypen (kebab) case, separated with a dot (.) that indicates sub-level
+	// JSON properties for settings are NOT converted (lower-cased, etc...)
+	// Use `json:"-"` tag to hide settings on REST endpoint
 	Settings struct {
 		Privacy struct {
 			Mask struct {
@@ -19,7 +23,7 @@ type (
 				// Enable masking of user's name (value replaced with ######)
 				Name bool
 			}
-		}
+		} `json:"-"`
 
 		General struct {
 			Mail struct {
@@ -27,9 +31,14 @@ type (
 				Header string `kv:"header.en"`
 				Footer string `kv:"footer.en"`
 			}
-		}
+		} `json:"-"`
 
 		Auth struct {
+			// Not a setting, only a holder for potential
+			// warning for from subscription
+			SignupWarning string `json:",omitempty", kv:"-"`
+
+
 			Internal struct {
 				// Is internal authentication (username + password) enabled
 				Enabled bool
@@ -51,13 +60,13 @@ type (
 				Enabled bool
 
 				// Where to redirect (url used for registration)
-				RedirectUrl string `kv:"redirect-url"`
+				RedirectUrl string `json:"-" kv:"redirect-url"`
 
 				// session secret to use
-				SessionStoreSecret string `kv:"session-store-secret"`
+				SessionStoreSecret string `json:"-" kv:"session-store-secret"`
 
 				// session store should be secure
-				SessionStoreSecure bool `kv:"session-store-secure"`
+				SessionStoreSecure bool `json:"-" kv:"session-store-secure"`
 
 				// all external providers we know
 				Providers ExternalAuthProviderSet
@@ -92,7 +101,7 @@ type (
 					Subject string `kv:"subject.en"`
 					Body    string `kv:"body.en"`
 				} `kv:"password-reset"`
-			}
+			} `json:"-"`
 		}
 	}
 

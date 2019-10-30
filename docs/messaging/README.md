@@ -658,7 +658,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | `GET` | `/settings/` | List settings |
 | `PATCH` | `/settings/` | Update settings |
 | `GET` | `/settings/{key}` | Get a value for a key |
-| `PUT` | `/settings/{key}` | Set a value for a key |
+| `GET` | `/settings/current` | Current compose settings |
 
 ## List settings
 
@@ -686,7 +686,7 @@ A channel is a representation of a sequence of messages. It has meta data like c
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| values | sqlxTypes.JSONText | POST | Array of new settings: `[{ name: ..., value: ... }]`. Omit value to remove setting | N/A | YES |
+| values | settings.ValueSet | POST | Array of new settings: `[{ name: ..., value: ... }]`. Omit value to remove setting | N/A | YES |
 
 ## Get a value for a key
 
@@ -703,21 +703,18 @@ A channel is a representation of a sequence of messages. It has meta data like c
 | ownerID | uint64 | GET | Owner ID | N/A | NO |
 | key | string | PATH | Setting key | N/A | YES |
 
-## Set a value for a key
+## Current compose settings
 
 #### Method
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/settings/{key}` | HTTP/S | PUT |  |
+| `/settings/current` | HTTP/S | GET |  |
 
 #### Request parameters
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| key | string | PATH | Setting key | N/A | YES |
-| ownerID | uint64 | POST | Owner | N/A | NO |
-| value | sqlxTypes.JSONText | POST | Setting value | N/A | YES |
 
 ---
 

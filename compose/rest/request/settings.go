@@ -26,7 +26,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
 
-	sqlxTypes "github.com/jmoiron/sqlx/types"
+	"github.com/cortezaproject/corteza-server/pkg/settings"
 )
 
 var _ = chi.URLParam
@@ -87,7 +87,7 @@ var _ RequestFiller = NewSettingsList()
 
 // Settings update request parameters
 type SettingsUpdate struct {
-	Values sqlxTypes.JSONText
+	Values settings.ValueSet
 }
 
 func NewSettingsUpdate() *SettingsUpdate {
@@ -127,13 +127,6 @@ func (r *SettingsUpdate) Fill(req *http.Request) (err error) {
 	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
-	}
-
-	if val, ok := post["values"]; ok {
-
-		if r.Values, err = parseJSONTextWithErr(val); err != nil {
-			return err
-		}
 	}
 
 	return err
@@ -197,28 +190,21 @@ func (r *SettingsGet) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewSettingsGet()
 
-// Settings set request parameters
-type SettingsSet struct {
-	Key     string
-	OwnerID uint64 `json:",string"`
-	Value   sqlxTypes.JSONText
+// Settings current request parameters
+type SettingsCurrent struct {
 }
 
-func NewSettingsSet() *SettingsSet {
-	return &SettingsSet{}
+func NewSettingsCurrent() *SettingsCurrent {
+	return &SettingsCurrent{}
 }
 
-func (r SettingsSet) Auditable() map[string]interface{} {
+func (r SettingsCurrent) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
-
-	out["key"] = r.Key
-	out["ownerID"] = r.OwnerID
-	out["value"] = r.Value
 
 	return out
 }
 
-func (r *SettingsSet) Fill(req *http.Request) (err error) {
+func (r *SettingsCurrent) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -245,18 +231,7 @@ func (r *SettingsSet) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	r.Key = chi.URLParam(req, "key")
-	if val, ok := post["ownerID"]; ok {
-		r.OwnerID = parseUInt64(val)
-	}
-	if val, ok := post["value"]; ok {
-
-		if r.Value, err = parseJSONTextWithErr(val); err != nil {
-			return err
-		}
-	}
-
 	return err
 }
 
-var _ RequestFiller = NewSettingsSet()
+var _ RequestFiller = NewSettingsCurrent()

@@ -4,7 +4,7 @@
   "Struct": [
     {
       "imports": [
-        "sqlxTypes github.com/jmoiron/sqlx/types"
+        "github.com/cortezaproject/corteza-server/pkg/settings"
       ]
     }
   ],
@@ -39,7 +39,7 @@
             "name": "values",
             "required": true,
             "title": "Array of new settings: `[{ name: ..., value: ... }]`. Omit value to remove setting",
-            "type": "sqlxTypes.JSONText"
+            "type": "settings.ValueSet"
           }
         ]
       }
@@ -47,7 +47,7 @@
     {
       "Name": "get",
       "Method": "GET",
-      "Title": "Check JWT token",
+      "Title": "Get a value for a key",
       "Path": "/{key}",
       "Parameters": {
         "get": [
@@ -68,33 +68,11 @@
       }
     },
     {
-      "Name": "set",
-      "Method": "PUT",
-      "Title": "Set a value for a key",
-      "Path": "/{key}",
-      "Parameters": {
-        "path": [
-          {
-            "name": "key",
-            "required": true,
-            "title": "Setting key",
-            "type": "string"
-          }
-        ],
-        "post": [
-          {
-            "name": "ownerID",
-            "title": "Owner",
-            "type": "uint64"
-          },
-          {
-            "name": "value",
-            "required": true,
-            "title": "Setting value",
-            "type": "sqlxTypes.JSONText"
-          }
-        ]
-      }
+      "Name": "current",
+      "Method": "GET",
+      "Title": "Current compose settings",
+      "Path": "/current",
+      "Parameters": null
     }
   ]
 }

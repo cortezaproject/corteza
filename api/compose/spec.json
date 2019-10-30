@@ -1886,25 +1886,26 @@
         "authentication": [],
         "struct": [{
             "imports": [
-                "sqlxTypes github.com/jmoiron/sqlx/types"
+                "github.com/cortezaproject/corteza-server/pkg/settings"
             ]
         }],
-        "apis": [{
-            "name": "list",
-            "method": "GET",
-            "title": "List settings",
-            "path": "/",
-            "parameters": {
-              "get": [
-                {
-                  "name": "prefix",
-                  "type": "string",
-                  "title": "Key prefix"
+        "apis": [
+            {
+                "name": "list",
+                "method": "GET",
+                "title": "List settings",
+                "path": "/",
+                "parameters": {
+                    "get": [
+                        {
+                            "name": "prefix",
+                            "type": "string",
+                            "title": "Key prefix"
+                        }
+                    ]
                 }
-              ]
-            }
-          },
-          {
+            },
+            {
                 "name": "update",
                 "method": "PATCH",
                 "title": "Update settings",
@@ -1912,7 +1913,7 @@
                 "parameters": {
                     "post": [{
                         "name": "values",
-                        "type": "sqlxTypes.JSONText",
+                        "type": "settings.ValueSet",
                         "title": "Array of new settings: `[{ name: ..., value: ... }]`. Omit value to remove setting",
                         "required": true
                     }]
@@ -1938,30 +1939,10 @@
                 }
             },
             {
-                "name": "set",
-                "method": "PUT",
-                "title": "Set a value for a key",
-                "path": "/{key}",
-                "parameters": {
-                    "path": [{
-                        "name": "key",
-                        "type": "string",
-                        "title": "Setting key",
-                        "required": true
-                    }],
-                    "post": [{
-                            "name": "ownerID",
-                            "type": "uint64",
-                            "title": "Owner"
-                        },
-                        {
-                            "name": "value",
-                            "type": "sqlxTypes.JSONText",
-                            "required": true,
-                            "title": "Setting value"
-                        }
-                    ]
-                }
+                "name": "current",
+                "method": "GET",
+                "title": "Current compose settings",
+                "path": "/current"
             }
         ]
     }
