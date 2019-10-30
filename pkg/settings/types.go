@@ -76,6 +76,14 @@ func (v *Value) Bool() (out bool) {
 	return
 }
 
+func (v *Value) Eq(c *Value) bool {
+	return v != nil &&
+		c != nil &&
+		v.Name == c.Name &&
+		v.OwnedBy == c.OwnedBy &&
+		v.Value.String() == c.Value.String()
+}
+
 func (set ValueSet) KV() KV {
 	m := KV{}
 
@@ -176,7 +184,7 @@ input:
 				continue
 			}
 
-			if s.Value.String() == i.Value.String() {
+			if s.Eq(i) {
 				// Value did not change, continue with next input set
 				continue input
 			}

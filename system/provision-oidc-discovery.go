@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 	"github.com/cortezaproject/corteza-server/system/auth/external"
@@ -116,7 +117,9 @@ func authAddExternals(ctx context.Context, cmd *cobra.Command, c *cli.Config) (e
 			eap.Handle = kind
 		}
 
-		_ = external.AddProvider(eap, false)
+		ctx = auth.SetSuperUserContext(ctx)
+
+		_ = external.AddProvider(ctx, eap, false)
 	}
 
 	return

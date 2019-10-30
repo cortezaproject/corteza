@@ -74,7 +74,7 @@ func Import(ctx context.Context, ns *types.Namespace, ff ...io.Reader) (err erro
 		service.DefaultRecord.With(ctx),
 		service.DefaultInternalAutomationManager,
 		service.DefaultAccessControl,
-		service.DefaultSettings.With(ctx),
+		service.DefaultSettings,
 		roles,
 	)
 }

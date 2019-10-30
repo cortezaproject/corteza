@@ -74,7 +74,7 @@ func settingExporter(ctx context.Context, out *System) {
 		err error
 	)
 
-	ss, err := service.DefaultSettings.FindByPrefix("")
+	ss, err := service.DefaultSettings.FindByPrefix(ctx)
 	cli.HandleError(err)
 
 	out.Settings = settings.Export(ss)
