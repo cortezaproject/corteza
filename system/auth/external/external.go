@@ -12,7 +12,7 @@ const (
 )
 
 func Init() {
-	setupGoth(service.DefaultAuthSettings)
+	setupGoth(service.CurrentSettings)
 }
 
 func log() *zap.Logger {

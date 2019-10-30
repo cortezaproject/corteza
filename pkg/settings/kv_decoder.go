@@ -7,18 +7,13 @@ import (
 )
 
 type (
-// @todo support Decoder interface
-// Decoder interface {
-// 	Decode(kv KV, prefix string) error
-// }
+	// KVDecoder interface for custom decoding logic
+	KVDecoder interface {
+		DecodeKV(KV, string) error
+	}
 )
 
-var (
-// @todo support Decoder interface
-// decoderTyEl = reflect.TypeOf((*Decoder)(nil)).Elem()
-)
-
-// Decode converts key-value (KV) into structs using tags & field names
+// DecodeKV converts key-value (KV) into structs using tags & field names
 //
 // Supports decoding into all scalar types, can handle nested structures and simple maps (1 dim, string as key)
 //
@@ -32,17 +27,15 @@ var (
 //   Number  int
 // }
 //
-func Decode(kv KV, dst interface{}, pp ...string) (err error) {
-	v := reflect.ValueOf(dst)
-	if v.Kind() != reflect.Ptr {
+func DecodeKV(kv KV, dst interface{}, pp ...string) (err error) {
+	valueOf := reflect.ValueOf(dst)
+	if valueOf.Kind() != reflect.Ptr {
 		return errors.New("expecting a pointer, not a value")
 	}
 
-	if v.IsNil() {
+	if valueOf.IsNil() {
 		return errors.New("nil pointer passed")
 	}
-
-	v = v.Elem()
 
 	var prefix string
 	if len(pp) > 0 {
@@ -50,15 +43,24 @@ func Decode(kv KV, dst interface{}, pp ...string) (err error) {
 		prefix = strings.Join(append(pp, ""), ".")
 	}
 
-	length := v.NumField()
+	valueOf = valueOf.Elem()
+
+	length := valueOf.NumField()
 
 	for i := 0; i < length; i++ {
-		var (
-			f = v.Field(i)
-			t = v.Type().Field(i)
+		var structField = valueOf.Field(i)
 
-			key = prefix + strings.ToLower(t.Name[:1]) + t.Name[1:]
-			tag = t.Tag.Get("kv")
+		if !structField.CanSet() {
+			continue
+		}
+
+		var (
+			structFType = valueOf.Type().Field(i)
+
+			// whe nwe use name of the struct field directly, remove upper-case from first letter
+			key = prefix + strings.ToLower(structFType.Name[:1]) + structFType.Name[1:]
+
+			tag = structFType.Tag.Get("kv")
 
 			tagFlags []string
 		)
@@ -67,10 +69,6 @@ func Decode(kv KV, dst interface{}, pp ...string) (err error) {
 			// Skip fields with kv tags equal to "-"
 			continue
 		}
-
-		// if !f.CanSet() {
-		// 	return errors.New("unexpected pointer for field " + t.Name)
-		// }
 
 		if tag != "" {
 			tagFlags = strings.Split(tag, ",")
@@ -85,23 +83,30 @@ func Decode(kv KV, dst interface{}, pp ...string) (err error) {
 			}
 		}
 
-		// @todo handle Decoder interface
-		// if f.Type().Implements(decoderTyEl) {
-		// 	result := reflect.ValueOf(&t).MethodByName("Decode").Call([]reflect.Value{
-		// 		reflect.ValueOf(kv.Filter(key)),
-		// 		reflect.ValueOf(prefix),
-		// 	})
-		//
-		// 	if len(result) != 1 {
-		// 		return errors.New("internal error, Decoder signature does not match")
-		// 	}
-		// }
+		var structValue interface{}
+
+		if structField.Kind() == reflect.Ptr {
+			structValue = structField.Interface()
+		} else {
+			structValue = structField.Addr().Interface()
+		}
+
+		// Handle custom KVDecoder
+		if decodeMethod := reflect.ValueOf(structValue).MethodByName("DecodeKV"); decodeMethod.IsValid() {
+			if decode, ok := decodeMethod.Interface().(func(KV, string) error); !ok {
+				panic("invalid DecodeKV() function signature")
+			} else if err = decode(kv, key); err != nil {
+				return
+			} else {
+				continue
+			}
+		}
 
 		// Handles structs
 		//
-		// It calls Decode recursively
-		if f.Kind() == reflect.Struct {
-			if err = Decode(kv.Filter(key), f.Addr().Interface(), key); err != nil {
+		// It calls DecodeKV recursively
+		if structField.Kind() == reflect.Struct {
+			if err = DecodeKV(kv.Filter(key), structValue, key); err != nil {
 				return
 			}
 
@@ -109,26 +114,32 @@ func Decode(kv KV, dst interface{}, pp ...string) (err error) {
 		}
 
 		// Handles map values
-		if f.Kind() == reflect.Map {
-			if f.IsNil() {
+		if structField.Kind() == reflect.Map {
+			if structField.IsNil() {
 				// allocate new map
-				f.Set(reflect.MakeMap(f.Type()))
+				structField.Set(reflect.MakeMap(structField.Type()))
 			}
 
+			// cut KV key prefix and use the rest for the map key
 			for k, val := range kv.CutPrefix(key + ".") {
-				mapValue := reflect.New(f.Type().Elem())
-				val.Unmarshal(mapValue.Interface())
-				f.SetMapIndex(reflect.ValueOf(k), mapValue.Elem())
+				mapValue := reflect.New(structField.Type().Elem())
+				err = val.Unmarshal(mapValue.Interface())
+				if err != nil {
+					return
+				}
+
+				structField.SetMapIndex(reflect.ValueOf(k), mapValue.Elem())
 			}
 
 			continue
 		}
 
+		// Native type
 		if val, ok := kv[key]; ok {
-			if err = val.Unmarshal(f.Addr().Interface()); err != nil {
+			// Always use pointer to value
+			if err = val.Unmarshal(structField.Addr().Interface()); err != nil {
 				return
 			}
-
 		}
 	}
 

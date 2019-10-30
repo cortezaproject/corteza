@@ -334,7 +334,7 @@ func authSettingsAutoDiscovery(log *zap.Logger, current internalSettings.ValueSe
 
 		// Enable email confirmation if we have email capabilities
 		{
-			"auth.internal.signup-email-confirmation-required",
+			"auth.internal.signup.email-confirmation-required",
 			"PROVISION_SETTINGS_AUTH_INTERNAL_SIGNUP_EMAIL_CONFIRMATION_REQUIRED",
 			emailCapabilities(),
 			false},

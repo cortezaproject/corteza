@@ -91,6 +91,44 @@ func TestDecode(t *testing.T) {
 	// setting this externaly (embedded structs)
 	eq.Sub.Bar.Foo = "foobar"
 
-	require.NoError(t, Decode(kv, &aux))
+	require.NoError(t, DecodeKV(kv, &aux))
 	require.Equal(t, eq, aux)
+}
+
+type (
+	decodeHandlerBase struct {
+		Foo decodeHandlerSub
+		Bar *decodeHandlerSub
+	}
+
+	decodeHandlerSub struct {
+		set int
+	}
+)
+
+func (b *decodeHandlerSub) DecodeKV(kv KV, prefix string) error {
+	b.set++
+	return nil
+}
+
+var _ KVDecoder = &decodeHandlerSub{}
+
+func TestDecodeHandler(t *testing.T) {
+	var (
+		kv = KV{
+			// should panic if DecodeKV is not called:
+			//   cannot unmarshal number into Go value of type settings.decodeHandlerSub
+			"foo": types.JSONText(`1`),
+		}
+
+		aux = decodeHandlerBase{
+			Foo: decodeHandlerSub{},
+			Bar: &decodeHandlerSub{},
+		}
+	)
+	require.NoError(t, DecodeKV(kv, &aux))
+	require.NotNil(t, aux.Foo)
+	require.NotNil(t, aux.Bar)
+	require.Equal(t, 1, aux.Foo.set)
+	require.Equal(t, 1, aux.Bar.set)
 }

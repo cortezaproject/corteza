@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/payload/outgoing"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 var _ = errors.Wrap
@@ -19,7 +20,7 @@ var _ = errors.Wrap
 type (
 	Auth struct {
 		tokenEncoder auth.TokenEncoder
-		authSettings authServiceSettingsProvider
+		settings     *types.Settings
 		authSvc      service.AuthService
 	}
 
@@ -41,7 +42,7 @@ type (
 func (Auth) New() *Auth {
 	return &Auth{
 		tokenEncoder: auth.DefaultJwtHandler,
-		authSettings: service.DefaultAuthSettings,
+		settings:     service.CurrentSettings,
 		authSvc:      service.DefaultAuth,
 	}
 }
@@ -75,14 +76,27 @@ func (ctrl *Auth) Logout(ctx context.Context, r *request.AuthLogout) (interface{
 }
 
 func (ctrl *Auth) Settings(ctx context.Context, r *request.AuthSettings) (interface{}, error) {
-	f := ctrl.authSettings.Format()
+	var (
+		int = ctrl.settings.Auth.Internal
+		ext = ctrl.settings.Auth.External
+
+		out = map[string]interface{}{
+			"internalEnabled":                         int.Enabled,
+			"internalPasswordResetEnabled":            int.PasswordReset.Enabled,
+			"internalSignUpEmailConfirmationRequired": int.Signup.EmailConfirmationRequired,
+			"internalSignUpEnabled":                   int.Signup.Enabled,
+
+			"externalEnabled":   ext.Enabled,
+			"externalProviders": ext.Providers,
+		}
+	)
 
 	if err := ctrl.authSvc.With(ctx).CanRegister(); err != nil {
 		// f["internalSignUpEnabled"] = false
-		f["signUpDisabled"] = err.Error()
+		out["signUpDisabled"] = err.Error()
 	}
 
-	return f, nil
+	return out, nil
 }
 
 func (ctrl *Auth) ExchangeAuthToken(ctx context.Context, r *request.AuthExchangeAuthToken) (interface{}, error) {

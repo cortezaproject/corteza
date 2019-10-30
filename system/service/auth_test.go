@@ -34,7 +34,7 @@ func makeMockAuthService(u repository.UserRepository, c repository.CredentialsRe
 
 		logger: zap.NewNop(),
 
-		settings: &AuthSettings{},
+		settings: &types.Settings{},
 
 		now: func() *time.Time {
 			return nil
@@ -68,7 +68,7 @@ func TestAuth_External_Existing(t *testing.T) {
 	usrRpoMock.EXPECT().FindByID(u.ID).Times(1).Return(u, nil)
 
 	svc := makeMockAuthService(usrRpoMock, crdRpoMock)
-	svc.settings.ExternalEnabled = true
+	svc.settings.Auth.External.Enabled = true
 
 	{
 		auser, err := svc.External(p)
@@ -113,7 +113,7 @@ func TestAuth_External_NonExisting(t *testing.T) {
 		Return(uint(0))
 
 	svc := makeMockAuthService(usrRpoMock, crdRpoMock)
-	svc.settings.ExternalEnabled = true
+	svc.settings.Auth.External.Enabled = true
 
 	{
 		auser, err := svc.External(p)
@@ -139,11 +139,11 @@ func Test_auth_validateInternalLogin(t *testing.T) {
 	}
 
 	svc := auth{
-		logger: zap.NewNop(),
-		settings: &AuthSettings{
-			InternalEnabled: true,
-		},
+		logger:   zap.NewNop(),
+		settings: &types.Settings{},
 	}
+
+	svc.settings.Auth.Internal.Enabled = true
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -203,7 +203,7 @@ func Test_auth_checkPassword(t *testing.T) {
 
 	svc := auth{
 		logger:   zap.NewNop(),
-		settings: &AuthSettings{},
+		settings: &types.Settings{},
 	}
 
 	for _, tt := range tests {

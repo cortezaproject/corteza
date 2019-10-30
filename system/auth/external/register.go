@@ -2,24 +2,27 @@ package external
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/crusttech/go-oidc"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
-func AddProvider(name string, eap *service.AuthSettingsExternalAuthProvider, force bool) error {
+func AddProvider(eap *types.ExternalAuthProvider, force bool) error {
 	var (
-		as  = service.DefaultAuthSettings
+		s   = service.CurrentSettings
 		log = log().With(
 			zap.Bool("force", force),
-			zap.String("name", name),
+			zap.String("handle", eap.Handle),
 			zap.String("key", eap.Key),
 		)
 	)
@@ -31,12 +34,12 @@ func AddProvider(name string, eap *service.AuthSettingsExternalAuthProvider, for
 	log.Info("adding external auth provider")
 
 	if !force {
-		if e, exists := as.ExternalProviders[name]; exists && e.Key == eap.Key && e.Secret == eap.Secret {
+		if ex := s.Auth.External.Providers.FindByHandle(eap.Handle); ex != nil && ex.Key == eap.Key && ex.Secret == eap.Secret {
 			return nil
 		}
 	}
 
-	if vv, err := eap.MakeValueSet(name); err != nil {
+	if vv, err := eap.EncodeKV(); err != nil {
 		log.Error("could not prepare settings", zap.Error(err))
 		return err
 	} else if err = service.DefaultIntSettings.BulkSet(vv); err != nil {
@@ -50,11 +53,11 @@ func AddProvider(name string, eap *service.AuthSettingsExternalAuthProvider, for
 
 // @todo remove dependency on github.com/crusttech/go-oidc (and github.com/coreos/go-oidc)
 //       and move client registration to corteza codebase
-func DiscoverOidcProvider(ctx context.Context, eas *service.AuthSettings, name, url string) (eap *service.AuthSettingsExternalAuthProvider, err error) {
+func DiscoverOidcProvider(ctx context.Context, s *types.Settings, name, url string) (eap *types.ExternalAuthProvider, err error) {
 	var (
 		provider    *oidc.Provider
 		client      *oidc.Client
-		redirectUrl = fmt.Sprintf(eas.ExternalRedirectUrl, OIDC_PROVIDER_PREFIX+name)
+		redirectUrl = fmt.Sprintf(s.Auth.External.RedirectUrl, OIDC_PROVIDER_PREFIX+name)
 
 		log = log().With(
 			zap.String("redirect-url", redirectUrl),
@@ -78,7 +81,8 @@ func DiscoverOidcProvider(ctx context.Context, eas *service.AuthSettings, name, 
 		return
 	}
 
-	eap = &service.AuthSettingsExternalAuthProvider{
+	eap = &types.ExternalAuthProvider{
+		Handle:      name,
 		RedirectUrl: redirectUrl,
 		Key:         client.ID,
 		Secret:      client.Secret,
@@ -90,13 +94,13 @@ func DiscoverOidcProvider(ctx context.Context, eas *service.AuthSettings, name, 
 	return
 }
 
-func RegisterOidcProvider(ctx context.Context, name, providerUrl string, force, validate, enable bool) (eap *service.AuthSettingsExternalAuthProvider, err error) {
+func RegisterOidcProvider(ctx context.Context, name, providerUrl string, force, validate, enable bool) (eap *types.ExternalAuthProvider, err error) {
 	var (
-		as = service.DefaultAuthSettings
+		s = service.CurrentSettings
 	)
 
 	if !force {
-		if _, exists := as.ExternalProviders[OIDC_PROVIDER_PREFIX+name]; exists {
+		if s.Auth.External.Providers.FindByHandle(OIDC_PROVIDER_PREFIX+name) != nil {
 			return
 		}
 	}
@@ -104,17 +108,17 @@ func RegisterOidcProvider(ctx context.Context, name, providerUrl string, force, 
 	if validate {
 		// Do basic validation of external auth settings
 		// will fail if secret or url are not set
-		if err = as.StaticValidateExternal(); err != nil {
+		if err = staticValidateExternal(s); err != nil {
 			return
 		}
 
 		// Do full rediredct-URL check
-		if err = as.ValidateExternalRedirectURL(); err != nil {
+		if err = validateExternalRedirectURL(s); err != nil {
 			return
 		}
 	}
 
-	if as.ExternalRedirectUrl == "" {
+	if s.Auth.External.RedirectUrl == "" {
 		return nil, errors.New("refusing to register OIDC provider without redirect url")
 	}
 
@@ -123,12 +127,12 @@ func RegisterOidcProvider(ctx context.Context, name, providerUrl string, force, 
 		return
 	}
 
-	eap, err = DiscoverOidcProvider(ctx, as, name, p.String())
+	eap, err = DiscoverOidcProvider(ctx, s, name, p.String())
 	if err != nil {
 		return
 	}
 
-	vv, err := eap.MakeValueSet(OIDC_PROVIDER_PREFIX + name)
+	vv, err := eap.EncodeKV()
 	if err != nil {
 		return
 	}
@@ -177,4 +181,61 @@ func parseExternalProviderUrl(in string) (p *url.URL, err error) {
 	}
 
 	return
+}
+
+// StaticValidateExternal
+//
+// Simple checks of external auth settings
+func staticValidateExternal(s *types.Settings) error {
+	if s.Auth.External.RedirectUrl == "" {
+		return errors.New("redirect URL is empty")
+	}
+
+	const (
+		tpt = "test-provider-test"
+	)
+	p, err := url.Parse(fmt.Sprintf(s.Auth.External.RedirectUrl, tpt))
+	if err != nil {
+		return errors.Wrap(err, "invalid redirect URL")
+	}
+
+	if !strings.Contains(p.Path, tpt+"/callback") {
+		return errors.Wrap(err, "could find injected provider in the URL, make sure you use '%s' as a placeholder")
+	}
+
+	if s.Auth.External.SessionStoreSecret == "" {
+		return errors.New("session store secret is empty")
+	}
+
+	if s.Auth.External.SessionStoreSecure && p.Scheme != "https" {
+		return errors.New("session store is secure, redirect URL should have HTTPS")
+	}
+
+	return nil
+}
+
+// ValidateExternalRedirectURL
+//
+// Validates external redirect URL
+func validateExternalRedirectURL(s *types.Settings) error {
+	const tpt = "test-provider-test"
+	const cb = "/callback"
+
+	// Replace placeholders & remove /callback
+	var url = fmt.Sprintf(s.Auth.External.RedirectUrl, tpt)
+	url = url[0 : len(url)-len(cb)]
+
+	rsp, err := http.DefaultClient.Get(url)
+	if err != nil {
+		return errors.Wrap(err, "could not get response from redirect URL")
+	}
+
+	defer rsp.Body.Close()
+	body, err := ioutil.ReadAll(rsp.Body)
+
+	if strings.Contains(string(body), tpt) {
+		return nil
+	}
+
+	return errors.New("could not validate external auth redirection URL")
 }

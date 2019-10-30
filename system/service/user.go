@@ -33,7 +33,7 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		settings *AuthSettings
+		settings *types.Settings
 
 		auth         userAuth
 		subscription userSubscriptionChecker
@@ -115,7 +115,7 @@ func (svc user) With(ctx context.Context) UserService {
 		logger: svc.logger,
 
 		ac:       DefaultAccessControl,
-		settings: DefaultAuthSettings,
+		settings: CurrentSettings,
 		auth:     DefaultAuth,
 
 		subscription: CurrentSubscription,
@@ -353,7 +353,7 @@ func (svc user) Unsuspend(ID uint64) (err error) {
 func (svc user) SetPassword(userID uint64, newPassword string) (err error) {
 	log := svc.log(svc.ctx, zap.Uint64("userID", userID))
 
-	if !svc.settings.InternalEnabled {
+	if !svc.settings.Auth.Internal.Enabled {
 		return errors.New("internal authentication disabled")
 	}
 
