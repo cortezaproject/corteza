@@ -37,15 +37,23 @@ func (imp *Importer) Cast(in interface{}) (err error) {
 	return deinterfacer.Each(in, func(index int, key string, val interface{}) (err error) {
 		switch key {
 		case "channels":
-			return imp.channels.CastSet(val)
+			if imp.channels != nil {
+				return imp.channels.CastSet(val)
+			}
 		case "channel":
-			return imp.channels.CastSet([]interface{}{val})
+			if imp.channels != nil {
+				return imp.channels.CastSet([]interface{}{val})
+			}
 
 		case "settings":
-			return imp.settings.CastSet(val)
+			if imp.settings != nil {
+				return imp.settings.CastSet(val)
+			}
 
 		case "allow", "deny":
-			return imp.permissions.CastResourcesSet(key, val)
+			if imp.permissions != nil {
+				return imp.permissions.CastResourcesSet(key, val)
+			}
 
 		default:
 			err = fmt.Errorf("unexpected key %q", key)
@@ -56,25 +64,31 @@ func (imp *Importer) Cast(in interface{}) (err error) {
 }
 
 func (imp *Importer) Store(ctx context.Context, rk channelKeeper, pk permissions.ImportKeeper, sk settings.ImportKeeper, roles sysTypes.RoleSet) (err error) {
-	err = imp.channels.Store(ctx, rk)
-	if err != nil {
-		return
+	if imp.channels != nil {
+		err = imp.channels.Store(ctx, rk)
+		if err != nil {
+			return
+		}
 	}
 
-	// Make sure we properly replace channel handles with IDs
-	roles.Walk(func(r *sysTypes.Role) error {
-		imp.permissions.UpdateRoles(r.Handle, r.ID)
-		return nil
-	})
+	if imp.permissions != nil {
+		// Make sure we properly replace channel handles with IDs
+		roles.Walk(func(r *sysTypes.Role) error {
+			imp.permissions.UpdateRoles(r.Handle, r.ID)
+			return nil
+		})
 
-	err = imp.permissions.Store(ctx, pk)
-	if err != nil {
-		return
+		err = imp.permissions.Store(ctx, pk)
+		if err != nil {
+			return
+		}
 	}
 
-	err = imp.settings.Store(ctx, sk)
-	if err != nil {
-		return
+	if imp.settings != nil {
+		err = imp.settings.Store(ctx, sk)
+		if err != nil {
+			return
+		}
 	}
 
 	return nil
