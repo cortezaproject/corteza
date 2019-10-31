@@ -27,6 +27,15 @@ func (h helper) repoMakePage(ns *types.Namespace, name string) *types.Page {
 	return m
 }
 
+func (h helper) repoMakeWeightedPage(ns *types.Namespace, name string, weight int) *types.Page {
+	m, err := h.
+		repoPage().
+		Create(&types.Page{Title: name, NamespaceID: ns.ID, Weight: weight})
+	h.a.NoError(err)
+
+	return m
+}
+
 func TestPageRead(t *testing.T) {
 	h := newHelper(t)
 
@@ -178,4 +187,27 @@ func TestPageDelete(t *testing.T) {
 
 	m, err := h.repoPage().FindByID(ns.ID, m.ID)
 	h.a.Error(err, "compose.repository.PageNotFound")
+}
+
+func TestPageTreeRead(t *testing.T) {
+	h := newHelper(t)
+
+	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.PagePermissionResource.AppendWildcard(), "read")
+	ns := h.repoMakeNamespace("some-namespace")
+	h.repoMakeWeightedPage(ns, "p1", 1)
+	h.repoMakeWeightedPage(ns, "p4", 4)
+	h.repoMakeWeightedPage(ns, "p3", 3)
+	h.repoMakeWeightedPage(ns, "p2", 2)
+
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/page/tree", ns.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal(`$.response[0].title`, "p1")).
+		Assert(jsonpath.Equal(`$.response[1].title`, "p2")).
+		Assert(jsonpath.Equal(`$.response[2].title`, "p3")).
+		Assert(jsonpath.Equal(`$.response[3].title`, "p4")).
+		End()
 }

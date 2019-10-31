@@ -152,6 +152,7 @@ func (svc page) Tree(namespaceID uint64) (pages types.PageSet, err error) {
 		filter = types.PageFilter{
 			NamespaceID: namespaceID,
 			IsReadable:  svc.ac.FilterReadablePages(svc.ctx),
+			Sort:        "weight ASC",
 		}
 	)
 
