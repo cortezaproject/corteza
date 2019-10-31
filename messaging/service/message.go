@@ -895,7 +895,7 @@ func (svc message) findChannelByID(channelID uint64) (ch *types.Channel, err err
 		mm            types.ChannelMemberSet
 	)
 
-	if ch, err = svc.channel.FindByID(channelID); err != nil {
+	if ch, err = svc.channel.With(svc.ctx).FindByID(channelID); err != nil {
 		return nil, err
 	} else if mm, err = svc.cmember.Find(types.ChannelMemberFilterChannels(ch.ID)); err != nil {
 		return nil, err
