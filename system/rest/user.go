@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
@@ -35,6 +36,12 @@ func (User) New() *User {
 }
 
 func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, error) {
+	// Change all
+	normalizeSortColumns := strings.NewReplacer(
+		"createdAt",
+		"created_at",
+	)
+
 	f := types.UserFilter{
 		UserID:       payload.ParseUInt64s(r.UserID),
 		RoleID:       payload.ParseUInt64s(r.RoleID),
@@ -46,7 +53,7 @@ func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, er
 		IncSuspended: r.IncSuspended,
 		IncDeleted:   r.IncDeleted,
 
-		Sort: r.Sort,
+		Sort: normalizeSortColumns.Replace(r.Sort),
 
 		PageFilter: rh.Paging(r.Page, r.PerPage),
 	}
