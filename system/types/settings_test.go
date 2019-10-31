@@ -50,22 +50,22 @@ func Test_settingsExtAuthProvidersDecode(t *testing.T) {
 
 	require.Equal(t,
 		aux.Providers.FindByHandle("openid-connect.bar"),
-		&ExternalAuthProvider{Enabled: true, Key: "K3Y", Handle: "openid-connect.bar"})
+		&ExternalAuthProvider{Enabled: true, Key: "K3Y", Handle: "openid-connect.bar", Label: "Bar"})
 
 	require.Equal(t,
 		aux.Providers.FindByHandle("google"),
-		&ExternalAuthProvider{Enabled: true, Key: "g00gl3", Handle: "google"})
+		&ExternalAuthProvider{Enabled: true, Key: "g00gl3", Handle: "google", Label: "Google"})
 
 	require.Equal(t,
 		aux.Providers.FindByHandle("linkedin"),
-		&ExternalAuthProvider{Handle: "linkedin"})
+		&ExternalAuthProvider{Handle: "linkedin", Label: "LinkedIn"})
 
 	require.Equal(t,
 		aux.Providers.FindByHandle("github"),
-		&ExternalAuthProvider{Handle: "github"})
+		&ExternalAuthProvider{Handle: "github", Label: "GitHub"})
 
 	require.Equal(t,
 		aux.Providers.FindByHandle("facebook"),
-		&ExternalAuthProvider{Handle: "facebook"})
+		&ExternalAuthProvider{Handle: "facebook", Label: "Facebook"})
 
 }

@@ -87,7 +87,7 @@ func (ctrl *Auth) Settings(ctx context.Context, r *request.AuthSettings) (interf
 			"internalSignUpEnabled":                   int.Signup.Enabled,
 
 			"externalEnabled":   ext.Enabled,
-			"externalProviders": ext.Providers,
+			"externalProviders": ext.Providers.Valid(ctrl.settings),
 		}
 	)
 

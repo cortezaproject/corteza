@@ -112,8 +112,8 @@ type (
 		Label       string `json:"label"`
 		Key         string `json:"-"`
 		Secret      string `json:"-"`
-		RedirectUrl string `json:",omitempty" kv:"redirect"`
-		IssuerUrl   string `json:",omitempty" kv:"issuer"`
+		RedirectUrl string `json:"-" kv:"redirect"`
+		IssuerUrl   string `json:"-" kv:"issuer"`
 		Weight      int    `json:"-"`
 	}
 )
@@ -159,12 +159,20 @@ func (set *ExternalAuthProviderSet) DecodeKV(kv settings.KV, prefix string) (err
 
 		if p.Label == "" {
 			switch p.Handle {
+			case "github":
+				p.Label = "GitHub"
+			case "linkedin":
+				p.Label = "LinkedIn"
 			case "corteza-iam", "corteza", "corteza-one":
 				p.Label = "Corteza One"
 			case "crust-iam", "crust", "crust-unify":
 				p.Label = "Crust Unify"
 			default:
-				strings.Title(p.Handle)
+				if strings.HasPrefix(p.Handle, oidcPrefix) {
+					p.Label = strings.Title(p.Handle[len(oidcPrefix):])
+				} else {
+					p.Label = strings.Title(p.Handle)
+				}
 			}
 		}
 	}
@@ -182,9 +190,34 @@ func (set ExternalAuthProviderSet) FindByHandle(handle string) *ExternalAuthProv
 	return nil
 }
 
-func (set ExternalAuthProviderSet) Len() int           { return len(set) }
-func (set ExternalAuthProviderSet) Swap(i, j int)      { set[i], set[j] = set[j], set[i] }
-func (set ExternalAuthProviderSet) Less(i, j int) bool { return set[i].Weight < set[j].Weight }
+func (set ExternalAuthProviderSet) Len() int      { return len(set) }
+func (set ExternalAuthProviderSet) Swap(i, j int) { set[i], set[j] = set[j], set[i] }
+func (set ExternalAuthProviderSet) Less(i, j int) bool {
+	if set[i].Weight != set[j].Weight {
+		// Sort by weight
+		return set[i].Weight < set[j].Weight
+	}
+
+	if set[i].Label+set[j].Label != "" {
+		// If at least one of the
+		return set[i].Label < set[j].Label
+	}
+
+	return set[i].Handle < set[j].Handle
+}
+
+// Returns enabled providers, sorted with their redirect-URLs set...
+func (set ExternalAuthProviderSet) Valid(s *Settings) (out ExternalAuthProviderSet) {
+	for _, eap := range set {
+		if !eap.Enabled {
+			continue
+		}
+
+		out = append(out, eap)
+	}
+
+	return
+}
 
 var _ settings.KVDecoder = &ExternalAuthProviderSet{}
 
