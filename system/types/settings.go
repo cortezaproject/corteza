@@ -88,8 +88,8 @@ type (
 			}
 
 			Mail struct {
-				FromAddress string `kv:"from-name"`
-				FromName    string `kv:"from-address"`
+				FromAddress string `kv:"from-address"`
+				FromName    string `kv:"from-name"`
 
 				EmailConfirmation struct {
 					Subject string `kv:"subject.en"`
