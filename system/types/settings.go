@@ -164,9 +164,9 @@ func (set *ExternalAuthProviderSet) DecodeKV(kv settings.KV, prefix string) (err
 			case "linkedin":
 				p.Label = "LinkedIn"
 			case "corteza-iam", "corteza", "corteza-one":
-				p.Label = "Corteza One"
+				p.Label = "Corteza IAM"
 			case "crust-iam", "crust", "crust-unify":
-				p.Label = "Crust Unify"
+				p.Label = "Crust IAM"
 			default:
 				if strings.HasPrefix(p.Handle, oidcPrefix) {
 					p.Label = strings.Title(p.Handle[len(oidcPrefix):])
