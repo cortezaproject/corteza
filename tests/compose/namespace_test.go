@@ -72,6 +72,23 @@ func TestNamespaceList(t *testing.T) {
 		End()
 }
 
+func TestNamespaceList_filterForbiden(t *testing.T) {
+	h := newHelper(t)
+
+	h.repoMakeNamespace("namespace")
+	f := h.repoMakeNamespace("namespace_forbiden")
+
+	h.deny(types.NamespacePermissionResource.AppendID(f.ID), "read")
+
+	h.apiInit().
+		Get("/namespace/").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.NotPresent(`$.response.set[? @.name=="namespace_forbiden"]`)).
+		End()
+}
+
 func TestNamespaceCreateForbidden(t *testing.T) {
 	h := newHelper(t)
 

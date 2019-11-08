@@ -87,6 +87,26 @@ func TestPageList(t *testing.T) {
 		End()
 }
 
+func TestPageList_filterForbiden(t *testing.T) {
+	h := newHelper(t)
+
+	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	ns := h.repoMakeNamespace("some-namespace")
+
+	h.repoMakePage(ns, "page")
+	f := h.repoMakePage(ns, "page_forbiden")
+
+	h.deny(types.PagePermissionResource.AppendID(f.ID), "read")
+
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/page/", ns.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.NotPresent(`$.response.set[? @.title=="page_forbiden"]`)).
+		End()
+}
+
 func TestPageCreateForbidden(t *testing.T) {
 	h := newHelper(t)
 

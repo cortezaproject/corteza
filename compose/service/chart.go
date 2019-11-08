@@ -102,7 +102,7 @@ func (svc chart) checkPermissions(c *types.Chart, err error) (*types.Chart, erro
 }
 
 func (svc chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error) {
-	f.IsReadable = svc.ac.FilterReadableCharts(svc.ctx)
+	filter.IsReadable = svc.ac.FilterReadableCharts(svc.ctx)
 
 	set, f, err = svc.chartRepo.Find(filter)
 	if err != nil {

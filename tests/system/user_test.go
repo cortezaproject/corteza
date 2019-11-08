@@ -80,6 +80,24 @@ func TestUserListAll(t *testing.T) {
 	h.a.GreaterOrEqual(int(aux.Response.Filter.Count), seedCount)
 }
 
+func TestUserList_filterForbiden(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
+
+	h.repoMakeUser("usr")
+	f := h.repoMakeUser("usr_forbiden")
+
+	h.deny(types.UserPermissionResource.AppendID(f.ID), "read")
+
+	h.apiInit().
+		Get("/users/").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.NotPresent(`$.response.set[? @.email=="usr_forbiden"]`)).
+		End()
+}
+
 func TestUserListQuery(t *testing.T) {
 	h := newHelper(t)
 

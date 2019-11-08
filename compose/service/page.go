@@ -133,7 +133,7 @@ func (svc page) FindBySelfID(namespaceID, parentID uint64) (pp types.PageSet, f 
 }
 
 func (svc page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
-	f.IsReadable = svc.ac.FilterReadablePages(svc.ctx)
+	filter.IsReadable = svc.ac.FilterReadablePages(svc.ctx)
 
 	if filter.NamespaceID == 0 {
 		return nil, f, ErrNamespaceRequired.withStack()
