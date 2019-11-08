@@ -55,6 +55,23 @@ func TestApplicationList(t *testing.T) {
 		End()
 }
 
+func TestApplicationList_filterForbiden(t *testing.T) {
+	h := newHelper(t)
+
+	h.repoMakeApplication("app")
+	f := h.repoMakeApplication("app_forbiden")
+
+	h.deny(types.ApplicationPermissionResource.AppendID(f.ID), "read")
+
+	h.apiInit().
+		Get("/application/").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.NotPresent(`$.response.set[? @.name=="app_forbiden"]`)).
+		End()
+}
+
 func TestApplicationCreateForbidden(t *testing.T) {
 	h := newHelper(t)
 

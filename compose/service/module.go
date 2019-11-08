@@ -125,16 +125,12 @@ func (svc module) loader(m *types.Module, err error) (*types.Module, error) {
 }
 
 func (svc module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
-	f.IsReadable = svc.ac.FilterReadableModules(svc.ctx)
+	filter.IsReadable = svc.ac.FilterReadableModules(svc.ctx)
 
 	set, f, err = svc.moduleRepo.Find(filter)
 	if err != nil {
 		return
 	}
-
-	set, _ = set.Filter(func(m *types.Module) (bool, error) {
-		return svc.ac.CanReadModule(svc.ctx, m), nil
-	})
 
 	// Preload all fields and update all modules
 	var ff types.ModuleFieldSet

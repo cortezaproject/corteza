@@ -59,6 +59,24 @@ func TestAutomationScriptList(t *testing.T) {
 		End()
 }
 
+func TestAutomationScriptList_filterForbiden(t *testing.T) {
+	h := newHelper(t)
+
+	h.svcMakeAutomationScript("scr" + rs())
+	ff := "scr_forbiden" + rs()
+	f := h.svcMakeAutomationScript(ff)
+
+	h.deny(types.AutomationScriptPermissionResource.AppendID(f.ID), "read")
+
+	h.apiInit().
+		Get("/automation/script/").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.NotPresent(fmt.Sprintf(`$.response.set[? @.name=="%s"]`, ff))).
+		End()
+}
+
 func TestAutomationScriptCreateForbidden(t *testing.T) {
 	h := newHelper(t)
 

@@ -68,6 +68,23 @@ func TestRoleList(t *testing.T) {
 		End()
 }
 
+func TestRoleList_filterForbiden(t *testing.T) {
+	h := newHelper(t)
+
+	h.repoMakeRole("role")
+	f := h.repoMakeRole("role_forbiden")
+
+	h.deny(types.RolePermissionResource.AppendID(f.ID), "read")
+
+	h.apiInit().
+		Get("/roles/").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.NotPresent(`$.response.set[? @.name=="role_forbiden"]`)).
+		End()
+}
+
 func TestRoleCreateForbidden(t *testing.T) {
 	h := newHelper(t)
 

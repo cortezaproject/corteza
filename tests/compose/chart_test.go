@@ -78,6 +78,26 @@ func TestChartList(t *testing.T) {
 		End()
 }
 
+func TestChartList_filterForbiden(t *testing.T) {
+	h := newHelper(t)
+
+	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	ns := h.repoMakeNamespace("some-namespace")
+
+	h.repoMakeChart(ns, "chart")
+	f := h.repoMakeChart(ns, "chart_forbiden")
+
+	h.deny(types.ChartPermissionResource.AppendID(f.ID), "read")
+
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/chart/", ns.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.NotPresent(`$.response.set[? @.name=="chart_forbiden"]`)).
+		End()
+}
+
 func TestChartCreateForbidden(t *testing.T) {
 	h := newHelper(t)
 

@@ -97,7 +97,7 @@ func (svc namespace) checkPermissions(p *types.Namespace, err error) (*types.Nam
 }
 
 func (svc namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
-	f.IsReadable = svc.ac.FilterReadableNamespaces(svc.ctx)
+	filter.IsReadable = svc.ac.FilterReadableNamespaces(svc.ctx)
 
 	set, f, err = svc.namespaceRepo.Find(filter)
 	if err != nil {

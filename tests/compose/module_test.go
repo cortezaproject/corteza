@@ -107,6 +107,26 @@ func TestModuleListQuery(t *testing.T) {
 		End()
 }
 
+func TestModuleList_filterForbiden(t *testing.T) {
+	h := newHelper(t)
+
+	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	ns := h.repoMakeNamespace("some-namespace")
+
+	h.repoMakeModule(ns, "module")
+	f := h.repoMakeModule(ns, "module_forbiden")
+
+	h.deny(types.ModulePermissionResource.AppendID(f.ID), "read")
+
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/module/", ns.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.NotPresent(`$.response.set[? @.name=="module_forbiden"]`)).
+		End()
+}
+
 func TestModuleCreateForbidden(t *testing.T) {
 	h := newHelper(t)
 

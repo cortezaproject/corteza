@@ -100,6 +100,10 @@ func (r *application) Find(filter types.ApplicationFilter) (set types.Applicatio
 
 	query := r.query()
 
+	if f.IsReadable != nil {
+		query = query.Where(f.IsReadable)
+	}
+
 	var orderBy []string
 	if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
 		return
