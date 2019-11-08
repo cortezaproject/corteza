@@ -127,7 +127,7 @@ func (r module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.Mo
 		q := "%" + strings.ToLower(f.Query) + "%"
 		query = query.Where(squirrel.Or{
 			squirrel.Like{"LOWER(name)": q},
-			squirrel.Like{"LOWER(slug)": q},
+			squirrel.Like{"LOWER(handle)": q},
 		})
 	}
 
