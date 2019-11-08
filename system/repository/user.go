@@ -172,7 +172,7 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 	}
 
 	if f.Email != "" {
-		query = query.Where(whereMasked(f.IsNameUnmaskable, squirrel.Eq{"u.name": f.Email}))
+		query = query.Where(whereMasked(f.IsNameUnmaskable, squirrel.Eq{"u.email": f.Email}))
 	}
 
 	if f.Username != "" {
