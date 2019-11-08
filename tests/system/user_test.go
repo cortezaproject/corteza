@@ -22,9 +22,13 @@ func (h helper) repoUser() repository.UserRepository {
 }
 
 func (h helper) repoMakeUser(email string) *types.User {
+	return h.repoSaveUser(&types.User{Email: email})
+}
+
+func (h helper) repoSaveUser(user *types.User) *types.User {
 	u, err := h.
 		repoUser().
-		Create(&types.User{Email: email})
+		Create(user)
 	h.a.NoError(err)
 
 	return u
@@ -104,6 +108,71 @@ func TestUserListQuery(t *testing.T) {
 	h.a.NotNil(aux.Response)
 	h.a.NotNil(aux.Response.Filter)
 	h.a.GreaterOrEqual(int(aux.Response.Filter.Count), 0)
+}
+
+func TestUserListQueryEmail(t *testing.T) {
+	h := newHelper(t)
+
+	h.secCtx()
+	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
+
+	ee := h.randEmail()
+	h.repoMakeUser(ee)
+
+	h.apiInit().
+		Debug().
+		Get("/users/").
+		Query("email", ee).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Present(`$.response.set != null`)).
+		End()
+}
+
+func TestUserListQueryUsername(t *testing.T) {
+	h := newHelper(t)
+
+	h.secCtx()
+	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
+
+	ee := h.randEmail()
+	h.repoSaveUser(&types.User{
+		Email:    "test@test.tld",
+		Username: ee,
+	})
+
+	h.apiInit().
+		Debug().
+		Get("/users/").
+		Query("username", ee).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Present(`$.response.set != null`)).
+		End()
+}
+
+func TestUserListQueryHandle(t *testing.T) {
+	h := newHelper(t)
+
+	h.secCtx()
+	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
+
+	h.repoSaveUser(&types.User{
+		Email:  "test@test.tld",
+		Handle: "johnDoe",
+	})
+
+	h.apiInit().
+		Debug().
+		Get("/users/").
+		Query("handle", "johnDoe").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Present(`$.response.set != null`)).
+		End()
 }
 
 func TestUserListWithOneAllowed(t *testing.T) {
