@@ -19,9 +19,13 @@ func (h helper) repoModule() repository.ModuleRepository {
 }
 
 func (h helper) repoMakeModule(ns *types.Namespace, name string, ff ...*types.ModuleField) *types.Module {
+	return h.repoSaveModule(&types.Module{Name: name, NamespaceID: ns.ID, Fields: ff})
+}
+
+func (h helper) repoSaveModule(mod *types.Module) *types.Module {
 	m, err := h.
 		repoModule().
-		Create(&types.Module{Name: name, NamespaceID: ns.ID, Fields: ff})
+		Create(mod)
 	h.a.NoError(err)
 
 	err = h.repoModule().UpdateFields(m.ID, m.Fields, false)
@@ -78,6 +82,28 @@ func TestModuleList(t *testing.T) {
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
+		End()
+}
+
+func TestModuleListQuery(t *testing.T) {
+	h := newHelper(t)
+
+	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	ns := h.repoMakeNamespace("some-namespace")
+
+	h.repoSaveModule(&types.Module{
+		Name:        "name",
+		Handle:      "handle",
+		NamespaceID: ns.ID,
+	})
+
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/module/", ns.ID)).
+		Query("query", "handle").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Present("$.response.set != null")).
 		End()
 }
 
