@@ -104,6 +104,13 @@ func (r *application) Find(filter types.ApplicationFilter) (set types.Applicatio
 		query = query.Where(f.IsReadable)
 	}
 
+	if f.Query != "" {
+		qs := "%" + f.Query + "%"
+		query = query.Where(squirrel.Or{
+			squirrel.Like{"name": qs},
+		})
+	}
+
 	var orderBy []string
 	if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
 		return
