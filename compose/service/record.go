@@ -427,6 +427,11 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 		return ErrNoDeletePermissions.withStack()
 	}
 
+	// preloadValues should be pressent to load values for automation scripts
+	if err = svc.preloadValues(m, r); err != nil {
+		return
+	}
+
 	if err = svc.sr.BeforeRecordDelete(svc.ctx, ns, m, r); err != nil {
 		// Calling
 		return
