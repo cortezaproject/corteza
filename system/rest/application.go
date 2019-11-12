@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"strings"
 
 	"github.com/titpetric/factory/resputil"
 
@@ -50,10 +51,17 @@ func (Application) New() *Application {
 }
 
 func (ctrl *Application) List(ctx context.Context, r *request.ApplicationList) (interface{}, error) {
+	normalizeSortColumns := strings.NewReplacer(
+		"createdAt",
+		"created_at",
+	)
+
 	f := types.ApplicationFilter{
 		Name:       r.Name,
 		Query:      r.Query,
-		Sort:       r.Sort,
+
+		Sort: normalizeSortColumns.Replace(r.Sort),
+
 		PageFilter: rh.Paging(r.Page, r.PerPage),
 	}
 
