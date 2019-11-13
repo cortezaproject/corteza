@@ -71,23 +71,6 @@ func FetchAll(db *factory.DB, q squirrel.Sqlizer, set interface{}) error {
 	}
 }
 
-// NormalizePerPage normalize page number
-func NormalizePerPage(val, min, max, def uint) uint {
-	if val == 0 {
-		return def
-	}
-
-	if max > 0 && val > max {
-		return max
-	}
-
-	if min > 0 && val < min {
-		return min
-	}
-
-	return val
-}
-
 // IsFound helps with one-row results
 func IsFound(err error, valid bool, nerr error) error {
 	if err != nil {

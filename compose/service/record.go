@@ -207,8 +207,6 @@ func (svc record) Report(namespaceID, moduleID uint64, metrics, dimensions, filt
 }
 
 func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
-	filter.PageFilter.NormalizePerPageWithDefaults()
-
 	var m *types.Module
 	if m, err = svc.loadModule(filter.NamespaceID, filter.ModuleID); err != nil {
 		return
