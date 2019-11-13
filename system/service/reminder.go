@@ -49,8 +49,6 @@ func Reminder(ctx context.Context) ReminderService {
 }
 
 func (svc reminder) Find(ctx context.Context, f types.ReminderFilter) (types.ReminderSet, types.ReminderFilter, error) {
-	f.PageFilter.NormalizePerPageNoMax()
-
 	rr, f, err := svc.reminder.Find(f)
 	if err != nil {
 		return nil, f, err

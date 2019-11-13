@@ -24,15 +24,3 @@ func Paging(page, perPage uint) PageFilter {
 		PerPage: perPage,
 	}
 }
-
-func (pf *PageFilter) NormalizePerPage(min, max, def uint) {
-	pf.PerPage = NormalizePerPage(pf.PerPage, min, max, def)
-}
-
-func (pf *PageFilter) NormalizePerPageWithDefaults() {
-	pf.PerPage = NormalizePerPage(pf.PerPage, PER_PAGE_MIN, PER_PAGE_MAX, PER_PAGE_DEFAULT)
-}
-
-func (pf *PageFilter) NormalizePerPageNoMax() {
-	pf.PerPage = NormalizePerPage(pf.PerPage, PER_PAGE_MIN, 0, PER_PAGE_DEFAULT)
-}
