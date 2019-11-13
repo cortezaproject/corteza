@@ -311,5 +311,7 @@ func TestUserDelete(t *testing.T) {
 		End()
 
 	u, err := h.repoUser().FindByID(u.ID)
-	h.a.Error(err, "system.repository.UserNotFound")
+	h.a.NoError(err)
+	h.a.NotNil(u)
+	h.a.NotNil(u.DeletedAt)
 }
