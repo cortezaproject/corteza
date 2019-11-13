@@ -72,11 +72,7 @@ func (r user) columns() []string {
 func (r user) query() squirrel.SelectBuilder {
 	return squirrel.
 		Select(r.columns()...).
-		From(r.table() + " AS u").
-		Where(squirrel.And{
-			squirrel.Eq{"deleted_at": nil},
-			squirrel.Eq{"suspended_at": nil},
-		})
+		From(r.table() + " AS u")
 }
 
 func (r *user) With(ctx context.Context, db *factory.DB) UserRepository {
