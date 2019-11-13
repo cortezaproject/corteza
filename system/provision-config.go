@@ -88,6 +88,18 @@ func makeDefaultApplications(ctx context.Context, cmd *cobra.Command, c *cli.Con
 				Url:    "/compose/ns/crm/pages",
 			},
 		},
+
+		&types.Application{
+			Name:    "Service Cloud",
+			Enabled: true,
+			Unify: &types.ApplicationUnify{
+				Name:   "Service Cloud",
+				Listed: true,
+				Icon:   "/applications/crust_favicon.png",
+				Logo:   "/applications/crust.jpg",
+				Url:    "/compose/ns/service-cloud/pages",
+			},
+		},
 	}
 
 	return defApps.Walk(func(defApp *types.Application) error {
