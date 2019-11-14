@@ -7,6 +7,7 @@ import (
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -54,7 +55,17 @@ func (ctrl Role) Read(ctx context.Context, r *request.RoleRead) (interface{}, er
 }
 
 func (ctrl Role) List(ctx context.Context, r *request.RoleList) (interface{}, error) {
-	set, filter, err := ctrl.role.With(ctx).Find(types.RoleFilter{Query: r.Query})
+	f := types.RoleFilter{
+		Query: r.Query,
+
+		Archived: rh.FilterState(r.Archived),
+		Deleted:  rh.FilterState(r.Deleted),
+
+		Sort:       rh.NormalizeSortColumns(r.Sort),
+		PageFilter: rh.Paging(r.Page, r.PerPage),
+	}
+
+	set, filter, err := ctrl.role.With(ctx).Find(f)
 	return ctrl.makeFilterPayload(ctx, set, filter, err)
 }
 
@@ -123,8 +134,16 @@ func (ctrl Role) Delete(ctx context.Context, r *request.RoleDelete) (interface{}
 	return resputil.OK(), ctrl.role.With(ctx).Delete(r.RoleID)
 }
 
+func (ctrl Role) Undelete(ctx context.Context, r *request.RoleUndelete) (interface{}, error) {
+	return resputil.OK(), ctrl.role.With(ctx).Undelete(r.RoleID)
+}
+
 func (ctrl Role) Archive(ctx context.Context, r *request.RoleArchive) (interface{}, error) {
 	return resputil.OK(), ctrl.role.With(ctx).Archive(r.RoleID)
+}
+
+func (ctrl Role) Unarchive(ctx context.Context, r *request.RoleUnarchive) (interface{}, error) {
+	return resputil.OK(), ctrl.role.With(ctx).Unarchive(r.RoleID)
 }
 
 func (ctrl Role) Merge(ctx context.Context, r *request.RoleMerge) (interface{}, error) {

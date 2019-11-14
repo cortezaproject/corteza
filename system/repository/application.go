@@ -22,6 +22,7 @@ type (
 		Update(mod *types.Application) (*types.Application, error)
 
 		DeleteByID(id uint64) error
+		UndeleteByID(id uint64) error
 	}
 
 	application struct {
@@ -64,8 +65,7 @@ func (r application) columns() []string {
 func (r application) query() squirrel.SelectBuilder {
 	return squirrel.
 		Select(r.columns()...).
-		From(r.table()).
-		Where("deleted_at IS NULL")
+		From(r.table())
 }
 
 func (r *application) FindByID(id uint64) (*types.Application, error) {
@@ -104,6 +104,8 @@ func (r *application) Find(filter types.ApplicationFilter) (set types.Applicatio
 		query = query.Where(f.IsReadable)
 	}
 
+	query = rh.FilterNullByState(query, "deleted_at", f.Deleted)
+
 	if f.Query != "" {
 		qs := "%" + f.Query + "%"
 		query = query.Where(squirrel.Or{
@@ -139,5 +141,9 @@ func (r *application) Update(mod *types.Application) (*types.Application, error)
 }
 
 func (r *application) DeleteByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "deleted_at", time.Now(), id)
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"deleted_at": time.Now()}, squirrel.Eq{"id": id})
+}
+
+func (r *application) UndeleteByID(id uint64) error {
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"deleted_at": nil}, squirrel.Eq{"id": id})
 }

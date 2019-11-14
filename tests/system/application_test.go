@@ -155,5 +155,7 @@ func TestApplicationDelete(t *testing.T) {
 		End()
 
 	a, err := h.repoApplication().FindByID(a.ID)
-	h.a.Error(err, "system.repository.ApplicationNotFound")
+	h.a.NoError(err)
+	h.a.NotNil(a)
+	h.a.NotNil(a.DeletedAt)
 }

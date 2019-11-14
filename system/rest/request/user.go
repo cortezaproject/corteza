@@ -43,6 +43,8 @@ type UserList struct {
 	Kind         types.UserKind
 	IncDeleted   bool
 	IncSuspended bool
+	Deleted      uint
+	Suspended    uint
 	Sort         string
 	Page         uint
 	PerPage      uint
@@ -64,6 +66,8 @@ func (r UserList) Auditable() map[string]interface{} {
 	out["kind"] = r.Kind
 	out["incDeleted"] = r.IncDeleted
 	out["incSuspended"] = r.IncSuspended
+	out["deleted"] = r.Deleted
+	out["suspended"] = r.Suspended
 	out["sort"] = r.Sort
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
@@ -130,6 +134,12 @@ func (r *UserList) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := get["incSuspended"]; ok {
 		r.IncSuspended = parseBool(val)
+	}
+	if val, ok := get["deleted"]; ok {
+		r.Deleted = parseUint(val)
+	}
+	if val, ok := get["suspended"]; ok {
+		r.Suspended = parseUint(val)
 	}
 	if val, ok := get["sort"]; ok {
 		r.Sort = val
@@ -488,6 +498,57 @@ func (r *UserUnsuspend) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewUserUnsuspend()
+
+// User undelete request parameters
+type UserUndelete struct {
+	UserID uint64 `json:",string"`
+}
+
+func NewUserUndelete() *UserUndelete {
+	return &UserUndelete{}
+}
+
+func (r UserUndelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["userID"] = r.UserID
+
+	return out
+}
+
+func (r *UserUndelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
+
+	return err
+}
+
+var _ RequestFiller = NewUserUndelete()
 
 // User setPassword request parameters
 type UserSetPassword struct {

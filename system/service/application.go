@@ -6,6 +6,7 @@ import (
 	"github.com/titpetric/factory"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -21,6 +22,7 @@ type (
 	}
 
 	applicationAccessController interface {
+		CanAccess(context.Context) bool
 		CanCreateApplication(context.Context) bool
 		CanReadApplication(context.Context, *types.Application) bool
 		CanUpdateApplication(context.Context, *types.Application) bool
@@ -37,7 +39,8 @@ type (
 
 		Create(application *types.Application) (*types.Application, error)
 		Update(application *types.Application) (*types.Application, error)
-		DeleteByID(id uint64) error
+		Delete(uint64) error
+		Undelete(uint64) error
 	}
 )
 
@@ -76,6 +79,18 @@ func (svc *application) FindByID(ID uint64) (app *types.Application, err error) 
 
 func (svc *application) Find(f types.ApplicationFilter) (types.ApplicationSet, types.ApplicationFilter, error) {
 	f.IsReadable = svc.ac.FilterReadableApplications(svc.ctx)
+
+	if f.Deleted > rh.FilterStateExcluded {
+		// If list with deleted applications is requested
+		// user must have access permissions to system (ie: is admin)
+		//
+		// not the best solution but ATM it allows us to have at least
+		// some kind of control over who can see deleted applications
+		if !svc.ac.CanAccess(svc.ctx) {
+			return nil, f, ErrNoPermissions.withStack()
+		}
+	}
+
 	return svc.application.Find(f)
 }
 
@@ -109,12 +124,20 @@ func (svc *application) Update(mod *types.Application) (t *types.Application, er
 	})
 }
 
-func (svc *application) DeleteByID(id uint64) error {
-	app := &types.Application{ID: id}
+func (svc *application) Delete(ID uint64) error {
+	app := &types.Application{ID: ID}
 	if !svc.ac.CanDeleteApplication(svc.ctx, app) {
 		return ErrNoPermissions.withStack()
 	}
-	return svc.application.DeleteByID(id)
+	return svc.application.DeleteByID(ID)
+}
+
+func (svc *application) Undelete(ID uint64) error {
+	app := &types.Application{ID: ID}
+	if !svc.ac.CanDeleteApplication(svc.ctx, app) {
+		return ErrNoPermissions.withStack()
+	}
+	return svc.application.UndeleteByID(ID)
 }
 
 var _ ApplicationService = &application{}

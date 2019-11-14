@@ -71,17 +71,22 @@ func TestRoleList(t *testing.T) {
 func TestRoleList_filterForbiden(t *testing.T) {
 	h := newHelper(t)
 
+	// @todo this can be a problematic test because it leaves
+	//       behind roles that are not denied this context
+	//       db purge might be needed
+
 	h.repoMakeRole("role")
-	f := h.repoMakeRole("role_forbiden")
+	f := h.repoMakeRole()
 
 	h.deny(types.RolePermissionResource.AppendID(f.ID), "read")
 
 	h.apiInit().
 		Get("/roles/").
+		Query("handle", f.Handle).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
-		Assert(jsonpath.NotPresent(`$.response.set[? @.name=="role_forbiden"]`)).
+		Assert(jsonpath.NotPresent(fmt.Sprintf(`$.response.set[? @.handle=="%s"]`, f.Handle))).
 		End()
 }
 
@@ -189,15 +194,17 @@ func TestRoleDelete(t *testing.T) {
 	h := newHelper(t)
 	h.allow(types.RolePermissionResource.AppendWildcard(), "delete")
 
-	u := h.repoMakeRole()
+	r := h.repoMakeRole()
 
 	h.apiInit().
-		Delete(fmt.Sprintf("/roles/%d", u.ID)).
+		Delete(fmt.Sprintf("/roles/%d", r.ID)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	u, err := h.repoRole().FindByID(u.ID)
-	h.a.Error(err, "system.repository.RoleNotFound")
+	r, err := h.repoRole().FindByID(r.ID)
+	h.a.NoError(err)
+	h.a.NotNil(r)
+	h.a.NotNil(r.DeletedAt)
 }

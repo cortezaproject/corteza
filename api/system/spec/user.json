@@ -68,14 +68,26 @@
           {
             "name": "incDeleted",
             "required": false,
-            "title": "Include deleted users (requires 'access' permission)",
+            "title": "[Deprecated] Include deleted users (requires 'access' permission)",
             "type": "bool"
           },
           {
             "name": "incSuspended",
             "required": false,
-            "title": "Include suspended users (requires 'access' permission)",
+            "title": "[Deprecated] Include suspended users",
             "type": "bool"
+          },
+          {
+            "name": "deleted",
+            "required": false,
+            "title": "Exclude (0, default), include (1) or return only (2) deleted users",
+            "type": "uint"
+          },
+          {
+            "name": "suspended",
+            "required": false,
+            "title": "Exclude (0, default), include (1) or return only (2) suspended users",
+            "type": "uint"
           },
           {
             "name": "sort",
@@ -227,6 +239,22 @@
       "Method": "POST",
       "Title": "Unsuspend user",
       "Path": "/{userID}/unsuspend",
+      "Parameters": {
+        "path": [
+          {
+            "name": "userID",
+            "required": true,
+            "title": "User ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "undelete",
+      "Method": "POST",
+      "Title": "Undelete user",
+      "Path": "/{userID}/undelete",
       "Parameters": {
         "path": [
           {

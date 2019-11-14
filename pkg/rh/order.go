@@ -8,6 +8,23 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 )
 
+var (
+	normalizeSortColumns = strings.NewReplacer(
+		"createdAt",
+		"created_at",
+		"updatedAt",
+		"updated_at",
+		"deletedAt",
+		"deleted_at",
+	)
+)
+
+// NormalizeSortColumns returns sort-by columns by replacing names
+// that API returns as JSON objects into internal (db) representation
+func NormalizeSortColumns(sort string) string {
+	return normalizeSortColumns.Replace(sort)
+}
+
 func ParseOrder(order string, valid ...string) (out []string, err error) {
 	var (
 		// Sort parser

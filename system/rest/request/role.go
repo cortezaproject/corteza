@@ -32,7 +32,12 @@ var _ = multipart.FileHeader{}
 
 // Role list request parameters
 type RoleList struct {
-	Query string
+	Query    string
+	Deleted  uint
+	Archived uint
+	Page     uint
+	PerPage  uint
+	Sort     string
 }
 
 func NewRoleList() *RoleList {
@@ -43,6 +48,11 @@ func (r RoleList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["query"] = r.Query
+	out["deleted"] = r.Deleted
+	out["archived"] = r.Archived
+	out["page"] = r.Page
+	out["perPage"] = r.PerPage
+	out["sort"] = r.Sort
 
 	return out
 }
@@ -76,6 +86,21 @@ func (r *RoleList) Fill(req *http.Request) (err error) {
 
 	if val, ok := get["query"]; ok {
 		r.Query = val
+	}
+	if val, ok := get["deleted"]; ok {
+		r.Deleted = parseUint(val)
+	}
+	if val, ok := get["archived"]; ok {
+		r.Archived = parseUint(val)
+	}
+	if val, ok := get["page"]; ok {
+		r.Page = parseUint(val)
+	}
+	if val, ok := get["perPage"]; ok {
+		r.PerPage = parseUint(val)
+	}
+	if val, ok := get["sort"]; ok {
+		r.Sort = val
 	}
 
 	return err
@@ -366,6 +391,108 @@ func (r *RoleArchive) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewRoleArchive()
+
+// Role unarchive request parameters
+type RoleUnarchive struct {
+	RoleID uint64 `json:",string"`
+}
+
+func NewRoleUnarchive() *RoleUnarchive {
+	return &RoleUnarchive{}
+}
+
+func (r RoleUnarchive) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["roleID"] = r.RoleID
+
+	return out
+}
+
+func (r *RoleUnarchive) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
+
+	return err
+}
+
+var _ RequestFiller = NewRoleUnarchive()
+
+// Role undelete request parameters
+type RoleUndelete struct {
+	RoleID uint64 `json:",string"`
+}
+
+func NewRoleUndelete() *RoleUndelete {
+	return &RoleUndelete{}
+}
+
+func (r RoleUndelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["roleID"] = r.RoleID
+
+	return out
+}
+
+func (r *RoleUndelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
+
+	return err
+}
+
+var _ RequestFiller = NewRoleUndelete()
 
 // Role move request parameters
 type RoleMove struct {

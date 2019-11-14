@@ -28,8 +28,8 @@ type (
 		Handle string `json:"handle"`
 		Name   string `json:"name"`
 
-		IncDeleted  bool `json:"incDeleted"`
-		IncArchived bool `json:"incArchived"`
+		Deleted  rh.FilterState `json:"deleted"`
+		Archived rh.FilterState `json:"archived"`
 
 		Sort string `json:"sort"`
 

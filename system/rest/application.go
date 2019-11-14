@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"strings"
 
 	"github.com/titpetric/factory/resputil"
 
@@ -51,17 +50,13 @@ func (Application) New() *Application {
 }
 
 func (ctrl *Application) List(ctx context.Context, r *request.ApplicationList) (interface{}, error) {
-	normalizeSortColumns := strings.NewReplacer(
-		"createdAt",
-		"created_at",
-	)
-
 	f := types.ApplicationFilter{
-		Name:       r.Name,
-		Query:      r.Query,
+		Name:  r.Name,
+		Query: r.Query,
 
-		Sort: normalizeSortColumns.Replace(r.Sort),
+		Deleted: rh.FilterState(r.Deleted),
 
+		Sort:       rh.NormalizeSortColumns(r.Sort),
 		PageFilter: rh.Paging(r.Page, r.PerPage),
 	}
 
@@ -116,7 +111,11 @@ func (ctrl *Application) Read(ctx context.Context, r *request.ApplicationRead) (
 }
 
 func (ctrl *Application) Delete(ctx context.Context, r *request.ApplicationDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.application.With(ctx).DeleteByID(r.ApplicationID)
+	return resputil.OK(), ctrl.application.With(ctx).Delete(r.ApplicationID)
+}
+
+func (ctrl *Application) Undelete(ctx context.Context, r *request.ApplicationUndelete) (interface{}, error) {
+	return resputil.OK(), ctrl.application.With(ctx).Undelete(r.ApplicationID)
 }
 
 func (ctrl Application) makePayload(ctx context.Context, m *types.Application, err error) (*applicationPayload, error) {

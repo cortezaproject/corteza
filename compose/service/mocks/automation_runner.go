@@ -36,26 +36,31 @@ func (m *MockautomationScriptsFinder) EXPECT() *MockautomationScriptsFinderMockR
 
 // Watch mocks base method
 func (m *MockautomationScriptsFinder) Watch(ctx context.Context) {
+	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Watch", ctx)
 }
 
 // Watch indicates an expected call of Watch
 func (mr *MockautomationScriptsFinderMockRecorder) Watch(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockautomationScriptsFinder)(nil).Watch), ctx)
 }
 
 // WatchScheduled mocks base method
 func (m *MockautomationScriptsFinder) WatchScheduled(ctx context.Context, runner automation.DeferredAutomationRunner) {
+	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "WatchScheduled", ctx, runner)
 }
 
 // WatchScheduled indicates an expected call of WatchScheduled
 func (mr *MockautomationScriptsFinderMockRecorder) WatchScheduled(ctx, runner interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WatchScheduled", reflect.TypeOf((*MockautomationScriptsFinder)(nil).WatchScheduled), ctx, runner)
 }
 
 // FindRunnableScripts mocks base method
 func (m *MockautomationScriptsFinder) FindRunnableScripts(resource, event string, cc ...automation.TriggerConditionChecker) automation.ScriptSet {
+	m.ctrl.T.Helper()
 	varargs := []interface{}{resource, event}
 	for _, a := range cc {
 		varargs = append(varargs, a)
@@ -67,6 +72,7 @@ func (m *MockautomationScriptsFinder) FindRunnableScripts(resource, event string
 
 // FindRunnableScripts indicates an expected call of FindRunnableScripts
 func (mr *MockautomationScriptsFinderMockRecorder) FindRunnableScripts(resource, event interface{}, cc ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{resource, event}, cc...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindRunnableScripts", reflect.TypeOf((*MockautomationScriptsFinder)(nil).FindRunnableScripts), varargs...)
 }
@@ -96,6 +102,7 @@ func (m *MockautomationRunnerAccessControler) EXPECT() *MockautomationRunnerAcce
 
 // CanRunAutomationTrigger mocks base method
 func (m *MockautomationRunnerAccessControler) CanRunAutomationTrigger(ctx context.Context, r *automation.Trigger) bool {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CanRunAutomationTrigger", ctx, r)
 	ret0, _ := ret[0].(bool)
 	return ret0
@@ -103,5 +110,6 @@ func (m *MockautomationRunnerAccessControler) CanRunAutomationTrigger(ctx contex
 
 // CanRunAutomationTrigger indicates an expected call of CanRunAutomationTrigger
 func (mr *MockautomationRunnerAccessControlerMockRecorder) CanRunAutomationTrigger(ctx, r interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CanRunAutomationTrigger", reflect.TypeOf((*MockautomationRunnerAccessControler)(nil).CanRunAutomationTrigger), ctx, r)
 }
