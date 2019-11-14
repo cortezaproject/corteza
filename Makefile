@@ -157,12 +157,10 @@ staticcheck: $(STATICCHECK)
 
 qa: vet critic test
 
-mocks: $(GOMOCK)
+mocks: $(MOCKGEN)
 	# Cleanup all pre-generated
-	find . -name '*_mock_test.go' -delete
 	rm -rf system/repository/mocks && mkdir -p system/repository/mocks
 	rm -rf compose/service/mocks && mkdir -p compose/service/mocks
-
 
 	$(MOCKGEN) -package repository -source system/repository/user.go         -destination system/repository/mocks/user.go
 	$(MOCKGEN) -package repository -source system/repository/credentials.go  -destination system/repository/mocks/credentials.go
@@ -183,7 +181,6 @@ $(GOCRITIC):
 	$(GOGET) github.com/go-critic/go-critic/...
 
 $(MOCKGEN):
-	$(GOGET) github.com/golang/mock/gomock
 	$(GOGET) github.com/golang/mock/mockgen
 
 $(STATICCHECK):
