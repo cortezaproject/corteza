@@ -23,6 +23,36 @@
             "required": false,
             "title": "Search query",
             "type": "string"
+          },
+          {
+            "name": "deleted",
+            "required": false,
+            "title": "Exclude (0, default), include (1) or return only (2) deleted roles",
+            "type": "uint"
+          },
+          {
+            "name": "archived",
+            "required": false,
+            "title": "Exclude (0, default), include (1) or return only (2) achived roles",
+            "type": "uint"
+          },
+          {
+            "name": "page",
+            "required": false,
+            "title": "Page number",
+            "type": "uint"
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "title": "Returned items per page (default 50)",
+            "type": "uint"
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "title": "Sort",
+            "type": "string"
           }
         ]
       }
@@ -128,6 +158,38 @@
       "Method": "POST",
       "Title": "Archive role",
       "Path": "/{roleID}/archive",
+      "Parameters": {
+        "path": [
+          {
+            "name": "roleID",
+            "required": true,
+            "title": "Role ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "unarchive",
+      "Method": "POST",
+      "Title": "Unarchive role",
+      "Path": "/{roleID}/unarchive",
+      "Parameters": {
+        "path": [
+          {
+            "name": "roleID",
+            "required": true,
+            "title": "Role ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "undelete",
+      "Method": "POST",
+      "Title": "Undelete role",
+      "Path": "/{roleID}/undelete",
       "Parameters": {
         "path": [
           {

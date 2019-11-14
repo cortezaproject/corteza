@@ -46,6 +46,8 @@ type (
 
 		// Resource permission check filter
 		IsReadable *permissions.ResourceFilter `json:"-"`
+
+		Deleted rh.FilterState `json:"deleted"`
 	}
 )
 

@@ -33,6 +33,12 @@
             "type": "string"
           },
           {
+            "name": "deleted",
+            "required": false,
+            "title": "Exclude (0, default), include (1) or return only (2) deleted roles",
+            "type": "uint"
+          },
+          {
             "name": "page",
             "required": false,
             "title": "Page number",
@@ -150,6 +156,22 @@
       "Method": "DELETE",
       "Title": "Remove application",
       "Path": "/{applicationID}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "applicationID",
+            "required": true,
+            "title": "Application ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "undelete",
+      "Method": "POST",
+      "Title": "Undelete application",
+      "Path": "/{applicationID}/undelete",
       "Parameters": {
         "path": [
           {

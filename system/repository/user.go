@@ -32,6 +32,7 @@ type (
 		SuspendByID(id uint64) error
 		UnsuspendByID(id uint64) error
 		DeleteByID(id uint64) error
+		UndeleteByID(id uint64) error
 	}
 
 	user struct {
@@ -134,13 +135,8 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 		}
 	}
 
-	if !f.IncDeleted {
-		query = query.Where(squirrel.Eq{"u.deleted_at": nil})
-	}
-
-	if !f.IncSuspended {
-		query = query.Where(squirrel.Eq{"u.suspended_at": nil})
-	}
+	query = rh.FilterNullByState(query, "u.deleted_at", f.Deleted)
+	query = rh.FilterNullByState(query, "u.suspended_at", f.Suspended)
 
 	if len(f.UserID) > 0 {
 		query = query.Where(squirrel.Eq{"u.ID": f.UserID})
@@ -236,4 +232,8 @@ func (r *user) UnsuspendByID(id uint64) error {
 
 func (r *user) DeleteByID(id uint64) error {
 	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"deleted_at": time.Now()}, squirrel.Eq{"id": id})
+}
+
+func (r *user) UndeleteByID(id uint64) error {
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"deleted_at": nil}, squirrel.Eq{"id": id})
 }

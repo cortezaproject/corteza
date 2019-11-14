@@ -431,6 +431,36 @@
               "name": "query",
               "required": false,
               "title": "Search query"
+            },
+            {
+              "name": "deleted",
+              "required": false,
+              "title": "Exclude (0, default), include (1) or return only (2) deleted roles",
+              "type": "uint"
+            },
+            {
+              "name": "archived",
+              "required": false,
+              "title": "Exclude (0, default), include (1) or return only (2) achived roles",
+              "type": "uint"
+            },
+            {
+              "name": "page",
+              "type": "uint",
+              "required": false,
+              "title": "Page number"
+            },
+            {
+              "name": "perPage",
+              "type": "uint",
+              "required": false,
+              "title": "Returned items per page (default 50)"
+            },
+            {
+              "name": "sort",
+              "required": false,
+              "title": "Sort",
+              "type": "string"
             }
           ]
         }
@@ -536,6 +566,38 @@
         "method": "POST",
         "title": "Archive role",
         "path": "/{roleID}/archive",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "roleID",
+              "required": true,
+              "title": "Role ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unarchive",
+        "method": "POST",
+        "title": "Unarchive role",
+        "path": "/{roleID}/unarchive",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "roleID",
+              "required": true,
+              "title": "Role ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "undelete",
+        "method": "POST",
+        "title": "Undelete role",
+        "path": "/{roleID}/undelete",
         "parameters": {
           "path": [
             {
@@ -726,13 +788,25 @@
               "type": "bool",
               "name": "incDeleted",
               "required": false,
-              "title": "Include deleted users (requires 'access' permission)"
+              "title": "[Deprecated] Include deleted users (requires 'access' permission)"
             },
             {
               "type": "bool",
               "name": "incSuspended",
               "required": false,
-              "title": "Include suspended users (requires 'access' permission)"
+              "title": "[Deprecated] Include suspended users"
+            },
+            {
+              "name": "deleted",
+              "required": false,
+              "title": "Exclude (0, default), include (1) or return only (2) deleted users",
+              "type": "uint"
+            },
+            {
+              "name": "suspended",
+              "required": false,
+              "title": "Exclude (0, default), include (1) or return only (2) suspended users",
+              "type": "uint"
             },
             {
               "name": "sort",
@@ -896,6 +970,22 @@
         }
       },
       {
+        "name": "undelete",
+        "method": "POST",
+        "title": "Undelete user",
+        "path": "/{userID}/undelete",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "userID",
+              "required": true,
+              "title": "User ID"
+            }
+          ]
+        }
+      },
+      {
         "name": "setPassword",
         "method": "POST",
         "title": "Set's or changes user's password",
@@ -1015,6 +1105,12 @@
               "type": "string"
             },
             {
+              "name": "deleted",
+              "required": false,
+              "title": "Exclude (0, default), include (1) or return only (2) deleted roles",
+              "type": "uint"
+            },
+            {
               "name": "page",
               "type": "uint",
               "required": false,
@@ -1132,6 +1228,22 @@
         "method": "DELETE",
         "title": "Remove application",
         "path": "/{applicationID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "applicationID",
+              "required": true,
+              "title": "Application ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "undelete",
+        "method": "POST",
+        "title": "Undelete application",
+        "path": "/{applicationID}/undelete",
         "parameters": {
           "path": [
             {

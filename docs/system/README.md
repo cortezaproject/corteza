@@ -7,6 +7,7 @@
 | `PUT` | `/application/{applicationID}` | Update user details |
 | `GET` | `/application/{applicationID}` | Read application details |
 | `DELETE` | `/application/{applicationID}` | Remove application |
+| `POST` | `/application/{applicationID}/undelete` | Undelete application |
 
 ## List applications
 
@@ -22,6 +23,7 @@
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | name | string | GET | Application name | N/A | NO |
 | query | string | GET | Filter applications | N/A | NO |
+| deleted | uint | GET | Exclude (0, default), include (1) or return only (2) deleted roles | N/A | NO |
 | page | uint | GET | Page number | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | sort | string | GET | Sort | N/A | NO |
@@ -82,6 +84,20 @@
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
 | `/application/{applicationID}` | HTTP/S | DELETE |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| applicationID | uint64 | PATH | Application ID | N/A | YES |
+
+## Undelete application
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/application/{applicationID}/undelete` | HTTP/S | POST |  |
 
 #### Request parameters
 
@@ -838,6 +854,8 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | `GET` | `/roles/{roleID}` | Read role details and memberships |
 | `DELETE` | `/roles/{roleID}` | Remove role |
 | `POST` | `/roles/{roleID}/archive` | Archive role |
+| `POST` | `/roles/{roleID}/unarchive` | Unarchive role |
+| `POST` | `/roles/{roleID}/undelete` | Undelete role |
 | `POST` | `/roles/{roleID}/move` | Move role to different organisation |
 | `POST` | `/roles/{roleID}/merge` | Merge one role into another |
 | `GET` | `/roles/{roleID}/members` | Returns all role members |
@@ -857,6 +875,11 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
+| deleted | uint | GET | Exclude (0, default), include (1) or return only (2) deleted roles | N/A | NO |
+| archived | uint | GET | Exclude (0, default), include (1) or return only (2) achived roles | N/A | NO |
+| page | uint | GET | Page number | N/A | NO |
+| perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
+| sort | string | GET | Sort | N/A | NO |
 
 ## Update role details
 
@@ -926,6 +949,34 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
 | `/roles/{roleID}/archive` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| roleID | uint64 | PATH | Role ID | N/A | YES |
+
+## Unarchive role
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/roles/{roleID}/unarchive` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| roleID | uint64 | PATH | Role ID | N/A | YES |
+
+## Undelete role
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/roles/{roleID}/undelete` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 
@@ -1119,6 +1170,7 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.cru
 | `DELETE` | `/users/{userID}` | Remove user |
 | `POST` | `/users/{userID}/suspend` | Suspend user |
 | `POST` | `/users/{userID}/unsuspend` | Unsuspend user |
+| `POST` | `/users/{userID}/undelete` | Undelete user |
 | `POST` | `/users/{userID}/password` | Set's or changes user's password |
 | `GET` | `/users/{userID}/membership` | Add member to a role |
 | `POST` | `/users/{userID}/membership/{roleID}` | Add role to a user |
@@ -1143,8 +1195,10 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.cru
 | email | string | GET | Search email to match against users | N/A | NO |
 | handle | string | GET | Search handle to match against users | N/A | NO |
 | kind | types.UserKind | GET | Kind (normal, bot) | N/A | NO |
-| incDeleted | bool | GET | Include deleted users (requires 'access' permission) | N/A | NO |
-| incSuspended | bool | GET | Include suspended users (requires 'access' permission) | N/A | NO |
+| incDeleted | bool | GET | [Deprecated] Include deleted users (requires 'access' permission) | N/A | NO |
+| incSuspended | bool | GET | [Deprecated] Include suspended users | N/A | NO |
+| deleted | uint | GET | Exclude (0, default), include (1) or return only (2) deleted users | N/A | NO |
+| suspended | uint | GET | Exclude (0, default), include (1) or return only (2) suspended users | N/A | NO |
 | sort | string | GET | Sort by (createdAt, updatedAt, deletedAt, suspendedAt, email, username, userID) | N/A | NO |
 | page | uint | GET | Page number | N/A | NO |
 | perPage | uint | GET | Returned items per page | N/A | NO |
@@ -1233,6 +1287,20 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.cru
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
 | `/users/{userID}/unsuspend` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| userID | uint64 | PATH | User ID | N/A | YES |
+
+## Undelete user
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/users/{userID}/undelete` | HTTP/S | POST | Client ID, Session ID |
 
 #### Request parameters
 

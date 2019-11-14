@@ -35,6 +35,8 @@ type RoleAPI interface {
 	Read(context.Context, *request.RoleRead) (interface{}, error)
 	Delete(context.Context, *request.RoleDelete) (interface{}, error)
 	Archive(context.Context, *request.RoleArchive) (interface{}, error)
+	Unarchive(context.Context, *request.RoleUnarchive) (interface{}, error)
+	Undelete(context.Context, *request.RoleUndelete) (interface{}, error)
 	Move(context.Context, *request.RoleMove) (interface{}, error)
 	Merge(context.Context, *request.RoleMerge) (interface{}, error)
 	MemberList(context.Context, *request.RoleMemberList) (interface{}, error)
@@ -50,6 +52,8 @@ type Role struct {
 	Read         func(http.ResponseWriter, *http.Request)
 	Delete       func(http.ResponseWriter, *http.Request)
 	Archive      func(http.ResponseWriter, *http.Request)
+	Unarchive    func(http.ResponseWriter, *http.Request)
+	Undelete     func(http.ResponseWriter, *http.Request)
 	Move         func(http.ResponseWriter, *http.Request)
 	Merge        func(http.ResponseWriter, *http.Request)
 	MemberList   func(http.ResponseWriter, *http.Request)
@@ -179,6 +183,46 @@ func NewRole(h RoleAPI) *Role {
 				resputil.JSON(w, value)
 			}
 		},
+		Unarchive: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRoleUnarchive()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Role.Unarchive", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.Unarchive(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("Role.Unarchive", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("Role.Unarchive", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
+		Undelete: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRoleUndelete()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Role.Undelete", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.Undelete(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("Role.Undelete", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("Role.Undelete", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
 		Move: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewRoleMove()
@@ -291,6 +335,8 @@ func (h Role) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.H
 		r.Get("/roles/{roleID}", h.Read)
 		r.Delete("/roles/{roleID}", h.Delete)
 		r.Post("/roles/{roleID}/archive", h.Archive)
+		r.Post("/roles/{roleID}/unarchive", h.Unarchive)
+		r.Post("/roles/{roleID}/undelete", h.Undelete)
 		r.Post("/roles/{roleID}/move", h.Move)
 		r.Post("/roles/{roleID}/merge", h.Merge)
 		r.Get("/roles/{roleID}/members", h.MemberList)

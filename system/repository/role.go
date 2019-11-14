@@ -26,6 +26,7 @@ type (
 		ArchiveByID(id uint64) error
 		UnarchiveByID(id uint64) error
 		DeleteByID(id uint64) error
+		UndeleteByID(id uint64) error
 
 		MergeByID(id, targetRoleID uint64) error
 		MoveByID(id, targetOrganisationID uint64) error
@@ -83,12 +84,7 @@ func (r role) columns() []string {
 func (r role) query() squirrel.SelectBuilder {
 	return squirrel.
 		Select(r.columns()...).
-		From(r.table() + " AS r").
-		Where(squirrel.And{
-			squirrel.Eq{"deleted_at": nil},
-			squirrel.Eq{"archived_at": nil},
-		})
-
+		From(r.table() + " AS r")
 }
 
 func (r role) FindByID(id uint64) (*types.Role, error) {
@@ -130,13 +126,8 @@ func (r *role) Find(filter types.RoleFilter) (set types.RoleSet, f types.RoleFil
 
 	query := r.query()
 
-	if !f.IncDeleted {
-		query = query.Where(squirrel.Eq{"r.deleted_at": nil})
-	}
-
-	if !f.IncArchived {
-		query = query.Where(squirrel.Eq{"r.archived_at": nil})
-	}
+	query = rh.FilterNullByState(query, "r.deleted_at", f.Deleted)
+	query = rh.FilterNullByState(query, "r.archived_at", f.Archived)
 
 	if len(f.RoleID) > 0 {
 		query = query.Where(squirrel.Eq{"r.ID": f.RoleID})
@@ -194,15 +185,19 @@ func (r *role) Update(mod *types.Role) (*types.Role, error) {
 }
 
 func (r *role) ArchiveByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "archived_at", time.Now(), id)
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"archiveed_at": time.Now()}, squirrel.Eq{"id": id})
 }
 
 func (r *role) UnarchiveByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "archived_at", nil, id)
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"archiveed_at": nil}, squirrel.Eq{"id": id})
 }
 
 func (r *role) DeleteByID(id uint64) error {
-	return r.updateColumnByID(r.table(), "deleted_at", time.Now(), id)
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"deleted_at": time.Now()}, squirrel.Eq{"id": id})
+}
+
+func (r *role) UndeleteByID(id uint64) error {
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"deleted_at": nil}, squirrel.Eq{"id": id})
 }
 
 func (r *role) MergeByID(id, targetRoleID uint64) error {

@@ -32,6 +32,8 @@ type (
 	}
 
 	roleAccessController interface {
+		CanAccess(context.Context) bool
+
 		CanCreateRole(context.Context) bool
 		CanReadRole(context.Context, *types.Role) bool
 		CanUpdateRole(context.Context, *types.Role) bool
@@ -57,6 +59,7 @@ type (
 		Archive(ID uint64) error
 		Unarchive(ID uint64) error
 		Delete(ID uint64) error
+		Undelete(ID uint64) error
 
 		Membership(userID uint64) ([]*types.RoleMember, error)
 		MemberList(roleID uint64) ([]*types.RoleMember, error)
@@ -110,6 +113,18 @@ func (svc role) findByID(roleID uint64) (*types.Role, error) {
 
 func (svc role) Find(f types.RoleFilter) (types.RoleSet, types.RoleFilter, error) {
 	f.IsReadable = svc.ac.FilterReadableRoles(svc.ctx)
+
+	if f.Deleted > 0 {
+		// If list with deleted or suspended users is requested
+		// user must have access permissions to system (ie: is admin)
+		//
+		// not the best solution but ATM it allows us to have at least
+		// some kind of control over who can see deleted or archived roles
+		if !svc.ac.CanAccess(svc.ctx) {
+			return nil, f, ErrNoPermissions.withStack()
+		}
+	}
+
 	return svc.role.Find(f)
 }
 
@@ -203,10 +218,20 @@ func (svc role) Delete(roleID uint64) error {
 		return ErrNoPermissions.withStack()
 	}
 
-	// @todo: make history unavailable
-	// @todo: notify users that role has been removed (remove from web UI)
-
 	return svc.role.DeleteByID(roleID)
+}
+
+func (svc role) Undelete(roleID uint64) error {
+	role, err := svc.findByID(roleID)
+	if err != nil {
+		return err
+	}
+
+	if !svc.ac.CanDeleteRole(svc.ctx, role) {
+		return ErrNoPermissions.withStack()
+	}
+
+	return svc.role.UndeleteByID(roleID)
 }
 
 func (svc role) Archive(roleID uint64) error {
@@ -219,8 +244,6 @@ func (svc role) Archive(roleID uint64) error {
 		return ErrNoPermissions.withStack()
 	}
 
-	// @todo: make history unavailable
-	// @todo: notify users that role has been removed (remove from web UI)
 	return svc.role.ArchiveByID(roleID)
 }
 
@@ -234,8 +257,6 @@ func (svc role) Unarchive(roleID uint64) error {
 		return ErrNoPermissions.withStack()
 	}
 
-	// @todo: make history accessible
-	// @todo: notify users that role has been unarchived
 	return svc.role.UnarchiveByID(roleID)
 }
 

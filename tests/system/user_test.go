@@ -85,7 +85,7 @@ func TestUserList_filterForbiden(t *testing.T) {
 	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
 
 	h.repoMakeUser("usr")
-	f := h.repoMakeUser("usr_forbiden")
+	f := h.repoMakeUser(h.randEmail())
 
 	h.deny(types.UserPermissionResource.AppendID(f.ID), "read")
 
@@ -94,7 +94,7 @@ func TestUserList_filterForbiden(t *testing.T) {
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
-		Assert(jsonpath.NotPresent(`$.response.set[? @.email=="usr_forbiden"]`)).
+		Assert(jsonpath.NotPresent(fmt.Sprintf(`$.response.set[? @.email=="%s"]`, f.Email))).
 		End()
 }
 

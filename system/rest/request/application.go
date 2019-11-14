@@ -36,6 +36,7 @@ var _ = multipart.FileHeader{}
 type ApplicationList struct {
 	Name    string
 	Query   string
+	Deleted uint
 	Page    uint
 	PerPage uint
 	Sort    string
@@ -50,6 +51,7 @@ func (r ApplicationList) Auditable() map[string]interface{} {
 
 	out["name"] = r.Name
 	out["query"] = r.Query
+	out["deleted"] = r.Deleted
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
 	out["sort"] = r.Sort
@@ -89,6 +91,9 @@ func (r *ApplicationList) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := get["query"]; ok {
 		r.Query = val
+	}
+	if val, ok := get["deleted"]; ok {
+		r.Deleted = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)
@@ -357,3 +362,54 @@ func (r *ApplicationDelete) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewApplicationDelete()
+
+// Application undelete request parameters
+type ApplicationUndelete struct {
+	ApplicationID uint64 `json:",string"`
+}
+
+func NewApplicationUndelete() *ApplicationUndelete {
+	return &ApplicationUndelete{}
+}
+
+func (r ApplicationUndelete) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["applicationID"] = r.ApplicationID
+
+	return out
+}
+
+func (r *ApplicationUndelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	r.ApplicationID = parseUInt64(chi.URLParam(req, "applicationID"))
+
+	return err
+}
+
+var _ RequestFiller = NewApplicationUndelete()

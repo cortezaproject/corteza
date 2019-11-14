@@ -90,6 +90,7 @@ type (
 		Delete(id uint64) error
 		Suspend(id uint64) error
 		Unsuspend(id uint64) error
+		Undelete(id uint64) error
 
 		SetPassword(userID uint64, password string) error
 	}
@@ -164,9 +165,12 @@ func (svc user) proc(u *types.User, err error) (*types.User, error) {
 }
 
 func (svc user) Find(f types.UserFilter) (types.UserSet, types.UserFilter, error) {
-	if f.IncDeleted || f.IncSuspended {
-		// If list with deleted or suspended users is requested
+	if f.Deleted > 0 {
+		// If list with deleted users is requested
 		// user must have access permissions to system (ie: is admin)
+		//
+		// not the best solution but ATM it allows us to have at least
+		// some kind of control over who can see deleted users
 		if !svc.ac.CanAccess(svc.ctx) {
 			return nil, f, ErrNoPermissions.withStack()
 		}
@@ -306,6 +310,25 @@ func (svc user) Delete(ID uint64) (err error) {
 
 	return svc.db.Transaction(func() (err error) {
 		return svc.user.DeleteByID(ID)
+	})
+}
+
+func (svc user) Undelete(ID uint64) (err error) {
+	if ID == 0 {
+		return ErrInvalidID
+	}
+
+	var u *types.User
+	if u, err = svc.user.FindByID(ID); err != nil {
+		return
+	}
+
+	if !svc.ac.CanDeleteUser(svc.ctx, u) {
+		return ErrNoPermissions.withStack()
+	}
+
+	return svc.db.Transaction(func() (err error) {
+		return svc.user.UndeleteByID(ID)
 	})
 }
 
