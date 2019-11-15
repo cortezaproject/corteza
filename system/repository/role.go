@@ -185,11 +185,11 @@ func (r *role) Update(mod *types.Role) (*types.Role, error) {
 }
 
 func (r *role) ArchiveByID(id uint64) error {
-	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"archiveed_at": time.Now()}, squirrel.Eq{"id": id})
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"archived_at": time.Now()}, squirrel.Eq{"id": id})
 }
 
 func (r *role) UnarchiveByID(id uint64) error {
-	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"archiveed_at": nil}, squirrel.Eq{"id": id})
+	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"archived_at": nil}, squirrel.Eq{"id": id})
 }
 
 func (r *role) DeleteByID(id uint64) error {
