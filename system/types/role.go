@@ -39,6 +39,17 @@ type (
 		// Resource permission check filter
 		IsReadable *permissions.ResourceFilter `json:"-"`
 	}
+
+	RoleMetrics struct {
+		Total         uint   `json:"total"`
+		Valid         uint   `json:"valid"`
+		Deleted       uint   `json:"deleted"`
+		Archived      uint   `json:"archived"`
+		DailyCreated  []uint `json:"dailyCreated"`
+		DailyDeleted  []uint `json:"dailyDeleted"`
+		DailyUpdated  []uint `json:"dailyUpdated"`
+		DailyArchived []uint `json:"dailyArchived"`
+	}
 )
 
 // Resource returns a resource ID for this type

@@ -33,6 +33,8 @@ type (
 		UnsuspendByID(id uint64) error
 		DeleteByID(id uint64) error
 		UndeleteByID(id uint64) error
+
+		Metrics() (*types.UserMetrics, error)
 	}
 
 	user struct {
@@ -236,4 +238,46 @@ func (r *user) DeleteByID(id uint64) error {
 
 func (r *user) UndeleteByID(id uint64) error {
 	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"deleted_at": nil}, squirrel.Eq{"id": id})
+}
+
+// Metrics collects and returns user metrics
+func (r user) Metrics() (rval *types.UserMetrics, err error) {
+	var (
+		counters = squirrel.
+			Select(
+				"COUNT(*) as total",
+				"SUM(IF(deleted_at IS NULL, 0, 1)) as deleted",
+				"SUM(IF(suspended_at IS NULL, 0, 1)) as suspended",
+				"SUM(IF(deleted_at IS NULL AND suspended_at IS NULL, 1, 0)) as valid",
+			).
+			From(r.table() + " AS u")
+	)
+
+	rval = &types.UserMetrics{}
+
+	if err = rh.FetchOne(r.db(), counters, rval); err != nil {
+		return
+	}
+
+	// Fetch daily metrics for created, updated, deleted and suspended users
+	err = rh.MultiDailyMetrics(
+		r.db(),
+		squirrel.Select().From(r.table()+" AS u"),
+		[]string{
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"suspended_at",
+		},
+		&rval.DailyCreated,
+		&rval.DailyUpdated,
+		&rval.DailyDeleted,
+		&rval.DailySuspended,
+	)
+
+	if err != nil {
+		return
+	}
+
+	return
 }

@@ -35,6 +35,8 @@ type (
 		MemberFindByRoleID(roleID uint64) ([]*types.RoleMember, error)
 		MemberAddByID(roleID, userID uint64) error
 		MemberRemoveByID(roleID, userID uint64) error
+
+		Metrics() (*types.RoleMetrics, error)
 	}
 
 	role struct {
@@ -234,4 +236,46 @@ func (r *role) MemberRemoveByID(roleID, userID uint64) error {
 		UserID: userID,
 	}
 	return r.db().Delete(r.tableMember(), mod, "rel_role", "rel_user")
+}
+
+// Metrics collects and returns user metrics
+func (r role) Metrics() (rval *types.RoleMetrics, err error) {
+	var (
+		counters = squirrel.
+			Select(
+				"COUNT(*) as total",
+				"SUM(IF(deleted_at IS NULL, 0, 1)) as deleted",
+				"SUM(IF(archived_at IS NULL, 0, 1)) as archived",
+				"SUM(IF(deleted_at IS NULL AND archived_at IS NULL, 1, 0)) as valid",
+			).
+			From(r.table() + " AS u")
+	)
+
+	rval = &types.RoleMetrics{}
+
+	if err = rh.FetchOne(r.db(), counters, rval); err != nil {
+		return
+	}
+
+	// Fetch daily metrics for created, updated, deleted and archived roles
+	err = rh.MultiDailyMetrics(
+		r.db(),
+		squirrel.Select().From(r.table()+" AS u"),
+		[]string{
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"archived_at",
+		},
+		&rval.DailyCreated,
+		&rval.DailyUpdated,
+		&rval.DailyDeleted,
+		&rval.DailyArchived,
+	)
+
+	if err != nil {
+		return
+	}
+
+	return
 }

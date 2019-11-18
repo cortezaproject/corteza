@@ -1133,6 +1133,31 @@ An organisation may have many roles. Roles may have many channels available. Acc
 
 
 
+# Statistics
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/stats/` | List system statistics |
+
+## List system statistics
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/stats/` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| metrics | []string | GET | Get only specified metrics | N/A | NO |
+
+---
+
+
+
+
 # Subscription
 
 | Method | Endpoint | Purpose |
