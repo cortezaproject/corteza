@@ -49,6 +49,12 @@ type (
 
 		Deleted rh.FilterState `json:"deleted"`
 	}
+
+	ApplicationMetrics struct {
+		Total   uint `json:"total"`
+		Deleted uint `json:"deleted"`
+		Valid   uint `json:"valid"`
+	}
 )
 
 func (a *Application) Valid() bool {

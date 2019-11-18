@@ -1971,5 +1971,23 @@
         }
       }
     ]
+  },
+  {
+    "title": "Statistics",
+    "entrypoint": "stats",
+    "path": "/stats",
+    "authentication": [
+      "Client ID",
+      "Session ID"
+    ],
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "title": "List system statistics",
+        "path": "/",
+        "parameters": {}
+      }
+    ]
   }
 ]

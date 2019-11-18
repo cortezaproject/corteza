@@ -23,6 +23,8 @@ type (
 
 		DeleteByID(id uint64) error
 		UndeleteByID(id uint64) error
+
+		Metrics() (*types.ApplicationMetrics, error)
 	}
 
 	application struct {
@@ -146,4 +148,25 @@ func (r *application) DeleteByID(id uint64) error {
 
 func (r *application) UndeleteByID(id uint64) error {
 	return rh.UpdateColumns(r.db(), r.table(), rh.Set{"deleted_at": nil}, squirrel.Eq{"id": id})
+}
+
+// Metrics collects and returns user metrics
+func (r application) Metrics() (rval *types.ApplicationMetrics, err error) {
+	var (
+		counters = squirrel.
+			Select(
+				"COUNT(*) as total",
+				"SUM(IF(deleted_at IS NULL, 0, 1)) as deleted",
+				"SUM(IF(deleted_at IS NULL, 1, 0)) as valid",
+			).
+			From(r.table() + " AS u")
+	)
+
+	rval = &types.ApplicationMetrics{}
+
+	if err = rh.FetchOne(r.db(), counters, rval); err != nil {
+		return
+	}
+
+	return
 }

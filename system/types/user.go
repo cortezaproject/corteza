@@ -71,6 +71,17 @@ type (
 	}
 
 	UserKind string
+
+	UserMetrics struct {
+		Total          uint   `json:"total"`
+		Valid          uint   `json:"valid"`
+		Deleted        uint   `json:"deleted"`
+		Suspended      uint   `json:"suspended"`
+		DailyCreated   []uint `json:"dailyCreated"`
+		DailyDeleted   []uint `json:"dailyDeleted"`
+		DailyUpdated   []uint `json:"dailyUpdated"`
+		DailySuspended []uint `json:"dailySuspended"`
+	}
 )
 
 const (
