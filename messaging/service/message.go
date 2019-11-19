@@ -364,20 +364,16 @@ func (svc message) Delete(messageID uint64) error {
 			return ErrNoPermissions.withStack()
 		}
 
+		if deletedMsg.UserID == currentUserID && !svc.ac.CanUpdateOwnMessages(svc.ctx, ch) {
+			return ErrNoPermissions.withStack()
+		} else if deletedMsg.UserID != currentUserID && !svc.ac.CanUpdateMessages(svc.ctx, ch) {
+			return ErrNoPermissions.withStack()
+		}
+
 		if deletedMsg.ReplyTo > 0 {
 			original, err = svc.message.FindByID(deletedMsg.ReplyTo)
 			if err != nil {
 				return err
-			}
-
-			if ch, err = svc.channel.FindByID(original.ChannelID); err != nil {
-				return
-			}
-
-			if original.UserID == currentUserID && !svc.ac.CanUpdateOwnMessages(svc.ctx, ch) {
-				return ErrNoPermissions.withStack()
-			} else if original.UserID != currentUserID && !svc.ac.CanUpdateMessages(svc.ctx, ch) {
-				return ErrNoPermissions.withStack()
 			}
 
 			// This is a reply to another message, decrease reply counter on the original, on struct and in the
