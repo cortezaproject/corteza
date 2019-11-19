@@ -241,3 +241,18 @@ func (mr *MockUserRepositoryMockRecorder) UndeleteByID(id interface{}) *gomock.C
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UndeleteByID", reflect.TypeOf((*MockUserRepository)(nil).UndeleteByID), id)
 }
+
+// Metrics mocks base method
+func (m *MockUserRepository) Metrics() (*types.UserMetrics, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Metrics")
+	ret0, _ := ret[0].(*types.UserMetrics)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Metrics indicates an expected call of Metrics
+func (mr *MockUserRepositoryMockRecorder) Metrics() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Metrics", reflect.TypeOf((*MockUserRepository)(nil).Metrics))
+}
