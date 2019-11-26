@@ -25,7 +25,7 @@ type (
 
 func Corredor(pfix string) (o *CorredorOpt) {
 	o = &CorredorOpt{
-		Enabled:         false,
+		Enabled:         true,
 		Addr:            "corredor:80",
 		MaxBackoffDelay: time.Minute,
 		Log:             false,
