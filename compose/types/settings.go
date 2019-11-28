@@ -12,7 +12,8 @@ type (
 			// Emoji
 			// @todo implementation
 			NamespaceSwitcher struct {
-				Enabled bool
+				Enabled     bool
+				DefaultOpen bool
 			} `kv:"namespace-switcher"`
 		} `kv:"ui"`
 
