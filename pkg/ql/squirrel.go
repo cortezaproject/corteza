@@ -18,7 +18,13 @@ func (nn ASTNodes) ToSql() (out string, args []interface{}, err error) {
 		if _out, _args, err = s.ToSql(); err != nil {
 			return
 		} else {
-			out = out + _out
+			if _, ok := s.(ASTNodes); ok {
+				// Nested nodes should be wrapped
+				// Example: ((A) AND (B))
+				out = out + "(" + _out + ")"
+			} else {
+				out = out + _out
+			}
 
 			args = append(args, _args...)
 		}
