@@ -6,72 +6,74 @@ kind: pipeline
 name: docker image build
 
 steps:
-- name: unit-tests
-  image: cortezaproject/corteza-server-builder:latest
-  pull: always
-  environment:
-    CGO_ENABLED: 0
-    GOOS: linux
-    GOARCH: amd64
-    CI: circleci
-  commands:
-    - make test.unit
+  - name: unit-tests
+    image: cortezaproject/corteza-server-builder:latest
+    pull: always
+    environment:
+      CGO_ENABLED: 0
+      GOOS: linux
+      GOARCH: amd64
+      CI: circleci
+    commands:
+      - make test.unit
 
-- name: corteza-server
-  image: plugins/docker
-  depends_on: [ 'unit-tests' ]
-  settings:
-    repo: cortezaproject/corteza-server
-    auto_tag: true # generate tag names automatically based on git branch and git tag
-    dockerfile: Dockerfile.corteza-server
-    username: { from_secret: docker_hub_username }
-    password: { from_secret: docker_hub_password }
-  when:
-    events: [ tag, push ]
+  - name: corteza-server
+    image: plugins/docker
+    depends_on: [ "unit-tests" ]
+    settings:
+      repo: cortezaproject/corteza-server
+      auto_tag: true # generate tag names automatically based on git branch and git tag
+      dockerfile: Dockerfile.corteza-server
+      username: { from_secret: docker_hub_username }
+      password: { from_secret: docker_hub_password }
 
-- name: corteza-server-system
-  image: plugins/docker
-  depends_on: [ 'corteza-server' ]
-  settings:
-    repo: cortezaproject/corteza-server-system
-    auto_tag: true # generate tag names automatically based on git branch and git tag
-    dockerfile: Dockerfile.corteza-server-system
-    username: { from_secret: docker_hub_username }
-    password: { from_secret: docker_hub_password }
+  - name: corteza-server-system
+    image: plugins/docker
+    depends_on: [ "corteza-server" ]
+    settings:
+      repo: cortezaproject/corteza-server-system
+      auto_tag: true # generate tag names automatically based on git branch and git tag
+      dockerfile: Dockerfile.corteza-server-system
+      username: { from_secret: docker_hub_username }
+      password: { from_secret: docker_hub_password }
+    when:
+      ref: { include: [ "refs/tags/20??.*.*", "refs/heads/master" ] }
+      event: [ "push", "tag" ]
 
 
-- name: corteza-server-compose
-  image: plugins/docker
-  depends_on: [ 'corteza-server' ]
-  settings:
-    repo: cortezaproject/corteza-server-compose
-    auto_tag: true # generate tag names automatically based on git branch and git tag
-    dockerfile: Dockerfile.corteza-server-compose
-    username: { from_secret: docker_hub_username }
-    password: { from_secret: docker_hub_password }
+  - name: corteza-server-compose
+    image: plugins/docker
+    depends_on: [ "corteza-server" ]
+    settings:
+      repo: cortezaproject/corteza-server-compose
+      auto_tag: true # generate tag names automatically based on git branch and git tag
+      dockerfile: Dockerfile.corteza-server-compose
+      username: { from_secret: docker_hub_username }
+      password: { from_secret: docker_hub_password }
+    when:
+      ref: { include: [ "refs/tags/20??.*.*", "refs/heads/master" ] }
+      event: [ "push", "tag" ]
 
-- name: corteza-server-messaging
-  depends_on: [ 'corteza-server' ]
-  image: plugins/docker
-  settings:
-    repo: cortezaproject/corteza-server-messaging
-    auto_tag: true # generate tag names automatically based on git branch and git tag
-    dockerfile: Dockerfile.corteza-server-messaging
-    username: { from_secret: docker_hub_username }
-    password: { from_secret: docker_hub_password }
 
-- name: corteza-server:dev-branch-build
-  image: plugins/docker
-  depends_on: [ 'unit-tests' ]
-  settings:
-    repo: cortezaproject/corteza-server
-    tags: [ "${DRONE_TAG=${DRONE_BRANCH}}" ]
-    dockerfile: Dockerfile.corteza-server
-    username: { from_secret: docker_hub_username }
-    password: { from_secret: docker_hub_password }
-  when:
-    ref: [ "refs/heads/beta", "refs/heads/feature-*" ]
-    events: [ tag, push ]
+  - name: corteza-server-messaging
+    depends_on: [ "corteza-server" ]
+    image: plugins/docker
+    settings:
+      repo: cortezaproject/corteza-server-messaging
+      auto_tag: true # generate tag names automatically based on git branch and git tag
+      dockerfile: Dockerfile.corteza-server-messaging
+      username: { from_secret: docker_hub_username }
+      password: { from_secret: docker_hub_password }
+    when:
+      ref: { include: [ "refs/tags/20??.*.*", "refs/heads/master" ] }
+      event: [ "push", "tag" ]
+
+trigger:
+  event:
+    # Pipeline will be executed from branch event,
+    # this ensures we do not run duplicates.
+    exclude: [ "pull_request" ]
+
 
 
 ---
@@ -83,41 +85,45 @@ kind: pipeline
 name: integration
 
 steps:
-- name: test
-  image: cortezaproject/corteza-server-builder:latest
-  pull: always
-  environment:
-    CGO_ENABLED: 0
-    GOOS: linux
-    GOARCH: amd64
-    CI: circleci
-    AUTH_OIDC_ENABLED: 0
-    AUTH_JWT_SECRET: FBjddkvwQib0d4usifnEGVr1bncuVeD7
-    SYSTEM_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
-    COMPOSE_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
-    MESSAGING_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
-  commands:
-  - wait-for-it.sh -t 60 --strict corteza-db:3306 -- echo "corteza-db is up"
-  - make test.coverprofile.all
+  - name: test
+    image: cortezaproject/corteza-server-builder:latest
+    pull: always
+    environment:
+      CGO_ENABLED: 0
+      GOOS: linux
+      GOARCH: amd64
+      CI: circleci
+      AUTH_OIDC_ENABLED: 0
+      AUTH_JWT_SECRET: FBjddkvwQib0d4usifnEGVr1bncuVeD7
+      SYSTEM_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
+      COMPOSE_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
+      MESSAGING_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
+    commands:
+      - wait-for-it.sh -t 60 --strict corteza-db:3306 -- echo "corteza-db is up"
+      - make test.coverprofile.all
 
-- name: coverage
-  image: plugins/codecov
-  settings:
-    token: 628a7104-4ec8-46ef-a3a8-50b0c2507082
-    files:
-     - .cover.out
+  - name: coverage
+    image: plugins/codecov
+    settings:
+      token: 628a7104-4ec8-46ef-a3a8-50b0c2507082
+      files:
+       - .cover.out
 
 services:
-- name: corteza-db
-  pull: always
-  image: percona:8.0
-  ports:
-    - 3306
-  environment:
-    MYSQL_ROOT_PASSWORD: bRxJ37sJ6Qu4
-    MYSQL_DATABASE: corteza
-    MYSQL_USER: corteza
-    MYSQL_PASSWORD: corteza-pwd
+  - name: corteza-db
+    pull: always
+    image: percona:8.0
+    ports:
+      - 3306
+    environment:
+      MYSQL_ROOT_PASSWORD: bRxJ37sJ6Qu4
+      MYSQL_DATABASE: corteza
+      MYSQL_USER: corteza
+      MYSQL_PASSWORD: corteza-pwd
 
 trigger:
-  event: [ push, pull_request ]
+  event:
+    # Pipeline will be executed from branch event,
+    # this ensures we do not run duplicates.
+    exclude: [ "pull_request" ]
+
