@@ -193,17 +193,18 @@ checkToken:
 		list = append(list, String{Value: t.literal})
 		goto next
 	case PARENTHESIS_OPEN:
+		depth := p.level
 		p.level++
-		dpth := p.level
 		if sub, err := p.parseExpr(p.nextToken()); err != nil {
 			return nil, err
 		} else {
 			list = append(list, sub)
 		}
+
 		// Allow parent level to continue parsing.
 		// Example: ((A) AND (B))
 		// +1 since PARENTHESIS_CLOSE decrease level
-		if p.level > 0 && (p.level+1) != dpth {
+		if (p.level + 1) != depth {
 			p.nextToken()
 			goto next
 		}
