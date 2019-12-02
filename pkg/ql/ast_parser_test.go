@@ -183,6 +183,39 @@ func TestAstParser_Parser(t *testing.T) {
 				Null{},
 			},
 		},
+		{
+			parser: NewParser().ParseExpression,
+			in:     `((foo1) AND (foo2))`,
+			tree: ASTNodes{
+				ASTNodes{Ident{Value: "foo1"}},
+				Operator{"AND"},
+				ASTNodes{Ident{Value: "foo2"}},
+			},
+		},
+		{
+			parser: NewParser().ParseExpression,
+			in:     `((foo1) AND (foo2) AND foo3)`,
+			tree: ASTNodes{
+				ASTNodes{Ident{Value: "foo1"}},
+				Operator{"AND"},
+				ASTNodes{Ident{Value: "foo2"}},
+				Operator{"AND"},
+				Ident{Value: "foo3"},
+			},
+		},
+		{
+			parser: NewParser().ParseExpression,
+			in:     `((foo1) AND (foo2)) AND foo3`,
+			tree: ASTNodes{
+				ASTNodes{
+					ASTNodes{Ident{Value: "foo1"}},
+					Operator{"AND"},
+					ASTNodes{Ident{Value: "foo2"}},
+				},
+				Operator{"AND"},
+				Ident{Value: "foo3"},
+			},
+		},
 	}
 
 	for i, test := range tests {
