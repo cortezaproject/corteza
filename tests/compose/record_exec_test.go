@@ -57,7 +57,7 @@ func TestRecordExec(t *testing.T) {
 		)
 	}
 
-	assertSort := func(expectedHandles string) {
+	assertSort := func(expectedHandles, expectedCats string) {
 		// Using record service for fetching to avoid value pre-fetching etc..
 		set, _, err := service.DefaultRecord.With(h.secCtx()).Find(types.RecordFilter{
 			ModuleID:    module.ID,
@@ -70,6 +70,8 @@ func TestRecordExec(t *testing.T) {
 		h.a.NotNil(set)
 
 		actualHandles := ""
+		actualCats := ""
+
 		_ = set.Walk(func(r *types.Record) error {
 			v := r.Values.FilterByName("handle")
 
@@ -79,10 +81,13 @@ func TestRecordExec(t *testing.T) {
 				actualHandles += strconv.Itoa(len(v))
 			}
 
+			actualCats += r.Values.FilterByName("category")[0].Value[3:]
+
 			return nil
 		})
 
 		h.a.Equal(expectedHandles, actualHandles)
+		h.a.Equal(expectedCats, actualCats)
 	}
 
 	var (
@@ -110,8 +115,9 @@ func TestRecordExec(t *testing.T) {
 		"i": strconv.FormatUint(iRec.ID, 10),
 	}
 
-	assertSort("abcdefghi")
+	assertSort("abcdefghi", "111222333")
 
+	// Move a to the middle
 	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
 		{"recordID", rr["a"]},
 		{"positionField", "position"},
@@ -120,8 +126,9 @@ func TestRecordExec(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	assertSort("bcdeafghi")
+	assertSort("bcdeafghi", "112212333")
 
+	// Move i to the beginning
 	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
 		{"recordID", rr["i"]},
 		{"positionField", "position"},
@@ -130,8 +137,11 @@ func TestRecordExec(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	assertSort("ibcdeafgh")
+	//                            bcdeafghi
+	//                            v<------^
+	assertSort("ibcdeafgh", "311221233")
 
+	// Move b to the 5th place
 	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
 		{"recordID", rr["b"]},
 		{"filter", "category = 'CAT1'"},
@@ -141,8 +151,11 @@ func TestRecordExec(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	assertSort("idecbfgah")
+	//                            ibcdeafgh
+	//                             ^->v
+	assertSort("icdebfagh", "312212133")
 
+	// This will keep order of letters but move b to category-2
 	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
 		{"recordID", rr["b"]},
 		{"groupField", "category"},
@@ -152,7 +165,10 @@ func TestRecordExec(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	assertSort("idecbfgah")
+	//                            icdebfagh
+	//                                ^
+	assertSort("icdebfagh", "312222133")
+
 	rsv, err := h.repoRecord().LoadValues([]string{"category"}, []uint64{bRec.ID})
 	h.a.NoError(err)
 	h.a.NotNil(rsv)
