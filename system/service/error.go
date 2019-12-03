@@ -21,6 +21,10 @@ const (
 	ErrNoScriptCreatePermissions      serviceError = "NoScriptCreatePermissions"
 	ErrNoReminderAssignPermissions    serviceError = "NoReminderAssignPermissions"
 
+	ErrUserSuspended serviceError = "UserSuspended"
+	ErrUserDeleted   serviceError = "UserDeleted"
+	ErrUserInvalid   serviceError = "UserInvalid"
+
 	ErrNoEmailTemplateForGivenOperation serviceError = "NoEmailTemplateForGivenOperation"
 )
 
