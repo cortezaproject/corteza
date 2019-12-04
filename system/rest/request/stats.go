@@ -32,7 +32,6 @@ var _ = multipart.FileHeader{}
 
 // Stats list request parameters
 type StatsList struct {
-	Metrics []string
 }
 
 func NewStatsList() *StatsList {
@@ -41,8 +40,6 @@ func NewStatsList() *StatsList {
 
 func (r StatsList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
-
-	out["metrics"] = r.Metrics
 
 	return out
 }
@@ -72,12 +69,6 @@ func (r *StatsList) Fill(req *http.Request) (err error) {
 	postVars := req.Form
 	for name, param := range postVars {
 		post[name] = string(param[0])
-	}
-
-	if val, ok := urlQuery["metrics[]"]; ok {
-		r.Metrics = parseStrings(val)
-	} else if val, ok = urlQuery["metrics"]; ok {
-		r.Metrics = parseStrings(val)
 	}
 
 	return err

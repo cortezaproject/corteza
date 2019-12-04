@@ -15,16 +15,7 @@
       "Method": "GET",
       "Title": "List system statistics",
       "Path": "/",
-      "Parameters": {
-        "get": [
-          {
-            "name": "metrics",
-            "required": false,
-            "title": "Get only specified metrics",
-            "type": "[]string"
-          }
-        ]
-      }
+      "Parameters": {}
     }
   ]
 }
