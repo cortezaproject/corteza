@@ -321,13 +321,13 @@ func authSettingsAutoDiscovery(ctx context.Context, log *zap.Logger, svc setting
 		{
 			"auth.mail.from-address",
 			"PROVISION_SETTINGS_AUTH_EMAIL_FROM_ADDRESS",
-			wrapString("to-be-configured@example.tld"),
+			wrapString("info@example.tld"),
 			false},
 
 		{
 			"auth.mail.from-name",
 			"PROVISION_SETTINGS_AUTH_EMAIL_FROM_NAME",
-			wrapString("Corteza Team (to-be-configured)"),
+			wrapString("Example Sender"),
 			false},
 
 		// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
