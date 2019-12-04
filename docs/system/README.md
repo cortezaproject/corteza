@@ -1151,7 +1151,6 @@ An organisation may have many roles. Roles may have many channels available. Acc
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| metrics | []string | GET | Get only specified metrics | N/A | NO |
 
 ---
 
