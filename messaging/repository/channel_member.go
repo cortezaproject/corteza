@@ -95,7 +95,14 @@ func (r channelMember) queryExactMembers(memberIDs ...uint64) squirrel.SelectBui
 		membersConcat += strconv.FormatUint(memberIDs[i], 10) + ","
 	}
 
-	return r.queryAnyMember(memberIDs...).
+	// 1. all channels where either of these users are members
+	// 2. group by channel & count their members
+	// 3. final filter
+	return squirrel.Select("cm.rel_channel").
+		From(r.table() + " AS cm").
+		Where(
+			squirrel.ConcatExpr("cm.rel_channel IN (", r.queryAnyMember(memberIDs...), ")"),
+		).
 		GroupBy("cm.rel_channel").
 		Having(squirrel.Eq{
 			"COUNT(*)": len(memberIDs),
