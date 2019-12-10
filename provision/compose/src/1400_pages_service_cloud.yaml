@@ -1,6 +1,6 @@
 namespace: service-cloud
 pages:
-  Home:
+  - handle: Home
     title: Home
     blocks:
     - title: My Cases
@@ -62,7 +62,7 @@ pages:
       kind: Chart
       xywh: [9, 11, 3, 5]
     visible: true
-  Cases:
+  - handle: Cases
     title: Cases
     blocks:
     - title: All cases
@@ -100,7 +100,7 @@ pages:
       kind: Chart
       xywh: [9, 8, 3, 8]
     pages:
-      RecordPageForModuleCase:
+      - handle: RecordPageForModuleCase
         module: Case
         title: Record page for module "Case"
         blocks:
@@ -200,7 +200,7 @@ pages:
           kind: Automation
           xywh: [3, 3, 6, 2]
         pages:
-          RecordPageForModuleAttachement:
+          - handle: RecordPageForModuleAttachement
             module: Attachement
             title: Record page for module "Attachement"
             blocks:
@@ -215,7 +215,7 @@ pages:
               kind: Record
               xywh: [0, 0, 5, 18]
             visible: false
-          RecordPageForModuleUpdate:
+          - handle: RecordPageForModuleUpdate
             module: Update
             title: Record page for module "Update"
             blocks:
@@ -257,7 +257,7 @@ pages:
               xywh: [8, 7, 4, 11]
             visible: false
         visible: false
-      AllMyCases:
+      - handle: AllMyCases
         title: All my cases
         blocks:
         - title: All my cases
@@ -280,7 +280,7 @@ pages:
           kind: RecordList
           xywh: [0, 0, 12, 16]
         visible: true
-      MyNewCases:
+      - handle: MyNewCases
         title: My new cases
         blocks:
         - title: My new cases
@@ -304,7 +304,7 @@ pages:
           xywh: [0, 0, 12, 16]
         visible: true
     visible: true
-  Accounts:
+  - handle: Accounts
     title: Accounts
     blocks:
     - title: Accounts
@@ -338,7 +338,7 @@ pages:
       kind: Chart
       xywh: [9, 8, 3, 8]
     pages:
-      RecordPageForModuleAccount:
+      - handle: RecordPageForModuleAccount
         module: Account
         title: Record page for module "Account"
         blocks:
@@ -448,7 +448,7 @@ pages:
           kind: RecordList
           xywh: [0, 21, 6, 9]
         visible: false
-      Contacts:
+      - handle: Contacts
         title: Contacts
         blocks:
         - title: Contacts
@@ -472,7 +472,7 @@ pages:
           kind: RecordList
           xywh: [0, 0, 12, 16]
         pages:
-          RecordPageForModuleContact:
+          - handle: RecordPageForModuleContact
             module: Contact
             title: Record page for module "Contact"
             blocks:
@@ -565,7 +565,7 @@ pages:
               kind: RecordList
               xywh: [0, 20, 9, 9]
             pages:
-              RecordPageForModuleEmailMessage:
+              - handle: RecordPageForModuleEmailMessage
                 module: EmailMessage
                 title: Record page for module "Email Message"
                 blocks:
@@ -627,7 +627,7 @@ pages:
                 visible: false
             visible: false
         visible: true
-      Entitlements:
+      - handle: Entitlements
         title: Entitlements
         blocks:
         - title: Entitlements
@@ -650,7 +650,7 @@ pages:
           kind: RecordList
           xywh: [0, 0, 12, 16]
         pages:
-          RecordPageForModuleEntitlement:
+          - handle: RecordPageForModuleEntitlement
             module: Entitlement
             title: Record page for module "Entitlement"
             blocks:
@@ -687,7 +687,7 @@ pages:
             visible: false
         visible: true
     visible: true
-  Products:
+  - handle: Products
     title: Products
     blocks:
     - title: Products
@@ -723,7 +723,7 @@ pages:
       kind: Chart
       xywh: [9, 8, 3, 8]
     pages:
-      RecordPageForModuleProduct:
+      - handle: RecordPageForModuleProduct
         module: Product
         title: Record page for module "Product"
         blocks:
@@ -821,7 +821,7 @@ pages:
           kind: Record
           xywh: [3, 0, 3, 10]
         visible: false
-      EntitlementTemplates:
+      - handle: EntitlementTemplates
         title: Entitlement Templates
         blocks:
         - title: Entitlement Templates
@@ -840,7 +840,7 @@ pages:
           kind: RecordList
           xywh: [0, 0, 12, 16]
         pages:
-          RecordPageForModuleEntitlementTemplate:
+          - handle: RecordPageForModuleEntitlementTemplate
             module: EntitlementTemplate
             title: Record page for module "EntitlementTemplate"
             blocks:
@@ -878,7 +878,7 @@ pages:
             visible: false
         visible: true
     visible: true
-  KnowledgeBase:
+  - handle: KnowledgeBase
     title: Knowledge Base
     blocks:
     - title: Knowledge Base
@@ -914,7 +914,7 @@ pages:
       kind: Chart
       xywh: [9, 8, 3, 8]
     pages:
-      RecordPageForModuleKnowledgeBase:
+      - handle: RecordPageForModuleKnowledgeBase
         module: KnowledgeBase
         title: Record page for module "Knowledge Base"
         blocks:
@@ -970,7 +970,7 @@ pages:
           xywh: [0, 0, 3, 20]
         visible: false
     visible: true
-  Departments:
+  - handle: Departments
     title: Departments
     blocks:
     - title: Departments
@@ -1005,7 +1005,7 @@ pages:
       kind: Chart
       xywh: [9, 8, 3, 8]
     pages:
-      RecordPageForModuleDepartment:
+      - handle: RecordPageForModuleDepartment
         module: Department
         title: Record page for module "Department"
         blocks:
@@ -1052,7 +1052,7 @@ pages:
           xywh: [0, 6, 12, 10]
         visible: false
     visible: true
-  Settings:
+  - handle: Settings
     title: Settings
     blocks:
     - title: Settings
@@ -1077,7 +1077,7 @@ pages:
       kind: RecordList
       xywh: [0, 0, 12, 5]
     pages:
-      RecordPageForModuleSettings:
+      - handle: RecordPageForModuleSettings
         module: Settings
         title: Record page for module "Settings"
         blocks:
@@ -1096,7 +1096,7 @@ pages:
           kind: Record
           xywh: [0, 0, 6, 17]
         visible: false
-      EmailTemplates:
+      - handle: EmailTemplates
         title: Email Templates
         blocks:
         - title: Email Templates
@@ -1116,7 +1116,7 @@ pages:
           kind: RecordList
           xywh: [0, 0, 12, 16]
         pages:
-          RecordPageForModuleEmailTemplate:
+          - handle: RecordPageForModuleEmailTemplate
             module: EmailTemplate
             title: Record page for module "Email Template"
             blocks:
@@ -1164,7 +1164,7 @@ pages:
             visible: false
         visible: true
     visible: true
-  Dashboard:
+  - handle: Dashboard
     title: Dashboard
     blocks:
     - title: Cases by category
