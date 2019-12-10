@@ -85,7 +85,6 @@ pages:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
       xywh: [9, 7, 3, 7]
-    visible: 
   - handle: Leads
     title: Leads
     blocks:
