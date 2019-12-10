@@ -1,4 +1,14 @@
 allow:
+  everyone:
+    system:user:
+      - read
+
+    system:application:
+      - read
+
+    system:role:
+      - read
+
   admins:
     system:
       - access

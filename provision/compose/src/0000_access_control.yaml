@@ -3,6 +3,18 @@ allow:
     compose:
       - access
 
+    compose:namespace:
+      - read
+
+    compose:module:
+      - read
+
+    compose:page:
+      - read
+
+    compose:chart:
+      - read
+
   admins:
     compose:
       - access
