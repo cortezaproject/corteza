@@ -1,6 +1,7 @@
 package external
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/gorilla/sessions"
@@ -76,6 +77,13 @@ func setupGothProviders(s *types.Settings) {
 			continue
 		}
 
+		redirect := pc.RedirectUrl
+		if redirect == "" {
+			// If redirect URL is not explicitly set for this provider,
+			// generate one from template string
+			redirect = fmt.Sprintf(s.Auth.External.RedirectUrl, pc.Handle)
+		}
+
 		if strings.Index(pc.Handle, OIDC_PROVIDER_PREFIX) == 0 {
 			if pc.IssuerUrl == "" {
 				log.Error("failed to discover OIDC provider, URL empty")
@@ -84,7 +92,7 @@ func setupGothProviders(s *types.Settings) {
 
 			wellKnown := strings.TrimSuffix(pc.IssuerUrl, "/") + WellKnown
 
-			if provider, err = openidConnect.New(pc.Key, pc.Secret, pc.RedirectUrl, wellKnown, "email"); err != nil {
+			if provider, err = openidConnect.New(pc.Key, pc.Secret, redirect, wellKnown, "email"); err != nil {
 				log.Error("failed to discover OIDC provider", zap.Error(err), zap.String("well-known", wellKnown))
 				continue
 			} else {
@@ -93,18 +101,22 @@ func setupGothProviders(s *types.Settings) {
 		} else {
 			switch pc.Handle {
 			case "github":
-				provider = github.New(pc.Key, pc.Secret, pc.RedirectUrl, "user:email")
+				provider = github.New(pc.Key, pc.Secret, redirect, "user:email")
 			case "facebook":
-				provider = facebook.New(pc.Key, pc.Secret, pc.RedirectUrl, "email")
+				provider = facebook.New(pc.Key, pc.Secret, redirect, "email")
 			case "google":
-				provider = google.New(pc.Key, pc.Secret, pc.RedirectUrl, "email")
+				provider = google.New(pc.Key, pc.Secret, redirect, "email")
 			case "linkedin":
-				provider = linkedin.New(pc.Key, pc.Secret, pc.RedirectUrl, "email")
+				provider = linkedin.New(pc.Key, pc.Secret, redirect, "email")
 			}
 		}
 
 		if provider != nil {
-			log.Info("external authentication provider added")
+			log.Info(
+				"external authentication provider added",
+				zap.String("key", pc.Key),
+				zap.String("redirectUrl", redirect),
+			)
 			goth.UseProviders(provider)
 		}
 	}
