@@ -159,21 +159,25 @@ func (r message) Find(filter types.MessageFilter) (set types.MessageSet, f types
 
 	// first, exclusive
 	if f.AfterID > 0 {
+		query = query.OrderBy("m.id ASC")
 		query = query.Where(squirrel.Gt{"m.id": f.AfterID})
 	}
 
 	// from, inclusive
 	if f.FromID > 0 {
+		query = query.OrderBy("m.id ASC")
 		query = query.Where(squirrel.GtOrEq{"m.id": f.FromID})
 	}
 
 	// last, exclusive
 	if f.BeforeID > 0 {
+		query = query.OrderBy("m.id DESC")
 		query = query.Where(squirrel.Lt{"m.id": f.BeforeID})
 	}
 
 	// to, inclusive
 	if f.ToID > 0 {
+		query = query.OrderBy("m.id DESC")
 		query = query.Where(squirrel.LtOrEq{"m.id": f.ToID})
 	}
 
