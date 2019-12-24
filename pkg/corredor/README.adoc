@@ -1,0 +1,8 @@
+# pkg/corredor
+
+This package is an interface to Corredor script runner service.
+
+.It provides:
+ - Connection to Corredor service
+ - Subscriber service to handle events raised from Corteza services
+ - Scheduling service for deferred events (scheduled, interval)
