@@ -5,22 +5,20 @@ import (
 	"io"
 
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 
 	"github.com/cortezaproject/corteza-server/compose/importer"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/cli"
 	impAux "github.com/cortezaproject/corteza-server/pkg/importer"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	provision "github.com/cortezaproject/corteza-server/provision/compose"
 )
 
-func provisionConfig(ctx context.Context, cmd *cobra.Command, c *cli.Config) (err error) {
-	c.Log.Debug("running configuration provision")
-	c.InitServices(ctx, c)
+func provisionConfig(ctx context.Context, log *zap.Logger) (err error) {
+	log.Debug("running configuration provision")
 
 	var provisioned bool
 
@@ -30,7 +28,7 @@ func provisionConfig(ctx context.Context, cmd *cobra.Command, c *cli.Config) (er
 	if provisioned, err = isProvisioned(ctx); err != nil {
 		return err
 	} else if provisioned {
-		c.Log.Debug("configuration already provisioned")
+		log.Debug("configuration already provisioned")
 	}
 
 	readers, err := impAux.ReadStatic(provision.Asset)
@@ -64,7 +62,7 @@ func partialImportSettings(ctx context.Context, ss settings.Service, ff ...io.Re
 
 		// importer w/o permissions & roles
 		// we need only settings
-		imp = importer.NewImporter(nil, nil, nil, nil, nil, nil, si)
+		imp = importer.NewImporter(nil, nil, nil, nil, nil, si)
 
 		// current value
 		current settings.ValueSet

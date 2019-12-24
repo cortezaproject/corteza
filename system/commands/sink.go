@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"context"
 	"net/url"
 	"strings"
 	"time"
@@ -9,11 +8,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/cli"
 )
 
 // Will perform OpenID connect auto-configuration
-func Sink(ctx context.Context, c *cli.Config) *cobra.Command {
+func Sink() *cobra.Command {
 	var (
 		expires     string
 		origin      string
@@ -30,8 +28,6 @@ func Sink(ctx context.Context, c *cli.Config) *cobra.Command {
 		Use:   "signature",
 		Short: "Creates signature for sink HTTP endpoint",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			c.InitServices(ctx, c)
-
 			method = strings.ToUpper(method)
 
 			if expires != "" {

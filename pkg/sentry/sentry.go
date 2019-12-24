@@ -3,11 +3,11 @@ package sentry
 import (
 	"github.com/getsentry/sentry-go"
 
-	"github.com/cortezaproject/corteza-server/pkg/cli/options"
+	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
-func Init(sentryOpt *options.SentryOpt) error {
+func Init(sentryOpt options.SentryOpt) error {
 	if sentryOpt.DSN == "" {
 		return nil
 	}

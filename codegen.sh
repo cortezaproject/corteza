@@ -99,12 +99,6 @@ function types {
 	./build/gen-type-set-test --types Rule      --output pkg/permissions/rule.gen_test.go     --with-primary-key=false --package permissions
 	./build/gen-type-set-test --types Resource  --output pkg/permissions/resource.gen_test.go --with-primary-key=false --package permissions
 
-	./build/gen-type-set      --types Script   --output pkg/automation/script.gen.go       --package automation
-	./build/gen-type-set-test --types Script   --output pkg/automation/script.gen_test.go  --package automation
-	./build/gen-type-set      --types Trigger  --output pkg/automation/trigger.gen.go      --package automation
-	./build/gen-type-set-test --types Trigger  --output pkg/automation/trigger.gen_test.go --package automation
-
-
 	green "OK"
 }
 

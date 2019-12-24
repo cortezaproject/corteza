@@ -8,10 +8,10 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/automation/corredor"
-	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/pkg/store"
@@ -80,7 +80,8 @@ var (
 	DefaultSystemRole *systemRole
 )
 
-func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
+// Initializes compose-only services
+func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	var db = repository.DB(ctx)
 
 	DefaultLogger = log.Named("service")
@@ -90,6 +91,7 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 		// to allow integration tests to inject own permission service
 		DefaultPermissions = permissions.Service(ctx, DefaultLogger, db, "compose_permission_rules")
 	}
+
 	DefaultAccessControl = AccessControl(DefaultPermissions)
 
 	DefaultSettings = settings.NewService(
@@ -98,12 +100,6 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 		DefaultAccessControl,
 		CurrentSettings,
 	)
-
-	// Run initial update of current settings with super-user credentials
-	err = DefaultSettings.UpdateCurrent(auth.SetSuperUserContext(ctx))
-	if err != nil {
-		return
-	}
 
 	if DefaultStore == nil {
 		if c.Storage.MinioEndpoint != "" {
@@ -200,6 +196,16 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultAttachment = Attachment(DefaultStore)
 
 	return nil
+}
+
+func Activate(ctx context.Context) (err error) {
+	// Run initial update of current settings with super-user credentials
+	err = DefaultSettings.UpdateCurrent(auth.SetSuperUserContext(ctx))
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func Watchers(ctx context.Context) {

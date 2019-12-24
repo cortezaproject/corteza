@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"context"
 	"io"
 	"os"
 
@@ -12,16 +11,14 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 )
 
-func Importer(ctx context.Context, c *cli.Config) *cobra.Command {
+func Importer() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "import",
 		Short: "Import",
 
 		Run: func(cmd *cobra.Command, args []string) {
-
-			c.InitServices(ctx, c)
-
 			var (
+				ctx = auth.SetSuperUserContext(cli.Context())
 				ff  []io.Reader
 				err error
 			)

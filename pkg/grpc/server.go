@@ -2,36 +2,69 @@ package grpc
 
 import (
 	"context"
+	"net"
+
+	"go.uber.org/zap"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
+	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/system/proto"
-	"github.com/cortezaproject/corteza-server/system/service"
 )
 
-// @todo when we extend gRPC-server capabilities to compose & messaging
-//       this needs to be refactored and generalized
-func NewServer() *grpc.Server {
-	s := grpc.NewServer(
-		grpc.UnaryInterceptor(authCheck(auth.DefaultJwtHandler)),
-	)
+type (
+	server struct {
+		log *zap.Logger
+		opt options.GRPCServerOpt
 
-	proto.RegisterUsersServer(s, NewUserService(
-		service.DefaultUser,
-		service.DefaultAuth,
-		auth.DefaultJwtHandler,
-		service.DefaultAccessControl,
-	))
+		s *grpc.Server
+	}
+)
 
-	proto.RegisterRolesServer(s, NewRoleService(
-		service.DefaultRole,
-	))
+func New(log *zap.Logger, opt options.GRPCServerOpt) *server {
+	return &server{
+		log: log.Named("grpc-server"),
+		opt: opt,
 
-	return s
+		s: grpc.NewServer(
+			grpc.UnaryInterceptor(authCheck(auth.DefaultJwtHandler)),
+		),
+	}
+}
+
+func (srv *server) Serve(ctx context.Context) {
+	ln, err := net.Listen(srv.opt.Network, srv.opt.Addr)
+	if err != nil {
+		srv.log.Error("could not start gRPC server", zap.Error(err))
+	}
+
+	go func() {
+		select {
+		case <-ctx.Done():
+			srv.log.Debug("shutting down")
+			srv.s.GracefulStop()
+			_ = ln.Close()
+		}
+	}()
+
+	srv.log.Info("Starting gRPC server", zap.String("address", srv.opt.Addr))
+	err = srv.s.Serve(ln)
+
+	if err == nil {
+		err = ctx.Err()
+		if err == context.Canceled {
+			err = nil
+		}
+	}
+
+	srv.log.Info("Server stopped", zap.Error(err))
+}
+
+func (srv *server) RegisterServices(reg func(*grpc.Server)) {
+	reg(srv.s)
 }
 
 // Creates auth-checking interceptor function

@@ -92,9 +92,11 @@ var (
 	DefaultOrganisation OrganisationService
 	DefaultApplication  ApplicationService
 	DefaultReminder     ReminderService
+
+	DefaultStatistics *statistics
 )
 
-func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
+func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultLogger = log.Named("service")
 
 	if DefaultPermissions == nil {
@@ -111,12 +113,6 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 		DefaultAccessControl,
 		CurrentSettings,
 	)
-
-	// Run initial update of current settings with super-user credentials
-	err = DefaultSettings.UpdateCurrent(intAuth.SetSuperUserContext(ctx))
-	if err != nil {
-		return
-	}
 
 	DefaultUser = User(ctx)
 	DefaultRole = Role(ctx)
@@ -178,6 +174,17 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	}
 
 	DefaultSink = Sink()
+	DefaultStatistics = Statistics(ctx)
+
+	return
+}
+
+func Activate(ctx context.Context) (err error) {
+	// Run initial update of current settings with super-user credentials
+	err = DefaultSettings.UpdateCurrent(intAuth.SetSuperUserContext(ctx))
+	if err != nil {
+		return
+	}
 
 	return
 }

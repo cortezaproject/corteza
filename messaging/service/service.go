@@ -53,7 +53,7 @@ var (
 	DefaultWebhook    WebhookService
 )
 
-func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
+func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultLogger = log.Named("service")
 
 	if DefaultPermissions == nil {
@@ -70,12 +70,6 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 		DefaultAccessControl,
 		CurrentSettings,
 	)
-
-	// Run initial update of current settings with super-user credentials
-	err = DefaultSettings.UpdateCurrent(intAuth.SetSuperUserContext(ctx))
-	if err != nil {
-		return
-	}
 
 	if DefaultStore == nil {
 		if c.Storage.MinioEndpoint != "" {
@@ -125,6 +119,16 @@ func Init(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultWebhook = Webhook(ctx, client)
 
 	return nil
+}
+
+func Activate(ctx context.Context) (err error) {
+	// Run initial update of current settings with super-user credentials
+	err = DefaultSettings.UpdateCurrent(intAuth.SetSuperUserContext(ctx))
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func Watchers(ctx context.Context) {

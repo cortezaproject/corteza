@@ -15,7 +15,7 @@ type (
 
 // DB produces a contextual DB handle
 func DB(ctx context.Context) *factory.DB {
-	return factory.Database.MustGet("messaging").With(ctx)
+	return factory.Database.MustGet("messaging", "default").With(ctx)
 }
 
 // With updates repository and database contexts

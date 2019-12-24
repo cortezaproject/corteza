@@ -1,19 +1,19 @@
 package commands
 
 import (
-	"context"
 	"strconv"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/titpetric/factory"
 
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
-func Roles(ctx context.Context, c *cli.Config) *cobra.Command {
+func Roles() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "roles",
 		Short: "Role management",
@@ -26,7 +26,8 @@ func Roles(ctx context.Context, c *cli.Config) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			// Create role and user repository.
 			var (
-				db = factory.Database.MustGet("system")
+				ctx = auth.SetSuperUserContext(cli.Context())
+				db  = factory.Database.MustGet("system", "default")
 
 				roleStr, userStr = args[0], args[1]
 
@@ -40,8 +41,6 @@ func Roles(ctx context.Context, c *cli.Config) *cobra.Command {
 
 				err error
 			)
-
-			c.InitServices(ctx, c)
 
 			// Try to find role by name and by ID
 			if rr, _, err = roleRepo.Find(types.RoleFilter{Query: roleStr}); err != nil {

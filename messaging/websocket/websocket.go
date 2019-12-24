@@ -18,7 +18,7 @@ type (
 	}
 )
 
-func (Websocket) New(config *Config) *Websocket {
+func New(config *Config) *Websocket {
 	ws := &Websocket{
 		config: config,
 	}

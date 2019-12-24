@@ -8,12 +8,12 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"go.uber.org/zap"
 
-	sentryhttp "github.com/getsentry/sentry-go/http"
+	"github.com/getsentry/sentry-go/http"
 
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
-func Base(log *zap.Logger) []func(http.Handler) http.Handler {
+func BaseMiddleware(log *zap.Logger) []func(http.Handler) http.Handler {
 	return []func(http.Handler) http.Handler{
 		handleCORS,
 		middleware.RealIP,
@@ -22,14 +22,14 @@ func Base(log *zap.Logger) []func(http.Handler) http.Handler {
 	}
 }
 
-func Sentry() func(http.Handler) http.Handler {
+func sentryMiddleware() func(http.Handler) http.Handler {
 	return sentryhttp.New(sentryhttp.Options{
 		Repanic: true,
 	}).Handle
 }
 
 // HandlePanic sends 500 error when panic occurs inside the request call
-func HandlePanic(next http.Handler) http.Handler {
+func handlePanic(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {

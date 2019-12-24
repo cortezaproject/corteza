@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"context"
 	"encoding/json"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"os"
@@ -9,12 +8,13 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/service"
 )
 
-func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
+func Settings() *cobra.Command {
 	var (
 		cmd = &cobra.Command{
 			Use:   "settings",
@@ -26,8 +26,9 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 		Use:   "list",
 		Short: "List all",
 		Run: func(cmd *cobra.Command, args []string) {
-			c.InitServices(ctx, c)
-			ctx = auth.SetSuperUserContext(ctx)
+			var (
+				ctx = auth.SetSuperUserContext(cli.Context())
+			)
 
 			prefix := cmd.Flags().Lookup("prefix").Value.String()
 			if kv, err := service.DefaultSettings.FindByPrefix(ctx, prefix); err != nil {
@@ -55,8 +56,9 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 		Short: "Get value (raw JSON) for a specific key",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			c.InitServices(ctx, c)
-			ctx = auth.SetSuperUserContext(ctx)
+			var (
+				ctx = auth.SetSuperUserContext(cli.Context())
+			)
 
 			if v, err := service.DefaultSettings.Get(ctx, args[0], 0); err != nil {
 				cli.HandleError(err)
@@ -71,8 +73,9 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 		Short: "Set value (raw JSON) for a specific key",
 		Args:  cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			c.InitServices(ctx, c)
-			ctx = auth.SetSuperUserContext(ctx)
+			var (
+				ctx = auth.SetSuperUserContext(cli.Context())
+			)
 
 			value := args[1]
 			v := &settings.Value{
@@ -98,10 +101,8 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 		Short: "Import settings as JSON from stdin or file",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			c.InitServices(ctx, c)
-			ctx = auth.SetSuperUserContext(ctx)
-
 			var (
+				ctx = auth.SetSuperUserContext(cli.Context())
 				fh  *os.File
 				err error
 			)
@@ -139,10 +140,8 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 		Short: "Import settings as JSON to stdout or file",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			c.InitServices(ctx, c)
-			ctx = auth.SetSuperUserContext(ctx)
-
 			var (
+				ctx = auth.SetSuperUserContext(cli.Context())
 				fh  *os.File
 				err error
 			)
@@ -173,10 +172,10 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 		Short: "Set value (raw JSON) for a specific key (or by prefix)",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			c.InitServices(ctx, c)
-			ctx = auth.SetSuperUserContext(ctx)
-
-			var names = []string{}
+			var (
+				ctx   = auth.SetSuperUserContext(cli.Context())
+				names = []string{}
+			)
 
 			if prefix := cmd.Flags().Lookup("prefix").Value.String(); len(prefix) > 0 {
 				if vv, err := service.DefaultSettings.FindByPrefix(ctx); err != nil {

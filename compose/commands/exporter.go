@@ -28,19 +28,15 @@ import (
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
-func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
+func Exporter() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "export",
 		Short: "Export",
 		Long:  `Specify one ("modules", "pages", "charts", "permissions") or more resources to export`,
 
 		Run: func(cmd *cobra.Command, args []string) {
-
-			c.InitServices(ctx, c)
-
-			ctx = auth.SetSuperUserContext(ctx)
-
 			var (
+				ctx    = auth.SetSuperUserContext(cli.Context())
 				nsFlag = cmd.Flags().Lookup("namespace").Value.String()
 				sFlag  = cmd.Flags().Lookup("settings").Changed
 				pFlag  = cmd.Flags().Lookup("permissions").Changed
@@ -117,19 +113,9 @@ func nsExporter(ctx context.Context, out *Compose, nsFlag string, args []string)
 	charts, _, err := service.DefaultChart.Find(types.ChartFilter{NamespaceID: ns.ID})
 	cli.HandleError(err)
 
-	scripts, _, err := service.DefaultInternalAutomationManager.FindScripts(ctx, automation.ScriptFilter{})
-	cli.HandleError(err)
-
-	triggers, _, err := service.DefaultInternalAutomationManager.FindTriggers(ctx, automation.TriggerFilter{})
-	cli.HandleError(err)
-
-	scripts, _ = scripts.Filter(func(script *automation.Script) (b bool, e error) {
-		return script.NamespaceID == ns.ID, nil
-	})
-
 	// nsOut.Name = ns.Name
 	// nsOut.Handle = ns.Slug
-	// nsOut.Enabled = ns.Enabled
+	// nsOut.Always = ns.Always
 	// nsOut.Meta = ns.Meta
 	//
 	// nsOut.Allow = sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Allow, ns.PermissionResource())
@@ -142,9 +128,7 @@ func nsExporter(ctx context.Context, out *Compose, nsFlag string, args []string)
 		case "chart", "charts":
 			nsOut.Charts = expCharts(charts, modules)
 		case "page", "pages":
-			nsOut.Pages = expPages(0, pages, modules, charts, scripts)
-		case "scripts", "triggers", "automation":
-			nsOut.Scripts = expAutomation(scripts, triggers, modules)
+			nsOut.Pages = expPages(0, pages, modules, charts)
 		}
 	}
 
@@ -419,7 +403,7 @@ func expModuleFieldOptions(f *types.ModuleField, modules types.ModuleSet) types.
 	return out
 }
 
-func expPages(parentID uint64, pages types.PageSet, modules types.ModuleSet, charts types.ChartSet, scripts automation.ScriptSet) (o yaml.MapSlice) {
+func expPages(parentID uint64, pages types.PageSet, modules types.ModuleSet, charts types.ChartSet) (o yaml.MapSlice) {
 	var (
 		children = pages.FindByParent(parentID)
 		handle   string
@@ -430,8 +414,8 @@ func expPages(parentID uint64, pages types.PageSet, modules types.ModuleSet, cha
 		page := Page{
 			Title:       child.Title,
 			Description: child.Description,
-			Blocks:      expPageBlocks(child.Blocks, pages, modules, charts, scripts),
-			Pages:       expPages(child.ID, pages, modules, charts, scripts),
+			Blocks:      expPageBlocks(child.Blocks, pages, modules, charts),
+			Pages:       expPages(child.ID, pages, modules, charts),
 			Visible:     child.Visible,
 
 			Allow: sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Allow, types.PagePermissionResource),
@@ -464,7 +448,7 @@ func expPages(parentID uint64, pages types.PageSet, modules types.ModuleSet, cha
 	return
 }
 
-func expPageBlocks(in types.PageBlocks, pages types.PageSet, modules types.ModuleSet, charts types.ChartSet, scripts automation.ScriptSet) types.PageBlocks {
+func expPageBlocks(in types.PageBlocks, pages types.PageSet, modules types.ModuleSet, charts types.ChartSet) types.PageBlocks {
 	out := types.PageBlocks(in)
 
 	// Remove extra options to keep the output tidy
@@ -536,9 +520,9 @@ func expPageBlocks(in types.PageBlocks, pages types.PageSet, modules types.Modul
 				_ = deinterfacer.Each(btn, func(_ int, k string, v interface{}) error {
 					switch k {
 					case "triggerID", "scriptID":
-						if s := scripts.FindByID(deinterfacer.ToUint64(v)); s != nil {
-							button["script"] = makeHandleFromName(s.Name, "", "automation-script-%d", s.ID)
-						}
+						// if s := scripts.FindByID(deinterfacer.ToUint64(v)); s != nil {
+						// 	button["script"] = makeHandleFromName(s.Name, "", "automation-script-%d", s.ID)
+						// }
 					default:
 						button[k] = v
 					}
