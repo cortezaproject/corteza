@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"io"
+	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
@@ -79,6 +81,7 @@ type (
 		FindByEmail(email string) (*types.User, error)
 		FindByHandle(handle string) (*types.User, error)
 		FindByID(id uint64) (*types.User, error)
+		FindByAny(any string) (*types.User, error)
 		Find(types.UserFilter) (types.UserSet, types.UserFilter, error)
 
 		Create(input *types.User) (*types.User, error)
@@ -152,6 +155,20 @@ func (svc user) FindByUsername(username string) (*types.User, error) {
 
 func (svc user) FindByHandle(handle string) (*types.User, error) {
 	return svc.proc(svc.user.FindByHandle(handle))
+}
+
+func (svc user) FindByAny(any string) (*types.User, error) {
+	return svc.proc(func() (*types.User, error) {
+		if id, _ := strconv.ParseUint(any, 10, 64); id > 0 {
+			return svc.user.FindByID(id)
+		}
+
+		if strings.Contains(any, "@") {
+			return svc.user.FindByEmail(any)
+		}
+
+		return svc.user.FindByHandle(any)
+	}())
 }
 
 func (svc user) proc(u *types.User, err error) (*types.User, error) {

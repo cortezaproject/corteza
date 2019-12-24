@@ -3,6 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -88,6 +89,10 @@ const (
 	NormalUser UserKind = ""
 	BotUser    UserKind = "bot"
 )
+
+func (u User) String() string {
+	return fmt.Sprintf("%d", u.ID)
+}
 
 func (u *User) Valid() bool {
 	return u.ID > 0 && u.SuspendedAt == nil && u.DeletedAt == nil
