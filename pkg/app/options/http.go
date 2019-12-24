@@ -5,7 +5,7 @@ import (
 )
 
 type (
-	HTTPOpt struct {
+	HTTPServerOpt struct {
 		Addr        string `env:"HTTP_ADDR"`
 		LogRequest  bool   `env:"HTTP_LOG_REQUEST"`
 		LogResponse bool   `env:"HTTP_LOG_RESPONSE"`
@@ -23,8 +23,8 @@ type (
 	}
 )
 
-func HTTP(pfix string) (o *HTTPOpt) {
-	o = &HTTPOpt{
+func HTTP(pfix string) (o *HTTPServerOpt) {
+	o = &HTTPServerOpt{
 		Addr:                ":80",
 		LogRequest:          false,
 		LogResponse:         false,

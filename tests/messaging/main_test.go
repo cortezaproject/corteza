@@ -15,7 +15,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/messaging"
-	migrate "github.com/cortezaproject/corteza-server/messaging/db"
 	"github.com/cortezaproject/corteza-server/messaging/rest"
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/messaging/types"
@@ -41,19 +40,30 @@ type (
 )
 
 var (
-	cfg *cli.Config
-	r   chi.Router
-	p   = &permissions.TestService{}
+	inited bool
+	app    = &messaging.App{}
+	r      chi.Router
+	p      = &permissions.TestService{}
 )
 
 func db() *factory.DB {
-	return factory.Database.MustGet("messaging").With(context.Background())
+	return factory.Database.MustGet("messaging", "default").With(context.Background())
+}
+
+// random string, 10 chars long by default
+func rs(a ...int) string {
+	var l = 10
+	if len(a) > 0 {
+		l = a[0]
+	}
+
+	return string(rand.Bytes(l))
 }
 
 func InitConfig() {
 	var err error
 
-	if cfg != nil {
+	if inited {
 		return
 	}
 
@@ -61,21 +71,13 @@ func InitConfig() {
 
 	ctx := context.Background()
 	log, _ := zap.NewDevelopment()
+	logger.SetDefault(log)
 
-	cfg = messaging.Configure()
-	cfg.Log = log
+	cli.HandleError(app.Connect(ctx))
+	auth.SetupDefault(rs(32), 10)
+	cli.HandleError(app.ProvisionMigrateDatabase(ctx))
 
-	cfg.Init()
-
-	auth.SetupDefault(string(rand.Bytes(32)), 10)
-
-	if err = cfg.RootCommandDBSetup.Run(ctx, nil, cfg); err != nil {
-		panic(err)
-	} else if err := migrate.Migrate(factory.Database.MustGet("messaging"), log); err != nil {
-		panic(err)
-	}
-
-	p = permissions.NewTestService(ctx, cfg.Log, db(), "messaging_permission_rules")
+	p = permissions.NewTestService(ctx, log, db(), "messaging_permission_rules")
 
 	logger.SetDefault(log)
 	service.DefaultPermissions = p
@@ -83,7 +85,8 @@ func InitConfig() {
 		panic(err)
 	}
 
-	cfg.InitServices(ctx, cfg)
+	cli.HandleError(app.Initialize(ctx))
+	inited = true
 }
 
 func InitApp() {
@@ -95,7 +98,7 @@ func InitApp() {
 	}
 
 	r = chi.NewRouter()
-	r.Use(api.Base(logger.Default())...)
+	r.Use(api.BaseMiddleware(logger.Default())...)
 	helpers.BindAuthMiddleware(r)
 	rest.MountRoutes(r)
 }

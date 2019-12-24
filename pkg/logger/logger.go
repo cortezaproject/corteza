@@ -2,6 +2,7 @@ package logger
 
 import (
 	"os"
+	"time"
 
 	// Make sure we read the ENV from .env
 	_ "github.com/joho/godotenv/autoload"
@@ -9,7 +10,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/cortezaproject/corteza-server/pkg/cli/options"
+	"github.com/cortezaproject/corteza-server/pkg/app/options"
 )
 
 var (
@@ -20,6 +21,14 @@ var (
 func MakeDebugLogger() *zap.Logger {
 	conf := zap.NewDevelopmentConfig()
 	conf.Level = DefaultLevel
+
+	// Print log level in colors
+	conf.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+
+	// Shorten timestamp, we do not care about the date
+	conf.EncoderConfig.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+		enc.AppendString(t.Format("15:04:05.000"))
+	}
 
 	logger, err := conf.Build()
 	if err != nil {

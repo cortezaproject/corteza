@@ -16,18 +16,15 @@ import (
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
-func Exporter(ctx context.Context, c *cli.Config) *cobra.Command {
+func Exporter() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "export",
 		Short: "Export",
 		Long:  `Export messaging resources`,
 
 		Run: func(cmd *cobra.Command, args []string) {
-
-			c.InitServices(ctx, c)
-			ctx = auth.SetSuperUserContext(ctx)
-
 			var (
+				ctx   = auth.SetSuperUserContext(cli.Context())
 				sFlag = cmd.Flags().Lookup("settings").Changed
 				pFlag = cmd.Flags().Lookup("permissions").Changed
 

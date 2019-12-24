@@ -7,16 +7,10 @@ import (
 	"runtime"
 
 	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
 )
 
-func Debug(r chi.Router) {
-	r.Mount("/debug", middleware.Profiler())
-	DebugRoutes(r)
-}
-
-func DebugRoutes(r chi.Router) {
-	r.Get("/debug/routes", func(w http.ResponseWriter, req *http.Request) {
+func debugRoutes(r chi.Routes) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
 		var printRoutes func(chi.Routes, string)
 
 		printRoutes = func(r chi.Routes, pfix string) {
@@ -33,5 +27,5 @@ func DebugRoutes(r chi.Router) {
 		}
 
 		printRoutes(r, "")
-	})
+	}
 }

@@ -20,7 +20,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/system"
-	migrate "github.com/cortezaproject/corteza-server/system/db"
 	"github.com/cortezaproject/corteza-server/system/rest"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -38,9 +37,10 @@ type (
 )
 
 var (
-	cfg *cli.Config
-	r   chi.Router
-	p   = &permissions.TestService{}
+	inited bool
+	app    = &system.App{}
+	r      chi.Router
+	p      = &permissions.TestService{}
 )
 
 // random string, 10 chars long by default
@@ -54,13 +54,11 @@ func rs(a ...int) string {
 }
 
 func db() *factory.DB {
-	return factory.Database.MustGet("system").With(context.Background())
+	return factory.Database.MustGet("system", "default").With(context.Background())
 }
 
 func InitConfig() {
-	var err error
-
-	if cfg != nil {
+	if inited {
 		return
 	}
 
@@ -68,29 +66,19 @@ func InitConfig() {
 
 	ctx := context.Background()
 	log, _ := zap.NewDevelopment()
+	logger.SetDefault(log)
 
-	cfg = system.Configure()
-	cfg.Log = log
+	cli.HandleError(app.Connect(ctx))
+	auth.SetupDefault(rs(32), 10)
+	cli.HandleError(app.ProvisionMigrateDatabase(ctx))
 
-	cfg.Init()
-
-	auth.SetupDefault(string(rand.Bytes(32)), 10)
-
-	if err = cfg.RootCommandDBSetup.Run(ctx, nil, cfg); err != nil {
-		panic(err)
-	} else if err := migrate.Migrate(factory.Database.MustGet("system"), log); err != nil {
-		panic(err)
-	}
-
-	p = permissions.NewTestService(ctx, cfg.Log, db(), "sys_permission_rules")
+	p = permissions.NewTestService(ctx, log, db(), "sys_permission_rules")
 
 	logger.SetDefault(log)
 	service.DefaultPermissions = p
-	// if service.DefaultStore, err = store.NewWithAfero(afero.NewMemMapFs(), "test"); err != nil {
-	// 	panic(err)
-	// }
 
-	cfg.InitServices(ctx, cfg)
+	cli.HandleError(app.Initialize(ctx))
+	inited = true
 }
 
 func InitApp() {
@@ -102,7 +90,7 @@ func InitApp() {
 	}
 
 	r = chi.NewRouter()
-	r.Use(api.Base(logger.Default())...)
+	r.Use(api.BaseMiddleware(logger.Default())...)
 	helpers.BindAuthMiddleware(r)
 	rest.MountRoutes(r)
 }

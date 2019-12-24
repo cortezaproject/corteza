@@ -10,7 +10,7 @@ import (
 	"github.com/titpetric/factory/logger"
 	"go.uber.org/zap"
 
-	"github.com/cortezaproject/corteza-server/pkg/cli/options"
+	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 )
 
@@ -18,7 +18,13 @@ var (
 	dsnMasker = regexp.MustCompile("(.)(?:.*)(.):(.)(?:.*)(.)@")
 )
 
-func TryToConnect(ctx context.Context, log *zap.Logger, name string, opt options.DBOpt) (db *factory.DB, err error) {
+func TryToConnect(ctx context.Context, log *zap.Logger, opt options.DBOpt) (db *factory.DB, err error) {
+	if opt.DSN == "" {
+		err = errors.Errorf("invalid or empty DSN: %q", opt.DSN)
+		return
+	}
+
+	name := "default"
 	factory.Database.Add(name, opt.DSN)
 
 	var (
@@ -74,7 +80,7 @@ func TryToConnect(ctx context.Context, log *zap.Logger, name string, opt options
 				}
 			}
 
-			log.Info("connected to the database", dsnField)
+			log.Debug("connected to the database", dsnField)
 
 			// Connected
 			break

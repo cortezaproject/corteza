@@ -23,7 +23,7 @@ type (
 
 func (Stats) New() *Stats {
 	return &Stats{
-		svc: service.Statistics(context.Background()),
+		svc: service.DefaultStatistics,
 	}
 }
 

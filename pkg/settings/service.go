@@ -56,7 +56,6 @@ func (svc service) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger
 
 func (svc service) FindByPrefix(ctx context.Context, pp ...string) (ValueSet, error) {
 	if !svc.accessControl.CanReadSettings(ctx) {
-		svc.log(ctx).Error("foo")
 		return nil, ErrNoReadPermission
 	}
 

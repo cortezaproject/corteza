@@ -15,11 +15,6 @@ type (
 		Log bool `env:"CORREDOR_LOG_ENABLED"`
 
 		MaxBackoffDelay time.Duration `env:"CORREDOR_MAX_BACKOFF_DELAY"`
-
-		// @todo do autodiscovery & prefill these with values we know
-		ApiBaseURLSystem    string `env:"CORREDOR_API_BASE_URL_SYSTEM"`
-		ApiBaseURLMessaging string `env:"CORREDOR_API_BASE_URL_MESSAGING"`
-		ApiBaseURLCompose   string `env:"CORREDOR_API_BASE_URL_COMPOSE"`
 	}
 )
 

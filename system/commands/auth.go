@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"context"
 	"regexp"
 	"strconv"
 
@@ -17,7 +16,7 @@ import (
 )
 
 // Will perform OpenID connect auto-configuration
-func Auth(ctx context.Context, c *cli.Config) *cobra.Command {
+func Auth() *cobra.Command {
 	var (
 		enableDiscoveredProvider               bool
 		skipValidationOnAutoDiscoveredProvider bool
@@ -33,7 +32,9 @@ func Auth(ctx context.Context, c *cli.Config) *cobra.Command {
 		Short: "Auto discovers new OIDC client",
 		Args:  cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			c.InitServices(ctx, c)
+			var (
+				ctx = auth.SetSuperUserContext(cli.Context())
+			)
 
 			_, err := external.RegisterOidcProvider(
 				ctx,
@@ -71,9 +72,9 @@ func Auth(ctx context.Context, c *cli.Config) *cobra.Command {
 		Short: "Generates new JWT for a user",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-
 			var (
-				db = factory.Database.MustGet("system")
+				ctx = auth.SetSuperUserContext(cli.Context())
+				db  = factory.Database.MustGet("system", "default")
 
 				userRepo = repository.User(ctx, db)
 				roleRepo = repository.Role(ctx, db)
@@ -86,8 +87,6 @@ func Auth(ctx context.Context, c *cli.Config) *cobra.Command {
 
 				userStr = args[0]
 			)
-
-			c.InitServices(ctx, c)
 
 			if user, err = userRepo.FindByEmail(userStr); repository.ErrUserNotFound.Eq(err) {
 				if regexp.MustCompile(`/^\d+$/`).MatchString(userStr) {
@@ -116,9 +115,8 @@ func Auth(ctx context.Context, c *cli.Config) *cobra.Command {
 		Short: "Sends samples of all authentication notification to receipient",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			c.InitServices(ctx, c)
-
 			var (
+				ctx = auth.SetSuperUserContext(cli.Context())
 				err error
 				ntf = service.DefaultAuthNotification.With(ctx)
 			)

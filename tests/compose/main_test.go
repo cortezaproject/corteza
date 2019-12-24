@@ -15,7 +15,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/compose"
-	migrate "github.com/cortezaproject/corteza-server/compose/db"
 	"github.com/cortezaproject/corteza-server/compose/rest"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -41,13 +40,14 @@ type (
 )
 
 var (
-	cfg *cli.Config
-	r   chi.Router
-	p   = &permissions.TestService{}
+	inited bool
+	app    = &compose.App{}
+	r      chi.Router
+	p      = &permissions.TestService{}
 )
 
 func db() *factory.DB {
-	return factory.Database.MustGet("compose").With(context.Background())
+	return factory.Database.MustGet("compose", "default").With(context.Background())
 }
 
 // random string, 10 chars long by default
@@ -63,7 +63,7 @@ func rs(a ...int) string {
 func InitConfig() {
 	var err error
 
-	if cfg != nil {
+	if inited {
 		return
 	}
 
@@ -71,21 +71,13 @@ func InitConfig() {
 
 	ctx := context.Background()
 	log, _ := zap.NewDevelopment()
+	logger.SetDefault(log)
 
-	cfg = compose.Configure()
-	cfg.Log = log
+	cli.HandleError(app.Connect(ctx))
+	auth.SetupDefault(rs(32), 10)
+	cli.HandleError(app.ProvisionMigrateDatabase(ctx))
 
-	cfg.Init()
-
-	auth.SetupDefault(string(rand.Bytes(32)), 10)
-
-	if err = cfg.RootCommandDBSetup.Run(ctx, nil, cfg); err != nil {
-		panic(err)
-	} else if err := migrate.Migrate(factory.Database.MustGet("compose"), log); err != nil {
-		panic(err)
-	}
-
-	p = permissions.NewTestService(ctx, cfg.Log, db(), "compose_permission_rules")
+	p = permissions.NewTestService(ctx, log, db(), "compose_permission_rules")
 
 	logger.SetDefault(log)
 	service.DefaultPermissions = p
@@ -93,7 +85,8 @@ func InitConfig() {
 		panic(err)
 	}
 
-	cfg.InitServices(ctx, cfg)
+	cli.HandleError(app.Initialize(ctx))
+	inited = true
 }
 
 func InitApp() {
@@ -105,7 +98,7 @@ func InitApp() {
 	}
 
 	r = chi.NewRouter()
-	r.Use(api.Base(logger.Default())...)
+	r.Use(api.BaseMiddleware(logger.Default())...)
 	helpers.BindAuthMiddleware(r)
 	rest.MountRoutes(r)
 }
@@ -146,6 +139,7 @@ func (h helper) apiInit() *apitest.APITest {
 		New().
 		Handler(r).
 		Intercept(helpers.ReqHeaderAuthBearer(h.cUser))
+
 }
 
 func (h helper) mockPermissions(rules ...*permissions.Rule) {
