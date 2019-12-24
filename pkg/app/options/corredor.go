@@ -15,15 +15,18 @@ type (
 		Log bool `env:"CORREDOR_LOG_ENABLED"`
 
 		MaxBackoffDelay time.Duration `env:"CORREDOR_MAX_BACKOFF_DELAY"`
+
+		DefaultExecTimeout time.Duration `env:"CORREDOR_DEFAULT_EXEC_TIMEOUT"`
 	}
 )
 
 func Corredor(pfix string) (o *CorredorOpt) {
 	o = &CorredorOpt{
-		Enabled:         true,
-		Addr:            "corredor:80",
-		MaxBackoffDelay: time.Minute,
-		Log:             false,
+		Enabled:            true,
+		Addr:               "corredor:80",
+		MaxBackoffDelay:    time.Minute,
+		DefaultExecTimeout: time.Minute,
+		Log:                false,
 	}
 
 	fill(o, pfix)
