@@ -9,6 +9,7 @@ type (
 		Identity() uint64
 		Roles() []uint64
 		Valid() bool
+		String() string
 	}
 
 	TokenEncoder interface {
