@@ -13,7 +13,7 @@ function download {
 # ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------
 
 function getCrmConfig {
-  NAMES="1000_namespace 1100_modules 1200_charts 1300_scripts 1400_pages 1500_record_settings"
+  NAMES="1000_namespace 1100_modules 1200_charts 1400_pages 1500_record_settings"
 
   for NAME in $NAMES; do
     download "master/crm/${NAME}.yaml" "./compose/src/${NAME}_crm.yaml"
@@ -25,7 +25,7 @@ getCrmConfig
 # ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------
 
 function getServiceCloudConfig {
-  NAMES="1000_namespace 1100_modules 1200_charts 1300_scripts 1400_pages 1500_record_settings"
+  NAMES="1000_namespace 1100_modules 1200_charts 1400_pages 1500_record_settings"
 
   for NAME in $NAMES; do
     download "master/service-cloud/${NAME}.yaml" "./compose/src/${NAME}_service_cloud.yaml"

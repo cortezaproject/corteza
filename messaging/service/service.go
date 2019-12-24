@@ -8,8 +8,8 @@ import (
 
 	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 	"github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
@@ -29,7 +29,8 @@ type (
 	}
 
 	Config struct {
-		Storage options.StorageOpt
+		Storage  options.StorageOpt
+		Corredor options.CorredorOpt
 	}
 )
 

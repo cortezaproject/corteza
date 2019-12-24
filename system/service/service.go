@@ -5,10 +5,8 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/automation"
-	"github.com/cortezaproject/corteza-server/pkg/automation/corredor"
-	"github.com/cortezaproject/corteza-server/pkg/cli/options"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/repository"
@@ -23,12 +21,6 @@ type (
 	permissionServicer interface {
 		accessControlPermissionServicer
 		Watch(ctx context.Context)
-	}
-
-	automationManager interface {
-		automationScriptManager
-		automationTriggerManager
-		automationScriptsFinder
 	}
 
 	Config struct {
@@ -66,18 +58,6 @@ var (
 
 	// DefaultAccessControl Access control checking
 	DefaultAccessControl *accessControl
-
-	// DefaultInternalAutomationManager manages automation scripts, triggers, runnable scripts
-	DefaultInternalAutomationManager automationManager
-
-	// DefaultAutomationScriptManager manages scripts
-	DefaultAutomationScriptManager automationScript
-
-	// DefaultAutomationTriggerManager manages triggerManager
-	DefaultAutomationTriggerManager automationTrigger
-
-	// DefaultAutomationRunner runs automation scripts by listening to triggerManager and invoking Corredor service
-	DefaultAutomationRunner automationRunner
 
 	DefaultAuthNotification AuthNotificationService
 
@@ -119,60 +99,8 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultOrganisation = Organisation(ctx)
 	DefaultApplication = Application(ctx)
 	DefaultReminder = Reminder(ctx)
-
 	DefaultAuthNotification = AuthNotification(ctx)
 	DefaultAuth = Auth(ctx)
-
-	{
-		if DefaultInternalAutomationManager == nil {
-			// handles script & trigger management & keeping runnables cripts in internal cache
-			DefaultInternalAutomationManager = automation.Service(automation.AutomationServiceConfig{
-				Logger:        DefaultLogger,
-				DbTablePrefix: "sys",
-				DB:            repository.DB(ctx),
-				TokenMaker: func(ctx context.Context, userID uint64) (jwt string, err error) {
-					var u *types.User
-
-					ctx = intAuth.SetSuperUserContext(ctx)
-					if u, err = DefaultUser.FindByID(userID); err != nil {
-						return
-					} else if err = DefaultAuth.LoadRoleMemberships(u); err != nil {
-						return
-					}
-
-					return intAuth.DefaultJwtHandler.Encode(u), nil
-				},
-			})
-		}
-
-		// Pass automation manager to
-		DefaultAutomationTriggerManager = AutomationTrigger(DefaultInternalAutomationManager)
-		DefaultAutomationScriptManager = AutomationScript(DefaultInternalAutomationManager)
-
-		var scriptRunnerClient corredor.ScriptRunnerClient
-
-		if c.Corredor.Enabled {
-			conn, err := corredor.NewConnection(ctx, c.Corredor, DefaultLogger)
-
-			log.Info("initializing corredor connection", zap.String("addr", c.Corredor.Addr), zap.Error(err))
-			if err != nil {
-				return err
-			}
-
-			scriptRunnerClient = corredor.NewScriptRunnerClient(conn)
-		}
-
-		DefaultAutomationRunner = AutomationRunner(
-			AutomationRunnerOpt{
-				ApiBaseURLSystem:    c.Corredor.ApiBaseURLSystem,
-				ApiBaseURLMessaging: c.Corredor.ApiBaseURLMessaging,
-				ApiBaseURLCompose:   c.Corredor.ApiBaseURLCompose,
-			},
-			DefaultInternalAutomationManager,
-			scriptRunnerClient,
-		)
-	}
-
 	DefaultSink = Sink()
 	DefaultStatistics = Statistics(ctx)
 
@@ -190,9 +118,6 @@ func Activate(ctx context.Context) (err error) {
 }
 
 func Watchers(ctx context.Context) {
-	// Reloading automation scripts on change
-	DefaultAutomationRunner.Watch(ctx)
-
 	// Reloading permissions on change
 	DefaultPermissions.Watch(ctx)
 }

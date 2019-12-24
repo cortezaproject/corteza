@@ -8,7 +8,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
 )
@@ -59,14 +58,6 @@ func (pImp *Page) getModule(handle string) (*types.Module, error) {
 		return nil, errors.Errorf("could not get modules %q from non existing namespace %q", handle, pImp.namespace.Slug)
 	} else {
 		return g.Get(handle)
-	}
-}
-
-func (pImp *Page) getScript(name string) (*automation.Script, error) {
-	if g, ok := pImp.imp.namespaces.scripts[pImp.namespace.Slug]; !ok {
-		return nil, errors.Errorf("could not get scripts %q from non existing namespace %q", name, pImp.namespace.Slug)
-	} else {
-		return g.Get(name)
 	}
 }
 
@@ -401,42 +392,7 @@ func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
 				}
 			}
 
-			if b.Kind == "Automation" {
-				bb := make([]interface{}, 0)
-				err := deinterfacer.Each(b.Options["buttons"], func(_ int, _ string, btn interface{}) (err error) {
-					button := map[string]interface{}{}
-
-					err = deinterfacer.Each(btn, func(_ int, k string, v interface{}) error {
-						switch k {
-						case "script":
-							if s, err := pImp.getScript(deinterfacer.ToString(v)); err != nil || s == nil {
-								return errors.Errorf("could not load script %q for page %q block #%d (err: %v)",
-									v, page.Handle, i+1, err)
-							} else {
-								button["scriptID"] = strconv.FormatUint(s.ID, 10)
-								refs++
-							}
-						default:
-							button[k] = v
-						}
-
-						return nil
-					})
-
-					if err != nil {
-						return err
-					}
-
-					bb = append(bb, button)
-					return nil
-				})
-
-				b.Options["buttons"] = bb
-
-				if err != nil {
-					return err
-				}
-			} else if b.Kind == "Calendar" {
+			if b.Kind == "Calendar" {
 				ff := make([]interface{}, 0)
 				err := deinterfacer.Each(b.Options["feeds"], func(_ int, _ string, def interface{}) (err error) {
 					feed := map[string]interface{}{}

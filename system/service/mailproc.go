@@ -27,7 +27,6 @@ type (
 
 func Mailproc() *mailproc {
 	return &mailproc{
-		sr:     DefaultAutomationRunner,
 		logger: DefaultLogger.Named("mailproc"),
 	}
 }

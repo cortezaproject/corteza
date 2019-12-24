@@ -14,8 +14,10 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/decoder"
 	"github.com/cortezaproject/corteza-server/compose/repository"
+	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
@@ -31,7 +33,6 @@ type (
 		logger *zap.Logger
 
 		ac recordAccessController
-		sr RecordScriptsRunner
 
 		recordRepo repository.RecordRepository
 		moduleRepo repository.ModuleRepository
@@ -47,15 +48,6 @@ type (
 		CanDeleteRecord(context.Context, *types.Module) bool
 		CanReadRecordValue(context.Context, *types.ModuleField) bool
 		CanUpdateRecordValue(context.Context, *types.ModuleField) bool
-	}
-
-	RecordScriptsRunner interface {
-		BeforeRecordCreate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
-		AfterRecordCreate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
-		BeforeRecordUpdate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
-		AfterRecordUpdate(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
-		BeforeRecordDelete(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
-		AfterRecordDelete(ctx context.Context, ns *types.Namespace, m *types.Module, r *types.Record) (err error)
 	}
 
 	RecordService interface {
@@ -113,7 +105,6 @@ func Record() RecordService {
 	return (&record{
 		logger: DefaultLogger.Named("record"),
 		ac:     DefaultAccessControl,
-		sr:     DefaultAutomationRunner,
 	}).With(context.Background())
 }
 
@@ -126,7 +117,6 @@ func (svc record) With(ctx context.Context) RecordService {
 		logger: svc.logger,
 
 		ac: svc.ac,
-		sr: svc.sr,
 
 		recordRepo: repository.Record(ctx, db),
 		moduleRepo: repository.Module(ctx, db),
@@ -320,8 +310,7 @@ func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
 
 	mod = nil // make sure we do not use it anymore
 
-	if err = svc.sr.BeforeRecordCreate(svc.ctx, ns, m, r); err != nil {
-		// Calling
+	if err = eventbus.WaitFor(svc.ctx, event.RecordBeforeCreate(m, ns, r)); err != nil {
 		return
 	}
 
@@ -331,10 +320,8 @@ func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
 		return
 	}
 
-	defer func() {
-		// Run this at the end and discard the error
-		_ = svc.sr.AfterRecordCreate(svc.ctx, ns, m, r)
-	}()
+	// Run this at the end and discard the error
+	defer eventbus.Dispatch(svc.ctx, event.RecordAfterCreate(m, ns, r))
 
 	return r, svc.db.Transaction(func() (err error) {
 		if r, err = svc.recordRepo.Create(r); err != nil {
@@ -377,7 +364,7 @@ func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 	mod = nil // make sure we do not use it anymore
 
 	// Calling before-record-update scripts
-	if err = svc.sr.BeforeRecordUpdate(svc.ctx, ns, m, r); err != nil {
+	if err = eventbus.WaitFor(svc.ctx, event.RecordBeforeUpdate(m, ns, r)); err != nil {
 		return
 	}
 
@@ -387,10 +374,8 @@ func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 		return
 	}
 
-	defer func() {
-		// Run this at the end and discard the error
-		_ = svc.sr.AfterRecordUpdate(svc.ctx, ns, m, r)
-	}()
+	// Run this at the end and discard the error
+	defer eventbus.Dispatch(svc.ctx, event.RecordAfterUpdate(m, ns, r))
 
 	return r, svc.db.Transaction(func() (err error) {
 		if r, err = svc.recordRepo.Update(r); err != nil {
@@ -430,15 +415,13 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 		return
 	}
 
-	if err = svc.sr.BeforeRecordDelete(svc.ctx, ns, m, r); err != nil {
-		// Calling
+	// Calling before-record-delete scripts
+	if err = eventbus.WaitFor(svc.ctx, event.RecordBeforeDelete(m, ns, r)); err != nil {
 		return
 	}
 
-	defer func() {
-		// Run this at the end and discard the error
-		_ = svc.sr.AfterRecordDelete(svc.ctx, ns, m, r)
-	}()
+	// Run this at the end and discard the error
+	defer eventbus.Dispatch(svc.ctx, event.RecordAfterDelete(m, ns, r))
 
 	err = svc.db.Transaction(func() (err error) {
 		now := time.Now()

@@ -35,10 +35,6 @@ func MountRoutes(r chi.Router) {
 		handlers.NewApplication(Application{}.New()).MountRoutes(r)
 		handlers.NewSettings(Settings{}.New()).MountRoutes(r)
 		handlers.NewStats(Stats{}.New()).MountRoutes(r)
-
-		handlers.NewAutomationScript(AutomationScript{}.New()).MountRoutes(r)
-		handlers.NewAutomationTrigger(AutomationTrigger{}.New()).MountRoutes(r)
-
 		handlers.NewReminder(Reminder{}.New()).MountRoutes(r)
 	})
 }

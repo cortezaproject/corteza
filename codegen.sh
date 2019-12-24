@@ -153,28 +153,14 @@ function specs {
 function proto {
 	yellow "> proto"
 
-
 	CORTEZA_PROTOBUF_PATH=${CORTEZA_PROTOBUF_PATH:-"vendor/github.com/cortezaproject/corteza-protobuf"}
 
-	ComposeProtoPath="github.com/cortezaproject/corteza-server/compose/proto"
-	SystemProtoPath="github.com/cortezaproject/corteza-server/system/proto"
-
-	yellow "  ${CORTEZA_PROTOBUF_PATH} >> compose/proto"
-	PATH=$PATH:$GOPATH/bin protoc \
-		--proto_path ${CORTEZA_PROTOBUF_PATH}/compose \
-		--go_out=./compose/proto \
-		record.proto namespace.proto module.proto
-
-
-  assoc="${assoc},Mcompose/record.proto=${ComposeProtoPath}"
-  assoc="${assoc},Mcompose/module.proto=${ComposeProtoPath}"
-  assoc="${assoc},Mcompose/namespace.proto=${ComposeProtoPath}"
-  assoc="${assoc},Msystem/mail_message.proto=${SystemProtoPath}"
-
-	yellow "  ${CORTEZA_PROTOBUF_PATH} >> pkg/automation/corredor"
+  DIR=./pkg/corredor
+  mkdir -p ${DIR}
+	yellow "  ${CORTEZA_PROTOBUF_PATH} >> ${DIR}"
 	PATH=$PATH:$GOPATH/bin protoc \
 		--proto_path ${CORTEZA_PROTOBUF_PATH} \
-		--go_out="plugins=grpc${assoc}:./pkg/automation/corredor" \
+		--go_out="plugins=grpc:./${DIR}" \
 		service-corredor.proto
 
 	yellow "  ${CORTEZA_PROTOBUF_PATH} >> system/proto"

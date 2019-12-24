@@ -10,8 +10,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/automation"
-	"github.com/cortezaproject/corteza-server/pkg/automation/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/pkg/store"
@@ -24,12 +22,6 @@ type (
 	permissionServicer interface {
 		accessControlPermissionServicer
 		Watch(ctx context.Context)
-	}
-
-	automationManager interface {
-		automationScriptManager
-		automationTriggerManager
-		automationScriptsFinder
 	}
 
 	Config struct {
@@ -51,18 +43,6 @@ var (
 
 	// DefaultAccessControl Access control checking
 	DefaultAccessControl *accessControl
-
-	// DefaultInternalAutomationManager manages automation scripts, triggers, runnable scripts
-	DefaultInternalAutomationManager automationManager
-
-	// DefaultAutomationScriptManager manages compose automation scripts
-	DefaultAutomationScriptManager automationScript
-
-	// DefaultAutomationTriggerManager manages compose automation triggers
-	DefaultAutomationTriggerManager automationTrigger
-
-	// DefaultAutomationRunner runs automation scripts by listening to triggerManager and invoking Corredor service
-	DefaultAutomationRunner automationRunner
 
 	// CurrentSettings represents current compose settings
 	CurrentSettings = &types.Settings{}
@@ -146,48 +126,6 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 		DefaultSystemRole = SystemRole(systemProto.NewRolesClient(systemClientConn))
 	}
 
-	{
-		if DefaultInternalAutomationManager == nil {
-			// handles script & trigger management & keeping runnable scripts in internal cache
-			DefaultInternalAutomationManager = automation.Service(automation.AutomationServiceConfig{
-				Logger:        DefaultLogger,
-				DbTablePrefix: "compose",
-				DB:            db,
-				TokenMaker: func(ctx context.Context, userID uint64) (s string, e error) {
-					ctx = auth.SetSuperUserContext(ctx)
-					return DefaultSystemUser.MakeJWT(ctx, userID)
-				},
-			})
-		}
-
-		// Pass internal automation manager to compose's script & trigger managers
-		DefaultAutomationTriggerManager = AutomationTrigger(DefaultInternalAutomationManager)
-		DefaultAutomationScriptManager = AutomationScript(DefaultInternalAutomationManager)
-
-		var scriptRunnerClient corredor.ScriptRunnerClient
-
-		if c.Corredor.Enabled {
-			conn, err := corredor.NewConnection(ctx, c.Corredor, DefaultLogger)
-
-			log.Info("initializing corredor connection", zap.String("addr", c.Corredor.Addr), zap.Error(err))
-			if err != nil {
-				return err
-			}
-
-			scriptRunnerClient = corredor.NewScriptRunnerClient(conn)
-		}
-
-		DefaultAutomationRunner = AutomationRunner(
-			AutomationRunnerOpt{
-				ApiBaseURLSystem:    c.Corredor.ApiBaseURLSystem,
-				ApiBaseURLMessaging: c.Corredor.ApiBaseURLMessaging,
-				ApiBaseURLCompose:   c.Corredor.ApiBaseURLCompose,
-			},
-			DefaultInternalAutomationManager,
-			scriptRunnerClient,
-		)
-	}
-
 	DefaultImportSession = ImportSession()
 	DefaultRecord = Record()
 	DefaultPage = Page()
@@ -209,9 +147,6 @@ func Activate(ctx context.Context) (err error) {
 }
 
 func Watchers(ctx context.Context) {
-	// Reloading automation scripts on change
-	DefaultAutomationRunner.Watch(ctx)
-
 	// Reloading permissions on change
 	DefaultPermissions.Watch(ctx)
 }

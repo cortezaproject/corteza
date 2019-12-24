@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
 
-	"github.com/cortezaproject/corteza-server/pkg/cli/options"
+	"github.com/cortezaproject/corteza-server/pkg/app/options"
 )
 
 // Connects to system gRPC server

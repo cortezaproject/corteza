@@ -16,9 +16,6 @@ func MountRoutes(r chi.Router) {
 		chart        = Chart{}.New()
 		notification = Notification{}.New()
 		attachment   = Attachment{}.New()
-
-		automationScript  = AutomationScript{}.New()
-		automationTrigger = AutomationTrigger{}.New()
 	)
 
 	// Initialize handlers & controllers.
@@ -40,8 +37,5 @@ func MountRoutes(r chi.Router) {
 		handlers.NewNotification(notification).MountRoutes(r)
 		handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
 		handlers.NewSettings(Settings{}.New()).MountRoutes(r)
-
-		handlers.NewAutomationScript(automationScript).MountRoutes(r)
-		handlers.NewAutomationTrigger(automationTrigger).MountRoutes(r)
 	})
 }
