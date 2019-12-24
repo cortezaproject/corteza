@@ -24,7 +24,7 @@ func middlewareAllowedAccess(next http.Handler) http.Handler {
 	})
 }
 
-func Init(ctx context.Context, config *Config) *Websocket {
+func Watch(ctx context.Context) {
 	events := repository.Events()
 
 	go func() {
@@ -41,8 +41,6 @@ func Init(ctx context.Context, config *Config) *Websocket {
 		}
 	}()
 	eq.store(ctx, events)
-
-	return Websocket{}.New(config)
 }
 
 func (ws Websocket) ApiServerRoutes(r chi.Router) {
