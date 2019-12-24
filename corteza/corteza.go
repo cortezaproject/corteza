@@ -83,9 +83,7 @@ func (app *App) Activate(ctx context.Context) (err error) {
 	scheduler.Run(ctx)
 
 	// Load corredor scripts
-	if err = corredor.Service().Load(ctx); err != nil {
-		return
-	}
+	corredor.Service().Load(ctx)
 
 	return nil
 }

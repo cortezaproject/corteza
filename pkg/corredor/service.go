@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -20,14 +19,24 @@ type (
 	service struct {
 		// stores corredor connection options
 		// for when we're doing lazy setup
-		corredorOpt options.CorredorOpt
+		opt options.CorredorOpt
 
 		// list of all registered triggers
 		//
 		registered map[string][]uintptr
 
+		// list of all registered onManual triggers & scripts
+		//   map[resource][script-name]bool
+		manual map[string]map[string]bool
+
+		// Combined list of client and server scripts
+		sScripts ScriptSet
+		cScripts ScriptSet
+
 		ssClient ServerScriptsClient
-		log      *zap.Logger
+		csClient ClientScriptsClient
+
+		log *zap.Logger
 
 		eventbus eventRegistrator
 		jwtMaker AuthTokenMaker
@@ -60,6 +69,8 @@ type (
 	AuthTokenMaker func(user string) (string, error)
 )
 
+const onManualEventType = "onManual"
+
 var (
 	// Global corredor service
 	gService *service
@@ -84,16 +95,19 @@ func Start(ctx context.Context, logger *zap.Logger, opt options.CorredorOpt) (er
 		return
 	}
 
-	gService = NewService(conn, logger)
+	gService = NewService(conn, logger, opt)
 	return
 }
 
-func NewService(conn *grpc.ClientConn, logger *zap.Logger) *service {
+func NewService(conn *grpc.ClientConn, logger *zap.Logger, opt options.CorredorOpt) *service {
 	return &service{
 		ssClient:   NewServerScriptsClient(conn),
+		csClient:   NewClientScriptsClient(conn),
 		log:        logger.Named("corredor"),
 		registered: make(map[string][]uintptr),
+		manual:     make(map[string]map[string]bool),
 		eventbus:   eventbus.Default(),
+		opt:        opt,
 	}
 }
 
@@ -101,10 +115,60 @@ func (svc *service) SetJwtMaker(fn AuthTokenMaker) {
 	svc.jwtMaker = fn
 }
 
-func (svc *service) Load(ctx context.Context) (err error) {
+func (svc *service) Load(ctx context.Context) {
+	go svc.loadServerScripts(ctx)
+	go svc.loadClientScripts(ctx)
+}
+
+// FindManual returns filtered list of scripts that can be manually triggered
+func (svc service) FindOnManual(filter ManualScriptFilter) (out ScriptSet, f ManualScriptFilter, err error) {
+	f = filter
+
 	var (
+		tmp ScriptSet
+
+		scriptFilter = makeScriptFilter(f)
+	)
+
+	if !f.ExcludeServerScripts {
+		tmp, err = svc.sScripts.Filter(scriptFilter)
+		out = append(out, tmp...)
+	}
+
+	if !f.ExcludeClientScripts {
+		tmp, err = svc.cScripts.Filter(scriptFilter)
+		out = append(out, tmp...)
+	}
+
+	return
+}
+
+// ExecOnManual verifies request & executes
+func (svc service) ExecOnManual(ctx context.Context, script string, event Event) (err error) {
+	var (
+		res = event.ResourceType()
+		evt = event.EventType()
+	)
+
+	if onManualEventType != evt {
+		return errors.Errorf("triggered event type is not onManual (%q)", evt)
+	}
+
+	if _, ok := svc.manual[res]; !ok {
+		return errors.Errorf("unregistered onManual resource %q", res)
+	}
+
+	if _, ok := svc.manual[res][script]; !ok {
+		return errors.Errorf("unregistered onManual script %q for resource %q", script, res)
+	}
+
+	return svc.exec(ctx, script, event)
+}
+
+func (svc *service) loadServerScripts(ctx context.Context) {
+	var (
+		err error
 		rsp *ServerScriptListResponse
-		ss  ScriptSet
 	)
 
 	if svc.jwtMaker == nil {
@@ -115,47 +179,69 @@ func (svc *service) Load(ctx context.Context) (err error) {
 	svc.log.Debug("reloading server scripts")
 	rsp, err = svc.ssClient.List(ctx, &ServerScriptListRequest{}, grpc.WaitForReady(true))
 	if err != nil {
-		return errors.Wrap(err, "could not load corredor scripts")
+		svc.log.Error("could not load corredor server scripts", zap.Error(err))
+		return
 	}
 
-	for _, script := range rsp.Scripts {
-		if len(script.Errors) > 0 {
-			continue
-		}
+	svc.manual = make(map[string]map[string]bool)
+	svc.sScripts = make([]*Script, len(rsp.Scripts))
 
-		s := &Script{
+	for i, script := range rsp.Scripts {
+		svc.sScripts[i] = &Script{
 			Name:        script.Name,
 			Label:       script.Label,
 			Description: script.Description,
 			Errors:      script.Errors,
+			Triggers:    script.Triggers,
 		}
 
-		svc.registerTriggers(script.Name, script.Triggers...)
-
-		svc.log.Debug(
-			"loaded server script",
-			zap.String("name", s.Name),
-			zap.Int("triggers", len(script.Triggers)),
-		)
-
-		ss = append(ss, s)
+		if len(script.Errors) == 0 {
+			svc.registerTriggers(script)
+		}
 	}
-
-	svc.log.Info("server scripts reloaded", zap.Int("count", len(ss)))
-
-	return
 }
 
-func (svc service) registerTriggers(script string, tt ...*Trigger) {
+func (svc *service) loadClientScripts(ctx context.Context) {
+	var (
+		err error
+		rsp *ClientScriptListResponse
+	)
+
+	svc.log.Debug("reloading client scripts")
+	rsp, err = svc.csClient.List(ctx, &ClientScriptListRequest{}, grpc.WaitForReady(true))
+	if err != nil {
+		svc.log.Error("could not load corredor client scripts", zap.Error(err))
+		return
+	}
+
+	svc.cScripts = make([]*Script, len(rsp.Scripts))
+
+	for i, script := range rsp.Scripts {
+		svc.cScripts[i] = &Script{
+			Name:        script.Name,
+			Label:       script.Label,
+			Description: script.Description,
+			Errors:      script.Errors,
+			Triggers:    script.Triggers,
+			Bundle:      script.Bundle,
+			Type:        script.Type,
+		}
+	}
+}
+
+// Creates handler function for eventbus subsystem
+//
+// If trigger has "onManual"
+func (svc service) registerTriggers(script *ServerScript) {
 	var (
 		ops     []eventbus.TriggerRegOp
 		handler eventbus.Handler
 		err     error
 
-		log = svc.log.With(zap.String("script", script))
+		log = svc.log.With(zap.String("scriptName", script.Name))
 	)
 
-	if ptrs, has := svc.registered[script]; has && len(ptrs) > 0 {
+	if ptrs, has := svc.registered[script.Name]; has && len(ptrs) > 0 {
 		// Unregister previously registered triggers
 		svc.eventbus.Unregister(ptrs...)
 		log.Debug(
@@ -165,10 +251,34 @@ func (svc service) registerTriggers(script string, tt ...*Trigger) {
 	}
 
 	// Make room for new
-	svc.registered[script] = make([]uintptr, 0)
+	svc.registered[script.Name] = make([]uintptr, 0)
 
-	for i := range tt {
-		if ops, err = svc.makeTriggerRegOpts(tt[i]); err != nil {
+	for i := range script.Triggers {
+		// We're modifying trigger in the loop,
+		// so let's make a copy we can play with
+		trigger := *script.Triggers[i]
+
+		if popOnManualEventType(&trigger) {
+			for _, res := range trigger.Resources {
+				if svc.manual[res] == nil {
+					svc.manual[res] = make(map[string]bool)
+				}
+
+				svc.manual[res][script.Name] = true
+			}
+
+			log.Debug("manual trigger registered", zap.Strings("resources", trigger.Resources))
+
+			if len(trigger.Events) == 0 {
+				// We've removed the last event
+				//
+				// break now to prevent code below to
+				// complain about missing event types
+				continue
+			}
+		}
+
+		if ops, err = svc.makeTriggerRegOpts(&trigger); err != nil {
 			log.Warn(
 				"trigger could not be registered",
 				zap.Error(err),
@@ -177,7 +287,7 @@ func (svc service) registerTriggers(script string, tt ...*Trigger) {
 			continue
 		}
 
-		var runAs = tt[i].RunAs
+		var runAs = trigger.RunAs
 
 		handler = func(ctx context.Context, ev eventbus.Event) error {
 			// Is this compatible event?
@@ -192,7 +302,7 @@ func (svc service) registerTriggers(script string, tt ...*Trigger) {
 					ctx = auth.SetJwtToContext(ctx, jwt)
 				}
 
-				return svc.Exec(ctx, script, ce)
+				return svc.exec(ctx, script.Name, ce)
 			}
 
 			return nil
@@ -209,15 +319,14 @@ func (svc service) registerTriggers(script string, tt ...*Trigger) {
 
 // Exec finds and runs specific script with given event
 //
-// It does not do any (trigger, constraints) checking
-//
-// For consistency,
-func (svc service) Exec(ctx context.Context, script string, event Event) (err error) {
+// It does not do any constraints checking - this is the responsibility of the
+// individual event implemntation
+func (svc service) exec(ctx context.Context, script string, event Event) (err error) {
 	var (
 		rsp *ExecResponse
 
-		encArgs    map[string][]byte
-		encResults = make(map[string][]byte)
+		encodedEvent   map[string][]byte
+		encodedResults = make(map[string][]byte)
 
 		log = svc.log.With(
 			zap.String("script", script),
@@ -229,7 +338,7 @@ func (svc service) Exec(ctx context.Context, script string, event Event) (err er
 
 	log.Debug("triggered")
 
-	if encArgs, err = event.Encode(); err != nil {
+	if encodedEvent, err = event.Encode(); err != nil {
 		return
 	}
 
@@ -241,30 +350,33 @@ func (svc service) Exec(ctx context.Context, script string, event Event) (err er
 		Args: make(map[string]string),
 	}
 
-	if encArgs["authUser"], err = json.Marshal(auth.GetIdentityFromContext(ctx)); err != nil {
-		return
-	}
-
 	// Cast arguments from map[string]json.RawMessage to map[string]string
-	if encArgs != nil {
-		for key := range encArgs {
-			req.Args[key] = string(encArgs[key])
-		}
+	for key := range encodedEvent {
+		req.Args[key] = string(encodedEvent[key])
 	}
 
 	// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// ////
 	// Additional (string) arguments
 
 	// pass security credentials
-	req.Args["jwt"] = auth.GetJwtFromContext(ctx)
+	if err = encodeArguments(req.Args, "authUser", auth.GetIdentityFromContext(ctx)); err != nil {
+		return
+	}
+	if err = encodeArguments(req.Args, "jwt", auth.GetJwtFromContext(ctx)); err != nil {
+		return
+	}
 
 	// basic event/event info
-	req.Args["event"] = event.EventType()
-	req.Args["resource"] = event.ResourceType()
+	if err = encodeArguments(req.Args, "event", event.EventType()); err != nil {
+		return
+	}
+	if err = encodeArguments(req.Args, "resource", event.ResourceType()); err != nil {
+		return
+	}
 
 	// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// ////
 
-	ctx, cancel := context.WithTimeout(ctx, svc.corredorOpt.DefaultExecTimeout)
+	ctx, cancel := context.WithTimeout(ctx, svc.opt.DefaultExecTimeout)
 	defer cancel()
 
 	// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// ////
@@ -288,8 +400,8 @@ func (svc service) Exec(ctx context.Context, script string, event Event) (err er
 	// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// ////
 
 	// @todo process metadata (log, errors, stacktrace)
-	spew.Dump("grpc exec header", header)
-	spew.Dump("grpc exec trailer", trailer)
+	// spew.Dump("grpc exec header", header)
+	// spew.Dump("grpc exec trailer", trailer)
 
 	if rsp.Result == nil {
 		// No results
@@ -298,11 +410,11 @@ func (svc service) Exec(ctx context.Context, script string, event Event) (err er
 
 	// Cast map[string]json.RawMessage to map[string]string
 	for key := range rsp.Result {
-		encResults[key] = []byte(rsp.Result[key])
+		encodedResults[key] = []byte(rsp.Result[key])
 	}
 
 	// Send results back to the event for decoding
-	err = event.Decode(encResults)
+	err = event.Decode(encodedResults)
 	if err != nil {
 		log.Debug("could not decode results", zap.Error(err))
 		return
@@ -331,5 +443,16 @@ func (svc service) makeTriggerRegOpts(t *Trigger) (oo []eventbus.TriggerRegOp, e
 		))
 	}
 
+	return
+}
+
+func encodeArguments(args map[string]string, key string, val interface{}) (err error) {
+	var tmp []byte
+
+	if tmp, err = json.Marshal(val); err != nil {
+		return
+	}
+
+	args[key] = string(tmp)
 	return
 }

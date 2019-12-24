@@ -99,6 +99,10 @@ function types {
 	./build/gen-type-set-test --types Rule      --output pkg/permissions/rule.gen_test.go     --with-primary-key=false --package permissions
 	./build/gen-type-set-test --types Resource  --output pkg/permissions/resource.gen_test.go --with-primary-key=false --package permissions
 
+	./build/gen-type-set --types Script --output pkg/corredor/types.gen.go --with-primary-key=false --package corredor
+	./build/gen-type-set-test --types Script --output pkg/corredor/types.gen_test.go --with-primary-key=false --package corredor
+
+
 	green "OK"
 }
 
