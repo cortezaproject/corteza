@@ -39,7 +39,7 @@ func resetMocks() {
 	pi = permissions.NewImporter(service.AccessControl(nil).Whitelist())
 	st = settings.NewImporter()
 
-	imp = NewImporter(nil, nil, nil, nil, nil, pi, st)
+	imp = NewImporter(nil, nil, nil, nil, pi, st)
 
 	// namespaces does not get initialized in the standard flow
 	// if namespace finder is not present
@@ -82,8 +82,6 @@ func impFixTester(t *testing.T, name string, tester interface{}) {
 			tester(t, imp.GetPageImporter(ns.Slug))
 		case func(*testing.T, *Record):
 			tester(t, imp.GetRecordImporter(ns.Slug))
-		case func(*testing.T, *AutomationScript):
-			tester(t, imp.GetAutomationScriptImporter(ns.Slug))
 		case func(*testing.T, *Importer):
 			tester(t, imp)
 		default:

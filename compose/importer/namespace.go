@@ -29,9 +29,6 @@ type (
 
 		// records per namespace
 		records map[string]*Record
-
-		// a.scripts per namespace
-		scripts map[string]*AutomationScript
 	}
 
 	// @todo remove finder strategy, directly provide set of items
@@ -56,7 +53,6 @@ func NewNamespaceImporter(imp *Importer) *Namespace {
 		charts:  map[string]*Chart{},
 		pages:   map[string]*Page{},
 		records: map[string]*Record{},
-		scripts: map[string]*AutomationScript{},
 	}
 
 	if imp.namespaceFinder != nil {
@@ -141,9 +137,6 @@ func (nsImp *Namespace) Cast(handle string, def interface{}) (err error) {
 		case "records":
 			return nsImp.castRecords(handle, val)
 
-		case "scripts":
-			return nsImp.castScripts(handle, val)
-
 		case "allow", "deny":
 			return nsImp.imp.permissions.CastSet(types.NamespacePermissionResource.String()+namespace.Slug, key, val)
 
@@ -210,15 +203,6 @@ func (nsImp *Namespace) castRecords(handle string, def interface{}) error {
 	return nsImp.records[handle].CastSet(def)
 }
 
-func (nsImp *Namespace) castScripts(handle string, def interface{}) error {
-	if nsImp.scripts[handle] == nil {
-		return fmt.Errorf("unknown namespace %q", handle)
-
-	}
-
-	return nsImp.scripts[handle].CastSet(def)
-}
-
 // Get finds or creates a new namespace
 func (nsImp *Namespace) Get(handle string) (*types.Namespace, error) {
 	handle = importer.NormalizeHandle(handle)
@@ -239,12 +223,11 @@ func (nsImp *Namespace) Setup(namespace *types.Namespace) {
 		nsImp.modules[namespace.Slug] = NewModuleImporter(nsImp.imp, namespace)
 		nsImp.pages[namespace.Slug] = NewPageImporter(nsImp.imp, namespace)
 		nsImp.charts[namespace.Slug] = NewChartImporter(nsImp.imp, namespace)
-		nsImp.scripts[namespace.Slug] = NewAutomationImporter(nsImp.imp, namespace)
 		nsImp.records[namespace.Slug] = NewRecordImporter(nsImp.imp, namespace)
 	}
 }
 
-func (nsImp *Namespace) Store(ctx context.Context, nsk namespaceKeeper, mk moduleKeeper, ck chartKeeper, pk pageKeeper, rk recordKeeper, sk automationScriptKeeper) error {
+func (nsImp *Namespace) Store(ctx context.Context, nsk namespaceKeeper, mk moduleKeeper, ck chartKeeper, pk pageKeeper, rk recordKeeper) error {
 	return nsImp.set.Walk(func(namespace *types.Namespace) (err error) {
 		var handle = namespace.Slug
 
@@ -265,11 +248,6 @@ func (nsImp *Namespace) Store(ctx context.Context, nsk namespaceKeeper, mk modul
 			nsImp.modules[handle].namespace = namespace
 			if err = nsImp.modules[handle].Store(ctx, mk); err != nil {
 				return errors.Wrap(err, "could not import modules")
-			}
-
-			nsImp.scripts[handle].namespace = namespace
-			if err = nsImp.scripts[handle].Store(ctx, sk); err != nil {
-				return errors.Wrap(err, "could not import automation scripts")
 			}
 
 			nsImp.charts[handle].namespace = namespace
