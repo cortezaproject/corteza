@@ -5,17 +5,16 @@ import (
 	"os"
 	"testing"
 
+	"github.com/go-chi/chi"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/steinfletcher/apitest"
 	"github.com/stretchr/testify/require"
 	"github.com/titpetric/factory"
 
-	"github.com/go-chi/chi"
-	"go.uber.org/zap"
-
+	"github.com/cortezaproject/corteza-server/corteza"
 	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/app"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
@@ -34,14 +33,20 @@ type (
 		cUser  *types.User
 		roleID uint64
 	}
+
+	TestApp struct {
+		helpers.TestApp
+	}
 )
 
 var (
-	inited bool
-	app    = &system.App{}
-	r      chi.Router
-	p      = &permissions.TestService{}
+	testApp app.Runnable
+	r       chi.Router
 )
+
+func init() {
+	helpers.RecursiveDotEnvLoad()
+}
 
 // random string, 10 chars long by default
 func rs(a ...int) string {
@@ -54,49 +59,39 @@ func rs(a ...int) string {
 }
 
 func db() *factory.DB {
-	return factory.Database.MustGet("system", "default").With(context.Background())
+	return factory.Database.MustGet(system.SERVICE, "default").With(context.Background())
 }
 
-func InitConfig() {
-	if inited {
-		return
-	}
-
-	helpers.RecursiveDotEnvLoad()
-
-	ctx := context.Background()
-	log, _ := zap.NewDevelopment()
-	logger.SetDefault(log)
-
-	cli.HandleError(app.Connect(ctx))
-	auth.SetupDefault(rs(32), 10)
-	cli.HandleError(app.ProvisionMigrateDatabase(ctx))
-
-	p = permissions.NewTestService(ctx, log, db(), "sys_permission_rules")
-
-	logger.SetDefault(log)
-	service.DefaultPermissions = p
-
-	cli.HandleError(app.Initialize(ctx))
-	inited = true
+func (app *TestApp) Initialize(ctx context.Context) (err error) {
+	service.DefaultPermissions = permissions.NewTestService(ctx, app.Log, db(), "compose_permission_rules")
+	return
 }
 
-func InitApp() {
-	InitConfig()
-	helpers.InitAuth()
+func (app *TestApp) Activate(ctx context.Context) (err error) {
+	service.DefaultPermissions.(*permissions.TestService).Reload(ctx)
+	return
+}
 
-	if r != nil {
-		return
+func InitTestApp() {
+	if testApp == nil {
+		testApp = helpers.NewIntegrationTestApp(
+			system.SERVICE,
+			&corteza.App{},
+			&TestApp{},
+			&system.App{},
+		)
 	}
 
-	r = chi.NewRouter()
-	r.Use(api.BaseMiddleware(logger.Default())...)
-	helpers.BindAuthMiddleware(r)
-	rest.MountRoutes(r)
+	if r == nil {
+		r = chi.NewRouter()
+		r.Use(api.BaseMiddleware(logger.Default())...)
+		helpers.BindAuthMiddleware(r)
+		rest.MountRoutes(r)
+	}
 }
 
 func TestMain(m *testing.M) {
-	InitApp()
+	InitTestApp()
 	os.Exit(m.Run())
 }
 
@@ -112,7 +107,7 @@ func newHelper(t *testing.T) helper {
 
 	h.cUser.SetRoles([]uint64{h.roleID})
 
-	p.ClearGrants()
+	service.DefaultPermissions.(*permissions.TestService).ClearGrants()
 	h.mockPermissionsWithAccess()
 
 	return h
@@ -125,7 +120,7 @@ func (h helper) secCtx() context.Context {
 
 // apitest basics, initialize, set handler, add auth
 func (h helper) apiInit() *apitest.APITest {
-	InitApp()
+	InitTestApp()
 
 	return apitest.
 		New().
@@ -134,7 +129,7 @@ func (h helper) apiInit() *apitest.APITest {
 }
 
 func (h helper) mockPermissions(rules ...*permissions.Rule) {
-	h.a.NoError(p.Grant(
+	h.a.NoError(service.DefaultPermissions.(*permissions.TestService).Grant(
 		// TestService we use does not have any backend storage,
 		context.Background(),
 		// We want to make sure we did not make a mistake with any of the mocked resources or actions

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
@@ -12,6 +13,7 @@ import (
 
 func TestPermissionsDelete(t *testing.T) {
 	h := newHelper(t)
+	p := service.DefaultPermissions
 
 	// Make sure our user can grant
 	h.allow(types.MessagingPermissionResource, "grant")

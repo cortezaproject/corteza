@@ -6,12 +6,14 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 )
 
 func TestPermissionsDelete(t *testing.T) {
 	h := newHelper(t)
+	p := service.DefaultPermissions
 
 	// Make sure our user can grant
 	h.allow(types.SystemPermissionResource, "grant")

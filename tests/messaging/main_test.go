@@ -12,18 +12,17 @@ import (
 	"github.com/titpetric/factory"
 
 	"github.com/go-chi/chi"
-	"go.uber.org/zap"
 
+	"github.com/cortezaproject/corteza-server/corteza"
 	"github.com/cortezaproject/corteza-server/messaging"
 	"github.com/cortezaproject/corteza-server/messaging/rest"
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/app"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/pkg/store/plain"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
@@ -37,74 +36,56 @@ type (
 		cUser  *sysTypes.User
 		roleID uint64
 	}
+
+	TestApp struct {
+		helpers.TestApp
+	}
 )
 
 var (
-	inited bool
-	app    = &messaging.App{}
-	r      chi.Router
-	p      = &permissions.TestService{}
+	testApp app.Runnable
+	r       chi.Router
 )
 
-func db() *factory.DB {
-	return factory.Database.MustGet("messaging", "default").With(context.Background())
-}
-
-// random string, 10 chars long by default
-func rs(a ...int) string {
-	var l = 10
-	if len(a) > 0 {
-		l = a[0]
-	}
-
-	return string(rand.Bytes(l))
-}
-
-func InitConfig() {
-	var err error
-
-	if inited {
-		return
-	}
-
+func init() {
 	helpers.RecursiveDotEnvLoad()
-
-	ctx := context.Background()
-	log, _ := zap.NewDevelopment()
-	logger.SetDefault(log)
-
-	cli.HandleError(app.Connect(ctx))
-	auth.SetupDefault(rs(32), 10)
-	cli.HandleError(app.ProvisionMigrateDatabase(ctx))
-
-	p = permissions.NewTestService(ctx, log, db(), "messaging_permission_rules")
-
-	logger.SetDefault(log)
-	service.DefaultPermissions = p
-	if service.DefaultStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test"); err != nil {
-		panic(err)
-	}
-
-	cli.HandleError(app.Initialize(ctx))
-	inited = true
 }
 
-func InitApp() {
-	InitConfig()
-	helpers.InitAuth()
+func db() *factory.DB {
+	return factory.Database.MustGet(messaging.SERVICE, "default").With(context.Background())
+}
 
-	if r != nil {
-		return
+func (app *TestApp) Initialize(ctx context.Context) (err error) {
+	service.DefaultPermissions = permissions.NewTestService(ctx, app.Log, db(), "messaging_permission_rules")
+	service.DefaultStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test")
+	return
+}
+
+func (app *TestApp) Activate(ctx context.Context) (err error) {
+	service.DefaultPermissions.(*permissions.TestService).Reload(ctx)
+	return
+}
+
+func InitTestApp() {
+	if testApp == nil {
+		testApp = helpers.NewIntegrationTestApp(
+			messaging.SERVICE,
+			&corteza.App{},
+			&TestApp{},
+			&messaging.App{},
+		)
 	}
 
-	r = chi.NewRouter()
-	r.Use(api.BaseMiddleware(logger.Default())...)
-	helpers.BindAuthMiddleware(r)
-	rest.MountRoutes(r)
+	if r == nil {
+		r = chi.NewRouter()
+		r.Use(api.BaseMiddleware(logger.Default())...)
+		helpers.BindAuthMiddleware(r)
+		rest.MountRoutes(r)
+	}
 }
 
 func TestMain(m *testing.M) {
-	InitApp()
+	InitTestApp()
 	os.Exit(m.Run())
 }
 
@@ -120,7 +101,7 @@ func newHelper(t *testing.T) helper {
 
 	h.cUser.SetRoles([]uint64{h.roleID})
 
-	p.ClearGrants()
+	service.DefaultPermissions.(*permissions.TestService).ClearGrants()
 	h.mockPermissionsWithAccess()
 
 	return h
@@ -133,7 +114,7 @@ func (h helper) secCtx() context.Context {
 
 // apitest basics, initialize, set handler, add auth
 func (h helper) apiInit() *apitest.APITest {
-	InitApp()
+	InitTestApp()
 
 	return apitest.
 		New().
@@ -142,7 +123,7 @@ func (h helper) apiInit() *apitest.APITest {
 }
 
 func (h helper) mockPermissions(rules ...*permissions.Rule) {
-	h.a.NoError(p.Grant(
+	h.a.NoError(service.DefaultPermissions.(*permissions.TestService).Grant(
 		// TestService we use does not have any backend storage,
 		context.Background(),
 		// We want to make sure we did not make a mistake with any of the mocked resources or actions
