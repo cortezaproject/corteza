@@ -1,0 +1,52 @@
+# pkg/eventbus
+
+Package handles event dispatching and trigger registration
+
+## Event
+
+Event (in context of eventbus package) contains of resource type, event type and a matcher.
+
+### Resource type
+
+Resource types are identifiers of internal resources, like user, role, request, ...
+
+### Event type
+
+Type describes direct or indirect user action or some other event in the system.
+
+### Event matcher
+
+Matcher is a function on event that helps filtering fired events.
+It decides (returns true or false) if fired event is a match for any of a registered triggers
+
+Bus has basic internal filtering for resource & event type.
+Other constraints are passed to event's matcher function.
+
+.Matcher will receive 2+ string parameters:
+ - name
+ - operator
+ - zero or more values
+
+It's matcher responsibility to handle contents of name, operator and values parameters.
+
+Constraint checker procedure will call matcher for each constraint.
+All constraints must match.
+First non-match will break constraint checking procedure.
+
+## Triggers
+
+Trigger is combination of (event matching) rules/constraints and event handler.
+Handler is a callback function called when a compatible event is fired.
+
+Trigger can respond to multiple resource/event combinations.
+
+### Constraints
+
+Matcher function is called multiple times, once per each trigger constraint.
+If any of the calls result in a non-match, check
+
+Trigger without constraint is considered a match.
+
+### Weight
+
+Weight controls order of trigger execution.
