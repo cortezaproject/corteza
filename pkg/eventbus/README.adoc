@@ -14,6 +14,17 @@ Resource types are identifiers of internal resources, like user, role, request, 
 
 Type describes direct or indirect user action or some other event in the system.
 
+#### Deferred events
+
+Deferred events (onTimestamp and onInterval) are executed by scheduler package service.
+
+#### Manual events
+
+Manual events (onManual) are a special case.
+Events are not (nor should be) triggered directly or through eventbus.
+
+We use it to route requests and pack attributes from the API to the Corredor service
+
 ### Event matcher
 
 Matcher is a function on event that helps filtering fired events.
@@ -32,6 +43,7 @@ It's matcher responsibility to handle contents of name, operator and values para
 Constraint checker procedure will call matcher for each constraint.
 All constraints must match.
 First non-match will break constraint checking procedure.
+
 
 ## Triggers
 
