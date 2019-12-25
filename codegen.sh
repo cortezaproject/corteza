@@ -125,6 +125,19 @@ function provision {
 }
 
 
+function events {
+  if [ ! -f "build/event-gen" ]; then
+		CGO_ENABLED=0 go build -o ./build/event-gen codegen/v2/events.go
+	fi
+
+	for SERVICE in system compose messaging; do
+	  yellow "> event files for ${SERVICE}"
+	  ./build/event-gen --service ${SERVICE}
+	done
+	green "OK"
+}
+
+
 function specs {
 	yellow "> specs"
 	if [ ! -f "build/gen-spec" ]; then
@@ -187,12 +200,16 @@ case ${1:-"all"} in
   proto)
     proto
     ;;
+  events)
+    events
+    ;;
   all)
     types
     database
     provision
     specs
     proto
+    events
 esac
 
 # Always finish with fmt
