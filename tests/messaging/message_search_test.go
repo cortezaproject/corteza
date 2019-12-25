@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
@@ -13,12 +14,14 @@ func TestMessageSearch(t *testing.T) {
 	h := newHelper(t)
 	ch := h.repoMakePublicCh()
 
-	h.repoMakeMessage("searchTestMessageA", ch, h.cUser)
-	h.repoMakeMessage("searchTestMessageB", ch, h.cUser)
+	pf := time.Now().String()
+
+	h.repoMakeMessage(pf+"searchTestMessageA", ch, h.cUser)
+	h.repoMakeMessage(pf+"searchTestMessageB", ch, h.cUser)
 
 	h.apiInit().
 		Get("/search/messages").
-		Query("query", "searchTestMessageA").
+		Query("query", pf+"searchTestMessageA").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).

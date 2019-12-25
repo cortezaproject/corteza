@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
@@ -12,6 +13,7 @@ import (
 
 func TestChannelAlterState(t *testing.T) {
 	h := newHelper(t)
+	p := service.DefaultPermissions.(*permissions.TestService)
 	ch := h.repoMakePublicCh()
 
 	stateUrl := fmt.Sprintf("/channels/%d/state", ch.ID)

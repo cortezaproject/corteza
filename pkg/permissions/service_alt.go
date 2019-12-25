@@ -86,7 +86,5 @@ func NewTestService(ctx context.Context, logger *zap.Logger, db *factory.DB, tbl
 		},
 	}
 
-	svc.Reload(ctx)
-
 	return
 }

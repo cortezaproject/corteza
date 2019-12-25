@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
@@ -12,6 +13,7 @@ import (
 
 func TestPermissionsDelete(t *testing.T) {
 	h := newHelper(t)
+	p := service.DefaultPermissions
 
 	// Make sure our user can grant
 	h.allow(types.ComposePermissionResource, "grant")
@@ -19,7 +21,7 @@ func TestPermissionsDelete(t *testing.T) {
 	// New role.
 	permDelRole := h.roleID + 1
 
-	h.a.Len(p.FindRulesByRoleID(permDelRole), 0)
+	h.a.Len(service.DefaultPermissions.FindRulesByRoleID(permDelRole), 0)
 
 	// Setup a few fake rules for new roke
 	h.mockPermissions(
