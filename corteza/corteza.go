@@ -11,10 +11,12 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/db"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/mail"
 	"github.com/cortezaproject/corteza-server/pkg/monitor"
+	"github.com/cortezaproject/corteza-server/pkg/scheduler"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 )
 
@@ -51,6 +53,8 @@ func (app *App) Setup(log *zap.Logger, opts *app.Options) (err error) {
 
 	monitor.Setup(app.log, opts.Monitor)
 
+	scheduler.Setup(log, eventbus.Default(), 0)
+
 	return
 }
 
@@ -73,6 +77,14 @@ func (app *App) Upgrade(ctx context.Context) error {
 func (app *App) Activate(ctx context.Context) (err error) {
 	if err = corredor.Start(ctx, app.log, app.opt.Corredor); err != nil {
 		return err
+	}
+
+	// Run scheduler
+	scheduler.Run(ctx)
+
+	// Load corredor scripts
+	if err = corredor.Service().Load(ctx); err != nil {
+		return
 	}
 
 	return nil
