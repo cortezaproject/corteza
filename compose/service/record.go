@@ -279,8 +279,8 @@ func (svc record) Export(filter types.RecordFilter, enc Encoder) error {
 	return set.Walk(enc.Record)
 }
 
-func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
-	ns, m, r, err := svc.loadCombo(mod.NamespaceID, mod.ModuleID, 0)
+func (svc record) Create(new *types.Record) (r *types.Record, err error) {
+	ns, m, r, err := svc.loadCombo(new.NamespaceID, new.ModuleID, 0)
 	if err != nil {
 		return
 	}
@@ -291,8 +291,8 @@ func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
 
 	creatorID := auth.GetIdentityFromContext(svc.ctx).Identity()
 	r = &types.Record{
-		ModuleID:    mod.ModuleID,
-		NamespaceID: mod.NamespaceID,
+		ModuleID:    new.ModuleID,
+		NamespaceID: new.NamespaceID,
 
 		CreatedBy: creatorID,
 		OwnedBy:   creatorID,
@@ -300,17 +300,15 @@ func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
 		CreatedAt: time.Now(),
 	}
 
-	if err = svc.setDefaultValues(m, mod); err != nil {
+	if err = eventbus.WaitFor(svc.ctx, event.RecordBeforeCreate(new, nil, m, ns)); err != nil {
 		return
 	}
 
-	if err = svc.copyChanges(m, mod, r); err != nil {
+	if err = svc.setDefaultValues(m, new); err != nil {
 		return
 	}
 
-	mod = nil // make sure we do not use it anymore
-
-	if err = eventbus.WaitFor(svc.ctx, event.RecordBeforeCreate(m, ns, r)); err != nil {
+	if err = svc.copyChanges(m, new, r); err != nil {
 		return
 	}
 
@@ -319,9 +317,6 @@ func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
 	if r.Values, err = svc.sanitizeValues(m, r.Values); err != nil {
 		return
 	}
-
-	// Run this at the end and discard the error
-	defer eventbus.Dispatch(svc.ctx, event.RecordAfterCreate(m, ns, r))
 
 	return r, svc.db.Transaction(func() (err error) {
 		if r, err = svc.recordRepo.Create(r); err != nil {
@@ -332,16 +327,17 @@ func (svc record) Create(mod *types.Record) (r *types.Record, err error) {
 			return
 		}
 
+		defer eventbus.Dispatch(svc.ctx, event.RecordAfterCreate(r, nil, m, ns))
 		return
 	})
 }
 
-func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
-	if mod.ID == 0 {
+func (svc record) Update(upd *types.Record) (r *types.Record, err error) {
+	if upd.ID == 0 {
 		return nil, ErrInvalidID.withStack()
 	}
 
-	ns, m, r, err := svc.loadCombo(mod.NamespaceID, mod.ModuleID, mod.ID)
+	ns, m, r, err := svc.loadCombo(upd.NamespaceID, upd.ModuleID, upd.ID)
 	if err != nil {
 		return
 	}
@@ -351,20 +347,17 @@ func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 	}
 
 	// Test if stale (update has an older copy)
-	if isStale(mod.UpdatedAt, r.UpdatedAt, r.CreatedAt) {
+	if isStale(upd.UpdatedAt, r.UpdatedAt, r.CreatedAt) {
 		return nil, ErrStaleData.withStack()
+	}
+
+	if err = eventbus.WaitFor(svc.ctx, event.RecordBeforeUpdate(upd, r, m, ns)); err != nil {
+		return
 	}
 
 	svc.recordInfoUpdate(r)
 
-	if err = svc.copyChanges(m, mod, r); err != nil {
-		return
-	}
-
-	mod = nil // make sure we do not use it anymore
-
-	// Calling before-record-update scripts
-	if err = eventbus.WaitFor(svc.ctx, event.RecordBeforeUpdate(m, ns, r)); err != nil {
+	if err = svc.copyChanges(m, upd, r); err != nil {
 		return
 	}
 
@@ -373,9 +366,6 @@ func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 	if r.Values, err = svc.sanitizeValues(m, r.Values); err != nil {
 		return
 	}
-
-	// Run this at the end and discard the error
-	defer eventbus.Dispatch(svc.ctx, event.RecordAfterUpdate(m, ns, r))
 
 	return r, svc.db.Transaction(func() (err error) {
 		if r, err = svc.recordRepo.Update(r); err != nil {
@@ -386,6 +376,7 @@ func (svc record) Update(mod *types.Record) (r *types.Record, err error) {
 			return
 		}
 
+		defer eventbus.Dispatch(svc.ctx, event.RecordAfterUpdate(upd, r, m, ns))
 		return
 	})
 }
@@ -401,7 +392,7 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 		return ErrInvalidID.withStack()
 	}
 
-	ns, m, r, err := svc.loadCombo(namespaceID, 0, recordID)
+	ns, m, del, err := svc.loadCombo(namespaceID, 0, recordID)
 	if err != nil {
 		return
 	}
@@ -411,30 +402,29 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 	}
 
 	// preloadValues should be pressent to load values for automation scripts
-	if err = svc.preloadValues(m, r); err != nil {
+	if err = svc.preloadValues(m, del); err != nil {
 		return
 	}
 
 	// Calling before-record-delete scripts
-	if err = eventbus.WaitFor(svc.ctx, event.RecordBeforeDelete(m, ns, r)); err != nil {
+	if err = eventbus.WaitFor(svc.ctx, event.RecordBeforeDelete(nil, del, m, ns)); err != nil {
 		return
 	}
 
-	// Run this at the end and discard the error
-	defer eventbus.Dispatch(svc.ctx, event.RecordAfterDelete(m, ns, r))
-
 	err = svc.db.Transaction(func() (err error) {
 		now := time.Now()
-		r.DeletedAt = &now
-		r.DeletedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
+		del.DeletedAt = &now
+		del.DeletedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-		if err = svc.recordRepo.Delete(r); err != nil {
+		if err = svc.recordRepo.Delete(del); err != nil {
 			return
 		}
 
-		if err = svc.recordRepo.DeleteValues(r); err != nil {
+		if err = svc.recordRepo.DeleteValues(del); err != nil {
 			return
 		}
+
+		defer eventbus.Dispatch(svc.ctx, event.RecordAfterDelete(nil, del, m, ns))
 
 		return
 	})

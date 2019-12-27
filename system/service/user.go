@@ -12,9 +12,11 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/system/repository"
+	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -222,7 +224,7 @@ func (svc user) procSet(u types.UserSet, f types.UserFilter, err error) (types.U
 	return u, f, nil
 }
 
-func (svc user) Create(input *types.User) (out *types.User, err error) {
+func (svc user) Create(new *types.User) (u *types.User, err error) {
 	if !svc.ac.CanCreateUser(svc.ctx) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
@@ -237,12 +239,21 @@ func (svc user) Create(input *types.User) (out *types.User, err error) {
 		}
 	}
 
-	return out, svc.db.Transaction(func() (err error) {
-		if err = svc.UniqueCheck(input); err != nil {
+	if err = eventbus.WaitFor(svc.ctx, event.UserBeforeCreate(new, u)); err != nil {
+		return
+	}
+
+	return u, svc.db.Transaction(func() (err error) {
+
+		if err = svc.UniqueCheck(new); err != nil {
 			return
 		}
 
-		out, err = svc.user.Create(input)
+		if u, err = svc.user.Create(new); err != nil {
+			return
+		}
+
+		defer eventbus.Dispatch(svc.ctx, event.UserAfterCreate(new, u))
 		return
 	})
 }
@@ -252,34 +263,42 @@ func (svc user) CreateWithAvatar(input *types.User, avatar io.Reader) (out *type
 	return svc.Create(input)
 }
 
-func (svc user) Update(mod *types.User) (u *types.User, err error) {
-	if mod.ID == 0 {
+func (svc user) Update(upd *types.User) (u *types.User, err error) {
+	if upd.ID == 0 {
 		return nil, ErrInvalidID
 	}
 
-	if u, err = svc.user.FindByID(mod.ID); err != nil {
+	if u, err = svc.user.FindByID(upd.ID); err != nil {
 		return
 	}
 
-	if mod.ID != internalAuth.GetIdentityFromContext(svc.ctx).Identity() {
+	if upd.ID != internalAuth.GetIdentityFromContext(svc.ctx).Identity() {
 		if !svc.ac.CanUpdateUser(svc.ctx, u) {
 			return nil, ErrNoUpdatePermissions.withStack()
 		}
 	}
 
 	// Assign changed values
-	u.Email = mod.Email
-	u.Username = mod.Username
-	u.Name = mod.Name
-	u.Handle = mod.Handle
-	u.Kind = mod.Kind
+	u.Email = upd.Email
+	u.Username = upd.Username
+	u.Name = upd.Name
+	u.Handle = upd.Handle
+	u.Kind = upd.Kind
+
+	if err = eventbus.WaitFor(svc.ctx, event.UserBeforeUpdate(upd, u)); err != nil {
+		return
+	}
 
 	return u, svc.db.Transaction(func() (err error) {
 		if err = svc.UniqueCheck(u); err != nil {
 			return
 		}
 
-		u, err = svc.user.Update(u)
+		if u, err = svc.user.Update(u); err != nil {
+			return
+		}
+
+		defer eventbus.Dispatch(svc.ctx, event.UserAfterUpdate(upd, u))
 		return
 	})
 }
@@ -312,22 +331,32 @@ func (svc user) UpdateWithAvatar(mod *types.User, avatar io.Reader) (out *types.
 }
 
 func (svc user) Delete(ID uint64) (err error) {
+	var (
+		del *types.User
+	)
+
 	if ID == 0 {
 		return ErrInvalidID
 	}
 
-	var u *types.User
-	if u, err = svc.user.FindByID(ID); err != nil {
+	if del, err = svc.user.FindByID(ID); err != nil {
 		return
 	}
 
-	if !svc.ac.CanDeleteUser(svc.ctx, u) {
+	if !svc.ac.CanDeleteUser(svc.ctx, del) {
 		return ErrNoPermissions.withStack()
 	}
 
-	return svc.db.Transaction(func() (err error) {
-		return svc.user.DeleteByID(ID)
-	})
+	if err = eventbus.WaitFor(svc.ctx, event.UserBeforeUpdate(nil, del)); err != nil {
+		return
+	}
+
+	if err = svc.user.DeleteByID(ID); err != nil {
+		return
+	}
+
+	defer eventbus.Dispatch(svc.ctx, event.UserAfterDelete(nil, del))
+	return
 }
 
 func (svc user) Undelete(ID uint64) (err error) {

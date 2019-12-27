@@ -1,0 +1,61 @@
+system:
+  on: ['manual', 'interval', 'timestamp']
+
+system:sink:
+  on: ['request']
+  props:
+    - name: 'request'
+      type: '*types.SinkRequest'
+
+system:mail:
+  on: ['receive', 'send']
+  props:
+    - name: 'request'
+      type: '*types.MailMessage'
+
+system:auth:
+  on: ['manual']
+  ba: ['login', 'signup']
+  props:
+    - name: 'user'
+      type: '*types.User'
+    - name: 'provider'
+      type: '*types.AuthProvider'
+
+system:user:
+  on: ['manual']
+  ba: ['create', 'update', 'delete']
+  props:
+    - name: 'user'
+      type: '*types.User'
+    - name: 'oldUser'
+      type: '*types.User'
+      immutable: true
+
+system:role:
+  on: ['manual']
+  ba: ['create', 'update', 'delete']
+  props:
+    - name: 'role'
+      type: '*types.Role'
+    - name: 'oldRole'
+      type: '*types.Role'
+      immutable: true
+
+system:role:member:
+  ba: ['add', 'remove']
+  props:
+    - name: 'user'
+      type: '*types.User'
+    - name: 'role'
+      type: '*types.Role'
+
+system:application:
+  on: ['manual']
+  ba: ['create', 'update', 'delete']
+  props:
+    - name: 'application'
+      type: '*types.Application'
+    - name: 'oldApplication'
+      type: '*types.Application'
+      immutable: true

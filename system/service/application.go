@@ -5,9 +5,11 @@ import (
 
 	"github.com/titpetric/factory"
 
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/repository"
+	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -94,50 +96,82 @@ func (svc *application) Find(f types.ApplicationFilter) (types.ApplicationSet, t
 	return svc.application.Find(f)
 }
 
-func (svc *application) Create(mod *types.Application) (*types.Application, error) {
+func (svc *application) Create(new *types.Application) (app *types.Application, err error) {
 	if !svc.ac.CanCreateApplication(svc.ctx) {
 		return nil, ErrNoPermissions.withStack()
 	}
-	return svc.application.Create(mod)
+
+	if err = eventbus.WaitFor(svc.ctx, event.ApplicationBeforeCreate(new, nil)); err != nil {
+		return
+	}
+
+	if app, err = svc.application.Create(new); err != nil {
+		return
+	}
+
+	defer eventbus.Dispatch(svc.ctx, event.ApplicationAfterCreate(new, nil))
+	return
+
 }
 
-func (svc *application) Update(mod *types.Application) (t *types.Application, err error) {
-	if !svc.ac.CanUpdateApplication(svc.ctx, mod) {
+func (svc *application) Update(upd *types.Application) (app *types.Application, err error) {
+	if !svc.ac.CanUpdateApplication(svc.ctx, upd) {
 		return nil, ErrNoPermissions.withStack()
 	}
 
-	return t, svc.db.Transaction(func() (err error) {
-		if t, err = svc.application.FindByID(mod.ID); err != nil {
+	return app, svc.db.Transaction(func() (err error) {
+		if app, err = svc.application.FindByID(upd.ID); err != nil {
+			return
+		}
+
+		if err = eventbus.WaitFor(svc.ctx, event.ApplicationBeforeUpdate(upd, app)); err != nil {
 			return
 		}
 
 		// Assign changed values
-		t.Name = mod.Name
-		t.Enabled = mod.Enabled
-		t.Unify = mod.Unify
+		app.Name = upd.Name
+		app.Enabled = upd.Enabled
+		app.Unify = upd.Unify
 
-		if t, err = svc.application.Update(t); err != nil {
+		if app, err = svc.application.Update(app); err != nil {
 			return err
 		}
 
+		defer eventbus.Dispatch(svc.ctx, event.ApplicationAfterUpdate(upd, app))
 		return nil
 	})
 }
 
-func (svc *application) Delete(ID uint64) error {
-	app := &types.Application{ID: ID}
+func (svc *application) Delete(ID uint64) (err error) {
+	var (
+		app *types.Application
+	)
+
+	if app, err = svc.application.FindByID(ID); err != nil {
+		return
+	}
+
 	if !svc.ac.CanDeleteApplication(svc.ctx, app) {
 		return ErrNoPermissions.withStack()
 	}
-	return svc.application.DeleteByID(ID)
+	if err = eventbus.WaitFor(svc.ctx, event.ApplicationBeforeDelete(nil, app)); err != nil {
+		return
+	}
+
+	if err = svc.application.DeleteByID(ID); err != nil {
+		return
+	}
+
+	defer eventbus.Dispatch(svc.ctx, event.ApplicationAfterDelete(nil, app))
+	return
 }
 
 func (svc *application) Undelete(ID uint64) error {
 	app := &types.Application{ID: ID}
+
 	if !svc.ac.CanDeleteApplication(svc.ctx, app) {
 		return ErrNoPermissions.withStack()
 	}
+
 	return svc.application.UndeleteByID(ID)
 }
-
-var _ ApplicationService = &application{}

@@ -13,10 +13,12 @@ import (
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/system/repository"
+	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -150,7 +152,13 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 		return nil, errors.New("can not use profile data without an email")
 	}
 
-	log := svc.log(svc.ctx, zap.String("provider", profile.Provider))
+	var (
+		log = svc.log(svc.ctx, zap.String("provider", profile.Provider))
+
+		authProvider = &types.AuthProvider{
+			Provider: profile.Provider,
+		}
+	)
 
 	return u, svc.db.Transaction(func() error {
 		var c *types.Credentials
@@ -172,7 +180,13 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 						}
 					}
 					return err
-				} else if u.Valid() {
+				}
+
+				if err = eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
+					return err
+				}
+
+				if u.Valid() {
 					// Valid user, Bingo!
 					c.LastUsedAt = svc.now()
 					if c, err = svc.credentials.Update(c); err != nil {
@@ -184,6 +198,8 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 						zap.Uint64("userID", u.ID),
 						zap.String("email", u.Email),
 					)
+
+					defer eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(u, authProvider))
 
 					return nil
 				} else {
@@ -217,6 +233,10 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 				return err
 			}
 
+			if err = eventbus.WaitFor(svc.ctx, event.AuthBeforeSignup(u, authProvider)); err != nil {
+				return err
+			}
+
 			if u, err = svc.users.Create(u); err != nil {
 				return errors.Wrap(err, "could not create user after successful external authentication")
 			}
@@ -225,6 +245,8 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 				zap.Uint64("userID", u.ID),
 				zap.String("email", u.Email),
 			)
+
+			defer eventbus.Dispatch(svc.ctx, event.AuthAfterSignup(u, authProvider))
 
 			_ = svc.autoPromote(u)
 		} else if err != nil {
@@ -236,6 +258,13 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 				zap.Uint64("userID", u.ID),
 				zap.String("email", u.Email),
 			)
+
+			if err = eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
+				return err
+			}
+
+			defer eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(u, authProvider))
+
 		}
 
 		c = &types.Credentials{
@@ -311,6 +340,14 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 			}
 		}
 
+		// We're not actually doing sign-up here - user exists,
+		// password is a match, so lets trigger before/after user login events
+		if err = eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(existing, &types.AuthProvider{})); err != nil {
+			return nil, err
+		}
+
+		defer eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(existing, &types.AuthProvider{}))
+
 		return existing, nil
 
 		// if !svc.settings.internalSignUpSendEmailOnExisting {
@@ -332,8 +369,7 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 		return nil, err
 	}
 
-	// Whitelisted user data to copy
-	u, err = svc.users.Create(&types.User{
+	var new = &types.User{
 		Email:    input.Email,
 		Name:     input.Name,
 		Username: input.Username,
@@ -341,7 +377,14 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 
 		// Do we need confirmed email?
 		EmailConfirmed: !svc.settings.Auth.Internal.Signup.EmailConfirmationRequired,
-	})
+	}
+
+	if err = eventbus.WaitFor(svc.ctx, event.AuthBeforeSignup(new, &types.AuthProvider{})); err != nil {
+		return
+	}
+
+	// Whitelisted user data to copy
+	u, err = svc.users.Create(new)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create user")
@@ -366,6 +409,8 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 	if err != nil {
 		return nil, err
 	}
+
+	defer eventbus.Dispatch(svc.ctx, event.AuthAfterSignup(u, &types.AuthProvider{}))
 
 	return u, nil
 }
@@ -422,6 +467,10 @@ func (svc auth) InternalLogin(email string, password string) (u *types.User, err
 		return
 	}
 
+	if err = eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, &types.AuthProvider{})); err != nil {
+		return nil, err
+	}
+
 	if !u.Valid() {
 		if u.SuspendedAt != nil {
 			err = ErrUserSuspended
@@ -442,6 +491,8 @@ func (svc auth) InternalLogin(email string, password string) (u *types.User, err
 
 		return nil, errors.New("user email pending confirmation")
 	}
+
+	defer eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(u, &types.AuthProvider{}))
 
 	return u, err
 }

@@ -8,7 +8,9 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
+	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
@@ -202,45 +204,61 @@ func (svc page) Reorder(namespaceID, selfID uint64, pageIDs []uint64) error {
 	return svc.pageRepo.Reorder(namespaceID, selfID, pageIDs)
 }
 
-func (svc page) Create(mod *types.Page) (p *types.Page, err error) {
-	mod.ID = 0
+func (svc page) Create(new *types.Page) (p *types.Page, err error) {
+	var (
+		ns *types.Namespace
+	)
 
-	if !handle.IsValid(mod.Handle) {
+	new.ID = 0
+
+	if !handle.IsValid(new.Handle) {
 		return nil, ErrInvalidHandle
 	}
 
-	if ns, err := svc.loadNamespace(mod.NamespaceID); err != nil {
+	if ns, err = svc.loadNamespace(new.NamespaceID); err != nil {
 		return nil, err
 	} else if !svc.ac.CanCreatePage(svc.ctx, ns) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
-	if err = svc.UniqueCheck(mod); err != nil {
+	if err = eventbus.WaitFor(svc.ctx, event.PageBeforeCreate(new, nil, ns)); err != nil {
 		return
 	}
 
-	p, err = svc.pageRepo.Create(mod)
+	if err = svc.UniqueCheck(new); err != nil {
+		return
+	}
+
+	if p, err = svc.pageRepo.Create(new); err != nil {
+		return
+	}
+
+	defer eventbus.Dispatch(svc.ctx, event.PageAfterCreate(new, nil, ns))
 	return
 }
 
-func (svc page) Update(mod *types.Page) (p *types.Page, err error) {
-	if mod.ID == 0 {
+func (svc page) Update(upd *types.Page) (p *types.Page, err error) {
+	var (
+		ns *types.Namespace
+	)
+
+	if upd.ID == 0 {
 		return nil, ErrInvalidID.withStack()
 	}
 
-	if !handle.IsValid(mod.Handle) {
+	if !handle.IsValid(upd.Handle) {
 		return nil, ErrInvalidHandle
 	}
 
-	if _, err = svc.loadNamespace(mod.NamespaceID); err != nil {
+	if ns, err = svc.loadNamespace(upd.NamespaceID); err != nil {
 		return
 	}
 
-	if p, err = svc.pageRepo.FindByID(mod.NamespaceID, mod.ID); err != nil {
+	if p, err = svc.pageRepo.FindByID(upd.NamespaceID, upd.ID); err != nil {
 		return
 	}
 
-	if isStale(mod.UpdatedAt, p.UpdatedAt, p.CreatedAt) {
+	if isStale(upd.UpdatedAt, p.UpdatedAt, p.CreatedAt) {
 		return nil, ErrStaleData.withStack()
 	}
 
@@ -248,20 +266,28 @@ func (svc page) Update(mod *types.Page) (p *types.Page, err error) {
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
-	p.ModuleID = mod.ModuleID
-	p.SelfID = mod.SelfID
-	p.Blocks = mod.Blocks
-	p.Title = mod.Title
-	p.Handle = mod.Handle
-	p.Description = mod.Description
-	p.Visible = mod.Visible
-	p.Weight = mod.Weight
-
-	if err = svc.UniqueCheck(p); err != nil {
+	if err = eventbus.WaitFor(svc.ctx, event.PageBeforeUpdate(upd, p, ns)); err != nil {
 		return
 	}
 
-	p, err = svc.pageRepo.Update(p)
+	if err = svc.UniqueCheck(upd); err != nil {
+		return
+	}
+
+	p.ModuleID = upd.ModuleID
+	p.SelfID = upd.SelfID
+	p.Blocks = upd.Blocks
+	p.Title = upd.Title
+	p.Handle = upd.Handle
+	p.Description = upd.Description
+	p.Visible = upd.Visible
+	p.Weight = upd.Weight
+
+	if p, err = svc.pageRepo.Update(p); err != nil {
+		return
+	}
+
+	defer eventbus.Dispatch(svc.ctx, event.PageAfterUpdate(upd, p, ns))
 	return
 }
 
@@ -281,22 +307,36 @@ func (svc page) UniqueCheck(p *types.Page) (err error) {
 	return nil
 }
 
-func (svc page) DeleteByID(namespaceID, pageID uint64) error {
+func (svc page) DeleteByID(namespaceID, pageID uint64) (err error) {
+	var (
+		del *types.Page
+		ns  *types.Namespace
+	)
+
 	if pageID == 0 {
 		return ErrInvalidID.withStack()
 	}
 
-	if _, err := svc.loadNamespace(namespaceID); err != nil {
+	if ns, err = svc.loadNamespace(namespaceID); err != nil {
 		return err
 	}
 
-	if p, err := svc.pageRepo.FindByID(namespaceID, pageID); err != nil {
+	if del, err = svc.pageRepo.FindByID(namespaceID, pageID); err != nil {
 		return err
-	} else if !svc.ac.CanDeletePage(svc.ctx, p) {
+	} else if !svc.ac.CanDeletePage(svc.ctx, del) {
 		return ErrNoDeletePermissions.withStack()
 	}
 
-	return svc.pageRepo.DeleteByID(namespaceID, pageID)
+	if err = eventbus.WaitFor(svc.ctx, event.PageBeforeDelete(nil, del, ns)); err != nil {
+		return
+	}
+
+	if err = svc.pageRepo.DeleteByID(namespaceID, pageID); err != nil {
+		return
+	}
+
+	defer eventbus.Dispatch(svc.ctx, event.PageAfterDelete(nil, del, ns))
+	return
 }
 
 func (svc page) loadNamespace(namespaceID uint64) (ns *types.Namespace, err error) {
