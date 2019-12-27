@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -16,9 +15,8 @@ import (
 var _ = errors.Wrap
 
 type Sink struct {
-	// xxx service.XXXService
 	svc interface {
-		Process(context.Context, string, io.Reader) error
+		Process(context.Context, string, *http.Request) error
 	}
 
 	sign auth.Signer
@@ -79,7 +77,7 @@ func (ctrl *Sink) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 
-	switch ctrl.svc.Process(ctx, contentType, r.Body) {
+	switch ctrl.svc.Process(ctx, contentType, r) {
 	case service.ErrSinkContentProcessingFailed:
 		http.Error(w, "sink processing failed", http.StatusInternalServerError)
 

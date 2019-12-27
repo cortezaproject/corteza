@@ -8,7 +8,9 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
+	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
@@ -108,8 +110,8 @@ func (svc namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet,
 }
 
 // Create adds namespace and presets access rules for role everyone
-func (svc namespace) Create(mod *types.Namespace) (*types.Namespace, error) {
-	if !handle.IsValid(mod.Slug) {
+func (svc namespace) Create(new *types.Namespace) (ns *types.Namespace, err error) {
+	if !handle.IsValid(new.Slug) {
 		return nil, ErrInvalidHandle
 	}
 
@@ -117,24 +119,36 @@ func (svc namespace) Create(mod *types.Namespace) (*types.Namespace, error) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
-	return svc.namespaceRepo.Create(mod)
-}
-
-func (svc namespace) Update(mod *types.Namespace) (ns *types.Namespace, err error) {
-	if mod.ID == 0 {
-		return nil, ErrInvalidID.withStack()
+	if err = eventbus.WaitFor(svc.ctx, event.NamespaceBeforeCreate(new, nil)); err != nil {
+		return
 	}
 
-	if !handle.IsValid(mod.Slug) {
-		return nil, ErrInvalidHandle
+	if err = svc.UniqueCheck(new); err != nil {
+		return
 	}
 
-	ns, err = svc.FindByID(mod.ID)
-	if err != nil {
+	if ns, err = svc.namespaceRepo.Create(new); err != nil {
 		return nil, err
 	}
 
-	if isStale(mod.UpdatedAt, ns.UpdatedAt, ns.CreatedAt) {
+	defer eventbus.Dispatch(svc.ctx, event.NamespaceAfterCreate(ns, nil))
+	return
+}
+
+func (svc namespace) Update(upd *types.Namespace) (ns *types.Namespace, err error) {
+	if upd.ID == 0 {
+		return nil, ErrInvalidID.withStack()
+	}
+
+	if !handle.IsValid(upd.Slug) {
+		return nil, ErrInvalidHandle
+	}
+
+	if ns, err = svc.FindByID(upd.ID); err != nil {
+		return nil, err
+	}
+
+	if isStale(upd.UpdatedAt, ns.UpdatedAt, ns.CreatedAt) {
 		return nil, ErrStaleData.withStack()
 	}
 
@@ -142,26 +156,53 @@ func (svc namespace) Update(mod *types.Namespace) (ns *types.Namespace, err erro
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
-	ns.Name = mod.Name
-	ns.Slug = mod.Slug
-	ns.Meta = mod.Meta
-	ns.Enabled = mod.Enabled
+	if err = eventbus.WaitFor(svc.ctx, event.NamespaceBeforeUpdate(upd, ns)); err != nil {
+		return
+	}
 
-	return svc.namespaceRepo.Update(ns)
+	if err = svc.UniqueCheck(upd); err != nil {
+		return
+	}
+
+	// Copy changes
+	ns.Name = upd.Name
+	ns.Slug = upd.Slug
+	ns.Meta = upd.Meta
+	ns.Enabled = upd.Enabled
+
+	if ns, err = svc.namespaceRepo.Update(ns); err != nil {
+		return nil, err
+	}
+
+	defer eventbus.Dispatch(svc.ctx, event.NamespaceAfterUpdate(upd, ns))
+	return
 }
 
-func (svc namespace) DeleteByID(namespaceID uint64) error {
+func (svc namespace) DeleteByID(namespaceID uint64) (err error) {
+	var (
+		del *types.Namespace
+	)
+
 	if namespaceID == 0 {
 		return ErrInvalidID.withStack()
 	}
 
-	if ns, err := svc.namespaceRepo.FindByID(namespaceID); err != nil {
-		return err
-	} else if !svc.ac.CanDeleteNamespace(svc.ctx, ns) {
+	if del, err = svc.namespaceRepo.FindByID(namespaceID); err != nil {
+		return
+	} else if !svc.ac.CanDeleteNamespace(svc.ctx, del) {
 		return ErrNoDeletePermissions.withStack()
 	}
 
-	return svc.namespaceRepo.DeleteByID(namespaceID)
+	if err = eventbus.WaitFor(svc.ctx, event.NamespaceBeforeDelete(nil, del)); err != nil {
+		return
+	}
+
+	if err = svc.namespaceRepo.DeleteByID(namespaceID); err != nil {
+		return
+	}
+
+	defer eventbus.Dispatch(svc.ctx, event.NamespaceAfterDelete(nil, del))
+	return
 }
 
 func (svc namespace) UniqueCheck(ns *types.Namespace) (err error) {

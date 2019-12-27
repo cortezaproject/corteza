@@ -13,9 +13,11 @@ import (
 	migrate "github.com/cortezaproject/corteza-server/compose/db"
 	"github.com/cortezaproject/corteza-server/compose/rest"
 	"github.com/cortezaproject/corteza-server/compose/service"
+	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/pkg/app"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/scheduler"
 	"github.com/cortezaproject/corteza-server/system/auth/external"
 )
 
@@ -31,6 +33,12 @@ const SERVICE = "compose"
 func (app *App) Setup(log *zap.Logger, opts *app.Options) (err error) {
 	app.Log = log.Named(SERVICE)
 	app.Opts = opts
+
+	scheduler.OnTick(
+		event.ComposeOnInterval(),
+		event.ComposeOnTimestamp(),
+	)
+
 	return
 }
 

@@ -8,10 +8,12 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/system/repository"
+	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -26,7 +28,8 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		ac roleAccessController
+		ac   roleAccessController
+		user UserService
 
 		role repository.RoleRepository
 	}
@@ -84,6 +87,7 @@ func (svc role) With(ctx context.Context) RoleService {
 		ac:     svc.ac,
 
 		role: repository.Role(ctx, db),
+		user: DefaultUser.With(ctx),
 	}
 }
 
@@ -136,9 +140,9 @@ func (svc role) FindByHandle(handle string) (*types.Role, error) {
 	return svc.role.FindByHandle(handle)
 }
 
-func (svc role) Create(mod *types.Role) (t *types.Role, err error) {
+func (svc role) Create(new *types.Role) (r *types.Role, err error) {
 
-	if !handle.IsValid(mod.Handle) {
+	if !handle.IsValid(new.Handle) {
 		return nil, ErrInvalidHandle
 	}
 
@@ -146,47 +150,59 @@ func (svc role) Create(mod *types.Role) (t *types.Role, err error) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
-	return t, svc.db.Transaction(func() (err error) {
-		if err = svc.UniqueCheck(mod); err != nil {
+	return r, svc.db.Transaction(func() (err error) {
+		if err = eventbus.WaitFor(svc.ctx, event.RoleBeforeCreate(new, r)); err != nil {
 			return
 		}
 
-		t, err = svc.role.Create(mod)
+		if err = svc.UniqueCheck(new); err != nil {
+			return
+		}
+
+		if r, err = svc.role.Create(new); err != nil {
+			return
+		}
+
+		defer eventbus.Dispatch(svc.ctx, event.RoleAfterCreate(new, r))
 		return
 	})
 }
 
-func (svc role) Update(mod *types.Role) (t *types.Role, err error) {
-	if mod.ID == 0 {
+func (svc role) Update(upd *types.Role) (r *types.Role, err error) {
+	if upd.ID == 0 {
 		return nil, ErrInvalidID
 	}
 
-	if !handle.IsValid(mod.Handle) {
+	if !handle.IsValid(upd.Handle) {
 		return nil, ErrInvalidHandle
 	}
 
-	if !svc.ac.CanUpdateRole(svc.ctx, mod) {
+	if !svc.ac.CanUpdateRole(svc.ctx, upd) {
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
-	// @todo: make sure archived & deleted entries can not be edited
-
-	return t, svc.db.Transaction(func() (err error) {
-		if t, err = svc.role.FindByID(mod.ID); err != nil {
+	return r, svc.db.Transaction(func() (err error) {
+		if r, err = svc.role.FindByID(upd.ID); err != nil {
 			return
 		}
 
-		if err = svc.UniqueCheck(mod); err != nil {
+		if err = eventbus.WaitFor(svc.ctx, event.RoleBeforeUpdate(upd, r)); err != nil {
+			return
+		}
+
+		if err = svc.UniqueCheck(upd); err != nil {
 			return
 		}
 
 		// Assign changed values
-		t.Name = mod.Name
-		t.Handle = mod.Handle
+		r.Name = upd.Name
+		r.Handle = upd.Handle
 
-		if t, err = svc.role.Update(t); err != nil {
+		if r, err = svc.role.Update(r); err != nil {
 			return err
 		}
+
+		defer eventbus.Dispatch(svc.ctx, event.RoleAfterUpdate(upd, r))
 
 		return nil
 	})
@@ -208,9 +224,12 @@ func (svc role) UniqueCheck(r *types.Role) (err error) {
 	return nil
 }
 
-func (svc role) Delete(roleID uint64) error {
-	role, err := svc.findByID(roleID)
-	if err != nil {
+func (svc role) Delete(roleID uint64) (err error) {
+	var (
+		role *types.Role
+	)
+
+	if role, err = svc.findByID(roleID); err != nil {
 		return err
 	}
 
@@ -218,7 +237,16 @@ func (svc role) Delete(roleID uint64) error {
 		return ErrNoPermissions.withStack()
 	}
 
-	return svc.role.DeleteByID(roleID)
+	if err = eventbus.WaitFor(svc.ctx, event.RoleBeforeDelete(nil, role)); err != nil {
+		return
+	}
+
+	if err = svc.role.DeleteByID(roleID); err != nil {
+		return
+	}
+
+	defer eventbus.Dispatch(svc.ctx, event.RoleAfterDelete(nil, role))
+	return
 }
 
 func (svc role) Undelete(roleID uint64) error {
@@ -307,36 +335,64 @@ func (svc role) MemberList(roleID uint64) ([]*types.RoleMember, error) {
 	return svc.role.MemberFindByRoleID(roleID)
 }
 
-func (svc role) MemberAdd(roleID, userID uint64) error {
-	role, err := svc.findByID(roleID)
-	if err != nil {
-		return err
+func (svc role) MemberAdd(roleID, userID uint64) (err error) {
+	var (
+		role *types.Role
+		user *types.User
+	)
+
+	if role, err = svc.findByID(roleID); err != nil {
+		return
 	}
 
-	if userID == 0 {
-		return ErrInvalidID
+	if user, err = svc.user.FindByID(userID); err != nil {
+		return
+	}
+
+	if err = eventbus.WaitFor(svc.ctx, event.RoleMemberBeforeAdd(user, role)); err != nil {
+		return
 	}
 
 	if !svc.ac.CanManageRoleMembers(svc.ctx, role) {
 		return errors.New("Not allowed to manage role members")
 	}
-	return svc.role.MemberAddByID(roleID, userID)
+
+	if err = svc.role.MemberAddByID(role.ID, user.ID); err != nil {
+		return
+	}
+
+	defer eventbus.Dispatch(svc.ctx, event.RoleMemberAfterAdd(user, role))
+	return nil
 }
 
-func (svc role) MemberRemove(roleID, userID uint64) error {
-	role, err := svc.findByID(roleID)
-	if err != nil {
-		return err
+func (svc role) MemberRemove(roleID, userID uint64) (err error) {
+	var (
+		role *types.Role
+		user *types.User
+	)
+
+	if role, err = svc.findByID(roleID); err != nil {
+		return
 	}
 
-	if userID == 0 {
-		return ErrInvalidID
+	if user, err = svc.user.FindByID(userID); err != nil {
+		return
+	}
+
+	if err = eventbus.WaitFor(svc.ctx, event.RoleMemberBeforeRemove(user, role)); err != nil {
+		return
 	}
 
 	if !svc.ac.CanManageRoleMembers(svc.ctx, role) {
 		return errors.New("Not allowed to manage role members")
 	}
-	return svc.role.MemberRemoveByID(roleID, userID)
+
+	if err = svc.role.MemberRemoveByID(role.ID, user.ID); err != nil {
+		return
+	}
+
+	defer eventbus.Dispatch(svc.ctx, event.RoleMemberAfterRemove(user, role))
+	return nil
 }
 
 var _ RoleService = &role{}

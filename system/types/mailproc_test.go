@@ -1,4 +1,4 @@
-package service
+package types
 
 import (
 	"net/mail"
@@ -6,15 +6,13 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 func Test_mailProcMessage(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   string
-		wantOut *types.MailMessage
+		wantOut *MailMessage
 		wantErr bool
 	}{
 		// TODO: Add test cases.
@@ -27,9 +25,9 @@ Message-ID: <1234@local.machine.example>
 
 Ola Corteza!
 `,
-			wantOut: &types.MailMessage{
+			wantOut: &MailMessage{
 				Date: time.Time{},
-				Header: types.MailMessageHeader{
+				Header: MailMessageHeader{
 					From: []*mail.Address{{Address: "sender@testing.cortezaproject.org"}},
 					To:   []*mail.Address{{Address: "rcpt@testing.cortezaproject.org"}},
 
@@ -47,7 +45,7 @@ Ola Corteza!
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			input := strings.NewReader(strings.TrimSpace(tt.input))
-			gotOut, err := mailProcMessage(input)
+			gotOut, err := NewMailMessage(input)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("mailProcMessage() error = %v, wantErr %v", err, tt.wantErr)

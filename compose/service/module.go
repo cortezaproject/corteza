@@ -8,7 +8,9 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
+	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
@@ -146,55 +148,67 @@ func (svc module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.
 	return
 }
 
-func (svc module) Create(mod *types.Module) (*types.Module, error) {
-	if !handle.IsValid(mod.Handle) {
+func (svc module) Create(new *types.Module) (m *types.Module, err error) {
+	var (
+		ns *types.Namespace
+	)
+
+	if !handle.IsValid(new.Handle) {
 		return nil, ErrInvalidHandle
 	}
-	if mod.NamespaceID == 0 {
+	if new.NamespaceID == 0 {
 		return nil, ErrNamespaceRequired.withStack()
 	}
-
-	if err := svc.UniqueCheck(mod); err != nil {
-		return nil, err
-	}
-
-	if ns, err := svc.loadNamespace(mod.NamespaceID); err != nil {
+	if ns, err = svc.loadNamespace(new.NamespaceID); err != nil {
 		return nil, err
 	} else if !svc.ac.CanCreateModule(svc.ctx, ns) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
-	mod, err := svc.moduleRepo.Create(mod)
+	// Calling before-create scripts
+	if err = eventbus.WaitFor(svc.ctx, event.ModuleBeforeCreate(new, nil, ns)); err != nil {
+		return
+	}
+
+	if err := svc.UniqueCheck(new); err != nil {
+		return nil, err
+	}
+
+	if m, err = svc.moduleRepo.Create(new); err != nil {
+		return nil, err
+	}
+
+	err = svc.moduleRepo.UpdateFields(m.ID, m.Fields, false)
 	if err != nil {
 		return nil, err
 	}
 
-	err = svc.moduleRepo.UpdateFields(mod.ID, mod.Fields, false)
-	if err != nil {
-		return nil, err
-	}
-
-	return mod, nil
+	defer eventbus.Dispatch(svc.ctx, event.ModuleAfterCreate(m, nil, ns))
+	return
 }
 
-func (svc module) Update(mod *types.Module) (m *types.Module, err error) {
-	if mod.ID == 0 {
+func (svc module) Update(upd *types.Module) (m *types.Module, err error) {
+	var (
+		ns *types.Namespace
+	)
+
+	if upd.ID == 0 {
 		return nil, ErrInvalidID.withStack()
 	}
 
-	if !handle.IsValid(mod.Handle) {
+	if !handle.IsValid(upd.Handle) {
 		return nil, ErrInvalidHandle
 	}
 
-	if m, err = svc.moduleRepo.FindByID(mod.NamespaceID, mod.ID); err != nil {
+	if m, err = svc.moduleRepo.FindByID(upd.NamespaceID, upd.ID); err != nil {
 		return
 	}
 
-	if err = svc.UniqueCheck(mod); err != nil {
-		return
+	if ns, err = svc.loadNamespace(upd.NamespaceID); err != nil {
+		return nil, err
 	}
 
-	if isStale(mod.UpdatedAt, m.UpdatedAt, m.CreatedAt) {
+	if isStale(upd.UpdatedAt, m.UpdatedAt, m.CreatedAt) {
 		return nil, ErrStaleData.withStack()
 	}
 
@@ -202,10 +216,18 @@ func (svc module) Update(mod *types.Module) (m *types.Module, err error) {
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
-	m.Name = mod.Name
-	m.Handle = mod.Handle
-	m.Meta = mod.Meta
-	m.Fields = mod.Fields
+	if err = eventbus.WaitFor(svc.ctx, event.ModuleBeforeUpdate(upd, m, ns)); err != nil {
+		return
+	}
+
+	if err = svc.UniqueCheck(upd); err != nil {
+		return
+	}
+
+	m.Name = upd.Name
+	m.Handle = upd.Handle
+	m.Meta = upd.Meta
+	m.Fields = upd.Fields
 
 	m, err = svc.moduleRepo.Update(m)
 	if err != nil {
@@ -221,10 +243,16 @@ func (svc module) Update(mod *types.Module) (m *types.Module, err error) {
 		return nil, err
 	}
 
-	return m, err
+	defer eventbus.Dispatch(svc.ctx, event.ModuleAfterUpdate(upd, m, ns))
+	return
 }
 
-func (svc module) DeleteByID(namespaceID, moduleID uint64) error {
+func (svc module) DeleteByID(namespaceID, moduleID uint64) (err error) {
+	var (
+		del *types.Module
+		ns  *types.Namespace
+	)
+
 	if moduleID == 0 {
 		return ErrInvalidID.withStack()
 	}
@@ -233,13 +261,26 @@ func (svc module) DeleteByID(namespaceID, moduleID uint64) error {
 		return ErrNamespaceRequired.withStack()
 	}
 
-	if c, err := svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
+	if ns, err = svc.loadNamespace(namespaceID); err != nil {
 		return err
-	} else if !svc.ac.CanDeleteModule(svc.ctx, c) {
+	}
+
+	if del, err = svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
+		return err
+	} else if !svc.ac.CanDeleteModule(svc.ctx, del) {
 		return ErrNoDeletePermissions.withStack()
 	}
 
-	return svc.moduleRepo.DeleteByID(namespaceID, moduleID)
+	if err = eventbus.WaitFor(svc.ctx, event.ModuleBeforeDelete(nil, del, ns)); err != nil {
+		return
+	}
+
+	if err = svc.moduleRepo.DeleteByID(namespaceID, moduleID); err != nil {
+		return
+	}
+
+	defer eventbus.Dispatch(svc.ctx, event.ModuleAfterDelete(nil, del, ns))
+	return
 }
 
 func (svc module) UniqueCheck(m *types.Module) (err error) {

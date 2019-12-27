@@ -2,25 +2,26 @@ package service
 
 import (
 	"context"
-	"io"
+	"net/http"
 	"strings"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/system/service/event"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
 	sink struct {
-		// processors
-		proc map[string]sinkContentProc
-
-		logger *zap.Logger
+		logger   *zap.Logger
+		eventbus sinkEventDispatcher
 	}
 
-	sinkContentProc interface {
-		ContentProcessor(context.Context, io.Reader) error
+	sinkEventDispatcher interface {
+		WaitFor(ctx context.Context, ev eventbus.Event) (err error)
 	}
 )
 
@@ -34,25 +35,32 @@ const (
 func Sink() *sink {
 	return &sink{
 		logger: DefaultLogger,
-		proc: map[string]sinkContentProc{
-			SinkContentTypeMail: Mailproc(),
-		},
 	}
 }
 
-// Finds appropriate sink processor
-func (svc *sink) Process(ctx context.Context, contentType string, r io.Reader) (err error) {
+// Processes sink request, casts it and forwards it to
+func (svc *sink) Process(ctx context.Context, contentType string, r *http.Request) (err error) {
 	switch strings.ToLower(contentType) {
 	case SinkContentTypeMail, "rfc822", "email", "mail":
-		if err = svc.proc[SinkContentTypeMail].ContentProcessor(ctx, r); err != nil {
-			return ErrSinkContentProcessingFailed
+		// this is handled by dedicated event that parses raw payload from HTTP request
+		// as rfc882 message.
+		var msg *types.MailMessage
+		msg, err = types.NewMailMessage(r.Body)
+		if err != nil {
+			return
 		}
 
-	default:
-		return ErrSinkContentTypeUnsupported
-	}
+		return svc.eventbus.WaitFor(ctx, event.MailOnReceive(msg))
 
-	return
+	default:
+		var sr *types.SinkRequest
+		sr, err = types.NewSinkRequest(r)
+		if err != nil {
+			return
+		}
+
+		return svc.eventbus.WaitFor(ctx, event.SinkOnRequest(sr))
+	}
 }
 
 func (svc sink) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {

@@ -1,0 +1,54 @@
+compose:
+  on: ['manual', 'interval', 'timestamp']
+
+compose:namespace:
+  on: ['manual']
+  ba: ['create', 'update', 'delete']
+  props:
+    - name: 'namespace'
+      type: '*types.Namespace'
+    - name: 'oldNamespace'
+      type: '*types.Namespace'
+      immutable: true
+
+compose:page:
+  on: ['manual']
+  ba: ['create', 'update', 'delete']
+  props:
+    - name: 'page'
+      type: '*types.Page'
+    - name: 'oldPage'
+      type: '*types.Page'
+      immutable: true
+    - name: 'namespace'
+      type: '*types.Namespace'
+      immutable: true
+
+compose:module:
+  on: ['manual']
+  ba: ['create', 'update', 'delete']
+  props:
+    - name: 'module'
+      type: '*types.Module'
+    - name: 'oldModule'
+      type: '*types.Module'
+      immutable: true
+    - name: 'namespace'
+      type: '*types.Namespace'
+      immutable: true
+
+compose:record:
+  on: ['manual']
+  ba: ['create', 'update', 'delete']
+  props:
+    - name: 'record'
+      type: '*types.Record'
+    - name: 'oldRecord'
+      type: '*types.Record'
+      immutable: true
+    - name: 'module'
+      type: '*types.Module'
+      immutable: true
+    - name: 'namespace'
+      type: '*types.Namespace'
+      immutable: true
