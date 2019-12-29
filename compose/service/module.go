@@ -22,7 +22,8 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		ac moduleAccessController
+		ac       moduleAccessController
+		eventbus eventDispatcher
 
 		moduleRepo repository.ModuleRepository
 		recordRepo repository.RecordRepository
@@ -56,8 +57,9 @@ type (
 
 func Module() ModuleService {
 	return (&module{
-		logger: DefaultLogger.Named("module"),
-		ac:     DefaultAccessControl,
+		logger:   DefaultLogger.Named("module"),
+		ac:       DefaultAccessControl,
+		eventbus: eventbus.Service(),
 	}).With(context.Background())
 }
 
@@ -68,7 +70,8 @@ func (svc module) With(ctx context.Context) ModuleService {
 		ctx:    ctx,
 		logger: svc.logger,
 
-		ac: svc.ac,
+		ac:       svc.ac,
+		eventbus: svc.eventbus,
 
 		moduleRepo: repository.Module(ctx, db),
 		recordRepo: repository.Record(ctx, db),
@@ -166,7 +169,7 @@ func (svc module) Create(new *types.Module) (m *types.Module, err error) {
 	}
 
 	// Calling before-create scripts
-	if err = eventbus.WaitFor(svc.ctx, event.ModuleBeforeCreate(new, nil, ns)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.ModuleBeforeCreate(new, nil, ns)); err != nil {
 		return
 	}
 
@@ -183,7 +186,7 @@ func (svc module) Create(new *types.Module) (m *types.Module, err error) {
 		return nil, err
 	}
 
-	defer eventbus.Dispatch(svc.ctx, event.ModuleAfterCreate(m, nil, ns))
+	defer svc.eventbus.Dispatch(svc.ctx, event.ModuleAfterCreate(m, nil, ns))
 	return
 }
 
@@ -216,7 +219,7 @@ func (svc module) Update(upd *types.Module) (m *types.Module, err error) {
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
-	if err = eventbus.WaitFor(svc.ctx, event.ModuleBeforeUpdate(upd, m, ns)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.ModuleBeforeUpdate(upd, m, ns)); err != nil {
 		return
 	}
 
@@ -243,7 +246,7 @@ func (svc module) Update(upd *types.Module) (m *types.Module, err error) {
 		return nil, err
 	}
 
-	defer eventbus.Dispatch(svc.ctx, event.ModuleAfterUpdate(upd, m, ns))
+	defer svc.eventbus.Dispatch(svc.ctx, event.ModuleAfterUpdate(upd, m, ns))
 	return
 }
 
@@ -271,7 +274,7 @@ func (svc module) DeleteByID(namespaceID, moduleID uint64) (err error) {
 		return ErrNoDeletePermissions.withStack()
 	}
 
-	if err = eventbus.WaitFor(svc.ctx, event.ModuleBeforeDelete(nil, del, ns)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.ModuleBeforeDelete(nil, del, ns)); err != nil {
 		return
 	}
 
@@ -279,7 +282,7 @@ func (svc module) DeleteByID(namespaceID, moduleID uint64) (err error) {
 		return
 	}
 
-	defer eventbus.Dispatch(svc.ctx, event.ModuleAfterDelete(nil, del, ns))
+	defer svc.eventbus.Dispatch(svc.ctx, event.ModuleAfterDelete(nil, del, ns))
 	return
 }
 

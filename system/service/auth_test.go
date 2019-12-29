@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	repomock "github.com/cortezaproject/corteza-server/system/repository/mocks"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -35,6 +36,8 @@ func makeMockAuthService(u repository.UserRepository, c repository.CredentialsRe
 		logger: zap.NewNop(),
 
 		settings: &types.Settings{},
+
+		eventbus: eventbus.New(),
 
 		now: func() *time.Time {
 			return nil

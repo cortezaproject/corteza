@@ -28,6 +28,8 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
+		eventbus eventDispatcher
+
 		subscription  authSubscriptionChecker
 		credentials   repository.CredentialsRepository
 		users         repository.UserRepository
@@ -93,6 +95,18 @@ func defaultProviderValidator(provider string) error {
 func Auth(ctx context.Context) AuthService {
 	return (&auth{
 		logger: DefaultLogger.Named("auth"),
+
+		eventbus:      eventbus.Service(),
+		subscription:  CurrentSubscription,
+		settings:      CurrentSettings,
+		notifications: DefaultAuthNotification,
+
+		providerValidator: defaultProviderValidator,
+
+		now: func() *time.Time {
+			var now = time.Now()
+			return &now
+		},
 	}).With(ctx)
 }
 
@@ -107,15 +121,13 @@ func (svc auth) With(ctx context.Context) AuthService {
 		users:       repository.User(ctx, db),
 		roles:       repository.Role(ctx, db),
 
-		subscription:  CurrentSubscription,
-		settings:      CurrentSettings,
-		notifications: DefaultAuthNotification,
+		subscription:      svc.subscription,
+		settings:          svc.settings,
+		notifications:     svc.notifications,
+		eventbus:          svc.eventbus,
+		providerValidator: svc.providerValidator,
 
-		providerValidator: defaultProviderValidator,
-		now: func() *time.Time {
-			var now = time.Now()
-			return &now
-		},
+		now: svc.now,
 	}
 }
 
@@ -182,7 +194,7 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 					return err
 				}
 
-				if err = eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
+				if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
 					return err
 				}
 
@@ -199,7 +211,7 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 						zap.String("email", u.Email),
 					)
 
-					defer eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(u, authProvider))
+					defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(u, authProvider))
 
 					return nil
 				} else {
@@ -233,7 +245,7 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 				return err
 			}
 
-			if err = eventbus.WaitFor(svc.ctx, event.AuthBeforeSignup(u, authProvider)); err != nil {
+			if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeSignup(u, authProvider)); err != nil {
 				return err
 			}
 
@@ -246,7 +258,7 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 				zap.String("email", u.Email),
 			)
 
-			defer eventbus.Dispatch(svc.ctx, event.AuthAfterSignup(u, authProvider))
+			defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterSignup(u, authProvider))
 
 			_ = svc.autoPromote(u)
 		} else if err != nil {
@@ -259,11 +271,11 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 				zap.String("email", u.Email),
 			)
 
-			if err = eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
+			if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
 				return err
 			}
 
-			defer eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(u, authProvider))
+			defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(u, authProvider))
 
 		}
 
@@ -342,11 +354,11 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 
 		// We're not actually doing sign-up here - user exists,
 		// password is a match, so lets trigger before/after user login events
-		if err = eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(existing, &types.AuthProvider{})); err != nil {
+		if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(existing, &types.AuthProvider{})); err != nil {
 			return nil, err
 		}
 
-		defer eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(existing, &types.AuthProvider{}))
+		defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(existing, &types.AuthProvider{}))
 
 		return existing, nil
 
@@ -379,7 +391,7 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 		EmailConfirmed: !svc.settings.Auth.Internal.Signup.EmailConfirmationRequired,
 	}
 
-	if err = eventbus.WaitFor(svc.ctx, event.AuthBeforeSignup(new, &types.AuthProvider{})); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeSignup(new, &types.AuthProvider{})); err != nil {
 		return
 	}
 
@@ -410,7 +422,7 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 		return nil, err
 	}
 
-	defer eventbus.Dispatch(svc.ctx, event.AuthAfterSignup(u, &types.AuthProvider{}))
+	defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterSignup(u, &types.AuthProvider{}))
 
 	return u, nil
 }
@@ -467,7 +479,7 @@ func (svc auth) InternalLogin(email string, password string) (u *types.User, err
 		return
 	}
 
-	if err = eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, &types.AuthProvider{})); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, &types.AuthProvider{})); err != nil {
 		return nil, err
 	}
 
@@ -492,7 +504,7 @@ func (svc auth) InternalLogin(email string, password string) (u *types.User, err
 		return nil, errors.New("user email pending confirmation")
 	}
 
-	defer eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(u, &types.AuthProvider{}))
+	defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(u, &types.AuthProvider{}))
 
 	return u, err
 }
