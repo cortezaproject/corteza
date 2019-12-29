@@ -35,16 +35,18 @@ type ApplicationAPI interface {
 	Read(context.Context, *request.ApplicationRead) (interface{}, error)
 	Delete(context.Context, *request.ApplicationDelete) (interface{}, error)
 	Undelete(context.Context, *request.ApplicationUndelete) (interface{}, error)
+	FireTrigger(context.Context, *request.ApplicationFireTrigger) (interface{}, error)
 }
 
 // HTTP API interface
 type Application struct {
-	List     func(http.ResponseWriter, *http.Request)
-	Create   func(http.ResponseWriter, *http.Request)
-	Update   func(http.ResponseWriter, *http.Request)
-	Read     func(http.ResponseWriter, *http.Request)
-	Delete   func(http.ResponseWriter, *http.Request)
-	Undelete func(http.ResponseWriter, *http.Request)
+	List        func(http.ResponseWriter, *http.Request)
+	Create      func(http.ResponseWriter, *http.Request)
+	Update      func(http.ResponseWriter, *http.Request)
+	Read        func(http.ResponseWriter, *http.Request)
+	Delete      func(http.ResponseWriter, *http.Request)
+	Undelete    func(http.ResponseWriter, *http.Request)
+	FireTrigger func(http.ResponseWriter, *http.Request)
 }
 
 func NewApplication(h ApplicationAPI) *Application {
@@ -169,6 +171,26 @@ func NewApplication(h ApplicationAPI) *Application {
 				resputil.JSON(w, value)
 			}
 		},
+		FireTrigger: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewApplicationFireTrigger()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Application.FireTrigger", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.FireTrigger(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("Application.FireTrigger", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("Application.FireTrigger", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
 	}
 }
 
@@ -181,5 +203,6 @@ func (h Application) MountRoutes(r chi.Router, middlewares ...func(http.Handler)
 		r.Get("/application/{applicationID}", h.Read)
 		r.Delete("/application/{applicationID}", h.Delete)
 		r.Post("/application/{applicationID}/undelete", h.Undelete)
+		r.Post("/application/{applicationID}/trigger", h.FireTrigger)
 	})
 }

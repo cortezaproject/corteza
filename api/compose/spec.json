@@ -167,6 +167,30 @@
                         }
                     ]
                 }
+            },
+            {
+                "name": "fireTrigger",
+                "method": "POST",
+                "title": "Fire compose:namespace trigger",
+                "path": "/{namespaceID}/trigger",
+                "parameters": {
+                    "path": [
+                        {
+                            "type": "uint64",
+                            "name": "namespaceID",
+                            "required": true,
+                            "title": "ID"
+                        }
+                    ],
+                    "post": [
+                        {
+                            "name": "script",
+                            "type": "string",
+                            "title": "Script to execute",
+                            "required": true
+                        }
+                    ]
+                }
             }
         ]
     },
@@ -438,6 +462,30 @@
                         }
                     ]
                 }
+            },
+            {
+                "name": "fireTrigger",
+                "method": "POST",
+                "title": "Fire compose:page trigger",
+                "path": "/{pageID}/trigger",
+                "parameters": {
+                    "path": [
+                        {
+                            "type": "uint64",
+                            "name": "pageID",
+                            "required": true,
+                            "title": "Page ID"
+                        }
+                    ],
+                    "post": [
+                        {
+                            "name": "script",
+                            "type": "string",
+                            "title": "Script to execute",
+                            "required": true
+                        }
+                    ]
+                }
             }
         ]
     },
@@ -623,6 +671,30 @@
                             "name": "moduleID",
                             "required": true,
                             "title": "Module ID"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "fireTrigger",
+                "method": "POST",
+                "title": "Fire compose:module trigger",
+                "path": "/{moduleID}/trigger",
+                "parameters": {
+                    "path": [
+                        {
+                            "type": "uint64",
+                            "name": "moduleID",
+                            "required": true,
+                            "title": "ID"
+                        }
+                    ],
+                    "post": [
+                        {
+                            "name": "script",
+                            "type": "string",
+                            "title": "Script to execute",
+                            "required": true
                         }
                     ]
                 }
@@ -939,6 +1011,30 @@
                             "type": "*multipart.FileHeader",
                             "required": true,
                             "title": "File to upload"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "trigger",
+                "method": "POST",
+                "title": "Fire compose:record trigger",
+                "path": "/{recordID}/trigger",
+                "parameters": {
+                    "path": [
+                        {
+                            "type": "uint64",
+                            "name": "recordID",
+                            "required": true,
+                            "title": "ID"
+                        }
+                    ],
+                    "post": [
+                        {
+                            "name": "script",
+                            "type": "string",
+                            "title": "Script to execute",
+                            "required": true
                         }
                     ]
                 }
@@ -1508,6 +1604,57 @@
                 "method": "GET",
                 "title": "Current compose settings",
                 "path": "/current"
+            }
+        ]
+    },
+    {
+        "title": "Compose automation scripts",
+        "path": "/automation",
+        "entrypoint": "automation",
+        "apis": [
+            {
+                "name": "list",
+                "method": "GET",
+                "title": "List all available automation scripts for compose resources",
+                "path": "/",
+                "parameters": {
+                    "get": [
+                        {
+                            "name": "resourceTypes",
+                            "type": "[]string",
+                            "title": "Filter by resource type"
+                        },
+                        {
+                            "name": "eventTypes",
+                            "type": "[]string",
+                            "title": "Filter by event type"
+                        },
+                        {
+                            "name": "excludeClientScripts",
+                            "type": "bool",
+                            "title": "Do not include client scripts"
+                        },
+                        {
+                            "name": "excludeServerScripts",
+                            "type": "bool",
+                            "title": "Do not include server scripts"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "trigger",
+                "method": "POST",
+                "title": "Triggers execution of a specific script on a system service level",
+                "path": "/trigger",
+                "parameters": {
+                    "post": [{
+                        "name": "script",
+                        "type": "string",
+                        "title": "Script to execute",
+                        "required": true
+                    }]
+                }
             }
         ]
     }

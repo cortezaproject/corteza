@@ -17,7 +17,9 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
+	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/mime"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
@@ -41,6 +43,7 @@ type (
 		importSession service.ImportSessionService
 		record        service.RecordService
 		module        service.ModuleService
+		namespace     service.NamespaceService
 		attachment    service.AttachmentService
 		ac            recordAccessController
 	}
@@ -56,6 +59,7 @@ func (Record) New() *Record {
 		importSession: service.DefaultImportSession,
 		record:        service.DefaultRecord,
 		module:        service.DefaultModule,
+		namespace:     service.DefaultNamespace,
 		attachment:    service.DefaultAttachment,
 		ac:            service.DefaultAccessControl,
 	}
@@ -370,6 +374,28 @@ func (ctrl Record) Exec(ctx context.Context, r *request.RecordExec) (interface{}
 	}
 
 	return nil, nil
+}
+
+func (ctrl *Record) Trigger(ctx context.Context, r *request.RecordTrigger) (rsp interface{}, err error) {
+	var (
+		record    *types.Record
+		module    *types.Module
+		namespace *types.Namespace
+	)
+
+	if record, err = ctrl.record.With(ctx).FindByID(r.NamespaceID, r.RecordID); err != nil {
+		return
+	}
+
+	if module, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+		return
+	}
+
+	if namespace, err = ctrl.namespace.With(ctx).FindByID(r.NamespaceID); err != nil {
+		return
+	}
+
+	return resputil.OK(), corredor.Service().ExecOnManual(ctx, r.Script, event.RecordOnManual(record, nil, module, namespace))
 }
 
 func (ctrl Record) makePayload(ctx context.Context, m *types.Module, r *types.Record, err error) (*recordPayload, error) {

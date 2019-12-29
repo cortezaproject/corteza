@@ -308,6 +308,30 @@
           }
         ]
       }
+    },
+    {
+      "Name": "fireTrigger",
+      "Method": "POST",
+      "Title": "Fire system:role trigger",
+      "Path": "/{roleID}/trigger",
+      "Parameters": {
+        "path": [
+          {
+            "name": "roleID",
+            "required": true,
+            "title": "ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "script",
+            "required": true,
+            "title": "Script to execute",
+            "type": "string"
+          }
+        ]
+      }
     }
   ]
 }

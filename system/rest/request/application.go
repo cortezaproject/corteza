@@ -413,3 +413,59 @@ func (r *ApplicationUndelete) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewApplicationUndelete()
+
+// Application fireTrigger request parameters
+type ApplicationFireTrigger struct {
+	ApplicationID uint64 `json:",string"`
+	Script        string
+}
+
+func NewApplicationFireTrigger() *ApplicationFireTrigger {
+	return &ApplicationFireTrigger{}
+}
+
+func (r ApplicationFireTrigger) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["applicationID"] = r.ApplicationID
+	out["script"] = r.Script
+
+	return out
+}
+
+func (r *ApplicationFireTrigger) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	r.ApplicationID = parseUInt64(chi.URLParam(req, "applicationID"))
+	if val, ok := post["script"]; ok {
+		r.Script = val
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewApplicationFireTrigger()

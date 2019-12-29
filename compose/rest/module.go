@@ -7,7 +7,9 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
+	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
@@ -41,8 +43,9 @@ type (
 	}
 
 	Module struct {
-		module service.ModuleService
-		ac     moduleAccessController
+		module    service.ModuleService
+		namespace service.NamespaceService
+		ac        moduleAccessController
 	}
 
 	moduleAccessController interface {
@@ -64,8 +67,9 @@ type (
 
 func (Module) New() *Module {
 	return &Module{
-		module: service.DefaultModule,
-		ac:     service.DefaultAccessControl,
+		module:    service.DefaultModule,
+		namespace: service.DefaultNamespace,
+		ac:        service.DefaultAccessControl,
 	}
 }
 
@@ -130,6 +134,23 @@ func (ctrl *Module) Delete(ctx context.Context, r *request.ModuleDelete) (interf
 	}
 
 	return resputil.OK(), ctrl.module.With(ctx).DeleteByID(r.NamespaceID, r.ModuleID)
+}
+
+func (ctrl *Module) FireTrigger(ctx context.Context, r *request.ModuleFireTrigger) (rsp interface{}, err error) {
+	var (
+		module    *types.Module
+		namespace *types.Namespace
+	)
+
+	if module, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+		return
+	}
+
+	if namespace, err = ctrl.namespace.With(ctx).FindByID(r.NamespaceID); err != nil {
+		return
+	}
+
+	return resputil.OK(), corredor.Service().ExecOnManual(ctx, r.Script, event.ModuleOnManual(module, nil, namespace))
 }
 
 func (ctrl Module) makePayload(ctx context.Context, m *types.Module, err error) (*modulePayload, error) {

@@ -1,0 +1,57 @@
+{
+  "Title": "Compose automation scripts",
+  "Interface": "Automation",
+  "Struct": null,
+  "Parameters": null,
+  "Protocol": "",
+  "Authentication": null,
+  "Path": "/automation",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "List all available automation scripts for compose resources",
+      "Path": "/",
+      "Parameters": {
+        "get": [
+          {
+            "name": "resourceTypes",
+            "title": "Filter by resource type",
+            "type": "[]string"
+          },
+          {
+            "name": "eventTypes",
+            "title": "Filter by event type",
+            "type": "[]string"
+          },
+          {
+            "name": "excludeClientScripts",
+            "title": "Do not include client scripts",
+            "type": "bool"
+          },
+          {
+            "name": "excludeServerScripts",
+            "title": "Do not include server scripts",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "trigger",
+      "Method": "POST",
+      "Title": "Triggers execution of a specific script on a system service level",
+      "Path": "/trigger",
+      "Parameters": {
+        "post": [
+          {
+            "name": "script",
+            "required": true,
+            "title": "Script to execute",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}

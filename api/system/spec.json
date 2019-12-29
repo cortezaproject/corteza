@@ -716,6 +716,30 @@
             }
           ]
         }
+      },
+      {
+        "name": "fireTrigger",
+        "method": "POST",
+        "title": "Fire system:role trigger",
+        "path": "/{roleID}/trigger",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "roleID",
+              "required": true,
+              "title": "ID"
+            }
+          ],
+          "post": [
+            {
+              "name": "script",
+              "type": "string",
+              "title": "Script to execute",
+              "required": true
+            }
+          ]
+        }
       }
     ]
   },
@@ -1069,6 +1093,30 @@
             }
           ]
         }
+      },
+      {
+        "name": "fireTrigger",
+        "method": "POST",
+        "title": "Fire system:user trigger",
+        "path": "/{userID}/trigger",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "userID",
+              "required": true,
+              "title": "ID"
+            }
+          ],
+          "post": [
+            {
+              "name": "script",
+              "type": "string",
+              "title": "Script to execute",
+              "required": true
+            }
+          ]
+        }
       }
     ]
   },
@@ -1251,6 +1299,30 @@
               "name": "applicationID",
               "required": true,
               "title": "Application ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "fireTrigger",
+        "method": "POST",
+        "title": "Fire system:application trigger",
+        "path": "/{applicationID}/trigger",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "applicationID",
+              "required": true,
+              "title": "ID"
+            }
+          ],
+          "post": [
+            {
+              "name": "script",
+              "type": "string",
+              "title": "Script to execute",
+              "required": true
             }
           ]
         }
@@ -1607,6 +1679,57 @@
         "title": "List system statistics",
         "path": "/",
         "parameters": {}
+      }
+    ]
+  },
+  {
+    "title": "System automation scripts",
+    "path": "/automation",
+    "entrypoint": "automation",
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "title": "List all available automation scripts for system resources",
+        "path": "/",
+        "parameters": {
+          "get": [
+            {
+              "name": "resourceTypes",
+              "type": "[]string",
+              "title": "Filter by resource type"
+            },
+            {
+              "name": "eventTypes",
+              "type": "[]string",
+              "title": "Filter by event type"
+            },
+            {
+              "name": "excludeClientScripts",
+              "type": "bool",
+              "title": "Do not include client scripts"
+            },
+            {
+              "name": "excludeServerScripts",
+              "type": "bool",
+              "title": "Do not include server scripts"
+            }
+          ]
+        }
+      },
+      {
+        "name": "trigger",
+        "method": "POST",
+        "title": "Triggers execution of a specific script on a system service level",
+        "path": "/trigger",
+        "parameters": {
+          "post": [{
+            "name": "script",
+            "type": "string",
+            "title": "Script to execute",
+            "required": true
+          }]
+        }
       }
     ]
   }

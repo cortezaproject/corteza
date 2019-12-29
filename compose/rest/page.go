@@ -7,7 +7,9 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
+	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
@@ -30,6 +32,7 @@ type (
 
 	Page struct {
 		page       service.PageService
+		namespace  service.NamespaceService
 		attachment service.AttachmentService
 		ac         pageAccessController
 	}
@@ -45,6 +48,7 @@ type (
 func (Page) New() *Page {
 	return &Page{
 		page:       service.DefaultPage,
+		namespace:  service.DefaultNamespace,
 		attachment: service.DefaultAttachment,
 		ac:         service.DefaultAccessControl,
 	}
@@ -151,6 +155,22 @@ func (ctrl *Page) Upload(ctx context.Context, r *request.PageUpload) (interface{
 	)
 
 	return makeAttachmentPayload(ctx, a, err)
+}
+
+func (ctrl *Page) FireTrigger(ctx context.Context, r *request.PageFireTrigger) (rsp interface{}, err error) {
+	var (
+		page      *types.Page
+		namespace *types.Namespace
+	)
+
+	if page, err = ctrl.page.FindByID(r.NamespaceID, r.PageID); err != nil {
+		return
+	}
+	if namespace, err = ctrl.namespace.With(ctx).FindByID(r.NamespaceID); err != nil {
+		return
+	}
+
+	return resputil.OK(), corredor.Service().ExecOnManual(ctx, r.Script, event.PageOnManual(page, nil, namespace))
 }
 
 func (ctrl Page) makePayload(ctx context.Context, c *types.Page, err error) (*pagePayload, error) {

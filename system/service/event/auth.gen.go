@@ -25,13 +25,6 @@ type (
 		invoker  auth.Identifiable
 	}
 
-	// authOnManual
-	//
-	// This type is auto-generated.
-	authOnManual struct {
-		*authBase
-	}
-
 	// authBeforeLogin
 	//
 	// This type is auto-generated.
@@ -68,13 +61,6 @@ func (authBase) ResourceType() string {
 	return "system:auth"
 }
 
-// EventType on authOnManual returns "onManual"
-//
-// This function is auto-generated.
-func (authOnManual) EventType() string {
-	return "onManual"
-}
-
 // EventType on authBeforeLogin returns "beforeLogin"
 //
 // This function is auto-generated.
@@ -101,21 +87,6 @@ func (authAfterLogin) EventType() string {
 // This function is auto-generated.
 func (authAfterSignup) EventType() string {
 	return "afterSignup"
-}
-
-// AuthOnManual creates onManual for system:auth resource
-//
-// This function is auto-generated.
-func AuthOnManual(
-	argUser *types.User,
-	argProvider *types.AuthProvider,
-) *authOnManual {
-	return &authOnManual{
-		authBase: &authBase{
-			user:     argUser,
-			provider: argProvider,
-		},
-	}
 }
 
 // AuthBeforeLogin creates beforeLogin for system:auth resource

@@ -8,6 +8,7 @@
 | `GET` | `/application/{applicationID}` | Read application details |
 | `DELETE` | `/application/{applicationID}` | Remove application |
 | `POST` | `/application/{applicationID}/undelete` | Undelete application |
+| `POST` | `/application/{applicationID}/trigger` | Fire system:application trigger |
 
 ## List applications
 
@@ -104,6 +105,21 @@
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | applicationID | uint64 | PATH | Application ID | N/A | YES |
+
+## Fire system:application trigger
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/application/{applicationID}/trigger` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| applicationID | uint64 | PATH | ID | N/A | YES |
+| script | string | POST | Script to execute | N/A | YES |
 
 ---
 
@@ -293,6 +309,53 @@
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | oldPassword | string | POST | Old password | N/A | YES |
 | newPassword | string | POST | New password | N/A | YES |
+
+---
+
+
+
+
+# System automation scripts
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/automation/` | List all available automation scripts for system resources |
+| `POST` | `/automation/trigger` | Triggers execution of a specific script on a system service level |
+
+## List all available automation scripts for system resources
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/automation/` | HTTP/S | GET |
+Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
+ |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| resourceTypes | []string | GET | Filter by resource type | N/A | NO |
+| eventTypes | []string | GET | Filter by event type | N/A | NO |
+| excludeClientScripts | bool | GET | Do not include client scripts | N/A | NO |
+| excludeServerScripts | bool | GET | Do not include server scripts | N/A | NO |
+
+## Triggers execution of a specific script on a system service level
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/automation/trigger` | HTTP/S | POST |
+Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
+ |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| script | string | POST | Script to execute | N/A | YES |
 
 ---
 
@@ -638,6 +701,7 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | `GET` | `/roles/{roleID}/members` | Returns all role members |
 | `POST` | `/roles/{roleID}/member/{userID}` | Add member to a role |
 | `DELETE` | `/roles/{roleID}/member/{userID}` | Remove member from a role |
+| `POST` | `/roles/{roleID}/trigger` | Fire system:role trigger |
 
 ## List roles
 
@@ -835,6 +899,21 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | roleID | uint64 | PATH | Source Role ID | N/A | YES |
 | userID | uint64 | PATH | User ID | N/A | YES |
 
+## Fire system:role trigger
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/roles/{roleID}/trigger` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| roleID | uint64 | PATH | ID | N/A | YES |
+| script | string | POST | Script to execute | N/A | YES |
+
 ---
 
 
@@ -976,6 +1055,7 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.cru
 | `GET` | `/users/{userID}/membership` | Add member to a role |
 | `POST` | `/users/{userID}/membership/{roleID}` | Add role to a user |
 | `DELETE` | `/users/{userID}/membership/{roleID}` | Remove role from a user |
+| `POST` | `/users/{userID}/trigger` | Fire system:user trigger |
 
 ## Search users (Directory)
 
@@ -1167,5 +1247,20 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.cru
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | roleID | uint64 | PATH | Role ID | N/A | YES |
 | userID | uint64 | PATH | User ID | N/A | YES |
+
+## Fire system:user trigger
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/users/{userID}/trigger` | HTTP/S | POST | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| userID | uint64 | PATH | ID | N/A | YES |
+| script | string | POST | Script to execute | N/A | YES |
 
 ---

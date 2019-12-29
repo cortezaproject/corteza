@@ -6,10 +6,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -128,6 +130,18 @@ func (ctrl User) MembershipAdd(ctx context.Context, r *request.UserMembershipAdd
 
 func (ctrl User) MembershipRemove(ctx context.Context, r *request.UserMembershipRemove) (interface{}, error) {
 	return resputil.OK(), ctrl.role.With(ctx).MemberRemove(r.RoleID, r.UserID)
+}
+
+func (ctrl *User) FireTrigger(ctx context.Context, r *request.UserFireTrigger) (rsp interface{}, err error) {
+	var (
+		user *types.User
+	)
+
+	if user, err = ctrl.user.With(ctx).FindByID(r.UserID); err != nil {
+		return
+	}
+
+	return resputil.OK(), corredor.Service().ExecOnManual(ctx, r.Script, event.UserOnManual(user, nil))
 }
 
 func (ctrl User) makeFilterPayload(ctx context.Context, uu types.UserSet, f types.UserFilter, err error) (*userSetPayload, error) {

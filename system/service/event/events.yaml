@@ -8,13 +8,12 @@ system:sink:
       type: '*types.SinkRequest'
 
 system:mail:
-  on: ['receive', 'send']
+  on: ['manual', 'receive', 'send']
   props:
     - name: 'request'
       type: '*types.MailMessage'
 
 system:auth:
-  on: ['manual']
   ba: ['login', 'signup']
   props:
     - name: 'user'

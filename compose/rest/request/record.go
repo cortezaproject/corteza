@@ -794,3 +794,65 @@ func (r *RecordUpload) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewRecordUpload()
+
+// Record trigger request parameters
+type RecordTrigger struct {
+	RecordID    uint64 `json:",string"`
+	NamespaceID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
+	Script      string
+}
+
+func NewRecordTrigger() *RecordTrigger {
+	return &RecordTrigger{}
+}
+
+func (r RecordTrigger) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["recordID"] = r.RecordID
+	out["namespaceID"] = r.NamespaceID
+	out["moduleID"] = r.ModuleID
+	out["script"] = r.Script
+
+	return out
+}
+
+func (r *RecordTrigger) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	r.RecordID = parseUInt64(chi.URLParam(req, "recordID"))
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
+	if val, ok := post["script"]; ok {
+		r.Script = val
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewRecordTrigger()

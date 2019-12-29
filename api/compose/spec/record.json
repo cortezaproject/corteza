@@ -312,6 +312,30 @@
           }
         ]
       }
+    },
+    {
+      "Name": "trigger",
+      "Method": "POST",
+      "Title": "Fire compose:record trigger",
+      "Path": "/{recordID}/trigger",
+      "Parameters": {
+        "path": [
+          {
+            "name": "recordID",
+            "required": true,
+            "title": "ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "script",
+            "required": true,
+            "title": "Script to execute",
+            "type": "string"
+          }
+        ]
+      }
     }
   ]
 }
