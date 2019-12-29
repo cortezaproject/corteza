@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"go.uber.org/zap"
@@ -16,6 +17,9 @@ type (
 		events     []eventbus.Event
 		interval   time.Duration
 		dispatcher dispatcher
+
+		// Read & write locking
+		l *sync.RWMutex
 
 		// Simple chan to control if service is running or not
 		ticker *time.Ticker
@@ -61,6 +65,7 @@ func NewService(log *zap.Logger, d dispatcher, interval time.Duration) *service 
 	}
 
 	var svc = &service{
+		l:          &sync.RWMutex{},
 		log:        log.Named("scheduler"),
 		interval:   interval,
 		dispatcher: d,
@@ -72,74 +77,102 @@ func NewService(log *zap.Logger, d dispatcher, interval time.Duration) *service 
 
 // Register all events that should fire on tick (interval)
 func (svc *service) OnTick(events ...eventbus.Event) {
+	svc.l.Lock()
+	defer svc.l.Unlock()
 	svc.events = append(svc.events, events...)
 }
 
 func (svc *service) Stop() {
+
 	if svc.ticker == nil {
 		svc.log.Debug("already stopped")
 	} else {
 		svc.log.Debug("stopping")
 		svc.ticker.Stop()
+		svc.l.Lock()
 		svc.ticker = nil
+		defer svc.l.Unlock()
 	}
 }
 
 // Run starts event scheduler service
 func (svc *service) Start(ctx context.Context) {
+
 	if svc.ticker != nil {
 		svc.log.Debug("already started")
 		return
 	}
 
+	svc.l.Lock()
 	svc.ticker = &time.Ticker{}
+	svc.l.Unlock()
 
 	go func() {
 		defer sentry.Recover()
 
-		nextTick := now().Truncate(svc.interval).Add(svc.interval)
+		// Calculate how much time we need to wait until next tick
+		delay := now().Truncate(svc.interval).Add(svc.interval).Sub(now())
 
 		svc.log.Debug(
 			"starting",
-			zap.Time("delay", nextTick),
+			zap.Duration("delay", delay),
 			zap.Duration("interval", svc.interval),
 		)
 
 		// Wait until start of the next interval
-		time.Sleep(nextTick.Sub(now()))
+		time.Sleep(delay)
+		svc.l.Lock()
+		svc.ticker = time.NewTicker(svc.interval)
+		svc.l.Unlock()
 		svc.log.Debug("started")
 
-		// start with first interval
-		svc.dispatch(ctx)
-		svc.ticker = time.NewTicker(svc.interval)
-
-	loop:
-		for {
-			select {
-			case <-svc.ticker.C:
-				svc.dispatch(ctx)
-
-			case <-ctx.Done():
-				svc.log.Debug("done")
-				break loop
-			}
-		}
-
-		defer svc.log.Debug("stopped")
-		svc.ticker.Stop()
-		svc.ticker = nil
+		go svc.watch(ctx)
 	}()
 }
 
+func (svc service) watch(ctx context.Context) {
+	defer sentry.Recover()
+	defer func() {
+		defer svc.log.Debug("stopped")
+		svc.ticker.Stop()
+		svc.l.Lock()
+		svc.ticker = nil
+		svc.l.Unlock()
+	}()
+
+	// start with first interval
+	svc.dispatch(ctx)
+
+	for {
+		select {
+		case <-svc.ticker.C:
+			svc.dispatch(ctx)
+
+		case <-ctx.Done():
+			svc.log.Debug("done")
+			return
+		}
+	}
+}
+
 func (svc service) Started() (started bool) {
+	svc.l.RLock()
+	defer svc.l.RUnlock()
+
 	return svc.ticker != nil
 }
 
 func (svc service) dispatch(ctx context.Context) {
-	for _, ev := range svc.events {
-		go func(ev eventbus.Event) {
-			sentry.Recover()
-			svc.dispatcher.Dispatch(ctx, ev)
-		}(ev)
+	svc.l.RLock()
+
+	ee := make([]eventbus.Event, len(svc.events))
+	for e := range svc.events {
+		ee[e] = svc.events[e]
+	}
+
+	defer svc.l.RUnlock()
+
+	for _, ev := range ee {
+		go svc.dispatcher.Dispatch(ctx, ev)
 	}
 }
