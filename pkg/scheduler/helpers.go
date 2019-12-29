@@ -8,11 +8,19 @@ import (
 )
 
 // OnInterval parses all given strings as crontab expressions (ii) and returns true if any of them matches current time
-func OnInterval(ee ...string) bool {
+func OnInterval(ii ...string) bool {
+	match, err := onInterval(now(), ii...)
+	if err != nil {
+		sentry.CaptureException(err)
+	}
+	return match
+}
+
+func onInterval(now time.Time, ii ...string) (bool, error) {
 	var (
 		// This function will likely to be called exactly on a minute (00 sec) or a few milliseconds after
 		// Round it up to the smallest unit that cronexpr package supports
-		currTime = now().Truncate(time.Second)
+		currTime = now.Truncate(time.Second)
 
 		// For cron expression reference we need to subtract 1ns
 		// this will cause Next() fn to include next nanosecond (if it matches)
@@ -20,41 +28,42 @@ func OnInterval(ee ...string) bool {
 	)
 
 	// At least one of the given expressions should match
-	for _, e := range ee {
-		exp, err := cronexpr.Parse(e)
+	for _, i := range ii {
+		exp, err := cronexpr.Parse(i)
 		if err != nil {
-			sentry.CaptureException(err)
-			return false
+			return false, err
 		}
 
-		if currTime.Equal(exp.Next(cronRef)) {
-			return true
-		}
+		return currTime.Equal(exp.Next(cronRef)), nil
 	}
 
-	return false
+	return false, nil
 }
 
 // OnTimestamp parses all given strings as RFC3339 timestamps and returns true if any of them matches current time
 func OnTimestamp(tt ...string) bool {
+	match, err := onTimestamp(now(), tt...)
+	if err != nil {
+		sentry.CaptureException(err)
+	}
+	return match
+}
+
+func onTimestamp(now time.Time, tt ...string) (bool, error) {
 	var (
 		// This function will likely to be called exactly on a minute (00 sec) or a few milliseconds after
 		// Round it up to the smallest unit that cronexpr package supports
-		currTime = now().Truncate(time.Second)
+		currTime = now.Truncate(time.Second)
 	)
 
 	for _, t := range tt {
 		ts, err := time.Parse(time.RFC3339, t)
-
 		if err != nil {
-			sentry.CaptureException(err)
-			return false
+			return false, err
 		}
 
-		if currTime.Equal(ts.Round(time.Second)) {
-			return true
-		}
+		return currTime.Equal(ts.Round(time.Second)), nil
 	}
 
-	return false
+	return false, nil
 }

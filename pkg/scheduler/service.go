@@ -18,7 +18,7 @@ type (
 		dispatcher dispatcher
 
 		// Simple chan to control if service is running or not
-		active chan bool
+		ticker *time.Ticker
 	}
 
 	dispatcher interface {
@@ -28,6 +28,9 @@ type (
 
 const (
 	defaultInterval = time.Minute
+
+	// There should not be more than 2 per each service (<no of services> * 2 [interval + timestamp])
+	maxEvents = 16
 )
 
 var (
@@ -40,8 +43,8 @@ var (
 // Setup configures global scheduling service
 func Setup(log *zap.Logger, d dispatcher, interval time.Duration) {
 	if gScheduler != nil {
-		// shut it down
-		gScheduler.active <- false
+		// shut down current global scheduler
+		gScheduler.Stop()
 	}
 
 	gScheduler = NewService(log, d, interval)
@@ -61,6 +64,7 @@ func NewService(log *zap.Logger, d dispatcher, interval time.Duration) *service 
 		log:        log.Named("scheduler"),
 		interval:   interval,
 		dispatcher: d,
+		events:     make([]eventbus.Event, 0, maxEvents),
 	}
 
 	return svc
@@ -71,19 +75,31 @@ func (svc *service) OnTick(events ...eventbus.Event) {
 	svc.events = append(svc.events, events...)
 }
 
+func (svc *service) Stop() {
+	if svc.ticker == nil {
+		svc.log.Debug("already stopped")
+	} else {
+		svc.log.Debug("stopping")
+		svc.ticker.Stop()
+		svc.ticker = nil
+	}
+}
+
 // Run starts event scheduler service
-func (svc service) Start(ctx context.Context) {
-	if svc.active != nil {
+func (svc *service) Start(ctx context.Context) {
+	if svc.ticker != nil {
+		svc.log.Debug("already started")
 		return
 	}
 
-	svc.active = make(chan bool, 1)
+	svc.ticker = &time.Ticker{}
+
 	go func() {
 		defer sentry.Recover()
 
 		nextTick := now().Truncate(svc.interval).Add(svc.interval)
 
-		svc.log.Info(
+		svc.log.Debug(
 			"starting",
 			zap.Time("delay", nextTick),
 			zap.Duration("interval", svc.interval),
@@ -91,28 +107,32 @@ func (svc service) Start(ctx context.Context) {
 
 		// Wait until start of the next interval
 		time.Sleep(nextTick.Sub(now()))
-		svc.log.Info("started")
+		svc.log.Debug("started")
 
 		// start with first interval
 		svc.dispatch(ctx)
-		ticker := time.NewTicker(svc.interval)
-		defer ticker.Stop()
-		defer svc.log.Info("stopped")
+		svc.ticker = time.NewTicker(svc.interval)
 
+	loop:
 		for {
 			select {
-			case <-svc.active:
-				svc.log.Info("unactivated")
-				return
-			case <-ctx.Done():
-				svc.log.Info("done")
-				return
-			case <-ticker.C:
+			case <-svc.ticker.C:
 				svc.dispatch(ctx)
+
+			case <-ctx.Done():
+				svc.log.Debug("done")
+				break loop
 			}
 		}
 
+		defer svc.log.Debug("stopped")
+		svc.ticker.Stop()
+		svc.ticker = nil
 	}()
+}
+
+func (svc service) Started() (started bool) {
+	return svc.ticker != nil
 }
 
 func (svc service) dispatch(ctx context.Context) {
