@@ -73,16 +73,16 @@ const onManualEventType = "onManual"
 
 var (
 	// Global corredor service
-	gService *service
+	gCorredor *service
 )
 
 func Service() *service {
-	return gService
+	return gCorredor
 }
 
 // Start connects to Corredor & initialize service
 func Start(ctx context.Context, logger *zap.Logger, opt options.CorredorOpt) (err error) {
-	if gService != nil {
+	if gCorredor != nil {
 		// Prevent multiple initializations
 		return
 	}
@@ -95,7 +95,7 @@ func Start(ctx context.Context, logger *zap.Logger, opt options.CorredorOpt) (er
 		return
 	}
 
-	gService = NewService(conn, logger, opt)
+	gCorredor = NewService(conn, logger, opt)
 	return
 }
 
@@ -106,7 +106,7 @@ func NewService(conn *grpc.ClientConn, logger *zap.Logger, opt options.CorredorO
 		log:        logger.Named("corredor"),
 		registered: make(map[string][]uintptr),
 		manual:     make(map[string]map[string]bool),
-		eventbus:   eventbus.Default(),
+		eventbus:   eventbus.Service(),
 		opt:        opt,
 	}
 }

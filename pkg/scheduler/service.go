@@ -33,25 +33,22 @@ const (
 var (
 	now = func() time.Time { return time.Now() }
 
-	gService *service
+	// Global scheduler
+	gScheduler *service
 )
 
 // Setup configures global scheduling service
 func Setup(log *zap.Logger, d dispatcher, interval time.Duration) {
-	if gService != nil {
+	if gScheduler != nil {
 		// shut it down
-		gService.active <- false
+		gScheduler.active <- false
 	}
 
-	gService = NewService(log, d, interval)
+	gScheduler = NewService(log, d, interval)
 }
 
-func OnTick(events ...eventbus.Event) {
-	gService.OnTick(events...)
-}
-
-func Run(ctx context.Context) {
-	gService.Run(ctx)
+func Service() *service {
+	return gScheduler
 }
 
 func NewService(log *zap.Logger, d dispatcher, interval time.Duration) *service {
@@ -75,7 +72,7 @@ func (svc *service) OnTick(events ...eventbus.Event) {
 }
 
 // Run starts event scheduler service
-func (svc service) Run(ctx context.Context) {
+func (svc service) Start(ctx context.Context) {
 	if svc.active != nil {
 		return
 	}

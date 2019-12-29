@@ -53,7 +53,7 @@ func (app *App) Setup(log *zap.Logger, opts *app.Options) (err error) {
 
 	monitor.Setup(app.log, opts.Monitor)
 
-	scheduler.Setup(log, eventbus.Default(), 0)
+	scheduler.Setup(log, eventbus.Service(), 0)
 
 	return
 }
@@ -79,8 +79,8 @@ func (app *App) Activate(ctx context.Context) (err error) {
 		return err
 	}
 
-	// Run scheduler
-	scheduler.Run(ctx)
+	// Start scheduler
+	scheduler.Service().Start(ctx)
 
 	// Load corredor scripts
 	corredor.Service().Load(ctx)

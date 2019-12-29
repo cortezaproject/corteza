@@ -13,13 +13,15 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/app"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/scheduler"
 	"github.com/cortezaproject/corteza-server/system/auth/external"
 	"github.com/cortezaproject/corteza-server/system/commands"
 	migrate "github.com/cortezaproject/corteza-server/system/db"
-	grpc2 "github.com/cortezaproject/corteza-server/system/grpc"
+	systemGRPC "github.com/cortezaproject/corteza-server/system/grpc"
 	"github.com/cortezaproject/corteza-server/system/proto"
 	"github.com/cortezaproject/corteza-server/system/rest"
 	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza-server/system/service/event"
 )
 
 type (
@@ -34,6 +36,12 @@ const SERVICE = "system"
 func (app *App) Setup(log *zap.Logger, opts *app.Options) (err error) {
 	app.Log = log.Named(SERVICE)
 	app.Opts = opts
+
+	scheduler.Service().OnTick(
+		event.SystemOnInterval(),
+		event.SystemOnTimestamp(),
+	)
+
 	return
 }
 
@@ -115,14 +123,14 @@ func (app *App) MountApiRoutes(r chi.Router) {
 }
 
 func (app *App) RegisterGrpcServices(server *grpc.Server) {
-	proto.RegisterUsersServer(server, grpc2.NewUserService(
+	proto.RegisterUsersServer(server, systemGRPC.NewUserService(
 		service.DefaultUser,
 		service.DefaultAuth,
 		auth.DefaultJwtHandler,
 		service.DefaultAccessControl,
 	))
 
-	proto.RegisterRolesServer(server, grpc2.NewRoleService(
+	proto.RegisterRolesServer(server, systemGRPC.NewRoleService(
 		service.DefaultRole,
 	))
 }
