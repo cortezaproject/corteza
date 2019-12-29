@@ -49,6 +49,7 @@ require (
 	github.com/steinfletcher/apitest-jsonpath v1.3.0
 	github.com/stretchr/testify v1.4.0
 	github.com/titpetric/factory v0.0.0-20190806200833-ae4b02b9e034
+	go.uber.org/atomic v1.5.0
 	go.uber.org/zap v1.13.0
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 	google.golang.org/grpc v1.22.1

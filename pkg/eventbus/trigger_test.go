@@ -1,33 +1,44 @@
 package eventbus
 
 import (
+	"context"
+	"fmt"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 )
 
 type (
-	MockEvent struct {
+	mockEvent struct {
 		rType string
 		eType string
 		match func(name string, op string, values ...string) bool
+
+		identity auth.Identifiable
 	}
 )
 
-func (e MockEvent) ResourceType() string {
+func (e mockEvent) ResourceType() string {
 	return e.rType
 }
 
-func (e MockEvent) EventType() string {
+func (e mockEvent) EventType() string {
 	return e.eType
 }
 
-func (e MockEvent) Match(name string, op string, values ...string) bool {
+func (e mockEvent) Match(name string, op string, values ...string) bool {
 	if e.match == nil {
 		return true
 	}
 
 	return e.match(name, op, values...)
+}
+
+func (e *mockEvent) SetInvoker(identity auth.Identifiable) {
+	e.identity = identity
 }
 
 func TestTrigger_Match(t *testing.T) {
@@ -44,22 +55,22 @@ func TestTrigger_Match(t *testing.T) {
 		},
 		{"empty resource",
 			[]TriggerRegOp{For("foo"), On("bar")},
-			&MockEvent{rType: "", eType: "bar"},
+			&mockEvent{rType: "", eType: "bar"},
 			false,
 		},
 		{"empty event",
 			[]TriggerRegOp{For("foo"), On("bar")},
-			&MockEvent{rType: "foo", eType: ""},
+			&mockEvent{rType: "foo", eType: ""},
 			false,
 		},
 		{"simple foo-bar test",
 			[]TriggerRegOp{For("foo"), On("bar")},
-			&MockEvent{rType: "foo", eType: "bar"},
+			&mockEvent{rType: "foo", eType: "bar"},
 			true,
 		},
 		{"constraint match",
 			[]TriggerRegOp{For("foo"), On("bar"), Constraint("baz", "", "baz")},
-			&MockEvent{
+			&mockEvent{
 				rType: "foo",
 				eType: "bar",
 				match: func(name string, op string, values ...string) bool {
@@ -69,7 +80,7 @@ func TestTrigger_Match(t *testing.T) {
 		},
 		{"constraint mismatch",
 			[]TriggerRegOp{For("foo"), On("bar"), Constraint("baz", "", "baz")},
-			&MockEvent{
+			&mockEvent{
 				rType: "foo",
 				eType: "bar",
 				match: func(name string, op string, values ...string) bool {
@@ -137,4 +148,51 @@ func TestTrigger_RegOps(t *testing.T) {
 			assert.Equal(t, c.exp, NewTrigger(nil, c.ops...))
 		})
 	}
+}
+
+func TestTriggerHandler(t *testing.T) {
+	var (
+		a             = assert.New(t)
+		ctx           = context.Background()
+		ev            = &mockEvent{}
+		passedthrough bool
+
+		trSimple = &trigger{
+			handler: func(ctx context.Context, ev Event) error {
+				passedthrough = true
+				a.True(auth.IsSuperUser(ev.(*mockEvent).identity))
+				return nil
+			},
+		}
+	)
+
+	a.False(passedthrough)
+	a.False(auth.IsSuperUser(ev.identity))
+
+	trSimple.Handle(auth.SetSuperUserContext(ctx), ev)
+
+	a.True(auth.IsSuperUser(ev.identity))
+	a.True(passedthrough, "expecting to pass through simple handler")
+}
+
+func TestTriggerSorting(t *testing.T) {
+	var (
+		a  = assert.New(t)
+		tt = TriggerSet{
+			NewTrigger(nil, Weight(3)),
+			NewTrigger(nil, Weight(1)),
+			NewTrigger(nil, Weight(2)),
+		}
+
+		w2s = func(tt TriggerSet) (out string) {
+			for _, t := range tt {
+				out += fmt.Sprintf("%d,", t.weight)
+			}
+			return
+		}
+	)
+
+	a.Equal(w2s(tt), "3,1,2,")
+	sort.Sort(tt)
+	a.Equal(w2s(tt), "1,2,3,")
 }
