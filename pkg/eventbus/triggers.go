@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/sentry"
 )
 
 type (
@@ -64,6 +65,8 @@ func (t trigger) Match(re Event) bool {
 }
 
 func (t trigger) Handle(ctx context.Context, ev Event) error {
+	defer sentry.Recover()
+
 	if eis, ok := ev.(eventInvokerSettable); ok {
 		eis.SetInvoker(auth.GetIdentityFromContext(ctx))
 	}

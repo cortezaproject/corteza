@@ -21,6 +21,10 @@ type (
 	}
 
 	eventbus struct {
+		wg *sync.WaitGroup
+
+		// Read & write locking
+		// prevent event handling during trigger (un)registration
 		l *sync.RWMutex
 
 		// list of registered handlers
@@ -37,13 +41,14 @@ func init() {
 	gEventBus = New()
 }
 
-// Returns
+// Service returns global event bus service
 func Service() *eventbus {
 	return gEventBus
 }
 
 func New() *eventbus {
 	return &eventbus{
+		wg:       &sync.WaitGroup{},
 		l:        &sync.RWMutex{},
 		triggers: make(map[uintptr]*trigger),
 	}
@@ -56,8 +61,15 @@ func (b *eventbus) WaitFor(ctx context.Context, ev Event) (err error) {
 	b.l.RLock()
 	defer b.l.RUnlock()
 	for _, t := range b.find(ev) {
-		if err = t.Handle(ctx, ev); err != nil {
-			return err
+		err = func(ctx context.Context, t *trigger) error {
+			b.wg.Add(1)
+			defer b.wg.Done()
+			return t.Handle(ctx, ev)
+
+		}(ctx, t)
+
+		if err != nil {
+			return
 		}
 	}
 
@@ -69,23 +81,33 @@ func (b *eventbus) Dispatch(ctx context.Context, ev Event) {
 	b.l.RLock()
 	defer b.l.RUnlock()
 	for _, t := range b.find(ev) {
+		b.wg.Add(1)
 		go func(ctx context.Context, t *trigger) {
+			defer b.wg.Done()
 			_ = t.Handle(ctx, ev)
 		}(ctx, t)
 	}
 }
 
+// Waits for all dispatched events
+//
+// Should only be used for testing
+func (b *eventbus) wait() {
+	b.wg.Wait()
+}
+
 // Finds all registered triggers compatible with given event
 //
-// It returns sorted
+// It returns sorted triggers
 //
 // There is still room for improvement (performance wise) by indexing
 // resources and events of each trigger.
 func (b *eventbus) find(ev Event) (tt TriggerSet) {
+	if ev == nil {
+		return
+	}
+
 	for _, t := range b.triggers {
-		if ev == nil {
-			continue
-		}
 
 		if !t.Match(ev) {
 			continue
