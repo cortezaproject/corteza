@@ -21,6 +21,7 @@ var (
 func MakeDebugLogger() *zap.Logger {
 	conf := zap.NewDevelopmentConfig()
 	conf.Level = DefaultLevel
+	conf.Level.SetLevel(zap.DebugLevel)
 
 	// Print log level in colors
 	conf.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
@@ -49,10 +50,6 @@ func Init() {
 		// with a bit more dev-friendly output
 		debuggingLogger = options.EnvBool("", "LOG_DEBUG", false)
 	)
-
-	if debuggingLogger {
-		logLevel = zapcore.DebugLevel
-	}
 
 	if ll, has := os.LookupEnv("LOG_LEVEL"); has {
 		_ = logLevel.Set(ll)
