@@ -182,6 +182,30 @@
           }
         ]
       }
+    },
+    {
+      "Name": "fireTrigger",
+      "Method": "POST",
+      "Title": "Fire system:application trigger",
+      "Path": "/{applicationID}/trigger",
+      "Parameters": {
+        "path": [
+          {
+            "name": "applicationID",
+            "required": true,
+            "title": "ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "script",
+            "required": true,
+            "title": "Script to execute",
+            "type": "string"
+          }
+        ]
+      }
     }
   ]
 }

@@ -41,6 +41,7 @@ type RecordAPI interface {
 	Update(context.Context, *request.RecordUpdate) (interface{}, error)
 	Delete(context.Context, *request.RecordDelete) (interface{}, error)
 	Upload(context.Context, *request.RecordUpload) (interface{}, error)
+	Trigger(context.Context, *request.RecordTrigger) (interface{}, error)
 }
 
 // HTTP API interface
@@ -57,6 +58,7 @@ type Record struct {
 	Update         func(http.ResponseWriter, *http.Request)
 	Delete         func(http.ResponseWriter, *http.Request)
 	Upload         func(http.ResponseWriter, *http.Request)
+	Trigger        func(http.ResponseWriter, *http.Request)
 }
 
 func NewRecord(h RecordAPI) *Record {
@@ -301,6 +303,26 @@ func NewRecord(h RecordAPI) *Record {
 				resputil.JSON(w, value)
 			}
 		},
+		Trigger: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRecordTrigger()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Record.Trigger", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.Trigger(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("Record.Trigger", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("Record.Trigger", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
 	}
 }
 
@@ -319,5 +341,6 @@ func (h Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Update)
 		r.Delete("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Delete)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/attachment", h.Upload)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/trigger", h.Trigger)
 	})
 }

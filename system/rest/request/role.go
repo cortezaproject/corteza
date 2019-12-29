@@ -764,3 +764,59 @@ func (r *RoleMemberRemove) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewRoleMemberRemove()
+
+// Role fireTrigger request parameters
+type RoleFireTrigger struct {
+	RoleID uint64 `json:",string"`
+	Script string
+}
+
+func NewRoleFireTrigger() *RoleFireTrigger {
+	return &RoleFireTrigger{}
+}
+
+func (r RoleFireTrigger) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["roleID"] = r.RoleID
+	out["script"] = r.Script
+
+	return out
+}
+
+func (r *RoleFireTrigger) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
+	if val, ok := post["script"]; ok {
+		r.Script = val
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewRoleFireTrigger()

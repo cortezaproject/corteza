@@ -41,6 +41,7 @@ type UserAPI interface {
 	MembershipList(context.Context, *request.UserMembershipList) (interface{}, error)
 	MembershipAdd(context.Context, *request.UserMembershipAdd) (interface{}, error)
 	MembershipRemove(context.Context, *request.UserMembershipRemove) (interface{}, error)
+	FireTrigger(context.Context, *request.UserFireTrigger) (interface{}, error)
 }
 
 // HTTP API interface
@@ -57,6 +58,7 @@ type User struct {
 	MembershipList   func(http.ResponseWriter, *http.Request)
 	MembershipAdd    func(http.ResponseWriter, *http.Request)
 	MembershipRemove func(http.ResponseWriter, *http.Request)
+	FireTrigger      func(http.ResponseWriter, *http.Request)
 }
 
 func NewUser(h UserAPI) *User {
@@ -301,6 +303,26 @@ func NewUser(h UserAPI) *User {
 				resputil.JSON(w, value)
 			}
 		},
+		FireTrigger: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewUserFireTrigger()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("User.FireTrigger", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.FireTrigger(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("User.FireTrigger", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("User.FireTrigger", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
 	}
 }
 
@@ -319,5 +341,6 @@ func (h User) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.H
 		r.Get("/users/{userID}/membership", h.MembershipList)
 		r.Post("/users/{userID}/membership/{roleID}", h.MembershipAdd)
 		r.Delete("/users/{userID}/membership/{roleID}", h.MembershipRemove)
+		r.Post("/users/{userID}/trigger", h.FireTrigger)
 	})
 }

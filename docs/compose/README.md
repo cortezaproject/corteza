@@ -111,6 +111,53 @@
 
 
 
+# Compose automation scripts
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/automation/` | List all available automation scripts for compose resources |
+| `POST` | `/automation/trigger` | Triggers execution of a specific script on a system service level |
+
+## List all available automation scripts for compose resources
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/automation/` | HTTP/S | GET |
+Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
+ |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| resourceTypes | []string | GET | Filter by resource type | N/A | NO |
+| eventTypes | []string | GET | Filter by event type | N/A | NO |
+| excludeClientScripts | bool | GET | Do not include client scripts | N/A | NO |
+| excludeServerScripts | bool | GET | Do not include server scripts | N/A | NO |
+
+## Triggers execution of a specific script on a system service level
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/automation/trigger` | HTTP/S | POST |
+Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
+ |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| script | string | POST | Script to execute | N/A | YES |
+
+---
+
+
+
+
 # Charts
 
 | Method | Endpoint | Purpose |
@@ -222,6 +269,7 @@ Compose module definitions
 | `GET` | `/namespace/{namespaceID}/module/{moduleID}` | Read module |
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}` | Update module |
 | `DELETE` | `/namespace/{namespaceID}/module/{moduleID}` | Delete module |
+| `POST` | `/namespace/{namespaceID}/module/{moduleID}/trigger` | Fire compose:module trigger |
 
 ## List modules
 
@@ -311,6 +359,22 @@ Compose module definitions
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
+## Fire compose:module trigger
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/module/{moduleID}/trigger` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| moduleID | uint64 | PATH | ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| script | string | POST | Script to execute | N/A | YES |
+
 ---
 
 
@@ -325,6 +389,7 @@ Compose module definitions
 | `GET` | `/namespace/{namespaceID}` | Read namespace |
 | `POST` | `/namespace/{namespaceID}` | Update namespace |
 | `DELETE` | `/namespace/{namespaceID}` | Delete namespace |
+| `POST` | `/namespace/{namespaceID}/trigger` | Fire compose:namespace trigger |
 
 ## List namespaces
 
@@ -408,6 +473,21 @@ Compose module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | namespaceID | uint64 | PATH | ID | N/A | YES |
 
+## Fire compose:namespace trigger
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/trigger` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| namespaceID | uint64 | PATH | ID | N/A | YES |
+| script | string | POST | Script to execute | N/A | YES |
+
 ---
 
 
@@ -459,6 +539,7 @@ Compose pages
 | `POST` | `/namespace/{namespaceID}/page/{selfID}/reorder` | Reorder pages |
 | `Delete` | `/namespace/{namespaceID}/page/{pageID}` | Delete page |
 | `POST` | `/namespace/{namespaceID}/page/{pageID}/attachment` | Uploads attachment to page |
+| `POST` | `/namespace/{namespaceID}/page/{pageID}/trigger` | Fire compose:page trigger |
 
 ## List available pages
 
@@ -599,6 +680,22 @@ Compose pages
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | upload | *multipart.FileHeader | POST | File to upload | N/A | YES |
 
+## Fire compose:page trigger
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/page/{pageID}/trigger` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| pageID | uint64 | PATH | Page ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| script | string | POST | Script to execute | N/A | YES |
+
 ---
 
 
@@ -707,6 +804,7 @@ Compose records
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Update records in module section |
 | `DELETE` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Delete record row from module section |
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/attachment` | Uploads attachment and validates it against record field requirements |
+| `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/trigger` | Fire compose:record trigger |
 
 ## Generates report from module records
 
@@ -913,6 +1011,23 @@ Compose records
 | upload | *multipart.FileHeader | POST | File to upload | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
+
+## Fire compose:record trigger
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/trigger` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| recordID | uint64 | PATH | ID | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
+| script | string | POST | Script to execute | N/A | YES |
 
 ---
 

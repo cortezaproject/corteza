@@ -5,9 +5,11 @@ import (
 
 	"github.com/titpetric/factory/resputil"
 
+	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
 
 	"github.com/pkg/errors"
@@ -116,6 +118,18 @@ func (ctrl *Application) Delete(ctx context.Context, r *request.ApplicationDelet
 
 func (ctrl *Application) Undelete(ctx context.Context, r *request.ApplicationUndelete) (interface{}, error) {
 	return resputil.OK(), ctrl.application.With(ctx).Undelete(r.ApplicationID)
+}
+
+func (ctrl *Application) FireTrigger(ctx context.Context, r *request.ApplicationFireTrigger) (rsp interface{}, err error) {
+	var (
+		application *types.Application
+	)
+
+	if application, err = ctrl.application.With(ctx).FindByID(r.ApplicationID); err != nil {
+		return
+	}
+
+	return resputil.OK(), corredor.Service().ExecOnManual(ctx, r.Script, event.ApplicationOnManual(application, nil))
 }
 
 func (ctrl Application) makePayload(ctx context.Context, m *types.Application, err error) (*applicationPayload, error) {

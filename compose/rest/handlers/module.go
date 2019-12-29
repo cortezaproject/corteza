@@ -34,15 +34,17 @@ type ModuleAPI interface {
 	Read(context.Context, *request.ModuleRead) (interface{}, error)
 	Update(context.Context, *request.ModuleUpdate) (interface{}, error)
 	Delete(context.Context, *request.ModuleDelete) (interface{}, error)
+	FireTrigger(context.Context, *request.ModuleFireTrigger) (interface{}, error)
 }
 
 // HTTP API interface
 type Module struct {
-	List   func(http.ResponseWriter, *http.Request)
-	Create func(http.ResponseWriter, *http.Request)
-	Read   func(http.ResponseWriter, *http.Request)
-	Update func(http.ResponseWriter, *http.Request)
-	Delete func(http.ResponseWriter, *http.Request)
+	List        func(http.ResponseWriter, *http.Request)
+	Create      func(http.ResponseWriter, *http.Request)
+	Read        func(http.ResponseWriter, *http.Request)
+	Update      func(http.ResponseWriter, *http.Request)
+	Delete      func(http.ResponseWriter, *http.Request)
+	FireTrigger func(http.ResponseWriter, *http.Request)
 }
 
 func NewModule(h ModuleAPI) *Module {
@@ -147,6 +149,26 @@ func NewModule(h ModuleAPI) *Module {
 				resputil.JSON(w, value)
 			}
 		},
+		FireTrigger: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewModuleFireTrigger()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Module.FireTrigger", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.FireTrigger(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("Module.FireTrigger", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("Module.FireTrigger", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
 	}
 }
 
@@ -158,5 +180,6 @@ func (h Module) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Get("/namespace/{namespaceID}/module/{moduleID}", h.Read)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}", h.Update)
 		r.Delete("/namespace/{namespaceID}/module/{moduleID}", h.Delete)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}/trigger", h.FireTrigger)
 	})
 }

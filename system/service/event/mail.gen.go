@@ -24,6 +24,13 @@ type (
 		invoker auth.Identifiable
 	}
 
+	// mailOnManual
+	//
+	// This type is auto-generated.
+	mailOnManual struct {
+		*mailBase
+	}
+
 	// mailOnReceive
 	//
 	// This type is auto-generated.
@@ -46,6 +53,13 @@ func (mailBase) ResourceType() string {
 	return "system:mail"
 }
 
+// EventType on mailOnManual returns "onManual"
+//
+// This function is auto-generated.
+func (mailOnManual) EventType() string {
+	return "onManual"
+}
+
 // EventType on mailOnReceive returns "onReceive"
 //
 // This function is auto-generated.
@@ -58,6 +72,19 @@ func (mailOnReceive) EventType() string {
 // This function is auto-generated.
 func (mailOnSend) EventType() string {
 	return "onSend"
+}
+
+// MailOnManual creates onManual for system:mail resource
+//
+// This function is auto-generated.
+func MailOnManual(
+	argRequest *types.MailMessage,
+) *mailOnManual {
+	return &mailOnManual{
+		mailBase: &mailBase{
+			request: argRequest,
+		},
+	}
 }
 
 // MailOnReceive creates onReceive for system:mail resource

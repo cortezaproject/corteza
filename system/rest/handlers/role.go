@@ -42,6 +42,7 @@ type RoleAPI interface {
 	MemberList(context.Context, *request.RoleMemberList) (interface{}, error)
 	MemberAdd(context.Context, *request.RoleMemberAdd) (interface{}, error)
 	MemberRemove(context.Context, *request.RoleMemberRemove) (interface{}, error)
+	FireTrigger(context.Context, *request.RoleFireTrigger) (interface{}, error)
 }
 
 // HTTP API interface
@@ -59,6 +60,7 @@ type Role struct {
 	MemberList   func(http.ResponseWriter, *http.Request)
 	MemberAdd    func(http.ResponseWriter, *http.Request)
 	MemberRemove func(http.ResponseWriter, *http.Request)
+	FireTrigger  func(http.ResponseWriter, *http.Request)
 }
 
 func NewRole(h RoleAPI) *Role {
@@ -323,6 +325,26 @@ func NewRole(h RoleAPI) *Role {
 				resputil.JSON(w, value)
 			}
 		},
+		FireTrigger: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRoleFireTrigger()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Role.FireTrigger", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.FireTrigger(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("Role.FireTrigger", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("Role.FireTrigger", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
 	}
 }
 
@@ -342,5 +364,6 @@ func (h Role) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.H
 		r.Get("/roles/{roleID}/members", h.MemberList)
 		r.Post("/roles/{roleID}/member/{userID}", h.MemberAdd)
 		r.Delete("/roles/{roleID}/member/{userID}", h.MemberRemove)
+		r.Post("/roles/{roleID}/trigger", h.FireTrigger)
 	})
 }

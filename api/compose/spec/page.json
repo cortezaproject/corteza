@@ -267,6 +267,30 @@
           }
         ]
       }
+    },
+    {
+      "Name": "fireTrigger",
+      "Method": "POST",
+      "Title": "Fire compose:page trigger",
+      "Path": "/{pageID}/trigger",
+      "Parameters": {
+        "path": [
+          {
+            "name": "pageID",
+            "required": true,
+            "title": "Page ID",
+            "type": "uint64"
+          }
+        ],
+        "post": [
+          {
+            "name": "script",
+            "required": true,
+            "title": "Script to execute",
+            "type": "string"
+          }
+        ]
+      }
     }
   ]
 }

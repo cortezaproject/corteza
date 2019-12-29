@@ -764,3 +764,59 @@ func (r *UserMembershipRemove) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewUserMembershipRemove()
+
+// User fireTrigger request parameters
+type UserFireTrigger struct {
+	UserID uint64 `json:",string"`
+	Script string
+}
+
+func NewUserFireTrigger() *UserFireTrigger {
+	return &UserFireTrigger{}
+}
+
+func (r UserFireTrigger) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["userID"] = r.UserID
+	out["script"] = r.Script
+
+	return out
+}
+
+func (r *UserFireTrigger) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
+	if val, ok := post["script"]; ok {
+		r.Script = val
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewUserFireTrigger()

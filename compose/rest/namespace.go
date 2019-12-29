@@ -7,7 +7,9 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
+	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
@@ -120,6 +122,18 @@ func (ctrl Namespace) Delete(ctx context.Context, r *request.NamespaceDelete) (i
 	}
 
 	return resputil.OK(), ctrl.namespace.With(ctx).DeleteByID(r.NamespaceID)
+}
+
+func (ctrl *Namespace) FireTrigger(ctx context.Context, r *request.NamespaceFireTrigger) (rsp interface{}, err error) {
+	var (
+		namespace *types.Namespace
+	)
+
+	if namespace, err = ctrl.namespace.With(ctx).FindByID(r.NamespaceID); err != nil {
+		return
+	}
+
+	return resputil.OK(), corredor.Service().ExecOnManual(ctx, r.Script, event.NamespaceOnManual(namespace, nil))
 }
 
 func (ctrl Namespace) makePayload(ctx context.Context, ns *types.Namespace, err error) (*namespacePayload, error) {
