@@ -43,5 +43,5 @@ func NewSuperUserIdentity() *Identity {
 }
 
 func IsSuperUser(i Identifiable) bool {
-	return superUserID == i.Identity()
+	return i != nil && superUserID == i.Identity()
 }

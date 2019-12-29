@@ -40,7 +40,10 @@ func SetSuperUserContext(ctx context.Context) context.Context {
 	su := NewSuperUserIdentity()
 
 	ctx = SetIdentityToContext(ctx, su)
-	ctx = SetJwtToContext(ctx, DefaultJwtHandler.Encode(su))
+
+	if DefaultJwtHandler != nil {
+		ctx = SetJwtToContext(ctx, DefaultJwtHandler.Encode(su))
+	}
 
 	return ctx
 }
