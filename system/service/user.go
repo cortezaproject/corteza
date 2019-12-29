@@ -42,7 +42,9 @@ type (
 		auth         userAuth
 		subscription userSubscriptionChecker
 
-		ac          userAccessController
+		ac       userAccessController
+		eventbus eventDispatcher
+
 		user        repository.UserRepository
 		credentials repository.CredentialsRepository
 
@@ -103,7 +105,21 @@ type (
 
 func User(ctx context.Context) UserService {
 	return (&user{
-		logger: DefaultLogger.Named("user"),
+		logger:   DefaultLogger.Named("user"),
+		eventbus: eventbus.Service(),
+		ac:       DefaultAccessControl,
+		settings: CurrentSettings,
+		auth:     DefaultAuth,
+
+		subscription: CurrentSubscription,
+
+		// @todo wire this with settings (privacy.mask.email)
+		//       new default value will be true!
+		privacyMaskEmail: false,
+
+		// @todo wire this with settings (privacy.mask.name)
+		//       new default value will be true!
+		privacyMaskName: false,
 	}).With(ctx)
 }
 
@@ -120,22 +136,17 @@ func (svc user) With(ctx context.Context) UserService {
 		db:     db,
 		logger: svc.logger,
 
-		ac:       DefaultAccessControl,
-		settings: CurrentSettings,
-		auth:     DefaultAuth,
-
-		subscription: CurrentSubscription,
+		ac:           svc.ac,
+		eventbus:     svc.eventbus,
+		settings:     svc.settings,
+		auth:         svc.auth,
+		subscription: svc.subscription,
 
 		user:        repository.User(ctx, db),
 		credentials: repository.Credentials(ctx, db),
 
-		// @todo wire this with settings (privacy.mask.email)
-		//       new default value will be true!
-		privacyMaskEmail: false,
-
-		// @todo wire this with settings (privacy.mask.name)
-		//       new default value will be true!
-		privacyMaskName: false,
+		privacyMaskEmail: svc.privacyMaskEmail,
+		privacyMaskName:  svc.privacyMaskName,
 	}
 }
 
@@ -239,7 +250,7 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 		}
 	}
 
-	if err = eventbus.WaitFor(svc.ctx, event.UserBeforeCreate(new, u)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.UserBeforeCreate(new, u)); err != nil {
 		return
 	}
 
@@ -253,7 +264,7 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 			return
 		}
 
-		defer eventbus.Dispatch(svc.ctx, event.UserAfterCreate(new, u))
+		defer svc.eventbus.Dispatch(svc.ctx, event.UserAfterCreate(new, u))
 		return
 	})
 }
@@ -285,7 +296,7 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 	u.Handle = upd.Handle
 	u.Kind = upd.Kind
 
-	if err = eventbus.WaitFor(svc.ctx, event.UserBeforeUpdate(upd, u)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.UserBeforeUpdate(upd, u)); err != nil {
 		return
 	}
 
@@ -298,7 +309,7 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 			return
 		}
 
-		defer eventbus.Dispatch(svc.ctx, event.UserAfterUpdate(upd, u))
+		defer svc.eventbus.Dispatch(svc.ctx, event.UserAfterUpdate(upd, u))
 		return
 	})
 }
@@ -347,7 +358,7 @@ func (svc user) Delete(ID uint64) (err error) {
 		return ErrNoPermissions.withStack()
 	}
 
-	if err = eventbus.WaitFor(svc.ctx, event.UserBeforeUpdate(nil, del)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.UserBeforeUpdate(nil, del)); err != nil {
 		return
 	}
 
@@ -355,7 +366,7 @@ func (svc user) Delete(ID uint64) (err error) {
 		return
 	}
 
-	defer eventbus.Dispatch(svc.ctx, event.UserAfterDelete(nil, del))
+	defer svc.eventbus.Dispatch(svc.ctx, event.UserAfterDelete(nil, del))
 	return
 }
 

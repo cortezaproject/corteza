@@ -37,26 +37,6 @@ func init() {
 	gEventBus = New()
 }
 
-// WaitFor is a package level wrapper for global instance of eventbus
-func WaitFor(ctx context.Context, ev Event) (err error) {
-	return gEventBus.WaitFor(ctx, ev)
-}
-
-// Dispatch is a package level wrapper for global instance of eventbus
-func Dispatch(ctx context.Context, ev Event) {
-	gEventBus.Dispatch(ctx, ev)
-}
-
-// Register is a package level wrapper for global instance of eventbus
-func Register(handler Handler, ops ...TriggerRegOp) uintptr {
-	return gEventBus.Register(handler, ops...)
-}
-
-// Unregister is a package level wrapper for global instance of eventbus
-func Unregister(ptrs ...uintptr) {
-	gEventBus.Unregister(ptrs...)
-}
-
 // Returns
 func Default() *eventbus {
 	return gEventBus

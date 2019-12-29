@@ -18,7 +18,8 @@ type (
 		db  *factory.DB
 		ctx context.Context
 
-		ac applicationAccessController
+		ac       applicationAccessController
+		eventbus eventDispatcher
 
 		application repository.ApplicationRepository
 	}
@@ -48,7 +49,8 @@ type (
 
 func Application(ctx context.Context) ApplicationService {
 	return (&application{
-		ac: DefaultAccessControl,
+		ac:       DefaultAccessControl,
+		eventbus: eventbus.Service(),
 	}).With(ctx)
 
 }
@@ -56,9 +58,12 @@ func Application(ctx context.Context) ApplicationService {
 func (svc *application) With(ctx context.Context) ApplicationService {
 	db := repository.DB(ctx)
 	return &application{
-		db:          db,
-		ctx:         ctx,
-		ac:          svc.ac,
+		db:  db,
+		ctx: ctx,
+
+		ac:       svc.ac,
+		eventbus: svc.eventbus,
+
 		application: repository.Application(ctx, db),
 	}
 }
@@ -101,7 +106,7 @@ func (svc *application) Create(new *types.Application) (app *types.Application, 
 		return nil, ErrNoPermissions.withStack()
 	}
 
-	if err = eventbus.WaitFor(svc.ctx, event.ApplicationBeforeCreate(new, nil)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.ApplicationBeforeCreate(new, nil)); err != nil {
 		return
 	}
 
@@ -109,7 +114,7 @@ func (svc *application) Create(new *types.Application) (app *types.Application, 
 		return
 	}
 
-	defer eventbus.Dispatch(svc.ctx, event.ApplicationAfterCreate(new, nil))
+	defer svc.eventbus.Dispatch(svc.ctx, event.ApplicationAfterCreate(new, nil))
 	return
 
 }
@@ -124,7 +129,7 @@ func (svc *application) Update(upd *types.Application) (app *types.Application, 
 			return
 		}
 
-		if err = eventbus.WaitFor(svc.ctx, event.ApplicationBeforeUpdate(upd, app)); err != nil {
+		if err = svc.eventbus.WaitFor(svc.ctx, event.ApplicationBeforeUpdate(upd, app)); err != nil {
 			return
 		}
 
@@ -137,7 +142,7 @@ func (svc *application) Update(upd *types.Application) (app *types.Application, 
 			return err
 		}
 
-		defer eventbus.Dispatch(svc.ctx, event.ApplicationAfterUpdate(upd, app))
+		defer svc.eventbus.Dispatch(svc.ctx, event.ApplicationAfterUpdate(upd, app))
 		return nil
 	})
 }
@@ -154,7 +159,7 @@ func (svc *application) Delete(ID uint64) (err error) {
 	if !svc.ac.CanDeleteApplication(svc.ctx, app) {
 		return ErrNoPermissions.withStack()
 	}
-	if err = eventbus.WaitFor(svc.ctx, event.ApplicationBeforeDelete(nil, app)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.ApplicationBeforeDelete(nil, app)); err != nil {
 		return
 	}
 
@@ -162,7 +167,7 @@ func (svc *application) Delete(ID uint64) (err error) {
 		return
 	}
 
-	defer eventbus.Dispatch(svc.ctx, event.ApplicationAfterDelete(nil, app))
+	defer svc.eventbus.Dispatch(svc.ctx, event.ApplicationAfterDelete(nil, app))
 	return
 }
 

@@ -22,7 +22,8 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		ac namespaceAccessController
+		ac       namespaceAccessController
+		eventbus eventDispatcher
 
 		namespaceRepo repository.NamespaceRepository
 	}
@@ -53,8 +54,9 @@ type (
 
 func Namespace() NamespaceService {
 	return (&namespace{
-		logger: DefaultLogger.Named("namespace"),
-		ac:     DefaultAccessControl,
+		logger:   DefaultLogger.Named("namespace"),
+		ac:       DefaultAccessControl,
+		eventbus: eventbus.Service(),
 	}).With(context.Background())
 }
 
@@ -65,7 +67,8 @@ func (svc namespace) With(ctx context.Context) NamespaceService {
 		ctx:    ctx,
 		logger: svc.logger,
 
-		ac: svc.ac,
+		ac:       svc.ac,
+		eventbus: svc.eventbus,
 
 		namespaceRepo: repository.Namespace(ctx, db),
 	}
@@ -119,7 +122,7 @@ func (svc namespace) Create(new *types.Namespace) (ns *types.Namespace, err erro
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
-	if err = eventbus.WaitFor(svc.ctx, event.NamespaceBeforeCreate(new, nil)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.NamespaceBeforeCreate(new, nil)); err != nil {
 		return
 	}
 
@@ -131,7 +134,7 @@ func (svc namespace) Create(new *types.Namespace) (ns *types.Namespace, err erro
 		return nil, err
 	}
 
-	defer eventbus.Dispatch(svc.ctx, event.NamespaceAfterCreate(ns, nil))
+	defer svc.eventbus.Dispatch(svc.ctx, event.NamespaceAfterCreate(ns, nil))
 	return
 }
 
@@ -156,7 +159,7 @@ func (svc namespace) Update(upd *types.Namespace) (ns *types.Namespace, err erro
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
-	if err = eventbus.WaitFor(svc.ctx, event.NamespaceBeforeUpdate(upd, ns)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.NamespaceBeforeUpdate(upd, ns)); err != nil {
 		return
 	}
 
@@ -174,7 +177,7 @@ func (svc namespace) Update(upd *types.Namespace) (ns *types.Namespace, err erro
 		return nil, err
 	}
 
-	defer eventbus.Dispatch(svc.ctx, event.NamespaceAfterUpdate(upd, ns))
+	defer svc.eventbus.Dispatch(svc.ctx, event.NamespaceAfterUpdate(upd, ns))
 	return
 }
 
@@ -193,7 +196,7 @@ func (svc namespace) DeleteByID(namespaceID uint64) (err error) {
 		return ErrNoDeletePermissions.withStack()
 	}
 
-	if err = eventbus.WaitFor(svc.ctx, event.NamespaceBeforeDelete(nil, del)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.NamespaceBeforeDelete(nil, del)); err != nil {
 		return
 	}
 
@@ -201,7 +204,7 @@ func (svc namespace) DeleteByID(namespaceID uint64) (err error) {
 		return
 	}
 
-	defer eventbus.Dispatch(svc.ctx, event.NamespaceAfterDelete(nil, del))
+	defer svc.eventbus.Dispatch(svc.ctx, event.NamespaceAfterDelete(nil, del))
 	return
 }
 

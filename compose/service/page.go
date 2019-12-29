@@ -22,7 +22,8 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		ac pageAccessController
+		ac       pageAccessController
+		eventbus eventDispatcher
 
 		pageRepo   repository.PageRepository
 		moduleRepo repository.ModuleRepository
@@ -59,8 +60,9 @@ type (
 
 func Page() PageService {
 	return (&page{
-		logger: DefaultLogger.Named("page"),
-		ac:     DefaultAccessControl,
+		logger:   DefaultLogger.Named("page"),
+		ac:       DefaultAccessControl,
+		eventbus: eventbus.Service(),
 	}).With(context.Background())
 }
 
@@ -71,7 +73,8 @@ func (svc page) With(ctx context.Context) PageService {
 		ctx:    ctx,
 		logger: svc.logger,
 
-		ac: svc.ac,
+		ac:       svc.ac,
+		eventbus: svc.eventbus,
 
 		pageRepo:   repository.Page(ctx, db),
 		moduleRepo: repository.Module(ctx, db),
@@ -221,7 +224,7 @@ func (svc page) Create(new *types.Page) (p *types.Page, err error) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
-	if err = eventbus.WaitFor(svc.ctx, event.PageBeforeCreate(new, nil, ns)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.PageBeforeCreate(new, nil, ns)); err != nil {
 		return
 	}
 
@@ -233,7 +236,7 @@ func (svc page) Create(new *types.Page) (p *types.Page, err error) {
 		return
 	}
 
-	defer eventbus.Dispatch(svc.ctx, event.PageAfterCreate(new, nil, ns))
+	defer svc.eventbus.Dispatch(svc.ctx, event.PageAfterCreate(new, nil, ns))
 	return
 }
 
@@ -266,7 +269,7 @@ func (svc page) Update(upd *types.Page) (p *types.Page, err error) {
 		return nil, ErrNoUpdatePermissions.withStack()
 	}
 
-	if err = eventbus.WaitFor(svc.ctx, event.PageBeforeUpdate(upd, p, ns)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.PageBeforeUpdate(upd, p, ns)); err != nil {
 		return
 	}
 
@@ -287,7 +290,7 @@ func (svc page) Update(upd *types.Page) (p *types.Page, err error) {
 		return
 	}
 
-	defer eventbus.Dispatch(svc.ctx, event.PageAfterUpdate(upd, p, ns))
+	defer svc.eventbus.Dispatch(svc.ctx, event.PageAfterUpdate(upd, p, ns))
 	return
 }
 
@@ -327,7 +330,7 @@ func (svc page) DeleteByID(namespaceID, pageID uint64) (err error) {
 		return ErrNoDeletePermissions.withStack()
 	}
 
-	if err = eventbus.WaitFor(svc.ctx, event.PageBeforeDelete(nil, del, ns)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.PageBeforeDelete(nil, del, ns)); err != nil {
 		return
 	}
 
@@ -335,7 +338,7 @@ func (svc page) DeleteByID(namespaceID, pageID uint64) (err error) {
 		return
 	}
 
-	defer eventbus.Dispatch(svc.ctx, event.PageAfterDelete(nil, del, ns))
+	defer svc.eventbus.Dispatch(svc.ctx, event.PageAfterDelete(nil, del, ns))
 	return
 }
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/repository"
@@ -33,6 +34,11 @@ type (
 		Validate(string, bool) error
 		CanCreateUser(uint) error
 		CanRegister(uint) error
+	}
+
+	eventDispatcher interface {
+		WaitFor(ctx context.Context, ev eventbus.Event) (err error)
+		Dispatch(ctx context.Context, ev eventbus.Event)
 	}
 )
 

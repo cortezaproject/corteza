@@ -32,7 +32,8 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
-		ac recordAccessController
+		ac       recordAccessController
+		eventbus eventDispatcher
 
 		recordRepo repository.RecordRepository
 		moduleRepo repository.ModuleRepository
@@ -103,8 +104,9 @@ type (
 
 func Record() RecordService {
 	return (&record{
-		logger: DefaultLogger.Named("record"),
-		ac:     DefaultAccessControl,
+		logger:   DefaultLogger.Named("record"),
+		ac:       DefaultAccessControl,
+		eventbus: eventbus.Service(),
 	}).With(context.Background())
 }
 
@@ -116,7 +118,8 @@ func (svc record) With(ctx context.Context) RecordService {
 		ctx:    ctx,
 		logger: svc.logger,
 
-		ac: svc.ac,
+		ac:       svc.ac,
+		eventbus: svc.eventbus,
 
 		recordRepo: repository.Record(ctx, db),
 		moduleRepo: repository.Module(ctx, db),
@@ -300,7 +303,7 @@ func (svc record) Create(new *types.Record) (r *types.Record, err error) {
 		CreatedAt: time.Now(),
 	}
 
-	if err = eventbus.WaitFor(svc.ctx, event.RecordBeforeCreate(new, nil, m, ns)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeCreate(new, nil, m, ns)); err != nil {
 		return
 	}
 
@@ -327,7 +330,7 @@ func (svc record) Create(new *types.Record) (r *types.Record, err error) {
 			return
 		}
 
-		defer eventbus.Dispatch(svc.ctx, event.RecordAfterCreate(r, nil, m, ns))
+		defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterCreate(r, nil, m, ns))
 		return
 	})
 }
@@ -351,7 +354,7 @@ func (svc record) Update(upd *types.Record) (r *types.Record, err error) {
 		return nil, ErrStaleData.withStack()
 	}
 
-	if err = eventbus.WaitFor(svc.ctx, event.RecordBeforeUpdate(upd, r, m, ns)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeUpdate(upd, r, m, ns)); err != nil {
 		return
 	}
 
@@ -376,7 +379,7 @@ func (svc record) Update(upd *types.Record) (r *types.Record, err error) {
 			return
 		}
 
-		defer eventbus.Dispatch(svc.ctx, event.RecordAfterUpdate(upd, r, m, ns))
+		defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterUpdate(upd, r, m, ns))
 		return
 	})
 }
@@ -407,7 +410,7 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 	}
 
 	// Calling before-record-delete scripts
-	if err = eventbus.WaitFor(svc.ctx, event.RecordBeforeDelete(nil, del, m, ns)); err != nil {
+	if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeDelete(nil, del, m, ns)); err != nil {
 		return
 	}
 
@@ -424,7 +427,7 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 			return
 		}
 
-		defer eventbus.Dispatch(svc.ctx, event.RecordAfterDelete(nil, del, m, ns))
+		defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterDelete(nil, del, m, ns))
 
 		return
 	})
