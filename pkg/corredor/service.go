@@ -8,7 +8,9 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 
 	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -391,8 +393,20 @@ func (svc service) exec(ctx context.Context, script string, event Event) (err er
 	)
 
 	if err != nil {
+		s := status.Convert(err)
+		if s != nil && s.Code() == codes.Aborted {
+			// Special care for errors with Aborted code
+			msg := s.Message()
+
+			if len(msg) == 0 {
+				msg = "Aborted"
+			}
+
+			return errors.New(msg)
+		}
+
 		log.Debug("corredor responded with error", zap.Error(err))
-		return
+		return errors.New("failed to execute corredor script")
 	}
 
 	log.Debug("corredor responded", zap.Any("result", rsp.Result))
