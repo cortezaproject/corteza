@@ -13,10 +13,12 @@ import (
 	migrate "github.com/cortezaproject/corteza-server/messaging/db"
 	"github.com/cortezaproject/corteza-server/messaging/rest"
 	"github.com/cortezaproject/corteza-server/messaging/service"
+	"github.com/cortezaproject/corteza-server/messaging/service/event"
 	"github.com/cortezaproject/corteza-server/messaging/websocket"
 	"github.com/cortezaproject/corteza-server/pkg/app"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/scheduler"
 )
 
 type (
@@ -33,6 +35,11 @@ const SERVICE = "messaging"
 func (app *App) Setup(log *zap.Logger, opts *app.Options) (err error) {
 	app.Log = log.Named(SERVICE)
 	app.Opts = opts
+
+	scheduler.Service().OnTick(
+		event.MessagingOnInterval(),
+		event.MessagingOnTimestamp(),
+	)
 
 	app.ws = websocket.New(&websocket.Config{
 		Timeout:     opts.Websocket.Timeout,

@@ -34,7 +34,7 @@ func (app *App) Setup(log *zap.Logger, opts *app.Options) (err error) {
 	app.Log = log.Named(SERVICE)
 	app.Opts = opts
 
-	scheduler.OnTick(
+	scheduler.Service().OnTick(
 		event.ComposeOnInterval(),
 		event.ComposeOnTimestamp(),
 	)

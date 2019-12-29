@@ -38,7 +38,7 @@ func init() {
 }
 
 // Returns
-func Default() *eventbus {
+func Service() *eventbus {
 	return gEventBus
 }
 
