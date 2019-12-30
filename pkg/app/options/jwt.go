@@ -7,20 +7,24 @@ import (
 )
 
 type (
-	JWTOpt struct {
+	AuthOpt struct {
 		Secret string        `env:"AUTH_JWT_SECRET"`
 		Expiry time.Duration `env:"AUTH_JWT_EXPIRY"`
 	}
 )
 
-func JWT(pfix string) (o *JWTOpt) {
-	o = &JWTOpt{
+func Auth() (o *AuthOpt) {
+	o = &AuthOpt{
 		Expiry: time.Hour * 24 * 30,
 	}
 
-	fill(o, pfix)
+	fill(o, "")
 
 	// Setting JWT secret to random string to prevent security accidents...
+	//
+	// @todo check if this is a monolith system
+	//       on microservice setup we can not afford to autogenerate secret:
+	//       each subsystem will get it's own
 	if o.Secret == "" {
 		o.Secret = string(rand.Bytes(32))
 	}

@@ -7,7 +7,7 @@ import (
 type (
 	Options struct {
 		SMTP       options.SMTPOpt
-		JWT        options.JWTOpt
+		Auth       options.AuthOpt
 		HTTPClient options.HTTPClientOpt
 		DB         options.DBOpt
 		Upgrade    options.UpgradeOpt
@@ -30,8 +30,8 @@ func NewOptions(prefix ...string) *Options {
 	}
 
 	return &Options{
+		Auth:       *options.Auth(),
 		SMTP:       *options.SMTP(p),
-		JWT:        *options.JWT(p),
 		HTTPClient: *options.HttpClient(p),
 		DB:         *options.DB(p),
 		Upgrade:    *options.Upgrade(p),

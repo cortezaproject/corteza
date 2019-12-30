@@ -28,8 +28,8 @@ func NewIntegrationTestApp(service string, parts ...app.Runnable) app.Runnable {
 	opt.Upgrade.Always = true
 
 	// Create a new JWT secret (to prevent any security weirdness)
-	opt.JWT.Secret = string(rand.Bytes(32))
-	opt.JWT.Expiry = time.Minute
+	opt.Auth.Secret = string(rand.Bytes(32))
+	opt.Auth.Expiry = time.Minute
 
 	logger.DefaultLevel.SetLevel(zap.DebugLevel)
 	log := logger.MakeDebugLogger()

@@ -29,8 +29,7 @@ type (
 	}
 
 	Config struct {
-		Storage  options.StorageOpt
-		Corredor options.CorredorOpt
+		Storage options.StorageOpt
 	}
 )
 
