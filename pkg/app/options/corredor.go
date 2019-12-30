@@ -17,12 +17,16 @@ type (
 		MaxBackoffDelay time.Duration `env:"CORREDOR_MAX_BACKOFF_DELAY"`
 
 		DefaultExecTimeout time.Duration `env:"CORREDOR_DEFAULT_EXEC_TIMEOUT"`
+
+		// Allow scripts to have runner explicitly defined
+		RunAsEnabled bool `env:"CORREDOR_RUN_AS_ENABLED"`
 	}
 )
 
 func Corredor(pfix string) (o *CorredorOpt) {
 	o = &CorredorOpt{
 		Enabled:            true,
+		RunAsEnabled:       true,
 		Addr:               "corredor:80",
 		MaxBackoffDelay:    time.Minute,
 		DefaultExecTimeout: time.Minute,

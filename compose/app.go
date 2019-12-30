@@ -56,8 +56,7 @@ func (app *App) Upgrade(ctx context.Context) (err error) {
 func (app *App) Initialize(ctx context.Context) (err error) {
 	// Connects to all services it needs to
 	err = service.Initialize(ctx, app.Log, service.Config{
-		Storage:  app.Opts.Storage,
-		Corredor: app.Opts.Corredor,
+		Storage: app.Opts.Storage,
 	})
 
 	if err != nil {

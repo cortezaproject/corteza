@@ -43,7 +43,7 @@ func (app *App) Setup(log *zap.Logger, opts *app.Options) (err error) {
 	// that might occur inside auth, mail setup...
 	defer sentry.Recover()
 
-	auth.SetupDefault(opts.JWT.Secret, int(opts.JWT.Expiry/time.Minute))
+	auth.SetupDefault(opts.Auth.Secret, int(opts.Auth.Expiry/time.Minute))
 	mail.SetupDialer(opts.SMTP.Host, opts.SMTP.Port, opts.SMTP.User, opts.SMTP.Pass, opts.SMTP.From)
 
 	http.SetupDefaults(
