@@ -47,6 +47,9 @@ func (app *App) Setup(log *zap.Logger, opts *app.Options) (err error) {
 		PingPeriod:  opts.Websocket.PingPeriod,
 	})
 
+	// @todo Wire in cross-service JWT maker for Corredor
+	corredor.Service().SetUserFinder(nil)
+
 	return
 }
 
@@ -80,9 +83,6 @@ func (app *App) Activate(ctx context.Context) (err error) {
 
 	service.Watchers(ctx)
 	websocket.Watch(ctx)
-
-	// Wire in cross service JWT maker for Corredor
-	corredor.Service().SetJwtMaker(corredor.CrossServiceAuthTokenMaker())
 
 	return
 }

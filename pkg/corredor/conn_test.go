@@ -58,8 +58,7 @@ func TestNewConnection(t *testing.T) {
 	grpcClientConn, err := NewConnection(ctx, opt, dbgLog)
 	a.NoError(err)
 
-	// Go and
-	NewService(grpcClientConn, nil, dbgLog, opt)
+	// NewService(dbgLog, opt)
 
 	grpcClientConn.WaitForStateChange(ctx, connectivity.Ready)
 	grpcServer.GracefulStop()

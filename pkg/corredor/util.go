@@ -1,11 +1,9 @@
 package corredor
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
 )
@@ -29,19 +27,19 @@ func popOnManualEventType(trigger *Trigger) (found bool) {
 // pluckManualTriggers removes all manual triggers from the list of script's triggers
 //
 // and returns a hash map with resources from these manual triggers
-func pluckManualTriggers(script *ServerScript) map[string]bool {
+func pluckManualTriggers(script *ServerScript) map[string]string {
 	var (
-		hash = make(map[string]bool)
+		hash = make(map[string]string)
 	)
 
 	for i := range script.Triggers {
 		// We're modifying trigger in the loop,
 		// so let's make a copy we can play with
-		trigger := *script.Triggers[i]
+		trigger := script.Triggers[i]
 
-		if popOnManualEventType(&trigger) {
+		if popOnManualEventType(trigger) {
 			for _, res := range trigger.Resources {
-				hash[res] = true
+				hash[res] = trigger.RunAs
 			}
 		}
 	}
@@ -70,28 +68,6 @@ func makeTriggerOpts(t *Trigger) (oo []eventbus.TriggerRegOp, err error) {
 	}
 
 	return
-}
-
-// makes event-handler callback
-func makeEventHandler(svc *service, script string, runAs string) eventbus.Handler {
-	return func(ctx context.Context, ev eventbus.Event) error {
-		// Is this compatible event?
-
-		if ce, ok := ev.(Event); ok {
-			if len(runAs) > 0 {
-				jwt, err := svc.jwtMaker(runAs)
-				if err != nil {
-					return err
-				}
-
-				ctx = auth.SetJwtToContext(ctx, jwt)
-			}
-
-			return svc.exec(ctx, script, ce)
-		}
-
-		return nil
-	}
 }
 
 // encode adds entry (with json encoded value) to hash map

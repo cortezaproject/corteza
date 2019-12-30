@@ -46,6 +46,7 @@ type (
 		eventbus eventDispatcher
 
 		user        repository.UserRepository
+		role        repository.RoleRepository
 		credentials repository.CredentialsRepository
 
 		// @todo wire this with settings (privacy.mask.email)
@@ -85,7 +86,7 @@ type (
 		FindByEmail(email string) (*types.User, error)
 		FindByHandle(handle string) (*types.User, error)
 		FindByID(id uint64) (*types.User, error)
-		FindByAny(any string) (*types.User, error)
+		FindByAny(identifier interface{}) (*types.User, error)
 		Find(types.UserFilter) (types.UserSet, types.UserFilter, error)
 
 		Create(input *types.User) (*types.User, error)
@@ -143,6 +144,7 @@ func (svc user) With(ctx context.Context) UserService {
 		subscription: svc.subscription,
 
 		user:        repository.User(ctx, db),
+		role:        repository.Role(ctx, db),
 		credentials: repository.Credentials(ctx, db),
 
 		privacyMaskEmail: svc.privacyMaskEmail,
@@ -170,18 +172,37 @@ func (svc user) FindByHandle(handle string) (*types.User, error) {
 	return svc.proc(svc.user.FindByHandle(handle))
 }
 
-func (svc user) FindByAny(any string) (*types.User, error) {
-	return svc.proc(func() (*types.User, error) {
-		if id, _ := strconv.ParseUint(any, 10, 64); id > 0 {
-			return svc.user.FindByID(id)
-		}
+// FindByAny finds user by given identifier (context, id, handle, email)
+func (svc user) FindByAny(identifier interface{}) (u *types.User, err error) {
+	if ctx, ok := identifier.(context.Context); ok {
+		identifier = internalAuth.GetIdentityFromContext(ctx).Identity()
+	}
 
-		if strings.Contains(any, "@") {
-			return svc.user.FindByEmail(any)
+	if ID, ok := identifier.(uint64); ok {
+		u, err = svc.FindByID(ID)
+	} else if strIdentifier, ok := identifier.(string); ok {
+		if ID, _ := strconv.ParseUint(strIdentifier, 10, 64); ID > 0 {
+			u, err = svc.FindByID(ID)
+		} else if strings.Contains(strIdentifier, "@") {
+			u, err = svc.FindByEmail(strIdentifier)
+		} else {
+			u, err = svc.FindByHandle(strIdentifier)
 		}
+	} else {
+		err = ErrInvalidID
+	}
 
-		return svc.user.FindByHandle(any)
-	}())
+	if err != nil {
+		return
+	}
+
+	rr, _, err := svc.role.Find(types.RoleFilter{MemberID: u.ID})
+	if err != nil {
+		return nil, err
+	}
+
+	u.SetRoles(rr.IDs())
+	return
 }
 
 func (svc user) proc(u *types.User, err error) (*types.User, error) {
