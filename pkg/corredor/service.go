@@ -3,6 +3,7 @@ package corredor
 import (
 	"context"
 
+	"github.com/go-chi/chi/middleware"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -399,6 +400,12 @@ func (svc service) exec(ctx context.Context, script string, runAs string, event 
 
 	ctx, cancel := context.WithTimeout(ctx, svc.opt.DefaultExecTimeout)
 	defer cancel()
+
+	// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// ////
+
+	ctx = metadata.NewOutgoingContext(ctx, metadata.MD{
+		"x-request-id": []string{middleware.GetReqID(ctx)},
+	})
 
 	// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// ////
 
