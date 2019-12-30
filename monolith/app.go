@@ -15,6 +15,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/app"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/system"
+	systemService "github.com/cortezaproject/corteza-server/system/service"
 )
 
 type (
@@ -33,13 +34,19 @@ func (monolith *App) Setup(log *zap.Logger, opts *app.Options) (err error) {
 	// This will alter the auth settings provision procedure
 	system.IsMonolith = true
 
-	return app.RunSetup(
+	err = app.RunSetup(
 		log,
 		opts,
 		monolith.System,
 		monolith.Compose,
 		monolith.Messaging,
 	)
+
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func (monolith *App) Upgrade(ctx context.Context) (err error) {
@@ -52,12 +59,20 @@ func (monolith *App) Upgrade(ctx context.Context) (err error) {
 }
 
 func (monolith App) Initialize(ctx context.Context) (err error) {
-	return app.RunInitialize(
+	err = app.RunInitialize(
 		ctx,
 		monolith.System,
 		monolith.Compose,
 		monolith.Messaging,
 	)
+
+	if err != nil {
+		return
+	}
+
+	corredor.Service().SetUserFinder(systemService.DefaultUser)
+
+	return
 }
 
 func (monolith *App) Activate(ctx context.Context) (err error) {
@@ -71,9 +86,6 @@ func (monolith *App) Activate(ctx context.Context) (err error) {
 	if err != nil {
 		return
 	}
-
-	// Override JWT maker for Corredor with internal
-	corredor.Service().SetJwtMaker(corredor.InternalAuthTokenMaker())
 
 	return
 }

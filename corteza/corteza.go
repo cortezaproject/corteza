@@ -55,16 +55,23 @@ func (app *App) Setup(log *zap.Logger, opts *app.Options) (err error) {
 
 	scheduler.Setup(log, eventbus.Service(), 0)
 
+	if err = corredor.Setup(log, opts.Corredor); err != nil {
+		return err
+	}
+
 	return
 }
 
 func (app *App) Initialize(ctx context.Context) (err error) {
-
 	defer sentry.Recover()
 
 	_, err = db.TryToConnect(ctx, app.log, app.opt.DB)
 	if err != nil {
 		return errors.Wrap(err, "could not connect to database")
+	}
+
+	if err = corredor.Service().Connect(ctx); err != nil {
+		return
 	}
 
 	return
@@ -75,9 +82,6 @@ func (app *App) Upgrade(ctx context.Context) error {
 }
 
 func (app *App) Activate(ctx context.Context) (err error) {
-	if err = corredor.Start(ctx, app.log, app.opt.Corredor); err != nil {
-		return err
-	}
 
 	// Start scheduler
 	scheduler.Service().Start(ctx)
