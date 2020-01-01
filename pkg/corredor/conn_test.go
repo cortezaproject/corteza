@@ -41,7 +41,7 @@ func TestNewConnection(t *testing.T) {
 
 		opt = options.CorredorOpt{
 			Enabled:         true,
-			Log:             true,
+			Log:             testing.Verbose(),
 			MaxBackoffDelay: 1,
 			Addr:            lstnr.Addr().String(),
 		}

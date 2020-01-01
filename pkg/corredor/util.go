@@ -92,7 +92,7 @@ func makeScriptFilter(f ManualScriptFilter) func(s *Script) (b bool, err error) 
 			// at least one of the script's triggers should match
 			b = false
 			for _, t := range s.Triggers {
-				if len(slice.IntersectStrings(f.ResourceTypes, t.Resources)) == 0 {
+				if len(slice.IntersectStrings(f.ResourceTypes, t.Resources)) > 0 {
 					b = true
 				}
 			}
@@ -108,7 +108,7 @@ func makeScriptFilter(f ManualScriptFilter) func(s *Script) (b bool, err error) 
 			// at least one of the script's triggers should match
 			b = false
 			for _, t := range s.Triggers {
-				if len(slice.IntersectStrings(f.EventTypes, t.Events)) == 0 {
+				if len(slice.IntersectStrings(f.EventTypes, t.Events)) > 0 {
 					b = true
 				}
 			}
