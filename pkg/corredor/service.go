@@ -199,6 +199,9 @@ func (svc *service) loadServerScripts(ctx context.Context) {
 
 	svc.log.Debug("reloading server scripts")
 
+	ctx, cancel := context.WithTimeout(ctx, svc.opt.ListTimeout)
+	defer cancel()
+
 	rsp, err = svc.ssClient.List(ctx, &ServerScriptListRequest{}, grpc.WaitForReady(true))
 	if err != nil {
 		svc.log.Error("could not load corredor server scripts", zap.Error(err))
@@ -476,6 +479,10 @@ func (svc *service) loadClientScripts(ctx context.Context) {
 	)
 
 	svc.log.Debug("reloading client scripts")
+
+	ctx, cancel := context.WithTimeout(ctx, svc.opt.ListTimeout)
+	defer cancel()
+
 	rsp, err = svc.csClient.List(ctx, &ClientScriptListRequest{}, grpc.WaitForReady(true))
 	if err != nil {
 		svc.log.Error("could not load corredor client scripts", zap.Error(err))

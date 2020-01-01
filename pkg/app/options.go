@@ -38,7 +38,7 @@ func NewOptions(prefix ...string) *Options {
 		Provision:  *options.Provision(p),
 		Sentry:     *options.Sentry(p),
 		Storage:    *options.Storage(p),
-		Corredor:   *options.Corredor(p),
+		Corredor:   *options.Corredor(),
 		Monitor:    *options.Monitor(p),
 		WaitFor:    *options.WaitFor(p),
 		HTTPServer: *options.HTTP(p),
