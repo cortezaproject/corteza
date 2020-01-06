@@ -13,26 +13,25 @@ import (
 
 var _ = errors.Wrap
 
-type Automation struct {
-	// xxx service.XXXService
-}
+type (
+	Automation struct{}
+)
 
 func (Automation) New() *Automation {
 	return &Automation{}
 }
 
 func (ctrl *Automation) List(ctx context.Context, r *request.AutomationList) (interface{}, error) {
-	f := corredor.ManualScriptFilter{
-		ResourceTypes:        r.ResourceTypes,
-		ExcludeServerScripts: r.ExcludeServerScripts,
-		ExcludeClientScripts: r.ExcludeClientScripts,
-	}
-
-	f.PrefixResource("system")
-
-	scripts, _, err := corredor.Service().FindOnManual(f)
-
-	return scripts, err
+	return corredor.GenericListHandler(
+		corredor.Service(),
+		corredor.Filter{
+			ResourceTypes:        r.ResourceTypes,
+			EventTypes:           r.EventTypes,
+			ExcludeServerScripts: r.ExcludeServerScripts,
+			ExcludeClientScripts: r.ExcludeClientScripts,
+		},
+		"system",
+	)
 }
 
 func (ctrl *Automation) Trigger(ctx context.Context, r *request.AutomationTrigger) (interface{}, error) {

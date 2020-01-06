@@ -144,7 +144,7 @@ func (svc *service) Load(ctx context.Context) {
 }
 
 // FindManual returns filtered list of scripts that can be manually triggered
-func (svc service) FindOnManual(filter ManualScriptFilter) (out ScriptSet, f ManualScriptFilter, err error) {
+func (svc service) Find(filter Filter) (out ScriptSet, f Filter, err error) {
 	f = filter
 
 	var (
