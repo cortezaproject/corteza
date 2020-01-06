@@ -137,22 +137,22 @@ func TestScriptFilterMaker(t *testing.T) {
 		f func(s *Script) (b bool, err error)
 	)
 
-	f = makeScriptFilter(ManualScriptFilter{})
+	f = makeScriptFilter(Filter{})
 	a.True(strip(f(s1)))
 	a.True(strip(f(s2)))
 	a.True(strip(f(s3)))
 
-	f = makeScriptFilter(ManualScriptFilter{ResourceTypes: []string{"res"}})
+	f = makeScriptFilter(Filter{ResourceTypes: []string{"res"}})
 	a.True(strip(f(s1)))
 	a.False(strip(f(s2)))
 	a.False(strip(f(s3)))
 
-	f = makeScriptFilter(ManualScriptFilter{EventTypes: []string{"ev"}})
+	f = makeScriptFilter(Filter{EventTypes: []string{"ev"}})
 	a.True(strip(f(s1)))
 	a.False(strip(f(s2)))
 	a.False(strip(f(s3)))
 
-	f = makeScriptFilter(ManualScriptFilter{EventTypes: []string{"ev", "foo"}})
+	f = makeScriptFilter(Filter{EventTypes: []string{"ev", "foo"}})
 	a.True(strip(f(s1)))
 	a.True(strip(f(s2)))
 	a.False(strip(f(s3)))

@@ -88,14 +88,14 @@ func TestFindOnManual(t *testing.T) {
 				},
 			},
 		}
-		filter = ManualScriptFilter{
+		filter = Filter{
 			ResourceTypes:        []string{"res"},
 			EventTypes:           []string{"ev"},
 			ExcludeServerScripts: false,
 			ExcludeClientScripts: false,
 		}
 
-		o, _, err = svc.FindOnManual(filter)
+		o, _, err = svc.Find(filter)
 
 		a = assert.New(t)
 	)

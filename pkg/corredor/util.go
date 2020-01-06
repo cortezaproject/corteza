@@ -8,6 +8,13 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/slice"
 )
 
+type (
+	automationListSetPayload struct {
+		Filter Filter    `json:"filter"`
+		Set    []*Script `json:"set"`
+	}
+)
+
 // removes onManual event type from trigger
 // returns true if event type was removed or
 // false if there was no onManual event
@@ -84,7 +91,7 @@ func encodeArguments(args map[string]string, key string, val interface{}) (err e
 }
 
 // Creates a filter fn for script filtering
-func makeScriptFilter(f ManualScriptFilter) func(s *Script) (b bool, err error) {
+func makeScriptFilter(f Filter) func(s *Script) (b bool, err error) {
 	return func(s *Script) (b bool, err error) {
 		b = true
 		if len(f.ResourceTypes) > 0 {
@@ -122,4 +129,12 @@ func makeScriptFilter(f ManualScriptFilter) func(s *Script) (b bool, err error) 
 		// Not explicitly filtered
 		return
 	}
+}
+
+// GenericListHandler returns filtered list of scripts
+func GenericListHandler(svc *service, f Filter, resourcePrefix string) (p *automationListSetPayload, err error) {
+	f.PrefixResources(resourcePrefix)
+	p = &automationListSetPayload{}
+	p.Set, p.Filter, err = svc.Find(f)
+	return p, err
 }

@@ -7,11 +7,11 @@ import (
 )
 
 func TestManualScriptFilterResourcePrefixing(t *testing.T) {
-	f := &ManualScriptFilter{
+	f := &Filter{
 		ResourceTypes: []string{"system", "system:one", "two"},
 	}
 
-	f.PrefixResource("system")
+	f.PrefixResources("system")
 
 	assert.New(t).Equal(f.ResourceTypes, []string{"system", "system:one", "system:two"})
 }
