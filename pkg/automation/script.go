@@ -51,12 +51,12 @@ type (
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
 		DeletedBy uint64     `db:"deleted_by" json:"deletedBy,string,omitempty" `
 
-		// Serves as container for valid triggers for runnable scripts internal cache
+		// Serves as container for valid Triggers for runnable scripts internal cache
 		// and for as a transport on create/update operations
 		//
 		// Node: on c/u op., we currently just merge current state with the given list,
-		// w/o updating the rest of the script's triggers
-		triggers TriggerSet
+		// w/o updating the rest of the script's Triggers
+		Triggers TriggerSet
 
 		// How are we merging?
 		tms triggersMergeStrategy
@@ -86,10 +86,10 @@ type (
 )
 
 const (
-	// Ignore the given triggers
+	// Ignore the given Triggers
 	STMS_IGNORE triggersMergeStrategy = iota
 
-	// Create triggers, no pre-checks
+	// Create Triggers, no pre-checks
 	STMS_FRESH
 
 	// Update existing with new
@@ -133,11 +133,11 @@ func (s *Script) CheckCompatibility(t *Trigger) error {
 
 	if t.IsDeferred() || t.IsInterval() {
 		if s.RunInUA {
-			return errors.New("deferred triggers are not compatible with user-agent scripts")
+			return errors.New("deferred Triggers are not compatible with user-agent scripts")
 		}
 
 		if s.RunAsInvoker() {
-			return errors.New("deferred triggers are not compatible with run-as-invoker scripts")
+			return errors.New("deferred Triggers are not compatible with run-as-invoker scripts")
 		}
 	}
 
@@ -149,7 +149,7 @@ func (s *Script) CheckCompatibility(t *Trigger) error {
 // Filters non-UA scripts that match event and resource + all extra conditions
 func (set ScriptSet) FilterByTrigger(event, resource string, cc ...TriggerConditionChecker) (out ScriptSet) {
 	out, _ = set.Filter(func(s *Script) (bool, error) {
-		return s.IsValid() && s.triggers.HasMatch(Trigger{Event: event, Resource: resource}, cc...), nil
+		return s.IsValid() && s.Triggers.HasMatch(Trigger{Event: event, Resource: resource}, cc...), nil
 	})
 
 	return
@@ -181,7 +181,7 @@ func (s Script) RunAsInvoker() bool {
 	return s.RunAs == 0
 }
 
-// AddTrigger appends one or more triggers to internal list of triggers on script struct
+// AddTrigger appends one or more Triggers to internal list of Triggers on script struct
 //
 // We do not do any compatibility check (See Script.CheckCompatibility());
 // this is only an utility func that helps us pass data along
@@ -193,23 +193,19 @@ func (s *Script) AddTrigger(strategy triggersMergeStrategy, tt ...*Trigger) {
 	}
 
 	if s.tms == STMS_REPLACE {
-		s.triggers = TriggerSet{}
+		s.Triggers = TriggerSet{}
 	}
 
 	// Make sure all your trigger belong to us (ref same script or no ref):
 	for _, t := range tt {
 		if t.ScriptID == 0 || t.ScriptID == s.ID {
-			s.triggers = append(s.triggers, t)
+			s.Triggers = append(s.Triggers, t)
 		}
 	}
 }
 
-func (s *Script) Triggers() TriggerSet {
-	return s.triggers
-}
-
 func (s Script) HasEvent(event string) bool {
-	return s.triggers.HasMatch(Trigger{Event: event})
+	return s.Triggers.HasMatch(Trigger{Event: event})
 }
 
 func (s Script) Credentials() string {

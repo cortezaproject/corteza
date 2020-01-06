@@ -2,6 +2,7 @@ package system
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/automation"
 
 	"github.com/go-chi/chi"
 	_ "github.com/joho/godotenv/autoload"
@@ -143,5 +144,7 @@ func (app *App) RegisterCliCommands(p *cobra.Command) {
 		commands.Users(),
 		commands.Roles(),
 		commands.Sink(),
+		// temp command, will be removed in 2020.6
+		automation.ScriptMigrator(SERVICE),
 	)
 }

@@ -97,7 +97,7 @@ func (t Trigger) Uint64Condition() (o uint64) {
 	return
 }
 
-// HasMatch checks if any og the triggers in a set matches the given parameters
+// HasMatch checks if any og the Triggers in a set matches the given parameters
 func (set TriggerSet) HasMatch(m Trigger, ff ...TriggerConditionChecker) bool {
 withTriggers:
 	for _, t := range set {

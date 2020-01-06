@@ -60,7 +60,7 @@ func (r *triggerRepository) findByID(db *factory.DB, triggerID uint64) (*Trigger
 	return rval, rh.IsFound(rh.FetchOne(db, query, rval), rval.ID > 0, errors.New("trigger not found"))
 }
 
-// Find - finds triggers using given filter
+// Find - finds Triggers using given filter
 func (r *triggerRepository) find(db *factory.DB, filter TriggerFilter) (set TriggerSet, f TriggerFilter, err error) {
 	f = filter
 
@@ -95,7 +95,7 @@ func (r *triggerRepository) find(db *factory.DB, filter TriggerFilter) (set Trig
 	return set, f, rh.FetchPaged(db, query, f.Page, f.PerPage, &set)
 }
 
-// FindAllRunnable - loads and returns all runnable triggers
+// FindAllRunnable - loads and returns all runnable Triggers
 func (r *triggerRepository) findRunnable(db *factory.DB) (TriggerSet, error) {
 	rr := make([]*Trigger, 0)
 
@@ -103,7 +103,7 @@ func (r *triggerRepository) findRunnable(db *factory.DB) (TriggerSet, error) {
 		db,
 		r.query().Where("enabled AND deleted_at IS NULL"),
 		&rr,
-	), "could not load runnable triggers")
+	), "could not load runnable Triggers")
 }
 
 func (r *triggerRepository) replace(db *factory.DB, t *Trigger) (err error) {
@@ -123,7 +123,7 @@ func (r *triggerRepository) deleteByScriptID(db *factory.DB, scriptID uint64) (e
 // Check for existing events
 func (r *triggerRepository) checkDuplicate(db *factory.DB, t *Trigger) (*Trigger, error) {
 	if t.IsDeferred() && t.IsInterval() {
-		// deferred & interval triggers
+		// deferred & interval Triggers
 		// can have duplicates
 		return nil, nil
 	}
@@ -153,7 +153,7 @@ func (r *triggerRepository) mergeSet(db *factory.DB, tms triggersMergeStrategy, 
 		// Mark all existing as deleted
 		//
 		// here, we're assuming we have the entire
-		// trigger list present (in s.triggers)
+		// trigger list present (in s.Triggers)
 		if err := r.deleteByScriptID(db, scriptID); err != nil {
 			return err
 		}
@@ -164,7 +164,7 @@ func (r *triggerRepository) mergeSet(db *factory.DB, tms triggersMergeStrategy, 
 			return nil
 		}
 
-		// Replace (upsert) all triggers we have
+		// Replace (upsert) all Triggers we have
 		return r.replace(db, t)
 	})
 }

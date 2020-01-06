@@ -96,7 +96,7 @@ func (r *scriptRepository) find(db *factory.DB, filter ScriptFilter) (set Script
 	}
 
 	if f.Resource != "" {
-		// Making partial trigger repo struct on the fly to help us calculate the name of the triggers table
+		// Making partial trigger repo struct on the fly to help us calculate the name of the Triggers table
 		query = query.Where(
 			fmt.Sprintf("id IN (SELECT rel_script FROM `%s` WHERE resource = ?", r.table()),
 			f.Resource,
