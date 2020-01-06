@@ -32,11 +32,11 @@ func TestScheduleBuilder(t *testing.T) {
 	}{
 		{name: "basics",
 			ss: ScriptSet{
-				&Script{ID: 1, Enabled: true, triggers: TriggerSet{
+				&Script{ID: 1, Enabled: true, Triggers: TriggerSet{
 					&Trigger{Enabled: true, Event: EVENT_TYPE_DEFERRED, Condition: "2000-01-01T00:02:00+02:00"},
 					&Trigger{Enabled: true, Event: EVENT_TYPE_DEFERRED, Condition: "2000-01-01T00:03:00+02:00"},
 				}},
-				&Script{ID: 2, Enabled: true, triggers: TriggerSet{
+				&Script{ID: 2, Enabled: true, Triggers: TriggerSet{
 					&Trigger{Enabled: true, Event: EVENT_TYPE_DEFERRED, Condition: "2000-01-01T00:02:00+02:00"},
 					&Trigger{Enabled: true, Event: EVENT_TYPE_DEFERRED, Condition: "2000-01-01T00:03:00+02:00"},
 				}},
@@ -49,11 +49,11 @@ func TestScheduleBuilder(t *testing.T) {
 		},
 		{name: "intervals",
 			ss: ScriptSet{
-				&Script{ID: 1, Enabled: true, triggers: TriggerSet{
+				&Script{ID: 1, Enabled: true, Triggers: TriggerSet{
 					&Trigger{Enabled: true, Event: EVENT_TYPE_INTERVAL, Condition: "0 * * * * * *"},
 					&Trigger{Enabled: true, Event: EVENT_TYPE_INTERVAL, Condition: "invalid"},
 				}},
-				&Script{ID: 2, Enabled: true, triggers: TriggerSet{
+				&Script{ID: 2, Enabled: true, Triggers: TriggerSet{
 					&Trigger{Enabled: true, Event: EVENT_TYPE_INTERVAL, Condition: "0 0 * * * * *"},
 					&Trigger{Enabled: true, Event: EVENT_TYPE_INTERVAL, Condition: "invalid"},
 				}},

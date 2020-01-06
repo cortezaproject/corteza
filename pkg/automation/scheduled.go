@@ -33,7 +33,7 @@ func buildScheduleList(runables ScriptSet) scheduledSet {
 
 	_ = runables.Walk(func(s *Script) error {
 		sch := schedule{scriptID: s.ID}
-		for _, t := range s.triggers {
+		for _, t := range s.Triggers {
 			if !t.IsDeferred() {
 				// only interested in deferred scripts
 				continue
@@ -55,7 +55,7 @@ func buildScheduleList(runables ScriptSet) scheduledSet {
 			}
 		}
 
-		for _, t := range s.triggers {
+		for _, t := range s.Triggers {
 			if !t.IsInterval() {
 				// only interested in interval scripts
 				continue

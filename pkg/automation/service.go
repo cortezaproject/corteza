@@ -25,7 +25,7 @@ type (
 		//  service will flush values on TRUE or just reload on FALSE
 		f chan bool
 
-		// internal list of runnable scripts (and their accompanying triggers)
+		// internal list of runnable scripts (and their accompanying Triggers)
 		runnables ScriptSet
 
 		// internal list of scheduled scripts
@@ -68,7 +68,7 @@ const (
 
 // Service initializes service{} struct
 //
-// service{} struct handles scripts & triggers. It acts as a caching layer and
+// service{} struct handles scripts & Triggers. It acts as a caching layer and
 // proxy to repository where it verifies and enriches payloads
 //
 func Service(c AutomationServiceConfig) (svc *service) {
@@ -191,7 +191,7 @@ func (svc *service) reload(ctx context.Context) {
 		})
 
 		tt, err = svc.trepo.findRunnable(db)
-		svc.logger.Info("triggers loaded", zap.Error(err), zap.Int("count", len(tt)))
+		svc.logger.Info("Triggers loaded", zap.Error(err), zap.Int("count", len(tt)))
 		if err != nil {
 			return
 		}
@@ -217,8 +217,8 @@ func (svc *service) reload(ctx context.Context) {
 		_ = tt.Walk(func(t *Trigger) error {
 			s := svc.runnables.FindByID(t.ScriptID)
 			if s != nil && t.IsValid() && s.CheckCompatibility(t) == nil {
-				// Add only compatible triggers
-				s.triggers = append(s.triggers, t)
+				// Add only compatible Triggers
+				s.Triggers = append(s.Triggers, t)
 			}
 
 			return nil
@@ -237,7 +237,7 @@ func (svc *service) reload(ctx context.Context) {
 // FindRunnableScripts finds runnable scripts in internal list
 //
 // It uses resource, event and extra condition checkers to filter out all scripts
-// that have matching triggers
+// that have matching Triggers
 func (svc service) FindRunnableScripts(resource, event string, cc ...TriggerConditionChecker) ScriptSet {
 	svc.l.Lock()
 	defer svc.l.Unlock()
@@ -280,7 +280,7 @@ func (svc service) CreateScript(ctx context.Context, s *Script) error {
 			return
 		}
 
-		err = s.triggers.Walk(func(t *Trigger) error {
+		err = s.Triggers.Walk(func(t *Trigger) error {
 			return svc.setNewTriggerInfo(ctx, s, t)
 		})
 
@@ -289,7 +289,7 @@ func (svc service) CreateScript(ctx context.Context, s *Script) error {
 		}
 
 		// Force no-pre-check
-		if err = svc.trepo.mergeSet(db, STMS_FRESH, s.ID, s.triggers); err != nil {
+		if err = svc.trepo.mergeSet(db, STMS_FRESH, s.ID, s.Triggers); err != nil {
 			return
 		}
 
@@ -322,7 +322,7 @@ func (svc service) UpdateScript(ctx context.Context, s *Script) error {
 			return
 		}
 
-		err = s.triggers.Walk(func(t *Trigger) error {
+		err = s.Triggers.Walk(func(t *Trigger) error {
 			if t.ID == 0 {
 				return svc.setNewTriggerInfo(ctx, s, t)
 			} else {
@@ -334,7 +334,7 @@ func (svc service) UpdateScript(ctx context.Context, s *Script) error {
 			return
 		}
 
-		if err = svc.trepo.mergeSet(db, s.tms, s.ID, s.triggers); err != nil {
+		if err = svc.trepo.mergeSet(db, s.tms, s.ID, s.Triggers); err != nil {
 			return
 		}
 
