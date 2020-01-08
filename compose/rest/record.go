@@ -376,7 +376,7 @@ func (ctrl Record) Exec(ctx context.Context, r *request.RecordExec) (interface{}
 	return nil, nil
 }
 
-func (ctrl *Record) Trigger(ctx context.Context, r *request.RecordTrigger) (rsp interface{}, err error) {
+func (ctrl *Record) TriggerScript(ctx context.Context, r *request.RecordTriggerScript) (rsp interface{}, err error) {
 	var (
 		record    *types.Record
 		module    *types.Module
@@ -395,7 +395,19 @@ func (ctrl *Record) Trigger(ctx context.Context, r *request.RecordTrigger) (rsp 
 		return
 	}
 
-	return resputil.OK(), corredor.Service().ExecOnManual(ctx, r.Script, event.RecordOnManual(record, nil, module, namespace))
+	err = corredor.Service().ExecOnManual(
+		ctx,
+		r.Script,
+		event.RecordOnManual(
+			record,
+			nil,
+			module,
+			namespace,
+		),
+	)
+
+	// Script can return modified record and we'll pass it on to the caller
+	return ctrl.makePayload(ctx, module, record, err)
 }
 
 func (ctrl Record) makePayload(ctx context.Context, m *types.Module, r *types.Record, err error) (*recordPayload, error) {

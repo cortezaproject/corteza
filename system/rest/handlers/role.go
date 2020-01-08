@@ -42,25 +42,25 @@ type RoleAPI interface {
 	MemberList(context.Context, *request.RoleMemberList) (interface{}, error)
 	MemberAdd(context.Context, *request.RoleMemberAdd) (interface{}, error)
 	MemberRemove(context.Context, *request.RoleMemberRemove) (interface{}, error)
-	FireTrigger(context.Context, *request.RoleFireTrigger) (interface{}, error)
+	TriggerScript(context.Context, *request.RoleTriggerScript) (interface{}, error)
 }
 
 // HTTP API interface
 type Role struct {
-	List         func(http.ResponseWriter, *http.Request)
-	Create       func(http.ResponseWriter, *http.Request)
-	Update       func(http.ResponseWriter, *http.Request)
-	Read         func(http.ResponseWriter, *http.Request)
-	Delete       func(http.ResponseWriter, *http.Request)
-	Archive      func(http.ResponseWriter, *http.Request)
-	Unarchive    func(http.ResponseWriter, *http.Request)
-	Undelete     func(http.ResponseWriter, *http.Request)
-	Move         func(http.ResponseWriter, *http.Request)
-	Merge        func(http.ResponseWriter, *http.Request)
-	MemberList   func(http.ResponseWriter, *http.Request)
-	MemberAdd    func(http.ResponseWriter, *http.Request)
-	MemberRemove func(http.ResponseWriter, *http.Request)
-	FireTrigger  func(http.ResponseWriter, *http.Request)
+	List          func(http.ResponseWriter, *http.Request)
+	Create        func(http.ResponseWriter, *http.Request)
+	Update        func(http.ResponseWriter, *http.Request)
+	Read          func(http.ResponseWriter, *http.Request)
+	Delete        func(http.ResponseWriter, *http.Request)
+	Archive       func(http.ResponseWriter, *http.Request)
+	Unarchive     func(http.ResponseWriter, *http.Request)
+	Undelete      func(http.ResponseWriter, *http.Request)
+	Move          func(http.ResponseWriter, *http.Request)
+	Merge         func(http.ResponseWriter, *http.Request)
+	MemberList    func(http.ResponseWriter, *http.Request)
+	MemberAdd     func(http.ResponseWriter, *http.Request)
+	MemberRemove  func(http.ResponseWriter, *http.Request)
+	TriggerScript func(http.ResponseWriter, *http.Request)
 }
 
 func NewRole(h RoleAPI) *Role {
@@ -325,22 +325,22 @@ func NewRole(h RoleAPI) *Role {
 				resputil.JSON(w, value)
 			}
 		},
-		FireTrigger: func(w http.ResponseWriter, r *http.Request) {
+		TriggerScript: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewRoleFireTrigger()
+			params := request.NewRoleTriggerScript()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Role.FireTrigger", r, err)
+				logger.LogParamError("Role.TriggerScript", r, err)
 				resputil.JSON(w, err)
 				return
 			}
 
-			value, err := h.FireTrigger(r.Context(), params)
+			value, err := h.TriggerScript(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Role.FireTrigger", r, err, params.Auditable())
+				logger.LogControllerError("Role.TriggerScript", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
-			logger.LogControllerCall("Role.FireTrigger", r, params.Auditable())
+			logger.LogControllerCall("Role.TriggerScript", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
@@ -364,6 +364,6 @@ func (h Role) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.H
 		r.Get("/roles/{roleID}/members", h.MemberList)
 		r.Post("/roles/{roleID}/member/{userID}", h.MemberAdd)
 		r.Delete("/roles/{roleID}/member/{userID}", h.MemberRemove)
-		r.Post("/roles/{roleID}/trigger", h.FireTrigger)
+		r.Post("/roles/{roleID}/trigger", h.TriggerScript)
 	})
 }

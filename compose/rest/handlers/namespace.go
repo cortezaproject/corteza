@@ -34,17 +34,17 @@ type NamespaceAPI interface {
 	Read(context.Context, *request.NamespaceRead) (interface{}, error)
 	Update(context.Context, *request.NamespaceUpdate) (interface{}, error)
 	Delete(context.Context, *request.NamespaceDelete) (interface{}, error)
-	FireTrigger(context.Context, *request.NamespaceFireTrigger) (interface{}, error)
+	TriggerScript(context.Context, *request.NamespaceTriggerScript) (interface{}, error)
 }
 
 // HTTP API interface
 type Namespace struct {
-	List        func(http.ResponseWriter, *http.Request)
-	Create      func(http.ResponseWriter, *http.Request)
-	Read        func(http.ResponseWriter, *http.Request)
-	Update      func(http.ResponseWriter, *http.Request)
-	Delete      func(http.ResponseWriter, *http.Request)
-	FireTrigger func(http.ResponseWriter, *http.Request)
+	List          func(http.ResponseWriter, *http.Request)
+	Create        func(http.ResponseWriter, *http.Request)
+	Read          func(http.ResponseWriter, *http.Request)
+	Update        func(http.ResponseWriter, *http.Request)
+	Delete        func(http.ResponseWriter, *http.Request)
+	TriggerScript func(http.ResponseWriter, *http.Request)
 }
 
 func NewNamespace(h NamespaceAPI) *Namespace {
@@ -149,22 +149,22 @@ func NewNamespace(h NamespaceAPI) *Namespace {
 				resputil.JSON(w, value)
 			}
 		},
-		FireTrigger: func(w http.ResponseWriter, r *http.Request) {
+		TriggerScript: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewNamespaceFireTrigger()
+			params := request.NewNamespaceTriggerScript()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Namespace.FireTrigger", r, err)
+				logger.LogParamError("Namespace.TriggerScript", r, err)
 				resputil.JSON(w, err)
 				return
 			}
 
-			value, err := h.FireTrigger(r.Context(), params)
+			value, err := h.TriggerScript(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Namespace.FireTrigger", r, err, params.Auditable())
+				logger.LogControllerError("Namespace.TriggerScript", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
-			logger.LogControllerCall("Namespace.FireTrigger", r, params.Auditable())
+			logger.LogControllerCall("Namespace.TriggerScript", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
@@ -180,6 +180,6 @@ func (h Namespace) MountRoutes(r chi.Router, middlewares ...func(http.Handler) h
 		r.Get("/namespace/{namespaceID}", h.Read)
 		r.Post("/namespace/{namespaceID}", h.Update)
 		r.Delete("/namespace/{namespaceID}", h.Delete)
-		r.Post("/namespace/{namespaceID}/trigger", h.FireTrigger)
+		r.Post("/namespace/{namespaceID}/trigger", h.TriggerScript)
 	})
 }

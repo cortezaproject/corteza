@@ -176,7 +176,7 @@ func (ctrl Role) MemberRemove(ctx context.Context, r *request.RoleMemberRemove) 
 	return resputil.OK(), ctrl.role.With(ctx).MemberRemove(r.RoleID, r.UserID)
 }
 
-func (ctrl *Role) FireTrigger(ctx context.Context, r *request.RoleFireTrigger) (rsp interface{}, err error) {
+func (ctrl *Role) TriggerScript(ctx context.Context, r *request.RoleTriggerScript) (rsp interface{}, err error) {
 	var (
 		role *types.Role
 	)

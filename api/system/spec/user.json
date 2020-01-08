@@ -352,7 +352,7 @@
       }
     },
     {
-      "Name": "fireTrigger",
+      "Name": "triggerScript",
       "Method": "POST",
       "Title": "Fire system:user trigger",
       "Path": "/{userID}/trigger",

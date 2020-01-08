@@ -132,7 +132,7 @@ func (ctrl User) MembershipRemove(ctx context.Context, r *request.UserMembership
 	return resputil.OK(), ctrl.role.With(ctx).MemberRemove(r.RoleID, r.UserID)
 }
 
-func (ctrl *User) FireTrigger(ctx context.Context, r *request.UserFireTrigger) (rsp interface{}, err error) {
+func (ctrl *User) TriggerScript(ctx context.Context, r *request.UserTriggerScript) (rsp interface{}, err error) {
 	var (
 		user *types.User
 	)

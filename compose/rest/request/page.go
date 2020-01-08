@@ -573,18 +573,18 @@ func (r *PageUpload) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewPageUpload()
 
-// Page fireTrigger request parameters
-type PageFireTrigger struct {
+// Page triggerScript request parameters
+type PageTriggerScript struct {
 	PageID      uint64 `json:",string"`
 	NamespaceID uint64 `json:",string"`
 	Script      string
 }
 
-func NewPageFireTrigger() *PageFireTrigger {
-	return &PageFireTrigger{}
+func NewPageTriggerScript() *PageTriggerScript {
+	return &PageTriggerScript{}
 }
 
-func (r PageFireTrigger) Auditable() map[string]interface{} {
+func (r PageTriggerScript) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["pageID"] = r.PageID
@@ -594,7 +594,7 @@ func (r PageFireTrigger) Auditable() map[string]interface{} {
 	return out
 }
 
-func (r *PageFireTrigger) Fill(req *http.Request) (err error) {
+func (r *PageTriggerScript) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -630,4 +630,4 @@ func (r *PageFireTrigger) Fill(req *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewPageFireTrigger()
+var _ RequestFiller = NewPageTriggerScript()

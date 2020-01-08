@@ -361,17 +361,17 @@ func (r *NamespaceDelete) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewNamespaceDelete()
 
-// Namespace fireTrigger request parameters
-type NamespaceFireTrigger struct {
+// Namespace triggerScript request parameters
+type NamespaceTriggerScript struct {
 	NamespaceID uint64 `json:",string"`
 	Script      string
 }
 
-func NewNamespaceFireTrigger() *NamespaceFireTrigger {
-	return &NamespaceFireTrigger{}
+func NewNamespaceTriggerScript() *NamespaceTriggerScript {
+	return &NamespaceTriggerScript{}
 }
 
-func (r NamespaceFireTrigger) Auditable() map[string]interface{} {
+func (r NamespaceTriggerScript) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["namespaceID"] = r.NamespaceID
@@ -380,7 +380,7 @@ func (r NamespaceFireTrigger) Auditable() map[string]interface{} {
 	return out
 }
 
-func (r *NamespaceFireTrigger) Fill(req *http.Request) (err error) {
+func (r *NamespaceTriggerScript) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -415,4 +415,4 @@ func (r *NamespaceFireTrigger) Fill(req *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewNamespaceFireTrigger()
+var _ RequestFiller = NewNamespaceTriggerScript()

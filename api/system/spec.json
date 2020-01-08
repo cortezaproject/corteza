@@ -718,7 +718,7 @@
         }
       },
       {
-        "name": "fireTrigger",
+        "name": "triggerScript",
         "method": "POST",
         "title": "Fire system:role trigger",
         "path": "/{roleID}/trigger",
@@ -1095,7 +1095,7 @@
         }
       },
       {
-        "name": "fireTrigger",
+        "name": "triggerScript",
         "method": "POST",
         "title": "Fire system:user trigger",
         "path": "/{userID}/trigger",
@@ -1304,7 +1304,7 @@
         }
       },
       {
-        "name": "fireTrigger",
+        "name": "triggerScript",
         "method": "POST",
         "title": "Fire system:application trigger",
         "path": "/{applicationID}/trigger",
@@ -1718,7 +1718,7 @@
         }
       },
       {
-        "name": "trigger",
+        "name": "triggerScript",
         "method": "POST",
         "title": "Triggers execution of a specific script on a system service level",
         "path": "/trigger",

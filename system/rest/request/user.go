@@ -765,17 +765,17 @@ func (r *UserMembershipRemove) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewUserMembershipRemove()
 
-// User fireTrigger request parameters
-type UserFireTrigger struct {
+// User triggerScript request parameters
+type UserTriggerScript struct {
 	UserID uint64 `json:",string"`
 	Script string
 }
 
-func NewUserFireTrigger() *UserFireTrigger {
-	return &UserFireTrigger{}
+func NewUserTriggerScript() *UserTriggerScript {
+	return &UserTriggerScript{}
 }
 
-func (r UserFireTrigger) Auditable() map[string]interface{} {
+func (r UserTriggerScript) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["userID"] = r.UserID
@@ -784,7 +784,7 @@ func (r UserFireTrigger) Auditable() map[string]interface{} {
 	return out
 }
 
-func (r *UserFireTrigger) Fill(req *http.Request) (err error) {
+func (r *UserTriggerScript) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -819,4 +819,4 @@ func (r *UserFireTrigger) Fill(req *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewUserFireTrigger()
+var _ RequestFiller = NewUserTriggerScript()
