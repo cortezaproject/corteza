@@ -801,6 +801,7 @@ type RecordTriggerScript struct {
 	NamespaceID uint64 `json:",string"`
 	ModuleID    uint64 `json:",string"`
 	Script      string
+	Values      types.RecordValueSet
 }
 
 func NewRecordTriggerScript() *RecordTriggerScript {
@@ -814,6 +815,7 @@ func (r RecordTriggerScript) Auditable() map[string]interface{} {
 	out["namespaceID"] = r.NamespaceID
 	out["moduleID"] = r.ModuleID
 	out["script"] = r.Script
+	out["values"] = r.Values
 
 	return out
 }

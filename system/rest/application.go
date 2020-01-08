@@ -129,7 +129,9 @@ func (ctrl *Application) TriggerScript(ctx context.Context, r *request.Applicati
 		return
 	}
 
-	return resputil.OK(), corredor.Service().ExecOnManual(ctx, r.Script, event.ApplicationOnManual(application, nil))
+	// @todo implement same behaviour as we have on record - Application+oldApplication
+	err = corredor.Service().ExecOnManual(ctx, r.Script, event.ApplicationOnManual(application, application))
+	return application, err
 }
 
 func (ctrl Application) makePayload(ctx context.Context, m *types.Application, err error) (*applicationPayload, error) {

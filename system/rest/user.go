@@ -141,7 +141,10 @@ func (ctrl *User) TriggerScript(ctx context.Context, r *request.UserTriggerScrip
 		return
 	}
 
-	return resputil.OK(), corredor.Service().ExecOnManual(ctx, r.Script, event.UserOnManual(user, nil))
+	// @todo implement same behaviour as we have on record - user+oldUser
+	err = corredor.Service().ExecOnManual(ctx, r.Script, event.UserOnManual(user, user))
+	return user, err
+
 }
 
 func (ctrl User) makeFilterPayload(ctx context.Context, uu types.UserSet, f types.UserFilter, err error) (*userSetPayload, error) {

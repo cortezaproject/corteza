@@ -150,7 +150,9 @@ func (ctrl *Module) TriggerScript(ctx context.Context, r *request.ModuleTriggerS
 		return
 	}
 
-	return resputil.OK(), corredor.Service().ExecOnManual(ctx, r.Script, event.ModuleOnManual(module, nil, namespace))
+	// @todo implement same behaviour as we have on record - module+oldModule
+	err = corredor.Service().ExecOnManual(ctx, r.Script, event.ModuleOnManual(module, module, namespace))
+	return ctrl.makePayload(ctx, module, err)
 }
 
 func (ctrl Module) makePayload(ctx context.Context, m *types.Module, err error) (*modulePayload, error) {
