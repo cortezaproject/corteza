@@ -170,7 +170,9 @@ func (ctrl *Page) TriggerScript(ctx context.Context, r *request.PageTriggerScrip
 		return
 	}
 
-	return resputil.OK(), corredor.Service().ExecOnManual(ctx, r.Script, event.PageOnManual(page, nil, namespace))
+	// @todo implement same behaviour as we have on record - page+oldPage
+	err = corredor.Service().ExecOnManual(ctx, r.Script, event.PageOnManual(page, page, namespace))
+	return ctrl.makePayload(ctx, page, err)
 }
 
 func (ctrl Page) makePayload(ctx context.Context, c *types.Page, err error) (*pagePayload, error) {

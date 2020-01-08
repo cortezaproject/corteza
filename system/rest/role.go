@@ -185,7 +185,9 @@ func (ctrl *Role) TriggerScript(ctx context.Context, r *request.RoleTriggerScrip
 		return
 	}
 
-	return resputil.OK(), corredor.Service().ExecOnManual(ctx, r.Script, event.RoleOnManual(role, nil))
+	// @todo implement same behaviour as we have on record - role+oldRole
+	err = corredor.Service().ExecOnManual(ctx, r.Script, event.RoleOnManual(role, role))
+	return role, err
 }
 
 func (ctrl Role) makePayload(ctx context.Context, m *types.Role, err error) (*rolePayload, error) {

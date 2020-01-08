@@ -379,11 +379,12 @@ func (ctrl Record) Exec(ctx context.Context, r *request.RecordExec) (interface{}
 func (ctrl *Record) TriggerScript(ctx context.Context, r *request.RecordTriggerScript) (rsp interface{}, err error) {
 	var (
 		record    *types.Record
+		oldRecord *types.Record
 		module    *types.Module
 		namespace *types.Namespace
 	)
 
-	if record, err = ctrl.record.With(ctx).FindByID(r.NamespaceID, r.RecordID); err != nil {
+	if oldRecord, err = ctrl.record.With(ctx).FindByID(r.NamespaceID, r.RecordID); err != nil {
 		return
 	}
 
@@ -395,15 +396,13 @@ func (ctrl *Record) TriggerScript(ctx context.Context, r *request.RecordTriggerS
 		return
 	}
 
+	record = oldRecord
+	record.Values = r.Values
+
 	err = corredor.Service().ExecOnManual(
 		ctx,
 		r.Script,
-		event.RecordOnManual(
-			record,
-			nil,
-			module,
-			namespace,
-		),
+		event.RecordOnManual(record, oldRecord, module, namespace),
 	)
 
 	// Script can return modified record and we'll pass it on to the caller

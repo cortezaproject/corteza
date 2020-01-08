@@ -1028,6 +1028,7 @@ Compose records
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 | script | string | POST | Script to execute | N/A | YES |
+| values | types.RecordValueSet | POST | Record values | N/A | YES |
 
 ---
 

@@ -133,7 +133,8 @@ func (ctrl *Namespace) TriggerScript(ctx context.Context, r *request.NamespaceTr
 		return
 	}
 
-	return resputil.OK(), corredor.Service().ExecOnManual(ctx, r.Script, event.NamespaceOnManual(namespace, nil))
+	err = corredor.Service().ExecOnManual(ctx, r.Script, event.NamespaceOnManual(namespace, nil))
+	return ctrl.makePayload(ctx, namespace, err)
 }
 
 func (ctrl Namespace) makePayload(ctx context.Context, ns *types.Namespace, err error) (*namespacePayload, error) {

@@ -333,6 +333,12 @@
             "required": true,
             "title": "Script to execute",
             "type": "string"
+          },
+          {
+            "name": "values",
+            "required": true,
+            "title": "Record values",
+            "type": "types.RecordValueSet"
           }
         ]
       }
