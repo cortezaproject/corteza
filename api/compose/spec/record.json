@@ -314,7 +314,7 @@
       }
     },
     {
-      "Name": "trigger",
+      "Name": "triggerScript",
       "Method": "POST",
       "Title": "Fire compose:record trigger",
       "Path": "/{recordID}/trigger",

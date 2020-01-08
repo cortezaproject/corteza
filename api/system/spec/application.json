@@ -184,7 +184,7 @@
       }
     },
     {
-      "Name": "fireTrigger",
+      "Name": "triggerScript",
       "Method": "POST",
       "Title": "Fire system:application trigger",
       "Path": "/{applicationID}/trigger",

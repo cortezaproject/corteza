@@ -104,16 +104,16 @@ func (r *AutomationList) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewAutomationList()
 
-// Automation trigger request parameters
-type AutomationTrigger struct {
+// Automation triggerScript request parameters
+type AutomationTriggerScript struct {
 	Script string
 }
 
-func NewAutomationTrigger() *AutomationTrigger {
-	return &AutomationTrigger{}
+func NewAutomationTriggerScript() *AutomationTriggerScript {
+	return &AutomationTriggerScript{}
 }
 
-func (r AutomationTrigger) Auditable() map[string]interface{} {
+func (r AutomationTriggerScript) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["script"] = r.Script
@@ -121,7 +121,7 @@ func (r AutomationTrigger) Auditable() map[string]interface{} {
 	return out
 }
 
-func (r *AutomationTrigger) Fill(req *http.Request) (err error) {
+func (r *AutomationTriggerScript) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -155,4 +155,4 @@ func (r *AutomationTrigger) Fill(req *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewAutomationTrigger()
+var _ RequestFiller = NewAutomationTriggerScript()

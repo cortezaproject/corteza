@@ -124,7 +124,7 @@ func (ctrl Namespace) Delete(ctx context.Context, r *request.NamespaceDelete) (i
 	return resputil.OK(), ctrl.namespace.With(ctx).DeleteByID(r.NamespaceID)
 }
 
-func (ctrl *Namespace) FireTrigger(ctx context.Context, r *request.NamespaceFireTrigger) (rsp interface{}, err error) {
+func (ctrl *Namespace) TriggerScript(ctx context.Context, r *request.NamespaceTriggerScript) (rsp interface{}, err error) {
 	var (
 		namespace *types.Namespace
 	)

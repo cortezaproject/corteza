@@ -414,17 +414,17 @@ func (r *ApplicationUndelete) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewApplicationUndelete()
 
-// Application fireTrigger request parameters
-type ApplicationFireTrigger struct {
+// Application triggerScript request parameters
+type ApplicationTriggerScript struct {
 	ApplicationID uint64 `json:",string"`
 	Script        string
 }
 
-func NewApplicationFireTrigger() *ApplicationFireTrigger {
-	return &ApplicationFireTrigger{}
+func NewApplicationTriggerScript() *ApplicationTriggerScript {
+	return &ApplicationTriggerScript{}
 }
 
-func (r ApplicationFireTrigger) Auditable() map[string]interface{} {
+func (r ApplicationTriggerScript) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["applicationID"] = r.ApplicationID
@@ -433,7 +433,7 @@ func (r ApplicationFireTrigger) Auditable() map[string]interface{} {
 	return out
 }
 
-func (r *ApplicationFireTrigger) Fill(req *http.Request) (err error) {
+func (r *ApplicationTriggerScript) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -468,4 +468,4 @@ func (r *ApplicationFireTrigger) Fill(req *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewApplicationFireTrigger()
+var _ RequestFiller = NewApplicationTriggerScript()

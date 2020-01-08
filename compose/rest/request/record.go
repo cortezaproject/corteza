@@ -795,19 +795,19 @@ func (r *RecordUpload) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewRecordUpload()
 
-// Record trigger request parameters
-type RecordTrigger struct {
+// Record triggerScript request parameters
+type RecordTriggerScript struct {
 	RecordID    uint64 `json:",string"`
 	NamespaceID uint64 `json:",string"`
 	ModuleID    uint64 `json:",string"`
 	Script      string
 }
 
-func NewRecordTrigger() *RecordTrigger {
-	return &RecordTrigger{}
+func NewRecordTriggerScript() *RecordTriggerScript {
+	return &RecordTriggerScript{}
 }
 
-func (r RecordTrigger) Auditable() map[string]interface{} {
+func (r RecordTriggerScript) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["recordID"] = r.RecordID
@@ -818,7 +818,7 @@ func (r RecordTrigger) Auditable() map[string]interface{} {
 	return out
 }
 
-func (r *RecordTrigger) Fill(req *http.Request) (err error) {
+func (r *RecordTriggerScript) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -855,4 +855,4 @@ func (r *RecordTrigger) Fill(req *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewRecordTrigger()
+var _ RequestFiller = NewRecordTriggerScript()

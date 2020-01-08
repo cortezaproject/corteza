@@ -765,17 +765,17 @@ func (r *RoleMemberRemove) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewRoleMemberRemove()
 
-// Role fireTrigger request parameters
-type RoleFireTrigger struct {
+// Role triggerScript request parameters
+type RoleTriggerScript struct {
 	RoleID uint64 `json:",string"`
 	Script string
 }
 
-func NewRoleFireTrigger() *RoleFireTrigger {
-	return &RoleFireTrigger{}
+func NewRoleTriggerScript() *RoleTriggerScript {
+	return &RoleTriggerScript{}
 }
 
-func (r RoleFireTrigger) Auditable() map[string]interface{} {
+func (r RoleTriggerScript) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["roleID"] = r.RoleID
@@ -784,7 +784,7 @@ func (r RoleFireTrigger) Auditable() map[string]interface{} {
 	return out
 }
 
-func (r *RoleFireTrigger) Fill(req *http.Request) (err error) {
+func (r *RoleTriggerScript) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -819,4 +819,4 @@ func (r *RoleFireTrigger) Fill(req *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewRoleFireTrigger()
+var _ RequestFiller = NewRoleTriggerScript()

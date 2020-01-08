@@ -310,7 +310,7 @@
       }
     },
     {
-      "Name": "fireTrigger",
+      "Name": "triggerScript",
       "Method": "POST",
       "Title": "Fire system:role trigger",
       "Path": "/{roleID}/trigger",

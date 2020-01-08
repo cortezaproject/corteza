@@ -120,7 +120,7 @@ func (ctrl *Application) Undelete(ctx context.Context, r *request.ApplicationUnd
 	return resputil.OK(), ctrl.application.With(ctx).Undelete(r.ApplicationID)
 }
 
-func (ctrl *Application) FireTrigger(ctx context.Context, r *request.ApplicationFireTrigger) (rsp interface{}, err error) {
+func (ctrl *Application) TriggerScript(ctx context.Context, r *request.ApplicationTriggerScript) (rsp interface{}, err error) {
 	var (
 		application *types.Application
 	)

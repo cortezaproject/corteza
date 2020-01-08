@@ -157,7 +157,7 @@ func (ctrl *Page) Upload(ctx context.Context, r *request.PageUpload) (interface{
 	return makeAttachmentPayload(ctx, a, err)
 }
 
-func (ctrl *Page) FireTrigger(ctx context.Context, r *request.PageFireTrigger) (rsp interface{}, err error) {
+func (ctrl *Page) TriggerScript(ctx context.Context, r *request.PageTriggerScript) (rsp interface{}, err error) {
 	var (
 		page      *types.Page
 		namespace *types.Namespace

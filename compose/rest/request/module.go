@@ -376,18 +376,18 @@ func (r *ModuleDelete) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewModuleDelete()
 
-// Module fireTrigger request parameters
-type ModuleFireTrigger struct {
+// Module triggerScript request parameters
+type ModuleTriggerScript struct {
 	ModuleID    uint64 `json:",string"`
 	NamespaceID uint64 `json:",string"`
 	Script      string
 }
 
-func NewModuleFireTrigger() *ModuleFireTrigger {
-	return &ModuleFireTrigger{}
+func NewModuleTriggerScript() *ModuleTriggerScript {
+	return &ModuleTriggerScript{}
 }
 
-func (r ModuleFireTrigger) Auditable() map[string]interface{} {
+func (r ModuleTriggerScript) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["moduleID"] = r.ModuleID
@@ -397,7 +397,7 @@ func (r ModuleFireTrigger) Auditable() map[string]interface{} {
 	return out
 }
 
-func (r *ModuleFireTrigger) Fill(req *http.Request) (err error) {
+func (r *ModuleTriggerScript) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -433,4 +433,4 @@ func (r *ModuleFireTrigger) Fill(req *http.Request) (err error) {
 	return err
 }
 
-var _ RequestFiller = NewModuleFireTrigger()
+var _ RequestFiller = NewModuleTriggerScript()

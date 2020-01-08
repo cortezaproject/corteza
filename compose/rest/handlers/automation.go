@@ -30,13 +30,13 @@ import (
 // Internal API interface
 type AutomationAPI interface {
 	List(context.Context, *request.AutomationList) (interface{}, error)
-	Trigger(context.Context, *request.AutomationTrigger) (interface{}, error)
+	TriggerScript(context.Context, *request.AutomationTriggerScript) (interface{}, error)
 }
 
 // HTTP API interface
 type Automation struct {
-	List    func(http.ResponseWriter, *http.Request)
-	Trigger func(http.ResponseWriter, *http.Request)
+	List          func(http.ResponseWriter, *http.Request)
+	TriggerScript func(http.ResponseWriter, *http.Request)
 }
 
 func NewAutomation(h AutomationAPI) *Automation {
@@ -61,22 +61,22 @@ func NewAutomation(h AutomationAPI) *Automation {
 				resputil.JSON(w, value)
 			}
 		},
-		Trigger: func(w http.ResponseWriter, r *http.Request) {
+		TriggerScript: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewAutomationTrigger()
+			params := request.NewAutomationTriggerScript()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Automation.Trigger", r, err)
+				logger.LogParamError("Automation.TriggerScript", r, err)
 				resputil.JSON(w, err)
 				return
 			}
 
-			value, err := h.Trigger(r.Context(), params)
+			value, err := h.TriggerScript(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Automation.Trigger", r, err, params.Auditable())
+				logger.LogControllerError("Automation.TriggerScript", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
-			logger.LogControllerCall("Automation.Trigger", r, params.Auditable())
+			logger.LogControllerCall("Automation.TriggerScript", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
@@ -88,6 +88,6 @@ func (h Automation) MountRoutes(r chi.Router, middlewares ...func(http.Handler) 
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Get("/automation/", h.List)
-		r.Post("/automation/trigger", h.Trigger)
+		r.Post("/automation/trigger", h.TriggerScript)
 	})
 }

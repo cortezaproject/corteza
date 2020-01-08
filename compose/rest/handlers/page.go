@@ -37,20 +37,20 @@ type PageAPI interface {
 	Reorder(context.Context, *request.PageReorder) (interface{}, error)
 	Delete(context.Context, *request.PageDelete) (interface{}, error)
 	Upload(context.Context, *request.PageUpload) (interface{}, error)
-	FireTrigger(context.Context, *request.PageFireTrigger) (interface{}, error)
+	TriggerScript(context.Context, *request.PageTriggerScript) (interface{}, error)
 }
 
 // HTTP API interface
 type Page struct {
-	List        func(http.ResponseWriter, *http.Request)
-	Create      func(http.ResponseWriter, *http.Request)
-	Read        func(http.ResponseWriter, *http.Request)
-	Tree        func(http.ResponseWriter, *http.Request)
-	Update      func(http.ResponseWriter, *http.Request)
-	Reorder     func(http.ResponseWriter, *http.Request)
-	Delete      func(http.ResponseWriter, *http.Request)
-	Upload      func(http.ResponseWriter, *http.Request)
-	FireTrigger func(http.ResponseWriter, *http.Request)
+	List          func(http.ResponseWriter, *http.Request)
+	Create        func(http.ResponseWriter, *http.Request)
+	Read          func(http.ResponseWriter, *http.Request)
+	Tree          func(http.ResponseWriter, *http.Request)
+	Update        func(http.ResponseWriter, *http.Request)
+	Reorder       func(http.ResponseWriter, *http.Request)
+	Delete        func(http.ResponseWriter, *http.Request)
+	Upload        func(http.ResponseWriter, *http.Request)
+	TriggerScript func(http.ResponseWriter, *http.Request)
 }
 
 func NewPage(h PageAPI) *Page {
@@ -215,22 +215,22 @@ func NewPage(h PageAPI) *Page {
 				resputil.JSON(w, value)
 			}
 		},
-		FireTrigger: func(w http.ResponseWriter, r *http.Request) {
+		TriggerScript: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewPageFireTrigger()
+			params := request.NewPageTriggerScript()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Page.FireTrigger", r, err)
+				logger.LogParamError("Page.TriggerScript", r, err)
 				resputil.JSON(w, err)
 				return
 			}
 
-			value, err := h.FireTrigger(r.Context(), params)
+			value, err := h.TriggerScript(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Page.FireTrigger", r, err, params.Auditable())
+				logger.LogControllerError("Page.TriggerScript", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
-			logger.LogControllerCall("Page.FireTrigger", r, params.Auditable())
+			logger.LogControllerCall("Page.TriggerScript", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
@@ -249,6 +249,6 @@ func (h Page) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.H
 		r.Post("/namespace/{namespaceID}/page/{selfID}/reorder", h.Reorder)
 		r.Delete("/namespace/{namespaceID}/page/{pageID}", h.Delete)
 		r.Post("/namespace/{namespaceID}/page/{pageID}/attachment", h.Upload)
-		r.Post("/namespace/{namespaceID}/page/{pageID}/trigger", h.FireTrigger)
+		r.Post("/namespace/{namespaceID}/page/{pageID}/trigger", h.TriggerScript)
 	})
 }

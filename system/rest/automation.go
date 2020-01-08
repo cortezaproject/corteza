@@ -34,6 +34,6 @@ func (ctrl *Automation) List(ctx context.Context, r *request.AutomationList) (in
 	)
 }
 
-func (ctrl *Automation) Trigger(ctx context.Context, r *request.AutomationTrigger) (interface{}, error) {
+func (ctrl *Automation) TriggerScript(ctx context.Context, r *request.AutomationTriggerScript) (interface{}, error) {
 	return resputil.OK(), corredor.Service().ExecOnManual(ctx, r.Script, event.SystemOnManual())
 }

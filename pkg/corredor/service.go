@@ -464,7 +464,11 @@ func (svc service) exec(ctx context.Context, script string, runAs string, event 
 	// Send results back to the event for decoding
 	err = event.Decode(encodedResults)
 	if err != nil {
-		log.Debug("could not decode results", zap.Error(err))
+		log.Debug(
+			"could not decode results",
+			zap.Error(err),
+			zap.Any("results", encodedResults),
+		)
 		return
 	}
 

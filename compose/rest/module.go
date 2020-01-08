@@ -136,7 +136,7 @@ func (ctrl *Module) Delete(ctx context.Context, r *request.ModuleDelete) (interf
 	return resputil.OK(), ctrl.module.With(ctx).DeleteByID(r.NamespaceID, r.ModuleID)
 }
 
-func (ctrl *Module) FireTrigger(ctx context.Context, r *request.ModuleFireTrigger) (rsp interface{}, err error) {
+func (ctrl *Module) TriggerScript(ctx context.Context, r *request.ModuleTriggerScript) (rsp interface{}, err error) {
 	var (
 		module    *types.Module
 		namespace *types.Namespace

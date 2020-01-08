@@ -38,7 +38,7 @@
       }
     },
     {
-      "Name": "trigger",
+      "Name": "triggerScript",
       "Method": "POST",
       "Title": "Triggers execution of a specific script on a system service level",
       "Path": "/trigger",

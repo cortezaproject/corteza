@@ -269,7 +269,7 @@
       }
     },
     {
-      "Name": "fireTrigger",
+      "Name": "triggerScript",
       "Method": "POST",
       "Title": "Fire compose:page trigger",
       "Path": "/{pageID}/trigger",
