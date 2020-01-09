@@ -17,7 +17,7 @@ type (
 
 		// Match tests if given constraints match
 		// event's internal values
-		Match(name string, op string, values ...string) bool
+		Match(ConstraintMatcher) bool
 	}
 
 	eventbus struct {
