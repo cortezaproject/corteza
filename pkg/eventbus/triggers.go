@@ -8,14 +8,6 @@ import (
 )
 
 type (
-	constraint struct {
-		name  string
-		op    string
-		value []string
-	}
-
-	constraintSet []constraint
-
 	Handler func(ctx context.Context, ev Event) error
 
 	trigger struct {
@@ -56,7 +48,7 @@ func (t trigger) Match(re Event) bool {
 
 	for _, c := range t.constraints {
 		// Should match all constraints
-		if !re.Match(c.name, c.op, c.value...) {
+		if !re.Match(c) {
 			return false
 		}
 	}
@@ -104,13 +96,9 @@ func On(ee ...string) TriggerRegOp {
 	}
 }
 
-func Constraint(name, op string, vv ...string) TriggerRegOp {
+func Constraint(c ConstraintMatcher) TriggerRegOp {
 	return func(t *trigger) {
-		t.constraints = append(t.constraints, constraint{
-			name:  name,
-			op:    op,
-			value: vv,
-		})
+		t.constraints = append(t.constraints, c)
 	}
 }
 

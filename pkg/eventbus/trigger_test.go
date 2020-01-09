@@ -15,7 +15,7 @@ type (
 	mockEvent struct {
 		rType string
 		eType string
-		match func(name string, op string, values ...string) bool
+		match func(c ConstraintMatcher) bool
 
 		identity auth.Identifiable
 	}
@@ -29,12 +29,12 @@ func (e mockEvent) EventType() string {
 	return e.eType
 }
 
-func (e mockEvent) Match(name string, op string, values ...string) bool {
+func (e mockEvent) Match(c ConstraintMatcher) bool {
 	if e.match == nil {
 		return true
 	}
 
-	return e.match(name, op, values...)
+	return e.match(c)
 }
 
 func (e *mockEvent) SetInvoker(identity auth.Identifiable) {
@@ -68,22 +68,22 @@ func TestTrigger_Match(t *testing.T) {
 			&mockEvent{rType: "foo", eType: "bar"},
 			true,
 		},
-		{"constraint match",
-			[]TriggerRegOp{For("foo"), On("bar"), Constraint("baz", "", "baz")},
+		{"ConstraintMatcher match",
+			[]TriggerRegOp{For("foo"), On("bar"), Constraint(MustMakeConstraint("baz", "=", "baz"))},
 			&mockEvent{
 				rType: "foo",
 				eType: "bar",
-				match: func(name string, op string, values ...string) bool {
-					return len(values) > 0 && name == values[0]
+				match: func(c ConstraintMatcher) bool {
+					return len(c.Values()) > 0 && c.Name() == c.Values()[0]
 				}},
 			true,
 		},
-		{"constraint mismatch",
-			[]TriggerRegOp{For("foo"), On("bar"), Constraint("baz", "", "baz")},
+		{"ConstraintMatcher mismatch",
+			[]TriggerRegOp{For("foo"), On("bar"), Constraint(MustMakeConstraint("baz", "=", "baz"))},
 			&mockEvent{
 				rType: "foo",
 				eType: "bar",
-				match: func(name string, op string, values ...string) bool {
+				match: func(c ConstraintMatcher) bool {
 					return false
 				}},
 			false,

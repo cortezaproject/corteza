@@ -3,6 +3,7 @@ package corredor
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
@@ -59,6 +60,7 @@ func makeTriggerOpts(t *Trigger) (oo []eventbus.TriggerRegOp, err error) {
 	if len(t.Events) == 0 {
 		return nil, fmt.Errorf("can not generate trigger without at least one events")
 	}
+
 	if len(t.Resources) == 0 {
 		return nil, fmt.Errorf("can not generate trigger without at least one resource")
 	}
@@ -66,12 +68,12 @@ func makeTriggerOpts(t *Trigger) (oo []eventbus.TriggerRegOp, err error) {
 	oo = append(oo, eventbus.On(t.Events...))
 	oo = append(oo, eventbus.For(t.Resources...))
 
-	for i := range t.Constraints {
-		oo = append(oo, eventbus.Constraint(
-			t.Constraints[i].Name,
-			t.Constraints[i].Op,
-			t.Constraints[i].Value...,
-		))
+	for _, raw := range t.Constraints {
+		if c, err := eventbus.ConstraintMaker(raw.Name, raw.Op, raw.Value...); err != nil {
+			return nil, errors.Wrap(err, "can not generate trigger")
+		} else {
+			oo = append(oo, eventbus.Constraint(c))
+		}
 	}
 
 	return

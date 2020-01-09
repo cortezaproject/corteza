@@ -10,6 +10,8 @@ package event
 //
 
 import (
+	"encoding/json"
+
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 )
 
@@ -110,4 +112,25 @@ func (res *composeBase) SetInvoker(argInvoker auth.Identifiable) {
 // This function is auto-generated.
 func (res composeBase) Invoker() auth.Identifiable {
 	return res.invoker
+}
+
+// Encode internal data to be passed as event params & arguments to triggered Corredor script
+func (res composeBase) Encode() (args map[string][]byte, err error) {
+	args = make(map[string][]byte)
+
+	if args["invoker"], err = json.Marshal(res.invoker); err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Decode return values from Corredor script into struct props
+func (res *composeBase) Decode(results map[string][]byte) (err error) {
+	if r, ok := results["invoker"]; ok && len(results) == 1 {
+		if err = json.Unmarshal(r, res.invoker); err != nil {
+			return
+		}
+	}
+	return
 }

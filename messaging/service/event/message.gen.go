@@ -10,6 +10,8 @@ package event
 //
 
 import (
+	"encoding/json"
+
 	"github.com/cortezaproject/corteza-server/messaging/types"
 
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -298,4 +300,55 @@ func (res *messageBase) SetInvoker(argInvoker auth.Identifiable) {
 // This function is auto-generated.
 func (res messageBase) Invoker() auth.Identifiable {
 	return res.invoker
+}
+
+// Encode internal data to be passed as event params & arguments to triggered Corredor script
+func (res messageBase) Encode() (args map[string][]byte, err error) {
+	args = make(map[string][]byte)
+
+	if args["message"], err = json.Marshal(res.message); err != nil {
+		return nil, err
+	}
+
+	if args["oldMessage"], err = json.Marshal(res.oldMessage); err != nil {
+		return nil, err
+	}
+
+	if args["channel"], err = json.Marshal(res.channel); err != nil {
+		return nil, err
+	}
+
+	if args["invoker"], err = json.Marshal(res.invoker); err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Decode return values from Corredor script into struct props
+func (res *messageBase) Decode(results map[string][]byte) (err error) {
+	if r, ok := results["result"]; ok && len(results) == 1 {
+		if err = json.Unmarshal(r, res.message); err != nil {
+			return
+		}
+	}
+
+	if r, ok := results["message"]; ok && len(results) == 1 {
+		if err = json.Unmarshal(r, res.message); err != nil {
+			return
+		}
+	}
+
+	if r, ok := results["channel"]; ok && len(results) == 1 {
+		if err = json.Unmarshal(r, res.channel); err != nil {
+			return
+		}
+	}
+
+	if r, ok := results["invoker"]; ok && len(results) == 1 {
+		if err = json.Unmarshal(r, res.invoker); err != nil {
+			return
+		}
+	}
+	return
 }

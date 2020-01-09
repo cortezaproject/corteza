@@ -10,6 +10,8 @@ package event
 //
 
 import (
+	"encoding/json"
+
 	"github.com/cortezaproject/corteza-server/system/types"
 
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -269,4 +271,45 @@ func (res *userBase) SetInvoker(argInvoker auth.Identifiable) {
 // This function is auto-generated.
 func (res userBase) Invoker() auth.Identifiable {
 	return res.invoker
+}
+
+// Encode internal data to be passed as event params & arguments to triggered Corredor script
+func (res userBase) Encode() (args map[string][]byte, err error) {
+	args = make(map[string][]byte)
+
+	if args["user"], err = json.Marshal(res.user); err != nil {
+		return nil, err
+	}
+
+	if args["oldUser"], err = json.Marshal(res.oldUser); err != nil {
+		return nil, err
+	}
+
+	if args["invoker"], err = json.Marshal(res.invoker); err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Decode return values from Corredor script into struct props
+func (res *userBase) Decode(results map[string][]byte) (err error) {
+	if r, ok := results["result"]; ok && len(results) == 1 {
+		if err = json.Unmarshal(r, res.user); err != nil {
+			return
+		}
+	}
+
+	if r, ok := results["user"]; ok && len(results) == 1 {
+		if err = json.Unmarshal(r, res.user); err != nil {
+			return
+		}
+	}
+
+	if r, ok := results["invoker"]; ok && len(results) == 1 {
+		if err = json.Unmarshal(r, res.invoker); err != nil {
+			return
+		}
+	}
+	return
 }
