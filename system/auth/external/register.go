@@ -82,7 +82,7 @@ func DiscoverOidcProvider(ctx context.Context, s *types.Settings, name, url stri
 	}
 
 	eap = &types.ExternalAuthProvider{
-		Handle:      name,
+		Handle:      OIDC_PROVIDER_PREFIX + name,
 		RedirectUrl: redirectUrl,
 		Key:         client.ID,
 		Secret:      client.Secret,
