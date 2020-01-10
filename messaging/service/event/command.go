@@ -1,15 +1,21 @@
 package event
 
-import "github.com/cortezaproject/corteza-server/pkg/eventbus"
+import (
+	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+)
 
 // Match returns false if given conditions do not match event & resource internals
 func (res commandBase) Match(c eventbus.ConstraintMatcher) bool {
-	// By default we match no mather what kind of constraints we receive
-	//
-	// Function will be called multiple times - once for every trigger constraint
-	// All should match (return true):
-	//   constraint#1 AND constraint#2 AND constraint#3 ...
-	//
-	// When there are multiple values, Match() can decide how to treat them (OR, AND...)
-	return true
+	return channelMatch(res.channel, c, commandMatch(res.command, c))
+}
+
+// Handles command matchers
+func commandMatch(r *types.Command, c eventbus.ConstraintMatcher) bool {
+	switch c.Name() {
+	case "command", "command.name":
+		return r != nil && c.Match(r.Name)
+	}
+
+	return false
 }
