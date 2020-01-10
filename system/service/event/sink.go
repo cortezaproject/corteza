@@ -17,8 +17,10 @@ func (res sinkBase) Match(c eventbus.ConstraintMatcher) bool {
 // Handles sink matchers
 func sinkMatch(r *types.SinkRequest, c eventbus.ConstraintMatcher) bool {
 	switch c.Name() {
-	case "url", "request.url":
+	case "request.url":
 		return c.Match(r.RequestURL)
+	case "request.content-type":
+		r.Header.Get("content-type")
 	}
 
 	return true
