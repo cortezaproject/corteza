@@ -7,22 +7,22 @@ import (
 
 // Match returns false if given conditions do not match event & resource internals
 func (res messagingOnInterval) Match(c eventbus.ConstraintMatcher) bool {
+	// @todo this could be flippled
+	//       instead of passing around raw values as strings,
+	//       constraint values could/should be preparsed when creating constraint
 	return scheduler.OnInterval(c.Values()...)
 }
 
 // Match returns false if given conditions do not match event & resource internals
 func (res messagingOnTimestamp) Match(c eventbus.ConstraintMatcher) bool {
+	// @todo this could be flippled
+	//       instead of passing around raw values as strings,
+	//       constraint values could/should be preparsed when creating constraint
 	return scheduler.OnTimestamp(c.Values()...)
 }
 
 // Match returns false if given conditions do not match event & resource internals
 func (res messagingBase) Match(c eventbus.ConstraintMatcher) bool {
-	// By default we match no mather what kind of constraints we receive
-	//
-	// Function will be called multiple times - once for every trigger constraint
-	// All should match (return true):
-	//   constraint#1 AND constraint#2 AND constraint#3 ...
-	//
-	// When there are multiple values, Match() can decide how to treat them (OR, AND...)
-	return true
+	// No constraints are supported for messaging.
+	return false
 }
