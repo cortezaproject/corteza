@@ -11,6 +11,8 @@ type (
 	MailMessage struct {
 		Date time.Time `json:"date"`
 
+		Subject string `json:"subject"`
+
 		Header MailMessageHeader `json:"header"`
 
 		// RawBody will be base64 encoded!
@@ -56,6 +58,7 @@ func NewMailMessage(r io.Reader) (out *MailMessage, err error) {
 	out.Header.Raw = msg.Header
 
 	out.Date, _ = msg.Header.Date()
+	out.Subject = msg.Header.Get("subject")
 
 	for _, key := range addrKeys {
 		aa, err = msg.Header.AddressList(key)

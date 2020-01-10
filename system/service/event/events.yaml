@@ -10,7 +10,7 @@ system:sink:
 system:mail:
   on: ['manual', 'receive', 'send']
   props:
-    - name: 'request'
+    - name: 'message'
       type: '*types.MailMessage'
 
 system:auth:
