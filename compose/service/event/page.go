@@ -1,15 +1,23 @@
 package event
 
-import "github.com/cortezaproject/corteza-server/pkg/eventbus"
+import (
+	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+)
 
 // Match returns false if given conditions do not match event & resource internals
 func (res pageBase) Match(c eventbus.ConstraintMatcher) bool {
-	// By default we match no mather what kind of constraints we receive
-	//
-	// Function will be called multiple times - once for every trigger constraint
-	// All should match (return true):
-	//   constraint#1 AND constraint#2 AND constraint#3 ...
-	//
-	// When there are multiple values, Match() can decide how to treat them (OR, AND...)
-	return true
+	return namespaceMatch(res.namespace, c, pageMatch(res.page, c, false))
+}
+
+// Handles namespace matchers
+func pageMatch(r *types.Page, c eventbus.ConstraintMatcher, def bool) bool {
+	switch c.Name() {
+	case "page", "page.handle":
+		return c.Match(r.Handle)
+	case "page.title":
+		return c.Match(r.Title)
+	}
+
+	return def
 }
