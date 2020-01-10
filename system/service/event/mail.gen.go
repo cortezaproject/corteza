@@ -22,7 +22,7 @@ type (
 	//
 	// This type is auto-generated.
 	mailBase struct {
-		request *types.MailMessage
+		message *types.MailMessage
 		invoker auth.Identifiable
 	}
 
@@ -80,11 +80,11 @@ func (mailOnSend) EventType() string {
 //
 // This function is auto-generated.
 func MailOnManual(
-	argRequest *types.MailMessage,
+	argMessage *types.MailMessage,
 ) *mailOnManual {
 	return &mailOnManual{
 		mailBase: &mailBase{
-			request: argRequest,
+			message: argMessage,
 		},
 	}
 }
@@ -93,11 +93,11 @@ func MailOnManual(
 //
 // This function is auto-generated.
 func MailOnReceive(
-	argRequest *types.MailMessage,
+	argMessage *types.MailMessage,
 ) *mailOnReceive {
 	return &mailOnReceive{
 		mailBase: &mailBase{
-			request: argRequest,
+			message: argMessage,
 		},
 	}
 }
@@ -106,27 +106,27 @@ func MailOnReceive(
 //
 // This function is auto-generated.
 func MailOnSend(
-	argRequest *types.MailMessage,
+	argMessage *types.MailMessage,
 ) *mailOnSend {
 	return &mailOnSend{
 		mailBase: &mailBase{
-			request: argRequest,
+			message: argMessage,
 		},
 	}
 }
 
-// SetRequest sets new request value
+// SetMessage sets new message value
 //
 // This function is auto-generated.
-func (res *mailBase) SetRequest(argRequest *types.MailMessage) {
-	res.request = argRequest
+func (res *mailBase) SetMessage(argMessage *types.MailMessage) {
+	res.message = argMessage
 }
 
-// Request returns request
+// Message returns message
 //
 // This function is auto-generated.
-func (res mailBase) Request() *types.MailMessage {
-	return res.request
+func (res mailBase) Message() *types.MailMessage {
+	return res.message
 }
 
 // SetInvoker sets new invoker value
@@ -147,7 +147,7 @@ func (res mailBase) Invoker() auth.Identifiable {
 func (res mailBase) Encode() (args map[string][]byte, err error) {
 	args = make(map[string][]byte)
 
-	if args["request"], err = json.Marshal(res.request); err != nil {
+	if args["message"], err = json.Marshal(res.message); err != nil {
 		return nil, err
 	}
 
@@ -161,13 +161,13 @@ func (res mailBase) Encode() (args map[string][]byte, err error) {
 // Decode return values from Corredor script into struct props
 func (res *mailBase) Decode(results map[string][]byte) (err error) {
 	if r, ok := results["result"]; ok && len(results) == 1 {
-		if err = json.Unmarshal(r, res.request); err != nil {
+		if err = json.Unmarshal(r, res.message); err != nil {
 			return
 		}
 	}
 
-	if r, ok := results["request"]; ok && len(results) == 1 {
-		if err = json.Unmarshal(r, res.request); err != nil {
+	if r, ok := results["message"]; ok && len(results) == 1 {
+		if err = json.Unmarshal(r, res.message); err != nil {
 			return
 		}
 	}
