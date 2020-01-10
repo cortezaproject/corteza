@@ -1,15 +1,23 @@
 package event
 
-import "github.com/cortezaproject/corteza-server/pkg/eventbus"
+import (
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/system/types"
+)
 
 // Match returns false if given conditions do not match event & resource internals
 func (res userBase) Match(c eventbus.ConstraintMatcher) bool {
-	// By default we match no mather what kind of constraints we receive
-	//
-	// Function will be called multiple times - once for every trigger constraint
-	// All should match (return true):
-	//   constraint#1 AND constraint#2 AND constraint#3 ...
-	//
-	// When there are multiple values, Match() can decide how to treat them (OR, AND...)
-	return true
+	return userMatch(res.user, c, false)
+}
+
+// Handles user matchers
+func userMatch(r *types.User, c eventbus.ConstraintMatcher, def bool) bool {
+	switch c.Name() {
+	case "user", "user.handle":
+		return r != nil && c.Match(r.Handle)
+	case "user.email":
+		return r != nil && c.Match(r.Email)
+	}
+
+	return def
 }

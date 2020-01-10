@@ -1,15 +1,23 @@
 package event
 
-import "github.com/cortezaproject/corteza-server/pkg/eventbus"
+import (
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/system/types"
+)
 
 // Match returns false if given conditions do not match event & resource internals
 func (res roleBase) Match(c eventbus.ConstraintMatcher) bool {
-	// By default we match no mather what kind of constraints we receive
-	//
-	// Function will be called multiple times - once for every trigger constraint
-	// All should match (return true):
-	//   constraint#1 AND constraint#2 AND constraint#3 ...
-	//
-	// When there are multiple values, Match() can decide how to treat them (OR, AND...)
-	return true
+	return roleMatch(res.role, c, false)
+}
+
+// Handles role matchers
+func roleMatch(r *types.Role, c eventbus.ConstraintMatcher, def bool) bool {
+	switch c.Name() {
+	case "role", "role.handle":
+		return c.Match(r.Handle)
+	case "role.name":
+		return c.Match(r.Name)
+	}
+
+	return def
 }
