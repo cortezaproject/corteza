@@ -1,0 +1,2 @@
+pkg/automation package is deprecated and replaced 
+by pkg/corredor, pkg/eventbus and pkg/scheduler
