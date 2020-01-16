@@ -1,6 +1,6 @@
 # pkg/eventbus
 
-Package handles event dispatching and trigger registration
+Package handles event dispatching and handler registration
 
 ## Event
 
@@ -21,14 +21,14 @@ Deferred events (onTimestamp and onInterval) are executed by scheduler package s
 #### Manual events
 
 Manual events (onManual) are a special case.
-Events are not (nor should be) triggered directly or through eventbus.
+These events are not (nor should be) dispatched directly or through event-bus.
 
 We use it to route requests and pack attributes from the API to the Corredor service
 
 ### Event matcher
 
 Matcher is a function on event that helps filtering fired events.
-It decides (returns true or false) if fired event is a match for any of a registered triggers
+It decides (returns true or false) if fired event is a match for any of a registered handlers
 
 Bus has basic internal filtering for resource & event type.
 Other constraints are passed to event's matcher function.
@@ -45,20 +45,20 @@ All constraints must match.
 First non-match will break constraint checking procedure.
 
 
-## Triggers
+## Handler
 
-Trigger is combination of (event matching) rules/constraints and event handler.
-Handler is a callback function called when a compatible event is fired.
+Handler is combination of (event matching) rules/constraints and handler callback function.
+Function is called when a event compatible with registered rules & constraints is fired.
 
-Trigger can respond to multiple resource/event combinations.
+Handler can respond to multiple resource/event combinations.
 
 ### Constraints
 
-Matcher function is called multiple times, once per each trigger constraint.
+Matcher function is called multiple times, once per each handler constraint.
 If any of the calls result in a non-match, check
 
-Trigger without constraint is considered a match.
+Handler without any constraints is considered a match.
 
 ### Weight
 
-Weight controls order of trigger execution.
+Weight controls order of execution.

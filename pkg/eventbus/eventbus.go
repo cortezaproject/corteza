@@ -24,11 +24,11 @@ type (
 		wg *sync.WaitGroup
 
 		// Read & write locking
-		// prevent event handling during trigger (un)registration
+		// prevent event handling during handler (un)registration
 		l *sync.RWMutex
 
 		// list of registered handlers
-		triggers map[uintptr]*trigger
+		handlers map[uintptr]*handler
 	}
 )
 
@@ -50,7 +50,7 @@ func New() *eventbus {
 	return &eventbus{
 		wg:       &sync.WaitGroup{},
 		l:        &sync.RWMutex{},
-		triggers: make(map[uintptr]*trigger),
+		handlers: make(map[uintptr]*handler),
 	}
 }
 
@@ -61,7 +61,7 @@ func (b *eventbus) WaitFor(ctx context.Context, ev Event) (err error) {
 	b.l.RLock()
 	defer b.l.RUnlock()
 	for _, t := range b.find(ev) {
-		err = func(ctx context.Context, t *trigger) error {
+		err = func(ctx context.Context, t *handler) error {
 			b.wg.Add(1)
 			defer b.wg.Done()
 			return t.Handle(ctx, ev)
@@ -82,7 +82,7 @@ func (b *eventbus) Dispatch(ctx context.Context, ev Event) {
 	defer b.l.RUnlock()
 	for _, t := range b.find(ev) {
 		b.wg.Add(1)
-		go func(ctx context.Context, t *trigger) {
+		go func(ctx context.Context, t *handler) {
 			defer b.wg.Done()
 			_ = t.Handle(ctx, ev)
 		}(ctx, t)
@@ -96,18 +96,18 @@ func (b *eventbus) wait() {
 	b.wg.Wait()
 }
 
-// Finds all registered triggers compatible with given event
+// Finds all registered handlers compatible with given event
 //
-// It returns sorted triggers
+// It returns sorted handlers
 //
 // There is still room for improvement (performance wise) by indexing
-// resources and events of each trigger.
-func (b *eventbus) find(ev Event) (tt TriggerSet) {
+// resources and events of each handler.
+func (b *eventbus) find(ev Event) (tt HandlerSet) {
 	if ev == nil {
 		return
 	}
 
-	for _, t := range b.triggers {
+	for _, t := range b.handlers {
 
 		if !t.Match(ev) {
 			continue
@@ -121,28 +121,28 @@ func (b *eventbus) find(ev Event) (tt TriggerSet) {
 	return
 }
 
-// Register creates a new trigger with given handler, resource, event with other options and constraints
+// Register creates a new handler with given handler, resource, event with other options and constraints
 //
-// It returns a trigger identifier that can be used to remove (unregister) trigger later
-func (b *eventbus) Register(h Handler, ops ...TriggerRegOp) uintptr {
+// It returns a handler identifier that can be used to remove (unregister) handler later
+func (b *eventbus) Register(h HandlerFn, ops ...HandlerRegOp) uintptr {
 	b.l.Lock()
 	defer b.l.Unlock()
 
 	var (
-		trigger = NewTrigger(h, ops...)
-		ptr     = uintptr(unsafe.Pointer(trigger))
+		handlers = NewHandler(h, ops...)
+		ptr      = uintptr(unsafe.Pointer(handlers))
 	)
 
-	b.triggers[ptr] = trigger
+	b.handlers[ptr] = handlers
 	return ptr
 }
 
-// Unregister removes one or more registered triggers
+// Unregister removes one or more registered handlers
 func (b *eventbus) Unregister(ptrs ...uintptr) {
 	b.l.Lock()
 	defer b.l.Unlock()
 
 	for _, ptr := range ptrs {
-		delete(b.triggers, ptr)
+		delete(b.handlers, ptr)
 	}
 }

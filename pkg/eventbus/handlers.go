@@ -8,10 +8,10 @@ import (
 )
 
 type (
-	Handler func(ctx context.Context, ev Event) error
+	HandlerFn func(ctx context.Context, ev Event) error
 
-	trigger struct {
-		handler       Handler
+	handler struct {
+		handler       HandlerFn
 		resourceTypes map[string]bool
 		eventTypes    map[string]bool
 		constraints   constraintSet
@@ -19,30 +19,30 @@ type (
 	}
 
 	// @todo add sorting interface
-	TriggerSet []*trigger
+	HandlerSet []*handler
 
-	TriggerRegOp func(t *trigger)
+	HandlerRegOp func(t *handler)
 
 	eventInvokerSettable interface {
 		SetInvoker(auth.Identifiable)
 	}
 )
 
-// Match matches trigger with resource event
-func (t trigger) Match(re Event) bool {
+// Match matches handler with resource event
+func (t handler) Match(re Event) bool {
 	if re == nil {
 		return false
 	}
 
 	if len(re.ResourceType()) == 0 || !t.resourceTypes[re.ResourceType()] {
 		// Expecting to have valid resource type and match at least one
-		// defined resource on the trigger
+		// defined resource on the handler
 		return false
 	}
 
 	if len(re.EventType()) == 0 || !t.eventTypes[re.EventType()] {
 		// Expecting to have valid event type and match at least one
-		// defined event on the trigger
+		// defined event on the handler
 		return false
 	}
 
@@ -56,7 +56,7 @@ func (t trigger) Match(re Event) bool {
 	return true
 }
 
-func (t trigger) Handle(ctx context.Context, ev Event) error {
+func (t handler) Handle(ctx context.Context, ev Event) error {
 	defer sentry.Recover()
 
 	if eis, ok := ev.(eventInvokerSettable); ok {
@@ -66,8 +66,8 @@ func (t trigger) Handle(ctx context.Context, ev Event) error {
 	return t.handler(ctx, ev)
 }
 
-func NewTrigger(h Handler, ops ...TriggerRegOp) *trigger {
-	var t = &trigger{
+func NewHandler(h HandlerFn, ops ...HandlerRegOp) *handler {
+	var t = &handler{
 		resourceTypes: make(map[string]bool),
 		eventTypes:    make(map[string]bool),
 		handler:       h,
@@ -80,36 +80,36 @@ func NewTrigger(h Handler, ops ...TriggerRegOp) *trigger {
 	return t
 }
 
-func For(rr ...string) TriggerRegOp {
-	return func(t *trigger) {
+func For(rr ...string) HandlerRegOp {
+	return func(t *handler) {
 		for _, r := range rr {
 			t.resourceTypes[r] = true
 		}
 	}
 }
 
-func On(ee ...string) TriggerRegOp {
-	return func(t *trigger) {
+func On(ee ...string) HandlerRegOp {
+	return func(t *handler) {
 		for _, e := range ee {
 			t.eventTypes[e] = true
 		}
 	}
 }
 
-func Constraint(c ConstraintMatcher) TriggerRegOp {
-	return func(t *trigger) {
+func Constraint(c ConstraintMatcher) HandlerRegOp {
+	return func(t *handler) {
 		t.constraints = append(t.constraints, c)
 	}
 }
 
-func Weight(weight int) TriggerRegOp {
-	return func(t *trigger) {
+func Weight(weight int) HandlerRegOp {
+	return func(t *handler) {
 		t.weight = weight
 	}
 }
 
-// Trigger-set sorting:
+// handler sorting:
 
-func (set TriggerSet) Len() int           { return len(set) }
-func (set TriggerSet) Swap(i, j int)      { set[i], set[j] = set[j], set[i] }
-func (set TriggerSet) Less(i, j int) bool { return set[i].weight < set[j].weight }
+func (set HandlerSet) Len() int           { return len(set) }
+func (set HandlerSet) Swap(i, j int)      { set[i], set[j] = set[j], set[i] }
+func (set HandlerSet) Less(i, j int) bool { return set[i].weight < set[j].weight }
