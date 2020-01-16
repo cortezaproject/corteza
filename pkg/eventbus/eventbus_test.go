@@ -18,23 +18,23 @@ func TestEventbusRegUnreg(t *testing.T) {
 		bus = New()
 	)
 
-	a.Empty(bus.triggers)
+	a.Empty(bus.handlers)
 	h1 := bus.Register(nil)
 	a.NotZero(h1)
 	h2 := bus.Register(nil)
 	a.NotZero(h2)
 	h3 := bus.Register(nil)
 	a.NotZero(h3)
-	a.Len(bus.triggers, 3)
+	a.Len(bus.handlers, 3)
 	bus.Unregister(h1)
-	a.Len(bus.triggers, 2)
+	a.Len(bus.handlers, 2)
 	bus.Unregister(h2)
-	a.Len(bus.triggers, 1)
+	a.Len(bus.handlers, 1)
 	bus.Unregister(h3)
-	a.Empty(bus.triggers)
+	a.Empty(bus.handlers)
 }
 
-func BenchmarkEventbusTriggerLookup(b *testing.B) {
+func BenchmarkEventbusHandlerLookup(b *testing.B) {
 	var (
 		bus  = New()
 		ptrs []uintptr

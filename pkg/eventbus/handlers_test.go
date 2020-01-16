@@ -41,10 +41,10 @@ func (e *mockEvent) SetInvoker(identity auth.Identifiable) {
 	e.identity = identity
 }
 
-func TestTrigger_Match(t *testing.T) {
+func TestHandler_Match(t *testing.T) {
 	cases := []struct {
 		name  string
-		ops   []TriggerRegOp
+		ops   []HandlerRegOp
 		ev    Event
 		match bool
 	}{
@@ -54,22 +54,22 @@ func TestTrigger_Match(t *testing.T) {
 			false,
 		},
 		{"empty resource",
-			[]TriggerRegOp{For("foo"), On("bar")},
+			[]HandlerRegOp{For("foo"), On("bar")},
 			&mockEvent{rType: "", eType: "bar"},
 			false,
 		},
 		{"empty event",
-			[]TriggerRegOp{For("foo"), On("bar")},
+			[]HandlerRegOp{For("foo"), On("bar")},
 			&mockEvent{rType: "foo", eType: ""},
 			false,
 		},
 		{"simple foo-bar test",
-			[]TriggerRegOp{For("foo"), On("bar")},
+			[]HandlerRegOp{For("foo"), On("bar")},
 			&mockEvent{rType: "foo", eType: "bar"},
 			true,
 		},
 		{"ConstraintMatcher match",
-			[]TriggerRegOp{For("foo"), On("bar"), Constraint(MustMakeConstraint("baz", "=", "baz"))},
+			[]HandlerRegOp{For("foo"), On("bar"), Constraint(MustMakeConstraint("baz", "=", "baz"))},
 			&mockEvent{
 				rType: "foo",
 				eType: "bar",
@@ -79,7 +79,7 @@ func TestTrigger_Match(t *testing.T) {
 			true,
 		},
 		{"ConstraintMatcher mismatch",
-			[]TriggerRegOp{For("foo"), On("bar"), Constraint(MustMakeConstraint("baz", "=", "baz"))},
+			[]HandlerRegOp{For("foo"), On("bar"), Constraint(MustMakeConstraint("baz", "=", "baz"))},
 			&mockEvent{
 				rType: "foo",
 				eType: "bar",
@@ -92,20 +92,20 @@ func TestTrigger_Match(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			var trigger = NewTrigger(nil, c.ops...)
+			var handler = NewHandler(nil, c.ops...)
 			if c.match {
-				assert.True(t, trigger.Match(c.ev), "Expecting to match")
+				assert.True(t, handler.Match(c.ev), "Expecting to match")
 
 			} else {
-				assert.False(t, trigger.Match(c.ev), "Expecting to not match")
+				assert.False(t, handler.Match(c.ev), "Expecting to not match")
 
 			}
 		})
 	}
 }
 
-func TestTrigger_RegOps(t *testing.T) {
-	makeTestTrigger := func(t *trigger) *trigger {
+func TestHandler_RegOps(t *testing.T) {
+	makeTestHandler := func(t *handler) *handler {
 		if t.resourceTypes == nil {
 			t.resourceTypes = make(map[string]bool)
 		}
@@ -119,45 +119,45 @@ func TestTrigger_RegOps(t *testing.T) {
 
 	cases := []struct {
 		name string
-		exp  *trigger
-		ops  []TriggerRegOp
+		exp  *handler
+		ops  []HandlerRegOp
 	}{
 		{
 			"empty",
-			makeTestTrigger(&trigger{}),
+			makeTestHandler(&handler{}),
 			nil,
 		},
 		{
 			"resource types",
-			makeTestTrigger(&trigger{resourceTypes: map[string]bool{"foo": true, "bar": true}}),
-			[]TriggerRegOp{For("foo", "bar")},
+			makeTestHandler(&handler{resourceTypes: map[string]bool{"foo": true, "bar": true}}),
+			[]HandlerRegOp{For("foo", "bar")},
 		},
 		{
 			"event types",
-			makeTestTrigger(&trigger{eventTypes: map[string]bool{"foo": true, "bar": true}}),
-			[]TriggerRegOp{On("foo", "bar")},
+			makeTestHandler(&handler{eventTypes: map[string]bool{"foo": true, "bar": true}}),
+			[]HandlerRegOp{On("foo", "bar")},
 		},
 		{
 			"weight",
-			makeTestTrigger(&trigger{weight: 42}),
-			[]TriggerRegOp{Weight(42)},
+			makeTestHandler(&handler{weight: 42}),
+			[]HandlerRegOp{Weight(42)},
 		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			assert.Equal(t, c.exp, NewTrigger(nil, c.ops...))
+			assert.Equal(t, c.exp, NewHandler(nil, c.ops...))
 		})
 	}
 }
 
-func TestTriggerHandler(t *testing.T) {
+func TestHandlerHandler(t *testing.T) {
 	var (
 		a             = assert.New(t)
 		ctx           = context.Background()
 		ev            = &mockEvent{}
 		passedthrough bool
 
-		trSimple = &trigger{
+		trSimple = &handler{
 			handler: func(ctx context.Context, ev Event) error {
 				passedthrough = true
 				a.True(auth.IsSuperUser(ev.(*mockEvent).identity))
@@ -175,16 +175,16 @@ func TestTriggerHandler(t *testing.T) {
 	a.True(passedthrough, "expecting to pass through simple handler")
 }
 
-func TestTriggerSorting(t *testing.T) {
+func TestHandlerSorting(t *testing.T) {
 	var (
 		a  = assert.New(t)
-		tt = TriggerSet{
-			NewTrigger(nil, Weight(3)),
-			NewTrigger(nil, Weight(1)),
-			NewTrigger(nil, Weight(2)),
+		tt = HandlerSet{
+			NewHandler(nil, Weight(3)),
+			NewHandler(nil, Weight(1)),
+			NewHandler(nil, Weight(2)),
 		}
 
-		w2s = func(tt TriggerSet) (out string) {
+		w2s = func(tt HandlerSet) (out string) {
 			for _, t := range tt {
 				out += fmt.Sprintf("%d,", t.weight)
 			}

@@ -59,7 +59,7 @@ type (
 	}
 
 	eventRegistry interface {
-		Register(h eventbus.Handler, ops ...eventbus.TriggerRegOp) uintptr
+		Register(h eventbus.HandlerFn, ops ...eventbus.HandlerRegOp) uintptr
 		Unregister(ptrs ...uintptr)
 	}
 
@@ -255,7 +255,7 @@ func (svc *service) registerServerScripts(ss ...*ServerScript) {
 // registers that script to the list of manual triggers
 func (svc *service) registerTriggers(script *ServerScript) []uintptr {
 	var (
-		ops  []eventbus.TriggerRegOp
+		ops  []eventbus.HandlerRegOp
 		err  error
 		ptrs = make([]uintptr, 0, len(script.Triggers))
 

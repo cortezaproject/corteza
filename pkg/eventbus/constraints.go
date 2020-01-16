@@ -112,11 +112,11 @@ func mustLikeMaker(name string, not bool, vv ...string) (*mustBeLike, error) {
 }
 
 func MustBeLike(name string, vv ...string) (ConstraintMatcher, error) {
-	return &mustBeLike{name: name, values: vv}, nil
+	return mustLikeMaker(name, false, vv...)
 }
 
 func MustNotBeLike(name string, vv ...string) (ConstraintMatcher, error) {
-	return &mustBeLike{name: name, values: vv, not: true}, nil
+	return mustLikeMaker(name, true, vv...)
 }
 
 func (c mustBeLike) Match(value string) bool {

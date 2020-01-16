@@ -56,7 +56,7 @@ func pluckManualTriggers(script *ServerScript) map[string]string {
 }
 
 // converts trigger's constraint to eventbus' constraint options
-func makeTriggerOpts(t *Trigger) (oo []eventbus.TriggerRegOp, err error) {
+func makeTriggerOpts(t *Trigger) (oo []eventbus.HandlerRegOp, err error) {
 	if len(t.Events) == 0 {
 		return nil, fmt.Errorf("can not generate trigger without at least one events")
 	}

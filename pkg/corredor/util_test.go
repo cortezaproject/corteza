@@ -66,7 +66,7 @@ func TestTriggerOptsMaking(t *testing.T) {
 			},
 		}
 
-		oo  []eventbus.TriggerRegOp
+		oo  []eventbus.HandlerRegOp
 		err error
 	)
 
