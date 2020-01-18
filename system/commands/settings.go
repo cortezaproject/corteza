@@ -79,7 +79,13 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 				Name: args[0],
 			}
 
-			if err := v.SetRawValue(value); err != nil {
+			err := v.SetRawValue(value)
+			if _, is := err.(*json.SyntaxError); is {
+				// Quote the raw value and re-parse
+				err = v.SetRawValue(`"` + value + `"`)
+			}
+
+			if err != nil {
 				cli.HandleError(err)
 			}
 
