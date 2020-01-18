@@ -187,9 +187,9 @@ func authSettingsAutoDiscovery(ctx context.Context, log *zap.Logger, svc setting
 
 					// All env keys we'll check, first that has any value set, will be used as hostname
 					keysWithHostnames = []string{
-						"DOMAIN",
 						"LETSENCRYPT_HOST",
 						"VIRTUAL_HOST",
+						"DOMAIN",
 						"HOSTNAME",
 						"HOST",
 					}
