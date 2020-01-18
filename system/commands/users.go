@@ -3,6 +3,9 @@ package commands
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"strconv"
 	"syscall"
 
 	"github.com/spf13/cobra"
@@ -32,22 +35,38 @@ func Users(ctx context.Context, c *cli.Config) *cobra.Command {
 		Short: "List users",
 		Run: func(cmd *cobra.Command, args []string) {
 			c.InitServices(ctx, c)
+			ctx = auth.SetSuperUserContext(ctx)
 
 			var (
 				db = factory.Database.MustGet("system")
+
+				queryFlag = cmd.Flags().Lookup("query").Value.String()
+				limitFlag = cmd.Flags().Lookup("limit").Value.String()
+
+				limit int
+				err   error
 			)
+
+			limit, err = strconv.Atoi(limitFlag)
+			cli.HandleError(err)
 
 			userRepo := repository.User(ctx, db)
 			uf := types.UserFilter{
-				Sort: "updatedAt",
+				Sort:  "updated_at",
+				Query: queryFlag,
+				PageFilter: rh.PageFilter{
+					PerPage: uint(limit),
+				},
 			}
 
 			users, _, err := userRepo.Find(uf)
-			if err != nil {
-				cli.HandleError(err)
-			}
+			cli.HandleError(err)
 
-			fmt.Println("                     Created    Updated    EmailAddress")
+			fmt.Fprintf(
+				cmd.OutOrStdout(),
+				"                     Created    Updated    EmailAddress",
+			)
+
 			for _, u := range users {
 				upd := "---- -- --"
 
@@ -55,16 +74,21 @@ func Users(ctx context.Context, c *cli.Config) *cobra.Command {
 					upd = u.UpdatedAt.Format("2006-01-02")
 				}
 
-				fmt.Printf(
+				fmt.Fprintf(
+					cmd.OutOrStdout(),
 					"%20d %s %s %-100s %s\n",
 					u.ID,
 					u.CreatedAt.Format("2006-01-02"),
 					upd,
 					u.Email,
-					u.Name)
+					u.Name,
+				)
 			}
 		},
 	}
+
+	listCmd.Flags().IntP("limit", "l", 20, "How many entry to display")
+	listCmd.Flags().StringP("query", "q", "", "Query and filter by handle, email, name")
 
 	addCmd := &cobra.Command{
 		Use:   "add [email]",
@@ -72,6 +96,7 @@ func Users(ctx context.Context, c *cli.Config) *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			c.InitServices(ctx, c)
+			ctx = auth.SetSuperUserContext(ctx)
 
 			var (
 				db = factory.Database.MustGet("system")
@@ -127,6 +152,7 @@ func Users(ctx context.Context, c *cli.Config) *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			c.InitServices(ctx, c)
+			ctx = auth.SetSuperUserContext(ctx)
 
 			var (
 				db = factory.Database.MustGet("system")
