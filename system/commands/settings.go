@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"os"
 	"strings"
 
@@ -26,6 +27,7 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 		Short: "List all",
 		Run: func(cmd *cobra.Command, args []string) {
 			c.InitServices(ctx, c)
+			ctx = auth.SetSuperUserContext(ctx)
 
 			prefix := cmd.Flags().Lookup("prefix").Value.String()
 			if kv, err := service.DefaultSettings.FindByPrefix(ctx, prefix); err != nil {
@@ -54,6 +56,7 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			c.InitServices(ctx, c)
+			ctx = auth.SetSuperUserContext(ctx)
 
 			if v, err := service.DefaultSettings.Get(ctx, args[0], 0); err != nil {
 				cli.HandleError(err)
@@ -69,6 +72,7 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			c.InitServices(ctx, c)
+			ctx = auth.SetSuperUserContext(ctx)
 
 			value := args[1]
 			v := &settings.Value{
@@ -89,6 +93,7 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			c.InitServices(ctx, c)
+			ctx = auth.SetSuperUserContext(ctx)
 
 			var (
 				fh  *os.File
@@ -129,6 +134,7 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			c.InitServices(ctx, c)
+			ctx = auth.SetSuperUserContext(ctx)
 
 			var (
 				fh  *os.File
@@ -162,6 +168,7 @@ func Settings(ctx context.Context, c *cli.Config) *cobra.Command {
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			c.InitServices(ctx, c)
+			ctx = auth.SetSuperUserContext(ctx)
 
 			var names = []string{}
 
