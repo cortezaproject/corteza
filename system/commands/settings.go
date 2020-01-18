@@ -2,7 +2,6 @@ package commands
 
 import (
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"os"
 	"strings"
 
