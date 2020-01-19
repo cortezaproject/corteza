@@ -19,6 +19,8 @@ ENV COMPOSE_STORAGE_PATH   /data/compose
 ENV MESSAGING_STORAGE_PATH /data/messaging
 ENV SYSTEM_STORAGE_PATH    /data/system
 
+ENV CORREDOR_ADDR corredor:80
+
 VOLUME /data
 
 EXPOSE 80
