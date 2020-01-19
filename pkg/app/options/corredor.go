@@ -37,14 +37,14 @@ func Corredor() (o *CorredorOpt) {
 	o = &CorredorOpt{
 		Enabled:            true,
 		RunAsEnabled:       true,
-		Addr:               "corredor:80",
+		Addr:               "localhost:50051",
 		MaxBackoffDelay:    time.Minute,
 		DefaultExecTimeout: time.Minute,
 		ListTimeout:        time.Second * 2,
 		Log:                false,
 
 		TlsCertEnabled: true,
-		TlsCertPath:    "/corredor-certificates",
+		TlsCertPath:    "/certs/corredor/client",
 		TlsCertCA:      "ca.crt",
 		TlsCertPublic:  "public.crt",
 		TlsCertPrivate: "private.key",
