@@ -12,7 +12,7 @@ type (
 		// ResourceType from resource that fired the event
 		ResourceType() string
 
-		// Type of event fired
+		// EventType returns type of event fired
 		EventType() string
 
 		// Match tests if given constraints match
