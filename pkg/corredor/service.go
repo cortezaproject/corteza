@@ -267,7 +267,7 @@ func (svc *service) registerTriggers(script *ServerScript) []uintptr {
 		// so let's make a copy we can play with
 		trigger := script.Triggers[i]
 
-		if len(trigger.Events) == 0 {
+		if len(trigger.EventTypes) == 0 {
 			// We've removed the last event
 			//
 			// break now to prevent code below to

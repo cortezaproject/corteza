@@ -20,12 +20,12 @@ type (
 // returns true if event type was removed or
 // false if there was no onManual event
 func popOnManualEventType(trigger *Trigger) (found bool) {
-	for i := len(trigger.Events) - 1; i >= 0; i-- {
-		if trigger.Events[i] == onManualEventType {
+	for i := len(trigger.EventTypes) - 1; i >= 0; i-- {
+		if trigger.EventTypes[i] == onManualEventType {
 			found = true
 
 			// remove from the list
-			trigger.Events = append(trigger.Events[:i], trigger.Events[i+1:]...)
+			trigger.EventTypes = append(trigger.EventTypes[:i], trigger.EventTypes[i+1:]...)
 		}
 	}
 
@@ -46,7 +46,7 @@ func pluckManualTriggers(script *ServerScript) map[string]string {
 		trigger := script.Triggers[i]
 
 		if popOnManualEventType(trigger) {
-			for _, res := range trigger.Resources {
+			for _, res := range trigger.ResourceTypes {
 				hash[res] = trigger.RunAs
 			}
 		}
@@ -57,16 +57,16 @@ func pluckManualTriggers(script *ServerScript) map[string]string {
 
 // converts trigger's constraint to eventbus' constraint options
 func makeTriggerOpts(t *Trigger) (oo []eventbus.HandlerRegOp, err error) {
-	if len(t.Events) == 0 {
+	if len(t.EventTypes) == 0 {
 		return nil, fmt.Errorf("can not generate trigger without at least one events")
 	}
 
-	if len(t.Resources) == 0 {
+	if len(t.ResourceTypes) == 0 {
 		return nil, fmt.Errorf("can not generate trigger without at least one resource")
 	}
 
-	oo = append(oo, eventbus.On(t.Events...))
-	oo = append(oo, eventbus.For(t.Resources...))
+	oo = append(oo, eventbus.On(t.EventTypes...))
+	oo = append(oo, eventbus.For(t.ResourceTypes...))
 
 	for _, raw := range t.Constraints {
 		if c, err := eventbus.ConstraintMaker(raw.Name, raw.Op, raw.Value...); err != nil {
@@ -101,7 +101,7 @@ func makeScriptFilter(f Filter) func(s *Script) (b bool, err error) {
 			// at least one of the script's triggers should match
 			b = false
 			for _, t := range s.Triggers {
-				if len(slice.IntersectStrings(f.ResourceTypes, t.Resources)) > 0 {
+				if len(slice.IntersectStrings(f.ResourceTypes, t.ResourceTypes)) > 0 {
 					b = true
 				}
 			}
@@ -117,7 +117,7 @@ func makeScriptFilter(f Filter) func(s *Script) (b bool, err error) {
 			// at least one of the script's triggers should match
 			b = false
 			for _, t := range s.Triggers {
-				if len(slice.IntersectStrings(f.EventTypes, t.Events)) > 0 {
+				if len(slice.IntersectStrings(f.EventTypes, t.EventTypes)) > 0 {
 					b = true
 				}
 			}
