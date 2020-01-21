@@ -2,6 +2,7 @@ package corredor
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/app/options"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"go.uber.org/zap"
 	"testing"
 
@@ -12,7 +13,7 @@ type (
 	mockEvent struct {
 		rType string
 		eType string
-		match func(name string, op string, values ...string) bool
+		match func(matcher eventbus.ConstraintMatcher) bool
 	}
 )
 
@@ -32,12 +33,12 @@ func (e mockEvent) Decode(map[string][]byte) error {
 	return nil
 }
 
-func (e mockEvent) Match(name string, op string, values ...string) bool {
+func (e mockEvent) Match(matcher eventbus.ConstraintMatcher) bool {
 	if e.match == nil {
 		return true
 	}
 
-	return e.match(name, op, values...)
+	return e.match(matcher)
 }
 
 func TestFindOnManual(t *testing.T) {
@@ -47,24 +48,24 @@ func TestFindOnManual(t *testing.T) {
 				&Script{
 					Triggers: []*Trigger{
 						&Trigger{
-							Events:    []string{"ev"},
-							Resources: []string{"res"},
+							EventTypes:    []string{"ev"},
+							ResourceTypes: []string{"res"},
 						},
 					},
 				},
 				&Script{
 					Triggers: []*Trigger{
 						&Trigger{
-							Events:    []string{"foo"},
-							Resources: []string{"bar"},
+							EventTypes:    []string{"foo"},
+							ResourceTypes: []string{"bar"},
 						},
 					},
 				},
 				//&Script{
 				//	Triggers: []*Trigger{
 				//		&Trigger{
-				//			Events:    []string{"not-a-match"},
-				//			Resources: []string{"not-a-match"},
+				//			EventTypes:    []string{"not-a-match"},
+				//			ResourceTypes: []string{"not-a-match"},
 				//		},
 				//	},
 				//},
@@ -73,16 +74,16 @@ func TestFindOnManual(t *testing.T) {
 				&Script{
 					Triggers: []*Trigger{
 						&Trigger{
-							Events:    []string{"ev"},
-							Resources: []string{"res"},
+							EventTypes:    []string{"ev"},
+							ResourceTypes: []string{"res"},
 						},
 					},
 				},
 				&Script{
 					Triggers: []*Trigger{
 						&Trigger{
-							Events:    []string{"foo"},
-							Resources: []string{"bar"},
+							EventTypes:    []string{"foo"},
+							ResourceTypes: []string{"bar"},
 						},
 					},
 				},

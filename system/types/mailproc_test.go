@@ -26,7 +26,8 @@ Message-ID: <1234@local.machine.example>
 Ola Corteza!
 `,
 			wantOut: &MailMessage{
-				Date: time.Time{},
+				Date:    time.Time{},
+				Subject: "Customer service contact info",
 				Header: MailMessageHeader{
 					From: []*mail.Address{{Address: "sender@testing.cortezaproject.org"}},
 					To:   []*mail.Address{{Address: "rcpt@testing.cortezaproject.org"}},

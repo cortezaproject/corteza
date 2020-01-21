@@ -12,15 +12,15 @@ func TestPopOnManualEventType(t *testing.T) {
 		a = assert.New(t)
 
 		trg = &Trigger{
-			Events: []string{"onTimestamp", onManualEventType, "onInterval"},
+			EventTypes: []string{"onTimestamp", onManualEventType, "onInterval"},
 		}
 	)
 
-	a.Len(trg.Events, 3)
+	a.Len(trg.EventTypes, 3)
 	a.True(popOnManualEventType(trg))
-	a.Len(trg.Events, 2)
+	a.Len(trg.EventTypes, 2)
 	a.False(popOnManualEventType(trg))
-	a.Len(trg.Events, 2)
+	a.Len(trg.EventTypes, 2)
 }
 
 func TestPluckManualTriggers(t *testing.T) {
@@ -29,14 +29,14 @@ func TestPluckManualTriggers(t *testing.T) {
 
 		s = &ServerScript{
 			Triggers: []*Trigger{&Trigger{
-				Resources: []string{"r1", "r2"},
-				Events:    []string{"onTimestamp", onManualEventType, "onInterval"},
-				RunAs:     "moi",
+				ResourceTypes: []string{"r1", "r2"},
+				EventTypes:    []string{"onTimestamp", onManualEventType, "onInterval"},
+				RunAs:         "moi",
 			}},
 		}
 	)
 
-	a.Len(s.Triggers[0].Events, 3)
+	a.Len(s.Triggers[0].EventTypes, 3)
 	a.EqualValues(
 		map[string]string{
 			"r1": "moi",
@@ -44,7 +44,7 @@ func TestPluckManualTriggers(t *testing.T) {
 		},
 		pluckManualTriggers(s),
 	)
-	a.Len(s.Triggers[0].Events, 2)
+	a.Len(s.Triggers[0].EventTypes, 2)
 
 	// Running again must result in empty hash
 	a.EqualValues(
@@ -58,8 +58,8 @@ func TestTriggerOptsMaking(t *testing.T) {
 		a = assert.New(t)
 
 		trg = &Trigger{
-			Resources: []string{"r1", "r2"},
-			Events:    []string{"onTimestamp", onManualEventType, "onInterval"},
+			ResourceTypes: []string{"r1", "r2"},
+			EventTypes:    []string{"onTimestamp", onManualEventType, "onInterval"},
 			Constraints: []*TConstraint{
 				&TConstraint{Name: "some1", Op: "eq", Value: []string{"other"}},
 				&TConstraint{Name: "some2", Op: "eq", Value: []string{"other"}},
@@ -74,10 +74,10 @@ func TestTriggerOptsMaking(t *testing.T) {
 	a.NoError(err)
 	a.Len(oo, 4) // 1x all resources, 1x all events, 2x constraints
 
-	oo, err = makeTriggerOpts(&Trigger{Resources: []string{"bar"}})
+	oo, err = makeTriggerOpts(&Trigger{ResourceTypes: []string{"bar"}})
 	a.Error(err, "expecting to fail on trigger w/o events")
 
-	oo, err = makeTriggerOpts(&Trigger{Events: []string{"foo"}})
+	oo, err = makeTriggerOpts(&Trigger{EventTypes: []string{"foo"}})
 	a.Error(err, "expecting to fail on trigger w/o resources")
 }
 
@@ -107,8 +107,8 @@ func TestScriptFilterMaker(t *testing.T) {
 		s1 = &Script{
 			Triggers: []*Trigger{
 				&Trigger{
-					Events:    []string{"ev"},
-					Resources: []string{"res"},
+					EventTypes:    []string{"ev"},
+					ResourceTypes: []string{"res"},
 				},
 			},
 		}
@@ -116,8 +116,8 @@ func TestScriptFilterMaker(t *testing.T) {
 		s2 = &Script{
 			Triggers: []*Trigger{
 				&Trigger{
-					Events:    []string{"foo"},
-					Resources: []string{"bar"},
+					EventTypes:    []string{"foo"},
+					ResourceTypes: []string{"bar"},
 				},
 			},
 		}
@@ -125,8 +125,8 @@ func TestScriptFilterMaker(t *testing.T) {
 		s3 = &Script{
 			Triggers: []*Trigger{
 				&Trigger{
-					Events:    []string{"not-a-match"},
-					Resources: []string{"not-a-match"},
+					EventTypes:    []string{"not-a-match"},
+					ResourceTypes: []string{"not-a-match"},
 				},
 			},
 		}
