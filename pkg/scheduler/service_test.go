@@ -15,7 +15,7 @@ type (
 	mockEvent struct {
 		rType string
 		eType string
-		match func(name string, op string, values ...string) bool
+		match func(matcher eventbus.ConstraintMatcher) bool
 	}
 )
 
@@ -27,12 +27,12 @@ func (e mockEvent) EventType() string {
 	return e.eType
 }
 
-func (e mockEvent) Match(name string, op string, values ...string) bool {
+func (e mockEvent) Match(matcher eventbus.ConstraintMatcher) bool {
 	if e.match == nil {
 		return true
 	}
 
-	return e.match(name, op, values...)
+	return e.match(matcher)
 }
 
 func TestMainServiceFunctions(t *testing.T) {

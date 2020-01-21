@@ -34,7 +34,7 @@ func (set RuleSet) checkResource(res Resource, op Operation, roles ...uint64) (v
 	}
 
 	if res.IsAppendable() {
-		// Is this a specific resource and can we turn it ito a wildcarded-resource?
+		// Is this a specific resource and can we turn it into a wild-carded resource?
 		if v = set.check(res.AppendWildcard(), op, roles...); v != Inherit {
 			return
 		}

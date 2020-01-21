@@ -165,8 +165,6 @@ mocks: $(MOCKGEN)
 	$(MOCKGEN) -package repository -source system/repository/user.go         -destination system/repository/mocks/user.go
 	$(MOCKGEN) -package repository -source system/repository/credentials.go  -destination system/repository/mocks/credentials.go
 
-	$(MOCKGEN) -package service_mocks -source compose/service/automation_runner.go -destination compose/service/mocks/automation_runner.go
-
 	$(MOCKGEN) -package mail  -source pkg/mail/mail.go                           -destination pkg/mail/mail_mock_test.go
 
 
