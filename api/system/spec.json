@@ -1695,24 +1695,34 @@
         "parameters": {
           "get": [
             {
-              "name": "resourceTypes",
-              "type": "[]string",
-              "title": "Filter by resource type"
+                "name": "resourceTypePrefixes",
+                "type": "[]string",
+                "title": "Filter by resource prefix"
             },
             {
-              "name": "eventTypes",
-              "type": "[]string",
-              "title": "Filter by event type"
+                "name": "resourceTypes",
+                "type": "[]string",
+                "title": "Filter by resource type"
             },
             {
-              "name": "excludeClientScripts",
-              "type": "bool",
-              "title": "Do not include client scripts"
+                "name": "eventTypes",
+                "type": "[]string",
+                "title": "Filter by event type"
             },
             {
-              "name": "excludeServerScripts",
-              "type": "bool",
-              "title": "Do not include server scripts"
+                "name": "excludeInvalid",
+                "type": "bool",
+                "title": "Exclude scripts that can not be used (errors)"
+            },
+            {
+                "name": "excludeClientScripts",
+                "type": "bool",
+                "title": "Do not include client scripts"
+            },
+            {
+                "name": "excludeServerScripts",
+                "type": "bool",
+                "title": "Do not include server scripts"
             }
           ]
         }

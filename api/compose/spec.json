@@ -1626,6 +1626,11 @@
                 "parameters": {
                     "get": [
                         {
+                            "name": "resourceTypePrefixes",
+                            "type": "[]string",
+                            "title": "Filter by resource prefix"
+                        },
+                        {
                             "name": "resourceTypes",
                             "type": "[]string",
                             "title": "Filter by resource type"
@@ -1634,6 +1639,11 @@
                             "name": "eventTypes",
                             "type": "[]string",
                             "title": "Filter by event type"
+                        },
+                        {
+                            "name": "excludeInvalid",
+                            "type": "bool",
+                            "title": "Exclude scripts that can not be used (errors)"
                         },
                         {
                             "name": "excludeClientScripts",
