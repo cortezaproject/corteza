@@ -1,6 +1,7 @@
 package corredor
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
@@ -35,9 +36,9 @@ func popOnManualEventType(trigger *Trigger) (found bool) {
 // pluckManualTriggers removes all manual triggers from the list of script's triggers
 //
 // and returns a hash map with resources from these manual triggers
-func pluckManualTriggers(script *ServerScript) map[string]string {
+func pluckManualTriggers(script *ServerScript) map[string]bool {
 	var (
-		hash = make(map[string]string)
+		hash = make(map[string]bool)
 	)
 
 	for i := range script.Triggers {
@@ -47,7 +48,7 @@ func pluckManualTriggers(script *ServerScript) map[string]string {
 
 		if popOnManualEventType(trigger) {
 			for _, res := range trigger.ResourceTypes {
-				hash[res] = trigger.RunAs
+				hash[res] = true
 			}
 		}
 	}
@@ -134,9 +135,9 @@ func makeScriptFilter(f Filter) func(s *Script) (b bool, err error) {
 }
 
 // GenericListHandler returns filtered list of scripts
-func GenericListHandler(svc *service, f Filter, resourcePrefix string) (p *automationListSetPayload, err error) {
+func GenericListHandler(ctx context.Context, svc *service, f Filter, resourcePrefix string) (p *automationListSetPayload, err error) {
 	f.PrefixResources(resourcePrefix)
 	p = &automationListSetPayload{}
-	p.Set, p.Filter, err = svc.Find(f)
+	p.Set, p.Filter, err = svc.Find(ctx, f)
 	return p, err
 }

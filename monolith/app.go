@@ -71,6 +71,7 @@ func (monolith App) Initialize(ctx context.Context) (err error) {
 	}
 
 	corredor.Service().SetUserFinder(systemService.DefaultUser)
+	corredor.Service().SetRoleFinder(systemService.DefaultRole)
 
 	return
 }

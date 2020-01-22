@@ -31,16 +31,15 @@ func TestPluckManualTriggers(t *testing.T) {
 			Triggers: []*Trigger{&Trigger{
 				ResourceTypes: []string{"r1", "r2"},
 				EventTypes:    []string{"onTimestamp", onManualEventType, "onInterval"},
-				RunAs:         "moi",
 			}},
 		}
 	)
 
 	a.Len(s.Triggers[0].EventTypes, 3)
 	a.EqualValues(
-		map[string]string{
-			"r1": "moi",
-			"r2": "moi",
+		map[string]bool{
+			"r1": true,
+			"r2": true,
 		},
 		pluckManualTriggers(s),
 	)
@@ -48,7 +47,7 @@ func TestPluckManualTriggers(t *testing.T) {
 
 	// Running again must result in empty hash
 	a.EqualValues(
-		map[string]string{},
+		map[string]bool{},
 		pluckManualTriggers(s),
 	)
 }

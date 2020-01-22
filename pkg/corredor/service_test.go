@@ -1,12 +1,16 @@
 package corredor
 
 import (
+	"context"
 	"github.com/cortezaproject/corteza-server/pkg/app/options"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 type (
@@ -14,6 +18,15 @@ type (
 		rType string
 		eType string
 		match func(matcher eventbus.ConstraintMatcher) bool
+	}
+
+	mockUserSvc struct {
+		user *types.User
+		err  error
+	}
+	mockRoleSvc struct {
+		role *types.Role
+		err  error
 	}
 )
 
@@ -41,11 +54,23 @@ func (e mockEvent) Match(matcher eventbus.ConstraintMatcher) bool {
 	return e.match(matcher)
 }
 
+func (u *mockUserSvc) FindByAny(interface{}) (*types.User, error) {
+	return u.user, u.err
+}
+
+func (u *mockRoleSvc) FindByAny(interface{}) (*types.Role, error) {
+	return u.role, u.err
+}
+
 func TestFindOnManual(t *testing.T) {
 	var (
+		ctx = context.Background()
+
 		svc = &service{
+			permissions: permissions.RuleSet{},
 			sScripts: ScriptSet{
 				&Script{
+					Name: "s1",
 					Triggers: []*Trigger{
 						&Trigger{
 							EventTypes:    []string{"ev"},
@@ -54,6 +79,7 @@ func TestFindOnManual(t *testing.T) {
 					},
 				},
 				&Script{
+					Name: "s2",
 					Triggers: []*Trigger{
 						&Trigger{
 							EventTypes:    []string{"foo"},
@@ -72,6 +98,7 @@ func TestFindOnManual(t *testing.T) {
 			},
 			cScripts: ScriptSet{
 				&Script{
+					Name: "s3",
 					Triggers: []*Trigger{
 						&Trigger{
 							EventTypes:    []string{"ev"},
@@ -80,6 +107,7 @@ func TestFindOnManual(t *testing.T) {
 					},
 				},
 				&Script{
+					Name: "s4",
 					Triggers: []*Trigger{
 						&Trigger{
 							EventTypes:    []string{"foo"},
@@ -96,7 +124,7 @@ func TestFindOnManual(t *testing.T) {
 			ExcludeClientScripts: false,
 		}
 
-		o, _, err = svc.Find(filter)
+		o, _, err = svc.Find(ctx, filter)
 
 		a = assert.New(t)
 	)
@@ -129,13 +157,80 @@ func TestServiceBasics(t *testing.T) {
 	svc.SetEventRegistry(nil)
 	svc.SetAuthTokenMaker(nil)
 	svc.SetUserFinder(nil)
+	svc.SetRoleFinder(nil)
+}
+
+func TestService_canExec(t *testing.T) {
+	var (
+		a   = assert.New(t)
+		svc = &service{
+			users:       &mockUserSvc{user: &types.User{ID: 42, Email: "dummy@mo.ck", Handle: "dummy"}},
+			roles:       &mockRoleSvc{role: &types.Role{ID: 84, Handle: "role", Name: "ROLE"}},
+			permissions: permissions.RuleSet{},
+		}
+
+		ctx = auth.SetIdentityToContext(context.Background(), auth.NewIdentity(42, 84))
+
+		script1 = &ServerScript{
+			Name: "s1",
+			Triggers: []*Trigger{&Trigger{
+				EventTypes:    []string{onManualEventType},
+				ResourceTypes: []string{"res"},
+			}},
+			Security: &Security{
+				RunAs: "foo",
+				Allow: []string{"role"},
+			},
+		}
+
+		script2 = &ServerScript{
+			Name: "s2",
+			Triggers: []*Trigger{&Trigger{
+				EventTypes:    []string{onManualEventType},
+				ResourceTypes: []string{"res"},
+			}},
+			Security: &Security{
+				RunAs: "foo",
+				Deny:  []string{"role"},
+			},
+		}
+
+		script3 = &ServerScript{
+			Name: "s3", // permissions will not be added, not a manual script
+			Security: &Security{
+				RunAs: "foo",
+				Deny:  []string{"role"},
+			},
+		}
+
+		script4 = &ServerScript{
+			Name: "s3", // should not be even added, duplicated name (hence length=3)
+			Security: &Security{
+				RunAs: "foo",
+				Deny:  []string{"role"},
+			},
+		}
+	)
+
+	if testing.Verbose() {
+		svc.log = logger.MakeDebugLogger()
+	} else {
+		svc.log = zap.NewNop()
+	}
+
+	svc.registerServerScripts(script1, script2, script3, script4)
+
+	a.Len(svc.sScripts, 3)
+	a.Len(svc.permissions, 2)
+	a.True(svc.canExec(ctx, script1.Name))
+	a.False(svc.canExec(ctx, script2.Name))
 }
 
 func TestService_ExecOnManual(t *testing.T) {
 	var (
 		a   = assert.New(t)
 		svc = &service{
-			manual: map[string]map[string]string{},
+			manual: map[string]map[string]bool{},
 		}
 	)
 

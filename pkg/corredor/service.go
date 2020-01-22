@@ -2,7 +2,7 @@ package corredor
 
 import (
 	"context"
-
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/go-chi/chi/middleware"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -28,8 +28,8 @@ type (
 		registered map[string][]uintptr
 
 		// list of all registered onManual triggers & scripts
-		//   map[<script-name>][<resource>] = <run-as>
-		manual map[string]map[string]string
+		//   map[<script-name>][<resource>] = true
+		manual map[string]map[string]bool
 
 		// Combined list of client and server scripts
 		sScripts ScriptSet
@@ -44,7 +44,14 @@ type (
 
 		eventRegistry  eventRegistry
 		authTokenMaker authTokenMaker
-		users          userFinder
+
+		// Services to help with script security
+		// we'll find users (runAs) and roles (allow, deny) for
+		users userFinder
+		roles roleFinder
+
+		// set of permission rules, generated from security info of each script
+		permissions permissions.RuleSet
 	}
 
 	Event interface {
@@ -67,8 +74,16 @@ type (
 		FindByAny(interface{}) (*types.User, error)
 	}
 
+	roleFinder interface {
+		FindByAny(interface{}) (*types.Role, error)
+	}
+
 	authTokenMaker interface {
 		Encode(auth.Identifiable) string
+	}
+
+	permissionRuleChecker interface {
+		Check(res permissions.Resource, op permissions.Operation, roles ...uint64) permissions.Access
 	}
 )
 
@@ -77,6 +92,10 @@ const onManualEventType = "onManual"
 var (
 	// Global corredor service
 	gCorredor *service
+)
+
+const (
+	permOpExec permissions.Operation = "exec"
 )
 
 func Service() *service {
@@ -100,10 +119,11 @@ func NewService(logger *zap.Logger, opt options.CorredorOpt) *service {
 		opt: opt,
 
 		registered: make(map[string][]uintptr),
-		manual:     make(map[string]map[string]string),
+		manual:     make(map[string]map[string]bool),
 
 		authTokenMaker: auth.DefaultJwtHandler,
 		eventRegistry:  eventbus.Service(),
+		permissions:    permissions.RuleSet{},
 	}
 }
 
@@ -138,19 +158,23 @@ func (svc *service) SetUserFinder(uf userFinder) {
 	svc.users = uf
 }
 
+func (svc *service) SetRoleFinder(rf roleFinder) {
+	svc.roles = rf
+}
+
 func (svc *service) Load(ctx context.Context) {
 	go svc.loadServerScripts(ctx)
 	go svc.loadClientScripts(ctx)
 }
 
-// FindManual returns filtered list of scripts that can be manually triggered
-func (svc service) Find(filter Filter) (out ScriptSet, f Filter, err error) {
+// Find returns filtered list of scripts that can be manually triggered
+func (svc service) Find(ctx context.Context, filter Filter) (out ScriptSet, f Filter, err error) {
 	f = filter
 
 	var (
 		tmp ScriptSet
 
-		scriptFilter = makeScriptFilter(f)
+		scriptFilter = svc.makeScriptFilter(ctx, f)
 	)
 
 	if !f.ExcludeServerScripts {
@@ -166,11 +190,31 @@ func (svc service) Find(filter Filter) (out ScriptSet, f Filter, err error) {
 	return
 }
 
-// ExecOnManual verifies request & executes
-func (svc service) ExecOnManual(ctx context.Context, script string, event Event) (err error) {
+// An enhanced version of basic script filter maker (from util.go)
+// that (after basic filtering) also does RBAC check for each script
+func (svc service) makeScriptFilter(ctx context.Context, f Filter) func(s *Script) (b bool, err error) {
+	var (
+		base = makeScriptFilter(f)
+	)
+
+	return func(s *Script) (b bool, err error) {
+		if b, err = base(s); !b {
+			return
+		}
+
+		b = svc.canExec(ctx, s.Name)
+
+		return
+	}
+}
+
+// ExecOnManual verifies permissions, event and script and sends exec request to corredor
+func (svc service) ExecOnManual(ctx context.Context, scriptName string, event Event) (err error) {
 	var (
 		res = event.ResourceType()
 		evt = event.EventType()
+
+		script *Script
 
 		ok    bool
 		runAs string
@@ -180,15 +224,37 @@ func (svc service) ExecOnManual(ctx context.Context, script string, event Event)
 		return errors.Errorf("triggered event type is not onManual (%q)", evt)
 	}
 
-	if _, ok = svc.manual[script]; !ok {
-		return errors.Errorf("unregistered onManual script %q", script)
+	if len(scriptName) == 0 {
+		return errors.Errorf("script name not provided (%q)", scriptName)
 	}
 
-	if runAs, ok = svc.manual[script][res]; !ok {
-		return errors.Errorf("unregistered onManual script %q for resource %q", script, res)
+	if _, ok = svc.manual[scriptName]; !ok {
+		return errors.Errorf("unregistered onManual script %q", scriptName)
 	}
 
-	return svc.exec(ctx, script, runAs, event)
+	if _, ok = svc.manual[scriptName][res]; !ok {
+		return errors.Errorf("unregistered onManual script %q for resource %q", scriptName, res)
+	}
+
+	if script = svc.sScripts.FindByName(scriptName); script == nil {
+		return errors.Errorf("nonexistent script (%q)", scriptName)
+	}
+
+	if !svc.canExec(ctx, scriptName) {
+		return errors.Errorf("permission to execute %s denied", scriptName)
+	}
+
+	return svc.exec(ctx, scriptName, runAs, event)
+}
+
+// Can current user execute this script
+func (svc service) canExec(ctx context.Context, script string) bool {
+	u := auth.GetIdentityFromContext(ctx)
+	if auth.IsSuperUser(u) {
+		return true
+	}
+
+	return svc.permissions.Check(permissions.Resource(script), permOpExec, u.Roles()...) != permissions.Deny
 }
 
 func (svc *service) loadServerScripts(ctx context.Context) {
@@ -213,7 +279,31 @@ func (svc *service) loadServerScripts(ctx context.Context) {
 
 // Registers Corredor scripts to eventbus and list of manual scripts
 func (svc *service) registerServerScripts(ss ...*ServerScript) {
-	svc.sScripts = make([]*Script, len(ss))
+	var (
+		permRuleGenerator = func(script string, access permissions.Access, roles ...string) (permissions.RuleSet, error) {
+			out := make([]*permissions.Rule, len(roles))
+			for i, role := range roles {
+				if r, err := svc.roles.FindByAny(role); err != nil {
+					return nil, err
+				} else {
+					out[i] = &permissions.Rule{
+						RoleID:    r.ID,
+						Resource:  permissions.Resource(script),
+						Operation: permOpExec,
+						Access:    access,
+					}
+				}
+
+			}
+			return out, nil
+		}
+
+		u     *types.User
+		err   error
+		runAs = ""
+	)
+
+	svc.sScripts = make([]*Script, 0, len(ss))
 
 	// Remove all previously registered triggers
 	for _, ptrs := range svc.registered {
@@ -224,28 +314,94 @@ func (svc *service) registerServerScripts(ss ...*ServerScript) {
 
 	// Reset indexes
 	svc.registered = make(map[string][]uintptr)
-	svc.manual = make(map[string]map[string]string)
+	svc.manual = make(map[string]map[string]bool)
 
-	for i, script := range ss {
-		svc.sScripts[i] = &Script{
+	// Reset security
+	svc.permissions = permissions.RuleSet{}
+
+	for _, script := range ss {
+		var (
+			// collectors for allow&deny rules
+			// we'll merge
+			allow = permissions.RuleSet{}
+			deny  = permissions.RuleSet{}
+		)
+
+		if nil != svc.sScripts.FindByName(script.Name) {
+			// Do not allow duplicated scripts
+			continue
+		}
+
+		s := &Script{
 			Name:        script.Name,
 			Label:       script.Label,
 			Description: script.Description,
 			Errors:      script.Errors,
 			Triggers:    script.Triggers,
+			Security:    &ScriptSecurity{Security: script.Security},
 		}
 
-		if len(script.Errors) == 0 {
-			svc.manual[script.Name] = pluckManualTriggers(script)
-			svc.registered[script.Name] = svc.registerTriggers(script)
+		scriptErrPush := func(err error, msg string) {
+			s.Errors = append(s.Errors, errors.Wrap(err, msg).Error())
 		}
 
-		svc.log.Debug(
-			"registered",
-			zap.String("script", script.Name),
-			zap.Int("manual", len(svc.manual[script.Name])),
-			zap.Int("triggers", len(svc.registered[script.Name])),
-		)
+		if len(s.Errors) == 0 {
+
+			if manual := pluckManualTriggers(script); len(manual) > 0 {
+
+				if script.Security != nil {
+					runAs = script.Security.RunAs
+
+					if runAs != "" {
+						// Prefetch run-as user
+						if u, err = svc.users.FindByAny(runAs); err != nil {
+							scriptErrPush(err, "could not load run-as user security info")
+						} else {
+							s.Security.runAs = u.ID
+						}
+					}
+
+					if allow, err = permRuleGenerator(script.Name, permissions.Allow, script.Security.Allow...); err != nil {
+						scriptErrPush(err, "could not load allow role security info")
+					}
+
+					if deny, err = permRuleGenerator(script.Name, permissions.Deny, script.Security.Deny...); err != nil {
+						scriptErrPush(err, "could not load deny role security info")
+					}
+
+					svc.permissions = append(svc.permissions, allow...)
+					svc.permissions = append(svc.permissions, deny...)
+				}
+
+				if len(s.Errors) == 0 {
+					svc.manual[script.Name] = manual
+				}
+			}
+
+			if len(s.Errors) == 0 {
+				svc.registered[script.Name] = svc.registerTriggers(script)
+			}
+		}
+
+		// Even if there are errors, we'll append the scripts
+		// because we need to serve them as a list for script management
+		svc.sScripts = append(svc.sScripts, s)
+
+		if len(s.Errors) == 0 {
+			svc.log.Debug(
+				"script registered",
+				zap.String("script", s.Name),
+				zap.Stringer("security", s.Security),
+				zap.Int("manual", len(svc.manual[script.Name])),
+				zap.Int("triggers", len(svc.registered[script.Name])),
+			)
+		} else {
+			svc.log.Warn(
+				"script loaded with errors",
+				zap.String("script", s.Name),
+				zap.Strings("errors", s.Errors),
+			)
+		}
 	}
 }
 
@@ -260,7 +416,13 @@ func (svc *service) registerTriggers(script *ServerScript) []uintptr {
 		ptrs = make([]uintptr, 0, len(script.Triggers))
 
 		log = svc.log.With(zap.String("script", script.Name))
+
+		runAs string
 	)
+
+	if script.Security != nil {
+		runAs = script.Security.RunAs
+	}
 
 	for i := range script.Triggers {
 		// We're modifying trigger in the loop,
@@ -286,9 +448,9 @@ func (svc *service) registerTriggers(script *ServerScript) []uintptr {
 
 		ptr := svc.eventRegistry.Register(func(ctx context.Context, ev eventbus.Event) (err error) {
 			// Is this compatible event?
-			if cce, ok := ev.(Event); ok {
+			if ev, ok := ev.(Event); ok {
 				// Can only work with corteza compatible events
-				return svc.exec(ctx, script.Name, trigger.RunAs, cce)
+				return svc.exec(ctx, script.Name, runAs, ev)
 			}
 
 			return nil

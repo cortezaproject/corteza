@@ -42,6 +42,7 @@ func (app *App) Setup(log *zap.Logger, opts *app.Options) (err error) {
 
 	// @todo Wire in cross-service JWT maker for Corredor
 	corredor.Service().SetUserFinder(nil)
+	corredor.Service().SetRoleFinder(nil)
 
 	return
 }

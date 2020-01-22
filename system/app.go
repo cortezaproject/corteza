@@ -43,8 +43,8 @@ func (app *App) Setup(log *zap.Logger, opts *app.Options) (err error) {
 		event.SystemOnTimestamp(),
 	)
 
-	// Wire in cross-service JWT maker for Corredor
 	corredor.Service().SetUserFinder(service.DefaultUser)
+	corredor.Service().SetRoleFinder(service.DefaultRole)
 
 	return
 }
