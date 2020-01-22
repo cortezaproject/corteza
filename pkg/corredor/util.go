@@ -4,10 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
-
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/slice"
+	"github.com/pkg/errors"
 )
 
 type (
@@ -93,50 +91,10 @@ func encodeArguments(args map[string]string, key string, val interface{}) (err e
 	return
 }
 
-// Creates a filter fn for script filtering
-func makeScriptFilter(f Filter) func(s *Script) (b bool, err error) {
-	return func(s *Script) (b bool, err error) {
-		b = true
-		if len(f.ResourceTypes) > 0 {
-			// Filtering by resource type,
-			// at least one of the script's triggers should match
-			b = false
-			for _, t := range s.Triggers {
-				if len(slice.IntersectStrings(f.ResourceTypes, t.ResourceTypes)) > 0 {
-					b = true
-				}
-			}
-
-			if !b {
-				// No match by resource type, break
-				return
-			}
-		}
-
-		if len(f.EventTypes) > 0 {
-			// Filtering by event type,
-			// at least one of the script's triggers should match
-			b = false
-			for _, t := range s.Triggers {
-				if len(slice.IntersectStrings(f.EventTypes, t.EventTypes)) > 0 {
-					b = true
-				}
-			}
-
-			if !b {
-				// No match by event type, break
-				return
-			}
-		}
-
-		// Not explicitly filtered
-		return
-	}
-}
-
 // GenericListHandler returns filtered list of scripts
 func GenericListHandler(ctx context.Context, svc *service, f Filter, resourcePrefix string) (p *automationListSetPayload, err error) {
-	f.PrefixResources(resourcePrefix)
+	f.procRTPrefixes(resourcePrefix)
+
 	p = &automationListSetPayload{}
 	p.Set, p.Filter, err = svc.Find(ctx, f)
 	return p, err

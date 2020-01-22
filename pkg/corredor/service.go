@@ -2,7 +2,6 @@ package corredor
 
 import (
 	"context"
-
 	"github.com/go-chi/chi/middleware"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -188,6 +187,8 @@ func (svc service) Find(ctx context.Context, filter Filter) (out ScriptSet, f Fi
 		out = append(out, tmp...)
 	}
 
+	f.Count = uint(len(out))
+
 	return
 }
 
@@ -195,7 +196,7 @@ func (svc service) Find(ctx context.Context, filter Filter) (out ScriptSet, f Fi
 // that (after basic filtering) also does RBAC check for each script
 func (svc service) makeScriptFilter(ctx context.Context, f Filter) func(s *Script) (b bool, err error) {
 	var (
-		base = makeScriptFilter(f)
+		base = f.makeFilterFn()
 	)
 
 	return func(s *Script) (b bool, err error) {
@@ -203,9 +204,7 @@ func (svc service) makeScriptFilter(ctx context.Context, f Filter) func(s *Scrip
 			return
 		}
 
-		b = svc.canExec(ctx, s.Name)
-
-		return
+		return svc.canExec(ctx, s.Name), nil
 	}
 }
 

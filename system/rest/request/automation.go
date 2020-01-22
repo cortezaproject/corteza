@@ -32,8 +32,10 @@ var _ = multipart.FileHeader{}
 
 // Automation list request parameters
 type AutomationList struct {
+	ResourceTypePrefixes []string
 	ResourceTypes        []string
 	EventTypes           []string
+	ExcludeInvalid       bool
 	ExcludeClientScripts bool
 	ExcludeServerScripts bool
 }
@@ -45,8 +47,10 @@ func NewAutomationList() *AutomationList {
 func (r AutomationList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
+	out["resourceTypePrefixes"] = r.ResourceTypePrefixes
 	out["resourceTypes"] = r.ResourceTypes
 	out["eventTypes"] = r.EventTypes
+	out["excludeInvalid"] = r.ExcludeInvalid
 	out["excludeClientScripts"] = r.ExcludeClientScripts
 	out["excludeServerScripts"] = r.ExcludeServerScripts
 
@@ -80,6 +84,12 @@ func (r *AutomationList) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	if val, ok := urlQuery["resourceTypePrefixes[]"]; ok {
+		r.ResourceTypePrefixes = parseStrings(val)
+	} else if val, ok = urlQuery["resourceTypePrefixes"]; ok {
+		r.ResourceTypePrefixes = parseStrings(val)
+	}
+
 	if val, ok := urlQuery["resourceTypes[]"]; ok {
 		r.ResourceTypes = parseStrings(val)
 	} else if val, ok = urlQuery["resourceTypes"]; ok {
@@ -92,6 +102,9 @@ func (r *AutomationList) Fill(req *http.Request) (err error) {
 		r.EventTypes = parseStrings(val)
 	}
 
+	if val, ok := get["excludeInvalid"]; ok {
+		r.ExcludeInvalid = parseBool(val)
+	}
 	if val, ok := get["excludeClientScripts"]; ok {
 		r.ExcludeClientScripts = parseBool(val)
 	}

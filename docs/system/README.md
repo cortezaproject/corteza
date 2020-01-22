@@ -336,8 +336,10 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.cru
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+| resourceTypePrefixes | []string | GET | Filter by resource prefix | N/A | NO |
 | resourceTypes | []string | GET | Filter by resource type | N/A | NO |
 | eventTypes | []string | GET | Filter by event type | N/A | NO |
+| excludeInvalid | bool | GET | Exclude scripts that can not be used (errors) | N/A | NO |
 | excludeClientScripts | bool | GET | Do not include client scripts | N/A | NO |
 | excludeServerScripts | bool | GET | Do not include server scripts | N/A | NO |
 

@@ -26,6 +26,8 @@ func (ctrl *Automation) List(ctx context.Context, r *request.AutomationList) (in
 		ctx,
 		corredor.Service(),
 		corredor.Filter{
+			ResourceTypePrefixes: r.ResourceTypePrefixes,
+			ExcludeInvalid:       r.ExcludeInvalid,
 			ResourceTypes:        r.ResourceTypes,
 			EventTypes:           r.EventTypes,
 			ExcludeServerScripts: r.ExcludeServerScripts,
