@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
@@ -54,6 +55,7 @@ type (
 		FindByID(roleID uint64) (*types.Role, error)
 		FindByName(name string) (*types.Role, error)
 		FindByHandle(handle string) (*types.Role, error)
+		FindByAny(identifier interface{}) (*types.Role, error)
 		Find(types.RoleFilter) (types.RoleSet, types.RoleFilter, error)
 
 		Create(role *types.Role) (*types.Role, error)
@@ -144,6 +146,30 @@ func (svc role) FindByName(rolename string) (*types.Role, error) {
 
 func (svc role) FindByHandle(handle string) (*types.Role, error) {
 	return svc.role.FindByHandle(handle)
+}
+
+// FindByAny finds role by given identifier (id, handle, name)
+func (svc role) FindByAny(identifier interface{}) (r *types.Role, err error) {
+	if ID, ok := identifier.(uint64); ok {
+		r, err = svc.FindByID(ID)
+	} else if strIdentifier, ok := identifier.(string); ok {
+		if ID, _ := strconv.ParseUint(strIdentifier, 10, 64); ID > 0 {
+			r, err = svc.FindByID(ID)
+		} else {
+			r, err = svc.FindByHandle(strIdentifier)
+			if err == nil && r.ID == 0 {
+				r, err = svc.FindByName(strIdentifier)
+			}
+		}
+	} else {
+		err = ErrInvalidID
+	}
+
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func (svc role) Create(new *types.Role) (r *types.Role, err error) {

@@ -6,10 +6,10 @@ import (
 
 type (
 	Filter struct {
-		ResourceTypes        []string
-		EventTypes           []string
-		ExcludeServerScripts bool
-		ExcludeClientScripts bool
+		ResourceTypes        []string `json:"resourceTypes"`
+		EventTypes           []string `json:"eventTypes"`
+		ExcludeServerScripts bool     `json:"excludeServerScripts"`
+		ExcludeClientScripts bool     `json:"excludeClientScripts"`
 
 		Page    uint `json:"page"`
 		PerPage uint `json:"perPage"`

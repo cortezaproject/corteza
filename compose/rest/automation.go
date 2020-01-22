@@ -23,6 +23,7 @@ func (Automation) New() *Automation {
 
 func (ctrl *Automation) List(ctx context.Context, r *request.AutomationList) (interface{}, error) {
 	return corredor.GenericListHandler(
+		ctx,
 		corredor.Service(),
 		corredor.Filter{
 			ResourceTypes:        r.ResourceTypes,
