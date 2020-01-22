@@ -673,3 +673,29 @@ func (svc *service) registerClientScripts(ss ...*ClientScript) {
 		}
 	}
 }
+
+func (svc *service) GetBundle(ctx context.Context, name, bType string) *Bundle {
+	var (
+		err error
+		rsp *BundleResponse
+	)
+
+	svc.log.Debug("reloading server scripts")
+
+	ctx, cancel := context.WithTimeout(ctx, svc.opt.ListTimeout)
+	defer cancel()
+
+	rsp, err = svc.csClient.Bundle(ctx, &BundleRequest{Name: name}, grpc.WaitForReady(true))
+	if err != nil {
+		svc.log.Error("could not load corredor server scripts", zap.Error(err))
+		return nil
+	}
+
+	for _, b := range rsp.Bundles {
+		if b.Type == bType {
+			return b
+		}
+	}
+
+	return nil
+}

@@ -117,6 +117,63 @@ func (r *AutomationList) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewAutomationList()
 
+// Automation bundle request parameters
+type AutomationBundle struct {
+	Bundle string
+	Type   string
+	Ext    string
+}
+
+func NewAutomationBundle() *AutomationBundle {
+	return &AutomationBundle{}
+}
+
+func (r AutomationBundle) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["bundle"] = r.Bundle
+	out["type"] = r.Type
+	out["ext"] = r.Ext
+
+	return out
+}
+
+func (r *AutomationBundle) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	r.Bundle = chi.URLParam(req, "bundle")
+	r.Type = chi.URLParam(req, "type")
+	r.Ext = chi.URLParam(req, "ext")
+
+	return err
+}
+
+var _ RequestFiller = NewAutomationBundle()
+
 // Automation triggerScript request parameters
 type AutomationTriggerScript struct {
 	Script string
