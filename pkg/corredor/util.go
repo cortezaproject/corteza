@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/pkg/errors"
+	"net/http"
 )
 
 type (
@@ -98,4 +99,18 @@ func GenericListHandler(ctx context.Context, svc *service, f Filter, resourcePre
 	p = &automationListSetPayload{}
 	p.Set, p.Filter, err = svc.Find(ctx, f)
 	return p, err
+}
+
+func GenericBundleHandler(ctx context.Context, svc *service, bundleName, bundleType, ext string) (interface{}, error) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		// Serve bundle directly for now
+		bundle := svc.GetBundle(ctx, bundleName, bundleType)
+		if bundle == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(bundle.Code))
+	}, nil
 }

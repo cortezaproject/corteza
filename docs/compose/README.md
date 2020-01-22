@@ -116,6 +116,7 @@
 | Method | Endpoint | Purpose |
 | ------ | -------- | ------- |
 | `GET` | `/automation/` | List all available automation scripts for compose resources |
+| `GET` | `/automation/{bundle}-{type}.{ext}` | Serves client scripts bundle |
 | `POST` | `/automation/trigger` | Triggers execution of a specific script on a system service level |
 
 ## List all available automation scripts for compose resources
@@ -138,6 +139,24 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.cru
 | excludeInvalid | bool | GET | Exclude scripts that can not be used (errors) | N/A | NO |
 | excludeClientScripts | bool | GET | Do not include client scripts | N/A | NO |
 | excludeServerScripts | bool | GET | Do not include server scripts | N/A | NO |
+
+## Serves client scripts bundle
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/automation/{bundle}-{type}.{ext}` | HTTP/S | GET |
+Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
+ |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| bundle | string | PATH | Name of the bundle | N/A | NO |
+| type | string | PATH | Bundle type | N/A | NO |
+| ext | string | PATH | Bundle extension | N/A | NO |
 
 ## Triggers execution of a specific script on a system service level
 

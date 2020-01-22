@@ -1659,6 +1659,31 @@
                 }
             },
             {
+                "name": "bundle",
+                "method": "GET",
+                "title": "Serves client scripts bundle",
+                "path": "/{bundle}-{type}.{ext}",
+                "parameters": {
+                  "path": [
+                    {
+                        "name": "bundle",
+                        "type": "string",
+                        "title": "Name of the bundle"
+                    },
+                    {
+                        "name": "type",
+                        "type": "string",
+                        "title": "Bundle type"
+                    },
+                    {
+                        "name": "ext",
+                        "type": "string",
+                        "title": "Bundle extension"
+                    }
+                  ]
+                }
+            },
+            {
                 "name": "triggerScript",
                 "method": "POST",
                 "title": "Triggers execution of a specific script on a system service level",

@@ -37,6 +37,16 @@ func (ctrl *Automation) List(ctx context.Context, r *request.AutomationList) (in
 	)
 }
 
+func (ctrl *Automation) Bundle(ctx context.Context, r *request.AutomationBundle) (interface{}, error) {
+	return corredor.GenericBundleHandler(
+		ctx,
+		corredor.Service(),
+		r.Bundle,
+		r.Type,
+		r.Ext,
+	)
+}
+
 func (ctrl *Automation) TriggerScript(ctx context.Context, r *request.AutomationTriggerScript) (interface{}, error) {
 	return resputil.OK(), corredor.Service().ExecOnManual(ctx, r.Script, event.ComposeOnManual())
 }
