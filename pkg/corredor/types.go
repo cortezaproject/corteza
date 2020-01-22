@@ -8,7 +8,7 @@ import (
 type (
 	// ScriptSecurity sets script security and run-as flag
 	//
-	// Determinates user (if >0) that script will run under
+	// Determinate user (if >0) that script will run under
 	// and allow/deny combination for roles that can see & execute
 	// explicit (onManual) scripts
 	//
@@ -17,8 +17,6 @@ type (
 	ScriptSecurity struct {
 		*Security
 		runAs uint64
-		allow []uint64
-		deny  []uint64
 	}
 
 	Script struct {
