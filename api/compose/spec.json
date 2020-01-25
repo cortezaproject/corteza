@@ -1,3 +1,4 @@
+
 [
     {
         "title": "Namespaces",
@@ -310,7 +311,7 @@
                         {
                             "type": "sqlxTypes.JSONText",
                             "name": "blocks",
-                            "required": true,
+                            "required": false,
                             "title": "Blocks JSON"
                         }
                     ]
@@ -393,7 +394,7 @@
                         {
                             "type": "sqlxTypes.JSONText",
                             "name": "blocks",
-                            "required": true,
+                            "required": false,
                             "title": "Blocks JSON"
                         }
                     ]
