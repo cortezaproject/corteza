@@ -600,7 +600,7 @@ Compose pages
 | handle | string | POST | Handle | N/A | NO |
 | description | string | POST | Description | N/A | NO |
 | visible | bool | POST | Visible in navigation | N/A | NO |
-| blocks | sqlxTypes.JSONText | POST | Blocks JSON | N/A | YES |
+| blocks | sqlxTypes.JSONText | POST | Blocks JSON | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Get page details
@@ -652,7 +652,7 @@ Compose pages
 | handle | string | POST | Handle | N/A | NO |
 | description | string | POST | Description | N/A | NO |
 | visible | bool | POST | Visible in navigation | N/A | NO |
-| blocks | sqlxTypes.JSONText | POST | Blocks JSON | N/A | YES |
+| blocks | sqlxTypes.JSONText | POST | Blocks JSON | N/A | NO |
 
 ## Reorder pages
 
