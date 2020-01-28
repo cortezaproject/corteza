@@ -52,7 +52,7 @@ func (r NotificationEmailSend) Auditable() map[string]interface{} {
 	out["to"] = r.To
 	out["cc"] = r.Cc
 	out["replyTo"] = r.ReplyTo
-	out["subject "] = r.Subject
+	out["subject"] = r.Subject
 	out["content"] = r.Content
 	out["remoteAttachments"] = r.RemoteAttachments
 
@@ -97,7 +97,7 @@ func (r *NotificationEmailSend) Fill(req *http.Request) (err error) {
 	if val, ok := post["replyTo"]; ok {
 		r.ReplyTo = val
 	}
-	if val, ok := post["subject "]; ok {
+	if val, ok := post["subject"]; ok {
 		r.Subject = val
 	}
 	if val, ok := post["content"]; ok {
