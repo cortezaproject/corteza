@@ -40,7 +40,7 @@
             "type": "string"
           },
           {
-            "name": "subject ",
+            "name": "subject",
             "required": false,
             "title": "Email subject",
             "type": "string"

@@ -1256,7 +1256,7 @@
                             "title": "Email address in reply-to field"
                         },
                         {
-                            "name": "subject ",
+                            "name": "subject",
                             "type": "string",
                             "required": false,
                             "title": "Email subject"
