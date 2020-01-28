@@ -619,14 +619,20 @@ func (svc record) copyChanges(m *types.Module, mod, r *types.Record) (err error)
 	return err
 }
 
-func (svc record) setDefaultValues(module *types.Module, mod *types.Record) (err error) {
+func (svc record) setDefaultValues(module *types.Module, rec *types.Record) (err error) {
 	err = module.Fields.Walk(func(field *types.ModuleField) error {
 		if field.DefaultValue == nil {
 			return nil
 		}
+
+		place := uint(0)
 		return field.DefaultValue.Walk(func(value *types.RecordValue) error {
-			if !mod.Values.Has(value.Name, value.Place) {
-				mod.Values = mod.Values.Set(value)
+			// Default values on field are (might be) without field name and place
+			value.Name = field.Name
+			value.Place = place
+			place++
+			if !rec.Values.Has(value.Name, value.Place) {
+				rec.Values = rec.Values.Set(value)
 			}
 
 			return nil
@@ -635,7 +641,7 @@ func (svc record) setDefaultValues(module *types.Module, mod *types.Record) (err
 		return nil
 	})
 
-	mod.Values, err = svc.sanitizeValues(module, mod.Values)
+	rec.Values, err = svc.sanitizeValues(module, rec.Values)
 	return err
 }
 
@@ -677,23 +683,23 @@ func (svc record) sanitizeValues(module *types.Module, values types.RecordValueS
 		numeric = regexp.MustCompile(`^(\d+)$`)
 	)
 
-	return out, out.Walk(func(value *types.RecordValue) (err error) {
-		var field = module.Fields.FindByName(value.Name)
+	return out, out.Walk(func(v *types.RecordValue) (err error) {
+		var field = module.Fields.FindByName(v.Name)
 		if field == nil {
-			return errors.Errorf("no such field %q", value.Name)
+			return errors.Errorf("no such field %q", v.Name)
 		}
 
 		if field.IsRef() {
-			if !numeric.MatchString(value.Value) {
+			if !numeric.MatchString(v.Value) {
 				return errors.Errorf("invalid reference format")
 			}
 
-			if value.Ref, err = strconv.ParseUint(value.Value, 10, 64); err != nil {
+			if v.Ref, err = strconv.ParseUint(v.Value, 10, 64); err != nil {
 				return err
 			}
 		}
 
-		value.Place = places[field.Name]
+		v.Place = places[field.Name]
 		places[field.Name]++
 
 		return nil

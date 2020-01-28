@@ -51,11 +51,28 @@ func (set RecordValueSet) Set(v *RecordValue) RecordValueSet {
 		}
 
 		//  Update existing entry
-		return append(append(set[:i], v), set[i+1:]...)
+		set[i] = v
+		return set
 	}
 
 	// Append new value
 	return append(set, v)
+}
+
+// Has value set?
+func (set RecordValueSet) Get(name string, place uint) *RecordValue {
+	for i := range set {
+		if set[i].Name != name {
+			continue
+		}
+		if set[i].Place != place {
+			continue
+		}
+
+		return set[i]
+	}
+
+	return nil
 }
 
 // Has value set?

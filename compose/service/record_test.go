@@ -3,6 +3,7 @@ package service
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -70,4 +71,34 @@ func TestValueSanitizer(t *testing.T) {
 	out, err = svc.sanitizeValues(module, rvs)
 	req.NoError(err)
 	req.Len(out, 0, "expecting 0 record values after sanitization, got %d", len(rvs))
+}
+
+func TestDefaultValueSetting(t *testing.T) {
+	var (
+		a = assert.New(t)
+
+		svc = record{
+			ac: AccessControl(&permissions.ServiceAllowAll{}),
+		}
+		mod = &types.Module{
+			Fields: types.ModuleFieldSet{
+				&types.ModuleField{Name: "single", DefaultValue: []*types.RecordValue{{Value: "s"}}},
+				&types.ModuleField{Name: "multi", Multi: true, DefaultValue: []*types.RecordValue{{Value: "m1", Place: 0}, {Value: "m2", Place: 1}}},
+			},
+		}
+
+		rec *types.Record
+
+		chk = func(vv types.RecordValueSet, f string, p uint, v string) {
+			a.True(vv.Has("multi", p))
+			a.Equal(v, vv.Get(f, p).Value)
+		}
+	)
+
+	rec = &types.Record{}
+	a.NoError(svc.setDefaultValues(mod, rec))
+	chk(rec.Values, "single", 0, "s")
+	chk(rec.Values, "multi", 0, "m1")
+	chk(rec.Values, "multi", 1, "m2")
+
 }
