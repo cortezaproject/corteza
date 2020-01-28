@@ -34,7 +34,8 @@ const (
 
 func Sink() *sink {
 	return &sink{
-		logger: DefaultLogger,
+		logger:   DefaultLogger,
+		eventbus: eventbus.Service(),
 	}
 }
 
