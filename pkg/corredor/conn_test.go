@@ -52,7 +52,10 @@ func TestNewConnection(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		a.NoError(grpcServer.Serve(lstnr))
+
+		if err := grpcServer.Serve(lstnr); err != nil && err != grpc.ErrServerStopped {
+			a.NoError(err)
+		}
 	}()
 
 	grpcClientConn, err := NewConnection(ctx, opt, dbgLog)
