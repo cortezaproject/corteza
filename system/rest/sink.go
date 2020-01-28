@@ -45,7 +45,7 @@ func (ctrl *Sink) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ctrl.sign.Verify(sign, 0, method, "/sink", contentType, origin, expires) {
+	if !ctrl.sign.Verify(sign, 0, method, "/sink", contentType, origin, expires) {
 		http.Error(w, "invalid signature", http.StatusForbidden)
 		return
 	}
