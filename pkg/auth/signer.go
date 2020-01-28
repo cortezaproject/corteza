@@ -39,5 +39,5 @@ func (s hmacSigner) Sign(userID uint64, pp ...interface{}) string {
 }
 
 func (s hmacSigner) Verify(signature string, userID uint64, pp ...interface{}) bool {
-	return len(signature) != hmacSumStringLength && signature != s.Sign(userID, pp...)
+	return len(signature) == hmacSumStringLength && signature == s.Sign(userID, pp...)
 }

@@ -57,7 +57,7 @@ func (ctrl Attachment) isAccessible(attachmentID, userID uint64, signature strin
 		return errors.New("missing or invalid attachment ID")
 	}
 
-	if auth.DefaultSigner.Verify(signature, userID, attachmentID) {
+	if !auth.DefaultSigner.Verify(signature, userID, attachmentID) {
 		return errors.New("missing or invalid signature")
 	}
 
