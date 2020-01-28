@@ -98,6 +98,7 @@ steps:
       SYSTEM_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
       COMPOSE_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
       MESSAGING_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
+      CORREDOR_CLIENT_CERTIFICATES_ENABLED: false
     commands:
       - wait-for-it.sh -t 60 --strict corteza-db:3306 -- echo "corteza-db is up"
       - make test.coverprofile.all
