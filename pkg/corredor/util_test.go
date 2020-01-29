@@ -7,48 +7,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPopOnManualEventType(t *testing.T) {
+func TestMapManualTriggers(t *testing.T) {
 	var (
 		a = assert.New(t)
-
-		trg = &Trigger{
-			EventTypes: []string{"onTimestamp", onManualEventType, "onInterval"},
-		}
 	)
 
-	a.Len(trg.EventTypes, 3)
-	a.True(popOnManualEventType(trg))
-	a.Len(trg.EventTypes, 2)
-	a.False(popOnManualEventType(trg))
-	a.Len(trg.EventTypes, 2)
-}
-
-func TestPluckManualTriggers(t *testing.T) {
-	var (
-		a = assert.New(t)
-
-		s = &ServerScript{
-			Triggers: []*Trigger{&Trigger{
-				ResourceTypes: []string{"r1", "r2"},
-				EventTypes:    []string{"onTimestamp", onManualEventType, "onInterval"},
-			}},
-		}
-	)
-
-	a.Len(s.Triggers[0].EventTypes, 3)
 	a.EqualValues(
 		map[string]bool{
 			"r1": true,
 			"r2": true,
 		},
-		pluckManualTriggers(s),
+		mapManualTriggers(&ServerScript{
+			Triggers: []*Trigger{&Trigger{
+				ResourceTypes: []string{"r1", "r2"},
+				EventTypes:    []string{"onTimestamp", onManualEventType, "onInterval"},
+			}},
+		}),
 	)
-	a.Len(s.Triggers[0].EventTypes, 2)
 
-	// Running again must result in empty hash
 	a.EqualValues(
 		map[string]bool{},
-		pluckManualTriggers(s),
+		mapManualTriggers(&ServerScript{
+			Triggers: []*Trigger{&Trigger{
+				ResourceTypes: []string{"r1", "r2"},
+				EventTypes:    []string{"onTimestamp", "onInterval"},
+			}},
+		}),
 	)
 }
 
