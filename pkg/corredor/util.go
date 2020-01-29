@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/pkg/errors"
 	"net/http"
 )
@@ -16,26 +17,10 @@ type (
 	}
 )
 
-// removes onManual event type from trigger
-// returns true if event type was removed or
-// false if there was no onManual event
-func popOnManualEventType(trigger *Trigger) (found bool) {
-	for i := len(trigger.EventTypes) - 1; i >= 0; i-- {
-		if trigger.EventTypes[i] == onManualEventType {
-			found = true
-
-			// remove from the list
-			trigger.EventTypes = append(trigger.EventTypes[:i], trigger.EventTypes[i+1:]...)
-		}
-	}
-
-	return
-}
-
-// pluckManualTriggers removes all manual triggers from the list of script's triggers
+// mapManualTriggers removes all manual triggers from the list of script's triggers
 //
 // and returns a hash map with resources from these manual triggers
-func pluckManualTriggers(script *ServerScript) map[string]bool {
+func mapManualTriggers(script *ServerScript) map[string]bool {
 	var (
 		hash = make(map[string]bool)
 	)
@@ -45,7 +30,7 @@ func pluckManualTriggers(script *ServerScript) map[string]bool {
 		// so let's make a copy we can play with
 		trigger := script.Triggers[i]
 
-		if popOnManualEventType(trigger) {
+		if slice.HasString(trigger.EventTypes, onManualEventType) {
 			for _, res := range trigger.ResourceTypes {
 				hash[res] = true
 			}
@@ -57,16 +42,22 @@ func pluckManualTriggers(script *ServerScript) map[string]bool {
 
 // converts trigger's constraint to eventbus' constraint options
 func makeTriggerOpts(t *Trigger) (oo []eventbus.HandlerRegOp, err error) {
-	if len(t.EventTypes) == 0 {
-		return nil, fmt.Errorf("can not generate trigger without at least one events")
-	}
-
 	if len(t.ResourceTypes) == 0 {
 		return nil, fmt.Errorf("can not generate trigger without at least one resource")
 	}
 
-	oo = append(oo, eventbus.On(t.EventTypes...))
+	if len(t.EventTypes) == 0 {
+		return nil, fmt.Errorf("can not generate trigger without at least one events")
+	}
+
+	// Make a copy of event types slice so that we do not modify it
+	types := slice.PluckString(t.EventTypes, onManualEventType)
+	if len(types) == 0 && len(t.EventTypes) > 0 {
+		return
+	}
+
 	oo = append(oo, eventbus.For(t.ResourceTypes...))
+	oo = append(oo, eventbus.On(types...))
 
 	for _, raw := range t.Constraints {
 		if c, err := eventbus.ConstraintMaker(raw.Name, raw.Op, raw.Value...); err != nil {

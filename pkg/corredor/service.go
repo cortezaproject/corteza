@@ -347,7 +347,7 @@ func (svc *service) registerServerScripts(ss ...*ServerScript) {
 
 		if len(s.Errors) == 0 {
 
-			if manual := pluckManualTriggers(script); len(manual) > 0 {
+			if manual := mapManualTriggers(script); len(manual) > 0 {
 
 				if script.Security != nil {
 					runAs = script.Security.RunAs
@@ -425,24 +425,16 @@ func (svc *service) registerTriggers(script *ServerScript) []uintptr {
 	}
 
 	for i := range script.Triggers {
-		// We're modifying trigger in the loop,
-		// so let's make a copy we can play with
-		trigger := script.Triggers[i]
-
-		if len(trigger.EventTypes) == 0 {
-			// We've removed the last event
-			//
-			// break now to prevent code below to
-			// complain about missing event types
-			continue
-		}
-
-		if ops, err = makeTriggerOpts(trigger); err != nil {
+		if ops, err = makeTriggerOpts(script.Triggers[i]); err != nil {
 			log.Warn(
 				"could not make trigger options",
 				zap.Error(err),
 			)
 
+			continue
+		}
+
+		if len(ops) == 0 {
 			continue
 		}
 
