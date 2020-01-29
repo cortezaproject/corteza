@@ -23,3 +23,32 @@ func ToStringBoolMap(s []string) (h map[string]bool) {
 
 	return
 }
+
+func HasString(ss []string, s string) bool {
+	for i := range ss {
+		if ss[i] == s {
+			return true
+		}
+	}
+
+	return false
+}
+
+// RemoveString removes one or more strings form the input slice
+func PluckString(ss []string, ff ...string) (o []string) {
+	if len(ff) == 0 {
+		return ss
+	}
+
+	f := ToStringBoolMap(ff)
+	o = make([]string, 0, len(ss))
+
+	for _, s := range ss {
+		if !f[s] {
+			// remove from the list
+			o = append(o, s)
+		}
+	}
+
+	return o
+}
