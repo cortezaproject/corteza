@@ -17,7 +17,7 @@ func MountRoutes(r chi.Router) {
 
 		// A special case that, we do not add this through standard request, handlers & controllers
 		// combo but directly -- we need access to r.Body
-		r.Handle("/sink", &Sink{
+		r.Handle("/sink*", &Sink{
 			svc:  service.DefaultSink,
 			sign: auth.DefaultSigner,
 		})
