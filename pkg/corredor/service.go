@@ -492,11 +492,14 @@ func (svc service) exec(ctx context.Context, script string, runAs string, event 
 	var (
 		rsp *ExecResponse
 
+		invoker auth.Identifiable
+
 		encodedEvent   map[string][]byte
 		encodedResults = make(map[string][]byte)
 
 		log = svc.log.With(
 			zap.String("script", script),
+			zap.String("runAs", runAs),
 			zap.String("event", event.EventType()),
 			zap.String("resource", event.ResourceType()),
 		)
@@ -521,15 +524,18 @@ func (svc service) exec(ctx context.Context, script string, runAs string, event 
 		req.Args[key] = string(encodedEvent[key])
 	}
 
-	// Resolve/expand invoker user details from the context
-	invoker, err := svc.users.FindByAny(ctx)
-	if err != nil {
-		return err
-	}
+	// Resolve/expand invoker user details from the context (if present
+	if i := auth.GetIdentityFromContext(ctx); i.Valid() {
+		invoker, err = svc.users.FindByAny(i)
+		if err != nil {
+			return err
+		}
 
-	log = log.With(zap.Stringer("invoker", invoker))
-	if err = encodeArguments(req.Args, "invoker", invoker); err != nil {
-		return
+		log = log.With(zap.Stringer("invoker", invoker))
+
+		if err = encodeArguments(req.Args, "invoker", invoker); err != nil {
+			return
+		}
 	}
 
 	if len(runAs) > 0 {
@@ -539,7 +545,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, event 
 
 		var definer auth.Identifiable
 
-		// Run this script as defined user (definer)
+		// Run this script as defined user
 		//
 		// We search for the defined (run-as) user,
 		// assign it to authUser argument and make an
@@ -560,7 +566,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, event 
 			return
 		}
 
-	} else {
+	} else if invoker != nil {
 		// Run script with the same user that invoked it
 
 		// current (authenticated) user
