@@ -154,7 +154,7 @@ func (svc user) With(ctx context.Context) UserService {
 
 func (svc user) FindByID(ID uint64) (*types.User, error) {
 	if ID == 0 {
-		return nil, ErrInvalidID
+		return nil, ErrInvalidID.withStack()
 	}
 
 	return svc.proc(svc.user.FindByID(ID))
@@ -189,7 +189,7 @@ func (svc user) FindByAny(identifier interface{}) (u *types.User, err error) {
 			u, err = svc.FindByHandle(strIdentifier)
 		}
 	} else {
-		err = ErrInvalidID
+		err = ErrInvalidID.withStack()
 	}
 
 	if err != nil {
@@ -297,7 +297,7 @@ func (svc user) CreateWithAvatar(input *types.User, avatar io.Reader) (out *type
 
 func (svc user) Update(upd *types.User) (u *types.User, err error) {
 	if upd.ID == 0 {
-		return nil, ErrInvalidID
+		return nil, ErrInvalidID.withStack()
 	}
 
 	if u, err = svc.user.FindByID(upd.ID); err != nil {
@@ -368,7 +368,7 @@ func (svc user) Delete(ID uint64) (err error) {
 	)
 
 	if ID == 0 {
-		return ErrInvalidID
+		return ErrInvalidID.withStack()
 	}
 
 	if del, err = svc.user.FindByID(ID); err != nil {
@@ -393,7 +393,7 @@ func (svc user) Delete(ID uint64) (err error) {
 
 func (svc user) Undelete(ID uint64) (err error) {
 	if ID == 0 {
-		return ErrInvalidID
+		return ErrInvalidID.withStack()
 	}
 
 	var u *types.User
@@ -412,7 +412,7 @@ func (svc user) Undelete(ID uint64) (err error) {
 
 func (svc user) Suspend(ID uint64) (err error) {
 	if ID == 0 {
-		return ErrInvalidID
+		return ErrInvalidID.withStack()
 	}
 
 	var u *types.User
@@ -431,7 +431,7 @@ func (svc user) Suspend(ID uint64) (err error) {
 
 func (svc user) Unsuspend(ID uint64) (err error) {
 	if ID == 0 {
-		return ErrInvalidID
+		return ErrInvalidID.withStack()
 	}
 
 	var u *types.User

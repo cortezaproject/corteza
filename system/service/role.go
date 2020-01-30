@@ -109,7 +109,7 @@ func (svc role) FindByID(roleID uint64) (*types.Role, error) {
 
 func (svc role) findByID(roleID uint64) (*types.Role, error) {
 	if roleID == 0 {
-		return nil, ErrInvalidID
+		return nil, ErrInvalidID.withStack()
 	}
 
 	role, err := svc.role.FindByID(roleID)
@@ -162,7 +162,7 @@ func (svc role) FindByAny(identifier interface{}) (r *types.Role, err error) {
 			}
 		}
 	} else {
-		err = ErrInvalidID
+		err = ErrInvalidID.withStack()
 	}
 
 	if err != nil {
@@ -202,11 +202,11 @@ func (svc role) Create(new *types.Role) (r *types.Role, err error) {
 
 func (svc role) Update(upd *types.Role) (r *types.Role, err error) {
 	if upd.ID == 0 {
-		return nil, ErrInvalidID
+		return nil, ErrInvalidID.withStack()
 	}
 
 	if !handle.IsValid(upd.Handle) {
-		return nil, ErrInvalidHandle
+		return nil, ErrInvalidHandle.withStack()
 	}
 
 	if !svc.ac.CanUpdateRole(svc.ctx, upd) {
@@ -327,7 +327,7 @@ func (svc role) Merge(roleID, targetRoleID uint64) error {
 	}
 
 	if targetRoleID == 0 {
-		return ErrInvalidID
+		return ErrInvalidID.withStack()
 	}
 
 	if !svc.ac.CanUpdateRole(svc.ctx, role) {
@@ -344,7 +344,7 @@ func (svc role) Move(roleID, targetOrganisationID uint64) error {
 	}
 
 	if targetOrganisationID == 0 {
-		return ErrInvalidID
+		return ErrInvalidID.withStack()
 	}
 
 	if !svc.ac.CanUpdateRole(svc.ctx, role) {
