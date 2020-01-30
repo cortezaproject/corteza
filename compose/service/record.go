@@ -354,6 +354,11 @@ func (svc record) Update(upd *types.Record) (r *types.Record, err error) {
 		return nil, ErrStaleData.withStack()
 	}
 
+	// Preload old record values so we can send it together with event
+	if err = svc.preloadValues(m, r); err != nil {
+		return nil, err
+	}
+
 	if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeUpdate(upd, r, m, ns)); err != nil {
 		return
 	}
@@ -404,7 +409,7 @@ func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
 		return ErrNoDeletePermissions.withStack()
 	}
 
-	// preloadValues should be pressent to load values for automation scripts
+	// Preload old record values so we can send it together with event
 	if err = svc.preloadValues(m, del); err != nil {
 		return
 	}
