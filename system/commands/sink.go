@@ -1,13 +1,9 @@
 package commands
 
 import (
-	"net/url"
-	"strings"
-	"time"
-
+	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/spf13/cobra"
-
-	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"time"
 )
 
 // Will perform OpenID connect auto-configuration
@@ -17,6 +13,7 @@ func Sink() *cobra.Command {
 		origin      string
 		contentType string
 		method      string
+		maxBodySize int64
 	)
 
 	cmd := &cobra.Command{
@@ -28,26 +25,31 @@ func Sink() *cobra.Command {
 		Use:   "signature",
 		Short: "Creates signature for sink HTTP endpoint",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			method = strings.ToUpper(method)
+			var (
+				srup = service.SinkRequestUrlParams{
+					Method:      method,
+					Origin:      origin,
+					ContentType: contentType,
+					MaxBodySize: maxBodySize,
+				}
+			)
 
 			if expires != "" {
 				// validate expiration date if set
-				if _, err := time.Parse("2006-01-02", expires); err != nil {
+				if exp, err := time.Parse("2006-01-02", expires); err != nil {
 					return err
+				} else {
+					srup.Expires = &exp
 				}
 			}
 
-			v := url.Values{}
-			v.Set("sign", auth.DefaultSigner.Sign(0, method, "/sink", contentType, origin, expires))
-			v.Set("expires", expires)
-			v.Set("content-type", contentType)
-			v.Set("origin", origin)
-			v.Set("method", method)
+			cmd.Printf("%+v\n", srup)
 
-			// @todo add host & schema
-			cmd.Println((&url.URL{
-				Path:     "/sink",
-				RawQuery: v.Encode()}).String())
+			if su, err := service.DefaultSink.SignURL(srup); err != nil {
+				return err
+			} else {
+				cmd.Println(su)
+			}
 
 			return nil
 		},
@@ -76,6 +78,12 @@ func Sink() *cobra.Command {
 		"method",
 		"GET",
 		"HTTP method that will be used")
+
+	signatureCmd.Flags().Int64Var(
+		&maxBodySize,
+		"max-body-size",
+		0,
+		"Max allowed body size")
 
 	cmd.AddCommand(
 		signatureCmd,

@@ -4,8 +4,11 @@ system:
 system:sink:
   on: ['request']
   props:
+    - name: 'response'
+      type: '*types.SinkResponse'
     - name: 'request'
       type: '*types.SinkRequest'
+      immutable: true
 
 system:mail:
   on: ['manual', 'receive', 'send']

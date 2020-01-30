@@ -22,8 +22,9 @@ type (
 	//
 	// This type is auto-generated.
 	sinkBase struct {
-		request *types.SinkRequest
-		invoker auth.Identifiable
+		response *types.SinkResponse
+		request  *types.SinkRequest
+		invoker  auth.Identifiable
 	}
 
 	// sinkOnRequest
@@ -52,20 +53,29 @@ func (sinkOnRequest) EventType() string {
 //
 // This function is auto-generated.
 func SinkOnRequest(
+	argResponse *types.SinkResponse,
 	argRequest *types.SinkRequest,
 ) *sinkOnRequest {
 	return &sinkOnRequest{
 		sinkBase: &sinkBase{
-			request: argRequest,
+			response: argResponse,
+			request:  argRequest,
 		},
 	}
 }
 
-// SetRequest sets new request value
+// SetResponse sets new response value
 //
 // This function is auto-generated.
-func (res *sinkBase) SetRequest(argRequest *types.SinkRequest) {
-	res.request = argRequest
+func (res *sinkBase) SetResponse(argResponse *types.SinkResponse) {
+	res.response = argResponse
+}
+
+// Response returns response
+//
+// This function is auto-generated.
+func (res sinkBase) Response() *types.SinkResponse {
+	return res.response
 }
 
 // Request returns request
@@ -93,6 +103,10 @@ func (res sinkBase) Invoker() auth.Identifiable {
 func (res sinkBase) Encode() (args map[string][]byte, err error) {
 	args = make(map[string][]byte)
 
+	if args["response"], err = json.Marshal(res.response); err != nil {
+		return nil, err
+	}
+
 	if args["request"], err = json.Marshal(res.request); err != nil {
 		return nil, err
 	}
@@ -107,13 +121,13 @@ func (res sinkBase) Encode() (args map[string][]byte, err error) {
 // Decode return values from Corredor script into struct props
 func (res *sinkBase) Decode(results map[string][]byte) (err error) {
 	if r, ok := results["result"]; ok && len(results) == 1 {
-		if err = json.Unmarshal(r, res.request); err != nil {
+		if err = json.Unmarshal(r, res.response); err != nil {
 			return
 		}
 	}
 
-	if r, ok := results["request"]; ok && len(results) == 1 {
-		if err = json.Unmarshal(r, res.request); err != nil {
+	if r, ok := results["response"]; ok && len(results) == 1 {
+		if err = json.Unmarshal(r, res.response); err != nil {
 			return
 		}
 	}
