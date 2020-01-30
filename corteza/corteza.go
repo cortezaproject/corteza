@@ -86,8 +86,9 @@ func (app *App) Activate(ctx context.Context) (err error) {
 	// Start scheduler
 	scheduler.Service().Start(ctx)
 
-	// Load corredor scripts
+	// Load corredor scripts & init watcher (script reloader)
 	corredor.Service().Load(ctx)
+	corredor.Service().Watch(ctx)
 
 	return nil
 }

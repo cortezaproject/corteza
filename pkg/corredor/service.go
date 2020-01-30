@@ -2,6 +2,7 @@ package corredor
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/go-chi/chi/middleware"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -9,6 +10,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -32,8 +34,10 @@ type (
 		manual map[string]map[string]bool
 
 		// Combined list of client and server scripts
-		sScripts ScriptSet
-		cScripts ScriptSet
+		sScripts   ScriptSet
+		sScriptsTS time.Time
+		cScripts   ScriptSet
+		cScriptsTS time.Time
 
 		conn *grpc.ClientConn
 
@@ -144,6 +148,25 @@ func (svc *service) connect(ctx context.Context) (err error) {
 	}
 
 	return
+}
+
+// Watch watches for changes
+func (svc *service) Watch(ctx context.Context) {
+	go func() {
+		defer sentry.Recover()
+		var ticker = time.NewTicker(svc.opt.ListRefresh)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				svc.Load(ctx)
+			}
+		}
+	}()
+
+	svc.log.Debug("watcher initialized")
 }
 
 func (svc *service) SetEventRegistry(er eventRegistry) {
@@ -263,10 +286,14 @@ func (svc *service) loadServerScripts(ctx context.Context) {
 		rsp *ServerScriptListResponse
 	)
 
-	svc.log.Debug("reloading server scripts")
-
 	ctx, cancel := context.WithTimeout(ctx, svc.opt.ListTimeout)
 	defer cancel()
+
+	if !svc.sScriptsTS.IsZero() {
+		ctx = metadata.NewOutgoingContext(ctx, metadata.MD{
+			"if-modified-since": []string{svc.sScriptsTS.Format(time.RFC3339)},
+		})
+	}
 
 	rsp, err = svc.ssClient.List(ctx, &ServerScriptListRequest{}, grpc.WaitForReady(true))
 	if err != nil {
@@ -274,7 +301,12 @@ func (svc *service) loadServerScripts(ctx context.Context) {
 		return
 	}
 
-	svc.registerServerScripts(rsp.Scripts...)
+	svc.sScriptsTS = time.Now()
+
+	if len(rsp.Scripts) > 0 {
+		svc.log.Debug("reloading server scripts")
+		svc.registerServerScripts(rsp.Scripts...)
+	}
 }
 
 // Registers Corredor scripts to eventbus and list of manual scripts
@@ -391,7 +423,6 @@ func (svc *service) registerServerScripts(ss ...*ServerScript) {
 			svc.log.Debug(
 				"script registered",
 				zap.String("script", s.Name),
-				zap.Stringer("security", s.Security),
 				zap.Int("manual", len(svc.manual[script.Name])),
 				zap.Int("triggers", len(svc.registered[script.Name])),
 			)
@@ -636,10 +667,14 @@ func (svc *service) loadClientScripts(ctx context.Context) {
 		rsp *ClientScriptListResponse
 	)
 
-	svc.log.Debug("reloading client scripts")
-
 	ctx, cancel := context.WithTimeout(ctx, svc.opt.ListTimeout)
 	defer cancel()
+
+	if !svc.sScriptsTS.IsZero() {
+		ctx = metadata.NewOutgoingContext(ctx, metadata.MD{
+			"if-modified-since": []string{svc.sScriptsTS.Format(time.RFC3339)},
+		})
+	}
 
 	rsp, err = svc.csClient.List(ctx, &ClientScriptListRequest{}, grpc.WaitForReady(true))
 	if err != nil {
@@ -647,7 +682,12 @@ func (svc *service) loadClientScripts(ctx context.Context) {
 		return
 	}
 
-	svc.registerClientScripts(rsp.Scripts...)
+	svc.sScriptsTS = time.Now()
+
+	if len(rsp.Scripts) > 0 {
+		svc.log.Debug("reloading client scripts")
+		svc.registerClientScripts(rsp.Scripts...)
+	}
 }
 
 func (svc *service) registerClientScripts(ss ...*ClientScript) {
@@ -672,14 +712,12 @@ func (svc *service) GetBundle(ctx context.Context, name, bType string) *Bundle {
 		rsp *BundleResponse
 	)
 
-	svc.log.Debug("reloading server scripts")
-
 	ctx, cancel := context.WithTimeout(ctx, svc.opt.ListTimeout)
 	defer cancel()
 
 	rsp, err = svc.csClient.Bundle(ctx, &BundleRequest{Name: name}, grpc.WaitForReady(true))
 	if err != nil {
-		svc.log.Error("could not load corredor server scripts", zap.Error(err))
+		svc.log.Error("could not load client scripts bundle from corredor", zap.Error(err))
 		return nil
 	}
 

@@ -20,6 +20,7 @@ type (
 		DefaultExecTimeout time.Duration `env:"CORREDOR_DEFAULT_EXEC_TIMEOUT"`
 
 		ListTimeout time.Duration `env:"CORREDOR_LIST_TIMEOUT"`
+		ListRefresh time.Duration `env:"CORREDOR_LIST_REFRESH"`
 
 		// Allow scripts to have runner explicitly defined
 		RunAsEnabled bool `env:"CORREDOR_RUN_AS_ENABLED"`
@@ -41,6 +42,7 @@ func Corredor() (o *CorredorOpt) {
 		MaxBackoffDelay:    time.Minute,
 		DefaultExecTimeout: time.Minute,
 		ListTimeout:        time.Second * 2,
+		ListRefresh:        time.Second * 5,
 		Log:                false,
 
 		TlsCertEnabled: true,
