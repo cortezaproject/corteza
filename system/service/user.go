@@ -180,6 +180,8 @@ func (svc user) FindByAny(identifier interface{}) (u *types.User, err error) {
 
 	if ID, ok := identifier.(uint64); ok {
 		u, err = svc.FindByID(ID)
+	} else if identity, ok := identifier.(internalAuth.Identifiable); ok {
+		u, err = svc.FindByID(identity.Identity())
 	} else if strIdentifier, ok := identifier.(string); ok {
 		if ID, _ := strconv.ParseUint(strIdentifier, 10, 64); ID > 0 {
 			u, err = svc.FindByID(ID)
