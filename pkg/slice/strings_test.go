@@ -146,7 +146,7 @@ func TestPluckStrung(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			assert.EqualValues(t, HasString(c.ss, c.s), c.o)
+			assert.EqualValues(t, PluckString(c.ss, c.ff...), c.o)
 		})
 	}
 }
