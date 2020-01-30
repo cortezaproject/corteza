@@ -70,7 +70,7 @@ func (svc *application) With(ctx context.Context) ApplicationService {
 
 func (svc *application) FindByID(ID uint64) (app *types.Application, err error) {
 	if ID == 0 {
-		return nil, ErrInvalidID
+		return nil, ErrInvalidID.withStack()
 	}
 
 	if app, err = svc.application.FindByID(ID); err != nil {
