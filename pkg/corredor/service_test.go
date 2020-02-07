@@ -231,6 +231,7 @@ func TestService_ExecOnManual(t *testing.T) {
 		a   = assert.New(t)
 		svc = &service{
 			manual: map[string]map[string]bool{},
+			opt:    options.CorredorOpt{Enabled: true},
 		}
 	)
 
