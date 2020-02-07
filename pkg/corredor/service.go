@@ -132,6 +132,10 @@ func NewService(logger *zap.Logger, opt options.CorredorOpt) *service {
 }
 
 func (svc *service) Connect(ctx context.Context) (err error) {
+	if !svc.opt.Enabled {
+		return
+	}
+
 	if err = svc.connect(ctx); err != nil {
 		return
 	}
@@ -186,6 +190,10 @@ func (svc *service) SetRoleFinder(rf roleFinder) {
 }
 
 func (svc *service) Load(ctx context.Context) {
+	if !svc.opt.Enabled {
+		return
+	}
+
 	go svc.loadServerScripts(ctx)
 	go svc.loadClientScripts(ctx)
 }
@@ -233,6 +241,10 @@ func (svc service) makeScriptFilter(ctx context.Context, f Filter) func(s *Scrip
 
 // ExecOnManual verifies permissions, event and script and sends exec request to corredor
 func (svc service) ExecOnManual(ctx context.Context, scriptName string, event Event) (err error) {
+	if !svc.opt.Enabled {
+		return
+	}
+
 	var (
 		res = event.ResourceType()
 		evt = event.EventType()
@@ -713,6 +725,10 @@ func (svc *service) registerClientScripts(ss ...*ClientScript) {
 }
 
 func (svc *service) GetBundle(ctx context.Context, name, bType string) *Bundle {
+	if !svc.opt.Enabled {
+		return nil
+	}
+
 	var (
 		err error
 		rsp *BundleResponse
