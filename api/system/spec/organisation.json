@@ -89,7 +89,7 @@
       "Title": "Read organisation details",
       "Path": "/{id}",
       "Parameters": {
-        "get": [
+        "path": [
           {
             "name": "id",
             "required": true,

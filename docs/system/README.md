@@ -465,7 +465,7 @@ Organisations represent a top-level grouping entity. There may be many organisat
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| id | uint64 | GET | Organisation ID | N/A | YES |
+| id | uint64 | PATH | Organisation ID | N/A | YES |
 
 ## Archive organisation
 
