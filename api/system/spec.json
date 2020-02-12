@@ -381,7 +381,7 @@
       "title": "Read organisation details",
       "path": "/{id}",
       "parameters": {
-        "get": [
+        "path": [
           {
             "type": "uint64",
             "name": "id",

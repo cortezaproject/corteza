@@ -287,9 +287,7 @@ func (r *OrganisationRead) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
-	if val, ok := get["id"]; ok {
-		r.ID = parseUInt64(val)
-	}
+	r.ID = parseUInt64(chi.URLParam(req, "id"))
 
 	return err
 }
