@@ -39,6 +39,7 @@ type RecordAPI interface {
 	Create(context.Context, *request.RecordCreate) (interface{}, error)
 	Read(context.Context, *request.RecordRead) (interface{}, error)
 	Update(context.Context, *request.RecordUpdate) (interface{}, error)
+	BulkDelete(context.Context, *request.RecordBulkDelete) (interface{}, error)
 	Delete(context.Context, *request.RecordDelete) (interface{}, error)
 	Upload(context.Context, *request.RecordUpload) (interface{}, error)
 	TriggerScript(context.Context, *request.RecordTriggerScript) (interface{}, error)
@@ -56,6 +57,7 @@ type Record struct {
 	Create         func(http.ResponseWriter, *http.Request)
 	Read           func(http.ResponseWriter, *http.Request)
 	Update         func(http.ResponseWriter, *http.Request)
+	BulkDelete     func(http.ResponseWriter, *http.Request)
 	Delete         func(http.ResponseWriter, *http.Request)
 	Upload         func(http.ResponseWriter, *http.Request)
 	TriggerScript  func(http.ResponseWriter, *http.Request)
@@ -263,6 +265,26 @@ func NewRecord(h RecordAPI) *Record {
 				resputil.JSON(w, value)
 			}
 		},
+		BulkDelete: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRecordBulkDelete()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Record.BulkDelete", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.BulkDelete(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("Record.BulkDelete", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("Record.BulkDelete", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewRecordDelete()
@@ -339,6 +361,7 @@ func (h Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/", h.Create)
 		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Read)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Update)
+		r.Delete("/namespace/{namespaceID}/module/{moduleID}/record/", h.BulkDelete)
 		r.Delete("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Delete)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/attachment", h.Upload)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/trigger", h.TriggerScript)

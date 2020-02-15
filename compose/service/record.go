@@ -64,7 +64,7 @@ type (
 		Create(record *types.Record) (*types.Record, error)
 		Update(record *types.Record) (*types.Record, error)
 
-		DeleteByID(namespaceID, recordID uint64) error
+		DeleteByID(namespaceID, moduleID uint64, recordID ...uint64) error
 
 		Organize(namespaceID, moduleID, recordID uint64, sortingField, sortingValue, sortingFilter, valueField, value string) error
 	}
@@ -395,49 +395,92 @@ func (svc record) recordInfoUpdate(r *types.Record) {
 	r.UpdatedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
 }
 
-func (svc record) DeleteByID(namespaceID, recordID uint64) (err error) {
-	if recordID == 0 {
+// DeleteByID removes one or more records (all from the same module and namespace)
+//
+// Before and after each record is deleted beforeDelete and afterDelete events are emitted
+// If beforeRecord aborts the action it does so for that specific record only
+
+func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) error {
+	if namespaceID == 0 {
 		return ErrInvalidID.withStack()
 	}
 
-	ns, m, del, err := svc.loadCombo(namespaceID, 0, recordID)
+	if moduleID == 0 {
+		return ErrInvalidID.withStack()
+	}
+
+	var (
+		isBulkDelete = len(recordIDs) > 0
+		now          = time.Now()
+
+		ns *types.Namespace
+		m  *types.Module
+
+		err error
+	)
+
+	ns, m, _, err = svc.loadCombo(namespaceID, moduleID, 0)
 	if err != nil {
-		return
+		return err
 	}
 
 	if !svc.ac.CanDeleteRecord(svc.ctx, m) {
 		return ErrNoDeletePermissions.withStack()
 	}
 
-	// Preload old record values so we can send it together with event
-	if err = svc.preloadValues(m, del); err != nil {
-		return
-	}
-
-	// Calling before-record-delete scripts
-	if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeDelete(nil, del, m, ns)); err != nil {
-		return
-	}
-
-	err = svc.db.Transaction(func() (err error) {
-		now := time.Now()
-		del.DeletedAt = &now
-		del.DeletedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
-
-		if err = svc.recordRepo.Delete(del); err != nil {
-			return
+	for _, recordID := range recordIDs {
+		if recordID == 0 {
+			return ErrInvalidID.withStack()
 		}
 
-		if err = svc.recordRepo.DeleteValues(del); err != nil {
-			return
+		err := svc.db.Transaction(func() (err error) {
+			var (
+				del *types.Record
+			)
+
+			del, err = svc.FindByID(namespaceID, recordID)
+			if err != nil {
+				return err
+			}
+
+			// Preload old record values so we can send it together with event
+			if err = svc.preloadValues(m, del); err != nil {
+				return err
+			}
+
+			// Calling before-record-delete scripts
+			if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeDelete(nil, del, m, ns)); err != nil {
+				if isBulkDelete {
+					// Not considered fatal,
+					// continue with next record
+					return nil
+				} else {
+					return err
+				}
+			}
+
+			del.DeletedAt = &now
+			del.DeletedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
+
+			if err = svc.recordRepo.Delete(del); err != nil {
+				return err
+			}
+
+			if err = svc.recordRepo.DeleteValues(del); err != nil {
+				return err
+			}
+
+			defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterDelete(nil, del, m, ns))
+
+			return err
+		})
+
+		if err != nil {
+			return errors.Wrap(err, "failed to delete record")
 		}
+	}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterDelete(nil, del, m, ns))
-
-		return
-	})
-
-	return errors.Wrap(err, "unable to delete record")
+	return nil
 }
 
 // Organize - Record organizer
@@ -595,7 +638,7 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 // Loads namespace, module, record and set of triggers.
 func (svc record) loadCombo(namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
 	if namespaceID == 0 {
-		err = ErrNamespaceRequired
+		err = ErrNamespaceRequired.withStack()
 		return
 	}
 	if ns, err = svc.loadNamespace(namespaceID); err != nil {
@@ -607,11 +650,15 @@ func (svc record) loadCombo(namespaceID, moduleID, recordID uint64) (ns *types.N
 			return
 		}
 
-		moduleID = r.ModuleID
+		if r.ModuleID != moduleID && moduleID > 0 {
+			return nil, nil, nil, ErrInvalidModuleID.withStack()
+		}
 	}
 
-	if m, err = svc.loadModule(ns.ID, moduleID); err != nil {
-		return
+	if moduleID > 0 {
+		if m, err = svc.loadModule(ns.ID, moduleID); err != nil {
+			return
+		}
 	}
 
 	return

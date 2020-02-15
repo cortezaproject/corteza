@@ -973,6 +973,28 @@
                 }
             },
             {
+                "name": "bulkDelete",
+                "method": "DELETE",
+                "title": "Delete record row from module section",
+                "path": "/",
+                "parameters": {
+                    "post": [
+                        {
+                            "type": "[]string",
+                            "name": "recordIDs",
+                            "required": false,
+                            "title": "IDs of records to delete"
+                        },
+                        {
+                            "type": "bool",
+                            "name": "truncate",
+                            "required": false,
+                            "title": "Remove ALL records of a specified module (pending implementation)"
+                        }
+                    ]
+                }
+            },
+            {
                 "name": "delete",
                 "method": "DELETE",
                 "title": "Delete record row from module section",
