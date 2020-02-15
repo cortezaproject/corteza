@@ -823,6 +823,7 @@ Compose records
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/` | Create record in module section |
 | `GET` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Read records by ID from module section |
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Update records in module section |
+| `DELETE` | `/namespace/{namespaceID}/module/{moduleID}/record/` | Delete record row from module section |
 | `DELETE` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Delete record row from module section |
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/attachment` | Uploads attachment and validates it against record field requirements |
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/trigger` | Fire compose:record trigger |
@@ -998,6 +999,23 @@ Compose records
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 | values | types.RecordValueSet | POST | Record values | N/A | YES |
+
+## Delete record row from module section
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/module/{moduleID}/record/` | HTTP/S | DELETE |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| recordIDs | []string | POST | IDs of records to delete | N/A | NO |
+| truncate | bool | POST | Remove ALL records of a specified module (pending implementation) | N/A | NO |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
 
 ## Delete record row from module section
 

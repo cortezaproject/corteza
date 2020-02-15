@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"net/http"
 	"strings"
 
@@ -151,7 +152,19 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 }
 
 func (ctrl *Record) Delete(ctx context.Context, r *request.RecordDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.record.With(ctx).DeleteByID(r.NamespaceID, r.RecordID)
+	return resputil.OK(), ctrl.record.With(ctx).DeleteByID(r.NamespaceID, r.ModuleID, r.RecordID)
+}
+
+func (ctrl *Record) BulkDelete(ctx context.Context, r *request.RecordBulkDelete) (interface{}, error) {
+	if r.Truncate {
+		return nil, errors.New("pending implementation")
+	}
+
+	return resputil.OK(), ctrl.record.With(ctx).DeleteByID(
+		r.NamespaceID,
+		r.ModuleID,
+		payload.ParseUInt64s(r.RecordIDs)...,
+	)
 }
 
 func (ctrl *Record) Upload(ctx context.Context, r *request.RecordUpload) (interface{}, error) {

@@ -20,6 +20,7 @@ const (
 	ErrNoDeletePermissions               serviceError = "NoDeletePermissions"
 	ErrNoTriggerManagementPermissions    serviceError = "NoTriggerManagementPermissions"
 	ErrNamespaceRequired                 serviceError = "NamespaceRequired"
+	ErrInvalidModuleID                   serviceError = "InvalidModuleID"
 	ErrModulePageExists                  serviceError = "ModulePageExists"
 	ErrNotImplemented                    serviceError = "NotImplemented"
 	ErrRecordImportSessionNotFound       serviceError = "RecordImportSessionNotFound"
