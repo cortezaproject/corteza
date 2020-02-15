@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -302,7 +301,7 @@ func (svc page) UniqueCheck(p *types.Page) (err error) {
 	}
 
 	if p.ModuleID > 0 {
-		if e, _ := svc.pageRepo.FindByModuleID(p.NamespaceID, p.ModuleID); e != nil && e.ID != e.ID {
+		if e, _ := svc.pageRepo.FindByModuleID(p.NamespaceID, p.ModuleID); e != nil && e.ID != p.ID {
 			return ErrModulePageExists
 		}
 	}
