@@ -359,7 +359,12 @@ func (svc role) Membership(userID uint64) ([]*types.RoleMember, error) {
 }
 
 func (svc role) MemberList(roleID uint64) ([]*types.RoleMember, error) {
+	if roleID == permissions.EveryoneRoleID {
+		return nil, ErrInvalidID.withStack()
+	}
+
 	_, err := svc.findByID(roleID)
+
 	if err != nil {
 		return nil, err
 	}
