@@ -95,14 +95,25 @@ func (svc accessControl) FilterReadableRoles(ctx context.Context) *permissions.R
 }
 
 func (svc accessControl) CanUpdateRole(ctx context.Context, rl *types.Role) bool {
+	if rl.ID == permissions.EveryoneRoleID {
+		return false
+	}
+
 	return svc.can(ctx, rl, "update")
 }
 
 func (svc accessControl) CanDeleteRole(ctx context.Context, rl *types.Role) bool {
+	if rl.ID == permissions.EveryoneRoleID {
+		return false
+	}
+
 	return svc.can(ctx, rl, "delete")
 }
 
 func (svc accessControl) CanManageRoleMembers(ctx context.Context, rl *types.Role) bool {
+	if rl.ID == permissions.EveryoneRoleID {
+		return false
+	}
 	return svc.can(ctx, rl, "members.manage")
 }
 
