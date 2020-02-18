@@ -69,22 +69,28 @@ func Settings() *cobra.Command {
 
 	set := &cobra.Command{
 		Use:   "set [key to set] [value]",
-		Short: "Set value (raw JSON) for a specific key",
+		Short: "Set value (raw JSON or string) for a specific key",
 		Args:  cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
+				err error
 				ctx = auth.SetSuperUserContext(cli.Context())
 			)
 
 			value := args[1]
+
 			v := &settings.Value{
 				Name: args[0],
 			}
 
-			err := v.SetRawValue(value)
-			if _, is := err.(*json.SyntaxError); is {
-				// Quote the raw value and re-parse
-				err = v.SetRawValue(`"` + value + `"`)
+			if cmd.Flags().Lookup("as-string").Changed {
+				err = v.SetValue(value)
+			} else {
+				err = v.SetRawValue(value)
+				if _, is := err.(*json.SyntaxError); is {
+					// Quote the raw value and re-parse
+					err = v.SetRawValue(`"` + value + `"`)
+				}
 			}
 
 			if err != nil {
@@ -94,6 +100,8 @@ func Settings() *cobra.Command {
 			cli.HandleError(service.DefaultSettings.Set(ctx, v))
 		},
 	}
+
+	set.Flags().BoolP("as-string", "s", false, "Treat input value as string (to avoid wrapping in quites)")
 
 	imp := &cobra.Command{
 		Use:   "import [file]",
