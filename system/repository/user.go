@@ -84,33 +84,43 @@ func (r *user) With(ctx context.Context, db *factory.DB) UserRepository {
 	}
 }
 
+// FindByUsername searches for valid (not deleted, not suspended) users by username
 func (r user) FindByUsername(username string) (*types.User, error) {
-	return r.findOneBy("username", username)
+	return r.findOneBy("username", username, true)
 }
 
+// FindByHandle searches for valid (not deleted, not suspended) users by handle
 func (r user) FindByHandle(handle string) (*types.User, error) {
-	return r.findOneBy("handle", handle)
+	return r.findOneBy("handle", handle, true)
 }
 
+// FindByEmail searches for valid (not deleted, not suspended) users by email
 func (r user) FindByEmail(email string) (*types.User, error) {
-	return r.findOneBy("email", email)
+	return r.findOneBy("email", email, true)
 }
 
+// FindByID searches for users by their ID
 func (r user) FindByID(id uint64) (*types.User, error) {
-	return r.findOneBy("id", id)
+	return r.findOneBy("id", id, false)
 }
 
-func (r user) findOneBy(field string, value interface{}) (*types.User, error) {
+// findOneBy searches for users by given field & value
+func (r user) findOneBy(field string, value interface{}, validOnly bool) (*types.User, error) {
 	var (
 		u = &types.User{}
 
 		q = r.query().
 			Where(squirrel.Eq{field: value})
-
-		err = rh.FetchOne(r.db(), q, u)
 	)
 
-	if err != nil {
+	if validOnly {
+		q = q.Where(squirrel.Eq{
+			"deleted_at":   nil,
+			"suspended_at": nil,
+		})
+	}
+
+	if err := rh.FetchOne(r.db(), q, u); err != nil {
 		return nil, err
 	} else if u.ID == 0 {
 		return nil, ErrUserNotFound
@@ -119,6 +129,7 @@ func (r user) findOneBy(field string, value interface{}) (*types.User, error) {
 	return u, nil
 }
 
+// Find searches for users
 func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilter, err error) {
 	f = filter
 
