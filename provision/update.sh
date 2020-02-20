@@ -1,36 +1,47 @@
 #!/bin/bash
 
+set -eu
+
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
+BRANCH=${BRANCH:-"develop"}
+ZIP="${BRANCH}.zip"
+URL=${URL:-"https://github.com/cortezaproject/corteza-ext/archive/${ZIP}"}
+DIR="corteza-ext-${BRANCH}"
+
 function download {
-  SRC="https://raw.githubusercontent.com/cortezaproject/corteza-configs/${1}"
-  DST=${2}
-  echo -ne "\033[32m${DST}\033[39m (${SRC}) ..."
-  curl -s $SRC > ${DST}
+  echo -ne "\033[32mDownloading ${URL}\033[39m ... "
+
+  curl -s --location "${URL}" > "${ZIP}"
+  unzip -qq "${ZIP}"
+
   echo "done"
 }
 
-# ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------
-
-function getCrmConfig {
-  NAMES="1000_namespace 1100_modules 1200_charts 1400_pages 1500_record_settings"
-
-  for NAME in $NAMES; do
-    download "master/crm/${NAME}.yaml" "./compose/src/${NAME}_crm.yaml"
-  done
+function copyExtConfig {
+  echo -e "\033[32mCopying ${2} ${1}\033[39m ... "
+  cp "${DIR}/${1}/config/${2}.yaml" "./compose/src/${2}_${1}.yaml"
 }
 
-getCrmConfig
-
-# ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------
-
-function getServiceCloudConfig {
-  NAMES="1000_namespace 1100_modules 1200_charts 1400_pages 1500_record_settings"
-
-  for NAME in $NAMES; do
-    download "master/service-cloud/${NAME}.yaml" "./compose/src/${NAME}_service_cloud.yaml"
-  done
+function cleanup {
+  echo -ne "\033[32mCleaning up\033[39m ... "
+  rm -rf "${ZIP}" "${DIR}"
+  echo "done"
 }
 
-getServiceCloudConfig
+download
+
+copyExtConfig crm 1000_namespace
+copyExtConfig crm 1100_modules
+copyExtConfig crm 1200_charts
+copyExtConfig crm 1400_pages
+copyExtConfig crm 1500_record_settings
+
+copyExtConfig service-cloud 1000_namespace
+copyExtConfig service-cloud 1100_modules
+copyExtConfig service-cloud 1200_charts
+copyExtConfig service-cloud 1400_pages
+copyExtConfig service-cloud 1500_record_settings
+
+cleanup
 
