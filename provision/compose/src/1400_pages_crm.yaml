@@ -229,10 +229,10 @@ pages:
           options:
             buttons:
             - label: Convert this Lead in to an Account
-              script: LeadConvertLeadIntoAccount
+              script: /client-scripts/compose/crm/Lead/ToAccount.js:default
               variant: primary
             - label: 'Lead: Convert a lead into an account and opportunity'
-              script: LeadConvertLeadToAccountAndOpportunity
+              script: /client-scripts/compose/crm/Lead/ToAccountAndOpportunity.js:default
               variant: primary
           kind: Automation
           xywh: [6, 15, 3, 8]
@@ -472,13 +472,13 @@ pages:
           options:
             buttons:
             - label: Generate a new Opportunity for this Account
-              script: AccountCreateNewOpportunity
+              script: /client-scripts/compose/crm/Account/CreateNewOpportunity.js:default
               variant: primary
             - label: Generate a new Contract for this Account
-              script: AccountCreateNewContract
+              script: /client-scripts/compose/crm/Account/CreateNewContract.js:default
               variant: primary
             - label: Generate a new Case for this Account
-              script: AccountCreateNewCase
+              script: /client-scripts/compose/crm/Account/CreateNewCase.js:default
               variant: primary
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
@@ -504,7 +504,7 @@ pages:
         title: My Accounts
         blocks:
         - title: My Accounts
-          options:        
+          options:
             fields:
             - name: AccountName
             - name: Type
@@ -691,10 +691,10 @@ pages:
             buttons:
             - label: Update prices of Products by applying the selected Price Book
                 and inserted discounts
-              script: OpportunityApplyPriceBook
+              script: /client-scripts/compose/crm/Opportunity/ApplyPriceBook.js:default
               variant: primary
             - label: Generate a new Quote for this Opportunity
-              script: OpportunityGenerateNewQuote
+              script: /client-scripts/compose/crm/Opportunity/NewQuote.js:default
               variant: primary
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
@@ -928,7 +928,7 @@ pages:
           options:
             buttons:
             - label: Create a new Case for this Contact
-              script: ContactCreateNewCase
+              script: /client-scripts/compose/crm/Contact/CreateNewCase.js:default
               variant: primary
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
@@ -1109,16 +1109,16 @@ pages:
           options:
             buttons:
             - label: Submit this Quote for approval
-              script: QuoteSubmitQuoteForApproval
+              script: /client-scripts/compose/crm/Quote/SubmitForApproval.js:default
               variant: primary
             - label: Approve this Quote
-              script: QuoteApproveQuote
+              script: /client-scripts/compose/crm/Quote/Approve.js:default
               variant: primary
             - label: Send this Quote via email to the primary contact
-              script: QuoteSendQuoteToPrimaryContact
+              script: /client-scripts/compose/crm/Quote/SendToPriContact.js:default
               variant: primary
             - label: Send this Quote to a custom email
-              script: QuoteSendQuoteToCustomEmail
+              script: /client-scripts/compose/crm/Quote/SentToCustomEmail.js:default
               variant: primary
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
@@ -1684,13 +1684,13 @@ pages:
           options:
             buttons:
             - label: Set Case status to Working
-              script: CaseSetStatusToWorking
+              script: /client-scripts/compose/crm/Case/SetStatusToWorking.js:default
               variant: primary
             - label: Set Case status to Closed
-              script: CaseSetStatusToClosed
+              script: /client-scripts/compose/crm/Case/SetStatusToClosed.js:default
               variant: primary
             - label: Inform the contact via email of the Case's solution
-              script: CaseInformContactOfSolution
+              script: /client-scripts/compose/crm/Case/InformContact.js:default
               variant: primary
           kind: Automation
           xywh: [9, 14, 3, 8]
