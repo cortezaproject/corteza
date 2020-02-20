@@ -190,10 +190,10 @@ pages:
         - options:
             buttons:
             - label: Add Update to this Case
-              script: CaseAddUpdate
+              script: /client-scripts/compose/service-cloud/Case/AddUpdate.js:default
               variant: primary
             - label: Send Email to Case Contact
-              script: CaseSendEmail
+              script: /client-scripts/compose/service-cloud/Case/CreateEmail.js:default
               variant: primary
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
@@ -614,10 +614,10 @@ pages:
                   options:
                     buttons:
                     - label: Load selected tempate in to email message
-                      script: EmailTemplateLoad
+                      script: /client-scripts/compose/service-cloud/EmailMessage/TemplateLoad.js:default
                       variant: primary
                     - label: Send email to the contact
-                      script: EmailSend
+                      script: /client-scripts/compose/service-cloud/EmailMessage/SendEmail.js:default
                       variant: success
                   style:
                     variants: {bodyBg: white, border: primary, headerBg: white,
