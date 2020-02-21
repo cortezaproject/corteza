@@ -52,3 +52,5 @@ compose:record:
     - name: 'namespace'
       type: '*types.Namespace'
       immutable: true
+    - name: 'recordValueErrors'
+      type: '*types.RecordValueErrorSet'

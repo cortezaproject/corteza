@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"net/http"
 	"strings"
@@ -128,6 +129,10 @@ func (ctrl *Record) Create(ctx context.Context, r *request.RecordCreate) (interf
 		Values:      r.Values,
 	})
 
+	if rve, is := err.(*types.RecordValueErrorSet); is && !rve.IsValid() {
+		return ctrl.handleValidationError(rve), nil
+	}
+
 	return ctrl.makePayload(ctx, m, record, err)
 }
 
@@ -147,6 +152,10 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 		ModuleID:    r.ModuleID,
 		Values:      r.Values,
 	})
+
+	if rve, is := err.(*types.RecordValueErrorSet); is && !rve.IsValid() {
+		return ctrl.handleValidationError(rve), nil
+	}
 
 	return ctrl.makePayload(ctx, m, record, err)
 }
@@ -410,12 +419,13 @@ func (ctrl *Record) TriggerScript(ctx context.Context, r *request.RecordTriggerS
 	}
 
 	record = oldRecord
-	record.Values = r.Values
+	record.Values = values.Sanitizer().Run(module, r.Values)
+	validated := values.Validator().Run(module, record)
 
 	err = corredor.Service().ExecOnManual(
 		ctx,
 		r.Script,
-		event.RecordOnManual(record, oldRecord, module, namespace),
+		event.RecordOnManual(record, oldRecord, module, namespace, validated),
 	)
 
 	// Script can return modified record and we'll pass it on to the caller
@@ -447,4 +457,25 @@ func (ctrl Record) makeFilterPayload(ctx context.Context, m *types.Module, rr ty
 	}
 
 	return modp, nil
+}
+
+// Special care for record validation errors
+//
+// We need to return a bit different format of response
+// with all details that were collected through validation
+func (ctrl Record) handleValidationError(rve *types.RecordValueErrorSet) interface{} {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		rval := struct {
+			Error struct {
+				Message string                   `json:"message"`
+				Details []types.RecordValueError `json:"details,omitempty"`
+			} `json:"error"`
+		}{}
+
+		rval.Error.Message = rve.Error()
+		rval.Error.Details = rve.Set
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(rval)
+	}
 }
