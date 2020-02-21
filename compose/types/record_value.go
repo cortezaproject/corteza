@@ -17,8 +17,18 @@ type (
 		Ref       uint64     `db:"ref"        json:"-"`
 		Place     uint       `db:"place"      json:"-"`
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
+
+		updated bool
 	}
 )
+
+func (v RecordValue) IsUpdated() bool {
+	return v.updated
+}
+
+func (v RecordValue) IsDeleted() bool {
+	return v.DeletedAt != nil
+}
 
 func (set RecordValueSet) FilterByName(name string) (vv RecordValueSet) {
 	for i := range set {
@@ -91,6 +101,76 @@ func (set RecordValueSet) Has(name string, place uint) bool {
 	return false
 }
 
+func (set RecordValueSet) SetUpdatedFlag(updated bool) {
+}
+
+func (set RecordValueSet) GetUpdated() (out RecordValueSet) {
+	out = make([]*RecordValue, 0, len(set))
+	for i := range set {
+		if !set[i].updated {
+			continue
+		}
+
+		out = append(out, set[i])
+	}
+
+	// Append new value
+	return out
+}
+
+// Replace old value set with new one
+//
+// Will remove all values that are not set in new set
+//
+// This satisfies current requirements where record is always
+// manipulated as a whole
+func (set RecordValueSet) Replace(new RecordValueSet) (out RecordValueSet) {
+	if len(new) == 0 {
+		return nil
+	}
+
+	if len(set) == 0 {
+		for i := range new {
+			new[i].updated = true
+		}
+
+		return new
+	}
+
+	out = make([]*RecordValue, 0, len(set)+len(new))
+	for s := range set {
+		// Mark all old as deleted
+		out = append(out, &RecordValue{
+			Name:      set[s].Name,
+			Value:     set[s].Value,
+			Place:     set[s].Place,
+			DeletedAt: &time.Time{},
+			updated:   true,
+		})
+	}
+
+	for n := range new {
+		if ex := out.Get(new[n].Name, new[n].Place); ex != nil {
+			// Reset deleted flag
+			ex.DeletedAt = nil
+
+			// Did value change?
+			ex.updated = ex.updated || ex.Value != new[n].Value
+
+			ex.Value = new[n].Value
+		} else {
+			out = append(out, &RecordValue{
+				Name:    new[n].Name,
+				Value:   new[n].Value,
+				Place:   new[n].Place,
+				updated: true,
+			})
+		}
+	}
+
+	return out
+}
+
 func (set *RecordValueSet) Scan(value interface{}) error {
 	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
 	switch value.(type) {
@@ -108,3 +188,7 @@ func (set *RecordValueSet) Scan(value interface{}) error {
 func (set RecordValueSet) Value() (driver.Value, error) {
 	return json.Marshal(set)
 }
+
+func (set RecordValueSet) Len() int           { return len(set) }
+func (set RecordValueSet) Swap(i, j int)      { set[i], set[j] = set[j], set[i] }
+func (set RecordValueSet) Less(i, j int) bool { return set[i].Place < set[j].Place }

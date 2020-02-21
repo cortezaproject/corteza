@@ -29,6 +29,7 @@ type (
 		Update(record *types.Record) (*types.Record, error)
 		Delete(record *types.Record) error
 
+		RefValueLookup(moduleID uint64, field string, ref uint64) (recordID uint64, err error)
 		LoadValues(fieldNames []string, IDs []uint64) (rvs types.RecordValueSet, err error)
 		DeleteValues(record *types.Record) error
 		UpdateValues(recordID uint64, rvs types.RecordValueSet) (err error)
@@ -330,7 +331,19 @@ func (r record) PartialUpdateValues(rvs ...*types.RecordValue) (err error) {
 	})
 
 	return errors.Wrap(err, "could not replace record values")
+}
 
+func (r record) RefValueLookup(moduleID uint64, field string, ref uint64) (recordID uint64, err error) {
+	var sql = "SELECT record_id" +
+		"  FROM compose_record AS r INNER JOIN compose_record_value AS v " +
+		" WHERE rel_module = ? " +
+		"   AND v.name = ? " +
+		"   AND v.ref = ? " +
+		"   AND r.deleted_at IS NULL " +
+		"   AND v.deleted_at IS NULL " +
+		"       LIMIT 1"
+
+	return recordID, r.db().Get(recordID, sql, moduleID, field, ref)
 }
 
 func (r record) LoadValues(fieldNames []string, IDs []uint64) (rvs types.RecordValueSet, err error) {

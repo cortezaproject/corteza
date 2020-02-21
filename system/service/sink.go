@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"github.com/davecgh/go-spew/spew"
 	"io"
 	"net/http"
 	"net/url"
@@ -236,7 +235,6 @@ func (svc *sink) process(contentType string, w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		spew.Dump(rsp)
 		// Now write everything we've received from the script
 		//if err = rsp.Header.Write(w); err != nil {
 		//	return

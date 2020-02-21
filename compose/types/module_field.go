@@ -106,15 +106,16 @@ func (set ModuleFieldSet) Swap(i, j int) {
 	set[i], set[j] = set[j], set[i]
 }
 
-// IsRef tells us if value of this field be a reference to something (another record, user)?
-func (f ModuleField) IsRef() bool {
-	return f.Kind == "Record" || f.Kind == "Owner" || f.Kind == "File"
-}
-
 func (f ModuleField) IsNumeric() bool {
 	return f.Kind == "Number"
 }
 
 func (f ModuleField) IsDateTime() bool {
 	return f.Kind == "DateTime"
+}
+
+// IsRef tells us if value of this field be a reference to something
+// (another record, file , user)?
+func (f ModuleField) IsRef() bool {
+	return f.Kind == "Record" || f.Kind == "User" || f.Kind == "File"
 }

@@ -22,11 +22,12 @@ type (
 	//
 	// This type is auto-generated.
 	recordBase struct {
-		record    *types.Record
-		oldRecord *types.Record
-		module    *types.Module
-		namespace *types.Namespace
-		invoker   auth.Identifiable
+		record            *types.Record
+		oldRecord         *types.Record
+		module            *types.Module
+		namespace         *types.Namespace
+		recordValueErrors *types.RecordValueErrorSet
+		invoker           auth.Identifiable
 	}
 
 	// recordOnManual
@@ -143,13 +144,15 @@ func RecordOnManual(
 	argOldRecord *types.Record,
 	argModule *types.Module,
 	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
 ) *recordOnManual {
 	return &recordOnManual{
 		recordBase: &recordBase{
-			record:    argRecord,
-			oldRecord: argOldRecord,
-			module:    argModule,
-			namespace: argNamespace,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
 		},
 	}
 }
@@ -162,13 +165,15 @@ func RecordBeforeCreate(
 	argOldRecord *types.Record,
 	argModule *types.Module,
 	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
 ) *recordBeforeCreate {
 	return &recordBeforeCreate{
 		recordBase: &recordBase{
-			record:    argRecord,
-			oldRecord: argOldRecord,
-			module:    argModule,
-			namespace: argNamespace,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
 		},
 	}
 }
@@ -181,13 +186,15 @@ func RecordBeforeUpdate(
 	argOldRecord *types.Record,
 	argModule *types.Module,
 	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
 ) *recordBeforeUpdate {
 	return &recordBeforeUpdate{
 		recordBase: &recordBase{
-			record:    argRecord,
-			oldRecord: argOldRecord,
-			module:    argModule,
-			namespace: argNamespace,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
 		},
 	}
 }
@@ -200,13 +207,15 @@ func RecordBeforeDelete(
 	argOldRecord *types.Record,
 	argModule *types.Module,
 	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
 ) *recordBeforeDelete {
 	return &recordBeforeDelete{
 		recordBase: &recordBase{
-			record:    argRecord,
-			oldRecord: argOldRecord,
-			module:    argModule,
-			namespace: argNamespace,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
 		},
 	}
 }
@@ -219,13 +228,15 @@ func RecordAfterCreate(
 	argOldRecord *types.Record,
 	argModule *types.Module,
 	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
 ) *recordAfterCreate {
 	return &recordAfterCreate{
 		recordBase: &recordBase{
-			record:    argRecord,
-			oldRecord: argOldRecord,
-			module:    argModule,
-			namespace: argNamespace,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
 		},
 	}
 }
@@ -238,13 +249,15 @@ func RecordAfterUpdate(
 	argOldRecord *types.Record,
 	argModule *types.Module,
 	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
 ) *recordAfterUpdate {
 	return &recordAfterUpdate{
 		recordBase: &recordBase{
-			record:    argRecord,
-			oldRecord: argOldRecord,
-			module:    argModule,
-			namespace: argNamespace,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
 		},
 	}
 }
@@ -257,13 +270,15 @@ func RecordAfterDelete(
 	argOldRecord *types.Record,
 	argModule *types.Module,
 	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
 ) *recordAfterDelete {
 	return &recordAfterDelete{
 		recordBase: &recordBase{
-			record:    argRecord,
-			oldRecord: argOldRecord,
-			module:    argModule,
-			namespace: argNamespace,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
 		},
 	}
 }
@@ -303,6 +318,20 @@ func (res recordBase) Namespace() *types.Namespace {
 	return res.namespace
 }
 
+// SetRecordValueErrors sets new recordValueErrors value
+//
+// This function is auto-generated.
+func (res *recordBase) SetRecordValueErrors(argRecordValueErrors *types.RecordValueErrorSet) {
+	res.recordValueErrors = argRecordValueErrors
+}
+
+// RecordValueErrors returns recordValueErrors
+//
+// This function is auto-generated.
+func (res recordBase) RecordValueErrors() *types.RecordValueErrorSet {
+	return res.recordValueErrors
+}
+
 // SetInvoker sets new invoker value
 //
 // This function is auto-generated.
@@ -337,6 +366,10 @@ func (res recordBase) Encode() (args map[string][]byte, err error) {
 		return nil, err
 	}
 
+	if args["recordValueErrors"], err = json.Marshal(res.recordValueErrors); err != nil {
+		return nil, err
+	}
+
 	if args["invoker"], err = json.Marshal(res.invoker); err != nil {
 		return nil, err
 	}
@@ -354,6 +387,12 @@ func (res *recordBase) Decode(results map[string][]byte) (err error) {
 
 	if r, ok := results["record"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.record); err != nil {
+			return
+		}
+	}
+
+	if r, ok := results["recordValueErrors"]; ok && len(results) == 1 {
+		if err = json.Unmarshal(r, res.recordValueErrors); err != nil {
 			return
 		}
 	}
