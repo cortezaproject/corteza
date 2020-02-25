@@ -151,18 +151,22 @@ func (res *{{ camelCase .ResourceIdent "base" }}) Decode(results map[string][]by
 	}
 
 	{{- if $.Events.Result }}
-	if r, ok := results["result"]; ok && len(results) == 1 {
-		if err = json.Unmarshal(r, res.{{ $.Events.Result }}); err != nil {
-			return
+	if res.{{ $.Events.Result }} != nil {
+		if r, ok := results["result"]; ok && len(results) == 1 {
+			if err = json.Unmarshal(r, res.{{ $.Events.Result }}); err != nil {
+				return
+			}
 		}
 	}
 	{{ end -}}
 
 	{{- range $prop := $.Events.Properties }}
 	{{- if not $prop.Immutable }}
-	if r, ok := results["{{ $prop.Name }}"]; ok && len(results) == 1 {
-		if err = json.Unmarshal(r, res.{{ $prop.Name }}); err != nil {
-			return
+	if res.{{ $prop.Name }} != nil {
+		if r, ok := results["{{ $prop.Name }}"]; ok {
+			if err = json.Unmarshal(r, res.{{ $prop.Name }}); err != nil {
+				return
+			}
 		}
 	}
 	{{ end -}}

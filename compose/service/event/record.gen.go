@@ -559,27 +559,35 @@ func (res *recordBase) Decode(results map[string][]byte) (err error) {
 		// Respect immutability
 		return
 	}
-	if r, ok := results["result"]; ok && len(results) == 1 {
-		if err = json.Unmarshal(r, res.record); err != nil {
-			return
+	if res.record != nil {
+		if r, ok := results["result"]; ok && len(results) == 1 {
+			if err = json.Unmarshal(r, res.record); err != nil {
+				return
+			}
 		}
 	}
 
-	if r, ok := results["record"]; ok && len(results) == 1 {
-		if err = json.Unmarshal(r, res.record); err != nil {
-			return
+	if res.record != nil {
+		if r, ok := results["record"]; ok {
+			if err = json.Unmarshal(r, res.record); err != nil {
+				return
+			}
 		}
 	}
 
-	if r, ok := results["recordValueErrors"]; ok && len(results) == 1 {
-		if err = json.Unmarshal(r, res.recordValueErrors); err != nil {
-			return
+	if res.recordValueErrors != nil {
+		if r, ok := results["recordValueErrors"]; ok {
+			if err = json.Unmarshal(r, res.recordValueErrors); err != nil {
+				return
+			}
 		}
 	}
 
-	if r, ok := results["invoker"]; ok && len(results) == 1 {
-		if err = json.Unmarshal(r, res.invoker); err != nil {
-			return
+	if res.invoker != nil {
+		if r, ok := results["invoker"]; ok {
+			if err = json.Unmarshal(r, res.invoker); err != nil {
+				return
+			}
 		}
 	}
 	return

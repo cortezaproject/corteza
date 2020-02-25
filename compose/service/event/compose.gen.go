@@ -177,9 +177,11 @@ func (res *composeBase) Decode(results map[string][]byte) (err error) {
 		// Respect immutability
 		return
 	}
-	if r, ok := results["invoker"]; ok && len(results) == 1 {
-		if err = json.Unmarshal(r, res.invoker); err != nil {
-			return
+	if res.invoker != nil {
+		if r, ok := results["invoker"]; ok {
+			if err = json.Unmarshal(r, res.invoker); err != nil {
+				return
+			}
 		}
 	}
 	return
