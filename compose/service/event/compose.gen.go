@@ -20,7 +20,8 @@ type (
 	//
 	// This type is auto-generated.
 	composeBase struct {
-		invoker auth.Identifiable
+		immutable bool
+		invoker   auth.Identifiable
 	}
 
 	// composeOnManual
@@ -78,7 +79,22 @@ func (composeOnTimestamp) EventType() string {
 // This function is auto-generated.
 func ComposeOnManual() *composeOnManual {
 	return &composeOnManual{
-		composeBase: &composeBase{},
+		composeBase: &composeBase{
+			immutable: false,
+		},
+	}
+}
+
+// ComposeOnManualImmutable creates onManual for compose resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ComposeOnManualImmutable() *composeOnManual {
+	return &composeOnManual{
+		composeBase: &composeBase{
+			immutable: true,
+		},
 	}
 }
 
@@ -87,7 +103,22 @@ func ComposeOnManual() *composeOnManual {
 // This function is auto-generated.
 func ComposeOnInterval() *composeOnInterval {
 	return &composeOnInterval{
-		composeBase: &composeBase{},
+		composeBase: &composeBase{
+			immutable: false,
+		},
+	}
+}
+
+// ComposeOnIntervalImmutable creates onInterval for compose resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ComposeOnIntervalImmutable() *composeOnInterval {
+	return &composeOnInterval{
+		composeBase: &composeBase{
+			immutable: true,
+		},
 	}
 }
 
@@ -96,7 +127,22 @@ func ComposeOnInterval() *composeOnInterval {
 // This function is auto-generated.
 func ComposeOnTimestamp() *composeOnTimestamp {
 	return &composeOnTimestamp{
-		composeBase: &composeBase{},
+		composeBase: &composeBase{
+			immutable: false,
+		},
+	}
+}
+
+// ComposeOnTimestampImmutable creates onTimestamp for compose resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ComposeOnTimestampImmutable() *composeOnTimestamp {
+	return &composeOnTimestamp{
+		composeBase: &composeBase{
+			immutable: true,
+		},
 	}
 }
 
@@ -127,6 +173,10 @@ func (res composeBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *composeBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["invoker"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.invoker); err != nil {
 			return

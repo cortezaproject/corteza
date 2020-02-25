@@ -22,9 +22,10 @@ type (
 	//
 	// This type is auto-generated.
 	userBase struct {
-		user    *types.User
-		oldUser *types.User
-		invoker auth.Identifiable
+		immutable bool
+		user      *types.User
+		oldUser   *types.User
+		invoker   auth.Identifiable
 	}
 
 	// userOnManual
@@ -142,8 +143,27 @@ func UserOnManual(
 ) *userOnManual {
 	return &userOnManual{
 		userBase: &userBase{
-			user:    argUser,
-			oldUser: argOldUser,
+			immutable: false,
+			user:      argUser,
+			oldUser:   argOldUser,
+		},
+	}
+}
+
+// UserOnManualImmutable creates onManual for system:user resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserOnManualImmutable(
+	argUser *types.User,
+	argOldUser *types.User,
+) *userOnManual {
+	return &userOnManual{
+		userBase: &userBase{
+			immutable: true,
+			user:      argUser,
+			oldUser:   argOldUser,
 		},
 	}
 }
@@ -157,8 +177,27 @@ func UserBeforeCreate(
 ) *userBeforeCreate {
 	return &userBeforeCreate{
 		userBase: &userBase{
-			user:    argUser,
-			oldUser: argOldUser,
+			immutable: false,
+			user:      argUser,
+			oldUser:   argOldUser,
+		},
+	}
+}
+
+// UserBeforeCreateImmutable creates beforeCreate for system:user resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserBeforeCreateImmutable(
+	argUser *types.User,
+	argOldUser *types.User,
+) *userBeforeCreate {
+	return &userBeforeCreate{
+		userBase: &userBase{
+			immutable: true,
+			user:      argUser,
+			oldUser:   argOldUser,
 		},
 	}
 }
@@ -172,8 +211,27 @@ func UserBeforeUpdate(
 ) *userBeforeUpdate {
 	return &userBeforeUpdate{
 		userBase: &userBase{
-			user:    argUser,
-			oldUser: argOldUser,
+			immutable: false,
+			user:      argUser,
+			oldUser:   argOldUser,
+		},
+	}
+}
+
+// UserBeforeUpdateImmutable creates beforeUpdate for system:user resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserBeforeUpdateImmutable(
+	argUser *types.User,
+	argOldUser *types.User,
+) *userBeforeUpdate {
+	return &userBeforeUpdate{
+		userBase: &userBase{
+			immutable: true,
+			user:      argUser,
+			oldUser:   argOldUser,
 		},
 	}
 }
@@ -187,8 +245,27 @@ func UserBeforeDelete(
 ) *userBeforeDelete {
 	return &userBeforeDelete{
 		userBase: &userBase{
-			user:    argUser,
-			oldUser: argOldUser,
+			immutable: false,
+			user:      argUser,
+			oldUser:   argOldUser,
+		},
+	}
+}
+
+// UserBeforeDeleteImmutable creates beforeDelete for system:user resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserBeforeDeleteImmutable(
+	argUser *types.User,
+	argOldUser *types.User,
+) *userBeforeDelete {
+	return &userBeforeDelete{
+		userBase: &userBase{
+			immutable: true,
+			user:      argUser,
+			oldUser:   argOldUser,
 		},
 	}
 }
@@ -202,8 +279,27 @@ func UserAfterCreate(
 ) *userAfterCreate {
 	return &userAfterCreate{
 		userBase: &userBase{
-			user:    argUser,
-			oldUser: argOldUser,
+			immutable: false,
+			user:      argUser,
+			oldUser:   argOldUser,
+		},
+	}
+}
+
+// UserAfterCreateImmutable creates afterCreate for system:user resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserAfterCreateImmutable(
+	argUser *types.User,
+	argOldUser *types.User,
+) *userAfterCreate {
+	return &userAfterCreate{
+		userBase: &userBase{
+			immutable: true,
+			user:      argUser,
+			oldUser:   argOldUser,
 		},
 	}
 }
@@ -217,8 +313,27 @@ func UserAfterUpdate(
 ) *userAfterUpdate {
 	return &userAfterUpdate{
 		userBase: &userBase{
-			user:    argUser,
-			oldUser: argOldUser,
+			immutable: false,
+			user:      argUser,
+			oldUser:   argOldUser,
+		},
+	}
+}
+
+// UserAfterUpdateImmutable creates afterUpdate for system:user resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserAfterUpdateImmutable(
+	argUser *types.User,
+	argOldUser *types.User,
+) *userAfterUpdate {
+	return &userAfterUpdate{
+		userBase: &userBase{
+			immutable: true,
+			user:      argUser,
+			oldUser:   argOldUser,
 		},
 	}
 }
@@ -232,8 +347,27 @@ func UserAfterDelete(
 ) *userAfterDelete {
 	return &userAfterDelete{
 		userBase: &userBase{
-			user:    argUser,
-			oldUser: argOldUser,
+			immutable: false,
+			user:      argUser,
+			oldUser:   argOldUser,
+		},
+	}
+}
+
+// UserAfterDeleteImmutable creates afterDelete for system:user resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserAfterDeleteImmutable(
+	argUser *types.User,
+	argOldUser *types.User,
+) *userAfterDelete {
+	return &userAfterDelete{
+		userBase: &userBase{
+			immutable: true,
+			user:      argUser,
+			oldUser:   argOldUser,
 		},
 	}
 }
@@ -294,6 +428,10 @@ func (res userBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *userBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["result"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.user); err != nil {
 			return

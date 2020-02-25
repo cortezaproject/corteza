@@ -22,9 +22,10 @@ type (
 	//
 	// This type is auto-generated.
 	sinkBase struct {
-		response *types.SinkResponse
-		request  *types.SinkRequest
-		invoker  auth.Identifiable
+		immutable bool
+		response  *types.SinkResponse
+		request   *types.SinkRequest
+		invoker   auth.Identifiable
 	}
 
 	// sinkOnRequest
@@ -58,8 +59,27 @@ func SinkOnRequest(
 ) *sinkOnRequest {
 	return &sinkOnRequest{
 		sinkBase: &sinkBase{
-			response: argResponse,
-			request:  argRequest,
+			immutable: false,
+			response:  argResponse,
+			request:   argRequest,
+		},
+	}
+}
+
+// SinkOnRequestImmutable creates onRequest for system:sink resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func SinkOnRequestImmutable(
+	argResponse *types.SinkResponse,
+	argRequest *types.SinkRequest,
+) *sinkOnRequest {
+	return &sinkOnRequest{
+		sinkBase: &sinkBase{
+			immutable: true,
+			response:  argResponse,
+			request:   argRequest,
 		},
 	}
 }
@@ -120,6 +140,10 @@ func (res sinkBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *sinkBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["result"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.response); err != nil {
 			return

@@ -22,6 +22,7 @@ type (
 	//
 	// This type is auto-generated.
 	pageBase struct {
+		immutable bool
 		page      *types.Page
 		oldPage   *types.Page
 		namespace *types.Namespace
@@ -144,6 +145,27 @@ func PageOnManual(
 ) *pageOnManual {
 	return &pageOnManual{
 		pageBase: &pageBase{
+			immutable: false,
+			page:      argPage,
+			oldPage:   argOldPage,
+			namespace: argNamespace,
+		},
+	}
+}
+
+// PageOnManualImmutable creates onManual for compose:page resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func PageOnManualImmutable(
+	argPage *types.Page,
+	argOldPage *types.Page,
+	argNamespace *types.Namespace,
+) *pageOnManual {
+	return &pageOnManual{
+		pageBase: &pageBase{
+			immutable: true,
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
@@ -161,6 +183,27 @@ func PageBeforeCreate(
 ) *pageBeforeCreate {
 	return &pageBeforeCreate{
 		pageBase: &pageBase{
+			immutable: false,
+			page:      argPage,
+			oldPage:   argOldPage,
+			namespace: argNamespace,
+		},
+	}
+}
+
+// PageBeforeCreateImmutable creates beforeCreate for compose:page resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func PageBeforeCreateImmutable(
+	argPage *types.Page,
+	argOldPage *types.Page,
+	argNamespace *types.Namespace,
+) *pageBeforeCreate {
+	return &pageBeforeCreate{
+		pageBase: &pageBase{
+			immutable: true,
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
@@ -178,6 +221,27 @@ func PageBeforeUpdate(
 ) *pageBeforeUpdate {
 	return &pageBeforeUpdate{
 		pageBase: &pageBase{
+			immutable: false,
+			page:      argPage,
+			oldPage:   argOldPage,
+			namespace: argNamespace,
+		},
+	}
+}
+
+// PageBeforeUpdateImmutable creates beforeUpdate for compose:page resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func PageBeforeUpdateImmutable(
+	argPage *types.Page,
+	argOldPage *types.Page,
+	argNamespace *types.Namespace,
+) *pageBeforeUpdate {
+	return &pageBeforeUpdate{
+		pageBase: &pageBase{
+			immutable: true,
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
@@ -195,6 +259,27 @@ func PageBeforeDelete(
 ) *pageBeforeDelete {
 	return &pageBeforeDelete{
 		pageBase: &pageBase{
+			immutable: false,
+			page:      argPage,
+			oldPage:   argOldPage,
+			namespace: argNamespace,
+		},
+	}
+}
+
+// PageBeforeDeleteImmutable creates beforeDelete for compose:page resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func PageBeforeDeleteImmutable(
+	argPage *types.Page,
+	argOldPage *types.Page,
+	argNamespace *types.Namespace,
+) *pageBeforeDelete {
+	return &pageBeforeDelete{
+		pageBase: &pageBase{
+			immutable: true,
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
@@ -212,6 +297,27 @@ func PageAfterCreate(
 ) *pageAfterCreate {
 	return &pageAfterCreate{
 		pageBase: &pageBase{
+			immutable: false,
+			page:      argPage,
+			oldPage:   argOldPage,
+			namespace: argNamespace,
+		},
+	}
+}
+
+// PageAfterCreateImmutable creates afterCreate for compose:page resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func PageAfterCreateImmutable(
+	argPage *types.Page,
+	argOldPage *types.Page,
+	argNamespace *types.Namespace,
+) *pageAfterCreate {
+	return &pageAfterCreate{
+		pageBase: &pageBase{
+			immutable: true,
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
@@ -229,6 +335,27 @@ func PageAfterUpdate(
 ) *pageAfterUpdate {
 	return &pageAfterUpdate{
 		pageBase: &pageBase{
+			immutable: false,
+			page:      argPage,
+			oldPage:   argOldPage,
+			namespace: argNamespace,
+		},
+	}
+}
+
+// PageAfterUpdateImmutable creates afterUpdate for compose:page resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func PageAfterUpdateImmutable(
+	argPage *types.Page,
+	argOldPage *types.Page,
+	argNamespace *types.Namespace,
+) *pageAfterUpdate {
+	return &pageAfterUpdate{
+		pageBase: &pageBase{
+			immutable: true,
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
@@ -246,6 +373,27 @@ func PageAfterDelete(
 ) *pageAfterDelete {
 	return &pageAfterDelete{
 		pageBase: &pageBase{
+			immutable: false,
+			page:      argPage,
+			oldPage:   argOldPage,
+			namespace: argNamespace,
+		},
+	}
+}
+
+// PageAfterDeleteImmutable creates afterDelete for compose:page resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func PageAfterDeleteImmutable(
+	argPage *types.Page,
+	argOldPage *types.Page,
+	argNamespace *types.Namespace,
+) *pageAfterDelete {
+	return &pageAfterDelete{
+		pageBase: &pageBase{
+			immutable: true,
 			page:      argPage,
 			oldPage:   argOldPage,
 			namespace: argNamespace,
@@ -320,6 +468,10 @@ func (res pageBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *pageBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["result"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.page); err != nil {
 			return

@@ -22,9 +22,10 @@ type (
 	//
 	// This type is auto-generated.
 	commandBase struct {
-		command *types.Command
-		channel *types.Channel
-		invoker auth.Identifiable
+		immutable bool
+		command   *types.Command
+		channel   *types.Channel
+		invoker   auth.Identifiable
 	}
 
 	// commandOnInvoke
@@ -58,8 +59,27 @@ func CommandOnInvoke(
 ) *commandOnInvoke {
 	return &commandOnInvoke{
 		commandBase: &commandBase{
-			command: argCommand,
-			channel: argChannel,
+			immutable: false,
+			command:   argCommand,
+			channel:   argChannel,
+		},
+	}
+}
+
+// CommandOnInvokeImmutable creates onInvoke for messaging:command resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func CommandOnInvokeImmutable(
+	argCommand *types.Command,
+	argChannel *types.Channel,
+) *commandOnInvoke {
+	return &commandOnInvoke{
+		commandBase: &commandBase{
+			immutable: true,
+			command:   argCommand,
+			channel:   argChannel,
 		},
 	}
 }
@@ -113,6 +133,10 @@ func (res commandBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *commandBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["result"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.command); err != nil {
 			return

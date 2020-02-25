@@ -22,8 +22,9 @@ type (
 	//
 	// This type is auto-generated.
 	mailBase struct {
-		message *types.MailMessage
-		invoker auth.Identifiable
+		immutable bool
+		message   *types.MailMessage
+		invoker   auth.Identifiable
 	}
 
 	// mailOnManual
@@ -84,7 +85,24 @@ func MailOnManual(
 ) *mailOnManual {
 	return &mailOnManual{
 		mailBase: &mailBase{
-			message: argMessage,
+			immutable: false,
+			message:   argMessage,
+		},
+	}
+}
+
+// MailOnManualImmutable creates onManual for system:mail resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func MailOnManualImmutable(
+	argMessage *types.MailMessage,
+) *mailOnManual {
+	return &mailOnManual{
+		mailBase: &mailBase{
+			immutable: true,
+			message:   argMessage,
 		},
 	}
 }
@@ -97,7 +115,24 @@ func MailOnReceive(
 ) *mailOnReceive {
 	return &mailOnReceive{
 		mailBase: &mailBase{
-			message: argMessage,
+			immutable: false,
+			message:   argMessage,
+		},
+	}
+}
+
+// MailOnReceiveImmutable creates onReceive for system:mail resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func MailOnReceiveImmutable(
+	argMessage *types.MailMessage,
+) *mailOnReceive {
+	return &mailOnReceive{
+		mailBase: &mailBase{
+			immutable: true,
+			message:   argMessage,
 		},
 	}
 }
@@ -110,7 +145,24 @@ func MailOnSend(
 ) *mailOnSend {
 	return &mailOnSend{
 		mailBase: &mailBase{
-			message: argMessage,
+			immutable: false,
+			message:   argMessage,
+		},
+	}
+}
+
+// MailOnSendImmutable creates onSend for system:mail resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func MailOnSendImmutable(
+	argMessage *types.MailMessage,
+) *mailOnSend {
+	return &mailOnSend{
+		mailBase: &mailBase{
+			immutable: true,
+			message:   argMessage,
 		},
 	}
 }
@@ -160,6 +212,10 @@ func (res mailBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *mailBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["result"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.message); err != nil {
 			return

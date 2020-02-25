@@ -22,6 +22,7 @@ type (
 	//
 	// This type is auto-generated.
 	applicationBase struct {
+		immutable      bool
 		application    *types.Application
 		oldApplication *types.Application
 		invoker        auth.Identifiable
@@ -142,6 +143,25 @@ func ApplicationOnManual(
 ) *applicationOnManual {
 	return &applicationOnManual{
 		applicationBase: &applicationBase{
+			immutable:      false,
+			application:    argApplication,
+			oldApplication: argOldApplication,
+		},
+	}
+}
+
+// ApplicationOnManualImmutable creates onManual for system:application resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ApplicationOnManualImmutable(
+	argApplication *types.Application,
+	argOldApplication *types.Application,
+) *applicationOnManual {
+	return &applicationOnManual{
+		applicationBase: &applicationBase{
+			immutable:      true,
 			application:    argApplication,
 			oldApplication: argOldApplication,
 		},
@@ -157,6 +177,25 @@ func ApplicationBeforeCreate(
 ) *applicationBeforeCreate {
 	return &applicationBeforeCreate{
 		applicationBase: &applicationBase{
+			immutable:      false,
+			application:    argApplication,
+			oldApplication: argOldApplication,
+		},
+	}
+}
+
+// ApplicationBeforeCreateImmutable creates beforeCreate for system:application resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ApplicationBeforeCreateImmutable(
+	argApplication *types.Application,
+	argOldApplication *types.Application,
+) *applicationBeforeCreate {
+	return &applicationBeforeCreate{
+		applicationBase: &applicationBase{
+			immutable:      true,
 			application:    argApplication,
 			oldApplication: argOldApplication,
 		},
@@ -172,6 +211,25 @@ func ApplicationBeforeUpdate(
 ) *applicationBeforeUpdate {
 	return &applicationBeforeUpdate{
 		applicationBase: &applicationBase{
+			immutable:      false,
+			application:    argApplication,
+			oldApplication: argOldApplication,
+		},
+	}
+}
+
+// ApplicationBeforeUpdateImmutable creates beforeUpdate for system:application resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ApplicationBeforeUpdateImmutable(
+	argApplication *types.Application,
+	argOldApplication *types.Application,
+) *applicationBeforeUpdate {
+	return &applicationBeforeUpdate{
+		applicationBase: &applicationBase{
+			immutable:      true,
 			application:    argApplication,
 			oldApplication: argOldApplication,
 		},
@@ -187,6 +245,25 @@ func ApplicationBeforeDelete(
 ) *applicationBeforeDelete {
 	return &applicationBeforeDelete{
 		applicationBase: &applicationBase{
+			immutable:      false,
+			application:    argApplication,
+			oldApplication: argOldApplication,
+		},
+	}
+}
+
+// ApplicationBeforeDeleteImmutable creates beforeDelete for system:application resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ApplicationBeforeDeleteImmutable(
+	argApplication *types.Application,
+	argOldApplication *types.Application,
+) *applicationBeforeDelete {
+	return &applicationBeforeDelete{
+		applicationBase: &applicationBase{
+			immutable:      true,
 			application:    argApplication,
 			oldApplication: argOldApplication,
 		},
@@ -202,6 +279,25 @@ func ApplicationAfterCreate(
 ) *applicationAfterCreate {
 	return &applicationAfterCreate{
 		applicationBase: &applicationBase{
+			immutable:      false,
+			application:    argApplication,
+			oldApplication: argOldApplication,
+		},
+	}
+}
+
+// ApplicationAfterCreateImmutable creates afterCreate for system:application resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ApplicationAfterCreateImmutable(
+	argApplication *types.Application,
+	argOldApplication *types.Application,
+) *applicationAfterCreate {
+	return &applicationAfterCreate{
+		applicationBase: &applicationBase{
+			immutable:      true,
 			application:    argApplication,
 			oldApplication: argOldApplication,
 		},
@@ -217,6 +313,25 @@ func ApplicationAfterUpdate(
 ) *applicationAfterUpdate {
 	return &applicationAfterUpdate{
 		applicationBase: &applicationBase{
+			immutable:      false,
+			application:    argApplication,
+			oldApplication: argOldApplication,
+		},
+	}
+}
+
+// ApplicationAfterUpdateImmutable creates afterUpdate for system:application resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ApplicationAfterUpdateImmutable(
+	argApplication *types.Application,
+	argOldApplication *types.Application,
+) *applicationAfterUpdate {
+	return &applicationAfterUpdate{
+		applicationBase: &applicationBase{
+			immutable:      true,
 			application:    argApplication,
 			oldApplication: argOldApplication,
 		},
@@ -232,6 +347,25 @@ func ApplicationAfterDelete(
 ) *applicationAfterDelete {
 	return &applicationAfterDelete{
 		applicationBase: &applicationBase{
+			immutable:      false,
+			application:    argApplication,
+			oldApplication: argOldApplication,
+		},
+	}
+}
+
+// ApplicationAfterDeleteImmutable creates afterDelete for system:application resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ApplicationAfterDeleteImmutable(
+	argApplication *types.Application,
+	argOldApplication *types.Application,
+) *applicationAfterDelete {
+	return &applicationAfterDelete{
+		applicationBase: &applicationBase{
+			immutable:      true,
 			application:    argApplication,
 			oldApplication: argOldApplication,
 		},
@@ -294,6 +428,10 @@ func (res applicationBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *applicationBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["result"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.application); err != nil {
 			return

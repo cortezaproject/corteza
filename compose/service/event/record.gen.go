@@ -22,6 +22,7 @@ type (
 	//
 	// This type is auto-generated.
 	recordBase struct {
+		immutable         bool
 		record            *types.Record
 		oldRecord         *types.Record
 		module            *types.Module
@@ -148,6 +149,31 @@ func RecordOnManual(
 ) *recordOnManual {
 	return &recordOnManual{
 		recordBase: &recordBase{
+			immutable:         false,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
+		},
+	}
+}
+
+// RecordOnManualImmutable creates onManual for compose:record resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RecordOnManualImmutable(
+	argRecord *types.Record,
+	argOldRecord *types.Record,
+	argModule *types.Module,
+	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
+) *recordOnManual {
+	return &recordOnManual{
+		recordBase: &recordBase{
+			immutable:         true,
 			record:            argRecord,
 			oldRecord:         argOldRecord,
 			module:            argModule,
@@ -169,6 +195,31 @@ func RecordBeforeCreate(
 ) *recordBeforeCreate {
 	return &recordBeforeCreate{
 		recordBase: &recordBase{
+			immutable:         false,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
+		},
+	}
+}
+
+// RecordBeforeCreateImmutable creates beforeCreate for compose:record resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RecordBeforeCreateImmutable(
+	argRecord *types.Record,
+	argOldRecord *types.Record,
+	argModule *types.Module,
+	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
+) *recordBeforeCreate {
+	return &recordBeforeCreate{
+		recordBase: &recordBase{
+			immutable:         true,
 			record:            argRecord,
 			oldRecord:         argOldRecord,
 			module:            argModule,
@@ -190,6 +241,31 @@ func RecordBeforeUpdate(
 ) *recordBeforeUpdate {
 	return &recordBeforeUpdate{
 		recordBase: &recordBase{
+			immutable:         false,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
+		},
+	}
+}
+
+// RecordBeforeUpdateImmutable creates beforeUpdate for compose:record resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RecordBeforeUpdateImmutable(
+	argRecord *types.Record,
+	argOldRecord *types.Record,
+	argModule *types.Module,
+	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
+) *recordBeforeUpdate {
+	return &recordBeforeUpdate{
+		recordBase: &recordBase{
+			immutable:         true,
 			record:            argRecord,
 			oldRecord:         argOldRecord,
 			module:            argModule,
@@ -211,6 +287,31 @@ func RecordBeforeDelete(
 ) *recordBeforeDelete {
 	return &recordBeforeDelete{
 		recordBase: &recordBase{
+			immutable:         false,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
+		},
+	}
+}
+
+// RecordBeforeDeleteImmutable creates beforeDelete for compose:record resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RecordBeforeDeleteImmutable(
+	argRecord *types.Record,
+	argOldRecord *types.Record,
+	argModule *types.Module,
+	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
+) *recordBeforeDelete {
+	return &recordBeforeDelete{
+		recordBase: &recordBase{
+			immutable:         true,
 			record:            argRecord,
 			oldRecord:         argOldRecord,
 			module:            argModule,
@@ -232,6 +333,31 @@ func RecordAfterCreate(
 ) *recordAfterCreate {
 	return &recordAfterCreate{
 		recordBase: &recordBase{
+			immutable:         false,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
+		},
+	}
+}
+
+// RecordAfterCreateImmutable creates afterCreate for compose:record resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RecordAfterCreateImmutable(
+	argRecord *types.Record,
+	argOldRecord *types.Record,
+	argModule *types.Module,
+	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
+) *recordAfterCreate {
+	return &recordAfterCreate{
+		recordBase: &recordBase{
+			immutable:         true,
 			record:            argRecord,
 			oldRecord:         argOldRecord,
 			module:            argModule,
@@ -253,6 +379,31 @@ func RecordAfterUpdate(
 ) *recordAfterUpdate {
 	return &recordAfterUpdate{
 		recordBase: &recordBase{
+			immutable:         false,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
+		},
+	}
+}
+
+// RecordAfterUpdateImmutable creates afterUpdate for compose:record resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RecordAfterUpdateImmutable(
+	argRecord *types.Record,
+	argOldRecord *types.Record,
+	argModule *types.Module,
+	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
+) *recordAfterUpdate {
+	return &recordAfterUpdate{
+		recordBase: &recordBase{
+			immutable:         true,
 			record:            argRecord,
 			oldRecord:         argOldRecord,
 			module:            argModule,
@@ -274,6 +425,31 @@ func RecordAfterDelete(
 ) *recordAfterDelete {
 	return &recordAfterDelete{
 		recordBase: &recordBase{
+			immutable:         false,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
+		},
+	}
+}
+
+// RecordAfterDeleteImmutable creates afterDelete for compose:record resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RecordAfterDeleteImmutable(
+	argRecord *types.Record,
+	argOldRecord *types.Record,
+	argModule *types.Module,
+	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
+) *recordAfterDelete {
+	return &recordAfterDelete{
+		recordBase: &recordBase{
+			immutable:         true,
 			record:            argRecord,
 			oldRecord:         argOldRecord,
 			module:            argModule,
@@ -379,6 +555,10 @@ func (res recordBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *recordBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["result"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.record); err != nil {
 			return

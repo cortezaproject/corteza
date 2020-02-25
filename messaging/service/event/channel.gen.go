@@ -22,6 +22,7 @@ type (
 	//
 	// This type is auto-generated.
 	channelBase struct {
+		immutable  bool
 		channel    *types.Channel
 		oldChannel *types.Channel
 		invoker    auth.Identifiable
@@ -142,6 +143,25 @@ func ChannelOnManual(
 ) *channelOnManual {
 	return &channelOnManual{
 		channelBase: &channelBase{
+			immutable:  false,
+			channel:    argChannel,
+			oldChannel: argOldChannel,
+		},
+	}
+}
+
+// ChannelOnManualImmutable creates onManual for messaging:channel resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ChannelOnManualImmutable(
+	argChannel *types.Channel,
+	argOldChannel *types.Channel,
+) *channelOnManual {
+	return &channelOnManual{
+		channelBase: &channelBase{
+			immutable:  true,
 			channel:    argChannel,
 			oldChannel: argOldChannel,
 		},
@@ -157,6 +177,25 @@ func ChannelBeforeCreate(
 ) *channelBeforeCreate {
 	return &channelBeforeCreate{
 		channelBase: &channelBase{
+			immutable:  false,
+			channel:    argChannel,
+			oldChannel: argOldChannel,
+		},
+	}
+}
+
+// ChannelBeforeCreateImmutable creates beforeCreate for messaging:channel resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ChannelBeforeCreateImmutable(
+	argChannel *types.Channel,
+	argOldChannel *types.Channel,
+) *channelBeforeCreate {
+	return &channelBeforeCreate{
+		channelBase: &channelBase{
+			immutable:  true,
 			channel:    argChannel,
 			oldChannel: argOldChannel,
 		},
@@ -172,6 +211,25 @@ func ChannelBeforeUpdate(
 ) *channelBeforeUpdate {
 	return &channelBeforeUpdate{
 		channelBase: &channelBase{
+			immutable:  false,
+			channel:    argChannel,
+			oldChannel: argOldChannel,
+		},
+	}
+}
+
+// ChannelBeforeUpdateImmutable creates beforeUpdate for messaging:channel resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ChannelBeforeUpdateImmutable(
+	argChannel *types.Channel,
+	argOldChannel *types.Channel,
+) *channelBeforeUpdate {
+	return &channelBeforeUpdate{
+		channelBase: &channelBase{
+			immutable:  true,
 			channel:    argChannel,
 			oldChannel: argOldChannel,
 		},
@@ -187,6 +245,25 @@ func ChannelBeforeDelete(
 ) *channelBeforeDelete {
 	return &channelBeforeDelete{
 		channelBase: &channelBase{
+			immutable:  false,
+			channel:    argChannel,
+			oldChannel: argOldChannel,
+		},
+	}
+}
+
+// ChannelBeforeDeleteImmutable creates beforeDelete for messaging:channel resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ChannelBeforeDeleteImmutable(
+	argChannel *types.Channel,
+	argOldChannel *types.Channel,
+) *channelBeforeDelete {
+	return &channelBeforeDelete{
+		channelBase: &channelBase{
+			immutable:  true,
 			channel:    argChannel,
 			oldChannel: argOldChannel,
 		},
@@ -202,6 +279,25 @@ func ChannelAfterCreate(
 ) *channelAfterCreate {
 	return &channelAfterCreate{
 		channelBase: &channelBase{
+			immutable:  false,
+			channel:    argChannel,
+			oldChannel: argOldChannel,
+		},
+	}
+}
+
+// ChannelAfterCreateImmutable creates afterCreate for messaging:channel resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ChannelAfterCreateImmutable(
+	argChannel *types.Channel,
+	argOldChannel *types.Channel,
+) *channelAfterCreate {
+	return &channelAfterCreate{
+		channelBase: &channelBase{
+			immutable:  true,
 			channel:    argChannel,
 			oldChannel: argOldChannel,
 		},
@@ -217,6 +313,25 @@ func ChannelAfterUpdate(
 ) *channelAfterUpdate {
 	return &channelAfterUpdate{
 		channelBase: &channelBase{
+			immutable:  false,
+			channel:    argChannel,
+			oldChannel: argOldChannel,
+		},
+	}
+}
+
+// ChannelAfterUpdateImmutable creates afterUpdate for messaging:channel resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ChannelAfterUpdateImmutable(
+	argChannel *types.Channel,
+	argOldChannel *types.Channel,
+) *channelAfterUpdate {
+	return &channelAfterUpdate{
+		channelBase: &channelBase{
+			immutable:  true,
 			channel:    argChannel,
 			oldChannel: argOldChannel,
 		},
@@ -232,6 +347,25 @@ func ChannelAfterDelete(
 ) *channelAfterDelete {
 	return &channelAfterDelete{
 		channelBase: &channelBase{
+			immutable:  false,
+			channel:    argChannel,
+			oldChannel: argOldChannel,
+		},
+	}
+}
+
+// ChannelAfterDeleteImmutable creates afterDelete for messaging:channel resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ChannelAfterDeleteImmutable(
+	argChannel *types.Channel,
+	argOldChannel *types.Channel,
+) *channelAfterDelete {
+	return &channelAfterDelete{
+		channelBase: &channelBase{
+			immutable:  true,
 			channel:    argChannel,
 			oldChannel: argOldChannel,
 		},
@@ -294,6 +428,10 @@ func (res channelBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *channelBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["result"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.channel); err != nil {
 			return

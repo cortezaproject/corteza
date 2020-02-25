@@ -22,9 +22,10 @@ type (
 	//
 	// This type is auto-generated.
 	roleBase struct {
-		role    *types.Role
-		oldRole *types.Role
-		invoker auth.Identifiable
+		immutable bool
+		role      *types.Role
+		oldRole   *types.Role
+		invoker   auth.Identifiable
 	}
 
 	// roleOnManual
@@ -142,8 +143,27 @@ func RoleOnManual(
 ) *roleOnManual {
 	return &roleOnManual{
 		roleBase: &roleBase{
-			role:    argRole,
-			oldRole: argOldRole,
+			immutable: false,
+			role:      argRole,
+			oldRole:   argOldRole,
+		},
+	}
+}
+
+// RoleOnManualImmutable creates onManual for system:role resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RoleOnManualImmutable(
+	argRole *types.Role,
+	argOldRole *types.Role,
+) *roleOnManual {
+	return &roleOnManual{
+		roleBase: &roleBase{
+			immutable: true,
+			role:      argRole,
+			oldRole:   argOldRole,
 		},
 	}
 }
@@ -157,8 +177,27 @@ func RoleBeforeCreate(
 ) *roleBeforeCreate {
 	return &roleBeforeCreate{
 		roleBase: &roleBase{
-			role:    argRole,
-			oldRole: argOldRole,
+			immutable: false,
+			role:      argRole,
+			oldRole:   argOldRole,
+		},
+	}
+}
+
+// RoleBeforeCreateImmutable creates beforeCreate for system:role resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RoleBeforeCreateImmutable(
+	argRole *types.Role,
+	argOldRole *types.Role,
+) *roleBeforeCreate {
+	return &roleBeforeCreate{
+		roleBase: &roleBase{
+			immutable: true,
+			role:      argRole,
+			oldRole:   argOldRole,
 		},
 	}
 }
@@ -172,8 +211,27 @@ func RoleBeforeUpdate(
 ) *roleBeforeUpdate {
 	return &roleBeforeUpdate{
 		roleBase: &roleBase{
-			role:    argRole,
-			oldRole: argOldRole,
+			immutable: false,
+			role:      argRole,
+			oldRole:   argOldRole,
+		},
+	}
+}
+
+// RoleBeforeUpdateImmutable creates beforeUpdate for system:role resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RoleBeforeUpdateImmutable(
+	argRole *types.Role,
+	argOldRole *types.Role,
+) *roleBeforeUpdate {
+	return &roleBeforeUpdate{
+		roleBase: &roleBase{
+			immutable: true,
+			role:      argRole,
+			oldRole:   argOldRole,
 		},
 	}
 }
@@ -187,8 +245,27 @@ func RoleBeforeDelete(
 ) *roleBeforeDelete {
 	return &roleBeforeDelete{
 		roleBase: &roleBase{
-			role:    argRole,
-			oldRole: argOldRole,
+			immutable: false,
+			role:      argRole,
+			oldRole:   argOldRole,
+		},
+	}
+}
+
+// RoleBeforeDeleteImmutable creates beforeDelete for system:role resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RoleBeforeDeleteImmutable(
+	argRole *types.Role,
+	argOldRole *types.Role,
+) *roleBeforeDelete {
+	return &roleBeforeDelete{
+		roleBase: &roleBase{
+			immutable: true,
+			role:      argRole,
+			oldRole:   argOldRole,
 		},
 	}
 }
@@ -202,8 +279,27 @@ func RoleAfterCreate(
 ) *roleAfterCreate {
 	return &roleAfterCreate{
 		roleBase: &roleBase{
-			role:    argRole,
-			oldRole: argOldRole,
+			immutable: false,
+			role:      argRole,
+			oldRole:   argOldRole,
+		},
+	}
+}
+
+// RoleAfterCreateImmutable creates afterCreate for system:role resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RoleAfterCreateImmutable(
+	argRole *types.Role,
+	argOldRole *types.Role,
+) *roleAfterCreate {
+	return &roleAfterCreate{
+		roleBase: &roleBase{
+			immutable: true,
+			role:      argRole,
+			oldRole:   argOldRole,
 		},
 	}
 }
@@ -217,8 +313,27 @@ func RoleAfterUpdate(
 ) *roleAfterUpdate {
 	return &roleAfterUpdate{
 		roleBase: &roleBase{
-			role:    argRole,
-			oldRole: argOldRole,
+			immutable: false,
+			role:      argRole,
+			oldRole:   argOldRole,
+		},
+	}
+}
+
+// RoleAfterUpdateImmutable creates afterUpdate for system:role resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RoleAfterUpdateImmutable(
+	argRole *types.Role,
+	argOldRole *types.Role,
+) *roleAfterUpdate {
+	return &roleAfterUpdate{
+		roleBase: &roleBase{
+			immutable: true,
+			role:      argRole,
+			oldRole:   argOldRole,
 		},
 	}
 }
@@ -232,8 +347,27 @@ func RoleAfterDelete(
 ) *roleAfterDelete {
 	return &roleAfterDelete{
 		roleBase: &roleBase{
-			role:    argRole,
-			oldRole: argOldRole,
+			immutable: false,
+			role:      argRole,
+			oldRole:   argOldRole,
+		},
+	}
+}
+
+// RoleAfterDeleteImmutable creates afterDelete for system:role resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RoleAfterDeleteImmutable(
+	argRole *types.Role,
+	argOldRole *types.Role,
+) *roleAfterDelete {
+	return &roleAfterDelete{
+		roleBase: &roleBase{
+			immutable: true,
+			role:      argRole,
+			oldRole:   argOldRole,
 		},
 	}
 }
@@ -294,6 +428,10 @@ func (res roleBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *roleBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["result"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.role); err != nil {
 			return
