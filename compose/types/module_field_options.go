@@ -47,6 +47,20 @@ func (opt ModuleFieldOptions) Bool(key string) bool {
 	return false
 }
 
+func (opt ModuleFieldOptions) Int64(key string) int64 {
+	return opt.Int64Def(key, 0)
+}
+
+func (opt ModuleFieldOptions) Int64Def(key string, def int64) int64 {
+	if _, has := opt[key]; has {
+		if n, ok := opt[key].(int64); ok {
+			return n
+		}
+	}
+
+	return def
+}
+
 // Strings returns option value for key as slice of strings
 //
 // Invalid, non-existing are returned as nil
