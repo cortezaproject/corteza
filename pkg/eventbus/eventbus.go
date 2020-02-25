@@ -46,6 +46,10 @@ func Service() *eventbus {
 	return gEventBus
 }
 
+func Set(eb *eventbus) {
+	gEventBus = eb
+}
+
 func New() *eventbus {
 	return &eventbus{
 		wg:       &sync.WaitGroup{},
