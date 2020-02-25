@@ -169,3 +169,8 @@ func isStale(new *time.Time, updatedAt *time.Time, createdAt time.Time) bool {
 
 	return new.Equal(createdAt)
 }
+
+func nowPtr() *time.Time {
+	now := time.Now()
+	return &now
+}

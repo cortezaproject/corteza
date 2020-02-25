@@ -326,6 +326,43 @@ func (svc record) Export(filter types.RecordFilter, enc Encoder) error {
 }
 
 func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
+	var invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
+
+	// Runs value sanitization, sets values that should used
+	// and validates the final result
+	//
+	// This logic is kept in a utility function - it's used in the beginning
+	// of the creation procedure and after results are back from the automation scripts
+	//
+	// Both these points introduce external data that need to be checked fully in the same manner
+	procChanges := func(m *types.Module, new *types.Record) *types.RecordValueErrorSet {
+		// Before values are processed further and
+		// sent to automation scripts (if any)
+		// we need to make sure it does not get sanitized data
+		new.Values = svc.sanitizer.Run(m, new.Values)
+
+		// Reset values to new record
+		// to make sure nobody slips in something we do not want
+		new.CreatedBy = invokerID
+		new.CreatedAt = *nowPtr()
+		new.UpdatedAt = nil
+		new.UpdatedBy = 0
+		new.DeletedAt = nil
+		new.DeletedBy = 0
+
+		// Mark all values as updated (new)
+		new.Values.SetUpdatedFlag(true)
+
+		if new.OwnedBy == 0 {
+			// If od owner is not set, make current user
+			// the owner of the record
+			new.OwnedBy = invokerID
+		}
+
+		// Run validation of the updated records
+		return svc.validator.Run(m, new)
+	}
+
 	return rec, svc.db.Transaction(func() (err error) {
 		var (
 			ns *types.Namespace
@@ -345,24 +382,12 @@ func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
 			return
 		}
 
-		// First sanitization
-		//
-		// Before values are sent to automation scripts (if any)
-		// we need to make sure it does not get sanitized data
-		creatorID := auth.GetIdentityFromContext(svc.ctx).Identity()
+		var (
+			rve *types.RecordValueErrorSet
+		)
 
-		new.OwnedBy = creatorID
-		new.CreatedBy = creatorID
-		new.CreatedAt = time.Now()
-		new.UpdatedAt = nil
-		new.UpdatedBy = 0
-		new.DeletedAt = nil
-		new.UpdatedBy = 0
-		new.Values = svc.sanitizer.Run(m, new.Values)
-
-		// Before values are stored, we have to validate them
-		rve := values.Validator().Run(m, new)
-		if !rve.IsValid() {
+		// Handle input payload
+		if rve = procChanges(m, new); !rve.IsValid() {
 			return rve
 		}
 
@@ -375,49 +400,80 @@ func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
 		// Assign defaults (only on missing values)
 		new.Values = svc.setDefaultValues(m, new.Values)
 
-		if new.OwnedBy == 0 {
-			// Allow ownership change
-			new.OwnedBy = creatorID
-		}
-
-		// Reconstruct the final record, and re-sanitize everything
-		// we could use new, but we do not trust before-create scripts
-		r := &types.Record{
-			ModuleID:    new.ModuleID,
-			NamespaceID: new.NamespaceID,
-			CreatedBy:   creatorID,
-			OwnedBy:     new.OwnedBy,
-			CreatedAt:   time.Now(),
-			Values:      svc.sanitizer.Run(m, new.Values),
-		}
-
-		// Before values are stored, we have to validate them
-		if rve = svc.validator.Run(m, r); !rve.IsValid() {
+		// Handle payload from automation scripts
+		if rve = procChanges(m, new); !rve.IsValid() {
 			return rve
 		}
 
-		if r, err = svc.recordRepo.Create(r); err != nil {
+		if new, err = svc.recordRepo.Create(new); err != nil {
 			return
 		}
 
-		if err = svc.recordRepo.UpdateValues(r.ID, r.Values); err != nil {
+		if err = svc.recordRepo.UpdateValues(new.ID, new.Values); err != nil {
 			return
 		}
 
 		// At this point we can return the value
-		rec = r
-		defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterCreate(r, nil, m, ns, nil))
+		rec = new
+
+		defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil))
 		return
 	})
 }
 
 func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
+	var invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
+
+	// Runs value sanitization, copies values that should updated
+	// and validates the final result
+	//
+	// This logic is kept in a utility function - it's used in the beginning
+	// of the update procedure and after results are back from the automation scripts
+	//
+	// Both these points introduce external data that need to be checked fully in the same manner
+	procChanges := func(m *types.Module, upd *types.Record, old *types.Record) *types.RecordValueErrorSet {
+		// First sanitization
+		//
+		// Before values are merged with existing data and
+		// sent to automation scripts (if any)
+		// we need to make sure it does not get sanitized data
+		upd.Values = svc.sanitizer.Run(m, upd.Values)
+
+		// Copy values to updated record
+		// to make sure nobody slips in something we do not want
+		upd.CreatedAt = old.CreatedAt
+		upd.CreatedBy = old.CreatedBy
+		upd.UpdatedAt = nowPtr()
+		upd.UpdatedBy = invokerID
+		upd.DeletedAt = old.DeletedAt
+		upd.DeletedBy = old.DeletedBy
+
+		// Merge new (updated) values with old ones
+		// This way we get list of updated, stale and deleted values
+		// that we can selectively updated in the repository
+		upd.Values = old.Values.Merge(upd.Values)
+
+		if upd.OwnedBy == 0 && old.OwnedBy > 0 {
+			// Owner not set/send in the payload
+			//
+			// Fallback to old owner (if set)
+			upd.OwnedBy = old.OwnedBy
+		} else {
+			// If od owner is not set, make current user
+			// the owner of the record
+			upd.OwnedBy = invokerID
+		}
+
+		// Run validation of the updated records
+		return svc.validator.Run(m, upd)
+	}
+
 	return rec, svc.db.Transaction(func() (err error) {
 		if upd.ID == 0 {
 			return ErrInvalidID.withStack()
 		}
 
-		ns, m, r, err := svc.loadCombo(upd.NamespaceID, upd.ModuleID, upd.ID)
+		ns, m, old, err := svc.loadCombo(upd.NamespaceID, upd.ModuleID, upd.ID)
 		if err != nil {
 			return
 		}
@@ -426,73 +482,57 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 			return
 		}
 
+		// Test if stale (update has an older version of data)
+		if isStale(upd.UpdatedAt, old.UpdatedAt, old.CreatedAt) {
+			return ErrStaleData.withStack()
+		}
+
 		if !svc.ac.CanUpdateRecord(svc.ctx, m) {
 			return ErrNoUpdatePermissions.withStack()
 		}
 
-		// Test if stale (update has an older version of data)
-		if isStale(upd.UpdatedAt, r.UpdatedAt, r.CreatedAt) {
-			return ErrStaleData.withStack()
-		}
-
-		// First sanitization
-		//
-		// Before values are merged with existing data and
-		// sent to automation scripts (if any)
-		// we need to make sure it does not get sanitized data
-		upd.CreatedAt = r.CreatedAt
-		upd.CreatedBy = r.CreatedBy
-		upd.UpdatedAt = r.UpdatedAt
-		upd.UpdatedBy = r.UpdatedBy
-		upd.DeletedAt = r.DeletedAt
-		upd.UpdatedBy = r.UpdatedBy
-		upd.Values = svc.sanitizer.Run(m, upd.Values)
-		if upd.OwnedBy == 0 {
-			upd.OwnedBy = r.OwnedBy
-		}
-
-		// Before values are stored, we have to validate them
-		rve := svc.validator.Run(m, upd)
-		if !rve.IsValid() {
-			return rve
-		}
-
 		// Preload old record values so we can send it together with event
-		if err = svc.preloadValues(m, r); err != nil {
+		if err = svc.preloadValues(m, old); err != nil {
 			return
 		}
 
-		if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeUpdate(upd, r, m, ns, rve)); err != nil {
+		var (
+			rve *types.RecordValueErrorSet
+		)
+
+		// Handle input payload
+		if rve = procChanges(m, upd, old); !rve.IsValid() {
+			return rve
+		}
+
+		// Scripts can (besides simple error value) return complex record value error set
+		// that is passed back to the UI or any other API consumer
+		//
+		// rve (record-validation-errorset) struct is passed so it can be
+		// used & filled by automation scripts
+		if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeUpdate(upd, old, m, ns, rve)); err != nil {
 			return
 		} else if !rve.IsValid() {
 			return rve
 		}
 
-		svc.recordInfoUpdate(r)
-
-		// Sanitize values we got from before-update automation scripts
-		r.Values = svc.sanitizer.Run(m, upd.Values)
-		if upd.OwnedBy > 0 {
-			// Allow ownership change:
-			r.OwnedBy = upd.OwnedBy
-		}
-
-		// Before values are stored, we have to validate them
-		if rve = svc.validator.Run(m, r); !rve.IsValid() {
+		// Handle payload from automation scripts
+		if rve = procChanges(m, upd, old); !rve.IsValid() {
 			return rve
 		}
 
-		if r, err = svc.recordRepo.Update(r); err != nil {
+		if upd, err = svc.recordRepo.Update(upd); err != nil {
 			return
 		}
 
-		if err = svc.recordRepo.UpdateValues(r.ID, r.Values); err != nil {
+		if err = svc.recordRepo.UpdateValues(upd.ID, upd.Values); err != nil {
 			return
 		}
 
 		// At this point we can return the value
-		rec = r
-		defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterUpdate(upd, r, m, ns, nil))
+		rec = upd
+
+		defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil))
 		return
 	})
 }
@@ -519,7 +559,7 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 
 	var (
 		isBulkDelete = len(recordIDs) > 0
-		now          = time.Now()
+		now          = *nowPtr()
 
 		ns *types.Namespace
 		m  *types.Module
@@ -578,7 +618,7 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 				return err
 			}
 
-			defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterDelete(nil, del, m, ns, nil))
+			defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil))
 
 			return err
 		})
