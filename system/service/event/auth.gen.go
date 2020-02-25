@@ -22,9 +22,10 @@ type (
 	//
 	// This type is auto-generated.
 	authBase struct {
-		user     *types.User
-		provider *types.AuthProvider
-		invoker  auth.Identifiable
+		immutable bool
+		user      *types.User
+		provider  *types.AuthProvider
+		invoker   auth.Identifiable
 	}
 
 	// authBeforeLogin
@@ -100,8 +101,27 @@ func AuthBeforeLogin(
 ) *authBeforeLogin {
 	return &authBeforeLogin{
 		authBase: &authBase{
-			user:     argUser,
-			provider: argProvider,
+			immutable: false,
+			user:      argUser,
+			provider:  argProvider,
+		},
+	}
+}
+
+// AuthBeforeLoginImmutable creates beforeLogin for system:auth resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func AuthBeforeLoginImmutable(
+	argUser *types.User,
+	argProvider *types.AuthProvider,
+) *authBeforeLogin {
+	return &authBeforeLogin{
+		authBase: &authBase{
+			immutable: true,
+			user:      argUser,
+			provider:  argProvider,
 		},
 	}
 }
@@ -115,8 +135,27 @@ func AuthBeforeSignup(
 ) *authBeforeSignup {
 	return &authBeforeSignup{
 		authBase: &authBase{
-			user:     argUser,
-			provider: argProvider,
+			immutable: false,
+			user:      argUser,
+			provider:  argProvider,
+		},
+	}
+}
+
+// AuthBeforeSignupImmutable creates beforeSignup for system:auth resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func AuthBeforeSignupImmutable(
+	argUser *types.User,
+	argProvider *types.AuthProvider,
+) *authBeforeSignup {
+	return &authBeforeSignup{
+		authBase: &authBase{
+			immutable: true,
+			user:      argUser,
+			provider:  argProvider,
 		},
 	}
 }
@@ -130,8 +169,27 @@ func AuthAfterLogin(
 ) *authAfterLogin {
 	return &authAfterLogin{
 		authBase: &authBase{
-			user:     argUser,
-			provider: argProvider,
+			immutable: false,
+			user:      argUser,
+			provider:  argProvider,
+		},
+	}
+}
+
+// AuthAfterLoginImmutable creates afterLogin for system:auth resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func AuthAfterLoginImmutable(
+	argUser *types.User,
+	argProvider *types.AuthProvider,
+) *authAfterLogin {
+	return &authAfterLogin{
+		authBase: &authBase{
+			immutable: true,
+			user:      argUser,
+			provider:  argProvider,
 		},
 	}
 }
@@ -145,8 +203,27 @@ func AuthAfterSignup(
 ) *authAfterSignup {
 	return &authAfterSignup{
 		authBase: &authBase{
-			user:     argUser,
-			provider: argProvider,
+			immutable: false,
+			user:      argUser,
+			provider:  argProvider,
+		},
+	}
+}
+
+// AuthAfterSignupImmutable creates afterSignup for system:auth resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func AuthAfterSignupImmutable(
+	argUser *types.User,
+	argProvider *types.AuthProvider,
+) *authAfterSignup {
+	return &authAfterSignup{
+		authBase: &authBase{
+			immutable: true,
+			user:      argUser,
+			provider:  argProvider,
 		},
 	}
 }
@@ -214,6 +291,10 @@ func (res authBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *authBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["result"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.user); err != nil {
 			return

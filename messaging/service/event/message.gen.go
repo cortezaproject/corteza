@@ -22,6 +22,7 @@ type (
 	//
 	// This type is auto-generated.
 	messageBase struct {
+		immutable  bool
 		message    *types.Message
 		oldMessage *types.Message
 		channel    *types.Channel
@@ -144,6 +145,27 @@ func MessageOnManual(
 ) *messageOnManual {
 	return &messageOnManual{
 		messageBase: &messageBase{
+			immutable:  false,
+			message:    argMessage,
+			oldMessage: argOldMessage,
+			channel:    argChannel,
+		},
+	}
+}
+
+// MessageOnManualImmutable creates onManual for messaging:message resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func MessageOnManualImmutable(
+	argMessage *types.Message,
+	argOldMessage *types.Message,
+	argChannel *types.Channel,
+) *messageOnManual {
+	return &messageOnManual{
+		messageBase: &messageBase{
+			immutable:  true,
 			message:    argMessage,
 			oldMessage: argOldMessage,
 			channel:    argChannel,
@@ -161,6 +183,27 @@ func MessageBeforeCreate(
 ) *messageBeforeCreate {
 	return &messageBeforeCreate{
 		messageBase: &messageBase{
+			immutable:  false,
+			message:    argMessage,
+			oldMessage: argOldMessage,
+			channel:    argChannel,
+		},
+	}
+}
+
+// MessageBeforeCreateImmutable creates beforeCreate for messaging:message resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func MessageBeforeCreateImmutable(
+	argMessage *types.Message,
+	argOldMessage *types.Message,
+	argChannel *types.Channel,
+) *messageBeforeCreate {
+	return &messageBeforeCreate{
+		messageBase: &messageBase{
+			immutable:  true,
 			message:    argMessage,
 			oldMessage: argOldMessage,
 			channel:    argChannel,
@@ -178,6 +221,27 @@ func MessageBeforeUpdate(
 ) *messageBeforeUpdate {
 	return &messageBeforeUpdate{
 		messageBase: &messageBase{
+			immutable:  false,
+			message:    argMessage,
+			oldMessage: argOldMessage,
+			channel:    argChannel,
+		},
+	}
+}
+
+// MessageBeforeUpdateImmutable creates beforeUpdate for messaging:message resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func MessageBeforeUpdateImmutable(
+	argMessage *types.Message,
+	argOldMessage *types.Message,
+	argChannel *types.Channel,
+) *messageBeforeUpdate {
+	return &messageBeforeUpdate{
+		messageBase: &messageBase{
+			immutable:  true,
 			message:    argMessage,
 			oldMessage: argOldMessage,
 			channel:    argChannel,
@@ -195,6 +259,27 @@ func MessageBeforeDelete(
 ) *messageBeforeDelete {
 	return &messageBeforeDelete{
 		messageBase: &messageBase{
+			immutable:  false,
+			message:    argMessage,
+			oldMessage: argOldMessage,
+			channel:    argChannel,
+		},
+	}
+}
+
+// MessageBeforeDeleteImmutable creates beforeDelete for messaging:message resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func MessageBeforeDeleteImmutable(
+	argMessage *types.Message,
+	argOldMessage *types.Message,
+	argChannel *types.Channel,
+) *messageBeforeDelete {
+	return &messageBeforeDelete{
+		messageBase: &messageBase{
+			immutable:  true,
 			message:    argMessage,
 			oldMessage: argOldMessage,
 			channel:    argChannel,
@@ -212,6 +297,27 @@ func MessageAfterCreate(
 ) *messageAfterCreate {
 	return &messageAfterCreate{
 		messageBase: &messageBase{
+			immutable:  false,
+			message:    argMessage,
+			oldMessage: argOldMessage,
+			channel:    argChannel,
+		},
+	}
+}
+
+// MessageAfterCreateImmutable creates afterCreate for messaging:message resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func MessageAfterCreateImmutable(
+	argMessage *types.Message,
+	argOldMessage *types.Message,
+	argChannel *types.Channel,
+) *messageAfterCreate {
+	return &messageAfterCreate{
+		messageBase: &messageBase{
+			immutable:  true,
 			message:    argMessage,
 			oldMessage: argOldMessage,
 			channel:    argChannel,
@@ -229,6 +335,27 @@ func MessageAfterUpdate(
 ) *messageAfterUpdate {
 	return &messageAfterUpdate{
 		messageBase: &messageBase{
+			immutable:  false,
+			message:    argMessage,
+			oldMessage: argOldMessage,
+			channel:    argChannel,
+		},
+	}
+}
+
+// MessageAfterUpdateImmutable creates afterUpdate for messaging:message resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func MessageAfterUpdateImmutable(
+	argMessage *types.Message,
+	argOldMessage *types.Message,
+	argChannel *types.Channel,
+) *messageAfterUpdate {
+	return &messageAfterUpdate{
+		messageBase: &messageBase{
+			immutable:  true,
 			message:    argMessage,
 			oldMessage: argOldMessage,
 			channel:    argChannel,
@@ -246,6 +373,27 @@ func MessageAfterDelete(
 ) *messageAfterDelete {
 	return &messageAfterDelete{
 		messageBase: &messageBase{
+			immutable:  false,
+			message:    argMessage,
+			oldMessage: argOldMessage,
+			channel:    argChannel,
+		},
+	}
+}
+
+// MessageAfterDeleteImmutable creates afterDelete for messaging:message resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func MessageAfterDeleteImmutable(
+	argMessage *types.Message,
+	argOldMessage *types.Message,
+	argChannel *types.Channel,
+) *messageAfterDelete {
+	return &messageAfterDelete{
+		messageBase: &messageBase{
+			immutable:  true,
 			message:    argMessage,
 			oldMessage: argOldMessage,
 			channel:    argChannel,
@@ -327,6 +475,10 @@ func (res messageBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *messageBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["result"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.message); err != nil {
 			return

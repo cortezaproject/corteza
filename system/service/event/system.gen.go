@@ -20,7 +20,8 @@ type (
 	//
 	// This type is auto-generated.
 	systemBase struct {
-		invoker auth.Identifiable
+		immutable bool
+		invoker   auth.Identifiable
 	}
 
 	// systemOnManual
@@ -78,7 +79,22 @@ func (systemOnTimestamp) EventType() string {
 // This function is auto-generated.
 func SystemOnManual() *systemOnManual {
 	return &systemOnManual{
-		systemBase: &systemBase{},
+		systemBase: &systemBase{
+			immutable: false,
+		},
+	}
+}
+
+// SystemOnManualImmutable creates onManual for system resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func SystemOnManualImmutable() *systemOnManual {
+	return &systemOnManual{
+		systemBase: &systemBase{
+			immutable: true,
+		},
 	}
 }
 
@@ -87,7 +103,22 @@ func SystemOnManual() *systemOnManual {
 // This function is auto-generated.
 func SystemOnInterval() *systemOnInterval {
 	return &systemOnInterval{
-		systemBase: &systemBase{},
+		systemBase: &systemBase{
+			immutable: false,
+		},
+	}
+}
+
+// SystemOnIntervalImmutable creates onInterval for system resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func SystemOnIntervalImmutable() *systemOnInterval {
+	return &systemOnInterval{
+		systemBase: &systemBase{
+			immutable: true,
+		},
 	}
 }
 
@@ -96,7 +127,22 @@ func SystemOnInterval() *systemOnInterval {
 // This function is auto-generated.
 func SystemOnTimestamp() *systemOnTimestamp {
 	return &systemOnTimestamp{
-		systemBase: &systemBase{},
+		systemBase: &systemBase{
+			immutable: false,
+		},
+	}
+}
+
+// SystemOnTimestampImmutable creates onTimestamp for system resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func SystemOnTimestampImmutable() *systemOnTimestamp {
+	return &systemOnTimestamp{
+		systemBase: &systemBase{
+			immutable: true,
+		},
 	}
 }
 
@@ -127,6 +173,10 @@ func (res systemBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *systemBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["invoker"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.invoker); err != nil {
 			return

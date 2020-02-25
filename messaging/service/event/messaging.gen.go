@@ -20,7 +20,8 @@ type (
 	//
 	// This type is auto-generated.
 	messagingBase struct {
-		invoker auth.Identifiable
+		immutable bool
+		invoker   auth.Identifiable
 	}
 
 	// messagingOnManual
@@ -78,7 +79,22 @@ func (messagingOnTimestamp) EventType() string {
 // This function is auto-generated.
 func MessagingOnManual() *messagingOnManual {
 	return &messagingOnManual{
-		messagingBase: &messagingBase{},
+		messagingBase: &messagingBase{
+			immutable: false,
+		},
+	}
+}
+
+// MessagingOnManualImmutable creates onManual for messaging resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func MessagingOnManualImmutable() *messagingOnManual {
+	return &messagingOnManual{
+		messagingBase: &messagingBase{
+			immutable: true,
+		},
 	}
 }
 
@@ -87,7 +103,22 @@ func MessagingOnManual() *messagingOnManual {
 // This function is auto-generated.
 func MessagingOnInterval() *messagingOnInterval {
 	return &messagingOnInterval{
-		messagingBase: &messagingBase{},
+		messagingBase: &messagingBase{
+			immutable: false,
+		},
+	}
+}
+
+// MessagingOnIntervalImmutable creates onInterval for messaging resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func MessagingOnIntervalImmutable() *messagingOnInterval {
+	return &messagingOnInterval{
+		messagingBase: &messagingBase{
+			immutable: true,
+		},
 	}
 }
 
@@ -96,7 +127,22 @@ func MessagingOnInterval() *messagingOnInterval {
 // This function is auto-generated.
 func MessagingOnTimestamp() *messagingOnTimestamp {
 	return &messagingOnTimestamp{
-		messagingBase: &messagingBase{},
+		messagingBase: &messagingBase{
+			immutable: false,
+		},
+	}
+}
+
+// MessagingOnTimestampImmutable creates onTimestamp for messaging resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func MessagingOnTimestampImmutable() *messagingOnTimestamp {
+	return &messagingOnTimestamp{
+		messagingBase: &messagingBase{
+			immutable: true,
+		},
 	}
 }
 
@@ -127,6 +173,10 @@ func (res messagingBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *messagingBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["invoker"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.invoker); err != nil {
 			return

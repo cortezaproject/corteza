@@ -22,6 +22,7 @@ type (
 	//
 	// This type is auto-generated.
 	moduleBase struct {
+		immutable bool
 		module    *types.Module
 		oldModule *types.Module
 		namespace *types.Namespace
@@ -144,6 +145,27 @@ func ModuleOnManual(
 ) *moduleOnManual {
 	return &moduleOnManual{
 		moduleBase: &moduleBase{
+			immutable: false,
+			module:    argModule,
+			oldModule: argOldModule,
+			namespace: argNamespace,
+		},
+	}
+}
+
+// ModuleOnManualImmutable creates onManual for compose:module resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ModuleOnManualImmutable(
+	argModule *types.Module,
+	argOldModule *types.Module,
+	argNamespace *types.Namespace,
+) *moduleOnManual {
+	return &moduleOnManual{
+		moduleBase: &moduleBase{
+			immutable: true,
 			module:    argModule,
 			oldModule: argOldModule,
 			namespace: argNamespace,
@@ -161,6 +183,27 @@ func ModuleBeforeCreate(
 ) *moduleBeforeCreate {
 	return &moduleBeforeCreate{
 		moduleBase: &moduleBase{
+			immutable: false,
+			module:    argModule,
+			oldModule: argOldModule,
+			namespace: argNamespace,
+		},
+	}
+}
+
+// ModuleBeforeCreateImmutable creates beforeCreate for compose:module resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ModuleBeforeCreateImmutable(
+	argModule *types.Module,
+	argOldModule *types.Module,
+	argNamespace *types.Namespace,
+) *moduleBeforeCreate {
+	return &moduleBeforeCreate{
+		moduleBase: &moduleBase{
+			immutable: true,
 			module:    argModule,
 			oldModule: argOldModule,
 			namespace: argNamespace,
@@ -178,6 +221,27 @@ func ModuleBeforeUpdate(
 ) *moduleBeforeUpdate {
 	return &moduleBeforeUpdate{
 		moduleBase: &moduleBase{
+			immutable: false,
+			module:    argModule,
+			oldModule: argOldModule,
+			namespace: argNamespace,
+		},
+	}
+}
+
+// ModuleBeforeUpdateImmutable creates beforeUpdate for compose:module resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ModuleBeforeUpdateImmutable(
+	argModule *types.Module,
+	argOldModule *types.Module,
+	argNamespace *types.Namespace,
+) *moduleBeforeUpdate {
+	return &moduleBeforeUpdate{
+		moduleBase: &moduleBase{
+			immutable: true,
 			module:    argModule,
 			oldModule: argOldModule,
 			namespace: argNamespace,
@@ -195,6 +259,27 @@ func ModuleBeforeDelete(
 ) *moduleBeforeDelete {
 	return &moduleBeforeDelete{
 		moduleBase: &moduleBase{
+			immutable: false,
+			module:    argModule,
+			oldModule: argOldModule,
+			namespace: argNamespace,
+		},
+	}
+}
+
+// ModuleBeforeDeleteImmutable creates beforeDelete for compose:module resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ModuleBeforeDeleteImmutable(
+	argModule *types.Module,
+	argOldModule *types.Module,
+	argNamespace *types.Namespace,
+) *moduleBeforeDelete {
+	return &moduleBeforeDelete{
+		moduleBase: &moduleBase{
+			immutable: true,
 			module:    argModule,
 			oldModule: argOldModule,
 			namespace: argNamespace,
@@ -212,6 +297,27 @@ func ModuleAfterCreate(
 ) *moduleAfterCreate {
 	return &moduleAfterCreate{
 		moduleBase: &moduleBase{
+			immutable: false,
+			module:    argModule,
+			oldModule: argOldModule,
+			namespace: argNamespace,
+		},
+	}
+}
+
+// ModuleAfterCreateImmutable creates afterCreate for compose:module resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ModuleAfterCreateImmutable(
+	argModule *types.Module,
+	argOldModule *types.Module,
+	argNamespace *types.Namespace,
+) *moduleAfterCreate {
+	return &moduleAfterCreate{
+		moduleBase: &moduleBase{
+			immutable: true,
 			module:    argModule,
 			oldModule: argOldModule,
 			namespace: argNamespace,
@@ -229,6 +335,27 @@ func ModuleAfterUpdate(
 ) *moduleAfterUpdate {
 	return &moduleAfterUpdate{
 		moduleBase: &moduleBase{
+			immutable: false,
+			module:    argModule,
+			oldModule: argOldModule,
+			namespace: argNamespace,
+		},
+	}
+}
+
+// ModuleAfterUpdateImmutable creates afterUpdate for compose:module resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ModuleAfterUpdateImmutable(
+	argModule *types.Module,
+	argOldModule *types.Module,
+	argNamespace *types.Namespace,
+) *moduleAfterUpdate {
+	return &moduleAfterUpdate{
+		moduleBase: &moduleBase{
+			immutable: true,
 			module:    argModule,
 			oldModule: argOldModule,
 			namespace: argNamespace,
@@ -246,6 +373,27 @@ func ModuleAfterDelete(
 ) *moduleAfterDelete {
 	return &moduleAfterDelete{
 		moduleBase: &moduleBase{
+			immutable: false,
+			module:    argModule,
+			oldModule: argOldModule,
+			namespace: argNamespace,
+		},
+	}
+}
+
+// ModuleAfterDeleteImmutable creates afterDelete for compose:module resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ModuleAfterDeleteImmutable(
+	argModule *types.Module,
+	argOldModule *types.Module,
+	argNamespace *types.Namespace,
+) *moduleAfterDelete {
+	return &moduleAfterDelete{
+		moduleBase: &moduleBase{
+			immutable: true,
 			module:    argModule,
 			oldModule: argOldModule,
 			namespace: argNamespace,
@@ -320,6 +468,10 @@ func (res moduleBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *moduleBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["result"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.module); err != nil {
 			return

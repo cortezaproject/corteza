@@ -22,6 +22,7 @@ type (
 	//
 	// This type is auto-generated.
 	namespaceBase struct {
+		immutable    bool
 		namespace    *types.Namespace
 		oldNamespace *types.Namespace
 		invoker      auth.Identifiable
@@ -142,6 +143,25 @@ func NamespaceOnManual(
 ) *namespaceOnManual {
 	return &namespaceOnManual{
 		namespaceBase: &namespaceBase{
+			immutable:    false,
+			namespace:    argNamespace,
+			oldNamespace: argOldNamespace,
+		},
+	}
+}
+
+// NamespaceOnManualImmutable creates onManual for compose:namespace resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func NamespaceOnManualImmutable(
+	argNamespace *types.Namespace,
+	argOldNamespace *types.Namespace,
+) *namespaceOnManual {
+	return &namespaceOnManual{
+		namespaceBase: &namespaceBase{
+			immutable:    true,
 			namespace:    argNamespace,
 			oldNamespace: argOldNamespace,
 		},
@@ -157,6 +177,25 @@ func NamespaceBeforeCreate(
 ) *namespaceBeforeCreate {
 	return &namespaceBeforeCreate{
 		namespaceBase: &namespaceBase{
+			immutable:    false,
+			namespace:    argNamespace,
+			oldNamespace: argOldNamespace,
+		},
+	}
+}
+
+// NamespaceBeforeCreateImmutable creates beforeCreate for compose:namespace resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func NamespaceBeforeCreateImmutable(
+	argNamespace *types.Namespace,
+	argOldNamespace *types.Namespace,
+) *namespaceBeforeCreate {
+	return &namespaceBeforeCreate{
+		namespaceBase: &namespaceBase{
+			immutable:    true,
 			namespace:    argNamespace,
 			oldNamespace: argOldNamespace,
 		},
@@ -172,6 +211,25 @@ func NamespaceBeforeUpdate(
 ) *namespaceBeforeUpdate {
 	return &namespaceBeforeUpdate{
 		namespaceBase: &namespaceBase{
+			immutable:    false,
+			namespace:    argNamespace,
+			oldNamespace: argOldNamespace,
+		},
+	}
+}
+
+// NamespaceBeforeUpdateImmutable creates beforeUpdate for compose:namespace resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func NamespaceBeforeUpdateImmutable(
+	argNamespace *types.Namespace,
+	argOldNamespace *types.Namespace,
+) *namespaceBeforeUpdate {
+	return &namespaceBeforeUpdate{
+		namespaceBase: &namespaceBase{
+			immutable:    true,
 			namespace:    argNamespace,
 			oldNamespace: argOldNamespace,
 		},
@@ -187,6 +245,25 @@ func NamespaceBeforeDelete(
 ) *namespaceBeforeDelete {
 	return &namespaceBeforeDelete{
 		namespaceBase: &namespaceBase{
+			immutable:    false,
+			namespace:    argNamespace,
+			oldNamespace: argOldNamespace,
+		},
+	}
+}
+
+// NamespaceBeforeDeleteImmutable creates beforeDelete for compose:namespace resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func NamespaceBeforeDeleteImmutable(
+	argNamespace *types.Namespace,
+	argOldNamespace *types.Namespace,
+) *namespaceBeforeDelete {
+	return &namespaceBeforeDelete{
+		namespaceBase: &namespaceBase{
+			immutable:    true,
 			namespace:    argNamespace,
 			oldNamespace: argOldNamespace,
 		},
@@ -202,6 +279,25 @@ func NamespaceAfterCreate(
 ) *namespaceAfterCreate {
 	return &namespaceAfterCreate{
 		namespaceBase: &namespaceBase{
+			immutable:    false,
+			namespace:    argNamespace,
+			oldNamespace: argOldNamespace,
+		},
+	}
+}
+
+// NamespaceAfterCreateImmutable creates afterCreate for compose:namespace resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func NamespaceAfterCreateImmutable(
+	argNamespace *types.Namespace,
+	argOldNamespace *types.Namespace,
+) *namespaceAfterCreate {
+	return &namespaceAfterCreate{
+		namespaceBase: &namespaceBase{
+			immutable:    true,
 			namespace:    argNamespace,
 			oldNamespace: argOldNamespace,
 		},
@@ -217,6 +313,25 @@ func NamespaceAfterUpdate(
 ) *namespaceAfterUpdate {
 	return &namespaceAfterUpdate{
 		namespaceBase: &namespaceBase{
+			immutable:    false,
+			namespace:    argNamespace,
+			oldNamespace: argOldNamespace,
+		},
+	}
+}
+
+// NamespaceAfterUpdateImmutable creates afterUpdate for compose:namespace resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func NamespaceAfterUpdateImmutable(
+	argNamespace *types.Namespace,
+	argOldNamespace *types.Namespace,
+) *namespaceAfterUpdate {
+	return &namespaceAfterUpdate{
+		namespaceBase: &namespaceBase{
+			immutable:    true,
 			namespace:    argNamespace,
 			oldNamespace: argOldNamespace,
 		},
@@ -232,6 +347,25 @@ func NamespaceAfterDelete(
 ) *namespaceAfterDelete {
 	return &namespaceAfterDelete{
 		namespaceBase: &namespaceBase{
+			immutable:    false,
+			namespace:    argNamespace,
+			oldNamespace: argOldNamespace,
+		},
+	}
+}
+
+// NamespaceAfterDeleteImmutable creates afterDelete for compose:namespace resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func NamespaceAfterDeleteImmutable(
+	argNamespace *types.Namespace,
+	argOldNamespace *types.Namespace,
+) *namespaceAfterDelete {
+	return &namespaceAfterDelete{
+		namespaceBase: &namespaceBase{
+			immutable:    true,
 			namespace:    argNamespace,
 			oldNamespace: argOldNamespace,
 		},
@@ -294,6 +428,10 @@ func (res namespaceBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *namespaceBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["result"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.namespace); err != nil {
 			return

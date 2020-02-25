@@ -26,6 +26,7 @@ type (
 //
 // This type is auto-generated.
 {{ camelCase $.ResourceIdent "base" }} struct {
+	immutable bool
 {{- range $p := $.Events.Properties }}
 	{{ $p.Name }} {{ $p.Type }}
 {{- end }}
@@ -72,6 +73,31 @@ func {{ camelCase "" $.ResourceIdent $event }}(
 ) *{{ camelCase $.ResourceIdent $event }} {
 	return &{{ camelCase $.ResourceIdent $event }}{
 		{{ camelCase $.ResourceIdent "base" }}: &{{ camelCase $.ResourceIdent "base" }}{
+			immutable: false,
+		{{- range $p := $.Events.Properties }}
+			{{- if not $p.Internal }}
+				{{ $p.Name }}: {{ camelCase "arg" $p.Name }},
+			{{- end -}}
+		{{- end}}
+		},
+	}
+}
+
+// {{ camelCase "" $.ResourceIdent $event "Immutable" }} creates {{ $event }} for {{ $.ResourceString }} resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func {{ camelCase "" $.ResourceIdent $event "Immutable" }}(
+{{- range $p := $.Events.Properties }}
+	{{- if not $p.Internal }}
+		{{ camelCase "arg" $p.Name }} {{ $p.Type }},
+	{{- end -}}
+{{- end}}
+) *{{ camelCase $.ResourceIdent $event }} {
+	return &{{ camelCase $.ResourceIdent $event }}{
+		{{ camelCase $.ResourceIdent "base" }}: &{{ camelCase $.ResourceIdent "base" }}{
+			immutable: true,
 		{{- range $p := $.Events.Properties }}
 			{{- if not $p.Internal }}
 				{{ $p.Name }}: {{ camelCase "arg" $p.Name }},
@@ -119,6 +145,11 @@ func (res {{ camelCase .ResourceIdent "base" }}) Encode() (args map[string][]byt
 
 // Decode return values from Corredor script into struct props
 func (res *{{ camelCase .ResourceIdent "base" }}) Decode(results map[string][]byte)( err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+
 	{{- if $.Events.Result }}
 	if r, ok := results["result"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.{{ $.Events.Result }}); err != nil {

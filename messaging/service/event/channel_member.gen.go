@@ -22,9 +22,10 @@ type (
 	//
 	// This type is auto-generated.
 	channelMemberBase struct {
-		member  *types.ChannelMember
-		channel *types.Channel
-		invoker auth.Identifiable
+		immutable bool
+		member    *types.ChannelMember
+		channel   *types.Channel
+		invoker   auth.Identifiable
 	}
 
 	// channelMemberBeforeJoin
@@ -156,8 +157,27 @@ func ChannelMemberBeforeJoin(
 ) *channelMemberBeforeJoin {
 	return &channelMemberBeforeJoin{
 		channelMemberBase: &channelMemberBase{
-			member:  argMember,
-			channel: argChannel,
+			immutable: false,
+			member:    argMember,
+			channel:   argChannel,
+		},
+	}
+}
+
+// ChannelMemberBeforeJoinImmutable creates beforeJoin for messaging:channel:member resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ChannelMemberBeforeJoinImmutable(
+	argMember *types.ChannelMember,
+	argChannel *types.Channel,
+) *channelMemberBeforeJoin {
+	return &channelMemberBeforeJoin{
+		channelMemberBase: &channelMemberBase{
+			immutable: true,
+			member:    argMember,
+			channel:   argChannel,
 		},
 	}
 }
@@ -171,8 +191,27 @@ func ChannelMemberBeforePart(
 ) *channelMemberBeforePart {
 	return &channelMemberBeforePart{
 		channelMemberBase: &channelMemberBase{
-			member:  argMember,
-			channel: argChannel,
+			immutable: false,
+			member:    argMember,
+			channel:   argChannel,
+		},
+	}
+}
+
+// ChannelMemberBeforePartImmutable creates beforePart for messaging:channel:member resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ChannelMemberBeforePartImmutable(
+	argMember *types.ChannelMember,
+	argChannel *types.Channel,
+) *channelMemberBeforePart {
+	return &channelMemberBeforePart{
+		channelMemberBase: &channelMemberBase{
+			immutable: true,
+			member:    argMember,
+			channel:   argChannel,
 		},
 	}
 }
@@ -186,8 +225,27 @@ func ChannelMemberBeforeAdd(
 ) *channelMemberBeforeAdd {
 	return &channelMemberBeforeAdd{
 		channelMemberBase: &channelMemberBase{
-			member:  argMember,
-			channel: argChannel,
+			immutable: false,
+			member:    argMember,
+			channel:   argChannel,
+		},
+	}
+}
+
+// ChannelMemberBeforeAddImmutable creates beforeAdd for messaging:channel:member resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ChannelMemberBeforeAddImmutable(
+	argMember *types.ChannelMember,
+	argChannel *types.Channel,
+) *channelMemberBeforeAdd {
+	return &channelMemberBeforeAdd{
+		channelMemberBase: &channelMemberBase{
+			immutable: true,
+			member:    argMember,
+			channel:   argChannel,
 		},
 	}
 }
@@ -201,8 +259,27 @@ func ChannelMemberBeforeRemove(
 ) *channelMemberBeforeRemove {
 	return &channelMemberBeforeRemove{
 		channelMemberBase: &channelMemberBase{
-			member:  argMember,
-			channel: argChannel,
+			immutable: false,
+			member:    argMember,
+			channel:   argChannel,
+		},
+	}
+}
+
+// ChannelMemberBeforeRemoveImmutable creates beforeRemove for messaging:channel:member resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ChannelMemberBeforeRemoveImmutable(
+	argMember *types.ChannelMember,
+	argChannel *types.Channel,
+) *channelMemberBeforeRemove {
+	return &channelMemberBeforeRemove{
+		channelMemberBase: &channelMemberBase{
+			immutable: true,
+			member:    argMember,
+			channel:   argChannel,
 		},
 	}
 }
@@ -216,8 +293,27 @@ func ChannelMemberAfterJoin(
 ) *channelMemberAfterJoin {
 	return &channelMemberAfterJoin{
 		channelMemberBase: &channelMemberBase{
-			member:  argMember,
-			channel: argChannel,
+			immutable: false,
+			member:    argMember,
+			channel:   argChannel,
+		},
+	}
+}
+
+// ChannelMemberAfterJoinImmutable creates afterJoin for messaging:channel:member resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ChannelMemberAfterJoinImmutable(
+	argMember *types.ChannelMember,
+	argChannel *types.Channel,
+) *channelMemberAfterJoin {
+	return &channelMemberAfterJoin{
+		channelMemberBase: &channelMemberBase{
+			immutable: true,
+			member:    argMember,
+			channel:   argChannel,
 		},
 	}
 }
@@ -231,8 +327,27 @@ func ChannelMemberAfterPart(
 ) *channelMemberAfterPart {
 	return &channelMemberAfterPart{
 		channelMemberBase: &channelMemberBase{
-			member:  argMember,
-			channel: argChannel,
+			immutable: false,
+			member:    argMember,
+			channel:   argChannel,
+		},
+	}
+}
+
+// ChannelMemberAfterPartImmutable creates afterPart for messaging:channel:member resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ChannelMemberAfterPartImmutable(
+	argMember *types.ChannelMember,
+	argChannel *types.Channel,
+) *channelMemberAfterPart {
+	return &channelMemberAfterPart{
+		channelMemberBase: &channelMemberBase{
+			immutable: true,
+			member:    argMember,
+			channel:   argChannel,
 		},
 	}
 }
@@ -246,8 +361,27 @@ func ChannelMemberAfterAdd(
 ) *channelMemberAfterAdd {
 	return &channelMemberAfterAdd{
 		channelMemberBase: &channelMemberBase{
-			member:  argMember,
-			channel: argChannel,
+			immutable: false,
+			member:    argMember,
+			channel:   argChannel,
+		},
+	}
+}
+
+// ChannelMemberAfterAddImmutable creates afterAdd for messaging:channel:member resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ChannelMemberAfterAddImmutable(
+	argMember *types.ChannelMember,
+	argChannel *types.Channel,
+) *channelMemberAfterAdd {
+	return &channelMemberAfterAdd{
+		channelMemberBase: &channelMemberBase{
+			immutable: true,
+			member:    argMember,
+			channel:   argChannel,
 		},
 	}
 }
@@ -261,8 +395,27 @@ func ChannelMemberAfterRemove(
 ) *channelMemberAfterRemove {
 	return &channelMemberAfterRemove{
 		channelMemberBase: &channelMemberBase{
-			member:  argMember,
-			channel: argChannel,
+			immutable: false,
+			member:    argMember,
+			channel:   argChannel,
+		},
+	}
+}
+
+// ChannelMemberAfterRemoveImmutable creates afterRemove for messaging:channel:member resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ChannelMemberAfterRemoveImmutable(
+	argMember *types.ChannelMember,
+	argChannel *types.Channel,
+) *channelMemberAfterRemove {
+	return &channelMemberAfterRemove{
+		channelMemberBase: &channelMemberBase{
+			immutable: true,
+			member:    argMember,
+			channel:   argChannel,
 		},
 	}
 }
@@ -330,6 +483,10 @@ func (res channelMemberBase) Encode() (args map[string][]byte, err error) {
 
 // Decode return values from Corredor script into struct props
 func (res *channelMemberBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
 	if r, ok := results["result"]; ok && len(results) == 1 {
 		if err = json.Unmarshal(r, res.member); err != nil {
 			return
