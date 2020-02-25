@@ -336,14 +336,14 @@ func (r record) PartialUpdateValues(rvs ...*types.RecordValue) (err error) {
 func (r record) RefValueLookup(moduleID uint64, field string, ref uint64) (recordID uint64, err error) {
 	var sql = "SELECT record_id" +
 		"  FROM compose_record AS r INNER JOIN compose_record_value AS v " +
-		" WHERE rel_module = ? " +
+		" WHERE r.module_id = ? " +
 		"   AND v.name = ? " +
 		"   AND v.ref = ? " +
 		"   AND r.deleted_at IS NULL " +
 		"   AND v.deleted_at IS NULL " +
 		"       LIMIT 1"
 
-	return recordID, r.db().Get(recordID, sql, moduleID, field, ref)
+	return recordID, r.db().Get(&recordID, sql, moduleID, field, ref)
 }
 
 func (r record) LoadValues(fieldNames []string, IDs []uint64) (rvs types.RecordValueSet, err error) {
