@@ -487,27 +487,35 @@ func (res *channelMemberBase) Decode(results map[string][]byte) (err error) {
 		// Respect immutability
 		return
 	}
-	if r, ok := results["result"]; ok && len(results) == 1 {
-		if err = json.Unmarshal(r, res.member); err != nil {
-			return
+	if res.member != nil {
+		if r, ok := results["result"]; ok && len(results) == 1 {
+			if err = json.Unmarshal(r, res.member); err != nil {
+				return
+			}
 		}
 	}
 
-	if r, ok := results["member"]; ok && len(results) == 1 {
-		if err = json.Unmarshal(r, res.member); err != nil {
-			return
+	if res.member != nil {
+		if r, ok := results["member"]; ok {
+			if err = json.Unmarshal(r, res.member); err != nil {
+				return
+			}
 		}
 	}
 
-	if r, ok := results["channel"]; ok && len(results) == 1 {
-		if err = json.Unmarshal(r, res.channel); err != nil {
-			return
+	if res.channel != nil {
+		if r, ok := results["channel"]; ok {
+			if err = json.Unmarshal(r, res.channel); err != nil {
+				return
+			}
 		}
 	}
 
-	if r, ok := results["invoker"]; ok && len(results) == 1 {
-		if err = json.Unmarshal(r, res.invoker); err != nil {
-			return
+	if res.invoker != nil {
+		if r, ok := results["invoker"]; ok {
+			if err = json.Unmarshal(r, res.invoker); err != nil {
+				return
+			}
 		}
 	}
 	return
