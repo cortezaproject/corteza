@@ -131,7 +131,7 @@ func (svc record) With(ctx context.Context) RecordService {
 	// Initialize validator and setup all checkers it needs
 	validator := values.Validator()
 
-	validator.UniqueChecker(func(m *types.Module, f *types.ModuleField, v *types.RecordValue) (uint64, error) {
+	validator.UniqueChecker(func(v *types.RecordValue, f *types.ModuleField, m *types.Module) (uint64, error) {
 		if v.Ref == 0 {
 			return 0, nil
 		}
@@ -139,7 +139,7 @@ func (svc record) With(ctx context.Context) RecordService {
 		return repository.Record(ctx, db).RefValueLookup(m.ID, f.Name, v.Ref)
 	})
 
-	validator.RecordRefChecker(func(m *types.Module, f *types.ModuleField, v *types.RecordValue) (bool, error) {
+	validator.RecordRefChecker(func(v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
 		if v.Ref == 0 {
 			return false, nil
 		}
@@ -148,9 +148,18 @@ func (svc record) With(ctx context.Context) RecordService {
 		return r != nil, err
 	})
 
-	validator.UserRefChecker(func(m *types.Module, f *types.ModuleField, v *types.RecordValue) (bool, error) {
+	validator.UserRefChecker(func(v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
 		// @todo cross service check
 		return true, nil
+	})
+
+	validator.FileRefChecker(func(v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
+		if v.Ref == 0 {
+			return false, nil
+		}
+
+		r, err := repository.Attachment(ctx, db).FindByID(m.NamespaceID, v.Ref)
+		return r != nil, err
 	})
 
 	return &record{
@@ -430,7 +439,7 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 	// This logic is kept in a utility function - it's used in the beginning
 	// of the update procedure and after results are back from the automation scripts
 	//
-	// Both these points introduce external data that need to be checked fully in the same manner
+	// Both these points introduce external data that need to be checked fully in the same maner
 	procChanges := func(m *types.Module, upd *types.Record, old *types.Record) *types.RecordValueErrorSet {
 		// First sanitization
 		//

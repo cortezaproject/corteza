@@ -2,28 +2,13 @@ package values
 
 import (
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
 
-const (
-	boolTrue  = "1"
-	boolFalse = "0"
-)
-
 type (
-	sanitizer struct {
-	}
-)
-
-var (
-	// value resembles something that can be true
-	truthy = regexp.MustCompile(`^(t(rue)?|y(es)?|1)$`)
-
-	// valeu resembles something that can be a reference
-	refy = regexp.MustCompile(`^[1-9](\d*)$`)
+	sanitizer struct{}
 )
 
 // Sanitizer initializes sanitizer
@@ -86,42 +71,42 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 		// Per field type validators
 		switch strings.ToLower(f.Kind) {
 		case "bool":
-			v = s.sanitizeBool(v, f, m)
+			v = s.sBool(v, f, m)
 		case "datetime":
-			v = s.sanitizeDatetime(v, f, m)
-		case "email":
-			v = s.sanitizeEmail(v, f, m)
-		case "file":
-			v = s.sanitizeFile(v, f, m)
-		case "number":
-			v = s.sanitizeNumber(v, f, m)
-		case "record":
-			v = s.sanitizeRecord(v, f, m)
-		case "select":
-			v = s.sanitizeSelect(v, f, m)
-		case "string":
-			v = s.sanitizeString(v, f, m)
-		case "url":
-			v = s.sanitizeUrl(v, f, m)
-		case "user":
-			v = s.sanitizeUser(v, f, m)
+			v = s.sDatetime(v, f, m)
+			//case "email":
+			//	v = s.sEmail(v, f, m)
+			//case "file":
+			//	v = s.sFile(v, f, m)
+			//case "number":
+			//	v = s.sNumber(v, f, m)
+			//case "record":
+			//	v = s.sRecord(v, f, m)
+			//case "select":
+			//	v = s.sSelect(v, f, m)
+			//case "string":
+			//	v = s.sString(v, f, m)
+			//case "url":
+			//	v = s.sUrl(v, f, m)
+			//case "user":
+			//	v = s.sUser(v, f, m)
 		}
 	}
 
 	return
 }
 
-func (sanitizer) sanitizeBool(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
+func (sanitizer) sBool(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
 	if truthy.MatchString(strings.ToLower(v.Value)) {
-		v.Value = boolTrue
+		v.Value = strBoolTrue
 	} else {
-		v.Value = boolFalse
+		v.Value = strBoolFalse
 	}
 
 	return v
 }
 
-func (sanitizer) sanitizeDatetime(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
+func (sanitizer) sDatetime(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
 	var (
 		// input format set
 		inputFormats []string
@@ -131,26 +116,32 @@ func (sanitizer) sanitizeDatetime(v *types.RecordValue, f *types.ModuleField, m 
 	)
 
 	if f.Options.Bool("onlyDate") {
-		of = "2006-01-02"
+		of = datetimeInputFormatDate
 		inputFormats = []string{
-			"2006-01-02",
+			datetimeInputFormatDate,
 			"02 Jan 06",
 			"Monday, 02-Jan-06",
 			"Mon, 02 Jan 2006",
 			"2019/_1/_2",
 		}
 	} else if f.Options.Bool("onlyTime") {
-		of = "15:04:05"
+		of = datetimeInputFormatTime
 		inputFormats = []string{
-			"15:04:05",
+			datetimeInputFormatTime,
 			"15:04",
+			"15:04:05Z07:00",
+			"15:04:05 MST",
+			"15:04:05 -0700",
+			"15:04 MST",
+			"15:04Z07:00",
+			"15:04 -0700",
 			time.Kitchen,
 		}
 	} else {
-		of = time.RFC3339
+		of = datetimeInputFormatFull
 		// date & time
 		inputFormats = []string{
-			time.RFC3339,
+			datetimeInputFormatFull,
 			time.RFC1123Z,
 			time.RFC1123,
 			time.RFC850,
@@ -176,34 +167,38 @@ func (sanitizer) sanitizeDatetime(v *types.RecordValue, f *types.ModuleField, m 
 	return v
 }
 
-func (sanitizer) sanitizeEmail(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-	return v
-}
-
-func (sanitizer) sanitizeFile(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-	return v
-}
-
-func (sanitizer) sanitizeNumber(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-	return v
-}
-
-func (sanitizer) sanitizeRecord(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-	return v
-}
-
-func (sanitizer) sanitizeSelect(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-	return v
-}
-
-func (sanitizer) sanitizeString(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-	return v
-}
-
-func (sanitizer) sanitizeUrl(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-	return v
-}
-
-func (sanitizer) sanitizeUser(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-	return v
-}
+//
+//func (sanitizer) sEmail(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
+//  // @todo extract from "name" <email> format
+//	return v
+//}
+//
+//func (sanitizer) sFile(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
+//	return v
+//}
+//
+//func (sanitizer) sNumber(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
+//	// @todo cut off the decimals / round up
+//	// @todo sanitize decimal/thousands dot/comma
+//	return v
+//}
+//
+//func (sanitizer) sRecord(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
+//	return v
+//}
+//
+//func (sanitizer) sSelect(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
+//	return v
+//}
+//
+//func (sanitizer) sString(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
+//	return v
+//}
+//
+//func (sanitizer) sUrl(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
+//	return v
+//}
+//
+//func (sanitizer) sUser(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
+//	return v
+//}
