@@ -3,6 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -18,7 +19,8 @@ type (
 		Place     uint       `db:"place"      json:"-"`
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
 
-		updated bool
+		updated  bool
+		oldValue string
 	}
 )
 
@@ -118,17 +120,12 @@ func (set RecordValueSet) GetUpdated() (out RecordValueSet) {
 	return out
 }
 
-// Replace old value set with new one
+// Merge merges old value set with new one and expects unchanged values to be in the new set
 //
-// Will remove all values that are not set in new set
+// This satisfies current requirements where record values are always
+// manipulated as a whole (not partial)
 //
-// This satisfies current requirements where record is always
-// manipulated as a whole
-func (set RecordValueSet) Replace(new RecordValueSet) (out RecordValueSet) {
-	if len(new) == 0 {
-		return nil
-	}
-
+func (set RecordValueSet) Merge(new RecordValueSet) (out RecordValueSet) {
 	if len(set) == 0 {
 		for i := range new {
 			new[i].updated = true
@@ -143,27 +140,41 @@ func (set RecordValueSet) Replace(new RecordValueSet) (out RecordValueSet) {
 		out = append(out, &RecordValue{
 			Name:      set[s].Name,
 			Value:     set[s].Value,
+			Ref:       set[s].Ref,
 			Place:     set[s].Place,
 			DeletedAt: &time.Time{},
 			updated:   true,
+			oldValue:  set[s].Value,
 		})
 	}
 
 	for n := range new {
 		if ex := out.Get(new[n].Name, new[n].Place); ex != nil {
 			// Reset deleted flag
-			ex.DeletedAt = nil
+			ex.DeletedAt = new[n].DeletedAt
 
-			// Did value change?
-			ex.updated = ex.updated || ex.Value != new[n].Value
+			if ex.oldValue == new[n].Value {
+				ex.updated = false
+			} else if !ex.updated {
+				// Did value change?
+				ex.updated = ex.Value != new[n].Value
+				ex.oldValue = ex.Value
+			}
 
 			ex.Value = new[n].Value
+			ex.Ref = new[n].Ref
 		} else {
+			// Value not previously set, make new
 			out = append(out, &RecordValue{
 				Name:    new[n].Name,
 				Value:   new[n].Value,
+				Ref:     new[n].Ref,
 				Place:   new[n].Place,
 				updated: true,
+
+				// verbose & explicit for clarity
+				oldValue:  "",
+				DeletedAt: nil,
 			})
 		}
 	}
@@ -187,6 +198,26 @@ func (set *RecordValueSet) Scan(value interface{}) error {
 
 func (set RecordValueSet) Value() (driver.Value, error) {
 	return json.Marshal(set)
+}
+
+// Simple RVS as string output utility fn that
+// can help with debugging
+func (set RecordValueSet) String() (o string) {
+	const tpl = "%-10s %2d %-20s %-20d %-20s %v %v\n"
+	for _, v := range set {
+		o += fmt.Sprintf(
+			tpl,
+			v.Name,
+			v.Place,
+			v.Value,
+			v.Ref,
+			v.oldValue,
+			v.updated,
+			v.DeletedAt,
+		)
+	}
+
+	return o
 }
 
 func (set RecordValueSet) Len() int           { return len(set) }

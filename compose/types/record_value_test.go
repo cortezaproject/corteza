@@ -42,7 +42,7 @@ func TestRecordValueSet_Set(t *testing.T) {
 	}
 }
 
-func TestRecordValueSet_Replace(t *testing.T) {
+func TestRecordValueSet_Merge(t *testing.T) {
 	tests := []struct {
 		name string
 		set  RecordValueSet
@@ -59,25 +59,25 @@ func TestRecordValueSet_Replace(t *testing.T) {
 			name: "update with nil",
 			set:  RecordValueSet{{Name: "n", Value: "v"}},
 			new:  nil,
-			want: nil,
+			want: RecordValueSet{{Name: "n", Value: "v", oldValue: "v", DeletedAt: &time.Time{}, updated: true}},
 		},
 		{
 			name: "update with new value",
 			set:  RecordValueSet{{Name: "n", Value: "1"}},
 			new:  RecordValueSet{{Name: "n", Value: "2"}},
-			want: RecordValueSet{{Name: "n", Value: "2", updated: true}},
+			want: RecordValueSet{{Name: "n", Value: "2", oldValue: "1", updated: true}},
 		},
 		{
 			name: "update with less values",
 			set:  RecordValueSet{{Name: "n", Value: "1"}, {Name: "deleted", Value: "d"}},
 			new:  RecordValueSet{{Name: "n", Value: "2"}},
-			want: RecordValueSet{{Name: "n", Value: "2", updated: true}, {Name: "deleted", Value: "d", updated: true, DeletedAt: &time.Time{}}},
+			want: RecordValueSet{{Name: "n", Value: "2", oldValue: "1", updated: true}, {Name: "deleted", Value: "d", oldValue: "d", updated: true, DeletedAt: &time.Time{}}},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.set.Replace(tt.new); !reflect.DeepEqual(got, tt.want) {
+			if got := tt.set.Merge(tt.new); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Update() = %+v, want %+v", got, tt.want)
 			}
 		})
