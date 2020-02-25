@@ -826,18 +826,16 @@ func (svc record) setDefaultValues(m *types.Module, vv types.RecordValueSet) (ou
 
 	for _, f := range m.Fields {
 		if f.DefaultValue == nil {
-			return nil
+			continue
 		}
 
 		for i, dv := range f.DefaultValue {
 			// Default values on field are (might be) without field name and place
 			if !out.Has(f.Name, uint(i)) {
 				out = append(out, &types.RecordValue{
-					Name:      f.Name,
-					Value:     dv.Value,
-					Ref:       0,
-					Place:     uint(i),
-					DeletedAt: nil,
+					Name:  f.Name,
+					Value: dv.Value,
+					Place: uint(i),
 				})
 			}
 		}
