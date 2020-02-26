@@ -87,10 +87,6 @@ func (svc accessControl) CanCreateModule(ctx context.Context, r *types.Namespace
 	return svc.can(ctx, r, "module.create")
 }
 
-func (svc accessControl) CanCreateAutomationScript(ctx context.Context, r *types.Namespace) bool {
-	return svc.can(ctx, r, "automation-script.create")
-}
-
 func (svc accessControl) CanReadModule(ctx context.Context, r *types.Module) bool {
 	return svc.can(ctx, r, "read")
 }
@@ -248,18 +244,6 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"read",
 		"update",
 		"delete",
-	)
-
-	wl.Set(
-		types.AutomationScriptPermissionResource,
-		"read",
-		"update",
-		"delete",
-	)
-
-	wl.Set(
-		types.AutomationTriggerPermissionResource,
-		"run",
 	)
 
 	return wl

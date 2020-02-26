@@ -77,10 +77,6 @@ func (svc accessControl) CanCreateApplication(ctx context.Context) bool {
 	return svc.can(ctx, types.SystemPermissionResource, "application.create")
 }
 
-func (svc accessControl) CanCreateAutomationScript(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemPermissionResource, "automation-script.create")
-}
-
 func (svc accessControl) CanAssignReminder(ctx context.Context) bool {
 	return svc.can(ctx, types.SystemPermissionResource, "reminder.assign")
 }
@@ -231,18 +227,6 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"update",
 		"delete",
 		"members.manage",
-	)
-
-	wl.Set(
-		types.AutomationScriptPermissionResource,
-		"read",
-		"update",
-		"delete",
-	)
-
-	wl.Set(
-		types.AutomationTriggerPermissionResource,
-		"run",
 	)
 
 	return wl
