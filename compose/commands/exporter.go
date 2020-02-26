@@ -17,7 +17,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
@@ -602,79 +601,6 @@ func expCharts(charts types.ChartSet, modules types.ModuleSet) (o map[string]Cha
 	}
 
 	return
-}
-
-func expAutomation(ss automation.ScriptSet, tt automation.TriggerSet, mm types.ModuleSet) map[string]Script {
-	var (
-		script Script
-		out    = map[string]Script{}
-	)
-
-	_ = ss.Walk(func(s *automation.Script) error {
-		script = Script{
-			Source:   strings.TrimSpace(s.Source),
-			Async:    s.Async,
-			RunInUA:  s.RunInUA,
-			Critical: s.Critical,
-			Enabled:  s.Enabled,
-			Timeout:  s.Timeout,
-
-			// ignoring run-as, we do not have support for user exporting
-			// this will be solved when a.scripts are migrated to syste,
-
-			Triggers: []map[string]interface{}{},
-
-			Allow: sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Allow, types.AutomationScriptPermissionResource),
-			Deny:  sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Deny, types.AutomationScriptPermissionResource),
-		}
-
-		handle := makeHandleFromName(s.Name, "", "automation-script-%d", s.ID)
-
-		tt.Walk(func(t *automation.Trigger) error {
-			if t.ScriptID != s.ID {
-				return nil
-			}
-
-			trigger := map[string]interface{}{
-				"resource": t.Resource,
-				"event":    t.Event,
-			}
-
-			switch t.Event {
-			case "beforeCreate", "beforeUpdate", "beforeDelete",
-				"afterCreate", "afterUpdate", "afterDelete",
-				"manual":
-				moduleID := t.Uint64Condition()
-
-				if moduleID == 0 {
-					return nil
-				}
-				module := mm.FindByID(moduleID)
-				if module == nil {
-					return nil
-				}
-
-				trigger["module"] = makeHandleFromName(module.Name, module.Handle, "module-%d", module.ID)
-
-			case "interval", "deferred":
-				trigger["condition"] = t.Condition
-
-			}
-
-			if !t.Enabled {
-				trigger["enabled"] = false
-			}
-
-			script.Triggers = append(script.Triggers, trigger)
-			return nil
-		})
-
-		out[handle] = script
-
-		return nil
-	})
-
-	return out
 }
 
 func makeHandleFromName(name, currentHandle, def string, id uint64) string {

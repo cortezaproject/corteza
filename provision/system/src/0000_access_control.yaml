@@ -19,7 +19,6 @@ allow:
       - application.create
       - user.create
       - role.create
-      - automation-script.create
 
     system:application:
       - read

@@ -337,7 +337,7 @@ func (svc record) Export(filter types.RecordFilter, enc Encoder) error {
 func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
 	var invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	// Runs value sanitization, sets values that should used
+	// Runs value sanitization, sets values that should be used
 	// and validates the final result
 	//
 	// This logic is kept in a utility function - it's used in the beginning

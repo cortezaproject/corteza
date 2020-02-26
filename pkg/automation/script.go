@@ -1,14 +1,28 @@
 package automation
 
 import (
-	"strconv"
 	"time"
-
-	"github.com/pkg/errors"
-
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
+
+//
+//		  _____                                _           _
+//		 |  __ \                              | |         | |
+//		 | |  | | ___ _ __  _ __ ___  ___ __ _| |_ ___  __| |
+//		 | |  | |/ _ \ '_ \| '__/ _ \/ __/ _` | __/ _ \/ _` |
+//		 | |__| |  __/ |_) | | |  __/ (_| (_| | ||  __/ (_| |
+//		 |_____/ \___| .__/|_|  \___|\___\__,_|\__\___|\__,_|
+//					 | |
+//					 |_|
+//
+//
+//
+// This automation package is kept only to aid in export of deprecated
+// trigger & script format from database into files
+//
+// Package was refactored and replaced by pkg/corredor, pkg/eventbus and pkg/scheduler
+//
+// Scheduled for removal in 2020.6
+//
 
 type (
 	Script struct {
@@ -56,167 +70,6 @@ type (
 		//
 		// Node: on c/u op., we currently just merge current state with the given list,
 		// w/o updating the rest of the script's Triggers
-		Triggers TriggerSet
-
-		// How are we merging?
-		tms triggersMergeStrategy
-
-		// Script running credentials
-		//
-		// We'll store credentials for security-defined scripts
-		// here when (runnable) scripts are loaded
-		credentials string
+		Triggers []*Trigger
 	}
-
-	ScriptFilter struct {
-		NamespaceID uint64 `json:"namespaceID,string"`
-
-		Name       string
-		Query      string
-		Resource   string
-		IncDeleted bool `json:"incDeleted"`
-
-		IsReadable *permissions.ResourceFilter `json:"-"`
-
-		// Standard paging fields & helpers
-		rh.PageFilter
-	}
-
-	triggersMergeStrategy int
 )
-
-const (
-	// Ignore the given Triggers
-	STMS_IGNORE triggersMergeStrategy = iota
-
-	// Create Triggers, no pre-checks
-	STMS_FRESH
-
-	// Update existing with new
-	STMS_UPDATE
-
-	// Replace existing with new
-	STMS_REPLACE
-)
-
-var (
-	ErrAutomationScriptInvalid     = errors.New("AutomationScriptInvalid")
-	ErrAutomationScriptMissingUser = errors.New("AutomationScriptMissingUser")
-)
-
-// IsValid - enabled, deleted?
-func (s *Script) IsValid() bool {
-	return s != nil && s.Enabled && s.DeletedAt == nil
-}
-
-// Verify - sanity check of script's properties
-func (s Script) Verify() error {
-	if s.RunAsDefined() && s.RunInUA {
-		return errors.New("user-agent engine does not support run-as-defined scripts")
-	}
-
-	if s.Critical && s.RunInUA {
-		return errors.New("user-agent engine scripts can not be critical")
-	}
-
-	return nil
-}
-
-// IsCompatible verifies if trigger can be added to a script
-func (s *Script) CheckCompatibility(t *Trigger) error {
-	if s == nil {
-		return errors.New("not compatible with nil script")
-	}
-	if s == nil || t == nil {
-		return errors.New("not compatible with nil trigger")
-	}
-
-	if t.IsDeferred() || t.IsInterval() {
-		if s.RunInUA {
-			return errors.New("deferred Triggers are not compatible with user-agent scripts")
-		}
-
-		if s.RunAsInvoker() {
-			return errors.New("deferred Triggers are not compatible with run-as-invoker scripts")
-		}
-	}
-
-	return nil
-}
-
-// FilterByTrigger
-//
-// Filters non-UA scripts that match event and resource + all extra conditions
-func (set ScriptSet) FilterByTrigger(event, resource string, cc ...TriggerConditionChecker) (out ScriptSet) {
-	out, _ = set.Filter(func(s *Script) (bool, error) {
-		return s.IsValid() && s.Triggers.HasMatch(Trigger{Event: event, Resource: resource}, cc...), nil
-	})
-
-	return
-}
-
-// FindByName finds undeleted script in a cetain namespace
-func (set ScriptSet) FindByName(name string, ids ...uint64) *Script {
-	var namespaceID uint64
-	if len(ids) > 0 {
-		namespaceID = ids[0]
-	}
-
-	for i := range set {
-		if set[i].NamespaceID == namespaceID && set[i].Name == name && set[i].DeletedAt == nil {
-			return set[i]
-		}
-	}
-
-	return nil
-}
-
-// RunAsDefined - script should be run with pre-defined privileges (user)
-func (s Script) RunAsDefined() bool {
-	return s.RunAs > 0
-}
-
-// RunAsInvoker - this script should run with invoker's privileges (user)
-func (s Script) RunAsInvoker() bool {
-	return s.RunAs == 0
-}
-
-// AddTrigger appends one or more Triggers to internal list of Triggers on script struct
-//
-// We do not do any compatibility check (See Script.CheckCompatibility());
-// this is only an utility func that helps us pass data along
-func (s *Script) AddTrigger(strategy triggersMergeStrategy, tt ...*Trigger) {
-	s.tms = strategy
-
-	if s.tms == STMS_IGNORE {
-		return
-	}
-
-	if s.tms == STMS_REPLACE {
-		s.Triggers = TriggerSet{}
-	}
-
-	// Make sure all your trigger belong to us (ref same script or no ref):
-	for _, t := range tt {
-		if t.ScriptID == 0 || t.ScriptID == s.ID {
-			s.Triggers = append(s.Triggers, t)
-		}
-	}
-}
-
-func (s Script) HasEvent(event string) bool {
-	return s.Triggers.HasMatch(Trigger{Event: event})
-}
-
-func (s Script) Credentials() string {
-	return s.credentials
-}
-
-func MakeMatcherIDCondition(id uint64) TriggerConditionChecker {
-	// We'll be comparing strings, not uint64!
-	var s = strconv.FormatUint(id, 10)
-
-	return func(c string) bool {
-		return s == c
-	}
-}

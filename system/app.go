@@ -145,6 +145,6 @@ func (app *App) RegisterCliCommands(p *cobra.Command) {
 		commands.Roles(),
 		commands.Sink(),
 		// temp command, will be removed in 2020.6
-		automation.ScriptMigrator(SERVICE),
+		automation.ScriptExporter(SERVICE),
 	)
 }

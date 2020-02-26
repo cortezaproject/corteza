@@ -17,6 +17,26 @@ import (
 	"unicode"
 )
 
+//
+//		  _____                                _           _
+//		 |  __ \                              | |         | |
+//		 | |  | | ___ _ __  _ __ ___  ___ __ _| |_ ___  __| |
+//		 | |  | |/ _ \ '_ \| '__/ _ \/ __/ _` | __/ _ \/ _` |
+//		 | |__| |  __/ |_) | | |  __/ (_| (_| | ||  __/ (_| |
+//		 |_____/ \___| .__/|_|  \___|\___\__,_|\__\___|\__,_|
+//					 | |
+//					 |_|
+//
+//
+//
+// This automation package is kept only to aid in export of deprecated
+// trigger & script format from database into files
+//
+// Package was refactored and replaced by pkg/corredor, pkg/eventbus and pkg/scheduler
+//
+// Scheduled for removal in 2020.6
+//
+
 type (
 	module struct {
 		ID     uint64
@@ -31,26 +51,26 @@ var (
 	modules []*module
 
 	// Language=GoTemplate
-	scriptTemplateRaw string = `import trigger from '+Trigger'
-
+	scriptTemplateRaw string = `
 export default {
   label: {{ quote $.Name }},
   desc: '...',
-  triggers: [
+  triggers ({ on }) {
 {{- range $t := $.Triggers }}
     // auto-migrated
     //   ID:       {{ $t.ID }}
     //   Created:  {{ $t.CreatedAt }}
     //   Updated:  {{ $t.UpdatedAt }}
 {{ if not $t.Enabled }}/* disabled {{ end }}
-    trigger
-      .on({{ quote $t.Event }}){{- if $.RunAs }}
+	return [
+    on({{ quote $t.Event }}){{- if $.RunAs }}
       .as({{ quote $t.RunAs }}){{ end }}
       .for({{ quote $t.Resource }})
       {{- makeConditionFn $t -}}
 {{ if not $t.Enabled }}*/{{ end }}
+	]
 {{ end -}}
-  ],
+  },
 
   async handler ({ $namespace, $module, $record }, { log, ComposeUI, Compose }) {
     {{ indent .Source 4 }}
@@ -143,7 +163,7 @@ func init() {
 	}
 }
 
-func ScriptMigrator(subsys string) *cobra.Command {
+func ScriptExporter(subsys string) *cobra.Command {
 	var (
 		tblPrefix = subsys
 		isCompose = subsys == "compose"
@@ -166,8 +186,8 @@ func ScriptMigrator(subsys string) *cobra.Command {
 				f *os.File
 
 				err error
-				ss  = ScriptSet{}
-				tt  = TriggerSet{}
+				ss  = make([]*Script, 0)
+				tt  = make([]*Trigger, 0)
 
 				ctx = cli.Context()
 
@@ -231,9 +251,11 @@ func ScriptMigrator(subsys string) *cobra.Command {
 						}
 					}
 
-					s.Triggers, _ = tt.Filter(func(t *Trigger) (b bool, err error) {
-						return t.ScriptID == s.ID, nil
-					})
+					for _, t := range tt {
+						if t.ScriptID == s.ID {
+							s.Triggers = append(s.Triggers, t)
+						}
+					}
 
 					fullpath := path.Join(dstPath, fname)
 

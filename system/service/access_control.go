@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -169,26 +168,6 @@ func (svc accessControl) CanUnmaskName(ctx context.Context, u *types.User) bool 
 	return svc.can(ctx, u, "unmask.name")
 }
 
-func (svc accessControl) CanReadAutomationScript(ctx context.Context, r *automation.Script) bool {
-	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "read")
-}
-
-func (svc accessControl) FilterReadableScripts(ctx context.Context) *permissions.ResourceFilter {
-	return svc.permissions.ResourceFilter(ctx, types.AutomationScriptPermissionResource, "read", permissions.Deny)
-}
-
-func (svc accessControl) CanUpdateAutomationScript(ctx context.Context, r *automation.Script) bool {
-	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "update")
-}
-
-func (svc accessControl) CanDeleteAutomationScript(ctx context.Context, r *automation.Script) bool {
-	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "delete")
-}
-
-func (svc accessControl) CanRunAutomationTrigger(ctx context.Context, r *automation.Trigger) bool {
-	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "run", permissions.Allowed)
-}
-
 func (svc accessControl) can(ctx context.Context, res permissionResource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
 	return svc.permissions.Can(ctx, res.PermissionResource(), op, ff...)
 }
@@ -222,7 +201,6 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"role.create",
 		"user.create",
 		"application.create",
-		"automation-script.create",
 		"reminder.assign",
 	)
 

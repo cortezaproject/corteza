@@ -1,12 +1,28 @@
 package automation
 
 import (
-	"errors"
-	"strconv"
 	"time"
-
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
+
+//
+//		  _____                                _           _
+//		 |  __ \                              | |         | |
+//		 | |  | | ___ _ __  _ __ ___  ___ __ _| |_ ___  __| |
+//		 | |  | |/ _ \ '_ \| '__/ _ \/ __/ _` | __/ _ \/ _` |
+//		 | |__| |  __/ |_) | | |  __/ (_| (_| | ||  __/ (_| |
+//		 |_____/ \___| .__/|_|  \___|\___\__,_|\__\___|\__,_|
+//					 | |
+//					 |_|
+//
+//
+//
+// This automation package is kept only to aid in export of deprecated
+// trigger & script format from database into files
+//
+// Package was refactored and replaced by pkg/corredor, pkg/eventbus and pkg/scheduler
+//
+// Scheduled for removal in 2020.6
+//
 
 type (
 	Event string
@@ -47,90 +63,4 @@ type (
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
 		DeletedBy uint64     `db:"deleted_by" json:"deletedBy,string,omitempty" `
 	}
-
-	TriggerFilter struct {
-		Resource  string `json:"resource"`
-		Event     string `json:"event"`
-		Condition string `json:"condition"`
-		ScriptID  uint64 `json:"scriptID"`
-
-		IncDeleted bool `json:"incDeleted"`
-
-		// Standard paging fields & helpers
-		rh.PageFilter
-	}
-
-	TriggerConditionChecker func(string) bool
 )
-
-const (
-	EVENT_TYPE_INTERVAL = "interval"
-	EVENT_TYPE_DEFERRED = "deferred"
-)
-
-var (
-	ErrAutomationTriggerInvalidResource  = errors.New("AutomationTriggerInvalidResource")
-	ErrAutomationTriggerInvalidCondition = errors.New("AutomationTriggerInvalidCondition")
-	ErrAutomationTriggerInvalidEvent     = errors.New("AutomationTriggerInvalidEvent")
-)
-
-// IsValid checks if trigger is enabled and not deleted
-func (t *Trigger) IsValid() bool {
-	return t != nil && t.Enabled && t.DeletedAt == nil
-}
-
-// IsDeferred - not called as consequence of a user's action (create, delete, update)
-func (t Trigger) IsInterval() bool {
-	return t.Event == EVENT_TYPE_INTERVAL
-}
-
-// IsDeferred - not called as consequence of a user's action (create, delete, update)
-func (t Trigger) IsDeferred() bool {
-	return t.Event == EVENT_TYPE_DEFERRED
-}
-
-// Uint64Condition converts condition to uint64
-//
-// Errors are ignored
-func (t Trigger) Uint64Condition() (o uint64) {
-	o, _ = strconv.ParseUint(t.Condition, 10, 64)
-	return
-}
-
-// HasMatch checks if any og the Triggers in a set matches the given parameters
-func (set TriggerSet) HasMatch(m Trigger, ff ...TriggerConditionChecker) bool {
-withTriggers:
-	for _, t := range set {
-		if !t.IsValid() {
-			// only valid can match
-			continue withTriggers
-		}
-
-		if m.ID > 0 && m.ID != t.ID {
-			// Are we looking for a particular trigger?
-			continue withTriggers
-		}
-
-		if m.Resource != "" && m.Resource != t.Resource {
-			// event should match
-			continue withTriggers
-		}
-
-		if m.Event != "" && m.Event != t.Event {
-			// event should match
-			continue withTriggers
-		}
-
-		// Go through all condition checking functions
-		// All of them should return true for trigger to match
-		for _, fn := range ff {
-			if !fn(t.Condition) {
-				continue withTriggers
-			}
-		}
-
-		return true
-	}
-
-	return false
-}

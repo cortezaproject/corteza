@@ -9,9 +9,9 @@ const (
 	strBoolTrue  = "1"
 	strBoolFalse = "0"
 
-	datetimeInputFormatDate = "2006-01-02"
-	datetimeInputFormatTime = "15:04:05"
-	datetimeInputFormatFull = time.RFC3339
+	datetimeInternalFormatDate = "2006-01-02"
+	datetimeIntenralFormatTime = "15:04:05"
+	datetimeInternalFormatFull = time.RFC3339
 
 	fieldOpt_Datetime_onlyDate         = "onlyDate"
 	fieldOpt_Datetime_onlyTime         = "onlyTime"
