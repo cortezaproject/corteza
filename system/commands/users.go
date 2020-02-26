@@ -61,7 +61,7 @@ func Users() *cobra.Command {
 
 			fmt.Fprintf(
 				cmd.OutOrStdout(),
-				"                     Created    Updated    EmailAddress",
+				"                     Created    Updated    EmailAddress\n",
 			)
 
 			for _, u := range users {
