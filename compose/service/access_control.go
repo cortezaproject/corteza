@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 )
 
@@ -177,26 +176,6 @@ func (svc accessControl) CanDeletePage(ctx context.Context, r *types.Page) bool 
 	return svc.can(ctx, r, "delete")
 }
 
-func (svc accessControl) CanReadAutomationScript(ctx context.Context, r *automation.Script) bool {
-	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "read")
-}
-
-func (svc accessControl) FilterReadableScripts(ctx context.Context) *permissions.ResourceFilter {
-	return svc.permissions.ResourceFilter(ctx, types.AutomationScriptPermissionResource, "read", permissions.Deny)
-}
-
-func (svc accessControl) CanUpdateAutomationScript(ctx context.Context, r *automation.Script) bool {
-	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "update")
-}
-
-func (svc accessControl) CanDeleteAutomationScript(ctx context.Context, r *automation.Script) bool {
-	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "delete")
-}
-
-func (svc accessControl) CanRunAutomationTrigger(ctx context.Context, r *automation.Trigger) bool {
-	return svc.can(ctx, types.AutomationScriptPermissionResource.AppendID(r.ID), "run", permissions.Allowed)
-}
-
 func (svc accessControl) can(ctx context.Context, res permissionResource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
 	return svc.permissions.Can(ctx, res.PermissionResource(), op, ff...)
 }
@@ -238,7 +217,6 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"module.create",
 		"chart.create",
 		"page.create",
-		"automation-script.create",
 	)
 
 	wl.Set(
@@ -250,7 +228,6 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"record.read",
 		"record.update",
 		"record.delete",
-		"automation-trigger.manage",
 	)
 
 	wl.Set(

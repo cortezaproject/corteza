@@ -3,11 +3,9 @@ package importer
 import (
 	"context"
 	"fmt"
-
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/automation"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
@@ -46,11 +44,6 @@ type (
 	recordKeeper interface {
 		Update(*types.Record) (*types.Record, error)
 		Create(*types.Record) (*types.Record, error)
-	}
-
-	automationScriptKeeper interface {
-		UpdateScript(context.Context, *automation.Script) error
-		CreateScript(context.Context, *automation.Script) error
 	}
 )
 

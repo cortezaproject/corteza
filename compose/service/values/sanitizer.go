@@ -74,6 +74,8 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 			v = s.sBool(v, f, m)
 		case "datetime":
 			v = s.sDatetime(v, f, m)
+
+			// Uncomment when they become relevant for sanitization
 			//case "email":
 			//	v = s.sEmail(v, f, m)
 			//case "file":
@@ -112,22 +114,22 @@ func (sanitizer) sDatetime(v *types.RecordValue, f *types.ModuleField, m *types.
 		inputFormats []string
 
 		// output format
-		of string
+		internalFormat string
 	)
 
 	if f.Options.Bool("onlyDate") {
-		of = datetimeInputFormatDate
+		internalFormat = datetimeInternalFormatDate
 		inputFormats = []string{
-			datetimeInputFormatDate,
+			datetimeInternalFormatDate,
 			"02 Jan 06",
 			"Monday, 02-Jan-06",
 			"Mon, 02 Jan 2006",
 			"2019/_1/_2",
 		}
 	} else if f.Options.Bool("onlyTime") {
-		of = datetimeInputFormatTime
+		internalFormat = datetimeIntenralFormatTime
 		inputFormats = []string{
-			datetimeInputFormatTime,
+			datetimeIntenralFormatTime,
 			"15:04",
 			"15:04:05Z07:00",
 			"15:04:05 MST",
@@ -138,10 +140,10 @@ func (sanitizer) sDatetime(v *types.RecordValue, f *types.ModuleField, m *types.
 			time.Kitchen,
 		}
 	} else {
-		of = datetimeInputFormatFull
+		internalFormat = datetimeInternalFormatFull
 		// date & time
 		inputFormats = []string{
-			datetimeInputFormatFull,
+			datetimeInternalFormatFull,
 			time.RFC1123Z,
 			time.RFC1123,
 			time.RFC850,
@@ -159,7 +161,7 @@ func (sanitizer) sDatetime(v *types.RecordValue, f *types.ModuleField, m *types.
 		parsed, err := time.Parse(format, v.Value)
 
 		if err == nil {
-			v.Value = parsed.UTC().Format(of)
+			v.Value = parsed.UTC().Format(internalFormat)
 			break
 		}
 	}

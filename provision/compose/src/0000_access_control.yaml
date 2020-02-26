@@ -31,7 +31,6 @@ allow:
       - page.create
       - module.create
       - chart.create
-      - automation-script.create
 
     compose:module:
       - read
@@ -41,7 +40,6 @@ allow:
       - record.read
       - record.update
       - record.delete
-      - automation-trigger.manage
 
     compose:chart:
       - read
