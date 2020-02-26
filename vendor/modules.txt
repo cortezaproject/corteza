@@ -8,8 +8,6 @@ github.com/766b/chi-prometheus
 github.com/99designs/basicauth-go
 # github.com/BurntSushi/toml v0.3.1
 github.com/BurntSushi/toml
-# github.com/DestinyWang/cronexpr v0.0.0-20140423231348-a557574d6c02
-github.com/DestinyWang/cronexpr
 # github.com/Masterminds/squirrel v1.1.1-0.20191017225151-12f2162c8d8d
 github.com/Masterminds/squirrel
 # github.com/PaesslerAG/gval v1.0.1
@@ -51,10 +49,10 @@ github.com/go-sql-driver/mysql
 github.com/golang/mock/gomock
 # github.com/golang/protobuf v1.3.2
 github.com/golang/protobuf/proto
-github.com/golang/protobuf/ptypes/timestamp
 github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
+github.com/golang/protobuf/ptypes/timestamp
 # github.com/gomodule/redigo v2.0.0+incompatible
 github.com/gomodule/redigo/redis
 github.com/gomodule/redigo/internal
@@ -248,8 +246,8 @@ google.golang.org/grpc
 google.golang.org/grpc/grpclog
 google.golang.org/grpc/metadata
 google.golang.org/grpc/codes
-google.golang.org/grpc/status
 google.golang.org/grpc/credentials
+google.golang.org/grpc/status
 google.golang.org/grpc/balancer
 google.golang.org/grpc/balancer/roundrobin
 google.golang.org/grpc/connectivity
