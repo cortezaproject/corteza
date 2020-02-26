@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -157,10 +158,20 @@ func (svc accessControl) CanDeleteUser(ctx context.Context, u *types.User) bool 
 }
 
 func (svc accessControl) CanUnmaskEmail(ctx context.Context, u *types.User) bool {
+	if internalAuth.GetIdentityFromContext(ctx).Identity() == u.ID {
+		// Make an exception when users are reading their own info
+		return true
+	}
+
 	return svc.can(ctx, u, "unmask.email")
 }
 
 func (svc accessControl) CanUnmaskName(ctx context.Context, u *types.User) bool {
+	if internalAuth.GetIdentityFromContext(ctx).Identity() == u.ID {
+		// Make an exception when users are reading their own info
+		return true
+	}
+
 	return svc.can(ctx, u, "unmask.name")
 }
 
@@ -219,6 +230,8 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"delete",
 		"suspend",
 		"unsuspend",
+		"unmask.email",
+		"unmask.name",
 	)
 
 	wl.Set(

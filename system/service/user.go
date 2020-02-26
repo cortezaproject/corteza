@@ -48,11 +48,6 @@ type (
 		user        repository.UserRepository
 		role        repository.RoleRepository
 		credentials repository.CredentialsRepository
-
-		// @todo wire this with settings (privacy.mask.email)
-		privacyMaskEmail bool
-		// @todo wire this with settings (privacy.mask.name)
-		privacyMaskName bool
 	}
 
 	userAuth interface {
@@ -113,14 +108,6 @@ func User(ctx context.Context) UserService {
 		auth:     DefaultAuth,
 
 		subscription: CurrentSubscription,
-
-		// @todo wire this with settings (privacy.mask.email)
-		//       new default value will be true!
-		privacyMaskEmail: false,
-
-		// @todo wire this with settings (privacy.mask.name)
-		//       new default value will be true!
-		privacyMaskName: false,
 	}).With(ctx)
 }
 
@@ -146,9 +133,6 @@ func (svc user) With(ctx context.Context) UserService {
 		user:        repository.User(ctx, db),
 		role:        repository.Role(ctx, db),
 		credentials: repository.Credentials(ctx, db),
-
-		privacyMaskEmail: svc.privacyMaskEmail,
-		privacyMaskName:  svc.privacyMaskName,
 	}
 }
 
@@ -229,16 +213,11 @@ func (svc user) Find(f types.UserFilter) (types.UserSet, types.UserFilter, error
 		}
 	}
 
-	if svc.privacyMaskEmail {
-		// Prepare filter for email unmasking check
-		f.IsEmailUnmaskable = svc.ac.FilterUsersWithUnmaskableEmail(svc.ctx)
+	// Prepare filter for email unmasking check
+	f.IsEmailUnmaskable = svc.ac.FilterUsersWithUnmaskableEmail(svc.ctx)
 
-	}
-
-	if svc.privacyMaskName {
-		// Prepare filter for name unmasking check
-		f.IsNameUnmaskable = svc.ac.FilterUsersWithUnmaskableName(svc.ctx)
-	}
+	// Prepare filter for name unmasking check
+	f.IsNameUnmaskable = svc.ac.FilterUsersWithUnmaskableName(svc.ctx)
 
 	f.IsReadable = svc.ac.FilterReadableUsers(svc.ctx)
 
@@ -486,11 +465,11 @@ func (svc user) SetPassword(userID uint64, newPassword string) (err error) {
 
 // Masks (or leaves as-is) private data on user
 func (svc user) handlePrivateData(u *types.User) {
-	if svc.privacyMaskEmail && !svc.ac.CanUnmaskEmail(svc.ctx, u) {
+	if !svc.ac.CanUnmaskEmail(svc.ctx, u) {
 		u.Email = maskPrivateDataEmail
 	}
 
-	if svc.privacyMaskName && !svc.ac.CanUnmaskEmail(svc.ctx, u) {
+	if !svc.ac.CanUnmaskName(svc.ctx, u) {
 		u.Name = maskPrivateDataName
 	}
 }
