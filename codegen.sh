@@ -170,7 +170,18 @@ function specs {
 function proto {
 	yellow "> proto"
 
-	CORTEZA_PROTOBUF_PATH=${CORTEZA_PROTOBUF_PATH:-"vendor/github.com/cortezaproject/corteza-protobuf"}
+	# Where should we look for the files
+	PROTOBUF_PATH="codegen/corteza-protobuf"
+	CORTEZA_PROTOBUF_PATH=${CORTEZA_PROTOBUF_PATH:-"${PROTOBUF_PATH}"}
+
+  # Download protobufs to the primary location
+  BRANCH=${BRANCH:-"develop"}
+  ZIP="${BRANCH}.zip"
+  URL=${URL:-"https://github.com/cortezaproject/corteza-protobuf/archive/${ZIP}"}
+  rm -rf "${PROTOBUF_PATH}"
+  curl -s --location "${URL}" > "codegen/${ZIP}"
+  unzip -qq -o -d "codegen/" "codegen/${ZIP}"
+  mv -f "codegen/corteza-protobuf-${BRANCH}" "${PROTOBUF_PATH}"
 
   DIR=./pkg/corredor
   mkdir -p ${DIR}
@@ -184,7 +195,7 @@ function proto {
 	PATH=$PATH:$GOPATH/bin protoc \
 		--proto_path ${CORTEZA_PROTOBUF_PATH}/system \
 		--go_out=plugins=grpc:system/proto \
-		user.proto role.proto mail_message.proto
+		user.proto role.proto
   green "OK"
 }
 
