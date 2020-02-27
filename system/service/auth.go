@@ -14,6 +14,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
@@ -238,7 +239,10 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 				Email:    profile.Email,
 				Name:     profile.Name,
 				Username: profile.NickName,
-				Handle:   profile.NickName,
+			}
+
+			if !handle.IsValid(profile.NickName) {
+				u.Handle = profile.NickName
 			}
 
 			if err = svc.CanRegister(); err != nil {
@@ -247,6 +251,9 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 
 			if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeSignup(u, authProvider)); err != nil {
 				return err
+			}
+			if u.Handle == "" {
+				createHandle(svc.users, u)
 			}
 
 			if u, err = svc.users.Create(u); err != nil {
@@ -328,6 +335,10 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 		return
 	}
 
+	if !handle.IsValid(input.Handle) {
+		return nil, ErrInvalidHandle.withStack()
+	}
+
 	existing, err := svc.users.FindByEmail(input.Email)
 
 	if err == nil && existing.Valid() {
@@ -345,17 +356,17 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 			return nil, errors.Wrap(err, "user with this email already exists")
 		}
 
+		// We're not actually doing sign-up here - user exists,
+		// password is a match, so lets trigger before/after user login events
+		if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(existing, &types.AuthProvider{})); err != nil {
+			return nil, err
+		}
+
 		if !existing.EmailConfirmed {
 			err = svc.sendEmailAddressConfirmationToken(existing)
 			if err != nil {
 				return nil, err
 			}
-		}
-
-		// We're not actually doing sign-up here - user exists,
-		// password is a match, so lets trigger before/after user login events
-		if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(existing, &types.AuthProvider{})); err != nil {
-			return nil, err
 		}
 
 		defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(existing, &types.AuthProvider{}))
@@ -393,6 +404,10 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 
 	if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeSignup(new, &types.AuthProvider{})); err != nil {
 		return
+	}
+
+	if input.Handle == "" {
+		createHandle(svc.users, input)
 	}
 
 	// Whitelisted user data to copy
