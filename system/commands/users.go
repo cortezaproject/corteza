@@ -107,6 +107,9 @@ func Users() *cobra.Command {
 				password []byte
 			)
 
+			// Update current settings to be sure that we do not have outdated values
+			cli.HandleError(service.DefaultSettings.UpdateCurrent(ctx))
+
 			if existing, _ := userRepo.FindByEmail(user.Email); existing != nil && existing.ID > 0 {
 				cmd.Printf("User already exists [%d].\n", existing.ID)
 				return
@@ -158,6 +161,9 @@ func Users() *cobra.Command {
 				err      error
 				password []byte
 			)
+
+			// Update current settings to be sure that we do not have outdated values
+			cli.HandleError(service.DefaultSettings.UpdateCurrent(ctx))
 
 			if user, err = userRepo.FindByEmail(args[0]); err != nil {
 				cli.HandleError(err)
