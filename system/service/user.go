@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"io"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -242,6 +244,10 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 		return nil, ErrNoCreatePermissions.withStack()
 	}
 
+	if !handle.IsValid(new.Handle) {
+		return nil, ErrInvalidHandle.withStack()
+	}
+
 	if svc.subscription != nil {
 		// When we have an active subscription, we need to check
 		// if users can be creare or did this deployment hit
@@ -254,6 +260,10 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 
 	if err = svc.eventbus.WaitFor(svc.ctx, event.UserBeforeCreate(new, u)); err != nil {
 		return
+	}
+
+	if new.Handle == "" {
+		createHandle(svc.user, new)
 	}
 
 	return u, svc.db.Transaction(func() (err error) {
@@ -279,6 +289,10 @@ func (svc user) CreateWithAvatar(input *types.User, avatar io.Reader) (out *type
 func (svc user) Update(upd *types.User) (u *types.User, err error) {
 	if upd.ID == 0 {
 		return nil, ErrInvalidID.withStack()
+	}
+
+	if !handle.IsValid(upd.Handle) {
+		return nil, ErrInvalidHandle.withStack()
 	}
 
 	if u, err = svc.user.FindByID(upd.ID); err != nil {
@@ -471,5 +485,25 @@ func (svc user) handlePrivateData(u *types.User) {
 
 	if !svc.ac.CanUnmaskName(svc.ctx, u) {
 		u.Name = maskPrivateDataName
+	}
+}
+
+func createHandle(r repository.UserRepository, u *types.User) {
+	if u.Handle == "" {
+		u.Handle, _ = handle.Cast(
+			// Must not exist before
+			func(s string) bool {
+				e, err := r.FindByHandle(s)
+				return err == repository.ErrUserNotFound && (e == nil || e.ID == u.ID)
+			},
+			// use name or username
+			u.Name,
+			u.Username,
+			// use email w/o domain
+			regexp.
+				MustCompile("(@.*)$").
+				ReplaceAllString(u.Email, ""),
+			//
+		)
 	}
 }

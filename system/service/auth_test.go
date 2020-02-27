@@ -101,12 +101,17 @@ func TestAuth_External_NonExisting(t *testing.T) {
 
 	usrRpoMock := repomock.NewMockUserRepository(mockCtrl)
 	usrRpoMock.EXPECT().
+		FindByHandle("foo").
+		Times(1).
+		Return(nil, repository.ErrUserNotFound)
+
+	usrRpoMock.EXPECT().
 		FindByEmail(u.Email).
 		Times(1).
 		Return(nil, repository.ErrUserNotFound)
 
 	usrRpoMock.EXPECT().
-		Create(&types.User{Email: "foo@example.tld"}).
+		Create(&types.User{Email: "foo@example.tld", Handle: "foo"}).
 		Times(1).
 		Return(u, nil)
 
