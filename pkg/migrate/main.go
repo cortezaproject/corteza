@@ -15,7 +15,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/migrate/types"
 	sysRepo "github.com/cortezaproject/corteza-server/system/repository"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
-	"github.com/davecgh/go-spew/spew"
 )
 
 var (
@@ -156,7 +155,6 @@ func (m *Migrator) AddNode(n *types.Node) *types.Node {
 	}
 
 	if fn == nil {
-		spew.Dump(len(n.Children))
 		m.nodes = append(m.nodes, n)
 
 		return n
