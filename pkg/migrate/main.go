@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
@@ -186,37 +187,40 @@ func (m *Migrator) Migrate(ctx context.Context, users map[string]uint64) error {
 	repoRecord := repository.Record(ctx, db)
 
 	for len(m.Leafs) > 0 {
-		for i := len(m.Leafs) - 1; i >= 0; i-- {
-			n := m.Leafs[i]
+		var wg sync.WaitGroup
+
+		ch := make(chan types.PostProc, len(m.Leafs))
+		for _, n := range m.Leafs {
+			wg.Add(1)
 
 			// migrate & update leaf nodes
-			add, err := n.Migrate(repoRecord, users)
-			if err != nil {
-				return err
+			go n.Migrate(repoRecord, users, &wg, ch)
+		}
+
+		wg.Wait()
+
+		// var add []*types.Node
+		for len(ch) > 0 {
+			pp := <-ch
+			if pp.Err != nil {
+				return pp.Err
 			}
 
-			// this will maintain order
-			copy(m.Leafs[i:], m.Leafs[i+1:])
-			m.Leafs = m.Leafs[:len(m.Leafs)-1]
-
-			// update leaf nodes (entry points)
-			// take care to not duplicate the given nodes.
-			// That would be a bit not optimal :)
-			for _, a := range add {
-				for _, n := range m.Leafs {
-					if a.Compare(n) {
+			var nl []*types.Node
+			for _, n := range pp.Leafs {
+				for _, l := range nl {
+					if n.Compare(l) {
 						goto skip
 					}
 				}
-
-				// only include satisfied nodes, as only they can be processed
-				if a.Satisfied() {
-					m.Leafs = append(m.Leafs, a)
+				if n.Satisfied() {
+					nl = append(nl, n)
 				}
 
 			skip:
 			}
 
+			m.Leafs = nl
 		}
 	}
 

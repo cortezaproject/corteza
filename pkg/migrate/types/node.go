@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sync"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
@@ -44,6 +45,11 @@ type (
 
 	// map between migrated ID and Corteza ID
 	Map map[string]string
+
+	PostProc struct {
+		Leafs []*Node
+		Err   error
+	}
 )
 
 // helper, to determine if the two nodes are equal
@@ -66,7 +72,9 @@ func (n *Node) addMap(key string, m Map) {
 }
 
 // does the actual data migration for the given node
-func (n *Node) Migrate(repoRecord repository.RecordRepository, users map[string]uint64) ([]*Node, error) {
+func (n *Node) Migrate(repoRecord repository.RecordRepository, users map[string]uint64, wg *sync.WaitGroup, ch chan PostProc) {
+	defer wg.Done()
+
 	fmt.Printf("node.migrate > %s\n", n.Stringify())
 	var err error
 
@@ -80,14 +88,22 @@ func (n *Node) Migrate(repoRecord repository.RecordRepository, users map[string]
 
 			err := updateRefs(n, repoRecord)
 			if err != nil {
-				return nil, err
+				ch <- PostProc{
+					Leafs: nil,
+					Err:   err,
+				}
+				return
 			}
 			fmt.Printf("node.refs.update.done\n")
 		} else {
 			fmt.Printf("node.migrate.source\n")
 			mapping, err = importNodeSource(n, users, repoRecord)
 			if err != nil {
-				return nil, err
+				ch <- PostProc{
+					Leafs: nil,
+					Err:   err,
+				}
+				return
 			}
 			fmt.Printf("node.migrate.source.done\n")
 		}
@@ -104,7 +120,10 @@ func (n *Node) Migrate(repoRecord repository.RecordRepository, users map[string]
 		p.LinkRemove(n)
 	}
 
-	return rtr, nil
+	ch <- PostProc{
+		Leafs: rtr,
+		Err:   nil,
+	}
 }
 
 // determines if node is Satisfied and can be imported
