@@ -44,8 +44,19 @@ func TestUserRead(t *testing.T) {
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
-		Assert(jsonpath.Equal(`$.response.email`, u.Email)).
+		Assert(jsonpath.Contains(`$.response.email`, "####")).
 		Assert(jsonpath.Equal(`$.response.userID`, fmt.Sprintf("%d", u.ID))).
+		End()
+
+	u = h.repoMakeUser(h.randEmail())
+	h.allow(types.UserPermissionResource.AppendWildcard(), "unmask.email")
+
+	h.apiInit().
+		Get(fmt.Sprintf("/users/%d", u.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal(`$.response.email`, u.Email)).
 		End()
 }
 
@@ -133,6 +144,7 @@ func TestUserListQueryEmail(t *testing.T) {
 
 	h.secCtx()
 	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
+	h.allow(types.UserPermissionResource.AppendWildcard(), "unmask.email")
 
 	ee := h.randEmail()
 	h.repoMakeUser(ee)
