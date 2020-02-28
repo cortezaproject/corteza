@@ -190,34 +190,35 @@ func (m *Migrator) Migrate(ctx context.Context, users map[string]uint64) error {
 	for len(m.Leafs) > 0 {
 		for i := len(m.Leafs) - 1; i >= 0; i-- {
 			n := m.Leafs[i]
-			// only nodes with satisfied deps can be migrated
-			if n.Satisfied() {
 
-				// migrate & update leaf nodes
-				add, err := n.Migrate(repoRecord, users)
-				if err != nil {
-					return err
-				}
-
-				// this will maintain order
-				copy(m.Leafs[i:], m.Leafs[i+1:])
-				m.Leafs = m.Leafs[:len(m.Leafs)-1]
-
-				// update leaf nodes (entry points)
-				// take care to not duplicate the given nodes.
-				// That would be a bit not optimal :)
-				for _, a := range add {
-					for _, n := range m.Leafs {
-						if a.Compare(n) {
-							goto skip
-						}
-					}
-
-					m.Leafs = append(m.Leafs, a)
-				skip:
-				}
-
+			// migrate & update leaf nodes
+			add, err := n.Migrate(repoRecord, users)
+			if err != nil {
+				return err
 			}
+
+			// this will maintain order
+			copy(m.Leafs[i:], m.Leafs[i+1:])
+			m.Leafs = m.Leafs[:len(m.Leafs)-1]
+
+			// update leaf nodes (entry points)
+			// take care to not duplicate the given nodes.
+			// That would be a bit not optimal :)
+			for _, a := range add {
+				for _, n := range m.Leafs {
+					if a.Compare(n) {
+						goto skip
+					}
+				}
+
+				// only include satisfied nodes, as only they can be processed
+				if a.Satisfied() {
+					m.Leafs = append(m.Leafs, a)
+				}
+
+			skip:
+			}
+
 		}
 	}
 
