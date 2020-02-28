@@ -37,8 +37,3 @@ allow:
       - update
       - delete
       - members.manage
-
-    system:automation-script:
-      - read
-      - update
-      - delete
