@@ -2,6 +2,7 @@ package compose
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/automation"
 
 	"github.com/go-chi/chi"
@@ -101,6 +102,7 @@ func (app *App) RegisterCliCommands(p *cobra.Command) {
 	p.AddCommand(
 		commands.Importer(),
 		commands.Exporter(),
+		commands.Migrator(),
 		// temp command, will be removed in 2020.6
 		automation.ScriptExporter(SERVICE),
 	)
