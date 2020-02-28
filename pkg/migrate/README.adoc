@@ -1,0 +1,20 @@
+= Data Migration System
+
+This package implements a graph-based data migration system.
+The algorithm:
+
+* read & prepare files in a provided directory.
+A file's name represents a module handle, so make sure that they match up,
+* import system users and take note of there references.
+System users will be needed with each migration, so they should be done in step 1,
+* initialize the graph based on the provided files and their corresponding modules.
+The system can automatically determine dependencies based on their fields,
+* remove any cycle from the graph, by splicing one of the cycle nodes.
+A spliced node is only able to import it's data, but it can not manage it's dependencies, as they might not yet be known.
+Dependencies are updated when it's parent node is being processed,
+* determine "leaf" nodes; the nodes with no dependencies.
+These can be imported immediately.
+* import each leaf node with satisfied dependencies.
+Since leaf nodes have no more dependencies, they can be imported in parallel (@todo),
+* when the node is finished importing, provide it's mapping information to each one of it's parents, as they will need it.
+Also update the list of leaf nodes with parent nodes that have satisfied dependencies.
