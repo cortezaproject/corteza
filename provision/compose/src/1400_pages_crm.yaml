@@ -228,10 +228,10 @@ pages:
         - title: Lead Actions
           options:
             buttons:
-            - label: Convert this Lead in to an Account
+            - label: Convert this Lead into an Account
               script: /client-scripts/compose/crm/Lead/ToAccount.js:default
               variant: primary
-            - label: 'Lead: Convert a lead into an account and opportunity'
+            - label: Convert this Lead into an Account and Opportunity
               script: /client-scripts/compose/crm/Lead/ToAccountAndOpportunity.js:default
               variant: primary
           kind: Automation
@@ -471,13 +471,13 @@ pages:
         - title: Account Actions
           options:
             buttons:
-            - label: Generate a new Opportunity for this Account
+            - label: Create new Opportunity from this Account
               script: /client-scripts/compose/crm/Account/CreateNewOpportunity.js:default
               variant: primary
-            - label: Generate a new Contract for this Account
+            - label: Create new Contract from this Account
               script: /client-scripts/compose/crm/Account/CreateNewContract.js:default
               variant: primary
-            - label: Generate a new Case for this Account
+            - label: Create new Case from this Account
               script: /client-scripts/compose/crm/Account/CreateNewCase.js:default
               variant: primary
           style:
@@ -689,11 +689,10 @@ pages:
         - title: Opportunity Actions
           options:
             buttons:
-            - label: Update prices of Products by applying the selected Price Book
-                and inserted discounts
+            - label: Apply Price Book
               script: /client-scripts/compose/crm/Opportunity/ApplyPriceBook.js:default
               variant: primary
-            - label: Generate a new Quote for this Opportunity
+            - label: Create a new Quote for this Opportunity
               script: /client-scripts/compose/crm/Opportunity/NewQuote.js:default
               variant: primary
           style:
@@ -927,7 +926,7 @@ pages:
         - title: Contact Actions
           options:
             buttons:
-            - label: Create a new Case for this Contact
+            - label: Create new Case from this Contact
               script: /client-scripts/compose/crm/Contact/CreateNewCase.js:default
               variant: primary
           style:
@@ -1689,7 +1688,7 @@ pages:
             - label: Set Case status to Closed
               script: /client-scripts/compose/crm/Case/SetStatusToClosed.js:default
               variant: primary
-            - label: Inform the contact via email of the Case's solution
+            - label: Inform the contact via email of the Case solution
               script: /client-scripts/compose/crm/Case/InformContact.js:default
               variant: primary
           kind: Automation

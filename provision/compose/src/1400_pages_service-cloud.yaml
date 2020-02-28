@@ -192,7 +192,7 @@ pages:
             - label: Add Update to this Case
               script: /client-scripts/compose/service-cloud/Case/AddUpdate.js:default
               variant: primary
-            - label: Send Email to Case Contact
+            - label: Create email for this Case
               script: /client-scripts/compose/service-cloud/Case/CreateEmail.js:default
               variant: primary
           style:
@@ -613,7 +613,7 @@ pages:
                 - title: Actions
                   options:
                     buttons:
-                    - label: Load selected tempate in to email message
+                    - label: Load selected template into email message
                       script: /client-scripts/compose/service-cloud/EmailMessage/TemplateLoad.js:default
                       variant: primary
                     - label: Send email to the contact
