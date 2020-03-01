@@ -186,43 +186,44 @@ func (m *Migrator) Migrate(ctx context.Context, users map[string]uint64) error {
 	db := repository.DB(ctx)
 	repoRecord := repository.Record(ctx, db)
 
-	for len(m.Leafs) > 0 {
-		var wg sync.WaitGroup
+		for len(m.Leafs) > 0 {
+			var wg sync.WaitGroup
 
-		ch := make(chan types.PostProc, len(m.Leafs))
-		for _, n := range m.Leafs {
-			wg.Add(1)
+			ch := make(chan types.PostProc, len(m.Leafs))
+			for _, n := range m.Leafs {
+				wg.Add(1)
 
-			// migrate & update leaf nodes
-			go n.Migrate(repoRecord, users, &wg, ch)
-		}
-
-		wg.Wait()
-
-		// var add []*types.Node
-		for len(ch) > 0 {
-			pp := <-ch
-			if pp.Err != nil {
-				return pp.Err
+				// migrate & update leaf nodes
+				go n.Migrate(repoRecord, users, &wg, ch)
 			}
+
+			wg.Wait()
 
 			var nl []*types.Node
-			for _, n := range pp.Leafs {
-				for _, l := range nl {
-					if n.Compare(l) {
-						goto skip
+			for len(ch) > 0 {
+				pp := <-ch
+				if pp.Err != nil {
+					return pp.Err
+				}
+
+				if pp.Leafs != nil {
+					for _, n := range pp.Leafs {
+						for _, l := range nl {
+							if n.Compare(l) {
+								goto skip
+							}
+						}
+						if n.Satisfied() {
+							nl = append(nl, n)
+						}
+
+					skip:
 					}
-				}
-				if n.Satisfied() {
-					nl = append(nl, n)
-				}
 
-			skip:
+				}
 			}
-
 			m.Leafs = nl
 		}
-	}
 
 	return nil
 }
