@@ -417,10 +417,12 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 					val = fmt.Sprint(users[val])
 				}
 
-				vals = append(vals, &types.RecordValue{
-					Name:  h,
-					Value: val,
-				})
+				if val != "" {
+					vals = append(vals, &types.RecordValue{
+						Name:  h,
+						Value: val,
+					})
+				}
 			}
 		}
 
