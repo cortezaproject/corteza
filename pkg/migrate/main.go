@@ -185,6 +185,7 @@ func (m *Migrator) Migrate(ctx context.Context, users map[string]uint64) error {
 	db := repository.DB(ctx)
 	repoRecord := repository.Record(ctx, db)
 
+	return db.Transaction(func() (err error) {
 		for len(m.Leafs) > 0 {
 			var wg sync.WaitGroup
 
@@ -224,7 +225,8 @@ func (m *Migrator) Migrate(ctx context.Context, users map[string]uint64) error {
 			m.Leafs = nl
 		}
 
-	return nil
+		return nil
+	})
 }
 
 // migrates provided users
