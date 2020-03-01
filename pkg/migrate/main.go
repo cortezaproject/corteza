@@ -38,6 +38,7 @@ func Migrate(mg []types.Migrateable, ns *cct.Namespace, ctx context.Context) err
 	svcMod := service.DefaultModule.With(ctx)
 
 	// 1. migrate all the users, so we can reference then accross the entire system
+	start := time.Now()
 	var mgUsr types.Migrateable
 	for _, m := range mg {
 		if m.Name == userModHandle {
@@ -50,6 +51,9 @@ func Migrate(mg []types.Migrateable, ns *cct.Namespace, ctx context.Context) err
 	if err != nil {
 		return err
 	}
+
+	usrT := time.Since(start)
+	start = time.Now()
 
 	// 2. prepare and link migration nodes
 	for _, mgR := range mg {
@@ -143,17 +147,25 @@ func Migrate(mg []types.Migrateable, ns *cct.Namespace, ctx context.Context) err
 		}
 	}
 
+	graphT := time.Since(start)
+
 	fmt.Printf("migration.prepared\n")
 	fmt.Printf("no. of nodes %d\n", len(mig.nodes))
 	fmt.Printf("no. of entry points %d\n", len(mig.Leafs))
 
 	fmt.Printf("\n\nmigrator.migrating\n")
+
+	start = time.Now()
+
 	err = mig.Migrate(ctx, uMap)
 	if err != nil {
 		return err
 	}
+	migT := time.Since(start)
+	start = time.Now()
 
 	fmt.Printf("\n\nmigrator.migrating.finished\n")
+	fmt.Printf("time;\n* users: %s,\n* graph: %s,\n* migration: %s", usrT, graphT, migT)
 
 	return nil
 }
