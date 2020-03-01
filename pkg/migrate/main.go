@@ -46,7 +46,6 @@ func Migrate(mg []types.Migrateable, ns *cct.Namespace, ctx context.Context) err
 	}
 
 	uMap, err := migrateUsers(mgUsr, ns, ctx)
-	mgUsr.Source.Seek(0, 0)
 	if err != nil {
 		return err
 	}
@@ -237,7 +236,9 @@ func migrateUsers(mg types.Migrateable, ns *cct.Namespace, ctx context.Context) 
 	mapping := make(map[string]uint64)
 
 	// get fields
-	r := csv.NewReader(mg.Source)
+	var srcBuf bytes.Buffer
+	tee := io.TeeReader(mg.Source, &srcBuf)
+	r := csv.NewReader(tee)
 	header, err := r.Read()
 	if err != nil {
 		return nil, err
@@ -319,5 +320,6 @@ func migrateUsers(mg types.Migrateable, ns *cct.Namespace, ctx context.Context) 
 		mapping[record[0]] = u.ID
 	}
 
+	mg.Source = &srcBuf
 	return mapping, nil
 }
