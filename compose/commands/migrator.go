@@ -63,11 +63,28 @@ func Migrator() *cobra.Command {
 					}
 
 					ext := filepath.Ext(info.Name())
-					mg = append(mg, mgt.Migrateable{
-						Name:   info.Name()[0 : len(info.Name())-len(ext)],
-						Path:   path,
-						Source: file,
-					})
+					name := info.Name()[0 : len(info.Name())-len(ext)]
+					mm := migrateableSource(mg, name)
+					mm.Name = name
+					mm.Path = path
+					mm.Source = file
+
+					mg = migrateableAdd(mg, mm)
+					// @note yes Denis, we will support .yaml files
+				} else if strings.HasSuffix(info.Name(), ".map.json") {
+					file, err := os.Open(path)
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					ext := filepath.Ext(info.Name())
+					// @todo improve this!!
+					name := info.Name()[0 : len(info.Name())-len(ext)-4]
+					mm := migrateableSource(mg, name)
+					mm.Name = name
+					mm.Map = file
+
+					mg = migrateableAdd(mg, mm)
 				}
 				return nil
 			})
@@ -88,4 +105,25 @@ func Migrator() *cobra.Command {
 	cmd.Flags().String("dir", "", "Directory with migration files")
 
 	return cmd
+}
+
+// small helper functions for migrateable node management
+func migrateableSource(mg []mgt.Migrateable, name string) mgt.Migrateable {
+	for _, m := range mg {
+		if m.Name == name {
+			return m
+		}
+	}
+
+	return mgt.Migrateable{}
+}
+
+func migrateableAdd(mg []mgt.Migrateable, mm mgt.Migrateable) []mgt.Migrateable {
+	for i, m := range mg {
+		if m.Name == mm.Name {
+			mg[i] = mm
+			return mg
+		}
+	}
+	return append(mg, mm)
 }
