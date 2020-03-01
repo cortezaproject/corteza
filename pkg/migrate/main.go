@@ -1,6 +1,7 @@
 package migrate
 
 import (
+	"bytes"
 	"context"
 	"encoding/csv"
 	"errors"
@@ -51,71 +52,85 @@ func Migrate(mg []types.Migrateable, ns *cct.Namespace, ctx context.Context) err
 	}
 
 	// 2. prepare and link migration nodes
-	for _, m := range mg {
-		fmt.Printf("mg.processing > %s\n", m.Name)
-
-		// 2.1 load module
-		mod, err := svcMod.FindByHandle(ns.ID, m.Name)
+	for _, mgR := range mg {
+		ss, err := splitStream(mgR)
 		if err != nil {
 			return err
 		}
 
-		// 2.2 get header fields
-		r := csv.NewReader(m.Source)
-		header, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			panic(err)
-		}
+		for _, m := range ss {
+			fmt.Printf("mg.processing > %s\n", m.Name)
 
-		// 2.3 create migration node
-		n := &types.Node{
-			Name:      m.Name,
-			Module:    mod,
-			Namespace: ns,
-			Reader:    r,
-			Header:    header,
-		}
-		n = mig.AddNode(n)
-
-		// 2.4 prepare additional migration nodes, to provide dep. constraints
-		for _, f := range mod.Fields {
-			if f.Kind == "Record" {
-				refMod := f.Options["moduleID"]
-				if refMod == nil {
-					return errors.New("moduleField.record.missingRef")
-				}
-
-				modID, ok := refMod.(string)
-				if !ok {
-					return errors.New("moduleField.record.invalidRefFormat")
-				}
-				fmt.Printf("mg.node.link > %s [%s]\n", f.Name, modID)
-
-				vv, err := strconv.ParseUint(modID, 10, 64)
-				if err != nil {
-					return err
-				}
-
-				mm, err := svcMod.FindByID(ns.ID, vv)
-				if err != nil {
-					return err
-				}
-
-				nn := &types.Node{
-					Name:      mm.Handle,
-					Module:    mm,
-					Namespace: ns,
-				}
-
-				nn = mig.AddNode(nn)
-				n.LinkAdd(nn)
+			// 2.1 load module
+			mod, err := svcMod.FindByHandle(ns.ID, m.Name)
+			if err != nil {
+				return err
 			}
-		}
 
-		fmt.Printf("mg.processed > %s\n\n\n", m.Name)
+			// 2.2 get header fields
+			r := csv.NewReader(m.Source)
+			var header []string
+			if m.Header != nil {
+				header = *m.Header
+			} else {
+				header, err = r.Read()
+				if err == io.EOF {
+					break
+				}
+				if err != nil {
+					return err
+				}
+			}
+
+			// 2.3 create migration node
+			n := &types.Node{
+				Name:      m.Name,
+				Module:    mod,
+				Namespace: ns,
+				Reader:    r,
+				Header:    header,
+				Lock:      &sync.Mutex{},
+			}
+			n = mig.AddNode(n)
+
+			// 2.4 prepare additional migration nodes, to provide dep. constraints
+			for _, f := range mod.Fields {
+				if f.Kind == "Record" {
+					refMod := f.Options["moduleID"]
+					if refMod == nil {
+						return errors.New("moduleField.record.missingRef")
+					}
+
+					modID, ok := refMod.(string)
+					if !ok {
+						return errors.New("moduleField.record.invalidRefFormat")
+					}
+					fmt.Printf("mg.node.link > %s [%s]\n", f.Name, modID)
+
+					vv, err := strconv.ParseUint(modID, 10, 64)
+					if err != nil {
+						return err
+					}
+
+					mm, err := svcMod.FindByID(ns.ID, vv)
+					if err != nil {
+						return err
+					}
+
+					nn := &types.Node{
+						Name:      mm.Handle,
+						Module:    mm,
+						Namespace: ns,
+						Lock:      &sync.Mutex{},
+					}
+
+					nn = mig.AddNode(nn)
+					n.LinkAdd(nn)
+				}
+			}
+
+			fmt.Printf("mg.processed > %s\n\n\n", m.Name)
+		}
 	}
 
 	fmt.Printf("graph.remove.cycles\n")

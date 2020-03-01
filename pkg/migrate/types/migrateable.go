@@ -13,6 +13,10 @@ type (
 		Name string
 		Path string
 
+		Header *[]string
+
 		Source io.Reader
+		// map is used for stream splitting
+		Map io.Reader
 	}
 )
