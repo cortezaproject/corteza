@@ -41,6 +41,8 @@ type (
 		// meta
 		Header  []string
 		Visited bool
+
+		Lock *sync.Mutex
 	}
 
 	// map between migrated ID and Corteza ID
@@ -64,11 +66,13 @@ func (n *Node) Stringify() string {
 
 // adds a new map to the given node
 func (n *Node) addMap(key string, m Map) {
+	n.Lock.Lock()
 	if n.mapping == nil {
 		n.mapping = map[string]Map{}
 	}
 
 	n.mapping[key] = m
+	n.Lock.Unlock()
 }
 
 // does the actual data migration for the given node
@@ -158,8 +162,10 @@ func (n *Node) LinkAdd(to *Node) {
 
 // remove the link between the two nodes
 func (n *Node) LinkRemove(from *Node) {
+	n.Lock.Lock()
 	n.Children = n.removeIfPresent(from, n.Children)
 	from.Parents = from.removeIfPresent(n, from.Parents)
+	n.Lock.Unlock()
 }
 
 // adds a parent node to the given node
