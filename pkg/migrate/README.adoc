@@ -1,7 +1,8 @@
 = Data Migration System
 
 This package implements a graph-based data migration system.
-The algorithm:
+
+== Algorithm
 
 * read & prepare files in a provided directory.
 A file's name represents a module handle, so make sure that they match up,
@@ -18,3 +19,58 @@ These can be imported immediately.
 Since leaf nodes have no more dependencies, they can be imported in parallel (@todo),
 * when the node is finished importing, provide it's mapping information to each one of it's parents, as they will need it.
 Also update the list of leaf nodes with parent nodes that have satisfied dependencies.
+
+== Migration Mapping
+
+A big part of this system is the support for migration maps; ie. what field from the original source should map into what module and under what field.
+
+====
+Currently only simple conditions, such as `type=specialType` are supported.
+====
+
+=== Algorithm
+* unmarshal the given `.map.json`
+* for each entry of the given source:
+** determine the used map based on the provided `where` field & the rows content
+** based on the provided `map` entries, update/create buffers
+* flush data
+
+=== Example
+
+.source.map.json
+[source,json]
+----
+[
+  {
+    "where": "type=type1",
+
+    "map": [
+      {
+        "from": "id",
+        "to": "splice_1.original"
+      },
+      {
+        "from": "id",
+        "to": "splice_2.original"
+      },
+      {
+        "from": "id",
+        "to": "splice.id"
+      },
+
+      {
+        "from": "field1",
+        "to": "splice.customName"
+      },
+      {
+        "from": "field2",
+        "to": "splice_1.customName"
+      },
+      {
+        "from": "field3",
+        "to": "splice_2.customName"
+      }
+    ]
+  }
+]
+----
