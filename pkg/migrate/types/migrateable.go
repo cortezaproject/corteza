@@ -13,6 +13,6 @@ type (
 		Name string
 		Path string
 
-		Source io.ReadSeeker
+		Source io.Reader
 	}
 )
