@@ -115,8 +115,13 @@ func (n *Node) Migrate(repoRecord repository.RecordRepository, users map[string]
 
 	var rtr []*Node
 
+	var pps []*Node
+	for _, pp := range n.Parents {
+		pps = append(pps, pp)
+	}
+
 	// update node refs
-	for _, p := range n.Parents {
+	for _, p := range pps {
 		rtr = append(rtr, p)
 
 		// pass mapping object to the node's parend so it can migrate it's data
