@@ -235,6 +235,7 @@ func (r *runner) serve(ctx context.Context) (err error) {
 	if err = r.Provision(ctx); err != nil {
 		return
 	}
+
 	r.setupHttpApi()
 	r.setupGRPCServices()
 
