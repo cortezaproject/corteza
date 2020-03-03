@@ -99,13 +99,13 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 		CurrentSettings,
 	)
 
+	DefaultAuth = Auth(ctx)
 	DefaultUser = User(ctx)
 	DefaultRole = Role(ctx)
 	DefaultOrganisation = Organisation(ctx)
 	DefaultApplication = Application(ctx)
 	DefaultReminder = Reminder(ctx)
 	DefaultAuthNotification = AuthNotification(ctx)
-	DefaultAuth = Auth(ctx)
 	DefaultSink = Sink()
 	DefaultStatistics = Statistics(ctx)
 
