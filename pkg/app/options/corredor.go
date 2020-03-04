@@ -17,6 +17,8 @@ type (
 
 		MaxBackoffDelay time.Duration `env:"CORREDOR_MAX_BACKOFF_DELAY"`
 
+		MaxReceiveMessageSize int `env:"CORREDOR_MAX_RECEIVE_MESSAGE_SIZE"`
+
 		DefaultExecTimeout time.Duration `env:"CORREDOR_DEFAULT_EXEC_TIMEOUT"`
 
 		ListTimeout time.Duration `env:"CORREDOR_LIST_TIMEOUT"`
@@ -36,14 +38,15 @@ type (
 
 func Corredor() (o *CorredorOpt) {
 	o = &CorredorOpt{
-		Enabled:            true,
-		RunAsEnabled:       true,
-		Addr:               "localhost:50051",
-		MaxBackoffDelay:    time.Minute,
-		DefaultExecTimeout: time.Minute,
-		ListTimeout:        time.Second * 2,
-		ListRefresh:        time.Second * 5,
-		Log:                false,
+		Enabled:               true,
+		RunAsEnabled:          true,
+		Addr:                  "localhost:50051",
+		MaxBackoffDelay:       time.Minute,
+		MaxReceiveMessageSize: 2 << 23, // 16MB
+		DefaultExecTimeout:    time.Minute,
+		ListTimeout:           time.Second * 2,
+		ListRefresh:           time.Second * 5,
+		Log:                   false,
 
 		TlsCertEnabled: true,
 		TlsCertPath:    "/certs/corredor/client",

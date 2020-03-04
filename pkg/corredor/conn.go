@@ -81,6 +81,10 @@ func NewConnection(ctx context.Context, opt options.CorredorOpt, logger *zap.Log
 		dialOpts = append(dialOpts, grpc.WithInsecure())
 	}
 
+	if opt.MaxReceiveMessageSize > 0 {
+		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(opt.MaxReceiveMessageSize))
+	}
+
 	if opt.MaxBackoffDelay > 0 {
 		dialOpts = append(dialOpts, grpc.WithBackoffMaxDelay(opt.MaxBackoffDelay))
 	}
