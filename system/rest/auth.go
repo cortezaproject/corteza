@@ -24,18 +24,14 @@ type (
 		authSvc      service.AuthService
 	}
 
-	authServiceSettingsProvider interface {
-		Format() map[string]interface{}
+	authUserResponse struct {
+		JWT  string           `json:"jwt"`
+		User *authUserPayload `json:"user"`
 	}
 
-	exchangeResponse struct {
-		JWT  string         `json:"jwt"`
-		User *outgoing.User `json:"user"`
-	}
-
-	checkResponse struct {
-		JWT  string         `json:"jwt"`
-		User *outgoing.User `json:"user"`
+	authUserPayload struct {
+		*outgoing.User
+		Roles []string `json:"roles"`
 	}
 )
 
@@ -51,16 +47,13 @@ func (ctrl *Auth) Check(ctx context.Context, r *request.AuthCheck) (interface{},
 	return func(w http.ResponseWriter, r *http.Request) {
 		if identity := auth.GetIdentityFromContext(ctx); identity != nil && identity.Valid() {
 			if user, err := service.DefaultUser.With(ctx).FindByID(identity.Identity()); err == nil {
-				svc := ctrl.authSvc.With(ctx)
+				var p *authUserResponse
 
-				if err = svc.LoadRoleMemberships(user); err != nil {
+				if p, err = ctrl.makePayload(ctx, user); err != nil {
 					resputil.JSON(w, err)
-					return
 				} else {
-					resputil.JSON(w, checkResponse{
-						JWT:  ctrl.tokenEncoder.Encode(user),
-						User: payload.User(user),
-					})
+					resputil.JSON(w, p)
+
 				}
 
 				return
@@ -107,12 +100,20 @@ func (ctrl *Auth) ExchangeAuthToken(ctx context.Context, r *request.AuthExchange
 		return nil, err
 	}
 
-	if err = svc.LoadRoleMemberships(user); err != nil {
+	return ctrl.makePayload(ctx, user)
+}
+
+func (ctrl *Auth) makePayload(ctx context.Context, user *types.User) (*authUserResponse, error) {
+	var svc = ctrl.authSvc.With(ctx)
+	if err := svc.LoadRoleMemberships(user); err != nil {
 		return nil, err
 	}
 
-	return &exchangeResponse{
-		JWT:  ctrl.tokenEncoder.Encode(user),
-		User: payload.User(user),
+	return &authUserResponse{
+		JWT: ctrl.tokenEncoder.Encode(user),
+		User: &authUserPayload{
+			User:  payload.User(user),
+			Roles: payload.Uint64stoa(user.Roles()),
+		},
 	}, nil
 }
