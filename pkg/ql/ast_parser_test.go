@@ -216,6 +216,20 @@ func TestAstParser_Parser(t *testing.T) {
 				Ident{Value: "foo3"},
 			},
 		},
+		// @todo support IN (....)
+		//{
+		//	parser: NewParser().ParseExpression,
+		//	in:     `abc IN (1,2,3)`,
+		//	tree: ASTNodes{
+		//		Ident{Value: "abc"},
+		//		Operator{"IN"},
+		//		ASTNodes{
+		//			Number{Value: "1"},
+		//			Number{Value: "2"},
+		//			Number{Value: "3"},
+		//		},
+		//	},
+		//},
 	}
 
 	for i, test := range tests {
