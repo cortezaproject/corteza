@@ -87,12 +87,14 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	)
 
 	if DefaultStore == nil {
+		const svcPath = "compose"
 		if c.Storage.MinioEndpoint != "" {
-			if c.Storage.MinioBucket == "" {
-				c.Storage.MinioBucket = "compose"
+			var bucket = svcPath
+			if c.Storage.MinioBucket != "" {
+				bucket = c.Storage.MinioBucket + "/" + svcPath
 			}
 
-			DefaultStore, err = minio.New(c.Storage.MinioBucket, minio.Options{
+			DefaultStore, err = minio.New(bucket, minio.Options{
 				Endpoint:        c.Storage.MinioEndpoint,
 				Secure:          c.Storage.MinioSecure,
 				Strict:          c.Storage.MinioStrict,
@@ -103,13 +105,14 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 			})
 
 			log.Info("initializing minio",
-				zap.String("bucket", c.Storage.MinioBucket),
+				zap.String("bucket", bucket),
 				zap.String("endpoint", c.Storage.MinioEndpoint),
 				zap.Error(err))
 		} else {
-			DefaultStore, err = plain.New(c.Storage.Path)
+			path := c.Storage.Path + "/" + svcPath
+			DefaultStore, err = plain.New(path)
 			log.Info("initializing store",
-				zap.String("path", c.Storage.Path),
+				zap.String("path", path),
 				zap.Error(err))
 		}
 
