@@ -17,8 +17,8 @@ var _ = errors.Wrap
 
 type (
 	authInternalValidUserResponse struct {
-		JWT  string         `json:"jwt"`
-		User *outgoing.User `json:"user"`
+		JWT  string           `json:"jwt"`
+		User *authUserPayload `json:"user"`
 	}
 
 	authPasswordResetTokenExchangeResponse struct {
@@ -66,7 +66,7 @@ func (ctrl *AuthInternal) Signup(ctx context.Context, r *request.AuthInternalSig
 
 	if !u.EmailConfirmed {
 		// When email is not confirmed, do not send back JWT
-		return authInternalValidUserResponse{User: payload.User(u)}, nil
+		return authInternalValidUserResponse{User: &authUserPayload{User: payload.User(u)}}, nil
 	}
 
 	if err = svc.LoadRoleMemberships(u); err != nil {
@@ -140,7 +140,10 @@ func (ctrl AuthInternal) authInternalValidUserResponse(svc interface{ LoadRoleMe
 	}
 
 	return &authInternalValidUserResponse{
-		JWT:  ctrl.tokenEncoder.Encode(u),
-		User: payload.User(u),
+		JWT: ctrl.tokenEncoder.Encode(u),
+		User: &authUserPayload{
+			User:  payload.User(u),
+			Roles: payload.Uint64stoa(u.Roles()),
+		},
 	}, nil
 }
