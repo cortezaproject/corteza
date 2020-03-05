@@ -15,7 +15,7 @@ RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /tmp/corteza-server-messaging /bin
 
-ENV MESSAGING_STORAGE_PATH /data/messaging
+ENV STORAGE_PATH /data
 ENV CORREDOR_ADDR corredor:80
 
 VOLUME /data
