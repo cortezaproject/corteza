@@ -311,12 +311,16 @@ func (r record) DeleteValues(record *types.Record) error {
 
 func (r record) UpdateValues(recordID uint64, rvs types.RecordValueSet) (err error) {
 	// Remove all records and prepare to be updated
-	// @todo be more selective and delete only removed values
+	// @todo be more selective and delete only removed and update/insert changed/new values
 	if _, err = r.db().Exec("DELETE FROM compose_record_value WHERE record_id = ?", recordID); err != nil {
 		return errors.Wrap(err, "could not remove record values")
 	}
 
 	err = rvs.Walk(func(value *types.RecordValue) error {
+		if value.DeletedAt != nil {
+			return nil
+		}
+
 		value.RecordID = recordID
 		return r.db().Insert("compose_record_value", value)
 	})

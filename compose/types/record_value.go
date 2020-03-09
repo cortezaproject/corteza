@@ -104,6 +104,9 @@ func (set RecordValueSet) Has(name string, place uint) bool {
 }
 
 func (set RecordValueSet) SetUpdatedFlag(updated bool) {
+	for i := range set {
+		set[i].updated = updated
+	}
 }
 
 func (set RecordValueSet) GetUpdated() (out RecordValueSet) {
@@ -117,6 +120,24 @@ func (set RecordValueSet) GetUpdated() (out RecordValueSet) {
 	}
 
 	// Append new value
+	return out
+}
+
+func (set RecordValueSet) GetClean() (out RecordValueSet) {
+	out = make([]*RecordValue, 0, len(set))
+	for s := range set {
+		if set[s].DeletedAt != nil {
+			continue
+		}
+
+		out = append(out, &RecordValue{
+			Name:  set[s].Name,
+			Value: set[s].Value,
+			Ref:   set[s].Ref,
+			Place: set[s].Place,
+		})
+	}
+
 	return out
 }
 
