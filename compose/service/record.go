@@ -538,6 +538,8 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 			return
 		}
 
+		upd.Values = upd.Values.GetClean()
+
 		// At this point we can return the value
 		rec = upd
 
