@@ -50,8 +50,3 @@ allow:
       - read
       - update
       - delete
-
-    compose:automation-script:
-      - read
-      - update
-      - delete
