@@ -43,6 +43,9 @@ func (set RecordValueSet) FilterByName(name string) (vv RecordValueSet) {
 }
 
 func (set RecordValueSet) FilterByRecordID(recordID uint64) (vv RecordValueSet) {
+	// Make sure we never return nil
+	vv = RecordValueSet{}
+
 	for i := range set {
 		if set[i].RecordID == recordID {
 			vv = append(vv, set[i])
@@ -148,6 +151,7 @@ func (set RecordValueSet) GetClean() (out RecordValueSet) {
 //
 func (set RecordValueSet) Merge(new RecordValueSet) (out RecordValueSet) {
 	if len(set) == 0 {
+		// Empty set, copy all new values and return them
 		for i := range new {
 			new[i].updated = true
 		}
@@ -155,7 +159,7 @@ func (set RecordValueSet) Merge(new RecordValueSet) (out RecordValueSet) {
 		return new
 	}
 
-	out = make([]*RecordValue, 0, len(set)+len(new))
+	out = make([]*RecordValue, 0)
 	for s := range set {
 		// Mark all old as deleted
 		out = append(out, &RecordValue{
@@ -224,8 +228,17 @@ func (set RecordValueSet) Value() (driver.Value, error) {
 // Simple RVS as string output utility fn that
 // can help with debugging
 func (set RecordValueSet) String() (o string) {
-	const tpl = "%-10s %2d %-20s %-20d %-20s %v %v\n"
+	if set == nil {
+		return "<RecordValueSet = nil>"
+	}
+
+	const tpl = "%-10s %2d %-10s %-20d %-10s %v %v\n"
 	for _, v := range set {
+		if v == nil {
+			o += "<RecordValue = nil>\n"
+			continue
+		}
+
 		o += fmt.Sprintf(
 			tpl,
 			v.Name,

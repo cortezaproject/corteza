@@ -459,7 +459,7 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 
 		// Merge new (updated) values with old ones
 		// This way we get list of updated, stale and deleted values
-		// that we can selectively updated in the repository
+		// that we can selectively update in the repository
 		upd.Values = old.Values.Merge(upd.Values)
 
 		if upd.OwnedBy == 0 && old.OwnedBy > 0 {
