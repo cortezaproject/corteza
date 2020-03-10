@@ -33,7 +33,13 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 		//
 		// Values are ordered when received so we treat them like it
 		// and assign the appropriate place no.
-		for i, v := range vv.FilterByName(f.Name) {
+		var i = 0
+		for _, v := range vv.FilterByName(f.Name) {
+			if v.IsDeleted() {
+				continue
+			}
+
+			i++
 			out = append(out, &types.RecordValue{
 				Name:  f.Name,
 				Value: v.Value,
@@ -54,6 +60,11 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 			// Unknown field,
 			// if it is not handled before,
 			// sanitizer does not care about it
+			continue
+		}
+
+		if v.IsDeleted() || !v.IsUpdated() {
+			// Ignore unchanged and deleted
 			continue
 		}
 

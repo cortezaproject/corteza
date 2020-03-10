@@ -56,6 +56,12 @@ func TestRecordValueSet_Merge(t *testing.T) {
 			want: RecordValueSet{{Name: "n", Value: "v", updated: true}},
 		},
 		{
+			name: "update nil",
+			set:  nil,
+			new:  RecordValueSet{{Name: "n", Value: "v"}},
+			want: RecordValueSet{{Name: "n", Value: "v", oldValue: "", updated: true}},
+		},
+		{
 			name: "update with nil",
 			set:  RecordValueSet{{Name: "n", Value: "v"}},
 			new:  nil,
@@ -73,12 +79,23 @@ func TestRecordValueSet_Merge(t *testing.T) {
 			new:  RecordValueSet{{Name: "n", Value: "2"}},
 			want: RecordValueSet{{Name: "n", Value: "2", oldValue: "1", updated: true}, {Name: "deleted", Value: "d", oldValue: "d", updated: true, DeletedAt: &time.Time{}}},
 		},
+		{
+			name: "update multi value",
+			set:  RecordValueSet{{Name: "c", Value: "1st", Place: 1}, {Name: "c", Value: "2nd", Place: 2}, {Name: "c", Value: "3rd", Place: 3}, {Name: "c", Value: "4th", Place: 4}},
+			new:  RecordValueSet{{Name: "c", Value: "1st", Place: 1}, {Name: "c", Value: "2nd", Place: 2}, {Name: "c", Value: "4th", Place: 3}},
+			want: RecordValueSet{
+				{Name: "c", Value: "1st", Place: 1, oldValue: "1st"},
+				{Name: "c", Value: "2nd", Place: 2, oldValue: "2nd"},
+				{Name: "c", Value: "4th", Place: 3, oldValue: "3rd", updated: true},
+				{Name: "c", Value: "4th", Place: 4, oldValue: "4th", updated: true, DeletedAt: &time.Time{}},
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.set.Merge(tt.new); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Update() = %+v, want %+v", got, tt.want)
+				t.Errorf("got:\n%+v\n\nwant\n%+v", got, tt.want)
 			}
 		})
 	}
