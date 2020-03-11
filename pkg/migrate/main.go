@@ -37,21 +37,26 @@ func Migrate(mg []types.Migrateable, ns *cct.Namespace, ctx context.Context) err
 	mig := &Migrator{}
 	svcMod := service.DefaultModule.With(ctx)
 
+	var err error
+
 	// 1. migrate all the users, so we can reference then accross the entire system
 	start := time.Now()
-	var mgUsr types.Migrateable
+	var mgUsr *types.Migrateable
 	for _, m := range mg {
 		if m.Name == userModHandle {
-			mgUsr = m
+			mgUsr = &m
 			break
 		}
 	}
 
-	uMap, err := migrateUsers(mgUsr, ns, ctx)
-	if err != nil {
-		return err
-	}
+	var uMap map[string]uint64
 
+	if mgUsr != nil {
+		uMap, err = migrateUsers(*mgUsr, ns, ctx)
+		if err != nil {
+			return err
+		}
+	}
 	usrT := time.Since(start)
 	start = time.Now()
 
