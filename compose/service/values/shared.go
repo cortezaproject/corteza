@@ -29,6 +29,10 @@ var (
 
 	// value resembles something that can be a reference
 	refy = regexp.MustCompile(`^[1-9](\d*)$`)
+
+	// value resembels something that can be parsed as ISO 8601
+	isoDaty     = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}`)
+	hasTimezone = regexp.MustCompile(`(Z|\+\d{2}:\d{2})$`)
 )
 
 func nowPtr() *time.Time {

@@ -39,13 +39,10 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 				continue
 			}
 
+			c := v.Clone()
+			c.Place = uint(i)
+			out = append(out, c)
 			i++
-			out = append(out, &types.RecordValue{
-				Name:  f.Name,
-				Value: v.Value,
-				Ref:   v.Ref,
-				Place: uint(i),
-			})
 		}
 	}
 
@@ -63,7 +60,7 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 			continue
 		}
 
-		if v.IsDeleted() || !v.IsUpdated() {
+		if v.IsDeleted() || !v.Updated {
 			// Ignore unchanged and deleted
 			continue
 		}
@@ -75,8 +72,14 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 			v.Value = strings.TrimSpace(v.Value)
 		}
 
-		if f.IsRef() && refy.MatchString(v.Value) {
-			v.Ref, _ = strconv.ParseUint(v.Value, 10, 64)
+		if f.IsRef() {
+			if refy.MatchString(v.Value) {
+				v.Ref, _ = strconv.ParseUint(v.Value, 10, 64)
+			}
+
+			if v.Ref == 0 {
+				v.Value = ""
+			}
 		}
 
 		// Per field type validators
@@ -166,17 +169,26 @@ func (sanitizer) sDatetime(v *types.RecordValue, f *types.ModuleField, m *types.
 			"2019/_1/_2 15:04:05",
 			"2019/_1/_2 15:04",
 		}
+
+		// if string looks like a RFC 3330 (ISO 8601), see if we need to suffix it with Z
+		if isoDaty.MatchString(v.Value) && !hasTimezone.MatchString(v.Value) {
+			// No timezone, add Z to satisfy parser
+			v.Value = v.Value + "Z"
+
+			// Simplifiy list of rules
+			inputFormats = []string{time.RFC3339}
+		}
 	}
 
 	for _, format := range inputFormats {
 		parsed, err := time.Parse(format, v.Value)
-
 		if err == nil {
 			v.Value = parsed.UTC().Format(internalFormat)
-			break
+			return v
 		}
 	}
 
+	v.Value = ""
 	return v
 }
 
