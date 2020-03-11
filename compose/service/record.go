@@ -337,41 +337,6 @@ func (svc record) Export(filter types.RecordFilter, enc Encoder) error {
 func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
 	var invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	// Runs value sanitization, sets values that should be used
-	// and validates the final result
-	//
-	// This logic is kept in a utility function - it's used in the beginning
-	// of the creation procedure and after results are back from the automation scripts
-	//
-	// Both these points introduce external data that need to be checked fully in the same manner
-	procChanges := func(m *types.Module, new *types.Record) *types.RecordValueErrorSet {
-		// Before values are processed further and
-		// sent to automation scripts (if any)
-		// we need to make sure it does not get sanitized data
-		new.Values = svc.sanitizer.Run(m, new.Values)
-
-		// Reset values to new record
-		// to make sure nobody slips in something we do not want
-		new.CreatedBy = invokerID
-		new.CreatedAt = *nowPtr()
-		new.UpdatedAt = nil
-		new.UpdatedBy = 0
-		new.DeletedAt = nil
-		new.DeletedBy = 0
-
-		// Mark all values as updated (new)
-		new.Values.SetUpdatedFlag(true)
-
-		if new.OwnedBy == 0 {
-			// If od owner is not set, make current user
-			// the owner of the record
-			new.OwnedBy = invokerID
-		}
-
-		// Run validation of the updated records
-		return svc.validator.Run(m, new)
-	}
-
 	return rec, svc.db.Transaction(func() (err error) {
 		var (
 			ns *types.Namespace
@@ -396,7 +361,7 @@ func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
 		)
 
 		// Handle input payload
-		if rve = procChanges(m, new); !rve.IsValid() {
+		if rve = svc.procCreate(invokerID, m, new); !rve.IsValid() {
 			return rve
 		}
 
@@ -410,7 +375,7 @@ func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
 		new.Values = svc.setDefaultValues(m, new.Values)
 
 		// Handle payload from automation scripts
-		if rve = procChanges(m, new); !rve.IsValid() {
+		if rve = svc.procCreate(invokerID, m, new); !rve.IsValid() {
 			return rve
 		}
 
@@ -430,52 +395,43 @@ func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
 	})
 }
 
+// Runs value sanitization, sets values that should be used
+// and validates the final result
+//
+// This logic is kept in a utility function - it's used in the beginning
+// of the creation procedure and after results are back from the automation scripts
+//
+// Both these points introduce external data that need to be checked fully in the same manner
+func (svc record) procCreate(invokerID uint64, m *types.Module, new *types.Record) *types.RecordValueErrorSet {
+	// Mark all values as updated (new)
+	new.Values.SetUpdatedFlag(true)
+
+	// Before values are processed further and
+	// sent to automation scripts (if any)
+	// we need to make sure it does not get un-sanitized data
+	new.Values = svc.sanitizer.Run(m, new.Values)
+
+	// Reset values to new record
+	// to make sure nobody slips in something we do not want
+	new.CreatedBy = invokerID
+	new.CreatedAt = *nowPtr()
+	new.UpdatedAt = nil
+	new.UpdatedBy = 0
+	new.DeletedAt = nil
+	new.DeletedBy = 0
+
+	if new.OwnedBy == 0 {
+		// If od owner is not set, make current user
+		// the owner of the record
+		new.OwnedBy = invokerID
+	}
+
+	// Run validation of the updated records
+	return svc.validator.Run(m, new)
+}
+
 func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 	var invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
-
-	// Runs value sanitization, copies values that should updated
-	// and validates the final result
-	//
-	// This logic is kept in a utility function - it's used in the beginning
-	// of the update procedure and after results are back from the automation scripts
-	//
-	// Both these points introduce external data that need to be checked fully in the same maner
-	procChanges := func(m *types.Module, upd *types.Record, old *types.Record) *types.RecordValueErrorSet {
-		// First sanitization
-		//
-		// Before values are merged with existing data and
-		// sent to automation scripts (if any)
-		// we need to make sure it does not get sanitized data
-		upd.Values = svc.sanitizer.Run(m, upd.Values)
-
-		// Copy values to updated record
-		// to make sure nobody slips in something we do not want
-		upd.CreatedAt = old.CreatedAt
-		upd.CreatedBy = old.CreatedBy
-		upd.UpdatedAt = nowPtr()
-		upd.UpdatedBy = invokerID
-		upd.DeletedAt = old.DeletedAt
-		upd.DeletedBy = old.DeletedBy
-
-		// Merge new (updated) values with old ones
-		// This way we get list of updated, stale and deleted values
-		// that we can selectively update in the repository
-		upd.Values = old.Values.Merge(upd.Values)
-
-		if upd.OwnedBy == 0 && old.OwnedBy > 0 {
-			// Owner not set/send in the payload
-			//
-			// Fallback to old owner (if set)
-			upd.OwnedBy = old.OwnedBy
-		} else {
-			// If od owner is not set, make current user
-			// the owner of the record
-			upd.OwnedBy = invokerID
-		}
-
-		// Run validation of the updated records
-		return svc.validator.Run(m, upd)
-	}
 
 	return rec, svc.db.Transaction(func() (err error) {
 		if upd.ID == 0 {
@@ -510,7 +466,7 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 		)
 
 		// Handle input payload
-		if rve = procChanges(m, upd, old); !rve.IsValid() {
+		if rve = svc.procUpdate(invokerID, m, upd, old); !rve.IsValid() {
 			return rve
 		}
 
@@ -526,7 +482,7 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 		}
 
 		// Handle payload from automation scripts
-		if rve = procChanges(m, upd, old); !rve.IsValid() {
+		if rve = svc.procUpdate(invokerID, m, upd, old); !rve.IsValid() {
 			return rve
 		}
 
@@ -546,6 +502,53 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 		defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil))
 		return
 	})
+}
+
+// Runs value sanitization, copies values that should updated
+// and validates the final result
+//
+// This logic is kept in a utility function - it's used in the beginning
+// of the update procedure and after results are back from the automation scripts
+//
+// Both these points introduce external data that need to be checked fully in the same maner
+func (svc record) procUpdate(invokerID uint64, m *types.Module, upd *types.Record, old *types.Record) *types.RecordValueErrorSet {
+	// Mark all values as updated (new)
+	upd.Values.SetUpdatedFlag(true)
+
+	// First sanitization
+	//
+	// Before values are merged with existing data and
+	// sent to automation scripts (if any)
+	// we need to make sure it does not get sanitized data
+	upd.Values = svc.sanitizer.Run(m, upd.Values)
+
+	// Copy values to updated record
+	// to make sure nobody slips in something we do not want
+	upd.CreatedAt = old.CreatedAt
+	upd.CreatedBy = old.CreatedBy
+	upd.UpdatedAt = nowPtr()
+	upd.UpdatedBy = invokerID
+	upd.DeletedAt = old.DeletedAt
+	upd.DeletedBy = old.DeletedBy
+
+	// Merge new (updated) values with old ones
+	// This way we get list of updated, stale and deleted values
+	// that we can selectively update in the repository
+	upd.Values = old.Values.Merge(upd.Values)
+
+	if upd.OwnedBy == 0 && old.OwnedBy > 0 {
+		// Owner not set/send in the payload
+		//
+		// Fallback to old owner (if set)
+		upd.OwnedBy = old.OwnedBy
+	} else {
+		// If od owner is not set, make current user
+		// the owner of the record
+		upd.OwnedBy = invokerID
+	}
+
+	// Run validation of the updated records
+	return svc.validator.Run(m, upd)
 }
 
 func (svc record) recordInfoUpdate(r *types.Record) {

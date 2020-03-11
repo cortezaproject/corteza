@@ -19,17 +19,30 @@ type (
 		Place     uint       `db:"place"      json:"-"`
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
 
-		updated  bool
-		oldValue string
+		Updated  bool   `db:"-"      json:"-"`
+		OldValue string `db:"-"      json:"-"`
 	}
 )
 
 func (v RecordValue) IsUpdated() bool {
-	return v.updated
+	return v.Updated
 }
 
 func (v RecordValue) IsDeleted() bool {
 	return v.DeletedAt != nil
+}
+
+func (v RecordValue) Clone() *RecordValue {
+	return &RecordValue{
+		RecordID:  v.RecordID,
+		Name:      v.Name,
+		Value:     v.Value,
+		Ref:       v.Ref,
+		Place:     v.Place,
+		DeletedAt: v.DeletedAt,
+		Updated:   v.Updated,
+		OldValue:  v.OldValue,
+	}
 }
 
 func (set RecordValueSet) FilterByName(name string) (vv RecordValueSet) {
@@ -108,14 +121,14 @@ func (set RecordValueSet) Has(name string, place uint) bool {
 
 func (set RecordValueSet) SetUpdatedFlag(updated bool) {
 	for i := range set {
-		set[i].updated = updated
+		set[i].Updated = updated
 	}
 }
 
 func (set RecordValueSet) GetUpdated() (out RecordValueSet) {
 	out = make([]*RecordValue, 0, len(set))
 	for i := range set {
-		if !set[i].updated {
+		if !set[i].Updated {
 			continue
 		}
 
@@ -153,7 +166,7 @@ func (set RecordValueSet) Merge(new RecordValueSet) (out RecordValueSet) {
 	if len(set) == 0 {
 		// Empty set, copy all new values and return them
 		for i := range new {
-			new[i].updated = true
+			new[i].Updated = true
 		}
 
 		return new
@@ -168,8 +181,8 @@ func (set RecordValueSet) Merge(new RecordValueSet) (out RecordValueSet) {
 			Ref:       set[s].Ref,
 			Place:     set[s].Place,
 			DeletedAt: &time.Time{},
-			updated:   true,
-			oldValue:  set[s].Value,
+			Updated:   true,
+			OldValue:  set[s].Value,
 		})
 	}
 
@@ -178,12 +191,12 @@ func (set RecordValueSet) Merge(new RecordValueSet) (out RecordValueSet) {
 			// Reset deleted flag
 			ex.DeletedAt = new[n].DeletedAt
 
-			if ex.oldValue == new[n].Value {
-				ex.updated = false
-			} else if !ex.updated {
+			if ex.OldValue == new[n].Value {
+				ex.Updated = false
+			} else if !ex.Updated {
 				// Did value change?
-				ex.updated = ex.Value != new[n].Value
-				ex.oldValue = ex.Value
+				ex.Updated = ex.Value != new[n].Value
+				ex.OldValue = ex.Value
 			}
 
 			ex.Value = new[n].Value
@@ -195,10 +208,10 @@ func (set RecordValueSet) Merge(new RecordValueSet) (out RecordValueSet) {
 				Value:   new[n].Value,
 				Ref:     new[n].Ref,
 				Place:   new[n].Place,
-				updated: true,
+				Updated: true,
 
 				// verbose & explicit for clarity
-				oldValue:  "",
+				OldValue:  "",
 				DeletedAt: nil,
 			})
 		}
@@ -232,10 +245,28 @@ func (set RecordValueSet) String() (o string) {
 		return "<RecordValueSet = nil>"
 	}
 
-	const tpl = "%-10s %2d %-10s %-20d %-10s %v %v\n"
+	is := func(in interface{}) string {
+		switch in := in.(type) {
+		case bool:
+			if in {
+				return "✔"
+			}
+		case *time.Time:
+			if in != nil {
+				return "✔"
+			}
+		}
+
+		return "x"
+	}
+
+	o += "━━━━━━━━━━━┳━━━━┳━━━┳━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+	o += "name       ┃ ## ┃ u ┃ d ┃ value                     ┃ ref                  ┃ old value  \n"
+	o += "━━━━━━━━━━━╋━━━━╋━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+	const tpl = "%-10s ┃ %2d ┃ %s ┃ %s ┃ %-25s ┃ %-20d ┃ %-25s\n"
 	for _, v := range set {
 		if v == nil {
-			o += "<RecordValue = nil>\n"
+			o += "<--------> ┃ -- ┃ - ┃ - ┃ <------------------------> ┃ <------------------> ┃ <------------------> \n"
 			continue
 		}
 
@@ -243,13 +274,14 @@ func (set RecordValueSet) String() (o string) {
 			tpl,
 			v.Name,
 			v.Place,
+			is(v.Updated),
+			is(v.DeletedAt),
 			v.Value,
 			v.Ref,
-			v.oldValue,
-			v.updated,
-			v.DeletedAt,
+			v.OldValue,
 		)
 	}
+	o += "━━━━━━━━━━━┻━━━━┻━━━┻━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
 
 	return o
 }

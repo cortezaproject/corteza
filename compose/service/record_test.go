@@ -88,5 +88,4 @@ func TestDefaultValueSetting(t *testing.T) {
 	chk(out, "single", 0, "s")
 	chk(out, "multi", 0, "m1")
 	chk(out, "multi", 1, "m2")
-
 }
