@@ -502,6 +502,8 @@ func (svc *service) registerTriggers(script *ServerScript) []uintptr {
 // individual event implemntation
 func (svc service) exec(ctx context.Context, script string, runAs string, event Event) (err error) {
 	var (
+		requestId = middleware.GetReqID(ctx)
+
 		rsp *ExecResponse
 
 		invoker auth.Identifiable
@@ -604,13 +606,19 @@ func (svc service) exec(ctx context.Context, script string, runAs string, event 
 
 	// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// ////
 
-	ctx, cancel := context.WithTimeout(ctx, svc.opt.DefaultExecTimeout)
+	ctx, cancel := context.WithTimeout(
+		// We need a new, independent context here
+		// to be sure this is executed safely & fully
+		// without any outside interfeance (cancellation, timeouts)
+		context.Background(),
+		svc.opt.DefaultExecTimeout,
+	)
 	defer cancel()
 
 	// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// ////
 
 	ctx = metadata.NewOutgoingContext(ctx, metadata.MD{
-		"x-request-id": []string{middleware.GetReqID(ctx)},
+		"x-request-id": []string{requestId},
 	})
 
 	// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// ////
