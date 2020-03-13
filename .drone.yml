@@ -1,88 +1,49 @@
-workspace:
-  base: /go/src
-  path: github.com/cortezaproject/corteza-server
-
 kind: pipeline
-name: docker image build
+name: Build
+type: docker
 
 steps:
-  - name: unit-tests
+  - name: "Quality Control"
     image: cortezaproject/corteza-server-builder:latest
     pull: always
-    environment:
-      CGO_ENABLED: 0
-      GOOS: linux
-      GOARCH: amd64
-      CI: circleci
     commands:
       - make test.unit
 
-  - name: corteza-server
-    image: plugins/docker
-    depends_on: [ "unit-tests" ]
-    settings:
-      repo: cortezaproject/corteza-server
-      auto_tag: true # generate tag names automatically based on git branch and git tag
-      dockerfile: Dockerfile.corteza-server
-      username: { from_secret: docker_hub_username }
-      password: { from_secret: docker_hub_password }
-
-  - name: corteza-server-system
-    image: plugins/docker
-    depends_on: [ "corteza-server" ]
-    settings:
-      repo: cortezaproject/corteza-server-system
-      auto_tag: true # generate tag names automatically based on git branch and git tag
-      dockerfile: Dockerfile.corteza-server-system
-      username: { from_secret: docker_hub_username }
-      password: { from_secret: docker_hub_password }
+  - name: "Build release (tag)"
+    image: cortezaproject/corteza-server-builder:latest
+    environment:
+      RELEASE_SFTP_KEY: { from_secret: RELEASE_SFTP_KEY }
+      RELEASE_SFTP_URI: { from_secret: RELEASE_SFTP_URI }
+    commands:
+    - make release-clean release -j4 BUILD_OS=linux BUILDARCH=amd64 BUILD_VERSION=${DRONE_TAG}
+#    - make release-clean release -j4 BUILD_OS=darwin BUILDARCH=amd64 BUILD_VERSION=${DRONE_TAG}
+#    - make release-clean release -j4 BUILD_OS=windows BUILDARCH=amd64 BUILD_VERSION=${DRONE_TAG}
+    - make upload
     when:
-      ref: { include: [ "refs/tags/20??.*.*", "refs/heads/master" ] }
-      event: [ "push", "tag" ]
+      event: [ tag ]
+      ref:
+      - refs/tags/20??.3.*
+      - refs/tags/20??.6.*
+      - refs/tags/20??.9.*
+      - refs/tags/20??.12.*
 
-
-  - name: corteza-server-compose
-    image: plugins/docker
-    depends_on: [ "corteza-server" ]
-    settings:
-      repo: cortezaproject/corteza-server-compose
-      auto_tag: true # generate tag names automatically based on git branch and git tag
-      dockerfile: Dockerfile.corteza-server-compose
-      username: { from_secret: docker_hub_username }
-      password: { from_secret: docker_hub_password }
+  - name: "Build unstable release (develop)"
+    image: cortezaproject/corteza-server-builder:latest
+    environment:
+      RELEASE_SFTP_KEY: { from_secret: RELEASE_SFTP_KEY }
+      RELEASE_SFTP_URI: { from_secret: RELEASE_SFTP_URI }
+    commands:
+    - make release-clean release -j4 BUILD_OS=linux BUILDARCH=amd64 BUILD_VERSION=unstable
+    - make upload
     when:
-      ref: { include: [ "refs/tags/20??.*.*", "refs/heads/master" ] }
-      event: [ "push", "tag" ]
-
-
-  - name: corteza-server-messaging
-    depends_on: [ "corteza-server" ]
-    image: plugins/docker
-    settings:
-      repo: cortezaproject/corteza-server-messaging
-      auto_tag: true # generate tag names automatically based on git branch and git tag
-      dockerfile: Dockerfile.corteza-server-messaging
-      username: { from_secret: docker_hub_username }
-      password: { from_secret: docker_hub_password }
-    when:
-      ref: { include: [ "refs/tags/20??.*.*", "refs/heads/master" ] }
-      event: [ "push", "tag" ]
-
-trigger:
-  event:
-    # Pipeline will be executed from branch event,
-    # this ensures we do not run duplicates.
-    exclude: [ "pull_request" ]
-
-
+      event: [ push ]
+      branch: [ develop ]
 
 ---
-workspace:
-  base: /go/src
-  path: github.com/cortezaproject/corteza-server
 
 kind: pipeline
-name: integration
+name: Integration
+type: docker
 
 steps:
   - name: test
@@ -125,7 +86,4 @@ services:
 
 trigger:
   event:
-    # Pipeline will be executed from branch event,
-    # this ensures we do not run duplicates.
-    exclude: [ "pull_request" ]
-
+    exclude: [ pull_request ]
