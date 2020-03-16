@@ -302,6 +302,7 @@ func (r *runner) Run(ctx context.Context) error {
 		serveCmd,
 		upgradeCmd,
 		provisionCmd,
+		cli.VersionCommand(),
 	)
 
 	// Register CLI commands from all parts (when compatible)
