@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"github.com/cortezaproject/corteza-server/pkg/version"
 	"github.com/spf13/cobra"
 )
 
@@ -26,6 +27,11 @@ var (
 	provisionCommand = cobra.Command{
 		Use:   "provision",
 		Short: "Provision tasks",
+	}
+
+	versionCommand = cobra.Command{
+		Use:   "version",
+		Short: "Version",
 	}
 )
 
@@ -76,6 +82,17 @@ func ProvisionCommand(cffn func() error) *cobra.Command {
 
 	cfCmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
 		return cffn()
+	}
+
+	return &cfCmd
+}
+
+func VersionCommand() *cobra.Command {
+	// Make a copies
+	var cfCmd = versionCommand
+
+	cfCmd.Run = func(cmd *cobra.Command, args []string) {
+		cmd.Println(version.Version)
 	}
 
 	return &cfCmd
