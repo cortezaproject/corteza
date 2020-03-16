@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"net/http"
+	"path"
 	"strings"
 
 	"github.com/titpetric/factory/resputil"
@@ -225,6 +226,9 @@ func (ctrl *Record) ImportInit(ctx context.Context, r *request.RecordImportInit)
 			return nil, err
 		} else if is {
 			ext = "jsonl"
+		} else {
+			// As last resort, use extension of the upload filename
+			ext = strings.TrimLeft(path.Ext(r.Upload.Filename), ".")
 		}
 	}
 
