@@ -30,7 +30,7 @@ type (
 		Children PageSet `json:"children,omitempty" db:"-"`
 
 		Visible bool `json:"visible" db:"visible"`
-		Weight  int  `json:"-" db:"weight"`
+		Weight  int  `json:"weight" db:"weight"`
 
 		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`

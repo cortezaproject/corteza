@@ -121,6 +121,7 @@ func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{
 			Handle:      r.Handle,
 			Description: r.Description,
 			Visible:     r.Visible,
+			Weight:      r.Weight,
 		}
 	)
 
