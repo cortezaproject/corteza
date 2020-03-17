@@ -386,6 +386,12 @@
                             "title": "Description"
                         },
                         {
+                            "type": "int",
+                            "name": "weight",
+                            "required": false,
+                            "title": "Page tree weight"
+                        },
+                        {
                             "type": "bool",
                             "name": "visible",
                             "required": false,

@@ -316,6 +316,7 @@ type PageUpdate struct {
 	Title       string
 	Handle      string
 	Description string
+	Weight      int
 	Visible     bool
 	Blocks      sqlxTypes.JSONText
 }
