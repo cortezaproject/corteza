@@ -85,6 +85,20 @@ func Migrator() *cobra.Command {
 					mm.Map = file
 
 					mg = migrateableAdd(mg, mm)
+				} else if strings.HasSuffix(info.Name(), ".join.json") {
+					file, err := os.Open(path)
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					ext := filepath.Ext(info.Name())
+					// @todo improve this!!
+					name := info.Name()[0 : len(info.Name())-len(ext)-5]
+					mm := migrateableSource(mg, name)
+					mm.Name = name
+					mm.Join = file
+
+					mg = migrateableAdd(mg, mm)
 				}
 				return nil
 			})

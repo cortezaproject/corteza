@@ -16,6 +16,18 @@ import (
 )
 
 type (
+	// field: value
+	JoinEntry map[string]string
+
+	JoinedNode struct {
+		Mg        *Migrateable
+		Name      string
+		BaseField string
+		JoinField string
+		// id: field: value
+		Entries map[string][]*JoinEntry
+	}
+
 	// graph node
 	Node struct {
 		// unique node name
@@ -47,6 +59,9 @@ type (
 		Visited bool
 
 		Lock *sync.Mutex
+
+		// field: recordID: [value]
+		FieldMap map[string]map[string][]string
 	}
 
 	// map between migrated ID and Corteza ID
@@ -156,6 +171,9 @@ func (n *Node) Merge(nn *Node) {
 	}
 	if nn.Header != nil {
 		n.Header = nn.Header
+	}
+	if nn.FieldMap != nil {
+		n.FieldMap = nn.FieldMap
 	}
 }
 
@@ -389,6 +407,7 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 
 		vals := types.RecordValueSet{}
 		for i, h := range n.Header {
+			var values []string
 			val := record[i]
 
 			if sysField(h) {
@@ -444,7 +463,10 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 					continue
 				}
 
-				if f.Options["moduleID"] != nil {
+				// check if joinable
+				if _, ok := n.FieldMap[h]; ok {
+					values = n.FieldMap[h][val]
+				} else if f.Options["moduleID"] != nil {
 					// spliced nodes should NOT manage their references
 					if !n.spliced {
 						ref, ok := f.Options["moduleID"].(string)
@@ -462,24 +484,30 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 							continue
 						}
 					}
+					values = []string{val}
 				} else if f.Kind == "User" {
 					if u, ok := users[val]; ok {
 						val = fmt.Sprint(u)
 					} else {
 						continue
 					}
+					values = []string{val}
 				} else {
 					val = strings.Map(fixUtf, val)
 
 					if val == "" {
 						continue
 					}
+					values = []string{val}
 				}
 
-				vals = append(vals, &types.RecordValue{
-					Name:  h,
-					Value: val,
-				})
+				for i, v := range values {
+					vals = append(vals, &types.RecordValue{
+						Name:  h,
+						Value: v,
+						Place: uint(i),
+					})
+				}
 			}
 		}
 

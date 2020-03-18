@@ -18,5 +18,11 @@ type (
 		Source io.Reader
 		// map is used for stream splitting
 		Map io.Reader
+
+		// join is used for source joining
+		Join  io.Reader
+		Joins []*JoinedNode
+		// field: recordID: [value]
+		FieldMap map[string]map[string][]string
 	}
 )

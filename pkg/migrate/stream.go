@@ -19,6 +19,9 @@ type (
 		row    []string
 		header []string
 		writer *csv.Writer
+
+		// field: masterID: [value]
+		joins map[string]map[string][]string
 	}
 )
 
@@ -117,6 +120,45 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 						}
 					}
 
+					// handle joins
+					if strings.Contains(from, ".") {
+						pts := strings.Split(from, ".")
+						baseFIeld := pts[0]
+						joinedField := pts[1]
+
+						// find slave
+						var jn *types.JoinedNode
+						for _, j := range m.Joins {
+							if j.BaseField == baseFIeld {
+								jn = j
+								break
+							}
+						}
+						if jn == nil {
+							return nil, errors.New("joinedNode.missing " + from)
+						}
+
+						if bufs[nm].joins == nil {
+							bufs[nm].joins = make(map[string]map[string][]string)
+						}
+
+						if bufs[nm].joins[nmF] == nil {
+							bufs[nm].joins[nmF] = make(map[string][]string)
+						}
+
+						vals := make([]string, 0)
+						for _, e := range jn.Entries[record[hMap[baseFIeld]]] {
+							for k, v := range *e {
+								if k == joinedField {
+									vals = append(vals, v)
+								}
+							}
+						}
+
+						bufs[nm].joins[nmF][record[hMap[baseFIeld]]] = vals
+						from = baseFIeld
+					}
+
 					bufs[nm].row = append(bufs[nm].row, record[hMap[from]])
 					if i == 0 {
 						bufs[nm].header = append(bufs[nm].header, nmF)
@@ -136,9 +178,10 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 	// make migrateable nodes from the generated streams
 	for _, v := range bufs {
 		rr = append(rr, types.Migrateable{
-			Name:   v.name,
-			Source: v.buffer,
-			Header: &v.header,
+			Name:     v.name,
+			Source:   v.buffer,
+			Header:   &v.header,
+			FieldMap: v.joins,
 		})
 	}
 

@@ -74,3 +74,64 @@ Currently only simple conditions, such as `type=specialType` are supported.
   }
 ]
 ----
+
+== Joining Migration Sources
+
+An important feature is the system's ability to construct a migration map from multiple migration sources.
+For example; we want to populate a `User` module, that includes data from `User.csv` and `SysUser.csv`.
+
+=== Algorithrm
+
+* unmarshal the given `.join.json`
+* for each migration node that defines a `.join.json`:
+** determine all "joined" migration nodes that will be used in this join operation,
+** create `{ field: { id: [ value, ... ] } }` object for each base migration node, based on joined nodes,
+** when processing the migration node, respect the above mentioned object and include the specified data.
+
+
+=== Example
+
+.source.join.json
+
+`.join.json` files tell the system what fields in the base module will be joined with what fields in the sub module.
+
+The below example instructs, that the current module should be joined with `joinMod` based on the `Id` field.
+Same applies for the other entry.
+
+[source,json]
+----
+{
+  "joinModField": "joinMod.Id",
+  "Id": "subMod.baseModId"
+}
+----
+
+.source.map.json
+[source,json]
+----
+[
+  {
+    "map": [
+      {
+        "from": "Id",
+        "to": "baseMod.Id"
+      },
+
+      {
+        "from": "baseField1",
+        "to": "baseMod.baseField1"
+      },
+
+      {
+        "from": "joinModField.field1",
+        "to": "baseMod.joinedField1"
+      },
+
+      {
+        "from": "Id.name",
+        "to": "baseMod.reverseJoinNameField"
+      }
+    ]
+  }
+]
+----

@@ -72,6 +72,12 @@ func Migrate(mg []types.Migrateable, ns *cct.Namespace, ctx context.Context) err
 		}
 	}
 
+	// Handle source joins
+	mg, err = sourceJoin(mg)
+	if err != nil {
+		return err
+	}
+
 	// 2. prepare and link migration nodes
 	for _, mgR := range mg {
 		ss, err := splitStream(mgR)
@@ -110,6 +116,7 @@ func Migrate(mg []types.Migrateable, ns *cct.Namespace, ctx context.Context) err
 				Reader:    r,
 				Header:    header,
 				Lock:      &sync.Mutex{},
+				FieldMap:  m.FieldMap,
 			}
 			n = mig.AddNode(n)
 
