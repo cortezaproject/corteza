@@ -314,9 +314,13 @@ func updateRefs(n *Node, repo repository.RecordRepository) error {
 				}
 			}
 
+			if f == nil {
+				continue
+			}
+
 			val := v.Value
 			// determine value based on the provided map
-			if f != nil && f.Options["moduleID"] != nil {
+			if f.Options["moduleID"] != nil {
 				ref, ok := f.Options["moduleID"].(string)
 				if !ok {
 					return errors.New("moduleField.record.invalidRefFormat")
@@ -409,6 +413,11 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 					}
 				}
 
+				if f == nil {
+					continue
+				}
+
+				if f.Options["moduleID"] != nil {
 				// spliced nodes should NOT manage their references
 				if !n.spliced && f != nil && f.Options["moduleID"] != nil {
 					ref, ok := f.Options["moduleID"].(string)
@@ -421,7 +430,9 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 							val = n.mapping[ref][val]
 						}
 					}
+				} else if f.Kind == "User" {
 				}
+				} else {
 
 				if f != nil && f.Kind == "User" {
 					val = fmt.Sprint(users[val])
