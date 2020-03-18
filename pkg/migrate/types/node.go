@@ -282,11 +282,12 @@ func (n *Node) Splice(from *Node) *Node {
 
 func sysField(f string) bool {
 	switch f {
-	case "CreatedDate",
+	case "OwnerId",
+		"IsDeleted",
+		"CreatedDate",
 		"CreatedById",
-		"LastModifiedById",
 		"LastModifiedDate",
-		"IsDeleted":
+		"LastModifiedById":
 		return true
 	}
 	return false
@@ -353,6 +354,17 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 
 			if sysField(h) {
 				switch h {
+				case "OwnerId":
+					rr.OwnedBy = users[val]
+					break
+
+					// ignore deleted values, as SF provides minimal info about those
+				case "IsDeleted":
+					if val == "1" {
+						goto looper
+					}
+					break
+
 				case "CreatedDate":
 					if val != "" {
 						rr.CreatedAt, err = time.Parse(SfDateTime, val)
@@ -379,12 +391,6 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 						}
 					}
 					break
-
-					// ignore deleted values, as SF provides minimal info about those
-				case "IsDeleted":
-					if val != "" {
-						goto looper
-					}
 				}
 			} else {
 				var f *types.ModuleField
