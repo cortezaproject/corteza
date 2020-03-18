@@ -326,12 +326,29 @@ func updateRefs(n *Node, repo repository.RecordRepository) error {
 					return errors.New("moduleField.record.invalidRefFormat")
 				}
 
-				val = n.mapping[ref][val]
-				v.Value = val
+				if mod, ok := n.mapping[ref]; ok {
+					if vv, ok := mod[val]; ok {
+						v.Value = vv
+					} else {
+						v.Value = ""
+						continue
+					}
+				} else {
+					v.Value = ""
+					continue
+				}
 			}
 		}
 
 		// update values
+		nv := types.RecordValueSet{}
+		for _, v := range r.Values {
+			if v.Value != "" {
+				nv = append(nv, v)
+			}
+		}
+
+		r.Values = nv
 		err := repo.UpdateValues(r.ID, r.Values)
 		if err != nil {
 			return err
