@@ -80,14 +80,12 @@ func (n *Node) Migrate(repoRecord repository.RecordRepository, users map[string]
 	defer wg.Done()
 	defer bar.Add(1)
 
-	fmt.Printf("node.migrate > %s\n", n.Stringify())
 	var err error
 
 	mapping := make(Map)
 	if n.Reader != nil {
 		// if records exist (from spliced node); correct refs
 		if !n.spliced && n.records != nil && len(n.records) > 0 {
-			fmt.Printf("node.refs.update\n")
 			// we can just reuse the mapping object, since it will remain the same
 			mapping = n.mapping[fmt.Sprint(n.Module.ID)]
 
@@ -99,9 +97,7 @@ func (n *Node) Migrate(repoRecord repository.RecordRepository, users map[string]
 				}
 				return
 			}
-			fmt.Printf("node.refs.update.done\n")
 		} else {
-			fmt.Printf("node.migrate.source\n")
 			mapping, err = importNodeSource(n, users, repoRecord)
 			if err != nil {
 				ch <- PostProc{
@@ -110,7 +106,6 @@ func (n *Node) Migrate(repoRecord repository.RecordRepository, users map[string]
 				}
 				return
 			}
-			fmt.Printf("node.migrate.source.done\n")
 		}
 	}
 
