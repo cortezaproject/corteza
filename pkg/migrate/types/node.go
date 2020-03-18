@@ -5,11 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/schollz/progressbar/v2"
 )
 
 type (
