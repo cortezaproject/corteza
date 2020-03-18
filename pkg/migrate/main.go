@@ -17,6 +17,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/migrate/types"
 	sysRepo "github.com/cortezaproject/corteza-server/system/repository"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
+	"github.com/schollz/progressbar/v2"
 )
 
 var (
@@ -214,8 +215,15 @@ func (m *Migrator) MakeAcyclic() {
 
 // processess migration nodes and migrates the data from the provided source files
 func (m *Migrator) Migrate(ctx context.Context, users map[string]uint64) error {
+	fmt.Println("(•_•)")
+	fmt.Println("(-•_•)>⌐■-■")
+	fmt.Println("(⌐■_■)")
+	fmt.Print("\n\n\n")
+
 	db := repository.DB(ctx)
 	repoRecord := repository.Record(ctx, db)
+
+	bar := progressbar.New(len(m.nodes))
 
 	return db.Transaction(func() (err error) {
 		for len(m.Leafs) > 0 {
@@ -226,7 +234,7 @@ func (m *Migrator) Migrate(ctx context.Context, users map[string]uint64) error {
 				wg.Add(1)
 
 				// migrate & update leaf nodes
-				go n.Migrate(repoRecord, users, &wg, ch)
+				go n.Migrate(repoRecord, users, &wg, ch, bar)
 			}
 
 			wg.Wait()

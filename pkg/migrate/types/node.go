@@ -76,8 +76,9 @@ func (n *Node) addMap(key string, m Map) {
 }
 
 // does the actual data migration for the given node
-func (n *Node) Migrate(repoRecord repository.RecordRepository, users map[string]uint64, wg *sync.WaitGroup, ch chan PostProc) {
+func (n *Node) Migrate(repoRecord repository.RecordRepository, users map[string]uint64, wg *sync.WaitGroup, ch chan PostProc, bar *progressbar.ProgressBar) {
 	defer wg.Done()
+	defer bar.Add(1)
 
 	fmt.Printf("node.migrate > %s\n", n.Stringify())
 	var err error
