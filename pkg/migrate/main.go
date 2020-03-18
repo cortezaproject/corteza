@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
-	"errors"
 	"fmt"
 	"io"
 	"strconv"
@@ -35,13 +34,14 @@ type (
 )
 
 func Migrate(mg []types.Migrateable, ns *cct.Namespace, ctx context.Context) error {
+	var preProcW []string
+
 	mig := &Migrator{}
 	svcMod := service.DefaultModule.With(ctx)
 
 	var err error
 
 	// 1. migrate all the users, so we can reference then accross the entire system
-	start := time.Now()
 	var mgUsr *types.Migrateable
 	for _, m := range mg {
 		if m.Name == userModHandle {
@@ -80,12 +80,11 @@ func Migrate(mg []types.Migrateable, ns *cct.Namespace, ctx context.Context) err
 		}
 
 		for _, m := range ss {
-			fmt.Printf("mg.processing > %s\n", m.Name)
-
 			// 2.1 load module
 			mod, err := svcMod.FindByHandle(ns.ID, m.Name)
 			if err != nil {
-				return err
+				preProcW = append(preProcW, err.Error()+" "+m.Name)
+				continue
 			}
 
 			// 2.2 get header fields
@@ -119,23 +118,26 @@ func Migrate(mg []types.Migrateable, ns *cct.Namespace, ctx context.Context) err
 				if f.Kind == "Record" {
 					refMod := f.Options["moduleID"]
 					if refMod == nil {
-						return errors.New("moduleField.record.missingRef")
+						preProcW = append(preProcW, "moduleField.record.missingRef"+" "+m.Name+" "+f.Name)
+						continue
 					}
 
 					modID, ok := refMod.(string)
 					if !ok {
-						return errors.New("moduleField.record.invalidRefFormat")
+						preProcW = append(preProcW, "moduleField.record.invalidRefFormat"+" "+m.Name+" "+f.Name)
+						continue
 					}
-					fmt.Printf("mg.node.link > %s [%s]\n", f.Name, modID)
 
 					vv, err := strconv.ParseUint(modID, 10, 64)
 					if err != nil {
-						return err
+						preProcW = append(preProcW, err.Error())
+						continue
 					}
 
 					mm, err := svcMod.FindByID(ns.ID, vv)
 					if err != nil {
-						return err
+						preProcW = append(preProcW, err.Error()+" "+m.Name+" "+f.Name+" "+modID)
+						continue
 					}
 
 					nn := &types.Node{
@@ -149,12 +151,9 @@ func Migrate(mg []types.Migrateable, ns *cct.Namespace, ctx context.Context) err
 					n.LinkAdd(nn)
 				}
 			}
-
-			fmt.Printf("mg.processed > %s\n\n\n", m.Name)
 		}
 	}
 
-	fmt.Printf("graph.remove.cycles\n")
 	mig.MakeAcyclic()
 
 	for _, n := range mig.nodes {
@@ -164,25 +163,14 @@ func Migrate(mg []types.Migrateable, ns *cct.Namespace, ctx context.Context) err
 		}
 	}
 
-	graphT := time.Since(start)
-
 	fmt.Printf("migration.prepared\n")
 	fmt.Printf("no. of nodes %d\n", len(mig.nodes))
 	fmt.Printf("no. of entry points %d\n", len(mig.Leafs))
-
-	fmt.Printf("\n\nmigrator.migrating\n")
-
-	start = time.Now()
 
 	err = mig.Migrate(ctx, uMap)
 	if err != nil {
 		return err
 	}
-	migT := time.Since(start)
-	start = time.Now()
-
-	fmt.Printf("\n\nmigrator.migrating.finished\n")
-	fmt.Printf("time;\n* users: %s,\n* graph: %s,\n* migration: %s", usrT, graphT, migT)
 
 	return nil
 }
@@ -275,6 +263,11 @@ func (m *Migrator) Migrate(ctx context.Context, users map[string]uint64) error {
 			}
 			m.Leafs = nl
 		}
+
+		fmt.Print("\n\n\n")
+		fmt.Println("(⌐■_■)")
+		fmt.Println("(-•_•)>⌐■-■")
+		fmt.Println("(•_•)")
 
 		return nil
 	})
