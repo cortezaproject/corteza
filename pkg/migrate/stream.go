@@ -29,8 +29,8 @@ type (
 // See readme for more info
 func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 	var rr []types.Migrateable
-	rr = append(rr, m)
 	if m.Map == nil {
+		rr = append(rr, m)
 		return rr, nil
 	}
 
