@@ -360,6 +360,13 @@ func updateRefs(n *Node, repo repository.RecordRepository) error {
 func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRepository) (Map, error) {
 	mapping := make(Map)
 
+	fixUtf := func(r rune) rune {
+		if r == utf8.RuneError {
+			return -1
+		}
+		return r
+	}
+
 	for {
 	looper:
 		record, err := n.Reader.Read()
@@ -450,9 +457,11 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 				} else if f.Kind == "User" {
 				}
 				} else {
+					val = strings.Map(fixUtf, val)
 
-				if f != nil && f.Kind == "User" {
-					val = fmt.Sprint(users[val])
+					if val == "" {
+						continue
+					}
 				}
 
 				if val != "" {
