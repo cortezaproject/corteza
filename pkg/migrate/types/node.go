@@ -29,6 +29,7 @@ type (
 		// determines if node was spliced; used to break the loop
 		spliced  bool
 		original *Node
+		spl      *Node
 
 		// records are applicable in the case of spliced nodes
 		records []*types.Record
@@ -266,13 +267,20 @@ func (n *Node) clone() *Node {
 
 // splices the node from the original graph and removes the cycle
 func (n *Node) Splice(from *Node) *Node {
-	splicedN := from.clone()
-	splicedN.spliced = true
-	splicedN.Parents = nil
-	splicedN.Children = nil
-	splicedN.inPath = false
+	splicedN := from.spl
 
-	splicedN.original = from
+	if splicedN == nil {
+		splicedN = from.clone()
+		splicedN.spliced = true
+		splicedN.Parents = nil
+		splicedN.Children = nil
+		splicedN.inPath = false
+
+		splicedN.original = from
+		from.spl = splicedN
+
+		from.LinkAdd(splicedN)
+	}
 
 	n.LinkRemove(from)
 	n.LinkAdd(splicedN)
