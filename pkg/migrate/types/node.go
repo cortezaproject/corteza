@@ -442,20 +442,29 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 				}
 
 				if f.Options["moduleID"] != nil {
-				// spliced nodes should NOT manage their references
-				if !n.spliced && f != nil && f.Options["moduleID"] != nil {
-					ref, ok := f.Options["moduleID"].(string)
-					if !ok {
-						return nil, errors.New("moduleField.record.invalidRefFormat")
-					}
+					// spliced nodes should NOT manage their references
+					if !n.spliced {
+						ref, ok := f.Options["moduleID"].(string)
+						if !ok {
+							return nil, errors.New("moduleField.record.invalidRefFormat")
+						}
 
-					if n.mapping[ref] != nil {
-						if n.mapping[ref] != nil {
-							val = n.mapping[ref][val]
+						if mod, ok := n.mapping[ref]; ok {
+							if v, ok := mod[val]; ok {
+								val = v
+							} else {
+								continue
+							}
+						} else {
+							continue
 						}
 					}
 				} else if f.Kind == "User" {
-				}
+					if u, ok := users[val]; ok {
+						val = fmt.Sprint(u)
+					} else {
+						continue
+					}
 				} else {
 					val = strings.Map(fixUtf, val)
 
@@ -464,12 +473,10 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 					}
 				}
 
-				if val != "" {
-					vals = append(vals, &types.RecordValue{
-						Name:  h,
-						Value: val,
-					})
-				}
+				vals = append(vals, &types.RecordValue{
+					Name:  h,
+					Value: val,
+				})
 			}
 		}
 
