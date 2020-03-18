@@ -51,15 +51,26 @@ func Migrate(mg []types.Migrateable, ns *cct.Namespace, ctx context.Context) err
 	}
 
 	var uMap map[string]uint64
-
 	if mgUsr != nil {
-		uMap, err = migrateUsers(*mgUsr, ns, ctx)
+		um, mgu, err := migrateUsers(mgUsr, ns, ctx)
 		if err != nil {
 			return err
 		}
+
+		uMap = um
+		found := false
+		for i, m := range mg {
+			if m.Name == mgu.Name {
+				mg[i] = *mgu
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			mg = append(mg, *mgu)
+		}
 	}
-	usrT := time.Since(start)
-	start = time.Now()
 
 	// 2. prepare and link migration nodes
 	for _, mgR := range mg {
@@ -271,20 +282,24 @@ func (m *Migrator) Migrate(ctx context.Context, users map[string]uint64) error {
 
 // migrates provided users
 // this should be a pre-requisite to any further migration, as user information is required
-func migrateUsers(mg types.Migrateable, ns *cct.Namespace, ctx context.Context) (map[string]uint64, error) {
+func migrateUsers(mg *types.Migrateable, ns *cct.Namespace, ctx context.Context) (map[string]uint64, *types.Migrateable, error) {
 	db := repository.DB(ctx)
 	repoUser := sysRepo.User(ctx, db)
 	// this provides a map between SF ID -> CortezaID
 	mapping := make(map[string]uint64)
 
+	// create a new buffer for user object, so we don't loose our data
+	var bb bytes.Buffer
+	ww := csv.NewWriter(&bb)
+	defer ww.Flush()
+
 	// get fields
-	var srcBuf bytes.Buffer
-	tee := io.TeeReader(mg.Source, &srcBuf)
-	r := csv.NewReader(tee)
+	r := csv.NewReader(mg.Source)
 	header, err := r.Read()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+	ww.Write(header)
 
 	// create users
 	for {
@@ -295,8 +310,10 @@ func migrateUsers(mg types.Migrateable, ns *cct.Namespace, ctx context.Context) 
 		}
 
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
+
+		ww.Write(record)
 
 		u := &sysTypes.User{}
 		for i, h := range header {
@@ -325,7 +342,7 @@ func migrateUsers(mg types.Migrateable, ns *cct.Namespace, ctx context.Context) 
 				if val != "" {
 					u.CreatedAt, err = time.Parse(types.SfDateTime, val)
 					if err != nil {
-						return nil, err
+						return nil, nil, err
 					}
 				}
 				break
@@ -335,14 +352,14 @@ func migrateUsers(mg types.Migrateable, ns *cct.Namespace, ctx context.Context) 
 					tt, err := time.Parse(types.SfDateTime, val)
 					u.UpdatedAt = &tt
 					if err != nil {
-						return nil, err
+						return nil, nil, err
 					}
 				}
 				break
 
 				// ignore deleted values, as SF provides minimal info about those
 			case "IsDeleted":
-				if val != "" {
+				if val == "1" {
 					goto looper
 				}
 			}
@@ -355,13 +372,20 @@ func migrateUsers(mg types.Migrateable, ns *cct.Namespace, ctx context.Context) 
 		} else {
 			u, err = repoUser.Create(u)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 		}
 
 		mapping[record[0]] = u.ID
 	}
 
-	mg.Source = &srcBuf
-	return mapping, nil
+	uu := &types.Migrateable{
+		Name:   mg.Name,
+		Header: mg.Header,
+		Map:    mg.Map,
+		Path:   mg.Path,
+		Source: &bb,
+	}
+
+	return mapping, uu, nil
 }
