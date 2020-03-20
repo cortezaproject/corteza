@@ -7,11 +7,11 @@ import (
 
 // Match returns false if given conditions do not match event & resource internals
 func (res applicationBase) Match(c eventbus.ConstraintMatcher) bool {
-	return applicationMatch(res.application, c, false)
+	return applicationMatch(res.application, c)
 }
 
 // Handles application matchers
-func applicationMatch(r *types.Application, c eventbus.ConstraintMatcher, def bool) bool {
+func applicationMatch(r *types.Application, c eventbus.ConstraintMatcher) bool {
 	switch c.Name() {
 	// not supported yet
 	//case "application", "application.handle":
@@ -21,5 +21,5 @@ func applicationMatch(r *types.Application, c eventbus.ConstraintMatcher, def bo
 
 	}
 
-	return def
+	return false
 }
