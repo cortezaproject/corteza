@@ -15,11 +15,11 @@ func (res mailBase) Match(c eventbus.ConstraintMatcher) bool {
 	//   constraint#1 AND constraint#2 AND constraint#3 ...
 	//
 	// When there are multiple values, Match() can decide how to treat them (OR, AND...)
-	return mailMatch(res.message, c, false)
+	return mailMatch(res.message, c)
 }
 
 // Handles role matchers
-func mailMatch(r *types.MailMessage, c eventbus.ConstraintMatcher, def bool) bool {
+func mailMatch(r *types.MailMessage, c eventbus.ConstraintMatcher) bool {
 	switch c.Name() {
 	case "mail.header.subject":
 		return c.Match(r.Subject)
@@ -35,7 +35,7 @@ func mailMatch(r *types.MailMessage, c eventbus.ConstraintMatcher, def bool) boo
 		return mailMatchAnyAddress(c, r.Header.BCC...)
 	}
 
-	return def
+	return false
 }
 
 func mailMatchAnyAddress(c eventbus.ConstraintMatcher, aa ...*mail.Address) bool {

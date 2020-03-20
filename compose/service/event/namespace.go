@@ -7,11 +7,11 @@ import (
 
 // Match returns false if given conditions do not match event & resource internals
 func (res namespaceBase) Match(c eventbus.ConstraintMatcher) bool {
-	return namespaceMatch(res.namespace, c, false)
+	return namespaceMatch(res.namespace, c)
 }
 
 // Handles namespace matchers
-func namespaceMatch(r *types.Namespace, c eventbus.ConstraintMatcher, def bool) bool {
+func namespaceMatch(r *types.Namespace, c eventbus.ConstraintMatcher) bool {
 	switch c.Name() {
 	case "namespace", "namespace.slug":
 		return c.Match(r.Slug)
@@ -19,5 +19,5 @@ func namespaceMatch(r *types.Namespace, c eventbus.ConstraintMatcher, def bool) 
 		return c.Match(r.Name)
 	}
 
-	return def
+	return false
 }
