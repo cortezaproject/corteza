@@ -14,11 +14,7 @@ const (
 
 // Match returns false if given conditions do not match event & resource internals
 func (res sinkBase) Match(c eventbus.ConstraintMatcher) bool {
-	if !sinkMatch(res.request, c) {
-		return false
-	}
-
-	return true
+	return sinkMatch(res.request, c)
 }
 
 // Handles sink's URL matchers

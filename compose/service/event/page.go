@@ -7,11 +7,14 @@ import (
 
 // Match returns false if given conditions do not match event & resource internals
 func (res pageBase) Match(c eventbus.ConstraintMatcher) bool {
-	return namespaceMatch(res.namespace, c, pageMatch(res.page, c, false))
+	return eventbus.MatchFirst(
+		func() bool { return pageMatch(res.page, c) },
+		func() bool { return namespaceMatch(res.namespace, c) },
+	)
 }
 
 // Handles namespace matchers
-func pageMatch(r *types.Page, c eventbus.ConstraintMatcher, def bool) bool {
+func pageMatch(r *types.Page, c eventbus.ConstraintMatcher) bool {
 	switch c.Name() {
 	case "page", "page.handle":
 		return c.Match(r.Handle)
@@ -19,5 +22,5 @@ func pageMatch(r *types.Page, c eventbus.ConstraintMatcher, def bool) bool {
 		return c.Match(r.Title)
 	}
 
-	return def
+	return false
 }
