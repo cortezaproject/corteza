@@ -129,3 +129,35 @@ When creating a `.map.json` file, values from the join operation are available u
   }
 ]
 ----
+
+== Value Mapping
+
+The system allows us to map a specific value from the provided `.csv` file into a value used by the system.
+For example; we can map `In Progress` into `in_progress`.
+The mapping also supports a default value, by using the `*` wildcard.
+
+=== Algorithrm
+
+* unmarshal the given `.value.json`
+* before applying a value for the given field, attempt to map the value
+** if mapping is successful, use the mapped value,
+** else if default value exists, use the default value,
+** else use the original value.
+
+=== Example
+
+.source.values.json
+
+The following value mapping maps `sys_status` field's values; the left one into the right one, with a default of `"new"` (`"*": "new"`).
+
+[source,json]
+----
+{
+  "sys_status": {
+    "In Progress": "in_progress",
+    "Send to QA": "qa_pending",
+    "Submit Job": "qa_approved",
+    "*": "new"
+  }
+}
+----

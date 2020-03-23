@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -97,6 +99,27 @@ func Migrator() *cobra.Command {
 					mm := migrateableSource(mg, name)
 					mm.Name = name
 					mm.Join = file
+
+					mg = migrateableAdd(mg, mm)
+				} else if strings.HasSuffix(info.Name(), ".value.json") {
+					file, err := os.Open(path)
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					ext := filepath.Ext(info.Name())
+					// @todo improve this!!
+					name := info.Name()[0 : len(info.Name())-len(ext)-6]
+					mm := migrateableSource(mg, name)
+					mm.Name = name
+
+					var vmp map[string]map[string]string
+					src, _ := ioutil.ReadAll(file)
+					err = json.Unmarshal(src, &vmp)
+					if err != nil {
+						log.Fatal(err)
+					}
+					mm.ValueMap = vmp
 
 					mg = migrateableAdd(mg, mm)
 				}

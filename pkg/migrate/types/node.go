@@ -57,6 +57,9 @@ type (
 
 		// field: recordID: [value]
 		FieldMap map[string]JoinedNodeRecords
+
+		// field: value from: value to
+		ValueMap map[string]map[string]string
 	}
 
 	// map between migrated ID and Corteza ID
@@ -172,6 +175,9 @@ func (n *Node) Merge(nn *Node) {
 	}
 	if nn.FieldMap != nil {
 		n.FieldMap = nn.FieldMap
+	}
+	if nn.ValueMap != nil {
+		n.ValueMap = nn.ValueMap
 	}
 }
 
@@ -519,6 +525,14 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 				}
 
 				for i, v := range values {
+					if fmp, ok := n.ValueMap[h]; ok {
+						if mpv, ok := fmp[v]; ok {
+							v = mpv
+						} else if mpv, ok := fmp["*"]; ok {
+							v = mpv
+						}
+					}
+
 					vals = append(vals, &types.RecordValue{
 						Name:  h,
 						Value: v,

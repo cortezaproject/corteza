@@ -117,6 +117,7 @@ func Migrate(mg []types.Migrateable, ns *cct.Namespace, ctx context.Context) err
 				Header:    header,
 				Lock:      &sync.Mutex{},
 				FieldMap:  m.FieldMap,
+				ValueMap:  m.ValueMap,
 			}
 			n = mig.AddNode(n)
 
