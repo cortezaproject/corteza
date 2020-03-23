@@ -483,13 +483,14 @@ func (svc *service) registerTriggers(script *ServerScript) []uintptr {
 
 		ptr := svc.eventRegistry.Register(func(ctx context.Context, ev eventbus.Event) (err error) {
 			// Is this compatible event?
-			if ev, ok := ev.(Event); ok {
+			if ce, ok := ev.(Event); ok {
 				// Can only work with corteza compatible events
-				return svc.exec(ctx, script.Name, runAs, ev)
+				return svc.exec(ctx, script.Name, runAs, ce)
 			}
 
 			return nil
 		}, ops...)
+
 		ptrs = append(ptrs, ptr)
 	}
 
