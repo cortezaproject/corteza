@@ -142,14 +142,14 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 						bufs[nm].header = append(bufs[nm].header, nmF)
 					}
 				}
+			}
+		}
 
-				// write csv rows
-				for _, v := range bufs {
-					v.writer.Write(v.row)
-					var nn []string
-					v.row = nn
-				}
-				break
+		// write csv rows
+		for _, v := range bufs {
+			if len(v.row) > 0 {
+				v.writer.Write(v.row)
+				v.row = []string{}
 			}
 		}
 	}
