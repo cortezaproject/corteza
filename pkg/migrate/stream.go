@@ -14,11 +14,12 @@ import (
 
 type (
 	SplitBuffer struct {
-		buffer *bytes.Buffer
-		name   string
-		row    []string
-		header []string
-		writer *csv.Writer
+		buffer    *bytes.Buffer
+		name      string
+		row       []string
+		header    []string
+		hasHeader bool
+		writer    *csv.Writer
 
 		// field: masterID: [value]
 		joins map[string]map[string][]string
@@ -64,12 +65,7 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 
 	// splitting magic
 
-	// @fix this hack will not always work.
-	// replace with a set or something similar
-	i := -1
 	for {
-		i++
-
 		record, err := r.Read()
 		if err == io.EOF {
 			break
@@ -77,6 +73,11 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 
 		if err != nil {
 			return nil, err
+		}
+
+		// on next row, old stream's headers are finished
+		for _, b := range bufs {
+			b.hasHeader = true
 		}
 
 		// find first applicable map, that can be used for the given row.
@@ -114,9 +115,10 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 						ww := csv.NewWriter(&bb)
 						defer ww.Flush()
 						bufs[nm] = &SplitBuffer{
-							buffer: &bb,
-							writer: ww,
-							name:   nm,
+							buffer:    &bb,
+							writer:    ww,
+							name:      nm,
+							hasHeader: false,
 						}
 					}
 
@@ -159,8 +161,7 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 						from = baseFIeld
 					}
 
-					bufs[nm].row = append(bufs[nm].row, record[hMap[from]])
-					if i == 0 {
+					if !bufs[nm].hasHeader {
 						bufs[nm].header = append(bufs[nm].header, nmF)
 					}
 				}
