@@ -29,5 +29,9 @@ type (
 		FieldMap map[string]JoinedNodeRecords
 		// helps us determine what value field to use for linking
 		AliasMap map[string]string
+
+		// value is used for field value mapping
+		// field: value from: value to
+		ValueMap map[string]map[string]string
 	}
 )

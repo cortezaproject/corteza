@@ -162,6 +162,7 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 			Header:   &v.header,
 			FieldMap: m.FieldMap,
 			AliasMap: m.AliasMap,
+			ValueMap: m.ValueMap,
 		})
 	}
 
