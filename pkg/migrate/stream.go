@@ -86,24 +86,24 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 			if checkWhere(strmp["where"], record, hMap) {
 				maps, ok := strmp["map"].([]interface{})
 				if !ok {
-					return nil, errors.New("streamMap.invalidMap")
+					return nil, errors.New("streamMap.invalidMap " + m.Name)
 				}
 
 				// populate splitted streams
 				for _, mp := range maps {
 					mm, ok := mp.(map[string]interface{})
 					if !ok {
-						return nil, errors.New("streamMap.map.invalidEntry")
+						return nil, errors.New("streamMap.map.invalidEntry " + m.Name)
 					}
 
 					from, ok := mm["from"].(string)
 					if !ok {
-						return nil, errors.New("streamMap.map.entry.invalidFrom")
+						return nil, errors.New("streamMap.map.entry.invalidFrom " + m.Name)
 					}
 
 					to, ok := mm["to"].(string)
 					if !ok {
-						return nil, errors.New("streamMap.map.invalidTo")
+						return nil, errors.New("streamMap.map.invalidTo " + m.Name)
 					}
 
 					vv := strings.Split(to, ".")
