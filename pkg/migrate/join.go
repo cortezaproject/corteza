@@ -3,6 +3,7 @@ package migrate
 import (
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"strings"
@@ -11,10 +12,24 @@ import (
 )
 
 type (
-	// temporary node structure
+	// mapLink helps us keep track between base nodes, joined nodes and the fields used
+	// for creating the link
+	mapLink struct {
+		jn *types.JoinedNode
+		// field from the base node used in the op.
+		baseField string
+		// alias to use for the base field; allows us to use the same field multiple times
+		baseFieldAlias string
+		// field from the joined node to use in the opp.
+		joinField string
+	}
+
+	// temporary node for the join op.
 	node struct {
-		mg     *types.Migrateable
-		Joined []*types.JoinedNode
+		mg *types.Migrateable
+		// temporary migration node mapper based on aliases
+		mapper   map[string]mapLink
+		aliasMap map[string]string
 	}
 )
 
@@ -24,14 +39,25 @@ func sourceJoin(mm []types.Migrateable) ([]types.Migrateable, error) {
 	var rr []*node
 	joinedNodes := make(map[string]*types.JoinedNode)
 
+	// Algorithm outline:
+	// 1. determine all migration nodes that will be used as joined nodes
+	// 2. load entries for each join node
+	// 3. construct new output migration nodes
+
+	// 1. determination
 	for _, mg := range mm {
+		// this helps us avoid pesky pointer issues :)
 		ww := mg
-		node := &node{mg: &ww}
-		rr = append(rr, node)
+		nd := &node{mg: &ww}
+		rr = append(rr, nd)
 
 		if mg.Join == nil {
 			continue
 		}
+
+		// defer this, so we can do simple nil checks
+		nd.mapper = make(map[string]mapLink)
+		nd.aliasMap = make(map[string]string)
 
 		// join definition map defines how two sources are joined
 		var joinDef map[string]string
@@ -41,35 +67,49 @@ func sourceJoin(mm []types.Migrateable) ([]types.Migrateable, error) {
 			return nil, err
 		}
 
-		// find all joined nodes for the given migration node
-		for baseField, condition := range joinDef {
-			pts := strings.Split(condition, ".")
-			joinedModule := pts[0]
-			joinedByField := pts[1]
+		// find all joined nodes for the given base node
+		for base, condition := range joinDef {
+			ptsB := strings.Split(base, "->")
+			baseField := ptsB[0]
+			baseFieldAlias := ptsB[1]
 
+			if _, ok := nd.aliasMap[baseFieldAlias]; ok {
+				return nil, errors.New("alias.used " + nd.mg.Name + " " + baseFieldAlias)
+			}
+			nd.aliasMap[baseFieldAlias] = baseField
+
+			ptsC := strings.Split(condition, ".")
+			joinedModule := ptsC[0]
+			joinedField := ptsC[1]
+
+			// register migration node as join node
 			for _, m := range mm {
 				if m.Name == joinedModule {
 					if _, ok := joinedNodes[joinedModule]; !ok {
 						ww := m
 						joinedNodes[joinedModule] = &types.JoinedNode{
-							Mg:        &ww,
-							Name:      ww.Name,
-							BaseField: baseField,
-							JoinField: joinedByField,
+							Mg:   &ww,
+							Name: ww.Name,
 						}
 					}
 
+					// create a link between the base and joined node
 					jn := joinedNodes[joinedModule]
-					node.Joined = append(node.Joined, jn)
+					nd.mapper[baseFieldAlias] = mapLink{
+						jn:             jn,
+						baseField:      baseField,
+						baseFieldAlias: baseFieldAlias,
+						joinField:      joinedField,
+					}
 					break
 				}
 			}
 		}
 	}
 
-	// load each joined node's entries
+	// 2. load entries
 	for _, jn := range joinedNodes {
-		jn.Entries = make(map[string][]*types.JoinEntry)
+		jn.Entries = make([]map[string]string, 0)
 		reader := csv.NewReader(jn.Mg.Source)
 
 		// header
@@ -88,44 +128,56 @@ func sourceJoin(mm []types.Migrateable) ([]types.Migrateable, error) {
 				return nil, err
 			}
 
-			ee := make(types.JoinEntry)
-			var eId string
+			row := make(map[string]string)
+			jn.Entries = append(jn.Entries, row)
 			for i, c := range record {
-				ee[header[i]] = c
-
-				if header[i] == jn.JoinField {
-					eId = c
-				}
+				row[header[i]] = c
 			}
-
-			if jn.Entries[eId] == nil {
-				jn.Entries[eId] = make([]*types.JoinEntry, 0)
-			}
-			jn.Entries[eId] = append(jn.Entries[eId], &ee)
 		}
 	}
 
-	// construct new migration nodes
-	// they should include context for the join operation
+	// 3. output
 	out := make([]types.Migrateable, 0)
-	for _, r := range rr {
-		// include only base migration nodes; exclude joined nodes
-		if _, ok := joinedNodes[r.mg.Name]; !ok {
-			jn := r.Joined
-			for _, s := range jn {
-				// no need for it further
-				s.Mg = nil
+	for _, nd := range rr {
+		fnd := false
+		for _, jn := range joinedNodes {
+			if nd.mg.Name == jn.Name {
+				fnd = true
+				break
 			}
-			mgg := types.Migrateable{
-				Name:   r.mg.Name,
-				Header: r.mg.Header,
-				Path:   r.mg.Path,
-				Source: r.mg.Source,
-				Map:    r.mg.Map,
-				Joins:  jn,
-			}
-			out = append(out, mgg)
 		}
+
+		// skip joined nodes
+		if fnd {
+			continue
+		}
+
+		o := nd.mg
+		// skip nodes with no mappings
+		if nd.mapper == nil {
+			out = append(out, *o)
+			continue
+		}
+
+		o.AliasMap = nd.aliasMap
+
+		// create `alias.ID`: []entry mappings, that will be used when migrating
+		for alias, link := range nd.mapper {
+			if o.FieldMap == nil {
+				o.FieldMap = make(map[string]types.JoinedNodeRecords)
+			}
+
+			for _, e := range link.jn.Entries {
+				kk := alias + "." + e[link.joinField]
+				if _, ok := o.FieldMap[kk]; !ok {
+					o.FieldMap[kk] = make(types.JoinedNodeRecords, 0)
+				}
+
+				o.FieldMap[kk] = append(o.FieldMap[kk], e)
+			}
+		}
+
+		out = append(out, *o)
 	}
 
 	return out, nil

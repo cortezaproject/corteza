@@ -9,6 +9,9 @@ var (
 )
 
 type (
+	JoinedNodeEntry   map[string]string
+	JoinedNodeRecords []JoinedNodeEntry
+
 	Migrateable struct {
 		Name string
 		Path string
@@ -22,7 +25,9 @@ type (
 		// join is used for source joining
 		Join  io.Reader
 		Joins []*JoinedNode
-		// field: recordID: [value]
-		FieldMap map[string]map[string][]string
+		// alias.ID: [value]
+		FieldMap map[string]JoinedNodeRecords
+		// helps us determine what value field to use for linking
+		AliasMap map[string]string
 	}
 )
