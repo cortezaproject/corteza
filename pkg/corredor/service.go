@@ -449,9 +449,6 @@ func (svc *service) registerServerScripts(ss ...*ServerScript) {
 }
 
 // Creates handler function for eventbus subsystem
-//
-// If trigger has "onManual" event type, it removes it and
-// registers that script to the list of manual triggers
 func (svc *service) registerTriggers(script *ServerScript) []uintptr {
 	var (
 		ops  []eventbus.HandlerRegOp
