@@ -16,16 +16,11 @@ import (
 )
 
 type (
-	// field: value
-	JoinEntry map[string]string
-
 	JoinedNode struct {
-		Mg        *Migrateable
-		Name      string
-		BaseField string
-		JoinField string
+		Mg   *Migrateable
+		Name string
 		// id: field: value
-		Entries map[string][]*JoinEntry
+		Entries []map[string]string
 	}
 
 	// graph node
@@ -61,7 +56,7 @@ type (
 		Lock *sync.Mutex
 
 		// field: recordID: [value]
-		FieldMap map[string]map[string][]string
+		FieldMap map[string]JoinedNodeRecords
 	}
 
 	// map between migrated ID and Corteza ID
@@ -70,6 +65,7 @@ type (
 	PostProc struct {
 		Leafs []*Node
 		Err   error
+		Node  *Node
 	}
 )
 
@@ -113,6 +109,7 @@ func (n *Node) Migrate(repoRecord repository.RecordRepository, users map[string]
 				ch <- PostProc{
 					Leafs: nil,
 					Err:   err,
+					Node:  n,
 				}
 				return
 			}
@@ -122,6 +119,7 @@ func (n *Node) Migrate(repoRecord repository.RecordRepository, users map[string]
 				ch <- PostProc{
 					Leafs: nil,
 					Err:   err,
+					Node:  n,
 				}
 				return
 			}
@@ -451,6 +449,13 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 					break
 				}
 			} else {
+				joined := ""
+				if strings.Contains(h, ":") {
+					pts := strings.Split(h, ":")
+					h = pts[0]
+					joined = pts[1]
+				}
+
 				var f *types.ModuleField
 				for _, ff := range n.Module.Fields {
 					if ff.Name == h {
@@ -463,42 +468,54 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 					continue
 				}
 
-				// check if joinable
-				if _, ok := n.FieldMap[h]; ok {
-					values = n.FieldMap[h][val]
-				} else if f.Options["moduleID"] != nil {
-					// spliced nodes should NOT manage their references
-					if !n.spliced {
-						ref, ok := f.Options["moduleID"].(string)
-						if !ok {
-							return nil, errors.New("moduleField.record.invalidRefFormat")
-						}
+				// simple hack to fully support multiple values from a joined node
+				vvs := make([]string, 0)
 
-						if mod, ok := n.mapping[ref]; ok {
-							if v, ok := mod[val]; ok {
-								val = v
+				// check if joinable
+				if joined != "" {
+					tmp := n.FieldMap[val]
+					for _, e := range tmp {
+						vvs = append(vvs, e[joined])
+					}
+				} else {
+					vvs = []string{val}
+				}
+
+				for _, val := range vvs {
+					if f.Options["moduleID"] != nil {
+						// spliced nodes should NOT manage their references
+						if !n.spliced {
+							ref, ok := f.Options["moduleID"].(string)
+							if !ok {
+								return nil, errors.New("moduleField.record.invalidRefFormat")
+							}
+
+							if mod, ok := n.mapping[ref]; ok && val != "" {
+								if v, ok := mod[val]; ok && v != "" {
+									val = v
+								} else {
+									continue
+								}
 							} else {
 								continue
 							}
+						}
+						values = append(values, val)
+					} else if f.Kind == "User" {
+						if u, ok := users[val]; ok {
+							val = fmt.Sprint(u)
 						} else {
 							continue
 						}
-					}
-					values = []string{val}
-				} else if f.Kind == "User" {
-					if u, ok := users[val]; ok {
-						val = fmt.Sprint(u)
+						values = append(values, val)
 					} else {
-						continue
-					}
-					values = []string{val}
-				} else {
-					val = strings.Map(fixUtf, val)
+						val = strings.Map(fixUtf, val)
 
-					if val == "" {
-						continue
+						if val == "" {
+							continue
+						}
+						values = append(values, val)
 					}
-					values = []string{val}
 				}
 
 				for i, v := range values {

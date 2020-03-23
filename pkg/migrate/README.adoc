@@ -93,16 +93,15 @@ For example; we want to populate a `User` module, that includes data from `User.
 
 .source.join.json
 
-`.join.json` files tell the system what fields in the base module will be joined with what fields in the sub module.
+`.join.json` files define how multiple migration nodes should join into a single module.
 
-The below example instructs, that the current module should be joined with `joinMod` based on the `Id` field.
-Same applies for the other entry.
+The below example instructs, that the current module should be constructed from it self and `subMod`; based on the `SubModRef` and `subMod.Id` relation.
+When creating a `.map.json` file, values from the join operation are available under the specified alias (`...->alias`).
 
 [source,json]
 ----
 {
-  "joinModField": "joinMod.Id",
-  "Id": "subMod.baseModId"
+  "SubModRef->smod": "subMod.Id"
 }
 ----
 
@@ -123,13 +122,8 @@ Same applies for the other entry.
       },
 
       {
-        "from": "joinModField.field1",
-        "to": "baseMod.joinedField1"
-      },
-
-      {
-        "from": "Id.name",
-        "to": "baseMod.reverseJoinNameField"
+        "from": "smod.field1",
+        "to": "baseMod.SubModField1"
       }
     ]
   }

@@ -122,56 +122,34 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 						}
 					}
 
+					val := record[hMap[from]]
+
 					// handle joins
 					if strings.Contains(from, ".") {
+						// construct a `alias.joinOnID` value, so we can perform a simple map lookup
 						pts := strings.Split(from, ".")
-						baseFIeld := pts[0]
-						joinedField := pts[1]
+						baseFieldAlias := pts[0]
+						originalOn := m.AliasMap[baseFieldAlias]
+						joinField := pts[1]
+						val = baseFieldAlias + "." + record[hMap[originalOn]]
 
-						// find slave
-						var jn *types.JoinedNode
-						for _, j := range m.Joins {
-							if j.BaseField == baseFIeld {
-								jn = j
-								break
-							}
-						}
-						if jn == nil {
-							return nil, errors.New("joinedNode.missing " + from)
-						}
-
-						if bufs[nm].joins == nil {
-							bufs[nm].joins = make(map[string]map[string][]string)
-						}
-
-						if bufs[nm].joins[nmF] == nil {
-							bufs[nm].joins[nmF] = make(map[string][]string)
-						}
-
-						vals := make([]string, 0)
-						for _, e := range jn.Entries[record[hMap[baseFIeld]]] {
-							for k, v := range *e {
-								if k == joinedField {
-									vals = append(vals, v)
-								}
-							}
-						}
-
-						bufs[nm].joins[nmF][record[hMap[baseFIeld]]] = vals
-						from = baseFIeld
+						// modify header field to specify what joined node field to use
+						nmF += ":" + joinField
 					}
 
+					bufs[nm].row = append(bufs[nm].row, val)
 					if !bufs[nm].hasHeader {
 						bufs[nm].header = append(bufs[nm].header, nmF)
 					}
 				}
-			}
 
-			// write csv rows
-			for _, v := range bufs {
-				v.writer.Write(v.row)
-				var nn []string
-				v.row = nn
+				// write csv rows
+				for _, v := range bufs {
+					v.writer.Write(v.row)
+					var nn []string
+					v.row = nn
+				}
+				break
 			}
 		}
 	}
@@ -182,7 +160,8 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 			Name:     v.name,
 			Source:   v.buffer,
 			Header:   &v.header,
-			FieldMap: v.joins,
+			FieldMap: m.FieldMap,
+			AliasMap: m.AliasMap,
 		})
 	}
 
