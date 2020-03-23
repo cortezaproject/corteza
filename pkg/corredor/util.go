@@ -41,13 +41,13 @@ func mapManualTriggers(script *ServerScript) map[string]bool {
 }
 
 // converts trigger's constraint to eventbus' constraint options
-func makeTriggerOpts(t *Trigger) (oo []eventbus.HandlerRegOp, err error) {
+func triggerToHandlerOps(t *Trigger) (oo []eventbus.HandlerRegOp, err error) {
 	if len(t.ResourceTypes) == 0 {
-		return nil, fmt.Errorf("can not generate trigger without at least one resource")
+		return nil, fmt.Errorf("can not generate event handler without at least one resource")
 	}
 
 	if len(t.EventTypes) == 0 {
-		return nil, fmt.Errorf("can not generate trigger without at least one events")
+		return nil, fmt.Errorf("can not generate event handler without at least one events")
 	}
 
 	// Make a copy of event types slice so that we do not modify it
@@ -59,9 +59,19 @@ func makeTriggerOpts(t *Trigger) (oo []eventbus.HandlerRegOp, err error) {
 	oo = append(oo, eventbus.For(t.ResourceTypes...))
 	oo = append(oo, eventbus.On(types...))
 
-	for _, raw := range t.Constraints {
+	if cc, err := constraintsToHandlerOps(t.Constraints); err != nil {
+		return nil, err
+	} else {
+		oo = append(oo, cc...)
+	}
+
+	return
+}
+
+func constraintsToHandlerOps(cc []*TConstraint) (oo []eventbus.HandlerRegOp, err error) {
+	for _, raw := range cc {
 		if c, err := eventbus.ConstraintMaker(raw.Name, raw.Op, raw.Value...); err != nil {
-			return nil, errors.Wrap(err, "can not generate trigger")
+			return nil, errors.Wrap(err, "can not generate constraints")
 		} else {
 			oo = append(oo, eventbus.Constraint(c))
 		}
