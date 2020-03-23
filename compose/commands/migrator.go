@@ -2,6 +2,7 @@ package commands
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -28,11 +30,12 @@ func Migrator() *cobra.Command {
 
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
-				ctx     = auth.SetSuperUserContext(cli.Context())
-				nsFlag  = cmd.Flags().Lookup("namespace").Value.String()
-				dirFlag = cmd.Flags().Lookup("dir").Value.String()
-				ns      *types.Namespace
-				err     error
+				ctx      = auth.SetSuperUserContext(cli.Context())
+				nsFlag   = cmd.Flags().Lookup("namespace").Value.String()
+				srcFlag  = cmd.Flags().Lookup("src").Value.String()
+				metaFlag = cmd.Flags().Lookup("meta").Value.String()
+				ns       *types.Namespace
+				err      error
 
 				mg []mgt.Migrateable
 			)
@@ -42,8 +45,8 @@ func Migrator() *cobra.Command {
 			if nsFlag == "" {
 				cli.HandleError(errors.New("ns.undefined"))
 			}
-			if dirFlag == "" {
-				cli.HandleError(errors.New("dir.undefined"))
+			if srcFlag == "" {
+				cli.HandleError(errors.New("src.undefined"))
 			}
 
 			if namespaceID, _ := strconv.ParseUint(nsFlag, 10, 64); namespaceID > 0 {
@@ -57,7 +60,8 @@ func Migrator() *cobra.Command {
 				}
 			}
 
-			err = filepath.Walk(dirFlag, func(path string, info os.FileInfo, err error) error {
+			// load src files
+			err = filepath.Walk(srcFlag, func(path string, info os.FileInfo, err error) error {
 				if strings.HasSuffix(info.Name(), ".csv") {
 					file, err := os.Open(path)
 					if err != nil {
@@ -72,65 +76,94 @@ func Migrator() *cobra.Command {
 					mm.Source = file
 
 					mg = migrateableAdd(mg, mm)
-					// @note yes Denis, we will support .yaml files
-				} else if strings.HasSuffix(info.Name(), ".map.json") {
-					file, err := os.Open(path)
-					if err != nil {
-						log.Fatal(err)
-					}
-
-					ext := filepath.Ext(info.Name())
-					// @todo improve this!!
-					name := info.Name()[0 : len(info.Name())-len(ext)-4]
-					mm := migrateableSource(mg, name)
-					mm.Name = name
-					mm.Map = file
-
-					mg = migrateableAdd(mg, mm)
-				} else if strings.HasSuffix(info.Name(), ".join.json") {
-					file, err := os.Open(path)
-					if err != nil {
-						log.Fatal(err)
-					}
-
-					ext := filepath.Ext(info.Name())
-					// @todo improve this!!
-					name := info.Name()[0 : len(info.Name())-len(ext)-5]
-					mm := migrateableSource(mg, name)
-					mm.Name = name
-					mm.Join = file
-
-					mg = migrateableAdd(mg, mm)
-				} else if strings.HasSuffix(info.Name(), ".value.json") {
-					file, err := os.Open(path)
-					if err != nil {
-						log.Fatal(err)
-					}
-
-					ext := filepath.Ext(info.Name())
-					// @todo improve this!!
-					name := info.Name()[0 : len(info.Name())-len(ext)-6]
-					mm := migrateableSource(mg, name)
-					mm.Name = name
-
-					var vmp map[string]map[string]string
-					src, _ := ioutil.ReadAll(file)
-					err = json.Unmarshal(src, &vmp)
-					if err != nil {
-						log.Fatal(err)
-					}
-					mm.ValueMap = vmp
-
-					mg = migrateableAdd(mg, mm)
 				}
 				return nil
 			})
 
-			if err != nil {
-				panic(err)
+			// load meta files
+			if metaFlag != "" {
+				err = filepath.Walk(metaFlag, func(path string, info os.FileInfo, err error) error {
+					if strings.HasSuffix(info.Name(), ".map.json") {
+						file, err := os.Open(path)
+						if err != nil {
+							log.Fatal(err)
+						}
+
+						ext := filepath.Ext(info.Name())
+						// @todo improve this!!
+						name := info.Name()[0 : len(info.Name())-len(ext)-4]
+						mm := migrateableSource(mg, name)
+						mm.Name = name
+						mm.Map = file
+
+						mg = migrateableAdd(mg, mm)
+					} else if strings.HasSuffix(info.Name(), ".join.json") {
+						file, err := os.Open(path)
+						if err != nil {
+							log.Fatal(err)
+						}
+
+						ext := filepath.Ext(info.Name())
+						// @todo improve this!!
+						name := info.Name()[0 : len(info.Name())-len(ext)-5]
+						mm := migrateableSource(mg, name)
+						mm.Name = name
+						mm.Join = file
+
+						mg = migrateableAdd(mg, mm)
+					} else if strings.HasSuffix(info.Name(), ".value.json") {
+						file, err := os.Open(path)
+						if err != nil {
+							log.Fatal(err)
+						}
+
+						ext := filepath.Ext(info.Name())
+						// @todo improve this!!
+						name := info.Name()[0 : len(info.Name())-len(ext)-6]
+						mm := migrateableSource(mg, name)
+						mm.Name = name
+
+						var vmp map[string]map[string]string
+						src, _ := ioutil.ReadAll(file)
+						err = json.Unmarshal(src, &vmp)
+						if err != nil {
+							log.Fatal(err)
+						}
+						mm.ValueMap = vmp
+
+						mg = migrateableAdd(mg, mm)
+					}
+					return nil
+				})
+
+				if err != nil {
+					panic(err)
+				}
 			}
 
-			err = mgg.Migrate(mg, ns, ctx)
+			// clean up migrateables
+			hasW := false
+			out := make([]mgt.Migrateable, 0)
+			for _, m := range mg {
+				if m.Source != nil {
+					out = append(out, m)
+				} else {
+					hasW = true
+					spew.Dump("[warning] migrationNode.missingSource " + m.Name)
+				}
+			}
+
+			if hasW {
+				var rsp string
+				fmt.Print("warnings detected; continue [y/N]? ")
+				_, err := fmt.Scanln(&rsp)
+
+				if err != nil || rsp != "y" && rsp != "yes" {
+					log.Fatal("migration aborted due to warnings")
+				}
+			}
+
+			err = mgg.Migrate(out, ns, ctx)
 			if err != nil {
 				panic(err)
 			}
@@ -139,7 +172,8 @@ func Migrator() *cobra.Command {
 	}
 
 	cmd.Flags().String("namespace", "", "Import into namespace (by ID or string)")
-	cmd.Flags().String("dir", "", "Directory with migration files")
+	cmd.Flags().String("src", "", "Directory with migration files")
+	cmd.Flags().String("meta", "", "Directory with meta files")
 
 	return cmd
 }
