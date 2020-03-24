@@ -527,6 +527,23 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 						if val == "" {
 							continue
 						}
+
+						// assure date time formatting
+						if f.Kind == "DateTime" {
+							pvl, err := time.Parse(SfDateTime, val)
+							if err != nil {
+								return nil, err
+							}
+
+							if f.Options.Bool("onlyDate") {
+								val = pvl.Format("2006-01-02")
+							} else if f.Options.Bool("onlyTime") {
+								val = pvl.Format("15:04:05Z")
+							} else {
+								val = pvl.Format(time.RFC3339)
+							}
+						}
+
 						values = append(values, val)
 					}
 				}
