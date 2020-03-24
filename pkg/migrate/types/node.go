@@ -397,7 +397,7 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 		return r
 	}
 
-	lng := exprs()
+	lng := Exprs()
 
 	for {
 	looper:
@@ -417,6 +417,12 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 		}
 
 		vals := types.RecordValueSet{}
+
+		row := map[string]string{}
+		for i, h := range n.Header {
+			row[h] = record[i]
+		}
+
 		for i, h := range n.Header {
 			var values []string
 			val := record[i]
@@ -564,7 +570,7 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 								return nil, err
 							}
 
-							v, err = ev.EvalString(context.Background(), map[string]interface{}{"cell": v})
+							v, err = ev.EvalString(context.Background(), map[string]interface{}{"cell": v, "row": row})
 							if err != nil {
 								return nil, err
 							}

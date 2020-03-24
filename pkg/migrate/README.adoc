@@ -176,7 +176,8 @@ The system also provides support for arbitrary mathematical expressions.
 If you wish to perform an expression, prefix the mapped value with `=EVL=`; for example `=EVL=numFmt(cell, \"%.0f\")`.
 
 Variables:
-* current cell -- `cell`.
+* current cell -- `cell`,
+* current row -- `row`; access cell by it's name -- eg. `row.FirstName + row.LastName`.
 
 The following example will remove the decimal point from every `sys_rating` in the given source.
 
