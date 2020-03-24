@@ -1,6 +1,7 @@
 package types
 
 import (
+	"context"
 	"encoding/csv"
 	"errors"
 	"fmt"
@@ -70,6 +71,10 @@ type (
 		Err   error
 		Node  *Node
 	}
+)
+
+const (
+	evalPrefix = "=EVL="
 )
 
 // helper, to determine if the two nodes are equal
@@ -392,6 +397,8 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 		return r
 	}
 
+	lng := exprs()
+
 	for {
 	looper:
 		record, err := n.Reader.Read()
@@ -526,10 +533,26 @@ func importNodeSource(n *Node, users map[string]uint64, repo repository.RecordRe
 
 				for i, v := range values {
 					if fmp, ok := n.ValueMap[h]; ok {
+						nvl := ""
 						if mpv, ok := fmp[v]; ok {
-							v = mpv
+							nvl = mpv
 						} else if mpv, ok := fmp["*"]; ok {
-							v = mpv
+							nvl = mpv
+						}
+
+						if nvl != "" && strings.HasPrefix(nvl, evalPrefix) {
+							opp := nvl[len(evalPrefix):len(nvl)]
+							ev, err := lng.NewEvaluable(opp)
+							if err != nil {
+								return nil, err
+							}
+
+							v, err = ev.EvalString(context.Background(), map[string]interface{}{"cell": v})
+							if err != nil {
+								return nil, err
+							}
+						} else if nvl != "" {
+							v = nvl
 						}
 					}
 
