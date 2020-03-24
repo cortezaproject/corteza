@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"regexp"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/migrate/types"
@@ -17,11 +18,11 @@ type (
 	mapLink struct {
 		jn *types.JoinedNode
 		// field from the base node used in the op.
-		baseField string
+		baseField []string
 		// alias to use for the base field; allows us to use the same field multiple times
 		baseFieldAlias string
 		// field from the joined node to use in the opp.
-		joinField string
+		joinField []string
 	}
 
 	// temporary node for the join op.
@@ -29,7 +30,14 @@ type (
 		mg *types.Migrateable
 		// temporary migration node mapper based on aliases
 		mapper   map[string]mapLink
-		aliasMap map[string]string
+		aliasMap map[string][]string
+	}
+
+	exprEval struct {
+		baseFields     []string
+		baseFieldAlias string
+		joinModule     string
+		joinFields     []string
 	}
 )
 
@@ -57,7 +65,7 @@ func sourceJoin(mm []types.Migrateable) ([]types.Migrateable, error) {
 
 		// defer this, so we can do simple nil checks
 		nd.mapper = make(map[string]mapLink)
-		nd.aliasMap = make(map[string]string)
+		nd.aliasMap = make(map[string][]string)
 
 		// join definition map defines how two sources are joined
 		var joinDef map[string]string
@@ -69,37 +77,31 @@ func sourceJoin(mm []types.Migrateable) ([]types.Migrateable, error) {
 
 		// find all joined nodes for the given base node
 		for base, condition := range joinDef {
-			ptsB := strings.Split(base, "->")
-			baseField := ptsB[0]
-			baseFieldAlias := ptsB[1]
+			expr := splitExpr(base, condition)
 
-			if _, ok := nd.aliasMap[baseFieldAlias]; ok {
-				return nil, errors.New("alias.used " + nd.mg.Name + " " + baseFieldAlias)
+			if _, ok := nd.aliasMap[expr.baseFieldAlias]; ok {
+				return nil, errors.New("alias.used " + nd.mg.Name + " " + expr.baseFieldAlias)
 			}
-			nd.aliasMap[baseFieldAlias] = baseField
-
-			ptsC := strings.Split(condition, ".")
-			joinedModule := ptsC[0]
-			joinedField := ptsC[1]
+			nd.aliasMap[expr.baseFieldAlias] = expr.baseFields
 
 			// register migration node as join node
 			for _, m := range mm {
-				if m.Name == joinedModule {
-					if _, ok := joinedNodes[joinedModule]; !ok {
+				if m.Name == expr.joinModule {
+					if _, ok := joinedNodes[expr.joinModule]; !ok {
 						ww := m
-						joinedNodes[joinedModule] = &types.JoinedNode{
+						joinedNodes[expr.joinModule] = &types.JoinedNode{
 							Mg:   &ww,
 							Name: ww.Name,
 						}
 					}
 
 					// create a link between the base and joined node
-					jn := joinedNodes[joinedModule]
-					nd.mapper[baseFieldAlias] = mapLink{
+					jn := joinedNodes[expr.joinModule]
+					nd.mapper[expr.baseFieldAlias] = mapLink{
 						jn:             jn,
-						baseField:      baseField,
-						baseFieldAlias: baseFieldAlias,
-						joinField:      joinedField,
+						baseField:      expr.baseFields,
+						baseFieldAlias: expr.baseFieldAlias,
+						joinField:      expr.joinFields,
 					}
 					break
 				}
@@ -168,7 +170,12 @@ func sourceJoin(mm []types.Migrateable) ([]types.Migrateable, error) {
 			}
 
 			for _, e := range link.jn.Entries {
-				kk := alias + "." + e[link.joinField]
+				jj := []string{}
+				for _, jf := range link.joinField {
+					jj = append(jj, e[jf])
+				}
+
+				kk := alias + "." + strings.Join(jj[:], ".")
 				if _, ok := o.FieldMap[kk]; !ok {
 					o.FieldMap[kk] = make(types.JoinedNodeRecords, 0)
 				}
@@ -181,4 +188,23 @@ func sourceJoin(mm []types.Migrateable) ([]types.Migrateable, error) {
 	}
 
 	return out, nil
+}
+
+// helper to split the join expression
+func splitExpr(base, joined string) exprEval {
+	rr := exprEval{}
+
+	// original node
+	rx := regexp.MustCompile(`\[?(?P<bf>[\w,]+)\]?->(?P<bfa>\w+)`)
+	mx := rx.FindStringSubmatch(base)
+	rr.baseFields = strings.Split(mx[1], ",")
+	rr.baseFieldAlias = mx[2]
+
+	// joined node
+	rx = regexp.MustCompile(`(?P<jm>\w+)\.\[?(?P<jmf>[\w,]+)\]?`)
+	mx = rx.FindStringSubmatch(joined)
+	rr.joinModule = mx[1]
+	rr.joinFields = strings.Split(mx[2], ",")
+
+	return rr
 }

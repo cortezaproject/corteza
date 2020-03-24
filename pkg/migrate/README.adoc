@@ -130,6 +130,16 @@ When creating a `.map.json` file, values from the join operation are available u
 ]
 ----
 
+It is also possible to define a join operation on multiple fields at the same time -- useful in cases where a unique PK is not available and must be constructed.
+The following example uses `CreatedDate` and `CreatedById` fields as an index.
+
+[source,json]
+----
+{
+  "[CreatedDate,CreatedById]->smod": "subMod.[CreatedDate,CreatedById]"
+}
+----
+
 == Value Mapping
 
 The system allows us to map a specific value from the provided `.csv` file into a value used by the system.
