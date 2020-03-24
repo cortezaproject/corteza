@@ -131,7 +131,12 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 						baseFieldAlias := pts[0]
 						originalOn := m.AliasMap[baseFieldAlias]
 						joinField := pts[1]
-						val = baseFieldAlias + "." + record[hMap[originalOn]]
+
+						oo := []string{}
+						for _, ff := range originalOn {
+							oo = append(oo, record[hMap[ff]])
+						}
+						val = baseFieldAlias + "." + strings.Join(oo[:], ".")
 
 						// modify header field to specify what joined node field to use
 						nmF += ":" + joinField
