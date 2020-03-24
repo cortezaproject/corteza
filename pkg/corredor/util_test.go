@@ -17,7 +17,7 @@ func TestMapManualTriggers(t *testing.T) {
 			"r1": true,
 			"r2": true,
 		},
-		mapManualTriggers(&ServerScript{
+		mapExplicitTriggers(&ServerScript{
 			Triggers: []*Trigger{&Trigger{
 				ResourceTypes: []string{"r1", "r2"},
 				EventTypes:    []string{"onTimestamp", onManualEventType, "onInterval"},
@@ -27,7 +27,7 @@ func TestMapManualTriggers(t *testing.T) {
 
 	a.EqualValues(
 		map[string]bool{},
-		mapManualTriggers(&ServerScript{
+		mapExplicitTriggers(&ServerScript{
 			Triggers: []*Trigger{&Trigger{
 				ResourceTypes: []string{"r1", "r2"},
 				EventTypes:    []string{"onTimestamp", "onInterval"},

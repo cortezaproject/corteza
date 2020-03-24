@@ -17,10 +17,9 @@ type (
 	}
 )
 
-// mapManualTriggers removes all manual triggers from the list of script's triggers
-//
-// and returns a hash map with resources from these manual triggers
-func mapManualTriggers(script *ServerScript) map[string]bool {
+// mapExplicitTriggers scans for explicit event types from the list of script's triggers
+// and returns a hash map with resources from these explicit triggers
+func mapExplicitTriggers(script *ServerScript) map[string]bool {
 	var (
 		hash = make(map[string]bool)
 	)
@@ -30,7 +29,7 @@ func mapManualTriggers(script *ServerScript) map[string]bool {
 		// so let's make a copy we can play with
 		trigger := script.Triggers[i]
 
-		if slice.HasString(trigger.EventTypes, onManualEventType) {
+		if len(slice.IntersectStrings(trigger.EventTypes, explicitEventTypes)) > 0 {
 			for _, res := range trigger.ResourceTypes {
 				hash[res] = true
 			}
@@ -52,6 +51,9 @@ func triggerToHandlerOps(t *Trigger) (oo []eventbus.HandlerRegOp, err error) {
 
 	// Make a copy of event types slice so that we do not modify it
 	types := slice.PluckString(t.EventTypes, onManualEventType)
+
+	// If no other event types are left on the trigger,
+	// no need for procede
 	if len(types) == 0 && len(t.EventTypes) > 0 {
 		return
 	}

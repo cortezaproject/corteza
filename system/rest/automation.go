@@ -48,5 +48,5 @@ func (ctrl *Automation) Bundle(ctx context.Context, r *request.AutomationBundle)
 }
 
 func (ctrl *Automation) TriggerScript(ctx context.Context, r *request.AutomationTriggerScript) (interface{}, error) {
-	return resputil.OK(), corredor.Service().ExecOnManual(ctx, r.Script, event.SystemOnManual())
+	return resputil.OK(), corredor.Service().Exec(ctx, r.Script, event.SystemOnManual())
 }

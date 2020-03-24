@@ -426,7 +426,7 @@ func (ctrl *Record) TriggerScript(ctx context.Context, r *request.RecordTriggerS
 	record.Values = values.Sanitizer().Run(module, r.Values)
 	validated := values.Validator().Run(module, record)
 
-	err = corredor.Service().ExecOnManual(
+	err = corredor.Service().Exec(
 		ctx,
 		r.Script,
 		event.RecordOnManual(record, oldRecord, module, namespace, validated),
