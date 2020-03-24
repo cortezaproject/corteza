@@ -339,6 +339,10 @@ func migrateUsers(mg *types.Migrateable, ns *cct.Namespace, ctx context.Context)
 				u.Name = u.Name + " " + record[i]
 				break
 
+			case "Alias":
+				u.Handle = record[i]
+				break
+
 			case "CreatedDate":
 				if val != "" {
 					u.CreatedAt, err = time.Parse(types.SfDateTime, val)
