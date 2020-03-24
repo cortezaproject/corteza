@@ -746,3 +746,12 @@ func (svc *service) GetBundle(ctx context.Context, name, bType string) *Bundle {
 
 	return nil
 }
+
+func (svc *service) Debug() interface{} {
+	return map[string]interface{}{
+		"registered":     svc.registered,
+		"explicit":       svc.explicit,
+		"server-scripts": svc.sScripts,
+		"client-scripts": svc.cScripts,
+	}
+}
