@@ -2,6 +2,7 @@ package migrate
 
 import (
 	"bytes"
+	"context"
 	"encoding/csv"
 	"encoding/json"
 	"errors"
@@ -186,8 +187,21 @@ func checkWhere(where interface{}, row []string, hMap map[string]int) bool {
 		return true
 	}
 
-	pts := strings.Split(ww, "=")
-	org := pts[0]
-	val := pts[1]
-	return row[hMap[org]] == val
+	ev, err := types.Exprs().NewEvaluable(ww)
+	if err != nil {
+		panic(err)
+	}
+
+	// prep payload
+	pr := map[string]string{}
+	for k, v := range hMap {
+		pr[k] = row[v]
+	}
+
+	rr, err := ev.EvalBool(context.Background(), pr)
+	if err != nil {
+		panic(err)
+	}
+
+	return rr
 }
