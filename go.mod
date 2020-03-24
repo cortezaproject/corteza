@@ -8,7 +8,7 @@ require (
 	github.com/766b/chi-prometheus v0.0.0-20180509160047-46ac2b31aa30
 	github.com/99designs/basicauth-go v0.0.0-20160802081356-2a93ba0f464d
 	github.com/Masterminds/squirrel v1.1.1-0.20191017225151-12f2162c8d8d
-	github.com/PaesslerAG/gval v1.0.1 // indirect
+	github.com/PaesslerAG/gval v1.0.1
 	github.com/PaesslerAG/jsonpath v0.1.1 // indirect
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/crusttech/go-oidc v0.0.0-20180918092017-982855dad3e1

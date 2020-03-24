@@ -171,3 +171,20 @@ The following value mapping maps `sys_status` field's values; the left one into 
   }
 }
 ----
+
+The system also provides support for arbitrary mathematical expressions.
+If you wish to perform an expression, prefix the mapped value with `=EVL=`; for example `=EVL=numFmt(cell, \"%.0f\")`.
+
+Variables:
+* current cell -- `cell`.
+
+The following example will remove the decimal point from every `sys_rating` in the given source.
+
+[source,json]
+----
+{
+  "sys_rating": {
+    "*": "=EVL=numFmt(cell, \"%.0f\")"
+  }
+}
+----
