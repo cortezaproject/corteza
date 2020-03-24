@@ -142,7 +142,7 @@ func (ctrl *User) TriggerScript(ctx context.Context, r *request.UserTriggerScrip
 	}
 
 	// @todo implement same behaviour as we have on record - user+oldUser
-	err = corredor.Service().ExecOnManual(ctx, r.Script, event.UserOnManual(user, user))
+	err = corredor.Service().Exec(ctx, r.Script, event.UserOnManual(user, user))
 	return user, err
 
 }

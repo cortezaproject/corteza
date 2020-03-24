@@ -25,13 +25,13 @@ type (
 		// for when we're doing lazy setup
 		opt options.CorredorOpt
 
-		// list of all registered triggers
+		// list of all registered event handlers
 		//   map[<script-name>]
 		registered map[string][]uintptr
 
-		// list of all registered onManual triggers & scripts
+		// list of all registered explicitly executable script
 		//   map[<script-name>][<resource>] = true
-		manual map[string]map[string]bool
+		explicit map[string]map[string]bool
 
 		// Combined list of client and server scripts
 		sScripts   ScriptSet
@@ -58,7 +58,7 @@ type (
 		permissions permissions.RuleSet
 	}
 
-	Event interface {
+	ScriptArgs interface {
 		eventbus.Event
 
 		// Encode (event) to arguments passed to
@@ -123,7 +123,7 @@ func NewService(logger *zap.Logger, opt options.CorredorOpt) *service {
 		opt: opt,
 
 		registered: make(map[string][]uintptr),
-		manual:     make(map[string]map[string]bool),
+		explicit:   make(map[string]map[string]bool),
 
 		authTokenMaker: auth.DefaultJwtHandler,
 		eventRegistry:  eventbus.Service(),
@@ -239,36 +239,30 @@ func (svc service) makeScriptFilter(ctx context.Context, f Filter) func(s *Scrip
 	}
 }
 
-// ExecOnManual verifies permissions, event and script and sends exec request to corredor
-func (svc service) ExecOnManual(ctx context.Context, scriptName string, event Event) (err error) {
+// Exec verifies permissions, event and script and sends exec request to corredor
+func (svc service) Exec(ctx context.Context, scriptName string, args ScriptArgs) (err error) {
 	if !svc.opt.Enabled {
 		return
 	}
 
 	var (
-		res = event.ResourceType()
-		evt = event.EventType()
-
+		res    = args.ResourceType()
 		script *Script
 
 		ok    bool
 		runAs string
 	)
 
-	if onManualEventType != evt {
-		return errors.Errorf("triggered event type is not onManual (%q)", evt)
-	}
-
 	if len(scriptName) == 0 {
 		return errors.Errorf("script name not provided (%q)", scriptName)
 	}
 
-	if _, ok = svc.manual[scriptName]; !ok {
-		return errors.Errorf("unregistered onManual script %q", scriptName)
+	if _, ok = svc.explicit[scriptName]; !ok {
+		return errors.Errorf("unregistered explicit script %q", scriptName)
 	}
 
-	if _, ok = svc.manual[scriptName][res]; !ok {
-		return errors.Errorf("unregistered onManual script %q for resource %q", scriptName, res)
+	if _, ok = svc.explicit[scriptName][res]; !ok {
+		return errors.Errorf("unregistered explicit script %q for resource %q", scriptName, res)
 	}
 
 	if script = svc.sScripts.FindByName(scriptName); script == nil {
@@ -279,10 +273,17 @@ func (svc service) ExecOnManual(ctx context.Context, scriptName string, event Ev
 		return errors.Errorf("permission to execute %s denied", scriptName)
 	}
 
-	return svc.exec(ctx, scriptName, runAs, event)
+	if script.Security != nil {
+		runAs = script.Security.RunAs
+	}
+
+	return svc.exec(ctx, scriptName, runAs, args)
 }
 
 // Can current user execute this script
+//
+// This is used only in case of explicit execution (onManual) and never when
+// scripts are executed implicitly (deferred, before/after...)
 func (svc service) canExec(ctx context.Context, script string) bool {
 	u := auth.GetIdentityFromContext(ctx)
 	if auth.IsSuperUser(u) {
@@ -358,7 +359,7 @@ func (svc *service) registerServerScripts(ss ...*ServerScript) {
 
 	// Reset indexes
 	svc.registered = make(map[string][]uintptr)
-	svc.manual = make(map[string]map[string]bool)
+	svc.explicit = make(map[string]map[string]bool)
 
 	// Reset security
 	svc.permissions = permissions.RuleSet{}
@@ -390,9 +391,7 @@ func (svc *service) registerServerScripts(ss ...*ServerScript) {
 		}
 
 		if len(s.Errors) == 0 {
-
-			if manual := mapManualTriggers(script); len(manual) > 0 {
-
+			if manual := mapExplicitTriggers(script); len(manual) > 0 {
 				if script.Security != nil {
 					runAs = script.Security.RunAs
 
@@ -417,25 +416,15 @@ func (svc *service) registerServerScripts(ss ...*ServerScript) {
 					svc.permissions = append(svc.permissions, deny...)
 				}
 
-				if len(s.Errors) == 0 {
-					svc.manual[script.Name] = manual
-				}
+				svc.explicit[script.Name] = manual
 			}
 
-			if len(s.Errors) == 0 {
-				svc.registered[script.Name] = svc.registerTriggers(script)
-			}
-		}
+			svc.registered[script.Name] = svc.registerTriggers(script)
 
-		// Even if there are errors, we'll append the scripts
-		// because we need to serve them as a list for script management
-		svc.sScripts = append(svc.sScripts, s)
-
-		if len(s.Errors) == 0 {
 			svc.log.Debug(
 				"script registered",
 				zap.String("script", s.Name),
-				zap.Int("manual", len(svc.manual[script.Name])),
+				zap.Int("explicit", len(svc.explicit[script.Name])),
 				zap.Int("triggers", len(svc.registered[script.Name])),
 			)
 		} else {
@@ -465,7 +454,7 @@ func (svc *service) registerTriggers(script *ServerScript) []uintptr {
 	}
 
 	for i := range script.Triggers {
-		if ops, err = makeTriggerOpts(script.Triggers[i]); err != nil {
+		if ops, err = triggerToHandlerOps(script.Triggers[i]); err != nil {
 			log.Warn(
 				"could not make trigger options",
 				zap.Error(err),
@@ -480,7 +469,7 @@ func (svc *service) registerTriggers(script *ServerScript) []uintptr {
 
 		ptr := svc.eventRegistry.Register(func(ctx context.Context, ev eventbus.Event) (err error) {
 			// Is this compatible event?
-			if ce, ok := ev.(Event); ok {
+			if ce, ok := ev.(ScriptArgs); ok {
 				// Can only work with corteza compatible events
 				return svc.exec(ctx, script.Name, runAs, ce)
 			}
@@ -498,7 +487,7 @@ func (svc *service) registerTriggers(script *ServerScript) []uintptr {
 //
 // It does not do any constraints checking - this is the responsibility of the
 // individual event implemntation
-func (svc service) exec(ctx context.Context, script string, runAs string, event Event) (err error) {
+func (svc service) exec(ctx context.Context, script string, runAs string, args ScriptArgs) (err error) {
 	var (
 		requestId = middleware.GetReqID(ctx)
 
@@ -512,14 +501,14 @@ func (svc service) exec(ctx context.Context, script string, runAs string, event 
 		log = svc.log.With(
 			zap.String("script", script),
 			zap.String("runAs", runAs),
-			zap.String("event", event.EventType()),
-			zap.String("resource", event.ResourceType()),
+			zap.String("args", args.EventType()),
+			zap.String("resource", args.ResourceType()),
 		)
 	)
 
 	log.Debug("triggered")
 
-	if encodedEvent, err = event.Encode(); err != nil {
+	if encodedEvent, err = args.Encode(); err != nil {
 		return
 	}
 
@@ -594,11 +583,11 @@ func (svc service) exec(ctx context.Context, script string, runAs string, event 
 	// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// ////
 	// Additional (string) arguments
 
-	// basic event/event info
-	if err = encodeArguments(req.Args, "event", event.EventType()); err != nil {
+	// basic args/event info
+	if err = encodeArguments(req.Args, "args", args.EventType()); err != nil {
 		return
 	}
-	if err = encodeArguments(req.Args, "resource", event.ResourceType()); err != nil {
+	if err = encodeArguments(req.Args, "resource", args.ResourceType()); err != nil {
 		return
 	}
 
@@ -670,8 +659,8 @@ func (svc service) exec(ctx context.Context, script string, runAs string, event 
 		encodedResults[key] = []byte(rsp.Result[key])
 	}
 
-	// Send results back to the event for decoding
-	err = event.Decode(encodedResults)
+	// Send results back to the args for decoding
+	err = args.Decode(encodedResults)
 	if err != nil {
 		log.Debug(
 			"could not decode results",
