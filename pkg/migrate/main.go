@@ -16,6 +16,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/migrate/types"
 	sysRepo "github.com/cortezaproject/corteza-server/system/repository"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/schollz/progressbar/v2"
 )
 
@@ -162,6 +163,8 @@ func Migrate(mg []types.Migrateable, ns *cct.Namespace, ctx context.Context) err
 		}
 	}
 
+	spew.Dump("PRE-PROC WARNINGS", preProcW)
+
 	mig.MakeAcyclic()
 
 	for _, n := range mig.nodes {
@@ -250,6 +253,7 @@ func (m *Migrator) Migrate(ctx context.Context, users map[string]uint64) error {
 			for len(ch) > 0 {
 				pp := <-ch
 				if pp.Err != nil {
+					spew.Dump("ERR", pp.Err, pp.Node.Stringify())
 					return pp.Err
 				}
 
