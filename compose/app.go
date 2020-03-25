@@ -102,7 +102,7 @@ func (app *App) RegisterCliCommands(p *cobra.Command) {
 	p.AddCommand(
 		commands.Importer(),
 		commands.Exporter(),
-		commands.ImporterNG(),
+		commands.NGImporter(),
 		// temp command, will be removed in 2020.6
 		automation.ScriptExporter(SERVICE),
 	)

@@ -1,18 +1,17 @@
-package migrate
+package ngimporter
 
 import (
 	"context"
 	"encoding/csv"
-	"fmt"
 	"io"
+	"log"
 	"strconv"
 	"sync"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	cct "github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/ngImporter/types"
-	"github.com/davecgh/go-spew/spew"
+	"github.com/cortezaproject/corteza-server/pkg/ngimporter/types"
 	"github.com/schollz/progressbar/v2"
 )
 
@@ -34,7 +33,7 @@ type (
 //   * build graph from ImportNodes based on the provided ImportSource nodes
 //   * remove cycles from the given graph
 //   * import data based on node dependencies
-func Import(iss []types.ImportSource, ns *cct.Namespace, ctx context.Context) error {
+func Import(ctx context.Context, iss []types.ImportSource, ns *cct.Namespace) error {
 	// contains warnings raised by the pre process steps
 	var preProcW []string
 	imp := &Importer{}
@@ -163,7 +162,10 @@ func Import(iss []types.ImportSource, ns *cct.Namespace, ctx context.Context) er
 		}
 	}
 
-	spew.Dump("PRE-PROC WARNINGS", preProcW)
+	log.Println("PRE-PROC WARNINGS")
+	for _, w := range preProcW {
+		log.Printf("[warning] %s\n", w)
+	}
 
 	imp.RemoveCycles()
 
@@ -174,23 +176,26 @@ func Import(iss []types.ImportSource, ns *cct.Namespace, ctx context.Context) er
 		}
 	}
 
-	fmt.Printf("import.prepared\n")
-	fmt.Printf("no. of nodes %d\n", len(imp.nodes))
-	fmt.Printf("no. of entry points %d\n", len(imp.Leafs))
+	log.Printf("[importer] prepared\n")
+	log.Printf("[importer] node count: %d\n", len(imp.nodes))
+	log.Printf("[importer] leaf count: %d\n", len(imp.Leafs))
 
+	log.Println("[importer] started")
 	err = imp.Import(ctx, uMap)
 	if err != nil {
+		log.Println("[importer] failed")
 		return err
 	}
+	log.Println("[importer] finished")
 
 	return nil
 }
 
 // AddNode attempts to add the given node into the graph. If the node can already be
 // identified, the two nodes are merged.
-func (m *Importer) AddNode(n *types.ImportNode) *types.ImportNode {
+func (imp *Importer) AddNode(n *types.ImportNode) *types.ImportNode {
 	var fn *types.ImportNode
-	for _, nn := range m.nodes {
+	for _, nn := range imp.nodes {
 		if nn.CompareTo(n) {
 			fn = nn
 			break
@@ -198,7 +203,7 @@ func (m *Importer) AddNode(n *types.ImportNode) *types.ImportNode {
 	}
 
 	if fn == nil {
-		m.nodes = append(m.nodes, n)
+		imp.nodes = append(imp.nodes, n)
 		return n
 	}
 
@@ -208,13 +213,13 @@ func (m *Importer) AddNode(n *types.ImportNode) *types.ImportNode {
 
 // RemoveCycles removes all cycles in the given graph, by restructuring/recreating the nodes
 // and their dependencies.
-func (m *Importer) RemoveCycles() {
+func (imp *Importer) RemoveCycles() {
 	splice := func(n *types.ImportNode, from *types.ImportNode) {
 		spl := n.Splice(from)
-		m.AddNode(spl)
+		imp.AddNode(spl)
 	}
 
-	for _, n := range m.nodes {
+	for _, n := range imp.nodes {
 		if !n.Visited {
 			n.SeekCycles(splice)
 		}
@@ -223,11 +228,6 @@ func (m *Importer) RemoveCycles() {
 
 // Import runs the import over each ImportNode in the given graph
 func (m *Importer) Import(ctx context.Context, users map[string]uint64) error {
-	fmt.Println("(•_•)")
-	fmt.Println("(-•_•)>⌐■-■")
-	fmt.Println("(⌐■_■)")
-	fmt.Print("\n\n\n")
-
 	db := repository.DB(ctx)
 	repoRecord := repository.Record(ctx, db)
 	bar := progressbar.New(len(m.nodes))
@@ -248,7 +248,7 @@ func (m *Importer) Import(ctx context.Context, users map[string]uint64) error {
 			for len(ch) > 0 {
 				pp := <-ch
 				if pp.Err != nil {
-					spew.Dump("ERR", pp.Err, pp.Node.Stringify())
+					log.Printf("[importer] node %s failed with %s\n", pp.Err.Error(), pp.Node.Stringify())
 					return pp.Err
 				}
 
@@ -270,11 +270,6 @@ func (m *Importer) Import(ctx context.Context, users map[string]uint64) error {
 			}
 			m.Leafs = nl
 		}
-
-		fmt.Print("\n\n\n")
-		fmt.Println("(⌐■_■)")
-		fmt.Println("(-•_•)>⌐■-■")
-		fmt.Println("(•_•)")
 
 		return nil
 	})

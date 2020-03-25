@@ -1,4 +1,4 @@
-package migrate
+package ngimporter
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	cct "github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/ngImporter/types"
+	"github.com/cortezaproject/corteza-server/pkg/ngimporter/types"
 	sysRepo "github.com/cortezaproject/corteza-server/system/repository"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
