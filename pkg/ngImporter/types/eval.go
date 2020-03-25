@@ -8,8 +8,8 @@ import (
 	"github.com/PaesslerAG/gval"
 )
 
-// generates a simple gval language to be used within the migration
-func Exprs() gval.Language {
+// Glang generates a gval language, that can be used for expression evaluation
+func GLang() gval.Language {
 	return gval.NewLanguage(
 		gval.JSON(),
 		gval.Arithmetic(),
@@ -30,12 +30,12 @@ func Exprs() gval.Language {
 
 		// diff between two dates in seconds
 		gval.Function("dateDiff", func(d1, d2 string) (float64, error) {
-			t1, err := time.Parse(SfDateTime, d1)
+			t1, err := time.Parse(SfDateTimeLayout, d1)
 			if err != nil {
 				return 0, err
 			}
 
-			t2, err := time.Parse(SfDateTime, d2)
+			t2, err := time.Parse(SfDateTimeLayout, d2)
 			if err != nil {
 				return 0, err
 			}

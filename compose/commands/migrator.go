@@ -19,14 +19,14 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
-	mgg "github.com/cortezaproject/corteza-server/pkg/migrate"
-	mgt "github.com/cortezaproject/corteza-server/pkg/migrate/types"
+	ngi "github.com/cortezaproject/corteza-server/pkg/ngImporter"
+	ngt "github.com/cortezaproject/corteza-server/pkg/ngImporter/types"
 )
 
-func Migrator() *cobra.Command {
+func ImporterNG() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "migrate",
-		Short: "Migrate",
+		Use:   "ng-import",
+		Short: "Importer next-gen",
 
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
@@ -37,7 +37,7 @@ func Migrator() *cobra.Command {
 				ns       *types.Namespace
 				err      error
 
-				mg []mgt.Migrateable
+				mg []ngt.ImportSource
 			)
 
 			svcNs := service.DefaultNamespace.With(ctx)
@@ -70,12 +70,12 @@ func Migrator() *cobra.Command {
 
 					ext := filepath.Ext(info.Name())
 					name := info.Name()[0 : len(info.Name())-len(ext)]
-					mm := migrateableSource(mg, name)
+					mm := importSource(mg, name)
 					mm.Name = name
 					mm.Path = path
 					mm.Source = file
 
-					mg = migrateableAdd(mg, mm)
+					mg = addImportSource(mg, mm)
 				}
 				return nil
 			})
@@ -92,11 +92,11 @@ func Migrator() *cobra.Command {
 						ext := filepath.Ext(info.Name())
 						// @todo improve this!!
 						name := info.Name()[0 : len(info.Name())-len(ext)-4]
-						mm := migrateableSource(mg, name)
+						mm := importSource(mg, name)
 						mm.Name = name
-						mm.Map = file
+						mm.DataMap = file
 
-						mg = migrateableAdd(mg, mm)
+						mg = addImportSource(mg, mm)
 					} else if strings.HasSuffix(info.Name(), ".join.json") {
 						file, err := os.Open(path)
 						if err != nil {
@@ -106,11 +106,11 @@ func Migrator() *cobra.Command {
 						ext := filepath.Ext(info.Name())
 						// @todo improve this!!
 						name := info.Name()[0 : len(info.Name())-len(ext)-5]
-						mm := migrateableSource(mg, name)
+						mm := importSource(mg, name)
 						mm.Name = name
-						mm.Join = file
+						mm.SourceJoin = file
 
-						mg = migrateableAdd(mg, mm)
+						mg = addImportSource(mg, mm)
 					} else if strings.HasSuffix(info.Name(), ".value.json") {
 						file, err := os.Open(path)
 						if err != nil {
@@ -120,7 +120,7 @@ func Migrator() *cobra.Command {
 						ext := filepath.Ext(info.Name())
 						// @todo improve this!!
 						name := info.Name()[0 : len(info.Name())-len(ext)-6]
-						mm := migrateableSource(mg, name)
+						mm := importSource(mg, name)
 						mm.Name = name
 
 						var vmp map[string]map[string]string
@@ -131,7 +131,7 @@ func Migrator() *cobra.Command {
 						}
 						mm.ValueMap = vmp
 
-						mg = migrateableAdd(mg, mm)
+						mg = addImportSource(mg, mm)
 					}
 					return nil
 				})
@@ -143,7 +143,7 @@ func Migrator() *cobra.Command {
 
 			// clean up migrateables
 			hasW := false
-			out := make([]mgt.Migrateable, 0)
+			out := make([]ngt.ImportSource, 0)
 			for _, m := range mg {
 				if m.Source != nil {
 					out = append(out, m)
@@ -158,12 +158,14 @@ func Migrator() *cobra.Command {
 				fmt.Print("warnings detected; continue [y/N]? ")
 				_, err := fmt.Scanln(&rsp)
 
+				rsp = strings.ToLower(rsp)
+
 				if err != nil || rsp != "y" && rsp != "yes" {
 					log.Fatal("migration aborted due to warnings")
 				}
 			}
 
-			err = mgg.Migrate(out, ns, ctx)
+			err = ngi.Import(out, ns, ctx)
 			if err != nil {
 				panic(err)
 			}
@@ -172,24 +174,25 @@ func Migrator() *cobra.Command {
 	}
 
 	cmd.Flags().String("namespace", "", "Import into namespace (by ID or string)")
-	cmd.Flags().String("src", "", "Directory with migration files")
-	cmd.Flags().String("meta", "", "Directory with meta files")
+	cmd.Flags().String("src", "", "Directory with import files")
+	cmd.Flags().String("meta", "", "Directory with import meta files")
 
 	return cmd
 }
 
-// small helper functions for migrateable node management
-func migrateableSource(mg []mgt.Migrateable, name string) mgt.Migrateable {
+// small helper functions for import source node management
+
+func importSource(mg []ngt.ImportSource, name string) ngt.ImportSource {
 	for _, m := range mg {
 		if m.Name == name {
 			return m
 		}
 	}
 
-	return mgt.Migrateable{}
+	return ngt.ImportSource{}
 }
 
-func migrateableAdd(mg []mgt.Migrateable, mm mgt.Migrateable) []mgt.Migrateable {
+func addImportSource(mg []ngt.ImportSource, mm ngt.ImportSource) []ngt.ImportSource {
 	for i, m := range mg {
 		if m.Name == mm.Name {
 			mg[i] = mm
