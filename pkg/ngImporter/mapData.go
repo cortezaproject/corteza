@@ -10,11 +10,12 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/migrate/types"
+	"github.com/cortezaproject/corteza-server/pkg/ngImporter/types"
 )
 
 type (
-	SplitBuffer struct {
+	// MapBuffer helps us keep track of new SourceNodes, defined by the map operation.
+	MapBuffer struct {
 		buffer    *bytes.Buffer
 		name      string
 		row       []string
@@ -27,26 +28,31 @@ type (
 	}
 )
 
-// this function splits the stream of the given migrateable node.
-// See readme for more info
-func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
-	var rr []types.Migrateable
-	if m.Map == nil {
-		rr = append(rr, m)
+// maps data from the original ImportSource node into new ImportSource nodes
+// based on the provided DataMap.
+// Algorithm outline:
+//   * parse data map
+//   * for each record in the original import source, based on the map, create new
+//     MapBuffers
+//   * create new import sources based on map buffers
+func mapData(is types.ImportSource) ([]types.ImportSource, error) {
+	var rr []types.ImportSource
+	if is.DataMap == nil {
+		rr = append(rr, is)
 		return rr, nil
 	}
 
 	// unpack the map
 	// @todo provide a better structure!!
-	var streamMap []map[string]interface{}
-	src, _ := ioutil.ReadAll(m.Map)
-	err := json.Unmarshal(src, &streamMap)
+	var dataMap []map[string]interface{}
+	src, _ := ioutil.ReadAll(is.DataMap)
+	err := json.Unmarshal(src, &dataMap)
 	if err != nil {
 		return nil, err
 	}
 
 	// get header fields
-	r := csv.NewReader(m.Source)
+	r := csv.NewReader(is.Source)
 	header, err := r.Read()
 	if err == io.EOF {
 		return rr, nil
@@ -56,16 +62,15 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 		return nil, err
 	}
 
-	// maps header field -> field index for a nicer lookup
+	// maps { header field: field index } for a nicer lookup
 	hMap := make(map[string]int)
 	for i, h := range header {
 		hMap[h] = i
 	}
 
-	bufs := make(map[string]*SplitBuffer)
+	bufs := make(map[string]*MapBuffer)
 
-	// splitting magic
-
+	// data mapping
 	for {
 		record, err := r.Read()
 		if err == io.EOF {
@@ -76,35 +81,35 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 			return nil, err
 		}
 
-		// on next row, old stream's headers are finished
+		// on next row, currently acquired headers are marked as final
 		for _, b := range bufs {
 			b.hasHeader = true
 		}
 
-		// find first applicable map, that can be used for the given row.
-		// default maps should not inclide a where field
-		for _, strmp := range streamMap {
+		// find applicable maps, that can be used for the given row.
+		// the system allows composition, so all applicable maps are used.
+		for _, strmp := range dataMap {
 			if checkWhere(strmp["where"], record, hMap) {
 				maps, ok := strmp["map"].([]interface{})
 				if !ok {
-					return nil, errors.New("streamMap.invalidMap " + m.Name)
+					return nil, errors.New("dataMap.invalidMap " + is.Name)
 				}
 
-				// populate splitted streams
+				// handle current record and it's values
 				for _, mp := range maps {
 					mm, ok := mp.(map[string]interface{})
 					if !ok {
-						return nil, errors.New("streamMap.map.invalidEntry " + m.Name)
+						return nil, errors.New("dataMap.map.invalidEntry " + is.Name)
 					}
 
 					from, ok := mm["from"].(string)
 					if !ok {
-						return nil, errors.New("streamMap.map.entry.invalidFrom " + m.Name)
+						return nil, errors.New("dataMap.map.entry.invalidFrom " + is.Name)
 					}
 
 					to, ok := mm["to"].(string)
 					if !ok {
-						return nil, errors.New("streamMap.map.invalidTo " + m.Name)
+						return nil, errors.New("dataMap.map.invalidTo " + is.Name)
 					}
 
 					vv := strings.Split(to, ".")
@@ -115,7 +120,7 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 						var bb bytes.Buffer
 						ww := csv.NewWriter(&bb)
 						defer ww.Flush()
-						bufs[nm] = &SplitBuffer{
+						bufs[nm] = &MapBuffer{
 							buffer:    &bb,
 							writer:    ww,
 							name:      nm,
@@ -125,12 +130,12 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 
 					val := record[hMap[from]]
 
-					// handle joins
+					// handle data join
 					if strings.Contains(from, ".") {
 						// construct a `alias.joinOnID` value, so we can perform a simple map lookup
 						pts := strings.Split(from, ".")
 						baseFieldAlias := pts[0]
-						originalOn := m.AliasMap[baseFieldAlias]
+						originalOn := is.AliasMap[baseFieldAlias]
 						joinField := pts[1]
 
 						oo := []string{}
@@ -160,15 +165,15 @@ func splitStream(m types.Migrateable) ([]types.Migrateable, error) {
 		}
 	}
 
-	// make migrateable nodes from the generated streams
+	// construct output import source nodes
 	for _, v := range bufs {
-		rr = append(rr, types.Migrateable{
+		rr = append(rr, types.ImportSource{
 			Name:     v.name,
 			Source:   v.buffer,
 			Header:   &v.header,
-			FieldMap: m.FieldMap,
-			AliasMap: m.AliasMap,
-			ValueMap: m.ValueMap,
+			FieldMap: is.FieldMap,
+			AliasMap: is.AliasMap,
+			ValueMap: is.ValueMap,
 		})
 	}
 
@@ -187,7 +192,7 @@ func checkWhere(where interface{}, row []string, hMap map[string]int) bool {
 		return true
 	}
 
-	ev, err := types.Exprs().NewEvaluable(ww)
+	ev, err := types.GLang().NewEvaluable(ww)
 	if err != nil {
 		panic(err)
 	}
