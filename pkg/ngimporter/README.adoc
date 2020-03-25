@@ -1,0 +1,163 @@
+= Corteza Next Gen Import System
+
+====
+The system currently supports only system users & compose records.
+====
+
+Corteza NG import defines a powerful system, that can be used for importing data with arbitrary complex structure.
+
+=== Algorithm:
+* create `ImportSource` nodes based on the provided source files,
+* import system users,
+* handle **source join operations**; see below,
+* handle **data mapping operations**; see below,
+* construct `ImportNode` graph based on the provided `ImportSource` nodes,
+* remove cycles from the generated `ImportNode` graph; see below,
+* import data based on the constructed graph -- allows structured import.
+
+== Data Mapping
+
+The system also allows us to define how the imported data is mapped.
+For example, we can map data from the `Contact.csv` file into the `Contact` and `Friend` modules.
+It also allows us to combine multiple sources into a single source, with the help of above mentioned **Source Join Operation**.
+
+=== Algorithm
+* parse the given `.map.json`
+* for each entry of the given source:
+** determine the used map based on the provided `where` field & the rows content
+** based on the provided `map` entries, create new `ImportSource` nodes
+
+=== Example
+
+.source.map.json
+[source,json]
+----
+[
+  {
+    "where": "type==\"type1\"",
+
+    "map": [
+      {
+        "from": "f1",
+        "to": "mod1.field"
+      },
+      {
+        "from": "f2",
+        "to": "mod2.anotherField"
+      },
+      {
+        "from": "f3",
+        "to": "mod3.lastField"
+      }
+    ]
+  }
+]
+----
+
+== Source Join Operation
+
+The import system allows us to define relations between multiple import sources in order to construct a single import source; such as creating a `Client` record based on `User` and `Contact` records.
+
+=== Algorighm:
+* parse the given `.join.json` file,
+* for each import source, that defines a `.join.json` file:
+** determine all join nodes that will be used in this operation,
+** load all records for each joined node and create appropriate indexes for quicker lookup.
+This indexed data is used later with the actual import.
+
+=== Example
+
+`.join.json` files define how multiple migration nodes should join into a single module.
+The below example instructs, that the current source should be joined with `subMod` based on the `SubModRef == Id` relation, identified by the alias `smod`.
+When the data, the values from this operation are available under the specified alias; for example `smod.SomeField`.
+
+.source.join.json
+[source,json]
+----
+{
+  "SubModRef->smod": "subMod.Id"
+}
+----
+
+.source.map.json
+[source,json]
+----
+[
+  {
+    "map": [
+      {
+        "from": "Id",
+        "to": "baseMod.Id"
+      },
+
+      {
+        "from": "baseField1",
+        "to": "baseMod.baseField1"
+      },
+
+      {
+        "from": "smod.field1",
+        "to": "baseMod.SubModField1"
+      }
+    ]
+  }
+]
+----
+
+It is also possible to define a join operation on multiple fields at the same time -- useful in cases where we must construct a PK.
+The following example uses `CreatedDate` and `CreatedById` fields as an index.
+
+[source,json]
+----
+{
+  "[CreatedDate,CreatedById]->smod": "subMod.[CreatedDate,CreatedById]"
+}
+----
+
+== Value Mapping
+
+The system also allows us to map specific field values into another value for that field.
+This can be useful for mapping values from the import source into our internal data modal values.
+For example; we can map `In Progress` into `in_progress`.
+The system also supports a default value, by using the `*` wildcard.
+
+=== Algorithrm
+
+* parse the given `.value.json`
+* before applying a value for the given field, attempt to map the value
+** if mapping is successful, use the mapped value,
+** else if default value exists, use the default value,
+** else use the original value.
+
+=== Example
+
+.source.values.json
+[source,json]
+----
+{
+  "sys_status": {
+    "In Progress": "in_progress",
+    "Send to QA": "qa_pending",
+    "Submit Job": "qa_approved",
+    "*": "new"
+  }
+}
+----
+
+The system also provides support for mathematical expressions.
+If you wish to perform an expression, prefix the mapped value with `=EVL=`; for example `=EVL=numFmt(cell, \"%.0f\")`.
+
+Expression context:
+* `cell` -- current cell,
+* `row` -- current row, provided as a `{field: value}` object.
+
+The following example will remove the decimal point from every `sys_rating` in the given source.
+
+[source,json]
+----
+{
+  "sys_rating": {
+    "*": "=EVL=numFmt(cell, \"%.0f\")"
+  }
+}
+----
