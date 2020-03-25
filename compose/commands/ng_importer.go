@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -19,13 +18,13 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
-	ngi "github.com/cortezaproject/corteza-server/pkg/ngImporter"
-	ngt "github.com/cortezaproject/corteza-server/pkg/ngImporter/types"
+	ngi "github.com/cortezaproject/corteza-server/pkg/ngimporter"
+	ngt "github.com/cortezaproject/corteza-server/pkg/ngimporter/types"
 )
 
-func ImporterNG() *cobra.Command {
+func NGImporter() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "ng-import",
+		Use:   "ng-importer",
 		Short: "Importer next-gen",
 
 		Run: func(cmd *cobra.Command, args []string) {
@@ -37,7 +36,7 @@ func ImporterNG() *cobra.Command {
 				ns       *types.Namespace
 				err      error
 
-				mg []ngt.ImportSource
+				iss []ngt.ImportSource
 			)
 
 			svcNs := service.DefaultNamespace.With(ctx)
@@ -70,12 +69,12 @@ func ImporterNG() *cobra.Command {
 
 					ext := filepath.Ext(info.Name())
 					name := info.Name()[0 : len(info.Name())-len(ext)]
-					mm := importSource(mg, name)
+					mm := importSource(iss, name)
 					mm.Name = name
 					mm.Path = path
 					mm.Source = file
 
-					mg = addImportSource(mg, mm)
+					iss = addImportSource(iss, mm)
 				}
 				return nil
 			})
@@ -83,44 +82,41 @@ func ImporterNG() *cobra.Command {
 			// load meta files
 			if metaFlag != "" {
 				err = filepath.Walk(metaFlag, func(path string, info os.FileInfo, err error) error {
-					if strings.HasSuffix(info.Name(), ".map.json") {
+					if strings.HasSuffix(info.Name(), ngt.MetaMapExt) {
 						file, err := os.Open(path)
 						if err != nil {
 							log.Fatal(err)
 						}
 
-						ext := filepath.Ext(info.Name())
 						// @todo improve this!!
-						name := info.Name()[0 : len(info.Name())-len(ext)-4]
-						mm := importSource(mg, name)
+						name := info.Name()[0 : len(info.Name())-len(ngt.MetaMapExt)]
+						mm := importSource(iss, name)
 						mm.Name = name
 						mm.DataMap = file
 
-						mg = addImportSource(mg, mm)
-					} else if strings.HasSuffix(info.Name(), ".join.json") {
+						iss = addImportSource(iss, mm)
+					} else if strings.HasSuffix(info.Name(), ngt.MetaJoinExt) {
 						file, err := os.Open(path)
 						if err != nil {
 							log.Fatal(err)
 						}
 
-						ext := filepath.Ext(info.Name())
 						// @todo improve this!!
-						name := info.Name()[0 : len(info.Name())-len(ext)-5]
-						mm := importSource(mg, name)
+						name := info.Name()[0 : len(info.Name())-len(ngt.MetaJoinExt)]
+						mm := importSource(iss, name)
 						mm.Name = name
 						mm.SourceJoin = file
 
-						mg = addImportSource(mg, mm)
-					} else if strings.HasSuffix(info.Name(), ".value.json") {
+						iss = addImportSource(iss, mm)
+					} else if strings.HasSuffix(info.Name(), ngt.MetaValueExt) {
 						file, err := os.Open(path)
 						if err != nil {
 							log.Fatal(err)
 						}
 
-						ext := filepath.Ext(info.Name())
 						// @todo improve this!!
-						name := info.Name()[0 : len(info.Name())-len(ext)-6]
-						mm := importSource(mg, name)
+						name := info.Name()[0 : len(info.Name())-len(ngt.MetaValueExt)]
+						mm := importSource(iss, name)
 						mm.Name = name
 
 						var vmp map[string]map[string]string
@@ -131,25 +127,25 @@ func ImporterNG() *cobra.Command {
 						}
 						mm.ValueMap = vmp
 
-						mg = addImportSource(mg, mm)
+						iss = addImportSource(iss, mm)
 					}
 					return nil
 				})
 
 				if err != nil {
-					panic(err)
+					log.Fatal(err)
 				}
 			}
 
-			// clean up migrateables
+			// remove nodes with no import source
 			hasW := false
 			out := make([]ngt.ImportSource, 0)
-			for _, m := range mg {
-				if m.Source != nil {
-					out = append(out, m)
+			for _, is := range iss {
+				if is.Source != nil {
+					out = append(out, is)
 				} else {
 					hasW = true
-					spew.Dump("[warning] migrationNode.missingSource " + m.Name)
+					log.Println("[warning] ImportSOurce.missingSource " + is.Name)
 				}
 			}
 
@@ -157,15 +153,14 @@ func ImporterNG() *cobra.Command {
 				var rsp string
 				fmt.Print("warnings detected; continue [y/N]? ")
 				_, err := fmt.Scanln(&rsp)
-
 				rsp = strings.ToLower(rsp)
 
 				if err != nil || rsp != "y" && rsp != "yes" {
-					log.Fatal("migration aborted due to warnings")
+					log.Fatal("import aborted due to warnings")
 				}
 			}
 
-			err = ngi.Import(out, ns, ctx)
+			err = ngi.Import(ctx, out, ns)
 			if err != nil {
 				panic(err)
 			}
@@ -182,22 +177,22 @@ func ImporterNG() *cobra.Command {
 
 // small helper functions for import source node management
 
-func importSource(mg []ngt.ImportSource, name string) ngt.ImportSource {
-	for _, m := range mg {
-		if m.Name == name {
-			return m
+func importSource(iss []ngt.ImportSource, name string) ngt.ImportSource {
+	for _, is := range iss {
+		if is.Name == name {
+			return is
 		}
 	}
 
 	return ngt.ImportSource{}
 }
 
-func addImportSource(mg []ngt.ImportSource, mm ngt.ImportSource) []ngt.ImportSource {
-	for i, m := range mg {
-		if m.Name == mm.Name {
-			mg[i] = mm
-			return mg
+func addImportSource(iss []ngt.ImportSource, nis ngt.ImportSource) []ngt.ImportSource {
+	for i, is := range iss {
+		if is.Name == nis.Name {
+			iss[i] = nis
+			return iss
 		}
 	}
-	return append(mg, mm)
+	return append(iss, nis)
 }

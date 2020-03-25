@@ -14,6 +14,10 @@ const (
 	EvalPrefix = "=EVL="
 
 	UserModHandle = "User"
+
+	MetaMapExt   = ".map.json"
+	MetaJoinExt  = ".join.json"
+	MetaValueExt = ".value.json"
 )
 
 var (

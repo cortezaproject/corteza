@@ -141,7 +141,7 @@ func (n *ImportNode) Import(repoRecord repository.RecordRepository, users map[st
 	for _, p := range pps {
 		rtr = append(rtr, p)
 
-		// pass mapping object to the node's parend so it can migrate it's data
+		// pass mapping object to the node's parent so it can map handle dependency refs
 		p.addMap(fmt.Sprint(n.Module.ID), mapping)
 		p.LinkRemove(n)
 	}
@@ -236,7 +236,7 @@ func (n *ImportNode) removeIfPresent(rem *ImportNode, list []*ImportNode) []*Imp
 	return list
 }
 
-// traverses the graph and notifies us of any cycles
+// SeekCycles finds cycles & calls the given function
 func (n *ImportNode) SeekCycles(cycle func(n *ImportNode, to *ImportNode)) {
 	n.inPath = true
 	n.Visited = true
@@ -247,25 +247,10 @@ func (n *ImportNode) SeekCycles(cycle func(n *ImportNode, to *ImportNode)) {
 	}
 
 	for _, nn := range cc {
-		if n.Name == "client" {
-		}
-
 		if nn.inPath {
 			cycle(n, nn)
 		} else {
 			nn.SeekCycles(cycle)
-		}
-	}
-
-	n.inPath = false
-}
-
-func (n *ImportNode) DFS() {
-	n.inPath = true
-
-	for _, nn := range n.Children {
-		if !nn.inPath {
-			nn.DFS()
 		}
 	}
 
@@ -288,6 +273,8 @@ func (n *ImportNode) clone() *ImportNode {
 		Namespace: n.Namespace,
 		Reader:    n.Reader,
 		Header:    n.Header,
+		FieldMap:  n.FieldMap,
+		ValueMap:  n.ValueMap,
 	}
 }
 

@@ -1,4 +1,4 @@
-package migrate
+package ngimporter
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/ngImporter/types"
+	"github.com/cortezaproject/corteza-server/pkg/ngimporter/types"
 )
 
 type (
@@ -89,7 +89,7 @@ func mapData(is types.ImportSource) ([]types.ImportSource, error) {
 		// find applicable maps, that can be used for the given row.
 		// the system allows composition, so all applicable maps are used.
 		for _, strmp := range dataMap {
-			if checkWhere(strmp["where"], record, hMap) {
+			if ok, err := checkWhere(strmp["where"], record, hMap); ok && err == nil {
 				maps, ok := strmp["map"].([]interface{})
 				if !ok {
 					return nil, errors.New("dataMap.invalidMap " + is.Name)
@@ -153,6 +153,8 @@ func mapData(is types.ImportSource) ([]types.ImportSource, error) {
 						bufs[nm].header = append(bufs[nm].header, nmF)
 					}
 				}
+			} else if err != nil {
+				return nil, err
 			}
 		}
 
@@ -180,21 +182,20 @@ func mapData(is types.ImportSource) ([]types.ImportSource, error) {
 	return rr, nil
 }
 
-// quick and dirty function to check the map's where condition.
-// improve with our QL package
-func checkWhere(where interface{}, row []string, hMap map[string]int) bool {
+// checks if the given condition passes for the given row
+func checkWhere(where interface{}, row []string, hMap map[string]int) (bool, error) {
 	if where == nil {
-		return true
+		return true, nil
 	}
 
-	ww, ok := where.(string)
+	wh, ok := where.(string)
 	if !ok {
-		return true
+		return true, nil
 	}
 
-	ev, err := types.GLang().NewEvaluable(ww)
+	ev, err := types.ExprLang.NewEvaluable(wh)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
 
 	// prep payload
@@ -205,8 +206,8 @@ func checkWhere(where interface{}, row []string, hMap map[string]int) bool {
 
 	rr, err := ev.EvalBool(context.Background(), pr)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
 
-	return rr
+	return rr, nil
 }

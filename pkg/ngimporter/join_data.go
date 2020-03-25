@@ -1,4 +1,4 @@
-package migrate
+package ngimporter
 
 import (
 	"encoding/csv"
@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/ngImporter/types"
+	"github.com/cortezaproject/corteza-server/pkg/ngimporter/types"
 )
 
 type (
@@ -86,10 +86,10 @@ func joinData(iss []types.ImportSource) ([]types.ImportSource, error) {
 			}
 			nd.aliasMap[expr.baseFieldAlias] = expr.baseFields
 
-			for _, m := range iss {
-				if m.Name == expr.joinModule {
+			for _, is := range iss {
+				if is.Name == expr.joinModule {
 					if _, ok := joinedNodes[expr.joinModule]; !ok {
-						ww := m
+						ww := is
 						joinedNodes[expr.joinModule] = &types.JoinNode{
 							Mg:   &ww,
 							Name: ww.Name,
@@ -115,7 +115,6 @@ func joinData(iss []types.ImportSource) ([]types.ImportSource, error) {
 		jn.Records = make([]map[string]string, 0)
 		reader := csv.NewReader(jn.Mg.Source)
 
-		// header
 		header, err := reader.Read()
 		if err == io.EOF {
 			break
@@ -201,7 +200,7 @@ func splitExpr(base, joined string) joinEval {
 	rr.baseFields = strings.Split(mx[1], ",")
 	rr.baseFieldAlias = mx[2]
 
-	// joined node
+	// join node
 	rx = regexp.MustCompile(`(?P<jm>\w+)\.\[?(?P<jmf>[\w,]+)\]?`)
 	mx = rx.FindStringSubmatch(joined)
 	rr.joinModule = mx[1]
