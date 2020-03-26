@@ -452,13 +452,6 @@ func (svc *service) registerServerScripts(ss ...*ServerScript) {
 		// Corredor can (by design) serve us script with errors (load, parse time) and
 		// they need to be ignored by security, trigger, iterator handlers
 		if len(s.Errors) == 0 {
-			if sec, rr, err := svc.serverScriptSecurity(script); err != nil {
-				s.Errors = append(s.Errors, err.Error())
-			} else {
-				s.Security = sec
-				svc.permissions = append(svc.permissions, rr...)
-			}
-
 			if s.Iterator != nil {
 				// process iterator and register (deferred) event handlers
 				if ptrs, err := svc.processIterator(s); err != nil {
@@ -472,6 +465,15 @@ func (svc *service) registerServerScripts(ss ...*ServerScript) {
 				}
 
 				svc.registered[script.Name] = svc.registerTriggers(script)
+			}
+		}
+
+		if len(s.Errors) == 0 {
+			if sec, rr, err := svc.serverScriptSecurity(script); err != nil {
+				s.Errors = append(s.Errors, err.Error())
+			} else {
+				s.Security = sec
+				svc.permissions = append(svc.permissions, rr...)
 			}
 		}
 

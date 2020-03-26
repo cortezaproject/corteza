@@ -221,7 +221,7 @@ func TestService_canExec(t *testing.T) {
 	svc.registerServerScripts(script1, script2, script3, script4)
 
 	a.Len(svc.sScripts, 3)
-	a.Len(svc.permissions, 2)
+	a.Len(svc.permissions, 3)
 	a.True(svc.canExec(ctx, script1.Name))
 	a.False(svc.canExec(ctx, script2.Name))
 }
