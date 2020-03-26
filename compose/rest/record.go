@@ -436,6 +436,27 @@ func (ctrl *Record) TriggerScript(ctx context.Context, r *request.RecordTriggerS
 	return ctrl.makePayload(ctx, module, record, err)
 }
 
+func (ctrl *Record) TriggerScriptOnList(ctx context.Context, r *request.RecordTriggerScriptOnList) (rsp interface{}, err error) {
+	//var (
+	//	module    *types.Module
+	//	namespace *types.Namespace
+	//)
+	//
+	//if module, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+	//	return
+	//}
+	//
+	//if namespace, err = ctrl.namespace.With(ctx).FindByID(r.NamespaceID); err != nil {
+	//	return
+	//}
+
+	// @todo this does not need to be under /record ... where then?!?!
+	err = corredor.Service().ExecIterator(ctx, r.Script)
+
+	// Script can return modified record and we'll pass it on to the caller
+	return resputil.OK(), err
+}
+
 func (ctrl Record) makePayload(ctx context.Context, m *types.Module, r *types.Record, err error) (*recordPayload, error) {
 	if err != nil || r == nil {
 		return nil, err

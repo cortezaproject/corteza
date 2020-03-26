@@ -364,6 +364,22 @@
           }
         ]
       }
+    },
+    {
+      "Name": "triggerScriptOnList",
+      "Method": "POST",
+      "Title": "Fire compose:record trigger",
+      "Path": "/trigger",
+      "Parameters": {
+        "post": [
+          {
+            "name": "script",
+            "required": true,
+            "title": "Script to execute",
+            "type": "string"
+          }
+        ]
+      }
     }
   ]
 }

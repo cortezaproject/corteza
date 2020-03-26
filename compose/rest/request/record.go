@@ -923,3 +923,62 @@ func (r *RecordTriggerScript) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewRecordTriggerScript()
+
+// Record triggerScriptOnList request parameters
+type RecordTriggerScriptOnList struct {
+	Script      string
+	NamespaceID uint64 `json:",string"`
+	ModuleID    uint64 `json:",string"`
+}
+
+func NewRecordTriggerScriptOnList() *RecordTriggerScriptOnList {
+	return &RecordTriggerScriptOnList{}
+}
+
+func (r RecordTriggerScriptOnList) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["script"] = r.Script
+	out["namespaceID"] = r.NamespaceID
+	out["moduleID"] = r.ModuleID
+
+	return out
+}
+
+func (r *RecordTriggerScriptOnList) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	if val, ok := post["script"]; ok {
+		r.Script = val
+	}
+	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
+
+	return err
+}
+
+var _ RequestFiller = NewRecordTriggerScriptOnList()
