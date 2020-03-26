@@ -40,8 +40,13 @@ type (
 		moduleRepo repository.ModuleRepository
 		nsRepo     repository.NamespaceRepository
 
+		formatter recordValuesFormatter
 		sanitizer recordValuesSanitizer
 		validator recordValuesValidator
+	}
+
+	recordValuesFormatter interface {
+		Run(*types.Module, types.RecordValueSet) types.RecordValueSet
 	}
 
 	recordValuesSanitizer interface {
@@ -176,6 +181,7 @@ func (svc record) With(ctx context.Context) RecordService {
 		moduleRepo: repository.Module(ctx, db),
 		nsRepo:     repository.Namespace(ctx, db),
 
+		formatter: values.Formatter(),
 		sanitizer: values.Sanitizer(),
 		validator: validator,
 	}
@@ -1022,7 +1028,7 @@ func (svc record) preloadValues(m *types.Module, rr ...*types.Record) error {
 		return err
 	} else {
 		return types.RecordSet(rr).Walk(func(r *types.Record) error {
-			r.Values = rvs.FilterByRecordID(r.ID)
+			r.Values = svc.formatter.Run(m, rvs.FilterByRecordID(r.ID))
 			return nil
 		})
 	}
