@@ -138,7 +138,7 @@ func (sanitizer) sDatetime(v *types.RecordValue, f *types.ModuleField, m *types.
 			"02 Jan 06",
 			"Monday, 02-Jan-06",
 			"Mon, 02 Jan 2006",
-			"2019/_1/_2",
+			"2006/_1/_2",
 		}
 	} else if f.Options.Bool("onlyTime") {
 		internalFormat = datetimeIntenralFormatTime
@@ -166,8 +166,8 @@ func (sanitizer) sDatetime(v *types.RecordValue, f *types.ModuleField, m *types.
 			time.RubyDate,
 			time.UnixDate,
 			time.ANSIC,
-			"2019/_1/_2 15:04:05",
-			"2019/_1/_2 15:04",
+			"2006/_1/_2 15:04:05",
+			"2006/_1/_2 15:04",
 		}
 
 		// if string looks like a RFC 3330 (ISO 8601), see if we need to suffix it with Z
