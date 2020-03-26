@@ -82,6 +82,8 @@ type (
 		DeleteByID(namespaceID, moduleID uint64, recordID ...uint64) error
 
 		Organize(namespaceID, moduleID, recordID uint64, sortingField, sortingValue, sortingFilter, valueField, value string) error
+
+		Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action string) (err error)
 	}
 
 	Encoder interface {
@@ -789,6 +791,123 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 					Value:    strconv.FormatUint(recordOrderPlace, 10),
 				})
 			})
+		}
+
+		return
+	})
+}
+
+// Iterator loads and iterates through list of records
+//
+// For each record, RecordOnIteration is generated and passed to fn()
+// to be then passed to automation script that invoked the iteration
+//
+// No other triggers (before/after update/delete/create) are fired when (if)
+// records are changed
+//
+// action arg enables one of the following scenarios:
+//   - clone:   make new record (unless aborted)
+//   - update:  update records (unless aborted)
+//   - delete:  delete records (unless aborted)
+//   - default: only iterates over records, records are not changed, return value is ignored
+//
+//
+// Iterator can be invoked only when defined in corredor script:
+//
+// return default {
+//   iterator (each) {
+//     return each({
+//       resourceType: 'compose:record',
+//       // action: 'update',
+//       filter: {
+//         namespace: '122709101053521922',
+//         module: '122709116471783426',
+//         query: 'Status = "foo"',
+//         sort: 'Status DESC',
+//         limit: 3,
+//       },
+//     })
+//   },
+//
+//   // this is required in case of a deferred iterator
+//   // security: { runAs: .... } }
+//
+//   // exec gets called for every record found by iterator
+//   exec () { ... }
+// }
+func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action string) (err error) {
+	var (
+		invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
+
+		ns  *types.Namespace
+		m   *types.Module
+		set types.RecordSet
+	)
+
+	return svc.db.Transaction(func() (err error) {
+		if ns, m, _, err = svc.loadCombo(f.NamespaceID, f.ModuleID, 0); err != nil {
+			return
+		}
+
+		if !svc.ac.CanUpdateRecord(svc.ctx, m) {
+			return ErrNoUpdatePermissions.withStack()
+		}
+
+		// @todo might be good to split set into smaller chunks
+		set, f, err = svc.recordRepo.Find(m, f)
+		if err != nil {
+			return
+		}
+
+		if err = svc.preloadValues(m, set...); err != nil {
+			return
+		}
+
+		for _, rec := range set {
+			if err = fn(svc.ctx, event.RecordOnIteration(rec, nil, m, ns, nil)); err != nil {
+				if err.Error() != "Aborted" {
+					// When script was  softly aborted (return false),
+					// proceed with iteration but do not clone, update or delete
+					// current record!
+					return
+				}
+			}
+
+			switch action {
+			case "clone":
+				var cln *types.Record
+
+				// Assign defaults (only on missing values)
+				rec.Values = svc.setDefaultValues(m, rec.Values)
+
+				// Handle payload from automation scripts
+				if rve := svc.procCreate(invokerID, m, rec); !rve.IsValid() {
+					return rve
+				}
+
+				if cln, err = svc.recordRepo.Create(rec); err != nil {
+					return
+				} else if err = svc.recordRepo.UpdateValues(cln.ID, cln.Values); err != nil {
+					return
+				}
+			case "update":
+				// Handle input payload
+				if rve := svc.procUpdate(invokerID, m, rec, rec); !rve.IsValid() {
+					return rve
+				}
+
+				if rec, err = svc.recordRepo.Update(rec); err != nil {
+					return
+				} else if err = svc.recordRepo.UpdateValues(rec.ID, rec.Values); err != nil {
+					return
+				}
+			case "delete":
+				if err = svc.recordRepo.Delete(rec); err != nil {
+					return err
+				} else if err = svc.recordRepo.DeleteValues(rec); err != nil {
+					return err
+				}
+			}
 		}
 
 		return
