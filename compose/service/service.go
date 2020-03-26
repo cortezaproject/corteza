@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"errors"
+	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"time"
 
 	"go.uber.org/zap"
@@ -141,6 +143,8 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultNotification = Notification()
 	DefaultAttachment = Attachment(DefaultStore)
 
+	RegisterIteratorProviders()
+
 	return nil
 }
 
@@ -157,6 +161,39 @@ func Activate(ctx context.Context) (err error) {
 func Watchers(ctx context.Context) {
 	// Reloading permissions on change
 	DefaultPermissions.Watch(ctx)
+}
+
+func RegisterIteratorProviders() {
+	// Register resource finders on iterator
+	corredor.Service().RegisterIteratorProvider(
+		"compose:record",
+		func(ctx context.Context, f map[string]string, h eventbus.HandlerFn, action string) error {
+			rf := types.RecordFilter{
+				Filter: f["filter"],
+				Sort:   f["sort"],
+			}
+
+			rf.ParsePagination(f)
+
+			if nsLookup, has := f["namespace"]; !has {
+				return errors.New("namespace for record iteration filter not defined")
+			} else if ns, err := DefaultNamespace.With(ctx).FindByAny(nsLookup); err != nil {
+				return err
+			} else {
+				rf.NamespaceID = ns.ID
+			}
+
+			if mLookup, has := f["module"]; !has {
+				return errors.New("module for record iteration filter not defined")
+			} else if m, err := DefaultModule.With(ctx).FindByAny(rf.NamespaceID, mLookup); err != nil {
+				return err
+			} else {
+				rf.ModuleID = m.ID
+			}
+
+			return DefaultRecord.With(ctx).Iterator(rf, h, action)
+		},
+	)
 }
 
 // Data is stale when new date does not match updatedAt or createdAt (before first update)
