@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/app/options"
@@ -20,6 +21,10 @@ import (
 )
 
 type (
+	// IteratorResourceFinder acts as a middleware that converts
+	// iteration request to appropriate resource iterator (eg: Record Finder)
+	IteratorResourceFinder func(ctx context.Context, f map[string]string, h eventbus.HandlerFn, action string) error
+
 	service struct {
 		// stores corredor connection options
 		// for when we're doing lazy setup
@@ -49,6 +54,9 @@ type (
 		eventRegistry  eventRegistry
 		authTokenMaker authTokenMaker
 
+		// map[resource-type]
+		iteratorProviders map[string]IteratorResourceFinder
+
 		// Services to help with script security
 		// we'll find users (runAs) and roles (allow, deny) for
 		users userFinder
@@ -74,6 +82,10 @@ type (
 		Unregister(ptrs ...uintptr)
 	}
 
+	iteratorRegistry interface {
+		Exec(ctx context.Context, resourceType string, f map[string]string, action string) error
+	}
+
 	userFinder interface {
 		FindByAny(interface{}) (*types.User, error)
 	}
@@ -91,11 +103,33 @@ type (
 	}
 )
 
-const onManualEventType = "onManual"
+const (
+	onManualEventType    = "onManual"
+	onIterationEventType = "onIteration"
+	onIntervalEventType  = "onInterval"
+	onTimestampEventType = "onTimestamp"
+)
 
 var (
 	// Global corredor service
 	gCorredor *service
+
+	// List of event types that can be used as iteration
+	// initiator
+	//
+	// These events will fetch resources from registered services
+	// according to the given filter and call accompanying script
+	// for each
+	iteratorCompatibleEventTypes = map[string]bool{
+		onManualEventType:    true,
+		onIntervalEventType:  true,
+		onTimestampEventType: true,
+	}
+
+	explicitEventTypes = []string{
+		onManualEventType,
+		onIterationEventType,
+	}
 )
 
 const (
@@ -106,7 +140,7 @@ func Service() *service {
 	return gCorredor
 }
 
-// Start connects to Corredor & initialize service
+// Setup start connects to Corredor & initialize service
 func Setup(logger *zap.Logger, opt options.CorredorOpt) (err error) {
 	if gCorredor != nil {
 		// Prevent multiple initializations
@@ -124,6 +158,8 @@ func NewService(logger *zap.Logger, opt options.CorredorOpt) *service {
 
 		registered: make(map[string][]uintptr),
 		explicit:   make(map[string]map[string]bool),
+
+		iteratorProviders: make(map[string]IteratorResourceFinder),
 
 		authTokenMaker: auth.DefaultJwtHandler,
 		eventRegistry:  eventbus.Service(),
@@ -239,6 +275,64 @@ func (svc service) makeScriptFilter(ctx context.Context, f Filter) func(s *Scrip
 	}
 }
 
+func (svc service) ExecIterator(ctx context.Context, scriptName string) error {
+	var (
+		script *Script
+		runAs  string
+	)
+
+	if script = svc.sScripts.FindByName(scriptName); script == nil {
+		return errors.Errorf("nonexistent script (%q)", scriptName)
+	}
+
+	if !svc.canExec(ctx, scriptName) {
+		return errors.Errorf("permission to execute %s denied", scriptName)
+	}
+
+	if script.Iterator == nil {
+		return errors.Errorf("not an itrator script")
+	}
+
+	if finder, ok := svc.iteratorProviders[script.Iterator.ResourceType]; !ok {
+		return errors.Errorf("unknown resource finder: %s", script.Iterator.ResourceType)
+	} else {
+		if script.Security != nil {
+			runAs = script.Security.RunAs
+		}
+
+		if runAs != "" {
+			if !svc.opt.RunAsEnabled {
+				return errors.New("could not make runner context, run-as disabled")
+			}
+
+			// Run this iterator as defined user
+			definer, err := svc.users.FindByAny(runAs)
+			if err != nil {
+				return err
+			}
+
+			ctx = auth.SetIdentityToContext(ctx, definer)
+		}
+
+		return finder(
+			ctx,
+			script.Iterator.Filter,
+			func(ctx context.Context, ev eventbus.Event) error {
+				// iteration handler/callback
+				//
+				// this function is called on every iteration, for
+				// every resource found by iterator
+				return svc.exec(ctx, scriptName, runAs, ev.(ScriptArgs))
+			},
+			script.Iterator.Action,
+		)
+	}
+}
+
+func (svc *service) RegisterIteratorProvider(resourceType string, irf IteratorResourceFinder) {
+	svc.iteratorProviders[resourceType] = irf
+}
+
 // Exec verifies permissions, event and script and sends exec request to corredor
 func (svc service) Exec(ctx context.Context, scriptName string, args ScriptArgs) (err error) {
 	if !svc.opt.Enabled {
@@ -324,30 +418,6 @@ func (svc *service) loadServerScripts(ctx context.Context) {
 
 // Registers Corredor scripts to eventbus and list of manual scripts
 func (svc *service) registerServerScripts(ss ...*ServerScript) {
-	var (
-		permRuleGenerator = func(script string, access permissions.Access, roles ...string) (permissions.RuleSet, error) {
-			out := make([]*permissions.Rule, len(roles))
-			for i, role := range roles {
-				if r, err := svc.roles.FindByAny(role); err != nil {
-					return nil, err
-				} else {
-					out[i] = &permissions.Rule{
-						RoleID:    r.ID,
-						Resource:  permissions.Resource(script),
-						Operation: permOpExec,
-						Access:    access,
-					}
-				}
-
-			}
-			return out, nil
-		}
-
-		u     *types.User
-		err   error
-		runAs = ""
-	)
-
 	svc.sScripts = make([]*Script, 0, len(ss))
 
 	// Remove all previously registered triggers
@@ -365,13 +435,6 @@ func (svc *service) registerServerScripts(ss ...*ServerScript) {
 	svc.permissions = permissions.RuleSet{}
 
 	for _, script := range ss {
-		var (
-			// collectors for allow&deny rules
-			// we'll merge
-			allow = permissions.RuleSet{}
-			deny  = permissions.RuleSet{}
-		)
-
 		if nil != svc.sScripts.FindByName(script.Name) {
 			// Do not allow duplicated scripts
 			continue
@@ -383,44 +446,36 @@ func (svc *service) registerServerScripts(ss ...*ServerScript) {
 			Description: script.Description,
 			Errors:      script.Errors,
 			Triggers:    script.Triggers,
-			Security:    &ScriptSecurity{Security: script.Security},
+			Iterator:    script.Iterator,
 		}
 
-		scriptErrPush := func(err error, msg string) {
-			s.Errors = append(s.Errors, errors.Wrap(err, msg).Error())
+		// Corredor can (by design) serve us script with errors (load, parse time) and
+		// they need to be ignored by security, trigger, iterator handlers
+		if len(s.Errors) == 0 {
+			if sec, rr, err := svc.serverScriptSecurity(script); err != nil {
+				s.Errors = append(s.Errors, err.Error())
+			} else {
+				s.Security = sec
+				svc.permissions = append(svc.permissions, rr...)
+			}
+
+			if s.Iterator != nil {
+				// process iterator and register (deferred) event handlers
+				if ptrs, err := svc.processIterator(s); err != nil {
+					s.Errors = append(s.Errors, err.Error())
+				} else if ptrs > 0 {
+					svc.registered[script.Name] = []uintptr{ptrs}
+				}
+			} else {
+				if manual := mapExplicitTriggers(script); len(manual) > 0 {
+					svc.explicit[script.Name] = manual
+				}
+
+				svc.registered[script.Name] = svc.registerTriggers(script)
+			}
 		}
 
 		if len(s.Errors) == 0 {
-			if manual := mapExplicitTriggers(script); len(manual) > 0 {
-				if script.Security != nil {
-					runAs = script.Security.RunAs
-
-					if runAs != "" {
-						// Prefetch run-as user
-						if u, err = svc.users.FindByAny(runAs); err != nil {
-							scriptErrPush(err, "could not load run-as user security info")
-						} else {
-							s.Security.runAs = u.ID
-						}
-					}
-
-					if allow, err = permRuleGenerator(script.Name, permissions.Allow, script.Security.Allow...); err != nil {
-						scriptErrPush(err, "could not load allow role security info")
-					}
-
-					if deny, err = permRuleGenerator(script.Name, permissions.Deny, script.Security.Deny...); err != nil {
-						scriptErrPush(err, "could not load deny role security info")
-					}
-
-					svc.permissions = append(svc.permissions, allow...)
-					svc.permissions = append(svc.permissions, deny...)
-				}
-
-				svc.explicit[script.Name] = manual
-			}
-
-			svc.registered[script.Name] = svc.registerTriggers(script)
-
 			svc.log.Debug(
 				"script registered",
 				zap.String("script", s.Name),
@@ -434,7 +489,80 @@ func (svc *service) registerServerScripts(ss ...*ServerScript) {
 				zap.Strings("errors", s.Errors),
 			)
 		}
+
+		// Even if there are errors, we'll append the scripts
+		// because we need to serve them as a list for script management
+		svc.sScripts = append(svc.sScripts, s)
 	}
+}
+
+// Registers scheduled and manual iterators
+//
+// scheduled iterators
+//   registered on eventbus as onInterval or onTimestamp
+//   and triggered by/from scheduler
+//
+// manual iterators
+//   can be invoked via API
+func (svc *service) processIterator(script *Script) (ptr uintptr, err error) {
+	var (
+		log = svc.log.With(zap.String("script", script.Name))
+		i   = script.Iterator
+
+		service string
+	)
+
+	if i == nil {
+		return
+	}
+
+	if i.ResourceType == "" {
+		return 0, errors.Errorf("iterator resourceType not defined")
+	}
+
+	log.Info(
+		"registering iterator",
+		zap.String("action", i.Action),
+		zap.Any("filter", i.Filter),
+		zap.String("eventType", i.EventType),
+		zap.String("resourceType", i.ResourceType),
+		zap.Strings("deferred", i.Deferred),
+	)
+
+	switch i.EventType {
+	case onManualEventType:
+		// nothing special here with manual iterators...
+		return
+	case onIntervalEventType, onTimestampEventType:
+		if len(i.Deferred) == 0 {
+			return 0, errors.Errorf("missing specification for interval/timestamp events")
+		}
+
+		if script.Security == nil {
+			return 0, errors.Errorf("can not schedule iterator without security descriptor")
+		}
+
+		if p := strings.Index(i.ResourceType, ":"); p > 0 {
+			service = i.ResourceType[0:p]
+		} else {
+			service = i.ResourceType
+		}
+
+		// Generate event handler for onInterval or onTimestamp event
+		// with deferred param as constraint
+		return svc.eventRegistry.Register(
+			func(ctx context.Context, ev eventbus.Event) error {
+				return svc.ExecIterator(ctx, script.Name)
+			},
+			eventbus.On(i.EventType),
+			eventbus.For(service),
+			eventbus.Constraint(eventbus.MustMakeConstraint("", "", i.Deferred...)),
+		), nil
+	default:
+		return 0, errors.Errorf("incompatible event type (%s) for iterator", i.EventType)
+	}
+
+	return
 }
 
 // Creates handler function for eventbus subsystem
@@ -717,6 +845,64 @@ func (svc *service) registerClientScripts(ss ...*ClientScript) {
 			Type:        script.Type,
 		}
 	}
+}
+
+// processes server script security definition
+//
+// Checks and preloads sser and roles (if defined)
+//
+func (svc *service) serverScriptSecurity(script *ServerScript) (sec *ScriptSecurity, rr permissions.RuleSet, err error) {
+	if script.Security == nil {
+		return
+	}
+
+	var (
+		// collectors for allow&deny rules
+		// we'll merge
+		allow = permissions.RuleSet{}
+		deny  = permissions.RuleSet{}
+
+		permRuleGenerator = func(script string, access permissions.Access, roles ...string) (permissions.RuleSet, error) {
+			out := make([]*permissions.Rule, len(roles))
+			for i, role := range roles {
+				if r, err := svc.roles.FindByAny(role); err != nil {
+					return nil, errors.Wrapf(err, "could not load security role: %s", role)
+				} else {
+					out[i] = &permissions.Rule{
+						RoleID:    r.ID,
+						Resource:  permissions.Resource(script),
+						Operation: permOpExec,
+						Access:    access,
+					}
+				}
+
+			}
+			return out, nil
+		}
+	)
+
+	sec = &ScriptSecurity{Security: script.Security}
+
+	if sec.RunAs != "" {
+		// Prefetch run-as user
+		if _, err = svc.users.FindByAny(sec.RunAs); err != nil {
+			err = errors.Wrap(err, "could not load security (run-as) user")
+			return
+			//} else {
+			//	s.Security.runAs = u.ID
+		}
+	}
+
+	if allow, err = permRuleGenerator(script.Name, permissions.Allow, script.Security.Allow...); err != nil {
+		return
+	}
+
+	if deny, err = permRuleGenerator(script.Name, permissions.Deny, script.Security.Deny...); err != nil {
+		return
+	}
+
+	rr = append(allow, deny...)
+	return
 }
 
 func (svc *service) GetBundle(ctx context.Context, name, bType string) *Bundle {
