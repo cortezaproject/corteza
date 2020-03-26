@@ -7,7 +7,10 @@ import (
 
 // Match returns false if given conditions do not match event & resource internals
 func (res messageBase) Match(c eventbus.ConstraintMatcher) bool {
-	return channelMatch(res.channel, c, messageMatch(res.message, c))
+	return eventbus.MatchFirst(
+		func() bool { return messageMatch(res.message, c) },
+		func() bool { return channelMatch(res.channel, c) },
+	)
 }
 
 // Handles message matchers

@@ -7,11 +7,14 @@ import (
 
 // Match returns false if given conditions do not match event & resource internals
 func (res moduleBase) Match(c eventbus.ConstraintMatcher) bool {
-	return namespaceMatch(res.namespace, c, moduleMatch(res.module, c, false))
+	return eventbus.MatchFirst(
+		func() bool { return moduleMatch(res.module, c) },
+		func() bool { return namespaceMatch(res.namespace, c) },
+	)
 }
 
 // Handles module matchers
-func moduleMatch(r *types.Module, c eventbus.ConstraintMatcher, def bool) bool {
+func moduleMatch(r *types.Module, c eventbus.ConstraintMatcher) bool {
 	switch c.Name() {
 	case "module", "module.handle":
 		return c.Match(r.Handle)
@@ -19,5 +22,5 @@ func moduleMatch(r *types.Module, c eventbus.ConstraintMatcher, def bool) bool {
 		return c.Match(r.Name)
 	}
 
-	return def
+	return false
 }

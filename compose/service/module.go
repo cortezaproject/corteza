@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
@@ -47,6 +48,7 @@ type (
 		FindByID(namespaceID, moduleID uint64) (*types.Module, error)
 		FindByName(namespaceID uint64, name string) (*types.Module, error)
 		FindByHandle(namespaceID uint64, handle string) (*types.Module, error)
+		FindByAny(namespaceID uint64, identifier interface{}) (*types.Module, error)
 		Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
 
 		Create(module *types.Module) (*types.Module, error)
@@ -107,6 +109,30 @@ func (svc module) FindByHandle(namespaceID uint64, handle string) (m *types.Modu
 	} else {
 		return svc.loader(svc.moduleRepo.FindByHandle(namespaceID, handle))
 	}
+}
+
+// FindByAny tries to find module in a particular namespace by id, handle or name
+func (svc module) FindByAny(namespaceID uint64, identifier interface{}) (r *types.Module, err error) {
+	if ID, ok := identifier.(uint64); ok {
+		r, err = svc.FindByID(namespaceID, ID)
+	} else if strIdentifier, ok := identifier.(string); ok {
+		if ID, _ := strconv.ParseUint(strIdentifier, 10, 64); ID > 0 {
+			r, err = svc.FindByID(namespaceID, ID)
+		} else {
+			r, err = svc.FindByHandle(namespaceID, strIdentifier)
+			if err == nil && r.ID == 0 {
+				r, err = svc.FindByName(namespaceID, strIdentifier)
+			}
+		}
+	} else {
+		err = ErrInvalidID.withStack()
+	}
+
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func (svc module) loader(m *types.Module, err error) (*types.Module, error) {

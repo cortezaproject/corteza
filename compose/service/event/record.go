@@ -13,10 +13,14 @@ const (
 
 // Match returns false if given conditions do not match event & resource internals
 func (res recordBase) Match(c eventbus.ConstraintMatcher) bool {
-	return recordMatch(res.record, c, namespaceMatch(res.namespace, c, moduleMatch(res.module, c, false)))
+	return eventbus.MatchFirst(
+		func() bool { return recordMatch(res.record, c) },
+		func() bool { return moduleMatch(res.module, c) },
+		func() bool { return namespaceMatch(res.namespace, c) },
+	)
 }
 
-func recordMatch(r *types.Record, c eventbus.ConstraintMatcher, def bool) bool {
+func recordMatch(r *types.Record, c eventbus.ConstraintMatcher) bool {
 	switch c.Name() {
 	case "record.updatedAt":
 		return c.Match(r.UpdatedAt.Format(time.RFC3339))
@@ -35,5 +39,5 @@ func recordMatch(r *types.Record, c eventbus.ConstraintMatcher, def bool) bool {
 		}
 	}
 
-	return def
+	return false
 }

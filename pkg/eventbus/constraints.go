@@ -166,3 +166,13 @@ func (c mustMatch) Match(value string) bool {
 
 	return c.not
 }
+
+func MatchFirst(checks ...func() bool) bool {
+	for _, check := range checks {
+		if check() {
+			return true
+		}
+	}
+
+	return false
+}

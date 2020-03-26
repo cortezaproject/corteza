@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/titpetric/factory"
 	"go.uber.org/zap"
@@ -45,6 +46,7 @@ type (
 		FindByID(namespaceID uint64) (*types.Namespace, error)
 		FindByHandle(handle string) (*types.Namespace, error)
 		Find(types.NamespaceFilter) (types.NamespaceSet, types.NamespaceFilter, error)
+		FindByAny(interface{}) (*types.Namespace, error)
 
 		Create(namespace *types.Namespace) (*types.Namespace, error)
 		Update(namespace *types.Namespace) (*types.Namespace, error)
@@ -89,6 +91,30 @@ func (svc namespace) FindByHandle(handle string) (ns *types.Namespace, err error
 
 func (svc namespace) FindBySlug(slug string) (ns *types.Namespace, err error) {
 	return svc.checkPermissions(svc.namespaceRepo.FindBySlug(slug))
+}
+
+// FindByAny tries to find namespace by id, handle or slug
+func (svc namespace) FindByAny(identifier interface{}) (r *types.Namespace, err error) {
+	if ID, ok := identifier.(uint64); ok {
+		r, err = svc.FindByID(ID)
+	} else if strIdentifier, ok := identifier.(string); ok {
+		if ID, _ := strconv.ParseUint(strIdentifier, 10, 64); ID > 0 {
+			r, err = svc.FindByID(ID)
+		} else {
+			r, err = svc.FindByHandle(strIdentifier)
+			if err == nil && r.ID == 0 {
+				r, err = svc.FindBySlug(strIdentifier)
+			}
+		}
+	} else {
+		err = ErrInvalidID.withStack()
+	}
+
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func (svc namespace) checkPermissions(p *types.Namespace, err error) (*types.Namespace, error) {

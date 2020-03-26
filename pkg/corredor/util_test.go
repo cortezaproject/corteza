@@ -17,7 +17,7 @@ func TestMapManualTriggers(t *testing.T) {
 			"r1": true,
 			"r2": true,
 		},
-		mapManualTriggers(&ServerScript{
+		mapExplicitTriggers(&ServerScript{
 			Triggers: []*Trigger{&Trigger{
 				ResourceTypes: []string{"r1", "r2"},
 				EventTypes:    []string{"onTimestamp", onManualEventType, "onInterval"},
@@ -27,7 +27,7 @@ func TestMapManualTriggers(t *testing.T) {
 
 	a.EqualValues(
 		map[string]bool{},
-		mapManualTriggers(&ServerScript{
+		mapExplicitTriggers(&ServerScript{
 			Triggers: []*Trigger{&Trigger{
 				ResourceTypes: []string{"r1", "r2"},
 				EventTypes:    []string{"onTimestamp", "onInterval"},
@@ -53,14 +53,14 @@ func TestTriggerOptsMaking(t *testing.T) {
 		err error
 	)
 
-	oo, err = makeTriggerOpts(trg)
+	oo, err = triggerToHandlerOps(trg)
 	a.NoError(err)
 	a.Len(oo, 4) // 1x all resources, 1x all events, 2x constraints
 
-	oo, err = makeTriggerOpts(&Trigger{ResourceTypes: []string{"bar"}})
+	oo, err = triggerToHandlerOps(&Trigger{ResourceTypes: []string{"bar"}})
 	a.Error(err, "expecting to fail on trigger w/o events")
 
-	oo, err = makeTriggerOpts(&Trigger{EventTypes: []string{"foo"}})
+	oo, err = triggerToHandlerOps(&Trigger{EventTypes: []string{"foo"}})
 	a.Error(err, "expecting to fail on trigger w/o resources")
 }
 

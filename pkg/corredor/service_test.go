@@ -221,22 +221,22 @@ func TestService_canExec(t *testing.T) {
 	svc.registerServerScripts(script1, script2, script3, script4)
 
 	a.Len(svc.sScripts, 3)
-	a.Len(svc.permissions, 2)
+	a.Len(svc.permissions, 3)
 	a.True(svc.canExec(ctx, script1.Name))
 	a.False(svc.canExec(ctx, script2.Name))
 }
 
-func TestService_ExecOnManual(t *testing.T) {
+func TestService_Exec(t *testing.T) {
 	var (
 		a   = assert.New(t)
 		svc = &service{
-			manual: map[string]map[string]bool{},
-			opt:    options.CorredorOpt{Enabled: true},
+			explicit: map[string]map[string]bool{},
+			opt:      options.CorredorOpt{Enabled: true},
 		}
 	)
 
-	a.Error(svc.ExecOnManual(nil, "script", &mockEvent{eType: "not-onManual"}))
-	a.Error(svc.ExecOnManual(nil, "script", &mockEvent{eType: onManualEventType}))
-	svc.manual["script"] = nil
-	a.Error(svc.ExecOnManual(nil, "script", &mockEvent{eType: onManualEventType}))
+	a.Error(svc.Exec(nil, "script", &mockEvent{eType: "not-onManual"}))
+	a.Error(svc.Exec(nil, "script", &mockEvent{eType: onManualEventType}))
+	svc.explicit["script"] = nil
+	a.Error(svc.Exec(nil, "script", &mockEvent{eType: onManualEventType}))
 }

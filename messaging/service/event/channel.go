@@ -7,13 +7,13 @@ import (
 
 // Match returns false if given conditions do not match event & resource internals
 func (res channelBase) Match(c eventbus.ConstraintMatcher) bool {
-	return channelMatch(res.channel, c, false)
+	return channelMatch(res.channel, c)
 }
 
 // Handles channel matchers
 //
 // This *match() fn uses a 3rd param to allow matcher chaining (see commands, channels)
-func channelMatch(r *types.Channel, c eventbus.ConstraintMatcher, def bool) bool {
+func channelMatch(r *types.Channel, c eventbus.ConstraintMatcher) bool {
 	switch c.Name() {
 	case "channel", "channel.name":
 		return r != nil && c.Match(r.Name)
@@ -23,5 +23,5 @@ func channelMatch(r *types.Channel, c eventbus.ConstraintMatcher, def bool) bool
 		return r != nil && c.Match(r.Type.String())
 	}
 
-	return def
+	return false
 }
