@@ -43,24 +43,26 @@ type RecordAPI interface {
 	Delete(context.Context, *request.RecordDelete) (interface{}, error)
 	Upload(context.Context, *request.RecordUpload) (interface{}, error)
 	TriggerScript(context.Context, *request.RecordTriggerScript) (interface{}, error)
+	TriggerScriptOnList(context.Context, *request.RecordTriggerScriptOnList) (interface{}, error)
 }
 
 // HTTP API interface
 type Record struct {
-	Report         func(http.ResponseWriter, *http.Request)
-	List           func(http.ResponseWriter, *http.Request)
-	ImportInit     func(http.ResponseWriter, *http.Request)
-	ImportRun      func(http.ResponseWriter, *http.Request)
-	ImportProgress func(http.ResponseWriter, *http.Request)
-	Export         func(http.ResponseWriter, *http.Request)
-	Exec           func(http.ResponseWriter, *http.Request)
-	Create         func(http.ResponseWriter, *http.Request)
-	Read           func(http.ResponseWriter, *http.Request)
-	Update         func(http.ResponseWriter, *http.Request)
-	BulkDelete     func(http.ResponseWriter, *http.Request)
-	Delete         func(http.ResponseWriter, *http.Request)
-	Upload         func(http.ResponseWriter, *http.Request)
-	TriggerScript  func(http.ResponseWriter, *http.Request)
+	Report              func(http.ResponseWriter, *http.Request)
+	List                func(http.ResponseWriter, *http.Request)
+	ImportInit          func(http.ResponseWriter, *http.Request)
+	ImportRun           func(http.ResponseWriter, *http.Request)
+	ImportProgress      func(http.ResponseWriter, *http.Request)
+	Export              func(http.ResponseWriter, *http.Request)
+	Exec                func(http.ResponseWriter, *http.Request)
+	Create              func(http.ResponseWriter, *http.Request)
+	Read                func(http.ResponseWriter, *http.Request)
+	Update              func(http.ResponseWriter, *http.Request)
+	BulkDelete          func(http.ResponseWriter, *http.Request)
+	Delete              func(http.ResponseWriter, *http.Request)
+	Upload              func(http.ResponseWriter, *http.Request)
+	TriggerScript       func(http.ResponseWriter, *http.Request)
+	TriggerScriptOnList func(http.ResponseWriter, *http.Request)
 }
 
 func NewRecord(h RecordAPI) *Record {
@@ -345,6 +347,26 @@ func NewRecord(h RecordAPI) *Record {
 				resputil.JSON(w, value)
 			}
 		},
+		TriggerScriptOnList: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRecordTriggerScriptOnList()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Record.TriggerScriptOnList", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.TriggerScriptOnList(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("Record.TriggerScriptOnList", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("Record.TriggerScriptOnList", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
 	}
 }
 
@@ -365,5 +387,6 @@ func (h Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Delete("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Delete)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/attachment", h.Upload)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/trigger", h.TriggerScript)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/trigger", h.TriggerScriptOnList)
 	})
 }

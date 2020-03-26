@@ -651,6 +651,7 @@ Compose pages
 | title | string | POST | Title | N/A | YES |
 | handle | string | POST | Handle | N/A | NO |
 | description | string | POST | Description | N/A | NO |
+| weight | int | POST | Page tree weight | N/A | NO |
 | visible | bool | POST | Visible in navigation | N/A | NO |
 | blocks | sqlxTypes.JSONText | POST | Blocks JSON | N/A | NO |
 
@@ -827,6 +828,7 @@ Compose records
 | `DELETE` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}` | Delete record row from module section |
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/attachment` | Uploads attachment and validates it against record field requirements |
 | `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/trigger` | Fire compose:record trigger |
+| `POST` | `/namespace/{namespaceID}/module/{moduleID}/record/trigger` | Fire compose:record trigger |
 
 ## Generates report from module records
 
@@ -1068,6 +1070,22 @@ Compose records
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 | script | string | POST | Script to execute | N/A | YES |
 | values | types.RecordValueSet | POST | Record values | N/A | YES |
+
+## Fire compose:record trigger
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/namespace/{namespaceID}/module/{moduleID}/record/trigger` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| script | string | POST | Script to execute | N/A | YES |
+| namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
+| moduleID | uint64 | PATH | Module ID | N/A | YES |
 
 ---
 
