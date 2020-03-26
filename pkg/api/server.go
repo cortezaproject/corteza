@@ -103,6 +103,12 @@ func (s server) Serve(ctx context.Context) {
 
 		s.log.Debug("list of routes: /__routes", zap.Error(err))
 		router.Get("/__routes", debugRoutes(router))
+
+		s.log.Debug("eventbus handlers: /__eventbus", zap.Error(err))
+		router.Get("/__eventbus", debugEventbus())
+
+		s.log.Debug("corredor service: /__corredor", zap.Error(err))
+		router.Get("/__corredor", debugCorredor())
 	}
 
 	if s.httpOpt.EnableVersionRoute {

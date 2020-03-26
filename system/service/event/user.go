@@ -7,11 +7,11 @@ import (
 
 // Match returns false if given conditions do not match event & resource internals
 func (res userBase) Match(c eventbus.ConstraintMatcher) bool {
-	return userMatch(res.user, c, false)
+	return userMatch(res.user, c)
 }
 
 // Handles user matchers
-func userMatch(r *types.User, c eventbus.ConstraintMatcher, def bool) bool {
+func userMatch(r *types.User, c eventbus.ConstraintMatcher) bool {
 	switch c.Name() {
 	case "user", "user.handle":
 		return r != nil && c.Match(r.Handle)
@@ -19,5 +19,5 @@ func userMatch(r *types.User, c eventbus.ConstraintMatcher, def bool) bool {
 		return r != nil && c.Match(r.Email)
 	}
 
-	return def
+	return false
 }

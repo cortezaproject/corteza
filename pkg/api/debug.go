@@ -2,6 +2,9 @@ package api
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/davecgh/go-spew/spew"
 	"net/http"
 	"reflect"
 	"runtime"
@@ -27,5 +30,17 @@ func debugRoutes(r chi.Routes) http.HandlerFunc {
 		}
 
 		printRoutes(r, "")
+	}
+}
+
+func debugEventbus() http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		spew.Fdump(w, eventbus.Service().Debug())
+	}
+}
+
+func debugCorredor() http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		spew.Fdump(w, corredor.Service().Debug())
 	}
 }
