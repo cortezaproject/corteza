@@ -38,7 +38,7 @@ compose:module:
       immutable: true
 
 compose:record:
-  on: ['manual']
+  on: ['manual', 'iteration']
   ba: ['create', 'update', 'delete']
   props:
     - name: 'record'

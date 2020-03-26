@@ -38,6 +38,13 @@ type (
 		*recordBase
 	}
 
+	// recordOnIteration
+	//
+	// This type is auto-generated.
+	recordOnIteration struct {
+		*recordBase
+	}
+
 	// recordBeforeCreate
 	//
 	// This type is auto-generated.
@@ -93,6 +100,13 @@ func (recordBase) ResourceType() string {
 // This function is auto-generated.
 func (recordOnManual) EventType() string {
 	return "onManual"
+}
+
+// EventType on recordOnIteration returns "onIteration"
+//
+// This function is auto-generated.
+func (recordOnIteration) EventType() string {
+	return "onIteration"
 }
 
 // EventType on recordBeforeCreate returns "beforeCreate"
@@ -172,6 +186,52 @@ func RecordOnManualImmutable(
 	argRecordValueErrors *types.RecordValueErrorSet,
 ) *recordOnManual {
 	return &recordOnManual{
+		recordBase: &recordBase{
+			immutable:         true,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
+		},
+	}
+}
+
+// RecordOnIteration creates onIteration for compose:record resource
+//
+// This function is auto-generated.
+func RecordOnIteration(
+	argRecord *types.Record,
+	argOldRecord *types.Record,
+	argModule *types.Module,
+	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
+) *recordOnIteration {
+	return &recordOnIteration{
+		recordBase: &recordBase{
+			immutable:         false,
+			record:            argRecord,
+			oldRecord:         argOldRecord,
+			module:            argModule,
+			namespace:         argNamespace,
+			recordValueErrors: argRecordValueErrors,
+		},
+	}
+}
+
+// RecordOnIterationImmutable creates onIteration for compose:record resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func RecordOnIterationImmutable(
+	argRecord *types.Record,
+	argOldRecord *types.Record,
+	argModule *types.Module,
+	argNamespace *types.Namespace,
+	argRecordValueErrors *types.RecordValueErrorSet,
+) *recordOnIteration {
+	return &recordOnIteration{
 		recordBase: &recordBase{
 			immutable:         true,
 			record:            argRecord,
