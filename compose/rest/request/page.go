@@ -335,6 +335,7 @@ func (r PageUpdate) Auditable() map[string]interface{} {
 	out["title"] = r.Title
 	out["handle"] = r.Handle
 	out["description"] = r.Description
+	out["weight"] = r.Weight
 	out["visible"] = r.Visible
 	out["blocks"] = r.Blocks
 
@@ -384,6 +385,9 @@ func (r *PageUpdate) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := post["description"]; ok {
 		r.Description = val
+	}
+	if val, ok := post["weight"]; ok {
+		r.Weight = parseInt(val)
 	}
 	if val, ok := post["visible"]; ok {
 		r.Visible = parseBool(val)

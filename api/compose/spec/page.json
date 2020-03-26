@@ -190,6 +190,12 @@
             "type": "string"
           },
           {
+            "name": "weight",
+            "required": false,
+            "title": "Page tree weight",
+            "type": "int"
+          },
+          {
             "name": "visible",
             "required": false,
             "title": "Visible in navigation",
