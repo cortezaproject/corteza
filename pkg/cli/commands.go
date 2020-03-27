@@ -36,6 +36,13 @@ var (
 		Use:   "version",
 		Short: "Version",
 	}
+
+	// List of commands that do not
+	// run initialization (db connection, etc...)
+	light = map[string]bool{
+		"help":             true,
+		versionCommand.Use: true,
+	}
 )
 
 // RootCommand creates root command with a simple persistent-pre-run callback
@@ -50,7 +57,7 @@ func RootCommand(ppRunEfn func() error) *cobra.Command {
 	)
 
 	cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) (err error) {
-		if cmd.Name() == "help" {
+		if light[cmd.Name()] {
 			// Do not run hooks on parts on help command
 			return nil
 		}
