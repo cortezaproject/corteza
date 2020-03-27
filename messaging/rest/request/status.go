@@ -30,20 +30,23 @@ import (
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
 
-// Status list request parameters
+// StatusList request parameters
 type StatusList struct {
 }
 
+// NewStatusList request
 func NewStatusList() *StatusList {
 	return &StatusList{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r StatusList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *StatusList) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -76,17 +79,27 @@ func (r *StatusList) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewStatusList()
 
-// Status set request parameters
+// StatusSet request parameters
 type StatusSet struct {
+	hasIcon bool
+	rawIcon string
 	Icon    string
-	Message string
-	Expires string
+
+	hasMessage bool
+	rawMessage string
+	Message    string
+
+	hasExpires bool
+	rawExpires string
+	Expires    string
 }
 
+// NewStatusSet request
 func NewStatusSet() *StatusSet {
 	return &StatusSet{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r StatusSet) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -97,6 +110,7 @@ func (r StatusSet) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *StatusSet) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -139,20 +153,23 @@ func (r *StatusSet) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewStatusSet()
 
-// Status delete request parameters
+// StatusDelete request parameters
 type StatusDelete struct {
 }
 
+// NewStatusDelete request
 func NewStatusDelete() *StatusDelete {
 	return &StatusDelete{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r StatusDelete) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *StatusDelete) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -184,3 +201,48 @@ func (r *StatusDelete) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewStatusDelete()
+
+// HasIcon returns true if icon was set
+func (r *StatusSet) HasIcon() bool {
+	return r.hasIcon
+}
+
+// RawIcon returns raw value of icon parameter
+func (r *StatusSet) RawIcon() string {
+	return r.rawIcon
+}
+
+// GetIcon returns casted value of  icon parameter
+func (r *StatusSet) GetIcon() string {
+	return r.Icon
+}
+
+// HasMessage returns true if message was set
+func (r *StatusSet) HasMessage() bool {
+	return r.hasMessage
+}
+
+// RawMessage returns raw value of message parameter
+func (r *StatusSet) RawMessage() string {
+	return r.rawMessage
+}
+
+// GetMessage returns casted value of  message parameter
+func (r *StatusSet) GetMessage() string {
+	return r.Message
+}
+
+// HasExpires returns true if expires was set
+func (r *StatusSet) HasExpires() bool {
+	return r.hasExpires
+}
+
+// RawExpires returns raw value of expires parameter
+func (r *StatusSet) RawExpires() string {
+	return r.rawExpires
+}
+
+// GetExpires returns casted value of  expires parameter
+func (r *StatusSet) GetExpires() string {
+	return r.Expires
+}

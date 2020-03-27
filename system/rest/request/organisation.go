@@ -30,15 +30,19 @@ import (
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
 
-// Organisation list request parameters
+// OrganisationList request parameters
 type OrganisationList struct {
-	Query string
+	hasQuery bool
+	rawQuery string
+	Query    string
 }
 
+// NewOrganisationList request
 func NewOrganisationList() *OrganisationList {
 	return &OrganisationList{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r OrganisationList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -47,6 +51,7 @@ func (r OrganisationList) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *OrganisationList) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -83,15 +88,19 @@ func (r *OrganisationList) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewOrganisationList()
 
-// Organisation create request parameters
+// OrganisationCreate request parameters
 type OrganisationCreate struct {
-	Name string
+	hasName bool
+	rawName string
+	Name    string
 }
 
+// NewOrganisationCreate request
 func NewOrganisationCreate() *OrganisationCreate {
 	return &OrganisationCreate{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r OrganisationCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -100,6 +109,7 @@ func (r OrganisationCreate) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *OrganisationCreate) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -136,16 +146,23 @@ func (r *OrganisationCreate) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewOrganisationCreate()
 
-// Organisation update request parameters
+// OrganisationUpdate request parameters
 type OrganisationUpdate struct {
-	ID   uint64 `json:",string"`
-	Name string
+	hasID bool
+	rawID string
+	ID    uint64 `json:",string"`
+
+	hasName bool
+	rawName string
+	Name    string
 }
 
+// NewOrganisationUpdate request
 func NewOrganisationUpdate() *OrganisationUpdate {
 	return &OrganisationUpdate{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r OrganisationUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -155,6 +172,7 @@ func (r OrganisationUpdate) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *OrganisationUpdate) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -182,6 +200,8 @@ func (r *OrganisationUpdate) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasID = true
+	r.rawID = chi.URLParam(req, "id")
 	r.ID = parseUInt64(chi.URLParam(req, "id"))
 	if val, ok := post["name"]; ok {
 		r.Name = val
@@ -192,15 +212,19 @@ func (r *OrganisationUpdate) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewOrganisationUpdate()
 
-// Organisation delete request parameters
+// OrganisationDelete request parameters
 type OrganisationDelete struct {
-	ID uint64 `json:",string"`
+	hasID bool
+	rawID string
+	ID    uint64 `json:",string"`
 }
 
+// NewOrganisationDelete request
 func NewOrganisationDelete() *OrganisationDelete {
 	return &OrganisationDelete{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r OrganisationDelete) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -209,6 +233,7 @@ func (r OrganisationDelete) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *OrganisationDelete) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -236,6 +261,8 @@ func (r *OrganisationDelete) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasID = true
+	r.rawID = chi.URLParam(req, "id")
 	r.ID = parseUInt64(chi.URLParam(req, "id"))
 
 	return err
@@ -243,15 +270,19 @@ func (r *OrganisationDelete) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewOrganisationDelete()
 
-// Organisation read request parameters
+// OrganisationRead request parameters
 type OrganisationRead struct {
-	ID uint64 `json:",string"`
+	hasID bool
+	rawID string
+	ID    uint64 `json:",string"`
 }
 
+// NewOrganisationRead request
 func NewOrganisationRead() *OrganisationRead {
 	return &OrganisationRead{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r OrganisationRead) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -260,6 +291,7 @@ func (r OrganisationRead) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *OrganisationRead) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -287,6 +319,8 @@ func (r *OrganisationRead) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasID = true
+	r.rawID = chi.URLParam(req, "id")
 	r.ID = parseUInt64(chi.URLParam(req, "id"))
 
 	return err
@@ -294,15 +328,19 @@ func (r *OrganisationRead) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewOrganisationRead()
 
-// Organisation archive request parameters
+// OrganisationArchive request parameters
 type OrganisationArchive struct {
-	ID uint64 `json:",string"`
+	hasID bool
+	rawID string
+	ID    uint64 `json:",string"`
 }
 
+// NewOrganisationArchive request
 func NewOrganisationArchive() *OrganisationArchive {
 	return &OrganisationArchive{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r OrganisationArchive) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -311,6 +349,7 @@ func (r OrganisationArchive) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *OrganisationArchive) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -338,9 +377,116 @@ func (r *OrganisationArchive) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasID = true
+	r.rawID = chi.URLParam(req, "id")
 	r.ID = parseUInt64(chi.URLParam(req, "id"))
 
 	return err
 }
 
 var _ RequestFiller = NewOrganisationArchive()
+
+// HasQuery returns true if query was set
+func (r *OrganisationList) HasQuery() bool {
+	return r.hasQuery
+}
+
+// RawQuery returns raw value of query parameter
+func (r *OrganisationList) RawQuery() string {
+	return r.rawQuery
+}
+
+// GetQuery returns casted value of  query parameter
+func (r *OrganisationList) GetQuery() string {
+	return r.Query
+}
+
+// HasName returns true if name was set
+func (r *OrganisationCreate) HasName() bool {
+	return r.hasName
+}
+
+// RawName returns raw value of name parameter
+func (r *OrganisationCreate) RawName() string {
+	return r.rawName
+}
+
+// GetName returns casted value of  name parameter
+func (r *OrganisationCreate) GetName() string {
+	return r.Name
+}
+
+// HasID returns true if id was set
+func (r *OrganisationUpdate) HasID() bool {
+	return r.hasID
+}
+
+// RawID returns raw value of id parameter
+func (r *OrganisationUpdate) RawID() string {
+	return r.rawID
+}
+
+// GetID returns casted value of  id parameter
+func (r *OrganisationUpdate) GetID() uint64 {
+	return r.ID
+}
+
+// HasName returns true if name was set
+func (r *OrganisationUpdate) HasName() bool {
+	return r.hasName
+}
+
+// RawName returns raw value of name parameter
+func (r *OrganisationUpdate) RawName() string {
+	return r.rawName
+}
+
+// GetName returns casted value of  name parameter
+func (r *OrganisationUpdate) GetName() string {
+	return r.Name
+}
+
+// HasID returns true if id was set
+func (r *OrganisationDelete) HasID() bool {
+	return r.hasID
+}
+
+// RawID returns raw value of id parameter
+func (r *OrganisationDelete) RawID() string {
+	return r.rawID
+}
+
+// GetID returns casted value of  id parameter
+func (r *OrganisationDelete) GetID() uint64 {
+	return r.ID
+}
+
+// HasID returns true if id was set
+func (r *OrganisationRead) HasID() bool {
+	return r.hasID
+}
+
+// RawID returns raw value of id parameter
+func (r *OrganisationRead) RawID() string {
+	return r.rawID
+}
+
+// GetID returns casted value of  id parameter
+func (r *OrganisationRead) GetID() uint64 {
+	return r.ID
+}
+
+// HasID returns true if id was set
+func (r *OrganisationArchive) HasID() bool {
+	return r.hasID
+}
+
+// RawID returns raw value of id parameter
+func (r *OrganisationArchive) RawID() string {
+	return r.rawID
+}
+
+// GetID returns casted value of  id parameter
+func (r *OrganisationArchive) GetID() uint64 {
+	return r.ID
+}

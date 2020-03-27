@@ -32,28 +32,71 @@ import (
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
 
-// User list request parameters
+// UserList request parameters
 type UserList struct {
-	UserID       []string
-	RoleID       []string
-	Query        string
-	Username     string
-	Email        string
-	Handle       string
-	Kind         types.UserKind
-	IncDeleted   bool
-	IncSuspended bool
-	Deleted      uint
+	hasUserID bool
+	rawUserID []string
+	UserID    []string
+
+	hasRoleID bool
+	rawRoleID []string
+	RoleID    []string
+
+	hasQuery bool
+	rawQuery string
+	Query    string
+
+	hasUsername bool
+	rawUsername string
+	Username    string
+
+	hasEmail bool
+	rawEmail string
+	Email    string
+
+	hasHandle bool
+	rawHandle string
+	Handle    string
+
+	hasKind bool
+	rawKind string
+	Kind    types.UserKind
+
+	hasIncDeleted bool
+	rawIncDeleted string
+	IncDeleted    bool
+
+	hasIncSuspended bool
+	rawIncSuspended string
+	IncSuspended    bool
+
+	hasDeleted bool
+	rawDeleted string
+	Deleted    uint
+
+	hasSuspended bool
+	rawSuspended string
 	Suspended    uint
-	Sort         string
-	Page         uint
-	PerPage      uint
+
+	hasSort bool
+	rawSort string
+	Sort    string
+
+	hasPage bool
+	rawPage string
+	Page    uint
+
+	hasPerPage bool
+	rawPerPage string
+	PerPage    uint
 }
 
+// NewUserList request
 func NewUserList() *UserList {
 	return &UserList{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r UserList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -75,6 +118,7 @@ func (r UserList) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *UserList) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -103,14 +147,22 @@ func (r *UserList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := urlQuery["userID[]"]; ok {
+		r.hasUserID = true
+		r.rawUserID = val
 		r.UserID = parseStrings(val)
 	} else if val, ok = urlQuery["userID"]; ok {
+		r.hasUserID = true
+		r.rawUserID = val
 		r.UserID = parseStrings(val)
 	}
 
 	if val, ok := urlQuery["roleID[]"]; ok {
+		r.hasRoleID = true
+		r.rawRoleID = val
 		r.RoleID = parseStrings(val)
 	} else if val, ok = urlQuery["roleID"]; ok {
+		r.hasRoleID = true
+		r.rawRoleID = val
 		r.RoleID = parseStrings(val)
 	}
 
@@ -156,18 +208,31 @@ func (r *UserList) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewUserList()
 
-// User create request parameters
+// UserCreate request parameters
 type UserCreate struct {
-	Email  string
-	Name   string
-	Handle string
-	Kind   types.UserKind
+	hasEmail bool
+	rawEmail string
+	Email    string
+
+	hasName bool
+	rawName string
+	Name    string
+
+	hasHandle bool
+	rawHandle string
+	Handle    string
+
+	hasKind bool
+	rawKind string
+	Kind    types.UserKind
 }
 
+// NewUserCreate request
 func NewUserCreate() *UserCreate {
 	return &UserCreate{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r UserCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -179,6 +244,7 @@ func (r UserCreate) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *UserCreate) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -224,19 +290,35 @@ func (r *UserCreate) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewUserCreate()
 
-// User update request parameters
+// UserUpdate request parameters
 type UserUpdate struct {
-	UserID uint64 `json:",string"`
-	Email  string
-	Name   string
-	Handle string
-	Kind   types.UserKind
+	hasUserID bool
+	rawUserID string
+	UserID    uint64 `json:",string"`
+
+	hasEmail bool
+	rawEmail string
+	Email    string
+
+	hasName bool
+	rawName string
+	Name    string
+
+	hasHandle bool
+	rawHandle string
+	Handle    string
+
+	hasKind bool
+	rawKind string
+	Kind    types.UserKind
 }
 
+// NewUserUpdate request
 func NewUserUpdate() *UserUpdate {
 	return &UserUpdate{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r UserUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -249,6 +331,7 @@ func (r UserUpdate) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *UserUpdate) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -276,6 +359,8 @@ func (r *UserUpdate) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasUserID = true
+	r.rawUserID = chi.URLParam(req, "userID")
 	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 	if val, ok := post["email"]; ok {
 		r.Email = val
@@ -295,15 +380,19 @@ func (r *UserUpdate) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewUserUpdate()
 
-// User read request parameters
+// UserRead request parameters
 type UserRead struct {
-	UserID uint64 `json:",string"`
+	hasUserID bool
+	rawUserID string
+	UserID    uint64 `json:",string"`
 }
 
+// NewUserRead request
 func NewUserRead() *UserRead {
 	return &UserRead{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r UserRead) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -312,6 +401,7 @@ func (r UserRead) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *UserRead) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -339,6 +429,8 @@ func (r *UserRead) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasUserID = true
+	r.rawUserID = chi.URLParam(req, "userID")
 	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 
 	return err
@@ -346,15 +438,19 @@ func (r *UserRead) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewUserRead()
 
-// User delete request parameters
+// UserDelete request parameters
 type UserDelete struct {
-	UserID uint64 `json:",string"`
+	hasUserID bool
+	rawUserID string
+	UserID    uint64 `json:",string"`
 }
 
+// NewUserDelete request
 func NewUserDelete() *UserDelete {
 	return &UserDelete{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r UserDelete) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -363,6 +459,7 @@ func (r UserDelete) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *UserDelete) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -390,6 +487,8 @@ func (r *UserDelete) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasUserID = true
+	r.rawUserID = chi.URLParam(req, "userID")
 	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 
 	return err
@@ -397,15 +496,19 @@ func (r *UserDelete) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewUserDelete()
 
-// User suspend request parameters
+// UserSuspend request parameters
 type UserSuspend struct {
-	UserID uint64 `json:",string"`
+	hasUserID bool
+	rawUserID string
+	UserID    uint64 `json:",string"`
 }
 
+// NewUserSuspend request
 func NewUserSuspend() *UserSuspend {
 	return &UserSuspend{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r UserSuspend) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -414,6 +517,7 @@ func (r UserSuspend) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *UserSuspend) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -441,6 +545,8 @@ func (r *UserSuspend) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasUserID = true
+	r.rawUserID = chi.URLParam(req, "userID")
 	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 
 	return err
@@ -448,15 +554,19 @@ func (r *UserSuspend) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewUserSuspend()
 
-// User unsuspend request parameters
+// UserUnsuspend request parameters
 type UserUnsuspend struct {
-	UserID uint64 `json:",string"`
+	hasUserID bool
+	rawUserID string
+	UserID    uint64 `json:",string"`
 }
 
+// NewUserUnsuspend request
 func NewUserUnsuspend() *UserUnsuspend {
 	return &UserUnsuspend{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r UserUnsuspend) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -465,6 +575,7 @@ func (r UserUnsuspend) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *UserUnsuspend) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -492,6 +603,8 @@ func (r *UserUnsuspend) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasUserID = true
+	r.rawUserID = chi.URLParam(req, "userID")
 	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 
 	return err
@@ -499,15 +612,19 @@ func (r *UserUnsuspend) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewUserUnsuspend()
 
-// User undelete request parameters
+// UserUndelete request parameters
 type UserUndelete struct {
-	UserID uint64 `json:",string"`
+	hasUserID bool
+	rawUserID string
+	UserID    uint64 `json:",string"`
 }
 
+// NewUserUndelete request
 func NewUserUndelete() *UserUndelete {
 	return &UserUndelete{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r UserUndelete) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -516,6 +633,7 @@ func (r UserUndelete) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *UserUndelete) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -543,6 +661,8 @@ func (r *UserUndelete) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasUserID = true
+	r.rawUserID = chi.URLParam(req, "userID")
 	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 
 	return err
@@ -550,16 +670,23 @@ func (r *UserUndelete) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewUserUndelete()
 
-// User setPassword request parameters
+// UserSetPassword request parameters
 type UserSetPassword struct {
-	UserID   uint64 `json:",string"`
-	Password string
+	hasUserID bool
+	rawUserID string
+	UserID    uint64 `json:",string"`
+
+	hasPassword bool
+	rawPassword string
+	Password    string
 }
 
+// NewUserSetPassword request
 func NewUserSetPassword() *UserSetPassword {
 	return &UserSetPassword{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r UserSetPassword) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -569,6 +696,7 @@ func (r UserSetPassword) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *UserSetPassword) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -596,6 +724,8 @@ func (r *UserSetPassword) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasUserID = true
+	r.rawUserID = chi.URLParam(req, "userID")
 	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 	if val, ok := post["password"]; ok {
 		r.Password = val
@@ -606,15 +736,19 @@ func (r *UserSetPassword) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewUserSetPassword()
 
-// User membershipList request parameters
+// UserMembershipList request parameters
 type UserMembershipList struct {
-	UserID uint64 `json:",string"`
+	hasUserID bool
+	rawUserID string
+	UserID    uint64 `json:",string"`
 }
 
+// NewUserMembershipList request
 func NewUserMembershipList() *UserMembershipList {
 	return &UserMembershipList{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r UserMembershipList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -623,6 +757,7 @@ func (r UserMembershipList) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *UserMembershipList) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -650,6 +785,8 @@ func (r *UserMembershipList) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasUserID = true
+	r.rawUserID = chi.URLParam(req, "userID")
 	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 
 	return err
@@ -657,16 +794,23 @@ func (r *UserMembershipList) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewUserMembershipList()
 
-// User membershipAdd request parameters
+// UserMembershipAdd request parameters
 type UserMembershipAdd struct {
-	RoleID uint64 `json:",string"`
-	UserID uint64 `json:",string"`
+	hasRoleID bool
+	rawRoleID string
+	RoleID    uint64 `json:",string"`
+
+	hasUserID bool
+	rawUserID string
+	UserID    uint64 `json:",string"`
 }
 
+// NewUserMembershipAdd request
 func NewUserMembershipAdd() *UserMembershipAdd {
 	return &UserMembershipAdd{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r UserMembershipAdd) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -676,6 +820,7 @@ func (r UserMembershipAdd) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *UserMembershipAdd) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -703,7 +848,11 @@ func (r *UserMembershipAdd) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasRoleID = true
+	r.rawRoleID = chi.URLParam(req, "roleID")
 	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
+	r.hasUserID = true
+	r.rawUserID = chi.URLParam(req, "userID")
 	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 
 	return err
@@ -711,16 +860,23 @@ func (r *UserMembershipAdd) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewUserMembershipAdd()
 
-// User membershipRemove request parameters
+// UserMembershipRemove request parameters
 type UserMembershipRemove struct {
-	RoleID uint64 `json:",string"`
-	UserID uint64 `json:",string"`
+	hasRoleID bool
+	rawRoleID string
+	RoleID    uint64 `json:",string"`
+
+	hasUserID bool
+	rawUserID string
+	UserID    uint64 `json:",string"`
 }
 
+// NewUserMembershipRemove request
 func NewUserMembershipRemove() *UserMembershipRemove {
 	return &UserMembershipRemove{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r UserMembershipRemove) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -730,6 +886,7 @@ func (r UserMembershipRemove) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *UserMembershipRemove) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -757,7 +914,11 @@ func (r *UserMembershipRemove) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasRoleID = true
+	r.rawRoleID = chi.URLParam(req, "roleID")
 	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
+	r.hasUserID = true
+	r.rawUserID = chi.URLParam(req, "userID")
 	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 
 	return err
@@ -765,16 +926,23 @@ func (r *UserMembershipRemove) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewUserMembershipRemove()
 
-// User triggerScript request parameters
+// UserTriggerScript request parameters
 type UserTriggerScript struct {
-	UserID uint64 `json:",string"`
-	Script string
+	hasUserID bool
+	rawUserID string
+	UserID    uint64 `json:",string"`
+
+	hasScript bool
+	rawScript string
+	Script    string
 }
 
+// NewUserTriggerScript request
 func NewUserTriggerScript() *UserTriggerScript {
 	return &UserTriggerScript{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r UserTriggerScript) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -784,6 +952,7 @@ func (r UserTriggerScript) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *UserTriggerScript) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -811,6 +980,8 @@ func (r *UserTriggerScript) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasUserID = true
+	r.rawUserID = chi.URLParam(req, "userID")
 	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 	if val, ok := post["script"]; ok {
 		r.Script = val
@@ -820,3 +991,558 @@ func (r *UserTriggerScript) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewUserTriggerScript()
+
+// HasUserID returns true if userID was set
+func (r *UserList) HasUserID() bool {
+	return r.hasUserID
+}
+
+// RawUserID returns raw value of userID parameter
+func (r *UserList) RawUserID() []string {
+	return r.rawUserID
+}
+
+// GetUserID returns casted value of  userID parameter
+func (r *UserList) GetUserID() []string {
+	return r.UserID
+}
+
+// HasRoleID returns true if roleID was set
+func (r *UserList) HasRoleID() bool {
+	return r.hasRoleID
+}
+
+// RawRoleID returns raw value of roleID parameter
+func (r *UserList) RawRoleID() []string {
+	return r.rawRoleID
+}
+
+// GetRoleID returns casted value of  roleID parameter
+func (r *UserList) GetRoleID() []string {
+	return r.RoleID
+}
+
+// HasQuery returns true if query was set
+func (r *UserList) HasQuery() bool {
+	return r.hasQuery
+}
+
+// RawQuery returns raw value of query parameter
+func (r *UserList) RawQuery() string {
+	return r.rawQuery
+}
+
+// GetQuery returns casted value of  query parameter
+func (r *UserList) GetQuery() string {
+	return r.Query
+}
+
+// HasUsername returns true if username was set
+func (r *UserList) HasUsername() bool {
+	return r.hasUsername
+}
+
+// RawUsername returns raw value of username parameter
+func (r *UserList) RawUsername() string {
+	return r.rawUsername
+}
+
+// GetUsername returns casted value of  username parameter
+func (r *UserList) GetUsername() string {
+	return r.Username
+}
+
+// HasEmail returns true if email was set
+func (r *UserList) HasEmail() bool {
+	return r.hasEmail
+}
+
+// RawEmail returns raw value of email parameter
+func (r *UserList) RawEmail() string {
+	return r.rawEmail
+}
+
+// GetEmail returns casted value of  email parameter
+func (r *UserList) GetEmail() string {
+	return r.Email
+}
+
+// HasHandle returns true if handle was set
+func (r *UserList) HasHandle() bool {
+	return r.hasHandle
+}
+
+// RawHandle returns raw value of handle parameter
+func (r *UserList) RawHandle() string {
+	return r.rawHandle
+}
+
+// GetHandle returns casted value of  handle parameter
+func (r *UserList) GetHandle() string {
+	return r.Handle
+}
+
+// HasKind returns true if kind was set
+func (r *UserList) HasKind() bool {
+	return r.hasKind
+}
+
+// RawKind returns raw value of kind parameter
+func (r *UserList) RawKind() string {
+	return r.rawKind
+}
+
+// GetKind returns casted value of  kind parameter
+func (r *UserList) GetKind() types.UserKind {
+	return r.Kind
+}
+
+// HasIncDeleted returns true if incDeleted was set
+func (r *UserList) HasIncDeleted() bool {
+	return r.hasIncDeleted
+}
+
+// RawIncDeleted returns raw value of incDeleted parameter
+func (r *UserList) RawIncDeleted() string {
+	return r.rawIncDeleted
+}
+
+// GetIncDeleted returns casted value of  incDeleted parameter
+func (r *UserList) GetIncDeleted() bool {
+	return r.IncDeleted
+}
+
+// HasIncSuspended returns true if incSuspended was set
+func (r *UserList) HasIncSuspended() bool {
+	return r.hasIncSuspended
+}
+
+// RawIncSuspended returns raw value of incSuspended parameter
+func (r *UserList) RawIncSuspended() string {
+	return r.rawIncSuspended
+}
+
+// GetIncSuspended returns casted value of  incSuspended parameter
+func (r *UserList) GetIncSuspended() bool {
+	return r.IncSuspended
+}
+
+// HasDeleted returns true if deleted was set
+func (r *UserList) HasDeleted() bool {
+	return r.hasDeleted
+}
+
+// RawDeleted returns raw value of deleted parameter
+func (r *UserList) RawDeleted() string {
+	return r.rawDeleted
+}
+
+// GetDeleted returns casted value of  deleted parameter
+func (r *UserList) GetDeleted() uint {
+	return r.Deleted
+}
+
+// HasSuspended returns true if suspended was set
+func (r *UserList) HasSuspended() bool {
+	return r.hasSuspended
+}
+
+// RawSuspended returns raw value of suspended parameter
+func (r *UserList) RawSuspended() string {
+	return r.rawSuspended
+}
+
+// GetSuspended returns casted value of  suspended parameter
+func (r *UserList) GetSuspended() uint {
+	return r.Suspended
+}
+
+// HasSort returns true if sort was set
+func (r *UserList) HasSort() bool {
+	return r.hasSort
+}
+
+// RawSort returns raw value of sort parameter
+func (r *UserList) RawSort() string {
+	return r.rawSort
+}
+
+// GetSort returns casted value of  sort parameter
+func (r *UserList) GetSort() string {
+	return r.Sort
+}
+
+// HasPage returns true if page was set
+func (r *UserList) HasPage() bool {
+	return r.hasPage
+}
+
+// RawPage returns raw value of page parameter
+func (r *UserList) RawPage() string {
+	return r.rawPage
+}
+
+// GetPage returns casted value of  page parameter
+func (r *UserList) GetPage() uint {
+	return r.Page
+}
+
+// HasPerPage returns true if perPage was set
+func (r *UserList) HasPerPage() bool {
+	return r.hasPerPage
+}
+
+// RawPerPage returns raw value of perPage parameter
+func (r *UserList) RawPerPage() string {
+	return r.rawPerPage
+}
+
+// GetPerPage returns casted value of  perPage parameter
+func (r *UserList) GetPerPage() uint {
+	return r.PerPage
+}
+
+// HasEmail returns true if email was set
+func (r *UserCreate) HasEmail() bool {
+	return r.hasEmail
+}
+
+// RawEmail returns raw value of email parameter
+func (r *UserCreate) RawEmail() string {
+	return r.rawEmail
+}
+
+// GetEmail returns casted value of  email parameter
+func (r *UserCreate) GetEmail() string {
+	return r.Email
+}
+
+// HasName returns true if name was set
+func (r *UserCreate) HasName() bool {
+	return r.hasName
+}
+
+// RawName returns raw value of name parameter
+func (r *UserCreate) RawName() string {
+	return r.rawName
+}
+
+// GetName returns casted value of  name parameter
+func (r *UserCreate) GetName() string {
+	return r.Name
+}
+
+// HasHandle returns true if handle was set
+func (r *UserCreate) HasHandle() bool {
+	return r.hasHandle
+}
+
+// RawHandle returns raw value of handle parameter
+func (r *UserCreate) RawHandle() string {
+	return r.rawHandle
+}
+
+// GetHandle returns casted value of  handle parameter
+func (r *UserCreate) GetHandle() string {
+	return r.Handle
+}
+
+// HasKind returns true if kind was set
+func (r *UserCreate) HasKind() bool {
+	return r.hasKind
+}
+
+// RawKind returns raw value of kind parameter
+func (r *UserCreate) RawKind() string {
+	return r.rawKind
+}
+
+// GetKind returns casted value of  kind parameter
+func (r *UserCreate) GetKind() types.UserKind {
+	return r.Kind
+}
+
+// HasUserID returns true if userID was set
+func (r *UserUpdate) HasUserID() bool {
+	return r.hasUserID
+}
+
+// RawUserID returns raw value of userID parameter
+func (r *UserUpdate) RawUserID() string {
+	return r.rawUserID
+}
+
+// GetUserID returns casted value of  userID parameter
+func (r *UserUpdate) GetUserID() uint64 {
+	return r.UserID
+}
+
+// HasEmail returns true if email was set
+func (r *UserUpdate) HasEmail() bool {
+	return r.hasEmail
+}
+
+// RawEmail returns raw value of email parameter
+func (r *UserUpdate) RawEmail() string {
+	return r.rawEmail
+}
+
+// GetEmail returns casted value of  email parameter
+func (r *UserUpdate) GetEmail() string {
+	return r.Email
+}
+
+// HasName returns true if name was set
+func (r *UserUpdate) HasName() bool {
+	return r.hasName
+}
+
+// RawName returns raw value of name parameter
+func (r *UserUpdate) RawName() string {
+	return r.rawName
+}
+
+// GetName returns casted value of  name parameter
+func (r *UserUpdate) GetName() string {
+	return r.Name
+}
+
+// HasHandle returns true if handle was set
+func (r *UserUpdate) HasHandle() bool {
+	return r.hasHandle
+}
+
+// RawHandle returns raw value of handle parameter
+func (r *UserUpdate) RawHandle() string {
+	return r.rawHandle
+}
+
+// GetHandle returns casted value of  handle parameter
+func (r *UserUpdate) GetHandle() string {
+	return r.Handle
+}
+
+// HasKind returns true if kind was set
+func (r *UserUpdate) HasKind() bool {
+	return r.hasKind
+}
+
+// RawKind returns raw value of kind parameter
+func (r *UserUpdate) RawKind() string {
+	return r.rawKind
+}
+
+// GetKind returns casted value of  kind parameter
+func (r *UserUpdate) GetKind() types.UserKind {
+	return r.Kind
+}
+
+// HasUserID returns true if userID was set
+func (r *UserRead) HasUserID() bool {
+	return r.hasUserID
+}
+
+// RawUserID returns raw value of userID parameter
+func (r *UserRead) RawUserID() string {
+	return r.rawUserID
+}
+
+// GetUserID returns casted value of  userID parameter
+func (r *UserRead) GetUserID() uint64 {
+	return r.UserID
+}
+
+// HasUserID returns true if userID was set
+func (r *UserDelete) HasUserID() bool {
+	return r.hasUserID
+}
+
+// RawUserID returns raw value of userID parameter
+func (r *UserDelete) RawUserID() string {
+	return r.rawUserID
+}
+
+// GetUserID returns casted value of  userID parameter
+func (r *UserDelete) GetUserID() uint64 {
+	return r.UserID
+}
+
+// HasUserID returns true if userID was set
+func (r *UserSuspend) HasUserID() bool {
+	return r.hasUserID
+}
+
+// RawUserID returns raw value of userID parameter
+func (r *UserSuspend) RawUserID() string {
+	return r.rawUserID
+}
+
+// GetUserID returns casted value of  userID parameter
+func (r *UserSuspend) GetUserID() uint64 {
+	return r.UserID
+}
+
+// HasUserID returns true if userID was set
+func (r *UserUnsuspend) HasUserID() bool {
+	return r.hasUserID
+}
+
+// RawUserID returns raw value of userID parameter
+func (r *UserUnsuspend) RawUserID() string {
+	return r.rawUserID
+}
+
+// GetUserID returns casted value of  userID parameter
+func (r *UserUnsuspend) GetUserID() uint64 {
+	return r.UserID
+}
+
+// HasUserID returns true if userID was set
+func (r *UserUndelete) HasUserID() bool {
+	return r.hasUserID
+}
+
+// RawUserID returns raw value of userID parameter
+func (r *UserUndelete) RawUserID() string {
+	return r.rawUserID
+}
+
+// GetUserID returns casted value of  userID parameter
+func (r *UserUndelete) GetUserID() uint64 {
+	return r.UserID
+}
+
+// HasUserID returns true if userID was set
+func (r *UserSetPassword) HasUserID() bool {
+	return r.hasUserID
+}
+
+// RawUserID returns raw value of userID parameter
+func (r *UserSetPassword) RawUserID() string {
+	return r.rawUserID
+}
+
+// GetUserID returns casted value of  userID parameter
+func (r *UserSetPassword) GetUserID() uint64 {
+	return r.UserID
+}
+
+// HasPassword returns true if password was set
+func (r *UserSetPassword) HasPassword() bool {
+	return r.hasPassword
+}
+
+// RawPassword returns raw value of password parameter
+func (r *UserSetPassword) RawPassword() string {
+	return r.rawPassword
+}
+
+// GetPassword returns casted value of  password parameter
+func (r *UserSetPassword) GetPassword() string {
+	return r.Password
+}
+
+// HasUserID returns true if userID was set
+func (r *UserMembershipList) HasUserID() bool {
+	return r.hasUserID
+}
+
+// RawUserID returns raw value of userID parameter
+func (r *UserMembershipList) RawUserID() string {
+	return r.rawUserID
+}
+
+// GetUserID returns casted value of  userID parameter
+func (r *UserMembershipList) GetUserID() uint64 {
+	return r.UserID
+}
+
+// HasRoleID returns true if roleID was set
+func (r *UserMembershipAdd) HasRoleID() bool {
+	return r.hasRoleID
+}
+
+// RawRoleID returns raw value of roleID parameter
+func (r *UserMembershipAdd) RawRoleID() string {
+	return r.rawRoleID
+}
+
+// GetRoleID returns casted value of  roleID parameter
+func (r *UserMembershipAdd) GetRoleID() uint64 {
+	return r.RoleID
+}
+
+// HasUserID returns true if userID was set
+func (r *UserMembershipAdd) HasUserID() bool {
+	return r.hasUserID
+}
+
+// RawUserID returns raw value of userID parameter
+func (r *UserMembershipAdd) RawUserID() string {
+	return r.rawUserID
+}
+
+// GetUserID returns casted value of  userID parameter
+func (r *UserMembershipAdd) GetUserID() uint64 {
+	return r.UserID
+}
+
+// HasRoleID returns true if roleID was set
+func (r *UserMembershipRemove) HasRoleID() bool {
+	return r.hasRoleID
+}
+
+// RawRoleID returns raw value of roleID parameter
+func (r *UserMembershipRemove) RawRoleID() string {
+	return r.rawRoleID
+}
+
+// GetRoleID returns casted value of  roleID parameter
+func (r *UserMembershipRemove) GetRoleID() uint64 {
+	return r.RoleID
+}
+
+// HasUserID returns true if userID was set
+func (r *UserMembershipRemove) HasUserID() bool {
+	return r.hasUserID
+}
+
+// RawUserID returns raw value of userID parameter
+func (r *UserMembershipRemove) RawUserID() string {
+	return r.rawUserID
+}
+
+// GetUserID returns casted value of  userID parameter
+func (r *UserMembershipRemove) GetUserID() uint64 {
+	return r.UserID
+}
+
+// HasUserID returns true if userID was set
+func (r *UserTriggerScript) HasUserID() bool {
+	return r.hasUserID
+}
+
+// RawUserID returns raw value of userID parameter
+func (r *UserTriggerScript) RawUserID() string {
+	return r.rawUserID
+}
+
+// GetUserID returns casted value of  userID parameter
+func (r *UserTriggerScript) GetUserID() uint64 {
+	return r.UserID
+}
+
+// HasScript returns true if script was set
+func (r *UserTriggerScript) HasScript() bool {
+	return r.hasScript
+}
+
+// RawScript returns raw value of script parameter
+func (r *UserTriggerScript) RawScript() string {
+	return r.rawScript
+}
+
+// GetScript returns casted value of  script parameter
+func (r *UserTriggerScript) GetScript() string {
+	return r.Script
+}

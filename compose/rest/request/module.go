@@ -34,21 +34,43 @@ import (
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
 
-// Module list request parameters
+// ModuleList request parameters
 type ModuleList struct {
-	Query       string
-	Name        string
-	Handle      string
-	Page        uint
-	PerPage     uint
-	Sort        string
-	NamespaceID uint64 `json:",string"`
+	hasQuery bool
+	rawQuery string
+	Query    string
+
+	hasName bool
+	rawName string
+	Name    string
+
+	hasHandle bool
+	rawHandle string
+	Handle    string
+
+	hasPage bool
+	rawPage string
+	Page    uint
+
+	hasPerPage bool
+	rawPerPage string
+	PerPage    uint
+
+	hasSort bool
+	rawSort string
+	Sort    string
+
+	hasNamespaceID bool
+	rawNamespaceID string
+	NamespaceID    uint64 `json:",string"`
 }
 
+// NewModuleList request
 func NewModuleList() *ModuleList {
 	return &ModuleList{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r ModuleList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -63,6 +85,7 @@ func (r ModuleList) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *ModuleList) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -108,6 +131,8 @@ func (r *ModuleList) Fill(req *http.Request) (err error) {
 	if val, ok := get["sort"]; ok {
 		r.Sort = val
 	}
+	r.hasNamespaceID = true
+	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
@@ -115,19 +140,35 @@ func (r *ModuleList) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewModuleList()
 
-// Module create request parameters
+// ModuleCreate request parameters
 type ModuleCreate struct {
-	Name        string
-	Handle      string
-	Fields      types.ModuleFieldSet
-	Meta        sqlxTypes.JSONText
-	NamespaceID uint64 `json:",string"`
+	hasName bool
+	rawName string
+	Name    string
+
+	hasHandle bool
+	rawHandle string
+	Handle    string
+
+	hasFields bool
+	rawFields string
+	Fields    types.ModuleFieldSet
+
+	hasMeta bool
+	rawMeta string
+	Meta    sqlxTypes.JSONText
+
+	hasNamespaceID bool
+	rawNamespaceID string
+	NamespaceID    uint64 `json:",string"`
 }
 
+// NewModuleCreate request
 func NewModuleCreate() *ModuleCreate {
 	return &ModuleCreate{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r ModuleCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -140,6 +181,7 @@ func (r ModuleCreate) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *ModuleCreate) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -179,6 +221,8 @@ func (r *ModuleCreate) Fill(req *http.Request) (err error) {
 			return err
 		}
 	}
+	r.hasNamespaceID = true
+	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
@@ -186,16 +230,23 @@ func (r *ModuleCreate) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewModuleCreate()
 
-// Module read request parameters
+// ModuleRead request parameters
 type ModuleRead struct {
+	hasModuleID bool
+	rawModuleID string
 	ModuleID    uint64 `json:",string"`
-	NamespaceID uint64 `json:",string"`
+
+	hasNamespaceID bool
+	rawNamespaceID string
+	NamespaceID    uint64 `json:",string"`
 }
 
+// NewModuleRead request
 func NewModuleRead() *ModuleRead {
 	return &ModuleRead{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r ModuleRead) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -205,6 +256,7 @@ func (r ModuleRead) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *ModuleRead) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -232,7 +284,11 @@ func (r *ModuleRead) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasModuleID = true
+	r.rawModuleID = chi.URLParam(req, "moduleID")
 	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
+	r.hasNamespaceID = true
+	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
@@ -240,21 +296,43 @@ func (r *ModuleRead) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewModuleRead()
 
-// Module update request parameters
+// ModuleUpdate request parameters
 type ModuleUpdate struct {
+	hasModuleID bool
+	rawModuleID string
 	ModuleID    uint64 `json:",string"`
-	NamespaceID uint64 `json:",string"`
-	Name        string
-	Handle      string
-	Fields      types.ModuleFieldSet
-	Meta        sqlxTypes.JSONText
-	UpdatedAt   *time.Time
+
+	hasNamespaceID bool
+	rawNamespaceID string
+	NamespaceID    uint64 `json:",string"`
+
+	hasName bool
+	rawName string
+	Name    string
+
+	hasHandle bool
+	rawHandle string
+	Handle    string
+
+	hasFields bool
+	rawFields string
+	Fields    types.ModuleFieldSet
+
+	hasMeta bool
+	rawMeta string
+	Meta    sqlxTypes.JSONText
+
+	hasUpdatedAt bool
+	rawUpdatedAt string
+	UpdatedAt    *time.Time
 }
 
+// NewModuleUpdate request
 func NewModuleUpdate() *ModuleUpdate {
 	return &ModuleUpdate{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r ModuleUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -269,6 +347,7 @@ func (r ModuleUpdate) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -296,7 +375,11 @@ func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasModuleID = true
+	r.rawModuleID = chi.URLParam(req, "moduleID")
 	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
+	r.hasNamespaceID = true
+	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := post["name"]; ok {
 		r.Name = val
@@ -322,16 +405,23 @@ func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewModuleUpdate()
 
-// Module delete request parameters
+// ModuleDelete request parameters
 type ModuleDelete struct {
+	hasModuleID bool
+	rawModuleID string
 	ModuleID    uint64 `json:",string"`
-	NamespaceID uint64 `json:",string"`
+
+	hasNamespaceID bool
+	rawNamespaceID string
+	NamespaceID    uint64 `json:",string"`
 }
 
+// NewModuleDelete request
 func NewModuleDelete() *ModuleDelete {
 	return &ModuleDelete{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r ModuleDelete) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -341,6 +431,7 @@ func (r ModuleDelete) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *ModuleDelete) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -368,7 +459,11 @@ func (r *ModuleDelete) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasModuleID = true
+	r.rawModuleID = chi.URLParam(req, "moduleID")
 	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
+	r.hasNamespaceID = true
+	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
@@ -376,17 +471,27 @@ func (r *ModuleDelete) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewModuleDelete()
 
-// Module triggerScript request parameters
+// ModuleTriggerScript request parameters
 type ModuleTriggerScript struct {
+	hasModuleID bool
+	rawModuleID string
 	ModuleID    uint64 `json:",string"`
-	NamespaceID uint64 `json:",string"`
-	Script      string
+
+	hasNamespaceID bool
+	rawNamespaceID string
+	NamespaceID    uint64 `json:",string"`
+
+	hasScript bool
+	rawScript string
+	Script    string
 }
 
+// NewModuleTriggerScript request
 func NewModuleTriggerScript() *ModuleTriggerScript {
 	return &ModuleTriggerScript{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r ModuleTriggerScript) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -397,6 +502,7 @@ func (r ModuleTriggerScript) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *ModuleTriggerScript) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -424,7 +530,11 @@ func (r *ModuleTriggerScript) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasModuleID = true
+	r.rawModuleID = chi.URLParam(req, "moduleID")
 	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
+	r.hasNamespaceID = true
+	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := post["script"]; ok {
 		r.Script = val
@@ -434,3 +544,393 @@ func (r *ModuleTriggerScript) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewModuleTriggerScript()
+
+// HasQuery returns true if query was set
+func (r *ModuleList) HasQuery() bool {
+	return r.hasQuery
+}
+
+// RawQuery returns raw value of query parameter
+func (r *ModuleList) RawQuery() string {
+	return r.rawQuery
+}
+
+// GetQuery returns casted value of  query parameter
+func (r *ModuleList) GetQuery() string {
+	return r.Query
+}
+
+// HasName returns true if name was set
+func (r *ModuleList) HasName() bool {
+	return r.hasName
+}
+
+// RawName returns raw value of name parameter
+func (r *ModuleList) RawName() string {
+	return r.rawName
+}
+
+// GetName returns casted value of  name parameter
+func (r *ModuleList) GetName() string {
+	return r.Name
+}
+
+// HasHandle returns true if handle was set
+func (r *ModuleList) HasHandle() bool {
+	return r.hasHandle
+}
+
+// RawHandle returns raw value of handle parameter
+func (r *ModuleList) RawHandle() string {
+	return r.rawHandle
+}
+
+// GetHandle returns casted value of  handle parameter
+func (r *ModuleList) GetHandle() string {
+	return r.Handle
+}
+
+// HasPage returns true if page was set
+func (r *ModuleList) HasPage() bool {
+	return r.hasPage
+}
+
+// RawPage returns raw value of page parameter
+func (r *ModuleList) RawPage() string {
+	return r.rawPage
+}
+
+// GetPage returns casted value of  page parameter
+func (r *ModuleList) GetPage() uint {
+	return r.Page
+}
+
+// HasPerPage returns true if perPage was set
+func (r *ModuleList) HasPerPage() bool {
+	return r.hasPerPage
+}
+
+// RawPerPage returns raw value of perPage parameter
+func (r *ModuleList) RawPerPage() string {
+	return r.rawPerPage
+}
+
+// GetPerPage returns casted value of  perPage parameter
+func (r *ModuleList) GetPerPage() uint {
+	return r.PerPage
+}
+
+// HasSort returns true if sort was set
+func (r *ModuleList) HasSort() bool {
+	return r.hasSort
+}
+
+// RawSort returns raw value of sort parameter
+func (r *ModuleList) RawSort() string {
+	return r.rawSort
+}
+
+// GetSort returns casted value of  sort parameter
+func (r *ModuleList) GetSort() string {
+	return r.Sort
+}
+
+// HasNamespaceID returns true if namespaceID was set
+func (r *ModuleList) HasNamespaceID() bool {
+	return r.hasNamespaceID
+}
+
+// RawNamespaceID returns raw value of namespaceID parameter
+func (r *ModuleList) RawNamespaceID() string {
+	return r.rawNamespaceID
+}
+
+// GetNamespaceID returns casted value of  namespaceID parameter
+func (r *ModuleList) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// HasName returns true if name was set
+func (r *ModuleCreate) HasName() bool {
+	return r.hasName
+}
+
+// RawName returns raw value of name parameter
+func (r *ModuleCreate) RawName() string {
+	return r.rawName
+}
+
+// GetName returns casted value of  name parameter
+func (r *ModuleCreate) GetName() string {
+	return r.Name
+}
+
+// HasHandle returns true if handle was set
+func (r *ModuleCreate) HasHandle() bool {
+	return r.hasHandle
+}
+
+// RawHandle returns raw value of handle parameter
+func (r *ModuleCreate) RawHandle() string {
+	return r.rawHandle
+}
+
+// GetHandle returns casted value of  handle parameter
+func (r *ModuleCreate) GetHandle() string {
+	return r.Handle
+}
+
+// HasFields returns true if fields was set
+func (r *ModuleCreate) HasFields() bool {
+	return r.hasFields
+}
+
+// RawFields returns raw value of fields parameter
+func (r *ModuleCreate) RawFields() string {
+	return r.rawFields
+}
+
+// GetFields returns casted value of  fields parameter
+func (r *ModuleCreate) GetFields() types.ModuleFieldSet {
+	return r.Fields
+}
+
+// HasMeta returns true if meta was set
+func (r *ModuleCreate) HasMeta() bool {
+	return r.hasMeta
+}
+
+// RawMeta returns raw value of meta parameter
+func (r *ModuleCreate) RawMeta() string {
+	return r.rawMeta
+}
+
+// GetMeta returns casted value of  meta parameter
+func (r *ModuleCreate) GetMeta() sqlxTypes.JSONText {
+	return r.Meta
+}
+
+// HasNamespaceID returns true if namespaceID was set
+func (r *ModuleCreate) HasNamespaceID() bool {
+	return r.hasNamespaceID
+}
+
+// RawNamespaceID returns raw value of namespaceID parameter
+func (r *ModuleCreate) RawNamespaceID() string {
+	return r.rawNamespaceID
+}
+
+// GetNamespaceID returns casted value of  namespaceID parameter
+func (r *ModuleCreate) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// HasModuleID returns true if moduleID was set
+func (r *ModuleRead) HasModuleID() bool {
+	return r.hasModuleID
+}
+
+// RawModuleID returns raw value of moduleID parameter
+func (r *ModuleRead) RawModuleID() string {
+	return r.rawModuleID
+}
+
+// GetModuleID returns casted value of  moduleID parameter
+func (r *ModuleRead) GetModuleID() uint64 {
+	return r.ModuleID
+}
+
+// HasNamespaceID returns true if namespaceID was set
+func (r *ModuleRead) HasNamespaceID() bool {
+	return r.hasNamespaceID
+}
+
+// RawNamespaceID returns raw value of namespaceID parameter
+func (r *ModuleRead) RawNamespaceID() string {
+	return r.rawNamespaceID
+}
+
+// GetNamespaceID returns casted value of  namespaceID parameter
+func (r *ModuleRead) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// HasModuleID returns true if moduleID was set
+func (r *ModuleUpdate) HasModuleID() bool {
+	return r.hasModuleID
+}
+
+// RawModuleID returns raw value of moduleID parameter
+func (r *ModuleUpdate) RawModuleID() string {
+	return r.rawModuleID
+}
+
+// GetModuleID returns casted value of  moduleID parameter
+func (r *ModuleUpdate) GetModuleID() uint64 {
+	return r.ModuleID
+}
+
+// HasNamespaceID returns true if namespaceID was set
+func (r *ModuleUpdate) HasNamespaceID() bool {
+	return r.hasNamespaceID
+}
+
+// RawNamespaceID returns raw value of namespaceID parameter
+func (r *ModuleUpdate) RawNamespaceID() string {
+	return r.rawNamespaceID
+}
+
+// GetNamespaceID returns casted value of  namespaceID parameter
+func (r *ModuleUpdate) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// HasName returns true if name was set
+func (r *ModuleUpdate) HasName() bool {
+	return r.hasName
+}
+
+// RawName returns raw value of name parameter
+func (r *ModuleUpdate) RawName() string {
+	return r.rawName
+}
+
+// GetName returns casted value of  name parameter
+func (r *ModuleUpdate) GetName() string {
+	return r.Name
+}
+
+// HasHandle returns true if handle was set
+func (r *ModuleUpdate) HasHandle() bool {
+	return r.hasHandle
+}
+
+// RawHandle returns raw value of handle parameter
+func (r *ModuleUpdate) RawHandle() string {
+	return r.rawHandle
+}
+
+// GetHandle returns casted value of  handle parameter
+func (r *ModuleUpdate) GetHandle() string {
+	return r.Handle
+}
+
+// HasFields returns true if fields was set
+func (r *ModuleUpdate) HasFields() bool {
+	return r.hasFields
+}
+
+// RawFields returns raw value of fields parameter
+func (r *ModuleUpdate) RawFields() string {
+	return r.rawFields
+}
+
+// GetFields returns casted value of  fields parameter
+func (r *ModuleUpdate) GetFields() types.ModuleFieldSet {
+	return r.Fields
+}
+
+// HasMeta returns true if meta was set
+func (r *ModuleUpdate) HasMeta() bool {
+	return r.hasMeta
+}
+
+// RawMeta returns raw value of meta parameter
+func (r *ModuleUpdate) RawMeta() string {
+	return r.rawMeta
+}
+
+// GetMeta returns casted value of  meta parameter
+func (r *ModuleUpdate) GetMeta() sqlxTypes.JSONText {
+	return r.Meta
+}
+
+// HasUpdatedAt returns true if updatedAt was set
+func (r *ModuleUpdate) HasUpdatedAt() bool {
+	return r.hasUpdatedAt
+}
+
+// RawUpdatedAt returns raw value of updatedAt parameter
+func (r *ModuleUpdate) RawUpdatedAt() string {
+	return r.rawUpdatedAt
+}
+
+// GetUpdatedAt returns casted value of  updatedAt parameter
+func (r *ModuleUpdate) GetUpdatedAt() *time.Time {
+	return r.UpdatedAt
+}
+
+// HasModuleID returns true if moduleID was set
+func (r *ModuleDelete) HasModuleID() bool {
+	return r.hasModuleID
+}
+
+// RawModuleID returns raw value of moduleID parameter
+func (r *ModuleDelete) RawModuleID() string {
+	return r.rawModuleID
+}
+
+// GetModuleID returns casted value of  moduleID parameter
+func (r *ModuleDelete) GetModuleID() uint64 {
+	return r.ModuleID
+}
+
+// HasNamespaceID returns true if namespaceID was set
+func (r *ModuleDelete) HasNamespaceID() bool {
+	return r.hasNamespaceID
+}
+
+// RawNamespaceID returns raw value of namespaceID parameter
+func (r *ModuleDelete) RawNamespaceID() string {
+	return r.rawNamespaceID
+}
+
+// GetNamespaceID returns casted value of  namespaceID parameter
+func (r *ModuleDelete) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// HasModuleID returns true if moduleID was set
+func (r *ModuleTriggerScript) HasModuleID() bool {
+	return r.hasModuleID
+}
+
+// RawModuleID returns raw value of moduleID parameter
+func (r *ModuleTriggerScript) RawModuleID() string {
+	return r.rawModuleID
+}
+
+// GetModuleID returns casted value of  moduleID parameter
+func (r *ModuleTriggerScript) GetModuleID() uint64 {
+	return r.ModuleID
+}
+
+// HasNamespaceID returns true if namespaceID was set
+func (r *ModuleTriggerScript) HasNamespaceID() bool {
+	return r.hasNamespaceID
+}
+
+// RawNamespaceID returns raw value of namespaceID parameter
+func (r *ModuleTriggerScript) RawNamespaceID() string {
+	return r.rawNamespaceID
+}
+
+// GetNamespaceID returns casted value of  namespaceID parameter
+func (r *ModuleTriggerScript) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// HasScript returns true if script was set
+func (r *ModuleTriggerScript) HasScript() bool {
+	return r.hasScript
+}
+
+// RawScript returns raw value of script parameter
+func (r *ModuleTriggerScript) RawScript() string {
+	return r.rawScript
+}
+
+// GetScript returns casted value of  script parameter
+func (r *ModuleTriggerScript) GetScript() string {
+	return r.Script
+}

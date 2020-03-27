@@ -30,20 +30,23 @@ import (
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
 
-// Auth settings request parameters
+// AuthSettings request parameters
 type AuthSettings struct {
 }
 
+// NewAuthSettings request
 func NewAuthSettings() *AuthSettings {
 	return &AuthSettings{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r AuthSettings) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *AuthSettings) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -76,20 +79,23 @@ func (r *AuthSettings) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewAuthSettings()
 
-// Auth check request parameters
+// AuthCheck request parameters
 type AuthCheck struct {
 }
 
+// NewAuthCheck request
 func NewAuthCheck() *AuthCheck {
 	return &AuthCheck{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r AuthCheck) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *AuthCheck) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -122,15 +128,19 @@ func (r *AuthCheck) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewAuthCheck()
 
-// Auth exchangeAuthToken request parameters
+// AuthExchangeAuthToken request parameters
 type AuthExchangeAuthToken struct {
-	Token string
+	hasToken bool
+	rawToken string
+	Token    string
 }
 
+// NewAuthExchangeAuthToken request
 func NewAuthExchangeAuthToken() *AuthExchangeAuthToken {
 	return &AuthExchangeAuthToken{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r AuthExchangeAuthToken) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -139,6 +149,7 @@ func (r AuthExchangeAuthToken) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *AuthExchangeAuthToken) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -175,20 +186,23 @@ func (r *AuthExchangeAuthToken) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewAuthExchangeAuthToken()
 
-// Auth logout request parameters
+// AuthLogout request parameters
 type AuthLogout struct {
 }
 
+// NewAuthLogout request
 func NewAuthLogout() *AuthLogout {
 	return &AuthLogout{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r AuthLogout) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *AuthLogout) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -220,3 +234,18 @@ func (r *AuthLogout) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewAuthLogout()
+
+// HasToken returns true if token was set
+func (r *AuthExchangeAuthToken) HasToken() bool {
+	return r.hasToken
+}
+
+// RawToken returns raw value of token parameter
+func (r *AuthExchangeAuthToken) RawToken() string {
+	return r.rawToken
+}
+
+// GetToken returns casted value of  token parameter
+func (r *AuthExchangeAuthToken) GetToken() string {
+	return r.Token
+}
