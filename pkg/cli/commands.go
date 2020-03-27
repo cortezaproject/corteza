@@ -1,8 +1,11 @@
 package cli
 
 import (
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/version"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+	"os"
 )
 
 var (
@@ -40,7 +43,11 @@ var (
 // Callback is called when not executed with help subcommand
 func RootCommand(ppRunEfn func() error) *cobra.Command {
 	// Make a copy
-	var cmd = rootCommand
+	var (
+		cmd = rootCommand
+
+		silent, debug bool
+	)
 
 	cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) (err error) {
 		if cmd.Name() == "help" {
@@ -48,8 +55,17 @@ func RootCommand(ppRunEfn func() error) *cobra.Command {
 			return nil
 		}
 
+		if debug {
+			logger.DefaultLevel.SetLevel(zap.DebugLevel)
+		} else if silent {
+			logger.DefaultLevel.SetLevel(zap.FatalLevel)
+		}
+
 		return ppRunEfn()
 	}
+
+	cmd.Flags().BoolVarP(&silent, "silent", "s", false, "No output")
+	cmd.Flags().BoolVarP(&debug, "debug", "d", false, "Debug")
 
 	return &cmd
 }
@@ -59,6 +75,12 @@ func ServeCommand(runEfn func() error) *cobra.Command {
 	var cmd = serveApiCommand
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
+		if _, set := os.LookupEnv("LOG_LEVEL"); !set {
+			// If LOG_LEVEL is not explicitly set, let's
+			// set it to INFO so that it
+			logger.DefaultLevel.SetLevel(zap.InfoLevel)
+		}
+
 		return runEfn()
 	}
 
