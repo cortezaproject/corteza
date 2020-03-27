@@ -54,7 +54,7 @@ func (ctrl Attachment) List(ctx context.Context, r *request.AttachmentList) (int
 		RecordID:    r.RecordID,
 		FieldName:   r.FieldName,
 
-		PageFilter: rh.Paging(r.Page, r.PerPage),
+		PageFilter: rh.Paging(r),
 	}
 
 	set, filter, err := ctrl.attachment.With(ctx).Find(f)

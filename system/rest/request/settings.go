@@ -32,15 +32,19 @@ import (
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
 
-// Settings list request parameters
+// SettingsList request parameters
 type SettingsList struct {
-	Prefix string
+	hasPrefix bool
+	rawPrefix string
+	Prefix    string
 }
 
+// NewSettingsList request
 func NewSettingsList() *SettingsList {
 	return &SettingsList{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r SettingsList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -49,6 +53,7 @@ func (r SettingsList) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *SettingsList) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -85,15 +90,19 @@ func (r *SettingsList) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewSettingsList()
 
-// Settings update request parameters
+// SettingsUpdate request parameters
 type SettingsUpdate struct {
-	Values settings.ValueSet
+	hasValues bool
+	rawValues string
+	Values    settings.ValueSet
 }
 
+// NewSettingsUpdate request
 func NewSettingsUpdate() *SettingsUpdate {
 	return &SettingsUpdate{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r SettingsUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -102,6 +111,7 @@ func (r SettingsUpdate) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *SettingsUpdate) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -134,16 +144,23 @@ func (r *SettingsUpdate) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewSettingsUpdate()
 
-// Settings get request parameters
+// SettingsGet request parameters
 type SettingsGet struct {
-	OwnerID uint64 `json:",string"`
-	Key     string
+	hasOwnerID bool
+	rawOwnerID string
+	OwnerID    uint64 `json:",string"`
+
+	hasKey bool
+	rawKey string
+	Key    string
 }
 
+// NewSettingsGet request
 func NewSettingsGet() *SettingsGet {
 	return &SettingsGet{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r SettingsGet) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -153,6 +170,7 @@ func (r SettingsGet) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *SettingsGet) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -183,6 +201,8 @@ func (r *SettingsGet) Fill(req *http.Request) (err error) {
 	if val, ok := get["ownerID"]; ok {
 		r.OwnerID = parseUInt64(val)
 	}
+	r.hasKey = true
+	r.rawKey = chi.URLParam(req, "key")
 	r.Key = chi.URLParam(req, "key")
 
 	return err
@@ -190,20 +210,23 @@ func (r *SettingsGet) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewSettingsGet()
 
-// Settings current request parameters
+// SettingsCurrent request parameters
 type SettingsCurrent struct {
 }
 
+// NewSettingsCurrent request
 func NewSettingsCurrent() *SettingsCurrent {
 	return &SettingsCurrent{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r SettingsCurrent) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *SettingsCurrent) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -235,3 +258,63 @@ func (r *SettingsCurrent) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewSettingsCurrent()
+
+// HasPrefix returns true if prefix was set
+func (r *SettingsList) HasPrefix() bool {
+	return r.hasPrefix
+}
+
+// RawPrefix returns raw value of prefix parameter
+func (r *SettingsList) RawPrefix() string {
+	return r.rawPrefix
+}
+
+// GetPrefix returns casted value of  prefix parameter
+func (r *SettingsList) GetPrefix() string {
+	return r.Prefix
+}
+
+// HasValues returns true if values was set
+func (r *SettingsUpdate) HasValues() bool {
+	return r.hasValues
+}
+
+// RawValues returns raw value of values parameter
+func (r *SettingsUpdate) RawValues() string {
+	return r.rawValues
+}
+
+// GetValues returns casted value of  values parameter
+func (r *SettingsUpdate) GetValues() settings.ValueSet {
+	return r.Values
+}
+
+// HasOwnerID returns true if ownerID was set
+func (r *SettingsGet) HasOwnerID() bool {
+	return r.hasOwnerID
+}
+
+// RawOwnerID returns raw value of ownerID parameter
+func (r *SettingsGet) RawOwnerID() string {
+	return r.rawOwnerID
+}
+
+// GetOwnerID returns casted value of  ownerID parameter
+func (r *SettingsGet) GetOwnerID() uint64 {
+	return r.OwnerID
+}
+
+// HasKey returns true if key was set
+func (r *SettingsGet) HasKey() bool {
+	return r.hasKey
+}
+
+// RawKey returns raw value of key parameter
+func (r *SettingsGet) RawKey() string {
+	return r.rawKey
+}
+
+// GetKey returns casted value of  key parameter
+func (r *SettingsGet) GetKey() string {
+	return r.Key
+}

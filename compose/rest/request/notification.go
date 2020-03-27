@@ -32,20 +32,39 @@ import (
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
 
-// Notification email/send request parameters
+// NotificationEmailSend request parameters
 type NotificationEmailSend struct {
-	To                []string
-	Cc                []string
-	ReplyTo           string
-	Subject           string
-	Content           sqlxTypes.JSONText
-	RemoteAttachments []string
+	hasTo bool
+	rawTo []string
+	To    []string
+
+	hasCc bool
+	rawCc []string
+	Cc    []string
+
+	hasReplyTo bool
+	rawReplyTo string
+	ReplyTo    string
+
+	hasSubject bool
+	rawSubject string
+	Subject    string
+
+	hasContent bool
+	rawContent string
+	Content    sqlxTypes.JSONText
+
+	hasRemoteAttachments bool
+	rawRemoteAttachments []string
+	RemoteAttachments    []string
 }
 
+// NewNotificationEmailSend request
 func NewNotificationEmailSend() *NotificationEmailSend {
 	return &NotificationEmailSend{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r NotificationEmailSend) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -59,6 +78,7 @@ func (r NotificationEmailSend) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *NotificationEmailSend) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -87,10 +107,14 @@ func (r *NotificationEmailSend) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := req.Form["to"]; ok {
+		r.hasTo = true
+		r.rawTo = val
 		r.To = parseStrings(val)
 	}
 
 	if val, ok := req.Form["cc"]; ok {
+		r.hasCc = true
+		r.rawCc = val
 		r.Cc = parseStrings(val)
 	}
 
@@ -108,6 +132,8 @@ func (r *NotificationEmailSend) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := req.Form["remoteAttachments"]; ok {
+		r.hasRemoteAttachments = true
+		r.rawRemoteAttachments = val
 		r.RemoteAttachments = parseStrings(val)
 	}
 
@@ -115,3 +141,93 @@ func (r *NotificationEmailSend) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewNotificationEmailSend()
+
+// HasTo returns true if to was set
+func (r *NotificationEmailSend) HasTo() bool {
+	return r.hasTo
+}
+
+// RawTo returns raw value of to parameter
+func (r *NotificationEmailSend) RawTo() []string {
+	return r.rawTo
+}
+
+// GetTo returns casted value of  to parameter
+func (r *NotificationEmailSend) GetTo() []string {
+	return r.To
+}
+
+// HasCc returns true if cc was set
+func (r *NotificationEmailSend) HasCc() bool {
+	return r.hasCc
+}
+
+// RawCc returns raw value of cc parameter
+func (r *NotificationEmailSend) RawCc() []string {
+	return r.rawCc
+}
+
+// GetCc returns casted value of  cc parameter
+func (r *NotificationEmailSend) GetCc() []string {
+	return r.Cc
+}
+
+// HasReplyTo returns true if replyTo was set
+func (r *NotificationEmailSend) HasReplyTo() bool {
+	return r.hasReplyTo
+}
+
+// RawReplyTo returns raw value of replyTo parameter
+func (r *NotificationEmailSend) RawReplyTo() string {
+	return r.rawReplyTo
+}
+
+// GetReplyTo returns casted value of  replyTo parameter
+func (r *NotificationEmailSend) GetReplyTo() string {
+	return r.ReplyTo
+}
+
+// HasSubject returns true if subject was set
+func (r *NotificationEmailSend) HasSubject() bool {
+	return r.hasSubject
+}
+
+// RawSubject returns raw value of subject parameter
+func (r *NotificationEmailSend) RawSubject() string {
+	return r.rawSubject
+}
+
+// GetSubject returns casted value of  subject parameter
+func (r *NotificationEmailSend) GetSubject() string {
+	return r.Subject
+}
+
+// HasContent returns true if content was set
+func (r *NotificationEmailSend) HasContent() bool {
+	return r.hasContent
+}
+
+// RawContent returns raw value of content parameter
+func (r *NotificationEmailSend) RawContent() string {
+	return r.rawContent
+}
+
+// GetContent returns casted value of  content parameter
+func (r *NotificationEmailSend) GetContent() sqlxTypes.JSONText {
+	return r.Content
+}
+
+// HasRemoteAttachments returns true if remoteAttachments was set
+func (r *NotificationEmailSend) HasRemoteAttachments() bool {
+	return r.hasRemoteAttachments
+}
+
+// RawRemoteAttachments returns raw value of remoteAttachments parameter
+func (r *NotificationEmailSend) RawRemoteAttachments() []string {
+	return r.rawRemoteAttachments
+}
+
+// GetRemoteAttachments returns casted value of  remoteAttachments parameter
+func (r *NotificationEmailSend) GetRemoteAttachments() []string {
+	return r.RemoteAttachments
+}

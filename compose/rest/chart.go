@@ -58,7 +58,7 @@ func (ctrl Chart) List(ctx context.Context, r *request.ChartList) (interface{}, 
 
 		Sort: r.Sort,
 
-		PageFilter: rh.Paging(r.Page, r.PerPage),
+		PageFilter: rh.Paging(r),
 	}
 
 	set, filter, err := ctrl.chart.With(ctx).Find(f)

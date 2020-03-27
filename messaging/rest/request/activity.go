@@ -30,17 +30,27 @@ import (
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
 
-// Activity send request parameters
+// ActivitySend request parameters
 type ActivitySend struct {
-	ChannelID uint64 `json:",string"`
-	MessageID uint64 `json:",string"`
-	Kind      string
+	hasChannelID bool
+	rawChannelID string
+	ChannelID    uint64 `json:",string"`
+
+	hasMessageID bool
+	rawMessageID string
+	MessageID    uint64 `json:",string"`
+
+	hasKind bool
+	rawKind string
+	Kind    string
 }
 
+// NewActivitySend request
 func NewActivitySend() *ActivitySend {
 	return &ActivitySend{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r ActivitySend) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -51,6 +61,7 @@ func (r ActivitySend) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *ActivitySend) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -92,3 +103,48 @@ func (r *ActivitySend) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewActivitySend()
+
+// HasChannelID returns true if channelID was set
+func (r *ActivitySend) HasChannelID() bool {
+	return r.hasChannelID
+}
+
+// RawChannelID returns raw value of channelID parameter
+func (r *ActivitySend) RawChannelID() string {
+	return r.rawChannelID
+}
+
+// GetChannelID returns casted value of  channelID parameter
+func (r *ActivitySend) GetChannelID() uint64 {
+	return r.ChannelID
+}
+
+// HasMessageID returns true if messageID was set
+func (r *ActivitySend) HasMessageID() bool {
+	return r.hasMessageID
+}
+
+// RawMessageID returns raw value of messageID parameter
+func (r *ActivitySend) RawMessageID() string {
+	return r.rawMessageID
+}
+
+// GetMessageID returns casted value of  messageID parameter
+func (r *ActivitySend) GetMessageID() uint64 {
+	return r.MessageID
+}
+
+// HasKind returns true if kind was set
+func (r *ActivitySend) HasKind() bool {
+	return r.hasKind
+}
+
+// RawKind returns raw value of kind parameter
+func (r *ActivitySend) RawKind() string {
+	return r.rawKind
+}
+
+// GetKind returns casted value of  kind parameter
+func (r *ActivitySend) GetKind() string {
+	return r.Kind
+}

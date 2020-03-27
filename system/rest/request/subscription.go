@@ -30,20 +30,23 @@ import (
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
 
-// Subscription current request parameters
+// SubscriptionCurrent request parameters
 type SubscriptionCurrent struct {
 }
 
+// NewSubscriptionCurrent request
 func NewSubscriptionCurrent() *SubscriptionCurrent {
 	return &SubscriptionCurrent{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r SubscriptionCurrent) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *SubscriptionCurrent) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)

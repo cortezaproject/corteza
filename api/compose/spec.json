@@ -34,24 +34,11 @@
                             "required": false,
                             "title": "Search by namespace slug"
                         },
-                        {
-                            "name": "page",
-                            "type": "uint",
-                            "required": false,
-                            "title": "Page number"
-                        },
-                        {
-                            "name": "perPage",
-                            "type": "uint",
-                            "required": false,
-                            "title": "Returned items per page (default 50)"
-                        },
-                        {
-                            "name": "sort",
-                            "type": "string",
-                            "required": false,
-                            "title": "Sort namespaces"
-                        }
+                        {"type": "uint",   "name": "limit",   "title": "Limit"},
+                        {"type": "uint",   "name": "offset",  "title": "Offset"},
+                        {"type": "uint",   "name": "page",    "title": "Page number (1-based)"},
+                        {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
+                        {"type": "string", "name": "sort",    "title": "Sort items"}
                     ]
                 }
             },
@@ -244,24 +231,11 @@
                             "required": false,
                             "title": "Search by handle"
                         },
-                        {
-                            "name": "page",
-                            "type": "uint",
-                            "required": false,
-                            "title": "Page number"
-                        },
-                        {
-                            "name": "perPage",
-                            "type": "uint",
-                            "required": false,
-                            "title": "Returned items per page (default 50)"
-                        },
-                        {
-                            "type": "string",
-                            "name": "sort",
-                            "required": false,
-                            "title": "Sort"
-                        }
+                        {"type": "uint",   "name": "limit",   "title": "Limit"},
+                        {"type": "uint",   "name": "offset",  "title": "Offset"},
+                        {"type": "uint",   "name": "page",    "title": "Page number (1-based)"},
+                        {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
+                        {"type": "string", "name": "sort",    "title": "Sort items"}
                     ]
                 }
             },
@@ -547,24 +521,11 @@
                             "required": false,
                             "title": "Search by handle"
                         },
-                        {
-                            "name": "page",
-                            "type": "uint",
-                            "required": false,
-                            "title": "Page number"
-                        },
-                        {
-                            "name": "perPage",
-                            "type": "uint",
-                            "required": false,
-                            "title": "Returned items per page (default 50)"
-                        },
-                        {
-                            "type": "string",
-                            "name": "sort",
-                            "required": false,
-                            "title": "Sort"
-                        }
+                        {"type": "uint",   "name": "limit",   "title": "Limit"},
+                        {"type": "uint",   "name": "offset",  "title": "Offset"},
+                        {"type": "uint",   "name": "page",    "title": "Page number (1-based)"},
+                        {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
+                        {"type": "string", "name": "sort",    "title": "Sort items"}
                     ]
                 }
             },
@@ -779,24 +740,11 @@
                             "required": false,
                             "title": "Filtering condition"
                         },
-                        {
-                            "name": "page",
-                            "type": "uint",
-                            "required": false,
-                            "title": "Page number"
-                        },
-                        {
-                            "name": "perPage",
-                            "type": "uint",
-                            "required": false,
-                            "title": "Returned items per page (default 50)"
-                        },
-                        {
-                            "name": "sort",
-                            "type": "string",
-                            "required": false,
-                            "title": "Sort field (default id desc)"
-                        }
+                        {"type": "uint",   "name": "limit",   "title": "Limit"},
+                        {"type": "uint",   "name": "offset",  "title": "Offset"},
+                        {"type": "uint",   "name": "page",    "title": "Page number (1-based)"},
+                        {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
+                        {"type": "string", "name": "sort",    "title": "Sort items"}
                     ]
                 }
             },
@@ -1135,24 +1083,11 @@
                             "title": "Search charts by handle",
                             "type": "string"
                         },
-                        {
-                            "name": "page",
-                            "type": "uint",
-                            "required": false,
-                            "title": "Page number"
-                        },
-                        {
-                            "name": "perPage",
-                            "type": "uint",
-                            "required": false,
-                            "title": "Returned items per page (default 50)"
-                        },
-                        {
-                            "name": "sort",
-                            "required": false,
-                            "title": "Sort charts",
-                            "type": "string"
-                        }
+                        {"type": "uint",   "name": "limit",   "title": "Limit"},
+                        {"type": "uint",   "name": "offset",  "title": "Offset"},
+                        {"type": "uint",   "name": "page",    "title": "Page number (1-based)"},
+                        {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
+                        {"type": "string", "name": "sort",    "title": "Sort items"}
                     ]
                 }
             },
@@ -1392,18 +1327,10 @@
                             "required": false,
                             "title": "Filter attachments by field name"
                         },
-                        {
-                            "name": "page",
-                            "type": "uint",
-                            "required": false,
-                            "title": "Page number"
-                        },
-                        {
-                            "name": "perPage",
-                            "type": "uint",
-                            "required": false,
-                            "title": "Returned items per page (default 50)"
-                        }
+                        {"type": "uint", "name": "limit",   "title": "Limit"},
+                        {"type": "uint", "name": "offset",  "title": "Offset"},
+                        {"type": "uint", "name": "page",    "title": "Page number (1-based)"},
+                        {"type": "uint", "name": "perPage", "title": "Returned items per page (default 50)"}
                     ]
                 }
             },
