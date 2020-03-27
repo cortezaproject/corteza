@@ -48,6 +48,14 @@ type ModuleList struct {
 	rawHandle string
 	Handle    string
 
+	hasLimit bool
+	rawLimit string
+	Limit    uint
+
+	hasOffset bool
+	rawOffset string
+	Offset    uint
+
 	hasPage bool
 	rawPage string
 	Page    uint
@@ -77,6 +85,8 @@ func (r ModuleList) Auditable() map[string]interface{} {
 	out["query"] = r.Query
 	out["name"] = r.Name
 	out["handle"] = r.Handle
+	out["limit"] = r.Limit
+	out["offset"] = r.Offset
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
 	out["sort"] = r.Sort
@@ -121,6 +131,12 @@ func (r *ModuleList) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := get["handle"]; ok {
 		r.Handle = val
+	}
+	if val, ok := get["limit"]; ok {
+		r.Limit = parseUint(val)
+	}
+	if val, ok := get["offset"]; ok {
+		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)
@@ -588,6 +604,36 @@ func (r *ModuleList) RawHandle() string {
 // GetHandle returns casted value of  handle parameter
 func (r *ModuleList) GetHandle() string {
 	return r.Handle
+}
+
+// HasLimit returns true if limit was set
+func (r *ModuleList) HasLimit() bool {
+	return r.hasLimit
+}
+
+// RawLimit returns raw value of limit parameter
+func (r *ModuleList) RawLimit() string {
+	return r.rawLimit
+}
+
+// GetLimit returns casted value of  limit parameter
+func (r *ModuleList) GetLimit() uint {
+	return r.Limit
+}
+
+// HasOffset returns true if offset was set
+func (r *ModuleList) HasOffset() bool {
+	return r.hasOffset
+}
+
+// RawOffset returns raw value of offset parameter
+func (r *ModuleList) RawOffset() string {
+	return r.rawOffset
+}
+
+// GetOffset returns casted value of  offset parameter
+func (r *ModuleList) GetOffset() uint {
+	return r.Offset
 }
 
 // HasPage returns true if page was set

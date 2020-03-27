@@ -44,6 +44,14 @@ type RoleList struct {
 	rawArchived string
 	Archived    uint
 
+	hasLimit bool
+	rawLimit string
+	Limit    uint
+
+	hasOffset bool
+	rawOffset string
+	Offset    uint
+
 	hasPage bool
 	rawPage string
 	Page    uint
@@ -69,6 +77,8 @@ func (r RoleList) Auditable() map[string]interface{} {
 	out["query"] = r.Query
 	out["deleted"] = r.Deleted
 	out["archived"] = r.Archived
+	out["limit"] = r.Limit
+	out["offset"] = r.Offset
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
 	out["sort"] = r.Sort
@@ -112,6 +122,12 @@ func (r *RoleList) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := get["archived"]; ok {
 		r.Archived = parseUint(val)
+	}
+	if val, ok := get["limit"]; ok {
+		r.Limit = parseUint(val)
+	}
+	if val, ok := get["offset"]; ok {
+		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)
@@ -1011,6 +1027,36 @@ func (r *RoleList) RawArchived() string {
 // GetArchived returns casted value of  archived parameter
 func (r *RoleList) GetArchived() uint {
 	return r.Archived
+}
+
+// HasLimit returns true if limit was set
+func (r *RoleList) HasLimit() bool {
+	return r.hasLimit
+}
+
+// RawLimit returns raw value of limit parameter
+func (r *RoleList) RawLimit() string {
+	return r.rawLimit
+}
+
+// GetLimit returns casted value of  limit parameter
+func (r *RoleList) GetLimit() uint {
+	return r.Limit
+}
+
+// HasOffset returns true if offset was set
+func (r *RoleList) HasOffset() bool {
+	return r.hasOffset
+}
+
+// RawOffset returns raw value of offset parameter
+func (r *RoleList) RawOffset() string {
+	return r.rawOffset
+}
+
+// GetOffset returns casted value of  offset parameter
+func (r *RoleList) GetOffset() uint {
+	return r.Offset
 }
 
 // HasPage returns true if page was set

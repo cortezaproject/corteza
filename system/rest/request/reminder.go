@@ -63,6 +63,14 @@ type ReminderList struct {
 	rawExcludeDismissed string
 	ExcludeDismissed    bool
 
+	hasLimit bool
+	rawLimit string
+	Limit    uint
+
+	hasOffset bool
+	rawOffset string
+	Offset    uint
+
 	hasPage bool
 	rawPage string
 	Page    uint
@@ -92,6 +100,8 @@ func (r ReminderList) Auditable() map[string]interface{} {
 	out["scheduledUntil"] = r.ScheduledUntil
 	out["scheduledOnly"] = r.ScheduledOnly
 	out["excludeDismissed"] = r.ExcludeDismissed
+	out["limit"] = r.Limit
+	out["offset"] = r.Offset
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
 	out["sort"] = r.Sort
@@ -160,6 +170,12 @@ func (r *ReminderList) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := get["excludeDismissed"]; ok {
 		r.ExcludeDismissed = parseBool(val)
+	}
+	if val, ok := get["limit"]; ok {
+		r.Limit = parseUint(val)
+	}
+	if val, ok := get["offset"]; ok {
+		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)
@@ -706,6 +722,36 @@ func (r *ReminderList) RawExcludeDismissed() string {
 // GetExcludeDismissed returns casted value of  excludeDismissed parameter
 func (r *ReminderList) GetExcludeDismissed() bool {
 	return r.ExcludeDismissed
+}
+
+// HasLimit returns true if limit was set
+func (r *ReminderList) HasLimit() bool {
+	return r.hasLimit
+}
+
+// RawLimit returns raw value of limit parameter
+func (r *ReminderList) RawLimit() string {
+	return r.rawLimit
+}
+
+// GetLimit returns casted value of  limit parameter
+func (r *ReminderList) GetLimit() uint {
+	return r.Limit
+}
+
+// HasOffset returns true if offset was set
+func (r *ReminderList) HasOffset() bool {
+	return r.hasOffset
+}
+
+// RawOffset returns raw value of offset parameter
+func (r *ReminderList) RawOffset() string {
+	return r.rawOffset
+}
+
+// GetOffset returns casted value of  offset parameter
+func (r *ReminderList) GetOffset() uint {
+	return r.Offset
 }
 
 // HasPage returns true if page was set

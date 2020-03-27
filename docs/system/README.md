@@ -25,9 +25,11 @@
 | name | string | GET | Application name | N/A | NO |
 | query | string | GET | Filter applications | N/A | NO |
 | deleted | uint | GET | Exclude (0, default), include (1) or return only (2) deleted roles | N/A | NO |
-| page | uint | GET | Page number | N/A | NO |
+| limit | uint | GET | Limit | N/A | NO |
+| offset | uint | GET | Offset | N/A | NO |
+| page | uint | GET | Page number (1-based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
-| sort | string | GET | Sort | N/A | NO |
+| sort | string | GET | Sort items | N/A | NO |
 
 ## Create application
 
@@ -602,9 +604,11 @@ Organisations represent a top-level grouping entity. There may be many organisat
 | scheduledUntil | *time.Time | GET | Only reminders up to this time (included) | N/A | NO |
 | scheduledOnly | bool | GET | Only scheduled reminders | N/A | NO |
 | excludeDismissed | bool | GET | Filter out dismissed reminders | N/A | NO |
-| page | uint | GET | Page number | N/A | NO |
+| limit | uint | GET | Limit | N/A | NO |
+| offset | uint | GET | Offset | N/A | NO |
+| page | uint | GET | Page number (1-based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
-| sort | string | GET | Sort | N/A | NO |
+| sort | string | GET | Sort items | N/A | NO |
 
 ## Add new reminder
 
@@ -739,9 +743,11 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | query | string | GET | Search query | N/A | NO |
 | deleted | uint | GET | Exclude (0, default), include (1) or return only (2) deleted roles | N/A | NO |
 | archived | uint | GET | Exclude (0, default), include (1) or return only (2) achived roles | N/A | NO |
-| page | uint | GET | Page number | N/A | NO |
+| limit | uint | GET | Limit | N/A | NO |
+| offset | uint | GET | Offset | N/A | NO |
+| page | uint | GET | Page number (1-based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
-| sort | string | GET | Sort | N/A | NO |
+| sort | string | GET | Sort items | N/A | NO |
 
 ## Update role details
 
@@ -1101,9 +1107,11 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.cru
 | incSuspended | bool | GET | [Deprecated] Include suspended users | N/A | NO |
 | deleted | uint | GET | Exclude (0, default), include (1) or return only (2) deleted users | N/A | NO |
 | suspended | uint | GET | Exclude (0, default), include (1) or return only (2) suspended users | N/A | NO |
-| sort | string | GET | Sort by (createdAt, updatedAt, deletedAt, suspendedAt, email, username, userID) | N/A | NO |
-| page | uint | GET | Page number | N/A | NO |
-| perPage | uint | GET | Returned items per page | N/A | NO |
+| limit | uint | GET | Limit | N/A | NO |
+| offset | uint | GET | Offset | N/A | NO |
+| page | uint | GET | Page number (1-based) | N/A | NO |
+| perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
+| sort | string | GET | Sort items | N/A | NO |
 
 ## Create user
 

@@ -24,7 +24,9 @@
 | moduleID | uint64 | GET | Filter attachments by module ID | N/A | NO |
 | recordID | uint64 | GET | Filter attachments by record ID | N/A | NO |
 | fieldName | string | GET | Filter attachments by field name | N/A | NO |
-| page | uint | GET | Page number | N/A | NO |
+| limit | uint | GET | Limit | N/A | NO |
+| offset | uint | GET | Offset | N/A | NO |
+| page | uint | GET | Page number (1-based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
 | sign | string | GET | Signature | N/A | NO |
 | userID | uint64 | GET | User ID | N/A | NO |
@@ -203,9 +205,11 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.cru
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query to match against charts | N/A | NO |
 | handle | string | GET | Search charts by handle | N/A | NO |
-| page | uint | GET | Page number | N/A | NO |
+| limit | uint | GET | Limit | N/A | NO |
+| offset | uint | GET | Offset | N/A | NO |
+| page | uint | GET | Page number (1-based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
-| sort | string | GET | Sort charts | N/A | NO |
+| sort | string | GET | Sort items | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## List/read charts
@@ -307,9 +311,11 @@ Compose module definitions
 | query | string | GET | Search query | N/A | NO |
 | name | string | GET | Search by name | N/A | NO |
 | handle | string | GET | Search by handle | N/A | NO |
-| page | uint | GET | Page number | N/A | NO |
+| limit | uint | GET | Limit | N/A | NO |
+| offset | uint | GET | Offset | N/A | NO |
+| page | uint | GET | Page number (1-based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
-| sort | string | GET | Sort | N/A | NO |
+| sort | string | GET | Sort items | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Create module
@@ -426,9 +432,11 @@ Compose module definitions
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Search query | N/A | NO |
 | slug | string | GET | Search by namespace slug | N/A | NO |
-| page | uint | GET | Page number | N/A | NO |
+| limit | uint | GET | Limit | N/A | NO |
+| offset | uint | GET | Offset | N/A | NO |
+| page | uint | GET | Page number (1-based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
-| sort | string | GET | Sort namespaces | N/A | NO |
+| sort | string | GET | Sort items | N/A | NO |
 
 ## Create namespace
 
@@ -577,9 +585,11 @@ Compose pages
 | selfID | uint64 | GET | Parent page ID | N/A | NO |
 | query | string | GET | Search query | N/A | NO |
 | handle | string | GET | Search by handle | N/A | NO |
-| page | uint | GET | Page number | N/A | NO |
+| limit | uint | GET | Limit | N/A | NO |
+| offset | uint | GET | Offset | N/A | NO |
+| page | uint | GET | Page number (1-based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
-| sort | string | GET | Sort | N/A | NO |
+| sort | string | GET | Sort items | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 
 ## Create page
@@ -861,9 +871,11 @@ Compose records
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | filter | string | GET | Filtering condition | N/A | NO |
-| page | uint | GET | Page number | N/A | NO |
+| limit | uint | GET | Limit | N/A | NO |
+| offset | uint | GET | Offset | N/A | NO |
+| page | uint | GET | Page number (1-based) | N/A | NO |
 | perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
-| sort | string | GET | Sort field (default id desc) | N/A | NO |
+| sort | string | GET | Sort items | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 

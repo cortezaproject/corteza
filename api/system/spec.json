@@ -444,24 +444,11 @@
               "title": "Exclude (0, default), include (1) or return only (2) achived roles",
               "type": "uint"
             },
-            {
-              "name": "page",
-              "type": "uint",
-              "required": false,
-              "title": "Page number"
-            },
-            {
-              "name": "perPage",
-              "type": "uint",
-              "required": false,
-              "title": "Returned items per page (default 50)"
-            },
-            {
-              "name": "sort",
-              "required": false,
-              "title": "Sort",
-              "type": "string"
-            }
+            {"type": "uint",   "name": "limit",   "title": "Limit"},
+            {"type": "uint",   "name": "offset",  "title": "Offset"},
+            {"type": "uint",   "name": "page",    "title": "Page number (1-based)"},
+            {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
+            {"type": "string", "name": "sort",    "title": "Sort items"}
           ]
         }
       },
@@ -832,24 +819,11 @@
               "title": "Exclude (0, default), include (1) or return only (2) suspended users",
               "type": "uint"
             },
-            {
-              "name": "sort",
-              "type": "string",
-              "required": false,
-              "title": "Sort by (createdAt, updatedAt, deletedAt, suspendedAt, email, username, userID)"
-            },
-            {
-              "name": "page",
-              "type": "uint",
-              "required": false,
-              "title": "Page number"
-            },
-            {
-              "name": "perPage",
-              "type": "uint",
-              "required": false,
-              "title": "Returned items per page"
-            }
+            {"type": "uint",   "name": "limit",   "title": "Limit"},
+            {"type": "uint",   "name": "offset",  "title": "Offset"},
+            {"type": "uint",   "name": "page",    "title": "Page number (1-based)"},
+            {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
+            {"type": "string", "name": "sort",    "title": "Sort items"}
           ]
         }
       },
@@ -1158,24 +1132,11 @@
               "title": "Exclude (0, default), include (1) or return only (2) deleted roles",
               "type": "uint"
             },
-            {
-              "name": "page",
-              "type": "uint",
-              "required": false,
-              "title": "Page number"
-            },
-            {
-              "name": "perPage",
-              "type": "uint",
-              "required": false,
-              "title": "Returned items per page (default 50)"
-            },
-            {
-              "name": "sort",
-              "required": false,
-              "title": "Sort",
-              "type": "string"
-            }
+            {"type": "uint",   "name": "limit",   "title": "Limit"},
+            {"type": "uint",   "name": "offset",  "title": "Offset"},
+            {"type": "uint",   "name": "page",    "title": "Page number (1-based)"},
+            {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
+            {"type": "string", "name": "sort",    "title": "Sort items"}
           ]
         }
       },
@@ -1493,24 +1454,11 @@
               "title": "Filter out dismissed reminders",
               "type": "bool"
             },
-            {
-              "name": "page",
-              "type": "uint",
-              "required": false,
-              "title": "Page number"
-            },
-            {
-              "name": "perPage",
-              "type": "uint",
-              "required": false,
-              "title": "Returned items per page (default 50)"
-            },
-            {
-              "name": "sort",
-              "required": false,
-              "title": "Sort",
-              "type": "string"
-            }
+            {"type": "uint",   "name": "limit",   "title": "Limit"},
+            {"type": "uint",   "name": "offset",  "title": "Offset"},
+            {"type": "uint",   "name": "page",    "title": "Page number (1-based)"},
+            {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
+            {"type": "string", "name": "sort",    "title": "Sort items"}
           ]
         }
       },
