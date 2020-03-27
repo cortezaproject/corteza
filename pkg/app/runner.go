@@ -324,5 +324,5 @@ func Run(log *zap.Logger, opt *Options, parts ...Runnable) {
 
 	ctx := cli.Context()
 
-	cli.HandleError(r.Run(ctx))
+	r.Run(ctx)
 }
