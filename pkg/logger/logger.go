@@ -36,6 +36,8 @@ func MakeDebugLogger() *zap.Logger {
 		panic(err)
 	}
 
+	logger.Debug("full debug mode enabled (LOG_DEBUG=true), enjoy all the colors and verbosity")
+
 	return logger
 }
 
@@ -43,8 +45,9 @@ func Init() {
 	var (
 		err error
 
-		// Set INFO as defaut log level
-		logLevel = zapcore.InfoLevel
+		// Set WARN as default log level -- running serve-api
+		// will override this if LOG_LEVEL is not set
+		logLevel = zapcore.WarnLevel
 
 		// Do we want to enable debug logger
 		// with a bit more dev-friendly output
