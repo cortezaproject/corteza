@@ -46,7 +46,7 @@ func (ctrl *Reminder) List(ctx context.Context, r *request.ReminderList) (interf
 		ExcludeDismissed: r.ExcludeDismissed,
 		ScheduledOnly:    r.ScheduledOnly,
 
-		PageFilter: rh.Paging(r.Page, r.PerPage),
+		PageFilter: rh.Paging(r),
 	}
 
 	set, filter, err := ctrl.reminder.Find(ctx, f)

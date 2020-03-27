@@ -9,47 +9,99 @@ const (
 )
 
 type (
-	// @todo this needs to be refactored to support
-	//       limit/offset params alongside page/perPage
+	// PageFilter supports page/perPage (one based) and limit/offset
+	// pagination.
+	//
+	// Limit/offset is prioritised over page/perPage
+	//
 	PageFilter struct {
-		Page    uint `json:"page"`
-		PerPage uint `json:"perPage"`
-		Count   uint `json:"count"`
+		// If limit is set to a positive number,
+		// paging mechanisms will use limit/offset
+		// Otherwise page/perPage is used
+		Limit  uint `json:"limit,omitempty"`
+		Offset uint `json:"offset,omitempty"`
 
-		// Limit  uint `json:"limit"`
-		// Offset uint `json:"offset"`
+		Page    uint `json:"page,omitempty"`
+		PerPage uint `json:"perPage,omitempty"`
+
+		// Count is used when filter and pagination are send back
+		// with the response
+		Count uint `json:"count"`
+	}
+
+	paginationParams interface {
+		GetLimit() uint
+		GetOffset() uint
+		GetPage() uint
+		GetPerPage() uint
 	}
 )
 
-func Paging(page, perPage uint) PageFilter {
-	if page == 0 {
-		page = 1
-	}
-
+func Paging(p paginationParams) PageFilter {
 	return PageFilter{
-		Page:    page,
-		PerPage: perPage,
+		Limit:   p.GetLimit(),
+		Offset:  p.GetOffset(),
+		Page:    p.GetPage(),
+		PerPage: p.GetPerPage(),
 	}
 }
 
-func (pf *PageFilter) ParsePagination(input interface{}) {
+// Limit creates PageFilter struct from limit and, optionally offset
+func Limit(a ...uint) PageFilter {
+	switch len(a) {
+	case 1:
+		return PageFilter{Limit: a[0]}
+	case 2:
+		return PageFilter{Limit: a[0], Offset: a[1]}
+	}
+
+	return PageFilter{}
+}
+
+func (pf *PageFilter) ParsePagination(input interface{}) error {
+	return parsePagination(pf, input)
+}
+
+func parsePagination(pf *PageFilter, input interface{}) (err error) {
 	switch i := input.(type) {
 	case map[string]string:
-		if len(i["limit"]+i["offset"]) > 0 {
-			// @todo to properly & fully support limit & offset
-			//       we need to refactor pagination handling
-			limit, _ := strconv.ParseUint(i["limit"], 10, 32)
-			//offset, _ := strconv.ParseUint(i["offset"], 10, 32)
+		conv := func(v *uint, name string) error {
+			if _, has := i[name]; has {
+				pv, err := strconv.ParseUint(i[name], 10, 32)
+				if err != nil {
+					return err
+				}
 
-			// only basic support for now due to
-			// limitation of PageFilter implementation
-			pf.PerPage = uint(limit)
-			//pf.Page = offset / limit
-		} else if len(i["page"]+i["perPage"]) > 0 {
-			page, _ := strconv.ParseUint(i["page"], 10, 32)
-			perPage, _ := strconv.ParseUint(i["perPage"], 10, 32)
-			pf.Page = uint(page)
-			pf.PerPage = uint(perPage)
+				*v = uint(pv)
+			}
+
+			return nil
+		}
+
+		if len(i["limit"]+i["offset"]) > 0 {
+			if err = conv(&pf.Limit, "limit"); err != nil {
+				return
+			}
+
+			if err = conv(&pf.Offset, "offset"); err != nil {
+				return
+			}
+
+			return
+		}
+
+		if len(i["page"]+i["perPage"]) > 0 {
+			if err = conv(&pf.Page, "page"); err != nil {
+				return
+			}
+
+			if err = conv(&pf.PerPage, "perPage"); err != nil {
+				return
+			}
+
+			return
 		}
 	}
+
+	return nil
 }

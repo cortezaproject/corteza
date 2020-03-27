@@ -64,7 +64,7 @@ func (ctrl Role) List(ctx context.Context, r *request.RoleList) (interface{}, er
 		Deleted:  rh.FilterState(r.Deleted),
 
 		Sort:       rh.NormalizeSortColumns(r.Sort),
-		PageFilter: rh.Paging(r.Page, r.PerPage),
+		PageFilter: rh.Paging(r),
 	}
 
 	set, filter, err := ctrl.role.With(ctx).Find(f)

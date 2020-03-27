@@ -207,7 +207,7 @@ func (r user) Find(filter types.UserFilter) (set types.UserSet, f types.UserFilt
 		return
 	}
 
-	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
+	return set, f, rh.FetchPaged(r.db(), query, f.PageFilter, &set)
 }
 
 func (r user) Total() (count uint) {

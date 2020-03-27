@@ -90,22 +90,29 @@
             "type": "uint"
           },
           {
-            "name": "sort",
-            "required": false,
-            "title": "Sort by (createdAt, updatedAt, deletedAt, suspendedAt, email, username, userID)",
-            "type": "string"
+            "name": "limit",
+            "title": "Limit",
+            "type": "uint"
+          },
+          {
+            "name": "offset",
+            "title": "Offset",
+            "type": "uint"
           },
           {
             "name": "page",
-            "required": false,
-            "title": "Page number",
+            "title": "Page number (1-based)",
             "type": "uint"
           },
           {
             "name": "perPage",
-            "required": false,
-            "title": "Returned items per page",
+            "title": "Returned items per page (default 50)",
             "type": "uint"
+          },
+          {
+            "name": "sort",
+            "title": "Sort items",
+            "type": "string"
           }
         ]
       }

@@ -131,7 +131,7 @@ func (r *namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet, 
 		return
 	}
 
-	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
+	return set, f, rh.FetchPaged(r.db(), query, f.PageFilter, &set)
 }
 
 func (r *namespace) Create(mod *types.Namespace) (*types.Namespace, error) {
