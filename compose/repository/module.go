@@ -154,7 +154,7 @@ func (r module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.Mo
 		return
 	}
 
-	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
+	return set, f, rh.FetchPaged(r.db(), query, f.PageFilter, &set)
 }
 
 func (r module) Create(mod *types.Module) (*types.Module, error) {

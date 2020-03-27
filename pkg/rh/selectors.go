@@ -45,18 +45,27 @@ func Count(db *factory.DB, q squirrel.SelectBuilder) (count uint, err error) {
 }
 
 // FetchPaged fetches paged rows
-func FetchPaged(db *factory.DB, q squirrel.SelectBuilder, page, perPage uint, set interface{}) error {
-	if perPage > 0 {
-		q = q.Limit(uint64(perPage))
+func FetchPaged(db *factory.DB, q squirrel.SelectBuilder, p PageFilter, set interface{}) error {
+	if p.Limit+p.Offset == 0 {
+		// When both, offset & limit are 0,
+		// calculate both values from page/perPage params
+		if p.PerPage > 0 {
+			p.Limit = p.PerPage
+		}
+
+		if p.Page < 1 {
+			p.Page = 1
+		}
+
+		p.Offset = uint((p.Page - 1) * p.PerPage)
 	}
 
-	if page < 1 {
-		page = 1
+	if p.Limit > 0 {
+		q = q.Limit(uint64(p.Limit))
 	}
 
-	var offset = uint64((page - 1) * perPage)
-	if offset > 0 {
-		q = q.Offset(offset)
+	if p.Offset > 0 {
+		q = q.Offset(uint64(p.Limit))
 	}
 
 	return FetchAll(db, q, set)

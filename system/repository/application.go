@@ -126,7 +126,7 @@ func (r *application) Find(filter types.ApplicationFilter) (set types.Applicatio
 		return
 	}
 
-	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
+	return set, f, rh.FetchPaged(r.db(), query, f.PageFilter, &set)
 }
 
 func (r *application) Create(mod *types.Application) (*types.Application, error) {
