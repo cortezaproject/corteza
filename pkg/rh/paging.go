@@ -28,16 +28,21 @@ type (
 		// with the response
 		Count uint `json:"count"`
 	}
+
+	paginationParams interface {
+		GetLimit() uint
+		GetOffset() uint
+		GetPage() uint
+		GetPerPage() uint
+	}
 )
 
-func Paging(page, perPage uint) PageFilter {
-	if page == 0 {
-		page = 1
-	}
-
+func Paging(p paginationParams) PageFilter {
 	return PageFilter{
-		Page:    page,
-		PerPage: perPage,
+		Limit:   p.GetLimit(),
+		Offset:  p.GetOffset(),
+		Page:    p.GetPage(),
+		PerPage: p.GetPerPage(),
 	}
 }
 

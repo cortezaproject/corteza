@@ -50,7 +50,7 @@ func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, er
 
 		Sort: rh.NormalizeSortColumns(r.Sort),
 
-		PageFilter: rh.Paging(r.Page, r.PerPage),
+		PageFilter: rh.Paging(r),
 	}
 
 	if r.IncSuspended && f.Suspended == 0 {
