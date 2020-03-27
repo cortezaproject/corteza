@@ -64,7 +64,7 @@ func (ctrl *Page) List(ctx context.Context, r *request.PageList) (interface{}, e
 
 		Sort: r.Sort,
 
-		PageFilter: rh.Paging(r.Page, r.PerPage),
+		PageFilter: rh.Paging(r),
 	}
 
 	set, filter, err := ctrl.page.With(ctx).Find(f)

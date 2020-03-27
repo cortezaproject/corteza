@@ -81,7 +81,7 @@ func (ctrl *Module) List(ctx context.Context, r *request.ModuleList) (interface{
 		Handle:      r.Handle,
 		Sort:        r.Sort,
 
-		PageFilter: rh.Paging(r.Page, r.PerPage),
+		PageFilter: rh.Paging(r),
 	}
 
 	set, filter, err := ctrl.module.With(ctx).Find(f)

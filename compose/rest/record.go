@@ -88,7 +88,7 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 		Filter:      r.Filter,
 		Sort:        r.Sort,
 
-		PageFilter: rh.Paging(r.Page, r.PerPage),
+		PageFilter: rh.Paging(r),
 	})
 
 	return ctrl.makeFilterPayload(ctx, m, rr, filter, err)

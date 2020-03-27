@@ -59,7 +59,7 @@ func (ctrl *Application) List(ctx context.Context, r *request.ApplicationList) (
 		Deleted: rh.FilterState(r.Deleted),
 
 		Sort:       rh.NormalizeSortColumns(r.Sort),
-		PageFilter: rh.Paging(r.Page, r.PerPage),
+		PageFilter: rh.Paging(r),
 	}
 
 	set, filter, err := ctrl.application.With(ctx).Find(f)
