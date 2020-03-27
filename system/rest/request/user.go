@@ -78,9 +78,13 @@ type UserList struct {
 	rawSuspended string
 	Suspended    uint
 
-	hasSort bool
-	rawSort string
-	Sort    string
+	hasLimit bool
+	rawLimit string
+	Limit    uint
+
+	hasOffset bool
+	rawOffset string
+	Offset    uint
 
 	hasPage bool
 	rawPage string
@@ -89,6 +93,10 @@ type UserList struct {
 	hasPerPage bool
 	rawPerPage string
 	PerPage    uint
+
+	hasSort bool
+	rawSort string
+	Sort    string
 }
 
 // NewUserList request
@@ -111,9 +119,11 @@ func (r UserList) Auditable() map[string]interface{} {
 	out["incSuspended"] = r.IncSuspended
 	out["deleted"] = r.Deleted
 	out["suspended"] = r.Suspended
-	out["sort"] = r.Sort
+	out["limit"] = r.Limit
+	out["offset"] = r.Offset
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
+	out["sort"] = r.Sort
 
 	return out
 }
@@ -193,14 +203,20 @@ func (r *UserList) Fill(req *http.Request) (err error) {
 	if val, ok := get["suspended"]; ok {
 		r.Suspended = parseUint(val)
 	}
-	if val, ok := get["sort"]; ok {
-		r.Sort = val
+	if val, ok := get["limit"]; ok {
+		r.Limit = parseUint(val)
+	}
+	if val, ok := get["offset"]; ok {
+		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
 		r.PerPage = parseUint(val)
+	}
+	if val, ok := get["sort"]; ok {
+		r.Sort = val
 	}
 
 	return err
@@ -1157,19 +1173,34 @@ func (r *UserList) GetSuspended() uint {
 	return r.Suspended
 }
 
-// HasSort returns true if sort was set
-func (r *UserList) HasSort() bool {
-	return r.hasSort
+// HasLimit returns true if limit was set
+func (r *UserList) HasLimit() bool {
+	return r.hasLimit
 }
 
-// RawSort returns raw value of sort parameter
-func (r *UserList) RawSort() string {
-	return r.rawSort
+// RawLimit returns raw value of limit parameter
+func (r *UserList) RawLimit() string {
+	return r.rawLimit
 }
 
-// GetSort returns casted value of  sort parameter
-func (r *UserList) GetSort() string {
-	return r.Sort
+// GetLimit returns casted value of  limit parameter
+func (r *UserList) GetLimit() uint {
+	return r.Limit
+}
+
+// HasOffset returns true if offset was set
+func (r *UserList) HasOffset() bool {
+	return r.hasOffset
+}
+
+// RawOffset returns raw value of offset parameter
+func (r *UserList) RawOffset() string {
+	return r.rawOffset
+}
+
+// GetOffset returns casted value of  offset parameter
+func (r *UserList) GetOffset() uint {
+	return r.Offset
 }
 
 // HasPage returns true if page was set
@@ -1200,6 +1231,21 @@ func (r *UserList) RawPerPage() string {
 // GetPerPage returns casted value of  perPage parameter
 func (r *UserList) GetPerPage() uint {
 	return r.PerPage
+}
+
+// HasSort returns true if sort was set
+func (r *UserList) HasSort() bool {
+	return r.hasSort
+}
+
+// RawSort returns raw value of sort parameter
+func (r *UserList) RawSort() string {
+	return r.rawSort
+}
+
+// GetSort returns casted value of  sort parameter
+func (r *UserList) GetSort() string {
+	return r.Sort
 }
 
 // HasEmail returns true if email was set

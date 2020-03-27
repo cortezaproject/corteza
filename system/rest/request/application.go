@@ -46,6 +46,14 @@ type ApplicationList struct {
 	rawDeleted string
 	Deleted    uint
 
+	hasLimit bool
+	rawLimit string
+	Limit    uint
+
+	hasOffset bool
+	rawOffset string
+	Offset    uint
+
 	hasPage bool
 	rawPage string
 	Page    uint
@@ -71,6 +79,8 @@ func (r ApplicationList) Auditable() map[string]interface{} {
 	out["name"] = r.Name
 	out["query"] = r.Query
 	out["deleted"] = r.Deleted
+	out["limit"] = r.Limit
+	out["offset"] = r.Offset
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
 	out["sort"] = r.Sort
@@ -114,6 +124,12 @@ func (r *ApplicationList) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := get["deleted"]; ok {
 		r.Deleted = parseUint(val)
+	}
+	if val, ok := get["limit"]; ok {
+		r.Limit = parseUint(val)
+	}
+	if val, ok := get["offset"]; ok {
+		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)
@@ -597,6 +613,36 @@ func (r *ApplicationList) RawDeleted() string {
 // GetDeleted returns casted value of  deleted parameter
 func (r *ApplicationList) GetDeleted() uint {
 	return r.Deleted
+}
+
+// HasLimit returns true if limit was set
+func (r *ApplicationList) HasLimit() bool {
+	return r.hasLimit
+}
+
+// RawLimit returns raw value of limit parameter
+func (r *ApplicationList) RawLimit() string {
+	return r.rawLimit
+}
+
+// GetLimit returns casted value of  limit parameter
+func (r *ApplicationList) GetLimit() uint {
+	return r.Limit
+}
+
+// HasOffset returns true if offset was set
+func (r *ApplicationList) HasOffset() bool {
+	return r.hasOffset
+}
+
+// RawOffset returns raw value of offset parameter
+func (r *ApplicationList) RawOffset() string {
+	return r.rawOffset
+}
+
+// GetOffset returns casted value of  offset parameter
+func (r *ApplicationList) GetOffset() uint {
+	return r.Offset
 }
 
 // HasPage returns true if page was set

@@ -48,6 +48,14 @@ type AttachmentList struct {
 	rawFieldName string
 	FieldName    string
 
+	hasLimit bool
+	rawLimit string
+	Limit    uint
+
+	hasOffset bool
+	rawOffset string
+	Offset    uint
+
 	hasPage bool
 	rawPage string
 	Page    uint
@@ -86,6 +94,8 @@ func (r AttachmentList) Auditable() map[string]interface{} {
 	out["moduleID"] = r.ModuleID
 	out["recordID"] = r.RecordID
 	out["fieldName"] = r.FieldName
+	out["limit"] = r.Limit
+	out["offset"] = r.Offset
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
 	out["sign"] = r.Sign
@@ -135,6 +145,12 @@ func (r *AttachmentList) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := get["fieldName"]; ok {
 		r.FieldName = val
+	}
+	if val, ok := get["limit"]; ok {
+		r.Limit = parseUint(val)
+	}
+	if val, ok := get["offset"]; ok {
+		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)
@@ -602,6 +618,36 @@ func (r *AttachmentList) RawFieldName() string {
 // GetFieldName returns casted value of  fieldName parameter
 func (r *AttachmentList) GetFieldName() string {
 	return r.FieldName
+}
+
+// HasLimit returns true if limit was set
+func (r *AttachmentList) HasLimit() bool {
+	return r.hasLimit
+}
+
+// RawLimit returns raw value of limit parameter
+func (r *AttachmentList) RawLimit() string {
+	return r.rawLimit
+}
+
+// GetLimit returns casted value of  limit parameter
+func (r *AttachmentList) GetLimit() uint {
+	return r.Limit
+}
+
+// HasOffset returns true if offset was set
+func (r *AttachmentList) HasOffset() bool {
+	return r.hasOffset
+}
+
+// RawOffset returns raw value of offset parameter
+func (r *AttachmentList) RawOffset() string {
+	return r.rawOffset
+}
+
+// GetOffset returns casted value of  offset parameter
+func (r *AttachmentList) GetOffset() uint {
+	return r.Offset
 }
 
 // HasPage returns true if page was set

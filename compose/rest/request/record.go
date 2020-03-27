@@ -128,6 +128,14 @@ type RecordList struct {
 	rawFilter string
 	Filter    string
 
+	hasLimit bool
+	rawLimit string
+	Limit    uint
+
+	hasOffset bool
+	rawOffset string
+	Offset    uint
+
 	hasPage bool
 	rawPage string
 	Page    uint
@@ -159,6 +167,8 @@ func (r RecordList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["filter"] = r.Filter
+	out["limit"] = r.Limit
+	out["offset"] = r.Offset
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
 	out["sort"] = r.Sort
@@ -198,6 +208,12 @@ func (r *RecordList) Fill(req *http.Request) (err error) {
 
 	if val, ok := get["filter"]; ok {
 		r.Filter = val
+	}
+	if val, ok := get["limit"]; ok {
+		r.Limit = parseUint(val)
+	}
+	if val, ok := get["offset"]; ok {
+		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)
@@ -1371,6 +1387,36 @@ func (r *RecordList) RawFilter() string {
 // GetFilter returns casted value of  filter parameter
 func (r *RecordList) GetFilter() string {
 	return r.Filter
+}
+
+// HasLimit returns true if limit was set
+func (r *RecordList) HasLimit() bool {
+	return r.hasLimit
+}
+
+// RawLimit returns raw value of limit parameter
+func (r *RecordList) RawLimit() string {
+	return r.rawLimit
+}
+
+// GetLimit returns casted value of  limit parameter
+func (r *RecordList) GetLimit() uint {
+	return r.Limit
+}
+
+// HasOffset returns true if offset was set
+func (r *RecordList) HasOffset() bool {
+	return r.hasOffset
+}
+
+// RawOffset returns raw value of offset parameter
+func (r *RecordList) RawOffset() string {
+	return r.rawOffset
+}
+
+// GetOffset returns casted value of  offset parameter
+func (r *RecordList) GetOffset() uint {
+	return r.Offset
 }
 
 // HasPage returns true if page was set

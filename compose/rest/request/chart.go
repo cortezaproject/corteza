@@ -43,6 +43,14 @@ type ChartList struct {
 	rawHandle string
 	Handle    string
 
+	hasLimit bool
+	rawLimit string
+	Limit    uint
+
+	hasOffset bool
+	rawOffset string
+	Offset    uint
+
 	hasPage bool
 	rawPage string
 	Page    uint
@@ -71,6 +79,8 @@ func (r ChartList) Auditable() map[string]interface{} {
 
 	out["query"] = r.Query
 	out["handle"] = r.Handle
+	out["limit"] = r.Limit
+	out["offset"] = r.Offset
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
 	out["sort"] = r.Sort
@@ -112,6 +122,12 @@ func (r *ChartList) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := get["handle"]; ok {
 		r.Handle = val
+	}
+	if val, ok := get["limit"]; ok {
+		r.Limit = parseUint(val)
+	}
+	if val, ok := get["offset"]; ok {
+		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)
@@ -480,6 +496,36 @@ func (r *ChartList) RawHandle() string {
 // GetHandle returns casted value of  handle parameter
 func (r *ChartList) GetHandle() string {
 	return r.Handle
+}
+
+// HasLimit returns true if limit was set
+func (r *ChartList) HasLimit() bool {
+	return r.hasLimit
+}
+
+// RawLimit returns raw value of limit parameter
+func (r *ChartList) RawLimit() string {
+	return r.rawLimit
+}
+
+// GetLimit returns casted value of  limit parameter
+func (r *ChartList) GetLimit() uint {
+	return r.Limit
+}
+
+// HasOffset returns true if offset was set
+func (r *ChartList) HasOffset() bool {
+	return r.hasOffset
+}
+
+// RawOffset returns raw value of offset parameter
+func (r *ChartList) RawOffset() string {
+	return r.rawOffset
+}
+
+// GetOffset returns casted value of  offset parameter
+func (r *ChartList) GetOffset() uint {
+	return r.Offset
 }
 
 // HasPage returns true if page was set

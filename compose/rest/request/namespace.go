@@ -43,6 +43,14 @@ type NamespaceList struct {
 	rawSlug string
 	Slug    string
 
+	hasLimit bool
+	rawLimit string
+	Limit    uint
+
+	hasOffset bool
+	rawOffset string
+	Offset    uint
+
 	hasPage bool
 	rawPage string
 	Page    uint
@@ -67,6 +75,8 @@ func (r NamespaceList) Auditable() map[string]interface{} {
 
 	out["query"] = r.Query
 	out["slug"] = r.Slug
+	out["limit"] = r.Limit
+	out["offset"] = r.Offset
 	out["page"] = r.Page
 	out["perPage"] = r.PerPage
 	out["sort"] = r.Sort
@@ -107,6 +117,12 @@ func (r *NamespaceList) Fill(req *http.Request) (err error) {
 	}
 	if val, ok := get["slug"]; ok {
 		r.Slug = val
+	}
+	if val, ok := get["limit"]; ok {
+		r.Limit = parseUint(val)
+	}
+	if val, ok := get["offset"]; ok {
+		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
 		r.Page = parseUint(val)
@@ -522,6 +538,36 @@ func (r *NamespaceList) RawSlug() string {
 // GetSlug returns casted value of  slug parameter
 func (r *NamespaceList) GetSlug() string {
 	return r.Slug
+}
+
+// HasLimit returns true if limit was set
+func (r *NamespaceList) HasLimit() bool {
+	return r.hasLimit
+}
+
+// RawLimit returns raw value of limit parameter
+func (r *NamespaceList) RawLimit() string {
+	return r.rawLimit
+}
+
+// GetLimit returns casted value of  limit parameter
+func (r *NamespaceList) GetLimit() uint {
+	return r.Limit
+}
+
+// HasOffset returns true if offset was set
+func (r *NamespaceList) HasOffset() bool {
+	return r.hasOffset
+}
+
+// RawOffset returns raw value of offset parameter
+func (r *NamespaceList) RawOffset() string {
+	return r.rawOffset
+}
+
+// GetOffset returns casted value of  offset parameter
+func (r *NamespaceList) GetOffset() uint {
+	return r.Offset
 }
 
 // HasPage returns true if page was set
