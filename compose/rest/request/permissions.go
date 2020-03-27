@@ -32,20 +32,23 @@ import (
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
 
-// Permissions list request parameters
+// PermissionsList request parameters
 type PermissionsList struct {
 }
 
+// NewPermissionsList request
 func NewPermissionsList() *PermissionsList {
 	return &PermissionsList{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r PermissionsList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *PermissionsList) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -78,15 +81,19 @@ func (r *PermissionsList) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewPermissionsList()
 
-// Permissions effective request parameters
+// PermissionsEffective request parameters
 type PermissionsEffective struct {
-	Resource string
+	hasResource bool
+	rawResource string
+	Resource    string
 }
 
+// NewPermissionsEffective request
 func NewPermissionsEffective() *PermissionsEffective {
 	return &PermissionsEffective{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r PermissionsEffective) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -95,6 +102,7 @@ func (r PermissionsEffective) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *PermissionsEffective) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -131,15 +139,19 @@ func (r *PermissionsEffective) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewPermissionsEffective()
 
-// Permissions read request parameters
+// PermissionsRead request parameters
 type PermissionsRead struct {
-	RoleID uint64 `json:",string"`
+	hasRoleID bool
+	rawRoleID string
+	RoleID    uint64 `json:",string"`
 }
 
+// NewPermissionsRead request
 func NewPermissionsRead() *PermissionsRead {
 	return &PermissionsRead{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r PermissionsRead) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -148,6 +160,7 @@ func (r PermissionsRead) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *PermissionsRead) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -175,6 +188,8 @@ func (r *PermissionsRead) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasRoleID = true
+	r.rawRoleID = chi.URLParam(req, "roleID")
 	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 
 	return err
@@ -182,15 +197,19 @@ func (r *PermissionsRead) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewPermissionsRead()
 
-// Permissions delete request parameters
+// PermissionsDelete request parameters
 type PermissionsDelete struct {
-	RoleID uint64 `json:",string"`
+	hasRoleID bool
+	rawRoleID string
+	RoleID    uint64 `json:",string"`
 }
 
+// NewPermissionsDelete request
 func NewPermissionsDelete() *PermissionsDelete {
 	return &PermissionsDelete{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r PermissionsDelete) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -199,6 +218,7 @@ func (r PermissionsDelete) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *PermissionsDelete) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -226,6 +246,8 @@ func (r *PermissionsDelete) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasRoleID = true
+	r.rawRoleID = chi.URLParam(req, "roleID")
 	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 
 	return err
@@ -233,16 +255,23 @@ func (r *PermissionsDelete) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewPermissionsDelete()
 
-// Permissions update request parameters
+// PermissionsUpdate request parameters
 type PermissionsUpdate struct {
-	RoleID uint64 `json:",string"`
-	Rules  permissions.RuleSet
+	hasRoleID bool
+	rawRoleID string
+	RoleID    uint64 `json:",string"`
+
+	hasRules bool
+	rawRules string
+	Rules    permissions.RuleSet
 }
 
+// NewPermissionsUpdate request
 func NewPermissionsUpdate() *PermissionsUpdate {
 	return &PermissionsUpdate{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r PermissionsUpdate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
@@ -252,6 +281,7 @@ func (r PermissionsUpdate) Auditable() map[string]interface{} {
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *PermissionsUpdate) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
@@ -279,9 +309,86 @@ func (r *PermissionsUpdate) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	r.hasRoleID = true
+	r.rawRoleID = chi.URLParam(req, "roleID")
 	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 
 	return err
 }
 
 var _ RequestFiller = NewPermissionsUpdate()
+
+// HasResource returns true if resource was set
+func (r *PermissionsEffective) HasResource() bool {
+	return r.hasResource
+}
+
+// RawResource returns raw value of resource parameter
+func (r *PermissionsEffective) RawResource() string {
+	return r.rawResource
+}
+
+// GetResource returns casted value of  resource parameter
+func (r *PermissionsEffective) GetResource() string {
+	return r.Resource
+}
+
+// HasRoleID returns true if roleID was set
+func (r *PermissionsRead) HasRoleID() bool {
+	return r.hasRoleID
+}
+
+// RawRoleID returns raw value of roleID parameter
+func (r *PermissionsRead) RawRoleID() string {
+	return r.rawRoleID
+}
+
+// GetRoleID returns casted value of  roleID parameter
+func (r *PermissionsRead) GetRoleID() uint64 {
+	return r.RoleID
+}
+
+// HasRoleID returns true if roleID was set
+func (r *PermissionsDelete) HasRoleID() bool {
+	return r.hasRoleID
+}
+
+// RawRoleID returns raw value of roleID parameter
+func (r *PermissionsDelete) RawRoleID() string {
+	return r.rawRoleID
+}
+
+// GetRoleID returns casted value of  roleID parameter
+func (r *PermissionsDelete) GetRoleID() uint64 {
+	return r.RoleID
+}
+
+// HasRoleID returns true if roleID was set
+func (r *PermissionsUpdate) HasRoleID() bool {
+	return r.hasRoleID
+}
+
+// RawRoleID returns raw value of roleID parameter
+func (r *PermissionsUpdate) RawRoleID() string {
+	return r.rawRoleID
+}
+
+// GetRoleID returns casted value of  roleID parameter
+func (r *PermissionsUpdate) GetRoleID() uint64 {
+	return r.RoleID
+}
+
+// HasRules returns true if rules was set
+func (r *PermissionsUpdate) HasRules() bool {
+	return r.hasRules
+}
+
+// RawRules returns raw value of rules parameter
+func (r *PermissionsUpdate) RawRules() string {
+	return r.rawRules
+}
+
+// GetRules returns casted value of  rules parameter
+func (r *PermissionsUpdate) GetRules() permissions.RuleSet {
+	return r.Rules
+}

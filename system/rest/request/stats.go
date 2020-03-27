@@ -30,20 +30,23 @@ import (
 var _ = chi.URLParam
 var _ = multipart.FileHeader{}
 
-// Stats list request parameters
+// StatsList request parameters
 type StatsList struct {
 }
 
+// NewStatsList request
 func NewStatsList() *StatsList {
 	return &StatsList{}
 }
 
+// Auditable returns all auditable/loggable parameters
 func (r StatsList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	return out
 }
 
+// Fill processes request and fills internal variables
 func (r *StatsList) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
