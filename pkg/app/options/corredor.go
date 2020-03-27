@@ -48,7 +48,7 @@ func Corredor() (o *CorredorOpt) {
 		ListRefresh:           time.Second * 5,
 		Log:                   false,
 
-		TlsCertEnabled: true,
+		TlsCertEnabled: false,
 		TlsCertPath:    "/certs/corredor/client",
 		TlsCertCA:      "ca.crt",
 		TlsCertPublic:  "public.crt",
