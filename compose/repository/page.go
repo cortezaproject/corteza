@@ -153,7 +153,7 @@ func (r page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilt
 		return
 	}
 
-	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
+	return set, f, rh.FetchPaged(r.db(), query, f.PageFilter, &set)
 }
 
 func (r page) Reorder(namespaceID, parentID uint64, pageIDs []uint64) error {

@@ -137,7 +137,7 @@ func (r record) Find(module *types.Module, filter types.RecordFilter) (set types
 		return
 	}
 
-	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
+	return set, f, rh.FetchPaged(r.db(), query, f.PageFilter, &set)
 }
 
 // Export ignores paging and does not return filter

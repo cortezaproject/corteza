@@ -147,7 +147,7 @@ func (r reminder) Find(filter types.ReminderFilter) (set types.ReminderSet, f ty
 		return
 	}
 
-	return set, f, rh.FetchPaged(r.db(), query, f.Page, f.PerPage, &set)
+	return set, f, rh.FetchPaged(r.db(), query, f.PageFilter, &set)
 }
 
 func (r reminder) Create(mod *types.Reminder) (rm *types.Reminder, err error) {
