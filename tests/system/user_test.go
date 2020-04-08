@@ -91,7 +91,7 @@ func TestUserListAll(t *testing.T) {
 	h.a.GreaterOrEqual(int(aux.Response.Filter.Count), seedCount)
 }
 
-func TestUserList_filterForbiden(t *testing.T) {
+func TestUserList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
 
