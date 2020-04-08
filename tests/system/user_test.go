@@ -253,14 +253,20 @@ func TestUserCreate(t *testing.T) {
 	h := newHelper(t)
 	h.allow(types.SystemPermissionResource, "user.create")
 
+	email := h.randEmail()
+
 	h.apiInit().
 		Post("/users/").
-		FormData("email", h.randEmail()).
+		FormData("email", email).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
 
+	u, err := h.repoUser().FindByEmail(email)
+	h.a.NoError(err)
+	h.a.NotNil(u)
+	h.a.True(u.EmailConfirmed)
 }
 
 func TestUserUpdateForbidden(t *testing.T) {

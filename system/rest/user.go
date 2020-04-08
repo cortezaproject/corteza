@@ -74,7 +74,9 @@ func (ctrl User) Create(ctx context.Context, r *request.UserCreate) (interface{}
 		Handle: r.Handle,
 		Kind:   r.Kind,
 
-		EmailConfirmed: r.HasEmailConfirmed() && r.EmailConfirmed,
+		// consider email confirmed
+		// when creating user like this
+		EmailConfirmed: true,
 	}
 
 	return ctrl.user.With(ctx).Create(user)

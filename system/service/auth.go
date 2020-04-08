@@ -709,7 +709,7 @@ func (svc auth) ValidatePasswordResetToken(token string) (user *types.User, err 
 	}
 
 	if !user.EmailConfirmed {
-		// Confirm email while reseting password...
+		// Confirm email while resetting password...
 		user.EmailConfirmed = true
 		svc.users.Update(user)
 	}
