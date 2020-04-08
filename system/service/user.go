@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"io"
+	"net/mail"
 	"regexp"
 	"strconv"
 	"strings"
@@ -27,6 +28,7 @@ const (
 	ErrUserHandleNotUnique    = serviceError("UserHandleNotUnique")
 	ErrUserUsernameNotUnique  = serviceError("UserUsernameNotUnique")
 	ErrUserEmailNotUnique     = serviceError("UserEmailNotUnique")
+	ErrUserInvalidEmail       = serviceError("UserInvalidEmail")
 	ErrUserLocked             = serviceError("UserLocked")
 
 	maskPrivateDataEmail = "####.#######@######.###"
@@ -257,6 +259,10 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 		return nil, ErrInvalidHandle.withStack()
 	}
 
+	if _, err := mail.ParseAddress(new.Email); err != nil {
+		return nil, ErrUserInvalidEmail.withStack()
+	}
+
 	if svc.subscription != nil {
 		// When we have an active subscription, we need to check
 		// if users can be creare or did this deployment hit
@@ -302,6 +308,10 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 
 	if !handle.IsValid(upd.Handle) {
 		return nil, ErrInvalidHandle.withStack()
+	}
+
+	if _, err := mail.ParseAddress(upd.Email); err != nil {
+		return nil, ErrUserInvalidEmail.withStack()
 	}
 
 	if u, err = svc.user.FindByID(upd.ID); err != nil {
