@@ -166,12 +166,18 @@ func (r *WebhooksPublicCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["username"]; ok {
+		r.hasUsername = true
+		r.rawUsername = val
 		r.Username = val
 	}
 	if val, ok := get["avatarURL"]; ok {
+		r.hasAvatarURL = true
+		r.rawAvatarURL = val
 		r.AvatarURL = val
 	}
 	if val, ok := get["content"]; ok {
+		r.hasContent = true
+		r.rawContent = val
 		r.Content = val
 	}
 	r.hasWebhookID = true

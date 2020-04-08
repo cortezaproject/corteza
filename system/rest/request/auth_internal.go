@@ -85,9 +85,13 @@ func (r *AuthInternalLogin) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["email"]; ok {
+		r.hasEmail = true
+		r.rawEmail = val
 		r.Email = val
 	}
 	if val, ok := post["password"]; ok {
+		r.hasPassword = true
+		r.rawPassword = val
 		r.Password = val
 	}
 
@@ -167,18 +171,28 @@ func (r *AuthInternalSignup) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["email"]; ok {
+		r.hasEmail = true
+		r.rawEmail = val
 		r.Email = val
 	}
 	if val, ok := post["username"]; ok {
+		r.hasUsername = true
+		r.rawUsername = val
 		r.Username = val
 	}
 	if val, ok := post["password"]; ok {
+		r.hasPassword = true
+		r.rawPassword = val
 		r.Password = val
 	}
 	if val, ok := post["handle"]; ok {
+		r.hasHandle = true
+		r.rawHandle = val
 		r.Handle = val
 	}
 	if val, ok := post["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 
@@ -237,6 +251,8 @@ func (r *AuthInternalRequestPasswordReset) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["email"]; ok {
+		r.hasEmail = true
+		r.rawEmail = val
 		r.Email = val
 	}
 
@@ -295,6 +311,8 @@ func (r *AuthInternalExchangePasswordResetToken) Fill(req *http.Request) (err er
 	}
 
 	if val, ok := post["token"]; ok {
+		r.hasToken = true
+		r.rawToken = val
 		r.Token = val
 	}
 
@@ -358,9 +376,13 @@ func (r *AuthInternalResetPassword) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["token"]; ok {
+		r.hasToken = true
+		r.rawToken = val
 		r.Token = val
 	}
 	if val, ok := post["password"]; ok {
+		r.hasPassword = true
+		r.rawPassword = val
 		r.Password = val
 	}
 
@@ -419,6 +441,8 @@ func (r *AuthInternalConfirmEmail) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["token"]; ok {
+		r.hasToken = true
+		r.rawToken = val
 		r.Token = val
 	}
 
@@ -483,9 +507,13 @@ func (r *AuthInternalChangePassword) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["oldPassword"]; ok {
+		r.hasOldPassword = true
+		r.rawOldPassword = val
 		r.OldPassword = val
 	}
 	if val, ok := post["newPassword"]; ok {
+		r.hasNewPassword = true
+		r.rawNewPassword = val
 		r.NewPassword = val
 	}
 

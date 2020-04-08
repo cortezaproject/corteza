@@ -122,27 +122,43 @@ func (r *PageList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["selfID"]; ok {
+		r.hasSelfID = true
+		r.rawSelfID = val
 		r.SelfID = parseUInt64(val)
 	}
 	if val, ok := get["query"]; ok {
+		r.hasQuery = true
+		r.rawQuery = val
 		r.Query = val
 	}
 	if val, ok := get["handle"]; ok {
+		r.hasHandle = true
+		r.rawHandle = val
 		r.Handle = val
 	}
 	if val, ok := get["limit"]; ok {
+		r.hasLimit = true
+		r.rawLimit = val
 		r.Limit = parseUint(val)
 	}
 	if val, ok := get["offset"]; ok {
+		r.hasOffset = true
+		r.rawOffset = val
 		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
+		r.hasPage = true
+		r.rawPage = val
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
+		r.hasPerPage = true
+		r.rawPerPage = val
 		r.PerPage = parseUint(val)
 	}
 	if val, ok := get["sort"]; ok {
+		r.hasSort = true
+		r.rawSort = val
 		r.Sort = val
 	}
 	r.hasNamespaceID = true
@@ -239,24 +255,38 @@ func (r *PageCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["selfID"]; ok {
+		r.hasSelfID = true
+		r.rawSelfID = val
 		r.SelfID = parseUInt64(val)
 	}
 	if val, ok := post["moduleID"]; ok {
+		r.hasModuleID = true
+		r.rawModuleID = val
 		r.ModuleID = parseUInt64(val)
 	}
 	if val, ok := post["title"]; ok {
+		r.hasTitle = true
+		r.rawTitle = val
 		r.Title = val
 	}
 	if val, ok := post["handle"]; ok {
+		r.hasHandle = true
+		r.rawHandle = val
 		r.Handle = val
 	}
 	if val, ok := post["description"]; ok {
+		r.hasDescription = true
+		r.rawDescription = val
 		r.Description = val
 	}
 	if val, ok := post["visible"]; ok {
+		r.hasVisible = true
+		r.rawVisible = val
 		r.Visible = parseBool(val)
 	}
 	if val, ok := post["blocks"]; ok {
+		r.hasBlocks = true
+		r.rawBlocks = val
 
 		if r.Blocks, err = parseJSONTextWithErr(val); err != nil {
 			return err
@@ -496,27 +526,43 @@ func (r *PageUpdate) Fill(req *http.Request) (err error) {
 	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := post["selfID"]; ok {
+		r.hasSelfID = true
+		r.rawSelfID = val
 		r.SelfID = parseUInt64(val)
 	}
 	if val, ok := post["moduleID"]; ok {
+		r.hasModuleID = true
+		r.rawModuleID = val
 		r.ModuleID = parseUInt64(val)
 	}
 	if val, ok := post["title"]; ok {
+		r.hasTitle = true
+		r.rawTitle = val
 		r.Title = val
 	}
 	if val, ok := post["handle"]; ok {
+		r.hasHandle = true
+		r.rawHandle = val
 		r.Handle = val
 	}
 	if val, ok := post["description"]; ok {
+		r.hasDescription = true
+		r.rawDescription = val
 		r.Description = val
 	}
 	if val, ok := post["weight"]; ok {
+		r.hasWeight = true
+		r.rawWeight = val
 		r.Weight = parseInt(val)
 	}
 	if val, ok := post["visible"]; ok {
+		r.hasVisible = true
+		r.rawVisible = val
 		r.Visible = parseBool(val)
 	}
 	if val, ok := post["blocks"]; ok {
+		r.hasBlocks = true
+		r.rawBlocks = val
 
 		if r.Blocks, err = parseJSONTextWithErr(val); err != nil {
 			return err
@@ -812,6 +858,8 @@ func (r *PageTriggerScript) Fill(req *http.Request) (err error) {
 	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := post["script"]; ok {
+		r.hasScript = true
+		r.rawScript = val
 		r.Script = val
 	}
 

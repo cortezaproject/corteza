@@ -124,27 +124,43 @@ func (r *ModuleList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["query"]; ok {
+		r.hasQuery = true
+		r.rawQuery = val
 		r.Query = val
 	}
 	if val, ok := get["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 	if val, ok := get["handle"]; ok {
+		r.hasHandle = true
+		r.rawHandle = val
 		r.Handle = val
 	}
 	if val, ok := get["limit"]; ok {
+		r.hasLimit = true
+		r.rawLimit = val
 		r.Limit = parseUint(val)
 	}
 	if val, ok := get["offset"]; ok {
+		r.hasOffset = true
+		r.rawOffset = val
 		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
+		r.hasPage = true
+		r.rawPage = val
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
+		r.hasPerPage = true
+		r.rawPerPage = val
 		r.PerPage = parseUint(val)
 	}
 	if val, ok := get["sort"]; ok {
+		r.hasSort = true
+		r.rawSort = val
 		r.Sort = val
 	}
 	r.hasNamespaceID = true
@@ -226,12 +242,18 @@ func (r *ModuleCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 	if val, ok := post["handle"]; ok {
+		r.hasHandle = true
+		r.rawHandle = val
 		r.Handle = val
 	}
 	if val, ok := post["meta"]; ok {
+		r.hasMeta = true
+		r.rawMeta = val
 
 		if r.Meta, err = parseJSONTextWithErr(val); err != nil {
 			return err
@@ -398,18 +420,26 @@ func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := post["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 	if val, ok := post["handle"]; ok {
+		r.hasHandle = true
+		r.rawHandle = val
 		r.Handle = val
 	}
 	if val, ok := post["meta"]; ok {
+		r.hasMeta = true
+		r.rawMeta = val
 
 		if r.Meta, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
 	if val, ok := post["updatedAt"]; ok {
+		r.hasUpdatedAt = true
+		r.rawUpdatedAt = val
 
 		if r.UpdatedAt, err = parseISODatePtrWithErr(val); err != nil {
 			return err
@@ -553,6 +583,8 @@ func (r *ModuleTriggerScript) Fill(req *http.Request) (err error) {
 	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := post["script"]; ok {
+		r.hasScript = true
+		r.rawScript = val
 		r.Script = val
 	}
 

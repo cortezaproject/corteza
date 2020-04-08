@@ -113,24 +113,38 @@ func (r *NamespaceList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["query"]; ok {
+		r.hasQuery = true
+		r.rawQuery = val
 		r.Query = val
 	}
 	if val, ok := get["slug"]; ok {
+		r.hasSlug = true
+		r.rawSlug = val
 		r.Slug = val
 	}
 	if val, ok := get["limit"]; ok {
+		r.hasLimit = true
+		r.rawLimit = val
 		r.Limit = parseUint(val)
 	}
 	if val, ok := get["offset"]; ok {
+		r.hasOffset = true
+		r.rawOffset = val
 		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
+		r.hasPage = true
+		r.rawPage = val
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
+		r.hasPerPage = true
+		r.rawPerPage = val
 		r.PerPage = parseUint(val)
 	}
 	if val, ok := get["sort"]; ok {
+		r.hasSort = true
+		r.rawSort = val
 		r.Sort = val
 	}
 
@@ -204,15 +218,23 @@ func (r *NamespaceCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 	if val, ok := post["slug"]; ok {
+		r.hasSlug = true
+		r.rawSlug = val
 		r.Slug = val
 	}
 	if val, ok := post["enabled"]; ok {
+		r.hasEnabled = true
+		r.rawEnabled = val
 		r.Enabled = parseBool(val)
 	}
 	if val, ok := post["meta"]; ok {
+		r.hasMeta = true
+		r.rawMeta = val
 
 		if r.Meta, err = parseJSONTextWithErr(val); err != nil {
 			return err
@@ -360,21 +382,31 @@ func (r *NamespaceUpdate) Fill(req *http.Request) (err error) {
 	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := post["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 	if val, ok := post["slug"]; ok {
+		r.hasSlug = true
+		r.rawSlug = val
 		r.Slug = val
 	}
 	if val, ok := post["enabled"]; ok {
+		r.hasEnabled = true
+		r.rawEnabled = val
 		r.Enabled = parseBool(val)
 	}
 	if val, ok := post["meta"]; ok {
+		r.hasMeta = true
+		r.rawMeta = val
 
 		if r.Meta, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
 	if val, ok := post["updatedAt"]; ok {
+		r.hasUpdatedAt = true
+		r.rawUpdatedAt = val
 
 		if r.UpdatedAt, err = parseISODatePtrWithErr(val); err != nil {
 			return err
@@ -502,6 +534,8 @@ func (r *NamespaceTriggerScript) Fill(req *http.Request) (err error) {
 	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := post["script"]; ok {
+		r.hasScript = true
+		r.rawScript = val
 		r.Script = val
 	}
 

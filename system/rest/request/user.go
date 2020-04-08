@@ -177,45 +177,73 @@ func (r *UserList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["query"]; ok {
+		r.hasQuery = true
+		r.rawQuery = val
 		r.Query = val
 	}
 	if val, ok := get["username"]; ok {
+		r.hasUsername = true
+		r.rawUsername = val
 		r.Username = val
 	}
 	if val, ok := get["email"]; ok {
+		r.hasEmail = true
+		r.rawEmail = val
 		r.Email = val
 	}
 	if val, ok := get["handle"]; ok {
+		r.hasHandle = true
+		r.rawHandle = val
 		r.Handle = val
 	}
 	if val, ok := get["kind"]; ok {
+		r.hasKind = true
+		r.rawKind = val
 		r.Kind = types.UserKind(val)
 	}
 	if val, ok := get["incDeleted"]; ok {
+		r.hasIncDeleted = true
+		r.rawIncDeleted = val
 		r.IncDeleted = parseBool(val)
 	}
 	if val, ok := get["incSuspended"]; ok {
+		r.hasIncSuspended = true
+		r.rawIncSuspended = val
 		r.IncSuspended = parseBool(val)
 	}
 	if val, ok := get["deleted"]; ok {
+		r.hasDeleted = true
+		r.rawDeleted = val
 		r.Deleted = parseUint(val)
 	}
 	if val, ok := get["suspended"]; ok {
+		r.hasSuspended = true
+		r.rawSuspended = val
 		r.Suspended = parseUint(val)
 	}
 	if val, ok := get["limit"]; ok {
+		r.hasLimit = true
+		r.rawLimit = val
 		r.Limit = parseUint(val)
 	}
 	if val, ok := get["offset"]; ok {
+		r.hasOffset = true
+		r.rawOffset = val
 		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
+		r.hasPage = true
+		r.rawPage = val
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
+		r.hasPerPage = true
+		r.rawPerPage = val
 		r.PerPage = parseUint(val)
 	}
 	if val, ok := get["sort"]; ok {
+		r.hasSort = true
+		r.rawSort = val
 		r.Sort = val
 	}
 
@@ -289,15 +317,23 @@ func (r *UserCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["email"]; ok {
+		r.hasEmail = true
+		r.rawEmail = val
 		r.Email = val
 	}
 	if val, ok := post["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 	if val, ok := post["handle"]; ok {
+		r.hasHandle = true
+		r.rawHandle = val
 		r.Handle = val
 	}
 	if val, ok := post["kind"]; ok {
+		r.hasKind = true
+		r.rawKind = val
 		r.Kind = types.UserKind(val)
 	}
 
@@ -379,15 +415,23 @@ func (r *UserUpdate) Fill(req *http.Request) (err error) {
 	r.rawUserID = chi.URLParam(req, "userID")
 	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 	if val, ok := post["email"]; ok {
+		r.hasEmail = true
+		r.rawEmail = val
 		r.Email = val
 	}
 	if val, ok := post["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 	if val, ok := post["handle"]; ok {
+		r.hasHandle = true
+		r.rawHandle = val
 		r.Handle = val
 	}
 	if val, ok := post["kind"]; ok {
+		r.hasKind = true
+		r.rawKind = val
 		r.Kind = types.UserKind(val)
 	}
 
@@ -744,6 +788,8 @@ func (r *UserSetPassword) Fill(req *http.Request) (err error) {
 	r.rawUserID = chi.URLParam(req, "userID")
 	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 	if val, ok := post["password"]; ok {
+		r.hasPassword = true
+		r.rawPassword = val
 		r.Password = val
 	}
 
@@ -1000,6 +1046,8 @@ func (r *UserTriggerScript) Fill(req *http.Request) (err error) {
 	r.rawUserID = chi.URLParam(req, "userID")
 	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
 	if val, ok := post["script"]; ok {
+		r.hasScript = true
+		r.rawScript = val
 		r.Script = val
 	}
 

@@ -148,42 +148,64 @@ func (r *ReminderList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["resource"]; ok {
+		r.hasResource = true
+		r.rawResource = val
 		r.Resource = val
 	}
 	if val, ok := get["assignedTo"]; ok {
+		r.hasAssignedTo = true
+		r.rawAssignedTo = val
 		r.AssignedTo = parseUInt64(val)
 	}
 	if val, ok := get["scheduledFrom"]; ok {
+		r.hasScheduledFrom = true
+		r.rawScheduledFrom = val
 
 		if r.ScheduledFrom, err = parseISODatePtrWithErr(val); err != nil {
 			return err
 		}
 	}
 	if val, ok := get["scheduledUntil"]; ok {
+		r.hasScheduledUntil = true
+		r.rawScheduledUntil = val
 
 		if r.ScheduledUntil, err = parseISODatePtrWithErr(val); err != nil {
 			return err
 		}
 	}
 	if val, ok := get["scheduledOnly"]; ok {
+		r.hasScheduledOnly = true
+		r.rawScheduledOnly = val
 		r.ScheduledOnly = parseBool(val)
 	}
 	if val, ok := get["excludeDismissed"]; ok {
+		r.hasExcludeDismissed = true
+		r.rawExcludeDismissed = val
 		r.ExcludeDismissed = parseBool(val)
 	}
 	if val, ok := get["limit"]; ok {
+		r.hasLimit = true
+		r.rawLimit = val
 		r.Limit = parseUint(val)
 	}
 	if val, ok := get["offset"]; ok {
+		r.hasOffset = true
+		r.rawOffset = val
 		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
+		r.hasPage = true
+		r.rawPage = val
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
+		r.hasPerPage = true
+		r.rawPerPage = val
 		r.PerPage = parseUint(val)
 	}
 	if val, ok := get["sort"]; ok {
+		r.hasSort = true
+		r.rawSort = val
 		r.Sort = val
 	}
 
@@ -257,18 +279,26 @@ func (r *ReminderCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["resource"]; ok {
+		r.hasResource = true
+		r.rawResource = val
 		r.Resource = val
 	}
 	if val, ok := post["assignedTo"]; ok {
+		r.hasAssignedTo = true
+		r.rawAssignedTo = val
 		r.AssignedTo = parseUInt64(val)
 	}
 	if val, ok := post["payload"]; ok {
+		r.hasPayload = true
+		r.rawPayload = val
 
 		if r.Payload, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
 	if val, ok := post["remindAt"]; ok {
+		r.hasRemindAt = true
+		r.rawRemindAt = val
 
 		if r.RemindAt, err = parseISODatePtrWithErr(val); err != nil {
 			return err
@@ -353,18 +383,26 @@ func (r *ReminderUpdate) Fill(req *http.Request) (err error) {
 	r.rawReminderID = chi.URLParam(req, "reminderID")
 	r.ReminderID = parseUInt64(chi.URLParam(req, "reminderID"))
 	if val, ok := post["resource"]; ok {
+		r.hasResource = true
+		r.rawResource = val
 		r.Resource = val
 	}
 	if val, ok := post["assignedTo"]; ok {
+		r.hasAssignedTo = true
+		r.rawAssignedTo = val
 		r.AssignedTo = parseUInt64(val)
 	}
 	if val, ok := post["payload"]; ok {
+		r.hasPayload = true
+		r.rawPayload = val
 
 		if r.Payload, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
 	if val, ok := post["remindAt"]; ok {
+		r.hasRemindAt = true
+		r.rawRemindAt = val
 
 		if r.RemindAt, err = parseISODatePtrWithErr(val); err != nil {
 			return err
@@ -608,6 +646,8 @@ func (r *ReminderSnooze) Fill(req *http.Request) (err error) {
 	r.rawReminderID = chi.URLParam(req, "reminderID")
 	r.ReminderID = parseUInt64(chi.URLParam(req, "reminderID"))
 	if val, ok := post["remindAt"]; ok {
+		r.hasRemindAt = true
+		r.rawRemindAt = val
 
 		if r.RemindAt, err = parseISODatePtrWithErr(val); err != nil {
 			return err

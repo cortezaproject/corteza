@@ -131,6 +131,8 @@ func (r *PermissionsEffective) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["resource"]; ok {
+		r.hasResource = true
+		r.rawResource = val
 		r.Resource = val
 	}
 

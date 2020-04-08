@@ -117,27 +117,43 @@ func (r *ApplicationList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 	if val, ok := get["query"]; ok {
+		r.hasQuery = true
+		r.rawQuery = val
 		r.Query = val
 	}
 	if val, ok := get["deleted"]; ok {
+		r.hasDeleted = true
+		r.rawDeleted = val
 		r.Deleted = parseUint(val)
 	}
 	if val, ok := get["limit"]; ok {
+		r.hasLimit = true
+		r.rawLimit = val
 		r.Limit = parseUint(val)
 	}
 	if val, ok := get["offset"]; ok {
+		r.hasOffset = true
+		r.rawOffset = val
 		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
+		r.hasPage = true
+		r.rawPage = val
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
+		r.hasPerPage = true
+		r.rawPerPage = val
 		r.PerPage = parseUint(val)
 	}
 	if val, ok := get["sort"]; ok {
+		r.hasSort = true
+		r.rawSort = val
 		r.Sort = val
 	}
 
@@ -211,18 +227,26 @@ func (r *ApplicationCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 	if val, ok := post["enabled"]; ok {
+		r.hasEnabled = true
+		r.rawEnabled = val
 		r.Enabled = parseBool(val)
 	}
 	if val, ok := post["unify"]; ok {
+		r.hasUnify = true
+		r.rawUnify = val
 
 		if r.Unify, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
 	if val, ok := post["config"]; ok {
+		r.hasConfig = true
+		r.rawConfig = val
 
 		if r.Config, err = parseJSONTextWithErr(val); err != nil {
 			return err
@@ -307,18 +331,26 @@ func (r *ApplicationUpdate) Fill(req *http.Request) (err error) {
 	r.rawApplicationID = chi.URLParam(req, "applicationID")
 	r.ApplicationID = parseUInt64(chi.URLParam(req, "applicationID"))
 	if val, ok := post["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 	if val, ok := post["enabled"]; ok {
+		r.hasEnabled = true
+		r.rawEnabled = val
 		r.Enabled = parseBool(val)
 	}
 	if val, ok := post["unify"]; ok {
+		r.hasUnify = true
+		r.rawUnify = val
 
 		if r.Unify, err = parseJSONTextWithErr(val); err != nil {
 			return err
 		}
 	}
 	if val, ok := post["config"]; ok {
+		r.hasConfig = true
+		r.rawConfig = val
 
 		if r.Config, err = parseJSONTextWithErr(val); err != nil {
 			return err
@@ -562,6 +594,8 @@ func (r *ApplicationTriggerScript) Fill(req *http.Request) (err error) {
 	r.rawApplicationID = chi.URLParam(req, "applicationID")
 	r.ApplicationID = parseUInt64(chi.URLParam(req, "applicationID"))
 	if val, ok := post["script"]; ok {
+		r.hasScript = true
+		r.rawScript = val
 		r.Script = val
 	}
 

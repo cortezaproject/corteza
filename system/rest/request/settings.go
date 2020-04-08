@@ -82,6 +82,8 @@ func (r *SettingsList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["prefix"]; ok {
+		r.hasPrefix = true
+		r.rawPrefix = val
 		r.Prefix = val
 	}
 
@@ -199,6 +201,8 @@ func (r *SettingsGet) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["ownerID"]; ok {
+		r.hasOwnerID = true
+		r.rawOwnerID = val
 		r.OwnerID = parseUInt64(val)
 	}
 	r.hasKey = true

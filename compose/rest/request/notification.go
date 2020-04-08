@@ -119,12 +119,18 @@ func (r *NotificationEmailSend) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["replyTo"]; ok {
+		r.hasReplyTo = true
+		r.rawReplyTo = val
 		r.ReplyTo = val
 	}
 	if val, ok := post["subject"]; ok {
+		r.hasSubject = true
+		r.rawSubject = val
 		r.Subject = val
 	}
 	if val, ok := post["content"]; ok {
+		r.hasContent = true
+		r.rawContent = val
 
 		if r.Content, err = parseJSONTextWithErr(val); err != nil {
 			return err

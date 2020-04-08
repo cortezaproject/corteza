@@ -80,6 +80,8 @@ func (r *OrganisationList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["query"]; ok {
+		r.hasQuery = true
+		r.rawQuery = val
 		r.Query = val
 	}
 
@@ -138,6 +140,8 @@ func (r *OrganisationCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 
@@ -204,6 +208,8 @@ func (r *OrganisationUpdate) Fill(req *http.Request) (err error) {
 	r.rawID = chi.URLParam(req, "id")
 	r.ID = parseUInt64(chi.URLParam(req, "id"))
 	if val, ok := post["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 

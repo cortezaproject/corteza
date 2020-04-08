@@ -100,12 +100,18 @@ func (r *AttachmentOriginal) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["download"]; ok {
+		r.hasDownload = true
+		r.rawDownload = val
 		r.Download = parseBool(val)
 	}
 	if val, ok := get["sign"]; ok {
+		r.hasSign = true
+		r.rawSign = val
 		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
+		r.hasUserID = true
+		r.rawUserID = val
 		r.UserID = parseUInt64(val)
 	}
 	r.hasName = true
@@ -191,9 +197,13 @@ func (r *AttachmentPreview) Fill(req *http.Request) (err error) {
 	r.rawAttachmentID = chi.URLParam(req, "attachmentID")
 	r.AttachmentID = parseUInt64(chi.URLParam(req, "attachmentID"))
 	if val, ok := get["sign"]; ok {
+		r.hasSign = true
+		r.rawSign = val
 		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
+		r.hasUserID = true
+		r.rawUserID = val
 		r.UserID = parseUInt64(val)
 	}
 
