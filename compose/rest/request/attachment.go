@@ -135,33 +135,53 @@ func (r *AttachmentList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["pageID"]; ok {
+		r.hasPageID = true
+		r.rawPageID = val
 		r.PageID = parseUInt64(val)
 	}
 	if val, ok := get["moduleID"]; ok {
+		r.hasModuleID = true
+		r.rawModuleID = val
 		r.ModuleID = parseUInt64(val)
 	}
 	if val, ok := get["recordID"]; ok {
+		r.hasRecordID = true
+		r.rawRecordID = val
 		r.RecordID = parseUInt64(val)
 	}
 	if val, ok := get["fieldName"]; ok {
+		r.hasFieldName = true
+		r.rawFieldName = val
 		r.FieldName = val
 	}
 	if val, ok := get["limit"]; ok {
+		r.hasLimit = true
+		r.rawLimit = val
 		r.Limit = parseUint(val)
 	}
 	if val, ok := get["offset"]; ok {
+		r.hasOffset = true
+		r.rawOffset = val
 		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
+		r.hasPage = true
+		r.rawPage = val
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
+		r.hasPerPage = true
+		r.rawPerPage = val
 		r.PerPage = parseUint(val)
 	}
 	if val, ok := get["sign"]; ok {
+		r.hasSign = true
+		r.rawSign = val
 		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
+		r.hasUserID = true
+		r.rawUserID = val
 		r.UserID = parseUInt64(val)
 	}
 	r.hasKind = true
@@ -255,9 +275,13 @@ func (r *AttachmentRead) Fill(req *http.Request) (err error) {
 	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := get["sign"]; ok {
+		r.hasSign = true
+		r.rawSign = val
 		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
+		r.hasUserID = true
+		r.rawUserID = val
 		r.UserID = parseUInt64(val)
 	}
 
@@ -345,9 +369,13 @@ func (r *AttachmentDelete) Fill(req *http.Request) (err error) {
 	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := get["sign"]; ok {
+		r.hasSign = true
+		r.rawSign = val
 		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
+		r.hasUserID = true
+		r.rawUserID = val
 		r.UserID = parseUInt64(val)
 	}
 
@@ -436,12 +464,18 @@ func (r *AttachmentOriginal) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["download"]; ok {
+		r.hasDownload = true
+		r.rawDownload = val
 		r.Download = parseBool(val)
 	}
 	if val, ok := get["sign"]; ok {
+		r.hasSign = true
+		r.rawSign = val
 		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
+		r.hasUserID = true
+		r.rawUserID = val
 		r.UserID = parseUInt64(val)
 	}
 	r.hasAttachmentID = true
@@ -549,9 +583,13 @@ func (r *AttachmentPreview) Fill(req *http.Request) (err error) {
 	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
 	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 	if val, ok := get["sign"]; ok {
+		r.hasSign = true
+		r.rawSign = val
 		r.Sign = val
 	}
 	if val, ok := get["userID"]; ok {
+		r.hasUserID = true
+		r.rawUserID = val
 		r.UserID = parseUInt64(val)
 	}
 

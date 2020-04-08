@@ -90,12 +90,18 @@ func (r *ActivitySend) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["channelID"]; ok {
+		r.hasChannelID = true
+		r.rawChannelID = val
 		r.ChannelID = parseUInt64(val)
 	}
 	if val, ok := post["messageID"]; ok {
+		r.hasMessageID = true
+		r.rawMessageID = val
 		r.MessageID = parseUInt64(val)
 	}
 	if val, ok := post["kind"]; ok {
+		r.hasKind = true
+		r.rawKind = val
 		r.Kind = val
 	}
 

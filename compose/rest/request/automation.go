@@ -135,12 +135,18 @@ func (r *AutomationList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["excludeInvalid"]; ok {
+		r.hasExcludeInvalid = true
+		r.rawExcludeInvalid = val
 		r.ExcludeInvalid = parseBool(val)
 	}
 	if val, ok := get["excludeClientScripts"]; ok {
+		r.hasExcludeClientScripts = true
+		r.rawExcludeClientScripts = val
 		r.ExcludeClientScripts = parseBool(val)
 	}
 	if val, ok := get["excludeServerScripts"]; ok {
+		r.hasExcludeServerScripts = true
+		r.rawExcludeServerScripts = val
 		r.ExcludeServerScripts = parseBool(val)
 	}
 
@@ -273,6 +279,8 @@ func (r *AutomationTriggerScript) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["script"]; ok {
+		r.hasScript = true
+		r.rawScript = val
 		r.Script = val
 	}
 

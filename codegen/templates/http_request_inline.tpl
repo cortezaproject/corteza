@@ -113,6 +113,8 @@ func (r *{name|expose}{call.name|capitalize}) Fill(req *http.Request) (err error
 	}
 {elseif substr($param.type, 0, 2) !== '[]' && substr($param.type, -3) !== 'Set'}
 	if val, ok := {method|strtolower}["{param.name}"]; ok {
+		r.has{param.name|expose} = true
+		r.raw{param.name|expose} = val
 {if substr($parsers[$param.type], -7) === 'WithErr'}
 		if r.{param.name|expose}, err = {$parsers[$param.type]}(val); err != nil {
 			return err

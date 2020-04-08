@@ -82,6 +82,8 @@ func (r *ChannelList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["query"]; ok {
+		r.hasQuery = true
+		r.rawQuery = val
 		r.Query = val
 	}
 
@@ -160,15 +162,23 @@ func (r *ChannelCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 	if val, ok := post["topic"]; ok {
+		r.hasTopic = true
+		r.rawTopic = val
 		r.Topic = val
 	}
 	if val, ok := post["type"]; ok {
+		r.hasType = true
+		r.rawType = val
 		r.Type = val
 	}
 	if val, ok := post["membershipPolicy"]; ok {
+		r.hasMembershipPolicy = true
+		r.rawMembershipPolicy = val
 		r.MembershipPolicy = types.ChannelMembershipPolicy(val)
 	}
 
@@ -261,18 +271,28 @@ func (r *ChannelUpdate) Fill(req *http.Request) (err error) {
 	r.rawChannelID = chi.URLParam(req, "channelID")
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 	if val, ok := post["topic"]; ok {
+		r.hasTopic = true
+		r.rawTopic = val
 		r.Topic = val
 	}
 	if val, ok := post["membershipPolicy"]; ok {
+		r.hasMembershipPolicy = true
+		r.rawMembershipPolicy = val
 		r.MembershipPolicy = types.ChannelMembershipPolicy(val)
 	}
 	if val, ok := post["type"]; ok {
+		r.hasType = true
+		r.rawType = val
 		r.Type = val
 	}
 	if val, ok := post["organisationID"]; ok {
+		r.hasOrganisationID = true
+		r.rawOrganisationID = val
 		r.OrganisationID = parseUInt64(val)
 	}
 
@@ -339,6 +359,8 @@ func (r *ChannelState) Fill(req *http.Request) (err error) {
 	r.rawChannelID = chi.URLParam(req, "channelID")
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["state"]; ok {
+		r.hasState = true
+		r.rawState = val
 		r.State = val
 	}
 
@@ -405,6 +427,8 @@ func (r *ChannelSetFlag) Fill(req *http.Request) (err error) {
 	r.rawChannelID = chi.URLParam(req, "channelID")
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["flag"]; ok {
+		r.hasFlag = true
+		r.rawFlag = val
 		r.Flag = val
 	}
 
@@ -852,6 +876,8 @@ func (r *ChannelAttach) Fill(req *http.Request) (err error) {
 	r.rawChannelID = chi.URLParam(req, "channelID")
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["replyTo"]; ok {
+		r.hasReplyTo = true
+		r.rawReplyTo = val
 		r.ReplyTo = parseUInt64(val)
 	}
 	if _, r.Upload, err = req.FormFile("upload"); err != nil {

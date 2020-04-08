@@ -178,6 +178,8 @@ func (r *AuthExchangeAuthToken) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["token"]; ok {
+		r.hasToken = true
+		r.rawToken = val
 		r.Token = val
 	}
 

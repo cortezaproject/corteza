@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 
@@ -19,6 +18,8 @@ var _ = errors.Wrap
 
 type (
 	User struct {
+		settings *types.Settings
+
 		user service.UserService
 		role service.RoleService
 	}
@@ -31,6 +32,7 @@ type (
 
 func (User) New() *User {
 	ctrl := &User{}
+	ctrl.settings = service.CurrentSettings
 	ctrl.user = service.DefaultUser
 	ctrl.role = service.DefaultRole
 	return ctrl
@@ -71,6 +73,8 @@ func (ctrl User) Create(ctx context.Context, r *request.UserCreate) (interface{}
 		Name:   r.Name,
 		Handle: r.Handle,
 		Kind:   r.Kind,
+
+		EmailConfirmed: r.HasEmailConfirmed() && r.EmailConfirmed,
 	}
 
 	return ctrl.user.With(ctx).Create(user)

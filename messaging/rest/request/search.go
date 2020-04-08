@@ -145,15 +145,23 @@ func (r *SearchMessages) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["afterMessageID"]; ok {
+		r.hasAfterMessageID = true
+		r.rawAfterMessageID = val
 		r.AfterMessageID = parseUInt64(val)
 	}
 	if val, ok := get["beforeMessageID"]; ok {
+		r.hasBeforeMessageID = true
+		r.rawBeforeMessageID = val
 		r.BeforeMessageID = parseUInt64(val)
 	}
 	if val, ok := get["fromMessageID"]; ok {
+		r.hasFromMessageID = true
+		r.rawFromMessageID = val
 		r.FromMessageID = parseUInt64(val)
 	}
 	if val, ok := get["toMessageID"]; ok {
+		r.hasToMessageID = true
+		r.rawToMessageID = val
 		r.ToMessageID = parseUInt64(val)
 	}
 
@@ -188,15 +196,23 @@ func (r *SearchMessages) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["pinnedOnly"]; ok {
+		r.hasPinnedOnly = true
+		r.rawPinnedOnly = val
 		r.PinnedOnly = parseBool(val)
 	}
 	if val, ok := get["bookmarkedOnly"]; ok {
+		r.hasBookmarkedOnly = true
+		r.rawBookmarkedOnly = val
 		r.BookmarkedOnly = parseBool(val)
 	}
 	if val, ok := get["limit"]; ok {
+		r.hasLimit = true
+		r.rawLimit = val
 		r.Limit = parseUint(val)
 	}
 	if val, ok := get["query"]; ok {
+		r.hasQuery = true
+		r.rawQuery = val
 		r.Query = val
 	}
 
@@ -275,9 +291,13 @@ func (r *SearchThreads) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["limit"]; ok {
+		r.hasLimit = true
+		r.rawLimit = val
 		r.Limit = parseUint(val)
 	}
 	if val, ok := get["query"]; ok {
+		r.hasQuery = true
+		r.rawQuery = val
 		r.Query = val
 	}
 

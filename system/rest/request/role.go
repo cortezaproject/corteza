@@ -115,27 +115,43 @@ func (r *RoleList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["query"]; ok {
+		r.hasQuery = true
+		r.rawQuery = val
 		r.Query = val
 	}
 	if val, ok := get["deleted"]; ok {
+		r.hasDeleted = true
+		r.rawDeleted = val
 		r.Deleted = parseUint(val)
 	}
 	if val, ok := get["archived"]; ok {
+		r.hasArchived = true
+		r.rawArchived = val
 		r.Archived = parseUint(val)
 	}
 	if val, ok := get["limit"]; ok {
+		r.hasLimit = true
+		r.rawLimit = val
 		r.Limit = parseUint(val)
 	}
 	if val, ok := get["offset"]; ok {
+		r.hasOffset = true
+		r.rawOffset = val
 		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
+		r.hasPage = true
+		r.rawPage = val
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
+		r.hasPerPage = true
+		r.rawPerPage = val
 		r.PerPage = parseUint(val)
 	}
 	if val, ok := get["sort"]; ok {
+		r.hasSort = true
+		r.rawSort = val
 		r.Sort = val
 	}
 
@@ -204,9 +220,13 @@ func (r *RoleCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 	if val, ok := post["handle"]; ok {
+		r.hasHandle = true
+		r.rawHandle = val
 		r.Handle = val
 	}
 
@@ -289,9 +309,13 @@ func (r *RoleUpdate) Fill(req *http.Request) (err error) {
 	r.rawRoleID = chi.URLParam(req, "roleID")
 	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 	if val, ok := post["name"]; ok {
+		r.hasName = true
+		r.rawName = val
 		r.Name = val
 	}
 	if val, ok := post["handle"]; ok {
+		r.hasHandle = true
+		r.rawHandle = val
 		r.Handle = val
 	}
 
@@ -654,6 +678,8 @@ func (r *RoleMove) Fill(req *http.Request) (err error) {
 	r.rawRoleID = chi.URLParam(req, "roleID")
 	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 	if val, ok := post["organisationID"]; ok {
+		r.hasOrganisationID = true
+		r.rawOrganisationID = val
 		r.OrganisationID = parseUInt64(val)
 	}
 
@@ -720,6 +746,8 @@ func (r *RoleMerge) Fill(req *http.Request) (err error) {
 	r.rawRoleID = chi.URLParam(req, "roleID")
 	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 	if val, ok := post["destination"]; ok {
+		r.hasDestination = true
+		r.rawDestination = val
 		r.Destination = parseUInt64(val)
 	}
 
@@ -976,6 +1004,8 @@ func (r *RoleTriggerScript) Fill(req *http.Request) (err error) {
 	r.rawRoleID = chi.URLParam(req, "roleID")
 	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
 	if val, ok := post["script"]; ok {
+		r.hasScript = true
+		r.rawScript = val
 		r.Script = val
 	}
 

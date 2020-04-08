@@ -87,9 +87,13 @@ func (r *WebhooksList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["channelID"]; ok {
+		r.hasChannelID = true
+		r.rawChannelID = val
 		r.ChannelID = parseUInt64(val)
 	}
 	if val, ok := get["userID"]; ok {
+		r.hasUserID = true
+		r.rawUserID = val
 		r.UserID = parseUInt64(val)
 	}
 
@@ -185,21 +189,33 @@ func (r *WebhooksCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["channelID"]; ok {
+		r.hasChannelID = true
+		r.rawChannelID = val
 		r.ChannelID = parseUInt64(val)
 	}
 	if val, ok := post["kind"]; ok {
+		r.hasKind = true
+		r.rawKind = val
 		r.Kind = types.WebhookKind(val)
 	}
 	if val, ok := post["userID"]; ok {
+		r.hasUserID = true
+		r.rawUserID = val
 		r.UserID = parseUInt64(val)
 	}
 	if val, ok := post["trigger"]; ok {
+		r.hasTrigger = true
+		r.rawTrigger = val
 		r.Trigger = val
 	}
 	if val, ok := post["url"]; ok {
+		r.hasUrl = true
+		r.rawUrl = val
 		r.Url = val
 	}
 	if val, ok := post["username"]; ok {
+		r.hasUsername = true
+		r.rawUsername = val
 		r.Username = val
 	}
 	if _, r.Avatar, err = req.FormFile("avatar"); err != nil {
@@ -207,6 +223,8 @@ func (r *WebhooksCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["avatarURL"]; ok {
+		r.hasAvatarURL = true
+		r.rawAvatarURL = val
 		r.AvatarURL = val
 	}
 
@@ -310,21 +328,33 @@ func (r *WebhooksUpdate) Fill(req *http.Request) (err error) {
 	r.rawWebhookID = chi.URLParam(req, "webhookID")
 	r.WebhookID = parseUInt64(chi.URLParam(req, "webhookID"))
 	if val, ok := post["channelID"]; ok {
+		r.hasChannelID = true
+		r.rawChannelID = val
 		r.ChannelID = parseUInt64(val)
 	}
 	if val, ok := post["kind"]; ok {
+		r.hasKind = true
+		r.rawKind = val
 		r.Kind = types.WebhookKind(val)
 	}
 	if val, ok := post["userID"]; ok {
+		r.hasUserID = true
+		r.rawUserID = val
 		r.UserID = parseUInt64(val)
 	}
 	if val, ok := post["trigger"]; ok {
+		r.hasTrigger = true
+		r.rawTrigger = val
 		r.Trigger = val
 	}
 	if val, ok := post["url"]; ok {
+		r.hasUrl = true
+		r.rawUrl = val
 		r.Url = val
 	}
 	if val, ok := post["username"]; ok {
+		r.hasUsername = true
+		r.rawUsername = val
 		r.Username = val
 	}
 	if _, r.Avatar, err = req.FormFile("avatar"); err != nil {
@@ -332,6 +362,8 @@ func (r *WebhooksUpdate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["avatarURL"]; ok {
+		r.hasAvatarURL = true
+		r.rawAvatarURL = val
 		r.AvatarURL = val
 	}
 

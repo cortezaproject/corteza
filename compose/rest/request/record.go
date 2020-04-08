@@ -102,12 +102,18 @@ func (r *RecordReport) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["metrics"]; ok {
+		r.hasMetrics = true
+		r.rawMetrics = val
 		r.Metrics = val
 	}
 	if val, ok := get["dimensions"]; ok {
+		r.hasDimensions = true
+		r.rawDimensions = val
 		r.Dimensions = val
 	}
 	if val, ok := get["filter"]; ok {
+		r.hasFilter = true
+		r.rawFilter = val
 		r.Filter = val
 	}
 	r.hasNamespaceID = true
@@ -207,21 +213,33 @@ func (r *RecordList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["filter"]; ok {
+		r.hasFilter = true
+		r.rawFilter = val
 		r.Filter = val
 	}
 	if val, ok := get["limit"]; ok {
+		r.hasLimit = true
+		r.rawLimit = val
 		r.Limit = parseUint(val)
 	}
 	if val, ok := get["offset"]; ok {
+		r.hasOffset = true
+		r.rawOffset = val
 		r.Offset = parseUint(val)
 	}
 	if val, ok := get["page"]; ok {
+		r.hasPage = true
+		r.rawPage = val
 		r.Page = parseUint(val)
 	}
 	if val, ok := get["perPage"]; ok {
+		r.hasPerPage = true
+		r.rawPerPage = val
 		r.PerPage = parseUint(val)
 	}
 	if val, ok := get["sort"]; ok {
+		r.hasSort = true
+		r.rawSort = val
 		r.Sort = val
 	}
 	r.hasNamespaceID = true
@@ -392,9 +410,13 @@ func (r *RecordImportRun) Fill(req *http.Request) (err error) {
 	r.rawModuleID = chi.URLParam(req, "moduleID")
 	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
 	if val, ok := post["fields"]; ok {
+		r.hasFields = true
+		r.rawFields = val
 		r.Fields = json.RawMessage(val)
 	}
 	if val, ok := post["onError"]; ok {
+		r.hasOnError = true
+		r.rawOnError = val
 		r.OnError = val
 	}
 
@@ -552,6 +574,8 @@ func (r *RecordExport) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["filter"]; ok {
+		r.hasFilter = true
+		r.rawFilter = val
 		r.Filter = val
 	}
 
@@ -957,6 +981,8 @@ func (r *RecordBulkDelete) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["truncate"]; ok {
+		r.hasTruncate = true
+		r.rawTruncate = val
 		r.Truncate = parseBool(val)
 	}
 	r.hasNamespaceID = true
@@ -1117,9 +1143,13 @@ func (r *RecordUpload) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["recordID"]; ok {
+		r.hasRecordID = true
+		r.rawRecordID = val
 		r.RecordID = parseUInt64(val)
 	}
 	if val, ok := post["fieldName"]; ok {
+		r.hasFieldName = true
+		r.rawFieldName = val
 		r.FieldName = val
 	}
 	if _, r.Upload, err = req.FormFile("upload"); err != nil {
@@ -1217,6 +1247,8 @@ func (r *RecordTriggerScript) Fill(req *http.Request) (err error) {
 	r.rawModuleID = chi.URLParam(req, "moduleID")
 	r.ModuleID = parseUInt64(chi.URLParam(req, "moduleID"))
 	if val, ok := post["script"]; ok {
+		r.hasScript = true
+		r.rawScript = val
 		r.Script = val
 	}
 
@@ -1285,6 +1317,8 @@ func (r *RecordTriggerScriptOnList) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["script"]; ok {
+		r.hasScript = true
+		r.rawScript = val
 		r.Script = val
 	}
 	r.hasNamespaceID = true

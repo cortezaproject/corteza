@@ -139,12 +139,18 @@ func (r *StatusSet) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["icon"]; ok {
+		r.hasIcon = true
+		r.rawIcon = val
 		r.Icon = val
 	}
 	if val, ok := post["message"]; ok {
+		r.hasMessage = true
+		r.rawMessage = val
 		r.Message = val
 	}
 	if val, ok := post["expires"]; ok {
+		r.hasExpires = true
+		r.rawExpires = val
 		r.Expires = val
 	}
 

@@ -86,6 +86,8 @@ func (r *MessageCreate) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := post["message"]; ok {
+		r.hasMessage = true
+		r.rawMessage = val
 		r.Message = val
 	}
 	r.hasChannelID = true
@@ -168,6 +170,8 @@ func (r *MessageExecuteCommand) Fill(req *http.Request) (err error) {
 	r.rawChannelID = chi.URLParam(req, "channelID")
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["input"]; ok {
+		r.hasInput = true
+		r.rawInput = val
 		r.Input = val
 	}
 
@@ -242,9 +246,13 @@ func (r *MessageMarkAsRead) Fill(req *http.Request) (err error) {
 	}
 
 	if val, ok := get["threadID"]; ok {
+		r.hasThreadID = true
+		r.rawThreadID = val
 		r.ThreadID = parseUInt64(val)
 	}
 	if val, ok := get["lastReadMessageID"]; ok {
+		r.hasLastReadMessageID = true
+		r.rawLastReadMessageID = val
 		r.LastReadMessageID = parseUInt64(val)
 	}
 	r.hasChannelID = true
@@ -322,6 +330,8 @@ func (r *MessageEdit) Fill(req *http.Request) (err error) {
 	r.rawChannelID = chi.URLParam(req, "channelID")
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["message"]; ok {
+		r.hasMessage = true
+		r.rawMessage = val
 		r.Message = val
 	}
 
@@ -462,6 +472,8 @@ func (r *MessageReplyCreate) Fill(req *http.Request) (err error) {
 	r.rawChannelID = chi.URLParam(req, "channelID")
 	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
 	if val, ok := post["message"]; ok {
+		r.hasMessage = true
+		r.rawMessage = val
 		r.Message = val
 	}
 
