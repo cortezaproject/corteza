@@ -143,6 +143,15 @@ func (svc user) FindByID(ID uint64) (*types.User, error) {
 		return nil, ErrInvalidID.withStack()
 	}
 
+	tmp := internalAuth.NewIdentity(ID)
+	if internalAuth.IsSuperUser(tmp) {
+		// Handling case when looking for a super-user
+		//
+		// Currently, superuser is a virtual entity
+		// and does not exists in the db
+		return &types.User{ID: ID}, nil
+	}
+
 	return svc.proc(svc.user.FindByID(ID))
 }
 
