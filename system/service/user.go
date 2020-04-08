@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"io"
 	"net/mail"
 	"regexp"
@@ -350,22 +351,56 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 }
 
 func (svc user) UniqueCheck(u *types.User) (err error) {
-	if u.Email != "" {
-		if ex, _ := svc.user.FindByEmail(u.Email); ex != nil && ex.ID > 0 && ex.ID != u.ID {
-			return ErrUserEmailNotUnique
+	isUnique := func(field string) bool {
+		f := types.UserFilter{
+			// If user exists and is deleted -- not a dup
+			Deleted: rh.FilterStateExcluded,
+
+			// If user exists and is suspended -- duplicate
+			Suspended: rh.FilterStateInclusive,
 		}
+
+		switch field {
+		case "email":
+			if u.Email == "" {
+				return true
+			}
+
+			f.Email = u.Email
+
+		case "username":
+			if u.Username == "" {
+				return true
+			}
+
+			f.Username = u.Username
+		case "handle":
+			if u.Handle == "" {
+				return true
+			}
+
+			f.Handle = u.Handle
+		}
+
+		set, _, err := svc.user.Find(f)
+		if err != nil || len(set) > 1 {
+			// In case of error or multiple users returned
+			return false
+		}
+
+		return len(set) == 0 || set[0].ID == u.ID
 	}
 
-	if u.Username != "" {
-		if ex, _ := svc.user.FindByUsername(u.Username); ex != nil && ex.ID > 0 && ex.ID != u.ID {
-			return ErrUserUsernameNotUnique
-		}
+	if !isUnique("email") {
+		return ErrUserEmailNotUnique
 	}
 
-	if u.Handle != "" {
-		if ex, _ := svc.user.FindByHandle(u.Handle); ex != nil && ex.ID > 0 && ex.ID != u.ID {
-			return ErrUserHandleNotUnique
-		}
+	if !isUnique("username") {
+		return ErrUserUsernameNotUnique
+	}
+
+	if !isUnique("handle") {
+		return ErrUserHandleNotUnique
 	}
 
 	return nil
@@ -413,6 +448,10 @@ func (svc user) Undelete(ID uint64) (err error) {
 	var u *types.User
 	if u, err = svc.user.FindByID(ID); err != nil {
 		return
+	}
+
+	if err = svc.UniqueCheck(u); err != nil {
+		return err
 	}
 
 	if !svc.ac.CanDeleteUser(svc.ctx, u) {
