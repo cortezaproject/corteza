@@ -65,7 +65,7 @@ func FetchPaged(db *factory.DB, q squirrel.SelectBuilder, p PageFilter, set inte
 	}
 
 	if p.Offset > 0 {
-		q = q.Offset(uint64(p.Limit))
+		q = q.Offset(uint64(p.Offset))
 	}
 
 	return FetchAll(db, q, set)
