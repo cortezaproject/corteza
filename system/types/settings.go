@@ -102,6 +102,32 @@ type (
 				} `kv:"password-reset"`
 			} `json:"-"`
 		}
+
+		UI struct {
+			// Corteza One configuration settings
+			One struct {
+				Logo  string `kv:"logo" json:"logo"`
+				Title string `kv:"title" json:"title"`
+
+				PanelsEnabled bool `kv:"panels-enabled" json:"panelsEnabled"`
+				Panels        []struct {
+					Visible        bool `json:"visible"`
+					Sticky         bool `json:"sticky"`
+					Width          uint `json:"width"`
+					Height         uint `json:"height"`
+					ActiveTabIndex uint `json:"activeTabIndex"`
+					Tabs           []struct {
+						Title  string `json:"title"`
+						Url    string `json:"url"`
+						Logo   string `json:"logo"`
+						Icon   string `json:"icon"`
+						Sticky bool   `json:"sticky"`
+					} `json:"tabs"`
+				} `kv:"panels,final" json:"panels"`
+			} `kv:"one" json:"one"`
+
+			// Admin struct {} `kv:"admin"`
+		} `kv:"ui" json:"ui"`
 	}
 
 	ExternalAuthProviderSet []*ExternalAuthProvider
