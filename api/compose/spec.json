@@ -1,1674 +1,1674 @@
 
 [
-    {
-        "title": "Namespaces",
-        "parameters": {},
-        "entrypoint": "namespace",
-        "path": "/namespace",
-        "authentication": [],
-        "struct": [
-            {
-                "imports": [
-                    "sqlxTypes github.com/jmoiron/sqlx/types",
-                    "time"
-                ]
-            }
-        ],
-        "apis": [
-            {
-                "name": "list",
-                "method": "GET",
-                "title": "List namespaces",
-                "path": "/",
-                "parameters": {
-                    "get": [
-                        {
-                            "type": "string",
-                            "name": "query",
-                            "required": false,
-                            "title": "Search query"
-                        },
-                        {
-                            "type": "string",
-                            "name": "slug",
-                            "required": false,
-                            "title": "Search by namespace slug"
-                        },
-                        {"type": "uint",   "name": "limit",   "title": "Limit"},
-                        {"type": "uint",   "name": "offset",  "title": "Offset"},
-                        {"type": "uint",   "name": "page",    "title": "Page number (1-based)"},
-                        {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
-                        {"type": "string", "name": "sort",    "title": "Sort items"}
-                    ]
-                }
-            },
-            {
-                "name": "create",
-                "method": "POST",
-                "title": "Create namespace",
-                "path": "/",
-                "parameters": {
-                    "post": [
-                        {
-                            "type": "string",
-                            "name": "name",
-                            "required": true,
-                            "title": "Name"
-                        },
-                        {
-                            "type": "string",
-                            "name": "slug",
-                            "required": false,
-                            "title": "Slug (url path part)"
-                        },
-                        {
-                            "type": "bool",
-                            "name": "enabled",
-                            "required": false,
-                            "title": "Enabled"
-                        },
-                        {
-                            "type": "sqlxTypes.JSONText",
-                            "name": "meta",
-                            "required": true,
-                            "title": "Meta data"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "read",
-                "method": "GET",
-                "title": "Read namespace",
-                "path": "/{namespaceID}",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "namespaceID",
-                            "required": true,
-                            "title": "ID"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "update",
-                "method": "POST",
-                "title": "Update namespace",
-                "path": "/{namespaceID}",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "namespaceID",
-                            "required": true,
-                            "title": "ID"
-                        }
-                    ],
-                    "post": [
-                        {
-                            "type": "string",
-                            "name": "name",
-                            "required": true,
-                            "title": "Name"
-                        },
-                        {
-                            "type": "string",
-                            "name": "slug",
-                            "required": false,
-                            "title": "Slug (url path part)"
-                        },
-                        {
-                            "type": "bool",
-                            "name": "enabled",
-                            "required": false,
-                            "title": "Enabled"
-                        },
-                        {
-                            "type": "sqlxTypes.JSONText",
-                            "name": "meta",
-                            "required": true,
-                            "title": "Meta data"
-                        },
-                        {
-                            "type": "*time.Time",
-                            "name": "updatedAt",
-                            "required": false,
-                            "title": "Last update (or creation) date"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "delete",
-                "method": "DELETE",
-                "title": "Delete namespace",
-                "path": "/{namespaceID}",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "namespaceID",
-                            "required": true,
-                            "title": "ID"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "triggerScript",
-                "method": "POST",
-                "title": "Fire compose:namespace trigger",
-                "path": "/{namespaceID}/trigger",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "namespaceID",
-                            "required": true,
-                            "title": "ID"
-                        }
-                    ],
-                    "post": [
-                        {
-                            "name": "script",
-                            "type": "string",
-                            "title": "Script to execute",
-                            "required": true
-                        }
-                    ]
-                }
-            }
+  {
+    "title": "Namespaces",
+    "parameters": {},
+    "entrypoint": "namespace",
+    "path": "/namespace",
+    "authentication": [],
+    "struct": [
+      {
+        "imports": [
+          "sqlxTypes github.com/jmoiron/sqlx/types",
+          "time"
         ]
-    },
-    {
-        "title": "Pages",
-        "description": "Compose pages",
-        "entrypoint": "page",
-        "path": "/namespace/{namespaceID}/page",
-        "authentication": [],
-        "struct": [
-            {
-                "imports": [
-                    "sqlxTypes github.com/jmoiron/sqlx/types"
-                ]
-            }
-        ],
+      }
+    ],
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "title": "List namespaces",
+        "path": "/",
         "parameters": {
-            "path": [
-                {
-                    "type": "uint64",
-                    "name": "namespaceID",
-                    "required": true,
-                    "title": "Namespace ID"
-                }
-            ]
-        },
-        "apis": [
+          "get": [
             {
-                "name": "list",
-                "method": "GET",
-                "path": "/",
-                "title": "List available pages",
-                "parameters": {
-                    "get": [
-                        {
-                            "type": "uint64",
-                            "name": "selfID",
-                            "required": false,
-                            "title": "Parent page ID"
-                        },
-                        {
-                            "type": "string",
-                            "name": "query",
-                            "required": false,
-                            "title": "Search query"
-                        },
-                        {
-                            "type": "string",
-                            "name": "handle",
-                            "required": false,
-                            "title": "Search by handle"
-                        },
-                        {"type": "uint",   "name": "limit",   "title": "Limit"},
-                        {"type": "uint",   "name": "offset",  "title": "Offset"},
-                        {"type": "uint",   "name": "page",    "title": "Page number (1-based)"},
-                        {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
-                        {"type": "string", "name": "sort",    "title": "Sort items"}
-                    ]
-                }
+              "type": "string",
+              "name": "query",
+              "required": false,
+              "title": "Search query"
             },
             {
-                "name": "create",
-                "method": "POST",
-                "title": "Create page",
-                "path": "/",
-                "parameters": {
-                    "post": [
-                        {
-                            "type": "uint64",
-                            "name": "selfID",
-                            "required": false,
-                            "title": "Parent Page ID"
-                        },
-                        {
-                            "type": "uint64",
-                            "name": "moduleID",
-                            "required": false,
-                            "title": "Module ID"
-                        },
-                        {
-                            "type": "string",
-                            "name": "title",
-                            "required": true,
-                            "title": "Title"
-                        },
-                        {
-                            "type": "string",
-                            "name": "handle",
-                            "required": false,
-                            "title": "Handle"
-                        },
-                        {
-                            "type": "string",
-                            "name": "description",
-                            "required": false,
-                            "title": "Description"
-                        },
-                        {
-                            "type": "bool",
-                            "name": "visible",
-                            "required": false,
-                            "title": "Visible in navigation"
-                        },
-                        {
-                            "type": "sqlxTypes.JSONText",
-                            "name": "blocks",
-                            "required": false,
-                            "title": "Blocks JSON"
-                        }
-                    ]
-                }
+              "type": "string",
+              "name": "slug",
+              "required": false,
+              "title": "Search by namespace slug"
             },
-            {
-                "name": "read",
-                "path": "/{pageID}",
-                "method": "GET",
-                "title": "Get page details",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "pageID",
-                            "required": true,
-                            "title": "Page ID"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "tree",
-                "path": "/tree",
-                "method": "GET",
-                "title": "Get page all (non-record) pages, hierarchically",
-                "parameters": {}
-            },
-            {
-                "name": "update",
-                "method": "POST",
-                "title": "Update page",
-                "path": "/{pageID}",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "pageID",
-                            "required": true,
-                            "title": "Page ID"
-                        }
-                    ],
-                    "post": [
-                        {
-                            "type": "uint64",
-                            "name": "selfID",
-                            "required": false,
-                            "title": "Parent Page ID"
-                        },
-                        {
-                            "type": "uint64",
-                            "name": "moduleID",
-                            "required": false,
-                            "title": "Module ID (optional)"
-                        },
-                        {
-                            "type": "string",
-                            "name": "title",
-                            "required": true,
-                            "title": "Title"
-                        },
-                        {
-                            "type": "string",
-                            "name": "handle",
-                            "required": false,
-                            "title": "Handle"
-                        },
-                        {
-                            "type": "string",
-                            "name": "description",
-                            "required": false,
-                            "title": "Description"
-                        },
-                        {
-                            "type": "int",
-                            "name": "weight",
-                            "required": false,
-                            "title": "Page tree weight"
-                        },
-                        {
-                            "type": "bool",
-                            "name": "visible",
-                            "required": false,
-                            "title": "Visible in navigation"
-                        },
-                        {
-                            "type": "sqlxTypes.JSONText",
-                            "name": "blocks",
-                            "required": false,
-                            "title": "Blocks JSON"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "reorder",
-                "method": "POST",
-                "title": "Reorder pages",
-                "path": "/{selfID}/reorder",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "selfID",
-                            "required": true,
-                            "title": "Parent page ID"
-                        }
-                    ],
-                    "post": [
-                        {
-                            "type": "[]string",
-                            "name": "pageIDs",
-                            "required": true,
-                            "title": "Page ID order"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "delete",
-                "path": "/{pageID}",
-                "method": "Delete",
-                "title": "Delete page",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "pageID",
-                            "required": true,
-                            "title": "Page ID"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "upload",
-                "path": "/{pageID}/attachment",
-                "method": "POST",
-                "title": "Uploads attachment to page",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "pageID",
-                            "required": true,
-                            "title": "Page ID"
-                        }
-                    ],
-                    "post": [
-                        {
-                            "name": "upload",
-                            "type": "*multipart.FileHeader",
-                            "required": true,
-                            "title": "File to upload"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "triggerScript",
-                "method": "POST",
-                "title": "Fire compose:page trigger",
-                "path": "/{pageID}/trigger",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "pageID",
-                            "required": true,
-                            "title": "Page ID"
-                        }
-                    ],
-                    "post": [
-                        {
-                            "name": "script",
-                            "type": "string",
-                            "title": "Script to execute",
-                            "required": true
-                        }
-                    ]
-                }
-            }
-        ]
-    },
-    {
-        "title": "Modules",
-        "description": "Compose module definitions",
-        "entrypoint": "module",
-        "path": "/namespace/{namespaceID}/module",
-        "authentication": [],
+            {"type": "uint",   "name": "limit",   "title": "Limit"},
+            {"type": "uint",   "name": "offset",  "title": "Offset"},
+            {"type": "uint",   "name": "page",  "title": "Page number (1-based)"},
+            {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
+            {"type": "string", "name": "sort",  "title": "Sort items"}
+          ]
+        }
+      },
+      {
+        "name": "create",
+        "method": "POST",
+        "title": "Create namespace",
+        "path": "/",
         "parameters": {
-            "path": [
-                {
-                    "type": "uint64",
-                    "name": "namespaceID",
-                    "required": true,
-                    "title": "Namespace ID"
-                }
-            ]
-        },
-        "struct": [
+          "post": [
             {
-                "imports": [
-                    "sqlxTypes github.com/jmoiron/sqlx/types",
-                    "github.com/cortezaproject/corteza-server/compose/types",
-                    "time"
-                ]
+              "type": "string",
+              "name": "name",
+              "required": true,
+              "title": "Name"
+            },
+            {
+              "type": "string",
+              "name": "slug",
+              "required": false,
+              "title": "Slug (url path part)"
+            },
+            {
+              "type": "bool",
+              "name": "enabled",
+              "required": false,
+              "title": "Enabled"
+            },
+            {
+              "type": "sqlxTypes.JSONText",
+              "name": "meta",
+              "required": true,
+              "title": "Meta data"
             }
-        ],
-        "apis": [
-            {
-                "name": "list",
-                "method": "GET",
-                "title": "List modules",
-                "path": "/",
-                "parameters": {
-                    "get": [
-                        {
-                            "type": "string",
-                            "name": "query",
-                            "required": false,
-                            "title": "Search query"
-                        },
-                        {
-                            "type": "string",
-                            "name": "name",
-                            "required": false,
-                            "title": "Search by name"
-                        },
-                        {
-                            "type": "string",
-                            "name": "handle",
-                            "required": false,
-                            "title": "Search by handle"
-                        },
-                        {"type": "uint",   "name": "limit",   "title": "Limit"},
-                        {"type": "uint",   "name": "offset",  "title": "Offset"},
-                        {"type": "uint",   "name": "page",    "title": "Page number (1-based)"},
-                        {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
-                        {"type": "string", "name": "sort",    "title": "Sort items"}
-                    ]
-                }
-            },
-            {
-                "name": "create",
-                "method": "POST",
-                "title": "Create module",
-                "path": "/",
-                "parameters": {
-                    "post": [
-                        {
-                            "type": "string",
-                            "name": "name",
-                            "required": true,
-                            "title": "Module Name"
-                        },
-                        {
-                            "type": "string",
-                            "name": "handle",
-                            "required": false,
-                            "title": "Module handle"
-                        },
-                        {
-                            "type": "types.ModuleFieldSet",
-                            "name": "fields",
-                            "required": true,
-                            "title": "Fields JSON"
-                        },
-                        {
-                            "type": "sqlxTypes.JSONText",
-                            "name": "meta",
-                            "required": true,
-                            "title": "Module meta data"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "read",
-                "method": "GET",
-                "title": "Read module",
-                "path": "/{moduleID}",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "moduleID",
-                            "required": true,
-                            "title": "Module ID"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "update",
-                "method": "POST",
-                "title": "Update module",
-                "path": "/{moduleID}",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "moduleID",
-                            "required": true,
-                            "title": "Module ID"
-                        }
-                    ],
-                    "post": [
-                        {
-                            "type": "string",
-                            "name": "name",
-                            "required": true,
-                            "title": "Module Name"
-                        },
-                        {
-                            "type": "string",
-                            "name": "handle",
-                            "required": false,
-                            "title": "Module Handle"
-                        },
-                        {
-                            "type": "types.ModuleFieldSet",
-                            "name": "fields",
-                            "required": true,
-                            "title": "Fields JSON"
-                        },
-                        {
-                            "type": "sqlxTypes.JSONText",
-                            "name": "meta",
-                            "required": true,
-                            "title": "Module meta data"
-                        },
-                        {
-                            "type": "*time.Time",
-                            "name": "updatedAt",
-                            "required": false,
-                            "title": "Last update (or creation) date"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "delete",
-                "method": "DELETE",
-                "title": "Delete module",
-                "path": "/{moduleID}",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "moduleID",
-                            "required": true,
-                            "title": "Module ID"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "triggerScript",
-                "method": "POST",
-                "title": "Fire compose:module trigger",
-                "path": "/{moduleID}/trigger",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "moduleID",
-                            "required": true,
-                            "title": "ID"
-                        }
-                    ],
-                    "post": [
-                        {
-                            "name": "script",
-                            "type": "string",
-                            "title": "Script to execute",
-                            "required": true
-                        }
-                    ]
-                }
-            }
-        ]
-    },
-    {
-        "title": "Records",
-        "description": "Compose records",
-        "entrypoint": "record",
-        "path": "/namespace/{namespaceID}/module/{moduleID}/record",
-        "authentication": [],
-        "struct": [
-            {
-                "imports": [
-                    "github.com/cortezaproject/corteza-server/compose/types"
-                ]
-            }
-        ],
+          ]
+        }
+      },
+      {
+        "name": "read",
+        "method": "GET",
+        "title": "Read namespace",
+        "path": "/{namespaceID}",
         "parameters": {
-            "path": [
-                {
-                    "type": "uint64",
-                    "name": "namespaceID",
-                    "required": true,
-                    "title": "Namespace ID"
-                },
-                {
-                    "type": "uint64",
-                    "name": "moduleID",
-                    "required": true,
-                    "title": "Module ID"
-                }
-            ]
-        },
-        "apis": [
+          "path": [
             {
-                "name": "report",
-                "method": "GET",
-                "title": "Generates report from module records",
-                "path": "/report",
-                "parameters": {
-                    "get": [
-                        {
-                            "type": "string",
-                            "name": "metrics",
-                            "required": false,
-                            "title": "Metrics (eg: 'SUM(money), MAX(calls)')"
-                        },
-                        {
-                            "type": "string",
-                            "name": "dimensions",
-                            "required": true,
-                            "title": "Dimensions (eg: 'DATE(foo), status')"
-                        },
-                        {
-                            "type": "string",
-                            "name": "filter",
-                            "required": false,
-                            "title": "Filter (eg: 'DATE(foo) > 2010')"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "list",
-                "method": "GET",
-                "title": "List/read records from module section",
-                "path": "/",
-                "parameters": {
-                    "get": [
-                        {
-                            "name": "filter",
-                            "type": "string",
-                            "required": false,
-                            "title": "Filtering condition"
-                        },
-                        {"type": "uint",   "name": "limit",   "title": "Limit"},
-                        {"type": "uint",   "name": "offset",  "title": "Offset"},
-                        {"type": "uint",   "name": "page",    "title": "Page number (1-based)"},
-                        {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
-                        {"type": "string", "name": "sort",    "title": "Sort items"}
-                    ]
-                }
-            },
-            {
-                "name": "importInit",
-                "path": "/import",
-                "method": "POST",
-                "title": "Initiate record import session",
-                "parameters": {
-                    "post": [
-                        {
-                            "name": "upload",
-                            "type": "*multipart.FileHeader",
-                            "required": true,
-                            "title": "File import"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "importRun",
-                "path": "/import/{sessionID}",
-                "method": "PATCH",
-                "title": "Run record import",
-                "parameters": {
-                    "path": [
-                        {
-                            "name": "sessionID",
-                            "type": "uint64",
-                            "required": true,
-                            "title": "Import session"
-                        }
-                    ],
-                    "post": [
-                        {
-                            "name": "fields",
-                            "type": "json.RawMessage",
-                            "required": true,
-                            "title": "Fields defined by import file"
-                        },
-                        {
-                            "name": "onError",
-                            "type": "string",
-                            "required": true,
-                            "title": "What happens if record fails to import"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "importProgress",
-                "path": "/import/{sessionID}",
-                "method": "GET",
-                "title": "Get import progress",
-                "parameters": {
-                    "path": [
-                        {
-                            "name": "sessionID",
-                            "type": "uint64",
-                            "required": true,
-                            "title": "Import session"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "export",
-                "path": "/export{filename}.{ext}",
-                "method": "GET",
-                "title": "Exports records that match ",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "string",
-                            "name": "filename",
-                            "required": false,
-                            "title": "Filename to use"
-                        },
-                        {
-                            "type": "string",
-                            "name": "ext",
-                            "required": true,
-                            "title": "Export format"
-                        }
-                    ],
-                    "get": [
-                        {
-                            "name": "filter",
-                            "type": "string",
-                            "required": false,
-                            "title": "Filtering condition"
-                        },
-                        {
-                            "name": "fields",
-                            "type": "[]string",
-                            "required": true,
-                            "title": "Fields to export"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "exec",
-                "path": "/exec/{procedure}",
-                "method": "POST",
-                "title": "Executes server-side procedure over one or more module records",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "string",
-                            "name": "procedure",
-                            "required": true,
-                            "title": "Name of procedure to execute"
-                        }
-                    ],
-                    "post": [
-                        {
-                            "type": "[]ProcedureArg",
-                            "name": "args",
-                            "required": false,
-                            "title": "Procedure arguments"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "create",
-                "method": "POST",
-                "title": "Create record in module section",
-                "path": "/",
-                "parameters": {
-                    "post": [
-                        {
-                            "type": "types.RecordValueSet",
-                            "name": "values",
-                            "required": true,
-                            "title": "Record values"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "read",
-                "method": "GET",
-                "title": "Read records by ID from module section",
-                "path": "/{recordID}",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "recordID",
-                            "required": true,
-                            "title": "Record ID"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "update",
-                "method": "POST",
-                "title": "Update records in module section",
-                "path": "/{recordID}",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "recordID",
-                            "required": true,
-                            "title": "Record ID"
-                        }
-                    ],
-                    "post": [
-                        {
-                            "type": "types.RecordValueSet",
-                            "name": "values",
-                            "required": true,
-                            "title": "Record values"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "bulkDelete",
-                "method": "DELETE",
-                "title": "Delete record row from module section",
-                "path": "/",
-                "parameters": {
-                    "post": [
-                        {
-                            "type": "[]string",
-                            "name": "recordIDs",
-                            "required": false,
-                            "title": "IDs of records to delete"
-                        },
-                        {
-                            "type": "bool",
-                            "name": "truncate",
-                            "required": false,
-                            "title": "Remove ALL records of a specified module (pending implementation)"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "delete",
-                "method": "DELETE",
-                "title": "Delete record row from module section",
-                "path": "/{recordID}",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "recordID",
-                            "required": true,
-                            "title": "Record ID"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "upload",
-                "path": "/attachment",
-                "method": "POST",
-                "title": "Uploads attachment and validates it against record field requirements",
-                "parameters": {
-                    "post": [
-                        {
-                            "name": "recordID",
-                            "type": "uint64",
-                            "required": false,
-                            "title": "Record ID"
-                        },
-                        {
-                            "name": "fieldName",
-                            "type": "string",
-                            "required": true,
-                            "title": "Field name"
-                        },
-                        {
-                            "name": "upload",
-                            "type": "*multipart.FileHeader",
-                            "required": true,
-                            "title": "File to upload"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "triggerScript",
-                "method": "POST",
-                "title": "Fire compose:record trigger",
-                "path": "/{recordID}/trigger",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "recordID",
-                            "required": true,
-                            "title": "ID"
-                        }
-                    ],
-                    "post": [
-                        {
-                            "name": "script",
-                            "type": "string",
-                            "title": "Script to execute",
-                            "required": true
-                        },
-                        {
-                            "type": "types.RecordValueSet",
-                            "name": "values",
-                            "required": true,
-                            "title": "Record values"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "triggerScriptOnList",
-                "method": "POST",
-                "title": "Fire compose:record trigger",
-                "path": "/trigger",
-                "parameters": {
-                    "post": [
-                        {
-                            "name": "script",
-                            "type": "string",
-                            "title": "Script to execute",
-                            "required": true
-                        }
-                    ]
-                }
+              "type": "uint64",
+              "name": "namespaceID",
+              "required": true,
+              "title": "ID"
             }
-        ]
-    },
-    {
-        "title": "Charts",
-        "path": "/namespace/{namespaceID}/chart",
-        "entrypoint": "chart",
-        "authentication": [],
-        "struct": [
-            {
-                "imports": [
-                    "sqlxTypes github.com/jmoiron/sqlx/types",
-                    "time"
-                ]
-            }
-        ],
+          ]
+        }
+      },
+      {
+        "name": "update",
+        "method": "POST",
+        "title": "Update namespace",
+        "path": "/{namespaceID}",
         "parameters": {
-            "path": [
-                {
-                    "type": "uint64",
-                    "name": "namespaceID",
-                    "required": true,
-                    "title": "Namespace ID"
-                }
-            ]
-        },
-        "apis": [
+          "path": [
             {
-                "name": "list",
-                "method": "GET",
-                "title": "List/read charts",
-                "path": "/",
-                "parameters": {
-                    "get": [
-                        {
-                            "name": "query",
-                            "required": false,
-                            "title": "Search query to match against charts",
-                            "type": "string"
-                        },
-                        {
-                            "name": "handle",
-                            "required": false,
-                            "title": "Search charts by handle",
-                            "type": "string"
-                        },
-                        {"type": "uint",   "name": "limit",   "title": "Limit"},
-                        {"type": "uint",   "name": "offset",  "title": "Offset"},
-                        {"type": "uint",   "name": "page",    "title": "Page number (1-based)"},
-                        {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
-                        {"type": "string", "name": "sort",    "title": "Sort items"}
-                    ]
-                }
-            },
-            {
-                "name": "create",
-                "method": "POST",
-                "title": "List/read charts ",
-                "path": "/",
-                "parameters": {
-                    "post": [
-                        {
-                            "type": "sqlxTypes.JSONText",
-                            "name": "config",
-                            "required": true,
-                            "title": "Chart JSON"
-                        },
-                        {
-                            "name": "name",
-                            "title": "Chart name",
-                            "type": "string",
-                            "required": true
-                        },
-                        {
-                            "name": "handle",
-                            "title": "Chart handle",
-                            "type": "string",
-                            "required": false
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "read",
-                "method": "GET",
-                "title": "Read charts by ID",
-                "path": "/{chartID}",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "chartID",
-                            "required": true,
-                            "title": "Chart ID"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "update",
-                "method": "POST",
-                "title": "Add/update charts",
-                "path": "/{chartID}",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "chartID",
-                            "required": true,
-                            "title": "Chart ID"
-                        }
-                    ],
-                    "post": [
-                        {
-                            "type": "sqlxTypes.JSONText",
-                            "name": "config",
-                            "required": true,
-                            "title": "Chart JSON"
-                        },
-                        {
-                            "name": "name",
-                            "title": "Chart name",
-                            "type": "string",
-                            "required": true
-                        },
-                        {
-                            "name": "handle",
-                            "title": "Chart handle",
-                            "type": "string",
-                            "required": false
-                        },
-                        {
-                            "type": "*time.Time",
-                            "name": "updatedAt",
-                            "required": false,
-                            "title": "Last update (or creation) date"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "delete",
-                "method": "DELETE",
-                "title": "Delete chart",
-                "path": "/{chartID}",
-                "parameters": {
-                    "path": [
-                        {
-                            "type": "uint64",
-                            "name": "chartID",
-                            "required": true,
-                            "title": "Chart ID"
-                        }
-                    ]
-                }
+              "type": "uint64",
+              "name": "namespaceID",
+              "required": true,
+              "title": "ID"
             }
-        ]
-    },
-    {
-        "title": "Notifications",
-        "description": "Compose Notifications",
-        "entrypoint": "notification",
-        "path": "/notification",
-        "authentication": [],
-        "struct": [
+          ],
+          "post": [
             {
-                "imports": [
-                    "sqlxTypes github.com/jmoiron/sqlx/types"
-                ]
-            }
-        ],
-        "apis": [
+              "type": "string",
+              "name": "name",
+              "required": true,
+              "title": "Name"
+            },
             {
-                "name": "email/send",
-                "method": "POST",
-                "title": "Send email from the Compose",
-                "path": "/email",
-                "parameters": {
-                    "post": [
-                        {
-                            "name": "to",
-                            "type": "[]string",
-                            "required": true,
-                            "title": "Email addresses"
-                        },
-                        {
-                            "name": "cc",
-                            "type": "[]string",
-                            "required": false,
-                            "title": "Email addresses"
-                        },
-                        {
-                            "name": "replyTo",
-                            "type": "string",
-                            "required": false,
-                            "title": "Email address in reply-to field"
-                        },
-                        {
-                            "name": "subject",
-                            "type": "string",
-                            "required": false,
-                            "title": "Email subject"
-                        },
-                        {
-                            "name": "content",
-                            "type": "sqlxTypes.JSONText",
-                            "required": true,
-                            "title": "Message content"
-                        },
-                        {
-                            "name": "remoteAttachments",
-                            "type": "[]string",
-                            "required": false,
-                            "title": "Remote files to attach to the email"
-                        }
-                    ]
-                }
+              "type": "string",
+              "name": "slug",
+              "required": false,
+              "title": "Slug (url path part)"
+            },
+            {
+              "type": "bool",
+              "name": "enabled",
+              "required": false,
+              "title": "Enabled"
+            },
+            {
+              "type": "sqlxTypes.JSONText",
+              "name": "meta",
+              "required": true,
+              "title": "Meta data"
+            },
+            {
+              "type": "*time.Time",
+              "name": "updatedAt",
+              "required": false,
+              "title": "Last update (or creation) date"
             }
-        ]
-    },
-    {
-        "title": "Attachments",
-        "path": "/namespace/{namespaceID}/attachment/{kind}",
-        "entrypoint": "attachment",
-        "authentication": [
-            "Client ID",
-            "Session ID"
-        ],
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "method": "DELETE",
+        "title": "Delete namespace",
+        "path": "/{namespaceID}",
         "parameters": {
-            "path": [
-                {
-                    "name": "kind",
-                    "type": "string",
-                    "required": true,
-                    "title": "Attachment kind"
-                },
-                {
-                    "type": "uint64",
-                    "name": "namespaceID",
-                    "required": true,
-                    "title": "Namespace ID"
-                }
-            ],
-            "get": [
-                {
-                    "type": "string",
-                    "name": "sign",
-                    "required": false,
-                    "title": "Signature"
-                },
-                {
-                    "type": "uint64",
-                    "name": "userID",
-                    "required": false,
-                    "title": "User ID"
-                }
-            ]
+          "path": [
+            {
+              "type": "uint64",
+              "name": "namespaceID",
+              "required": true,
+              "title": "ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "triggerScript",
+        "method": "POST",
+        "title": "Fire compose:namespace trigger",
+        "path": "/{namespaceID}/trigger",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "namespaceID",
+              "required": true,
+              "title": "ID"
+            }
+          ],
+          "post": [
+            {
+              "name": "script",
+              "type": "string",
+              "title": "Script to execute",
+              "required": true
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Pages",
+    "description": "Compose pages",
+    "entrypoint": "page",
+    "path": "/namespace/{namespaceID}/page",
+    "authentication": [],
+    "struct": [
+      {
+        "imports": [
+          "sqlxTypes github.com/jmoiron/sqlx/types"
+        ]
+      }
+    ],
+    "parameters": {
+      "path": [
+        {
+          "type": "uint64",
+          "name": "namespaceID",
+          "required": true,
+          "title": "Namespace ID"
+        }
+      ]
+    },
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "path": "/",
+        "title": "List available pages",
+        "parameters": {
+          "get": [
+            {
+              "type": "uint64",
+              "name": "selfID",
+              "required": false,
+              "title": "Parent page ID"
+            },
+            {
+              "type": "string",
+              "name": "query",
+              "required": false,
+              "title": "Search query"
+            },
+            {
+              "type": "string",
+              "name": "handle",
+              "required": false,
+              "title": "Search by handle"
+            },
+            {"type": "uint",   "name": "limit",   "title": "Limit"},
+            {"type": "uint",   "name": "offset",  "title": "Offset"},
+            {"type": "uint",   "name": "page",  "title": "Page number (1-based)"},
+            {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
+            {"type": "string", "name": "sort",  "title": "Sort items"}
+          ]
+        }
+      },
+      {
+        "name": "create",
+        "method": "POST",
+        "title": "Create page",
+        "path": "/",
+        "parameters": {
+          "post": [
+            {
+              "type": "uint64",
+              "name": "selfID",
+              "required": false,
+              "title": "Parent Page ID"
+            },
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": false,
+              "title": "Module ID"
+            },
+            {
+              "type": "string",
+              "name": "title",
+              "required": true,
+              "title": "Title"
+            },
+            {
+              "type": "string",
+              "name": "handle",
+              "required": false,
+              "title": "Handle"
+            },
+            {
+              "type": "string",
+              "name": "description",
+              "required": false,
+              "title": "Description"
+            },
+            {
+              "type": "bool",
+              "name": "visible",
+              "required": false,
+              "title": "Visible in navigation"
+            },
+            {
+              "type": "sqlxTypes.JSONText",
+              "name": "blocks",
+              "required": false,
+              "title": "Blocks JSON"
+            }
+          ]
+        }
+      },
+      {
+        "name": "read",
+        "path": "/{pageID}",
+        "method": "GET",
+        "title": "Get page details",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "pageID",
+              "required": true,
+              "title": "Page ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "tree",
+        "path": "/tree",
+        "method": "GET",
+        "title": "Get page all (non-record) pages, hierarchically",
+        "parameters": {}
+      },
+      {
+        "name": "update",
+        "method": "POST",
+        "title": "Update page",
+        "path": "/{pageID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "pageID",
+              "required": true,
+              "title": "Page ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "uint64",
+              "name": "selfID",
+              "required": false,
+              "title": "Parent Page ID"
+            },
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": false,
+              "title": "Module ID (optional)"
+            },
+            {
+              "type": "string",
+              "name": "title",
+              "required": true,
+              "title": "Title"
+            },
+            {
+              "type": "string",
+              "name": "handle",
+              "required": false,
+              "title": "Handle"
+            },
+            {
+              "type": "string",
+              "name": "description",
+              "required": false,
+              "title": "Description"
+            },
+            {
+              "type": "int",
+              "name": "weight",
+              "required": false,
+              "title": "Page tree weight"
+            },
+            {
+              "type": "bool",
+              "name": "visible",
+              "required": false,
+              "title": "Visible in navigation"
+            },
+            {
+              "type": "sqlxTypes.JSONText",
+              "name": "blocks",
+              "required": false,
+              "title": "Blocks JSON"
+            }
+          ]
+        }
+      },
+      {
+        "name": "reorder",
+        "method": "POST",
+        "title": "Reorder pages",
+        "path": "/{selfID}/reorder",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "selfID",
+              "required": true,
+              "title": "Parent page ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "[]string",
+              "name": "pageIDs",
+              "required": true,
+              "title": "Page ID order"
+            }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "path": "/{pageID}",
+        "method": "Delete",
+        "title": "Delete page",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "pageID",
+              "required": true,
+              "title": "Page ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "upload",
+        "path": "/{pageID}/attachment",
+        "method": "POST",
+        "title": "Uploads attachment to page",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "pageID",
+              "required": true,
+              "title": "Page ID"
+            }
+          ],
+          "post": [
+            {
+              "name": "upload",
+              "type": "*multipart.FileHeader",
+              "required": true,
+              "title": "File to upload"
+            }
+          ]
+        }
+      },
+      {
+        "name": "triggerScript",
+        "method": "POST",
+        "title": "Fire compose:page trigger",
+        "path": "/{pageID}/trigger",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "pageID",
+              "required": true,
+              "title": "Page ID"
+            }
+          ],
+          "post": [
+            {
+              "name": "script",
+              "type": "string",
+              "title": "Script to execute",
+              "required": true
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Modules",
+    "description": "Compose module definitions",
+    "entrypoint": "module",
+    "path": "/namespace/{namespaceID}/module",
+    "authentication": [],
+    "parameters": {
+      "path": [
+        {
+          "type": "uint64",
+          "name": "namespaceID",
+          "required": true,
+          "title": "Namespace ID"
+        }
+      ]
+    },
+    "struct": [
+      {
+        "imports": [
+          "sqlxTypes github.com/jmoiron/sqlx/types",
+          "github.com/cortezaproject/corteza-server/compose/types",
+          "time"
+        ]
+      }
+    ],
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "title": "List modules",
+        "path": "/",
+        "parameters": {
+          "get": [
+            {
+              "type": "string",
+              "name": "query",
+              "required": false,
+              "title": "Search query"
+            },
+            {
+              "type": "string",
+              "name": "name",
+              "required": false,
+              "title": "Search by name"
+            },
+            {
+              "type": "string",
+              "name": "handle",
+              "required": false,
+              "title": "Search by handle"
+            },
+            {"type": "uint",   "name": "limit",   "title": "Limit"},
+            {"type": "uint",   "name": "offset",  "title": "Offset"},
+            {"type": "uint",   "name": "page",  "title": "Page number (1-based)"},
+            {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
+            {"type": "string", "name": "sort",  "title": "Sort items"}
+          ]
+        }
+      },
+      {
+        "name": "create",
+        "method": "POST",
+        "title": "Create module",
+        "path": "/",
+        "parameters": {
+          "post": [
+            {
+              "type": "string",
+              "name": "name",
+              "required": true,
+              "title": "Module Name"
+            },
+            {
+              "type": "string",
+              "name": "handle",
+              "required": false,
+              "title": "Module handle"
+            },
+            {
+              "type": "types.ModuleFieldSet",
+              "name": "fields",
+              "required": true,
+              "title": "Fields JSON"
+            },
+            {
+              "type": "sqlxTypes.JSONText",
+              "name": "meta",
+              "required": true,
+              "title": "Module meta data"
+            }
+          ]
+        }
+      },
+      {
+        "name": "read",
+        "method": "GET",
+        "title": "Read module",
+        "path": "/{moduleID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": true,
+              "title": "Module ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "update",
+        "method": "POST",
+        "title": "Update module",
+        "path": "/{moduleID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": true,
+              "title": "Module ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "string",
+              "name": "name",
+              "required": true,
+              "title": "Module Name"
+            },
+            {
+              "type": "string",
+              "name": "handle",
+              "required": false,
+              "title": "Module Handle"
+            },
+            {
+              "type": "types.ModuleFieldSet",
+              "name": "fields",
+              "required": true,
+              "title": "Fields JSON"
+            },
+            {
+              "type": "sqlxTypes.JSONText",
+              "name": "meta",
+              "required": true,
+              "title": "Module meta data"
+            },
+            {
+              "type": "*time.Time",
+              "name": "updatedAt",
+              "required": false,
+              "title": "Last update (or creation) date"
+            }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "method": "DELETE",
+        "title": "Delete module",
+        "path": "/{moduleID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": true,
+              "title": "Module ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "triggerScript",
+        "method": "POST",
+        "title": "Fire compose:module trigger",
+        "path": "/{moduleID}/trigger",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "moduleID",
+              "required": true,
+              "title": "ID"
+            }
+          ],
+          "post": [
+            {
+              "name": "script",
+              "type": "string",
+              "title": "Script to execute",
+              "required": true
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Records",
+    "description": "Compose records",
+    "entrypoint": "record",
+    "path": "/namespace/{namespaceID}/module/{moduleID}/record",
+    "authentication": [],
+    "struct": [
+      {
+        "imports": [
+          "github.com/cortezaproject/corteza-server/compose/types"
+        ]
+      }
+    ],
+    "parameters": {
+      "path": [
+        {
+          "type": "uint64",
+          "name": "namespaceID",
+          "required": true,
+          "title": "Namespace ID"
         },
-        "apis": [
-            {
-                "name": "list",
-                "path": "/",
-                "method": "GET",
-                "title": "List, filter all page attachments",
-                "parameters": {
-                    "get": [
-                        {
-                            "name": "pageID",
-                            "type": "uint64",
-                            "required": false,
-                            "title": "Filter attachments by page ID"
-                        },
-                        {
-                            "type": "uint64",
-                            "name": "moduleID",
-                            "required": false,
-                            "title": "Filter attachments by module ID"
-                        },
-                        {
-                            "name": "recordID",
-                            "type": "uint64",
-                            "required": false,
-                            "title": "Filter attachments by record ID"
-                        },
-                        {
-                            "name": "fieldName",
-                            "type": "string",
-                            "required": false,
-                            "title": "Filter attachments by field name"
-                        },
-                        {"type": "uint", "name": "limit",   "title": "Limit"},
-                        {"type": "uint", "name": "offset",  "title": "Offset"},
-                        {"type": "uint", "name": "page",    "title": "Page number (1-based)"},
-                        {"type": "uint", "name": "perPage", "title": "Returned items per page (default 50)"}
-                    ]
-                }
-            },
-            {
-                "name": "read",
-                "path": "/{attachmentID}",
-                "method": "GET",
-                "title": "Attachment details",
-                "parameters": {
-                    "path": [
-                        {
-                            "name": "attachmentID",
-                            "type": "uint64",
-                            "required": true,
-                            "title": "Attachment ID"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "delete",
-                "path": "/{attachmentID}",
-                "method": "DELETE",
-                "title": "Delete attachment",
-                "parameters": {
-                    "path": [
-                        {
-                            "name": "attachmentID",
-                            "type": "uint64",
-                            "required": true,
-                            "title": "Attachment ID"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "original",
-                "path": "/{attachmentID}/original/{name}",
-                "method": "GET",
-                "title": "Serves attached file",
-                "parameters": {
-                    "path": [
-                        {
-                            "name": "attachmentID",
-                            "type": "uint64",
-                            "required": true,
-                            "title": "Attachment ID"
-                        },
-                        {
-                            "name": "name",
-                            "type": "string",
-                            "required": true,
-                            "title": "File name"
-                        }
-                    ],
-                    "get": [
-                        {
-                            "type": "bool",
-                            "name": "download",
-                            "required": false,
-                            "title": "Force file download"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "preview",
-                "path": "/{attachmentID}/preview.{ext}",
-                "method": "GET",
-                "title": "Serves preview of an attached file",
-                "parameters": {
-                    "path": [
-                        {
-                            "name": "attachmentID",
-                            "type": "uint64",
-                            "required": true,
-                            "title": "Attachment ID"
-                        },
-                        {
-                            "name": "ext",
-                            "type": "string",
-                            "required": true,
-                            "title": "Preview extension/format"
-                        }
-                    ]
-                }
-            }
-        ]
+        {
+          "type": "uint64",
+          "name": "moduleID",
+          "required": true,
+          "title": "Module ID"
+        }
+      ]
     },
-    {
-        "title": "Permissions",
-        "parameters": {},
-        "entrypoint": "permissions",
-        "path": "/permissions",
-        "authentication": [
-            "Client ID",
-            "Session ID"
-        ],
-        "struct": [
+    "apis": [
+      {
+        "name": "report",
+        "method": "GET",
+        "title": "Generates report from module records",
+        "path": "/report",
+        "parameters": {
+          "get": [
             {
-                "imports": [
-                    "github.com/cortezaproject/corteza-server/pkg/permissions"
-                ]
+              "type": "string",
+              "name": "metrics",
+              "required": false,
+              "title": "Metrics (eg: 'SUM(money), MAX(calls)')"
+            },
+            {
+              "type": "string",
+              "name": "dimensions",
+              "required": true,
+              "title": "Dimensions (eg: 'DATE(foo), status')"
+            },
+            {
+              "type": "string",
+              "name": "filter",
+              "required": false,
+              "title": "Filter (eg: 'DATE(foo) > 2010')"
             }
-        ],
-        "apis": [
+          ]
+        }
+      },
+      {
+        "name": "list",
+        "method": "GET",
+        "title": "List/read records from module section",
+        "path": "/",
+        "parameters": {
+          "get": [
             {
-                "name": "list",
-                "path": "/",
-                "method": "GET",
-                "title": "Retrieve defined permissions",
-                "parameters": {}
+              "name": "filter",
+              "type": "string",
+              "required": false,
+              "title": "Filtering condition"
             },
+            {"type": "uint",   "name": "limit",   "title": "Limit"},
+            {"type": "uint",   "name": "offset",  "title": "Offset"},
+            {"type": "uint",   "name": "page",  "title": "Page number (1-based)"},
+            {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
+            {"type": "string", "name": "sort",  "title": "Sort items"}
+          ]
+        }
+      },
+      {
+        "name": "importInit",
+        "path": "/import",
+        "method": "POST",
+        "title": "Initiate record import session",
+        "parameters": {
+          "post": [
             {
-                "name": "effective",
-                "path": "/effective",
-                "method": "GET",
-                "title": "Effective rules for current user",
-                "parameters": {
-                    "get": [
-                        {
-                            "name": "resource",
-                            "type": "string",
-                            "required": false,
-                            "title": "Show only rules for a specific resource"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "read",
-                "path": "/{roleID}/rules",
-                "method": "GET",
-                "title": "Retrieve role permissions",
-                "parameters": {
-                    "path": [
-                        {
-                            "name": "roleID",
-                            "type": "uint64",
-                            "required": true,
-                            "title": "Role ID"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "delete",
-                "path": "/{roleID}/rules",
-                "method": "DELETE",
-                "title": "Remove all defined role permissions",
-                "parameters": {
-                    "path": [
-                        {
-                            "name": "roleID",
-                            "type": "uint64",
-                            "required": true,
-                            "title": "Role ID"
-                        }
-                    ]
-                }
-            },
-            {
-                "name": "update",
-                "path": "/{roleID}/rules",
-                "method": "PATCH",
-                "title": "Update permission settings",
-                "parameters": {
-                    "path": [
-                        {
-                            "name": "roleID",
-                            "type": "uint64",
-                            "required": true,
-                            "title": "Role ID"
-                        }
-                    ],
-                    "post": [
-                        {
-                            "name": "rules",
-                            "type": "permissions.RuleSet",
-                            "required": true,
-                            "title": "List of permission rules to set"
-                        }
-                    ]
-                }
+              "name": "upload",
+              "type": "*multipart.FileHeader",
+              "required": true,
+              "title": "File import"
             }
+          ]
+        }
+      },
+      {
+        "name": "importRun",
+        "path": "/import/{sessionID}",
+        "method": "PATCH",
+        "title": "Run record import",
+        "parameters": {
+          "path": [
+            {
+              "name": "sessionID",
+              "type": "uint64",
+              "required": true,
+              "title": "Import session"
+            }
+          ],
+          "post": [
+            {
+              "name": "fields",
+              "type": "json.RawMessage",
+              "required": true,
+              "title": "Fields defined by import file"
+            },
+            {
+              "name": "onError",
+              "type": "string",
+              "required": true,
+              "title": "What happens if record fails to import"
+            }
+          ]
+        }
+      },
+      {
+        "name": "importProgress",
+        "path": "/import/{sessionID}",
+        "method": "GET",
+        "title": "Get import progress",
+        "parameters": {
+          "path": [
+            {
+              "name": "sessionID",
+              "type": "uint64",
+              "required": true,
+              "title": "Import session"
+            }
+          ]
+        }
+      },
+      {
+        "name": "export",
+        "path": "/export{filename}.{ext}",
+        "method": "GET",
+        "title": "Exports records that match ",
+        "parameters": {
+          "path": [
+            {
+              "type": "string",
+              "name": "filename",
+              "required": false,
+              "title": "Filename to use"
+            },
+            {
+              "type": "string",
+              "name": "ext",
+              "required": true,
+              "title": "Export format"
+            }
+          ],
+          "get": [
+            {
+              "name": "filter",
+              "type": "string",
+              "required": false,
+              "title": "Filtering condition"
+            },
+            {
+              "name": "fields",
+              "type": "[]string",
+              "required": true,
+              "title": "Fields to export"
+            }
+          ]
+        }
+      },
+      {
+        "name": "exec",
+        "path": "/exec/{procedure}",
+        "method": "POST",
+        "title": "Executes server-side procedure over one or more module records",
+        "parameters": {
+          "path": [
+            {
+              "type": "string",
+              "name": "procedure",
+              "required": true,
+              "title": "Name of procedure to execute"
+            }
+          ],
+          "post": [
+            {
+              "type": "[]ProcedureArg",
+              "name": "args",
+              "required": false,
+              "title": "Procedure arguments"
+            }
+          ]
+        }
+      },
+      {
+        "name": "create",
+        "method": "POST",
+        "title": "Create record in module section",
+        "path": "/",
+        "parameters": {
+          "post": [
+            {
+              "type": "types.RecordValueSet",
+              "name": "values",
+              "required": true,
+              "title": "Record values"
+            }
+          ]
+        }
+      },
+      {
+        "name": "read",
+        "method": "GET",
+        "title": "Read records by ID from module section",
+        "path": "/{recordID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "recordID",
+              "required": true,
+              "title": "Record ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "update",
+        "method": "POST",
+        "title": "Update records in module section",
+        "path": "/{recordID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "recordID",
+              "required": true,
+              "title": "Record ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "types.RecordValueSet",
+              "name": "values",
+              "required": true,
+              "title": "Record values"
+            }
+          ]
+        }
+      },
+      {
+        "name": "bulkDelete",
+        "method": "DELETE",
+        "title": "Delete record row from module section",
+        "path": "/",
+        "parameters": {
+          "post": [
+            {
+              "type": "[]string",
+              "name": "recordIDs",
+              "required": false,
+              "title": "IDs of records to delete"
+            },
+            {
+              "type": "bool",
+              "name": "truncate",
+              "required": false,
+              "title": "Remove ALL records of a specified module (pending implementation)"
+            }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "method": "DELETE",
+        "title": "Delete record row from module section",
+        "path": "/{recordID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "recordID",
+              "required": true,
+              "title": "Record ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "upload",
+        "path": "/attachment",
+        "method": "POST",
+        "title": "Uploads attachment and validates it against record field requirements",
+        "parameters": {
+          "post": [
+            {
+              "name": "recordID",
+              "type": "uint64",
+              "required": false,
+              "title": "Record ID"
+            },
+            {
+              "name": "fieldName",
+              "type": "string",
+              "required": true,
+              "title": "Field name"
+            },
+            {
+              "name": "upload",
+              "type": "*multipart.FileHeader",
+              "required": true,
+              "title": "File to upload"
+            }
+          ]
+        }
+      },
+      {
+        "name": "triggerScript",
+        "method": "POST",
+        "title": "Fire compose:record trigger",
+        "path": "/{recordID}/trigger",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "recordID",
+              "required": true,
+              "title": "ID"
+            }
+          ],
+          "post": [
+            {
+              "name": "script",
+              "type": "string",
+              "title": "Script to execute",
+              "required": true
+            },
+            {
+              "type": "types.RecordValueSet",
+              "name": "values",
+              "required": true,
+              "title": "Record values"
+            }
+          ]
+        }
+      },
+      {
+        "name": "triggerScriptOnList",
+        "method": "POST",
+        "title": "Fire compose:record trigger",
+        "path": "/trigger",
+        "parameters": {
+          "post": [
+            {
+              "name": "script",
+              "type": "string",
+              "title": "Script to execute",
+              "required": true
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Charts",
+    "path": "/namespace/{namespaceID}/chart",
+    "entrypoint": "chart",
+    "authentication": [],
+    "struct": [
+      {
+        "imports": [
+          "sqlxTypes github.com/jmoiron/sqlx/types",
+          "time"
         ]
+      }
+    ],
+    "parameters": {
+      "path": [
+        {
+          "type": "uint64",
+          "name": "namespaceID",
+          "required": true,
+          "title": "Namespace ID"
+        }
+      ]
     },
-    {
-        "title": "Settings",
-        "path": "/settings",
-        "entrypoint": "settings",
-        "authentication": [],
-        "struct": [{
-            "imports": [
-                "github.com/cortezaproject/corteza-server/pkg/settings"
-            ]
-        }],
-        "apis": [
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "title": "List/read charts",
+        "path": "/",
+        "parameters": {
+          "get": [
             {
-                "name": "list",
-                "method": "GET",
-                "title": "List settings",
-                "path": "/",
-                "parameters": {
-                    "get": [
-                        {
-                            "name": "prefix",
-                            "type": "string",
-                            "title": "Key prefix"
-                        }
-                    ]
-                }
+              "name": "query",
+              "required": false,
+              "title": "Search query to match against charts",
+              "type": "string"
             },
             {
-                "name": "update",
-                "method": "PATCH",
-                "title": "Update settings",
-                "path": "/",
-                "parameters": {
-                    "post": [{
-                        "name": "values",
-                        "type": "settings.ValueSet",
-                        "title": "Array of new settings: `[{ name: ..., value: ... }]`. Omit value to remove setting",
-                        "required": true
-                    }]
-                }
+              "name": "handle",
+              "required": false,
+              "title": "Search charts by handle",
+              "type": "string"
+            },
+            {"type": "uint",   "name": "limit",   "title": "Limit"},
+            {"type": "uint",   "name": "offset",  "title": "Offset"},
+            {"type": "uint",   "name": "page",  "title": "Page number (1-based)"},
+            {"type": "uint",   "name": "perPage", "title": "Returned items per page (default 50)"},
+            {"type": "string", "name": "sort",  "title": "Sort items"}
+          ]
+        }
+      },
+      {
+        "name": "create",
+        "method": "POST",
+        "title": "List/read charts ",
+        "path": "/",
+        "parameters": {
+          "post": [
+            {
+              "type": "sqlxTypes.JSONText",
+              "name": "config",
+              "required": true,
+              "title": "Chart JSON"
             },
             {
-                "name": "get",
-                "method": "GET",
-                "title": "Get a value for a key",
-                "path": "/{key}",
-                "parameters": {
-                    "path": [{
-                        "name": "key",
-                        "type": "string",
-                        "title": "Setting key",
-                        "required": true
-                    }],
-                    "get": [{
-                        "name": "ownerID",
-                        "type": "uint64",
-                        "title": "Owner ID"
-                    }]
-                }
+              "name": "name",
+              "title": "Chart name",
+              "type": "string",
+              "required": true
             },
             {
-                "name": "current",
-                "method": "GET",
-                "title": "Current compose settings",
-                "path": "/current"
+              "name": "handle",
+              "title": "Chart handle",
+              "type": "string",
+              "required": false
             }
+          ]
+        }
+      },
+      {
+        "name": "read",
+        "method": "GET",
+        "title": "Read charts by ID",
+        "path": "/{chartID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "chartID",
+              "required": true,
+              "title": "Chart ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "update",
+        "method": "POST",
+        "title": "Add/update charts",
+        "path": "/{chartID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "chartID",
+              "required": true,
+              "title": "Chart ID"
+            }
+          ],
+          "post": [
+            {
+              "type": "sqlxTypes.JSONText",
+              "name": "config",
+              "required": true,
+              "title": "Chart JSON"
+            },
+            {
+              "name": "name",
+              "title": "Chart name",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "handle",
+              "title": "Chart handle",
+              "type": "string",
+              "required": false
+            },
+            {
+              "type": "*time.Time",
+              "name": "updatedAt",
+              "required": false,
+              "title": "Last update (or creation) date"
+            }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "method": "DELETE",
+        "title": "Delete chart",
+        "path": "/{chartID}",
+        "parameters": {
+          "path": [
+            {
+              "type": "uint64",
+              "name": "chartID",
+              "required": true,
+              "title": "Chart ID"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Notifications",
+    "description": "Compose Notifications",
+    "entrypoint": "notification",
+    "path": "/notification",
+    "authentication": [],
+    "struct": [
+      {
+        "imports": [
+          "sqlxTypes github.com/jmoiron/sqlx/types"
         ]
+      }
+    ],
+    "apis": [
+      {
+        "name": "email/send",
+        "method": "POST",
+        "title": "Send email from the Compose",
+        "path": "/email",
+        "parameters": {
+          "post": [
+            {
+              "name": "to",
+              "type": "[]string",
+              "required": true,
+              "title": "Email addresses"
+            },
+            {
+              "name": "cc",
+              "type": "[]string",
+              "required": false,
+              "title": "Email addresses"
+            },
+            {
+              "name": "replyTo",
+              "type": "string",
+              "required": false,
+              "title": "Email address in reply-to field"
+            },
+            {
+              "name": "subject",
+              "type": "string",
+              "required": false,
+              "title": "Email subject"
+            },
+            {
+              "name": "content",
+              "type": "sqlxTypes.JSONText",
+              "required": true,
+              "title": "Message content"
+            },
+            {
+              "name": "remoteAttachments",
+              "type": "[]string",
+              "required": false,
+              "title": "Remote files to attach to the email"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Attachments",
+    "path": "/namespace/{namespaceID}/attachment/{kind}",
+    "entrypoint": "attachment",
+    "authentication": [
+      "Client ID",
+      "Session ID"
+    ],
+    "parameters": {
+      "path": [
+        {
+          "name": "kind",
+          "type": "string",
+          "required": true,
+          "title": "Attachment kind"
+        },
+        {
+          "type": "uint64",
+          "name": "namespaceID",
+          "required": true,
+          "title": "Namespace ID"
+        }
+      ],
+      "get": [
+        {
+          "type": "string",
+          "name": "sign",
+          "required": false,
+          "title": "Signature"
+        },
+        {
+          "type": "uint64",
+          "name": "userID",
+          "required": false,
+          "title": "User ID"
+        }
+      ]
     },
-    {
-        "title": "Compose automation scripts",
-        "path": "/automation",
-        "entrypoint": "automation",
-        "apis": [
+    "apis": [
+      {
+        "name": "list",
+        "path": "/",
+        "method": "GET",
+        "title": "List, filter all page attachments",
+        "parameters": {
+          "get": [
             {
-                "name": "list",
-                "method": "GET",
-                "title": "List all available automation scripts for compose resources",
-                "path": "/",
-                "parameters": {
-                    "get": [
-                        {
-                            "name": "resourceTypePrefixes",
-                            "type": "[]string",
-                            "title": "Filter by resource prefix"
-                        },
-                        {
-                            "name": "resourceTypes",
-                            "type": "[]string",
-                            "title": "Filter by resource type"
-                        },
-                        {
-                            "name": "eventTypes",
-                            "type": "[]string",
-                            "title": "Filter by event type"
-                        },
-                        {
-                            "name": "excludeInvalid",
-                            "type": "bool",
-                            "title": "Exclude scripts that can not be used (errors)"
-                        },
-                        {
-                            "name": "excludeClientScripts",
-                            "type": "bool",
-                            "title": "Do not include client scripts"
-                        },
-                        {
-                            "name": "excludeServerScripts",
-                            "type": "bool",
-                            "title": "Do not include server scripts"
-                        }
-                    ]
-                }
+              "name": "pageID",
+              "type": "uint64",
+              "required": false,
+              "title": "Filter attachments by page ID"
             },
             {
-                "name": "bundle",
-                "method": "GET",
-                "title": "Serves client scripts bundle",
-                "path": "/{bundle}-{type}.{ext}",
-                "parameters": {
-                  "path": [
-                    {
-                        "name": "bundle",
-                        "type": "string",
-                        "title": "Name of the bundle"
-                    },
-                    {
-                        "name": "type",
-                        "type": "string",
-                        "title": "Bundle type"
-                    },
-                    {
-                        "name": "ext",
-                        "type": "string",
-                        "title": "Bundle extension"
-                    }
-                  ]
-                }
+              "type": "uint64",
+              "name": "moduleID",
+              "required": false,
+              "title": "Filter attachments by module ID"
             },
             {
-                "name": "triggerScript",
-                "method": "POST",
-                "title": "Triggers execution of a specific script on a system service level",
-                "path": "/trigger",
-                "parameters": {
-                    "post": [{
-                        "name": "script",
-                        "type": "string",
-                        "title": "Script to execute",
-                        "required": true
-                    }]
-                }
+              "name": "recordID",
+              "type": "uint64",
+              "required": false,
+              "title": "Filter attachments by record ID"
+            },
+            {
+              "name": "fieldName",
+              "type": "string",
+              "required": false,
+              "title": "Filter attachments by field name"
+            },
+            {"type": "uint", "name": "limit",   "title": "Limit"},
+            {"type": "uint", "name": "offset",  "title": "Offset"},
+            {"type": "uint", "name": "page",  "title": "Page number (1-based)"},
+            {"type": "uint", "name": "perPage", "title": "Returned items per page (default 50)"}
+          ]
+        }
+      },
+      {
+        "name": "read",
+        "path": "/{attachmentID}",
+        "method": "GET",
+        "title": "Attachment details",
+        "parameters": {
+          "path": [
+            {
+              "name": "attachmentID",
+              "type": "uint64",
+              "required": true,
+              "title": "Attachment ID"
             }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "path": "/{attachmentID}",
+        "method": "DELETE",
+        "title": "Delete attachment",
+        "parameters": {
+          "path": [
+            {
+              "name": "attachmentID",
+              "type": "uint64",
+              "required": true,
+              "title": "Attachment ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "original",
+        "path": "/{attachmentID}/original/{name}",
+        "method": "GET",
+        "title": "Serves attached file",
+        "parameters": {
+          "path": [
+            {
+              "name": "attachmentID",
+              "type": "uint64",
+              "required": true,
+              "title": "Attachment ID"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "required": true,
+              "title": "File name"
+            }
+          ],
+          "get": [
+            {
+              "type": "bool",
+              "name": "download",
+              "required": false,
+              "title": "Force file download"
+            }
+          ]
+        }
+      },
+      {
+        "name": "preview",
+        "path": "/{attachmentID}/preview.{ext}",
+        "method": "GET",
+        "title": "Serves preview of an attached file",
+        "parameters": {
+          "path": [
+            {
+              "name": "attachmentID",
+              "type": "uint64",
+              "required": true,
+              "title": "Attachment ID"
+            },
+            {
+              "name": "ext",
+              "type": "string",
+              "required": true,
+              "title": "Preview extension/format"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Permissions",
+    "parameters": {},
+    "entrypoint": "permissions",
+    "path": "/permissions",
+    "authentication": [
+      "Client ID",
+      "Session ID"
+    ],
+    "struct": [
+      {
+        "imports": [
+          "github.com/cortezaproject/corteza-server/pkg/permissions"
         ]
-    }
+      }
+    ],
+    "apis": [
+      {
+        "name": "list",
+        "path": "/",
+        "method": "GET",
+        "title": "Retrieve defined permissions",
+        "parameters": {}
+      },
+      {
+        "name": "effective",
+        "path": "/effective",
+        "method": "GET",
+        "title": "Effective rules for current user",
+        "parameters": {
+          "get": [
+            {
+              "name": "resource",
+              "type": "string",
+              "required": false,
+              "title": "Show only rules for a specific resource"
+            }
+          ]
+        }
+      },
+      {
+        "name": "read",
+        "path": "/{roleID}/rules",
+        "method": "GET",
+        "title": "Retrieve role permissions",
+        "parameters": {
+          "path": [
+            {
+              "name": "roleID",
+              "type": "uint64",
+              "required": true,
+              "title": "Role ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "path": "/{roleID}/rules",
+        "method": "DELETE",
+        "title": "Remove all defined role permissions",
+        "parameters": {
+          "path": [
+            {
+              "name": "roleID",
+              "type": "uint64",
+              "required": true,
+              "title": "Role ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "update",
+        "path": "/{roleID}/rules",
+        "method": "PATCH",
+        "title": "Update permission settings",
+        "parameters": {
+          "path": [
+            {
+              "name": "roleID",
+              "type": "uint64",
+              "required": true,
+              "title": "Role ID"
+            }
+          ],
+          "post": [
+            {
+              "name": "rules",
+              "type": "permissions.RuleSet",
+              "required": true,
+              "title": "List of permission rules to set"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "title": "Settings",
+    "path": "/settings",
+    "entrypoint": "settings",
+    "authentication": [],
+    "struct": [{
+      "imports": [
+        "github.com/cortezaproject/corteza-server/pkg/settings"
+      ]
+    }],
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "title": "List settings",
+        "path": "/",
+        "parameters": {
+          "get": [
+            {
+              "name": "prefix",
+              "type": "string",
+              "title": "Key prefix"
+            }
+          ]
+        }
+      },
+      {
+        "name": "update",
+        "method": "PATCH",
+        "title": "Update settings",
+        "path": "/",
+        "parameters": {
+          "post": [{
+            "name": "values",
+            "type": "settings.ValueSet",
+            "title": "Array of new settings: `[{ name: ..., value: ... }]`. Omit value to remove setting",
+            "required": true
+          }]
+        }
+      },
+      {
+        "name": "get",
+        "method": "GET",
+        "title": "Get a value for a key",
+        "path": "/{key}",
+        "parameters": {
+          "path": [{
+            "name": "key",
+            "type": "string",
+            "title": "Setting key",
+            "required": true
+          }],
+          "get": [{
+            "name": "ownerID",
+            "type": "uint64",
+            "title": "Owner ID"
+          }]
+        }
+      },
+      {
+        "name": "current",
+        "method": "GET",
+        "title": "Current compose settings",
+        "path": "/current"
+      }
+    ]
+  },
+  {
+    "title": "Compose automation scripts",
+    "path": "/automation",
+    "entrypoint": "automation",
+    "apis": [
+      {
+        "name": "list",
+        "method": "GET",
+        "title": "List all available automation scripts for compose resources",
+        "path": "/",
+        "parameters": {
+          "get": [
+            {
+              "name": "resourceTypePrefixes",
+              "type": "[]string",
+              "title": "Filter by resource prefix"
+            },
+            {
+              "name": "resourceTypes",
+              "type": "[]string",
+              "title": "Filter by resource type"
+            },
+            {
+              "name": "eventTypes",
+              "type": "[]string",
+              "title": "Filter by event type"
+            },
+            {
+              "name": "excludeInvalid",
+              "type": "bool",
+              "title": "Exclude scripts that can not be used (errors)"
+            },
+            {
+              "name": "excludeClientScripts",
+              "type": "bool",
+              "title": "Do not include client scripts"
+            },
+            {
+              "name": "excludeServerScripts",
+              "type": "bool",
+              "title": "Do not include server scripts"
+            }
+          ]
+        }
+      },
+      {
+        "name": "bundle",
+        "method": "GET",
+        "title": "Serves client scripts bundle",
+        "path": "/{bundle}-{type}.{ext}",
+        "parameters": {
+          "path": [
+          {
+            "name": "bundle",
+            "type": "string",
+            "title": "Name of the bundle"
+          },
+          {
+            "name": "type",
+            "type": "string",
+            "title": "Bundle type"
+          },
+          {
+            "name": "ext",
+            "type": "string",
+            "title": "Bundle extension"
+          }
+          ]
+        }
+      },
+      {
+        "name": "triggerScript",
+        "method": "POST",
+        "title": "Triggers execution of a specific script on a system service level",
+        "path": "/trigger",
+        "parameters": {
+          "post": [{
+            "name": "script",
+            "type": "string",
+            "title": "Script to execute",
+            "required": true
+          }]
+        }
+      }
+    ]
+  }
 ]
