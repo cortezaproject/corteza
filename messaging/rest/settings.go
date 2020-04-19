@@ -47,6 +47,11 @@ func (ctrl *Settings) Get(ctx context.Context, r *request.SettingsGet) (interfac
 	}
 }
 
+// Current settings, structured
+//
+// This is available to all authenticated users
+//
+// @todo selectively apply subset of user's own settings (like ui.*)
 func (ctrl *Settings) Current(ctx context.Context, r *request.SettingsCurrent) (interface{}, error) {
 	return service.CurrentSettings, nil
 }
