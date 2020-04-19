@@ -128,6 +128,91 @@
 
 
 
+# Attachments
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/attachment/{kind}/{attachmentID}` | Attachment details |
+| `DELETE` | `/attachment/{kind}/{attachmentID}` | Delete attachment |
+| `GET` | `/attachment/{kind}/{attachmentID}/original/{name}` | Serves attached file |
+| `GET` | `/attachment/{kind}/{attachmentID}/preview.{ext}` | Serves preview of an attached file |
+
+## Attachment details
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/attachment/{kind}/{attachmentID}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
+| kind | string | PATH | Kind | N/A | YES |
+| sign | string | GET | Signature | N/A | NO |
+| userID | uint64 | GET | User ID | N/A | NO |
+
+## Delete attachment
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/attachment/{kind}/{attachmentID}` | HTTP/S | DELETE | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
+| kind | string | PATH | Kind | N/A | YES |
+| sign | string | GET | Signature | N/A | NO |
+| userID | uint64 | GET | User ID | N/A | NO |
+
+## Serves attached file
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/attachment/{kind}/{attachmentID}/original/{name}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| download | bool | GET | Force file download | N/A | NO |
+| sign | string | GET | Signature | N/A | NO |
+| userID | uint64 | GET | User ID | N/A | NO |
+| attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
+| name | string | PATH | File name | N/A | YES |
+| kind | string | PATH | Kind | N/A | YES |
+
+## Serves preview of an attached file
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/attachment/{kind}/{attachmentID}/preview.{ext}` | HTTP/S | GET | Client ID, Session ID |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| attachmentID | uint64 | PATH | Attachment ID | N/A | YES |
+| ext | string | PATH | Preview extension/format | N/A | YES |
+| kind | string | PATH | Kind | N/A | YES |
+| sign | string | GET | Signature | N/A | NO |
+| userID | uint64 | GET | User ID | N/A | NO |
+
+---
+
+
+
+
 # Authentication
 
 | Method | Endpoint | Purpose |
@@ -953,6 +1038,7 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | `GET` | `/settings/` | List settings |
 | `PATCH` | `/settings/` | Update settings |
 | `GET` | `/settings/{key}` | Get a value for a key |
+| `POST` | `/settings/{key}` | Set value for specific setting |
 | `GET` | `/settings/current` | Current compose settings |
 
 ## List settings
@@ -997,6 +1083,22 @@ An organisation may have many roles. Roles may have many channels available. Acc
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | ownerID | uint64 | GET | Owner ID | N/A | NO |
 | key | string | PATH | Setting key | N/A | YES |
+
+## Set value for specific setting
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/settings/{key}` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| key | string | PATH | Key | N/A | YES |
+| upload | *multipart.FileHeader | POST | File to upload | N/A | NO |
+| ownerID | uint64 | POST | Owner ID | N/A | NO |
 
 ## Current compose settings
 

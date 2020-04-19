@@ -82,6 +82,7 @@ function types {
 	./build/gen-type-set --types Organisation --output system/types/organisation.gen.go
 	./build/gen-type-set --types Credentials  --output system/types/credentials.gen.go
 	./build/gen-type-set --types Reminder     --output system/types/reminder.gen.go
+	./build/gen-type-set --types Attachment   --output system/types/attachment.gen.go
 
 	./build/gen-type-set-test --types User         --output system/types/user.gen_test.go
 	./build/gen-type-set-test --types Application  --output system/types/application.gen_test.go
@@ -89,6 +90,7 @@ function types {
 	./build/gen-type-set-test --types Organisation --output system/types/organisation.gen_test.go
 	./build/gen-type-set-test --types Credentials  --output system/types/credentials.gen_test.go
 	./build/gen-type-set-test --types Reminder     --output system/types/reminder.gen_test.go
+	./build/gen-type-set-test --types Attachment   --output system/types/attachment.gen_test.go
 
 	./build/gen-type-set --types Value --output pkg/settings/types.gen.go --with-primary-key=false --package settings
 	./build/gen-type-set-test --types Value --output pkg/settings/types.gen_test.go --with-primary-key=false --package settings
