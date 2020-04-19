@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"github.com/davecgh/go-spew/spew"
 	"testing"
 
 	"github.com/jmoiron/sqlx/types"
@@ -131,4 +132,35 @@ func TestDecodeHandler(t *testing.T) {
 	require.NotNil(t, aux.Bar)
 	require.Equal(t, 1, aux.Foo.set)
 	require.Equal(t, 1, aux.Bar.set)
+}
+
+func TestDecodeKV_WithFinalTag(t *testing.T) {
+	type (
+		dst struct {
+			NotFinal struct {
+				Foo string
+				Sub struct {
+					SubFoo int
+				}
+			}
+
+			IsFinal struct {
+				Foo string
+				Sub struct {
+					SubFoo int
+				}
+			} `kv:",final"`
+		}
+	)
+
+	var (
+		aux = dst{}
+		kv  = KV{
+			"notFinal.foo":        types.JSONText(`"42"`),
+			"notFinal.sub.subFoo": types.JSONText(`42`),
+			"isFinal":             types.JSONText(`{"Foo":"final42","Sub":{"SubFoo":42}}`),
+		}
+	)
+
+	spew.Dump(DecodeKV(kv, &aux), aux)
 }
