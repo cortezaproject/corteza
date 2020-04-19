@@ -2,16 +2,18 @@ package rest
 
 import (
 	"context"
-
+	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
+	"strconv"
 )
 
 type (
 	Settings struct {
 		svc struct {
 			settings settings.Service
+			att      service.AttachmentService
 		}
 	}
 )
@@ -19,6 +21,7 @@ type (
 func (Settings) New() *Settings {
 	ctrl := &Settings{}
 	ctrl.svc.settings = service.DefaultSettings
+	ctrl.svc.att = service.DefaultAttachment
 
 	return ctrl
 }
@@ -45,6 +48,37 @@ func (ctrl *Settings) Get(ctx context.Context, r *request.SettingsGet) (interfac
 	} else {
 		return v, nil
 	}
+}
+
+func (ctrl *Settings) Set(ctx context.Context, r *request.SettingsSet) (interface{}, error) {
+	if r.Upload != nil {
+		file, err := r.Upload.Open()
+
+		if err != nil {
+			return nil, err
+		}
+
+		defer file.Close()
+
+		// @todo this whole attachment + settings logic must be moved to settings service
+		//       this can be done when we generalize attachment handling
+		//       and move that our of sys/msg/cmp to pkg
+		att, err := ctrl.svc.att.With(ctx).CreateSettingsAttachment(
+			r.Upload.Filename,
+			r.Upload.Size,
+			file,
+			map[string]string{"key": r.Key, "ownedBy": strconv.FormatUint(r.OwnerID, 10)},
+		)
+
+		s := &settings.Value{Name: r.Key, OwnedBy: r.OwnerID}
+		if err = s.SetValue(fmt.Sprintf("attachment:%d", att.ID)); err != nil {
+			return nil, err
+		}
+
+		return s, ctrl.svc.settings.Set(ctx, s)
+	}
+
+	return nil, nil
 }
 
 // Current settings, structured

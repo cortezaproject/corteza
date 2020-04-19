@@ -214,6 +214,85 @@ func (r *SettingsGet) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewSettingsGet()
 
+// SettingsSet request parameters
+type SettingsSet struct {
+	hasKey bool
+	rawKey string
+	Key    string
+
+	hasUpload bool
+	rawUpload string
+	Upload    *multipart.FileHeader
+
+	hasOwnerID bool
+	rawOwnerID string
+	OwnerID    uint64 `json:",string"`
+}
+
+// NewSettingsSet request
+func NewSettingsSet() *SettingsSet {
+	return &SettingsSet{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r SettingsSet) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["key"] = r.Key
+	out["upload.size"] = r.Upload.Size
+	out["upload.filename"] = r.Upload.Filename
+
+	out["ownerID"] = r.OwnerID
+
+	return out
+}
+
+// Fill processes request and fills internal variables
+func (r *SettingsSet) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseMultipartForm(32 << 20); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	r.hasKey = true
+	r.rawKey = chi.URLParam(req, "key")
+	r.Key = chi.URLParam(req, "key")
+	if _, r.Upload, err = req.FormFile("upload"); err != nil {
+		return errors.Wrap(err, "error processing uploaded file")
+	}
+
+	if val, ok := post["ownerID"]; ok {
+		r.hasOwnerID = true
+		r.rawOwnerID = val
+		r.OwnerID = parseUInt64(val)
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewSettingsSet()
+
 // SettingsCurrent request parameters
 type SettingsCurrent struct {
 }
@@ -321,4 +400,49 @@ func (r *SettingsGet) RawKey() string {
 // GetKey returns casted value of  key parameter
 func (r *SettingsGet) GetKey() string {
 	return r.Key
+}
+
+// HasKey returns true if key was set
+func (r *SettingsSet) HasKey() bool {
+	return r.hasKey
+}
+
+// RawKey returns raw value of key parameter
+func (r *SettingsSet) RawKey() string {
+	return r.rawKey
+}
+
+// GetKey returns casted value of  key parameter
+func (r *SettingsSet) GetKey() string {
+	return r.Key
+}
+
+// HasUpload returns true if upload was set
+func (r *SettingsSet) HasUpload() bool {
+	return r.hasUpload
+}
+
+// RawUpload returns raw value of upload parameter
+func (r *SettingsSet) RawUpload() string {
+	return r.rawUpload
+}
+
+// GetUpload returns casted value of  upload parameter
+func (r *SettingsSet) GetUpload() *multipart.FileHeader {
+	return r.Upload
+}
+
+// HasOwnerID returns true if ownerID was set
+func (r *SettingsSet) HasOwnerID() bool {
+	return r.hasOwnerID
+}
+
+// RawOwnerID returns raw value of ownerID parameter
+func (r *SettingsSet) RawOwnerID() string {
+	return r.rawOwnerID
+}
+
+// GetOwnerID returns casted value of  ownerID parameter
+func (r *SettingsSet) GetOwnerID() uint64 {
+	return r.OwnerID
 }

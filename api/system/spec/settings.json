@@ -68,6 +68,34 @@
       }
     },
     {
+      "Name": "set",
+      "Method": "POST",
+      "Title": "Set value for specific setting",
+      "Path": "/{key}",
+      "Parameters": {
+        "path": [
+          {
+            "name": "key",
+            "required": true,
+            "title": "Key",
+            "type": "string"
+          }
+        ],
+        "post": [
+          {
+            "name": "upload",
+            "title": "File to upload",
+            "type": "*multipart.FileHeader"
+          },
+          {
+            "name": "ownerID",
+            "title": "Owner ID",
+            "type": "uint64"
+          }
+        ]
+      }
+    },
+    {
       "Name": "current",
       "Method": "GET",
       "Title": "Current compose settings",

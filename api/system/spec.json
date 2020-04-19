@@ -272,6 +272,34 @@
         }
       },
       {
+        "name": "set",
+        "path": "/{key}",
+        "method": "POST",
+        "title": "Set value for specific setting",
+        "parameters": {
+          "path": [
+            {
+              "name": "key",
+              "type": "string",
+              "title": "Key",
+              "required": true
+            }
+          ],
+          "post": [
+            {
+              "name": "upload",
+              "type": "*multipart.FileHeader",
+              "title": "File to upload"
+            },
+            {
+              "name": "ownerID",
+              "type": "uint64",
+              "title": "Owner ID"
+            }
+          ]
+        }
+      },
+      {
         "name": "current",
         "method": "GET",
         "title": "Current compose settings",
@@ -1612,6 +1640,126 @@
       }
     ]
   },
+  {
+    "title": "Attachments",
+    "path": "/attachment/{kind}",
+    "entrypoint": "attachment",
+    "authentication": [
+      "Client ID",
+      "Session ID"
+    ],
+    "parameters": {
+      "path": [
+        {
+          "name": "kind",
+          "type": "string",
+          "required": true,
+          "title": "Kind"
+        }
+      ],
+      "get": [
+        {
+          "type": "string",
+          "name": "sign",
+          "required": false,
+          "title": "Signature"
+        },
+        {
+          "type": "uint64",
+          "name": "userID",
+          "required": false,
+          "title": "User ID"
+        }
+      ]
+    },
+    "apis": [
+      {
+        "name": "read",
+        "path": "/{attachmentID}",
+        "method": "GET",
+        "title": "Attachment details",
+        "parameters": {
+          "path": [
+            {
+              "name": "attachmentID",
+              "type": "uint64",
+              "required": true,
+              "title": "Attachment ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "delete",
+        "path": "/{attachmentID}",
+        "method": "DELETE",
+        "title": "Delete attachment",
+        "parameters": {
+          "path": [
+            {
+              "name": "attachmentID",
+              "type": "uint64",
+              "required": true,
+              "title": "Attachment ID"
+            }
+          ]
+        }
+      },
+      {
+        "name": "original",
+        "path": "/{attachmentID}/original/{name}",
+        "method": "GET",
+        "title": "Serves attached file",
+        "parameters": {
+          "path": [
+            {
+              "name": "attachmentID",
+              "type": "uint64",
+              "required": true,
+              "title": "Attachment ID"
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "required": true,
+              "title": "File name"
+            }
+          ],
+          "get": [
+            {
+              "type": "bool",
+              "name": "download",
+              "required": false,
+              "title": "Force file download"
+            }
+          ]
+        }
+      },
+      {
+        "name": "preview",
+        "path": "/{attachmentID}/preview.{ext}",
+        "method": "GET",
+        "title": "Serves preview of an attached file",
+        "parameters": {
+          "path": [
+            {
+              "name": "attachmentID",
+              "type": "uint64",
+              "required": true,
+              "title": "Attachment ID"
+            },
+            {
+              "name": "ext",
+              "type": "string",
+              "required": true,
+              "title": "Preview extension/format"
+            }
+          ]
+        }
+      }
+    ]
+  },
+
   {
     "title": "Statistics",
     "entrypoint": "stats",

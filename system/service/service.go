@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/store"
+	"github.com/cortezaproject/corteza-server/pkg/store/minio"
+	"github.com/cortezaproject/corteza-server/pkg/store/plain"
 
 	"go.uber.org/zap"
 
@@ -42,6 +45,8 @@ type (
 )
 
 var (
+	DefaultStore store.Store
+
 	DefaultLogger *zap.Logger
 
 	// CurrentSubscription holds current subscription info,
@@ -77,6 +82,7 @@ var (
 	DefaultOrganisation OrganisationService
 	DefaultApplication  ApplicationService
 	DefaultReminder     ReminderService
+	DefaultAttachment   AttachmentService
 
 	DefaultStatistics *statistics
 )
@@ -99,6 +105,41 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 		CurrentSettings,
 	)
 
+	if DefaultStore == nil {
+		const svcPath = "compose"
+		if c.Storage.MinioEndpoint != "" {
+			var bucket = svcPath
+			if c.Storage.MinioBucket != "" {
+				bucket = c.Storage.MinioBucket + "/" + svcPath
+			}
+
+			DefaultStore, err = minio.New(bucket, minio.Options{
+				Endpoint:        c.Storage.MinioEndpoint,
+				Secure:          c.Storage.MinioSecure,
+				Strict:          c.Storage.MinioStrict,
+				AccessKeyID:     c.Storage.MinioAccessKey,
+				SecretAccessKey: c.Storage.MinioSecretKey,
+
+				ServerSideEncryptKey: []byte(c.Storage.MinioSSECKey),
+			})
+
+			log.Info("initializing minio",
+				zap.String("bucket", bucket),
+				zap.String("endpoint", c.Storage.MinioEndpoint),
+				zap.Error(err))
+		} else {
+			path := c.Storage.Path + "/" + svcPath
+			DefaultStore, err = plain.New(path)
+			log.Info("initializing store",
+				zap.String("path", path),
+				zap.Error(err))
+		}
+
+		if err != nil {
+			return err
+		}
+	}
+
 	DefaultAuthNotification = AuthNotification(ctx)
 	DefaultAuth = Auth(ctx)
 	DefaultUser = User(ctx)
@@ -108,6 +149,7 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultReminder = Reminder(ctx)
 	DefaultSink = Sink()
 	DefaultStatistics = Statistics(ctx)
+	DefaultAttachment = Attachment(DefaultStore)
 
 	return
 }
