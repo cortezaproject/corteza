@@ -66,6 +66,41 @@ func makeDefaultApplications(ctx context.Context, log *zap.Logger) error {
 		return err
 	}
 
+	// Update icon & logo on all apps
+	const (
+		oldIconUrl = "/applications/crust_favicon.png"
+		oldLogoUrl = "/applications/crust.jpg"
+
+		newIconUrl = "/applications/default_icon.png"
+		newLogoUrl = "/applications/default_logo.jpg"
+	)
+
+	for a := 0; a < len(aa); a++ {
+		var dirty bool
+
+		if aa[a].Unify == nil {
+			continue
+		}
+
+		if aa[a].Unify.Icon == oldIconUrl {
+			aa[a].Unify.Icon = newIconUrl
+			dirty = true
+		}
+
+		if aa[a].Unify.Logo == oldLogoUrl {
+			aa[a].Unify.Logo = newLogoUrl
+			dirty = true
+		}
+
+		if !dirty {
+			continue
+		}
+
+		if aa[a], err = repo.Update(aa[a]); err != nil {
+			return err
+		}
+	}
+
 	// List of apps to create.
 	//
 	// We use Unify.Url field for matching,
@@ -77,8 +112,8 @@ func makeDefaultApplications(ctx context.Context, log *zap.Logger) error {
 			Unify: &types.ApplicationUnify{
 				Name:   "CRM",
 				Listed: true,
-				Icon:   "/applications/crust_favicon.png",
-				Logo:   "/applications/crust.jpg",
+				Icon:   newIconUrl,
+				Logo:   newLogoUrl,
 				Url:    "/compose/ns/crm/pages",
 			},
 		},
@@ -89,8 +124,8 @@ func makeDefaultApplications(ctx context.Context, log *zap.Logger) error {
 			Unify: &types.ApplicationUnify{
 				Name:   "Service Cloud",
 				Listed: true,
-				Icon:   "/applications/crust_favicon.png",
-				Logo:   "/applications/crust.jpg",
+				Icon:   newIconUrl,
+				Logo:   newLogoUrl,
 				Url:    "/compose/ns/service-cloud/pages",
 			},
 		},
@@ -112,8 +147,6 @@ func makeDefaultApplications(ctx context.Context, log *zap.Logger) error {
 			zap.Error(err),
 		)
 		return err
-
-		return nil
 	})
 }
 
