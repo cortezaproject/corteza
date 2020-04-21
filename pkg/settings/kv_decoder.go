@@ -1,7 +1,7 @@
 package settings
 
 import (
-	"errors"
+	"github.com/pkg/errors"
 	"reflect"
 	"strings"
 )
@@ -100,7 +100,7 @@ func DecodeKV(kv KV, dst interface{}, pp ...string) (err error) {
 			if decode, ok := decodeMethod.Interface().(func(KV, string) error); !ok {
 				panic("invalid DecodeKV() function signature")
 			} else if err = decode(kv, key); err != nil {
-				return
+				return errors.Wrapf(err, "cannot decode settings for %q", key)
 			} else {
 				continue
 			}
@@ -130,7 +130,7 @@ func DecodeKV(kv KV, dst interface{}, pp ...string) (err error) {
 					mapValue := reflect.New(structField.Type().Elem())
 					err = val.Unmarshal(mapValue.Interface())
 					if err != nil {
-						return
+						return errors.Wrapf(err, "cannot decode settings for %q", key)
 					}
 
 					structField.SetMapIndex(reflect.ValueOf(k), mapValue.Elem())
@@ -144,7 +144,7 @@ func DecodeKV(kv KV, dst interface{}, pp ...string) (err error) {
 		if val, ok := kv[key]; ok {
 			// Always use pointer to value
 			if err = val.Unmarshal(structField.Addr().Interface()); err != nil {
-				return
+				return errors.Wrapf(err, "cannot decode settings for %q", key)
 			}
 		}
 	}
