@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 )
@@ -88,4 +89,62 @@ func TestDefaultValueSetting(t *testing.T) {
 	chk(out, "single", 0, "s")
 	chk(out, "multi", 0, "m1")
 	chk(out, "multi", 1, "m2")
+}
+
+func TestProcUpdateOwnerPreservation(t *testing.T) {
+	var (
+		a = assert.New(t)
+
+		svc = record{
+			sanitizer: values.Sanitizer(),
+			validator: values.Validator(),
+		}
+
+		mod = &types.Module{
+			Fields: types.ModuleFieldSet{},
+		}
+
+		oldRec = &types.Record{
+			OwnedBy: 1,
+			Values:  types.RecordValueSet{},
+		}
+		newRec = &types.Record{
+			OwnedBy: 0,
+			Values:  types.RecordValueSet{},
+		}
+	)
+
+	svc.procUpdate(10, mod, newRec, oldRec)
+	a.Equal(newRec.OwnedBy, uint64(1))
+	svc.procUpdate(10, mod, newRec, oldRec)
+	a.Equal(newRec.OwnedBy, uint64(1))
+}
+
+func TestProcUpdateOwnerChanged(t *testing.T) {
+	var (
+		a = assert.New(t)
+
+		svc = record{
+			sanitizer: values.Sanitizer(),
+			validator: values.Validator(),
+		}
+
+		mod = &types.Module{
+			Fields: types.ModuleFieldSet{},
+		}
+
+		oldRec = &types.Record{
+			OwnedBy: 1,
+			Values:  types.RecordValueSet{},
+		}
+		newRec = &types.Record{
+			OwnedBy: 9,
+			Values:  types.RecordValueSet{},
+		}
+	)
+
+	svc.procUpdate(10, mod, newRec, oldRec)
+	a.Equal(newRec.OwnedBy, uint64(9))
+	svc.procUpdate(10, mod, newRec, oldRec)
+	a.Equal(newRec.OwnedBy, uint64(9))
 }
