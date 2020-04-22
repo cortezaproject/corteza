@@ -478,6 +478,14 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 			return rve
 		}
 
+		// Before we pass values to record-before-update handling events
+		// values needs do be cleaned up
+		//
+		// Value merge inside procUpdate sets delete flag we need
+		// when changes are applied but we do not want deleted values
+		// to be sent to handler
+		upd.Values = upd.Values.GetClean()
+
 		// Scripts can (besides simple error value) return complex record value error set
 		// that is passed back to the UI or any other API consumer
 		//
@@ -502,6 +510,8 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 			return
 		}
 
+		// Final value cleanup
+		// These (clean) values are returned (and sent to after-update handler)
 		upd.Values = upd.Values.GetClean()
 
 		// At this point we can return the value
@@ -518,7 +528,7 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 // This logic is kept in a utility function - it's used in the beginning
 // of the update procedure and after results are back from the automation scripts
 //
-// Both these points introduce external data that need to be checked fully in the same maner
+// Both these points introduce external data that need to be checked fully in the same manner
 func (svc record) procUpdate(invokerID uint64, m *types.Module, upd *types.Record, old *types.Record) *types.RecordValueErrorSet {
 	// Mark all values as updated (new)
 	upd.Values.SetUpdatedFlag(true)
