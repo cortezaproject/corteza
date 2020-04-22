@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
@@ -58,4 +59,20 @@ loop:
 // Resource returns a system resource ID for this type
 func (r Record) PermissionResource() permissions.Resource {
 	return ModulePermissionResource.AppendID(r.ModuleID)
+}
+
+// UnmarshalJSON for custom record deserialization
+//
+// Due to https://github.com/golang/go/issues/21092, we should manually reset the given record value set.
+// If this is skipped there is a chance of data corruption; ie. wrong value is removed/edited
+func (r *Record) UnmarshalJSON(data []byte) error {
+	// Reset value set
+	r.Values = nil
+
+	// Deserialize to r (*Record) via auxRecord auxiliary record type alias
+	//
+	// This prevents inf. loop where json.Unmarshal directly on Record type
+	// calls this function
+	type auxRecord Record
+	return json.Unmarshal(data, &struct{ *auxRecord }{auxRecord: (*auxRecord)(r)})
 }
