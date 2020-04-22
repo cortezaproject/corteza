@@ -3,10 +3,11 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/compose/service/values"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
@@ -554,15 +555,17 @@ func (svc record) procUpdate(invokerID uint64, m *types.Module, upd *types.Recor
 	// that we can selectively update in the repository
 	upd.Values = old.Values.Merge(upd.Values)
 
-	if upd.OwnedBy == 0 && old.OwnedBy > 0 {
-		// Owner not set/send in the payload
-		//
-		// Fallback to old owner (if set)
-		upd.OwnedBy = old.OwnedBy
-	} else {
-		// If od owner is not set, make current user
-		// the owner of the record
-		upd.OwnedBy = invokerID
+	if upd.OwnedBy == 0 {
+		if old.OwnedBy > 0 {
+			// Owner not set/send in the payload
+			//
+			// Fallback to old owner (if set)
+			upd.OwnedBy = old.OwnedBy
+		} else {
+			// If od owner is not set, make current user
+			// the owner of the record
+			upd.OwnedBy = invokerID
+		}
 	}
 
 	// Run validation of the updated records
