@@ -1,18 +1,20 @@
 package values
 
 import (
-	"github.com/cortezaproject/corteza-server/compose/types"
 	"reflect"
 	"testing"
+
+	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
 func Test_sanitizer_Run(t *testing.T) {
 	tests := []struct {
-		name   string
-		kind   string
-		input  string
-		output string
-		outref uint64
+		name    string
+		kind    string
+		options map[string]interface{}
+		input   string
+		output  string
+		outref  uint64
 	}{
 		{
 			name:   "numbers should be trimmed",
@@ -88,11 +90,46 @@ func Test_sanitizer_Run(t *testing.T) {
 			input:  "2020-03-11T11:20:08.471Z",
 			output: "2020-03-11T11:20:08Z",
 		},
+		{
+			name:    "number precision",
+			kind:    "Number",
+			options: map[string]interface{}{"precision": 3},
+			input:   "42.44455",
+			output:  "42.445",
+		},
+		{
+			name:    "number precision; bigger precision then provided fracture",
+			kind:    "Number",
+			options: map[string]interface{}{"precision": 3},
+			input:   "42.4",
+			output:  "42.4",
+		},
+		{
+			name:    "number precision; default to 0",
+			kind:    "Number",
+			options: map[string]interface{}{},
+			input:   "42.4",
+			output:  "42",
+		},
+		{
+			name:    "number precision; clamped between [0, 6]",
+			kind:    "Number",
+			options: map[string]interface{}{"precision": 10},
+			input:   "42.5555555555",
+			output:  "42.555556",
+		},
+		{
+			name:    "number precision; clamped between [0, 6]",
+			kind:    "Number",
+			options: map[string]interface{}{"precision": -1},
+			input:   "42.4",
+			output:  "42",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := sanitizer{}
-			m := &types.Module{Fields: types.ModuleFieldSet{&types.ModuleField{Name: "testField", Kind: tt.kind}}}
+			m := &types.Module{Fields: types.ModuleFieldSet{&types.ModuleField{Name: "testField", Kind: tt.kind, Options: tt.options}}}
 			v := types.RecordValueSet{&types.RecordValue{Name: "testField", Value: tt.input}}
 			o := types.RecordValueSet{&types.RecordValue{Name: "testField", Value: tt.output, Ref: tt.outref}}
 
