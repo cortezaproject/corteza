@@ -374,6 +374,7 @@ func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
 			return rve
 		}
 
+		new.Values = svc.formatter.Run(m, new.Values)
 		if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeCreate(new, nil, m, ns, rve)); err != nil {
 			return
 		} else if !rve.IsValid() {
@@ -399,7 +400,10 @@ func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
 		// At this point we can return the value
 		rec = new
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil))
+		defer func() {
+			new.Values = svc.formatter.Run(m, new.Values)
+			svc.eventbus.Dispatch(svc.ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil))
+		}()
 		return
 	})
 }
@@ -487,6 +491,9 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 		// to be sent to handler
 		upd.Values = upd.Values.GetClean()
 
+		// Before we pass values to automation scripts, they should be formatted
+		upd.Values = svc.formatter.Run(m, upd.Values)
+
 		// Scripts can (besides simple error value) return complex record value error set
 		// that is passed back to the UI or any other API consumer
 		//
@@ -518,7 +525,11 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 		// At this point we can return the value
 		rec = upd
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil))
+		defer func() {
+			// Before we pass values to automation scripts, they should be formatted
+			upd.Values = svc.formatter.Run(m, upd.Values)
+			svc.eventbus.Dispatch(svc.ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil))
+		}()
 		return
 	})
 }
