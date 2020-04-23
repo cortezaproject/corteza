@@ -169,7 +169,7 @@ func RegisterIteratorProviders() {
 		"compose:record",
 		func(ctx context.Context, f map[string]string, h eventbus.HandlerFn, action string) error {
 			rf := types.RecordFilter{
-				Filter: f["filter"],
+				Filter: f["query"],
 				Sort:   f["sort"],
 			}
 
