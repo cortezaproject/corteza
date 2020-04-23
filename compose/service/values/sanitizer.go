@@ -1,10 +1,11 @@
 package values
 
 import (
-	"github.com/cortezaproject/corteza-server/compose/types"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
 type (
@@ -88,14 +89,14 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 			v = s.sBool(v, f, m)
 		case "datetime":
 			v = s.sDatetime(v, f, m)
+		case "number":
+			v = s.sNumber(v, f, m)
 
 			// Uncomment when they become relevant for sanitization
 			//case "email":
 			//	v = s.sEmail(v, f, m)
 			//case "file":
 			//	v = s.sFile(v, f, m)
-			//case "number":
-			//	v = s.sNumber(v, f, m)
 			//case "record":
 			//	v = s.sRecord(v, f, m)
 			//case "select":
@@ -192,6 +193,60 @@ func (sanitizer) sDatetime(v *types.RecordValue, f *types.ModuleField, m *types.
 	return v
 }
 
+func (sanitizer) sNumber(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
+	// No point in continuing
+	if v.Value == "" || f.Options == nil {
+		return v
+	}
+
+	// Default to 0 for consistency
+	if f.Options["precision"] == nil || f.Options["precision"] == "" {
+		f.Options["precision"] = 0
+	}
+
+	// Since Options are not structured, there would appear that there can be a bit of a mess
+	// when it comes to types,so this is needed.
+	var prec float64
+	unk := f.Options["precision"]
+	switch i := unk.(type) {
+	case float64:
+		prec = i
+	case int:
+		prec = float64(i)
+	case int64:
+		prec = float64(i)
+	case string:
+		pp, err := strconv.ParseFloat(i, 64)
+		if err != nil {
+			prec = 0
+			break
+		}
+		prec = pp
+	}
+
+	// Clamp between 0 and 6; this was originally done in corteza-js so we keep it here.
+	if prec < 0 {
+		prec = 0
+	}
+	if prec > 6 {
+		prec = 6
+	}
+
+	base, err := strconv.ParseFloat(v.Value, 64)
+	if err != nil {
+		return v
+	}
+
+	// 1. Format the value to the desired precision
+	// 2. In case of fractures, remove trailing 0's
+	v.Value = strconv.FormatFloat(base, 'f', int(prec), 64)
+	if strings.Contains(v.Value, ".") {
+		v.Value = strings.TrimRight(v.Value, "0")
+	}
+
+	return v
+}
+
 //
 //func (sanitizer) sEmail(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
 //  // @todo extract from "name" <email> format
@@ -202,11 +257,6 @@ func (sanitizer) sDatetime(v *types.RecordValue, f *types.ModuleField, m *types.
 //	return v
 //}
 //
-//func (sanitizer) sNumber(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-//	// @todo cut off the decimals / round up
-//	// @todo sanitize decimal/thousands dot/comma
-//	return v
-//}
 //
 //func (sanitizer) sRecord(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
 //	return v
