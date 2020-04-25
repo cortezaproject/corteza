@@ -3,7 +3,6 @@ package importer
 import (
 	"context"
 	"fmt"
-
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/compose/types"

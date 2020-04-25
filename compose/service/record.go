@@ -44,6 +44,8 @@ type (
 		formatter recordValuesFormatter
 		sanitizer recordValuesSanitizer
 		validator recordValuesValidator
+
+		optEmitEvents bool
 	}
 
 	recordValuesFormatter interface {
@@ -90,6 +92,8 @@ type (
 		Organize(namespaceID, moduleID, recordID uint64, sortingField, sortingValue, sortingFilter, valueField, value string) error
 
 		Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action string) (err error)
+
+		EventEmitting(enable bool)
 	}
 
 	Encoder interface {
@@ -127,9 +131,10 @@ type (
 
 func Record() RecordService {
 	return (&record{
-		logger:   DefaultLogger.Named("record"),
-		ac:       DefaultAccessControl,
-		eventbus: eventbus.Service(),
+		logger:        DefaultLogger.Named("record"),
+		ac:            DefaultAccessControl,
+		eventbus:      eventbus.Service(),
+		optEmitEvents: true,
 	}).With(context.Background())
 }
 
@@ -185,7 +190,13 @@ func (svc record) With(ctx context.Context) RecordService {
 		formatter: values.Formatter(),
 		sanitizer: values.Sanitizer(),
 		validator: validator,
+
+		optEmitEvents: svc.optEmitEvents,
 	}
+}
+
+func (svc *record) EventEmitting(enable bool) {
+	svc.optEmitEvents = enable
 }
 
 // log() returns zap's logger with requestID from current context and fields.
@@ -369,16 +380,18 @@ func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
 			rve *types.RecordValueErrorSet
 		)
 
-		// Handle input payload
-		if rve = svc.procCreate(invokerID, m, new); !rve.IsValid() {
-			return rve
-		}
+		if svc.optEmitEvents {
+			// Handle input payload
+			if rve = svc.procCreate(invokerID, m, new); !rve.IsValid() {
+				return rve
+			}
 
-		new.Values = svc.formatter.Run(m, new.Values)
-		if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeCreate(new, nil, m, ns, rve)); err != nil {
-			return
-		} else if !rve.IsValid() {
-			return rve
+			new.Values = svc.formatter.Run(m, new.Values)
+			if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeCreate(new, nil, m, ns, rve)); err != nil {
+				return
+			} else if !rve.IsValid() {
+				return rve
+			}
 		}
 
 		// Assign defaults (only on missing values)
@@ -400,10 +413,12 @@ func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
 		// At this point we can return the value
 		rec = new
 
-		defer func() {
-			new.Values = svc.formatter.Run(m, new.Values)
-			svc.eventbus.Dispatch(svc.ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil))
-		}()
+		if svc.optEmitEvents {
+			defer func() {
+				new.Values = svc.formatter.Run(m, new.Values)
+				svc.eventbus.Dispatch(svc.ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil))
+			}()
+		}
 		return
 	})
 }
@@ -478,31 +493,33 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 			rve *types.RecordValueErrorSet
 		)
 
-		// Handle input payload
-		if rve = svc.procUpdate(invokerID, m, upd, old); !rve.IsValid() {
-			return rve
-		}
+		if svc.optEmitEvents {
+			// Handle input payload
+			if rve = svc.procUpdate(invokerID, m, upd, old); !rve.IsValid() {
+				return rve
+			}
 
-		// Before we pass values to record-before-update handling events
-		// values needs do be cleaned up
-		//
-		// Value merge inside procUpdate sets delete flag we need
-		// when changes are applied but we do not want deleted values
-		// to be sent to handler
-		upd.Values = upd.Values.GetClean()
+			// Before we pass values to record-before-update handling events
+			// values needs do be cleaned up
+			//
+			// Value merge inside procUpdate sets delete flag we need
+			// when changes are applied but we do not want deleted values
+			// to be sent to handler
+			upd.Values = upd.Values.GetClean()
 
-		// Before we pass values to automation scripts, they should be formatted
-		upd.Values = svc.formatter.Run(m, upd.Values)
+			// Before we pass values to automation scripts, they should be formatted
+			upd.Values = svc.formatter.Run(m, upd.Values)
 
-		// Scripts can (besides simple error value) return complex record value error set
-		// that is passed back to the UI or any other API consumer
-		//
-		// rve (record-validation-errorset) struct is passed so it can be
-		// used & filled by automation scripts
-		if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeUpdate(upd, old, m, ns, rve)); err != nil {
-			return
-		} else if !rve.IsValid() {
-			return rve
+			// Scripts can (besides simple error value) return complex record value error set
+			// that is passed back to the UI or any other API consumer
+			//
+			// rve (record-validation-errorset) struct is passed so it can be
+			// used & filled by automation scripts
+			if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeUpdate(upd, old, m, ns, rve)); err != nil {
+				return
+			} else if !rve.IsValid() {
+				return rve
+			}
 		}
 
 		// Handle payload from automation scripts
@@ -525,11 +542,13 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 		// At this point we can return the value
 		rec = upd
 
-		defer func() {
-			// Before we pass values to automation scripts, they should be formatted
-			upd.Values = svc.formatter.Run(m, upd.Values)
-			svc.eventbus.Dispatch(svc.ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil))
-		}()
+		if svc.optEmitEvents {
+			defer func() {
+				// Before we pass values to automation scripts, they should be formatted
+				upd.Values = svc.formatter.Run(m, upd.Values)
+				svc.eventbus.Dispatch(svc.ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil))
+			}()
+		}
 		return
 	})
 }
@@ -637,19 +656,21 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 				return err
 			}
 
-			// Preload old record values so we can send it together with event
-			if err = svc.preloadValues(m, del); err != nil {
-				return err
-			}
-
-			// Calling before-record-delete scripts
-			if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeDelete(nil, del, m, ns, nil)); err != nil {
-				if isBulkDelete {
-					// Not considered fatal,
-					// continue with next record
-					return nil
-				} else {
+			if svc.optEmitEvents {
+				// Preload old record values so we can send it together with event
+				if err = svc.preloadValues(m, del); err != nil {
 					return err
+				}
+
+				// Calling before-record-delete scripts
+				if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeDelete(nil, del, m, ns, nil)); err != nil {
+					if isBulkDelete {
+						// Not considered fatal,
+						// continue with next record
+						return nil
+					} else {
+						return err
+					}
 				}
 			}
 
@@ -664,7 +685,9 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 				return err
 			}
 
-			defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil))
+			if svc.optEmitEvents {
+				defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil))
+			}
 
 			return err
 		})
