@@ -68,8 +68,16 @@ func (n Ident) ToSql() (string, []interface{}, error) {
 	return n.Value, n.Args, nil
 }
 
-func (n Null) ToSql() (string, []interface{}, error) {
+func (n LNull) ToSql() (string, []interface{}, error) {
 	return "NULL", nil, nil
+}
+
+func (n LBoolean) ToSql() (string, []interface{}, error) {
+	if n.Value {
+		return "TRUE", nil, nil
+	} else {
+		return "FALSE", nil, nil
+	}
 }
 
 func (n Function) ToSql() (string, []interface{}, error) {
@@ -101,10 +109,10 @@ func (n Operator) ToSql() (string, []interface{}, error) {
 	return " " + op + " ", nil, nil
 }
 
-func (n String) ToSql() (string, []interface{}, error) {
+func (n LString) ToSql() (string, []interface{}, error) {
 	return "?", []interface{}{n.Value}, nil
 }
 
-func (n Number) ToSql() (string, []interface{}, error) {
+func (n LNumber) ToSql() (string, []interface{}, error) {
 	return n.Value, nil, nil
 }

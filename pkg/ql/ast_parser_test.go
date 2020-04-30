@@ -29,7 +29,7 @@ func TestAstParser_Parser(t *testing.T) {
 				ASTNodes{
 					Ident{Value: "arg2"},
 					Operator{Kind: "/"},
-					Number{Value: "100"},
+					LNumber{Value: "100"},
 				},
 			},
 		},
@@ -42,7 +42,7 @@ func TestAstParser_Parser(t *testing.T) {
 						ASTNodes{
 							Ident{Value: "arg1"},
 							Operator{Kind: "*"},
-							Number{Value: "5"},
+							LNumber{Value: "5"},
 						},
 					},
 				},
@@ -50,9 +50,9 @@ func TestAstParser_Parser(t *testing.T) {
 				ASTNodes{
 					Ident{Value: "arg2"},
 					Operator{Kind: "/"},
-					Number{Value: "100"},
+					LNumber{Value: "100"},
 					Operator{Kind: "+"},
-					Number{Value: "10"},
+					LNumber{Value: "10"},
 				},
 			},
 		},
@@ -63,7 +63,7 @@ func TestAstParser_Parser(t *testing.T) {
 					Name: "date_format",
 					Arguments: ASTSet{
 						Ident{Value: "created_at"},
-						String{Value: "%Y"},
+						LString{Value: "%Y"},
 					},
 				},
 			},
@@ -92,7 +92,7 @@ func TestAstParser_Parser(t *testing.T) {
 					},
 				},
 				Operator{Kind: "!="},
-				Number{Value: "2010"},
+				LNumber{Value: "2010"},
 			},
 		},
 		{
@@ -106,7 +106,7 @@ func TestAstParser_Parser(t *testing.T) {
 					},
 				},
 				Operator{Kind: "!="},
-				Number{Value: "2010"},
+				LNumber{Value: "2010"},
 				Operator{"AND"},
 				Function{
 					Name: "month",
@@ -115,7 +115,7 @@ func TestAstParser_Parser(t *testing.T) {
 					},
 				},
 				Operator{Kind: "="},
-				Number{Value: "6"},
+				LNumber{Value: "6"},
 			},
 		},
 		{
@@ -126,7 +126,7 @@ func TestAstParser_Parser(t *testing.T) {
 				Operator{Kind: "="},
 				Function{Name: "year", Arguments: ASTSet{Function{Name: "now"}}},
 				Operator{Kind: "-"},
-				Number{Value: "1"},
+				LNumber{Value: "1"},
 			},
 		},
 		{
@@ -144,7 +144,7 @@ func TestAstParser_Parser(t *testing.T) {
 			tree: ASTNodes{
 				Ident{Value: "foo"},
 				Operator{Kind: "LIKE"},
-				String{Value: "bar%"},
+				LString{Value: "bar%"},
 			},
 		},
 		{
@@ -153,7 +153,7 @@ func TestAstParser_Parser(t *testing.T) {
 			tree: ASTNodes{
 				Ident{Value: "foo"},
 				Operator{Kind: "NOT LIKE"},
-				String{Value: "bar%"},
+				LString{Value: "bar%"},
 			},
 		},
 		{
@@ -162,7 +162,7 @@ func TestAstParser_Parser(t *testing.T) {
 			tree: ASTNodes{
 				Ident{Value: "foo"},
 				Operator{Kind: "="},
-				Null{},
+				LNull{},
 			},
 		},
 		{
@@ -171,7 +171,7 @@ func TestAstParser_Parser(t *testing.T) {
 			tree: ASTNodes{
 				Ident{Value: "foo"},
 				Operator{Kind: "IS NOT"},
-				Null{},
+				LNull{},
 			},
 		},
 		{
@@ -180,7 +180,7 @@ func TestAstParser_Parser(t *testing.T) {
 			tree: ASTNodes{
 				Ident{Value: "foo"},
 				Operator{Kind: "IS"},
-				Null{},
+				LNull{},
 			},
 		},
 		{
@@ -216,6 +216,24 @@ func TestAstParser_Parser(t *testing.T) {
 				Ident{Value: "foo3"},
 			},
 		},
+		{
+			parser: NewParser().ParseExpression,
+			in:     `false AND true`,
+			tree: ASTNodes{
+				LBoolean{Value: false},
+				Operator{"AND"},
+				LBoolean{Value: true},
+			},
+		},
+		{
+			parser: NewParser().ParseExpression,
+			in:     `false AND true`,
+			tree: ASTNodes{
+				LBoolean{Value: false},
+				Operator{"AND"},
+				LBoolean{Value: true},
+			},
+		},
 		// @todo support IN (....)
 		//{
 		//	parser: NewParser().ParseExpression,
@@ -224,9 +242,9 @@ func TestAstParser_Parser(t *testing.T) {
 		//		Ident{Value: "abc"},
 		//		Operator{"IN"},
 		//		ASTNodes{
-		//			Number{Value: "1"},
-		//			Number{Value: "2"},
-		//			Number{Value: "3"},
+		//			LNumber{Value: "1"},
+		//			LNumber{Value: "2"},
+		//			LNumber{Value: "3"},
 		//		},
 		//	},
 		//},
@@ -333,7 +351,7 @@ func TestAstParser_ColumnParser(t *testing.T) {
 							Name: "DATE_FORMAT",
 							Arguments: ASTSet{
 								Ident{Value: "some_date"},
-								String{Value: "%Y-%m-01"},
+								LString{Value: "%Y-%m-01"},
 							},
 						},
 					},
