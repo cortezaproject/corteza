@@ -155,40 +155,23 @@ func (r record) Export(module *types.Module, filter types.RecordFilter) (set typ
 }
 
 func (r record) buildQuery(module *types.Module, f types.RecordFilter) (query squirrel.SelectBuilder, err error) {
-	// Create query for fetching and counting records.
-	query = r.query().
-		Where("r.module_id = ?", module.ID).
-		Where("r.rel_namespace = ?", module.NamespaceID)
-
-	var joinedFields = []string{}
-	var alreadyJoined = func(f string) bool {
-		for _, a := range joinedFields {
-			if a == f {
-				return true
+	var (
+		joinedFields  = []string{}
+		alreadyJoined = func(f string) bool {
+			for _, a := range joinedFields {
+				if a == f {
+					return true
+				}
 			}
+
+			joinedFields = append(joinedFields, f)
+			return false
 		}
 
-		joinedFields = append(joinedFields, f)
-		return false
-	}
-
-	// Inc/exclude deleted records according to filter settings
-	query = rh.FilterNullByState(query, "r.deleted_at", f.Deleted)
-
-	// Parse filters.
-	if f.Query != "" {
-		var (
-			// Filter parser
-			fp = ql.NewParser()
-
-			// Filter node
-			fn ql.ASTNode
-		)
-
-		// Make a nice wrapper that will translate module fields to subqueries
-		fp.OnIdent = func(i ql.Ident) (ql.Ident, error) {
+		identResolver = func(i ql.Ident) (ql.Ident, error) {
 			var is bool
 			if i.Value, is = isRealRecordCol(i.Value); is {
+				i.Value += " "
 				return i, nil
 			}
 
@@ -203,11 +186,46 @@ func (r record) buildQuery(module *types.Module, f types.RecordFilter) (query sq
 				), i.Value)
 			}
 
-			// @todo switch value for ref when doing Record/Owner lookup
-			i.Value = fmt.Sprintf("rv_%s.value", i.Value)
+			field := module.Fields.FindByName(i.Value)
+
+			switch true {
+			case field.IsBoolean():
+				i.Value = fmt.Sprintf("(rv_%s.value NOT IN ('', '0', 'false', 'f',  'FALSE', 'F', false))", i.Value)
+			case field.IsNumeric():
+				i.Value = fmt.Sprintf("CAST(rv_%s.value AS SIGNED)", i.Value)
+			case field.IsDateTime():
+				i.Value = fmt.Sprintf("CAST(rv_%s.value AS DATETIME)", i.Value)
+			case field.IsRef():
+				i.Value = fmt.Sprintf("rv_%s.ref ", i.Value)
+			default:
+				i.Value = fmt.Sprintf("rv_%s.value ", i.Value)
+			}
 
 			return i, nil
 		}
+	)
+
+	// Create query for fetching and counting records.
+	query = r.query().
+		Where("r.module_id = ?", module.ID).
+		Where("r.rel_namespace = ?", module.NamespaceID)
+
+	// Inc/exclude deleted records according to filter settings
+	query = rh.FilterNullByState(query, "r.deleted_at", f.Deleted)
+
+	// Parse filters.
+	if f.Query != "" {
+		var (
+			// Filter parser
+			fp = ql.NewParser()
+
+			// Filter node
+			fn ql.ASTNode
+		)
+
+		// Resolve all identifiers found in the query
+		// into their table/column counterparts
+		fp.OnIdent = identResolver
 
 		if fn, err = fp.ParseExpression(f.Query); err != nil {
 			return
@@ -227,43 +245,12 @@ func (r record) buildQuery(module *types.Module, f types.RecordFilter) (query sq
 			sc ql.Columns
 		)
 
-		sp.OnIdent = func(i ql.Ident) (ql.Ident, error) {
-			var is bool
-			if i.Value, is = isRealRecordCol(i.Value); is {
-				i.Value += " "
-				return i, nil
-			}
-
-			if !module.Fields.HasName(i.Value) {
-				return i, errors.Errorf("unknown field %q", i.Value)
-			}
-
-			field := module.Fields.FindByName(i.Value)
-
-			if !alreadyJoined(i.Value) {
-				query = query.LeftJoin(fmt.Sprintf(
-					"compose_record_value AS rv_%s ON (rv_%s.record_id = r.id AND rv_%s.name = ? AND rv_%s.deleted_at IS NULL)",
-					i.Value, i.Value, i.Value, i.Value,
-				), i.Value)
-			}
-
-			switch true {
-			case field.IsRef():
-				i.Value = fmt.Sprintf("rv_%s.ref ", i.Value)
-			case field.IsNumeric():
-				i.Value = fmt.Sprintf("CAST(rv_%s.value AS SIGNED)", i.Value)
-			case field.IsDateTime():
-				i.Value = fmt.Sprintf("CAST(rv_%s.value AS DATETIME)", i.Value)
-			default:
-				i.Value = fmt.Sprintf("rv_%s.value ", i.Value)
-			}
-
-			return i, nil
-		}
+		// Resolve all identifiers found in sort
+		// into their table/column counterparts
+		sp.OnIdent = identResolver
 
 		if sc, err = sp.ParseColumns(f.Sort); err != nil {
 			return
-
 		}
 
 		query = query.OrderBy(sc.Strings()...)

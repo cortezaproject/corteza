@@ -106,6 +106,10 @@ func (set ModuleFieldSet) Swap(i, j int) {
 	set[i], set[j] = set[j], set[i]
 }
 
+func (f ModuleField) IsBoolean() bool {
+	return f.Kind == "Bool"
+}
+
 func (f ModuleField) IsNumeric() bool {
 	return f.Kind == "Number"
 }
