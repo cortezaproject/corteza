@@ -82,6 +82,8 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 			ModuleID:    r.ModuleID,
 			Sort:        r.Sort,
 
+			Deleted: rh.FilterState(r.Deleted),
+
 			PageFilter: rh.Paging(r),
 		}
 	)

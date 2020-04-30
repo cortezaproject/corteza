@@ -138,6 +138,10 @@ type RecordList struct {
 	rawFilter string
 	Filter    string
 
+	hasDeleted bool
+	rawDeleted string
+	Deleted    uint
+
 	hasLimit bool
 	rawLimit string
 	Limit    uint
@@ -178,6 +182,7 @@ func (r RecordList) Auditable() map[string]interface{} {
 
 	out["query"] = r.Query
 	out["filter"] = r.Filter
+	out["deleted"] = r.Deleted
 	out["limit"] = r.Limit
 	out["offset"] = r.Offset
 	out["page"] = r.Page
@@ -226,6 +231,11 @@ func (r *RecordList) Fill(req *http.Request) (err error) {
 		r.hasFilter = true
 		r.rawFilter = val
 		r.Filter = val
+	}
+	if val, ok := get["deleted"]; ok {
+		r.hasDeleted = true
+		r.rawDeleted = val
+		r.Deleted = parseUint(val)
 	}
 	if val, ok := get["limit"]; ok {
 		r.hasLimit = true
@@ -1446,6 +1456,21 @@ func (r *RecordList) RawFilter() string {
 // GetFilter returns casted value of  filter parameter
 func (r *RecordList) GetFilter() string {
 	return r.Filter
+}
+
+// HasDeleted returns true if deleted was set
+func (r *RecordList) HasDeleted() bool {
+	return r.hasDeleted
+}
+
+// RawDeleted returns raw value of deleted parameter
+func (r *RecordList) RawDeleted() string {
+	return r.rawDeleted
+}
+
+// GetDeleted returns casted value of  deleted parameter
+func (r *RecordList) GetDeleted() uint {
+	return r.Deleted
 }
 
 // HasLimit returns true if limit was set

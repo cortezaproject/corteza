@@ -77,6 +77,12 @@
             "type": "string"
           },
           {
+            "name": "deleted",
+            "required": false,
+            "title": "Exclude (0, default), include (1) or return only (2) deleted records",
+            "type": "uint"
+          },
+          {
             "name": "limit",
             "title": "Limit",
             "type": "uint"

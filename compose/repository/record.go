@@ -77,8 +77,7 @@ func (r record) columns() []string {
 func (r record) query() squirrel.SelectBuilder {
 	return squirrel.
 		Select(r.columns()...).
-		From(r.table() + " AS r").
-		Where("r.deleted_at IS NULL")
+		From(r.table() + " AS r")
 }
 
 // @todo: update to accepted DeletedAt column semantics from Messaging
@@ -92,6 +91,7 @@ func (r record) findOneBy(namespaceID uint64, field string, value interface{}) (
 		rec = &types.Record{}
 
 		q = r.query().
+			Where("r.deleted_at IS NULL").
 			Where(squirrel.Eq{field: value, "rel_namespace": namespaceID})
 
 		err = rh.FetchOne(r.db(), q, rec)
@@ -171,6 +171,9 @@ func (r record) buildQuery(module *types.Module, f types.RecordFilter) (query sq
 		joinedFields = append(joinedFields, f)
 		return false
 	}
+
+	// Inc/exclude deleted records according to filter settings
+	query = rh.FilterNullByState(query, "r.deleted_at", f.Deleted)
 
 	// Parse filters.
 	if f.Query != "" {

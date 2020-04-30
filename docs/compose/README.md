@@ -872,6 +872,7 @@ Compose records
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | query | string | GET | Record filtering query | N/A | NO |
 | filter | string | GET | Filtering condition (same as query, deprecated) | N/A | NO |
+| deleted | uint | GET | Exclude (0, default), include (1) or return only (2) deleted records | N/A | NO |
 | limit | uint | GET | Limit | N/A | NO |
 | offset | uint | GET | Offset | N/A | NO |
 | page | uint | GET | Page number (1-based) | N/A | NO |

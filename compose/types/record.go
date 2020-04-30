@@ -35,6 +35,8 @@ type (
 
 		// Standard paging fields & helpers
 		rh.PageFilter
+
+		Deleted rh.FilterState `json:"deleted"`
 	}
 )
 
