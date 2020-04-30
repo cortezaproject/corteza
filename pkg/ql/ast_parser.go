@@ -166,8 +166,12 @@ checkToken:
 			list = append(list, ident)
 			goto next
 		}
-	case NULL:
-		list = append(list, Null{})
+	case LNULL:
+		list = append(list, LNull{})
+		goto next
+	case LBOOL:
+		list = append(list, LBoolean{Value: strings.ToUpper(t.literal) == "TRUE"})
+		goto next
 	case OPERATOR:
 		if len(list) > 0 {
 			// Merge with previous operator node
@@ -186,11 +190,11 @@ checkToken:
 			list = append(list, keyword)
 		}
 		goto next
-	case NUMBER:
-		list = append(list, Number{Value: t.literal})
+	case LNUMBER:
+		list = append(list, LNumber{Value: t.literal})
 		goto next
-	case STRING:
-		list = append(list, String{Value: t.literal})
+	case LSTRING:
+		list = append(list, LString{Value: t.literal})
 		goto next
 	case PARENTHESIS_OPEN:
 		depth := p.level
@@ -258,11 +262,11 @@ next:
 		p.level++
 		parenthesisOpened = true
 		goto next
-	case NUMBER:
-		list = append(list, Number{Value: t.literal})
+	case LNUMBER:
+		list = append(list, LNumber{Value: t.literal})
 		goto next
-	case STRING:
-		list = append(list, String{Value: t.literal})
+	case LSTRING:
+		list = append(list, LString{Value: t.literal})
 		goto next
 	case OPERATOR:
 		list = append(list, Operator{Kind: t.literal})

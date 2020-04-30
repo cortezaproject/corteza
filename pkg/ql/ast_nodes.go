@@ -20,14 +20,15 @@ type (
 
 	Columns []Column
 
-	Null struct{}
+	LNull    struct{}
+	LBoolean struct{ Value bool }
 
-	String struct {
+	LString struct {
 		Value string
 		Args  []interface{}
 	}
 
-	Number struct {
+	LNumber struct {
 		Value string
 	}
 
@@ -60,14 +61,23 @@ type (
 	}
 )
 
-func (n Null) Validate() (err error) { return }
-func (n Null) String() string        { return "NULL" }
+func (n LNull) Validate() (err error) { return }
+func (n LNull) String() string        { return "NULL" }
 
-func (n String) Validate() (err error) { return }
-func (n String) String() string        { return fmt.Sprintf("%q", n.Value) }
+func (n LBoolean) Validate() (err error) { return }
+func (n LBoolean) String() string {
+	if n.Value {
+		return "TRUE"
+	} else {
+		return "FALSE"
+	}
+}
 
-func (n Number) Validate() (err error) { return }
-func (n Number) String() string        { return n.Value }
+func (n LString) Validate() (err error) { return }
+func (n LString) String() string        { return fmt.Sprintf("%q", n.Value) }
+
+func (n LNumber) Validate() (err error) { return }
+func (n LNumber) String() string        { return n.Value }
 
 func (n Operator) Validate() (err error) { return }
 func (n Operator) String() string        { return n.Kind }

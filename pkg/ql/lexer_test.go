@@ -27,10 +27,10 @@ func TestScanner_ScanSimple(t *testing.T) {
 		{s: `>=`, tok: OPERATOR, lit: ">="},
 		{s: `<>`, tok: OPERATOR, lit: "<>"},
 		{s: `+`, tok: OPERATOR, lit: "+"},
-		{s: `'fooo'`, tok: STRING, lit: "fooo"},
-		{s: `'escaped \' quote'`, tok: STRING, lit: "escaped ' quote"},
-		{s: `'double \\ escape'`, tok: STRING, lit: "double \\ escape"},
-		{s: `12345`, tok: NUMBER, lit: "12345"},
+		{s: `'fooo'`, tok: LSTRING, lit: "fooo"},
+		{s: `'escaped \' quote'`, tok: LSTRING, lit: "escaped ' quote"},
+		{s: `'double \\ escape'`, tok: LSTRING, lit: "double \\ escape"},
+		{s: `12345`, tok: LNUMBER, lit: "12345"},
 
 		// Identifiers
 		{s: `foo`, tok: IDENT, lit: `foo`},
@@ -39,6 +39,9 @@ func TestScanner_ScanSimple(t *testing.T) {
 		// Parenthesis
 		{s: `(`, tok: PARENTHESIS_OPEN, lit: `(`},
 		{s: `)`, tok: PARENTHESIS_CLOSE, lit: `)`},
+
+		// Literals
+		{s: `true`, tok: LBOOL, lit: `TRUE`},
 	}
 
 	for i, test := range tests {
@@ -63,15 +66,15 @@ func TestScanner_ScanComplex(t *testing.T) {
 		{`arg1 * arg2`,
 			[]tokenCode{IDENT, WS, OPERATOR, WS, IDENT}},
 		{`date_format(created_at,'%Y')`,
-			[]tokenCode{IDENT, PARENTHESIS_OPEN, IDENT, COMMA, STRING, PARENTHESIS_CLOSE}},
+			[]tokenCode{IDENT, PARENTHESIS_OPEN, IDENT, COMMA, LSTRING, PARENTHESIS_CLOSE}},
 		{`foo LIKE 'abc%'`,
-			[]tokenCode{IDENT, WS, OPERATOR, WS, STRING}},
+			[]tokenCode{IDENT, WS, OPERATOR, WS, LSTRING}},
 		{`foo NOT LIKE 'abc%'`,
-			[]tokenCode{IDENT, WS, OPERATOR, WS, OPERATOR, WS, STRING}},
+			[]tokenCode{IDENT, WS, OPERATOR, WS, OPERATOR, WS, LSTRING}},
 		{`foo DESC`,
 			[]tokenCode{IDENT, WS, KEYWORD}},
 		{`year(now())-1`,
-			[]tokenCode{IDENT, PARENTHESIS_OPEN, IDENT, PARENTHESIS_OPEN, PARENTHESIS_CLOSE, PARENTHESIS_CLOSE, OPERATOR, NUMBER}},
+			[]tokenCode{IDENT, PARENTHESIS_OPEN, IDENT, PARENTHESIS_OPEN, PARENTHESIS_CLOSE, PARENTHESIS_CLOSE, OPERATOR, LNUMBER}},
 	}
 
 	for _, test := range tests {

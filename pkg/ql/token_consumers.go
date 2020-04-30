@@ -86,7 +86,9 @@ func (TokenConsumerIdent) Consume(s RuneReader) Token {
 
 	switch lit {
 	case "NULL":
-		return Token{code: NULL}
+		return Token{code: LNULL}
+	case "TRUE", "FALSE":
+		return Token{code: LBOOL, literal: lit}
 	case "IS", "LIKE", "NOT", "AND", "OR", "XOR":
 		return Token{code: OPERATOR, literal: lit}
 	case "DESC", "ASC", "INTERVAL":
@@ -111,7 +113,7 @@ func (str TokenConsumerString) Consume(s RuneReader) Token {
 		if ch = s.read(); ch == eof {
 			break
 		} else if !escaping && str.Test(ch) { // test for quote
-			return Token{code: STRING, literal: buf.String()}
+			return Token{code: LSTRING, literal: buf.String()}
 		} else {
 			escaping = !escaping && ch == '\\'
 			if !escaping {
@@ -147,7 +149,7 @@ func (str TokenConsumerNumber) Consume(s RuneReader) Token {
 	}
 
 	// Otherwise return as a regular identifier.
-	return Token{code: NUMBER, literal: buf.String()}
+	return Token{code: LNUMBER, literal: buf.String()}
 }
 
 // isLetter returns true if the rune is a letter.
