@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"strings"
 	"testing"
 
@@ -22,13 +23,19 @@ func TestRecordFinder(t *testing.T) {
 	}
 
 	ttc := []struct {
-		f     types.RecordFilter
-		match []string
-		args  []interface{}
-		err   error
+		f       types.RecordFilter
+		match   []string
+		noMatch []string
+		args    []interface{}
+		err     error
 	}{
 		{
-			match: []string{"SELECT r.id, r.module_id, r.rel_namespace, r.owned_by, r.created_at, r.created_by, r.updated_at, r.updated_by, r.deleted_at, r.deleted_by FROM compose_record AS r WHERE r.deleted_at IS NULL AND r.module_id = ? AND r.rel_namespace = ?"},
+			match: []string{
+				"SELECT r.id, r.module_id, r.rel_namespace, r.owned_by, r.created_at, " +
+					"r.created_by, r.updated_at, r.updated_by, r.deleted_at, r.deleted_by " +
+					"FROM compose_record AS r " +
+					"WHERE r.module_id = ? AND r.rel_namespace = ? AND r.deleted_at IS NULL",
+			},
 		},
 		{
 			f: types.RecordFilter{Query: "id = 5 AND foo = 7"},
@@ -44,6 +51,18 @@ func TestRecordFinder(t *testing.T) {
 				" rv_bar.value DESC",
 			},
 			args: []interface{}{"bar"},
+		},
+		{
+			f:     types.RecordFilter{Deleted: rh.FilterStateExcluded},
+			match: []string{" r.deleted_at IS "},
+		},
+		{
+			f:       types.RecordFilter{Deleted: rh.FilterStateInclusive},
+			noMatch: []string{" r.deleted_at IS "},
+		},
+		{
+			f:     types.RecordFilter{Deleted: rh.FilterStateExclusive},
+			match: []string{" r.deleted_at IS NOT NULL"},
 		},
 	}
 
@@ -62,6 +81,12 @@ func TestRecordFinder(t *testing.T) {
 			require.True(t, strings.Contains(sql, m),
 				"assertion failed; query %q \n  "+
 					"             did not contain  %q", sql, m)
+		}
+
+		for _, m := range tc.noMatch {
+			require.False(t, strings.Contains(sql, m),
+				"assertion failed; query %q \n  "+
+					"             must not contain  %q", sql, m)
 		}
 
 		tc.args = append(tc.args, m.ID, m.NamespaceID)
