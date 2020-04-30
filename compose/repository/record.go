@@ -173,7 +173,7 @@ func (r record) buildQuery(module *types.Module, f types.RecordFilter) (query sq
 	}
 
 	// Parse filters.
-	if f.Filter != "" {
+	if f.Query != "" {
 		var (
 			// Filter parser
 			fp = ql.NewParser()
@@ -206,7 +206,7 @@ func (r record) buildQuery(module *types.Module, f types.RecordFilter) (query sq
 			return i, nil
 		}
 
-		if fn, err = fp.ParseExpression(f.Filter); err != nil {
+		if fn, err = fp.ParseExpression(f.Query); err != nil {
 			return
 		} else if filterSql, filterArgs, err := fn.ToSql(); err != nil {
 			return query, err

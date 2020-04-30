@@ -735,10 +735,16 @@
         "parameters": {
           "get": [
             {
+              "name": "query",
+              "type": "string",
+              "required": false,
+              "title": "Record filtering query"
+            },
+            {
               "name": "filter",
               "type": "string",
               "required": false,
-              "title": "Filtering condition"
+              "title": "Filtering condition (same as query, deprecated)"
             },
             {"type": "uint",   "name": "limit",   "title": "Limit"},
             {"type": "uint",   "name": "offset",  "title": "Offset"},

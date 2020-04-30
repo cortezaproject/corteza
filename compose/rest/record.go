@@ -76,20 +76,30 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 	var (
 		m   *types.Module
 		err error
+
+		rf = types.RecordFilter{
+			NamespaceID: r.NamespaceID,
+			ModuleID:    r.ModuleID,
+			Sort:        r.Sort,
+
+			PageFilter: rh.Paging(r),
+		}
 	)
 
 	if m, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
 	}
 
-	rr, filter, err := ctrl.record.With(ctx).Find(types.RecordFilter{
-		NamespaceID: r.NamespaceID,
-		ModuleID:    r.ModuleID,
-		Filter:      r.Filter,
-		Sort:        r.Sort,
+	if r.Query != "" {
+		// Query param takes preference
+		rf.Query = r.Query
+	} else if r.Filter != "" {
+		// Backward compatibility
+		// Filter param is deprecated
+		rf.Query = r.Filter
+	}
 
-		PageFilter: rh.Paging(r),
-	})
+	rr, filter, err := ctrl.record.With(ctx).Find(rf)
 
 	return ctrl.makeFilterPayload(ctx, m, rr, filter, err)
 }
@@ -329,7 +339,7 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 		f = types.RecordFilter{
 			NamespaceID: r.NamespaceID,
 			ModuleID:    r.ModuleID,
-			Filter:      r.Filter,
+			Query:       r.Filter,
 		}
 
 		contentType string

@@ -870,7 +870,8 @@ Compose records
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| filter | string | GET | Filtering condition | N/A | NO |
+| query | string | GET | Record filtering query | N/A | NO |
+| filter | string | GET | Filtering condition (same as query, deprecated) | N/A | NO |
 | limit | uint | GET | Limit | N/A | NO |
 | offset | uint | GET | Offset | N/A | NO |
 | page | uint | GET | Page number (1-based) | N/A | NO |
