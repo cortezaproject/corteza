@@ -30,7 +30,7 @@ type (
 	RecordFilter struct {
 		ModuleID    uint64 `json:"moduleID,string"`
 		NamespaceID uint64 `json:"namespaceID,string"`
-		Filter      string `json:"query"`
+		Query       string `json:"query"`
 		Sort        string `json:"sort"`
 
 		// Standard paging fields & helpers

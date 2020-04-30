@@ -31,7 +31,7 @@ func TestRecordFinder(t *testing.T) {
 			match: []string{"SELECT r.id, r.module_id, r.rel_namespace, r.owned_by, r.created_at, r.created_by, r.updated_at, r.updated_by, r.deleted_at, r.deleted_by FROM compose_record AS r WHERE r.deleted_at IS NULL AND r.module_id = ? AND r.rel_namespace = ?"},
 		},
 		{
-			f: types.RecordFilter{Filter: "id = 5 AND foo = 7"},
+			f: types.RecordFilter{Query: "id = 5 AND foo = 7"},
 			match: []string{
 				"r.id = 5",
 				"rv_foo.value = 7"},

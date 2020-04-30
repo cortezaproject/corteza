@@ -823,8 +823,8 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 			// the place we're moving our record to.
 			// and sort the set with sorting field
 			set, _, err = svc.recordRepo.Find(module, types.RecordFilter{
-				Filter: fmt.Sprintf("%s(%s >= %d)", filter, posField, recordOrderPlace),
-				Sort:   posField,
+				Query: fmt.Sprintf("%s(%s >= %d)", filter, posField, recordOrderPlace),
+				Sort:  posField,
 			})
 
 			log.Info("reordering other records", zap.Int("count", len(set)))

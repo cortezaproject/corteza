@@ -130,6 +130,10 @@ var _ RequestFiller = NewRecordReport()
 
 // RecordList request parameters
 type RecordList struct {
+	hasQuery bool
+	rawQuery string
+	Query    string
+
 	hasFilter bool
 	rawFilter string
 	Filter    string
@@ -172,6 +176,7 @@ func NewRecordList() *RecordList {
 func (r RecordList) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
+	out["query"] = r.Query
 	out["filter"] = r.Filter
 	out["limit"] = r.Limit
 	out["offset"] = r.Offset
@@ -212,6 +217,11 @@ func (r *RecordList) Fill(req *http.Request) (err error) {
 		post[name] = string(param[0])
 	}
 
+	if val, ok := get["query"]; ok {
+		r.hasQuery = true
+		r.rawQuery = val
+		r.Query = val
+	}
 	if val, ok := get["filter"]; ok {
 		r.hasFilter = true
 		r.rawFilter = val
@@ -1406,6 +1416,21 @@ func (r *RecordReport) RawModuleID() string {
 // GetModuleID returns casted value of  moduleID parameter
 func (r *RecordReport) GetModuleID() uint64 {
 	return r.ModuleID
+}
+
+// HasQuery returns true if query was set
+func (r *RecordList) HasQuery() bool {
+	return r.hasQuery
+}
+
+// RawQuery returns raw value of query parameter
+func (r *RecordList) RawQuery() string {
+	return r.rawQuery
+}
+
+// GetQuery returns casted value of  query parameter
+func (r *RecordList) GetQuery() string {
+	return r.Query
 }
 
 // HasFilter returns true if filter was set

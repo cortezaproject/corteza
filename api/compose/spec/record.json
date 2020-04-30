@@ -65,9 +65,15 @@
       "Parameters": {
         "get": [
           {
+            "name": "query",
+            "required": false,
+            "title": "Record filtering query",
+            "type": "string"
+          },
+          {
             "name": "filter",
             "required": false,
-            "title": "Filtering condition",
+            "title": "Filtering condition (same as query, deprecated)",
             "type": "string"
           },
           {
