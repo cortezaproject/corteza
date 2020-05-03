@@ -133,7 +133,7 @@ function provision {
 
 function events {
   if [ ! -f "build/event-gen" ]; then
-		CGO_ENABLED=0 go build -o ./build/event-gen codegen/v2/events.go
+		CGO_ENABLED=0 go build -o ./build/event-gen ./codegen/v2/events
 	fi
 
 	for SERVICE in system compose messaging; do
