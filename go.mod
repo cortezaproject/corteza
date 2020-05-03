@@ -41,7 +41,6 @@ require (
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prometheus/client_golang v0.9.3
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd // indirect
-	github.com/schollz/progressbar v1.0.0 // indirect
 	github.com/schollz/progressbar/v2 v2.15.0
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/spf13/afero v1.2.2
@@ -50,7 +49,6 @@ require (
 	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/steinfletcher/apitest v1.3.8
 	github.com/steinfletcher/apitest-jsonpath v1.3.0
-	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.5.1
 	github.com/titpetric/factory v0.0.0-20190806200833-ae4b02b9e034
 	go.uber.org/atomic v1.5.0
