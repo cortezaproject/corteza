@@ -20,8 +20,11 @@ import (
 
 // Corredor standard connector to Corredor service via gRPC
 func NewConnection(ctx context.Context, opt options.CorredorOpt, logger *zap.Logger) (c *grpc.ClientConn, err error) {
+	log := logger.Named("conn")
+
 	if !opt.Enabled {
 		// Do not connect when script runner is not enabled
+		log.Info("corredor disabled (CORREDOR_ENABLED=false)")
 		return
 	}
 
@@ -51,6 +54,7 @@ func NewConnection(ctx context.Context, opt options.CorredorOpt, logger *zap.Log
 	// opt.PublicKey = ""
 	if opt.TlsCertEnabled {
 		// Check paths
+		log.Debug("connecting with TLS certificates enabled (CORREDOR_CLIENT_CERTIFICATES_ENABLED=true)")
 
 		for label, path := range paths {
 			if _, err = os.Stat(path); os.IsNotExist(err) {
@@ -86,6 +90,8 @@ func NewConnection(ctx context.Context, opt options.CorredorOpt, logger *zap.Log
 
 		dialOpts = append(dialOpts, grpc.WithTransportCredentials(crds))
 	} else {
+		log.Debug("connecting without TLS certificates " +
+			"(this is OK if you are using private or internal docker network)")
 		dialOpts = append(dialOpts, grpc.WithInsecure())
 	}
 
@@ -96,6 +102,8 @@ func NewConnection(ctx context.Context, opt options.CorredorOpt, logger *zap.Log
 	if opt.MaxBackoffDelay > 0 {
 		dialOpts = append(dialOpts, grpc.WithBackoffMaxDelay(opt.MaxBackoffDelay))
 	}
+
+	log.Info("connecting to corredor", zap.String("addr", opt.Addr))
 
 	return grpc.DialContext(ctx, opt.Addr, dialOpts...)
 }
