@@ -8,14 +8,11 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/grpclog"
-
-	"github.com/cortezaproject/corteza-server/pkg/app/options"
 )
 
 // Corredor standard connector to Corredor service via gRPC
@@ -26,13 +23,6 @@ func NewConnection(ctx context.Context, opt options.CorredorOpt, logger *zap.Log
 		// Do not connect when script runner is not enabled
 		log.Info("corredor disabled (CORREDOR_ENABLED=false)")
 		return
-	}
-
-	if opt.Log {
-		// Send logs to zap
-		//
-		// waiting for https://github.com/uber-go/zap/pull/538
-		grpclog.SetLogger(zapgrpc.NewLogger(logger.Named("grpc")))
 	}
 
 	var (
