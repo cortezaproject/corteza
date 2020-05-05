@@ -22,7 +22,7 @@ require (
 	github.com/go-chi/cors v1.0.0
 	github.com/go-chi/jwtauth v0.0.0-20190109153619-47840abb19b3
 	github.com/golang/mock v1.3.1
-	github.com/golang/protobuf v1.3.2
+	github.com/golang/protobuf v1.3.3
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
 	github.com/gorilla/mux v1.7.1 // indirect
@@ -54,7 +54,7 @@ require (
 	go.uber.org/atomic v1.5.0
 	go.uber.org/zap v1.13.0
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
-	google.golang.org/grpc v1.22.1
+	google.golang.org/grpc v1.29.1
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/ini.v1 v1.51.0 // indirect
