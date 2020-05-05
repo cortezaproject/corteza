@@ -12,9 +12,6 @@ type (
 		// Also used by corredor service to configure gRPC server
 		Addr string `env:"CORREDOR_ADDR"`
 
-		// Also used by corredor service to enable logging
-		Log bool `env:"CORREDOR_LOG_ENABLED"`
-
 		MaxBackoffDelay time.Duration `env:"CORREDOR_MAX_BACKOFF_DELAY"`
 
 		MaxReceiveMessageSize int `env:"CORREDOR_MAX_RECEIVE_MESSAGE_SIZE"`
@@ -46,7 +43,6 @@ func Corredor() (o *CorredorOpt) {
 		DefaultExecTimeout:    time.Minute,
 		ListTimeout:           time.Second * 2,
 		ListRefresh:           time.Second * 5,
-		Log:                   false,
 
 		TlsCertEnabled: false,
 		TlsCertPath:    "/certs/corredor/client",
