@@ -3,6 +3,7 @@ package corredor
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"math/rand"
 	"net"
 	"sync"
@@ -22,7 +23,7 @@ func init() {
 }
 
 func TestNewConnectionWithDisabled(t *testing.T) {
-	c, err := NewConnection(nil, options.CorredorOpt{Enabled: false}, nil)
+	c, err := NewConnection(nil, options.CorredorOpt{Enabled: false}, zap.NewNop())
 	assert.Nil(t, c)
 	assert.Nil(t, err)
 }
