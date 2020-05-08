@@ -14,7 +14,7 @@ type (
 	RecordValue struct {
 		RecordID  uint64     `db:"record_id"  json:"-"`
 		Name      string     `db:"name"       json:"name"`
-		Value     string     `db:"value"      json:"value,omitempty"`
+		Value     string     `db:"value"      json:"value"`
 		Ref       uint64     `db:"ref"        json:"-"`
 		Place     uint       `db:"place"      json:"-"`
 		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
