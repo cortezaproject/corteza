@@ -17,6 +17,7 @@ func BaseMiddleware(log *zap.Logger) []func(http.Handler) http.Handler {
 	return []func(http.Handler) http.Handler{
 		handleCORS,
 		middleware.RealIP,
+		remoteAddrToContext,
 		middleware.RequestID,
 		contextLogger(log),
 	}
