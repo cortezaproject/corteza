@@ -26,7 +26,8 @@ type (
 	}
 
 	ChartConfig struct {
-		Reports []*ChartConfigReport `json:"reports,omitempty" yaml:",omitempty"`
+		Reports     []*ChartConfigReport `json:"reports,omitempty" yaml:",omitempty"`
+		ColorScheme string               `json:"colorScheme,omitempty" yaml:",omitempty"`
 	}
 
 	ChartConfigReport struct {
@@ -34,6 +35,7 @@ type (
 		ModuleID   uint64                   `json:"moduleID,string,omitempty" yaml:"moduleID,omitempty"`
 		Metrics    []map[string]interface{} `json:"metrics,omitempty"         yaml:",omitempty"`
 		Dimensions []map[string]interface{} `json:"dimensions,omitempty"      yaml:",omitempty"`
+		YAxis      map[string]interface{}   `json:"yAxis,omitempty"           yaml:",omitempty"`
 		Renderer   struct {
 			Version string `json:"version,omitempty"  yaml:",omitempty"`
 		} `json:"renderer,omitempty" yaml:",omitempty"`
