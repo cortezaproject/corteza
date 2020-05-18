@@ -1,0 +1,77 @@
+{
+  "Title": "Action log",
+  "Interface": "Actionlog",
+  "Struct": [
+    {
+      "imports": [
+        "time"
+      ]
+    }
+  ],
+  "Parameters": null,
+  "Protocol": "",
+  "Authentication": null,
+  "Path": "/actionlog",
+  "APIs": [
+    {
+      "Name": "list",
+      "Method": "GET",
+      "Title": "Action log events",
+      "Path": "/",
+      "Parameters": {
+        "get": [
+          {
+            "name": "from",
+            "required": false,
+            "title": "From",
+            "type": "*time.Time"
+          },
+          {
+            "name": "to",
+            "required": false,
+            "title": "To",
+            "type": "*time.Time"
+          },
+          {
+            "name": "resource",
+            "required": false,
+            "title": "Resource",
+            "type": "string"
+          },
+          {
+            "name": "action",
+            "required": false,
+            "title": "Action",
+            "type": "string"
+          },
+          {
+            "name": "actorID",
+            "required": false,
+            "title": "Filter by one or more actors",
+            "type": "[]string"
+          },
+          {
+            "name": "limit",
+            "title": "Limit",
+            "type": "uint"
+          },
+          {
+            "name": "offset",
+            "title": "Offset",
+            "type": "uint"
+          },
+          {
+            "name": "page",
+            "title": "Page number (1-based)",
+            "type": "uint"
+          },
+          {
+            "name": "perPage",
+            "title": "Returned items per page (default 50)",
+            "type": "uint"
+          }
+        ]
+      }
+    }
+  ]
+}

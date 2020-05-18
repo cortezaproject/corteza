@@ -1,3 +1,38 @@
+# Action log
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `GET` | `/actionlog/` | Action log events |
+
+## Action log events
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/actionlog/` | HTTP/S | GET |
+Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
+ |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| from | *time.Time | GET | From | N/A | NO |
+| to | *time.Time | GET | To | N/A | NO |
+| resource | string | GET | Resource | N/A | NO |
+| action | string | GET | Action | N/A | NO |
+| actorID | []string | GET | Filter by one or more actors | N/A | NO |
+| limit | uint | GET | Limit | N/A | NO |
+| offset | uint | GET | Offset | N/A | NO |
+| page | uint | GET | Page number (1-based) | N/A | NO |
+| perPage | uint | GET | Returned items per page (default 50) | N/A | NO |
+
+---
+
+
+
+
 # Applications
 
 | Method | Endpoint | Purpose |
