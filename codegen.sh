@@ -104,6 +104,9 @@ function types {
 	./build/gen-type-set --types Script --output pkg/corredor/types.gen.go --with-primary-key=false --package corredor
 	./build/gen-type-set-test --types Script --output pkg/corredor/types.gen_test.go --with-primary-key=false --package corredor
 
+	./build/gen-type-set --types Action --output pkg/auditlog/types.gen.go --with-primary-key=false --package auditlog
+	./build/gen-type-set-test --types Action --output pkg/auditlog/types.gen_test.go --with-primary-key=false --package auditlog
+
 
 	green "OK"
 }
