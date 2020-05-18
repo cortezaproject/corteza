@@ -68,7 +68,7 @@ func TestRoleList(t *testing.T) {
 		End()
 }
 
-func TestRoleList_filterForbiden(t *testing.T) {
+func TestRoleList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 
 	// @todo this can be a problematic test because it leaves
@@ -98,7 +98,7 @@ func TestRoleCreateForbidden(t *testing.T) {
 		FormData("name", rs()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("system.service.NoCreatePermissions")).
+		Assert(helpers.AssertError("not allowed to create role")).
 		End()
 }
 
@@ -113,7 +113,7 @@ func TestRoleCreateNotUnique(t *testing.T) {
 		FormData("handle", role.Handle).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("system.service.RoleHandleNotUnique")).
+		Assert(helpers.AssertError("role handle not unique")).
 		End()
 
 	h.apiInit().
@@ -122,7 +122,7 @@ func TestRoleCreateNotUnique(t *testing.T) {
 		FormData("handle", "handle_"+rs()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("system.service.RoleNameNotUnique")).
+		Assert(helpers.AssertError("role name not unique")).
 		End()
 
 }
@@ -150,7 +150,7 @@ func TestRoleUpdateForbidden(t *testing.T) {
 		FormData("email", h.randEmail()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("system.service.NoUpdatePermissions")).
+		Assert(helpers.AssertError("not allowed to update role")).
 		End()
 }
 
@@ -186,7 +186,7 @@ func TestRoleDeleteForbidden(t *testing.T) {
 		Delete(fmt.Sprintf("/roles/%d", u.ID)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("system.service.NoPermissions")).
+		Assert(helpers.AssertError("not allowed to delete role")).
 		End()
 }
 
