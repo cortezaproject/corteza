@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	grpcWrap "github.com/cortezaproject/corteza-server/pkg/grpc"
@@ -132,6 +133,7 @@ func (r *runner) Initialize(ctx context.Context) (err error) {
 			return
 		}
 
+		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Init)
 		if err = RunInitialize(ctx, r.parts...); err != nil {
 			return
 		}
@@ -151,6 +153,7 @@ func (r *runner) Upgrade(ctx context.Context) (err error) {
 		}
 
 		if r.opt.Upgrade.Always {
+			ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Upgrade)
 			if err = RunUpgrade(ctx, r.parts...); err != nil {
 				return
 			}
@@ -170,6 +173,7 @@ func (r *runner) Activate(ctx context.Context) (err error) {
 			return
 		}
 
+		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Activate)
 		if err = RunActivate(ctx, r.parts...); err != nil {
 			return
 		}
@@ -188,6 +192,7 @@ func (r *runner) Provision(ctx context.Context) (err error) {
 		}
 
 		if r.opt.Provision.Always {
+			ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Provision)
 			if err = RunProvision(ctx, r.parts...); err != nil {
 				return
 			}
@@ -244,7 +249,7 @@ func (r *runner) serve(ctx context.Context) (err error) {
 	{
 		wg.Add(1)
 		go func(ctx context.Context) {
-			r.httpApiServer.Serve(ctx)
+			r.httpApiServer.Serve(actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_HTTPServer_API_REST))
 			wg.Done()
 		}(ctx)
 	}
@@ -252,7 +257,7 @@ func (r *runner) serve(ctx context.Context) (err error) {
 	if r.grpcServer != nil {
 		wg.Add(1)
 		go func(ctx context.Context) {
-			r.grpcServer.Serve(ctx)
+			r.grpcServer.Serve(actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_HTTPServer_API_GRPC))
 			wg.Done()
 		}(ctx)
 
@@ -325,5 +330,5 @@ func Run(log *zap.Logger, opt *Options, parts ...Runnable) {
 
 	ctx := cli.Context()
 
-	r.Run(ctx)
+	r.Run(actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Run))
 }
