@@ -5,11 +5,12 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/compose/service/values"
-	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"net/http"
 	"path"
 	"strings"
+
+	"github.com/cortezaproject/corteza-server/compose/service/values"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
 
 	"github.com/titpetric/factory/resputil"
 
@@ -33,13 +34,15 @@ type (
 	recordPayload struct {
 		*types.Record
 
+		Records types.RecordSet `json:"records,omitempty"`
+
 		CanUpdateRecord bool `json:"canUpdateRecord"`
 		CanDeleteRecord bool `json:"canDeleteRecord"`
 	}
 
 	recordSetPayload struct {
-		Filter types.RecordFilter `json:"filter"`
-		Set    []*recordPayload   `json:"set"`
+		Filter *types.RecordFilter `json:"filter,omitempty"`
+		Set    []*recordPayload    `json:"set"`
 	}
 
 	Record struct {
@@ -103,7 +106,7 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 
 	rr, filter, err := ctrl.record.With(ctx).Find(rf)
 
-	return ctrl.makeFilterPayload(ctx, m, rr, filter, err)
+	return ctrl.makeFilterPayload(ctx, m, rr, &filter, err)
 }
 
 func (ctrl *Record) Read(ctx context.Context, r *request.RecordRead) (interface{}, error) {
@@ -136,17 +139,42 @@ func (ctrl *Record) Create(ctx context.Context, r *request.RecordCreate) (interf
 		return nil, err
 	}
 
-	record, err := ctrl.record.With(ctx).Create(&types.Record{
-		NamespaceID: r.NamespaceID,
-		ModuleID:    r.ModuleID,
-		Values:      r.Values,
-	})
+	oo := make([]*types.BulkRecordOperation, 0)
+
+	// If defined, initialize parent record
+	if r.Values != nil {
+		rr := &types.Record{
+			NamespaceID: r.NamespaceID,
+			ModuleID:    r.ModuleID,
+			Values:      r.Values,
+		}
+		oo = append(oo, &types.BulkRecordOperation{
+			Record:    rr,
+			Operation: types.OperationTypeCreate,
+		})
+	}
+
+	// If defined, initialize sub records for creation
+	oob, err := r.Records.ToBulkOperations(r.ModuleID, r.NamespaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate returned bulk operations
+	for _, o := range oob {
+		if o.LinkBy != "" && len(oo) == 0 {
+			return nil, errors.New("missing parent record definition")
+		}
+	}
+	oo = append(oo, oob...)
+
+	rr, err := ctrl.record.With(ctx).Bulk(oo...)
 
 	if rve, is := err.(*types.RecordValueErrorSet); is && !rve.IsValid() {
 		return ctrl.handleValidationError(rve), nil
 	}
 
-	return ctrl.makePayload(ctx, m, record, err)
+	return ctrl.makePayloadBatch(ctx, m, err, rr...)
 }
 
 func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interface{}, error) {
@@ -159,18 +187,47 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 		return nil, err
 	}
 
-	record, err := ctrl.record.With(ctx).Update(&types.Record{
-		ID:          r.RecordID,
-		NamespaceID: r.NamespaceID,
-		ModuleID:    r.ModuleID,
-		Values:      r.Values,
-	})
+	oo := make([]*types.BulkRecordOperation, 0)
+
+	// If defined, initialize parent record for creation
+	if r.Values != nil {
+		rr := &types.Record{
+			ID:          r.RecordID,
+			NamespaceID: r.NamespaceID,
+			ModuleID:    r.ModuleID,
+			Values:      r.Values,
+		}
+		oo = append(oo, &types.BulkRecordOperation{
+			Record:    rr,
+			Operation: types.OperationTypeUpdate,
+		})
+	}
+
+	// If defined, initialize sub records for creation
+	oob, err := r.Records.ToBulkOperations(r.ModuleID, r.NamespaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate returned bulk operations
+	for _, o := range oob {
+		if o.LinkBy != "" && len(oo) == 0 {
+			return nil, errors.New("missing parent record definition")
+		}
+	}
+	oo = append(oo, oob...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	rr, err := ctrl.record.With(ctx).Bulk(oo...)
 
 	if rve, is := err.(*types.RecordValueErrorSet); is && !rve.IsValid() {
 		return ctrl.handleValidationError(rve), nil
 	}
 
-	return ctrl.makePayload(ctx, m, record, err)
+	return ctrl.makePayloadBatch(ctx, m, err, rr...)
 }
 
 func (ctrl *Record) Delete(ctx context.Context, r *request.RecordDelete) (interface{}, error) {
@@ -469,6 +526,20 @@ func (ctrl *Record) TriggerScriptOnList(ctx context.Context, r *request.RecordTr
 	return resputil.OK(), err
 }
 
+func (ctrl Record) makePayloadBatch(ctx context.Context, m *types.Module, err error, rr ...*types.Record) (*recordPayload, error) {
+	if err != nil || rr == nil {
+		return nil, err
+	}
+
+	return &recordPayload{
+		Record:  rr[0],
+		Records: rr[1:],
+
+		CanUpdateRecord: ctrl.ac.CanUpdateRecord(ctx, m),
+		CanDeleteRecord: ctrl.ac.CanDeleteRecord(ctx, m),
+	}, nil
+}
+
 func (ctrl Record) makePayload(ctx context.Context, m *types.Module, r *types.Record, err error) (*recordPayload, error) {
 	if err != nil || r == nil {
 		return nil, err
@@ -482,7 +553,7 @@ func (ctrl Record) makePayload(ctx context.Context, m *types.Module, r *types.Re
 	}, nil
 }
 
-func (ctrl Record) makeFilterPayload(ctx context.Context, m *types.Module, rr types.RecordSet, f types.RecordFilter, err error) (*recordSetPayload, error) {
+func (ctrl Record) makeFilterPayload(ctx context.Context, m *types.Module, rr types.RecordSet, f *types.RecordFilter, err error) (*recordSetPayload, error) {
 	if err != nil {
 		return nil, err
 	}

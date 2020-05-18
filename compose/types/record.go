@@ -9,6 +9,16 @@ import (
 )
 
 type (
+	bulkPreProcess func(m, r *Record) (*Record, error)
+
+	OperationType string
+
+	BulkRecordOperation struct {
+		Record    *Record
+		LinkBy    string
+		Operation OperationType
+	}
+
 	// Record is a stored row in the `record` table
 	Record struct {
 		ID       uint64 `json:"recordID,string" db:"id"`
@@ -38,6 +48,12 @@ type (
 
 		Deleted rh.FilterState `json:"deleted"`
 	}
+)
+
+const (
+	OperationTypeCreate OperationType = "create"
+	OperationTypeUpdate OperationType = "update"
+	OperationTypeDelete OperationType = "delete"
 )
 
 // UserIDs returns a slice of user IDs from all items in the set

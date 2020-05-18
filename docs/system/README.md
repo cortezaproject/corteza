@@ -416,9 +416,7 @@
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/automation/` | HTTP/S | GET |
-Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
- |
+| `/automation/` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -437,9 +435,7 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.cru
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/automation/{bundle}-{type}.{ext}` | HTTP/S | GET |
-Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
- |
+| `/automation/{bundle}-{type}.{ext}` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -455,9 +451,7 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.cru
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/automation/trigger` | HTTP/S | POST |
-Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
- |
+| `/automation/trigger` | HTTP/S | POST |  |
 
 #### Request parameters
 
@@ -1154,9 +1148,7 @@ An organisation may have many roles. Roles may have many channels available. Acc
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/subscription/` | HTTP/S | GET |
-Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
- |
+| `/subscription/` | HTTP/S | GET |  |
 
 #### Request parameters
 
