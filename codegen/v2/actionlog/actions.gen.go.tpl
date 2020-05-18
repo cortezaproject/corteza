@@ -347,63 +347,77 @@ func {{ camelCase "" $.Service "Err" $e.Error }}(props ... *{{ $.Service }}Actio
 // This function is auto-generated.
 //
 func (svc {{ $.Service }}) recordAction(ctx context.Context, props *{{ $.Service }}ActionProps, action func(... *{{ $.Service }}ActionProps) *{{ $.Service }}Action, err error) error {
-    // If non-{{ $.Service }}Error error was passed,
-	// wrap it with generic error
 	var (
-	    svcErr *{{ $.Service }}Error
-	    ok bool
-    )
+		ok bool
+
+		// Return error
+		retError *{{ $.Service }}Error
+
+		// Recorder error
+		recError *{{ $.Service }}Error
+	)
 
 	if err != nil {
-		if svcErr, ok = err.(*{{ $.Service }}Error); !ok {
-			// wrap non-{{ $.Service }} errors
-			svcErr = {{ camelCase "" $.Service "err" "generic" }}(props).Wrap(err)
+		if retError, ok = err.(*{{ $.Service }}Error); !ok {
+			// got non-{{ $.Service }} error, wrap it with {{ camelCase "" $.Service "err" "generic" }}
+			retError = {{ camelCase "" $.Service "err" "generic" }}(props).Wrap(err)
 
-			// make sure we return generic error!
-			err = svcErr
-		} else {
-            // find the original cause for this error
-            // for the purpose of logging
-            //
-            // we'll return the received error as-is
+			// copy action to returning and recording error
+			retError.action = action().action
+
+			// we'll use {{ camelCase "" $.Service "err" "generic" }} for recording too
+			// because it can hold more info
+			recError = retError
+		} else if retError != nil {
+			// copy action to returning and recording error
+			retError.action = action().action
+			// start with copy of return error for recording
+			// this will be updated with tha root cause as we try and
+			// unwrap the error
+			recError = retError
+
+			// find the original recError for this error
+			// for the purpose of logging
+			var unwrappedError error = retError
 			for {
-				ue := errors.Unwrap(svcErr)
-				if ue == nil {
-				    // nothing wrapped
+				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
+					// nothing wrapped
 					break
 				}
 
-				if _, ok = ue.(*{{ $.Service }}Error); !ok {
-				    // wrapped error is not of type *{{ $.Service }}Error
-				    break
+				// update recError ONLY of wrapped error is of type {{ $.Service }}Error
+				if unwrappedSinkError, ok := unwrappedError.(*{{ $.Service }}Error); ok {
+					recError = unwrappedSinkError
 				}
-
-                svcErr = ue.(*{{ $.Service }}Error)
 			}
 
-            if svcErr.props == nil {
-                // got {{ $.Service }}Error w/o props,
-                // assign props from args
-                svcErr.props = props
-            }
-        }
+			if retError.props == nil {
+				// set props on returning error if empty
+				retError.props = props
+			}
 
-		if action != nil {
-		   // copy action to error
-		   a := action()
-		   svcErr.action = a.action
+			if recError.props == nil {
+				// set props on recording error if empty
+				recError.props = props
+			}
 		}
 	}
 
 	if svc.actionlog != nil {
-		if svcErr != nil {
-		    // failed action, log error
-			svc.actionlog.Record(ctx, svcErr)
+		if retError != nil {
+			// failed action, log error
+			svc.actionlog.Record(ctx, recError)
 		} else if action != nil {
-		    // successful
+			// successful
 			svc.actionlog.Record(ctx, action(props))
 		}
 	}
 
-    return err
+	if err == nil {
+		// retError not an interface and that WILL (!!) cause issues
+		// with nil check (== nil) when it is not explicitly returned
+		return nil
+	}
+
+	return retError
 }

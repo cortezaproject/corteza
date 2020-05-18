@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
@@ -11,6 +13,7 @@ import (
 type (
 	accessControl struct {
 		permissions accessControlPermissionServicer
+		actionlog   actionlog.Recorder
 	}
 
 	accessControlPermissionServicer interface {
@@ -28,6 +31,7 @@ type (
 func AccessControl(perm accessControlPermissionServicer) *accessControl {
 	return &accessControl{
 		permissions: perm,
+		actionlog:   DefaultActionlog,
 	}
 }
 
@@ -181,15 +185,35 @@ func (svc accessControl) can(ctx context.Context, res permissionResource, op per
 
 func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {
 	if !svc.CanGrant(ctx) {
-		return ErrNoGrantPermissions
+		return AccessControlErrNotAllowedToSetPermissions()
 	}
 
-	return svc.permissions.Grant(ctx, svc.Whitelist(), rr...)
+	if err := svc.permissions.Grant(ctx, svc.Whitelist(), rr...); err != nil {
+		return AccessControlErrGeneric().Wrap(err)
+	}
+
+	svc.logGrants(ctx, rr)
+
+	return nil
+}
+
+func (svc accessControl) logGrants(ctx context.Context, rr []*permissions.Rule) {
+	if svc.actionlog == nil {
+		return
+	}
+
+	for _, r := range rr {
+		g := AccessControlActionGrant(&accessControlActionProps{r})
+		g.log = r.String()
+		g.resource = r.Resource.String()
+
+		svc.actionlog.Record(ctx, g)
+	}
 }
 
 func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (permissions.RuleSet, error) {
 	if !svc.CanGrant(ctx) {
-		return nil, ErrNoPermissions
+		return nil, AccessControlErrNotAllowedToSetPermissions()
 	}
 
 	return svc.permissions.FindRulesByRoleID(roleID), nil

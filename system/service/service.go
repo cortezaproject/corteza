@@ -2,17 +2,19 @@ package service
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/store"
-	"github.com/cortezaproject/corteza-server/pkg/store/minio"
-	"github.com/cortezaproject/corteza-server/pkg/store/plain"
 
 	"go.uber.org/zap"
 
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	actionlogRepository "github.com/cortezaproject/corteza-server/pkg/actionlog/repository"
 	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
+	"github.com/cortezaproject/corteza-server/pkg/store"
+	"github.com/cortezaproject/corteza-server/pkg/store/minio"
+	"github.com/cortezaproject/corteza-server/pkg/store/plain"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -74,6 +76,8 @@ var (
 	// CurrentSettings represents current system settings
 	CurrentSettings = &types.Settings{}
 
+	DefaultActionlog actionlog.Recorder
+
 	DefaultSink *sink
 
 	DefaultAuth         AuthService
@@ -89,6 +93,12 @@ var (
 
 func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultLogger = log.Named("service")
+
+	DefaultActionlog = actionlog.NewService(
+		actionlogRepository.Mysql(repository.DB(ctx), "sys_actionlog"),
+		log,
+		log,
+	)
 
 	if DefaultPermissions == nil {
 		// Do not override permissions service stored under DefaultPermissions

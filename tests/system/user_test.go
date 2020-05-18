@@ -245,7 +245,7 @@ func TestUserCreateForbidden(t *testing.T) {
 		FormData("email", h.randEmail()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("system.service.NoCreatePermissions")).
+		Assert(helpers.AssertError("not allowed to create user")).
 		End()
 }
 
@@ -278,7 +278,7 @@ func TestUserUpdateForbidden(t *testing.T) {
 		FormData("email", h.randEmail()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("system.service.NoUpdatePermissions")).
+		Assert(helpers.AssertError("not allowed to update user")).
 		End()
 }
 
@@ -311,7 +311,7 @@ func TestUserDeleteForbidden(t *testing.T) {
 		Delete(fmt.Sprintf("/users/%d", u.ID)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("system.service.NoPermissions")).
+		Assert(helpers.AssertError("not allowed to delete user")).
 		End()
 }
 

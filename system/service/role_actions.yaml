@@ -1,0 +1,135 @@
+# List of loggable service actions
+
+resource: system:role
+service: role
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: alert
+
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+props:
+  - name: member
+    type: "*types.User"
+    fields: [ handle, email, name, ID ]
+  - name: role
+    type: "*types.Role"
+    fields: [ handle, name, ID ]
+  - name: new
+    type: "*types.Role"
+    fields: [ handle, name, ID ]
+  - name: update
+    type: "*types.Role"
+    fields: [ handle, name, ID ]
+  - name: existing
+    type: "*types.Role"
+    fields: [ handle, name, ID ]
+  - name: target
+    type: "*types.Role"
+    fields: [ handle, name, ID ]
+  - name: filter
+    type: "*types.RoleFilter"
+    fields: [ query, roleID, memberID, handle, name, deleted, archived, sort ]
+
+actions:
+  - action: search
+    log: "searched for roles"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {role}"
+    severity: info
+
+  - action: create
+    log: "created {role}"
+
+  - action: update
+    log: "updated {role}"
+
+  - action: delete
+    log: "deleted {role}"
+
+  - action: undelete
+    log: "undeleted {role}"
+
+  - action: archive
+    log: "archived {role}"
+
+  - action: unarchive
+    log: "unarchived {role}"
+
+  - action: merge
+    log: "merged {target} with {role}"
+
+  - action: members
+    log: "searched for members of {role}"
+
+  - action: memberAdd
+    log: "added {member.email} to {role}"
+
+  - action: memberRemove
+    log: "removed {member.email} from {role}"
+
+
+errors:
+  - error: nonexistent
+    message: "role does not exist"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read role"
+    log: "failed to read {role.handle}; insufficient permissions"
+
+  - error: notAllowedToListRoles
+    message: "not allowed to list roles"
+    log: "failed to list role; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create role"
+    log: "failed to create role; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update role"
+    log: "failed to update {role.handle}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete role"
+    log: "failed to delete {role.handle}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete role"
+    log: "failed to undelete {role.handle}; insufficient permissions"
+
+  - error: notAllowedToArchive
+    message: "not allowed to archive role"
+    log: "failed to archive {role.handle}; insufficient permissions"
+
+  - error: notAllowedToUnarchive
+    message: "not allowed to unarchive role"
+    log: "failed to unarchive {role.handle}; insufficient permissions"
+
+  - error: notAllowedToManageMembers
+    message: "not allowed to manage role members"
+    log: "failed to manage {role.handle} members; insufficient permissions"
+
+  - error: handleNotUnique
+    message: "role handle not unique"
+    log: "used duplicate handle ({role.handle}) for role"
+    severity: warning
+
+  - error: nameNotUnique
+    message: "role name not unique"
+    log: "used duplicate name ({role.name}) for role"
+    severity: warning

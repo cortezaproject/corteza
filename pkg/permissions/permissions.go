@@ -25,10 +25,10 @@ type (
 
 const (
 	// Hardcoded Role ID for everyone
-	EveryoneRoleID = 1
+	EveryoneRoleID uint64 = 1
 
 	// Hardcoded ID for Admin role
-	AdminsRoleID = 2
+	AdminsRoleID uint64 = 2
 )
 
 func (op Operation) String() string {
