@@ -116,7 +116,13 @@ func (s server) Serve(ctx context.Context) {
 	}
 
 	go func() {
-		err = http.Serve(listener, router)
+		srv := http.Server{
+			Handler: router,
+			BaseContext: func(listener net.Listener) context.Context {
+				return ctx
+			},
+		}
+		err = srv.Serve(listener)
 	}()
 	<-ctx.Done()
 
