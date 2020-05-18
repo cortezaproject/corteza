@@ -712,6 +712,10 @@ type RecordCreate struct {
 	rawValues string
 	Values    types.RecordValueSet
 
+	hasRecords bool
+	rawRecords string
+	Records    types.BulkRecordSet
+
 	hasNamespaceID bool
 	rawNamespaceID string
 	NamespaceID    uint64 `json:",string"`
@@ -731,6 +735,7 @@ func (r RecordCreate) Auditable() map[string]interface{} {
 	var out = map[string]interface{}{}
 
 	out["values"] = r.Values
+	out["records"] = r.Records
 	out["namespaceID"] = r.NamespaceID
 	out["moduleID"] = r.ModuleID
 
@@ -868,6 +873,10 @@ type RecordUpdate struct {
 	hasValues bool
 	rawValues string
 	Values    types.RecordValueSet
+
+	hasRecords bool
+	rawRecords string
+	Records    types.BulkRecordSet
 }
 
 // NewRecordUpdate request
@@ -883,6 +892,7 @@ func (r RecordUpdate) Auditable() map[string]interface{} {
 	out["namespaceID"] = r.NamespaceID
 	out["moduleID"] = r.ModuleID
 	out["values"] = r.Values
+	out["records"] = r.Records
 
 	return out
 }
@@ -1908,6 +1918,21 @@ func (r *RecordCreate) GetValues() types.RecordValueSet {
 	return r.Values
 }
 
+// HasRecords returns true if records was set
+func (r *RecordCreate) HasRecords() bool {
+	return r.hasRecords
+}
+
+// RawRecords returns raw value of records parameter
+func (r *RecordCreate) RawRecords() string {
+	return r.rawRecords
+}
+
+// GetRecords returns casted value of  records parameter
+func (r *RecordCreate) GetRecords() types.BulkRecordSet {
+	return r.Records
+}
+
 // HasNamespaceID returns true if namespaceID was set
 func (r *RecordCreate) HasNamespaceID() bool {
 	return r.hasNamespaceID
@@ -2041,6 +2066,21 @@ func (r *RecordUpdate) RawValues() string {
 // GetValues returns casted value of  values parameter
 func (r *RecordUpdate) GetValues() types.RecordValueSet {
 	return r.Values
+}
+
+// HasRecords returns true if records was set
+func (r *RecordUpdate) HasRecords() bool {
+	return r.hasRecords
+}
+
+// RawRecords returns raw value of records parameter
+func (r *RecordUpdate) RawRecords() string {
+	return r.rawRecords
+}
+
+// GetRecords returns casted value of  records parameter
+func (r *RecordUpdate) GetRecords() types.BulkRecordSet {
+	return r.Records
 }
 
 // HasRecordIDs returns true if recordIDs was set

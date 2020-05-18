@@ -241,9 +241,15 @@
         "post": [
           {
             "name": "values",
-            "required": true,
+            "required": false,
             "title": "Record values",
             "type": "types.RecordValueSet"
+          },
+          {
+            "name": "records",
+            "required": false,
+            "title": "Records",
+            "type": "types.BulkRecordSet"
           }
         ]
       }
@@ -281,9 +287,15 @@
         "post": [
           {
             "name": "values",
-            "required": true,
+            "required": false,
             "title": "Record values",
             "type": "types.RecordValueSet"
+          },
+          {
+            "name": "records",
+            "required": false,
+            "title": "Records",
+            "type": "types.BulkRecordSet"
           }
         ]
       }

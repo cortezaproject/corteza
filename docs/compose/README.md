@@ -127,9 +127,7 @@
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/automation/` | HTTP/S | GET |
-Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
- |
+| `/automation/` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -148,9 +146,7 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.cru
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/automation/{bundle}-{type}.{ext}` | HTTP/S | GET |
-Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
- |
+| `/automation/{bundle}-{type}.{ext}` | HTTP/S | GET |  |
 
 #### Request parameters
 
@@ -166,9 +162,7 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.cru
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/automation/trigger` | HTTP/S | POST |
-Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
- |
+| `/automation/trigger` | HTTP/S | POST |  |
 
 #### Request parameters
 
@@ -979,7 +973,8 @@ Compose records
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
-| values | types.RecordValueSet | POST | Record values | N/A | YES |
+| values | types.RecordValueSet | POST | Record values | N/A | NO |
+| records | types.BulkRecordSet | POST | Records | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
@@ -1014,7 +1009,8 @@ Compose records
 | recordID | uint64 | PATH | Record ID | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
-| values | types.RecordValueSet | POST | Record values | N/A | YES |
+| values | types.RecordValueSet | POST | Record values | N/A | NO |
+| records | types.BulkRecordSet | POST | Records | N/A | NO |
 
 ## Delete record row from module section
 
