@@ -192,6 +192,10 @@ type PageCreate struct {
 	rawDescription string
 	Description    string
 
+	hasWeight bool
+	rawWeight string
+	Weight    int
+
 	hasVisible bool
 	rawVisible string
 	Visible    bool
@@ -278,6 +282,11 @@ func (r *PageCreate) Fill(req *http.Request) (err error) {
 		r.hasDescription = true
 		r.rawDescription = val
 		r.Description = val
+	}
+	if val, ok := post["weight"]; ok {
+		r.hasWeight = true
+		r.rawWeight = val
+		r.Weight = parseInt(val)
 	}
 	if val, ok := post["visible"]; ok {
 		r.hasVisible = true
@@ -1076,6 +1085,21 @@ func (r *PageCreate) RawDescription() string {
 // GetDescription returns casted value of  description parameter
 func (r *PageCreate) GetDescription() string {
 	return r.Description
+}
+
+// HasWeight returns true if weight was set
+func (r *PageCreate) HasWeight() bool {
+	return r.hasWeight
+}
+
+// RawWeight returns raw value of weight parameter
+func (r *PageCreate) RawWeight() string {
+	return r.rawWeight
+}
+
+// GetWeight returns casted value of  weight parameter
+func (r *PageCreate) GetWeight() int {
+	return r.Weight
 }
 
 // HasVisible returns true if visible was set

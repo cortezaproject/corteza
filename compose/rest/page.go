@@ -87,6 +87,7 @@ func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{
 			Handle:      r.Handle,
 			Description: r.Description,
 			Visible:     r.Visible,
+			Weight:      r.Weight,
 		}
 	)
 
