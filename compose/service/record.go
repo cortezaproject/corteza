@@ -390,6 +390,10 @@ func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rec types.RecordSet, e
 				r, err = svc.update(r)
 				break
 
+			case types.OperationTypeDelete:
+				r, err = svc.delete(r.NamespaceID, r.ModuleID, r.ID)
+				break
+
 			default:
 				return errors.Errorf("unknown record bulk operation %s", p.Operation)
 			}
@@ -681,87 +685,77 @@ func (svc record) recordInfoUpdate(r *types.Record) {
 	r.UpdatedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
 }
 
-// DeleteByID removes one or more records (all from the same module and namespace)
-//
-// Before and after each record is deleted beforeDelete and afterDelete events are emitted
-// If beforeRecord aborts the action it does so for that specific record only
-
-func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) error {
+func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Record, err error) {
 	if namespaceID == 0 {
-		return ErrInvalidID.withStack()
+		return nil, ErrInvalidID.withStack()
 	}
-
 	if moduleID == 0 {
-		return ErrInvalidID.withStack()
+		return nil, ErrInvalidID.withStack()
+	}
+	if recordID == 0 {
+		return nil, ErrInvalidID.withStack()
 	}
 
 	var (
-		isBulkDelete = len(recordIDs) > 0
-		now          = *nowPtr()
+		now = *nowPtr()
 
 		ns *types.Namespace
 		m  *types.Module
-
-		err error
 	)
 
 	ns, m, _, err = svc.loadCombo(namespaceID, moduleID, 0)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !svc.ac.CanDeleteRecord(svc.ctx, m) {
-		return ErrNoDeletePermissions.withStack()
+		return nil, ErrNoDeletePermissions.withStack()
 	}
 
+	del, err = svc.FindByID(namespaceID, recordID)
+
+	if svc.optEmitEvents {
+		// Preload old record values so we can send it together with event
+		if err = svc.preloadValues(m, del); err != nil {
+			return nil, err
+		}
+
+		// Calling before-record-delete scripts
+		if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeDelete(nil, del, m, ns, nil)); err != nil {
+			return nil, err
+		}
+	}
+
+	del.DeletedAt = &now
+	del.DeletedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
+
+	if err = svc.recordRepo.Delete(del); err != nil {
+		return nil, err
+	}
+
+	if err = svc.recordRepo.DeleteValues(del); err != nil {
+		return nil, err
+	}
+
+	if svc.optEmitEvents {
+		defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil))
+	}
+
+	return del, nil
+}
+
+// DeleteByID removes one or more records (all from the same module and namespace)
+//
+// Before and after each record is deleted beforeDelete and afterDelete events are emitted
+// If beforeRecord aborts the action it does so for that specific record only
+func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) error {
 	for _, recordID := range recordIDs {
 		if recordID == 0 {
 			return ErrInvalidID.withStack()
 		}
 
 		err := svc.db.Transaction(func() (err error) {
-			var (
-				del *types.Record
-			)
-
-			del, err = svc.FindByID(namespaceID, recordID)
-			if err != nil {
-				return err
-			}
-
-			if svc.optEmitEvents {
-				// Preload old record values so we can send it together with event
-				if err = svc.preloadValues(m, del); err != nil {
-					return err
-				}
-
-				// Calling before-record-delete scripts
-				if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeDelete(nil, del, m, ns, nil)); err != nil {
-					if isBulkDelete {
-						// Not considered fatal,
-						// continue with next record
-						return nil
-					} else {
-						return err
-					}
-				}
-			}
-
-			del.DeletedAt = &now
-			del.DeletedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
-
-			if err = svc.recordRepo.Delete(del); err != nil {
-				return err
-			}
-
-			if err = svc.recordRepo.DeleteValues(del); err != nil {
-				return err
-			}
-
-			if svc.optEmitEvents {
-				defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil))
-			}
-
+			_, err = svc.delete(namespaceID, moduleID, recordID)
 			return err
 		})
 

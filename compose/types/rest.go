@@ -30,6 +30,10 @@ func (set BulkRecordSet) ToBulkOperations(dftModule uint64, dftNamespace uint64)
 				b.Operation = OperationTypeCreate
 			}
 
+			if rr.DeletedAt != nil {
+				b.Operation = OperationTypeDelete
+			}
+
 			oo = append(oo, b)
 		}
 	}
