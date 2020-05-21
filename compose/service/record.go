@@ -749,6 +749,8 @@ func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Rec
 // Before and after each record is deleted beforeDelete and afterDelete events are emitted
 // If beforeRecord aborts the action it does so for that specific record only
 func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) error {
+	isBulkDelete := len(recordIDs) > 0
+
 	for _, recordID := range recordIDs {
 		if recordID == 0 {
 			return ErrInvalidID.withStack()
@@ -756,6 +758,10 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 
 		err := svc.db.Transaction(func() (err error) {
 			_, err = svc.delete(namespaceID, moduleID, recordID)
+			// We are not breaking the entire chain, if we are bulk deleteing records.
+			if err != nil && isBulkDelete {
+				return nil
+			}
 			return err
 		})
 
