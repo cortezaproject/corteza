@@ -19,6 +19,7 @@ allow:
       - application.create
       - user.create
       - role.create
+      - reminder.assign
 
     system:application:
       - read
