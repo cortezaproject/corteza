@@ -65,6 +65,9 @@ type (
 
 		// Error severity
 		Severity string `yaml:"severity"`
+
+		// HTTP Status code for this error
+		HttpStatus string `yaml:"httpStatus"`
 	}
 )
 
@@ -131,6 +134,10 @@ func procDef(path, output string) {
 
 			// Default severity for errors
 			DefaultErrorSeverity string `yaml:"defaultErrorSeverity"`
+
+			// If at least one of the errors has HTTP status defined,
+			// add support for http errors
+			SupportHttpErrors bool
 
 			Props   []*propsDef
 			Actions []*actionDef
@@ -208,6 +215,10 @@ func procDef(path, output string) {
 	for _, e := range tplData.Errors {
 		if e.Severity == "" {
 			e.Severity = tplData.DefaultErrorSeverity
+		}
+
+		if e.HttpStatus != "" {
+			tplData.SupportHttpErrors = true
 		}
 	}
 

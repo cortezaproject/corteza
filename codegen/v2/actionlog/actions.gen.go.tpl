@@ -9,6 +9,9 @@ import (
 	"strings"
 	"errors"
 	"time"
+{{- if $.SupportHttpErrors }}
+	"net/http"
+{{- end }}
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 {{- range $import := $.Import }}
@@ -51,6 +54,10 @@ type (
 		wrap        error
 
 		props       *{{ $.Service }}ActionProps
+
+    {{ if $.SupportHttpErrors }}
+        httpStatusCode int
+    {{ end }}
 	}
 {{ end }}
 )
@@ -255,6 +262,18 @@ func (e *{{ $.Service }}Error) LoggableAction() *actionlog.Action {
 		Meta:        e.props.serialize(),
 	}
 }
+
+{{ if $.SupportHttpErrors }}
+func (e *{{ $.Service }}Error) HttpResponse(w http.ResponseWriter) {
+    var code = e.httpStatusCode
+    if code == 0 {
+        code = http.StatusInternalServerError
+    }
+
+	http.Error(w, e.message, code)
+}
+{{ end }}
+
 {{ end }}
 
 {{ if $.Actions }}
@@ -313,6 +332,10 @@ func {{ camelCase "" $.Service "Err" $e.Error }}(props ... *{{ $.Service }}Actio
 		log:       "{{ $e.Log }}",
 		severity:  {{ $e.SeverityConstName }},
 		props:     func() *{{ $.Service }}ActionProps { if len(props) > 0 { return props[0] }; return nil}(),
+
+    {{ if $e.HttpStatus }}
+        httpStatusCode: http.{{ $e.HttpStatus }},
+    {{ end }}
 	}
 
 	if len(props) > 0 {

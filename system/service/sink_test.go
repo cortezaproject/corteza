@@ -1,0 +1,177 @@
+package service
+
+import (
+	"bytes"
+	"errors"
+	"io"
+	"net/http"
+	"reflect"
+	"strings"
+	"testing"
+	"time"
+
+	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
+)
+
+func Test_sink_SignURL(t *testing.T) {
+	var (
+		signer = internalAuth.HmacSigner("test")
+
+		tests = []struct {
+			name          string
+			surp          SinkRequestUrlParams
+			wantSignedURL string
+			wantErr       bool
+		}{
+			{
+				name: "basic",
+				surp: SinkRequestUrlParams{
+					Method:      "POST",
+					Origin:      "test",
+					Expires:     nil,
+					MaxBodySize: 1024,
+					ContentType: "plain/text",
+				},
+				wantSignedURL: "/sink?__sign=d8a8c5591acb0f5f6695ab6aa4a205a7066b3bf4_eyJtdGQiOiJQT1NUIiwib3JpZ2luIjoidGVzdCIsIm1icyI6MTAyNCwiY3QiOiJwbGFpbi90ZXh0In0%3D",
+			},
+		}
+	)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := sink{
+				signer: signer,
+			}
+
+			gotSignedURL, err := svc.SignURL(tt.surp)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SignURL() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotSignedURL.String() != tt.wantSignedURL {
+				t.Errorf("SignURL() gotSignedURL = %v, want %v", gotSignedURL, tt.wantSignedURL)
+			}
+		})
+	}
+}
+
+func Test_sink_handleRequest(t *testing.T) {
+	var (
+		signer = internalAuth.HmacSigner("test")
+		svc    = sink{signer: signer}
+
+		signParams = SinkRequestUrlParams{
+			Method:      "POST",
+			Origin:      "test",
+			Expires:     nil,
+			MaxBodySize: 1024,
+			ContentType: "plain/text",
+		}
+		signedUrl, _ = svc.SignURL(signParams)
+
+		signParamsNoPref   = SinkRequestUrlParams{}
+		signedUrlNoPref, _ = svc.SignURL(signParamsNoPref)
+
+		signParamsExp   = SinkRequestUrlParams{Expires: &time.Time{}}
+		signedUrlExp, _ = svc.SignURL(signParamsExp)
+	)
+
+	var (
+		tests = []struct {
+			name       string
+			withMethod string
+			withURL    string
+			withBody   io.Reader
+			withHeader http.Header
+			wantParams *SinkRequestUrlParams
+			wantErr    error
+		}{
+			{
+				name:    "missing signature",
+				withURL: "/sink",
+				wantErr: SinkErrMissingSignature(),
+			},
+			{
+				name:    "invalid signature",
+				withURL: "/sink?" + SinkSignUrlParamName + "=foo",
+				wantErr: SinkErrInvalidSignatureParam(),
+			},
+			{
+				name:    "invalid signature",
+				withURL: "/sink?__sign=foo_bar",
+				wantErr: SinkErrBadSinkParamEncoding(),
+			},
+			{
+				name:    "invalid signature",
+				withURL: "/sink?__sign=foo_eyJtdGQiOiJQT1NUIiwib3JpZ2luIjoidGVzdCIsIm1icyI6MTAyNCwiY3QiOiJwbGFpbi90ZXh0In0%3D",
+				wantErr: SinkErrInvalidSignature(),
+			},
+			{
+				name:       "any HTTP method (no pref. method)",
+				withMethod: "DELETE",
+				withURL:    signedUrlNoPref.String(),
+				wantParams: &signParamsNoPref,
+				wantErr:    nil,
+			},
+			{
+				name:       "invalid HTTP method (POST only)",
+				withMethod: "GET",
+				withURL:    signedUrl.String(),
+				wantErr:    SinkErrInvalidHttpMethod(),
+			},
+			{
+				name:       "invalid content type",
+				withMethod: "POST",
+				withHeader: map[string][]string{"content-type": {"foo/bar"}},
+				withURL:    signedUrl.String(),
+				wantErr:    SinkErrInvalidContentType(),
+			},
+			{
+				name:       "valid content type",
+				withMethod: "POST",
+				withHeader: map[string][]string{"content-type": {"plain/text"}},
+				withURL:    signedUrl.String(),
+				wantErr:    nil,
+				wantParams: &signParams,
+			},
+			{
+				name:       "expired",
+				withMethod: "POST",
+				withURL:    signedUrlExp.String(),
+				wantErr:    SinkErrSignatureExpired(),
+			},
+			{
+				name:       "content length exceeds",
+				withMethod: "POST",
+				withHeader: map[string][]string{"content-type": {"plain/text"}},
+				withBody:   bytes.NewBufferString(strings.Repeat(".", 1025)),
+				withURL:    signedUrl.String(),
+				wantErr:    SinkErrContentLengthExceedsMaxAllowedSize(),
+			},
+		}
+	)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequest(tt.withMethod, tt.withURL, tt.withBody)
+			if err != nil {
+				panic(err)
+			}
+
+			for n, vv := range tt.withHeader {
+				for _, v := range vv {
+					req.Header.Add(n, v)
+				}
+			}
+
+			got, err := svc.handleRequest(req)
+			if !errors.Is(err, tt.wantErr) {
+				t.Errorf("handleRequest() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.wantParams) {
+				t.Errorf("handleRequest() params = %v, want %v", got, tt.wantParams)
+			}
+		})
+	}
+}
