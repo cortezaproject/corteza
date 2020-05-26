@@ -238,6 +238,10 @@ func (svc user) FindByAny(identifier interface{}) (u *types.User, err error) {
 
 func (svc user) proc(u *types.User, err error) (*types.User, error) {
 	if err != nil {
+		if repository.ErrUserNotFound.Eq(err) {
+			return nil, UserErrNonexistent()
+		}
+
 		return nil, err
 	}
 
