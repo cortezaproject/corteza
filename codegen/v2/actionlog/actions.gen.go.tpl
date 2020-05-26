@@ -388,15 +388,19 @@ func (svc {{ $.Service }}) recordAction(ctx context.Context, props *{{ $.Service
 			// got non-{{ $.Service }} error, wrap it with {{ camelCase "" $.Service "err" "generic" }}
 			retError = {{ camelCase "" $.Service "err" "generic" }}(props).Wrap(err)
 
-			// copy action to returning and recording error
-			retError.action = action().action
+			if action != nil {
+			    // copy action to returning and recording error
+			    retError.action = action().action
+			}
 
 			// we'll use {{ camelCase "" $.Service "err" "generic" }} for recording too
 			// because it can hold more info
 			recError = retError
 		} else if retError != nil {
-			// copy action to returning and recording error
-			retError.action = action().action
+			if action != nil {
+                // copy action to returning and recording error
+                retError.action = action().action
+            }
 			// start with copy of return error for recording
 			// this will be updated with tha root cause as we try and
 			// unwrap the error
