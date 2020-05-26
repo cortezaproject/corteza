@@ -9,7 +9,6 @@ type (
 )
 
 const (
-	ErrNoUpdatePermissions         serviceError = "NoUpdatePermissions"
 	ErrNoReminderAssignPermissions serviceError = "NoReminderAssignPermissions"
 )
 
