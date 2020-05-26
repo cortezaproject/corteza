@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx/types"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type (
@@ -24,4 +25,24 @@ type (
 
 func (u *Credentials) Valid() bool {
 	return u.ID > 0 && (u.ExpiresAt == nil || u.ExpiresAt.After(time.Now())) && u.DeletedAt == nil
+}
+
+// CompareHashAndPassword returns first valid credentials with matching hash
+func (cc CredentialsSet) CompareHashAndPassword(password string) *Credentials {
+	// We need only valid credentials (skip deleted, expired)
+	for _, c := range cc {
+		if !c.Valid() {
+			continue
+		}
+
+		if len(c.Credentials) == 0 {
+			continue
+		}
+
+		if bcrypt.CompareHashAndPassword([]byte(c.Credentials), []byte(password)) == nil {
+			return c
+		}
+	}
+
+	return nil
 }

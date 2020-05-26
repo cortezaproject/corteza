@@ -370,8 +370,16 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 				return err
 			}
 
-			if !svc.checkPassword(password, cc) {
+			if c := cc.CompareHashAndPassword(password); c == nil {
 				return AuthErrInvalidCredentials(aam)
+			} else {
+				// Update last-used-by timestamp on matching credentials
+				c.LastUsedAt = svc.now()
+				aam.setCredentials(c)
+
+				if _, err = svc.credentials.Update(c); err != nil {
+					return err
+				}
 			}
 
 			// We're not actually doing sign-up here - user exists,
@@ -510,11 +518,18 @@ func (svc auth) InternalLogin(email string, password string) (u *types.User, err
 		cc, err = svc.credentials.FindByKind(u.ID, credentialsTypePassword)
 		if err != nil {
 			return err
-
 		}
 
-		if !svc.checkPassword(password, cc) {
-			return AuthErrInvalidCredentials()
+		if c := cc.CompareHashAndPassword(password); c == nil {
+			return AuthErrInvalidCredentials(aam)
+		} else {
+			// Update last-used-by timestamp on matching credentials
+			c.LastUsedAt = svc.now()
+			aam.setCredentials(c)
+
+			if _, err = svc.credentials.Update(c); err != nil {
+				return err
+			}
 		}
 
 		if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
@@ -542,22 +557,7 @@ func (svc auth) InternalLogin(email string, password string) (u *types.User, err
 
 // checkPassword returns true if given (encrypted) password matches any of the credentials
 func (svc auth) checkPassword(password string, cc types.CredentialsSet) bool {
-	// We need only valid credentials (skip deleted, expired)
-	for _, c := range cc {
-		if !c.Valid() {
-			continue
-		}
-
-		if len(c.Credentials) == 0 {
-			continue
-		}
-
-		if bcrypt.CompareHashAndPassword([]byte(c.Credentials), []byte(password)) == nil {
-			return true
-		}
-	}
-
-	return false
+	return cc.CompareHashAndPassword(password) != nil
 }
 
 // SetPassword sets new password for a user
