@@ -1,0 +1,19 @@
+# List of security/audit events and errors that we need to log
+
+resource: system:statistics
+service: statistics
+
+# Default sensitivity for actions
+defaultActionSeverity: debug
+
+# default severity for errors
+defaultErrorSeverity: error
+
+actions:
+  - action: serve
+    log: "metrics served"
+
+errors:
+  - error: notAllowedToReadStatistics
+    message: "not allowed to read statistics"
+    severity: warning

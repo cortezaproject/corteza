@@ -1,0 +1,81 @@
+# List of loggable service actions
+
+resource: system:application
+service: application
+
+# Default sensitivity for actions
+defaultActionSeverity: info
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+props:
+  - name: application
+    type: "*types.Application"
+    fields: [ name, ID ]
+  - name: new
+    type: "*types.Application"
+    fields: [ name, ID ]
+  - name: update
+    type: "*types.Application"
+    fields: [ name, ID ]
+  - name: filter
+    type: "*types.ApplicationFilter"
+    fields: [ query, name, deleted, sort ]
+
+actions:
+  - action: search
+    log: "searched for applications"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {application}"
+    severity: info
+
+  - action: create
+    log: "created {application}"
+
+  - action: update
+    log: "updated {application}"
+
+  - action: delete
+    log: "deleted {application}"
+
+  - action: undelete
+    log: "undeleted {application}"
+
+errors:
+  - error: nonexistent
+    message: "application does not exist"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read application"
+    log: "failed to read {application.name}; insufficient permissions"
+
+  - error: notAllowedToListApplications
+    message: "not allowed to list applications"
+    log: "failed to list application; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create application"
+    log: "failed to create application; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update application"
+    log: "failed to update {application.name}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete application"
+    log: "failed to delete {application.name}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete application"
+    log: "failed to undelete {application.name}; insufficient permissions"

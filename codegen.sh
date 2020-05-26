@@ -104,6 +104,9 @@ function types {
 	./build/gen-type-set --types Script --output pkg/corredor/types.gen.go --with-primary-key=false --package corredor
 	./build/gen-type-set-test --types Script --output pkg/corredor/types.gen_test.go --with-primary-key=false --package corredor
 
+	./build/gen-type-set --types Action --output pkg/actionlog/types.gen.go --with-primary-key=false --package actionlog
+	./build/gen-type-set-test --types Action --output pkg/actionlog/types.gen_test.go --with-primary-key=false --package actionlog
+
 
 	green "OK"
 }
@@ -133,7 +136,7 @@ function provision {
 
 function events {
   if [ ! -f "build/event-gen" ]; then
-		CGO_ENABLED=0 go build -o ./build/event-gen codegen/v2/events.go
+		CGO_ENABLED=0 go build -o ./build/event-gen ./codegen/v2/events
 	fi
 
 	for SERVICE in system compose messaging; do

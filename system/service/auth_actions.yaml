@@ -1,0 +1,133 @@
+# List of security/audit events and errors that we need to log
+
+resource: system:auth
+service: auth
+
+# Default sensitivity for actions
+defaultActionSeverity: warning
+
+# default severity for errors
+defaultErrorSeverity: alert
+
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+props:
+  - name: email
+  - name: provider
+  - name: credentials
+    type: "*types.Credentials"
+    fields: [ kind, label, ID ]
+  - name: role
+    type: "*types.Role"
+    fields: [ handle, name, ID ]
+  - name: user
+    type: "*types.User"
+    fields: [ handle, name, ID, email, suspendedAt, deletedAt ]
+
+actions:
+  - action: authenticate
+    log: "successfully authenticated with {credentials.kind}"
+
+  - action: issueToken
+    log: "token '{credentials.kind}' issued"
+
+  - action: validateToken
+    log: "token '{credentials.kind}' validated"
+
+  - action: changePassword
+    log: "password changed"
+
+  - action: internalSignup
+    log: "{user.email} signed-up"
+
+  - action: confirmEmail
+    log: "email {user.email} confirmed"
+
+  - action: externalSignup
+    log: "{user.email} signed-up after successful external authentication via {credentials.kind}"
+
+  - action: sendEmailConfirmationToken
+    log: "confirmation notification sent to {email}"
+
+  - action: sendPasswordResetToken
+    log: "password reset token sent to {email}"
+
+  - action: exchangePasswordResetToken
+    log: "password reset token exchanged"
+
+  - action: autoPromote
+    log: "auto-promoted to {role}"
+
+  - action: updateCredentials
+    log: "credentials {credentials.kind} updated"
+
+  - action: createCredentials
+    log: "new credentials {credentials.kind} created"
+
+errors:
+  - error: subscription
+    message: "{err}"
+    log: "{err}"
+    severity: warning
+
+  - error: invalidCredentials
+    message: "invalid username and password combination"
+    log: "{email} failed to authenticate with {credentials.kind}"
+    severity: warning
+
+  - error: invalidEmailFormat
+    message: "invalid email"
+
+  - error: invalidHandle
+    message: "invalid handle"
+
+  - error: failedForUnknownUser
+    safe: invalidCredentials
+    log: "unknown user {email} tried to log-in with {credentials.kind}"
+    severity: warning
+
+  - error: failedForDisabledUser
+    safe: invalidCredentials
+    log: "disabled user {user} tried to log-in with {credentials.kind}"
+    severity: warning
+
+  - error: failedUnconfirmedEmail
+    message: "system requires confirmed email before logging in"
+    log: "failed to log-in with with unconfirmed email"
+
+  - error: interalLoginDisabledByConfig
+    message: "internal login (username/password) is disabled"
+
+  - error: internalSignupDisabledByConfig
+    message: "internal sign-up (username/password) is disabled"
+
+  - error: passwordChangeFailedForUnknownUser
+    message: "failed to change password for the unknown user"
+
+  - error: passwodResetFailedOldPasswordCheckFailed
+    message: "failed to change password, old password does not match"
+
+  - error: passwordResetDisabledByConfig
+    message: "password reset is disabled"
+
+  - error: passwordNotSecure
+    message: "provided password is not secure; use longer password with more non-alphanumeric character"
+
+  - error: externalDisabledByConfig
+    message: "external authentication (using external authentication provider) is disabled"
+    log: "external authentication is disabled"
+    severity: warning
+
+  - error: profileWithoutValidEmail
+    message: "external authentication provider returned profile without valid email"
+    log: "external authentication provider {credentials.kind} returned profile without valid email"
+    severity: warning
+
+  - error: credentialsLinkedToInvalidUser
+    message: "credentials {credentials.kind} linked to disabled or deleted user {user}"
+    severity: warning
+
+  - error: invalidToken
+    message: "invalid token"
+    severity: warning

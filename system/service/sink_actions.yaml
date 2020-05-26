@@ -1,0 +1,93 @@
+# List of loggable service actions
+
+resource: system:sink
+service: sink
+
+# Default sensitivity for actions
+defaultActionSeverity: info
+
+# default severity for errors
+defaultErrorSeverity: alert
+
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+props:
+  - name: url
+  - name: responseStatus
+    type: int
+  - name: contentType
+  - name: sinkParams
+    type: "*SinkRequestUrlParams"
+  - name: mailHeader
+    type: "*types.MailMessageHeader"
+    fields: [ to, CC, BCC, from, replyTo, raw ]
+
+actions:
+  - action: sign
+    log: "signed sink request URL"
+    severity: notice
+
+  - action: preprocess
+
+  - action: request
+    log: "sink request processed"
+
+
+errors:
+  - error: failedToSign
+    message: "could not sign request params: {err}"
+    severity: error
+
+  - error: failedToCreateEvent
+    message: "failed to create sink event from request"
+    severity: error
+
+  - error: failedToProcess
+    message: "failed to process request"
+    severity: error
+
+  - error: failedToRespond
+    message: "failed to respond to request"
+    severity: error
+
+  - error: missingSignature
+    message: "missing sink signature parameter"
+    httpStatus: StatusBadRequest
+
+  - error: invalidSignatureParam
+    message: "invalid sink signature parameter"
+    httpStatus: StatusUnauthorized
+
+  - error: badSinkParamEncoding
+    message: "bad encoding of sink parameters"
+    httpStatus: StatusBadRequest
+
+  - error: invalidSignature
+    message: "invalid signature"
+    httpStatus: StatusUnauthorized
+
+  - error: invalidSinkRequestUrlParams
+    message: "invalid sink request url params"
+    httpStatus: StatusInternalServerError
+
+  - error: invalidHttpMethod
+    message: "invalid HTTP method"
+    httpStatus: StatusUnauthorized
+
+  - error: invalidContentType
+    message: "invalid content-type header"
+    httpStatus: StatusUnauthorized
+
+  - error: signatureExpired
+    message: "signature expired"
+    httpStatus: StatusGone
+
+  - error: contentLengthExceedsMaxAllowedSize
+    message: "content length exceeds max size limit"
+    httpStatus: StatusRequestEntityTooLarge
+
+  - error: processingError
+    message: "sink request process error"
+    httpStatus: StatusInternalServerError
+
