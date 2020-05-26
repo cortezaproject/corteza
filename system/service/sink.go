@@ -10,20 +10,17 @@ import (
 	"strings"
 	"time"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
 	sink struct {
-		logger     *zap.Logger
 		signer     internalAuth.Signer
+		actionlog  actionlog.Recorder
 		eventbus   sinkEventDispatcher
 		isMonolith bool
 	}
@@ -51,9 +48,6 @@ type (
 )
 
 const (
-	ErrSinkContentTypeUnsupported  serviceError = "SinkUnsupportedContentType"
-	ErrSinkContentProcessingFailed serviceError = "SinkProcessFailed"
-
 	SinkContentTypeMail = "message/rfc822"
 
 	SinkSignUrlParamName      = "__sign"
@@ -62,32 +56,40 @@ const (
 
 func Sink() *sink {
 	return &sink{
-		logger:     DefaultLogger,
+		actionlog:  DefaultActionlog,
 		signer:     internalAuth.DefaultSigner,
 		eventbus:   eventbus.Service(),
 		isMonolith: true,
 	}
 }
 
+// SignURL takes sink request parameters and generates signed URL
+//
+// With signed URL, external systems can make requests to sink subsystem
+// and trigger scripts
 func (svc sink) SignURL(surp SinkRequestUrlParams) (signedURL *url.URL, err error) {
 	var (
 		params []byte
+		sap    = &sinkActionProps{sinkParams: &surp}
 	)
 
-	params, err = json.Marshal(surp)
-	if err != nil {
-		return
-	}
+	err = func() error {
+		params, err = json.Marshal(surp)
+		if err != nil {
+			return SinkErrFailedToSign(sap).Wrap(err)
+		}
 
-	surp.Method = strings.ToUpper(surp.Method)
+		surp.Method = strings.ToUpper(surp.Method)
 
-	v := url.Values{}
+		v := url.Values{}
 
-	v.Set(SinkSignUrlParamName, svc.signer.Sign(0, params)+SinkSignUrlParamDelimiter+base64.StdEncoding.EncodeToString(params))
+		v.Set(SinkSignUrlParamName, svc.signer.Sign(0, params)+SinkSignUrlParamDelimiter+base64.StdEncoding.EncodeToString(params))
 
-	signedURL = &url.URL{RawQuery: v.Encode(), Path: svc.GetPath()}
+		signedURL = &url.URL{RawQuery: v.Encode(), Path: svc.GetPath()}
+		return nil
+	}()
 
-	return
+	return signedURL, svc.recordAction(context.Background(), sap, SinkActionSign, err)
 }
 
 func (svc sink) GetPath() string {
@@ -100,44 +102,80 @@ func (svc sink) GetPath() string {
 	return path + "/sink"
 }
 
-// ProcessRequest handles sink request validation and processing
-func (svc sink) ProcessRequest(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
+// ProcessRequest function is used directly in the HTTP controller
+func (svc *sink) ProcessRequest(w http.ResponseWriter, r *http.Request) {
+	var (
+		sap = &sinkActionProps{}
+	)
+
+	// capture error from request handling and process functions
+	err := func() error {
+		defer r.Body.Close()
+		srup, err := svc.handleRequest(r)
+		if err != nil {
+			//err.HttpResponse(w)
+			return err
+		}
+
+		var body io.Reader
+		if srup.MaxBodySize > 0 {
+			// Utilize body only when max-body-size limit is set
+			body = http.MaxBytesReader(w, r.Body, srup.MaxBodySize)
+		} else {
+			body = http.MaxBytesReader(w, r.Body, 32<<10) // 32k limit
+		}
+
+		if err := svc.process(srup.ContentType, w, r, body); err != nil {
+			return SinkErrProcessingError(sap).Wrap(err)
+		}
+
+		return nil
+	}()
+
+	// record error or successful action with all sink action params
+	if err, ok := svc.recordAction(r.Context(), sap, SinkActionRequest, err).(*sinkError); ok && err != nil {
+		// in case of errors, write http response
+		err.HttpResponse(w)
+	}
+}
+
+// Verifies and extracts sink request params
+func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, error) {
+	var (
+		srup *SinkRequestUrlParams
+		sap  = &sinkActionProps{}
+	)
 
 	param := r.URL.Query().Get(SinkSignUrlParamName)
 	if len(param) == 0 {
-		http.Error(w, "missing sink signature parameter", http.StatusBadRequest)
-		return
+		return nil, SinkErrMissingSignature(sap)
 	}
 
 	split := strings.SplitN(param, SinkSignUrlParamDelimiter, 2)
 	if len(split) < 2 {
-		http.Error(w, "invalid sink signature parameter", http.StatusUnauthorized)
-		return
+		return nil, SinkErrInvalidSignatureParam(sap)
 	}
 
 	params, err := base64.StdEncoding.DecodeString(split[1])
 	if err != nil {
-		http.Error(w, "bad encoding of sink parameters", http.StatusBadRequest)
-		return
+		return nil, SinkErrBadSinkParamEncoding(sap)
 	}
 
 	if !svc.signer.Verify(split[0], 0, params) {
-		http.Error(w, "invalid signature", http.StatusUnauthorized)
-		return
+		return nil, SinkErrInvalidSignature(sap)
 	}
 
-	srup := &SinkRequestUrlParams{}
-	if err := json.Unmarshal(params, srup); err != nil {
+	srup = &SinkRequestUrlParams{}
+	if err = json.Unmarshal(params, srup); err != nil {
 		// Impossible scenario :)
 		// How can we have verified signature of an invalid JSON ?!
-		http.Error(w, "invalid sink request url params", http.StatusInternalServerError)
-		return
+		return nil, SinkErrInvalidSinkRequestUrlParams(sap)
 	}
 
+	sap.setSinkParams(srup)
+
 	if srup.Method != "" && srup.Method != r.Method {
-		http.Error(w, "invalid method", http.StatusUnauthorized)
-		return
+		return nil, SinkErrInvalidHttpMethod(sap)
 	}
 
 	contentType := strings.ToLower(r.Header.Get("content-type"))
@@ -147,33 +185,22 @@ func (svc sink) ProcessRequest(w http.ResponseWriter, r *http.Request) {
 
 	if srup.ContentType != "" {
 		if strings.ToLower(srup.ContentType) != contentType {
-			http.Error(w, "invalid content-type", http.StatusUnauthorized)
-			return
+			return nil, SinkErrInvalidContentType(sap)
 		}
 	}
 
 	if srup.Expires != nil && srup.Expires.Before(time.Now()) {
-		http.Error(w, "signature expired", http.StatusGone)
-		return
+		return nil, SinkErrSignatureExpired(sap)
 	}
 
-	var body io.Reader
 	if srup.MaxBodySize > 0 {
 		// See if there is content length param and reject it right away
 		if r.ContentLength > srup.MaxBodySize {
-			http.Error(w, "content length exceeds max size limit", http.StatusRequestEntityTooLarge)
+			return nil, SinkErrContentLengthExceedsMaxAllowedSize(sap)
 		}
-
-		// Utilize body only when max-body-size limit is set
-		body = http.MaxBytesReader(w, r.Body, srup.MaxBodySize)
-	} else {
-		body = http.MaxBytesReader(w, r.Body, 32<<10) // 32k limit
 	}
 
-	if err := svc.process(contentType, w, r, body); err != nil {
-		http.Error(w, "sink request process error", http.StatusInternalServerError)
-		return
-	}
+	return srup, nil
 }
 
 // Processes sink request, casts it and forwards it to processor (depending on content type)
@@ -185,8 +212,14 @@ func (svc sink) ProcessRequest(w http.ResponseWriter, r *http.Request) {
 // b) Max-body-size check might be limited via sink params
 // and io.Reader that is passed is limited w/ io.LimitReader
 //
-func (svc *sink) process(contentType string, w http.ResponseWriter, r *http.Request, body io.Reader) (err error) {
-	ctx := r.Context()
+func (svc *sink) process(contentType string, w http.ResponseWriter, r *http.Request, body io.Reader) error {
+	var (
+		err error
+		ctx = r.Context()
+		sap = &sinkActionProps{
+			contentType: contentType,
+		}
+	)
 
 	switch strings.ToLower(contentType) {
 	case SinkContentTypeMail, "rfc822", "email", "mail":
@@ -195,10 +228,15 @@ func (svc *sink) process(contentType string, w http.ResponseWriter, r *http.Requ
 		var msg *types.MailMessage
 		msg, err = types.NewMailMessage(body)
 		if err != nil {
-			return
+			return SinkErrFailedToCreateEvent(sap).Wrap(err)
 		}
 
-		return svc.eventbus.WaitFor(ctx, event.MailOnReceive(msg))
+		sap.setMailHeader(&msg.Header)
+
+		err = svc.eventbus.WaitFor(ctx, event.MailOnReceive(msg))
+		if err != nil {
+			return SinkErrFailedToProcess(sap).Wrap(err)
+		}
 
 	default:
 		var (
@@ -224,26 +262,26 @@ func (svc *sink) process(contentType string, w http.ResponseWriter, r *http.Requ
 
 		sr, err = types.NewSinkRequest(r, body)
 		if err != nil {
-			svc.log(ctx).Error("could create sink request event", zap.Error(err))
-			return
+			return SinkErrFailedToCreateEvent(sap).Wrap(err)
+
 		}
 
-		ev := event.SinkOnRequest(rsp, sr)
-		err = svc.eventbus.WaitFor(ctx, ev)
+		sap.setUrl(sanitizedURL.String())
+
+		err = svc.eventbus.WaitFor(ctx, event.SinkOnRequest(rsp, sr))
 		if err != nil {
-			svc.log(ctx).Error("could not process event", zap.Error(err))
-			return
+			return SinkErrFailedToProcess(sap).Wrap(err)
 		}
+
+		sap.setResponseStatus(rsp.Status)
 
 		// Now write everything we've received from the script
-		//if err = rsp.Header.Write(w); err != nil {
-		//	return
-		//}
 		for k, vv := range rsp.Header {
 			for _, v := range vv {
 				w.Header().Add(k, v)
 			}
 		}
+
 		w.WriteHeader(rsp.Status)
 
 		var output []byte
@@ -255,13 +293,9 @@ func (svc *sink) process(contentType string, w http.ResponseWriter, r *http.Requ
 		}
 
 		if _, err = w.Write(output); err != nil {
-			return
+			return SinkErrFailedToRespond(sap).Wrap(err)
 		}
 	}
 
-	return
-}
-
-func (svc sink) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(ctx, svc.logger).With(fields...)
+	return nil
 }
