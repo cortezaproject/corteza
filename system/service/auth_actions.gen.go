@@ -119,6 +119,9 @@ func (p authActionProps) serialize() actionlog.Meta {
 		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
 	)
 
+	// avoiding declared but not used
+	_ = str
+
 	m["email"] = str(p.email)
 	m["provider"] = str(p.provider)
 	if p.credentials != nil {

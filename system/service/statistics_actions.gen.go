@@ -1,6 +1,6 @@
 package service
 
-// This file is auto-generated from system/service/access_control_actions.yaml
+// This file is auto-generated from system/service/statistics_actions.yaml
 //
 
 import (
@@ -11,15 +11,13 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
 )
 
 type (
-	accessControlActionProps struct {
-		rule *permissions.Rule
+	statisticsActionProps struct {
 	}
 
-	accessControlAction struct {
+	statisticsAction struct {
 		timestamp time.Time
 		resource  string
 		action    string
@@ -29,10 +27,10 @@ type (
 		// prefix for error when action fails
 		errorMessage string
 
-		props *accessControlActionProps
+		props *statisticsActionProps
 	}
 
-	accessControlError struct {
+	statisticsError struct {
 		timestamp time.Time
 		error     string
 		resource  string
@@ -43,29 +41,19 @@ type (
 
 		wrap error
 
-		props *accessControlActionProps
+		props *statisticsActionProps
 	}
 )
 
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
-// setRule updates accessControlActionProps's rule
-//
-// Allows method chaining
-//
-// This function is auto-generated.
-//
-func (p *accessControlActionProps) setRule(rule *permissions.Rule) *accessControlActionProps {
-	p.rule = rule
-	return p
-}
 
-// serialize converts accessControlActionProps to actionlog.Meta
+// serialize converts statisticsActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p accessControlActionProps) serialize() actionlog.Meta {
+func (p statisticsActionProps) serialize() actionlog.Meta {
 	var (
 		m   = make(actionlog.Meta)
 		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
@@ -74,13 +62,6 @@ func (p accessControlActionProps) serialize() actionlog.Meta {
 	// avoiding declared but not used
 	_ = str
 
-	if p.rule != nil {
-		m["rule.operation"] = str(p.rule.Operation)
-		m["rule.roleID"] = str(p.rule.RoleID)
-		m["rule.access"] = str(p.rule.Access)
-		m["rule.resource"] = str(p.rule.Resource)
-	}
-
 	return m
 }
 
@@ -88,7 +69,7 @@ func (p accessControlActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p accessControlActionProps) tr(in string, err error) string {
+func (p statisticsActionProps) tr(in string, err error) string {
 	var pairs = []string{"{err}"}
 
 	if err != nil {
@@ -106,14 +87,6 @@ func (p accessControlActionProps) tr(in string, err error) string {
 	} else {
 		pairs = append(pairs, "nil")
 	}
-
-	if p.rule != nil {
-		pairs = append(pairs, "{rule}", fmt.Sprintf("%v", p.rule.Operation))
-		pairs = append(pairs, "{rule.operation}", fmt.Sprintf("%v", p.rule.Operation))
-		pairs = append(pairs, "{rule.roleID}", fmt.Sprintf("%v", p.rule.RoleID))
-		pairs = append(pairs, "{rule.access}", fmt.Sprintf("%v", p.rule.Access))
-		pairs = append(pairs, "{rule.resource}", fmt.Sprintf("%v", p.rule.Resource))
-	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
 
@@ -125,8 +98,8 @@ func (p accessControlActionProps) tr(in string, err error) string {
 //
 // This function is auto-generated.
 //
-func (a *accessControlAction) String() string {
-	var props = &accessControlActionProps{}
+func (a *statisticsAction) String() string {
+	var props = &statisticsActionProps{}
 
 	if a.props != nil {
 		props = a.props
@@ -135,7 +108,7 @@ func (a *accessControlAction) String() string {
 	return props.tr(a.log, nil)
 }
 
-func (e *accessControlAction) LoggableAction() *actionlog.Action {
+func (e *statisticsAction) LoggableAction() *actionlog.Action {
 	return &actionlog.Action{
 		Timestamp:   e.timestamp,
 		Resource:    e.resource,
@@ -156,8 +129,8 @@ func (e *accessControlAction) LoggableAction() *actionlog.Action {
 //
 // This function is auto-generated.
 //
-func (e *accessControlError) String() string {
-	var props = &accessControlActionProps{}
+func (e *statisticsError) String() string {
+	var props = &statisticsActionProps{}
 
 	if e.props != nil {
 		props = e.props
@@ -176,8 +149,8 @@ func (e *accessControlError) String() string {
 //
 // This function is auto-generated.
 //
-func (e *accessControlError) Error() string {
-	var props = &accessControlActionProps{}
+func (e *statisticsError) Error() string {
+	var props = &statisticsActionProps{}
 
 	if e.props != nil {
 		props = e.props
@@ -190,8 +163,8 @@ func (e *accessControlError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *accessControlError) Is(Resource error) bool {
-	t, ok := Resource.(*accessControlError)
+func (e *statisticsError) Is(Resource error) bool {
+	t, ok := Resource.(*statisticsError)
 	if !ok {
 		return false
 	}
@@ -199,11 +172,11 @@ func (e *accessControlError) Is(Resource error) bool {
 	return t.resource == e.resource && t.error == e.error
 }
 
-// Wrap wraps accessControlError around another error
+// Wrap wraps statisticsError around another error
 //
 // This function is auto-generated.
 //
-func (e *accessControlError) Wrap(err error) *accessControlError {
+func (e *statisticsError) Wrap(err error) *statisticsError {
 	e.wrap = err
 	return e
 }
@@ -212,11 +185,11 @@ func (e *accessControlError) Wrap(err error) *accessControlError {
 //
 // This function is auto-generated.
 //
-func (e *accessControlError) Unwrap() error {
+func (e *statisticsError) Unwrap() error {
 	return e.wrap
 }
 
-func (e *accessControlError) LoggableAction() *actionlog.Action {
+func (e *statisticsError) LoggableAction() *actionlog.Action {
 	return &actionlog.Action{
 		Timestamp:   e.timestamp,
 		Resource:    e.resource,
@@ -232,17 +205,17 @@ func (e *accessControlError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// AccessControlActionGrant returns "system:access_control.grant" error
+// StatisticsActionServe returns "system:statistics.serve" error
 //
 // This function is auto-generated.
 //
-func AccessControlActionGrant(props ...*accessControlActionProps) *accessControlAction {
-	a := &accessControlAction{
+func StatisticsActionServe(props ...*statisticsActionProps) *statisticsAction {
+	a := &statisticsAction{
 		timestamp: time.Now(),
-		resource:  "system:access_control",
-		action:    "grant",
-		log:       "grant",
-		severity:  actionlog.Error,
+		resource:  "system:statistics",
+		action:    "serve",
+		log:       "metrics served",
+		severity:  actionlog.Debug,
 	}
 
 	if len(props) > 0 {
@@ -256,21 +229,21 @@ func AccessControlActionGrant(props ...*accessControlActionProps) *accessControl
 // *********************************************************************************************************************
 // Error constructors
 
-// AccessControlErrGeneric returns "system:access_control.generic" audit event as actionlog.Error
+// StatisticsErrGeneric returns "system:statistics.generic" audit event as actionlog.Error
 //
 //
 // This function is auto-generated.
 //
-func AccessControlErrGeneric(props ...*accessControlActionProps) *accessControlError {
-	var e = &accessControlError{
+func StatisticsErrGeneric(props ...*statisticsActionProps) *statisticsError {
+	var e = &statisticsError{
 		timestamp: time.Now(),
-		resource:  "system:access_control",
+		resource:  "system:statistics",
 		error:     "generic",
 		action:    "error",
 		message:   "failed to complete request due to internal error",
 		log:       "{err}",
 		severity:  actionlog.Error,
-		props: func() *accessControlActionProps {
+		props: func() *statisticsActionProps {
 			if len(props) > 0 {
 				return props[0]
 			}
@@ -286,21 +259,21 @@ func AccessControlErrGeneric(props ...*accessControlActionProps) *accessControlE
 
 }
 
-// AccessControlErrNotAllowedToSetPermissions returns "system:access_control.notAllowedToSetPermissions" audit event as actionlog.Alert
+// StatisticsErrNotAllowedToReadStatistics returns "system:statistics.notAllowedToReadStatistics" audit event as actionlog.Warning
 //
 //
 // This function is auto-generated.
 //
-func AccessControlErrNotAllowedToSetPermissions(props ...*accessControlActionProps) *accessControlError {
-	var e = &accessControlError{
+func StatisticsErrNotAllowedToReadStatistics(props ...*statisticsActionProps) *statisticsError {
+	var e = &statisticsError{
 		timestamp: time.Now(),
-		resource:  "system:access_control",
-		error:     "notAllowedToSetPermissions",
+		resource:  "system:statistics",
+		error:     "notAllowedToReadStatistics",
 		action:    "error",
-		message:   "not allowed to set permissions",
-		log:       "not allowed to set permissions",
-		severity:  actionlog.Alert,
-		props: func() *accessControlActionProps {
+		message:   "not allowed to read statistics",
+		log:       "not allowed to read statistics",
+		severity:  actionlog.Warning,
+		props: func() *statisticsActionProps {
 			if len(props) > 0 {
 				return props[0]
 			}
@@ -323,7 +296,7 @@ func AccessControlErrNotAllowedToSetPermissions(props ...*accessControlActionPro
 //
 // context is used to enrich audit log entry with current user info, request ID, IP address...
 // props are collected action/error properties
-// action (optional) fn will be used to construct accessControlAction struct from given props (and error)
+// action (optional) fn will be used to construct statisticsAction struct from given props (and error)
 // err is any error that occurred while action was happening
 //
 // Action has success and fail (error) state:
@@ -333,26 +306,26 @@ func AccessControlErrNotAllowedToSetPermissions(props ...*accessControlActionPro
 //
 // This function is auto-generated.
 //
-func (svc accessControl) recordAction(ctx context.Context, props *accessControlActionProps, action func(...*accessControlActionProps) *accessControlAction, err error) error {
+func (svc statistics) recordAction(ctx context.Context, props *statisticsActionProps, action func(...*statisticsActionProps) *statisticsAction, err error) error {
 	var (
 		ok bool
 
 		// Return error
-		retError *accessControlError
+		retError *statisticsError
 
 		// Recorder error
-		recError *accessControlError
+		recError *statisticsError
 	)
 
 	if err != nil {
-		if retError, ok = err.(*accessControlError); !ok {
-			// got non-accessControl error, wrap it with AccessControlErrGeneric
-			retError = AccessControlErrGeneric(props).Wrap(err)
+		if retError, ok = err.(*statisticsError); !ok {
+			// got non-statistics error, wrap it with StatisticsErrGeneric
+			retError = StatisticsErrGeneric(props).Wrap(err)
 
 			// copy action to returning and recording error
 			retError.action = action().action
 
-			// we'll use AccessControlErrGeneric for recording too
+			// we'll use StatisticsErrGeneric for recording too
 			// because it can hold more info
 			recError = retError
 		} else if retError != nil {
@@ -372,8 +345,8 @@ func (svc accessControl) recordAction(ctx context.Context, props *accessControlA
 					break
 				}
 
-				// update recError ONLY of wrapped error is of type accessControlError
-				if unwrappedSinkError, ok := unwrappedError.(*accessControlError); ok {
+				// update recError ONLY of wrapped error is of type statisticsError
+				if unwrappedSinkError, ok := unwrappedError.(*statisticsError); ok {
 					recError = unwrappedSinkError
 				}
 			}

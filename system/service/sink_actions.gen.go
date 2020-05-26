@@ -122,6 +122,9 @@ func (p sinkActionProps) serialize() actionlog.Meta {
 		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
 	)
 
+	// avoiding declared but not used
+	_ = str
+
 	m["url"] = str(p.url)
 	m["responseStatus"] = str(p.responseStatus)
 	m["contentType"] = str(p.contentType)

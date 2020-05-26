@@ -143,6 +143,9 @@ func (p roleActionProps) serialize() actionlog.Meta {
 		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
 	)
 
+	// avoiding declared but not used
+	_ = str
+
 	if p.member != nil {
 		m["member.handle"] = str(p.member.Handle)
 		m["member.email"] = str(p.member.Email)

@@ -522,15 +522,7 @@ func (svc auth) InternalLogin(email string, password string) (u *types.User, err
 		}
 
 		if !u.Valid() {
-			if u.SuspendedAt != nil {
-				err = ErrUserSuspended
-			} else if u.DeletedAt != nil {
-				err = ErrUserDeleted
-			} else {
-				err = ErrUserInvalid
-			}
-			u = nil
-			return err
+			return AuthErrFailedForDisabledUser()
 		}
 
 		if !u.EmailConfirmed {

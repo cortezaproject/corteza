@@ -348,7 +348,7 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 
 	err = svc.db.Transaction(func() (err error) {
 		if upd.ID == 0 {
-			return ErrInvalidID
+			return UserErrInvalidID()
 		}
 
 		if !handle.IsValid(upd.Handle) {
