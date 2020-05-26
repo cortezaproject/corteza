@@ -70,7 +70,9 @@ func (p statisticsActionProps) serialize() actionlog.Meta {
 // This function is auto-generated.
 //
 func (p statisticsActionProps) tr(in string, err error) string {
-	var pairs = []string{"{err}"}
+	var (
+		pairs = []string{"{err}"}
+	)
 
 	if err != nil {
 		for {

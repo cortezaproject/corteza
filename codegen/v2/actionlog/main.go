@@ -23,11 +23,10 @@ type (
 	// List of event/log properties that can/will be captured
 	// and injected into log or message string
 	propsDef struct {
-		Name         string
-		Type         string
-		Fields       []string
-		DefaultField string
-		Builtin      bool
+		Name    string
+		Type    string
+		Fields  []string
+		Builtin bool
 	}
 
 	actionDef struct {
@@ -194,11 +193,6 @@ func procDef(path, output string) {
 		m.Builtin = !strings.Contains(m.Type, ".")
 
 		knownProps[m.Name] = true
-
-		if len(m.Fields) > 0 {
-			m.DefaultField = m.Fields[0]
-
-		}
 
 		for _, f := range m.Fields {
 			knownProps[fmt.Sprintf("%s.%s", m.Name, f)] = true

@@ -137,7 +137,19 @@ func (p applicationActionProps) serialize() actionlog.Meta {
 // This function is auto-generated.
 //
 func (p applicationActionProps) tr(in string, err error) string {
-	var pairs = []string{"{err}"}
+	var (
+		pairs = []string{"{err}"}
+		// first non-empty string
+		fns = func(ii ...interface{}) string {
+			for _, i := range ii {
+				if s := fmt.Sprintf("%v", i); len(s) > 0 {
+					return s
+				}
+			}
+
+			return ""
+		}
+	)
 
 	if err != nil {
 		for {
@@ -156,29 +168,63 @@ func (p applicationActionProps) tr(in string, err error) string {
 	}
 
 	if p.application != nil {
-		pairs = append(pairs, "{application}", fmt.Sprintf("%v", p.application.Name))
-		pairs = append(pairs, "{application.name}", fmt.Sprintf("%v", p.application.Name))
-		pairs = append(pairs, "{application.ID}", fmt.Sprintf("%v", p.application.ID))
+		// replacement for "{application}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{application}",
+			fns(
+				p.application.Name,
+				p.application.ID,
+			),
+		)
+		pairs = append(pairs, "{application.name}", fns(p.application.Name))
+		pairs = append(pairs, "{application.ID}", fns(p.application.ID))
 	}
 
 	if p.new != nil {
-		pairs = append(pairs, "{new}", fmt.Sprintf("%v", p.new.Name))
-		pairs = append(pairs, "{new.name}", fmt.Sprintf("%v", p.new.Name))
-		pairs = append(pairs, "{new.ID}", fmt.Sprintf("%v", p.new.ID))
+		// replacement for "{new}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{new}",
+			fns(
+				p.new.Name,
+				p.new.ID,
+			),
+		)
+		pairs = append(pairs, "{new.name}", fns(p.new.Name))
+		pairs = append(pairs, "{new.ID}", fns(p.new.ID))
 	}
 
 	if p.update != nil {
-		pairs = append(pairs, "{update}", fmt.Sprintf("%v", p.update.Name))
-		pairs = append(pairs, "{update.name}", fmt.Sprintf("%v", p.update.Name))
-		pairs = append(pairs, "{update.ID}", fmt.Sprintf("%v", p.update.ID))
+		// replacement for "{update}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{update}",
+			fns(
+				p.update.Name,
+				p.update.ID,
+			),
+		)
+		pairs = append(pairs, "{update.name}", fns(p.update.Name))
+		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
 	}
 
 	if p.filter != nil {
-		pairs = append(pairs, "{filter}", fmt.Sprintf("%v", p.filter.Query))
-		pairs = append(pairs, "{filter.query}", fmt.Sprintf("%v", p.filter.Query))
-		pairs = append(pairs, "{filter.name}", fmt.Sprintf("%v", p.filter.Name))
-		pairs = append(pairs, "{filter.deleted}", fmt.Sprintf("%v", p.filter.Deleted))
-		pairs = append(pairs, "{filter.sort}", fmt.Sprintf("%v", p.filter.Sort))
+		// replacement for "{filter}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{filter}",
+			fns(
+				p.filter.Query,
+				p.filter.Name,
+				p.filter.Deleted,
+				p.filter.Sort,
+			),
+		)
+		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
+		pairs = append(pairs, "{filter.name}", fns(p.filter.Name))
+		pairs = append(pairs, "{filter.deleted}", fns(p.filter.Deleted))
+		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }

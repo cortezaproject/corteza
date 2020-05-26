@@ -146,7 +146,19 @@ func (p sinkActionProps) serialize() actionlog.Meta {
 // This function is auto-generated.
 //
 func (p sinkActionProps) tr(in string, err error) string {
-	var pairs = []string{"{err}"}
+	var (
+		pairs = []string{"{err}"}
+		// first non-empty string
+		fns = func(ii ...interface{}) string {
+			for _, i := range ii {
+				if s := fmt.Sprintf("%v", i); len(s) > 0 {
+					return s
+				}
+			}
+
+			return ""
+		}
+	)
 
 	if err != nil {
 		for {
@@ -163,19 +175,31 @@ func (p sinkActionProps) tr(in string, err error) string {
 	} else {
 		pairs = append(pairs, "nil")
 	}
-	pairs = append(pairs, "{url}", fmt.Sprintf("%v", p.url))
-	pairs = append(pairs, "{responseStatus}", fmt.Sprintf("%v", p.responseStatus))
-	pairs = append(pairs, "{contentType}", fmt.Sprintf("%v", p.contentType))
-	pairs = append(pairs, "{sinkParams}", fmt.Sprintf("%v", p.sinkParams))
+	pairs = append(pairs, "{url}", fns(p.url))
+	pairs = append(pairs, "{responseStatus}", fns(p.responseStatus))
+	pairs = append(pairs, "{contentType}", fns(p.contentType))
+	pairs = append(pairs, "{sinkParams}", fns(p.sinkParams))
 
 	if p.mailHeader != nil {
-		pairs = append(pairs, "{mailHeader}", fmt.Sprintf("%v", p.mailHeader.To))
-		pairs = append(pairs, "{mailHeader.to}", fmt.Sprintf("%v", p.mailHeader.To))
-		pairs = append(pairs, "{mailHeader.CC}", fmt.Sprintf("%v", p.mailHeader.CC))
-		pairs = append(pairs, "{mailHeader.BCC}", fmt.Sprintf("%v", p.mailHeader.BCC))
-		pairs = append(pairs, "{mailHeader.from}", fmt.Sprintf("%v", p.mailHeader.From))
-		pairs = append(pairs, "{mailHeader.replyTo}", fmt.Sprintf("%v", p.mailHeader.ReplyTo))
-		pairs = append(pairs, "{mailHeader.raw}", fmt.Sprintf("%v", p.mailHeader.Raw))
+		// replacement for "{mailHeader}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{mailHeader}",
+			fns(
+				p.mailHeader.To,
+				p.mailHeader.CC,
+				p.mailHeader.BCC,
+				p.mailHeader.From,
+				p.mailHeader.ReplyTo,
+				p.mailHeader.Raw,
+			),
+		)
+		pairs = append(pairs, "{mailHeader.to}", fns(p.mailHeader.To))
+		pairs = append(pairs, "{mailHeader.CC}", fns(p.mailHeader.CC))
+		pairs = append(pairs, "{mailHeader.BCC}", fns(p.mailHeader.BCC))
+		pairs = append(pairs, "{mailHeader.from}", fns(p.mailHeader.From))
+		pairs = append(pairs, "{mailHeader.replyTo}", fns(p.mailHeader.ReplyTo))
+		pairs = append(pairs, "{mailHeader.raw}", fns(p.mailHeader.Raw))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
