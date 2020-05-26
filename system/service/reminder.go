@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/system/repository"
 
 	"github.com/titpetric/factory"
@@ -17,7 +18,8 @@ type (
 		db *factory.DB
 		ac reminderAccessController
 
-		reminder repository.ReminderRepository
+		actionlog actionlog.Recorder
+		reminder  repository.ReminderRepository
 	}
 
 	reminderAccessController interface {
@@ -48,42 +50,61 @@ func Reminder(ctx context.Context) ReminderService {
 	}
 }
 
-func (svc reminder) Find(ctx context.Context, f types.ReminderFilter) (types.ReminderSet, types.ReminderFilter, error) {
-	rr, f, err := svc.reminder.Find(f)
-	if err != nil {
-		return nil, f, err
-	}
+func (svc reminder) Find(ctx context.Context, filter types.ReminderFilter) (rr types.ReminderSet, f types.ReminderFilter, err error) {
+	var (
+		raProps = &reminderActionProps{filter: &filter}
+	)
 
-	return rr, f, nil
+	err = svc.db.With(ctx).Transaction(func() (err error) {
+		rr, f, err = svc.reminder.Find(filter)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return rr, f, svc.recordAction(ctx, raProps, ReminderActionSearch, err)
 }
 
-func (svc reminder) FindByID(ctx context.Context, ID uint64) (*types.Reminder, error) {
-	rm, err := svc.reminder.FindByID(ID)
-	if err != nil {
-		return nil, err
-	}
+func (svc reminder) FindByID(ctx context.Context, ID uint64) (r *types.Reminder, err error) {
+	var (
+		raProps = &reminderActionProps{reminder: &types.Reminder{ID: ID}}
+	)
 
-	return rm, nil
+	err = svc.db.With(ctx).Transaction(func() (err error) {
+		if ID == 0 {
+			return ReminderErrInvalidID()
+		}
+
+		r, err = svc.reminder.FindByID(ID)
+		if err != nil {
+			return err
+		}
+
+		raProps.setReminder(r)
+
+		return nil
+	})
+
+	return r, svc.recordAction(ctx, raProps, ReminderActionLookup, err)
 }
 
-func (svc reminder) FindByIDs(ctx context.Context, IDs ...uint64) (types.ReminderSet, error) {
+func (svc reminder) FindByIDs(ctx context.Context, IDs ...uint64) (rr types.ReminderSet, err error) {
 	if len(IDs) == 0 {
 		return nil, nil
 	}
 
-	rr, _, err := svc.reminder.Find(types.ReminderFilter{ReminderID: IDs})
-	if err != nil {
-		return nil, err
-	}
+	rr, _, err = svc.Find(ctx, types.ReminderFilter{ReminderID: IDs})
 
 	return rr, nil
 }
 
-func (svc reminder) checkAssignee(ctx context.Context, rm *types.Reminder) error {
+func (svc reminder) checkAssignee(ctx context.Context, rm *types.Reminder) (err error) {
 	// Check if user is assigning to someone else
 	if rm.AssignedTo != svc.currentUser(ctx) {
 		if !svc.ac.CanAssignReminder(ctx) {
-			return ErrNoReminderAssignPermissions
+			return ReminderErrNotAllowedToAssign()
 		}
 	}
 
@@ -94,86 +115,151 @@ func (svc reminder) currentUser(ctx context.Context) uint64 {
 	return intAuth.GetIdentityFromContext(ctx).Identity()
 }
 
-func (svc reminder) Create(ctx context.Context, rm *types.Reminder) (*types.Reminder, error) {
-	if err := svc.checkAssignee(ctx, rm); err != nil {
-		return nil, err
-	}
+func (svc reminder) Create(ctx context.Context, new *types.Reminder) (r *types.Reminder, err error) {
+	var (
+		raProps = &reminderActionProps{new: new}
+	)
 
-	return svc.reminder.Create(rm)
+	err = svc.db.With(ctx).Transaction(func() (err error) {
+		if err := svc.checkAssignee(ctx, new); err != nil {
+			return err
+		}
+
+		if r, err = svc.reminder.Create(new); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return r, svc.recordAction(ctx, raProps, ReminderActionUpdate, err)
+
 }
 
-func (svc reminder) Update(ctx context.Context, rm *types.Reminder) (t *types.Reminder, err error) {
-	return rm, svc.db.With(ctx).Transaction(func() (err error) {
-		if t, err = svc.reminder.FindByID(rm.ID); err != nil {
+func (svc reminder) Update(ctx context.Context, upd *types.Reminder) (r *types.Reminder, err error) {
+	var (
+		raProps = &reminderActionProps{updated: upd}
+	)
+
+	err = svc.db.With(ctx).Transaction(func() (err error) {
+		if upd.ID == 0 {
+			return ReminderErrInvalidID()
+		}
+
+		if r, err = svc.reminder.FindByID(upd.ID); err != nil {
 			return
 		}
 
-		if err := svc.checkAssignee(ctx, rm); err != nil {
+		if err := svc.checkAssignee(ctx, upd); err != nil {
 			return err
 		}
 
 		// Assign changed values
-		if rm.AssignedTo != t.AssignedTo {
-			t.AssignedTo = rm.AssignedTo
-			t.AssignedBy = svc.currentUser(ctx)
-			t.AssignedAt = time.Now()
+		if upd.AssignedTo != r.AssignedTo {
+			r.AssignedTo = upd.AssignedTo
+			r.AssignedBy = svc.currentUser(ctx)
+			r.AssignedAt = time.Now()
 		}
-		t.Payload = rm.Payload
-		t.RemindAt = rm.RemindAt
-		t.Resource = rm.Resource
 
-		if t, err = svc.reminder.Update(t); err != nil {
+		r.Payload = upd.Payload
+		r.RemindAt = upd.RemindAt
+		r.Resource = upd.Resource
+
+		if r, err = svc.reminder.Update(r); err != nil {
 			return err
 		}
 
 		return nil
 	})
+
+	return r, svc.recordAction(ctx, raProps, ReminderActionUpdate, err)
 }
 
 func (svc reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
-	return svc.db.With(ctx).Transaction(func() (err error) {
-		var t *types.Reminder
-		if t, err = svc.reminder.FindByID(ID); err != nil {
-			return err
+	var (
+		r *types.Reminder
+
+		raProps = &reminderActionProps{reminder: &types.Reminder{ID: ID}}
+	)
+
+	err = svc.db.With(ctx).Transaction(func() (err error) {
+		if ID == 0 {
+			return ReminderErrInvalidID()
 		}
+
+		if r, err = svc.reminder.FindByID(ID); err != nil {
+			return ReminderErrNonexistent()
+		}
+
+		raProps.setReminder(r)
 
 		// Assign changed values
 		n := time.Now()
-		t.DismissedAt = &n
-		t.DismissedBy = svc.currentUser(ctx)
+		r.DismissedAt = &n
+		r.DismissedBy = svc.currentUser(ctx)
 
-		if t, err = svc.reminder.Update(t); err != nil {
+		if r, err = svc.reminder.Update(r); err != nil {
 			return err
 		}
 
 		return nil
 	})
+
+	return svc.recordAction(ctx, raProps, ReminderActionDismiss, err)
 }
 
 func (svc reminder) Snooze(ctx context.Context, ID uint64, remindAt *time.Time) (err error) {
-	return svc.db.With(ctx).Transaction(func() (err error) {
-		var t *types.Reminder
-		if t, err = svc.reminder.FindByID(ID); err != nil {
-			return err
+	var (
+		r *types.Reminder
+
+		raProps = &reminderActionProps{reminder: &types.Reminder{ID: ID, RemindAt: remindAt}}
+	)
+
+	err = svc.db.With(ctx).Transaction(func() (err error) {
+		if ID == 0 {
+			return ReminderErrInvalidID()
 		}
 
-		// Assign changed values
-		t.SnoozeCount++
-		t.RemindAt = remindAt
+		if r, err = svc.reminder.FindByID(ID); err != nil {
+			return ReminderErrNonexistent()
+		}
 
-		if t, err = svc.reminder.Update(t); err != nil {
+		raProps.setReminder(r)
+
+		// Assign changed values
+		r.SnoozeCount++
+		r.RemindAt = remindAt
+
+		if r, err = svc.reminder.Update(r); err != nil {
 			return err
 		}
 
 		return nil
 	})
+
+	return svc.recordAction(ctx, raProps, ReminderActionSnooze, err)
 }
 
-func (svc reminder) Delete(ctx context.Context, ID uint64) error {
-	_, err := svc.FindByID(ctx, ID)
-	if err != nil {
-		return err
-	}
+func (svc reminder) Delete(ctx context.Context, ID uint64) (err error) {
+	var (
+		r *types.Reminder
 
-	return svc.reminder.Delete(ID)
+		raProps = &reminderActionProps{reminder: &types.Reminder{ID: ID}}
+	)
+
+	err = svc.db.With(ctx).Transaction(func() (err error) {
+		if ID == 0 {
+			return ReminderErrInvalidID()
+		}
+
+		if r, err = svc.FindByID(ctx, ID); err != nil {
+			return ReminderErrNonexistent()
+		}
+
+		raProps.setReminder(r)
+
+		return svc.reminder.Delete(ID)
+	})
+
+	return svc.recordAction(ctx, raProps, ReminderActionDelete, err)
 }
