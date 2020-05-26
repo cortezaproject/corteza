@@ -212,7 +212,7 @@ func TestReminderCreateSetAssigneeForbidden(t *testing.T) {
 		JSON(`{"resource":"test_rf_as_namespace:*","assignedTo":"222","payload":{}}`).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("system.service.NoReminderAssignPermissions")).
+		Assert(helpers.AssertError("not allowed to assign reminders to other users")).
 		End()
 }
 
@@ -278,7 +278,7 @@ func TestReminderUpdateSetAssigneeForbidden(t *testing.T) {
 		JSON(`{"resource":"test_updf_as_namespace:*","assignedTo":"111","payload":{}}`).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("system.service.NoReminderAssignPermissions")).
+		Assert(helpers.AssertError("not allowed to assign reminders to other users")).
 		End()
 }
 

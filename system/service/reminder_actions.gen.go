@@ -1,0 +1,682 @@
+package service
+
+// This file is auto-generated from system/service/reminder_actions.yaml
+//
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/system/types"
+)
+
+type (
+	reminderActionProps struct {
+		reminder *types.Reminder
+		new      *types.Reminder
+		updated  *types.Reminder
+		filter   *types.ReminderFilter
+	}
+
+	reminderAction struct {
+		timestamp time.Time
+		resource  string
+		action    string
+		log       string
+		severity  actionlog.Severity
+
+		// prefix for error when action fails
+		errorMessage string
+
+		props *reminderActionProps
+	}
+
+	reminderError struct {
+		timestamp time.Time
+		error     string
+		resource  string
+		action    string
+		message   string
+		log       string
+		severity  actionlog.Severity
+
+		wrap error
+
+		props *reminderActionProps
+	}
+)
+
+// *********************************************************************************************************************
+// *********************************************************************************************************************
+// Props methods
+// setReminder updates reminderActionProps's reminder
+//
+// Allows method chaining
+//
+// This function is auto-generated.
+//
+func (p *reminderActionProps) setReminder(reminder *types.Reminder) *reminderActionProps {
+	p.reminder = reminder
+	return p
+}
+
+// setNew updates reminderActionProps's new
+//
+// Allows method chaining
+//
+// This function is auto-generated.
+//
+func (p *reminderActionProps) setNew(new *types.Reminder) *reminderActionProps {
+	p.new = new
+	return p
+}
+
+// setUpdated updates reminderActionProps's updated
+//
+// Allows method chaining
+//
+// This function is auto-generated.
+//
+func (p *reminderActionProps) setUpdated(updated *types.Reminder) *reminderActionProps {
+	p.updated = updated
+	return p
+}
+
+// setFilter updates reminderActionProps's filter
+//
+// Allows method chaining
+//
+// This function is auto-generated.
+//
+func (p *reminderActionProps) setFilter(filter *types.ReminderFilter) *reminderActionProps {
+	p.filter = filter
+	return p
+}
+
+// serialize converts reminderActionProps to actionlog.Meta
+//
+// This function is auto-generated.
+//
+func (p reminderActionProps) serialize() actionlog.Meta {
+	var (
+		m   = make(actionlog.Meta)
+		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
+	)
+
+	// avoiding declared but not used
+	_ = str
+
+	if p.reminder != nil {
+		m["reminder.resource"] = str(p.reminder.Resource)
+		m["reminder.ID"] = str(p.reminder.ID)
+		m["reminder.assignedTo"] = str(p.reminder.AssignedTo)
+		m["reminder.assignedBy"] = str(p.reminder.AssignedBy)
+		m["reminder.remindAt"] = str(p.reminder.RemindAt)
+	}
+	if p.new != nil {
+		m["new.resource"] = str(p.new.Resource)
+		m["new.ID"] = str(p.new.ID)
+		m["new.assignedTo"] = str(p.new.AssignedTo)
+		m["new.assignedBy"] = str(p.new.AssignedBy)
+		m["new.remindAt"] = str(p.new.RemindAt)
+	}
+	if p.updated != nil {
+		m["updated.resource"] = str(p.updated.Resource)
+		m["updated.ID"] = str(p.updated.ID)
+		m["updated.assignedTo"] = str(p.updated.AssignedTo)
+		m["updated.assignedBy"] = str(p.updated.AssignedBy)
+		m["updated.remindAt"] = str(p.updated.RemindAt)
+	}
+	if p.filter != nil {
+		m["filter.resource"] = str(p.filter.Resource)
+		m["filter.reminderID"] = str(p.filter.ReminderID)
+		m["filter.assignedTo"] = str(p.filter.AssignedTo)
+		m["filter.scheduledFrom"] = str(p.filter.ScheduledFrom)
+		m["filter.scheduledUntil"] = str(p.filter.ScheduledUntil)
+		m["filter.excludeDismissed"] = str(p.filter.ExcludeDismissed)
+		m["filter.scheduledOnly"] = str(p.filter.ScheduledOnly)
+		m["filter.sort"] = str(p.filter.Sort)
+	}
+
+	return m
+}
+
+// tr translates string and replaces meta value placeholder with values
+//
+// This function is auto-generated.
+//
+func (p reminderActionProps) tr(in string, err error) string {
+	var pairs = []string{"{err}"}
+
+	if err != nil {
+		for {
+			// Unwrap errors
+			ue := errors.Unwrap(err)
+			if ue == nil {
+				break
+			}
+
+			err = ue
+		}
+
+		pairs = append(pairs, err.Error())
+	} else {
+		pairs = append(pairs, "nil")
+	}
+
+	if p.reminder != nil {
+		pairs = append(pairs, "{reminder}", fmt.Sprintf("%v", p.reminder.Resource))
+		pairs = append(pairs, "{reminder.resource}", fmt.Sprintf("%v", p.reminder.Resource))
+		pairs = append(pairs, "{reminder.ID}", fmt.Sprintf("%v", p.reminder.ID))
+		pairs = append(pairs, "{reminder.assignedTo}", fmt.Sprintf("%v", p.reminder.AssignedTo))
+		pairs = append(pairs, "{reminder.assignedBy}", fmt.Sprintf("%v", p.reminder.AssignedBy))
+		pairs = append(pairs, "{reminder.remindAt}", fmt.Sprintf("%v", p.reminder.RemindAt))
+	}
+
+	if p.new != nil {
+		pairs = append(pairs, "{new}", fmt.Sprintf("%v", p.new.Resource))
+		pairs = append(pairs, "{new.resource}", fmt.Sprintf("%v", p.new.Resource))
+		pairs = append(pairs, "{new.ID}", fmt.Sprintf("%v", p.new.ID))
+		pairs = append(pairs, "{new.assignedTo}", fmt.Sprintf("%v", p.new.AssignedTo))
+		pairs = append(pairs, "{new.assignedBy}", fmt.Sprintf("%v", p.new.AssignedBy))
+		pairs = append(pairs, "{new.remindAt}", fmt.Sprintf("%v", p.new.RemindAt))
+	}
+
+	if p.updated != nil {
+		pairs = append(pairs, "{updated}", fmt.Sprintf("%v", p.updated.Resource))
+		pairs = append(pairs, "{updated.resource}", fmt.Sprintf("%v", p.updated.Resource))
+		pairs = append(pairs, "{updated.ID}", fmt.Sprintf("%v", p.updated.ID))
+		pairs = append(pairs, "{updated.assignedTo}", fmt.Sprintf("%v", p.updated.AssignedTo))
+		pairs = append(pairs, "{updated.assignedBy}", fmt.Sprintf("%v", p.updated.AssignedBy))
+		pairs = append(pairs, "{updated.remindAt}", fmt.Sprintf("%v", p.updated.RemindAt))
+	}
+
+	if p.filter != nil {
+		pairs = append(pairs, "{filter}", fmt.Sprintf("%v", p.filter.Resource))
+		pairs = append(pairs, "{filter.resource}", fmt.Sprintf("%v", p.filter.Resource))
+		pairs = append(pairs, "{filter.reminderID}", fmt.Sprintf("%v", p.filter.ReminderID))
+		pairs = append(pairs, "{filter.assignedTo}", fmt.Sprintf("%v", p.filter.AssignedTo))
+		pairs = append(pairs, "{filter.scheduledFrom}", fmt.Sprintf("%v", p.filter.ScheduledFrom))
+		pairs = append(pairs, "{filter.scheduledUntil}", fmt.Sprintf("%v", p.filter.ScheduledUntil))
+		pairs = append(pairs, "{filter.excludeDismissed}", fmt.Sprintf("%v", p.filter.ExcludeDismissed))
+		pairs = append(pairs, "{filter.scheduledOnly}", fmt.Sprintf("%v", p.filter.ScheduledOnly))
+		pairs = append(pairs, "{filter.sort}", fmt.Sprintf("%v", p.filter.Sort))
+	}
+	return strings.NewReplacer(pairs...).Replace(in)
+}
+
+// *********************************************************************************************************************
+// *********************************************************************************************************************
+// Action methods
+
+// String returns loggable description as string
+//
+// This function is auto-generated.
+//
+func (a *reminderAction) String() string {
+	var props = &reminderActionProps{}
+
+	if a.props != nil {
+		props = a.props
+	}
+
+	return props.tr(a.log, nil)
+}
+
+func (e *reminderAction) LoggableAction() *actionlog.Action {
+	return &actionlog.Action{
+		Timestamp:   e.timestamp,
+		Resource:    e.resource,
+		Action:      e.action,
+		Severity:    e.severity,
+		Description: e.String(),
+		Meta:        e.props.serialize(),
+	}
+}
+
+// *********************************************************************************************************************
+// *********************************************************************************************************************
+// Error methods
+
+// String returns loggable description as string
+//
+// It falls back to message if log is not set
+//
+// This function is auto-generated.
+//
+func (e *reminderError) String() string {
+	var props = &reminderActionProps{}
+
+	if e.props != nil {
+		props = e.props
+	}
+
+	if e.wrap != nil && !strings.Contains(e.log, "{err}") {
+		// Suffix error log with {err} to ensure
+		// we log the cause for this error
+		e.log += ": {err}"
+	}
+
+	return props.tr(e.log, e.wrap)
+}
+
+// Error satisfies
+//
+// This function is auto-generated.
+//
+func (e *reminderError) Error() string {
+	var props = &reminderActionProps{}
+
+	if e.props != nil {
+		props = e.props
+	}
+
+	return props.tr(e.message, e.wrap)
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *reminderError) Is(Resource error) bool {
+	t, ok := Resource.(*reminderError)
+	if !ok {
+		return false
+	}
+
+	return t.resource == e.resource && t.error == e.error
+}
+
+// Wrap wraps reminderError around another error
+//
+// This function is auto-generated.
+//
+func (e *reminderError) Wrap(err error) *reminderError {
+	e.wrap = err
+	return e
+}
+
+// Unwrap returns wrapped error
+//
+// This function is auto-generated.
+//
+func (e *reminderError) Unwrap() error {
+	return e.wrap
+}
+
+func (e *reminderError) LoggableAction() *actionlog.Action {
+	return &actionlog.Action{
+		Timestamp:   e.timestamp,
+		Resource:    e.resource,
+		Action:      e.action,
+		Severity:    e.severity,
+		Description: e.String(),
+		Error:       e.Error(),
+		Meta:        e.props.serialize(),
+	}
+}
+
+// *********************************************************************************************************************
+// *********************************************************************************************************************
+// Action constructors
+
+// ReminderActionSearch returns "system:reminder.search" error
+//
+// This function is auto-generated.
+//
+func ReminderActionSearch(props ...*reminderActionProps) *reminderAction {
+	a := &reminderAction{
+		timestamp: time.Now(),
+		resource:  "system:reminder",
+		action:    "search",
+		log:       "searched for reminders",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ReminderActionLookup returns "system:reminder.lookup" error
+//
+// This function is auto-generated.
+//
+func ReminderActionLookup(props ...*reminderActionProps) *reminderAction {
+	a := &reminderAction{
+		timestamp: time.Now(),
+		resource:  "system:reminder",
+		action:    "lookup",
+		log:       "looked-up for a {reminder}",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ReminderActionCreate returns "system:reminder.create" error
+//
+// This function is auto-generated.
+//
+func ReminderActionCreate(props ...*reminderActionProps) *reminderAction {
+	a := &reminderAction{
+		timestamp: time.Now(),
+		resource:  "system:reminder",
+		action:    "create",
+		log:       "created {reminder}",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ReminderActionUpdate returns "system:reminder.update" error
+//
+// This function is auto-generated.
+//
+func ReminderActionUpdate(props ...*reminderActionProps) *reminderAction {
+	a := &reminderAction{
+		timestamp: time.Now(),
+		resource:  "system:reminder",
+		action:    "update",
+		log:       "updated {reminder}",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ReminderActionDelete returns "system:reminder.delete" error
+//
+// This function is auto-generated.
+//
+func ReminderActionDelete(props ...*reminderActionProps) *reminderAction {
+	a := &reminderAction{
+		timestamp: time.Now(),
+		resource:  "system:reminder",
+		action:    "delete",
+		log:       "deleted {reminder}",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ReminderActionDismiss returns "system:reminder.dismiss" error
+//
+// This function is auto-generated.
+//
+func ReminderActionDismiss(props ...*reminderActionProps) *reminderAction {
+	a := &reminderAction{
+		timestamp: time.Now(),
+		resource:  "system:reminder",
+		action:    "dismiss",
+		log:       "deleted {reminder}",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ReminderActionSnooze returns "system:reminder.snooze" error
+//
+// This function is auto-generated.
+//
+func ReminderActionSnooze(props ...*reminderActionProps) *reminderAction {
+	a := &reminderAction{
+		timestamp: time.Now(),
+		resource:  "system:reminder",
+		action:    "snooze",
+		log:       "deleted {reminder}",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// *********************************************************************************************************************
+// *********************************************************************************************************************
+// Error constructors
+
+// ReminderErrGeneric returns "system:reminder.generic" audit event as actionlog.Error
+//
+//
+// This function is auto-generated.
+//
+func ReminderErrGeneric(props ...*reminderActionProps) *reminderError {
+	var e = &reminderError{
+		timestamp: time.Now(),
+		resource:  "system:reminder",
+		error:     "generic",
+		action:    "error",
+		message:   "failed to complete request due to internal error",
+		log:       "{err}",
+		severity:  actionlog.Error,
+		props: func() *reminderActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
+// ReminderErrNonexistent returns "system:reminder.nonexistent" audit event as actionlog.Warning
+//
+//
+// This function is auto-generated.
+//
+func ReminderErrNonexistent(props ...*reminderActionProps) *reminderError {
+	var e = &reminderError{
+		timestamp: time.Now(),
+		resource:  "system:reminder",
+		error:     "nonexistent",
+		action:    "error",
+		message:   "reminder does not exist",
+		log:       "reminder does not exist",
+		severity:  actionlog.Warning,
+		props: func() *reminderActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
+// ReminderErrInvalidID returns "system:reminder.invalidID" audit event as actionlog.Warning
+//
+//
+// This function is auto-generated.
+//
+func ReminderErrInvalidID(props ...*reminderActionProps) *reminderError {
+	var e = &reminderError{
+		timestamp: time.Now(),
+		resource:  "system:reminder",
+		error:     "invalidID",
+		action:    "error",
+		message:   "invalid ID",
+		log:       "invalid ID",
+		severity:  actionlog.Warning,
+		props: func() *reminderActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
+// ReminderErrNotAllowedToAssign returns "system:reminder.notAllowedToAssign" audit event as actionlog.Error
+//
+//
+// This function is auto-generated.
+//
+func ReminderErrNotAllowedToAssign(props ...*reminderActionProps) *reminderError {
+	var e = &reminderError{
+		timestamp: time.Now(),
+		resource:  "system:reminder",
+		error:     "notAllowedToAssign",
+		action:    "error",
+		message:   "not allowed to assign reminders to other users",
+		log:       "not allowed to assign reminders to other users",
+		severity:  actionlog.Error,
+		props: func() *reminderActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
+// *********************************************************************************************************************
+// *********************************************************************************************************************
+
+// recordAction is a service helper function wraps function that can return error
+//
+// context is used to enrich audit log entry with current user info, request ID, IP address...
+// props are collected action/error properties
+// action (optional) fn will be used to construct reminderAction struct from given props (and error)
+// err is any error that occurred while action was happening
+//
+// Action has success and fail (error) state:
+//  - when recorded without an error (4th param), action is recorded as successful.
+//  - when an additional error is given (4th param), action is used to wrap
+//    the additional error
+//
+// This function is auto-generated.
+//
+func (svc reminder) recordAction(ctx context.Context, props *reminderActionProps, action func(...*reminderActionProps) *reminderAction, err error) error {
+	var (
+		ok bool
+
+		// Return error
+		retError *reminderError
+
+		// Recorder error
+		recError *reminderError
+	)
+
+	if err != nil {
+		if retError, ok = err.(*reminderError); !ok {
+			// got non-reminder error, wrap it with ReminderErrGeneric
+			retError = ReminderErrGeneric(props).Wrap(err)
+
+			// copy action to returning and recording error
+			retError.action = action().action
+
+			// we'll use ReminderErrGeneric for recording too
+			// because it can hold more info
+			recError = retError
+		} else if retError != nil {
+			// copy action to returning and recording error
+			retError.action = action().action
+			// start with copy of return error for recording
+			// this will be updated with tha root cause as we try and
+			// unwrap the error
+			recError = retError
+
+			// find the original recError for this error
+			// for the purpose of logging
+			var unwrappedError error = retError
+			for {
+				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
+					// nothing wrapped
+					break
+				}
+
+				// update recError ONLY of wrapped error is of type reminderError
+				if unwrappedSinkError, ok := unwrappedError.(*reminderError); ok {
+					recError = unwrappedSinkError
+				}
+			}
+
+			if retError.props == nil {
+				// set props on returning error if empty
+				retError.props = props
+			}
+
+			if recError.props == nil {
+				// set props on recording error if empty
+				recError.props = props
+			}
+		}
+	}
+
+	if svc.actionlog != nil {
+		if retError != nil {
+			// failed action, log error
+			svc.actionlog.Record(ctx, recError)
+		} else if action != nil {
+			// successful
+			svc.actionlog.Record(ctx, action(props))
+		}
+	}
+
+	if err == nil {
+		// retError not an interface and that WILL (!!) cause issues
+		// with nil check (== nil) when it is not explicitly returned
+		return nil
+	}
+
+	return retError
+}
