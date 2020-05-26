@@ -1081,15 +1081,19 @@ func (svc user) recordAction(ctx context.Context, props *userActionProps, action
 			// got non-user error, wrap it with UserErrGeneric
 			retError = UserErrGeneric(props).Wrap(err)
 
-			// copy action to returning and recording error
-			retError.action = action().action
+			if action != nil {
+				// copy action to returning and recording error
+				retError.action = action().action
+			}
 
 			// we'll use UserErrGeneric for recording too
 			// because it can hold more info
 			recError = retError
 		} else if retError != nil {
-			// copy action to returning and recording error
-			retError.action = action().action
+			if action != nil {
+				// copy action to returning and recording error
+				retError.action = action().action
+			}
 			// start with copy of return error for recording
 			// this will be updated with tha root cause as we try and
 			// unwrap the error
