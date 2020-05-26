@@ -151,7 +151,19 @@ func (p authActionProps) serialize() actionlog.Meta {
 // This function is auto-generated.
 //
 func (p authActionProps) tr(in string, err error) string {
-	var pairs = []string{"{err}"}
+	var (
+		pairs = []string{"{err}"}
+		// first non-empty string
+		fns = func(ii ...interface{}) string {
+			for _, i := range ii {
+				if s := fmt.Sprintf("%v", i); len(s) > 0 {
+					return s
+				}
+			}
+
+			return ""
+		}
+	)
 
 	if err != nil {
 		for {
@@ -168,31 +180,61 @@ func (p authActionProps) tr(in string, err error) string {
 	} else {
 		pairs = append(pairs, "nil")
 	}
-	pairs = append(pairs, "{email}", fmt.Sprintf("%v", p.email))
-	pairs = append(pairs, "{provider}", fmt.Sprintf("%v", p.provider))
+	pairs = append(pairs, "{email}", fns(p.email))
+	pairs = append(pairs, "{provider}", fns(p.provider))
 
 	if p.credentials != nil {
-		pairs = append(pairs, "{credentials}", fmt.Sprintf("%v", p.credentials.Kind))
-		pairs = append(pairs, "{credentials.kind}", fmt.Sprintf("%v", p.credentials.Kind))
-		pairs = append(pairs, "{credentials.label}", fmt.Sprintf("%v", p.credentials.Label))
-		pairs = append(pairs, "{credentials.ID}", fmt.Sprintf("%v", p.credentials.ID))
+		// replacement for "{credentials}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{credentials}",
+			fns(
+				p.credentials.Kind,
+				p.credentials.Label,
+				p.credentials.ID,
+			),
+		)
+		pairs = append(pairs, "{credentials.kind}", fns(p.credentials.Kind))
+		pairs = append(pairs, "{credentials.label}", fns(p.credentials.Label))
+		pairs = append(pairs, "{credentials.ID}", fns(p.credentials.ID))
 	}
 
 	if p.role != nil {
-		pairs = append(pairs, "{role}", fmt.Sprintf("%v", p.role.Handle))
-		pairs = append(pairs, "{role.handle}", fmt.Sprintf("%v", p.role.Handle))
-		pairs = append(pairs, "{role.name}", fmt.Sprintf("%v", p.role.Name))
-		pairs = append(pairs, "{role.ID}", fmt.Sprintf("%v", p.role.ID))
+		// replacement for "{role}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{role}",
+			fns(
+				p.role.Handle,
+				p.role.Name,
+				p.role.ID,
+			),
+		)
+		pairs = append(pairs, "{role.handle}", fns(p.role.Handle))
+		pairs = append(pairs, "{role.name}", fns(p.role.Name))
+		pairs = append(pairs, "{role.ID}", fns(p.role.ID))
 	}
 
 	if p.user != nil {
-		pairs = append(pairs, "{user}", fmt.Sprintf("%v", p.user.Handle))
-		pairs = append(pairs, "{user.handle}", fmt.Sprintf("%v", p.user.Handle))
-		pairs = append(pairs, "{user.name}", fmt.Sprintf("%v", p.user.Name))
-		pairs = append(pairs, "{user.ID}", fmt.Sprintf("%v", p.user.ID))
-		pairs = append(pairs, "{user.email}", fmt.Sprintf("%v", p.user.Email))
-		pairs = append(pairs, "{user.suspendedAt}", fmt.Sprintf("%v", p.user.SuspendedAt))
-		pairs = append(pairs, "{user.deletedAt}", fmt.Sprintf("%v", p.user.DeletedAt))
+		// replacement for "{user}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{user}",
+			fns(
+				p.user.Handle,
+				p.user.Name,
+				p.user.ID,
+				p.user.Email,
+				p.user.SuspendedAt,
+				p.user.DeletedAt,
+			),
+		)
+		pairs = append(pairs, "{user.handle}", fns(p.user.Handle))
+		pairs = append(pairs, "{user.name}", fns(p.user.Name))
+		pairs = append(pairs, "{user.ID}", fns(p.user.ID))
+		pairs = append(pairs, "{user.email}", fns(p.user.Email))
+		pairs = append(pairs, "{user.suspendedAt}", fns(p.user.SuspendedAt))
+		pairs = append(pairs, "{user.deletedAt}", fns(p.user.DeletedAt))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }

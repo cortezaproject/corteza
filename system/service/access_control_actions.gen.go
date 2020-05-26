@@ -89,7 +89,19 @@ func (p accessControlActionProps) serialize() actionlog.Meta {
 // This function is auto-generated.
 //
 func (p accessControlActionProps) tr(in string, err error) string {
-	var pairs = []string{"{err}"}
+	var (
+		pairs = []string{"{err}"}
+		// first non-empty string
+		fns = func(ii ...interface{}) string {
+			for _, i := range ii {
+				if s := fmt.Sprintf("%v", i); len(s) > 0 {
+					return s
+				}
+			}
+
+			return ""
+		}
+	)
 
 	if err != nil {
 		for {
@@ -108,11 +120,21 @@ func (p accessControlActionProps) tr(in string, err error) string {
 	}
 
 	if p.rule != nil {
-		pairs = append(pairs, "{rule}", fmt.Sprintf("%v", p.rule.Operation))
-		pairs = append(pairs, "{rule.operation}", fmt.Sprintf("%v", p.rule.Operation))
-		pairs = append(pairs, "{rule.roleID}", fmt.Sprintf("%v", p.rule.RoleID))
-		pairs = append(pairs, "{rule.access}", fmt.Sprintf("%v", p.rule.Access))
-		pairs = append(pairs, "{rule.resource}", fmt.Sprintf("%v", p.rule.Resource))
+		// replacement for "{rule}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{rule}",
+			fns(
+				p.rule.Operation,
+				p.rule.RoleID,
+				p.rule.Access,
+				p.rule.Resource,
+			),
+		)
+		pairs = append(pairs, "{rule.operation}", fns(p.rule.Operation))
+		pairs = append(pairs, "{rule.roleID}", fns(p.rule.RoleID))
+		pairs = append(pairs, "{rule.access}", fns(p.rule.Access))
+		pairs = append(pairs, "{rule.resource}", fns(p.rule.Resource))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }

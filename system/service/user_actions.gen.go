@@ -170,7 +170,19 @@ func (p userActionProps) serialize() actionlog.Meta {
 // This function is auto-generated.
 //
 func (p userActionProps) tr(in string, err error) string {
-	var pairs = []string{"{err}"}
+	var (
+		pairs = []string{"{err}"}
+		// first non-empty string
+		fns = func(ii ...interface{}) string {
+			for _, i := range ii {
+				if s := fmt.Sprintf("%v", i); len(s) > 0 {
+					return s
+				}
+			}
+
+			return ""
+		}
+	)
 
 	if err != nil {
 		for {
@@ -189,52 +201,111 @@ func (p userActionProps) tr(in string, err error) string {
 	}
 
 	if p.user != nil {
-		pairs = append(pairs, "{user}", fmt.Sprintf("%v", p.user.Handle))
-		pairs = append(pairs, "{user.handle}", fmt.Sprintf("%v", p.user.Handle))
-		pairs = append(pairs, "{user.email}", fmt.Sprintf("%v", p.user.Email))
-		pairs = append(pairs, "{user.name}", fmt.Sprintf("%v", p.user.Name))
-		pairs = append(pairs, "{user.username}", fmt.Sprintf("%v", p.user.Username))
-		pairs = append(pairs, "{user.ID}", fmt.Sprintf("%v", p.user.ID))
+		// replacement for "{user}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{user}",
+			fns(
+				p.user.Handle,
+				p.user.Email,
+				p.user.Name,
+				p.user.Username,
+				p.user.ID,
+			),
+		)
+		pairs = append(pairs, "{user.handle}", fns(p.user.Handle))
+		pairs = append(pairs, "{user.email}", fns(p.user.Email))
+		pairs = append(pairs, "{user.name}", fns(p.user.Name))
+		pairs = append(pairs, "{user.username}", fns(p.user.Username))
+		pairs = append(pairs, "{user.ID}", fns(p.user.ID))
 	}
 
 	if p.new != nil {
-		pairs = append(pairs, "{new}", fmt.Sprintf("%v", p.new.Handle))
-		pairs = append(pairs, "{new.handle}", fmt.Sprintf("%v", p.new.Handle))
-		pairs = append(pairs, "{new.email}", fmt.Sprintf("%v", p.new.Email))
-		pairs = append(pairs, "{new.name}", fmt.Sprintf("%v", p.new.Name))
-		pairs = append(pairs, "{new.username}", fmt.Sprintf("%v", p.new.Username))
-		pairs = append(pairs, "{new.ID}", fmt.Sprintf("%v", p.new.ID))
+		// replacement for "{new}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{new}",
+			fns(
+				p.new.Handle,
+				p.new.Email,
+				p.new.Name,
+				p.new.Username,
+				p.new.ID,
+			),
+		)
+		pairs = append(pairs, "{new.handle}", fns(p.new.Handle))
+		pairs = append(pairs, "{new.email}", fns(p.new.Email))
+		pairs = append(pairs, "{new.name}", fns(p.new.Name))
+		pairs = append(pairs, "{new.username}", fns(p.new.Username))
+		pairs = append(pairs, "{new.ID}", fns(p.new.ID))
 	}
 
 	if p.update != nil {
-		pairs = append(pairs, "{update}", fmt.Sprintf("%v", p.update.Handle))
-		pairs = append(pairs, "{update.handle}", fmt.Sprintf("%v", p.update.Handle))
-		pairs = append(pairs, "{update.email}", fmt.Sprintf("%v", p.update.Email))
-		pairs = append(pairs, "{update.name}", fmt.Sprintf("%v", p.update.Name))
-		pairs = append(pairs, "{update.username}", fmt.Sprintf("%v", p.update.Username))
-		pairs = append(pairs, "{update.ID}", fmt.Sprintf("%v", p.update.ID))
+		// replacement for "{update}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{update}",
+			fns(
+				p.update.Handle,
+				p.update.Email,
+				p.update.Name,
+				p.update.Username,
+				p.update.ID,
+			),
+		)
+		pairs = append(pairs, "{update.handle}", fns(p.update.Handle))
+		pairs = append(pairs, "{update.email}", fns(p.update.Email))
+		pairs = append(pairs, "{update.name}", fns(p.update.Name))
+		pairs = append(pairs, "{update.username}", fns(p.update.Username))
+		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
 	}
 
 	if p.existing != nil {
-		pairs = append(pairs, "{existing}", fmt.Sprintf("%v", p.existing.Handle))
-		pairs = append(pairs, "{existing.handle}", fmt.Sprintf("%v", p.existing.Handle))
-		pairs = append(pairs, "{existing.email}", fmt.Sprintf("%v", p.existing.Email))
-		pairs = append(pairs, "{existing.name}", fmt.Sprintf("%v", p.existing.Name))
-		pairs = append(pairs, "{existing.username}", fmt.Sprintf("%v", p.existing.Username))
-		pairs = append(pairs, "{existing.ID}", fmt.Sprintf("%v", p.existing.ID))
+		// replacement for "{existing}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{existing}",
+			fns(
+				p.existing.Handle,
+				p.existing.Email,
+				p.existing.Name,
+				p.existing.Username,
+				p.existing.ID,
+			),
+		)
+		pairs = append(pairs, "{existing.handle}", fns(p.existing.Handle))
+		pairs = append(pairs, "{existing.email}", fns(p.existing.Email))
+		pairs = append(pairs, "{existing.name}", fns(p.existing.Name))
+		pairs = append(pairs, "{existing.username}", fns(p.existing.Username))
+		pairs = append(pairs, "{existing.ID}", fns(p.existing.ID))
 	}
 
 	if p.filter != nil {
-		pairs = append(pairs, "{filter}", fmt.Sprintf("%v", p.filter.Query))
-		pairs = append(pairs, "{filter.query}", fmt.Sprintf("%v", p.filter.Query))
-		pairs = append(pairs, "{filter.userID}", fmt.Sprintf("%v", p.filter.UserID))
-		pairs = append(pairs, "{filter.roleID}", fmt.Sprintf("%v", p.filter.RoleID))
-		pairs = append(pairs, "{filter.handle}", fmt.Sprintf("%v", p.filter.Handle))
-		pairs = append(pairs, "{filter.email}", fmt.Sprintf("%v", p.filter.Email))
-		pairs = append(pairs, "{filter.username}", fmt.Sprintf("%v", p.filter.Username))
-		pairs = append(pairs, "{filter.deleted}", fmt.Sprintf("%v", p.filter.Deleted))
-		pairs = append(pairs, "{filter.suspended}", fmt.Sprintf("%v", p.filter.Suspended))
-		pairs = append(pairs, "{filter.sort}", fmt.Sprintf("%v", p.filter.Sort))
+		// replacement for "{filter}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{filter}",
+			fns(
+				p.filter.Query,
+				p.filter.UserID,
+				p.filter.RoleID,
+				p.filter.Handle,
+				p.filter.Email,
+				p.filter.Username,
+				p.filter.Deleted,
+				p.filter.Suspended,
+				p.filter.Sort,
+			),
+		)
+		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
+		pairs = append(pairs, "{filter.userID}", fns(p.filter.UserID))
+		pairs = append(pairs, "{filter.roleID}", fns(p.filter.RoleID))
+		pairs = append(pairs, "{filter.handle}", fns(p.filter.Handle))
+		pairs = append(pairs, "{filter.email}", fns(p.filter.Email))
+		pairs = append(pairs, "{filter.username}", fns(p.filter.Username))
+		pairs = append(pairs, "{filter.deleted}", fns(p.filter.Deleted))
+		pairs = append(pairs, "{filter.suspended}", fns(p.filter.Suspended))
+		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }

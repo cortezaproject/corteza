@@ -150,7 +150,19 @@ func (p reminderActionProps) serialize() actionlog.Meta {
 // This function is auto-generated.
 //
 func (p reminderActionProps) tr(in string, err error) string {
-	var pairs = []string{"{err}"}
+	var (
+		pairs = []string{"{err}"}
+		// first non-empty string
+		fns = func(ii ...interface{}) string {
+			for _, i := range ii {
+				if s := fmt.Sprintf("%v", i); len(s) > 0 {
+					return s
+				}
+			}
+
+			return ""
+		}
+	)
 
 	if err != nil {
 		for {
@@ -169,42 +181,89 @@ func (p reminderActionProps) tr(in string, err error) string {
 	}
 
 	if p.reminder != nil {
-		pairs = append(pairs, "{reminder}", fmt.Sprintf("%v", p.reminder.Resource))
-		pairs = append(pairs, "{reminder.resource}", fmt.Sprintf("%v", p.reminder.Resource))
-		pairs = append(pairs, "{reminder.ID}", fmt.Sprintf("%v", p.reminder.ID))
-		pairs = append(pairs, "{reminder.assignedTo}", fmt.Sprintf("%v", p.reminder.AssignedTo))
-		pairs = append(pairs, "{reminder.assignedBy}", fmt.Sprintf("%v", p.reminder.AssignedBy))
-		pairs = append(pairs, "{reminder.remindAt}", fmt.Sprintf("%v", p.reminder.RemindAt))
+		// replacement for "{reminder}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{reminder}",
+			fns(
+				p.reminder.Resource,
+				p.reminder.ID,
+				p.reminder.AssignedTo,
+				p.reminder.AssignedBy,
+				p.reminder.RemindAt,
+			),
+		)
+		pairs = append(pairs, "{reminder.resource}", fns(p.reminder.Resource))
+		pairs = append(pairs, "{reminder.ID}", fns(p.reminder.ID))
+		pairs = append(pairs, "{reminder.assignedTo}", fns(p.reminder.AssignedTo))
+		pairs = append(pairs, "{reminder.assignedBy}", fns(p.reminder.AssignedBy))
+		pairs = append(pairs, "{reminder.remindAt}", fns(p.reminder.RemindAt))
 	}
 
 	if p.new != nil {
-		pairs = append(pairs, "{new}", fmt.Sprintf("%v", p.new.Resource))
-		pairs = append(pairs, "{new.resource}", fmt.Sprintf("%v", p.new.Resource))
-		pairs = append(pairs, "{new.ID}", fmt.Sprintf("%v", p.new.ID))
-		pairs = append(pairs, "{new.assignedTo}", fmt.Sprintf("%v", p.new.AssignedTo))
-		pairs = append(pairs, "{new.assignedBy}", fmt.Sprintf("%v", p.new.AssignedBy))
-		pairs = append(pairs, "{new.remindAt}", fmt.Sprintf("%v", p.new.RemindAt))
+		// replacement for "{new}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{new}",
+			fns(
+				p.new.Resource,
+				p.new.ID,
+				p.new.AssignedTo,
+				p.new.AssignedBy,
+				p.new.RemindAt,
+			),
+		)
+		pairs = append(pairs, "{new.resource}", fns(p.new.Resource))
+		pairs = append(pairs, "{new.ID}", fns(p.new.ID))
+		pairs = append(pairs, "{new.assignedTo}", fns(p.new.AssignedTo))
+		pairs = append(pairs, "{new.assignedBy}", fns(p.new.AssignedBy))
+		pairs = append(pairs, "{new.remindAt}", fns(p.new.RemindAt))
 	}
 
 	if p.updated != nil {
-		pairs = append(pairs, "{updated}", fmt.Sprintf("%v", p.updated.Resource))
-		pairs = append(pairs, "{updated.resource}", fmt.Sprintf("%v", p.updated.Resource))
-		pairs = append(pairs, "{updated.ID}", fmt.Sprintf("%v", p.updated.ID))
-		pairs = append(pairs, "{updated.assignedTo}", fmt.Sprintf("%v", p.updated.AssignedTo))
-		pairs = append(pairs, "{updated.assignedBy}", fmt.Sprintf("%v", p.updated.AssignedBy))
-		pairs = append(pairs, "{updated.remindAt}", fmt.Sprintf("%v", p.updated.RemindAt))
+		// replacement for "{updated}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{updated}",
+			fns(
+				p.updated.Resource,
+				p.updated.ID,
+				p.updated.AssignedTo,
+				p.updated.AssignedBy,
+				p.updated.RemindAt,
+			),
+		)
+		pairs = append(pairs, "{updated.resource}", fns(p.updated.Resource))
+		pairs = append(pairs, "{updated.ID}", fns(p.updated.ID))
+		pairs = append(pairs, "{updated.assignedTo}", fns(p.updated.AssignedTo))
+		pairs = append(pairs, "{updated.assignedBy}", fns(p.updated.AssignedBy))
+		pairs = append(pairs, "{updated.remindAt}", fns(p.updated.RemindAt))
 	}
 
 	if p.filter != nil {
-		pairs = append(pairs, "{filter}", fmt.Sprintf("%v", p.filter.Resource))
-		pairs = append(pairs, "{filter.resource}", fmt.Sprintf("%v", p.filter.Resource))
-		pairs = append(pairs, "{filter.reminderID}", fmt.Sprintf("%v", p.filter.ReminderID))
-		pairs = append(pairs, "{filter.assignedTo}", fmt.Sprintf("%v", p.filter.AssignedTo))
-		pairs = append(pairs, "{filter.scheduledFrom}", fmt.Sprintf("%v", p.filter.ScheduledFrom))
-		pairs = append(pairs, "{filter.scheduledUntil}", fmt.Sprintf("%v", p.filter.ScheduledUntil))
-		pairs = append(pairs, "{filter.excludeDismissed}", fmt.Sprintf("%v", p.filter.ExcludeDismissed))
-		pairs = append(pairs, "{filter.scheduledOnly}", fmt.Sprintf("%v", p.filter.ScheduledOnly))
-		pairs = append(pairs, "{filter.sort}", fmt.Sprintf("%v", p.filter.Sort))
+		// replacement for "{filter}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{filter}",
+			fns(
+				p.filter.Resource,
+				p.filter.ReminderID,
+				p.filter.AssignedTo,
+				p.filter.ScheduledFrom,
+				p.filter.ScheduledUntil,
+				p.filter.ExcludeDismissed,
+				p.filter.ScheduledOnly,
+				p.filter.Sort,
+			),
+		)
+		pairs = append(pairs, "{filter.resource}", fns(p.filter.Resource))
+		pairs = append(pairs, "{filter.reminderID}", fns(p.filter.ReminderID))
+		pairs = append(pairs, "{filter.assignedTo}", fns(p.filter.AssignedTo))
+		pairs = append(pairs, "{filter.scheduledFrom}", fns(p.filter.ScheduledFrom))
+		pairs = append(pairs, "{filter.scheduledUntil}", fns(p.filter.ScheduledUntil))
+		pairs = append(pairs, "{filter.excludeDismissed}", fns(p.filter.ExcludeDismissed))
+		pairs = append(pairs, "{filter.scheduledOnly}", fns(p.filter.ScheduledOnly))
+		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }

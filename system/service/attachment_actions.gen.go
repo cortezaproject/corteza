@@ -161,7 +161,19 @@ func (p attachmentActionProps) serialize() actionlog.Meta {
 // This function is auto-generated.
 //
 func (p attachmentActionProps) tr(in string, err error) string {
-	var pairs = []string{"{err}"}
+	var (
+		pairs = []string{"{err}"}
+		// first non-empty string
+		fns = func(ii ...interface{}) string {
+			for _, i := range ii {
+				if s := fmt.Sprintf("%v", i); len(s) > 0 {
+					return s
+				}
+			}
+
+			return ""
+		}
+	)
 
 	if err != nil {
 		for {
@@ -178,27 +190,49 @@ func (p attachmentActionProps) tr(in string, err error) string {
 	} else {
 		pairs = append(pairs, "nil")
 	}
-	pairs = append(pairs, "{size}", fmt.Sprintf("%v", p.size))
-	pairs = append(pairs, "{name}", fmt.Sprintf("%v", p.name))
-	pairs = append(pairs, "{mimetype}", fmt.Sprintf("%v", p.mimetype))
-	pairs = append(pairs, "{url}", fmt.Sprintf("%v", p.url))
+	pairs = append(pairs, "{size}", fns(p.size))
+	pairs = append(pairs, "{name}", fns(p.name))
+	pairs = append(pairs, "{mimetype}", fns(p.mimetype))
+	pairs = append(pairs, "{url}", fns(p.url))
 
 	if p.attachment != nil {
-		pairs = append(pairs, "{attachment}", fmt.Sprintf("%v", p.attachment.Name))
-		pairs = append(pairs, "{attachment.name}", fmt.Sprintf("%v", p.attachment.Name))
-		pairs = append(pairs, "{attachment.kind}", fmt.Sprintf("%v", p.attachment.Kind))
-		pairs = append(pairs, "{attachment.url}", fmt.Sprintf("%v", p.attachment.Url))
-		pairs = append(pairs, "{attachment.previewUrl}", fmt.Sprintf("%v", p.attachment.PreviewUrl))
-		pairs = append(pairs, "{attachment.meta}", fmt.Sprintf("%v", p.attachment.Meta))
-		pairs = append(pairs, "{attachment.ownerID}", fmt.Sprintf("%v", p.attachment.OwnerID))
-		pairs = append(pairs, "{attachment.ID}", fmt.Sprintf("%v", p.attachment.ID))
+		// replacement for "{attachment}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{attachment}",
+			fns(
+				p.attachment.Name,
+				p.attachment.Kind,
+				p.attachment.Url,
+				p.attachment.PreviewUrl,
+				p.attachment.Meta,
+				p.attachment.OwnerID,
+				p.attachment.ID,
+			),
+		)
+		pairs = append(pairs, "{attachment.name}", fns(p.attachment.Name))
+		pairs = append(pairs, "{attachment.kind}", fns(p.attachment.Kind))
+		pairs = append(pairs, "{attachment.url}", fns(p.attachment.Url))
+		pairs = append(pairs, "{attachment.previewUrl}", fns(p.attachment.PreviewUrl))
+		pairs = append(pairs, "{attachment.meta}", fns(p.attachment.Meta))
+		pairs = append(pairs, "{attachment.ownerID}", fns(p.attachment.OwnerID))
+		pairs = append(pairs, "{attachment.ID}", fns(p.attachment.ID))
 	}
 
 	if p.filter != nil {
-		pairs = append(pairs, "{filter}", fmt.Sprintf("%v", p.filter.Filter))
-		pairs = append(pairs, "{filter.filter}", fmt.Sprintf("%v", p.filter.Filter))
-		pairs = append(pairs, "{filter.kind}", fmt.Sprintf("%v", p.filter.Kind))
-		pairs = append(pairs, "{filter.sort}", fmt.Sprintf("%v", p.filter.Sort))
+		// replacement for "{filter}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{filter}",
+			fns(
+				p.filter.Filter,
+				p.filter.Kind,
+				p.filter.Sort,
+			),
+		)
+		pairs = append(pairs, "{filter.filter}", fns(p.filter.Filter))
+		pairs = append(pairs, "{filter.kind}", fns(p.filter.Kind))
+		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }

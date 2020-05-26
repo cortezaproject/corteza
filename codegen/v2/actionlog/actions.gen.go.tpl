@@ -113,7 +113,22 @@ func (p {{ $.Service }}ActionProps) serialize() actionlog.Meta {
 // This function is auto-generated.
 //
 func (p {{ $.Service }}ActionProps) tr(in string, err error) string {
-    var pairs = []string{"{err}"}
+    var (
+        pairs = []string{"{err}"}
+
+{{- if $.Props }}
+        // first non-empty string
+        fns = func(ii ... interface{}) string {
+			for _, i:= range ii {
+				if s :=fmt.Sprintf("%v", i); len(s) > 0 {
+					return s
+				}
+			}
+
+			return ""
+		}
+{{- end }}
+    )
 
 	if err != nil {
 		for {
@@ -133,17 +148,23 @@ func (p {{ $.Service }}ActionProps) tr(in string, err error) string {
 
 {{- range $prop := $.Props }}
 	{{- if $prop.Builtin }}
-	    pairs = append(pairs, "{{"{"}}{{ $prop.Name }}}", fmt.Sprintf("%v", p.{{ $prop.Name }}))
+	    pairs = append(pairs, "{{"{"}}{{ $prop.Name }}}", fns(p.{{ $prop.Name }}))
 	{{- else }}
 
 	if p.{{ $prop.Name }} != nil {
-	{{- if $prop.DefaultField }}
-        pairs = append(pairs, "{{"{"}}{{ $prop.Name }}}", fmt.Sprintf("%v", p.{{ $prop.Name }}.{{ camelCase " " $prop.DefaultField }}))
-	{{- end }}
+	    // replacement for "{{"{"}}{{ $prop.Name }}}" (in order how fields are defined)
+        pairs = append(
+            pairs,
+            "{{"{"}}{{ $prop.Name }}}",
+            fns(
+            {{- range $f := $prop.Fields }}
+                p.{{ $prop.Name }}.{{ camelCase " " $f }},
+            {{- end }}
+            ),
+        )
 
     {{- range $f := $prop.Fields }}
-        pairs = append(pairs, "{{"{"}}{{ $prop.Name }}.{{ $f }}}", fmt.Sprintf("%v", p.{{ $prop.Name }}.{{ camelCase " " $f }}))
-
+        pairs = append(pairs, "{{"{"}}{{ $prop.Name }}.{{ $f }}}", fns(p.{{ $prop.Name }}.{{ camelCase " " $f }}))
     {{- end }}
     }
     {{- end }}
