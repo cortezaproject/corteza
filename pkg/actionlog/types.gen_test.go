@@ -10,34 +10,34 @@ import (
 
 // 	Hello! This file is auto-generated.
 
-func TestEventSetWalk(t *testing.T) {
+func TestActionSetWalk(t *testing.T) {
 	var (
-		value = make(EventSet, 3)
+		value = make(ActionSet, 3)
 		req   = require.New(t)
 	)
 
 	// check walk with no errors
 	{
-		err := value.Walk(func(*Event) error {
+		err := value.Walk(func(*Action) error {
 			return nil
 		})
 		req.NoError(err)
 	}
 
 	// check walk with error
-	req.Error(value.Walk(func(*Event) error { return errors.New("walk error") }))
+	req.Error(value.Walk(func(*Action) error { return errors.New("walk error") }))
 
 }
 
-func TestEventSetFilter(t *testing.T) {
+func TestActionSetFilter(t *testing.T) {
 	var (
-		value = make(EventSet, 3)
+		value = make(ActionSet, 3)
 		req   = require.New(t)
 	)
 
 	// filter nothing
 	{
-		set, err := value.Filter(func(*Event) (bool, error) {
+		set, err := value.Filter(func(*Action) (bool, error) {
 			return true, nil
 		})
 		req.NoError(err)
@@ -47,7 +47,7 @@ func TestEventSetFilter(t *testing.T) {
 	// filter one item
 	{
 		found := false
-		set, err := value.Filter(func(*Event) (bool, error) {
+		set, err := value.Filter(func(*Action) (bool, error) {
 			if !found {
 				found = true
 				return found, nil
@@ -60,7 +60,7 @@ func TestEventSetFilter(t *testing.T) {
 
 	// filter error
 	{
-		_, err := value.Filter(func(*Event) (bool, error) {
+		_, err := value.Filter(func(*Action) (bool, error) {
 			return false, errors.New("filter error")
 		})
 		req.Error(err)
