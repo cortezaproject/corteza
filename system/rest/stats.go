@@ -17,7 +17,7 @@ type (
 	}
 
 	statsService interface {
-		Metrics(context.Context) (interface{}, error)
+		Metrics(context.Context) (*service.StatisticsMetricsPayload, error)
 	}
 )
 

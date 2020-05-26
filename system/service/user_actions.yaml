@@ -1,0 +1,129 @@
+# List of loggable service actions
+
+resource: system:user
+service: user
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: alert
+
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+props:
+  - name: user
+    type: "*types.User"
+    fields: [ handle, email, name, username, ID ]
+  - name: new
+    type: "*types.User"
+    fields: [ handle, email, name, username, ID ]
+  - name: update
+    type: "*types.User"
+    fields: [ handle, email, name, username, ID ]
+  - name: existing
+    type: "*types.User"
+    fields: [ handle, email, name, username, ID ]
+  - name: filter
+    type: "*types.UserFilter"
+    fields: [ query, userID, roleID, handle, email, username, deleted, suspended, sort ]
+
+actions:
+  - action: search
+    log: "searched for matching users"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {user}"
+    severity: info
+
+  - action: create
+    log: "created {user}"
+
+  - action: update
+    log: "updated {user}"
+
+  - action: delete
+    log: "deleted {user}"
+
+  - action: undelete
+    log: "undeleted {user}"
+
+  - action: suspend
+    log: "suspended {user}"
+
+  - action: unsuspend
+    log: "unsuspended {user}"
+
+  - action: setPassword
+    log: "password changed for {user}"
+
+errors:
+  - error: nonexistent
+    message: "user does not exist"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning
+
+  - error: invalidEmail
+    message: "invalid email"
+    severity: warning
+
+
+  - error: notAllowedToRead
+    message: "not allowed to read user"
+    log: "failed to read {user.handle}; insufficient permissions"
+
+  - error: notAllowedToListUsers
+    message: "not allowed to list users"
+    log: "failed to list user; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create user"
+    log: "failed to create user; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update user"
+    log: "failed to update {user.handle}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete user"
+    log: "failed to delete {user.handle}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete user"
+    log: "failed to undelete {user.handle}; insufficient permissions"
+
+  - error: notAllowedToSuspend
+    message: "not allowed to suspend user"
+    log: "failed to suspend {user.handle}; insufficient permissions"
+
+  - error: notAllowedToUnsuspend
+    message: "not allowed to unsuspend user"
+    log: "failed to unsuspend {user.handle}; insufficient permissions"
+
+  - error: handleNotUnique
+    message: "handle not unique"
+    log: "used duplicate handle ({user.handle}) for user"
+    severity: warning
+
+  - error: emailNotUnique
+    message: "email not unique"
+    log: "used duplicate email ({user.email}) for user"
+    severity: warning
+
+  - error: usernameNotUnique
+    message: "username not unique"
+    log: "used duplicate username ({user.username}) for user"
+    severity: warning
+
+  - error: passwordNotSecure
+    message: "provided password is not secure; use longer password with more non-alphanumeric character"
+

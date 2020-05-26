@@ -2,6 +2,7 @@ package corredor
 
 import (
 	"context"
+	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/go-chi/chi/middleware"
 	"github.com/pkg/errors"
@@ -61,6 +62,9 @@ type (
 		// we'll find users (runAs) and roles (allow, deny) for
 		users userFinder
 		roles roleFinder
+
+		// caching user lookups (w/ errors)
+		userLookupCache userLookupCacheMap
 
 		// set of permission rules, generated from security info of each script
 		permissions permissions.RuleSet
@@ -164,6 +168,8 @@ func NewService(logger *zap.Logger, opt options.CorredorOpt) *service {
 		authTokenMaker: auth.DefaultJwtHandler,
 		eventRegistry:  eventbus.Service(),
 		permissions:    permissions.RuleSet{},
+
+		userLookupCache: userLookupCacheMap{},
 	}
 }
 
@@ -433,6 +439,9 @@ func (svc *service) registerServerScripts(ss ...*ServerScript) {
 
 	// Reset security
 	svc.permissions = permissions.RuleSet{}
+
+	// reset the cache
+	svc.userLookupCache = userLookupCacheMap{}
 
 	for _, script := range ss {
 		if nil != svc.sScripts.FindByName(script.Name) {
@@ -851,7 +860,10 @@ func (svc *service) registerClientScripts(ss ...*ClientScript) {
 
 // processes server script security definition
 //
-// Checks and preloads sser and roles (if defined)
+// Checks and preloads user and roles (if defined)
+//
+// User and role caches (uc, rc args) hold list of users/roles
+// that were already loaded/checked
 //
 func (svc *service) serverScriptSecurity(script *ServerScript) (sec *ScriptSecurity, rr permissions.RuleSet, err error) {
 	if script.Security == nil {
@@ -886,12 +898,14 @@ func (svc *service) serverScriptSecurity(script *ServerScript) (sec *ScriptSecur
 	sec = &ScriptSecurity{Security: script.Security}
 
 	if sec.RunAs != "" {
-		// Prefetch run-as user
-		if _, err = svc.users.FindByAny(sec.RunAs); err != nil {
-			err = errors.Wrap(err, "could not load security (run-as) user")
+		_, err = svc.userLookupCache.lookup(
+			sec.RunAs,
+			func() (*types.User, error) { return svc.users.FindByAny(sec.RunAs) },
+		)
+
+		if err != nil {
+			err = fmt.Errorf("could not load security (run-as) user %q: %w", sec.RunAs, err)
 			return
-			//} else {
-			//	s.Security.runAs = u.ID
 		}
 	}
 

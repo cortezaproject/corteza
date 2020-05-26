@@ -8,14 +8,12 @@ import (
 	"time"
 
 	"github.com/markbates/goth"
-	"github.com/pkg/errors"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/system/repository"
@@ -25,11 +23,11 @@ import (
 
 type (
 	auth struct {
-		db     db
-		ctx    context.Context
-		logger *zap.Logger
+		db  db
+		ctx context.Context
 
-		eventbus eventDispatcher
+		actionlog actionlog.Recorder
+		eventbus  eventDispatcher
 
 		subscription  authSubscriptionChecker
 		credentials   repository.CredentialsRepository
@@ -50,8 +48,8 @@ type (
 
 		InternalSignUp(input *types.User, password string) (*types.User, error)
 		InternalLogin(email string, password string) (*types.User, error)
-		SetPassword(userID uint64, newPassword string) error
-		ChangePassword(userID uint64, oldPassword, newPassword string) error
+		SetPassword(userID uint64, AuthActionPassword string) error
+		ChangePassword(userID uint64, oldPassword, AuthActionPassword string) error
 
 		IssueAuthRequestToken(user *types.User) (token string, err error)
 		ValidateAuthRequestToken(token string) (user *types.User, err error)
@@ -65,7 +63,7 @@ type (
 
 		LoadRoleMemberships(*types.User) error
 
-		checkPasswordStrength(string) error
+		checkPasswordStrength(string) bool
 		changePassword(uint64, string) error
 	}
 
@@ -95,12 +93,12 @@ func defaultProviderValidator(provider string) error {
 
 func Auth(ctx context.Context) AuthService {
 	return (&auth{
-		logger: DefaultLogger.Named("auth"),
-
 		eventbus:      eventbus.Service(),
 		subscription:  CurrentSubscription,
 		settings:      CurrentSettings,
 		notifications: DefaultAuthNotification,
+
+		actionlog: DefaultActionlog,
 
 		providerValidator: defaultProviderValidator,
 
@@ -111,12 +109,13 @@ func Auth(ctx context.Context) AuthService {
 	}).With(ctx)
 }
 
+// With returns copy of service with new context
+// obsolete approach, will be removed ASAP
 func (svc auth) With(ctx context.Context) AuthService {
 	db := repository.DB(ctx)
 	return &auth{
-		db:     db,
-		ctx:    ctx,
-		logger: logger.AddRequestID(ctx, svc.logger),
+		db:  db,
+		ctx: ctx,
 
 		credentials: repository.Credentials(ctx, db),
 		users:       repository.User(ctx, db),
@@ -128,13 +127,10 @@ func (svc auth) With(ctx context.Context) AuthService {
 		eventbus:          svc.eventbus,
 		providerValidator: svc.providerValidator,
 
+		actionlog: svc.actionlog,
+
 		now: svc.now,
 	}
-}
-
-// log() returns zap's logger with requestID from current context and fields.
-func (svc auth) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(ctx, svc.logger).With(fields...)
 }
 
 // External func performs login/signup procedures
@@ -153,28 +149,29 @@ func (svc auth) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
 // 2.3. create credentials for that social login
 //
 func (svc auth) External(profile goth.User) (u *types.User, err error) {
-	if !svc.settings.Auth.External.Enabled {
-		return nil, errors.New("external authentication disabled")
-	}
-
-	if err = svc.providerValidator(profile.Provider); err != nil {
-		return nil, err
-	}
-
-	if profile.Email == "" {
-		return nil, errors.New("can not use profile data without an email")
-	}
-
 	var (
-		log = svc.log(svc.ctx, zap.String("provider", profile.Provider))
+		authProvider = &types.AuthProvider{Provider: profile.Provider}
 
-		authProvider = &types.AuthProvider{
-			Provider: profile.Provider,
+		aam = &authActionProps{
+			email:    profile.Email,
+			provider: profile.Provider,
+			user:     u,
 		}
 	)
 
-	return u, svc.db.Transaction(func() error {
-		var c *types.Credentials
+	err = svc.db.Transaction(func() error {
+		if !svc.settings.Auth.External.Enabled {
+			return AuthErrExternalDisabledByConfig(aam)
+		}
+
+		if err = svc.providerValidator(profile.Provider); err != nil {
+			return err
+		}
+
+		if !reEmail.MatchString(profile.Email) {
+			return AuthErrProfileWithoutValidEmail(aam)
+		}
+
 		if cc, err := svc.credentials.FindByCredentials(profile.Provider, profile.UserID); err == nil {
 			// Credentials found, load user
 			for _, c := range cc {
@@ -182,18 +179,25 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 					continue
 				}
 
+				// Add credentials ID for audit log
+				aam.setCredentials(c)
+
 				if u, err = svc.users.FindByID(c.OwnerID); err != nil {
 					if repository.ErrUserNotFound.Eq(err) {
 						// Orphaned credentials (no owner)
 						// try to auto-fix this by removing credentials and recreating user
-						if err := svc.credentials.DeleteByID(c.ID); err != nil {
-							return errors.Wrap(err, "could not cleanup orphaned credentials")
+						if err = svc.credentials.DeleteByID(c.ID); err != nil {
+							return err
 						} else {
 							goto findByEmail
 						}
 					}
 					return err
 				}
+
+				// Add user ID for audit log
+				aam.setUser(u)
+				svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
 
 				if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
 					return err
@@ -206,30 +210,35 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 						return err
 					}
 
-					log.Info("updating credentials entry for existing user",
-						zap.Uint64("credentialsID", c.ID),
-						zap.Uint64("userID", u.ID),
-						zap.String("email", u.Email),
-					)
-
 					defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(u, authProvider))
-
-					return nil
+					return svc.recordAction(svc.ctx, aam, AuthActionUpdateCredentials, nil)
 				} else {
 					// Scenario: linked to an invalid user
-					u = nil
-					continue
+					if len(cc) > 1 {
+						// try with next credentials
+						u = nil
+						continue
+					}
+
+					return AuthErrCredentialsLinkedToInvalidUser(aam)
 				}
 			}
 
 			// If we could not find anything useful,
 			// we can search for user via email
+			// (using goto for consistency)
+			goto findByEmail
 		} else {
 			// A serious error occurred, bail out...
 			return err
 		}
 
 	findByEmail:
+		// Reset audit meta data that might got set during credentials check
+		aam.setEmail(profile.Email).
+			setCredentials(nil).
+			setUser(nil)
+
 		// Find user via his email
 		if u, err = svc.users.FindByEmail(profile.Email); repository.ErrUserNotFound.Eq(err) {
 			// @todo check if it is ok to auto-create a user here
@@ -246,37 +255,38 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 			}
 
 			if err = svc.CanRegister(); err != nil {
-				return err
+				return AuthErrSubscription(aam).Wrap(err)
 			}
 
 			if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeSignup(u, authProvider)); err != nil {
 				return err
 			}
+
 			if u.Handle == "" {
 				createHandle(svc.users, u)
 			}
 
 			if u, err = svc.users.Create(u); err != nil {
-				return errors.Wrap(err, "could not create user after successful external authentication")
+				return err
 			}
 
-			log.Info("created new user after successful social auth",
-				zap.Uint64("userID", u.ID),
-				zap.String("email", u.Email),
-			)
+			aam.setUser(nil)
+			svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
 
 			defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterSignup(u, authProvider))
 
-			_ = svc.autoPromote(u)
+			svc.recordAction(svc.ctx, aam, AuthActionExternalSignup, nil)
+
+			// Auto-promote first user
+			if err = svc.autoPromote(u); err != nil {
+				return err
+			}
 		} else if err != nil {
 			return err
-		} else if !u.Valid() {
-			return errors.Errorf("user not valid")
 		} else {
-			log.Info("existing user authenticated",
-				zap.Uint64("userID", u.ID),
-				zap.String("email", u.Email),
-			)
+			// User found
+			aam.setUser(u)
+			svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
 
 			if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
 				return err
@@ -284,9 +294,15 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 
 			defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(u, authProvider))
 
+			// If user
+			if !u.Valid() {
+				return AuthErrFailedForDisabledUser(aam).Wrap(err)
+			}
 		}
 
-		c = &types.Credentials{
+		// If we got to this point, assume that user is authenticated
+		// but credentials need to be stored
+		c := &types.Credentials{
 			Kind:        profile.Provider,
 			OwnerID:     u.ID,
 			Credentials: profile.UserID,
@@ -297,15 +313,14 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 			return err
 		}
 
-		log.Info("new credentials created for existing user",
-			zap.Uint64("credentialsID", c.ID),
-			zap.Uint64("userID", u.ID),
-			zap.String("email", u.Email),
-		)
+		aam.setCredentials(c)
+		svc.recordAction(svc.ctx, aam, AuthActionCreateCredentials, nil)
 
 		// Owner loaded, carry on.
 		return nil
 	})
+
+	return u, svc.recordAction(svc.ctx, aam, AuthActionAuthenticate, err)
 }
 
 // FrontendRedirectURL - a proxy to frontend redirect url setting
@@ -319,331 +334,326 @@ func (svc auth) FrontendRedirectURL() string {
 //
 // We're accepting the whole user object here and copy all we need to the new user
 func (svc auth) InternalSignUp(input *types.User, password string) (u *types.User, err error) {
-	if !svc.settings.Auth.Internal.Enabled {
-		return nil, errors.New("internal authentication disabled")
-	}
+	var (
+		authProvider = &types.AuthProvider{Provider: credentialsTypePassword}
 
-	if !svc.settings.Auth.Internal.Signup.Enabled {
-		return nil, errors.New("internal signup disabled")
-	}
+		aam = &authActionProps{
+			email:       input.Email,
+			credentials: &types.Credentials{Kind: credentialsTypePassword},
+			user:        u,
+		}
+	)
 
-	if input == nil {
-		return nil, errors.New("invalid signup input")
-	}
+	err = func() error {
+		if !svc.settings.Auth.Internal.Enabled || !svc.settings.Auth.Internal.Signup.Enabled {
+			return AuthErrInternalSignupDisabledByConfig(aam)
+		}
 
-	if err = svc.validateInternalSignUp(input.Email); err != nil {
-		return
-	}
+		if input == nil || !reEmail.MatchString(input.Email) {
+			return AuthErrInvalidEmailFormat(aam)
+		}
 
-	if !handle.IsValid(input.Handle) {
-		return nil, ErrInvalidHandle.withStack()
-	}
-
-	existing, err := svc.users.FindByEmail(input.Email)
-
-	if err == nil && existing.Valid() {
 		if len(password) == 0 {
-			return nil, errors.New("invalid username/password combination")
+			return AuthErrPasswordNotSecure(aam)
 		}
 
-		cc, err := svc.credentials.FindByKind(existing.ID, credentialsTypePassword)
-		if err != nil {
-			return nil, errors.Wrap(err, "could not find credentials")
+		if !handle.IsValid(input.Handle) {
+			return AuthErrInvalidHandle(aam)
 		}
 
-		err = svc.checkPassword(password, cc)
-		if err != nil {
-			return nil, errors.Wrap(err, "user with this email already exists")
-		}
-
-		// We're not actually doing sign-up here - user exists,
-		// password is a match, so lets trigger before/after user login events
-		if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(existing, &types.AuthProvider{})); err != nil {
-			return nil, err
-		}
-
-		if !existing.EmailConfirmed {
-			err = svc.sendEmailAddressConfirmationToken(existing)
+		var eUser *types.User
+		eUser, err = svc.users.FindByEmail(input.Email)
+		if err == nil && eUser.Valid() {
+			var cc types.CredentialsSet
+			cc, err = svc.credentials.FindByKind(eUser.ID, credentialsTypePassword)
 			if err != nil {
-				return nil, err
+				return err
+			}
+
+			if c := cc.CompareHashAndPassword(password); c == nil {
+				return AuthErrInvalidCredentials(aam)
+			} else {
+				// Update last-used-by timestamp on matching credentials
+				c.LastUsedAt = svc.now()
+				aam.setCredentials(c)
+
+				if _, err = svc.credentials.Update(c); err != nil {
+					return err
+				}
+			}
+
+			// We're not actually doing sign-up here - user exists,
+			// password is a match, so lets trigger before/after user login events
+			if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(eUser, authProvider)); err != nil {
+				return err
+			}
+
+			if !eUser.EmailConfirmed {
+				err = svc.sendEmailAddressConfirmationToken(eUser)
+				if err != nil {
+					return err
+				}
+			}
+
+			defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(eUser, authProvider))
+			u = eUser
+			return nil
+
+			// if !svc.settings.internalSignUpSendEmailOnExisting {
+			// 	return nil,errors.Wrap(err, "user with this email already exists")
+			// }
+
+			// User already exists, but we're nice and we'll send this user an
+			// email that will help him to login
+			// if !u.Valid() {
+			// 	return nil,errors.New("could not validate the user")
+			// }
+			//
+			// return nil,nil
+		} else if !repository.ErrUserNotFound.Eq(err) {
+			return err
+		}
+
+		if err = svc.CanRegister(); err != nil {
+			return err
+		}
+
+		var nUser = &types.User{
+			Email:    input.Email,
+			Name:     input.Name,
+			Username: input.Username,
+			Handle:   input.Handle,
+
+			// Do we need confirmed email?
+			EmailConfirmed: !svc.settings.Auth.Internal.Signup.EmailConfirmationRequired,
+		}
+
+		if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeSignup(nUser, authProvider)); err != nil {
+			return err
+		}
+
+		if input.Handle == "" {
+			createHandle(svc.users, input)
+		}
+
+		// Whitelisted user data to copy
+		u, err = svc.users.Create(nUser)
+
+		if err != nil {
+			return err
+		}
+
+		aam.setUser(u)
+		defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterSignup(u, authProvider))
+
+		if err = svc.autoPromote(u); err != nil {
+			return err
+		}
+
+		if len(password) > 0 {
+			err = svc.changePassword(u.ID, password)
+			if err != nil {
+				return err
 			}
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(existing, &types.AuthProvider{}))
+		if !u.EmailConfirmed {
+			err = svc.sendEmailAddressConfirmationToken(u)
+			if err != nil {
+				return err
+			}
 
-		return existing, nil
-
-		// if !svc.settings.internalSignUpSendEmailOnExisting {
-		// 	return nil,errors.Wrap(err, "user with this email already exists")
-		// }
-
-		// User already exists, but we're nice and we'll send this user an
-		// email that will help him to login
-		// if !u.Valid() {
-		// 	return nil,errors.New("could not validate the user")
-		// }
-		//
-		// return nil,nil
-	} else if !repository.ErrUserNotFound.Eq(err) {
-		return nil, errors.Wrap(err, "could not check existing emails")
-	}
-
-	if err = svc.CanRegister(); err != nil {
-		return nil, err
-	}
-
-	var new = &types.User{
-		Email:    input.Email,
-		Name:     input.Name,
-		Username: input.Username,
-		Handle:   input.Handle,
-
-		// Do we need confirmed email?
-		EmailConfirmed: !svc.settings.Auth.Internal.Signup.EmailConfirmationRequired,
-	}
-
-	if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeSignup(new, &types.AuthProvider{})); err != nil {
-		return
-	}
-
-	if input.Handle == "" {
-		createHandle(svc.users, input)
-	}
-
-	// Whitelisted user data to copy
-	u, err = svc.users.Create(new)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "could not create user")
-	}
-
-	_ = svc.autoPromote(u)
-
-	if len(password) > 0 {
-		err = svc.changePassword(u.ID, password)
-		if err != nil {
-			return nil, err
+			return svc.recordAction(svc.ctx, aam, AuthActionSendEmailConfirmationToken, nil)
 		}
-	}
 
-	if !u.EmailConfirmed {
-		err = svc.sendEmailAddressConfirmationToken(u)
-		if err != nil {
-			return nil, err
-		}
-	}
+		return nil
+	}()
 
-	if err != nil {
-		return nil, err
-	}
-
-	defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterSignup(u, &types.AuthProvider{}))
-
-	return u, nil
-}
-
-func (svc auth) validateInternalSignUp(email string) (err error) {
-	if !reEmail.MatchString(email) {
-		return errors.New("invalid email format")
-	}
-
-	return nil
+	return u, svc.recordAction(svc.ctx, aam, AuthActionInternalSignup, err)
 }
 
 // InternalLogin verifies username/password combination in the internal credentials table
 //
 // Expects plain text password as an input
 func (svc auth) InternalLogin(email string, password string) (u *types.User, err error) {
+	var (
+		authProvider = &types.AuthProvider{Provider: credentialsTypePassword}
 
-	if !svc.settings.Auth.Internal.Enabled {
-		return nil, errors.New("internal authentication disabled")
-	}
-
-	if err = svc.validateInternalLogin(email, password); err != nil {
-		return
-	}
+		aam = &authActionProps{
+			email:       email,
+			credentials: &types.Credentials{Kind: credentialsTypePassword},
+			user:        u,
+		}
+	)
 
 	err = svc.db.Transaction(func() error {
+		if !svc.settings.Auth.Internal.Enabled {
+			return AuthErrInteralLoginDisabledByConfig()
+		}
+
+		if !reEmail.MatchString(email) {
+			return AuthErrInvalidEmailFormat()
+		}
+
+		if len(password) == 0 {
+			return AuthErrInvalidCredentials()
+		}
+
 		var (
 			cc types.CredentialsSet
 		)
 
 		u, err = svc.users.FindByEmail(email)
 		if repository.ErrUserNotFound.Eq(err) {
-			return errors.New("invalid username/password combination")
+			return AuthErrFailedForUnknownUser()
 		}
 
-		if err != nil {
-			return errors.Wrap(err, "could not find user")
-		}
-
-		cc, err := svc.credentials.FindByKind(u.ID, credentialsTypePassword)
-		if err != nil {
-			return errors.Wrap(err, "could not find credentials")
-		}
-
-		err = svc.checkPassword(password, cc)
 		if err != nil {
 			return err
 		}
 
+		// Update audit meta with found user
+		svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
+
+		cc, err = svc.credentials.FindByKind(u.ID, credentialsTypePassword)
+		if err != nil {
+			return err
+		}
+
+		if c := cc.CompareHashAndPassword(password); c == nil {
+			return AuthErrInvalidCredentials(aam)
+		} else {
+			// Update last-used-by timestamp on matching credentials
+			c.LastUsedAt = svc.now()
+			aam.setCredentials(c)
+
+			if _, err = svc.credentials.Update(c); err != nil {
+				return err
+			}
+		}
+
+		if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
+			return err
+		}
+
+		if !u.Valid() {
+			return AuthErrFailedForDisabledUser()
+		}
+
+		if !u.EmailConfirmed {
+			if err = svc.sendEmailAddressConfirmationToken(u); err != nil {
+				return err
+			}
+
+			return AuthErrFailedUnconfirmedEmail()
+		}
+
+		defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(u, authProvider))
 		return nil
 	})
 
-	if err != nil {
-		return
-	}
-
-	if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, &types.AuthProvider{})); err != nil {
-		return nil, err
-	}
-
-	if !u.Valid() {
-		if u.SuspendedAt != nil {
-			err = ErrUserSuspended
-		} else if u.DeletedAt != nil {
-			err = ErrUserDeleted
-		} else {
-			err = ErrUserInvalid
-		}
-		u = nil
-		return
-	}
-
-	if !u.EmailConfirmed {
-		err = svc.sendEmailAddressConfirmationToken(u)
-		if err != nil {
-			return nil, err
-		}
-
-		return nil, errors.New("user email pending confirmation")
-	}
-
-	defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(u, &types.AuthProvider{}))
-
-	return u, err
+	return u, svc.recordAction(svc.ctx, aam, AuthActionAuthenticate, err)
 }
 
-// validateInternalLogin does basic format & length check
-func (svc auth) validateInternalLogin(email string, password string) error {
-	if !reEmail.MatchString(email) {
-		return errors.Errorf("invalid email format, %s", email)
-	}
-
-	if len(password) == 0 {
-		return errors.New("empty password")
-	}
-
-	return nil
-}
-
-func (svc auth) checkPassword(password string, cc types.CredentialsSet) (err error) {
-	// We need only valid credentials (skip deleted, expired)
-	cc, _ = cc.Filter(func(c *types.Credentials) (b bool, e error) {
-		return c.Valid(), nil
-	})
-
-	for _, c := range cc {
-		if len(c.Credentials) == 0 {
-			continue
-		}
-
-		err = bcrypt.CompareHashAndPassword([]byte(c.Credentials), []byte(password))
-		if err == bcrypt.ErrMismatchedHashAndPassword {
-			// Mismatch, continue with the checking
-			continue
-		} else if err != nil {
-			// Some other error
-			return errors.Wrap(err, "could not compare passwords")
-		} else {
-			// Password matched one of credentials
-			return nil
-		}
-	}
-
-	return errors.New("invalid username/password combination")
+// checkPassword returns true if given (encrypted) password matches any of the credentials
+func (svc auth) checkPassword(password string, cc types.CredentialsSet) bool {
+	return cc.CompareHashAndPassword(password) != nil
 }
 
 // SetPassword sets new password for a user
-func (svc auth) SetPassword(userID uint64, newPassword string) (err error) {
-	log := svc.log(svc.ctx, zap.Uint64("userID", userID))
+func (svc auth) SetPassword(userID uint64, password string) (err error) {
+	var (
+		u *types.User
 
-	if !svc.settings.Auth.Internal.Enabled {
-		return errors.New("internal authentication disabled")
-	}
+		aam = &authActionProps{
+			user:        u,
+			credentials: &types.Credentials{Kind: credentialsTypePassword},
+		}
+	)
 
-	if err = svc.checkPasswordStrength(newPassword); err != nil {
-		return
-	}
+	err = svc.db.Transaction(func() error {
+		if !svc.settings.Auth.Internal.Enabled {
+			return AuthErrInteralLoginDisabledByConfig(aam)
+		}
 
-	return svc.db.Transaction(func() error {
-		if err != svc.changePassword(userID, newPassword) {
+		if !svc.checkPasswordStrength(password) {
+			return AuthErrPasswordNotSecure(aam)
+		}
+
+		u, err = svc.users.FindByID(userID)
+		if repository.ErrUserNotFound.Eq(err) {
+			return AuthErrPasswordChangeFailedForUnknownUser(aam)
+		}
+
+		if err != svc.changePassword(userID, password) {
 			return err
 		}
 
-		log.Info("password set")
 		return nil
 	})
+
+	return svc.recordAction(svc.ctx, aam, AuthActionChangePassword, err)
 }
 
 // ChangePassword validates old password and changes it with new
-func (svc auth) ChangePassword(userID uint64, oldPassword, newPassword string) (err error) {
-	log := svc.log(svc.ctx, zap.Uint64("userID", userID))
+func (svc auth) ChangePassword(userID uint64, oldPassword, AuthActionPassword string) (err error) {
+	var (
+		u  *types.User
+		cc types.CredentialsSet
 
-	if !svc.settings.Auth.Internal.Enabled {
-		return errors.New("internal authentication disabled")
-	}
+		aam = &authActionProps{
+			user:        u,
+			credentials: &types.Credentials{Kind: credentialsTypePassword},
+		}
+	)
 
-	if len(oldPassword) == 0 {
-		return errors.New("old password missing")
-	}
+	err = svc.db.Transaction(func() error {
+		if !svc.settings.Auth.Internal.Enabled {
+			return AuthErrInteralLoginDisabledByConfig(aam)
+		}
 
-	if err = svc.checkPasswordStrength(newPassword); err != nil {
-		return
-	}
+		if len(oldPassword) == 0 {
+			return AuthErrPasswordNotSecure(aam)
+		}
 
-	return svc.db.Transaction(func() error {
-		var (
-			cc types.CredentialsSet
-		)
+		if !svc.checkPasswordStrength(AuthActionPassword) {
+			return AuthErrPasswordNotSecure(aam)
+		}
+
+		u, err = svc.users.FindByID(userID)
+		if repository.ErrUserNotFound.Eq(err) {
+			return AuthErrPasswordChangeFailedForUnknownUser(aam)
+		}
 
 		cc, err = svc.credentials.FindByKind(userID, credentialsTypePassword)
 		if err != nil {
-			return errors.Wrap(err, "could not find credentials")
-		}
-
-		err = svc.checkPassword(oldPassword, cc)
-		if err != nil {
-			return errors.Wrap(err, "could not change password")
-		}
-
-		if err != svc.changePassword(userID, newPassword) {
 			return err
 		}
 
-		log.Info("password changed")
+		if !svc.checkPassword(oldPassword, cc) {
+			return AuthErrPasswodResetFailedOldPasswordCheckFailed(aam)
+		}
+
+		if err != svc.changePassword(userID, AuthActionPassword) {
+			return err
+		}
+
 		return nil
 	})
+
+	return svc.recordAction(svc.ctx, aam, AuthActionChangePassword, err)
 }
 
 func (svc auth) hashPassword(password string) (hash []byte, err error) {
-	// @todo refactor and/or merge with user.hashPasssword()
-	hash, err = bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not hash password")
-	}
-
-	return
+	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 }
 
-func (svc auth) checkPasswordStrength(password string) error {
+func (svc auth) checkPasswordStrength(password string) bool {
 	if len(password) <= 4 {
-		return errors.New("password too short")
+		return false
 	}
 
-	// @todo proper strength checking
-
-	return nil
+	return true
 }
 
 // ChangePassword (soft) deletes old password entry and creates a new one
@@ -652,11 +662,11 @@ func (svc auth) checkPasswordStrength(password string) error {
 func (svc auth) changePassword(userID uint64, password string) (err error) {
 	var hash []byte
 	if hash, err = svc.hashPassword(password); err != nil {
-		return err
+		return
 	}
 
 	if err = svc.credentials.DeleteByKind(userID, credentialsTypePassword); err != nil {
-		return errors.Wrap(err, "could not delete old credentials")
+		return
 	}
 
 	_, err = svc.credentials.Create(&types.Credentials{
@@ -665,142 +675,196 @@ func (svc auth) changePassword(userID uint64, password string) (err error) {
 		Credentials: string(hash),
 	})
 
-	return errors.Wrap(err, "could not create new password")
+	return err
 }
 
+// IssueAuthRequestToken returns token that can be used for authentication
 func (svc auth) IssueAuthRequestToken(user *types.User) (token string, err error) {
 	return svc.createUserToken(user, credentialsTypeAuthToken)
 }
 
-func (svc auth) ValidateAuthRequestToken(token string) (user *types.User, err error) {
-	return svc.loadUserFromToken(token, credentialsTypeAuthToken)
+// ValidateAuthRequestToken returns user that requested auth token
+func (svc auth) ValidateAuthRequestToken(token string) (u *types.User, err error) {
+	var (
+		aam = &authActionProps{
+			credentials: &types.Credentials{Kind: credentialsTypeAuthToken},
+		}
+	)
+
+	err = svc.db.Transaction(func() error {
+		u, err = svc.loadUserFromToken(token, credentialsTypeAuthToken)
+		if err != nil && u != nil {
+			aam.setUser(u)
+			svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
+		}
+		return err
+	})
+
+	return u, svc.recordAction(svc.ctx, aam, AuthActionValidateToken, err)
 }
 
+// ValidateEmailConfirmationToken issues a validation token that can be used for
 func (svc auth) ValidateEmailConfirmationToken(token string) (user *types.User, err error) {
-	if !svc.settings.Auth.Internal.Enabled {
-		return nil, errors.New("internal authentication disabled")
-	}
-
-	user, err = svc.loadUserFromToken(token, credentialsTypeEmailAuthToken)
-	if err != nil {
-		return nil, err
-	}
-
-	if !user.EmailConfirmed {
-		user.EmailConfirmed = true
-		svc.users.Update(user)
-	}
-
-	return
+	return svc.loadFromTokenAndConfirmEmail(token, credentialsTypeEmailAuthToken)
 }
 
+// ValidatePasswordResetToken validates password reset token
 func (svc auth) ValidatePasswordResetToken(token string) (user *types.User, err error) {
-	if !svc.settings.Auth.Internal.Enabled {
-		return nil, errors.New("internal authentication disabled")
-	}
+	return svc.loadFromTokenAndConfirmEmail(token, credentialsTypeEmailAuthToken)
+}
 
-	if !svc.settings.Auth.Internal.PasswordReset.Enabled {
-		return nil, errors.New("password reset disabled")
-	}
+// loadFromTokenAndConfirmEmail loads token, confirms user's
+func (svc auth) loadFromTokenAndConfirmEmail(token, tokenType string) (u *types.User, err error) {
+	var (
+		aam = &authActionProps{
+			user:        u,
+			credentials: &types.Credentials{Kind: tokenType},
+		}
+	)
 
-	user, err = svc.loadUserFromToken(token, credentialsTypeResetPasswordTokenExchanged)
-	if err != nil {
-		return nil, err
-	}
+	err = svc.db.Transaction(func() error {
+		if !svc.settings.Auth.Internal.Enabled {
+			return AuthErrInternalSignupDisabledByConfig(aam)
+		}
 
-	if !user.EmailConfirmed {
-		// Confirm email while resetting password...
-		user.EmailConfirmed = true
-		svc.users.Update(user)
-	}
+		u, err = svc.loadUserFromToken(token, tokenType)
+		if err != nil {
+			return err
+		}
 
-	return
+		aam.setUser(u)
+		svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
+
+		if u.EmailConfirmed {
+			return nil
+		}
+
+		u.EmailConfirmed = true
+		if u, err = svc.users.Update(u); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return u, svc.recordAction(svc.ctx, aam, AuthActionConfirmEmail, err)
 }
 
 // ExchangePasswordResetToken exchanges reset password token for a new one and returns it with user info
-func (svc auth) ExchangePasswordResetToken(token string) (user *types.User, exchangedToken string, err error) {
-	if !svc.settings.Auth.Internal.Enabled {
-		err = errors.New("internal authentication disabled")
-		return
-	}
+func (svc auth) ExchangePasswordResetToken(token string) (u *types.User, t string, err error) {
+	var (
+		aam = &authActionProps{
+			user:        u,
+			credentials: &types.Credentials{Kind: credentialsTypeResetPasswordToken},
+		}
+	)
 
-	if !svc.settings.Auth.Internal.PasswordReset.Enabled {
-		err = errors.New("password reset disabled")
-		return
-	}
+	err = svc.db.Transaction(func() error {
+		if !svc.settings.Auth.Internal.Enabled || !svc.settings.Auth.Internal.PasswordReset.Enabled {
+			return AuthErrPasswordResetDisabledByConfig(aam)
+		}
 
-	user, err = svc.loadUserFromToken(token, credentialsTypeResetPasswordToken)
-	if err != nil {
-		user = nil
-		return
-	}
+		u, err = svc.loadUserFromToken(token, credentialsTypeResetPasswordToken)
+		if err != nil {
+			return AuthErrInvalidToken(aam).Wrap(err)
+		}
 
-	exchangedToken, err = svc.createUserToken(user, credentialsTypeResetPasswordTokenExchanged)
-	if err != nil {
-		user = nil
-		exchangedToken = ""
-		return
-	}
+		aam.setUser(u)
+		svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
 
-	return
+		t, err = svc.createUserToken(u, credentialsTypeResetPasswordTokenExchanged)
+		if err != nil {
+			u = nil
+			t = ""
+			return AuthErrInvalidToken(aam).Wrap(err)
+		}
+
+		return nil
+	})
+
+	return u, t, svc.recordAction(svc.ctx, aam, AuthActionExchangePasswordResetToken, err)
 }
 
-func (svc auth) SendEmailAddressConfirmationToken(email string) error {
-	if !svc.settings.Auth.Internal.Enabled {
-		return errors.New("internal authentication disabled")
-	}
+// SendEmailAddressConfirmationToken sends email with email address confirmation token
+func (svc auth) SendEmailAddressConfirmationToken(email string) (err error) {
+	var (
+		aam = &authActionProps{
+			email: email,
+		}
+	)
 
-	u, err := svc.users.FindByEmail(email)
-	if err != nil {
-		return errors.Wrap(err, "could  not load user")
-	}
+	err = svc.db.Transaction(func() error {
+		if !svc.settings.Auth.Internal.Enabled || !svc.settings.Auth.Internal.PasswordReset.Enabled {
+			return AuthErrPasswordResetDisabledByConfig(aam)
+		}
 
-	return svc.sendEmailAddressConfirmationToken(u)
+		u, err := svc.users.FindByEmail(email)
+		if err != nil {
+			return AuthErrInvalidToken(aam)
+		}
+
+		return svc.sendEmailAddressConfirmationToken(u)
+	})
+
+	return svc.recordAction(svc.ctx, aam, AuthActionSendEmailConfirmationToken, err)
 }
 
 func (svc auth) sendEmailAddressConfirmationToken(u *types.User) (err error) {
-	log := svc.log(svc.ctx, zap.Uint64("userID", u.ID), zap.String("email", u.Email))
-
 	var (
 		notificationLang = "en"
 		token            string
+
+		aam = &authActionProps{
+			user:        u,
+			credentials: &types.Credentials{Kind: credentialsTypeEmailAuthToken},
+		}
 	)
 
-	token, err = svc.createUserToken(u, credentialsTypeEmailAuthToken)
-	if err != nil {
+	if token, err = svc.createUserToken(u, credentialsTypeEmailAuthToken); err != nil {
 		return
 	}
 
-	err = svc.notifications.EmailConfirmation(notificationLang, u.Email, token)
-	if err != nil {
-		return errors.Wrap(err, "could not send email authentication notification")
+	if err = svc.notifications.EmailConfirmation(notificationLang, u.Email, token); err != nil {
+		return
 	}
 
-	log.With(zap.String("token", token)).Info("email address validation token sent")
-
-	return nil
+	return svc.recordAction(svc.ctx, aam, AuthActionSendEmailConfirmationToken, err)
 }
 
-func (svc auth) SendPasswordResetToken(email string) error {
+// SendPasswordResetToken sends password reset token to email
+func (svc auth) SendPasswordResetToken(email string) (err error) {
+	var (
+		u *types.User
 
-	if !svc.settings.Auth.Internal.Enabled {
-		return errors.New("internal authentication disabled")
-	}
+		aam = &authActionProps{
+			user:  u,
+			email: email,
+		}
+	)
 
-	if !svc.settings.Auth.Internal.PasswordReset.Enabled {
-		return errors.New("password reset disabled")
-	}
+	err = func() error {
+		if !svc.settings.Auth.Internal.Enabled || !svc.settings.Auth.Internal.PasswordReset.Enabled {
+			return AuthErrPasswordResetDisabledByConfig(aam)
+		}
 
-	u, err := svc.users.FindByEmail(email)
-	if err != nil {
-		return errors.Wrap(err, "could  not load user")
-	}
+		if u, err = svc.users.FindByEmail(email); err != nil {
+			return err
+		}
 
-	return svc.sendPasswordResetToken(u)
+		svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
+
+		if err = svc.sendPasswordResetToken(u); err != nil {
+			return err
+		}
+
+		return nil
+	}()
+
+	return svc.recordAction(svc.ctx, aam, AuthActionSendPasswordResetToken, err)
 }
 
+// CanRegister verifies if user can register
 func (svc auth) CanRegister() error {
-
 	if svc.subscription != nil {
 		// When we have an active subscription, we need to check
 		// if users can register or did this deployment hit
@@ -812,85 +876,74 @@ func (svc auth) CanRegister() error {
 }
 
 func (svc auth) sendPasswordResetToken(u *types.User) (err error) {
-	log := svc.log(svc.ctx, zap.Uint64("userID", u.ID), zap.String("email", u.Email))
-
 	var (
 		notificationLang = "en"
-		token            string
 	)
 
-	token, err = svc.createUserToken(u, credentialsTypeResetPasswordToken)
+	token, err := svc.createUserToken(u, credentialsTypeResetPasswordToken)
 	if err != nil {
-		return
+		return err
 	}
 
-	err = svc.notifications.PasswordReset(notificationLang, u.Email, token)
-	if err != nil {
-		return errors.Wrap(err, "could not send password reset notification")
-	}
-
-	log.With(zap.String("token", token)).Info("password reset token sent")
-
-	return nil
+	return svc.notifications.PasswordReset(notificationLang, u.Email, token)
 }
 
 func (svc auth) loadUserFromToken(token, kind string) (u *types.User, err error) {
-	credentialsID, credentials, err := svc.validateToken(token)
+	var (
+		aam = &authActionProps{
+			credentials: &types.Credentials{Kind: kind},
+		}
+	)
+
+	credentialsID, credentials := svc.validateToken(token)
+	if credentialsID == 0 {
+		return nil, AuthErrInvalidToken(aam)
+	}
+
+	c, err := svc.credentials.FindByID(credentialsID)
+	if err == repository.ErrCredentialsNotFound {
+		return nil, AuthErrInvalidToken(aam)
+	}
+
+	aam.setCredentials(c)
+
 	if err != nil {
 		return
 	}
 
-	return u, svc.db.Transaction(func() error {
-		c, err := svc.credentials.FindByID(credentialsID)
-		if err == repository.ErrCredentialsNotFound {
-			return errors.New("no such token")
-		}
+	if err = svc.credentials.DeleteByID(c.ID); err != nil {
+		return
+	}
 
-		if err != nil {
-			return errors.Wrap(err, "could not load credentials")
-		}
+	if !c.Valid() || c.Credentials != credentials {
+		return nil, AuthErrInvalidToken(aam)
+	}
 
-		if err = svc.credentials.DeleteByID(c.ID); err != nil {
-			return errors.Wrap(err, "could not remove credentials")
-		}
+	u, err = svc.users.FindByID(c.OwnerID)
+	if err != nil {
+		return nil, err
+	}
 
-		if !c.Valid() {
-			return errors.New("expired or invalid token")
-		}
+	aam.setUser(u)
 
-		if c.Credentials != credentials {
-			return errors.New("invalid token")
-		}
+	// context will be updated with new identity
+	// in the caller fn
 
-		u, err = svc.users.FindByID(c.OwnerID)
-		if err != nil {
-			return errors.Wrap(err, "could not load user")
-		}
+	if !u.Valid() {
+		return nil, AuthErrInvalidCredentials(aam)
+	}
 
-		if !u.Valid() {
-			u = nil
-			return errors.New("user not valid")
-		}
-
-		return nil
-	})
+	return u, nil
 }
 
-func (svc auth) validateToken(token string) (ID uint64, credentials string, err error) {
+func (svc auth) validateToken(token string) (ID uint64, credentials string) {
 	// Token = <32 random chars><credentials-id>
 	if len(token) <= credentialsTokenLength {
-		err = errors.New("invalid token length")
 		return
 	}
 
-	ID, err = strconv.ParseUint(token[credentialsTokenLength:], 10, 64)
-	if err != nil {
-		err = errors.Wrap(err, "invalid token format")
-		return
-	}
-
+	ID, _ = strconv.ParseUint(token[credentialsTokenLength:], 10, 64)
 	if ID == 0 {
-		err = errors.New("invalid token ID")
 		return
 	}
 
@@ -898,49 +951,66 @@ func (svc auth) validateToken(token string) (ID uint64, credentials string, err 
 	return
 }
 
-func (svc auth) createUserToken(user *types.User, kind string) (token string, err error) {
-	var expiresAt time.Time
+// Generates & stores user token
+// it returns combined value of token + token ID to help with the lookups
+func (svc auth) createUserToken(u *types.User, kind string) (token string, err error) {
+	var (
+		expiresAt time.Time
+		aam       = &authActionProps{
+			user:        u,
+			credentials: &types.Credentials{Kind: kind},
+		}
+	)
 
-	switch kind {
-	case credentialsTypeAuthToken:
-		// 15 sec expiration for all tokens that are part of redirction
-		expiresAt = svc.now().Add(time.Second * 15)
-	default:
-		// 1h expiration for all tokens send via email
-		expiresAt = svc.now().Add(time.Minute * 60)
-	}
+	err = func() error {
+		switch kind {
+		case credentialsTypeAuthToken:
+			// 15 sec expiration for all tokens that are part of redirection
+			expiresAt = svc.now().Add(time.Second * 15)
+		default:
+			// 1h expiration for all tokens send via email
+			expiresAt = svc.now().Add(time.Minute * 60)
+		}
 
-	c, err := svc.credentials.Create(&types.Credentials{
-		OwnerID:     user.ID,
-		Kind:        kind,
-		Credentials: string(rand.Bytes(credentialsTokenLength)),
-		ExpiresAt:   &expiresAt,
-	})
+		c, err := svc.credentials.Create(&types.Credentials{
+			OwnerID:     u.ID,
+			Kind:        kind,
+			Credentials: string(rand.Bytes(credentialsTokenLength)),
+			ExpiresAt:   &expiresAt,
+		})
 
-	if err != nil {
-		return
-	}
+		if err != nil {
+			return err
+		}
 
-	token = fmt.Sprintf("%s%d", c.Credentials, c.ID)
-	return
+		token = fmt.Sprintf("%s%d", c.Credentials, c.ID)
+		return nil
+	}()
+
+	return token, svc.recordAction(svc.ctx, aam, AuthActionIssueToken, err)
 }
 
 // Automatically promotes user to administrator if it is the first user in the database
 func (svc auth) autoPromote(u *types.User) (err error) {
-	if svc.users.Total() == 1 && u.ID > 0 {
-		err = svc.roles.MemberAddByID(permissions.AdminsRoleID, u.ID)
-
-		svc.log(
-			svc.ctx,
-			zap.String("email", u.Email),
-			zap.Uint64("userID", u.ID),
-			zap.Error(err),
-		).Info("auto-promoted user to administrator role")
+	if svc.users.Total() > 1 || u.ID == 0 {
+		return nil
 	}
 
-	return
+	if svc.roles == nil {
+		// no role repository; auto-promotion disabled
+		return nil
+	}
+
+	var (
+		roleID = permissions.AdminsRoleID
+		aam    = &authActionProps{user: u, role: &types.Role{ID: roleID}}
+	)
+
+	err = svc.roles.MemberAddByID(roleID, u.ID)
+	return svc.recordAction(svc.ctx, aam, AuthActionAutoPromote, err)
 }
 
+// LoadRoleMemberships loads membership info
 func (svc auth) LoadRoleMemberships(u *types.User) error {
 	rr, _, err := svc.roles.Find(types.RoleFilter{MemberID: u.ID})
 	if err != nil {
@@ -950,5 +1020,3 @@ func (svc auth) LoadRoleMemberships(u *types.User) error {
 	u.SetRoles(rr.IDs())
 	return nil
 }
-
-var _ AuthService = &auth{}

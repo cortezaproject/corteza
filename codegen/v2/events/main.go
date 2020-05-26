@@ -1,24 +1,18 @@
 package main
 
-// *Set type generator for functions like Walk(), Filter(), FindByID() & IDs()
-
 import (
-	"bytes"
 	"flag"
 	"fmt"
-	"go/format"
-	"io"
+	"github.com/cortezaproject/corteza-server/codegen/v2/internal"
+	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"gopkg.in/yaml.v2"
 	"os"
 	"strings"
 	"text/template"
-
-	"gopkg.in/yaml.v2"
-
-	"github.com/cortezaproject/corteza-server/pkg/cli"
 )
 
 const (
-	eventsTemplateFile = "codegen/v2/*.go.tpl"
+	templateFile = "codegen/v2/events/*.go.tpl"
 )
 
 type (
@@ -67,11 +61,11 @@ type (
 func main() {
 
 	tpl := template.New("").Funcs(map[string]interface{}{
-		"camelCase":  camelCase,
+		"camelCase":  internal.CamelCase,
 		"makeEvents": makeEvents,
 	})
 
-	tpl = template.Must(tpl.ParseGlob(eventsTemplateFile))
+	tpl = template.Must(tpl.ParseGlob(templateFile))
 
 	var (
 		definitionsPathStr string
@@ -113,7 +107,7 @@ func main() {
 		decoder = yaml.NewDecoder(f)
 	}
 
-	tplData.Command = "go run codegen/v2/events.go --service " + serviceStr
+	tplData.Command = "go run ./codegen/v2/events --service " + serviceStr
 	tplData.YAML = definitionsPathStr + yamlDefFileName
 	tplData.Package = "event"
 
@@ -136,7 +130,7 @@ func main() {
 			// check if resource name is shorter  and has invalid prefix
 			cli.HandleError(fmt.Errorf("invalid resource prefix: %q", resName))
 		} else {
-			tplData.ResourceIdent = camelCase(strings.Split(resName[l+1:], ":")...)
+			tplData.ResourceIdent = internal.CamelCase(strings.Split(resName[l+1:], ":")...)
 
 			fname = resName[l+1:]
 			fname = strings.ReplaceAll(fname, ":", "_")
@@ -187,10 +181,10 @@ func main() {
 
 		_, err := os.Stat(usrOutput)
 		if overwrite || os.IsNotExist(err) {
-			writeTo(tpl, tplData, "events.go.tpl", usrOutput)
+			internal.WriteTo(tpl, tplData, "events.go.tpl", usrOutput)
 		}
 
-		writeTo(tpl, tplData, "events.gen.go.tpl", genOutput)
+		internal.WriteTo(tpl, tplData, "events.gen.go.tpl", genOutput)
 	}
 }
 
@@ -215,52 +209,10 @@ func makeEvents(def eventDef) []string {
 	)
 }
 
-func camelCase(pp ...string) (out string) {
-	for i, p := range pp {
-		if i > 0 && len(p) > 1 {
-			p = strings.ToUpper(p[:1]) + p[1:]
-		}
-
-		out = out + p
-	}
-
-	return out
-}
-
 func makeEventGroup(pfix string, ee []string) (out []string) {
 	for _, e := range ee {
 		out = append(out, pfix+strings.ToUpper(e[:1])+e[1:])
 	}
 
 	return
-}
-
-func writeTo(tpl *template.Template, payload interface{}, name, dst string) {
-	var output io.WriteCloser
-	buf := bytes.Buffer{}
-
-	if err := tpl.ExecuteTemplate(&buf, name, payload); err != nil {
-		cli.HandleError(err)
-	} else {
-		fmtsrc, err := format.Source(buf.Bytes())
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "fmt warn: %v", err)
-			fmtsrc = buf.Bytes()
-		}
-
-		if dst == "" || dst == "-" {
-			output = os.Stdout
-		} else {
-			// cli.HandleError(os.Remove(dst))
-			if output, err = os.Create(dst); err != nil {
-				cli.HandleError(err)
-			}
-
-			defer output.Close()
-		}
-
-		if _, err := output.Write(fmtsrc); err != nil {
-			cli.HandleError(err)
-		}
-	}
 }

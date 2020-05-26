@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"html/template"
 
 	"go.uber.org/zap"
@@ -16,10 +17,8 @@ import (
 
 type (
 	authNotification struct {
-		ctx    context.Context
-		logger *zap.Logger
-
-		// @todo merge auth & system settings
+		ctx      context.Context
+		logger   *zap.Logger
 		settings *types.Settings
 	}
 
@@ -105,7 +104,7 @@ func (svc authNotification) send(name, lang string, payload authNotificationPayl
 		ntf.SetBody("text/html", svc.render(svc.settings.Auth.Mail.PasswordReset.Body, payload))
 
 	default:
-		return ErrNoEmailTemplateForGivenOperation
+		return fmt.Errorf("unknown notification email template %q", name)
 	}
 
 	svc.log(svc.ctx).Debug(

@@ -2,45 +2,36 @@ package service
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"io"
 	"net/mail"
 	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 const (
-	ErrUserInvalidCredentials = serviceError("UserInvalidCredentials")
-	ErrUserHandleNotUnique    = serviceError("UserHandleNotUnique")
-	ErrUserUsernameNotUnique  = serviceError("UserUsernameNotUnique")
-	ErrUserEmailNotUnique     = serviceError("UserEmailNotUnique")
-	ErrUserInvalidEmail       = serviceError("UserInvalidEmail")
-	ErrUserLocked             = serviceError("UserLocked")
-
 	maskPrivateDataEmail = "####.#######@######.###"
 	maskPrivateDataName  = "##### ##########"
 )
 
 type (
 	user struct {
-		db     *factory.DB
-		ctx    context.Context
-		logger *zap.Logger
+		db  *factory.DB
+		ctx context.Context
+
+		actionlog actionlog.Recorder
 
 		settings *types.Settings
 
@@ -56,7 +47,7 @@ type (
 	}
 
 	userAuth interface {
-		checkPasswordStrength(string) error
+		checkPasswordStrength(string) bool
 		changePassword(uint64, string) error
 	}
 
@@ -78,6 +69,10 @@ type (
 		FilterUsersWithUnmaskableEmail(ctx context.Context) *permissions.ResourceFilter
 		FilterUsersWithUnmaskableName(ctx context.Context) *permissions.ResourceFilter
 	}
+
+	// Temp types to support user.Preloader
+	userIdGetter func(chan uint64)
+	userSetter   func(*types.User) error
 
 	UserService interface {
 		With(ctx context.Context) UserService
@@ -101,33 +96,32 @@ type (
 		Undelete(id uint64) error
 
 		SetPassword(userID uint64, password string) error
+
+		Preloader(userIdGetter, types.UserFilter, userSetter) error
 	}
 )
 
 func User(ctx context.Context) UserService {
 	return (&user{
-		logger:   DefaultLogger.Named("user"),
 		eventbus: eventbus.Service(),
 		ac:       DefaultAccessControl,
 		settings: CurrentSettings,
 		auth:     DefaultAuth,
 
+		actionlog: DefaultActionlog,
+
 		subscription: CurrentSubscription,
 	}).With(ctx)
-}
-
-// log() returns zap's logger with requestID from current context and fields.
-func (svc user) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(ctx, svc.logger).With(fields...)
 }
 
 func (svc user) With(ctx context.Context) UserService {
 	db := repository.DB(ctx)
 
 	return &user{
-		ctx:    ctx,
-		db:     db,
-		logger: svc.logger,
+		ctx: ctx,
+		db:  db,
+
+		actionlog: svc.actionlog,
 
 		ac:           svc.ac,
 		eventbus:     svc.eventbus,
@@ -141,33 +135,70 @@ func (svc user) With(ctx context.Context) UserService {
 	}
 }
 
-func (svc user) FindByID(ID uint64) (*types.User, error) {
-	if ID == 0 {
-		return nil, ErrInvalidID.withStack()
-	}
+func (svc user) FindByID(userID uint64) (u *types.User, err error) {
+	var (
+		uaProps = &userActionProps{user: &types.User{ID: userID}}
+	)
 
-	tmp := internalAuth.NewIdentity(ID)
-	if internalAuth.IsSuperUser(tmp) {
-		// Handling case when looking for a super-user
-		//
-		// Currently, superuser is a virtual entity
-		// and does not exists in the db
-		return &types.User{ID: ID}, nil
-	}
+	err = svc.db.Transaction(func() error {
+		if userID == 0 {
+			return UserErrInvalidID()
+		}
 
-	return svc.proc(svc.user.FindByID(ID))
+		su := internalAuth.NewIdentity(userID)
+		if internalAuth.IsSuperUser(su) {
+			// Handling case when looking for a super-user
+			//
+			// Currently, superuser is a virtual entity
+			// and does not exists in the db
+			u = &types.User{ID: userID}
+			return nil
+		}
+
+		u, err = svc.proc(svc.user.FindByID(userID))
+		return err
+	})
+
+	return u, svc.recordAction(svc.ctx, uaProps, UserActionLookup, err)
 }
 
-func (svc user) FindByEmail(email string) (*types.User, error) {
-	return svc.proc(svc.user.FindByEmail(email))
+func (svc user) FindByEmail(email string) (u *types.User, err error) {
+	var (
+		uaProps = &userActionProps{user: &types.User{Email: email}}
+	)
+
+	err = svc.db.Transaction(func() error {
+		u, err = svc.proc(svc.user.FindByEmail(email))
+		return err
+	})
+
+	return u, svc.recordAction(svc.ctx, uaProps, UserActionLookup, err)
 }
 
-func (svc user) FindByUsername(username string) (*types.User, error) {
-	return svc.proc(svc.user.FindByUsername(username))
+func (svc user) FindByUsername(username string) (u *types.User, err error) {
+	var (
+		uaProps = &userActionProps{user: &types.User{Username: username}}
+	)
+
+	err = svc.db.Transaction(func() error {
+		u, err = svc.proc(svc.user.FindByUsername(username))
+		return err
+	})
+
+	return u, svc.recordAction(svc.ctx, uaProps, UserActionLookup, err)
 }
 
-func (svc user) FindByHandle(handle string) (*types.User, error) {
-	return svc.proc(svc.user.FindByHandle(handle))
+func (svc user) FindByHandle(handle string) (u *types.User, err error) {
+	var (
+		uaProps = &userActionProps{user: &types.User{Handle: handle}}
+	)
+
+	err = svc.db.Transaction(func() error {
+		u, err = svc.proc(svc.user.FindByHandle(handle))
+		return err
+	})
+
+	return u, svc.recordAction(svc.ctx, uaProps, UserActionLookup, err)
 }
 
 // FindByAny finds user by given identifier (context, id, handle, email)
@@ -189,7 +220,7 @@ func (svc user) FindByAny(identifier interface{}) (u *types.User, err error) {
 			u, err = svc.FindByHandle(strIdentifier)
 		}
 	} else {
-		err = ErrInvalidID.withStack()
+		err = UserErrInvalidID()
 	}
 
 	if err != nil {
@@ -207,6 +238,10 @@ func (svc user) FindByAny(identifier interface{}) (u *types.User, err error) {
 
 func (svc user) proc(u *types.User, err error) (*types.User, error) {
 	if err != nil {
+		if repository.ErrUserNotFound.Eq(err) {
+			return nil, UserErrNonexistent()
+		}
+
 		return nil, err
 	}
 
@@ -215,74 +250,80 @@ func (svc user) proc(u *types.User, err error) (*types.User, error) {
 	return u, nil
 }
 
-func (svc user) Find(f types.UserFilter) (types.UserSet, types.UserFilter, error) {
-	if f.Deleted > 0 {
-		// If list with deleted users is requested
-		// user must have access permissions to system (ie: is admin)
-		//
-		// not the best solution but ATM it allows us to have at least
-		// some kind of control over who can see deleted users
-		if !svc.ac.CanAccess(svc.ctx) {
-			return nil, f, ErrNoPermissions.withStack()
+func (svc user) Find(filter types.UserFilter) (uu types.UserSet, f types.UserFilter, err error) {
+	var (
+		uaProps = &userActionProps{filter: &filter}
+	)
+
+	err = svc.db.Transaction(func() error {
+		if filter.Deleted > 0 {
+			// If list with deleted users is requested
+			// user must have access permissions to system (ie: is admin)
+			//
+			// not the best solution but ATM it allows us to have at least
+			// some kind of control over who can see deleted users
+			if !svc.ac.CanAccess(svc.ctx) {
+				return UserErrNotAllowedToListUsers()
+			}
 		}
-	}
 
-	// Prepare filter for email unmasking check
-	f.IsEmailUnmaskable = svc.ac.FilterUsersWithUnmaskableEmail(svc.ctx)
+		// Prepare filter for email unmasking check
+		filter.IsEmailUnmaskable = svc.ac.FilterUsersWithUnmaskableEmail(svc.ctx)
 
-	// Prepare filter for name unmasking check
-	f.IsNameUnmaskable = svc.ac.FilterUsersWithUnmaskableName(svc.ctx)
+		// Prepare filter for name unmasking check
+		filter.IsNameUnmaskable = svc.ac.FilterUsersWithUnmaskableName(svc.ctx)
 
-	f.IsReadable = svc.ac.FilterReadableUsers(svc.ctx)
+		filter.IsReadable = svc.ac.FilterReadableUsers(svc.ctx)
 
-	return svc.procSet(svc.user.Find(f))
-}
+		uu, f, err = svc.user.Find(filter)
+		if err != nil {
+			return err
+		}
 
-func (svc user) procSet(u types.UserSet, f types.UserFilter, err error) (types.UserSet, types.UserFilter, error) {
-	if err != nil {
-		return nil, f, err
-	}
-
-	_ = u.Walk(func(u *types.User) error {
-		svc.handlePrivateData(u)
-		return nil
+		return uu.Walk(func(u *types.User) error {
+			svc.handlePrivateData(u)
+			return nil
+		})
 	})
 
-	return u, f, nil
+	return uu, f, svc.recordAction(svc.ctx, uaProps, UserActionSearch, err)
 }
 
 func (svc user) Create(new *types.User) (u *types.User, err error) {
-	if !svc.ac.CanCreateUser(svc.ctx) {
-		return nil, ErrNoCreatePermissions.withStack()
-	}
+	var (
+		uaProps = &userActionProps{new: new}
+	)
 
-	if !handle.IsValid(new.Handle) {
-		return nil, ErrInvalidHandle.withStack()
-	}
-
-	if _, err := mail.ParseAddress(new.Email); err != nil {
-		return nil, ErrUserInvalidEmail.withStack()
-	}
-
-	if svc.subscription != nil {
-		// When we have an active subscription, we need to check
-		// if users can be creare or did this deployment hit
-		// it's user-limit
-		err = svc.subscription.CanCreateUser(svc.user.Total())
-		if err != nil {
-			return nil, err
+	err = svc.db.Transaction(func() (err error) {
+		if !svc.ac.CanCreateUser(svc.ctx) {
+			return UserErrNotAllowedToCreate()
 		}
-	}
 
-	if err = svc.eventbus.WaitFor(svc.ctx, event.UserBeforeCreate(new, u)); err != nil {
-		return
-	}
+		if !handle.IsValid(new.Handle) {
+			return UserErrInvalidHandle()
+		}
 
-	if new.Handle == "" {
-		createHandle(svc.user, new)
-	}
+		if _, err := mail.ParseAddress(new.Email); err != nil {
+			return UserErrInvalidEmail()
+		}
 
-	return u, svc.db.Transaction(func() (err error) {
+		if svc.subscription != nil {
+			// When we have an active subscription, we need to check
+			// if users can be create or did this deployment hit
+			// it's user-limit
+			err = svc.subscription.CanCreateUser(svc.user.Total())
+			if err != nil {
+				return err
+			}
+		}
+
+		if err = svc.eventbus.WaitFor(svc.ctx, event.UserBeforeCreate(new, u)); err != nil {
+			return
+		}
+
+		if new.Handle == "" {
+			createHandle(svc.user, new)
+		}
 
 		if err = svc.UniqueCheck(new); err != nil {
 			return
@@ -295,6 +336,8 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 		defer svc.eventbus.Dispatch(svc.ctx, event.UserAfterCreate(new, u))
 		return
 	})
+
+	return u, svc.recordAction(svc.ctx, uaProps, UserActionCreate, err)
 }
 
 func (svc user) CreateWithAvatar(input *types.User, avatar io.Reader) (out *types.User, err error) {
@@ -303,40 +346,46 @@ func (svc user) CreateWithAvatar(input *types.User, avatar io.Reader) (out *type
 }
 
 func (svc user) Update(upd *types.User) (u *types.User, err error) {
-	if upd.ID == 0 {
-		return nil, ErrInvalidID.withStack()
-	}
+	var (
+		uaProps = &userActionProps{update: upd}
+	)
 
-	if !handle.IsValid(upd.Handle) {
-		return nil, ErrInvalidHandle.withStack()
-	}
-
-	if _, err := mail.ParseAddress(upd.Email); err != nil {
-		return nil, ErrUserInvalidEmail.withStack()
-	}
-
-	if u, err = svc.user.FindByID(upd.ID); err != nil {
-		return
-	}
-
-	if upd.ID != internalAuth.GetIdentityFromContext(svc.ctx).Identity() {
-		if !svc.ac.CanUpdateUser(svc.ctx, u) {
-			return nil, ErrNoUpdatePermissions.withStack()
+	err = svc.db.Transaction(func() (err error) {
+		if upd.ID == 0 {
+			return UserErrInvalidID()
 		}
-	}
 
-	// Assign changed values
-	u.Email = upd.Email
-	u.Username = upd.Username
-	u.Name = upd.Name
-	u.Handle = upd.Handle
-	u.Kind = upd.Kind
+		if !handle.IsValid(upd.Handle) {
+			return UserErrInvalidHandle()
+		}
 
-	if err = svc.eventbus.WaitFor(svc.ctx, event.UserBeforeUpdate(upd, u)); err != nil {
-		return
-	}
+		if _, err := mail.ParseAddress(upd.Email); err != nil {
+			return UserErrInvalidEmail()
+		}
 
-	return u, svc.db.Transaction(func() (err error) {
+		if u, err = svc.user.FindByID(upd.ID); err != nil {
+			return
+		}
+
+		uaProps.setUser(u)
+
+		if upd.ID != internalAuth.GetIdentityFromContext(svc.ctx).Identity() {
+			if !svc.ac.CanUpdateUser(svc.ctx, u) {
+				return UserErrNotAllowedToUpdate()
+			}
+		}
+
+		// Assign changed values
+		u.Email = upd.Email
+		u.Username = upd.Username
+		u.Name = upd.Name
+		u.Handle = upd.Handle
+		u.Kind = upd.Kind
+
+		if err = svc.eventbus.WaitFor(svc.ctx, event.UserBeforeUpdate(upd, u)); err != nil {
+			return
+		}
+
 		if err = svc.UniqueCheck(u); err != nil {
 			return
 		}
@@ -348,8 +397,11 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 		defer svc.eventbus.Dispatch(svc.ctx, event.UserAfterUpdate(upd, u))
 		return
 	})
+
+	return u, svc.recordAction(svc.ctx, uaProps, UserActionUpdate, err)
 }
 
+// UniqueCheck verifies user's email, username and handle
 func (svc user) UniqueCheck(u *types.User) (err error) {
 	isUnique := func(field string) bool {
 		f := types.UserFilter{
@@ -392,15 +444,15 @@ func (svc user) UniqueCheck(u *types.User) (err error) {
 	}
 
 	if !isUnique("email") {
-		return ErrUserEmailNotUnique
+		return UserErrEmailNotUnique()
 	}
 
 	if !isUnique("username") {
-		return ErrUserUsernameNotUnique
+		return UserErrUsernameNotUnique()
 	}
 
 	if !isUnique("handle") {
-		return ErrUserHandleNotUnique
+		return UserErrHandleNotUnique()
 	}
 
 	return nil
@@ -411,128 +463,173 @@ func (svc user) UpdateWithAvatar(mod *types.User, avatar io.Reader) (out *types.
 	return svc.Create(mod)
 }
 
-func (svc user) Delete(ID uint64) (err error) {
+func (svc user) Delete(userID uint64) (err error) {
 	var (
-		del *types.User
+		u       *types.User
+		uaProps = &userActionProps{user: &types.User{ID: userID}}
 	)
 
-	if ID == 0 {
-		return ErrInvalidID.withStack()
-	}
+	err = svc.db.Transaction(func() (err error) {
+		if userID == 0 {
+			return UserErrInvalidID()
+		}
 
-	if del, err = svc.user.FindByID(ID); err != nil {
-		return
-	}
+		if u, err = svc.user.FindByID(userID); err != nil {
+			return
+		}
 
-	if !svc.ac.CanDeleteUser(svc.ctx, del) {
-		return ErrNoPermissions.withStack()
-	}
+		if !svc.ac.CanDeleteUser(svc.ctx, u) {
+			return UserErrNotAllowedToDelete()
+		}
 
-	if err = svc.eventbus.WaitFor(svc.ctx, event.UserBeforeUpdate(nil, del)); err != nil {
-		return
-	}
+		if err = svc.eventbus.WaitFor(svc.ctx, event.UserBeforeUpdate(nil, u)); err != nil {
+			return
+		}
 
-	if err = svc.user.DeleteByID(ID); err != nil {
-		return
-	}
+		if err = svc.user.DeleteByID(userID); err != nil {
+			return
+		}
 
-	defer svc.eventbus.Dispatch(svc.ctx, event.UserAfterDelete(nil, del))
-	return
+		defer svc.eventbus.Dispatch(svc.ctx, event.UserAfterDelete(nil, u))
+		return nil
+	})
+
+	return svc.recordAction(svc.ctx, uaProps, UserActionDelete, err)
 }
 
-func (svc user) Undelete(ID uint64) (err error) {
-	if ID == 0 {
-		return ErrInvalidID.withStack()
-	}
+func (svc user) Undelete(userID uint64) (err error) {
+	var (
+		u       *types.User
+		uaProps = &userActionProps{user: &types.User{ID: userID}}
+	)
 
-	var u *types.User
-	if u, err = svc.user.FindByID(ID); err != nil {
-		return
-	}
+	err = svc.db.Transaction(func() (err error) {
+		if userID == 0 {
+			return UserErrInvalidID()
+		}
 
-	if err = svc.UniqueCheck(u); err != nil {
-		return err
-	}
+		if u, err = svc.user.FindByID(userID); err != nil {
+			return
+		}
 
-	if !svc.ac.CanDeleteUser(svc.ctx, u) {
-		return ErrNoPermissions.withStack()
-	}
+		uaProps.setUser(u)
 
-	return svc.db.Transaction(func() (err error) {
-		return svc.user.UndeleteByID(ID)
+		if err = svc.UniqueCheck(u); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanDeleteUser(svc.ctx, u) {
+			return UserErrNotAllowedToDelete()
+		}
+
+		if err = svc.user.UndeleteByID(userID); err != nil {
+			return err
+		}
+
+		return nil
 	})
+
+	return svc.recordAction(svc.ctx, uaProps, UserActionUndelete, err)
+
 }
 
-func (svc user) Suspend(ID uint64) (err error) {
-	if ID == 0 {
-		return ErrInvalidID.withStack()
-	}
+func (svc user) Suspend(userID uint64) (err error) {
+	var (
+		u       *types.User
+		uaProps = &userActionProps{user: &types.User{ID: userID}}
+	)
 
-	var u *types.User
-	if u, err = svc.user.FindByID(ID); err != nil {
-		return
-	}
+	err = svc.db.Transaction(func() (err error) {
+		if userID == 0 {
+			return UserErrInvalidID()
+		}
 
-	if !svc.ac.CanSuspendUser(svc.ctx, u) {
-		return ErrNoPermissions.withStack()
-	}
+		if u, err = svc.user.FindByID(userID); err != nil {
+			return
+		}
 
-	return svc.db.Transaction(func() (err error) {
-		return svc.user.SuspendByID(ID)
+		uaProps.setUser(u)
+
+		if !svc.ac.CanSuspendUser(svc.ctx, u) {
+			return UserErrNotAllowedToSuspend()
+		}
+
+		if err = svc.user.SuspendByID(userID); err != nil {
+			return err
+		}
+
+		return nil
 	})
+
+	return svc.recordAction(svc.ctx, uaProps, UserActionSuspend, err)
+
 }
 
-func (svc user) Unsuspend(ID uint64) (err error) {
-	if ID == 0 {
-		return ErrInvalidID.withStack()
-	}
+func (svc user) Unsuspend(userID uint64) (err error) {
+	var (
+		u       *types.User
+		uaProps = &userActionProps{user: &types.User{ID: userID}}
+	)
 
-	var u *types.User
-	if u, err = svc.user.FindByID(ID); err != nil {
-		return
-	}
+	err = svc.db.Transaction(func() (err error) {
+		if userID == 0 {
+			return UserErrInvalidID()
+		}
 
-	if !svc.ac.CanUnsuspendUser(svc.ctx, u) {
-		return ErrNoPermissions.withStack()
-	}
+		if u, err = svc.user.FindByID(userID); err != nil {
+			return
+		}
 
-	return svc.db.Transaction(func() (err error) {
-		return svc.user.UnsuspendByID(ID)
+		uaProps.setUser(u)
+
+		if !svc.ac.CanUnsuspendUser(svc.ctx, u) {
+			return UserErrNotAllowedToUnsuspend()
+		}
+
+		if err = svc.user.UnsuspendByID(userID); err != nil {
+			return err
+		}
+
+		return nil
 	})
+
+	return svc.recordAction(svc.ctx, uaProps, UserActionUnsuspend, err)
+
 }
 
 // SetPassword sets new password for a user
 //
 // Expecting setter to have permissions to update modify users and internal authentication enabled
 func (svc user) SetPassword(userID uint64, newPassword string) (err error) {
-	log := svc.log(svc.ctx, zap.Uint64("userID", userID))
+	var (
+		u       *types.User
+		uaProps = &userActionProps{user: &types.User{ID: userID}}
+	)
 
-	if !svc.settings.Auth.Internal.Enabled {
-		return errors.New("internal authentication disabled")
-	}
+	err = svc.db.Transaction(func() error {
+		if u, err = svc.user.FindByID(userID); err != nil {
+			return err
+		}
 
-	var u *types.User
-	if u, err = svc.user.FindByID(userID); err != nil {
-		return
-	}
+		uaProps.setUser(u)
 
-	if !svc.ac.CanUpdateUser(svc.ctx, u) {
-		return ErrNoPermissions.withStack()
-	}
+		if !svc.ac.CanUpdateUser(svc.ctx, u) {
+			return UserErrNotAllowedToUpdate()
+		}
 
-	if err = svc.auth.checkPasswordStrength(newPassword); err != nil {
-		return
-	}
+		if !svc.auth.checkPasswordStrength(newPassword) {
+			return UserErrPasswordNotSecure()
+		}
 
-	return svc.db.Transaction(func() error {
 		if err := svc.auth.changePassword(userID, newPassword); err != nil {
 			return err
 		}
 
-		log.Info("password changed")
-
 		return nil
 	})
+
+	return svc.recordAction(svc.ctx, uaProps, UserActionSetPassword, err)
+
 }
 
 // Masks (or leaves as-is) private data on user
@@ -544,6 +641,56 @@ func (svc user) handlePrivateData(u *types.User) {
 	if !svc.ac.CanUnmaskName(svc.ctx, u) {
 		u.Name = maskPrivateDataName
 	}
+}
+
+// Preloader collects all ids of users, loads them and sets them back
+//
+//
+// @todo this kind of preloader is useful and can be implemented in bunch
+//       of places and replace old code
+func (svc user) Preloader(g userIdGetter, f types.UserFilter, s userSetter) error {
+	var (
+		// channel that will collect the IDs in the getter
+		ch = make(chan uint64, 0)
+
+		// unique index for IDs
+		unq = make(map[uint64]bool)
+	)
+
+	// Reset the collection of the IDs
+	f.UserID = make([]uint64, 0)
+
+	// Call getter and collect the IDs
+	go g(ch)
+
+rangeLoop:
+	for {
+		select {
+		case <-svc.ctx.Done():
+			close(ch)
+			break rangeLoop
+		case id, ok := <-ch:
+			if !ok {
+				// Channel closed
+				break rangeLoop
+			}
+
+			if !unq[id] {
+				unq[id] = true
+				f.UserID = append(f.UserID, id)
+			}
+		}
+
+	}
+
+	// Load all users (even if deleted, suspended) from the given list of IDs
+	uu, _, err := svc.Find(f)
+
+	if err != nil {
+		return err
+	}
+
+	return uu.Walk(s)
 }
 
 func createHandle(r repository.UserRepository, u *types.User) {

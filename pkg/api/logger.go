@@ -14,7 +14,7 @@ import (
 // contextLogger middleware binds logger to request's context.
 //
 // This allows us to use logger from context (with requestID)
-// inside our (generated) handers and controllers
+// inside our (generated) handlers and controllers
 func contextLogger(log *zap.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
