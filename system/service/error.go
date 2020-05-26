@@ -9,23 +9,8 @@ type (
 )
 
 const (
-	ErrInvalidID                      serviceError = "InvalidID"
-	ErrInvalidHandle                  serviceError = "InvalidHandle"
-	ErrNoPermissions                  serviceError = "NoPermissions"
-	ErrNoGrantPermissions             serviceError = "NoGrantPermissions"
-	ErrNoCreatePermissions            serviceError = "NoCreatePermissions"
-	ErrNoUpdatePermissions            serviceError = "NoUpdatePermissions"
-	ErrNoDeletePermissions            serviceError = "NoDeletePermissions"
-	ErrNoReadPermissions              serviceError = "NoReadPermissions"
-	ErrNoTriggerManagementPermissions serviceError = "NoTriggerManagementPermissions"
-	ErrNoScriptCreatePermissions      serviceError = "NoScriptCreatePermissions"
-	ErrNoReminderAssignPermissions    serviceError = "NoReminderAssignPermissions"
-
-	ErrUserSuspended serviceError = "UserSuspended"
-	ErrUserDeleted   serviceError = "UserDeleted"
-	ErrUserInvalid   serviceError = "UserInvalid"
-
-	ErrNoEmailTemplateForGivenOperation serviceError = "NoEmailTemplateForGivenOperation"
+	ErrNoUpdatePermissions         serviceError = "NoUpdatePermissions"
+	ErrNoReminderAssignPermissions serviceError = "NoReminderAssignPermissions"
 )
 
 func (e serviceError) Error() string {

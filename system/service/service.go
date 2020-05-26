@@ -158,7 +158,7 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultApplication = Application(ctx)
 	DefaultReminder = Reminder(ctx)
 	DefaultSink = Sink()
-	DefaultStatistics = Statistics(ctx)
+	DefaultStatistics = Statistics()
 	DefaultAttachment = Attachment(DefaultStore)
 
 	return

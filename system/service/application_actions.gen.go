@@ -107,6 +107,9 @@ func (p applicationActionProps) serialize() actionlog.Meta {
 		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
 	)
 
+	// avoiding declared but not used
+	_ = str
+
 	if p.application != nil {
 		m["application.name"] = str(p.application.Name)
 		m["application.ID"] = str(p.application.ID)

@@ -90,6 +90,9 @@ func (p {{ $.Service }}ActionProps) serialize() actionlog.Meta {
 		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
 	)
 
+	// avoiding declared but not used
+	_ = str
+
 {{ range $prop := $.Props }}
 	{{- if $prop.Builtin }}
 	    m["{{ $prop.Name }}"] = str(p.{{ $prop.Name }})
