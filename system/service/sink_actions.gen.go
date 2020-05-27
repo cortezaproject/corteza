@@ -766,6 +766,70 @@ func SinkErrInvalidContentType(props ...*sinkActionProps) *sinkError {
 
 }
 
+// SinkErrInvalidPath returns "system:sink.invalidPath" audit event as actionlog.Alert
+//
+//
+// This function is auto-generated.
+//
+func SinkErrInvalidPath(props ...*sinkActionProps) *sinkError {
+	var e = &sinkError{
+		timestamp: time.Now(),
+		resource:  "system:sink",
+		error:     "invalidPath",
+		action:    "error",
+		message:   "invalid path",
+		log:       "invalid path",
+		severity:  actionlog.Alert,
+		props: func() *sinkActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+
+		httpStatusCode: http.StatusUnauthorized,
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
+// SinkErrMisplacedSignature returns "system:sink.misplacedSignature" audit event as actionlog.Alert
+//
+//
+// This function is auto-generated.
+//
+func SinkErrMisplacedSignature(props ...*sinkActionProps) *sinkError {
+	var e = &sinkError{
+		timestamp: time.Now(),
+		resource:  "system:sink",
+		error:     "misplacedSignature",
+		action:    "error",
+		message:   "signature misplaced",
+		log:       "signature misplaced",
+		severity:  actionlog.Alert,
+		props: func() *sinkActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+
+		httpStatusCode: http.StatusBadRequest,
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
 // SinkErrSignatureExpired returns "system:sink.signatureExpired" audit event as actionlog.Alert
 //
 //
