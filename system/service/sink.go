@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -29,10 +30,10 @@ type (
 		// Expect sink request to be of this method
 		Method string `json:"mtd,omitempty"`
 
-		// OpUsed as an identifier, no validation of request params
+		// Origin is as an identifier, no validation of request params
 		Origin string `json:"origin,omitempty"`
 
-		// If set
+		// Optional, signature expiration
 		Expires *time.Time `json:"exp,omitempty"`
 
 		// When set it enables body processing (but limits it to that size!)
@@ -40,6 +41,10 @@ type (
 
 		// Acceptable content type
 		ContentType string `json:"ct,omitempty"`
+
+		// Should we put signature in the path (true)
+		// or in query string (false, default)
+		SignatureInPath bool `json:"-"`
 	}
 
 	sinkEventDispatcher interface {
@@ -71,9 +76,13 @@ func (svc sink) SignURL(surp SinkRequestUrlParams) (signedURL *url.URL, err erro
 	var (
 		params []byte
 		sap    = &sinkActionProps{sinkParams: &surp}
+
+		path = svc.GetPath()
+		qs   = url.Values{}
 	)
 
 	err = func() error {
+
 		params, err = json.Marshal(surp)
 		if err != nil {
 			return SinkErrFailedToSign(sap).Wrap(err)
@@ -81,11 +90,17 @@ func (svc sink) SignURL(surp SinkRequestUrlParams) (signedURL *url.URL, err erro
 
 		surp.Method = strings.ToUpper(surp.Method)
 
-		v := url.Values{}
+		signature := svc.signer.Sign(0, params) + SinkSignUrlParamDelimiter + base64.StdEncoding.EncodeToString(params)
 
-		v.Set(SinkSignUrlParamName, svc.signer.Sign(0, params)+SinkSignUrlParamDelimiter+base64.StdEncoding.EncodeToString(params))
+		if surp.SignatureInPath {
+			// Optional, use path for sink signature
+			path = fmt.Sprintf("%s/%s=%s", path, SinkSignUrlParamName, signature)
+		} else {
+			// By default put signature in query string
+			qs.Set(SinkSignUrlParamName, signature)
+		}
 
-		signedURL = &url.URL{RawQuery: v.Encode(), Path: svc.GetPath()}
+		signedURL = &url.URL{RawQuery: qs.Encode(), Path: path}
 		return nil
 	}()
 
@@ -142,11 +157,26 @@ func (svc *sink) ProcessRequest(w http.ResponseWriter, r *http.Request) {
 // Verifies and extracts sink request params
 func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, error) {
 	var (
-		srup *SinkRequestUrlParams
+		srup = &SinkRequestUrlParams{}
 		sap  = &sinkActionProps{}
+		qs   = r.URL.Query()
+
+		param string
 	)
 
-	param := r.URL.Query().Get(SinkSignUrlParamName)
+	// try to find a signature
+	if _, has := qs[SinkSignUrlParamName]; has {
+		// first, in a query string
+		param = r.URL.Query().Get(SinkSignUrlParamName)
+	} else if i := strings.Index(r.URL.Path, SinkSignUrlParamName); i > -1 {
+		// fallback to path, expecting signature to be at the end
+		// offset string index by start of signature param name, length of param name, and = char
+		param = r.URL.Path[i+len(SinkSignUrlParamName)+1:]
+
+		// this is more for consistency and cleaner tests
+		srup.SignatureInPath = true
+	}
+
 	if len(param) == 0 {
 		return nil, SinkErrMissingSignature(sap)
 	}
@@ -165,7 +195,6 @@ func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, error) {
 		return nil, SinkErrInvalidSignature(sap)
 	}
 
-	srup = &SinkRequestUrlParams{}
 	if err = json.Unmarshal(params, srup); err != nil {
 		// Impossible scenario :)
 		// How can we have verified signature of an invalid JSON ?!
