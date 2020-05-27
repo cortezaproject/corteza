@@ -1,5 +1,9 @@
 package encoder
 
+import (
+	syst "github.com/cortezaproject/corteza-server/system/types"
+)
+
 type (
 	multiple uint
 
@@ -17,14 +21,18 @@ type (
 		Encode(interface{}) error
 	}
 
+	userFinder func(ID uint64) (*syst.User, error)
+
 	flatWriter struct {
 		w  FlatWriter
 		ff []field
+		u  userFinder
 	}
 
 	structuredEncoder struct {
 		w  StructuredEncoder
 		ff []field
+		u  userFinder
 	}
 )
 
@@ -45,10 +53,11 @@ func MultiValueField(name string) field {
 	return field{name: name, encodeAllMulti: true}
 }
 
-func NewFlatWriter(w FlatWriter, header bool, ff ...field) *flatWriter {
+func NewFlatWriter(w FlatWriter, header bool, u userFinder, ff ...field) *flatWriter {
 	f := &flatWriter{
 		w:  w,
 		ff: ff,
+		u:  u,
 	}
 
 	if header {
@@ -71,10 +80,11 @@ func (enc flatWriter) writeHeader() {
 	_ = enc.w.Write(ss)
 }
 
-func NewStructuredEncoder(w StructuredEncoder, ff ...field) *structuredEncoder {
+func NewStructuredEncoder(w StructuredEncoder, u userFinder, ff ...field) *structuredEncoder {
 	return &structuredEncoder{
 		w:  w,
 		ff: ff,
+		u:  u,
 	}
 }
 

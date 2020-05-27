@@ -23,6 +23,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/mime"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
+	stypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -40,6 +41,10 @@ type (
 		Set    []*recordPayload    `json:"set"`
 	}
 
+	userFinder interface {
+		FindByID(context.Context, uint64) (*stypes.User, error)
+	}
+
 	Record struct {
 		importSession service.ImportSessionService
 		record        service.RecordService
@@ -47,6 +52,7 @@ type (
 		namespace     service.NamespaceService
 		attachment    service.AttachmentService
 		ac            recordAccessController
+		userFinder    userFinder
 	}
 
 	recordAccessController interface {
@@ -63,6 +69,7 @@ func (Record) New() *Record {
 		namespace:     service.DefaultNamespace,
 		attachment:    service.DefaultAttachment,
 		ac:            service.DefaultAccessControl,
+		userFinder:    service.DefaultSystemUser,
 	}
 }
 
@@ -407,18 +414,32 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			http.Error(w, "no record value fields provided", http.StatusBadRequest)
 		}
 
+		// Custom user getter function for the underlying encoders.
+		users := map[uint64]*stypes.User{}
+		uf := func(ID uint64) (*stypes.User, error) {
+			if users[ID] != nil {
+				return users[ID], nil
+			}
+			u, err := ctrl.userFinder.FindByID(ctx, ID)
+			if err != nil {
+				return nil, err
+			}
+			users[ID] = u
+			return u, nil
+		}
+
 		switch strings.ToLower(r.Ext) {
 		case "json", "jsonl", "ldjson", "ndjson":
 			contentType = "application/jsonl"
-			recordEncoder = encoder.NewStructuredEncoder(json.NewEncoder(w), ff...)
+			recordEncoder = encoder.NewStructuredEncoder(json.NewEncoder(w), uf, ff...)
 
 		case "csv":
 			contentType = "text/csv"
-			recordEncoder = encoder.NewFlatWriter(csv.NewWriter(w), true, ff...)
+			recordEncoder = encoder.NewFlatWriter(csv.NewWriter(w), true, uf, ff...)
 
 		case "xlsx":
 			contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-			recordEncoder = encoder.NewExcelizeEncoder(w, true, ff...)
+			recordEncoder = encoder.NewExcelizeEncoder(w, true, uf, ff...)
 
 		default:
 			http.Error(w, "unsupported format ("+r.Ext+")", http.StatusBadRequest)
