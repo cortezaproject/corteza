@@ -169,6 +169,8 @@ func (res *{{ camelCase .ResourceIdent "base" }}) Decode(results map[string][]by
 			}
 		}
 	}
+	{{ else }}
+	// Do not decode {{ $prop.Name }}; marked as immutable
 	{{ end -}}
 	{{ end -}}
 

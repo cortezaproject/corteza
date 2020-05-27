@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	templateFile = "codegen/v2/events/*.go.tpl"
+	templateFiles = "codegen/v2/events/*.tpl"
 )
 
 type (
@@ -43,6 +43,7 @@ type (
 		Command string
 		YAML    string
 
+		Service string
 		Package string
 
 		// List of imports
@@ -58,20 +59,26 @@ type (
 	}
 )
 
+// Use for generating .go and .adoc files from yaml
+//
+// To generate .go files, run for each service:
+//   ./event-gen --service messaging
+//
+// To generate .adoc files, run for each service + add path to docs
+////   ./event-gen --service system --docs ../corteza-docs/src/extdev/development/events/
 func main() {
-
 	tpl := template.New("").Funcs(map[string]interface{}{
 		"camelCase":  internal.CamelCase,
 		"makeEvents": makeEvents,
 	})
 
-	tpl = template.Must(tpl.ParseGlob(templateFile))
+	tpl = template.Must(tpl.ParseGlob(templateFiles))
 
 	var (
 		definitionsPathStr string
 		serviceStr         string
+		docsPathStr        string
 		overwrite          bool
-		// outputFile         string
 
 		decoder *yaml.Decoder
 
@@ -88,8 +95,9 @@ func main() {
 	)
 
 	flag.StringVar(&definitionsPathStr, "definitions", "", "Location of event definitions file (generated from service if omitted) and output dir")
-	flag.StringVar(&serviceStr, "service", "", "Comma separated list of imports")
+	flag.StringVar(&serviceStr, "service", "", "Service name (system, compose, messaging)")
 	flag.BoolVar(&overwrite, "overwrite", false, "Overwrite all files")
+	flag.StringVar(&docsPathStr, "docs", "", "Path to docs (generates .adoc files with documentation)")
 
 	flag.Parse()
 
@@ -110,6 +118,7 @@ func main() {
 	tplData.Command = "go run ./codegen/v2/events --service " + serviceStr
 	tplData.YAML = definitionsPathStr + yamlDefFileName
 	tplData.Package = "event"
+	tplData.Service = serviceStr
 
 	defs := eventDefMap{}
 	cli.HandleError(decoder.Decode(&defs))
@@ -174,17 +183,27 @@ func main() {
 
 		tplData.Events = evDef
 
-		var (
-			usrOutput = fmt.Sprintf("%s%s.go", definitionsPathStr, fname)
-			genOutput = fmt.Sprintf("%s/%s.gen.go", definitionsPathStr, fname)
-		)
+		switch true {
+		case len(docsPathStr) > 0:
+			var (
+				docOutput = fmt.Sprintf("%s/%s/%s.gen.adoc", docsPathStr, serviceStr, fname)
+			)
 
-		_, err := os.Stat(usrOutput)
-		if overwrite || os.IsNotExist(err) {
-			internal.WriteTo(tpl, tplData, "events.go.tpl", usrOutput)
+			internal.WritePlainTo(tpl, tplData, "events.gen.adoc.tpl", docOutput)
+		default:
+			var (
+				usrOutput = fmt.Sprintf("%s%s.go", definitionsPathStr, fname)
+				genOutput = fmt.Sprintf("%s/%s.gen.go", definitionsPathStr, fname)
+			)
+
+			_, err := os.Stat(usrOutput)
+			if overwrite || os.IsNotExist(err) {
+				internal.WriteFormattedTo(tpl, tplData, "events.go.tpl", usrOutput)
+			}
+
+			internal.WriteFormattedTo(tpl, tplData, "events.gen.go.tpl", genOutput)
 		}
 
-		internal.WriteTo(tpl, tplData, "events.gen.go.tpl", genOutput)
 	}
 }
 

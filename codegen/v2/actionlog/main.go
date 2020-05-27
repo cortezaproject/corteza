@@ -267,7 +267,7 @@ func procDef(path, output string) {
 		checkPlaceholders(e.Error, "log", e.Log)
 	}
 
-	internal.WriteTo(tpl, tplData, "actions.gen.go.tpl", output)
+	internal.WriteFormattedTo(tpl, tplData, "actions.gen.go.tpl", output)
 }
 
 func (a actionDef) SeverityConstName() string {
