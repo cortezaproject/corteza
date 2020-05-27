@@ -9,11 +9,8 @@ import (
 // Will perform OpenID connect auto-configuration
 func Sink() *cobra.Command {
 	var (
-		expires     string
-		origin      string
-		contentType string
-		method      string
-		maxBodySize int64
+		expires string
+		srup    = service.SinkRequestUrlParams{}
 	)
 
 	cmd := &cobra.Command{
@@ -25,15 +22,6 @@ func Sink() *cobra.Command {
 		Use:   "signature",
 		Short: "Creates signature for sink HTTP endpoint",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var (
-				srup = service.SinkRequestUrlParams{
-					Method:      method,
-					Origin:      origin,
-					ContentType: contentType,
-					MaxBodySize: maxBodySize,
-				}
-			)
-
 			if expires != "" {
 				// validate expiration date if set
 				if exp, err := time.Parse("2006-01-02", expires); err != nil {
@@ -56,13 +44,13 @@ func Sink() *cobra.Command {
 	}
 
 	signatureCmd.Flags().StringVar(
-		&origin,
+		&srup.Origin,
 		"origin",
 		"",
 		"Origin of the request (arbitrary string, optional)")
 
 	signatureCmd.Flags().StringVar(
-		&contentType,
+		&srup.ContentType,
 		"content-type",
 		"",
 		"Content type (optional)")
@@ -74,16 +62,22 @@ func Sink() *cobra.Command {
 		"Date of expiration (YYYY-MM-DD, optional)")
 
 	signatureCmd.Flags().StringVar(
-		&method,
+		&srup.Method,
 		"method",
 		"GET",
-		"HTTP method that will be used")
+		"HTTP method that will be used (optional)")
 
 	signatureCmd.Flags().Int64Var(
-		&maxBodySize,
+		&srup.MaxBodySize,
 		"max-body-size",
 		0,
 		"Max allowed body size")
+
+	signatureCmd.Flags().BoolVar(
+		&srup.SignatureInPath,
+		"signature-in-path",
+		false,
+		"Include signature in a path instead of query string")
 
 	cmd.AddCommand(
 		signatureCmd,
