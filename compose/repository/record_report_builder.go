@@ -150,7 +150,11 @@ func (b *recordReportBuilder) Build(metrics, dimensions, filters string) (sql st
 			return
 		}
 
-		b.report = b.report.Where(filter)
+		// We need to wrap this one level deeper, since additional filters should
+		// be evaluated as a whole.
+		// For example A AND B OR C =should be> (A AND B OR C)
+		// so the output becomes BASE AND (ADDITIONAL)
+		b.report = b.report.Where(ql.ASTNodes{filter})
 	}
 
 	return b.report.ToSql()

@@ -24,7 +24,7 @@ func TestRecordReportBuilder2(t *testing.T) {
 		"FROM compose_record AS r " +
 		"LEFT JOIN compose_record_value AS rv_single1 ON (rv_single1.record_id = r.id AND rv_single1.name = ? AND rv_single1.deleted_at IS NULL) " +
 		"LEFT JOIN compose_record_value AS rv_ref1 ON (rv_ref1.record_id = r.id AND rv_ref1.name = ? AND rv_ref1.deleted_at IS NULL) " +
-		"WHERE r.deleted_at IS NULL AND r.module_id = ? AND rv_ref1.value = 2 " +
+		"WHERE r.deleted_at IS NULL AND r.module_id = ? AND (rv_ref1.value = 2) " +
 		"GROUP BY dimension_0 " +
 		"ORDER BY dimension_0"
 
