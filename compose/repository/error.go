@@ -15,3 +15,7 @@ func (e repositoryError) Error() string {
 func (e repositoryError) String() string {
 	return "compose.repository." + string(e)
 }
+
+func (e repositoryError) Eq(err error) bool {
+	return err != nil && e.Error() == err.Error()
+}
