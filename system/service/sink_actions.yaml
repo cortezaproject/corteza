@@ -79,6 +79,14 @@ errors:
     message: "invalid content-type header"
     httpStatus: StatusUnauthorized
 
+  - error: invalidPath
+    message: "invalid path"
+    httpStatus: StatusUnauthorized
+
+  - error: misplacedSignature
+    message: "signature misplaced"
+    httpStatus: StatusBadRequest
+
   - error: signatureExpired
     message: "signature expired"
     httpStatus: StatusGone

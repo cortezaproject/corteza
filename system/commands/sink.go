@@ -31,12 +31,41 @@ func Sink() *cobra.Command {
 				}
 			}
 
-			cmd.Printf("%+v\n", srup)
-
-			if su, err := service.DefaultSink.SignURL(srup); err != nil {
+			if su, srup, err := service.DefaultSink.SignURL(srup); err != nil {
 				return err
 			} else {
 				cmd.Println(su)
+
+				cmd.Println("Sink request constraints:")
+				if srup.SignatureInPath {
+					cmd.Println(" - signature should be part of path")
+				} else {
+					cmd.Println(" - signature should be part of query-string")
+				}
+
+				if srup.Method != "" {
+					cmd.Printf(" - expecting request method %q\n", srup.Method)
+
+				}
+				if srup.Expires != nil {
+					cmd.Printf(" - signature expires at: %s\n", srup.Expires)
+
+				}
+				if srup.MaxBodySize > 0 {
+					cmd.Printf(" - max request body size is %d Kb\n", srup.MaxBodySize/1024)
+
+				} else {
+					cmd.Println(" - body size is not limited")
+
+				}
+				if srup.ContentType != "" {
+					cmd.Printf(" - expecting content type to be %q\n", srup.ContentType)
+
+				}
+				if srup.Path != "" {
+					cmd.Printf(" - valid path under /sink: %q\n", srup.Path)
+
+				}
 			}
 
 			return nil
@@ -56,6 +85,12 @@ func Sink() *cobra.Command {
 		"Content type (optional)")
 
 	signatureCmd.Flags().StringVar(
+		&srup.Path,
+		"path",
+		"",
+		"Full sink request path (do not include /sink prefix, add / for just root)")
+
+	signatureCmd.Flags().StringVar(
 		&expires,
 		"expires",
 		"",
@@ -64,7 +99,7 @@ func Sink() *cobra.Command {
 	signatureCmd.Flags().StringVar(
 		&srup.Method,
 		"method",
-		"GET",
+		"",
 		"HTTP method that will be used (optional)")
 
 	signatureCmd.Flags().Int64Var(

@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
+
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
@@ -42,9 +44,11 @@ type (
 		// Acceptable content type
 		ContentType string `json:"ct,omitempty"`
 
+		Path string `json:"pt,omitempty"`
+
 		// Should we put signature in the path (true)
 		// or in query string (false, default)
-		SignatureInPath bool `json:"-"`
+		SignatureInPath bool `json:"sip,omitempty"`
 	}
 
 	sinkEventDispatcher interface {
@@ -55,7 +59,14 @@ type (
 const (
 	SinkContentTypeMail = "message/rfc822"
 
-	SinkSignUrlParamName      = "__sign"
+	// base url
+	// we're using this for router, signature...
+	SinkBaseURL = "/sink"
+
+	// name of the parameter used for sink request signature
+	SinkSignUrlParamName = "__sign"
+
+	// delimiter between signature and payload
 	SinkSignUrlParamDelimiter = "_"
 )
 
@@ -72,27 +83,28 @@ func Sink() *sink {
 //
 // With signed URL, external systems can make requests to sink subsystem
 // and trigger scripts
-func (svc sink) SignURL(surp SinkRequestUrlParams) (signedURL *url.URL, err error) {
+func (svc sink) SignURL(srup SinkRequestUrlParams) (signedURL *url.URL, out SinkRequestUrlParams, err error) {
 	var (
 		params []byte
-		sap    = &sinkActionProps{sinkParams: &surp}
-
-		path = svc.GetPath()
-		qs   = url.Values{}
+		sap    = &sinkActionProps{sinkParams: &srup}
+		qs     = url.Values{}
 	)
 
 	err = func() error {
+		// Append normalized path to the base URL
+		srup.Path = svc.pathCleanup(srup.Path)
+		path := svc.GetPath() + srup.Path
 
-		params, err = json.Marshal(surp)
+		srup.Method = strings.ToUpper(srup.Method)
+
+		params, err = json.Marshal(srup)
 		if err != nil {
 			return SinkErrFailedToSign(sap).Wrap(err)
 		}
 
-		surp.Method = strings.ToUpper(surp.Method)
-
 		signature := svc.signer.Sign(0, params) + SinkSignUrlParamDelimiter + base64.StdEncoding.EncodeToString(params)
 
-		if surp.SignatureInPath {
+		if srup.SignatureInPath {
 			// Optional, use path for sink signature
 			path = fmt.Sprintf("%s/%s=%s", path, SinkSignUrlParamName, signature)
 		} else {
@@ -104,7 +116,7 @@ func (svc sink) SignURL(surp SinkRequestUrlParams) (signedURL *url.URL, err erro
 		return nil
 	}()
 
-	return signedURL, svc.recordAction(context.Background(), sap, SinkActionSign, err)
+	return signedURL, srup, svc.recordAction(context.Background(), sap, SinkActionSign, err)
 }
 
 func (svc sink) GetPath() string {
@@ -114,7 +126,20 @@ func (svc sink) GetPath() string {
 		path = "/system"
 	}
 
-	return path + "/sink"
+	return path + SinkBaseURL
+}
+
+// pathCleanup removes base URL prefix and adds leading slash
+func (svc sink) pathCleanup(p string) string {
+	if len(p) > 0 {
+		if strings.HasPrefix(p, SinkBaseURL) {
+			p = p[len(SinkBaseURL):]
+		}
+
+		return "/" + strings.TrimLeft(p, "/")
+	}
+
+	return ""
 }
 
 // ProcessRequest function is used directly in the HTTP controller
@@ -161,6 +186,8 @@ func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, error) {
 		sap  = &sinkActionProps{}
 		qs   = r.URL.Query()
 
+		signatureFoundInPath bool
+
 		param string
 	)
 
@@ -174,7 +201,7 @@ func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, error) {
 		param = r.URL.Path[i+len(SinkSignUrlParamName)+1:]
 
 		// this is more for consistency and cleaner tests
-		srup.SignatureInPath = true
+		signatureFoundInPath = true
 	}
 
 	if len(param) == 0 {
@@ -203,6 +230,11 @@ func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, error) {
 
 	sap.setSinkParams(srup)
 
+	if srup.SignatureInPath != signatureFoundInPath {
+		spew.Dump(srup, r.URL, signatureFoundInPath)
+		return nil, SinkErrMisplacedSignature(sap)
+	}
+
 	if srup.Method != "" && srup.Method != r.Method {
 		return nil, SinkErrInvalidHttpMethod(sap)
 	}
@@ -215,6 +247,12 @@ func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, error) {
 	if srup.ContentType != "" {
 		if strings.ToLower(srup.ContentType) != contentType {
 			return nil, SinkErrInvalidContentType(sap)
+		}
+	}
+
+	if srup.Path != "" {
+		if srup.Path != svc.pathCleanup(r.URL.Path) {
+			return nil, SinkErrInvalidPath(sap)
 		}
 	}
 
@@ -277,13 +315,17 @@ func (svc *sink) process(contentType string, w http.ResponseWriter, r *http.Requ
 			}
 		)
 
-		// Sanitize URL by removing sink sign url param
+		// Sanitize URL
 		sanitizedURL := r.URL
+
+		// Step 1: removing sink sign url param
 		sanitizedQuery := r.URL.Query()
 		sanitizedQuery.Del(SinkSignUrlParamName)
 		sanitizedURL.RawQuery = sanitizedQuery.Encode()
-		if strings.HasPrefix(sanitizedURL.Path, svc.GetPath()) {
-			sanitizedURL.Path = sanitizedURL.Path[len(svc.GetPath()):]
+
+		// Step 2: remove prefix
+		if i := strings.Index(sanitizedURL.Path, SinkBaseURL); i > -1 {
+			sanitizedURL.Path = sanitizedURL.Path[i+len(SinkBaseURL):]
 		}
 
 		r.URL = sanitizedURL

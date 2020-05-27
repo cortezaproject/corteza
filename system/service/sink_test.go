@@ -35,7 +35,7 @@ func Test_sink_SignURL(t *testing.T) {
 				wantSignedURL: "/sink?__sign=d8a8c5591acb0f5f6695ab6aa4a205a7066b3bf4_eyJtdGQiOiJQT1NUIiwib3JpZ2luIjoidGVzdCIsIm1icyI6MTAyNCwiY3QiOiJwbGFpbi90ZXh0In0%3D",
 			},
 			{
-				name: "basic",
+				name: "signature in a path",
 				surp: SinkRequestUrlParams{
 					Method:          "POST",
 					Origin:          "test",
@@ -44,7 +44,14 @@ func Test_sink_SignURL(t *testing.T) {
 					ContentType:     "plain/text",
 					SignatureInPath: true,
 				},
-				wantSignedURL: "/sink/__sign=d8a8c5591acb0f5f6695ab6aa4a205a7066b3bf4_eyJtdGQiOiJQT1NUIiwib3JpZ2luIjoidGVzdCIsIm1icyI6MTAyNCwiY3QiOiJwbGFpbi90ZXh0In0=",
+				wantSignedURL: "/sink/__sign=a4a5652c66159ed0142c01a9aa5d90b3e9f76241_eyJtdGQiOiJQT1NUIiwib3JpZ2luIjoidGVzdCIsIm1icyI6MTAyNCwiY3QiOiJwbGFpbi90ZXh0Iiwic2lwIjp0cnVlfQ==",
+			},
+			{
+				name: "required path",
+				surp: SinkRequestUrlParams{
+					Path: "/foo/bar",
+				},
+				wantSignedURL: "/sink/foo/bar?__sign=910436a3944ad1ee010db07b936209f198be481d_eyJwdCI6Ii9mb28vYmFyIn0%3D",
 			},
 		}
 	)
@@ -55,7 +62,7 @@ func Test_sink_SignURL(t *testing.T) {
 				signer: signer,
 			}
 
-			gotSignedURL, err := svc.SignURL(tt.surp)
+			gotSignedURL, _, err := svc.SignURL(tt.surp)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SignURL() \n"+
 					"  error: %v, \n"+
@@ -83,16 +90,19 @@ func Test_sink_handleRequest(t *testing.T) {
 			MaxBodySize: 1024,
 			ContentType: "plain/text",
 		}
-		signedUrl, _ = svc.SignURL(signParams)
+		signedUrl, _, _ = svc.SignURL(signParams)
 
-		signParamsNoPref   = SinkRequestUrlParams{}
-		signedUrlNoPref, _ = svc.SignURL(signParamsNoPref)
+		signParamsNoPref      = SinkRequestUrlParams{}
+		signedUrlNoPref, _, _ = svc.SignURL(signParamsNoPref)
 
-		signParamsExp   = SinkRequestUrlParams{Expires: &time.Time{}}
-		signedUrlExp, _ = svc.SignURL(signParamsExp)
+		signParamsExp      = SinkRequestUrlParams{Expires: &time.Time{}}
+		signedUrlExp, _, _ = svc.SignURL(signParamsExp)
 
-		signParamsPath   = SinkRequestUrlParams{SignatureInPath: true}
-		signedUrlPath, _ = svc.SignURL(signParamsPath)
+		signParamsInPath      = SinkRequestUrlParams{SignatureInPath: true}
+		signedUrlInPath, _, _ = svc.SignURL(signParamsInPath)
+
+		signParamsFixedPath      = SinkRequestUrlParams{Path: "/foo/bar"}
+		signedUrlFixedPath, _, _ = svc.SignURL(signParamsFixedPath)
 	)
 
 	var (
@@ -169,15 +179,23 @@ func Test_sink_handleRequest(t *testing.T) {
 			},
 			{
 				name:       "signature in a path",
-				withMethod: "POST",
-				withURL:    signedUrlPath.String(),
-				wantParams: &signParamsPath,
+				withURL:    signedUrlInPath.String(),
+				wantParams: &signParamsInPath,
+			},
+			{
+				name:       "signed fixed path",
+				withURL:    signedUrlFixedPath.String(),
+				wantParams: &signParamsFixedPath,
 			},
 		}
 	)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.withMethod == "" {
+				tt.withMethod = "GET"
+			}
+
 			req, err := http.NewRequest(tt.withMethod, tt.withURL, tt.withBody)
 			if err != nil {
 				panic(err)
@@ -191,11 +209,15 @@ func Test_sink_handleRequest(t *testing.T) {
 
 			got, err := svc.handleRequest(req)
 			if !errors.Is(err, tt.wantErr) {
-				t.Errorf("handleRequest() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("handleRequest()\n"+
+					"  error: %v\n"+
+					"wantErr: %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.wantParams) {
-				t.Errorf("handleRequest() params = %v, want %v", got, tt.wantParams)
+				t.Errorf("handleRequest()\n"+
+					"params: %v\n"+
+					"  want: %v", got, tt.wantParams)
 			}
 		})
 	}
