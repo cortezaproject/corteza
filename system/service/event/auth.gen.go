@@ -6,7 +6,7 @@ package event
 //   system/service/event/events.yaml
 //
 // Regenerate with:
-//   go run codegen/v2/events.go --service system
+//   go run ./codegen/v2/events --service system
 //
 
 import (

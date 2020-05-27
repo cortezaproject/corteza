@@ -6,7 +6,7 @@ package event
 //   system/service/event/events.yaml
 //
 // Regenerate with:
-//   go run codegen/v2/events.go --service system
+//   go run ./codegen/v2/events --service system
 //
 
 import (
@@ -447,6 +447,8 @@ func (res *roleBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+
+	// Do not decode oldRole; marked as immutable
 
 	if res.invoker != nil {
 		if r, ok := results["invoker"]; ok {
