@@ -12,14 +12,16 @@ type (
 		f   *excelize.File
 		w   io.Writer
 		ff  []field
+		u   userFinder
 	}
 )
 
-func NewExcelizeEncoder(w io.Writer, header bool, ff ...field) *excelizeEncoder {
+func NewExcelizeEncoder(w io.Writer, header bool, u userFinder, ff ...field) *excelizeEncoder {
 	enc := &excelizeEncoder{
 		f:  excelize.NewFile(),
 		w:  w,
 		ff: ff,
+		u:  u,
 	}
 
 	if header {
