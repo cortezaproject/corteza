@@ -34,6 +34,18 @@ func Test_sink_SignURL(t *testing.T) {
 				},
 				wantSignedURL: "/sink?__sign=d8a8c5591acb0f5f6695ab6aa4a205a7066b3bf4_eyJtdGQiOiJQT1NUIiwib3JpZ2luIjoidGVzdCIsIm1icyI6MTAyNCwiY3QiOiJwbGFpbi90ZXh0In0%3D",
 			},
+			{
+				name: "basic",
+				surp: SinkRequestUrlParams{
+					Method:          "POST",
+					Origin:          "test",
+					Expires:         nil,
+					MaxBodySize:     1024,
+					ContentType:     "plain/text",
+					SignatureInPath: true,
+				},
+				wantSignedURL: "/sink/__sign=d8a8c5591acb0f5f6695ab6aa4a205a7066b3bf4_eyJtdGQiOiJQT1NUIiwib3JpZ2luIjoidGVzdCIsIm1icyI6MTAyNCwiY3QiOiJwbGFpbi90ZXh0In0=",
+			},
 		}
 	)
 
@@ -45,11 +57,15 @@ func Test_sink_SignURL(t *testing.T) {
 
 			gotSignedURL, err := svc.SignURL(tt.surp)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SignURL() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("SignURL() \n"+
+					"  error: %v, \n"+
+					"wantErr: %v", err, tt.wantErr)
 				return
 			}
 			if gotSignedURL.String() != tt.wantSignedURL {
-				t.Errorf("SignURL() gotSignedURL = %v, want %v", gotSignedURL, tt.wantSignedURL)
+				t.Errorf("SignURL() \n"+
+					"gotSignedURL: %v\n"+
+					"        want: %v", gotSignedURL, tt.wantSignedURL)
 			}
 		})
 	}
@@ -74,6 +90,9 @@ func Test_sink_handleRequest(t *testing.T) {
 
 		signParamsExp   = SinkRequestUrlParams{Expires: &time.Time{}}
 		signedUrlExp, _ = svc.SignURL(signParamsExp)
+
+		signParamsPath   = SinkRequestUrlParams{SignatureInPath: true}
+		signedUrlPath, _ = svc.SignURL(signParamsPath)
 	)
 
 	var (
@@ -147,6 +166,12 @@ func Test_sink_handleRequest(t *testing.T) {
 				withBody:   bytes.NewBufferString(strings.Repeat(".", 1025)),
 				withURL:    signedUrl.String(),
 				wantErr:    SinkErrContentLengthExceedsMaxAllowedSize(),
+			},
+			{
+				name:       "signature in a path",
+				withMethod: "POST",
+				withURL:    signedUrlPath.String(),
+				wantParams: &signParamsPath,
 			},
 		}
 	)
