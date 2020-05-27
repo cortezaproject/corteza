@@ -22,7 +22,18 @@ func fmtUint64(u uint64) string {
 	return strconv.FormatUint(u, 10)
 }
 
-func (enc flatWriter) Record(r *types.Record) error {
+func fmtSysUser(u uint64, finder userFinder) (string, error) {
+	if u <= 0 || finder == nil {
+		return fmtUint64(u), nil
+	}
+	su, err := finder(u)
+	if err != nil {
+		return "", err
+	}
+	return su.Name, nil
+}
+
+func (enc flatWriter) Record(r *types.Record) (err error) {
 	var out = make([]string, len(enc.ff))
 
 	for f, field := range enc.ff {
@@ -34,17 +45,29 @@ func (enc flatWriter) Record(r *types.Record) error {
 		case "namespaceID":
 			out[f] = fmtUint64(r.NamespaceID)
 		case "ownedBy":
-			out[f] = fmtUint64(r.OwnedBy)
+			out[f], err = fmtSysUser(r.OwnedBy, enc.u)
+			if err != nil {
+				return err
+			}
 		case "createdBy":
-			out[f] = fmtUint64(r.CreatedBy)
+			out[f], err = fmtSysUser(r.CreatedBy, enc.u)
+			if err != nil {
+				return err
+			}
 		case "createdAt":
 			out[f] = fmtTime(&r.CreatedAt)
 		case "updatedBy":
-			out[f] = fmtUint64(r.UpdatedBy)
+			out[f], err = fmtSysUser(r.UpdatedBy, enc.u)
+			if err != nil {
+				return err
+			}
 		case "updatedAt":
 			out[f] = fmtTime(r.UpdatedAt)
 		case "deletedBy":
-			out[f] = fmtUint64(r.DeletedBy)
+			out[f], err = fmtSysUser(r.DeletedBy, enc.u)
+			if err != nil {
+				return err
+			}
 		case "deletedAt":
 			out[f] = fmtTime(r.DeletedAt)
 		default:
