@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"errors"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	actionlogRepository "github.com/cortezaproject/corteza-server/pkg/actionlog/repository"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"time"
 
@@ -43,6 +45,8 @@ var (
 
 	DefaultLogger *zap.Logger
 
+	DefaultActionlog actionlog.Recorder
+
 	DefaultSettings settings.Service
 
 	// DefaultPermissions Retrieves & stores permissions
@@ -72,6 +76,13 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	var db = repository.DB(ctx)
 
 	DefaultLogger = log.Named("service")
+
+	DefaultActionlog = actionlog.NewService(
+		// will log directly to system schema for now
+		actionlogRepository.Mysql(repository.DB(ctx), "sys_actionlog"),
+		log,
+		log,
+	)
 
 	if DefaultPermissions == nil {
 		// Do not override permissions service stored under DefaultPermissions
