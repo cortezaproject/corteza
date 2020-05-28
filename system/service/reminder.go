@@ -188,7 +188,7 @@ func (svc reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
 		}
 
 		if r, err = svc.reminder.FindByID(ID); err != nil {
-			return ReminderErrNonexistent()
+			return ReminderErrNotFound()
 		}
 
 		raProps.setReminder(r)
@@ -221,7 +221,7 @@ func (svc reminder) Snooze(ctx context.Context, ID uint64, remindAt *time.Time) 
 		}
 
 		if r, err = svc.reminder.FindByID(ID); err != nil {
-			return ReminderErrNonexistent()
+			return ReminderErrNotFound()
 		}
 
 		raProps.setReminder(r)
@@ -253,7 +253,7 @@ func (svc reminder) Delete(ctx context.Context, ID uint64) (err error) {
 		}
 
 		if r, err = svc.FindByID(ctx, ID); err != nil {
-			return ReminderErrNonexistent()
+			return ReminderErrNotFound()
 		}
 
 		raProps.setReminder(r)

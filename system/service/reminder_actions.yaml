@@ -51,8 +51,8 @@ actions:
     log: "deleted {reminder}"
 
 errors:
-  - error: nonexistent
-    message: "reminder does not exist"
+  - error: notFound
+    message: "reminder not found"
     severity: warning
 
   - error: invalidID

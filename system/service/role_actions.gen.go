@@ -741,19 +741,19 @@ func RoleErrGeneric(props ...*roleActionProps) *roleError {
 
 }
 
-// RoleErrNonexistent returns "system:role.nonexistent" audit event as actionlog.Warning
+// RoleErrNotFOund returns "system:role.notFOund" audit event as actionlog.Warning
 //
 //
 // This function is auto-generated.
 //
-func RoleErrNonexistent(props ...*roleActionProps) *roleError {
+func RoleErrNotFOund(props ...*roleActionProps) *roleError {
 	var e = &roleError{
 		timestamp: time.Now(),
 		resource:  "system:role",
-		error:     "nonexistent",
+		error:     "notFOund",
 		action:    "error",
-		message:   "role does not exist",
-		log:       "role does not exist",
+		message:   "role not found",
+		log:       "role not found",
 		severity:  actionlog.Warning,
 		props: func() *roleActionProps {
 			if len(props) > 0 {
@@ -842,7 +842,7 @@ func RoleErrNotAllowedToRead(props ...*roleActionProps) *roleError {
 		resource:  "system:role",
 		error:     "notAllowedToRead",
 		action:    "error",
-		message:   "not allowed to read role",
+		message:   "not allowed to read this role",
 		log:       "failed to read {role.handle}; insufficient permissions",
 		severity:  actionlog.Alert,
 		props: func() *roleActionProps {
@@ -902,7 +902,7 @@ func RoleErrNotAllowedToCreate(props ...*roleActionProps) *roleError {
 		resource:  "system:role",
 		error:     "notAllowedToCreate",
 		action:    "error",
-		message:   "not allowed to create role",
+		message:   "not allowed to create roles",
 		log:       "failed to create role; insufficient permissions",
 		severity:  actionlog.Alert,
 		props: func() *roleActionProps {
@@ -932,7 +932,7 @@ func RoleErrNotAllowedToUpdate(props ...*roleActionProps) *roleError {
 		resource:  "system:role",
 		error:     "notAllowedToUpdate",
 		action:    "error",
-		message:   "not allowed to update role",
+		message:   "not allowed to update this role",
 		log:       "failed to update {role.handle}; insufficient permissions",
 		severity:  actionlog.Alert,
 		props: func() *roleActionProps {
@@ -962,7 +962,7 @@ func RoleErrNotAllowedToDelete(props ...*roleActionProps) *roleError {
 		resource:  "system:role",
 		error:     "notAllowedToDelete",
 		action:    "error",
-		message:   "not allowed to delete role",
+		message:   "not allowed to delete this role",
 		log:       "failed to delete {role.handle}; insufficient permissions",
 		severity:  actionlog.Alert,
 		props: func() *roleActionProps {
@@ -992,7 +992,7 @@ func RoleErrNotAllowedToUndelete(props ...*roleActionProps) *roleError {
 		resource:  "system:role",
 		error:     "notAllowedToUndelete",
 		action:    "error",
-		message:   "not allowed to undelete role",
+		message:   "not allowed to undelete this role",
 		log:       "failed to undelete {role.handle}; insufficient permissions",
 		severity:  actionlog.Alert,
 		props: func() *roleActionProps {
@@ -1022,7 +1022,7 @@ func RoleErrNotAllowedToArchive(props ...*roleActionProps) *roleError {
 		resource:  "system:role",
 		error:     "notAllowedToArchive",
 		action:    "error",
-		message:   "not allowed to archive role",
+		message:   "not allowed to archive this role",
 		log:       "failed to archive {role.handle}; insufficient permissions",
 		severity:  actionlog.Alert,
 		props: func() *roleActionProps {
@@ -1052,7 +1052,7 @@ func RoleErrNotAllowedToUnarchive(props ...*roleActionProps) *roleError {
 		resource:  "system:role",
 		error:     "notAllowedToUnarchive",
 		action:    "error",
-		message:   "not allowed to unarchive role",
+		message:   "not allowed to unarchive this role",
 		log:       "failed to unarchive {role.handle}; insufficient permissions",
 		severity:  actionlog.Alert,
 		props: func() *roleActionProps {

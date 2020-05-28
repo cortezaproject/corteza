@@ -639,19 +639,19 @@ func UserErrGeneric(props ...*userActionProps) *userError {
 
 }
 
-// UserErrNonexistent returns "system:user.nonexistent" audit event as actionlog.Warning
+// UserErrNotFound returns "system:user.notFound" audit event as actionlog.Warning
 //
 //
 // This function is auto-generated.
 //
-func UserErrNonexistent(props ...*userActionProps) *userError {
+func UserErrNotFound(props ...*userActionProps) *userError {
 	var e = &userError{
 		timestamp: time.Now(),
 		resource:  "system:user",
-		error:     "nonexistent",
+		error:     "notFound",
 		action:    "error",
-		message:   "user does not exist",
-		log:       "user does not exist",
+		message:   "user not found",
+		log:       "user not found",
 		severity:  actionlog.Warning,
 		props: func() *userActionProps {
 			if len(props) > 0 {
@@ -770,7 +770,7 @@ func UserErrNotAllowedToRead(props ...*userActionProps) *userError {
 		resource:  "system:user",
 		error:     "notAllowedToRead",
 		action:    "error",
-		message:   "not allowed to read user",
+		message:   "not allowed to read this user",
 		log:       "failed to read {user.handle}; insufficient permissions",
 		severity:  actionlog.Alert,
 		props: func() *userActionProps {
@@ -830,8 +830,8 @@ func UserErrNotAllowedToCreate(props ...*userActionProps) *userError {
 		resource:  "system:user",
 		error:     "notAllowedToCreate",
 		action:    "error",
-		message:   "not allowed to create user",
-		log:       "failed to create user; insufficient permissions",
+		message:   "not allowed to create users",
+		log:       "failed to create users; insufficient permissions",
 		severity:  actionlog.Alert,
 		props: func() *userActionProps {
 			if len(props) > 0 {
@@ -860,7 +860,7 @@ func UserErrNotAllowedToUpdate(props ...*userActionProps) *userError {
 		resource:  "system:user",
 		error:     "notAllowedToUpdate",
 		action:    "error",
-		message:   "not allowed to update user",
+		message:   "not allowed to update this user",
 		log:       "failed to update {user.handle}; insufficient permissions",
 		severity:  actionlog.Alert,
 		props: func() *userActionProps {
@@ -890,7 +890,7 @@ func UserErrNotAllowedToDelete(props ...*userActionProps) *userError {
 		resource:  "system:user",
 		error:     "notAllowedToDelete",
 		action:    "error",
-		message:   "not allowed to delete user",
+		message:   "not allowed to delete this user",
 		log:       "failed to delete {user.handle}; insufficient permissions",
 		severity:  actionlog.Alert,
 		props: func() *userActionProps {
@@ -920,7 +920,7 @@ func UserErrNotAllowedToUndelete(props ...*userActionProps) *userError {
 		resource:  "system:user",
 		error:     "notAllowedToUndelete",
 		action:    "error",
-		message:   "not allowed to undelete user",
+		message:   "not allowed to undelete this user",
 		log:       "failed to undelete {user.handle}; insufficient permissions",
 		severity:  actionlog.Alert,
 		props: func() *userActionProps {
@@ -950,7 +950,7 @@ func UserErrNotAllowedToSuspend(props ...*userActionProps) *userError {
 		resource:  "system:user",
 		error:     "notAllowedToSuspend",
 		action:    "error",
-		message:   "not allowed to suspend user",
+		message:   "not allowed to suspend this user",
 		log:       "failed to suspend {user.handle}; insufficient permissions",
 		severity:  actionlog.Alert,
 		props: func() *userActionProps {
@@ -980,7 +980,7 @@ func UserErrNotAllowedToUnsuspend(props ...*userActionProps) *userError {
 		resource:  "system:user",
 		error:     "notAllowedToUnsuspend",
 		action:    "error",
-		message:   "not allowed to unsuspend user",
+		message:   "not allowed to unsuspend this user",
 		log:       "failed to unsuspend {user.handle}; insufficient permissions",
 		severity:  actionlog.Alert,
 		props: func() *userActionProps {

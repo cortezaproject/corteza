@@ -60,8 +60,8 @@ actions:
     log: "password changed for {user}"
 
 errors:
-  - error: nonexistent
-    message: "user does not exist"
+  - error: notFound
+    message: "user not found"
     severity: warning
 
   - error: invalidID
@@ -78,7 +78,7 @@ errors:
 
 
   - error: notAllowedToRead
-    message: "not allowed to read user"
+    message: "not allowed to read this user"
     log: "failed to read {user.handle}; insufficient permissions"
 
   - error: notAllowedToListUsers
@@ -86,27 +86,27 @@ errors:
     log: "failed to list user; insufficient permissions"
 
   - error: notAllowedToCreate
-    message: "not allowed to create user"
-    log: "failed to create user; insufficient permissions"
+    message: "not allowed to create users"
+    log: "failed to create users; insufficient permissions"
 
   - error: notAllowedToUpdate
-    message: "not allowed to update user"
+    message: "not allowed to update this user"
     log: "failed to update {user.handle}; insufficient permissions"
 
   - error: notAllowedToDelete
-    message: "not allowed to delete user"
+    message: "not allowed to delete this user"
     log: "failed to delete {user.handle}; insufficient permissions"
 
   - error: notAllowedToUndelete
-    message: "not allowed to undelete user"
+    message: "not allowed to undelete this user"
     log: "failed to undelete {user.handle}; insufficient permissions"
 
   - error: notAllowedToSuspend
-    message: "not allowed to suspend user"
+    message: "not allowed to suspend this user"
     log: "failed to suspend {user.handle}; insufficient permissions"
 
   - error: notAllowedToUnsuspend
-    message: "not allowed to unsuspend user"
+    message: "not allowed to unsuspend this user"
     log: "failed to unsuspend {user.handle}; insufficient permissions"
 
   - error: handleNotUnique

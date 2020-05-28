@@ -557,19 +557,19 @@ func ReminderErrGeneric(props ...*reminderActionProps) *reminderError {
 
 }
 
-// ReminderErrNonexistent returns "system:reminder.nonexistent" audit event as actionlog.Warning
+// ReminderErrNotFound returns "system:reminder.notFound" audit event as actionlog.Warning
 //
 //
 // This function is auto-generated.
 //
-func ReminderErrNonexistent(props ...*reminderActionProps) *reminderError {
+func ReminderErrNotFound(props ...*reminderActionProps) *reminderError {
 	var e = &reminderError{
 		timestamp: time.Now(),
 		resource:  "system:reminder",
-		error:     "nonexistent",
+		error:     "notFound",
 		action:    "error",
-		message:   "reminder does not exist",
-		log:       "reminder does not exist",
+		message:   "reminder not found",
+		log:       "reminder not found",
 		severity:  actionlog.Warning,
 		props: func() *reminderActionProps {
 			if len(props) > 0 {

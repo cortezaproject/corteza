@@ -498,19 +498,19 @@ func ApplicationErrGeneric(props ...*applicationActionProps) *applicationError {
 
 }
 
-// ApplicationErrNonexistent returns "system:application.nonexistent" audit event as actionlog.Warning
+// ApplicationErrNotFound returns "system:application.notFound" audit event as actionlog.Warning
 //
 //
 // This function is auto-generated.
 //
-func ApplicationErrNonexistent(props ...*applicationActionProps) *applicationError {
+func ApplicationErrNotFound(props ...*applicationActionProps) *applicationError {
 	var e = &applicationError{
 		timestamp: time.Now(),
 		resource:  "system:application",
-		error:     "nonexistent",
+		error:     "notFound",
 		action:    "error",
-		message:   "application does not exist",
-		log:       "application does not exist",
+		message:   "application not found",
+		log:       "application not found",
 		severity:  actionlog.Warning,
 		props: func() *applicationActionProps {
 			if len(props) > 0 {
@@ -569,7 +569,7 @@ func ApplicationErrNotAllowedToRead(props ...*applicationActionProps) *applicati
 		resource:  "system:application",
 		error:     "notAllowedToRead",
 		action:    "error",
-		message:   "not allowed to read application",
+		message:   "not allowed to read this application",
 		log:       "failed to read {application.name}; insufficient permissions",
 		severity:  actionlog.Error,
 		props: func() *applicationActionProps {
@@ -629,7 +629,7 @@ func ApplicationErrNotAllowedToCreate(props ...*applicationActionProps) *applica
 		resource:  "system:application",
 		error:     "notAllowedToCreate",
 		action:    "error",
-		message:   "not allowed to create application",
+		message:   "not allowed to create applications",
 		log:       "failed to create application; insufficient permissions",
 		severity:  actionlog.Error,
 		props: func() *applicationActionProps {
@@ -659,7 +659,7 @@ func ApplicationErrNotAllowedToUpdate(props ...*applicationActionProps) *applica
 		resource:  "system:application",
 		error:     "notAllowedToUpdate",
 		action:    "error",
-		message:   "not allowed to update application",
+		message:   "not allowed to update this application",
 		log:       "failed to update {application.name}; insufficient permissions",
 		severity:  actionlog.Error,
 		props: func() *applicationActionProps {
@@ -689,7 +689,7 @@ func ApplicationErrNotAllowedToDelete(props ...*applicationActionProps) *applica
 		resource:  "system:application",
 		error:     "notAllowedToDelete",
 		action:    "error",
-		message:   "not allowed to delete application",
+		message:   "not allowed to delete this application",
 		log:       "failed to delete {application.name}; insufficient permissions",
 		severity:  actionlog.Error,
 		props: func() *applicationActionProps {
@@ -719,7 +719,7 @@ func ApplicationErrNotAllowedToUndelete(props ...*applicationActionProps) *appli
 		resource:  "system:application",
 		error:     "notAllowedToUndelete",
 		action:    "error",
-		message:   "not allowed to undelete application",
+		message:   "not allowed to undelete this application",
 		log:       "failed to undelete {application.name}; insufficient permissions",
 		severity:  actionlog.Error,
 		props: func() *applicationActionProps {
