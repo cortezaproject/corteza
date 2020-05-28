@@ -19,6 +19,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/store"
@@ -35,19 +36,26 @@ type (
 		ctx    context.Context
 		logger *zap.Logger
 
+		actionlog actionlog.Recorder
+
 		store store.Store
 
 		ac attachmentAccessController
 
-		pageSvc   PageService
-		moduleSvc ModuleService
-		recordSvc RecordService
+		pageRepo      repository.PageRepository
+		moduleRepo    repository.ModuleRepository
+		recordRepo    repository.RecordRepository
+		namespaceRepo repository.NamespaceRepository
 
-		attachment repository.AttachmentRepository
+		attachmentRepo repository.AttachmentRepository
 	}
 
 	attachmentAccessController interface {
+		CanReadNamespace(context.Context, *types.Namespace) bool
+		CanReadModule(context.Context, *types.Module) bool
+		CanReadPage(context.Context, *types.Page) bool
 		CanUpdatePage(context.Context, *types.Page) bool
+		CanReadRecord(context.Context, *types.Module) bool
 		CanUpdateRecord(context.Context, *types.Module) bool
 		CanCreateRecord(context.Context, *types.Module) bool
 	}
@@ -67,29 +75,27 @@ type (
 
 func Attachment(store store.Store) AttachmentService {
 	return (&attachment{
-		logger:    DefaultLogger.Named("attachment"),
-		store:     store,
-		ac:        DefaultAccessControl,
-		pageSvc:   DefaultPage,
-		moduleSvc: DefaultModule,
-		recordSvc: DefaultRecord,
+		store: store,
+		ac:    DefaultAccessControl,
 	}).With(context.Background())
 }
 
 func (svc attachment) With(ctx context.Context) AttachmentService {
 	db := repository.DB(ctx)
 	return &attachment{
-		db:     db,
-		ctx:    ctx,
-		logger: svc.logger,
+		db:  db,
+		ctx: ctx,
 
-		ac:        svc.ac,
-		pageSvc:   svc.pageSvc.With(ctx),
-		moduleSvc: svc.moduleSvc.With(ctx),
-		recordSvc: svc.recordSvc.With(ctx),
-		store:     svc.store,
+		actionlog: DefaultActionlog,
 
-		attachment: repository.Attachment(ctx, db),
+		ac:    svc.ac,
+		store: svc.store,
+
+		attachmentRepo: repository.Attachment(ctx, db),
+		recordRepo:     repository.Record(ctx, db),
+		pageRepo:       repository.Page(ctx, db),
+		moduleRepo:     repository.Module(ctx, db),
+		namespaceRepo:  repository.Namespace(ctx, db),
 	}
 }
 
@@ -98,46 +104,152 @@ func (svc attachment) log(fields ...zapcore.Field) *zap.Logger {
 	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
 }
 
-func (svc attachment) FindByID(namespaceID, attachmentID uint64) (*types.Attachment, error) {
-	if namespaceID == 0 {
-		return nil, ErrNamespaceRequired
-	}
+func (svc attachment) FindByID(namespaceID, attachmentID uint64) (att *types.Attachment, err error) {
+	var (
+		aProps = &attachmentActionProps{}
+	)
 
-	return svc.attachment.FindByID(namespaceID, attachmentID)
+	err = svc.db.Transaction(func() error {
+		if attachmentID == 0 {
+			return AttachmentErrInvalidID()
+		}
+
+		if att, err = svc.attachmentRepo.FindByID(namespaceID, attachmentID); err != nil {
+			return err
+		}
+
+		aProps.setAttachment(att)
+		return nil
+	})
+
+	return att, svc.recordAction(svc.ctx, aProps, AttachmentActionLookup, err)
 }
 
-func (svc attachment) DeleteByID(namespaceID, attachmentID uint64) error {
-	if namespaceID == 0 {
-		return ErrNamespaceRequired
-	}
+func (svc attachment) DeleteByID(namespaceID, attachmentID uint64) (err error) {
+	var (
+		aProps = &attachmentActionProps{attachment: &types.Attachment{ID: attachmentID}}
+	)
 
-	return svc.attachment.DeleteByID(namespaceID, attachmentID)
+	err = svc.db.Transaction(func() (err error) {
+		if attachmentID == 0 {
+			return AttachmentErrInvalidID()
+		}
+
+		if aProps.attachment, err = svc.attachmentRepo.FindByID(namespaceID, attachmentID); err != nil {
+			return err
+		}
+
+		return svc.attachmentRepo.DeleteByID(namespaceID, attachmentID)
+	})
+
+	return svc.recordAction(svc.ctx, aProps, AttachmentActionDelete, err)
 }
 
-func (svc attachment) Find(filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error) {
-	if filter.NamespaceID == 0 {
-		return nil, filter, ErrNamespaceRequired
-	}
+func (svc attachment) Find(filter types.AttachmentFilter) (set types.AttachmentSet, f types.AttachmentFilter, err error) {
+	var (
+		aProps = &attachmentActionProps{filter: &filter}
+	)
 
-	if filter.PageID > 0 {
-		if _, err := svc.pageSvc.FindByID(filter.NamespaceID, filter.PageID); err != nil {
-			return nil, filter, err
+	err = svc.db.Transaction(func() error {
+		if filter.NamespaceID == 0 {
+			return AttachmentErrInvalidNamespaceID()
 		}
-	}
 
-	if filter.ModuleID > 0 {
-		if _, err := svc.moduleSvc.FindByID(filter.NamespaceID, filter.ModuleID); err != nil {
-			return nil, filter, err
+		if filter.PageID > 0 {
+			if aProps.page, err = svc.findPageByID(filter.NamespaceID, filter.PageID); err != nil {
+				return err
+			}
 		}
-	}
 
-	if filter.RecordID > 0 {
-		if _, err := svc.recordSvc.FindByID(filter.NamespaceID, filter.RecordID); err != nil {
-			return nil, filter, err
+		if filter.ModuleID > 0 {
+			var m *types.Module
+			if m, err = svc.findModuleByID(filter.NamespaceID, filter.ModuleID); err != nil {
+				return err
+			}
+
+			aProps.setModule(m)
+			if filter.RecordID > 0 {
+				if aProps.record, err = svc.findRecordByID(m, filter.RecordID); err != nil {
+					return err
+				}
+			}
+		} else if filter.RecordID > 0 {
+			return AttachmentErrInvalidModuleID()
 		}
+
+		set, f, err = svc.attachmentRepo.Find(filter)
+		return err
+	})
+
+	return set, f, svc.recordAction(svc.ctx, aProps, AttachmentActionSearch, err)
+}
+
+func (svc attachment) findNamespaceByID(namespaceID uint64) (ns *types.Namespace, err error) {
+	if namespaceID == 0 {
+		return nil, AttachmentErrInvalidNamespaceID()
 	}
 
-	return svc.attachment.Find(filter)
+	ns, err = svc.namespaceRepo.FindByID(namespaceID)
+	if repository.ErrNamespaceNotFound.Eq(err) {
+		return nil, AttachmentErrNamespaceNotFound()
+	}
+
+	if !svc.ac.CanReadNamespace(svc.ctx, ns) {
+		return nil, AttachmentErrNotAllowedToReadNamespace()
+	}
+
+	return ns, nil
+}
+
+func (svc attachment) findPageByID(namespaceID, pageID uint64) (p *types.Page, err error) {
+	if pageID == 0 {
+		return nil, AttachmentErrInvalidPageID()
+	}
+
+	p, err = svc.pageRepo.FindByID(namespaceID, pageID)
+	if repository.ErrPageNotFound.Eq(err) {
+		return nil, AttachmentErrPageNotFound()
+	}
+
+	if !svc.ac.CanReadPage(svc.ctx, p) {
+		return nil, AttachmentErrNotAllowedToReadPage()
+	}
+
+	return p, nil
+}
+
+func (svc attachment) findModuleByID(namespaceID, moduleID uint64) (m *types.Module, err error) {
+	if moduleID == 0 {
+		return nil, AttachmentErrInvalidModuleID()
+	}
+
+	m, err = svc.moduleRepo.FindByID(namespaceID, moduleID)
+	if repository.ErrModuleNotFound.Eq(err) {
+		return nil, AttachmentErrModuleNotFound()
+	}
+
+	if !svc.ac.CanReadModule(svc.ctx, m) {
+		return nil, AttachmentErrNotAllowedToReadModule()
+	}
+
+	return m, nil
+}
+
+func (svc attachment) findRecordByID(m *types.Module, recordID uint64) (r *types.Record, err error) {
+	if recordID == 0 {
+		return nil, AttachmentErrInvalidRecordID()
+	}
+
+	r, err = svc.recordRepo.FindByID(m.NamespaceID, recordID)
+	if repository.ErrRecordNotFound.Eq(err) {
+		return nil, AttachmentErrRecordNotFound()
+	}
+
+	if !svc.ac.CanReadRecord(svc.ctx, m) {
+		return nil, AttachmentErrNotAllowedToReadRecord()
+	}
+
+	return r, nil
 }
 
 func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
@@ -156,109 +268,160 @@ func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) 
 	return svc.store.Open(att.PreviewUrl)
 }
 
-func (svc attachment) CreatePageAttachment(namespaceID uint64, name string, size int64, fh io.ReadSeeker, pageID uint64) (*types.Attachment, error) {
-	if namespaceID == 0 {
-		return nil, ErrNamespaceRequired
-	}
+func (svc attachment) CreatePageAttachment(namespaceID uint64, name string, size int64, fh io.ReadSeeker, pageID uint64) (att *types.Attachment, err error) {
+	var (
+		ns *types.Namespace
+		p  *types.Page
 
-	var currentUserID uint64 = auth.GetIdentityFromContext(svc.ctx).Identity()
+		aProps = &attachmentActionProps{
+			namespace: &types.Namespace{ID: namespaceID},
+			page:      &types.Page{ID: pageID},
+		}
+	)
 
-	if p, err := svc.pageSvc.FindByID(namespaceID, pageID); err != nil {
-		return nil, err
-	} else if !svc.ac.CanUpdatePage(svc.ctx, p) {
-		return nil, ErrNoUpdatePermissions.withStack()
-	}
+	err = svc.db.Transaction(func() error {
+		ns, err = svc.findNamespaceByID(namespaceID)
+		if err != nil {
+			return err
+		}
 
-	att := &types.Attachment{
-		ID:          factory.Sonyflake.NextID(),
-		NamespaceID: namespaceID,
-		OwnerID:     currentUserID,
-		Name:        strings.TrimSpace(name),
-		Kind:        types.PageAttachment,
-	}
+		aProps.setNamespace(ns)
 
-	return att, svc.create(name, size, fh, att)
+		p, err = svc.findPageByID(namespaceID, pageID)
+		if err != nil {
+			return err
+		}
+
+		aProps.setPage(p)
+
+		if !svc.ac.CanUpdatePage(svc.ctx, p) {
+			return AttachmentErrNotAllowedToUpdatePage()
+		}
+
+		att = &types.Attachment{
+			NamespaceID: namespaceID,
+			Name:        strings.TrimSpace(name),
+			Kind:        types.PageAttachment,
+		}
+
+		return svc.create(name, size, fh, att)
+	})
+
+	return att, svc.recordAction(svc.ctx, aProps, AttachmentActionCreate, err)
+
 }
-func (svc attachment) CreateRecordAttachment(namespaceID uint64, name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64, fieldName string) (*types.Attachment, error) {
-	if namespaceID == 0 {
-		return nil, ErrNamespaceRequired
-	}
+func (svc attachment) CreateRecordAttachment(namespaceID uint64, name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64, fieldName string) (att *types.Attachment, err error) {
+	var (
+		ns *types.Namespace
+		m  *types.Module
+		r  *types.Record
 
-	var currentUserID uint64 = auth.GetIdentityFromContext(svc.ctx).Identity()
-
-	if m, err := svc.moduleSvc.FindByID(namespaceID, moduleID); err != nil {
-		return nil, err
-	} else if recordID > 0 {
-		// Uploading to existing record
-		//
-		// To allow upload (attachment creation) user must have permissions to
-		// alter that record
-		if _, err := svc.recordSvc.FindByID(namespaceID, recordID); err != nil {
-			return nil, err
-		} else if !svc.ac.CanUpdateRecord(svc.ctx, m) {
-			return nil, ErrNoUpdatePermissions.withStack()
+		aProps = &attachmentActionProps{
+			namespace: &types.Namespace{ID: namespaceID},
+			module:    &types.Module{ID: moduleID},
+			record:    &types.Record{ID: recordID},
 		}
-	} else {
-		// Uploading to non-existing record
-		//
-		// To allow upload (attachment creation) user must have permissions to
-		// create records
-		if !svc.ac.CanCreateRecord(svc.ctx, m) {
-			return nil, ErrNoCreatePermissions.withStack()
+	)
+
+	err = svc.db.Transaction(func() (err error) {
+		ns, err = svc.findNamespaceByID(namespaceID)
+		if err != nil {
+			return err
 		}
-	}
 
-	att := &types.Attachment{
-		ID:          factory.Sonyflake.NextID(),
-		NamespaceID: namespaceID,
-		OwnerID:     currentUserID,
-		Name:        strings.TrimSpace(name),
-		Kind:        types.RecordAttachment,
-	}
+		aProps.setNamespace(ns)
 
-	return att, svc.create(name, size, fh, att)
+		m, err = svc.findModuleByID(namespaceID, moduleID)
+		if err != nil {
+			return err
+		}
+
+		aProps.setModule(m)
+
+		if recordID > 0 {
+			// Uploading to existing record
+			//
+			// To allow upload (attachment creation) user must have permissions to
+			// alter that record
+
+			r, err = svc.findRecordByID(m, recordID)
+			if err != nil {
+				return err
+			}
+
+			aProps.setRecord(r)
+
+			if !svc.ac.CanUpdateRecord(svc.ctx, m) {
+				return AttachmentErrNotAllowedToUpdateRecord()
+			}
+		} else {
+			// Uploading to non-existing record
+			//
+			// To allow upload (attachment creation) user must have permissions to
+			// create records
+			if !svc.ac.CanCreateRecord(svc.ctx, m) {
+				return AttachmentErrNotAllowedToCreateRecords()
+			}
+		}
+
+		att = &types.Attachment{
+			NamespaceID: namespaceID,
+			Name:        strings.TrimSpace(name),
+			Kind:        types.RecordAttachment,
+		}
+
+		return svc.create(name, size, fh, att)
+	})
+
+	return att, svc.recordAction(svc.ctx, aProps, AttachmentActionCreate, err)
+
 }
 
 func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *types.Attachment) (err error) {
-	if svc.store == nil {
-		return errors.New("Can not create attachment: store handler not set")
+	var (
+		aProps = &attachmentActionProps{}
+	)
+
+	// preset attachment ID because we need ref for storage
+	att.ID = factory.Sonyflake.NextID()
+
+	if att.OwnerID == 0 {
+		att.OwnerID = auth.GetIdentityFromContext(svc.ctx).Identity()
 	}
 
-	log := svc.log(
-		zap.String("name", att.Name),
-		zap.Int64("size", att.Meta.Original.Size),
-	)
+	if svc.store == nil {
+		return errors.New("can not create attachment: store handler not set")
+	}
+
+	aProps.setName(name)
+	aProps.setSize(size)
 
 	// Extract extension but make sure path.Ext is not confused by any leading/trailing dots
 	att.Meta.Original.Extension = strings.Trim(path.Ext(strings.Trim(name, ".")), ".")
 
 	att.Meta.Original.Size = size
 	if att.Meta.Original.Mimetype, err = svc.extractMimetype(fh); err != nil {
-		log.Error("could not extract mime-type", zap.Error(err))
-		return
+		return AttachmentErrFailedToExtractMimeType(aProps).Wrap(err)
 	}
 
 	att.Url = svc.store.Original(att.ID, att.Meta.Original.Extension)
-	log = log.With(zap.String("url", att.Url))
+	aProps.setUrl(att.Url)
 
 	if err = svc.store.Save(att.Url, fh); err != nil {
-		log.Error("could not store file", zap.Error(err))
-		return
+		return AttachmentErrFailedToStoreFile(aProps).Wrap(err)
 	}
 
 	// Process image: extract width, height, make preview
 	err = svc.processImage(fh, att)
 	if err != nil {
-		log.Error("could not process image", zap.Error(err))
+		return AttachmentErrFailedToProcessImage(aProps).Wrap(err)
 	}
 
-	return svc.db.Transaction(func() (err error) {
-		if att, err = svc.attachment.Create(att); err != nil {
-			return
-		}
+	if att, err = svc.attachmentRepo.Create(att); err != nil {
+		return
+	}
 
-		return nil
-	})
+	return nil
 }
 
 func (svc attachment) extractMimetype(file io.ReadSeeker) (mimetype string, err error) {

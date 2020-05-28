@@ -97,7 +97,7 @@ func TestNamespaceCreateForbidden(t *testing.T) {
 		FormData("name", "some-namespace").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("compose.service.NoCreatePermissions")).
+		Assert(helpers.AssertError("not allowed to create namespaces")).
 		End()
 }
 
@@ -123,7 +123,7 @@ func TestNamespaceUpdateForbidden(t *testing.T) {
 		FormData("name", "changed-name").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("compose.service.NoUpdatePermissions")).
+		Assert(helpers.AssertError("not allowed to update this namespace")).
 		End()
 }
 
@@ -154,7 +154,7 @@ func TestNamespaceDeleteForbidden(t *testing.T) {
 		Delete(fmt.Sprintf("/namespace/%d", ns.ID)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("compose.service.NoDeletePermissions")).
+		Assert(helpers.AssertError("not allowed to delete this namespace")).
 		End()
 }
 

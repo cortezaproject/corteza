@@ -122,7 +122,7 @@ func TestRecordCreateForbidden(t *testing.T) {
 		FormData("name").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("compose.service.NoCreatePermissions")).
+		Assert(helpers.AssertError("not allowed to create records")).
 		End()
 }
 
@@ -152,7 +152,7 @@ func TestRecordUpdateForbidden(t *testing.T) {
 		FormData("name", "changed-name").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("compose.service.NoUpdatePermissions")).
+		Assert(helpers.AssertError("not allowed to update this record")).
 		End()
 }
 
@@ -187,7 +187,7 @@ func TestRecordDeleteForbidden(t *testing.T) {
 		Delete(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("compose.service.NoDeletePermissions")).
+		Assert(helpers.AssertError("not allowed to delete this record")).
 		End()
 }
 
@@ -207,7 +207,7 @@ func TestRecordDelete(t *testing.T) {
 		End()
 
 	_, err := h.repoRecord().FindByID(module.NamespaceID, record.ID)
-	h.a.Error(err, "compose.repository.RecordNotFound")
+	h.a.Error(err, "record does not exist")
 }
 
 func TestRecordExport(t *testing.T) {

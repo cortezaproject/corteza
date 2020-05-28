@@ -8,11 +8,10 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/service/values"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/compose/decoder"
 	"github.com/cortezaproject/corteza-server/compose/repository"
@@ -20,7 +19,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 const (
@@ -30,9 +28,10 @@ const (
 
 type (
 	record struct {
-		db     *factory.DB
-		ctx    context.Context
-		logger *zap.Logger
+		db  *factory.DB
+		ctx context.Context
+
+		actionlog actionlog.Recorder
 
 		ac       recordAccessController
 		eventbus eventDispatcher
@@ -131,7 +130,6 @@ type (
 
 func Record() RecordService {
 	return (&record{
-		logger:        DefaultLogger.Named("record"),
 		ac:            DefaultAccessControl,
 		eventbus:      eventbus.Service(),
 		optEmitEvents: true,
@@ -176,9 +174,10 @@ func (svc record) With(ctx context.Context) RecordService {
 	})
 
 	return &record{
-		db:     db,
-		ctx:    ctx,
-		logger: svc.logger,
+		db:  db,
+		ctx: ctx,
+
+		actionlog: DefaultActionlog,
 
 		ac:       svc.ac,
 		eventbus: svc.eventbus,
@@ -199,110 +198,183 @@ func (svc *record) EventEmitting(enable bool) {
 	svc.optEmitEvents = enable
 }
 
-// log() returns zap's logger with requestID from current context and fields.
-func (svc record) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(ctx, svc.logger).With(fields...)
+// lookup fn() orchestrates record lookup, namespace preload and check
+func (svc record) lookup(namespaceID uint64, lookup func(*recordActionProps) (*types.Record, error)) (r *types.Record, err error) {
+	var (
+		ns     *types.Namespace
+		m      *types.Module
+		aProps = &recordActionProps{record: &types.Record{NamespaceID: namespaceID}}
+	)
+
+	err = svc.db.Transaction(func() error {
+		if ns, err = svc.loadNamespace(namespaceID); err != nil {
+			return err
+		}
+
+		aProps.setNamespace(ns)
+
+		if r, err = lookup(aProps); err != nil {
+			if repository.ErrRecordNotFound.Eq(err) {
+				return RecordErrNotFound()
+			}
+
+			return err
+		}
+
+		aProps.setRecord(r)
+
+		if m, err = svc.loadModule(namespaceID, r.ModuleID); err != nil {
+			return err
+		}
+
+		aProps.setModule(m)
+
+		if !svc.ac.CanReadRecord(svc.ctx, m) {
+			return RecordErrNotAllowedToRead()
+		}
+
+		if err = svc.preloadValues(m, r); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return r, svc.recordAction(svc.ctx, aProps, RecordActionLookup, err)
 }
 
 func (svc record) FindByID(namespaceID, recordID uint64) (r *types.Record, err error) {
-	if namespaceID == 0 {
-		return nil, ErrNamespaceRequired
-	}
-
-	if r, err = svc.recordRepo.FindByID(namespaceID, recordID); err != nil {
-		return
-	}
-
-	var m *types.Module
-	if m, err = svc.loadModule(namespaceID, r.ModuleID); err != nil {
-		return
-	}
-
-	if !svc.ac.CanReadRecord(svc.ctx, m) {
-		return nil, ErrNoReadPermissions.withStack()
-	}
-
-	if err = svc.preloadValues(m, r); err != nil {
-		return
-	}
-
-	return
+	return svc.lookup(namespaceID, func(props *recordActionProps) (*types.Record, error) {
+		props.record.ID = recordID
+		return svc.recordRepo.FindByID(namespaceID, recordID)
+	})
 }
 
 func (svc record) loadModule(namespaceID, moduleID uint64) (m *types.Module, err error) {
-	if m, err = svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
-		return
-	}
+	return m, func() error {
+		if namespaceID == 0 {
+			return RecordErrInvalidNamespaceID()
+		}
 
-	if !svc.ac.CanReadModule(svc.ctx, m) {
-		return nil, ErrNoReadPermissions.withStack()
-	}
+		if moduleID == 0 {
+			return RecordErrInvalidModuleID()
+		}
 
-	if m.Fields, err = svc.moduleRepo.FindFields(m.ID); err != nil {
-		return
-	}
+		if m, err = svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
+			if repository.ErrModuleNotFound.Eq(err) {
+				return RecordErrModuleNotFoundModule()
+			}
 
-	return
+			return err
+		}
+
+		if !svc.ac.CanReadModule(svc.ctx, m) {
+			return RecordErrNotAllowedToReadModule()
+		}
+
+		if m.Fields, err = svc.moduleRepo.FindFields(m.ID); err != nil {
+			return err
+		}
+
+		return nil
+	}()
 }
 
 func (svc record) loadNamespace(namespaceID uint64) (ns *types.Namespace, err error) {
-	if namespaceID == 0 {
-		return nil, ErrNamespaceRequired.withStack()
-	}
+	return ns, func() error {
+		if namespaceID == 0 {
+			return RecordErrInvalidNamespaceID()
+		}
 
-	if ns, err = svc.nsRepo.FindByID(namespaceID); err != nil {
-		return
-	}
+		if ns, err = svc.nsRepo.FindByID(namespaceID); err != nil {
+			if repository.ErrNamespaceNotFound.Eq(err) {
+				return RecordErrNamespaceNotFound()
+			}
 
-	if !svc.ac.CanReadNamespace(svc.ctx, ns) {
-		return nil, ErrNoReadPermissions.withStack()
-	}
+			return err
+		}
 
-	return
+		if !svc.ac.CanReadNamespace(svc.ctx, ns) {
+			return RecordErrNotAllowedToReadNamespace()
+		}
+
+		return err
+	}()
 }
 
+// Report generates report for a given module using metrics, dimensions and filter
 func (svc record) Report(namespaceID, moduleID uint64, metrics, dimensions, filter string) (out interface{}, err error) {
-	var m *types.Module
-	if m, err = svc.loadModule(namespaceID, moduleID); err != nil {
-		return
-	}
+	var (
+		ns     *types.Namespace
+		m      *types.Module
+		aProps = &recordActionProps{record: &types.Record{NamespaceID: namespaceID}}
+	)
 
-	return svc.recordRepo.
-		Report(m, metrics, dimensions, filter)
+	err = svc.db.Transaction(func() error {
+		if ns, err = svc.loadNamespace(namespaceID); err != nil {
+			return err
+		}
+
+		aProps.setNamespace(ns)
+
+		if m, err = svc.loadModule(namespaceID, moduleID); err != nil {
+			return err
+		}
+
+		aProps.setModule(m)
+
+		out, err = svc.recordRepo.Report(m, metrics, dimensions, filter)
+		return err
+	})
+
+	return out, svc.recordAction(svc.ctx, aProps, RecordActionReport, err)
 }
 
 func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
-	var m *types.Module
-	if m, err = svc.loadModule(filter.NamespaceID, filter.ModuleID); err != nil {
-		return
-	}
+	var (
+		m      *types.Module
+		aProps = &recordActionProps{filter: &filter}
+	)
 
-	set, f, err = svc.recordRepo.Find(m, filter)
-	if err != nil {
-		return
-	}
+	err = svc.db.Transaction(func() error {
+		if m, err = svc.loadModule(filter.NamespaceID, filter.ModuleID); err != nil {
+			return err
+		}
 
-	if err = svc.preloadValues(m, set...); err != nil {
-		return
-	}
+		set, f, err = svc.recordRepo.Find(m, filter)
+		if err != nil {
+			return err
+		}
 
-	return
+		if err = svc.preloadValues(m, set...); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return set, f, svc.recordAction(svc.ctx, aProps, RecordActionSearch, err)
 }
 
-func (svc record) Import(ses *RecordImportSession, ssvc ImportSessionService) error {
+func (svc record) Import(ses *RecordImportSession, ssvc ImportSessionService) (err error) {
+	var (
+		aProps = &recordActionProps{}
+	)
+
 	if ses.Decoder == nil {
 		return nil
 	}
 
-	if ses.Progress.StartedAt != nil {
-		return errors.New("Unable to start import: Import session already active")
-	}
+	err = svc.db.Transaction(func() (err error) {
 
-	sa := time.Now()
-	ses.Progress.StartedAt = &sa
-	ssvc.SetRecordByID(svc.ctx, ses.SessionID, 0, 0, nil, &ses.Progress, nil)
+		if ses.Progress.StartedAt != nil {
+			return errors.New("Unable to start import: Import session already active")
+		}
 
-	return svc.db.Transaction(func() (err error) {
+		sa := time.Now()
+		ses.Progress.StartedAt = &sa
+		ssvc.SetByID(svc.ctx, ses.SessionID, 0, 0, nil, &ses.Progress, nil)
+
 		err = ses.Decoder.Records(ses.Fields, func(mod *types.Record) error {
 			mod.NamespaceID = ses.NamespaceID
 			mod.ModuleID = ses.ModuleID
@@ -316,7 +388,7 @@ func (svc record) Import(ses *RecordImportSession, ssvc ImportSessionService) er
 				if ses.OnError == IMPORT_ON_ERROR_FAIL {
 					fa := time.Now()
 					ses.Progress.FinishedAt = &fa
-					ssvc.SetRecordByID(svc.ctx, ses.SessionID, 0, 0, nil, &ses.Progress, nil)
+					ssvc.SetByID(svc.ctx, ses.SessionID, 0, 0, nil, &ses.Progress, nil)
 					return err
 				}
 			} else {
@@ -327,37 +399,49 @@ func (svc record) Import(ses *RecordImportSession, ssvc ImportSessionService) er
 
 		fa := time.Now()
 		ses.Progress.FinishedAt = &fa
-		ssvc.SetRecordByID(svc.ctx, ses.SessionID, 0, 0, nil, &ses.Progress, nil)
+		ssvc.SetByID(svc.ctx, ses.SessionID, 0, 0, nil, &ses.Progress, nil)
 		return
 	})
+
+	return svc.recordAction(svc.ctx, aProps, RecordActionImport, err)
 }
 
 // Export returns all records
 //
 // @todo better value handling
-func (svc record) Export(filter types.RecordFilter, enc Encoder) error {
-	m, err := svc.loadModule(filter.NamespaceID, filter.ModuleID)
+func (svc record) Export(filter types.RecordFilter, enc Encoder) (err error) {
+	var (
+		aProps = &recordActionProps{}
+	)
 
-	if err != nil {
-		return err
-	}
+	err = svc.db.Transaction(func() (err error) {
+		m, err := svc.loadModule(filter.NamespaceID, filter.ModuleID)
+		if err != nil {
+			return err
+		}
 
-	set, err := svc.recordRepo.Export(m, filter)
-	if err != nil {
-		return err
-	}
+		set, err := svc.recordRepo.Export(m, filter)
+		if err != nil {
+			return err
+		}
 
-	if err = svc.preloadValues(m, set...); err != nil {
-		return err
-	}
+		if err = svc.preloadValues(m, set...); err != nil {
+			return err
+		}
 
-	return set.Walk(enc.Record)
+		return set.Walk(enc.Record)
+	})
+
+	return svc.recordAction(svc.ctx, aProps, RecordActionImport, err)
 }
 
 func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
-	var invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
+	var (
+		aProps    = &recordActionProps{changed: new}
+		invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
+	)
 
-	return rec, svc.db.Transaction(func() (err error) {
+	err = svc.db.Transaction(func() (err error) {
 		var (
 			ns *types.Namespace
 			m  *types.Module
@@ -368,8 +452,11 @@ func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
 			return
 		}
 
+		aProps.setNamespace(ns)
+		aProps.setModule(m)
+
 		if !svc.ac.CanCreateRecord(svc.ctx, m) {
-			return ErrNoCreatePermissions.withStack()
+			return RecordErrNotAllowedToCreate()
 		}
 
 		if err = svc.generalValueSetValidation(m, new.Values); err != nil {
@@ -421,6 +508,8 @@ func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
 		}
 		return
 	})
+
+	return rec, svc.recordAction(svc.ctx, aProps, RecordActionCreate, err)
 }
 
 // Runs value sanitization, sets values that should be used
@@ -459,11 +548,14 @@ func (svc record) procCreate(invokerID uint64, m *types.Module, new *types.Recor
 }
 
 func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
-	var invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
+	var (
+		aProps    = &recordActionProps{changed: upd}
+		invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
+	)
 
-	return rec, svc.db.Transaction(func() (err error) {
+	err = svc.db.Transaction(func() (err error) {
 		if upd.ID == 0 {
-			return ErrInvalidID.withStack()
+			return RecordErrInvalidID()
 		}
 
 		ns, m, old, err := svc.loadCombo(upd.NamespaceID, upd.ModuleID, upd.ID)
@@ -471,17 +563,21 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 			return
 		}
 
+		aProps.setNamespace(ns)
+		aProps.setModule(m)
+		aProps.setRecord(old)
+
 		if err = svc.generalValueSetValidation(m, upd.Values); err != nil {
 			return
 		}
 
 		// Test if stale (update has an older version of data)
 		if isStale(upd.UpdatedAt, old.UpdatedAt, old.CreatedAt) {
-			return ErrStaleData.withStack()
+			return RecordErrStaleData()
 		}
 
 		if !svc.ac.CanUpdateRecord(svc.ctx, m) {
-			return ErrNoUpdatePermissions.withStack()
+			return RecordErrNotAllowedToUpdate()
 		}
 
 		// Preload old record values so we can send it together with event
@@ -551,6 +647,8 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 		}
 		return
 	})
+
+	return rec, svc.recordAction(svc.ctx, aProps, RecordActionUpdate, err)
 }
 
 // Runs value sanitization, copies values that should updated
@@ -612,16 +710,7 @@ func (svc record) recordInfoUpdate(r *types.Record) {
 //
 // Before and after each record is deleted beforeDelete and afterDelete events are emitted
 // If beforeRecord aborts the action it does so for that specific record only
-
-func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) error {
-	if namespaceID == 0 {
-		return ErrInvalidID.withStack()
-	}
-
-	if moduleID == 0 {
-		return ErrInvalidID.withStack()
-	}
-
+func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) (err error) {
 	var (
 		isBulkDelete = len(recordIDs) > 0
 		now          = *nowPtr()
@@ -629,24 +718,45 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 		ns *types.Namespace
 		m  *types.Module
 
-		err error
+		aProps    = &recordActionProps{record: &types.Record{NamespaceID: namespaceID, ModuleID: moduleID}}
+		invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
 	)
 
-	ns, m, _, err = svc.loadCombo(namespaceID, moduleID, 0)
-	if err != nil {
-		return err
-	}
+	err = func() error {
+		if namespaceID == 0 {
+			return RecordErrInvalidNamespaceID()
+		}
 
-	if !svc.ac.CanDeleteRecord(svc.ctx, m) {
-		return ErrNoDeletePermissions.withStack()
+		if moduleID == 0 {
+			return RecordErrInvalidModuleID()
+		}
+
+		ns, m, _, err = svc.loadCombo(namespaceID, moduleID, 0)
+		if err != nil {
+			return err
+		}
+
+		aProps.setNamespace(ns)
+		aProps.setModule(m)
+
+		if !svc.ac.CanDeleteRecord(svc.ctx, m) {
+			return RecordErrNotAllowedToDelete()
+		}
+
+		return nil
+	}()
+
+	if err != nil {
+		return svc.recordAction(svc.ctx, aProps, RecordActionDelete, err)
 	}
 
 	for _, recordID := range recordIDs {
 		if recordID == 0 {
-			return ErrInvalidID.withStack()
+			// ignore invalid IDs, no harm done
+			continue
 		}
 
-		err := svc.db.Transaction(func() (err error) {
+		err = svc.db.Transaction(func() error {
 			var (
 				del *types.Record
 			)
@@ -656,6 +766,8 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 				return err
 			}
 
+			aProps.setRecord(del)
+
 			if svc.optEmitEvents {
 				// Preload old record values so we can send it together with event
 				if err = svc.preloadValues(m, del); err != nil {
@@ -664,18 +776,12 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 
 				// Calling before-record-delete scripts
 				if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeDelete(nil, del, m, ns, nil)); err != nil {
-					if isBulkDelete {
-						// Not considered fatal,
-						// continue with next record
-						return nil
-					} else {
-						return err
-					}
+					return err
 				}
 			}
 
 			del.DeletedAt = &now
-			del.DeletedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
+			del.DeletedBy = invokerID
 
 			if err = svc.recordRepo.Delete(del); err != nil {
 				return err
@@ -689,11 +795,19 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 				defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil))
 			}
 
-			return err
+			// Record successful action
+			return svc.recordAction(svc.ctx, aProps, RecordActionDelete, nil)
 		})
 
+		// handle error & record action
 		if err != nil {
-			return errors.Wrap(err, "failed to delete record")
+			if isBulkDelete {
+				// When doing bulk delete, errors are recorded, but ignored
+				_ = svc.recordAction(svc.ctx, aProps, RecordActionDelete, err)
+				return nil
+			}
+
+			return svc.recordAction(svc.ctx, aProps, RecordActionDelete, err)
 		}
 	}
 
@@ -703,104 +817,101 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 // Organize - Record organizer
 //
 // Reorders records & sets field value
-func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, position, filter, grpField, group string) error {
+func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, position, filter, grpField, group string) (err error) {
 	var (
-		_, module, record, err = svc.loadCombo(namespaceID, moduleID, recordID)
+		ns *types.Namespace
+		m  *types.Module
+		r  *types.Record
 
 		recordValues = types.RecordValueSet{}
 
-		reorderingRecords bool
+		aProps = &recordActionProps{record: &types.Record{NamespaceID: namespaceID, ModuleID: moduleID, ID: recordID}}
 
-		log = svc.log(svc.ctx,
-			zap.String("position-field", posField),
-			zap.String("position", position),
-			zap.String("filter", filter),
-			zap.String("group-field", grpField),
-			zap.String("group", group),
-		)
+		reorderingRecords bool
 	)
 
-	log.Debug("record organizer")
-
-	if err != nil {
-		return err
-	}
-
-	if !svc.ac.CanUpdateRecord(svc.ctx, module) {
-		return ErrNoUpdatePermissions.withStack()
-	}
-
-	if posField != "" {
-		reorderingRecords = true
-
-		if !regexp.MustCompile(`^[0-9]+$`).MatchString(position) {
-			return errors.Errorf("expecting number for sorting position %q", posField)
-		}
-
-		// Check field existence and permissions
-		// check if numeric -- we can not reorder on any other field type
-
-		sf := module.Fields.FindByName(posField)
-		if sf == nil {
-			return errors.Errorf("no such field %q", posField)
-		}
-
-		if !sf.IsNumeric() {
-			return errors.Errorf("can not reorder on non numeric field %q", posField)
-		}
-
-		if sf.Multi {
-			return errors.Errorf("can not reorder on multi-value field %q", posField)
-		}
-
-		if !svc.ac.CanUpdateRecordValue(svc.ctx, sf) {
-			return ErrNoUpdatePermissions.withStack()
-		}
-
-		// Set new position
-		recordValues = recordValues.Set(&types.RecordValue{
-			RecordID: recordID,
-			Name:     posField,
-			Value:    position,
-		})
-	}
-
-	if grpField != "" {
-		// Check field existence and permissions
-
-		vf := module.Fields.FindByName(grpField)
-		if vf == nil {
-			return errors.Errorf("no such field %q", grpField)
-		}
-
-		if vf.Multi {
-			return errors.Errorf("can not update multi-value field %q", posField)
-		}
-
-		if !svc.ac.CanUpdateRecordValue(svc.ctx, vf) {
-			return ErrNoUpdatePermissions.withStack()
-		}
-
-		// Set new value
-		recordValues = recordValues.Set(&types.RecordValue{
-			RecordID: recordID,
-			Name:     grpField,
-			Value:    group,
-		})
-	}
-
 	return svc.db.Transaction(func() (err error) {
+		ns, m, r, err = svc.loadCombo(namespaceID, moduleID, recordID)
+		if err != nil {
+			return err
+		}
+
+		aProps.setNamespace(ns)
+		aProps.setModule(m)
+		aProps.setRecord(r)
+
+		if !svc.ac.CanUpdateRecord(svc.ctx, m) {
+			return RecordErrNotAllowedToUpdate()
+		}
+
+		if posField != "" {
+			reorderingRecords = true
+
+			if !regexp.MustCompile(`^[0-9]+$`).MatchString(position) {
+				return errors.Errorf("expecting number for sorting position %q", posField)
+			}
+
+			// Check field existence and permissions
+			// check if numeric -- we can not reorder on any other field type
+
+			sf := m.Fields.FindByName(posField)
+			if sf == nil {
+				return errors.Errorf("no such field %q", posField)
+			}
+
+			if !sf.IsNumeric() {
+				return errors.Errorf("can not reorder on non numeric field %q", posField)
+			}
+
+			if sf.Multi {
+				return errors.Errorf("can not reorder on multi-value field %q", posField)
+			}
+
+			if !svc.ac.CanUpdateRecordValue(svc.ctx, sf) {
+				return RecordErrNotAllowedToUpdate()
+			}
+
+			// Set new position
+			recordValues = recordValues.Set(&types.RecordValue{
+				RecordID: recordID,
+				Name:     posField,
+				Value:    position,
+			})
+		}
+
+		if grpField != "" {
+			// Check field existence and permissions
+
+			vf := m.Fields.FindByName(grpField)
+			if vf == nil {
+				return errors.Errorf("no such field %q", grpField)
+			}
+
+			if vf.Multi {
+				return errors.Errorf("can not update multi-value field %q", posField)
+			}
+
+			if !svc.ac.CanUpdateRecordValue(svc.ctx, vf) {
+				return RecordErrNotAllowedToUpdate()
+			}
+
+			// Set new value
+			recordValues = recordValues.Set(&types.RecordValue{
+				RecordID: recordID,
+				Name:     grpField,
+				Value:    group,
+			})
+		}
+
 		if len(recordValues) > 0 {
-			svc.recordInfoUpdate(record)
-			if _, err = svc.recordRepo.Update(record); err != nil {
+			svc.recordInfoUpdate(r)
+			if _, err = svc.recordRepo.Update(r); err != nil {
 				return
 			}
 
 			if err = svc.recordRepo.PartialUpdateValues(recordValues...); err != nil {
 				return
 			}
-
-			log.Info("record moved")
 		}
 
 		if reorderingRecords {
@@ -822,12 +933,10 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 			// We are interested only in records that have value of a sorting field greater than
 			// the place we're moving our record to.
 			// and sort the set with sorting field
-			set, _, err = svc.recordRepo.Find(module, types.RecordFilter{
+			set, _, err = svc.recordRepo.Find(m, types.RecordFilter{
 				Query: fmt.Sprintf("%s(%s >= %d)", filter, posField, recordOrderPlace),
 				Sort:  posField,
 			})
-
-			log.Info("reordering other records", zap.Int("count", len(set)))
 
 			if err != nil {
 				return
@@ -848,6 +957,9 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 
 		return
 	})
+
+	return svc.recordAction(svc.ctx, aProps, RecordActionOrganize, err)
+
 }
 
 // Iterator loads and iterates through list of records
@@ -895,76 +1007,117 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 		ns  *types.Namespace
 		m   *types.Module
 		set types.RecordSet
+
+		aProps = &recordActionProps{}
 	)
 
-	return svc.db.Transaction(func() (err error) {
+	err = svc.db.Transaction(func() error {
 		if ns, m, _, err = svc.loadCombo(f.NamespaceID, f.ModuleID, 0); err != nil {
-			return
+			return err
 		}
 
-		if !svc.ac.CanUpdateRecord(svc.ctx, m) {
-			return ErrNoUpdatePermissions.withStack()
+		if !svc.ac.CanReadRecord(svc.ctx, m) {
+			return RecordErrNotAllowedToRead()
+		}
+
+		switch action {
+		case "clone":
+			if !svc.ac.CanCreateRecord(svc.ctx, m) {
+				return RecordErrNotAllowedToCreate()
+			}
+
+		case "update":
+			if !svc.ac.CanUpdateRecord(svc.ctx, m) {
+				return RecordErrNotAllowedToUpdate()
+			}
+
+		case "delete":
+			if !svc.ac.CanDeleteRecord(svc.ctx, m) {
+				return RecordErrNotAllowedToDelete()
+			}
 		}
 
 		// @todo might be good to split set into smaller chunks
 		set, f, err = svc.recordRepo.Find(m, f)
 		if err != nil {
-			return
+			return err
 		}
 
 		if err = svc.preloadValues(m, set...); err != nil {
-			return
+			return err
 		}
 
 		for _, rec := range set {
-			if err = fn(svc.ctx, event.RecordOnIteration(rec, nil, m, ns, nil)); err != nil {
-				if err.Error() != "Aborted" {
-					// When script was  softly aborted (return false),
-					// proceed with iteration but do not clone, update or delete
-					// current record!
-					return
-				}
-			}
+			recordableAction := RecordActionIteratorIteration
 
-			switch action {
-			case "clone":
-				var cln *types.Record
-
-				// Assign defaults (only on missing values)
-				rec.Values = svc.setDefaultValues(m, rec.Values)
-
-				// Handle payload from automation scripts
-				if rve := svc.procCreate(invokerID, m, rec); !rve.IsValid() {
-					return rve
+			err = func() error {
+				if err = fn(svc.ctx, event.RecordOnIteration(rec, nil, m, ns, nil)); err != nil {
+					if err.Error() != "Aborted" {
+						// When script was softly aborted (return false),
+						// proceed with iteration but do not clone, update or delete
+						// current record!
+						return nil
+					}
 				}
 
-				if cln, err = svc.recordRepo.Create(rec); err != nil {
-					return
-				} else if err = svc.recordRepo.UpdateValues(cln.ID, cln.Values); err != nil {
-					return
-				}
-			case "update":
-				// Handle input payload
-				if rve := svc.procUpdate(invokerID, m, rec, rec); !rve.IsValid() {
-					return rve
+				switch action {
+				case "clone":
+					recordableAction = RecordActionIteratorClone
+
+					var cln *types.Record
+
+					// Assign defaults (only on missing values)
+					rec.Values = svc.setDefaultValues(m, rec.Values)
+
+					// Handle payload from automation scripts
+					if rve := svc.procCreate(invokerID, m, rec); !rve.IsValid() {
+						return rve
+					}
+
+					if cln, err = svc.recordRepo.Create(rec); err != nil {
+						return err
+					} else if err = svc.recordRepo.UpdateValues(cln.ID, cln.Values); err != nil {
+						return err
+					}
+				case "update":
+					recordableAction = RecordActionIteratorUpdate
+
+					// Handle input payload
+					if rve := svc.procUpdate(invokerID, m, rec, rec); !rve.IsValid() {
+						return rve
+					}
+
+					if rec, err = svc.recordRepo.Update(rec); err != nil {
+						return err
+					} else if err = svc.recordRepo.UpdateValues(rec.ID, rec.Values); err != nil {
+						return err
+					}
+				case "delete":
+					recordableAction = RecordActionIteratorDelete
+
+					if err = svc.recordRepo.Delete(rec); err != nil {
+						return err
+					} else if err = svc.recordRepo.DeleteValues(rec); err != nil {
+						return err
+					}
 				}
 
-				if rec, err = svc.recordRepo.Update(rec); err != nil {
-					return
-				} else if err = svc.recordRepo.UpdateValues(rec.ID, rec.Values); err != nil {
-					return
-				}
-			case "delete":
-				if err = svc.recordRepo.Delete(rec); err != nil {
-					return err
-				} else if err = svc.recordRepo.DeleteValues(rec); err != nil {
-					return err
-				}
+				return nil
+			}()
+
+			// record iteration action and
+			// break the loop in case of an error
+			_ = svc.recordAction(svc.ctx, aProps, recordableAction, err)
+			if err != nil {
+				return err
 			}
 		}
 
-		return
+		return nil
 	})
+
+	return svc.recordAction(svc.ctx, aProps, RecordActionIteratorInvoked, err)
+
 }
 
 // loadCombo Loads everything we need for record manipulation
@@ -972,8 +1125,7 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 // Loads namespace, module, record and set of triggers.
 func (svc record) loadCombo(namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
 	if namespaceID == 0 {
-		err = ErrNamespaceRequired.withStack()
-		return
+		return nil, nil, nil, RecordErrInvalidNamespaceID()
 	}
 	if ns, err = svc.loadNamespace(namespaceID); err != nil {
 		return
@@ -985,7 +1137,7 @@ func (svc record) loadCombo(namespaceID, moduleID, recordID uint64) (ns *types.N
 		}
 
 		if r.ModuleID != moduleID && moduleID > 0 {
-			return nil, nil, nil, ErrInvalidModuleID.withStack()
+			return nil, nil, nil, RecordErrInvalidModuleID()
 		}
 	}
 
@@ -1028,13 +1180,14 @@ func (svc record) setDefaultValues(m *types.Module, vv types.RecordValueSet) (ou
 //
 func (svc record) generalValueSetValidation(m *types.Module, vv types.RecordValueSet) (err error) {
 	var (
+		aProps  = &recordActionProps{}
 		numeric = regexp.MustCompile(`^[1-9](\d+)$`)
 	)
 
 	err = vv.Walk(func(v *types.RecordValue) error {
 		var field = m.Fields.FindByName(v.Name)
 		if field == nil {
-			return errors.Errorf("no such field %q", v.Name)
+			return RecordErrFieldNotFound(aProps.setField(v.Name))
 		}
 
 		if field.IsRef() {
@@ -1043,7 +1196,7 @@ func (svc record) generalValueSetValidation(m *types.Module, vv types.RecordValu
 			}
 
 			if !numeric.MatchString(v.Value) {
-				return errors.Errorf("invalid reference format")
+				return RecordErrInvalidReferenceFormat(aProps.setField(v.Name).setValue(v.Value))
 			}
 		}
 
@@ -1057,7 +1210,7 @@ func (svc record) generalValueSetValidation(m *types.Module, vv types.RecordValu
 	// Make sure there are no multi values in a non-multi value fields
 	err = m.Fields.Walk(func(field *types.ModuleField) error {
 		if !field.Multi && len(vv.FilterByName(field.Name)) > 1 {
-			return errors.Errorf("more than one value for a single-value field %q", field.Name)
+			return RecordErrInvalidValueInput(aProps.setField(field.Name))
 		}
 
 		return nil

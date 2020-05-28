@@ -1,0 +1,94 @@
+# List of loggable service actions
+
+resource: compose:namespace
+service: namespace
+
+# Default sensitivity for actions
+defaultActionSeverity: info
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/compose/types
+
+props:
+  - name: namespace
+    type: "*types.Namespace"
+    fields: [ name, slug, ID, enabled ]
+  - name: changed
+    type: "*types.Namespace"
+    fields: [ name, slug, ID, meta, enabled ]
+  - name: filter
+    type: "*types.NamespaceFilter"
+    fields: [ query, slug, sort, limit, offset, page, perPage ]
+
+actions:
+  - action: search
+    log: "searched for namespaces"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {namespace}"
+    severity: info
+
+  - action: create
+    log: "created {namespace}"
+
+  - action: update
+    log: "updated {namespace}"
+
+  - action: delete
+    log: "deleted {namespace}"
+
+  - action: undelete
+    log: "undeleted {namespace}"
+
+  - action: reorder
+    log: "reordered {namespace}"
+
+errors:
+  - error: notFound
+    message: "namespace does not exist"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning
+
+  - error: handleNotUnique
+    message: "handle not unique"
+    log: "used duplicate handle ({namespace.slug}) for namespace"
+    severity: warning
+
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this namespace"
+    log: "could not read {namespace}; insufficient permissions"
+
+  - error: notAllowedToListNamespaces
+    message: "not allowed to list this namespaces"
+    log: "could not list namespaces; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create namespaces"
+    log: "could not create namespaces; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this namespace"
+    log: "could not update {namespace}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this namespace"
+    log: "could not delete {namespace}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this namespace"
+    log: "could not undelete {namespace}; insufficient permissions"

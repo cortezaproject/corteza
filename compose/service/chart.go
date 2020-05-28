@@ -4,21 +4,20 @@ import (
 	"context"
 
 	"github.com/titpetric/factory"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 )
 
 type (
 	chart struct {
-		db     *factory.DB
-		ctx    context.Context
-		logger *zap.Logger
+		db  *factory.DB
+		ctx context.Context
+
+		actionlog actionlog.Recorder
 
 		ac chartAccessController
 
@@ -51,17 +50,17 @@ type (
 
 func Chart() ChartService {
 	return (&chart{
-		logger: DefaultLogger.Named("chart"),
-		ac:     DefaultAccessControl,
+		ac: DefaultAccessControl,
 	}).With(context.Background())
 }
 
 func (svc chart) With(ctx context.Context) ChartService {
 	db := repository.DB(ctx)
 	return &chart{
-		db:     db,
-		ctx:    ctx,
-		logger: svc.logger,
+		db:  db,
+		ctx: ctx,
+
+		actionlog: DefaultActionlog,
 
 		ac: svc.ac,
 
@@ -70,120 +69,216 @@ func (svc chart) With(ctx context.Context) ChartService {
 	}
 }
 
-// log() returns zap's logger with requestID from current context and fields.
-func (svc chart) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(ctx, svc.logger).With(fields...)
+// lookup fn() orchestrates chart lookup, namespace preload and check
+func (svc chart) lookup(namespaceID uint64, lookup func(*chartActionProps) (*types.Chart, error)) (m *types.Chart, err error) {
+	var aProps = &chartActionProps{chart: &types.Chart{NamespaceID: namespaceID}}
+
+	err = svc.db.Transaction(func() error {
+		if ns, err := svc.loadNamespace(namespaceID); err != nil {
+			return err
+		} else {
+			aProps.setNamespace(ns)
+		}
+
+		if m, err = lookup(aProps); err != nil {
+			if repository.ErrChartNotFound.Eq(err) {
+				return ChartErrNotFound()
+			}
+
+			return err
+		}
+
+		aProps.setChart(m)
+
+		if !svc.ac.CanReadChart(svc.ctx, m) {
+			return ChartErrNotAllowedToRead()
+		}
+
+		return nil
+	})
+
+	return m, svc.recordAction(svc.ctx, aProps, ChartActionLookup, err)
 }
 
-func (svc chart) FindByID(namespaceID, chartID uint64) (c *types.Chart, err error) {
-	if _, err = svc.loadNamespace(namespaceID); err != nil {
-		return
-	} else {
-		return svc.checkPermissions(svc.chartRepo.FindByID(namespaceID, chartID))
-	}
+func (svc chart) FindByID(namespaceID, chartID uint64) (p *types.Chart, err error) {
+	return svc.lookup(namespaceID, func(aProps *chartActionProps) (*types.Chart, error) {
+		if chartID == 0 {
+			return nil, ChartErrInvalidID()
+		}
+
+		aProps.chart.ID = chartID
+		return svc.chartRepo.FindByID(namespaceID, chartID)
+	})
 }
 
-func (svc chart) FindByHandle(namespaceID uint64, handle string) (c *types.Chart, err error) {
-	if _, err = svc.loadNamespace(namespaceID); err != nil {
-		return
-	} else {
-		return svc.checkPermissions(svc.chartRepo.FindByHandle(namespaceID, handle))
-	}
+func (svc chart) FindByHandle(namespaceID uint64, h string) (c *types.Chart, err error) {
+	return svc.lookup(namespaceID, func(aProps *chartActionProps) (*types.Chart, error) {
+		if !handle.IsValid(h) {
+			return nil, ChartErrInvalidHandle()
+		}
+
+		aProps.chart.Handle = h
+		return svc.chartRepo.FindByHandle(namespaceID, h)
+	})
 }
 
-func (svc chart) checkPermissions(c *types.Chart, err error) (*types.Chart, error) {
-	if err != nil {
-		return nil, err
-	} else if !svc.ac.CanReadChart(svc.ctx, c) {
-		return nil, ErrNoReadPermissions.withStack()
-	}
+// search fn() orchestrates charts search, namespace preload and check
+func (svc chart) search(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error) {
+	var (
+		aProps = &chartActionProps{filter: &filter}
+	)
 
-	return c, err
+	f = filter
+	f.IsReadable = svc.ac.FilterReadableCharts(svc.ctx)
+
+	err = svc.db.Transaction(func() error {
+		if ns, err := svc.loadNamespace(f.NamespaceID); err != nil {
+			return err
+		} else {
+			aProps.setNamespace(ns)
+		}
+
+		if set, f, err = svc.chartRepo.Find(f); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return set, f, svc.recordAction(svc.ctx, aProps, ChartActionSearch, err)
 }
 
 func (svc chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error) {
-	filter.IsReadable = svc.ac.FilterReadableCharts(svc.ctx)
-
-	set, f, err = svc.chartRepo.Find(filter)
-	if err != nil {
-		return
-	}
-
-	return
+	return svc.search(filter)
 }
 
-func (svc chart) Create(mod *types.Chart) (c *types.Chart, err error) {
-	if !handle.IsValid(mod.Handle) {
-		return nil, ErrInvalidHandle
-	}
+func (svc chart) Create(new *types.Chart) (c *types.Chart, err error) {
+	var (
+		ns     *types.Namespace
+		aProps = &chartActionProps{changed: new}
+	)
 
-	if ns, err := svc.loadNamespace(mod.NamespaceID); err != nil {
-		return nil, err
-	} else if !svc.ac.CanCreateChart(svc.ctx, ns) {
-		return nil, ErrNoCreatePermissions.withStack()
-	}
+	err = svc.db.Transaction(func() error {
 
-	if err = svc.UniqueCheck(mod); err != nil {
-		return
-	}
+		if !handle.IsValid(new.Handle) {
+			return ChartErrInvalidHandle()
+		}
 
-	return svc.chartRepo.Create(mod)
-}
+		if ns, err = svc.loadNamespace(new.NamespaceID); err != nil {
+			return err
+		}
 
-func (svc chart) Update(mod *types.Chart) (c *types.Chart, err error) {
-	if !handle.IsValid(mod.Handle) {
-		return nil, ErrInvalidHandle
-	}
+		aProps.setNamespace(ns)
 
-	if mod.ID == 0 {
-		return nil, ErrInvalidID.withStack()
-	}
+		if !svc.ac.CanCreateChart(svc.ctx, ns) {
+			return ChartErrNotAllowedToCreate()
+		}
 
-	if c, err = svc.chartRepo.FindByID(mod.NamespaceID, mod.ID); err != nil {
-		return
-	}
-
-	if isStale(mod.UpdatedAt, c.UpdatedAt, c.CreatedAt) {
-		return nil, ErrStaleData.withStack()
-	}
-
-	if err = svc.UniqueCheck(mod); err != nil {
-		return
-	}
-
-	if !svc.ac.CanUpdateChart(svc.ctx, c) {
-		return nil, ErrNoUpdatePermissions.withStack()
-	}
-
-	c.Config = mod.Config
-	c.Name = mod.Name
-	c.Handle = mod.Handle
-
-	return svc.chartRepo.Update(c)
-}
-
-func (svc chart) DeleteByID(namespaceID, chartID uint64) error {
-	if chartID == 0 {
-		return ErrInvalidID.withStack()
-	}
-
-	if namespaceID == 0 {
-		return ErrNamespaceRequired.withStack()
-	}
-
-	if c, err := svc.chartRepo.FindByID(namespaceID, chartID); err != nil {
+		if err = svc.UniqueCheck(new); err != nil {
+			return err
+		}
+		c, err = svc.chartRepo.Create(new)
 		return err
-	} else if !svc.ac.CanDeleteChart(svc.ctx, c) {
-		return ErrNoDeletePermissions.withStack()
-	}
+	})
 
-	return svc.chartRepo.DeleteByID(namespaceID, chartID)
+	return c, svc.recordAction(svc.ctx, aProps, ChartActionCreate, err)
+}
+
+func (svc chart) Update(upd *types.Chart) (c *types.Chart, err error) {
+	var (
+		ns     *types.Namespace
+		aProps = &chartActionProps{changed: upd}
+	)
+
+	err = svc.db.Transaction(func() error {
+		if !handle.IsValid(upd.Handle) {
+			return ChartErrInvalidHandle()
+		}
+
+		if upd.ID == 0 {
+			return ChartErrInvalidID()
+		}
+
+		if ns, err = svc.loadNamespace(upd.NamespaceID); err != nil {
+			return err
+		}
+
+		aProps.setNamespace(ns)
+
+		if c, err = svc.chartRepo.FindByID(upd.NamespaceID, upd.ID); err != nil {
+			if repository.ErrModuleNotFound.Eq(err) {
+				return ModuleErrNotFound()
+			}
+
+			return err
+		}
+
+		if isStale(upd.UpdatedAt, c.UpdatedAt, c.CreatedAt) {
+			return ChartErrStaleData()
+		}
+
+		if err = svc.UniqueCheck(upd); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanUpdateChart(svc.ctx, c) {
+			return ChartErrNotAllowedToUpdate()
+		}
+
+		c.Config = upd.Config
+		c.Name = upd.Name
+		c.Handle = upd.Handle
+
+		c, err = svc.chartRepo.Update(c)
+		return err
+	})
+
+	return c, svc.recordAction(svc.ctx, aProps, ChartActionUpdate, err)
+}
+
+func (svc chart) DeleteByID(namespaceID, chartID uint64) (err error) {
+	var (
+		ns     *types.Namespace
+		c      *types.Chart
+		aProps = &chartActionProps{chart: &types.Chart{ID: chartID, NamespaceID: namespaceID}}
+	)
+
+	err = svc.db.Transaction(func() (err error) {
+		if chartID == 0 {
+			return ChartErrInvalidID()
+		}
+
+		if ns, err = svc.loadNamespace(namespaceID); err != nil {
+			return err
+		}
+
+		aProps.setNamespace(ns)
+
+		if c, err = svc.chartRepo.FindByID(namespaceID, chartID); err != nil {
+			if repository.ErrChartNotFound.Eq(err) {
+				return ChartErrNotFound()
+			}
+
+			return err
+		}
+
+		aProps.setChanged(c)
+
+		if !svc.ac.CanDeleteChart(svc.ctx, c) {
+			return ChartErrNotAllowedToDelete()
+		}
+
+		return svc.chartRepo.DeleteByID(namespaceID, chartID)
+	})
+
+	return svc.recordAction(svc.ctx, aProps, ChartActionDelete, err)
+
 }
 
 func (svc chart) UniqueCheck(c *types.Chart) (err error) {
 	if c.Handle != "" {
 		if e, _ := svc.chartRepo.FindByHandle(c.NamespaceID, c.Handle); e != nil && e.ID != c.ID {
-			return repository.ErrChartHandleNotUnique
+			return ChartErrHandleNotUnique()
 		}
 	}
 
@@ -192,7 +287,7 @@ func (svc chart) UniqueCheck(c *types.Chart) (err error) {
 
 func (svc chart) loadNamespace(namespaceID uint64) (ns *types.Namespace, err error) {
 	if namespaceID == 0 {
-		return nil, ErrNamespaceRequired.withStack()
+		return nil, ChartErrInvalidNamespaceID()
 	}
 
 	if ns, err = svc.nsRepo.FindByID(namespaceID); err != nil {
@@ -200,7 +295,7 @@ func (svc chart) loadNamespace(namespaceID uint64) (ns *types.Namespace, err err
 	}
 
 	if !svc.ac.CanReadNamespace(svc.ctx, ns) {
-		return nil, ErrNoReadPermissions.withStack()
+		return nil, ChartErrNotAllowedToReadNamespace()
 	}
 
 	return

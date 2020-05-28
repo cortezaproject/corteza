@@ -253,9 +253,11 @@ func (ctrl *Record) ImportInit(ctx context.Context, r *request.RecordImportInit)
 		recordDecoder = decoder.NewFlatReader(csv.NewReader(f), f)
 
 	default:
-		return nil, service.ErrRecordImportFormatNotSupported
-
+		// copied here from service/errors.go for backward compatibility
+		// @todo move this logic to service and use action/error pattern
+		return nil, fmt.Errorf("compose.service.RecordImportFormatNotSupported")
 	}
+
 	entryCount, err = recordDecoder.EntryCount()
 	if err != nil {
 		return nil, err
@@ -267,7 +269,7 @@ func (ctrl *Record) ImportInit(ctx context.Context, r *request.RecordImportInit)
 		hh[h] = ""
 	}
 
-	return ctrl.importSession.SetRecordByID(
+	return ctrl.importSession.SetByID(
 		ctx,
 		0,
 		r.NamespaceID,
@@ -288,13 +290,9 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 	}
 
 	// Check if session ok
-	ses, err := ctrl.importSession.FindRecordByID(ctx, r.SessionID)
+	ses, err := ctrl.importSession.FindByID(ctx, r.SessionID)
 	if err != nil {
 		return nil, err
-	}
-
-	if ses.Progress.StartedAt != nil {
-		return nil, service.ErrRecordImportSessionAlreadyStarted
 	}
 
 	ses.Fields = make(map[string]string)
@@ -313,7 +311,7 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 
 func (ctrl *Record) ImportProgress(ctx context.Context, r *request.RecordImportProgress) (interface{}, error) {
 	// Get session
-	ses, err := ctrl.importSession.FindRecordByID(ctx, r.SessionID)
+	ses, err := ctrl.importSession.FindByID(ctx, r.SessionID)
 	if err != nil {
 		return nil, err
 	}

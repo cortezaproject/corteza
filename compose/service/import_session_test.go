@@ -10,14 +10,14 @@ import (
 
 var ctx context.Context = context.WithValue(context.Background(), "testing", true)
 
-func TestFindRecordByID(t *testing.T) {
+func TestImportSession_FindByID(t *testing.T) {
 	DefaultLogger = zap.New(nil, nil)
 	svc := ImportSession()
-	ss, _ := svc.SetRecordByID(ctx, 1, 0, 0, nil, nil, nil)
+	ss, _ := svc.SetByID(ctx, 1, 0, 0, nil, nil, nil)
 	sid := ss.SessionID
 
 	t.Run("Found", func(t *testing.T) {
-		s, err := svc.FindRecordByID(ctx, sid)
+		s, err := svc.FindByID(ctx, sid)
 		require.True(t,
 			s != nil,
 			"Session should be found",
@@ -30,7 +30,7 @@ func TestFindRecordByID(t *testing.T) {
 	})
 
 	t.Run("Not found", func(t *testing.T) {
-		s, err := svc.FindRecordByID(ctx, sid+1)
+		s, err := svc.FindByID(ctx, sid+1)
 		require.True(t,
 			s == nil,
 			"Session should not be found",
@@ -43,12 +43,12 @@ func TestFindRecordByID(t *testing.T) {
 	})
 }
 
-func TestSetRecordByID(t *testing.T) {
+func TestImportSession_SetByID(t *testing.T) {
 	DefaultLogger = zap.New(nil, nil)
 	svc := ImportSession()
 
 	t.Run("New", func(t *testing.T) {
-		ss, err := svc.SetRecordByID(ctx, 1, 0, 0, nil, nil, nil)
+		ss, err := svc.SetByID(ctx, 1, 0, 0, nil, nil, nil)
 		require.True(t,
 			len(svc.records) == 1 && ss != nil,
 			"Session should be created",
@@ -62,8 +62,8 @@ func TestSetRecordByID(t *testing.T) {
 
 	t.Run("Existing", func(t *testing.T) {
 		svc := ImportSession()
-		ss, err := svc.SetRecordByID(ctx, 1, 0, 0, nil, nil, nil)
-		ns, err := svc.SetRecordByID(ctx, ss.SessionID, 0, 0, nil, nil, nil)
+		ss, err := svc.SetByID(ctx, 1, 0, 0, nil, nil, nil)
+		ns, err := svc.SetByID(ctx, ss.SessionID, 0, 0, nil, nil, nil)
 		require.True(t,
 			len(svc.records) == 1 && ns != nil && ss.SessionID == ns.SessionID,
 			"Existing session should be edited",
@@ -76,13 +76,13 @@ func TestSetRecordByID(t *testing.T) {
 	})
 }
 
-func TestDeleteRecordByID(t *testing.T) {
+func TestImportSession_DeleteByID(t *testing.T) {
 	DefaultLogger = zap.New(nil, nil)
 	svc := ImportSession()
-	ss, _ := svc.SetRecordByID(ctx, 1, 0, 0, nil, nil, nil)
+	ss, _ := svc.SetByID(ctx, 1, 0, 0, nil, nil, nil)
 
 	t.Run("Delete existing", func(t *testing.T) {
-		err := svc.DeleteRecordByID(ctx, ss.SessionID)
+		err := svc.DeleteByID(ctx, ss.SessionID)
 		require.True(t,
 			len(svc.records) == 0,
 			"Session should be deleted",
@@ -95,8 +95,8 @@ func TestDeleteRecordByID(t *testing.T) {
 	})
 
 	t.Run("Session not found", func(t *testing.T) {
-		ss, _ := svc.SetRecordByID(ctx, 1, 0, 0, nil, nil, nil)
-		err := svc.DeleteRecordByID(ctx, ss.SessionID+1)
+		ss, _ := svc.SetByID(ctx, 1, 0, 0, nil, nil, nil)
+		err := svc.DeleteByID(ctx, ss.SessionID+1)
 		require.True(t,
 			len(svc.records) == 1,
 			"Session should not deleted",

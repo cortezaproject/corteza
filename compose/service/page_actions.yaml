@@ -1,0 +1,113 @@
+# List of loggable service actions
+
+resource: compose:page
+service: page
+
+# Default sensitivity for actions
+defaultActionSeverity: info
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/compose/types
+
+props:
+  - name: page
+    type: "*types.Page"
+    fields: [ title, handle, ID, namespaceID, moduleID ]
+  - name: changed
+    type: "*types.Page"
+    fields: [ title, handle, ID, namespaceID, description, moduleID, blocks, visible, weight ]
+  - name: filter
+    type: "*types.PageFilter"
+    fields: [ query, handle, root, namespaceID, parentID, sort, limit, offset, page, perPage ]
+  - name: namespace
+    type: "*types.Namespace"
+    fields: [ name, slug, ID ]
+
+actions:
+  - action: search
+    log: "searched for pages"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {page}"
+    severity: info
+
+  - action: create
+    log: "created {page}"
+
+  - action: update
+    log: "updated {page}"
+
+  - action: delete
+    log: "deleted {page}"
+
+  - action: undelete
+    log: "undeleted {page}"
+
+  - action: reorder
+    log: "reordered {page}"
+
+errors:
+  - error: notFound
+    message: "page does not exist"
+    severity: warning
+
+  - error: namespaceNotFound
+    message: "namespace does not exist"
+    severity: warning
+
+  - error: moduleNotFound
+    message: "module does not exist"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning
+
+  - error: handleNotUnique
+    message: "handle not unique"
+    log: "used duplicate handle ({page.handle}) for page"
+    severity: warning
+
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
+  - error: invalidNamespaceID
+    message: "invalid or missing namespace ID"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this page"
+    log: "could not read {page}; insufficient permissions"
+
+  - error: notAllowedToReadNamespace
+    message: "not allowed to read this namespace"
+    log: "could not read namespace {namespace}; insufficient permissions"
+
+  - error: notAllowedToListPages
+    message: "not allowed to list pages"
+    log: "could not list pages; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create pages"
+    log: "could not create pages; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this page"
+    log: "could not update {page}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this page"
+    log: "could not delete {page}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this page"
+    log: "could not undelete {page}; insufficient permissions"

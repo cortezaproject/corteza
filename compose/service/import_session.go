@@ -2,36 +2,32 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/titpetric/factory"
 
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-
-	"go.uber.org/zap"
 )
 
 type (
 	recordSet []*RecordImportSession
 
 	importSession struct {
-		l      sync.Mutex
-		logger *zap.Logger
-
+		l       sync.Mutex
 		records recordSet
 	}
 
 	ImportSessionService interface {
-		FindRecordByID(ctx context.Context, sessionID uint64) (*RecordImportSession, error)
-		SetRecordByID(ctx context.Context, sessionID, namespaceID, moduleID uint64, fields map[string]string, progress *RecordImportProgress, decoder Decoder) (*RecordImportSession, error)
-		DeleteRecordByID(ctx context.Context, sessionID uint64) error
+		FindByID(ctx context.Context, sessionID uint64) (*RecordImportSession, error)
+		SetByID(ctx context.Context, sessionID, namespaceID, moduleID uint64, fields map[string]string, progress *RecordImportProgress, decoder Decoder) (*RecordImportSession, error)
+		DeleteByID(ctx context.Context, sessionID uint64) error
 	}
 )
 
 func ImportSession() *importSession {
 	return &importSession{
-		logger:  DefaultLogger.Named("importSession"),
 		records: recordSet{},
 	}
 }
@@ -46,7 +42,7 @@ func (svc importSession) indexOf(userID, sessionID uint64) int {
 	return -1
 }
 
-func (svc *importSession) FindRecordByID(ctx context.Context, sessionID uint64) (*RecordImportSession, error) {
+func (svc *importSession) FindByID(ctx context.Context, sessionID uint64) (*RecordImportSession, error) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 
@@ -55,10 +51,10 @@ func (svc *importSession) FindRecordByID(ctx context.Context, sessionID uint64) 
 	if i >= 0 {
 		return svc.records[i], nil
 	}
-	return nil, ErrRecordImportSessionNotFound
+	return nil, fmt.Errorf("compose.service.RecordImportSessionNotFound")
 }
 
-func (svc *importSession) SetRecordByID(ctx context.Context, sessionID, namespaceID, moduleID uint64, fields map[string]string, progress *RecordImportProgress, decoder Decoder) (*RecordImportSession, error) {
+func (svc *importSession) SetByID(ctx context.Context, sessionID, namespaceID, moduleID uint64, fields map[string]string, progress *RecordImportProgress, decoder Decoder) (*RecordImportSession, error) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 
@@ -106,7 +102,7 @@ func remove(s recordSet, i int) recordSet {
 	return s[:len(s)-1]
 }
 
-func (svc *importSession) DeleteRecordByID(ctx context.Context, sessionID uint64) error {
+func (svc *importSession) DeleteByID(ctx context.Context, sessionID uint64) error {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 
