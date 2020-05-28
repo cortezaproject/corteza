@@ -162,8 +162,9 @@ func (enc structuredEncoder) Record(r *types.Record) (err error) {
 	return enc.w.Encode(out)
 }
 
-func (enc *excelizeEncoder) Record(r *types.Record) error {
+func (enc *excelizeEncoder) Record(r *types.Record) (err error) {
 	enc.row++
+	var u string
 
 	for p, f := range enc.ff {
 		p++
@@ -175,17 +176,33 @@ func (enc *excelizeEncoder) Record(r *types.Record) error {
 		case "namespaceID":
 			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtUint64(r.NamespaceID))
 		case "ownedBy":
-			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtUint64(r.OwnedBy))
+			u, err = fmtSysUser(r.OwnedBy, enc.u)
+			if err != nil {
+				return err
+			}
+			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), u)
 		case "createdBy":
-			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtUint64(r.CreatedBy))
+			u, err = fmtSysUser(r.CreatedBy, enc.u)
+			if err != nil {
+				return err
+			}
+			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), u)
 		case "createdAt":
 			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtTime(&r.CreatedAt))
 		case "updatedBy":
-			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtUint64(r.UpdatedBy))
+			u, err = fmtSysUser(r.UpdatedBy, enc.u)
+			if err != nil {
+				return err
+			}
+			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), u)
 		case "updatedAt":
 			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtTime(r.UpdatedAt))
 		case "deletedBy":
-			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtUint64(r.DeletedBy))
+			u, err = fmtSysUser(r.DeletedBy, enc.u)
+			if err != nil {
+				return err
+			}
+			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), u)
 		case "deletedAt":
 			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtTime(r.DeletedAt))
 		default:
