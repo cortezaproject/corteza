@@ -1,0 +1,140 @@
+# List of loggable service actions
+
+resource: compose:attachment
+service: attachment
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: alert
+
+import:
+  - github.com/cortezaproject/corteza-server/compose/types
+
+props:
+  - name: size
+    type: int64
+  - name: name
+  - name: mimetype
+  - name: url
+  - name: attachment
+    type: "*types.Attachment"
+    fields: [ name, kind, url, previewUrl, meta, ownerID, ID, namespaceID ]
+  - name: filter
+    type: "*types.AttachmentFilter"
+    fields: [ filter, kind, sort ]
+  - name: namespace
+    type: "*types.Namespace"
+    fields: [ name, slug, ID ]
+  - name: record
+    type: "*types.Record"
+    fields: [ ID, moduleID, namespaceID ]
+  - name: page
+    type: "*types.Page"
+    fields: [ handle, title, ID ]
+  - name: module
+    type: "*types.Module"
+    fields: [ handle, name, ID ]
+
+actions:
+  - action: search
+    log: "searched for attachments"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {attachment}"
+    severity: info
+
+  - action: create
+    log: "created {attachment}"
+
+  - action: delete
+    log: "deleted {attachment}"
+
+errors:
+  - error: notFound
+    message: "attachment not found"
+    severity: warning
+
+  - error: namespaceNotFound
+    message: "namespace not found"
+    severity: warning
+
+  - error: moduleNotFound
+    message: "module not found"
+    severity: warning
+
+  - error: pageNotFound
+    message: "page not found"
+    severity: warning
+
+  - error: recordNotFound
+    message: "record not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidNamespaceID
+    message: "invalid namespace ID"
+    severity: warning
+
+  - error: invalidModuleID
+    message: "invalid module ID"
+    severity: warning
+
+  - error: invalidPageID
+    message: "invalid page ID"
+    severity: warning
+
+  - error: invalidRecordID
+    message: "invalid record ID"
+    severity: warning
+
+  - error: notAllowedToListAttachments
+    message: "not allowed to list attachments"
+    log: "could not list attachments; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create attachments"
+    log: "could not create attachments; insufficient permissions"
+
+  - error: failedToExtractMimeType
+    message: "could not extract mime type"
+
+  - error: failedToStoreFile
+    message: "could not extract store file"
+
+  - error: failedToProcessImage
+    message: "could not process image"
+
+  - error: notAllowedToReadModule
+    message: "not allowed to read this module"
+    log: "could not delete {module}; insufficient permissions"
+
+  - error: notAllowedToReadNamespace
+    message: "not allowed to read this namespace"
+    log: "could not delete {namespace}; insufficient permissions"
+
+  - error: notAllowedToReadPage
+    message: "not allowed to read this page"
+    log: "could not read {page}; insufficient permissions"
+
+  - error: notAllowedToReadRecord
+    message: "not allowed to read this record"
+    log: "could not read {record}; insufficient permissions"
+
+  - error: notAllowedToUpdatePage
+    message: "not allowed to update this page"
+    log: "could not update {page}; insufficient permissions"
+
+  - error: notAllowedToCreateRecords
+    message: "not allowed to create records"
+    log: "could not create records; insufficient permissions"
+
+  - error: notAllowedToUpdateRecord
+    message: "not allowed to update this record"
+    log: "could not update {record}; insufficient permissions"
+

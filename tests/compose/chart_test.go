@@ -108,7 +108,7 @@ func TestChartCreateForbidden(t *testing.T) {
 		FormData("name", "some-chart").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("compose.service.NoCreatePermissions")).
+		Assert(helpers.AssertError("not allowed to create charts")).
 		End()
 }
 
@@ -139,7 +139,7 @@ func TestChartUpdateForbidden(t *testing.T) {
 		FormData("name", "changed-name").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("compose.service.NoUpdatePermissions")).
+		Assert(helpers.AssertError("not allowed to update this chart")).
 		End()
 }
 
@@ -176,7 +176,7 @@ func TestChartDeleteForbidden(t *testing.T) {
 		Delete(fmt.Sprintf("/namespace/%d/chart/%d", ns.ID, m.ID)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("compose.service.NoDeletePermissions")).
+		Assert(helpers.AssertError("not allowed to delete this chart")).
 		End()
 }
 

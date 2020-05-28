@@ -117,7 +117,7 @@ func TestPageCreateForbidden(t *testing.T) {
 		FormData("title", "some-page").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("compose.service.NoCreatePermissions")).
+		Assert(helpers.AssertError("not allowed to create pages")).
 		End()
 }
 
@@ -148,7 +148,7 @@ func TestPageUpdateForbidden(t *testing.T) {
 		FormData("title", "changed-name").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("compose.service.NoUpdatePermissions")).
+		Assert(helpers.AssertError("not allowed to update this page")).
 		End()
 }
 
@@ -185,7 +185,7 @@ func TestPageDeleteForbidden(t *testing.T) {
 		Delete(fmt.Sprintf("/namespace/%d/page/%d", ns.ID, m.ID)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("compose.service.NoDeletePermissions")).
+		Assert(helpers.AssertError("not allowed to delete this page")).
 		End()
 }
 
@@ -206,7 +206,7 @@ func TestPageDelete(t *testing.T) {
 		End()
 
 	m, err := h.repoPage().FindByID(ns.ID, m.ID)
-	h.a.Error(err, "compose.repository.PageNotFound")
+	h.a.Error(err, "page does not exist")
 }
 
 func TestPageTreeRead(t *testing.T) {

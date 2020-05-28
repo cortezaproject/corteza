@@ -43,10 +43,6 @@ type (
 	}
 )
 
-const (
-	NamespaceCRM uint64 = 88714882739863655
-)
-
 // Resource returns a system resource ID for this type
 func (n Namespace) PermissionResource() permissions.Resource {
 	return NamespacePermissionResource.AppendID(n.ID)

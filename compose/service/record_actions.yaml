@@ -1,0 +1,152 @@
+# List of loggable service actions
+
+resource: compose:record
+service: record
+
+# Default sensitivity for actions
+defaultActionSeverity: info
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/compose/types
+
+props:
+  - name: record
+    type: "*types.Record"
+    fields: [ ID, moduleID, namespaceID, ownedBy ]
+  - name: changed
+    type: "*types.Record"
+    fields: [ ID, moduleID, namespaceID, ownedBy, values ]
+  - name: filter
+    type: "*types.RecordFilter"
+    fields: [ query, namespaceID, moduleID, deleted, sort, limit, offset, page, perPage ]
+  - name: namespace
+    type: "*types.Namespace"
+    fields: [ name, slug, ID ]
+  - name: module
+    type: "*types.Module"
+    fields: [ name, handle, ID, namespaceID ]
+  - name: field
+  - name: value
+
+actions:
+  - action: search
+    log: "searched for records"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {record}"
+    severity: info
+
+  - action: report
+    log: "report generated"
+    severity: info
+
+  - action: create
+    log: "created {record}"
+
+  - action: update
+    log: "updated {record}"
+
+  - action: delete
+    log: "deleted {record}"
+
+  - action: undelete
+    log: "undeleted {record}"
+
+  - action: import
+    log: "record imported"
+
+  - action: organize
+    log: "records organized"
+
+  - action: iteratorInvoked
+    log: "iterator invoked"
+
+  - action: iteratorIteration
+    log: "processed record iteration"
+
+  - action: iteratorClone
+    log: "cloned record in iteration"
+
+  - action: iteratorUpdate
+    log: "updated record in iteration"
+
+  - action: iteratorDelete
+    log: "deleted record in iteration"
+
+errors:
+  - error: notFound
+    message: "record not found"
+    severity: warning
+
+  - error: namespaceNotFound
+    message: "namespace not found"
+    severity: warning
+
+  - error: moduleNotFoundModule
+    message: "module not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidNamespaceID
+    message: "invalid or missing namespace ID"
+    severity: warning
+
+  - error: invalidModuleID
+    message: "invalid or missing module ID"
+    severity: warning
+
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this record"
+    log: "failed to read {record}; insufficient permissions"
+
+  - error: notAllowedToReadNamespace
+    message: "not allowed to read this namespace"
+    log: "failed to read namespace {namespace}; insufficient permissions"
+
+  - error: notAllowedToReadModule
+    message: "not allowed to read module"
+    log: "failed to read module {module}; insufficient permissions"
+
+  - error: notAllowedToListRecords
+    message: "not allowed to list records"
+    log: "failed to list record; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create records"
+    log: "failed to create record; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this record"
+    log: "failed to update {record}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this record"
+    log: "failed to delete {record}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this record"
+    log: "failed to undelete {record}; insufficient permissions"
+
+  - error: importSessionAlreadActive
+    message: "import session already active"
+    log: "failed to start import session"
+
+  - error: fieldNotFound
+    message: "no such field {field}"
+
+  - error: invalidValueInput
+    message: "more than one value for a single-value field {field}"
+
+  - error: invalidReferenceFormat
+    message: "invalid reference format"

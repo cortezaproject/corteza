@@ -4,23 +4,22 @@ import (
 	"context"
 
 	"github.com/titpetric/factory"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 )
 
 type (
 	page struct {
-		db     *factory.DB
-		ctx    context.Context
-		logger *zap.Logger
+		db  *factory.DB
+		ctx context.Context
+
+		actionlog actionlog.Recorder
 
 		ac       pageAccessController
 		eventbus eventDispatcher
@@ -60,7 +59,6 @@ type (
 
 func Page() PageService {
 	return (&page{
-		logger:   DefaultLogger.Named("page"),
 		ac:       DefaultAccessControl,
 		eventbus: eventbus.Service(),
 	}).With(context.Background())
@@ -69,9 +67,10 @@ func Page() PageService {
 func (svc page) With(ctx context.Context) PageService {
 	db := repository.DB(ctx)
 	return &page{
-		db:     db,
-		ctx:    ctx,
-		logger: svc.logger,
+		db:  db,
+		ctx: ctx,
+
+		actionlog: DefaultActionlog,
 
 		ac:       svc.ac,
 		eventbus: svc.eventbus,
@@ -82,51 +81,98 @@ func (svc page) With(ctx context.Context) PageService {
 	}
 }
 
-// log() returns zap's logger with requestID from current context and fields.
-func (svc page) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(ctx, svc.logger).With(fields...)
+// lookup fn() orchestrates page lookup, namespace preload and check
+func (svc page) lookup(namespaceID uint64, lookup func(*pageActionProps) (*types.Page, error)) (p *types.Page, err error) {
+	var aProps = &pageActionProps{page: &types.Page{NamespaceID: namespaceID}}
+
+	err = svc.db.Transaction(func() error {
+		if ns, err := svc.loadNamespace(namespaceID); err != nil {
+			return err
+		} else {
+			aProps.setNamespace(ns)
+		}
+
+		if p, err = lookup(aProps); err != nil {
+			if repository.ErrPageNotFound.Eq(err) {
+				return PageErrNotFound()
+			}
+
+			return err
+		}
+
+		aProps.setPage(p)
+
+		if !svc.ac.CanReadPage(svc.ctx, p) {
+			return PageErrNotAllowedToRead()
+		}
+
+		return nil
+	})
+
+	return p, svc.recordAction(svc.ctx, aProps, PageActionLookup, err)
 }
 
 func (svc page) FindByID(namespaceID, pageID uint64) (p *types.Page, err error) {
-	if _, err = svc.loadNamespace(namespaceID); err != nil {
-		return
-	} else {
-		return svc.checkPermissions(svc.pageRepo.FindByID(namespaceID, pageID))
-	}
+	return svc.lookup(namespaceID, func(aProps *pageActionProps) (*types.Page, error) {
+		if pageID == 0 {
+			return nil, PageErrInvalidID()
+		}
+
+		aProps.page.ID = pageID
+		return svc.pageRepo.FindByID(namespaceID, pageID)
+	})
 }
 
-func (svc page) FindByHandle(namespaceID uint64, handle string) (c *types.Page, err error) {
-	if _, err = svc.loadNamespace(namespaceID); err != nil {
-		return
-	} else {
-		return svc.checkPermissions(svc.pageRepo.FindByHandle(namespaceID, handle))
-	}
+func (svc page) FindByHandle(namespaceID uint64, h string) (c *types.Page, err error) {
+	return svc.lookup(namespaceID, func(aProps *pageActionProps) (*types.Page, error) {
+		if !handle.IsValid(h) {
+			return nil, PageErrInvalidHandle()
+		}
+
+		aProps.page.Handle = h
+		return svc.pageRepo.FindByHandle(namespaceID, h)
+	})
 }
 
 func (svc page) FindByModuleID(namespaceID, moduleID uint64) (p *types.Page, err error) {
-	if _, err = svc.loadNamespace(namespaceID); err != nil {
-		return
-	} else {
-		return svc.checkPermissions(svc.pageRepo.FindByModuleID(namespaceID, moduleID))
-	}
+	return svc.lookup(namespaceID, func(aProps *pageActionProps) (*types.Page, error) {
+		if moduleID == 0 {
+			return nil, PageErrInvalidID()
+		}
+
+		aProps.page.ModuleID = moduleID
+		return svc.pageRepo.FindByModuleID(namespaceID, moduleID)
+	})
 }
 
-func (svc page) checkPermissions(p *types.Page, err error) (*types.Page, error) {
-	if err != nil {
-		return nil, err
-	} else if !svc.ac.CanReadPage(svc.ctx, p) {
-		return nil, ErrNoReadPermissions.withStack()
-	}
+// search fn() orchestrates pages search, namespace preload and check
+func (svc page) search(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
+	var (
+		aProps = &pageActionProps{filter: &filter}
+	)
 
-	return p, err
+	f = filter
+	f.IsReadable = svc.ac.FilterReadablePages(svc.ctx)
+
+	err = svc.db.Transaction(func() error {
+		if ns, err := svc.loadNamespace(f.NamespaceID); err != nil {
+			return err
+		} else {
+			aProps.setNamespace(ns)
+		}
+
+		if set, f, err = svc.pageRepo.Find(f); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return set, f, svc.recordAction(svc.ctx, aProps, PageActionSearch, err)
 }
 
 func (svc page) FindBySelfID(namespaceID, parentID uint64) (pp types.PageSet, f types.PageFilter, err error) {
-	if namespaceID == 0 {
-		return nil, f, ErrNamespaceRequired.withStack()
-	}
-
-	return svc.pageRepo.Find(types.PageFilter{
+	return svc.search(types.PageFilter{
 		NamespaceID: namespaceID,
 		ParentID:    parentID,
 
@@ -139,212 +185,249 @@ func (svc page) FindBySelfID(namespaceID, parentID uint64) (pp types.PageSet, f 
 
 func (svc page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
 	filter.IsReadable = svc.ac.FilterReadablePages(svc.ctx)
-
-	if filter.NamespaceID == 0 {
-		return nil, f, ErrNamespaceRequired.withStack()
-	}
-
-	return svc.pageRepo.Find(filter)
+	return svc.search(filter)
 }
 
-func (svc page) Tree(namespaceID uint64) (pages types.PageSet, err error) {
-	if namespaceID == 0 {
-		return nil, ErrNamespaceRequired.withStack()
+func (svc page) Tree(namespaceID uint64) (tree types.PageSet, err error) {
+	var pages types.PageSet
+	pages, _, err = svc.search(types.PageFilter{
+		NamespaceID: namespaceID,
+		IsReadable:  svc.ac.FilterReadablePages(svc.ctx),
+		Sort:        "weight ASC",
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
-	var (
-		tree   types.PageSet
-		filter = types.PageFilter{
-			NamespaceID: namespaceID,
-			IsReadable:  svc.ac.FilterReadablePages(svc.ctx),
-			Sort:        "weight ASC",
-		}
-	)
-
-	return tree, svc.db.Transaction(func() (err error) {
-		if pages, _, err = svc.pageRepo.Find(filter); err != nil {
-			return
-		}
-
-		// No preloading - we do not need (or should have) any modules
-		// associated with us
-		_ = pages.Walk(func(p *types.Page) error {
-			if p.SelfID == 0 {
-				tree = append(tree, p)
-			} else if c := pages.FindByID(p.SelfID); c != nil {
-				if c.Children == nil {
-					c.Children = types.PageSet{}
-				}
-
-				c.Children = append(c.Children, p)
-			} else {
-				// Move orphans to root
-				p.SelfID = 0
-				tree = append(tree, p)
+	// safe to ignore errors
+	_ = pages.Walk(func(p *types.Page) error {
+		if p.SelfID == 0 {
+			tree = append(tree, p)
+		} else if c := pages.FindByID(p.SelfID); c != nil {
+			if c.Children == nil {
+				c.Children = types.PageSet{}
 			}
 
-			return nil
-		})
+			c.Children = append(c.Children, p)
+		} else {
+			// Move orphans to root
+			p.SelfID = 0
+			tree = append(tree, p)
+		}
 
 		return nil
 	})
+
+	return tree, nil
 }
 
-func (svc page) Reorder(namespaceID, selfID uint64, pageIDs []uint64) error {
-	if ns, err := svc.loadNamespace(namespaceID); err != nil {
-		return err
-	} else if selfID == 0 {
-		// Reordering on root mode
-		if !svc.ac.CanCreatePage(svc.ctx, ns) {
-			return ErrNoUpdatePermissions.withStack()
-		}
-	} else if p, err := svc.checkPermissions(svc.pageRepo.FindByID(ns.ID, selfID)); err != nil {
-		return err
-	} else if !svc.ac.CanUpdatePage(svc.ctx, p) {
-		return ErrNoUpdatePermissions.withStack()
-	}
+// Reorder pages
+//
+func (svc page) Reorder(namespaceID, parentID uint64, pageIDs []uint64) (err error) {
+	var (
+		aProps = &pageActionProps{page: &types.Page{ID: parentID}}
+		ns     *types.Namespace
+		p      *types.Page
+	)
 
-	return svc.pageRepo.Reorder(namespaceID, selfID, pageIDs)
+	err = svc.db.Transaction(func() (err error) {
+		if ns, err = svc.loadNamespace(namespaceID); err != nil {
+			return err
+		}
+
+		// Reordering on root mode -- check if user can create pages.
+		if parentID == 0 && !svc.ac.CanCreatePage(svc.ctx, ns) {
+			return PageErrNotAllowedToUpdate()
+		}
+
+		if p, err = svc.pageRepo.FindByID(ns.ID, parentID); err != nil {
+			if repository.ErrPageNotFound.Eq(err) {
+				return PageErrNotFound()
+			}
+
+			return
+		}
+
+		aProps.setPage(p)
+
+		if !svc.ac.CanUpdatePage(svc.ctx, p) {
+			return PageErrNotAllowedToUpdate()
+		}
+
+		return svc.pageRepo.Reorder(namespaceID, parentID, pageIDs)
+	})
+
+	return svc.recordAction(svc.ctx, aProps, PageActionReorder, err)
+
 }
 
 func (svc page) Create(new *types.Page) (p *types.Page, err error) {
 	var (
-		ns *types.Namespace
+		ns     *types.Namespace
+		aProps = &pageActionProps{changed: new}
 	)
 
 	new.ID = 0
 
-	if !handle.IsValid(new.Handle) {
-		return nil, ErrInvalidHandle
-	}
+	err = svc.db.Transaction(func() error {
+		if !handle.IsValid(new.Handle) {
+			return PageErrInvalidID()
+		}
 
-	if ns, err = svc.loadNamespace(new.NamespaceID); err != nil {
-		return nil, err
-	} else if !svc.ac.CanCreatePage(svc.ctx, ns) {
-		return nil, ErrNoCreatePermissions.withStack()
-	}
+		if ns, err = svc.loadNamespace(new.NamespaceID); err != nil {
+			return err
+		} else if !svc.ac.CanCreatePage(svc.ctx, ns) {
+			return PageErrNotAllowedToCreate()
+		}
 
-	if err = svc.eventbus.WaitFor(svc.ctx, event.PageBeforeCreate(new, nil, ns)); err != nil {
-		return
-	}
+		if err = svc.eventbus.WaitFor(svc.ctx, event.PageBeforeCreate(new, nil, ns)); err != nil {
+			return err
+		}
 
-	if err = svc.UniqueCheck(new); err != nil {
-		return
-	}
+		if err = svc.UniqueCheck(new); err != nil {
+			return err
+		}
 
-	if p, err = svc.pageRepo.Create(new); err != nil {
-		return
-	}
+		if p, err = svc.pageRepo.Create(new); err != nil {
+			return err
+		}
 
-	defer svc.eventbus.Dispatch(svc.ctx, event.PageAfterCreate(new, nil, ns))
-	return
+		defer svc.eventbus.Dispatch(svc.ctx, event.PageAfterCreate(new, nil, ns))
+		return err
+	})
+
+	return p, svc.recordAction(svc.ctx, aProps, PageActionCreate, err)
 }
 
 func (svc page) Update(upd *types.Page) (p *types.Page, err error) {
 	var (
-		ns *types.Namespace
+		ns     *types.Namespace
+		aProps = &pageActionProps{changed: upd}
 	)
 
-	if upd.ID == 0 {
-		return nil, ErrInvalidID.withStack()
-	}
+	err = svc.db.Transaction(func() error {
+		if upd.ID == 0 {
+			return PageErrInvalidID()
+		}
 
-	if !handle.IsValid(upd.Handle) {
-		return nil, ErrInvalidHandle
-	}
+		if !handle.IsValid(upd.Handle) {
+			return PageErrInvalidHandle()
+		}
 
-	if ns, err = svc.loadNamespace(upd.NamespaceID); err != nil {
-		return
-	}
+		if ns, err = svc.loadNamespace(upd.NamespaceID); err != nil {
+			return err
+		}
 
-	if p, err = svc.pageRepo.FindByID(upd.NamespaceID, upd.ID); err != nil {
-		return
-	}
+		if p, err = svc.pageRepo.FindByID(upd.NamespaceID, upd.ID); err != nil {
+			if repository.ErrPageNotFound.Eq(err) {
+				return PageErrNotFound()
+			}
 
-	if isStale(upd.UpdatedAt, p.UpdatedAt, p.CreatedAt) {
-		return nil, ErrStaleData.withStack()
-	}
+			return err
+		}
 
-	if !svc.ac.CanUpdatePage(svc.ctx, p) {
-		return nil, ErrNoUpdatePermissions.withStack()
-	}
+		if isStale(upd.UpdatedAt, p.UpdatedAt, p.CreatedAt) {
+			return PageErrStaleData()
+		}
 
-	if err = svc.eventbus.WaitFor(svc.ctx, event.PageBeforeUpdate(upd, p, ns)); err != nil {
-		return
-	}
+		if !svc.ac.CanUpdatePage(svc.ctx, p) {
+			return PageErrNotAllowedToUpdate()
+		}
 
-	if err = svc.UniqueCheck(upd); err != nil {
-		return
-	}
+		if err = svc.eventbus.WaitFor(svc.ctx, event.PageBeforeUpdate(upd, p, ns)); err != nil {
+			return err
+		}
 
-	p.ModuleID = upd.ModuleID
-	p.SelfID = upd.SelfID
-	p.Blocks = upd.Blocks
-	p.Title = upd.Title
-	p.Handle = upd.Handle
-	p.Description = upd.Description
-	p.Visible = upd.Visible
-	p.Weight = upd.Weight
+		if err = svc.UniqueCheck(upd); err != nil {
+			return err
+		}
 
-	if p, err = svc.pageRepo.Update(p); err != nil {
-		return
-	}
+		p.ModuleID = upd.ModuleID
+		p.SelfID = upd.SelfID
+		p.Blocks = upd.Blocks
+		p.Title = upd.Title
+		p.Handle = upd.Handle
+		p.Description = upd.Description
+		p.Visible = upd.Visible
+		p.Weight = upd.Weight
 
-	defer svc.eventbus.Dispatch(svc.ctx, event.PageAfterUpdate(upd, p, ns))
-	return
+		if p, err = svc.pageRepo.Update(p); err != nil {
+			return err
+		}
+
+		defer svc.eventbus.Dispatch(svc.ctx, event.PageAfterUpdate(upd, p, ns))
+		return err
+	})
+
+	return p, svc.recordAction(svc.ctx, aProps, PageActionUpdate, err)
+}
+
+func (svc page) DeleteByID(namespaceID, pageID uint64) (err error) {
+	var (
+		del    *types.Page
+		ns     *types.Namespace
+		aProps = &pageActionProps{page: &types.Page{ID: pageID, NamespaceID: namespaceID}}
+	)
+
+	err = svc.db.Transaction(func() error {
+
+		if pageID == 0 {
+			return PageErrInvalidID()
+		}
+
+		if ns, err = svc.loadNamespace(namespaceID); err != nil {
+			return err
+		}
+
+		if del, err = svc.pageRepo.FindByID(namespaceID, pageID); err != nil {
+			if repository.ErrPageNotFound.Eq(err) {
+				return PageErrNotFound()
+			}
+
+			return err
+		}
+
+		aProps.setChanged(del)
+
+		if !svc.ac.CanDeletePage(svc.ctx, del) {
+			return PageErrNotAllowedToDelete()
+		}
+
+		if err = svc.eventbus.WaitFor(svc.ctx, event.PageBeforeDelete(nil, del, ns)); err != nil {
+			return err
+		}
+
+		if err = svc.pageRepo.DeleteByID(namespaceID, pageID); err != nil {
+			return err
+		}
+
+		defer svc.eventbus.Dispatch(svc.ctx, event.PageAfterDelete(nil, del, ns))
+		return err
+	})
+
+	return svc.recordAction(svc.ctx, aProps, PageActionDelete, err)
 }
 
 func (svc page) UniqueCheck(p *types.Page) (err error) {
 	if p.Handle != "" {
 		if e, _ := svc.pageRepo.FindByHandle(p.NamespaceID, p.Handle); e != nil && e.ID != p.ID {
-			return repository.ErrPageHandleNotUnique
+			return PageErrHandleNotUnique()
 		}
 	}
 
 	if p.ModuleID > 0 {
 		if e, _ := svc.pageRepo.FindByModuleID(p.NamespaceID, p.ModuleID); e != nil && e.ID != p.ID {
-			return ErrModulePageExists
+			return PageErrModuleNotFound()
 		}
 	}
 
 	return nil
 }
 
-func (svc page) DeleteByID(namespaceID, pageID uint64) (err error) {
-	var (
-		del *types.Page
-		ns  *types.Namespace
-	)
-
-	if pageID == 0 {
-		return ErrInvalidID.withStack()
-	}
-
-	if ns, err = svc.loadNamespace(namespaceID); err != nil {
-		return err
-	}
-
-	if del, err = svc.pageRepo.FindByID(namespaceID, pageID); err != nil {
-		return err
-	} else if !svc.ac.CanDeletePage(svc.ctx, del) {
-		return ErrNoDeletePermissions.withStack()
-	}
-
-	if err = svc.eventbus.WaitFor(svc.ctx, event.PageBeforeDelete(nil, del, ns)); err != nil {
-		return
-	}
-
-	if err = svc.pageRepo.DeleteByID(namespaceID, pageID); err != nil {
-		return
-	}
-
-	defer svc.eventbus.Dispatch(svc.ctx, event.PageAfterDelete(nil, del, ns))
-	return
-}
-
 func (svc page) loadNamespace(namespaceID uint64) (ns *types.Namespace, err error) {
 	if namespaceID == 0 {
-		return nil, ErrNamespaceRequired.withStack()
+		return nil, PageErrInvalidNamespaceID()
 	}
 
 	if ns, err = svc.nsRepo.FindByID(namespaceID); err != nil {
@@ -352,7 +435,7 @@ func (svc page) loadNamespace(namespaceID uint64) (ns *types.Namespace, err erro
 	}
 
 	if !svc.ac.CanReadNamespace(svc.ctx, ns) {
-		return nil, ErrNoReadPermissions.withStack()
+		return nil, PageErrNotAllowedToReadNamespace()
 	}
 
 	return

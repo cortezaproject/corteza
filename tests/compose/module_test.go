@@ -137,7 +137,7 @@ func TestModuleCreateForbidden(t *testing.T) {
 		FormData("name", "some-module").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("compose.service.NoCreatePermissions")).
+		Assert(helpers.AssertError("not allowed to create modules")).
 		End()
 }
 
@@ -168,7 +168,7 @@ func TestModuleUpdateForbidden(t *testing.T) {
 		FormData("name", "changed-name").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("compose.service.NoUpdatePermissions")).
+		Assert(helpers.AssertError("not allowed to update this module")).
 		End()
 }
 
@@ -267,7 +267,7 @@ func TestModuleDeleteForbidden(t *testing.T) {
 		Delete(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("compose.service.NoDeletePermissions")).
+		Assert(helpers.AssertError("not allowed to delete this module")).
 		End()
 }
 

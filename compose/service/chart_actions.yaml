@@ -1,0 +1,113 @@
+# List of loggable service actions
+
+resource: compose:chart
+service: chart
+
+# Default sensitivity for actions
+defaultActionSeverity: info
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/compose/types
+
+props:
+  - name: chart
+    type: "*types.Chart"
+    fields: [ name, handle, ID, namespaceID ]
+  - name: changed
+    type: "*types.Chart"
+    fields: [ name, handle, ID, namespaceID, config ]
+  - name: filter
+    type: "*types.ChartFilter"
+    fields: [ query, handle, namespaceID, sort, limit, offset, page, perPage ]
+  - name: namespace
+    type: "*types.Namespace"
+    fields: [ name, slug, ID ]
+
+actions:
+  - action: search
+    log: "searched for charts"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {chart}"
+    severity: info
+
+  - action: create
+    log: "created {chart}"
+
+  - action: update
+    log: "updated {chart}"
+
+  - action: delete
+    log: "deleted {chart}"
+
+  - action: undelete
+    log: "undeleted {chart}"
+
+  - action: reorder
+    log: "reordered {chart}"
+
+errors:
+  - error: notFound
+    message: "chart does not exist"
+    severity: warning
+
+  - error: namespaceNotFound
+    message: "namespace does not exist"
+    severity: warning
+
+  - error: moduleNotFound
+    message: "module does not exist"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning
+
+  - error: handleNotUnique
+    message: "handle not unique"
+    log: "used duplicate handle ({chart.handle}) for chart"
+    severity: warning
+
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
+  - error: invalidNamespaceID
+    message: "invalid or missing namespace ID"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this chart"
+    log: "could not read {chart}; insufficient permissions"
+
+  - error: notAllowedToReadNamespace
+    message: "not allowed to read this namespace"
+    log: "could not read namespace {namespace}; insufficient permissions"
+
+  - error: notAllowedToListCharts
+    message: "not allowed to list charts"
+    log: "could not list charts; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create charts"
+    log: "could not create charts; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this chart"
+    log: "could not update {chart}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this chart"
+    log: "could not delete {chart}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this chart"
+    log: "could not undelete {chart}; insufficient permissions"
