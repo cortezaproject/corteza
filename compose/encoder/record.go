@@ -84,7 +84,7 @@ func (enc flatWriter) Record(r *types.Record) (err error) {
 	return enc.w.Write(out)
 }
 
-func (enc structuredEncoder) Record(r *types.Record) error {
+func (enc structuredEncoder) Record(r *types.Record) (err error) {
 	var (
 		// Exporter can choose fields so we need this buffer
 		// to hold just what we need
@@ -102,13 +102,22 @@ func (enc structuredEncoder) Record(r *types.Record) error {
 		case "namespaceID":
 			out[f.name] = r.NamespaceID
 		case "ownedBy":
-			out[f.name] = r.OwnedBy
+			out[f.name], err = fmtSysUser(r.OwnedBy, enc.u)
+			if err != nil {
+				return err
+			}
 		case "createdBy":
-			out[f.name] = r.CreatedBy
+			out[f.name], err = fmtSysUser(r.CreatedBy, enc.u)
+			if err != nil {
+				return err
+			}
 		case "createdAt":
 			out[f.name] = fmtTime(&r.CreatedAt)
 		case "updatedBy":
-			out[f.name] = r.UpdatedBy
+			out[f.name], err = fmtSysUser(r.UpdatedBy, enc.u)
+			if err != nil {
+				return err
+			}
 		case "updatedAt":
 			if r.UpdatedAt == nil {
 				out[f.name] = nil
@@ -117,7 +126,10 @@ func (enc structuredEncoder) Record(r *types.Record) error {
 			}
 
 		case "deletedBy":
-			out[f.name] = r.DeletedBy
+			out[f.name], err = fmtSysUser(r.DeletedBy, enc.u)
+			if err != nil {
+				return err
+			}
 		case "deletedAt":
 			if r.DeletedAt == nil {
 				out[f.name] = nil
