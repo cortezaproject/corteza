@@ -48,8 +48,8 @@ actions:
     log: "undeleted {application}"
 
 errors:
-  - error: nonexistent
-    message: "application does not exist"
+  - error: notFound
+    message: "application not found"
     severity: warning
 
   - error: invalidID
@@ -57,7 +57,7 @@ errors:
     severity: warning
 
   - error: notAllowedToRead
-    message: "not allowed to read application"
+    message: "not allowed to read this application"
     log: "failed to read {application.name}; insufficient permissions"
 
   - error: notAllowedToListApplications
@@ -65,17 +65,17 @@ errors:
     log: "failed to list application; insufficient permissions"
 
   - error: notAllowedToCreate
-    message: "not allowed to create application"
+    message: "not allowed to create applications"
     log: "failed to create application; insufficient permissions"
 
   - error: notAllowedToUpdate
-    message: "not allowed to update application"
+    message: "not allowed to update this application"
     log: "failed to update {application.name}; insufficient permissions"
 
   - error: notAllowedToDelete
-    message: "not allowed to delete application"
+    message: "not allowed to delete this application"
     log: "failed to delete {application.name}; insufficient permissions"
 
   - error: notAllowedToUndelete
-    message: "not allowed to undelete application"
+    message: "not allowed to undelete this application"
     log: "failed to undelete {application.name}; insufficient permissions"

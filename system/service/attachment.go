@@ -141,7 +141,6 @@ func (svc attachment) Find(filter types.AttachmentFilter) (aa types.AttachmentSe
 	})
 
 	return aa, f, svc.recordAction(svc.ctx, aaProps, AttachmentActionSearch, err)
-
 }
 
 func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {

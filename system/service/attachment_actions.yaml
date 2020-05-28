@@ -41,8 +41,8 @@ actions:
     log: "deleted {attachment}"
 
 errors:
-  - error: nonexistent
-    message: "attachment does not exist"
+  - error: notFound
+    message: "attachment not found"
     severity: warning
 
   - error: invalidID
@@ -54,7 +54,7 @@ errors:
     log: "failed to list attachment; insufficient permissions"
 
   - error: notAllowedToCreate
-    message: "not allowed to create attachment"
+    message: "not allowed to create attachments"
     log: "failed to create attachment; insufficient permissions"
 
   - error: failedToExtractMimeType

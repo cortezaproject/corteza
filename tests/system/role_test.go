@@ -98,7 +98,7 @@ func TestRoleCreateForbidden(t *testing.T) {
 		FormData("name", rs()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to create role")).
+		Assert(helpers.AssertError("not allowed to create roles")).
 		End()
 }
 
@@ -150,7 +150,7 @@ func TestRoleUpdateForbidden(t *testing.T) {
 		FormData("email", h.randEmail()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to update role")).
+		Assert(helpers.AssertError("not allowed to update this role")).
 		End()
 }
 
@@ -186,7 +186,7 @@ func TestRoleDeleteForbidden(t *testing.T) {
 		Delete(fmt.Sprintf("/roles/%d", u.ID)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to delete role")).
+		Assert(helpers.AssertError("not allowed to delete this role")).
 		End()
 }
 

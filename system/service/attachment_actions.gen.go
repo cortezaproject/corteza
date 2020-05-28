@@ -466,19 +466,19 @@ func AttachmentErrGeneric(props ...*attachmentActionProps) *attachmentError {
 
 }
 
-// AttachmentErrNonexistent returns "system:attachment.nonexistent" audit event as actionlog.Warning
+// AttachmentErrNotFound returns "system:attachment.notFound" audit event as actionlog.Warning
 //
 //
 // This function is auto-generated.
 //
-func AttachmentErrNonexistent(props ...*attachmentActionProps) *attachmentError {
+func AttachmentErrNotFound(props ...*attachmentActionProps) *attachmentError {
 	var e = &attachmentError{
 		timestamp: time.Now(),
 		resource:  "system:attachment",
-		error:     "nonexistent",
+		error:     "notFound",
 		action:    "error",
-		message:   "attachment does not exist",
-		log:       "attachment does not exist",
+		message:   "attachment not found",
+		log:       "attachment not found",
 		severity:  actionlog.Warning,
 		props: func() *attachmentActionProps {
 			if len(props) > 0 {
@@ -567,7 +567,7 @@ func AttachmentErrNotAllowedToCreate(props ...*attachmentActionProps) *attachmen
 		resource:  "system:attachment",
 		error:     "notAllowedToCreate",
 		action:    "error",
-		message:   "not allowed to create attachment",
+		message:   "not allowed to create attachments",
 		log:       "failed to create attachment; insufficient permissions",
 		severity:  actionlog.Alert,
 		props: func() *attachmentActionProps {

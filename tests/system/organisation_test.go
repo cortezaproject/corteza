@@ -99,7 +99,7 @@ func TestOrganisationUpdateForbidden(t *testing.T) {
 		FormData("name", "changed-name").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("Not allowed to update organisation")).
+		Assert(helpers.AssertError("Not allowed to update this organisation")).
 		End()
 }
 
@@ -134,7 +134,7 @@ func TestOrganisationDeleteForbidden(t *testing.T) {
 		Delete(fmt.Sprintf("/organisation/%d", a.ID)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("Not allowed to delete organisation")).
+		Assert(helpers.AssertError("Not allowed to delete this organisation")).
 		End()
 }
 

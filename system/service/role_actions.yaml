@@ -76,8 +76,8 @@ actions:
 
 
 errors:
-  - error: nonexistent
-    message: "role does not exist"
+  - error: notFOund
+    message: "role not found"
     severity: warning
 
   - error: invalidID
@@ -89,7 +89,7 @@ errors:
     severity: warning
 
   - error: notAllowedToRead
-    message: "not allowed to read role"
+    message: "not allowed to read this role"
     log: "failed to read {role.handle}; insufficient permissions"
 
   - error: notAllowedToListRoles
@@ -97,27 +97,27 @@ errors:
     log: "failed to list role; insufficient permissions"
 
   - error: notAllowedToCreate
-    message: "not allowed to create role"
+    message: "not allowed to create roles"
     log: "failed to create role; insufficient permissions"
 
   - error: notAllowedToUpdate
-    message: "not allowed to update role"
+    message: "not allowed to update this role"
     log: "failed to update {role.handle}; insufficient permissions"
 
   - error: notAllowedToDelete
-    message: "not allowed to delete role"
+    message: "not allowed to delete this role"
     log: "failed to delete {role.handle}; insufficient permissions"
 
   - error: notAllowedToUndelete
-    message: "not allowed to undelete role"
+    message: "not allowed to undelete this role"
     log: "failed to undelete {role.handle}; insufficient permissions"
 
   - error: notAllowedToArchive
-    message: "not allowed to archive role"
+    message: "not allowed to archive this role"
     log: "failed to archive {role.handle}; insufficient permissions"
 
   - error: notAllowedToUnarchive
-    message: "not allowed to unarchive role"
+    message: "not allowed to unarchive this role"
     log: "failed to unarchive {role.handle}; insufficient permissions"
 
   - error: notAllowedToManageMembers
