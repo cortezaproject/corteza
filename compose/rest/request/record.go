@@ -529,6 +529,10 @@ type RecordExport struct {
 	rawFields []string
 	Fields    []string
 
+	hasTimezone bool
+	rawTimezone string
+	Timezone    string
+
 	hasFilename bool
 	rawFilename string
 	Filename    string
@@ -557,6 +561,7 @@ func (r RecordExport) Auditable() map[string]interface{} {
 
 	out["filter"] = r.Filter
 	out["fields"] = r.Fields
+	out["timezone"] = r.Timezone
 	out["filename"] = r.Filename
 	out["ext"] = r.Ext
 	out["namespaceID"] = r.NamespaceID
@@ -609,6 +614,11 @@ func (r *RecordExport) Fill(req *http.Request) (err error) {
 		r.Fields = parseStrings(val)
 	}
 
+	if val, ok := get["timezone"]; ok {
+		r.hasTimezone = true
+		r.rawTimezone = val
+		r.Timezone = val
+	}
 	r.hasFilename = true
 	r.rawFilename = chi.URLParam(req, "filename")
 	r.Filename = chi.URLParam(req, "filename")
@@ -1781,6 +1791,21 @@ func (r *RecordExport) RawFields() []string {
 // GetFields returns casted value of  fields parameter
 func (r *RecordExport) GetFields() []string {
 	return r.Fields
+}
+
+// HasTimezone returns true if timezone was set
+func (r *RecordExport) HasTimezone() bool {
+	return r.hasTimezone
+}
+
+// RawTimezone returns raw value of timezone parameter
+func (r *RecordExport) RawTimezone() string {
+	return r.rawTimezone
+}
+
+// GetTimezone returns casted value of  timezone parameter
+func (r *RecordExport) GetTimezone() string {
+	return r.Timezone
 }
 
 // HasFilename returns true if filename was set

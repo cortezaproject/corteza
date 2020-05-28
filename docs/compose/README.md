@@ -939,6 +939,7 @@ Compose records
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | filter | string | GET | Filtering condition | N/A | NO |
 | fields | []string | GET | Fields to export | N/A | YES |
+| timezone | string | GET | Convert times to this timezone | N/A | NO |
 | filename | string | PATH | Filename to use | N/A | NO |
 | ext | string | PATH | Export format | N/A | YES |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |

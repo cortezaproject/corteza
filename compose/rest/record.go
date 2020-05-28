@@ -422,15 +422,15 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 		switch strings.ToLower(r.Ext) {
 		case "json", "jsonl", "ldjson", "ndjson":
 			contentType = "application/jsonl"
-			recordEncoder = encoder.NewStructuredEncoder(json.NewEncoder(w), ff...)
+			recordEncoder = encoder.NewStructuredEncoder(json.NewEncoder(w), r.Timezone, ff...)
 
 		case "csv":
 			contentType = "text/csv"
-			recordEncoder = encoder.NewFlatWriter(csv.NewWriter(w), true, ff...)
+			recordEncoder = encoder.NewFlatWriter(csv.NewWriter(w), true, r.Timezone, ff...)
 
 		case "xlsx":
 			contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-			recordEncoder = encoder.NewExcelizeEncoder(w, true, ff...)
+			recordEncoder = encoder.NewExcelizeEncoder(w, true, r.Timezone, ff...)
 
 		default:
 			http.Error(w, "unsupported format ("+r.Ext+")", http.StatusBadRequest)

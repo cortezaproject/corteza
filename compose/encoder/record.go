@@ -7,23 +7,58 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
+type (
+	parsedTime struct {
+		field string
+		value string
+	}
+)
+
 // Time formatter
 //
 // Takes ptr to time.Time so we can conver both cases (value + ptr)
-func fmtTime(tp *time.Time) string {
+// The function also generates additional fields with included timezone.
+func fmtTime(field string, tp *time.Time, tz string) (pt []*parsedTime, err error) {
 	if tp == nil {
-		return ""
+		return pt, nil
 	}
 
-	return tp.UTC().Format(time.RFC3339)
+	pt = append(pt, &parsedTime{
+		field: field,
+		value: tp.UTC().Format(time.RFC3339),
+	})
+	if tz == "" || tz == "UTC" {
+		return
+	}
+
+	loc, err := time.LoadLocation(tz)
+	if err != nil {
+		return pt, err
+	}
+	tt := tp.In(loc)
+	pt = append(pt,
+		&parsedTime{
+			field: field + "_date",
+			value: tt.Format("2006-01-02"),
+		}, &parsedTime{
+			field: field + "_time",
+			value: tt.Format("15:04:05"),
+		})
+	return
 }
 
 func fmtUint64(u uint64) string {
 	return strconv.FormatUint(u, 10)
 }
 
-func (enc flatWriter) Record(r *types.Record) error {
+func (enc flatWriter) Record(r *types.Record) (err error) {
 	var out = make([]string, len(enc.ff))
+
+	procTime := func(d []string, pts []*parsedTime, base int) {
+		for i, p := range pts {
+			d[base+i] = p.value
+		}
+	}
 
 	for f, field := range enc.ff {
 		switch field.name {
@@ -38,15 +73,27 @@ func (enc flatWriter) Record(r *types.Record) error {
 		case "createdBy":
 			out[f] = fmtUint64(r.CreatedBy)
 		case "createdAt":
-			out[f] = fmtTime(&r.CreatedAt)
+			tt, err := fmtTime("createdAt", &r.CreatedAt, enc.tz)
+			if err != nil {
+				return err
+			}
+			procTime(out, tt, f)
 		case "updatedBy":
 			out[f] = fmtUint64(r.UpdatedBy)
 		case "updatedAt":
-			out[f] = fmtTime(r.UpdatedAt)
+			tt, err := fmtTime("updatedAt", r.UpdatedAt, enc.tz)
+			if err != nil {
+				return err
+			}
+			procTime(out, tt, f)
 		case "deletedBy":
 			out[f] = fmtUint64(r.DeletedBy)
 		case "deletedAt":
-			out[f] = fmtTime(r.DeletedAt)
+			tt, err := fmtTime("deletedAt", r.DeletedAt, enc.tz)
+			if err != nil {
+				return err
+			}
+			procTime(out, tt, f)
 		default:
 			vv := r.Values.FilterByName(field.name)
 			// @todo support for field.encodeAllMulti
@@ -70,6 +117,12 @@ func (enc structuredEncoder) Record(r *types.Record) error {
 		c   int
 	)
 
+	procTime := func(d map[string]interface{}, pts []*parsedTime) {
+		for _, p := range pts {
+			d[p.field] = p.value
+		}
+	}
+
 	for _, f := range enc.ff {
 		switch f.name {
 		case "recordID", "ID":
@@ -83,14 +136,22 @@ func (enc structuredEncoder) Record(r *types.Record) error {
 		case "createdBy":
 			out[f.name] = r.CreatedBy
 		case "createdAt":
-			out[f.name] = fmtTime(&r.CreatedAt)
+			tt, err := fmtTime("createdAt", &r.CreatedAt, enc.tz)
+			if err != nil {
+				return err
+			}
+			procTime(out, tt)
 		case "updatedBy":
 			out[f.name] = r.UpdatedBy
 		case "updatedAt":
 			if r.UpdatedAt == nil {
 				out[f.name] = nil
 			} else {
-				out[f.name] = fmtTime(r.UpdatedAt)
+				tt, err := fmtTime("updatedAt", r.UpdatedAt, enc.tz)
+				if err != nil {
+					return err
+				}
+				procTime(out, tt)
 			}
 
 		case "deletedBy":
@@ -99,7 +160,11 @@ func (enc structuredEncoder) Record(r *types.Record) error {
 			if r.DeletedAt == nil {
 				out[f.name] = nil
 			} else {
-				out[f.name] = fmtTime(r.DeletedAt)
+				tt, err := fmtTime("deletedAt", r.DeletedAt, enc.tz)
+				if err != nil {
+					return err
+				}
+				procTime(out, tt)
 			}
 
 		default:
@@ -127,8 +192,14 @@ func (enc structuredEncoder) Record(r *types.Record) error {
 	return enc.w.Encode(out)
 }
 
-func (enc *excelizeEncoder) Record(r *types.Record) error {
+func (enc *excelizeEncoder) Record(r *types.Record) (err error) {
 	enc.row++
+
+	procTime := func(pts []*parsedTime, base int) {
+		for i, p := range pts {
+			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(base+i), p.value)
+		}
+	}
 
 	for p, f := range enc.ff {
 		p++
@@ -144,15 +215,27 @@ func (enc *excelizeEncoder) Record(r *types.Record) error {
 		case "createdBy":
 			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtUint64(r.CreatedBy))
 		case "createdAt":
-			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtTime(&r.CreatedAt))
+			tt, err := fmtTime("createdAt", &r.CreatedAt, enc.tz)
+			if err != nil {
+				return err
+			}
+			procTime(tt, p)
 		case "updatedBy":
 			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtUint64(r.UpdatedBy))
 		case "updatedAt":
-			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtTime(r.UpdatedAt))
+			tt, err := fmtTime("updatedAt", r.UpdatedAt, enc.tz)
+			if err != nil {
+				return err
+			}
+			procTime(tt, p)
 		case "deletedBy":
 			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtUint64(r.DeletedBy))
 		case "deletedAt":
-			_ = enc.f.SetCellStr(enc.sheet(), enc.pos(p), fmtTime(r.DeletedAt))
+			tt, err := fmtTime("deletedAt", r.DeletedAt, enc.tz)
+			if err != nil {
+				return err
+			}
+			procTime(tt, p)
 		default:
 			vv := r.Values.FilterByName(f.name)
 			if len(vv) > 0 {
