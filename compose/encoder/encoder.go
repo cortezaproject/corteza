@@ -49,13 +49,15 @@ func preprocessHeader(hh []field, tz string) []field {
 	// We need to prepare additional header fields for exporting
 	if tz != "" && tz != "UTC" {
 		for _, f := range hh {
-			nhh = append(nhh, f)
 			switch f.name {
 			case "createdAt",
 				"updatedAt",
 				"deletedAt":
 
 				nhh = append(nhh, f, field{name: f.name + "_date"}, field{name: f.name + "_time"})
+				break
+			default:
+				nhh = append(nhh, f)
 				break
 			}
 		}
