@@ -150,7 +150,7 @@ func TestRecordCreateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
-		FormData("name").
+		JSON(`{"values":[]}`).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("compose.service.NoCreatePermissions")).
@@ -165,7 +165,7 @@ func TestRecordCreate(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
-		FormData("name").
+		JSON(`{"values":[]}`).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -180,7 +180,7 @@ func TestRecordUpdateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
-		FormData("name", "changed-name").
+		JSON(`{"values":[{"name":"name","value":"Changed Name"}]}`).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("compose.service.NoUpdatePermissions")).

@@ -749,7 +749,7 @@ func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Rec
 // Before and after each record is deleted beforeDelete and afterDelete events are emitted
 // If beforeRecord aborts the action it does so for that specific record only
 func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) error {
-	isBulkDelete := len(recordIDs) > 0
+	isBulkDelete := len(recordIDs) > 1
 
 	for _, recordID := range recordIDs {
 		if recordID == 0 {
@@ -766,7 +766,7 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 		})
 
 		if err != nil {
-			return errors.Wrap(err, "failed to delete record")
+			return err
 		}
 	}
 
