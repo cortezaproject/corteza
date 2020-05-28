@@ -898,8 +898,14 @@
             {
               "type": "types.RecordValueSet",
               "name": "values",
-              "required": true,
+              "required": false,
               "title": "Record values"
+            },
+            {
+              "type": "types.BulkRecordSet",
+              "name": "records",
+              "required": false,
+              "title": "Records"
             }
           ]
         }
@@ -938,8 +944,14 @@
             {
               "type": "types.RecordValueSet",
               "name": "values",
-              "required": true,
+              "required": false,
               "title": "Record values"
+            },
+            {
+              "type": "types.BulkRecordSet",
+              "name": "records",
+              "required": false,
+              "title": "Records"
             }
           ]
         }

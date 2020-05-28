@@ -86,6 +86,7 @@ type (
 
 		Create(record *types.Record) (*types.Record, error)
 		Update(record *types.Record) (*types.Record, error)
+		Bulk(oo ...*types.BulkRecordOperation) (types.RecordSet, error)
 
 		DeleteByID(namespaceID, moduleID uint64, recordID ...uint64) error
 
@@ -354,71 +355,235 @@ func (svc record) Export(filter types.RecordFilter, enc Encoder) error {
 	return set.Walk(enc.Record)
 }
 
-func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
+// Bulk handles provided set of bulk record operations.
+// It's able to create or update records in a single transaction.
+//
+// Feature used mainly by Record Lines, but should be used when ever we wish to perform
+// multiple operations over records.
+func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rec types.RecordSet, err error) {
+	ctr := map[string]uint{}
+	return rec, svc.db.Transaction(func() (err error) {
+		for _, p := range oo {
+			r := p.Record
+			res := fmt.Sprintf("compose:module:%d", r.ModuleID)
+			if _, ok := ctr[res]; !ok {
+				ctr[res] = 0
+			}
+
+			// Handle any pre processing, such as defining parent recordID.
+			if p.LinkBy != "" {
+				// As is, we can use the first record as the master record.
+				// This is valid, since we do not allow this, if the master record is not defined
+				r.Values = r.Values.Set(&types.RecordValue{
+					Name:  p.LinkBy,
+					Value: strconv.FormatUint(rec[0].ID, 10),
+					Ref:   rec[0].ID,
+				})
+			}
+
+			switch p.Operation {
+			case types.OperationTypeCreate:
+				r, err = svc.create(r)
+				break
+
+			case types.OperationTypeUpdate:
+				r, err = svc.update(r)
+				break
+
+			case types.OperationTypeDelete:
+				r, err = svc.delete(r.NamespaceID, r.ModuleID, r.ID)
+				break
+
+			default:
+				return errors.Errorf("unknown record bulk operation %s", p.Operation)
+			}
+
+			if err != nil {
+				if rve, ok := err.(*types.RecordValueErrorSet); ok {
+					// Attach additional meta to each value error for FE identification
+					for _, re := range rve.Set {
+						re.Meta["resource"] = res
+						re.Meta["item"] = ctr[res]
+					}
+					return rve
+				}
+				return err
+			}
+
+			rec = append(rec, r)
+			ctr[res]++
+		}
+		return nil
+	})
+}
+
+// Raw create function that is responsible for value validation, event dispatching
+// and creation.
+func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 	var invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	return rec, svc.db.Transaction(func() (err error) {
-		var (
-			ns *types.Namespace
-			m  *types.Module
-		)
+	var (
+		ns *types.Namespace
+		m  *types.Module
+	)
 
-		ns, m, _, err = svc.loadCombo(new.NamespaceID, new.ModuleID, 0)
-		if err != nil {
-			return
-		}
+	ns, m, _, err = svc.loadCombo(new.NamespaceID, new.ModuleID, 0)
+	if err != nil {
+		return nil, err
+	}
 
-		if !svc.ac.CanCreateRecord(svc.ctx, m) {
-			return ErrNoCreatePermissions.withStack()
-		}
+	if !svc.ac.CanCreateRecord(svc.ctx, m) {
+		return nil, ErrNoCreatePermissions.withStack()
+	}
 
-		if err = svc.generalValueSetValidation(m, new.Values); err != nil {
-			return
-		}
+	if err = svc.generalValueSetValidation(m, new.Values); err != nil {
+		return nil, err
+	}
 
-		var (
-			rve *types.RecordValueErrorSet
-		)
+	var (
+		rve *types.RecordValueErrorSet
+	)
 
-		if svc.optEmitEvents {
-			// Handle input payload
-			if rve = svc.procCreate(invokerID, m, new); !rve.IsValid() {
-				return rve
-			}
-
-			new.Values = svc.formatter.Run(m, new.Values)
-			if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeCreate(new, nil, m, ns, rve)); err != nil {
-				return
-			} else if !rve.IsValid() {
-				return rve
-			}
-		}
-
-		// Assign defaults (only on missing values)
-		new.Values = svc.setDefaultValues(m, new.Values)
-
-		// Handle payload from automation scripts
+	if svc.optEmitEvents {
+		// Handle input payload
 		if rve = svc.procCreate(invokerID, m, new); !rve.IsValid() {
-			return rve
+			return nil, rve
 		}
 
-		if new, err = svc.recordRepo.Create(new); err != nil {
-			return
+		new.Values = svc.formatter.Run(m, new.Values)
+		if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeCreate(new, nil, m, ns, rve)); err != nil {
+			return nil, err
+		} else if !rve.IsValid() {
+			return nil, rve
+		}
+	}
+
+	// Assign defaults (only on missing values)
+	new.Values = svc.setDefaultValues(m, new.Values)
+
+	// Handle payload from automation scripts
+	if rve = svc.procCreate(invokerID, m, new); !rve.IsValid() {
+		return nil, rve
+	}
+
+	if new, err = svc.recordRepo.Create(new); err != nil {
+		return nil, err
+	}
+
+	if err = svc.recordRepo.UpdateValues(new.ID, new.Values); err != nil {
+		return nil, err
+	}
+
+	// At this point we can return the value
+	rec = new
+
+	if svc.optEmitEvents {
+		defer func() {
+			new.Values = svc.formatter.Run(m, new.Values)
+			svc.eventbus.Dispatch(svc.ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil))
+		}()
+	}
+	return
+}
+
+// Raw update function that is responsible for value validation, event dispatching
+// and update.
+func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
+	var invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
+
+	if upd.ID == 0 {
+		return nil, ErrInvalidID.withStack()
+	}
+
+	ns, m, old, err := svc.loadCombo(upd.NamespaceID, upd.ModuleID, upd.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = svc.generalValueSetValidation(m, upd.Values); err != nil {
+		return nil, err
+	}
+
+	// Test if stale (update has an older version of data)
+	if isStale(upd.UpdatedAt, old.UpdatedAt, old.CreatedAt) {
+		return nil, ErrStaleData.withStack()
+	}
+
+	if !svc.ac.CanUpdateRecord(svc.ctx, m) {
+		return nil, ErrNoUpdatePermissions.withStack()
+	}
+
+	// Preload old record values so we can send it together with event
+	if err = svc.preloadValues(m, old); err != nil {
+		return nil, err
+	}
+
+	var (
+		rve *types.RecordValueErrorSet
+	)
+
+	if svc.optEmitEvents {
+		// Handle input payload
+		if rve = svc.procUpdate(invokerID, m, upd, old); !rve.IsValid() {
+			return nil, rve
 		}
 
-		if err = svc.recordRepo.UpdateValues(new.ID, new.Values); err != nil {
-			return
-		}
+		// Before we pass values to record-before-update handling events
+		// values needs do be cleaned up
+		//
+		// Value merge inside procUpdate sets delete flag we need
+		// when changes are applied but we do not want deleted values
+		// to be sent to handler
+		upd.Values = upd.Values.GetClean()
 
-		// At this point we can return the value
-		rec = new
+		// Before we pass values to automation scripts, they should be formatted
+		upd.Values = svc.formatter.Run(m, upd.Values)
 
-		if svc.optEmitEvents {
-			defer func() {
-				new.Values = svc.formatter.Run(m, new.Values)
-				svc.eventbus.Dispatch(svc.ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil))
-			}()
+		// Scripts can (besides simple error value) return complex record value error set
+		// that is passed back to the UI or any other API consumer
+		//
+		// rve (record-validation-errorset) struct is passed so it can be
+		// used & filled by automation scripts
+		if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeUpdate(upd, old, m, ns, rve)); err != nil {
+			return nil, err
+		} else if !rve.IsValid() {
+			return nil, rve
 		}
+	}
+
+	// Handle payload from automation scripts
+	if rve = svc.procUpdate(invokerID, m, upd, old); !rve.IsValid() {
+		return nil, rve
+	}
+
+	if upd, err = svc.recordRepo.Update(upd); err != nil {
+		return nil, err
+	}
+
+	if err = svc.recordRepo.UpdateValues(upd.ID, upd.Values); err != nil {
+		return nil, err
+	}
+
+	// Final value cleanup
+	// These (clean) values are returned (and sent to after-update handler)
+	upd.Values = upd.Values.GetClean()
+
+	// At this point we can return the value
+	rec = upd
+
+	if svc.optEmitEvents {
+		defer func() {
+			// Before we pass values to automation scripts, they should be formatted
+			upd.Values = svc.formatter.Run(m, upd.Values)
+			svc.eventbus.Dispatch(svc.ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil))
+		}()
+	}
+	return
+}
+
+func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
+	return rec, svc.db.Transaction(func() (err error) {
+		rec, err = svc.create(new)
 		return
 	})
 }
@@ -459,96 +624,8 @@ func (svc record) procCreate(invokerID uint64, m *types.Module, new *types.Recor
 }
 
 func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
-	var invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
-
 	return rec, svc.db.Transaction(func() (err error) {
-		if upd.ID == 0 {
-			return ErrInvalidID.withStack()
-		}
-
-		ns, m, old, err := svc.loadCombo(upd.NamespaceID, upd.ModuleID, upd.ID)
-		if err != nil {
-			return
-		}
-
-		if err = svc.generalValueSetValidation(m, upd.Values); err != nil {
-			return
-		}
-
-		// Test if stale (update has an older version of data)
-		if isStale(upd.UpdatedAt, old.UpdatedAt, old.CreatedAt) {
-			return ErrStaleData.withStack()
-		}
-
-		if !svc.ac.CanUpdateRecord(svc.ctx, m) {
-			return ErrNoUpdatePermissions.withStack()
-		}
-
-		// Preload old record values so we can send it together with event
-		if err = svc.preloadValues(m, old); err != nil {
-			return
-		}
-
-		var (
-			rve *types.RecordValueErrorSet
-		)
-
-		if svc.optEmitEvents {
-			// Handle input payload
-			if rve = svc.procUpdate(invokerID, m, upd, old); !rve.IsValid() {
-				return rve
-			}
-
-			// Before we pass values to record-before-update handling events
-			// values needs do be cleaned up
-			//
-			// Value merge inside procUpdate sets delete flag we need
-			// when changes are applied but we do not want deleted values
-			// to be sent to handler
-			upd.Values = upd.Values.GetClean()
-
-			// Before we pass values to automation scripts, they should be formatted
-			upd.Values = svc.formatter.Run(m, upd.Values)
-
-			// Scripts can (besides simple error value) return complex record value error set
-			// that is passed back to the UI or any other API consumer
-			//
-			// rve (record-validation-errorset) struct is passed so it can be
-			// used & filled by automation scripts
-			if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeUpdate(upd, old, m, ns, rve)); err != nil {
-				return
-			} else if !rve.IsValid() {
-				return rve
-			}
-		}
-
-		// Handle payload from automation scripts
-		if rve = svc.procUpdate(invokerID, m, upd, old); !rve.IsValid() {
-			return rve
-		}
-
-		if upd, err = svc.recordRepo.Update(upd); err != nil {
-			return
-		}
-
-		if err = svc.recordRepo.UpdateValues(upd.ID, upd.Values); err != nil {
-			return
-		}
-
-		// Final value cleanup
-		// These (clean) values are returned (and sent to after-update handler)
-		upd.Values = upd.Values.GetClean()
-
-		// At this point we can return the value
-		rec = upd
-
-		if svc.optEmitEvents {
-			defer func() {
-				// Before we pass values to automation scripts, they should be formatted
-				upd.Values = svc.formatter.Run(m, upd.Values)
-				svc.eventbus.Dispatch(svc.ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil))
-			}()
-		}
+		rec, err = svc.update(upd)
 		return
 	})
 }
@@ -608,38 +685,71 @@ func (svc record) recordInfoUpdate(r *types.Record) {
 	r.UpdatedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
 }
 
-// DeleteByID removes one or more records (all from the same module and namespace)
-//
-// Before and after each record is deleted beforeDelete and afterDelete events are emitted
-// If beforeRecord aborts the action it does so for that specific record only
-
-func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) error {
+func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Record, err error) {
 	if namespaceID == 0 {
-		return ErrInvalidID.withStack()
+		return nil, ErrInvalidID.withStack()
 	}
-
 	if moduleID == 0 {
-		return ErrInvalidID.withStack()
+		return nil, ErrInvalidID.withStack()
+	}
+	if recordID == 0 {
+		return nil, ErrInvalidID.withStack()
 	}
 
 	var (
-		isBulkDelete = len(recordIDs) > 0
-		now          = *nowPtr()
+		now = *nowPtr()
 
 		ns *types.Namespace
 		m  *types.Module
-
-		err error
 	)
 
 	ns, m, _, err = svc.loadCombo(namespaceID, moduleID, 0)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !svc.ac.CanDeleteRecord(svc.ctx, m) {
-		return ErrNoDeletePermissions.withStack()
+		return nil, ErrNoDeletePermissions.withStack()
 	}
+
+	del, err = svc.FindByID(namespaceID, recordID)
+
+	if svc.optEmitEvents {
+		// Preload old record values so we can send it together with event
+		if err = svc.preloadValues(m, del); err != nil {
+			return nil, err
+		}
+
+		// Calling before-record-delete scripts
+		if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeDelete(nil, del, m, ns, nil)); err != nil {
+			return nil, err
+		}
+	}
+
+	del.DeletedAt = &now
+	del.DeletedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
+
+	if err = svc.recordRepo.Delete(del); err != nil {
+		return nil, err
+	}
+
+	if err = svc.recordRepo.DeleteValues(del); err != nil {
+		return nil, err
+	}
+
+	if svc.optEmitEvents {
+		defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil))
+	}
+
+	return del, nil
+}
+
+// DeleteByID removes one or more records (all from the same module and namespace)
+//
+// Before and after each record is deleted beforeDelete and afterDelete events are emitted
+// If beforeRecord aborts the action it does so for that specific record only
+func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) error {
+	isBulkDelete := len(recordIDs) > 0
 
 	for _, recordID := range recordIDs {
 		if recordID == 0 {
@@ -647,48 +757,11 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 		}
 
 		err := svc.db.Transaction(func() (err error) {
-			var (
-				del *types.Record
-			)
-
-			del, err = svc.FindByID(namespaceID, recordID)
-			if err != nil {
-				return err
+			_, err = svc.delete(namespaceID, moduleID, recordID)
+			// We are not breaking the entire chain, if we are bulk deleteing records.
+			if err != nil && isBulkDelete {
+				return nil
 			}
-
-			if svc.optEmitEvents {
-				// Preload old record values so we can send it together with event
-				if err = svc.preloadValues(m, del); err != nil {
-					return err
-				}
-
-				// Calling before-record-delete scripts
-				if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeDelete(nil, del, m, ns, nil)); err != nil {
-					if isBulkDelete {
-						// Not considered fatal,
-						// continue with next record
-						return nil
-					} else {
-						return err
-					}
-				}
-			}
-
-			del.DeletedAt = &now
-			del.DeletedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
-
-			if err = svc.recordRepo.Delete(del); err != nil {
-				return err
-			}
-
-			if err = svc.recordRepo.DeleteValues(del); err != nil {
-				return err
-			}
-
-			if svc.optEmitEvents {
-				defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil))
-			}
-
 			return err
 		})
 

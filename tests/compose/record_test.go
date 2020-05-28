@@ -30,6 +30,37 @@ func (h helper) repoRecord() repository.RecordRepository {
 	return repository.Record(context.Background(), db())
 }
 
+func (h helper) repoMakeRecordModuleWithFieldsOnNs(name string, namespace *types.Namespace, ff ...*types.ModuleField) *types.Module {
+	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.ModulePermissionResource.AppendWildcard(), "read")
+	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.read")
+
+	if len(ff) == 0 {
+		// Default fields
+		ff = types.ModuleFieldSet{
+			&types.ModuleField{
+				Name: "name",
+			},
+			&types.ModuleField{
+				Name: "email",
+			},
+			&types.ModuleField{
+				Name:  "options",
+				Multi: true,
+			},
+			&types.ModuleField{
+				Name: "description",
+			},
+			&types.ModuleField{
+				Name: "another_record",
+				Kind: "Record",
+			},
+		}
+	}
+
+	return h.repoMakeModule(namespace, name, ff...)
+}
+
 func (h helper) repoMakeRecordModuleWithFields(name string, ff ...*types.ModuleField) *types.Module {
 	namespace := h.repoMakeNamespace("record testing namespace")
 
