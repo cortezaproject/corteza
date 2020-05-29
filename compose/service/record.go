@@ -411,7 +411,7 @@ func (svc record) Import(ses *RecordImportSession, ssvc ImportSessionService) (e
 // @todo better value handling
 func (svc record) Export(filter types.RecordFilter, enc Encoder) (err error) {
 	var (
-		aProps = &recordActionProps{}
+		aProps = &recordActionProps{filter: &filter}
 	)
 
 	err = svc.db.Transaction(func() (err error) {
@@ -432,7 +432,7 @@ func (svc record) Export(filter types.RecordFilter, enc Encoder) (err error) {
 		return set.Walk(enc.Record)
 	})
 
-	return svc.recordAction(svc.ctx, aProps, RecordActionImport, err)
+	return svc.recordAction(svc.ctx, aProps, RecordActionExport, err)
 }
 
 // Bulk handles provided set of bulk record operations.
