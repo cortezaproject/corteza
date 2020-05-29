@@ -23,7 +23,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/mime"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
-	stypes "github.com/cortezaproject/corteza-server/system/types"
+	systemService "github.com/cortezaproject/corteza-server/system/service"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -41,10 +42,6 @@ type (
 		Set    []*recordPayload    `json:"set"`
 	}
 
-	userFinder interface {
-		FindByID(context.Context, uint64) (*stypes.User, error)
-	}
-
 	Record struct {
 		importSession service.ImportSessionService
 		record        service.RecordService
@@ -52,7 +49,7 @@ type (
 		namespace     service.NamespaceService
 		attachment    service.AttachmentService
 		ac            recordAccessController
-		userFinder    userFinder
+		userFinder    systemService.UserService
 	}
 
 	recordAccessController interface {
@@ -69,7 +66,9 @@ func (Record) New() *Record {
 		namespace:     service.DefaultNamespace,
 		attachment:    service.DefaultAttachment,
 		ac:            service.DefaultAccessControl,
-		userFinder:    service.DefaultSystemUser,
+
+		// See comment at DefaultSystemUser definition
+		userFinder: service.DefaultSystemUser,
 	}
 }
 
@@ -415,17 +414,22 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 		}
 
 		// Custom user getter function for the underlying encoders.
-		users := map[uint64]*stypes.User{}
-		uf := func(ID uint64) (*stypes.User, error) {
-			if users[ID] != nil {
+		users := map[uint64]*systemTypes.User{}
+		uf := func(ID uint64) (*systemTypes.User, error) {
+			var err error
+
+			if _, exists := users[ID]; exists {
+				// nonexistent users are also cached!
 				return users[ID], nil
 			}
-			u, err := ctrl.userFinder.FindByID(ctx, ID)
+
+			// @todo this "communication" between system and compose
+			//       services is ad-hoc solution
+			users[ID], err = ctrl.userFinder.With(ctx).FindByID(ID)
 			if err != nil {
 				return nil, err
 			}
-			users[ID] = u
-			return u, nil
+			return users[ID], nil
 		}
 
 		switch strings.ToLower(r.Ext) {
