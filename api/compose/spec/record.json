@@ -249,7 +249,7 @@
             "name": "records",
             "required": false,
             "title": "Records",
-            "type": "types.BulkRecordSet"
+            "type": "types.RecordBulkSet"
           }
         ]
       }
@@ -295,7 +295,7 @@
             "name": "records",
             "required": false,
             "title": "Records",
-            "type": "types.BulkRecordSet"
+            "type": "types.RecordBulkSet"
           }
         ]
       }

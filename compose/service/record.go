@@ -84,7 +84,7 @@ type (
 
 		Create(record *types.Record) (*types.Record, error)
 		Update(record *types.Record) (*types.Record, error)
-		Bulk(oo ...*types.BulkRecordOperation) (types.RecordSet, error)
+		Bulk(oo ...*types.RecordBulkOperation) (types.RecordSet, error)
 
 		DeleteByID(namespaceID, moduleID uint64, recordID ...uint64) error
 
@@ -437,7 +437,9 @@ func (svc record) Export(filter types.RecordFilter, enc Encoder) (err error) {
 
 // Bulk handles provided set of bulk record operations.
 // It's able to create, update or delete records in a single transaction.
-func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rr types.RecordSet, err error) {
+func (svc record) Bulk(oo ...*types.RecordBulkOperation) (rr types.RecordSet, err error) {
+	var pr *types.Record
+
 	err = func() error {
 		// pre-verify all
 		for _, p := range oo {
@@ -462,7 +464,6 @@ func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rr types.RecordSet, er
 			rves = &types.RecordValueErrorSet{}
 
 			action func(props ...*recordActionProps) *recordAction
-			ctr    = map[string]uint{}
 			r      *types.Record
 
 			aProp = &recordActionProps{}
@@ -470,10 +471,6 @@ func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rr types.RecordSet, er
 
 		for _, p := range oo {
 			r = p.Record
-			res := fmt.Sprintf("compose:module:%d", r.ModuleID)
-			if _, ok := ctr[res]; !ok {
-				ctr[res] = 0
-			}
 
 			aProp.setChanged(r)
 
@@ -481,11 +478,14 @@ func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rr types.RecordSet, er
 			if p.LinkBy != "" {
 				// As is, we can use the first record as the master record.
 				// This is valid, since we do not allow this, if the master record is not defined
-				r.Values = r.Values.Set(&types.RecordValue{
-					Name:  p.LinkBy,
-					Value: strconv.FormatUint(rr[0].ID, 10),
-					Ref:   rr[0].ID,
-				})
+				rv := &types.RecordValue{
+					Name: p.LinkBy,
+				}
+				if pr != nil {
+					rv.Value = strconv.FormatUint(rr[0].ID, 10)
+					rv.Ref = rr[0].ID
+				}
+				r.Values = r.Values.Set(rv)
 			}
 
 			switch p.Operation {
@@ -505,8 +505,7 @@ func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rr types.RecordSet, er
 			if rve := types.IsRecordValueErrorSet(err); rve != nil {
 				// Attach additional meta to each value error for FE identification
 				for _, re := range rve.Set {
-					re.Meta["resource"] = res
-					re.Meta["item"] = ctr[res]
+					re.Meta["id"] = p.ID
 
 					rves.Push(re)
 				}
@@ -524,7 +523,9 @@ func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rr types.RecordSet, er
 			}
 
 			rr = append(rr, r)
-			ctr[res]++
+			if pr == nil {
+				pr = r
+			}
 		}
 
 		if !rves.IsValid() {

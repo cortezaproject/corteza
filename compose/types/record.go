@@ -2,6 +2,8 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
@@ -13,11 +15,20 @@ type (
 
 	OperationType string
 
-	BulkRecordOperation struct {
+	RecordBulkOperation struct {
 		Record    *Record
 		LinkBy    string
 		Operation OperationType
+		ID        string
 	}
+
+	RecordBulk struct {
+		RefField string    `json:"refField,omitempty"`
+		IDPrefix string    `json:"idPrefix,omitempty"`
+		Set      RecordSet `json:"set,omitempty"`
+	}
+
+	RecordBulkSet []*RecordBulk
 
 	// Record is a stored row in the `record` table
 	Record struct {
@@ -93,4 +104,46 @@ func (r *Record) UnmarshalJSON(data []byte) error {
 	// calls this function
 	type auxRecord Record
 	return json.Unmarshal(data, &struct{ *auxRecord }{auxRecord: (*auxRecord)(r)})
+}
+
+// ToBulkOperations converts BulkRecordSet to a list of BulkRecordOperations
+func (set RecordBulkSet) ToBulkOperations(dftModule uint64, dftNamespace uint64) (oo []*RecordBulkOperation, err error) {
+	for _, br := range set {
+		// can't use for loop's index, since some records can already have an ID
+		i := 0
+		for _, rr := range br.Set {
+			// No use in allowing cross-namespace record creation.
+			rr.NamespaceID = dftNamespace
+
+			// default module
+			if rr.ModuleID == 0 {
+				rr.ModuleID = dftModule
+			}
+			b := &RecordBulkOperation{
+				Record:    rr,
+				Operation: OperationTypeUpdate,
+				LinkBy:    br.RefField,
+			}
+
+			if rr.ID == 0 {
+				b.ID = fmt.Sprintf("%s:%d", br.IDPrefix, i)
+				i++
+			} else {
+				b.ID = strconv.FormatUint(rr.ID, 10)
+			}
+
+			// If no RecordID is defined, we should create it
+			if rr.ID == 0 {
+				b.Operation = OperationTypeCreate
+			}
+
+			if rr.DeletedAt != nil {
+				b.Operation = OperationTypeDelete
+			}
+
+			oo = append(oo, b)
+		}
+	}
+
+	return
 }

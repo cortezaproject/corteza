@@ -714,7 +714,7 @@ type RecordCreate struct {
 
 	hasRecords bool
 	rawRecords string
-	Records    types.BulkRecordSet
+	Records    types.RecordBulkSet
 
 	hasNamespaceID bool
 	rawNamespaceID string
@@ -876,7 +876,7 @@ type RecordUpdate struct {
 
 	hasRecords bool
 	rawRecords string
-	Records    types.BulkRecordSet
+	Records    types.RecordBulkSet
 }
 
 // NewRecordUpdate request
@@ -1929,7 +1929,7 @@ func (r *RecordCreate) RawRecords() string {
 }
 
 // GetRecords returns casted value of  records parameter
-func (r *RecordCreate) GetRecords() types.BulkRecordSet {
+func (r *RecordCreate) GetRecords() types.RecordBulkSet {
 	return r.Records
 }
 
@@ -2079,7 +2079,7 @@ func (r *RecordUpdate) RawRecords() string {
 }
 
 // GetRecords returns casted value of  records parameter
-func (r *RecordUpdate) GetRecords() types.BulkRecordSet {
+func (r *RecordUpdate) GetRecords() types.RecordBulkSet {
 	return r.Records
 }
 
