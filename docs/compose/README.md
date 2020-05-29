@@ -981,7 +981,7 @@ Compose records
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
 | values | types.RecordValueSet | POST | Record values | N/A | NO |
-| records | types.BulkRecordSet | POST | Records | N/A | NO |
+| records | types.RecordBulkSet | POST | Records | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 
@@ -1017,7 +1017,7 @@ Compose records
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |
 | moduleID | uint64 | PATH | Module ID | N/A | YES |
 | values | types.RecordValueSet | POST | Record values | N/A | NO |
-| records | types.BulkRecordSet | POST | Records | N/A | NO |
+| records | types.RecordBulkSet | POST | Records | N/A | NO |
 
 ## Delete record row from module section
 

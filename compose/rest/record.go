@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/titpetric/factory/resputil"
@@ -140,7 +141,7 @@ func (ctrl *Record) Create(ctx context.Context, r *request.RecordCreate) (interf
 		return nil, err
 	}
 
-	oo := make([]*types.BulkRecordOperation, 0)
+	oo := make([]*types.RecordBulkOperation, 0)
 
 	// If defined, initialize parent record
 	if r.Values != nil {
@@ -149,7 +150,7 @@ func (ctrl *Record) Create(ctx context.Context, r *request.RecordCreate) (interf
 			ModuleID:    r.ModuleID,
 			Values:      r.Values,
 		}
-		oo = append(oo, &types.BulkRecordOperation{
+		oo = append(oo, &types.RecordBulkOperation{
 			Record:    rr,
 			Operation: types.OperationTypeCreate,
 		})
@@ -187,7 +188,7 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 		return nil, err
 	}
 
-	oo := make([]*types.BulkRecordOperation, 0)
+	oo := make([]*types.RecordBulkOperation, 0)
 
 	// If defined, initialize parent record for creation
 	if r.Values != nil {
@@ -197,9 +198,10 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 			ModuleID:    r.ModuleID,
 			Values:      r.Values,
 		}
-		oo = append(oo, &types.BulkRecordOperation{
+		oo = append(oo, &types.RecordBulkOperation{
 			Record:    rr,
 			Operation: types.OperationTypeUpdate,
+			ID:        strconv.FormatUint(rr.ID, 10),
 		})
 	}
 
