@@ -16,13 +16,15 @@ import (
 
 type (
 	recordActionProps struct {
-		record    *types.Record
-		changed   *types.Record
-		filter    *types.RecordFilter
-		namespace *types.Namespace
-		module    *types.Module
-		field     string
-		value     string
+		record        *types.Record
+		changed       *types.Record
+		filter        *types.RecordFilter
+		namespace     *types.Namespace
+		module        *types.Module
+		bulkOperation string
+		field         string
+		value         string
+		valueErrors   *types.RecordValueErrorSet
 	}
 
 	recordAction struct {
@@ -111,6 +113,17 @@ func (p *recordActionProps) setModule(module *types.Module) *recordActionProps {
 	return p
 }
 
+// setBulkOperation updates recordActionProps's bulkOperation
+//
+// Allows method chaining
+//
+// This function is auto-generated.
+//
+func (p *recordActionProps) setBulkOperation(bulkOperation string) *recordActionProps {
+	p.bulkOperation = bulkOperation
+	return p
+}
+
 // setField updates recordActionProps's field
 //
 // Allows method chaining
@@ -130,6 +143,17 @@ func (p *recordActionProps) setField(field string) *recordActionProps {
 //
 func (p *recordActionProps) setValue(value string) *recordActionProps {
 	p.value = value
+	return p
+}
+
+// setValueErrors updates recordActionProps's valueErrors
+//
+// Allows method chaining
+//
+// This function is auto-generated.
+//
+func (p *recordActionProps) setValueErrors(valueErrors *types.RecordValueErrorSet) *recordActionProps {
+	p.valueErrors = valueErrors
 	return p
 }
 
@@ -157,7 +181,6 @@ func (p recordActionProps) serialize() actionlog.Meta {
 		m["changed.moduleID"] = str(p.changed.ModuleID)
 		m["changed.namespaceID"] = str(p.changed.NamespaceID)
 		m["changed.ownedBy"] = str(p.changed.OwnedBy)
-		m["changed.values"] = str(p.changed.Values)
 	}
 	if p.filter != nil {
 		m["filter.query"] = str(p.filter.Query)
@@ -181,8 +204,12 @@ func (p recordActionProps) serialize() actionlog.Meta {
 		m["module.ID"] = str(p.module.ID)
 		m["module.namespaceID"] = str(p.module.NamespaceID)
 	}
+	m["bulkOperation"] = str(p.bulkOperation)
 	m["field"] = str(p.field)
 	m["value"] = str(p.value)
+	if p.valueErrors != nil {
+		m["valueErrors.set"] = str(p.valueErrors.Set)
+	}
 
 	return m
 }
@@ -250,14 +277,12 @@ func (p recordActionProps) tr(in string, err error) string {
 				p.changed.ModuleID,
 				p.changed.NamespaceID,
 				p.changed.OwnedBy,
-				p.changed.Values,
 			),
 		)
 		pairs = append(pairs, "{changed.ID}", fns(p.changed.ID))
 		pairs = append(pairs, "{changed.moduleID}", fns(p.changed.ModuleID))
 		pairs = append(pairs, "{changed.namespaceID}", fns(p.changed.NamespaceID))
 		pairs = append(pairs, "{changed.ownedBy}", fns(p.changed.OwnedBy))
-		pairs = append(pairs, "{changed.values}", fns(p.changed.Values))
 	}
 
 	if p.filter != nil {
@@ -321,8 +346,21 @@ func (p recordActionProps) tr(in string, err error) string {
 		pairs = append(pairs, "{module.ID}", fns(p.module.ID))
 		pairs = append(pairs, "{module.namespaceID}", fns(p.module.NamespaceID))
 	}
+	pairs = append(pairs, "{bulkOperation}", fns(p.bulkOperation))
 	pairs = append(pairs, "{field}", fns(p.field))
 	pairs = append(pairs, "{value}", fns(p.value))
+
+	if p.valueErrors != nil {
+		// replacement for "{valueErrors}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{valueErrors}",
+			fns(
+				p.valueErrors.Set,
+			),
+		)
+		pairs = append(pairs, "{valueErrors.set}", fns(p.valueErrors.Set))
+	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
 
@@ -491,6 +529,26 @@ func RecordActionReport(props ...*recordActionProps) *recordAction {
 		resource:  "compose:record",
 		action:    "report",
 		log:       "report generated",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// RecordActionBulk returns "compose:record.bulk" error
+//
+// This function is auto-generated.
+//
+func RecordActionBulk(props ...*recordActionProps) *recordAction {
+	a := &recordAction{
+		timestamp: time.Now(),
+		resource:  "compose:record",
+		action:    "bulk",
+		log:       "bulk record operation",
 		severity:  actionlog.Info,
 	}
 
@@ -1265,19 +1323,49 @@ func RecordErrFieldNotFound(props ...*recordActionProps) *recordError {
 
 }
 
-// RecordErrInvalidValueInput returns "compose:record.invalidValueInput" audit event as actionlog.Error
+// RecordErrInvalidValueStructure returns "compose:record.invalidValueStructure" audit event as actionlog.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrInvalidValueInput(props ...*recordActionProps) *recordError {
+func RecordErrInvalidValueStructure(props ...*recordActionProps) *recordError {
 	var e = &recordError{
 		timestamp: time.Now(),
 		resource:  "compose:record",
-		error:     "invalidValueInput",
+		error:     "invalidValueStructure",
 		action:    "error",
 		message:   "more than one value for a single-value field {field}",
 		log:       "more than one value for a single-value field {field}",
+		severity:  actionlog.Error,
+		props: func() *recordActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
+// RecordErrUnknownBulkOperation returns "compose:record.unknownBulkOperation" audit event as actionlog.Error
+//
+//
+// This function is auto-generated.
+//
+func RecordErrUnknownBulkOperation(props ...*recordActionProps) *recordError {
+	var e = &recordError{
+		timestamp: time.Now(),
+		resource:  "compose:record",
+		error:     "unknownBulkOperation",
+		action:    "error",
+		message:   "unknown bulk operation {bulkOperation}",
+		log:       "unknown bulk operation {bulkOperation}",
 		severity:  actionlog.Error,
 		props: func() *recordActionProps {
 			if len(props) > 0 {
@@ -1308,6 +1396,36 @@ func RecordErrInvalidReferenceFormat(props ...*recordActionProps) *recordError {
 		action:    "error",
 		message:   "invalid reference format",
 		log:       "invalid reference format",
+		severity:  actionlog.Error,
+		props: func() *recordActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
+// RecordErrValueInput returns "compose:record.valueInput" audit event as actionlog.Error
+//
+//
+// This function is auto-generated.
+//
+func RecordErrValueInput(props ...*recordActionProps) *recordError {
+	var e = &recordError{
+		timestamp: time.Now(),
+		resource:  "compose:record",
+		error:     "valueInput",
+		action:    "error",
+		message:   "invalid record value input: {err}",
+		log:       "invalid record value input: {err}",
 		severity:  actionlog.Error,
 		props: func() *recordActionProps {
 			if len(props) > 0 {

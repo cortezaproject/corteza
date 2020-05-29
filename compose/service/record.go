@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -10,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 
-	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
 
 	"github.com/cortezaproject/corteza-server/compose/decoder"
@@ -369,7 +369,7 @@ func (svc record) Import(ses *RecordImportSession, ssvc ImportSessionService) (e
 	err = svc.db.Transaction(func() (err error) {
 
 		if ses.Progress.StartedAt != nil {
-			return errors.New("Unable to start import: Import session already active")
+			return fmt.Errorf("Unable to start import: Import session already active")
 		}
 
 		sa := time.Now()
@@ -437,25 +437,46 @@ func (svc record) Export(filter types.RecordFilter, enc Encoder) (err error) {
 }
 
 // Bulk handles provided set of bulk record operations.
-// It's able to create or update records in a single transaction.
-//
-// Feature used mainly by Record Lines, but should be used when ever we wish to perform
-// multiple operations over records.
+// It's able to create, update or delete records in a single transaction.
 func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rr types.RecordSet, err error) {
-	var (
-		ctr = map[string]uint{}
-
-		action = RecordActionCreate
-		aProp  = &recordActionProps{}
-	)
-
-	return rr, svc.db.Transaction(func() (err error) {
+	err = svc.db.Transaction(func() error {
+		// pre-verify all
 		for _, p := range oo {
-			r := p.Record
+			switch p.Operation {
+			case types.OperationTypeCreate, types.OperationTypeUpdate, types.OperationTypeDelete:
+				// ok
+			default:
+				return RecordErrUnknownBulkOperation(&recordActionProps{bulkOperation: string(p.Operation)})
+			}
+		}
+
+		var (
+			// in case we get record value errors from create or update operations
+			// we ll merge the errors into one slice and return it all together
+			//
+			// this is done under assumption that potential before-record-update/create automation
+			// scripts are playing by the rules and do not do any changes before any potential
+			// record value errors are returned
+			//
+			// @todo all records/values could and should be pre-validated
+			//       before we start storing any changes
+			rves = &types.RecordValueErrorSet{}
+
+			action func(props ...*recordActionProps) *recordAction
+			ctr    = map[string]uint{}
+			r      *types.Record
+
+			aProp = &recordActionProps{}
+		)
+
+		for _, p := range oo {
+			r = p.Record
 			res := fmt.Sprintf("compose:module:%d", r.ModuleID)
 			if _, ok := ctr[res]; !ok {
 				ctr[res] = 0
 			}
+
+			aProp.setChanged(r)
 
 			// Handle any pre processing, such as defining parent recordID.
 			if p.LinkBy != "" {
@@ -472,41 +493,62 @@ func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rr types.RecordSet, er
 			case types.OperationTypeCreate:
 				action = RecordActionCreate
 				r, err = svc.create(r)
-				break
 
 			case types.OperationTypeUpdate:
 				action = RecordActionUpdate
 				r, err = svc.update(r)
-				break
 
 			case types.OperationTypeDelete:
 				action = RecordActionDelete
 				r, err = svc.delete(r.NamespaceID, r.ModuleID, r.ID)
-				break
-
-			default:
-				return errors.Errorf("unknown record bulk operation %s", p.Operation)
 			}
 
-			if err != nil {
-				if rve, ok := err.(*types.RecordValueErrorSet); ok {
+			if errors.Is(err, RecordErrValueInput()) {
+				wrappedRve := errors.Unwrap(err)
+				if rve, ok := wrappedRve.(*types.RecordValueErrorSet); ok {
 					// Attach additional meta to each value error for FE identification
 					for _, re := range rve.Set {
 						re.Meta["resource"] = res
 						re.Meta["item"] = ctr[res]
+
+						rves.Push(re)
 					}
-					return rve
+
+					// log record value error for this record
+					_ = svc.recordAction(svc.ctx, aProp, action, err)
+
+					// do not return errors just yet, values on other records from the payload (if any)
+					// might have errors too
+					continue
 				}
-
+			} else if err != nil {
 				return svc.recordAction(svc.ctx, aProp, action, err)
-
 			}
 
 			rr = append(rr, r)
 			ctr[res]++
 		}
+
+		if !rves.IsValid() {
+			// Any errors gathered?
+			return rves
+		}
+
 		return nil
 	})
+
+	if len(oo) == 1 {
+		// was not really a bulk operation and we already recorded the action
+		// inside transaction loop
+		return rr, err
+	} else {
+		// when doing bulk op (updating and/or creating more than one record at once),
+		// we already log action for each operation
+		//
+		// to log the fact that the bulk op was done, we do one additional recording
+		// without any props
+		return rr, svc.recordAction(svc.ctx, &recordActionProps{}, RecordActionBulk, err)
+	}
 }
 
 // Raw create function that is responsible for value validation, event dispatching
@@ -543,14 +585,14 @@ func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 	if svc.optEmitEvents {
 		// Handle input payload
 		if rve = svc.procCreate(invokerID, m, new); !rve.IsValid() {
-			return nil, rve
+			return nil, RecordErrValueInput().Wrap(rve)
 		}
 
 		new.Values = svc.formatter.Run(m, new.Values)
 		if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeCreate(new, nil, m, ns, rve)); err != nil {
 			return
 		} else if !rve.IsValid() {
-			return nil, rve
+			return nil, RecordErrValueInput().Wrap(rve)
 		}
 	}
 
@@ -559,7 +601,7 @@ func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 
 	// Handle payload from automation scripts
 	if rve = svc.procCreate(invokerID, m, new); !rve.IsValid() {
-		return nil, rve
+		return nil, RecordErrValueInput().Wrap(rve)
 	}
 
 	if new, err = svc.recordRepo.Create(new); err != nil {
@@ -633,7 +675,7 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 	if svc.optEmitEvents {
 		// Handle input payload
 		if rve = svc.procUpdate(invokerID, m, upd, old); !rve.IsValid() {
-			return nil, rve
+			return nil, RecordErrValueInput().Wrap(rve)
 		}
 
 		// Before we pass values to record-before-update handling events
@@ -655,13 +697,13 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 		if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeUpdate(upd, old, m, ns, rve)); err != nil {
 			return
 		} else if !rve.IsValid() {
-			return nil, rve
+			return nil, RecordErrValueInput().Wrap(rve)
 		}
 	}
 
 	// Handle payload from automation scripts
 	if rve = svc.procUpdate(invokerID, m, upd, old); !rve.IsValid() {
-		return nil, rve
+		return nil, RecordErrValueInput().Wrap(rve)
 	}
 
 	if upd, err = svc.recordRepo.Update(upd); err != nil {
@@ -963,7 +1005,7 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 			reorderingRecords = true
 
 			if !regexp.MustCompile(`^[0-9]+$`).MatchString(position) {
-				return errors.Errorf("expecting number for sorting position %q", posField)
+				return fmt.Errorf("expecting number for sorting position %q", posField)
 			}
 
 			// Check field existence and permissions
@@ -971,15 +1013,15 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 
 			sf := m.Fields.FindByName(posField)
 			if sf == nil {
-				return errors.Errorf("no such field %q", posField)
+				return fmt.Errorf("no such field %q", posField)
 			}
 
 			if !sf.IsNumeric() {
-				return errors.Errorf("can not reorder on non numeric field %q", posField)
+				return fmt.Errorf("can not reorder on non numeric field %q", posField)
 			}
 
 			if sf.Multi {
-				return errors.Errorf("can not reorder on multi-value field %q", posField)
+				return fmt.Errorf("can not reorder on multi-value field %q", posField)
 			}
 
 			if !svc.ac.CanUpdateRecordValue(svc.ctx, sf) {
@@ -999,11 +1041,11 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 
 			vf := m.Fields.FindByName(grpField)
 			if vf == nil {
-				return errors.Errorf("no such field %q", grpField)
+				return fmt.Errorf("no such field %q", grpField)
 			}
 
 			if vf.Multi {
-				return errors.Errorf("can not update multi-value field %q", posField)
+				return fmt.Errorf("can not update multi-value field %q", posField)
 			}
 
 			if !svc.ac.CanUpdateRecordValue(svc.ctx, vf) {
@@ -1186,7 +1228,7 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 
 					// Handle payload from automation scripts
 					if rve := svc.procCreate(invokerID, m, rec); !rve.IsValid() {
-						return rve
+						return RecordErrValueInput().Wrap(rve)
 					}
 
 					if cln, err = svc.recordRepo.Create(rec); err != nil {
@@ -1199,7 +1241,7 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 
 					// Handle input payload
 					if rve := svc.procUpdate(invokerID, m, rec, rec); !rve.IsValid() {
-						return rve
+						return RecordErrValueInput().Wrap(rve)
 					}
 
 					if rec, err = svc.recordRepo.Update(rec); err != nil {
@@ -1293,6 +1335,10 @@ func (svc record) setDefaultValues(m *types.Module, vv types.RecordValueSet) (ou
 // Received values must fit the data model: on unknown fields
 // or multi/single value mismatch we return an error
 //
+// Record value errors is intentionally NOT used here; if input fails here
+// we can assume that form builder (or whatever it was that assembled the record values)
+// was misconfigured and will most likely failed to properly parse the
+// record value errors payload too
 func (svc record) generalValueSetValidation(m *types.Module, vv types.RecordValueSet) (err error) {
 	var (
 		aProps  = &recordActionProps{}
@@ -1325,7 +1371,7 @@ func (svc record) generalValueSetValidation(m *types.Module, vv types.RecordValu
 	// Make sure there are no multi values in a non-multi value fields
 	err = m.Fields.Walk(func(field *types.ModuleField) error {
 		if !field.Multi && len(vv.FilterByName(field.Name)) > 1 {
-			return RecordErrInvalidValueInput(aProps.setField(field.Name))
+			return RecordErrInvalidValueStructure(aProps.setField(field.Name))
 		}
 
 		return nil
