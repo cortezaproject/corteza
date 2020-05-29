@@ -1,5 +1,7 @@
 package types
 
+import "fmt"
+
 type (
 	RecordValueError struct {
 		Kind    string                 `json:"kind"`
@@ -21,5 +23,5 @@ func (v *RecordValueErrorSet) IsValid() bool {
 }
 
 func (v *RecordValueErrorSet) Error() string {
-	return "invalid values input"
+	return fmt.Sprintf("%d issue(s) found", len(v.Set))
 }

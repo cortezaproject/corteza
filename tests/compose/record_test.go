@@ -172,6 +172,35 @@ func TestRecordCreate(t *testing.T) {
 		End()
 }
 
+func TestRecordCreateWithErrors(t *testing.T) {
+	h := newHelper(t)
+
+	fields := types.ModuleFieldSet{
+		&types.ModuleField{
+			Name: "name",
+		},
+		&types.ModuleField{
+			Name:     "required",
+			Required: true,
+		},
+	}
+	module := h.repoMakeRecordModuleWithFields("record testing module", fields...)
+	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.create")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "val"}]}`)).
+		Expect(t).
+		Assert(helpers.AssertRecordValueError(
+			&types.RecordValueError{
+				Kind:    "empty",
+				Message: "",
+				Meta:    map[string]interface{}{"field": "required"},
+			},
+		)).
+		End()
+}
+
 func TestRecordUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
 

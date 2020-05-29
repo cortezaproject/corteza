@@ -174,7 +174,7 @@ func (ctrl *Record) Create(ctx context.Context, r *request.RecordCreate) (interf
 		return ctrl.handleValidationError(rve), nil
 	}
 
-	return ctrl.makePayloadBatch(ctx, m, err, rr...)
+	return ctrl.makeBulkPayload(ctx, m, err, rr...)
 }
 
 func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interface{}, error) {
@@ -223,7 +223,7 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 		return ctrl.handleValidationError(rve), nil
 	}
 
-	return ctrl.makePayloadBatch(ctx, m, err, rr...)
+	return ctrl.makeBulkPayload(ctx, m, err, rr...)
 }
 
 func (ctrl *Record) Delete(ctx context.Context, r *request.RecordDelete) (interface{}, error) {
@@ -520,7 +520,7 @@ func (ctrl *Record) TriggerScriptOnList(ctx context.Context, r *request.RecordTr
 	return resputil.OK(), err
 }
 
-func (ctrl Record) makePayloadBatch(ctx context.Context, m *types.Module, err error, rr ...*types.Record) (*recordPayload, error) {
+func (ctrl Record) makeBulkPayload(ctx context.Context, m *types.Module, err error, rr ...*types.Record) (*recordPayload, error) {
 	if err != nil || rr == nil {
 		return nil, err
 	}

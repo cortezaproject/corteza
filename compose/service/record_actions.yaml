@@ -18,7 +18,7 @@ props:
     fields: [ ID, moduleID, namespaceID, ownedBy ]
   - name: changed
     type: "*types.Record"
-    fields: [ ID, moduleID, namespaceID, ownedBy, values ]
+    fields: [ ID, moduleID, namespaceID, ownedBy ]
   - name: filter
     type: "*types.RecordFilter"
     fields: [ query, namespaceID, moduleID, deleted, sort, limit, offset, page, perPage ]
@@ -28,8 +28,12 @@ props:
   - name: module
     type: "*types.Module"
     fields: [ name, handle, ID, namespaceID ]
+  - name: bulkOperation
   - name: field
   - name: value
+  - name: valueErrors
+    type: "*types.RecordValueErrorSet"
+    fields: [ set ]
 
 actions:
   - action: search
@@ -43,6 +47,9 @@ actions:
   - action: report
     log: "report generated"
     severity: info
+
+  - action: bulk
+    log: "bulk record operation"
 
   - action: create
     log: "created {record}"
@@ -145,8 +152,14 @@ errors:
   - error: fieldNotFound
     message: "no such field {field}"
 
-  - error: invalidValueInput
+  - error: invalidValueStructure
     message: "more than one value for a single-value field {field}"
+
+  - error: unknownBulkOperation
+    message: "unknown bulk operation {bulkOperation}"
 
   - error: invalidReferenceFormat
     message: "invalid reference format"
+
+  - error: valueInput
+    message: "invalid record value input: {err}"
