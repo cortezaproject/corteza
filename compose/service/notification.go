@@ -15,6 +15,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	httpClient "github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/mail"
+	systemService "github.com/cortezaproject/corteza-server/system/service"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -27,18 +28,20 @@ type (
 	//       Warning: API endpoints on compose should be kept so that we do not break backward compatibility)
 	notification struct {
 		actionlog actionlog.Recorder
-		users     notificationUserFinder
+		users     systemService.UserService
 	}
 
 	notificationUserFinder interface {
-		FindByID(context.Context, uint64) (*systemTypes.User, error)
+		FindByID(uint64) (*systemTypes.User, error)
 	}
 )
 
 func Notification() *notification {
 	return &notification{
 		actionlog: DefaultActionlog,
-		users:     DefaultSystemUser,
+
+		// See comment at DefaultSystemUser definition
+		users: DefaultSystemUser,
 	}
 }
 
@@ -118,7 +121,7 @@ func (svc notification) procEmailRecipients(ctx context.Context, m *gomail.Messa
 
 		if userID, err := strconv.ParseUint(rcpt, 10, 64); err == nil && userID > 0 {
 			// proc <user ID>
-			if user, err := svc.users.FindByID(ctx, userID); err != nil {
+			if user, err := svc.users.FindByID(userID); err != nil {
 				return NotificationErrFailedToLoadUser(aProps).Wrap(err)
 			} else {
 				email = user.Email
