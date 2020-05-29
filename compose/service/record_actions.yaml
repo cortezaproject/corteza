@@ -64,7 +64,10 @@ actions:
     log: "undeleted {record}"
 
   - action: import
-    log: "record imported"
+    log: "records imported"
+
+  - action: export
+    log: "records exported"
 
   - action: organize
     log: "records organized"
