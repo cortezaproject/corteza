@@ -3,24 +3,23 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	actionlogRepository "github.com/cortezaproject/corteza-server/pkg/actionlog/repository"
-	"github.com/cortezaproject/corteza-server/pkg/corredor"
-	"time"
-
 	"go.uber.org/zap"
+	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	actionlogRepository "github.com/cortezaproject/corteza-server/pkg/actionlog/repository"
 	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/pkg/store"
 	"github.com/cortezaproject/corteza-server/pkg/store/minio"
 	"github.com/cortezaproject/corteza-server/pkg/store/plain"
-	systemProto "github.com/cortezaproject/corteza-server/system/proto"
+	systemService "github.com/cortezaproject/corteza-server/system/service"
 )
 
 type (
@@ -67,8 +66,13 @@ var (
 	DefaultAttachment    AttachmentService
 	DefaultNotification  *notification
 
-	DefaultSystemUser *systemUser
-	DefaultSystemRole *systemRole
+	// DefaultSystemUser is a bridge to users in a system service
+	// @todo this is ad-hoc solution that connects compose to system it breaks microservice
+	//       architecture and service separation and should be refactored properly
+	//       (that is, if we want to continue with microservice architecture)
+	DefaultSystemUser systemService.UserService
+	//DefaultSystemUser *systemUser
+	//DefaultSystemRole *systemRole
 )
 
 // Initializes compose-only services
@@ -137,15 +141,16 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultNamespace = Namespace()
 	DefaultModule = Module()
 
-	{
-		systemClientConn, err := NewSystemGRPCClient(ctx, c.GRPCClientSystem, DefaultLogger)
-		if err != nil {
-			return err
-		}
-
-		DefaultSystemUser = SystemUser(systemProto.NewUsersClient(systemClientConn))
-		DefaultSystemRole = SystemRole(systemProto.NewRolesClient(systemClientConn))
-	}
+	//{
+	//	systemClientConn, err := NewSystemGRPCClient(ctx, c.GRPCClientSystem, DefaultLogger)
+	//	if err != nil {
+	//		return err
+	//	}
+	//
+	//	DefaultSystemUser = SystemUser(systemProto.NewUsersClient(systemClientConn))
+	//	DefaultSystemRole = SystemRole(systemProto.NewRolesClient(systemClientConn))
+	//}
+	DefaultSystemUser = systemService.DefaultUser
 
 	DefaultImportSession = ImportSession()
 	DefaultRecord = Record()

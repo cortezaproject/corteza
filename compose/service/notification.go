@@ -16,24 +16,22 @@ import (
 	httpClient "github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/mail"
-	"github.com/cortezaproject/corteza-server/system/types"
+	systemService "github.com/cortezaproject/corteza-server/system/service"
 )
 
 type (
 	notification struct {
 		logger *zap.Logger
-		users  notificationUserFinder
-	}
-
-	notificationUserFinder interface {
-		FindByID(context.Context, uint64) (*types.User, error)
+		users  systemService.UserService
 	}
 )
 
 func Notification() *notification {
 	return &notification{
 		logger: DefaultLogger.Named("notification"),
-		users:  DefaultSystemUser,
+
+		// See comment at DefaultSystemUser definition
+		users: DefaultSystemUser,
 	}
 }
 
@@ -69,7 +67,7 @@ func (svc notification) AttachEmailRecipients(ctx context.Context, message *goma
 
 		if userID, err := strconv.ParseUint(rcpt, 10, 64); err == nil && userID > 0 {
 			// handle user ID
-			if user, err := svc.users.FindByID(ctx, userID); err != nil {
+			if user, err := svc.users.With(ctx).FindByID(userID); err != nil {
 				return errors.Wrap(err, "could not get notification address")
 			} else {
 				email = user.Email
