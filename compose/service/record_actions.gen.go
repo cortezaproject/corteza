@@ -649,7 +649,27 @@ func RecordActionImport(props ...*recordActionProps) *recordAction {
 		timestamp: time.Now(),
 		resource:  "compose:record",
 		action:    "import",
-		log:       "record imported",
+		log:       "records imported",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// RecordActionExport returns "compose:record.export" error
+//
+// This function is auto-generated.
+//
+func RecordActionExport(props ...*recordActionProps) *recordAction {
+	a := &recordAction{
+		timestamp: time.Now(),
+		resource:  "compose:record",
+		action:    "export",
+		log:       "records exported",
 		severity:  actionlog.Info,
 	}
 
