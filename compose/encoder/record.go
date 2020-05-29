@@ -1,6 +1,7 @@
 package encoder
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -30,7 +31,19 @@ func fmtSysUser(u uint64, finder userFinder) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return su.Name, nil
+
+	switch true {
+	case su.Name != "":
+		return su.Name, nil
+	case su.Handle != "":
+		return su.Handle, nil
+	case su.Email != "":
+		return su.Email, nil
+	case su.Username != "":
+		return su.Username, nil
+	}
+
+	return fmt.Sprintf("%d", su.ID), nil
 }
 
 func (enc flatWriter) Record(r *types.Record) (err error) {
