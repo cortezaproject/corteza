@@ -150,7 +150,7 @@ func TestRecordCreateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
-		FormData("name").
+		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "val"}]}`)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("not allowed to create records")).
@@ -165,7 +165,7 @@ func TestRecordCreate(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
-		FormData("name").
+		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "val"}]}`)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -180,7 +180,7 @@ func TestRecordUpdateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
-		FormData("name", "changed-name").
+		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "changed-val"}]}`)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("not allowed to update this record")).
@@ -196,7 +196,7 @@ func TestRecordUpdate(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
-		// FormData("ownerID", "5").
+		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "changed-val"}]}`)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).

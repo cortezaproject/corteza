@@ -217,10 +217,6 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 	}
 	oo = append(oo, oob...)
 
-	if err != nil {
-		return nil, err
-	}
-
 	rr, err := ctrl.record.With(ctx).Bulk(oo...)
 
 	if rve, is := err.(*types.RecordValueErrorSet); is && !rve.IsValid() {

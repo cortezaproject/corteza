@@ -441,9 +441,15 @@ func (svc record) Export(filter types.RecordFilter, enc Encoder) (err error) {
 //
 // Feature used mainly by Record Lines, but should be used when ever we wish to perform
 // multiple operations over records.
-func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rec types.RecordSet, err error) {
-	ctr := map[string]uint{}
-	return rec, svc.db.Transaction(func() (err error) {
+func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rr types.RecordSet, err error) {
+	var (
+		ctr = map[string]uint{}
+
+		action = RecordActionCreate
+		aProp  = &recordActionProps{}
+	)
+
+	return rr, svc.db.Transaction(func() (err error) {
 		for _, p := range oo {
 			r := p.Record
 			res := fmt.Sprintf("compose:module:%d", r.ModuleID)
@@ -457,21 +463,24 @@ func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rec types.RecordSet, e
 				// This is valid, since we do not allow this, if the master record is not defined
 				r.Values = r.Values.Set(&types.RecordValue{
 					Name:  p.LinkBy,
-					Value: strconv.FormatUint(rec[0].ID, 10),
-					Ref:   rec[0].ID,
+					Value: strconv.FormatUint(rr[0].ID, 10),
+					Ref:   rr[0].ID,
 				})
 			}
 
 			switch p.Operation {
 			case types.OperationTypeCreate:
+				action = RecordActionCreate
 				r, err = svc.create(r)
 				break
 
 			case types.OperationTypeUpdate:
+				action = RecordActionUpdate
 				r, err = svc.update(r)
 				break
 
 			case types.OperationTypeDelete:
+				action = RecordActionDelete
 				r, err = svc.delete(r.NamespaceID, r.ModuleID, r.ID)
 				break
 
@@ -488,10 +497,12 @@ func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rec types.RecordSet, e
 					}
 					return rve
 				}
-				return err
+
+				return svc.recordAction(svc.ctx, aProp, action, err)
+
 			}
 
-			rec = append(rec, r)
+			rr = append(rr, r)
 			ctr[res]++
 		}
 		return nil
