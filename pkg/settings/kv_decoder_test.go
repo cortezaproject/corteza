@@ -161,6 +161,4 @@ func TestDecodeKV_WithFinalTag(t *testing.T) {
 			"isFinal":             types.JSONText(`{"Foo":"final42","Sub":{"SubFoo":42}}`),
 		}
 	)
-
-	spew.Dump(DecodeKV(kv, &aux), aux)
 }
