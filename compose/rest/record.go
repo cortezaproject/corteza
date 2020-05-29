@@ -414,7 +414,11 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 		}
 
 		// Custom user getter function for the underlying encoders.
+		//
+		// not the most optimal solution; we have no other means to do a proper preload of users
+		// @todo preload users
 		users := map[uint64]*systemTypes.User{}
+
 		uf := func(ID uint64) (*systemTypes.User, error) {
 			var err error
 
