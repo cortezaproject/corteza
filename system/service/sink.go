@@ -11,8 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
@@ -231,7 +229,6 @@ func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, error) {
 	sap.setSinkParams(srup)
 
 	if srup.SignatureInPath != signatureFoundInPath {
-		spew.Dump(srup, r.URL, signatureFoundInPath)
 		return nil, SinkErrMisplacedSignature(sap)
 	}
 
