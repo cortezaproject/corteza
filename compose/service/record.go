@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -503,25 +502,24 @@ func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rr types.RecordSet, er
 				r, err = svc.delete(r.NamespaceID, r.ModuleID, r.ID)
 			}
 
-			if errors.Is(err, RecordErrValueInput()) {
-				wrappedRve := errors.Unwrap(err)
-				if rve, ok := wrappedRve.(*types.RecordValueErrorSet); ok {
-					// Attach additional meta to each value error for FE identification
-					for _, re := range rve.Set {
-						re.Meta["resource"] = res
-						re.Meta["item"] = ctr[res]
+			if rve := types.IsRecordValueErrorSet(err); rve != nil {
+				// Attach additional meta to each value error for FE identification
+				for _, re := range rve.Set {
+					re.Meta["resource"] = res
+					re.Meta["item"] = ctr[res]
 
-						rves.Push(re)
-					}
-
-					// log record value error for this record
-					_ = svc.recordAction(svc.ctx, aProp, action, err)
-
-					// do not return errors just yet, values on other records from the payload (if any)
-					// might have errors too
-					continue
+					rves.Push(re)
 				}
-			} else if err != nil {
+
+				// log record value error for this record
+				_ = svc.recordAction(svc.ctx, aProp, action, err)
+
+				// do not return errors just yet, values on other records from the payload (if any)
+				// might have errors too
+				continue
+			}
+
+			if err != nil {
 				return svc.recordAction(svc.ctx, aProp, action, err)
 			}
 
@@ -531,7 +529,7 @@ func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rr types.RecordSet, er
 
 		if !rves.IsValid() {
 			// Any errors gathered?
-			return rves
+			return RecordErrValueInput().Wrap(rves)
 		}
 
 		return nil
