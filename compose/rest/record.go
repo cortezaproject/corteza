@@ -9,12 +9,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/compose/service/values"
-	"github.com/cortezaproject/corteza-server/pkg/payload"
-
 	"github.com/titpetric/factory/resputil"
-
-	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/compose/decoder"
 	"github.com/cortezaproject/corteza-server/compose/encoder"
@@ -22,13 +17,13 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
+	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/mime"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
-
-var _ = errors.Wrap
 
 type (
 	recordPayload struct {
@@ -163,14 +158,13 @@ func (ctrl *Record) Create(ctx context.Context, r *request.RecordCreate) (interf
 	// Validate returned bulk operations
 	for _, o := range oob {
 		if o.LinkBy != "" && len(oo) == 0 {
-			return nil, errors.New("missing parent record definition")
+			return nil, fmt.Errorf("missing parent record definition")
 		}
 	}
 	oo = append(oo, oob...)
 
 	rr, err := ctrl.record.With(ctx).Bulk(oo...)
-
-	if rve, is := err.(*types.RecordValueErrorSet); is && !rve.IsValid() {
+	if rve := types.IsRecordValueErrorSet(err); rve != nil {
 		return ctrl.handleValidationError(rve), nil
 	}
 
@@ -212,14 +206,14 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 	// Validate returned bulk operations
 	for _, o := range oob {
 		if o.LinkBy != "" && len(oo) == 0 {
-			return nil, errors.New("missing parent record definition")
+			return nil, fmt.Errorf("missing parent record definition")
 		}
 	}
 	oo = append(oo, oob...)
 
 	rr, err := ctrl.record.With(ctx).Bulk(oo...)
 
-	if rve, is := err.(*types.RecordValueErrorSet); is && !rve.IsValid() {
+	if rve := types.IsRecordValueErrorSet(err); rve != nil {
 		return ctrl.handleValidationError(rve), nil
 	}
 
@@ -232,7 +226,7 @@ func (ctrl *Record) Delete(ctx context.Context, r *request.RecordDelete) (interf
 
 func (ctrl *Record) BulkDelete(ctx context.Context, r *request.RecordBulkDelete) (interface{}, error) {
 	if r.Truncate {
-		return nil, errors.New("pending implementation")
+		return nil, fmt.Errorf("pending implementation")
 	}
 
 	return resputil.OK(), ctrl.record.With(ctx).DeleteByID(
@@ -459,7 +453,7 @@ func (ctrl Record) Exec(ctx context.Context, r *request.RecordExec) (interface{}
 			aa.Get("group"),
 		)
 	default:
-		return nil, errors.New("unknown procedure")
+		return nil, fmt.Errorf("unknown procedure")
 	}
 
 	return nil, nil

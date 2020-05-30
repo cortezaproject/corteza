@@ -1,6 +1,9 @@
 package types
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type (
 	RecordValueError struct {
@@ -24,4 +27,24 @@ func (v *RecordValueErrorSet) IsValid() bool {
 
 func (v *RecordValueErrorSet) Error() string {
 	return fmt.Sprintf("%d issue(s) found", len(v.Set))
+}
+
+// IsRecordValueErrorSet tests if given error is RecordValueErrorSet (or it wraps it) and it has errors
+// If not is not (or !IsValid), it return nil!
+func IsRecordValueErrorSet(err error) *RecordValueErrorSet {
+	for {
+		if err == nil {
+			return nil
+		}
+
+		if rve, ok := err.(*RecordValueErrorSet); ok {
+			if rve.IsValid() {
+				return nil
+			}
+
+			return rve
+		}
+
+		err = errors.Unwrap(err)
+	}
 }
