@@ -2,19 +2,17 @@ package rest
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
-
-	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 )
-
-var _ = errors.Wrap
 
 type (
 	Attachment struct {
@@ -46,19 +44,19 @@ func (ctrl *Attachment) Preview(ctx context.Context, r *request.AttachmentPrevie
 
 func (ctrl Attachment) isAccessible(attachmentID, userID uint64, signature string) error {
 	if signature == "" {
-		return errors.New("Unauthorized")
+		return fmt.Errorf("Unauthorized")
 	}
 
 	if userID == 0 {
-		return errors.New("missing or invalid user ID")
+		return fmt.Errorf("missing or invalid user ID")
 	}
 
 	if attachmentID == 0 {
-		return errors.New("missing or invalid attachment ID")
+		return fmt.Errorf("missing or invalid attachment ID")
 	}
 
 	if !auth.DefaultSigner.Verify(signature, userID, attachmentID) {
-		return errors.New("missing or invalid signature")
+		return fmt.Errorf("missing or invalid signature")
 	}
 
 	return nil
@@ -67,12 +65,10 @@ func (ctrl Attachment) isAccessible(attachmentID, userID uint64, signature strin
 func (ctrl Attachment) serve(ctx context.Context, ID uint64, preview, download bool) (interface{}, error) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		att, err := ctrl.att.With(ctx).FindByID(ID)
-
 		if err != nil {
-			switch {
-			case err == repository.ErrAttachmentNotFound:
+			if errors.Is(err, repository.ErrAttachmentNotFound) {
 				w.WriteHeader(http.StatusNotFound)
-			default:
+			} else {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 

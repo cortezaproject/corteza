@@ -42,7 +42,7 @@ func TestChannelAttachNotMember(t *testing.T) {
 	ch := h.repoMakePrivateCh()
 
 	h.apiChAttach(ch, []byte("NOPE")).
-		Assert(helpers.AssertError("messaging.service.NoPermissions")).
+		Assert(helpers.AssertError("not allowed to attach files this channel")).
 		End()
 }
 

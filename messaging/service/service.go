@@ -8,6 +8,8 @@ import (
 
 	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	actionlogRepository "github.com/cortezaproject/corteza-server/pkg/actionlog/repository"
 	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/http"
@@ -39,6 +41,8 @@ var (
 
 	DefaultLogger *zap.Logger
 
+	DefaultActionlog actionlog.Recorder
+
 	DefaultSettings      settings.Service
 	DefaultAccessControl *accessControl
 
@@ -55,6 +59,13 @@ var (
 
 func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultLogger = log.Named("service")
+
+	DefaultActionlog = actionlog.NewService(
+		// will log directly to system schema for now
+		actionlogRepository.Mysql(repository.DB(ctx), "sys_actionlog"),
+		log,
+		log,
+	)
 
 	if DefaultPermissions == nil {
 		// Do not override permissions service stored under DefaultPermissions
