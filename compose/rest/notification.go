@@ -2,77 +2,59 @@ package rest
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
-	"github.com/cortezaproject/corteza-server/pkg/mail"
-
-	"github.com/pkg/errors"
-	gomail "gopkg.in/mail.v2"
+	"github.com/cortezaproject/corteza-server/compose/types"
 )
-
-var _ = errors.Wrap
 
 type (
 	Notification struct {
-		notification notificationService
+		svc notificationService
 	}
 
 	contentPayload struct {
 		Plain string `json:"plain"`
-		Html  string `json:"html"`
+		HTML  string `json:"html"`
 	}
 
 	notificationService interface {
-		SendEmail(context.Context, *gomail.Message) error
-		AttachEmailRecipients(context.Context, *gomail.Message, string, ...string) error
-		AttachRemoteFiles(context.Context, *gomail.Message, ...string) error
+		SendEmail(context.Context, *types.EmailNotification) error
 	}
 )
 
 func (Notification) New() *Notification {
 	return &Notification{
-		notification: service.DefaultNotification,
+		svc: service.DefaultNotification,
 	}
 }
 
 // EmailSend assembles Email Message and pushes message to notification service
 func (ctrl *Notification) EmailSend(ctx context.Context, r *request.NotificationEmailSend) (interface{}, error) {
-	ntf := ctrl.notification
-
-	msg := mail.New()
-	if err := ntf.AttachEmailRecipients(ctx, msg, "To", r.To...); err != nil {
-		return false, err
-	}
-
-	if err := ntf.AttachEmailRecipients(ctx, msg, "Cc", r.Cc...); err != nil {
-		return false, err
+	ntf := &types.EmailNotification{
+		To:                r.To,
+		Cc:                r.Cc,
+		ReplyTo:           r.ReplyTo,
+		Subject:           r.Subject,
+		RemoteAttachments: r.RemoteAttachments,
 	}
 
 	var cp = contentPayload{}
 	if err := r.Content.Unmarshal(&cp); err != nil {
-		return false, errors.Wrap(err, "Could not unmarshal content")
+		return false, fmt.Errorf("could not unmarshal content: %w", err)
 	} else {
-		if len(cp.Html) > 0 {
-			msg.SetBody("text/html", cp.Html)
+		if len(cp.HTML) > 0 {
+			ntf.ContentHTML = cp.HTML
 
 		}
 
 		if len(cp.Plain) > 0 {
-			msg.SetBody("text/plain", cp.Plain)
+			ntf.ContentPlain = cp.Plain
 		}
 	}
 
-	msg.SetHeader("Subject", r.Subject)
-
-	if len(r.RemoteAttachments) > 0 {
-		err := ntf.AttachRemoteFiles(ctx, msg, r.RemoteAttachments...)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if err := ntf.SendEmail(ctx, msg); err != nil {
+	if err := ctrl.svc.SendEmail(ctx, ntf); err != nil {
 		return false, err
 	} else {
 		return true, nil

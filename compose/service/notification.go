@@ -2,152 +2,207 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"path"
 	"strconv"
 	"strings"
 	"sync"
 
-	"github.com/pkg/errors"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	gomail "gopkg.in/mail.v2"
 
+	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	httpClient "github.com/cortezaproject/corteza-server/pkg/http"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/mail"
-	"github.com/cortezaproject/corteza-server/system/types"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
+	// notification is a service that relays notification to receipients
+	// currently, we only support email notifications
+	//
+	// @todo due to initial architectural decisions, this service landed under compose
+	//       but should be moved to system
+	//       Warning: API endpoints on compose should be kept so that we do not break backward compatibility)
 	notification struct {
-		logger *zap.Logger
-		users  notificationUserFinder
+		actionlog actionlog.Recorder
+		users     notificationUserFinder
 	}
 
 	notificationUserFinder interface {
-		FindByID(context.Context, uint64) (*types.User, error)
+		FindByID(context.Context, uint64) (*systemTypes.User, error)
 	}
 )
 
 func Notification() *notification {
 	return &notification{
-		logger: DefaultLogger.Named("notification"),
-		users:  DefaultSystemUser,
+		actionlog: DefaultActionlog,
+		users:     DefaultSystemUser,
 	}
 }
 
-// log() returns zap's logger with requestID from current context and fields.
-func (svc notification) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(ctx, svc.logger).With(fields...)
+// SendEmail sends email notification
+func (svc notification) SendEmail(ctx context.Context, n *types.EmailNotification) (err error) {
+	var (
+		aProps = &notificationActionProps{mail: n}
+	)
+
+	err = func() error {
+		msg := mail.New()
+
+		if len(n.To) == 0 {
+			return NotificationErrNoRecipients()
+		}
+
+		if err = svc.procEmailRecipients(ctx, msg, "To", n.To...); err != nil {
+			return err
+		}
+
+		if err = svc.procEmailRecipients(ctx, msg, "Cc", n.Cc...); err != nil {
+			return err
+		}
+
+		if len(n.ReplyTo) > 0 {
+			// extra check for length because ReplyTo can only hold 1 address!
+			if err = svc.procEmailRecipients(ctx, msg, "ReplyTo", n.ReplyTo); err != nil {
+				return err
+			}
+		}
+
+		msg.SetHeader("Subject", n.Subject)
+
+		if len(n.ContentHTML) > 0 {
+			msg.SetBody("text/html", n.ContentHTML)
+
+		}
+
+		if len(n.ContentPlain) > 0 || len(n.ContentHTML) == 0 {
+			// Make sure plain body is always set, even if empty
+			msg.SetBody("text/plain", n.ContentPlain)
+		}
+
+		if err = svc.procEmailAttachments(ctx, msg, n.RemoteAttachments...); err != nil {
+
+			return err
+		}
+
+		return mail.Send(msg)
+	}()
+
+	return svc.recordAction(ctx, aProps, NotificationActionSend, err)
 }
 
-func (svc notification) SendEmail(ctx context.Context, message *gomail.Message) error {
-	return mail.Send(message)
-}
-
-// AttachEmailRecipients validates, resolves, formats and attaches set of recipients to message
+// procEmailRecipients validates, resolves, formats and attaches set of recipients to message
 //
 // Supports 3 input formats:
 //  - <valid email>
 //  - <valid email><space><name...>
 //  - <userID>
 // Last one is then translated into valid email + name (when/if possible)
-func (svc notification) AttachEmailRecipients(ctx context.Context, message *gomail.Message, field string, recipients ...string) (err error) {
+func (svc notification) procEmailRecipients(ctx context.Context, m *gomail.Message, field string, rr ...string) (err error) {
 	var (
 		email string
 		name  string
 	)
 
-	if len(recipients) == 0 {
+	if len(rr) == 0 {
 		return
 	}
 
-	for r, rcpt := range recipients {
+	for r, rcpt := range rr {
+		aProps := &notificationActionProps{recipient: rcpt}
+
 		name, email = "", ""
 		rcpt = strings.TrimSpace(rcpt)
 
 		if userID, err := strconv.ParseUint(rcpt, 10, 64); err == nil && userID > 0 {
-			// handle user ID
+			// proc <user ID>
 			if user, err := svc.users.FindByID(ctx, userID); err != nil {
-				return errors.Wrap(err, "could not get notification address")
+				return NotificationErrFailedToLoadUser(aProps).Wrap(err)
 			} else {
 				email = user.Email
 				name = user.Name
 			}
 
 		} else if spaceAt := strings.Index(rcpt, " "); spaceAt > -1 {
-			// handle: <email> <name> ("foo@bar.baz foo baz")
+			// proc <email> <name> ("foo@bar.baz foo baz")
 			email, name = rcpt[:spaceAt], strings.TrimSpace(rcpt[spaceAt+1:])
 		} else {
-			// handle: <email>
+			// proc <email>
 			email = rcpt
 		}
 
 		// Validate email here
 		if !mail.IsValidAddress(email) {
-			return errors.New("Invalid recipient email format")
+			return NotificationErrInvalidReceipientFormat(aProps)
 		}
 
-		recipients[r] = message.FormatAddress(email, name)
+		rr[r] = m.FormatAddress(email, name)
 	}
 
-	message.SetHeader(field, recipients...)
-	return
+	m.SetHeader(field, rr...)
+	return nil
 }
 
-func (svc notification) AttachRemoteFiles(ctx context.Context, message *gomail.Message, rr ...string) error {
+// procEmailAttachments treats given strings (URLs) as remote files, downloads and attaches them to
+// the message
+//
+// This could/should be easily extended to support data URLs as well
+// see https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs
+func (svc notification) procEmailAttachments(ctx context.Context, message *gomail.Message, aa ...string) error {
 	var (
-		wg = &sync.WaitGroup{}
+		// threading safely (when multiple files are to be attached)
 		l  = &sync.Mutex{}
+		wg = &sync.WaitGroup{}
 
 		client, err = httpClient.New(&httpClient.Config{
 			Timeout: 10,
 		})
-
-		log = svc.logger
 	)
 
-	log.Debug("attaching files to mail notification", zap.Strings("urls", rr))
-
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
-	get := func(log *zap.Logger, req *http.Request) {
-		defer wg.Done()
+	get := func(url string) error {
+		aProps := &notificationActionProps{attachmentURL: url}
 
-		resp, err := client.Do(req)
+		req, err := client.Get(url)
 		if err != nil {
-			log.Error("could not send request to download remote attachment", zap.Error(err))
-			return
+			return err
 		}
+
+		resp, err := client.Do(req.WithContext(ctx))
+		if err != nil {
+			return NotificationErrFailedToDownloadAttachment(aProps).Wrap(err)
+		}
+
+		aProps.setAttachmentType(resp.Header.Get("Content-Type"))
+		aProps.setAttachmentSize(resp.ContentLength)
 
 		if resp.StatusCode != http.StatusOK {
-			log.Error("could not download remote attachment", zap.String("status", resp.Status))
-			return
+			return NotificationErrFailedToDownloadAttachment(aProps).
+				Wrap(fmt.Errorf("unexpected HTTP status: %s", resp.Status))
 		}
-
-		log.Info("download successful",
-			zap.Int64("content-length", resp.ContentLength),
-			zap.String("content-type", resp.Header.Get("Content-Type")),
-		)
 
 		l.Lock()
 		defer l.Unlock()
 		message.AttachReader(path.Base(req.URL.Path), resp.Body)
+		return nil
 	}
 
-	for _, url := range rr {
-		log := log.With(zap.String("remote-file", url))
-
-		req, err := client.Get(url)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
+	for _, url := range aa {
 		wg.Add(1)
-		go get(log, req)
+		go func() {
+			defer wg.Done()
+			_ = svc.recordAction(
+				ctx,
+				&notificationActionProps{attachmentURL: url},
+				NotificationActionAttachmentDownload,
+				get(url),
+			)
+		}()
 	}
 
 	wg.Wait()

@@ -1,0 +1,44 @@
+# List of loggable service actions
+
+resource: compose:notification
+service: notification
+
+# Default sensitivity for actions
+defaultActionSeverity: info
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/compose/types
+
+props:
+  - name: mail
+    type: "*types.EmailNotification"
+    fields: [ subject, to, cc, replyTo, contentPlain, contentHTML, remoteAttachments ]
+  - name: recipient
+  - name: attachmentURL
+  - name: attachmentSize
+    type: int64
+  - name: attachmentType
+
+actions:
+  - action: send
+    log: "notification sent"
+
+  - action: attachmentDownload
+    log: "attachment downloaded"
+    severity: debug
+
+errors:
+  - error: failedToLoadUser
+    message: "could not load user for {recipient}"
+
+  - error: invalidReceipientFormat
+    message: "invalid recipient format ({recipient})"
+
+  - error: noRecipients
+    message: "can not send email message without recipients"
+
+  - error: failedToDownloadAttachment
+    message: "could not download attachment from {attachmentURL}: {err}"
