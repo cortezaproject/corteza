@@ -38,7 +38,7 @@ func TestChannelCreateDenied(t *testing.T) {
 	h.deny(types.MessagingPermissionResource, "channel.public.create")
 
 	h.apiChPubCreate("should not be created").
-		Assert(helpers.AssertError("messaging.service.NoPermissions")).
+		Assert(helpers.AssertError("not allowed to create channels")).
 		End()
 }
 
@@ -61,7 +61,7 @@ func TestChannelCreateWithShortName(t *testing.T) {
 
 	h.apiChPubCreate("").
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("channel name not provided")).
+		Assert(helpers.AssertError("name not set")).
 		End()
 }
 
@@ -71,7 +71,7 @@ func TestChannelCreateWithLongName(t *testing.T) {
 
 	h.apiChPubCreate(strings.Repeat("X ", 1000)).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("channel name (2000 characters) too long (max: 40)")).
+		Assert(helpers.AssertError("name too long")).
 		End()
 
 }

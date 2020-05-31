@@ -14,14 +14,11 @@ import (
 	"github.com/edwvee/exiffix"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/store"
 )
 
@@ -32,9 +29,8 @@ const (
 
 type (
 	attachment struct {
-		db     *factory.DB
-		ctx    context.Context
-		logger *zap.Logger
+		db  *factory.DB
+		ctx context.Context
 
 		actionlog actionlog.Recorder
 
@@ -97,11 +93,6 @@ func (svc attachment) With(ctx context.Context) AttachmentService {
 		moduleRepo:     repository.Module(ctx, db),
 		namespaceRepo:  repository.Namespace(ctx, db),
 	}
-}
-
-// log() returns zap's logger with requestID from current context and fields.
-func (svc attachment) log(fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(svc.ctx, svc.logger).With(fields...)
 }
 
 func (svc attachment) FindByID(namespaceID, attachmentID uint64) (att *types.Attachment, err error) {

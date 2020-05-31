@@ -23,6 +23,10 @@ func (e repositoryError) String() string {
 	return "messaging.repository." + string(e)
 }
 
+func (e repositoryError) Eq(err error) bool {
+	return err != nil && e.Error() == err.Error()
+}
+
 func (e repositoryError) New() error {
 	return errors.WithStack(e)
 }

@@ -7,22 +7,18 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 )
 
 type (
 	message struct {
-		db     db
-		ctx    context.Context
-		logger *zap.Logger
-		ac     messageAccessController
+		db  db
+		ctx context.Context
+		ac  messageAccessController
 
 		channel ChannelService
 
@@ -82,8 +78,6 @@ var (
 
 func Message(ctx context.Context) MessageService {
 	return (&message{
-		logger: DefaultLogger.Named("message"),
-
 		ac:      DefaultAccessControl,
 		channel: DefaultChannel,
 	}).With(ctx)
@@ -92,10 +86,8 @@ func Message(ctx context.Context) MessageService {
 func (svc message) With(ctx context.Context) MessageService {
 	db := repository.DB(ctx)
 	return &message{
-		db:     db,
-		ctx:    ctx,
-		logger: svc.logger,
-
+		db:      db,
+		ctx:     ctx,
 		ac:      svc.ac,
 		channel: svc.channel,
 
@@ -108,11 +100,6 @@ func (svc message) With(ctx context.Context) MessageService {
 		mflag:      repository.MessageFlag(ctx, db),
 		mentions:   repository.Mention(ctx, db),
 	}
-}
-
-// log() returns zap's logger with requestID from current context and fields.
-func (svc message) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(ctx, svc.logger).With(fields...)
 }
 
 func (svc message) Find(filter types.MessageFilter) (mm types.MessageSet, f types.MessageFilter, err error) {
@@ -758,7 +745,6 @@ func (svc message) countUnreads(ch *types.Channel, m *types.Message, userID uint
 		if m.DeletedAt != nil {
 			// When deleting message, all existing counters are decreased!
 			if err = svc.unread.Dec(m.ChannelID, m.ReplyTo, m.UserID); err != nil {
-				svc.logger.With(zap.Error(err)).Info("could not decrement unread counter")
 				return
 			}
 		} else if m.UpdatedAt == nil {
@@ -773,7 +759,6 @@ func (svc message) countUnreads(ch *types.Channel, m *types.Message, userID uint
 
 			// When new message is created, update all existing counters
 			if err = svc.unread.Inc(m.ChannelID, m.ReplyTo, m.UserID); err != nil {
-				svc.logger.With(zap.Error(err)).Info("could not increment unread counter")
 				return
 			}
 		}
@@ -785,7 +770,6 @@ func (svc message) countUnreads(ch *types.Channel, m *types.Message, userID uint
 
 	uuBase, err = svc.unread.Count(userID, ch.ID, threadIDs...)
 	if err != nil {
-		svc.logger.With(zap.Error(err)).Info("could not count unread messages")
 		return
 	}
 
@@ -794,7 +778,6 @@ func (svc message) countUnreads(ch *types.Channel, m *types.Message, userID uint
 		// Do another count for channel
 		uuChannels, err = svc.unread.Count(userID, ch.ID)
 		if err != nil {
-			svc.logger.With(zap.Error(err)).Info("could not count unread messages")
 			return
 		}
 
@@ -803,7 +786,6 @@ func (svc message) countUnreads(ch *types.Channel, m *types.Message, userID uint
 		// Now recount all threads for this channel
 		uuThreads, err = svc.unread.CountThreads(userID, ch.ID)
 		if err != nil {
-			svc.logger.With(zap.Error(err)).Info("could not count unread messages")
 			return
 		}
 
@@ -813,7 +795,6 @@ func (svc message) countUnreads(ch *types.Channel, m *types.Message, userID uint
 	// This is a reply, make sure we fetch the new stats about unread replies and push them to users
 	err = svc.event.UnreadCounters(uuBase)
 	if err != nil {
-		svc.logger.With(zap.Error(err)).Info("could not send unread count event")
 		return
 	}
 }

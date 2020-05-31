@@ -125,7 +125,7 @@ func (ctrl *Channel) Attach(ctx context.Context, r *request.ChannelAttach) (inte
 
 	defer file.Close()
 
-	att, err := ctrl.svc.att.With(ctx).Create(
+	att, err := ctrl.svc.att.With(ctx).CreateMessageAttachment(
 		r.Upload.Filename,
 		r.Upload.Size,
 		file,

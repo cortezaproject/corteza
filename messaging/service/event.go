@@ -3,12 +3,8 @@ package service
 import (
 	"context"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-
 	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/payload/outgoing"
 )
@@ -16,8 +12,6 @@ import (
 type (
 	event struct {
 		ctx    context.Context
-		logger *zap.Logger
-
 		events repository.EventsRepository
 	}
 
@@ -35,23 +29,14 @@ type (
 
 // Event sends sends events back to all (or specific) subscribers
 func Event(ctx context.Context) EventService {
-	return (&event{
-		logger: DefaultLogger.Named("event"),
-	}).With(ctx)
+	return (&event{}).With(ctx)
 }
 
 func (svc event) With(ctx context.Context) EventService {
 	return &event{
 		ctx:    ctx,
-		logger: svc.logger,
-
 		events: repository.Events(),
 	}
-}
-
-// log() returns zap's logger with requestID from current context and fields.
-func (svc event) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
-	return logger.AddRequestID(ctx, svc.logger).With(fields...)
 }
 
 // Message sends message events to subscribers

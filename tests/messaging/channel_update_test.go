@@ -45,10 +45,11 @@ func TestChannelUpdateNonexistent(t *testing.T) {
 	req := &request.ChannelUpdate{
 		ChannelID: factory.Sonyflake.NextID(),
 		Name:      "some name",
+		Type:      "public",
 	}
 
 	h.chUpdate(req).
-		Assert(helpers.AssertError("messaging.repository.ChannelNotFound")).
+		Assert(helpers.AssertError("channel does not exist")).
 		End()
 
 }
@@ -63,7 +64,7 @@ func TestChannelUpdateDenied(t *testing.T) {
 	req.Name = "Updated name"
 
 	h.chUpdate(req).
-		Assert(helpers.AssertError("messaging.service.NoPermissions")).
+		Assert(helpers.AssertError("not allowed to update this channel")).
 		End()
 }
 
