@@ -50,6 +50,11 @@ type (
 	}
 )
 
+var (
+	// just a placeholder to cover template cases w/o fmt package use
+	_ = fmt.Println
+)
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
@@ -103,30 +108,26 @@ func (p *applicationActionProps) setFilter(filter *types.ApplicationFilter) *app
 //
 func (p applicationActionProps) serialize() actionlog.Meta {
 	var (
-		m   = make(actionlog.Meta)
-		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
+		m = make(actionlog.Meta)
 	)
 
-	// avoiding declared but not used
-	_ = str
-
 	if p.application != nil {
-		m["application.name"] = str(p.application.Name)
-		m["application.ID"] = str(p.application.ID)
+		m.Set("application.name", p.application.Name, true)
+		m.Set("application.ID", p.application.ID, true)
 	}
 	if p.new != nil {
-		m["new.name"] = str(p.new.Name)
-		m["new.ID"] = str(p.new.ID)
+		m.Set("new.name", p.new.Name, true)
+		m.Set("new.ID", p.new.ID, true)
 	}
 	if p.update != nil {
-		m["update.name"] = str(p.update.Name)
-		m["update.ID"] = str(p.update.ID)
+		m.Set("update.name", p.update.Name, true)
+		m.Set("update.ID", p.update.ID, true)
 	}
 	if p.filter != nil {
-		m["filter.query"] = str(p.filter.Query)
-		m["filter.name"] = str(p.filter.Name)
-		m["filter.deleted"] = str(p.filter.Deleted)
-		m["filter.sort"] = str(p.filter.Sort)
+		m.Set("filter.query", p.filter.Query, true)
+		m.Set("filter.name", p.filter.Name, true)
+		m.Set("filter.deleted", p.filter.Deleted, true)
+		m.Set("filter.sort", p.filter.Sort, true)
 	}
 
 	return m

@@ -54,6 +54,11 @@ type (
 	}
 )
 
+var (
+	// just a placeholder to cover template cases w/o fmt package use
+	_ = fmt.Println
+)
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
@@ -118,24 +123,20 @@ func (p *sinkActionProps) setMailHeader(mailHeader *types.MailMessageHeader) *si
 //
 func (p sinkActionProps) serialize() actionlog.Meta {
 	var (
-		m   = make(actionlog.Meta)
-		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
+		m = make(actionlog.Meta)
 	)
 
-	// avoiding declared but not used
-	_ = str
-
-	m["url"] = str(p.url)
-	m["responseStatus"] = str(p.responseStatus)
-	m["contentType"] = str(p.contentType)
-	m["sinkParams"] = str(p.sinkParams)
+	m.Set("url", p.url, true)
+	m.Set("responseStatus", p.responseStatus, true)
+	m.Set("contentType", p.contentType, true)
+	m.Set("sinkParams", p.sinkParams, true)
 	if p.mailHeader != nil {
-		m["mailHeader.to"] = str(p.mailHeader.To)
-		m["mailHeader.CC"] = str(p.mailHeader.CC)
-		m["mailHeader.BCC"] = str(p.mailHeader.BCC)
-		m["mailHeader.from"] = str(p.mailHeader.From)
-		m["mailHeader.replyTo"] = str(p.mailHeader.ReplyTo)
-		m["mailHeader.raw"] = str(p.mailHeader.Raw)
+		m.Set("mailHeader.to", p.mailHeader.To, true)
+		m.Set("mailHeader.CC", p.mailHeader.CC, true)
+		m.Set("mailHeader.BCC", p.mailHeader.BCC, true)
+		m.Set("mailHeader.from", p.mailHeader.From, true)
+		m.Set("mailHeader.replyTo", p.mailHeader.ReplyTo, true)
+		m.Set("mailHeader.raw", p.mailHeader.Raw, true)
 	}
 
 	return m

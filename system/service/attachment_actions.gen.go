@@ -52,6 +52,11 @@ type (
 	}
 )
 
+var (
+	// just a placeholder to cover template cases w/o fmt package use
+	_ = fmt.Println
+)
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
@@ -127,30 +132,26 @@ func (p *attachmentActionProps) setFilter(filter *types.AttachmentFilter) *attac
 //
 func (p attachmentActionProps) serialize() actionlog.Meta {
 	var (
-		m   = make(actionlog.Meta)
-		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
+		m = make(actionlog.Meta)
 	)
 
-	// avoiding declared but not used
-	_ = str
-
-	m["size"] = str(p.size)
-	m["name"] = str(p.name)
-	m["mimetype"] = str(p.mimetype)
-	m["url"] = str(p.url)
+	m.Set("size", p.size, true)
+	m.Set("name", p.name, true)
+	m.Set("mimetype", p.mimetype, true)
+	m.Set("url", p.url, true)
 	if p.attachment != nil {
-		m["attachment.name"] = str(p.attachment.Name)
-		m["attachment.kind"] = str(p.attachment.Kind)
-		m["attachment.url"] = str(p.attachment.Url)
-		m["attachment.previewUrl"] = str(p.attachment.PreviewUrl)
-		m["attachment.meta"] = str(p.attachment.Meta)
-		m["attachment.ownerID"] = str(p.attachment.OwnerID)
-		m["attachment.ID"] = str(p.attachment.ID)
+		m.Set("attachment.name", p.attachment.Name, true)
+		m.Set("attachment.kind", p.attachment.Kind, true)
+		m.Set("attachment.url", p.attachment.Url, true)
+		m.Set("attachment.previewUrl", p.attachment.PreviewUrl, true)
+		m.Set("attachment.meta", p.attachment.Meta, true)
+		m.Set("attachment.ownerID", p.attachment.OwnerID, true)
+		m.Set("attachment.ID", p.attachment.ID, true)
 	}
 	if p.filter != nil {
-		m["filter.filter"] = str(p.filter.Filter)
-		m["filter.kind"] = str(p.filter.Kind)
-		m["filter.sort"] = str(p.filter.Sort)
+		m.Set("filter.filter", p.filter.Filter, true)
+		m.Set("filter.kind", p.filter.Kind, true)
+		m.Set("filter.sort", p.filter.Sort, true)
 	}
 
 	return m

@@ -56,6 +56,11 @@ type (
 	}
 )
 
+var (
+	// just a placeholder to cover template cases w/o fmt package use
+	_ = fmt.Println
+)
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
@@ -175,51 +180,47 @@ func (p *attachmentActionProps) setModule(module *types.Module) *attachmentActio
 //
 func (p attachmentActionProps) serialize() actionlog.Meta {
 	var (
-		m   = make(actionlog.Meta)
-		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
+		m = make(actionlog.Meta)
 	)
 
-	// avoiding declared but not used
-	_ = str
-
-	m["size"] = str(p.size)
-	m["name"] = str(p.name)
-	m["mimetype"] = str(p.mimetype)
-	m["url"] = str(p.url)
+	m.Set("size", p.size, true)
+	m.Set("name", p.name, true)
+	m.Set("mimetype", p.mimetype, true)
+	m.Set("url", p.url, true)
 	if p.attachment != nil {
-		m["attachment.name"] = str(p.attachment.Name)
-		m["attachment.kind"] = str(p.attachment.Kind)
-		m["attachment.url"] = str(p.attachment.Url)
-		m["attachment.previewUrl"] = str(p.attachment.PreviewUrl)
-		m["attachment.meta"] = str(p.attachment.Meta)
-		m["attachment.ownerID"] = str(p.attachment.OwnerID)
-		m["attachment.ID"] = str(p.attachment.ID)
-		m["attachment.namespaceID"] = str(p.attachment.NamespaceID)
+		m.Set("attachment.name", p.attachment.Name, true)
+		m.Set("attachment.kind", p.attachment.Kind, true)
+		m.Set("attachment.url", p.attachment.Url, true)
+		m.Set("attachment.previewUrl", p.attachment.PreviewUrl, true)
+		m.Set("attachment.meta", p.attachment.Meta, true)
+		m.Set("attachment.ownerID", p.attachment.OwnerID, true)
+		m.Set("attachment.ID", p.attachment.ID, true)
+		m.Set("attachment.namespaceID", p.attachment.NamespaceID, true)
 	}
 	if p.filter != nil {
-		m["filter.filter"] = str(p.filter.Filter)
-		m["filter.kind"] = str(p.filter.Kind)
-		m["filter.sort"] = str(p.filter.Sort)
+		m.Set("filter.filter", p.filter.Filter, true)
+		m.Set("filter.kind", p.filter.Kind, true)
+		m.Set("filter.sort", p.filter.Sort, true)
 	}
 	if p.namespace != nil {
-		m["namespace.name"] = str(p.namespace.Name)
-		m["namespace.slug"] = str(p.namespace.Slug)
-		m["namespace.ID"] = str(p.namespace.ID)
+		m.Set("namespace.name", p.namespace.Name, true)
+		m.Set("namespace.slug", p.namespace.Slug, true)
+		m.Set("namespace.ID", p.namespace.ID, true)
 	}
 	if p.record != nil {
-		m["record.ID"] = str(p.record.ID)
-		m["record.moduleID"] = str(p.record.ModuleID)
-		m["record.namespaceID"] = str(p.record.NamespaceID)
+		m.Set("record.ID", p.record.ID, true)
+		m.Set("record.moduleID", p.record.ModuleID, true)
+		m.Set("record.namespaceID", p.record.NamespaceID, true)
 	}
 	if p.page != nil {
-		m["page.handle"] = str(p.page.Handle)
-		m["page.title"] = str(p.page.Title)
-		m["page.ID"] = str(p.page.ID)
+		m.Set("page.handle", p.page.Handle, true)
+		m.Set("page.title", p.page.Title, true)
+		m.Set("page.ID", p.page.ID, true)
 	}
 	if p.module != nil {
-		m["module.handle"] = str(p.module.Handle)
-		m["module.name"] = str(p.module.Name)
-		m["module.ID"] = str(p.module.ID)
+		m.Set("module.handle", p.module.Handle, true)
+		m.Set("module.name", p.module.Name, true)
+		m.Set("module.ID", p.module.ID, true)
 	}
 
 	return m

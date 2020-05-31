@@ -50,6 +50,11 @@ type (
 	}
 )
 
+var (
+	// just a placeholder to cover template cases w/o fmt package use
+	_ = fmt.Println
+)
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
@@ -103,47 +108,43 @@ func (p *pageActionProps) setNamespace(namespace *types.Namespace) *pageActionPr
 //
 func (p pageActionProps) serialize() actionlog.Meta {
 	var (
-		m   = make(actionlog.Meta)
-		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
+		m = make(actionlog.Meta)
 	)
 
-	// avoiding declared but not used
-	_ = str
-
 	if p.page != nil {
-		m["page.title"] = str(p.page.Title)
-		m["page.handle"] = str(p.page.Handle)
-		m["page.ID"] = str(p.page.ID)
-		m["page.namespaceID"] = str(p.page.NamespaceID)
-		m["page.moduleID"] = str(p.page.ModuleID)
+		m.Set("page.title", p.page.Title, true)
+		m.Set("page.handle", p.page.Handle, true)
+		m.Set("page.ID", p.page.ID, true)
+		m.Set("page.namespaceID", p.page.NamespaceID, true)
+		m.Set("page.moduleID", p.page.ModuleID, true)
 	}
 	if p.changed != nil {
-		m["changed.title"] = str(p.changed.Title)
-		m["changed.handle"] = str(p.changed.Handle)
-		m["changed.ID"] = str(p.changed.ID)
-		m["changed.namespaceID"] = str(p.changed.NamespaceID)
-		m["changed.description"] = str(p.changed.Description)
-		m["changed.moduleID"] = str(p.changed.ModuleID)
-		m["changed.blocks"] = str(p.changed.Blocks)
-		m["changed.visible"] = str(p.changed.Visible)
-		m["changed.weight"] = str(p.changed.Weight)
+		m.Set("changed.title", p.changed.Title, true)
+		m.Set("changed.handle", p.changed.Handle, true)
+		m.Set("changed.ID", p.changed.ID, true)
+		m.Set("changed.namespaceID", p.changed.NamespaceID, true)
+		m.Set("changed.description", p.changed.Description, true)
+		m.Set("changed.moduleID", p.changed.ModuleID, true)
+		m.Set("changed.blocks", p.changed.Blocks, true)
+		m.Set("changed.visible", p.changed.Visible, true)
+		m.Set("changed.weight", p.changed.Weight, true)
 	}
 	if p.filter != nil {
-		m["filter.query"] = str(p.filter.Query)
-		m["filter.handle"] = str(p.filter.Handle)
-		m["filter.root"] = str(p.filter.Root)
-		m["filter.namespaceID"] = str(p.filter.NamespaceID)
-		m["filter.parentID"] = str(p.filter.ParentID)
-		m["filter.sort"] = str(p.filter.Sort)
-		m["filter.limit"] = str(p.filter.Limit)
-		m["filter.offset"] = str(p.filter.Offset)
-		m["filter.page"] = str(p.filter.Page)
-		m["filter.perPage"] = str(p.filter.PerPage)
+		m.Set("filter.query", p.filter.Query, true)
+		m.Set("filter.handle", p.filter.Handle, true)
+		m.Set("filter.root", p.filter.Root, true)
+		m.Set("filter.namespaceID", p.filter.NamespaceID, true)
+		m.Set("filter.parentID", p.filter.ParentID, true)
+		m.Set("filter.sort", p.filter.Sort, true)
+		m.Set("filter.limit", p.filter.Limit, true)
+		m.Set("filter.offset", p.filter.Offset, true)
+		m.Set("filter.page", p.filter.Page, true)
+		m.Set("filter.perPage", p.filter.PerPage, true)
 	}
 	if p.namespace != nil {
-		m["namespace.name"] = str(p.namespace.Name)
-		m["namespace.slug"] = str(p.namespace.Slug)
-		m["namespace.ID"] = str(p.namespace.ID)
+		m.Set("namespace.name", p.namespace.Name, true)
+		m.Set("namespace.slug", p.namespace.Slug, true)
+		m.Set("namespace.ID", p.namespace.ID, true)
 	}
 
 	return m

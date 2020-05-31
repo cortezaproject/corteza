@@ -51,6 +51,11 @@ type (
 	}
 )
 
+var (
+	// just a placeholder to cover template cases w/o fmt package use
+	_ = fmt.Println
+)
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
@@ -115,32 +120,28 @@ func (p *authActionProps) setUser(user *types.User) *authActionProps {
 //
 func (p authActionProps) serialize() actionlog.Meta {
 	var (
-		m   = make(actionlog.Meta)
-		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
+		m = make(actionlog.Meta)
 	)
 
-	// avoiding declared but not used
-	_ = str
-
-	m["email"] = str(p.email)
-	m["provider"] = str(p.provider)
+	m.Set("email", p.email, true)
+	m.Set("provider", p.provider, true)
 	if p.credentials != nil {
-		m["credentials.kind"] = str(p.credentials.Kind)
-		m["credentials.label"] = str(p.credentials.Label)
-		m["credentials.ID"] = str(p.credentials.ID)
+		m.Set("credentials.kind", p.credentials.Kind, true)
+		m.Set("credentials.label", p.credentials.Label, true)
+		m.Set("credentials.ID", p.credentials.ID, true)
 	}
 	if p.role != nil {
-		m["role.handle"] = str(p.role.Handle)
-		m["role.name"] = str(p.role.Name)
-		m["role.ID"] = str(p.role.ID)
+		m.Set("role.handle", p.role.Handle, true)
+		m.Set("role.name", p.role.Name, true)
+		m.Set("role.ID", p.role.ID, true)
 	}
 	if p.user != nil {
-		m["user.handle"] = str(p.user.Handle)
-		m["user.name"] = str(p.user.Name)
-		m["user.ID"] = str(p.user.ID)
-		m["user.email"] = str(p.user.Email)
-		m["user.suspendedAt"] = str(p.user.SuspendedAt)
-		m["user.deletedAt"] = str(p.user.DeletedAt)
+		m.Set("user.handle", p.user.Handle, true)
+		m.Set("user.name", p.user.Name, true)
+		m.Set("user.ID", p.user.ID, true)
+		m.Set("user.email", p.user.Email, true)
+		m.Set("user.suspendedAt", p.user.SuspendedAt, true)
+		m.Set("user.deletedAt", p.user.DeletedAt, true)
 	}
 
 	return m
