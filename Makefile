@@ -129,7 +129,7 @@ codegen: $(PROTOGEN)
 	./codegen.sh
 
 mailhog.up:
-	$(DOCKER) run --rm --publish $(DEV_MAILHOG_SMTP_ADDR):8025 --publish $(DEV_MAILHOG_HTTP_ADDR):1025 mailhog/mailhog
+	$(DOCKER) run --rm --publish $(DEV_MAILHOG_HTTP_ADDR):8025 --publish $(DEV_MAILHOG_SMTP_ADDR):1025 mailhog/mailhog
 
 minio.up:
 	# Runs temp minio server
