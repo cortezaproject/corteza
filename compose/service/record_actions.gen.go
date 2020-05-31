@@ -55,6 +55,11 @@ type (
 	}
 )
 
+var (
+	// just a placeholder to cover template cases w/o fmt package use
+	_ = fmt.Println
+)
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
@@ -163,52 +168,48 @@ func (p *recordActionProps) setValueErrors(valueErrors *types.RecordValueErrorSe
 //
 func (p recordActionProps) serialize() actionlog.Meta {
 	var (
-		m   = make(actionlog.Meta)
-		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
+		m = make(actionlog.Meta)
 	)
 
-	// avoiding declared but not used
-	_ = str
-
 	if p.record != nil {
-		m["record.ID"] = str(p.record.ID)
-		m["record.moduleID"] = str(p.record.ModuleID)
-		m["record.namespaceID"] = str(p.record.NamespaceID)
-		m["record.ownedBy"] = str(p.record.OwnedBy)
+		m.Set("record.ID", p.record.ID, true)
+		m.Set("record.moduleID", p.record.ModuleID, true)
+		m.Set("record.namespaceID", p.record.NamespaceID, true)
+		m.Set("record.ownedBy", p.record.OwnedBy, true)
 	}
 	if p.changed != nil {
-		m["changed.ID"] = str(p.changed.ID)
-		m["changed.moduleID"] = str(p.changed.ModuleID)
-		m["changed.namespaceID"] = str(p.changed.NamespaceID)
-		m["changed.ownedBy"] = str(p.changed.OwnedBy)
+		m.Set("changed.ID", p.changed.ID, true)
+		m.Set("changed.moduleID", p.changed.ModuleID, true)
+		m.Set("changed.namespaceID", p.changed.NamespaceID, true)
+		m.Set("changed.ownedBy", p.changed.OwnedBy, true)
 	}
 	if p.filter != nil {
-		m["filter.query"] = str(p.filter.Query)
-		m["filter.namespaceID"] = str(p.filter.NamespaceID)
-		m["filter.moduleID"] = str(p.filter.ModuleID)
-		m["filter.deleted"] = str(p.filter.Deleted)
-		m["filter.sort"] = str(p.filter.Sort)
-		m["filter.limit"] = str(p.filter.Limit)
-		m["filter.offset"] = str(p.filter.Offset)
-		m["filter.page"] = str(p.filter.Page)
-		m["filter.perPage"] = str(p.filter.PerPage)
+		m.Set("filter.query", p.filter.Query, true)
+		m.Set("filter.namespaceID", p.filter.NamespaceID, true)
+		m.Set("filter.moduleID", p.filter.ModuleID, true)
+		m.Set("filter.deleted", p.filter.Deleted, true)
+		m.Set("filter.sort", p.filter.Sort, true)
+		m.Set("filter.limit", p.filter.Limit, true)
+		m.Set("filter.offset", p.filter.Offset, true)
+		m.Set("filter.page", p.filter.Page, true)
+		m.Set("filter.perPage", p.filter.PerPage, true)
 	}
 	if p.namespace != nil {
-		m["namespace.name"] = str(p.namespace.Name)
-		m["namespace.slug"] = str(p.namespace.Slug)
-		m["namespace.ID"] = str(p.namespace.ID)
+		m.Set("namespace.name", p.namespace.Name, true)
+		m.Set("namespace.slug", p.namespace.Slug, true)
+		m.Set("namespace.ID", p.namespace.ID, true)
 	}
 	if p.module != nil {
-		m["module.name"] = str(p.module.Name)
-		m["module.handle"] = str(p.module.Handle)
-		m["module.ID"] = str(p.module.ID)
-		m["module.namespaceID"] = str(p.module.NamespaceID)
+		m.Set("module.name", p.module.Name, true)
+		m.Set("module.handle", p.module.Handle, true)
+		m.Set("module.ID", p.module.ID, true)
+		m.Set("module.namespaceID", p.module.NamespaceID, true)
 	}
-	m["bulkOperation"] = str(p.bulkOperation)
-	m["field"] = str(p.field)
-	m["value"] = str(p.value)
+	m.Set("bulkOperation", p.bulkOperation, true)
+	m.Set("field", p.field, true)
+	m.Set("value", p.value, true)
 	if p.valueErrors != nil {
-		m["valueErrors.set"] = str(p.valueErrors.Set)
+		m.Set("valueErrors.set", p.valueErrors.Set, true)
 	}
 
 	return m

@@ -53,6 +53,11 @@ type (
 	}
 )
 
+var (
+	// just a placeholder to cover template cases w/o fmt package use
+	_ = fmt.Println
+)
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
@@ -139,53 +144,49 @@ func (p *roleActionProps) setFilter(filter *types.RoleFilter) *roleActionProps {
 //
 func (p roleActionProps) serialize() actionlog.Meta {
 	var (
-		m   = make(actionlog.Meta)
-		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
+		m = make(actionlog.Meta)
 	)
 
-	// avoiding declared but not used
-	_ = str
-
 	if p.member != nil {
-		m["member.handle"] = str(p.member.Handle)
-		m["member.email"] = str(p.member.Email)
-		m["member.name"] = str(p.member.Name)
-		m["member.ID"] = str(p.member.ID)
+		m.Set("member.handle", p.member.Handle, true)
+		m.Set("member.email", p.member.Email, true)
+		m.Set("member.name", p.member.Name, true)
+		m.Set("member.ID", p.member.ID, true)
 	}
 	if p.role != nil {
-		m["role.handle"] = str(p.role.Handle)
-		m["role.name"] = str(p.role.Name)
-		m["role.ID"] = str(p.role.ID)
+		m.Set("role.handle", p.role.Handle, true)
+		m.Set("role.name", p.role.Name, true)
+		m.Set("role.ID", p.role.ID, true)
 	}
 	if p.new != nil {
-		m["new.handle"] = str(p.new.Handle)
-		m["new.name"] = str(p.new.Name)
-		m["new.ID"] = str(p.new.ID)
+		m.Set("new.handle", p.new.Handle, true)
+		m.Set("new.name", p.new.Name, true)
+		m.Set("new.ID", p.new.ID, true)
 	}
 	if p.update != nil {
-		m["update.handle"] = str(p.update.Handle)
-		m["update.name"] = str(p.update.Name)
-		m["update.ID"] = str(p.update.ID)
+		m.Set("update.handle", p.update.Handle, true)
+		m.Set("update.name", p.update.Name, true)
+		m.Set("update.ID", p.update.ID, true)
 	}
 	if p.existing != nil {
-		m["existing.handle"] = str(p.existing.Handle)
-		m["existing.name"] = str(p.existing.Name)
-		m["existing.ID"] = str(p.existing.ID)
+		m.Set("existing.handle", p.existing.Handle, true)
+		m.Set("existing.name", p.existing.Name, true)
+		m.Set("existing.ID", p.existing.ID, true)
 	}
 	if p.target != nil {
-		m["target.handle"] = str(p.target.Handle)
-		m["target.name"] = str(p.target.Name)
-		m["target.ID"] = str(p.target.ID)
+		m.Set("target.handle", p.target.Handle, true)
+		m.Set("target.name", p.target.Name, true)
+		m.Set("target.ID", p.target.ID, true)
 	}
 	if p.filter != nil {
-		m["filter.query"] = str(p.filter.Query)
-		m["filter.roleID"] = str(p.filter.RoleID)
-		m["filter.memberID"] = str(p.filter.MemberID)
-		m["filter.handle"] = str(p.filter.Handle)
-		m["filter.name"] = str(p.filter.Name)
-		m["filter.deleted"] = str(p.filter.Deleted)
-		m["filter.archived"] = str(p.filter.Archived)
-		m["filter.sort"] = str(p.filter.Sort)
+		m.Set("filter.query", p.filter.Query, true)
+		m.Set("filter.roleID", p.filter.RoleID, true)
+		m.Set("filter.memberID", p.filter.MemberID, true)
+		m.Set("filter.handle", p.filter.Handle, true)
+		m.Set("filter.name", p.filter.Name, true)
+		m.Set("filter.deleted", p.filter.Deleted, true)
+		m.Set("filter.archived", p.filter.Archived, true)
+		m.Set("filter.sort", p.filter.Sort, true)
 	}
 
 	return m

@@ -50,6 +50,11 @@ type (
 	}
 )
 
+var (
+	// just a placeholder to cover template cases w/o fmt package use
+	_ = fmt.Println
+)
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
@@ -103,43 +108,39 @@ func (p *moduleActionProps) setNamespace(namespace *types.Namespace) *moduleActi
 //
 func (p moduleActionProps) serialize() actionlog.Meta {
 	var (
-		m   = make(actionlog.Meta)
-		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
+		m = make(actionlog.Meta)
 	)
 
-	// avoiding declared but not used
-	_ = str
-
 	if p.module != nil {
-		m["module.name"] = str(p.module.Name)
-		m["module.handle"] = str(p.module.Handle)
-		m["module.ID"] = str(p.module.ID)
-		m["module.namespaceID"] = str(p.module.NamespaceID)
+		m.Set("module.name", p.module.Name, true)
+		m.Set("module.handle", p.module.Handle, true)
+		m.Set("module.ID", p.module.ID, true)
+		m.Set("module.namespaceID", p.module.NamespaceID, true)
 	}
 	if p.changed != nil {
-		m["changed.name"] = str(p.changed.Name)
-		m["changed.handle"] = str(p.changed.Handle)
-		m["changed.ID"] = str(p.changed.ID)
-		m["changed.namespaceID"] = str(p.changed.NamespaceID)
-		m["changed.meta"] = str(p.changed.Meta)
-		m["changed.fields"] = str(p.changed.Fields)
+		m.Set("changed.name", p.changed.Name, true)
+		m.Set("changed.handle", p.changed.Handle, true)
+		m.Set("changed.ID", p.changed.ID, true)
+		m.Set("changed.namespaceID", p.changed.NamespaceID, true)
+		m.Set("changed.meta", p.changed.Meta, true)
+		m.Set("changed.fields", p.changed.Fields, true)
 	}
 	if p.filter != nil {
-		m["filter.query"] = str(p.filter.Query)
-		m["filter.name"] = str(p.filter.Name)
-		m["filter.handle"] = str(p.filter.Handle)
-		m["filter.name"] = str(p.filter.Name)
-		m["filter.namespaceID"] = str(p.filter.NamespaceID)
-		m["filter.sort"] = str(p.filter.Sort)
-		m["filter.limit"] = str(p.filter.Limit)
-		m["filter.offset"] = str(p.filter.Offset)
-		m["filter.page"] = str(p.filter.Page)
-		m["filter.perPage"] = str(p.filter.PerPage)
+		m.Set("filter.query", p.filter.Query, true)
+		m.Set("filter.name", p.filter.Name, true)
+		m.Set("filter.handle", p.filter.Handle, true)
+		m.Set("filter.name", p.filter.Name, true)
+		m.Set("filter.namespaceID", p.filter.NamespaceID, true)
+		m.Set("filter.sort", p.filter.Sort, true)
+		m.Set("filter.limit", p.filter.Limit, true)
+		m.Set("filter.offset", p.filter.Offset, true)
+		m.Set("filter.page", p.filter.Page, true)
+		m.Set("filter.perPage", p.filter.PerPage, true)
 	}
 	if p.namespace != nil {
-		m["namespace.name"] = str(p.namespace.Name)
-		m["namespace.slug"] = str(p.namespace.Slug)
-		m["namespace.ID"] = str(p.namespace.ID)
+		m.Set("namespace.name", p.namespace.Name, true)
+		m.Set("namespace.slug", p.namespace.Slug, true)
+		m.Set("namespace.ID", p.namespace.ID, true)
 	}
 
 	return m

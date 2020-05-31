@@ -50,6 +50,11 @@ type (
 	}
 )
 
+var (
+	// just a placeholder to cover template cases w/o fmt package use
+	_ = fmt.Println
+)
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
@@ -103,43 +108,39 @@ func (p *reminderActionProps) setFilter(filter *types.ReminderFilter) *reminderA
 //
 func (p reminderActionProps) serialize() actionlog.Meta {
 	var (
-		m   = make(actionlog.Meta)
-		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
+		m = make(actionlog.Meta)
 	)
 
-	// avoiding declared but not used
-	_ = str
-
 	if p.reminder != nil {
-		m["reminder.resource"] = str(p.reminder.Resource)
-		m["reminder.ID"] = str(p.reminder.ID)
-		m["reminder.assignedTo"] = str(p.reminder.AssignedTo)
-		m["reminder.assignedBy"] = str(p.reminder.AssignedBy)
-		m["reminder.remindAt"] = str(p.reminder.RemindAt)
+		m.Set("reminder.resource", p.reminder.Resource, true)
+		m.Set("reminder.ID", p.reminder.ID, true)
+		m.Set("reminder.assignedTo", p.reminder.AssignedTo, true)
+		m.Set("reminder.assignedBy", p.reminder.AssignedBy, true)
+		m.Set("reminder.remindAt", p.reminder.RemindAt, true)
 	}
 	if p.new != nil {
-		m["new.resource"] = str(p.new.Resource)
-		m["new.ID"] = str(p.new.ID)
-		m["new.assignedTo"] = str(p.new.AssignedTo)
-		m["new.assignedBy"] = str(p.new.AssignedBy)
-		m["new.remindAt"] = str(p.new.RemindAt)
+		m.Set("new.resource", p.new.Resource, true)
+		m.Set("new.ID", p.new.ID, true)
+		m.Set("new.assignedTo", p.new.AssignedTo, true)
+		m.Set("new.assignedBy", p.new.AssignedBy, true)
+		m.Set("new.remindAt", p.new.RemindAt, true)
 	}
 	if p.updated != nil {
-		m["updated.resource"] = str(p.updated.Resource)
-		m["updated.ID"] = str(p.updated.ID)
-		m["updated.assignedTo"] = str(p.updated.AssignedTo)
-		m["updated.assignedBy"] = str(p.updated.AssignedBy)
-		m["updated.remindAt"] = str(p.updated.RemindAt)
+		m.Set("updated.resource", p.updated.Resource, true)
+		m.Set("updated.ID", p.updated.ID, true)
+		m.Set("updated.assignedTo", p.updated.AssignedTo, true)
+		m.Set("updated.assignedBy", p.updated.AssignedBy, true)
+		m.Set("updated.remindAt", p.updated.RemindAt, true)
 	}
 	if p.filter != nil {
-		m["filter.resource"] = str(p.filter.Resource)
-		m["filter.reminderID"] = str(p.filter.ReminderID)
-		m["filter.assignedTo"] = str(p.filter.AssignedTo)
-		m["filter.scheduledFrom"] = str(p.filter.ScheduledFrom)
-		m["filter.scheduledUntil"] = str(p.filter.ScheduledUntil)
-		m["filter.excludeDismissed"] = str(p.filter.ExcludeDismissed)
-		m["filter.scheduledOnly"] = str(p.filter.ScheduledOnly)
-		m["filter.sort"] = str(p.filter.Sort)
+		m.Set("filter.resource", p.filter.Resource, true)
+		m.Set("filter.reminderID", p.filter.ReminderID, true)
+		m.Set("filter.assignedTo", p.filter.AssignedTo, true)
+		m.Set("filter.scheduledFrom", p.filter.ScheduledFrom, true)
+		m.Set("filter.scheduledUntil", p.filter.ScheduledUntil, true)
+		m.Set("filter.excludeDismissed", p.filter.ExcludeDismissed, true)
+		m.Set("filter.scheduledOnly", p.filter.ScheduledOnly, true)
+		m.Set("filter.sort", p.filter.Sort, true)
 	}
 
 	return m

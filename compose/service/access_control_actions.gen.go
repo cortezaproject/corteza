@@ -47,6 +47,11 @@ type (
 	}
 )
 
+var (
+	// just a placeholder to cover template cases w/o fmt package use
+	_ = fmt.Println
+)
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
@@ -67,18 +72,14 @@ func (p *accessControlActionProps) setRule(rule *permissions.Rule) *accessContro
 //
 func (p accessControlActionProps) serialize() actionlog.Meta {
 	var (
-		m   = make(actionlog.Meta)
-		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
+		m = make(actionlog.Meta)
 	)
 
-	// avoiding declared but not used
-	_ = str
-
 	if p.rule != nil {
-		m["rule.operation"] = str(p.rule.Operation)
-		m["rule.roleID"] = str(p.rule.RoleID)
-		m["rule.access"] = str(p.rule.Access)
-		m["rule.resource"] = str(p.rule.Resource)
+		m.Set("rule.operation", p.rule.Operation, true)
+		m.Set("rule.roleID", p.rule.RoleID, true)
+		m.Set("rule.access", p.rule.Access, true)
+		m.Set("rule.resource", p.rule.Resource, true)
 	}
 
 	return m

@@ -49,6 +49,11 @@ type (
 	}
 )
 
+var (
+	// just a placeholder to cover template cases w/o fmt package use
+	_ = fmt.Println
+)
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
@@ -91,34 +96,30 @@ func (p *namespaceActionProps) setFilter(filter *types.NamespaceFilter) *namespa
 //
 func (p namespaceActionProps) serialize() actionlog.Meta {
 	var (
-		m   = make(actionlog.Meta)
-		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
+		m = make(actionlog.Meta)
 	)
 
-	// avoiding declared but not used
-	_ = str
-
 	if p.namespace != nil {
-		m["namespace.name"] = str(p.namespace.Name)
-		m["namespace.slug"] = str(p.namespace.Slug)
-		m["namespace.ID"] = str(p.namespace.ID)
-		m["namespace.enabled"] = str(p.namespace.Enabled)
+		m.Set("namespace.name", p.namespace.Name, true)
+		m.Set("namespace.slug", p.namespace.Slug, true)
+		m.Set("namespace.ID", p.namespace.ID, true)
+		m.Set("namespace.enabled", p.namespace.Enabled, true)
 	}
 	if p.changed != nil {
-		m["changed.name"] = str(p.changed.Name)
-		m["changed.slug"] = str(p.changed.Slug)
-		m["changed.ID"] = str(p.changed.ID)
-		m["changed.meta"] = str(p.changed.Meta)
-		m["changed.enabled"] = str(p.changed.Enabled)
+		m.Set("changed.name", p.changed.Name, true)
+		m.Set("changed.slug", p.changed.Slug, true)
+		m.Set("changed.ID", p.changed.ID, true)
+		m.Set("changed.meta", p.changed.Meta, true)
+		m.Set("changed.enabled", p.changed.Enabled, true)
 	}
 	if p.filter != nil {
-		m["filter.query"] = str(p.filter.Query)
-		m["filter.slug"] = str(p.filter.Slug)
-		m["filter.sort"] = str(p.filter.Sort)
-		m["filter.limit"] = str(p.filter.Limit)
-		m["filter.offset"] = str(p.filter.Offset)
-		m["filter.page"] = str(p.filter.Page)
-		m["filter.perPage"] = str(p.filter.PerPage)
+		m.Set("filter.query", p.filter.Query, true)
+		m.Set("filter.slug", p.filter.Slug, true)
+		m.Set("filter.sort", p.filter.Sort, true)
+		m.Set("filter.limit", p.filter.Limit, true)
+		m.Set("filter.offset", p.filter.Offset, true)
+		m.Set("filter.page", p.filter.Page, true)
+		m.Set("filter.perPage", p.filter.PerPage, true)
 	}
 
 	return m

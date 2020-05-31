@@ -62,6 +62,11 @@ type (
 {{ end }}
 )
 
+var (
+    // just a placeholder to cover template cases w/o fmt package use
+    _ = fmt.Println
+)
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
@@ -87,19 +92,15 @@ func (p *{{ $.Service }}ActionProps) {{ camelCase "set" $prop.Name }}({{ $prop.N
 func (p {{ $.Service }}ActionProps) serialize() actionlog.Meta {
 	var (
 		m   = make(actionlog.Meta)
-		str = func(i interface{}) string { return fmt.Sprintf("%v", i) }
 	)
-
-	// avoiding declared but not used
-	_ = str
 
 {{ range $prop := $.Props }}
 	{{- if $prop.Builtin }}
-	    m["{{ $prop.Name }}"] = str(p.{{ $prop.Name }})
+		m.Set("{{ $prop.Name }}", p.{{ $prop.Name }}, true)
 	{{- else }}
 	if p.{{ $prop.Name }} != nil {
     {{- range $f := $prop.Fields }}
-        m["{{ $prop.Name }}.{{ $f }}"] = str(p.{{ $prop.Name }}.{{ camelCase " " $f }})
+		m.Set("{{ $prop.Name }}.{{ $f }}", p.{{ $prop.Name }}.{{ camelCase " " $f }}, true)
     {{- end }}
     }
     {{- end }}
