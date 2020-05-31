@@ -1,7 +1,6 @@
 package settings
 
 import (
-	"github.com/davecgh/go-spew/spew"
 	"testing"
 
 	"github.com/jmoiron/sqlx/types"
@@ -154,6 +153,7 @@ func TestDecodeKV_WithFinalTag(t *testing.T) {
 	)
 
 	var (
+		r   = require.New(t)
 		aux = dst{}
 		kv  = KV{
 			"notFinal.foo":        types.JSONText(`"42"`),
@@ -161,4 +161,10 @@ func TestDecodeKV_WithFinalTag(t *testing.T) {
 			"isFinal":             types.JSONText(`{"Foo":"final42","Sub":{"SubFoo":42}}`),
 		}
 	)
+
+	r.NoError(DecodeKV(kv, &aux))
+	r.Equal(aux.NotFinal.Foo, "42")
+	r.Equal(aux.NotFinal.Sub.SubFoo, 42)
+	r.Equal(aux.IsFinal.Foo, "final42")
+	r.Equal(aux.IsFinal.Sub.SubFoo, 42)
 }
