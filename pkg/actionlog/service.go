@@ -22,6 +22,8 @@ type (
 
 		// logger for repository errors
 		logger *zap.Logger
+
+		policy policyMatcher
 	}
 
 	loggable interface {
@@ -39,17 +41,18 @@ type (
 	}
 )
 
-// NewService initializes auditlog service
+// NewService initializes action log service
 //
-func NewService(r recordKeeper, logger, tee *zap.Logger) (svc *service) {
+func NewService(r recordKeeper, logger, tee *zap.Logger, policy policyMatcher) (svc *service) {
 	if tee == nil {
 		tee = zap.NewNop()
 	}
 
 	svc = &service{
-		tee:    tee,
-		logger: logger,
+		tee:    tee.Named("actionlog"),
+		logger: logger.Named("actionlog"),
 		repo:   r,
+		policy: policy,
 	}
 
 	return
@@ -63,10 +66,19 @@ func (svc service) Record(ctx context.Context, l loggable) {
 
 	a := enrich(ctx, l.LoggableAction())
 
-	var (
-		log = svc.logger
-	)
+	svc.log(a)
 
+	if !svc.policy.Match(a) {
+		// policy does not allow us to record this
+		return
+	}
+
+	if err := svc.repo.Record(ctx, a); err != nil {
+		svc.logger.With(zap.Error(err)).Error("could not record audit event")
+	}
+}
+
+func (svc service) log(a *Action) {
 	zlf := []zap.Field{
 		zap.Time("timestamp", a.Timestamp),
 		zap.String("requestOrigin", a.RequestOrigin),
@@ -78,18 +90,11 @@ func (svc service) Record(ctx context.Context, l loggable) {
 		zap.Uint8("severity", uint8(a.Severity)),
 		zap.String("error", a.Error),
 		zap.String("description", a.Description),
+		zap.Bool("policy-match", svc.policy.Match(a)),
 		zap.Any("meta", a.Meta),
 	}
 
-	for k, v := range a.Meta {
-		zlf = append(zlf, zap.Any("meta."+k, v))
-	}
-
-	log.Debug(a.Description, zlf...)
-
-	if err := svc.repo.Record(ctx, a); err != nil {
-		log.With(zap.Error(err)).Error("could not record audit event")
-	}
+	svc.tee.With(zlf...).Debug(a.Description)
 }
 
 func (svc service) Find(ctx context.Context, flt Filter) (ActionSet, Filter, error) {

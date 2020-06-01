@@ -6,6 +6,7 @@ import (
 
 type (
 	Options struct {
+		ActionLog  options.ActionLogOpt
 		SMTP       options.SMTPOpt
 		Auth       options.AuthOpt
 		HTTPClient options.HTTPClientOpt
@@ -30,6 +31,7 @@ func NewOptions(prefix ...string) *Options {
 	}
 
 	return &Options{
+		ActionLog:  *options.ActionLog(),
 		Auth:       *options.Auth(),
 		SMTP:       *options.SMTP(p),
 		HTTPClient: *options.HttpClient(p),
