@@ -30,6 +30,7 @@ type (
 	}
 
 	Config struct {
+		ActionLog        options.ActionLogOpt
 		Storage          options.StorageOpt
 		GRPCClientSystem options.GRPCServerOpt
 	}
@@ -94,11 +95,21 @@ var (
 func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultLogger = log.Named("service")
 
-	DefaultActionlog = actionlog.NewService(
-		actionlogRepository.Mysql(repository.DB(ctx), "sys_actionlog"),
-		log,
-		log,
-	)
+	{
+		tee := log
+		policy := actionlog.MakeProductionPolicy()
+		if c.ActionLog.Debug {
+			tee = zap.NewNop()
+			policy = actionlog.MakeDebugPolicy()
+		}
+
+		DefaultActionlog = actionlog.NewService(
+			actionlogRepository.Mysql(repository.DB(ctx).Quiet(), "sys_actionlog"),
+			log,
+			tee,
+			policy,
+		)
+	}
 
 	if DefaultPermissions == nil {
 		// Do not override permissions service stored under DefaultPermissions
