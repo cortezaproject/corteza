@@ -56,8 +56,8 @@ func Test_RecordEncoding(t *testing.T) {
 				`12345,12345,2017-09-09T17:00:00Z,,,,` + "\n" +
 				`54321,12345,1970-01-01T03:25:45Z,,,bar,1` + "\n",
 
-			structResult: `{"createdAt":"2017-09-09T17:00:00Z","deletedAt":null,"ownedBy":12345,"recordID":12345}` + "\n" +
-				`{"createdAt":"1970-01-01T03:25:45Z","deletedAt":null,"fff":["1","2"],"foo":"bar","ownedBy":12345,"recordID":54321}` + "\n",
+			structResult: `{"createdAt":"2017-09-09T17:00:00Z","deletedAt":null,"ownedBy":"12345","recordID":"12345"}` + "\n" +
+				`{"createdAt":"1970-01-01T03:25:45Z","deletedAt":null,"fff":["1","2"],"foo":"bar","ownedBy":"12345","recordID":"54321"}` + "\n",
 		},
 		// TODO: Add test cases.
 	}
@@ -67,7 +67,7 @@ func Test_RecordEncoding(t *testing.T) {
 			buf := bytes.NewBuffer([]byte{})
 			csvWriter := csv.NewWriter(buf)
 
-			fenc := NewFlatWriter(csvWriter, true, tt.ff...)
+			fenc := NewFlatWriter(csvWriter, true, nil, tt.ff...)
 			for _, r := range tt.rr {
 				if err := fenc.Record(r); err != nil {
 					t.Errorf("unexpected error = %v,", err)
@@ -86,7 +86,7 @@ func Test_RecordEncoding(t *testing.T) {
 			buf := bytes.NewBuffer([]byte{})
 			jsonEnc := json.NewEncoder(buf)
 
-			senc := NewStructuredEncoder(jsonEnc, tt.ff...)
+			senc := NewStructuredEncoder(jsonEnc, nil, tt.ff...)
 			for _, r := range tt.rr {
 				if err := senc.Record(r); err != nil {
 					t.Errorf("unexpected error = %v,", err)

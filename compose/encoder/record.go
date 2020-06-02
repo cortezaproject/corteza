@@ -109,11 +109,14 @@ func (enc structuredEncoder) Record(r *types.Record) (err error) {
 	for _, f := range enc.ff {
 		switch f.name {
 		case "recordID", "ID":
-			out[f.name] = r.ID
+			// encode all numbers as string (to prevent overflow of uint64 values)
+			out[f.name] = fmtUint64(r.ID)
 		case "moduleID":
-			out[f.name] = r.ModuleID
+			// encode all numbers as string (to prevent overflow of uint64 values)
+			out[f.name] = fmtUint64(r.ModuleID)
 		case "namespaceID":
-			out[f.name] = r.NamespaceID
+			// encode all numbers as string (to prevent overflow of uint64 values)
+			out[f.name] = fmtUint64(r.NamespaceID)
 		case "ownedBy":
 			out[f.name], err = fmtSysUser(r.OwnedBy, enc.u)
 			if err != nil {
