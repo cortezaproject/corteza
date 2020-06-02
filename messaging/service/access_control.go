@@ -77,22 +77,6 @@ func (svc accessControl) CanCreateGroupChannel(ctx context.Context) bool {
 	return svc.can(ctx, types.MessagingPermissionResource, "channel.group.create", permissions.Allowed)
 }
 
-func (svc accessControl) CanCreateWebhook(ctx context.Context) bool {
-	return svc.can(ctx, types.MessagingPermissionResource, "webhook.create")
-}
-
-func (svc accessControl) CanManageWebhooks(ctx context.Context) bool {
-	return svc.can(ctx, types.MessagingPermissionResource, "webhook.manage.all")
-}
-
-func (svc accessControl) CanManageOwnWebhooks(ctx context.Context, wh *types.Webhook) bool {
-	if wh.UserID != auth.GetIdentityFromContext(ctx).Identity() {
-		return false
-	}
-
-	return svc.can(ctx, types.MessagingPermissionResource, "webhook.manage.own")
-}
-
 func (svc accessControl) CanUpdateChannel(ctx context.Context, ch *types.Channel) bool {
 	return svc.can(ctx, ch, "update", svc.isChannelOwnerFallback(ctx, ch))
 }
@@ -276,9 +260,6 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"channel.public.create",
 		"channel.private.create",
 		"channel.group.create",
-		"webhook.create",
-		"webhook.manage.all",
-		"webhook.manage.own",
 	)
 
 	wl.Set(
@@ -292,7 +273,6 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"archive",
 		"unarchive",
 		"members.manage",
-		"webhooks.manage",
 		"attachments.manage",
 		"message.send",
 		"message.reply",

@@ -223,6 +223,7 @@ func (r PageCreate) Auditable() map[string]interface{} {
 	out["title"] = r.Title
 	out["handle"] = r.Handle
 	out["description"] = r.Description
+	out["weight"] = r.Weight
 	out["visible"] = r.Visible
 	out["blocks"] = r.Blocks
 	out["namespaceID"] = r.NamespaceID
