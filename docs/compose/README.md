@@ -127,7 +127,9 @@
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/automation/` | HTTP/S | GET |  |
+| `/automation/` | HTTP/S | GET |
+Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
+ |
 
 #### Request parameters
 
@@ -146,7 +148,9 @@
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/automation/{bundle}-{type}.{ext}` | HTTP/S | GET |  |
+| `/automation/{bundle}-{type}.{ext}` | HTTP/S | GET |
+Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
+ |
 
 #### Request parameters
 
@@ -162,7 +166,9 @@
 
 | URI | Protocol | Method | Authentication |
 | --- | -------- | ------ | -------------- |
-| `/automation/trigger` | HTTP/S | POST |  |
+| `/automation/trigger` | HTTP/S | POST |
+Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.crust/corteza-server/codegen/templates/README.tpl on line 32
+ |
 
 #### Request parameters
 
@@ -603,6 +609,7 @@ Compose pages
 | title | string | POST | Title | N/A | YES |
 | handle | string | POST | Handle | N/A | NO |
 | description | string | POST | Description | N/A | NO |
+| weight | int | POST | Page tree weight | N/A | NO |
 | visible | bool | POST | Visible in navigation | N/A | NO |
 | blocks | sqlxTypes.JSONText | POST | Blocks JSON | N/A | NO |
 | namespaceID | uint64 | PATH | Namespace ID | N/A | YES |

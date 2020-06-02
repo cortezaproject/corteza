@@ -12,7 +12,6 @@ import (
 	actionlogRepository "github.com/cortezaproject/corteza-server/pkg/actionlog/repository"
 	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/pkg/store"
@@ -55,7 +54,6 @@ var (
 	DefaultMessage    MessageService
 	DefaultEvent      EventService
 	DefaultCommand    CommandService
-	DefaultWebhook    WebhookService
 )
 
 func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
@@ -129,19 +127,11 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 		}
 	}
 
-	client, err := http.New(&http.Config{
-		Timeout: 10,
-	})
-	if err != nil {
-		return err
-	}
-
 	DefaultEvent = Event(ctx)
 	DefaultChannel = Channel(ctx)
 	DefaultAttachment = Attachment(ctx, DefaultStore)
 	DefaultMessage = Message(ctx)
 	DefaultCommand = Command(ctx)
-	DefaultWebhook = Webhook(ctx, client)
 
 	return nil
 }
