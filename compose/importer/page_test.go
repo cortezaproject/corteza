@@ -38,6 +38,31 @@ func TestPageImport_CastSet(t *testing.T) {
 				Kind:    "TheTestingKind",
 				XYWH:    [4]int{11, 12, 13, 14},
 			},
+			{
+				Title: "Automation",
+				Options: map[string]interface{}{
+					"sealed": false,
+					"buttons": []map[string]interface{}{
+						{
+							"label":        "Lead-2-Account",
+							"script":       "ToAccount.js:default",
+							"variant":      "secondary",
+							"resourceType": "compose:record",
+							"enabled":      false,
+						},
+						{
+							"label":        "Defaults",
+							"script":       "Defaults.js:default",
+							"variant":      "primary",
+							"resourceType": "compose:record",
+							"enabled":      true,
+						},
+					},
+				},
+				Style: types.PageBlockStyle{},
+				Kind:  "Automation",
+				XYWH:  [4]int{21, 22, 23, 24},
+			},
 		})
 
 		sub2 := page.set.FindByHandle("sub2")

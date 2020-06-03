@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 
@@ -214,7 +215,7 @@ func (pImp *Page) castBlocks(page *types.Page, def interface{}) error {
 			return err
 		}
 
-		page.Blocks = append(page.Blocks, block)
+		page.Blocks = append(page.Blocks, pImp.sanitizeBlock(block))
 		return
 	})
 }
@@ -244,6 +245,31 @@ func (pImp *Page) castBlockStyle(page *types.Page, n int, def interface{}) (s ty
 
 		}
 	})
+}
+
+func (pImp *Page) sanitizeBlock(b types.PageBlock) types.PageBlock {
+	switch strings.ToLower(b.Kind) {
+	case "automation":
+		return pImp.sanitizeAutomationBlock(b)
+	}
+
+	return b
+}
+
+func (pImp *Page) sanitizeAutomationBlock(b types.PageBlock) types.PageBlock {
+	b.Options["sealed"] = deinterfacer.ToBool(b.Options["sealed"], false)
+
+	bb := deinterfacer.ToSliceOfStringToInterfaceMap(b.Options["buttons"])
+
+	for b := range bb {
+		bb[b]["enabled"] = deinterfacer.ToBool(bb[b]["enabled"], true)
+		bb[b]["variant"] = deinterfacer.ToString(bb[b]["variant"], "primary")
+		bb[b]["resourceType"] = deinterfacer.ToString(bb[b]["resourceType"], "compose:record")
+	}
+
+	b.Options["buttons"] = bb
+
+	return b
 }
 
 // Get existing pages

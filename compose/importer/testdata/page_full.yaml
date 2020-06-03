@@ -12,6 +12,17 @@ pages:
           - title: B2
             xywh: [ 11, 12, 13, 14 ]
             kind: TheTestingKind
+          - title: Automation
+            xywh: [ 21, 22, 23, 24 ]
+            kind: Automation
+            options:
+              buttons:
+                - label: Lead-2-Account
+                  script: ToAccount.js:default
+                  variant: secondary
+                  enabled: false
+                - label: Defaults
+                  script: Defaults.js:default
       - handle: sub2
         title: Sub page 2
         pages:
