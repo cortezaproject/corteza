@@ -133,7 +133,6 @@ func (r *runner) Initialize(ctx context.Context) (err error) {
 			return
 		}
 
-		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Init)
 		if err = RunInitialize(ctx, r.parts...); err != nil {
 			return
 		}
@@ -153,7 +152,6 @@ func (r *runner) Upgrade(ctx context.Context) (err error) {
 		}
 
 		if r.opt.Upgrade.Always {
-			ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Upgrade)
 			if err = RunUpgrade(ctx, r.parts...); err != nil {
 				return
 			}
@@ -173,7 +171,6 @@ func (r *runner) Activate(ctx context.Context) (err error) {
 			return
 		}
 
-		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Activate)
 		if err = RunActivate(ctx, r.parts...); err != nil {
 			return
 		}
@@ -192,7 +189,6 @@ func (r *runner) Provision(ctx context.Context) (err error) {
 		}
 
 		if r.opt.Provision.Always {
-			ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Provision)
 			if err = RunProvision(ctx, r.parts...); err != nil {
 				return
 			}
@@ -281,10 +277,12 @@ func (r *runner) Run(ctx context.Context) error {
 	})
 
 	upgradeCmd := cli.UpgradeCommand(func() (err error) {
+		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Init)
 		if err = r.Initialize(ctx); err != nil {
 			return
 		}
 
+		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Upgrade)
 		if err = RunUpgrade(ctx, r.parts...); err != nil {
 			return
 		}
@@ -293,10 +291,12 @@ func (r *runner) Run(ctx context.Context) error {
 	})
 
 	provisionCmd := cli.ProvisionCommand(func() (err error) {
+		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Activate)
 		if err = r.Activate(ctx); err != nil {
 			return
 		}
 
+		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Provision)
 		if err = RunProvision(ctx, r.parts...); err != nil {
 			return
 		}
