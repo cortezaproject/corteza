@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"go.uber.org/zap"
+
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 )
 
 // RunSetup calls Setup hooks on all runnable parts
@@ -25,6 +27,7 @@ func RunSetup(log *zap.Logger, opts *Options, pp ...Runnable) (err error) {
 // It stops on first error
 func RunInitialize(ctx context.Context, pp ...Runnable) (err error) {
 	for _, app := range pp {
+		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Init)
 		err = app.Initialize(ctx)
 		if err != nil {
 			return
@@ -39,6 +42,7 @@ func RunInitialize(ctx context.Context, pp ...Runnable) (err error) {
 // It stops on first error
 func RunUpgrade(ctx context.Context, pp ...Runnable) (err error) {
 	for _, app := range pp {
+		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Upgrade)
 		err = app.Upgrade(ctx)
 		if err != nil {
 			return
@@ -53,6 +57,7 @@ func RunUpgrade(ctx context.Context, pp ...Runnable) (err error) {
 // It stops on first error
 func RunActivate(ctx context.Context, pp ...Runnable) (err error) {
 	for _, app := range pp {
+		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Activate)
 		err = app.Activate(ctx)
 		if err != nil {
 			return
@@ -67,6 +72,7 @@ func RunActivate(ctx context.Context, pp ...Runnable) (err error) {
 // It stops on first error
 func RunProvision(ctx context.Context, pp ...Runnable) (err error) {
 	for _, app := range pp {
+		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Provision)
 		err = app.Provision(ctx)
 		if err != nil {
 			return
