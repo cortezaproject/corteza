@@ -3,7 +3,9 @@ package corredor
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/sentry"
+	"strings"
+	"time"
+
 	"github.com/go-chi/chi/middleware"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -11,13 +13,12 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"strings"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -936,7 +937,7 @@ func (svc *service) GetBundle(ctx context.Context, name, bType string) *Bundle {
 
 	rsp, err = svc.csClient.Bundle(ctx, &BundleRequest{Name: name}, grpc.WaitForReady(true))
 	if err != nil {
-		svc.log.Error("could not load client scripts bundle from corredor", zap.Error(err))
+		svc.log.Info("could not load client scripts bundle from corredor", zap.Error(err))
 		return nil
 	}
 
