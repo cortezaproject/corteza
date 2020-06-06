@@ -42,6 +42,7 @@ func (ctrl *Actionlog) List(ctx context.Context, r *request.ActionlogList) (inte
 		To:         r.To,
 		ActorID:    payload.ParseUInt64s(r.ActorID),
 		Resource:   r.Resource,
+		Action:     r.Action,
 		PageFilter: rh.Paging(r),
 	})
 

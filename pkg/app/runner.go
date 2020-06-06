@@ -245,7 +245,7 @@ func (r *runner) serve(ctx context.Context) (err error) {
 	{
 		wg.Add(1)
 		go func(ctx context.Context) {
-			r.httpApiServer.Serve(actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_HTTPServer_API_REST))
+			r.httpApiServer.Serve(actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_API_REST))
 			wg.Done()
 		}(ctx)
 	}
@@ -253,7 +253,7 @@ func (r *runner) serve(ctx context.Context) (err error) {
 	if r.grpcServer != nil {
 		wg.Add(1)
 		go func(ctx context.Context) {
-			r.grpcServer.Serve(actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_HTTPServer_API_GRPC))
+			r.grpcServer.Serve(actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_API_GRPC))
 			wg.Done()
 		}(ctx)
 

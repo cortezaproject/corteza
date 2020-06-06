@@ -5,11 +5,10 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/middleware"
+	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-
-	"go.uber.org/zap"
 )
 
 type (
