@@ -80,6 +80,12 @@ func TryToConnect(ctx context.Context, log *zap.Logger, opt options.DBOpt) (db *
 				}
 			}
 
+			// hardcoded values for POC
+			// @todo make this configurable, same as other options (DB_*)
+			db.SetConnMaxLifetime(10 * time.Minute)
+			db.SetMaxOpenConns(256)
+			db.SetMaxIdleConns(32)
+
 			log.Debug("connected to the database", dsnField)
 
 			// Connected
