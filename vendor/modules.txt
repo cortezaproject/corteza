@@ -43,7 +43,7 @@ github.com/go-chi/chi/middleware
 github.com/go-chi/cors
 # github.com/go-chi/jwtauth v0.0.0-20190109153619-47840abb19b3
 github.com/go-chi/jwtauth
-# github.com/go-sql-driver/mysql v1.4.1
+# github.com/go-sql-driver/mysql v1.5.0
 github.com/go-sql-driver/mysql
 # github.com/golang/mock v1.3.1
 github.com/golang/mock/gomock
@@ -233,7 +233,6 @@ golang.org/x/tools/internal/semver
 golang.org/x/tools/internal/span
 # google.golang.org/appengine v1.6.1
 google.golang.org/appengine
-google.golang.org/appengine/cloudsql
 google.golang.org/appengine/internal
 google.golang.org/appengine/internal/app_identity
 google.golang.org/appengine/internal/base
