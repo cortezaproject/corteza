@@ -823,9 +823,9 @@ func (svc *service) loadClientScripts(ctx context.Context) {
 	ctx, cancel := context.WithTimeout(ctx, svc.opt.ListTimeout)
 	defer cancel()
 
-	if !svc.sScriptsTS.IsZero() {
+	if !svc.cScriptsTS.IsZero() {
 		ctx = metadata.NewOutgoingContext(ctx, metadata.MD{
-			"if-modified-since": []string{svc.sScriptsTS.Format(time.RFC3339)},
+			"if-modified-since": []string{svc.cScriptsTS.Format(time.RFC3339)},
 		})
 	}
 
@@ -835,7 +835,7 @@ func (svc *service) loadClientScripts(ctx context.Context) {
 		return
 	}
 
-	svc.sScriptsTS = time.Now()
+	svc.cScriptsTS = time.Now()
 
 	if len(rsp.Scripts) > 0 {
 		svc.log.Debug("reloading client scripts")
