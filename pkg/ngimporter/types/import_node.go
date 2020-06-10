@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -536,11 +537,18 @@ func (n *ImportNode) importNodeSource(users map[string]uint64, repo repository.R
 					if err != nil {
 						return nil, err
 					}
-					recordValues = append(recordValues, &types.RecordValue{
+					rv := &types.RecordValue{
 						Name:  h,
 						Value: v,
 						Place: uint(i),
-					})
+					}
+					if f.IsRef() && v != "" {
+						rv.Ref, err = strconv.ParseUint(v, 10, 64)
+						if err != nil {
+							return nil, err
+						}
+					}
+					recordValues = append(recordValues, rv)
 				}
 			}
 		}
