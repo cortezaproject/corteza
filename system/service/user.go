@@ -81,7 +81,7 @@ type (
 		FindByEmail(email string) (*types.User, error)
 		FindByHandle(handle string) (*types.User, error)
 		FindByID(id uint64) (*types.User, error)
-		FindByAny(identifier interface{}) (*types.User, error)
+		FindByAny(ctx context.Context, identifier interface{}) (*types.User, error)
 		Find(types.UserFilter) (types.UserSet, types.UserFilter, error)
 
 		Create(input *types.User) (*types.User, error)
@@ -202,22 +202,28 @@ func (svc user) FindByHandle(handle string) (u *types.User, err error) {
 }
 
 // FindByAny finds user by given identifier (context, id, handle, email)
-func (svc user) FindByAny(identifier interface{}) (u *types.User, err error) {
+//
+// This function goes against the context anti (!!!) pattern we're using
+// (and trying to get rid of)
+//
+// Main reason to push ctx here as the 1st arg is allow (simple) interface definition
+// in the consumers that reside under the pkg/
+func (svc user) FindByAny(ctx context.Context, identifier interface{}) (u *types.User, err error) {
 	if ctx, ok := identifier.(context.Context); ok {
 		identifier = internalAuth.GetIdentityFromContext(ctx).Identity()
 	}
 
 	if ID, ok := identifier.(uint64); ok {
-		u, err = svc.FindByID(ID)
+		u, err = svc.With(ctx).FindByID(ID)
 	} else if identity, ok := identifier.(internalAuth.Identifiable); ok {
-		u, err = svc.FindByID(identity.Identity())
+		u, err = svc.With(ctx).FindByID(identity.Identity())
 	} else if strIdentifier, ok := identifier.(string); ok {
 		if ID, _ := strconv.ParseUint(strIdentifier, 10, 64); ID > 0 {
-			u, err = svc.FindByID(ID)
+			u, err = svc.With(ctx).FindByID(ID)
 		} else if strings.Contains(strIdentifier, "@") {
-			u, err = svc.FindByEmail(strIdentifier)
+			u, err = svc.With(ctx).FindByEmail(strIdentifier)
 		} else {
-			u, err = svc.FindByHandle(strIdentifier)
+			u, err = svc.With(ctx).FindByHandle(strIdentifier)
 		}
 	} else {
 		err = UserErrInvalidID()
@@ -227,7 +233,7 @@ func (svc user) FindByAny(identifier interface{}) (u *types.User, err error) {
 		return
 	}
 
-	rr, _, err := svc.role.Find(types.RoleFilter{MemberID: u.ID})
+	rr, _, err := svc.role.With(ctx, svc.db).Find(types.RoleFilter{MemberID: u.ID})
 	if err != nil {
 		return nil, err
 	}

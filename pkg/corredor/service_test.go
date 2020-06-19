@@ -54,11 +54,11 @@ func (e mockEvent) Match(matcher eventbus.ConstraintMatcher) bool {
 	return e.match(matcher)
 }
 
-func (u *mockUserSvc) FindByAny(interface{}) (*types.User, error) {
+func (u *mockUserSvc) FindByAny(context.Context, interface{}) (*types.User, error) {
 	return u.user, u.err
 }
 
-func (u *mockRoleSvc) FindByAny(interface{}) (*types.Role, error) {
+func (u *mockRoleSvc) FindByAny(context.Context, interface{}) (*types.Role, error) {
 	return u.role, u.err
 }
 
@@ -218,7 +218,7 @@ func TestService_canExec(t *testing.T) {
 		svc.log = zap.NewNop()
 	}
 
-	svc.registerServerScripts(script1, script2, script3, script4)
+	svc.registerServerScripts(ctx, script1, script2, script3, script4)
 
 	a.Len(svc.sScripts, 3)
 	a.Len(svc.permissions, 3)

@@ -49,7 +49,7 @@ type (
 		FindByID(roleID uint64) (*types.Role, error)
 		FindByName(name string) (*types.Role, error)
 		FindByHandle(handle string) (*types.Role, error)
-		FindByAny(identifier interface{}) (*types.Role, error)
+		FindByAny(ctx context.Context, identifier interface{}) (*types.Role, error)
 		Find(types.RoleFilter) (types.RoleSet, types.RoleFilter, error)
 
 		Create(role *types.Role) (*types.Role, error)
@@ -173,16 +173,16 @@ func (svc role) FindByHandle(h string) (r *types.Role, err error) {
 }
 
 // FindByAny finds role by given identifier (id, handle, name)
-func (svc role) FindByAny(identifier interface{}) (r *types.Role, err error) {
+func (svc role) FindByAny(ctx context.Context, identifier interface{}) (r *types.Role, err error) {
 	if ID, ok := identifier.(uint64); ok {
-		return svc.FindByID(ID)
+		return svc.With(ctx).FindByID(ID)
 	} else if strIdentifier, ok := identifier.(string); ok {
 		if ID, _ := strconv.ParseUint(strIdentifier, 10, 64); ID > 0 {
-			return svc.FindByID(ID)
+			return svc.With(ctx).FindByID(ID)
 		} else {
-			r, err = svc.FindByHandle(strIdentifier)
+			r, err = svc.With(ctx).FindByHandle(strIdentifier)
 			if err == nil && r.ID == 0 {
-				return svc.FindByName(strIdentifier)
+				return svc.With(ctx).FindByName(strIdentifier)
 			}
 
 			return r, err
