@@ -99,11 +99,11 @@ type (
 	}
 
 	userFinder interface {
-		FindByAny(interface{}) (*types.User, error)
+		FindByAny(context.Context, interface{}) (*types.User, error)
 	}
 
 	roleFinder interface {
-		FindByAny(interface{}) (*types.Role, error)
+		FindByAny(context.Context, interface{}) (*types.Role, error)
 	}
 
 	authTokenMaker interface {
@@ -323,7 +323,7 @@ func (svc service) ExecIterator(ctx context.Context, scriptName string) error {
 			}
 
 			// Run this iterator as defined user
-			definer, err := svc.users.FindByAny(runAs)
+			definer, err := svc.users.FindByAny(ctx, runAs)
 			if err != nil {
 				return err
 			}
@@ -432,12 +432,12 @@ func (svc *service) loadServerScripts(ctx context.Context) {
 
 	if len(rsp.Scripts) > 0 {
 		svc.log.Debug("reloading server scripts")
-		svc.registerServerScripts(rsp.Scripts...)
+		svc.registerServerScripts(ctx, rsp.Scripts...)
 	}
 }
 
 // Registers Corredor scripts to eventbus and list of manual scripts
-func (svc *service) registerServerScripts(ss ...*ServerScript) {
+func (svc *service) registerServerScripts(ctx context.Context, ss ...*ServerScript) {
 	svc.sScripts = make([]*Script, 0, len(ss))
 
 	// Remove all previously registered triggers
@@ -473,7 +473,7 @@ func (svc *service) registerServerScripts(ss ...*ServerScript) {
 		}
 
 		if len(s.Errors) == 0 {
-			if sec, rr, err := svc.serverScriptSecurity(script); err != nil {
+			if sec, rr, err := svc.serverScriptSecurity(ctx, script); err != nil {
 				s.Errors = append(s.Errors, err.Error())
 			} else {
 				s.Security = sec
@@ -680,7 +680,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 
 	// Resolve/expand invoker user details from the context (if present
 	if i := auth.GetIdentityFromContext(ctx); i.Valid() {
-		invoker, err = svc.users.FindByAny(i)
+		invoker, err = svc.users.FindByAny(ctx, i)
 		if err != nil {
 			return err
 		}
@@ -704,7 +704,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 		// We search for the defined (run-as) user,
 		// assign it to authUser argument and make an
 		// authentication token for it
-		definer, err = svc.users.FindByAny(runAs)
+		definer, err = svc.users.FindByAny(ctx, runAs)
 		if err != nil {
 			return err
 		}
@@ -882,7 +882,7 @@ func (svc *service) registerClientScripts(ss ...*ClientScript) {
 // User and role caches (uc, rc args) hold list of users/roles
 // that were already loaded/checked
 //
-func (svc *service) serverScriptSecurity(script *ServerScript) (sec *ScriptSecurity, rr permissions.RuleSet, err error) {
+func (svc *service) serverScriptSecurity(ctx context.Context, script *ServerScript) (sec *ScriptSecurity, rr permissions.RuleSet, err error) {
 	if script.Security == nil {
 		return
 	}
@@ -896,7 +896,7 @@ func (svc *service) serverScriptSecurity(script *ServerScript) (sec *ScriptSecur
 		permRuleGenerator = func(script string, access permissions.Access, roles ...string) (permissions.RuleSet, error) {
 			out := make([]*permissions.Rule, len(roles))
 			for i, role := range roles {
-				if r, err := svc.roles.FindByAny(role); err != nil {
+				if r, err := svc.roles.FindByAny(ctx, role); err != nil {
 					return nil, errors.Wrapf(err, "could not load security role: %s", role)
 				} else {
 					out[i] = &permissions.Rule{
@@ -917,7 +917,7 @@ func (svc *service) serverScriptSecurity(script *ServerScript) (sec *ScriptSecur
 	if sec.RunAs != "" {
 		_, err = svc.userLookupCache.lookup(
 			sec.RunAs,
-			func() (*types.User, error) { return svc.users.FindByAny(sec.RunAs) },
+			func() (*types.User, error) { return svc.users.FindByAny(ctx, sec.RunAs) },
 		)
 
 		if err != nil {
