@@ -102,7 +102,7 @@ func (r *mysql) Find(ctx context.Context, flt actionlog.Filter) (set actionlog.A
 	query = query.OrderBy("ts DESC")
 
 	results := make([]*event, 0)
-	if err = rh.FetchPaged(r.db(), query, f.PageFilter, &results); err != nil {
+	if err = rh.FetchPaged(r.db().With(ctx), query, f.PageFilter, &results); err != nil {
 		return nil, f, err
 	}
 
