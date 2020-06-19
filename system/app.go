@@ -50,7 +50,7 @@ func (app *App) Setup(log *zap.Logger, opts *app.Options) (err error) {
 }
 
 func (app *App) Upgrade(ctx context.Context) (err error) {
-	db := factory.Database.MustGet(SERVICE, "default").With(ctx).Quiet()
+	db := factory.Database.MustGet().With(ctx).Quiet()
 	err = migrate.Migrate(db, app.Log)
 	if err != nil {
 		return

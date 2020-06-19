@@ -25,7 +25,8 @@ func TryToConnect(ctx context.Context, log *zap.Logger, opt options.DBOpt) (db *
 	}
 
 	name := "default"
-	factory.Database.Add(name, opt.DSN)
+
+	factory.Database.Add(name, factory.DatabaseCredential{DSN: opt.DSN, DriverName: "mysql"})
 
 	var (
 		connErrCh = make(chan error, 1)
