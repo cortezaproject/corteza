@@ -1,7 +1,4 @@
-.PHONY: all test
+.PHONY: all
 
 all:
 	drone exec
-
-test:
-	gotest ./... -v -cover
