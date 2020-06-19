@@ -6,7 +6,7 @@ name: crust
 
 steps:
 - name: build
-  image: crusttech/crust-builder:latest
+  image: golang:1.12-alpine
   pull: always
   environment:
     CGO_ENABLED: 0
@@ -16,8 +16,7 @@ steps:
     CI: travis
   commands:
   - go fmt ./...
-  - wait-for-it.sh -t 60 --strict factory-db:3306 -- echo "database service is up"
-  - make test
+  - go test ./... -v -cover --tags="integration"
 
 services:
 - name: factory-db

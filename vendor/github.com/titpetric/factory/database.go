@@ -20,12 +20,14 @@ import (
 
 // DatabaseCredential is a configuration struct for a database connection
 type DatabaseCredential struct {
-	DSN string
+	DSN        string
+	DriverName string
+	Connector  func() (*sql.DB, error)
 }
 
 // DatabaseFactory contains all database credentials and instances
 type DatabaseFactory struct {
-	credentials map[string]*DatabaseCredential
+	credentials map[string]DatabaseCredential
 	instances   map[string]*DB
 }
 
@@ -34,7 +36,7 @@ var Database *DatabaseFactory
 
 func init() {
 	Database = &DatabaseFactory{}
-	Database.credentials = make(map[string]*DatabaseCredential)
+	Database.credentials = make(map[string]DatabaseCredential)
 	Database.instances = make(map[string]*DB)
 }
 
@@ -48,10 +50,10 @@ func init() {
 // Example:
 //
 // ```
-// factory.Database.Add("default", "sqlapi:sqlapi@tcp(db1:3306)/sqlapi?collation=utf8mb4_general_ci")
+// factory.Database.Add("default", factory.DatabaseCredential{"mysql", "sqlapi:sqlapi@tcp(db1:3306)/sqlapi?collation=utf8mb4_general_ci"})
 // ```
 //
-// By default, additional options will be added to the credentials:
+// By default, additional options will be added to the credentials DSN:
 //
 // - collation will be set to `utf8_general_ci`
 // - parseTime will be set to `true`
@@ -59,21 +61,12 @@ func init() {
 //
 // If your passed DSN will include any of these options, the default values will not
 // be applied, and your custom settings will be honored.
-func (r *DatabaseFactory) Add(name string, config interface{}) {
-	switch val := config.(type) {
-	case *string:
-		r.credentials[name] = &DatabaseCredential{DSN: *val}
-	case string:
-		r.credentials[name] = &DatabaseCredential{DSN: val}
-	case DatabaseCredential:
-		r.credentials[name] = &val
-	default:
-		panic("factory.Database.Add can take config as string|*string|factory.DatabaseCredential")
-	}
+func (r *DatabaseFactory) Add(name string, credentials DatabaseCredential) {
+	credentials.DSN = r.CleanDSN(credentials.DriverName, credentials.DSN)
+	r.credentials[name] = credentials
 }
 
-// GetDSN returns the augmented DSN from the named database
-func (r *DatabaseFactory) GetDSN(name string) (string, error) {
+func (r *DatabaseFactory) CleanDSN(driverName string, dsn string) string {
 	addOption := func(s, match, option string) string {
 		if !strings.Contains(s, match) {
 			s += option
@@ -81,15 +74,20 @@ func (r *DatabaseFactory) GetDSN(name string) (string, error) {
 		return s
 	}
 
+	dsn = addOption(dsn, "?", "?")
+	dsn = addOption(dsn, "collation=", "&collation=utf8_general_ci")
+	dsn = addOption(dsn, "parseTime=", "&parseTime=true")
+	dsn = addOption(dsn, "loc=", "&loc=Local")
+	dsn = strings.Replace(dsn, "?&", "?", 1)
+	return dsn
+}
+
+// getCredentials returns the DatabaseCredential{} for a given db name
+func (r *DatabaseFactory) getCredentials(name string) (*DatabaseCredential, error) {
 	if value, ok := r.credentials[name]; ok {
-		value.DSN = addOption(value.DSN, "?", "?")
-		value.DSN = addOption(value.DSN, "collation=", "&collation=utf8_general_ci")
-		value.DSN = addOption(value.DSN, "parseTime=", "&parseTime=true")
-		value.DSN = addOption(value.DSN, "loc=", "&loc=Local")
-		value.DSN = strings.Replace(value.DSN, "?&", "?", 1)
-		return value.DSN, nil
+		return &value, nil
 	}
-	return "", errors.New("No configuration found for database: " + name)
+	return nil, errors.New("No configuration found for database: " + name)
 }
 
 // Get returns a database connection
@@ -119,24 +117,43 @@ func (r *DatabaseFactory) Get(dbName ...string) (*DB, error) {
 		if value, ok := r.instances[name]; ok {
 			return value, nil
 		}
-		dsn, _ := r.GetDSN(name)
-		if dsn != "" {
-			handle, err := sqlx.Connect("mysql", dsn)
-			if err != nil {
-				return nil, err
-			}
-			r.instances[name] = &DB{
-				handle,
-				context.Background(),
-				0,
-				nil,
-				&sql.TxOptions{
-					ReadOnly: false,
-				},
-				logger.Silent{},
-			}
-			return r.instances[name], nil
+
+		credentials, err := r.getCredentials(name)
+		if err != nil {
+			return nil, err
 		}
+
+		if credentials.DriverName == "" {
+			return nil, errors.New("Credentials missing DriverName")
+		}
+
+		var handle *sqlx.DB
+
+		switch true {
+		case credentials.Connector != nil:
+			db, err := credentials.Connector()
+			if err != nil {
+				return nil, errors.WithStack(err)
+			}
+			handle = sqlx.NewDb(db, credentials.DriverName)
+		default:
+			handle, err = sqlx.Connect(credentials.DriverName, credentials.DSN)
+			if err != nil {
+				return nil, errors.WithStack(err)
+			}
+		}
+
+		r.instances[name] = &DB{
+			handle,
+			context.Background(),
+			0,
+			nil,
+			&sql.TxOptions{
+				ReadOnly: false,
+			},
+			logger.Silent{},
+		}
+		return r.instances[name], nil
 	}
 	return nil, fmt.Errorf("No configuration found for database: %v", names)
 }

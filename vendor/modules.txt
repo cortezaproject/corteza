@@ -155,7 +155,7 @@ github.com/steinfletcher/apitest-jsonpath
 # github.com/stretchr/testify v1.5.1
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
-# github.com/titpetric/factory v0.0.0-20190806200833-ae4b02b9e034
+# github.com/titpetric/factory v0.0.0-20190828134837-8466c9bef13f
 github.com/titpetric/factory
 github.com/titpetric/factory/logger
 github.com/titpetric/factory/resputil

@@ -232,6 +232,8 @@ github.com/stretchr/testify v1.5.1 h1:nOGnQDM7FYENwehXlg/kFVnos3rEvtKTjRvOWSzb6H
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
 github.com/titpetric/factory v0.0.0-20190806200833-ae4b02b9e034 h1:H2WfXOKTtF37QV4McGIRH37zNa00NgZjRJ/5wwxqSv8=
 github.com/titpetric/factory v0.0.0-20190806200833-ae4b02b9e034/go.mod h1:VFd2XRrQZoX9cOxpeZezKpOlXDwU/dbRejKLjwP+xY8=
+github.com/titpetric/factory v0.0.0-20190828134837-8466c9bef13f h1:sTgdEUlmmNSU3QKe8n20jR26zYEKw6ciSuj919XobV4=
+github.com/titpetric/factory v0.0.0-20190828134837-8466c9bef13f/go.mod h1:VFd2XRrQZoX9cOxpeZezKpOlXDwU/dbRejKLjwP+xY8=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.uber.org/atomic v1.5.0 h1:OI5t8sDa1Or+q8AeE+yKeB/SDYioSHAgcVljj9JIETY=
