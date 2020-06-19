@@ -206,7 +206,7 @@ func (svc record) lookup(namespaceID uint64, lookup func(*recordActionProps) (*t
 		aProps = &recordActionProps{record: &types.Record{NamespaceID: namespaceID}}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		if ns, err = svc.loadNamespace(namespaceID); err != nil {
 			return err
 		}
@@ -238,7 +238,7 @@ func (svc record) lookup(namespaceID uint64, lookup func(*recordActionProps) (*t
 		}
 
 		return nil
-	})
+	}()
 
 	return r, svc.recordAction(svc.ctx, aProps, RecordActionLookup, err)
 }
@@ -310,7 +310,7 @@ func (svc record) Report(namespaceID, moduleID uint64, metrics, dimensions, filt
 		aProps = &recordActionProps{record: &types.Record{NamespaceID: namespaceID}}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		if ns, err = svc.loadNamespace(namespaceID); err != nil {
 			return err
 		}
@@ -325,7 +325,7 @@ func (svc record) Report(namespaceID, moduleID uint64, metrics, dimensions, filt
 
 		out, err = svc.recordRepo.Report(m, metrics, dimensions, filter)
 		return err
-	})
+	}()
 
 	return out, svc.recordAction(svc.ctx, aProps, RecordActionReport, err)
 }
@@ -336,7 +336,7 @@ func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.
 		aProps = &recordActionProps{filter: &filter}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		if m, err = svc.loadModule(filter.NamespaceID, filter.ModuleID); err != nil {
 			return err
 		}
@@ -351,7 +351,7 @@ func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.
 		}
 
 		return nil
-	})
+	}()
 
 	return set, f, svc.recordAction(svc.ctx, aProps, RecordActionSearch, err)
 }
@@ -365,7 +365,7 @@ func (svc record) Import(ses *RecordImportSession, ssvc ImportSessionService) (e
 		return nil
 	}
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 
 		if ses.Progress.StartedAt != nil {
 			return fmt.Errorf("Unable to start import: Import session already active")
@@ -401,7 +401,7 @@ func (svc record) Import(ses *RecordImportSession, ssvc ImportSessionService) (e
 		ses.Progress.FinishedAt = &fa
 		ssvc.SetByID(svc.ctx, ses.SessionID, 0, 0, nil, &ses.Progress, nil)
 		return
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, aProps, RecordActionImport, err)
 }
@@ -414,7 +414,7 @@ func (svc record) Export(filter types.RecordFilter, enc Encoder) (err error) {
 		aProps = &recordActionProps{filter: &filter}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() error {
 		m, err := svc.loadModule(filter.NamespaceID, filter.ModuleID)
 		if err != nil {
 			return err
@@ -430,7 +430,7 @@ func (svc record) Export(filter types.RecordFilter, enc Encoder) (err error) {
 		}
 
 		return set.Walk(enc.Record)
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, aProps, RecordActionExport, err)
 }
@@ -438,7 +438,7 @@ func (svc record) Export(filter types.RecordFilter, enc Encoder) (err error) {
 // Bulk handles provided set of bulk record operations.
 // It's able to create, update or delete records in a single transaction.
 func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rr types.RecordSet, err error) {
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		// pre-verify all
 		for _, p := range oo {
 			switch p.Operation {
@@ -533,7 +533,7 @@ func (svc record) Bulk(oo ...*types.BulkRecordOperation) (rr types.RecordSet, er
 		}
 
 		return nil
-	})
+	}()
 
 	if len(oo) == 1 {
 		// was not really a bulk operation and we already recorded the action
@@ -602,12 +602,16 @@ func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 		return nil, RecordErrValueInput().Wrap(rve)
 	}
 
-	if new, err = svc.recordRepo.Create(new); err != nil {
-		return
-	}
+	err = svc.db.Transaction(func() error {
+		if new, err = svc.recordRepo.Create(new); err != nil {
+			return err
+		}
 
-	if err = svc.recordRepo.UpdateValues(new.ID, new.Values); err != nil {
-		return
+		return svc.recordRepo.UpdateValues(new.ID, new.Values)
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
 	// At this point we can return the value
@@ -704,12 +708,17 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 		return nil, RecordErrValueInput().Wrap(rve)
 	}
 
-	if upd, err = svc.recordRepo.Update(upd); err != nil {
-		return
-	}
+	err = svc.db.Transaction(func() error {
+		if upd, err = svc.recordRepo.Update(upd); err != nil {
+			return nil
+		}
 
-	if err = svc.recordRepo.UpdateValues(upd.ID, upd.Values); err != nil {
-		return
+		return svc.recordRepo.UpdateValues(upd.ID, upd.Values)
+
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
 	// Final value cleanup
@@ -734,11 +743,11 @@ func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
 		aProps = &recordActionProps{changed: new}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		rec, err = svc.create(new)
 		aProps.setRecord(rec)
 		return err
-	})
+	}()
 
 	return rec, svc.recordAction(svc.ctx, aProps, RecordActionCreate, err)
 }
@@ -783,11 +792,11 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 		aProps = &recordActionProps{changed: upd}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		rec, err = svc.update(upd)
 		aProps.setRecord(rec)
 		return err
-	})
+	}()
 
 	return rec, svc.recordAction(svc.ctx, aProps, RecordActionUpdate, err)
 }
@@ -889,11 +898,15 @@ func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Rec
 	del.DeletedAt = nowPtr()
 	del.DeletedBy = invokerID
 
-	if err = svc.recordRepo.Delete(del); err != nil {
-		return nil, err
-	}
+	err = svc.db.Transaction(func() error {
+		if err = svc.recordRepo.Delete(del); err != nil {
+			return err
+		}
 
-	if err = svc.recordRepo.DeleteValues(del); err != nil {
+		return svc.recordRepo.DeleteValues(del)
+	})
+
+	if err != nil {
 		return nil, err
 	}
 
@@ -950,13 +963,13 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 	}
 
 	for _, recordID := range recordIDs {
-		err := svc.db.Transaction(func() (err error) {
+		err := func() (err error) {
 			r, err = svc.delete(namespaceID, moduleID, recordID)
 			aProps.setRecord(r)
 
 			// Record each record deletion action
 			return svc.recordAction(svc.ctx, aProps, RecordActionDelete, err)
-		})
+		}()
 
 		// We'll not break for failed delete,
 		// if we are deleting records in bulk.
@@ -985,7 +998,7 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 		reorderingRecords bool
 	)
 
-	return svc.db.Transaction(func() (err error) {
+	err = func() error {
 		ns, m, r, err = svc.loadCombo(namespaceID, moduleID, recordID)
 		if err != nil {
 			return err
@@ -1058,60 +1071,62 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 			})
 		}
 
-		if len(recordValues) > 0 {
-			svc.recordInfoUpdate(r)
-			if _, err = svc.recordRepo.Update(r); err != nil {
-				return
+		return svc.db.Transaction(func() error {
+			if len(recordValues) > 0 {
+				svc.recordInfoUpdate(r)
+				if _, err = svc.recordRepo.Update(r); err != nil {
+					return err
+				}
+
+				if err = svc.recordRepo.PartialUpdateValues(recordValues...); err != nil {
+					return err
+				}
 			}
 
-			if err = svc.recordRepo.PartialUpdateValues(recordValues...); err != nil {
-				return
-			}
-		}
+			if reorderingRecords {
+				var (
+					set              types.RecordSet
+					recordOrderPlace uint64
+				)
 
-		if reorderingRecords {
-			var (
-				set              types.RecordSet
-				recordOrderPlace uint64
-			)
+				// If we already have filter, wrap it in parenthesis
+				if filter != "" {
+					filter = fmt.Sprintf("(%s) AND ", filter)
+				}
 
-			// If we already have filter, wrap it in parenthesis
-			if filter != "" {
-				filter = fmt.Sprintf("(%s) AND ", filter)
-			}
+				if recordOrderPlace, err = strconv.ParseUint(position, 0, 64); err != nil {
+					return err
+				}
 
-			if recordOrderPlace, err = strconv.ParseUint(position, 0, 64); err != nil {
-				return
-			}
-
-			// Assemble record filter:
-			// We are interested only in records that have value of a sorting field greater than
-			// the place we're moving our record to.
-			// and sort the set with sorting field
-			set, _, err = svc.recordRepo.Find(m, types.RecordFilter{
-				Query: fmt.Sprintf("%s(%s >= %d)", filter, posField, recordOrderPlace),
-				Sort:  posField,
-			})
-
-			if err != nil {
-				return
-			}
-
-			// Update value on each record
-			return set.Walk(func(r *types.Record) error {
-				recordOrderPlace++
-
-				// Update each and every set
-				return svc.recordRepo.PartialUpdateValues(&types.RecordValue{
-					RecordID: r.ID,
-					Name:     posField,
-					Value:    strconv.FormatUint(recordOrderPlace, 10),
+				// Assemble record filter:
+				// We are interested only in records that have value of a sorting field greater than
+				// the place we're moving our record to.
+				// and sort the set with sorting field
+				set, _, err = svc.recordRepo.Find(m, types.RecordFilter{
+					Query: fmt.Sprintf("%s(%s >= %d)", filter, posField, recordOrderPlace),
+					Sort:  posField,
 				})
-			})
-		}
 
-		return
-	})
+				if err != nil {
+					return err
+				}
+
+				// Update value on each record
+				return set.Walk(func(r *types.Record) error {
+					recordOrderPlace++
+
+					// Update each and every set
+					return svc.recordRepo.PartialUpdateValues(&types.RecordValue{
+						RecordID: r.ID,
+						Name:     posField,
+						Value:    strconv.FormatUint(recordOrderPlace, 10),
+					})
+				})
+			}
+
+			return nil
+		})
+	}()
 
 	return svc.recordAction(svc.ctx, aProps, RecordActionOrganize, err)
 
@@ -1166,7 +1181,7 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 		aProps = &recordActionProps{}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		if ns, m, _, err = svc.loadCombo(f.NamespaceID, f.ModuleID, 0); err != nil {
 			return err
 		}
@@ -1229,11 +1244,15 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 						return RecordErrValueInput().Wrap(rve)
 					}
 
-					if cln, err = svc.recordRepo.Create(rec); err != nil {
-						return err
-					} else if err = svc.recordRepo.UpdateValues(cln.ID, cln.Values); err != nil {
-						return err
-					}
+					return svc.db.Transaction(func() error {
+						if cln, err = svc.recordRepo.Create(rec); err != nil {
+							return err
+						} else if err = svc.recordRepo.UpdateValues(cln.ID, cln.Values); err != nil {
+							return err
+						}
+
+						return nil
+					})
 				case "update":
 					recordableAction = RecordActionIteratorUpdate
 
@@ -1242,19 +1261,27 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 						return RecordErrValueInput().Wrap(rve)
 					}
 
-					if rec, err = svc.recordRepo.Update(rec); err != nil {
-						return err
-					} else if err = svc.recordRepo.UpdateValues(rec.ID, rec.Values); err != nil {
-						return err
-					}
+					return svc.db.Transaction(func() error {
+						if rec, err = svc.recordRepo.Update(rec); err != nil {
+							return err
+						} else if err = svc.recordRepo.UpdateValues(rec.ID, rec.Values); err != nil {
+							return err
+						}
+
+						return nil
+					})
 				case "delete":
 					recordableAction = RecordActionIteratorDelete
 
-					if err = svc.recordRepo.Delete(rec); err != nil {
-						return err
-					} else if err = svc.recordRepo.DeleteValues(rec); err != nil {
-						return err
-					}
+					return svc.db.Transaction(func() error {
+						if err = svc.recordRepo.Delete(rec); err != nil {
+							return err
+						} else if err = svc.recordRepo.DeleteValues(rec); err != nil {
+							return err
+						}
+
+						return nil
+					})
 				}
 
 				return nil
@@ -1269,7 +1296,7 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 		}
 
 		return nil
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, aProps, RecordActionIteratorInvoked, err)
 
