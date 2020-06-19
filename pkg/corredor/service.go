@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/middleware"
@@ -40,11 +41,17 @@ type (
 		//   map[<script-name>][<resource>] = true
 		explicit map[string]map[string]bool
 
-		// Combined list of client and server scripts
-		sScripts   ScriptSet
+		// List of client & server sceipts
+		sScripts ScriptSet
+		cScripts ScriptSet
+
+		// last modified ts for c/s
 		sScriptsTS time.Time
-		cScripts   ScriptSet
 		cScriptsTS time.Time
+
+		// locking for c/s loading
+		sScriptsL *sync.Mutex
+		cScriptsL *sync.Mutex
 
 		conn *grpc.ClientConn
 
@@ -171,6 +178,9 @@ func NewService(logger *zap.Logger, opt options.CorredorOpt) *service {
 		permissions:    permissions.RuleSet{},
 
 		userLookupCache: userLookupCacheMap{},
+
+		sScriptsL: &sync.Mutex{},
+		cScriptsL: &sync.Mutex{},
 	}
 }
 
@@ -399,6 +409,9 @@ func (svc *service) loadServerScripts(ctx context.Context) {
 		err error
 		rsp *ServerScriptListResponse
 	)
+
+	svc.sScriptsL.Lock()
+	defer svc.sScriptsL.Unlock()
 
 	ctx, cancel := context.WithTimeout(ctx, svc.opt.ListTimeout)
 	defer cancel()
@@ -819,6 +832,9 @@ func (svc *service) loadClientScripts(ctx context.Context) {
 		err error
 		rsp *ClientScriptListResponse
 	)
+
+	svc.cScriptsL.Lock()
+	defer svc.cScriptsL.Unlock()
 
 	ctx, cancel := context.WithTimeout(ctx, svc.opt.ListTimeout)
 	defer cancel()
