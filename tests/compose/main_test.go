@@ -55,7 +55,7 @@ func init() {
 }
 
 func db() *factory.DB {
-	return factory.Database.MustGet(compose.SERVICE, "default").With(context.Background())
+	return factory.Database.MustGet().With(context.Background())
 }
 
 func (app *TestApp) Initialize(ctx context.Context) (err error) {

@@ -35,7 +35,7 @@ func Users() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
-				db  = factory.Database.MustGet("system", "default")
+				db  = factory.Database.MustGet()
 
 				queryFlag = cmd.Flags().Lookup("query").Value.String()
 				limitFlag = cmd.Flags().Lookup("limit").Value.String()
@@ -95,7 +95,7 @@ func Users() *cobra.Command {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
 
-				db = factory.Database.MustGet("system", "default")
+				db = factory.Database.MustGet()
 
 				userRepo = repository.User(ctx, db)
 				authSvc  = service.Auth(ctx)
@@ -152,7 +152,7 @@ func Users() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
-				db  = factory.Database.MustGet("system", "default")
+				db  = factory.Database.MustGet()
 
 				userRepo = repository.User(ctx, db)
 				authSvc  = service.Auth(ctx)

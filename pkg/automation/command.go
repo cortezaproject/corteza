@@ -191,7 +191,7 @@ func ScriptExporter(subsys string) *cobra.Command {
 
 				ctx = cli.Context()
 
-				db = factory.Database.MustGet(subsys, "default").With(ctx) //.Quiet()
+				db = factory.Database.MustGet().With(ctx) //.Quiet()
 
 				// Skip deleted, scripts, ones named test and those with empty source
 				scriptQuery = squirrel.

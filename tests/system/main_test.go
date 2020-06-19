@@ -59,7 +59,7 @@ func rs(a ...int) string {
 }
 
 func db() *factory.DB {
-	return factory.Database.MustGet(system.SERVICE, "default").With(context.Background())
+	return factory.Database.MustGet().With(context.Background())
 }
 
 func (app *TestApp) Initialize(ctx context.Context) (err error) {

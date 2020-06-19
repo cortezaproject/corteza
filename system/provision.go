@@ -57,7 +57,7 @@ func isProvisioned(ctx context.Context) (bool, error) {
 }
 
 func makeDefaultApplications(ctx context.Context, log *zap.Logger) error {
-	db := factory.Database.MustGet("system", "default")
+	db := factory.Database.MustGet()
 
 	repo := repository.Application(ctx, db)
 

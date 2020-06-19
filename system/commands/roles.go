@@ -27,7 +27,7 @@ func Roles() *cobra.Command {
 			// Create role and user repository.
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
-				db  = factory.Database.MustGet("system", "default")
+				db  = factory.Database.MustGet()
 
 				roleStr, userStr = args[0], args[1]
 

@@ -74,7 +74,7 @@ func Auth() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
-				db  = factory.Database.MustGet("system", "default")
+				db  = factory.Database.MustGet()
 
 				userRepo = repository.User(ctx, db)
 				roleRepo = repository.Role(ctx, db)
