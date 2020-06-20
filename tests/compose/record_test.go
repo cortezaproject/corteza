@@ -446,3 +446,78 @@ func TestRecordImportImportProgress_sessionNotFound(t *testing.T) {
 		Assert(helpers.AssertError("compose.service.RecordImportSessionNotFound")).
 		End()
 }
+
+func TestRecordFieldModulePermissionCheck(t *testing.T) {
+	h := newHelper(t)
+
+	// make a standad module, and prevent current user to
+	// read from "name" and update "email" fields
+	module := h.repoMakeRecordModuleWithFields("record testing module")
+	h.deny(module.Fields.FindByName("name").PermissionResource(), "record.value.read")
+	h.deny(module.Fields.FindByName("email").PermissionResource(), "record.value.update")
+	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.create")
+	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.update")
+
+	record := h.repoMakeRecord(
+		module,
+		&types.RecordValue{Name: "name", Value: "should not be readable"},
+		&types.RecordValue{Name: "email", Value: "should not be writable"},
+	)
+
+	// Fetching record should work as before but without read-protected fields
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		// should not return name
+		Assert(jsonpath.NotPresent(`$.response.values[? @.name=="name"]`)).
+		// should return email
+		Assert(jsonpath.Present(`$.response.values[? @.name=="email"]`)).
+		End()
+
+	bb := map[string]func() *apitest.Request{
+		"update": func() *apitest.Request {
+			return h.apiInit().
+				Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID))
+		},
+
+		"create": func() *apitest.Request {
+			return h.apiInit().
+				Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID))
+		},
+	}
+
+	for name, b := range bb {
+		t.Run(name, func(t *testing.T) {
+			t.Run("field:email", func(t *testing.T) {
+				// Try to change email (not writable!), expect error...
+				b().JSON(fmt.Sprintf(`{"values": [{"name": "email", "value": "changed-email"}]}`)).
+					Expect(t).
+					Status(http.StatusOK).
+					Assert(helpers.Dump).
+					Assert(helpers.AssertError("not allowed to change value of field email")).
+					End()
+			})
+
+			t.Run("field:name", func(t *testing.T) {
+				// Try to change name, (not readable), expect it to work
+				b().JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "changed-name"}]}`)).
+					Expect(t).
+					Status(http.StatusOK).
+					Assert(helpers.AssertNoErrors).
+					End()
+			})
+
+			t.Run("field:description", func(t *testing.T) {
+				// Try to change description, (no perm. rules), expect it to work
+				b().JSON(fmt.Sprintf(`{"values": [{"name": "description", "value": "changed-description"}]}`)).
+					Expect(t).
+					Status(http.StatusOK).
+					Assert(helpers.AssertNoErrors).
+					End()
+			})
+		})
+	}
+
+}

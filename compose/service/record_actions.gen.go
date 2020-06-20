@@ -1284,6 +1284,36 @@ func RecordErrNotAllowedToUndelete(props ...*recordActionProps) *recordError {
 
 }
 
+// RecordErrNotAllowedToChangeFieldValue returns "compose:record.notAllowedToChangeFieldValue" audit event as actionlog.Error
+//
+//
+// This function is auto-generated.
+//
+func RecordErrNotAllowedToChangeFieldValue(props ...*recordActionProps) *recordError {
+	var e = &recordError{
+		timestamp: time.Now(),
+		resource:  "compose:record",
+		error:     "notAllowedToChangeFieldValue",
+		action:    "error",
+		message:   "not allowed to change value of field {field}",
+		log:       "failed to change value of field {field}; insufficient permissions",
+		severity:  actionlog.Error,
+		props: func() *recordActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
 // RecordErrImportSessionAlreadActive returns "compose:record.importSessionAlreadActive" audit event as actionlog.Error
 //
 //

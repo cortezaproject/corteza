@@ -148,6 +148,11 @@ errors:
     message: "not allowed to undelete this record"
     log: "failed to undelete {record}; insufficient permissions"
 
+  - error: notAllowedToChangeFieldValue
+    message: "not allowed to change value of field {field}"
+    log: "failed to change value of field {field}; insufficient permissions"
+
+
   - error: importSessionAlreadActive
     message: "import session already active"
     log: "failed to start import session"

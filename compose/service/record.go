@@ -1376,6 +1376,10 @@ func (svc record) generalValueSetValidation(m *types.Module, vv types.RecordValu
 			return RecordErrFieldNotFound(aProps.setField(v.Name))
 		}
 
+		if !svc.ac.CanUpdateRecordValue(svc.ctx, field) {
+			return RecordErrNotAllowedToChangeFieldValue(aProps.setField(v.Name))
+		}
+
 		if field.IsRef() {
 			if v.Value == "" {
 				return nil
