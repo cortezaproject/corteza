@@ -27,12 +27,14 @@ type (
 		w  FlatWriter
 		ff []field
 		u  userFinder
+		tz string
 	}
 
 	structuredEncoder struct {
 		w  StructuredEncoder
 		ff []field
 		u  userFinder
+		tz string
 	}
 )
 
@@ -49,15 +51,40 @@ func MakeFields(nn ...string) []field {
 	return ff
 }
 
+func preprocessHeader(hh []field, tz string) []field {
+	nhh := make([]field, 0)
+
+	// We need to prepare additional header fields for exporting
+	if tz != "" && tz != "UTC" {
+		for _, f := range hh {
+			switch f.name {
+			case "createdAt",
+				"updatedAt",
+				"deletedAt":
+
+				nhh = append(nhh, f, field{name: f.name + "_date"}, field{name: f.name + "_time"})
+				break
+			default:
+				nhh = append(nhh, f)
+				break
+			}
+		}
+	} else {
+		return hh
+	}
+	return nhh
+}
+
 func MultiValueField(name string) field {
 	return field{name: name, encodeAllMulti: true}
 }
 
-func NewFlatWriter(w FlatWriter, header bool, u userFinder, ff ...field) *flatWriter {
+func NewFlatWriter(w FlatWriter, header bool, u userFinder, tz string, ff ...field) *flatWriter {
 	f := &flatWriter{
 		w:  w,
-		ff: ff,
+		ff: preprocessHeader(ff, tz),
 		u:  u,
+		tz: tz,
 	}
 
 	if header {
@@ -80,11 +107,13 @@ func (enc flatWriter) writeHeader() {
 	_ = enc.w.Write(ss)
 }
 
-func NewStructuredEncoder(w StructuredEncoder, u userFinder, ff ...field) *structuredEncoder {
+func NewStructuredEncoder(w StructuredEncoder, u userFinder, tz string, ff ...field) *structuredEncoder {
 	return &structuredEncoder{
-		w:  w,
+		w: w,
+		// No need for additional timezone headers, since the output is structured
 		ff: ff,
 		u:  u,
+		tz: tz,
 	}
 }
 
