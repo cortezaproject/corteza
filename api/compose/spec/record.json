@@ -190,6 +190,12 @@
             "required": true,
             "title": "Fields to export",
             "type": "[]string"
+          },
+          {
+            "name": "timezone",
+            "required": false,
+            "title": "Convert times to this timezone",
+            "type": "string"
           }
         ],
         "path": [
