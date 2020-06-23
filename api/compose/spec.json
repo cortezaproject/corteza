@@ -860,6 +860,12 @@
               "type": "[]string",
               "required": true,
               "title": "Fields to export"
+            },
+            {
+              "name": "timezone",
+              "type": "string",
+              "required": false,
+              "title": "Convert times to this timezone"
             }
           ]
         }
