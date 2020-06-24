@@ -18,7 +18,9 @@ const (
 	fieldOpt_Datetime_onlyFutureValues = "onlyFutureValues"
 	fieldOpt_Datetime_onlyPastValues   = "onlyPastValues"
 
-	fieldOpt_Number_precision = "precision"
+	fieldOpt_Number_precision     = "precision"
+	fieldOpt_Number_precision_min = 0
+	fieldOpt_Number_precision_max = 6
 
 	fieldOpt_Url_onlySecure = "onlySecure"
 )

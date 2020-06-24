@@ -91,6 +91,24 @@ func Test_sanitizer_Run(t *testing.T) {
 			output: "2020-03-11T11:20:08Z",
 		},
 		{
+			name:   "number space trim",
+			kind:   "Number",
+			input:  "  42 ",
+			output: "42",
+		},
+		{
+			name:   "number negative",
+			kind:   "Number",
+			input:  "-42",
+			output: "-42",
+		},
+		{
+			name:   "number positive",
+			kind:   "Number",
+			input:  "+42",
+			output: "42",
+		},
+		{
 			name:    "number precision",
 			kind:    "Number",
 			options: map[string]interface{}{"precision": 3},

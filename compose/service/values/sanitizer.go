@@ -193,53 +193,30 @@ func (sanitizer) sDatetime(v *types.RecordValue, f *types.ModuleField, m *types.
 	return v
 }
 
+// sNumber sanitizes
 func (sanitizer) sNumber(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-	// No point in continuing
-	if v.Value == "" || f.Options == nil {
-		return v
-	}
-
-	// Default to 0 for consistency
-	if f.Options["precision"] == nil || f.Options["precision"] == "" {
-		f.Options["precision"] = 0
-	}
-
-	// Since Options are not structured, there would appear that there can be a bit of a mess
-	// when it comes to types,so this is needed.
-	var prec float64
-	unk := f.Options["precision"]
-	switch i := unk.(type) {
-	case float64:
-		prec = i
-	case int:
-		prec = float64(i)
-	case int64:
-		prec = float64(i)
-	case string:
-		pp, err := strconv.ParseFloat(i, 64)
-		if err != nil {
-			prec = 0
-			break
-		}
-		prec = pp
-	}
-
-	// Clamp between 0 and 6; this was originally done in corteza-js so we keep it here.
-	if prec < 0 {
-		prec = 0
-	}
-	if prec > 6 {
-		prec = 6
-	}
-
 	base, err := strconv.ParseFloat(v.Value, 64)
 	if err != nil {
+		v.Value = "0"
 		return v
 	}
 
-	// 1. Format the value to the desired precision
-	// 2. In case of fractures, remove trailing 0's
-	v.Value = strconv.FormatFloat(base, 'f', int(prec), 64)
+	// calculate percision
+	var p = 0
+	if f.Options != nil {
+		p = int(f.Options.Int64(fieldOpt_Number_precision))
+
+		if p < fieldOpt_Number_precision_min {
+			p = fieldOpt_Number_precision_min
+		} else if p > fieldOpt_Number_precision_max {
+			p = fieldOpt_Number_precision_max
+		}
+	}
+
+	// Format the value to the desired precision
+	v.Value = strconv.FormatFloat(base, 'f', p, 64)
+
+	// In case of fractures, remove trailing 0's
 	if strings.Contains(v.Value, ".") {
 		v.Value = strings.TrimRight(v.Value, "0")
 	}
