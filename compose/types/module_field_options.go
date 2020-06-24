@@ -3,7 +3,9 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"github.com/pkg/errors"
+	"strconv"
 )
 
 type (
@@ -52,12 +54,28 @@ func (opt ModuleFieldOptions) Int64(key string) int64 {
 }
 
 func (opt ModuleFieldOptions) Int64Def(key string, def int64) int64 {
-	if _, has := opt[key]; has {
-		if n, ok := opt[key].(int64); ok {
-			return n
-		}
-	}
+	if val, has := opt[key]; has {
+		switch conv := val.(type) {
+		case int:
+			return int64(conv)
+		case int64:
+			return conv
+		default:
+			// to avoid covering every possible type, just convert value into string
+			strVal := fmt.Sprintf("%v", val)
+			fmt.Printf("\n[%v] key: %s => (%T) %s\n\n", opt, key, val, strVal)
 
+			if intVal, err := strconv.ParseInt(strVal, 10, 64); err == nil {
+				return intVal
+			}
+
+			if floatVal, err := strconv.ParseFloat(strVal, 64); err == nil {
+				return int64(floatVal)
+			}
+
+		}
+
+	}
 	return def
 }
 
