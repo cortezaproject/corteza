@@ -60,8 +60,6 @@ func TestRecordUnmarshal(t *testing.T) {
 				t.Errorf("failed to marshal record: %v", err)
 			} else if err = json.Unmarshal(j, tt.preloaded); err != nil {
 				t.Errorf("failed to unmarshal record: %v", err)
-			} else {
-				spew.Dump(string(j))
 			}
 
 			if !reflect.DeepEqual(tt.preloaded, tt.final) {
