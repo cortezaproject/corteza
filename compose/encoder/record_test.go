@@ -67,7 +67,7 @@ func Test_RecordEncoding(t *testing.T) {
 			buf := bytes.NewBuffer([]byte{})
 			csvWriter := csv.NewWriter(buf)
 
-			fenc := NewFlatWriter(csvWriter, true, nil, tt.ff...)
+			fenc := NewFlatWriter(csvWriter, true, nil, "UTC", tt.ff...)
 			for _, r := range tt.rr {
 				if err := fenc.Record(r); err != nil {
 					t.Errorf("unexpected error = %v,", err)
@@ -86,7 +86,7 @@ func Test_RecordEncoding(t *testing.T) {
 			buf := bytes.NewBuffer([]byte{})
 			jsonEnc := json.NewEncoder(buf)
 
-			senc := NewStructuredEncoder(jsonEnc, nil, tt.ff...)
+			senc := NewStructuredEncoder(jsonEnc, nil, "UTC", tt.ff...)
 			for _, r := range tt.rr {
 				if err := senc.Record(r); err != nil {
 					t.Errorf("unexpected error = %v,", err)
