@@ -63,7 +63,6 @@ func (opt ModuleFieldOptions) Int64Def(key string, def int64) int64 {
 		default:
 			// to avoid covering every possible type, just convert value into string
 			strVal := fmt.Sprintf("%v", val)
-			fmt.Printf("\n[%v] key: %s => (%T) %s\n\n", opt, key, val, strVal)
 
 			if intVal, err := strconv.ParseInt(strVal, 10, 64); err == nil {
 				return intVal
