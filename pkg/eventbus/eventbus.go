@@ -21,6 +21,7 @@ type (
 	}
 
 	eventbus struct {
+		// waitgroup for dispatch
 		wg *sync.WaitGroup
 
 		// Read & write locking
@@ -60,10 +61,11 @@ func New() *eventbus {
 
 // WaitFor is synchronous event dispatcher
 //
-// It waits for all handlers and fails on first error
+// It waits for each handler and fails on first error
 func (b *eventbus) WaitFor(ctx context.Context, ev Event) (err error) {
 	b.l.RLock()
 	defer b.l.RUnlock()
+
 	for _, t := range b.find(ev) {
 		err = func(ctx context.Context, t *handler) error {
 			b.wg.Add(1)

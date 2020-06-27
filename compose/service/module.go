@@ -242,7 +242,7 @@ func (svc module) Create(new *types.Module) (m *types.Module, err error) {
 			return err
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.ModuleAfterCreate(m, nil, ns))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.ModuleAfterCreate(m, nil, ns))
 		return nil
 	})
 
@@ -313,7 +313,7 @@ func (svc module) Update(upd *types.Module) (m *types.Module, err error) {
 			return err
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.ModuleAfterUpdate(upd, m, ns))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.ModuleAfterUpdate(upd, m, ns))
 		return nil
 	})
 
@@ -358,7 +358,7 @@ func (svc module) DeleteByID(namespaceID, moduleID uint64) (err error) {
 			return err
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.ModuleAfterDelete(nil, m, ns))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.ModuleAfterDelete(nil, m, ns))
 		return err
 	})
 

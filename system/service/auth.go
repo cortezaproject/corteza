@@ -210,7 +210,7 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 						return err
 					}
 
-					defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(u, authProvider))
+					_ = svc.eventbus.WaitFor(svc.ctx, event.AuthAfterLogin(u, authProvider))
 					return svc.recordAction(svc.ctx, aam, AuthActionUpdateCredentials, nil)
 				} else {
 					// Scenario: linked to an invalid user
@@ -273,7 +273,7 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 			aam.setUser(nil)
 			svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
 
-			defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterSignup(u, authProvider))
+			_ = svc.eventbus.WaitFor(svc.ctx, event.AuthAfterSignup(u, authProvider))
 
 			svc.recordAction(svc.ctx, aam, AuthActionExternalSignup, nil)
 
@@ -292,7 +292,7 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 				return err
 			}
 
-			defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(u, authProvider))
+			_ = svc.eventbus.WaitFor(svc.ctx, event.AuthAfterLogin(u, authProvider))
 
 			// If user
 			if !u.Valid() {
@@ -395,7 +395,7 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 				}
 			}
 
-			defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(eUser, authProvider))
+			_ = svc.eventbus.WaitFor(svc.ctx, event.AuthAfterLogin(eUser, authProvider))
 			u = eUser
 			return nil
 
@@ -444,7 +444,7 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 		}
 
 		aam.setUser(u)
-		defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterSignup(u, authProvider))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.AuthAfterSignup(u, authProvider))
 
 		if err = svc.autoPromote(u); err != nil {
 			return err
@@ -548,7 +548,7 @@ func (svc auth) InternalLogin(email string, password string) (u *types.User, err
 			return AuthErrFailedUnconfirmedEmail()
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.AuthAfterLogin(u, authProvider))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.AuthAfterLogin(u, authProvider))
 		return nil
 	})
 

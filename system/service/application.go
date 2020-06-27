@@ -145,7 +145,7 @@ func (svc *application) Create(new *types.Application) (app *types.Application, 
 
 		aaProps.setApplication(app)
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.ApplicationAfterCreate(new, nil))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.ApplicationAfterCreate(new, nil))
 		return nil
 	})
 
@@ -185,7 +185,7 @@ func (svc *application) Update(upd *types.Application) (app *types.Application, 
 			return err
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.ApplicationAfterUpdate(upd, app))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.ApplicationAfterUpdate(upd, app))
 		return nil
 	})
 
@@ -219,7 +219,7 @@ func (svc *application) Delete(ID uint64) (err error) {
 			return
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.ApplicationAfterDelete(nil, app))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.ApplicationAfterDelete(nil, app))
 		return nil
 	})
 
@@ -255,7 +255,7 @@ func (svc *application) Undelete(ID uint64) (err error) {
 		}
 
 		// @todo add event
-		//       defer svc.eventbus.Dispatch(svc.ctx, event.ApplicationAfterUndelete(nil, app))
+		//       _ = svc.eventbus.WaitFor(svc.ctx, event.ApplicationAfterUndelete(nil, app))
 		return nil
 	})
 

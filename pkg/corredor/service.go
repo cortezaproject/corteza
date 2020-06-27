@@ -749,7 +749,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 	ctx, cancel := context.WithTimeout(
 		// We need a new, independent context here
 		// to be sure this is executed safely & fully
-		// without any outside interfeance (cancellation, timeouts)
+		// without any outside interference (cancellation, timeouts)
 		context.Background(),
 		svc.opt.DefaultExecTimeout,
 	)
