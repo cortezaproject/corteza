@@ -339,7 +339,7 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 			return
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.UserAfterCreate(new, u))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.UserAfterCreate(new, u))
 		return
 	})
 
@@ -400,7 +400,7 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 			return
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.UserAfterUpdate(upd, u))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.UserAfterUpdate(upd, u))
 		return
 	})
 
@@ -496,7 +496,7 @@ func (svc user) Delete(userID uint64) (err error) {
 			return
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.UserAfterDelete(nil, u))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.UserAfterDelete(nil, u))
 		return nil
 	})
 

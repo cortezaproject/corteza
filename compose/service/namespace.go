@@ -202,7 +202,7 @@ func (svc namespace) Create(new *types.Namespace) (ns *types.Namespace, err erro
 			return err
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.NamespaceAfterCreate(ns, nil))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.NamespaceAfterCreate(ns, nil))
 		return
 	})
 
@@ -255,7 +255,7 @@ func (svc namespace) Update(upd *types.Namespace) (ns *types.Namespace, err erro
 			return err
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.NamespaceAfterUpdate(upd, ns))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.NamespaceAfterUpdate(upd, ns))
 		return
 	})
 
@@ -295,7 +295,7 @@ func (svc namespace) DeleteByID(namespaceID uint64) (err error) {
 			return
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.NamespaceAfterDelete(nil, del))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.NamespaceAfterDelete(nil, del))
 		return
 	})
 

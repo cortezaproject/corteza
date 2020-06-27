@@ -293,7 +293,7 @@ func (svc page) Create(new *types.Page) (p *types.Page, err error) {
 			return err
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.PageAfterCreate(new, nil, ns))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.PageAfterCreate(new, nil, ns))
 		return err
 	})
 
@@ -356,7 +356,7 @@ func (svc page) Update(upd *types.Page) (p *types.Page, err error) {
 			return err
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.PageAfterUpdate(upd, p, ns))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.PageAfterUpdate(upd, p, ns))
 		return err
 	})
 
@@ -402,7 +402,7 @@ func (svc page) DeleteByID(namespaceID, pageID uint64) (err error) {
 			return err
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.PageAfterDelete(nil, del, ns))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.PageAfterDelete(nil, del, ns))
 		return err
 	})
 

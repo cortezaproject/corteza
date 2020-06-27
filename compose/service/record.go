@@ -7,15 +7,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/compose/service/values"
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-
 	"github.com/titpetric/factory"
 
 	"github.com/cortezaproject/corteza-server/compose/decoder"
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
+	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 )
@@ -619,10 +618,8 @@ func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 	rec = new
 
 	if svc.optEmitEvents {
-		defer func() {
-			new.Values = svc.formatter.Run(m, new.Values)
-			svc.eventbus.Dispatch(svc.ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil))
-		}()
+		new.Values = svc.formatter.Run(m, new.Values)
+		_ = svc.eventbus.WaitFor(svc.ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil))
 	}
 
 	return
@@ -730,11 +727,9 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 	rec = upd
 
 	if svc.optEmitEvents {
-		defer func() {
-			// Before we pass values to automation scripts, they should be formatted
-			upd.Values = svc.formatter.Run(m, upd.Values)
-			svc.eventbus.Dispatch(svc.ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil))
-		}()
+		// Before we pass values to automation scripts, they should be formatted
+		upd.Values = svc.formatter.Run(m, upd.Values)
+		_ = svc.eventbus.WaitFor(svc.ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil))
 	}
 	return
 }
@@ -912,7 +907,7 @@ func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Rec
 	}
 
 	if svc.optEmitEvents {
-		defer svc.eventbus.Dispatch(svc.ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil))
 	}
 
 	return del, nil

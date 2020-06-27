@@ -220,7 +220,7 @@ func (svc role) Create(new *types.Role) (r *types.Role, err error) {
 
 		raProps.setRole(r)
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.RoleAfterCreate(new, r))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.RoleAfterCreate(new, r))
 		return
 	})
 
@@ -268,7 +268,7 @@ func (svc role) Update(upd *types.Role) (r *types.Role, err error) {
 			return err
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.RoleAfterUpdate(upd, r))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.RoleAfterUpdate(upd, r))
 
 		return nil
 	})
@@ -323,7 +323,7 @@ func (svc role) Delete(roleID uint64) (err error) {
 			return
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.RoleAfterDelete(nil, r))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.RoleAfterDelete(nil, r))
 
 		return
 	})
@@ -542,7 +542,7 @@ func (svc role) MemberAdd(roleID, memberID uint64) (err error) {
 			return
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.RoleMemberAfterAdd(m, r))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.RoleMemberAfterAdd(m, r))
 		return nil
 	})
 
@@ -589,7 +589,7 @@ func (svc role) MemberRemove(roleID, memberID uint64) (err error) {
 			return
 		}
 
-		defer svc.eventbus.Dispatch(svc.ctx, event.RoleMemberAfterRemove(m, r))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.RoleMemberAfterRemove(m, r))
 		return nil
 	})
 
