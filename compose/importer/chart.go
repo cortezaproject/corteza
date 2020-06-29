@@ -158,6 +158,9 @@ func (cImp *Chart) castConfigReports(chart *types.Chart, def interface{}) ([]*ty
 				r.Metrics = deinterfacer.ToSliceOfStringToInterfaceMap(val)
 			case "dimensions":
 				r.Dimensions = deinterfacer.ToSliceOfStringToInterfaceMap(val)
+			case "renderer":
+				// @todo implement renderer decoding
+				// r.Renderer.Version
 			default:
 				return fmt.Errorf("unexpected key %q for chart %q report config", key, chart.Handle)
 
