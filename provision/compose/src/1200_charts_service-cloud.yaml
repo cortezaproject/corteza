@@ -7,6 +7,7 @@ charts:
       - dimensions:
         - conditions: {}
           field: Status
+          meta: {}
           modifier: (no grouping / buckets)
         filter: ""
         metrics:
@@ -15,6 +16,7 @@ charts:
           fixTooltips: true
           type: pie
         module: Entitlement
+        renderer: {}
   AverageTimeSpentPerCase:
     name: Average time spent per case
     config:
@@ -22,17 +24,17 @@ charts:
       - dimensions:
         - conditions: {}
           field: created_at
+          meta: {}
           modifier: MONTH
         filter: ""
         metrics:
         - aggregate: AVG
-          backgroundColor: '#ff9937'
-          beginAtZero: true
           field: TotalTime
-          fixTooltips: false
+          fixTooltips: null
           label: Average case time (in hours)
           type: bar
         module: Case
+        renderer: {}
   CaseUpdatesPerType:
     name: Case updates per type
     config:
@@ -40,6 +42,7 @@ charts:
       - dimensions:
         - conditions: {}
           field: Type
+          meta: {}
           modifier: (no grouping / buckets)
         filter: ""
         metrics:
@@ -49,6 +52,7 @@ charts:
           relativeValue: true
           type: doughnut
         module: Update
+        renderer: {}
   CasesByCategory:
     name: Cases by category
     config:
@@ -56,6 +60,7 @@ charts:
       - dimensions:
         - conditions: {}
           field: Category
+          meta: {}
           modifier: (no grouping / buckets)
           skipMissing: true
         filter: ""
@@ -68,6 +73,7 @@ charts:
           relativeValue: true
           type: doughnut
         module: Case
+        renderer: {}
   CasesByPriority:
     name: Cases by priority
     config:
@@ -75,6 +81,7 @@ charts:
       - dimensions:
         - conditions: {}
           field: Priority
+          meta: {}
           modifier: (no grouping / buckets)
         filter: ""
         metrics:
@@ -85,6 +92,7 @@ charts:
           relativeValue: true
           type: doughnut
         module: Case
+        renderer: {}
   CasesByStatus:
     name: Cases by status
     config:
@@ -92,6 +100,7 @@ charts:
       - dimensions:
         - conditions: {}
           field: Status
+          meta: {}
           modifier: (no grouping / buckets)
         filter: ""
         metrics:
@@ -102,6 +111,7 @@ charts:
           relativeValue: true
           type: doughnut
         module: Case
+        renderer: {}
   ClosedCasesPerMonth:
     name: Closed cases per month
     config:
@@ -109,58 +119,56 @@ charts:
       - dimensions:
         - conditions: {}
           field: CloseDate
+          meta: {}
           modifier: MONTH
           skipMissing: true
         filter: ""
         metrics:
-        - backgroundColor: '#4ec811'
-          beginAtZero: true
-          field: count
+        - field: count
           fill: true
-          fixTooltips: false
+          fixTooltips: null
           label: Closed cases
+          lineTension: 0.4
           type: line
         module: Case
+        renderer: {}
   CostPerCategory:
-    name: Total costs per category
+    name: Total cost per category
     config:
       reports:
       - dimensions:
         - conditions: {}
           field: Category
+          meta: {}
           modifier: (no grouping / buckets)
           skipMissing: false
         filter: ""
         metrics:
         - aggregate: SUM
-          axisType: null
-          backgroundColor: '#ffac45'
           field: TotalCost
-          fixTooltips: true
+          fixTooltips: null
           label: Cost per category (in $)
-          relativeValue: false
           type: bar
         module: Case
+        renderer: {}
   CostPerProductFamily:
-    name: Total costs per product family
+    name: Cost per product family
     config:
       reports:
       - dimensions:
         - conditions: {}
           field: Family
+          meta: {}
           modifier: (no grouping / buckets)
         filter: ""
         metrics:
         - aggregate: SUM
-          axisType: null
-          backgroundColor: '#03ad3b'
-          beginAtZero: true
           field: TotalCost
-          fixTooltips: true
-          label: Total (in $)
-          relativeValue: false
+          fixTooltips: null
+          label: Total
           type: bar
         module: Product
+        renderer: {}
   CostsPerAccount:
     name: Total costs per account
     config:
@@ -168,16 +176,17 @@ charts:
       - dimensions:
         - conditions: {}
           field: AccountSelect
+          meta: {}
           modifier: (no grouping / buckets)
         filter: ""
         metrics:
         - aggregate: SUM
-          backgroundColor: '#6dc6fb'
           field: TotalCost
-          fixTooltips: true
-          label: Total cost ($)
+          fixTooltips: null
+          label: Total cost
           type: bar
         module: Account
+        renderer: {}
   KnowledgeBaseArticlesPerType:
     name: Knowledge Base articles per type
     config:
@@ -185,6 +194,7 @@ charts:
       - dimensions:
         - conditions: {}
           field: Category
+          meta: {}
           modifier: (no grouping / buckets)
         filter: ""
         metrics:
@@ -195,6 +205,7 @@ charts:
           relativeValue: false
           type: pie
         module: KnowledgeBase
+        renderer: {}
   KnowledgeBaseItemsCreatedPerDay:
     name: Knowledge Base items created per day
     config:
@@ -202,16 +213,17 @@ charts:
       - dimensions:
         - conditions: {}
           field: created_at
+          meta: {}
           modifier: DATE
         filter: ""
         metrics:
-        - backgroundColor: '#ffc623'
-          beginAtZero: true
-          field: count
-          fill: false
-          label: Total (per day)
+        - field: count
+          fill: true
+          label: Total per day
+          lineTension: 0.4
           type: line
         module: KnowledgeBase
+        renderer: {}
   NewCasesByMonth:
     name: New cases per month
     config:
@@ -220,25 +232,27 @@ charts:
         - autoSkip: true
           conditions: {}
           field: created_at
+          meta: {}
           modifier: MONTH
           skipMissing: true
         filter: ""
         metrics:
-        - backgroundColor: '#3baef0'
-          beginAtZero: true
-          field: count
+        - field: count
           fill: true
-          fixTooltips: false
+          fixTooltips: null
           label: New cases
+          lineTension: 0.2
           type: line
         module: Case
+        renderer: {}
   TimePerAccount:
-    name: Total time spent per account
+    name: Total time spend per account
     config:
       reports:
       - dimensions:
         - conditions: {}
           field: AccountSelect
+          meta: {}
           modifier: (no grouping / buckets)
         filter: ""
         metrics:
@@ -249,13 +263,15 @@ charts:
           label: Hours
           type: pie
         module: Account
+        renderer: {}
   TimeSpentPerProductFamily:
-    name: Total time Spent per product family
+    name: Time Spent per Product Family
     config:
       reports:
       - dimensions:
         - conditions: {}
           field: Family
+          meta: {}
           modifier: (no grouping / buckets)
         filter: ""
         metrics:
@@ -269,6 +285,7 @@ charts:
           relativeValue: false
           type: pie
         module: Product
+        renderer: {}
   TotalCostPerDepartment:
     name: Total costs per department
     config:
@@ -276,42 +293,43 @@ charts:
       - dimensions:
         - conditions: {}
           field: DepartmentSelect
+          meta: {}
           modifier: (no grouping / buckets)
           skipMissing: true
         filter: ""
         metrics:
         - aggregate: SUM
-          backgroundColor: '#bf94ff'
-          beginAtZero: true
           field: TotalCost
-          fixTooltips: true
-          label: Total (in $)
+          fixTooltips: null
+          label: Total
           type: bar
         module: Department
+        renderer: {}
   TotalCostPerMonth:
-    name: Total costs per month
+    name: Total cost per month
     config:
       reports:
       - dimensions:
         - conditions: {}
           field: created_at
+          meta: {}
           modifier: MONTH
         filter: ""
         metrics:
         - aggregate: SUM
-          backgroundColor: '#189d00'
-          beginAtZero: true
           field: Cost
-          label: Total cost per month (in $)
+          label: Total cost per month
           type: bar
         module: Update
+        renderer: {}
   TotalTimeSpentPerCategory:
-    name: Total time spent per category
+    name: 'Total time spent per category '
     config:
       reports:
       - dimensions:
         - conditions: {}
           field: Category
+          meta: {}
           modifier: (no grouping / buckets)
           skipMissing: true
         filter: ""
@@ -323,6 +341,7 @@ charts:
           label: Total time spent per category (in hours)
           type: pie
         module: Case
+        renderer: {}
   TotalTimeSpentPerDepartment:
     name: Total time spent per department
     config:
@@ -330,6 +349,7 @@ charts:
       - dimensions:
         - conditions: {}
           field: DepartmentSelect
+          meta: {}
           modifier: (no grouping / buckets)
           skipMissing: true
         filter: ""
@@ -341,6 +361,7 @@ charts:
           label: Total
           type: pie
         module: Department
+        renderer: {}
   TotalTimeSpentPerMonth:
     name: Total time spent per month
     config:
@@ -348,14 +369,14 @@ charts:
       - dimensions:
         - conditions: {}
           field: created_at
+          meta: {}
           modifier: MONTH
         filter: ""
         metrics:
         - aggregate: SUM
-          backgroundColor: '#0d83e4'
-          beginAtZero: true
           field: TimeSpend
-          fixTooltips: false
+          fixTooltips: null
           label: Total time spent (in hours)
           type: bar
         module: Update
+        renderer: {}
