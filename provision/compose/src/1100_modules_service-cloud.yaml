@@ -685,25 +685,26 @@ modules:
       Facebook:
         label: Facebook
         kind: String
+      AccountSelect:
+        label: Accounts
+        kind: Select
+        options:
+          options: []
+          selectType: default
       TotalTime:
         label: Total time of all cases
         kind: Number
         options:
-          format: 0
-          precision: 2
+          format: ""
+          precision: "2"
           suffix: ' hour(s)'
       TotalCost:
         label: Total cost of all cases
         kind: Number
         options:
-          format: 0
-          precision: 2
+          format: ""
+          precision: "2"
           prefix: $
-      AccountSelect:
-        label: Accounts
-        kind: Select
-        options:
-          selectType: default
   Attachement:
     name: Attachement
     fields:
@@ -801,7 +802,7 @@ modules:
         label: Case Owner
         kind: User
         options:
-          presetWithAuthenticated: false
+          presetWithAuthenticated: true
           selectType: multiple
         multi: true
       CloseDate:
@@ -852,7 +853,7 @@ modules:
           - Name
           selectType: default
       TotalTime:
-        label: Total Time Spend on Ticket
+        label: Total Time
         kind: Number
         options:
           format: 0
@@ -1600,27 +1601,28 @@ modules:
         kind: Number
         options:
           format: 0
-          precision: "2"
+          precision: 2
           prefix: $
       TotalTime:
         label: Total time of all cases
         kind: Number
         options:
           format: 0
-          precision: 2
+          precision: 0
           suffix: ' hour(s)'
       TotalCost:
         label: Total cost of all cases
         kind: Number
         options:
           format: 0
-          precision: 2
+          precision: "2"
           prefix: $
       DepartmentSelect:
         label: Departments
         kind: Select
         options:
-          selectType: default
+          multiLine: false
+          useRichTextEditor: false
   EmailMessage:
     name: EmailMessage
     meta: '{}'
@@ -1938,7 +1940,7 @@ modules:
         kind: Number
         options:
           format: 0
-          precision: 2
+          precision: "2"
           suffix: ' hour(s)'
       TotalCost:
         label: Total cost of all cases
@@ -1951,6 +1953,7 @@ modules:
         label: Products
         kind: Select
         options:
+          options: []
           selectType: default
   Settings:
     name: Settings
@@ -1968,8 +1971,7 @@ modules:
         kind: Number
         options:
           format: 0
-          precision: 2
-          prefix: $
+          precision: 0
       DefaultDepartment:
         label: Default department for new ticket
         kind: Record

@@ -1,103 +1,820 @@
 namespace: crm
 charts:
+  AccountsByRating:
+    name: Accounts by rating
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Rating
+          meta: {}
+          modifier: (no grouping / buckets)
+          skipMissing: true
+        filter: ""
+        metrics:
+        - aggregate: AVG
+          field: count
+          fill: true
+          fixTooltips: false
+          label: Number of Accounts
+          lineTension: 0.4
+          type: line
+        module: Account
+        renderer: {}
+  AccountsByType:
+    name: Accounts by type
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Type
+          meta: {}
+          modifier: (no grouping / buckets)
+          skipMissing: true
+        filter: ""
+        metrics:
+        - field: count
+          fixTooltips: false
+          relativeValue: true
+          type: doughnut
+        module: Account
+        renderer: {}
+  ActiveCampaignsByType:
+    name: Active campaigns by type
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Type
+          meta: {}
+          modifier: (no grouping / buckets)
+        filter: IsActive = 1
+        metrics:
+        - field: count
+          type: pie
+        module: Campaigns
+        renderer: {}
+  CampaignAmountAllOpportunitiesVsTarget:
+    name: Campaign amount all opportunities vs target
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Type
+          meta:
+            steps:
+            - value: "300000"
+            - value: "1000000"
+            - value: "2000000"
+          modifier: (no grouping / buckets)
+        filter: AmountAllOpportunities IS NOT NULL
+        metrics:
+        - aggregate: SUM
+          field: AmountAllOpportunities
+          type: gauge
+        module: Campaigns
+        renderer: {}
+  CampaignAmountAllWonOpportunitiesVsTarget:
+    name: Campaign amount all won opportunities vs target
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Type
+          meta:
+            steps:
+            - value: "150000"
+            - value: "500000"
+            - value: "1000000"
+          modifier: (no grouping / buckets)
+        filter: AmountWonOpportunities IS NOT NULL
+        metrics:
+        - aggregate: SUM
+          field: AmountWonOpportunities
+          type: gauge
+        module: Campaigns
+        renderer: {}
+  CampaignCostVsRevenue:
+    name: Campaign cost vs revenue
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Type
+          meta: {}
+          modifier: (no grouping / buckets)
+          skipMissing: true
+        filter: ""
+        metrics:
+        - aggregate: SUM
+          field: BudgetedCost
+          label: Budgeted Cost
+          type: bar
+        - aggregate: SUM
+          field: ActualCost
+          label: Actual Cost
+          type: bar
+        - aggregate: SUM
+          field: ExpectedRevenue
+          label: Expected Revenue
+          type: bar
+        - aggregate: SUM
+          field: AmountAllOpportunities
+          label: Amount All Opportunities
+          type: bar
+        - aggregate: SUM
+          field: AmountWonOpportunities
+          label: Amount All Won Opportunities
+          type: bar
+        module: Campaigns
+        renderer: {}
+  CasesByOrigin:
+    name: Cases by origin
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Origin
+          meta: {}
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - field: count
+          type: pie
+        module: Case
+        renderer: {}
+  CasesByPriority:
+    name: Cases by priority
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Priority
+          meta: {}
+          modifier: (no grouping / buckets)
+          skipMissing: true
+        filter: ""
+        metrics:
+        - field: count
+          type: pie
+        module: Case
+        renderer: {}
+  CasesByStatus:
+    name: Cases by status
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Status
+          meta: {}
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - field: count
+          type: pie
+        module: Case
+        renderer: {}
+  CasesByType:
+    name: Cases by type
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Type
+          meta: {}
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - field: count
+          type: pie
+        module: Case
+        renderer: {}
+  CasesPerMonth:
+    name: Cases per month
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: created_at
+          meta: {}
+          modifier: MONTH
+        filter: ""
+        metrics:
+        - field: count
+          fill: true
+          label: Cases per month
+          lineTension: 0.4
+          type: bar
+        - field: count
+          fill: true
+          fx: m?m+n:n
+          label: Cumulative number of cases
+          type: line
+        module: Case
+        renderer: {}
+  ContactsPerCountry:
+    name: Contacts per country
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: MailingCountry
+          meta: {}
+          modifier: (no grouping / buckets)
+          skipMissing: true
+        filter: ""
+        metrics:
+        - field: count
+          fill: true
+          label: Contacts per country
+          lineTension: 0.4
+          type: line
+        module: Contact
+        renderer: {}
+  ContactsPerSeniorLeveltitle:
+    name: Contacts per senior level title
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          default: None
+          field: Title
+          meta: {}
+          modifier: (no grouping / buckets)
+        filter: Title = 'CEO' OR Title = 'Owner' OR Title = 'Founder' OR Title
+          = 'President' OR Title = 'Director' OR Title = 'CEO' OR Title = 'COO'
+          OR Title = 'CFO' OR Title = 'CIO' OR Title = 'CLO' OR Title = 'CHRO'
+          OR Title = 'CMO' OR Title = 'CRO' OR Title = 'CCO' OR Title = 'CSO'
+          OR Title = 'CIO' OR Title = 'CSO' OR Title = 'CTO' OR Title = 'VP'
+        metrics:
+        - field: count
+          type: doughnut
+        module: Contact
+        renderer: {}
+  ContractsByStatus:
+    name: Contracts by Status
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Status
+          meta: {}
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - field: count
+          type: doughnut
+        module: Contract
+        renderer: {}
+  ContractsPerStartingMonth:
+    name: Contracts per starting month
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: StartDate
+          meta: {}
+          modifier: MONTH
+          skipMissing: true
+        filter: Status = 'Activated'
+        metrics:
+        - field: count
+          fill: true
+          label: Activated contract per month
+          lineTension: 0.4
+          type: bar
+        - field: count
+          fill: true
+          fx: m?m+n:n
+          label: Cumulative number of contracts
+          type: line
+        module: Contract
+        renderer: {}
+  Dealsize:
+    name: Dealsize
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: CloseDate
+          meta: {}
+          modifier: MONTH
+          skipMissing: true
+        filter: ""
+        metrics:
+        - aggregate: AVG
+          field: Amount
+          fill: true
+          label: Average Dealsize per month
+          lineTension: 0.4
+          type: line
+        - aggregate: MAX
+          field: Amount
+          label: Max Dealsize
+          lineTension: 0.4
+          type: line
+        - aggregate: MIN
+          field: Amount
+          label: Min Dealsize
+          lineTension: 0.4
+          type: line
+        module: Opportunity
+        renderer: {}
+  EventsPerMonth:
+    name: Events per month
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: ActivityDate
+          meta: {}
+          modifier: MONTH
+          skipMissing: true
+        filter: ""
+        metrics:
+        - field: count
+          fill: true
+          lineTension: 0.4
+          type: line
+        module: Event
+        renderer: {}
+  EventsPerType:
+    name: Events per type
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Type
+          meta: {}
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - field: count
+          type: doughnut
+        module: Event
+        renderer: {}
+  LeadFunnel:
+    name: Lead funnel
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Status
+          meta:
+            fields:
+            - text: New
+              value: New
+            - text: Assigned
+              value: Assigned
+            - text: In Progress
+              value: In Progress
+            - text: Converted
+              value: Converted
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - field: count
+          type: funnel
+        module: Lead
+        renderer: {}
   LeadsByCountry:
     name: Leads by country
     config:
       reports:
-      - metrics:
-        - backgroundColor: '#e5a83b'
-          beginAtZero: true
-          field: count
-          fixTooltips: true
-          label: Number of leads
-          type: bar
-        dimensions:
+      - dimensions:
         - conditions: {}
           field: Country
+          meta: {}
           modifier: (no grouping / buckets)
+          skipMissing: true
+        filter: ""
+        metrics:
+        - field: count
+          fill: true
+          fixTooltips: null
+          lineTension: 0.4
+          type: line
         module: Lead
+        renderer: {}
+  LeadsByRating:
+    name: Leads by rating
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Rating
+          meta: {}
+          modifier: (no grouping / buckets)
+          skipMissing: true
+        filter: ""
+        metrics:
+        - field: count
+          fill: true
+          lineTension: 0.4
+          type: line
+        module: Lead
+        renderer: {}
   LeadsBySource:
     name: Leads by source
     config:
       reports:
-      - metrics:
-        - backgroundColor: '#36d436'
-          beginAtZero: true
-          field: count
-          label: Number of leads
-          type: bar
-        dimensions:
+      - dimensions:
         - conditions: {}
           field: LeadSource
+          meta: {}
           modifier: (no grouping / buckets)
+          skipMissing: true
+        filter: ""
+        metrics:
+        - field: count
+          fixTooltips: null
+          type: doughnut
         module: Lead
+        renderer: {}
   LeadsByType:
     name: Leads by type
     config:
       reports:
-      - metrics:
-        - backgroundColor: '#63da1a'
-          beginAtZero: true
-          field: count
-          label: Number of leads
-          type: bar
-        dimensions:
+      - dimensions:
         - conditions: {}
           field: Status
+          meta: {}
           modifier: (no grouping / buckets)
-        module: Lead
-  LeadsPerDay:
-    name: Leads per day
-    config:
-      reports:
-      - metrics:
-        - aggregate: SUM
-          axisType: linear
-          backgroundColor: '#fc7507'
+          skipMissing: true
+        filter: ""
+        metrics:
+        - backgroundColor: '#31d9dd'
           beginAtZero: true
           field: count
-          fill: false
-          label: Leads per day
-          type: line
-        dimensions:
+          fixTooltips: false
+          label: Number of leads
+          relativeValue: true
+          type: doughnut
+        module: Lead
+        renderer: {}
+  LeadsPerMonth:
+    name: Leads per month
+    config:
+      reports:
+      - dimensions:
         - conditions: {}
           field: created_at
-          modifier: DATE
-        module: Lead
-  OpportunitiesByValue:
-    name: Opportunities by value
-    config:
-      reports:
-      - metrics:
-        - aggregate: SUM
-          backgroundColor: '#5977ff'
-          beginAtZero: true
-          field: Amount
-          label: Total value
-          type: bar
-        dimensions:
-        - conditions: {}
-          field: StageName
-          modifier: (no grouping / buckets)
-        module: Opportunity
-  QuarterlyPerformance:
-    name: Quarterly performance
-    config:
-      reports:
-      - filter: Amount > 0
+          meta: {}
+          modifier: MONTH
+        filter: ""
         metrics:
-        - aggregate: SUM
-          axisPosition: left
-          axisType: linear
-          backgroundColor: '#009eff'
-          beginAtZero: true
-          field: Amount
+        - field: count
+          label: Leads per month
+          type: bar
+        - field: count
           fill: true
-          label: Amount
+          fixTooltips: null
+          fx: m?m+n:n
+          label: Cumulative number of leads
+          lineTension: 0.4
           type: line
-        dimensions:
+        module: Lead
+        renderer: {}
+  MonthlySales:
+    name: Monthly sales
+    config:
+      reports:
+      - dimensions:
         - autoSkip: true
           conditions: {}
           field: CloseDate
-          modifier: QUARTER
+          meta: {}
+          modifier: MONTH
+          skipMissing: true
+        filter: StageName = 'Closed Won' and Amount IS NOT NULL
+        metrics:
+        - aggregate: SUM
+          field: Amount
+          fill: true
+          fixTooltips: null
+          fx: ""
+          label: Monthly Sales
+          type: bar
+        - aggregate: SUM
+          field: Amount
+          fill: true
+          fx: m?m+n:n
+          label: Cumulative Sales
+          lineTension: 0.4
+          type: line
         module: Opportunity
+        renderer: {}
+  NumberOfOpportunitiesVsTarget:
+    name: Number of opportunities vs target
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: StageName
+          meta:
+            steps:
+            - value: "20"
+            - value: "50"
+            - value: "100"
+          modifier: (no grouping / buckets)
+        filter: YEAR(created_at) = YEAR(NOW())
+        metrics:
+        - field: count
+          type: gauge
+        module: Opportunity
+        renderer: {}
+  OpportunitiesCreatedPerMonth:
+    name: Opportunities created per month
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: created_at
+          meta: {}
+          modifier: MONTH
+        filter: ""
+        metrics:
+        - field: count
+          fill: true
+          fx: m?m+n:n
+          label: Cumulative number of opportunities
+          lineTension: 0.4
+          type: line
+        - field: count
+          fill: false
+          label: Opportunities per month
+          lineTension: 0.4
+          type: bar
+        module: Opportunity
+        renderer: {}
+  OpportunitySalesPipeline:
+    name: Opportunity sales pipeline
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: StageName
+          meta:
+            fields:
+            - text: Qualification
+              value: Qualification
+            - text: Need Analysis
+              value: Need Analysis
+            - text: Proposal
+              value: Proposal
+            - text: Negotiation
+              value: Negotiation
+            - text: Closed Won
+              value: Closed Won
+          modifier: (no grouping / buckets)
+        filter: YEAR(created_at) = YEAR(NOW()) AND Amount IS NOT NULL
+        metrics:
+        - aggregate: SUM
+          field: Amount
+          type: funnel
+        module: Opportunity
+        renderer: {}
+  OpportunityStatusFunnel:
+    name: Opportunity status funnel
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: StageName
+          meta:
+            fields:
+            - text: Qualification
+              value: Qualification
+            - text: Need Analysis
+              value: Need Analysis
+            - text: Proposal
+              value: Proposal
+            - text: Negotiation
+              value: Negotiation
+            - text: Closed Won
+              value: Closed Won
+          modifier: (no grouping / buckets)
+        filter: YEAR(created_at) = YEAR(NOW())
+        metrics:
+        - field: count
+          type: funnel
+        module: Opportunity
+        renderer: {}
+  PriceBookEntriesPerMonth:
+    name: Price book entries per month
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: created_at
+          meta: {}
+          modifier: MONTH
+        filter: ""
+        metrics:
+        - field: count
+          fill: true
+          label: Price book entries
+          lineTension: 0.4
+          type: line
+        module: PricebookEntry
+        renderer: {}
+  PriceBooksCreatedPerMonth:
+    name: Price books created per month
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: created_at
+          meta: {}
+          modifier: MONTH
+        filter: ""
+        metrics:
+        - field: count
+          fill: true
+          label: Number of Price Books
+          lineTension: 0.4
+          type: line
+        module: Pricebook
+        renderer: {}
+  ProductsAddedPerMonth:
+    name: Products added per month
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: created_at
+          meta: {}
+          modifier: MONTH
+        filter: ""
+        metrics:
+        - field: count
+          fill: true
+          lineTension: 0.4
+          type: line
+        module: Product
+        renderer: {}
+  ProductsPerFamily:
+    name: Products per family
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          default: None
+          field: Family
+          meta: {}
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - field: count
+          type: doughnut
+        module: Product
+        renderer: {}
+  QuotesByStatus:
+    name: Quotes by status
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Status
+          meta: {}
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - field: count
+          type: doughnut
+        module: Quote
+        renderer: {}
+  QuotesPerMonth:
+    name: Quotes per month
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: created_at
+          meta: {}
+          modifier: MONTH
+          skipMissing: true
+        filter: ""
+        metrics:
+        - field: count
+          fill: true
+          label: Quotes per month
+          lineTension: 0.4
+          type: bar
+        - field: count
+          fill: true
+          fx: m?m+n:n
+          label: Cumulative number of quotes
+          lineTension: 0.4
+          type: line
+        module: Quote
+        renderer: {}
+  SalesVsTarget:
+    name: Sales vs target
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: StageName
+          meta:
+            steps:
+            - value: "100000"
+            - value: "250000"
+            - value: "500000"
+          modifier: (no grouping / buckets)
+        filter: YEAR(created_at) = YEAR(NOW()) AND Amount IS NOT NULL
+        metrics:
+        - aggregate: SUM
+          field: Amount
+          fx: ""
+          type: gauge
+        module: Opportunity
+        renderer: {}
+  SalesYTD:
+    name: Sales YTD
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: LeadSource
+          meta:
+            steps:
+            - value: "150000"
+            - value: "500000"
+            - value: "1000000"
+          modifier: (no grouping / buckets)
+        filter: YEAR(created_at) = YEAR(NOW()) AND Amount IS NOT NULL
+        metrics:
+        - aggregate: SUM
+          field: Amount
+          type: gauge
+        module: Opportunity
+        renderer: {}
+  SolutionsByStatus:
+    name: Solutions by status
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Status
+          meta: {}
+          modifier: (no grouping / buckets)
+        filter: ""
+        metrics:
+        - field: count
+          type: doughnut
+        module: Solution
+        renderer: {}
+  SolutionsCreatedPerMonth:
+    name: Solutions created per month
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: created_at
+          meta: {}
+          modifier: MONTH
+        filter: ""
+        metrics:
+        - field: count
+          fill: true
+          label: Solutions created per month
+          lineTension: 0.4
+          type: line
+        module: Solution
+        renderer: {}
+  TasksByStatus:
+    name: Tasks by status
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Status
+          meta: {}
+          modifier: (no grouping / buckets)
+          skipMissing: true
+        filter: ""
+        metrics:
+        - field: count
+          type: doughnut
+        module: Task
+        renderer: {}
+  TasksPerMonth:
+    name: Tasks per month
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: ActivityDate
+          meta: {}
+          modifier: MONTH
+          skipMissing: true
+        filter: ""
+        metrics:
+        - field: count
+          fill: true
+          label: Tasks per month
+          lineTension: 0.4
+          type: line
+        module: Task
+        renderer: {}

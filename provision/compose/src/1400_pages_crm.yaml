@@ -1,136 +1,52 @@
 namespace: crm
 pages:
-  - handle: Home
-    title: Home
-    blocks:
-    - title: New Leads
-      options:
-        fields:
-        - name: FirstName
-        - name: LastName
-        - name: Email
-        - name: LeadSource
-        - name: Status
-        module: Lead
-        page: RecordPageForModuleLead
-        perPage: 5
-        prefilter: Status = 'New'
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: RecordList
-      xywh: [0, 14, 6, 9]
-    - title: Leads by Type
-      options:
-        chart: LeadsByType
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [9, 0, 3, 7]
-    - title: Open Opportunities
-      options:
-        fields:
-        - name: Name
-        - name: AccountId
-        - name: Amount
-        - name: StageName
-        - name: NextStep
-        module: Opportunity
-        page: RecordPageForModuleOpportunity
-        perPage: 3
-        prefilter: StageName != 'Closed Won' AND StageName != 'Closed Lost'
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: RecordList
-      xywh: [6, 14, 6, 9]
-    - title: Leads by Country
-      options:
-        chart: LeadsByCountry
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [6, 0, 3, 7]
-    - title: Leads per day
-      options:
-        chart: LeadsPerDay
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [6, 7, 3, 7]
-    - title: My Calendar
-      options:
-        feeds:
-        - endField: EndDateTime
-          module: Event
-          startField: ActivityDate
-          titleField: Subject
-        - endField: null
-          module: Task
-          startField: ActivityDate
-          titleField: Subject
-        header:
-          views:
-          - agendaWeek
-          - agendaMonth
-          - agendaDay
-          - month
-          - listMonth
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Calendar
-      xywh: [0, 0, 6, 14]
-    - title: Opportunities
-      options:
-        chart: OpportunitiesByValue
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [9, 7, 3, 7]
-  - handle: Leads
+  Leads:
     title: Leads
     blocks:
-    - title: List of leads
-      options:
-        fields:
-        - name: FirstName
-        - name: LastName
-        - name: Email
-        - name: Rating
-        - name: Company
-        - name: Country
-        - name: Status
-        - name: OwnerId
-        module: Lead
-        page: RecordPageForModuleLead
-        perPage: 20
-        prefilter: ""
-        presort: createdAt DESC
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: RecordList
-      xywh: [0, 0, 9, 21]
     - title: Leads by type
       options:
         chart: LeadsByType
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 7]
-    - title: Leads by country
+      xywh: [9, 0, 3, 8]
+    - title: New Leads Per Month
       options:
-        chart: LeadsByCountry
+        chart: LeadsPerMonth
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 7, 3, 7]
-    - title: Leads by source
+      xywh: [9, 8, 3, 8]
+    - title: Leads
       options:
-        chart: LeadsBySource
+        allowExport: true
+        draggable: false
+        editFields: []
+        editable: false
+        fields:
+        - name: FirstName
+        - name: LastName
+        - name: Email
+        - name: Company
+        - name: Rating
+        - name: createdAt
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
+        module: Lead
+        perPage: 20
+        prefilter: ""
+        presort: createdAt DESC
+        selectMode: multi
+        selectable: true
+        selectionButtons: []
       style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [9, 14, 3, 7]
+        variants: {border: primary, headerText: primary}
+      kind: RecordList
+      xywh: [0, 0, 9, 16]
     pages:
-      - handle: RecordPageForModuleLead
+      RecordPageForModuleLead:
         module: Lead
         title: Record page for module "Lead"
         blocks:
@@ -148,12 +64,16 @@ pages:
             - name: Twitter
             - name: LinkedIn
             - name: Facebook
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
           xywh: [0, 0, 3, 15]
         - title: Twitter feed
           options:
-            fields: []
             profileSourceField: Twitter
+            profileUrl: ""
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: SocialFeed
           xywh: [9, 0, 3, 31]
         - title: Company Data
@@ -169,12 +89,15 @@ pages:
             - name: Street
             - name: State
             - name: PostalCode
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
           xywh: [3, 0, 3, 15]
         - title: Other Information
           options:
             fields:
             - name: Rating
+            - name: CampaignId
             - name: Status
             - name: LeadSource
             - name: OwnerId
@@ -183,88 +106,112 @@ pages:
             - name: ConvertedContactId
             - name: ConvertedOpportunityId
             - name: ConvertedDate
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
           xywh: [6, 0, 3, 15]
         - title: Notes
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Title
             - name: Body
             - name: createdAt
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Note
-            page: RecordPageForModuleNote
-            perPage: 5
+            perPage: 20
             prefilter: LeadId = ${recordID}
             presort: createdAt DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
           xywh: [0, 15, 6, 8]
         - title: Events
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Type
             - name: Subject
             - name: ActivityDate
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Event
-            page: RecordPageForModuleEvent
-            perPage: 5
+            perPage: 20
             prefilter: LeadId = ${recordID}
             presort: ActivityDate DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
           xywh: [0, 23, 4, 8]
         - title: Tasks
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Type
             - name: Subject
             - name: Status
             - name: ActivityDate
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Task
-            page: RecordPageForModuleTask
-            perPage: 5
+            perPage: 20
             prefilter: LeadId = ${recordID}
             presort: ActivityDate DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
           xywh: [4, 23, 5, 8]
         - title: Lead Actions
           options:
             buttons:
-            - label: Convert this Lead into an Account
+            - enabled: true
+              label: Convert this Lead into an Account
+              resourceType: compose:record
               script: /client-scripts/compose/crm/Lead/ToAccount.js:default
-              variant: primary
-            - label: Convert this Lead into an Account and Opportunity
+            - enabled: true
+              label: Convert this Lead into an Account and Opportunity
+              resourceType: compose:record
               script: /client-scripts/compose/crm/Lead/ToAccountAndOpportunity.js:default
-              variant: primary
+            sealed: false
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Automation
           xywh: [6, 15, 3, 8]
         visible: true
-      - handle: AllNewLeads
-        title: All New Leads
-        blocks:
-        - title: New Leads
-          options:
-            fields:
-            - name: FirstName
-            - name: LastName
-            - name: Email
-            - name: Rating
-            - name: Company
-            - name: Country
-            - name: LeadSource
-            - name: Status
-            - name: OwnerId
-            module: Lead
-            page: RecordPageForModuleLead
-            perPage: 20
-            prefilter: Status = 'New' OR Status = 'Assigned'
-            presort: createdAt DESC
-          kind: RecordList
-          xywh: [0, 0, 12, 20]
-        visible: true
-      - handle: MyLeads
+      MyLeads:
         title: My Leads
         blocks:
         - title: My Leads
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: FirstName
             - name: LastName
@@ -275,20 +222,67 @@ pages:
             - name: LeadSource
             - name: Status
             - name: OwnerId
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Lead
-            page: RecordPageForModuleLead
             perPage: 20
             prefilter: OwnerId = ${userID}
             presort: createdAt DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
+          style:
+            variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 12, 21]
+          xywh: [0, 0, 12, 17]
+        visible: true
+      AllNewLeads:
+        title: All New Leads
+        blocks:
+        - title: New Leads
+          options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: FirstName
+            - name: LastName
+            - name: Email
+            - name: Rating
+            - name: Company
+            - name: Country
+            - name: LeadSource
+            - name: Status
+            - name: OwnerId
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Lead
+            perPage: 20
+            prefilter: Status = 'New' OR Status = 'Assigned'
+            presort: createdAt DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: RecordList
+          xywh: [0, 0, 12, 16]
         visible: true
     visible: true
-  - handle: Accounts
+  Accounts:
     title: Accounts
     blocks:
     - title: All accounts
       options:
+        allowExport: true
+        draggable: false
+        editFields: []
+        editable: false
         fields:
         - name: AccountName
         - name: Type
@@ -297,16 +291,37 @@ pages:
         - name: AccountSource
         - name: OwnerId
         - name: createdAt
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
         module: Account
-        page: RecordPageForModuleAccount
         perPage: 20
+        prefilter: ""
         presort: createdAt DESC
+        selectMode: multi
+        selectable: true
+        selectionButtons: []
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 12, 19]
+      xywh: [0, 0, 9, 16]
+    - title: Account by Type
+      options:
+        chart: AccountsByType
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: Accounts by Rating
+      options:
+        chart: AccountsByRating
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
     pages:
-      - handle: RecordPageForModuleAccount
+      RecordPageForModuleAccount:
         module: Account
         title: Record page for module "Account"
         blocks:
@@ -343,6 +358,7 @@ pages:
           options:
             fields:
             - name: Rating
+            - name: CampaignId
             - name: ParentId
             - name: AccountSource
             - name: OwnerId
@@ -353,139 +369,216 @@ pages:
           xywh: [6, 0, 3, 12]
         - title: Company Twitter Feed
           options:
-            fields: []
             profileSourceField: Twitter
+            profileUrl: ""
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: SocialFeed
-          xywh: [9, 0, 3, 20]
+          xywh: [9, 0, 3, 12]
         - title: Opportunities
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Name
             - name: StageName
             - name: Amount
             - name: CloseDate
             hideAddButton: true
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Opportunity
-            page: RecordPageForModuleOpportunity
-            perPage: 5
+            perPage: 20
             prefilter: AccountId = ${recordID}
+            presort: ""
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 12, 6, 8]
+          xywh: [0, 17, 9, 7]
         - title: Contacts
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: FirstName
             - name: LastName
             - name: Title
             hidePaging: true
+            hideRecordCloneButton: true
+            hideRecordEditButton: true
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Contact
-            page: RecordPageForModuleContact
-            perPage: 5
+            perPage: 20
             prefilter: AccountId = ${recordID}
+            presort: LastName ASC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 20, 4, 8]
+          xywh: [0, 24, 4, 8]
         - title: Notes
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Title
             - name: Body
             - name: createdAt
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Note
-            page: RecordPageForModuleNote
-            perPage: 5
+            perPage: 20
             prefilter: AccountId = ${recordID}
             presort: createdAt DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 28, 4, 8]
+          xywh: [0, 32, 4, 8]
         - title: Cases
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: CaseNumber
             - name: Subject
             - name: Status
             hideAddButton: true
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Case
-            page: RecordPageForModuleCase
-            perPage: 5
+            perPage: 20
             prefilter: AccountId = ${recordID}
             presort: createdAt DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [8, 20, 4, 8]
+          xywh: [8, 24, 4, 8]
         - title: Events
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Type
             - name: Subject
             - name: ActivityDate
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Event
-            page: RecordPageForModuleEvent
-            perPage: 5
+            perPage: 20
             prefilter: AccountId = ${recordID}
             presort: ActivityDate DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [4, 28, 4, 8]
+          xywh: [4, 32, 4, 8]
         - title: Tasks
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Type
             - name: Subject
             - name: Status
             - name: ActivityDate
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Task
-            page: RecordPageForModuleTask
-            perPage: 5
+            perPage: 20
             prefilter: AccountId = ${recordID}
             presort: ActivityDate DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [8, 28, 4, 8]
+          xywh: [8, 32, 4, 8]
         - title: Contracts
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Name
             - name: StartDate
             - name: EndDate
             - name: Status
             hideAddButton: true
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Contract
-            page: RecordPageForModuleContract
-            perPage: 5
+            perPage: 20
             prefilter: AccountId = ${recordID}
+            presort: ""
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [4, 20, 4, 8]
+          xywh: [4, 24, 4, 8]
         - title: Account Actions
           options:
             buttons:
-            - label: Create new Opportunity from this Account
+            - enabled: true
+              label: Create new Opportunity from this Account
+              resourceType: compose:record
               script: /client-scripts/compose/crm/Account/CreateNewOpportunity.js:default
-              variant: primary
-            - label: Create new Contract from this Account
+            - enabled: true
+              label: Create new Contract from this Account
+              resourceType: compose:record
               script: /client-scripts/compose/crm/Account/CreateNewContract.js:default
-              variant: primary
-            - label: Create new Case from this Account
+            - enabled: true
+              label: Create new Case from this Account
+              resourceType: compose:record
               script: /client-scripts/compose/crm/Account/CreateNewCase.js:default
-              variant: primary
+            sealed: false
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Automation
-          xywh: [6, 12, 3, 8]
+          xywh: [9, 17, 3, 7]
         pages:
-          - handle: RecordPageForModuleAccountContactRole
+          RecordPageForModuleAccountContactRole:
             module: AccountContactRole
             title: Record page for module "AccountContactRole"
             blocks:
@@ -500,49 +593,60 @@ pages:
               xywh: [0, 0, 5, 15]
             visible: false
         visible: true
-      - handle: MyAccounts
-        title: My Accounts
-        blocks:
-        - title: My Accounts
-          options:
-            fields:
-            - name: AccountName
-            - name: Type
-            - name: Rating
-            - name: Industry
-            - name: AccountSource
-            - name: OwnerId
-            - name: createdAt
-            module: Account
-            page: RecordPageForModuleAccount
-            perPage: 20
-            prefilter: OwnerId = ${userID}
-            presort: createdAt DESC
-          kind: RecordList
-          xywh: [0, 0, 12, 21]
-        visible: true
     visible: true
-  - handle: Opportunities
+  Opportunities:
     title: Opportunities
     blocks:
     - title: List of Opportunities
       options:
+        allowExport: true
+        draggable: false
+        editFields: []
+        editable: false
         fields:
         - name: Name
         - name: Amount
         - name: AccountId
         - name: StageName
+        - name: createdAt
         - name: CloseDate
         - name: OwnerId
-        - name: createdAt
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
         module: Opportunity
-        page: RecordPageForModuleOpportunity
         perPage: 20
+        prefilter: ""
         presort: createdAt DESC
+        selectMode: multi
+        selectable: true
+        selectionButtons: []
       kind: RecordList
-      xywh: [0, 0, 12, 20]
+      xywh: [0, 0, 8, 16]
+    - title: Opportunity Pipeline
+      options:
+        chart: OpportunitySalesPipeline
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [8, 6, 4, 10]
+    - title: Sales vs. Target
+      options:
+        chart: SalesVsTarget
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [10, 0, 2, 6]
+    - title: Opportunities vs. Target
+      options:
+        chart: NumberOfOpportunitiesVsTarget
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [8, 0, 2, 6]
     pages:
-      - handle: RecordPageForModuleOpportunity
+      RecordPageForModuleOpportunity:
         module: Opportunity
         title: Record page for module "Opportunity"
         blocks:
@@ -551,59 +655,115 @@ pages:
             fields:
             - name: Name
             - name: AccountId
-            - name: Type
-            - name: CloseDate
-            - name: Probability
             - name: PricebookId
+            - name: Probability
             - name: Amount
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 4, 11]
+          xywh: [0, 0, 4, 10]
         - title: Additional Information
           options:
             fields:
             - name: OwnerId
-            - name: NextStep
-            - name: LeadSource
             - name: CampaignId
             - name: ForecastCategory
-            - name: Description
+            - name: Type
             - name: createdAt
+            - name: Files
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [8, 0, 4, 11]
+          xywh: [8, 0, 4, 10]
         - title: Contact Roles
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: ContactId
             - name: IsPrimary
             - name: Role
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: OpportunityContactRole
-            page: RecordPageForModuleOpportunityContactRole
-            perPage: 5
+            perPage: 20
             prefilter: OpportunityId = ${recordID}
             presort: IsPrimary DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [6, 19, 6, 8]
-        - title: Opportunity Qualification
+          xywh: [6, 26, 6, 8]
+        - title: Stage
           options:
             fields:
             - name: StageName
-            - name: Budget
-            - name: Authority
-            - name: Need
-            - name: Timeline
-            - name: Competition
+            - name: LeadSource
+            - name: NextStep
+            - name: CloseDate
+            - name: Description
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [4, 0, 4, 11]
+          xywh: [4, 0, 4, 10]
         - title: Products
           options:
+            allowExport: true
+            draggable: true
+            editFields:
+            - isPrivate: false
+              isRequired: false
+              isVisible: false
+              kind: Record
+              label: Product
+              maxLength: 0
+              moduleID: "0"
+              name: ProductId
+              options:
+                moduleID: "69055788915621905"
+            - isPrivate: false
+              isRequired: false
+              isVisible: false
+              kind: Number
+              label: Quantity
+              maxLength: 0
+              moduleID: "0"
+              name: Quantity
+              options:
+                format: ""
+                prefix: ""
+                suffix: ""
+            - isPrivate: false
+              isRequired: false
+              isVisible: false
+              kind: Number
+              label: Sales Price
+              maxLength: 0
+              moduleID: "0"
+              name: UnitPrice
+              options:
+                format: ""
+                prefix: ""
+                suffix: ""
+            - helpText: ""
+              isMulti: false
+              isPrivate: false
+              kind: Number
+              label: Discount
+              maxLength: 0
+              name: Discount
+              options:
+                format: 0
+                precision: 2
+                prefix: ""
+                suffix: €
+            editable: true
             fields:
             - name: ProductId
             - name: ProductCode
@@ -613,63 +773,107 @@ pages:
             - name: Subtotal
             - name: Discount
             - name: TotalPrice
+            hidePaging: true
+            hideRecordCloneButton: true
+            hideRecordEditButton: true
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            hideSorting: true
             module: OpportunityLineItem
-            page: RecordPageForModuleOpportunityLineItem
-            perPage: 5
+            perPage: 20
+            positionField: SortOrder
             prefilter: OpportunityId = ${recordID}
-            presort: ProductId ASC
+            presort: ""
+            refField: OpportunityId
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 11, 8, 8]
+          xywh: [0, 18, 8, 8]
         - title: Notes
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Title
             - name: Body
             - name: createdAt
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Note
-            page: RecordPageForModuleNote
-            perPage: 5
+            perPage: 20
             prefilter: OpportunityId = ${recordID}
             presort: createdAt DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 27, 4, 8]
+          xywh: [0, 34, 4, 8]
         - title: Events
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Type
             - name: Subject
             - name: ActivityDate
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Event
-            page: RecordPageForModuleEvent
-            perPage: 5
+            perPage: 20
             prefilter: OpportunityId = ${recordID}
             presort: ActivityDate DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [4, 27, 4, 8]
+          xywh: [4, 34, 4, 8]
         - title: Tasks
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Type
             - name: Subject
             - name: Status
             - name: ActivityDate
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Task
-            page: RecordPageForModuleTask
-            perPage: 5
+            perPage: 20
             prefilter: OpportunityId = ${recordID}
             presort: ActivityDate DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [8, 27, 4, 8]
+          xywh: [8, 34, 4, 8]
         - title: Quotes
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: QuoteNumber
             - name: Name
@@ -677,69 +881,40 @@ pages:
             - name: Subtotal
             - name: TotalPrice
             hideAddButton: true
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Quote
-            page: RecordPageForModuleQuote
-            perPage: 5
+            perPage: 20
             prefilter: OpportunityId = ${recordID}
             presort: createdAt DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 19, 6, 8]
+          xywh: [0, 26, 6, 8]
         - title: Opportunity Actions
           options:
             buttons:
-            - label: Apply Price Book
+            - enabled: true
+              label: Update prices of Products by applying the selected Price
+                Book and inserted discounts
+              resourceType: compose:record
               script: /client-scripts/compose/crm/Opportunity/ApplyPriceBook.js:default
-              variant: primary
-            - label: Create a new Quote for this Opportunity
+            - enabled: true
+              label: Create a new Quote for this Opportunity
+              resourceType: compose:record
               script: /client-scripts/compose/crm/Opportunity/NewQuote.js:default
-              variant: primary
+            sealed: false
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Automation
-          xywh: [8, 11, 4, 8]
+          xywh: [8, 18, 4, 8]
         pages:
-          - handle: RecordPageForModuleOpportunityLineItem
-            module: OpportunityLineItem
-            title: Record page for module "OpportunityLineItem"
-            blocks:
-            - title: Opportunity Line Item Details
-              options:
-                fields:
-                - name: OpportunityId
-                - name: ProductId
-                - name: Description
-                - name: UnitPrice
-                - name: Quantity
-                - name: Discount
-              kind: Record
-              xywh: [0, 0, 4, 13]
-            - title: Automatically inserted values
-              options:
-                fields:
-                - name: ProductCode
-                - name: ListPrice
-                - name: Subtotal
-                - name: TotalPrice
-              kind: Record
-              xywh: [4, 0, 4, 13]
-            visible: false
-          - handle: RecordPageForModuleOpportunityCompetitor
-            module: OpportunityCompetitor
-            title: Record page for module "OpportunityCompetitor"
-            blocks:
-            - title: Opportunity Competitor Details
-              options:
-                fields:
-                - name: OpportunityId
-                - name: CompetitorName
-                - name: Strengths
-                - name: Weaknesses
-              kind: Record
-              xywh: [0, 0, 5, 17]
-            visible: false
-          - handle: RecordPageForModuleOpportunityContactRole
+          RecordPageForModuleOpportunityContactRole:
             module: OpportunityContactRole
             title: Record page for module "OpportunityContactRole"
             blocks:
@@ -752,49 +927,74 @@ pages:
                 - name: IsPrimary
               kind: Record
               xywh: [0, 0, 4, 16]
-            pages:
-              - handle: RecordPageForModulePricebookEntry
-                module: PricebookEntry
-                title: Record page for module "PricebookEntry"
-                blocks:
-                - title: Details
-                  options:
-                    fields:
-                    - name: PricebookId
-                    - name: ProductId
-                    - name: UnitPrice
-                  kind: Record
-                  xywh: [0, 0, 4, 15]
-                visible: false
+            visible: false
+          RecordPageForModuleOpportunityLineItem:
+            module: OpportunityLineItem
+            title: Record page for module "OpportunityLineItem"
+            blocks:
+            - title: Opportunity Line Item Details
+              options:
+                fields:
+                - name: OpportunityId
+                - name: ProductId
+                - name: Description
+                - name: UnitPrice
+                - name: Quantity
+                - name: Discount
+              style:
+                variants: {border: primary, headerText: primary}
+              kind: Record
+              xywh: [0, 0, 4, 16]
+            - title: Automatically inserted values
+              options:
+                fields:
+                - name: ProductCode
+                - name: ListPrice
+                - name: Subtotal
+                - name: TotalPrice
+              style:
+                variants: {border: primary, headerText: primary}
+              kind: Record
+              xywh: [4, 0, 4, 16]
+            - title: Other Information
+              options:
+                fields:
+                - name: createdAt
+                - name: createdBy
+                - name: updatedAt
+                - name: updatedBy
+              style:
+                variants: {border: primary, headerText: primary}
+              kind: Record
+              xywh: [8, 0, 4, 16]
+            visible: false
+          RecordPageForModuleOpportunityCompetitor:
+            module: OpportunityCompetitor
+            title: Record page for module "OpportunityCompetitor"
+            blocks:
+            - title: Opportunity Competitor Details
+              options:
+                fields:
+                - name: OpportunityId
+                - name: CompetitorName
+                - name: Strengths
+                - name: Weaknesses
+              style:
+                variants: {border: primary, headerText: primary}
+              kind: Record
+              xywh: [0, 0, 5, 17]
             visible: false
         visible: false
-      - handle: MyOpportunities
-        title: My Opportunities
-        blocks:
-        - title: My Opportunities
-          options:
-            fields:
-            - name: Name
-            - name: Amount
-            - name: AccountId
-            - name: StageName
-            - name: CloseDate
-            - name: OwnerId
-            - name: createdAt
-            module: Opportunity
-            page: RecordPageForModuleOpportunity
-            perPage: 20
-            prefilter: OwnerId = ${userID}
-            presort: createdAt DESC
-          kind: RecordList
-          xywh: [0, 0, 12, 20]
-        visible: true
     visible: true
-  - handle: Contacts
+  Contacts:
     title: Contacts
     blocks:
     - title: List of Contacts
       options:
+        allowExport: true
+        draggable: false
+        editFields: []
+        editable: false
         fields:
         - name: FirstName
         - name: LastName
@@ -802,14 +1002,35 @@ pages:
         - name: Phone
         - name: Email
         - name: OwnerId
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
         module: Contact
-        page: RecordPageForModuleContact
         perPage: 20
-        presort: createdAt DESC
+        prefilter: ""
+        presort: RecordLabel ASC
+        selectMode: multi
+        selectable: true
+        selectionButtons: []
       kind: RecordList
-      xywh: [0, 0, 12, 20]
+      xywh: [0, 0, 9, 16]
+    - title: Number of Contacts with Senior Title
+      options:
+        chart: ContactsPerSeniorLeveltitle
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: Contacts per Country
+      options:
+        chart: ContactsPerCountry
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
     pages:
-      - handle: RecordPageForModuleContact
+      RecordPageForModuleContact:
         module: Contact
         title: Record page for module "Contact"
         blocks:
@@ -846,7 +1067,8 @@ pages:
         - title: Other Information
           options:
             fields:
-            - name: OwnerId
+            - name: ownedBy
+            - name: CampaignId
             - name: DoNotCall
             - name: HasOptedOutOfEmail
             - name: ContactSource
@@ -857,68 +1079,112 @@ pages:
           xywh: [6, 0, 3, 13]
         - title: Contact Twitter Feed
           options:
-            fields: []
             profileSourceField: Twitter
+            profileUrl: ""
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: SocialFeed
-          xywh: [9, 0, 3, 20]
+          xywh: [9, 0, 3, 21]
         - title: Notes
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Title
             - name: Body
             - name: LastModifiedDate
             - name: CreatedById
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Note
-            page: RecordPageForModuleNote
-            perPage: 5
+            perPage: 20
             prefilter: ContactId = ${recordID}
+            presort: ""
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
           xywh: [0, 21, 4, 8]
         - title: Events
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Type
             - name: Subject
             - name: ActivityDate
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Event
-            page: RecordPageForModuleEvent
-            perPage: 5
+            perPage: 20
             prefilter: ContactId = ${recordID}
+            presort: ""
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
           xywh: [4, 21, 4, 8]
         - title: Tasks
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Type
             - name: Subject
             - name: Status
             - name: ActivityDate
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Task
-            page: RecordPageForModuleTask
-            perPage: 5
+            perPage: 20
             prefilter: ContactId = ${recordID}
+            presort: ""
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
           xywh: [8, 21, 4, 8]
         - title: Cases related with this Contact
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: CaseNumber
             - name: Status
             - name: Subject
             - name: createdAt
             hideAddButton: true
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Case
-            page: RecordPageForModuleCase
-            perPage: 5
+            perPage: 20
             prefilter: ContactId = ${recordID}
+            presort: ""
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
@@ -926,38 +1192,1374 @@ pages:
         - title: Contact Actions
           options:
             buttons:
-            - label: Create new Case from this Contact
+            - enabled: true
+              label: Create a new Case for this Contact and Account
+              resourceType: compose:record
               script: /client-scripts/compose/crm/Contact/CreateNewCase.js:default
-              variant: primary
+            sealed: false
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Automation
           xywh: [6, 13, 3, 8]
         visible: false
     visible: true
-  - handle: Quotes
+  Home:
+    title: Home
+    blocks:
+    - title: My New Leads
+      options:
+        allowExport: true
+        draggable: false
+        editFields: []
+        editable: false
+        fields:
+        - name: FirstName
+        - name: LastName
+        - name: Company
+        - name: Rating
+        - name: createdAt
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
+        module: Lead
+        perPage: 20
+        prefilter: OwnerId = ${userID} AND Status = 'New'
+        presort: createdAt DESC
+        selectMode: multi
+        selectable: true
+        selectionButtons: []
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: RecordList
+      xywh: [0, 11, 4, 9]
+    - title: My Key Deals - Recent Opportunities
+      options:
+        allowExport: true
+        draggable: false
+        editFields: []
+        editable: false
+        fields:
+        - name: Name
+        - name: AccountId
+        - name: Amount
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
+        module: Opportunity
+        perPage: 20
+        prefilter: StageName != 'Closed Won' AND StageName != 'Closed Lost' AND
+          OwnerId = ${userID}
+        presort: createdAt DESC
+        selectMode: multi
+        selectable: true
+        selectionButtons: []
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: RecordList
+      xywh: [4, 11, 4, 9]
+    - title: My Tasks
+      options:
+        allowExport: true
+        draggable: false
+        editFields: []
+        editable: false
+        fields:
+        - name: Subject
+        - name: Priority
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
+        module: Task
+        perPage: 20
+        prefilter: OwnerId = ${userID} AND Status != 'Completed'
+        presort: Priority ASC
+        selectMode: multi
+        selectable: true
+        selectionButtons: []
+      style:
+        variants: {border: primary, headerBg: white, headerText: primary}
+      kind: RecordList
+      xywh: [8, 11, 4, 9]
+    - title: Sales vs. Target
+      options:
+        chart: SalesVsTarget
+      style:
+        variants: {border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [6, 0, 2, 4]
+    - title: New Leads
+      options:
+        metrics:
+        - filter: Status = 'New'
+          label: ""
+          labelStyle: {}
+          metricField: count
+          moduleID: "69055788898975761"
+          valueStyle:
+            color: '#379cd3'
+            fontSize: "120"
+      style:
+        variants: {border: primary, headerBg: white, headerText: primary}
+      kind: Metric
+      xywh: [0, 0, 2, 4]
+    - title: Converted Leads
+      options:
+        metrics:
+        - filter: Status = 'Converted'
+          labelStyle: {}
+          metricField: count
+          moduleID: "69055788898975761"
+          valueStyle:
+            color: '#379cd3'
+            fontSize: "120"
+      style:
+        variants: {border: primary, headerBg: white, headerText: primary}
+      kind: Metric
+      xywh: [2, 0, 2, 4]
+    - title: Total Pipeline €
+      options:
+        metrics:
+        - filter: StageName != 'Closed Won' AND StageName != 'Closed Lost' AND
+            Amount IS NOT NULL
+          labelStyle: {}
+          metricField: Amount
+          moduleID: "69055788831801361"
+          numberFormat: "0.0"
+          operation: sum
+          prefix: ""
+          suffix: k
+          transformFx: v=v/1000
+          valueStyle:
+            color: '#379cd3'
+            fontSize: "60"
+      style:
+        variants: {border: primary, headerBg: white, headerText: primary}
+      kind: Metric
+      xywh: [4, 0, 2, 4]
+    - title: Leads per Month
+      options:
+        chart: LeadsPerMonth
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [0, 4, 4, 7]
+    - title: Monthly Sales
+      options:
+        chart: MonthlySales
+      style:
+        variants: {border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [4, 4, 4, 7]
+    - title: My Calendar
+      options:
+        defaultView: dayGridMonth
+        feeds:
+        - allDay: false
+          endField: EndDateTime
+          options:
+            color: '#5680a6'
+            moduleID: "69055788747849745"
+            prefilter: Type = 'Call'
+          resource: compose:record
+          startField: ActivityDate
+          titleField: Subject
+        - allDay: false
+          endField: EndDateTime
+          options:
+            color: '#e38e3f'
+            moduleID: "69055788747849745"
+            prefilter: Type = 'Email'
+          resource: compose:record
+          startField: ActivityDate
+          titleField: Subject
+        - allDay: false
+          endField: EndDateTime
+          options:
+            color: '#ce6462'
+            moduleID: "69055788747849745"
+            prefilter: Type = 'Meeting'
+          resource: compose:record
+          startField: ActivityDate
+          titleField: Subject
+        - allDay: false
+          endField: EndDateTime
+          options:
+            color: '#88b5b2'
+            moduleID: "69055788747849745"
+            prefilter: Type = 'Send Letter / Quote'
+          resource: compose:record
+          startField: ActivityDate
+          titleField: Subject
+        - allDay: false
+          endField: EndDateTime
+          options:
+            color: '#70974d'
+            moduleID: "69055788747849745"
+            prefilter: Type = 'Other'
+          resource: compose:record
+          startField: ActivityDate
+          titleField: Subject
+        - allDay: false
+          endField: EndDateTime
+          options:
+            color: '#e9c153'
+            moduleID: "69055788747849745"
+            prefilter: Type IS NULL
+          resource: compose:record
+          startField: ActivityDate
+          titleField: Subject
+        header:
+          views:
+          - dayGridMonth
+          - timeGridWeek
+          - timeGridDay
+          - listMonth
+        locale: en-gb
+      style:
+        variants: {border: primary, headerBg: white, headerText: primary}
+      kind: Calendar
+      xywh: [8, 0, 4, 11]
+    visible: true
+  Tasks:
+    title: Tasks
+    blocks:
+    - title: List of Tasks
+      options:
+        allowExport: true
+        draggable: false
+        editFields: []
+        editable: false
+        fields:
+        - name: Subject
+        - name: Status
+        - name: LeadId
+        - name: AccountId
+        - name: ContactId
+        - name: OpportunityId
+        - name: ActivityDate
+        - name: OwnerId
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
+        module: Task
+        perPage: 20
+        prefilter: ""
+        presort: ActivityDate DESC
+        selectMode: multi
+        selectable: true
+        selectionButtons: []
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: RecordList
+      xywh: [0, 0, 9, 16]
+    - title: Tasks by Status
+      options:
+        chart: TasksByStatus
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: Tasks per Month
+      options:
+        chart: TasksPerMonth
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
+    pages:
+      RecordPageForModuleTask:
+        module: Task
+        title: Record page for module "Task"
+        blocks:
+        - title: Task Details
+          options:
+            fields:
+            - name: Subject
+            - name: Description
+            - name: Type
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [0, 0, 3, 16]
+        - title: Related To
+          options:
+            fields:
+            - name: LeadId
+            - name: AccountId
+            - name: ContactId
+            - name: OpportunityId
+            - name: QuoteId
+            - name: ContractId
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [9, 0, 3, 16]
+        - title: Task Status
+          options:
+            fields:
+            - name: Status
+            - name: ActivityDate
+            - name: Priority
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [3, 0, 3, 16]
+        - title: Assigned To
+          options:
+            fields:
+            - name: OwnerId
+            - name: createdBy
+            - name: createdAt
+          style:
+            variants: {border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [6, 0, 3, 16]
+        visible: false
+    visible: true
+  Campaigns:
+    title: Campaigns
+    blocks:
+    - title: List of Campaigns
+      options:
+        allowExport: true
+        draggable: false
+        editFields: []
+        editable: false
+        fields:
+        - name: Name
+        - name: Type
+        - name: Status
+        - name: StartDate
+        - name: EndDate
+        - name: IsActive
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
+        module: Campaigns
+        perPage: 20
+        prefilter: ""
+        presort: StartDate DESC
+        selectMode: multi
+        selectable: true
+        selectionButtons: []
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: RecordList
+      xywh: [0, 4, 8, 12]
+    - title: Campaign Costs vs. Revenue
+      options:
+        chart: CampaignCostVsRevenue
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [8, 4, 4, 7]
+    - title: Active Campaigns per Type
+      options:
+        chart: ActiveCampaignsByType
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [8, 11, 4, 5]
+    - title: Number of Leads in Campaigns
+      options:
+        metrics:
+        - labelStyle: {}
+          metricField: NumberOfLeads
+          moduleID: "69055788630474769"
+          operation: sum
+          valueStyle:
+            color: '#379cd3'
+            fontSize: "100"
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Metric
+      xywh: [0, 0, 2, 4]
+    - title: Number of Accounts in Campaigns
+      options:
+        metrics:
+        - labelStyle: {}
+          metricField: NumberOfAccounts
+          moduleID: "69055788630474769"
+          operation: sum
+          valueStyle:
+            color: '#379cd3'
+            fontSize: "100"
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Metric
+      xywh: [2, 0, 2, 4]
+    - title: Number of Contacts in Campaigns
+      options:
+        metrics:
+        - labelStyle: {}
+          metricField: NumberOfContacts
+          moduleID: "69055788630474769"
+          operation: sum
+          valueStyle:
+            color: '#379cd3'
+            fontSize: "100"
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Metric
+      xywh: [4, 0, 2, 4]
+    - title: Number of Opp. in Campaigns
+      options:
+        metrics:
+        - labelStyle: {}
+          metricField: NumberOfOpportunities
+          moduleID: "69055788630474769"
+          operation: sum
+          valueStyle:
+            color: '#379cd3'
+            fontSize: "100"
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Metric
+      xywh: [6, 0, 2, 4]
+    - title: Campaign Opps. vs. Target
+      options:
+        chart: CampaignAmountAllOpportunitiesVsTarget
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [8, 0, 2, 4]
+    - title: Campaign Won Opps. vs. Target
+      options:
+        chart: CampaignAmountAllWonOpportunitiesVsTarget
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [10, 0, 2, 4]
+    pages:
+      RecordPageForModuleCampaign:
+        module: Campaigns
+        title: Record page for module "Campaign"
+        blocks:
+        - title: Campaign Details
+          options:
+            fields:
+            - name: Name
+            - name: IsActive
+            - name: ParentId
+            - name: Type
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Record
+          xywh: [0, 0, 3, 10]
+        - title: Campaign Planning
+          options:
+            fields:
+            - name: BudgetedCost
+            - name: ActualCost
+            - name: ExpectedRevenue
+            - name: Description
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Record
+          xywh: [3, 0, 3, 10]
+        - title: Campaign Results
+          options:
+            fields:
+            - name: NumberOfLeads
+            - name: NumberOfContacts
+            - name: NumberOfAccounts
+            - name: NumberOfOpportunities
+            - name: NumberOfWonOpportunities
+            - name: AmountAllOpportunities
+            - name: AmountWonOpportunities
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Record
+          xywh: [6, 0, 3, 10]
+        - title: Generated Opportunities
+          options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: Name
+            - name: StageName
+            - name: Amount
+            - name: CloseDate
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Opportunity
+            perPage: 20
+            prefilter: CampaignId = ${recordID}
+            presort: ""
+            selectMode: multi
+            selectable: false
+            selectionButtons: []
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: RecordList
+          xywh: [6, 19, 6, 9]
+        - title: Campaign Status
+          options:
+            fields:
+            - name: ownedBy
+            - name: Status
+            - name: StartDate
+            - name: EndDate
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Record
+          xywh: [9, 0, 3, 10]
+        - title: Leads in Campaign
+          options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: FirstName
+            - name: LastName
+            - name: Email
+            - name: Company
+            - name: LeadSource
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Lead
+            perPage: 20
+            prefilter: CampaignId = ${recordID}
+            presort: RecordLabel ASC
+            selectMode: multi
+            selectable: false
+            selectionButtons: []
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: RecordList
+          xywh: [0, 10, 6, 9]
+        - title: Contacts in Campaign
+          options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: FirstName
+            - name: LastName
+            - name: AccountId
+            - name: Email
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Contact
+            perPage: 20
+            prefilter: CampaignId = ${recordID}
+            presort: RecordLabel ASC
+            selectMode: multi
+            selectable: false
+            selectionButtons: []
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: RecordList
+          xywh: [6, 10, 6, 9]
+        - title: Accounts in Campaign
+          options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: AccountName
+            - name: Type
+            - name: Rating
+            - name: OwnerId
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Account
+            perPage: 20
+            prefilter: CampaignId = ${recordID}
+            presort: AccountName ASC
+            selectMode: multi
+            selectable: false
+            selectionButtons: []
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: RecordList
+          xywh: [0, 19, 6, 9]
+        visible: false
+    visible: true
+  Dashboards:
+    title: Dashboards
+    blocks:
+    - title: Leads per day
+      options:
+        chart: LeadsPerMonth
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [0, 0, 6, 7]
+    - title: Leads By Type
+      options:
+        chart: LeadsByType
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [6, 0, 3, 7]
+    - title: Leads by Country
+      options:
+        chart: LeadsByCountry
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [6, 7, 6, 7]
+    - title: Lead Funnel
+      options:
+        chart: LeadFunnel
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 7]
+    - title: Monthly Sales
+      options:
+        chart: MonthlySales
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [0, 7, 6, 7]
+    - title: Sales Pipeline
+      options:
+        chart: OpportunityStatusFunnel
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [9, 14, 3, 7]
+    - title: Sales vs. Target
+      options:
+        chart: SalesVsTarget
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [0, 14, 3, 7]
+    - title: Number of Opportunities vs. Target
+      options:
+        chart: NumberOfOpportunitiesVsTarget
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [3, 14, 3, 7]
+    - title: Accounts by Rating
+      options:
+        chart: AccountsByRating
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [6, 14, 3, 7]
+    pages:
+      LeadFunnelDashboard:
+        title: Lead Funnel Dashboard
+        blocks:
+        - title: Number of Leads in Campaigns
+          options:
+            metrics:
+            - labelStyle: {}
+              metricField: NumberOfLeads
+              moduleID: "69055788630474769"
+              operation: sum
+              valueStyle:
+                color: '#379cd3'
+                fontSize: "100"
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Metric
+          xywh: [0, 0, 3, 4]
+        - title: Number of Accounts in Campaigns
+          options:
+            metrics:
+            - label: Number of Accounts in Campaigns
+              labelStyle: {}
+              metricField: NumberOfAccounts
+              moduleID: "69055788630474769"
+              operation: sum
+              valueStyle:
+                color: '#379cd3'
+                fontSize: "100"
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Metric
+          xywh: [3, 0, 3, 4]
+        - title: Number of Contacts in Campaigns
+          options:
+            metrics:
+            - labelStyle: {}
+              metricField: NumberOfContacts
+              moduleID: "69055788630474769"
+              operation: sum
+              valueStyle:
+                color: '#379cd3'
+                fontSize: "100"
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Metric
+          xywh: [6, 0, 3, 4]
+        - title: Number of Opp. in Campaigns
+          options:
+            metrics:
+            - labelStyle: {}
+              metricField: NumberOfOpportunities
+              moduleID: "69055788630474769"
+              operation: sum
+              valueStyle:
+                color: '#379cd3'
+                fontSize: "100"
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Metric
+          xywh: [9, 0, 3, 4]
+        - title: Campaign Opps. vs. Target
+          options:
+            chart: CampaignAmountAllOpportunitiesVsTarget
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [3, 4, 3, 6]
+        - title: Campaign Won Opps. vs. Target
+          options:
+            chart: CampaignAmountAllWonOpportunitiesVsTarget
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [6, 4, 3, 6]
+        - title: Active Campaigns per Type
+          options:
+            chart: ActiveCampaignsByType
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [0, 4, 3, 6]
+        - title: Campaign Costs vs. Revenue
+          options:
+            chart: CampaignCostVsRevenue
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [0, 10, 6, 8]
+        - title: New Leads Per Month
+          options:
+            chart: LeadsPerMonth
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [6, 10, 6, 8]
+        - title: Leads by type
+          options:
+            chart: LeadsByType
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [0, 18, 3, 7]
+        - title: Leads by Source
+          options:
+            chart: LeadsBySource
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [3, 18, 3, 7]
+        - title: Lead by Country
+          options:
+            chart: LeadsByCountry
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [0, 25, 12, 8]
+        - title: Lead Funnel
+          options:
+            chart: LeadFunnel
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [9, 4, 3, 6]
+        - title: Leads by Rating
+          options:
+            chart: LeadsByRating
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [6, 18, 3, 7]
+        - title: Accounts by Rating
+          options:
+            chart: AccountsByRating
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [9, 18, 3, 7]
+        visible: true
+      ForecastDashboard:
+        title: Forecast Dashboard
+        blocks:
+        - title: Sales YTD
+          options:
+            chart: SalesYTD
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [6, 0, 3, 6]
+        - title: Dealsize
+          options:
+            chart: Dealsize
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [6, 6, 6, 8]
+        - title: Monthly Sales
+          options:
+            chart: MonthlySales
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [0, 14, 6, 8]
+        - title: Opportunity Pipeline
+          options:
+            chart: OpportunityStatusFunnel
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [9, 0, 3, 6]
+        - title: Opportunities vs. Target
+          options:
+            chart: NumberOfOpportunitiesVsTarget
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [0, 0, 3, 6]
+        - title: Sales vs. Target
+          options:
+            chart: SalesVsTarget
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [3, 0, 3, 6]
+        - title: Quotes Per Month
+          options:
+            chart: QuotesPerMonth
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [6, 14, 6, 8]
+        - title: Number of Opportunities per Month
+          options:
+            chart: OpportunitiesCreatedPerMonth
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [0, 6, 6, 8]
+        visible: true
+      KPIsAndSalesActivitiesDashboard:
+        title: KPIs and Sales Activities Dashboard
+        blocks:
+        - title: New Leads
+          options:
+            metrics:
+            - filter: Status = 'New'
+              labelStyle: {}
+              metricField: count
+              moduleID: "69055788898975761"
+              valueStyle:
+                color: '#379cd3'
+                fontSize: "100"
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Metric
+          xywh: [0, 0, 2, 4]
+        - title: Converted Leads
+          options:
+            metrics:
+            - filter: Status = 'Converted'
+              labelStyle: {}
+              metricField: count
+              moduleID: "69055788898975761"
+              valueStyle:
+                color: '#379cd3'
+                fontSize: "100"
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Metric
+          xywh: [2, 0, 2, 4]
+        - title: Open Opportunities
+          options:
+            metrics:
+            - filter: StageName != 'Closed Won' AND StageName != 'Closed Lost'
+              labelStyle: {}
+              metricField: count
+              moduleID: "69055788831801361"
+              valueStyle:
+                color: '#379cd3'
+                fontSize: "100"
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Metric
+          xywh: [4, 0, 2, 4]
+        - title: Number of Leads in Campaigns
+          options:
+            metrics:
+            - labelStyle: {}
+              metricField: NumberOfLeads
+              moduleID: "69055788630474769"
+              operation: sum
+              valueStyle:
+                color: '#379cd3'
+                fontSize: "100"
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Metric
+          xywh: [0, 4, 2, 4]
+        - title: Number of Accounts in Campaigns
+          options:
+            metrics:
+            - labelStyle: {}
+              metricField: NumberOfAccounts
+              moduleID: "69055788630474769"
+              operation: sum
+              valueStyle:
+                color: '#379cd3'
+                fontSize: "100"
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Metric
+          xywh: [2, 4, 2, 4]
+        - title: Number of Contacts in Campaigns
+          options:
+            metrics:
+            - labelStyle: {}
+              metricField: NumberOfContacts
+              moduleID: "69055788630474769"
+              operation: sum
+              valueStyle:
+                color: '#379cd3'
+                fontSize: "100"
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Metric
+          xywh: [4, 4, 2, 4]
+        - title: Number of Opp. in Campaigns
+          options:
+            metrics:
+            - labelStyle: {}
+              metricField: NumberOfOpportunities
+              moduleID: "69055788630474769"
+              operation: sum
+              valueStyle:
+                color: '#379cd3'
+                fontSize: "100"
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Metric
+          xywh: [6, 4, 2, 4]
+        - title: Won Opp. YTD
+          options:
+            metrics:
+            - filter: YEAR(created_at) = YEAR(NOW()) AND Amount IS NOT NULL
+              labelStyle: {}
+              metricField: count
+              moduleID: "69055788831801361"
+              valueStyle:
+                color: '#379cd3'
+                fontSize: "100"
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Metric
+          xywh: [6, 0, 2, 4]
+        - title: Sales YTD
+          options:
+            chart: SalesYTD
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [8, 0, 2, 4]
+        - title: Sales vs. Target
+          options:
+            chart: SalesVsTarget
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [10, 0, 2, 4]
+        - title: Campaign Opps. vs. Target
+          options:
+            chart: CampaignAmountAllOpportunitiesVsTarget
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [8, 4, 2, 4]
+        - title: Campaign Won Opps. vs. Target
+          options:
+            chart: CampaignAmountAllWonOpportunitiesVsTarget
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [10, 4, 2, 4]
+        - title: Leads per Month
+          options:
+            chart: LeadsPerMonth
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [0, 8, 6, 7]
+        - title: Sales per Month
+          options:
+            chart: MonthlySales
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [0, 15, 6, 7]
+        - title: Campaign Cost vs. Revenue
+          options:
+            chart: CampaignCostVsRevenue
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [6, 8, 6, 7]
+        - title: Quotes per Month
+          options:
+            chart: QuotesPerMonth
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [6, 15, 6, 7]
+        - title: Contracts Starting per Month
+          options:
+            chart: ContractsPerStartingMonth
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [0, 22, 6, 7]
+        - title: Cases per Month
+          options:
+            chart: CasesPerMonth
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [6, 22, 6, 7]
+        visible: true
+      ExecutiveDailyViewDashboard:
+        title: Executive Daily View Dashboard
+        blocks:
+        - title: Sales Pipeline
+          options:
+            chart: OpportunitySalesPipeline
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [0, 0, 3, 8]
+        - title: Key Opportunities
+          options:
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: AccountId
+            - name: Amount
+            hideRecordCloneButton: true
+            hideRecordEditButton: true
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Opportunity
+            perPage: 20
+            prefilter: StageName != 'Closed Won' AND StageName != 'Closed Lost'
+            presort: Amount DESC
+            selectMode: multi
+            selectable: false
+            selectionButtons: []
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: RecordList
+          xywh: [3, 0, 6, 8]
+        - title: Total Pipeline (€)
+          options:
+            metrics:
+            - filter: StageName != 'Closed Won' AND StageName != 'Closed Lost'
+              labelStyle: {}
+              metricField: Amount
+              moduleID: "69055788831801361"
+              numberFormat: "0.0"
+              operation: sum
+              suffix: k
+              transformFx: v=v/1000
+              valueStyle:
+                backgroundColor: '#ffffff'
+                color: '#379cd3'
+                fontSize: "100"
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Metric
+          xywh: [9, 0, 3, 8]
+        - title: Activities by Type
+          options:
+            chart: EventsPerType
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [0, 8, 3, 7]
+        - title: Activities per Month
+          options:
+            chart: EventsPerMonth
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [3, 8, 6, 7]
+        - title: Quotes by Status
+          options:
+            chart: QuotesByStatus
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [3, 15, 3, 7]
+        - title: Lead Funnel
+          options:
+            chart: LeadFunnel
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [0, 15, 3, 7]
+        - title: Cases by Status
+          options:
+            chart: CasesByStatus
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [9, 15, 3, 7]
+        - title: Contract by Status
+          options:
+            chart: ContractsByStatus
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [6, 15, 3, 7]
+        - title: Tasks by Status
+          options:
+            chart: TasksByStatus
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [9, 8, 3, 7]
+        visible: true
+    visible: true
+  Events:
+    title: Events
+    blocks:
+    - title: List of Events
+      options:
+        allowExport: true
+        draggable: false
+        editFields: []
+        editable: false
+        fields:
+        - name: Subject
+        - name: ActivityDate
+        - name: OwnerId
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
+        module: Event
+        perPage: 20
+        prefilter: ""
+        presort: ActivityDate DESC
+        selectMode: multi
+        selectable: true
+        selectionButtons: []
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: RecordList
+      xywh: [0, 0, 3, 16]
+    - title: Events per Type
+      options:
+        chart: EventsPerType
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: Events per Month
+      options:
+        chart: EventsPerMonth
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
+    - title: Event Calendar
+      options:
+        defaultView: dayGridMonth
+        feeds:
+        - allDay: false
+          endField: EndDateTime
+          options:
+            color: '#5680a6'
+            moduleID: "69055788747849745"
+            prefilter: Type = 'Call'
+          resource: compose:record
+          startField: ActivityDate
+          titleField: Subject
+        - allDay: false
+          endField: EndDateTime
+          options:
+            color: '#e38e3f'
+            moduleID: "69055788747849745"
+            prefilter: Type = 'Email'
+          resource: compose:record
+          startField: ActivityDate
+          titleField: Subject
+        - allDay: false
+          endField: EndDateTime
+          options:
+            color: '#ce6462'
+            moduleID: "69055788747849745"
+            prefilter: Type = 'Meeting'
+          resource: compose:record
+          startField: ActivityDate
+          titleField: Subject
+        - allDay: false
+          endField: EndDateTime
+          options:
+            color: '#88b5b2'
+            moduleID: "69055788747849745"
+            prefilter: Type = 'Send Letter / Quote'
+          resource: compose:record
+          startField: ActivityDate
+          titleField: Subject
+        - allDay: false
+          endField: EndDateTime
+          options:
+            color: '#70974d'
+            moduleID: "69055788747849745"
+            prefilter: Type = 'Other'
+          resource: compose:record
+          startField: ActivityDate
+          titleField: Subject
+        - allDay: false
+          endField: EndDateTime
+          options:
+            color: '#e9c153'
+            moduleID: "69055788747849745"
+            prefilter: Type IS NULL
+          resource: compose:record
+          startField: ActivityDate
+          titleField: Subject
+        header:
+          views:
+          - timeGridWeek
+          - timeGridDay
+          - dayGridMonth
+          - listMonth
+        locale: en-gb
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Calendar
+      xywh: [3, 0, 6, 16]
+    pages:
+      RecordPageForModuleEvent:
+        module: Event
+        title: Record page for module "Event"
+        blocks:
+        - title: Event Data
+          options:
+            fields:
+            - name: Subject
+            - name: Type
+            - name: Location
+            - name: Description
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Record
+          xywh: [0, 0, 3, 16]
+        - title: Other Information
+          options:
+            fields:
+            - name: LeadId
+            - name: AccountId
+            - name: ContactId
+            - name: OpportunityId
+            - name: QuoteId
+            - name: ContractId
+            - name: CaseId
+            - name: createdAt
+            - name: createdBy
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Record
+          xywh: [9, 0, 3, 16]
+        - title: Event Date and Time
+          options:
+            fields:
+            - name: ActivityDate
+            - name: EndDateTime
+            - name: IsAllDayEvent
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Record
+          xywh: [3, 0, 3, 16]
+        - title: Assigned To
+          options:
+            fields:
+            - name: OwnerId
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Record
+          xywh: [6, 0, 3, 16]
+        visible: false
+    visible: true
+  Quotes:
     title: Quotes
     blocks:
     - title: List of Quotes
       options:
+        allowExport: true
+        draggable: false
+        editFields: []
+        editable: false
         fields:
         - name: QuoteNumber
-        - name: Name
         - name: OpportunityId
         - name: Discount
         - name: TotalPrice
         - name: Tax
         - name: GrandTotal
-        - name: createdAt
         - name: ExpirationDate
+        - name: createdAt
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
         module: Quote
-        page: RecordPageForModuleQuote
         perPage: 20
+        prefilter: ""
         presort: createdAt DESC
+        selectMode: multi
+        selectable: true
+        selectionButtons: []
+      style:
+        variants: {border: primary, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 12, 20]
+      xywh: [0, 0, 9, 16]
+    - title: Quotes Status
+      options:
+        chart: QuotesByStatus
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: Number of Quotes per Month
+      options:
+        chart: QuotesPerMonth
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
     pages:
-      - handle: RecordPageForModuleQuote
+      RecordPageForModuleQuote:
         module: Quote
         title: Record page for module "Quote"
         blocks:
@@ -1000,7 +2602,7 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [4, 0, 4, 12]
+          xywh: [4, 0, 4, 11]
         - title: Bill To
           options:
             fields:
@@ -1042,89 +2644,212 @@ pages:
           xywh: [8, 20, 4, 9]
         - title: Quote Line Items
           options:
+            allowExport: true
+            draggable: true
+            editFields:
+            - isPrivate: false
+              isRequired: false
+              isVisible: false
+              kind: Record
+              label: Product
+              maxLength: 0
+              moduleID: "0"
+              name: ProductId
+              options:
+                moduleID: "69055788915621905"
+            - isPrivate: false
+              isRequired: false
+              isVisible: false
+              kind: Number
+              label: List Price
+              maxLength: 0
+              moduleID: "0"
+              name: ListPrice
+              options:
+                format: ""
+                prefix: ""
+                suffix: ""
+            - isPrivate: false
+              isRequired: false
+              isVisible: false
+              kind: Number
+              label: Sales Price
+              maxLength: 0
+              moduleID: "0"
+              name: UnitPrice
+              options:
+                format: ""
+                prefix: ""
+                suffix: ""
+            - isPrivate: false
+              isRequired: false
+              isVisible: false
+              kind: Number
+              label: Quantity
+              maxLength: 0
+              moduleID: "0"
+              name: Quantity
+              options:
+                format: ""
+                prefix: ""
+                suffix: ""
+            - isPrivate: false
+              isRequired: false
+              isVisible: false
+              kind: Number
+              label: Subtotal
+              maxLength: 0
+              moduleID: "0"
+              name: Subtotal
+              options:
+                format: ""
+                prefix: ""
+                suffix: ""
+            - isPrivate: false
+              isRequired: false
+              isVisible: false
+              kind: Number
+              label: Discount
+              maxLength: 0
+              moduleID: "0"
+              name: Discount
+              options:
+                format: ""
+                prefix: ""
+                suffix: ""
+            - isPrivate: false
+              isRequired: false
+              isVisible: false
+              kind: Number
+              label: Total Price
+              maxLength: 0
+              moduleID: "0"
+              name: TotalPrice
+              options:
+                format: ""
+                prefix: ""
+                suffix: ""
+            editable: true
             fields:
             - name: ProductId
+            - name: ListPrice
             - name: UnitPrice
             - name: Quantity
             - name: Subtotal
             - name: Discount
             - name: TotalPrice
-            - name: ListPrice
+            hidePaging: true
+            hideRecordCloneButton: true
+            hideRecordEditButton: true
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            hideSorting: true
             module: QuoteLineItem
-            page: RecordPageForModuleQuoteLineItem
-            perPage: 5
+            perPage: 20
+            positionField: SortOrder
             prefilter: QuoteId = ${recordID}
+            presort: ""
+            refField: QuoteId
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 12, 8, 8]
+          xywh: [0, 12, 12, 8]
         - title: Notes
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Title
             - name: Body
             - name: createdAt
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Note
-            page: RecordPageForModuleNote
-            perPage: 5
+            perPage: 20
             prefilter: QuoteId = ${recordID}
             presort: createdAt DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
           xywh: [0, 29, 4, 8]
         - title: Events
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Type
             - name: Subject
             - name: ActivityDate
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Event
-            page: RecordPageForModuleEvent
-            perPage: 5
+            perPage: 20
             prefilter: QuoteId = ${recordID}
             presort: ActivityDate DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
           xywh: [4, 29, 4, 8]
         - title: Tasks
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Type
             - name: Subject
             - name: Status
             - name: ActivityDate
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Task
-            page: RecordPageForModuleTask
-            perPage: 5
+            perPage: 20
             prefilter: QuoteId = ${recordID}
             presort: ActivityDate DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
           xywh: [8, 29, 4, 8]
-        - title: Quote Actions
-          options:
+        - options:
             buttons:
-            - label: Submit this Quote for approval
-              script: /client-scripts/compose/crm/Quote/SubmitForApproval.js:default
-              variant: primary
-            - label: Approve this Quote
-              script: /client-scripts/compose/crm/Quote/Approve.js:default
-              variant: primary
-            - label: Send this Quote via email to the primary contact
+            - enabled: true
+              label: Send this Quote via email to the primary contact
+              resourceType: compose:record
               script: /client-scripts/compose/crm/Quote/SendToPriContact.js:default
-              variant: primary
-            - label: Send this Quote to a custom email
-              script: /client-scripts/compose/crm/Quote/SentToCustomEmail.js:default
-              variant: primary
+            - enabled: true
+              label: Send this Quote to a custom email
+              resourceType: compose:record
+              script: /client-scripts/compose/crm/Quote/SendToCustomEmail.js:default
+            sealed: false
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Automation
-          xywh: [8, 12, 4, 8]
+          xywh: [4, 11, 4, 1]
         pages:
-          - handle: RecordPageForModuleQuoteLineItem
+          RecordPageForModuleQuoteLineItem:
             module: QuoteLineItem
             title: Record page for module "QuoteLineItem"
             blocks:
@@ -1141,113 +2866,214 @@ pages:
                 - name: Subtotal
                 - name: Discount
                 - name: TotalPrice
+              style:
+                variants: {border: primary, headerText: primary}
               kind: Record
-              xywh: [0, 0, 4, 19]
+              xywh: [0, 0, 4, 15]
             visible: false
         visible: false
     visible: true
-  - handle: Products
+  Products:
     title: Products
     blocks:
     - title: List of Products
       options:
+        allowExport: true
+        draggable: false
+        editFields: []
+        editable: false
         fields:
-        - name: Name
         - name: ProductCode
-        - name: Description
+        - name: Name
         - name: Family
+        - name: Photo
+        - name: IsActive
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
         module: Product
-        page: RecordPageForModuleProduct
         perPage: 20
+        prefilter: ""
         presort: Name ASC
+        selectMode: multi
+        selectable: true
+        selectionButtons: []
       kind: RecordList
-      xywh: [0, 0, 12, 20]
+      xywh: [0, 0, 9, 16]
+    - title: Products per Product Family
+      options:
+        chart: ProductsPerFamily
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: Products added per Month
+      options:
+        chart: ProductsAddedPerMonth
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
     pages:
-      - handle: RecordPageForModuleProduct
+      RecordPageForModuleProduct:
         module: Product
         title: Record page for module "Product"
         blocks:
-        - title: Product Details
+        - title: Product Description
           options:
             fields:
             - name: Name
             - name: ProductCode
             - name: Family
             - name: Description
-            - name: IsActive
+          style:
+            variants: {border: primary, headerText: primary}
           kind: Record
-          xywh: [0, 0, 6, 10]
+          xywh: [0, 0, 4, 10]
         - title: Appears in the following Price Books
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: PricebookId
             - name: UnitPrice
             hideAddButton: true
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: PricebookEntry
-            page: RecordPageForModulePricebookEntry
-            perPage: 5
+            perPage: 20
             prefilter: ProductId = ${recordID}
+            presort: ""
+            selectMode: multi
+            selectable: false
+            selectionButtons: []
+          style:
+            variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [6, 0, 6, 10]
+          xywh: [0, 10, 6, 9]
         - title: Related Cases
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: CaseNumber
             - name: Subject
             - name: Status
             hideAddButton: true
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Case
-            page: RecordPageForModuleCase
-            perPage: 5
+            perPage: 20
             prefilter: ProductId = ${recordID}
             presort: CaseNumber DESC
+            selectMode: multi
+            selectable: false
+            selectionButtons: []
+          style:
+            variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [0, 10, 6, 8]
+          xywh: [6, 10, 6, 9]
         - title: Notes
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Title
             - name: Body
             - name: createdAt
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Note
-            page: RecordPageForModuleNote
-            perPage: 5
+            perPage: 20
             prefilter: ProductId = ${recordID}
             presort: createdAt DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
+          style:
+            variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [6, 10, 6, 8]
+          xywh: [0, 19, 12, 9]
+        - title: Files
+          options:
+            fields:
+            - name: Photo
+            - name: File
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Record
+          xywh: [4, 0, 4, 10]
+        - title: Record Information
+          options:
+            fields:
+            - name: IsActive
+            - name: createdAt
+            - name: createdBy
+            - name: updatedAt
+            - name: updatedBy
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Record
+          xywh: [8, 0, 4, 10]
         visible: false
-      - handle: PriceBook
+      PriceBook:
         title: Price book
         blocks:
-        - title: Price books
+        - title: Price Books
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Name
             - name: Description
             - name: IsStandard
             - name: IsActive
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Pricebook
-            page: RecordPageForModulePricebook
             perPage: 20
+            prefilter: ""
+            presort: Name ASC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
+          style:
+            variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 12, 20]
+          xywh: [0, 0, 9, 16]
+        - title: Price Books created per Month
+          options:
+            chart: PriceBooksCreatedPerMonth
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [9, 0, 3, 8]
+        - title: Price Book Entries per Month
+          options:
+            chart: PriceBookEntriesPerMonth
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [9, 8, 3, 8]
         pages:
-          - handle: RecordPageForModuleCaseContactRole
-            module: CaseContactRole
-            title: Record page for module "CaseContactRole"
-            blocks:
-            - title: Case Contact Role Details
-              options:
-                fields:
-                - name: CasesId
-                - name: ContactId
-                - name: Role
-                - name: IsPrimary
-              kind: Record
-              xywh: [0, 0, 5, 16]
-            visible: false
-          - handle: RecordPageForModulePricebook
+          RecordPageForModulePricebook:
             module: Pricebook
             title: Record page for module "Pricebook"
             blocks:
@@ -1262,36 +3088,104 @@ pages:
               xywh: [0, 0, 6, 14]
             - title: Price Book Entries
               options:
+                allowExport: true
+                draggable: true
+                editFields:
+                - isPrivate: false
+                  isRequired: false
+                  isVisible: false
+                  kind: Record
+                  label: Product
+                  maxLength: 0
+                  moduleID: "0"
+                  name: ProductId
+                  options:
+                    moduleID: "69055788915621905"
+                - isPrivate: false
+                  isRequired: false
+                  isVisible: false
+                  kind: Number
+                  label: List Price
+                  maxLength: 0
+                  moduleID: "0"
+                  name: UnitPrice
+                  options:
+                    format: ""
+                    prefix: ""
+                    suffix: ""
+                editable: true
                 fields:
                 - name: ProductId
                 - name: UnitPrice
+                hidePaging: true
+                hideRecordCloneButton: true
+                hideRecordEditButton: true
+                hideRecordReminderButton: true
+                hideRecordViewButton: true
+                hideSorting: true
                 module: PricebookEntry
-                page: RecordPageForModulePricebookEntry
-                perPage: 12
+                perPage: 20
+                positionField: Order
                 prefilter: PricebookId = ${recordID}
+                presort: ""
+                refField: PricebookId
+                selectMode: multi
+                selectable: true
+                selectionButtons: []
+              style:
+                variants: {border: primary, headerText: primary}
               kind: RecordList
               xywh: [6, 0, 6, 14]
             - title: Notes
               options:
+                draggable: false
+                editFields: []
+                editable: false
                 fields:
                 - name: Title
                 - name: Body
                 - name: createdAt
+                hideRecordCloneButton: true
+                hideRecordEditButton: false
+                hideRecordReminderButton: true
+                hideRecordViewButton: true
                 module: Note
-                page: RecordPageForModuleNote
-                perPage: 5
+                perPage: 20
                 prefilter: PricebookId = ${recordID}
                 presort: createdAt DESC
+                selectMode: multi
+                selectable: false
+                selectionButtons: []
               kind: RecordList
               xywh: [0, 14, 12, 8]
+            pages:
+              RecordPageForModulePricebookEntry:
+                module: PricebookEntry
+                title: Record page for module "PricebookEntry"
+                blocks:
+                - title: Details
+                  options:
+                    fields:
+                    - name: PricebookId
+                    - name: ProductId
+                    - name: UnitPrice
+                  style:
+                    variants: {border: primary, headerText: primary}
+                  kind: Record
+                  xywh: [0, 0, 4, 15]
+                visible: false
             visible: false
         visible: true
     visible: true
-  - handle: Contracts
+  Contracts:
     title: Contracts
     blocks:
     - title: List of Contracts
       options:
+        allowExport: true
+        draggable: false
+        editFields: []
+        editable: false
         fields:
         - name: ContractNumber
         - name: AccountId
@@ -1299,14 +3193,38 @@ pages:
         - name: StartDate
         - name: EndDate
         - name: ContractTerm
+        - name: createdBy
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
         module: Contract
-        page: RecordPageForModuleContract
         perPage: 20
+        prefilter: ""
         presort: createdAt DESC
+        selectMode: multi
+        selectable: true
+        selectionButtons: []
+      style:
+        variants: {border: primary, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 12, 20]
+      xywh: [0, 0, 9, 18]
+    - title: Active Contracts by Strarting Month
+      options:
+        chart: ContractsPerStartingMonth
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [9, 9, 3, 9]
+    - title: Contracts by Status
+      options:
+        chart: ContractsByStatus
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 9]
     pages:
-      - handle: RecordPageForModuleContract
+      RecordPageForModuleContract:
         module: Contract
         title: Record page for module "Contract"
         blocks:
@@ -1322,7 +3240,7 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 4, 12]
+          xywh: [0, 0, 3, 10]
         - title: Contract Billing Address
           options:
             fields:
@@ -1334,28 +3252,29 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 12, 4, 9]
+          xywh: [9, 0, 3, 10]
         - title: Contract Description and Special Terms
           options:
             fields:
             - name: OwnerId
             - name: Description
             - name: SpecialTerms
+            - name: Files
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [4, 0, 4, 12]
-        - title: Contract Files
+          xywh: [3, 0, 3, 10]
+        - title: Other Information
           options:
             fields:
-            - name: File1
-            - name: File2
-            - name: File3
-            - name: File4
+            - name: createdAt
+            - name: createdBy
+            - name: updatedAt
+            - name: updatedBy
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [8, 0, 4, 12]
+          xywh: [6, 0, 3, 10]
         - title: Contract Shipping Address
           options:
             fields:
@@ -1367,92 +3286,279 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [4, 12, 4, 9]
+          xywh: [9, 10, 3, 9]
         - title: Notes
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Title
             - name: Body
             - name: createdAt
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Note
-            page: RecordPageForModuleNote
-            perPage: 5
+            perPage: 20
             prefilter: ContractId = ${recordID}
             presort: createdAt DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 21, 4, 8]
+          xywh: [0, 19, 4, 8]
         - title: Events
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Type
             - name: Subject
             - name: ActivityDate
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Event
-            page: RecordPageForModuleEvent
-            perPage: 5
+            perPage: 20
             prefilter: ContractId = ${recordID}
             presort: ActivityDate DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [4, 21, 4, 8]
+          xywh: [4, 19, 4, 8]
         - title: Tasks
           options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Type
             - name: Subject
             - name: Status
             - name: ActivityDate
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Task
-            page: RecordPageForModuleTask
-            perPage: 5
+            perPage: 20
             prefilter: ContractId = ${recordID}
             presort: ActivityDate DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [8, 21, 4, 8]
-        pages:
-          - handle: RecordPageForModuleContractLineItem
+          xywh: [8, 19, 4, 8]
+        - title: Contacts related to the Contract
+          options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: ContactId
+            - name: Role
+            - name: IsPrimary
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: ContractContactRole
+            perPage: 20
+            prefilter: ContractId = ${recordID}
+            presort: ""
+            selectMode: multi
+            selectable: false
+            selectionButtons: []
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: RecordList
+          xywh: [6, 10, 3, 9]
+        - title: Contract Line Items
+          options:
+            allowExport: true
+            draggable: true
+            editFields:
+            - canReadRecordValue: true
+              canUpdateRecordValue: true
+              defaultValue: []
+              fieldID: "147320413955817476"
+              isMulti: false
+              isPrivate: false
+              isRequired: false
+              isSystem: false
+              kind: Record
+              label: Product
+              maxLength: 0
+              name: ProductId
+              options:
+                labelField: Name
+                moduleID: "69055788915621905"
+                multiDelimiter: |2+
+
+                queryFields:
+                - Name
+                selectType: default
+            - canReadRecordValue: true
+              canUpdateRecordValue: true
+              defaultValue: []
+              fieldID: "69055788898844698"
+              isMulti: false
+              isPrivate: false
+              isRequired: false
+              isSystem: false
+              kind: DateTime
+              label: Start Date
+              maxLength: 0
+              name: StartDate
+              options:
+                format: ""
+                multiDelimiter: |2+
+
+                onlyDate: true
+                onlyFutureValues: false
+                onlyPastValues: false
+                onlyTime: false
+                outputRelative: false
+            - canReadRecordValue: true
+              canUpdateRecordValue: true
+              defaultValue: []
+              fieldID: "69055788898844692"
+              isMulti: false
+              isPrivate: false
+              isRequired: false
+              isSystem: false
+              kind: DateTime
+              label: End Date
+              maxLength: 0
+              name: EndDate
+              options:
+                format: ""
+                multiDelimiter: |2+
+
+                onlyDate: true
+                onlyFutureValues: false
+                onlyPastValues: false
+                onlyTime: false
+                outputRelative: false
+            - canReadRecordValue: true
+              canUpdateRecordValue: true
+              defaultValue: []
+              fieldID: "69055788898844699"
+              isMulti: false
+              isPrivate: false
+              isRequired: false
+              isSystem: false
+              kind: Select
+              label: Status
+              maxLength: 0
+              name: Status
+              options:
+                multiDelimiter: |2+
+
+                options:
+                - text: Active
+                  value: Active
+                - text: Expired
+                  value: Expired
+                - text: Inactive
+                  value: Inactive
+                selectType: default
+            - canReadRecordValue: true
+              canUpdateRecordValue: true
+              defaultValue: []
+              fieldID: "69055788898844696"
+              isMulti: false
+              isPrivate: false
+              isRequired: false
+              isSystem: false
+              kind: Number
+              label: Quantity
+              maxLength: 0
+              name: Quantity
+              options:
+                format: "0"
+                multiDelimiter: |2+
+
+                precision: 0
+                prefix: ""
+                suffix: ""
+            - canReadRecordValue: true
+              canUpdateRecordValue: true
+              defaultValue: []
+              fieldID: "69055788898844697"
+              isMulti: false
+              isPrivate: false
+              isRequired: false
+              isSystem: false
+              kind: Number
+              label: Sales Price
+              maxLength: 0
+              name: UnitPrice
+              options:
+                format: "0.00"
+                multiDelimiter: |2+
+
+                precision: 2
+                prefix: ""
+                suffix: €
+            editable: true
+            fields:
+            - name: ProductId
+            - name: StartDate
+            - name: EndDate
+            - name: Status
+            - name: Quantity
+            - name: UnitPrice
+            hidePaging: true
+            hideRecordCloneButton: true
+            hideRecordEditButton: true
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            hideSorting: true
             module: ContractLineItem
-            title: Record page for module "ContractLineItem"
+            perPage: 20
+            positionField: Order
+            prefilter: ContractId = ${recordID}
+            presort: ""
+            refField: ContractId
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: RecordList
+          xywh: [0, 10, 6, 9]
+        pages:
+          RecordPageForModuleContractContactRole:
+            module: ContractContactRole
+            title: Record page for module "ContractContactRole"
             blocks:
-            - title: Contract Line Item Details
+            - title: Contract Contact Role Details
               options:
                 fields:
-                - name: LineItemNumber
-                - name: Description
-                - name: StartDate
-                - name: EndDate
-                - name: Status
+                - name: ContractId
+                - name: ContactId
+                - name: Role
+                - name: IsPrimary
               kind: Record
-              xywh: [0, 0, 4, 11]
-            - title: Contract Line Item Pricing
-              options:
-                fields:
-                - name: UnitPrice
-                - name: Quantity
-                - name: Subtotal
-                - name: Discount
-                - name: TotalPrice
-              kind: Record
-              xywh: [4, 0, 4, 11]
-            - title: Notes
-              options:
-                fields:
-                - name: Title
-                - name: Body
-                - name: createdAt
-                module: Note
-                page: RecordPageForModuleNote
-                perPage: 5
-                prefilter: ContractLineItemId = ${recordID}
-              kind: RecordList
-              xywh: [8, 0, 4, 11]
+              xywh: [0, 0, 4, 16]
             visible: false
-          - handle: RecordPageForModuleEntitlement
+          RecordPageForModuleEntitlement:
             module: Entitlement
             title: Record page for module "Entitlement"
             blocks:
@@ -1518,7 +3624,20 @@ pages:
               kind: RecordList
               xywh: [8, 0, 4, 13]
             pages:
-              - handle: RecordPageForModuleEntitlementTemplate
+              RecordPageForModuleEntitlementContact:
+                module: EntitlementContact
+                title: Record page for module "EntitlementContact"
+                blocks:
+                - title: Entitlement Contact Details
+                  options:
+                    fields:
+                    - name: EntitlementId
+                    - name: ContactId
+                    - name: Name
+                  kind: Record
+                  xywh: [0, 0, 4, 14]
+                visible: false
+              RecordPageForModuleEntitlementTemplate:
                 module: EntitlementTemplate
                 title: Record page for module "EntitlementTemplate"
                 blocks:
@@ -1534,719 +3653,116 @@ pages:
                   kind: Record
                   xywh: [0, 0, 4, 14]
                 visible: false
-              - handle: RecordPageForModuleEntitlementContact
-                module: EntitlementContact
-                title: Record page for module "EntitlementContact"
-                blocks:
-                - title: Entitlement Contact Details
-                  options:
-                    fields:
-                    - name: EntitlementId
-                    - name: ContactId
-                    - name: Name
-                  kind: Record
-                  xywh: [0, 0, 4, 14]
-                visible: false
             visible: false
-          - handle: RecordPageForModuleContractContactRole
-            module: ContractContactRole
-            title: Record page for module "ContractContactRole"
+          RecordPageForModuleContractLineItem:
+            module: ContractLineItem
+            title: Record page for module "ContractLineItem"
             blocks:
-            - title: Contract Contact Role Details
+            - title: Contract Line Item Details
               options:
                 fields:
-                - name: ContractId
-                - name: ContactId
-                - name: Role
-                - name: IsPrimary
-              kind: Record
-              xywh: [0, 0, 4, 16]
-            visible: false
-        visible: false
-    visible: true
-  - handle: Cases
-    title: Cases
-    blocks:
-    - title: List of Cases
-      options:
-        fields:
-        - name: CaseNumber
-        - name: Subject
-        - name: Status
-        - name: CreatedDate
-        - name: OwnerId
-        - name: createdAt
-        module: Case
-        page: RecordPageForModuleCase
-        perPage: 20
-        presort: createdAt DESC
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: RecordList
-      xywh: [0, 0, 12, 20]
-    pages:
-      - handle: RecordPageForModuleCase
-        module: Case
-        title: Record page for module "Case"
-        blocks:
-        - title: Case Main Information
-          options:
-            fields:
-            - name: CaseNumber
-            - name: Subject
-            - name: AccountId
-            - name: ContactId
-            - name: SuppliedName
-            - name: SuppliedEmail
-            - name: SuppliedPhone
-          kind: Record
-          xywh: [0, 0, 3, 14]
-        - title: Case Details
-          options:
-            fields:
-            - name: Type
-            - name: Description
-            - name: File
-            - name: Origin
-            - name: ProductId
-          kind: Record
-          xywh: [3, 0, 3, 14]
-        - title: Case Status
-          options:
-            fields:
-            - name: Status
-            - name: OwnerId
-            - name: CreatedDate
-            - name: Priority
-            - name: IsEscalated
-            - name: IsClosed
-            - name: ClosedDate
-            - name: Reason
-          kind: Record
-          xywh: [9, 0, 3, 14]
-        - title: Notes
-          options:
-            fields:
-            - name: Title
-            - name: Body
-            - name: createdAt
-            module: Note
-            page: RecordPageForModuleNote
-            perPage: 5
-            prefilter: CaseId = ${recordID}
-            presort: createdAt DESC
-          kind: RecordList
-          xywh: [0, 22, 4, 8]
-        - title: Events
-          options:
-            fields:
-            - name: Type
-            - name: Subject
-            - name: ActivityDate
-            module: Event
-            page: RecordPageForModuleEvent
-            perPage: 5
-            prefilter: CaseId = ${recordID}
-            presort: ActivityDate DESC
-          kind: RecordList
-          xywh: [4, 22, 5, 8]
-        - title: Tasks
-          options:
-            fields:
-            - name: Type
-            - name: Subject
-            - name: Status
-            - name: ActivityDate
-            module: Task
-            page: RecordPageForModuleTask
-            perPage: 5
-            prefilter: CaseId = ${recordID}
-            presort: ActivityDate DESC
-          kind: RecordList
-          xywh: [9, 22, 3, 8]
-        - title: Case Updates
-          options:
-            fields:
-            - name: Type
-            - name: Description
-            - name: File
-            - name: createdBy
-            - name: createdAt
-            module: CaseUpdate
-            page: RecordPageForModuleCaseUpdate
-            perPage: 5
-            prefilter: CaseId = ${recordID}
-            presort: createdAt DESC
-          kind: RecordList
-          xywh: [0, 14, 9, 8]
-        - title: Case Actions
-          options:
-            buttons:
-            - label: Set Case status to Working
-              script: /client-scripts/compose/crm/Case/SetStatusToWorking.js:default
-              variant: primary
-            - label: Set Case status to Closed
-              script: /client-scripts/compose/crm/Case/SetStatusToClosed.js:default
-              variant: primary
-            - label: Inform the contact via email of the Case solution
-              script: /client-scripts/compose/crm/Case/InformContact.js:default
-              variant: primary
-          kind: Automation
-          xywh: [9, 14, 3, 8]
-        - title: Case Solution
-          options:
-            fields:
-            - name: SolutionName
-            - name: SolutionNote
-            - name: SolutionFile
-            - name: SolutionId
-            - name: SubmitAsSolution
-          kind: Record
-          xywh: [6, 0, 3, 14]
-        pages:
-          - handle: RecordPageForModuleCaseUpdate
-            module: CaseUpdate
-            title: Record page for module "CaseUpdate"
-            blocks:
-            - title: Case Update
-              options:
-                fields:
-                - name: CaseId
+                - name: LineItemNumber
                 - name: Description
-                - name: Type
-                - name: File
-                - name: IsSolution
-                - name: createdBy
-                - name: createdAt
-              kind: Record
-              xywh: [0, 0, 4, 20]
-            visible: false
-          - handle: RecordPageForModuleCaseMilestone
-            module: CaseMilestone
-            title: Record page for module "CaseMilestone"
-            blocks:
-            - title: Case Milestone Details
-              options:
-                fields:
-                - name: CaseId
-                - name: TargetDate
-                - name: TargetResponseInDays
-                - name: TargetResponseInHrs
-                - name: TargetResponseInMins
                 - name: StartDate
-                - name: CompletionDate
-                - name: IsViolated
-                - name: IsCompleted
-              kind: Record
-              xywh: [0, 0, 5, 19]
-            pages:
-              - handle: RecordPageForModuleMilestoneType
-                module: MilestoneType
-                title: Record page for module "MilestoneType"
-                blocks:
-                - title: Case Milestone Type Details
-                  options:
-                    fields:
-                    - name: Name
-                    - name: Description
-                    - name: RecurrenceType
-                  kind: Record
-                  xywh: [0, 0, 4, 15]
-                visible: false
-            visible: false
-        visible: false
-      - handle: Solutions
-        title: Solutions
-        blocks:
-        - title: List of Solutions
-          options:
-            fields:
-            - name: SolutionNumber
-            - name: SolutionName
-            - name: SolutionNote
-            - name: CaseId
-            - name: ProductId
-            module: Solution
-            page: RecordPageForModuleSolution
-            perPage: 20
-            presort: createdAt DESC
-          kind: RecordList
-          xywh: [0, 0, 12, 20]
-        pages:
-          - handle: RecordPageForModuleSolution
-            module: Solution
-            title: Record page for module "Solution"
-            blocks:
-            - title: Solution Details
-              options:
-                fields:
-                - name: SolutionNumber
-                - name: SolutionName
-                - name: SolutionNote
-                - name: File
-                - name: CaseId
-                - name: ProductId
-              style:
-                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-              kind: Record
-              xywh: [0, 0, 5, 17]
-            visible: false
-        visible: true
-    visible: true
-  - handle: Campaigns
-    title: Campaigns
-    blocks:
-    - title: List of Campaigns
-      options:
-        fields:
-        - name: Name
-        - name: ParentId
-        - name: Type
-        - name: Status
-        - name: StartDate
-        - name: EndDate
-        module: Campaigns
-        page: RecordPageForModuleCampaign
-        perPage: 20
-        prefilter: ""
-        presort: createdAt DESC
-      kind: RecordList
-      xywh: [0, 0, 12, 20]
-    pages:
-      - handle: RecordPageForModuleCampaign
-        module: Campaigns
-        title: Record page for module "Campaign"
-        blocks:
-        - title: Campaign Details
-          options:
-            fields:
-            - name: Name
-            - name: IsActive
-            - name: ParentId
-            - name: Type
-            - name: OwnerId
-            - name: Status
-            - name: StartDate
-            - name: EndDate
-          kind: Record
-          xywh: [0, 0, 4, 13]
-        - title: Campaign Planning
-          options:
-            fields:
-            - name: BudgetedCost
-            - name: ActualCost
-            - name: ExpectedRevenue
-            - name: CreatedById
-            - name: CreatedDate
-            - name: Description
-          kind: Record
-          xywh: [4, 0, 4, 13]
-        - title: Campaign Statistics
-          options:
-            fields:
-            - name: NumberOfLeads
-            - name: NumberOfConvertedLeads
-            - name: NumberOfContacts
-            - name: NumberOfOpportunities
-            - name: NumberOfWonOpportunities
-            - name: AmountAllOpportunities
-            - name: AmountWonOpportunities
-          kind: Record
-          xywh: [8, 0, 4, 13]
-        - title: Campaign Members
-          options:
-            fields:
-            - name: LeadId
-            - name: ContactId
-            - name: Status
-            module: CampaignMember
-            page: RecordPageForModuleCampaignMember
-            perPage: 5
-            prefilter: CampaignId = ${recordID}
-          kind: RecordList
-          xywh: [0, 13, 8, 8]
-        - title: Generated Opportunities
-          options:
-            fields:
-            - name: Name
-            - name: StageName
-            - name: Amount
-            - name: CloseDate
-            module: Opportunity
-            page: RecordPageForModuleOpportunity
-            perPage: 5
-            prefilter: CampaignId = ${recordID}
-          kind: RecordList
-          xywh: [0, 21, 8, 8]
-        - title: Notes
-          options:
-            fields:
-            - name: Title
-            - name: Body
-            - name: createdAt
-            module: Note
-            page: RecordPageForModuleNote
-            perPage: 5
-            prefilter: CampaignId = ${recordID}
-            presort: createdAt DESC
-          kind: RecordList
-          xywh: [8, 21, 4, 8]
-        pages:
-          - handle: RecordPageForModuleCampaignMember
-            module: CampaignMember
-            title: Record page for module "CampaignMember"
-            blocks:
-            - title: Campaign Member Details
-              options:
-                fields:
-                - name: CampaignId
-                - name: LeadId
-                - name: ContactId
-                - name: HasResponded
-                - name: FirstRespondedDate
+                - name: EndDate
                 - name: Status
               kind: Record
-              xywh: [0, 0, 5, 13]
+              xywh: [0, 0, 4, 11]
+            - title: Contract Line Item Pricing
+              options:
+                fields:
+                - name: UnitPrice
+                - name: Quantity
+                - name: Subtotal
+                - name: Discount
+                - name: TotalPrice
+              kind: Record
+              xywh: [4, 0, 4, 11]
+            - title: Notes
+              options:
+                fields:
+                - name: Title
+                - name: Body
+                - name: createdAt
+                module: Note
+                page: RecordPageForModuleNote
+                perPage: 5
+                prefilter: ContractLineItemId = ${recordID}
+              kind: RecordList
+              xywh: [8, 0, 4, 11]
             visible: false
         visible: false
     visible: true
-  - handle: Tasks
-    title: Tasks
+  UnpublishedModules:
+    title: Unpublished modules
     blocks:
-    - title: List of Tasks
+    - title: Temp
       options:
-        fields:
-        - name: Subject
-        - name: Status
-        - name: LeadId
-        - name: AccountId
-        - name: ContactId
-        - name: OpportunityId
-        - name: QuoteId
-        - name: ContractId
-        - name: CaseId
-        - name: ActivityDate
-        module: Task
-        page: RecordPageForModuleTask
-        perPage: 20
-        prefilter: ""
-        presort: ActivityDate DESC
-      kind: RecordList
-      xywh: [0, 0, 12, 20]
+        body: <p><br></p>
+      kind: Content
+      xywh: [0, 0, 3, 3]
     pages:
-      - handle: RecordPageForModuleTask
-        module: Task
-        title: Record page for module "Task"
+      RecordPageForModuleQuestion:
+        module: Question
+        title: Record page for module "Question"
         blocks:
-        - title: Task Details
-          options:
-            fields:
-            - name: Subject
-            - name: Description
-            - name: Type
-          kind: Record
-          xywh: [0, 0, 4, 20]
-        - title: Related To
-          options:
-            fields:
-            - name: LeadId
-            - name: AccountId
-            - name: ContactId
-            - name: OpportunityId
-            - name: QuoteId
-            - name: ContractId
-          kind: Record
-          xywh: [8, 0, 4, 20]
-        - title: Task Status
-          options:
-            fields:
-            - name: Status
-            - name: ActivityDate
-            - name: Priority
-            - name: createdBy
-            - name: createdAt
-          kind: Record
-          xywh: [4, 0, 4, 20]
-        visible: false
-    visible: true
-  - handle: Events
-    title: Events
-    blocks:
-    - title: List of Events
-      options:
-        fields:
-        - name: WhoId
-        - name: Subject
-        - name: ActivityDate
-        - name: StartDateTime
-        - name: EndDateTime
-        - name: LeadId
-        - name: AccountId
-        - name: OpportunityId
-        - name: createdBy
-        module: Event
-        page: RecordPageForModuleEvent
-        perPage: 20
-      kind: RecordList
-      xywh: [0, 0, 12, 20]
-    pages:
-      - handle: RecordPageForModuleEvent
-        module: Event
-        title: Record page for module "Event"
-        blocks:
-        - title: Event Data
-          options:
-            fields:
-            - name: Subject
-            - name: Description
-            - name: Location
-            - name: createdAt
-            - name: createdBy
-          kind: Record
-          xywh: [0, 0, 4, 20]
-        - title: Related Objects
-          options:
-            fields:
-            - name: LeadId
-            - name: AccountId
-            - name: ContactId
-            - name: OpportunityId
-            - name: QuoteId
-            - name: ContractId
-            - name: CaseId
-          kind: Record
-          xywh: [8, 0, 4, 20]
-        - title: Event Date and Time
-          options:
-            fields:
-            - name: ActivityDate
-            - name: DurationInMinutes
-            - name: EndDateTime
-            - name: IsAllDayEvent
-          kind: Record
-          xywh: [4, 0, 4, 20]
-        visible: false
-    visible: true
-  - handle: Notes
-    title: Notes
-    blocks:
-    - title: List of Notes
-      options:
-        fields:
-        - name: Title
-        - name: LeadId
-        - name: AccountId
-        - name: ContactId
-        - name: OpportunityId
-        - name: QuoteId
-        - name: ContractId
-        - name: CaseId
-        - name: createdAt
-        - name: createdBy
-        module: Note
-        page: RecordPageForModuleNote
-        perPage: 20
-        presort: createdAt DESC
-      kind: RecordList
-      xywh: [0, 0, 12, 20]
-    pages:
-      - handle: RecordPageForModuleNote
-        module: Note
-        title: Record page for module "Note"
-        blocks:
-        - title: Note
+        - title: Question Details
           options:
             fields:
             - name: Title
             - name: Body
-            - name: createdAt
-            - name: createdBy
-          kind: Record
-          xywh: [0, 0, 4, 20]
-        - title: Files
-          options:
-            fields:
-            - name: FileAdd1
-            - name: FileAdd2
-            - name: FileAdd3
-            - name: FileAdd4
-          kind: Record
-          xywh: [4, 0, 4, 20]
-        - title: Related Objects
-          options:
-            fields:
-            - name: LeadId
-            - name: AccountId
-            - name: ContactId
-            - name: OpportunityId
-            - name: QuoteId
-            - name: ContractId
-            - name: CaseId
-          kind: Record
-          xywh: [8, 0, 4, 20]
-        visible: false
-    visible: true
-  - handle: Dashboards
-    title: Dashboards
-    blocks:
-    - title: Content
-      options:
-        body: <p>Each page in Corteza can be a dashboard. You can add text blocks,
-          record lists or charts to make a Sales Activities Dashboard, an executive
-          dashboard, or any other dashboard you may need, and set the access
-          permissions to define who can view or edit the dashboard.</p>
-      kind: Content
-      xywh: [0, 0, 5, 16]
-    - title: Leads per day
-      options:
-        chart: LeadsPerDay
-      kind: Chart
-      xywh: [5, 0, 3, 16]
-    pages:
-      - handle: Settings
-        title: Settings
-        description: A list of default values which are called upon in automation
-          processes.
-        blocks:
-        - title: Settings
-          options:
-            fields:
-            - name: createdAt
-            - name: updatedAt
-            hidePaging: true
-            module: Settings
-            page: RecordPageForModuleSettings
-            perPage: 1
-          kind: RecordList
-          xywh: [0, 0, 12, 7]
-        pages:
-          - handle: RecordPageForModuleSettings
-            module: Settings
-            title: Record page for module "Settings"
-            blocks:
-            - title: Quote Settings
-              options:
-                fields:
-                - name: QuoteNextNumber
-                - name: QuoteExpirationDays
-              style:
-                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-              kind: Record
-              xywh: [3, 0, 3, 12]
-            - title: Opportunity Settings
-              options:
-                fields:
-                - name: OpportunityCloseDateDays
-                - name: OpportunityProbability
-                - name: OpportunityForecaseCategory
-                - name: OpportunityStagename
-              style:
-                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-              kind: Record
-              xywh: [0, 0, 3, 12]
-            - title: Contract Settings
-              options:
-                fields:
-                - name: ContractNextNumber
-                - name: ContractDefaultTime
-              style:
-                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-              kind: Record
-              xywh: [6, 0, 3, 12]
-            - title: Case Settings
-              options:
-                fields:
-                - name: CaseNextNumber
-                - name: SolutionNextNumber
-              style:
-                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-              kind: Record
-              xywh: [9, 0, 3, 12]
-            visible: false
-        visible: true
-    visible: true
-  - handle: UnpublishedModules
-    title: Unpublished modules
-    pages:
-      - handle: Questions
-        title: Questions
-        visible: false
-        blocks:
-        - title: List of Questions
-          options:
-            fields:
-            - name: Title
-            - name: CreatedDate
             - name: NumReplies
-            module: Question
-            page: RecordPageForModuleQuestion
+            - name: BestReplyId
+            - name: UpVotes
+            - name: VoteScore
+          kind: Record
+          xywh: [0, 0, 4, 13]
+        - title: Replies
+          options:
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: Body
+            - name: Name
+            - name: UpVotes
+            - name: DownVotes
+            - name: VoteTotal
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Reply
             perPage: 20
-            presort: createdAt DESC
+            prefilter: QuestionId = ${recordID}
+            presort: ""
+            selectMode: multi
+            selectable: false
+            selectionButtons: []
           kind: RecordList
-          xywh: [0, 0, 12, 20]
-        pages:
-        - handle: RecordPageForModuleQuestion
-          module: Question
-          title: Record page for module "Question"
-          blocks:
-          - title: Question Details
-            options:
-              fields:
-              - name: Title
-              - name: Body
-              - name: NumReplies
-              - name: BestReplyId
-              - name: UpVotes
-              - name: VoteScore
-            kind: Record
-            xywh: [0, 0, 4, 13]
-          - title: Replies
-            options:
-              fields:
-              - name: Body
-              - name: Name
-              - name: UpVotes
-              - name: DownVotes
-              - name: VoteTotal
-              module: Reply
-              page: RecordPageForModuleReply
-              perPage: 5
-              prefilter: QuestionId = ${recordID}
-            kind: RecordList
-            xywh: [0, 13, 12, 7]
-          - title: Votes
-            options:
-              fields:
-              - name: Score
-              module: Vote
-              page: RecordPageForModuleVote
-              perPage: 8
-              prefilter: QuestionId = ${recordID}
-            kind: RecordList
-            xywh: [4, 0, 8, 13]
-          pages:
-          - handle: RecordPageForModuleVote
+          xywh: [0, 13, 12, 7]
+        - title: Votes
+          options:
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: Score
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Vote
-            title: Record page for module "Vote"
-            blocks:
-            - title: Vote Score
-              options:
-                fields:
-                - name: Score
-                - name: CreatedById
-                - name: CreatedDate
-              kind: Record
-              xywh: [0, 0, 4, 13]
-            - title: Related Object
-              options:
-                fields:
-                - name: IdeaId
-                - name: ReplyId
-                - name: QuestionId
-              kind: Record
-              xywh: [4, 0, 4, 13]
-            visible: false
-          - handle: RecordPageForModuleReply
+            perPage: 20
+            prefilter: QuestionId = ${recordID}
+            presort: ""
+            selectMode: multi
+            selectable: false
+            selectionButtons: []
+          kind: RecordList
+          xywh: [4, 0, 8, 13]
+        pages:
+          RecordPageForModuleReply:
             module: Reply
             title: Record page for module "Reply"
             blocks:
@@ -2275,26 +3791,57 @@ pages:
               kind: RecordList
               xywh: [6, 0, 6, 20]
             visible: false
-          visible: false
-      - handle: Ideas
+          RecordPageForModuleVote:
+            module: Vote
+            title: Record page for module "Vote"
+            blocks:
+            - title: Vote Score
+              options:
+                fields:
+                - name: Score
+                - name: CreatedById
+                - name: CreatedDate
+              kind: Record
+              xywh: [0, 0, 4, 13]
+            - title: Related Object
+              options:
+                fields:
+                - name: IdeaId
+                - name: ReplyId
+                - name: QuestionId
+              kind: Record
+              xywh: [4, 0, 4, 13]
+            visible: false
+        visible: false
+      Ideas:
         title: Ideas
         blocks:
         - title: List of Ideas
           options:
+            draggable: false
+            editFields: []
+            editable: false
             fields:
             - name: Title
             - name: Categories
             - name: ParentIdeaId
             - name: VoteScore
             - name: Status
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
             module: Idea
-            page: RecordPageForModuleIdea
             perPage: 20
+            prefilter: ""
             presort: createdAt DESC
+            selectMode: multi
+            selectable: false
+            selectionButtons: []
           kind: RecordList
           xywh: [0, 0, 12, 20]
         pages:
-          - handle: RecordPageForModuleIdea
+          RecordPageForModuleIdea:
             module: Idea
             title: Record page for module "Idea"
             blocks:
@@ -2339,7 +3886,7 @@ pages:
               xywh: [4, 0, 4, 20]
             visible: false
         visible: false
-      - handle: Emails
+      Emails:
         title: Emails
         blocks:
         - title: List of Email Templates
@@ -2353,9 +3900,9 @@ pages:
             perPage: 20
             presort: createdAt DESC
           kind: RecordList
-          xywh: [0, 0, 12, 20]
+          xywh: [8, 0, 4, 20]
         pages:
-          - handle: RecordPageForModuleEmailTemplate
+          RecordPageForModuleEmailTemplate:
             module: EmailTemplate
             title: Record page for module "EmailTemplate"
             blocks:
@@ -2371,4 +3918,537 @@ pages:
               xywh: [0, 0, 6, 19]
             visible: false
         visible: false
+      Questions:
+        title: Questions
+        blocks:
+        - title: List of Questions
+          options:
+            fields:
+            - name: Title
+            - name: CreatedDate
+            - name: NumReplies
+            module: Question
+            page: RecordPageForModuleQuestion
+            perPage: 20
+            presort: createdAt DESC
+          kind: RecordList
+          xywh: [0, 0, 12, 20]
+        visible: false
     visible: false
+  More:
+    title: More
+    blocks:
+    - title: Additional CRM modules
+      options:
+        body: <p><br>Available in the menu under "More".</p>
+      kind: Content
+      xywh: [0, 0, 3, 3]
+    pages:
+      Notes:
+        title: Notes
+        blocks:
+        - title: List of Notes
+          options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: Title
+            - name: LeadId
+            - name: AccountId
+            - name: ContactId
+            - name: OpportunityId
+            - name: createdAt
+            - name: createdBy
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Note
+            perPage: 20
+            prefilter: ""
+            presort: createdAt DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: RecordList
+          xywh: [0, 0, 12, 16]
+        pages:
+          RecordPageForModuleNote:
+            module: Note
+            title: Record page for module "Note"
+            blocks:
+            - title: Note
+              options:
+                fields:
+                - name: Title
+                - name: Body
+                - name: createdAt
+                - name: createdBy
+              style:
+                variants: {border: primary, headerText: primary}
+              kind: Record
+              xywh: [0, 0, 4, 20]
+            - title: Files
+              options:
+                fields:
+                - name: Files
+              style:
+                variants: {border: primary, headerText: primary}
+              kind: Record
+              xywh: [4, 0, 4, 20]
+            - title: Related Objects
+              options:
+                fields:
+                - name: LeadId
+                - name: AccountId
+                - name: ContactId
+                - name: OpportunityId
+                - name: QuoteId
+                - name: ContractId
+                - name: CaseId
+              style:
+                variants: {border: primary, headerText: primary}
+              kind: Record
+              xywh: [8, 0, 4, 20]
+            visible: false
+        visible: true
+      Cases:
+        title: Cases
+        blocks:
+        - title: List of Cases
+          options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: CaseNumber
+            - name: Subject
+            - name: Status
+            - name: CreatedDate
+            - name: OwnerId
+            - name: createdAt
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Case
+            perPage: 20
+            prefilter: ""
+            presort: createdAt DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 0, 8, 17]
+        - title: Cases per Month
+          options:
+            chart: CasesPerMonth
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [8, 11, 4, 6]
+        - title: Cases by Status
+          options:
+            chart: CasesByStatus
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [8, 0, 2, 5]
+        - title: Cases by Type
+          options:
+            chart: CasesByType
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [10, 5, 2, 6]
+        - title: Cases by Priority
+          options:
+            chart: CasesByPriority
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [10, 0, 2, 5]
+        - title: Cases by Origin
+          options:
+            chart: CasesByOrigin
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [8, 5, 2, 6]
+        pages:
+          RecordPageForModuleCase:
+            module: Case
+            title: Record page for module "Case"
+            blocks:
+            - title: Case Main Information
+              options:
+                fields:
+                - name: CaseNumber
+                - name: Subject
+                - name: AccountId
+                - name: ContactId
+                - name: ProductId
+              style:
+                variants: {border: primary, headerText: primary}
+              kind: Record
+              xywh: [0, 0, 3, 12]
+            - title: Case Details
+              options:
+                fields:
+                - name: Type
+                - name: Description
+                - name: File
+                - name: Origin
+              style:
+                variants: {border: primary, headerText: primary}
+              kind: Record
+              xywh: [3, 0, 3, 12]
+            - title: Case Status
+              options:
+                fields:
+                - name: Status
+                - name: OwnerId
+                - name: CreatedDate
+                - name: Priority
+                - name: IsEscalated
+                - name: IsClosed
+                - name: ClosedDate
+                - name: Reason
+              style:
+                variants: {border: primary, headerText: primary}
+              kind: Record
+              xywh: [9, 0, 3, 12]
+            - title: Notes
+              options:
+                allowExport: true
+                draggable: false
+                editFields: []
+                editable: false
+                fields:
+                - name: Title
+                - name: Body
+                - name: createdAt
+                hideRecordCloneButton: true
+                hideRecordEditButton: false
+                hideRecordReminderButton: true
+                hideRecordViewButton: true
+                module: Note
+                perPage: 20
+                prefilter: CaseId = ${recordID}
+                presort: createdAt DESC
+                selectMode: multi
+                selectable: true
+                selectionButtons: []
+              style:
+                variants: {border: primary, headerText: primary}
+              kind: RecordList
+              xywh: [0, 21, 4, 8]
+            - title: Events
+              options:
+                allowExport: true
+                draggable: false
+                editFields: []
+                editable: false
+                fields:
+                - name: Type
+                - name: Subject
+                - name: ActivityDate
+                hideRecordCloneButton: true
+                hideRecordEditButton: false
+                hideRecordReminderButton: true
+                hideRecordViewButton: true
+                module: Event
+                perPage: 20
+                prefilter: CaseId = ${recordID}
+                presort: ActivityDate DESC
+                selectMode: multi
+                selectable: true
+                selectionButtons: []
+              style:
+                variants: {border: primary, headerText: primary}
+              kind: RecordList
+              xywh: [4, 21, 4, 8]
+            - title: Tasks
+              options:
+                allowExport: true
+                draggable: false
+                editFields: []
+                editable: false
+                fields:
+                - name: Type
+                - name: Subject
+                - name: Status
+                - name: ActivityDate
+                hideRecordCloneButton: true
+                hideRecordEditButton: false
+                hideRecordReminderButton: true
+                hideRecordViewButton: true
+                module: Task
+                perPage: 20
+                prefilter: CaseId = ${recordID}
+                presort: ActivityDate DESC
+                selectMode: multi
+                selectable: true
+                selectionButtons: []
+              style:
+                variants: {border: primary, headerText: primary}
+              kind: RecordList
+              xywh: [8, 21, 4, 8]
+            - title: Case Updates
+              options:
+                allowExport: true
+                draggable: false
+                editFields: []
+                editable: false
+                fields:
+                - name: Type
+                - name: Description
+                - name: File
+                - name: createdBy
+                - name: createdAt
+                hideRecordCloneButton: true
+                hideRecordEditButton: false
+                hideRecordReminderButton: true
+                hideRecordViewButton: true
+                module: CaseUpdate
+                perPage: 20
+                prefilter: CaseId = ${recordID}
+                presort: createdAt DESC
+                selectMode: multi
+                selectable: true
+                selectionButtons: []
+              style:
+                variants: {border: primary, headerText: primary}
+              kind: RecordList
+              xywh: [0, 12, 9, 9]
+            - title: Case Actions
+              options:
+                buttons:
+                - enabled: true
+                  label: Set Case status to Working
+                  resourceType: compose:record
+                  script: /client-scripts/compose/crm/Case/SetStatusToWorking.js:default
+                - enabled: true
+                  label: Set Case status to Closed
+                  resourceType: compose:record
+                  script: /client-scripts/compose/crm/Case/SetStatusToClosed.js:default
+                - enabled: true
+                  label: Inform the contact via email of the Case solution
+                  resourceType: compose:record
+                  script: /client-scripts/compose/crm/Case/InformContact.js:default
+                sealed: false
+              style:
+                variants: {border: primary, headerText: primary}
+              kind: Automation
+              xywh: [9, 12, 3, 9]
+            - title: Case Solution
+              options:
+                fields:
+                - name: SolutionName
+                - name: SolutionNote
+                - name: SolutionFile
+                - name: SolutionId
+                - name: SubmitAsSolution
+              style:
+                variants: {border: primary, headerText: primary}
+              kind: Record
+              xywh: [6, 0, 3, 12]
+            pages:
+              RecordPageForModuleCaseUpdate:
+                module: CaseUpdate
+                title: Record page for module "CaseUpdate"
+                blocks:
+                - title: Case Update
+                  options:
+                    fields:
+                    - name: CaseId
+                    - name: Description
+                    - name: Type
+                    - name: File
+                    - name: IsSolution
+                    - name: createdBy
+                    - name: createdAt
+                  style:
+                    variants: {border: primary, headerText: primary}
+                  kind: Record
+                  xywh: [0, 0, 4, 15]
+                visible: false
+            visible: false
+        visible: true
+      Solutions:
+        title: Solutions
+        blocks:
+        - title: List of Solutions
+          options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: SolutionNumber
+            - name: SolutionName
+            - name: SolutionNote
+            - name: CaseId
+            - name: ProductId
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Solution
+            perPage: 20
+            prefilter: ""
+            presort: createdAt DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: RecordList
+          xywh: [0, 0, 9, 16]
+        - title: Solutions by Status
+          options:
+            chart: SolutionsByStatus
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [9, 0, 3, 8]
+        - title: Solutions Created per Month
+          options:
+            chart: SolutionsCreatedPerMonth
+          style:
+            variants: {border: primary, headerText: primary}
+          kind: Chart
+          xywh: [9, 8, 3, 8]
+        pages:
+          RecordPageForModuleSolution:
+            module: Solution
+            title: Record page for module "Solution"
+            blocks:
+            - title: Solution Details
+              options:
+                fields:
+                - name: SolutionNumber
+                - name: SolutionName
+                - name: SolutionNote
+                - name: File
+                - name: CaseId
+                - name: ProductId
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [0, 0, 4, 15]
+            visible: false
+        visible: true
+      DefaultSettings:
+        title: Default Settings
+        description: A list of defaults values which are called upon in automation
+          processes.
+        blocks:
+        - title: Default settings
+          options:
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: createdAt
+            - name: updatedAt
+            hidePaging: true
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Settings
+            perPage: 20
+            prefilter: ""
+            presort: ""
+            selectMode: multi
+            selectable: false
+            selectionButtons: []
+          kind: RecordList
+          xywh: [0, 0, 12, 7]
+        pages:
+          RecordPageForModuleDefaultSettings:
+            module: Settings
+            title: Record page for module "DefaultSettings"
+            blocks:
+            - title: Quote Settings
+              options:
+                fields:
+                - name: QuoteNextNumber
+                - name: QuoteExpirationDays
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [3, 0, 3, 12]
+            - title: Opportunity Settings
+              options:
+                fields:
+                - name: OpportunityCloseDateDays
+                - name: OpportunityProbability
+                - name: OpportunityForecaseCategory
+                - name: OpportunityStagename
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [0, 0, 3, 12]
+            - title: Contract Settings
+              options:
+                fields:
+                - name: ContractNextNumber
+                - name: ContractDefaultTime
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [6, 0, 3, 12]
+            - title: Case Settings
+              options:
+                fields:
+                - name: CaseNextNumber
+                - name: SolutionNextNumber
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [9, 0, 3, 12]
+            - title: Opportunity Qualification Weights
+              options:
+                fields:
+                - name: ScoreBudget
+                - name: ScoreAuthority
+                - name: ScoreNeed
+                - name: ScoreTimescale
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [0, 12, 3, 8]
+            - title: Opportunity Facts Weighting
+              options:
+                fields:
+                - name: ScoreTurnover
+                - name: ScoreYearsInBusiness
+                - name: ScoreSource
+                - name: ScoreProductKnowlege
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [3, 12, 3, 8]
+            - title: Opportunity Cutsom Weighting
+              options:
+                fields:
+                - name: ScoreTechnicalDepth
+                - name: ScoreCompetition
+                - name: ScoreCriticality
+                - name: ScoreRepeatPurchase
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [6, 12, 3, 8]
+            visible: false
+        visible: true
+    visible: true
