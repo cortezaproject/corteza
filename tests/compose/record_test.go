@@ -495,7 +495,6 @@ func TestRecordFieldModulePermissionCheck(t *testing.T) {
 				b().JSON(fmt.Sprintf(`{"values": [{"name": "email", "value": "changed-email"}]}`)).
 					Expect(t).
 					Status(http.StatusOK).
-					Assert(helpers.Dump).
 					Assert(helpers.AssertError("not allowed to change value of field email")).
 					End()
 			})
