@@ -236,23 +236,26 @@ func (svc page) Reorder(namespaceID, parentID uint64, pageIDs []uint64) (err err
 			return err
 		}
 
-		// Reordering on root mode -- check if user can create pages.
-		if parentID == 0 && !svc.ac.CanCreatePage(svc.ctx, ns) {
-			return PageErrNotAllowedToUpdate()
-		}
+		if parentID == 0 {
+			// Reordering on root mode -- check if user can create pages.
+			if !svc.ac.CanCreatePage(svc.ctx, ns) {
+				return PageErrNotAllowedToUpdate()
+			}
+		} else {
+			// Validate permissions on parent page
+			if p, err = svc.pageRepo.FindByID(ns.ID, parentID); err != nil {
+				if repository.ErrPageNotFound.Eq(err) {
+					return PageErrNotFound()
+				}
 
-		if p, err = svc.pageRepo.FindByID(ns.ID, parentID); err != nil {
-			if repository.ErrPageNotFound.Eq(err) {
-				return PageErrNotFound()
+				return
 			}
 
-			return
-		}
+			aProps.setPage(p)
 
-		aProps.setPage(p)
-
-		if !svc.ac.CanUpdatePage(svc.ctx, p) {
-			return PageErrNotAllowedToUpdate()
+			if !svc.ac.CanUpdatePage(svc.ctx, p) {
+				return PageErrNotAllowedToUpdate()
+			}
 		}
 
 		return svc.pageRepo.Reorder(namespaceID, parentID, pageIDs)
