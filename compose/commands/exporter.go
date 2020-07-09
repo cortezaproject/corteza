@@ -463,16 +463,8 @@ func expPageBlocks(in types.PageBlocks, pages types.PageSet, modules types.Modul
 	}
 
 	for i := range out {
-		if ff, has := out[i].Options["fields"].([]interface{}); has {
-			// Trim out obsolete field info
-			for fi := range ff {
-				if f, ok := ff[fi].(map[string]interface{}); ok {
-					ff[fi] = map[string]string{
-						"name": f["name"].(string),
-					}
-				}
-			}
-		}
+		expEncodeRefFields(out[i].Options, "fields")
+		expEncodeRefFields(out[i].Options, "editFields")
 
 		if moduleIDstr, has := out[i].Options["moduleID"].(string); has {
 			delete(out[i].Options, "moduleID")
@@ -511,56 +503,128 @@ func expPageBlocks(in types.PageBlocks, pages types.PageSet, modules types.Modul
 		rmFalse(out[i].Options, "hideSorting")
 		rmFalse(out[i].Options, "allowExport")
 
-		if out[i].Kind == "Automation" {
-			bb := make([]interface{}, 0)
-			_ = deinterfacer.Each(out[i].Options["buttons"], func(_ int, _ string, btn interface{}) error {
-				button := map[string]interface{}{}
-
-				_ = deinterfacer.Each(btn, func(_ int, k string, v interface{}) error {
-					switch k {
-					case "triggerID", "scriptID":
-						// if s := scripts.FindByID(deinterfacer.ToUint64(v)); s != nil {
-						// 	button["script"] = makeHandleFromName(s.Name, "", "automation-script-%d", s.ID)
-						// }
-					default:
-						button[k] = v
-					}
-
-					return nil
-				})
-
-				bb = append(bb, button)
-				return nil
-			})
-
-			out[i].Options["buttons"] = bb
-		} else if out[i].Kind == "Calendar" {
-			ff := make([]interface{}, 0)
-			_ = deinterfacer.Each(out[i].Options["feeds"], func(_ int, _ string, def interface{}) error {
-				feed := map[string]interface{}{}
-
-				_ = deinterfacer.Each(def, func(_ int, k string, v interface{}) error {
-					switch k {
-					case "moduleID":
-						if module := modules.FindByID(deinterfacer.ToUint64(v)); module != nil {
-							feed["module"] = makeHandleFromName(module.Name, module.Handle, "module-%d", module.ID)
-						}
-					default:
-						feed[k] = v
-					}
-
-					return nil
-				})
-
-				ff = append(ff, feed)
-				return nil
-			})
-
-			out[i].Options["feeds"] = ff
+		switch out[i].Kind {
+		case "Automation":
+			expPageBlocks_Automation(&out[i])
+		case "Calendar":
+			expPageBlocks_Calendar(&out[i], modules)
+		case "Metric":
+			expPageBlocks_Metric(&out[i], modules)
 		}
 	}
 
 	return out
+}
+
+func expPageBlocks_Automation(b *types.PageBlock) {
+	bb := make([]interface{}, 0)
+	_ = deinterfacer.Each(b.Options["buttons"], func(_ int, _ string, btn interface{}) error {
+		button := map[string]interface{}{}
+
+		_ = deinterfacer.Each(btn, func(_ int, k string, v interface{}) error {
+			switch k {
+			case "triggerID", "scriptID":
+				// if s := scripts.FindByID(deinterfacer.ToUint64(v)); s != nil {
+				// 	button["script"] = makeHandleFromName(s.Name, "", "automation-script-%d", s.ID)
+				// }
+			default:
+				button[k] = v
+			}
+
+			return nil
+		})
+
+		bb = append(bb, button)
+		return nil
+	})
+
+	b.Options["buttons"] = bb
+}
+
+func expPageBlocks_Calendar(b *types.PageBlock, modules types.ModuleSet) {
+	ff := make([]interface{}, 0)
+	_ = deinterfacer.Each(b.Options["feeds"], func(_ int, _ string, def interface{}) error {
+		feed := map[string]interface{}{}
+
+		_ = deinterfacer.Each(def, func(_ int, k string, v interface{}) error {
+			switch k {
+			case "options":
+				expEncodeModuleInMap(v, modules)
+				feed["options"] = v
+			default:
+				feed[k] = v
+			}
+
+			return nil
+		})
+
+		ff = append(ff, feed)
+		return nil
+	})
+
+	b.Options["feeds"] = ff
+}
+
+func expPageBlocks_Metric(b *types.PageBlock, modules types.ModuleSet) {
+	mm := make([]interface{}, 0)
+	_ = deinterfacer.Each(b.Options["metrics"], func(_ int, _ string, def interface{}) error {
+		metric := map[string]interface{}{}
+
+		_ = deinterfacer.Each(def, func(_ int, k string, v interface{}) error {
+			switch k {
+			case "moduleID":
+				metric["module"] = expEncodeModule(v, modules)
+			default:
+				metric[k] = v
+			}
+
+			return nil
+		})
+
+		mm = append(mm, metric)
+		return nil
+	})
+
+	b.Options["metrics"] = mm
+}
+
+func expEncodeModule(id interface{}, modules types.ModuleSet) string {
+	if moduleID := deinterfacer.ToUint64(id); moduleID > 0 {
+		if module := modules.FindByID(moduleID); module != nil {
+			return makeHandleFromName(module.Name, module.Handle, "module-%d", module.ID)
+		}
+	}
+
+	return fmt.Sprintf("Error: module with ID  %v does not exist", id)
+}
+
+func expEncodeModuleInMap(in interface{}, modules types.ModuleSet) {
+	m, ok := in.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	id, has := m["moduleID"]
+	if !has {
+		return
+	}
+
+	delete(m, "moduleID")
+	m["module"] = expEncodeModule(id, modules)
+}
+
+// Trims out any extra info on referenced fields, keeps just name
+func expEncodeRefFields(m map[string]interface{}, name string) {
+	if ff, has := m[name].([]interface{}); has {
+		// Trim out obsolete field info
+		for fi := range ff {
+			if f, ok := ff[fi].(map[string]interface{}); ok {
+				ff[fi] = map[string]string{
+					"name": f["name"].(string),
+				}
+			}
+		}
+	}
 }
 
 func expCharts(charts types.ChartSet, modules types.ModuleSet) (o map[string]Chart) {
