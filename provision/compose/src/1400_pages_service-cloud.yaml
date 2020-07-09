@@ -1,6 +1,366 @@
 namespace: service-cloud
 pages:
-  Accounts:
+  - handle: Home
+    title: Home
+    blocks:
+    - title: All Cases
+      options:
+        allowExport: true
+        draggable: false
+        editFields: []
+        editable: false
+        fields:
+        - name: Number
+        - name: Subject
+        - name: Status
+        - name: Priority
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
+        module: Case
+        perPage: 20
+        prefilter: ""
+        presort: createdAt DESC
+        selectMode: multi
+        selectable: false
+        selectionButtons: []
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: RecordList
+      xywh: [0, 0, 6, 16]
+    - title: New cases per month
+      options:
+        chart: NewCasesByMonth
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [6, 0, 3, 6]
+    - title: Cases by priority
+      options:
+        chart: CasesByPriority
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [6, 6, 3, 5]
+    - title: Cases by category
+      options:
+        chart: CasesByCategory
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [6, 11, 3, 5]
+    - title: Closed cases per month
+      options:
+        chart: ClosedCasesPerMonth
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 6]
+    - title: Cases by status
+      options:
+        chart: CasesByStatus
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 6, 3, 5]
+    - title: Total cost per case category (in $)
+      options:
+        chart: CostPerCategory
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 11, 3, 5]
+    visible: true
+  - handle: Cases
+    title: Cases
+    blocks:
+    - title: All cases
+      options:
+        allowExport: true
+        fields:
+        - name: Number
+        - name: Subject
+        - name: ProductId
+        - name: Category
+        - name: Status
+        - name: Priority
+        - name: CaseOwner
+        - name: createdAt
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
+        module: Case
+        perPage: 20
+        prefilter: ""
+        presort: createdAt DESC
+        selectMode: multi
+        selectable: true
+        selectionButtons: []
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: RecordList
+      xywh: [0, 0, 9, 16]
+    - title: Cases by priority
+      options:
+        chart: CasesByPriority
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: Cases by category
+      options:
+        chart: CasesByCategory
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
+    pages:
+      - handle: RecordPageForModuleCase
+        module: Case
+        title: Record page for module "Case"
+        blocks:
+        - title: Case Description
+          options:
+            fields:
+            - name: Number
+            - name: Status
+            - name: Category
+            - name: Description
+            - name: Priority
+            - name: ProductId
+            - name: Solution
+            - name: CloseDate
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [0, 0, 3, 11]
+        - title: Case Details
+          options:
+            fields:
+            - name: CaseOwner
+            - name: Escalated
+            - name: AccountId
+            - name: ContactId
+            - name: MailingList
+            - name: TotalTime
+            - name: TotalCost
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [9, 0, 3, 11]
+        - title: Case Subject
+          options:
+            fields:
+            - name: Subject
+          style:
+            variants: {bodyBg: white, border: success, headerBg: white, headerText: success}
+          kind: Record
+          xywh: [3, 0, 6, 3]
+        - title: Updates
+          options:
+            fields:
+            - name: Type
+            - name: Subject
+            - name: Content
+            - name: From
+            - name: createdAt
+            hideAddButton: true
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Update
+            perPage: 20
+            prefilter: CaseId = ${recordID}
+            presort: createdAt DESC
+            selectMode: multi
+            selectable: false
+            selectionButtons: []
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [3, 5, 6, 13]
+        - title: Related Attachments
+          options:
+            fields:
+            - name: File
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Attachement
+            perPage: 20
+            prefilter: CaseId = ${recordID}
+            presort: ""
+            selectMode: multi
+            selectable: false
+            selectionButtons: []
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 11, 3, 7]
+        - title: Search the Knowledge Base
+          options:
+            fields:
+            - name: Number
+            - name: Title
+            hideAddButton: true
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: KnowledgeBase
+            perPage: 20
+            prefilter: ""
+            presort: Number ASC
+            selectMode: multi
+            selectable: false
+            selectionButtons: []
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [9, 11, 3, 7]
+        - options:
+            buttons:
+            - enabled: true
+              label: Add Update to this Case
+              resourceType: compose:record
+              script: /client-scripts/compose/service-cloud/Case/AddUpdate.js:default
+            - enabled: true
+              label: Create email for this Case
+              resourceType: compose:record
+              script: /client-scripts/compose/service-cloud/Case/CreateEmail.js:default
+            sealed: false
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Automation
+          xywh: [3, 3, 6, 2]
+        pages:
+          - handle: RecordPageForModuleAttachement
+            module: Attachement
+            title: Record page for module "Attachement"
+            blocks:
+            - title: Attachment Details
+              options:
+                fields:
+                - name: Name
+                - name: CaseId
+                - name: File
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [0, 0, 5, 18]
+            visible: false
+          - handle: RecordPageForModuleUpdate
+            module: Update
+            title: Record page for module "Update"
+            blocks:
+            - title: Content
+              options:
+                fields:
+                - name: CaseId
+                - name: Subject
+                - name: Content
+                - name: Type
+                - name: From
+                - name: To
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [0, 0, 8, 18]
+            - title: Notifications
+              options:
+                fields:
+                - name: ContactId
+                - name: NotificationCaseCreator
+                - name: NotificationCaseOwner
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [8, 0, 4, 7]
+            - title: Other Information
+              options:
+                fields:
+                - name: AccountId
+                - name: Department
+                - name: TimeSpend
+                - name: Cost
+                - name: createdAt
+                - name: createdBy
+              style:
+                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+              kind: Record
+              xywh: [8, 7, 4, 11]
+            visible: false
+        visible: false
+      - handle: AllMyCases
+        title: All my cases
+        blocks:
+        - title: All my cases
+          options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: Number
+            - name: Subject
+            - name: Status
+            - name: Priority
+            - name: CaseOwner
+            - name: createdAt
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Case
+            perPage: 20
+            prefilter: ${userID} = CaseOwner
+            presort: createdAt DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 0, 12, 16]
+        visible: true
+      - handle: MyNewCases
+        title: My new cases
+        blocks:
+        - title: My new cases
+          options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: Number
+            - name: Subject
+            - name: Status
+            - name: Priority
+            - name: CaseOwner
+            - name: createdAt
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Case
+            perPage: 20
+            prefilter: ${userID} = CaseOwner AND Status = 'New'
+            presort: createdAt DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 0, 12, 16]
+        visible: true
+    visible: true
+  - handle: Accounts
     title: Accounts
     blocks:
     - title: Accounts
@@ -44,7 +404,7 @@ pages:
       kind: Chart
       xywh: [9, 8, 3, 8]
     pages:
-      RecordPageForModuleAccount:
+      - handle: RecordPageForModuleAccount
         module: Account
         title: Record page for module "Account"
         blocks:
@@ -154,7 +514,7 @@ pages:
           kind: RecordList
           xywh: [0, 21, 6, 9]
         visible: false
-      Contacts:
+      - handle: Contacts
         title: Contacts
         blocks:
         - title: Contacts
@@ -187,7 +547,7 @@ pages:
           kind: RecordList
           xywh: [0, 0, 12, 16]
         pages:
-          RecordPageForModuleContact:
+          - handle: RecordPageForModuleContact
             module: Contact
             title: Record page for module "Contact"
             blocks:
@@ -280,7 +640,7 @@ pages:
               kind: RecordList
               xywh: [0, 20, 9, 9]
             pages:
-              RecordPageForModuleEmailMessage:
+              - handle: RecordPageForModuleEmailMessage
                 module: EmailMessage
                 title: Record page for module "Email Message"
                 blocks:
@@ -340,7 +700,7 @@ pages:
                 visible: false
             visible: false
         visible: true
-      Entitlements:
+      - handle: Entitlements
         title: Entitlements
         blocks:
         - title: Entitlements
@@ -373,7 +733,7 @@ pages:
           kind: RecordList
           xywh: [0, 0, 12, 16]
         pages:
-          RecordPageForModuleEntitlement:
+          - handle: RecordPageForModuleEntitlement
             module: Entitlement
             title: Record page for module "Entitlement"
             blocks:
@@ -416,7 +776,7 @@ pages:
             visible: false
         visible: true
     visible: true
-  Products:
+  - handle: Products
     title: Products
     blocks:
     - title: Products
@@ -462,7 +822,7 @@ pages:
       kind: Chart
       xywh: [9, 8, 3, 8]
     pages:
-      RecordPageForModuleProduct:
+      - handle: RecordPageForModuleProduct
         module: Product
         title: Record page for module "Product"
         blocks:
@@ -560,7 +920,7 @@ pages:
           kind: Record
           xywh: [3, 0, 3, 10]
         visible: false
-      EntitlementTemplates:
+      - handle: EntitlementTemplates
         title: Entitlement Templates
         blocks:
         - title: Entitlement Templates
@@ -590,7 +950,7 @@ pages:
           kind: RecordList
           xywh: [0, 0, 12, 16]
         pages:
-          RecordPageForModuleEntitlementTemplate:
+          - handle: RecordPageForModuleEntitlementTemplate
             module: EntitlementTemplate
             title: Record page for module "EntitlementTemplate"
             blocks:
@@ -628,7 +988,7 @@ pages:
             visible: false
         visible: true
     visible: true
-  KnowledgeBase:
+  - handle: KnowledgeBase
     title: Knowledge Base
     blocks:
     - title: Knowledge Base
@@ -673,7 +1033,7 @@ pages:
       kind: Chart
       xywh: [9, 8, 3, 8]
     pages:
-      RecordPageForModuleKnowledgeBase:
+      - handle: RecordPageForModuleKnowledgeBase
         module: KnowledgeBase
         title: Record page for module "Knowledge Base"
         blocks:
@@ -729,7 +1089,99 @@ pages:
           xywh: [0, 0, 3, 20]
         visible: false
     visible: true
-  Dashboard:
+  - handle: Departments
+    title: Departments
+    blocks:
+    - title: Departments
+      options:
+        allowExport: true
+        draggable: false
+        editFields: []
+        editable: false
+        fields:
+        - name: Name
+        - name: Employees
+        - name: HourCost
+        - name: TotalTime
+        - name: TotalCost
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
+        module: Department
+        perPage: 20
+        prefilter: ""
+        presort: Name ASC
+        selectMode: multi
+        selectable: true
+        selectionButtons: []
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: RecordList
+      xywh: [0, 0, 9, 16]
+    - title: Total time spent per department (in hours)
+      options:
+        chart: TotalTimeSpentPerDepartment
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: Total case costs per department (in $)
+      options:
+        chart: TotalCostPerDepartment
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
+    pages:
+      - handle: RecordPageForModuleDepartment
+        module: Department
+        title: Record page for module "Department"
+        blocks:
+        - title: Department details
+          options:
+            fields:
+            - name: Name
+            - name: Employees
+            - name: HourCost
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [0, 0, 6, 6]
+        - title: Total time and cost of department related to work on cases
+          options:
+            fields:
+            - name: TotalTime
+            - name: TotalCost
+            - name: DepartmentSelect
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [6, 0, 6, 6]
+        - title: Case updates related to the department
+          options:
+            allowExport: true
+            fields:
+            - name: CaseId
+            - name: AccountId
+            - name: ContactId
+            - name: Type
+            - name: Subject
+            - name: TimeSpend
+            - name: Cost
+            - name: createdAt
+            module: Update
+            page: RecordPageForModuleUpdate
+            perPage: 20
+            prefilter: Department = ${recordID}
+            presort: createdAt DESC
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 6, 12, 10]
+        visible: false
+    visible: true
+  - handle: Dashboard
     title: Dashboard
     blocks:
     - title: Cases by category
@@ -873,367 +1325,7 @@ pages:
       kind: Chart
       xywh: [9, 24, 3, 6]
     visible: true
-  Home:
-    title: Home
-    blocks:
-    - title: All Cases
-      options:
-        allowExport: true
-        draggable: false
-        editFields: []
-        editable: false
-        fields:
-        - name: Number
-        - name: Subject
-        - name: Status
-        - name: Priority
-        hideRecordCloneButton: true
-        hideRecordEditButton: false
-        hideRecordReminderButton: true
-        hideRecordViewButton: true
-        module: Case
-        perPage: 20
-        prefilter: ""
-        presort: createdAt DESC
-        selectMode: multi
-        selectable: false
-        selectionButtons: []
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: RecordList
-      xywh: [0, 0, 6, 16]
-    - title: New cases per month
-      options:
-        chart: NewCasesByMonth
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [6, 0, 3, 6]
-    - title: Cases by priority
-      options:
-        chart: CasesByPriority
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [6, 6, 3, 5]
-    - title: Cases by category
-      options:
-        chart: CasesByCategory
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [6, 11, 3, 5]
-    - title: Closed cases per month
-      options:
-        chart: ClosedCasesPerMonth
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [9, 0, 3, 6]
-    - title: Cases by status
-      options:
-        chart: CasesByStatus
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [9, 6, 3, 5]
-    - title: Total cost per case category (in $)
-      options:
-        chart: CostPerCategory
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [9, 11, 3, 5]
-    visible: true
-  Cases:
-    title: Cases
-    blocks:
-    - title: All cases
-      options:
-        allowExport: true
-        fields:
-        - name: Number
-        - name: Subject
-        - name: ProductId
-        - name: Category
-        - name: Status
-        - name: Priority
-        - name: CaseOwner
-        - name: createdAt
-        hideRecordCloneButton: true
-        hideRecordEditButton: false
-        hideRecordReminderButton: true
-        hideRecordViewButton: true
-        module: Case
-        perPage: 20
-        prefilter: ""
-        presort: createdAt DESC
-        selectMode: multi
-        selectable: true
-        selectionButtons: []
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: RecordList
-      xywh: [0, 0, 9, 16]
-    - title: Cases by priority
-      options:
-        chart: CasesByPriority
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [9, 0, 3, 8]
-    - title: Cases by category
-      options:
-        chart: CasesByCategory
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [9, 8, 3, 8]
-    pages:
-      RecordPageForModuleCase:
-        module: Case
-        title: Record page for module "Case"
-        blocks:
-        - title: Case Description
-          options:
-            fields:
-            - name: Number
-            - name: Status
-            - name: Category
-            - name: Description
-            - name: Priority
-            - name: ProductId
-            - name: Solution
-            - name: CloseDate
-          style:
-            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-          kind: Record
-          xywh: [0, 0, 3, 11]
-        - title: Case Details
-          options:
-            fields:
-            - name: CaseOwner
-            - name: Escalated
-            - name: AccountId
-            - name: ContactId
-            - name: MailingList
-            - name: TotalTime
-            - name: TotalCost
-          style:
-            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-          kind: Record
-          xywh: [9, 0, 3, 11]
-        - title: Case Subject
-          options:
-            fields:
-            - name: Subject
-          style:
-            variants: {bodyBg: white, border: success, headerBg: white, headerText: success}
-          kind: Record
-          xywh: [3, 0, 6, 3]
-        - title: Updates
-          options:
-            fields:
-            - name: Type
-            - name: Subject
-            - name: Content
-            - name: From
-            - name: createdAt
-            hideAddButton: true
-            hideRecordCloneButton: true
-            hideRecordEditButton: false
-            hideRecordReminderButton: true
-            hideRecordViewButton: true
-            module: Update
-            perPage: 20
-            prefilter: CaseId = ${recordID}
-            presort: createdAt DESC
-            selectMode: multi
-            selectable: false
-            selectionButtons: []
-          style:
-            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-          kind: RecordList
-          xywh: [3, 5, 6, 13]
-        - title: Related Attachments
-          options:
-            fields:
-            - name: File
-            hideRecordCloneButton: true
-            hideRecordEditButton: false
-            hideRecordReminderButton: true
-            hideRecordViewButton: true
-            module: Attachement
-            perPage: 20
-            prefilter: CaseId = ${recordID}
-            presort: ""
-            selectMode: multi
-            selectable: false
-            selectionButtons: []
-          style:
-            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-          kind: RecordList
-          xywh: [0, 11, 3, 7]
-        - title: Search the Knowledge Base
-          options:
-            fields:
-            - name: Number
-            - name: Title
-            hideAddButton: true
-            hideRecordCloneButton: true
-            hideRecordEditButton: false
-            hideRecordReminderButton: true
-            hideRecordViewButton: true
-            module: KnowledgeBase
-            perPage: 20
-            prefilter: ""
-            presort: Number ASC
-            selectMode: multi
-            selectable: false
-            selectionButtons: []
-          style:
-            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-          kind: RecordList
-          xywh: [9, 11, 3, 7]
-        - options:
-            buttons:
-            - enabled: true
-              label: Add Update to this Case
-              resourceType: compose:record
-              script: /client-scripts/compose/service-cloud/Case/AddUpdate.js:default
-            - enabled: true
-              label: Create email for this Case
-              resourceType: compose:record
-              script: /client-scripts/compose/service-cloud/Case/CreateEmail.js:default
-            sealed: false
-          style:
-            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-          kind: Automation
-          xywh: [3, 3, 6, 2]
-        pages:
-          RecordPageForModuleAttachement:
-            module: Attachement
-            title: Record page for module "Attachement"
-            blocks:
-            - title: Attachment Details
-              options:
-                fields:
-                - name: Name
-                - name: CaseId
-                - name: File
-              style:
-                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-              kind: Record
-              xywh: [0, 0, 5, 18]
-            visible: false
-          RecordPageForModuleUpdate:
-            module: Update
-            title: Record page for module "Update"
-            blocks:
-            - title: Content
-              options:
-                fields:
-                - name: CaseId
-                - name: Subject
-                - name: Content
-                - name: Type
-                - name: From
-                - name: To
-              style:
-                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-              kind: Record
-              xywh: [0, 0, 8, 18]
-            - title: Notifications
-              options:
-                fields:
-                - name: ContactId
-                - name: NotificationCaseCreator
-                - name: NotificationCaseOwner
-              style:
-                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-              kind: Record
-              xywh: [8, 0, 4, 7]
-            - title: Other Information
-              options:
-                fields:
-                - name: AccountId
-                - name: Department
-                - name: TimeSpend
-                - name: Cost
-                - name: createdAt
-                - name: createdBy
-              style:
-                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-              kind: Record
-              xywh: [8, 7, 4, 11]
-            visible: false
-        visible: false
-      AllMyCases:
-        title: All my cases
-        blocks:
-        - title: All my cases
-          options:
-            allowExport: true
-            draggable: false
-            editFields: []
-            editable: false
-            fields:
-            - name: Number
-            - name: Subject
-            - name: Status
-            - name: Priority
-            - name: CaseOwner
-            - name: createdAt
-            hideRecordCloneButton: true
-            hideRecordEditButton: false
-            hideRecordReminderButton: true
-            hideRecordViewButton: true
-            module: Case
-            perPage: 20
-            prefilter: ${userID} = CaseOwner
-            presort: createdAt DESC
-            selectMode: multi
-            selectable: true
-            selectionButtons: []
-          style:
-            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-          kind: RecordList
-          xywh: [0, 0, 12, 16]
-        visible: true
-      MyNewCases:
-        title: My new cases
-        blocks:
-        - title: My new cases
-          options:
-            allowExport: true
-            draggable: false
-            editFields: []
-            editable: false
-            fields:
-            - name: Number
-            - name: Subject
-            - name: Status
-            - name: Priority
-            - name: CaseOwner
-            - name: createdAt
-            hideRecordCloneButton: true
-            hideRecordEditButton: false
-            hideRecordReminderButton: true
-            hideRecordViewButton: true
-            module: Case
-            perPage: 20
-            prefilter: ${userID} = CaseOwner AND Status = 'New'
-            presort: createdAt DESC
-            selectMode: multi
-            selectable: true
-            selectionButtons: []
-          style:
-            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-          kind: RecordList
-          xywh: [0, 0, 12, 16]
-        visible: true
-    visible: true
-  Settings:
+  - handle: Settings
     title: Settings
     blocks:
     - title: Settings
@@ -1258,7 +1350,7 @@ pages:
       kind: RecordList
       xywh: [0, 0, 12, 5]
     pages:
-      RecordPageForModuleSettings:
+      - handle: RecordPageForModuleSettings
         module: Settings
         title: Record page for module "Settings"
         blocks:
@@ -1277,7 +1369,7 @@ pages:
           kind: Record
           xywh: [0, 0, 6, 17]
         visible: false
-      EmailTemplates:
+      - handle: EmailTemplates
         title: Email Templates
         blocks:
         - title: Email Templates
@@ -1307,7 +1399,7 @@ pages:
           kind: RecordList
           xywh: [0, 0, 12, 16]
         pages:
-          RecordPageForModuleEmailTemplate:
+          - handle: RecordPageForModuleEmailTemplate
             module: EmailTemplate
             title: Record page for module "Email Template"
             blocks:
@@ -1354,96 +1446,4 @@ pages:
               xywh: [0, 12, 12, 10]
             visible: false
         visible: true
-    visible: true
-  Departments:
-    title: Departments
-    blocks:
-    - title: Departments
-      options:
-        allowExport: true
-        draggable: false
-        editFields: []
-        editable: false
-        fields:
-        - name: Name
-        - name: Employees
-        - name: HourCost
-        - name: TotalTime
-        - name: TotalCost
-        hideRecordCloneButton: true
-        hideRecordEditButton: false
-        hideRecordReminderButton: true
-        hideRecordViewButton: true
-        module: Department
-        perPage: 20
-        prefilter: ""
-        presort: Name ASC
-        selectMode: multi
-        selectable: true
-        selectionButtons: []
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: RecordList
-      xywh: [0, 0, 9, 16]
-    - title: Total time spent per department (in hours)
-      options:
-        chart: TotalTimeSpentPerDepartment
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [9, 0, 3, 8]
-    - title: Total case costs per department (in $)
-      options:
-        chart: TotalCostPerDepartment
-      style:
-        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-      kind: Chart
-      xywh: [9, 8, 3, 8]
-    pages:
-      RecordPageForModuleDepartment:
-        module: Department
-        title: Record page for module "Department"
-        blocks:
-        - title: Department details
-          options:
-            fields:
-            - name: Name
-            - name: Employees
-            - name: HourCost
-          style:
-            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-          kind: Record
-          xywh: [0, 0, 6, 6]
-        - title: Total time and cost of department related to work on cases
-          options:
-            fields:
-            - name: TotalTime
-            - name: TotalCost
-            - name: DepartmentSelect
-          style:
-            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-          kind: Record
-          xywh: [6, 0, 6, 6]
-        - title: Case updates related to the department
-          options:
-            allowExport: true
-            fields:
-            - name: CaseId
-            - name: AccountId
-            - name: ContactId
-            - name: Type
-            - name: Subject
-            - name: TimeSpend
-            - name: Cost
-            - name: createdAt
-            module: Update
-            page: RecordPageForModuleUpdate
-            perPage: 20
-            prefilter: Department = ${recordID}
-            presort: createdAt DESC
-          style:
-            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-          kind: RecordList
-          xywh: [0, 6, 12, 10]
-        visible: false
     visible: true
