@@ -83,11 +83,14 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultLogger = log.Named("service")
 
 	{
-		tee := log
+		tee := zap.NewNop()
 		policy := actionlog.MakeProductionPolicy()
-		if c.ActionLog.Debug {
-			tee = zap.NewNop()
+
+		if !c.ActionLog.Enabled {
+			policy = actionlog.MakeDisabledPolicy()
+		} else if c.ActionLog.Debug {
 			policy = actionlog.MakeDebugPolicy()
+			tee = log
 		}
 
 		DefaultActionlog = actionlog.NewService(

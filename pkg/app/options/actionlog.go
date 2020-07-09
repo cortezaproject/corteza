@@ -2,13 +2,15 @@ package options
 
 type (
 	ActionLogOpt struct {
-		Debug bool `env:"ACTIONLOG_DEBUG"`
+		Enabled bool `env:"ACTIONLOG_ENABLED"`
+		Debug   bool `env:"ACTIONLOG_DEBUG"`
 	}
 )
 
 func ActionLog() (o *ActionLogOpt) {
 	o = &ActionLogOpt{
-		Debug: false,
+		Enabled: true,
+		Debug:   false,
 	}
 
 	fill(o, "")

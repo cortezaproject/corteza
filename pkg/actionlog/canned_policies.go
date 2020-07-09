@@ -10,3 +10,7 @@ func MakeProductionPolicy() policyMatcher {
 		NewPolicyNegate(NewPolicyMatchSeverity(Debug)),
 	)
 }
+
+func MakeDisabledPolicy() policyMatcher {
+	return NewPolicyNone()
+}
