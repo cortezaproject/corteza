@@ -369,6 +369,30 @@ func (pImp *Page) storeChildren(ctx context.Context, parent string, k pageKeeper
 func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
 	var refs uint
 
+	var resolveModule = func(v interface{}) (string, error) {
+		if m, err := pImp.getModule(deinterfacer.ToString(v)); err != nil {
+			return "", err
+		} else if m == nil {
+			return "", fmt.Errorf("no such module (%v)", v)
+		} else {
+			refs++
+			return strconv.FormatUint(m.ID, 10), nil
+		}
+	}
+
+	var resolveModuleInMap = func(m map[string]interface{}) error {
+		if h, ok := m["module"]; ok {
+			if id, err := resolveModule(h); err != nil {
+				return err
+			} else {
+				m["moduleID"] = id
+				delete(m, "module")
+			}
+		}
+
+		return nil
+	}
+
 	return refs, func() error {
 		if moduleHandle, ok := pImp.modules[page.Handle]; ok {
 			if refm, err := pImp.getModule(moduleHandle); err != nil || refm == nil {
@@ -385,15 +409,8 @@ func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
 				continue
 			}
 
-			if h, ok := b.Options["module"]; ok {
-				if refm, err := pImp.getModule(deinterfacer.ToString(h)); err != nil || refm == nil {
-					return errors.Errorf("could not load module %q for page %q block #%d (err: %v)",
-						h, page.Handle, i+1, err)
-				} else {
-					b.Options["moduleID"] = strconv.FormatUint(refm.ID, 10)
-					delete(b.Options, "module")
-					refs++
-				}
+			if err := resolveModuleInMap(b.Options); err != nil {
+				return fmt.Errorf("could not load module for page %q block #%d: %w", page.Handle, i+1, err)
 			}
 
 			if h, ok := b.Options["page"]; ok {
@@ -418,21 +435,23 @@ func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
 				}
 			}
 
-			if b.Kind == "Calendar" {
+			switch b.Kind {
+			case "Calendar":
 				ff := make([]interface{}, 0)
 				err := deinterfacer.Each(b.Options["feeds"], func(_ int, _ string, def interface{}) (err error) {
 					feed := map[string]interface{}{}
 
 					err = deinterfacer.Each(def, func(_ int, k string, v interface{}) error {
 						switch k {
-						case "module":
-							if m, err := pImp.getModule(deinterfacer.ToString(v)); err != nil || m == nil {
-								return errors.Errorf("could not load module %q for page %q block #%d (err: %v)",
-									v, page.Handle, i+1, err)
-							} else {
-								feed["moduleID"] = strconv.FormatUint(m.ID, 10)
-								refs++
+						case "options":
+							if opt, ok := v.(map[string]interface{}); ok {
+								if err := resolveModuleInMap(opt); err != nil {
+									return fmt.Errorf("could not load resolve module for page %q Calendar block #%d: %w", page.Handle, i+1, err)
+								}
+
+								feed["options"] = opt
 							}
+
 						default:
 							feed[k] = v
 						}
@@ -449,6 +468,39 @@ func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
 				})
 
 				b.Options["feeds"] = ff
+
+				if err != nil {
+					return err
+				}
+			case "Metric":
+				mm := make([]interface{}, 0)
+				err := deinterfacer.Each(b.Options["metrics"], func(_ int, _ string, def interface{}) (err error) {
+					metric := map[string]interface{}{}
+
+					err = deinterfacer.Each(def, func(_ int, k string, v interface{}) error {
+						switch k {
+						case "module":
+							if moduleID, err := resolveModule(v); err != nil {
+								return fmt.Errorf("could not load resolve module for page %q Metric block #%d: %w", page.Handle, i+1, err)
+							} else {
+								metric["moduleID"] = moduleID
+							}
+						default:
+							metric[k] = v
+						}
+
+						return nil
+					})
+
+					if err != nil {
+						return err
+					}
+
+					mm = append(mm, metric)
+					return nil
+				})
+
+				b.Options["metrics"] = mm
 
 				if err != nil {
 					return err
