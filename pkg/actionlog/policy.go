@@ -34,9 +34,18 @@ type (
 	logPolicyMatchSeverity struct {
 		severities map[Severity]bool
 	}
+
+	logPolicyNoop struct {
+		v bool
+	}
 )
 
-// NewPolicyAny returns policy where at least one of the subpolicies should match
+// NewPolicyNone ignores all action logs
+func NewPolicyNone() policyMatcher {
+	return &logPolicyNoop{v: false}
+}
+
+// NewPolicyAny returns policy where at least one of the sub-policies should match
 func NewPolicyAny(mm ...policyMatcher) policyMatcher {
 	return &logPolicyAny{mm: mm}
 }
@@ -51,7 +60,7 @@ func (p logPolicyAny) Match(a *Action) bool {
 	return false
 }
 
-// NewPolicyAll returns policy where all subpolicies should match
+// NewPolicyAll returns policy where all sub-policies should match
 func NewPolicyAll(mm ...policyMatcher) policyMatcher {
 	return &logPolicyAll{mm: mm}
 }
@@ -115,4 +124,9 @@ func NewPolicyMatchRequestOrigin(rr ...string) policyMatcher {
 
 func (p logPolicyMatchRequestOrigin) Match(a *Action) bool {
 	return p.origin[a.RequestOrigin]
+}
+
+// Match Internal policy
+func (p logPolicyNoop) Match(*Action) bool {
+	return p.v
 }
