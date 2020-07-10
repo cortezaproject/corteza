@@ -651,6 +651,10 @@ func expCharts(charts types.ChartSet, modules types.ModuleSet) (o map[string]Cha
 				"renderer":   r.Renderer,
 			}
 
+			if r.YAxis != nil {
+				rOut["yAxis"] = r.YAxis
+			}
+
 			if r.ModuleID > 0 {
 				module := modules.FindByID(r.ModuleID)
 				rOut["module"] = makeHandleFromName(module.Name, module.Handle, "module-%d", module.ID)
