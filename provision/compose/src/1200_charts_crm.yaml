@@ -21,6 +21,8 @@ charts:
           type: line
         module: Account
         renderer: {}
+        yAxis:
+          label: Accounts
   AccountsByType:
     name: Accounts by type
     config:
@@ -63,9 +65,9 @@ charts:
           field: Type
           meta:
             steps:
-            - value: "300000"
-            - value: "1000000"
-            - value: "2000000"
+            - value: "15000"
+            - value: "30000"
+            - value: "60000"
           modifier: (no grouping / buckets)
         filter: AmountAllOpportunities IS NOT NULL
         metrics:
@@ -83,9 +85,9 @@ charts:
           field: Type
           meta:
             steps:
-            - value: "150000"
-            - value: "500000"
-            - value: "1000000"
+            - value: "10000"
+            - value: "20000"
+            - value: "40000"
           modifier: (no grouping / buckets)
         filter: AmountWonOpportunities IS NOT NULL
         metrics:
@@ -104,7 +106,7 @@ charts:
           meta: {}
           modifier: (no grouping / buckets)
           skipMissing: true
-        filter: ""
+        filter: ActualCost IS NOT NULL
         metrics:
         - aggregate: SUM
           field: BudgetedCost
@@ -128,6 +130,31 @@ charts:
           type: bar
         module: Campaigns
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Euro
+  CampaignCosts:
+    name: Campaign costs
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Name
+          meta: {}
+          modifier: (no grouping / buckets)
+        filter: recordID = ${recordID}
+        metrics:
+        - aggregate: SUM
+          field: NumberOfLeads
+          type: bar
+        - aggregate: SUM
+          field: NumberOfOpportunities
+          type: bar
+        module: Campaigns
+        renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Value
   CasesByOrigin:
     name: Cases by origin
     config:
@@ -212,6 +239,9 @@ charts:
           type: line
         module: Case
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Cases
   ContactsPerCountry:
     name: Contacts per country
     config:
@@ -231,6 +261,9 @@ charts:
           type: line
         module: Contact
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Contacts
   ContactsPerSeniorLeveltitle:
     name: Contacts per senior level title
     config:
@@ -290,6 +323,9 @@ charts:
           type: line
         module: Contract
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Activated contracts
   Dealsize:
     name: Dealsize
     config:
@@ -320,6 +356,9 @@ charts:
           type: line
         module: Opportunity
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Euro
   EventsPerMonth:
     name: Events per month
     config:
@@ -338,6 +377,9 @@ charts:
           type: line
         module: Event
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Events
   EventsPerType:
     name: Events per type
     config:
@@ -396,6 +438,10 @@ charts:
           type: line
         module: Lead
         renderer: {}
+        yAxis:
+          axisType: linear
+          beginAtZero: true
+          label: Leads per country
   LeadsByRating:
     name: Leads by rating
     config:
@@ -475,6 +521,9 @@ charts:
           type: line
         module: Lead
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Leads
   MonthlySales:
     name: Monthly sales
     config:
@@ -504,6 +553,10 @@ charts:
           type: line
         module: Opportunity
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Euro
+          max: ""
   NumberOfOpportunitiesVsTarget:
     name: Number of opportunities vs target
     config:
@@ -547,6 +600,28 @@ charts:
           type: bar
         module: Opportunity
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Opportunities
+  OpportunityLineItemsValue:
+    name: Opportunity line items value
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Name
+          meta: {}
+          modifier: (no grouping / buckets)
+        filter: OpportunityId = ${recordID}
+        metrics:
+        - aggregate: SUM
+          field: TotalPrice
+          type: bar
+        module: OpportunityLineItem
+        renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: value
   OpportunitySalesPipeline:
     name: Opportunity sales pipeline
     config:
@@ -618,6 +693,9 @@ charts:
           type: line
         module: PricebookEntry
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Price book entries
   PriceBooksCreatedPerMonth:
     name: Price books created per month
     config:
@@ -636,6 +714,9 @@ charts:
           type: line
         module: Pricebook
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Price books
   ProductsAddedPerMonth:
     name: Products added per month
     config:
@@ -653,6 +734,9 @@ charts:
           type: line
         module: Product
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Products
   ProductsPerFamily:
     name: Products per family
     config:
@@ -678,6 +762,7 @@ charts:
           field: Status
           meta: {}
           modifier: (no grouping / buckets)
+          skipMissing: true
         filter: ""
         metrics:
         - field: count
@@ -709,6 +794,9 @@ charts:
           type: line
         module: Quote
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Quotes
   SalesVsTarget:
     name: Sales vs target
     config:
@@ -783,6 +871,9 @@ charts:
           type: line
         module: Solution
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Solutions
   TasksByStatus:
     name: Tasks by status
     config:
@@ -818,3 +909,6 @@ charts:
           type: line
         module: Task
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Tasks
