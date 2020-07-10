@@ -158,6 +158,10 @@ func (cImp *Chart) castConfigReports(chart *types.Chart, def interface{}) ([]*ty
 				r.Metrics = deinterfacer.ToSliceOfStringToInterfaceMap(val)
 			case "dimensions":
 				r.Dimensions = deinterfacer.ToSliceOfStringToInterfaceMap(val)
+			case "yAxis":
+				if YAxis, ok := deinterfacer.Simplify(val).(map[string]interface{}); ok {
+					r.YAxis = YAxis
+				}
 			case "renderer":
 				// @todo implement renderer decoding
 				// r.Renderer.Version
