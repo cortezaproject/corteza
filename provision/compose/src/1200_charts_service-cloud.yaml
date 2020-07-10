@@ -132,6 +132,9 @@ charts:
           type: line
         module: Case
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Cases
   CostPerCategory:
     name: Total cost per category
     config:
@@ -151,6 +154,9 @@ charts:
           type: bar
         module: Case
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: $
   CostPerProductFamily:
     name: Cost per product family
     config:
@@ -169,6 +175,9 @@ charts:
           type: bar
         module: Product
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: $
   CostsPerAccount:
     name: Total costs per account
     config:
@@ -187,6 +196,9 @@ charts:
           type: bar
         module: Account
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: $
   KnowledgeBaseArticlesPerType:
     name: Knowledge Base articles per type
     config:
@@ -224,6 +236,9 @@ charts:
           type: line
         module: KnowledgeBase
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: KB Items
   NewCasesByMonth:
     name: New cases per month
     config:
@@ -245,6 +260,9 @@ charts:
           type: line
         module: Case
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Cases
   TimePerAccount:
     name: Total time spend per account
     config:
@@ -305,6 +323,9 @@ charts:
           type: bar
         module: Department
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: $
   TotalCostPerMonth:
     name: Total cost per month
     config:
@@ -322,6 +343,9 @@ charts:
           type: bar
         module: Update
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: $
   TotalTimeSpentPerCategory:
     name: 'Total time spent per category '
     config:
@@ -380,3 +404,6 @@ charts:
           type: bar
         module: Update
         renderer: {}
+        yAxis:
+          beginAtZero: true
+          label: Hours
