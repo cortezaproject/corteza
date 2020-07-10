@@ -17,6 +17,7 @@ charts:
           type: pie
         module: Entitlement
         renderer: {}
+      colorScheme: tableau.Tableau10
   AverageTimeSpentPerCase:
     name: Average time spent per case
     config:
@@ -35,6 +36,7 @@ charts:
           type: bar
         module: Case
         renderer: {}
+      colorScheme: tableau.Tableau10
   CaseUpdatesPerType:
     name: Case updates per type
     config:
@@ -53,6 +55,7 @@ charts:
           type: doughnut
         module: Update
         renderer: {}
+      colorScheme: tableau.Tableau10
   CasesByCategory:
     name: Cases by category
     config:
@@ -74,6 +77,7 @@ charts:
           type: doughnut
         module: Case
         renderer: {}
+      colorScheme: tableau.Tableau10
   CasesByPriority:
     name: Cases by priority
     config:
@@ -93,6 +97,7 @@ charts:
           type: doughnut
         module: Case
         renderer: {}
+      colorScheme: tableau.Tableau10
   CasesByStatus:
     name: Cases by status
     config:
@@ -112,6 +117,7 @@ charts:
           type: doughnut
         module: Case
         renderer: {}
+      colorScheme: tableau.Tableau10
   ClosedCasesPerMonth:
     name: Closed cases per month
     config:
@@ -135,6 +141,7 @@ charts:
         yAxis:
           beginAtZero: true
           label: Cases
+      colorScheme: tableau.Tableau10
   CostPerCategory:
     name: Total cost per category
     config:
@@ -157,6 +164,7 @@ charts:
         yAxis:
           beginAtZero: true
           label: $
+      colorScheme: tableau.Tableau10
   CostPerProductFamily:
     name: Cost per product family
     config:
@@ -178,6 +186,7 @@ charts:
         yAxis:
           beginAtZero: true
           label: $
+      colorScheme: tableau.Tableau10
   CostsPerAccount:
     name: Total costs per account
     config:
@@ -199,6 +208,7 @@ charts:
         yAxis:
           beginAtZero: true
           label: $
+      colorScheme: tableau.Tableau10
   KnowledgeBaseArticlesPerType:
     name: Knowledge Base articles per type
     config:
@@ -218,6 +228,7 @@ charts:
           type: pie
         module: KnowledgeBase
         renderer: {}
+      colorScheme: tableau.Tableau10
   KnowledgeBaseItemsCreatedPerDay:
     name: Knowledge Base items created per day
     config:
@@ -239,6 +250,7 @@ charts:
         yAxis:
           beginAtZero: true
           label: KB Items
+      colorScheme: tableau.Tableau10
   NewCasesByMonth:
     name: New cases per month
     config:
@@ -263,6 +275,7 @@ charts:
         yAxis:
           beginAtZero: true
           label: Cases
+      colorScheme: tableau.Tableau10
   TimePerAccount:
     name: Total time spend per account
     config:
@@ -282,6 +295,7 @@ charts:
           type: pie
         module: Account
         renderer: {}
+      colorScheme: tableau.Tableau20
   TimeSpentPerProductFamily:
     name: Time Spent per Product Family
     config:
@@ -304,6 +318,7 @@ charts:
           type: pie
         module: Product
         renderer: {}
+      colorScheme: tableau.ClassicMedium10
   TotalCostPerDepartment:
     name: Total costs per department
     config:
@@ -326,6 +341,7 @@ charts:
         yAxis:
           beginAtZero: true
           label: $
+      colorScheme: tableau.Tableau10
   TotalCostPerMonth:
     name: Total cost per month
     config:
@@ -346,6 +362,7 @@ charts:
         yAxis:
           beginAtZero: true
           label: $
+      colorScheme: tableau.Tableau10
   TotalTimeSpentPerCategory:
     name: 'Total time spent per category '
     config:
@@ -366,6 +383,7 @@ charts:
           type: pie
         module: Case
         renderer: {}
+      colorScheme: tableau.Tableau10
   TotalTimeSpentPerDepartment:
     name: Total time spent per department
     config:
@@ -386,6 +404,7 @@ charts:
           type: pie
         module: Department
         renderer: {}
+      colorScheme: tableau.Tableau10
   TotalTimeSpentPerMonth:
     name: Total time spent per month
     config:
@@ -407,3 +426,4 @@ charts:
         yAxis:
           beginAtZero: true
           label: Hours
+      colorScheme: tableau.Tableau10
