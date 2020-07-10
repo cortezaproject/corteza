@@ -250,7 +250,8 @@ type (
 	}
 
 	ChartConfig struct {
-		Reports []map[string]interface{}
+		Reports     []map[string]interface{}
+		ColorScheme string `yaml:"colorScheme,omitempty"`
 	}
 )
 
@@ -631,9 +632,13 @@ func expCharts(charts types.ChartSet, modules types.ModuleSet) (o map[string]Cha
 	o = map[string]Chart{}
 
 	for _, c := range charts {
+
 		chart := Chart{
-			Name:   c.Name,
-			Config: ChartConfig{Reports: make([]map[string]interface{}, len(c.Config.Reports))},
+			Name: c.Name,
+			Config: ChartConfig{
+				Reports:     make([]map[string]interface{}, len(c.Config.Reports)),
+				ColorScheme: c.Config.ColorScheme,
+			},
 
 			Allow: sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Allow, types.ChartPermissionResource),
 			Deny:  sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Deny, types.ChartPermissionResource),

@@ -130,7 +130,8 @@ func (cImp *Chart) castConfig(chart *types.Chart, def interface{}) (types.ChartC
 		switch key {
 		case "reports":
 			cfg.Reports, err = cImp.castConfigReports(chart, val)
-
+		case "colorScheme":
+			cfg.ColorScheme = deinterfacer.ToString(val)
 		default:
 			return fmt.Errorf("unexpected key %q for chart %q config", key, chart.Handle)
 
