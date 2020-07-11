@@ -2,6 +2,7 @@ package corteza
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"time"
 
 	"github.com/pkg/errors"
@@ -30,6 +31,12 @@ type (
 var _ app.Runnable = &App{}
 
 func (app *App) Setup(log *zap.Logger, opts *app.Options) (err error) {
+	hcd := healthcheck.Defaults()
+	hcd.Add(scheduler.Healthcheck, "Scheduler")
+	hcd.Add(mail.Healthcheck, "Mail")
+	hcd.Add(corredor.Healthcheck, "Corredor")
+	hcd.Add(db.Healthcheck(), "Database")
+
 	app.log = log
 	app.opt = opts
 
