@@ -1,6 +1,7 @@
 package minio
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -118,4 +119,8 @@ func (s store) Open(name string) (io.ReadSeeker, error) {
 	return s.mc.GetObject(s.bucket, name, minio.GetObjectOptions{
 		ServerSideEncryption: s.sse,
 	})
+}
+
+func (s *store) Healthcheck(ctx context.Context) error {
+	return nil
 }

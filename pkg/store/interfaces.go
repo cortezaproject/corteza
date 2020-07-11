@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"io"
 )
 
@@ -19,4 +20,7 @@ type Store interface {
 
 	// Open returns file handle
 	Open(filename string) (io.ReadSeeker, error)
+
+	// Healthcheck checks health status of the store
+	Healthcheck(ctx context.Context) error
 }

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"time"
 
 	"go.uber.org/zap"
@@ -57,6 +58,7 @@ var (
 )
 
 func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
+	hcd := healthcheck.Defaults()
 	DefaultLogger = log.Named("service")
 
 	{
@@ -129,6 +131,8 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 			return err
 		}
 	}
+
+	hcd.Add(store.Healthcheck(DefaultStore), "Store/Messaging")
 
 	DefaultEvent = Event(ctx)
 	DefaultChannel = Channel(ctx)
