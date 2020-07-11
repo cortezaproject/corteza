@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"net"
 	"net/http"
 
@@ -113,6 +114,10 @@ func (s server) Serve(ctx context.Context) {
 
 	if s.httpOpt.EnableVersionRoute {
 		router.Get("/version", version.HttpHandler)
+	}
+
+	if s.httpOpt.EnableHealthcheckRoute {
+		router.Get("/healthcheck", healthcheck.HttpHandler())
 	}
 
 	go func() {

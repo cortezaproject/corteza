@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"go.uber.org/zap"
 	"time"
 
@@ -78,6 +79,8 @@ var (
 
 // Initializes compose-only services
 func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
+	hcd := healthcheck.Defaults()
+
 	var db = repository.DB(ctx)
 
 	DefaultLogger = log.Named("service")
@@ -145,7 +148,10 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 			log.Info("initializing store",
 				zap.String("path", path),
 				zap.Error(err))
+
 		}
+
+		hcd.Add(store.Healthcheck(DefaultStore), "Store/Compose")
 
 		if err != nil {
 			return err
