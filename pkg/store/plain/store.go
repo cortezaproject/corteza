@@ -1,6 +1,8 @@
 package plain
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"path"
@@ -95,4 +97,31 @@ func (s *store) Open(filename string) (io.ReadSeeker, error) {
 	}
 
 	return s.fs.Open(filename)
+}
+
+func (s *store) Healthcheck(ctx context.Context) error {
+	var (
+		fname = s.namespace + "/.healthcheck"
+		buf   = &bytes.Buffer{}
+	)
+
+	if s == nil {
+		return fmt.Errorf("uninitialized")
+	}
+
+	buf.Write([]byte("healthcheck"))
+
+	if err := s.Save(fname, buf); err != nil {
+		return err
+	}
+
+	if _, err := s.Open(fname); err != nil {
+		return err
+	}
+
+	if err := s.Remove(fname); err != nil {
+		return err
+	}
+
+	return nil
 }
