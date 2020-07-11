@@ -11,8 +11,9 @@ type (
 		LogResponse bool   `env:"HTTP_LOG_RESPONSE"`
 		Tracing     bool   `env:"HTTP_ERROR_TRACING"`
 
-		EnableVersionRoute bool `env:"HTTP_ENABLE_VERSION_ROUTE"`
-		EnableDebugRoute   bool `env:"HTTP_ENABLE_DEBUG_ROUTE"`
+		EnableHealthcheckRoute bool `env:"HTTP_ENABLE_HEALTHCHECK_ROUTE"`
+		EnableVersionRoute     bool `env:"HTTP_ENABLE_VERSION_ROUTE"`
+		EnableDebugRoute       bool `env:"HTTP_ENABLE_DEBUG_ROUTE"`
 
 		EnableMetrics       bool   `env:"HTTP_METRICS"`
 		MetricsServiceLabel string `env:"HTTP_METRICS_NAME"`
@@ -33,15 +34,16 @@ type (
 
 func HTTP(pfix string) (o *HTTPServerOpt) {
 	o = &HTTPServerOpt{
-		Addr:                ":80",
-		LogRequest:          false,
-		LogResponse:         false,
-		Tracing:             false,
-		EnableVersionRoute:  true,
-		EnableDebugRoute:    false,
-		EnableMetrics:       false,
-		MetricsServiceLabel: "corteza",
-		MetricsUsername:     "metrics",
+		Addr:                   ":80",
+		LogRequest:             false,
+		LogResponse:            false,
+		Tracing:                false,
+		EnableHealthcheckRoute: true,
+		EnableVersionRoute:     true,
+		EnableDebugRoute:       false,
+		EnableMetrics:          false,
+		MetricsServiceLabel:    "corteza",
+		MetricsUsername:        "metrics",
 
 		// Reports panics to Sentry through HTTP middleware
 		EnablePanicReporting: true,
