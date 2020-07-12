@@ -3,17 +3,17 @@ package api
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
+	"github.com/cortezaproject/corteza-server/pkg/version"
+	"github.com/go-chi/chi/middleware"
 	"net"
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
 	"github.com/titpetric/factory/resputil"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/version"
 )
 
 type (
@@ -60,30 +60,21 @@ func (s server) Serve(ctx context.Context) {
 	// Base middleware, CORS, RealIP, RequestID, context-logger
 	router.Use(BaseMiddleware(s.log)...)
 
-	// Logging request if enabled
-	if s.httpOpt.LogRequest {
-		router.Use(LogRequest)
-	}
-
-	// Logging response if enabled
-	if s.httpOpt.LogResponse {
-		router.Use(LogResponse)
-	}
-
-	// Handle panic (sets 500 server error headers)
-	router.Use(handlePanic)
-
-	// Reports error to Sentry if enabled
-	if s.httpOpt.EnablePanicReporting {
-		router.Use(sentryMiddleware())
-	}
-
-	// Metrics tracking middleware
-	if s.httpOpt.EnableMetrics {
-		router.Use(metricsMiddleware(s.httpOpt.MetricsServiceLabel))
-	}
+	router.Group(func(r chi.Router) {
+		s.bindMiscRoutes(r)
+	})
 
 	router.Group(func(r chi.Router) {
+		// Logging request if enabled
+		if s.httpOpt.LogRequest {
+			r.Use(LogRequest)
+		}
+
+		// Logging response if enabled
+		if s.httpOpt.LogResponse {
+			r.Use(LogResponse)
+		}
+
 		r.Use(
 			auth.DefaultJwtHandler.HttpVerifier(),
 			auth.DefaultJwtHandler.HttpAuthenticator(),
@@ -93,32 +84,6 @@ func (s server) Serve(ctx context.Context) {
 			mountRoutes(r)
 		}
 	})
-
-	if s.httpOpt.EnableMetrics {
-		metricsMount(router, s.httpOpt.MetricsUsername, s.httpOpt.MetricsPassword)
-	}
-
-	if s.httpOpt.EnableDebugRoute {
-		s.log.Debug("profiler: /__profiler", zap.Error(err))
-		router.Mount("/__profiler", middleware.Profiler())
-
-		s.log.Debug("list of routes: /__routes", zap.Error(err))
-		router.Get("/__routes", debugRoutes(router))
-
-		s.log.Debug("eventbus handlers: /__eventbus", zap.Error(err))
-		router.Get("/__eventbus", debugEventbus())
-
-		s.log.Debug("corredor service: /__corredor", zap.Error(err))
-		router.Get("/__corredor", debugCorredor())
-	}
-
-	if s.httpOpt.EnableVersionRoute {
-		router.Get("/version", version.HttpHandler)
-	}
-
-	if s.httpOpt.EnableHealthcheckRoute {
-		router.Get("/healthcheck", healthcheck.HttpHandler())
-	}
 
 	go func() {
 		srv := http.Server{
@@ -139,4 +104,45 @@ func (s server) Serve(ctx context.Context) {
 	}
 
 	s.log.Info("Server stopped", zap.Error(err))
+}
+
+func (s server) bindMiscRoutes(router chi.Router) {
+	if s.httpOpt.EnableMetrics {
+		metricsMount(router, s.httpOpt.MetricsUsername, s.httpOpt.MetricsPassword)
+	}
+
+	// Metrics tracking middleware
+	if s.httpOpt.EnableMetrics {
+		router.Use(metricsMiddleware(s.httpOpt.MetricsServiceLabel))
+	}
+
+	// Handle panic (sets 500 server error headers)
+	router.Use(handlePanic)
+
+	// Reports error to Sentry if enabled
+	if s.httpOpt.EnablePanicReporting {
+		router.Use(sentryMiddleware())
+	}
+
+	if s.httpOpt.EnableDebugRoute {
+		s.log.Debug("profiler: /__profiler")
+		router.Mount("/__profiler", middleware.Profiler())
+
+		s.log.Debug("list of routes: /__routes")
+		router.Get("/__routes", debugRoutes(router))
+
+		s.log.Debug("eventbus handlers: /__eventbus")
+		router.Get("/__eventbus", debugEventbus())
+
+		s.log.Debug("corredor service: /__corredor")
+		router.Get("/__corredor", debugCorredor())
+	}
+
+	if s.httpOpt.EnableVersionRoute {
+		router.Get("/version", version.HttpHandler)
+	}
+
+	if s.httpOpt.EnableHealthcheckRoute {
+		router.Get("/healthcheck", healthcheck.HttpHandler())
+	}
 }
