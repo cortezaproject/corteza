@@ -15,12 +15,15 @@ type (
 )
 
 func DB(pfix string) (o *DBOpt) {
+	const delay = 15 * time.Second
+	const maxTries = 100
+
 	o = &DBOpt{
 		DSN:      "corteza:corteza@tcp(db:3306)/corteza?collation=utf8mb4_general_ci",
 		Logger:   false,
-		MaxTries: 100,
-		Delay:    5 * time.Second,
-		Timeout:  1 * time.Minute,
+		MaxTries: maxTries,
+		Delay:    delay,
+		Timeout:  maxTries * delay,
 	}
 
 	fill(o, pfix)
