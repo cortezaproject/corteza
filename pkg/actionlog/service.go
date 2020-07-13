@@ -72,6 +72,11 @@ func (svc service) Record(ctx context.Context, l loggable) {
 		return
 	}
 
+	// We want to prevent any abrupt cancelation
+	// (eg canceled request) that would cause
+	// auditlog to fail...
+	ctx = context.Background()
+
 	if err := svc.repo.Record(ctx, a); err != nil {
 		svc.logger.With(zap.Error(err)).Error("could not record audit event")
 	}
