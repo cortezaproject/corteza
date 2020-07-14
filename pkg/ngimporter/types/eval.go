@@ -11,9 +11,23 @@ import (
 // Glang generates a gval language, that can be used for expression evaluation
 func GLang() gval.Language {
 	return gval.NewLanguage(
-		gval.JSON(),
-		gval.Arithmetic(),
-		gval.PropositionalLogic(),
+		gval.Full(),
+
+		gval.Function("f64", func(v string) (float64, error) {
+			nn, err := strconv.ParseFloat(v, 64)
+			if err != nil {
+				return 0, err
+			}
+			return nn, nil
+		}),
+
+		gval.Function("concat", func(vv ...string) (string, error) {
+			out := ""
+			for _, v := range vv {
+				out += v
+			}
+			return out, nil
+		}),
 
 		gval.Function("numFmt", func(number, format string) (string, error) {
 			nn, err := strconv.ParseFloat(number, 64)

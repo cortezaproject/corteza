@@ -128,7 +128,10 @@ func mapData(is types.ImportSource) ([]types.ImportSource, error) {
 						}
 					}
 
-					val := record[hMap[from]]
+					val := ""
+					if i, has := hMap[from]; has {
+						val = record[i]
+					}
 
 					// handle data join
 					if strings.Contains(from, ".") {

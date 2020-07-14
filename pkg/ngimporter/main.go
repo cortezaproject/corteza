@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
-	"github.com/cortezaproject/corteza-server/compose/service"
 	cct "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/ngimporter/types"
 	"github.com/schollz/progressbar/v2"
@@ -37,7 +36,8 @@ func Import(ctx context.Context, iss []types.ImportSource, ns *cct.Namespace) er
 	// contains warnings raised by the pre process steps
 	var preProcW []string
 	imp := &Importer{}
-	svcMod := service.DefaultModule.With(ctx)
+	db := repository.DB(ctx)
+	modRepo := repository.Module(ctx, db)
 	var err error
 
 	// import users
@@ -87,7 +87,7 @@ func Import(ctx context.Context, iss []types.ImportSource, ns *cct.Namespace) er
 
 		for _, nIs := range nIss {
 			// preload module
-			mod, err := svcMod.FindByHandle(ns.ID, nIs.Name)
+			mod, err := findModuleByHandle(modRepo, ns.ID, nIs.Name)
 			if err != nil {
 				preProcW = append(preProcW, err.Error()+" "+nIs.Name)
 				continue
@@ -142,7 +142,7 @@ func Import(ctx context.Context, iss []types.ImportSource, ns *cct.Namespace) er
 						continue
 					}
 
-					mm, err := svcMod.FindByID(ns.ID, vv)
+					mm, err := findModuleByID(modRepo, ns.ID, vv)
 					if err != nil {
 						preProcW = append(preProcW, err.Error()+" "+nIs.Name+" "+f.Name+" "+modID)
 						continue
@@ -273,4 +273,32 @@ func (m *Importer) Import(ctx context.Context, users map[string]uint64) error {
 
 		return nil
 	})
+}
+
+func findModuleByID(repo repository.ModuleRepository, namespaceID, moduleID uint64) (*cct.Module, error) {
+	var err error
+	mod, err := repo.FindByID(namespaceID, moduleID)
+	if err != nil {
+		return nil, err
+	}
+	mod.Fields, err = repo.FindFields(mod.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return mod, nil
+}
+
+func findModuleByHandle(repo repository.ModuleRepository, namespaceID uint64, handle string) (*cct.Module, error) {
+	var err error
+	mod, err := repo.FindByHandle(namespaceID, handle)
+	if err != nil {
+		return nil, err
+	}
+	mod.Fields, err = repo.FindFields(mod.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return mod, nil
 }
