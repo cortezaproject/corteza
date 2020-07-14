@@ -6,12 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strconv"
+	"log"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
+	cv "github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/schollz/progressbar/v2"
 )
@@ -318,6 +319,8 @@ func isSysField(f string) bool {
 
 // updates the given node's record values that depend on another record
 func (n *ImportNode) correctRecordRefs(repo repository.RecordRepository) error {
+	s := cv.Sanitizer()
+
 	for _, r := range n.records {
 		for _, v := range r.Values {
 			var f *types.ModuleField
@@ -346,6 +349,7 @@ func (n *ImportNode) correctRecordRefs(repo repository.RecordRepository) error {
 				if mod, ok := n.idMap[ref]; ok {
 					if vv, ok := mod[val]; ok {
 						v.Value = vv
+						v.Updated = true
 					} else {
 						v.Value = ""
 						continue
@@ -365,10 +369,13 @@ func (n *ImportNode) correctRecordRefs(repo repository.RecordRepository) error {
 			}
 		}
 
+		nv = s.Run(n.Module, nv)
+
 		r.Values = nv
 		err := repo.UpdateValues(r.ID, r.Values)
 		if err != nil {
-			return err
+			log.Printf("[issue] db.UpdateValues | %d | %s | %s \n", r.ID, r.Values.String(), err.Error())
+			// return err
 		}
 	}
 	return nil
@@ -377,6 +384,7 @@ func (n *ImportNode) correctRecordRefs(repo repository.RecordRepository) error {
 // imports the given node's source
 func (n *ImportNode) importNodeSource(users map[string]uint64, repo repository.RecordRepository) (Map, error) {
 	mapping := make(Map)
+	s := cv.Sanitizer()
 
 	for {
 	looper:
@@ -524,13 +532,6 @@ func (n *ImportNode) importNodeSource(users map[string]uint64, repo repository.R
 							continue
 						}
 
-						if f.Kind == "DateTime" {
-							val, err = assureDateFormat(val, f.Options)
-							if err != nil {
-								return nil, err
-							}
-						}
-
 						values = append(values, val)
 					}
 				}
@@ -542,18 +543,19 @@ func (n *ImportNode) importNodeSource(users map[string]uint64, repo repository.R
 						return nil, err
 					}
 					rv := &types.RecordValue{
-						Name:  h,
-						Value: v,
-						Place: uint(i),
+						Name:    h,
+						Value:   v,
+						Place:   uint(i),
+						Updated: true,
 					}
-					if f.IsRef() && v != "" {
-						rv.Ref, err = strconv.ParseUint(v, 10, 64)
-						if err != nil {
-							return nil, err
-						}
+					// ref values of spliced nodes should get updated later
+					if n.isSpliced && f.IsRef() {
+						rv.Updated = false
 					}
 					recordValues = append(recordValues, rv)
 				}
+
+				recordValues = s.Run(n.Module, recordValues)
 			}
 		}
 
@@ -567,9 +569,13 @@ func (n *ImportNode) importNodeSource(users map[string]uint64, repo repository.R
 		for _, v := range recordValues {
 			v.RecordID = r.ID
 		}
-		err = repo.UpdateValues(r.ID, recordValues)
-		if err != nil {
-			return nil, err
+
+		if !n.isSpliced {
+			err = repo.UpdateValues(r.ID, recordValues)
+			if err != nil {
+				log.Printf("[issue] db.UpdateValues | %d | %s | %s \n", r.ID, recordValues.String(), err.Error())
+				// return nil, err
+			}
 		}
 
 		// spliced nodes should preserve their records for later ref processing
