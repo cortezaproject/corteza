@@ -1,10 +1,13 @@
 package types
 
-import "unicode/utf8"
+import (
+	"time"
+	"unicode/utf8"
+)
 
 const (
 	// SfDateTimeLayout represents the date-time template used by sales force
-	SfDateTimeLayout = "2006-01-02 15:04:05"
+	SfDateTimeLayout = time.RFC3339
 	// DateOnlyLayout represents our internal date only date-time fields
 	DateOnlyLayout = "2006-01-02"
 	// TimeOnlyLayout represents our internal time only date-time fields
