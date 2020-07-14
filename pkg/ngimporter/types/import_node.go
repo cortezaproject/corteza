@@ -415,19 +415,19 @@ func (n *ImportNode) importNodeSource(users map[string]uint64, repo repository.R
 
 			// system values should be kept on the record's root level
 			if isSysField(h) {
-				switch h {
-				case "OwnerId":
+				switch strings.ToLower(h) {
+				case "ownerid":
 					rr.OwnedBy = users[val]
 					break
 
 					// ignore deleted values, as SF provides minimal info about those
-				case "IsDeleted":
-					if val == "1" {
+				case "isdeleted":
+					if val == "1" || strings.ToLower(val) == "true" {
 						goto looper
 					}
 					break
 
-				case "CreatedDate":
+				case "createddate":
 					if val != "" {
 						rr.CreatedAt, err = time.Parse(SfDateTimeLayout, val)
 						if err != nil {
@@ -436,15 +436,15 @@ func (n *ImportNode) importNodeSource(users map[string]uint64, repo repository.R
 					}
 					break
 
-				case "CreatedById":
+				case "createdbyid":
 					rr.CreatedBy = users[val]
 					break
 
-				case "LastModifiedById":
+				case "lastmodifiedbyid":
 					rr.UpdatedBy = users[val]
 					break
 
-				case "LastModifiedDate":
+				case "lastmodifieddate":
 					if val != "" {
 						tt, err := time.Parse(SfDateTimeLayout, val)
 						rr.UpdatedAt = &tt
