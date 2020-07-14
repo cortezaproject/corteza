@@ -389,6 +389,10 @@ func (n *ImportNode) importNodeSource(users map[string]uint64, repo repository.R
 			return nil, err
 		}
 
+		if record[0] == "" {
+			continue
+		}
+
 		rr := &types.Record{
 			ModuleID:    n.Module.ID,
 			NamespaceID: n.Namespace.ID,
