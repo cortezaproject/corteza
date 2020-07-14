@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/csv"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/repository"
@@ -54,28 +55,28 @@ func importUsers(ctx context.Context, is *types.ImportSource, ns *cct.Namespace)
 
 			// when creating users we only care about a handfull of values.
 			// the rest are included in the module
-			switch h {
-			case "Username":
+			switch strings.ToLower(h) {
+			case "username":
 				u.Username = record[i]
 				break
 
-			case "Email":
+			case "email":
 				u.Email = record[i]
 				break
 
-			case "FirstName":
+			case "firstname":
 				u.Name = record[i]
 				break
 
-			case "LastName":
+			case "lastname":
 				u.Name = u.Name + " " + record[i]
 				break
 
-			case "Alias":
+			case "alias":
 				u.Handle = record[i]
 				break
 
-			case "CreatedDate":
+			case "createddate":
 				if val != "" {
 					u.CreatedAt, err = time.Parse(types.SfDateTimeLayout, val)
 					if err != nil {
@@ -84,7 +85,7 @@ func importUsers(ctx context.Context, is *types.ImportSource, ns *cct.Namespace)
 				}
 				break
 
-			case "LastModifiedDate":
+			case "lastmodifieddate":
 				if val != "" {
 					tt, err := time.Parse(types.SfDateTimeLayout, val)
 					u.UpdatedAt = &tt
@@ -95,7 +96,7 @@ func importUsers(ctx context.Context, is *types.ImportSource, ns *cct.Namespace)
 				break
 
 				// ignore deleted values, as SF provides minimal info about those
-			case "IsDeleted":
+			case "isdeleted":
 				if val == "1" {
 					goto looper
 				}
