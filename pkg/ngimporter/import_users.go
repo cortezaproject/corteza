@@ -106,7 +106,11 @@ func importUsers(ctx context.Context, is *types.ImportSource, ns *cct.Namespace)
 		// this allows us to reuse existing users
 		uu, err := repoUser.FindByEmail(u.Email)
 		if err == nil {
-			u = uu
+			u.ID = uu.ID
+			u, err = repoUser.Update(u)
+			if err != nil {
+				return nil, nil, err
+			}
 		} else {
 			u, err = repoUser.Create(u)
 			if err != nil {
