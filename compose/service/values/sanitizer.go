@@ -219,6 +219,7 @@ func (sanitizer) sNumber(v *types.RecordValue, f *types.ModuleField, m *types.Mo
 	// In case of fractures, remove trailing 0's
 	if strings.Contains(v.Value, ".") {
 		v.Value = strings.TrimRight(v.Value, "0")
+		v.Value = strings.TrimRight(v.Value, ".")
 	}
 
 	return v

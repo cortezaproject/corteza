@@ -143,6 +143,20 @@ func Test_sanitizer_Run(t *testing.T) {
 			input:   "42.4",
 			output:  "42",
 		},
+		{
+			name:    "number precision; trailing .00",
+			kind:    "Number",
+			options: map[string]interface{}{"precision": 2},
+			input:   "42.00",
+			output:  "42",
+		},
+		{
+			name:    "number precision; trailing .040",
+			kind:    "Number",
+			options: map[string]interface{}{"precision": 2},
+			input:   "42.040",
+			output:  "42.04",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
