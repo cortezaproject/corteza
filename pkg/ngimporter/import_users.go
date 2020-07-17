@@ -35,6 +35,8 @@ func importUsers(ctx context.Context, is *types.ImportSource, ns *cct.Namespace)
 	}
 	ww.Write(header)
 
+	now := time.Now()
+
 	// create users
 	for {
 	looper:
@@ -99,6 +101,13 @@ func importUsers(ctx context.Context, is *types.ImportSource, ns *cct.Namespace)
 			case "isdeleted":
 				if val == "1" {
 					goto looper
+				}
+
+			case "isactive":
+				if strings.ToLower(val) != "true" {
+					u.SuspendedAt = &now
+				} else {
+					u.SuspendedAt = nil
 				}
 			}
 		}
