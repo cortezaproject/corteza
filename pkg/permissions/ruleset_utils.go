@@ -1,5 +1,7 @@
 package permissions
 
+import "github.com/cortezaproject/corteza-server/pkg/slice"
+
 // merge applies new rules (changes) to existing set and mark all changes as dirty
 func (set RuleSet) merge(rules ...*Rule) (out RuleSet) {
 	var (
@@ -64,4 +66,65 @@ func (set RuleSet) clear() {
 		rule.dirty = false
 		return nil
 	})
+}
+
+// Missing compares cmp with existing set
+// and returns rules that exists in set but not in cmp
+func (set RuleSet) Diff(cmp RuleSet) RuleSet {
+	diff := RuleSet{}
+base:
+	for _, s := range set {
+		for _, c := range cmp {
+			if c.Equals(s) {
+				continue base
+			}
+		}
+
+		diff = append(diff, s)
+	}
+
+	return diff
+}
+
+// Roles returns list of unique id of all roles in the rule set
+func (set RuleSet) Roles() []uint64 {
+	roles := make([]uint64, 0)
+	for _, r := range set {
+		if slice.HasUint64(roles, r.RoleID) {
+			continue
+		}
+
+		roles = append(roles, r.RoleID)
+	}
+
+	return roles
+}
+
+func (set RuleSet) ByResource(res Resource) RuleSet {
+	out, _ := set.Filter(func(r *Rule) (bool, error) {
+		return res == r.Resource, nil
+	})
+	return out
+}
+
+func (set RuleSet) AllAllows() RuleSet {
+	return set.ByAccess(Allow)
+}
+
+func (set RuleSet) AllDenies() RuleSet {
+	return set.ByAccess(Deny)
+}
+
+func (set RuleSet) ByAccess(a Access) RuleSet {
+	out, _ := set.Filter(func(r *Rule) (bool, error) {
+		return a == r.Access, nil
+	})
+	return out
+}
+
+func (set RuleSet) ByRole(roleID uint64) RuleSet {
+	out, _ := set.Filter(func(r *Rule) (bool, error) {
+		return roleID == r.RoleID, nil
+	})
+	return out
 }
