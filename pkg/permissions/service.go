@@ -167,6 +167,12 @@ func (svc service) FindRulesByRoleID(roleID uint64) (rr RuleSet) {
 	return
 }
 
+func (svc service) Rules() (rr RuleSet) {
+	svc.l.Lock()
+	defer svc.l.Unlock()
+	return svc.rules
+}
+
 func (svc *service) Reload(ctx context.Context) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
