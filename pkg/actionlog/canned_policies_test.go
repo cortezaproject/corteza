@@ -18,8 +18,8 @@ func TestCannedPolies(t *testing.T) {
 			true,
 		},
 		{
-			"production policy should record info",
-			&Action{Severity: Info},
+			"production policy should record notice",
+			&Action{Severity: Notice},
 			MakeProductionPolicy(),
 			true,
 		},

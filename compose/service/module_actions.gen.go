@@ -434,7 +434,7 @@ func ModuleActionCreate(props ...*moduleActionProps) *moduleAction {
 		resource:  "compose:module",
 		action:    "create",
 		log:       "created {module}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -454,7 +454,7 @@ func ModuleActionUpdate(props ...*moduleActionProps) *moduleAction {
 		resource:  "compose:module",
 		action:    "update",
 		log:       "updated {module}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -474,7 +474,7 @@ func ModuleActionDelete(props ...*moduleActionProps) *moduleAction {
 		resource:  "compose:module",
 		action:    "delete",
 		log:       "deleted {module}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -494,7 +494,7 @@ func ModuleActionUndelete(props ...*moduleActionProps) *moduleAction {
 		resource:  "compose:module",
 		action:    "undelete",
 		log:       "undeleted {module}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {

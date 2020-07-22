@@ -371,7 +371,7 @@ func ChannelActionCreate(props ...*channelActionProps) *channelAction {
 		resource:  "messaging:channel",
 		action:    "create",
 		log:       "created {channel}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -391,7 +391,7 @@ func ChannelActionUpdate(props ...*channelActionProps) *channelAction {
 		resource:  "messaging:channel",
 		action:    "update",
 		log:       "updated {channel}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -411,7 +411,7 @@ func ChannelActionDelete(props ...*channelActionProps) *channelAction {
 		resource:  "messaging:channel",
 		action:    "delete",
 		log:       "deleted {channel}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -431,7 +431,7 @@ func ChannelActionUndelete(props ...*channelActionProps) *channelAction {
 		resource:  "messaging:channel",
 		action:    "undelete",
 		log:       "undeleted {channel}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -451,7 +451,7 @@ func ChannelActionArchive(props ...*channelActionProps) *channelAction {
 		resource:  "messaging:channel",
 		action:    "archive",
 		log:       "archived {channel}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -471,7 +471,7 @@ func ChannelActionUnarchive(props ...*channelActionProps) *channelAction {
 		resource:  "messaging:channel",
 		action:    "unarchive",
 		log:       "unarchived {channel}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -491,7 +491,7 @@ func ChannelActionSetFlag(props ...*channelActionProps) *channelAction {
 		resource:  "messaging:channel",
 		action:    "setFlag",
 		log:       "set flag {flag} on {channel}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -511,7 +511,7 @@ func ChannelActionInviteMember(props ...*channelActionProps) *channelAction {
 		resource:  "messaging:channel",
 		action:    "inviteMember",
 		log:       "member {memberID} invited to {channel}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -531,7 +531,7 @@ func ChannelActionRemoveMember(props ...*channelActionProps) *channelAction {
 		resource:  "messaging:channel",
 		action:    "removeMember",
 		log:       "member {memberID} removed from {channel}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -551,7 +551,7 @@ func ChannelActionAddMember(props ...*channelActionProps) *channelAction {
 		resource:  "messaging:channel",
 		action:    "addMember",
 		log:       "member {memberID} added to {channel}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {

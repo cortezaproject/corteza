@@ -389,7 +389,7 @@ func NamespaceActionCreate(props ...*namespaceActionProps) *namespaceAction {
 		resource:  "compose:namespace",
 		action:    "create",
 		log:       "created {namespace}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -409,7 +409,7 @@ func NamespaceActionUpdate(props ...*namespaceActionProps) *namespaceAction {
 		resource:  "compose:namespace",
 		action:    "update",
 		log:       "updated {namespace}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -429,7 +429,7 @@ func NamespaceActionDelete(props ...*namespaceActionProps) *namespaceAction {
 		resource:  "compose:namespace",
 		action:    "delete",
 		log:       "deleted {namespace}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -449,7 +449,7 @@ func NamespaceActionUndelete(props ...*namespaceActionProps) *namespaceAction {
 		resource:  "compose:namespace",
 		action:    "undelete",
 		log:       "undeleted {namespace}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -469,7 +469,7 @@ func NamespaceActionReorder(props ...*namespaceActionProps) *namespaceAction {
 		resource:  "compose:namespace",
 		action:    "reorder",
 		log:       "reordered {namespace}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {

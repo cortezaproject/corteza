@@ -446,7 +446,7 @@ func PageActionCreate(props ...*pageActionProps) *pageAction {
 		resource:  "compose:page",
 		action:    "create",
 		log:       "created {page}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -466,7 +466,7 @@ func PageActionUpdate(props ...*pageActionProps) *pageAction {
 		resource:  "compose:page",
 		action:    "update",
 		log:       "updated {page}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -486,7 +486,7 @@ func PageActionDelete(props ...*pageActionProps) *pageAction {
 		resource:  "compose:page",
 		action:    "delete",
 		log:       "deleted {page}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -506,7 +506,7 @@ func PageActionUndelete(props ...*pageActionProps) *pageAction {
 		resource:  "compose:page",
 		action:    "undelete",
 		log:       "undeleted {page}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -526,7 +526,7 @@ func PageActionReorder(props ...*pageActionProps) *pageAction {
 		resource:  "compose:page",
 		action:    "reorder",
 		log:       "reordered {page}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {

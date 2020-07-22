@@ -365,7 +365,7 @@ func AuthActionAuthenticate(props ...*authActionProps) *authAction {
 		resource:  "system:auth",
 		action:    "authenticate",
 		log:       "successfully authenticated with {credentials.kind}",
-		severity:  actionlog.Warning,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -385,7 +385,7 @@ func AuthActionIssueToken(props ...*authActionProps) *authAction {
 		resource:  "system:auth",
 		action:    "issueToken",
 		log:       "token '{credentials.kind}' issued",
-		severity:  actionlog.Warning,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -405,7 +405,7 @@ func AuthActionValidateToken(props ...*authActionProps) *authAction {
 		resource:  "system:auth",
 		action:    "validateToken",
 		log:       "token '{credentials.kind}' validated",
-		severity:  actionlog.Warning,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -425,7 +425,7 @@ func AuthActionChangePassword(props ...*authActionProps) *authAction {
 		resource:  "system:auth",
 		action:    "changePassword",
 		log:       "password changed",
-		severity:  actionlog.Warning,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -445,7 +445,7 @@ func AuthActionInternalSignup(props ...*authActionProps) *authAction {
 		resource:  "system:auth",
 		action:    "internalSignup",
 		log:       "{user.email} signed-up",
-		severity:  actionlog.Warning,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -465,7 +465,7 @@ func AuthActionConfirmEmail(props ...*authActionProps) *authAction {
 		resource:  "system:auth",
 		action:    "confirmEmail",
 		log:       "email {user.email} confirmed",
-		severity:  actionlog.Warning,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -485,7 +485,7 @@ func AuthActionExternalSignup(props ...*authActionProps) *authAction {
 		resource:  "system:auth",
 		action:    "externalSignup",
 		log:       "{user.email} signed-up after successful external authentication via {credentials.kind}",
-		severity:  actionlog.Warning,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -505,7 +505,7 @@ func AuthActionSendEmailConfirmationToken(props ...*authActionProps) *authAction
 		resource:  "system:auth",
 		action:    "sendEmailConfirmationToken",
 		log:       "confirmation notification sent to {email}",
-		severity:  actionlog.Warning,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -525,7 +525,7 @@ func AuthActionSendPasswordResetToken(props ...*authActionProps) *authAction {
 		resource:  "system:auth",
 		action:    "sendPasswordResetToken",
 		log:       "password reset token sent to {email}",
-		severity:  actionlog.Warning,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -545,7 +545,7 @@ func AuthActionExchangePasswordResetToken(props ...*authActionProps) *authAction
 		resource:  "system:auth",
 		action:    "exchangePasswordResetToken",
 		log:       "password reset token exchanged",
-		severity:  actionlog.Warning,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -565,7 +565,7 @@ func AuthActionAutoPromote(props ...*authActionProps) *authAction {
 		resource:  "system:auth",
 		action:    "autoPromote",
 		log:       "auto-promoted to {role}",
-		severity:  actionlog.Warning,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -585,7 +585,7 @@ func AuthActionUpdateCredentials(props ...*authActionProps) *authAction {
 		resource:  "system:auth",
 		action:    "updateCredentials",
 		log:       "credentials {credentials.kind} updated",
-		severity:  actionlog.Warning,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -605,7 +605,7 @@ func AuthActionCreateCredentials(props ...*authActionProps) *authAction {
 		resource:  "system:auth",
 		action:    "createCredentials",
 		log:       "new credentials {credentials.kind} created",
-		severity:  actionlog.Warning,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {

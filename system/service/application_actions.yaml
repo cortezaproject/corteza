@@ -4,7 +4,7 @@ resource: system:application
 service: application
 
 # Default sensitivity for actions
-defaultActionSeverity: info
+defaultActionSeverity: notice
 
 # default severity for errors
 defaultErrorSeverity: error

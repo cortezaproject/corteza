@@ -4,7 +4,7 @@ resource: system:access_control
 service: accessControl
 
 # Default sensitivity for actions
-defaultActionSeverity: note
+defaultActionSeverity: notice
 
 # default severity for errors
 defaultErrorSeverity: alert

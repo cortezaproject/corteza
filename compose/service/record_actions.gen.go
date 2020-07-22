@@ -550,7 +550,7 @@ func RecordActionBulk(props ...*recordActionProps) *recordAction {
 		resource:  "compose:record",
 		action:    "bulk",
 		log:       "bulk record operation",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -570,7 +570,7 @@ func RecordActionCreate(props ...*recordActionProps) *recordAction {
 		resource:  "compose:record",
 		action:    "create",
 		log:       "created {record}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -590,7 +590,7 @@ func RecordActionUpdate(props ...*recordActionProps) *recordAction {
 		resource:  "compose:record",
 		action:    "update",
 		log:       "updated {record}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -610,7 +610,7 @@ func RecordActionDelete(props ...*recordActionProps) *recordAction {
 		resource:  "compose:record",
 		action:    "delete",
 		log:       "deleted {record}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -630,7 +630,7 @@ func RecordActionUndelete(props ...*recordActionProps) *recordAction {
 		resource:  "compose:record",
 		action:    "undelete",
 		log:       "undeleted {record}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -650,7 +650,7 @@ func RecordActionImport(props ...*recordActionProps) *recordAction {
 		resource:  "compose:record",
 		action:    "import",
 		log:       "records imported",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -670,7 +670,7 @@ func RecordActionExport(props ...*recordActionProps) *recordAction {
 		resource:  "compose:record",
 		action:    "export",
 		log:       "records exported",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -690,7 +690,7 @@ func RecordActionOrganize(props ...*recordActionProps) *recordAction {
 		resource:  "compose:record",
 		action:    "organize",
 		log:       "records organized",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -710,7 +710,7 @@ func RecordActionIteratorInvoked(props ...*recordActionProps) *recordAction {
 		resource:  "compose:record",
 		action:    "iteratorInvoked",
 		log:       "iterator invoked",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -730,7 +730,7 @@ func RecordActionIteratorIteration(props ...*recordActionProps) *recordAction {
 		resource:  "compose:record",
 		action:    "iteratorIteration",
 		log:       "processed record iteration",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -750,7 +750,7 @@ func RecordActionIteratorClone(props ...*recordActionProps) *recordAction {
 		resource:  "compose:record",
 		action:    "iteratorClone",
 		log:       "cloned record in iteration",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -770,7 +770,7 @@ func RecordActionIteratorUpdate(props ...*recordActionProps) *recordAction {
 		resource:  "compose:record",
 		action:    "iteratorUpdate",
 		log:       "updated record in iteration",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -790,7 +790,7 @@ func RecordActionIteratorDelete(props ...*recordActionProps) *recordAction {
 		resource:  "compose:record",
 		action:    "iteratorDelete",
 		log:       "deleted record in iteration",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {

@@ -359,7 +359,7 @@ func SinkActionPreprocess(props ...*sinkActionProps) *sinkAction {
 		resource:  "system:sink",
 		action:    "preprocess",
 		log:       "preprocess",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -379,7 +379,7 @@ func SinkActionRequest(props ...*sinkActionProps) *sinkAction {
 		resource:  "system:sink",
 		action:    "request",
 		log:       "sink request processed",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
