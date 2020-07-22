@@ -22,6 +22,7 @@ func DailyMetrics(db *factory.DB, q squirrel.SelectBuilder, field string) (rval 
 		Column(fmt.Sprintf("UNIX_TIMESTAMP(DATE(%s)) timestamp", field)).
 		Column("COUNT(*) AS value").
 		Where(fmt.Sprintf("%s IS NOT NULL", field)).
+		OrderBy("timestamp").
 		GroupBy("timestamp")
 
 	if err = FetchAll(db, q, &aux); err != nil {
