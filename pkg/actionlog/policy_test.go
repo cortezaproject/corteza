@@ -78,6 +78,12 @@ func TestPolicyMatchers(t *testing.T) {
 			true,
 		},
 		{
+			"should not match one of severity",
+			&Action{Severity: Info},
+			NewPolicyNegate(NewPolicyMatchSeverity(Emergency, Debug, Warning)),
+			true,
+		},
+		{
 			"complex match",
 			&Action{Severity: Warning, Resource: "foo", Action: "do"},
 			NewPolicyAll(

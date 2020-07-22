@@ -434,7 +434,7 @@ func ReminderActionCreate(props ...*reminderActionProps) *reminderAction {
 		resource:  "system:reminder",
 		action:    "create",
 		log:       "created {reminder}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -454,7 +454,7 @@ func ReminderActionUpdate(props ...*reminderActionProps) *reminderAction {
 		resource:  "system:reminder",
 		action:    "update",
 		log:       "updated {reminder}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -474,7 +474,7 @@ func ReminderActionDelete(props ...*reminderActionProps) *reminderAction {
 		resource:  "system:reminder",
 		action:    "delete",
 		log:       "deleted {reminder}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -494,7 +494,7 @@ func ReminderActionDismiss(props ...*reminderActionProps) *reminderAction {
 		resource:  "system:reminder",
 		action:    "dismiss",
 		log:       "deleted {reminder}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -514,7 +514,7 @@ func ReminderActionSnooze(props ...*reminderActionProps) *reminderAction {
 		resource:  "system:reminder",
 		action:    "snooze",
 		log:       "deleted {reminder}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {

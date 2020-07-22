@@ -395,7 +395,7 @@ func ApplicationActionCreate(props ...*applicationActionProps) *applicationActio
 		resource:  "system:application",
 		action:    "create",
 		log:       "created {application}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -415,7 +415,7 @@ func ApplicationActionUpdate(props ...*applicationActionProps) *applicationActio
 		resource:  "system:application",
 		action:    "update",
 		log:       "updated {application}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -435,7 +435,7 @@ func ApplicationActionDelete(props ...*applicationActionProps) *applicationActio
 		resource:  "system:application",
 		action:    "delete",
 		log:       "deleted {application}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -455,7 +455,7 @@ func ApplicationActionUndelete(props ...*applicationActionProps) *applicationAct
 		resource:  "system:application",
 		action:    "undelete",
 		log:       "undeleted {application}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {

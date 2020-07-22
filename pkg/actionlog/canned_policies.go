@@ -7,7 +7,7 @@ func MakeDebugPolicy() policyMatcher {
 func MakeProductionPolicy() policyMatcher {
 	return NewPolicyAll(
 		// Ignore debug actions
-		NewPolicyNegate(NewPolicyMatchSeverity(Debug)),
+		NewPolicyNegate(NewPolicyMatchSeverity(Debug, Info)),
 	)
 }
 

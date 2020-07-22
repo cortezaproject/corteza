@@ -425,7 +425,7 @@ func ChartActionCreate(props ...*chartActionProps) *chartAction {
 		resource:  "compose:chart",
 		action:    "create",
 		log:       "created {chart}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -445,7 +445,7 @@ func ChartActionUpdate(props ...*chartActionProps) *chartAction {
 		resource:  "compose:chart",
 		action:    "update",
 		log:       "updated {chart}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -465,7 +465,7 @@ func ChartActionDelete(props ...*chartActionProps) *chartAction {
 		resource:  "compose:chart",
 		action:    "delete",
 		log:       "deleted {chart}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -485,7 +485,7 @@ func ChartActionUndelete(props ...*chartActionProps) *chartAction {
 		resource:  "compose:chart",
 		action:    "undelete",
 		log:       "undeleted {chart}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -505,7 +505,7 @@ func ChartActionReorder(props ...*chartActionProps) *chartAction {
 		resource:  "compose:chart",
 		action:    "reorder",
 		log:       "reordered {chart}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {

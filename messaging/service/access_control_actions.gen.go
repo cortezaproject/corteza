@@ -265,7 +265,7 @@ func AccessControlActionGrant(props ...*accessControlActionProps) *accessControl
 		resource:  "messaging:access_control",
 		action:    "grant",
 		log:       "grant",
-		severity:  actionlog.Error,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {

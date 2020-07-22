@@ -4,7 +4,7 @@ resource: compose:namespace
 service: namespace
 
 # Default sensitivity for actions
-defaultActionSeverity: info
+defaultActionSeverity: notice
 
 # default severity for errors
 defaultErrorSeverity: error

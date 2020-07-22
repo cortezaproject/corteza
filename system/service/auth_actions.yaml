@@ -4,7 +4,7 @@ resource: system:auth
 service: auth
 
 # Default sensitivity for actions
-defaultActionSeverity: warning
+defaultActionSeverity: notice
 
 # default severity for errors
 defaultErrorSeverity: alert
