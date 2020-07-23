@@ -64,6 +64,10 @@ func (f *Filter) procRTPrefixes(service string) {
 		hasService, hasUi bool
 	)
 
+	if service == "" {
+		return
+	}
+
 	for i, rtp := range f.ResourceTypePrefixes {
 		if rtp == service {
 			hasService = true

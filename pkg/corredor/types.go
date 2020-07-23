@@ -27,6 +27,7 @@ type (
 		Triggers    []*Trigger      `json:"triggers"`
 		Iterator    *Iterator       `json:"iterator"`
 		Security    *ScriptSecurity `json:"security"`
+		UpdatedAt   string          `json:"updatedAt,omitempty"`
 
 		// If bundle or type is set, consider
 		// this a frontend script
