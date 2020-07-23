@@ -470,6 +470,7 @@ func (svc *service) registerServerScripts(ctx context.Context, ss ...*ServerScri
 			Errors:      script.Errors,
 			Triggers:    script.Triggers,
 			Iterator:    script.Iterator,
+			UpdatedAt:   script.UpdatedAt,
 		}
 
 		if len(s.Errors) == 0 {
@@ -871,6 +872,7 @@ func (svc *service) registerClientScripts(ss ...*ClientScript) {
 			Triggers:    script.Triggers,
 			Bundle:      script.Bundle,
 			Type:        script.Type,
+			UpdatedAt:   script.UpdatedAt,
 		}
 	}
 }

@@ -97,7 +97,13 @@ func encodeArguments(args map[string]string, key string, val interface{}) (err e
 
 // GenericListHandler returns filtered list of scripts
 func GenericListHandler(ctx context.Context, svc *service, f Filter, resourcePrefix string) (p *automationListSetPayload, err error) {
-	f.procRTPrefixes(resourcePrefix)
+	if f.ExcludeInvalid {
+		// resource prefix filtering is only applicable when we want to
+		// exclude invalid scripts, because invalid scripts do not have
+		// (usually, depends at what level error occurred) information
+		// about triggers and resources
+		f.procRTPrefixes(resourcePrefix)
+	}
 
 	p = &automationListSetPayload{}
 	p.Set, p.Filter, err = svc.Find(ctx, f)
