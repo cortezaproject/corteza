@@ -98,8 +98,11 @@ func Test_sink_handleRequest(t *testing.T) {
 		signParamsExp      = SinkRequestUrlParams{Expires: &time.Time{}}
 		signedUrlExp, _, _ = svc.SignURL(signParamsExp)
 
-		signParamsInPath      = SinkRequestUrlParams{SignatureInPath: true}
+		signParamsInPath      = SinkRequestUrlParams{SignatureInPath: true, Path: "/foo"}
 		signedUrlInPath, _, _ = svc.SignURL(signParamsInPath)
+
+		signParamsInPathNoPath      = SinkRequestUrlParams{SignatureInPath: true}
+		signedUrlInPathNoPath, _, _ = svc.SignURL(signParamsInPathNoPath)
 
 		signParamsFixedPath      = SinkRequestUrlParams{Path: "/foo/bar"}
 		signedUrlFixedPath, _, _ = svc.SignURL(signParamsFixedPath)
@@ -178,7 +181,12 @@ func Test_sink_handleRequest(t *testing.T) {
 				wantErr:    SinkErrContentLengthExceedsMaxAllowedSize(),
 			},
 			{
-				name:       "signature in a path",
+				name:       "signature in a path (no path constraint)",
+				withURL:    signedUrlInPathNoPath.String(),
+				wantParams: &signParamsInPathNoPath,
+			},
+			{
+				name:       "signature in a path (with path constraint)",
 				withURL:    signedUrlInPath.String(),
 				wantParams: &signParamsInPath,
 			},

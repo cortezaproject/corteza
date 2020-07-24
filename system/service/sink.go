@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	"io"
 	"net/http"
 	"net/url"
@@ -130,11 +131,11 @@ func (svc sink) GetPath() string {
 // pathCleanup removes base URL prefix and adds leading slash
 func (svc sink) pathCleanup(p string) string {
 	if len(p) > 0 {
-		if strings.HasPrefix(p, SinkBaseURL) {
-			p = p[len(SinkBaseURL):]
+		if pos := strings.Index(p, SinkBaseURL); pos > -1 {
+			p = p[pos+len(SinkBaseURL):]
 		}
 
-		return "/" + strings.TrimLeft(p, "/")
+		return "/" + strings.Trim(p, "/")
 	}
 
 	return ""
@@ -187,16 +188,20 @@ func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, error) {
 		signatureFoundInPath bool
 
 		param string
+
+		// this value is modified if signature is found in a path
+		reqPath = r.URL.Path
 	)
 
 	// try to find a signature
 	if _, has := qs[SinkSignUrlParamName]; has {
 		// first, in a query string
 		param = r.URL.Query().Get(SinkSignUrlParamName)
-	} else if i := strings.Index(r.URL.Path, SinkSignUrlParamName); i > -1 {
+	} else if i := strings.Index(reqPath, SinkSignUrlParamName); i > -1 {
 		// fallback to path, expecting signature to be at the end
 		// offset string index by start of signature param name, length of param name, and = char
-		param = r.URL.Path[i+len(SinkSignUrlParamName)+1:]
+		param = reqPath[i+len(SinkSignUrlParamName)+1:]
+		reqPath = reqPath[:i]
 
 		// this is more for consistency and cleaner tests
 		signatureFoundInPath = true
@@ -248,7 +253,8 @@ func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, error) {
 	}
 
 	if srup.Path != "" {
-		if srup.Path != svc.pathCleanup(r.URL.Path) {
+		if srup.Path != svc.pathCleanup(reqPath) {
+			spew.Dump(srup.Path, reqPath, svc.pathCleanup(reqPath))
 			return nil, SinkErrInvalidPath(sap)
 		}
 	}
