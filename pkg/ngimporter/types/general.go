@@ -3,6 +3,8 @@ package types
 import (
 	"time"
 	"unicode/utf8"
+
+	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
 const (
@@ -28,6 +30,8 @@ const (
 var (
 	// ExprLang contains gval language that should be used for any expression evaluation
 	ExprLang = GLang()
+
+	ModulesGlobal = make(types.ModuleSet, 0)
 )
 
 type (
