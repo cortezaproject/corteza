@@ -38,6 +38,7 @@ func Import(ctx context.Context, iss []types.ImportSource, ns *cct.Namespace) er
 	imp := &Importer{}
 	db := repository.DB(ctx)
 	modRepo := repository.Module(ctx, db)
+	recRepo := repository.Record(ctx, db)
 	var err error
 
 	// import users
@@ -50,7 +51,7 @@ func Import(ctx context.Context, iss []types.ImportSource, ns *cct.Namespace) er
 	}
 
 	// maps sourceUserID to CortezaID
-	var uMap map[string]uint64
+	uMap := make(map[string]uint64)
 	if usrSrc != nil {
 		um, mgu, err := importUsers(ctx, usrSrc, ns)
 		if err != nil {
@@ -72,6 +73,49 @@ func Import(ctx context.Context, iss []types.ImportSource, ns *cct.Namespace) er
 			iss = append(iss, *mgu)
 		}
 	}
+
+	// populate with existing users
+	uMod, err := findModuleByHandle(modRepo, ns.ID, "user")
+	if err != nil {
+		return err
+	}
+	rr, _, err := recRepo.Find(uMod, cct.RecordFilter{
+		ModuleID:    uMod.ID,
+		Deleted:     rh.FilterStateInclusive,
+		NamespaceID: ns.ID,
+		Query:       "sys_legacy_ref_id IS NOT NULL",
+		PageFilter: rh.PageFilter{
+			Page:    1,
+			PerPage: 0,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	rvs, err := recRepo.LoadValues(uMod.Fields.Names(), rr.IDs())
+	if err != nil {
+		return err
+	}
+
+	err = rr.Walk(func(r *cct.Record) error {
+		r.Values = rvs.FilterByRecordID(r.ID)
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	rr.Walk(func(r *cct.Record) error {
+		vr := r.Values.Get("sys_legacy_ref_id", 0)
+		vu := r.Values.Get("UserID", 0)
+		u, err := strconv.ParseUint(vu.Value, 10, 64)
+		if err != nil {
+			return err
+		}
+		uMap[vr.Value] = u
+		return nil
+	})
 
 	iss, err = joinData(iss)
 	if err != nil {
