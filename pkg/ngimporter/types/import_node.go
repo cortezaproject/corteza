@@ -97,8 +97,7 @@ func (n *ImportNode) addMap(key string, m Map) {
 //   * source import,
 //   * reference correction.
 // For details refer to the README.
-func (n *ImportNode) Import(repoRecord repository.RecordRepository, users map[string]uint64, wg *sync.WaitGroup, ch chan PostProc, bar *progressbar.ProgressBar) {
-	defer wg.Done()
+func (n *ImportNode) Import(repoRecord repository.RecordRepository, users map[string]uint64, ch chan PostProc, bar *progressbar.ProgressBar) {
 	defer bar.Add(1)
 
 	var err error
@@ -189,6 +188,111 @@ func (n *ImportNode) fetchRemoteRef(ref, refMod string, repo repository.RecordRe
 	}
 
 	return "", nil
+}
+
+func (n *ImportNode) AssureLegacyID(repoRecord repository.RecordRepository, toTimestamp string) error {
+	limit := uint(10000)
+	pager := func(page uint) (types.RecordSet, *types.RecordFilter, error) {
+		// fetch all records, ordered by the ID for this module before the specified timestamp (if provided)
+		f := types.RecordFilter{
+			Sort:        "id ASC",
+			Deleted:     rh.FilterStateInclusive,
+			ModuleID:    n.Module.ID,
+			NamespaceID: n.Namespace.ID,
+			PageFilter: rh.PageFilter{
+				Page:    page,
+				PerPage: limit,
+			},
+		}
+		if toTimestamp != "" {
+			f.Query = fmt.Sprintf("createdAt <= '%s'", toTimestamp)
+		}
+
+		rr, ff, err := repoRecord.Find(n.Module, f)
+		rvs, err := repoRecord.LoadValues(n.Module.Fields.Names(), rr.IDs())
+		if err != nil {
+			return nil, nil, err
+		}
+
+		err = rr.Walk(func(r *types.Record) error {
+			r.Values = rvs.FilterByRecordID(r.ID)
+			return nil
+		})
+		if err != nil {
+			return nil, nil, err
+		}
+		return rr, &ff, nil
+	}
+
+	// loop through the csv entries and provide the legacy ref id field value
+	i := uint(0)
+	page := uint(1)
+	var rr types.RecordSet
+	var f *types.RecordFilter
+	var err error
+
+	for {
+		// <= because i is 0-based (array indexes)
+		if f == nil || i >= f.Page*f.PerPage {
+			rr, f, err = pager(page)
+			if err != nil {
+				return err
+			}
+			page++
+		}
+
+		// this only happenes when there is no source for the module; ie. some imported source
+		// references a module that was not there initially.
+		// such cases can be skipped.
+		if n.Reader == nil {
+			return nil
+		}
+
+		record, err := n.Reader.Read()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return err
+		}
+
+		// since the importer skips these, these should also be ignored here
+		if record[0] == "" {
+			continue
+		}
+
+		if i >= uint(f.Count) {
+			return errors.New(fmt.Sprintf("[error] the number of csv entries exceeded record count: %d for node: %s", f.Count, n.Name))
+		}
+		r := rr[i-((f.Page-1)*f.PerPage)]
+		rvs := r.Values
+		rv := rvs.FilterByName(LegacyRefIDField)
+		if rv == nil {
+			rvs = append(rvs, &types.RecordValue{
+				RecordID: r.ID,
+				Name:     LegacyRefIDField,
+				Place:    0,
+				Value:    record[0],
+				Updated:  true,
+			})
+
+			err := repoRecord.UpdateValues(r.ID, rvs)
+			if err != nil {
+				return err
+			}
+		}
+
+		i++
+	}
+
+	// final sanity checks
+	// - check that the counters match up
+	if f.Count != i {
+		return errors.New(fmt.Sprintf("[error] the number of records and csv entries don't match; records: %d, csv: %d, node: %s", f.Count, i, n.Name))
+	}
+
+	return nil
 }
 
 // determines if node is Satisfied and can be imported
