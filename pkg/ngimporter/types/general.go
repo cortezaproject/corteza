@@ -21,6 +21,8 @@ const (
 	MetaMapExt   = ".map.json"
 	MetaJoinExt  = ".join.json"
 	MetaValueExt = ".value.json"
+
+	LegacyRefIDField = "sys_legacy_ref_id"
 )
 
 var (

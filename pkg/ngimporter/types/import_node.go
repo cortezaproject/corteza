@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	cv "github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/schollz/progressbar/v2"
 )
 
@@ -152,6 +154,41 @@ func (n *ImportNode) Import(repoRecord repository.RecordRepository, users map[st
 		Leafs: rtr,
 		Err:   nil,
 	}
+}
+
+func (n *ImportNode) fetchRemoteRef(ref, refMod string, repo repository.RecordRepository) (string, error) {
+	refModU, err := strconv.ParseUint(refMod, 10, 64)
+	if err != nil {
+		return "", err
+	}
+
+	fl := types.RecordFilter{
+		ModuleID:    refModU,
+		NamespaceID: n.Namespace.ID,
+		Deleted:     rh.FilterStateInclusive,
+		Query:       fmt.Sprintf("%s='%s'", LegacyRefIDField, ref),
+		PageFilter: rh.PageFilter{
+			Page:    1,
+			PerPage: 1,
+		},
+	}
+
+	var refModM *types.Module
+	if ModulesGlobal != nil {
+		refModM = ModulesGlobal.FindByID(refModU)
+	}
+	if refModM != nil {
+		rr, _, err := repo.Find(refModM, fl)
+		if err != nil {
+			return "", err
+		}
+		if len(rr) < 1 {
+			return "", errors.New(fmt.Sprintf("[error] referenced record %s not found on node %s for module %s", ref, n.Name, refModM.Name))
+		}
+		return strconv.FormatUint(rr[0].ID, 10), nil
+	}
+
+	return "", nil
 }
 
 // determines if node is Satisfied and can be imported
@@ -344,19 +381,26 @@ func (n *ImportNode) correctRecordRefs(repo repository.RecordRepository) error {
 					return errors.New("moduleField.record.invalidRefFormat")
 				}
 
+				fetch := false
+
 				// in case of a missing ref, make sure to remove the reference.
 				// otherwise this will cause internal errors when trying to resolve CortezaID.
-				if mod, ok := n.idMap[ref]; ok {
-					if vv, ok := mod[val]; ok {
-						v.Value = vv
-						v.Updated = true
-					} else {
-						v.Value = ""
+				if mod, ok := n.idMap[ref]; !ok {
+					fetch = true
+				} else if vv, ok := mod[val]; !ok {
+					fetch = true
+				} else {
+					v.Value = vv
+					v.Updated = true
+				}
+
+				if fetch {
+					val, err := n.fetchRemoteRef(val, ref, repo)
+					if err != nil {
 						continue
 					}
-				} else {
-					v.Value = ""
-					continue
+					v.Value = val
+					v.Updated = true
 				}
 			}
 		}
@@ -408,6 +452,14 @@ func (n *ImportNode) importNodeSource(users map[string]uint64, repo repository.R
 		}
 
 		recordValues := types.RecordValueSet{}
+
+		// assure a valid legacy reference
+		recordValues = append(recordValues, &types.RecordValue{
+			Name:    LegacyRefIDField,
+			Value:   record[0],
+			Place:   0,
+			Updated: true,
+		})
 
 		// convert the given row into a { field: value } map; this will be used
 		// for expression evaluation
@@ -506,13 +558,28 @@ func (n *ImportNode) importNodeSource(users map[string]uint64, repo repository.R
 								return nil, errors.New("moduleField.record.invalidRefFormat")
 							}
 
-							if mod, ok := n.idMap[ref]; ok && val != "" {
-								if v, ok := mod[val]; ok && v != "" {
-									val = v
-								} else {
+							fetch := false
+
+							if val == "" {
+								continue
+							}
+
+							if mod, ok := n.idMap[ref]; !ok {
+								fetch = true
+							} else if v, ok := mod[val]; !ok || v == "" {
+								fetch = true
+							} else {
+								val = v
+							}
+
+							if fetch {
+								val, err = n.fetchRemoteRef(val, ref, repo)
+								if err != nil {
 									continue
 								}
-							} else {
+							}
+
+							if val == "" {
 								continue
 							}
 						}
