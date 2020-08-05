@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/repository"
 	cv "github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/schollz/progressbar/v2"
 )
 
@@ -95,8 +97,7 @@ func (n *ImportNode) addMap(key string, m Map) {
 //   * source import,
 //   * reference correction.
 // For details refer to the README.
-func (n *ImportNode) Import(repoRecord repository.RecordRepository, users map[string]uint64, wg *sync.WaitGroup, ch chan PostProc, bar *progressbar.ProgressBar) {
-	defer wg.Done()
+func (n *ImportNode) Import(repoRecord repository.RecordRepository, users map[string]uint64, ch chan PostProc, bar *progressbar.ProgressBar) {
 	defer bar.Add(1)
 
 	var err error
@@ -152,6 +153,146 @@ func (n *ImportNode) Import(repoRecord repository.RecordRepository, users map[st
 		Leafs: rtr,
 		Err:   nil,
 	}
+}
+
+func (n *ImportNode) fetchRemoteRef(ref, refMod string, repo repository.RecordRepository) (string, error) {
+	refModU, err := strconv.ParseUint(refMod, 10, 64)
+	if err != nil {
+		return "", err
+	}
+
+	fl := types.RecordFilter{
+		ModuleID:    refModU,
+		NamespaceID: n.Namespace.ID,
+		Deleted:     rh.FilterStateInclusive,
+		Query:       fmt.Sprintf("%s='%s'", LegacyRefIDField, ref),
+		PageFilter: rh.PageFilter{
+			Page:    1,
+			PerPage: 1,
+		},
+	}
+
+	var refModM *types.Module
+	if ModulesGlobal != nil {
+		refModM = ModulesGlobal.FindByID(refModU)
+	}
+	if refModM != nil {
+		rr, _, err := repo.Find(refModM, fl)
+		if err != nil {
+			return "", err
+		}
+		if len(rr) < 1 {
+			return "", errors.New(fmt.Sprintf("[error] referenced record %s not found on node %s for module %s", ref, n.Name, refModM.Name))
+		}
+		return strconv.FormatUint(rr[0].ID, 10), nil
+	}
+
+	return "", nil
+}
+
+func (n *ImportNode) AssureLegacyID(repoRecord repository.RecordRepository, toTimestamp string) error {
+	limit := uint(10000)
+	pager := func(page uint) (types.RecordSet, *types.RecordFilter, error) {
+		// fetch all records, ordered by the ID for this module before the specified timestamp (if provided)
+		f := types.RecordFilter{
+			Sort:        "id ASC",
+			Deleted:     rh.FilterStateInclusive,
+			ModuleID:    n.Module.ID,
+			NamespaceID: n.Namespace.ID,
+			PageFilter: rh.PageFilter{
+				Page:    page,
+				PerPage: limit,
+			},
+		}
+		if toTimestamp != "" {
+			f.Query = fmt.Sprintf("createdAt <= '%s'", toTimestamp)
+		}
+
+		rr, ff, err := repoRecord.Find(n.Module, f)
+		rvs, err := repoRecord.LoadValues(n.Module.Fields.Names(), rr.IDs())
+		if err != nil {
+			return nil, nil, err
+		}
+
+		err = rr.Walk(func(r *types.Record) error {
+			r.Values = rvs.FilterByRecordID(r.ID)
+			return nil
+		})
+		if err != nil {
+			return nil, nil, err
+		}
+		return rr, &ff, nil
+	}
+
+	// loop through the csv entries and provide the legacy ref id field value
+	i := uint(0)
+	page := uint(1)
+	var rr types.RecordSet
+	var f *types.RecordFilter
+	var err error
+
+	for {
+		// <= because i is 0-based (array indexes)
+		if f == nil || i >= f.Page*f.PerPage {
+			rr, f, err = pager(page)
+			if err != nil {
+				return err
+			}
+			page++
+		}
+
+		// this only happenes when there is no source for the module; ie. some imported source
+		// references a module that was not there initially.
+		// such cases can be skipped.
+		if n.Reader == nil {
+			return nil
+		}
+
+		record, err := n.Reader.Read()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return err
+		}
+
+		// since the importer skips these, these should also be ignored here
+		if record[0] == "" {
+			continue
+		}
+
+		if i >= uint(f.Count) {
+			return errors.New(fmt.Sprintf("[error] the number of csv entries exceeded record count: %d for node: %s", f.Count, n.Name))
+		}
+		r := rr[i-((f.Page-1)*f.PerPage)]
+		rvs := r.Values
+		rv := rvs.FilterByName(LegacyRefIDField)
+		if rv == nil {
+			rvs = append(rvs, &types.RecordValue{
+				RecordID: r.ID,
+				Name:     LegacyRefIDField,
+				Place:    0,
+				Value:    record[0],
+				Updated:  true,
+			})
+
+			err := repoRecord.UpdateValues(r.ID, rvs)
+			if err != nil {
+				return err
+			}
+		}
+
+		i++
+	}
+
+	// final sanity checks
+	// - check that the counters match up
+	if f.Count != i {
+		return errors.New(fmt.Sprintf("[error] the number of records and csv entries don't match; records: %d, csv: %d, node: %s", f.Count, i, n.Name))
+	}
+
+	return nil
 }
 
 // determines if node is Satisfied and can be imported
@@ -344,19 +485,26 @@ func (n *ImportNode) correctRecordRefs(repo repository.RecordRepository) error {
 					return errors.New("moduleField.record.invalidRefFormat")
 				}
 
+				fetch := false
+
 				// in case of a missing ref, make sure to remove the reference.
 				// otherwise this will cause internal errors when trying to resolve CortezaID.
-				if mod, ok := n.idMap[ref]; ok {
-					if vv, ok := mod[val]; ok {
-						v.Value = vv
-						v.Updated = true
-					} else {
-						v.Value = ""
+				if mod, ok := n.idMap[ref]; !ok {
+					fetch = true
+				} else if vv, ok := mod[val]; !ok {
+					fetch = true
+				} else {
+					v.Value = vv
+					v.Updated = true
+				}
+
+				if fetch {
+					val, err := n.fetchRemoteRef(val, ref, repo)
+					if err != nil {
 						continue
 					}
-				} else {
-					v.Value = ""
-					continue
+					v.Value = val
+					v.Updated = true
 				}
 			}
 		}
@@ -408,6 +556,14 @@ func (n *ImportNode) importNodeSource(users map[string]uint64, repo repository.R
 		}
 
 		recordValues := types.RecordValueSet{}
+
+		// assure a valid legacy reference
+		recordValues = append(recordValues, &types.RecordValue{
+			Name:    LegacyRefIDField,
+			Value:   record[0],
+			Place:   0,
+			Updated: true,
+		})
 
 		// convert the given row into a { field: value } map; this will be used
 		// for expression evaluation
@@ -506,13 +662,28 @@ func (n *ImportNode) importNodeSource(users map[string]uint64, repo repository.R
 								return nil, errors.New("moduleField.record.invalidRefFormat")
 							}
 
-							if mod, ok := n.idMap[ref]; ok && val != "" {
-								if v, ok := mod[val]; ok && v != "" {
-									val = v
-								} else {
+							fetch := false
+
+							if val == "" {
+								continue
+							}
+
+							if mod, ok := n.idMap[ref]; !ok {
+								fetch = true
+							} else if v, ok := mod[val]; !ok || v == "" {
+								fetch = true
+							} else {
+								val = v
+							}
+
+							if fetch {
+								val, err = n.fetchRemoteRef(val, ref, repo)
+								if err != nil {
 									continue
 								}
-							} else {
+							}
+
+							if val == "" {
 								continue
 							}
 						}
