@@ -75,49 +75,6 @@ func Import(ctx context.Context, iss []types.ImportSource, ns *cct.Namespace, cf
 		}
 	}
 
-	// populate with existing users
-	uMod, err := findModuleByHandle(modRepo, ns.ID, "user")
-	if err != nil {
-		return err
-	}
-	rr, _, err := recRepo.Find(uMod, cct.RecordFilter{
-		ModuleID:    uMod.ID,
-		Deleted:     rh.FilterStateInclusive,
-		NamespaceID: ns.ID,
-		Query:       "sys_legacy_ref_id IS NOT NULL",
-		PageFilter: rh.PageFilter{
-			Page:    1,
-			PerPage: 0,
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	rvs, err := recRepo.LoadValues(uMod.Fields.Names(), rr.IDs())
-	if err != nil {
-		return err
-	}
-
-	err = rr.Walk(func(r *cct.Record) error {
-		r.Values = rvs.FilterByRecordID(r.ID)
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
-	rr.Walk(func(r *cct.Record) error {
-		vr := r.Values.Get("sys_legacy_ref_id", 0)
-		vu := r.Values.Get("UserID", 0)
-		u, err := strconv.ParseUint(vu.Value, 10, 64)
-		if err != nil {
-			return err
-		}
-		uMap[vr.Value] = u
-		return nil
-	})
-
 	iss, err = joinData(iss)
 	if err != nil {
 		return err
@@ -231,6 +188,49 @@ func Import(ctx context.Context, iss []types.ImportSource, ns *cct.Namespace, cf
 			return err
 		}
 	} else {
+		// populate with existing users
+		uMod, err := findModuleByHandle(modRepo, ns.ID, "user")
+		if err != nil {
+			return err
+		}
+		rr, _, err := recRepo.Find(uMod, cct.RecordFilter{
+			ModuleID:    uMod.ID,
+			Deleted:     rh.FilterStateInclusive,
+			NamespaceID: ns.ID,
+			Query:       "sys_legacy_ref_id IS NOT NULL",
+			PageFilter: rh.PageFilter{
+				Page:    1,
+				PerPage: 0,
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		rvs, err := recRepo.LoadValues(uMod.Fields.Names(), rr.IDs())
+		if err != nil {
+			return err
+		}
+
+		err = rr.Walk(func(r *cct.Record) error {
+			r.Values = rvs.FilterByRecordID(r.ID)
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
+		rr.Walk(func(r *cct.Record) error {
+			vr := r.Values.Get("sys_legacy_ref_id", 0)
+			vu := r.Values.Get("UserID", 0)
+			u, err := strconv.ParseUint(vu.Value, 10, 64)
+			if err != nil {
+				return err
+			}
+			uMap[vr.Value] = u
+			return nil
+		})
+
 		imp.RemoveCycles()
 
 		// take note of leaf nodes that can be imported right away
