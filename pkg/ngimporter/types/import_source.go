@@ -48,4 +48,11 @@ type (
 		// a specified value used by Corteza.
 		ValueMap map[string]map[string]string
 	}
+
+	// Config helps us define different global configuration options that are used
+	// during the import process.
+	Config struct {
+		ToTimestamp string
+		RefFixup    bool
+	}
 )

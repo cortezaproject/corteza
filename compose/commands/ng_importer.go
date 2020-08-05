@@ -29,12 +29,14 @@ func NGImporter() *cobra.Command {
 
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
-				ctx      = auth.SetSuperUserContext(cli.Context())
-				nsFlag   = cmd.Flags().Lookup("namespace").Value.String()
-				srcFlag  = cmd.Flags().Lookup("src").Value.String()
-				metaFlag = cmd.Flags().Lookup("meta").Value.String()
-				ns       *types.Namespace
-				err      error
+				ctx       = auth.SetSuperUserContext(cli.Context())
+				nsFlag    = cmd.Flags().Lookup("namespace").Value.String()
+				srcFlag   = cmd.Flags().Lookup("src").Value.String()
+				metaFlag  = cmd.Flags().Lookup("meta").Value.String()
+				toTsFlag  = cmd.Flags().Lookup("to-timestamp").Value.String()
+				fixupFlag = cmd.Flags().Lookup("fixup").Changed
+				ns        *types.Namespace
+				err       error
 
 				iss []ngt.ImportSource
 			)
@@ -160,7 +162,12 @@ func NGImporter() *cobra.Command {
 				}
 			}
 
-			err = ngi.Import(ctx, out, ns)
+			c := &ngt.Config{
+				ToTimestamp: toTsFlag,
+				RefFixup:    fixupFlag,
+			}
+
+			err = ngi.Import(ctx, out, ns, c)
 			if err != nil {
 				panic(err)
 			}
@@ -171,6 +178,8 @@ func NGImporter() *cobra.Command {
 	cmd.Flags().String("namespace", "", "Import into namespace (by ID or string)")
 	cmd.Flags().String("src", "", "Directory with import files")
 	cmd.Flags().String("meta", "", "Directory with import meta files")
+	cmd.Flags().String("to-timestamp", "", "Process records upto this timestamp")
+	cmd.Flags().BoolP("fixup", "", false, "Fixup legacy IDs")
 
 	return cmd
 }

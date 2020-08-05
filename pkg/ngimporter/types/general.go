@@ -3,6 +3,8 @@ package types
 import (
 	"time"
 	"unicode/utf8"
+
+	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
 const (
@@ -21,11 +23,15 @@ const (
 	MetaMapExt   = ".map.json"
 	MetaJoinExt  = ".join.json"
 	MetaValueExt = ".value.json"
+
+	LegacyRefIDField = "sys_legacy_ref_id"
 )
 
 var (
 	// ExprLang contains gval language that should be used for any expression evaluation
 	ExprLang = GLang()
+
+	ModulesGlobal = make(types.ModuleSet, 0)
 )
 
 type (
