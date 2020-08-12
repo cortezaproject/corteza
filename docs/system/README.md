@@ -254,6 +254,7 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.cru
 | ------ | -------- | ------- |
 | `GET` | `/auth/` | Returns auth settings |
 | `GET` | `/auth/check` | Check JWT token |
+| `POST` | `/auth/impersonate` | Impersonate a user |
 | `POST` | `/auth/exchange` | Exchange auth token for JWT |
 | `GET` | `/auth/logout` | Logout |
 
@@ -282,6 +283,21 @@ Warning: implode(): Invalid arguments passed in /private/tmp/Users/darh/Work.cru
 
 | Parameter | Type | Method | Description | Default | Required? |
 | --------- | ---- | ------ | ----------- | ------- | --------- |
+
+## Impersonate a user
+
+#### Method
+
+| URI | Protocol | Method | Authentication |
+| --- | -------- | ------ | -------------- |
+| `/auth/impersonate` | HTTP/S | POST |  |
+
+#### Request parameters
+
+| Parameter | Type | Method | Description | Default | Required? |
+| --------- | ---- | ------ | ----------- | ------- | --------- |
+| userID | uint64 | POST | ID of the impersonated user | N/A | YES |
+| expire | int | POST | expiration time in seconds, must be shorter than 24h | N/A | NO |
 
 ## Exchange auth token for JWT
 
