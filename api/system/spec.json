@@ -20,6 +20,22 @@
         "parameters": {}
       },
       {
+        "name": "impersonate",
+        "method": "POST",
+        "title": "Impersonate a user",
+        "path": "/impersonate",
+        "parameters": {
+          "post": [
+            {
+              "name": "userID",
+              "type": "uint64",
+              "required": true,
+              "title": "ID of the impersonated user"
+            }
+          ]
+        }
+      },
+      {
         "name": "exchangeAuthToken",
         "method": "POST",
         "title": "Exchange auth token for JWT",

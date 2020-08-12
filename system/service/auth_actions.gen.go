@@ -615,6 +615,26 @@ func AuthActionCreateCredentials(props ...*authActionProps) *authAction {
 	return a
 }
 
+// AuthActionImpersonate returns "system:auth.impersonate" error
+//
+// This function is auto-generated.
+//
+func AuthActionImpersonate(props ...*authActionProps) *authAction {
+	a := &authAction{
+		timestamp: time.Now(),
+		resource:  "system:auth",
+		action:    "impersonate",
+		log:       "impersonating {user}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors
@@ -1146,6 +1166,36 @@ func AuthErrInvalidToken(props ...*authActionProps) *authError {
 		action:    "error",
 		message:   "invalid token",
 		log:       "invalid token",
+		severity:  actionlog.Warning,
+		props: func() *authActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
+// AuthErrNotAllowedToImpersonate returns "system:auth.notAllowedToImpersonate" audit event as actionlog.Warning
+//
+//
+// This function is auto-generated.
+//
+func AuthErrNotAllowedToImpersonate(props ...*authActionProps) *authError {
+	var e = &authError{
+		timestamp: time.Now(),
+		resource:  "system:auth",
+		error:     "notAllowedToImpersonate",
+		action:    "error",
+		message:   "not allowed to impersonate this user",
+		log:       "not allowed to impersonate this user",
 		severity:  actionlog.Warning,
 		props: func() *authActionProps {
 			if len(props) > 0 {

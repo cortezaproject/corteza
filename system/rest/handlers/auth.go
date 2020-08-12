@@ -31,6 +31,7 @@ import (
 type AuthAPI interface {
 	Settings(context.Context, *request.AuthSettings) (interface{}, error)
 	Check(context.Context, *request.AuthCheck) (interface{}, error)
+	Impersonate(context.Context, *request.AuthImpersonate) (interface{}, error)
 	ExchangeAuthToken(context.Context, *request.AuthExchangeAuthToken) (interface{}, error)
 	Logout(context.Context, *request.AuthLogout) (interface{}, error)
 }
@@ -39,6 +40,7 @@ type AuthAPI interface {
 type Auth struct {
 	Settings          func(http.ResponseWriter, *http.Request)
 	Check             func(http.ResponseWriter, *http.Request)
+	Impersonate       func(http.ResponseWriter, *http.Request)
 	ExchangeAuthToken func(http.ResponseWriter, *http.Request)
 	Logout            func(http.ResponseWriter, *http.Request)
 }
@@ -81,6 +83,26 @@ func NewAuth(h AuthAPI) *Auth {
 				return
 			}
 			logger.LogControllerCall("Auth.Check", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
+		Impersonate: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewAuthImpersonate()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Auth.Impersonate", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.Impersonate(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("Auth.Impersonate", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("Auth.Impersonate", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
@@ -133,6 +155,7 @@ func (h Auth) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.H
 		r.Use(middlewares...)
 		r.Get("/auth/", h.Settings)
 		r.Get("/auth/check", h.Check)
+		r.Post("/auth/impersonate", h.Impersonate)
 		r.Post("/auth/exchange", h.ExchangeAuthToken)
 		r.Get("/auth/logout", h.Logout)
 	})

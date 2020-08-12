@@ -128,6 +128,76 @@ func (r *AuthCheck) Fill(req *http.Request) (err error) {
 
 var _ RequestFiller = NewAuthCheck()
 
+// AuthImpersonate request parameters
+type AuthImpersonate struct {
+	hasUserID bool
+	rawUserID string
+	UserID    uint64 `json:",string"`
+
+	hasExpire bool
+	rawExpire string
+	Expire    int
+}
+
+// NewAuthImpersonate request
+func NewAuthImpersonate() *AuthImpersonate {
+	return &AuthImpersonate{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AuthImpersonate) Auditable() map[string]interface{} {
+	var out = map[string]interface{}{}
+
+	out["userID"] = r.UserID
+	out["expire"] = r.Expire
+
+	return out
+}
+
+// Fill processes request and fills internal variables
+func (r *AuthImpersonate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return errors.Wrap(err, "error parsing http request body")
+		}
+	}
+
+	if err = req.ParseForm(); err != nil {
+		return err
+	}
+
+	get := map[string]string{}
+	post := map[string]string{}
+	urlQuery := req.URL.Query()
+	for name, param := range urlQuery {
+		get[name] = string(param[0])
+	}
+	postVars := req.Form
+	for name, param := range postVars {
+		post[name] = string(param[0])
+	}
+
+	if val, ok := post["userID"]; ok {
+		r.hasUserID = true
+		r.rawUserID = val
+		r.UserID = parseUInt64(val)
+	}
+	if val, ok := post["expire"]; ok {
+		r.hasExpire = true
+		r.rawExpire = val
+		r.Expire = parseInt(val)
+	}
+
+	return err
+}
+
+var _ RequestFiller = NewAuthImpersonate()
+
 // AuthExchangeAuthToken request parameters
 type AuthExchangeAuthToken struct {
 	hasToken bool
@@ -236,6 +306,36 @@ func (r *AuthLogout) Fill(req *http.Request) (err error) {
 }
 
 var _ RequestFiller = NewAuthLogout()
+
+// HasUserID returns true if userID was set
+func (r *AuthImpersonate) HasUserID() bool {
+	return r.hasUserID
+}
+
+// RawUserID returns raw value of userID parameter
+func (r *AuthImpersonate) RawUserID() string {
+	return r.rawUserID
+}
+
+// GetUserID returns casted value of  userID parameter
+func (r *AuthImpersonate) GetUserID() uint64 {
+	return r.UserID
+}
+
+// HasExpire returns true if expire was set
+func (r *AuthImpersonate) HasExpire() bool {
+	return r.hasExpire
+}
+
+// RawExpire returns raw value of expire parameter
+func (r *AuthImpersonate) RawExpire() string {
+	return r.rawExpire
+}
+
+// GetExpire returns casted value of  expire parameter
+func (r *AuthImpersonate) GetExpire() int {
+	return r.Expire
+}
 
 // HasToken returns true if token was set
 func (r *AuthExchangeAuthToken) HasToken() bool {

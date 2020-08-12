@@ -68,6 +68,18 @@ func (ctrl *Auth) Logout(ctx context.Context, r *request.AuthLogout) (interface{
 	return true, nil
 }
 
+// Impersonate implements impersonation functionality
+//
+// This is experimental and internals will most likely change in the future:
+func (ctrl *Auth) Impersonate(ctx context.Context, r *request.AuthImpersonate) (interface{}, error) {
+	u, err := ctrl.authSvc.With(ctx).Impersonate(r.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return ctrl.makePayload(ctx, u)
+}
+
 func (ctrl *Auth) Settings(ctx context.Context, r *request.AuthSettings) (interface{}, error) {
 	var (
 		int = ctrl.settings.Auth.Internal

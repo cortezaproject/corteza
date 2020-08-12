@@ -65,6 +65,9 @@ actions:
   - action: createCredentials
     log: "new credentials {credentials.kind} created"
 
+  - action: impersonate
+    log: "impersonating {user}"
+
 errors:
   - error: subscription
     message: "{err}"
@@ -130,4 +133,8 @@ errors:
 
   - error: invalidToken
     message: "invalid token"
+    severity: warning
+
+  - error: notAllowedToImpersonate
+    message: "not allowed to impersonate this user"
     severity: warning

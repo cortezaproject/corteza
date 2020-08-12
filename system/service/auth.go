@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"regexp"
 	"strconv"
 	"time"
@@ -50,6 +51,7 @@ type (
 		InternalLogin(email string, password string) (*types.User, error)
 		SetPassword(userID uint64, AuthActionPassword string) error
 		ChangePassword(userID uint64, oldPassword, AuthActionPassword string) error
+		Impersonate(userID uint64) (*types.User, error)
 
 		IssueAuthRequestToken(user *types.User) (token string, err error)
 		ValidateAuthRequestToken(token string) (user *types.User, err error)
@@ -593,6 +595,36 @@ func (svc auth) SetPassword(userID uint64, password string) (err error) {
 	})
 
 	return svc.recordAction(svc.ctx, aam, AuthActionChangePassword, err)
+}
+
+// Impersonate verifies if user can impersonate another user and returns that user
+//
+// For now, it's the caller's responsibility to generate the auth token
+func (svc auth) Impersonate(userID uint64) (u *types.User, err error) {
+	var (
+		aam = &authActionProps{user: u}
+
+		identity = internalAuth.GetIdentityFromContext(svc.ctx)
+	)
+
+	err = func() error {
+		if !slice.HasUint64(identity.Roles(), permissions.AdminsRoleID) {
+			// A primitive access control
+			//
+			// For now, we do not want to add or change RBAC operation-set
+			// and we just check if user that wants to impersonate someone
+			// is member of administrators
+			return AuthErrNotAllowedToImpersonate()
+		}
+
+		if u, err = svc.users.FindByID(userID); err != nil {
+			return err
+		}
+
+		return err
+	}()
+
+	return u, svc.recordAction(svc.ctx, aam, AuthActionImpersonate, err)
 }
 
 // ChangePassword validates old password and changes it with new
