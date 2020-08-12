@@ -161,6 +161,10 @@ func (svc accessControl) CanDeleteUser(ctx context.Context, u *types.User) bool 
 	return svc.can(ctx, u, "delete")
 }
 
+func (svc accessControl) CanImpersonateUser(ctx context.Context, u *types.User) bool {
+	return svc.can(ctx, u, "impersonate", permissions.Denied)
+}
+
 func (svc accessControl) CanUnmaskEmail(ctx context.Context, u *types.User) bool {
 	if internalAuth.GetIdentityFromContext(ctx).Identity() == u.ID {
 		// Make an exception when users are reading their own info
@@ -256,6 +260,7 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"unsuspend",
 		"unmask.email",
 		"unmask.name",
+		"impersonate",
 	)
 
 	wl.Set(
