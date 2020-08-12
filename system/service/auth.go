@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"regexp"
 	"strconv"
 	"time"
@@ -28,6 +27,7 @@ type (
 		ctx context.Context
 
 		actionlog actionlog.Recorder
+		ac        authAccessController
 		eventbus  eventDispatcher
 
 		subscription  authSubscriptionChecker
@@ -69,6 +69,10 @@ type (
 		changePassword(uint64, string) error
 	}
 
+	authAccessController interface {
+		CanImpersonateUser(context.Context, *types.User) bool
+	}
+
 	authSubscriptionChecker interface {
 		CanRegister(uint) error
 	}
@@ -96,6 +100,7 @@ func defaultProviderValidator(provider string) error {
 func Auth(ctx context.Context) AuthService {
 	return (&auth{
 		eventbus:      eventbus.Service(),
+		ac:            DefaultAccessControl,
 		subscription:  CurrentSubscription,
 		settings:      CurrentSettings,
 		notifications: DefaultAuthNotification,
@@ -123,6 +128,7 @@ func (svc auth) With(ctx context.Context) AuthService {
 		users:       repository.User(ctx, db),
 		roles:       repository.Role(ctx, db),
 
+		ac:                svc.ac,
 		subscription:      svc.subscription,
 		settings:          svc.settings,
 		notifications:     svc.notifications,
@@ -603,22 +609,15 @@ func (svc auth) SetPassword(userID uint64, password string) (err error) {
 func (svc auth) Impersonate(userID uint64) (u *types.User, err error) {
 	var (
 		aam = &authActionProps{user: u}
-
-		identity = internalAuth.GetIdentityFromContext(svc.ctx)
 	)
 
 	err = func() error {
-		if !slice.HasUint64(identity.Roles(), permissions.AdminsRoleID) {
-			// A primitive access control
-			//
-			// For now, we do not want to add or change RBAC operation-set
-			// and we just check if user that wants to impersonate someone
-			// is member of administrators
-			return AuthErrNotAllowedToImpersonate()
-		}
-
 		if u, err = svc.users.FindByID(userID); err != nil {
 			return err
+		}
+
+		if !svc.ac.CanImpersonateUser(svc.ctx, u) {
+			return AuthErrNotAllowedToImpersonate()
 		}
 
 		return err
