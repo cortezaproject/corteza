@@ -3,6 +3,7 @@ package system
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"net/url"
 	"os"
 	"strings"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
-	settings "github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/service"
 )
 
@@ -23,14 +23,14 @@ var (
 // Discovers "auth.%" settings from the environment
 //
 // when other kinds of auto-discoverable settings come, lambdas inside will probably need a bit of refactoring
-func authSettingsAutoDiscovery(ctx context.Context, log *zap.Logger, svc settings.Service) (err error) {
+func authSettingsAutoDiscovery(ctx context.Context, log *zap.Logger, svc settingsService) (err error) {
 	type (
 		stringWrapper func() string
 		boolWrapper   func() bool
 	)
 
 	var (
-		current settings.ValueSet
+		current types.SettingValueSet
 	)
 
 	if log == nil {
@@ -68,11 +68,11 @@ func authSettingsAutoDiscovery(ctx context.Context, log *zap.Logger, svc setting
 
 			if v != nil {
 				// Nothing to discover, already set
-				log.Info("already set", logger.MaskIf("value", v, maskSensitive))
+				log.Debug("already set", logger.MaskIf("value", v, maskSensitive))
 				return
 			}
 
-			v = &settings.Value{Name: name}
+			v = &types.SettingValue{Name: name}
 
 			value, envExists := os.LookupEnv(env)
 

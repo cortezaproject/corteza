@@ -2,22 +2,20 @@ package system
 
 import (
 	"context"
-	"strings"
-
-	"github.com/pkg/errors"
-	"go.uber.org/zap"
-
-	"github.com/cortezaproject/corteza-server/pkg/app/options"
+	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/system/auth/external"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"go.uber.org/zap"
+	"strings"
 )
 
 // Provisions OIDC providers from PROVISION_OIDC_PROVIDER env variable
 //
 // Env variable should contains space delimited pairs of providers (<name> <provider> ....)
 func oidcAutoDiscovery(ctx context.Context, log *zap.Logger) (err error) {
-	var provider = strings.TrimSpace(options.EnvString("", "PROVISION_OIDC_PROVIDER", ""))
+	var provider = strings.TrimSpace(options.EnvString("PROVISION_OIDC_PROVIDER", ""))
 
 	log.Debug("OIDC auto discovery provision",
 		zap.String("envkey", "PROVISION_OIDC_PROVIDER"),
@@ -36,7 +34,7 @@ func oidcAutoDiscovery(ctx context.Context, log *zap.Logger) (err error) {
 	)
 
 	if plen%2 == 1 {
-		return errors.New("expecting even number of providers")
+		return fmt.Errorf("expecting even number of providers")
 	}
 
 	for p := 0; p < plen; p = p + 2 {
@@ -73,7 +71,7 @@ func oidcAutoDiscovery(ctx context.Context, log *zap.Logger) (err error) {
 	return
 }
 
-func authAddExternals(ctx context.Context) (err error) {
+func authAddExternals(ctx context.Context, log *zap.Logger) (err error) {
 	var (
 		kinds = []string{
 			"github",
@@ -93,7 +91,7 @@ func authAddExternals(ctx context.Context) (err error) {
 	for _, kind := range kinds {
 		env = "PROVISION_SETTINGS_AUTH_EXTERNAL_" + strings.ToUpper(kind)
 
-		p = strings.TrimSpace(options.EnvString("", env, ""))
+		p = strings.TrimSpace(options.EnvString(env, ""))
 		if len(p) == 0 {
 			continue
 		}

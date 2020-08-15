@@ -1,8 +1,0 @@
-settings:
-  ui.namespace-switcher.enabled: false
-
-  record.attachments.max-size: 10
-  record.attachments.mimetypes: []
-
-  page.attachments.max-size: 10
-  page.attachments.mimetypes: []
