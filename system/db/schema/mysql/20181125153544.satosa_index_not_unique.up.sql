@@ -1,1 +1,0 @@
-ALTER TABLE `sys_user` DROP INDEX `uid_satosa`, ADD INDEX `uid_satosa` (`satosa_id`) USING BTREE;

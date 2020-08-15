@@ -1,1 +1,0 @@
-ALTER TABLE `sys_user` ADD `email_confirmed` BOOLEAN NOT NULL DEFAULT FALSE;

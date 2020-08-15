@@ -1,1 +1,0 @@
-ALTER TABLE `crm_module_form` ADD `is_required` TINYINT(1) NOT NULL AFTER `is_private`, ADD `is_visible` TINYINT(1) NOT NULL AFTER `is_required`;
