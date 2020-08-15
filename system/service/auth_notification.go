@@ -17,16 +17,13 @@ import (
 
 type (
 	authNotification struct {
-		ctx      context.Context
 		logger   *zap.Logger
 		settings *types.AppSettings
 	}
 
 	AuthNotificationService interface {
-		With(ctx context.Context) AuthNotificationService
-
-		EmailConfirmation(lang string, emailAddress string, url string) error
-		PasswordReset(lang string, emailAddress string, url string) error
+		EmailConfirmation(ctx context.Context, lang string, emailAddress string, url string) error
+		PasswordReset(ctx context.Context, lang string, emailAddress string, url string) error
 	}
 
 	authNotificationPayload struct {
@@ -41,18 +38,10 @@ type (
 	}
 )
 
-func AuthNotification(ctx context.Context) AuthNotificationService {
-	return (&authNotification{
-		logger:   DefaultLogger.Named("auth-notification"),
-		settings: CurrentSettings,
-	}).With(ctx)
-}
-
-func (svc authNotification) With(ctx context.Context) AuthNotificationService {
+func AuthNotification(s *types.AppSettings) AuthNotificationService {
 	return &authNotification{
-		ctx:      ctx,
-		logger:   logger.AddRequestID(ctx, svc.logger),
-		settings: svc.settings,
+		logger:   DefaultLogger.Named("auth-notification"),
+		settings: s,
 	}
 }
 
@@ -60,15 +49,15 @@ func (svc authNotification) log(ctx context.Context, fields ...zapcore.Field) *z
 	return logger.AddRequestID(ctx, svc.logger).With(fields...)
 }
 
-func (svc authNotification) EmailConfirmation(lang string, emailAddress string, token string) error {
-	return svc.send("email-confirmation", lang, authNotificationPayload{
+func (svc authNotification) EmailConfirmation(ctx context.Context, lang string, emailAddress string, token string) error {
+	return svc.send(ctx, "email-confirmation", lang, authNotificationPayload{
 		EmailAddress: emailAddress,
 		URL:          svc.settings.Auth.Frontend.Url.EmailConfirmation + token,
 	})
 }
 
-func (svc authNotification) PasswordReset(lang string, emailAddress string, token string) error {
-	return svc.send("password-reset", lang, authNotificationPayload{
+func (svc authNotification) PasswordReset(ctx context.Context, lang string, emailAddress string, token string) error {
+	return svc.send(ctx, "password-reset", lang, authNotificationPayload{
 		EmailAddress: emailAddress,
 		URL:          svc.settings.Auth.Frontend.Url.PasswordReset + token,
 	})
@@ -80,8 +69,12 @@ func (svc authNotification) newMail() *gomail.Message {
 	return m
 }
 
-func (svc authNotification) send(name, lang string, payload authNotificationPayload) error {
-	ntf := svc.newMail()
+func (svc authNotification) send(ctx context.Context, name, lang string, payload authNotificationPayload) error {
+	var (
+		err error
+		tmp string
+		ntf = svc.newMail()
+	)
 
 	payload.Logo = template.URL(svc.settings.General.Mail.Logo)
 	payload.BaseURL = svc.settings.Auth.Frontend.Url.Base
@@ -89,25 +82,43 @@ func (svc authNotification) send(name, lang string, payload authNotificationPayl
 	payload.SignatureEmail = svc.settings.Auth.Mail.FromAddress
 
 	// @todo translations
-	payload.EmailHeaderEn = template.HTML(svc.render(svc.settings.General.Mail.Header, payload))
-	payload.EmailFooterEn = template.HTML(svc.render(svc.settings.General.Mail.Footer, payload))
+	if tmp, err = svc.render(svc.settings.General.Mail.Header, payload); err != nil {
+		return fmt.Errorf("failed to render svc.settings.General.Mail.Header: %w", err)
+	}
+	payload.EmailHeaderEn = template.HTML(tmp)
+	if tmp, err = svc.render(svc.settings.General.Mail.Footer, payload); err != nil {
+		return fmt.Errorf("failed to render svc.settings.General.Mail.Footer: %w", err)
+	}
+	payload.EmailFooterEn = template.HTML(tmp)
 
 	ntf.SetAddressHeader("To", payload.EmailAddress, "")
 	// @todo translations
 	switch name {
 	case "email-confirmation":
-		ntf.SetHeader("Subject", svc.render(svc.settings.Auth.Mail.EmailConfirmation.Subject, payload))
-		ntf.SetBody("text/html", svc.render(svc.settings.Auth.Mail.EmailConfirmation.Body, payload))
+		if tmp, err = svc.render(svc.settings.Auth.Mail.EmailConfirmation.Subject, payload); err != nil {
+			return fmt.Errorf("failed to render svc.settings.Auth.Mail.EmailConfirmation.Subject: %w", err)
+		}
+		ntf.SetHeader("Subject", tmp)
+		if tmp, err = svc.render(svc.settings.Auth.Mail.EmailConfirmation.Body, payload); err != nil {
+			return fmt.Errorf("failed to render svc.settings.Auth.Mail.EmailConfirmation.Body: %w", err)
+		}
+		ntf.SetBody("text/html", tmp)
 
 	case "password-reset":
-		ntf.SetHeader("Subject", svc.render(svc.settings.Auth.Mail.PasswordReset.Subject, payload))
-		ntf.SetBody("text/html", svc.render(svc.settings.Auth.Mail.PasswordReset.Body, payload))
+		if tmp, err = svc.render(svc.settings.Auth.Mail.PasswordReset.Subject, payload); err != nil {
+			return fmt.Errorf("failed to render svc.settings.Auth.Mail.PasswordReset.Subject: %w", err)
+		}
+		ntf.SetHeader("Subject", tmp)
+		if tmp, err = svc.render(svc.settings.Auth.Mail.PasswordReset.Body, payload); err != nil {
+			return fmt.Errorf("failed to render svc.settings.Auth.Mail.PasswordReset.Body: %w", err)
+		}
+		ntf.SetBody("text/html", tmp)
 
 	default:
 		return fmt.Errorf("unknown notification email template %q", name)
 	}
 
-	svc.log(svc.ctx).Debug(
+	svc.log(ctx).Debug(
 		"sending auth notification",
 		zap.String("name", name),
 		zap.String("language", lang),
@@ -117,7 +128,7 @@ func (svc authNotification) send(name, lang string, payload authNotificationPayl
 	return mail.Send(ntf)
 }
 
-func (svc authNotification) render(source string, payload interface{}) (out string) {
+func (svc authNotification) render(source string, payload interface{}) (string, error) {
 	var (
 		err error
 		tpl *template.Template
@@ -126,16 +137,13 @@ func (svc authNotification) render(source string, payload interface{}) (out stri
 
 	tpl, err = template.New("").Parse(source)
 	if err != nil {
-		svc.log(svc.ctx, zap.Error(err)).Error("could not parse template")
-		return
+		return "", fmt.Errorf("could not parse template: %w", err)
 	}
 
 	err = tpl.Execute(&buf, payload)
 	if err != nil {
-		svc.log(svc.ctx, zap.Error(err)).Error("could not render template")
-		return
+		return "", fmt.Errorf("could not render template: %w", err)
 	}
 
-	out = buf.String()
-	return
+	return buf.String(), nil
 }

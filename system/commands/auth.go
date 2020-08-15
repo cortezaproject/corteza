@@ -119,13 +119,13 @@ func Auth(app serviceInitializer) *cobra.Command {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
 				err error
-				ntf = service.DefaultAuthNotification.With(ctx)
+				ntf = service.DefaultAuthNotification
 			)
 
-			err = ntf.EmailConfirmation("en", args[0], "notification-testing-token")
+			err = ntf.EmailConfirmation(ctx, "en", args[0], "notification-testing-token")
 			cli.HandleError(err)
 
-			err = ntf.PasswordReset("en", args[0], "notification-testing-token")
+			err = ntf.PasswordReset(ctx, "en", args[0], "notification-testing-token")
 			cli.HandleError(err)
 
 		},

@@ -187,7 +187,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s interface{}, c Config) (
 
 	hcd.Add(store.Healthcheck(DefaultStore), "Store/System")
 
-	DefaultAuthNotification = AuthNotification(ctx)
+	DefaultAuthNotification = AuthNotification(CurrentSettings)
 	DefaultAuth = Auth(ctx)
 	DefaultUser = User(ctx)
 	DefaultRole = Role(ctx)
