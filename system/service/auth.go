@@ -4,24 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/store"
-	"regexp"
-	"strconv"
-	"time"
-
-	"github.com/markbates/goth"
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
-	"github.com/cortezaproject/corteza-server/system/repository"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/markbates/goth"
+	"golang.org/x/crypto/bcrypt"
+	"regexp"
+	"strconv"
+	"time"
 )
 
 type (
@@ -84,6 +81,7 @@ func Auth() *auth {
 		notifications: DefaultAuthNotification,
 
 		actionlog: DefaultActionlog,
+		store:     DefaultNgStore,
 
 		providerValidator: defaultProviderValidator,
 	}
@@ -925,7 +923,7 @@ func (svc auth) loadUserFromToken(ctx context.Context, token, kind string) (u *t
 	}
 
 	c, err := svc.store.LookupCredentialsByID(ctx, credentialsID)
-	if err == repository.ErrCredentialsNotFound {
+	if errors.Is(err, store.ErrNotFound) {
 		return nil, AuthErrInvalidToken(aam)
 	}
 
