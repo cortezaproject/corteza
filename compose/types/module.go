@@ -37,12 +37,18 @@ type (
 
 		// Resource permission check filter
 		IsReadable *permissions.ResourceFilter `json:"-"`
+
+		Deleted rh.FilterState `json:"deleted"`
 	}
 )
 
 // Resource returns a system resource ID for this type
 func (m Module) PermissionResource() permissions.Resource {
 	return ModulePermissionResource.AppendID(m.ID)
+}
+
+func (m Module) DynamicRoles(userID uint64) []uint64 {
+	return nil
 }
 
 // FindByHandle finds module by it's handle

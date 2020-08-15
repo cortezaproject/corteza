@@ -27,14 +27,16 @@ type (
 	NamespaceFilter struct {
 		Query string `json:"query"`
 		Slug  string `json:"slug"`
-
-		Sort string `json:"sort"`
+		Name  string `json:"name"`
+		Sort  string `json:"sort"`
 
 		// Standard paging fields & helpers
 		rh.PageFilter
 
 		// Resource permission check filter
 		IsReadable *permissions.ResourceFilter `json:"-"`
+
+		Deleted rh.FilterState `json:"deleted"`
 	}
 
 	NamespaceMeta struct {
@@ -46,6 +48,10 @@ type (
 // Resource returns a system resource ID for this type
 func (n Namespace) PermissionResource() permissions.Resource {
 	return NamespacePermissionResource.AppendID(n.ID)
+}
+
+func (n Namespace) DynamicRoles(userID uint64) []uint64 {
+	return nil
 }
 
 // FindByHandle finds namespace by it's handle/slug

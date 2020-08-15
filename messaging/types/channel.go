@@ -73,6 +73,10 @@ func (c Channel) PermissionResource() permissions.Resource {
 	return ChannelPermissionResource.AppendID(c.ID)
 }
 
+func (c Channel) DynamicRoles(userID uint64) []uint64 {
+	return nil
+}
+
 func (c *Channel) IsValid() bool {
 	return c.ArchivedAt == nil && c.DeletedAt == nil
 }

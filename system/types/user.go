@@ -115,6 +115,10 @@ func (u *User) PermissionResource() permissions.Resource {
 	return UserPermissionResource.AppendID(u.ID)
 }
 
+func (u *User) DynamicRoles(userID uint64) []uint64 {
+	return nil
+}
+
 func (meta *UserMeta) Scan(value interface{}) error {
 	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
 	switch value.(type) {

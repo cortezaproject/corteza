@@ -1,0 +1,14 @@
+types:
+  MessageAttachment:
+  Mention:
+  MessageFlag:
+  Message:
+  Channel:
+  ChannelMember:
+    noIdField: true
+  Command:
+    noIdField: true
+  CommandParam:
+    noIdField: true
+  Unread:
+    noIdField: true

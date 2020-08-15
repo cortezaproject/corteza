@@ -43,6 +43,10 @@ func (m ModuleField) PermissionResource() permissions.Resource {
 	return ModuleFieldPermissionResource.AppendID(m.ID)
 }
 
+func (m ModuleField) DynamicRoles(userID uint64) []uint64 {
+	return nil
+}
+
 func (set *ModuleFieldSet) Scan(src interface{}) error {
 	if data, ok := src.([]byte); ok {
 		return json.Unmarshal(data, set)

@@ -90,6 +90,16 @@ func (r Record) PermissionResource() permissions.Resource {
 	return ModulePermissionResource.AppendID(r.ModuleID)
 }
 
+func (r Record) DynamicRoles(userID uint64) []uint64 {
+	return permissions.DynamicRoles(
+		userID,
+		r.OwnedBy, permissions.OwnersDynamicRoleID,
+		r.CreatedBy, permissions.CreatorsDynamicRoleID,
+		r.UpdatedBy, permissions.UpdatersDynamicRoleID,
+		r.DeletedBy, permissions.DeletersDynamicRoleID,
+	)
+}
+
 // UnmarshalJSON for custom record deserialization
 //
 // Due to https://github.com/golang/go/issues/21092, we should manually reset the given record value set.

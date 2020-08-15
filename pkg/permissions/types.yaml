@@ -1,0 +1,6 @@
+package: permissions
+types:
+  Rule:
+    noIdField: true
+  Resource:
+    noIdField: true

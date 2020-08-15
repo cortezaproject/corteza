@@ -148,6 +148,10 @@ func (m Message) PermissionResource() permissions.Resource {
 	return ChannelPermissionResource.AppendID(m.ChannelID)
 }
 
+func (c Message) DynamicRoles(userID uint64) []uint64 {
+	return nil
+}
+
 func (meta *MessageMeta) Scan(value interface{}) error {
 	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
 	switch value.(type) {

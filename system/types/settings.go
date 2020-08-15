@@ -1,277 +1,240 @@
 package types
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"strings"
+	"time"
 
-	"github.com/pkg/errors"
-
-	"github.com/cortezaproject/corteza-server/pkg/settings"
+	"github.com/jmoiron/sqlx/types"
 )
 
 type (
-	// Settings type is structured representation of current system settings
-	//
-	// Raw settings keys are hypen (kebab) case, separated with a dot (.) that indicates sub-level
-	// JSON properties for settings are NOT converted (lower-cased, etc...)
-	// Use `json:"-"` tag to hide settings on REST endpoint
-	Settings struct {
-		Privacy struct {
-			Mask struct {
-				// Enable masking of user's email (value replaced with ######)
-				Email bool
+	SettingValue struct {
+		Name  string         `json:"name"  db:"name"`
+		Value types.JSONText `json:"value" db:"value"`
 
-				// Enable masking of user's name (value replaced with ######)
-				Name bool
-			}
-		} `json:"-"`
+		// Setting owner, 0 for global settings
+		OwnedBy uint64 `json:"-" db:"rel_owner"`
 
-		General struct {
-			Mail struct {
-				Logo   string
-				Header string `kv:"header.en"`
-				Footer string `kv:"footer.en"`
-			}
-		} `json:"-"`
-
-		Auth struct {
-			// Not a setting, only a holder for potential
-			// warning for from subscription
-			SignupWarning string `json:",omitempty", kv:"-"`
-
-			Internal struct {
-				// Is internal authentication (username + password) enabled
-				Enabled bool
-
-				Signup struct {
-					// Can users register
-					Enabled bool
-
-					// Users must confirm their emails when signing-up
-					EmailConfirmationRequired bool `kv:"email-confirmation-required"`
-				}
-
-				// Can users reset their passwords
-				PasswordReset struct{ Enabled bool } `kv:"password-reset"`
-			}
-
-			External struct {
-				// Is external authentication
-				Enabled bool
-
-				// Where to redirect (url used for registration)
-				RedirectUrl string `json:"-" kv:"redirect-url"`
-
-				// session secret to use
-				SessionStoreSecret string `json:"-" kv:"session-store-secret"`
-
-				// session store should be secure
-				SessionStoreSecure bool `json:"-" kv:"session-store-secure"`
-
-				// all external providers we know
-				Providers ExternalAuthProviderSet
-			}
-
-			Frontend struct {
-				Url struct {
-					// Password reset path (<frontend password reset url> "?token=" + <token>)
-					PasswordReset string `kv:"password-reset"`
-
-					// EmailAddress confirmation path (<frontend  email confirmation url> "?token=" + <token>)
-					EmailConfirmation string `kv:"email-confirmation"`
-
-					// Where to redirect user after external auth flow
-					Redirect string
-
-					// Webapp Base URL
-					Base string
-				}
-			}
-
-			Mail struct {
-				FromAddress string `kv:"from-address"`
-				FromName    string `kv:"from-name"`
-
-				EmailConfirmation struct {
-					Subject string `kv:"subject.en"`
-					Body    string `kv:"body.en"`
-				} `kv:"email-confirmation"`
-
-				PasswordReset struct {
-					Subject string `kv:"subject.en"`
-					Body    string `kv:"body.en"`
-				} `kv:"password-reset"`
-			} `json:"-"`
-		}
-
-		UI struct {
-			// Corteza One configuration settings
-			One struct {
-				Logo  string `kv:"logo" json:"logo"`
-				Title string `kv:"title" json:"title"`
-
-				PanelsEnabled bool `kv:"panels-enabled" json:"panelsEnabled"`
-				Panels        []struct {
-					Visible        bool `json:"visible"`
-					Sticky         bool `json:"sticky"`
-					Width          uint `json:"width"`
-					Height         uint `json:"height"`
-					ActiveTabIndex uint `json:"activeTabIndex"`
-					Tabs           []struct {
-						Title  string `json:"title"`
-						Url    string `json:"url"`
-						Logo   string `json:"logo"`
-						Icon   string `json:"icon"`
-						Sticky bool   `json:"sticky"`
-					} `json:"tabs"`
-				} `kv:"panels,final" json:"panels"`
-			} `kv:"one" json:"one"`
-
-			// Admin struct {} `kv:"admin"`
-		} `kv:"ui" json:"ui"`
+		// Who updated & when
+		UpdatedAt time.Time `json:"updatedAt" db:"updated_at"`
+		UpdatedBy uint64    `json:"updatedBy" db:"updated_by"`
 	}
 
-	ExternalAuthProviderSet []*ExternalAuthProvider
+	SettingsFilter struct {
+		Prefix  string `json:"prefix"`
+		OwnedBy uint64 `json:"ownedBy"`
 
-	ExternalAuthProvider struct {
-		Enabled     bool   `json:"enabled"`
-		Handle      string `json:"handle"`
-		Label       string `json:"label"`
-		Key         string `json:"-"`
-		Secret      string `json:"-"`
-		RedirectUrl string `json:"-" kv:"redirect"`
-		IssuerUrl   string `json:"-" kv:"issuer"`
-		Weight      int    `json:"-"`
+		rh.PageFilter
 	}
+
+	SettingsKV map[string]types.JSONText
 )
 
-// DecodeKV translates settings' KV into internal system external auth settings
-func (set *ExternalAuthProviderSet) DecodeKV(kv settings.KV, prefix string) (err error) {
-	if *set == nil {
-		*set = ExternalAuthProviderSet{}
+const (
+	settingsFilterPerPageMax = 100
+)
+
+func (f *SettingsFilter) Normalize() {
+	f.Prefix = strings.TrimSpace(f.Prefix)
+	if f.PerPage > settingsFilterPerPageMax {
+		f.PerPage = settingsFilterPerPageMax
+	}
+}
+
+func (v *SettingValue) SetRawValue(str string) error {
+	var dummy interface{}
+	// Test input to be sure we can save it...
+	if err := json.Unmarshal([]byte(str), &dummy); err != nil {
+		return err
 	}
 
-	// create standard provider set
-	providers := map[string]bool{"github": true, "facebook": true, "google": true, "linkedin": true}
+	v.Value = types.JSONText(str)
+	return nil
+}
 
-	// remove prefix
-	kv = kv.CutPrefix(prefix + ".")
-
-	// add all additional providers (prefixed with "openid-connect.")
-	oidcPrefix := "openid-connect."
-	for p := range kv {
-		if !strings.HasPrefix(p, oidcPrefix) {
-			continue
-		}
-
-		l := len(oidcPrefix)
-		dotPos := strings.Index(p[l:], ".") + l
-		if dotPos > 0 {
-			providers[p[:dotPos]] = true
-		}
+func (v *SettingValue) SetValue(value interface{}) (err error) {
+	buf := bytes.Buffer{}
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+	if err = enc.Encode(value); err != nil {
+		return err
 	}
 
-	// go over all added providers again add decode KV into each one
-	for handle := range providers {
-		p := (*set).FindByHandle(handle)
-		if p == nil {
-			p = &ExternalAuthProvider{Handle: handle}
-			(*set) = append((*set), p)
-		}
+	v.Value = buf.Bytes()
+	return
+}
 
-		err = settings.DecodeKV(kv.CutPrefix(handle+"."), p)
-		if err != nil {
-			return
-		}
+func (v *SettingValue) String() (out string) {
+	if v == nil {
+		return ""
+	}
 
-		if p.Label == "" {
-			switch p.Handle {
-			case "github":
-				p.Label = "GitHub"
-			case "linkedin":
-				p.Label = "LinkedIn"
-			case "corteza-iam", "corteza", "corteza-one":
-				p.Label = "Corteza IAM"
-			case "crust-iam", "crust", "crust-unify":
-				p.Label = "Crust IAM"
-			default:
-				if strings.HasPrefix(p.Handle, oidcPrefix) {
-					p.Label = strings.Title(p.Handle[len(oidcPrefix):])
-				} else {
-					p.Label = strings.Title(p.Handle)
-				}
-			}
-		}
+	_ = v.Value.Unmarshal(&out)
+	return
+}
+
+func (v *SettingValue) Bool() (out bool) {
+	if v == nil {
+		return false
+	}
+
+	_ = v.Value.Unmarshal(&out)
+	return
+}
+
+func (v *SettingValue) NormalizeValue() {
+
+}
+
+func (v *SettingValue) Eq(c *SettingValue) bool {
+	return v != nil &&
+		c != nil &&
+		v.Name == c.Name &&
+		v.OwnedBy == c.OwnedBy &&
+		fmt.Sprintf("%v", v.Value) == fmt.Sprintf("%v", c.Value)
+}
+
+func (set SettingValueSet) KV() SettingsKV {
+	m := SettingsKV{}
+
+	_ = set.Walk(func(v *SettingValue) error {
+		m[v.Name] = v.Value
+		return nil
+	})
+
+	return m
+}
+
+func (kv SettingsKV) Has(k string) (ok bool) {
+	_, ok = kv[k]
+	return
+}
+
+func (kv SettingsKV) Bool(k string) (out bool) {
+	out = false
+	if v, ok := kv[k]; ok {
+		_ = v.Unmarshal(&out)
 	}
 
 	return
 }
 
-func (set ExternalAuthProviderSet) FindByHandle(handle string) *ExternalAuthProvider {
-	for p := range set {
-		if set[p].Handle == handle {
-			return set[p]
+func (kv SettingsKV) String(k string) (out string) {
+	out = ""
+	if v, ok := kv[k]; ok {
+		_ = v.Unmarshal(&out)
+	}
+
+	return
+}
+
+func (kv SettingsKV) Filter(prefix string) SettingsKV {
+	var out = SettingsKV{}
+	for k, v := range kv {
+		if strings.Index(k, prefix) == 0 {
+			out[k] = v
+		}
+	}
+
+	return out
+}
+
+// CutPrefix returns values with matching prefix and removes the prefix from keys
+func (kv SettingsKV) CutPrefix(prefix string) SettingsKV {
+	var out = SettingsKV{}
+	for k, v := range kv {
+		if strings.Index(k, prefix) == 0 {
+			out[k[len(prefix):]] = v
+		}
+	}
+
+	return out
+}
+
+// Decode is a helper function on SettingsKV that calls DecodeKV() and passes on the dst
+func (kv SettingsKV) Decode(dst interface{}) error {
+	return DecodeKV(kv, dst)
+}
+
+// Replace finds and updates existing or appends new value
+func (set *SettingValueSet) Replace(n *SettingValue) {
+	for _, v := range *set {
+		if v.Name == n.Name {
+			v.Value = n.Value
+			return
+		}
+	}
+
+	*set = append(*set, n)
+}
+
+// Replace finds and updates existing or appends new value
+func (set *SettingValueSet) Has(name string) bool {
+	return set.First(name) != nil
+}
+
+// First finds and returns first value
+func (set SettingValueSet) First(name string) *SettingValue {
+	for _, v := range set {
+		if v.Name == name {
+			return v
 		}
 	}
 
 	return nil
 }
 
-func (set ExternalAuthProviderSet) Len() int      { return len(set) }
-func (set ExternalAuthProviderSet) Swap(i, j int) { set[i], set[j] = set[j], set[i] }
-func (set ExternalAuthProviderSet) Less(i, j int) bool {
-	if set[i].Weight != set[j].Weight {
-		// Sort by weight
-		return set[i].Weight < set[j].Weight
-	}
+// Returns all valus that changed or do not exist in the original set
+func (set SettingValueSet) Changed(in SettingValueSet) (out SettingValueSet) {
+input:
+	for _, i := range in {
+		for _, s := range set {
+			if s.Name != i.Name {
+				// Different name, not interested
+				continue
+			}
 
-	if set[i].Label+set[j].Label != "" {
-		// If at least one of the
-		return set[i].Label < set[j].Label
-	}
+			if s.Eq(i) {
+				// SettingValue did not change, continue with next input set
+				continue input
+			}
 
-	return set[i].Handle < set[j].Handle
-}
-
-// Returns enabled providers, sorted with their redirect-URLs set...
-func (set ExternalAuthProviderSet) Valid(s *Settings) (out ExternalAuthProviderSet) {
-	for _, eap := range set {
-		if !eap.Enabled {
-			continue
+			// SettingValue changed, break out the loop
+			break
 		}
 
-		out = append(out, eap)
+		// Handle changed or missing value
+		out = append(out, i)
 	}
 
 	return
 }
 
-var _ settings.KVDecoder = &ExternalAuthProviderSet{}
+// New returns all new values (that do not exist in the original set)
+func (set SettingValueSet) New(in SettingValueSet) (out SettingValueSet) {
+	org := set.KV()
 
-func (p ExternalAuthProvider) EncodeKV() (vv settings.ValueSet, err error) {
-	if p.Handle == "" {
-		return nil, errors.New("can not encode external auth provider without handle")
+	for _, v := range in {
+		if !org.Has(v.Name) {
+			out = append(out, v)
+		}
 	}
-	var (
-		prefix = "auth.external.providers." + p.Handle + "."
-		pairs  = map[string]interface{}{
-			"enabled":  p.Enabled,
-			"label":    p.Label,
-			"key":      p.Key,
-			"secret":   p.Secret,
-			"issuer":   p.IssuerUrl,
-			"redirect": p.RedirectUrl,
-			"weight":   p.Weight,
+
+	return
+}
+
+// New returns all new values (that do not exist in the original set)
+func (set SettingValueSet) Old(in SettingValueSet) (out SettingValueSet) {
+	org := set.KV()
+
+	for _, v := range in {
+		if org.Has(v.Name) {
+			out = append(out, v)
 		}
-	)
-
-	for key, value := range pairs {
-		v := &settings.Value{Name: prefix + key}
-
-		if err = v.SetValue(value); err != nil {
-			return
-		}
-
-		vv = append(vv, v)
 	}
 
 	return

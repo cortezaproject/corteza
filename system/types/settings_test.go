@@ -1,71 +1,112 @@
 package types
 
 import (
-	"sort"
-	"testing"
-
 	"github.com/jmoiron/sqlx/types"
 	"github.com/stretchr/testify/require"
-
-	"github.com/cortezaproject/corteza-server/pkg/settings"
+	"testing"
 )
 
-// 	Hello! This file is auto-generated.
+func TestSettingsKV_Bool(t *testing.T) {
+	type args struct {
+		k string
+	}
+	tests := []struct {
+		name  string
+		kv    SettingsKV
+		args  args
+		wantV bool
+	}{
+		{
+			name:  "True value should return true",
+			kv:    SettingsKV{"true-value": types.JSONText(`true`)},
+			args:  args{k: "true-value"},
+			wantV: true,
+		},
+		{
+			name:  "Null value should return false",
+			kv:    SettingsKV{"null-value": types.JSONText(`null`)},
+			args:  args{k: "null-value"},
+			wantV: false,
+		},
+		{
+			name:  "Unexisting value should return false",
+			kv:    SettingsKV{},
+			args:  args{k: "unexisting"},
+			wantV: false,
+		},
+		{
+			name:  "Invalid SettingsKV should return false",
+			kv:    nil,
+			args:  args{k: "invalid-kv"},
+			wantV: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotV := tt.kv.Bool(tt.args.k); gotV != tt.wantV {
+				t.Errorf("SettingsKV.Bool() = %v, want %v", gotV, tt.wantV)
+			}
+		})
+	}
+}
 
-func Test_settingsExtAuthProvidersDecode(t *testing.T) {
-	type (
-		Dst struct {
-			Providers ExternalAuthProviderSet
-		}
-	)
+func TestSettingValueAsString(t *testing.T) {
+	var req = require.New(t)
 
+	req.NoError((&SettingValue{}).SetRawValue(`"string"`), "unable to set value as string")
+	req.NoError((&SettingValue{}).SetRawValue(`false`), "unable to set value as string")
+	req.NoError((&SettingValue{}).SetRawValue(`null`), "unable to set value as string")
+	req.NoError((&SettingValue{}).SetRawValue(`42`), "unable to set value as string")
+	req.NoError((&SettingValue{}).SetRawValue(`3.14`), "unable to set value as string")
+	req.Error((&SettingValue{}).SetRawValue(`error`), "expecting error when not setting JSON")
+}
+
+func TestSettingValueSet_Upsert(t *testing.T) {
 	var (
-		aux = Dst{}
-		kv  = settings.KV{
-			"providers.foo.enabled":                types.JSONText(`true`),
-			"providers.openid-connect.bar.enabled": types.JSONText(`true`),
-			"providers.openid-connect.bar.key":     types.JSONText(`"K3Y"`),
-			"providers.google.enabled":             types.JSONText(`true`),
-			"providers.google.key":                 types.JSONText(`"g00gl3"`),
-		}
-
-		eq = Dst{
-			Providers: ExternalAuthProviderSet{
-				{Handle: "github"},
-				{Handle: "facebook"},
-				{Enabled: true, Key: "g00gl3", Handle: "google"},
-				{Handle: "linkedin"},
-				{Enabled: true, Key: "K3Y", Handle: "openid-connect.bar"},
-			},
-		}
+		req = require.New(t)
+		vv  = SettingValueSet{}
 	)
 
-	sort.Sort(eq.Providers)
+	req.Len(vv, 0)
 
-	require.NoError(t, settings.DecodeKV(kv, &aux))
-	require.Len(t, aux.Providers, 5)
+	vv.Replace(&SettingValue{Name: "name"})
+	req.Len(vv, 1)
 
-	require.Nil(t,
-		aux.Providers.FindByHandle("foo"))
+	vv.Replace(&SettingValue{Name: "name", Value: []byte("42")})
+	req.Len(vv, 1)
+	req.Equal("42", string(vv[0].Value))
+}
 
-	require.Equal(t,
-		aux.Providers.FindByHandle("openid-connect.bar"),
-		&ExternalAuthProvider{Enabled: true, Key: "K3Y", Handle: "openid-connect.bar", Label: "Bar"})
+func TestSettingValueSet_Changed(t *testing.T) {
+	var (
+		req = require.New(t)
 
-	require.Equal(t,
-		aux.Providers.FindByHandle("google"),
-		&ExternalAuthProvider{Enabled: true, Key: "g00gl3", Handle: "google", Label: "Google"})
+		// make string value
+		msv = func(n, v string) *SettingValue {
+			o := &SettingValue{Name: n}
+			_ = o.SetValue(v)
+			return o
+		}
 
-	require.Equal(t,
-		aux.Providers.FindByHandle("linkedin"),
-		&ExternalAuthProvider{Handle: "linkedin", Label: "LinkedIn"})
+		// make bool value
+		mbv = func(n string, v bool) *SettingValue {
+			o := &SettingValue{Name: n}
+			_ = o.SetValue(v)
+			return o
+		}
 
-	require.Equal(t,
-		aux.Providers.FindByHandle("github"),
-		&ExternalAuthProvider{Handle: "github", Label: "GitHub"})
+		org = SettingValueSet{msv("a", "a1"), msv("b", "b1"), msv("d", "d1"), mbv("bool", true)}
+		inp = SettingValueSet{msv("a", "a2"), msv("c", "c1"), msv("d", "d1"), mbv("bool", false)}
 
-	require.Equal(t,
-		aux.Providers.FindByHandle("facebook"),
-		&ExternalAuthProvider{Handle: "facebook", Label: "Facebook"})
+		out SettingValueSet
+	)
 
+	out = org.Changed(inp)
+
+	req.Len(out, 3)
+	req.Equal("a2", out.First("a").String())
+	req.Equal("", out.First("b").String())
+	req.Equal("c1", out.First("c").String())
+	req.Equal("", out.First("d").String())
+	req.Equal(false, out.First("bool").Bool())
 }

@@ -57,6 +57,10 @@ func (r *Role) PermissionResource() permissions.Resource {
 	return RolePermissionResource.AppendID(r.ID)
 }
 
+func (r *Role) DynamicRoles(userID uint64) []uint64 {
+	return nil
+}
+
 // FindByHandle finds role by it's handle
 func (set RoleSet) FindByHandle(handle string) *Role {
 	for i := range set {
